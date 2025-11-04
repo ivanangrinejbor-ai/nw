@@ -382,7 +382,7 @@
     <string name="brick_mouse_event">Mouse event</string>
     <string name="brick_mouse_x">X position</string>
     <string name="brick_mouse_y">Y position</string>
-    <string name="brick_mouse_state">button (0:Up, 1:Down)</string>
+    <string name="brick_mouse_state">mask (0:Up, 1:Down)</string>
     <string name="brick_toggle_display">Set display visible</string>
     <string name="brick_stop_vm">Stop VM</string>
     <string name="brick_run_vm">Run VM</string>

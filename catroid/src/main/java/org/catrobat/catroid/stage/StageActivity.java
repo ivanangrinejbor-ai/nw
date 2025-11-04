@@ -451,39 +451,28 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 		VirtualMachineManager.INSTANCE.createDiskIfNotExists(qemuBaseDir, diskPath, diskSize);
 	}
 
-	// --- Управление вводом ---
 	public void sendVmMouseEvent(float catroidX, float catroidY, int buttonState) {
 		if(!VirtualMachineManager.INSTANCE.isWorking()) return;
 		VncClient client = vncClients.get(DEFAULT_VM_NAME);
 		if (client == null) return;
 		if (stageListener == null) return;
 
-		// --- НАЧАЛО: Исправление координат ---
+		float virtualWidth = stageListener.getVirtualWidth();
+		float virtualHeight = stageListener.getVirtualHeight();
 
-		// 1. Получаем размеры виртуальной сцены Catroid
-		float virtualWidth = stageListener.getVirtualWidth();   // например, 480
-		float virtualHeight = stageListener.getVirtualHeight(); // например, 360
+		float screenX = catroidX + (virtualWidth / 2f);
+		float screenY = -catroidY + (virtualHeight / 2f);
 
-		// 2. Преобразуем координаты из системы "центр в (0,0)" в систему "левый верхний угол в (0,0)"
-		float screenX = catroidX + (virtualWidth / 2f);   // -240 -> 0,   240 -> 480
-		float screenY = -catroidY + (virtualHeight / 2f); // 180 -> 0,  -180 -> 360 (Y инвертируется)
+		int vmWidth = stageListener.getVmWidth();
+		int vmHeight = stageListener.getVmHeight();
 
-		// 3. Получаем размеры "карты" VNC
-		int vmWidth = stageListener.getVmWidth();   // например, 720
-		int vmHeight = stageListener.getVmHeight(); // например, 400
-
-		// 4. Масштабируем координаты из одной "карты" в другую
 		int vmX = (int) ((screenX / virtualWidth) * vmWidth);
 		int vmY = (int) ((screenY / virtualHeight) * vmHeight);
 
-		// 5. Ограничиваем на всякий случай
 		vmX = Math.max(0, Math.min(vmWidth - 1, vmX));
 		vmY = Math.max(0, Math.min(vmHeight - 1, vmY));
 
-		// 6. Отправляем АБСОЛЮТНУЮ позицию, но уже в ПРАВИЛЬНОЙ системе координат
 		client.sendPointerEvent(vmX, vmY, buttonState);
-
-		// --- КОНЕЦ: Исправление координат ---
 	}
 
 	public void sendVmKeyEvent(int keysym, boolean isDown) {

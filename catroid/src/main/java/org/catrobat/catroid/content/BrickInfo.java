@@ -243,8 +243,14 @@ public final class BrickInfo {
         add(RunVm2Brick.class, "Запускает виртуальную машину с помощью QEMU на архитектуре x86_64, при помощи аргументов (позволяет запускать Windows, Linux и др) ВАЖНО: обязательно выключайте VM, когда она не нужна");
         add(CreateDiskBrick.class, "Создает виртуальный жесткий диск для VM");
         add(ToggleDisplayBrick.class, "Определяет: показывать ли изображение VM");
-        add(MouseEventBrick.class, "Эмулирует событие мыши для VM");
-        add(KeyEventBrick.class, "Эмулирует событие клавиш для VM. ВАЖНО: специальные клавиши обозначаются так: <CTRL_L>, <CTRL_R>, <ALT_L>, <ALT_R>, <WIN_L>, <WIN_R>, <SHIFT_L>, <SHIFT_R>, <DEL>, <BACKSPACE>, <ENTER>, <ESC>, <TAB>, <UP>, <DOWN>, <LEFT>, <RIGHT>, <UP>, <DOWN>");
+        add(MouseEventBrick.class, "Эмулирует событие мыши для VM (VNC). ВАЖНО: Маска - побитовая информация о кнопках: " +
+                "1: Левая кнопка мыши (Button 1 Pressed/Released).\n" +
+                "2: Средняя кнопка мыши (Button 2 Pressed/Released).\n" +
+                "4: Правая кнопка мыши (Button 3 Pressed/Released).\n" +
+                "8: Кнопка 4 (прокрутка вверх, если поддерживается).\n" +
+                "16: Кнопка 5 (прокрутка вниз, если поддерживается).\n" +
+                "Например, нажатие ЛКМ будет 1, а нажатие одновременно ЛКМ и ПКМ будет: 1 + 4 = 5 (т.к. ЛКМ: 1, а ПКМ: 4)");
+        add(KeyEventBrick.class, "Эмулирует событие клавиш для VM (VNC). ВАЖНО: специальные клавиши обозначаются так: <CTRL_L>, <CTRL_R>, <ALT_L>, <ALT_R>, <WIN_L>, <WIN_R>, <SHIFT_L>, <SHIFT_R>, <DEL>, <BACKSPACE>, <ENTER>, <ESC>, <TAB>, <UP>, <DOWN>, <LEFT>, <RIGHT>, <UP>, <DOWN>");
         add(StopVMBrick.class, "Останавливает VM");
         add(SendVmInputBrick.class, "Отправляет клавиши как физическая клавиатура (может пригодиться для систем без дисплея) ВАЖНО: спец. символы: <CTRL+ANY> (ANY - любой символ, тобеж: <CTRL+C>, <CTRL+O>), <ESC>, <TAB>, <ENTER>, <BACKSPACE>, <UP>, <DOWN>, <RIGHT>, <LEFT>");
         add(BindVmOutputBrick.class, "Привязывает вывод консоли VM к переменной. ВАЖНО: сначала привяжите, и только потом запускайте VM, иначе она запустится без этого. Честно, я пока-что сам хз как этим пользоваться, но мне сказали, что это надо :/");

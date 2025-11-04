@@ -361,7 +361,7 @@
     <string name="brick_mouse_event">Событие мыши</string>
     <string name="brick_mouse_x">Позиция X</string>
     <string name="brick_mouse_y">Позиция Y</string>
-    <string name="brick_mouse_state">кнопка (0:Отпущена, 1:Нажата)</string>
+    <string name="brick_mouse_state">маска (0:Отпущена, 1:Нажата)</string>
     <string name="brick_toggle_display">Показать монитор</string>
     <string name="brick_stop_vm">Остановить VM</string>
     <string name="brick_run_vm">Запустить VM</string>

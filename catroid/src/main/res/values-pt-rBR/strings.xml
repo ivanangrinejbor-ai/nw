@@ -280,7 +280,7 @@
     <string name="brick_mouse_event">Evento de mouse</string>
     <string name="brick_mouse_x">Posição X</string>
     <string name="brick_mouse_y">Posição Y</string>
-    <string name="brick_mouse_state">botão (0:Solto, 1:Pressionado)</string>
+    <string name="brick_mouse_state">máscara (0:Solto, 1:Pressionado)</string>
     <string name="brick_toggle_display">Mostrar monitor</string>
     <string name="brick_stop_vm">Parar VM</string>
     <string name="brick_run_vm">Iniciar VM</string>
