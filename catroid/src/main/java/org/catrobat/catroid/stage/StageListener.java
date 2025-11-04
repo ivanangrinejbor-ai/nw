@@ -583,6 +583,8 @@ public class StageListener implements ApplicationListener {
 		SensorHandler.timerReferenceValue = SystemClock.uptimeMillis();
 	}
 
+	private final Vector3 tempVec3ForTouch = new Vector3();
+
 	private void initStageInputListener() {
 		if (stage != null) {
 			stage.getRoot().clearListeners();
@@ -610,10 +612,26 @@ public class StageListener implements ApplicationListener {
 		};
 
 		InputListener uiPassThroughListener = new InputListener() {
+			private void updateTouchInWorldCoords(float screenX, float screenY, int pointer, boolean isDown) {
+				tempVec3ForTouch.set(screenX, Gdx.graphics.getHeight() - screenY, 0);
+
+				camera.unproject(tempVec3ForTouch);
+
+				if (isDown) {
+					TouchUtil.touchDown(tempVec3ForTouch.x, tempVec3ForTouch.y, pointer);
+				} else {
+					TouchUtil.updatePosition(tempVec3ForTouch.x, tempVec3ForTouch.y, pointer);
+				}
+			}
+
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                return event.getTarget() != uiStage.getRoot();
-            }
+				if (event.getTarget() != uiStage.getRoot()) {
+					updateTouchInWorldCoords(event.getStageX(), event.getStageY(), pointer, true);
+					return true;
+				}
+				return false;
+			}
 
 			@Override
 			public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
@@ -622,7 +640,9 @@ public class StageListener implements ApplicationListener {
 
 			@Override
 			public void touchDragged(InputEvent event, float x, float y, int pointer) {
-				TouchUtil.updatePosition(event.getStageX(), event.getStageY(), pointer);
+				if (event.getTarget() != uiStage.getRoot()) {
+					updateTouchInWorldCoords(event.getStageX(), event.getStageY(), pointer, false);
+				}
 			}
 		};
 
@@ -637,6 +657,7 @@ public class StageListener implements ApplicationListener {
 
 		for (Sprite sprite : sprites) {
 			sprite.resetSprite();
+			sprite.look.setRenderingContext(this.camera, this.viewPort, this.uiStage);
 			//sprite.look.createBrightnessContrastHueShader();
 			stage.addActor(sprite.look);
 		}
@@ -663,6 +684,7 @@ public class StageListener implements ApplicationListener {
 			copy.myOriginal = cloneMe;
 		}
 		//copy.look.createBrightnessContrastHueShader();
+		copy.look.setRenderingContext(this.camera, this.viewPort, this.uiStage);
 		addCloneActorToStage(stage, stage.getRoot(), cloneMe.look, copy.look);
 		sprites.add(copy);
 		if (!copy.getLookList().isEmpty()) {
@@ -681,6 +703,7 @@ public class StageListener implements ApplicationListener {
 			copy.myOriginal = cloneMe;
 		}
 		//copy.look.createBrightnessContrastHueShader();
+		copy.look.setRenderingContext(this.camera, this.viewPort, this.uiStage);
 		addCloneActorToStage(stage, stage.getRoot(), cloneMe.look, copy.look);
 		sprites.add(copy);
 		if (!copy.getLookList().isEmpty()) {
@@ -1262,19 +1285,11 @@ public class StageListener implements ApplicationListener {
 			}
 
             if (isVmDisplayVisible && vmTexture != null && vncSwizzleShader != null && vncSwizzleShader.isCompiled()) {
-
                 vncSwizzleShader.bind();
-
-
                 vmTexture.bind(0);
-
-
-
 
                 vncSwizzleShader.setUniformi("u_texture", 0);
                 vncSwizzleShader.setUniformMatrix("u_projectionMatrix", camera.combined);
-
-
 
                 fullscreenQuad.render(vncSwizzleShader, GL20.GL_TRIANGLES);
             }
@@ -1949,17 +1964,13 @@ public class StageListener implements ApplicationListener {
 
 	public void resetCamera() {
 		if (camera != null) {
-			// Сбрасываем позицию в центр (0, 0)
 			camera.position.set(0, 0, 0);
 
-			// Сбрасываем зум к 1.0 (без приближения/отдаления)
 			camera.zoom = 1.0f;
 
-			// Вращаем камеру на ОБРАТНЫЙ угол, чтобы вернуть ее в 0 градусов
 			camera.rotate(-cameraRotation);
-			cameraRotation = 0f; // Также сбрасываем наш собственный счетчик вращения
+			cameraRotation = 0f;
 
-			// Применяем все изменения
 			camera.update();
 		}
 	}

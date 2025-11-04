@@ -146,6 +146,13 @@
     <string name="brick_load_from_internal">Загрузить файл из внутр. хранилища</string>
     <string name="brick_clone_and_name">Клонировать и назвать</string>
     <string name="brick_clone_name_as">Назвать клона</string>
+    <string name="brick_bind_vm_output">Привязать вывод ВМ к переменной</string>
+    <string name="vm_name">Имя ВМ</string>
+    <string name="variable">Переменная</string>
+    <string name="brick_send_vm_input">Отправить ввод в ВМ</string>
+    <string name="input_text">Текст ввода</string>
+    <string name="brick_run_vm2">Запустить ВМ</string>
+    <string name="brick_vm_arguments">Аргументы</string>
 
     <string name="loading_fact_placeholder">Загрузка...</string>
 

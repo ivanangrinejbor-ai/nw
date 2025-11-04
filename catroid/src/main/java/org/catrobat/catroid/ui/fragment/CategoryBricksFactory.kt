@@ -54,6 +54,7 @@ import org.catrobat.catroid.content.bricks.AsyncRepeatBrick
 import org.catrobat.catroid.content.bricks.AttachSOBrick
 import org.catrobat.catroid.content.bricks.BackgroundRequestBrick
 import org.catrobat.catroid.content.bricks.BigAskBrick
+import org.catrobat.catroid.content.bricks.BindVmOutputBrick
 import org.catrobat.catroid.content.bricks.Brick
 import org.catrobat.catroid.content.bricks.BroadcastBrick
 import org.catrobat.catroid.content.bricks.BroadcastReceiverBrick
@@ -265,6 +266,7 @@ import org.catrobat.catroid.content.bricks.RunLuaBrick
 import org.catrobat.catroid.content.bricks.RunPythonScriptBrick
 import org.catrobat.catroid.content.bricks.RunShellBrick
 import org.catrobat.catroid.content.bricks.RunVMBrick
+import org.catrobat.catroid.content.bricks.RunVm2Brick
 import org.catrobat.catroid.content.bricks.RunningStitchBrick
 import org.catrobat.catroid.content.bricks.SaveLookBrick
 import org.catrobat.catroid.content.bricks.SaveLookFilesBrick
@@ -278,6 +280,7 @@ import org.catrobat.catroid.content.bricks.SceneTransitionBrick
 import org.catrobat.catroid.content.bricks.ScreenShotBrick
 import org.catrobat.catroid.content.bricks.SeekVideoBrick
 import org.catrobat.catroid.content.bricks.SendServerBrick
+import org.catrobat.catroid.content.bricks.SendVmInputBrick
 import org.catrobat.catroid.content.bricks.Set3dFrictionBrick
 import org.catrobat.catroid.content.bricks.Set3dGravityBrick
 import org.catrobat.catroid.content.bricks.Set3dPositionBrick
@@ -977,11 +980,14 @@ print("Bot has stopped.")""", "myVar"))
         deviceBrickList.add(CreateGLViewBrick("glView", 100, 200, 500, 300))
         deviceBrickList.add(SetViewPositionBrick("myVideoPlayer", 100, 200))
         deviceBrickList.add(DeleteWebBrick("myWebView"))
+        deviceBrickList.add(BindVmOutputBrick())
+        deviceBrickList.add(RunVm2Brick("-kernel \"%PROJECT_FILES%/bzImage\" -initrd \"%PROJECT_FILES%/core.gz\" -append \"console=ttyS0 quiet\""))
         deviceBrickList.add(RunVMBrick("1024", "2", "myDisk.qcow2", "flash.iso"))
         deviceBrickList.add(CreateDiskBrick("myDisk.qcow2", "10G"))
         deviceBrickList.add(ToggleDisplayBrick(1))
         deviceBrickList.add(MouseEventBrick("0", "100", 1))
         deviceBrickList.add(KeyEventBrick("a", 1))
+        deviceBrickList.add(SendVmInputBrick("ls ~/"))
         deviceBrickList.add(StopVMBrick())
         /*deviceBrickList.add(ShaderBrick("""attribute vec4 a_position;
 attribute vec2 a_texCoord0;

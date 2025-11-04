@@ -22,11 +22,13 @@
  */
 package org.catrobat.catroid.content;
 
+import android.graphics.Camera;
 import android.graphics.PointF;
 import android.util.Log;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.ParticleEffect;
@@ -36,16 +38,19 @@ import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.Polygon;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Action;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.EventListener;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
+import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.Touchable;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.viewport.Viewport;
 import com.danvexteam.lunoscript_annotations.LunoClass;
 
 import org.catrobat.catroid.ProjectManager;
@@ -56,7 +61,6 @@ import org.catrobat.catroid.content.actions.ScriptSequenceActionWithWaiter;
 import org.catrobat.catroid.content.eventids.EventId;
 import org.catrobat.catroid.physics.ParticleConstants;
 import org.catrobat.catroid.sensing.CollisionInformation;
-import org.catrobat.catroid.utils.NativeLookOptimizer;
 import org.catrobat.catroid.utils.TouchUtil;
 import org.jetbrains.annotations.Nullable;
 
@@ -113,6 +117,10 @@ public class Look extends Image {
 	protected float height = 1f;
 	protected float width = 1f;
 	protected Pixmap pixmap;
+
+	private transient OrthographicCamera gameCamera;
+	private transient Viewport gameViewport;
+	private transient Stage uiStage;
 	private int rotationMode = ROTATION_STYLE_ALL_AROUND;
 	private float rotation = 90f;
 	private float realRotation = rotation;
@@ -173,6 +181,16 @@ public class Look extends Image {
 			}
 		});
 		this.addListener(new EventWrapperListener(this));
+	}
+
+	public void setRenderingContext(OrthographicCamera gameCamera, Viewport gameViewport, Stage uiStage) {
+		this.gameCamera = gameCamera;
+		this.gameViewport = gameViewport;
+		this.uiStage = uiStage;
+	}
+
+	public boolean isPinnedToCamera() {
+		return getStage() != null && getStage() == uiStage;
 	}
 
 	public void setAssumesConvexPolygons(boolean convex) {
@@ -552,20 +570,66 @@ public class Look extends Image {
 		return path;
 	}
 
+	private final transient Vector3 tempVec3 = new Vector3();
+
 	public float getXInUserInterfaceDimensionUnit() {
+		if (isPinnedToCamera()) {
+			tempVec3.set(getX() + getWidth() / 2f, getY() + getHeight() / 2f, 0);
+			if (gameCamera != null) {
+				gameCamera.unproject(tempVec3);
+			}
+			return tempVec3.x;
+		}
 		return getX() + getWidth() / 2f;
 	}
 
-	public void setXInUserInterfaceDimensionUnit(float x) {
-		setX(x - getWidth() / 2f);
-	}
-
 	public float getYInUserInterfaceDimensionUnit() {
+		if (isPinnedToCamera()) {
+			tempVec3.set(getX() + getWidth() / 2f, getY() + getHeight() / 2f, 0);
+			if (gameCamera != null) {
+				gameCamera.unproject(tempVec3);
+			}
+			return tempVec3.y;
+		}
 		return getY() + getHeight() / 2f;
 	}
 
-	public void setYInUserInterfaceDimensionUnit(float y) {
-		setY(y - getHeight() / 2f);
+	public void setXInUserInterfaceDimensionUnit(float worldX) {
+		if (isPinnedToCamera()) {
+			float currentWorldY = getYInUserInterfaceDimensionUnit();
+			tempVec3.set(worldX, currentWorldY, 0);
+			if (gameCamera != null) {
+				gameCamera.project(tempVec3);
+			}
+			setX(tempVec3.x - getWidth() / 2f);
+		} else {
+			setX(worldX - getWidth() / 2f);
+		}
+	}
+
+	public void setYInUserInterfaceDimensionUnit(float worldY) {
+		if (isPinnedToCamera()) {
+			float currentWorldX = getXInUserInterfaceDimensionUnit();
+			tempVec3.set(currentWorldX, worldY, 0);
+			if (gameCamera != null) {
+				gameCamera.project(tempVec3);
+			}
+			setY(tempVec3.y - getHeight() / 2f);
+		} else {
+			setY(worldY - getHeight() / 2f);
+		}
+	}
+
+	public void setPositionInUserInterfaceDimensionUnit(float worldX, float worldY) {
+		if (isPinnedToCamera()) {
+			tempVec3.set(worldX, worldY, 0);
+			if (gameCamera != null) {
+				gameCamera.project(tempVec3);
+			}
+			setPosition(tempVec3.x - getWidth() / 2f, tempVec3.y - getHeight() / 2f);
+		} else {
+			setPosition(worldX - getWidth() / 2f, worldY - getHeight() / 2f);
+		}
 	}
 
 	public float getDistanceToTouchPositionInUserInterfaceDimensions() {
@@ -594,13 +658,6 @@ public class Look extends Image {
 			return sprite.getGlidingVelocityY();
 		}
 		return 0;
-	}
-
-	public void setPositionInUserInterfaceDimensionUnit(float x, float y) {
-		adjustSimultaneousMovementXY(x, y);
-		setXInUserInterfaceDimensionUnit(x);
-		adjustSimultaneousMovementXY(getXInUserInterfaceDimensionUnit(), y);
-		setYInUserInterfaceDimensionUnit(y);
 	}
 
 	@Override

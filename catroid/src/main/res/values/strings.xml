@@ -158,6 +158,13 @@
     <string name="brick_clone_name_as">Name clone as</string>
     <string name="formula_editor_function_touches_object_by_name">touches_object_by_name</string>
     <string name="formula_editor_function_touches_object_by_name_parameter">("object name")</string>
+    <string name="brick_bind_vm_output">Bind VM output to variable</string>
+    <string name="vm_name">VM name</string>
+    <string name="variable">Variable</string>
+    <string name="brick_send_vm_input">Send input to VM</string>
+    <string name="input_text">Input text</string>
+    <string name="brick_run_vm2">Run VM</string>
+    <string name="brick_vm_arguments">Arguments</string>
 
     <string name="loading_fact_placeholder">Loading...</string>
 

@@ -19,6 +19,7 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include <thread>
+#include <sys/socket.h>
 
 #include "onnxruntime_cxx_api.h"
 
@@ -39,8 +40,14 @@ Ort::AllocatorWithDefaultOptions allocator;
 static std::string g_crashLogPath;
 static JavaVM* g_JavaVM = nullptr;
 
+static jclass g_VmManagerClass = nullptr;
+static jmethodID g_OnVmOutputMethodID = nullptr;
+
 std::map<std::string, pid_t> g_RunningVMs;
 std::mutex g_VmMutex;
+
+std::map<std::string, int> g_VmInputFds;
+std::mutex g_VmInputMutex;
 
 struct BacktraceState {
     _Unwind_Ptr* frames;
@@ -98,6 +105,23 @@ void signal_handler(int signal_num, siginfo_t *info, void *context) {
 
 JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved) {
     g_JavaVM = vm;
+    JNIEnv* env;
+    if (vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6) != JNI_OK) {
+        return JNI_ERR;
+    }
+
+    jclass localVmManagerClass = env->FindClass("org/catrobat/catroid/virtualmachine/VirtualMachineManager");
+    if (localVmManagerClass == nullptr) {
+        __android_log_print(ANDROID_LOG_ERROR, "QEMU_JNI", "Failed to find VirtualMachineManager class");
+        return JNI_ERR;
+    }
+    g_VmManagerClass = (jclass)env->NewGlobalRef(localVmManagerClass);
+
+    g_OnVmOutputMethodID = env->GetStaticMethodID(g_VmManagerClass, "onVmOutput", "(Ljava/lang/String;Ljava/lang/String;)V");
+    if (g_OnVmOutputMethodID == nullptr) {
+        __android_log_print(ANDROID_LOG_ERROR, "QEMU_JNI", "Failed to find onVmOutput method");
+        return JNI_ERR;
+    }
 
     struct sigaction sa;
     memset(&sa, 0, sizeof(sa));
@@ -109,6 +133,39 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved) {
     sigaction(SIGABRT, &sa, nullptr);
 
     return JNI_VERSION_1_6;
+}
+
+void vm_output_thread(int read_fd, std::string vmName) {
+    JNIEnv* env;
+    g_JavaVM->AttachCurrentThread(&env, nullptr);
+
+    char buffer[1024];
+    ssize_t len;
+
+    std::string line_buffer;
+
+    while ((len = read(read_fd, buffer, sizeof(buffer))) > 0) {
+        line_buffer.append(buffer, len);
+
+        size_t newline_pos;
+        while ((newline_pos = line_buffer.find('\n')) != std::string::npos) {
+            std::string line_to_send = line_buffer.substr(0, newline_pos + 1);
+
+            if (g_VmManagerClass != nullptr && g_OnVmOutputMethodID != nullptr) {
+                jstring output_j = env->NewStringUTF(line_to_send.c_str());
+                jstring vmName_j = env->NewStringUTF(vmName.c_str());
+                env->CallStaticVoidMethod(g_VmManagerClass, g_OnVmOutputMethodID, vmName_j, output_j);
+                env->DeleteLocalRef(output_j);
+                env->DeleteLocalRef(vmName_j);
+            }
+
+            line_buffer.erase(0, newline_pos + 1);
+        }
+    }
+
+    close(read_fd);
+    g_JavaVM->DetachCurrentThread();
+    __android_log_print(ANDROID_LOG_INFO, "QEMU_LOG", "VM output thread for '%s' finished.", vmName.c_str());
 }
 
 #ifdef __aarch64__
@@ -1107,19 +1164,25 @@ void log_pipe_thread(int read_fd) {
 
 JNIEXPORT jint JNICALL
 JNI_VM_FUNCTION(nativeCreateAndRunVM)(JNIEnv *env, jclass, jstring vmName_j, jobjectArray command_j, jstring dataPath_j) {
-    const char* vmName = env->GetStringUTFChars(vmName_j, nullptr);
-    const char* dataPath_c = env->GetStringUTFChars(dataPath_j, nullptr);
+    const char* vmName_c = env->GetStringUTFChars(vmName_j, nullptr);
+    std::string vmName(vmName_c);
+    env->ReleaseStringUTFChars(vmName_j, vmName_c); // Освобождаем память сразу
 
+    const char* dataPath_c = env->GetStringUTFChars(dataPath_j, nullptr);
     const std::string libPath = std::string(dataPath_c) + "/lib";
     const std::string romPath = std::string(dataPath_c) + "/share/qemu";
     const char* linkerPath = "/system/bin/linker64";
 
-    std::vector<std::string> commandVec;
+    int sv[2];
+    if (socketpair(AF_UNIX, SOCK_STREAM, 0, sv) == -1) {
+        __android_log_print(ANDROID_LOG_ERROR, "QEMU_JNI", "Failed to create socketpair");
+        return -1;
+    }
 
+    std::vector<std::string> commandVec;
     commandVec.push_back(linkerPath);
 
     int original_argc = env->GetArrayLength(command_j);
-
     jstring exe_j = (jstring) env->GetObjectArrayElement(command_j, 0);
     const char* exe_c = env->GetStringUTFChars(exe_j, nullptr);
     commandVec.push_back(exe_c);
@@ -1128,11 +1191,15 @@ JNI_VM_FUNCTION(nativeCreateAndRunVM)(JNIEnv *env, jclass, jstring vmName_j, job
 
     commandVec.push_back("-L");
     commandVec.push_back(romPath);
-
     commandVec.push_back("-netdev");
     commandVec.push_back("user,id=net0");
     commandVec.push_back("-device");
     commandVec.push_back("e1000,netdev=net0");
+
+    commandVec.push_back("-chardev");
+    commandVec.push_back("socket,id=char0,fd=" + std::to_string(sv[1]));
+    commandVec.push_back("-serial");
+    commandVec.push_back("chardev:char0");
 
     for (int i = 1; i < original_argc; i++) {
         jstring string_j = (jstring) env->GetObjectArrayElement(command_j, i);
@@ -1148,51 +1215,97 @@ JNI_VM_FUNCTION(nativeCreateAndRunVM)(JNIEnv *env, jclass, jstring vmName_j, job
     }
     argv[commandVec.size()] = NULL;
 
-    int pipe_fds[2];
-    if (pipe(pipe_fds) == -1) { return -1; }
+    int log_pipe_fds[2];
+    if (pipe(log_pipe_fds) == -1) { return -1; }
+
     pid_t pid = fork();
 
     if (pid == -1) {
         return -1;
     } else if (pid == 0) {
-        close(pipe_fds[0]);
-        dup2(pipe_fds[1], STDOUT_FILENO);
-        dup2(pipe_fds[1], STDERR_FILENO);
-        close(pipe_fds[1]);
+        close(log_pipe_fds[0]);
+        close(sv[0]);
+
+        dup2(log_pipe_fds[1], STDOUT_FILENO);
+        dup2(log_pipe_fds[1], STDERR_FILENO);
+
 
         setenv("LD_LIBRARY_PATH", libPath.c_str(), 1);
-
         execv(linkerPath, argv);
         _exit(127);
     } else {
-        close(pipe_fds[1]);
-        __android_log_print(ANDROID_LOG_INFO, "VMManager", "Successfully forked process for VM '%s' with PID %d", vmName, pid);
+        close(log_pipe_fds[1]);
+        close(sv[1]); // Закрываем конец сокета QEMU
+
+        __android_log_print(ANDROID_LOG_INFO, "VMManager", "Successfully forked process for VM '%s' with PID %d", vmName.c_str(), pid);
+
         std::lock_guard<std::mutex> lock(g_VmMutex);
         g_RunningVMs[vmName] = pid;
-        std::thread log_thread(log_pipe_thread, pipe_fds[0]);
+
+        {
+            std::lock_guard<std::mutex> input_lock(g_VmInputMutex);
+            g_VmInputFds[vmName] = sv[0];
+        }
+
+        std::thread log_thread(log_pipe_thread, log_pipe_fds[0]);
         log_thread.detach();
+
+        std::thread output_thread(vm_output_thread, sv[0], vmName);
+        output_thread.detach();
 
         for (size_t i = 0; i < commandVec.size(); ++i) {
             free(argv[i]);
         }
         delete[] argv;
-        env->ReleaseStringUTFChars(vmName_j, vmName);
         env->ReleaseStringUTFChars(dataPath_j, dataPath_c);
 
         return pid;
     }
 }
 
+JNIEXPORT void JNICALL
+Java_org_catrobat_catroid_virtualmachine_VirtualMachineManager_nativeSendInputToVM(JNIEnv *env, jclass, jstring vmName_j, jstring input_j) {
+    const char* vmName_c = env->GetStringUTFChars(vmName_j, nullptr);
+    std::string vmName(vmName_c);
+
+    int write_fd = -1;
+    {
+        std::lock_guard<std::mutex> lock(g_VmInputMutex);
+        auto it = g_VmInputFds.find(vmName);
+        if (it != g_VmInputFds.end()) {
+            write_fd = it->second;
+        }
+    }
+
+    if (write_fd != -1) {
+        const char* input_c = env->GetStringUTFChars(input_j, nullptr);
+        write(write_fd, input_c, strlen(input_c));
+        env->ReleaseStringUTFChars(input_j, input_c);
+    }
+
+    env->ReleaseStringUTFChars(vmName_j, vmName_c);
+}
+
 JNIEXPORT jint JNICALL
 JNI_VM_FUNCTION(nativeStopVM)(JNIEnv *env, jclass, jstring vmName_j) {
-    const char* vmName = env->GetStringUTFChars(vmName_j, nullptr);
-    std::lock_guard<std::mutex> lock(g_VmMutex);
+    const char* vmName_c = env->GetStringUTFChars(vmName_j, nullptr);
+    std::string vmName(vmName_c);
 
+    {
+        std::lock_guard<std::mutex> lock(g_VmInputMutex);
+        auto it = g_VmInputFds.find(vmName);
+        if (it != g_VmInputFds.end()) {
+            close(it->second);
+            g_VmInputFds.erase(it);
+        }
+    }
+
+    std::lock_guard<std::mutex> lock(g_VmMutex);
     auto it = g_RunningVMs.find(vmName);
     if (it != g_RunningVMs.end()) {
         pid_t pid = it->second;
         g_RunningVMs.erase(it);
-        env->ReleaseStringUTFChars(vmName_j, vmName);
+        env->ReleaseStringUTFChars(vmName_j, vmName_c);
 
         int result = kill(pid, SIGTERM);
         if (result != 0) {
@@ -1201,8 +1314,8 @@ JNI_VM_FUNCTION(nativeStopVM)(JNIEnv *env, jclass, jstring vmName_j) {
         }
         return result;
     } else {
-        __android_log_print(ANDROID_LOG_WARN, "VMManager", "VM '%s' not found in running processes map.", vmName);
-        env->ReleaseStringUTFChars(vmName_j, vmName);
+        __android_log_print(ANDROID_LOG_WARN, "VMManager", "VM '%s' not found in running processes map.", vmName.c_str());
+        env->ReleaseStringUTFChars(vmName_j, vmName_c);
         return -1;
     }
 }

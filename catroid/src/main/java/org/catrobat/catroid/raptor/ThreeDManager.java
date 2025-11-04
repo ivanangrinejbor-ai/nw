@@ -436,7 +436,11 @@ public class ThreeDManager implements Disposable {
                 new btRigidBody.btRigidBodyConstructionInfo(mass, motionState, compoundShape, localInertia);
         btRigidBody body = new btRigidBody(bodyInfo);
 
-        if (mass > 0) { body.setAngularFactor(Vector3.Y); }
+        if (mass > 0) {
+            body.setAngularFactor(1f);
+
+            body.setDamping(0.5f, 0.5f);
+        }
 
         dynamicsWorld.addRigidBody(body);
         physicsBodies.put(objectId, body);
@@ -926,8 +930,8 @@ public class ThreeDManager implements Disposable {
             if (realisticMode) {
                 if (skyColor.a != 0) {
                     Gdx.gl.glClearColor(skyColor.r, skyColor.g, skyColor.b, skyColor.a);
+                    Gdx.gl.glClear(com.badlogic.gdx.graphics.GL20.GL_COLOR_BUFFER_BIT | com.badlogic.gdx.graphics.GL20.GL_DEPTH_BUFFER_BIT);
                 }
-                Gdx.gl.glClear(com.badlogic.gdx.graphics.GL20.GL_COLOR_BUFFER_BIT | com.badlogic.gdx.graphics.GL20.GL_DEPTH_BUFFER_BIT);
 
                 sceneManager.render();
 
@@ -956,9 +960,8 @@ public class ThreeDManager implements Disposable {
 
                 if (skyColor.a != 0) {
                     Gdx.gl.glClearColor(skyColor.r, skyColor.g, skyColor.b, skyColor.a);
+                    Gdx.gl.glClear(com.badlogic.gdx.graphics.GL20.GL_COLOR_BUFFER_BIT | com.badlogic.gdx.graphics.GL20.GL_DEPTH_BUFFER_BIT);
                 }
-
-                Gdx.gl.glClear(com.badlogic.gdx.graphics.GL20.GL_COLOR_BUFFER_BIT | com.badlogic.gdx.graphics.GL20.GL_DEPTH_BUFFER_BIT);
 
                 modelBatch.begin(camera);
 
@@ -1517,7 +1520,9 @@ public class ThreeDManager implements Disposable {
         btRigidBody body = new btRigidBody(bodyInfo);
 
         if (mass > 0) {
-            body.setAngularFactor(Vector3.Y);
+            body.setAngularFactor(1f);
+
+            body.setDamping(0.5f, 0.5f);
         }
 
         dynamicsWorld.addRigidBody(body);
@@ -2074,18 +2079,20 @@ public class ThreeDManager implements Disposable {
             return;
         }
 
+        instance.transform.setTranslation(x, y, z);
+
         btRigidBody body = physicsBodies.get(objectId);
         if (body != null && !editorMode) {
-            com.badlogic.gdx.math.Matrix4 worldTransform = body.getWorldTransform();
-            worldTransform.setTranslation(x, y, z);
+            Matrix4 worldTransform = body.getWorldTransform();
+
+            Quaternion rotation = worldTransform.getRotation(new Quaternion());
+            worldTransform.set(new Vector3(x, y, z), rotation);
+
             body.setWorldTransform(worldTransform);
             body.getMotionState().setWorldTransform(worldTransform);
+
             body.activate();
-        } else {
-
-            instance.transform.setTranslation(x, y, z);
         }
-
     }
 
     public void setRotation(String objectId, float yaw, float pitch, float roll) {
@@ -2346,7 +2353,11 @@ public class ThreeDManager implements Disposable {
     public void setFriction(String objectId, float friction) {
         btRigidBody body = physicsBodies.get(objectId);
         if (body != null) {
-            body.setFriction(friction);
+            if (friction > 9999) {
+                body.setDamping(friction - 10000, friction - 10000);
+            } else {
+                body.setFriction(friction);
+            }
 
             body.activate();
         }

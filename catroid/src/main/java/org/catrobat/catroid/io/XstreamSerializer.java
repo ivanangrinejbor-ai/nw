@@ -272,7 +272,10 @@ public final class XstreamSerializer {
 		xstream.alias("brick", StopVMBrick.class);
 		xstream.alias("brick", MouseEventBrick.class);
 		xstream.alias("brick", KeyEventBrick.class);
+		xstream.alias("brick", BindVmOutputBrick.class);
+		xstream.alias("brick", SendVmInputBrick.class);
 		xstream.alias("brick", RunVMBrick.class);
+		xstream.alias("brick", RunVm2Brick.class);
 		xstream.alias("brick", CreateDiskBrick.class);
 		xstream.alias("brick", CreateGLViewBrick.class);
 		xstream.alias("brick", RunShellBrick.class);

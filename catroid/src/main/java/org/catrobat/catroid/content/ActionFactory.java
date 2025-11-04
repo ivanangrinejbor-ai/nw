@@ -1670,6 +1670,28 @@ public class ActionFactory extends Actions {
 		return action;
 	}
 
+	public Action createBindVmOutputAction(UserVariable variable) {
+		BindVmOutputAction action = action(BindVmOutputAction.class);
+		action.setUserVariable(variable);
+		return action;
+	}
+
+	public Action createSendVmInputAction(Sprite sprite, SequenceAction sequence, Formula inputText) {
+		SendVmInputAction action = action(SendVmInputAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setInputText(inputText);
+		return action;
+	}
+
+	public Action createRunVm2Action(Sprite sprite, SequenceAction sequence, Formula arguments) {
+		RunVm2Action action = action(RunVm2Action.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setArguments(arguments);
+		return action;
+	}
+
 	public Action createAskGeminiAction(Sprite sprite, SequenceAction sequence,
 											 Formula question, UserVariable userVariable) {
 		AskGeminiAction action = Actions.action(AskGeminiAction.class);

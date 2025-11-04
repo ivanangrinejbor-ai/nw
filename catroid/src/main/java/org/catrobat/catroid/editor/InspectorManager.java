@@ -715,7 +715,7 @@ public class InspectorManager {
                     switch (which) {
                         case 0:
                             if (!go.hasComponent(RenderComponent.class)) {
-                                sceneManager.setRenderComponent(go, "models/cube.obj");
+                                sceneManager.setRenderComponent(go, "myModel.glb");
                             }
                             break;
                         case 1:

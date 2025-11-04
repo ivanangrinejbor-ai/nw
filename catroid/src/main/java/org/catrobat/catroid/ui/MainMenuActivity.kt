@@ -529,49 +529,84 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
 
     private fun prepareStandaloneProject() {
         val prefs = PreferenceManager.getDefaultSharedPreferences(this)
-        // Вместо флага "first_run" будем хранить версию приложения,
-        // при которой была последняя распаковка.
         val lastUnpackedVersion = prefs.getInt("standalone_project_version", -1)
         val currentVersion = BuildConfig.VERSION_CODE
 
-        // Если текущая версия приложения > сохраненной, нужна перераспаковка.
-        if (lastUnpackedVersion >= currentVersion) {
+        val projectDir = File(
+            FlavoredConstants.DEFAULT_ROOT_DIRECTORY,
+            FileMetaDataExtractor.encodeSpecialCharsForFileSystem(BuildConfig.PROJECT_NAME)
+        )
+
+        if (lastUnpackedVersion >= currentVersion && projectDir.exists()) {
             Log.d("STANDALONE", "Project version ($lastUnpackedVersion) is up to date. Loading from storage.")
-            val projectDir = File(
-                FlavoredConstants.DEFAULT_ROOT_DIRECTORY,
-                FileMetaDataExtractor.encodeSpecialCharsForFileSystem(BuildConfig.PROJECT_NAME)
-            )
-            ProjectLoader(projectDir, this)
-                .setListener(this)
-                .loadProjectAsync()
+            ProjectLoader(projectDir, this).setListener(this).loadProjectAsync()
             return
         }
 
-        try {
-            Log.d("STANDALONE", "New version detected (current: $currentVersion, last: $lastUnpackedVersion). Unpacking project from assets...")
-            val projectDir = File(
-                FlavoredConstants.DEFAULT_ROOT_DIRECTORY,
-                FileMetaDataExtractor.encodeSpecialCharsForFileSystem(BuildConfig.PROJECT_NAME)
-            )
+        Log.d("STANDALONE", "New version detected (current: $currentVersion, last: $lastUnpackedVersion). Starting update process...")
 
-            // Перед распаковкой на всякий случай удалим старую папку
+        try {
+            val tempDir = File(cacheDir, "standalone_temp_${System.currentTimeMillis()}")
+            val inputStream = assets.open(BuildConfig.START_PROJECT + ".zip")
+            ZipArchiver().unzip(inputStream, tempDir)
+            Log.d("STANDALONE", "Unpacked new project to temporary directory: ${tempDir.path}")
+
+            if (projectDir.exists() && lastUnpackedVersion != -1) {
+                Log.d("STANDALONE", "Old project found. Migrating user data...")
+                migrateUserData(projectDir, tempDir)
+            }
+
             if (projectDir.exists()) {
                 projectDir.deleteRecursively()
             }
+            if (tempDir.renameTo(projectDir)) {
+                Log.d("STANDALONE", "Project directory updated successfully.")
+            } else {
+                Log.e("STANDALONE", "FATAL: Failed to rename temp directory to final project directory.")
+                tempDir.copyRecursively(projectDir, overwrite = true)
+                tempDir.deleteRecursively()
+            }
 
-            val inputStream = assets.open(BuildConfig.START_PROJECT + ".zip")
-            ZipArchiver().unzip(inputStream, projectDir)
+            ProjectLoader(projectDir, this).setListener(this).loadProjectAsync()
 
-            ProjectLoader(projectDir, this)
-                .setListener(this)
-                .loadProjectAsync()
-
-            // После успешной распаковки сохраняем НОВУЮ версию.
             prefs.edit().putInt("standalone_project_version", currentVersion).apply()
-            Log.d("STANDALONE", "Unpack complete. Saved new version: $currentVersion")
+            Log.d("STANDALONE", "Update complete. Saved new version: $currentVersion")
 
         } catch (e: IOException) {
-            Log.e("STANDALONE", "Cannot unpack standalone project: ", e)
+            Log.e("STANDALONE", "Cannot unpack or update standalone project: ", e)
+            if (projectDir.exists()) {
+                ProjectLoader(projectDir, this).setListener(this).loadProjectAsync()
+            }
+        }
+    }
+
+    private fun migrateUserData(oldProjectDir: File, newProjectDir: File) {
+        val filesToPreserve = listOf("DeviceVariables.json", "DeviceLists.json")
+        filesToPreserve.forEach { fileName ->
+            val oldFile = File(oldProjectDir, fileName)
+            if (oldFile.exists()) {
+                val newFile = File(newProjectDir, fileName)
+                try {
+                    oldFile.copyTo(newFile, overwrite = true)
+                    Log.d("STANDALONE_MIGRATE", "Preserved: $fileName")
+                } catch (e: IOException) {
+                    Log.e("STANDALONE_MIGRATE", "Failed to copy $fileName", e)
+                }
+            }
+        }
+
+        val oldFilesDir = File(oldProjectDir, "files")
+        val newFilesDir = File(newProjectDir, "files")
+        if (oldFilesDir.exists() && oldFilesDir.isDirectory) {
+            if (!newFilesDir.exists()) {
+                newFilesDir.mkdirs()
+            }
+            try {
+                oldFilesDir.copyRecursively(newFilesDir, overwrite = true)
+                Log.d("STANDALONE_MIGRATE", "Merged '/files' directory content.")
+            } catch (e: Exception) {
+                Log.e("STANDALONE_MIGRATE", "Failed to merge '/files' directory", e)
+            }
         }
     }
 

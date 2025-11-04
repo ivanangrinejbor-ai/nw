@@ -2,27 +2,33 @@ package org.catrobat.catroid.virtualmachine
 
 import android.content.Context
 import android.util.Log
+import androidx.annotation.Keep
 import com.gaurav.avnc.vnc.VncClient
 import org.catrobat.catroid.ProjectManager
+import org.catrobat.catroid.formulaeditor.UserVariable
 import org.catrobat.catroid.utils.NativeLibraryManager
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
+import java.util.concurrent.ConcurrentHashMap
 
 object VirtualMachineManager {
     var isWorking = true
+    private val outputVariables = ConcurrentHashMap<String, UserVariable>()
 
     init {
-        try {
+        /*try {
             VncClient.loadLibrary()
         } catch (e: Exception) {
             Log.e("VMManager", "Failed to load VNC client library", e)
             isWorking = false
-        }
+        }*/
     }
 
-    // Карта для хранения PID запущенных ВМ: Имя ВМ -> PID
+
     private val runningVMs = mutableMapOf<String, Int>()
+
+    private val outputBuffers = ConcurrentHashMap<String, StringBuilder>()
 
     /**
      * Готовит исполняемый файл QEMU и его библиотеки к запуску.
@@ -33,7 +39,7 @@ object VirtualMachineManager {
         val assetManager = context.assets
         val files = assetManager.list(srcAssetPath) ?: return
 
-        if (files.isEmpty()) { // Это может быть файл, а не папка
+        if (files.isEmpty()) {
             assetManager.open(srcAssetPath).use { inputStream ->
                 File(dstPath).outputStream().use { outputStream ->
                     inputStream.copyTo(outputStream)
@@ -48,15 +54,20 @@ object VirtualMachineManager {
         }
     }
 
+    fun sendInputToVM(vmName: String, input: String) {
+        if (!isWorking || !NativeLibraryManager.isLoaded(NativeLibraryManager.Feature.CORE)) return
+        nativeSendInputToVM(vmName, input)
+    }
+
     private fun prepareQemuEnvironment(context: Context): String? {
         if (!isWorking) return null
         val assetDirName = "qemu_x86_64"
         val targetDir = File(context.filesDir, assetDirName)
         val qemuSystem = File(targetDir, "qemu-system-x86_64")
-        val qemuImg = File(targetDir, "qemu-img") // <-- Добавили qemu-img
+        val qemuImg = File(targetDir, "qemu-img")
 
         try {
-            if (!qemuSystem.exists() || !qemuImg.exists()) { // <-- Проверяем оба
+            if (!qemuSystem.exists() || !qemuImg.exists()) {
                 Log.i("VMManager", "QEMU environment not found. Extracting from assets...")
                 if (targetDir.exists()) targetDir.deleteRecursively()
                 copyAssetFolder(context, assetDirName, targetDir.absolutePath)
@@ -66,10 +77,10 @@ object VirtualMachineManager {
             if (!qemuSystem.canExecute()) {
                 qemuSystem.setExecutable(true, true)
             }
-            if (!qemuImg.canExecute()) { // <-- Делаем qemu-img исполняемым
+            if (!qemuImg.canExecute()) {
                 qemuImg.setExecutable(true, true)
             }
-            return targetDir.absolutePath // <-- Возвращаем путь к папке
+            return targetDir.absolutePath
         } catch (e: Exception) {
             Log.e("VMManager", "Failed to prepare QEMU environment", e)
             isWorking = false
@@ -77,7 +88,7 @@ object VirtualMachineManager {
         }
     }
 
-    // НОВАЯ ФУНКЦИЯ: Создает или находит qcow2 диск
+
     fun createDiskIfNotExists(baseDir: String, diskPath: String, diskSize: String): Boolean {
         if (!isWorking) return false
         if (!NativeLibraryManager.isLoaded(NativeLibraryManager.Feature.CORE)) {
@@ -108,10 +119,10 @@ object VirtualMachineManager {
         try {
             val processBuilder = ProcessBuilder(command)
             processBuilder.environment()["LD_LIBRARY_PATH"] = libPath
-            processBuilder.redirectErrorStream(true) // Объединяем stdout и stderr
+            processBuilder.redirectErrorStream(true)
             val process = processBuilder.start()
 
-            // Выводим лог создания диска
+
             process.inputStream.bufferedReader().useLines { lines ->
                 lines.forEach { line -> Log.i("QEMU-IMG", line) }
             }
@@ -125,7 +136,7 @@ object VirtualMachineManager {
         }
     }
 
-    // ИЗМЕНЕНО: createVM теперь принимает параметры диска
+
     fun createVM(context: Context, vmName: String, args: String, diskName: String, diskSize: String) {
         if (!isWorking) return
         if (!NativeLibraryManager.isLoaded(NativeLibraryManager.Feature.CORE)) {
@@ -147,6 +158,13 @@ object VirtualMachineManager {
 
         var finalArgs = args
 
+        if (outputVariables.containsKey(vmName)) {
+            if (!finalArgs.contains("-append")) {
+                finalArgs += " -append \"console=ttyS0\""
+                Log.i("VMManager", "Serial console enabled by default for VM '$vmName'.")
+            }
+        }
+
         if (diskName.isNotEmpty()) {
             val disksDir = ProjectManager.getInstance().currentProject.filesDir
             if (!disksDir.exists()) disksDir.mkdirs()
@@ -160,7 +178,7 @@ object VirtualMachineManager {
             finalArgs = args.replace("%DISK_PATH%", diskPath)
         }
 
-        // --- ИСПРАВЛЕНИЕ #1: Формируем правильный путь к ИСПОЛНЯЕМОМУ файлу ---
+
         val qemuSystemPath = File(qemuBaseDir, "qemu-system-x86_64").absolutePath
         val projectFilesPath = ProjectManager.getInstance().currentProject.filesDir.absolutePath
 
@@ -168,14 +186,14 @@ object VirtualMachineManager {
             it.removeSurrounding("\"").replace("%PROJECT_FILES%", projectFilesPath)
         }
 
-        // Собираем финальную команду, начиная с ПРАВИЛЬНОГО пути к файлу
+
         val commandWithExe = mutableListOf(qemuSystemPath)
         commandWithExe.addAll(argsList)
 
         Log.i("VMManager", "Executing command: ${commandWithExe.joinToString(" ")}")
 
-        // --- ИСПРАВЛЕНИЕ #2: Передаем в C++ ПРАВИЛЬНЫЙ путь к корневой папке ---
-        // C++ код ожидает именно qemuBaseDir, а не его родителя
+
+
         val pid = nativeCreateAndRunVM(vmName, commandWithExe.toTypedArray(), qemuBaseDir)
 
         if (pid != -1) {
@@ -184,7 +202,6 @@ object VirtualMachineManager {
     }
 
     fun createVM(context: Context, vmName: String, args: String) {
-        // Просто вызываем полную версию, передавая пустые строки для диска.
         createVM(context, vmName, args, "", "")
     }
 
@@ -207,10 +224,37 @@ object VirtualMachineManager {
         runningVMs.remove(vmName)
     }
 
-    // --- Объявления нативных функций ---
+    fun setVmOutputVariable(vmName: String, variable: UserVariable?) {
+        if (variable == null) {
+            outputVariables.remove(vmName)
+        } else {
+            variable.value = ""
+            outputVariables[vmName] = variable
+        }
+    }
+
+    @JvmStatic
+    @Keep
+    fun onVmOutput(vmName: String, output: String) {
+        val variable = outputVariables[vmName] ?: return
+        val currentText = variable.value as? String ?: ""
+        var newText = currentText + output
+
+        val lines = newText.lines()
+        if (lines.size > 200) {
+            newText = lines.takeLast(200).joinToString("\n")
+        }
+
+        variable.value = newText
+    }
+
+
     @JvmStatic
     private external fun nativeCreateAndRunVM(vmName: String, command: Array<String>, libraryPath: String): Int
 
     @JvmStatic
     private external fun nativeStopVM(vmName: String): Int
+
+    @JvmStatic
+    private external fun nativeSendInputToVM(vmName: String, input: String)
 }
