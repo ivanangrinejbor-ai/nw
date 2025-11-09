@@ -19,6 +19,7 @@ class Lexer(private val source: String) {
         "try" to TokenType.TRY,
         "catch" to TokenType.CATCH,
         "finally" to TokenType.FINALLY,
+        "static" to TokenType.STATIC,
     )
 
     fun scanTokens(): List<Token> {
@@ -55,7 +56,7 @@ class Lexer(private val source: String) {
         }
         if (isAtEnd()) throw LunoSyntaxError("Unterminated string.", line, start - lineStart)
 
-        advance() // Съедаем закрывающую кавычку
+        advance()
         val value = source.substring(start + 1, current - 1)
         addToken(TokenType.STRING_LITERAL, value)
     }
@@ -63,18 +64,18 @@ class Lexer(private val source: String) {
     private fun number() {
         while (isDigit(peek())) advance()
         if (peek() == '.' && isDigit(peekNext())) {
-            advance() // Consume .
+            advance()
             while (isDigit(peek())) advance()
         }
 
-        // --- НОВАЯ ЛОГИКА ---
-        // Проверяем, не является ли следующий символ 'f' или 'F'
+
+
         if (peek().equals('f', ignoreCase = true)) {
-            advance() // "Съедаем" суффикс 'f'
-            // Создаем токен типа FLOAT_LITERAL и преобразуем значение во Float
+            advance()
+
             addToken(TokenType.FLOAT_LITERAL, source.substring(start, current - 1).toFloat())
         } else {
-            // Если суффикса нет, все работает как и раньше
+
             addToken(TokenType.NUMBER_LITERAL, source.substring(start, current).toDouble())
         }
     }
@@ -82,6 +83,12 @@ class Lexer(private val source: String) {
     private fun identifier() {
         while (isAlphaNumeric(peek())) advance()
         val text = source.substring(start, current)
+
+        if (text == "f" && (peek() == '"' || peek() == '\'')) {
+            current = start
+            return
+        }
+
         addToken(keywords[text] ?: TokenType.IDENTIFIER)
     }
 
@@ -103,7 +110,7 @@ class Lexer(private val source: String) {
             ';' -> addToken(TokenType.SEMICOLON)
             ':' -> addToken(TokenType.COLON)
 
-            '-' -> addToken(if (match('=')) TokenType.MINUS_ASSIGN else TokenType.MINUS)
+            '-' -> addToken(if (match('>')) TokenType.ARROW else if (match('=')) TokenType.MINUS_ASSIGN else TokenType.MINUS)
             '+' -> addToken(if (match('=')) TokenType.PLUS_ASSIGN else TokenType.PLUS)
             '*' -> addToken(if (match('=')) TokenType.MULTIPLY_ASSIGN else TokenType.MULTIPLY)
             '%' -> addToken(if (match('=')) TokenType.MODULO_ASSIGN else TokenType.MODULO)
@@ -117,11 +124,11 @@ class Lexer(private val source: String) {
 
             '/' -> {
                 when {
-                    // --- ИЗМЕНЕНИЕ ЛОГИКИ ---
+
                     match('/') -> {
-                        // Идем до конца строки, но не "съедаем" символ новой строки
+
                         while (peek() != '\n' && !isAtEnd()) advance()
-                        // Создаем токен для всего комментария
+
                         addToken(TokenType.COMMENT)
                     }
                     match('=') -> addToken(TokenType.DIVIDE_ASSIGN)
@@ -129,17 +136,42 @@ class Lexer(private val source: String) {
                 }
             }
 
-            // Whitespace
+            'f' -> {
+                if (peek() == '"' || peek() == '\'') {
+                    val quoteType = advance()
+                    f_string(quoteType)
+                } else {
+                    identifier()
+                }
+            }
+
+
             ' ', '\r', '\t' -> { /* Ignore */ }
             '\n' -> { line++; lineStart = current }
 
             '"' -> string('"')
-            '\'' -> string('\'') // <-- ДОБАВЬ ЭТОТ CASE
+            '\'' -> string('\'')
             else -> {
                 if (isDigit(c)) number()
                 else if (isAlpha(c)) identifier()
                 else throw LunoSyntaxError("Unexpected character: '$c'", line, current - lineStart -1)
             }
         }
+    }
+
+    private fun f_string(quoteType: Char) {
+        while (peek() != quoteType && !isAtEnd()) {
+            if (peek() == '\n') {
+                line++
+                lineStart = current + 1
+            }
+            advance()
+        }
+        if (isAtEnd()) throw LunoSyntaxError("Unterminated f-string.", line, start - lineStart)
+
+        advance()
+
+        val value = source.substring(start + 2, current - 1)
+        addToken(TokenType.F_STRING, value)
     }
 }

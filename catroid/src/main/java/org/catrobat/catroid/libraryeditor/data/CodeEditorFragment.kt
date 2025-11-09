@@ -369,17 +369,46 @@ class CodeEditorFragment : Fragment() {
     }
     private fun getColorForToken(type: TokenType): Int {
         return when (type) {
-            TokenType.VAR, TokenType.FUN, TokenType.IF, TokenType.ELSE, TokenType.RETURN,
-            TokenType.WHILE, TokenType.FOR, TokenType.IMPORT, TokenType.CLASS, TokenType.TRY,
-            TokenType.CATCH, TokenType.FINALLY -> Color.parseColor("#CF5717")
-            TokenType.NUMBER_LITERAL, TokenType.FLOAT_LITERAL, TokenType.TRUE,
-            TokenType.FALSE, TokenType.NULL -> Color.parseColor("#8F4CBA")
-            TokenType.STRING_LITERAL -> Color.parseColor("#6B9C49")
-            TokenType.IDENTIFIER -> Color.parseColor("#D3D3D3")
+            // --- Ключевые слова (управление, структура, контекст) ---
+            TokenType.VAR, TokenType.FUN, TokenType.CLASS, TokenType.STATIC,
+            TokenType.IF, TokenType.ELSE, TokenType.WHILE, TokenType.FOR, TokenType.IN,
+            TokenType.SWITCH, TokenType.CASE, TokenType.DEFAULT,
+            TokenType.RETURN, TokenType.BREAK, TokenType.CONTINUE,
+            TokenType.THIS, TokenType.SUPER,
+            TokenType.IMPORT, TokenType.TRY, TokenType.CATCH, TokenType.FINALLY ->
+                Color.parseColor("#CF5717") // Оранжевый для ключевых слов
+
+            // --- Литералы (конкретные значения) ---
+            TokenType.NUMBER_LITERAL, TokenType.FLOAT_LITERAL,
+            TokenType.TRUE, TokenType.FALSE, TokenType.NULL ->
+                Color.parseColor("#8F4CBA") // Фиолетовый для чисел и констант
+
+            // --- Строки ---
+            TokenType.STRING_LITERAL, TokenType.F_STRING ->
+                Color.parseColor("#6B9C49") // Зеленый для строк
+
+            // --- Идентификаторы (имена переменных, функций) ---
+            TokenType.IDENTIFIER ->
+                Color.parseColor("#D3D3D3") // Светло-серый для имен
+
+            // --- Операторы и разделители ---
             TokenType.LPAREN, TokenType.RPAREN, TokenType.LBRACE, TokenType.RBRACE,
-            TokenType.PLUS, TokenType.MINUS, TokenType.ASSIGN -> Color.parseColor("#FCCB41")
-            TokenType.COMMENT -> Color.parseColor("#808080")
-            else -> Color.parseColor("#A9B7C6")
+            TokenType.LBRACKET, TokenType.RBRACKET,
+            TokenType.PLUS, TokenType.MINUS, TokenType.MULTIPLY, TokenType.DIVIDE, TokenType.MODULO,
+            TokenType.ASSIGN, TokenType.PLUS_ASSIGN, TokenType.MINUS_ASSIGN, TokenType.MULTIPLY_ASSIGN, TokenType.DIVIDE_ASSIGN, TokenType.MODULO_ASSIGN,
+            TokenType.EQ, TokenType.NEQ, TokenType.LT, TokenType.GT, TokenType.LTE, TokenType.GTE,
+            TokenType.AND, TokenType.OR, TokenType.BANG,
+            TokenType.DOT, TokenType.COMMA, TokenType.COLON, TokenType.SEMICOLON,
+            TokenType.ARROW ->
+                Color.parseColor("#FCCB41") // Желтый для символов
+
+            // --- Комментарии ---
+            TokenType.COMMENT ->
+                Color.parseColor("#808080") // Серый для комментариев
+
+            // --- Все остальное (на всякий случай) ---
+            else ->
+                Color.parseColor("#A9B7C6") // Стандартный цвет текста
         }
     }
 }

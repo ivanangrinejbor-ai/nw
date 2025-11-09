@@ -2,7 +2,7 @@ package org.catrobat.catroid.utils.lunoscript
 
 import android.util.Log
 
-// Pratt Parser-inspired structure for expressions for easier precedence handling
+
 class Parser(private val tokens: List<Token>) {
     private var current = 0
 
@@ -48,7 +48,7 @@ class Parser(private val tokens: List<Token>) {
     private fun tryStatement(): Statement {
         val tryToken = previous()
 
-        // Напрямую парсим блок TRY
+
         consume(TokenType.LBRACE, "Expect '{' before 'try' body.")
         val tryBlockBody = blockStatements()
         consume(TokenType.RBRACE, "Expect '}' after 'try' body.")
@@ -61,7 +61,7 @@ class Parser(private val tokens: List<Token>) {
             catchVariable = consume(TokenType.IDENTIFIER, "Expect exception variable name.")
             consume(TokenType.RPAREN, "Expect ')' after exception variable.")
 
-            // Напрямую парсим блок CATCH
+
             consume(TokenType.LBRACE, "Expect '{' before 'catch' body.")
             val catchBlockBody = blockStatements()
             consume(TokenType.RBRACE, "Expect '}' after 'catch' body.")
@@ -70,7 +70,7 @@ class Parser(private val tokens: List<Token>) {
 
         var finallyBlock: Statement? = null
         if (match(TokenType.FINALLY)) {
-            // Напрямую парсим блок FINALLY
+
             consume(TokenType.LBRACE, "Expect '{' before 'finally' body.")
             val finallyBlockBody = blockStatements()
             consume(TokenType.RBRACE, "Expect '}' after 'finally' body.")
@@ -81,15 +81,15 @@ class Parser(private val tokens: List<Token>) {
             throw error(tryToken, "A 'try' statement must have at least a 'catch' or a 'finally' block.")
         }
 
-        // tryBlock уже является Statement (BlockStatement), так что передаем его напрямую
+
         return TryCatchStatement(tryBlock, catchVariable, catchBlock, finallyBlock, tryToken.line)
     }
 
     private fun importStatement(): Statement {
-        val importToken = previous() // 'import'
+        val importToken = previous()
         val path = mutableListOf<Token>()
 
-        // Парсим путь, состоящий из идентификаторов, разделенных точками
+
         do {
             path.add(consume(TokenType.IDENTIFIER, "Expect package or class name."))
         } while (match(TokenType.DOT))
@@ -113,6 +113,16 @@ class Parser(private val tokens: List<Token>) {
         } else null
 
         consume(TokenType.LBRACE, "Expect '{' before class body.")
+
+        var staticBlock: BlockStatement? = null
+        if (match(TokenType.STATIC)) {
+            val staticToken = previous()
+            consume(TokenType.LBRACE, "Expect '{' after 'static'.")
+            val statements = blockStatements()
+            consume(TokenType.RBRACE, "Expect '}' after static block.")
+            staticBlock = BlockStatement(statements, staticToken.line)
+        }
+
         val methods = mutableListOf<FunDeclarationStatement>()
 
         while (!check(TokenType.RBRACE) && !isAtEnd()) {
@@ -133,7 +143,27 @@ class Parser(private val tokens: List<Token>) {
 
         consume(TokenType.RBRACE, "Expect '}' after class body.")
         Log.d("LunoParser-Trace", "<<< Exiting classDeclaration for '${name.lexeme}'")
-        return ClassDeclarationStatement(name, methods, superclass, classToken.line)
+        return ClassDeclarationStatement(name, methods, superclass, staticBlock, classToken.line)
+    }
+
+    private fun functionExpression(): Expression {
+        val funToken = previous()
+
+        consume(TokenType.LPAREN, "Expect '(' after 'fun' for lambda expression.")
+        val parameters = mutableListOf<Token>()
+        if (!check(TokenType.RPAREN)) {
+            do {
+                parameters.add(consume(TokenType.IDENTIFIER, "Expect parameter name."))
+            } while (match(TokenType.COMMA))
+        }
+        consume(TokenType.RPAREN, "Expect ')' after parameters.")
+
+        consume(TokenType.LBRACE, "Expect '{' before lambda body.")
+        val bodyStatements = blockStatements()
+        consume(TokenType.RBRACE, "Expect '}' after lambda body.")
+
+        val body = BlockStatement(bodyStatements, funToken.line)
+        return LambdaExpr(parameters, body, funToken.line)
     }
 
     private fun funDeclaration(kind: String): Statement {
@@ -151,7 +181,7 @@ class Parser(private val tokens: List<Token>) {
         consume(TokenType.RPAREN, "Expect ')' after parameters.")
         consume(TokenType.LBRACE, "Expect '{' before $kind body.")
 
-        val bodyStatements = blockStatements() // ВЫЗОВ КЛЮЧЕВОЙ ФУНКЦИИ
+        val bodyStatements = blockStatements()
 
         consume(TokenType.RBRACE, "Expect '}' after $kind body.")
 
@@ -161,11 +191,15 @@ class Parser(private val tokens: List<Token>) {
     }
 
     private fun varDeclaration(): Statement {
+        val keyword = previous()
+        val isConstant = keyword.lexeme == "val"
+
         val name = consume(TokenType.IDENTIFIER, "Expect variable name.")
         Log.d("LunoParser", "Creating VarDeclarationStatement for '${name.lexeme}'")
         val initializer = if (match(TokenType.ASSIGN)) expression() else null
         consumeSemicolon("Expect ';' or newline after variable declaration.")
-        return VarDeclarationStatement(name, initializer, name.line)
+
+        return VarDeclarationStatement(name, initializer, isConstant, name.line)
     }
 
     private fun ifStatement(): Statement {
@@ -228,13 +262,13 @@ class Parser(private val tokens: List<Token>) {
             consume(TokenType.COLON, "Expect ':' after case/default.")
             val caseStatements = mutableListOf<Statement>()
 
-            val caseBody = statement() // This will parse a single statement or a block { ... }
+            val caseBody = statement()
 
             val currentCase = SwitchCase(if (isDefault) null else values, caseBody, caseOrDefaultToken, isDefault)
             if (isDefault) defaultCase = currentCase else cases.add(currentCase)
         }
         consume(TokenType.RBRACE, "Expect '}' after switch body.")
-        if (defaultCase != null) cases.add(defaultCase) // Add default case at the end if present
+        if (defaultCase != null) cases.add(defaultCase)
 
         return SwitchStatement(expr, cases, switchToken, switchToken.line)
     }
@@ -288,7 +322,7 @@ class Parser(private val tokens: List<Token>) {
         }
     }
 
-    // --- Expression parsing (Pratt style with precedence) ---
+
     private fun logicalOr(): Expression {
         var expr = logicalAnd()
         while (match(TokenType.OR)) {
@@ -329,7 +363,7 @@ class Parser(private val tokens: List<Token>) {
         return expr
     }
 
-    private fun term(): Expression { // Addition, Subtraction
+    private fun term(): Expression {
         var expr = factor()
         while (match(TokenType.MINUS, TokenType.PLUS)) {
             val operator = previous()
@@ -339,7 +373,7 @@ class Parser(private val tokens: List<Token>) {
         return expr
     }
 
-    private fun factor(): Expression { // Multiplication, Division, Modulo
+    private fun factor(): Expression {
         var expr = unary()
         while (match(TokenType.DIVIDE, TokenType.MULTIPLY, TokenType.MODULO)) {
             val operator = previous()
@@ -352,7 +386,7 @@ class Parser(private val tokens: List<Token>) {
     private fun unary(): Expression {
         if (match(TokenType.BANG, TokenType.MINUS)) {
             val operator = previous()
-            val right = unary() // Unary operators are right-associative
+            val right = unary()
             return UnaryExpr(operator, right, operator.line)
         }
         return call()
@@ -365,8 +399,15 @@ class Parser(private val tokens: List<Token>) {
                 match(TokenType.LPAREN) -> expr = finishCall(expr)
                 match(TokenType.LBRACKET) -> expr = finishIndexAccess(expr)
                 match(TokenType.DOT) -> {
-                    val name = consume(TokenType.IDENTIFIER, "Expect property name after '.'.")
-                    expr = GetExpr(expr, name, name.line)
+                    if (match(TokenType.CLASS)) {
+
+
+
+
+                    } else {
+                        val name = consume(TokenType.IDENTIFIER, "Expect property name after '.'.")
+                        expr = GetExpr(expr, name, name.line)
+                    }
                 }
                 else -> break
             }
@@ -376,11 +417,11 @@ class Parser(private val tokens: List<Token>) {
 
     private fun finishCall(callee: Expression): Expression {
         val arguments = mutableListOf<Expression>()
-        val lparenToken = previous() // For line number of call
+        val lparenToken = previous()
         if (!check(TokenType.RPAREN)) {
             do {
                 if (arguments.size >= 255) error(peek(), "Cannot have more than 255 arguments.")
-                arguments.add(expression()) // Parse each argument expression
+                arguments.add(expression())
             } while (match(TokenType.COMMA))
         }
         val paren = consume(TokenType.RPAREN, "Expect ')' after arguments.")
@@ -388,7 +429,7 @@ class Parser(private val tokens: List<Token>) {
     }
 
     private fun finishIndexAccess(callee: Expression): Expression {
-        val bracketToken = previous() // '[' token
+        val bracketToken = previous()
         val index = expression()
         consume(TokenType.RBRACKET, "Expect ']' after index.")
         return IndexAccessExpr(callee, bracketToken, index, bracketToken.line)
@@ -406,18 +447,20 @@ class Parser(private val tokens: List<Token>) {
             match(TokenType.FLOAT_LITERAL) -> LiteralExpr(LunoValue.Float(previous().literal as Float), previous().line)
             match(TokenType.STRING_LITERAL) -> LiteralExpr(LunoValue.String(previous().literal as String), previous().line)
             match(TokenType.IDENTIFIER) -> VariableExpr(previous(), previous().line)
+            match(TokenType.F_STRING) -> parseFString()
+            match(TokenType.FUN) -> functionExpression()
             match(TokenType.LPAREN) -> {
                 val lParenLine = previous().line
                 val expr = expression()
                 consume(TokenType.RPAREN, "Expect ')' after expression.")
-                // No specific GroupingExpr needed if precedence handles it. Return contained expr.
-                expr // Could wrap in GroupingExpr(expr, lParenLine) if needed for source mapping or specific eval
+
+                expr
             }
             match(TokenType.LBRACKET) -> listLiteral()
-            // LBRACE for map literals needs to be distinguished from block statements
-            // This would typically be handled by context (e.g. if an expression is expected)
-            // For simplicity, we might skip map literals for now or require a specific keyword.
-            // Let's try to parse it if we are in an expression context.
+
+
+
+
             peek().type == TokenType.LBRACE && isExpressionContext() -> mapLiteral()
 
 
@@ -425,8 +468,70 @@ class Parser(private val tokens: List<Token>) {
         }
     }
 
+    private fun parseFString(): Expression {
+        val fStringToken = previous()
+        val content = fStringToken.literal as String
+        val parts = mutableListOf<Expression>()
+        var currentIndex = 0
+
+        while (currentIndex < content.length) {
+            val exprStart = content.indexOf('{', currentIndex)
+
+            if (exprStart == -1) {
+                if (currentIndex < content.length) {
+                    val textPart = content.substring(currentIndex)
+                    parts.add(LiteralExpr(LunoValue.String(textPart), fStringToken.line))
+                }
+                break
+            }
+
+            if (exprStart > currentIndex) {
+                val textPart = content.substring(currentIndex, exprStart)
+                parts.add(LiteralExpr(LunoValue.String(textPart), fStringToken.line))
+            }
+
+            val exprEnd = findMatchingBrace(content, exprStart)
+            if (exprEnd == -1) {
+                throw error(fStringToken, "Unmatched '{' in f-string.")
+            }
+
+            val exprCode = content.substring(exprStart + 1, exprEnd)
+            if (exprCode.isBlank()) {
+                throw error(fStringToken, "Empty expression block '{}' in f-string is not allowed.")
+            }
+
+            try {
+                val expressionLexer = Lexer(exprCode)
+                val expressionTokens = expressionLexer.scanTokens()
+                val expressionParser = Parser(expressionTokens)
+                val expressionAst = expressionParser.expression()
+                parts.add(expressionAst)
+            } catch (e: Exception) {
+                throw error(fStringToken, "Invalid expression inside f-string: {${exprCode}}")
+            }
+
+            currentIndex = exprEnd + 1
+        }
+
+        return InterpolatedStringExpr(parts, fStringToken.line)
+    }
+
+    private fun findMatchingBrace(content: String, start: Int): Int {
+        var braceDepth = 1
+        for (i in start + 1 until content.length) {
+            when (content[i]) {
+                '{' -> braceDepth++
+                '}' -> {
+                    braceDepth--
+                    if (braceDepth == 0) return i
+                }
+            }
+        }
+        return -1
+    }
+
     private fun listLiteral(): Expression {
-        val bracket = previous() // '['
+        val bracket = previous()
         val elements = mutableListOf<Expression>()
         if (!check(TokenType.RBRACKET)) {
             do {
@@ -438,11 +543,11 @@ class Parser(private val tokens: List<Token>) {
     }
 
     private fun mapLiteral(): Expression {
-        val brace = consume(TokenType.LBRACE, "Expect '{' for map literal.") // Consume LBRACE explicitly
+        val brace = consume(TokenType.LBRACE, "Expect '{' for map literal.")
         val entries = mutableMapOf<Token, Expression>()
         if (!check(TokenType.RBRACE)) {
             do {
-                // Key can be IDENTIFIER or STRING_LITERAL
+
                 val keyToken = when {
                     check(TokenType.IDENTIFIER) -> advance()
                     check(TokenType.STRING_LITERAL) -> advance()
@@ -457,25 +562,25 @@ class Parser(private val tokens: List<Token>) {
         return MapLiteralExpr(entries, brace, brace.line)
     }
 
-    // Helper to determine if we're in a context where an LBRACE could start a map literal
-    // This is a simplified check. A more robust way is to have the grammar rules guide this.
+
+
     private var expressionDepth = 0
     private fun isExpressionContext(): Boolean {
-        // This is a heuristic. If called from primary(), we are likely in expression context.
-        // A better way is for the calling rule to know if it expects an expression.
-        // For now, let's assume if `primary()` is trying to parse something, it's an expr.
-        return true // Simplified: primary always expects an expression.
+
+
+
+        return true
     }
 
 
-    // --- Statement specific parsing that involves expressions ---
-    // Overrides the `expressionStatement` to handle assignment as a statement.
-    // This is part of the key to making `ident = value` a statement.
+
+
+
     private fun statement(): Statement {
-        skipComments() // Пропускаем комменты перед любой инструкцией
+        skipComments()
         if (isAtEnd()) throw error(peek(), "Unexpected end of file.")
 
-        // Диспетчер для всех инструкций, которые НЕ являются объявлениями
+
         return when {
             match(TokenType.IF) -> ifStatement()
             match(TokenType.WHILE) -> whileStatement()
@@ -486,7 +591,7 @@ class Parser(private val tokens: List<Token>) {
             match(TokenType.CONTINUE) -> continueStatement()
             match(TokenType.TRY) -> tryStatement()
 
-            // Блок {...} - это самостоятельная инструкция
+
             match(TokenType.LBRACE) -> {
                 val lbraceToken = previous()
                 val statements = blockStatements()
@@ -494,21 +599,21 @@ class Parser(private val tokens: List<Token>) {
                 BlockStatement(statements, lbraceToken.line)
             }
 
-            // Если ничего не подошло - это выражение (вызов, присваивание и т.д.)
+
             else -> expressionStatement()
         }
     }
 
-    private fun expression(): Expression = logicalOr() // Начинаем с логического ИЛИ (или другой операции с нужным приоритетом)
+    private fun expression(): Expression = logicalOr()
 
-    // Вспомогательная функция для TokenType (если ее еще нет)
+
     private fun TokenType.isAssignmentOperator(): Boolean {
         return this == TokenType.ASSIGN || this == TokenType.PLUS_ASSIGN || this == TokenType.MINUS_ASSIGN ||
                 this == TokenType.MULTIPLY_ASSIGN || this == TokenType.DIVIDE_ASSIGN || this == TokenType.MODULO_ASSIGN
     }
 
 
-    // --- Utility methods ---
+
     private fun match(vararg types: TokenType): Boolean {
         for (type in types) {
             if (check(type)) {
@@ -532,13 +637,13 @@ class Parser(private val tokens: List<Token>) {
 
     private fun consumeSemicolon(message: String) {
         if (match(TokenType.SEMICOLON)) return
-        // Semicolons are optional if followed by RBRACE or EOF, or if it's the last token on a line
+
         if (check(TokenType.RBRACE) || isAtEnd() || previous().line < peek().line) return
-        // Only throw error if semicolon is truly missing where expected and not optional.
-        // This simple check might not be perfect for all newline rules.
-        if (tokens[current-1].type != TokenType.RBRACE && tokens[current-1].type != TokenType.LBRACE) { // Avoid error after block
-            // Don't throw error here, make them truly optional for now.
-            // throw error(peek(), message)
+
+
+        if (tokens[current-1].type != TokenType.RBRACE && tokens[current-1].type != TokenType.LBRACE) {
+
+
         }
     }
 
@@ -560,18 +665,18 @@ class Parser(private val tokens: List<Token>) {
         Log.d("LunoScriptParser", "SYNC: Attempting to recover. Error occurred at or before: ${problemToken.lexeme} (${problemToken.type}) L${problemToken.line}. Previous: ${if(current > 0) previous().lexeme else "N/A"}")
 
         if (!isAtEnd()) {
-            advance() // Пропускаем токен, вызвавший ошибку
+            advance()
         }
 
-        // Ищем следующую точку для безопасного возобновления
+
         while (!isAtEnd()) {
-            // Если предыдущий токен - точка с запятой, мы, вероятно, в безопасной точке
+
             if (previous().type == TokenType.SEMICOLON) {
                 Log.d("LunoScriptParser", "SYNC: Resuming after semicolon.")
                 return
             }
 
-            // Ищем ключевые слова, с которых обычно начинаются новые инструкции
+
             when (peek().type) {
                 TokenType.CLASS,
                 TokenType.FUN,
@@ -582,7 +687,7 @@ class Parser(private val tokens: List<Token>) {
                 TokenType.SWITCH,
                 TokenType.RETURN,
                 TokenType.TRY,
-                TokenType.RBRACE -> { // RBRACE - важная точка для остановки
+                TokenType.RBRACE -> {
                     Log.d("LunoScriptParser", "SYNC: Resuming at keyword ${peek().type}.")
                     return
                 }

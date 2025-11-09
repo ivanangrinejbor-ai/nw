@@ -4,9 +4,10 @@ import android.annotation.SuppressLint
 import android.content.Context
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.files.FileHandle
+import org.catrobat.catroid.CatroidApplication
 import java.io.File
 
-// Wrapper для всех значений в LunoScript
+
 sealed class LunoValue {
     object Null : LunoValue() {
         override fun toString(): kotlin.String = "null"
@@ -17,8 +18,8 @@ sealed class LunoValue {
     }
 
     data class String(val value: kotlin.String) : LunoValue() {
-        override fun toString(): kotlin.String = value // Для print и MakeToast лучше без кавычек
-        fun toLunoScriptString(): kotlin.String = "\"$value\"" // Для внутреннего представления
+        override fun toString(): kotlin.String = value
+        fun toLunoScriptString(): kotlin.String = "\"$value\""
     }
 
     data class Boolean(val value: kotlin.Boolean) : LunoValue() {
@@ -26,99 +27,105 @@ sealed class LunoValue {
     }
 
     data class NativeClass(val klass: Class<*>) : Callable() {
-        // Arity конструктора заранее неизвестен, поэтому разрешаем любое количество аргументов.
-        // Более сложная версия могла бы проверять все доступные конструкторы.
+
+
         override fun arity(): IntRange = 0..Int.MAX_VALUE
 
-        // Вызов этого значения (например, Pixmap(width, height)) - это вызов конструктора
+
         @SuppressLint("NewApi")
         override fun call(interpreter: Interpreter, arguments: kotlin.collections.List<LunoValue>, callSiteToken: Token): LunoValue {
-            val constructors = klass.constructors
 
-            val matchingConstructor = constructors.find { it.parameterCount == arguments.size }
-                ?: throw LunoRuntimeError(
-                    "No constructor for class '${klass.simpleName}' found with ${arguments.size} arguments.",
-                    callSiteToken.line
-                )
+            val candidates = klass.constructors.filter { it.parameterCount == arguments.size }
 
-            try {
-                // --- НОВОЕ: ИСПОЛЬЗУЕМ КОНВЕРТЕР ИНТЕРПРЕТАТОРА ---
-                val kotlinArgs = arguments.mapIndexed { index, lunoValue ->
-                    val targetType = matchingConstructor.parameterTypes[index]
-                    // Вызываем метод интерпретатора для конвертации
-                    interpreter.lunoValueToKotlin(lunoValue, targetType)
-                }.toTypedArray()
-                // --- КОНЕЦ ИЗМЕНЕНИЙ ---
-
-                val newInstance = matchingConstructor.newInstance(*kotlinArgs)
-                return NativeObject(newInstance)
-
-            } catch (e: Exception) {
-                throw LunoRuntimeError(
-                    "Failed to construct '${klass.simpleName}': ${e.cause?.message ?: e.message}",
-                    callSiteToken.line,
-                    e
-                )
+            if (candidates.isEmpty()) {
+                throw LunoRuntimeError("No constructor for class '${klass.simpleName}' found with ${arguments.size} arguments.", callSiteToken.line)
             }
+
+
+            for (constructor in candidates) {
+                try {
+
+                    val kotlinArgs = arguments.mapIndexed { index, lunoValue ->
+                        val targetType = constructor.parameterTypes[index]
+                        interpreter.lunoValueToKotlin(lunoValue, targetType)
+                    }.toTypedArray()
+
+
+                    val newInstance = constructor.newInstance(*kotlinArgs)
+                    return NativeObject(newInstance)
+
+                } catch (e: LunoRuntimeError) {
+
+
+                    continue
+                } catch (e: Exception) {
+
+                    continue
+                }
+            }
+
+
+            val argTypes = arguments.joinToString(", ") { it::class.simpleName ?: "unknown" }
+            throw LunoRuntimeError("Could not find a suitable constructor for '${klass.simpleName}' with argument types: ($argTypes)", callSiteToken.line)
         }
 
         override fun toString(): kotlin.String = "<native class ${klass.name}>"
     }
 
     fun lunoValueToKotlin(value: LunoValue, targetClass: Class<*>): Any? {
-        // 1. Сначала обрабатываем null.
+
         if (value is LunoValue.Null) {
-            // Если параметр метода может быть null, рефлексия примет null.
-            // Если не может - она сама выбросит ошибку, что корректно.
+
+
             return null
         }
 
-        // 2. Быстрый путь: если у нас уже есть NativeObject с объектом нужного типа.
+
         if (value is LunoValue.NativeObject && targetClass.isInstance(value.obj)) {
             return value.obj
         }
 
-        // 3. --- ГЛАВНОЕ ИСПРАВЛЕНИЕ ---
-        // Специальная обработка для com.badlogic.gdx.files.FileHandle.
-        // isAssignableFrom() проверяет, можно ли объекту типа targetClass присвоить FileHandle.
+
+
+
         if (FileHandle::class.java.isAssignableFrom(targetClass)) {
             return when (value) {
-                // Если в скрипте передали строку-путь...
+
                 is LunoValue.String -> Gdx.files.absolute(value.value)
-                // Если в скрипте передали NativeObject, содержащий java.io.File...
+
                 is LunoValue.NativeObject -> {
                     if (value.obj is File) {
                         Gdx.files.absolute(value.obj.absolutePath)
                     } else {
-                        null // Не смогли конвертировать NativeObject в FileHandle
+                        null
                     }
                 }
-                else -> null // Другие типы LunoValue не можем превратить в FileHandle
+                else -> null
             }
         }
 
-        // 4. Обработка для стандартного java.io.File (если понадобится)
+
         if (File::class.java.isAssignableFrom(targetClass)) {
             if (value is LunoValue.String) {
                 return File(value.value)
             }
         }
 
-        // 5. Обработка базовых типов, как и раньше.
+
         val result = when (targetClass.name) {
             "java.lang.String", "kotlin.String" -> (value as? LunoValue.String)?.value
             "int", "java.lang.Integer" -> (value as? LunoValue.Number)?.value?.toInt()
             "double", "java.lang.Double" -> (value as? LunoValue.Number)?.value
             "float", "java.lang.Float" -> (value as? LunoValue.Number)?.value?.toFloat()
             "boolean", "java.lang.Boolean" -> (value as? LunoValue.Boolean)?.value
-            else -> null // Остальные типы пока не поддерживаем для авто-конвертации
+            else -> null
         }
 
         if (result != null) {
             return result
         }
 
-        // 6. Если ни одно из правил не сработало, выбрасываем понятную ошибку.
+
         val valueTypeName = if (value is LunoValue.NativeObject) value.obj::class.java.simpleName else value::class.simpleName
         throw LunoRuntimeError("Cannot convert LunoValue type `${valueTypeName}` to native type `${targetClass.simpleName}`")
     }
@@ -128,7 +135,7 @@ sealed class LunoValue {
     }
 
     data class Float(val value: kotlin.Float) : LunoValue() {
-        // Переопределяем toString, чтобы он выводил 'f' на конце для наглядности
+
         override fun toString(): kotlin.String = "${value}f"
     }
 
@@ -137,7 +144,7 @@ sealed class LunoValue {
         abstract fun call(interpreter: Interpreter, arguments: kotlin.collections.List<LunoValue>, callSiteToken: Token): LunoValue
     }
 
-    // Обертка для нативных функций (из вашего старого кода, но теперь точно соответствует Callable)
+
     data class NativeCallable(val callable: CallableNativeLunoFunction) : Callable() {
         override fun arity(): IntRange = callable.arity
 
@@ -154,7 +161,7 @@ sealed class LunoValue {
         }
     }
 
-    // Обертка для функций, определенных в самом LunoScript
+
     data class LunoFunction(val declaration: FunDeclarationStatement, val closure: Scope) : Callable() {
         override fun arity(): IntRange = declaration.params.size..declaration.params.size
 
@@ -172,9 +179,9 @@ sealed class LunoValue {
         }
     }
 
-    // Обертка для "связанного" метода, который мы вызываем на объекте
+
     data class BoundMethod(val instance: Any, val methodName: String) : Callable() {
-        // Количество аргументов заранее неизвестно, поэтому разрешаем любое
+
         override fun arity(): IntRange = 0..Int.MAX_VALUE
 
         override fun call(interpreter: Interpreter, arguments: kotlin.collections.List<LunoValue>, callSiteToken: Token): LunoValue {
@@ -186,12 +193,12 @@ sealed class LunoValue {
         override fun arity(): IntRange = method.arity()
 
         override fun call(interpreter: Interpreter, arguments: kotlin.collections.List<LunoValue>, callSiteToken: Token): LunoValue {
-            // Создаем окружение для вызова, НО его родителем будет замыкание МЕТОДА
+
             val environment = Scope(method.closure)
-            // ГЛАВНОЕ: определяем 'this' в этом окружении
+
             environment.define("this", receiver)
 
-            // Остальная логика копируется из LunoFunction.call
+
             for (i in method.declaration.params.indices) {
                 environment.define(method.declaration.params[i].lexeme, arguments.getOrElse(i) { Null })
             }
@@ -204,9 +211,9 @@ sealed class LunoValue {
         }
     }
 
-    // Для объектов LunoScript (экземпляров классов) и простых карт
+
     data class LunoObject(
-        val klass: LunoClass?, // Ссылка на класс, если это экземпляр класса
+        val klass: LunoClass?,
         val fields: MutableMap<kotlin.String, LunoValue> = mutableMapOf()
     ) : LunoValue() {
         override fun toString(): kotlin.String {
@@ -214,47 +221,79 @@ sealed class LunoValue {
         }
     }
 
-    // Для классов LunoScript
+
     data class LunoClass(
         val name: kotlin.String,
-        val methods: Map<kotlin.String, LunoFunction>, // Пока методы - это LunoFunction
-        val superclass: LunoClass? = null // Для будущего наследования
-    ) : Callable() { // Класс сам по себе вызываемый (как конструктор)
-        override fun arity(): IntRange { // Arity конструктора (если есть init)
-            methods["init"]?.let { return it.arity() }
-            return 0..0 // По умолчанию конструктор без аргументов
+        val declaration: ClassDeclarationStatement,
+        val methods: Map<kotlin.String, LunoFunction>,
+        val lunoSuperclass: LunoClass? = null,
+        val nativeSuperclass: Class<*>? = null
+    ) : Callable() {
+
+        override fun arity(): IntRange {
+            return methods["init"]?.arity() ?: 0..0
         }
+
         override fun call(interpreter: Interpreter, arguments: kotlin.collections.List<LunoValue>, callSiteToken: Token): LunoValue {
-            val instance = LunoObject(this) // this здесь - это LunoClass
+            val instance = LunoObject(this, mutableMapOf())
+            var finalInstance: LunoValue = instance
+
+            val bakedMethods: MutableMap<kotlin.String, Any?> = mutableMapOf()
+
+
+            declaration.staticBlock?.let { staticBlock ->
+
+                val staticScope = Scope(interpreter.globals)
+                try {
+
+                    interpreter.executeBlock(staticBlock.statements, staticScope)
+
+
+                    for ((propertyName, scopeEntry) in staticScope.values) {
+
+                        val methodName = "get" + propertyName.replaceFirstChar { it.uppercase() }
+
+
+                        val kotlinValue = interpreter.lunoValueToKotlin(scopeEntry.value, Object::class.java)
+                        bakedMethods[methodName] = kotlinValue
+                    }
+                } catch (e: Exception) {
+                    throw LunoRuntimeError("Error executing static block for class '${this.name}': ${e.message}", declaration.line, e)
+                }
+            }
+
+            if (nativeSuperclass != null) {
+                val context = CatroidApplication.getAppContext()
+                    ?: throw LunoRuntimeError("An Android Context is required to create native-backed objects.", callSiteToken.line)
+
+                val proxy = NativeProxyFactory.createProxy(instance, nativeSuperclass, interpreter, context, bakedMethods)
+                finalInstance = LunoValue.NativeObject(proxy)
+            }
+
+
             methods["init"]?.let { initMethod ->
-                // Нужно создать временное окружение для вызова init, привязанное к instance
-                val initClosure = Scope(initMethod.closure) // Используем замыкание метода init
-                initClosure.define("this", instance) // Связываем 'this'
-                // Вызов init-метода (LunoFunction)
-                val environment = Scope(initClosure)
+                val environment = Scope(initMethod.closure)
+                environment.define("this", finalInstance)
                 for (i in initMethod.declaration.params.indices) {
                     environment.define(initMethod.declaration.params[i].lexeme, arguments.getOrElse(i) { Null })
                 }
                 try {
                     interpreter.executeBlock(initMethod.declaration.body.statements, environment)
-                } catch (retSignal: ReturnSignal) {
-                    // init не должен возвращать значение явно, но если вернет, оно игнорируется, кроме null.
-                    if (retSignal.value !is Null) {
-                        throw LunoRuntimeError("'init' method should not return a value.", initMethod.declaration.name.line)
-                    }
-                }
-
+                } catch (ret: ReturnSignal) { /* 'init' не должен возвращать значение */ }
             }
-            return instance
+
+            return finalInstance
         }
+
         fun findMethod(name: kotlin.String): LunoFunction? {
-            return methods[name] ?: superclass?.findMethod(name)
+            return methods[name] ?: lunoSuperclass?.findMethod(name)
         }
+
         override fun toString(): kotlin.String = "<class $name>"
     }
 
 
-    // Обертка для нативных Kotlin/Java объектов, как Context
+
     data class NativeObject(val obj: Any) : LunoValue() {
         override fun toString(): kotlin.String = "NativeObject(${obj::class.simpleName})"
     }
@@ -267,8 +306,8 @@ sealed class LunoValue {
             is Number -> this.value != 0.0
             is String -> this.value.isNotEmpty()
             is List -> this.elements.isNotEmpty()
-            is LunoObject -> true // Объекты всегда truthy
-            is Callable -> true // Функции/классы truthy
+            is LunoObject -> true
+            is Callable -> true
             is NativeObject -> true
             is BoundMethod -> true
             is Float -> this.value != 0f
@@ -282,7 +321,7 @@ sealed class LunoValue {
                 is kotlin.Number -> Number(value.toDouble())
                 is kotlin.String -> String(value)
                 is kotlin.Boolean -> Boolean(value)
-                is LunoValue -> value // Уже LunoValue
+                is LunoValue -> value
                 is Context -> NativeObject(value)
                 is kotlin.collections.List<*> -> List(value.map { fromKotlin(it) }.toMutableList())
                 is Map<*, *> -> {

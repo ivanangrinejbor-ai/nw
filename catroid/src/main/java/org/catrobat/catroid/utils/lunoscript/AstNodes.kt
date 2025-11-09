@@ -17,11 +17,18 @@ data class ThisExpr(val keyword: Token, override val line: Int) : Expression // 
 data class BinaryExpr(val left: Expression, val operator: Token, val right: Expression, override val line: Int) : Expression
 data class LogicalExpr(val left: Expression, val operator: Token, val right: Expression, override val line: Int) : Expression // Для && и || (с short-circuit)
 data class UnaryExpr(val operator: Token, val right: Expression, override val line: Int) : Expression
+data class InterpolatedStringExpr(val parts: List<Expression>, override val line: Int) : Expression
 
 data class CallExpr(
     val callee: Expression,
     val arguments: List<Expression>,
-    val parenToken: Token, // Токен ')' для номера строки ошибки по количеству аргументов
+    val parenToken: Token,
+    override val line: Int
+) : Expression
+
+data class LambdaExpr(
+    val params: List<Token>,
+    val body: BlockStatement,
     override val line: Int
 ) : Expression
 
@@ -33,7 +40,12 @@ data class MapLiteralExpr(val entries: Map<Token, Expression>, val brace: Token,
 
 // --- Statements ---
 data class ExpressionStatement(val expression: Expression, override val line: Int) : Statement
-data class VarDeclarationStatement(val name: Token, val initializer: Expression?, override val line: Int) : Statement
+data class VarDeclarationStatement(
+    val name: Token,
+    val initializer: Expression?,
+    val isConstant: Boolean,
+    override val line: Int
+) : Statement
 data class AssignmentStatement(val target: Expression, val value: Expression, val operatorToken: Token, override val line: Int) : Statement
 
 data class BlockStatement(val statements: List<Statement>, override val line: Int) : Statement // line - это строка {
@@ -41,13 +53,13 @@ data class IfStatement(val condition: Expression, val thenBranch: Statement, val
 data class WhileStatement(val condition: Expression, val body: Statement, val whileToken: Token, override val line: Int) : Statement
 data class ForInStatement(val variable: Token, val iterable: Expression, val body: Statement, val forToken: Token, override val line: Int) : Statement
 
-data class FunctionParameter(val name: Token /*, val type: TypeAnnotation? = null */) // Типы пока не добавляем
+data class FunctionParameter(val name: Token /*, val type: TypeAnnotation? = null */)
 data class FunDeclarationStatement(val name: Token, val params: List<Token>, val body: BlockStatement, override val line: Int) : Statement
 data class ReturnStatement(val keyword: Token, val value: Expression?, override val line: Int) : Statement
 data class BreakStatement(val keyword: Token, override val line: Int) : Statement
 data class ContinueStatement(val keyword: Token, override val line: Int) : Statement
 
-data class ClassDeclarationStatement(val name: Token, val methods: List<FunDeclarationStatement>, val superclass: VariableExpr?, override val line: Int) : Statement
+data class ClassDeclarationStatement(val name: Token, val methods: List<FunDeclarationStatement>, val superclass: VariableExpr?, val staticBlock: BlockStatement?, override val line: Int) : Statement
 
 data class SwitchCase(val valueExpressions: List<Expression>?, val body: Statement, val caseOrDefaultToken: Token, val isDefault: Boolean = false)
 data class SwitchStatement(
