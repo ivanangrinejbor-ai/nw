@@ -40,12 +40,12 @@
     <string formatted="false" name="brick_write_files">Write variable</string>
     <string formatted="false" name="brick_write_files2">to project file</string>
     <string formatted="false" name="brick_open_files">Open file from project</string>
-    <string formatted="false" name="brick_move_files">Copy file to download</string>
-    <string formatted="false" name="brick_move_downloads">Copy file to project</string>
-    <string formatted="false" name="brick_save_look_files">Look to project file</string>
-    <string formatted="false" name="brick_set_look_files">Look from project file</string>
-    <string formatted="false" name="brick_files_url">Save file in project</string>
-    <string formatted="false" name="brick_sound_files">Play sound from project</string>
+    <string formatted="false" name="brick_move_files">Copy file (project -> Downloads)</string>
+    <string formatted="false" name="brick_move_downloads">Copy file (Downloads -> project)</string>
+    <string formatted="false" name="brick_save_look_files">Look to file (project)</string>
+    <string formatted="false" name="brick_set_look_files">Look from file (project)</string>
+    <string formatted="false" name="brick_files_url">Save file (in project)</string>
+    <string formatted="false" name="brick_sound_files">Play sound (project file)</string>
     <!-- Dialog Bricks -->
     <string formatted="false" name="dialog_create">Create dialog</string>
     <string formatted="false" name="dialog_name">Dialog name</string>
@@ -84,6 +84,54 @@
     <string formatted="false" name="firebase_value">Value</string>
     <string formatted="false" name="firebase_store">and store in</string>
     <!-- General terms -->
+    <string name="brick_set_3d_sound_position">Set 3D sound position</string>
+    <string name="brick_load_scene_additive">Load scene additively</string>
+    <string name="brick_load_scene_additive_path">from file:</string>
+    <string name="brick_prepare_sound2">Prepare audio (for 3D)</string>
+    <string name="brick_prepare_music">Prepare music file (for 3D)</string>
+    <string name="brick_prepare_music_as">as sound name</string>
+    <string name="brick_prepare_sound_as">as sound name</string>
+    <string name="brick_play_sound_3d">Play 3D sound</string>
+    <string name="brick_sound_instance_name">with instance name</string>
+    <string name="brick_sound_at_position">at position (X,Y,Z)</string>
+    <string name="brick_sound_volume">Volume (%)</string>
+    <string name="brick_sound_pitch">Pitch (%)</string>
+    <string name="brick_sound_loop">Loop</string>
+    <string-array name="brick_sound_loop_options">
+        <item>No</item>
+        <item>Yes</item>
+    </string-array>
+    <string name="brick_set_global_sound_volume">Set global 3D sound volume to</string>
+    <string name="brick_percent">%</string>
+    <string name="brick_stop_sound_3d">Stop 3D sound (instance)</string>
+    <string name="brick_set_material">Set material of object</string>
+    <string name="brick_material_color">Color (R,G,B,A)</string>
+    <string name="brick_material_metallic">Metallic (%)</string>
+    <string name="brick_material_roughness">Roughness (%)</string>
+    <string name="brick_material_texture_color">Color Texture</string>
+    <string name="brick_material_texture_normal">Normal Map</string>
+    <string name="brick_material_texture_mr">Metallic/Roughness Map</string>
+    <string name="brick_clone_object">Clone object</string>
+    <string name="brick_clone_as">as</string>
+    <string name="brick_set_parent">Set parent</string>
+    <string name="brick_set_parent_child">for object</string>
+    <string name="brick_set_parent_parent">to object</string>
+    <string name="brick_create_point_joint">Create ball joint</string>
+    <string name="brick_joint_name">Joint name</string>
+    <string name="brick_joint_object_a">Object A</string>
+    <string name="brick_joint_object_b">Object B</string>
+    <string name="brick_joint_pivot_a">Pivot on A (x,y,z)</string>
+    <string name="brick_joint_pivot_b">Pivot on B (x,y,z)</string>
+    <string name="brick_remove_parent">Remove parent from</string>
+    <string name="brick_remove_parent_object">object</string>
+    <string name="brick_remove_joint">Remove joint</string>
+    <string name="brick_set_active">Set object</string>
+    <string name="brick_set_active_state">to active</string>
+    <string-array name="brick_set_active_states">
+        <item>true</item>
+        <item>false</item>
+    </string-array>
+
     <!-- Physics Joints -->
     <string name="brick_create_revolute_joint">Create Hinge Joint</string>
     <string name="brick_create_distance_joint">Create Spring/Rod Joint</string>
@@ -165,6 +213,8 @@
     <string name="input_text">Input text</string>
     <string name="brick_run_vm2">Run VM</string>
     <string name="brick_vm_arguments">Arguments</string>
+
+    <string name="category_file">Files</string>
 
     <string name="loading_fact_placeholder">Loading...</string>
 
@@ -277,7 +327,7 @@
     <string name="formula_ray_normal_y">ray_normal_y</string>
     <string name="formula_ray_normal_z">ray_normal_z</string>
     <string name="brick_start_mic_recording">Start microphone recording</string>
-    <string name="brick_stop_recording_and_save">Save recording as</string>
+    <string name="brick_stop_recording_and_save">Save recording (project file)</string>
     <string name="brick_try">Try</string>
     <string name="brick_catch">Catch</string>
     <string name="brick_finally">Finally</string>
@@ -465,9 +515,9 @@
     <string name="python_run_script">Run Python script</string>
     <string name="python_script_content">Script</string>
     <string name="python_load_library">Load Py library</string>
-    <string name="python_library_file_name">Library file (.whl, .zip)</string>
+    <string name="python_library_file_name">project file (.whl, .zip)</string>
     <string name="python_load_native_module">Load Py native module</string>
-    <string name="python_module_file_name">Module file (.so)</string>
+    <string name="python_module_file_name">project file (.so)</string>
     <string name="python_clear_environment">Clear Python environment</string>
     <string name="brick_set_shader_uniform_vec3" formatted="false">Set Uniform (Vector)</string>
     <string name="brick_set_shader_uniform_float" formatted="false">Set Uniform (Number)</string>
@@ -502,6 +552,8 @@
     <string name="brick_create_sphere" formatted="false">Create sphere with ID</string>
     <string name="formula_3d_touches" formatted="false">object touches object</string>
     <string name="formula_3d_touches_param" formatted="false">(\'object ID 1\', \'object ID 2\')</string>
+    <string name="formula_3d_intersects" formatted="false">object_intersects_object</string>
+    <string name="formula_3d_intersects_param" formatted="false">(\'Object 1 ID\', \'Object 2 ID\')</string>
     <string name="brick_set_sky_color" formatted="false">Set sky color to (0-1)</string>
     <string name="formula_cam_rot_yaw" formatted="false">camera rotation Y</string>
     <string name="formula_cam_rot_pitch" formatted="false">camera rotation X</string>
@@ -689,8 +741,8 @@
     <string formatted="false" name="brick_regex">Execute regex</string>
     <string formatted="false" name="brick_open_file">Open file from Downloads</string>
     <string formatted="false" name="brick_zip2">files</string>
-    <string formatted="false" name="brick_zip">Zip to</string>
-    <string formatted="false" name="brick_unzip">Unzip file</string>
+    <string formatted="false" name="brick_zip">Zip to (from Downloads)</string>
+    <string formatted="false" name="brick_unzip">Unzip file (Downloads)</string>
     <string formatted="false" name="brick_hide_text">Hide text with name</string>
     <string formatted="false" name="brick_show_text">Show text</string>
     <string formatted="false" name="brick_show_text_font">font (project files)</string>
@@ -722,11 +774,11 @@
     <string formatted="false" name="brick_insert_table">Insert</string>
     <string formatted="false" name="brick_create_table2">size (X, Y)</string>
     <string formatted="false" name="brick_create_table">Create table with name</string>
-    <string formatted="false" name="brick_sound_file">Play sound from file</string>
-    <string formatted="false" name="brick_look_file">Set look from file</string>
-    <string formatted="false" name="brick_save_look">Save look to file</string>
+    <string formatted="false" name="brick_sound_file">Play sound (file in Downloads)</string>
+    <string formatted="false" name="brick_look_file">Look from file (Downloads)</string>
+    <string formatted="false" name="brick_save_look">Look to file (Downloads)</string>
     <string formatted="false" name="brick_scene_id">Start scene with id</string>
-    <string formatted="false" name="brick_file_url">Save file from URL</string>
+    <string formatted="false" name="brick_file_url">Save file (Downloads)</string>
     <string formatted="false" name="brick_file_url2">with name</string>
     <string formatted="false" name="build_apk">Save APK</string>
     <string formatted="false" name="save_apk_button">Build APK</string>

@@ -12,14 +12,10 @@ import androidx.annotation.RequiresApi
 import org.catrobat.catroid.CatroidApplication
 import org.catrobat.catroid.content.Scope
 import org.catrobat.catroid.stage.StageActivity
-import java.io.File
-import java.io.FileOutputStream
 import java.io.OutputStream
 import java.text.SimpleDateFormat
-import java.util.ArrayList
 import java.util.Date
 import java.util.Locale
-import kotlin.script.dependencies.Environment
 
 class LunoScriptEngine(
     private val androidContext: Context?, // Nullable if context is not always needed
@@ -58,8 +54,13 @@ class LunoScriptEngine(
     }
 
     private fun toast(msg: String) {
-        val params = ArrayList<Any>(listOf(msg))
-        StageActivity.messageHandler.obtainMessage(StageActivity.SHOW_TOAST, params).sendToTarget()
+        try {
+            val params = ArrayList<Any>(listOf(msg))
+            StageActivity.messageHandler.obtainMessage(StageActivity.SHOW_TOAST, params)
+                .sendToTarget()
+        } catch (e: Exception) {
+            Toast.makeText(androidContext, msg, Toast.LENGTH_SHORT).show()
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.Q)
@@ -164,5 +165,9 @@ class LunoScriptEngine(
                 toast(finalToastMsg)
             }
         }
+    }
+
+    fun getInterpreter(): Interpreter {
+        return interpreter
     }
 }

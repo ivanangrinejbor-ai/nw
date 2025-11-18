@@ -3523,4 +3523,143 @@ public class ActionFactory extends Actions {
 	public Action createUnlockMouseAction() {
 		return action(UnlockMouseAction.class);
 	}
+
+	public Action createSetParentAction(Sprite sprite, SequenceAction sequence, Formula child, Formula parent) {
+		SetParentAction action = action(SetParentAction.class);
+		action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+		action.setChildObject(child);
+		action.setParentObject(parent);
+		return action;
+	}
+
+	public Action createCreatePointJointAction(Sprite sprite, SequenceAction sequence,
+											   Formula constraintName, Formula objectA, Formula objectB,
+											   Formula pivotAX, Formula pivotAY, Formula pivotAZ,
+											   Formula pivotBX, Formula pivotBY, Formula pivotBZ) {
+		CreatePointJointAction action = action(CreatePointJointAction.class);
+		action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+		action.setConstraintName(constraintName);
+		action.setObjectA(objectA);
+		action.setObjectB(objectB);
+		action.setPivotAX(pivotAX);
+		action.setPivotAY(pivotAY);
+		action.setPivotAZ(pivotAZ);
+		action.setPivotBX(pivotBX);
+		action.setPivotBY(pivotBY);
+		action.setPivotBZ(pivotBZ);
+		return action;
+	}
+
+	public Action createRemoveParentAction(Sprite sprite, SequenceAction sequence, Formula child) {
+		RemoveParentAction action = action(RemoveParentAction.class);
+		action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+		action.setChildObject(child);
+		return action;
+	}
+
+	public Action createRemoveJointAction(Sprite sprite, SequenceAction sequence, Formula jointName) {
+		RemoveJointAction action = action(RemoveJointAction.class);
+		action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+		action.setJointName(jointName);
+		return action;
+	}
+
+	public Action createSetActiveAction(Sprite sprite, SequenceAction sequence, Formula objectName, boolean activeState) {
+		SetActiveAction action = action(SetActiveAction.class);
+		action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+		action.setObjectName(objectName);
+		action.setActiveState(activeState);
+		return action;
+	}
+
+	public Action createCloneObjectAction(Sprite sprite, SequenceAction sequence, Formula source, Formula newName) {
+		CloneObjectAction action = action(CloneObjectAction.class);
+		action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+		action.setSourceObjectName(source);
+		action.setCloneObjectName(newName);
+		return action;
+	}
+
+	public Action createSetMaterialAction(Sprite sprite, SequenceAction sequence, Formula objectName,
+										  Formula r, Formula g, Formula b, Formula a, Formula metallic, Formula roughness,
+										  Formula colorTexture, Formula normalTexture, Formula mrTexture) {
+		SetMaterialAction action = action(SetMaterialAction.class);
+		action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+		action.setObjectName(objectName);
+		action.setColorR(r);
+		action.setColorG(g);
+		action.setColorB(b);
+		action.setColorA(a);
+		action.setMetallic(metallic);
+		action.setRoughness(roughness);
+		action.setBaseColorTexture(colorTexture);
+		action.setNormalTexture(normalTexture);
+		action.setMetallicRoughnessTexture(mrTexture);
+		return action;
+	}
+
+	public Action createPlaySoundAtPositionAction(Sprite sprite, SequenceAction sequence, Formula soundName,
+												  Formula instanceName, Formula x, Formula y, Formula z,
+												  Formula volume, Formula pitch, boolean loop) {
+		PlaySoundAtPositionAction action = action(PlaySoundAtPositionAction.class);
+		action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+		action.setSoundName(soundName);
+		action.setInstanceName(instanceName);
+		action.setPosX(x);
+		action.setPosY(y);
+		action.setPosZ(z);
+		action.setVolume(volume);
+		action.setPitch(pitch);
+		action.setLoop(loop);
+		return action;
+	}
+
+	public Action createPrepareSound2Action(Sprite sprite, SequenceAction sequence, Formula fileName, Formula soundName) {
+		PrepareSoundAction2 action = action(PrepareSoundAction2.class);
+		action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+		action.setFileName(fileName);
+		action.setSoundName(soundName);
+		return action;
+	}
+
+	public Action createStopSoundAction2(Sprite sprite, SequenceAction sequence, Formula instanceName) {
+		StopSoundAction2 action = action(StopSoundAction2.class);
+		action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+		action.setInstanceName(instanceName);
+		return action;
+	}
+
+	public Action createSetGlobalSoundVolumeAction(Sprite sprite, SequenceAction sequence, Formula volume) {
+		SetGlobalSoundVolumeAction action = action(SetGlobalSoundVolumeAction.class);
+		action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+		action.setVolume(volume);
+		return action;
+	}
+
+	public Action createPrepareMusicAction(Sprite sprite, SequenceAction sequence, Formula fileName, Formula soundName) {
+		PrepareMusicAction action = action(PrepareMusicAction.class);
+		action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+		action.setFileName(fileName);
+		action.setSoundName(soundName);
+		return action;
+	}
+
+	public Action createLoadSceneAdditiveAction(Sprite sprite, SequenceAction sequence, Formula fileName) {
+		LoadSceneAdditiveAction action = action(LoadSceneAdditiveAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setFileName(fileName);
+		return action;
+	}
+
+	public Action createSet3DSoundPositionAction(Sprite sprite, SequenceAction sequence,
+												 Formula name, Formula x, Formula y, Formula z) {
+		Set3DSoundPositionAction action = action(Set3DSoundPositionAction.class);
+		action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+		action.setSoundName(name);
+		action.setX(x);
+		action.setY(y);
+		action.setZ(z);
+		return action;
+	}
 }

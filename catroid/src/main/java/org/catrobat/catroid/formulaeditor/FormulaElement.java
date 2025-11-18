@@ -636,6 +636,14 @@ public class FormulaElement implements Serializable {
 				boolean result3 = manager.checkCollision(id1, id2);
 				return Conversions.booleanToDouble(result3);
 			}
+			case OBJECT_INTERSECTS_OBJECT: {
+				ThreeDManager manager = getThreeDManager();
+				if (manager == null) return Conversions.FALSE;
+				String id1 = String.valueOf(arguments.get(0));
+				String id2 = String.valueOf(arguments.get(1));
+				boolean result3 = manager.checkIntersection(id1, id2);
+				return Conversions.booleanToDouble(result3);
+			}
 			case GET_CAMERA_ROTATION_YAW: {
 				ThreeDManager manager = getThreeDManager();
 				return (manager != null) ? (double) manager.getCameraRotation().y : 0.0;

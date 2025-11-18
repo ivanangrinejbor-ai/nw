@@ -30,12 +30,12 @@
         android:layout_marginTop="8dp"
         android:text="Add Box Collider" />
 
-    <Button
+    <!--<Button
         android:id="@+id/btn_add_sphere_collider"
         style="@style/Widget.App.Button.Outlined"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Add Sphere Collider" />
+        android:text="Add Sphere Collider" />-->
 
     <Button
         android:id="@+id/btn_add_capsule_collider"

@@ -12,6 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="40dp"
         android:background="@color/toolbar_background"
+        android:tag="toolbar_background"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingStart="8dp"

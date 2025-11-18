@@ -12,23 +12,20 @@ import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Intersector;
+import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Plane;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.Ray;
-
 import org.catrobat.catroid.raptor.ColliderShapeData;
 import org.catrobat.catroid.raptor.GameObject;
 import org.catrobat.catroid.raptor.PhysicsComponent;
 import org.catrobat.catroid.raptor.SceneManager;
-import org.catrobat.catroid.raptor.TransformComponent;
 
 public class Gizmo {
 
-    private enum Axis {
-        NONE, X, Y, Z
-    }
+    private enum Axis { NONE, X, Y, Z }
 
     private final SceneManager sceneManager;
     private final Camera camera;
@@ -47,13 +44,10 @@ public class Gizmo {
     private final Vector3 dragStartPoint = new Vector3();
     private final Vector3 dragCurrentPoint = new Vector3();
 
-    private final Quaternion identityQuaternion = new Quaternion();
-
-    private final Quaternion baseRotX = new Quaternion(Vector3.Z, 90);
-    private final Quaternion baseRotY = new Quaternion();
-    private final Quaternion baseRotZ = new Quaternion(Vector3.X, 90);
-
+    private final Quaternion lastObjectRotation = new Quaternion();
     private ColliderShapeData selectedCollider = null;
+
+    private final Vector3 initialDragPoint = new Vector3();
 
     public Gizmo(SceneManager sceneManager, Camera camera) {
         this.sceneManager = sceneManager;
@@ -63,40 +57,32 @@ public class Gizmo {
 
     private void createModels() {
         ModelBuilder modelBuilder = new ModelBuilder();
-        float axisLength = 1f;
-        float arrowHeadSize = 0.25f;
-        float arrowStemSize = 0.1f;
-        float ringRadius = axisLength * 0.5f;
-        float scaleHandleSize = 0.15f;
+        long usage = Usage.Position | Usage.Normal;
 
-        Model arrowXModel = modelBuilder.createArrow(0, 0, 0, axisLength, 0, 0, arrowHeadSize, arrowStemSize, 10, GL20.GL_TRIANGLES, new Material(ColorAttribute.createDiffuse(Color.RED)), Usage.Position | Usage.Normal);
-        Model arrowYModel = modelBuilder.createArrow(0, 0, 0, 0, axisLength, 0, arrowHeadSize, arrowStemSize, 10, GL20.GL_TRIANGLES, new Material(ColorAttribute.createDiffuse(Color.GREEN)), Usage.Position | Usage.Normal);
-        Model arrowZModel = modelBuilder.createArrow(0, 0, 0, 0, 0, axisLength, arrowHeadSize, arrowStemSize, 10, GL20.GL_TRIANGLES, new Material(ColorAttribute.createDiffuse(Color.BLUE)), Usage.Position | Usage.Normal);
+        Model arrowXModel = modelBuilder.createArrow(0, 0, 0, 1, 0, 0, 0.25f, 0.1f, 10, GL20.GL_TRIANGLES, new Material(ColorAttribute.createDiffuse(Color.RED)), usage);
+        Model arrowYModel = modelBuilder.createArrow(0, 0, 0, 0, 1, 0, 0.25f, 0.1f, 10, GL20.GL_TRIANGLES, new Material(ColorAttribute.createDiffuse(Color.GREEN)), usage);
+        Model arrowZModel = modelBuilder.createArrow(0, 0, 0, 0, 0, 1, 0.25f, 0.1f, 10, GL20.GL_TRIANGLES, new Material(ColorAttribute.createDiffuse(Color.BLUE)), usage);
         gizmoTranslateX = new ModelInstance(arrowXModel);
         gizmoTranslateY = new ModelInstance(arrowYModel);
         gizmoTranslateZ = new ModelInstance(arrowZModel);
 
-        Model ringModel = modelBuilder.createCylinder(ringRadius * 2, 0.02f, ringRadius * 2, 32, new Material(), Usage.Position | Usage.Normal);
-        gizmoRotateX = new ModelInstance(ringModel);
-        gizmoRotateX.materials.get(0).set(ColorAttribute.createDiffuse(Color.RED));
+        Model ringXModel = modelBuilder.createCylinder(2, 0.05f, 2, 32, new Material(ColorAttribute.createDiffuse(Color.RED)), usage);
+        gizmoRotateX = new ModelInstance(ringXModel);
         gizmoRotateX.transform.rotate(Vector3.Z, 90);
 
-        gizmoRotateY = new ModelInstance(ringModel);
-        gizmoRotateY.materials.get(0).set(ColorAttribute.createDiffuse(Color.GREEN));
+        Model ringYModel = modelBuilder.createCylinder(2, 0.05f, 2, 32, new Material(ColorAttribute.createDiffuse(Color.GREEN)), usage);
+        gizmoRotateY = new ModelInstance(ringYModel);
 
-        gizmoRotateZ = new ModelInstance(ringModel);
-        gizmoRotateZ.materials.get(0).set(ColorAttribute.createDiffuse(Color.BLUE));
+        Model ringZModel = modelBuilder.createCylinder(2, 0.05f, 2, 32, new Material(ColorAttribute.createDiffuse(Color.BLUE)), usage);
+        gizmoRotateZ = new ModelInstance(ringZModel);
         gizmoRotateZ.transform.rotate(Vector3.X, 90);
 
-
-        Model cubeModel = modelBuilder.createBox(scaleHandleSize, scaleHandleSize, scaleHandleSize, new Material(), Usage.Position | Usage.Normal);
-        gizmoScaleX = new ModelInstance(cubeModel);
+        Model cubeModel = modelBuilder.createBox(0.2f, 0.2f, 0.2f, new Material(), usage);
+        gizmoScaleX = new ModelInstance(cubeModel, new Vector3(1.1f, 0, 0));
         gizmoScaleX.materials.get(0).set(ColorAttribute.createDiffuse(Color.RED));
-
-        gizmoScaleY = new ModelInstance(cubeModel);
+        gizmoScaleY = new ModelInstance(cubeModel, new Vector3(0, 1.1f, 0));
         gizmoScaleY.materials.get(0).set(ColorAttribute.createDiffuse(Color.GREEN));
-
-        gizmoScaleZ = new ModelInstance(cubeModel);
+        gizmoScaleZ = new ModelInstance(cubeModel, new Vector3(0, 0, 1.1f));
         gizmoScaleZ.materials.get(0).set(ColorAttribute.createDiffuse(Color.BLUE));
     }
 
@@ -120,16 +106,9 @@ public class Gizmo {
     public void render(ModelBatch batch) {
         if (selectedObject == null || currentTool == EditorTool.HAND) return;
 
-        Vector3 pos = new Vector3();
-        if (selectedCollider != null) {
-            Vector3 worldOffset = selectedCollider.centerOffset.cpy();
-            selectedObject.transform.rotation.transform(worldOffset);
-            pos.set(selectedObject.transform.position).add(worldOffset);
-        } else {
-            pos.set(selectedObject.transform.position);
-        }
+        Vector3 pos = getGizmoPosition();
 
-        Gdx.gl.glDisable(GL20.GL_DEPTH_TEST);
+        Gdx.gl.glClear(GL20.GL_DEPTH_BUFFER_BIT);
         batch.begin(camera);
 
         float distance = camera.position.dst(pos);
@@ -137,40 +116,139 @@ public class Gizmo {
 
         switch (currentTool) {
             case TRANSLATE:
-                gizmoTranslateX.transform.set(pos, identityQuaternion, new Vector3(scale, scale, scale));
-                gizmoTranslateY.transform.set(pos, identityQuaternion, new Vector3(scale, scale, scale));
-                gizmoTranslateZ.transform.set(pos, identityQuaternion, new Vector3(scale, scale, scale));
-                batch.render(gizmoTranslateX);
-                batch.render(gizmoTranslateY);
-                batch.render(gizmoTranslateZ);
+                renderAxis(batch, gizmoTranslateX, pos, scale);
+                renderAxis(batch, gizmoTranslateY, pos, scale);
+                renderAxis(batch, gizmoTranslateZ, pos, scale);
                 break;
             case ROTATE:
-                gizmoRotateX.transform.set(baseRotX).scl(scale).setTranslation(pos);
-                gizmoRotateY.transform.set(baseRotY).scl(scale).setTranslation(pos);
-                gizmoRotateZ.transform.set(baseRotZ).scl(scale).setTranslation(pos);
+                float ringScale = scale * 0.5f;
+                gizmoRotateX.transform.setToRotation(Vector3.Z, 90).scl(ringScale).setTranslation(pos);
+                gizmoRotateY.transform.setToRotation(Vector3.Y, 0).scl(ringScale).setTranslation(pos);
+                gizmoRotateZ.transform.setToRotation(Vector3.X, 90).scl(ringScale).setTranslation(pos);
                 batch.render(gizmoRotateX);
                 batch.render(gizmoRotateY);
                 batch.render(gizmoRotateZ);
                 break;
             case SCALE:
-                float handleOffset = 1f * scale;
-                gizmoScaleX.transform.set(pos, identityQuaternion, new Vector3(scale, scale, scale)).translate(handleOffset, 0, 0);
-                gizmoScaleY.transform.set(pos, identityQuaternion, new Vector3(scale, scale, scale)).translate(0, handleOffset, 0);
-                gizmoScaleZ.transform.set(pos, identityQuaternion, new Vector3(scale, scale, scale)).translate(0, 0, handleOffset);
+                gizmoScaleX.transform.set(pos, new Quaternion(), new Vector3(scale, scale, scale)).translate(scale, 0, 0);
+                gizmoScaleY.transform.set(pos, new Quaternion(), new Vector3(scale, scale, scale)).translate(0, scale, 0);
+                gizmoScaleZ.transform.set(pos, new Quaternion(), new Vector3(scale, scale, scale)).translate(0, 0, scale);
                 batch.render(gizmoScaleX);
                 batch.render(gizmoScaleY);
                 batch.render(gizmoScaleZ);
                 break;
         }
         batch.end();
-        Gdx.gl.glEnable(GL20.GL_DEPTH_TEST);
     }
 
     private void renderAxis(ModelBatch batch, ModelInstance instance, Vector3 position, float scale) {
-        Quaternion originalRotation = new Quaternion();
-        instance.transform.getRotation(originalRotation);
-        instance.transform.set(position, originalRotation, new Vector3(scale, scale, scale));
+        instance.transform.setToTranslation(position).scl(scale);
         batch.render(instance);
+    }
+
+    public void touchDragged(Ray pickRay) {
+        if (selectedAxis == Axis.NONE || selectedObject == null) return;
+        if (!Intersector.intersectRayPlane(pickRay, dragPlane, dragCurrentPoint)) return;
+
+        Vector3 dragVector = dragCurrentPoint.cpy().sub(dragStartPoint);
+
+        Vector3 axisVector = new Vector3();
+        if (selectedAxis == Axis.X) axisVector.set(1, 0, 0);
+        if (selectedAxis == Axis.Y) axisVector.set(0, 1, 0);
+        if (selectedAxis == Axis.Z) axisVector.set(0, 0, 1);
+
+        if (selectedCollider != null) {
+            PhysicsComponent physics = selectedObject.getComponent(PhysicsComponent.class);
+            if (physics == null) return;
+
+            switch (currentTool) {
+                case TRANSLATE: {
+                    float projection = dragVector.dot(axisVector);
+                    Vector3 worldTranslation = axisVector.cpy().scl(projection);
+
+                    Quaternion invRot = selectedObject.transform.worldTransform.getRotation(new Quaternion()).conjugate();
+                    invRot.transform(worldTranslation);
+
+                    selectedCollider.centerOffset.add(worldTranslation);
+                    break;
+                }
+                case SCALE: {
+                    float projection = dragVector.dot(axisVector);
+                    Vector3 scaleAmount = axisVector.cpy().scl(projection * 0.5f);
+
+                    if (selectedCollider.type == ColliderShapeData.ShapeType.SPHERE || selectedCollider.type == ColliderShapeData.ShapeType.CAPSULE) {
+                        float amount = scaleAmount.len() * Math.signum(scaleAmount.dot(axisVector));
+                        selectedCollider.radius = Math.max(0.01f, selectedCollider.radius + amount);
+                        if (selectedCollider.type == ColliderShapeData.ShapeType.CAPSULE) {
+                            selectedCollider.size.y = Math.max(0.01f, selectedCollider.size.y + amount * 2);
+                        }
+                    } else {
+                        selectedCollider.size.add(scaleAmount);
+                        selectedCollider.size.x = Math.max(0.01f, selectedCollider.size.x);
+                        selectedCollider.size.y = Math.max(0.01f, selectedCollider.size.y);
+                        selectedCollider.size.z = Math.max(0.01f, selectedCollider.size.z);
+                    }
+                    break;
+                }
+                case ROTATE:
+                    break;
+            }
+            sceneManager.setPhysicsComponent(selectedObject, physics);
+
+        } else {
+            switch (currentTool) {
+                case TRANSLATE: {
+                    float projection = dragVector.dot(axisVector);
+                    Vector3 worldTranslation = axisVector.cpy().scl(projection);
+
+                    if (selectedObject.parentId != null) {
+                        GameObject parent = sceneManager.findGameObject(selectedObject.parentId);
+                        if (parent != null) {
+                            Quaternion parentInverseRotation = parent.transform.worldTransform.getRotation(new Quaternion()).conjugate();
+
+                            parentInverseRotation.transform(worldTranslation);
+
+                            Vector3 parentScale = parent.transform.worldTransform.getScale(new Vector3());
+                            if (parentScale.x != 0) worldTranslation.x /= parentScale.x;
+                            if (parentScale.y != 0) worldTranslation.y /= parentScale.y;
+                            if (parentScale.z != 0) worldTranslation.z /= parentScale.z;
+                        }
+                    }
+                    selectedObject.transform.position.add(worldTranslation);
+                    break;
+                }
+                case SCALE: {
+                    float projection = dragVector.dot(axisVector);
+                    float scaleAmount = projection * 0.1f;
+                    Vector3 scaleVec = axisVector.cpy().scl(scaleAmount);
+                    selectedObject.transform.scale.add(scaleVec);
+                    break;
+                }
+                case ROTATE: {
+                    Vector3 currentVec = dragCurrentPoint.cpy().sub(getGizmoPosition());
+                    Vector3 startVec = dragStartPoint.cpy().sub(getGizmoPosition());
+
+                    Vector3 planeNormal = axisVector;
+                    Vector3 projectedStart = startVec.cpy().sub(planeNormal.cpy().scl(startVec.dot(planeNormal)));
+                    Vector3 projectedCurrent = currentVec.cpy().sub(planeNormal.cpy().scl(currentVec.dot(planeNormal)));
+
+                    projectedStart.nor();
+                    projectedCurrent.nor();
+
+                    float angle = (float) Math.toDegrees(Math.acos(projectedStart.dot(projectedCurrent)));
+
+                    if (Float.isNaN(angle) || angle < 0.01f) break;
+
+                    Vector3 cross = projectedStart.crs(projectedCurrent);
+                    float sign = Math.signum(cross.dot(axisVector));
+
+                    Quaternion deltaRotation = new Quaternion(axisVector, angle * sign);
+                    sceneManager.rotate(selectedObject, deltaRotation);
+                    break;
+                }
+            }
+        }
+        dragStartPoint.set(dragCurrentPoint);
     }
 
     public boolean touchDown(Ray pickRay) {
@@ -179,11 +257,11 @@ public class Gizmo {
         selectedAxis = Axis.NONE;
         float closestDist = Float.MAX_VALUE;
 
-        ModelInstance handleX=null, handleY=null, handleZ=null;
-        switch(currentTool){
+        ModelInstance handleX, handleY, handleZ;
+        switch (currentTool) {
             case TRANSLATE: handleX = gizmoTranslateX; handleY = gizmoTranslateY; handleZ = gizmoTranslateZ; break;
-            case ROTATE: handleX = gizmoRotateX; handleY = gizmoRotateY; handleZ = gizmoRotateZ; break;
-            case SCALE: handleX = gizmoScaleX; handleY = gizmoScaleY; handleZ = gizmoScaleZ; break;
+            case ROTATE:    handleX = gizmoRotateX;    handleY = gizmoRotateY;    handleZ = gizmoRotateZ;    break;
+            case SCALE:     handleX = gizmoScaleX;     handleY = gizmoScaleY;     handleZ = gizmoScaleZ;     break;
             default: return false;
         }
 
@@ -197,8 +275,11 @@ public class Gizmo {
         if ((dist = intersect(pickRay, boxZ)) < closestDist) { closestDist = dist; selectedAxis = Axis.Z; }
 
         if (selectedAxis != Axis.NONE) {
-            setupDragPlane(selectedObject.transform.position);
+            setupDragPlane(getGizmoPosition());
             Intersector.intersectRayPlane(pickRay, dragPlane, dragStartPoint);
+            if (currentTool == EditorTool.ROTATE) {
+                lastObjectRotation.set(selectedObject.transform.rotation);
+            }
             return true;
         }
         return false;
@@ -216,89 +297,43 @@ public class Gizmo {
         dragPlane.set(origin, planeNormal);
     }
 
-    public void touchDragged(Ray pickRay) {
-        if (selectedAxis == Axis.NONE || selectedObject == null) return;
+    public void touchUp() {
+        if (currentTool == EditorTool.ROTATE && selectedObject != null){
 
-        if (!Intersector.intersectRayPlane(pickRay, dragPlane, dragCurrentPoint)) {
-            return;
+            lastObjectRotation.set(selectedObject.transform.rotation);
         }
-        Vector3 dragVector = dragCurrentPoint.cpy().sub(dragStartPoint);
-
-        Vector3 axisVector = new Vector3();
-        if (selectedAxis == Axis.X) axisVector.set(1, 0, 0);
-        if (selectedAxis == Axis.Y) axisVector.set(0, 1, 0);
-        if (selectedAxis == Axis.Z) axisVector.set(0, 0, 1);
-
-        if (selectedCollider != null) {
-            switch(currentTool) {
-                case TRANSLATE: {
-                    float projection = dragVector.dot(axisVector);
-                    Vector3 worldTranslation = axisVector.cpy().scl(projection);
-
-                    Quaternion invRot = selectedObject.transform.rotation.cpy().conjugate();
-                    invRot.transform(worldTranslation);
-
-                    selectedCollider.centerOffset.add(worldTranslation);
-                    break;
-                }
-                case SCALE: {
-                    float projection = dragVector.dot(axisVector);
-                    Vector3 scaleAmount = axisVector.cpy().scl(projection * 0.5f);
-
-                    if (selectedCollider.type == ColliderShapeData.ShapeType.SPHERE || selectedCollider.type == ColliderShapeData.ShapeType.CAPSULE) {
-                        float amount = scaleAmount.len() * Math.signum(scaleAmount.dot(axisVector));
-                        selectedCollider.radius += amount;
-                        if(selectedCollider.type == ColliderShapeData.ShapeType.CAPSULE){
-                            selectedCollider.size.y += amount * 2;
-                        }
-                    } else {
-                        selectedCollider.size.add(scaleAmount);
-                    }
-                    break;
-                }
-                case ROTATE:
-                    break;
-            }
-            sceneManager.setPhysicsComponent(selectedObject, selectedObject.getComponent(PhysicsComponent.class));
-        } else {
-            switch(currentTool) {
-                case TRANSLATE: {
-                    float projection = dragVector.dot(axisVector);
-                    Vector3 translation = axisVector.cpy().scl(projection);
-                    Vector3 newPos = selectedObject.transform.position.cpy().add(translation);
-                    sceneManager.setPosition(selectedObject, newPos);
-                    break;
-                }
-                case SCALE: {
-                    float projection = dragVector.dot(axisVector);
-                    Vector3 translation = axisVector.cpy().scl(projection);
-                    Vector3 newScale = selectedObject.transform.scale.cpy().add(translation.scl(0.5f));
-                    sceneManager.setScale(selectedObject, newScale);
-                    break;
-                }
-                case ROTATE: {
-                    Vector3 center = selectedObject.transform.position;
-                    Vector3 startVec = dragStartPoint.cpy().sub(center).nor();
-                    Vector3 currentVec = dragCurrentPoint.cpy().sub(center).nor();
-                    float angle = (float)Math.toDegrees(Math.acos(startVec.dot(currentVec)));
-
-                    if (Float.isNaN(angle) || angle < 0.01f) break;
-
-                    Vector3 cross = startVec.crs(currentVec);
-                    float sign = Math.signum(cross.dot(axisVector));
-
-                    Quaternion deltaRotation = new Quaternion(axisVector, angle * sign);
-                    sceneManager.rotate(selectedObject, deltaRotation);
-                    break;
-                }
-            }
-        }
-
-        dragStartPoint.set(dragCurrentPoint);
+        selectedAxis = Axis.NONE;
     }
 
-    public void touchUp() {
-        selectedAxis = Axis.NONE;
+    private Vector3 getGizmoPosition() {
+        if (selectedObject == null) {
+            return Vector3.Zero;
+        }
+
+
+
+        Vector3 objectWorldPosition = selectedObject.transform.worldTransform.getTranslation(new Vector3());
+
+        if (selectedCollider != null) {
+
+
+
+            Vector3 localOffset = selectedCollider.centerOffset;
+
+
+            Quaternion worldRotation = selectedObject.transform.worldTransform.getRotation(new Quaternion());
+
+
+            Vector3 rotatedOffset = worldRotation.transform(new Vector3(localOffset));
+
+
+            return objectWorldPosition.add(rotatedOffset);
+
+
+        }
+
+
+        return objectWorldPosition;
     }
 
     public GameObject getSelectedObject() {

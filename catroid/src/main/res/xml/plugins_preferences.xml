@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory
+        android:key="plugins_installed_category"
+        android:title="Установленные плагины">
+
+        <!-- Сюда мы будем динамически добавлять плагины из кода -->
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="Действия">
+
+        <Preference
+            android:key="plugin_import_button"
+            android:title="Импортировать плагин"
+            android:summary="Установить плагин из .nplug файла"
+            android:icon="@android:drawable/ic_menu_upload" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical">
+
+    <CheckBox android:id="@+id/brick_checkbox" android:layout_width="wrap_content" android:layout_height="wrap_content" android:visibility="gone" />
+
+    <org.catrobat.catroid.ui.BrickLayout
+        android:id="@+id/brick_set_material_layout"
+        style="@style/BrickContainer.Threed.Big">
+
+        <include layout="@layout/icon_brick_category_threed" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_set_material" />
+        <TextView android:id="@+id/brick_set_material_object_edit" style="@style/BrickEditText" app:layout_newLine="true"/>
+
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_material_color" app:layout_newLine="true"/>
+        <TextView android:id="@+id/brick_set_material_r_edit" style="@style/BrickEditText" />
+        <TextView android:id="@+id/brick_set_material_g_edit" style="@style/BrickEditText" />
+        <TextView android:id="@+id/brick_set_material_b_edit" style="@style/BrickEditText" />
+        <TextView android:id="@+id/brick_set_material_a_edit" style="@style/BrickEditText" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_material_metallic" app:layout_newLine="true"/>
+        <TextView android:id="@+id/brick_set_material_metallic_edit" style="@style/BrickEditText" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_material_roughness" app:layout_newLine="true"/>
+        <TextView android:id="@+id/brick_set_material_roughness_edit" style="@style/BrickEditText" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_material_texture_color" app:layout_newLine="true"/>
+        <TextView android:id="@+id/brick_set_material_texture_color_edit" style="@style/BrickEditText" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_material_texture_normal" app:layout_newLine="true"/>
+        <TextView android:id="@+id/brick_set_material_texture_normal_edit" style="@style/BrickEditText" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_material_texture_mr" app:layout_newLine="true"/>
+        <TextView android:id="@+id/brick_set_material_texture_mr_edit" style="@style/BrickEditText" />
+
+    </org.catrobat.catroid.ui.BrickLayout>
+</LinearLayout>

@@ -337,6 +337,23 @@
         <item name="android:background">@drawable/brick_3h_winered</item>
     </style>
 
+    <style name="BrickContainer.File" />
+
+    <style name="BrickContainer.File.Small">
+        <item name="android:minHeight">@dimen/brick_height_small</item>
+        <item name="android:background">@drawable/brick_1h_olive</item>
+    </style>
+
+    <style name="BrickContainer.File.Medium">
+        <item name="android:minHeight">@dimen/brick_height_medium</item>
+        <item name="android:background">@drawable/brick_2h_olive</item>
+    </style>
+
+    <style name="BrickContainer.File.Big" tools:ignore="UnusedResources">
+        <item name="android:minHeight">@dimen/brick_height_big</item>
+        <item name="android:background">@drawable/brick_3h_olive</item>
+    </style>
+
     <style name="BrickContainer.Neural" />
 
     <style name="BrickContainer.Neural.Small">
@@ -707,6 +724,10 @@
         <item name="android:background">@drawable/brick_categories_winered</item>
     </style>
 
+    <style name="BrickCategory.File">
+        <item name="android:background">@drawable/brick_categories_olive</item>
+    </style>
+
     <style name="BrickCategory.Neural">
         <item name="android:background">@drawable/brick_categories_cyan</item>
     </style>
@@ -829,6 +850,25 @@
         <item name="autoSizeTextType">uniform</item>
         <item name="autoSizeMinTextSize">12sp</item>
         <item name="autoSizeMaxTextSize">30sp</item>
+    </style>
+
+    <style name="InspectorLabel1" parent="Widget.AppCompat.TextView">
+        <item name="android:textColor">#000000</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginEnd">8dp</item>
+    </style>
+
+    <style name="InspectorEditText1" parent="Widget.AppCompat.EditText">
+        <item name="android:textColor">#000000</item>
+        <item name="android:textColorHint">#424242</item>
+
+        <item name="android:backgroundTint" >?attr/colorAccent</item>
+
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:paddingBottom">8dp</item>
     </style>
 
 

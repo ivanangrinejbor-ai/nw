@@ -45,10 +45,18 @@ public class EditorListener extends ApplicationAdapter {
     }
 
     public void resetEngine() {
-        resetEngine(null);
+        resetEngine(null, new ThreeDManager.SceneSettings());
     }
 
     public void resetEngine(FileHandle sceneToLoad) {
+        resetEngine(sceneToLoad, new ThreeDManager.SceneSettings());
+    }
+
+    public ThreeDManager getThreeDManager() {
+        return threeDManager;
+    }
+
+    public void resetEngine(FileHandle sceneToLoad, ThreeDManager.SceneSettings settings) {
         Gdx.app.postRunnable(() -> {
             if (threeDManager != null) {
                 threeDManager.dispose();
@@ -58,12 +66,13 @@ public class EditorListener extends ApplicationAdapter {
             }
 
             threeDManager = new ThreeDManager();
-            threeDManager.init();
+            threeDManager.init(settings);
             threeDManager.enableRealisticRendering(true);
             threeDManager.setSkyColor(0.1f, 0.2f, 0.3f);
             threeDManager.createGrid(100, 100);
             threeDManager.setEditorMode(true);
             sceneManager = new SceneManager(threeDManager);
+            sceneManager.setEditorMode(true);
 
             gizmoBatch = new ModelBatch();
 
@@ -194,6 +203,10 @@ public class EditorListener extends ApplicationAdapter {
 
         if (cameraController != null) {
             cameraController.update(Gdx.graphics.getDeltaTime());
+        }
+
+        if (sceneManager != null) {
+            sceneManager.update(Gdx.graphics.getDeltaTime());
         }
 
         threeDManager.update(Gdx.graphics.getDeltaTime());

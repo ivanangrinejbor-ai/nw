@@ -18,18 +18,28 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <http:
  */
 package org.catrobat.catroid;
 
 import static org.catrobat.catroid.common.FlavoredConstants.DEFAULT_ROOT_DIRECTORY;
 
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.StrictMode;
+import android.preference.PreferenceManager;
 import android.util.Log;
+import android.view.ViewGroup;
+import android.widget.FrameLayout;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.danvexteam.lunoscript_annotations.LunoClass;
 import com.google.android.gms.analytics.GoogleAnalytics;
@@ -40,7 +50,11 @@ import com.huawei.hms.mlsdk.common.MLApplication;
 
 import org.catrobat.catroid.formulaeditor.CustomFormulaManager;
 import org.catrobat.catroid.koin.CatroidKoinHelperKt;
+import org.catrobat.catroid.plugins.PluginEventBus;
+import org.catrobat.catroid.plugins.PluginExecutor;
+import org.catrobat.catroid.plugins.PluginOverlayManager;
 import org.catrobat.catroid.utils.FileMetaDataExtractor;
+import org.catrobat.catroid.utils.ThemeEngine;
 import org.catrobat.catroid.utils.Utils;
 
 import java.io.File;
@@ -57,9 +71,27 @@ public class CatroidApplication extends Application {
 	private static GoogleAnalytics googleAnalytics;
 	private static Tracker googleTracker;
 
+	public static boolean IS_SAFE_MODE = false;
+	private boolean pluginsLoaded = false;
+
+	public static CatroidApplication current;
+
 	@TargetApi(30)
 	@Override
 	public void onCreate() {
+
+
+
+		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+		boolean forceSafeMode = prefs.getBoolean("force_safe_mode", false);
+
+		if (forceSafeMode) {
+			IS_SAFE_MODE = true;
+			prefs.edit()
+					.remove("force_safe_mode")
+					.apply();
+		}
+
 		super.onCreate();
 		Log.d(TAG, "CatroidApplication onCreate");
 		Log.d(TAG, "git commit info: " + BuildConfig.GIT_COMMIT_INFO);
@@ -84,6 +116,32 @@ public class CatroidApplication extends Application {
 
 		setupHuaweiMobileServices();
 		CustomFormulaManager.INSTANCE.initialize();
+
+
+
+		registerActivityLifecycleCallbacks(new OverlayLifecycleCallbacks());
+
+		current = this;
+	}
+
+	public void loadPluginsIfNotLoaded() {
+		if (pluginsLoaded) {
+			return;
+		}
+		pluginsLoaded = true;
+
+
+		if (IS_SAFE_MODE) {
+			Log.w(TAG, "SAFE MODE is active. Skipping plugin loading.");
+
+			new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+				Toast.makeText(this, "Безопасный режим. Плагины отключены.", Toast.LENGTH_LONG).show();
+			});
+			return;
+		}
+
+		Log.d(TAG, "Loading all enabled plugins now.");
+		PluginExecutor.getInstance(this).loadAndRunAllEnabledPlugins();
 	}
 
 	private void setupHuaweiMobileServices() {
@@ -105,5 +163,58 @@ public class CatroidApplication extends Application {
 
 	public static Context getAppContext() {
 		return CatroidApplication.context;
+	}
+
+	private void resetThemeSettings() {
+
+		String prefsName = "live_theme_settings";
+
+
+		String toolbarKey = "theme_toolbar_background";
+		String backgroundKey = "theme_primary_background";
+
+		Log.d("ThemeReset", "Сброс настроек темы...");
+
+		SharedPreferences themePrefs = getSharedPreferences(prefsName, Context.MODE_PRIVATE);
+		SharedPreferences.Editor editor = themePrefs.edit();
+
+
+		editor.remove(toolbarKey);
+		editor.remove(backgroundKey);
+
+
+		editor.apply();
+
+		Log.d("ThemeReset", "Настройки темы успешно сброшены.");
+	}
+
+	private static class OverlayLifecycleCallbacks implements ActivityLifecycleCallbacks {
+
+		@Override
+		public void onActivityResumed(@NonNull Activity activity) {
+			PluginOverlayManager.getInstance().attach(activity);
+			String activityName = activity.getClass().getSimpleName();
+			PluginEventBus.getInstance().dispatch("Activity.onShow", activityName);
+
+			if (!IS_SAFE_MODE) {
+				ThemeEngine.applyTheme(activity);
+			}
+		}
+
+		@Override
+		public void onActivityPaused(@NonNull Activity activity) {
+			String activityName = activity.getClass().getSimpleName();
+			PluginEventBus.getInstance().dispatch("Activity.onHide", activityName);
+
+			PluginOverlayManager.getInstance().detach(activity);
+		}
+
+
+
+		@Override public void onActivityCreated(@NonNull Activity activity, @Nullable Bundle savedInstanceState) {}
+		@Override public void onActivityStarted(@NonNull Activity activity) {}
+		@Override public void onActivityStopped(@NonNull Activity activity) {}
+		@Override public void onActivitySaveInstanceState(@NonNull Activity activity, @NonNull Bundle outState) {}
+		@Override public void onActivityDestroyed(@NonNull Activity activity) {}
 	}
 }

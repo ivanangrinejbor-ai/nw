@@ -27,7 +27,8 @@
         android:drawable="@drawable/bottom_bar_background_pressed" />
     <item
         android:state_focused="true"
-        android:drawable="@drawable/button_background" />
+        android:drawable="@drawable/button_background"
+        android:tag="button_background"/>
     <item
         android:state_hovered="true"
         android:drawable="@drawable/bottom_bar_background" />

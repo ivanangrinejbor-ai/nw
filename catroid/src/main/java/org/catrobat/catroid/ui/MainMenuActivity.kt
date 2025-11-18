@@ -29,6 +29,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.preference.PreferenceManager
+import android.provider.Settings
 import android.text.Html
 import android.text.method.LinkMovementMethod
 import android.util.Log
@@ -58,11 +59,11 @@ import org.catrobat.catroid.databinding.ActivityMainMenuSplashscreenBinding
 import org.catrobat.catroid.databinding.DeclinedTermsOfUseAndServiceAlertViewBinding
 import org.catrobat.catroid.databinding.PrivacyPolicyViewBinding
 import org.catrobat.catroid.databinding.ProgressBarBinding
-import org.catrobat.catroid.editor.EditorActivity
 import org.catrobat.catroid.io.ZipArchiver
 import org.catrobat.catroid.io.asynctask.ProjectLoader
 import org.catrobat.catroid.io.asynctask.ProjectLoader.ProjectLoadListener
 import org.catrobat.catroid.io.asynctask.ProjectSaver
+import org.catrobat.catroid.plugins.PluginEventBus
 import org.catrobat.catroid.python.PythonEngine
 import org.catrobat.catroid.stage.StageActivity
 import org.catrobat.catroid.ui.recyclerview.dialog.AboutDialogFragment
@@ -85,12 +86,17 @@ private const val SDK_VERSION = 24
 @LunoClass
 class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
 
+    private val OVERLAY_PERMISSION_REQ_CODE: Int = 1234
+
     private lateinit var privacyPolicyBinding: PrivacyPolicyViewBinding
     private lateinit var declinedTermsOfUseViewBinding: DeclinedTermsOfUseAndServiceAlertViewBinding
     private lateinit var mainMenuBinding: ActivityMainMenuBinding
     private val projectManager: ProjectManager by inject()
     private var oldPrivacyPolicy = 0
     private lateinit var loadingBinding: ActivityLoadingBinding
+
+    private var safeModeTapCounter = 0
+    private var lastTapTime: Long = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -100,6 +106,22 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
         if (!BuildConfig.FEATURE_APK_GENERATOR_ENABLED) {
             loadingBinding = ActivityLoadingBinding.inflate(layoutInflater)
             setContentView(loadingBinding.root)
+
+            loadingBinding.root.setOnClickListener {
+                val currentTime = System.currentTimeMillis()
+                if (currentTime - lastTapTime > 500) { // Если с последнего тапа прошло > 0.5с, сбрасываем счетчик
+                    safeModeTapCounter = 0
+                }
+                lastTapTime = currentTime
+                safeModeTapCounter++
+
+                if (safeModeTapCounter >= 5) { // 7 нажатий - хорошая защита от случайности
+                    val prefs = PreferenceManager.getDefaultSharedPreferences(this)
+                    prefs.edit().putBoolean("force_safe_mode", true).apply()
+                    Toast.makeText(this, "Безопасный режим будет включен после перезапуска", Toast.LENGTH_LONG).show()
+                    safeModeTapCounter = 0 // Сбрасываем, чтобы не показывать тост постоянно
+                }
+            }
 
             lifecycleScope.launch {
                 val factJob = launch { showRandomFacts() }
@@ -154,7 +176,7 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
 
     private fun heavyInitialization() {
         NativeLibraryManager.initialize()
-        Thread.sleep(2000)
+        Thread.sleep(3000)
         PreferenceManager.setDefaultValues(this, R.xml.preferences, true)
         PreferenceManager.setDefaultValues(this, R.xml.nxt_preferences, true)
         PreferenceManager.setDefaultValues(this, R.xml.ev3_preferences, true)
@@ -177,6 +199,8 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
                 CastManager.getInstance().initializeCast(this)
             }
             loadFragment()
+
+            CatroidApplication.current.loadPluginsIfNotLoaded()
         }
 
         oldPrivacyPolicy = PreferenceManager.getDefaultSharedPreferences(this)
@@ -187,6 +211,8 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
 
         surveyCampaign = Survey(this)
         surveyCampaign?.showSurvey(this)
+
+        PluginEventBus.getInstance().dispatch("Activity.onShow", "MainMenuActivity")
     }
 
     /*private fun testPython(): String {
@@ -336,9 +362,11 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
     override fun onResume() {
         super.onResume()
         if (SettingsFragment.isCastSharedPreferenceEnabled(this)) {
-            // А вот этот вызов ЗАПУСКАЕТ сканирование. И он единственный.
+
             CastManager.getInstance().addCallback()
         }
+
+
     }
 
     private fun loadFragment() {
@@ -365,7 +393,22 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
         mainMenuBinding.fragmentContainer.setVisibleOrGone(!show)
     }
 
+    private fun checkOverlayPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (!Settings.canDrawOverlays(this)) {
+
+                val intent = Intent(
+                    Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                    Uri.parse("package:$packageName")
+                )
+                startActivityForResult(intent, OVERLAY_PERMISSION_REQ_CODE)
+            }
+        }
+    }
+
     public override fun onPause() {
+        //PluginEventBus.getInstance().dispatch("MainMenu.onHide");
+
         super.onPause()
         if (SettingsFragment.isCastSharedPreferenceEnabled(this)) {
             CastManager.getInstance().removeCallback();
@@ -622,6 +665,14 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
         if (BuildConfig.FEATURE_APK_GENERATOR_ENABLED) {
             if (requestCode == StageActivity.REQUEST_START_STAGE) {
                 finish()
+            }
+        } else if (requestCode == OVERLAY_PERMISSION_REQ_CODE) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                if (Settings.canDrawOverlays(this)) {
+                    // Разрешение получено
+                } else {
+                    // Пользователь отказал
+                }
             }
         } else {
             super.onActivityResult(requestCode, resultCode, data)

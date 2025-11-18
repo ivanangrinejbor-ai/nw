@@ -18,7 +18,8 @@
         android:textColor="@android:color/darker_gray"
         android:textSize="14sp"
         android:fontFamily="monospace"
-        android:background="@color/toolbar_background" /> <!-- Чуть другой фон для номеров -->
+        android:background="@color/toolbar_background"
+        android:tag="toolbar_background"/> <!-- Чуть другой фон для номеров -->
 
     <!-- Ваш ScrollView с EditText -->
     <ScrollView
@@ -37,6 +38,7 @@
             android:textSize="14sp"
             android:fontFamily="monospace"
             android:background="@color/app_background"
+            android:tag="app_background"
             android:textColor="#A9B7C6"/> <!-- Цвет текста для лучшей читаемости на темном фоне -->
     </ScrollView>
 

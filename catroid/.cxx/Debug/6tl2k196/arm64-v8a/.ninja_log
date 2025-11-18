@@ -1,0 +1,5 @@
+# ninja log v5
+6	10818	7849832995862953	CMakeFiles/example_core.dir/example_core.cpp.o	f2f6b40e32e16a15
+10822	10950	7849832997235842	D:/Catroid-develop/catroid/build/intermediates/cxx/Debug/6tl2k196/obj/arm64-v8a/libexample_core.so	60eb82bf7dc86e2a
+1	11808	7849833005674113	CMakeFiles/catroid.dir/catroid.cpp.o	1d5146e85c81f747
+11809	11897	7849833006680970	D:/Catroid-develop/catroid/build/intermediates/cxx/Debug/6tl2k196/obj/arm64-v8a/libcatroid.so	c0b9d728e8a1a88

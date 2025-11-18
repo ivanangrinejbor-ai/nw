@@ -40,12 +40,12 @@
     <string formatted="false" name="brick_write_files">Записать переменную</string>
     <string formatted="false" name="brick_write_files2">в файл проекта</string>
     <string formatted="false" name="brick_open_files">Открыть файл из проекта</string>
-    <string formatted="false" name="brick_move_files">Копировать файл в Загрузки</string>
-    <string formatted="false" name="brick_move_downloads">Копировать файл в проект</string>
-    <string formatted="false" name="brick_save_look_files">Образ в файл проекта</string>
-    <string formatted="false" name="brick_set_look_files">Образ из файла проекта</string>
-    <string formatted="false" name="brick_files_url">Сохранить файл в проект</string>
-    <string formatted="false" name="brick_sound_files">Воспроизвести звук из проекта</string>
+    <string formatted="false" name="brick_move_files">Копировать файл (проект -> Загрузки)</string>
+    <string formatted="false" name="brick_move_downloads">Копировать файл (Загрузки -> проект)</string>
+    <string formatted="false" name="brick_save_look_files">Образ в файл (проект)</string>
+    <string formatted="false" name="brick_set_look_files">Образ из файла (проект)</string>
+    <string formatted="false" name="brick_files_url">Сохранить файл (в проект)</string>
+    <string formatted="false" name="brick_sound_files">Воспроизвести звук (файл проекта)</string>
     <!-- Dialog Bricks -->
     <string formatted="false" name="dialog_create">Создать диалог</string>
     <string formatted="false" name="dialog_name">Название диалога</string>
@@ -78,6 +78,53 @@
     <string formatted="false" name="firebase_value">Значение</string>
     <string formatted="false" name="firebase_store">и сохранить в</string>
     <!-- General terms -->
+    <string name="brick_set_3d_sound_position">Задать позицию 3D звука</string>
+    <string name="brick_load_scene_additive">Загрузить сцену (добавить)</string>
+    <string name="brick_load_scene_additive_path">из файла:</string>
+    <string name="brick_prepare_music">Подготовить музыку (для 3D)</string>
+    <string name="brick_prepare_music_as">под именем</string>
+    <string name="brick_prepare_sound_as">под именем</string>
+    <string name="brick_play_sound_3d">Проиграть 3D звук</string>
+    <string name="brick_sound_instance_name">с именем экземпляра</string>
+    <string name="brick_sound_at_position">в позиции (X,Y,Z)</string>
+    <string name="brick_sound_volume">Громкость (%)</string>
+    <string name="brick_sound_pitch">Тон (%)</string>
+    <string name="brick_sound_loop">Зациклить</string>
+    <string-array name="brick_sound_loop_options">
+        <item>Нет</item>
+        <item>Да</item>
+    </string-array>
+    <string name="brick_stop_sound_3d">Остановить 3D звук (экземпляр)</string>
+    <string name="brick_set_global_sound_volume">Общая громкость 3D звуков</string>
+    <string name="brick_percent">%</string>
+    <string name="brick_set_material">Настроить материал объекта</string>
+    <string name="brick_material_color">Цвет (R,G,B,A)</string>
+    <string name="brick_material_metallic">Металличность (%)</string>
+    <string name="brick_material_roughness">Шероховатость (%)</string>
+    <string name="brick_material_texture_color">Текстура цвета</string>
+    <string name="brick_material_texture_normal">Карта нормалей</string>
+    <string name="brick_material_texture_mr">Карта Металл/Шерох.</string>
+    <string name="brick_clone_object">Клонировать обьект</string>
+    <string name="brick_clone_as">как</string>
+    <string name="brick_set_parent">Установить родителя</string>
+    <string name="brick_set_parent_child">объекту</string>
+    <string name="brick_set_parent_parent">объект</string>
+    <string name="brick_create_point_joint">Создать шарнир-сферу</string>
+    <string name="brick_joint_name">Имя шарнира</string>
+    <string name="brick_joint_object_a">Объект A</string>
+    <string name="brick_joint_object_b">Объект B</string>
+    <string name="brick_joint_pivot_a">Точка на A (x,y,z)</string>
+    <string name="brick_joint_pivot_b">Точка на B (x,y,z)</string>
+    <string name="brick_remove_parent">Убрать родителя у</string>
+    <string name="brick_remove_parent_object">объекта</string>
+    <string name="brick_remove_joint">Удалить шарнир</string>
+    <string name="brick_set_active">Сделать объект</string>
+    <string name="brick_set_active_state">активным</string>
+    <string-array name="brick_set_active_states">
+        <item>да</item>
+        <item>нет</item>
+    </string-array>
+
     <!-- Физические Соединения -->
     <string name="brick_create_revolute_joint">Создать шарнир</string>
     <string name="brick_create_distance_joint">Создать пружину/стержень</string>
@@ -153,6 +200,8 @@
     <string name="input_text">Текст ввода</string>
     <string name="brick_run_vm2">Запустить ВМ</string>
     <string name="brick_vm_arguments">Аргументы</string>
+
+    <string name="category_file">Файлы</string>
 
     <string name="loading_fact_placeholder">Загрузка...</string>
 
@@ -268,7 +317,7 @@
     <string name="formula_ray_normal_y">нормаль_луча_y</string>
     <string name="formula_ray_normal_z">нормаль_луча_z</string>
     <string name="brick_start_mic_recording">Начать запись микрофона</string>
-    <string name="brick_stop_recording_and_save">Сохранить запись как</string>
+    <string name="brick_stop_recording_and_save">Сохранить запись (файл проекта)</string>
     <string name="brick_try">Попробовать</string>
     <string name="brick_catch">Перехватить</string>
     <string name="brick_finally">В конце</string>
@@ -279,6 +328,7 @@
     <string name="brick_x_label">X</string>
     <string name="brick_y_label">Y</string>
     <string name="brick_video_transparent_bg">прозрачный фон</string>
+    <string name="brick_prepare_sound2">Подготовить звук (для 3D)</string>
     <string name="brick_prepare_sound">Подготовить звук из файла</string>
     <string name="brick_as">как</string>
     <string name="brick_play_prepared_sound">Играть подготовленный звук</string>
@@ -440,9 +490,9 @@
     <string name="python_run_script">Запустить Python</string>
     <string name="python_script_content">Скрипт</string>
     <string name="python_load_library">Загрузить библиотеку (Python)</string>
-    <string name="python_library_file_name">Файл (.whl, .zip)</string>
+    <string name="python_library_file_name">Файл проекта (.whl, .zip)</string>
     <string name="python_load_native_module">Загрузить модуль (Python)</string>
-    <string name="python_module_file_name">Файл (.so)</string>
+    <string name="python_module_file_name">Файл проекта(.so)</string>
     <string name="python_clear_environment">Очистить окружение (Python)</string>
     <string name="brick_set_shader_uniform_vec3" formatted="false">Задать uniform (вектор)</string>
     <string name="brick_set_shader_uniform_float" formatted="false">Задать uniform (число)</string>
@@ -477,6 +527,8 @@
     <string name="brick_create_sphere" formatted="false">Создать шар с ID</string>
     <string name="formula_3d_touches" formatted="false">объект_касается_объекта</string>
     <string name="formula_3d_touches_param" formatted="false">(\'ID объекта 1\', \'ID объекта 2\')</string>
+    <string name="formula_3d_intersects" formatted="false">объект_пересекает_объект</string>
+    <string name="formula_3d_intersects_param" formatted="false">(\'ID объекта 1\', \'ID объекта 2\')</string>
     <string name="brick_set_sky_color" formatted="false">Задать цвет неба на (0-1)</string>
     <string name="formula_cam_rot_yaw" formatted="false">вращение_камеры_Y</string>
     <string name="formula_cam_rot_pitch" formatted="false">вращение_камеры_X</string>
@@ -663,8 +715,8 @@
     <string formatted="false" name="brick_regex">Выполнить регулярное выражение</string>
     <string formatted="false" name="brick_open_file">Открыть файл из Загрузок</string>
     <string formatted="false" name="brick_zip2">из файлов</string>
-    <string formatted="false" name="brick_zip">Запаковать в ZIP архив</string>
-    <string formatted="false" name="brick_unzip">Распаковать ZIP архив</string>
+    <string formatted="false" name="brick_zip">Запаковать Zip (В Загрузках)</string>
+    <string formatted="false" name="brick_unzip">Распаковать ZIP (В Загрузках)</string>
     <string formatted="false" name="brick_hide_text">Скрыть текст с названием</string>
     <string formatted="false" name="formula_editor_function_random_str">случайная_строка</string>
     <string formatted="false" name="formula_editor_function_random_str_parameter">(15)</string>
@@ -694,12 +746,12 @@
     <string formatted="false" name="brick_insert_table">Вставить</string>
     <string formatted="false" name="brick_create_table2">размер (X, Y)</string>
     <string formatted="false" name="brick_create_table">Создать таблицу с названием</string>
-    <string formatted="false" name="brick_sound_file">Воспроизвести звук из файла</string>
-    <string formatted="false" name="brick_look_file">Использовать образ из файла</string>
+    <string formatted="false" name="brick_sound_file">Воспроизвести звук (файл в Загрузках)</string>
+    <string formatted="false" name="brick_look_file">Образ из файла (Загрузки)</string>
     <string formatted="false" name="brick_file_url2">с названием</string>
-    <string formatted="false" name="brick_save_look">Сохранить образ в файл</string>
+    <string formatted="false" name="brick_save_look">Образ в файл (Загрузки)</string>
     <string formatted="false" name="brick_scene_id">Запустить сцену под номером</string>
-    <string formatted="false" name="brick_file_url">Сохранить файл по ссылке</string>
+    <string formatted="false" name="brick_file_url">Сохранить файл (Загрузки)</string>
     <string formatted="false" name="build_apk">Сохранить APK</string>
     <string formatted="false" name="save_apk_button">Билд APK</string>
     <string formatted="false" name="change_icon_button">Изменить иконку</string>

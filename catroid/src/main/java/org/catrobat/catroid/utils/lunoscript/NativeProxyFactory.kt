@@ -103,14 +103,27 @@ object NativeProxyFactory {
             )
                 .intercept(MethodDelegation.to(handler))
 
+            val applicationClassLoader = NativeProxyFactory::class.java.classLoader
+
             val dynamicType = builder.make()
-                .load(nativeSuperclass.classLoader, loadingStrategy)
+                .load(applicationClassLoader, loadingStrategy)
                 .loaded
             // --- КОНЕЦ УНИВЕРСАЛЬНОЙ ЛОГИКИ ---
 
-            return dynamicType.getDeclaredConstructor().newInstance()
+            return try {
+                val constructor = dynamicType.getDeclaredConstructor(Context::class.java)
+                constructor.newInstance(context)
+            } catch (e: NoSuchMethodException) {
+                // Если по какой-то причине такого конструктора нет (например, для не-View класса),
+                // мы откатываемся к старому поведению и ищем конструктор без аргументов.
+                dynamicType.getDeclaredConstructor().newInstance()
+            }
         } catch (e: Exception) {
-            throw LunoRuntimeError("Failed to create native proxy for '${nativeSuperclass.simpleName}': ${e.cause?.message ?: e.message}", -1, e)
+            throw LunoRuntimeError(
+                "Failed to create native proxy for '${nativeSuperclass.simpleName}': ${e.cause?.message ?: e.message}",
+                -1,
+                e
+            )
         }
     }
 }

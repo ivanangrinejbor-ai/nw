@@ -3,6 +3,7 @@ package org.catrobat.catroid.editor;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.os.Bundle;
+import android.view.GestureDetector;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -20,8 +21,13 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.view.GestureDetectorCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.recyclerview.widget.ItemTouchHelper;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.backends.android.AndroidFragmentApplication;
 import com.badlogic.gdx.files.FileHandle;
@@ -39,20 +45,25 @@ import org.catrobat.catroid.raptor.ThreeDManager;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-public class EditorActivity extends AppCompatActivity implements AndroidFragmentApplication.Callbacks {
+public class EditorActivity extends AppCompatActivity implements AndroidFragmentApplication.Callbacks, HierarchyAdapter.OnItemClickListener {
 
     private DrawerLayout drawerLayout;
     private SceneManager sceneManager;
     private InspectorManager inspectorManager;
     private ListView hierarchyListView;
-    private ArrayAdapter<String> hierarchyAdapter;
+    private RecyclerView hierarchyRecyclerView;
+    private HierarchyAdapter hierarchyAdapter;
+    private final List<HierarchyAdapter.HierarchyItem> hierarchyItems = new ArrayList<>();
     private final List<GameObject> hierarchyObjects = new ArrayList<>();
 
     private EditorListener editorListener;
     private Gizmo gizmo;
+
+    private ItemTouchHelper touchHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -108,7 +119,10 @@ public class EditorActivity extends AppCompatActivity implements AndroidFragment
                 drawerLayout.openDrawer(GravityCompat.END);
             }
 
-            updateHierarchy();
+            if (hierarchyAdapter != null) {
+                hierarchyAdapter.setSelectedObject(go);
+            }
+
         });
     }
 
@@ -146,21 +160,59 @@ public class EditorActivity extends AppCompatActivity implements AndroidFragment
     }
 
     private void setupUI() {
-        hierarchyListView = findViewById(R.id.hierarchy_listview);
+        hierarchyRecyclerView = findViewById(R.id.hierarchy_recyclerview);
+        DraggableLinearLayoutManager layoutManager = new DraggableLinearLayoutManager(this);
+        hierarchyRecyclerView.setLayoutManager(layoutManager);
+        hierarchyAdapter = new HierarchyAdapter(this);
+        hierarchyRecyclerView.setAdapter(hierarchyAdapter);
 
 
-        if (hierarchyListView == null) {
-            Gdx.app.error("EditorActivity", "FATAL: hierarchyListView is null in setupUI!");
-            return;
-        }
+        ItemTouchHelper.Callback callback = new HierarchyDragCallback(
+                hierarchyAdapter, sceneManager, this, layoutManager);
 
-        hierarchyAdapter = new ArrayAdapter<>(this, R.layout.simple_list_item_1_white_text, new ArrayList<>());
-        hierarchyListView.setAdapter(hierarchyAdapter);
-        hierarchyListView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
+        this.touchHelper = new ItemTouchHelper(callback);
+        touchHelper.attachToRecyclerView(hierarchyRecyclerView);
 
-        hierarchyListView.setOnItemClickListener((parent, view, position, id) -> {
-            onObjectSelected(hierarchyObjects.get(position));
-            drawerLayout.closeDrawer(GravityCompat.START);
+
+        hierarchyRecyclerView.addOnItemTouchListener(new RecyclerView.OnItemTouchListener() {
+
+            private final GestureDetectorCompat gestureDetector = new GestureDetectorCompat(hierarchyRecyclerView.getContext(),
+                    new GestureDetector.SimpleOnGestureListener() {
+                        @Override
+                        public void onLongPress(MotionEvent e) {
+
+                            View child = hierarchyRecyclerView.findChildViewUnder(e.getX(), e.getY());
+                            if (child != null) {
+                                RecyclerView.ViewHolder vh = hierarchyRecyclerView.getChildViewHolder(child);
+                                if (vh != null) {
+
+
+                                    drawerLayout.requestDisallowInterceptTouchEvent(true);
+
+                                    touchHelper.startDrag(vh);
+                                }
+                            }
+                        }
+                    });
+
+            @Override
+            public boolean onInterceptTouchEvent(@NonNull RecyclerView rv, @NonNull MotionEvent e) {
+
+                gestureDetector.onTouchEvent(e);
+
+
+                if (e.getAction() == MotionEvent.ACTION_UP || e.getAction() == MotionEvent.ACTION_CANCEL) {
+                    drawerLayout.requestDisallowInterceptTouchEvent(false);
+                }
+
+                return false;
+            }
+
+            @Override
+            public void onTouchEvent(@NonNull RecyclerView rv, @NonNull MotionEvent e) {}
+
+            @Override
+            public void onRequestDisallowInterceptTouchEvent(boolean disallowIntercept) {}
         });
 
         findViewById(R.id.btn_add_empty).setOnClickListener(v -> {
@@ -168,14 +220,28 @@ public class EditorActivity extends AppCompatActivity implements AndroidFragment
             updateAndSelect(newGo);
         });
 
+        findViewById(R.id.btn_add_cube).setOnClickListener(v -> {
+            GameObject newGo = sceneManager.createPrimitive("cube");
+            if (newGo != null) {
+                updateAndSelect(newGo);
+            }
+        });
+
+        findViewById(R.id.btn_add_sphere).setOnClickListener(v -> {
+            GameObject newGo = sceneManager.createPrimitive("sphere");
+            if (newGo != null) {
+                updateAndSelect(newGo);
+            }
+        });
+
         updateHierarchy();
 
-        setupCameraButton(R.id.btn_cam_w, 0, 0, 1); // Вперед
-        setupCameraButton(R.id.btn_cam_s, 0, 0, -1);  // Назад
-        setupCameraButton(R.id.btn_cam_a, -1, 0, 0); // Влево
-        setupCameraButton(R.id.btn_cam_d, 1, 0, 0);  // Вправо
-        setupCameraButton(R.id.btn_cam_q, 0, -1, 0); // Вниз
-        setupCameraButton(R.id.btn_cam_e, 0, 1, 0);  // Вверх
+        setupCameraButton(R.id.btn_cam_w, 0, 0, 1);
+        setupCameraButton(R.id.btn_cam_s, 0, 0, -1);
+        setupCameraButton(R.id.btn_cam_a, -1, 0, 0);
+        setupCameraButton(R.id.btn_cam_d, 1, 0, 0);
+        setupCameraButton(R.id.btn_cam_q, 0, -1, 0);
+        setupCameraButton(R.id.btn_cam_e, 0, 1, 0);
 
         Button shiftButton = findViewById(R.id.btn_cam_shift);
         shiftButton.setOnTouchListener((v, event) -> {
@@ -188,6 +254,13 @@ public class EditorActivity extends AppCompatActivity implements AndroidFragment
             }
             return true;
         });
+    }
+
+    @Override
+    public void onItemClick(GameObject gameObject) {
+        gizmo.setSelectedObject(gameObject);
+        onObjectSelected(gameObject);
+        drawerLayout.closeDrawer(GravityCompat.START);
     }
 
     private void setupCameraButton(int buttonId, float vx, float vy, float vz) {
@@ -217,27 +290,43 @@ public class EditorActivity extends AppCompatActivity implements AndroidFragment
     public void updateHierarchy() {
         if (sceneManager == null || hierarchyAdapter == null) return;
 
-        GameObject selectedObject = (inspectorManager != null) ? inspectorManager.getSelectedObject() : null;
+        hierarchyItems.clear();
 
-        hierarchyAdapter.clear();
-        hierarchyObjects.clear();
 
-        List<GameObject> allObjects = new ArrayList<>(sceneManager.getAllGameObjects().values());
-        allObjects.sort(Comparator.comparing(go -> go.name.toLowerCase()));
-
-        int selectedIndex = -1;
-        for (int i = 0; i < allObjects.size(); i++) {
-            GameObject go = allObjects.get(i);
-            hierarchyAdapter.add(go.name);
-            hierarchyObjects.add(go);
-            if (go == selectedObject) {
-                selectedIndex = i;
+        List<GameObject> rootObjects = new ArrayList<>();
+        for (GameObject go : sceneManager.getAllGameObjects().values()) {
+            if (go.parentId == null) {
+                rootObjects.add(go);
             }
         }
-        hierarchyAdapter.notifyDataSetChanged();
+        rootObjects.sort(Comparator.comparing(go -> go.name.toLowerCase()));
 
-        if (hierarchyListView != null && selectedIndex != -1) {
-            hierarchyListView.setItemChecked(selectedIndex, true);
+
+        for (GameObject root : rootObjects) {
+            addGameObjectToHierarchyList(root, 0);
+        }
+
+
+        hierarchyAdapter.updateData(hierarchyItems);
+    }
+
+    private void addGameObjectToHierarchyList(GameObject go, int depth) {
+        String prefix = String.join("", Collections.nCopies(depth, "    "));
+        String displayName = prefix + go.name;
+
+        hierarchyItems.add(new HierarchyAdapter.HierarchyItem(go, displayName));
+
+        if (!go.childrenIds.isEmpty()) {
+            List<GameObject> children = new ArrayList<>();
+            for (String childId : go.childrenIds) {
+                GameObject child = sceneManager.findGameObject(childId);
+                if (child != null) children.add(child);
+            }
+            children.sort(Comparator.comparing(child -> child.name.toLowerCase()));
+
+            for (GameObject child : children) {
+                addGameObjectToHierarchyList(child, depth + 1);
+            }
         }
     }
 
@@ -276,11 +365,18 @@ public class EditorActivity extends AppCompatActivity implements AndroidFragment
             showSceneSettingsDialog();
             return true;
         } else if (id == R.id.action_clear_scene) {
-            EditorStateManager.clearCache();
-            if (editorListener != null) {
-                editorListener.resetEngine();
-            }
-            Toast.makeText(this, "Scene Cleared", Toast.LENGTH_SHORT).show();
+            new AlertDialog.Builder(this)
+                    .setTitle("Clear scene?")
+                    .setMessage("The scene will be reset, and you may lose your changes. Continue?")
+                    .setPositiveButton("Clear", (dialog, which) -> {
+                        EditorStateManager.clearCache();
+                        if (editorListener != null) {
+                            editorListener.resetEngine();
+                        }
+                        Toast.makeText(this, "Scene Cleared", Toast.LENGTH_SHORT).show();
+                    })
+                    .setNegativeButton("Cancel", null)
+                    .show();
             return true;
         } else if (id == R.id.action_exit) {
             showExitConfirmationDialog();
@@ -370,7 +466,19 @@ public class EditorActivity extends AppCompatActivity implements AndroidFragment
 
                     EditorFragment fragment = (EditorFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_container);
                     if (fragment != null && fragment.getListener() != null) {
-                        fragment.getListener().resetEngine(fileHandle);
+                        ThreeDManager.SceneSettings settings = new ThreeDManager.SceneSettings();
+                        try {
+                            String sceneJson = fileHandle.readString();
+                            Json json = new Json();
+                            SceneData sceneData = json.fromJson(SceneData.class, sceneJson);
+                            if (sceneData != null && sceneData.renderSettings != null) {
+                                settings = sceneData.renderSettings;
+                            }
+                        } catch (Exception e) {
+                            Gdx.app.error("EditorActivity", "Could not parse scene settings, using defaults.", e);
+                        }
+
+                        fragment.getListener().resetEngine(fileHandle, settings);
 
                         updateHierarchy();
                         onObjectSelected(null);
@@ -459,11 +567,53 @@ public class EditorActivity extends AppCompatActivity implements AndroidFragment
                     .show();
         });
 
-        new AlertDialog.Builder(this)
+        EditText pointLightsEditor = dialogView.findViewById(R.id.edit_point_lights);
+        EditText spotLightsEditor = dialogView.findViewById(R.id.edit_spot_lights);
+        EditText dirLightsEditor = dialogView.findViewById(R.id.edit_dir_lights);
+        EditText bonesEditor = dialogView.findViewById(R.id.edit_bones);
+        Button applyButton = dialogView.findViewById(R.id.btn_apply_performance);
+
+
+        final ThreeDManager.SceneSettings currentSettings = threeDManager.getSceneSettings();
+
+        pointLightsEditor.setText(String.valueOf(currentSettings.numPointLights));
+        spotLightsEditor.setText(String.valueOf(currentSettings.numSpotLights));
+        dirLightsEditor.setText(String.valueOf(currentSettings.numDirectionalLights));
+        bonesEditor.setText(String.valueOf(currentSettings.numBones));
+
+        AlertDialog dialog = new AlertDialog.Builder(this)
                 .setTitle("Scene Settings")
                 .setView(dialogView)
                 .setPositiveButton("Close", null)
-                .show();
+                .create();
+
+        applyButton.setOnClickListener(v -> {
+            try {
+                ThreeDManager.SceneSettings newSettings = new ThreeDManager.SceneSettings();
+                newSettings.numPointLights = Integer.parseInt(pointLightsEditor.getText().toString());
+                newSettings.numSpotLights = Integer.parseInt(spotLightsEditor.getText().toString());
+                newSettings.numDirectionalLights = Integer.parseInt(dirLightsEditor.getText().toString());
+                newSettings.numBones = Math.min(110, Integer.parseInt(bonesEditor.getText().toString()));
+
+                new AlertDialog.Builder(this)
+                        .setTitle("Restart 3D Engine")
+                        .setMessage("Applying these settings requires reloading the 3D editor. Unsaved changes might be lost. Continue?")
+                        .setPositiveButton("Restart", (d, which) -> {
+                            if (editorListener != null) {
+                                editorListener.resetEngine(null, newSettings);
+                                Toast.makeText(this, "3D Engine restarted with new settings.", Toast.LENGTH_SHORT).show();
+                                dialog.dismiss();
+                            }
+                        })
+                        .setNegativeButton("Cancel", null)
+                        .show();
+
+            } catch (NumberFormatException e) {
+                Toast.makeText(this, "Please enter valid numbers.", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        dialog.show();
     }
 
     private ThreeDManager threeDManager;

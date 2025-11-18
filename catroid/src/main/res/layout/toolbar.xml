@@ -31,4 +31,5 @@
     android:background="@color/toolbar_background"
     android:theme="@style/ToolbarTheme"
     app:titleTextAppearance="@style/ToolbarTitle"
-    app:titleMarginStart="32dp" />
+    app:titleMarginStart="32dp"
+    android:tag="toolbar_background"/>

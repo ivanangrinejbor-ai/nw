@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingStart="8dp"
+    android:paddingEnd="8dp"
+    android:paddingBottom="8dp">
+
+    <TextView
+        style="@style/InspectorLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Base Color"/>
+    <Button
+        android:id="@+id/btn_material_color"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"/>
+    <include layout="@layout/inspector_texture_slot" android:id="@+id/slot_base_color_texture"/>
+
+    <TextView
+        style="@style/InspectorLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Metallic"/>
+    <include layout="@layout/inspector_slider" android:id="@+id/slider_metallic"/>
+
+    <TextView
+        style="@style/InspectorLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Roughness"/>
+    <include layout="@layout/inspector_slider" android:id="@+id/slider_roughness"/>
+
+    <TextView
+        style="@style/InspectorLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Emissive"/>
+    <Button
+        android:id="@+id/btn_emissive_color"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"/>
+    <include layout="@layout/inspector_texture_slot" android:id="@+id/slot_emissive_texture"/>
+
+    <TextView
+        style="@style/InspectorLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Normal Map"/>
+    <include layout="@layout/inspector_texture_slot" android:id="@+id/slot_normal_texture"/>
+
+    <TextView
+        style="@style/InspectorLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Metallic/Roughness Map"/>
+    <include layout="@layout/inspector_texture_slot" android:id="@+id/slot_mr_texture"/>
+
+    <TextView
+        style="@style/InspectorLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Occlusion Map"/>
+    <include layout="@layout/inspector_texture_slot" android:id="@+id/slot_occlusion_texture"/>
+
+</LinearLayout>

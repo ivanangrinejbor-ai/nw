@@ -10,4 +10,6 @@ public class SceneData {
     public float skyB = 0.3f;
 
     public float ambientIntensity = 1;
+
+    public ThreeDManager.SceneSettings renderSettings = new ThreeDManager.SceneSettings();
 }

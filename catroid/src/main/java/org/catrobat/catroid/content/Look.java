@@ -540,9 +540,14 @@ public class Look extends Image {
 		return lookData;
 	}
 
+	public synchronized LookData getLookData2() {
+		return lookData2;
+	}
+
 	public synchronized void setLookData(LookData lookData) {
 		if (this.lookData != lookData) {
 			this.lookData = lookData;
+			this.lookData2 = lookData;
 			collisionDirty.set(true);
 			refreshTextures(false);
 		}
@@ -1065,10 +1070,10 @@ public class Look extends Image {
 
 	public Polygon[] getCurrentCollisionPolygon() {
 		Polygon[] originalPolygons;
-		if (getLookData() == null) {
+		if (getLookData2() == null) {
 			originalPolygons = new Polygon[0];
 		} else {
-			CollisionInformation collisionInformation = getLookData().getCollisionInformation();
+			CollisionInformation collisionInformation = getLookData2().getCollisionInformation();
 			if (collisionInformation.collisionPolygons == null) {
 				collisionInformation.loadCollisionPolygon();
 			}

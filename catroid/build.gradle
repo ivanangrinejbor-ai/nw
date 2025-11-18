@@ -40,6 +40,7 @@ plugins {
     id 'checkstyle'
     id 'com.google.gms.google-services'
     id 'com.google.firebase.crashlytics'
+    id 'org.jetbrains.kotlin.android'
 }
 
 repositories {
@@ -64,6 +65,7 @@ ext {
     room_version = "2.3.0"
     coroutines_version = "1.3.2"
     work_manager_version = '2.7.1'
+    kotlinScriptingVersion = "1.9.22"
 }
 
 apply plugin: 'com.android.application'
@@ -121,7 +123,7 @@ android {
     }
 
     defaultConfig {
-        minSdkVersion 24
+        minSdkVersion 26
         targetSdkVersion 33
         applicationId appId
         testInstrumentationRunner 'org.catrobat.catroid.runner.UiTestApplicationRunner'
@@ -382,6 +384,19 @@ android {
     productFlavors.all { flavor ->
         copyGoogleServicesFile(flavor.name, defaultConfig.applicationId + (flavor.applicationIdSuffix ?: ""))
     }
+
+    packagingOptions {
+        resources {
+
+            excludes += "META-INF/services/javax.script.ScriptEngineFactory"
+            excludes += "META-INF/kotlin-script.imports"
+            excludes += "kotlin/script/script.properties"
+
+
+            pickFirsts += "kotlin/**"
+            pickFirsts += "META-INF/*.kotlin_module"
+        }
+    }
 }
 
 configurations {
@@ -427,13 +442,38 @@ dependencies {
     implementation 'com.nostra13.universalimageloader:universal-image-loader:1.9.5'
     implementation ('com.esotericsoftware:kryo:5.1.1')
     implementation 'id.zelory:compressor:2.1.1'
-    implementation "org.jetbrains.kotlin:kotlin-scripting-jvm:1.5.31"
-    implementation "org.jetbrains.kotlin:kotlin-scripting-common:1.8.10"
+    //implementation "org.jetbrains.kotlin:kotlin-scripting-jvm:1.5.31"
+    //implementation "org.jetbrains.kotlin:kotlin-scripting-common:1.8.10"
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'org.luaj:luaj-jse:3.0.1'
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:1.5.31" //was 1.7.0
-    implementation "org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:1.5.31" //was 1.7.0
-    implementation "org.jetbrains.kotlin:kotlin-script-util:1.5.31"
+    //implementation "org.jetbrains.kotlin:kotlin-stdlib:1.5.31" //was 1.7.0
+    //implementation "org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:1.5.31" //was 1.7.0
+    //implementation "org.jetbrains.kotlin:kotlin-script-util:1.5.31"
+
+
+    //implementation "org.jetbrains.kotlin:kotlin-scripting-jvm-host:1.5.31"
+
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlinScriptingVersion"
+
+
+    implementation "org.jetbrains.kotlin:kotlin-scripting-jvm:$kotlinScriptingVersion"
+
+
+
+    implementation "org.jetbrains.kotlin:kotlin-scripting-jvm-host:$kotlinScriptingVersion"
+
+
+    implementation "org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:$kotlinScriptingVersion"
+
+
+    //implementation "org.jetbrains.kotlin:kotlin-script-util:$kotlinScriptingVersion"
+
+
+    implementation "org.jetbrains.kotlin:kotlin-scripting-common:$kotlinScriptingVersion"
+
+
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3'
+
     // WorkManager
     implementation "androidx.work:work-runtime-ktx:$work_manager_version"
     implementation "androidx.work:work-runtime:$work_manager_version"
@@ -489,6 +529,9 @@ dependencies {
     implementation "net.bytebuddy:byte-buddy:1.14.9"
     implementation "net.bytebuddy:byte-buddy-agent:1.14.9"
     implementation "net.bytebuddy:byte-buddy-android:1.14.9"
+
+    implementation 'androidx.activity:activity-ktx:1.8.0'
+    implementation 'androidx.preference:preference-ktx:1.2.1'
 
     // Room
     implementation("androidx.room:room-runtime:$room_version")
@@ -680,6 +723,9 @@ apply plugin: 'com.google.gms.google-services'
 apply plugin: 'com.huawei.agconnect'
 
 configurations.all {
+
+    exclude group: 'org.jetbrains.kotlin', module: 'kotlin-daemon-client'
+
     resolutionStrategy {
         force 'com.google.android.material:material:1.2.1'
         force 'net.bytebuddy:byte-buddy:1.14.9'
@@ -689,22 +735,22 @@ configurations.all {
 
 afterEvaluate {
     android.applicationVariants.all { variant ->
-        // Проверяем, относится ли текущий вариант сборки к нашим специальным flavor'ам.
+
         if (variant.flavorName == 'apktemplate' || variant.flavorName == 'standalone') {
             println "Disabling Google Services and Kapt for flavor: ${variant.flavorName}"
 
-            // 1. Отключаем задачу Google Services
+
             def googleServicesTaskName = "process${variant.name.capitalize()}GoogleServices"
             Task googleServicesTask = tasks.findByName(googleServicesTaskName)
             if (googleServicesTask != null) {
                 googleServicesTask.enabled = false
             }
 
-            // 2. Отключаем ВСЕ задачи, связанные с kapt для этого варианта
-            // Kapt создает несколько задач, например:
-            // - kaptGenerateStubs<Variant>Kotlin
-            // - kapt<Variant>Kotlin
-            // Мы отключаем их все.
+
+
+
+
+            
             def variantCapitalized = variant.name.capitalize()
             tasks.matching { it.name.startsWith("kapt") && it.name.contains(variantCapitalized) }.all { task ->
                 println "  -> Disabling task: ${task.name}"

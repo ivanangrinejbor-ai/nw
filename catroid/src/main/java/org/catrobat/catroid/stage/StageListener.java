@@ -253,7 +253,7 @@ public class StageListener implements ApplicationListener {
 
 	public SceneManager sceneManager;
 
-	// ▼▼▼ ДОБАВЬТЕ ЭТОТ МЕТОД ▼▼▼
+
 	public ThreeDManager getThreeDManager() {
 		return threeDManager;
 	}
@@ -285,7 +285,7 @@ public class StageListener implements ApplicationListener {
 	public void create() {
 		deltaActionTimeDivisor = 10f;
 
-		brightnessContrastHueShader = new Look.BrightnessContrastHueShader(); // <-- ДОБАВЬТЕ ЭТУ СТРОКУ
+		brightnessContrastHueShader = new Look.BrightnessContrastHueShader();
 		shapeRenderer = new ShapeRenderer();
 
 		project = ProjectManager.getInstance().getCurrentProject();
@@ -324,17 +324,17 @@ public class StageListener implements ApplicationListener {
 
 		Gdx.app.log("CacheWarming", "Starting asset pre-loading...");
 		for (Sprite sprite : sprites) {
-			// Прогреваем полигоны для каждого возможного костюма (LookData)
+
 			if (sprite.getLookList() != null) {
 				for (LookData lookData : sprite.getLookList()) {
 					if (lookData != null) {
-						// Эта строка заставит загрузить полигоны, если их еще нет
+
 						lookData.getCollisionInformation().loadCollisionPolygon();
 					}
 				}
 			}
-			// Также можно принудительно создать и скомпилировать шейдеры,
-			// но мы уже вынесли это на уровень сцены, что хорошо.
+
+
 		}
 		Gdx.app.log("CacheWarming", "Pre-loading finished.");
 
@@ -345,7 +345,7 @@ public class StageListener implements ApplicationListener {
 				maxViewPort.getHeight(),
 				virtualWidth,
 				virtualHeight);
-		//stage.addActor(passepartout);
+
 
 		axes = new Texture(Gdx.files.internal("stage/red_pixel.bmp"));
 
@@ -355,14 +355,14 @@ public class StageListener implements ApplicationListener {
 					new VertexAttribute(VertexAttributes.Usage.TextureCoordinates, 2, "a_texCoord0"));
 
 			float[] vertices = {
-					-1.0f, -1.0f,  // левый нижний
-					0.0f,  0.0f,  // UV
-					1.0f, -1.0f,  // правый нижний
-					1.0f,  0.0f,  // UV
-					1.0f,  1.0f,  // правый верхний
-					1.0f,  1.0f,  // UV
-					-1.0f,  1.0f,  // левый верхний
-					0.0f,  1.0f   // UV
+					-1.0f, -1.0f,
+					0.0f,  0.0f,
+					1.0f, -1.0f,
+					1.0f,  0.0f,
+					1.0f,  1.0f,
+					1.0f,  1.0f,
+					-1.0f,  1.0f,
+					0.0f,  1.0f
 			};
 
 			short[] indices = { 0, 1, 2, 2, 3, 0 };
@@ -400,7 +400,7 @@ public class StageListener implements ApplicationListener {
 
 	public void setCameraRotation(float degrees) {
 		if (camera != null) {
-			// Вращаем на разницу между новым и старым углом, чтобы установить, а не добавить
+
 			camera.rotate(cameraRotation - degrees);
 			cameraRotation = degrees;
 		}
@@ -411,14 +411,14 @@ public class StageListener implements ApplicationListener {
 
 		Look look = sprite.look;
 		if (look == null || look.getParent() == uiStage.getRoot()) {
-			return; // Спрайт уже привязан или не существует
+			return;
 		}
 
-		// Конвертируем мировые координаты в координаты экрана
-		Vector3 screenCoords = new Vector3(look.getX(), look.getY(), 0);
-		camera.project(screenCoords); // Теперь screenCoords содержит позицию на экране
 
-		// Удаляем из игрового мира и добавляем в мир UI
+		Vector3 screenCoords = new Vector3(look.getX(), look.getY(), 0);
+		camera.project(screenCoords);
+
+
 		look.remove();
 		uiStage.addActor(look);
 		look.setPosition(screenCoords.x, screenCoords.y);
@@ -429,14 +429,14 @@ public class StageListener implements ApplicationListener {
 
 		Look look = sprite.look;
 		if (look == null || look.getParent() == stage.getRoot()) {
-			return; // Спрайт уже отвязан или не существует
+			return;
 		}
 
-		// Конвертируем координаты экрана обратно в мировые
-		Vector3 worldCoords = new Vector3(look.getX(), look.getY(), 0);
-		camera.unproject(worldCoords); // Теперь worldCoords содержит позицию в игровом мире
 
-		// Удаляем из мира UI и возвращаем в игровой мир
+		Vector3 worldCoords = new Vector3(look.getX(), look.getY(), 0);
+		camera.unproject(worldCoords);
+
+
 		look.remove();
 		stage.addActor(look);
 		look.setPosition(worldCoords.x, worldCoords.y);
@@ -445,19 +445,19 @@ public class StageListener implements ApplicationListener {
 	private boolean vmGeometryDirty = false;
 
 	public void setVmScreenGeometry(float x, float y, float width, float height) {
-		// Просто сохраняем значения
+
 		this.vmX = x;
 		this.vmY = y;
 		this.vmWidth = width;
 		this.vmHeight = height;
 
-		// Выставляем флаг, что геометрию нужно пересоздать в потоке рендера
+
 		this.vmGeometryDirty = true;
 	}
 
 	private boolean isVmDisplayVisible = false;
 
-	// Добавьте этот публичный метод
+
 	public void setVmDisplayVisible(boolean visible) {
 		this.isVmDisplayVisible = visible;
 		Log.d("Display", "Display is: " + isVmDisplayVisible);
@@ -476,7 +476,7 @@ public class StageListener implements ApplicationListener {
 		};
 		short[] indices = { 0, 1, 2, 2, 3, 0 };
 
-		// Создаем Mesh, только если его еще нет
+
 		if (vmScreenMesh == null) {
 			vmScreenMesh = new Mesh(true, 4, 6,
 					new VertexAttribute(VertexAttributes.Usage.Position, 3, "a_position"),
@@ -486,7 +486,7 @@ public class StageListener implements ApplicationListener {
 		vmScreenMesh.setVertices(vertices);
 		vmScreenMesh.setIndices(indices);
 
-		// Сбрасываем флаг
+
 		vmGeometryDirty = false;
 	}
 
@@ -498,7 +498,7 @@ public class StageListener implements ApplicationListener {
 
 	public void setPaused(boolean paused) {
 		this.paused = paused;
-		//throw new RuntimeException("Test Crash from DanVexTeam!");
+
 	}
 
 	private BitmapFont getLabelFont(Project project) {
@@ -553,7 +553,7 @@ public class StageListener implements ApplicationListener {
 				Math.round(virtualHeight),
 				false);
 		fboRegion = new TextureRegion(sceneFbo.getColorBufferTexture());
-		fboRegion.flip(false, true); // обязательно!
+		fboRegion.flip(false, true);
 
 		camera = new OrthographicCamera();
 		cameraPositioner = new CameraPositioner(camera, virtualHeightHalf, virtualWidthHalf);
@@ -568,17 +568,17 @@ public class StageListener implements ApplicationListener {
 		stage = new Stage(viewPort, batch);
 
 		uiCamera = new OrthographicCamera();
-		uiViewPort = new ScreenViewport(uiCamera); // ScreenViewport идеален для UI
+		uiViewPort = new ScreenViewport(uiCamera);
 		uiStage = new Stage(uiViewPort, batch);
 
 		inputMultiplexer = new InputMultiplexer();
-		// Сначала добавляем UI-сцену. Она получит нажатие первой и, если обработает,
-		// событие не пойдет дальше, в игровую сцену.
+
+
 		inputMultiplexer.addProcessor(uiStage);
 		inputMultiplexer.addProcessor(stage);
 
 		initMouseInputAdapter();
-		//inputMultiplexer.addProcessor(mouseInputAdapter);
+
 
 		SensorHandler.timerReferenceValue = SystemClock.uptimeMillis();
 	}
@@ -658,7 +658,7 @@ public class StageListener implements ApplicationListener {
 		for (Sprite sprite : sprites) {
 			sprite.resetSprite();
 			sprite.look.setRenderingContext(this.camera, this.viewPort, this.uiStage);
-			//sprite.look.createBrightnessContrastHueShader();
+
 			stage.addActor(sprite.look);
 		}
 
@@ -683,7 +683,7 @@ public class StageListener implements ApplicationListener {
 		} else {
 			copy.myOriginal = cloneMe;
 		}
-		//copy.look.createBrightnessContrastHueShader();
+
 		copy.look.setRenderingContext(this.camera, this.viewPort, this.uiStage);
 		addCloneActorToStage(stage, stage.getRoot(), cloneMe.look, copy.look);
 		sprites.add(copy);
@@ -702,7 +702,7 @@ public class StageListener implements ApplicationListener {
 		} else {
 			copy.myOriginal = cloneMe;
 		}
-		//copy.look.createBrightnessContrastHueShader();
+
 		copy.look.setRenderingContext(this.camera, this.viewPort, this.uiStage);
 		addCloneActorToStage(stage, stage.getRoot(), cloneMe.look, copy.look);
 		sprites.add(copy);
@@ -768,26 +768,26 @@ public class StageListener implements ApplicationListener {
 		}
 	}
 
-	private InputProcessor mouseInputAdapter; // --- НОВОЕ: Отдельный обработчик для мыши ---
-	private final Vector3 tempVec3 = new Vector3(); // --- НОВОЕ: Временный вектор для избежания создания мусора ---
+	private InputProcessor mouseInputAdapter;
+	private final Vector3 tempVec3 = new Vector3();
 
 	private void initMouseInputAdapter() {
 		if (mouseInputAdapter == null) {
 			mouseInputAdapter = new InputAdapter() {
 				@Override
 				public boolean mouseMoved(int screenX, int screenY) {
-					// Конвертируем координаты экрана в мировые координаты Catroid
-					tempVec3.set(screenX, screenY, 0);
-					camera.unproject(tempVec3); // Используем основную игровую камеру
 
-					// Обновляем позицию в SensorHandler
+					tempVec3.set(screenX, screenY, 0);
+					camera.unproject(tempVec3);
+
+
 					SensorHandler.getInstance(null).updateMousePosition(tempVec3.x, tempVec3.y);
-					return false; // Не "поглощаем" событие
+					return false;
 				}
 
 				@Override
 				public boolean touchDragged(int screenX, int screenY, int pointer) {
-					if (pointer == 0) { // Только для мыши/основного касания
+					if (pointer == 0) {
 						return mouseMoved(screenX, screenY);
 					}
 					return false;
@@ -795,14 +795,14 @@ public class StageListener implements ApplicationListener {
 
 				@Override
 				public boolean scrolled(float amountX, float amountY) {
-					// amountY будет 1 для прокрутки вниз, -1 для вверх. Инвертируем для интуитивности.
+
 					SensorHandler.getInstance(null).setLastScrollAmount(-amountY);
 
-					// Стреляем событием (этот код можно оставить здесь или перенести в initStageInputListener)
+
 					EventWrapper e = new EventWrapper(new EventId(EventId.MOUSE_WHEEL_SCROLLED), false);
 					if (project != null) project.fireToAllSprites(e);
 
-					return true; // "Поглощаем" событие прокрутки
+					return true;
 				}
 			};
 		}
@@ -1144,7 +1144,7 @@ public class StageListener implements ApplicationListener {
 		}
 	}
 
-	private Texture vmTexture; // Текстура для экрана виртуальной машины
+	private Texture vmTexture;
 
 	public void setVmScreenSize(int width, int height) {
 		Gdx.app.postRunnable(() -> {
@@ -1153,13 +1153,13 @@ public class StageListener implements ApplicationListener {
 			}
 			vmTexture = new Texture(width, height, Pixmap.Format.RGBA8888);
 
-			// --- НАЧАЛО: Финальная, правильная настройка ---
-			// Устанавливаем режим "обрезки" по краям, как в aVNC
+
+
 			vmTexture.setWrap(Texture.TextureWrap.ClampToEdge, Texture.TextureWrap.ClampToEdge);
 
-			// Устанавливаем режим фильтрации (сглаживания) при растягивании/сжатии, как в aVNC
+
 			vmTexture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
-			// --- КОНЕЦ: Финальная, правильная настройка ---
+
 
 			vmWidth = width;
 			vmHeight = height;
@@ -1167,9 +1167,9 @@ public class StageListener implements ApplicationListener {
 		});
 	}
 
-	private volatile boolean captureNextFrame = false; // Флаг для захвата
+	private volatile boolean captureNextFrame = false;
 
-	// Метод, который мы будем вызывать из StageActivity, чтобы включить флаг
+
 	public void captureAndSaveVmTexture() {
 		this.captureNextFrame = true;
 	}
@@ -1183,7 +1183,7 @@ public class StageListener implements ApplicationListener {
 	public void render() {
 		try {
 			Look.tickGlobalFrame();
-			//SensorHandler.getInstance(null).resetMouseDelta();
+
 
 			float color = 0f;
 			Gdx.gl20.glClearColor(color, color, color, 0f);
@@ -1261,6 +1261,10 @@ public class StageListener implements ApplicationListener {
 			}
 
 			if (!paused) {
+				if (sceneManager != null) {
+					sceneManager.update(Gdx.graphics.getDeltaTime());
+				}
+
 				float deltaTime = Gdx.graphics.getDeltaTime();
 
 				float optimizedDeltaTime = deltaTime / deltaActionTimeDivisor;
@@ -1305,7 +1309,7 @@ public class StageListener implements ApplicationListener {
                     } catch (Exception e) {
                         Log.e("3DRENDER", "ERROR: " + e);
                     }
-					//Log.d("StageListener", stage.getActors().toString());
+
                     stage.draw();
 					uiStage.draw();
                     // RenderManager.INSTANCE.render();
@@ -1368,17 +1372,17 @@ public class StageListener implements ApplicationListener {
 
 	private void renderSceneNormally(Stage stage) {
 		if (!finished) {
-			stage.draw(); // <-- ЗАКОММЕНТИРУЙТЕ ИЛИ УДАЛИТЕ ЭТУ СТРОКУ
+			stage.draw();
 
-			// ▼▼▼ НАЧАЛО НОВОГО КОДА ▼▼▼
+
 
 			/*Array<Actor> actors = stage.getActors();
-			camera.update(); // Убедимся, что камера обновлена
+			camera.update();
 			batch.setProjectionMatrix(camera.combined);
 
 			batch.begin();
 
-			// ПРОХОД 1: Рисуем все обычные объекты (без кастомного шейдера)
+
 			for (Actor actor : actors) {
 				if (actor instanceof Look) {
 					Look look = (Look) actor;
@@ -1387,32 +1391,32 @@ public class StageListener implements ApplicationListener {
 					}*//*
 					actor.draw(batch, 1.0f);
 				} else {
-					// Рисуем все остальные акторы (PenActor, PlotActor, и т.д.)
+
 					actor.draw(batch, 1.0f);
 				}
 			}*/
 
-			/*batch.flush(); // Завершаем первый проход
+			/*batch.flush();
 
-			// ПРОХОД 2: Рисуем все объекты с эффектами
-			batch.setShader(brightnessContrastHueShader); // Устанавливаем шейдер ОДИН РАЗ
+
+			batch.setShader(brightnessContrastHueShader);
 			for (Actor actor : actors) {
 				if (actor instanceof Look) {
 					Look look = (Look) actor;
 					if (look.needsCustomShader()) {
-						// Устанавливаем уникальные параметры для этого объекта
+
 						brightnessContrastHueShader.setBrightness(look.getBrightnessValue());
 						brightnessContrastHueShader.setHue(look.getHueValue());
-						// Рисуем
+
 						look.draw(batch, 1.0f);
 					}
 				}
 			}
-			batch.setShader(null); // Сбрасываем шейдер ОДИН РАЗ*/
+			batch.setShader(null);*/
 
-			//batch.end();
 
-			// ▲▲▲ КОНЕЦ НОВОГО КОДА ▲▲▲
+
+
 
 			firstFrameDrawn = true;
 		}
@@ -1420,14 +1424,14 @@ public class StageListener implements ApplicationListener {
 
 	/*@Override
 	public void render() {
-		Log.d("ShaderDebug", " "); // Пустая строка для разделения кадров
+		Log.d("ShaderDebug", " ");
 		Log.d("ShaderDebug", "--- FRAME START ---");
 
-		// =================================================================
-		// ШАГ 1: ОБНОВЛЕНИЕ ЛОГИКИ ИГРЫ (ВСЕГДА ВЫПОЛНЯЕТСЯ ОДИН РАЗ ЗА КАДР)
-		// =================================================================
 
-		// Логика перезагрузки проекта (остается здесь)
+
+
+
+
 		if (reloadProject) {
 			stage.clear();
 			if (penActor != null) {
@@ -1465,7 +1469,7 @@ public class StageListener implements ApplicationListener {
 			}
 		}
 
-		// Логика первого запуска сцены (переносим сюда из renderSceneNormally)
+
 		if (scene.firstStart) {
 			for (Sprite sprite : sprites) {
 				sprite.initializeEventThreads(EventId.START);
@@ -1478,7 +1482,7 @@ public class StageListener implements ApplicationListener {
 			scene.firstStart = false;
 		}
 
-		// Логика обновления физики и актеров (переносим сюда из renderSceneNormally)
+
 		if (!paused) {
 			time += Gdx.graphics.getDeltaTime();
 			Look.tickGlobalFrame();
@@ -1503,46 +1507,46 @@ public class StageListener implements ApplicationListener {
 		}
 
 		if (plotActor != null) {
-			// Убедитесь, что вы передаете ему ShapeRenderer из StageListener
+
 			plotActor.updateBuffer(this.shapeRenderer);
 		}
 		if (penActor != null) {
 			penActor.updatePenLayer(this.shapeRenderer);
 		}
 
-		// =================================================================
-		// ШАГ 2: ЛОГИКА ОТРИСОВКИ (ИСПОЛЬЗУЕМ ОБНОВЛЕННОЕ СОСТОЯНИЕ)
-		// =================================================================
+
+
+
 
 		ShaderProgram customShader = GlobalShaderManager.INSTANCE.getCustomSceneShader();
-		Camera cameraToUse = this.camera;//(customShader == null) ? this.camera : new OrthographicCamera(virtualWidth, virtualHeight);
+		Camera cameraToUse = this.camera;
 
 		if (customShader != null) {
-			// Настраиваем FBO камеру, если она нужна
-			//cameraToUse.position.set(0, 0, 0);
+
+
 			cameraToUse.update();
-			sceneFbo.begin(); // Начинаем перенаправлять рендер в FBO
+			sceneFbo.begin();
 		}
 
-// === ОБЩАЯ ЛОГИКА РЕНДЕРИНГА (И ДЛЯ ЭКРАНА, И ДЛЯ FBO) ===
 
-// 1. Очищаем текущую цель (либо экран, либо FBO)
+
+
         CameraManager cameraManager = StageActivity.getActiveCameraManager();
         if (cameraManager != null && cameraManager.getPreviewVisible()) {
-            // Если камера активна, очищаем фон прозрачным цветом
+
             Gdx.gl.glClearColor(0, 0, 0, 0);
         } else {
-            // Иначе - стандартным белым
+
             Gdx.gl.glClearColor(1, 1, 1, 1);
         }
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-// 2. ФАЗА СПРАЙТОВ (SpriteBatch)
+
 
 		batch.setProjectionMatrix(cameraToUse.combined);
 		batch.begin();
 
-// 1a. Рисуем Look без эффектов
+
 		batch.setShader(null);
 		for (Actor actor : stage.getActors()) {
 			if (actor instanceof Look && !((Look) actor).needsCustomShader() && ((Look) actor).isLookVisible()) {
@@ -1552,27 +1556,27 @@ public class StageListener implements ApplicationListener {
 
 		batch.flush();
 
-// 1b. Рисуем Look с эффектами
-		//batch.setShader(brightnessContrastHueShader);
+
+
 		for (Actor actor : stage.getActors()) {
 			if (actor instanceof Look) {
 				Look look = (Look) actor;
 				if (look.needsCustomShader() && look.isLookVisible()) {
-					// look.applyShaderParameters(brightnessContrastHueShader) - более правильный путь,
-					// но ваш текущий подход тоже будет работать
-					//brightnessContrastHueShader.setBrightness(look.getBrightnessValue());
-					//brightnessContrastHueShader.setHue(look.getHueValue());
-					//look.applyShaderParameters(brightnessContrastHueShader);
+
+
+
+
+
 					look.draw(batch, 1.0f);
 				}
 			}
 		}
 
 		batch.flush();
-		//batch.setShader(null);
 
-// 1c. Рисуем актеров, которые теперь просто рисуют текстуру (наш PlotActor)
-// и другие, которые могли использовать batch (Passepartout)
+
+
+
 		for (Actor actor : stage.getActors()) {
 			if (actor instanceof PlotActor || actor instanceof PenActor || actor instanceof Passepartout) {
 				actor.draw(batch, 1.0f);
@@ -1580,103 +1584,103 @@ public class StageListener implements ApplicationListener {
 				actor.draw(batch, 1.0f);
 			}
 		}
-		batch.end(); // ЗАВЕРШАЕМ ВСЕ ОПЕРАЦИИ С BATCH
+		batch.end();
 
-		// === ФАЗА 3: Рисуем все, что использует ShapeRenderer ===
+
 		shapeRenderer.setProjectionMatrix(cameraToUse.combined);
 		shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 		for (Actor actor : stage.getActors()) {
-			// Явно ищем актеров, которые должны рисовать линии/фигуры.
-			// PenActor и EmbroideryActor - главные кандидаты.
-			// Их методы draw должны использовать shapeRenderer, а не batch.
+
+
+
 			if (actor instanceof EmbroideryActor) {
-				// Убедитесь, что их методы draw() теперь используют shapeRenderer
-				actor.draw(batch, 1.0f); // Параметр batch будет проигнорирован, если их draw() исправлен
+
+				actor.draw(batch, 1.0f);
 			}
 		}
 		shapeRenderer.end();
 
 
 		if (customShader != null) {
-			// Если мы рисовали в FBO, завершаем работу с ним
+
 			sceneFbo.end();
 
-			// ВОССТАНАВЛИВАЕМ ОСНОВНУЮ ПРОЕКЦИЮ ДЛЯ ДАЛЬНЕЙШЕГО РЕНДЕРА
+
 			batch.setProjectionMatrix(camera.combined);
 
-			// --- ФИНАЛЬНЫЙ ЭТАП: Отрисовка FBO на экран с шейдером ---
-			// Ваш код для postProcessBatch здесь остается без изменений, он был правильным.
+
+
 			Gdx.gl.glClearColor(1, 1, 1, 1);
 			Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 
-			//postProcessFbo.begin();
 
-			// --- ШАГ 1: Брутальный сброс состояния OpenGL ---
+
+
 			Gdx.gl.glDisable(GL20.GL_DEPTH_TEST);
 			Gdx.gl.glDisable(GL20.GL_CULL_FACE);
 			Gdx.gl.glEnable(GL20.GL_BLEND);
 			Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
 
-			// --- ШАГ 2: Полный сброс матриц SpriteBatch ---
-			postProcessBatch.getProjectionMatrix().setToOrtho2D(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-			//batch.setTransformMatrix(new Matrix4()); // Сброс в единичную матрицу
 
-			// --- ШАГ 3: Установка шейдера и ручное связывание ---
+			postProcessBatch.getProjectionMatrix().setToOrtho2D(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+
+
+
 			postProcessBatch.setShader(customShader);
 
-			// Явно активируем текстурный юнит 1 (чтобы не конфликтовать с юнитом 0, который мог использовать SpriteBatch)
-			sceneFbo.getColorBufferTexture().bind(); // Привязываем нашу текстуру к активному юниту (1)
 
-			// Говорим шейдеру читать из юнита 1
+			sceneFbo.getColorBufferTexture().bind();
+
+
 			customShader.bind();
 			customShader.setUniformi("u_texture", unit_to_shader);
 			customShader.setUniformf("u_time", time);
 
-			//postProcessFbo.end();
 
 
-			// --- ШАГ 4: Финальная отрисовка ---
+
+
 			postProcessBatch.begin();
 
-			// !!! НАЧАЛО ФИНАЛЬНОГО, АБСОЛЮТНОГО ИСПРАВЛЕНИЯ !!!
+
 
 			float fboWidth = sceneFbo.getWidth();
 			float fboHeight = sceneFbo.getHeight();
 			float screenWidth = Gdx.graphics.getWidth();
 			float screenHeight = Gdx.graphics.getHeight();
 
-			// 1. Расчет размера (этот код правильный)
+
 			com.badlogic.gdx.math.Vector2 scaledSize = Scaling.fit.apply(fboWidth, fboHeight, screenWidth, screenHeight);
 
-			// 2. Расчет позиции (этот код правильный)
+
 			float x = (screenWidth - scaledSize.x) / 2;
 			float y = (screenHeight - scaledSize.y) / 2;
 
-			// 3. Используем САМУЮ ЯВНУЮ версию draw(), чтобы избежать любых капризов SpriteBatch
+
 			postProcessBatch.draw(
-					fboRegion,  // Даем ему чистую текстуру
-					x, y,                    // Позиция на экране
+					fboRegion,
+					x, y,
 					scaledSize.x,
 					scaledSize.y
-					//fboWidth,            // Ширина на экране
+
 			);
 
-			// !!! КОНЕЦ ФИНАЛЬНОГО, АБСОЛЮТНОГО ИСПРАВЛЕНИЯ !!!
+
 
 			postProcessBatch.end();
-			//fullscreenQuad.render(customShader, GL20.GL_TRIANGLES);
 
-			// --- ШАГ 5: Полный сброс ---
+
+
 			postProcessBatch.setShader(null);
-			Gdx.gl.glActiveTexture(GL20.GL_TEXTURE0); // Возвращаем активный юнит на 0 для порядка
-			postProcessBatch.setProjectionMatrix(camera.combined); // Возвращаем камеру для остальной части сцены
+			Gdx.gl.glActiveTexture(GL20.GL_TEXTURE0);
+			postProcessBatch.setProjectionMatrix(camera.combined);
 		}
 
-		// =================================================================
-		// ШАГ 3: ОТРИСОВКА ПОВЕРХ ВСЕГО (ОСИ, ДЕБАГ И Т.Д.)
-		// =================================================================
 
-		// Возвращаем проекцию мировой камеры для отрисовки осей и т.д.
+
+
+
+
 		batch.setProjectionMatrix(camera.combined);
 
 		if (axesOn && !finished) {
@@ -1708,18 +1712,18 @@ public class StageListener implements ApplicationListener {
 			makeScreenshot = false;
 		}
 
-		//if (PhysicsDebugSettings.Render.RENDER_PHYSIC_OBJECT_LABELING) {
-		//	printPhysicsLabelOnScreen();
-		//}
 
-		//if (PhysicsDebugSettings.Render.RENDER_COLLISION_FRAMES && !finished) {
-		//	physicsWorld.render(camera.combined);
-		//}
 
-		//if (makeTestPixels) {
-		//	testPixels = ScreenUtils.getFrameBufferPixels(testX, testY, testWidth, testHeight, false);
-		//	makeTestPixels = false;
-		//}
+
+
+
+
+
+
+
+
+
+
 
 		cameraPositioner.updateCameraPositionForFocusedSprite();
 
@@ -1731,28 +1735,28 @@ public class StageListener implements ApplicationListener {
 
 	private void saveFboToFile(FrameBuffer fbo, String fileName) {
 		try {
-			// Обязательно начинаем fbo
+
 			fbo.begin();
 
-			// Получаем размеры (float → int)
+
 			int fboWidth = fbo.getWidth();
 			int fboHeight = fbo.getHeight();
 
-			// Получаем пиксели из FBO
-			// ВНИМАНИЕ: true = flip vertically (нужно для корректного PNG)
+
+
 			byte[] pixels = ScreenUtils.getFrameBufferPixels(0, 0, fboWidth, fboHeight, true);
 
-			// Создаем pixmap из пикселей
+
 			Pixmap pixmap = new Pixmap(fboWidth, fboHeight, Pixmap.Format.RGBA8888);
 			ByteBuffer buffer = pixmap.getPixels();
-			buffer.clear(); // сбрасываем указатель
+			buffer.clear();
 			buffer.put(pixels);
 			buffer.position(0);
 
-			// Путь к файлу
+
 			FileHandle file = Gdx.files.external("Download/" + fileName);
 
-			// Сохраняем
+
 			PixmapIO.writePNG(file, pixmap);
 			pixmap.dispose();
 
@@ -1768,17 +1772,17 @@ public class StageListener implements ApplicationListener {
 	private boolean fboSaved = true ;
 
 
-	// В StageListener.java
+
 	/*private void renderSceneNormally(Stage stage, Camera cam) {
-		// МЕТОД БОЛЬШЕ НЕ ВЫЗЫВАЕТ begin()/end()!
+
 
 		Log.d("ShaderDebug", "  [Render] >> renderSceneNormally START (within active batch)");
 
 		cam.update();
 		Array<Actor> actors = stage.getActors();
 
-		// ПРОХОД 1: Обычные объекты (без кастомного шейдера)
-		// Убедимся, что используется стандартный шейдер batch'а
+
+
 		batch.setShader(null);
 		for (Actor actor : actors) {
 			if (actor instanceof Look) {
@@ -1789,34 +1793,34 @@ public class StageListener implements ApplicationListener {
 				actor.draw(batch, 1.0f);
 			}
 		}
-		// ВАЖНО: Принудительно сбрасываем batch, чтобы нарисованное в Проходе 1
-		// не смешалось с тем, что будет в Проходе 2.
+
+
 		batch.flush();
 
-		// ПРОХОД 2: Объекты с графическими эффектами
+
 		batch.setShader(brightnessContrastHueShader);
 		for (Actor actor : actors) {
 			if (actor instanceof Look) {
 				Look look = (Look) actor;
 				if (look.needsCustomShader()) {
-					// look.applyShaderParameters(brightnessContrastHueShader) - более правильный путь,
-					// но ваш текущий подход тоже будет работать
+
+
 					brightnessContrastHueShader.setBrightness(look.getBrightnessValue());
 					brightnessContrastHueShader.setHue(look.getHueValue());
 					look.draw(batch, 1.0f);
 				}
 			}
 		}
-		// Еще один flush, чтобы гарантировать отрисовку Прохода 2.
+
 		batch.flush();
 
-		// Возвращаем стандартный шейдер для batch'а, чтобы не влиять на другие части рендера
+
 		batch.setShader(null);
 
 		Log.d("ShaderDebug", "  [Render] >> renderSceneNormally END");
 	}*/
 
-	// В StageListener.java
+
 	private void renderSceneNormally(Stage stage, Camera cameraToUse) {
 		Log.d("ULTIMATE_DEBUG", "ПОИСК ВИНОВНИКА. Рисуем актеров по одному.");
 		cameraToUse.update();
@@ -1825,14 +1829,14 @@ public class StageListener implements ApplicationListener {
 		batch.setShader(null);
 		for (Actor actor : actors) {
 			if (actor != null) {
-				// Пропускаем актеров, которые должны рисоваться во втором проходе
+
 				if (actor instanceof Look && ((Look) actor).needsCustomShader()) {
 					continue;
 				}
 
 				Log.d("ULTIMATE_DEBUG", "Сейчас рисуется: " + actor.getClass().getSimpleName());
 				actor.draw(batch, 1.0f);
-				batch.flush(); // Вызываем flush после каждого, чтобы проверить состояние
+				batch.flush();
 				Log.d("ULTIMATE_DEBUG", "    ...нарисован успешно.");
 			}
 		}
@@ -1897,13 +1901,13 @@ public class StageListener implements ApplicationListener {
 
 	@Override
 	public void resize(int width, int height) {
-		// --- ИЗМЕНЕНИЕ ---
-		// Теперь нужно обновлять оба viewport'а
+
+
 		if (viewPort != null) {
 			viewPort.update(width, height, false);
 		}
 		if (uiViewPort != null) {
-			uiViewPort.update(width, height, true); // true = center camera
+			uiViewPort.update(width, height, true);
 		}
 	}
 
@@ -1921,15 +1925,15 @@ public class StageListener implements ApplicationListener {
 
 		for (Sprite sprite : sprites) {
 			for (Script script : sprite.getScriptList()) {
-				// Ищем конкретно наш тип скрипта
+
 				if (script instanceof ExitProjectScript && !script.isCommentedOut()) {
 					Log.d("StageListener", "Found exit script in sprite: " + sprite.getName());
-					// 1. Создаем последовательность действий (как это делает система)
+
 					ScriptSequenceAction sequence = sprite.createSequenceAction(script);
 
-					// 2. ПРИНУДИТЕЛЬНО ВЫПОЛНЯЕМ ЕЕ
-					// Метод act() с большим delta временем заставит выполниться все действия внутри
-					// последовательности за один вызов.
+
+
+
 					sequence.act(Float.MAX_VALUE);
 				}
 			}
@@ -1946,7 +1950,7 @@ public class StageListener implements ApplicationListener {
 	 * @param eventId ID события для запуска.
 	 */
 	private void broadcastEventToAllSprites(EventId eventId) {
-		// Проверка на случай, если спрайты еще не инициализированы
+
 		if (sprites == null) {
 			return;
 		}
@@ -2174,19 +2178,19 @@ public class StageListener implements ApplicationListener {
 	}
 
 	private void disposeStageButKeepActors() {
-		if (stage != null) { // <--- ДОБАВИТЬ ЭТУ ПРОВЕРКУ
+		if (stage != null) {
 			stage.unfocusAll();
 		}
-		if (batch != null) { // <--- И ЭТУ ТОЖЕ, НА ВСЯКИЙ СЛУЧАЙ
+		if (batch != null) {
 			batch.dispose();
 		}
 	}
 
 	public void gamepadPressed(String buttonType) {
-		// ИЗМЕНЕНО: Добавляем проверку на null
+
 		if (project == null) {
 			Log.e("StageListener", "Gamepad event received, but project is null. Ignoring.");
-			return; // Просто выходим, чтобы избежать крэша
+			return;
 		}
 		EventId eventId = new GamepadEventId(buttonType);
 		EventWrapper gamepadEvent = new EventWrapper(eventId, false);

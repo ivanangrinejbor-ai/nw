@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:layout_marginTop="4dp">
+
+    <TextView
+        android:id="@+id/text_texture_path"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="None"
+        android:textColor="@android:color/darker_gray"
+        android:textSize="12sp"
+        android:maxLines="1"
+        android:ellipsize="middle"/>
+
+    <Button
+        android:id="@+id/btn_select_texture"
+        android:layout_width="wrap_content"
+        android:layout_height="36dp"
+        android:text="Select"
+        style="?attr/materialButtonOutlinedStyle"
+        android:layout_marginStart="8dp"/>
+
+    <ImageButton
+        android:id="@+id/btn_clear_texture"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:src="@android:drawable/ic_menu_close_clear_cancel"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:visibility="gone"/>
+</LinearLayout>

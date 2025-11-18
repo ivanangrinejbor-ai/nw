@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<GridLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:columnCount="2"
+    android:paddingTop="16dp"
+    android:paddingBottom="16dp">
+
+    <TextView
+        style="@style/InspectorLabel1"
+        android:text="Point Lights"
+        android:layout_gravity="center_vertical"/>
+    <EditText
+        android:id="@+id/edit_point_lights"
+        style="@style/InspectorEditText1"
+        android:inputType="number"/>
+
+    <TextView
+        style="@style/InspectorLabel1"
+        android:text="Spot Lights"
+        android:layout_gravity="center_vertical"/>
+    <EditText
+        android:id="@+id/edit_spot_lights"
+        style="@style/InspectorEditText1"
+        android:inputType="number"/>
+
+    <TextView
+        style="@style/InspectorLabel1"
+        android:text="Directional Lights"
+        android:layout_gravity="center_vertical"/>
+    <EditText
+        android:id="@+id/edit_dir_lights"
+        style="@style/InspectorEditText1"
+        android:inputType="number"/>
+
+    <TextView
+        style="@style/InspectorLabel1"
+        android:text="Max Bones (0-110)"
+        android:layout_gravity="center_vertical"/>
+    <EditText
+        android:id="@+id/edit_bones"
+        style="@style/InspectorEditText1"
+        android:inputType="number"/>
+</GridLayout>

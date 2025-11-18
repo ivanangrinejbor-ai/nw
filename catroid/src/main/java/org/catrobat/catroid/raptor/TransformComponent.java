@@ -9,6 +9,8 @@ public class TransformComponent implements Component {
     public Quaternion rotation = new Quaternion();
     public Vector3 scale = new Vector3(1, 1, 1);
 
+    public transient final Matrix4 worldTransform = new Matrix4();
+
     public TransformComponent() {}
 
     public Matrix4 toMatrix() {

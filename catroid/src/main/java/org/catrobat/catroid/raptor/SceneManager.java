@@ -8,10 +8,12 @@ import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.Intersector;
+import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.Ray;
+import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Json;
 import com.badlogic.gdx.utils.JsonWriter;
@@ -31,6 +33,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Высокоуровневый менеджер сцены. Оперирует GameObject'ами и Компонентами,
@@ -40,11 +43,222 @@ import java.util.UUID;
 public class SceneManager {
 
     public final ThreeDManager engine;
-    private final Map<String, GameObject> gameObjects = new HashMap<>();
+    private final Map<String, GameObject> gameObjects = new ConcurrentHashMap<>();
     private final BoundingBox tempBoundingBox = new BoundingBox();
+
+    private boolean isEditorMode = false;
+
+    private GameObject mainCameraObject = null;
+
+    private boolean isPlaying = false;
+
+    private final Vector3 tmpPos = new Vector3();
+    private final Quaternion tmpRot = new Quaternion();
+    private final Vector3 tmpScale = new Vector3();
+    private final Matrix4 tmpMat1 = new Matrix4();
+    private final Matrix4 tmpMat2 = new Matrix4();
+    private final Matrix4 tmpMat3 = new Matrix4();
+
+    public void setEditorMode(boolean isEditor) {
+        this.isEditorMode = isEditor;
+    }
+
+    public void findAndSetMainCamera() {
+        mainCameraObject = null;
+        for (GameObject go : gameObjects.values()) {
+            CameraComponent camComp = go.getComponent(CameraComponent.class);
+            if (camComp != null && camComp.isMainCamera) {
+                mainCameraObject = go;
+
+                return;
+            }
+        }
+    }
+
 
     public SceneManager(ThreeDManager lowLevelEngine) {
         this.engine = lowLevelEngine;
+        this.engine.setSceneManager(this);
+    }
+
+    private void synchronizeTransformsFromEngine() {
+        Matrix4 parentWorldInverse = new Matrix4();
+        Matrix4 childWorldTransform = new Matrix4();
+
+
+        for (GameObject go : gameObjects.values()) {
+
+
+            btRigidBody body = engine.getPhysicsBody(go.id);
+
+
+
+
+            if (body == null || body.isStaticObject()) {
+                continue;
+            }
+
+
+
+            Matrix4 bodyTransform = body.getWorldTransform();
+            Vector3 engineWorldPos = bodyTransform.getTranslation(new Vector3());
+            Quaternion engineWorldRot = bodyTransform.getRotation(new Quaternion(), true);
+
+
+
+            if (go.parentId == null) {
+
+                go.transform.position.set(engineWorldPos);
+                go.transform.rotation.set(engineWorldRot);
+            } else {
+
+                GameObject parent = findGameObject(go.parentId);
+                if (parent != null) {
+
+                    if (Math.abs(parent.transform.worldTransform.det()) < 0.000001f) {
+                        continue;
+                    }
+
+                    parentWorldInverse.set(parent.transform.worldTransform).inv();
+                    childWorldTransform.set(engineWorldPos, engineWorldRot, go.transform.scale);
+                    Matrix4 newLocalTransform = parentWorldInverse.mul(childWorldTransform);
+
+                    newLocalTransform.getTranslation(go.transform.position);
+                    newLocalTransform.getRotation(go.transform.rotation, true);
+                    newLocalTransform.getScale(go.transform.scale);
+                }
+            }
+        }
+    }
+
+    public void update(float delta) {
+        if (!isEditorMode) {
+            synchronizeTransformsFromEngine();
+        }
+
+
+        updateWorldTransforms();
+
+
+        for (GameObject go : gameObjects.values()) {
+            applyTransformToEngine(go);
+            if (go.hasComponent(LightComponent.class)) {
+                applyLightAndTransform(go);
+            }
+        }
+
+        if (mainCameraObject != null) {
+            Matrix4 cameraWorldTransform = mainCameraObject.transform.worldTransform;
+            Vector3 worldPos = cameraWorldTransform.getTranslation(new Vector3());
+            Quaternion worldRot = cameraWorldTransform.getRotation(new Quaternion(), true);
+            engine.setCameraPosition(worldPos.x, worldPos.y, worldPos.z);
+            engine.setCameraRotation(worldRot);
+        }
+    }
+
+    public void updateWorldTransforms() {
+        for (GameObject go : gameObjects.values()) {
+            if (go.parentId == null) {
+                updateTransformRecursive(go, null);
+            }
+        }
+    }
+
+    private void updateTransformRecursive(GameObject current, GameObject parent) {
+
+        current.transform.worldTransform.set(
+                current.transform.position,
+                current.transform.rotation,
+                current.transform.scale
+        );
+
+
+        if (parent != null) {
+            current.transform.worldTransform.mulLeft(parent.transform.worldTransform);
+        }
+
+
+        for (String childId : current.childrenIds) {
+            GameObject child = findGameObject(childId);
+            if (child != null) {
+                updateTransformRecursive(child, current);
+            }
+        }
+    }
+
+    private String generateUniqueName(String baseName) {
+        String finalName = baseName.replaceAll(" \\(\\d+\\)$", "");
+        if (!gameObjects.containsKey(finalName)) {
+            return finalName;
+        }
+        int counter = 1;
+        while (gameObjects.containsKey(finalName + " (" + counter + ")")) {
+            counter++;
+        }
+        return finalName + " (" + counter + ")";
+    }
+
+    private void applyTransformToEngine(GameObject go) {
+        if (go == null) return;
+
+
+        Quaternion tempRotation = new Quaternion();
+        go.transform.worldTransform.getRotation(tempRotation, true);
+
+
+        if (Float.isNaN(tempRotation.x) || Float.isNaN(tempRotation.y) || Float.isNaN(tempRotation.z) || Float.isNaN(tempRotation.w)) {
+            Log.e("SceneManager_Apply", "CRITICAL: NaN rotation detected for GameObject '" + go.id + "'. Aborting transform update for this frame to prevent engine corruption.");
+            return;
+        }
+
+
+
+        engine.setWorldTransform(go.id, go.transform.worldTransform);
+    }
+
+    /*public void enterPlayMode() {
+        this.isPlaying = true;
+        for (GameObject go : gameObjects.values()) {
+            List<ScriptComponent> scriptComponents = go.getComponents(ScriptComponent.class);
+            for (ScriptComponent scriptComp : scriptComponents) {
+                initializeScript(go, scriptComp);
+            }
+        }
+    }
+
+    public void exitPlayMode() {
+        this.isPlaying = false;
+        for (GameObject go : gameObjects.values()) {
+            go.getComponents(ScriptComponent.class).forEach(sc -> sc.scriptInstance = null);
+        }
+    }
+
+    private void initializeScript(GameObject go, ScriptComponent scriptComp) {
+        if (scriptComp.scriptPath != null && !scriptComp.scriptPath.isEmpty()) {
+            GameScript instance = ScriptLoader.INSTANCE.loadScript(scriptComp.scriptPath);
+            if (instance != null) {
+                scriptComp.scriptInstance = instance;
+                instance.setGameObject(go);
+                instance.setSceneManager(this);
+                try {
+                    instance.onInit();
+                } catch (Exception e) {
+                    Log.e("SceneManager", "Error in onInit() for script: " + scriptComp.scriptPath, e);
+                }
+            }
+        }
+    }*/
+
+    public void setPosition(GameObject go, Vector3 position) {
+        go.transform.position.set(position);
+    }
+
+    public void setRotation(GameObject go, Quaternion rotation) {
+        go.transform.rotation.set(rotation);
+    }
+
+    public void setScale(GameObject go, Vector3 scale) {
+        go.transform.scale.set(scale);
     }
 
     /**
@@ -55,7 +269,6 @@ public class SceneManager {
     public void loadAndReplaceScene(FileHandle fileHandle) {
         Gdx.app.postRunnable(() -> {
             clearScene_internal();
-
             if (fileHandle == null || !fileHandle.exists()) {
                 Gdx.app.error("SceneManager", "Scene file handle is null or does not exist.");
                 return;
@@ -65,23 +278,89 @@ public class SceneManager {
             SceneData sceneData = json.fromJson(SceneData.class, sceneJson);
 
             if (sceneData == null) { return; }
-
             setBackgroundLightIntensity(sceneData.ambientIntensity);
             setSkyColor(sceneData.skyR, sceneData.skyG, sceneData.skyB);
-
             if (sceneData.gameObjects == null) { return; }
 
+
             for (GameObject go : sceneData.gameObjects) {
-                // ВАЖНО: Устанавливаем ID равным имени из файла
-                go.id = go.name;
                 gameObjects.put(go.id, go);
+            }
+
+
+            for (GameObject go : sceneData.gameObjects) {
                 rebuildGameObject_internal(go);
             }
-            Gdx.app.log("SceneManager", "Scene '" + fileHandle.name() + "' loaded and replaced current scene.");
+
+            findAndSetMainCamera();
         });
     }
 
-    // --- УПРАВЛЕНИЕ GameObject ---
+    private void createRenderableForGameObject(GameObject go) {
+        RenderComponent render = go.getComponent(RenderComponent.class);
+        if (render != null && render.modelFileName != null && !render.modelFileName.isEmpty()) {
+            String modelName = render.modelFileName;
+            if (modelName.startsWith("primitive:")) {
+                if (modelName.equals("primitive:cube")) engine.createCube(go.id);
+                else if (modelName.equals("primitive:sphere")) engine.createSphere(go.id);
+            } else {
+                String absolutePath;
+                if (modelName.startsWith("assets://")) {
+                    absolutePath = modelName.substring("assets://".length());
+                } else {
+                    File modelFile = ProjectManager.getInstance().getCurrentProject().getFile(modelName);
+                    if (modelFile != null && modelFile.exists()) {
+                        absolutePath = modelFile.getAbsolutePath();
+                    } else {
+                        Gdx.app.error("SceneManager", "Rebuild failed: Model file not found: " + modelName);
+                        return;
+                    }
+                }
+                if (!engine.createObject(go.id, absolutePath)) {
+                    Gdx.app.error("SceneManager", "Rebuild failed: Could not create render object for " + go.id);
+                }
+            }
+        }
+    }
+
+    private void rebuildComponentsForGameObject(GameObject go) {
+        engine.setWorldTransform(go.id, go.transform.worldTransform);
+
+        Log.d("PhysicsDebug", "Rebuilding components for '" + go.name + "' with final World Transform:\n" + go.transform.worldTransform);
+
+        PhysicsComponent physics = go.getComponent(PhysicsComponent.class);
+        if (physics != null) {
+            if (physics.colliders != null && !physics.colliders.isEmpty()) {
+                engine.setPhysicsStateFromComponent(go.id, physics, go.transform.worldTransform);
+            } else {
+                engine.setPhysicsState(go.id, physics.state, physics.shape, physics.mass, go.transform.worldTransform);
+            }
+            engine.setFriction(go.id, physics.friction);
+            engine.setRestitution(go.id, physics.restitution);
+        }
+
+        LightComponent light = go.getComponent(LightComponent.class);
+        if (light != null) {
+            engine.createEditorProxy(go.id);
+            applyLightAndTransform(go);
+        }
+
+        CameraComponent camera = go.getComponent(CameraComponent.class);
+        if (camera != null) {
+            engine.createCameraProxy(go.id);
+            if (camera.isMainCamera) {
+                applyCameraComponentToEngine(go, camera);
+            }
+        }
+
+        playAnimationFromComponent(go);
+
+        MaterialComponent material = go.getComponent(MaterialComponent.class);
+        if (material != null) {
+            engine.applyPBRMaterial(go.id, material);
+        }
+    }
+
 
     /**
      * Создает новый пустой GameObject в сцене.
@@ -91,7 +370,7 @@ public class SceneManager {
     public GameObject createGameObject(String baseName) {
         String finalName = baseName;
         int counter = 1;
-        // Гарантируем уникальность имени (и, следовательно, ID)
+
         while (gameObjects.containsKey(finalName)) {
             finalName = baseName + " (" + counter + ")";
             counter++;
@@ -110,9 +389,28 @@ public class SceneManager {
      */
     public boolean renameGameObject(GameObject go, String newName) {
         if (go == null || newName == null || newName.isEmpty() || gameObjects.containsKey(newName)) {
-            return false; // Нельзя переименовать в пустое или уже существующее имя
+            return false;
         }
         String oldId = go.id;
+
+        if (oldId.equals(newName)) {
+            return true;
+        }
+
+        if (go.parentId != null) {
+            GameObject parent = findGameObject(go.parentId);
+            if (parent != null) {
+                parent.childrenIds.remove(oldId);
+                parent.childrenIds.add(newName);
+            }
+        }
+
+        for (String childId : go.childrenIds) {
+            GameObject child = findGameObject(childId);
+            if (child != null) {
+                child.parentId = newName;
+            }
+        }
 
         gameObjects.remove(oldId);
 
@@ -134,21 +432,88 @@ public class SceneManager {
     public GameObject duplicateGameObject(GameObject original) {
         if (original == null) return null;
 
+        List<GameObject> newObjects = new ArrayList<>();
+        Map<String, String> oldIdToNewId = new HashMap<>();
+
+        GameObject newRoot = cloneRecursive(original, newObjects, oldIdToNewId);
+
+        for (GameObject copy : newObjects) {
+            if (copy.parentId != null) {
+                String newParentId = oldIdToNewId.get(copy.parentId);
+                if (newParentId != null) {
+                    copy.parentId = newParentId;
+                }
+            }
+        }
+
+        if (newRoot != null) {
+            newRoot.parentId = original.parentId;
+        }
+
+        for (GameObject copy : newObjects) {
+            gameObjects.put(copy.id, copy);
+            rebuildGameObject_internal(copy);
+        }
+
+        if (newRoot != null && newRoot.parentId != null) {
+            GameObject parent = findGameObject(newRoot.parentId);
+            if (parent != null && !parent.childrenIds.contains(newRoot.id)) {
+                parent.childrenIds.add(newRoot.id);
+            }
+        }
+
+        updateWorldTransforms();
+        return newRoot;
+    }
+
+    private GameObject cloneRecursive(GameObject original, List<GameObject> copies, Map<String, String> idMapping) {
         String objectAsJson = json.toJson(original);
         GameObject copy = json.fromJson(GameObject.class, objectAsJson);
 
-        String baseName = original.name.replaceAll(" \\(\\d+\\)$", ""); // Убираем старый номер, если он был
-        String finalName = baseName;
-        int counter = 1;
-        while (gameObjects.containsKey(finalName)) {
-            finalName = baseName + " (" + counter + ")";
-            counter++;
+        copy.name = generateUniqueName(original.name);
+        copy.id = copy.name;
+
+        copies.add(copy);
+        idMapping.put(original.id, copy.id);
+
+        List<String> originalChildrenIds = new ArrayList<>(copy.childrenIds);
+        copy.childrenIds.clear();
+
+        for (String childId : originalChildrenIds) {
+            GameObject originalChild = findGameObject(childId);
+            if (originalChild != null) {
+                GameObject newChild = cloneRecursive(originalChild, copies, idMapping);
+                copy.childrenIds.add(newChild.id);
+            }
         }
-        copy.name = finalName;
-        copy.id = finalName; // ID = Имя
+        return copy;
+    }
+
+    private GameObject duplicateRecursive(GameObject original, Map<String, String> idMapping) {
+        String objectAsJson = json.toJson(original);
+        GameObject copy = json.fromJson(GameObject.class, objectAsJson);
+
+        String newName = generateUniqueName(original.name);
+        copy.name = newName;
+        copy.id = newName;
+
+        idMapping.put(original.id, copy.id);
 
         gameObjects.put(copy.id, copy);
-        rebuildGameObject(copy); // Этот метод уже postRunnable
+
+        List<String> originalChildrenIds = new ArrayList<>(copy.childrenIds);
+        copy.childrenIds.clear();
+
+        for (String originalChildId : originalChildrenIds) {
+            GameObject originalChild = findGameObject(originalChildId);
+            if (originalChild != null) {
+                GameObject newChild = duplicateRecursive(originalChild, idMapping);
+                newChild.parentId = copy.id;
+                copy.childrenIds.add(newChild.id);
+            }
+        }
+
+        rebuildGameObject(copy);
 
         return copy;
     }
@@ -164,7 +529,7 @@ public class SceneManager {
         List<GameObject> candidates = new ArrayList<>();
         Vector3 intersectionPoint = new Vector3();
 
-        // Этап 1: Проверяем обычные видимые объекты
+
         for (GameObject go : gameObjects.values()) {
             if (!go.hasComponent(RenderComponent.class)) continue;
             ModelInstance instance = engine.getModelInstance(go.id);
@@ -176,7 +541,7 @@ public class SceneManager {
             }
         }
 
-        // Этап 2: Проверяем прокси-объекты редактора
+
         for (Map.Entry<String, ModelInstance> entry : engine.getEditorProxies().entrySet()) {
             String ownerId = entry.getKey();
             ModelInstance proxyInstance = entry.getValue();
@@ -191,23 +556,23 @@ public class SceneManager {
             }
         }
 
-        // Если никого не нашли, выходим
+
         if (candidates.isEmpty()) {
             return null;
         }
 
-        // Если нашли только один объект, сразу возвращаем его
+
         if (candidates.size() == 1) {
             return candidates.get(0);
         }
 
-        // Этап 3: Точная фаза. Находим самый маленький объект среди кандидатов.
+
         GameObject bestCandidate = null;
         float smallestVolume = Float.MAX_VALUE;
 
         for (GameObject candidate : candidates) {
             ModelInstance instance = engine.getModelInstance(candidate.id);
-            // Если это прокси-объект (свет), то его ModelInstance нет в основной карте, берем из прокси
+
             if (instance == null) {
                 if (candidate.hasComponent(LightComponent.class) || candidate.hasComponent(CameraComponent.class)) {
                     instance = engine.getEditorProxies().get(candidate.id);
@@ -215,7 +580,7 @@ public class SceneManager {
             }
             if (instance == null) continue;
 
-            instance.calculateBoundingBox(tempBoundingBox); // Получаем локальный Bounding Box
+            instance.calculateBoundingBox(tempBoundingBox);
             float volume = tempBoundingBox.getWidth() * tempBoundingBox.getHeight() * tempBoundingBox.getDepth();
 
             if (volume < smallestVolume) {
@@ -285,19 +650,28 @@ public class SceneManager {
             gameObjects.put(go.id, go);
             rebuildGameObject_internal(go);
         }
+        findAndSetMainCamera();
+
         Gdx.app.log("SceneManager", "Scene loaded from cache.");
     }
 
-    /**
-     * Удаляет GameObject и все связанные с ним ресурсы из сцены.
-     * @param go GameObject для удаления.
-     */
     public void removeGameObject(GameObject go) {
         if (go == null) return;
+
+        List<String> childrenIdsCopy = new ArrayList<>(go.childrenIds);
+        for (String childId : childrenIdsCopy) {
+            removeGameObject(findGameObject(childId));
+        }
+
+        if (go.parentId != null) {
+            GameObject parent = findGameObject(go.parentId);
+            if (parent != null) {
+                parent.childrenIds.remove(go.id);
+            }
+        }
+
         gameObjects.remove(go.id);
-
         engine.removeObject(go.id);
-
         if (go.hasComponent(LightComponent.class)) {
             engine.removePBRLight(go.id);
             engine.removeEditorProxy(go.id);
@@ -312,7 +686,7 @@ public class SceneManager {
         return gameObjects;
     }
 
-    // --- РАБОТА С КОМПОНЕНТАМИ ---
+
 
     /**
      * Добавляет или обновляет RenderComponent, создавая видимую 3D-модель.
@@ -379,10 +753,10 @@ public class SceneManager {
                 physics = new PhysicsComponent();
                 go.addComponent(physics);
             }
-            // Обновляем компонент, чтобы инспектор показал правильное состояние
+
             physics.state = state;
             physics.mass = mass;
-            physics.colliders.clear(); // Очищаем кастомные коллайдеры
+            physics.colliders.clear();
             if (state == ThreeDManager.PhysicsState.STATIC || state == ThreeDManager.PhysicsState.DYNAMIC) {
                 ColliderShapeData singleCollider = new ColliderShapeData();
                 switch (shape) {
@@ -397,15 +771,18 @@ public class SceneManager {
                         singleCollider.type = ColliderShapeData.ShapeType.BOX;
                         break;
                 }
-                // Добавляем этот единственный коллайдер в список.
-                // Размеры и смещение оставляем по умолчанию (0),
-                // движок ThreeDManager сам использует габариты модели, если они не заданы.
+
+
+
                 physics.colliders.add(singleCollider);
             }
 
-            // 4. Вызываем ОСНОВНОЙ метод движка, передавая ему полностью
-            //    сконфигурированный компонент.
-            engine.setPhysicsState(go.id, state, shape, mass);
+
+
+            updateWorldTransforms();
+
+
+            engine.setPhysicsState(go.id, state, shape, mass, go.transform.worldTransform);
         });
     }
 
@@ -421,11 +798,14 @@ public class SceneManager {
             go.components.removeIf(c -> c instanceof PhysicsComponent);
             go.addComponent(component);
 
-            // Решаем, какой метод движка вызвать, точно так же, как при загрузке
+
             if (component.colliders != null && !component.colliders.isEmpty()) {
                 engine.setPhysicsStateFromComponent(go.id, component);
             } else {
-                engine.setPhysicsState(go.id, component.state, component.shape, component.mass);
+                updateWorldTransforms();
+
+
+                engine.setPhysicsState(go.id, component.state, component.shape, component.mass, go.transform.worldTransform);
             }
         });
     }
@@ -457,23 +837,25 @@ public class SceneManager {
                 engine.createCameraProxy(go.id);
             }
 
-            // Если эта камера помечена как главная, применяем ее настройки
+
             if (cameraData.isMainCamera) {
                 applyCameraComponentToEngine(go, cameraData);
             }
+
+            findAndSetMainCamera();
         });
     }
 
-    // --- НОВЫЙ ВСПОМОГАТЕЛЬНЫЙ МЕТОД ---
+
     private void applyCameraComponentToEngine(GameObject go, CameraComponent camComp) {
-        engine.setCameraFov(camComp.fieldOfView, camComp.nearPlane, camComp.farPlane); // Нужен новый метод в ThreeDManager
+        engine.setCameraFov(camComp.fieldOfView, camComp.nearPlane, camComp.farPlane);
         engine.setCameraPosition(go.transform.position.x, go.transform.position.y, go.transform.position.z);
-        engine.setCameraRotation(go.transform.rotation);  // Нужен новый метод в ThreeDManager
+        engine.setCameraRotation(go.transform.rotation);
     }
 
-    // --- УПРАВЛЕНИЕ ТРАНСФОРМАЦИЕЙ ---
 
-    public void setPosition(GameObject go, Vector3 position) {
+
+    /*public void setPosition(GameObject go, Vector3 position) {
         go.transform.position.set(position);
         applyLightAndTransform(go);
     }
@@ -486,9 +868,9 @@ public class SceneManager {
     public void setScale(GameObject go, Vector3 scale) {
         go.transform.scale.set(scale);
         applyTransform(go);
-    }
+    }*/
 
-    // --- УПРАВЛЕНИЕ АНИМАЦИЯМИ ---
+
 
     public void playAnimation(GameObject go, String animationName, int loops, float speed, float transitionTime) {
         engine.playAnimation(go.id, animationName, loops, speed, transitionTime);
@@ -498,7 +880,7 @@ public class SceneManager {
         engine.stopAnimation(go.id);
     }
 
-    // --- ПРОЧИЕ СИСТЕМЫ ДВИЖКА ---
+
 
     public void castRay(String rayName, Vector3 from, Vector3 direction) {
         engine.castRay(rayName, from, direction);
@@ -546,10 +928,10 @@ public class SceneManager {
         }
         for (GameObject go : gameObjects.values()) {
             if (name.equalsIgnoreCase(go.name)) {
-                return go; // Возвращаем первый совпавший
+                return go;
             }
         }
-        return null; // Ничего не найдено
+        return null;
     }
 
     /**
@@ -571,7 +953,7 @@ public class SceneManager {
         return foundObjects;
     }
 
-    // --- УПРАВЛЕНИЕ СЦЕНОЙ ---
+
 
     private final Json json = new Json();
 
@@ -588,6 +970,7 @@ public class SceneManager {
         sceneData.skyG = skyG;
         sceneData.skyB = skyB;
         sceneData.ambientIntensity = ambientIntensity;
+        sceneData.renderSettings = engine.getSceneSettings();
 
         json.setOutputType(JsonWriter.OutputType.json);
         json.setUsePrototypes(false);
@@ -623,43 +1006,74 @@ public class SceneManager {
             rebuildGameObject(go);
         }
 
+        findAndSetMainCamera();
+
         Gdx.app.log("SceneManager", "Scene build commands issued.");
     }
 
     private void rebuildGameObject_internal(GameObject go) {
+        Log.d("PhysicsDebug", "============================================================");
+        Log.d("PhysicsDebug", "=== Rebuilding GameObject: '" + go.name + "' (ID: " + go.id + ")");
+        Log.d("PhysicsDebug", "============================================================");
+
         RenderComponent render = go.getComponent(RenderComponent.class);
         if (render != null && render.modelFileName != null && !render.modelFileName.isEmpty()) {
-            String absolutePath;
-            if (render.modelFileName.startsWith("assets://")) {
-                absolutePath = render.modelFileName.substring("assets://".length());
+            String modelName = render.modelFileName;
+            if (modelName.startsWith("primitive:")) {
+                if (modelName.equals("primitive:cube")) {
+                    engine.createCube(go.id);
+                } else if (modelName.equals("primitive:sphere")) {
+                    engine.createSphere(go.id);
+                }
             } else {
-                File modelFile = ProjectManager.getInstance().getCurrentProject().getFile(render.modelFileName);
-                if (modelFile != null && modelFile.exists()) {
-                    absolutePath = modelFile.getAbsolutePath();
+                String absolutePath;
+                if (modelName.startsWith("assets://")) {
+                    absolutePath = modelName.substring("assets://".length());
                 } else {
-                    Gdx.app.error("SceneManager", "Rebuild failed: Model file not found: " + render.modelFileName);
+                    File modelFile = ProjectManager.getInstance().getCurrentProject().getFile(modelName);
+                    if (modelFile != null && modelFile.exists()) {
+                        absolutePath = modelFile.getAbsolutePath();
+                    } else {
+                        Gdx.app.error("SceneManager", "Rebuild failed: Model file not found: " + modelName);
+                        return;
+                    }
+                }
+                if (!engine.createObject(go.id, absolutePath)) {
+                    Gdx.app.error("SceneManager", "Rebuild failed: Could not create render object for " + go.id);
                     return;
                 }
             }
-            if (!engine.createObject(go.id, absolutePath)) {
-                Gdx.app.error("SceneManager", "Rebuild failed: Could not create render object for " + go.id);
-                return;
+        }
+
+        updateWorldTransforms();
+
+        engine.setWorldTransform(go.id, go.transform.worldTransform);
+
+        Log.d("PhysicsDebug", "Transform for '" + go.name + "':");
+        Log.d("PhysicsDebug", "  - Local Position: " + go.transform.position);
+        Log.d("PhysicsDebug", "  - Local Rotation: " + go.transform.rotation);
+        Log.d("PhysicsDebug", "  - Local Scale:    " + go.transform.scale);
+        Log.d("PhysicsDebug", "  - World Transform Matrix:\n" + go.transform.worldTransform);
+        if (go.parentId != null) {
+            GameObject parent = findGameObject(go.parentId);
+            if (parent != null) {
+                Log.d("PhysicsDebug", "  - Parent ('"+parent.name+"') World Transform:\n" + parent.transform.worldTransform);
             }
         }
 
-        applyTransform(go);
-
         PhysicsComponent physics = go.getComponent(PhysicsComponent.class);
         if (physics != null) {
-            // --- УМНЫЙ ВЫБОР МЕТОДА ---
-            // Если список colliders НЕ пустой (т.е. настроен в редакторе),
-            // то используем НОВЫЙ метод.
-            if (physics.colliders != null && !physics.colliders.isEmpty()) {
-                engine.setPhysicsStateFromComponent(go.id, physics);
+            Matrix4 physicsTransform = new Matrix4(go.transform.worldTransform);
+
+            if (physics.state == ThreeDManager.PhysicsState.MESH_STATIC) {
+                Log.d("PhysicsDebug", "MESH_STATIC detected. Using rotation/scale only for physics baking.");
+                physicsTransform.setTranslation(0, 0, 0);
             }
-            // ИНАЧЕ, используем СТАРЫЙ, надежный метод.
+            if (physics.colliders != null && !physics.colliders.isEmpty()) {
+                engine.setPhysicsStateFromComponent(go.id, physics, physicsTransform);
+            }
             else {
-                engine.setPhysicsState(go.id, physics.state, physics.shape, physics.mass);
+                engine.setPhysicsState(go.id, physics.state, physics.shape, physics.mass, physicsTransform);
             }
 
             engine.setFriction(go.id, physics.friction);
@@ -676,20 +1090,138 @@ public class SceneManager {
         if (camera != null) {
             engine.createCameraProxy(go.id);
             if (camera.isMainCamera) {
-                // Ищем первую же камеру, помеченную как главная, и применяем ее
                 Gdx.app.log("SceneManager", "MainCamera found: " + go.name + ". Applying its transform.");
                 applyCameraComponentToEngine(go, camera);
             }
         }
 
         playAnimationFromComponent(go);
+
+        MaterialComponent material = go.getComponent(MaterialComponent.class);
+        if (material != null) {
+            engine.applyPBRMaterial(go.id, material);
+        }
+
+        /*List<ScriptComponent> scriptComponents = go.getComponents(ScriptComponent.class);
+        for (ScriptComponent scriptComp : scriptComponents) {
+            if (scriptComp.scriptPath != null && !scriptComp.scriptPath.isEmpty()) {
+                GameScript instance = ScriptLoader.INSTANCE.loadScript(scriptComp.scriptPath);
+                if (instance != null) {
+                    scriptComp.scriptInstance = instance;
+                    instance.setGameObject(go);
+                    instance.setSceneManager(this);
+
+                    try {
+                        instance.onInit();
+                    } catch (Exception e) {
+                        Log.e("SceneManager", "Error in onInit() for script: " + scriptComp.scriptPath, e);
+                    }
+                }
+            }
+        }*/
+    }
+
+    public void repositionObjectAndChildren(GameObject root, Vector3 newWorldPosition) {
+        if (root == null) return;
+
+        Vector3 currentWorldPos = root.transform.worldTransform.getTranslation(new Vector3());
+        Vector3 delta = new Vector3(newWorldPosition).sub(currentWorldPos);
+
+        repositionRecursive(root, delta);
+
+        updateWorldTransforms();
+    }
+
+    private void applyTransformToEngineRecursive(GameObject go) {
+        if (go == null) return;
+
+        engine.setWorldTransform(go.id, go.transform.worldTransform);
+
+        PhysicsComponent physics = go.getComponent(PhysicsComponent.class);
+        if (physics != null && (physics.state == ThreeDManager.PhysicsState.STATIC || physics.state == ThreeDManager.PhysicsState.MESH_STATIC)) {
+
+            Log.d("SceneManager", "Re-creating static physics body for '" + go.name + "' after move.");
+
+            engine.removePhysicsBody(go.id);
+
+            Matrix4 physicsTransform = new Matrix4(go.transform.worldTransform);
+            if (physics.state == ThreeDManager.PhysicsState.MESH_STATIC) {
+                physicsTransform.setTranslation(0, 0, 0);
+            }
+
+            if (physics.colliders != null && !physics.colliders.isEmpty()) {
+                engine.setPhysicsStateFromComponent(go.id, physics, physicsTransform);
+            } else {
+                engine.setPhysicsState(go.id, physics.state, physics.shape, physics.mass, physicsTransform);
+            }
+        }
+
+        for (String childId : go.childrenIds) {
+            GameObject child = findGameObject(childId);
+            if (child != null) {
+                applyTransformToEngineRecursive(child);
+            }
+        }
+    }
+
+    private void repositionRecursive(GameObject current, Vector3 delta) {
+        current.transform.position.add(delta);
+
+        updateTransformRecursive(current, findGameObject(current.parentId));
+
+        engine.setWorldTransform(current.id, current.transform.worldTransform);
+
+        PhysicsComponent physics = current.getComponent(PhysicsComponent.class);
+        if (physics != null && (physics.state == ThreeDManager.PhysicsState.STATIC || physics.state == ThreeDManager.PhysicsState.MESH_STATIC)) {
+            engine.removePhysicsBody(current.id);
+
+            Matrix4 physicsTransform = new Matrix4(current.transform.worldTransform);
+            if (physics.state == ThreeDManager.PhysicsState.MESH_STATIC) {
+                physicsTransform.setTranslation(0, 0, 0);
+            }
+
+            if (physics.colliders != null && !physics.colliders.isEmpty()) {
+                engine.setPhysicsStateFromComponent(current.id, physics, physicsTransform);
+            } else {
+                engine.setPhysicsState(current.id, physics.state, physics.shape, physics.mass, physicsTransform);
+            }
+        }
+
+        for (String childId : current.childrenIds) {
+            GameObject child = findGameObject(childId);
+            if (child != null) {
+                repositionRecursive_Child(child, current);
+            }
+        }
+    }
+
+    private void repositionRecursive_Child(GameObject current, GameObject newParent) {
+        updateTransformRecursive(current, newParent);
+        engine.setWorldTransform(current.id, current.transform.worldTransform);
+
+        PhysicsComponent physics = current.getComponent(PhysicsComponent.class);
+        if (physics != null && (physics.state == ThreeDManager.PhysicsState.STATIC || physics.state == ThreeDManager.PhysicsState.MESH_STATIC)) {
+            engine.removePhysicsBody(current.id);
+            Matrix4 physicsTransform = new Matrix4(current.transform.worldTransform);
+            if (physics.state == ThreeDManager.PhysicsState.MESH_STATIC) {
+                physicsTransform.setTranslation(0, 0, 0);
+            }
+            if (physics.colliders != null && !physics.colliders.isEmpty()) {
+                engine.setPhysicsStateFromComponent(current.id, physics, physicsTransform);
+            } else {
+                engine.setPhysicsState(current.id, physics.state, physics.shape, physics.mass, physicsTransform);
+            }
+        }
+
+        for (String childId : current.childrenIds) {
+            GameObject child = findGameObject(childId);
+            if (child != null) {
+                repositionRecursive_Child(child, current);
+            }
+        }
     }
 
 
-    /**
-     * Вспомогательный метод, который воссоздает объект в движке на основе его компонентов.
-     * @param go GameObject, загруженный из JSON.
-     */
     public void rebuildGameObject(GameObject go) {
         Gdx.app.postRunnable(() -> rebuildGameObject_internal(go));
     }
@@ -721,7 +1253,7 @@ public class SceneManager {
         return engine.getAnimationNames(go.id);
     }
 
-    // --- ПРИВАТНЫЕ МЕТОДЫ-ПОМОЩНИКИ ---
+
 
     /**
      * Применяет все трансформации из TransformComponent к объекту в движке.
@@ -730,7 +1262,7 @@ public class SceneManager {
         if (go == null) return;
         TransformComponent t = go.transform;
 
-        // Убедимся, что объект существует в движке (у него должен быть RenderComponent)
+
         if (!engine.objectExists(go.id)) return;
 
         engine.setPosition(go.id, t.position.x, t.position.y, t.position.z);
@@ -778,22 +1310,33 @@ public class SceneManager {
      */
     private void applyLightAndTransform(GameObject go) {
         if (go == null) return;
-        applyTransform(go);
+
+
+
 
         if (go.hasComponent(LightComponent.class)) {
-            engine.updateEditorProxyPosition(go.id, go.transform.position);
+
+            Vector3 worldPosition = go.transform.worldTransform.getTranslation(new Vector3());
+            engine.updateEditorProxyPosition(go.id, worldPosition);
         }
 
         LightComponent light = go.getComponent(LightComponent.class);
         if (light == null) return;
 
-        Vector3 pos = go.transform.position;
+        if (!isObjectActiveInHierarchy(go)) {
+            engine.removePBRLight(go.id);
+            return;
+        }
+
+
+        Vector3 pos = go.transform.worldTransform.getTranslation(new Vector3());
+        Quaternion rot = go.transform.worldTransform.getRotation(new Quaternion(), true);
         float r = light.color.r, g = light.color.g, b = light.color.b;
 
         switch (light.type) {
             case SPOT:
                 Vector3 spotDir = new Vector3(0, 0, -1);
-                go.transform.rotation.transform(spotDir);
+                rot.transform(spotDir);
                 engine.setSpotLight(go.id, pos.x, pos.y, pos.z, spotDir.x, spotDir.y, spotDir.z,
                         r, g, b, light.intensity, light.cutoffAngle, light.exponent, light.range);
                 break;
@@ -802,14 +1345,9 @@ public class SceneManager {
                 break;
             case DIRECTIONAL:
                 Vector3 sunDir = new Vector3(0, 0, -1);
-                // Мы просто берем поворот объекта и применяем его к вектору (0, 0, -1)
-                go.transform.rotation.transform(sunDir);
-
+                rot.transform(sunDir);
                 engine.setRealisticSunLight(sunDir.x, sunDir.y, sunDir.z, light.intensity);
                 engine.setSunLightColor(r, g, b);
-
-                // Сохраняем это вычисленное направление обратно в компонент,
-                // чтобы оно корректно записалось в JSON при сохранении.
                 light.direction.set(sunDir);
                 break;
         }
@@ -825,5 +1363,224 @@ public class SceneManager {
 
     public Json getJson() {
         return json;
+    }
+
+    public GameObject createPrimitive(String type) {
+        String baseName = type.substring(0, 1).toUpperCase() + type.substring(1);
+        GameObject go = createGameObject(baseName);
+
+        boolean success = true;
+        /*if ("cube".equals(type)) {
+            success = engine.createCube(go.id);
+        } else if ("sphere".equals(type)) {
+            success = engine.createSphere(go.id);
+        }*/
+
+        if (success) {
+            RenderComponent render = new RenderComponent();
+            render.modelFileName = "primitive:" + type;
+            go.addComponent(render);
+
+            MaterialComponent material = new MaterialComponent();
+            go.addComponent(material);
+
+            go.transform.scale = new Vector3(0.1f, 0.1f, 0.1f);
+
+            applyTransform(go);
+
+            engine.applyPBRMaterial(go.id, material);
+
+            rebuildGameObject(go);
+
+            return go;
+        } else {
+            gameObjects.remove(go.id);
+            return null;
+        }
+    }
+
+    public void setMaterialComponent(GameObject go, MaterialComponent component) {
+        Gdx.app.postRunnable(() -> {
+            go.components.removeIf(c -> c instanceof MaterialComponent);
+            go.addComponent(component);
+            engine.applyPBRMaterial(go.id, component);
+        });
+    }
+
+    public boolean isObjectActiveInHierarchy(GameObject go) {
+        if (go == null) return false;
+        if (!go.isActive) return false;
+
+        if (go.parentId != null) {
+            return isObjectActiveInHierarchy(findGameObject(go.parentId));
+        }
+
+        return true;
+    }
+
+    public void setObjectActive(GameObject go, boolean active) {
+        if (go == null || go.isActive == active) return;
+        go.isActive = active;
+
+        updateVisibilityRecursive(go);
+
+        updateLightStateRecursive(go);
+    }
+
+    private void updateLightStateRecursive(GameObject go) {
+        if (go == null) return;
+
+        if (go.hasComponent(LightComponent.class)) {
+            applyLightAndTransform(go);
+        }
+
+        for (String childId : go.childrenIds) {
+            updateLightStateRecursive(findGameObject(childId));
+        }
+    }
+
+    private void updateVisibilityRecursive(GameObject go) {
+        if (go == null) return;
+
+        boolean shouldBeVisible = isObjectActiveInHierarchy(go);
+
+        engine.setObjectVisibility(go.id, shouldBeVisible);
+
+        for (String childId : go.childrenIds) {
+            updateVisibilityRecursive(findGameObject(childId));
+        }
+    }
+
+    public void setParent(GameObject child, GameObject parent) {
+        Gdx.app.postRunnable(() -> {
+            setParentInternal(child, parent);
+        });
+    }
+
+    public void removeParent(GameObject child) {
+        Gdx.app.postRunnable(() -> {
+            setParentInternal(child, null);
+        });
+    }
+
+    public void setParentInternal(GameObject child, GameObject parent) {
+        if (child == null || child == parent) return;
+
+        if (parent != null && isDescendant(parent, child)) {
+            Log.e("SceneManager", "Cannot set parent: would create a cycle in hierarchy.");
+            return;
+        }
+
+        updateWorldTransforms();
+        Matrix4 childWorldTransform = new Matrix4(child.transform.worldTransform);
+
+        if (child.parentId != null) {
+            GameObject oldParent = findGameObject(child.parentId);
+            if (oldParent != null) {
+                oldParent.childrenIds.remove(child.id);
+            }
+        }
+        child.parentId = null;
+
+        if (parent != null) {
+            child.parentId = parent.id;
+            if (!parent.childrenIds.contains(child.id)) {
+                parent.childrenIds.add(child.id);
+            }
+            Matrix4 parentWorldTransform = parent.transform.worldTransform;
+            if (Math.abs(parentWorldTransform.det()) < 0.000001f) {
+                Log.e("SceneManager", "Cannot attach to a parent with zero scale.");
+                return;
+            }
+            Matrix4 parentWorldInverse = new Matrix4(parentWorldTransform).inv();
+            Matrix4 newLocalTransform = parentWorldInverse.mul(childWorldTransform);
+            newLocalTransform.getTranslation(child.transform.position);
+            newLocalTransform.getRotation(child.transform.rotation, true);
+            newLocalTransform.getScale(child.transform.scale);
+        } else {
+            childWorldTransform.getTranslation(child.transform.position);
+            childWorldTransform.getRotation(child.transform.rotation, true);
+            childWorldTransform.getScale(child.transform.scale);
+        }
+        updateWorldTransforms();
+    }
+
+    private boolean isDescendant(GameObject potentialDescendant, GameObject ancestor) {
+        if (potentialDescendant.parentId == null) {
+            return false;
+        }
+        if (potentialDescendant.parentId.equals(ancestor.id)) {
+            return true;
+        }
+        GameObject nextParent = findGameObject(potentialDescendant.parentId);
+        if (nextParent == null) {
+            return false;
+        }
+        return isDescendant(nextParent, ancestor);
+    }
+
+    public GameObject cloneGameObject(GameObject original, String newName) {
+        if (original == null || newName == null || newName.isEmpty() || gameObjects.containsKey(newName)) {
+            return null;
+        }
+
+        String objectAsJson = json.toJson(original);
+        GameObject copy = json.fromJson(GameObject.class, objectAsJson);
+
+        copy.name = newName;
+        copy.id = newName;
+
+        copy.parentId = null;
+        copy.childrenIds.clear();
+
+        gameObjects.put(copy.id, copy);
+        rebuildGameObject(copy);
+
+        return copy;
+    }
+
+
+    public void loadAndAddScene(FileHandle fileHandle) {
+        Gdx.app.postRunnable(() -> {
+            if (fileHandle == null || !fileHandle.exists()) {
+                Gdx.app.error("SceneManager", "Additive scene file not found.");
+                return;
+            }
+            String sceneJson = fileHandle.readString();
+            json.setUsePrototypes(false);
+            SceneData sceneData = json.fromJson(SceneData.class, sceneJson);
+            if (sceneData == null || sceneData.gameObjects == null) { return; }
+
+            List<GameObject> newObjects = new ArrayList<>();
+            Map<String, String> oldIdToNewId = new HashMap<>();
+
+
+            for (GameObject go : sceneData.gameObjects) {
+                String originalId = go.id;
+                String newId = generateUniqueName(originalId);
+                go.id = newId;
+                go.name = newId;
+                newObjects.add(go);
+                oldIdToNewId.put(originalId, newId);
+            }
+
+            for (GameObject go : newObjects) {
+                if (go.parentId != null) go.parentId = oldIdToNewId.get(go.parentId);
+                ArrayList<String> newChildrenIds = new ArrayList<>();
+                for (String oldChildId : go.childrenIds) {
+                    String newChildId = oldIdToNewId.get(oldChildId);
+                    if (newChildId != null) newChildrenIds.add(newChildId);
+                }
+                go.childrenIds = newChildrenIds;
+            }
+
+            for (GameObject go : newObjects) {
+                gameObjects.put(go.id, go);
+            }
+
+            for (GameObject go : newObjects) {
+                rebuildGameObject_internal(go);
+            }
+        });
     }
 }

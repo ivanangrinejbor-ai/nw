@@ -60,6 +60,7 @@
             android:layout_centerHorizontal="true"
             android:layout_marginTop="@dimen/activity_text_view_margin_large"
             android:background="@color/app_background"
+            android:tag="app_background"
             tools:ignore="ContentDescription" />
 
         <LinearLayout

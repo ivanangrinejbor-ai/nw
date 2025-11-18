@@ -27,10 +27,12 @@
         android:drawable="@drawable/button_background_pressed" />
     <item
         android:state_focused="true"
-        android:drawable="@color/app_background" />
+        android:drawable="@color/app_background"
+        android:tag="app_background"/>
     <item
         android:state_hovered="true"
-        android:drawable="@color/app_background" />
+        android:drawable="@color/app_background"
+        android:tag="app_background"/>
 
-    <item android:drawable="@color/app_background" />
+    <item android:drawable="@color/app_background" android:tag="app_background" />
 </selector>

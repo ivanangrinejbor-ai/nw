@@ -358,6 +358,91 @@
         <item name="android:background">@drawable/brick_winered_3h</item>
     </style>
 
+    <style name="BrickContainer.File" />
+
+    <style name="BrickContainer.File.Small">
+        <item name="android:minHeight">@dimen/brick_height_small</item>
+        <item name="android:background">@drawable/brick_olive_1h</item>
+    </style>
+
+    <style name="BrickContainer.File.Medium">
+        <item name="android:minHeight">@dimen/brick_height_medium</item>
+        <item name="android:background">@drawable/brick_olive_2h</item>
+    </style>
+
+    <style name="BrickContainer.File.Big" tools:ignore="UnusedResources">
+        <item name="android:minHeight">@dimen/brick_height_big</item>
+        <item name="android:background">@drawable/brick_olive_3h</item>
+    </style>
+
+    <style name="BrickContainer.Internet" />
+
+    <style name="BrickContainer.Internet.Small">
+        <item name="android:minHeight">@dimen/brick_height_small</item>
+        <item name="android:background">@drawable/brick_orange_1h</item>
+    </style>
+
+    <style name="BrickContainer.Internet.Medium">
+        <item name="android:minHeight">@dimen/brick_height_medium</item>
+        <item name="android:background">@drawable/brick_orange_2h</item>
+    </style>
+
+    <style name="BrickContainer.Internet.Big" tools:ignore="UnusedResources">
+        <item name="android:minHeight">@dimen/brick_height_big</item>
+        <item name="android:background">@drawable/brick_orange_3h</item>
+    </style>
+
+    <style name="BrickContainer.Libs" />
+
+    <style name="BrickContainer.Libs.Small">
+        <item name="android:minHeight">@dimen/brick_height_small</item>
+        <item name="android:background">@drawable/brick_pink_1h</item>
+    </style>
+
+    <style name="BrickContainer.Libs.Medium">
+        <item name="android:minHeight">@dimen/brick_height_medium</item>
+        <item name="android:background">@drawable/brick_pink_2h</item>
+    </style>
+
+    <style name="BrickContainer.Libs.Big" tools:ignore="UnusedResources">
+        <item name="android:minHeight">@dimen/brick_height_big</item>
+        <item name="android:background">@drawable/brick_pink_3h</item>
+    </style>
+
+    <style name="BrickContainer.Threed" />
+
+    <style name="BrickContainer.Threed.Small">
+        <item name="android:minHeight">@dimen/brick_height_small</item>
+        <item name="android:background">@drawable/brick_yellow_1h</item>
+    </style>
+
+    <style name="BrickContainer.Threed.Medium">
+        <item name="android:minHeight">@dimen/brick_height_medium</item>
+        <item name="android:background">@drawable/brick_yellow_2h</item>
+    </style>
+
+    <style name="BrickContainer.Threed.Big" tools:ignore="UnusedResources">
+        <item name="android:minHeight">@dimen/brick_height_big</item>
+        <item name="android:background">@drawable/brick_yellow_3h</item>
+    </style>
+
+    <style name="BrickContainer.Neural" />
+
+    <style name="BrickContainer.Neural.Small">
+        <item name="android:minHeight">@dimen/brick_height_small</item>
+        <item name="android:background">@drawable/brick_cyan_1h</item>
+    </style>
+
+    <style name="BrickContainer.Neural.Medium">
+        <item name="android:minHeight">@dimen/brick_height_medium</item>
+        <item name="android:background">@drawable/brick_cyan_2h</item>
+    </style>
+
+    <style name="BrickContainer.Neural.Big" tools:ignore="UnusedResources">
+        <item name="android:minHeight">@dimen/brick_height_big</item>
+        <item name="android:background">@drawable/brick_cyan_3h</item>
+    </style>
+
     <style name="BrickContainer.UserVariables" />
 
     <style name="BrickContainer.UserVariables.Small" tools:ignore="UnusedResources">
@@ -648,6 +733,10 @@
 
     <style name="BrickCategory.Plot">
         <item name="android:background">@drawable/brick_categories_winered</item>
+    </style>
+
+    <style name="BrickCategory.File">
+        <item name="android:background">@drawable/brick_categories_olive</item>
     </style>
 
     <style name="BrickCategory.Drone">

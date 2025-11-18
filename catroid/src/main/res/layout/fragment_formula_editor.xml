@@ -119,6 +119,7 @@
                 android:paddingTop="@dimen/brick_space_padding_formular_editor"
                 android:paddingBottom="@dimen/brick_space_padding_formular_editor"
                 android:background="@color/toolbar_background"
+                android:tag="toolbar_background"
                 android:orientation="vertical" />
         </ScrollView>
 

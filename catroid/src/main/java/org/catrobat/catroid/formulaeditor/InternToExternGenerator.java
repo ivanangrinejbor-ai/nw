@@ -128,6 +128,7 @@ public class InternToExternGenerator {
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.GET_ANGLE.name(), R.string.formula_vector_angle);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.GET_3D_POSITION_X.name(), R.string.formula_3d_pos_x);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.OBJECT_TOUCHES_OBJECT.name(), R.string.formula_3d_touches);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.OBJECT_INTERSECTS_OBJECT.name(), R.string.formula_3d_intersects);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.GET_CAMERA_ROTATION_YAW.name(), R.string.formula_cam_rot_yaw);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.GET_CAMERA_ROTATION_ROLL.name(), R.string.formula_cam_rot_roll);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.GET_CAMERA_ROTATION_PITCH.name(), R.string.formula_cam_rot_pitch);

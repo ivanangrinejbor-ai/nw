@@ -99,6 +99,7 @@ class BrickCategoryListBuilder(private val activity: FragmentActivity) {
 
         categories.add(inflater.inflate(R.layout.brick_category_data, null))
         categories.add(inflater.inflate(R.layout.brick_category_device, null))
+        categories.add(inflater.inflate(R.layout.brick_category_file, null))
 
         if (!onlyBeginnerBricks()) {
             categories.add(inflater.inflate(R.layout.brick_category_userbrick, null))

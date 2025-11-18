@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical">
+
+    <CheckBox
+        android:id="@+id/brick_checkbox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone" />
+
+    <org.catrobat.catroid.ui.BrickLayout
+        android:id="@+id/brick_play_sound_at_pos_layout"
+        style="@style/BrickContainer.Threed.Big">
+
+        <include layout="@layout/icon_brick_category_threed" />
+
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_play_sound_3d"/>
+        <TextView
+            android:id="@+id/brick_play_sound_3d_name_edit"
+            style="@style/BrickEditText" />
+
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_sound_instance_name"
+            app:layout_newLine="true"/>
+        <TextView
+            android:id="@+id/brick_play_sound_3d_instance_edit"
+            style="@style/BrickEditText" />
+
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_sound_at_position"
+            app:layout_newLine="true"/>
+        <TextView
+            android:id="@+id/brick_play_sound_3d_x_edit"
+            style="@style/BrickEditText" />
+        <TextView
+            android:id="@+id/brick_play_sound_3d_y_edit"
+            style="@style/BrickEditText" />
+        <TextView
+            android:id="@+id/brick_play_sound_3d_z_edit"
+            style="@style/BrickEditText" />
+
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_sound_volume"
+            app:layout_newLine="true"/>
+        <TextView
+            android:id="@+id/brick_play_sound_3d_volume_edit"
+            style="@style/BrickEditText" />
+
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_sound_pitch"
+            app:layout_newLine="true"/>
+        <TextView
+            android:id="@+id/brick_play_sound_3d_pitch_edit"
+            style="@style/BrickEditText" />
+
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_sound_loop"
+            app:layout_newLine="true"/>
+        <Spinner
+            android:id="@+id/brick_play_sound_3d_loop_spinner"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+    </org.catrobat.catroid.ui.BrickLayout>
+</LinearLayout>

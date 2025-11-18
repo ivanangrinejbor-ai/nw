@@ -6,8 +6,12 @@ import java.util.List;
 public class GameObject {
     public String id;
     public String name;
+    public boolean isActive = true;
     public TransformComponent transform = new TransformComponent();
     public List<Component> components = new ArrayList<>();
+
+    public String parentId = null;
+    public List<String> childrenIds = new ArrayList<>();
 
     public GameObject() {}
 
@@ -33,5 +37,15 @@ public class GameObject {
 
     public <T extends Component> boolean hasComponent(Class<T> type) {
         return getComponent(type) != null;
+    }
+
+    public <T extends Component> List<T> getComponents(Class<T> type) {
+        List<T> foundComponents = new ArrayList<>();
+        for (Component c : components) {
+            if (type.isInstance(c)) {
+                foundComponents.add((T) c);
+            }
+        }
+        return foundComponents;
     }
 }

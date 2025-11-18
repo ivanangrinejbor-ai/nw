@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:paddingStart="4dp"
+    android:paddingEnd="4dp">
+
+    <CheckBox
+        android:id="@+id/checkbox_is_active"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@android:color/white"
+        android:buttonTint="@android:color/white"
+        />
+
+    <EditText
+        android:id="@+id/edit_object_name"
+        style="@style/InspectorEditText"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:imeOptions="actionDone"
+        android:singleLine="true"
+        android:hint="GameObject Name"
+        />
+
+</LinearLayout>

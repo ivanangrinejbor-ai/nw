@@ -1,6 +1,7 @@
 package org.catrobat.catroid.utils.lunoscript
 
 import android.content.Context
+import android.content.res.Resources
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
@@ -106,7 +107,7 @@ inline fun <reified T : Any> LunoValue.asSpecificKotlinType(
 
 
 
-typealias RawNativeLunoFunction = (interpreter: Interpreter, arguments: List<LunoValue>) -> LunoValue
+public typealias RawNativeLunoFunction = (interpreter: Interpreter, arguments: List<LunoValue>) -> LunoValue
 
 class PauseExecutionSignal : RuntimeException(null, null, false, false)
 
@@ -143,12 +144,20 @@ class Interpreter(
 
             val actualMessageString =
                 args.joinToString(" ") { lunoValueToString(it, humanReadable = true) }
-            val params = ArrayList<Any>(listOf(actualMessageString))
+            val currentActivity = StageActivity.activeStageActivity?.get()
 
-            
-            
-            StageActivity.messageHandler.obtainMessage(StageActivity.SHOW_TOAST, params)
-                .sendToTarget()
+            if (currentActivity != null && StageActivity.messageHandler != null) {
+                val params = ArrayList<Any>(listOf(actualMessageString))
+                StageActivity.messageHandler.obtainMessage(StageActivity.SHOW_TOAST, params)
+                    .sendToTarget()
+            } else {
+                val appContext = androidContext ?: CatroidApplication.getAppContext()
+                if (appContext != null) {
+                    Handler(Looper.getMainLooper()).post {
+                        Toast.makeText(appContext, actualMessageString, Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
             LunoValue.Null
         }
 
@@ -1480,13 +1489,13 @@ class Interpreter(
         }
 
         defineNative("renderWidth", 0..0) { _, _ ->
-            
-            LunoValue.Number(RenderManager.getWidth().toDouble())
+            val displayMetrics = Resources.getSystem().displayMetrics
+            LunoValue.Number(displayMetrics.widthPixels.toDouble())
         }
 
         defineNative("renderHeight", 0..0) { _, _ ->
-            
-            LunoValue.Number(RenderManager.getHeight().toDouble())
+            val displayMetrics = Resources.getSystem().displayMetrics
+            LunoValue.Number(displayMetrics.heightPixels.toDouble())
         }
 
         defineNative("renderDelete", 1..1) { interpreter, args ->
@@ -3628,8 +3637,9 @@ class Interpreter(
         defineNative("createView", 1..1) { interpreter, args ->
             val argument = args[0]
 
-            val activity = StageActivity.activeStageActivity?.get()
-                ?: throw LunoRuntimeError("createView: Could not get StageActivity.", -1)
+            val activity: Context = StageActivity.activeStageActivity?.get()
+                ?: androidContext
+                ?: throw LunoRuntimeError("createView: Could not get any valid context.", -1)
 
             val viewClass: Class<*> = when (argument) {
                 

@@ -230,6 +230,8 @@ public class InternFormulaKeyboardAdapter {
 				return buildSingleParameterFunction(Functions.GET_3D_POSITION_X, STRING, "myObject");
 			case R.string.formula_3d_touches:
 				return buildDoubleParameterFunction(Functions.OBJECT_TOUCHES_OBJECT, STRING, "object1", STRING, "object2");
+			case R.string.formula_3d_intersects:
+				return buildDoubleParameterFunction(Functions.OBJECT_INTERSECTS_OBJECT, STRING, "player", STRING, "trigger_zone");
 			case R.string.formula_3d_velo_x:
 				return buildSingleParameterFunction(Functions.GET_3D_VELOCITY_X, STRING, "myObject");
 			case R.string.formula_3d_velo_y:

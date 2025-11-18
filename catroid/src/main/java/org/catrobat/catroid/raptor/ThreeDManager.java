@@ -4,6 +4,8 @@ import android.util.Log;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.loaders.FileHandleResolver;
+import com.badlogic.gdx.audio.Music;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
@@ -19,6 +21,7 @@ import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.ModelCache;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
+import com.badlogic.gdx.graphics.g3d.RenderableProvider;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.loader.ObjLoader;
@@ -32,6 +35,7 @@ import com.badlogic.gdx.graphics.g3d.utils.DefaultShaderProvider;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.ShaderProvider;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector2;
@@ -57,8 +61,13 @@ import com.badlogic.gdx.physics.bullet.collision.btSphereShape;
 import com.badlogic.gdx.physics.bullet.collision.btTriangleIndexVertexArray;
 import com.badlogic.gdx.physics.bullet.dynamics.btConstraintSolver;
 import com.badlogic.gdx.physics.bullet.dynamics.btDiscreteDynamicsWorld;
+import com.badlogic.gdx.physics.bullet.dynamics.btFixedConstraint;
+import com.badlogic.gdx.physics.bullet.dynamics.btGeneric6DofSpringConstraint;
+import com.badlogic.gdx.physics.bullet.dynamics.btHingeConstraint;
+import com.badlogic.gdx.physics.bullet.dynamics.btPoint2PointConstraint;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.physics.bullet.dynamics.btSequentialImpulseConstraintSolver;
+import com.badlogic.gdx.physics.bullet.dynamics.btTypedConstraint;
 import com.badlogic.gdx.physics.bullet.linearmath.btDefaultMotionState;
 import com.badlogic.gdx.physics.bullet.linearmath.btIDebugDraw;
 import com.badlogic.gdx.physics.bullet.linearmath.btMotionState;
@@ -66,20 +75,31 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 import com.danvexteam.lunoscript_annotations.LunoClass;
 
+import net.mgsx.gltf.scene3d.attributes.PBRColorAttribute;
 import net.mgsx.gltf.scene3d.attributes.PBRCubemapAttribute;
+import net.mgsx.gltf.scene3d.attributes.PBRFloatAttribute;
 import net.mgsx.gltf.scene3d.attributes.PBRTextureAttribute;
 import net.mgsx.gltf.scene3d.shaders.PBRShaderProvider;
 import net.mgsx.gltf.scene3d.utils.IBLBuilder;
 
+import org.catrobat.catroid.ProjectManager;
+import org.catrobat.catroid.stage.StageActivity;
 import org.catrobat.catroid.utils.ModelPathProcessor;
 
+import java.io.File;
 import java.lang.reflect.Method;
 import java.nio.Buffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @LunoClass
@@ -102,7 +122,36 @@ public class ThreeDManager implements Disposable {
         CAPSULE
     }
 
+    private static class AudioAsset {
+        public Sound sound = null;
+        public Music music = null;
+        public final String filePath;
+
+        public AudioAsset(FileHandle fileHandle, boolean asMusic) {
+            this.filePath = fileHandle.path();
+            if (asMusic) {
+                music = Gdx.audio.newMusic(fileHandle);
+            } else {
+                sound = Gdx.audio.newSound(fileHandle);
+            }
+        }
+        public void dispose() {
+            if (sound != null) sound.dispose();
+            if (music != null) music.dispose();
+        }
+    }
+
+    private final Map<String, AudioAsset> loadedAudioAssets = new HashMap<>();
+    private final List<PlayableAudio> active3DSounds = new ArrayList<>();
+
+    private float globalSoundVolume = 1.0f;
+    private static final float MAX_HEARING_DISTANCE = 250f;
+
+    private final Vector3 cameraRight = new Vector3();
+    private final Vector3 soundToListener = new Vector3();
+
     private final boolean debugEnabled = false;
+    private static final boolean LOG_THREED_MANAGER_DEBUG = false;
 
     private static class RayCastResult {
         public boolean hasHit = false;
@@ -184,7 +233,29 @@ public class ThreeDManager implements Disposable {
     private float cameraPitch = 20.0f;
     private float cameraYaw = 0.0f;
 
+    private Map<String, btTypedConstraint> physicsConstraints = new HashMap<>();
+
+    private final Set<String> inactiveRenderObjects = new HashSet<>();
+    private final Map<String, btRigidBody> inactivePhysicsBodies = new HashMap<>();
+    private final Map<String, net.mgsx.gltf.scene3d.scene.Scene> inactivePbrScenes = new HashMap<>();
+
+    private SceneSettings currentSettings;
+
+    public static class SceneSettings {
+        public int numPointLights = 5;
+        public int numSpotLights = 2;
+        public int numDirectionalLights = 1;
+        public int numBones = 110;
+    }
+
+    private SceneManager manager;
+
     public void init() {
+        init(new SceneSettings());
+    }
+
+    public void init(SceneSettings settings) {
+        this.currentSettings = settings;
         modelBuilder = new com.badlogic.gdx.graphics.g3d.utils.ModelBuilder();
         defaultShaderProvider = new DefaultShaderProvider();
         modelBatch = new ModelBatch(defaultShaderProvider);
@@ -228,12 +299,12 @@ public class ThreeDManager implements Disposable {
         dynamicsWorld.setDebugDrawer(debugDrawer);
         collisionCallback = new CollisionCallback();
 
-        PBRShaderProvider prov = PBRShaderProvider.createDefault(128);
+        PBRShaderProvider prov = PBRShaderProvider.createDefault(settings.numBones);
         DefaultShader.Config config = prov.config;
-        config.numPointLights = 5;
-        config.numSpotLights = 2;
-        config.numDirectionalLights = 1;
-        config.numBones = 110;
+        config.numPointLights = settings.numPointLights;
+        config.numSpotLights = settings.numSpotLights;
+        config.numDirectionalLights = settings.numDirectionalLights;
+        config.numBones = settings.numBones;
 
         sceneManager = new net.mgsx.gltf.scene3d.scene.SceneManager(prov, PBRShaderProvider.createDefaultDepth(config.numBones));
         sceneManager.setCamera(camera);
@@ -296,6 +367,80 @@ public class ThreeDManager implements Disposable {
         wireframeCylinderModel = modelBuilder.createCylinder(1f, 2f, 1f, 16, GL20.GL_LINES, wireframeMaterial, usage);
     }
 
+    public void setObjectVisibility(String objectId, boolean visible) {
+        ModelInstance instance = sceneObjects.get(objectId);
+        if (instance == null) return;
+
+        if (visible) {
+            btRigidBody body = inactivePhysicsBodies.remove(objectId);
+            if (body != null) {
+                dynamicsWorld.addRigidBody(body);
+                physicsBodies.put(objectId, body);
+            }
+        } else {
+            btRigidBody body = physicsBodies.remove(objectId);
+            if (body != null) {
+                dynamicsWorld.removeRigidBody(body);
+                inactivePhysicsBodies.put(objectId, body);
+            }
+        }
+
+        if (visible) {
+            inactiveRenderObjects.remove(objectId);
+            if (realisticMode && inactivePbrScenes.containsKey(objectId)) {
+                sceneManager.addScene(inactivePbrScenes.remove(objectId));
+            }
+        } else {
+            inactiveRenderObjects.add(objectId);
+            if (realisticMode) {
+                net.mgsx.gltf.scene3d.scene.Scene sceneToRemove = null;
+                for (RenderableProvider provider : sceneManager.getRenderableProviders()) {
+                    if (provider instanceof net.mgsx.gltf.scene3d.scene.Scene) {
+                        net.mgsx.gltf.scene3d.scene.Scene scene = (net.mgsx.gltf.scene3d.scene.Scene) provider;
+                        if (scene.modelInstance == instance) {
+                            sceneToRemove = scene;
+                            break;
+                        }
+                    }
+                }
+                if (sceneToRemove != null) {
+                    sceneManager.removeScene(sceneToRemove);
+                    inactivePbrScenes.put(objectId, sceneToRemove);
+                }
+            }
+        }
+    }
+
+    public void setSceneManager(SceneManager manager) {
+        this.manager = manager;
+    }
+
+
+    @Deprecated
+    public void setObjectRenderState(String objectId, boolean active) {
+        setObjectVisibility(objectId, active);
+    }
+
+    public void setObjectPhysicsState(String objectId, boolean active) {
+        if (active) {
+            btRigidBody body = inactivePhysicsBodies.remove(objectId);
+            if (body != null) {
+                dynamicsWorld.addRigidBody(body);
+                physicsBodies.put(objectId, body);
+            }
+        } else {
+            btRigidBody body = physicsBodies.remove(objectId);
+            if (body != null) {
+                dynamicsWorld.removeRigidBody(body);
+                inactivePhysicsBodies.put(objectId, body);
+            }
+        }
+    }
+
+    public SceneSettings getSceneSettings() {
+        return currentSettings != null ? currentSettings : new SceneSettings();
+    }
+
     public void setCameraFov(float fieldOfView, float near, float far) {
         camera.fieldOfView = fieldOfView;
         camera.near = near;
@@ -309,6 +454,47 @@ public class ThreeDManager implements Disposable {
         if (editorProxies.containsKey(ownerId) || cameraProxyModel == null) return;
         ModelInstance proxyInstance = new ModelInstance(cameraProxyModel);
         editorProxies.put(ownerId, proxyInstance);
+    }
+
+    public boolean createPoint2PointConstraint(String constraintId, String objectIdA, String objectIdB, Vector3 pivotInA, Vector3 pivotInB) {
+        if (physicsConstraints.containsKey(constraintId)) return false;
+        btRigidBody bodyA = physicsBodies.get(objectIdA);
+        btRigidBody bodyB = physicsBodies.get(objectIdB);
+
+        if (bodyA == null || bodyB == null) {
+            Gdx.app.error("3DManager", "Cannot create constraint: one or both bodies not found.");
+            return false;
+        }
+
+        btPoint2PointConstraint constraint = new btPoint2PointConstraint(bodyA, bodyB, pivotInA, pivotInB);
+        dynamicsWorld.addConstraint(constraint, true);
+        physicsConstraints.put(constraintId, constraint);
+        return true;
+    }
+
+    public boolean createFixedConstraint(String constraintId, String objectIdA, String objectIdB, Matrix4 transformA, Matrix4 transformB) {
+        if (physicsConstraints.containsKey(constraintId)) return false;
+        btRigidBody bodyA = physicsBodies.get(objectIdA);
+        btRigidBody bodyB = physicsBodies.get(objectIdB);
+
+        if (bodyA == null || bodyB == null) {
+            Gdx.app.error("3DManager", "Cannot create fixed constraint: one or both bodies not found.");
+            return false;
+        }
+
+        btFixedConstraint constraint = new btFixedConstraint(bodyA, bodyB, transformA, transformB);
+        dynamicsWorld.addConstraint(constraint, true);
+        physicsConstraints.put(constraintId, constraint);
+        return true;
+    }
+
+
+    public void removeConstraint(String constraintId) {
+        btTypedConstraint constraint = physicsConstraints.remove(constraintId);
+        if (constraint != null) {
+            dynamicsWorld.removeConstraint(constraint);
+            constraint.dispose();
+        }
     }
 
 
@@ -395,12 +581,34 @@ public class ThreeDManager implements Disposable {
 
     
     private void createCompoundPhysicsBody(String objectId, ModelInstance instance, PhysicsComponent component, float mass) {
+        Log.d("PhysicsDebug", "--- Creating Compound Physics Body for '" + objectId + "' ---");
+        Log.d("PhysicsDebug", "  - Input Mass: " + mass);
+        Log.d("PhysicsDebug", "  - Instance World Transform on entry:\n" + instance.transform);
+
         btCompoundShape compoundShape = new btCompoundShape();
         Array<Disposable> disposables = new Array<>();
         disposables.add(compoundShape);
 
+        final Matrix4 worldTransform = instance.transform;
+        final float[] vals = worldTransform.val;
+
+        boolean isFlippedX = vals[Matrix4.M00] < 0;
+        boolean isFlippedY = vals[Matrix4.M11] < 0;
+        boolean isFlippedZ = vals[Matrix4.M22] < 0;
+        Log.d("PhysicsDebug", "  - Axis flip detection: X=" + isFlippedX + ", Y=" + isFlippedY + ", Z=" + isFlippedZ);
+
         for (ColliderShapeData shapeData : component.colliders) {
+            Vector3 correctedOffset = new Vector3(shapeData.centerOffset);
+            if (isFlippedX) correctedOffset.x *= -1;
+            if (isFlippedY) correctedOffset.y *= -1;
+            if (isFlippedZ) correctedOffset.z *= -1;
+
+            Log.d("PhysicsDebug", "  - Processing Collider #(тут был номер, но я его убрал)" + ": Type=" + shapeData.type + ", Local Offset=" + shapeData.centerOffset + ", Size=" + shapeData.size);
+            Log.d("PhysicsDebug", "    - Original Offset: " + shapeData.centerOffset);
+            Log.d("PhysicsDebug", "    - Corrected Offset for Physics: " + correctedOffset);
+
             btCollisionShape shape;
+
             switch (shapeData.type) {
                 case SPHERE:
                     shape = new btSphereShape(shapeData.radius);
@@ -415,21 +623,28 @@ public class ThreeDManager implements Disposable {
                     break;
             }
             disposables.add(shape);
-            Matrix4 localTransform = new Matrix4().setToTranslation(shapeData.centerOffset);
+            Matrix4 localTransform = new Matrix4().setToTranslation(correctedOffset);
             compoundShape.addChildShape(localTransform, shape);
+            Log.d("PhysicsDebug", "    - Added child shape with local transform:\n" + localTransform);
         }
 
-        Vector3 scale = instance.transform.getScale(new Vector3());
-        compoundShape.setLocalScaling(scale);
+        Vector3 absScale = worldTransform.getScale(new Vector3());
+        if (absScale.x == 0) absScale.x = 0.0001f;
+        if (absScale.y == 0) absScale.y = 0.0001f;
+        if (absScale.z == 0) absScale.z = 0.0001f;
+
+        compoundShape.setLocalScaling(absScale);
+        Log.d("PhysicsDebug", "  - Compound Shape Local Scaling set to (abs value): " + absScale);
 
         Vector3 localInertia = new Vector3();
         if (mass > 0f) {
             compoundShape.calculateLocalInertia(mass, localInertia);
         }
 
-        Matrix4 bodyTransform = new Matrix4();
-        bodyTransform.set(instance.transform.getRotation(new Quaternion()));
-        bodyTransform.setTranslation(instance.transform.getTranslation(new Vector3()));
+        Matrix4 bodyTransform = new Matrix4(worldTransform);
+        bodyTransform.scale(1f / absScale.x, 1f / absScale.y, 1f / absScale.z);
+
+        Log.d("PhysicsDebug", "  - Final RigidBody Transform for creation:\n" + bodyTransform);
 
         btMotionState motionState = new btDefaultMotionState(bodyTransform);
         btRigidBody.btRigidBodyConstructionInfo bodyInfo =
@@ -438,7 +653,6 @@ public class ThreeDManager implements Disposable {
 
         if (mass > 0) {
             body.setAngularFactor(1f);
-
             body.setDamping(0.5f, 0.5f);
         }
 
@@ -448,6 +662,39 @@ public class ThreeDManager implements Disposable {
         body.userData = disposables;
         physicsResources.put(objectId, disposables);
         bodyInfo.dispose();
+
+        Matrix4 finalBodyTransform = body.getWorldTransform();
+        Log.d("PhysicsDebug", "  - SUCCESS: Body created. Final transform from physics world:\n" + finalBodyTransform);
+        Log.d("PhysicsDebug", "--------------------------------------------------------");
+    }
+
+    public void setPhysicsStateFromComponent(String objectId, PhysicsComponent component, Matrix4 worldTransform) {
+        ModelInstance instance = sceneObjects.get(objectId);
+        if (instance == null) return;
+
+        instance.transform.set(worldTransform);
+
+        removePhysicsBody(objectId);
+
+        float bodyMass = (component.state == PhysicsState.DYNAMIC) ? component.mass : 0f;
+
+        if (component.state == PhysicsState.NONE) return;
+
+        if (component.state == PhysicsState.MESH_STATIC) {
+            if (gltfObjectIds.contains(objectId)) {
+                createGltfMeshPhysicsBody(objectId, instance);
+            } else {
+                createMeshPhysicsBody(objectId, instance);
+            }
+            return;
+        }
+
+        if (component.colliders.isEmpty()) {
+            Gdx.app.error("3DManager", "setPhysicsStateFromComponent called with no colliders for object: " + objectId);
+            return;
+        }
+
+        createCompoundPhysicsBody(objectId, instance, component, bodyMass);
     }
 
     private final Vector3 tmpVec = new Vector3();
@@ -695,9 +942,29 @@ public class ThreeDManager implements Disposable {
         return camera.direction;
     }
 
+    public Matrix4 getWorldTransform(String objectId) {
+        ModelInstance instance = sceneObjects.get(objectId);
+        if (instance != null) {
+            return instance.transform;
+        }
+        return null;
+    }
+
+    public void setPhysicsState(String objectId, PhysicsState state, PhysicsShape shape, float mass, Matrix4 worldTransform) {
+        ModelInstance instance = sceneObjects.get(objectId);
+        if (instance == null) return;
+
+
+        instance.transform.set(worldTransform);
+
+
+        setPhysicsState(objectId, state, shape, mass);
+    }
+
     private int frameCounter = 0;
 
     public void update(float delta) {
+        if (LOG_THREED_MANAGER_DEBUG) Log.d("TDM_DEBUG", "--- ThreeDManager.update() START (Delta: " + delta + ") ---");
         if (cameraTargetId != null) {
             updateThirdPersonCamera();
         }
@@ -748,6 +1015,35 @@ public class ThreeDManager implements Disposable {
             dynamicsWorld.stepSimulation(delta, 5, 1f / 60f);
 
             for (Map.Entry<String, btRigidBody> entry : physicsBodies.entrySet()) {
+                String objectId = entry.getKey();
+                btRigidBody body = entry.getValue();
+
+
+
+                boolean isManagedBySceneManager = (Objects.requireNonNull(StageActivity.getActiveStageListener()).sceneManager != null && Objects.requireNonNull(StageActivity.getActiveStageListener()).sceneManager.findGameObject(objectId) != null);
+
+
+                if (!isManagedBySceneManager) {
+                    ModelInstance instance = sceneObjects.get(objectId);
+                    if (instance != null && !body.isStaticObject() && body.getMotionState() != null) {
+
+                        Matrix4 bodyTransform = body.getWorldTransform();
+
+                        Vector3 position = new Vector3();
+                        bodyTransform.getTranslation(position);
+
+                        Quaternion rotation = new Quaternion();
+                        bodyTransform.getRotation(rotation);
+
+                        Vector3 scale = new Vector3();
+                        instance.transform.getScale(scale);
+
+                        instance.transform.set(position, rotation, scale);
+                    }
+                }
+            }
+
+            /*for (Map.Entry<String, btRigidBody> entry : physicsBodies.entrySet()) {
                 ModelInstance instance = sceneObjects.get(entry.getKey());
                 btRigidBody body = entry.getValue();
 
@@ -764,8 +1060,146 @@ public class ThreeDManager implements Disposable {
 
                     instance.transform.set(position, rotation, scale);
                 }
+            }*/
+        }
+
+        if (!editorMode && LOG_THREED_MANAGER_DEBUG) {
+            Log.d("TDM_DEBUG", "    [Physics] After stepSimulation:");
+            for (Map.Entry<String, btRigidBody> entry : physicsBodies.entrySet()) {
+                Vector3 physBodyPos = new Vector3();
+                entry.getValue().getWorldTransform().getTranslation(physBodyPos);
+                Log.d("TDM_DEBUG", "      - '" + entry.getKey() + "' Physics Pos: " + physBodyPos);
             }
         }
+        if (!editorMode) {
+            update3DAudio();
+        }
+        if (LOG_THREED_MANAGER_DEBUG) Log.d("TDM_DEBUG", "--- ThreeDManager.update() END ---");
+    }
+
+    private void update3DAudio() {
+        if (active3DSounds.isEmpty()) {
+            return;
+        }
+
+        Vector3 listenerPos = camera.position;
+        cameraRight.set(camera.direction).crs(camera.up).nor();
+
+        Iterator<PlayableAudio> iterator = active3DSounds.iterator();
+        while (iterator.hasNext()) {
+            PlayableAudio audio = iterator.next();
+
+            if (!audio.isPlaying()) {
+                audio.dispose();
+                iterator.remove();
+                continue;
+            }
+
+            String attachedId = audio.getAttachedObjectId();
+            if (attachedId != null) {
+                ModelInstance attachedObject = sceneObjects.get(attachedId);
+                if (attachedObject != null) {
+                    audio.setPosition(attachedObject.transform.getTranslation(new Vector3()));
+                } else {
+                    audio.stop();
+                    audio.dispose();
+                    iterator.remove();
+                    continue;
+                }
+            }
+
+            float distance = listenerPos.dst(audio.getPosition());
+
+            float finalVolume;
+            float finalPan;
+
+            if (distance > MAX_HEARING_DISTANCE) {
+                finalVolume = 0;
+                finalPan = 0;
+            } else {
+                finalVolume = (1.0f - (distance / MAX_HEARING_DISTANCE)) * globalSoundVolume;
+
+                soundToListener.set(audio.getPosition()).sub(listenerPos).nor();
+                finalPan = soundToListener.dot(cameraRight);
+            }
+
+            audio.update3D(finalVolume, finalPan);
+        }
+    }
+
+    public void updateSoundPosition(String instanceName, float x, float y, float z) {
+        if (instanceName == null || instanceName.isEmpty()) return;
+
+        for (PlayableAudio audio : active3DSounds) {
+            if (instanceName.equals(audio.getInstanceName())) {
+                audio.setAttachedObjectId(null);
+                audio.setPosition(new Vector3(x, y, z));
+                break;
+            }
+        }
+    }
+
+    public boolean createSpringConstraint(String constraintId, String objectIdA, String objectIdB, Matrix4 frameInA, Matrix4 frameInB) {
+        if (physicsConstraints.containsKey(constraintId)) return false;
+        btRigidBody bodyA = physicsBodies.get(objectIdA);
+
+        btRigidBody bodyB = physicsBodies.get(objectIdB);
+        if (bodyB == null) {
+            //bodyB = btRigidBody.upcast(dynamicsWorld.getCollisionObjectArray().at(0));
+        }
+
+        if (bodyA == null) {
+            Gdx.app.error("3DManager", "Cannot create spring constraint: bodyA not found.");
+            return false;
+        }
+
+        btGeneric6DofSpringConstraint springConstraint = new btGeneric6DofSpringConstraint(bodyA, bodyB, frameInA, frameInB, true);
+        dynamicsWorld.addConstraint(springConstraint, true);
+        physicsConstraints.put(constraintId, springConstraint);
+        return true;
+    }
+
+    public boolean createHingeConstraint(String constraintId, String objectIdA, String objectIdB,
+                                         Vector3 pivotInA, Vector3 axisInA,
+                                         Vector3 pivotInB, Vector3 axisInB) {
+        if (physicsConstraints.containsKey(constraintId)) return false;
+        btRigidBody bodyA = physicsBodies.get(objectIdA);
+        btRigidBody bodyB = physicsBodies.get(objectIdB);
+
+        if (bodyA == null || bodyB == null) {
+            Gdx.app.error("3DManager", "Cannot create hinge: one or both bodies not found.");
+            return false;
+        }
+        btHingeConstraint hinge = new btHingeConstraint(bodyA, bodyB, pivotInA, pivotInB, axisInA, axisInB, true);
+        dynamicsWorld.addConstraint(hinge, true);
+        physicsConstraints.put(constraintId, hinge);
+        return true;
+    }
+
+    public void setHingeMotorTarget(String constraintId, float targetAngleDegrees, float maxMotorImpulse) {
+        btTypedConstraint constraint = physicsConstraints.get(constraintId);
+        if (constraint instanceof btHingeConstraint) {
+            btHingeConstraint hinge = (btHingeConstraint) constraint;
+            hinge.enableAngularMotor(true, 0, maxMotorImpulse);
+            hinge.setMotorTarget(targetAngleDegrees * MathUtils.degreesToRadians, 0.1f);
+        }
+    }
+
+    public void setAngularSpringProperties(String constraintId, int axisIndex, float stiffness, float damping) {
+        btTypedConstraint constraint = physicsConstraints.get(constraintId);
+        if (constraint instanceof btGeneric6DofSpringConstraint) {
+            btGeneric6DofSpringConstraint spring = (btGeneric6DofSpringConstraint) constraint;
+            int bulletAxisIndex = axisIndex + 3;
+
+            spring.enableSpring(bulletAxisIndex, true);
+            spring.setStiffness(bulletAxisIndex, stiffness);
+            spring.setDamping(bulletAxisIndex, damping);
+        }
+    }
+
+
+    public btRigidBody getPhysicsBody(String objectId) {
+        return physicsBodies.get(objectId);
     }
 
     public void setFreeCamera() {
@@ -830,6 +1264,79 @@ public class ThreeDManager implements Disposable {
 
         if (cameraPitch > 89.0f) cameraPitch = 89.0f;
         if (cameraPitch < -89.0f) cameraPitch = -89.0f;
+    }
+
+    public void playSoundAt(String instanceName, String soundName, float x, float y, float z, float volume, float pitch, boolean loop) {
+        playSoundInternal(instanceName, soundName, volume, pitch, loop, new Vector3(x, y, z), null);
+    }
+
+    public void playSoundAttached(String instanceName, String soundName, String objectId, float volume, float pitch, boolean loop) {
+        ModelInstance instance = sceneObjects.get(objectId);
+        if (instance == null) return;
+        Vector3 initialPos = instance.transform.getTranslation(new Vector3());
+        playSoundInternal(instanceName, soundName, volume, pitch, loop, initialPos, objectId);
+    }
+
+    public boolean prepareAudio(String soundName, String fileName, boolean asMusic) {
+        if (soundName == null || soundName.isEmpty() || loadedAudioAssets.containsKey(soundName)) {
+            return false;
+        }
+        try {
+            File soundFile = ProjectManager.getInstance().getCurrentProject().getFile(fileName);
+            if (soundFile != null && soundFile.exists()) {
+                FileHandle fileHandle = Gdx.files.absolute(soundFile.getAbsolutePath());
+                AudioAsset asset = new AudioAsset(fileHandle, asMusic);
+                loadedAudioAssets.put(soundName, asset);
+                return true;
+            }
+        } catch (Exception e) {
+            Gdx.app.error("ThreeDManager_Audio", "Failed to load audio: " + fileName, e);
+        }
+        return false;
+    }
+
+
+    private void playSoundInternal(String instanceName, String soundName, float volume, float pitch, boolean loop, Vector3 position, String attachedToId) {
+        if (instanceName == null || instanceName.isEmpty()) return;
+        stopSound(instanceName);
+
+        AudioAsset asset = loadedAudioAssets.get(soundName);
+        if (asset == null) return;
+
+        PlayableAudio playableAudio;
+        if (asset.music != null) {
+
+            Music newMusicInstance = Gdx.audio.newMusic(Gdx.files.absolute(asset.filePath));
+            playableAudio = new MusicWrapper(newMusicInstance, volume, pitch, loop);
+        } else {
+            playableAudio = new SoundWrapper(asset.sound, volume, pitch, loop);
+        }
+
+        playableAudio.setInstanceName(instanceName);
+        playableAudio.setPosition(position);
+        playableAudio.setAttachedObjectId(attachedToId);
+
+        playableAudio.play();
+        active3DSounds.add(playableAudio);
+    }
+
+
+    public void stopSound(String instanceName) {
+        Iterator<PlayableAudio> iterator = active3DSounds.iterator();
+        while (iterator.hasNext()) {
+            PlayableAudio audio = iterator.next();
+            if (audio.getInstanceName().equals(instanceName)) {
+                audio.stop();
+                audio.dispose();
+                iterator.remove();
+                break;
+            }
+        }
+    }
+
+
+    public void setGlobalSoundVolume(float volume) {
+        this.globalSoundVolume = Math.max(0, Math.min(1, volume));
     }
 
     public Array<String> getAnimationNames(String objectId) {
@@ -973,8 +1480,10 @@ public class ThreeDManager implements Disposable {
                     customUniforms.put("u_shadowMapSize", new Vector2(SHADOW_MAP_SIZE, SHADOW_MAP_SIZE));
                 }
 
-                for (ModelInstance instance : sceneObjects.values()) {
-                    modelBatch.render(instance, environment);
+                for (Map.Entry<String, ModelInstance> entry : sceneObjects.entrySet()) {
+                    if (!inactiveRenderObjects.contains(entry.getKey())) {
+                        modelBatch.render(entry.getValue(), environment);
+                    }
                 }
                 modelBatch.end();
             }
@@ -989,7 +1498,14 @@ public class ThreeDManager implements Disposable {
         }
     }
 
-
+    private <T, E> T getKeyByValue(Map<T, E> map, E value) {
+        for (Map.Entry<T, E> entry : map.entrySet()) {
+            if (entry.getValue().equals(value)) {
+                return entry.getKey();
+            }
+        }
+        return null;
+    }
 
     /**
      * Задает сплошной цвет для всех материалов объекта.
@@ -1557,7 +2073,7 @@ public class ThreeDManager implements Disposable {
             Gdx.app.error("PhysicsDebug", "FATAL: ModelInstance has NO nodes!");
         } else {
             Gdx.app.log("PhysicsDebug", "Model has " + instance.nodes.size + " root nodes. Starting recursion...");
-            
+
             addPartsToCompoundShapeRecursive(instance.nodes, instance.transform, compoundShape, disposables, "  ");
         }
 
@@ -1572,7 +2088,7 @@ public class ThreeDManager implements Disposable {
             return;
         }
 
-        Matrix4 bodyTransform = new Matrix4().idt(); 
+        Matrix4 bodyTransform = new Matrix4().idt();
 
         Gdx.app.log("PhysicsDebug", "RigidBody initial transform is IDENTITY because geometry is pre-transformed.");
 
@@ -1722,14 +2238,28 @@ public class ThreeDManager implements Disposable {
         Model sphereModel = loadedModels.get(SPHERE_MODEL_KEY);
 
         if (sphereModel == null) {
+            Material pbrMaterial = new Material(
+                    PBRColorAttribute.createBaseColorFactor(Color.WHITE)
+            );
+
+            final long attributes = VertexAttributes.Usage.Position |
+                    VertexAttributes.Usage.Normal |
+                    VertexAttributes.Usage.TextureCoordinates |
+                    VertexAttributes.Usage.Tangent;
+
             sphereModel = modelBuilder.createSphere(50f, 50f, 50f, 16, 16,
-                    new com.badlogic.gdx.graphics.g3d.Material(ColorAttribute.createDiffuse(com.badlogic.gdx.graphics.Color.WHITE)),
-                    com.badlogic.gdx.graphics.VertexAttributes.Usage.Position | com.badlogic.gdx.graphics.VertexAttributes.Usage.Normal | com.badlogic.gdx.graphics.VertexAttributes.Usage.TextureCoordinates);
+                    pbrMaterial,
+                    attributes);
             loadedModels.put(SPHERE_MODEL_KEY, sphereModel);
         }
 
         ModelInstance instance = new ModelInstance(sphereModel);
         sceneObjects.put(objectId, instance);
+
+        if (realisticMode && sceneManager != null) {
+            sceneManager.addScene(new net.mgsx.gltf.scene3d.scene.Scene(instance));
+        }
+
         return true;
     }
 
@@ -2039,6 +2569,7 @@ public class ThreeDManager implements Disposable {
     }
 
     public boolean removeObject(String objectId) {
+        manager.removeGameObject(manager.findGameObject(objectId));
         ModelInstance instance = sceneObjects.remove(objectId);
         if (instance != null) {
             removePhysicsBody(objectId);
@@ -2074,6 +2605,15 @@ public class ThreeDManager implements Disposable {
     }
 
     public void setPosition(String objectId, float x, float y, float z) {
+        if (manager != null && manager.findGameObject(objectId) != null) {
+
+            GameObject go = manager.findGameObject(objectId);
+            manager.setPosition(go, new Vector3(x, y, z));
+
+            return;
+        }
+
+
         ModelInstance instance = sceneObjects.get(objectId);
         if (instance == null) {
             return;
@@ -2119,6 +2659,16 @@ public class ThreeDManager implements Disposable {
             body.getMotionState().setWorldTransform(transform);
             body.activate();
         }
+    }
+
+    public Quaternion getRotationQuaternion(String objectId) {
+        ModelInstance instance = sceneObjects.get(objectId);
+        if (instance != null) {
+            Quaternion q = new Quaternion();
+            instance.transform.getRotation(q, true);
+            return q;
+        }
+        return null;
     }
 
     public void setCameraPosition(float x, float y, float z) {
@@ -2272,15 +2822,111 @@ public class ThreeDManager implements Disposable {
         Model cubeModel = loadedModels.get(CUBE_MODEL_KEY);
 
         if (cubeModel == null) {
+            Material pbrMaterial = new Material(
+                    PBRColorAttribute.createBaseColorFactor(Color.WHITE)
+            );
+
+            final long attributes = VertexAttributes.Usage.Position |
+                    VertexAttributes.Usage.Normal |
+                    VertexAttributes.Usage.TextureCoordinates |
+                    VertexAttributes.Usage.Tangent;
+
             cubeModel = modelBuilder.createBox(50f, 50f, 50f,
-                    new com.badlogic.gdx.graphics.g3d.Material(ColorAttribute.createDiffuse(com.badlogic.gdx.graphics.Color.WHITE)),
-                    com.badlogic.gdx.graphics.VertexAttributes.Usage.Position | com.badlogic.gdx.graphics.VertexAttributes.Usage.Normal | com.badlogic.gdx.graphics.VertexAttributes.Usage.TextureCoordinates);
+                    pbrMaterial,
+                    attributes);
             loadedModels.put(CUBE_MODEL_KEY, cubeModel);
         }
 
         ModelInstance instance = new ModelInstance(cubeModel);
         sceneObjects.put(objectId, instance);
+
+        if (realisticMode && sceneManager != null) {
+            sceneManager.addScene(new net.mgsx.gltf.scene3d.scene.Scene(instance));
+        }
+
         return true;
+    }
+
+    public void applyPBRMaterial(String objectId, MaterialComponent materialData) {
+        ModelInstance instance = sceneObjects.get(objectId);
+        if (instance == null || materialData == null) return;
+
+        for (Material material : instance.materials) {
+            PBRColorAttribute colorAttr = (PBRColorAttribute) material.get(PBRColorAttribute.BaseColorFactor);
+            if (colorAttr != null) {
+                colorAttr.color.set(materialData.baseColor);
+            } else {
+                material.set(PBRColorAttribute.createBaseColorFactor(materialData.baseColor));
+            }
+
+            if (materialData.baseColor.a < 1.0f) {
+                material.set(new com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute(
+                        GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA
+                ));
+            } else {
+                material.remove(com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute.Type);
+            }
+
+            applyTextureOrColor(material, materialData.baseColorTexturePath,
+                    PBRTextureAttribute.BaseColorTexture, PBRColorAttribute.BaseColorFactor, materialData.baseColor);
+
+            material.set(PBRFloatAttribute.createMetallic(materialData.metallic));
+            material.set(PBRFloatAttribute.createRoughness(materialData.roughness));
+
+            applyTexture(material, materialData.metallicRoughnessTexturePath, PBRTextureAttribute.MetallicRoughnessTexture);
+
+            applyTexture(material, materialData.normalTexturePath, PBRTextureAttribute.NormalTexture);
+
+            applyTexture(material, materialData.occlusionTexturePath, PBRTextureAttribute.OcclusionTexture);
+
+            applyTextureOrColor(material, materialData.emissiveTexturePath,
+                    PBRTextureAttribute.EmissiveTexture, PBRColorAttribute.Emissive, materialData.emissiveColor);
+        }
+    }
+
+    private void applyTextureOrColor(Material material, String texturePath, long textureType, long colorType, Color color) {
+        if (texturePath != null && !texturePath.isEmpty()) {
+            Texture texture = loadTexture(texturePath);
+            if (texture != null) {
+                material.remove(colorType);
+                material.set(new PBRTextureAttribute(textureType, texture));
+            }
+        } else {
+            material.remove(textureType);
+            material.set(new PBRColorAttribute(colorType, color));
+        }
+    }
+
+    private void applyTexture(Material material, String texturePath, long textureType) {
+        if (texturePath != null && !texturePath.isEmpty()) {
+            Texture texture = loadTexture(texturePath);
+            if (texture != null) {
+                material.set(new PBRTextureAttribute(textureType, texture));
+            }
+        } else {
+            material.remove(textureType);
+        }
+    }
+
+    private Texture loadTexture(String textureFileName) {
+        Texture texture = loadedTextures.get(textureFileName);
+        if (texture == null) {
+            try {
+                File textureFileHandle = org.catrobat.catroid.ProjectManager.getInstance().getCurrentProject().getFile(textureFileName);
+                if (textureFileHandle != null && textureFileHandle.exists()) {
+                    texture = new Texture(Gdx.files.absolute(textureFileHandle.getAbsolutePath()));
+                    texture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
+                    loadedTextures.put(textureFileName, texture);
+                } else {
+                    Gdx.app.error("3DManager", "Texture file not found in project: " + textureFileName);
+                    return null;
+                }
+            } catch (Exception e) {
+                Gdx.app.error("3DManager", "Could not load texture: " + textureFileName, e);
+                return null;
+            }
+        }
+        return texture;
     }
 
     /**
@@ -2523,6 +3169,54 @@ public class ThreeDManager implements Disposable {
         return 0; 
     }
 
+    public void setWorldTransform(String objectId, Matrix4 worldTransform) {
+        if (LOG_THREED_MANAGER_DEBUG) {
+            Vector3 receivedPos = new Vector3();
+            Quaternion receivedRot = new Quaternion();
+            worldTransform.getTranslation(receivedPos);
+            worldTransform.getRotation(receivedRot, true);
+            Log.d("TDM_DEBUG", "  >>> ThreeDManager.setWorldTransform() called for '" + objectId + "' <<<");
+            Log.d("TDM_DEBUG", "    [SetWorldTrans] Received World Pos: " + receivedPos + ", Rot: " + receivedRot);
+        }
+
+        ModelInstance instance = sceneObjects.get(objectId);
+        if (instance != null) {
+            instance.transform.set(worldTransform);
+            if (LOG_THREED_MANAGER_DEBUG) {
+                Vector3 modelPos = new Vector3();
+                instance.transform.getTranslation(modelPos);
+                Log.d("TDM_DEBUG", "    [SetWorldTrans] ModelInstance '" + objectId + "' set to Pos: " + modelPos);
+            }
+        } else {
+            if (LOG_THREED_MANAGER_DEBUG) Log.w("TDM_DEBUG", "    [SetWorldTrans] ModelInstance for '" + objectId + "' not found. Skipping model update.");
+        }
+
+        btRigidBody body = physicsBodies.get(objectId);
+        if (body != null && !editorMode) {
+            Matrix4 bodyTransform = body.getWorldTransform();
+            Vector3 position = new Vector3();
+            Quaternion rotation = new Quaternion();
+            worldTransform.getTranslation(position);
+            worldTransform.getRotation(rotation, true);
+
+            bodyTransform.set(position, rotation);
+
+            body.setWorldTransform(bodyTransform);
+            if (body.getMotionState() != null) {
+                body.getMotionState().setWorldTransform(bodyTransform);
+            }
+            body.activate();
+            if (LOG_THREED_MANAGER_DEBUG) {
+                Vector3 physicsPos = new Vector3();
+                body.getWorldTransform().getTranslation(physicsPos);
+                Log.d("TDM_DEBUG", "    [SetWorldTrans] Physics body '" + objectId + "' set to Pos: " + physicsPos);
+            }
+        } else {
+            if (LOG_THREED_MANAGER_DEBUG && body == null) Log.w("TDM_DEBUG", "    [SetWorldTrans] Physics body for '" + objectId + "' not found. Skipping physics update.");
+            else if (LOG_THREED_MANAGER_DEBUG && editorMode) Log.d("TDM_DEBUG", "    [SetWorldTrans] In editor mode, skipping physics update for '" + objectId + "'.");
+        }
+    }
+
     public void clearScene() {
         Array<String> objectIds = new Array<>();
         for (String id : sceneObjects.keySet()) {
@@ -2565,6 +3259,13 @@ public class ThreeDManager implements Disposable {
             gridInstance.model.dispose();
             gridInstance = null;
         }
+        Array<String> constraintIds = new Array<>();
+        for (String id : physicsConstraints.keySet()) {
+            constraintIds.add(id);
+        }
+        for (String id : constraintIds) {
+            removeConstraint(id);
+        }
 
 
         pointLights.clear();
@@ -2597,6 +3298,7 @@ public class ThreeDManager implements Disposable {
     @Override
     public void dispose() {
         clearScene();
+        physicsConstraints.clear();
 
         if (modelBatch != null) modelBatch.dispose();
         if (shadowBatch != null) shadowBatch.dispose();
@@ -2605,6 +3307,16 @@ public class ThreeDManager implements Disposable {
         loadedModels.clear();
         for (Texture texture : loadedTextures.values()) texture.dispose();
         loadedTextures.clear();
+
+        for (PlayableAudio audio : active3DSounds) {
+            audio.stop();
+            audio.dispose();
+        }
+        active3DSounds.clear();
+        for (AudioAsset asset : loadedAudioAssets.values()) {
+            asset.dispose();
+        }
+        loadedAudioAssets.clear();
 
         if (defaultShaderProvider != null) defaultShaderProvider.dispose();
         if (customShaderProvider != null) customShaderProvider.dispose();

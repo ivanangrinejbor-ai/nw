@@ -177,6 +177,16 @@
 
     </PreferenceCategory>
 
+    <PreferenceCategory android:title="Дополнения">
+
+        <PreferenceScreen
+            android:key="setting_plugins_screen"
+            android:title="Плагины"
+            android:summary="Управление установленными плагинами"
+            android:icon="@android:drawable/ic_menu_add" />
+
+    </PreferenceCategory>
+
     <!-- https://www.meme-arsenal.com/memes/d3d151ea76e2feed9edb2d82e14133ff.jpg -->
 
     <CheckBoxPreference

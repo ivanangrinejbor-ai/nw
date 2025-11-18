@@ -15,6 +15,7 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.SeekBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -33,9 +34,11 @@ import org.catrobat.catroid.raptor.CameraComponent;
 import org.catrobat.catroid.raptor.ColliderShapeData;
 import org.catrobat.catroid.raptor.GameObject;
 import org.catrobat.catroid.raptor.LightComponent;
+import org.catrobat.catroid.raptor.MaterialComponent;
 import org.catrobat.catroid.raptor.PhysicsComponent;
 import org.catrobat.catroid.raptor.RenderComponent;
 import org.catrobat.catroid.raptor.SceneManager;
+import org.catrobat.catroid.raptor.ScriptComponent;
 import org.catrobat.catroid.raptor.ThreeDManager;
 import org.catrobat.catroid.raptor.TransformComponent;
 
@@ -94,12 +97,19 @@ public class InspectorManager {
 
         inspectorTitle.setText(go.name);
 
-        EditText nameEditor = new EditText(activity, null, 0, R.style.InspectorEditText);
+        View headerView = inflater.inflate(R.layout.inspector_active_toggle, container, false);
+
+        CheckBox activeCheckbox = headerView.findViewById(R.id.checkbox_is_active);
+        activeCheckbox.setChecked(go.isActive);
+        activeCheckbox.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (selectedObject != null) {
+                sceneManager.setObjectActive(selectedObject, isChecked);
+                activity.updateHierarchy(); // Обновляем иерархию для "серого" вида
+            }
+        });
+
+        EditText nameEditor = headerView.findViewById(R.id.edit_object_name);
         nameEditor.setText(go.name);
-        nameEditor.setImeOptions(EditorInfo.IME_ACTION_DONE);
-        nameEditor.setSingleLine(true);
-
-
         nameEditor.setOnFocusChangeListener((v, hasFocus) -> {
             if (!hasFocus && selectedObject != null) {
                 String newName = nameEditor.getText().toString();
@@ -108,7 +118,7 @@ public class InspectorManager {
                 if (newName.equals(oldName)) return;
 
                 if (sceneManager.renameGameObject(selectedObject, newName)) {
-                    inspectorTitle.setText(newName);
+                    // Имя обновится в иерархии после этого вызова
                     activity.updateHierarchy();
                 } else {
                     Toast.makeText(activity, "Invalid or duplicate name!", Toast.LENGTH_SHORT).show();
@@ -116,7 +126,8 @@ public class InspectorManager {
                 }
             }
         });
-        container.addView(nameEditor);
+
+        container.addView(headerView);
 
         createTransformView(go);
         if (go.hasComponent(RenderComponent.class)) createRenderView(go);
@@ -124,6 +135,11 @@ public class InspectorManager {
         if (go.hasComponent(LightComponent.class)) createLightView(go);
         if (go.hasComponent(AnimationComponent.class)) createAnimationView(go);
         if (go.hasComponent(CameraComponent.class)) createCameraView(go);
+        if (go.hasComponent(MaterialComponent.class)) createMaterialView(go);
+        List<ScriptComponent> scripts = go.getComponents(ScriptComponent.class);
+        for (ScriptComponent script : scripts) {
+            createScriptView(go, script);
+        }
 
         View footerView = inflater.inflate(R.layout.inspector_footer, container, false);
         footerView.findViewById(R.id.btn_add_component).setOnClickListener(v -> showAddComponentDialog(go));
@@ -330,7 +346,7 @@ public class InspectorManager {
         alignPosBtn.setOnClickListener(v -> {
             if (threeDManager != null && selectedObject != null) {
                 Vector3 cameraPos = threeDManager.getCameraPosition();
-                sceneManager.setPosition(selectedObject, cameraPos);
+                selectedObject.transform.position.set(cameraPos);
                 populateInspector(selectedObject);
             }
         });
@@ -340,7 +356,7 @@ public class InspectorManager {
                 Quaternion cameraRot = new Quaternion();
                 threeDManager.getCamera().view.getRotation(cameraRot, true).conjugate();
 
-                sceneManager.setRotation(selectedObject, cameraRot);
+                selectedObject.transform.rotation.set(cameraRot);
                 populateInspector(selectedObject);
             }
         });
@@ -370,12 +386,67 @@ public class InspectorManager {
         TextView pathText = view.findViewById(R.id.text_model_path);
         Button selectButton = view.findViewById(R.id.btn_select_model);
 
-        pathText.setText(render.modelFileName != null ? render.modelFileName : "No model selected");;
+        String modelName = render.modelFileName != null ? render.modelFileName : "No model selected";
 
-        selectButton.setOnClickListener(v -> showModelPicker(go));
+        if (modelName.startsWith("primitive:")) {
+            String shapeName = modelName.substring("primitive:".length());
+            shapeName = shapeName.substring(0, 1).toUpperCase() + shapeName.substring(1);
+            pathText.setText("Primitive Shape (" + shapeName + ")");
+            selectButton.setVisibility(View.GONE);
+        }
+        else {
+            pathText.setText(modelName);
+            selectButton.setOnClickListener(v -> showModelPicker(go));
+        }
 
         container.addView(view);
     }
+
+    private void createMaterialView(GameObject go) {
+        addComponentHeader("Material", true, false, () -> {
+            go.components.removeIf(c -> c instanceof MaterialComponent);
+
+            if (go.hasComponent(RenderComponent.class)) {
+                threeDManager.applyPBRMaterial(go.id, new MaterialComponent());
+            }
+
+            populateInspector(go);
+        });
+        View view = inflater.inflate(R.layout.inspector_material, container, false);
+        setWhiteTextToAllChildren((ViewGroup) view);
+
+        MaterialComponent material = go.getComponent(MaterialComponent.class);
+
+
+        setupColorPicker(go, view.findViewById(R.id.btn_material_color), material.baseColor,
+                newColor -> material.baseColor.set(newColor));
+        setupTextureSlot(go, view.findViewById(R.id.slot_base_color_texture), material.baseColorTexturePath,
+                newPath -> material.baseColorTexturePath = newPath);
+
+
+        setupSlider(go, view.findViewById(R.id.slider_metallic), material.metallic,
+                newValue -> material.metallic = newValue);
+        setupSlider(go, view.findViewById(R.id.slider_roughness), material.roughness,
+                newValue -> material.roughness = newValue);
+
+
+        setupColorPicker(go, view.findViewById(R.id.btn_emissive_color), material.emissiveColor,
+                newColor -> material.emissiveColor.set(newColor));
+        setupTextureSlot(go, view.findViewById(R.id.slot_emissive_texture), material.emissiveTexturePath,
+                newPath -> material.emissiveTexturePath = newPath);
+
+
+        setupTextureSlot(go, view.findViewById(R.id.slot_normal_texture), material.normalTexturePath,
+                newPath -> material.normalTexturePath = newPath);
+        setupTextureSlot(go, view.findViewById(R.id.slot_mr_texture), material.metallicRoughnessTexturePath,
+                newPath -> material.metallicRoughnessTexturePath = newPath);
+        setupTextureSlot(go, view.findViewById(R.id.slot_occlusion_texture), material.occlusionTexturePath,
+                newPath -> material.occlusionTexturePath = newPath);
+
+        container.addView(view);
+    }
+
+
 
     private void showModelPicker(GameObject go) {
         File projectFilesDir = ProjectManager.getInstance().getCurrentProject().getFilesDir();
@@ -459,14 +530,14 @@ public class InspectorManager {
             sceneManager.setPhysicsComponent(go, physics);
             populateInspector(go);
         });
-        view.findViewById(R.id.btn_add_sphere_collider).setOnClickListener(v -> {
+        /*view.findViewById(R.id.btn_add_sphere_collider).setOnClickListener(v -> {
             ColliderShapeData newCollider = new ColliderShapeData();
             newCollider.type = ColliderShapeData.ShapeType.SPHERE;
             newCollider.radius = 0.5f;
             physics.colliders.add(newCollider);
             sceneManager.setPhysicsComponent(go, physics);
             populateInspector(go);
-        });
+        });*/
         view.findViewById(R.id.btn_add_capsule_collider).setOnClickListener(v -> {
             ColliderShapeData newCollider = new ColliderShapeData();
             newCollider.type = ColliderShapeData.ShapeType.CAPSULE;
@@ -554,27 +625,27 @@ public class InspectorManager {
             populateInspector(go);
         });
         title.setText(collider.type.toString() + " Collider");
-        cx.setText(String.format(Locale.US, "%.2f", collider.centerOffset.x));
-        cy.setText(String.format(Locale.US, "%.2f", collider.centerOffset.y));
-        cz.setText(String.format(Locale.US, "%.2f", collider.centerOffset.z));
+        cx.setText(String.format(Locale.US, "%.3f", collider.centerOffset.x));
+        cy.setText(String.format(Locale.US, "%.3f", collider.centerOffset.y));
+        cz.setText(String.format(Locale.US, "%.3f", collider.centerOffset.z));
 
         if (collider.type == ColliderShapeData.ShapeType.BOX) {
             sizeLayout.setVisibility(View.VISIBLE);
             radiusLayout.setVisibility(View.GONE);
-            sx.setVisibility(View.VISIBLE); sx.setText(String.format(Locale.US, "%.2f", collider.size.x));
-            sy.setVisibility(View.VISIBLE); sy.setText(String.format(Locale.US, "%.2f", collider.size.y));
-            sz.setVisibility(View.VISIBLE); sz.setText(String.format(Locale.US, "%.2f", collider.size.z));
+            sx.setVisibility(View.VISIBLE); sx.setText(String.format(Locale.US, "%.3f", collider.size.x));
+            sy.setVisibility(View.VISIBLE); sy.setText(String.format(Locale.US, "%.3f", collider.size.y));
+            sz.setVisibility(View.VISIBLE); sz.setText(String.format(Locale.US, "%.3f", collider.size.z));
             labelSx.setVisibility(View.VISIBLE);
             labelSz.setVisibility(View.VISIBLE);
         } else if (collider.type == ColliderShapeData.ShapeType.SPHERE) {
             sizeLayout.setVisibility(View.GONE);
             radiusLayout.setVisibility(View.VISIBLE);
-            radiusEditor.setText(String.format(Locale.US, "%.2f", collider.radius));
+            radiusEditor.setText(String.format(Locale.US, "%.3", collider.radius));
         } else {
             sizeLayout.setVisibility(View.VISIBLE);
             radiusLayout.setVisibility(View.VISIBLE);
-            radiusEditor.setText(String.format(Locale.US, "%.2f", collider.radius));
-            sy.setText(String.format(Locale.US, "%.2f", collider.size.y));
+            radiusEditor.setText(String.format(Locale.US, "%.3f", collider.radius));
+            sy.setText(String.format(Locale.US, "%.3f", collider.size.y));
             sx.setVisibility(View.GONE);
             sz.setVisibility(View.GONE);
             labelSx.setVisibility(View.GONE);
@@ -707,8 +778,59 @@ public class InspectorManager {
         container.addView(view);
     }
 
+    private void createScriptView(GameObject go, ScriptComponent scriptComp) {
+        addComponentHeader("Script Component", true, false, () -> {
+            go.components.remove(scriptComp);
+            populateInspector(go);
+        });
+
+        View view = inflater.inflate(R.layout.inspector_script, container, false);
+        setWhiteTextToAllChildren((ViewGroup) view);
+
+        TextView pathText = view.findViewById(R.id.text_script_path);
+        Button selectButton = view.findViewById(R.id.btn_select_script);
+
+        if (scriptComp.scriptPath != null && !scriptComp.scriptPath.isEmpty()) {
+            pathText.setText(scriptComp.scriptPath);
+        } else {
+            pathText.setText("None (Select a script)");
+        }
+
+        selectButton.setOnClickListener(v -> showScriptPicker(scriptComp));
+
+        container.addView(view);
+    }
+
+    private void showScriptPicker(ScriptComponent scriptComp) {
+        File projectFilesDir = ProjectManager.getInstance().getCurrentProject().getFilesDir();
+        if (!projectFilesDir.exists()) {
+            projectFilesDir.mkdirs();
+        }
+
+        File[] allFiles = projectFilesDir.listFiles((dir, name) -> name.toLowerCase().endsWith(".kts"));
+
+        if (allFiles == null || allFiles.length == 0) {
+            Toast.makeText(activity, "No script files (.kts) found in 'scripts' folder.", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        String[] scriptNames = new String[allFiles.length];
+        for (int i = 0; i < allFiles.length; i++) {
+            scriptNames[i] = allFiles[i].getName();
+        }
+
+        new AlertDialog.Builder(activity)
+                .setTitle("Select a Script")
+                .setItems(scriptNames, (dialog, which) -> {
+                    String selectedScriptPath = scriptNames[which];
+                    scriptComp.scriptPath = selectedScriptPath;
+                    populateInspector(selectedObject);
+                })
+                .show();
+    }
+
     private void showAddComponentDialog(GameObject go) {
-        String[] components = {"Render", "Physics", "Light", "Animation", "Camera"};
+        String[] components = {"Render", "Physics", "Light", "Animation", "Camera", "Material"};
         new AlertDialog.Builder(activity)
                 .setTitle("Add Component")
                 .setItems(components, (dialog, which) -> {
@@ -736,6 +858,11 @@ public class InspectorManager {
                         case 4:
                             if (!go.hasComponent(CameraComponent.class)) {
                                 sceneManager.setCameraComponent(go, new CameraComponent());
+                            }
+                            break;
+                        case 5:
+                            if (!go.hasComponent(MaterialComponent.class)) {
+                                sceneManager.setMaterialComponent(go, new MaterialComponent());
                             }
                             break;
                     }
@@ -821,9 +948,9 @@ public class InspectorManager {
     }
 
     private void updateVector3Fields(View parent, int xId, int yId, int zId, Vector3 vec) {
-        ((EditText)parent.findViewById(xId)).setText(String.format(Locale.US, "%.2f", vec.x));
-        ((EditText)parent.findViewById(yId)).setText(String.format(Locale.US, "%.2f", vec.y));
-        ((EditText)parent.findViewById(zId)).setText(String.format(Locale.US, "%.2f", vec.z));
+        ((EditText)parent.findViewById(xId)).setText(String.format(Locale.US, "%.3f", vec.x));
+        ((EditText)parent.findViewById(yId)).setText(String.format(Locale.US, "%.3f", vec.y));
+        ((EditText)parent.findViewById(zId)).setText(String.format(Locale.US, "%.3f", vec.z));
     }
 
     private void updateEulerFields(View parent, int pId, int yId, int rId, Quaternion q) {
@@ -848,5 +975,115 @@ public class InspectorManager {
         @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
         @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
         @Override public void afterTextChanged(Editable s) { action.run(); }
+    }
+
+    private interface FloatConsumer { void accept(float value); }
+    private interface StringConsumer { void accept(String value); }
+    private interface ColorConsumer { void accept(com.badlogic.gdx.graphics.Color value); }
+
+    private void setupSlider(GameObject go, View sliderLayout, float initialValue, FloatConsumer onUpdate) {
+        SeekBar seekBar = sliderLayout.findViewById(R.id.seekbar);
+        TextView valueText = sliderLayout.findViewById(R.id.text_value);
+
+        seekBar.setProgress((int)(initialValue * 100));
+        valueText.setText(String.format(Locale.US, "%.2f", initialValue));
+
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if (fromUser) {
+                    valueText.setText(String.format(Locale.US, "%.2f", progress / 100f));
+                }
+            }
+            @Override public void onStartTrackingTouch(SeekBar seekBar) {}
+            @Override public void onStopTrackingTouch(SeekBar seekBar) {
+                float newValue = seekBar.getProgress() / 100f;
+                onUpdate.accept(newValue);
+                sceneManager.setMaterialComponent(go, go.getComponent(MaterialComponent.class));
+            }
+        });
+    }
+
+    private void setupColorPicker(GameObject go, Button colorButton, com.badlogic.gdx.graphics.Color initialColor, ColorConsumer onUpdate) {
+        colorButton.setBackgroundColor(libGdxColorToAndroidColor(initialColor));
+
+        colorButton.setOnClickListener(v -> {
+            ColorPickerDialogBuilder
+                    .with(activity)
+                    .setTitle("Choose Color")
+                    .initialColor(libGdxColorToAndroidColor(initialColor))
+                    .wheelType(ColorPickerView.WHEEL_TYPE.FLOWER)
+                    .density(12)
+                    .setPositiveButton("OK", (dialog, selectedColor, allColors) -> {
+                        colorButton.setBackgroundColor(selectedColor);
+
+                        int r = android.graphics.Color.red(selectedColor);
+                        int g = android.graphics.Color.green(selectedColor);
+                        int b = android.graphics.Color.blue(selectedColor);
+                        int a = android.graphics.Color.alpha(selectedColor);
+
+                        com.badlogic.gdx.graphics.Color newGdxColor = new com.badlogic.gdx.graphics.Color(
+                                r / 255f, g / 255f, b / 255f, a / 255f
+                        );
+
+                        onUpdate.accept(newGdxColor);
+                        sceneManager.setMaterialComponent(go, go.getComponent(MaterialComponent.class));
+                    })
+                    .setNegativeButton("Cancel", null)
+                    .build()
+                    .show();
+        });
+    }
+
+    private void setupTextureSlot(GameObject go, View textureSlotLayout, String currentPath, StringConsumer onUpdate) {
+        TextView pathText = textureSlotLayout.findViewById(R.id.text_texture_path);
+        Button selectButton = textureSlotLayout.findViewById(R.id.btn_select_texture);
+        ImageButton clearButton = textureSlotLayout.findViewById(R.id.btn_clear_texture);
+
+        if (currentPath != null && !currentPath.isEmpty()) {
+            pathText.setText(currentPath);
+            clearButton.setVisibility(View.VISIBLE);
+        } else {
+            pathText.setText("None");
+            clearButton.setVisibility(View.GONE);
+        }
+
+        selectButton.setOnClickListener(v -> showTexturePicker(fileName -> {
+            onUpdate.accept(fileName);
+            sceneManager.setMaterialComponent(go, go.getComponent(MaterialComponent.class));
+            populateInspector(go);
+        }));
+
+        clearButton.setOnClickListener(v -> {
+            onUpdate.accept(null);
+            sceneManager.setMaterialComponent(go, go.getComponent(MaterialComponent.class));
+            populateInspector(go);
+        });
+    }
+
+    private void showTexturePicker(StringConsumer onTextureSelected) {
+        File projectFilesDir = ProjectManager.getInstance().getCurrentProject().getFilesDir();
+        File[] allFiles = projectFilesDir.listFiles();
+        if (allFiles == null) return;
+
+        final List<String> textureFiles = new ArrayList<>();
+        for (File file : allFiles) {
+            String name = file.getName().toLowerCase();
+            if (name.endsWith(".png") || name.endsWith(".jpg") || name.endsWith(".jpeg")) {
+                textureFiles.add(file.getName());
+            }
+        }
+
+        if (textureFiles.isEmpty()) {
+            Toast.makeText(activity, "No image files (.png, .jpg) found in project.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        new AlertDialog.Builder(activity)
+                .setTitle("Select Texture")
+                .setItems(textureFiles.toArray(new String[0]), (dialog, which) -> {
+                    onTextureSelected.accept(textureFiles.get(which));
+                })
+                .show();
     }
 }
