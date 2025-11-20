@@ -241,6 +241,11 @@ public class ThreeDManager implements Disposable {
 
     private SceneSettings currentSettings;
 
+    private final Vector3 tmpPos = new Vector3();
+    private final Quaternion tmpRot = new Quaternion();
+    private final Vector3 tmpScale = new Vector3();
+    private final Vector3 tmpPos2 = new Vector3();
+
     public static class SceneSettings {
         public int numPointLights = 5;
         public int numSpotLights = 2;
@@ -1025,20 +1030,16 @@ public class ThreeDManager implements Disposable {
 
                 if (!isManagedBySceneManager) {
                     ModelInstance instance = sceneObjects.get(objectId);
-                    if (instance != null && !body.isStaticObject() && body.getMotionState() != null) {
+                    if (instance != null && !body.isStaticObject() && body.isActive()) {
 
                         Matrix4 bodyTransform = body.getWorldTransform();
 
-                        Vector3 position = new Vector3();
-                        bodyTransform.getTranslation(position);
+                        bodyTransform.getTranslation(tmpPos);
+                        bodyTransform.getRotation(tmpRot, true);
 
-                        Quaternion rotation = new Quaternion();
-                        bodyTransform.getRotation(rotation);
+                        instance.transform.getScale(tmpScale);
 
-                        Vector3 scale = new Vector3();
-                        instance.transform.getScale(scale);
-
-                        instance.transform.set(position, rotation, scale);
+                        instance.transform.set(tmpPos, tmpRot, tmpScale);
                     }
                 }
             }
@@ -1099,7 +1100,8 @@ public class ThreeDManager implements Disposable {
             if (attachedId != null) {
                 ModelInstance attachedObject = sceneObjects.get(attachedId);
                 if (attachedObject != null) {
-                    audio.setPosition(attachedObject.transform.getTranslation(new Vector3()));
+                    attachedObject.transform.getTranslation(tmpPos);
+                    audio.setPosition(tmpPos);
                 } else {
                     audio.stop();
                     audio.dispose();
@@ -1630,14 +1632,18 @@ public class ThreeDManager implements Disposable {
      * @param direction Нормализованный вектор направления луча.
      */
     public void castRay(String rayName, Vector3 from, Vector3 direction) {
-        Vector3 to = new Vector3(from).add(direction.scl(camera.far));
+        tmpPos.set(from).add(direction.x * camera.far, direction.y * camera.far, direction.z * camera.far);
 
         com.badlogic.gdx.physics.bullet.collision.ClosestRayResultCallback callback =
-                new com.badlogic.gdx.physics.bullet.collision.ClosestRayResultCallback(from, to);
+                new com.badlogic.gdx.physics.bullet.collision.ClosestRayResultCallback(from, tmpPos);
 
-        dynamicsWorld.rayTest(from, to, callback);
+        dynamicsWorld.rayTest(from, tmpPos, callback);
 
-        RayCastResult result = new RayCastResult();
+        RayCastResult result = rayCastResults.get(rayName);
+        if (result == null) {
+            result = new RayCastResult();
+            rayCastResults.put(rayName, result);
+        }
         if (callback.hasHit()) {
             result.hasHit = true;
 

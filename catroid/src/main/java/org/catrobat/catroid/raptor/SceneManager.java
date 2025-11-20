@@ -82,50 +82,37 @@ public class SceneManager {
     }
 
     private void synchronizeTransformsFromEngine() {
-        Matrix4 parentWorldInverse = new Matrix4();
-        Matrix4 childWorldTransform = new Matrix4();
-
-
         for (GameObject go : gameObjects.values()) {
-
-
             btRigidBody body = engine.getPhysicsBody(go.id);
-
-
-
 
             if (body == null || body.isStaticObject()) {
                 continue;
             }
 
-
-
             Matrix4 bodyTransform = body.getWorldTransform();
-            Vector3 engineWorldPos = bodyTransform.getTranslation(new Vector3());
-            Quaternion engineWorldRot = bodyTransform.getRotation(new Quaternion(), true);
 
-
+            bodyTransform.getTranslation(tmpPos);
+            bodyTransform.getRotation(tmpRot, true);
 
             if (go.parentId == null) {
-
-                go.transform.position.set(engineWorldPos);
-                go.transform.rotation.set(engineWorldRot);
+                go.transform.position.set(tmpPos);
+                go.transform.rotation.set(tmpRot);
             } else {
-
                 GameObject parent = findGameObject(go.parentId);
                 if (parent != null) {
-
                     if (Math.abs(parent.transform.worldTransform.det()) < 0.000001f) {
                         continue;
                     }
 
-                    parentWorldInverse.set(parent.transform.worldTransform).inv();
-                    childWorldTransform.set(engineWorldPos, engineWorldRot, go.transform.scale);
-                    Matrix4 newLocalTransform = parentWorldInverse.mul(childWorldTransform);
+                    tmpMat1.set(parent.transform.worldTransform).inv();
+                    tmpMat2.set(tmpPos, tmpRot, go.transform.scale);
 
-                    newLocalTransform.getTranslation(go.transform.position);
-                    newLocalTransform.getRotation(go.transform.rotation, true);
-                    newLocalTransform.getScale(go.transform.scale);
+                    // tmpMat3 = parentInverse * childWorld
+                    tmpMat3.set(tmpMat1).mul(tmpMat2);
+
+                    tmpMat3.getTranslation(go.transform.position);
+                    tmpMat3.getRotation(go.transform.rotation, true);
+                    // tmpMat3.getScale(go.transform.scale);
                 }
             }
         }
@@ -1328,24 +1315,26 @@ public class SceneManager {
             return;
         }
 
+        go.transform.worldTransform.getTranslation(tmpPos);
+        go.transform.worldTransform.getRotation(tmpRot, true);
 
-        Vector3 pos = go.transform.worldTransform.getTranslation(new Vector3());
-        Quaternion rot = go.transform.worldTransform.getRotation(new Quaternion(), true);
         float r = light.color.r, g = light.color.g, b = light.color.b;
 
         switch (light.type) {
             case SPOT:
-                Vector3 spotDir = new Vector3(0, 0, -1);
-                rot.transform(spotDir);
-                engine.setSpotLight(go.id, pos.x, pos.y, pos.z, spotDir.x, spotDir.y, spotDir.z,
+                Vector3 spotDir = tmpScale;
+                spotDir.set(0, 0, -1);
+                tmpRot.transform(spotDir);
+                engine.setSpotLight(go.id, tmpPos.x, tmpPos.y, tmpPos.z, spotDir.x, spotDir.y, spotDir.z,
                         r, g, b, light.intensity, light.cutoffAngle, light.exponent, light.range);
                 break;
             case POINT:
-                engine.setPointLight(go.id, pos.x, pos.y, pos.z, r, g, b, light.intensity, light.range);
+                engine.setPointLight(go.id, tmpPos.x, tmpPos.y, tmpPos.z, r, g, b, light.intensity, light.range);
                 break;
             case DIRECTIONAL:
-                Vector3 sunDir = new Vector3(0, 0, -1);
-                rot.transform(sunDir);
+                Vector3 sunDir = tmpScale;
+                sunDir.set(0, 0, -1);
+                tmpRot.transform(sunDir);
                 engine.setRealisticSunLight(sunDir.x, sunDir.y, sunDir.z, light.intensity);
                 engine.setSunLightColor(r, g, b);
                 light.direction.set(sunDir);
