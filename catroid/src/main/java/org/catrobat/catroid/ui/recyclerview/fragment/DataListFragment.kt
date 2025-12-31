@@ -473,7 +473,7 @@ class DataListFragment : Fragment(),
             .setPositiveButton(getString(R.string.save)) { _: DialogInterface?, textInput: String? ->
                 editItem(item, textInput)
             }
-        builder.setTitle("Edit " + item.name)
+        builder.setTitle(getString(R.string.edit) + " '" + item.name + "'")
             .setNegativeButton(R.string.cancel, null)
             .show()
     }

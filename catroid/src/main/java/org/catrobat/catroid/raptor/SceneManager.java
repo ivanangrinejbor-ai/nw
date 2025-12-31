@@ -35,11 +35,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Высокоуровневый менеджер сцены. Оперирует GameObject'ами и Компонентами,
- * делегируя всю низкоуровневую работу классу ThreeDManager.
- * Это основная точка взаимодействия для редактора и системы загрузки сцен.
- */
+
 public class SceneManager {
 
     public final ThreeDManager engine;
@@ -58,6 +54,9 @@ public class SceneManager {
     private final Matrix4 tmpMat1 = new Matrix4();
     private final Matrix4 tmpMat2 = new Matrix4();
     private final Matrix4 tmpMat3 = new Matrix4();
+
+    public String skyboxPath;
+    private FogComponent cachedFogComponent = null;
 
     public void setEditorMode(boolean isEditor) {
         this.isEditorMode = isEditor;
@@ -123,7 +122,6 @@ public class SceneManager {
             synchronizeTransformsFromEngine();
         }
 
-
         updateWorldTransforms();
 
 
@@ -141,6 +139,11 @@ public class SceneManager {
             engine.setCameraPosition(worldPos.x, worldPos.y, worldPos.z);
             engine.setCameraRotation(worldRot);
         }
+    }
+
+    public void clearFogCache() {
+        this.cachedFogComponent = null;
+        engine.setFog(null);
     }
 
     public void updateWorldTransforms() {
@@ -198,43 +201,12 @@ public class SceneManager {
             return;
         }
 
-
-
         engine.setWorldTransform(go.id, go.transform.worldTransform);
-    }
 
-    /*public void enterPlayMode() {
-        this.isPlaying = true;
-        for (GameObject go : gameObjects.values()) {
-            List<ScriptComponent> scriptComponents = go.getComponents(ScriptComponent.class);
-            for (ScriptComponent scriptComp : scriptComponents) {
-                initializeScript(go, scriptComp);
-            }
+        if (go.hasComponent(ParticleComponent.class)) {
+            engine.updateParticleTransform(go.id, go.transform.worldTransform);
         }
     }
-
-    public void exitPlayMode() {
-        this.isPlaying = false;
-        for (GameObject go : gameObjects.values()) {
-            go.getComponents(ScriptComponent.class).forEach(sc -> sc.scriptInstance = null);
-        }
-    }
-
-    private void initializeScript(GameObject go, ScriptComponent scriptComp) {
-        if (scriptComp.scriptPath != null && !scriptComp.scriptPath.isEmpty()) {
-            GameScript instance = ScriptLoader.INSTANCE.loadScript(scriptComp.scriptPath);
-            if (instance != null) {
-                scriptComp.scriptInstance = instance;
-                instance.setGameObject(go);
-                instance.setSceneManager(this);
-                try {
-                    instance.onInit();
-                } catch (Exception e) {
-                    Log.e("SceneManager", "Error in onInit() for script: " + scriptComp.scriptPath, e);
-                }
-            }
-        }
-    }*/
 
     public void setPosition(GameObject go, Vector3 position) {
         go.transform.position.set(position);
@@ -248,11 +220,7 @@ public class SceneManager {
         go.transform.scale.set(scale);
     }
 
-    /**
-     * Полностью очищает текущую сцену и загружает новую из файла.
-     * Предназначен для использования из игрового движка.
-     * @param fileHandle Файл сцены .rscene для загрузки.
-     */
+
     public void loadAndReplaceScene(FileHandle fileHandle) {
         Gdx.app.postRunnable(() -> {
             clearScene_internal();
@@ -280,6 +248,10 @@ public class SceneManager {
             }
 
             findAndSetMainCamera();
+
+            Gdx.app.log("SceneManager", "Applying loaded skybox: " + this.skyboxPath);
+            this.skyboxPath = sceneData.skyboxPath;
+            setSkybox(this.skyboxPath);
         });
     }
 
@@ -349,11 +321,7 @@ public class SceneManager {
     }
 
 
-    /**
-     * Создает новый пустой GameObject в сцене.
-     * @param baseName Имя объекта для отображения в иерархии.
-     * @return Созданный GameObject.
-     */
+
     public GameObject createGameObject(String baseName) {
         String finalName = baseName;
         int counter = 1;
@@ -368,12 +336,7 @@ public class SceneManager {
         return go;
     }
 
-    /**
-     * Безопасно переименовывает GameObject, обновляя его ID и все ссылки в движке.
-     * @param go Объект для переименования.
-     * @param newName Новое уникальное имя.
-     * @return true, если переименование успешно.
-     */
+
     public boolean renameGameObject(GameObject go, String newName) {
         if (go == null || newName == null || newName.isEmpty() || gameObjects.containsKey(newName)) {
             return false;
@@ -411,11 +374,7 @@ public class SceneManager {
         return true;
     }
 
-    /**
-     * Создает и возвращает точную копию существующего GameObject.
-     * @param original Объект для дублирования.
-     * @return Новый, добавленный в сцену GameObject, или null в случае ошибки.
-     */
+
     public GameObject duplicateGameObject(GameObject original) {
         if (original == null) return null;
 
@@ -505,86 +464,57 @@ public class SceneManager {
         return copy;
     }
 
-    /**
-     * Находит ближайший объект, пересекаемый лучом,
-     * используя геометрический тест (Bounding Box), а не физический.
-     * Идеально подходит для выбора объектов в редакторе.
-     * @param ray Луч, выпущенный из камеры.
-     * @return Найденный GameObject или null.
-     */
-    public GameObject getObjectByRaycast(Ray ray) {
-        List<GameObject> candidates = new ArrayList<>();
-        Vector3 intersectionPoint = new Vector3();
 
+    private final Matrix4 tmpMatInv = new Matrix4();
+    private final Ray tmpRayLocal = new Ray();
+    private final Vector3 tmpIntersectionLocal = new Vector3();
+    private final Vector3 tmpIntersectionWorld = new Vector3();
+    private final BoundingBox tmpBounds = new BoundingBox();
+
+    public GameObject getObjectByRaycast(Ray ray) {
+        GameObject bestCandidate = null;
+        float closestDistance = Float.MAX_VALUE;
 
         for (GameObject go : gameObjects.values()) {
-            if (!go.hasComponent(RenderComponent.class)) continue;
+            if (!go.isActive) continue;
+
             ModelInstance instance = engine.getModelInstance(go.id);
-            if (instance == null) continue;
-
-            instance.calculateBoundingBox(tempBoundingBox).mul(instance.transform);
-            if (Intersector.intersectRayBounds(ray, tempBoundingBox, intersectionPoint)) {
-                candidates.add(go);
-            }
-        }
-
-
-        for (Map.Entry<String, ModelInstance> entry : engine.getEditorProxies().entrySet()) {
-            String ownerId = entry.getKey();
-            ModelInstance proxyInstance = entry.getValue();
-            GameObject owner = findGameObject(ownerId);
-            if (owner == null) continue;
-
-            proxyInstance.transform.set(owner.transform.position, owner.transform.rotation);
-            proxyInstance.calculateBoundingBox(tempBoundingBox).mul(proxyInstance.transform);
-
-            if (Intersector.intersectRayBounds(ray, tempBoundingBox, intersectionPoint)) {
-                candidates.add(owner);
-            }
-        }
-
-
-        if (candidates.isEmpty()) {
-            return null;
-        }
-
-
-        if (candidates.size() == 1) {
-            return candidates.get(0);
-        }
-
-
-        GameObject bestCandidate = null;
-        float smallestVolume = Float.MAX_VALUE;
-
-        for (GameObject candidate : candidates) {
-            ModelInstance instance = engine.getModelInstance(candidate.id);
-
             if (instance == null) {
-                if (candidate.hasComponent(LightComponent.class) || candidate.hasComponent(CameraComponent.class)) {
-                    instance = engine.getEditorProxies().get(candidate.id);
+                if (go.hasComponent(LightComponent.class) || go.hasComponent(CameraComponent.class) || go.hasComponent(ParticleComponent.class)) {
+                    instance = engine.getEditorProxies().get(go.id);
                 }
             }
+
             if (instance == null) continue;
 
-            instance.calculateBoundingBox(tempBoundingBox);
-            float volume = tempBoundingBox.getWidth() * tempBoundingBox.getHeight() * tempBoundingBox.getDepth();
+            float dist = checkRayIntersection(ray, instance);
 
-            if (volume < smallestVolume) {
-                smallestVolume = volume;
-                bestCandidate = candidate;
+            if (dist >= 0 && dist < closestDistance) {
+                closestDistance = dist;
+                bestCandidate = go;
             }
         }
 
         return bestCandidate;
     }
 
-    /**
-     * Безопасно применяет относительный поворот к объекту, избегая проблем
-     * с неравномерным масштабированием.
-     * @param go Объект для вращения.
-     * @param deltaRotation Кватернион, представляющий поворот, который нужно добавить.
-     */
+    private float checkRayIntersection(Ray ray, ModelInstance instance) {
+        instance.calculateBoundingBox(tmpBounds);
+
+        tmpMatInv.set(instance.transform).inv();
+
+        tmpRayLocal.set(ray).mul(tmpMatInv);
+
+        if (Intersector.intersectRayBounds(tmpRayLocal, tmpBounds, tmpIntersectionLocal)) {
+            tmpIntersectionWorld.set(tmpIntersectionLocal).mul(instance.transform);
+
+            return ray.origin.dst(tmpIntersectionWorld);
+        }
+
+        return -1f;
+    }
+
+
     public void rotate(GameObject go, Quaternion deltaRotation) {
         if (go == null) return;
 
@@ -604,10 +534,7 @@ public class SceneManager {
         applyLightAndTransform(go);
     }
 
-    /**
-     * Собирает текущее состояние сцены в объект SceneData.
-     * @return объект SceneData, готовый к кэшированию или сохранению.
-     */
+
     public SceneData getCurrentSceneData() {
         SceneData sceneData = new SceneData();
         for (GameObject go : gameObjects.values()) {
@@ -616,13 +543,12 @@ public class SceneManager {
         sceneData.skyR = this.skyR;
         sceneData.skyG = this.skyG;
         sceneData.skyB = this.skyB;
+        sceneData.skyboxPath = this.skyboxPath;
         sceneData.ambientIntensity = this.ambientIntensity;
         return sceneData;
     }
 
-    /**
-     * Загружает сцену из объекта SceneData. Используется для восстановления из кэша.
-     */
+
     public void loadSceneFromData(SceneData sceneData) {
         if (sceneData == null) return;
 
@@ -640,6 +566,27 @@ public class SceneManager {
         findAndSetMainCamera();
 
         Gdx.app.log("SceneManager", "Scene loaded from cache.");
+
+        Gdx.app.log("SceneManager", "Applying loaded skybox: " + this.skyboxPath);
+        this.skyboxPath = sceneData.skyboxPath;
+        setSkybox(this.skyboxPath);
+    }
+
+    public void setSkybox(String texturePath) {
+        this.skyboxPath = texturePath;
+        Gdx.app.postRunnable(() -> {
+            if (texturePath != null && !texturePath.isEmpty()) {
+                File textureFile = ProjectManager.getInstance().getCurrentProject().getFile(texturePath);
+                if (textureFile != null && textureFile.exists()) {
+                    engine.setSkybox(textureFile.getAbsolutePath());
+                } else {
+                    Gdx.app.error("SceneManager", "Skybox texture not found, clearing: " + texturePath);
+                    engine.setSkybox(null);
+                }
+            } else {
+                engine.setSkybox(null);
+            }
+        });
     }
 
     public void removeGameObject(GameObject go) {
@@ -663,6 +610,11 @@ public class SceneManager {
             engine.removePBRLight(go.id);
             engine.removeEditorProxy(go.id);
         }
+
+        if (go.hasComponent(ParticleComponent.class)) {
+            engine.removeParticleEffect(go.id);
+            engine.removeEditorProxy(go.id);
+        }
     }
 
     public GameObject findGameObject(String id) {
@@ -675,37 +627,21 @@ public class SceneManager {
 
 
 
-    /**
-     * Добавляет или обновляет RenderComponent, создавая видимую 3D-модель.
-     */
+
     public void setRenderComponent(GameObject go, String modelFileName) {
         Gdx.app.postRunnable(() -> {
-            File modelFile = ProjectManager.getInstance().getCurrentProject().getFile(modelFileName);
-            if (modelFile == null || !modelFile.exists()) {
-                Gdx.app.error("SceneManager", "Model file not found in project: " + modelFileName);
-            }
-            String absolutePath = modelFile.getAbsolutePath();
-
-            if (go.hasComponent(RenderComponent.class)) {
-                engine.removeObject(go.id);
-            }
             RenderComponent render = go.getComponent(RenderComponent.class);
-
             if (render == null) {
                 render = new RenderComponent();
                 go.addComponent(render);
             }
             render.modelFileName = modelFileName;
 
-            boolean success = engine.createObject(go.id, absolutePath);
-            if (!success) { return; }
-
-            applyTransform(go);
-
-            if (go.hasComponent(PhysicsComponent.class)) {
-                PhysicsComponent physics = go.getComponent(PhysicsComponent.class);
-                setPhysicsComponent(go, physics.state, physics.shape, physics.mass);
+            if (engine.objectExists(go.id)) {
+                engine.removeObject(go.id);
             }
+
+            rebuildGameObject_internal(go);
         });
     }
 
@@ -722,17 +658,7 @@ public class SceneManager {
     }
 
 
-    /**
-     * Устанавливает простое физическое состояние объекта.
-     * ЭТОТ МЕТОД ПРЕДНАЗНАЧЕН ДЛЯ ОБРАТНОЙ СОВМЕСТИМОСТИ С БЛОКАМИ.
-     * Он полностью перезаписывает любые сложные настройки коллайдеров,
-     * заменяя их одним примитивом (Box, Sphere, Capsule).
-     *
-     * @param go    GameObject для изменения.
-     * @param state Тип физического тела (Static, Dynamic и т.д.).
-     * @param shape Форма единственного коллайдера.
-     * @param mass  Масса (используется только для Dynamic).
-     */
+
     public void setPhysicsComponent(GameObject go, ThreeDManager.PhysicsState state, ThreeDManager.PhysicsShape shape, float mass) {
         Gdx.app.postRunnable(() -> {
             PhysicsComponent physics = go.getComponent(PhysicsComponent.class);
@@ -773,13 +699,7 @@ public class SceneManager {
         });
     }
 
-    /**
-     * Обновляет физическое состояние объекта, используя данные напрямую из компонента.
-     * Предназначен для использования из редактора, где компонент уже содержит
-     * все нужные данные (включая список коллайдеров).
-     * @param go        GameObject для обновления.
-     * @param component Полностью настроенный PhysicsComponent.
-     */
+
     public void setPhysicsComponent(GameObject go, PhysicsComponent component) {
         Gdx.app.postRunnable(() -> {
             go.components.removeIf(c -> c instanceof PhysicsComponent);
@@ -797,9 +717,7 @@ public class SceneManager {
         });
     }
 
-    /**
-     * Добавляет или обновляет LightComponent.
-     */
+
     public void setLightComponent(GameObject go, LightComponent lightData) {
         Gdx.app.postRunnable(() -> {
             boolean wasLightBefore = go.hasComponent(LightComponent.class);
@@ -842,20 +760,7 @@ public class SceneManager {
 
 
 
-    /*public void setPosition(GameObject go, Vector3 position) {
-        go.transform.position.set(position);
-        applyLightAndTransform(go);
-    }
 
-    public void setRotation(GameObject go, Quaternion rotation) {
-        go.transform.rotation.set(rotation);
-        applyLightAndTransform(go);
-    }
-
-    public void setScale(GameObject go, Vector3 scale) {
-        go.transform.scale.set(scale);
-        applyTransform(go);
-    }*/
 
 
 
@@ -902,13 +807,7 @@ public class SceneManager {
         engine.setSkyColor(skyR, skyG, skyB);
     }
 
-    /**
-     * Находит ПЕРВЫЙ GameObject с указанным именем.
-     * Этот метод следует использовать в игровых скриптах для поиска объектов.
-     * Поиск не чувствителен к регистру.
-     * @param name Имя объекта, заданное в редакторе.
-     * @return GameObject или null, если объект с таким именем не найден.
-     */
+
     public GameObject findObjectByName(String name) {
         if (name == null || name.isEmpty()) {
             return null;
@@ -921,12 +820,7 @@ public class SceneManager {
         return null;
     }
 
-    /**
-     * Находит ВСЕ GameObject'ы с указанным именем.
-     * Полезно для поиска групп объектов (например, всех врагов с именем "Goblin").
-     * @param name Имя объектов.
-     * @return Список (может быть пустым) всех найденных GameObjects.
-     */
+
     public List<GameObject> findObjectsByName(String name) {
         List<GameObject> foundObjects = new ArrayList<>();
         if (name == null || name.isEmpty()) {
@@ -944,10 +838,7 @@ public class SceneManager {
 
     private final Json json = new Json();
 
-    /**
-     * Сохраняет текущее состояние сцены в файл.
-     * @param fileHandle Файл для сохранения (например, Gdx.files.local("scenes/level1.json")).
-     */
+
     public void saveScene(FileHandle fileHandle) {
         SceneData sceneData = new SceneData();
         for (GameObject go : gameObjects.values()) {
@@ -956,6 +847,7 @@ public class SceneManager {
         sceneData.skyR = skyR;
         sceneData.skyG = skyG;
         sceneData.skyB = skyB;
+        sceneData.skyboxPath = skyboxPath;
         sceneData.ambientIntensity = ambientIntensity;
         sceneData.renderSettings = engine.getSceneSettings();
 
@@ -968,10 +860,7 @@ public class SceneManager {
         Gdx.app.log("SceneManager", "Scene saved to " + fileHandle.path());
     }
 
-    /**
-     * Загружает сцену из файла, полностью заменяя текущую.
-     * @param fileHandle Файл для загрузки.
-     */
+
     public void loadScene(FileHandle fileHandle) {
         if (fileHandle == null || !fileHandle.exists()) {
             Gdx.app.error("SceneManager", "Scene file handle is null or does not exist.");
@@ -996,6 +885,10 @@ public class SceneManager {
         findAndSetMainCamera();
 
         Gdx.app.log("SceneManager", "Scene build commands issued.");
+
+        Gdx.app.log("SceneManager", "Applying loaded skybox: " + this.skyboxPath);
+        this.skyboxPath = sceneData.skyboxPath;
+        setSkybox(this.skyboxPath);
     }
 
     private void rebuildGameObject_internal(GameObject go) {
@@ -1089,23 +982,18 @@ public class SceneManager {
             engine.applyPBRMaterial(go.id, material);
         }
 
-        /*List<ScriptComponent> scriptComponents = go.getComponents(ScriptComponent.class);
-        for (ScriptComponent scriptComp : scriptComponents) {
-            if (scriptComp.scriptPath != null && !scriptComp.scriptPath.isEmpty()) {
-                GameScript instance = ScriptLoader.INSTANCE.loadScript(scriptComp.scriptPath);
-                if (instance != null) {
-                    scriptComp.scriptInstance = instance;
-                    instance.setGameObject(go);
-                    instance.setSceneManager(this);
 
-                    try {
-                        instance.onInit();
-                    } catch (Exception e) {
-                        Log.e("SceneManager", "Error in onInit() for script: " + scriptComp.scriptPath, e);
-                    }
-                }
-            }
-        }*/
+
+        PostProcessingComponent pp = go.getComponent(PostProcessingComponent.class);
+        if (pp != null) {
+            engine.updatePostProcessing(pp);
+        }
+
+        ParticleComponent particle = go.getComponent(ParticleComponent.class);
+        if (particle != null) {
+            engine.createParticleProxy(go.id);
+            engine.updateParticleEffect(go.id, particle, go.transform.worldTransform);
+        }
     }
 
     public void repositionObjectAndChildren(GameObject root, Vector3 newWorldPosition) {
@@ -1216,11 +1104,12 @@ public class SceneManager {
     private void clearScene_internal() {
         engine.clearScene();
         gameObjects.clear();
+        this.skyboxPath = null;
+        this.cachedFogComponent = null;
+        engine.setFog(null);
     }
 
-    /**
-     * Полностью очищает текущую сцену, готовя ее к новой загрузке.
-     */
+
     public void clearScene() {
         Gdx.app.postRunnable(this::clearScene_internal);
     }
@@ -1242,9 +1131,7 @@ public class SceneManager {
 
 
 
-    /**
-     * Применяет все трансформации из TransformComponent к объекту в движке.
-     */
+
     private void applyTransform(GameObject go) {
         if (go == null) return;
         TransformComponent t = go.transform;
@@ -1259,10 +1146,7 @@ public class SceneManager {
         engine.setScale(go.id, t.scale.x, t.scale.y, t.scale.z);
     }
 
-    /**
-     * Удаляет RenderComponent с объекта.
-     * Это делает объект невидимым, но сохраняет его в иерархии.
-     */
+
     public void removeRenderComponent(GameObject go) {
         if (go == null || !go.hasComponent(RenderComponent.class)) return;
 
@@ -1270,9 +1154,7 @@ public class SceneManager {
         engine.removeObject(go.id);
     }
 
-    /**
-     * Удаляет PhysicsComponent с объекта.
-     */
+
     public void removePhysicsComponent(GameObject go) {
         if (go == null || !go.hasComponent(PhysicsComponent.class)) return;
 
@@ -1280,9 +1162,7 @@ public class SceneManager {
         engine.removePhysicsBody(go.id);
     }
 
-    /**
-     * Удаляет LightComponent с объекта.
-     */
+
     public void removeLightComponent(GameObject go) {
         if (go == null) return;
 
@@ -1292,9 +1172,7 @@ public class SceneManager {
     }
 
 
-    /**
-     * Применяет параметры света и трансформации.
-     */
+
     private void applyLightAndTransform(GameObject go) {
         if (go == null) return;
 
@@ -1359,11 +1237,7 @@ public class SceneManager {
         GameObject go = createGameObject(baseName);
 
         boolean success = true;
-        /*if ("cube".equals(type)) {
-            success = engine.createCube(go.id);
-        } else if ("sphere".equals(type)) {
-            success = engine.createSphere(go.id);
-        }*/
+
 
         if (success) {
             RenderComponent render = new RenderComponent();
@@ -1462,6 +1336,12 @@ public class SceneManager {
 
         updateWorldTransforms();
         Matrix4 childWorldTransform = new Matrix4(child.transform.worldTransform);
+        Vector3 worldPos = new Vector3();
+        Quaternion worldRot = new Quaternion();
+        Vector3 worldScale = new Vector3();
+        child.transform.worldTransform.getTranslation(worldPos);
+        child.transform.worldTransform.getRotation(worldRot, true);
+        child.transform.worldTransform.getScale(worldScale);
 
         if (child.parentId != null) {
             GameObject oldParent = findGameObject(child.parentId);
@@ -1487,9 +1367,9 @@ public class SceneManager {
             newLocalTransform.getRotation(child.transform.rotation, true);
             newLocalTransform.getScale(child.transform.scale);
         } else {
-            childWorldTransform.getTranslation(child.transform.position);
-            childWorldTransform.getRotation(child.transform.rotation, true);
-            childWorldTransform.getScale(child.transform.scale);
+            child.transform.position.set(worldPos);
+            child.transform.rotation.set(worldRot);
+            child.transform.scale.set(worldScale);
         }
         updateWorldTransforms();
     }

@@ -40,11 +40,11 @@ public class SoundInfo implements Cloneable, Nameable, Serializable {
 	private static final String TAG = SoundInfo.class.getSimpleName();
 
 	@XStreamAsAttribute
-	private String soundId;
+	public String soundId;
 	@XStreamAsAttribute
-	private String name;
+	public String name;
 	@XStreamAsAttribute
-	private String fileName;
+	public String fileName;
 
 	private transient File file;
 

@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal">
+
+    <CheckBox
+        android:id="@+id/brick_checkbox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:visibility="gone" />
+
+    <org.catrobat.catroid.ui.BrickLayout
+        android:id="@+id/brick_create_particles_layout"
+        style="@style/BrickContainer.Threed.Big">
+
+        <include layout="@layout/icon_brick_category_threed" />
+
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_create_particles_title" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_particle_id" app:layout_newLine="true"/>
+        <TextView android:id="@+id/brick_particle_id_edit" style="@style/BrickEditText" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_particle_pos_x" app:layout_newLine="true"/>
+        <TextView android:id="@+id/brick_particle_pos_x_edit" style="@style/BrickEditText" />
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_particle_pos_y" app:layout_newLine="true"/>
+        <TextView android:id="@+id/brick_particle_pos_y_edit" style="@style/BrickEditText" />
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_particle_pos_z" app:layout_newLine="true"/>
+        <TextView android:id="@+id/brick_particle_pos_z_edit" style="@style/BrickEditText" />
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_particle_rot_pitch" app:layout_newLine="true"/>
+        <TextView android:id="@+id/brick_particle_rot_pitch_edit" style="@style/BrickEditText" />
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_particle_rot_yaw" app:layout_newLine="true"/>
+        <TextView android:id="@+id/brick_particle_rot_yaw_edit" style="@style/BrickEditText" />
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_particle_rot_roll" app:layout_newLine="true"/>
+        <TextView android:id="@+id/brick_particle_rot_roll_edit" style="@style/BrickEditText" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_particle_looping" app:layout_newLine="true"/>
+        <TextView android:id="@+id/brick_particle_looping_edit" style="@style/BrickEditText" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_particle_duration" app:layout_newLine="true"/>
+        <TextView android:id="@+id/brick_particle_duration_edit" style="@style/BrickEditText" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_particle_lifetime" app:layout_newLine="true"/>
+        <TextView android:id="@+id/brick_particle_lifetime_edit" style="@style/BrickEditText" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_particle_speed" app:layout_newLine="true"/>
+        <TextView android:id="@+id/brick_particle_speed_edit" style="@style/BrickEditText" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_particle_size" app:layout_newLine="true"/>
+        <TextView android:id="@+id/brick_particle_size_edit" style="@style/BrickEditText" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_particle_end_size" app:layout_newLine="true"/>
+        <TextView android:id="@+id/brick_particle_end_size_edit" style="@style/BrickEditText" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_particle_gravity" app:layout_newLine="true"/>
+        <TextView android:id="@+id/brick_particle_gravity_edit" style="@style/BrickEditText" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_particle_max_count" app:layout_newLine="true"/>
+        <TextView android:id="@+id/brick_particle_max_count_edit" style="@style/BrickEditText" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_particle_rate" app:layout_newLine="true"/>
+        <TextView android:id="@+id/brick_particle_rate_edit" style="@style/BrickEditText" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_particle_angle" app:layout_newLine="true"/>
+        <TextView android:id="@+id/brick_particle_angle_edit" style="@style/BrickEditText" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_particle_radius" app:layout_newLine="true"/>
+        <TextView android:id="@+id/brick_particle_radius_edit" style="@style/BrickEditText" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_particle_start_color" app:layout_newLine="true"/>
+        <TextView android:id="@+id/brick_particle_start_color_edit" style="@style/BrickEditText" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_particle_end_color" app:layout_newLine="true"/>
+        <TextView android:id="@+id/brick_particle_end_color_edit" style="@style/BrickEditText" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_particle_texture" app:layout_newLine="true"/>
+        <TextView android:id="@+id/brick_particle_texture_edit" style="@style/BrickEditText" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_particle_additive" app:layout_newLine="true"/>
+        <TextView android:id="@+id/brick_particle_additive_edit" style="@style/BrickEditText" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_particle_rotation" app:layout_newLine="true"/>
+        <TextView android:id="@+id/brick_particle_rotation_edit" style="@style/BrickEditText" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_particle_rotation_speed" app:layout_newLine="true"/>
+        <TextView android:id="@+id/brick_particle_rotation_speed_edit" style="@style/BrickEditText" />
+
+    </org.catrobat.catroid.ui.BrickLayout>
+</LinearLayout>

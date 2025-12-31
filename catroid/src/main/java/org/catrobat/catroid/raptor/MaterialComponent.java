@@ -15,6 +15,8 @@ public class MaterialComponent implements Component {
     public String occlusionTexturePath = null;
 
     public Color emissiveColor = new Color(Color.BLACK);
+
+    public float emissiveIntensity = 0.0f;
     public String emissiveTexturePath = null;
 
     public MaterialComponent() {}

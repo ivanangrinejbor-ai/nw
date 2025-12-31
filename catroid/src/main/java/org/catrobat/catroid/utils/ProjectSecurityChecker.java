@@ -21,8 +21,7 @@ public class ProjectSecurityChecker {
         if (project == null) {
             return false;
         }
-
-        if (Objects.requireNonNull(project.getLibsDir().listFiles()).length > 0) return true;
+        if (project.getLibsDir().listFiles() != null && Objects.requireNonNull(project.getLibsDir().listFiles()).length > 0) return true;
 
         for (Scene scene : project.getSceneList()) {
             for (Sprite sprite : scene.getSpriteList()) {

@@ -121,6 +121,7 @@ import androidx.lifecycle.LifecycleOwnerKt;
 
 import static org.catrobat.catroid.common.Constants.CODE_XML_FILE_NAME;
 import static org.catrobat.catroid.common.Constants.UNDO_CODE_XML_FILE_NAME;
+import static org.catrobat.catroid.common.ScreenValues.DEFAULT_SCREEN_RESOLUTION;
 
 import kotlinx.coroutines.BuildersKt;
 import kotlinx.coroutines.CoroutineStart;
@@ -304,7 +305,9 @@ public class ScriptFragment extends ListFragment implements
 		listView = view.findViewById(android.R.id.list);
 		int bottomListPadding;
 		if (BuildConfig.FEATURE_AI_ASSIST_ENABLED) {
-			bottomListPadding = (int) (ScreenValues.currentScreenResolution.getHeight() / 2.5);
+            bottomListPadding = (ScreenValues.currentScreenResolution != null)
+                    ? (int) (ScreenValues.currentScreenResolution.getHeight() / 2.5)
+                    : DEFAULT_SCREEN_RESOLUTION.getHeight();
 		} else {
 			bottomListPadding = ScreenValues.currentScreenResolution.getHeight() / 3;
 		}
@@ -515,9 +518,9 @@ public class ScriptFragment extends ListFragment implements
 		menu.findItem(R.id.rename).setVisible(false);
 		menu.findItem(R.id.catblocks_reorder_scripts).setVisible(false);
 		menu.findItem(R.id.find).setVisible(true);
-		if (!BuildConfig.FEATURE_CATBLOCKS_ENABLED) {
+		/*if (!BuildConfig.FEATURE_CATBLOCKS_ENABLED) {
 			menu.findItem(R.id.catblocks).setVisible(false);
-		}
+		}*/
 		super.onPrepareOptionsMenu(menu);
 	}
 
@@ -546,9 +549,9 @@ public class ScriptFragment extends ListFragment implements
 			case R.id.comment_in_out:
 				startActionMode(COMMENT);
 				break;
-			case R.id.catblocks:
+			/*case R.id.catblocks:
 				switchToCatblocks();
-				break;
+				break;*/
 			case R.id.find:
 				scriptFinder.open();
 				break;

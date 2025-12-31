@@ -254,6 +254,9 @@ public final class XstreamSerializer {
 		xstream.alias("brick", SetCameraRangeBrick.class);
 		xstream.alias("brick", SetBackgroundLightBrick.class);
 		xstream.alias("brick", SetCCDBrick.class);
+		xstream.alias("brick", CreateParticlesBrick.class);
+		xstream.alias("brick", DeleteParticlesBrick.class);
+		xstream.alias("brick", SetPostProcessingBrick.class);
 		xstream.alias("brick", LoadSceneAdditiveBrick.class);
 		xstream.alias("brick", Set3DSoundPositionBrick.class);
 		xstream.alias("brick", PrepareMusicAs3DSoundBrick.class);
@@ -285,6 +288,8 @@ public final class XstreamSerializer {
 		xstream.alias("brick", ToggleDisplayBrick.class);
 		xstream.alias("brick", StopVMBrick.class);
 		xstream.alias("brick", MouseEventBrick.class);
+		xstream.alias("brick", VmRelativeMouseMoveBrick.class);
+		xstream.alias("brick", VmSetMonitorSizeBrick.class);
 		xstream.alias("brick", KeyEventBrick.class);
 		xstream.alias("brick", BindVmOutputBrick.class);
 		xstream.alias("brick", SendVmInputBrick.class);

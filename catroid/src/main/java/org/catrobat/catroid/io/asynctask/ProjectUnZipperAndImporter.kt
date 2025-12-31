@@ -41,29 +41,51 @@ import java.io.IOException
 
 private val TAG = ProjectUnZipperAndImporter::class.java.simpleName
 
+sealed class ImportResult {
+    object Success : ImportResult() // Обычный проект импортирован
+    object Failure : ImportResult() // Ошибка
+    data class BakedProject(val projectDir: File) : ImportResult() // Это запеченный проект!
+}
+
 class ProjectUnZipperAndImporter @JvmOverloads constructor(
-    val onImportFinished: (Boolean) -> Unit = {},
+    //val onImportFinished: (Boolean) -> Unit = {},
+    val onImportFinished: (ImportResult) -> Unit = {},
     val scope: CoroutineScope = CoroutineScope(Dispatchers.IO)
 ) {
-    fun unZipAndImportAsync(files: Array<File>) {
+    /*fun unZipAndImportAsync(files: Array<File>) {
         scope.launch {
             val success = unzipAndImportProjects(files)
             withContext(Dispatchers.Main) {
                 onImportFinished(success)
             }
         }
+    }*/
+    fun unZipAndImportAsync(files: Array<File>) {
+        scope.launch {
+            // Обрабатываем пока только первый файл для упрощения логики запуска
+            val file = files.firstOrNull()
+            val result = if (file != null) {
+                unzipAndImportProject(file)
+            } else {
+                ImportResult.Failure
+            }
+
+            withContext(Dispatchers.Main) {
+                onImportFinished(result)
+            }
+        }
     }
 }
 
-fun unzipAndImportProjects(files: Array<File>): Boolean {
+/*fun unzipAndImportProjects(files: Array<File>): Boolean {
     var success = true
     files.forEach { projectDir ->
         success = success && unzipAndImportProject(projectDir)
     }
     return success
-}
+}*/
 
-private fun unzipAndImportProject(projectDir: File): Boolean = try {
+/*private fun unzipAndImportProject(projectDir: File): Boolean = try {
     val cachedProjectDir = File(CACHE_DIRECTORY, StorageOperations.getSanitizedFileName(projectDir.name))
     if (cachedProjectDir.isDirectory) {
         try {
@@ -77,6 +99,67 @@ private fun unzipAndImportProject(projectDir: File): Boolean = try {
 } catch (e: IOException) {
     Log.e(TAG, "Cannot unzip project " + projectDir.name, e)
     false
+}*/
+
+private fun unzipAndImportProject(projectZipFile: File): ImportResult = try {
+    // 1. Распаковываем во временную папку в кэше
+    val tempDirName = StorageOperations.getSanitizedFileName(projectZipFile.name) + "_temp_import"
+    val cachedProjectDir = File(CACHE_DIRECTORY, tempDirName)
+
+    if (cachedProjectDir.isDirectory) {
+        StorageOperations.deleteDir(cachedProjectDir)
+    }
+    cachedProjectDir.mkdirs()
+
+    ZipArchiver().unzip(projectZipFile, cachedProjectDir)
+
+    // 2. ПРОВЕРКА: Это обычный проект или запеченный?
+    val codeXml = File(cachedProjectDir, Constants.CODE_XML_FILE_NAME)
+    val initLunoTxt = File(cachedProjectDir, "init.luno.txt") // Для тестов (текст)
+    val initLunoBin = File(cachedProjectDir, "init.bin")      // Для релиза (шифрованный)
+
+    if (codeXml.exists()) {
+        // --- СТАНДАРТНЫЙ ИМПОРТ ---
+        if (importStandardProject(cachedProjectDir)) {
+            // Очищаем кэш после успешного импорта
+            StorageOperations.deleteDir(cachedProjectDir)
+            ImportResult.Success
+        } else {
+            ImportResult.Failure
+        }
+    } else if (initLunoTxt.exists() || initLunoBin.exists()) {
+        // --- ЗАПЕЧЕННЫЙ ПРОЕКТ ---
+        // Не копируем в папку проектов! Возвращаем путь к кэшу.
+        Log.d(TAG, "Detected baked project in: ${cachedProjectDir.absolutePath}")
+        ImportResult.BakedProject(cachedProjectDir)
+    } else {
+        Log.e(TAG, "Invalid project structure: No code.xml and no init script found.")
+        ImportResult.Failure
+    }
+
+} catch (e: IOException) {
+    Log.e(TAG, "Cannot unzip project " + projectZipFile.name, e)
+    ImportResult.Failure
+}
+
+// Старая логика импорта вынесена сюда
+private fun importStandardProject(cachedProjectDir: File): Boolean {
+    val projectName = getProjectName(cachedProjectDir) ?: return false
+    val uniqueName = UniqueNameProvider().getUniqueName(projectName, FileMetaDataExtractor
+        .getProjectNames(FlavoredConstants.DEFAULT_ROOT_DIRECTORY))
+
+    val destinationDirectory = File(
+        FlavoredConstants.DEFAULT_ROOT_DIRECTORY,
+        FileMetaDataExtractor.encodeSpecialCharsForFileSystem(uniqueName))
+
+    return try {
+        copyProject(cachedProjectDir, destinationDirectory, uniqueName)
+        true
+    } catch (e: IOException) {
+        Log.e(TAG, "Something went wrong while importing project", e)
+        errorWhileImporting(cachedProjectDir, destinationDirectory)
+        false
+    }
 }
 
 private fun getProjectName(projectDir: File): String? {

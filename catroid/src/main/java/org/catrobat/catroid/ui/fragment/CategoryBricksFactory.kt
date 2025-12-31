@@ -96,6 +96,7 @@ import org.catrobat.catroid.content.bricks.CreateDistanceJointBrick
 import org.catrobat.catroid.content.bricks.CreateFloatBrick
 import org.catrobat.catroid.content.bricks.CreateGLViewBrick
 import org.catrobat.catroid.content.bricks.CreateGearJointBrick
+import org.catrobat.catroid.content.bricks.CreateParticlesBrick
 import org.catrobat.catroid.content.bricks.CreatePointJointBrick
 import org.catrobat.catroid.content.bricks.CreatePrismaticJointBrick
 import org.catrobat.catroid.content.bricks.CreatePulleyJointBrick
@@ -117,6 +118,7 @@ import org.catrobat.catroid.content.bricks.DeleteFilesBrick
 import org.catrobat.catroid.content.bricks.DeleteFloatBrick
 import org.catrobat.catroid.content.bricks.DeleteItemOfUserListBrick
 import org.catrobat.catroid.content.bricks.DeleteLookBrick
+import org.catrobat.catroid.content.bricks.DeleteParticlesBrick
 import org.catrobat.catroid.content.bricks.DeleteTableBrick
 import org.catrobat.catroid.content.bricks.DeleteThisCloneBrick
 import org.catrobat.catroid.content.bricks.DeleteVarBrick
@@ -348,6 +350,7 @@ import org.catrobat.catroid.content.bricks.SetPhysicsObjectTypeBrick
 import org.catrobat.catroid.content.bricks.SetPhysicsStateBrick
 import org.catrobat.catroid.content.bricks.SetPointLightBrick
 import org.catrobat.catroid.content.bricks.SetPositiveBrick
+import org.catrobat.catroid.content.bricks.SetPostProcessingBrick
 import org.catrobat.catroid.content.bricks.SetRestitutionBrick
 import org.catrobat.catroid.content.bricks.SetRotationStyleBrick
 import org.catrobat.catroid.content.bricks.SetSaveScenesBrick
@@ -429,6 +432,8 @@ import org.catrobat.catroid.content.bricks.UploadFileBrick
 import org.catrobat.catroid.content.bricks.UserDefinedBrick
 import org.catrobat.catroid.content.bricks.UserDefinedReceiverBrick
 import org.catrobat.catroid.content.bricks.VibrationBrick
+import org.catrobat.catroid.content.bricks.VmRelativeMouseMoveBrick
+import org.catrobat.catroid.content.bricks.VmSetMonitorSizeBrick
 import org.catrobat.catroid.content.bricks.WaitBrick
 import org.catrobat.catroid.content.bricks.WaitTillIdleBrick
 import org.catrobat.catroid.content.bricks.WaitUntilBrick
@@ -1000,7 +1005,9 @@ print("Bot has stopped.")""", "myVar"))
         deviceBrickList.add(RunVMBrick("1024", "2", "myDisk.qcow2", "flash.iso"))
         deviceBrickList.add(CreateDiskBrick("myDisk.qcow2", "10G"))
         deviceBrickList.add(ToggleDisplayBrick(1))
+        deviceBrickList.add(VmSetMonitorSizeBrick(1000, 800))
         deviceBrickList.add(MouseEventBrick("0", "100", 1))
+        deviceBrickList.add(VmRelativeMouseMoveBrick(0, 100, 1))
         deviceBrickList.add(KeyEventBrick("a", 1))
         deviceBrickList.add(SendVmInputBrick("ls ~/"))
         deviceBrickList.add(StopVMBrick())
@@ -1359,13 +1366,16 @@ void main() {
         threedBrickList.add(RemovePbrLightBrick("sun"))
         threedBrickList.add(LoadSceneBrick("my_level.rscene"))
         threedBrickList.add(LoadSceneAdditiveBrick("my_level.rscene"))
+        threedBrickList.add(SetSkyboxBrick("skybox.hdr"))
         threedBrickList.add(PrepareSoundBrick2("sound.mp3", "sound"))
         threedBrickList.add(PrepareMusicAs3DSoundBrick("sound.mp3", "sound"))
         threedBrickList.add(PlaySoundAtPositionBrick("sound", "soundInstance"))
         threedBrickList.add(Set3DSoundPositionBrick("soundInstance", 10, 10, 10))
         threedBrickList.add(StopSoundBrick2("soundInstance"))
         threedBrickList.add(SetGlobalSoundVolumeBrick(60.0))
-        //threedBrickList.add(SetSkyboxBrick("skybox.png"))
+        threedBrickList.add(SetPostProcessingBrick(1, 4, Formula(2)))
+        threedBrickList.add(CreateParticlesBrick("particles"))
+        threedBrickList.add(DeleteParticlesBrick("particles"))
 
         return threedBrickList
     }

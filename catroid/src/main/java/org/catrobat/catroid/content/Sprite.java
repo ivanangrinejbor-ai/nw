@@ -106,6 +106,8 @@ public class Sprite implements Nameable, Serializable {
 	private transient List<Integer> usedTouchPointer = new ArrayList<>();
 	private transient Color embroideryThreadColor = Color.BLACK;
 
+	private transient java.util.HashMap<String, UserVariable> variableCache = new java.util.HashMap<>();
+
 	@XStreamAsAttribute
 	private String spriteId;
 	@XStreamAsAttribute
@@ -303,8 +305,14 @@ public class Sprite implements Nameable, Serializable {
 	}
 
 	public UserVariable getUserVariable(String name) {
+		UserVariable cached = variableCache.get(name);
+		if (cached != null) {
+			return cached;
+		}
+
 		for (UserVariable variable : userVariables) {
 			if (variable.getName().equals(name)) {
+				variableCache.put(name, variable);
 				return variable;
 			}
 		}
@@ -312,6 +320,7 @@ public class Sprite implements Nameable, Serializable {
 	}
 
 	public boolean addUserVariable(UserVariable userVariable) {
+		variableCache.put(userVariable.getName(), userVariable);
 		return userVariables.add(userVariable);
 	}
 
@@ -356,6 +365,7 @@ public class Sprite implements Nameable, Serializable {
 	}
 
 	public void resetUserData() {
+		variableCache.clear();
 		for (UserVariable userVariable : userVariables) {
 			userVariable.reset();
 		}
@@ -380,6 +390,8 @@ public class Sprite implements Nameable, Serializable {
 		if (!getLookList().isEmpty()) {
 			look.setLookData(getLookList().get(0));
 		}
+
+		variableCache.clear();
 
 		penConfiguration = new PenConfiguration();
 		plot = new Plot();

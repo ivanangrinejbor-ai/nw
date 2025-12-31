@@ -99,4 +99,10 @@ public class ScriptSequenceAction extends SequenceAction {
 		}
 		return copy;
 	}
+
+	@Override
+	public boolean act (float delta) {
+		org.catrobat.catroid.utils.PerformanceTracker.blocksExecuted++;
+		return super.act(delta);
+	}
 }

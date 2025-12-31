@@ -16,6 +16,7 @@ import com.badlogic.gdx.files.FileHandle
 import com.badlogic.gdx.graphics.Pixmap
 import com.badlogic.gdx.math.Rectangle
 import org.catrobat.catroid.CatroidApplication
+import org.catrobat.catroid.ProjectManager
 import org.catrobat.catroid.common.LookData
 import org.catrobat.catroid.content.ActionFactory
 import org.catrobat.catroid.content.EventWrapper
@@ -196,6 +197,29 @@ class Interpreter(
                     -1
                 )
             }
+        }
+
+        defineNative("CreateEmptyProjectContext", 0..0) { _, _ ->
+            val context = CatroidApplication.getAppContext()
+            val proj = Project(context, "Temp")
+
+            proj.sceneList.clear()
+            proj.userVariables.clear()
+            proj.userLists.clear()
+
+            LunoValue.NativeObject(proj)
+        }
+
+        defineNative("SetGlobalProject", 1..1) { _, args ->
+            val lunoObj = args[0] as? LunoValue.NativeObject
+                ?: throw LunoRuntimeError("SetGlobalProject: Argument must be NativeObject", -1)
+
+            val proj = lunoObj.obj as? Project
+                ?: throw LunoRuntimeError("SetGlobalProject: Object is not a Project", -1)
+
+            ProjectManager.getInstance().currentProject = proj
+
+            LunoValue.Null
         }
 
         defineNative("getBytes", 1..2) { _, args ->
@@ -2498,6 +2522,38 @@ class Interpreter(
             }
         }
 
+        defineNative("GetUserDefinedBrickField", 1..1) { _, args ->
+            val fieldName = args[0].toString()
+            try {
+
+                val className = "org.catrobat.catroid.content.bricks.UserDefinedBrick\$UserDefinedBrickField"
+
+                val fieldClass = try {
+                    Class.forName(className)
+                } catch (e: ClassNotFoundException) {
+
+                    val parent = org.catrobat.catroid.content.bricks.UserDefinedBrick::class.java
+                    parent.declaredClasses.find { it.simpleName == "UserDefinedBrickField" }
+                        ?: throw LunoRuntimeError("Class UserDefinedBrickField not found via forName or declaredClasses", -1)
+                }
+
+
+
+
+                val ctor = fieldClass.declaredConstructors.find {
+                    it.parameterTypes.size == 1 && it.parameterTypes[0] == String::class.java
+                } ?: throw LunoRuntimeError("Constructor(String) for UserDefinedBrickField not found. Constructors: ${fieldClass.declaredConstructors.map { it.parameterTypes.contentToString() }}", -1)
+
+                ctor.isAccessible = true
+                val instance = ctor.newInstance(fieldName)
+
+                LunoValue.NativeObject(instance)
+            } catch (e: Exception) {
+
+                throw LunoRuntimeError("Failed to create field '$fieldName': ${e.toString()}", -1, e)
+            }
+        }
+
         defineNative("LookSetLookVisible", 2..2) { _, args ->
             val look = args[0]
 
@@ -3964,13 +4020,30 @@ class Interpreter(
 
                 
                 try {
-                    val field = nativeObj::class.java.getField(propName)
+                    //val field = nativeObj::class.java.getField(propName)
+                    var field: java.lang.reflect.Field? = null
+                    var cls: Class<*>? = nativeObj::class.java
+                    while (cls != null) {
+                        try {
+                            field = cls.getDeclaredField(propName)
+                            break
+                        } catch (e: NoSuchFieldException) {
+                            cls = cls.superclass
+                        }
+                    }
+                    if (field != null) {
+                        field.isAccessible = true
+                        val expectedType = field.type
+                        val kotlinValue = lunoValueToKotlin(valueToAssign, expectedType)
+                        field.set(nativeObj, kotlinValue)
+                        return
+                    }
                     
-                    val expectedType = field.type
+                    /*val expectedType = field.type
                     val kotlinValue = lunoValueToKotlin(valueToAssign, expectedType)
                     
                     field.set(nativeObj, kotlinValue)
-                    return
+                    return*/
                 } catch (e: NoSuchFieldException) { /* ... */ }
 
                 throw LunoRuntimeError("Property '$propName' not found or is not writable.", target.line)
@@ -4083,6 +4156,13 @@ class Interpreter(
         val itemsToIterate: Collection<LunoValue> = when (iterableValue) {
             is LunoValue.List -> iterableValue.elements
             is LunoValue.String -> iterableValue.value.map { LunoValue.String(it.toString()) }
+            is LunoValue.NativeObject -> {
+                if (iterableValue.obj is Iterable<*>) {
+                    iterableValue.obj.map { LunoValue.fromKotlin(it) }
+                } else {
+                    throw LunoRuntimeError("'for-in' expects an iterable.", stmt.forToken.line)
+                }
+            }
             
             else -> throw LunoRuntimeError("'for-in' loop requires an iterable (list, string). Got ${iterableValue::class.simpleName}.", stmt.forToken.line)
         }
@@ -4346,7 +4426,7 @@ class Interpreter(
     }
 
 
-    private fun evaluateUnaryExpr(expr: UnaryExpr): LunoValue {
+    /*private fun evaluateUnaryExpr(expr: UnaryExpr): LunoValue {
         val right = evaluate(expr.right)
         return when (expr.operator.type) {
             TokenType.BANG -> LunoValue.Boolean(!right.isTruthy())
@@ -4354,6 +4434,22 @@ class Interpreter(
                 if (right is LunoValue.Number) LunoValue.Number(-right.value)
                 if (right is LunoValue.Float) LunoValue.Float(-right.value)
                 else throw LunoRuntimeError("Operand for unary '-' must be a number. Got ${right::class.simpleName}", expr.line)
+            }
+            else -> throw LunoRuntimeError("Unknown unary operator: ${expr.operator.lexeme}", expr.line)
+        }
+    }*/
+    private fun evaluateUnaryExpr(expr: UnaryExpr): LunoValue {
+        val right = evaluate(expr.right)
+        return when (expr.operator.type) {
+            TokenType.BANG -> LunoValue.Boolean(!right.isTruthy())
+            TokenType.MINUS -> {
+                if (right is LunoValue.Number) {
+                    LunoValue.Number(-right.value)
+                } else if (right is LunoValue.Float) {
+                    LunoValue.Float(-right.value)
+                } else {
+                    throw LunoRuntimeError("Operand for unary '-' must be a number. Got ${right::class.simpleName}", expr.line)
+                }
             }
             else -> throw LunoRuntimeError("Unknown unary operator: ${expr.operator.lexeme}", expr.line)
         }
@@ -4438,11 +4534,23 @@ class Interpreter(
                     else -> if (allowUndefined) LunoValue.Null else throw LunoRuntimeError("Undefined property '${expr.name.lexeme}' on List.", expr.line)
                 }
             }
-            
+
 
             is LunoValue.NativeObject -> {
                 val nativeObj = objValue.obj
                 val propName = expr.name.lexeme
+
+
+                if (nativeObj is Map<*, *>) {
+                    if (nativeObj.containsKey(propName)) {
+                        return LunoValue.fromKotlin(nativeObj[propName])
+                    }
+                }
+
+
+                if (nativeObj is List<*> && (propName == "size" || propName == "length")) {
+                    return LunoValue.Number(nativeObj.size.toDouble())
+                }
 
                 
                 try {
@@ -4609,7 +4717,7 @@ class Interpreter(
                 val key = lunoValueToString(indexVal, humanReadable = false)
                 collection.fields[key] ?: if (allowUndefined) LunoValue.Null else throw LunoRuntimeError("Key '$key' not found in object.", expr.line)
             }
-            is LunoValue.NativeObject -> { 
+            is LunoValue.NativeObject -> {
                 when (collection.obj) {
                     is kotlin.collections.List<*> -> {
                         if (indexVal is LunoValue.Number) {
@@ -4693,9 +4801,12 @@ class Interpreter(
             }
         }
 
-        
+
         if (value is LunoValue.Boolean) {
-            if (targetClass == Boolean::class.java || targetClass == java.lang.Boolean.TYPE) {
+            if (targetClass == Boolean::class.java ||
+                targetClass == java.lang.Boolean::class.java ||
+                targetClass == java.lang.Boolean.TYPE ||
+                targetClass == Object::class.java) {
                 return value.value
             }
         }
@@ -4708,7 +4819,7 @@ class Interpreter(
             }
         }
 
-        
+        Log.e("LunoConvert", "Failed to convert ${value::class.simpleName} ($value) to ${targetClass.name}")
         throw LunoRuntimeError("Cannot convert LunoValue type `${value::class.simpleName}` to native type `${targetClass.simpleName}`")
     }
 

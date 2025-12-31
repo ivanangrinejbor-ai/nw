@@ -1,6 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-             android:layout_width="match_parent"
-             android:layout_height="match_parent">
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <CheckBox
+        android:id="@+id/brick_checkbox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone" />
+
+    <org.catrobat.catroid.ui.BrickLayout
+        android:id="@+id/brick_vm_monitor_size_layout"
+        style="@style/BrickContainer.Device.Medium">
+
+        <include layout="@layout/icon_brick_category_device" />
+
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_vm_monitor_size" />
+
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_vm_width"
+            app:layout_newLine="true"/>
+
+        <TextView
+            android:id="@+id/brick_vm_monitor_edit_width"
+            style="@style/BrickEditText" />
+
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_vm_height"
+            app:layout_newLine="true"/>
+
+        <TextView
+            android:id="@+id/brick_vm_monitor_edit_height"
+            style="@style/BrickEditText" />
+    </org.catrobat.catroid.ui.BrickLayout>
+</LinearLayout>

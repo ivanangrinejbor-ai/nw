@@ -141,7 +141,9 @@ public final class StageLifeCycleController {
 					stageActivity.nfcAdapter.disableForegroundDispatch(stageActivity);
 				} catch (IllegalStateException illegalStateException) {
 					Log.e(TAG, "Disabling NFC foreground dispatching went wrong!", illegalStateException);
-				}
+				} catch (Exception e) {
+                    e.printStackTrace();
+                }
 			}
 
 			List<Sprite> sprites = ((StageListener) stageActivity.getApplicationListener()).getSpritesFromStage();

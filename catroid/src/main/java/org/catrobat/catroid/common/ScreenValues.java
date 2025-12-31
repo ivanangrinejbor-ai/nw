@@ -26,7 +26,7 @@ import org.catrobat.catroid.content.Project;
 import org.catrobat.catroid.utils.Resolution;
 
 public final class ScreenValues {
-	private static final Resolution DEFAULT_SCREEN_RESOLUTION = new Resolution(1280, 768);
+	public static final Resolution DEFAULT_SCREEN_RESOLUTION = new Resolution(1280, 768);
 	public static final Resolution CAST_SCREEN_RESOLUTION = new Resolution(1280, 720);
 	public static Resolution currentScreenResolution;
 

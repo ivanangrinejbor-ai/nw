@@ -39,6 +39,7 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
 
 import com.badlogic.gdx.backends.android.surfaceview.GLSurfaceView20;
 import com.google.android.gms.cast.CastDevice;
@@ -295,8 +296,12 @@ public final class CastManager {
 	}
 
 	public synchronized void openDeviceSelectorOrDisconnectDialog(AppCompatActivity activity) {
-		SelectCastDialog dialog = new SelectCastDialog();
-		dialog.show(activity.getSupportFragmentManager(), SelectCastDialog.TAG);
+        try {
+            SelectCastDialog dialog = new SelectCastDialog();
+            dialog.show(activity.getSupportFragmentManager(), SelectCastDialog.TAG);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 	}
 
 	public synchronized void setCastButton(MenuItem castButton) {
@@ -370,8 +375,8 @@ public final class CastManager {
 					}
 				}
 				routeInfos.add(info);
-				castButton.setVisible(mediaRouter.isRouteAvailable(mediaRouteSelector, MediaRouter
-						.AVAILABILITY_FLAG_REQUIRE_MATCH));
+				if (castButton != null) castButton.setVisible(mediaRouter.isRouteAvailable(mediaRouteSelector, MediaRouter
+                        .AVAILABILITY_FLAG_REQUIRE_MATCH));
 				deviceAdapter.notifyDataSetChanged();
 			}
 		}
@@ -446,13 +451,13 @@ public final class CastManager {
 			intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
 			PendingIntent notificationPendingIntent;
 
-// Начиная с Android M (API 23), где появился флаг IMMUTABLE, мы должны его указывать.
-// Это обязательно для targetSdk 31+
+
+
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
 				notificationPendingIntent = PendingIntent.getActivity(activity, 0,
 						intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 			} else {
-				// Для старых версий оставляем как было
+
 				notificationPendingIntent = PendingIntent.getActivity(activity, 0,
 						intent, PendingIntent.FLAG_UPDATE_CURRENT);
 			}
@@ -485,9 +490,6 @@ public final class CastManager {
 
 				@Override
 				public void onRemoteDisplayMuteStateChanged(boolean muted) {
-					// Этот колбэк теперь обязателен в новой версии библиотеки.
-					// Вы можете добавить сюда логику, если нужно реагировать на выключение звука
-					// на удаленном экране. Пока можно оставить пустым.
 					Log.d("CastManager", "Remote display mute state changed to: " + muted);
 				}
 			};

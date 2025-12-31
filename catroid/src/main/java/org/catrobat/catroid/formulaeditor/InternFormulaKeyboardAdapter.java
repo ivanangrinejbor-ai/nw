@@ -179,6 +179,12 @@ public class InternFormulaKeyboardAdapter {
 						STRING, "hello world");
 			case R.string.formula_editor_function_file:
 				return buildSingleParameterFunction(Functions.FILE, STRING, "variable.txt");
+			case R.string.formula_editor_function_files_path:
+				return buildFunctionWithoutParametersAndBrackets(Functions.FILES_PATH);
+			case R.string.formula_editor_function_all_files:
+				return buildFunctionWithoutParametersAndBrackets(Functions.ALL_FILES);
+			case R.string.formula_editor_function_file_size:
+				return buildSingleParameterFunction(Functions.FILE_SIZE, STRING, "variable.txt");
 			case R.string.formula_editor_function_lua:
 				return buildSingleParameterFunction(Functions.LUA, STRING, "return math.sqrt(25)");
 			case R.string.formula_editor_function_to_hex:

@@ -1,5 +1,8 @@
 package org.catrobat.catroid.raptor;
 
+import static com.badlogic.gdx.graphics.g3d.particles.ParticleShader.AlignMode.Screen;
+import static com.crashinvaders.vfx.effects.util.MixEffect.Method.MIX;
+
 import android.util.Log;
 
 import com.badlogic.gdx.Gdx;
@@ -12,28 +15,54 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Cubemap;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Mesh;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
+import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.VertexAttribute;
 import com.badlogic.gdx.graphics.VertexAttributes;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.ModelCache;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
+import com.badlogic.gdx.graphics.g3d.Renderable;
 import com.badlogic.gdx.graphics.g3d.RenderableProvider;
+import com.badlogic.gdx.graphics.g3d.Shader;
+import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
+import com.badlogic.gdx.graphics.g3d.attributes.DepthTestAttribute;
+import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.loader.ObjLoader;
 import com.badlogic.gdx.graphics.g3d.model.Animation;
 import com.badlogic.gdx.graphics.g3d.model.MeshPart;
 import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.graphics.g3d.model.NodePart;
+import com.badlogic.gdx.graphics.g3d.particles.ParticleEffect;
+import com.badlogic.gdx.graphics.g3d.particles.ParticleShader;
+import com.badlogic.gdx.graphics.g3d.particles.ParticleSystem;
+import com.badlogic.gdx.graphics.g3d.particles.batches.BillboardParticleBatch;
+import com.badlogic.gdx.graphics.g3d.particles.emitters.RegularEmitter;
+import com.badlogic.gdx.graphics.g3d.particles.influencers.ColorInfluencer;
+import com.badlogic.gdx.graphics.g3d.particles.influencers.DynamicsInfluencer;
+import com.badlogic.gdx.graphics.g3d.particles.influencers.DynamicsModifier;
+import com.badlogic.gdx.graphics.g3d.particles.influencers.RegionInfluencer;
+import com.badlogic.gdx.graphics.g3d.particles.influencers.ScaleInfluencer;
+import com.badlogic.gdx.graphics.g3d.particles.influencers.SpawnInfluencer;
+import com.badlogic.gdx.graphics.g3d.particles.renderers.BillboardRenderer;
+import com.badlogic.gdx.graphics.g3d.particles.values.CylinderSpawnShapeValue;
+import com.badlogic.gdx.graphics.g3d.particles.values.PointSpawnShapeValue;
+import com.badlogic.gdx.graphics.g3d.particles.values.RangedNumericValue;
 import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader;
 import com.badlogic.gdx.graphics.g3d.utils.AnimationController;
 import com.badlogic.gdx.graphics.g3d.utils.DefaultShaderProvider;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.ShaderProvider;
+import com.badlogic.gdx.graphics.glutils.FrameBuffer;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Matrix4;
@@ -73,6 +102,23 @@ import com.badlogic.gdx.physics.bullet.linearmath.btIDebugDraw;
 import com.badlogic.gdx.physics.bullet.linearmath.btMotionState;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
+import com.crashinvaders.vfx.VfxManager;
+import com.crashinvaders.vfx.effects.BloomEffect;
+import com.crashinvaders.vfx.effects.ChromaticAberrationEffect;
+import com.crashinvaders.vfx.effects.CrtEffect;
+import com.crashinvaders.vfx.effects.FilmGrainEffect;
+import com.crashinvaders.vfx.effects.FisheyeEffect;
+import com.crashinvaders.vfx.effects.FxaaEffect;
+import com.crashinvaders.vfx.effects.GaussianBlurEffect;
+import com.crashinvaders.vfx.effects.LensFlareEffect;
+import com.crashinvaders.vfx.effects.LevelsEffect;
+import com.crashinvaders.vfx.effects.MotionBlurEffect;
+import com.crashinvaders.vfx.effects.NfaaEffect;
+import com.crashinvaders.vfx.effects.OldTvEffect;
+import com.crashinvaders.vfx.effects.RadialBlurEffect;
+import com.crashinvaders.vfx.effects.VignettingEffect;
+import com.crashinvaders.vfx.effects.WaterDistortionEffect;
+import com.crashinvaders.vfx.effects.ZoomEffect;
 import com.danvexteam.lunoscript_annotations.LunoClass;
 
 import net.mgsx.gltf.scene3d.attributes.PBRColorAttribute;
@@ -83,6 +129,11 @@ import net.mgsx.gltf.scene3d.shaders.PBRShaderProvider;
 import net.mgsx.gltf.scene3d.utils.IBLBuilder;
 
 import org.catrobat.catroid.ProjectManager;
+import org.catrobat.catroid.raptor.postprocessing.AutoLensFlareEffect;
+import org.catrobat.catroid.raptor.postprocessing.ExposureEffect;
+import org.catrobat.catroid.raptor.postprocessing.EyeAdaptationManager;
+import org.catrobat.catroid.raptor.postprocessing.LinearizeEffect;
+import org.catrobat.catroid.raptor.postprocessing.TonemappingEffect;
 import org.catrobat.catroid.stage.StageActivity;
 import org.catrobat.catroid.utils.ModelPathProcessor;
 
@@ -101,12 +152,75 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+import com.crashinvaders.vfx.effects.BloomEffect;
+
+class OptimizedBloomEffect extends BloomEffect {
+    private final float scaleFactor;
+
+    public OptimizedBloomEffect(float scaleFactor) {
+
+
+        this.scaleFactor = scaleFactor;
+    }
+
+    public OptimizedBloomEffect() {
+        this(4f);
+    }
+
+    @Override
+    public void resize(int width, int height) {
+
+
+
+        super.resize((int)(width / scaleFactor), (int)(height / scaleFactor));
+    }
+}
+
+class OptimizedGaussianBlurEffect extends GaussianBlurEffect {
+    private final float scaleFactor;
+
+    public OptimizedGaussianBlurEffect(float scaleFactor) {
+        super(BlurType.Gaussian5x5);
+        this.scaleFactor = scaleFactor;
+    }
+
+    @Override
+    public void resize(int width, int height) {
+
+        super.resize((int)(width / scaleFactor), (int)(height / scaleFactor));
+    }
+}
+
+class OptimizedRadialBlurEffect extends RadialBlurEffect {
+    private final float scaleFactor;
+
+    public OptimizedRadialBlurEffect(int passes, float scaleFactor) {
+        super(passes);
+        this.scaleFactor = scaleFactor;
+    }
+
+    @Override
+    public void resize(int width, int height) {
+        super.resize((int)(width / scaleFactor), (int)(height / scaleFactor));
+    }
+}
 
 @LunoClass
 public class ThreeDManager implements Disposable {
 
     public ModelBatch getWireframeBatch() {
         return wireframeBatch;
+    }
+
+    public void resize(int width, int height) {
+        if (vfxManager != null) {
+            vfxManager.resize(width, height);
+        }
+        if (sceneFbo2 != null) sceneFbo2.dispose();
+        sceneFbo2 = new FrameBuffer(Pixmap.Format.RGBA8888, width, height, true);
+        sceneFbo2.getColorBufferTexture().setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+        sceneFboRegion.setTexture(sceneFbo2.getColorBufferTexture());
+        sceneFboRegion.flip(false, true);
     }
 
     public enum PhysicsState {
@@ -162,7 +276,7 @@ public class ThreeDManager implements Disposable {
         public final Vector3 hitNormal = new Vector3();
     }
 
-    private com.badlogic.gdx.graphics.Color skyColor = new com.badlogic.gdx.graphics.Color(0, 0, 0, 0);
+    public com.badlogic.gdx.graphics.Color skyColor = new com.badlogic.gdx.graphics.Color(0, 0, 0, 0);
 
     private PerspectiveCamera camera;
     private ModelBatch modelBatch;
@@ -173,6 +287,7 @@ public class ThreeDManager implements Disposable {
     private Map<String, Model> loadedModels = new HashMap<>();
 
     private Map<String, Texture> loadedTextures = new HashMap<>();
+    private IBLBuilderCompat iblBuilderCompat;
 
     private Map<String, ModelInstance> sceneObjects = new HashMap<>();
 
@@ -246,6 +361,9 @@ public class ThreeDManager implements Disposable {
     private final Vector3 tmpScale = new Vector3();
     private final Vector3 tmpPos2 = new Vector3();
 
+    private VfxManager vfxManager;
+    private FrameBuffer sceneFbo2;
+
     public static class SceneSettings {
         public int numPointLights = 5;
         public int numSpotLights = 2;
@@ -254,6 +372,33 @@ public class ThreeDManager implements Disposable {
     }
 
     private SceneManager manager;
+
+    public boolean postprocessingEnabled = false;
+
+    private ParticleSystem particleSystem;
+
+    private final Map<String, ParticleEffect> activeParticleEffects = new HashMap<>();
+    private Texture defaultParticleTexture;
+
+    private final List<ParticleEffect> effectsNormal = new ArrayList<>();
+    private final List<ParticleEffect> effectsAdditive = new ArrayList<>();
+
+    private ModelBatch particleModelBatch;
+    private Model particleProxyModel;
+    private com.badlogic.gdx.graphics.g3d.particles.batches.PointSpriteParticleBatch batchNormal;
+    private com.badlogic.gdx.graphics.g3d.particles.batches.PointSpriteParticleBatch batchAdditive;
+
+    private final Map<String, BillboardParticleBatch> managedBatches = new HashMap<>();
+    private EyeAdaptationManager eyeAdaptationManager;
+    private ExposureEffect exposureEffect;
+    private TonemappingEffect tonemappingEffect;
+    private LinearizeEffect linearizeEffect;
+    private final List<com.crashinvaders.vfx.effects.VfxEffect> userEffects = new ArrayList<>();
+
+    private FogComponent currentFog;
+    private ShaderProgram fogShader;
+    private Mesh fullscreenQuad;
+    private final Matrix4 inverseProjectionView = new Matrix4();
 
     public void init() {
         init(new SceneSettings());
@@ -336,12 +481,13 @@ public class ThreeDManager implements Disposable {
         sceneManager.environment.set(new net.mgsx.gltf.scene3d.attributes.PBRCubemapAttribute(net.mgsx.gltf.scene3d.attributes.PBRCubemapAttribute.DiffuseEnv, diffuseCubemap));
         sceneManager.environment.set(new net.mgsx.gltf.scene3d.attributes.PBRCubemapAttribute(net.mgsx.gltf.scene3d.attributes.PBRCubemapAttribute.SpecularEnv, specularCubemap));
 
-        dynamicsWorld.getSolverInfo().setNumIterations(20); 
-
-        panoramicConverter = new PanoramicConverter();
+        dynamicsWorld.getSolverInfo().setNumIterations(20);
 
         lightProxyModel = modelBuilder.createSphere(0.25f, 0.25f, 0.25f, 8, 8, 
                 new com.badlogic.gdx.graphics.g3d.Material(ColorAttribute.createDiffuse(com.badlogic.gdx.graphics.Color.YELLOW)),
+                com.badlogic.gdx.graphics.VertexAttributes.Usage.Position | com.badlogic.gdx.graphics.VertexAttributes.Usage.Normal);
+        particleProxyModel = modelBuilder.createSphere(0.25f, 0.25f, 0.25f, 8, 8,
+                new com.badlogic.gdx.graphics.g3d.Material(ColorAttribute.createDiffuse(com.badlogic.gdx.graphics.Color.MAGENTA)),
                 com.badlogic.gdx.graphics.VertexAttributes.Usage.Position | com.badlogic.gdx.graphics.VertexAttributes.Usage.Normal);
 
         Material camMat = new Material(ColorAttribute.createDiffuse(Color.CYAN));
@@ -370,6 +516,686 @@ public class ThreeDManager implements Disposable {
         wireframeBoxModel = modelBuilder.createBox(1f, 1f, 1f, GL20.GL_LINES, wireframeMaterial, usage);
         wireframeSphereModel = modelBuilder.createSphere(1f, 1f, 1f, 16, 12, GL20.GL_LINES, wireframeMaterial, usage);
         wireframeCylinderModel = modelBuilder.createCylinder(1f, 2f, 1f, 16, GL20.GL_LINES, wireframeMaterial, usage);
+
+        vfxManager = new VfxManager(Pixmap.Format.RGBA8888);
+        sceneFbo2 = new FrameBuffer(Pixmap.Format.RGBA8888, Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), true);
+        sceneFbo2.getColorBufferTexture().setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+        sceneFboRegion = new TextureRegion(sceneFbo2.getColorBufferTexture());
+        sceneFboRegion.flip(false, true);
+
+        eyeAdaptationManager = new EyeAdaptationManager();
+
+        currentConfig.isActive = false;
+        currentConfig.effects.clear();
+        currentConfig.qualityScale = 1.0f;
+        updatePostProcessing(currentConfig);
+
+
+
+        //createGuaranteedTestEffect();
+
+        panoramicConverter = new PanoramicConverter();
+        iblBuilderCompat = new IBLBuilderCompat();
+        blitBatch = new SpriteBatch();
+        blitCamera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        blitCamera.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+
+        createDefaultParticleTexture();
+
+        fogShader = new ShaderProgram(
+                Gdx.files.internal("shaders/fog.vs.glsl"),
+                Gdx.files.internal("shaders/fog.fs.glsl")
+        );
+        if (!fogShader.isCompiled()) {
+            Gdx.app.error("FogShader", "Compilation failed:\n" + fogShader.getLog());
+        }
+
+        fullscreenQuad = new Mesh(true, 4, 6,
+                new VertexAttribute(VertexAttributes.Usage.Position, 2, "a_position"),
+                new VertexAttribute(VertexAttributes.Usage.TextureCoordinates, 2, "a_texCoord0")
+        );
+        fullscreenQuad.setVertices(new float[] {
+                -1f, -1f, 0f, 0f,
+                1f, -1f, 1f, 0f,
+                1f,  1f, 1f, 1f,
+                -1f,  1f, 0f, 1f
+        });
+        fullscreenQuad.setIndices(new short[] { 0, 1, 2, 2, 3, 0 });
+    }
+
+    public void createParticleProxy(String ownerId) {
+        if (editorProxies.containsKey(ownerId) || particleProxyModel == null) return;
+        ModelInstance proxyInstance = new ModelInstance(particleProxyModel);
+        editorProxies.put(ownerId, proxyInstance);
+    }
+
+    public void setFog(FogComponent fog) {
+        this.currentFog = fog;
+    }
+
+
+
+    private BillboardParticleBatch getBatchFor(Texture texture, boolean isAdditive) {
+        ensureParticleSystemInitialized();
+        String key = texture.getTextureObjectHandle() + (isAdditive ? "_ADD" : "_NRM");
+
+        BillboardParticleBatch batch = managedBatches.get(key);
+
+        if (batch == null) {
+            Gdx.app.log("ParticleBatchManager", "Creating new batch for key: " + key);
+
+            BlendingAttribute blendingAttribute;
+            DepthTestAttribute depthTestAttribute;
+
+            if (isAdditive) {
+                blendingAttribute = new BlendingAttribute(GL20.GL_SRC_ALPHA, GL20.GL_ONE, 1f);
+                depthTestAttribute = new DepthTestAttribute(GL20.GL_LEQUAL, false);
+            } else {
+                blendingAttribute = new BlendingAttribute(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA, 1f);
+                depthTestAttribute = new DepthTestAttribute(GL20.GL_LEQUAL, true);
+            }
+
+            batch = new BillboardParticleBatch(ParticleShader.AlignMode.Screen, true, 1000, blendingAttribute, depthTestAttribute);
+            batch.setCamera(camera);
+            batch.setTexture(texture);
+
+            particleSystem.add(batch);
+            managedBatches.put(key, batch);
+        }
+
+
+        batch.setTexture(texture);
+        return batch;
+    }
+
+    private void updateParticles(float delta) {
+        if (!particleSystemInitialized || activeParticleEffects.isEmpty()) return;
+        if (activeParticleEffects.isEmpty()) return;
+
+
+        particleSystem.begin();
+
+
+        for (ParticleEffect effect : activeParticleEffects.values()) {
+            effect.update(delta);
+            effect.draw();
+        }
+
+
+        particleSystem.end();
+    }
+
+    public void createGuaranteedTestEffect() {
+        Gdx.app.postRunnable(() -> {
+            if (defaultParticleTexture == null) {
+                Gdx.app.error("PARTICLE_DEBUG", "Default particle texture is null!");
+                return;
+            }
+
+            BillboardParticleBatch batch = getBatchFor(defaultParticleTexture, false);
+
+            ParticleEffect effect = new ParticleEffect();
+            RegularEmitter emitter = new RegularEmitter();
+            BillboardRenderer renderer = new BillboardRenderer(batch);
+
+            com.badlogic.gdx.graphics.g3d.particles.ParticleController controller =
+                    new com.badlogic.gdx.graphics.g3d.particles.ParticleController("GUARANTEE_TEST", emitter, renderer);
+
+
+            emitter.setContinuous(true);
+            emitter.getDuration().setLow(3000);
+            emitter.getEmission().setHigh(50);
+            emitter.getLife().setHigh(3000);
+            emitter.setMaxParticleCount(500);
+
+
+            controller.influencers.add(new RegionInfluencer.Single(new TextureRegion(defaultParticleTexture)));
+            ScaleInfluencer scale = new ScaleInfluencer();
+            scale.value.setHigh(5f, 10f);
+            controller.influencers.add(scale);
+            ColorInfluencer.Single col = new ColorInfluencer.Single();
+            col.colorValue.setColors(new float[]{1, 0, 0});
+            col.alphaValue.setHigh(1f);
+            controller.influencers.add(col);
+            PointSpawnShapeValue pointSpawn = new PointSpawnShapeValue();
+            controller.influencers.add(new com.badlogic.gdx.graphics.g3d.particles.influencers.SpawnInfluencer(pointSpawn));
+
+
+            effect.getControllers().add(controller);
+            effect.init();
+            effect.start();
+            effect.setTransform(new Matrix4().setToTranslation(0, 5, 0));
+
+            particleSystem.add(effect);
+            activeParticleEffects.put("GUARANTEE_TEST", effect);
+            Gdx.app.log("PARTICLE_DEBUG", "GUARANTEE_TEST effect created and started using managed batch.");
+        });
+    }
+
+    private void createDefaultParticleTexture() {
+        Gdx.app.log("PARTICLE_DEBUG", "Creating default white gradient texture...");
+        int size = 64;
+        Pixmap pixmap = new Pixmap(size, size, Pixmap.Format.RGBA8888);
+        float centerX = size / 2f;
+        float centerY = size / 2f;
+        float maxRadius = size / 2f;
+
+        for (int x = 0; x < size; x++) {
+            for (int y = 0; y < size; y++) {
+                float dx = x - centerX;
+                float dy = y - centerY;
+                float distance = (float) Math.sqrt(dx * dx + dy * dy);
+
+
+                float alpha = 1.0f - (distance / maxRadius);
+                alpha = Math.max(0, alpha);
+
+
+                alpha = 1.0f - (1.0f - alpha) * (1.0f - alpha);
+
+                pixmap.setColor(1, 1, 1, alpha);
+                pixmap.drawPixel(x, y);
+            }
+        }
+
+        defaultParticleTexture = new Texture(pixmap);
+        pixmap.dispose();
+        Gdx.app.log("PARTICLE_DEBUG", "Default texture created. Handle: " + defaultParticleTexture.getTextureObjectHandle());
+    }
+
+    private boolean particleSystemInitialized = false;
+
+    private void ensureParticleSystemInitialized() {
+        if (particleSystemInitialized) return;
+
+        Gdx.app.log("ParticleSystem", "First particle effect created. Initializing system...");
+        particleModelBatch = new ModelBatch(new DefaultShaderProvider() {
+            @Override
+            protected Shader createShader(Renderable renderable) {
+                return new ParticleShader(renderable, new ParticleShader.Config());
+            }
+        });
+
+        particleSystem = new ParticleSystem();
+
+
+        batchNormal = new com.badlogic.gdx.graphics.g3d.particles.batches.PointSpriteParticleBatch();
+        batchNormal.setCamera(camera);
+        particleSystem.add(batchNormal);
+
+        batchAdditive = new com.badlogic.gdx.graphics.g3d.particles.batches.PointSpriteParticleBatch();
+        batchAdditive.setCamera(camera);
+        particleSystem.add(batchAdditive);
+
+        particleSystemInitialized = true;
+
+        // createGuaranteedTestEffect();
+    }
+
+
+    /*public void updateParticleEffect(String objectId, ParticleComponent data, Matrix4 transform) {
+        Gdx.app.log("ParticleLifecycle", "--- Received update request for effect: " + objectId + " ---");
+        removeParticleEffect(objectId);
+
+        Gdx.app.postRunnable(() -> {
+            Gdx.app.log("ParticleLifecycle", "Runnable: Starting creation for " + objectId);
+
+            Texture texture = defaultParticleTexture;
+            if (data.texturePath != null && !data.texturePath.isEmpty()) {
+                Texture customTex = loadTexture(data.texturePath);
+                if (customTex != null) texture = customTex;
+            }
+            if (texture == null) {
+                Gdx.app.error("ParticleLifecycle", "Runnable: FAILED. Texture is null for " + objectId);
+                return;
+            }
+
+            BillboardParticleBatch targetBatch = getBatchFor(texture, data.isAdditive);
+
+            ParticleEffect effect = new ParticleEffect();
+            RegularEmitter emitter = new RegularEmitter();
+            BillboardRenderer renderer = new BillboardRenderer(targetBatch);
+            com.badlogic.gdx.graphics.g3d.particles.ParticleController controller =
+                    new com.badlogic.gdx.graphics.g3d.particles.ParticleController("PC_" + objectId, emitter, renderer);
+
+
+            emitter.setContinuous(data.looping);
+            emitter.getDuration().setLow(data.duration * 1000f);
+            emitter.getEmission().setHigh(data.emissionRate);
+            emitter.getLife().setHigh(data.startLifetime * 1000f);
+            emitter.setMaxParticleCount(data.maxParticles);
+
+
+
+
+            CylinderSpawnShapeValue spawnShape = new CylinderSpawnShapeValue();
+            spawnShape.setDimensions(data.coneRadius * 2, 0.01f, data.coneRadius * 2);
+            spawnShape.setEdges(true);
+            controller.influencers.add(new SpawnInfluencer(spawnShape));
+
+
+            DynamicsInfluencer dynamicsInfluencer = new DynamicsInfluencer();
+
+
+            DynamicsModifier.PolarAcceleration upwardVelocity = new DynamicsModifier.PolarAcceleration();
+            upwardVelocity.thetaValue.setHigh(0, data.coneAngle);
+            upwardVelocity.phiValue.setHigh(0, 360);
+            upwardVelocity.strengthValue.setHigh(data.startSpeed);
+
+            upwardVelocity.strengthValue.setTimeline(new float[] {0, 0.1f, 0.75f, 1});
+            upwardVelocity.strengthValue.setScaling(new float[] {1, 0.5f, 0.2f, 0});
+            dynamicsInfluencer.velocities.add(upwardVelocity);
+
+
+            DynamicsModifier.BrownianAcceleration turbulence = new DynamicsModifier.BrownianAcceleration();
+
+            turbulence.strengthValue.setHigh(data.startSpeed * 0.5f);
+            dynamicsInfluencer.velocities.add(turbulence);
+
+
+            if (data.gravityModifier != 0) {
+                DynamicsModifier.PolarAcceleration gravityForce = new DynamicsModifier.PolarAcceleration();
+                gravityForce.thetaValue.setHigh(180);
+                gravityForce.strengthValue.setHigh(9.81f * data.gravityModifier);
+                dynamicsInfluencer.velocities.add(gravityForce);
+            }
+            controller.influencers.add(dynamicsInfluencer);
+
+
+            controller.influencers.add(new RegionInfluencer.Single(new TextureRegion(texture)));
+
+
+            ColorInfluencer.Single colorInfluencer = new ColorInfluencer.Single();
+
+            colorInfluencer.colorValue.setColors(new float[] {data.startColor.r, data.startColor.g, data.startColor.b, data.endColor.r, data.endColor.g, data.endColor.b});
+            colorInfluencer.colorValue.setTimeline(new float[] {0, 1});
+
+
+
+            colorInfluencer.alphaValue.setHigh(1f);
+            colorInfluencer.alphaValue.setLow(0f);
+
+
+            colorInfluencer.alphaValue.setTimeline(new float[] {0, 1});
+            colorInfluencer.alphaValue.setScaling(new float[] {data.startColor.a, data.endColor.a});
+
+            controller.influencers.add(colorInfluencer);
+
+
+            ScaleInfluencer scaleInfluencer = new ScaleInfluencer();
+            scaleInfluencer.value.setTimeline(new float[] {0, 1});
+            scaleInfluencer.value.setScaling(new float[] {1, data.endSize / data.startSize});
+            scaleInfluencer.value.setHigh(data.startSize);
+            controller.influencers.add(scaleInfluencer);
+
+            if (data.rotationOverLifetime != 0 || data.startRotation != 0) {
+                DynamicsModifier.Rotational2D rotation = new DynamicsModifier.Rotational2D();
+
+                float rotationSpeed = data.rotationOverLifetime / data.startLifetime;
+                rotation.strengthValue.setHigh(rotationSpeed);
+                dynamicsInfluencer.velocities.add(rotation);
+
+                if (data.startRotation != 0) {
+
+                }
+            }
+
+
+            effect.getControllers().add(controller);
+            effect.init();
+            effect.start();
+            effect.setTransform(transform);
+
+            particleSystem.add(effect);
+            activeParticleEffects.put(objectId, effect);
+
+            Gdx.app.log("ParticleLifecycle", "Runnable: Effect " + objectId + " created successfully using composite dynamics.");
+        });
+    }*/
+
+    public void updateParticleEffect(String objectId, ParticleComponent data, Matrix4 transform) {
+        removeParticleEffect(objectId);
+        data.migrateOldDataIfNeeded();
+        data.sortGraphs();
+
+        Gdx.app.postRunnable(() -> {
+            Texture texture = defaultParticleTexture;
+            if (data.texturePath != null && !data.texturePath.isEmpty()) {
+                Texture customTex = loadTexture(data.texturePath);
+                if (customTex != null) texture = customTex;
+            }
+            if (texture == null) return;
+
+            BillboardParticleBatch targetBatch = getBatchFor(texture, data.isAdditive);
+            RegularEmitter emitter = new RegularEmitter();
+            BillboardRenderer renderer = new BillboardRenderer(targetBatch);
+            com.badlogic.gdx.graphics.g3d.particles.ParticleController controller =
+                    new com.badlogic.gdx.graphics.g3d.particles.ParticleController("PC_" + objectId, emitter, renderer);
+
+            emitter.setContinuous(data.looping);
+            emitter.getDuration().setLow(data.duration * 1000f);
+            emitter.getEmission().setHigh(data.emissionRate);
+            emitter.getLife().setHigh(data.startLifetime * 1000f);
+            emitter.setMaxParticleCount(data.maxParticles);
+
+            com.badlogic.gdx.graphics.g3d.particles.values.PrimitiveSpawnShapeValue shapeValue;
+
+            switch (data.spawnShape) {
+                case POINT:
+                    shapeValue = new com.badlogic.gdx.graphics.g3d.particles.values.PointSpawnShapeValue();
+                    break;
+                case BOX:
+                    com.badlogic.gdx.graphics.g3d.particles.values.RectangleSpawnShapeValue rect =
+                            new com.badlogic.gdx.graphics.g3d.particles.values.RectangleSpawnShapeValue();
+                    rect.setDimensions(data.spawnSize.x * 2, data.spawnSize.y * 2, data.spawnSize.z * 2);
+                    shapeValue = rect;
+                    break;
+                case SPHERE:
+                    com.badlogic.gdx.graphics.g3d.particles.values.EllipseSpawnShapeValue ellipse =
+                            new com.badlogic.gdx.graphics.g3d.particles.values.EllipseSpawnShapeValue();
+                    ellipse.setDimensions(data.spawnSize.x * 2, data.spawnSize.y * 2, data.spawnSize.z * 2);
+                    shapeValue = ellipse;
+                    break;
+                case CYLINDER:
+                default:
+                    com.badlogic.gdx.graphics.g3d.particles.values.CylinderSpawnShapeValue cyl =
+                            new com.badlogic.gdx.graphics.g3d.particles.values.CylinderSpawnShapeValue();
+                    cyl.setDimensions(data.spawnSize.x * 2, data.spawnSize.y, data.spawnSize.z * 2);
+                    shapeValue = cyl;
+                    break;
+            }
+
+            shapeValue.setEdges(data.spawnOnSurface);
+
+            controller.influencers.add(new com.badlogic.gdx.graphics.g3d.particles.influencers.SpawnInfluencer(shapeValue));
+
+            DynamicsInfluencer dynamics = new DynamicsInfluencer();
+
+            if (!data.speedGraph.isEmpty()) {
+                DynamicsModifier.PolarAcceleration velocity = new DynamicsModifier.PolarAcceleration();
+
+                velocity.phiValue.setHigh(0, 360);
+                velocity.thetaValue.setHigh(0, data.coneAngle);
+
+                applyFloatGraph(velocity.strengthValue, data.speedGraph);
+                dynamics.velocities.add(velocity);
+            }
+
+            if (!data.gravityGraph.isEmpty()) {
+                DynamicsModifier.PolarAcceleration gravity = new DynamicsModifier.PolarAcceleration();
+                gravity.thetaValue.setHigh(180);
+                applyFloatGraph(gravity.strengthValue, data.gravityGraph);
+                dynamics.velocities.add(gravity);
+            }
+
+            if (!data.vortexGraph.isEmpty()) {
+                DynamicsModifier.TangentialAcceleration vortex = new DynamicsModifier.TangentialAcceleration();
+                vortex.phiValue.setHigh(0);
+                vortex.thetaValue.setHigh(90);
+                applyFloatGraph(vortex.strengthValue, data.vortexGraph);
+                dynamics.velocities.add(vortex);
+            }
+
+            if (!data.turbulenceGraph.isEmpty()) {
+                DynamicsModifier.BrownianAcceleration noise = new DynamicsModifier.BrownianAcceleration();
+                applyFloatGraph(noise.strengthValue, data.turbulenceGraph);
+                dynamics.velocities.add(noise);
+            }
+
+            if (!data.rotationGraph.isEmpty()) {
+                DynamicsModifier.Rotational2D rot = new DynamicsModifier.Rotational2D();
+                applyFloatGraph(rot.strengthValue, data.rotationGraph);
+                dynamics.velocities.add(rot);
+            }
+
+            controller.influencers.add(dynamics);
+
+            ColorInfluencer.Single colorInf = new ColorInfluencer.Single();
+            applyColorGraph(colorInf, data.colorGraph);
+            controller.influencers.add(colorInf);
+
+            ScaleInfluencer scaleInf = new ScaleInfluencer();
+            applyFloatGraph(scaleInf.value, data.sizeGraph);
+            scaleInf.value.setHigh(data.baseSize);
+            controller.influencers.add(scaleInf);
+
+            controller.influencers.add(new RegionInfluencer.Single(new TextureRegion(texture)));
+
+            ParticleEffect effect = new ParticleEffect();
+            effect.getControllers().add(controller);
+            effect.init();
+            effect.start();
+            effect.setTransform(transform);
+
+            particleSystem.add(effect);
+            activeParticleEffects.put(objectId, effect);
+        });
+    }
+
+    private void applyFloatGraph(com.badlogic.gdx.graphics.g3d.particles.values.ScaledNumericValue libgdxVal,
+                                 List<ParticleCurvePoint<Float>> graph) {
+        if (graph.isEmpty()) return;
+
+        float[] timeline = new float[graph.size()];
+        float[] values = new float[graph.size()];
+
+        for (int i = 0; i < graph.size(); i++) {
+            timeline[i] = graph.get(i).time;
+            values[i] = graph.get(i).value;
+        }
+
+        libgdxVal.setTimeline(timeline);
+        libgdxVal.setScaling(values);
+        libgdxVal.setHigh(1f);
+    }
+
+    private void applyColorGraph(ColorInfluencer.Single colorInf, List<ParticleCurvePoint<Color>> graph) {
+        if (graph.isEmpty()) return;
+
+        float[] timeline = new float[graph.size()];
+        float[] colors = new float[graph.size() * 3];
+        float[] alphas = new float[graph.size()];
+
+        for (int i = 0; i < graph.size(); i++) {
+            ParticleCurvePoint<Color> p = graph.get(i);
+            timeline[i] = p.time;
+
+            colors[i*3] = p.value.r;
+            colors[i*3+1] = p.value.g;
+            colors[i*3+2] = p.value.b;
+
+            alphas[i] = p.value.a;
+        }
+
+        colorInf.colorValue.setTimeline(timeline);
+        colorInf.colorValue.setColors(colors);
+
+        colorInf.alphaValue.setTimeline(timeline);
+        colorInf.alphaValue.setScaling(alphas);
+        colorInf.alphaValue.setHigh(1f);
+    }
+
+
+    public void removeParticleEffect(String objectId) {
+        ParticleEffect effect = activeParticleEffects.remove(objectId);
+        if (effect != null) {
+            Gdx.app.log("ParticleLifecycle", "Removing effect: " + objectId);
+            particleSystem.remove(effect);
+            effect.dispose();
+        }
+    }
+
+
+    public void updateParticleTransform(String objectId, Matrix4 transform) {
+        ParticleEffect effect = activeParticleEffects.get(objectId);
+        if (effect != null) {
+            //Gdx.app.log("ParticleTransform", "Updating transform for " + objectId);
+            effect.setTransform(transform);
+        }
+    }
+
+
+    public PostProcessingComponent currentConfig = new PostProcessingComponent();
+
+    public void updatePostProcessing(PostProcessingComponent config) {
+        this.currentConfig = config;
+        Gdx.app.postRunnable(() -> {
+            if (vfxManager == null) return;
+
+            this.postprocessingEnabled = config.isActive;
+
+            if (!config.isActive) {
+                vfxManager.removeAllEffects();
+                userEffects.clear();
+                return;
+            }
+
+            int w = Gdx.graphics.getWidth();
+            int h = Gdx.graphics.getHeight();
+
+            float scale = Math.max(0.01f, Math.min(1.0f, config.qualityScale));
+
+            if (vfxManager.getWidth() != (int) (w * scale) || vfxManager.getHeight() != (int) (h * scale)) {
+                vfxManager.resize((int) (w * scale), (int) (h * scale));
+            }
+
+            vfxManager.removeAllEffects();
+            userEffects.clear();
+
+            boolean tonemappingOrAdaptationActive =
+                    config.hasEffect(PostProcessingData.ACES.class) ||
+                            config.hasEffect(PostProcessingData.EyeAdaptation.class);
+
+            if (tonemappingOrAdaptationActive) {
+                if (linearizeEffect == null) linearizeEffect = new LinearizeEffect();
+                vfxManager.addEffect(linearizeEffect);
+            }
+
+            if (config.hasEffect(PostProcessingData.EyeAdaptation.class)) {
+                if (exposureEffect == null) exposureEffect = new ExposureEffect();
+                vfxManager.addEffect(exposureEffect);
+            }
+
+            for (PostProcessingData data : config.effects) {
+                if (!data.isEnabled) continue;
+
+                if (data instanceof PostProcessingData.Bloom) {
+                    PostProcessingData.Bloom b = (PostProcessingData.Bloom) data;
+
+                    BloomEffect effect = new OptimizedBloomEffect(b.size);
+
+                    // Теперь Passes можно ставить МАЛО, так как картинка маленькая.
+                    // 3-4 прохода на маленькой текстуре выглядят как 10-15 на большой.
+                    effect.setBlurPasses(b.blurPasses);
+
+
+
+                    effect.setBlurAmount(b.blurAmount);
+
+                    effect.setThreshold(b.threshold);
+                    effect.setBloomIntensity(b.intensity);
+
+                    vfxManager.addEffect(effect);
+                } else if (data instanceof PostProcessingData.Vignette) {
+                    PostProcessingData.Vignette v = (PostProcessingData.Vignette) data;
+                    VignettingEffect effect = new VignettingEffect(false);
+                    effect.setIntensity(v.intensity);
+                    effect.setSaturation(v.saturation);
+                    vfxManager.addEffect(effect);
+                } else if (data instanceof PostProcessingData.Levels) {
+                    PostProcessingData.Levels l = (PostProcessingData.Levels) data;
+                    LevelsEffect effect = new LevelsEffect();
+                    effect.setContrast(l.contrast);
+                    effect.setSaturation(l.saturation);
+                    effect.setGamma(l.gamma);
+                    vfxManager.addEffect(effect);
+                } else if (data instanceof PostProcessingData.Grain) {
+                    PostProcessingData.Grain g = (PostProcessingData.Grain) data;
+                    FilmGrainEffect effect = new FilmGrainEffect();
+                    effect.setNoiseAmount(g.amount);
+                    vfxManager.addEffect(effect);
+                } else if (data instanceof PostProcessingData.Chromatic) {
+                    PostProcessingData.Chromatic c = (PostProcessingData.Chromatic) data;
+                    ChromaticAberrationEffect effect = new ChromaticAberrationEffect((int) c.maxDistortion);
+                    effect.setMaxDistortion(c.strength);
+                    vfxManager.addEffect(effect);
+                } else if (data instanceof PostProcessingData.Fxaa) {
+                    vfxManager.addEffect(new FxaaEffect());
+                } else if (data instanceof PostProcessingData.RadialBlur) {
+                    PostProcessingData.RadialBlur r = (PostProcessingData.RadialBlur) data;
+
+                    RadialBlurEffect effect = new OptimizedRadialBlurEffect(r.blurPasses, r.size);
+                    effect.setStrength(r.strength);
+                    vfxManager.addEffect(effect);
+                }
+                else if (data instanceof PostProcessingData.OldTv) {
+                    PostProcessingData.OldTv tv = (PostProcessingData.OldTv) data;
+                    OldTvEffect effect = new OldTvEffect();
+                    vfxManager.addEffect(effect);
+                }
+                else if (data instanceof PostProcessingData.Gaussian) {
+                    PostProcessingData.Gaussian g = (PostProcessingData.Gaussian) data;
+                    GaussianBlurEffect effect = new OptimizedGaussianBlurEffect(g.size);
+                    effect.setPasses(g.passes);
+                    effect.setAmount(g.amount);
+                    vfxManager.addEffect(effect);
+                }
+                else if (data instanceof PostProcessingData.Zoom) {
+                    PostProcessingData.Zoom z = (PostProcessingData.Zoom) data;
+                    ZoomEffect effect = new ZoomEffect();
+                    effect.setZoom(z.zoom);
+                    effect.setOrigin(z.originX, z.originY);
+                    vfxManager.addEffect(effect);
+                }
+                else if (data instanceof PostProcessingData.Crt) {
+                    PostProcessingData.Crt c = (PostProcessingData.Crt) data;
+                    CrtEffect effect = new CrtEffect();
+                    vfxManager.addEffect(effect);
+                }
+                else if (data instanceof PostProcessingData.Fisheye) {
+                    PostProcessingData.Fisheye f = (PostProcessingData.Fisheye) data;
+                    FisheyeEffect effect = new FisheyeEffect();
+                    vfxManager.addEffect(effect);
+                }
+                else if (data instanceof PostProcessingData.Water) {
+                    PostProcessingData.Water w2 = (PostProcessingData.Water) data;
+                    WaterDistortionEffect effect = new WaterDistortionEffect(w2.amount, w2.speed);
+                    vfxManager.addEffect(effect);
+                }
+                else if (data instanceof PostProcessingData.MotionBlur) {
+                    PostProcessingData.MotionBlur mb = (PostProcessingData.MotionBlur) data;
+
+                    MotionBlurEffect effect = new MotionBlurEffect(Pixmap.Format.RGBA8888, MIX, mb.blurOpacity);
+                    vfxManager.addEffect(effect);
+                }
+                else if (data instanceof PostProcessingData.LensFlare) {
+                    PostProcessingData.LensFlare lf = (PostProcessingData.LensFlare) data;
+
+                    AutoLensFlareEffect effect = new AutoLensFlareEffect();
+
+
+
+
+                    effect.setThreshold(lf.threshold);
+
+
+
+                    effect.setIntensity(lf.intensity * 2.0f);
+
+
+                    effect.setDispersal(lf.dispersal);
+                    effect.setSize(lf.size);
+
+
+                    vfxManager.addEffect(effect);
+                }
+            }
+
+            if (config.hasEffect(PostProcessingData.ACES.class)) {
+                if (tonemappingEffect == null) tonemappingEffect = new TonemappingEffect();
+                vfxManager.addEffect(tonemappingEffect);
+            }
+        });
     }
 
     public void setObjectVisibility(String objectId, boolean visible) {
@@ -506,12 +1332,7 @@ public class ThreeDManager implements Disposable {
     private final Vector3 cyanColorVec = new Vector3(Color.CYAN.r, Color.CYAN.g, Color.CYAN.b);
 
     
-    /**
-     * Рисует линии, представляющие поле зрения (frustum) камеры.
-     * @param ownerTransform Трансформация GameObject'а, к которому прикреплена камера.
-     * @param fov Угол обзора.
-     * @param far Дальняя плоскость.
-     */
+
     public void renderCameraFrustum(Matrix4 ownerTransform, float fov, float far) {
         if (debugDrawer == null) return;
 
@@ -704,12 +1525,7 @@ public class ThreeDManager implements Disposable {
 
     private final Vector3 tmpVec = new Vector3();
 
-    /**
-     * Отрисовывает контур хитбокса для редактора.
-     * НЕ ИСПОЛЬЗУЕТ glPolygonMode, работает на Android.
-     * @param shapeData Данные о форме коллайдера.
-     * @param parentTransform Трансформация родительского GameObject.
-     */
+
     public void renderWireframeShape(ModelBatch batch, ColliderShapeData shapeData, Matrix4 parentTransform, Color color) {
         if (batch == null) return;
 
@@ -760,12 +1576,7 @@ public class ThreeDManager implements Disposable {
     }
 
 
-    /**
-     * Устанавливает интенсивность фонового света (IBL).
-     * Этот метод управляет атрибутом AmbientLight, который PBR-шейдер использует
-     * как множитель для яркости карты окружения (diffuseCubemap).
-     * @param intensity Множитель. 1.0 - нормальная яркость, 0.1 - очень темно (ночь), 0.0 - полностью выключен.
-     */
+
     public void setBackgroundLightIntensity(float intensity) {
         if (sceneManager != null) {
             ColorAttribute ambientLight = (ColorAttribute) sceneManager.environment.get(ColorAttribute.AmbientLight);
@@ -778,15 +1589,7 @@ public class ThreeDManager implements Disposable {
         }
     }
 
-    /**
-     * Добавляет или обновляет точечный источник света в PBR-сцене.
-     * Если свет с таким ID уже существует, его параметры будут обновлены.
-     * @param lightId Уникальный ID света.
-     * @param x, y, z Позиция.
-     * @param r, g, b Цвет (0-1).
-     * @param intensity Интенсивность. Для лампочки накаливания ~500-1000, для уличного фонаря ~5000+.
-     * @param range Дальность действия света. 0 - бесконечная дальность.
-     */
+
     public void setPointLight(String lightId, float x, float y, float z, float r, float g, float b, float intensity, float range) {
         net.mgsx.gltf.scene3d.lights.PointLightEx light = pointLights.get(lightId);
         if (light == null) {
@@ -804,17 +1607,7 @@ public class ThreeDManager implements Disposable {
         return (value - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
     }
 
-    /**
-     * Добавляет или обновляет прожектор (конус света) в PBR-сцене.
-     * @param lightId ID света.
-     * @param x, y, z Позиция.
-     * @param dirX, dirY, dirZ Направление.
-     * @param r, g, b Цвет.
-     * @param intensity Интенсивность.
-     * @param cutoffAngle Угол конуса в градусах (1-90).
-     * @param exponent Плавность затухания по краям конуса (обычно 1.0).
-     * @param range Дальность.
-     */
+
     public void setSpotLight(String lightId, float x, float y, float z, float dirX, float dirY, float dirZ, float r, float g, float b, float intensity, float cutoffAngle, float exponent, float range) {
         net.mgsx.gltf.scene3d.lights.SpotLightEx light = spotLights.get(lightId);
         if (light == null) {
@@ -831,11 +1624,7 @@ public class ThreeDManager implements Disposable {
         light.range = range > 0 ? range : null;
     }
 
-    /**
-     * Удаляет источник света (точечный или прожектор) из сцены.
-     * @param lightId ID удаляемого света.
-     * @return true, если свет был найден и удален.
-     */
+
     public boolean removePBRLight(String lightId) {
         net.mgsx.gltf.scene3d.lights.PointLightEx pointLight = pointLights.remove(lightId);
         if (pointLight != null) {
@@ -850,11 +1639,7 @@ public class ThreeDManager implements Disposable {
         return false;
     }
 
-    /**
-     * Устанавливает уровень анизотропной фильтрации для всех материалов объекта.
-     * @param objectId ID объекта.
-     * @param level Уровень фильтрации. Хорошие значения: 2.0, 4.0, 8.0. Максимум зависит от GPU. 1.0 - выключено.
-     */
+
     public void setObjectAnisotropicFilter(String objectId, float level) {
         ModelInstance instance = sceneObjects.get(objectId);
         if (instance == null) return;
@@ -871,12 +1656,7 @@ public class ThreeDManager implements Disposable {
         }
     }
 
-    /**
-     * Устанавливает экспоненциальный туман в сцене.
-     * @param r, g, b Цвет тумана (0-1).
-     * @param density Плотность тумана. Хорошие значения от 0.001 (очень легкий) до 0.1 (плотный).
-     *                Установите в 0 или меньше, чтобы выключить туман.
-     */
+
     public void setFog(float r, float g, float b, float density) {
         if (density > 0) {
             environment.set(new ColorAttribute(ColorAttribute.Fog, r, g, b, 1f));
@@ -888,17 +1668,12 @@ public class ThreeDManager implements Disposable {
         camera.update();
     }
 
-    /**
-     * Устанавливает цвет фона (неба).
-     */
+
     public void setSkyColor(float r, float g, float b) {
         skyColor.set(r, g, b, 1f);
     }
 
-    /**
-     * Возвращает текущую позицию камеры.
-     * @return Vector3 с координатами (x, y, z).
-     */
+
     public Vector3 getCameraPosition() {
         return camera.position;
     }
@@ -938,11 +1713,7 @@ public class ThreeDManager implements Disposable {
         }
     }
 
-    /**
-     * Возвращает текущий вектор направления камеры.
-     * ВАЖНО: Этот вектор уже нормализован (его длина равна 1).
-     * @return Vector3 с направлением (x, y, z).
-     */
+
     public Vector3 getCameraDirection() {
         return camera.direction;
     }
@@ -973,29 +1744,6 @@ public class ThreeDManager implements Disposable {
         if (cameraTargetId != null) {
             updateThirdPersonCamera();
         }
-        /*frameCounter++;
-        if (frameCounter % 60 == 0) { 
-            Gdx.app.log("PhysicsDebug", "--- Frame " + frameCounter + " ---");
-            btRigidBody playerBody = physicsBodies.get("player"); 
-            if (playerBody != null) {
-                Matrix4 transform = playerBody.getWorldTransform();
-                Vector3 position = new Vector3();
-                transform.getTranslation(position);
-                Gdx.app.log("PhysicsDebug", "Player position: " + position);
-            } else {
-                Gdx.app.log("PhysicsDebug", "Player physics body not found!");
-            }
-
-            btRigidBody mapBody = physicsBodies.get("myObject2"); 
-            if (mapBody != null) {
-                Matrix4 transform = mapBody.getWorldTransform();
-                Vector3 position = new Vector3();
-                transform.getTranslation(position);
-                Gdx.app.log("PhysicsDebug", "Map position: " + position);
-            } else {
-                Gdx.app.log("PhysicsDebug", "Map physics body not found!");
-            }
-        }*/
 
         for (com.badlogic.gdx.graphics.g3d.utils.AnimationController controller : animationControllers.values()) {
             controller.update(delta);
@@ -1023,10 +1771,7 @@ public class ThreeDManager implements Disposable {
                 String objectId = entry.getKey();
                 btRigidBody body = entry.getValue();
 
-
-
                 boolean isManagedBySceneManager = (Objects.requireNonNull(StageActivity.getActiveStageListener()).sceneManager != null && Objects.requireNonNull(StageActivity.getActiveStageListener()).sceneManager.findGameObject(objectId) != null);
-
 
                 if (!isManagedBySceneManager) {
                     ModelInstance instance = sceneObjects.get(objectId);
@@ -1043,25 +1788,6 @@ public class ThreeDManager implements Disposable {
                     }
                 }
             }
-
-            /*for (Map.Entry<String, btRigidBody> entry : physicsBodies.entrySet()) {
-                ModelInstance instance = sceneObjects.get(entry.getKey());
-                btRigidBody body = entry.getValue();
-
-                if (instance != null && !body.isStaticObject() && body.getMotionState() != null) {
-                    com.badlogic.gdx.math.Matrix4 bodyTransform = body.getWorldTransform();
-
-                    Vector3 position = new Vector3();
-                    bodyTransform.getTranslation(position);
-                    Quaternion rotation = new Quaternion();
-                    bodyTransform.getRotation(rotation);
-
-                    Vector3 scale = new Vector3();
-                    instance.transform.getScale(scale); 
-
-                    instance.transform.set(position, rotation, scale);
-                }
-            }*/
         }
 
         if (!editorMode && LOG_THREED_MANAGER_DEBUG) {
@@ -1147,7 +1873,7 @@ public class ThreeDManager implements Disposable {
 
         btRigidBody bodyB = physicsBodies.get(objectIdB);
         if (bodyB == null) {
-            //bodyB = btRigidBody.upcast(dynamicsWorld.getCollisionObjectArray().at(0));
+
         }
 
         if (bodyA == null) {
@@ -1358,6 +2084,28 @@ public class ThreeDManager implements Disposable {
             return;
         }
 
+        if (panoramicConverter == null) {
+            Gdx.app.error("Skybox", "PanoramicConverter is not initialized yet. Deferring task.");
+
+            Gdx.app.postRunnable(() -> setSkybox(panoramicTexturePath));
+            return;
+        }
+
+        if (panoramicTexturePath == null || panoramicTexturePath.isEmpty()) {
+            if (skybox != null) {
+                sceneManager.setSkyBox(null);
+                skybox.dispose();
+                skybox = null;
+            }
+            if (skyboxCubemap != null) {
+                skyboxCubemap.dispose();
+                skyboxCubemap = null;
+            }
+            updateProceduralIBL();
+            Gdx.app.log("Skybox", "Skybox cleared. Reverted to procedural IBL.");
+            return;
+        }
+
         try {
             FileHandle textureFile = Gdx.files.absolute(panoramicTexturePath);
             if (!textureFile.exists()) {
@@ -1371,28 +2119,25 @@ public class ThreeDManager implements Disposable {
             if (skybox != null) skybox.dispose();
 
             skyboxCubemap = panoramicConverter.convert(panoramicTexture, 1024);
-
             skybox = new net.mgsx.gltf.scene3d.scene.SceneSkybox(skyboxCubemap);
             sceneManager.setSkyBox(skybox);
 
-            updateProceduralIBL();
+
+            updateIBLFromCubemap(skyboxCubemap);
 
             panoramicTexture.dispose();
 
-            Gdx.app.log("Skybox", "Skybox set successfully. Using procedural IBL as fallback.");
+            Gdx.app.log("Skybox", "Skybox and its Image-Based Lighting set successfully.");
 
         } catch (Exception e) {
             Gdx.app.error("Skybox", "Failed to set skybox", e);
         }
     }
 
-    /**
-     * Вспомогательный метод для обновления процедурных карт освещения.
-     */
     private void updateProceduralIBL() {
         if (diffuseCubemap != null) diffuseCubemap.dispose();
         if (specularCubemap != null) specularCubemap.dispose();
-        
+
         IBLBuilder iblBuilder = IBLBuilder.createOutdoor(pbrLight);
 
         diffuseCubemap = iblBuilder.buildIrradianceMap(256);
@@ -1404,22 +2149,42 @@ public class ThreeDManager implements Disposable {
         sceneManager.environment.set(new PBRCubemapAttribute(PBRCubemapAttribute.SpecularEnv, specularCubemap));
     }
 
-    /**
-     * Включает или выключает режим реалистичного PBR-рендеринга.
-     * @param enabled true для включения, false для возврата к старому рендеру.
-     */
+
+
+    private void updateIBLFromCubemap(Cubemap sourceCubemap) {
+        if (iblBuilderCompat == null) {
+            Gdx.app.error("IBL", "IBLBuilderCompat not initialized yet. Deferring IBL update.");
+
+            Gdx.app.postRunnable(() -> updateIBLFromCubemap(sourceCubemap));
+            return;
+        }
+
+        if (diffuseCubemap != null) diffuseCubemap.dispose();
+        if (specularCubemap != null) specularCubemap.dispose();
+
+
+        diffuseCubemap = iblBuilderCompat.buildIrradianceMap(sourceCubemap, 32);
+
+
+
+        specularCubemap = iblBuilderCompat.buildRadianceMap(sourceCubemap, 128, 5);
+
+
+
+        sceneManager.environment.set(new PBRCubemapAttribute(PBRCubemapAttribute.DiffuseEnv, diffuseCubemap));
+        sceneManager.environment.set(new PBRCubemapAttribute(PBRCubemapAttribute.SpecularEnv, specularCubemap));
+        Gdx.app.log("IBL", "Image-Based Lighting recalculated from skybox texture via Compat builder.");
+    }
+
+
+
+
+
     public void enableRealisticRendering(boolean enabled) {
         this.realisticMode = enabled;
     }
 
-    /**
-     * Задает линейную скорость физического объекта.
-     * Работает только для динамических объектов (Dynamic).
-     * @param objectId ID объекта.
-     * @param vx Скорость по оси X.
-     * @param vy Скорость по оси Y.
-     * @param vz Скорость по оси Z.
-     */
+
     public void setVelocity(String objectId, float vx, float vy, float vz) {
         btRigidBody body = physicsBodies.get(objectId);
         if (body != null && body.getInvMass() > 0) {
@@ -1432,72 +2197,288 @@ public class ThreeDManager implements Disposable {
         dynamicsWorld.setGravity(new Vector3(x, y, z));
     }
 
+    public void renderShadowsOnly() {
+        camera.update();
+        if (realisticMode) {
+            sceneManager.renderShadows();
+        } else {
+
+        }
+    }
+
+    public void renderColorsOnly() {
+        camera.update();
+
+
+        if (realisticMode) {
+            if (skyColor.a != 0) {
+                Gdx.gl.glClearColor(skyColor.r, skyColor.g, skyColor.b, skyColor.a);
+                Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
+            }
+            sceneManager.renderMirror();
+            sceneManager.renderTransmission();
+            sceneManager.renderColors();
+        } else {
+            Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+
+            if (skyColor.a != 0) {
+                Gdx.gl.glClearColor(skyColor.r, skyColor.g, skyColor.b, skyColor.a);
+                Gdx.gl.glClear(com.badlogic.gdx.graphics.GL20.GL_COLOR_BUFFER_BIT | com.badlogic.gdx.graphics.GL20.GL_DEPTH_BUFFER_BIT);
+            }
+
+            modelBatch.begin(camera);
+
+            if (customShaderProvider != null) {
+                int shadowMapTextureUnit = 5;
+                shadowFBO.getColorBufferTexture().bind(shadowMapTextureUnit);
+                setShaderUniform("shadowMap", shadowMapTextureUnit);
+                customUniforms.put("u_lightSpaceMatrix", lightSpaceMatrix);
+                customUniforms.put("u_shadowMapSize", new Vector2(SHADOW_MAP_SIZE, SHADOW_MAP_SIZE));
+            }
+
+            for (Map.Entry<String, ModelInstance> entry : sceneObjects.entrySet()) {
+                if (!inactiveRenderObjects.contains(entry.getKey())) {
+                    modelBatch.render(entry.getValue(), environment);
+                }
+            }
+            modelBatch.end();
+        }
+
+        if (particleSystemInitialized && !activeParticleEffects.isEmpty()) {
+
+            particleModelBatch.begin(camera);
+            particleModelBatch.render(particleSystem);
+            particleModelBatch.end();
+
+
+            if (!effectsNormal.isEmpty()) {
+                Gdx.gl.glEnable(GL20.GL_DEPTH_TEST);
+                Gdx.gl.glDepthMask(true);
+                Gdx.gl.glEnable(GL20.GL_BLEND);
+                Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+
+                batchNormal.setCamera(camera);
+                batchNormal.begin();
+                for (ParticleEffect effect : effectsNormal) effect.draw();
+                batchNormal.end();
+            }
+
+            if (!effectsAdditive.isEmpty()) {
+                Gdx.gl.glEnable(GL20.GL_BLEND);
+                Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE);
+                Gdx.gl.glDepthMask(false);
+
+                batchAdditive.setCamera(camera);
+                batchAdditive.begin();
+                for (ParticleEffect effect : effectsAdditive) effect.draw();
+                batchAdditive.end();
+
+                Gdx.gl.glDepthMask(true);
+                Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+            }
+        }
+
+        if (debugEnabled) {
+            debugDrawer.begin(camera);
+            dynamicsWorld.debugDrawWorld();
+            debugDrawer.end();
+        }
+    }
+
+    private SpriteBatch blitBatch;
+    private OrthographicCamera blitCamera;
+    private TextureRegion sceneFboRegion;
+    private static final float HDR_EMULATION_FACTOR = 1.0f / 16.0f;
+
     public void render() {
         try {
-            camera.update();
+            float delta = Gdx.graphics.getDeltaTime();
 
-            if (realisticMode) {
-                if (skyColor.a != 0) {
-                    Gdx.gl.glClearColor(skyColor.r, skyColor.g, skyColor.b, skyColor.a);
-                    Gdx.gl.glClear(com.badlogic.gdx.graphics.GL20.GL_COLOR_BUFFER_BIT | com.badlogic.gdx.graphics.GL20.GL_DEPTH_BUFFER_BIT);
+            updateParticles(delta);
+
+            if (postprocessingEnabled) {
+                if (vfxManager != null) {
+                    vfxManager.update(delta);
                 }
 
-                sceneManager.render();
+                renderShadowsOnly();
 
-            } else {
-                Vector3 lightPosition = new Vector3(150, 200, 100);
-                Vector3 lightLookAt = new Vector3(0, 0, 0);
-                lightCamera.position.set(lightPosition);
-                lightCamera.lookAt(lightLookAt);
-                lightCamera.update();
+                sceneFbo2.begin();
+                renderColorsOnly();
+                sceneFbo2.end();
 
-                lightSpaceMatrix.set(lightCamera.combined);
-
-                shadowFBO.begin();
-                Gdx.gl.glViewport(0, 0, SHADOW_MAP_SIZE, SHADOW_MAP_SIZE);
-                Gdx.gl.glClear(com.badlogic.gdx.graphics.GL20.GL_DEPTH_BUFFER_BIT);
-
-                shadowBatch.begin(lightCamera);
-                for (ModelInstance instance : sceneObjects.values()) {
-                    shadowBatch.render(instance);
-                }
-                shadowBatch.end();
-
-                shadowFBO.end();
-
-                Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-
-                if (skyColor.a != 0) {
-                    Gdx.gl.glClearColor(skyColor.r, skyColor.g, skyColor.b, skyColor.a);
-                    Gdx.gl.glClear(com.badlogic.gdx.graphics.GL20.GL_COLOR_BUFFER_BIT | com.badlogic.gdx.graphics.GL20.GL_DEPTH_BUFFER_BIT);
-                }
-
-                modelBatch.begin(camera);
-
-                if (customShaderProvider != null) {
-                    int shadowMapTextureUnit = 5;
-                    shadowFBO.getColorBufferTexture().bind(shadowMapTextureUnit);
-                    setShaderUniform("shadowMap", shadowMapTextureUnit);
-                    customUniforms.put("u_lightSpaceMatrix", lightSpaceMatrix);
-                    customUniforms.put("u_shadowMapSize", new Vector2(SHADOW_MAP_SIZE, SHADOW_MAP_SIZE));
-                }
-
-                for (Map.Entry<String, ModelInstance> entry : sceneObjects.entrySet()) {
-                    if (!inactiveRenderObjects.contains(entry.getKey())) {
-                        modelBatch.render(entry.getValue(), environment);
+                if (currentConfig.hasEffect(PostProcessingData.EyeAdaptation.class)) {
+                    PostProcessingData.EyeAdaptation settings = (PostProcessingData.EyeAdaptation) currentConfig.effects.stream()
+                            .filter(e -> e instanceof PostProcessingData.EyeAdaptation).findFirst().orElse(null);
+                    if (settings != null) {
+                        eyeAdaptationManager.update(delta, sceneFbo2.getColorBufferTexture(), settings);
+                        if (exposureEffect != null) {
+                            exposureEffect.setExposure(eyeAdaptationManager.getCurrentExposure());
+                        }
                     }
                 }
-                modelBatch.end();
-            }
 
-            if (debugEnabled) {
-                debugDrawer.begin(camera);
-                dynamicsWorld.debugDrawWorld();
-                debugDrawer.end();
+
+                vfxManager.cleanUpBuffers();
+                vfxManager.beginInputCapture();
+
+
+                blitCamera.update();
+                blitBatch.setProjectionMatrix(blitCamera.combined);
+                blitBatch.begin();
+
+                sceneFboRegion.flip(false, !sceneFboRegion.isFlipY());
+                sceneFboRegion.flip(false, false);
+
+                blitBatch.draw(sceneFboRegion, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+                blitBatch.end();
+
+                vfxManager.endInputCapture();
+                vfxManager.applyEffects();
+                vfxManager.renderToScreen();
+            } else {
+                camera.update();
+
+                if (realisticMode) {
+                    if (skyColor.a != 0) {
+                        Gdx.gl.glClearColor(skyColor.r, skyColor.g, skyColor.b, skyColor.a);
+                        Gdx.gl.glClear(com.badlogic.gdx.graphics.GL20.GL_COLOR_BUFFER_BIT | com.badlogic.gdx.graphics.GL20.GL_DEPTH_BUFFER_BIT);
+                    }
+
+                    sceneManager.render();
+
+                } else {
+                    Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+
+                    if (skyColor.a != 0) {
+                        Gdx.gl.glClearColor(skyColor.r, skyColor.g, skyColor.b, skyColor.a);
+                        Gdx.gl.glClear(com.badlogic.gdx.graphics.GL20.GL_COLOR_BUFFER_BIT | com.badlogic.gdx.graphics.GL20.GL_DEPTH_BUFFER_BIT);
+                    }
+
+                    modelBatch.begin(camera);
+
+                    if (customShaderProvider != null) {
+                        int shadowMapTextureUnit = 5;
+                        shadowFBO.getColorBufferTexture().bind(shadowMapTextureUnit);
+                        setShaderUniform("shadowMap", shadowMapTextureUnit);
+                        customUniforms.put("u_lightSpaceMatrix", lightSpaceMatrix);
+                        customUniforms.put("u_shadowMapSize", new Vector2(SHADOW_MAP_SIZE, SHADOW_MAP_SIZE));
+                    }
+
+                    for (Map.Entry<String, ModelInstance> entry : sceneObjects.entrySet()) {
+                        if (!inactiveRenderObjects.contains(entry.getKey())) {
+                            modelBatch.render(entry.getValue(), environment);
+                        }
+                    }
+                    modelBatch.end();
+                }
+
+                if (particleSystemInitialized && !activeParticleEffects.isEmpty()) {
+                    particleModelBatch.begin(camera);
+                    particleModelBatch.render(particleSystem);
+                    particleModelBatch.end();
+
+                    if (!effectsNormal.isEmpty()) {
+                        Gdx.gl.glEnable(GL20.GL_DEPTH_TEST);
+                        Gdx.gl.glDepthMask(true);
+                        Gdx.gl.glEnable(GL20.GL_BLEND);
+                        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+
+                        batchNormal.setCamera(camera);
+                        batchNormal.begin();
+                        for (ParticleEffect effect : effectsNormal) effect.draw();
+                        batchNormal.end();
+                    }
+
+                    if (!effectsAdditive.isEmpty()) {
+                        Gdx.gl.glEnable(GL20.GL_BLEND);
+                        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE);
+                        Gdx.gl.glDepthMask(false);
+
+                        batchAdditive.setCamera(camera);
+                        batchAdditive.begin();
+                        for (ParticleEffect effect : effectsAdditive) effect.draw();
+                        batchAdditive.end();
+
+                        Gdx.gl.glDepthMask(true);
+                        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+                    }
+                }
+
+                if (debugEnabled) {
+                    debugDrawer.begin(camera);
+                    dynamicsWorld.debugDrawWorld();
+                    debugDrawer.end();
+                }
             }
         } catch (Exception e) {
-            Log.e("ThreeDManager", "FATAL RENDER ERROR: " + e);
+            Log.e("ThreeDManager", "FATAL 3D RENDER ERROR", e);
+            e.printStackTrace();
+
+            try { modelBatch.end(); } catch (Exception ignored) {}
+            try { particleModelBatch.end(); } catch (Exception ignored) {}
+            try { if (sceneFbo2 != null) sceneFbo2.end(); } catch (Exception ignored) {}
         }
+    }
+
+    public void createTestFire() {
+
+        Pixmap pixmap = new Pixmap(32, 32, Pixmap.Format.RGBA8888);
+        pixmap.setColor(Color.ORANGE);
+        pixmap.fill();
+        Texture tex = new Texture(pixmap);
+
+
+        BillboardParticleBatch testBatch = new BillboardParticleBatch();
+        testBatch.setCamera(camera);
+        particleSystem.add(testBatch);
+
+
+        BillboardRenderer renderer = new BillboardRenderer(testBatch);
+
+
+        com.badlogic.gdx.graphics.g3d.particles.ParticleController controller =
+                new com.badlogic.gdx.graphics.g3d.particles.ParticleController(
+                        "TestFire",
+                        new RegularEmitter(),
+                        renderer,
+                        new RegionInfluencer.Single(new TextureRegion(tex))
+                );
+
+
+        RegularEmitter emitter = (RegularEmitter) controller.emitter;
+        emitter.getEmission().setHigh(100);
+        emitter.getLife().setHigh(2000);
+
+
+        DynamicsInfluencer dynamics = new DynamicsInfluencer();
+        com.badlogic.gdx.graphics.g3d.particles.influencers.DynamicsModifier.BrownianAcceleration acc =
+                new com.badlogic.gdx.graphics.g3d.particles.influencers.DynamicsModifier.BrownianAcceleration();
+        acc.strengthValue.setHigh(5f);
+        dynamics.velocities.add(acc);
+        controller.influencers.add(dynamics);
+
+
+        ScaleInfluencer scale = new ScaleInfluencer();
+        scale.value.setHigh(2f);
+        controller.influencers.add(scale);
+
+
+        ColorInfluencer.Single col = new ColorInfluencer.Single();
+        col.colorValue.setColors(new float[]{1, 0.5f, 0});
+        col.alphaValue.setHigh(1);
+        controller.influencers.add(col);
+
+
+        controller.init();
+        controller.start();
+        controller.setTransform(new Matrix4().setToTranslation(0, 5, 0));
+
+        ParticleEffect effect = new ParticleEffect();
+        effect.getControllers().add(controller);
+
+
+        activeParticleEffects.put("TEST_FIRE", effect);
     }
 
     private <T, E> T getKeyByValue(Map<T, E> map, E value) {
@@ -1509,14 +2490,7 @@ public class ThreeDManager implements Disposable {
         return null;
     }
 
-    /**
-     * Задает сплошной цвет для всех материалов объекта.
-     * Примечание: Это удалит текстуру, если она была установлена.
-     * @param objectId ID объекта.
-     * @param r Красный компонент (0.0 - 1.0).
-     * @param g Зеленый компонент (0.0 - 1.0).
-     * @param b Синий компонент (0.0 - 1.0).
-     */
+
     public void setObjectColor(String objectId, float r, float g, float b) {
         ModelInstance instance = sceneObjects.get(objectId);
         if (instance == null) return;
@@ -1527,11 +2501,7 @@ public class ThreeDManager implements Disposable {
         }
     }
 
-    /**
-     * Задает текстуру для всех материалов объекта из файла проекта.
-     * @param objectId ID объекта.
-     * @param texturePath Абсолютный путь к файлу текстуры (PNG/JPG).
-     */
+
     public void setObjectTexture(String objectId, String texturePath) {
         ModelInstance instance = sceneObjects.get(objectId);
         if (instance == null || texturePath == null || texturePath.isEmpty()) return;
@@ -1566,10 +2536,7 @@ public class ThreeDManager implements Disposable {
         }
     }
 
-    /**
-     * Создает СЛОЖНОЕ физическое тело, основанное на геометрии модели.
-     * Только для статичных объектов!
-     */
+
     private void createMeshPhysicsBody(String objectId, ModelInstance instance) {
 
         com.badlogic.gdx.physics.bullet.collision.btTriangleIndexVertexArray vertexArray =
@@ -1605,12 +2572,7 @@ public class ThreeDManager implements Disposable {
 
 
 
-    /**
-     * Проверяет, есть ли физический контакт между двумя объектами.
-     * @param objectId1 ID первого объекта.
-     * @param objectId2 ID второго объекта.
-     * @return true, если объекты касаются, иначе false.
-     */
+
     public boolean checkCollision(String objectId1, String objectId2) {
         btRigidBody body1 = physicsBodies.get(objectId1);
         btRigidBody body2 = physicsBodies.get(objectId2);
@@ -1625,12 +2587,7 @@ public class ThreeDManager implements Disposable {
         return collisionCallback.collided;
     }
 
-    /**
-     * Пускает луч в физическом мире и сохраняет результат.
-     * @param rayName Имя для этого луча, чтобы потом получить результат.
-     * @param from Начальная точка луча в мировых координатах.
-     * @param direction Нормализованный вектор направления луча.
-     */
+
     public void castRay(String rayName, Vector3 from, Vector3 direction) {
         tmpPos.set(from).add(direction.x * camera.far, direction.y * camera.far, direction.z * camera.far);
 
@@ -1703,11 +2660,7 @@ public class ThreeDManager implements Disposable {
         return (result != null && result.hasHit) ? result.hitNormal.z : 0f;
     }
 
-    /**
-     * Возвращает дистанцию последнего столкновения для именованного луча.
-     * @param rayName Имя луча.
-     * @return Дистанция или -1, если луч ни во что не попал или не существует.
-     */
+
     public float getRaycastDistance(String rayName) {
         RayCastResult result = rayCastResults.get(rayName);
         return (result != null) ? result.hitDistance : -1.0f;
@@ -1734,11 +2687,7 @@ public class ThreeDManager implements Disposable {
         }
     }
 
-    /**
-     * Возвращает ID объекта, с которым столкнулся именованный луч.
-     * @param rayName Имя луча.
-     * @return ID объекта или пустая строка, если луч ни во что не попал или не существует.
-     */
+
     public String getRaycastHitObjectId(String rayName) {
         RayCastResult result = rayCastResults.get(rayName);
         return (result != null) ? result.hitObjectId : "";
@@ -1746,16 +2695,7 @@ public class ThreeDManager implements Disposable {
 
 
 
-    /**
-     * Создает 3D-объект из файла модели.
-     * Автоматически определяет, является ли путь абсолютным (начинается с "/")
-     * или внутренним (относительно папки assets/models).
-     * @param objectId Уникальный ID для нового объекта.
-     * @param modelPath Путь к файлу модели (.obj).
-     *                  Может быть абсолютным (e.g., "/storage/emulated/0/Download/car.obj")
-     *                  или относительным (e.g., "car.obj").
-     * @return true в случае успеха, false если модель не найдена или ID занят.
-     */
+
     public boolean createObject(String objectId, String modelPath) {
         if (sceneObjects.containsKey(objectId)) return false;
 
@@ -1860,14 +2800,7 @@ public class ThreeDManager implements Disposable {
         return false;
     }
 
-    /**
-     * Запускает проигрывание анимации для объекта.
-     * @param objectId ID объекта.
-     * @param animationName Название анимации (например, "Walk", "Run", "Action").
-     * @param loops Количество повторов. -1 для бесконечного зацикливания. 1 для одного раза.
-     * @param speed Скорость воспроизведения. 1.0 - нормальная. 2.0 - в два раза быстрее.
-     * @param transitionTime Время плавного перехода от предыдущей анимации (в секундах). 0.2 - хорошее значение.
-     */
+
     public void playAnimation(String objectId, String animationName, int loops, float speed, float transitionTime) {
         AnimationController controller = animationControllers.get(objectId);
         if (controller != null) {
@@ -1885,10 +2818,7 @@ public class ThreeDManager implements Disposable {
         }
     }
 
-    /**
-     * Останавливает все анимации на объекте.
-     * @param objectId ID объекта.
-     */
+
     public void stopAnimation(String objectId) {
         AnimationController controller = animationControllers.get(objectId);
         if (controller != null) {
@@ -1896,10 +2826,7 @@ public class ThreeDManager implements Disposable {
         }
     }
 
-    /**
-     * Создает или воссоздает базовое освещение сцены (солнце с тенями и IBL).
-     * Этот метод - гарантия того, что тени всегда будут.
-     */
+
     private void setupDefaultLighting() {
         if (pbrLight != null) {
             sceneManager.environment.remove(pbrLight);
@@ -1919,13 +2846,7 @@ public class ThreeDManager implements Disposable {
         updateProceduralIBL();
     }
 
-    /**
-     * Управляет направленным светом в режиме реалистичного рендеринга.
-     * @param dirX Направление по X
-     * @param dirY Направление по Y
-     * @param dirZ Направление по Z
-     * @param intensity Интенсивность (для PBR хорошие значения от 1.0 до 10.0)
-     */
+
     public void setRealisticSunLight(float dirX, float dirY, float dirZ, float intensity) {
         
         if (pbrLight instanceof net.mgsx.gltf.scene3d.lights.DirectionalShadowLight) {
@@ -1934,7 +2855,7 @@ public class ThreeDManager implements Disposable {
             sun.direction.set(dirX, dirY, dirZ).nor();
             sun.intensity = intensity;
 
-            Gdx.app.log("ThreeDManager", "Sun light updated and IBL recalculated.");
+            //Gdx.app.log("ThreeDManager", "Sun light updated and IBL recalculated.");
         } else {
             Gdx.app.error("ThreeDManager", "setRealisticSunLight called, but no DirectionalShadowLight was found!");
         }
@@ -1956,13 +2877,7 @@ public class ThreeDManager implements Disposable {
         }
     }
 
-    /**
-     * Задает или изменяет физическое состояние объекта с выбором формы.
-     * @param objectId ID объекта.
-     * @param state Тип физики (NONE, STATIC, DYNAMIC).
-     * @param shape Форма коллайдера (BOX, SPHERE, CAPSULE).
-     * @param mass Масса объекта (для DYNAMIC).
-     */
+
     public void setPhysicsState(String objectId, PhysicsState state, PhysicsShape shape, float mass) {
         ModelInstance instance = sceneObjects.get(objectId);
         if (instance == null) return;
@@ -1992,10 +2907,7 @@ public class ThreeDManager implements Disposable {
         setPhysicsState(objectId, state, PhysicsShape.BOX, mass);
     }
 
-    /**
-     * Вспомогательный метод для создания простых физических тел.
-     * ЭТО ОРИГИНАЛЬНЫЙ, РАБОЧИЙ МЕТОД.
-     */
+
     private void createPrimitivePhysicsBody(String objectId, ModelInstance instance, PhysicsShape shapeType, float mass) {
         BoundingBox bbox = new BoundingBox();
         instance.calculateBoundingBox(bbox);
@@ -2061,10 +2973,7 @@ public class ThreeDManager implements Disposable {
 
     
 
-    /**
-     * Создает СЛОЖНОЕ физическое тело для GLTF/GLB моделей (метод "запекания").
-     * Этот метод гарантирует, что все трансформации узлов будут применены.
-     */
+
     private void createGltfMeshPhysicsBody(String objectId, ModelInstance instance) {
         Gdx.app.log("PhysicsDebug", "============================================================");
         Gdx.app.log("PhysicsDebug", "=== STARTING MESH BODY CREATION (BAKING METHOD) for object: '" + objectId + "'");
@@ -2120,29 +3029,19 @@ public class ThreeDManager implements Disposable {
         bodyInfo.dispose();
     }
 
-    /**
-     * Создает визуальный прокси-объект для редактора (например, иконку для света).
-     * @param ownerId ID основного GameObject, которому принадлежит этот прокси.
-     */
+
     public void createEditorProxy(String ownerId) {
         if (editorProxies.containsKey(ownerId) || lightProxyModel == null) return;
         ModelInstance proxyInstance = new ModelInstance(lightProxyModel);
         editorProxies.put(ownerId, proxyInstance);
     }
 
-    /**
-     * Удаляет прокси-объект редактора.
-     * @param ownerId ID основного GameObject.
-     */
+
     public void removeEditorProxy(String ownerId) {
         editorProxies.remove(ownerId);
     }
 
-    /**
-     * Обновляет позицию прокси-объекта.
-     * @param ownerId ID основного GameObject.
-     * @param position Новая позиция.
-     */
+
     public void updateEditorProxyPosition(String ownerId, Vector3 position) {
         ModelInstance proxy = editorProxies.get(ownerId);
         if (proxy != null) {
@@ -2150,16 +3049,12 @@ public class ThreeDManager implements Disposable {
         }
     }
 
-    /**
-     * Возвращает карту всех прокси-объектов для рейкастинга и рендеринга.
-     */
+
     public Map<String, ModelInstance> getEditorProxies() {
         return editorProxies;
     }
 
-    /**
-     * Рекурсивно обходит узлы и добавляет их геометрию в составную форму.
-     */
+
     
     private void addPartsToCompoundShapeRecursive(Iterable<Node> nodes, Matrix4 rootTransform, btCompoundShape compoundShape, Array<Disposable> disposables, String indent) {
         for (Node node : nodes) {
@@ -2201,11 +3096,7 @@ public class ThreeDManager implements Disposable {
         return sceneObjects.containsKey(id);
     }
 
-    /**
-     * Возвращает текущую линейную скорость физического объекта.
-     * @param objectId ID объекта.
-     * @return Vector3 со скоростью. Возвращает (0,0,0), если у объекта нет физики.
-     */
+
     public Vector3 getVelocity(String objectId) {
         btRigidBody body = physicsBodies.get(objectId);
         if (body != null && body.getInvMass() > 0) {
@@ -2214,10 +3105,7 @@ public class ThreeDManager implements Disposable {
         return Vector3.Zero;
     }
 
-    /**
-     * Возвращает текущий поворот камеры в виде углов Эйлера (в градусах).
-     * @return Vector3, где: x = тангаж, y = рыскание, z = крен.
-     */
+
     public Vector3 getCameraRotation() {
         Quaternion q = new Quaternion();
 
@@ -2232,11 +3120,7 @@ public class ThreeDManager implements Disposable {
         return sceneObjects.get(objectId);
     }
 
-    /**
-     * Создает простую 3D-сферу.
-     * @param objectId Уникальный ID для нового объекта.
-     * @return true в случае успеха, false если ID уже занят.
-     */
+
     public boolean createSphere(String objectId) {
         if (sceneObjects.containsKey(objectId)) return false;
 
@@ -2311,180 +3195,18 @@ public class ThreeDManager implements Disposable {
         bodyInfo.dispose();
     }
 
-    /**
-     * Создает СЛОЖНОЕ физическое тело для GLTF/GLB моделей,
-     * учитывая иерархию узлов (Nodes).
-     */
-    /**
-     * Создаёт физическое тело для GLTF/GLB модели, корректно формируя btTriangleIndexVertexArray из MeshPart.
-     * Надёжно поддерживает 16- и 32-битные индексы.
-     */
+
+
 
     private final Map<String, com.badlogic.gdx.utils.Array<Disposable>> physicsResources = new HashMap<>();
 
 
-    /*private void createGltfMeshPhysicsBody(String objectId, ModelInstance instance) {
-        Gdx.app.log("PhysicsDebug", "--- Creating GLTF Mesh Body for: " + objectId + " (CompoundShape fixed) ---");
-        instance.calculateTransforms();
-
-        btCompoundShape compoundShape = new btCompoundShape();
-        Array<Disposable> disposables = new Array<>();
-
-        
-        addPartsToCompoundShapeRecursive(instance.nodes, compoundShape, disposables);
-
-        Gdx.app.log("PhysicsDebug", "CompoundShape num child shapes: " + compoundShape.getNumChildShapes());
-        if (compoundShape.getNumChildShapes() == 0) {
-            Gdx.app.error("PhysicsDebug", "FATAL: CompoundShape is empty!");
-            compoundShape.dispose();
-            for (Disposable d : disposables) try { d.dispose(); } catch (Exception ignored) {}
-            return;
-        }
-
-        
-        Vector3 scale = new Vector3();
-        instance.transform.getScale(scale);
-        compoundShape.setLocalScaling(scale);
-
-        Gdx.app.log("PhysicsDebug", "--- CompoundShape info for " + objectId + " ---");
-        for (int i = 0; i < compoundShape.getNumChildShapes(); i++) {
-            btCollisionShape child = compoundShape.getChildShape(i);
-            Matrix4 localTransform = new Matrix4(compoundShape.getChildTransform(i));
-            Gdx.app.log("PhysicsDebug", "Child " + i + ": shape=" + child + " transform=" + localTransform);
-        }
-
-
-        
-        Matrix4 bodyTransform = new Matrix4(instance.transform);
-        
-        
-
-        btMotionState motionState = new btDefaultMotionState(bodyTransform);
-
-        float mass = 0f; 
-        Vector3 localInertia = new Vector3(0, 0, 0);
-
-        btRigidBody.btRigidBodyConstructionInfo bodyInfo =
-                new btRigidBody.btRigidBodyConstructionInfo(mass, motionState, compoundShape, localInertia);
-
-        btRigidBody body = new btRigidBody(bodyInfo);
-
-        
-        body.setCollisionFlags(body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_STATIC_OBJECT);
-        body.setContactProcessingThreshold(0f);
-        body.setActivationState(Collision.DISABLE_DEACTIVATION);
-
-        
-        dynamicsWorld.addRigidBody(body);
-
-        
-        dynamicsWorld.updateSingleAabb(body);
-
-        
-        disposables.add(compoundShape);
-        disposables.add(motionState);
-        disposables.add(bodyInfo);
-        
-
-        body.userData = disposables;
-        physicsResources.put(objectId, disposables);
-        physicsBodies.put(objectId, body);
-
-        
-        Gdx.app.log("PhysicsDebug", "--- Finished GLTF Mesh Body creation for: " + objectId + " ---");
-    }
-
-
-
-    private void addPartsToCompoundShapeRecursive(Iterable<Node> nodes, btCompoundShape compoundShape, Array<Disposable> disposables) {
-        for (Node node : nodes) {
-            if (node.parts.size > 0) {
-                for (NodePart nodePart : node.parts) {
-                    MeshPart meshPart = nodePart.meshPart;
-                    if (meshPart != null && meshPart.size > 0 && meshPart.mesh != null) {
-
-
-                        btTriangleIndexVertexArray vertexArray = new btTriangleIndexVertexArray(meshPart);
-
-
-                        btBvhTriangleMeshShape meshShape = new btBvhTriangleMeshShape(vertexArray, true);
-
-
-                        disposables.add(vertexArray);
-                        disposables.add(meshShape);
 
 
 
 
-                        compoundShape.addChildShape(node.globalTransform, meshShape);
-                    }
-                }
-            }
 
 
-            if (node.hasChildren()) {
-                addPartsToCompoundShapeRecursive(node.getChildren(), compoundShape, disposables);
-            }
-        }
-    }
-
-
-
-    private void collectMeshPartsRecursive(Node node, Array<MeshPart> out) {
-        for (NodePart part : node.parts) {
-            if (part.meshPart != null)
-                out.add(part.meshPart);
-        }
-        for (Node child : node.getChildren()) {
-            collectMeshPartsRecursive(child, out);
-        }
-    }
-
-
-    private void addNodePartsToCompoundShapeRecursive(Iterable<com.badlogic.gdx.graphics.g3d.model.Node> nodes,
-                                                      btCompoundShape compoundShape,
-                                                      com.badlogic.gdx.utils.Array<Disposable> disposables) {
-        for (com.badlogic.gdx.graphics.g3d.model.Node node : nodes) {
-            if (node.parts.size > 0) {
-                for (com.badlogic.gdx.graphics.g3d.model.NodePart nodePart : node.parts) {
-                    com.badlogic.gdx.graphics.g3d.model.MeshPart meshPart = nodePart.meshPart;
-                    if (meshPart.size > 0 && meshPart.mesh != null) {
-
-                        btTriangleIndexVertexArray vertexArray = new btTriangleIndexVertexArray(meshPart);
-                        disposables.add(vertexArray);
-
-                        btBvhTriangleMeshShape meshShape = new btBvhTriangleMeshShape(vertexArray, true);
-                        disposables.add(meshShape);
-
-
-                        compoundShape.addChildShape(node.globalTransform, meshShape);
-                    }
-                }
-            }
-
-            if (node.hasChildren()) {
-                addNodePartsToCompoundShapeRecursive(node.getChildren(), compoundShape, disposables);
-            }
-        }
-    }*/
-
-    /**
-     * Вспомогательная рекурсивная функция для сбора всех MeshPart из модели.
-     */
-    /*private void collectMeshPartsRecursive(com.badlogic.gdx.graphics.g3d.model.Node node, com.badlogic.gdx.utils.Array<com.badlogic.gdx.graphics.g3d.model.MeshPart> out) {
-        for (com.badlogic.gdx.graphics.g3d.model.NodePart part : node.parts) {
-            out.add(part.meshPart);
-        }
-        for (com.badlogic.gdx.graphics.g3d.model.Node child : node.getChildren()) {
-            collectMeshPartsRecursive(child, out);
-        }
-    }*/
-
-    /**
-     * Рекурсивная вспомогательная функция для обхода дерева узлов.
-     * @param node Узел для обработки.
-     * @param compoundShape Составная форма, в которую добавляются части.
-     */
     private void addNodePartsToCompoundShape(com.badlogic.gdx.graphics.g3d.model.Node node, btCompoundShape compoundShape) {
         if (node.parts.size > 0) {
             Gdx.app.log("PhysicsDebug", "Processing Node: " + node.id + " with " + node.parts.size + " parts.");
@@ -2515,9 +3237,7 @@ public class ThreeDManager implements Disposable {
         }
     }
 
-    /**
-     * Полностью удаляет физическое тело, связанное с ID.
-     */
+
     void removePhysicsBody(String objectId) {
         btRigidBody body = physicsBodies.remove(objectId);
         if (body != null) {
@@ -2539,7 +3259,7 @@ public class ThreeDManager implements Disposable {
                     try {
                         d.dispose();
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        // None
                     }
                 }
             }
@@ -2550,12 +3270,7 @@ public class ThreeDManager implements Disposable {
         }
     }
 
-    /**
-     * Проверяет, пересекаются ли ограничивающие коробки двух 3D-объектов.
-     * @param objectId1 ID первого объекта.
-     * @param objectId2 ID второго объекта.
-     * @return true, если объекты пересекаются, иначе false.
-     */
+
     public boolean checkIntersection(String objectId1, String objectId2) {
         ModelInstance instance1 = sceneObjects.get(objectId1);
         ModelInstance instance2 = sceneObjects.get(objectId2);
@@ -2714,13 +3429,7 @@ public class ThreeDManager implements Disposable {
         }
     }
 
-    /**
-     * Устанавливает вращение камеры напрямую через углы Эйлера.
-     * Этот метод полностью перезаписывает текущее направление камеры.
-     * @param yaw Рыскание (поворот вокруг оси Y, "влево-вправо").
-     * @param pitch Тангаж (поворот вокруг оси X, "вверх-вниз").
-     * @param roll Крен (поворот вокруг оси Z, "наклон головы").
-     */
+
     public void setCameraRotation(float yaw, float pitch, float roll) {
         Quaternion rotation = new Quaternion();
         rotation.setEulerAngles(yaw, pitch, roll);
@@ -2751,13 +3460,7 @@ public class ThreeDManager implements Disposable {
         return camera;
     }
 
-    /**
-     * Устанавливает масштаб объекта.
-     * @param objectId ID объекта.
-     * @param scaleX Масштаб по оси X.
-     * @param scaleY Масштаб по оси Y.
-     * @param scaleZ Масштаб по оси Z.
-     */
+
     public void setScale(String objectId, float scaleX, float scaleY, float scaleZ) {
         ModelInstance instance = sceneObjects.get(objectId);
         if (instance == null) return;
@@ -2796,11 +3499,7 @@ public class ThreeDManager implements Disposable {
         }
     }
 
-    /**
-     * Создает и добавляет в сцену отладочную сетку.
-     * @param size Размер сетки (например, 100).
-     * @param divisions Количество линий (например, 100).
-     */
+
     public void createGrid(float size, int divisions) {
         if (gridInstance != null) {
             sceneManager.removeScene(new net.mgsx.gltf.scene3d.scene.Scene(gridInstance));
@@ -2816,11 +3515,7 @@ public class ThreeDManager implements Disposable {
         sceneManager.addScene(new net.mgsx.gltf.scene3d.scene.Scene(gridInstance));
     }
 
-    /**
-     * Создает простой 3D-куб.
-     * @param objectId Уникальный ID для нового объекта.
-     * @return true в случае успеха, false если ID уже занят.
-     */
+
     public boolean createCube(String objectId) {
         if (sceneObjects.containsKey(objectId)) return false;
 
@@ -2935,11 +3630,29 @@ public class ThreeDManager implements Disposable {
         return texture;
     }
 
-    /**
-     * Возвращает текущую позицию объекта.
-     * @param objectId ID объекта.
-     * @return Vector3 с координатами (x, y, z) или null, если объект не найден.
-     */
+    private void disposeManagedBatches() {
+        for (BillboardParticleBatch batch : managedBatches.values()) {
+            try {
+                java.lang.reflect.Field poolField = BillboardParticleBatch.class.getDeclaredField("renderablePool");
+                poolField.setAccessible(true);
+                com.badlogic.gdx.utils.Pool<Renderable> renderablePool = (com.badlogic.gdx.utils.Pool<Renderable>) poolField.get(batch);
+                Array<Renderable> allRenderables = new Array<>();
+                renderablePool.freeAll(allRenderables);
+                for(Renderable r : allRenderables){
+                    if(r.meshPart.mesh != null) {
+                        r.meshPart.mesh.dispose();
+                    }
+                }
+                renderablePool.clear();
+
+            } catch (Exception e) {
+                Gdx.app.error("Dispose", "Failed to dispose meshes in BillboardParticleBatch via reflection", e);
+            }
+        }
+        managedBatches.clear();
+    }
+
+
     public Vector3 getPosition(String objectId) {
         ModelInstance instance = sceneObjects.get(objectId);
         if (instance != null) {
@@ -2950,15 +3663,7 @@ public class ThreeDManager implements Disposable {
         return null;
     }
 
-    /**
-     * Возвращает текущий поворот объекта в виде углов Эйлера (в градусах).
-     * @param objectId ID объекта.
-     * @return Vector3, где:
-     *         x = наклон (pitch),
-     *         y = рыскание (yaw),
-     *         z = крен (roll).
-     *         Возвращает null, если объект не найден.
-     */
+
     public Vector3 getRotation(String objectId) {
         ModelInstance instance = sceneObjects.get(objectId);
         if (instance != null) {
@@ -2970,11 +3675,7 @@ public class ThreeDManager implements Disposable {
         return null;
     }
 
-    /**
-     * Возвращает текущий масштаб объекта.
-     * @param objectId ID объекта.
-     * @return Vector3 с масштабом по осям (x, y, z) или null, если объект не найден.
-     */
+
     public Vector3 getScale(String objectId) {
         ModelInstance instance = sceneObjects.get(objectId);
         if (instance != null) {
@@ -2990,18 +3691,10 @@ public class ThreeDManager implements Disposable {
         return getPosition(id1).dst(getPosition(id2));
     }
 
-    /**
-     * Задает коэффициент трения для физического объекта.
-     * @param objectId ID объекта.
-     * @param friction Коэффициент трения (обычно от 0.0 до 1.0).
-     */
 
 
-    /**
-     * Задает коэффициент трения для физического объекта.
-     * @param objectId ID объекта.
-     * @param friction Коэффициент трения (обычно от 0.0 до 1.0).
-     */
+
+
     public void setFriction(String objectId, float friction) {
         btRigidBody body = physicsBodies.get(objectId);
         if (body != null) {
@@ -3015,11 +3708,7 @@ public class ThreeDManager implements Disposable {
         }
     }
 
-    /**
-     * Задает коэффициент упругости (отскока) для физического объекта.
-     * @param objectId ID объекта.
-     * @param restitution Коэффициент упругости (0.0 - нет отскока, 1.0 - идеальный отскок).
-     */
+
     public void setRestitution(String objectId, float restitution) {
         btRigidBody body = physicsBodies.get(objectId);
         if (body != null) {
@@ -3029,12 +3718,7 @@ public class ThreeDManager implements Disposable {
         }
     }
 
-    /**
-     * Включает или выключает Continuous Collision Detection (CCD) для объекта.
-     * Помогает предотвратить "туннелирование" (проход сквозь стены).
-     * @param objectId ID объекта.
-     * @param enabled true - включить, false - выключить.
-     */
+
     public void setContinuousCollisionDetection(String objectId, boolean enabled) {
         btRigidBody body = physicsBodies.get(objectId);
         ModelInstance instance = sceneObjects.get(objectId);
@@ -3055,11 +3739,7 @@ public class ThreeDManager implements Disposable {
         }
     }
 
-    /**
-     * Устанавливает кастомный GLSL шейдер из текстовых строк.
-     * @param vertexCode   Строка с кодом вершинного шейдера.
-     * @param fragmentCode Строка с кодом фрагментного шейдера.
-     */
+
     public void setShaderCode(String vertexCode, String fragmentCode) {
         Gdx.app.postRunnable(() -> {
             Gdx.app.log("ShaderDebug", "--- setShaderCode CALLED ---");
@@ -3092,9 +3772,7 @@ public class ThreeDManager implements Disposable {
         });
     }
 
-    /**
-     * Сбрасывает шейдер к стандартному.
-     */
+
     public void resetSceneShader() {
         Gdx.app.postRunnable(() -> {
             if (customShaderProvider != null) {
@@ -3112,18 +3790,14 @@ public class ThreeDManager implements Disposable {
         });
     }
 
-    /**
-     * Устанавливает uniform-переменную (float) по имени.
-     */
+
     public void setShaderUniform(String name, float value) {
         if (name != null && !name.isEmpty()) {
             customUniforms.put("u_" + name, value);
         }
     }
 
-    /**
-     * Устанавливает uniform-переменную (vec3) по имени.
-     */
+
     public void setShaderUniform(String name, float x, float y, float z) {
         if (name != null && !name.isEmpty()) {
             customUniforms.put("u_" + name, new Vector3(x, y, z));
@@ -3136,18 +3810,14 @@ public class ThreeDManager implements Disposable {
         }
     }
 
-    /**
-     * Устанавливает uniform-переменную (vec2).
-     */
+
     public void setShaderUniform(String name, float x, float y) {
         if (name != null && !name.isEmpty()) {
             customUniforms.put("u_" + name, new Vector2(x, y));
         }
     }
 
-    /**
-     * Устанавливает uniform-переменную (vec4 или цвет с альфа-каналом).
-     */
+
     public void setShaderUniform(String name, float x, float y, float z, float w) {
         if (name != null && !name.isEmpty()) {
             customUniforms.put("u_" + name, new Vector4(x, y, z, w));
@@ -3273,6 +3943,10 @@ public class ThreeDManager implements Disposable {
             removeConstraint(id);
         }
 
+        if (particleSystemInitialized) {
+            disposeManagedBatches();
+            particleSystem = new ParticleSystem();
+        }
 
         pointLights.clear();
         editorProxies.clear();
@@ -3286,13 +3960,6 @@ public class ThreeDManager implements Disposable {
             } catch (Exception e) {
                 Log.e("ThreeDManager", "Cloudn't setup lightning: " + e);
             }
-            
-            /*sceneManager.environment.set(new PBRTextureAttribute(PBRTextureAttribute.BRDFLUTTexture, brdfLUT));
-            try {
-                updateProceduralIBL();
-            } catch (Exception e) {
-                Log.e("ThreeDManager", "Cloudn't update procedural ibl: " + e);
-            }*/
         }
 
         animationControllers.clear();
@@ -3306,24 +3973,17 @@ public class ThreeDManager implements Disposable {
         clearScene();
         physicsConstraints.clear();
 
+        if (particleProxyModel != null) particleProxyModel.dispose();
         if (modelBatch != null) modelBatch.dispose();
         if (shadowBatch != null) shadowBatch.dispose();
-
-        for (Model model : loadedModels.values()) model.dispose();
-        loadedModels.clear();
-        for (Texture texture : loadedTextures.values()) texture.dispose();
-        loadedTextures.clear();
-
-        for (PlayableAudio audio : active3DSounds) {
-            audio.stop();
-            audio.dispose();
-        }
-        active3DSounds.clear();
-        for (AudioAsset asset : loadedAudioAssets.values()) {
-            asset.dispose();
-        }
-        loadedAudioAssets.clear();
-
+        if (defaultParticleTexture != null) defaultParticleTexture.dispose();
+        if (particleModelBatch != null) particleModelBatch.dispose();
+        if (particleSystemInitialized) disposeManagedBatches();
+        if (blitBatch != null) blitBatch.dispose();
+        if (iblBuilderCompat != null) iblBuilderCompat.dispose();
+        if (eyeAdaptationManager != null) eyeAdaptationManager.dispose();
+        if (exposureEffect != null) exposureEffect.dispose();
+        if (tonemappingEffect != null) tonemappingEffect.dispose();
         if (defaultShaderProvider != null) defaultShaderProvider.dispose();
         if (customShaderProvider != null) customShaderProvider.dispose();
         if (depthShaderProvider != null) depthShaderProvider.dispose();
@@ -3344,6 +4004,29 @@ public class ThreeDManager implements Disposable {
         if (collisionConfig != null) collisionConfig.dispose();
         if (collisionCallback != null) collisionCallback.dispose();
         if (shadowFBO != null) shadowFBO.dispose();
+        if (sceneFbo2 != null) sceneFbo2.dispose();
+        if (vfxManager != null) vfxManager.dispose();
+
+        for (ParticleEffect eff : activeParticleEffects.values()) if (eff != null) eff.dispose();
+        for (Model model : loadedModels.values()) if (model != null) model.dispose();
+        for (Texture texture : loadedTextures.values()) if (texture != null) texture.dispose();
+        for (PlayableAudio audio : active3DSounds) {
+            if (audio == null) continue;
+            audio.stop();
+            audio.dispose();
+        }
+        for (AudioAsset asset : loadedAudioAssets.values()) {
+            if (asset != null) asset.dispose();
+        }
+
+        managedBatches.clear();
+        activeParticleEffects.clear();
+        effectsNormal.clear();
+        effectsAdditive.clear();
+        loadedModels.clear();
+        loadedTextures.clear();
+        active3DSounds.clear();
+        loadedAudioAssets.clear();
 
         modelBatch = null;
         dynamicsWorld = null;

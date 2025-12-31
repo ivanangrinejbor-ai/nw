@@ -1,0 +1,49 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="8dp">
+
+    <CheckBox
+        android:id="@+id/fog_enabled"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Enabled"
+        android:textColor="@android:color/white"/>
+
+    <Spinner
+        android:id="@+id/spinner_fog_type"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"/>
+
+    <Button
+        android:id="@+id/btn_fog_color"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Fog Color"/>
+
+    <LinearLayout
+        android:id="@+id/layout_fog_exp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Density" android:textColor="@color/white"/>
+        <EditText android:id="@+id/edit_fog_density" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="numberDecimal" android:textColor="@color/white"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/layout_fog_linear"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Start Distance" android:textColor="@color/white"/>
+        <EditText android:id="@+id/edit_fog_start" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="numberDecimal" android:textColor="@color/white"/>
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="End Distance" android:textColor="@color/white"/>
+        <EditText android:id="@+id/edit_fog_end" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="numberDecimal" android:textColor="@color/white"/>
+    </LinearLayout>
+
+    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Height Falloff" android:textColor="@color/white"/>
+    <EditText android:id="@+id/edit_fog_height" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="numberDecimal" android:textColor="@color/white"/>
+
+</LinearLayout>

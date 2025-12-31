@@ -83,6 +83,9 @@ public class InternToExternGenerator {
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.LETTER.name(), R.string.formula_editor_function_letter);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.SUBTEXT.name(), R.string.formula_editor_function_subtext);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.FILE.name(), R.string.formula_editor_function_file);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.FILES_PATH.name(), R.string.formula_editor_function_files_path);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.ALL_FILES.name(), R.string.formula_editor_function_all_files);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.FILE_SIZE.name(), R.string.formula_editor_function_file_size);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.LUA.name(), R.string.formula_editor_function_lua);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.MOUSE_X.name(), R.string.formula_editor_sensor_mouse_x);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.MOUSE_Y.name(), R.string.formula_editor_sensor_mouse_y);

@@ -11,6 +11,7 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -60,7 +61,7 @@ public class EditorActivity extends AppCompatActivity implements AndroidFragment
     private final List<HierarchyAdapter.HierarchyItem> hierarchyItems = new ArrayList<>();
     private final List<GameObject> hierarchyObjects = new ArrayList<>();
 
-    private EditorListener editorListener;
+    public EditorListener editorListener;
     private Gizmo gizmo;
 
     private ItemTouchHelper touchHelper;
@@ -122,7 +123,9 @@ public class EditorActivity extends AppCompatActivity implements AndroidFragment
             if (hierarchyAdapter != null) {
                 hierarchyAdapter.setSelectedObject(go);
             }
-
+            if (editorListener.getGizmo() != null) {
+                editorListener.getGizmo().setSelectedObject(go);
+            }
         });
     }
 
@@ -517,6 +520,9 @@ public class EditorActivity extends AppCompatActivity implements AndroidFragment
         Button colorButton = dialogView.findViewById(R.id.btn_sky_color);
         SeekBar ambientSeekBar = dialogView.findViewById(R.id.seekbar_ambient_light);
         TextView ambientValueText = dialogView.findViewById(R.id.text_ambient_value);
+        TextView skyboxPathText = dialogView.findViewById(R.id.text_skybox_path);
+        Button selectSkyboxButton = dialogView.findViewById(R.id.btn_select_skybox);
+        ImageButton clearSkyboxButton = dialogView.findViewById(R.id.btn_clear_skybox);
 
 
         float currentIntensity = sceneManager.ambientIntensity;
@@ -524,6 +530,16 @@ public class EditorActivity extends AppCompatActivity implements AndroidFragment
         int initialAndroidColor = libGdxColorToAndroidColor(skyColor);
 
         colorButton.setBackgroundColor(initialAndroidColor);
+
+        skyboxPathText.setText(sceneManager.skyboxPath != null && !sceneManager.skyboxPath.isEmpty() ? sceneManager.skyboxPath : "None");
+        clearSkyboxButton.setVisibility(sceneManager.skyboxPath != null && !sceneManager.skyboxPath.isEmpty() ? View.VISIBLE : View.GONE);
+
+        selectSkyboxButton.setOnClickListener(v -> showSkyboxPicker(skyboxPathText, clearSkyboxButton));
+        clearSkyboxButton.setOnClickListener(v -> {
+            sceneManager.setSkybox(null);
+            skyboxPathText.setText("None");
+            clearSkyboxButton.setVisibility(View.GONE);
+        });
 
         ambientSeekBar.setProgress((int)(currentIntensity * 100));
         ambientValueText.setText(String.format("%.2f", currentIntensity));
@@ -614,6 +630,39 @@ public class EditorActivity extends AppCompatActivity implements AndroidFragment
         });
 
         dialog.show();
+    }
+
+    private void showSkyboxPicker(TextView pathTextView, View clearButton) {
+        File projectFilesDir = ProjectManager.getInstance().getCurrentProject().getFilesDir();
+        File[] allFiles = projectFilesDir.listFiles();
+        if (allFiles == null) {
+            Toast.makeText(this, "Cannot access project files.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        final List<String> textureFiles = new ArrayList<>();
+        for (File file : allFiles) {
+            String name = file.getName().toLowerCase();
+            if (name.endsWith(".png") || name.endsWith(".jpg") || name.endsWith(".jpeg") || name.endsWith(".hdr")) {
+                textureFiles.add(file.getName());
+            }
+        }
+
+        if (textureFiles.isEmpty()) {
+            Toast.makeText(this, "No suitable image files found in project.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        new AlertDialog.Builder(this)
+                .setTitle("Select Skybox Texture")
+                .setItems(textureFiles.toArray(new String[0]), (dialog, which) -> {
+                    String selectedFile = textureFiles.get(which);
+                    sceneManager.skyboxPath = selectedFile;
+                    sceneManager.setSkybox(selectedFile);
+                    pathTextView.setText(selectedFile);
+                    clearButton.setVisibility(View.VISIBLE);
+                })
+                .show();
     }
 
     private ThreeDManager threeDManager;

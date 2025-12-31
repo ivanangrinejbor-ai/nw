@@ -46,7 +46,6 @@ build/
 # generated files
 bin/
 gen/
-jniLibs/
 
 # Local configuration file (sdk path, etc)
 local.properties

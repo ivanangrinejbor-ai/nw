@@ -83,6 +83,8 @@ import org.catrobat.catroid.utils.Utils
 import org.catrobat.catroid.utils.git.GitController
 import org.catrobat.catroid.utils.git.GitResult
 import org.catrobat.catroid.utils.git.TokenManager
+import org.catrobat.catroid.utils.lunoscript.baker.ProjectBaker
+import org.catrobat.catroid.utils.lunoscript.security.LunoSecurity
 import org.catrobat.catroid.utils.notifications.StatusBarNotificationManager
 import org.koin.android.ext.android.inject
 import java.io.File
@@ -152,7 +154,109 @@ class ProjectOptionsFragment : Fragment() {
 
         setupGitButtons()
 
+        setupBakeOption()
+
         hideBottomBar(requireActivity())
+    }
+
+    private fun setupBakeOption() {
+        val bakeBtn = view?.findViewById<android.widget.TextView>(R.id.project_options_bake)
+        bakeBtn?.setOnClickListener {
+            exportBakedProject()
+        }
+    }
+
+    private fun exportBakedProject() {
+        saveProject()
+        project ?: return
+
+        showProgressDialog("Запекание проекта...")
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val tempDir = File(requireContext().cacheDir, "bake_temp")
+                tempDir.deleteRecursively()
+                tempDir.mkdirs()
+
+                val baker = ProjectBaker(requireContext())
+                val lunoCode = baker.bake(project!!)
+
+                val initFile = File(tempDir, "init.bin")
+                //LunoSecurity.saveEncrypted(initFile, lunoCode)
+
+                initFile.writeText(lunoCode)
+
+
+
+                val imagesDir = File(tempDir, "images")
+                val soundsDir = File(tempDir, "sounds")
+                imagesDir.mkdirs()
+                soundsDir.mkdirs()
+                val sourceDir = project!!.directory
+
+                val foldersToCopy = listOf("files")
+
+                for (folderName in foldersToCopy) {
+                    val src = File(sourceDir, folderName)
+                    val dest = File(tempDir, folderName)
+
+                    if (src.exists()) {
+                        src.copyRecursively(dest, overwrite = true)
+                    } else {
+                        dest.mkdirs()
+                    }
+                }
+
+                project!!.sceneList.forEach { scene ->
+                    scene.spriteList.forEach { sprite ->
+                        sprite.lookList.forEach { look ->
+                            val src = look.file
+                            if (src != null && src.exists()) {
+                                src.copyTo(File(imagesDir, src.name), overwrite = true)
+                            }
+                        }
+                        sprite.soundList.forEach { sound ->
+                            val src = sound.file
+                            if (src != null && src.exists()) {
+                                src.copyTo(File(soundsDir, src.name), overwrite = true)
+                            }
+                        }
+                    }
+                }
+
+                val zipFile = File(requireContext().cacheDir, "${project!!.name}_baked.zip")
+                ZipOutputStream(FileOutputStream(zipFile)).use { zos ->
+                    zipDirectory3(tempDir, zos)
+                }
+
+                tempDir.deleteRecursively()
+
+                withContext(Dispatchers.Main) {
+                    hideProgressDialog()
+                    shareFile(zipFile)
+                }
+
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    hideProgressDialog()
+                    ToastUtil.showError(requireContext(), "Ошибка: ${e.message}")
+                    e.printStackTrace()
+                }
+            }
+        }
+    }
+
+    private fun shareFile(file: File) {
+        val uri = androidx.core.content.FileProvider.getUriForFile(
+            requireContext(),
+            requireContext().packageName + ".fileProvider",
+            file
+        )
+        val intent = Intent(Intent.ACTION_SEND)
+        intent.type = "application/zip"
+        intent.putExtra(Intent.EXTRA_STREAM, uri)
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        startActivity(Intent.createChooser(intent, "Сохранить запеченный проект"))
     }
 
     private fun setupRebuildCache() {
@@ -225,7 +329,7 @@ class ProjectOptionsFragment : Fragment() {
         updateGitButtonsVisibility()
 
         binding.gitConnectButton.setOnClickListener { handleGitConnect() }
-        binding.gitPublishButton.setOnClickListener { showCommitMessageDialog() } // Теперь вызывает диалог
+        binding.gitPublishButton.setOnClickListener { showCommitMessageDialog() }
         //binding.gitUpdateButton.setOnClickListener { handleGitUpdate() }
     }
 
@@ -297,7 +401,7 @@ class ProjectOptionsFragment : Fragment() {
                             is GitResult.Success -> {
                                 ToastUtil.showSuccess(requireContext(), "Проект успешно опубликован!")
                                 project?.xmlHeader?.gitRemoteUrl = result.data
-                                saveProject() // Сохраняем URL в code.xml
+                                saveProject()
                                 updateGitButtonsVisibility()
                             }
                             is GitResult.Error -> ToastUtil.showError(requireContext(), "Ошибка: ${result.message}")
@@ -332,28 +436,28 @@ class ProjectOptionsFragment : Fragment() {
 
                 showProgressDialog("Клонирование проекта...")
                 lifecycleScope.launch(Dispatchers.IO) {
-                    // 1. Клонируем во временную папку
+
                     val result = gitController.cloneRepository(repoUrl, token, tempDir)
 
                     var finalResult: GitResult<Unit> = GitResult.Error("Operation failed before replacement.")
                     if (result is GitResult.Success) {
                         try {
-                            // 2. Атомарная замена папок
+
                             originalProjectDir.deleteRecursively()
                             if (!tempDir.renameTo(originalProjectDir)) {
                                 throw IOException("Failed to replace project directory.")
                             }
 
-                            // 3. *** КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ ***
-                            // Загружаем только что склонированный проект с диска, чтобы не использовать старые данные из памяти.
+
+
                             val clonedProject = XstreamSerializer.getInstance().loadProject(originalProjectDir, requireContext())
                                 ?: throw IOException("Failed to load cloned project from disk.")
 
-                            // 4. Обновляем URL в новом проекте и сохраняем ТОЛЬКО ЕГО
+
                             clonedProject.xmlHeader.gitRemoteUrl = repoUrl
                             XstreamSerializer.getInstance().saveProject(clonedProject)
 
-                            // Обновляем текущий проект в менеджере
+
                             projectManager.currentProject = clonedProject
                             project = clonedProject
 
@@ -363,11 +467,11 @@ class ProjectOptionsFragment : Fragment() {
                             finalResult = GitResult.Success(Unit)
                         } catch (e: Exception) {
                             e.printStackTrace()
-                            tempDir.deleteRecursively() // Очистка в случае ошибки
+                            tempDir.deleteRecursively()
                             finalResult = GitResult.Error("Failed to replace or load project: ${e.message}")
                         }
                     } else {
-                        finalResult = result // Передаем ошибку клонирования
+                        finalResult = result
                     }
 
                     withContext(Dispatchers.Main) {
@@ -377,18 +481,18 @@ class ProjectOptionsFragment : Fragment() {
                                 ToastUtil.showSuccess(requireContext(), "Проект успешно склонирован!")
                                 projectManager.loadProject(originalProjectDir)
 
-                                // 4. Обновляем URL в новом проекте и сохраняем ТОЛЬКО ЕГО
+
                                 projectManager.currentProject.xmlHeader.gitRemoteUrl = repoUrl
 
                                 project = projectManager.currentProject
-                                shouldSaveOnPause = true // Мы уже все сохранили
+                                shouldSaveOnPause = true
                                 showProjectReloadDialog()
                             }
                             is GitResult.Error -> {
                                 tempDir.deleteRecursively()
                                 ToastUtil.showError(requireContext(), "Ошибка: ${finalResult.message}")
                             }
-                            else -> {} // MergeConflict невозможен при клонировании
+                            else -> {}
                         }
                     }
                 }
@@ -417,8 +521,8 @@ class ProjectOptionsFragment : Fragment() {
         val token = TokenManager.getToken(requireContext()) ?: return
         showProgressDialog("Синхронизация и публикация...")
         lifecycleScope.launch(Dispatchers.IO) {
-            saveProject() // Сохраняем все несохраненные изменения перед пушем
-            val result = gitController.commitAndPush(commitMessage, "NewCatroid_user", "nc_user@email.com", token) // Имя и email - заглушки
+            saveProject()
+            val result = gitController.commitAndPush(commitMessage, "NewCatroid_user", "nc_user@email.com", token)
             withContext(Dispatchers.Main) {
                 hideProgressDialog()
                 when (result) {
@@ -442,13 +546,13 @@ class ProjectOptionsFragment : Fragment() {
                         ToastUtil.showSuccess(requireContext(), "Проект обновлен!")
                         shouldSaveOnPause = false
 
-                        // *** КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ ЗДЕСЬ ***
-                        // Мы получили новый, объединенный проект.
-                        // Теперь мы должны обновить его в памяти приложения!
+
+
+
                         val mergedProject = result.data.mergedProject
                         project = mergedProject
                         projectManager.currentProject = mergedProject
-                        // ************************************
+
 
                         if (result.data.conflicts.isNotEmpty()) {
                             val conflictsString = result.data.conflicts.joinToString("\n") { "- ${it.path}" }
@@ -480,7 +584,7 @@ class ProjectOptionsFragment : Fragment() {
     private fun showProgressDialog(message: String) {
         progressDialog = AlertDialog.Builder(requireContext())
             .setCancelable(false)
-            .setView(R.layout.dialog_progress) // Предполагается, что у вас есть layout с ProgressBar
+            .setView(R.layout.dialog_progress)
             .setMessage(message)
             .show()
     }
@@ -494,7 +598,7 @@ class ProjectOptionsFragment : Fragment() {
             .setTitle("Требуется перезагрузка")
             .setMessage("Проект был изменен. Чтобы увидеть изменения, необходимо его перезапустить.")
             .setPositiveButton("Перезапустить") { _, _ ->
-                // Закрываем текущую Activity и возвращаемся в главное меню
+
                 requireActivity().finish()
             }
             .setCancelable(false)
@@ -893,30 +997,30 @@ class ProjectOptionsFragment : Fragment() {
     }
 
     /*fun createApkFromTemplate(context: Context, projectZipFile: File): File {
-        // Путь к шаблону
+
         val assetFile = "apk_template.zip"
 
-        // Создаем временную папку
+
         val tempDir = File(context.cacheDir, "apk_temp")
         tempDir.mkdirs()
 
-        // Извлекаем шаблон
+
         unzip(context.assets.open(assetFile), tempDir)
 
-        // Заменяем project.zip на новый проект
+
         val projectFile = File(tempDir, "assets/project.zip")
         projectZipFile.copyTo(projectFile, overwrite = true)
 
-        // Создаем новый APK-файл
+
         val newApkFile = File(context.cacheDir, "project_build.apk")
         ZipOutputStream(FileOutputStream(newApkFile)).use { zos ->
             zipDirectory3(tempDir, zos)
         }
 
-        // Удаляем временные файлы
+
         tempDir.deleteRecursively()
 
-        // Возвращаем путь к созданному APK
+
         return newApkFile
     }*/
 
@@ -930,38 +1034,38 @@ class ProjectOptionsFragment : Fragment() {
     }
 
     fun createApkFromTemplate(context: Context, projectZipFile: File): File {
-        // Путь к шаблону APK
+
         val assetFile = "apk_template.zip"
 
-        // Создаем временную папку
+
         val tempDir = File(context.cacheDir, "apk_temp")
         tempDir.mkdirs()
 
-        // Извлекаем шаблон APK
+
         unzip(context.assets.open(assetFile), tempDir)
 
-        // Заменяем project.zip на новый проект
+
         val projectFile = File(tempDir, "assets/project.zip")
         projectZipFile.copyTo(projectFile, overwrite = true)
 
-        // Создаем unsigned APK
+
         val unsignedApkFile = File(context.cacheDir, "unsigned_project_build.apk")
         ZipOutputStream(FileOutputStream(unsignedApkFile)).use { zos ->
             zipDirectory3(tempDir, zos)
         }
 
-        // Удаляем временные файлы
+
         tempDir.deleteRecursively()
 
-        // Подписываем APK
+
         val signedApkFile = File(context.cacheDir, "signed_project_build.apk")
         val keystoreInputStream = CatroidApplication.getAppContext().assets.open("debug.jks")
-        val outputFile = File(context.filesDir, "debug.jks") // Путь к файлу в директории приложения
+        val outputFile = File(context.filesDir, "debug.jks")
 
         copyInputStreamToFile(CatroidApplication.getAppContext(), keystoreInputStream, outputFile)
         signApkWithApksig(context, unsignedApkFile, signedApkFile, "debug.p12", "keystore", "dbg", "keystore")
 
-        // Удаляем unsigned APK
+
         unsignedApkFile.delete()
 
         return signedApkFile
@@ -985,26 +1089,26 @@ class ProjectOptionsFragment : Fragment() {
         keyPassword: String
     ) {
         try {
-            // Копируем .p12 keystore из assets
+
             val keystoreFile = File(context.filesDir, keystoreAssetName)
             if (!keystoreFile.exists()) {
                 copyKeystoreFromAssets(context, keystoreAssetName, keystoreFile)
             }
 
-            // Загружаем хранилище ключей PKCS#12
+
             val keyStore = KeyStore.getInstance("PKCS12").apply {
                 load(FileInputStream(keystoreFile), keystorePassword.toCharArray())
             }
 
-            // Получаем приватный ключ
+
             val privateKey = keyStore.getKey(keyAlias, keyPassword.toCharArray()) as PrivateKey
 
-            // Преобразуем цепочку сертификатов
+
             val certificates = keyStore.getCertificateChain(keyAlias)
                 .map { it as X509Certificate }
                 .toList()
 
-            // Настраиваем APK Signer
+
             val signerConfig = ApkSigner.SignerConfig.Builder(
                 keyAlias,
                 privateKey,
@@ -1031,27 +1135,27 @@ class ProjectOptionsFragment : Fragment() {
         keyPassword: String
     ) {
         try {
-            // Загружаем keystore
+
             val keyStore = KeyStore.getInstance("JKS").apply {
                 load(FileInputStream(keystore), keystorePassword.toCharArray())
             }
 
-            // Получаем приватный ключ
+
             val privateKey = keyStore.getKey(keyAlias, keyPassword.toCharArray()) as PrivateKey
 
-            // Получаем сертификаты и преобразуем их в список X509Certificate
+
             val certificates = keyStore.getCertificateChain(keyAlias)
                 .map { it as X509Certificate }
                 .toList()
 
-            // Настраиваем подписчик APK
+
             val signerConfig = ApkSigner.SignerConfig.Builder(
                 keyAlias,
                 privateKey,
                 certificates
             ).build()
 
-            // Создаем подписчик и подписываем APK
+
             ApkSigner.Builder(listOf(signerConfig))
                 .setInputApk(unsignedApk)
                 .setOutputApk(signedApk)
@@ -1062,23 +1166,23 @@ class ProjectOptionsFragment : Fragment() {
         }
     }*/
 
-    // Функция подписи APK с помощью ZipSigner
+
     /*fun signApkWithZipSigner(context: Context, unsignedApk: File, signedApk: File) {
         try {
-            // Используем ZipSigner
+
             val zipSigner = ZipSigner()
 
-            // Указываем режим подписи (используем стандартный тестовый ключ)
-            zipSigner.setKeymode("testkey") // Или customkey, если у тебя есть собственный
 
-            // Подписываем APK
+            zipSigner.setKeymode("testkey")
+
+
             zipSigner.signZip(unsignedApk.absolutePath, signedApk.absolutePath)
         } catch (e: Exception) {
             throw RuntimeException("Ошибка подписи APK: ${e.message}", e)
         }
     }*/
 
-// Вспомогательные функции unzip и zipDirectory3 остаются без изменений
+
 
     fun unzip(inputStream: InputStream, outDir: File) {
         ZipInputStream(inputStream).use { zis ->
@@ -1098,8 +1202,8 @@ class ProjectOptionsFragment : Fragment() {
         }
     }
 
-    fun zipDirectory3(dir: File, zos: ZipOutputStream, basePath: String = "") {
-        // Добавляем запись для самой директории
+    /*fun zipDirectory3(dir: File, zos: ZipOutputStream, basePath: String = "") {
+
         val dirEntry = ZipEntry(basePath)
         zos.putNextEntry(dirEntry)
         zos.closeEntry()
@@ -1107,9 +1211,36 @@ class ProjectOptionsFragment : Fragment() {
         dir.listFiles()?.forEach { file ->
             val filePath = basePath + file.name
             if (file.isDirectory) {
-                // Рекурсивно добавляем поддиректории
+
                 zipDirectory3(file, zos, "$filePath/")
             } else {
+                FileInputStream(file).use { fis ->
+                    zos.putNextEntry(ZipEntry(filePath))
+                    fis.copyTo(zos)
+                    zos.closeEntry()
+                }
+            }
+        }
+    }*/
+
+    fun zipDirectory3(dir: File, zos: ZipOutputStream, basePath: String = "") {
+
+
+
+        dir.listFiles()?.forEach { file ->
+            val filePath = if (basePath.isEmpty()) file.name else "$basePath/${file.name}"
+
+            if (file.isDirectory) {
+
+
+                val dirEntry = ZipEntry("$filePath/")
+                zos.putNextEntry(dirEntry)
+                zos.closeEntry()
+
+
+                zipDirectory3(file, zos, filePath)
+            } else {
+
                 FileInputStream(file).use { fis ->
                     zos.putNextEntry(ZipEntry(filePath))
                     fis.copyTo(zos)
@@ -1136,7 +1267,7 @@ class ProjectOptionsFragment : Fragment() {
             val params = ArrayList<Any>(listOf(toast))
             StageActivity.messageHandler.obtainMessage(StageActivity.SHOW_TOAST, params).sendToTarget()
         } else {
-            // Обработка ситуации, когда messageHandler равно null
+
             Log.e("ShowToast", "messageHandler is null!")
         }
     }
@@ -1174,9 +1305,9 @@ class ProjectOptionsFragment : Fragment() {
             "Сделано! Готовы к новым подвигам?"
         )
 
-        // Генерируем случайный индекс
+
         val randomIndex = Random.nextInt(messages.size)
-        // Возвращаем случайное сообщение
+
         return messages[randomIndex]
     }
 
@@ -1206,7 +1337,7 @@ class ProjectOptionsFragment : Fragment() {
         )
 
         val randomIndex = Random.nextInt(errorMessages.size)
-        // Возвращаем случайное сообщение
+
         return errorMessages[randomIndex]
     }
 
@@ -1224,16 +1355,16 @@ class ProjectOptionsFragment : Fragment() {
         project?.let { proj ->
             val directory: File = proj.directory
 
-            // Создаем файл для нового значка
+
             val oldIconFile = File(directory, "automatic_screenshot.png")
             val newIconFile = File(directory, "manual_screenshot.png")
 
-            // Удаляем старый файл, если он существует
+
             if (oldIconFile.exists()) {
                 oldIconFile.delete()
             }
 
-            // Открываем выбор изображения
+
             val intent = Intent(Intent.ACTION_GET_CONTENT)
             intent.type = "image/*"
             startActivityForResult(intent, REQUEST_SELECT_IMAGE)
@@ -1251,11 +1382,11 @@ class ProjectOptionsFragment : Fragment() {
             val deviceVariablesFile = File(directory, "DeviceVariables.json")
             val deviceListsFile = File(directory, "DeviceLists.json")
 
-            // Удаляем файлы, если они существуют
+
             val variablesDeleted = deviceVariablesFile.delete()
             val listsDeleted = deviceListsFile.delete()
 
-            // Проверяем, были ли файлы успешно удалены
+
             if (variablesDeleted || listsDeleted) {
                 showToast(getRandomMessage())
             } else {
@@ -1292,23 +1423,23 @@ class ProjectOptionsFragment : Fragment() {
     fun zipDirectory(sourceDir: File, zipFile: File): File {
         ZipOutputStream(FileOutputStream(zipFile)).use { zipOut ->
             sourceDir.walk().forEach { file ->
-                // Создаем запись zip для каждого файла
+
                 if(file.name != "undo_code.xml") {
                     val zipEntry = ZipEntry(file.relativeTo(sourceDir).path)
                     zipOut.putNextEntry(zipEntry)
 
-                    // Если это файл, то копируем его содержимое в zip
+
                     if (file.isFile) {
                         FileInputStream(file).use { fis ->
                             fis.copyTo(zipOut)
                         }
                     }
-                    // Закрываем запись для данного zipEntry
+
                     zipOut.closeEntry()
                 }
             }
         }
-        // Возвращаем созданный zip файл
+
         return zipFile
     }
 
@@ -1323,10 +1454,10 @@ class ProjectOptionsFragment : Fragment() {
             tempDir.mkdirs()
             zipTempDir = tempDir
 
-            // Определяем имя zip-файла
+
             val zipFile = File(tempDir, "project.zip")
 
-            // Создаем zip-файл
+
             projectInZip = zipDirectory(projectDirectory, zipFile)
 
             Log.d("BUILD", "Zip файл успешно создан: ${zipFile.absolutePath}")
@@ -1359,10 +1490,10 @@ class ProjectOptionsFragment : Fragment() {
                 tempDir.mkdirs()
                 zipTempDir = tempDir
 
-                // Определяем имя zip-файла
+
                 val zipFile = File(tempDir, "project.zip")
 
-                // Создаем zip-файл
+
                 projectInZip = zipDirectory(projectDirectory, zipFile)
 
                 Log.d("BUILD", "Zip файл успешно создан: ${zipFile.absolutePath}")
@@ -1419,11 +1550,11 @@ class ProjectOptionsFragment : Fragment() {
             data?.data?.let { uri ->
                 try {
                     val contentResolver: ContentResolver = CatroidApplication.getAppContext().contentResolver
-                    // Получаем путь к выбранному изображению
+
                     val inputStream = contentResolver.openInputStream(uri)
                     val outputStream = FileOutputStream(File(project?.directory, "manual_screenshot.png"))
 
-                    // Копируем данные из inputStream в outputStream
+
                     inputStream?.copyTo(outputStream)
 
                     inputStream?.close()
@@ -1438,21 +1569,21 @@ class ProjectOptionsFragment : Fragment() {
     }
 
     fun copyFileToUri(context: Context, sourceFile: File, directoryUri: Uri, fileName: String) {
-        // Получаем ContentResolver
+
         val resolver: ContentResolver = context.contentResolver
 
-        // Создаем Uri для нового файла
+
         val fileUri = Uri.withAppendedPath(directoryUri, fileName)
 
-        // Открываем выходной поток для записи в новый файл
+
         resolver.openOutputStream(fileUri)?.use { outputStream: OutputStream ->
-            // Открываем входной поток для чтения из исходного файла
+
             FileInputStream(sourceFile).use { inputStream ->
-                // Копируем данные из входного потока в выходной
+
                 inputStream.copyTo(outputStream)
             }
         } ?: run {
-            // Обработка ошибки, если выходной поток не удалось открыть
+
             println("Ошибка: Не удалось создать файл в указанной директории.")
         }
     }

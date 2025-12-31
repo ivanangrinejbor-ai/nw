@@ -36,6 +36,44 @@
         android:text="1.0"/>
 
     <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Skybox (HDRI)"
+        android:textColor="@color/white"
+        android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginTop="8dp">
+        <TextView
+            android:id="@+id/text_skybox_path"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="None"
+            android:textColor="@color/white"
+            android:ellipsize="start"
+            android:singleLine="true"/>
+        <ImageButton
+            android:id="@+id/btn_clear_skybox"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/ic_close"
+            style="@style/Widget.AppCompat.Button.Borderless"/>
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/btn_select_skybox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="Select Skybox Texture"/>
+
+    <TextView
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:text="Performance (Requires Restart)"

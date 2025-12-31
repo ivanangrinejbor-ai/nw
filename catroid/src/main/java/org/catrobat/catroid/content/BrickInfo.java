@@ -5,6 +5,7 @@ import org.catrobat.catroid.content.actions.CreateCubeAction;
 import org.catrobat.catroid.content.actions.PlaySoundAction;
 import org.catrobat.catroid.content.actions.SetMassAction;
 import org.catrobat.catroid.content.actions.TurnRightSpeedAction;
+import org.catrobat.catroid.content.actions.VmRelativeMouseMoveAction;
 import org.catrobat.catroid.content.bricks.*;
 
 import java.util.HashMap;
@@ -242,8 +243,16 @@ public final class BrickInfo {
         add(RunVMBrick.class, "Запускает виртуальную машину с помощью QEMU на архитектуре x86_64 (позволяет запускать Windows, Linux и др) ВАЖНО: обязательно выключайте VM, когда она не нужна");
         add(RunVm2Brick.class, "Запускает виртуальную машину с помощью QEMU на архитектуре x86_64, при помощи аргументов (позволяет запускать Windows, Linux и др) ВАЖНО: обязательно выключайте VM, когда она не нужна");
         add(CreateDiskBrick.class, "Создает виртуальный жесткий диск для VM");
+        add(VmSetMonitorSizeBrick.class, "Задает размер монитора VM (VNC)");
         add(ToggleDisplayBrick.class, "Определяет: показывать ли изображение VM");
         add(MouseEventBrick.class, "Эмулирует событие мыши для VM (VNC). ВАЖНО: Маска - побитовая информация о кнопках: " +
+                "1: Левая кнопка мыши (Button 1 Pressed/Released).\n" +
+                "2: Средняя кнопка мыши (Button 2 Pressed/Released).\n" +
+                "4: Правая кнопка мыши (Button 3 Pressed/Released).\n" +
+                "8: Кнопка 4 (прокрутка вверх, если поддерживается).\n" +
+                "16: Кнопка 5 (прокрутка вниз, если поддерживается).\n" +
+                "Например, нажатие ЛКМ будет 1, а нажатие одновременно ЛКМ и ПКМ будет: 1 + 4 = 5 (т.к. ЛКМ: 1, а ПКМ: 4)");
+        add(VmRelativeMouseMoveBrick.class, "Эмулирует событие мыши для VM (VNC), НО СМЕЩАЕТ МЫШЬ ОТНОСИТЕЛЬНО ТЕКУЩЕЙ ПОЗИЦИИ!. ВАЖНО: Маска - побитовая информация о кнопках: " +
                 "1: Левая кнопка мыши (Button 1 Pressed/Released).\n" +
                 "2: Средняя кнопка мыши (Button 2 Pressed/Released).\n" +
                 "4: Правая кнопка мыши (Button 3 Pressed/Released).\n" +
@@ -268,6 +277,9 @@ public final class BrickInfo {
         add(SetPhysicsStateBrick.class, "Задает физическое состояние обьекта: динамичный, статичный (примитив - куб), сложный статичный (повторяет форму модели)");
         add(SetCCDBrick.class, "Включает или выключает CCD (точное столкновение) для обьекта (включайте для динамичных обьектов)");
         add(SetShaderCodeBrick.class, "Задает код 3D шейдера. (GLSL)");
+        add(CreateParticlesBrick.class, "Создает частицы ВАЖНО: так же создает GameObject с данным ID, указывайте уникальный ID");
+        add(DeleteParticlesBrick.class, "Удаляет частицы");
+        add(SetPostProcessingBrick.class, "Может включить эффект для постобработки, настроить его параметры");
         add(PrepareSoundBrick2.class, "Подготавливает звук к воспроизведению ВАЖНО: КАК АУДИО! рекомендуется для sfx и коротких звуков");
         add(PrepareMusicAs3DSoundBrick.class, "Подготавливает музыку к воспроизведению ВАЖНО: КАК МУЗЫКУ! рекомендуется для воспроизведения длинной музыки");
         add(PlaySoundAtPositionBrick.class, "Воспроизводит подготовленный звук в 3D пространстве");

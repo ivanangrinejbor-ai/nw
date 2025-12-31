@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:padding="8dp">
+
+    <TextView style="@style/InspectorSubHeader" android:text="Main"/>
+    <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="wrap_content">
+        <CheckBox android:id="@+id/p_looping" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Looping" android:textColor="@color/white" android:buttonTint="@color/accent"/>
+    </LinearLayout>
+    <include layout="@layout/inspector_param_float" android:id="@+id/p_duration"/>
+    <include layout="@layout/inspector_param_float" android:id="@+id/p_start_lifetime"/>
+    <include layout="@layout/inspector_param_float" android:id="@+id/p_start_speed"/>
+    <include layout="@layout/inspector_param_float" android:id="@+id/p_start_size"/>
+    <include layout="@layout/inspector_param_float" android:id="@+id/p_gravity"/>
+    <include layout="@layout/inspector_param_float" android:id="@+id/p_max_particles"/>
+
+    <TextView style="@style/InspectorSubHeader" android:text="Emission"/>
+    <include layout="@layout/inspector_param_float" android:id="@+id/p_emission_rate"/>
+
+    <TextView style="@style/InspectorSubHeader" android:text="Shape (Cone)"/>
+    <include layout="@layout/inspector_param_float" android:id="@+id/p_cone_angle"/>
+    <include layout="@layout/inspector_param_float" android:id="@+id/p_cone_radius"/>
+
+    <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical">
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Start" android:textColor="@color/white" android:layout_marginEnd="8dp"/>
+        <Button android:id="@+id/p_start_color" android:layout_width="0dp" android:layout_weight="1" android:layout_height="36dp"/>
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="End" android:textColor="@color/white" android:layout_marginStart="16dp" android:layout_marginEnd="8dp"/>
+        <Button android:id="@+id/p_end_color" android:layout_width="0dp" android:layout_weight="1" android:layout_height="36dp"/>
+    </LinearLayout>
+
+    <include layout="@layout/inspector_param_float" android:id="@+id/p_end_size"/>
+    <include layout="@layout/inspector_param_float" android:id="@+id/p_start_rotation"/>
+    <include layout="@layout/inspector_param_float" android:id="@+id/p_rotation_over_lifetime"/>
+
+    <TextView style="@style/InspectorSubHeader" android:text="Renderer"/>
+    <LinearLayout android:id="@+id/slot_particle_texture" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="8dp">
+        <TextView android:id="@+id/text_texture_path" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="Default" android:textColor="#CCCCCC" android:textSize="12sp" android:ellipsize="middle" android:singleLine="true"/>
+        <Button android:id="@+id/btn_select_texture" android:layout_width="60dp" android:layout_height="36dp" android:text="Set" android:textSize="10sp"/>
+        <ImageButton android:id="@+id/btn_clear_texture" android:layout_width="36dp" android:layout_height="36dp" android:src="@android:drawable/ic_menu_close_clear_cancel" android:background="?attr/selectableItemBackgroundBorderless" app:tint="#FF5252"/>
+    </LinearLayout>
+    <CheckBox android:id="@+id/p_is_additive" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Glow (Additive)" android:textColor="@color/white" android:buttonTint="@color/accent"/>
+
+</LinearLayout>

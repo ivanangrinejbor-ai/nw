@@ -80,7 +80,7 @@
     <!-- General terms -->
     <string name="brick_set_3d_sound_position">Задать позицию 3D звука</string>
     <string name="brick_load_scene_additive">Загрузить сцену (добавить)</string>
-    <string name="brick_load_scene_additive_path">из файла:</string>
+    <string name="brick_load_scene_additive_path">из файла</string>
     <string name="brick_prepare_music">Подготовить музыку (для 3D)</string>
     <string name="brick_prepare_music_as">под именем</string>
     <string name="brick_prepare_sound_as">под именем</string>
@@ -180,6 +180,74 @@
     <string name="formula_ray_hit_x2">луч_точка_x</string>
     <string name="formula_ray_hit_distance">луч_дистанция</string>
     <string name="formula_ray_hit_distance_parameter">("id_луча")</string>
+    <string name="brick_set_pp_effect">Задать эффект (постобработка)</string>
+    <string name="brick_set_pp_parameter">Параметр</string>
+    <string name="brick_set_pp_value">Значение</string>
+    <string name="brick_create_particles_title" formatted="false">Создать Частицы</string>
+    <string name="brick_delete_particles_title" formatted="false">Удалить Частицы</string>
+    <string name="brick_particle_id" formatted="false">ID</string>
+    <string name="brick_particle_looping" formatted="false">Зациклить (1/0)</string>
+    <string name="brick_particle_duration" formatted="false">Длительность</string>
+    <string name="brick_particle_lifetime" formatted="false">Время жизни</string>
+    <string name="brick_particle_speed" formatted="false">Скорость</string>
+    <string name="brick_particle_size" formatted="false">Начальный размер</string>
+    <string name="brick_particle_end_size" formatted="false">Конечный размер</string>
+    <string name="brick_particle_gravity" formatted="false">Гравитация</string>
+    <string name="brick_particle_max_count" formatted="false">Макс. кол-во</string>
+    <string name="brick_particle_rate" formatted="false">Частота</string>
+    <string name="brick_particle_angle" formatted="false">Угол</string>
+    <string name="brick_particle_radius" formatted="false">Радиус</string>
+    <string name="brick_particle_start_color" formatted="false">Нач. цвет (Hex)</string>
+    <string name="brick_particle_end_color" formatted="false">Кон. цвет (Hex)</string>
+    <string name="brick_particle_texture" formatted="false">Файл текстуры</string>
+    <string name="brick_particle_additive" formatted="false">Свечение (1/0)</string>
+    <string name="brick_particle_rotation" formatted="false">Нач. поворот</string>
+    <string name="brick_particle_rotation_speed" formatted="false">Скорость поворота</string>
+    <string name="brick_particle_pos_x" formatted="false">Позиция X</string>
+    <string name="brick_particle_pos_y" formatted="false">Позиция Y</string>
+    <string name="brick_particle_pos_z" formatted="false">Позиция Z</string>
+    <string name="brick_particle_rot_pitch" formatted="false">Поворот Pitch (X)</string>
+    <string name="brick_particle_rot_yaw" formatted="false">Поворот Yaw (Y)</string>
+    <string name="brick_particle_rot_roll" formatted="false">Поворот Roll (Z)</string>
+    <string-array name="pp_effect_types">
+        <item>Global (Enable/Quality)</item> <!-- 0 -->
+        <item>Bloom</item>                   <!-- 1 -->
+        <item>Vignette</item>                <!-- 2 -->
+        <item>Levels (Color)</item>          <!-- 3 -->
+        <item>Film Grain</item>              <!-- 4 -->
+        <item>FXAA</item>                    <!-- 5 -->
+        <item>Chromatic Aberration</item>    <!-- 6 -->
+        <item>Radial Blur</item>             <!-- 7 -->
+        <item>Old TV</item>                  <!-- 8 -->
+        <item>CRT Monitor</item>             <!-- 9 -->
+        <item>Fisheye</item>                 <!-- 10 -->
+        <item>Water Distortion</item>        <!-- 11 -->
+        <item>Motion Blur</item>             <!-- 12 -->
+        <item>Lens Flare</item>              <!-- 13 -->
+        <item>Gaussian Blur</item>           <!-- 14 -->
+        <item>Zoom Blur</item>               <!-- 15 -->
+        <item>ACES Tonemapping</item>        <!-- 16 -->
+        <item>Eye Adaptation</item>          <!-- 17 -->
+    </string-array>
+
+    <string-array name="pp_effect_params">
+        <item>Включен (1/0)</item>           <!-- 0 -->
+        <item>Интенсивность / Сила / Значение</item> <!-- 1 -->
+        <item>Порог</item>                  <!-- 2 -->
+        <item>Значение блюра</item>                <!-- 3 -->
+        <item>Проходы блюра (Целочисл.)</item>          <!-- 4 -->
+        <item>Разрешение (Глоб.)</item>     <!-- 5 -->
+        <item>Контраст</item>                   <!-- 6 -->
+        <item>Насыщенность</item>                 <!-- 7 -->
+        <item>Гамма</item>                      <!-- 8 -->
+        <item>Скорость</item>                      <!-- 9 -->
+        <item>Искажение</item>   <!-- 10 -->
+        <item>Смещение X</item>                   <!-- 11 -->
+        <item>Смещение Y</item>                   <!-- 12 -->
+        <item>Шум</item>                      <!-- 13 -->
+        <item>Максимальное значение</item>                      <!-- 14 -->
+        <item>Минимальное значение</item>                      <!-- 15 -->
+    </string-array>
 
     <string name="brick_set_third_person_camera">Камера от 3-го лица</string>
     <string name="brick_camera_target">Цель камеры</string>
@@ -200,6 +268,14 @@
     <string name="input_text">Текст ввода</string>
     <string name="brick_run_vm2">Запустить ВМ</string>
     <string name="brick_vm_arguments">Аргументы</string>
+
+    <string formatted="false" name="brick_vm_mouse_relative">Событие мыши (аддитивное)</string>
+    <string formatted="false" name="brick_vm_mouse_dx">Позиция X</string>
+    <string formatted="false" name="brick_vm_mouse_dy">Позиция Y</string>
+
+    <string formatted="false" name="brick_vm_monitor_size">Задать размер монитора VM</string>
+    <string formatted="false" name="brick_vm_width">Ширина</string>
+    <string formatted="false" name="brick_vm_height">Высота</string>
 
     <string name="category_file">Файлы</string>
 
@@ -845,6 +921,9 @@
     <string formatted="false" name="preference_description_internet_bricks">Расширяет возможности взаимодействия с интернетом и позволяет создавать локальные сервера</string>
     <string formatted="false" name="formula_editor_function_subtext">обрезать</string>
     <string formatted="false" name="formula_editor_function_file">файл_проекта</string>
+    <string formatted="false" name="formula_editor_function_all_files">путь_к_файлам_проекта</string>
+    <string formatted="false" name="formula_editor_function_file_size">размер_файла_проекта</string>
+    <string formatted="false" name="formula_editor_function_files_path">все_файлы_проекта</string>
     <string formatted="false" name="formula_editor_function_file_parameter">(\'variable.txt\')</string>
     <string formatted="false" name="formula_editor_function_lua">lua</string>
     <string formatted="false" name="formula_editor_function_lua_parameter">(\'return math.sqrt(25)\')</string>
