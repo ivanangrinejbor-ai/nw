@@ -101,4 +101,5 @@ cd NewCatroid
 
 
 # License #
-[Лицензия](https://catrob.at/licenses) нашего проекта наследуется от Catrobat (AGPL v3).
+[Лицензия](https://github.com/Danveyd/NewCatroid/blob/main/LICENSE) нашего проекта наследуется от Catrobat (AGPL v3).
+[Ссылка на нее же на сайте Catrobat](https://catrob.at/licenses)
