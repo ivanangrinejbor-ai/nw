@@ -107,10 +107,14 @@ class MainMenuFragment : Fragment(),
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
-        progressBar = requireActivity().findViewById(R.id.progress_bar)
-        viewModel.isLoading().observe(viewLifecycleOwner, Observer { show ->
-            progressBar.setVisibleOrGone(show)
-        })
+        try {
+            progressBar = requireActivity().findViewById(R.id.progress_bar)
+            viewModel.isLoading().observe(viewLifecycleOwner, Observer { show ->
+                progressBar.setVisibleOrGone(show)
+            })
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
 
         setupFeaturedProjectsRV()
         setupCategoriesRV()

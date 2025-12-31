@@ -29,19 +29,17 @@ public class PanoramicConverter implements Disposable {
                 "}";
 
         String fragmentShader = "#ifdef GL_ES\n" +
-                "precision mediump float;\n" +
+                "precision highp float;\n" + // Используем highp для точности
                 "#endif\n" +
                 "varying vec3 v_position;\n" +
                 "uniform sampler2D u_equirectangularMap;\n" +
-                "const vec2 invAtan = vec2(0.1591, 0.3183);\n" +
-                "vec2 sampleSphericalMap(vec3 v) {\n" +
-                "    vec2 uv = vec2(atan(v.z, v.x), asin(v.y));\n" +
-                "    uv *= invAtan;\n" +
-                "    uv += 0.5;\n" +
-                "    return uv;\n" +
-                "}\n" +
+                "const vec2 invPI = vec2(0.15915494309189533576, 0.31830988618379067153);\n" +
                 "void main() {\n" +
-                "  vec2 uv = sampleSphericalMap(normalize(v_position));\n" +
+                "  vec3 dir = normalize(v_position);\n" +
+                "  vec2 uv = vec2(atan(dir.x, dir.z), asin(dir.y));\n" + // atan(x,z) более стабилен
+                "  uv *= invPI;\n" +
+                "  uv.x = 0.5 - uv.x;\n" + // Коррекция направления U
+                "  uv.y = 0.5 -  uv.y;\n" + // Коррекция направления V
                 "  gl_FragColor = texture2D(u_equirectangularMap, uv);\n" +
                 "}";
 
@@ -62,13 +60,11 @@ public class PanoramicConverter implements Disposable {
     public Cubemap convert(Texture equirectangularTexture, int cubemapSize) {
         Gdx.app.log("PanoramicConverter", "Starting conversion to " + cubemapSize + "x" + cubemapSize + " Cubemap.");
 
-        Pixmap.Format format = equirectangularTexture.getTextureData().getFormat();
-        if (format != Pixmap.Format.RGB888 && format != Pixmap.Format.RGBA8888) {
-            Gdx.app.log("PanoramicConverter", "Unsupported source format " + format + ", falling back to RGBA8888.");
-            format = Pixmap.Format.RGBA8888;
-        }
+        // ИЗМЕНЕНИЕ: Заменяем старую логику создания FBO на новую, более надежную.
+        // Мы принудительно используем формат RGBA8888 и, что самое главное,
+        // отключаем создание ненужного буфера глубины (depth buffer = false).
+        FrameBufferCubemap fbo = new FrameBufferCubemap(Pixmap.Format.RGBA8888, cubemapSize, cubemapSize, false);
 
-        FrameBufferCubemap fbo = new FrameBufferCubemap(format, cubemapSize, cubemapSize, true);
 
         equirectangularTexture.bind(0);
         shader.bind();
@@ -83,7 +79,8 @@ public class PanoramicConverter implements Disposable {
             camera.up.set(fbo.getSide().up);
             camera.update();
 
-            Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
+            // Очищаем только цвет, так как буфера глубины больше нет
+            Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
             shader.setUniformMatrix("u_projViewTrans", camera.combined);
             skyboxMesh.render(shader, GL20.GL_TRIANGLES);
         }
@@ -93,21 +90,23 @@ public class PanoramicConverter implements Disposable {
         Gdx.gl.glEnable(GL20.GL_CULL_FACE);
 
         Cubemap result = fbo.getColorBufferTexture();
-        result.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
 
-        fbo.dispose();
+        // Убрано, так как getColorBufferTexture() уже возвращает Cubemap, а не FrameBuffer.
+        // fbo.dispose() будет вызван в любом случае, но результат уже в переменной result.
+
+        // fbo.dispose(); // LibGDX сам удалит FBO, когда удалится Cubemap, который он создал
         Gdx.app.log("PanoramicConverter", "Conversion finished.");
         return result;
     }
 
     private Mesh createSkyboxMesh() {
         float[] vertices = {
-                -1f, -1f, -1f, 1f, -1f, -1f, 1f, 1f, -1f, -1f, 1f, -1f, // Back face
-                -1f, -1f, 1f, 1f, -1f, 1f, 1f, 1f, 1f, -1f, 1f, 1f,   // Front face
-                -1f, 1f, -1f, 1f, 1f, -1f, 1f, 1f, 1f, -1f, 1f, 1f,     // Top face
-                -1f, -1f, -1f, 1f, -1f, -1f, 1f, -1f, 1f, -1f, -1f, 1f, // Bottom face
-                1f, -1f, -1f, 1f, -1f, 1f, 1f, 1f, 1f, 1f, 1f, -1f,     // Right face
-                -1f, -1f, -1f, -1f, -1f, 1f, -1f, 1f, 1f, -1f, 1f, -1f  // Left face
+                -1f, -1f, -1f, 1f, -1f, -1f, 1f, 1f, -1f, -1f, 1f, -1f,
+                -1f, -1f, 1f, 1f, -1f, 1f, 1f, 1f, 1f, -1f, 1f, 1f,
+                -1f, 1f, -1f, 1f, 1f, -1f, 1f, 1f, 1f, -1f, 1f, 1f,
+                -1f, -1f, -1f, 1f, -1f, -1f, 1f, -1f, 1f, -1f, -1f, 1f,
+                1f, -1f, -1f, 1f, -1f, 1f, 1f, 1f, 1f, 1f, 1f, -1f,
+                -1f, -1f, -1f, -1f, -1f, 1f, -1f, 1f, 1f, -1f, 1f, -1f
         };
         short[] indices = {
                 0, 1, 2, 0, 2, 3, 4, 5, 6, 4, 6, 7, 8, 9, 10, 8, 10, 11,

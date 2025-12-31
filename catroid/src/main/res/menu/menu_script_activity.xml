@@ -69,12 +69,12 @@
         android:title="@string/search"
         android:icon="@drawable/ic_search_menu"
         app:showAsAction="never" />
-    <item
+    <!--<item
          android:id="@+id/catblocks"
          android:title="@string/catblocks"
          android:icon="@drawable/_d_24px"
          app:showAsAction="never"
-         />
+         />-->
     <item android:id="@+id/catblocks_reorder_scripts"
         android:title="@string/catblocks_reorder"
         android:icon="@drawable/split_scene_up_24px"

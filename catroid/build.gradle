@@ -108,8 +108,8 @@ ext.copyGoogleServicesFile = { flavorName, flavorId ->
     }
 }
 
-def defaultVersionCode = 127
-def defaultVersionName = "2.1.1b2"
+def defaultVersionCode = 128
+def defaultVersionName = "2.1.2b1"
 
 android {
     compileSdk 34
@@ -434,8 +434,9 @@ dependencies {
     implementation 'com.github.mgsx-dev.gdx-gltf:core:2.2.1'
     implementation 'com.github.mgsx-dev.gdx-gltf:gltf:2.2.1'
 
-    //implementation 'com.crashinvaders.vfx:gdx-vfx-core:0.5.4'
-    //implementation 'com.crashinvaders.vfx:gdx-vfx-effects:0.5.4'
+    //gdx-vfx
+    implementation 'com.crashinvaders.vfx:gdx-vfx-core:0.5.4'
+    implementation 'com.crashinvaders.vfx:gdx-vfx-effects:0.5.4'
 
     implementation 'com.github.QuadFlask:colorpicker:0.0.13'
 
@@ -730,6 +731,11 @@ configurations.all {
         force 'com.google.android.material:material:1.2.1'
         force 'net.bytebuddy:byte-buddy:1.14.9'
         force 'net.bytebuddy:byte-buddy-agent:1.14.9'
+        force 'com.github.mgsx-dev.gdx-gltf:core:2.2.1'
+        force 'com.github.mgsx-dev.gdx-gltf:gltf:2.2.1'
+        force 'com.github.mgsx-dev.gdx-gltf:scene3d:2.2.1'
+        force 'com.crashinvaders.vfx:gdx-vfx-effects:0.5.4'
+        force 'com.crashinvaders.vfx:gdx-vfx-core:0.5.4'
     }
 }
 

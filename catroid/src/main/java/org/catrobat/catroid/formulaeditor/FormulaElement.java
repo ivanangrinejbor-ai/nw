@@ -137,6 +137,8 @@ public class FormulaElement implements Serializable {
 	private static boolean rhinoInitialized = false;
 	private static final String TAG_FORMULA_ELEMENT = "FormulaElement";
 
+	private transient Double cachedDoubleValue = null;
+
 	public enum ElementType {
 		OPERATOR, FUNCTION, NUMBER, SENSOR, USER_VARIABLE, USER_LIST, USER_DEFINED_BRICK_INPUT, BRACKET, STRING, COLLISION_FORMULA
 	}
@@ -441,6 +443,7 @@ public class FormulaElement implements Serializable {
 	}
 
 	private Object rawInterpretRecursive(Scope scope) {
+		org.catrobat.catroid.utils.PerformanceTracker.formulaEvaluations++;
 		ProjectManager projectManager = ProjectManager.getInstance();
 		Project currentProject = projectManager != null ? projectManager.getCurrentProject() : null;
 		Scene currentlyPlayingScene = projectManager != null ? projectManager.getCurrentlyPlayingScene() : null;
@@ -453,6 +456,13 @@ public class FormulaElement implements Serializable {
 				}
 				return rightChild.interpretRecursive(scope);
 			case NUMBER:
+				if (cachedDoubleValue != null) return cachedDoubleValue;
+				try {
+					cachedDoubleValue = Double.valueOf(value);
+					return cachedDoubleValue;
+				} catch (NumberFormatException e) {
+					return value;
+				}
 			case STRING:
 				return value;
 			case OPERATOR:
@@ -501,10 +511,10 @@ public class FormulaElement implements Serializable {
 		Functions standardFunction = Functions.getFunctionByValue(name);
 
 		if (standardFunction != null) {
-			Log.d("Formula", "isDefaultFunction");
+			//Log.d("Formula", "isDefaultFunction");
 			return interpretFunction(standardFunction, scope);
 		} else {
-			Log.d("Formula", "isCustomFunction");
+			//Log.d("Formula", "isCustomFunction");
 			CustomFormula customFormula = CustomFormulaManager.INSTANCE.getFormulaByUniqueName(name);
 			if (customFormula != null) {
 				List<Object> actualArguments = new ArrayList<>();
@@ -515,10 +525,23 @@ public class FormulaElement implements Serializable {
 				}
 				return interpretCustomLunoFunction(customFormula, actualArguments, scope);
 			} else {
-				Log.e("FormulaElement", "Неизвестная функция: " + name);
+				//Log.e("FormulaElement", "Неизвестная функция: " + name);
 				return FALSE; // Неизвестная функция
 			}
 		}
+	}
+
+	public String getFileListString(File directory) {
+		if (directory == null || !directory.isDirectory()) return "";
+
+		File[] files = directory.listFiles();
+		if (files == null) return "";
+
+		StringBuilder builder = new StringBuilder();
+		for (File file : files) {
+			builder.append(file.getName()).append("\n");
+		}
+		return builder.toString();
 	}
 
 	private ThreeDManager getThreeDManager() {
@@ -526,6 +549,22 @@ public class FormulaElement implements Serializable {
 			return StageActivity.getActiveStageListener().getThreeDManager();
 		}
 		return null;
+	}
+
+	public long getFileSize(File file) {
+		if (file == null) {
+			Log.d("ABABBABB", "is null");
+			return 0;
+		}
+
+		if (file.exists() && file.isFile()) {
+			Log.d("ABABBABB", "ok: " + file.length());
+			return file.length();
+		}
+
+		Log.d("ABABBABB", "nothing: " + file.exists() + ", " + file.isFile());
+
+		return 0;
 	}
 
 	private Object interpretFunction(Functions function, Scope scope) {
@@ -564,11 +603,17 @@ public class FormulaElement implements Serializable {
 					Log.e("FileCheck", "Error while checking file existence for: " + fileName, e);
 					return false;
 				}
+			case FILES_PATH:
+				return getFileListString(ProjectManager.getInstance().getCurrentProject().getFilesDir());
+			case ALL_FILES:
+				return ProjectManager.getInstance().getCurrentProject().getFilesDir().getAbsolutePath();
 			case LUA:
 				Globals globals = JsePlatform.standardGlobals();
 				String luaScript = String.valueOf(arguments.get(0));
 				LuaValue result = globals.load(luaScript).call();
 				return result.tojstring();
+			case FILE_SIZE:
+				return (int) getFileSize(ProjectManager.getInstance().getCurrentProject().getFile(String.valueOf(arguments.get(0))));
 			case TO_HEX:
 				Integer decimal = tryParseIntFromObject(arguments.get(0));
 				return Integer.toHexString(decimal).toUpperCase();

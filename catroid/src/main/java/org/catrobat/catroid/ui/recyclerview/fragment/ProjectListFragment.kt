@@ -65,6 +65,7 @@ import org.catrobat.catroid.io.asynctask.ProjectRenamer
 import org.catrobat.catroid.io.asynctask.ProjectUnZipperAndImporter
 import org.catrobat.catroid.libraries.LibraryManager
 import org.catrobat.catroid.libraryeditor.data.LibraryEditorActivity
+import org.catrobat.catroid.stage.StageActivity
 import org.catrobat.catroid.ui.BottomBar
 import org.catrobat.catroid.ui.ProjectActivity
 import org.catrobat.catroid.ui.ProjectListActivity
@@ -103,7 +104,7 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
         }
     }
 
-    private fun onImportProjectFinished(success: Boolean) {
+    /*private fun onImportProjectFinished(success: Boolean) {
         setAdapterItems(adapter.projectsSorted)
         if (success && filesForUnzipAndImportTask?.size == 1) {
             val importedFile = filesForUnzipAndImportTask!!.first()
@@ -123,6 +124,38 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
         }
         filesForUnzipAndImportTask?.clear()
         setShowProgressBar(false)
+    }*/
+
+    private fun onImportProjectFinished(result: org.catrobat.catroid.io.asynctask.ImportResult) {
+
+        filesForUnzipAndImportTask?.clear()
+        setShowProgressBar(false)
+
+        when (result) {
+            is org.catrobat.catroid.io.asynctask.ImportResult.Success -> {
+                setAdapterItems(adapter.projectsSorted)
+            }
+
+            is org.catrobat.catroid.io.asynctask.ImportResult.Failure -> {
+
+                ToastUtil.showError(requireContext(), R.string.error_import_project)
+            }
+
+            is org.catrobat.catroid.io.asynctask.ImportResult.BakedProject -> {
+
+                ToastUtil.showSuccess(requireContext(), "Запуск запеченного проекта...")
+                launchBakedProject(result.projectDir)
+            }
+        }
+    }
+
+    private fun launchBakedProject(projectDir: File) {
+        val intent = Intent(requireContext(), StageActivity::class.java)
+
+        intent.putExtra(StageActivity.EXTRA_PROJECT_PATH, projectDir.absolutePath)
+
+        intent.putExtra("IS_BAKED_LAUNCH", true)
+        startActivity(intent)
     }
 
     private fun showReadmeForProject(projectName: String) {
@@ -355,7 +388,9 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
         filesForUnzipAndImportTask?.apply {
             if (isNotEmpty()) {
                 val filesToUnzipAndImport = toTypedArray()
-                ProjectUnZipperAndImporter({ success: Boolean -> onImportProjectFinished(success) })
+                /*ProjectUnZipperAndImporter({ success: Boolean -> onImportProjectFinished(success) })
+                    .unZipAndImportAsync(filesToUnzipAndImport)*/
+                ProjectUnZipperAndImporter({ result -> onImportProjectFinished(result) })
                     .unZipAndImportAsync(filesToUnzipAndImport)
             }
         }
@@ -376,10 +411,10 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
             )
 
             if (fileName.endsWith(Constants.CATROBAT_EXTENSION)) {
-                // Обработка старого формата
+
                 filesForUnzipAndImportTask?.add(projectFile)
             } else if (fileName.endsWith(Constants.NEW_CATROBAT_EXTENSION)) {
-                // Обработка нового формата
+
                 /*val unzippedDir = StorageOperations.unzipFileToDir(projectFile, Constants.CACHE_DIRECTORY)
                 if (!isValidNewStructure(unzippedDir)) {
                     ToastUtil.showError(requireContext(), R.string.error_import_project)
@@ -690,7 +725,7 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
                 val scenesDir = File(projectDir, "scenes")
                 val filesDir = File(projectDir, "files")
 
-                // Проверка нового формата
+
                 if (codeXml.exists() && scenesDir.isDirectory && filesDir.isDirectory) {
                     try {
                         val metaDataParser = ProjectMetaDataParser(codeXml)
@@ -699,7 +734,7 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
                         Log.e(TAG, "Could not parse local project.", exception)
                     }
                 }
-                // Проверка старого формата
+
                 else if (codeXml.exists()) {
                     try {
                         val metaDataParser = ProjectMetaDataParser(codeXml)

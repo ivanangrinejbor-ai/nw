@@ -110,6 +110,25 @@ public abstract class FormulaBrick extends BrickBaseType implements View.OnClick
 		return standardMap;
 	}
 
+	public Map<FormulaField, Formula> getAllFormulasMap() {
+		Map<FormulaField, Formula> map = new java.util.HashMap<>();
+
+		if (formulaMap == null) {
+			return map;
+		}
+
+
+		Enumeration<FormulaField> keys = formulaMap.keys();
+
+		while (keys.hasMoreElements()) {
+			FormulaField key = keys.nextElement();
+
+			map.put(key, formulaMap.get(key));
+		}
+
+		return map;
+	}
+
 	public void setFormulaWithBrickField(FormulaField formulaField, Formula formula) throws IllegalArgumentException {
 		if (formulaMap.containsKey(formulaField)) {
 			formulaMap.replace(formulaField, formula);
@@ -170,7 +189,7 @@ public abstract class FormulaBrick extends BrickBaseType implements View.OnClick
 			TextView formulaFieldView = view.findViewById(entry.getValue());
 			String text = getFormulaWithBrickField(entry.getKey()).clone().getTrimmedFormulaString(context);
 
-			// Проверяем, является ли текст цветом
+
 			if (colorPattern.matcher(text.trim()).matches()) {
 				try {
 					int color = Color.parseColor(text.trim());
@@ -179,11 +198,11 @@ public abstract class FormulaBrick extends BrickBaseType implements View.OnClick
 					LayerDrawable layers = new LayerDrawable(new Drawable[]{checkerboard, colorOverlay});
 					formulaFieldView.setBackground(layers);
 				} catch (Exception e) {
-					// В случае ошибки парсинга, устанавливаем фон по умолчанию
+
 					formulaFieldView.setBackgroundResource(R.drawable.formula_field_selector);
 				}
 			} else {
-				// Если это не цвет, устанавливаем стандартный фон
+
 				formulaFieldView.setBackgroundResource(R.drawable.formula_field_selector);
 			}
 
@@ -231,27 +250,27 @@ public abstract class FormulaBrick extends BrickBaseType implements View.OnClick
 		String text = formulaTextField.getText().toString().trim();
 		Pattern colorPattern = Pattern.compile("^#([A-Fa-f0-9]{8}|[A-Fa-f0-9]{6})$");
 
-		// Проверяем, является ли поле полем с цветом
+
 		if (colorPattern.matcher(text).matches()) {
 			try {
 				int color = Color.parseColor(text);
 				Drawable checkerboard = UiUtils.createCheckerboardDrawable(formulaTextField.getContext(), 20);
 				Drawable colorOverlay = new ColorDrawable(color);
-				// Создаем полупрозрачный слой подсветки
+
 				int highlightColor = formulaTextField.getContext().getResources().getColor(R.color.brick_field_highlight);
 				Drawable highlightOverlay = new ColorDrawable(highlightColor);
 
-				// Собираем новый фон из трех слоев: шахматка -> цвет -> подсветка
+
 				LayerDrawable layers = new LayerDrawable(new Drawable[]{checkerboard, colorOverlay, highlightOverlay});
 				formulaTextField.setBackground(layers);
 
 			} catch (Exception e) {
-				// В случае ошибки используем стандартную подсветку
+
 				formulaTextField.getBackground().mutate().setColorFilter(view.getContext().getResources()
 						.getColor(R.color.brick_field_highlight), PorterDuff.Mode.SRC_ATOP);
 			}
 		} else {
-			// Если это не цвет, используем оригинальную логику подсветки
+
 			formulaTextField.getBackground().mutate().setColorFilter(view.getContext().getResources()
 					.getColor(R.color.brick_field_highlight), PorterDuff.Mode.SRC_ATOP);
 		}

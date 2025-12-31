@@ -86,7 +86,7 @@
     <!-- General terms -->
     <string name="brick_set_3d_sound_position">Set 3D sound position</string>
     <string name="brick_load_scene_additive">Load scene additively</string>
-    <string name="brick_load_scene_additive_path">from file:</string>
+    <string name="brick_load_scene_additive_path">from file</string>
     <string name="brick_prepare_sound2">Prepare audio (for 3D)</string>
     <string name="brick_prepare_music">Prepare music file (for 3D)</string>
     <string name="brick_prepare_music_as">as sound name</string>
@@ -213,6 +213,81 @@
     <string name="input_text">Input text</string>
     <string name="brick_run_vm2">Run VM</string>
     <string name="brick_vm_arguments">Arguments</string>
+    <string formatted="false" name="brick_vm_mouse_relative">Mouse event (additive)</string>
+    <string formatted="false" name="brick_vm_mouse_dx">Position X</string>
+    <string formatted="false" name="brick_vm_mouse_dy">Position Y</string>
+
+    <string formatted="false" name="brick_vm_monitor_size">Set VM monitor screen size</string>
+    <string formatted="false" name="brick_vm_width">Width</string>
+    <string formatted="false" name="brick_vm_height">Height</string>
+    <string name="brick_set_pp_effect">Set Effect</string>
+    <string name="brick_set_pp_parameter">Parameter</string>
+    <string name="brick_set_pp_value">Value</string>
+    <string name="brick_create_particles_title" formatted="false">Create Particles</string>
+    <string name="brick_delete_particles_title" formatted="false">Delete Particles</string>
+    <string name="brick_particle_id" formatted="false">ID</string>
+    <string name="brick_particle_looping" formatted="false">Looping (1/0)</string>
+    <string name="brick_particle_duration" formatted="false">Duration</string>
+    <string name="brick_particle_lifetime" formatted="false">Lifetime</string>
+    <string name="brick_particle_speed" formatted="false">Speed</string>
+    <string name="brick_particle_size" formatted="false">Start Size</string>
+    <string name="brick_particle_end_size" formatted="false">End Size</string>
+    <string name="brick_particle_gravity" formatted="false">Gravity</string>
+    <string name="brick_particle_max_count" formatted="false">Max Count</string>
+    <string name="brick_particle_rate" formatted="false">Rate</string>
+    <string name="brick_particle_angle" formatted="false">Angle</string>
+    <string name="brick_particle_radius" formatted="false">Radius</string>
+    <string name="brick_particle_start_color" formatted="false">Start Color (Hex)</string>
+    <string name="brick_particle_end_color" formatted="false">End Color (Hex)</string>
+    <string name="brick_particle_texture" formatted="false">Texture File</string>
+    <string name="brick_particle_additive" formatted="false">Additive (1/0)</string>
+    <string name="brick_particle_rotation" formatted="false">Start Rotation</string>
+    <string name="brick_particle_rotation_speed" formatted="false">Rotation Speed</string>
+    <string name="brick_particle_pos_x" formatted="false">Position X</string>
+    <string name="brick_particle_pos_y" formatted="false">Position Y</string>
+    <string name="brick_particle_pos_z" formatted="false">Position Z</string>
+    <string name="brick_particle_rot_pitch" formatted="false">Rotation Pitch (X)</string>
+    <string name="brick_particle_rot_yaw" formatted="false">Rotation Yaw (Y)</string>
+    <string name="brick_particle_rot_roll" formatted="false">Rotation Roll (Z)</string>
+    <string-array name="pp_effect_types">
+        <item>Global (Enable/Quality)</item> <!-- 0 -->
+        <item>Bloom</item>                   <!-- 1 -->
+        <item>Vignette</item>                <!-- 2 -->
+        <item>Levels (Color)</item>          <!-- 3 -->
+        <item>Film Grain</item>              <!-- 4 -->
+        <item>FXAA</item>                    <!-- 5 -->
+        <item>Chromatic Aberration</item>    <!-- 6 -->
+        <item>Radial Blur</item>             <!-- 7 -->
+        <item>Old TV</item>                  <!-- 8 -->
+        <item>CRT Monitor</item>             <!-- 9 -->
+        <item>Fisheye</item>                 <!-- 10 -->
+        <item>Water Distortion</item>        <!-- 11 -->
+        <item>Motion Blur</item>             <!-- 12 -->
+        <item>Lens Flare</item>              <!-- 13 -->
+        <item>Gaussian Blur</item>           <!-- 14 -->
+        <item>Zoom Blur</item>               <!-- 15 -->
+        <item>ACES Tonemapping</item>        <!-- 16 -->
+        <item>Eye Adaptation</item>          <!-- 17 -->
+    </string-array>
+
+    <string-array name="pp_effect_params">
+        <item>Enabled (On/Off)</item>           <!-- 0 -->
+        <item>Intensity / Strength / Amount</item> <!-- 1 -->
+        <item>Threshold</item>                  <!-- 2 -->
+        <item>Blur Amount</item>                <!-- 3 -->
+        <item>Blur Passes (Int)</item>          <!-- 4 -->
+        <item>Quality Scale (Global)</item>     <!-- 5 -->
+        <item>Contrast</item>                   <!-- 6 -->
+        <item>Saturation</item>                 <!-- 7 -->
+        <item>Gamma</item>                      <!-- 8 -->
+        <item>Speed</item>                      <!-- 9 -->
+        <item>Distortion / Max Distort</item>   <!-- 10 -->
+        <item>Origin X</item>                   <!-- 11 -->
+        <item>Origin Y</item>                   <!-- 12 -->
+        <item>Noise</item>                      <!-- 13 -->
+        <item>Max value</item>                  <!-- 14 -->
+        <item>Min value</item>                  <!-- 15 -->
+    </string-array>
 
     <string name="category_file">Files</string>
 
@@ -2678,6 +2753,9 @@ needs read and write access to it. You can always change permissions through you
     <string formatted="false" name="formula_editor_function_reverse_parametr">(\'olleH\')</string>
     <string formatted="false" name="formula_editor_function_subtext">subtext</string>
     <string formatted="false" name="formula_editor_function_file">project file</string>
+    <string formatted="false" name="formula_editor_function_files_path">project files path</string>
+    <string formatted="false" name="formula_editor_function_all_files">all project files</string>
+    <string formatted="false" name="formula_editor_function_file_size">project file size</string>
     <string formatted="false" name="formula_editor_function_file_parameter">(\'variable.txt\')</string>
     <string formatted="false" name="formula_editor_function_lua">lua</string>
     <string formatted="false" name="formula_editor_function_lua_parameter">(\'return math.sqrt(25)\')</string>

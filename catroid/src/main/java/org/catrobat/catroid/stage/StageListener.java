@@ -74,6 +74,10 @@ import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.badlogic.gdx.utils.viewport.ScalingViewport;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
+import com.crashinvaders.vfx.VfxManager;
+import com.crashinvaders.vfx.effects.BloomEffect;
+import com.crashinvaders.vfx.effects.ChainVfxEffect;
+import com.crashinvaders.vfx.effects.FxaaEffect;
 import com.danvexteam.lunoscript_annotations.LunoClass;
 import com.gaurav.avnc.vnc.VncClient;
 import com.google.common.collect.Multimap;
@@ -94,6 +98,7 @@ import org.catrobat.catroid.content.Scene;
 import org.catrobat.catroid.content.Script;
 import org.catrobat.catroid.content.SoundBackup;
 import org.catrobat.catroid.content.Sprite;
+import org.catrobat.catroid.content.VmMonitorActor;
 import org.catrobat.catroid.content.XmlHeader;
 import org.catrobat.catroid.content.actions.ScriptSequenceAction;
 import org.catrobat.catroid.content.eventids.EventId;
@@ -121,6 +126,7 @@ import org.catrobat.catroid.ui.dialogs.StageDialog;
 import org.catrobat.catroid.ui.recyclerview.controller.SpriteController;
 import org.catrobat.catroid.utils.GlobalShaderManager;
 import org.catrobat.catroid.utils.ModelPathProcessor;
+import org.catrobat.catroid.utils.PerformanceTracker;
 import org.catrobat.catroid.utils.Resolution;
 import org.catrobat.catroid.utils.TouchUtil;
 import org.catrobat.catroid.utils.VibrationManager;
@@ -147,8 +153,12 @@ import static org.koin.java.KoinJavaComponent.get;
 @LunoClass
 public class StageListener implements ApplicationListener {
 
+	private double accumulator = 0.0;
+	private final double TIME_STEP = 1.0 / 60.0;
+	private final double MAX_ACCUMULATOR = 0.25;
+
 	private static final int AXIS_WIDTH = 4;
-	private static final float DELTA_ACTIONS_DIVIDER_MAXIMUM = 50f;
+	private static final float DELTA_ACTIONS_DIVIDER_MAXIMUM = 10f;
 	private static final int ACTIONS_COMPUTATION_TIME_MAXIMUM = 8;
 	private static final float AXIS_FONT_SIZE_SCALE_FACTOR = 0.025f;
 
@@ -246,9 +256,7 @@ public class StageListener implements ApplicationListener {
 	private ScreenshotSaverCallback screenshotSaverCallback = null;
 	private ScreenshotSaver screenshotSaver;
 
-	/*private ModelBatch modelBatch;
-	private Model yourModel;
-	private ModelInstance yourModelInstance;*/
+
 	private ThreeDManager threeDManager;
 
 	public SceneManager sceneManager;
@@ -369,12 +377,48 @@ public class StageListener implements ApplicationListener {
 
 			fullscreenQuad.setVertices(vertices);
 			fullscreenQuad.setIndices(indices);
+
+			vmWidth = virtualWidth;
+			vmHeight = virtualHeight;
+			vmX = -virtualWidthHalf;
+			vmY = -virtualHeightHalf;
 		}
 
 		try {
-			String vertexShader = Gdx.files.internal("vnc_shader.vert").readString();
-			String fragmentShader = Gdx.files.internal("vnc_shader.frag").readString();
+
+
+			String vertexShader = "attribute vec4 " + ShaderProgram.POSITION_ATTRIBUTE + ";\n"
+					+ "attribute vec4 " + ShaderProgram.COLOR_ATTRIBUTE + ";\n"
+					+ "attribute vec2 " + ShaderProgram.TEXCOORD_ATTRIBUTE + "0;\n"
+					+ "uniform mat4 u_projTrans;\n"
+					+ "varying vec4 v_color;\n"
+					+ "varying vec2 v_texCoords;\n"
+					+ "\n"
+					+ "void main()\n"
+					+ "{\n"
+					+ "   v_color = " + ShaderProgram.COLOR_ATTRIBUTE + ";\n"
+					+ "   v_texCoords = " + ShaderProgram.TEXCOORD_ATTRIBUTE + "0;\n"
+					+ "   gl_Position =  u_projTrans * " + ShaderProgram.POSITION_ATTRIBUTE + ";\n"
+					+ "}\n";
+
+
+			String fragmentShader = "#ifdef GL_ES\n"
+					+ "precision mediump float;\n"
+					+ "#endif\n"
+					+ "varying vec4 v_color;\n"
+					+ "varying vec2 v_texCoords;\n"
+					+ "uniform sampler2D u_texture;\n"
+					+ "void main()\n"
+					+ "{\n"
+					+ "  vec4 tex = texture2D(u_texture, v_texCoords);\n"
+					+ "  gl_FragColor = v_color * vec4(tex.b, tex.g, tex.r, tex.a);\n"
+					+ "}";
+
 			vncSwizzleShader = new ShaderProgram(vertexShader, fragmentShader);
+
+			if (!vncSwizzleShader.isCompiled()) {
+				Log.e("SHADER_ERROR", "Error compiling shader: " + vncSwizzleShader.getLog());
+			}
 
 			if (!vncSwizzleShader.isCompiled()) {
 				Log.e("SHADER_ERROR", "VNC Swizzle Shader failed to compile: " + vncSwizzleShader.getLog());
@@ -650,7 +694,17 @@ public class StageListener implements ApplicationListener {
 		uiStage.addListener(uiPassThroughListener);
 	}
 
+	private VmMonitorActor vmMonitorActor;
+
 	private void initActors(List<Sprite> sprites) {
+		vmMonitorActor = new VmMonitorActor(vncSwizzleShader);
+
+		vmMonitorActor.setSize(virtualWidth, virtualHeight);
+		vmMonitorActor.setPosition(-virtualWidthHalf, -virtualHeightHalf);
+
+		stage.addActor(vmMonitorActor);
+		vmMonitorActor.setZIndex(0);
+
 		if (sprites.isEmpty()) {
 			return;
 		}
@@ -1152,19 +1206,30 @@ public class StageListener implements ApplicationListener {
 				vmTexture.dispose();
 			}
 			vmTexture = new Texture(width, height, Pixmap.Format.RGBA8888);
-
-
-
-			vmTexture.setWrap(Texture.TextureWrap.ClampToEdge, Texture.TextureWrap.ClampToEdge);
-
-
 			vmTexture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
 
-
-			vmWidth = width;
-			vmHeight = height;
-			Log.i("StageListener", "VM Texture resized to " + width + "x" + height + " with aVNC settings.");
+			if (vmMonitorActor != null) {
+				vmMonitorActor.setTexture(vmTexture);
+			}
 		});
+	}
+
+	public void setVmMonitorBounds(float x, float y, float width, float height) {
+		if (vmMonitorActor != null) {
+			vmMonitorActor.setPosition(x, y);
+			vmMonitorActor.setSize(width, height);
+		}
+	}
+
+	public void resizeVmMonitor(float width, float height) {
+		if (vmMonitorActor != null) {
+			float oldCenterX = vmMonitorActor.getX() + vmMonitorActor.getWidth() / 2;
+			float oldCenterY = vmMonitorActor.getY() + vmMonitorActor.getHeight() / 2;
+
+			vmMonitorActor.setSize(width, height);
+
+			vmMonitorActor.setPosition(oldCenterX - width / 2, oldCenterY - height / 2);
+		}
 	}
 
 	private volatile boolean captureNextFrame = false;
@@ -1179,6 +1244,9 @@ public class StageListener implements ApplicationListener {
 	public int getVmWidth() { return (int) vmWidth; }
 	public int getVmHeight() { return (int) vmHeight; }
 
+	long startPhysics;
+	long endLogic;
+
 	@Override
 	public void render() {
 		try {
@@ -1191,13 +1259,22 @@ public class StageListener implements ApplicationListener {
 
 			StageActivity stageActivity = StageActivity.activeStageActivity.get();
 
-			if (isVmDisplayVisible && stageActivity != null && stageActivity.frameReadyToRender && vmTexture != null) {
-				if(!VirtualMachineManager.INSTANCE.isWorking()) return;
-				VncClient client = stageActivity.vncClients.get("default_vm");
-				if (client != null) {
-					vmTexture.bind();
-					client.uploadFrameTexture();
-					stageActivity.frameReadyToRender = false;
+			if (isVmDisplayVisible && vmTexture != null) {
+				if (stageActivity != null) {
+					VncClient client = stageActivity.vncClients.get(StageActivity.DEFAULT_VM_NAME);
+
+					if (client != null && stageActivity.frameReadyToRender) {
+
+						vmTexture.bind();
+
+						Gdx.gl.glPixelStorei(GL20.GL_UNPACK_ALIGNMENT, 1);
+
+						client.uploadFrameTexture();
+
+						Gdx.gl.glPixelStorei(GL20.GL_UNPACK_ALIGNMENT, 4);
+
+						stageActivity.frameReadyToRender = false;
+					}
 				}
 			}
 
@@ -1261,6 +1338,7 @@ public class StageListener implements ApplicationListener {
 			}
 
 			if (!paused) {
+				startPhysics = System.nanoTime();
 				if (sceneManager != null) {
 					sceneManager.update(Gdx.graphics.getDeltaTime());
 				}
@@ -1277,6 +1355,8 @@ public class StageListener implements ApplicationListener {
 					deltaTime -= optimizedDeltaTime;
 				}
 
+				endLogic = System.nanoTime();
+
 				long executionTimeOfActionsUpdate = SystemClock.uptimeMillis() - timeBeforeActionsUpdate;
 				if (executionTimeOfActionsUpdate <= ACTIONS_COMPUTATION_TIME_MAXIMUM) {
 					deltaActionTimeDivisor += 1f;
@@ -1289,13 +1369,14 @@ public class StageListener implements ApplicationListener {
 			}
 
             if (isVmDisplayVisible && vmTexture != null && vncSwizzleShader != null && vncSwizzleShader.isCompiled()) {
-                vncSwizzleShader.bind();
-                vmTexture.bind(0);
+				batch.setProjectionMatrix(camera.combined);
+				batch.setShader(vncSwizzleShader);
+				batch.begin();
 
-                vncSwizzleShader.setUniformi("u_texture", 0);
-                vncSwizzleShader.setUniformMatrix("u_projectionMatrix", camera.combined);
+				batch.draw(vmTexture, vmX, vmY, vmWidth, vmHeight);
 
-                fullscreenQuad.render(vncSwizzleShader, GL20.GL_TRIANGLES);
+				batch.end();
+				batch.setShader(null);
             }
             if (!finished) {
                 try {
@@ -1305,14 +1386,16 @@ public class StageListener implements ApplicationListener {
                         }
                     }
                     try {
-                        if (threeDManager != null) threeDManager.render();
+						if (threeDManager != null) {
+							threeDManager.render();
+						}
                     } catch (Exception e) {
                         Log.e("3DRENDER", "ERROR: " + e);
                     }
 
                     stage.draw();
 					uiStage.draw();
-                    // RenderManager.INSTANCE.render();
+                    //RenderManager.INSTANCE.render();
                 } catch (Exception e) {
                     Log.e("RENDER", "FATAL ERROR: " + e.toString());
                 }
@@ -1363,11 +1446,16 @@ public class StageListener implements ApplicationListener {
 
 			cameraPositioner.updateCameraPositionForFocusedSprite();
 		} catch (Exception e) {
-
 			Log.e("RENDER_CRASH", "Fatal error during render loop", e);
-
-
 		}
+
+		long endRender = System.nanoTime();
+
+		PerformanceTracker.recordFrame(
+				0,
+				endLogic - startPhysics,
+				endRender - endLogic
+		);
 	}
 
 	private void renderSceneNormally(Stage stage) {
@@ -1901,20 +1989,16 @@ public class StageListener implements ApplicationListener {
 
 	@Override
 	public void resize(int width, int height) {
-
-
 		if (viewPort != null) {
 			viewPort.update(width, height, false);
 		}
 		if (uiViewPort != null) {
 			uiViewPort.update(width, height, true);
 		}
+		if (threeDManager != null) threeDManager.resize(width, height);
 	}
 
-	/**
-	 * ПРИНУДИТЕЛЬНО и СИНХРОННО выполняет все скрипты "При выходе из проекта".
-	 * Этот метод не зависит от игрового цикла и флага 'paused'.
-	 */
+
 	public void executeExitScriptsSynchronously() {
 		Log.d("StageListener", "Force-executing exit scripts...");
 		Project project = ProjectManager.getInstance().getCurrentProject();
@@ -1941,14 +2025,8 @@ public class StageListener implements ApplicationListener {
 		Log.d("StageListener", "Finished executing exit scripts.");
 	}
 
-	/**
-	 * "Транслирует" событие всем спрайтам на текущей сцене.
-	 * @param eventId ID события для запуска.
-	 */
-	/**
-	 * "Транслирует" событие всем спрайтам на текущей сцене.
-	 * @param eventId ID события для запуска.
-	 */
+
+
 	private void broadcastEventToAllSprites(EventId eventId) {
 
 		if (sprites == null) {
@@ -2036,7 +2114,7 @@ public class StageListener implements ApplicationListener {
 		RenderManager.INSTANCE.dispose();
 
 		try {
-			MainMenuActivity.pythonEngine.clearEnvironment();
+            MainMenuActivity.pythonEngine.clearEnvironment();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

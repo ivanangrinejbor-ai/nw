@@ -204,38 +204,31 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 	private PermissionRequestActivityExtension permissionRequestActivityExtension = new PermissionRequestActivityExtension();
 	public static WeakReference<StageActivity> activeStageActivity;
 
-	private FrameLayout rootLayout;       // Главный контейнер для всего
-	private FrameLayout backgroundLayout; // Слой для View ЗА сценой LibGDX
-	private FrameLayout foregroundLayout; // Слой для View ПЕРЕД сценой LibGDX
-	private FrameLayout activeNativeLayer; // Указывает, куда добавлять View сейчас
-	private View gameView;         // View для LibGDX сцены
-	// Карта для хранения всех динамически добавленных View по их ID
+	private FrameLayout rootLayout;
+	private FrameLayout backgroundLayout;
+	private FrameLayout foregroundLayout;
+	private FrameLayout activeNativeLayer;
+	private View gameView;
+
 	private Map<String, View> dynamicViews = new HashMap<>();
 
 	private FrameLayout cameraContainer;
 
 	private Map<String, WebViewCallback> webViewCallbacks = new HashMap<>();
 
-	private static final int EXPORT_FILE_REQUEST_CODE = 42; // Уникальный код для нашего запроса
-	private String sourceFileToExportPath; // Здесь будем временно хранить путь к исходному файлу
+	private static final int EXPORT_FILE_REQUEST_CODE = 42;
+	private String sourceFileToExportPath;
 
 	public Map<String, VncClient> vncClients = new HashMap<>();
 	public volatile boolean frameReadyToRender = false;
 
-	/**
-	 * Публичный интерфейс, который нужно реализовать для получения сообщений из WebView.
-	 */
+
 	public interface WebViewCallback {
-		/**
-		 * Вызывается, когда из JavaScript приходит сообщение через Android.postMessage().
-		 * @param message Данные, переданные из JavaScript в виде строки.
-		 */
+
 		void onJavaScriptMessage(String message);
 	}
 
-	/**
-	 * Это класс-"мост", экземпляр которого будет доступен в JavaScript под именем "Android".
-	 */
+
 	public class WebAppInterface {
 		private final String viewId;
 
@@ -243,63 +236,99 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 			this.viewId = viewId;
 		}
 
-		/**
-		 * Метод, который можно будет вызывать из JavaScript: Android.postMessage("какие-то данные");
-		 * @param message Строка данных из WebView.
-		 */
+
 		@JavascriptInterface
 		public void postMessage(String message) {
-			// Ищем, был ли для этого WebView установлен обработчик
+
 			final WebViewCallback callback = webViewCallbacks.get(viewId);
 			if (callback != null) {
-				// Выполняем колбэк в основном потоке, чтобы избежать проблем
-				// при работе с UI или переменными проекта.
+
+
 				runOnMainThread(() -> callback.onJavaScriptMessage(message));
 			}
 		}
 	}
 
-	private Pixmap vmPixmap; // "Холст" для рисования кадра от ВМ
-	private Texture vmTexture; // Текстура LibGDX, которую мы будем рисовать
-	private boolean newFrameAvailable = false; // Флаг, что есть новый кадр
+	private Pixmap vmPixmap;
+	private Texture vmTexture;
+	private boolean newFrameAvailable = false;
 
-	// ИЗМЕНИТЬ: Полностью заменяем onCreate
-	// ИЗМЕНИТЬ: в StageActivity.java
+
+
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
+
 		if (getIntent().hasExtra(EXTRA_PROJECT_PATH)) {
 			String projectPath = getIntent().getStringExtra(EXTRA_PROJECT_PATH);
 			File projectDir = new File(projectPath);
-			if (projectDir.exists() && projectDir.isDirectory()) {
+
+			// Проверяем, запеченный ли это проект (наличие init.luno.txt или init.bin)
+			File initTxt = new File(projectDir, "init.luno.txt");
+			File initBin = new File(projectDir, "init.bin");
+
+			if (initTxt.exists() || initBin.exists()) {
 				try {
-					// Загружаем указанный проект. Это заменит текущий проект в ProjectManager.
+					// Инициализируем движок Luno
+					org.catrobat.catroid.utils.lunoscript.LunoScriptEngine engine =
+							new org.catrobat.catroid.utils.lunoscript.LunoScriptEngine(this, null);
+
+					engine.getInterpreter().getGlobals().define(
+							"ROOT_PATH",
+							new org.catrobat.catroid.utils.lunoscript.LunoValue.String(projectDir.getAbsolutePath())
+					);
+
+					String scriptCode = "";
+					if (initTxt.exists()) {
+						// Читаем текст (для отладки)
+						scriptCode = new String(java.nio.file.Files.readAllBytes(initTxt.toPath()));
+					} else {
+						// Дешифруем (для релиза)
+						// scriptCode = LunoSecurity.INSTANCE.loadDecrypted(initBin);
+						scriptCode = new String(java.nio.file.Files.readAllBytes(initBin.toPath()));
+					}
+
+					// Выполняем скрипт!
+					// Скрипт создаст объект Project и установит его в ProjectManager
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        engine.execute(scriptCode);
+                    }
+
+                    // Важно: Устанавливаем текущий путь к файлам, чтобы ресурсы (images/sounds) грузились
+					if (ProjectManager.getInstance().getCurrentProject() != null) {
+						ProjectManager.getInstance().getCurrentProject().setDirectory(projectDir);
+					}
+
+				} catch (Exception e) {
+					Log.e(TAG, "Failed to load baked project via LunoScript", e);
+					Toast.makeText(this, "Error executing LunoScript: " + e.getMessage(), Toast.LENGTH_LONG).show();
+					finish();
+					return;
+				}
+			} else if (projectDir.exists() && projectDir.isDirectory()) {
+				// Стандартная загрузка по пути (если вдруг понадобится)
+				try {
 					ProjectManager.getInstance().loadProject(projectDir);
 				} catch (ProjectException e) {
-					Log.e(TAG, "Failed to load project from intent path: " + projectPath, e);
-					// Если не удалось, показываем ошибку и закрываемся
-					Toast.makeText(this, "Error loading project: " + e.getMessage(), Toast.LENGTH_LONG).show();
-					finish();
-					super.onCreate(savedInstanceState); // Вызываем super, чтобы избежать крэша
-					return;
+					// ... handle error
 				}
 			}
 		}
 
 		super.onCreate(savedInstanceState);
 
-		// --- Иерархия слоев ---
+
 		rootLayout = new FrameLayout(this);
 		cameraContainer = new FrameLayout(this);
 		backgroundLayout = new FrameLayout(this);
 		foregroundLayout = new FrameLayout(this);
 
-		// --- Логика Catroid ---
+
 		StageLifeCycleController.stageCreate(this);
 		activeStageActivity = new WeakReference<>(this);
 		MyActivityManager.Companion.setStage_activity(this);
 
-		// --- Инициализация LibGDX ---
+
 		configuration = new AndroidApplicationConfiguration();
 		configuration.r = 8;
 		configuration.g = 8;
@@ -310,17 +339,17 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 
 		injectSafeKeyboardProvider();
 
-		// --- НАСТРОЙКА ПРОЗРАЧНОСТИ (КЛЮЧЕВОЙ МОМЕНТ) ---
+
 		if (gameView instanceof android.view.SurfaceView) {
 			android.view.SurfaceView glView = (android.view.SurfaceView) gameView;
-			// Эта команда делает SurfaceView способным иметь прозрачные пиксели
+
 			glView.getHolder().setFormat(PixelFormat.TRANSLUCENT);
 
-			// УДАЛЯЕМ ЭТУ СТРОКУ! Она ломала композицию слоев.
-			// glView.setZOrderMediaOverlay(true);
+
+
 		}
 
-		// --- Собираем финальную иерархию View ---
+
 		rootLayout.addView(cameraContainer);
 		rootLayout.addView(backgroundLayout);
 		rootLayout.addView(gameView);
@@ -328,10 +357,10 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 
 		activeNativeLayer = foregroundLayout;
 
-		// --- Устанавливаем контент ---
+
 		setContentView(rootLayout);
 
-		// --- Остальная логика ---
+
 		GlobalManager.Companion.setSaveScenes(true);
 		GlobalManager.Companion.setStopSounds(true);
 		mainThreadHandler = new Handler(Looper.getMainLooper());
@@ -343,92 +372,136 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 		}
 		checkAndRequestPermissions();
 
-		/*android.util.Log.d("QEMU_TEST", "Запускаем тестовый запуск ВМ...");
 
-		// Аргументы для запуска Tiny Core Linux
-		// -m 512              -> 512 МБ ОЗУ
-		// -cdrom "..."        -> Указываем наш ISO как CD-ROM
-		// -display vnc=:0     -> Запускаем QEMU как VNC сервер на порту 5900
-		// -vga std            -> Стандартный видеоадаптер для лучшей совместимости
-		/*String vmArguments = "-m 512 -cdrom \"%PROJECT_FILES%/TinyCore-current.iso\" -display vnc=0.0.0.0:0 -vga std";
-
-		// Запускаем ВМ с именем "test-linux"
-		// Используем `getApplicationContext()` чтобы передать контекст
-		VirtualMachineManager.INSTANCE.createVM(getApplicationContext(), "test-linux", vmArguments);*//*
-
-		String vmArguments = "-m 512 -boot c -hda \"%DISK_PATH%\" -display vnc=0.0.0.0:0 -vga std";
-
-		String diskFileName = "windows.qcow2"; // Например, для Windows
-		String diskSize = "10G"; // 10 Гигабайт
-
-		// 3. Запускаем ВМ с новыми параметрами
-		VirtualMachineManager.INSTANCE.createVM(getApplicationContext(), "VM1", vmArguments, diskFileName, diskSize);
-
-		if (stageListener != null) {
-			// Пример: экран ВМ занимает всю ширину сцены и половину высоты
-			float sceneWidth = 700; // Ширина сцены Catroid по умолчанию
-			float sceneHeight = 500; // Высота сцены Catroid по умолчанию
-			stageListener.setVmScreenGeometry(0, 0, sceneWidth, sceneHeight);
-		}
-
-
-	// --- ШАГ 3: ПОДКЛЮЧЕНИЕ VNC К VIEW ---
-	// Этот метод найдет View с ID "vm_screen", переместит его на ЗАДНИЙ фон
-	// и превратит в полноценный монитор ВМ.
-		attachVMScreen("VM1");
-
-		android.util.Log.d("QEMU_TEST", "Команда на запуск ВМ отправлена.");*/
 	}
+
+	private float currentVmMouseX = 0f;
+	private float currentVmMouseY = 0f;
 
 	public static final String DEFAULT_VM_NAME = "default_vm";
 
 	public void createAndRunVM(String memory, String cpuCores, String hdaPath, String cdromPath) {
-		// Собираем базовую строку аргументов
-		StringBuilder args = new StringBuilder();
-		args.append("-m ").append(memory); // Память
-		args.append(" -smp ").append(cpuCores); // Ядра CPU
-		args.append(" -display vnc=0.0.0.0:0 -vga std"); // VNC дисплей
 
-		// Подключаем жесткий диск, если указан
+		StringBuilder args = new StringBuilder();
+		args.append("-m ").append(memory);
+		args.append(" -smp ").append(cpuCores);
+		args.append(" -display vnc=0.0.0.0:0 -vga std");
+
+
 		if (hdaPath != null && !hdaPath.isEmpty()) {
-			File hdaFile = ProjectManager.getInstance().getCurrentProject().getFile(hdaPath); // scope нужно получить из Action
+			File hdaFile = ProjectManager.getInstance().getCurrentProject().getFile(hdaPath);
 			if (hdaFile != null && hdaFile.exists()) {
 				args.append(" -hda \"").append(hdaFile.getAbsolutePath()).append("\"");
 			}
 		}
 
-		// Подключаем CD-ROM, если указан
+
 		if (cdromPath != null && !cdromPath.isEmpty() && !cdromPath.equals("0")) {
-			File cdromFile = ProjectManager.getInstance().getCurrentProject().getFile(cdromPath); // scope нужно получить из Action
+			File cdromFile = ProjectManager.getInstance().getCurrentProject().getFile(cdromPath);
 			if (cdromFile != null && cdromFile.exists()) {
 				args.append(" -cdrom \"").append(cdromFile.getAbsolutePath()).append("\"");
 			}
 		}
 
-		// Запускаем ВМ
-		VirtualMachineManager.INSTANCE.createVM(getApplicationContext(), DEFAULT_VM_NAME, args.toString(), "", ""); // Имя и размер диска не нужны, так как мы указываем путь
+
+		VirtualMachineManager.INSTANCE.createVM(getApplicationContext(), DEFAULT_VM_NAME, args.toString(), "", "");
 	}
 
-	/**
-	 * Перезагружает StageActivity с новым проектом.
-	 * Это предпочтительный способ смены проектов во время выполнения.
-	 * @param newProjectPath Абсолютный путь к директории нового проекта.
-	 */
+	public void moveVmMouseRelative(float dx, float dy, int buttonState) {
+		currentVmMouseX += dx;
+		currentVmMouseY += dy;
+
+		if (stageListener != null) {
+			float limitX = stageListener.getVirtualWidth() / 2f;
+			float limitY = stageListener.getVirtualHeight() / 2f;
+
+			if (currentVmMouseX > limitX) currentVmMouseX = limitX;
+			if (currentVmMouseX < -limitX) currentVmMouseX = -limitX;
+			if (currentVmMouseY > limitY) currentVmMouseY = limitY;
+			if (currentVmMouseY < -limitY) currentVmMouseY = -limitY;
+
+			sendVmMouseEvent(currentVmMouseX, currentVmMouseY, buttonState);
+		}
+	}
+
+	public void resizeVmMonitor(int width, int height) {
+		if (stageListener != null) {
+			stageListener.setVmScreenSize(width, height);
+		}
+	}
+
+	public int getKeysymByName(String keyName) {
+		if (keyName == null) return 0;
+		String key = keyName.toLowerCase().trim();
+
+		switch (key) {
+			case "esc": return 0xFF1B;
+			case "enter": return 0xFF0D;
+			case "backspace": return 0xFF08;
+			case "tab": return 0xFF09;
+			case "space": return 0x0020;
+
+			case "up": case "arrow up": return 0xFF52;
+			case "down": case "arrow down": return 0xFF54;
+			case "left": case "arrow left": return 0xFF51;
+			case "right": case "arrow right": return 0xFF53;
+
+			case "f1": return 0xFFBE;
+			case "f2": return 0xFFBF;
+			case "f3": return 0xFFC0;
+			case "f4": return 0xFFC1;
+			case "f5": return 0xFFC2;
+			case "f6": return 0xFFC3;
+			case "f7": return 0xFFC4;
+			case "f8": return 0xFFC5;
+			case "f9": return 0xFFC6;
+			case "f10": return 0xFFC7;
+			case "f11": return 0xFFC8;
+			case "f12": return 0xFFC9;
+
+			case "shift": case "l shift": return 0xFFE1;
+			case "r shift": return 0xFFE2;
+			case "ctrl": case "l ctrl": return 0xFFE3;
+			case "r ctrl": return 0xFFE4;
+			case "alt": case "l alt": return 0xFFE9;
+			case "r alt": return 0xFFEA;
+			case "win": case "command": case "super": return 0xFFEB;
+
+			case "caps lock": return 0xFFE5;
+			case "num lock": return 0xFF7F;
+			case "scroll lock": return 0xFF14;
+			case "print screen": case "prt scr": return 0xFF61;
+			case "pause": case "break": return 0xFF13;
+
+			case "insert": case "ins": return 0xFF63;
+			case "delete": case "del": return 0xFFFF;
+			case "home": return 0xFF50;
+			case "end": return 0xFF57;
+			case "page up": case "pgup": return 0xFF55;
+			case "page down": case "pgdn": return 0xFF56;
+
+			default:
+				if (key.length() == 1) return (int) key.charAt(0);
+				return 0;
+		}
+	}
+
+
 	public void reloadWithNewProject(final String newProjectPath) {
-		// Выполняем в UI потоке, чтобы избежать гонки потоков
+
 		runOnUiThread(() -> {
-			// 1. Пытаемся загрузить новый проект
+
 			try {
 				ProjectManager.getInstance().loadProject(new File(newProjectPath));
 			} catch (Exception e) {
 				Log.e(TAG, "Failed to load project for reload: " + newProjectPath, e);
 				Toast.makeText(this, "Error loading project: " + e.getMessage(), Toast.LENGTH_LONG).show();
-				// Если не удалось, ничего не делаем, остаемся в текущем проекте
+
 				return;
 			}
 
-			// 2. Сигнализируем LibGDX, что нужно выполнить полную перезагрузку
-			// Мы вызываем метод, который у вас уже есть и используется при перезапуске проекта!
+
+
 			if (stageListener != null) {
 				stageListener.reloadProject(stageDialog);
 			}
@@ -442,7 +515,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 	public void createHardDisk(String diskName, String diskSize) {
 		if (diskName == null || diskName.isEmpty() || diskSize == null || diskSize.isEmpty()) return;
 
-		// qemu-img находится в той же папке, что и qemu-system
+
 		String qemuBaseDir = new File(getFilesDir(), "qemu_x86_64").getAbsolutePath();
 		File disksDir = ProjectManager.getInstance().getCurrentProject().getFilesDir();
 		if (!disksDir.exists()) disksDir.mkdirs();
@@ -452,6 +525,9 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 	}
 
 	public void sendVmMouseEvent(float catroidX, float catroidY, int buttonState) {
+		currentVmMouseX = catroidX;
+		currentVmMouseY = catroidY;
+
 		if(!VirtualMachineManager.INSTANCE.isWorking()) return;
 		VncClient client = vncClients.get(DEFAULT_VM_NAME);
 		if (client == null) return;
@@ -483,7 +559,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 		}
 	}
 
-	// --- Управление отображением ---
+
 	public void setVmDisplayVisible(boolean visible) {
 		if (stageListener != null) {
 			attachVMScreen(DEFAULT_VM_NAME);
@@ -491,57 +567,48 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 		}
 	}
 
-	/**
-	 * Запускает системный файловый менеджер для выбора места сохранения файла.
-	 * @param sourcePath Полный путь к исходному файлу проекта, который нужно скопировать.
-	 * @param defaultName Имя файла, которое будет предложено пользователю по умолчанию.
-	 */
+
 	public void launchExportFilePicker(String sourcePath, String defaultName) {
-		// Сохраняем путь к исходнику, он понадобится нам позже, в onActivityResult
+
 		this.sourceFileToExportPath = sourcePath;
 
 		Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
 		intent.addCategory(Intent.CATEGORY_OPENABLE);
-		// Тип файла "*/*" означает "любой файл"
+
 		intent.setType("*/*");
 		intent.putExtra(Intent.EXTRA_TITLE, defaultName);
 
-		// Запускаем активность и ждем результат
+
 		startActivityForResult(intent, EXPORT_FILE_REQUEST_CODE);
 	}
 
 	private boolean captureScheduled = false;
 
-	/**
-	 * Превращает существующий SurfaceView в монитор для ВМ.
-	 * View перемещается на задний фон, и к нему подключается VncClient.
-	 * @param viewId ID SurfaceView, который вы ранее создали.
-	 */
 	public void attachVMScreen(String viewId) {
 		if(!VirtualMachineManager.INSTANCE.isWorking()) return;
 		runOnUiThread(() -> {
-			// --- НАЧАЛО: Логика VncClient ---
 
-			// 1. Создаем Observer, который будет обрабатывать события от ВМ
+
+
 			VncClient.Observer vncObserver = new VncClient.Observer() {
 
 				@Override
-				public String onPasswordRequired() { return ""; } // Пароль не используем
+				public String onPasswordRequired() { return ""; }
 
 				@Override
-				public UserCredential onCredentialRequired() { return new UserCredential("",""); } // Логин/пароль не используем
+				public UserCredential onCredentialRequired() { return new UserCredential("",""); }
 
 				@Override
-				public boolean onVerifyCertificate(X509Certificate certificate) { return true; } // Доверяем сертификату localhost
+				public boolean onVerifyCertificate(X509Certificate certificate) { return true; }
 
 				@Override
-				public void onGotXCutText(String text) { /* Можно реализовать общий буфер обмена */ }
+				public void onGotXCutText(String text) { /* None */ }
 
 				@Override
 				public void onFramebufferUpdated() {
-					// ВМ прислала новый кадр. Нам нужно перерисовать наш SurfaceView.
-					// Вместо прямого рисования, мы просто выставляем флаг
-					// и "будим" рендер-поток LibGDX.
+
+
+
 					frameReadyToRender = true;
 
 					if (!captureScheduled && stageListener != null) {
@@ -549,7 +616,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 						new Handler(Looper.getMainLooper()).postDelayed(() -> {
 							Log.i("VNC_CAPTURE", "Requesting VM Texture capture now...");
 							stageListener.captureAndSaveVmTexture();
-						}, 3000); // Задержка 3 секунды
+						}, 3000);
 					}
 				}
 
@@ -563,37 +630,37 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 				}
 
 				@Override
-				public void onPointerMoved(int x, int y) { /* Обрабатывается клиентом */ }
+				public void onPointerMoved(int x, int y) {  }
 			};
 
-			// 2. Создаем и запускаем клиент в отдельном потоке
+
 			new Thread(() -> {
 				try {
-					// Даем QEMU 1.5 секунды на полную инициализацию.
-					// Этого должно быть достаточно в большинстве случаев.
+
+
 					Log.i(TAG, "Waiting for QEMU VNC server to start...");
 					Thread.sleep(1500);
 				} catch (InterruptedException e) {
 					Thread.currentThread().interrupt();
-					return; // Если поток прервали, выходим
+					return;
 				}
 
 				VncClient vncClient = new VncClient(vncObserver);
 				try {
-					// Сохраняем клиент ДО подключения, чтобы иметь к нему доступ
+
 					vncClients.put(viewId, vncClient);
 
-					vncClient.configure(0, true, 5, false); // security, local cursor, quality, raw
+					vncClient.configure(0, true, 5, false);
 					vncClient.connect("127.0.0.1", 5900);
 
-					// Главный цикл клиента: слушаем сообщения от сервера, пока он подключен
+
 					while (vncClient.getConnected()) {
 						vncClient.processServerMessage();
 					}
 				} catch (Exception e) {
 					Log.e(TAG, "VNC Client thread failed", e);
 				} finally {
-					// Очистка после отключения или ошибки
+
 					VncClient client = vncClients.remove(viewId);
 					if (client != null) {
 						client.cleanup();
@@ -602,17 +669,11 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 				}
 			}).start();
 
-			// --- КОНЕЦ: Логика VncClient ---
+
 		});
 	}
 
-	/**
-	 * Отправляет событие мыши (нажатие, отпускание, перемещение) в ВМ.
-	 * @param viewId ID экрана ВМ
-	 * @param x координата X внутри SurfaceView
-	 * @param y координата Y внутри SurfaceView
-	 * @param buttonMask 1 для левой кнопки, 2 для средней, 4 для правой. 0 - нет нажатых кнопок.
-	 */
+
 	public void sendVMMouseEvent(String viewId, int x, int y, int buttonMask) {
 		VncClient vncClient = vncClients.get(viewId);
 		if (vncClient != null) {
@@ -620,93 +681,69 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 		}
 	}
 
-	/**
-	 * Отправляет событие нажатия/отпускания клавиши в ВМ.
-	 * @param viewId ID экрана ВМ
-	 * @param keysym Код клавиши из стандарта X11/keysymdef.h (например, 0xff51 для стрелки влево)
-	 * @param isDown true - клавиша нажата, false - отпущена
-	 */
+
 	public void sendVMKeyEvent(String viewId, int keysym, boolean isDown) {
 		VncClient vncClient = vncClients.get(viewId);
 		if (vncClient != null) {
-			// У VncClient нет xtCode, передаем 0
+
 			vncClient.sendKeyEvent(keysym, 0, isDown);
 		}
 	}
 
-	/**
-	 * Устанавливает режим, при котором все последующие нативные View
-	 * будут добавляться ЗА сценой LibGDX.
-	 */
+
 	public void setNativesBackground() {
 		runOnMainThread(() -> activeNativeLayer = backgroundLayout);
 	}
 
-	/**
-	 * Устанавливает режим, при котором все последующие нативные View
-	 * будут добавляться ПЕРЕД сценой LibGDX (режим по умолчанию).
-	 */
+
 	public void setNativesForeground() {
 		runOnMainThread(() -> activeNativeLayer = foregroundLayout);
 	}
 
-	// Поместите этот метод в любое место внутри класса StageActivity
+
 	private void injectSafeKeyboardProvider() {
 		try {
-			// 1. Получаем доступ к полю `keyboardHeightProvider` родительского класса AndroidApplication
+
 			java.lang.reflect.Field field = AndroidApplication.class.getDeclaredField("keyboardHeightProvider");
 
-			// 2. Делаем его доступным для записи (обходя private/protected)
+
 			field.setAccessible(true);
 
-			// 3. Создаем наш безопасный объект и записываем его в это поле
+
 			field.set(this, new SafeKeyboardHeightProvider(this));
 
 			Log.i(TAG, "Successfully injected SafeKeyboardHeightProvider via reflection.");
 
 		} catch (Exception e) {
-			// Если что-то пошло не так (например, поле переименовали в другой версии LibGDX),
-			// мы увидим это в логах, но приложение не упадет в этом месте.
+
+
 			Log.e(TAG, "Failed to inject SafeKeyboardHeightProvider via reflection. Keyboard-related crashes might occur.", e);
 		}
 	}
 
-	/**
-	 * Создает и отображает WebView с загрузкой по URL.
-	 *
-	 * @param viewId Уникальный строковый ID для этого WebView (например, "wiki-page").
-	 *               Используйте этот ID позже для удаления.
-	 * @param url    URL-адрес, который нужно загрузить.
-	 * @param x      Позиция по горизонтали от левого края экрана в пикселях.
-	 * @param y      Позиция по вертикали от верхнего края экрана в пикселях.
-	 * @param width  Ширина WebView в пикселях.
-	 * @param height Высота WebView в пикселях.
-	 */
+
 	public void createWebViewWithUrl(String viewId, String url, int x, int y, int width, int height) {
-		// Создаем WebView и настраиваем его
+
 		WebView webView = new WebView(this);
-		webView.getSettings().setJavaScriptEnabled(true); // Включаем JavaScript
+		webView.getSettings().setJavaScriptEnabled(true);
 		webView.addJavascriptInterface(new WebAppInterface(viewId), "Android");
-		// Это важно, чтобы ссылки открывались внутри WebView, а не в браузере
+
 		webView.setBackgroundColor(Color.TRANSPARENT);
 		webView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
 		webView.setWebViewClient(new WebViewClient());
 		webView.loadUrl(url);
 
-		// Создаем параметры макета для точного позиционирования
+
 		FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(width, height);
-		params.gravity = Gravity.TOP | Gravity.START; // Устанавливаем точку отсчета в левый верхний угол
+		params.gravity = Gravity.TOP | Gravity.START;
 		params.leftMargin = x;
 		params.topMargin = y;
 
-		// Используем наш универсальный метод для добавления View на сцену
+
 		addViewToStage(viewId, webView, params);
 	}
 
-	/**
-	 * Запускает или возобновляет воспроизведение видео.
-	 * @param viewId ID видеоплеера, который нужно запустить.
-	 */
+
 	public void playVideo(final String viewId) {
 		runOnUiThread(() -> {
 			View view = dynamicViews.get(viewId);
@@ -716,10 +753,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 		});
 	}
 
-	/**
-	 * Ставит видео на паузу.
-	 * @param viewId ID видеоплеера, который нужно поставить на паузу.
-	 */
+
 	public void pauseVideo(final String viewId) {
 		runOnUiThread(() -> {
 			View view = dynamicViews.get(viewId);
@@ -731,27 +765,18 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 		});
 	}
 
-	/**
-	 * Перематывает видео на указанное время.
-	 * @param viewId ID видеоплеера.
-	 * @param seconds Время в секундах, на которое нужно перемотать.
-	 */
+
 	public void seekVideoTo(final String viewId, final int seconds) {
 		runOnUiThread(() -> {
 			View view = dynamicViews.get(viewId);
 			if (view instanceof VideoView) {
-				// VideoView принимает время в миллисекундах
+
 				((VideoView) view).seekTo(seconds * 1000);
 			}
 		});
 	}
 
-	/**
-	 * Возвращает текущее время воспроизведения видео в секундах.
-	 * ВНИМАНИЕ: Этот метод блокирует текущий поток, пока не получит ответ от UI-потока.
-	 * @param viewId ID видеоплеера.
-	 * @return Текущее время в секундах (с плавающей точкой) или -1.0f, если плеер не найден.
-	 */
+
 	public float getVideoCurrentTime(final String viewId) {
 		Callable<Integer> callable = () -> {
 			View view = dynamicViews.get(viewId);
@@ -764,21 +789,16 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 		FutureTask<Integer> task = new FutureTask<>(callable);
 		runOnUiThread(task);
 		try {
-			// Ждем результат от UI-потока, но не дольше 1 секунды
+
 			int milliseconds = task.get(1, TimeUnit.SECONDS);
-			return milliseconds / 1000.0f; // Преобразуем в секунды
+			return milliseconds / 1000.0f;
 		} catch (Exception e) {
 			Log.e("StageActivity", "Failed to get video time for " + viewId, e);
 			return -1.0f;
 		}
 	}
 
-	/**
-	 * Проверяет, проигрывается ли видео в данный момент.
-	 * ВНИМАНИЕ: Блокирующий вызов.
-	 * @param viewId ID видеоплеера.
-	 * @return true, если видео играет, иначе false.
-	 */
+
 	public boolean isVideoPlaying(final String viewId) {
 		Callable<Boolean> callable = () -> {
 			View view = dynamicViews.get(viewId);
@@ -799,14 +819,9 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 	}
 
 
-// --- ОБЩИЕ МЕТОДЫ ДЛЯ ЛЮБОГО View ---
 
-	/**
-	 * Возвращает X-координату View относительно левого края.
-	 * ВНИМАНИЕ: Блокирующий вызов.
-	 * @param viewId ID любого View на сцене.
-	 * @return Координата X в пикселях или -1.0f, если View не найден.
-	 */
+
+
 	public float getViewX(final String viewId) {
 		Callable<Float> callable = () -> {
 			View view = dynamicViews.get(viewId);
@@ -823,12 +838,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 		}
 	}
 
-	/**
-	 * Возвращает Y-координату View относительно верхнего края.
-	 * ВНИМАНИЕ: Блокирующий вызов.
-	 * @param viewId ID любого View на сцене.
-	 * @return Координата Y в пикселях или -1.0f, если View не найден.
-	 */
+
 	public float getViewY(final String viewId) {
 		Callable<Float> callable = () -> {
 			View view = dynamicViews.get(viewId);
@@ -845,12 +855,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 		}
 	}
 
-	/**
-	 * Возвращает ширину View в пикселях.
-	 * ВНИМАНИЕ: Блокирующий вызов.
-	 * @param viewId ID любого View на сцене.
-	 * @return Ширина в пикселях или -1, если View не найден.
-	 */
+
 	public int getViewWidth(final String viewId) {
 		Callable<Integer> callable = () -> {
 			View view = dynamicViews.get(viewId);
@@ -867,12 +872,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 		}
 	}
 
-	/**
-	 * Возвращает высоту View в пикселях.
-	 * ВНИМАНИЕ: Блокирующий вызов.
-	 * @param viewId ID любого View на сцене.
-	 * @return Высота в пикселях или -1, если View не найден.
-	 */
+
 	public int getViewHeight(final String viewId) {
 		Callable<Integer> callable = () -> {
 			View view = dynamicViews.get(viewId);
@@ -889,117 +889,97 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 		}
 	}
 
-	/**
-	 * Создает и отображает WebView с отображением HTML-кода из строки.
-	 *
-	 * @param viewId      Уникальный строковый ID для этого WebView (например, "welcome-message").
-	 * @param htmlContent Строка, содержащая полный HTML-код для отображения.
-	 * @param x           Позиция по горизонтали от левого края экрана в пикселях.
-	 * @param y           Позиция по вертикали от верхнего края экрана в пикселях.
-	 * @param width       Ширина WebView в пикселях.
-	 * @param height      Высота WebView в пикселях.
-	 */
+
 	public void createWebViewWithHtml(String viewId, String htmlContent, int x, int y, int width, int height) {
-		// Создаем и настраиваем WebView
+
 		WebView webView = new WebView(this);
-		webView.getSettings().setJavaScriptEnabled(true); // JavaScript все еще нужен
+		webView.getSettings().setJavaScriptEnabled(true);
 		webView.addJavascriptInterface(new WebAppInterface(viewId), "Android");
-		webView.getSettings().setDomStorageEnabled(true); // Полезно для современных сайтов
+		webView.getSettings().setDomStorageEnabled(true);
 		webView.setBackgroundColor(Color.TRANSPARENT);
 		webView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
 
-		// --- НАЧАЛО КЛЮЧЕВОГО ИЗМЕНЕНИЯ ---
 
-		// БЫЛО:
-		// webView.loadData(htmlContent, "text/html; charset=utf-8", "UTF-8");
 
-		// СТАЛО:
-		// Мы сообщаем WebView, что базовый URL для этого HTML - "https://".
-		// Это дает ему разрешение загружать другие ресурсы (CSS, картинки, шрифты) из интернета.
+
+
+
+
+
+
 		webView.loadDataWithBaseURL("https://", htmlContent, "text/html", "UTF-8", null);
 
-		// --- КОНЕЦ КЛЮЧЕВОГО ИЗМЕНЕНИЯ ---
 
 
-		// Создаем параметры макета
+
+
 		FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(width, height);
 		params.gravity = Gravity.TOP | Gravity.START;
 		params.leftMargin = x;
 		params.topMargin = y;
 
-		// Добавляем View на сцену
+
 		addViewToStage(viewId, webView, params);
 	}
-	public static final String STYLE_TEXT_SIZE = "textSize";       // Размер текста в SP (например, "18")
-	public static final String STYLE_TEXT_COLOR = "textColor";     // Цвет текста в HEX (например, "#FF0000")
-	public static final String STYLE_HINT_TEXT = "hintText";       // Текст-подсказка (placeholder)
-	public static final String STYLE_HINT_TEXT_COLOR = "hintTextColor"; // Цвет подсказки в HEX
-	public static final String STYLE_BACKGROUND_COLOR = "backgroundColor"; // Цвет фона в HEX
-	public static final String STYLE_TEXT_ALIGNMENT = "textAlignment";   // Выравнивание
-	public static final String STYLE_FONT_PATH = "fontPath";             // Путь к файлу шрифта (*.ttf или *.otf)
-	public static final String STYLE_INPUT_TYPE = "inputType";           // Тип ввода: "text" (по умолч.), "number"
-	public static final String STYLE_IS_PASSWORD = "isPassword";         // "true", если поле для пароля
-	public static final String STYLE_MAX_LENGTH = "maxLength";           // Макс. длина текста (например, "50")
-	public static final String STYLE_CORNER_RADIUS = "cornerRadius";     // Радиус скругления углов в пикселях
+	public static final String STYLE_TEXT_SIZE = "textSize";
+	public static final String STYLE_TEXT_COLOR = "textColor";
+	public static final String STYLE_HINT_TEXT = "hintText";
+	public static final String STYLE_HINT_TEXT_COLOR = "hintTextColor";
+	public static final String STYLE_BACKGROUND_COLOR = "backgroundColor";
+	public static final String STYLE_TEXT_ALIGNMENT = "textAlignment";
+	public static final String STYLE_FONT_PATH = "fontPath";
+	public static final String STYLE_INPUT_TYPE = "inputType";
+	public static final String STYLE_IS_PASSWORD = "isPassword";
+	public static final String STYLE_MAX_LENGTH = "maxLength";
+	public static final String STYLE_CORNER_RADIUS = "cornerRadius";
 	public static final String STYLE_IS_MULTI_LINE = "isMultiLine";
-	/**
-	 * Создает текстовое поле для ввода, связанное с переменной проекта.
-	 *
-	 * @param viewId        Уникальный ID для этого поля.
-	 * @param variable      переменная проекта (UserVariable), которая будет обновляться.
-	 * @param initialText   Начальный текст в поле.
-	 * @param x             Позиция X.
-	 * @param y             Позиция Y.
-	 * @param width         Ширина.
-	 * @param height        Высота.
-	 * @param styleOptions  Карта (HashMap) с опциями для стилизации. Может быть null.
-	 */
+
 	public void createInputField(String viewId, UserVariable variable, String initialText, int x, int y, int width, int height, HashMap<String, String> styleOptions) {
-		// Создаем EditText
+
 		final EditText editText = new EditText(this);
 		editText.setText(initialText);
 
-		// --- НАСТРОЙКА СТИЛЕЙ ---
+
 		if (styleOptions != null) {
 
-			// --- НОВОЕ: Закругленные углы и фон ---
-			// Создаем Drawable, который будем использовать для фона.
-			// Это позволяет нам задать и цвет, и скругление углов.
+
+
+
 			GradientDrawable backgroundShape = new GradientDrawable();
 			backgroundShape.setShape(GradientDrawable.RECTANGLE);
 
-			// Устанавливаем радиус скругления, если он указан
+
 			if (styleOptions.containsKey(STYLE_CORNER_RADIUS)) {
 				try {
 					float radius = Float.parseFloat(styleOptions.get(STYLE_CORNER_RADIUS));
 					backgroundShape.setCornerRadius(radius);
-				} catch (NumberFormatException e) { /* Игнорируем */ }
+				} catch (NumberFormatException e) { /* Ignore */ }
 			}
 
-			// Устанавливаем цвет фона. Если есть скругление, цвет применится к фигуре,
-			// иначе - будет просто заливка.
+
+
 			if (styleOptions.containsKey(STYLE_BACKGROUND_COLOR)) {
 				try {
 					backgroundShape.setColor(Color.parseColor(styleOptions.get(STYLE_BACKGROUND_COLOR)));
-				} catch (IllegalArgumentException e) { /* Игнорируем */ }
+				} catch (IllegalArgumentException e) { /* Ignore */ }
 			} else {
-				// Если цвет не указан, делаем фон прозрачным, чтобы фигура не имела цвета по умолчанию
+
 				backgroundShape.setColor(Color.TRANSPARENT);
 			}
-			// Применяем наш созданный фон к EditText
+
 			editText.setBackground(backgroundShape);
 
-			// --- Стандартные стили ---
+
 			if (styleOptions.containsKey(STYLE_TEXT_SIZE)) {
 				try {
 					float size = Float.parseFloat(styleOptions.get(STYLE_TEXT_SIZE));
 					editText.setTextSize(TypedValue.COMPLEX_UNIT_SP, size);
-				} catch (NumberFormatException e) { /* Игнорируем */ }
+				} catch (NumberFormatException e) { /* Ignore */ }
 			}
 			if (styleOptions.containsKey(STYLE_TEXT_COLOR)) {
 				try {
 					editText.setTextColor(Color.parseColor(styleOptions.get(STYLE_TEXT_COLOR)));
-				} catch (IllegalArgumentException e) { /* Игнорируем */ }
+				} catch (IllegalArgumentException e) { /* Ignore */ }
 			}
 			if (styleOptions.containsKey(STYLE_HINT_TEXT)) {
 				editText.setHint(styleOptions.get(STYLE_HINT_TEXT));
@@ -1007,7 +987,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 			if (styleOptions.containsKey(STYLE_HINT_TEXT_COLOR)) {
 				try {
 					editText.setHintTextColor(Color.parseColor(styleOptions.get(STYLE_HINT_TEXT_COLOR)));
-				} catch (IllegalArgumentException e) { /* Игнорируем */ }
+				} catch (IllegalArgumentException e) { /* Ignore */ }
 			}
 			if (styleOptions.containsKey(STYLE_TEXT_ALIGNMENT)) {
 				String alignment = styleOptions.get(STYLE_TEXT_ALIGNMENT);
@@ -1020,7 +1000,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 				}
 			}
 
-			// --- НОВОЕ: Максимальная длина текста ---
+
 			if (styleOptions.containsKey(STYLE_MAX_LENGTH)) {
 				try {
 					int maxLength = Integer.parseInt(styleOptions.get(STYLE_MAX_LENGTH));
@@ -1030,46 +1010,46 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 				} catch (NumberFormatException e) { /* Игнорируем */ }
 			}
 
-			// --- НОВОЕ: Тип ввода и режим пароля ---
-			// Режим пароля имеет приоритет над типом ввода
+
+
 			if (Boolean.parseBoolean(styleOptions.get(STYLE_IS_PASSWORD))) {
 				editText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
 			} else if (styleOptions.containsKey(STYLE_INPUT_TYPE)) {
 				String inputType = styleOptions.get(STYLE_INPUT_TYPE);
 				if ("number".equalsIgnoreCase(inputType)) {
-					// Разрешает ввод только цифр (включая знак и дробную часть)
+
 					editText.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL | InputType.TYPE_NUMBER_FLAG_SIGNED);
 				} else {
-					// Стандартный текстовый ввод
+
 					editText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
 
-					// 2. Убираем горизонтальную прокрутку, чтобы текст переносился
-					//editText.setHorizontallyScrolling(false);
 
-					// 3. Устанавливаем максимальное количество строк (можно большое число)
+
+
+
 					editText.setMaxLines(Integer.MAX_VALUE);
 
-					// 4. Важно! Выравниваем текст по верху для многострочного режима
+
 					int currentGravity = editText.getGravity();
-					// Убираем вертикальное центрирование и добавляем выравнивание по верху
+
 					editText.setGravity((currentGravity & ~Gravity.VERTICAL_GRAVITY_MASK) | Gravity.TOP);
 				}
 			}
 
-			// --- НОВОЕ: Кастомный шрифт ---
+
 			if (styleOptions.containsKey(STYLE_FONT_PATH)) {
 				try {
-					// Пытаемся создать шрифт из файла
+
 					Typeface customFont = Typeface.createFromFile(styleOptions.get(STYLE_FONT_PATH));
 					editText.setTypeface(customFont);
 				} catch (Exception e) {
-					// Если файл не найден или поврежден, ничего не делаем, будет использован шрифт по умолчанию
+
 					Log.e("StageActivity", "Failed to load font from path: " + styleOptions.get(STYLE_FONT_PATH), e);
 				}
 			}
 		}
 
-		// --- СВЯЗЬ С ПЕРЕМЕННОЙ CATROID ---
+
 		editText.addTextChangedListener(new TextWatcher() {
 			@Override
 			public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -1080,16 +1060,16 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 			public void afterTextChanged(Editable s) {
 				Project project = ProjectManager.getInstance().getCurrentProject();
 				if (project != null) {
-					//UserVariable userVar = project.getUserVariable(variableName);
+
 					if (variable != null) {
-						// Обновляем значение переменной проекта текстом из поля ввода
+
 						variable.setValue(s.toString());
 					}
 				}
 			}
 		});
 
-		// --- ПОЗИЦИОНИРОВАНИЕ И ДОБАВЛЕНИЕ НА СЦЕНУ ---
+
 		FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(width, height);
 		params.gravity = Gravity.TOP | Gravity.START;
 		params.leftMargin = x;
@@ -1098,12 +1078,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 		addViewToStage(viewId, editText, params);
 	}
 
-	/**
-	 * Регистрирует или удаляет обработчик обратного вызова для конкретного WebView.
-	 * @param viewId ID WebView, для которого устанавливается обработчик.
-	 * @param callback Ваша реализация интерфейса WebViewCallback для обработки сообщений.
-	 *                 Передайте null, чтобы удалить существующий обработчик.
-	 */
+
 	public void setWebViewCallback(String viewId, WebViewCallback callback) {
 		if (callback == null) {
 			webViewCallbacks.remove(viewId);
@@ -1112,9 +1087,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 		}
 	}
 
-	/**
-	 * Создает GLSurfaceView и настраивает колбэки для C++.
-	 */
+
 	public void createGLSurfaceView(String viewId, int x, int y, int width, int height) {
 		if (!NativeBridge.INSTANCE.isWorking()) return;
 		if (dynamicViews.containsKey(viewId)) {
@@ -1122,13 +1095,13 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 			removeView(viewId);
 		}
 
-		// GLSurfaceView glView = new GLSurfaceView(this);
 
-		// СТАЛО:
+
+
 		SurfaceView glView = new SurfaceView(this);
 
 		glView.setOnTouchListener((v, event) -> {
-			// Пробрасываем событие в C++
+
 			NativeBridge.INSTANCE.onTouchEvent(
 					viewId,
 					event.getActionMasked(),
@@ -1136,7 +1109,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 					event.getY(),
 					event.getPointerId(0)
 			);
-			return true; // Говорим, что мы обработали событие
+			return true;
 		});
 
 		glView.getHolder().addCallback(new SurfaceHolder.Callback() {
@@ -1156,7 +1129,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 			}
 		});
 
-		// Размещаем на экране
+
 		FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(width, height);
 		params.gravity = Gravity.TOP | Gravity.START;
 		params.leftMargin = x;
@@ -1165,9 +1138,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 		addViewToStage(viewId, glView, params);
 	}
 
-	/**
-	 * Связывает .so файл с уже существующим GLSurfaceView.
-	 */
+
 	public void attachSoToView(String viewId, String soPath) {
 		if (!NativeBridge.INSTANCE.isWorking()) return;
 		if (!dynamicViews.containsKey(viewId)) {
@@ -1177,65 +1148,52 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 		NativeBridge.INSTANCE.attachSoToView(viewId, soPath);
 	}
 
-	/**
-	 * Полностью удаляет View и его C++ часть.
-	 */
+
 	public void destroyGLView(String viewId) {
 		if (!NativeBridge.INSTANCE.isWorking()) return;
-		removeViewFromStage(viewId); // Это удалит View и вызовет surfaceDestroyed
-		NativeBridge.INSTANCE.cleanupInstance(viewId); // Это выгрузит .so и очистит память
+		removeViewFromStage(viewId);
+		NativeBridge.INSTANCE.cleanupInstance(viewId);
 	}
 
-	/**
-	 * --- НОВОЕ ---
-	 * Удаляет ВСЕ динамически добавленные View со сцены.
-	 * Вызывается при перезапуске проекта, чтобы очистить интерфейс.
-	 */
+
 	public void removeAllNativeViews() {
-		// Обязательно выполняем в UI-потоке
+
 		runOnUiThread(() -> {
 			if (NativeBridge.INSTANCE.isWorking()) NativeBridge.INSTANCE.cleanupAllInstances();
-			// Проходим по всем значениям (View) в нашей карте
+
 			for (View viewToRemove : dynamicViews.values()) {
 				rootLayout.removeView(viewToRemove);
 				if (viewToRemove != null && viewToRemove.getParent() instanceof ViewGroup) {
 					((ViewGroup) viewToRemove.getParent()).removeView(viewToRemove);
 				}
 			}
-			// Полностью очищаем карту, чтобы не было "утечек" ссылок
+
 			dynamicViews.clear();
-			// Также очищаем обработчики
+
 			webViewCallbacks.clear();
 		});
 	}
 
-	/**
-	 * Выполняет JavaScript-код в указанном WebView.
-	 * Это позволяет динамически изменять содержимое страницы без перезагрузки.
-	 * @param viewId ID WebView, в котором нужно выполнить код.
-	 * @param javascriptCode Строка с JavaScript-кодом для выполнения.
-	 */
+
 	public void executeJavaScript(final String viewId, final String javascriptCode) {
 		runOnUiThread(() -> {
 			View view = dynamicViews.get(viewId);
 			if (view instanceof WebView) {
 				WebView webView = (WebView) view;
-				// evaluateJavascript - это современный и безопасный способ выполнения JS.
-				// Он не блокирует UI-поток.
-				webView.evaluateJavascript(javascriptCode, null); // Второй параметр - это колбэк для получения результата от JS, нам он здесь не нужен.
+
+
+				webView.evaluateJavascript(javascriptCode, null);
 			} else {
 				Log.w(TAG, "View with id '" + viewId + "' is not a WebView. Cannot execute JavaScript.");
 			}
 		});
 	}
 
-	// ДОБАВИТЬ В StageActivity.java
-	/**
-	 * Создает простой цветной прямоугольник для отладки слоев.
-	 */
+
+
 	public void createDebugView(String viewId, int color, int x, int y, int width, int height) {
 		View debugView = new View(this);
-		debugView.setBackgroundColor(color); // Устанавливаем яркий цвет
+		debugView.setBackgroundColor(color);
 
 		FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(width, height);
 		params.gravity = Gravity.TOP | Gravity.START;
@@ -1245,7 +1203,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 		addViewToStage(viewId, debugView, params);
 	}
 
-	// ДОБАВИТЬ ЭТОТ МЕТОД В StageActivity.java
+
 
 	public void debugLayoutHierarchy() {
 		runOnUiThread(() -> {
@@ -1302,14 +1260,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 		});
 	}
 
-	/**
-	 * Изменяет позицию любого нативного View на сцене.
-	 * Этот метод не пересоздает View, сохраняя его состояние.
-	 *
-	 * @param viewId Уникальный ID View, которое нужно переместить.
-	 * @param x      Новая координата X (от левого края).
-	 * @param y      Новая координата Y (от верхнего края).
-	 */
+
 	public void setViewPosition(final String viewId, final int x, final int y) {
 		runOnUiThread(() -> {
 			View view = dynamicViews.get(viewId);
@@ -1324,42 +1275,30 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 		});
 	}
 
-	/**
-	 * Создает и отображает видеоплеер на сцене.
-	 *
-	 * @param viewId        Уникальный строковый ID для этого плеера (например, "intro-video").
-	 * @param videoPath     Полный путь к видеофайлу на устройстве.
-	 * @param x             Позиция по горизонтали от левого края экрана в пикселях.
-	 * @param y             Позиция по вертикали от верхнего края экрана в пикселях.
-	 * @param width         Ширина плеера в пикселях.
-	 * @param height        Высота плеера в пикселях.
-	 * @param showControls  true, если нужно показать стандартные элементы управления (пауза, прокрутка).
-	 *                      false, если нужно показывать только "чистое" видео.
-	 * @param loopVideo     true, если видео должно начинаться заново после завершения.
-	 */
+
 	public void createVideoPlayer(String viewId, String videoPath, int x, int y, int width, int height, boolean showControls, final boolean loopVideo, boolean isTransparent) {
 		final VideoView videoView = new VideoView(this);
 
-		// --- НАСТРОЙКА ПРОЗРАЧНОСТИ ---
+
 		if (isTransparent) {
-			// Эта команда делает "окно", в котором рисуется видео, способным к прозрачности.
+
 			videoView.getHolder().setFormat(PixelFormat.TRANSLUCENT);
-			// ВАЖНО: Мы НЕ вызываем setZOrderOnTop(true). Это позволяет видео
-			// быть частью общей иерархии слоев, а не "дырой" поверх всего.
+
+
 		}
 
-		// Настраиваем MediaController, если нужно. Теперь это будет работать.
+
 		if (showControls) {
 			MediaController mediaController = new MediaController(this);
-			// Привязываем контроллер к нашему VideoView
+
 			videoView.setMediaController(mediaController);
-			// AnchorView нужен, чтобы контроллер знал, где отображаться
+
 			mediaController.setAnchorView(videoView);
 		}
 
 		videoView.setVideoPath(videoPath);
 
-		// Используем OnPreparedListener для надежного автостарта и зацикливания
+
 		videoView.setOnPreparedListener(mediaPlayer -> {
 			mediaPlayer.start();
 			if (loopVideo) {
@@ -1367,59 +1306,44 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 			}
 		});
 
-		// Позиционирование и добавление на сцену
+
 		FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(width, height);
 		params.gravity = Gravity.TOP | Gravity.START;
 		params.leftMargin = x;
 		params.topMargin = y;
 
 		addViewToStage(viewId, videoView, params);
-		videoView.requestFocus(); // Нужно для работы MediaController
+		videoView.requestFocus();
 	}
 
-	/**
-	 * Удаляет любой View (включая WebView), ранее добавленный на сцену, по его ID.
-	 *
-	 * @param viewId Уникальный ID, который вы использовали при создании View.
-	 */
+
 	public void removeView(String viewId) {
-		// Просто вызываем наш уже существующий метод
+
 		removeViewFromStage(viewId);
 	}
 
-	/**
-	 * Добавляет любой View на сцену.
-	 * Все операции с UI должны выполняться в главном потоке. Этот метод позаботится об этом.
-	 *
-	 * @param viewId Уникальный строковый идентификатор для этого View. Нужен для последующего доступа или удаления.
-	 * @param view   Объект View, который нужно добавить (например, new Button(this), new WebView(this)).
-	 * @param params Параметры макета, определяющие размер и положение View внутри FrameLayout.
-	 */
-	// ИЗМЕНИТЬ: Метод добавления теперь использует activeNativeLayer
+
+
 	public void addViewToStage(final String viewId, final View view, final FrameLayout.LayoutParams params) {
-		removeViewFromStage(viewId); // Сначала удаляем старый, если он есть
+		removeViewFromStage(viewId);
 
 		runOnUiThread(() -> {
 			view.setLayoutParams(params);
 			dynamicViews.put(viewId, view);
-			// Добавляем не в rootLayout, а в текущий активный слой!
+
 			activeNativeLayer.addView(view);
 		});
 	}
 
-	// ИЗМЕНИТЬ: Метод удаления стал умнее и удаляет View из любого родителя
-	/**
-	 * Удаляет View со сцены по его ID.
-	 *
-	 * @param viewId Уникальный ID View, которое нужно удалить.
-	 */
+
+
 	public void removeViewFromStage(final String viewId) {
 		if (dynamicViews.containsKey(viewId)) {
 			runOnUiThread(() -> {
 				View viewToRemove = dynamicViews.get(viewId);
 				if (viewToRemove != null && viewToRemove.getParent() instanceof ViewGroup) {
-					// Удаляем View из его текущего родителя, будь то
-					// backgroundLayout или foregroundLayout.
+
+
 					((ViewGroup) viewToRemove.getParent()).removeView(viewToRemove);
 				}
 				dynamicViews.remove(viewId);
@@ -1431,71 +1355,63 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 		return cameraContainer;
 	}
 
-	/**
-	 * Получает View по его ID для дальнейших манипуляций.
-	 *
-	 * @param viewId Уникальный ID View.
-	 * @return Объект View или null, если не найден.
-	 */
+
 	public View getViewFromStage(String viewId) {
 		return dynamicViews.get(viewId);
 	}
 
-	/**
-	 * Гарантированно выполняет Runnable в главном потоке UI.
-	 * @param runnable код для выполнения.
-	 */
+
 	public static void runOnMainThread(Runnable runnable) {
 		if (mainThreadHandler != null) {
 			mainThreadHandler.post(runnable);
 		}
 	}
 
-	// В файле StageActivity.java
+
 	private void checkAndRequestPermissions() {
 		List<String> permissionsNeeded = new ArrayList<>();
 
-		// --- Камера ---
+
 		if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
 			permissionsNeeded.add(Manifest.permission.CAMERA);
 		}
 
-		// --- Микрофон ---
+
 		if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
 			permissionsNeeded.add(Manifest.permission.RECORD_AUDIO);
 		}
 
-		// --- Местоположение ---
+
 		if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
 			permissionsNeeded.add(Manifest.permission.ACCESS_FINE_LOCATION);
 		}
 
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) { // S = API 31
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
 			if (ContextCompat.checkSelfPermission(this, Manifest.permission.NEARBY_WIFI_DEVICES) != PackageManager.PERMISSION_GRANTED) {
 				permissionsNeeded.add(Manifest.permission.NEARBY_WIFI_DEVICES);
 			}
 		}
 
-		// --- Уведомления (для Android 13+) ---
+
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
 			if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
 				permissionsNeeded.add(Manifest.permission.POST_NOTIFICATIONS);
 			}
 		}
 
-		// --- Хранилище (Ваш код уже был здесь, оставляем его) ---
+
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
 			if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED) {
 				permissionsNeeded.add(Manifest.permission.READ_MEDIA_IMAGES);
 			}
-			// и т.д. для видео и аудио
+
 		} else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
 			if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
 				permissionsNeeded.add(Manifest.permission.READ_EXTERNAL_STORAGE);
 			}
 		}
 
-		// --- Запускаем запрос, если что-то нужно ---
+
 		if (!permissionsNeeded.isEmpty()) {
 			ActivityCompat.requestPermissions(this, permissionsNeeded.toArray(new String[0]), 100);
 		}
@@ -1516,9 +1432,13 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 
 			PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
 
-			if (isApplicationSentToBackground(this) || !pm.isInteractive()) {
-				surveyCampaign.endAppTime(this);
-			}
+            try {
+                if (isApplicationSentToBackground(this) || !pm.isInteractive()) {
+                    surveyCampaign.endAppTime(this);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
 		}
 	}
 
@@ -1551,18 +1471,18 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 
 	@Override
 	protected void onDestroy() {
-		// 1. СНАЧАЛА вызываем родительский метод.
-		// Он корректно очистит слушатели и ресурсы LibGDX, пока View еще существуют.
+
+
 		super.onDestroy();
 
 		if (NativeBridge.INSTANCE.isWorking()) NativeBridge.INSTANCE.cleanupAllInstances();
 
-		// 2. ТЕПЕРЬ выполняем свою собственную очистку.
+
 		if (ProjectManager.getInstance().getCurrentProject() != null) {
 			StageLifeCycleController.stageDestroy(this);
 		}
 
-		// 3. И очистку WebView в конце.
+
 		RunJSAction.Companion.destroyWebView();
 	}
 
@@ -1629,11 +1549,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 		}
 	}
 
-	/**
-	 * Проверяет, содержит ли текущий проект хотя бы один скрипт указанного типа.
-	 * @param scriptClass Класс скрипта для поиска (например, BackPressedScript.class).
-	 * @return true, если найден хотя бы один экземпляр, иначе false.
-	 */
+
 	private boolean projectHasScriptOfType(Class<? extends Script> scriptClass) {
 		Project project = ProjectManager.getInstance().getCurrentProject();
 		if (project == null || scriptClass == null) {
@@ -1643,18 +1559,15 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 			for (Sprite sprite : scene.getSpriteList()) {
 				for (Script script : sprite.getScriptList()) {
 					if (scriptClass.isInstance(script)) {
-						return true; // Нашли, дальше можно не искать
+						return true;
 					}
 				}
 			}
 		}
-		return false; // Не нашли во всем проекте
+		return false;
 	}
 
-	/**
-	 * "Транслирует" событие всем спрайтам на текущей сцене.
-	 * @param eventId ID события для запуска.
-	 */
+
 	private void broadcastEventToAllSprites(EventId eventId) {
 		Scene scene = ProjectManager.getInstance().getCurrentlyPlayingScene();
 		if (scene == null) {
@@ -1664,39 +1577,33 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 		for (Sprite sprite : scene.getSpriteList()) {
 			Multimap<EventId, ScriptSequenceAction> eventMap = sprite.getIdToEventThreadMap();
 			if (eventMap != null && eventMap.containsKey(eventId)) {
-				// Запускаем все скрипты, которые подписаны на это событие
+
 				for (ScriptSequenceAction sequence : eventMap.get(eventId)) {
-					sequence.restart(); // Перезапускаем экшн, чтобы его можно было использовать снова
-					sprite.look.addAction(sequence); // look - это Actor из LibGDX, он выполняет действия
+					sequence.restart();
+					sprite.look.addAction(sequence);
 				}
 			}
 		}
 	}
 
-	// org/catrobat/catroid/stage/StageActivity.java
 
-	/**
-	 * БЕЗОПАСНЫЙ статический метод для получения активного StageListener.
-	 * Это ЕДИНСТВЕННЫЙ способ, которым внешний код должен получать доступ к listener'у.
-	 * Он возвращает null, если игра не запущена, и это ПРАВИЛЬНО.
-	 *
-	 * @return Активный StageListener, если игровая сцена существует и запущена, иначе null.
-	 */
+
+
 	public static StageListener getActiveStageListener() {
-		// 1. Проверяем, существует ли вообще ссылка на активную StageActivity
+
 		if (activeStageActivity == null) {
 			return null;
 		}
 
-		// 2. Получаем саму StageActivity
+
 		StageActivity currentStage = activeStageActivity.get();
 
-		// 3. Проверяем, что и активность, и ее listener существуют
+
 		if (currentStage != null && currentStage.stageListener != null) {
 			return currentStage.stageListener;
 		}
 
-		// 4. Во всех остальных случаях возвращаем null
+
 		return null;
 	}
 
@@ -1704,24 +1611,24 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 	public void onBackPressed() {
 		Project currentProject = ProjectManager.getInstance().getCurrentProject();
 
-		// 1. ПРОВЕРЯЕМ, ЕСТЬ ЛИ В ПРОЕКТЕ НУЖНЫЙ СКРИПТ
+
 		boolean backPressedScriptExists = EventManager.projectHasScriptOfType(
 				currentProject, BackPressedScript.class);
 
 		if (backPressedScriptExists) {
-			// 2. ЛОГИКА ДЛЯ ПРОЕКТОВ С НОВЫМ СКРИПТОМ
 
-			// Проверяем, было ли предыдущее нажатие менее 2 секунд назад
+
+
 			if (backPressedTime + BACK_PRESS_EXIT_TIMEOUT > System.currentTimeMillis()) {
 				handleBack();
 			} else {
-				// НЕТ, ЭТО ПЕРВОЕ НАЖАТИЕ
-				// а) Запускаем событие для всех скриптов
+
+
 				broadcastEventToAllSprites(new EventId(EventId.BACK_PRESSED));
-				// б) Показываем подсказку пользователю
+
 				Toast.makeText(this, "Нажмите еще раз для вызова меню", Toast.LENGTH_SHORT).show();
 
-				// в) Запоминаем время этого нажатия
+
 				backPressedTime = System.currentTimeMillis();
 			}
 
@@ -1733,9 +1640,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 	private void handleBack() {
 		if (BuildConfig.FEATURE_APK_GENERATOR_ENABLED) {
 			//BluetoothDeviceService service = ServiceProvider.getService(CatroidService.BLUETOOTH_DEVICE_SERVICE);
-			/*if (service != null) {
-				service.disconnectDevices();
-			}*/
+
 
 			//TextToSpeechHolder.getInstance().deleteSpeechFiles();
 			//Intent marketingIntent = new Intent(this, MarketingActivity.class);
@@ -1805,10 +1710,10 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 
 	@Override
 	public ApplicationListener getApplicationListener() {
-		// Убедитесь, что он создается, если еще не создан
+
 		if (this.stageListener == null) {
-			// Логика создания вашего StageListener (вероятно, находится в StageLifeCycleController)
-			// Для примера, создадим его здесь, но лучше перенести из вашего контроллера
+
+
 			this.stageListener = new StageListener();
 		}
 		return this.stageListener;
@@ -1890,12 +1795,12 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 
 		if (requestCode == EXPORT_FILE_REQUEST_CODE) {
-			// Проверяем, что пользователь действительно выбрал файл и нажал "Сохранить"
+
 			if (resultCode == Activity.RESULT_OK && data != null && data.getData() != null) {
 				Uri destinationUri = data.getData();
 				File sourceFile = new File(sourceFileToExportPath);
 
-				// Запускаем копирование
+
 				try (InputStream in = new FileInputStream(sourceFile);
 					 OutputStream out = getContentResolver().openOutputStream(destinationUri)) {
 
@@ -1905,19 +1810,19 @@ public class StageActivity extends AndroidApplication implements ContextProvider
                         assert out != null;
                         out.write(buf, 0, len);
 					}
-					//Toast.makeText(this, R.string.export_success, Toast.LENGTH_SHORT).show();
+
 				} catch (IOException e) {
 					Log.e(TAG, "Ошибка экспорта файла", e);
 					Toast.makeText(this, "Ошибка при экспорте: " + e.getMessage(), Toast.LENGTH_SHORT).show();
 				}
 			}
-			// Очищаем временную переменную в любом случае
+
 			sourceFileToExportPath = null;
 		}
 
 		for (IntentListener listener : intentListeners2) {
 			if (listener.onIntentResult(requestCode, resultCode, data)) {
-				return; // Если обработано, прекращаем вызовы
+				return;
 			}
 		}
 
@@ -1965,7 +1870,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 
 	public interface IntentListener {
 		Intent getTargetIntent();
-		boolean onIntentResult(int requestCode, int resultCode, Intent data); //don't do heavy processing here
+		boolean onIntentResult(int requestCode, int resultCode, Intent data);
 	}
 
 	@Override
@@ -1985,11 +1890,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 				}
 			}
 
-			/*if (allGranted) {
-				Toast.makeText(this, "Все разрешения предоставлены!", Toast.LENGTH_SHORT).show();
-			} else {
-				Toast.makeText(this, "Не все разрешения предоставлены. Некоторые функции могут быть недоступны.", Toast.LENGTH_LONG).show();
-			}*/
+
 		} else {
 			permissionRequestActivityExtension.onRequestPermissionsResult(this, requestCode, permissions, grantResults);
 		}
@@ -2001,18 +1902,18 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 	public static void handlePlayButton(ProjectManager projectManager, final Activity activity) {
 		Project project = projectManager.getCurrentProject();
 
-		// Проверяем, содержит ли проект опасные блоки
+
 		boolean isDangerous = ProjectSecurityChecker.projectContainsDangerousBricks(project);
 
-		// Проверяем, не отключал ли пользователь это предупреждение ранее
+
 		SharedPreferences prefs = activity.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
 		boolean shouldSuppressWarning = prefs.getBoolean(PREFS_KEY_SUPPRESS_WARNING, false);
 
-		// Если проект опасен И пользователь не отключал предупреждение, показываем диалог
+
 		if (isDangerous && !shouldSuppressWarning) {
 			showSecurityWarningDialog(projectManager, activity);
 		} else {
-			// В противном случае (проект безопасен или предупреждение отключено) - запускаем как обычно
+
 			launchProject(projectManager, activity);
 		}
 	}
@@ -2021,30 +1922,30 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 		new AlertDialog.Builder(activity)
 				.setTitle("Проект может содержать вредоносный код")
 				.setMessage("В проекте используется LunoScript, Python или Библиотеки, это может быть опасно. Запускайте его только если проверили код или доверяете источнику.")
-				.setCancelable(false) // Запрещаем закрывать диалог кнопкой "назад"
+				.setCancelable(false)
 				.setIcon(android.R.drawable.ic_dialog_alert)
 
-				// Кнопка "Запуск" (Positive)
+
 				.setPositiveButton("Запуск", (dialog, which) -> {
 					dialog.dismiss();
-					launchProject(projectManager, activity); // Запускаем проект
+					launchProject(projectManager, activity);
 				})
 
-				// Кнопка "Отмена" (Negative)
+
 				.setNegativeButton("Отмена", (dialog, which) -> {
-					dialog.dismiss(); // Просто закрываем диалог
+					dialog.dismiss();
 				})
 
-				// Кнопка "Больше не напоминать" (Neutral)
+
 				.setNeutralButton("Больше не напоминать", (dialog, which) -> {
-					// Сохраняем выбор пользователя
+
 					SharedPreferences prefs = activity.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
 					SharedPreferences.Editor editor = prefs.edit();
 					editor.putBoolean(PREFS_KEY_SUPPRESS_WARNING, true);
 					editor.apply();
 
 					dialog.dismiss();
-					launchProject(projectManager, activity); // И запускаем проект
+					launchProject(projectManager, activity);
 				})
 				.show();
 	}

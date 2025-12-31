@@ -97,10 +97,6 @@ abstract class BaseActivity : AppCompatActivity(), PermissionHandlingActivity {
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
 
-        // Этот метод теперь будет вызываться каждый раз при повороте экрана.
-        // Activity при этом НЕ будет пересоздаваться.
-        // Здесь можно добавить логику, если какой-то экран нужно
-        // принудительно перерисовать. Но для начала оставим его пустым.
         Log.d("BaseActivity", "Configuration changed! New orientation: ${newConfig.orientation}")
     }
 
@@ -158,7 +154,11 @@ abstract class BaseActivity : AppCompatActivity(), PermissionHandlingActivity {
     }
 
     override fun onDestroy() {
-        MainMenuActivity.pythonEngine.shutdown()
+        try {
+            MainMenuActivity.pythonEngine.shutdown()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
         super.onDestroy()
     }
 

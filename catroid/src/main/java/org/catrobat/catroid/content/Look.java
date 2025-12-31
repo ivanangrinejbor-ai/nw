@@ -1067,8 +1067,13 @@ public class Look extends Image {
 
 	private float originalWidth = 1f;
 	private float originalHeight = 1f;
+	private Polygon[] cachedCollisionPolygons = null;
 
 	public Polygon[] getCurrentCollisionPolygon() {
+		if (cachedCollisionPolygons != null && !collisionDirty.get()) {
+			return cachedCollisionPolygons;
+		}
+
 		Polygon[] originalPolygons;
 		if (getLookData2() == null) {
 			originalPolygons = new Polygon[0];
@@ -1080,17 +1085,24 @@ public class Look extends Image {
 			originalPolygons = collisionInformation.collisionPolygons;
 		}
 
-		Polygon[] transformedPolygons = new Polygon[originalPolygons.length];
+		//Polygon[] transformedPolygons = new Polygon[originalPolygons.length];
+		if (cachedCollisionPolygons == null || cachedCollisionPolygons.length != originalPolygons.length) {
+			cachedCollisionPolygons = new Polygon[originalPolygons.length];
+			for (int i = 0; i < originalPolygons.length; i++) {
+				cachedCollisionPolygons[i] = new Polygon(originalPolygons[i].getVertices());
+			}
+		}
 
-		for (int p = 0; p < transformedPolygons.length; p++) {
+		for (int p = 0; p < cachedCollisionPolygons.length; p++) {
 			Polygon poly = new Polygon(originalPolygons[p].getTransformedVertices());
 			poly.translate(getX(), getY());
 			poly.setRotation(getRotation());
 			poly.setScale(getScaleX(), getScaleY());
 			poly.setOrigin(getOriginX(), getOriginY());
-			transformedPolygons[p] = poly;
+			cachedCollisionPolygons[p] = poly;
 		}
-		return transformedPolygons;
+		collisionDirty.set(false);
+		return cachedCollisionPolygons;
 	}
 
 	void notifyAllWaiters() {

@@ -2643,12 +2643,14 @@ public class ActionFactory extends Actions {
 		return action;
 	}
 
-	public Action createAsyncRepeatAction(Sprite sprite, SequenceAction sequence, Formula count, Action loopBodyAction) {
-		AsyncRepeatAction action = action(AsyncRepeatAction.class);
+	public Action createAsyncRepeatAction(Sprite sprite, SequenceAction sequence, Formula count, Action repeatedAction,
+									 boolean isLoopDelay) {
+		AsyncRepeatAction action = Actions.action(AsyncRepeatAction.class);
+		action.setRepeatCount(count);
+		action.setAction(repeatedAction);
 		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
 		action.setScope(scope);
-		action.setRepeatCount(count);
-		action.setLoopBodyAction(loopBodyAction);
+		action.setLoopDelay(isLoopDelay);
 		return action;
 	}
 
@@ -3660,6 +3662,82 @@ public class ActionFactory extends Actions {
 		action.setX(x);
 		action.setY(y);
 		action.setZ(z);
+		return action;
+	}
+
+	public Action createVmRelativeMouseMoveAction(Sprite sprite, ScriptSequenceAction sequence, Formula dx, Formula dy, Formula mask) {
+		VmRelativeMouseMoveAction action = action(VmRelativeMouseMoveAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setDxFormula(dx);
+		action.setDyFormula(dy);
+		action.setMaskFormula(mask);
+		return action;
+	}
+
+	public Action createVmSetMonitorSizeAction(Sprite sprite, ScriptSequenceAction sequence, Formula width, Formula height) {
+		VmSetMonitorSizeAction action = action(VmSetMonitorSizeAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setWidthFormula(width);
+		action.setHeightFormula(height);
+		return action;
+	}
+
+	public Action createSetPostProcessingAction(Sprite sprite, ScriptSequenceAction sequence, int effectIdx, int paramIdx, Formula val) {
+		SetPostProcessingAction action = action(SetPostProcessingAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setEffectIndex(effectIdx);
+		action.setParamIndex(paramIdx);
+		action.setValueFormula(val);
+		return action;
+	}
+
+	public Action createParticlesAction(Sprite sprite, ScriptSequenceAction sequence,
+										Formula particleId, Formula looping, Formula duration,
+										Formula startLifetime, Formula startSpeed, Formula startSize,
+										Formula gravityModifier, Formula maxParticles, Formula emissionRate,
+										Formula coneAngle, Formula coneRadius, Formula startColor,
+										Formula endColor, Formula endSize, Formula texturePath,
+										Formula isAdditive, Formula startRotation, Formula rotationOverLifetime,
+										Formula positionX, Formula positionY, Formula positionZ,
+										Formula rotationPitch, Formula rotationYaw, Formula rotationRoll) {
+		CreateParticlesAction action = action(CreateParticlesAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setParticleId(particleId);
+		action.setLooping(looping);
+		action.setDuration(duration);
+		action.setStartLifetime(startLifetime);
+		action.setStartSpeed(startSpeed);
+		action.setStartSize(startSize);
+		action.setGravityModifier(gravityModifier);
+		action.setMaxParticles(maxParticles);
+		action.setEmissionRate(emissionRate);
+		action.setConeAngle(coneAngle);
+		action.setConeRadius(coneRadius);
+		action.setStartColor(startColor);
+		action.setEndColor(endColor);
+		action.setEndSize(endSize);
+		action.setTexturePath(texturePath);
+		action.setAdditive(isAdditive);
+		action.setStartRotation(startRotation);
+		action.setRotationOverLifetime(rotationOverLifetime);
+		action.setPositionX(positionX);
+		action.setPositionY(positionY);
+		action.setPositionZ(positionZ);
+		action.setRotationPitch(rotationPitch);
+		action.setRotationYaw(rotationYaw);
+		action.setRotationRoll(rotationRoll);
+		return action;
+	}
+
+	public Action createDeleteParticlesAction(Sprite sprite, ScriptSequenceAction sequence, Formula particleId) {
+		DeleteParticlesAction action = action(DeleteParticlesAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setParticleId(particleId);
 		return action;
 	}
 }

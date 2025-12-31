@@ -323,13 +323,13 @@ sealed class LunoValue {
                 is kotlin.Boolean -> Boolean(value)
                 is LunoValue -> value
                 is Context -> NativeObject(value)
-                is kotlin.collections.List<*> -> List(value.map { fromKotlin(it) }.toMutableList())
-                is Map<*, *> -> {
+                //is kotlin.collections.List<*> -> List(value.map { fromKotlin(it) }.toMutableList())
+                /*is Map<*, *> -> {
                     val fields = value.entries.associate { (k, v) ->
                         k.toString() to fromKotlin(v)
                     }.toMutableMap()
                     LunoObject(null, fields)
-                }
+                }*/
                 is CallableNativeLunoFunction -> NativeCallable(value)
                 else -> NativeObject(value)
             }

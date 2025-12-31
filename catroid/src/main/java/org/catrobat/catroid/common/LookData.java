@@ -63,9 +63,9 @@ public class LookData implements Cloneable, Nameable, Serializable {
 	private String lookId;
 
 	@XStreamAsAttribute
-	protected String name;
+	public String name;
 	@XStreamAsAttribute
-	protected String fileName;
+	public String fileName;
 
 	protected transient File file;
 

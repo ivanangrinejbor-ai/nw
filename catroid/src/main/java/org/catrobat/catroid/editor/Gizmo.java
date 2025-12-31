@@ -32,7 +32,8 @@ public class Gizmo {
 
     private ModelInstance gizmoTranslateX, gizmoTranslateY, gizmoTranslateZ;
     private ModelInstance gizmoRotateX, gizmoRotateY, gizmoRotateZ;
-    private ModelInstance gizmoScaleX, gizmoScaleY, gizmoScaleZ;
+    private ModelInstance gizmoScaleBoxX, gizmoScaleBoxY, gizmoScaleBoxZ;
+    private ModelInstance gizmoScaleLineX, gizmoScaleLineY, gizmoScaleLineZ;
     private final BoundingBox boxX = new BoundingBox(), boxY = new BoundingBox(), boxZ = new BoundingBox();
 
     private EditorTool currentTool = EditorTool.TRANSLATE;
@@ -66,24 +67,35 @@ public class Gizmo {
         gizmoTranslateY = new ModelInstance(arrowYModel);
         gizmoTranslateZ = new ModelInstance(arrowZModel);
 
-        Model ringXModel = modelBuilder.createCylinder(2, 0.05f, 2, 32, new Material(ColorAttribute.createDiffuse(Color.RED)), usage);
+        Model ringXModel = modelBuilder.createCylinder(2, 0.04f, 2, 32, new Material(ColorAttribute.createDiffuse(Color.RED)), usage);
         gizmoRotateX = new ModelInstance(ringXModel);
-        gizmoRotateX.transform.rotate(Vector3.Z, 90);
 
-        Model ringYModel = modelBuilder.createCylinder(2, 0.05f, 2, 32, new Material(ColorAttribute.createDiffuse(Color.GREEN)), usage);
+        Model ringYModel = modelBuilder.createCylinder(2, 0.04f, 2, 32, new Material(ColorAttribute.createDiffuse(Color.GREEN)), usage);
         gizmoRotateY = new ModelInstance(ringYModel);
 
-        Model ringZModel = modelBuilder.createCylinder(2, 0.05f, 2, 32, new Material(ColorAttribute.createDiffuse(Color.BLUE)), usage);
+        Model ringZModel = modelBuilder.createCylinder(2, 0.04f, 2, 32, new Material(ColorAttribute.createDiffuse(Color.BLUE)), usage);
         gizmoRotateZ = new ModelInstance(ringZModel);
-        gizmoRotateZ.transform.rotate(Vector3.X, 90);
 
         Model cubeModel = modelBuilder.createBox(0.2f, 0.2f, 0.2f, new Material(), usage);
-        gizmoScaleX = new ModelInstance(cubeModel, new Vector3(1.1f, 0, 0));
-        gizmoScaleX.materials.get(0).set(ColorAttribute.createDiffuse(Color.RED));
-        gizmoScaleY = new ModelInstance(cubeModel, new Vector3(0, 1.1f, 0));
-        gizmoScaleY.materials.get(0).set(ColorAttribute.createDiffuse(Color.GREEN));
-        gizmoScaleZ = new ModelInstance(cubeModel, new Vector3(0, 0, 1.1f));
-        gizmoScaleZ.materials.get(0).set(ColorAttribute.createDiffuse(Color.BLUE));
+        gizmoScaleBoxX = new ModelInstance(cubeModel);
+        gizmoScaleBoxX.materials.get(0).set(ColorAttribute.createDiffuse(Color.RED));
+
+        gizmoScaleBoxY = new ModelInstance(cubeModel);
+        gizmoScaleBoxY.materials.get(0).set(ColorAttribute.createDiffuse(Color.GREEN));
+
+        gizmoScaleBoxZ = new ModelInstance(cubeModel);
+        gizmoScaleBoxZ.materials.get(0).set(ColorAttribute.createDiffuse(Color.BLUE));
+
+        Model stickModel = modelBuilder.createCylinder(0.05f, 1f, 0.05f, 8, new Material(ColorAttribute.createDiffuse(Color.WHITE)), usage);
+
+        gizmoScaleLineX = new ModelInstance(stickModel);
+        gizmoScaleLineX.materials.get(0).set(ColorAttribute.createDiffuse(Color.RED));
+
+        gizmoScaleLineY = new ModelInstance(stickModel);
+        gizmoScaleLineY.materials.get(0).set(ColorAttribute.createDiffuse(Color.GREEN));
+
+        gizmoScaleLineZ = new ModelInstance(stickModel);
+        gizmoScaleLineZ.materials.get(0).set(ColorAttribute.createDiffuse(Color.BLUE));
     }
 
     public void setSelected(GameObject go, ColliderShapeData collider) {
@@ -121,21 +133,57 @@ public class Gizmo {
                 renderAxis(batch, gizmoTranslateZ, pos, scale);
                 break;
             case ROTATE:
-                float ringScale = scale * 0.5f;
-                gizmoRotateX.transform.setToRotation(Vector3.Z, 90).scl(ringScale).setTranslation(pos);
-                gizmoRotateY.transform.setToRotation(Vector3.Y, 0).scl(ringScale).setTranslation(pos);
-                gizmoRotateZ.transform.setToRotation(Vector3.X, 90).scl(ringScale).setTranslation(pos);
+                float ringScale = scale * 0.6f;
+                gizmoRotateX.transform.setToTranslation(pos)
+                        .scl(ringScale)
+                        .rotate(Vector3.Z, 90);
+
+                gizmoRotateY.transform.setToTranslation(pos)
+                        .scl(ringScale);
+
+                gizmoRotateZ.transform.setToTranslation(pos)
+                        .scl(ringScale)
+                        .rotate(Vector3.X, 90);
+
                 batch.render(gizmoRotateX);
                 batch.render(gizmoRotateY);
                 batch.render(gizmoRotateZ);
                 break;
+
             case SCALE:
-                gizmoScaleX.transform.set(pos, new Quaternion(), new Vector3(scale, scale, scale)).translate(scale, 0, 0);
-                gizmoScaleY.transform.set(pos, new Quaternion(), new Vector3(scale, scale, scale)).translate(0, scale, 0);
-                gizmoScaleZ.transform.set(pos, new Quaternion(), new Vector3(scale, scale, scale)).translate(0, 0, scale);
-                batch.render(gizmoScaleX);
-                batch.render(gizmoScaleY);
-                batch.render(gizmoScaleZ);
+                gizmoScaleLineX.transform.setToTranslation(pos)
+                        .scl(scale)
+                        .rotate(Vector3.Z, -90)
+                        .translate(0, 0.5f, 0);
+
+                gizmoScaleLineY.transform.setToTranslation(pos)
+                        .scl(scale)
+                        .translate(0, 0.5f, 0);
+
+                gizmoScaleLineZ.transform.setToTranslation(pos)
+                        .scl(scale)
+                        .rotate(Vector3.X, 90)
+                        .translate(0, 0.5f, 0);
+
+                batch.render(gizmoScaleLineX);
+                batch.render(gizmoScaleLineY);
+                batch.render(gizmoScaleLineZ);
+
+                gizmoScaleBoxX.transform.setToTranslation(pos)
+                        .translate(scale, 0, 0)
+                        .scl(scale);
+
+                gizmoScaleBoxY.transform.setToTranslation(pos)
+                        .translate(0, scale, 0)
+                        .scl(scale);
+
+                gizmoScaleBoxZ.transform.setToTranslation(pos)
+                        .translate(0, 0, scale)
+                        .scl(scale);
+
+                batch.render(gizmoScaleBoxX);
+                batch.render(gizmoScaleBoxY);
+                batch.render(gizmoScaleBoxZ);
                 break;
         }
         batch.end();
@@ -261,7 +309,9 @@ public class Gizmo {
         switch (currentTool) {
             case TRANSLATE: handleX = gizmoTranslateX; handleY = gizmoTranslateY; handleZ = gizmoTranslateZ; break;
             case ROTATE:    handleX = gizmoRotateX;    handleY = gizmoRotateY;    handleZ = gizmoRotateZ;    break;
-            case SCALE:     handleX = gizmoScaleX;     handleY = gizmoScaleY;     handleZ = gizmoScaleZ;     break;
+            case SCALE:
+                handleX = gizmoScaleBoxX;     handleY = gizmoScaleBoxY;     handleZ = gizmoScaleBoxZ;
+                break;
             default: return false;
         }
 

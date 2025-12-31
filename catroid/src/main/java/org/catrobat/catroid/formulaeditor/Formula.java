@@ -41,7 +41,7 @@ import com.danvexteam.lunoscript_annotations.LunoClass;
 public class Formula implements Serializable {
 
 	private static final long serialVersionUID = 1L;
-	private static final String ERROR_STRING = "ERROR";
+	private static final String ERROR_STRING = "NaN";
 	private FormulaElement formulaTree;
 
 	private transient InternFormula internFormula = null;
@@ -159,13 +159,17 @@ public class Formula implements Serializable {
 	@NotNull
 	private Double interpretDoubleInternal(Scope scope) {
 		Object o = formulaTree.interpretRecursive(scope);
-		Double doubleReturnValue;
-		if (o instanceof String) {
-			doubleReturnValue = Double.valueOf((String) o);
-		} else {
-			doubleReturnValue = (Double) o;
+		if (o instanceof Double) {
+			return (Double) o;
 		}
-		return doubleReturnValue;
+		if (o instanceof Integer) {
+			return ((Integer) o).doubleValue();
+		}
+		try {
+			return Double.valueOf(String.valueOf(o));
+		} catch (NumberFormatException e) {
+			return 0.0;
+		}
 	}
 
 	private double assertNotNaN(Double doubleReturnValue) throws InterpretationException {

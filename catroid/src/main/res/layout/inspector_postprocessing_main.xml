@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="8dp">
+
+    <!-- Глобальный переключатель -->
+    <CheckBox
+        android:id="@+id/check_pp_active"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Enable Post Processing"
+        android:textColor="@android:color/white"
+        android:buttonTint="@color/accent"/>
+
+    <!-- Настройка качества (разрешения) -->
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:layout_marginTop="4dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="Quality Scale (0.1 - 1.0)"
+            android:textColor="@android:color/white"/>
+
+        <EditText
+            android:id="@+id/edit_pp_quality"
+            style="@style/InspectorEditText"
+            android:layout_width="80dp"
+            android:layout_height="wrap_content"
+            android:inputType="numberDecimal"/>
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#666666"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"/>
+
+    <!-- Сюда будут добавляться эффекты -->
+    <LinearLayout
+        android:id="@+id/container_effects_list"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical" />
+
+    <!-- Кнопка добавления -->
+    <Button
+        android:id="@+id/btn_add_effect"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Add Effect"
+        android:layout_marginTop="8dp"
+        android:backgroundTint="#444444"
+        android:textColor="@android:color/white"/>
+
+</LinearLayout>

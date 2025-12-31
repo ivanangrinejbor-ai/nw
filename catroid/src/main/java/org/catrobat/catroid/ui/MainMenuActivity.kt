@@ -22,6 +22,7 @@
  */
 package org.catrobat.catroid.ui
 
+import android.annotation.SuppressLint
 import android.content.ActivityNotFoundException
 import android.content.DialogInterface
 import android.content.Intent
@@ -109,17 +110,17 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
 
             loadingBinding.root.setOnClickListener {
                 val currentTime = System.currentTimeMillis()
-                if (currentTime - lastTapTime > 500) { // Если с последнего тапа прошло > 0.5с, сбрасываем счетчик
+                if (currentTime - lastTapTime > 500) {
                     safeModeTapCounter = 0
                 }
                 lastTapTime = currentTime
                 safeModeTapCounter++
 
-                if (safeModeTapCounter >= 5) { // 7 нажатий - хорошая защита от случайности
+                if (safeModeTapCounter >= 5) {
                     val prefs = PreferenceManager.getDefaultSharedPreferences(this)
                     prefs.edit().putBoolean("force_safe_mode", true).apply()
                     Toast.makeText(this, "Безопасный режим будет включен после перезапуска", Toast.LENGTH_LONG).show()
-                    safeModeTapCounter = 0 // Сбрасываем, чтобы не показывать тост постоянно
+                    safeModeTapCounter = 0
                 }
             }
 
@@ -452,17 +453,17 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
             val assetManager = this.assets
             val assets = assetManager.list(assetPath)
             if (assets.isNullOrEmpty()) {
-                // Если список пуст, это может быть пустая папка или файл.
-                // Но наша логика вызывает рекурсию только для папок с содержимым,
-                // поэтому сюда мы попадем только для пустых папок.
-                // На всякий случай создадим ее.
+
+
+
+
                 if (!destDir.exists()) {
                     destDir.mkdirs()
                 }
                 return
             }
 
-            // Убедимся, что директория назначения существует
+
             if (!destDir.exists()) {
                 destDir.mkdirs()
             }
@@ -471,16 +472,16 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
                 val sourcePath = if (assetPath.isEmpty()) assetName else "$assetPath/$assetName"
                 val destFile = File(destDir, assetName)
 
-                // ---> НОВАЯ, НАДЕЖНАЯ ЛОГИКА ПРОВЕРКИ <---
-                // Если мы можем получить список дочерних элементов, это точно папка.
+
+
                 val isDir = assetManager.list(sourcePath)?.isNotEmpty() == true
 
                 if (isDir) {
-                    // Если это папка, создаем ее и запускаем рекурсию
+
                     destFile.mkdirs()
                     copyAssets(sourcePath, destFile)
                 } else {
-                    // Если это файл, просто копируем его
+
                     assetManager.open(sourcePath).use { inputStream ->
                         java.io.FileOutputStream(destFile).use { outputStream ->
                             inputStream.copyTo(outputStream)
@@ -489,7 +490,7 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
                 }
             }
         } catch (e: Exception) {
-            // Ловим любые исключения, чтобы увидеть, если что-то пойдет не так
+
             Log.e("PythonEngine", "FATAL ERROR in copyAssets for path: $assetPath", e)
         }
     }
@@ -521,22 +522,22 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
                 startActivity(browserIntent)
                 /*Toast.makeText(this, "Starting Python script...", Toast.LENGTH_SHORT).show()
                 Thread {
-                    // Внутри фонового потока Thread { ... }
+
 
                     try {
-                        // Определяем папку нашего тестового проекта
+
                         val projectDir = File(applicationContext.filesDir, "projects/MyNumpyProject")
                         projectDir.mkdirs()
 
-                        // Копируем библиотеки для этого проекта (эмуляция "установки")
+
                         copyAssets("numpy_test_pylibs", File(projectDir, "pylibs"))
                         copyAssets("numpy_test_pylibs_native", File(projectDir, "pylibs_native"))
 
-                        // Инициализируем Python именно для этого проекта
+
                         pythonEngine.initialize(projectDir)
 
-                        // Запускаем тестовый скрипт
-                        val output = testPython() // Ваш тестовый скрипт для NumPy
+
+                        val output = testPython()
                         Log.d("PythonThread", "--- NUMPY OUTPUT ---")
                         Log.d("PythonThread", output)
                         Log.d("PythonThread", "--------------------")
@@ -669,9 +670,9 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
         } else if (requestCode == OVERLAY_PERMISSION_REQ_CODE) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 if (Settings.canDrawOverlays(this)) {
-                    // Разрешение получено
+
                 } else {
-                    // Пользователь отказал
+
                 }
             }
         } else {
@@ -682,8 +683,8 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
     companion object {
         val TAG = MainMenuActivity::class.java.simpleName
 
+        @SuppressLint("StaticFieldLeak")
         lateinit var pythonEngine: PythonEngine
-
         @JvmField
         var surveyCampaign: Survey? = null
 
@@ -695,15 +696,15 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
         }
 
         fun getCpuArchitecture(): String {
-            // Build.SUPPORTED_ABIS возвращает массив типа ["arm64-v8a", "armeabi-v7a", "armeabi"]
-            // Первый элемент - это основная архитектура.
+
+
             val abis = Build.SUPPORTED_ABIS
 
             return if (abis != null && abis.isNotEmpty()) {
                 abis[0]
             } else {
-                // Очень старый и редкий случай, когда SUPPORTED_ABIS недоступен.
-                // Можно использовать устаревшее свойство как запасной вариант.
+
+
                 @Suppress("DEPRECATION")
                 Build.CPU_ABI
             }

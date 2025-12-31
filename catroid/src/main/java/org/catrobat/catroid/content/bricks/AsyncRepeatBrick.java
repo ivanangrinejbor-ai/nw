@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import com.badlogic.gdx.scenes.scene2d.Action;
 import org.catrobat.catroid.content.ActionFactory;
+import org.catrobat.catroid.utils.LoopUtil;
 
 public class AsyncRepeatBrick extends FormulaBrick implements CompositeBrick {
     private static final long serialVersionUID = 1L;
@@ -23,7 +24,7 @@ public class AsyncRepeatBrick extends FormulaBrick implements CompositeBrick {
         setFormulaWithBrickField(BrickField.TIMES_TO_REPEAT, times);
     }
 
-    @Override
+    /*@Override
     public void addActionToSequence(Sprite sprite, ScriptSequenceAction sequence) {
         ScriptSequenceAction loopSequence = (ScriptSequenceAction) ActionFactory.createScriptSequenceAction(sequence.getScript());
         for (Brick brick : loopBricks) {
@@ -33,6 +34,22 @@ public class AsyncRepeatBrick extends FormulaBrick implements CompositeBrick {
         }
         Action action = sprite.getActionFactory().createAsyncRepeatAction(sprite, sequence,
                 getFormulaWithBrickField(BrickField.TIMES_TO_REPEAT), loopSequence);
+        sequence.addAction(action);
+    }*/
+
+    @Override
+    public void addActionToSequence(Sprite sprite, ScriptSequenceAction sequence) {
+        ScriptSequenceAction repeatSequence = (ScriptSequenceAction) ActionFactory.createScriptSequenceAction(sequence.getScript());
+        boolean isLoopDelay = false;
+        for (Brick brick : loopBricks) {
+            if (!brick.isCommentedOut()) {
+                brick.addActionToSequence(sprite, repeatSequence);
+            }
+        }
+
+        Action action = sprite.getActionFactory().createAsyncRepeatAction(sprite, sequence,
+                getFormulaWithBrickField(BrickField.TIMES_TO_REPEAT), repeatSequence, isLoopDelay);
+
         sequence.addAction(action);
     }
 

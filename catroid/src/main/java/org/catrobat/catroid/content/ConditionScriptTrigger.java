@@ -53,6 +53,9 @@ public class ConditionScriptTrigger {
 	private long startTime = 0;
 	static final long EVALUATE_AND_TRIGGER_ACTIONS_THRESHOLD = 200;
 
+	private int frameSkipCounter = 0;
+	private static final int FRAMES_TO_SKIP = 3;
+
 	@TriggerStatus
 	private int status = TRIGGER_NOW;
 	private final Formula formula;
@@ -62,6 +65,14 @@ public class ConditionScriptTrigger {
 	}
 
 	void evaluateAndTriggerActions(Sprite sprite) {
+		/*if (!sceneFirstStart && !sceneRestarted) {
+			if (frameSkipCounter > 0) {
+				frameSkipCounter--;
+				return;
+			}
+			frameSkipCounter = FRAMES_TO_SKIP + (new java.util.Random().nextInt(2));
+		}*/
+
 		try {
 			Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, null);
 			boolean conditionValue = false;
