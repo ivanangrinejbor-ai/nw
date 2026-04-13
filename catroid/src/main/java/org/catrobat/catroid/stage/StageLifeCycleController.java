@@ -101,7 +101,7 @@ public final class StageLifeCycleController {
 		stageActivity.calculateScreenSizes();
 
 		stageActivity.configuration = new AndroidApplicationConfiguration();
-		stageActivity.configuration.r = stageActivity.configuration.g = stageActivity.configuration.b = stageActivity.configuration.a = 8;
+        stageActivity.configuration.r = stageActivity.configuration.g = stageActivity.configuration.b = stageActivity.configuration.a = 8;
 		if (ProjectManager.getInstance().getCurrentProject().isCastProject()) {
 			stageActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 			stageActivity.setContentView(R.layout.activity_stage_gamepad);

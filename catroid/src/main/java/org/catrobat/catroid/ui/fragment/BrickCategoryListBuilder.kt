@@ -56,8 +56,11 @@ class BrickCategoryListBuilder(private val activity: FragmentActivity) {
         if (SettingsFragment.isNeuralSharedPreferenceEnabled(activity)) {
             categories.add(inflater.inflate(R.layout.brick_category_neural, null))
         }
-        if (SettingsFragment.isNeuralSharedPreferenceEnabled(activity)) {
+        if (SettingsFragment.isPocketensorSharedPreferenceEnabled(activity)) {
             categories.add(inflater.inflate(R.layout.brick_category_pocketensor, null))
+        }
+        if (SettingsFragment.isFast2dSharedPreferenceEnabled(activity)) {
+            categories.add(inflater.inflate(R.layout.brick_category_fast2d, null))
         }
         if (SettingsFragment.isThreedSharedPreferenceEnabled(activity)) {
             categories.add(inflater.inflate(R.layout.brick_category_threed, null))

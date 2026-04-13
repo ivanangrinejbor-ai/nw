@@ -23,6 +23,169 @@
   -->
 <resources  xmlns:tools="http://schemas.android.com/tools">
 
+    <string name="preference_title_pcmode" formatted="false">Enable big-screen interface</string>
+    <string name="fast2d_set_collision_filter" formatted="false">Collision filter</string>
+    <string name="fast2d_is_sensor_param" formatted="false">Sensor (1/0)</string>
+    <string name="fast2d_group_param" formatted="false">Group (-1, 0, 1)</string>
+    <string name="fast2d_set_velocity">Velocity (simple)</string>
+    <string name="fast2d_set_angular_velocity">Rotation speed</string>
+    <string name="fast2d_vx_param">Vx</string>
+    <string name="fast2d_vy_param">Vy</string>
+    <string name="fast2d_ang_vel_param">Deg/s</string>
+    <string name="fast2d_make_physics">Physics body</string>
+    <string name="fast2d_apply_force">Apply force</string>
+    <string name="fast2d_apply_impulse">Apply impulse</string>
+    <string name="fast2d_set_physics_velocity">Velocity (Physics)</string>
+    <string name="fast2d_is_dynamic_param">Dynamic (1/0)</string>
+    <string name="fast2d_shape_param">Shape (BOX/CIRCLE)</string>
+    <string name="fast2d_density_param">Mass</string>
+    <string name="fast2d_friction_param">Friction</string>
+    <string name="fast2d_bounce_param">Bounce</string>
+    <string name="formula_f2d_is_touched_index" formatted="false">F2D_isTouched_index</string>
+    <string name="formula_f2d_is_touched_index_param" formatted="false">(\'id\', 0)</string>
+    <string name="formula_f2d_is_touched" formatted="false">F2D_isTouched</string>
+    <string name="formula_f2d_is_touched_param" formatted="false">(\'id\')</string>
+    <string name="formula_f2d_x" formatted="false">F2D_x</string>
+    <string name="formula_f2d_y" formatted="false">F2D_y</string>
+    <string name="formula_f2d_rotation" formatted="false">F2D_rotation</string>
+    <string name="formula_f2d_scale_x" formatted="false">F2D_scaleX</string>
+    <string name="formula_f2d_scale_y" formatted="false">F2D_scaleY</string>
+    <string name="formula_f2d_r" formatted="false">F2D_colorR</string>
+    <string name="formula_f2d_g" formatted="false">F2D_colorG</string>
+    <string name="formula_f2d_b" formatted="false">F2D_colorB</string>
+    <string name="formula_f2d_alpha" formatted="false">F2D_alpha</string>
+    <string name="formula_f2d_texture" formatted="false">F2D_texture</string>
+    <string name="formula_f2d_cam_x" formatted="false">F2D_cam_X</string>
+    <string name="formula_f2d_cam_y" formatted="false">F2D_cam_Y</string>
+    <string name="formula_f2d_cam_zoom" formatted="false">F2D_cam_Zoom</string>
+    <string name="formula_f2d_id_param" formatted="false">(\'id\')</string>
+    <string name="formula_f2d_no_param" formatted="false">()</string>
+    <string name="fast2d_set_color">Color and Alpha</string>
+    <string name="fast2d_set_camera">Camera</string>
+    <string name="fast2d_zoom_param">Zoom</string>
+    <string name="fast2d_set_rotation">Rotate</string>
+    <string name="fast2d_angle_param">Angle</string>
+    <string name="fast2d_set_scale">Size</string>
+    <string name="fast2d_scale_x_param">Width</string>
+    <string name="fast2d_scale_y_param">Height</string>
+    <string name="fast2d_set_texture">Texture</string>
+    <string name="fast2d_file_param">Project file</string>
+    <string name="fast2d_set_z">Layer (Z)</string>
+    <string name="fast2d_z_param">Z-index</string>
+    <string name="fast2d_delete">Delete entity</string>
+    <string formatted="false" name="fast2d_create">Create entity</string>
+    <string formatted="false" name="fast2d_set_position">Set position</string>
+    <string formatted="false" name="fast2d_id_param">ID</string>
+    <string formatted="false" name="fast2d_x_param">X</string>
+    <string formatted="false" name="fast2d_y_param">Y</string>
+    <string formatted="false" name="physics_joint_id">Joint ID</string>
+    <string formatted="false" name="physics_obj_a">Object A</string>
+    <string formatted="false" name="physics_obj_b">Object B</string>
+    <string formatted="false" name="physics_pivot_a">Pivot A (X Y Z)</string>
+    <string formatted="false" name="physics_pivot_b">Pivot B (X Y Z)</string>
+    <string formatted="false" name="threed_hinge_title">Add Hinge Joint</string>
+    <string formatted="false" name="threed_hinge_axis_a">Axis A (X Y Z)</string>
+    <string formatted="false" name="threed_hinge_axis_b">Axis B (X Y Z)</string>
+    <string formatted="false" name="threed_motor_title">Set Hinge Motor</string>
+    <string formatted="false" name="threed_motor_target">Target Angle</string>
+    <string formatted="false" name="threed_motor_max">Max Force</string>
+    <string name="brick_set_shadow_quality_prefix">Set shadow</string>
+    <string name="shadow_area_size">area</string>
+    <string name="shadow_resolution">resolution</string>
+    <string name="brick_set_post_processing_new">Set post-processing effect</string>
+
+    <string-array name="pp_new_effect_types">
+        <item>Global Settings</item> <!-- 0 -->
+        <item>Bloom</item> <!-- 1 -->
+        <item>Vignette</item> <!-- 2 -->
+        <item>Levels (Color)</item> <!-- 3 -->
+        <item>Film Grain</item> <!-- 4 -->
+        <item>FXAA</item> <!-- 5 -->
+        <item>Chromatic Aberration</item> <!-- 6 -->
+        <item>Radial Blur</item> <!-- 7 -->
+        <item>Old TV</item> <!-- 8 -->
+        <item>CRT Monitor</item> <!-- 9 -->
+        <item>Fisheye</item> <!-- 10 -->
+        <item>Water Distortion</item> <!-- 11 -->
+        <item>Motion Blur</item> <!-- 12 -->
+        <item>Lens Flare</item> <!-- 13 -->
+        <item>Gaussian Blur</item> <!-- 14 -->
+        <item>Zoom Blur</item> <!-- 15 -->
+        <item>ACES Tonemapping</item> <!-- 16 -->
+        <item>Eye Adaptation</item> <!-- 17 -->
+        <item>Ray Tracing (SSR)</item> <!-- 18 -->
+        <item>SSAO</item> <!-- 19 -->
+        <item>Height Fog</item> <!-- 20 -->
+        <item>Depth of Field</item> <!-- 21 -->
+        <item>God Rays</item> <!-- 22 -->
+        <item>Volumetric Fog</item> <!-- 23 -->
+        <item>FSR Upscaler</item> <!-- 24 -->
+    </string-array>
+
+    <string-array name="pp_params_global"><item>Active (1/0)</item><item>Quality Scale</item></string-array>
+    <string-array name="pp_params_bloom"><item>Enabled</item><item>Intensity</item><item>Threshold</item><item>Blur Amount</item><item>Size</item><item>Blur Passes</item></string-array>
+    <string-array name="pp_params_vignette"><item>Enabled</item><item>Intensity</item><item>Saturation</item></string-array>
+    <string-array name="pp_params_levels"><item>Enabled</item><item>Contrast</item><item>Saturation</item><item>Gamma</item></string-array>
+    <string-array name="pp_params_grain"><item>Enabled</item><item>Intensity</item></string-array>
+    <string-array name="pp_params_fxaa"><item>Enabled</item></string-array>
+    <string-array name="pp_params_chromatic"><item>Enabled</item><item>Strength</item><item>Max Distortion</item></string-array>
+    <string-array name="pp_params_radial"><item>Enabled</item><item>Strength</item><item>Size</item><item>Passes</item></string-array>
+    <string-array name="pp_params_oldtv"><item>Enabled</item><item>Strength</item></string-array>
+    <string-array name="pp_params_crt"><item>Enabled</item><item>Distortion</item><item>Zoom</item></string-array>
+    <string-array name="pp_params_fisheye"><item>Enabled</item><item>Intensity</item></string-array>
+    <string-array name="pp_params_water"><item>Enabled</item><item>Amount</item><item>Speed</item></string-array>
+    <string-array name="pp_params_motionblur"><item>Enabled</item><item>Blur Opacity</item></string-array>
+    <string-array name="pp_params_lensflare"><item>Enabled</item><item>Intensity</item><item>Threshold</item><item>Dispersal</item><item>Size</item></string-array>
+    <string-array name="pp_params_gaussian"><item>Enabled</item><item>Amount</item><item>Size</item><item>Passes</item></string-array>
+    <string-array name="pp_params_zoom"><item>Enabled</item><item>Zoom Strength</item><item>Origin X</item><item>Origin Y</item></string-array>
+    <string-array name="pp_params_aces"><item>Enabled</item></string-array>
+    <string-array name="pp_params_eyeadapt"><item>Enabled</item><item>Target Luminance</item><item>Speed</item><item>Min Exposure</item><item>Max Exposure</item></string-array>
+    <string-array name="pp_params_ssr"><item>Enabled</item><item>Reflectivity</item><item>Steps</item><item>Thickness</item><item>Max Distance</item><item>Stride</item><item>Jitter</item><item>Edge Fade</item></string-array>
+    <string-array name="pp_params_ssao"><item>Enabled</item><item>Intensity</item><item>Radius</item><item>Bias</item></string-array>
+    <string-array name="pp_params_heightfog"><item>Enabled</item><item>Density</item><item>Falloff</item><item>Height</item></string-array>
+    <string-array name="pp_params_dof"><item>Enabled</item><item>Focus Distance</item><item>Focus Range</item><item>Blur Size</item><item>Transition</item><item>Auto-Focus (1/0)</item><item>AF Speed</item></string-array>
+    <string-array name="pp_params_godrays"><item>Enabled</item><item>Exposure</item><item>Decay</item><item>Density</item><item>Weight</item></string-array>
+    <string-array name="pp_params_volfog"><item>Enabled</item><item>Density</item><item>Scattering</item><item>Steps</item><item>Max Distance</item></string-array>
+    <string-array name="pp_params_fsr"><item>Enabled</item><item>Sharpness</item></string-array>
+    <string name="brick_bake_prefix">Bake objects with name</string>
+    <string name="brick_bake_prefix_hint">Prefix (e.g. wall_)</string>
+    <string name="brick_bake_new_name">Group name</string>
+    <string name="brick_attach_ray_sensor">Attach ray sensor</string>
+    <string name="brick_attach_ray_name">Ray name</string>
+    <string name="brick_attach_ray_target">To object</string>
+    <string name="brick_attach_ray_offset">Offset X Y Z:</string>
+    <string name="brick_attach_ray_direction">Dir X Y Z:</string>
+    <string name="brick_attach_ray_distance">Distance:</string>
+    <string name="brick_particle_emission">Change particle emission</string>
+    <string name="brick_particle_rate2">Rate</string>
+    <string name="brick_animation_speed">3D Animation Speed</string>
+    <string name="brick_anim_speed_val">Speed</string>
+    <string name="brick_texture_tiling">Texture tiling (scale)</string>
+    <string name="brick_tiling_u">Scale X</string>
+    <string name="brick_tiling_v">Scale Y</string>
+    <string name="brick_sound_inst_vol">Set sound volume</string>
+    <string name="brick_sound_inst_pitch">Set sound pitch</string>
+    <string name="brick_rotate_camera_by">Rotate camera (relevative)</string>
+    <string name="brick_rotate_pitch">Pitch (X)</string>
+    <string name="brick_rotate_yaw">Yaw (Y)</string>
+    <string name="brick_rotate_roll">Roll (Z)</string>
+    <string name="brick_camera_control">Touch camera control</string>
+    <string name="brick_camera_sens">Sensitivity</string>
+    <string name="brick_camera_area">Area X Y W H (%)</string>
+    <string name="brick_camera_fov">Field of View</string>
+    <string name="brick_camera_shake_int">Shake strength</string>
+    <string name="brick_camera_shake_dur">Shake duration</string>
+    <string name="brick_camera_settings">3D Camera settings</string>
+    <string name="brick_ai_set">AI for object</string>
+    <string name="brick_ai_range">View (distance)</string>
+    <string name="brick_ai_mode">Mode (0:Stop, 1:Follow, 2:Mov)</string>
+    <string name="brick_ai_target">Target (Object)</string>
+    <string name="brick_ai_step">Step (Height)</string>
+    <string name="brick_ai_avoid">Avoid obstacles (1/0)</string>
+    <string name="brick_ai_speed">Speed</string>
+    <string name="brick_ai_stop">Stop distance</string>
+    <string formatted="false" name="brick_run_chip8">Run CHIP-8 ROM: %1$s</string>
+    <string formatted="false" name="dialog_rom_name">project file</string>
     <string formatted="false" name="brick_threed_fixed_joint_title">Create Fixed Joint</string>
     <string formatted="false" name="brick_threed_fixed_joint_id">ID</string>
     <string formatted="false" name="brick_threed_fixed_joint_obj_a">Object A</string>
@@ -381,7 +544,7 @@
     <string formatted="false" name="brick_vm_monitor_size">Set VM monitor screen size</string>
     <string formatted="false" name="brick_vm_width">Width</string>
     <string formatted="false" name="brick_vm_height">Height</string>
-    <string name="brick_set_pp_effect">Set Effect</string>
+    <string name="brick_set_pp_effect">Set Effect (old)</string>
     <string name="brick_set_pp_parameter">Parameter</string>
     <string name="brick_set_pp_value">Value</string>
     <string name="brick_create_particles_title" formatted="false">Create Particles</string>
@@ -429,6 +592,7 @@
         <item>Zoom Blur</item>               <!-- 15 -->
         <item>ACES Tonemapping</item>        <!-- 16 -->
         <item>Eye Adaptation</item>          <!-- 17 -->
+        <item>Ray Tracing (SSR)</item>       <!-- 18 -->
     </string-array>
 
     <string-array name="pp_effect_params">
@@ -583,6 +747,20 @@
         <item>Услышал тебя родной... :)</item>
         <item>ЧИПИ ЧИПИ ЧАПА ЧАПА РУВИ РУВИ РАВА РАВА...</item>
         <item>каждая буханка хлеба - трагическая история зерен, которые мечтали стать пивом, но не стали....</item>
+        <item>Ставим ставки, когда NewCatroid забанит РКН?</item>
+        <item>Умный в гору не пойдет - умный удалит невкатроид</item>
+        <item>2.2... не выйдет никогда... потому что данвейд ленивый как всегда...</item>
+        <item>Самолайк залог успеха</item>
+        <item>мне сказали написать вам, что mestiqll очень крутой</item>
+        <item>Сумма Римана на самом деле просто более строгое определение интеграла</item>
+        <item>Это приложение называется NewCatroid. Прикольно, правда?</item>
+        <item>Если ты это видишь - имя овцы (адрессовано тому, кто поймет :> )</item>
+        <item>Кстати 2.1.3 (или же 2.2.0) делается уже 4 месяца... Хотя я планировал выпустить ее 1 апреля</item>
+        <item>Интересный факт: в 3D поддерживается трассировка лучей. (хоть и в экранном пространстве)</item>
+        <item>О, а я недавно в дс сидел и играл с кое-кем в майнкрафт. Я построил камеру для того, чтоб люди сходили с ума от верстаков. Бойтесь меня</item>
+        <item>А у тебя спина белая. ну типа понял, да? 1 апреля там все дела... (и мне пофиг что это сообщение 99.9% показывается не 1 апреля)</item>
+        <item>Ты ему яйца кенгуру... (далее поймут только кто слышал слова нашего информатика)</item>
+        <item>Оторви их (локальный мем, думайте)</item>
     </string-array>
     <string name="rebuild_cache_button">Update physics cache</string>
     <string name="insert_image">Insert image</string>
@@ -653,6 +831,7 @@
         <item>Static</item>
         <item>Dynamic</item>
         <item>Mesh Static</item>
+        <item>Kinematic</item>
     </string-array>
 
     <string-array name="light_types">
@@ -1394,6 +1573,8 @@
     <string formatted="false" name="category_internet">Internet</string>
     <string formatted="false" name="preference_description_pocketensor_bricks">Adds support for working with tensors and allows you to create AI models.</string>
     <string formatted="false" name="pocketensor">PockeTensor</string>
+    <string formatted="false" name="preference_description_fast2d_bricks">Adds blocks for the new 2D rendering system (more complex, but optimized)</string>
+    <string formatted="false" name="fast2d">Fast 2D</string>
     <string formatted="false" name="preference_title_enable_internet_bricks">Internet Extension</string>
     <string formatted="false" name="preference_description_neural_bricks">allows you to use Gemini models and create yur own neural networks</string>
     <string formatted="false" name="preference_title_enable_threed_bricks">3D Extension</string>

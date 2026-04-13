@@ -25,6 +25,6 @@ class LoadNativeModuleAction : TemporalAction() {
         }
 
         val pythonEngine = MainMenuActivity.pythonEngine
-        pythonEngine.loadNativeModule(projectFile.absolutePath)
+        pythonEngine?.loadNativeModule(projectFile.absolutePath)
     }
 }

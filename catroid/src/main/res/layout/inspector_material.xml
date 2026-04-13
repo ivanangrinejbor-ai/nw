@@ -64,4 +64,11 @@
         android:text="Occlusion Map"/>
     <include layout="@layout/inspector_texture_slot" android:id="@+id/slot_occlusion_texture"/>
 
+    <LinearLayout
+        android:id="@+id/material_params_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginTop="8dp"/>
+
 </LinearLayout>

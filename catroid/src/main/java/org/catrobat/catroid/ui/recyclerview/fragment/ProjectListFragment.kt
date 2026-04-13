@@ -47,6 +47,7 @@ import io.noties.markwon.image.file.FileSchemeHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.catrobat.catroid.CatroidApplication
 import org.catrobat.catroid.ProjectManager
 import org.catrobat.catroid.R
 import org.catrobat.catroid.common.Constants
@@ -237,8 +238,7 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
             projectManager.currentProject = null
         }
 
-        setAdapterItems(adapter.projectsSorted)
-        checkForEmptyList()
+        updateAdapterAsync()
         BottomBar.showBottomBar(requireActivity())
         super.onResume()
     }
@@ -295,7 +295,7 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
                 adapter.projectsSorted
             )
             .apply()
-        setAdapterItems(adapter.projectsSorted)
+        updateAdapterAsync()
     }
 
     private fun showImportChooser() {
@@ -307,7 +307,6 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     private fun importUsingSystemFilePicker() {
         val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
             addCategory(Intent.CATEGORY_OPENABLE)
@@ -352,7 +351,13 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
             return
         }
         if (data.hasExtra(Intent.EXTRA_STREAM)) {
-            uris = data.extras?.get(Intent.EXTRA_STREAM) as ArrayList<Uri>
+            val streamExtra = data.extras?.get(Intent.EXTRA_STREAM)
+            if (streamExtra is ArrayList<*>) {
+                @Suppress("UNCHECKED_CAST")
+                uris = streamExtra as ArrayList<Uri>
+            } else if (streamExtra is Uri) {
+                uris.add(streamExtra)
+            }
         } else {
             extractAllUris(data, uris)
         }
@@ -541,17 +546,23 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
     }
 
     override fun onLoadFinished(success: Boolean) {
-        if (success) {
-            val intent = Intent(requireContext(), ProjectActivity::class.java)
-            intent.putExtra(
-                ProjectActivity.EXTRA_FRAGMENT_POSITION,
-                ProjectActivity.FRAGMENT_SCENES
-            )
-            startActivity(intent)
-        } else {
-            setShowProgressBar(false)
-            ToastUtil.showError(requireContext(), R.string.error_load_project)
+        try {
+            if (success) {
+                val intent = Intent(requireContext(), ProjectActivity::class.java)
+                intent.putExtra(
+                    ProjectActivity.EXTRA_FRAGMENT_POSITION,
+                    ProjectActivity.FRAGMENT_SCENES
+                )
+                startActivity(intent)
+            } else {
+                setShowProgressBar(false)
+                ToastUtil.showError(requireContext(), R.string.error_load_project)
+            }
+        } catch (e: Exception) {
+            ToastUtil.showError(CatroidApplication.getAppContext(), "Something went wrong")
+            e.printStackTrace()
         }
+
     }
 
     private fun onCopyProjectComplete(success: Boolean) {
@@ -598,22 +609,27 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
             R.id.new_group, R.id.new_scene, R.id.show_details,
             R.id.from_library, R.id.from_local, R.id.edit
         )
-        val popupMenu = UiUtils.createSettingsPopUpMenu(
-            view, requireContext(),
-            R.menu.menu_project_activity, hiddenMenuOptionIds
-        )
-        popupMenu.setOnMenuItemClickListener { menuItem: MenuItem ->
-            when (menuItem.itemId) {
-                R.id.copy -> copyItems(itemList)
-                R.id.rename -> showRenameDialog(item)
-                R.id.delete -> deleteItems(itemList)
-                R.id.project_options -> showProjectOptionsFragment(item)
-                R.id.project_files -> showProjectFilesFragment(item)
-                R.id.project_libs -> showProjectLibsFragment(item)
+        try {
+            val popupMenu = UiUtils.createSettingsPopUpMenu(
+                view, requireContext(),
+                R.menu.menu_project_activity, hiddenMenuOptionIds
+            )
+            popupMenu.setOnMenuItemClickListener { menuItem: MenuItem ->
+                when (menuItem.itemId) {
+                    R.id.copy -> copyItems(itemList)
+                    R.id.rename -> showRenameDialog(item)
+                    R.id.delete -> deleteItems(itemList)
+                    R.id.project_options -> showProjectOptionsFragment(item)
+                    R.id.project_files -> showProjectFilesFragment(item)
+                    R.id.project_libs -> showProjectLibsFragment(item)
+                }
+                true
             }
-            true
+            popupMenu.show()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            ToastUtil.showError(requireContext(), R.string.error_unknown_error)
         }
-        popupMenu.show()
     }
 
     private fun showProjectOptionsFragment(item: ProjectData?) {
@@ -690,7 +706,7 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
         adapter.projectsSorted = PreferenceManager.getDefaultSharedPreferences(requireContext())
             .getBoolean(SharedPreferenceKeys.SORT_PROJECTS_PREFERENCE_KEY, false)
         menu.findItem(R.id.sort_projects)
-            .setTitle(
+            ?.setTitle(
                 if (adapter.projectsSorted) {
                     R.string.unsort_projects
                 } else {
@@ -742,6 +758,30 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
                     } catch (exception: IOException) {
                         Log.e(TAG, "Could not parse local project.", exception)
                     }
+                }
+            }
+        }
+    }
+
+    private fun updateAdapterAsync() {
+        setShowProgressBar(true)
+
+        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+            val items = if (adapter.projectsSorted) sortedItemList else itemList
+
+            withContext(Dispatchers.Main) {
+                adapter.setItems(items)
+                adapter.notifyDataSetChanged()
+
+                if (adapter.items.isEmpty()) {
+                    if (projectManager.initializeDefaultProject()) {
+                        updateAdapterAsync()
+                    } else {
+                        ToastUtil.showError(requireContext(), R.string.wtf_error)
+                        requireActivity().finish()
+                    }
+                } else {
+                    setShowProgressBar(false)
                 }
             }
         }

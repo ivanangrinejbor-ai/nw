@@ -13,29 +13,31 @@ public class CastRayAction extends TemporalAction {
     public Formula fromX, fromY, fromZ;
     public Formula dirX, dirY, dirZ;
 
+    private static final Vector3 tmpFrom = new Vector3();
+    private static final Vector3 tmpDir = new Vector3();
+
     @Override
     protected void update(float percent) {
         ThreeDManager manager = StageActivity.getActiveStageListener().getThreeDManager();
         if (manager == null) return;
 
         try {
-
             String name = rayName.interpretString(scope);
             if (name.isEmpty()) return;
 
-            Vector3 from = new Vector3(
+            tmpFrom.set(
                     fromX.interpretFloat(scope),
                     fromY.interpretFloat(scope),
                     fromZ.interpretFloat(scope)
             );
 
-            Vector3 direction = new Vector3(
+            tmpDir.set(
                     dirX.interpretFloat(scope),
                     dirY.interpretFloat(scope),
                     dirZ.interpretFloat(scope)
-            ).nor(); // nor() - нормализует вектор (делает его длину равной 1)
+            ).nor();
 
-            manager.castRay(name, from, direction);
+            manager.castRay(name, tmpFrom, tmpDir);
         } catch (Exception e) {
             e.printStackTrace();
         }

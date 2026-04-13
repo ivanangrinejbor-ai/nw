@@ -98,6 +98,7 @@ public class SettingsFragment extends PreferenceFragment {
 	public static final String SETTINGS_SHOW_PLOT_BRICKS = "setting_plot_bricks";
 	public static final String SETTINGS_SHOW_NEURAL_BRICKS = "setting_neural_bricks";
     public static final String SETTINGS_SHOW_POCKETENSOR_BRICKS = "setting_pocketensor_bricks";
+    public static final String SETTINGS_SHOW_FAST2D_BRICKS = "setting_fast2d_bricks";
 	public static final String SETTINGS_OLD_DRAG = "setting_old_drag";
 	public static final String SETTINGS_SHOW_THREED_BRICKS = "setting_threed_bricks";
 	public static final String SETTINGS_SHOW_INTERNET_BRICKS = "setting_internet_bricks";
@@ -500,6 +501,14 @@ public class SettingsFragment extends PreferenceFragment {
 	public static boolean isNeuralSharedPreferenceEnabled(Context context) {
 		return getBooleanSharedPreference(false, SETTINGS_SHOW_NEURAL_BRICKS, context);
 	}
+
+    public static boolean isPocketensorSharedPreferenceEnabled(Context context) {
+        return getBooleanSharedPreference(false, SETTINGS_SHOW_POCKETENSOR_BRICKS, context);
+    }
+
+    public static boolean isFast2dSharedPreferenceEnabled(Context context) {
+        return getBooleanSharedPreference(false, SETTINGS_SHOW_FAST2D_BRICKS, context);
+    }
 	public static boolean isOldDragEnabled(Context context) {
 		return getBooleanSharedPreference(false, SETTINGS_OLD_DRAG, context);
 	}

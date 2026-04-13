@@ -191,12 +191,15 @@ public class EditorListener extends ApplicationAdapter {
                     if (currentCollider != null) {
                         activity.getInspectorManager().setSelectedCollider(null);
                         gizmo.setSelected(currentObject, null);
+                        activity.onObjectSelected(currentObject, false);
                     } else {
                         gizmo.setSelected(null, null);
+                        activity.onObjectSelected(null, false);
                     }
                 } else {
                     activity.getInspectorManager().setSelectedCollider(null);
                     gizmo.setSelected(hitObject, null);
+                    activity.onObjectSelected(hitObject, false);
                 }
                 return true;
             }
@@ -234,6 +237,7 @@ public class EditorListener extends ApplicationAdapter {
         Ray pickRay = threeDManager.getCamera().getPickRay(screenX, screenY);
         GameObject selectedObject = sceneManager.getObjectByRaycast(pickRay);
         gizmo.setSelectedObject(selectedObject);
+        activity.onObjectSelected(selectedObject, false);
     }
 
     public void setColliderVisibility(boolean visible) {

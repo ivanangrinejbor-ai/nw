@@ -3,6 +3,9 @@ package org.catrobat.catroid.editor;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -14,6 +17,7 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.SeekBar;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -32,7 +36,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.backends.android.AndroidFragmentApplication;
 import com.badlogic.gdx.files.FileHandle;
+import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.math.Quaternion;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Json;
 import com.flask.colorpicker.ColorPickerView;
 import com.flask.colorpicker.builder.ColorPickerDialogBuilder;
@@ -66,9 +73,17 @@ public class EditorActivity extends AppCompatActivity implements AndroidFragment
 
     private ItemTouchHelper touchHelper;
 
+    private GameObject currentSelectedObject = null;
+    private View quickActions;
+    private UndoManager undoManager;
+
+    private Thread.UncaughtExceptionHandler defaultCrashHandler;
+    private static final String AUTOSAVE_FILE_NAME = "_recovery_autosave.rscene";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setupCrashHandler();
         setContentView(R.layout.editor_activity);
 
         setupToolbarAndDrawer();
@@ -81,7 +96,7 @@ public class EditorActivity extends AppCompatActivity implements AndroidFragment
             this.editorListener = fragment.getListener();
         }
 
-        OnBackPressedCallback callback = new OnBackPressedCallback(true /* enabled by default */) {
+        OnBackPressedCallback callback = new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
                 if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
@@ -99,6 +114,22 @@ public class EditorActivity extends AppCompatActivity implements AndroidFragment
         this.threeDManager = TDmanager;
         this.inspectorManager = new InspectorManager(this, sceneManager, threeDManager);
 
+        this.undoManager = new UndoManager(this);
+
+        findViewById(R.id.btn_undo).setOnClickListener(v -> {
+            undoManager.undo();
+            if (editorListener != null && editorListener.getGizmo() != null) {
+                onObjectSelected(currentSelectedObject, false);
+            }
+        });
+
+        findViewById(R.id.btn_redo).setOnClickListener(v -> {
+            undoManager.redo();
+            if (editorListener != null) {
+                onObjectSelected(currentSelectedObject, false);
+            }
+        });
+
         EditorFragment fragment = (EditorFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_container);
         if (fragment != null) {
             this.editorListener = fragment.getListener();
@@ -108,15 +139,27 @@ public class EditorActivity extends AppCompatActivity implements AndroidFragment
             }
         }
 
-        runOnUiThread(this::setupUI);
+        runOnUiThread(() -> {
+            setupUI();
+
+            checkForRecovery();
+        });
     }
 
     public void onObjectSelected(GameObject go) {
+        onObjectSelected(go, true);
+    }
+
+    public void onObjectSelected(GameObject go, boolean showInspector) {
         runOnUiThread(() -> {
-            if (inspectorManager != null) {
+            if (inspectorManager != null && currentSelectedObject != go) {
                 inspectorManager.populateInspector(go);
+                currentSelectedObject = go;
             }
-            if (go != null && drawerLayout != null && !drawerLayout.isDrawerOpen(GravityCompat.END)) {
+
+            quickActions.setVisibility(go != null ? View.VISIBLE : View.GONE);
+
+            if (go != null && showInspector && drawerLayout != null) {
                 drawerLayout.openDrawer(GravityCompat.END);
             }
 
@@ -168,6 +211,8 @@ public class EditorActivity extends AppCompatActivity implements AndroidFragment
         hierarchyRecyclerView.setLayoutManager(layoutManager);
         hierarchyAdapter = new HierarchyAdapter(this);
         hierarchyRecyclerView.setAdapter(hierarchyAdapter);
+
+        quickActions = findViewById(R.id.quick_actions_panel);
 
 
         ItemTouchHelper.Callback callback = new HierarchyDragCallback(
@@ -256,6 +301,202 @@ public class EditorActivity extends AppCompatActivity implements AndroidFragment
                 editorListener.onCameraAccelerate(false);
             }
             return true;
+        });
+
+        EditText searchBar = findViewById(R.id.hierarchy_search);
+        searchBar.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (hierarchyAdapter != null) {
+                    hierarchyAdapter.filter(s.toString());
+                }
+            }
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
+
+        findViewById(R.id.btn_quick_inspector).setOnClickListener(v -> {
+            if (currentSelectedObject != null) {
+                drawerLayout.openDrawer(GravityCompat.END);
+            }
+        });
+
+        findViewById(R.id.btn_mass_delete).setOnClickListener(v -> {
+            String query = ((EditText)findViewById(R.id.hierarchy_search)).getText().toString().trim();
+            if (query.isEmpty()) return;
+
+            new AlertDialog.Builder(this)
+                    .setTitle("Mass Delete")
+                    .setMessage("Delete ALL objects containing '" + query + "'?")
+                    .setPositiveButton("Delete All", (dialog, which) -> {
+
+                        Gdx.app.postRunnable(() -> {
+                            Commands.CompositeCommand compositeDelete = new Commands.CompositeCommand();
+                            List<GameObject> toRemove = new ArrayList<>();
+
+                            for (GameObject go : sceneManager.getAllGameObjects().values()) {
+                                if (go.name.toLowerCase().contains(query.toLowerCase())) {
+                                    toRemove.add(go);
+                                }
+                            }
+
+                            for (GameObject go : toRemove) {
+                                compositeDelete.addCommand(new Commands.DeleteCommand(sceneManager, go));
+                                sceneManager.removeGameObject(go);
+                            }
+
+                            if (!compositeDelete.isEmpty()) {
+                                undoManager.pushCommand(compositeDelete);
+                            }
+
+                            runOnUiThread(() -> {
+                                updateHierarchy();
+                                onObjectSelected(null, false);
+                                Toast.makeText(this, "Removed " + toRemove.size() + " objects", Toast.LENGTH_SHORT).show();
+                            });
+                        });
+                    })
+                    .setNegativeButton("Cancel", null)
+                    .show();
+        });
+
+        findViewById(R.id.btn_quick_rotate_to_cam).setOnClickListener(v -> {
+            if (currentSelectedObject != null && threeDManager != null) {
+                Vector3 startPos = new Vector3(currentSelectedObject.transform.position);
+                Quaternion startRot = new Quaternion(currentSelectedObject.transform.rotation);
+                Vector3 startScale = new Vector3(currentSelectedObject.transform.scale);
+
+                Vector3 camDir = threeDManager.getCamera().direction.cpy();
+                currentSelectedObject.transform.rotation.setFromCross(new Vector3(0,0,-1), camDir);
+                sceneManager.rebuildGameObject(currentSelectedObject);
+
+                if (undoManager != null) {
+                    undoManager.pushCommand(new Commands.TransformCommand(
+                            sceneManager, currentSelectedObject, startPos, startRot, startScale
+                    ));
+                }
+
+                Toast.makeText(this, "Aligned to camera", Toast.LENGTH_SHORT).show();
+                onObjectSelected(currentSelectedObject, false);
+            }
+        });
+
+        findViewById(R.id.btn_quick_duplicate).setOnLongClickListener(v -> {
+            if (currentSelectedObject == null) return false;
+
+            View viewDialog = getLayoutInflater().inflate(R.layout.dialog_array_duplicate, null);
+            EditText inputAmount = viewDialog.findViewById(R.id.edit_array_count);
+            EditText inputDist = viewDialog.findViewById(R.id.edit_array_step);
+            Spinner spinAxis = viewDialog.findViewById(R.id.spinner_array_axis);
+
+            String[] axesOptions = {"Axis X", "Axis Y", "Axis Z", "Camera Forward"};
+            ArrayAdapter<String> spinAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, axesOptions);
+            spinAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            spinAxis.setAdapter(spinAdapter);
+
+            new AlertDialog.Builder(this)
+                    .setView(viewDialog)
+                    .setPositiveButton("Clone", (dialog, which) -> {
+                        try {
+                            int count = Integer.parseInt(inputAmount.getText().toString());
+                            float step = Float.parseFloat(inputDist.getText().toString());
+                            int axisIdx = spinAxis.getSelectedItemPosition();
+                            GameObject source = currentSelectedObject;
+
+                            Gdx.app.postRunnable(() -> {
+                                Commands.CompositeCommand bulkAdd = new Commands.CompositeCommand();
+                                Vector3 offset = new Vector3();
+
+                                if (axisIdx == 0) offset.set(step, 0, 0);
+                                else if (axisIdx == 1) offset.set(0, step, 0);
+                                else if (axisIdx == 2) offset.set(0, 0, step);
+                                else offset.set(threeDManager.getCamera().direction).scl(step);
+
+                                GameObject lastAdded = source;
+                                for (int i = 0; i < count; i++) {
+                                    GameObject copy = sceneManager.cloneGameObject(lastAdded, null);
+                                    if (copy != null) {
+                                        copy.transform.position.add(offset);
+                                        sceneManager.updateWorldTransforms();
+
+                                        bulkAdd.addCommand(new Commands.AddCommand(sceneManager, copy));
+                                        lastAdded = copy;
+                                    }
+                                }
+
+                                if (!bulkAdd.isEmpty()) {
+                                    undoManager.pushCommand(bulkAdd);
+                                }
+
+                                runOnUiThread(() -> {
+                                    updateHierarchy();
+                                    Toast.makeText(this, "Created " + count + " objects", Toast.LENGTH_SHORT).show();
+                                });
+                            });
+
+                        } catch (Exception e) {
+                            Toast.makeText(this, "Error in inputs", Toast.LENGTH_SHORT).show();
+                        }
+                    })
+                    .setNegativeButton("Cancel", null)
+                    .show();
+            return true;
+        });
+
+        findViewById(R.id.btn_quick_move_to_cam).setOnClickListener(v -> {
+            if (currentSelectedObject != null && threeDManager != null) {
+                Camera cam = threeDManager.getCamera();
+                Vector3 newPos = cam.position.cpy();
+
+                currentSelectedObject.transform.position.set(newPos);
+                sceneManager.rebuildGameObject(currentSelectedObject);
+
+                Toast.makeText(this, "Object moved to view", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        findViewById(R.id.btn_quick_duplicate).setOnClickListener(v -> {
+            GameObject original = currentSelectedObject;
+            if (original != null) {
+                GameObject copy = sceneManager.cloneGameObject(original, null);
+                if (copy != null && copy.transform != null) {
+                    sceneManager.updateWorldTransforms();
+
+                    if (undoManager != null) {
+                        undoManager.pushCommand(new Commands.AddCommand(sceneManager, copy));
+                    }
+
+                    updateHierarchy();
+                    onObjectSelected(copy, false);
+                    Toast.makeText(this, "Duplicated", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        findViewById(R.id.btn_quick_focus).setOnClickListener(v -> {
+            if (currentSelectedObject != null && threeDManager != null) {
+                Vector3 pos = currentSelectedObject.transform.worldTransform.getTranslation(new Vector3());
+                Camera cam = threeDManager.getCamera();
+
+                cam.position.set(pos.x + 7, pos.y + 7, pos.z + 7);
+                cam.up.set(0, 1, 0);
+                cam.lookAt(pos);
+
+                cam.update();
+
+                Toast.makeText(this, "Focused on " + currentSelectedObject.name, Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        findViewById(R.id.btn_quick_delete).setOnClickListener(v -> {
+            if (currentSelectedObject != null) {
+                undoManager.pushCommand(new Commands.DeleteCommand(sceneManager, currentSelectedObject));
+                sceneManager.removeGameObject(currentSelectedObject);
+                onObjectSelected(null);
+                updateHierarchy();
+            }
         });
     }
 
@@ -704,6 +945,10 @@ public class EditorActivity extends AppCompatActivity implements AndroidFragment
                 .show();
     }
 
+    public UndoManager getUndoManager() {
+        return undoManager;
+    }
+
     private ThreeDManager threeDManager;
 
     @Override
@@ -714,4 +959,72 @@ public class EditorActivity extends AppCompatActivity implements AndroidFragment
 
     @Override
     public void exit() {}
+
+    private void setupCrashHandler() {
+        defaultCrashHandler = Thread.getDefaultUncaughtExceptionHandler();
+
+        Thread.setDefaultUncaughtExceptionHandler((thread, exception) -> {
+            if (sceneManager != null) {
+                try {
+                    Log.e("EditorCrash", "FATAL CRASH DETECTED! Attempting emergency save...");
+
+                    File projectDir = ProjectManager.getInstance().getCurrentProject().getFilesDir();
+                    File recoveryFile = new File(projectDir, AUTOSAVE_FILE_NAME);
+
+                    SceneData sceneData = sceneManager.getCurrentSceneData();
+                    String sceneJson = sceneManager.getJson().toJson(sceneData);
+
+                    try (java.io.FileWriter writer = new java.io.FileWriter(recoveryFile)) {
+                        writer.write(sceneJson);
+                    }
+
+                    Log.e("EditorCrash", "Emergency save SUCCESSFUL: " + recoveryFile.getAbsolutePath());
+                } catch (Exception e) {
+                    Log.e("EditorCrash", "Emergency save FAILED!", e);
+                }
+            }
+
+            if (defaultCrashHandler != null) {
+                defaultCrashHandler.uncaughtException(thread, exception);
+            }
+        });
+    }
+
+    private void checkForRecovery() {
+        File projectDir = ProjectManager.getInstance().getCurrentProject().getFilesDir();
+        File recoveryFile = new File(projectDir, AUTOSAVE_FILE_NAME);
+
+        if (recoveryFile.exists()) {
+            new AlertDialog.Builder(this)
+                    .setTitle("Crash Recovery")
+                    .setMessage("The 3D Editor closed unexpectedly last time. Do you want to recover your unsaved scene?")
+                    .setCancelable(false)
+                    .setPositiveButton("Recover", (dialog, which) -> {
+                        try {
+                            FileHandle fileHandle = Gdx.files.absolute(recoveryFile.getAbsolutePath());
+                            sceneManager.loadScene(fileHandle);
+
+                            updateHierarchy();
+                            onObjectSelected(null, false);
+                            Toast.makeText(this, "Scene recovered successfully!", Toast.LENGTH_LONG).show();
+                        } catch (Exception e) {
+                            Toast.makeText(this, "Failed to recover scene.", Toast.LENGTH_SHORT).show();
+                        } finally {
+                            recoveryFile.delete();
+                        }
+                    })
+                    .setNegativeButton("Discard", (dialog, which) -> {
+                        recoveryFile.delete();
+                    })
+                    .show();
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (defaultCrashHandler != null) {
+            Thread.setDefaultUncaughtExceptionHandler(defaultCrashHandler);
+        }
+    }
 }

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal">
+
+    <CheckBox android:id="@+id/brick_checkbox" android:layout_width="wrap_content" android:layout_height="wrap_content" android:visibility="gone" />
+
+    <org.catrobat.catroid.ui.BrickLayout
+        android:id="@+id/brick_camera_touch_layout"
+        style="@style/BrickContainer.Threed.Big">
+
+        <include layout="@layout/icon_brick_category_threed" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_camera_control" />
+        <TextView android:id="@+id/cam_enabled" style="@style/BrickEditText" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_camera_sens" app:layout_newLine="true"/>
+        <TextView android:id="@+id/cam_sens" style="@style/BrickEditText" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_camera_area" app:layout_newLine="true"/>
+        <TextView android:id="@+id/cam_area_x" style="@style/BrickEditText" />
+        <TextView android:id="@+id/cam_area_y" style="@style/BrickEditText" />
+        <TextView android:id="@+id/cam_area_w" style="@style/BrickEditText" />
+        <TextView android:id="@+id/cam_area_h" style="@style/BrickEditText" />
+
+    </org.catrobat.catroid.ui.BrickLayout>
+</LinearLayout>

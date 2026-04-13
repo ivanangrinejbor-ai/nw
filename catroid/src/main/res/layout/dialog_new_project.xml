@@ -1,112 +1,161 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
-  ~ Catroid: An on-device visual programming system for Android devices
-  ~ Copyright (C) 2010-2022 The Catrobat Team
-  ~ (<http://developer.catrobat.org/credits>)
-  ~
-  ~ This program is free software: you can redistribute it and/or modify
-  ~ it under the terms of the GNU Affero General Public License as
-  ~ published by the Free Software Foundation, either version 3 of the
-  ~ License, or (at your option) any later version.
-  ~
-  ~ An additional term exception under section 7 of the GNU Affero
-  ~ General Public License, version 3, is available at
-  ~ http://developer.catrobat.org/license_additional_term
-  ~
-  ~ This program is distributed in the hope that it will be useful,
-  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
-  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-  ~ GNU Affero General Public License for more details.
-  ~
-  ~ You should have received a copy of the GNU Affero General Public License
-  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
-  -->
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent" >
+    android:layout_height="wrap_content"
+    android:background="@android:color/transparent">
 
-    <LinearLayout
+    <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical" >
-
-        <include layout="@layout/toolbar"
-            android:id="@+id/toolbar" />
+        app:cardCornerRadius="24dp"
+        app:cardElevation="8dp"
+        app:cardBackgroundColor="@color/app_background"
+        android:layout_margin="12dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:divider="@drawable/divider"
-            android:showDividers="middle|end" >
+            android:animateLayoutChanges="true">
 
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/input"
+            <include layout="@layout/toolbar" android:id="@+id/toolbar" />
+
+            <LinearLayout
+                android:id="@+id/content_container"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:paddingTop="@dimen/dialog_content_area_padding_top"
-                android:paddingStart="@dimen/dialog_content_area_padding_input"
-                android:paddingEnd="@dimen/dialog_content_area_padding_input"
-                app:errorEnabled="true"
-                app:hintEnabled="true" >
+                android:orientation="vertical"
+                android:padding="24dp"
+                android:animateLayoutChanges="true">
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/input_edit_text"
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/input"
+                    style="@style/NewCatroid.TextInputLayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:selectAllOnFocus="true" />
-            </com.google.android.material.textfield.TextInputLayout>
+                    app:hintEnabled="true">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/input_edit_text"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/solid_white"
+                        android:textSize="18sp"/>
+                </com.google.android.material.textfield.TextInputLayout>
 
-            <RadioGroup
-                android:id="@+id/radio_group"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:paddingTop="@dimen/dialog_content_area_padding"
-                android:paddingBottom="@dimen/dialog_content_area_padding"
-                android:paddingStart="@dimen/dialog_content_area_padding_input"
-                android:paddingEnd="@dimen/dialog_content_area_padding_input"
-                android:checkedButton="@+id/portrait_radio_button" >
+                <LinearLayout
+                    android:id="@+id/standard_settings_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginTop="16dp">
 
-                <RadioButton
-                    android:id="@+id/portrait_radio_button"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:layout_weight="0.33"
-                    android:drawableTop="@drawable/ic_smartphone_dialog_orientation_portrait"
-                    android:text="@string/new_project_dialog_portrait"
-                    android:gravity="center" />
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Ориентация проекта"
+                        android:textColor="@color/accent"
+                        android:textSize="12sp"
+                        android:textAllCaps="true"
+                        android:letterSpacing="0.1"
+                        android:layout_marginBottom="8dp"/>
 
-                <RadioButton
-                    android:id="@+id/landscape_radio_button"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:layout_weight="0.33"
-                    android:drawableTop="@drawable/ic_smartphone_dialog_orientation_landscape"
-                    android:text="@string/new_project_dialog_landscape"
-                    android:gravity="center" />
+                    <com.google.android.material.button.MaterialButtonToggleGroup
+                        android:id="@+id/orientation_toggle_group"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:singleSelection="true"
+                        app:selectionRequired="true"
+                        app:checkedButton="@id/btn_portrait">
 
-                <RadioButton
-                    android:id="@+id/cast_radio_button"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:layout_weight="0.33"
-                    android:drawableTop="@drawable/ic_dialog_tv"
-                    android:text="@string/new_project_dialog_cast"
-                    android:gravity="center"
-                    android:visibility="gone" />
-            </RadioGroup>
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btn_portrait"
+                            style="@style/Widget.NewCatroid.ToggleButton"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="54dp"
+                            app:icon="@drawable/ic_smartphone_dialog_orientation_portrait"
+                            android:text="@string/new_project_dialog_portrait" />
 
-            <com.google.android.material.switchmaterial.SwitchMaterial
-                android:id="@+id/example_project_switch"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingTop="@dimen/material_design_spacing_x_large"
-                android:paddingBottom="@dimen/material_design_spacing_x_large"
-                android:paddingStart="@dimen/dialog_content_area_padding_input"
-                android:paddingEnd="@dimen/dialog_content_area_padding_input"
-                android:text="@string/new_project_dialog_example_project" />
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btn_landscape"
+                            style="@style/Widget.NewCatroid.ToggleButton"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="54dp"
+                            app:icon="@drawable/ic_smartphone_dialog_orientation_landscape"
+                            android:text="@string/new_project_dialog_landscape" />
+                    </com.google.android.material.button.MaterialButtonToggleGroup>
+
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/example_project_switch"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:textColor="@color/solid_white"
+                        android:text="@string/new_project_dialog_example_project"
+                        app:thumbTint="@color/accent" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginVertical="20dp"
+                    android:background="@color/button_background" />
+
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/git_clone_switch"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Клонировать репозиторий Git"
+                    android:textColor="@color/accent"
+                    android:textStyle="bold"
+                    app:thumbTint="@color/accent" />
+
+                <LinearLayout
+                    android:id="@+id/git_input_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone"
+                    android:layout_marginTop="8dp">
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/NewCatroid.TextInputLayout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Remote URL">
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/git_url_edit_text"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:textColor="@color/solid_white"/>
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/NewCatroid.TextInputLayout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:hint="Access Token (optional)">
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/git_token_edit_text"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:textColor="@color/solid_white"
+                            android:inputType="textPassword"/>
+                    </com.google.android.material.textfield.TextInputLayout>
+                </LinearLayout>
+
+                <ProgressBar
+                    android:id="@+id/git_progress_bar"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:indeterminate="true"
+                    android:visibility="gone"
+                    android:indeterminateTint="@color/accent" />
+
+            </LinearLayout>
         </LinearLayout>
-    </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
 </ScrollView>

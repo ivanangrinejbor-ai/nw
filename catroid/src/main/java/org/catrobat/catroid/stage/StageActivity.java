@@ -1445,6 +1445,11 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 	private boolean isApplicationSentToBackground(final Context context) {
 		ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
 		List<ActivityManager.RunningAppProcessInfo> runningProcesses = activityManager.getRunningAppProcesses();
+
+        if (runningProcesses == null) {
+            return false;
+        }
+
 		for (ActivityManager.RunningAppProcessInfo processInfo : runningProcesses) {
 			if (processInfo.importance == ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND) {
 				for (String activeProcess : processInfo.pkgList) {
@@ -1951,8 +1956,15 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 	}
 
 	private static void launchProject(ProjectManager projectManager, final Activity activity) {
-		Scene currentScene = projectManager.getCurrentlyEditedScene();
-		Scene defaultScene = projectManager.getCurrentProject().getDefaultScene();
+        Project project = projectManager.getCurrentProject();
+        if (project == null) return;
+
+        Scene currentScene = projectManager.getCurrentlyEditedScene();
+        Scene defaultScene = project.getDefaultScene();
+
+        if (currentScene == null || defaultScene == null) {
+            return;
+        }
 
 		if (currentScene.getName().equals(defaultScene.getName())) {
 			projectManager.setCurrentlyPlayingScene(defaultScene);

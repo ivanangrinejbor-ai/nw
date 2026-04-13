@@ -8,7 +8,6 @@
     android:layout_height="match_parent"
     tools:context=".editor.EditorActivity">
 
-    <!-- 1. ОСНОВНОЙ КОНТЕНТ (СЦЕНА И ТУЛБАР) -->
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:id="@+id/main_content_coordinator"
         android:layout_width="match_parent"
@@ -41,7 +40,6 @@
                 android:layout_marginStart="16dp"
                 android:layout_marginBottom="16dp" >
 
-                <!-- Кнопки остаются без изменений -->
                 <Button android:id="@+id/btn_cam_q" android:layout_column="0" android:layout_row="0" android:text="Q" style="@style/Widget.App.Button.CameraControl"/>
                 <Button android:id="@+id/btn_cam_w" android:layout_column="1" android:layout_row="0" android:text="W" style="@style/Widget.App.Button.CameraControl"/>
                 <Button android:id="@+id/btn_cam_e" android:layout_column="2" android:layout_row="0" android:text="E" style="@style/Widget.App.Button.CameraControl"/>
@@ -77,9 +75,71 @@
                 app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"/>
         </com.google.android.material.appbar.AppBarLayout>
 
+        <LinearLayout
+            android:id="@+id/quick_actions_panel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end|center_vertical"
+            android:layout_marginEnd="8dp"
+            android:orientation="vertical"
+            android:background="#80000000"
+            android:padding="4dp"
+            android:elevation="10dp"
+            android:visibility="gone"
+            tools:visibility="visible">
+
+            <ImageButton
+                android:id="@+id/btn_quick_duplicate"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@android:drawable/ic_menu_add"
+                app:tint="@android:color/white"
+                style="@style/Widget.AppCompat.Button.Borderless"/>
+
+            <ImageButton
+                android:id="@+id/btn_quick_move_to_cam"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@android:drawable/ic_menu_send"
+                app:tint="@android:color/white"
+                style="@style/Widget.AppCompat.Button.Borderless"/>
+
+            <ImageButton
+                android:id="@+id/btn_quick_rotate_to_cam"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@android:drawable/ic_menu_rotate"
+                android:contentDescription="Rotate to Camera"
+                app:tint="@android:color/white"
+                style="@style/Widget.AppCompat.Button.Borderless"/>
+
+            <ImageButton
+                android:id="@+id/btn_quick_focus"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@android:drawable/ic_menu_mylocation"
+                app:tint="@android:color/white"
+                style="@style/Widget.AppCompat.Button.Borderless"/>
+
+            <ImageButton
+                android:id="@+id/btn_quick_inspector"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@android:drawable/ic_menu_info_details"
+                app:tint="@android:color/white"
+                style="@style/Widget.AppCompat.Button.Borderless"/>
+
+            <ImageButton
+                android:id="@+id/btn_quick_delete"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@android:drawable/ic_menu_delete"
+                app:tint="#FF5252"
+                style="@style/Widget.AppCompat.Button.Borderless"/>
+        </LinearLayout>
+
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
-    <!-- 2. ЛЕВАЯ ПАНЕЛЬ (ИЕРАРХИЯ) С ТЕМНОЙ ТЕМОЙ -->
     <LinearLayout
         android:id="@+id/left_drawer"
         android:layout_width="280dp"
@@ -89,13 +149,68 @@
         android:background="#303030"
         android:clickable="true"
         android:focusable="true">
-        <TextView
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Hierarchy"
-            android:padding="16dp"
-            android:textColor="@android:color/white"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6"/>
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="Hierarchy"
+                android:textColor="@android:color/white"
+                android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6"/>
+
+            <ImageButton
+                android:id="@+id/btn_undo"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/icon_undo"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                app:tint="@android:color/white" />
+
+            <ImageButton
+                android:id="@+id/btn_redo"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/icon_redo"
+                android:layout_marginStart="8dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                app:tint="@android:color/white" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingHorizontal="16dp"
+            android:paddingBottom="8dp">
+
+            <EditText
+                android:id="@+id/hierarchy_search"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:hint="Search..."
+                android:textColor="@android:color/white"
+                android:textColorHint="#999999"
+                android:backgroundTint="#999999"
+                android:padding="8dp"
+                android:inputType="text"/>
+
+            <ImageButton
+                android:id="@+id/btn_mass_delete"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@android:drawable/ic_menu_delete"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Delete all found"
+                app:tint="#FF5252" />
+        </LinearLayout>
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/hierarchy_recyclerview"
             android:layout_width="match_parent"
@@ -129,7 +244,6 @@
         </LinearLayout>
     </LinearLayout>
 
-    <!-- 3. ПРАВАЯ ПАНЕЛЬ (ИНСПЕКТОР) С ТЕМНОЙ ТЕМОЙ -->
     <LinearLayout
         android:id="@+id/right_drawer"
         android:layout_width="300dp"

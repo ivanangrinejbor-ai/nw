@@ -309,7 +309,9 @@ public class ScriptFragment extends ListFragment implements
                     ? (int) (ScreenValues.currentScreenResolution.getHeight() / 2.5)
                     : DEFAULT_SCREEN_RESOLUTION.getHeight();
 		} else {
-			bottomListPadding = ScreenValues.currentScreenResolution.getHeight() / 3;
+            bottomListPadding = (ScreenValues.currentScreenResolution != null)
+                    ? ScreenValues.currentScreenResolution.getHeight() / 3
+                    : DEFAULT_SCREEN_RESOLUTION.getHeight() / 3;
 		}
 		listView.setPadding(0, 0, 0, bottomListPadding);
 		listView.setClipToPadding(false);
@@ -420,45 +422,52 @@ public class ScriptFragment extends ListFragment implements
 		runCodeAnalysis();
 	}
 
-	@Override
-	public void onResume() {
-		super.onResume();
+    @Override
+    public void onResume() {
+        super.onResume();
 
-		Project project = ProjectManager.getInstance().getCurrentProject();
-		Scene scene = ProjectManager.getInstance().getCurrentlyEditedScene();
-		Sprite sprite = ProjectManager.getInstance().getCurrentSprite();
+        Project project = ProjectManager.getInstance().getCurrentProject();
+        Scene scene = ProjectManager.getInstance().getCurrentlyEditedScene();
+        Sprite sprite = ProjectManager.getInstance().getCurrentSprite();
 
-		ActionBar actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
+        ActionBar actionBar = null;
+        if (getActivity() instanceof AppCompatActivity) {
+            actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
+        }
 
-		if (project.getSceneList().size() > 1) {
-			actionBar.setTitle(scene.getName() + ": " + sprite.getName());
-		} else {
-			actionBar.setTitle(sprite.getName());
-		}
+        if (actionBar != null && project != null && scene != null && sprite != null) {
+            if (project.getSceneList().size() > 1) {
+                actionBar.setTitle(scene.getName() + ": " + sprite.getName());
+            } else {
+                actionBar.setTitle(sprite.getName());
+            }
+        }
 
-		if (BackpackListManager.getInstance().isBackpackEmpty()) {
-			BackpackListManager.getInstance().loadBackpack();
-		}
+        if (BackpackListManager.getInstance().isBackpackEmpty()) {
+            BackpackListManager.getInstance().loadBackpack();
+        }
 
-		BottomBar.showBottomBar(getActivity());
-		BottomBar.showPlayButton(getActivity());
-		BottomBar.showAddButton(getActivity());
+        BottomBar.showBottomBar(getActivity());
+        BottomBar.showPlayButton(getActivity());
+        BottomBar.showAddButton(getActivity());
 
-		if (BuildConfig.FEATURE_AI_ASSIST_ENABLED) {
-			BottomBar.showAiAssistButton(getActivity());
-		}
+        if (BuildConfig.FEATURE_AI_ASSIST_ENABLED) {
+            BottomBar.showAiAssistButton(getActivity());
+        }
 
-		adapter.updateItems(ProjectManager.getInstance().getCurrentSprite());
+        if (sprite != null && adapter != null) {
+            adapter.updateItems(sprite);
+        }
 
-		if (savedListViewState != null) {
-			listView.onRestoreInstanceState(savedListViewState);
-		}
+        if (savedListViewState != null && listView != null) {
+            listView.onRestoreInstanceState(savedListViewState);
+        }
 
-		scrollToFocusItem();
-		SnackbarUtil.showHintSnackbar(getActivity(), R.string.hint_scripts);
+        scrollToFocusItem();
+        SnackbarUtil.showHintSnackbar(getActivity(), R.string.hint_scripts);
 
-		runCodeAnalysis();
-	}
+        runCodeAnalysis();
+    }
 
 	@Override
 	public void onPause() {

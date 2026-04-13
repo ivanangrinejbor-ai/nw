@@ -23,8 +23,7 @@
       "artifactName": "catroid",
       "output": "D:\\Catroid-develop\\catroid\\build\\intermediates\\cxx\\Debug\\6tl2k196\\obj\\x86_64\\libcatroid.so",
       "runtimeFiles": [
-        "D:\\Catroid-develop\\catroid\\src\\main\\jniLibs\\x86_64\\libonnxruntime.so",
-        "D:\\Catroid-develop\\catroid\\src\\main\\jniLibs\\x86_64\\libMNN.so"
+        "D:\\Catroid-develop\\catroid\\src\\main\\jniLibs\\x86_64\\libonnxruntime.so"
       ]
     },
     "example_core::@6890427a1f51a3e7e1df": {

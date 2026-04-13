@@ -18,6 +18,8 @@ public class MaterialComponent implements Component {
 
     public float emissiveIntensity = 0.0f;
     public String emissiveTexturePath = null;
+    public float uvScaleX = 1.0f;
+    public float uvScaleY = 1.0f;
 
     public MaterialComponent() {}
 }

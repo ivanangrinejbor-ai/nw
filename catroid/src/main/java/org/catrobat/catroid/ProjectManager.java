@@ -191,19 +191,14 @@ public final class ProjectManager {
 		}
 		if (project.getCatrobatLanguageVersion() <= 1.15) {
 			xmlh.setGitRemoteUrl("");
-
 		}
 		if (project.getCatrobatLanguageVersion() < 1.17) {
 			boolean wasMigrated = migrateProjectToV1_17(project);
 			if (wasMigrated) {
 				try {
-					// Немедленно сохраняем проект, чтобы зафиксировать UUID в code.xml
-					// Это предотвратит генерацию разных UUID на разных устройствах.
 					XstreamSerializer.getInstance().saveProject(project);
 					Log.i(TAG, "Project '" + project.getName() + "' was migrated to language version 1.17 with new UUIDs.");
 				} catch (Exception e) {
-					// Если не удалось сохранить, лучше выбросить ошибку,
-					// так как работа с таким "полу-мигрированным" проектом опасна.
 					throw new LoadingProjectException("Failed to save project after migration to 1.17: " + e.getMessage());
 				}
 			}

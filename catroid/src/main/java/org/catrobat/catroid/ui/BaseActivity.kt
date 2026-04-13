@@ -48,6 +48,7 @@ import org.catrobat.catroid.ui.runtimepermissions.PermissionRequestActivityExten
 import org.catrobat.catroid.ui.runtimepermissions.RequiresPermissionTask
 import org.catrobat.catroid.ui.settingsfragments.AccessibilityProfile
 import org.catrobat.catroid.ui.settingsfragments.SettingsFragment
+import kotlin.math.abs
 
 internal const val RECOVERED_FROM_CRASH = "RECOVERED_FROM_CRASH"
 
@@ -57,12 +58,15 @@ abstract class BaseActivity : AppCompatActivity(), PermissionHandlingActivity {
     private val permissionRequestActivityExtension = PermissionRequestActivityExtension()
     private var savedInstanceStateExpected = false
 
+    private var touchDownX = 0f
+    private var touchDownY = 0f
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         SettingsFragment.setToChosenLanguage(this)
         applyAccessibilityStyles()
 
-        //Thread.setDefaultUncaughtExceptionHandler(BaseExceptionHandler(this))
+        // Thread.setDefaultUncaughtExceptionHandler(BaseExceptionHandler(this))
         checkIfCrashRecoveryAndFinishActivity(this)
         checkIfProcessRecreatedAndFinishActivity(savedInstanceState)
 
@@ -70,6 +74,56 @@ abstract class BaseActivity : AppCompatActivity(), PermissionHandlingActivity {
             CastManager.getInstance().initializeCast(this)
         }
         MyActivityManager.base_activity = this
+    }
+
+    override fun dispatchTouchEvent(ev: android.view.MotionEvent): Boolean {
+        val isAprilFoolsEnabled = PreferenceManager.getDefaultSharedPreferences(CatroidApplication.getAppContext()).getBoolean("pref_1_april_enabled", true);
+
+        if (LimboMinigameManager.isPlaying || SansMinigameManager.isPlaying || OtherPranksManager.isPrankRunning) {
+            return super.dispatchTouchEvent(ev)
+        }
+
+        if (isAprilFoolsEnabled) {
+            if (ev.action == android.view.MotionEvent.ACTION_DOWN) {
+                touchDownX = ev.rawX
+                touchDownY = ev.rawY
+            } else if (ev.action == android.view.MotionEvent.ACTION_UP) {
+                if (Math.abs(ev.rawX - touchDownX) < 50 && Math.abs(ev.rawY - touchDownY) < 50) {
+                    val targetView = LimboMinigameManager.findClickableView(window.decorView, ev.rawX.toInt(), ev.rawY.toInt())
+
+                    if (targetView != null) {
+                        if (Math.random() < 0.10) {
+
+                            val prankType = Math.random()
+
+                            when {
+                                prankType < 0.20 -> {
+                                    LimboMinigameManager.startLimbo(this, targetView)
+                                    return true
+                                }
+                                prankType < 0.40 -> {
+                                    SansMinigameManager.startSans(this, targetView)
+                                    return true
+                                }
+                                prankType < 0.60 -> {
+                                    OtherPranksManager.runAway(this, targetView)
+                                    return true
+                                }
+                                prankType < 0.80 -> {
+                                    OtherPranksManager.gravityDrop(this, targetView)
+                                    return true
+                                }
+                                else -> {
+                                    OtherPranksManager.doBarrelRoll(this, targetView)
+                                    return true
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return super.dispatchTouchEvent(ev)
     }
 
     @SuppressLint("RestrictedApi")
@@ -155,7 +209,7 @@ abstract class BaseActivity : AppCompatActivity(), PermissionHandlingActivity {
 
     override fun onDestroy() {
         try {
-            MainMenuActivity.pythonEngine.shutdown()
+            MainMenuActivity.pythonEngine?.shutdown()
         } catch (e: Exception) {
             e.printStackTrace()
         }

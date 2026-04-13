@@ -340,11 +340,6 @@ public class SceneManager {
         }
     }
 
-    public void clearFogCache() {
-        this.cachedFogComponent = null;
-        engine.setFog(null);
-    }
-
     public void updateWorldTransforms() {
         for (GameObject go : gameObjects.values()) {
             if (go.parentId == null) {
@@ -372,6 +367,81 @@ public class SceneManager {
             if (child != null) {
                 updateTransformRecursive(child, current);
             }
+        }
+    }
+
+    private void loadPrefabForObject(GameObject rootGo, PrefabComponent prefabComp) {
+        if (prefabComp.spawnedInstances != null) {
+            for (String id : prefabComp.spawnedInstances) {
+                GameObject old = findGameObject(id);
+                if (old != null) {
+                    rootGo.childrenIds.remove(id);
+                    removeGameObject(old);
+                }
+            }
+            prefabComp.spawnedInstances.clear();
+        } else {
+            prefabComp.spawnedInstances = new ArrayList<>();
+        }
+
+        if (prefabComp.prefabFilePath == null || prefabComp.prefabFilePath.isEmpty()) return;
+
+        File file = ProjectManager.getInstance().getCurrentProject().getFile(prefabComp.prefabFilePath);
+        if (file == null || !file.exists()) {
+            Gdx.app.error("Prefab", "Prefab file not found: " + prefabComp.prefabFilePath);
+            return;
+        }
+
+        try {
+            String sceneJson = Gdx.files.absolute(file.getAbsolutePath()).readString();
+            Json tempJson = new Json();
+            tempJson.setUsePrototypes(false);
+            tempJson.setIgnoreUnknownFields(true);
+            SceneData prefabData = tempJson.fromJson(SceneData.class, sceneJson);
+
+            if (prefabData == null || prefabData.gameObjects == null) return;
+
+            java.util.Map<String, String> idMap = new java.util.HashMap<>();
+            List<GameObject> roots = new ArrayList<>();
+
+            for (GameObject go : prefabData.gameObjects) {
+                String newId = rootGo.id + "_prefab_" + go.id;
+                idMap.put(go.id, newId);
+                go.id = newId;
+                go.name = "[Prefab] " + go.name;
+                go.isPrefabInstance = true;
+
+                if (go.parentId == null) roots.add(go);
+            }
+
+            for (GameObject go : prefabData.gameObjects) {
+                if (go.parentId != null) {
+                    go.parentId = idMap.get(go.parentId);
+                } else {
+                    go.parentId = rootGo.id;
+                }
+
+                List<String> newChildren = new ArrayList<>();
+                for (String child : go.childrenIds) {
+                    newChildren.add(idMap.get(child));
+                }
+                go.childrenIds = newChildren;
+
+                gameObjects.put(go.id, go);
+                prefabComp.spawnedInstances.add(go.id);
+            }
+
+            for (GameObject r : roots) {
+                if (!rootGo.childrenIds.contains(r.id)) {
+                    rootGo.childrenIds.add(r.id);
+                }
+            }
+
+            for (GameObject go : prefabData.gameObjects) {
+                rebuildGameObject_internal(go);
+            }
+        } catch (Exception e) {
+            Gdx.app.error("Prefab", "Error loading prefab", e);
         }
     }
 
@@ -742,15 +812,25 @@ public class SceneManager {
     public SceneData getCurrentSceneData() {
         SceneData sceneData = new SceneData();
         for (GameObject go : gameObjects.values()) {
+            if (go.isPrefabInstance) continue;
+            String jsonStr = json.toJson(go);
+            GameObject saveGo = json.fromJson(GameObject.class, jsonStr);
+
+            PrefabComponent p = saveGo.getComponent(PrefabComponent.class);
+            if (p != null && p.spawnedInstances != null) {
+                saveGo.childrenIds.removeAll(p.spawnedInstances);
+            }
+
             sceneData.gameObjects.add(go);
         }
-        sceneData.skyR = this.skyR;
-        sceneData.skyG = this.skyG;
-        sceneData.skyB = this.skyB;
-        sceneData.skyboxPath = this.skyboxPath;
-        sceneData.ambientIntensity = this.ambientIntensity;
+        sceneData.skyR = skyR;
+        sceneData.skyG = skyG;
+        sceneData.skyB = skyB;
+        sceneData.skyboxPath = skyboxPath;
+        sceneData.ambientIntensity = ambientIntensity;
         sceneData.shadowSize = engine.getShadowSize();
         sceneData.shadowResolution = engine.getShadowResolution();
+        sceneData.renderSettings = engine.getSceneSettings();
         return sceneData;
     }
 
@@ -1050,18 +1130,7 @@ public class SceneManager {
 
 
     public void saveScene(FileHandle fileHandle) {
-        SceneData sceneData = new SceneData();
-        for (GameObject go : gameObjects.values()) {
-            sceneData.gameObjects.add(go);
-        }
-        sceneData.skyR = skyR;
-        sceneData.skyG = skyG;
-        sceneData.skyB = skyB;
-        sceneData.skyboxPath = skyboxPath;
-        sceneData.ambientIntensity = ambientIntensity;
-        sceneData.shadowSize = engine.getShadowSize();
-        sceneData.shadowResolution = engine.getShadowResolution();
-        sceneData.renderSettings = engine.getSceneSettings();
+        SceneData sceneData = getCurrentSceneData();
 
         json.setOutputType(JsonWriter.OutputType.json);
         json.setUsePrototypes(false);
@@ -1234,6 +1303,11 @@ public class SceneManager {
                 anim.currentTime = 0f;
             }
         }
+
+        PrefabComponent prefab = go.getComponent(PrefabComponent.class);
+        if (prefab != null) {
+            loadPrefabForObject(go, prefab);
+        }
     }
 
     public void repositionObjectAndChildren(GameObject root, Vector3 newWorldPosition) {
@@ -1346,7 +1420,6 @@ public class SceneManager {
         gameObjects.clear();
         this.skyboxPath = null;
         this.cachedFogComponent = null;
-        engine.setFog(null);
     }
 
 
@@ -1633,22 +1706,60 @@ public class SceneManager {
     }
 
     public GameObject cloneGameObject(GameObject original, String newName) {
-        if (original == null || newName == null || newName.isEmpty() || gameObjects.containsKey(newName)) {
+        if (newName == null) {
+            newName = generateUniqueName(original.name);
+        }
+        if (original == null || newName.isEmpty() || gameObjects.containsKey(newName)) {
             return null;
         }
 
-        String objectAsJson = json.toJson(original);
-        GameObject copy = json.fromJson(GameObject.class, objectAsJson);
+        List<GameObject> newObjects = new ArrayList<>();
+        Map<String, String> oldToNewId = new HashMap<>();
 
-        copy.name = newName;
-        copy.id = newName;
+        GameObject newRoot = cloneRecursiveInternal(original, newObjects, oldToNewId, newName);
 
+        for (GameObject go : newObjects) {
+            gameObjects.put(go.id, go);
+        }
+
+        updateWorldTransforms();
+
+        Gdx.app.postRunnable(() -> {
+            for (GameObject go : newObjects) {
+                rebuildGameObject_internal(go);
+
+                MaterialComponent mat = go.getComponent(MaterialComponent.class);
+                if (mat != null) {
+                    engine.applyPBRMaterial(go.id, mat);
+                }
+            }
+        });
+
+        return newRoot;
+    }
+
+    private GameObject cloneRecursiveInternal(GameObject original, List<GameObject> list, Map<String, String> idMap, String newName) {
+        String jsonStr = json.toJson(original);
+        GameObject copy = json.fromJson(GameObject.class, jsonStr);
+
+        copy.id = (newName != null) ? newName : generateUniqueName(original.name);
+        copy.name = copy.id;
         copy.parentId = null;
+
+        list.add(copy);
+        idMap.put(original.id, copy.id);
+
+        List<String> oldChildren = new ArrayList<>(copy.childrenIds);
         copy.childrenIds.clear();
 
-        gameObjects.put(copy.id, copy);
-        rebuildGameObject(copy);
-
+        for (String oldChildId : oldChildren) {
+            GameObject oldChild = findGameObject(oldChildId);
+            if (oldChild != null) {
+                GameObject newChild = cloneRecursiveInternal(oldChild, list, idMap, null);
+                newChild.parentId = copy.id;
+                copy.childrenIds.add(newChild.id);
+            }
+        }
         return copy;
     }
 
@@ -1696,5 +1807,27 @@ public class SceneManager {
                 rebuildGameObject_internal(go);
             }
         });
+    }
+
+    public void bakeByPrefix(String prefix, String newId) {
+        engine.bakeObjectsByPrefix(prefix, newId);
+
+        List<String> toRemove = new ArrayList<>();
+        for (String id : gameObjects.keySet()) {
+            if (id.startsWith(prefix) && !id.equals("player") && !id.equals(newId)) {
+                toRemove.add(id);
+            }
+        }
+
+        for (String id : toRemove) {
+            gameObjects.remove(id);
+        }
+
+        if (!gameObjects.containsKey(newId)) {
+            GameObject bakedGo = new GameObject(newId);
+            gameObjects.put(newId, bakedGo);
+        }
+
+        updateWorldTransforms();
     }
 }

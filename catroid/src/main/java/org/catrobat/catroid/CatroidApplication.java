@@ -79,9 +79,6 @@ public class CatroidApplication extends Application {
 	@TargetApi(30)
 	@Override
 	public void onCreate() {
-
-
-
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
 		boolean forceSafeMode = prefs.getBoolean("force_safe_mode", false);
 

@@ -68,8 +68,10 @@ import org.catrobat.catroid.ml.MLBridge
 import org.catrobat.catroid.plugins.PluginEventBus
 import org.catrobat.catroid.python.PythonEngine
 import org.catrobat.catroid.stage.StageActivity
+import org.catrobat.catroid.ui.dialogs.NewProjectDialogFragment
 import org.catrobat.catroid.ui.recyclerview.dialog.AboutDialogFragment
 import org.catrobat.catroid.ui.recyclerview.fragment.MainMenuFragment
+import org.catrobat.catroid.ui.recyclerview.fragment.MainMenuPcFragment
 import org.catrobat.catroid.ui.settingsfragments.SettingsFragment
 import org.catrobat.catroid.utils.FileMetaDataExtractor
 import org.catrobat.catroid.utils.NativeLibraryManager
@@ -373,13 +375,54 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
 
     }
 
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (event.action == KeyEvent.ACTION_UP) {
+
+            // Ctrl + N : Create new project
+            if (event.isCtrlPressed && event.keyCode == KeyEvent.KEYCODE_N) {
+                val dialog = NewProjectDialogFragment()
+                dialog.show(supportFragmentManager, NewProjectDialogFragment.TAG)
+                return true
+            }
+
+            // F5 : Run project
+            if (event.keyCode == KeyEvent.KEYCODE_F5) {
+                val currentProject = projectManager.currentProject
+                if (currentProject != null) {
+                    StageActivity.handlePlayButton(projectManager, this)
+                } else {
+                    Toast.makeText(this, "Нет активного проекта для запуска", Toast.LENGTH_SHORT).show()
+                }
+                return true
+            }
+
+            // Ctrl + O : Open Project Menu
+            if (event.isCtrlPressed && event.keyCode == KeyEvent.KEYCODE_O) {
+                startActivity(Intent(this, ProjectListActivity::class.java))
+                return true
+            }
+        }
+        return super.dispatchKeyEvent(event)
+    }
+
     private fun loadFragment() {
+        val prefs = PreferenceManager.getDefaultSharedPreferences(this)
+        val isPcMode = prefs.getBoolean("pref_pc_mode_enabled", false)
+
+        val fragment = if (isPcMode) {
+            MainMenuPcFragment()
+        } else {
+            MainMenuFragment()
+        }
+
         supportFragmentManager.beginTransaction()
             .replace(
-                mainMenuBinding.fragmentContainer.id, MainMenuFragment(),
-                MainMenuFragment.TAG
+                mainMenuBinding.fragmentContainer.id,
+                fragment,
+                "MainMenuFragment"
             )
-            .commit()
+            .commitAllowingStateLoss()
+
         setShowProgressBar(false)
 
         val intent = intent
@@ -686,16 +729,14 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
     companion object {
         val TAG = MainMenuActivity::class.java.simpleName
 
+        @JvmField
         @SuppressLint("StaticFieldLeak")
-        lateinit var pythonEngine: PythonEngine
+        var pythonEngine: PythonEngine? = null
         @JvmField
         var surveyCampaign: Survey? = null
 
         fun toast(text: String, duration: Int) {
-            val toast = Toast(CatroidApplication.getAppContext())
-            toast.setText(text)
-            toast.duration = duration
-            toast.show()
+            Toast.makeText(CatroidApplication.getAppContext(), text, duration).show()
         }
 
         fun getCpuArchitecture(): String {

@@ -311,6 +311,14 @@ public class VisualPlacementActivity extends BaseCastActivity implements View.On
 				drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
 				drawable.draw(canvas);
 			}
+
+            if (visualPlacementBitmap == null) {
+                Drawable drawable = ContextCompat.getDrawable(getApplicationContext(), R.drawable.pc_toolbar_icon);
+                visualPlacementBitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+                Canvas canvas = new Canvas(visualPlacementBitmap);
+                drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+                drawable.draw(canvas);
+            }
 		}
 
 		Matrix matrix = new Matrix();

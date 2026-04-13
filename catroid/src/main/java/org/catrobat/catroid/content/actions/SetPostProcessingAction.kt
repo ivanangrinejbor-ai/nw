@@ -20,18 +20,15 @@ class SetPostProcessingAction : TemporalAction() {
         val stageListener = StageActivity.getActiveStageListener() ?: return
         val threeDManager = stageListener.threeDManager ?: return
 
-        // 1. Получаем конфиг (или создаем дефолтный, если проект без сцен)
         var config = threeDManager.currentConfig
         if (config == null) {
             config = PostProcessingComponent()
             threeDManager.updatePostProcessing(config)
         }
 
-        // 2. Считаем значение из формулы
         val floatVal = valueFormula?.interpretFloat(scope) ?: 0f
         val boolVal = floatVal > 0.5f
 
-        // 3. Применяем настройки
         if (effectIndex == 0) {
             // --- GLOBAL ---
             when (paramIndex) {
@@ -46,12 +43,10 @@ class SetPostProcessingAction : TemporalAction() {
             }
         }
 
-        // 4. Обновляем движок
         threeDManager.updatePostProcessing(config)
     }
 
     private fun findOrCreateEffect(config: PostProcessingComponent, typeIndex: Int): PostProcessingData? {
-        // Маппинг индексов из pp_effect_types
         val targetClass: Class<out PostProcessingData> = when (typeIndex) {
             1 -> PostProcessingData.Bloom::class.java
             2 -> PostProcessingData.Vignette::class.java
@@ -70,10 +65,10 @@ class SetPostProcessingAction : TemporalAction() {
             15 -> PostProcessingData.Zoom::class.java
             16 -> PostProcessingData.ACES::class.java
             17 -> PostProcessingData.EyeAdaptation::class.java
+            18 -> PostProcessingData.RayTracing::class.java
             else -> return null
         }
 
-        // Ищем существующий или создаем новый
         val existing = config.effects.find { targetClass.isInstance(it) }
         if (existing != null) return existing
 
@@ -89,13 +84,22 @@ class SetPostProcessingAction : TemporalAction() {
     }
 
     private fun applyParam(data: PostProcessingData, paramIdx: Int, valFloat: Float, valBool: Boolean) {
-        // 0 = Enabled (для всех)
         if (paramIdx == 0) {
             data.isEnabled = valBool
             return
         }
 
         when (data) {
+            is PostProcessingData.RayTracing -> {
+                when (paramIdx) {
+                    1 -> data.reflectivity = valFloat
+                    2 -> data.steps = valFloat.toInt()
+                    13 -> data.jitter = valFloat
+                    10 -> data.stride = valFloat
+                    9 -> data.thickness = valFloat
+                    14 -> data.maxDistance = valFloat
+                }
+            }
             is PostProcessingData.Bloom -> {
                 when (paramIdx) {
                     1 -> data.intensity = valFloat        // Intensity
@@ -137,12 +141,8 @@ class SetPostProcessingAction : TemporalAction() {
                 if (paramIdx == 13 || paramIdx == 1) data.strength = valFloat // Noise (using Noise Idx 13 or Strength 1)
             }
             is PostProcessingData.Crt -> {
-                // Если добавил поля в PostProcessingData.Crt:
-                // if (paramIdx == 10) data.distortion = valFloat
-                // if (paramIdx == 1) data.zoom = valFloat
             }
             is PostProcessingData.Fisheye -> {
-                // Если есть поля
             }
             is PostProcessingData.Water -> {
                 when (paramIdx) {
@@ -151,7 +151,6 @@ class SetPostProcessingAction : TemporalAction() {
                 }
             }
             is PostProcessingData.MotionBlur -> {
-                // Blur Opacity (мапим на Intensity/Strength - индекс 1)
                 if (paramIdx == 1) data.blurOpacity = valFloat.coerceIn(0f, 0.99f)
             }
             is PostProcessingData.LensFlare -> {

@@ -30,6 +30,8 @@ import org.catrobat.catroid.content.Scope;
 import org.catrobat.catroid.content.TableManager;
 import org.catrobat.catroid.content.UserVarsManager;
 import org.catrobat.catroid.content.bricks.Brick;
+import org.catrobat.catroid.fast2d.Fast2DFormulaBridge;
+import org.catrobat.catroid.fast2d.FastTwoDManager;
 import org.catrobat.catroid.formulaeditor.common.Conversions;
 import org.catrobat.catroid.formulaeditor.function.ArduinoFunctionProvider;
 import org.catrobat.catroid.formulaeditor.function.BinaryFunction;
@@ -216,6 +218,14 @@ public class FormulaElement implements Serializable {
 	public ElementType getElementType() {
 		return type;
 	}
+
+    private FastTwoDManager getFastTwoDManager() {
+        StageActivity activity = StageActivity.activeStageActivity.get();
+        if (activity != null && activity.stageListener != null) {
+            return activity.stageListener.fastTwoDManager;
+        }
+        return null;
+    }
 
 	public String getValue() {
 		return trimTrailingCharacters(value);
@@ -676,6 +686,64 @@ public class FormulaElement implements Serializable {
 			}
             case PT_ARGMAX: {
                 return MLBridge.nativeArgMax(String.valueOf(arguments.get(0)));
+            }
+            case F2D_IS_TOUCHED: {
+                String id = String.valueOf(arguments.get(0));
+                return Fast2DFormulaBridge.isTouched(id);
+            }
+            case F2D_IS_TOUCHED_INDEX: {
+                String id = String.valueOf(arguments.get(0));
+                int finger = ((Number) arguments.get(1)).intValue();
+                return Fast2DFormulaBridge.isTouched(id, finger);
+            }
+            case F2D_X: {
+                String id = String.valueOf(arguments.get(0));
+                return Fast2DFormulaBridge.getX(id);
+            }
+            case F2D_Y: {
+                String id = String.valueOf(arguments.get(0));
+                return Fast2DFormulaBridge.getY(id);
+            }
+            case F2D_ROTATION: {
+                String id = String.valueOf(arguments.get(0));
+                return Fast2DFormulaBridge.getRotation(id);
+            }
+            case F2D_SCALE_X: {
+                String id = String.valueOf(arguments.get(0));
+                return Fast2DFormulaBridge.getScaleX(id);
+            }
+            case F2D_SCALE_Y: {
+                String id = String.valueOf(arguments.get(0));
+                return Fast2DFormulaBridge.getScaleY(id);
+            }
+            case F2D_COLOR_R: {
+                String id = String.valueOf(arguments.get(0));
+                return Fast2DFormulaBridge.getColorR(id);
+            }
+            case F2D_COLOR_G: {
+                String id = String.valueOf(arguments.get(0));
+                return Fast2DFormulaBridge.getColorG(id);
+            }
+            case F2D_COLOR_B: {
+                String id = String.valueOf(arguments.get(0));
+                return Fast2DFormulaBridge.getColorB(id);
+            }
+            case F2D_ALPHA: {
+                String id = String.valueOf(arguments.get(0));
+                return Fast2DFormulaBridge.getAlpha(id);
+            }
+            case F2D_TEXTURE: {
+                String id = String.valueOf(arguments.get(0));
+                return Fast2DFormulaBridge.getTexture(id);
+            }
+            case F2D_CAM_X: {
+                return Fast2DFormulaBridge.getCamX();
+            }
+            case F2D_CAM_Y: {
+                return Fast2DFormulaBridge.getCamY();
+            }
+            case F2D_CAM_ZOOM: {
+                return Fast2DFormulaBridge.getCamZoom();
             }
             case PT_DUMP: {
                 return MLBridge.nativeGetTensorAsString(String.valueOf(arguments.get(0)));

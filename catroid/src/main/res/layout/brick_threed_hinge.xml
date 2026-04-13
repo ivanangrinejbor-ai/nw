@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal">
+
+    <CheckBox android:id="@+id/brick_checkbox" android:layout_width="wrap_content" android:layout_height="wrap_content" android:visibility="gone" />
+
+    <org.catrobat.catroid.ui.BrickLayout
+        android:id="@+id/brick_threed_hinge_layout"
+        style="@style/BrickContainer.Threed.Big">
+
+        <include layout="@layout/icon_brick_category_threed" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/threed_hinge_title" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/physics_joint_id" app:layout_newLine="true"/>
+        <TextView android:id="@+id/brick_hinge_id" style="@style/BrickEditText" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/physics_obj_a" app:layout_newLine="true"/>
+        <TextView android:id="@+id/brick_hinge_obja" style="@style/BrickEditText" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/physics_obj_b" app:layout_newLine="true"/>
+        <TextView android:id="@+id/brick_hinge_objb" style="@style/BrickEditText" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/physics_pivot_a" app:layout_newLine="true"/>
+        <TextView android:id="@+id/brick_hinge_pax" style="@style/BrickEditText" />
+        <TextView android:id="@+id/brick_hinge_pay" style="@style/BrickEditText" />
+        <TextView android:id="@+id/brick_hinge_paz" style="@style/BrickEditText" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/threed_hinge_axis_a" app:layout_newLine="true"/>
+        <TextView android:id="@+id/brick_hinge_aax" style="@style/BrickEditText" />
+        <TextView android:id="@+id/brick_hinge_aay" style="@style/BrickEditText" />
+        <TextView android:id="@+id/brick_hinge_aaz" style="@style/BrickEditText" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/physics_pivot_b" app:layout_newLine="true"/>
+        <TextView android:id="@+id/brick_hinge_pbx" style="@style/BrickEditText" />
+        <TextView android:id="@+id/brick_hinge_pby" style="@style/BrickEditText" />
+        <TextView android:id="@+id/brick_hinge_pbz" style="@style/BrickEditText" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/threed_hinge_axis_b" app:layout_newLine="true"/>
+        <TextView android:id="@+id/brick_hinge_abx" style="@style/BrickEditText" />
+        <TextView android:id="@+id/brick_hinge_aby" style="@style/BrickEditText" />
+        <TextView android:id="@+id/brick_hinge_abz" style="@style/BrickEditText" />
+
+    </org.catrobat.catroid.ui.BrickLayout>
+</LinearLayout>

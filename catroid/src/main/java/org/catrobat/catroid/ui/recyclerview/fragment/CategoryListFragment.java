@@ -225,6 +225,24 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
             R.string.formula_pt_shape_param, R.string.formula_pt_dump_param, R.string.formula_pt_totalsize_param
     );
 
+    private static final List<Integer> F2D_FUNCTIONS = asList(
+            R.string.formula_f2d_x, R.string.formula_f2d_y, R.string.formula_f2d_rotation,
+            R.string.formula_f2d_scale_x, R.string.formula_f2d_scale_y,
+            R.string.formula_f2d_r, R.string.formula_f2d_g, R.string.formula_f2d_b, R.string.formula_f2d_alpha,
+            R.string.formula_f2d_texture,
+            R.string.formula_f2d_cam_x, R.string.formula_f2d_cam_y, R.string.formula_f2d_cam_zoom,
+            R.string.formula_f2d_is_touched, R.string.formula_f2d_is_touched_index
+    );
+
+    private static final List<Integer> F2D_PARAMS = asList(
+            R.string.formula_f2d_id_param, R.string.formula_f2d_id_param, R.string.formula_f2d_id_param,
+            R.string.formula_f2d_id_param, R.string.formula_f2d_id_param,
+            R.string.formula_f2d_id_param, R.string.formula_f2d_id_param, R.string.formula_f2d_id_param, R.string.formula_f2d_id_param,
+            R.string.formula_f2d_id_param,
+            R.string.formula_f2d_no_param, R.string.formula_f2d_no_param, R.string.formula_f2d_no_param,
+            R.string.formula_f2d_is_touched_param, R.string.formula_f2d_is_touched_index_param
+    );
+
 	private static final List<Integer> THREED_FUNCTIONS = asList(
             R.string.formula_delta,
 			R.string.formula_3d_pos_x, R.string.formula_3d_pos_y, R.string.formula_3d_pos_z,
@@ -983,30 +1001,27 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 				getString(R.string.formula_editor_functions_strings)));
 		result.addAll(addHeader(toCategoryListItems(LIST_FUNCTIONS, LIST_PARAMS),
 				getString(R.string.formula_editor_functions_lists)));
+        result.addAll(addHeader(toCategoryListItems(F2D_FUNCTIONS, F2D_PARAMS),
+                "Fast 2D"));
 		result.addAll(addHeader(toCategoryListItems(THREED_FUNCTIONS, THREED_PARAMS),
 				"3D"));
         result.addAll(addHeader(toCategoryListItems(PT_FUNCTIONS, PT_PARAMS),
                 "PockeTensor"));
 
-		// Добавление кастомных функций
 		List<CustomFormula> customFormulas = CustomFormulaManager.INSTANCE.getFormulas();
 		if (!customFormulas.isEmpty()) {
 			List<CategoryListItem> customFunctionItems = new ArrayList<>();
 			for (CustomFormula cf : customFormulas) {
-				// Для CategoryListItem нужен nameResId. Так как у нас его нет,
-				// можно использовать уникальный идентификатор или специальный тип.
-				// Здесь мы передаем uniqueName через поле `tag` и используем фиктивный nameResId.
-				// CategoryListItemType.DEFAULT - так как это обычная функция
 				CategoryListItem item = new CategoryListItem(
-						0, // Фиктивный nameResId, так как он не используется для идентификации кастомных
-						cf.getDisplayName(), // Отображаемое имя
-						CategoryListRVAdapter.DEFAULT // Тип по умолчанию для функций
+						0,
+						cf.getDisplayName(),
+						CategoryListRVAdapter.DEFAULT
 				);
-				item.isCustomFunction = true; // Добавляем флаг
-				item.customFunctionName = cf.getUniqueName(); // Сохраняем уникальное имя
+				item.isCustomFunction = true;
+				item.customFunctionName = cf.getUniqueName();
 				customFunctionItems.add(item);
 			}
-			result.addAll(addHeader(customFunctionItems, getString(R.string.formula_editor_custom_functions_header))); // Вам нужно добавить этот ресурс строки
+			result.addAll(addHeader(customFunctionItems, getString(R.string.formula_editor_custom_functions_header)));
 		}
 		return result;
 	}

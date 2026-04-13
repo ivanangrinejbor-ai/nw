@@ -59,9 +59,9 @@ public final class ImageEditing {
 	}
 
 	private static Bitmap scaleBitmap(Bitmap bitmap, int xSize, int ySize) {
-		if (bitmap == null) {
-			return null;
-		}
+        if (bitmap == null || xSize <= 0 || ySize <= 0) {
+            return bitmap;
+        }
 		Matrix matrix = new Matrix();
 		float scaleWidth = (((float) xSize) / bitmap.getWidth());
 		float scaleHeight = (((float) ySize) / bitmap.getHeight());

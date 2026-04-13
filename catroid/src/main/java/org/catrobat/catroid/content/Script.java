@@ -111,13 +111,20 @@ public abstract class Script implements Serializable, Cloneable {
 		}
 	}
 
-	public void setParents() {
-		ScriptBrick scriptBrick = getScriptBrick();
-		scriptBrick.setParent(null);
-		for (Brick brick : getBrickList()) {
-			brick.setParent(scriptBrick);
-		}
-	}
+    public void setParents() {
+        ScriptBrick scriptBrick = getScriptBrick();
+        if (scriptBrick != null) {
+            scriptBrick.setParent(null);
+        }
+
+        if (getBrickList() != null) {
+            for (Brick brick : getBrickList()) {
+                if (brick != null) {
+                    brick.setParent(scriptBrick);
+                }
+            }
+        }
+    }
 
 	public abstract ScriptBrick getScriptBrick();
 

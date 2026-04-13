@@ -2,14 +2,12 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <!-- НОВЫЙ ПУНКТ "MORE" (ТРИ ТОЧКИ) -->
     <item
         android:id="@+id/action_more"
         android:title="More"
         android:icon="@android:drawable/ic_menu_more"
         app:showAsAction="always">
 
-        <!-- Вкладываем все остальные действия сюда -->
         <menu>
             <item
                 android:id="@+id/action_save_scene"
@@ -27,7 +25,6 @@
                 android:id="@+id/action_clear_scene"
                 android:title="Clear Scene"
                 app:showAsAction="never" />
-
             <item
                 android:id="@+id/action_exit"
                 android:title="Exit"

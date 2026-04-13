@@ -1,10 +1,9 @@
 package org.catrobat.catroid.raptor;
 
-import static com.badlogic.gdx.graphics.g3d.particles.ParticleShader.AlignMode.Screen;
 import static com.crashinvaders.vfx.effects.util.MixEffect.Method.MIX;
 
 import android.util.Log;
-
+import androidx.annotation.NonNull;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.loaders.FileHandleResolver;
 import com.badlogic.gdx.audio.Music;
@@ -19,7 +18,6 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.VertexAttribute;
 import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -27,7 +25,6 @@ import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
-import com.badlogic.gdx.graphics.g3d.ModelCache;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.Renderable;
 import com.badlogic.gdx.graphics.g3d.RenderableProvider;
@@ -35,7 +32,6 @@ import com.badlogic.gdx.graphics.g3d.Shader;
 import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.DepthTestAttribute;
-import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.loader.ObjLoader;
 import com.badlogic.gdx.graphics.g3d.model.Animation;
@@ -52,14 +48,13 @@ import com.badlogic.gdx.graphics.g3d.particles.influencers.DynamicsInfluencer;
 import com.badlogic.gdx.graphics.g3d.particles.influencers.DynamicsModifier;
 import com.badlogic.gdx.graphics.g3d.particles.influencers.RegionInfluencer;
 import com.badlogic.gdx.graphics.g3d.particles.influencers.ScaleInfluencer;
-import com.badlogic.gdx.graphics.g3d.particles.influencers.SpawnInfluencer;
 import com.badlogic.gdx.graphics.g3d.particles.renderers.BillboardRenderer;
-import com.badlogic.gdx.graphics.g3d.particles.values.CylinderSpawnShapeValue;
 import com.badlogic.gdx.graphics.g3d.particles.values.PointSpawnShapeValue;
-import com.badlogic.gdx.graphics.g3d.particles.values.RangedNumericValue;
+import com.badlogic.gdx.graphics.g3d.particles.values.PrimitiveSpawnShapeValue;
 import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader;
 import com.badlogic.gdx.graphics.g3d.utils.AnimationController;
 import com.badlogic.gdx.graphics.g3d.utils.DefaultShaderProvider;
+import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.ShaderProvider;
 import com.badlogic.gdx.graphics.glutils.FrameBuffer;
@@ -100,6 +95,8 @@ import com.badlogic.gdx.physics.bullet.dynamics.btTypedConstraint;
 import com.badlogic.gdx.physics.bullet.linearmath.btDefaultMotionState;
 import com.badlogic.gdx.physics.bullet.linearmath.btIDebugDraw;
 import com.badlogic.gdx.physics.bullet.linearmath.btMotionState;
+import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 import com.crashinvaders.vfx.VfxManager;
@@ -110,10 +107,8 @@ import com.crashinvaders.vfx.effects.FilmGrainEffect;
 import com.crashinvaders.vfx.effects.FisheyeEffect;
 import com.crashinvaders.vfx.effects.FxaaEffect;
 import com.crashinvaders.vfx.effects.GaussianBlurEffect;
-import com.crashinvaders.vfx.effects.LensFlareEffect;
 import com.crashinvaders.vfx.effects.LevelsEffect;
 import com.crashinvaders.vfx.effects.MotionBlurEffect;
-import com.crashinvaders.vfx.effects.NfaaEffect;
 import com.crashinvaders.vfx.effects.OldTvEffect;
 import com.crashinvaders.vfx.effects.RadialBlurEffect;
 import com.crashinvaders.vfx.effects.VignettingEffect;
@@ -130,19 +125,20 @@ import net.mgsx.gltf.scene3d.utils.IBLBuilder;
 
 import org.catrobat.catroid.ProjectManager;
 import org.catrobat.catroid.raptor.postprocessing.AutoLensFlareEffect;
+import org.catrobat.catroid.raptor.postprocessing.DepthOfFieldEffect;
 import org.catrobat.catroid.raptor.postprocessing.ExposureEffect;
 import org.catrobat.catroid.raptor.postprocessing.EyeAdaptationManager;
+import org.catrobat.catroid.raptor.postprocessing.GodRaysEffect;
+import org.catrobat.catroid.raptor.postprocessing.HeightFogEffect;
 import org.catrobat.catroid.raptor.postprocessing.LinearizeEffect;
+import org.catrobat.catroid.raptor.postprocessing.SsaoEffect;
+import org.catrobat.catroid.raptor.postprocessing.SsrRayTracingEffect;
 import org.catrobat.catroid.raptor.postprocessing.TonemappingEffect;
+import org.catrobat.catroid.raptor.postprocessing.VolumetricFogEffect;
 import org.catrobat.catroid.stage.StageActivity;
 import org.catrobat.catroid.utils.ModelPathProcessor;
 
 import java.io.File;
-import java.lang.reflect.Method;
-import java.nio.Buffer;
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
-import java.nio.ShortBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -151,8 +147,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
-import com.crashinvaders.vfx.effects.BloomEffect;
 
 class OptimizedBloomEffect extends BloomEffect {
     private final float scaleFactor;
@@ -161,10 +155,6 @@ class OptimizedBloomEffect extends BloomEffect {
 
 
         this.scaleFactor = scaleFactor;
-    }
-
-    public OptimizedBloomEffect() {
-        this(4f);
     }
 
     @Override
@@ -208,9 +198,7 @@ class OptimizedRadialBlurEffect extends RadialBlurEffect {
 @LunoClass
 public class ThreeDManager implements Disposable {
 
-    public ModelBatch getWireframeBatch() {
-        return wireframeBatch;
-    }
+    public ModelBatch getWireframeBatch() { return wireframeBatch; }
 
     public void resize(int width, int height) {
         camera.viewportWidth = width;
@@ -219,18 +207,31 @@ public class ThreeDManager implements Disposable {
         if (vfxManager != null) {
             vfxManager.resize(width, height);
         }
+        if (blitCamera != null) {
+            blitCamera.setToOrtho(false, width, height);
+            blitCamera.update();
+        }
+
         if (sceneFbo2 != null) sceneFbo2.dispose();
         sceneFbo2 = new FrameBuffer(Pixmap.Format.RGBA8888, width, height, true);
-        sceneFbo2.getColorBufferTexture().setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
-        sceneFboRegion.setTexture(sceneFbo2.getColorBufferTexture());
+
+        sceneFboRegion.setRegion(sceneFbo2.getColorBufferTexture());
         sceneFboRegion.flip(false, true);
+
+        if (depthFbo != null) depthFbo.dispose();
+        depthFbo = new FrameBuffer(Pixmap.Format.RGBA8888, width, height, true);
+        depthFbo.getColorBufferTexture().setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
+
+        if (materialFbo != null) materialFbo.dispose();
+        materialFbo = new FrameBuffer(Pixmap.Format.RGBA8888, width / 2, height / 2, true);
     }
 
     public enum PhysicsState {
         NONE,
         STATIC,
         DYNAMIC,
-        KINEMATIC, MESH_STATIC
+        MESH_STATIC,
+        KINEMATIC
     }
 
     public enum PhysicsShape {
@@ -258,6 +259,16 @@ public class ThreeDManager implements Disposable {
         }
     }
 
+    private static class RaySensor {
+        String rayName;
+        String attachedObjectId;
+        Vector3 localOffset = new Vector3();
+        Vector3 localDirection = new Vector3();
+        float distance;
+    }
+
+    private final Array<RaySensor> continuousRaySensors = new Array<>();
+
     private final Map<String, AudioAsset> loadedAudioAssets = new HashMap<>();
     private final List<PlayableAudio> active3DSounds = new ArrayList<>();
 
@@ -269,6 +280,10 @@ public class ThreeDManager implements Disposable {
 
     private final boolean debugEnabled = false;
     private static final boolean LOG_THREED_MANAGER_DEBUG = false;
+
+    private FrameBuffer depthFbo;
+    private ModelBatch depthBatch;
+    private ShaderProgram depthShader;
 
     private static class RayCastResult {
         public boolean hasHit = false;
@@ -314,13 +329,6 @@ public class ThreeDManager implements Disposable {
     private final Map<String, Object> customUniforms = new HashMap<>();
     private float time = 0f;
 
-    private ModelBatch shadowBatch;
-    private com.badlogic.gdx.graphics.glutils.FrameBuffer shadowFBO;
-    private PerspectiveCamera lightCamera;
-    private com.badlogic.gdx.math.Matrix4 lightSpaceMatrix = new com.badlogic.gdx.math.Matrix4();
-    private final int SHADOW_MAP_SIZE = 2048;
-    private ShaderProvider depthShaderProvider;
-
     private boolean realisticMode = false;
     private net.mgsx.gltf.scene3d.scene.SceneManager sceneManager;
     private com.badlogic.gdx.graphics.Texture brdfLUT;
@@ -362,7 +370,6 @@ public class ThreeDManager implements Disposable {
     private final Vector3 tmpPos = new Vector3();
     private final Quaternion tmpRot = new Quaternion();
     private final Vector3 tmpScale = new Vector3();
-    private final Vector3 tmpPos2 = new Vector3();
 
     private VfxManager vfxManager;
     private FrameBuffer sceneFbo2;
@@ -397,12 +404,38 @@ public class ThreeDManager implements Disposable {
     private TonemappingEffect tonemappingEffect;
     private LinearizeEffect linearizeEffect;
     private final List<com.crashinvaders.vfx.effects.VfxEffect> userEffects = new ArrayList<>();
-
-    private FogComponent currentFog;
-    private ShaderProgram fogShader;
-    private Mesh fullscreenQuad;
-    private final Matrix4 inverseProjectionView = new Matrix4();
     private final java.util.Set<String> hiddenSpawnIds = new java.util.HashSet<>();
+
+    private SsrRayTracingEffect rayTracingEffect;
+    private SsaoEffect ssaoEffect;
+    private HeightFogEffect heightFogEffect;
+    private DepthOfFieldEffect dofEffect;
+    private GodRaysEffect godRaysEffect;
+    private VolumetricFogEffect volumetricFogEffect;
+
+    private ShaderProgram fsrShader;
+    private PostProcessingData.Upscaler currentUpscaler;
+
+    private DepthShader depthShaderWrapper;
+
+    private FrameBuffer materialFbo;
+    private ModelBatch materialBatch;
+
+    private final Map<String, AIComponent> activeAIs = new HashMap<>();
+
+    private float shakeIntensity = 0f;
+    private float shakeDuration = 0f;
+    private float shakeTimer = 0f;
+    private final Vector3 currentShakeOffset = new Vector3();
+
+
+    private boolean touchRotationEnabled = false;
+    private float sensitivity = 0.2f;
+    private boolean blockByUI = true;
+    private float rotationAreaX = 0, rotationAreaY = 0, rotationAreaW = 100, rotationAreaH = 100;
+
+    private int lastTouchX, lastTouchY;
+    private int activePointerId = -1;
 
     public void init() {
         init(new SceneSettings());
@@ -410,6 +443,7 @@ public class ThreeDManager implements Disposable {
 
     public void init(SceneSettings settings) {
         this.currentSettings = settings;
+
         modelBuilder = new com.badlogic.gdx.graphics.g3d.utils.ModelBuilder();
         defaultShaderProvider = new DefaultShaderProvider();
         modelBatch = new ModelBatch(defaultShaderProvider);
@@ -419,26 +453,8 @@ public class ThreeDManager implements Disposable {
         camera = new PerspectiveCamera(67, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         setCameraPosition(100f, 100f, 100f);
         cameraLookAt(0, 0, 0);
-
         camera.near = 0.1f;
         camera.far = 2500f;
-
-        shadowFBO = new com.badlogic.gdx.graphics.glutils.FrameBuffer(com.badlogic.gdx.graphics.Pixmap.Format.RGBA8888, SHADOW_MAP_SIZE, SHADOW_MAP_SIZE, true);
-
-        lightCamera = new PerspectiveCamera(90, SHADOW_MAP_SIZE, SHADOW_MAP_SIZE);
-        lightCamera.near = 1f;
-        lightCamera.far = 500f;
-
-        String depthVertexShader = "attribute vec3 a_position; uniform mat4 u_projViewTrans; void main() { gl_Position = u_projViewTrans * vec4(a_position, 1.0); }";
-        String depthFragmentShader = "#ifdef GL_ES\n" +
-                "precision highp float;\n" +
-                "#endif\n" +
-                "void main() {\n" +
-                "    float depth = gl_FragCoord.z;\n" +
-                "    gl_FragColor = vec4(depth, 0.0, 0.0, 1.0);\n" +
-                "}\n";
-        depthShaderProvider = new DefaultShaderProvider(depthVertexShader, depthFragmentShader);
-        shadowBatch = new ModelBatch(depthShaderProvider);
 
         Bullet.init();
         collisionConfig = new btDefaultCollisionConfiguration();
@@ -447,6 +463,7 @@ public class ThreeDManager implements Disposable {
         solver = new btSequentialImpulseConstraintSolver();
         dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfig);
         dynamicsWorld.setGravity(new Vector3(0, -9.81f, 0));
+        dynamicsWorld.getSolverInfo().setNumIterations(20);
 
         debugDrawer = new DebugDrawer();
         debugDrawer.setDebugMode(btIDebugDraw.DebugDrawModes.DBG_MAX_DEBUG_DRAW_MODE);
@@ -466,28 +483,20 @@ public class ThreeDManager implements Disposable {
         shadowLight.direction.set(1, -1.5f, 1).nor();
         shadowLight.color.set(com.badlogic.gdx.graphics.Color.WHITE);
         shadowLight.intensity = 5.0f;
-
         shadowLight.getCamera().far = 1000f;
-
         sceneManager.environment.add(shadowLight);
-
         pbrLight = shadowLight;
-
         net.mgsx.gltf.scene3d.utils.IBLBuilder iblBuilder = net.mgsx.gltf.scene3d.utils.IBLBuilder.createOutdoor(pbrLight);
 
         diffuseCubemap = iblBuilder.buildIrradianceMap(256);
         specularCubemap = iblBuilder.buildRadianceMap(10);
         iblBuilder.dispose();
-
         brdfLUT = new com.badlogic.gdx.graphics.Texture(Gdx.files.classpath("net/mgsx/gltf/shaders/brdfLUT.png"));
-
         sceneManager.environment.set(new net.mgsx.gltf.scene3d.attributes.PBRTextureAttribute(PBRTextureAttribute.BRDFLUTTexture, brdfLUT));
         sceneManager.environment.set(new net.mgsx.gltf.scene3d.attributes.PBRCubemapAttribute(net.mgsx.gltf.scene3d.attributes.PBRCubemapAttribute.DiffuseEnv, diffuseCubemap));
         sceneManager.environment.set(new net.mgsx.gltf.scene3d.attributes.PBRCubemapAttribute(net.mgsx.gltf.scene3d.attributes.PBRCubemapAttribute.SpecularEnv, specularCubemap));
 
-        dynamicsWorld.getSolverInfo().setNumIterations(20);
-
-        lightProxyModel = modelBuilder.createSphere(0.25f, 0.25f, 0.25f, 8, 8, 
+        lightProxyModel = modelBuilder.createSphere(0.25f, 0.25f, 0.25f, 8, 8,
                 new com.badlogic.gdx.graphics.g3d.Material(ColorAttribute.createDiffuse(com.badlogic.gdx.graphics.Color.YELLOW)),
                 com.badlogic.gdx.graphics.VertexAttributes.Usage.Position | com.badlogic.gdx.graphics.VertexAttributes.Usage.Normal);
         particleProxyModel = modelBuilder.createSphere(0.25f, 0.25f, 0.25f, 8, 8,
@@ -497,35 +506,140 @@ public class ThreeDManager implements Disposable {
         Material camMat = new Material(ColorAttribute.createDiffuse(Color.CYAN));
         Model box = modelBuilder.createBox(0.4f, 0.4f, 0.4f, camMat, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
         Model cone = modelBuilder.createCone(0.4f, 0.5f, 0.4f, 4, camMat, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
-
         ModelBuilder mb = new ModelBuilder();
         mb.begin();
-
         mb.part("box", box.meshes.get(0), GL20.GL_TRIANGLES, camMat);
-
-        Node coneNode = mb.node(); 
+        Node coneNode = mb.node();
         coneNode.id = "cone";
-        
         coneNode.rotation.set(Vector3.X, 90);
-        coneNode.translation.set(0, 0, -0.2f); 
-
+        coneNode.translation.set(0, 0, -0.2f);
         mb.part("cone", cone.meshes.get(0), GL20.GL_TRIANGLES, camMat);
-
         cameraProxyModel = mb.end();
 
         wireframeBatch = new ModelBatch();
         Material wireframeMaterial = new Material(ColorAttribute.createDiffuse(Color.WHITE));
         long usage = VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal;
-
         wireframeBoxModel = modelBuilder.createBox(1f, 1f, 1f, GL20.GL_LINES, wireframeMaterial, usage);
         wireframeSphereModel = modelBuilder.createSphere(1f, 1f, 1f, 16, 12, GL20.GL_LINES, wireframeMaterial, usage);
         wireframeCylinderModel = modelBuilder.createCylinder(1f, 2f, 1f, 16, GL20.GL_LINES, wireframeMaterial, usage);
 
         vfxManager = new VfxManager(Pixmap.Format.RGBA8888);
-        sceneFbo2 = new FrameBuffer(Pixmap.Format.RGBA8888, Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), true);
-        sceneFbo2.getColorBufferTexture().setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
-        sceneFboRegion = new TextureRegion(sceneFbo2.getColorBufferTexture());
-        sceneFboRegion.flip(false, true);
+        sceneFboRegion = new TextureRegion();
+        blitBatch = new SpriteBatch();
+        blitCamera = new OrthographicCamera();
+        resize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+
+        String depthVSH = "attribute vec3 a_position;\n" +
+                "attribute vec3 a_normal;\n" +
+                "#ifdef boneWeight0Flag\nattribute vec2 a_boneWeight0;\n#endif\n" +
+                "#ifdef boneWeight1Flag\nattribute vec2 a_boneWeight1;\n#endif\n" +
+                "#ifdef boneWeight2Flag\nattribute vec2 a_boneWeight2;\n#endif\n" +
+                "#ifdef boneWeight3Flag\nattribute vec2 a_boneWeight3;\n#endif\n" +
+                "#ifdef numBones\nuniform mat4 u_bones[numBones];\n#endif\n" +
+                "uniform mat4 u_projViewTrans;\n" +
+                "uniform mat4 u_worldTrans;\n" +
+                "uniform mat4 u_viewTrans;\n" +
+                "varying vec3 v_normal;\n" +
+                "varying float v_viewZ;\n" +
+                "void main() {\n" +
+                "    mat4 skinning = mat4(1.0);\n" +
+                "    #ifdef numBones\n" +
+                "    skinning = (a_boneWeight0.y * u_bones[int(a_boneWeight0.x)])\n" +
+                "               + (a_boneWeight1.y * u_bones[int(a_boneWeight1.x)])\n" +
+                "               + (a_boneWeight2.y * u_bones[int(a_boneWeight2.x)])\n" +
+                "               + (a_boneWeight3.y * u_bones[int(a_boneWeight3.x)]);\n" +
+                "    #endif\n" +
+                "    vec4 wpos = u_worldTrans * skinning * vec4(a_position, 1.0);\n" +
+                "    vec4 vpos = u_viewTrans * wpos;\n" +
+                "    v_viewZ = -vpos.z;\n" +
+                "    v_normal = normalize(mat3(u_worldTrans) * a_normal);\n" +
+                "    gl_Position = u_projViewTrans * wpos;\n" +
+                "}";
+
+        String depthFSH = "#ifdef GL_ES\nprecision highp float;\n#endif\n" +
+                "varying vec3 v_normal;\n" +
+                "varying float v_viewZ;\n" +
+                "uniform float u_farPlane;\n" +
+                "uniform float u_objReflectivity;\n" +
+                "vec2 packNormal(vec3 v) {\n" +
+                "    vec2 p = v.xy * (1.0 / (abs(v.x) + abs(v.y) + abs(v.z)));\n" +
+                "    if (v.z <= 0.0) p = (1.0 - abs(p.yx)) * vec2(v.x >= 0.0 ? 1.0 : -1.0, v.y >= 0.0 ? 1.0 : -1.0);\n" +
+                "    return p * 0.5 + 0.5;\n" +
+                "}\n" +
+                "vec2 packDepth(float d) {\n" +
+                "    float n = clamp(d / u_farPlane, 0.0, 1.0);\n" +
+                "    vec2 enc = vec2(1.0, 255.0) * n;\n" +
+                "    enc = fract(enc);\n" +
+                "    enc.x -= enc.y * (1.0/255.0);\n" +
+                "    return enc;\n" +
+                "}\n" +
+                "void main() {\n" +
+                "    vec2 d = packDepth(v_viewZ);\n" +
+                "    gl_FragColor = vec4(d.x, d.y, packNormal(normalize(v_normal)).x, u_objReflectivity * 0.00001 + packNormal(normalize(v_normal)).y);\n" +
+                "}";
+
+        depthShader = new ShaderProgram(depthVSH, depthFSH);
+        if (!depthShader.isCompiled()) {
+            Log.e("3DManager", "Depth Shader Error: " + depthShader.getLog());
+        }
+
+        depthShaderWrapper = new DepthShader(depthShader);
+
+        ShaderProvider depthShaderProvider = new DefaultShaderProvider() {
+            @Override
+            protected Shader createShader(Renderable renderable) {
+                return depthShaderWrapper;
+            }
+        };
+
+        depthBatch = new ModelBatch(depthShaderProvider);
+
+        materialBatch = new ModelBatch(new MaterialShaderProvider());
+
+
+        String fsrVsh = "attribute vec4 a_position;\n" +
+                "attribute vec4 a_color;\n" +
+                "attribute vec2 a_texCoord0;\n" +
+                "uniform mat4 u_projTrans;\n" +
+                "varying vec4 v_color;\n" +
+                "varying vec2 v_texCoords;\n" +
+                "void main() {\n" +
+                "    v_color = a_color;\n" +
+                "    v_texCoords = a_texCoord0;\n" +
+                "    gl_Position = u_projTrans * a_position;\n" +
+                "}";
+
+        String fsrFsh = "#ifdef GL_ES\nprecision highp float;\n#endif\n" +
+                "varying vec4 v_color;\n" +
+                "varying vec2 v_texCoords;\n" +
+                "uniform sampler2D u_texture;\n" +
+                "uniform vec2 u_texelSize;\n" +
+                "uniform float u_sharpness;\n" +
+                "void main() {\n" +
+
+
+                "    vec3 e = texture2D(u_texture, v_texCoords).rgb;\n" +
+                "    vec3 b = texture2D(u_texture, v_texCoords + vec2(0.0, -u_texelSize.y)).rgb;\n" +
+                "    vec3 d = texture2D(u_texture, v_texCoords + vec2(-u_texelSize.x, 0.0)).rgb;\n" +
+                "    vec3 f = texture2D(u_texture, v_texCoords + vec2(u_texelSize.x, 0.0)).rgb;\n" +
+                "    vec3 h = texture2D(u_texture, v_texCoords + vec2(0.0, u_texelSize.y)).rgb;\n" +
+                "    \n" +
+                "    vec3 minRGB = min(min(min(b, d), min(e, f)), h);\n" +
+                "    vec3 maxRGB = max(max(max(b, d), max(e, f)), h);\n" +
+                "    vec3 contrast = maxRGB - minRGB;\n" +
+                "    \n" +
+                "    vec3 w = u_sharpness * (1.0 - contrast);\n" +
+                "    w = clamp(w, 0.0, 1.0);\n" +
+                "    \n" +
+                "    vec3 finalColor = (b + d + f + h) * w + e;\n" +
+                "    finalColor = finalColor / (4.0 * w + 1.0);\n" +
+                "    gl_FragColor = vec4(finalColor, 1.0) * v_color;\n" +
+                "}";
+
+        fsrShader = new ShaderProgram(fsrVsh, fsrFsh);
+        if (!fsrShader.isCompiled()) {
+            Gdx.app.error("FSR Shader", fsrShader.getLog());
+        }
 
         eyeAdaptationManager = new EyeAdaptationManager();
 
@@ -534,39 +648,427 @@ public class ThreeDManager implements Disposable {
         currentConfig.qualityScale = 1.0f;
         updatePostProcessing(currentConfig);
 
-
-
-        //createGuaranteedTestEffect();
-
         panoramicConverter = new PanoramicConverter();
         iblBuilderCompat = new IBLBuilderCompat();
-        blitBatch = new SpriteBatch();
-        blitCamera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-        blitCamera.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
         createDefaultParticleTexture();
 
         contactListCallback = new NameAccumulatingContactCallback();
+    }
 
-        fogShader = new ShaderProgram(
-                Gdx.files.internal("shaders/fog.vs.glsl"),
-                Gdx.files.internal("shaders/fog.fs.glsl")
-        );
-        if (!fogShader.isCompiled()) {
-            Gdx.app.error("FogShader", "Compilation failed:\n" + fogShader.getLog());
+    public void attachRaySensor(String rayName, String objectId, float offX, float offY, float offZ, float dirX, float dirY, float dirZ, float distance) {
+        continuousRaySensors.removeValue(getSensorByName(rayName), false);
+
+        RaySensor sensor = new RaySensor();
+        sensor.rayName = rayName;
+        sensor.attachedObjectId = objectId;
+        sensor.localOffset.set(offX, offY, offZ);
+        sensor.localDirection.set(dirX, dirY, dirZ).nor();
+        sensor.distance = distance;
+
+        continuousRaySensors.add(sensor);
+    }
+
+    private RaySensor getSensorByName(String name) {
+        for (RaySensor s : continuousRaySensors) if (s.rayName.equals(name)) return s;
+        return null;
+    }
+
+    private final Vector3 tmpSensorPos = new Vector3();
+    private final Vector3 tmpSensorDir = new Vector3();
+    private final Vector3 tmpSensorEnd = new Vector3();
+
+    private void updateContinuousSensors() {
+        for (RaySensor sensor : continuousRaySensors) {
+            ModelInstance instance = sceneObjects.get(sensor.attachedObjectId);
+            if (instance == null) continue;
+
+            Matrix4 transform = instance.transform;
+
+            tmpSensorPos.set(sensor.localOffset).mul(transform);
+
+            tmpSensorDir.set(sensor.localDirection).rot(transform).nor();
+
+            tmpSensorEnd.set(tmpSensorPos).add(tmpSensorDir.scl(sensor.distance));
+
+            com.badlogic.gdx.physics.bullet.collision.ClosestRayResultCallback callback =
+                    new com.badlogic.gdx.physics.bullet.collision.ClosestRayResultCallback(tmpSensorPos, tmpSensorEnd);
+
+            dynamicsWorld.rayTest(tmpSensorPos, tmpSensorEnd, callback);
+
+            RayCastResult result = rayCastResults.get(sensor.rayName);
+            if (result == null) {
+                result = new RayCastResult();
+                rayCastResults.put(sensor.rayName, result);
+            }
+
+            if (callback.hasHit()) {
+                result.hasHit = true;
+                callback.getHitPointWorld(result.hitPoint);
+                callback.getHitNormalWorld(result.hitNormal);
+                result.hitDistance = tmpSensorPos.dst(result.hitPoint);
+
+                com.badlogic.gdx.physics.bullet.collision.btCollisionObject hitObject = callback.getCollisionObject();
+                result.hitObjectId = "";
+                for (Map.Entry<String, btRigidBody> entry : physicsBodies.entrySet()) {
+                    if (entry.getValue().equals(hitObject)) {
+                        result.hitObjectId = entry.getKey();
+                        break;
+                    }
+                }
+            } else {
+                result.hasHit = false;
+                result.hitObjectId = "";
+                result.hitDistance = -1.0f;
+            }
+
+            callback.dispose();
+        }
+    }
+
+    public void setSoundInstanceVolume(String instanceName, float volume) {
+        for (PlayableAudio audio : active3DSounds) {
+            if (instanceName.equals(audio.getInstanceName())) {
+                audio.setBaseVolume(volume / 100f);
+            }
+        }
+    }
+
+    public void setSoundInstancePitch(String instanceName, float pitch) {
+        for (PlayableAudio audio : active3DSounds) {
+            if (instanceName.equals(audio.getInstanceName())) {
+                audio.setPitch(pitch);
+            }
+        }
+    }
+
+    public void setAnimationSpeed(String objectId, float speed) {
+        com.badlogic.gdx.graphics.g3d.utils.AnimationController controller = animationControllers.get(objectId);
+        if (controller != null && controller.current != null) {
+            controller.current.speed = speed;
+        }
+    }
+
+    public void setParticleEmissionRate(String objectId, float rate) {
+        com.badlogic.gdx.graphics.g3d.particles.ParticleEffect effect = activeParticleEffects.get(objectId);
+        if (effect != null) {
+            for (com.badlogic.gdx.graphics.g3d.particles.ParticleController controller : effect.getControllers()) {
+                if (controller.emitter instanceof com.badlogic.gdx.graphics.g3d.particles.emitters.RegularEmitter) {
+                    com.badlogic.gdx.graphics.g3d.particles.emitters.RegularEmitter emitter =
+                            (com.badlogic.gdx.graphics.g3d.particles.emitters.RegularEmitter) controller.emitter;
+                    emitter.getEmission().setHigh(rate);
+                    if (rate <= 0.01f) emitter.getEmission().setLow(0f);
+                }
+            }
+        }
+    }
+
+    public void rotateCameraRelative(float pitch, float yaw, float roll) {
+        if (yaw != 0) camera.rotate(Vector3.Y, yaw);
+
+        if (pitch != 0) {
+            tmpVec.set(camera.direction).crs(camera.up).nor();
+            camera.rotate(tmpVec, pitch);
         }
 
-        fullscreenQuad = new Mesh(true, 4, 6,
-                new VertexAttribute(VertexAttributes.Usage.Position, 2, "a_position"),
-                new VertexAttribute(VertexAttributes.Usage.TextureCoordinates, 2, "a_texCoord0")
-        );
-        fullscreenQuad.setVertices(new float[] {
-                -1f, -1f, 0f, 0f,
-                1f, -1f, 1f, 0f,
-                1f,  1f, 1f, 1f,
-                -1f,  1f, 0f, 1f
-        });
-        fullscreenQuad.setIndices(new short[] { 0, 1, 2, 2, 3, 0 });
+        if (roll != 0) camera.rotate(camera.direction, roll);
+
+        camera.update();
+    }
+
+    public void configureTouchRotation(boolean enabled, float sensitivity, boolean blockByUI,
+                                       float x, float y, float w, float h) {
+        this.touchRotationEnabled = enabled;
+        this.sensitivity = sensitivity;
+        this.blockByUI = blockByUI;
+        this.rotationAreaX = x;
+        this.rotationAreaY = y;
+        this.rotationAreaW = w;
+        this.rotationAreaH = h;
+    }
+
+    public boolean handleTouchDown(int screenX, int screenY, int pointer, Stage uiStage, Stage stage2d) {
+        if (!touchRotationEnabled || activePointerId != -1) return false;
+
+        float px = (rotationAreaX / 100f) * Gdx.graphics.getWidth();
+        float py = (rotationAreaY / 100f) * Gdx.graphics.getHeight();
+        float pw = (rotationAreaW / 100f) * Gdx.graphics.getWidth();
+        float ph = (rotationAreaH / 100f) * Gdx.graphics.getHeight();
+        float invY = Gdx.graphics.getHeight() - screenY;
+
+        if (screenX < px || screenX > px + pw || invY < py || invY > py + ph) return false;
+
+        if (blockByUI) {
+            com.badlogic.gdx.math.Vector2 uiCoords = uiStage.screenToStageCoordinates(new com.badlogic.gdx.math.Vector2(screenX, screenY));
+            Actor hitUI = uiStage.hit(uiCoords.x, uiCoords.y, true);
+
+            if (hitUI != null && hitUI != uiStage.getRoot()) {
+                if (hitUI.getListeners().size > 0) return false;
+            }
+
+            com.badlogic.gdx.math.Vector2 s2dCoords = stage2d.screenToStageCoordinates(new com.badlogic.gdx.math.Vector2(screenX, screenY));
+            Actor hit2d = stage2d.hit(s2dCoords.x, s2dCoords.y, true);
+
+            if (hit2d != null && hit2d != stage2d.getRoot()) {
+                if (hit2d.getListeners().size > 0) return false;
+            }
+        }
+
+
+        activePointerId = pointer;
+        lastTouchX = screenX;
+        lastTouchY = screenY;
+
+        return false;
+    }
+
+    public void handleTouchDragged(int screenX, int screenY, int pointer) {
+        if (activePointerId == pointer) {
+            float deltaX = screenX - lastTouchX;
+            float deltaY = screenY - lastTouchY;
+
+            addCameraRotation(-deltaX * sensitivity, -deltaY * sensitivity);
+
+            lastTouchX = screenX;
+            lastTouchY = screenY;
+        }
+    }
+
+    public void handleTouchUp(int pointer) {
+        if (activePointerId == pointer) {
+            activePointerId = -1;
+        }
+    }
+
+    public void setCameraFov(float fov) {
+        camera.fieldOfView = fov;
+        camera.update();
+    }
+
+    public void startCameraShake(float intensity, float duration) {
+        this.shakeIntensity = intensity;
+        this.shakeDuration = duration;
+        this.shakeTimer = duration;
+    }
+
+    private void applyCameraEffects(float delta) {
+        if (shakeTimer > 0) {
+            float currentPower = shakeIntensity * (shakeTimer / shakeDuration);
+
+            currentShakeOffset.set(
+                    (float)(Math.random() - 0.5f) * 2 * currentPower,
+                    (float)(Math.random() - 0.5f) * 2 * currentPower,
+                    (float)(Math.random() - 0.5f) * 2 * currentPower
+            );
+
+            camera.position.add(currentShakeOffset);
+            shakeTimer -= delta;
+            camera.update();
+        }
+    }
+
+    private final Vector3[] chosenDirections = new Vector3[8];
+    private final Map<String, Array<Vector3>> targetTrails = new HashMap<>();
+    private float trailTimer = 0;
+    private static final float TRAIL_DROP_INTERVAL = 0.5f;
+    private static final int MAX_TRAIL_POINTS = 30;
+    private final Vector3 aiTmpTarget = new Vector3();
+
+    public void setAI(String objectId, AIComponent settings) {
+        if (settings == null || settings.mode == AIComponent.Mode.OFF) {
+            activeAIs.remove(objectId);
+            return;
+        }
+        activeAIs.put(objectId, settings);
+    }
+
+    private void initAIDirections() {
+        for (int i = 0; i < 8; i++) {
+            float angle = i * 45f * MathUtils.degreesToRadians;
+            chosenDirections[i] = new Vector3(MathUtils.sin(angle), 0, MathUtils.cos(angle));
+        }
+    }
+
+    private void updateAIProcessing(float delta) {
+        if (editorMode) return;
+
+
+        trailTimer += delta;
+        if (trailTimer >= 0.5f) {
+            trailTimer = 0;
+            java.util.Set<String> trackedIds = new java.util.HashSet<>();
+            for (AIComponent ai : activeAIs.values()) {
+                if (ai.mode == AIComponent.Mode.FOLLOW && !ai.targetId.isEmpty()) trackedIds.add(ai.targetId);
+            }
+            for (String tId : trackedIds) {
+                ModelInstance tInst = sceneObjects.get(tId);
+                if (tInst != null) {
+                    Array<Vector3> trail = targetTrails.computeIfAbsent(tId, k -> new Array<>());
+                    Vector3 p = tInst.transform.getTranslation(new Vector3());
+
+                    if (trail.size == 0 || trail.peek().dst(p) > 2.0f) {
+                        trail.add(new Vector3(p));
+                        if (trail.size > 40) trail.removeIndex(0);
+                    }
+                }
+            }
+        }
+
+
+        for (Map.Entry<String, AIComponent> entry : activeAIs.entrySet()) {
+            String id = entry.getKey();
+            AIComponent ai = entry.getValue();
+            ModelInstance instance = sceneObjects.get(id);
+            if (instance == null) continue;
+
+            instance.transform.getTranslation(tmpPos);
+            Vector3 currentPos = new Vector3(tmpPos);
+            Vector3 finalMoveTarget = new Vector3();
+
+
+            if (ai.mode == AIComponent.Mode.FOLLOW && !ai.targetId.isEmpty()) {
+                ModelInstance tInst = sceneObjects.get(ai.targetId);
+                if (tInst == null) continue;
+                Vector3 realTargetPos = tInst.transform.getTranslation(new Vector3());
+
+
+                castRay("ai_los_" + id, currentPos, realTargetPos.cpy().sub(currentPos));
+                boolean hasLOS = false;
+                if (getRayDidHit("ai_los_" + id) && getRaycastHitObjectId("ai_los_" + id).equals(ai.targetId)) {
+                    hasLOS = true;
+                }
+
+                if (hasLOS) {
+                    finalMoveTarget.set(realTargetPos);
+                } else {
+
+                    Array<Vector3> trail = targetTrails.get(ai.targetId);
+                    boolean pointFound = false;
+                    if (trail != null) {
+                        for (int i = trail.size - 1; i >= 0; i--) {
+                            Vector3 breadcrumb = trail.get(i);
+                            castRay("ai_bc_" + id, currentPos, breadcrumb.cpy().sub(currentPos));
+
+                            if (getRayDidHit("ai_bc_" + id) && getRaycastDistance("ai_bc_" + id) >= currentPos.dst(breadcrumb) - 0.5f) {
+                                finalMoveTarget.set(breadcrumb);
+                                pointFound = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (!pointFound) finalMoveTarget.set(realTargetPos);
+                }
+            } else {
+                finalMoveTarget.set(ai.targetPos);
+            }
+
+
+            float distToTarget = currentPos.dst(finalMoveTarget);
+            if (distToTarget <= ai.stopDistance) {
+                ai.currentVelocity.lerp(Vector3.Zero, delta * 5f);
+                stopPhysicsVelocity(id);
+                continue;
+            }
+
+            if (currentPos.dst(ai.lastPosition) < 0.02f) ai.stuckTimer += delta;
+            else ai.stuckTimer = 0;
+            ai.lastPosition.set(currentPos);
+
+
+            Vector3 desiredDir = finalMoveTarget.cpy().sub(currentPos).nor();
+
+
+            if (ai.stuckTimer > 0.7f) {
+                desiredDir.rotate(Vector3.Y, 45);
+            }
+
+            Vector3 bestMoveDir = new Vector3(desiredDir);
+            float bestScore = -1000f;
+
+
+            for (int i = 0; i < 12; i++) {
+                float angle = (i - 6) * 15f;
+                Vector3 rayDir = desiredDir.cpy().rotate(Vector3.Y, angle);
+
+                float obstacleDist = ai.detectionRange;
+                String rKey = "ai_fan_" + id + "_" + i;
+                castRay(rKey, currentPos, rayDir.cpy().scl(ai.detectionRange));
+
+                if (getRayDidHit(rKey)) {
+                    String hitId = getRaycastHitObjectId(rKey);
+                    if (!hitId.equals(ai.targetId) && !hitId.equals(id)) {
+                        obstacleDist = getRaycastDistance(rKey);
+                    }
+                }
+
+
+                float score = rayDir.dot(desiredDir) + (obstacleDist / ai.detectionRange) * 2.5f;
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestMoveDir.set(rayDir);
+                }
+            }
+
+
+
+            ai.currentVelocity.lerp(bestMoveDir.scl(ai.speed), delta * 4f);
+
+
+            Vector3 stepPos = currentPos.cpy().add(ai.currentVelocity.cpy().nor().scl(0.6f)).add(0, ai.stepHeight, 0);
+            castRay("step_" + id, stepPos, new Vector3(0, -ai.stepHeight * 2.5f, 0));
+            float jumpVel = 0;
+            if (getRayDidHit("step_" + id)) {
+                float floorY = getRayHitPointY("step_" + id);
+                if (floorY > currentPos.y + 0.1f) jumpVel = 5f;
+                else if (floorY < currentPos.y - 0.2f) jumpVel = -5f;
+            }
+
+
+            float targetYaw = (float) Math.toDegrees(Math.atan2(ai.currentVelocity.x, ai.currentVelocity.z));
+            instance.transform.getRotation(tmpRot, true);
+            float lerpYaw = MathUtils.lerpAngleDeg(tmpRot.getYaw(), targetYaw, delta * 6f);
+            Quaternion finalRot = new Quaternion().setEulerAngles(lerpYaw, 0, 0);
+
+            btRigidBody body = physicsBodies.get(id);
+            if (body != null && body.getInvMass() > 0) {
+                body.activate();
+                body.setLinearVelocity(new Vector3(ai.currentVelocity.x, jumpVel != 0 ? jumpVel : body.getLinearVelocity().y, ai.currentVelocity.z));
+                Matrix4 m = body.getWorldTransform();
+                m.set(currentPos, finalRot);
+                body.setWorldTransform(m);
+            } else {
+                currentPos.add(ai.currentVelocity.cpy().scl(delta));
+                currentPos.y += jumpVel * delta;
+                instance.transform.set(currentPos, finalRot, instance.transform.getScale(new Vector3()));
+            }
+        }
+    }
+
+
+    private Vector3 calculateRayAvoidance(String ownerId, Vector3 origin, Vector3 rayDir, String targetId, float weight) {
+        Vector3 force = new Vector3();
+        String rayKey = "ai_ray_" + ownerId + rayDir.hashCode();
+
+        castRay(rayKey, origin, rayDir);
+
+        if (getRayDidHit(rayKey)) {
+            String hitId = getRaycastHitObjectId(rayKey);
+
+            if (!hitId.equals(targetId) && !hitId.equals(ownerId)) {
+                Vector3 hitNormal = new Vector3(getRayHitNormalX(rayKey), 0, getRayHitNormalZ(rayKey));
+                float hitDist = getRaycastDistance(rayKey);
+
+
+                float multiplier = (1.0f - (hitDist / rayDir.len())) * weight;
+                force.set(hitNormal).scl(multiplier * 5.0f);
+            }
+        }
+        return force;
+    }
+
+    private void stopPhysicsVelocity(String id) {
+        btRigidBody body = physicsBodies.get(id);
+        if (body != null) body.setLinearVelocity(new Vector3(0, body.getLinearVelocity().y, 0));
     }
 
     public void flagObjectForHiddenSpawn(String objectId) {
@@ -578,12 +1080,6 @@ public class ThreeDManager implements Disposable {
         ModelInstance proxyInstance = new ModelInstance(particleProxyModel);
         editorProxies.put(ownerId, proxyInstance);
     }
-
-    public void setFog(FogComponent fog) {
-        this.currentFog = fog;
-    }
-
-
 
     private BillboardParticleBatch getBatchFor(Texture texture, boolean isAdditive) {
         ensureParticleSystemInitialized();
@@ -620,7 +1116,6 @@ public class ThreeDManager implements Disposable {
 
     private void updateParticles(float delta) {
         if (!particleSystemInitialized || activeParticleEffects.isEmpty()) return;
-        if (activeParticleEffects.isEmpty()) return;
 
 
         particleSystem.begin();
@@ -633,53 +1128,6 @@ public class ThreeDManager implements Disposable {
 
 
         particleSystem.end();
-    }
-
-    public void createGuaranteedTestEffect() {
-        Gdx.app.postRunnable(() -> {
-            if (defaultParticleTexture == null) {
-                Gdx.app.error("PARTICLE_DEBUG", "Default particle texture is null!");
-                return;
-            }
-
-            BillboardParticleBatch batch = getBatchFor(defaultParticleTexture, false);
-
-            ParticleEffect effect = new ParticleEffect();
-            RegularEmitter emitter = new RegularEmitter();
-            BillboardRenderer renderer = new BillboardRenderer(batch);
-
-            com.badlogic.gdx.graphics.g3d.particles.ParticleController controller =
-                    new com.badlogic.gdx.graphics.g3d.particles.ParticleController("GUARANTEE_TEST", emitter, renderer);
-
-
-            emitter.setContinuous(true);
-            emitter.getDuration().setLow(3000);
-            emitter.getEmission().setHigh(50);
-            emitter.getLife().setHigh(3000);
-            emitter.setMaxParticleCount(500);
-
-
-            controller.influencers.add(new RegionInfluencer.Single(new TextureRegion(defaultParticleTexture)));
-            ScaleInfluencer scale = new ScaleInfluencer();
-            scale.value.setHigh(5f, 10f);
-            controller.influencers.add(scale);
-            ColorInfluencer.Single col = new ColorInfluencer.Single();
-            col.colorValue.setColors(new float[]{1, 0, 0});
-            col.alphaValue.setHigh(1f);
-            controller.influencers.add(col);
-            PointSpawnShapeValue pointSpawn = new PointSpawnShapeValue();
-            controller.influencers.add(new com.badlogic.gdx.graphics.g3d.particles.influencers.SpawnInfluencer(pointSpawn));
-
-
-            effect.getControllers().add(controller);
-            effect.init();
-            effect.start();
-            effect.setTransform(new Matrix4().setToTranslation(0, 5, 0));
-
-            particleSystem.add(effect);
-            activeParticleEffects.put("GUARANTEE_TEST", effect);
-            Gdx.app.log("PARTICLE_DEBUG", "GUARANTEE_TEST effect created and started using managed batch.");
-        });
     }
 
     private void createDefaultParticleTexture() {
@@ -738,130 +1186,7 @@ public class ThreeDManager implements Disposable {
         particleSystem.add(batchAdditive);
 
         particleSystemInitialized = true;
-
-        // createGuaranteedTestEffect();
     }
-
-
-    /*public void updateParticleEffect(String objectId, ParticleComponent data, Matrix4 transform) {
-        Gdx.app.log("ParticleLifecycle", "--- Received update request for effect: " + objectId + " ---");
-        removeParticleEffect(objectId);
-
-        Gdx.app.postRunnable(() -> {
-            Gdx.app.log("ParticleLifecycle", "Runnable: Starting creation for " + objectId);
-
-            Texture texture = defaultParticleTexture;
-            if (data.texturePath != null && !data.texturePath.isEmpty()) {
-                Texture customTex = loadTexture(data.texturePath);
-                if (customTex != null) texture = customTex;
-            }
-            if (texture == null) {
-                Gdx.app.error("ParticleLifecycle", "Runnable: FAILED. Texture is null for " + objectId);
-                return;
-            }
-
-            BillboardParticleBatch targetBatch = getBatchFor(texture, data.isAdditive);
-
-            ParticleEffect effect = new ParticleEffect();
-            RegularEmitter emitter = new RegularEmitter();
-            BillboardRenderer renderer = new BillboardRenderer(targetBatch);
-            com.badlogic.gdx.graphics.g3d.particles.ParticleController controller =
-                    new com.badlogic.gdx.graphics.g3d.particles.ParticleController("PC_" + objectId, emitter, renderer);
-
-
-            emitter.setContinuous(data.looping);
-            emitter.getDuration().setLow(data.duration * 1000f);
-            emitter.getEmission().setHigh(data.emissionRate);
-            emitter.getLife().setHigh(data.startLifetime * 1000f);
-            emitter.setMaxParticleCount(data.maxParticles);
-
-
-
-
-            CylinderSpawnShapeValue spawnShape = new CylinderSpawnShapeValue();
-            spawnShape.setDimensions(data.coneRadius * 2, 0.01f, data.coneRadius * 2);
-            spawnShape.setEdges(true);
-            controller.influencers.add(new SpawnInfluencer(spawnShape));
-
-
-            DynamicsInfluencer dynamicsInfluencer = new DynamicsInfluencer();
-
-
-            DynamicsModifier.PolarAcceleration upwardVelocity = new DynamicsModifier.PolarAcceleration();
-            upwardVelocity.thetaValue.setHigh(0, data.coneAngle);
-            upwardVelocity.phiValue.setHigh(0, 360);
-            upwardVelocity.strengthValue.setHigh(data.startSpeed);
-
-            upwardVelocity.strengthValue.setTimeline(new float[] {0, 0.1f, 0.75f, 1});
-            upwardVelocity.strengthValue.setScaling(new float[] {1, 0.5f, 0.2f, 0});
-            dynamicsInfluencer.velocities.add(upwardVelocity);
-
-
-            DynamicsModifier.BrownianAcceleration turbulence = new DynamicsModifier.BrownianAcceleration();
-
-            turbulence.strengthValue.setHigh(data.startSpeed * 0.5f);
-            dynamicsInfluencer.velocities.add(turbulence);
-
-
-            if (data.gravityModifier != 0) {
-                DynamicsModifier.PolarAcceleration gravityForce = new DynamicsModifier.PolarAcceleration();
-                gravityForce.thetaValue.setHigh(180);
-                gravityForce.strengthValue.setHigh(9.81f * data.gravityModifier);
-                dynamicsInfluencer.velocities.add(gravityForce);
-            }
-            controller.influencers.add(dynamicsInfluencer);
-
-
-            controller.influencers.add(new RegionInfluencer.Single(new TextureRegion(texture)));
-
-
-            ColorInfluencer.Single colorInfluencer = new ColorInfluencer.Single();
-
-            colorInfluencer.colorValue.setColors(new float[] {data.startColor.r, data.startColor.g, data.startColor.b, data.endColor.r, data.endColor.g, data.endColor.b});
-            colorInfluencer.colorValue.setTimeline(new float[] {0, 1});
-
-
-
-            colorInfluencer.alphaValue.setHigh(1f);
-            colorInfluencer.alphaValue.setLow(0f);
-
-
-            colorInfluencer.alphaValue.setTimeline(new float[] {0, 1});
-            colorInfluencer.alphaValue.setScaling(new float[] {data.startColor.a, data.endColor.a});
-
-            controller.influencers.add(colorInfluencer);
-
-
-            ScaleInfluencer scaleInfluencer = new ScaleInfluencer();
-            scaleInfluencer.value.setTimeline(new float[] {0, 1});
-            scaleInfluencer.value.setScaling(new float[] {1, data.endSize / data.startSize});
-            scaleInfluencer.value.setHigh(data.startSize);
-            controller.influencers.add(scaleInfluencer);
-
-            if (data.rotationOverLifetime != 0 || data.startRotation != 0) {
-                DynamicsModifier.Rotational2D rotation = new DynamicsModifier.Rotational2D();
-
-                float rotationSpeed = data.rotationOverLifetime / data.startLifetime;
-                rotation.strengthValue.setHigh(rotationSpeed);
-                dynamicsInfluencer.velocities.add(rotation);
-
-                if (data.startRotation != 0) {
-
-                }
-            }
-
-
-            effect.getControllers().add(controller);
-            effect.init();
-            effect.start();
-            effect.setTransform(transform);
-
-            particleSystem.add(effect);
-            activeParticleEffects.put(objectId, effect);
-
-            Gdx.app.log("ParticleLifecycle", "Runnable: Effect " + objectId + " created successfully using composite dynamics.");
-        });
-    }*/
 
     public void updateParticleEffect(String objectId, ParticleComponent data, Matrix4 transform) {
         removeParticleEffect(objectId);
@@ -888,34 +1213,7 @@ public class ThreeDManager implements Disposable {
             emitter.getLife().setHigh(data.startLifetime * 1000f);
             emitter.setMaxParticleCount(data.maxParticles);
 
-            com.badlogic.gdx.graphics.g3d.particles.values.PrimitiveSpawnShapeValue shapeValue;
-
-            switch (data.spawnShape) {
-                case POINT:
-                    shapeValue = new com.badlogic.gdx.graphics.g3d.particles.values.PointSpawnShapeValue();
-                    break;
-                case BOX:
-                    com.badlogic.gdx.graphics.g3d.particles.values.RectangleSpawnShapeValue rect =
-                            new com.badlogic.gdx.graphics.g3d.particles.values.RectangleSpawnShapeValue();
-                    rect.setDimensions(data.spawnSize.x * 2, data.spawnSize.y * 2, data.spawnSize.z * 2);
-                    shapeValue = rect;
-                    break;
-                case SPHERE:
-                    com.badlogic.gdx.graphics.g3d.particles.values.EllipseSpawnShapeValue ellipse =
-                            new com.badlogic.gdx.graphics.g3d.particles.values.EllipseSpawnShapeValue();
-                    ellipse.setDimensions(data.spawnSize.x * 2, data.spawnSize.y * 2, data.spawnSize.z * 2);
-                    shapeValue = ellipse;
-                    break;
-                case CYLINDER:
-                default:
-                    com.badlogic.gdx.graphics.g3d.particles.values.CylinderSpawnShapeValue cyl =
-                            new com.badlogic.gdx.graphics.g3d.particles.values.CylinderSpawnShapeValue();
-                    cyl.setDimensions(data.spawnSize.x * 2, data.spawnSize.y, data.spawnSize.z * 2);
-                    shapeValue = cyl;
-                    break;
-            }
-
-            shapeValue.setEdges(data.spawnOnSurface);
+            PrimitiveSpawnShapeValue shapeValue = getPrimitiveSpawnShapeValue(data);
 
             controller.influencers.add(new com.badlogic.gdx.graphics.g3d.particles.influencers.SpawnInfluencer(shapeValue));
 
@@ -982,6 +1280,39 @@ public class ThreeDManager implements Disposable {
         });
     }
 
+    @NonNull
+    private static PrimitiveSpawnShapeValue getPrimitiveSpawnShapeValue(ParticleComponent data) {
+        PrimitiveSpawnShapeValue shapeValue;
+
+        switch (data.spawnShape) {
+            case POINT:
+                shapeValue = new PointSpawnShapeValue();
+                break;
+            case BOX:
+                com.badlogic.gdx.graphics.g3d.particles.values.RectangleSpawnShapeValue rect =
+                        new com.badlogic.gdx.graphics.g3d.particles.values.RectangleSpawnShapeValue();
+                rect.setDimensions(data.spawnSize.x * 2, data.spawnSize.y * 2, data.spawnSize.z * 2);
+                shapeValue = rect;
+                break;
+            case SPHERE:
+                com.badlogic.gdx.graphics.g3d.particles.values.EllipseSpawnShapeValue ellipse =
+                        new com.badlogic.gdx.graphics.g3d.particles.values.EllipseSpawnShapeValue();
+                ellipse.setDimensions(data.spawnSize.x * 2, data.spawnSize.y * 2, data.spawnSize.z * 2);
+                shapeValue = ellipse;
+                break;
+            case CYLINDER:
+            default:
+                com.badlogic.gdx.graphics.g3d.particles.values.CylinderSpawnShapeValue cyl =
+                        new com.badlogic.gdx.graphics.g3d.particles.values.CylinderSpawnShapeValue();
+                cyl.setDimensions(data.spawnSize.x * 2, data.spawnSize.y, data.spawnSize.z * 2);
+                shapeValue = cyl;
+                break;
+        }
+
+        shapeValue.setEdges(data.spawnOnSurface);
+        return shapeValue;
+    }
+
     private void applyFloatGraph(com.badlogic.gdx.graphics.g3d.particles.values.ScaledNumericValue libgdxVal,
                                  List<ParticleCurvePoint<Float>> graph) {
         if (graph.isEmpty()) return;
@@ -1039,7 +1370,6 @@ public class ThreeDManager implements Disposable {
     public void updateParticleTransform(String objectId, Matrix4 transform) {
         ParticleEffect effect = activeParticleEffects.get(objectId);
         if (effect != null) {
-            //Gdx.app.log("ParticleTransform", "Updating transform for " + objectId);
             effect.setTransform(transform);
         }
     }
@@ -1057,6 +1387,7 @@ public class ThreeDManager implements Disposable {
             if (!config.isActive) {
                 vfxManager.removeAllEffects();
                 userEffects.clear();
+                setDepthRender(false);
                 return;
             }
 
@@ -1086,10 +1417,99 @@ public class ThreeDManager implements Disposable {
                 vfxManager.addEffect(exposureEffect);
             }
 
+            this.currentUpscaler = null;
+
             for (PostProcessingData data : config.effects) {
                 if (!data.isEnabled) continue;
 
-                if (data instanceof PostProcessingData.Bloom) {
+                if (data instanceof PostProcessingData.Upscaler) {
+                    this.currentUpscaler = (PostProcessingData.Upscaler) data;
+                    continue;
+                }
+                else if (data instanceof PostProcessingData.SSAO) {
+                    setDepthRender(true);
+                    PostProcessingData.SSAO ssaoData = (PostProcessingData.SSAO) data;
+
+                    if (ssaoEffect == null) {
+                        ssaoEffect = new SsaoEffect();
+                    }
+
+                    ssaoEffect.setCamera(camera);
+                    ssaoEffect.setDepthTexture(depthFbo.getColorBufferTexture());
+                    ssaoEffect.setParams(ssaoData.radius, ssaoData.intensity, ssaoData.bias);
+
+                    vfxManager.addEffect(ssaoEffect);
+                }
+                else if (data instanceof PostProcessingData.RayTracing) {
+                    setDepthRender(true);
+                    PostProcessingData.RayTracing rt = (PostProcessingData.RayTracing) data;
+
+                    if (rayTracingEffect == null) rayTracingEffect = new SsrRayTracingEffect();
+
+                    rayTracingEffect.setCamera(camera);
+                    rayTracingEffect.setDepthTexture(depthFbo.getColorBufferTexture());
+
+                    rayTracingEffect.setParams(rt.steps, rt.reflectivity, rt.thickness, rt.maxDistance, rt.stride, rt.edgeFade);
+
+                    vfxManager.addEffect(rayTracingEffect);
+                } else if (data instanceof PostProcessingData.GodRays) {
+                    setDepthRender(true);
+                    PostProcessingData.GodRays grData = (PostProcessingData.GodRays) data;
+                    if (godRaysEffect == null) godRaysEffect = new GodRaysEffect();
+
+                    godRaysEffect.setCamera(camera);
+                    godRaysEffect.setDepthTexture(depthFbo.getColorBufferTexture());
+                    godRaysEffect.setSunDirection(getSunLightDirection());
+
+                    godRaysEffect.exposure = grData.exposure;
+                    godRaysEffect.decay = grData.decay;
+                    godRaysEffect.density = grData.density;
+                    godRaysEffect.weight = grData.weight;
+
+                    vfxManager.addEffect(godRaysEffect);
+                } else if (data instanceof PostProcessingData.HeightFog) {
+                    setDepthRender(true);
+                    PostProcessingData.HeightFog fogData = (PostProcessingData.HeightFog) data;
+                    if (heightFogEffect == null) heightFogEffect = new HeightFogEffect();
+                    heightFogEffect.setCamera(camera);
+                    heightFogEffect.setDepthTexture(depthFbo.getColorBufferTexture());
+                    heightFogEffect.fogDensity = fogData.density;
+                    heightFogEffect.heightFalloff = fogData.falloff;
+                    heightFogEffect.fogHeight = fogData.height;
+                    heightFogEffect.fogColor.set(fogData.color);
+                    vfxManager.addEffect(heightFogEffect);
+                }else if (data instanceof PostProcessingData.VolumetricFog) {
+                    setDepthRender(true);
+                    PostProcessingData.VolumetricFog vfData = (PostProcessingData.VolumetricFog) data;
+
+                    if (volumetricFogEffect == null) volumetricFogEffect = new VolumetricFogEffect();
+
+                    volumetricFogEffect.setCamera(camera);
+                    volumetricFogEffect.setDepthTexture(depthFbo.getColorBufferTexture());
+
+                    if (pbrLight instanceof net.mgsx.gltf.scene3d.lights.DirectionalShadowLight) {
+                        net.mgsx.gltf.scene3d.lights.DirectionalShadowLight sl = (net.mgsx.gltf.scene3d.lights.DirectionalShadowLight) pbrLight;
+                        volumetricFogEffect.setShadowMap(sl.getFrameBuffer().getColorBufferTexture(), sl.getCamera().combined);
+                        volumetricFogEffect.setLightParams(sl.direction, sl.color);
+                    }
+
+                    volumetricFogEffect.setParams(vfData.density, vfData.scattering, vfData.steps, vfData.maxDistance);
+                    vfxManager.addEffect(volumetricFogEffect);
+                } else if (data instanceof PostProcessingData.DepthOfField) {
+                    setDepthRender(true);
+                    PostProcessingData.DepthOfField dofData = (PostProcessingData.DepthOfField) data;
+
+                    if (dofEffect == null) dofEffect = new DepthOfFieldEffect();
+
+                    dofEffect.setCamera(camera);
+                    dofEffect.setDepthTexture(depthFbo.getColorBufferTexture());
+
+                    dofEffect.focusDistance = dofData.focusDistance;
+                    dofEffect.focusRange = dofData.focusRange;
+                    dofEffect.blurSize = dofData.blurSize;
+                    dofEffect.transition = dofData.transition;
+                    vfxManager.addEffect(dofEffect);
+                } else if (data instanceof PostProcessingData.Bloom) {
                     PostProcessingData.Bloom b = (PostProcessingData.Bloom) data;
 
                     BloomEffect effect = new OptimizedBloomEffect(b.size);
@@ -1141,6 +1561,7 @@ public class ThreeDManager implements Disposable {
                 else if (data instanceof PostProcessingData.OldTv) {
                     PostProcessingData.OldTv tv = (PostProcessingData.OldTv) data;
                     OldTvEffect effect = new OldTvEffect();
+                    effect.setTime(tv.strength);
                     vfxManager.addEffect(effect);
                 }
                 else if (data instanceof PostProcessingData.Gaussian) {
@@ -1158,12 +1579,10 @@ public class ThreeDManager implements Disposable {
                     vfxManager.addEffect(effect);
                 }
                 else if (data instanceof PostProcessingData.Crt) {
-                    PostProcessingData.Crt c = (PostProcessingData.Crt) data;
                     CrtEffect effect = new CrtEffect();
                     vfxManager.addEffect(effect);
                 }
                 else if (data instanceof PostProcessingData.Fisheye) {
-                    PostProcessingData.Fisheye f = (PostProcessingData.Fisheye) data;
                     FisheyeEffect effect = new FisheyeEffect();
                     vfxManager.addEffect(effect);
                 }
@@ -1180,19 +1599,9 @@ public class ThreeDManager implements Disposable {
                 }
                 else if (data instanceof PostProcessingData.LensFlare) {
                     PostProcessingData.LensFlare lf = (PostProcessingData.LensFlare) data;
-
                     AutoLensFlareEffect effect = new AutoLensFlareEffect();
-
-
-
-
                     effect.setThreshold(lf.threshold);
-
-
-
                     effect.setIntensity(lf.intensity * 2.0f);
-
-
                     effect.setDispersal(lf.dispersal);
                     effect.setSize(lf.size);
 
@@ -1313,22 +1722,6 @@ public class ThreeDManager implements Disposable {
         return true;
     }
 
-    public boolean createFixedConstraint(String constraintId, String objectIdA, String objectIdB, Matrix4 transformA, Matrix4 transformB) {
-        if (physicsConstraints.containsKey(constraintId)) return false;
-        btRigidBody bodyA = physicsBodies.get(objectIdA);
-        btRigidBody bodyB = physicsBodies.get(objectIdB);
-
-        if (bodyA == null || bodyB == null) {
-            Gdx.app.error("3DManager", "Cannot create fixed constraint: one or both bodies not found.");
-            return false;
-        }
-
-        btFixedConstraint constraint = new btFixedConstraint(bodyA, bodyB, transformA, transformB);
-        dynamicsWorld.addConstraint(constraint, true);
-        physicsConstraints.put(constraintId, constraint);
-        return true;
-    }
-
 
     public void removeConstraint(String constraintId) {
         btTypedConstraint constraint = physicsConstraints.remove(constraintId);
@@ -1341,7 +1734,7 @@ public class ThreeDManager implements Disposable {
 
     private final Vector3 cyanColorVec = new Vector3(Color.CYAN.r, Color.CYAN.g, Color.CYAN.b);
 
-    
+
 
     public void renderCameraFrustum(Matrix4 ownerTransform, float fov, float far) {
         if (debugDrawer == null) return;
@@ -1358,24 +1751,24 @@ public class ThreeDManager implements Disposable {
         tempCam.update();
 
         Vector3[] points = tempCam.frustum.planePoints;
-        
+
         debugDrawer.drawLine(points[4], points[5], cyanColorVec);
         debugDrawer.drawLine(points[5], points[6], cyanColorVec);
         debugDrawer.drawLine(points[6], points[7], cyanColorVec);
         debugDrawer.drawLine(points[7], points[4], cyanColorVec);
-        
+
         debugDrawer.drawLine(points[0], points[1], cyanColorVec);
         debugDrawer.drawLine(points[1], points[2], cyanColorVec);
         debugDrawer.drawLine(points[2], points[3], cyanColorVec);
         debugDrawer.drawLine(points[3], points[0], cyanColorVec);
-        
+
         debugDrawer.drawLine(points[0], points[4], cyanColorVec);
         debugDrawer.drawLine(points[1], points[5], cyanColorVec);
         debugDrawer.drawLine(points[2], points[6], cyanColorVec);
         debugDrawer.drawLine(points[3], points[7], cyanColorVec);
     }
 
-    
+
     public void setCameraRotation(Quaternion rotation) {
         camera.direction.set(0, 0, -1);
         rotation.transform(camera.direction);
@@ -1406,7 +1799,7 @@ public class ThreeDManager implements Disposable {
             }
             return;
         }
-        
+
         if (component.colliders.isEmpty()) {
             Gdx.app.error("3DManager", "setPhysicsStateFromComponent called with no colliders for object: " + objectId);
             return;
@@ -1415,7 +1808,7 @@ public class ThreeDManager implements Disposable {
         createCompoundPhysicsBody(objectId, instance, component, bodyMass);
     }
 
-    
+
     private void createCompoundPhysicsBody(String objectId, ModelInstance instance, PhysicsComponent component, float mass) {
         Log.d("PhysicsDebug", "--- Creating Compound Physics Body for '" + objectId + "' ---");
         Log.d("PhysicsDebug", "  - Input Mass: " + mass);
@@ -1477,8 +1870,12 @@ public class ThreeDManager implements Disposable {
             compoundShape.calculateLocalInertia(mass, localInertia);
         }
 
-        Matrix4 bodyTransform = new Matrix4(worldTransform);
-        bodyTransform.scale(1f / absScale.x, 1f / absScale.y, 1f / absScale.z);
+        Vector3 pos = new Vector3();
+        Quaternion rot = new Quaternion();
+        worldTransform.getTranslation(pos);
+        worldTransform.getRotation(rot, true);
+
+        Matrix4 bodyTransform = new Matrix4(pos, rot, new Vector3(1, 1, 1));
 
         Log.d("PhysicsDebug", "  - Final RigidBody Transform for creation:\n" + bodyTransform);
 
@@ -1569,14 +1966,14 @@ public class ThreeDManager implements Disposable {
                 batch.render(instance);
 
                 ModelInstance topSphere = new ModelInstance(wireframeSphereModel);
-                tmpVec.set(capsuleCenter).add(0, cylinderHeight / 2f, 0); 
+                tmpVec.set(capsuleCenter).add(0, cylinderHeight / 2f, 0);
                 topSphere.transform.scl(shapeData.radius * 2);
                 topSphere.transform.mulLeft(finalTransform.cpy().translate(tmpVec));
                 ((ColorAttribute)topSphere.materials.get(0).get(ColorAttribute.Diffuse)).color.set(color);
                 batch.render(topSphere);
 
                 ModelInstance bottomSphere = new ModelInstance(wireframeSphereModel);
-                tmpVec.set(capsuleCenter).add(0, -cylinderHeight / 2f, 0); 
+                tmpVec.set(capsuleCenter).add(0, -cylinderHeight / 2f, 0);
                 bottomSphere.transform.scl(shapeData.radius * 2);
                 bottomSphere.transform.mulLeft(finalTransform.cpy().translate(tmpVec));
                 ((ColorAttribute)bottomSphere.materials.get(0).get(ColorAttribute.Diffuse)).color.set(color);
@@ -1708,32 +2105,32 @@ public class ThreeDManager implements Disposable {
     }
 
     public void renameObject(String oldId, String newId) {
-        
+
         if (sceneObjects.containsKey(oldId)) {
             sceneObjects.put(newId, sceneObjects.remove(oldId));
         }
-        
+
         if (physicsBodies.containsKey(oldId)) {
             physicsBodies.put(newId, physicsBodies.remove(oldId));
         }
-        
+
         if (physicsResources.containsKey(oldId)) {
             physicsResources.put(newId, physicsResources.remove(oldId));
         }
-        
+
         if (animationControllers.containsKey(oldId)) {
             animationControllers.put(newId, animationControllers.remove(oldId));
         }
-        
+
         if (gltfObjectIds.contains(oldId)) {
             gltfObjectIds.remove(oldId);
             gltfObjectIds.add(newId);
         }
-        
+
         if (editorProxies.containsKey(oldId)) {
             editorProxies.put(newId, editorProxies.remove(oldId));
         }
-        
+
         if (pointLights.containsKey(oldId)) {
             pointLights.put(newId, pointLights.remove(oldId));
         }
@@ -1774,9 +2171,7 @@ public class ThreeDManager implements Disposable {
         if (this.currentShadowResolution != resolution) {
             this.currentShadowResolution = resolution;
 
-            Gdx.app.postRunnable(() -> {
-                recreateShadowLight();
-            });
+            Gdx.app.postRunnable(this::recreateShadowLight);
         }
     }
 
@@ -1918,6 +2313,9 @@ public class ThreeDManager implements Disposable {
         }
 
         if (!editorMode) {
+            updateContinuousSensors();
+            updateAIProcessing(delta);
+
             dynamicsWorld.stepSimulation(delta, 5, 1f / 60f);
 
             for (Map.Entry<String, btRigidBody> entry : physicsBodies.entrySet()) {
@@ -1975,6 +2373,7 @@ public class ThreeDManager implements Disposable {
         if (!editorMode) {
             update3DAudio();
         }
+        applyCameraEffects(delta);
         if (LOG_THREED_MANAGER_DEBUG) Log.d("TDM_DEBUG", "--- ThreeDManager.update() END ---");
     }
 
@@ -2047,7 +2446,8 @@ public class ThreeDManager implements Disposable {
 
         btRigidBody bodyB = physicsBodies.get(objectIdB);
         if (bodyB == null) {
-
+            Gdx.app.error("3DManager", "Cannot create spring constraint: bodyB not found.");
+            return false;
         }
 
         if (bodyA == null) {
@@ -2149,13 +2549,22 @@ public class ThreeDManager implements Disposable {
     }
 
     public void addCameraRotation(float yawDelta, float pitchDelta) {
-        if (cameraTargetId == null) return;
+        if (cameraTargetId != null) {
+            cameraYaw += yawDelta;
+            cameraPitch += pitchDelta;
 
-        cameraYaw += yawDelta;
-        cameraPitch += pitchDelta;
+            if (cameraPitch > 89.0f) cameraPitch = 89.0f;
+            if (cameraPitch < -89.0f) cameraPitch = -89.0f;
+        }
+        else {
+            camera.view.getRotation(tmpRot);
+            camera.rotate(Vector3.Y, yawDelta);
 
-        if (cameraPitch > 89.0f) cameraPitch = 89.0f;
-        if (cameraPitch < -89.0f) cameraPitch = -89.0f;
+            tmpVec.set(camera.direction).crs(camera.up).nor();
+            camera.rotate(tmpVec, pitchDelta);
+
+            camera.update();
+        }
     }
 
     public void setCameraRotation(float yaw, float pitch) {
@@ -2375,8 +2784,6 @@ public class ThreeDManager implements Disposable {
         camera.update();
         if (realisticMode) {
             sceneManager.renderShadows();
-        } else {
-
         }
     }
 
@@ -2401,14 +2808,6 @@ public class ThreeDManager implements Disposable {
             }
 
             modelBatch.begin(camera);
-
-            if (customShaderProvider != null) {
-                int shadowMapTextureUnit = 5;
-                shadowFBO.getColorBufferTexture().bind(shadowMapTextureUnit);
-                setShaderUniform("shadowMap", shadowMapTextureUnit);
-                customUniforms.put("u_lightSpaceMatrix", lightSpaceMatrix);
-                customUniforms.put("u_shadowMapSize", new Vector2(SHADOW_MAP_SIZE, SHADOW_MAP_SIZE));
-            }
 
             for (Map.Entry<String, ModelInstance> entry : sceneObjects.entrySet()) {
                 if (!inactiveRenderObjects.contains(entry.getKey())) {
@@ -2462,13 +2861,128 @@ public class ThreeDManager implements Disposable {
     private SpriteBatch blitBatch;
     private OrthographicCamera blitCamera;
     private TextureRegion sceneFboRegion;
-    private static final float HDR_EMULATION_FACTOR = 1.0f / 16.0f;
+
+    private boolean isDepthRenderEnabled = false;
+
+    public void setDepthRender(boolean value) {isDepthRenderEnabled = value; }
 
     public void render() {
         try {
             float delta = Gdx.graphics.getDeltaTime();
 
             updateParticles(delta);
+
+            camera.update();
+
+            if (isDepthRenderEnabled) {
+                depthFbo.begin();
+                Gdx.gl.glClearColor(1f, 1f, 1f, 1f);
+                Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
+                depthBatch.begin(camera);
+
+                if (realisticMode && sceneManager != null) {
+                    depthBatch.render(sceneManager.getRenderableProviders());
+                }
+                depthBatch.render(sceneObjects.values());
+
+                depthBatch.end();
+
+                PostProcessingData.DepthOfField dofData = null;
+                if (currentConfig != null && currentConfig.isActive) {
+                    for (PostProcessingData e : currentConfig.effects) {
+                        if (e instanceof PostProcessingData.DepthOfField && e.isEnabled) {
+                            dofData = (PostProcessingData.DepthOfField) e;
+                            break;
+                        }
+                    }
+                }
+
+                if (dofData != null && dofData.autoFocus) {
+                    int bufferSize = 4 * 4;
+                    java.nio.ByteBuffer pixels = com.badlogic.gdx.utils.BufferUtils.newByteBuffer(bufferSize);
+
+                    int x = depthFbo.getWidth() / 2;
+                    int y = depthFbo.getHeight() / 2;
+
+                    Gdx.gl.glReadPixels(x, y, 2, 2, GL20.GL_RGBA, GL20.GL_UNSIGNED_BYTE, pixels);
+                    pixels.rewind();
+
+                    float sumDist = 0;
+                    int validSamples = 0;
+
+                    for (int i = 0; i < 4; i++) {
+                        int r = pixels.get() & 0xFF;
+                        int g = pixels.get() & 0xFF;
+                        int b = pixels.get() & 0xFF;
+                        int a = pixels.get() & 0xFF;
+
+                        float normDist = (r / 255.0f) + (g / (255.0f * 255.0f));
+
+                        if (r == 128 && b != 128) {
+                            normDist = (b / 255.0f) + (a / (255.0f * 255.0f));
+                        }
+
+                        if (normDist > 0.0001f) {
+                            sumDist += normDist;
+                            validSamples++;
+                        }
+                    }
+
+                    float finalNormDist = (validSamples > 0) ? (sumDist / validSamples) : 1.0f;
+                    float targetDist = finalNormDist * camera.far;
+
+                    if (Float.isNaN(dofData.focusDistance) || dofData.focusDistance <= 0) {
+                        dofData.focusDistance = targetDist;
+                    } else {
+                        float lerpSpeed = dofData.autoFocusSpeed * delta;
+                        dofData.focusDistance += (targetDist - dofData.focusDistance) * Math.min(lerpSpeed, 1.0f);
+                    }
+
+                    if (dofEffect != null) dofEffect.focusDistance = dofData.focusDistance;
+                }
+
+                depthFbo.end();
+
+                materialFbo.begin();
+                Gdx.gl.glClearColor(0f, 0f, 0f, 0f);
+                Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
+                materialBatch.begin(camera);
+
+                if (realisticMode && sceneManager != null) {
+                    materialBatch.render(sceneManager.getRenderableProviders());
+                }
+                materialBatch.render(sceneObjects.values());
+
+                materialBatch.end();
+                materialFbo.end();
+
+                if (rayTracingEffect != null) {
+                    rayTracingEffect.setDepthTexture(depthFbo.getColorBufferTexture());
+                    rayTracingEffect.setMaterialTexture(materialFbo.getColorBufferTexture());
+                }
+                if (ssaoEffect != null && currentConfig.hasEffect(PostProcessingData.SSAO.class)) {
+                    ssaoEffect.setDepthTexture(depthFbo.getColorBufferTexture());
+                    ssaoEffect.setCamera(camera);
+                }
+                if (heightFogEffect != null) {
+                    heightFogEffect.setDepthTexture(depthFbo.getColorBufferTexture());
+                    heightFogEffect.setCamera(camera);
+                }
+                if (godRaysEffect != null) {
+                    godRaysEffect.setDepthTexture(depthFbo.getColorBufferTexture());
+                    godRaysEffect.setCamera(camera);
+                    godRaysEffect.setSunDirection(getSunLightDirection());
+                }
+                if (volumetricFogEffect != null && currentConfig.hasEffect(PostProcessingData.VolumetricFog.class)) {
+                    volumetricFogEffect.setCamera(camera);
+
+                    if (pbrLight instanceof net.mgsx.gltf.scene3d.lights.DirectionalShadowLight) {
+                        net.mgsx.gltf.scene3d.lights.DirectionalShadowLight sl = (net.mgsx.gltf.scene3d.lights.DirectionalShadowLight) pbrLight;
+                        volumetricFogEffect.setShadowMap(sl.getFrameBuffer().getColorBufferTexture(), sl.getCamera().combined);
+                        volumetricFogEffect.setLightParams(sl.direction, sl.color);
+                    }
+                }
+            }
 
             if (postprocessingEnabled) {
                 if (vfxManager != null) {
@@ -2496,20 +3010,38 @@ public class ThreeDManager implements Disposable {
                 vfxManager.cleanUpBuffers();
                 vfxManager.beginInputCapture();
 
-
                 blitCamera.update();
                 blitBatch.setProjectionMatrix(blitCamera.combined);
                 blitBatch.begin();
-
-                sceneFboRegion.flip(false, !sceneFboRegion.isFlipY());
-                sceneFboRegion.flip(false, false);
 
                 blitBatch.draw(sceneFboRegion, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
                 blitBatch.end();
 
                 vfxManager.endInputCapture();
                 vfxManager.applyEffects();
-                vfxManager.renderToScreen();
+                if (currentUpscaler != null && currentConfig.qualityScale < 1.0f) {
+                    com.badlogic.gdx.graphics.Texture resultTex = vfxManager.getResultBuffer().getTexture();
+
+                    resultTex.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+
+                    blitCamera.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+                    blitCamera.update();
+                    blitBatch.setProjectionMatrix(blitCamera.combined);
+
+                    blitBatch.setShader(fsrShader);
+                    blitBatch.begin();
+
+                    fsrShader.setUniformf("u_texelSize", 1.0f / resultTex.getWidth(), 1.0f / resultTex.getHeight());
+                    fsrShader.setUniformf("u_sharpness", currentUpscaler.sharpness);
+
+                    blitBatch.draw(resultTex, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight(),
+                            0, 0, resultTex.getWidth(), resultTex.getHeight(), false, true);
+
+                    blitBatch.end();
+                    blitBatch.setShader(null);
+                } else {
+                    vfxManager.renderToScreen();
+                }
             } else {
                 camera.update();
 
@@ -2530,14 +3062,6 @@ public class ThreeDManager implements Disposable {
                     }
 
                     modelBatch.begin(camera);
-
-                    if (customShaderProvider != null) {
-                        int shadowMapTextureUnit = 5;
-                        shadowFBO.getColorBufferTexture().bind(shadowMapTextureUnit);
-                        setShaderUniform("shadowMap", shadowMapTextureUnit);
-                        customUniforms.put("u_lightSpaceMatrix", lightSpaceMatrix);
-                        customUniforms.put("u_shadowMapSize", new Vector2(SHADOW_MAP_SIZE, SHADOW_MAP_SIZE));
-                    }
 
                     for (Map.Entry<String, ModelInstance> entry : sceneObjects.entrySet()) {
                         if (!inactiveRenderObjects.contains(entry.getKey())) {
@@ -2589,70 +3113,12 @@ public class ThreeDManager implements Disposable {
             Log.e("ThreeDManager", "FATAL 3D RENDER ERROR", e);
             e.printStackTrace();
 
+            try { depthFbo.end(); } catch (Exception ignored) {}
+            try { depthBatch.end(); } catch (Exception ignored) {}
             try { modelBatch.end(); } catch (Exception ignored) {}
             try { particleModelBatch.end(); } catch (Exception ignored) {}
             try { if (sceneFbo2 != null) sceneFbo2.end(); } catch (Exception ignored) {}
         }
-    }
-
-    public void createTestFire() {
-
-        Pixmap pixmap = new Pixmap(32, 32, Pixmap.Format.RGBA8888);
-        pixmap.setColor(Color.ORANGE);
-        pixmap.fill();
-        Texture tex = new Texture(pixmap);
-
-
-        BillboardParticleBatch testBatch = new BillboardParticleBatch();
-        testBatch.setCamera(camera);
-        particleSystem.add(testBatch);
-
-
-        BillboardRenderer renderer = new BillboardRenderer(testBatch);
-
-
-        com.badlogic.gdx.graphics.g3d.particles.ParticleController controller =
-                new com.badlogic.gdx.graphics.g3d.particles.ParticleController(
-                        "TestFire",
-                        new RegularEmitter(),
-                        renderer,
-                        new RegionInfluencer.Single(new TextureRegion(tex))
-                );
-
-
-        RegularEmitter emitter = (RegularEmitter) controller.emitter;
-        emitter.getEmission().setHigh(100);
-        emitter.getLife().setHigh(2000);
-
-
-        DynamicsInfluencer dynamics = new DynamicsInfluencer();
-        com.badlogic.gdx.graphics.g3d.particles.influencers.DynamicsModifier.BrownianAcceleration acc =
-                new com.badlogic.gdx.graphics.g3d.particles.influencers.DynamicsModifier.BrownianAcceleration();
-        acc.strengthValue.setHigh(5f);
-        dynamics.velocities.add(acc);
-        controller.influencers.add(dynamics);
-
-
-        ScaleInfluencer scale = new ScaleInfluencer();
-        scale.value.setHigh(2f);
-        controller.influencers.add(scale);
-
-
-        ColorInfluencer.Single col = new ColorInfluencer.Single();
-        col.colorValue.setColors(new float[]{1, 0.5f, 0});
-        col.alphaValue.setHigh(1);
-        controller.influencers.add(col);
-
-
-        controller.init();
-        controller.start();
-        controller.setTransform(new Matrix4().setToTranslation(0, 5, 0));
-
-        ParticleEffect effect = new ParticleEffect();
-        effect.getControllers().add(controller);
-
-
-        activeParticleEffects.put("TEST_FIRE", effect);
     }
 
     private <T, E> T getKeyByValue(Map<T, E> map, E value) {
@@ -2853,11 +3319,14 @@ public class ThreeDManager implements Disposable {
         btRigidBody body = physicsBodies.get(objectId);
         if (body != null && !editorMode) {
             Matrix4 transform = body.getWorldTransform();
-            transform.getTranslation(position); 
+            transform.getTranslation(position);
             transform.set(position, newRotation);
             body.setWorldTransform(transform);
             body.getMotionState().setWorldTransform(transform);
             body.activate();
+            if (body.isStaticObject() || body.isKinematicObject()) {
+                dynamicsWorld.updateSingleAabb(body);
+            }
         }
     }
 
@@ -2940,12 +3409,7 @@ public class ThreeDManager implements Disposable {
                         Gdx.app.log("3DManager", "Does texture exist at path? -> " + textureToVerify.exists());
                         Gdx.app.log("3DManager", "--- Verification finished ---");
 
-                        FileHandleResolver resolver = new FileHandleResolver() {
-                            @Override
-                            public FileHandle resolve(String fileName) {
-                                return patchedModelHandle.parent().child(fileName);
-                            }
-                        };
+                        FileHandleResolver resolver = fileName -> patchedModelHandle.parent().child(fileName);
 
                         ObjLoader loader = new ObjLoader(resolver);
 
@@ -3051,21 +3515,19 @@ public class ThreeDManager implements Disposable {
 
 
     public void setRealisticSunLight(float dirX, float dirY, float dirZ, float intensity) {
-        
+
         if (pbrLight instanceof net.mgsx.gltf.scene3d.lights.DirectionalShadowLight) {
             net.mgsx.gltf.scene3d.lights.DirectionalShadowLight sun = (net.mgsx.gltf.scene3d.lights.DirectionalShadowLight) pbrLight;
 
             sun.direction.set(dirX, dirY, dirZ).nor();
             sun.intensity = intensity;
-
-            //Gdx.app.log("ThreeDManager", "Sun light updated and IBL recalculated.");
         } else {
             Gdx.app.error("ThreeDManager", "setRealisticSunLight called, but no DirectionalShadowLight was found!");
         }
     }
 
-    
-    
+
+
     public void setSunLightColor(float r, float g, float b) {
         if (pbrLight != null) {
             pbrLight.color.set(r, g, b, 1);
@@ -3105,7 +3567,7 @@ public class ThreeDManager implements Disposable {
         }
     }
 
-    
+
     public void setPhysicsState(String objectId, PhysicsState state, float mass) {
         setPhysicsState(objectId, state, PhysicsShape.BOX, mass);
     }
@@ -3115,7 +3577,7 @@ public class ThreeDManager implements Disposable {
         BoundingBox bbox = new BoundingBox();
         instance.calculateBoundingBox(bbox);
         Vector3 dimensions = bbox.getDimensions(new Vector3());
-        
+
         Vector3 center = bbox.getCenter(new Vector3());
         btCollisionShape shape;
         switch (shapeType) {
@@ -3135,7 +3597,7 @@ public class ThreeDManager implements Disposable {
         }
 
         btCompoundShape compoundShape = new btCompoundShape();
-        
+
         Matrix4 shapeOffsetTransform = new Matrix4().setToTranslation(center);
         compoundShape.addChildShape(shapeOffsetTransform, shape);
 
@@ -3179,7 +3641,7 @@ public class ThreeDManager implements Disposable {
         bodyInfo.dispose();
     }
 
-    
+
 
 
     private void createGltfMeshPhysicsBody(String objectId, ModelInstance instance) {
@@ -3263,7 +3725,7 @@ public class ThreeDManager implements Disposable {
     }
 
 
-    
+
     private void addPartsToCompoundShapeRecursive(Iterable<Node> nodes, Matrix4 rootTransform, btCompoundShape compoundShape, Array<Disposable> disposables, String indent) {
         for (Node node : nodes) {
             Gdx.app.log("PhysicsDebug", indent + "-> Processing Node: '" + node.id + "'");
@@ -3277,7 +3739,7 @@ public class ThreeDManager implements Disposable {
                         Mesh bakedMesh = originalMeshPart.mesh.copy(true);
 
                         bakedMesh.transform(finalTransform);
-                        disposables.add(bakedMesh); 
+                        disposables.add(bakedMesh);
 
                         MeshPart bakedMeshPart = new MeshPart("baked_part_" + node.id, bakedMesh, 0, bakedMesh.getNumIndices(), GL20.GL_TRIANGLES);
 
@@ -3288,7 +3750,7 @@ public class ThreeDManager implements Disposable {
                         disposables.add(vertexArray);
                         disposables.add(meshShape);
 
-                        compoundShape.addChildShape(new Matrix4(), meshShape); 
+                        compoundShape.addChildShape(new Matrix4(), meshShape);
                         Gdx.app.log("PhysicsDebug", indent + "  SUCCESS: Baked and added child shape.");
                     }
                 }
@@ -3600,6 +4062,9 @@ public class ThreeDManager implements Disposable {
             body.getMotionState().setWorldTransform(worldTransform);
 
             body.activate();
+            if (body.isStaticObject() || body.isKinematicObject()) {
+                dynamicsWorld.updateSingleAabb(body);
+            }
         }
     }
 
@@ -3629,6 +4094,9 @@ public class ThreeDManager implements Disposable {
             body.setWorldTransform(transform);
             body.getMotionState().setWorldTransform(transform);
             body.activate();
+            if (body.isStaticObject() || body.isKinematicObject()) {
+                dynamicsWorld.updateSingleAabb(body);
+            }
         }
     }
 
@@ -3887,45 +4355,6 @@ public class ThreeDManager implements Disposable {
         return camera;
     }
 
-
-    /*public void setScale(String objectId, float scaleX, float scaleY, float scaleZ) {
-        ModelInstance instance = sceneObjects.get(objectId);
-        if (instance == null) return;
-
-        Quaternion rotation = new Quaternion();
-        instance.transform.getRotation(rotation);
-
-        Vector3 position = new Vector3();
-        instance.transform.getTranslation(position);
-        instance.transform.set(position, rotation, new Vector3(scaleX, scaleY, scaleZ));
-
-        btRigidBody body = physicsBodies.get(objectId);
-        if (body != null && !editorMode) {
-            float mass = (body.getInvMass() > 0f) ? 1f / body.getInvMass() : 0f;
-            float friction = body.getFriction();
-            float restitution = body.getRestitution();
-            Vector3 velocity = body.getLinearVelocity();
-            PhysicsState state = (mass > 0f) ? PhysicsState.DYNAMIC : PhysicsState.STATIC;
-
-            setPhysicsState(objectId, state, mass);
-
-            btRigidBody newBody = physicsBodies.get(objectId);
-            if (newBody != null) {
-                com.badlogic.gdx.math.Matrix4 transform = newBody.getWorldTransform();
-                transform.getTranslation(position);
-                transform.set(position, rotation);
-                newBody.setWorldTransform(transform);
-                newBody.getMotionState().setWorldTransform(transform);
-
-                newBody.setFriction(friction);
-                newBody.setRestitution(restitution);
-                if (state == PhysicsState.DYNAMIC) {
-                    newBody.setLinearVelocity(velocity);
-                }
-            }
-        }
-    }*/
-
     public void setScale(String objectId, float scaleX, float scaleY, float scaleZ) {
         ModelInstance instance = sceneObjects.get(objectId);
         if (instance == null) return;
@@ -4022,11 +4451,104 @@ public class ThreeDManager implements Disposable {
             simpleLight.intensity = shadowLight.intensity;
 
             sceneManager.environment.remove(shadowLight);
-            if (shadowLight instanceof Disposable) ((Disposable) shadowLight).dispose();
+            shadowLight.dispose();
 
             sceneManager.environment.add(simpleLight);
             pbrLight = simpleLight;
         }
+    }
+
+    public void bakeObjectsByPrefix(String prefix, String newId) {
+        ModelBuilder modelBuilder = new ModelBuilder();
+        modelBuilder.begin();
+
+        int partCounter = 0;
+        Array<String> objectsToRemove = new Array<>();
+
+        for (Map.Entry<String, ModelInstance> entry : sceneObjects.entrySet()) {
+            String id = entry.getKey();
+
+            if (id.startsWith(prefix) && !id.equals("player")) {
+                btRigidBody body = physicsBodies.get(id);
+
+                if (body != null && body.getInvMass() == 0) {
+                    ModelInstance inst = entry.getValue();
+
+                    for (Node node : inst.nodes) {
+                        for (NodePart part : node.parts) {
+                            MeshPartBuilder builder = modelBuilder.part("p" + partCounter++,
+                                    part.meshPart.primitiveType, part.meshPart.mesh.getVertexAttributes(), part.material);
+
+                            builder.setVertexTransform(inst.transform);
+                            builder.addMesh(part.meshPart);
+                        }
+                    }
+                    objectsToRemove.add(id);
+                }
+            }
+        }
+
+        if (partCounter == 0) {
+            modelBuilder.end();
+            Gdx.app.log("Bake", "No static objects found with prefix: " + prefix);
+            return;
+        }
+
+        Model bakedModel = modelBuilder.end();
+        ModelInstance bakedInstance = new ModelInstance(bakedModel);
+
+        for (String id : objectsToRemove) {
+            removeObject(id);
+        }
+
+        sceneObjects.put(newId, bakedInstance);
+        if (realisticMode) {
+            sceneManager.addScene(new net.mgsx.gltf.scene3d.scene.Scene(bakedInstance));
+        }
+        createGltfMeshPhysicsBody(newId, bakedInstance);
+
+        Gdx.app.log("Bake", "Optimized " + objectsToRemove.size + " objects into " + newId);
+    }
+
+    public void bakeObjectsList(String newId, List<String> idsToBake) {
+        ModelBuilder modelBuilder = new ModelBuilder();
+        modelBuilder.begin();
+
+        int partCounter = 0;
+        Array<String> actuallyRemoved = new Array<>();
+
+        for (String id : idsToBake) {
+            ModelInstance inst = sceneObjects.get(id);
+            if (inst == null) continue;
+
+            for (Node node : inst.nodes) {
+                for (NodePart part : node.parts) {
+                    MeshPartBuilder builder = modelBuilder.part("p" + partCounter++,
+                            part.meshPart.primitiveType, part.meshPart.mesh.getVertexAttributes(), part.material);
+                    builder.setVertexTransform(inst.transform);
+                    builder.addMesh(part.meshPart);
+                }
+            }
+            actuallyRemoved.add(id);
+        }
+
+        if (partCounter == 0) {
+            modelBuilder.end();
+            return;
+        }
+
+        Model bakedModel = modelBuilder.end();
+        ModelInstance bakedInstance = new ModelInstance(bakedModel);
+
+        for (String id : actuallyRemoved) {
+            removeObject(id);
+        }
+
+        sceneObjects.put(newId, bakedInstance);
+        if (realisticMode) {
+            sceneManager.addScene(new net.mgsx.gltf.scene3d.scene.Scene(bakedInstance));
+        }
+        createGltfMeshPhysicsBody(newId, bakedInstance);
     }
 
     public boolean createCube(String objectId) {
@@ -4083,6 +4605,12 @@ public class ThreeDManager implements Disposable {
                 material.remove(com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute.Type);
             }
 
+            if (materialData.baseColor.a < 0.05f) {
+                material.set(new DepthTestAttribute(false));
+            } else {
+                material.set(new DepthTestAttribute(GL20.GL_LEQUAL, true));
+            }
+
             applyTextureOrColor(material, materialData.baseColorTexturePath,
                     PBRTextureAttribute.BaseColorTexture, PBRColorAttribute.BaseColorFactor, materialData.baseColor);
 
@@ -4097,6 +4625,15 @@ public class ThreeDManager implements Disposable {
 
             applyTextureOrColor(material, materialData.emissiveTexturePath,
                     PBRTextureAttribute.EmissiveTexture, PBRColorAttribute.Emissive, materialData.emissiveColor);
+
+            for (com.badlogic.gdx.graphics.g3d.Attribute attr : material) {
+                if (attr instanceof com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute) {
+                    com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute texAttr =
+                            (com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute) attr;
+                    texAttr.scaleU = materialData.uvScaleX;
+                    texAttr.scaleV = materialData.uvScaleY;
+                }
+            }
         }
     }
 
@@ -4152,6 +4689,7 @@ public class ThreeDManager implements Disposable {
                 poolField.setAccessible(true);
                 com.badlogic.gdx.utils.Pool<Renderable> renderablePool = (com.badlogic.gdx.utils.Pool<Renderable>) poolField.get(batch);
                 Array<Renderable> allRenderables = new Array<>();
+                if (renderablePool == null) return;
                 renderablePool.freeAll(allRenderables);
                 for(Renderable r : allRenderables){
                     if(r.meshPart.mesh != null) {
@@ -4343,21 +4881,21 @@ public class ThreeDManager implements Disposable {
         if (pbrLight != null) {
             return pbrLight.direction;
         }
-        return new Vector3(1, -1.5f, 1); 
+        return new Vector3(1, -1.5f, 1);
     }
 
     public Color getSunLightColor() {
         if (pbrLight != null) {
             return pbrLight.color;
         }
-        return Color.WHITE; 
+        return Color.WHITE;
     }
 
     public float getSunLightIntensity() {
         if (pbrLight != null) {
             return pbrLight.intensity;
         }
-        return 0; 
+        return 0;
     }
 
     public void setWorldTransform(String objectId, Matrix4 worldTransform) {
@@ -4373,6 +4911,7 @@ public class ThreeDManager implements Disposable {
         ModelInstance instance = sceneObjects.get(objectId);
         if (instance != null) {
             instance.transform.set(worldTransform);
+            instance.calculateTransforms();
             if (LOG_THREED_MANAGER_DEBUG) {
                 Vector3 modelPos = new Vector3();
                 instance.transform.getTranslation(modelPos);
@@ -4397,6 +4936,9 @@ public class ThreeDManager implements Disposable {
                 body.getMotionState().setWorldTransform(bodyTransform);
             }
             body.activate();
+            if (body.isStaticObject() || body.isKinematicObject()) {
+                dynamicsWorld.updateSingleAabb(body);
+            }
             if (LOG_THREED_MANAGER_DEBUG) {
                 Vector3 physicsPos = new Vector3();
                 body.getWorldTransform().getTranslation(physicsPos);
@@ -4413,7 +4955,7 @@ public class ThreeDManager implements Disposable {
         for (String id : sceneObjects.keySet()) {
             objectIds.add(id);
         }
-        
+
         for (String id : objectIds) {
             removeObject(id);
         }
@@ -4473,7 +5015,7 @@ public class ThreeDManager implements Disposable {
             try {
                 setupDefaultLighting();
             } catch (Exception e) {
-                Log.e("ThreeDManager", "Cloudn't setup lightning: " + e);
+                Log.e("ThreeDManager", "Couldn't setup lightning: " + e);
             }
         }
 
@@ -4490,7 +5032,6 @@ public class ThreeDManager implements Disposable {
 
         if (particleProxyModel != null) particleProxyModel.dispose();
         if (modelBatch != null) modelBatch.dispose();
-        if (shadowBatch != null) shadowBatch.dispose();
         if (defaultParticleTexture != null) defaultParticleTexture.dispose();
         if (particleModelBatch != null) particleModelBatch.dispose();
         if (particleSystemInitialized) disposeManagedBatches();
@@ -4501,7 +5042,6 @@ public class ThreeDManager implements Disposable {
         if (tonemappingEffect != null) tonemappingEffect.dispose();
         if (defaultShaderProvider != null) defaultShaderProvider.dispose();
         if (customShaderProvider != null) customShaderProvider.dispose();
-        if (depthShaderProvider != null) depthShaderProvider.dispose();
         if (sceneManager != null) sceneManager.dispose();
         if (lightProxyModel != null) lightProxyModel.dispose();
         if (cameraProxyModel != null) cameraProxyModel.dispose();
@@ -4518,7 +5058,6 @@ public class ThreeDManager implements Disposable {
         if (dispatcher != null) dispatcher.dispose();
         if (collisionConfig != null) collisionConfig.dispose();
         if (collisionCallback != null) collisionCallback.dispose();
-        if (shadowFBO != null) shadowFBO.dispose();
         if (sceneFbo2 != null) sceneFbo2.dispose();
         if (vfxManager != null) vfxManager.dispose();
 
@@ -4662,5 +5201,148 @@ public class ThreeDManager implements Disposable {
         if (targetId != null && !targetId.isEmpty()) {
             boneOverrides.add(new BoneOverride(modelId, boneName, targetId));
         }
+    }
+}
+
+class DepthShader implements com.badlogic.gdx.graphics.g3d.Shader {
+    ShaderProgram program;
+    Camera camera;
+
+    private int u_bones = -1;
+    private int u_objReflectivity = -1;
+
+
+    private static final float[] boneBuffer = new float[110 * 16];
+
+    public DepthShader(ShaderProgram program) {
+        this.program = program;
+        this.u_bones = program.getUniformLocation("u_bones");
+        this.u_objReflectivity = program.getUniformLocation("u_objReflectivity");
+    }
+
+    @Override public void init() {}
+    @Override public int compareTo(Shader other) { return 0; }
+    @Override public boolean canRender(Renderable instance) { return true; }
+
+    @Override
+    public void begin(Camera camera, com.badlogic.gdx.graphics.g3d.utils.RenderContext context) {
+        this.camera = camera;
+        program.begin();
+        program.setUniformMatrix("u_projViewTrans", camera.combined);
+        program.setUniformMatrix("u_viewTrans", camera.view);
+        program.setUniformf("u_farPlane", camera.far);
+        context.setDepthTest(GL20.GL_LEQUAL);
+        context.setDepthMask(true);
+    }
+
+    @Override
+    public void render(Renderable renderable) {
+        program.setUniformMatrix("u_worldTrans", renderable.worldTransform);
+
+
+        if (u_objReflectivity != -1) {
+            float refl = 1.0f;
+            if (renderable.userData instanceof Float) {
+                refl = (Float) renderable.userData;
+            }
+            program.setUniformf(u_objReflectivity, refl);
+        }
+
+
+        if (renderable.bones != null && u_bones != -1) {
+            int n = renderable.bones.length;
+
+            for (int i = 0; i < n && i < 110; i++) {
+                System.arraycopy(renderable.bones[i].val, 0, boneBuffer, i * 16, 16);
+            }
+
+
+            program.setUniformMatrix4fv(u_bones, boneBuffer, 0, n * 16);
+        }
+
+        renderable.meshPart.render(program);
+    }
+
+    @Override public void end() { program.end(); }
+    @Override public void dispose() { program.dispose(); }
+}
+
+
+class MaterialShaderProvider extends DefaultShaderProvider {
+    @Override
+    protected Shader createShader(Renderable renderable) {
+        String prefix = "";
+
+        if (renderable.meshPart.mesh.getVertexAttribute(VertexAttributes.Usage.TextureCoordinates) != null) {
+            prefix += "#define HAS_UV\n";
+        }
+
+        if (renderable.bones != null) {
+            prefix += "#define numBones " + 110 + "\n";
+            prefix += "#define boneWeight0Flag\n";
+            prefix += "#define boneWeight1Flag\n";
+            prefix += "#define boneWeight2Flag\n";
+            prefix += "#define boneWeight3Flag\n";
+        }
+
+        String vsh = prefix +
+                "attribute vec3 a_position;\n" +
+                "#ifdef HAS_UV\nattribute vec2 a_texCoord0;\nvarying vec2 v_uv;\n#endif\n" +
+                "uniform mat4 u_projViewTrans;\n" +
+                "uniform mat4 u_worldTrans;\n" +
+                "void main() {\n" +
+                "#ifdef HAS_UV\n    v_uv = a_texCoord0;\n#endif\n" +
+                "    gl_Position = u_projViewTrans * u_worldTrans * vec4(a_position, 1.0);\n" +
+                "}";
+
+        String fsh = prefix +
+                "#ifdef GL_ES\nprecision mediump float;\n#endif\n" +
+                "#ifdef HAS_UV\nvarying vec2 v_uv;\n#endif\n" +
+                "uniform float u_metallic;\n" +
+                "uniform int u_hasTexture;\n" +
+                "uniform sampler2D u_texture;\n" +
+                "void main() {\n" +
+                "    float m = u_metallic;\n" +
+                "#ifdef HAS_UV\n" +
+
+                "    if (u_hasTexture == 1) m *= texture2D(u_texture, v_uv).b;\n" +
+                "#endif\n" +
+                "    gl_FragColor = vec4(m, 0.0, 0.0, 1.0);\n" +
+                "}";
+
+        DefaultShader.Config config = new DefaultShader.Config(vsh, fsh);
+        config.numBones = 110;
+
+        return new DefaultShader(renderable, config) {
+            private final int u_metallic = register("u_metallic");
+            private final int u_hasTexture = register("u_hasTexture");
+            private final int u_texture = register("u_texture");
+
+            @Override
+            public void render(Renderable renderable) {
+                float metallic = 0.0f;
+                boolean hasTex = false;
+                Texture tex = null;
+
+
+                if (renderable.material.has(PBRFloatAttribute.Metallic)) {
+                    metallic = ((PBRFloatAttribute) renderable.material.get(PBRFloatAttribute.Metallic)).value;
+                }
+
+
+                if (renderable.material.has(PBRTextureAttribute.MetallicRoughnessTexture)) {
+                    tex = ((PBRTextureAttribute) renderable.material.get(PBRTextureAttribute.MetallicRoughnessTexture)).textureDescription.texture;
+                    hasTex = true;
+                }
+
+                set(u_metallic, metallic);
+                set(u_hasTexture, hasTex ? 1 : 0);
+                if (hasTex && tex != null) {
+                    set(u_texture, tex);
+                }
+
+                super.render(renderable);
+            }
+        };
     }
 }

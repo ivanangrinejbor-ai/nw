@@ -7,7 +7,7 @@ public class SoundWrapper implements PlayableAudio {
     private final Sound sound;
     private long instanceId = -1;
     private String instanceName;
-    private final float baseVolume;
+    private float baseVolume;
     private final float pitch;
     private final boolean loop;
 
@@ -49,5 +49,25 @@ public class SoundWrapper implements PlayableAudio {
             sound.setVolume(instanceId, volume * baseVolume);
             sound.setPan(instanceId, pan, volume * baseVolume);
         }
+    }
+
+    @Override
+    public void setVolume(float volume) {
+        baseVolume = volume;
+    }
+
+    @Override
+    public void setPitch(float pitch) {
+        sound.setPitch(instanceId, pitch);
+    }
+
+    @Override
+    public void setBaseVolume(float volume) {
+        this.baseVolume = volume;
+    }
+
+    @Override
+    public float getBaseVolume() {
+        return baseVolume;
     }
 }

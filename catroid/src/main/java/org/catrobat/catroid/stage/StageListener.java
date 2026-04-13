@@ -106,6 +106,7 @@ import org.catrobat.catroid.content.eventids.GamepadEventId;
 import org.catrobat.catroid.content.eventids.MouseButtonEventId;
 import org.catrobat.catroid.embroidery.DSTPatternManager;
 import org.catrobat.catroid.embroidery.EmbroideryPatternManager;
+import org.catrobat.catroid.fast2d.FastTwoDManager;
 import org.catrobat.catroid.formulaeditor.SensorHandler;
 import org.catrobat.catroid.formulaeditor.UserDataWrapper;
 import org.catrobat.catroid.io.SoundCacheManager;
@@ -222,6 +223,8 @@ public class StageListener implements ApplicationListener {
 	private Viewport uiViewPort;
 
 	private float cameraRotation = 0f;
+
+    public FastTwoDManager fastTwoDManager;
 
 	public void setMaxViewPort(Resolution maxViewPort) {
 		this.maxViewPort = maxViewPort;
@@ -603,8 +606,12 @@ public class StageListener implements ApplicationListener {
 		cameraPositioner = new CameraPositioner(camera, virtualHeightHalf, virtualWidthHalf);
 		viewPort = new ExtendViewport(virtualWidth, virtualHeight, camera);
 		if (batch == null) {
-			batch = new SpriteBatch();
+			batch = new SpriteBatch(8000);
 		}
+        if (fastTwoDManager == null) {
+            fastTwoDManager = new FastTwoDManager();
+        }
+        fastTwoDManager.init((SpriteBatch) batch);
 		if (postProcessBatch == null) {
 			postProcessBatch = new SpriteBatch();
 		}
@@ -615,9 +622,28 @@ public class StageListener implements ApplicationListener {
 		uiViewPort = new ScreenViewport(uiCamera);
 		uiStage = new Stage(uiViewPort, batch);
 
+        InputProcessor cameraInputProcessor = new InputAdapter() {
+            @Override
+            public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+                return threeDManager.handleTouchDown(screenX, screenY, pointer, uiStage, stage);
+            }
+
+            @Override
+            public boolean touchDragged(int screenX, int screenY, int pointer) {
+                threeDManager.handleTouchDragged(screenX, screenY, pointer);
+                return false;
+            }
+
+            @Override
+            public boolean touchUp(int screenX, int screenY, int pointer, int button) {
+                threeDManager.handleTouchUp(pointer);
+                return false;
+            }
+        };
+
 		inputMultiplexer = new InputMultiplexer();
 
-
+        inputMultiplexer.addProcessor(cameraInputProcessor);
 		inputMultiplexer.addProcessor(uiStage);
 		inputMultiplexer.addProcessor(stage);
 
@@ -1134,6 +1160,10 @@ public class StageListener implements ApplicationListener {
 		}
 		threeDManager = null;
 
+        if (fastTwoDManager != null) {
+            fastTwoDManager.clearScene();
+        }
+
 		isVmDisplayVisible = false;
 
 		this.stageDialog = stageDialog;
@@ -1393,8 +1423,14 @@ public class StageListener implements ApplicationListener {
                         Log.e("3DRENDER", "ERROR: " + e);
                     }
 
+                    if (fastTwoDManager != null && !paused) {
+                        fastTwoDManager.updateAndRender(Gdx.graphics.getDeltaTime());
+                    }
+
                     stage.draw();
-					uiStage.draw();
+
+
+                    uiStage.draw();
                     //RenderManager.INSTANCE.render();
                 } catch (Exception e) {
                     Log.e("RENDER", "FATAL ERROR: " + e.toString());
@@ -2038,6 +2074,7 @@ public class StageListener implements ApplicationListener {
 			uiViewPort.update(width, height, true);
 		}
 		if (threeDManager != null) threeDManager.resize(width, height);
+        if (fastTwoDManager != null) fastTwoDManager.resize(width, height);
 	}
 
 
@@ -2153,13 +2190,20 @@ public class StageListener implements ApplicationListener {
 			stageActivity.removeAllNativeViews();
 		}
 
+        if (fastTwoDManager != null) {
+            fastTwoDManager.dispose();
+            fastTwoDManager = null;
+        }
+
 		RenderManager.INSTANCE.dispose();
 
-		try {
-            MainMenuActivity.pythonEngine.clearEnvironment();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+        try {
+            if (MainMenuActivity.pythonEngine != null) {
+                MainMenuActivity.pythonEngine.clearEnvironment();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
 		disposeStageButKeepActors();
 		font.dispose();

@@ -199,7 +199,20 @@ public class WebViewActivity extends AppCompatActivity {
 			} else if (!forceOpenInApp && checkIfWebViewVisitExternalWebsite(url)) {
 				Uri uri = Uri.parse(url);
 				Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-				startActivity(intent);
+                try {
+                    startActivity(intent);
+                } catch (android.content.ActivityNotFoundException e) {
+                    if (url.startsWith("tg://resolve?domain=")) {
+                        String fallbackUrl = url.replace("tg://resolve?domain=", "https://t.me/");
+                        try {
+                            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(fallbackUrl)));
+                        } catch (Exception ex) {
+                            ToastUtil.showError(getBaseContext(), R.string.error_unknown_error);
+                        }
+                    } else {
+                        ToastUtil.showError(getBaseContext(), R.string.error_unknown_error);
+                    }
+                }
 				return true;
 			}
 			return false;

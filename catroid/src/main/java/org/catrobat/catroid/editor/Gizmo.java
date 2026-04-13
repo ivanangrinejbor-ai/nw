@@ -52,6 +52,11 @@ public class Gizmo {
     private final Vector3 dragCurrentPoint = new Vector3();
     private final Quaternion lastObjectRotation = new Quaternion();
 
+    private final Vector3 dragStartPos = new Vector3();
+    private final Quaternion dragStartRot = new Quaternion();
+    private final Vector3 dragStartScale = new Vector3();
+    private boolean isTransforming = false;
+
 
     public Gizmo(EditorActivity activity, SceneManager sceneManager, Camera camera) {
         this.activity = activity;
@@ -245,7 +250,7 @@ public class Gizmo {
                 case ROTATE:
                     break;
             }
-            sceneManager.setPhysicsComponent(selectedObject, physics);
+            // sceneManager.setPhysicsComponent(selectedObject, physics);
 
         } else if (selectedKeyframe != null) {
             switch (currentTool) {
@@ -283,8 +288,6 @@ public class Gizmo {
                     break;
                 }
             }
-
-            activity.runOnUiThread(() -> activity.getInspectorManager().populateInspector(selectedObject));
         } else {
             switch (currentTool) {
                 case TRANSLATE: {
@@ -357,6 +360,15 @@ public class Gizmo {
             default: return false;
         }
 
+        if (currentTool == EditorTool.ROTATE) {
+            lastObjectRotation.set(selectedObject.transform.rotation);
+        }
+
+        dragStartPos.set(selectedObject.transform.position);
+        dragStartRot.set(selectedObject.transform.rotation);
+        dragStartScale.set(selectedObject.transform.scale);
+        isTransforming = true;
+
         handleX.calculateBoundingBox(boxX).mul(handleX.transform);
         handleY.calculateBoundingBox(boxY).mul(handleY.transform);
         handleZ.calculateBoundingBox(boxZ).mul(handleZ.transform);
@@ -390,43 +402,38 @@ public class Gizmo {
     }
 
     public void touchUp() {
-        if (currentTool == EditorTool.ROTATE && selectedObject != null){
+        if (isTransforming && selectedObject != null) {
+            isTransforming = false;
 
+            if (!dragStartPos.epsilonEquals(selectedObject.transform.position, 0.001f) ||
+                    !dragStartRot.equals(selectedObject.transform.rotation) ||
+                    !dragStartScale.epsilonEquals(selectedObject.transform.scale, 0.001f)) {
+
+                activity.getUndoManager().pushCommand(
+                        new Commands.TransformCommand(sceneManager, selectedObject, dragStartPos, dragStartRot, dragStartScale)
+                );
+            }
+        }
+
+        if (currentTool == EditorTool.ROTATE && selectedObject != null){
             lastObjectRotation.set(selectedObject.transform.rotation);
+        }
+
+        if (selectedObject != null && selectedAxis != Axis.NONE) {
+            if (selectedCollider != null) {
+                PhysicsComponent physics = selectedObject.getComponent(PhysicsComponent.class);
+                if (physics != null) {
+                    sceneManager.setPhysicsComponent(selectedObject, physics);
+                }
+            }
+            activity.runOnUiThread(() -> {
+                if (activity.getInspectorManager() != null) {
+                    activity.getInspectorManager().populateInspector(selectedObject);
+                }
+            });
         }
         selectedAxis = Axis.NONE;
     }
-
-    /*private Vector3 getGizmoPosition() {
-        if (selectedObject == null) {
-            return Vector3.Zero;
-        }
-
-
-
-        Vector3 objectWorldPosition = selectedObject.transform.worldTransform.getTranslation(new Vector3());
-
-        if (selectedCollider != null) {
-
-
-
-            Vector3 localOffset = selectedCollider.centerOffset;
-
-
-            Quaternion worldRotation = selectedObject.transform.worldTransform.getRotation(new Quaternion());
-
-
-            Vector3 rotatedOffset = worldRotation.transform(new Vector3(localOffset));
-
-
-            return objectWorldPosition.add(rotatedOffset);
-
-
-        }
-
-
-        return objectWorldPosition;
-    }*/
 
     public GameObject getSelectedObject() {
         return selectedObject;

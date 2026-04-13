@@ -354,6 +354,23 @@
         <item name="android:background">@drawable/brick_3h_olive</item>
     </style>
 
+    <style name="BrickContainer.Fast2d" />
+
+    <style name="BrickContainer.Fast2d.Small">
+        <item name="android:minHeight">@dimen/brick_height_small</item>
+        <item name="android:background">@drawable/brick_1h_green</item>
+    </style>
+
+    <style name="BrickContainer.Fast2d.Medium">
+        <item name="android:minHeight">@dimen/brick_height_medium</item>
+        <item name="android:background">@drawable/brick_2h_green</item>
+    </style>
+
+    <style name="BrickContainer.Fast2d.Big" tools:ignore="UnusedResources">
+        <item name="android:minHeight">@dimen/brick_height_big</item>
+        <item name="android:background">@drawable/brick_3h_green</item>
+    </style>
+
     <style name="BrickContainer.File" />
 
     <style name="BrickContainer.File.Small">
@@ -745,6 +762,10 @@
         <item name="android:background">@drawable/brick_categories_olive</item>
     </style>
 
+    <style name="BrickCategory.Fast2D">
+        <item name="android:background">@drawable/brick_categories_green</item>
+    </style>
+
     <style name="BrickCategory.File">
         <item name="android:background">@drawable/brick_categories_olive</item>
     </style>
@@ -900,6 +921,42 @@
         <item name="android:textStyle">bold</item>
         <item name="android:layout_marginTop">12dp</item>
         <item name="android:layout_marginBottom">4dp</item>
+    </style>
+
+    <style name="NewCatroid.Dialog.Pc" parent="Theme.MaterialComponents.DayNight.Dialog">
+        <item name="android:windowBackground">@color/transparent</item>
+
+        <item name="android:textColor">@color/solid_white</item>
+        <item name="android:textColorPrimary">@color/solid_white</item>
+        <item name="android:textColorSecondary">@color/solid_white</item>
+
+        <item name="colorAccent">@color/accent</item>
+        <item name="colorControlNormal">@color/solid_white</item>
+        <item name="colorControlActivated">@color/accent</item>
+
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <style name="NewCatroid.TextInputLayout" parent="Widget.MaterialComponents.TextInputLayout.FilledBox">
+        <item name="android:textColorHint">@color/spinner_icon_and_inactive_elements</item>
+        <item name="hintTextColor">@color/accent</item>
+        <item name="boxStrokeColor">@color/accent</item>
+        <item name="boxBackgroundColor">@color/app_background</item>
+        <item name="errorTextColor">#FF5252</item>
+    </style>
+
+    <style name="Widget.NewCatroid.ToggleButton" parent="Widget.MaterialComponents.Button.OutlinedButton">
+        <item name="android:textColor">@color/white_selector</item>
+        <item name="backgroundTint">@color/toggle_button_background_selector</item>
+        <item name="strokeColor">@color/accent</item>
+        <item name="strokeWidth">1dp</item>
+        <item name="rippleColor">@color/accent</item>
+        <item name="iconTint">@color/white_selector</item>
+    </style>
+
+    <style name="WhiteCursorTheme" parent="Theme.AppCompat">
+        <item name="colorControlActivated">@color/solid_white</item>
     </style>
 
 

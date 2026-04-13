@@ -296,6 +296,10 @@ public final class CastManager {
 	}
 
 	public synchronized void openDeviceSelectorOrDisconnectDialog(AppCompatActivity activity) {
+        if (activity == null || activity.isFinishing() || activity.isDestroyed()) {
+            return;
+        }
+
         try {
             SelectCastDialog dialog = new SelectCastDialog();
             dialog.show(activity.getSupportFragmentManager(), SelectCastDialog.TAG);

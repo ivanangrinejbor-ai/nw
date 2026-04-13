@@ -43,11 +43,13 @@ import org.catrobat.catroid.raptor.ParticleCurvePoint;
 import org.catrobat.catroid.raptor.PhysicsComponent;
 import org.catrobat.catroid.raptor.PostProcessingComponent;
 import org.catrobat.catroid.raptor.PostProcessingData;
+import org.catrobat.catroid.raptor.PrefabComponent;
 import org.catrobat.catroid.raptor.RenderComponent;
 import org.catrobat.catroid.raptor.SceneManager;
 import org.catrobat.catroid.raptor.ScriptComponent;
 import org.catrobat.catroid.raptor.ThreeDManager;
 import org.catrobat.catroid.raptor.TransformComponent;
+import org.catrobat.catroid.raptor.postprocessing.SsrRayTracingEffect;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -148,6 +150,7 @@ public class InspectorManager {
         if (go.hasComponent(ParticleComponent.class)) createParticleView(go);
         if (go.hasComponent(FogComponent.class)) createFogView(go);
         if (go.hasComponent(KeyframeComponent.class)) createKeyframeView(go);
+        if (go.hasComponent(PrefabComponent.class)) createPrefabView(go);
         List<ScriptComponent> scripts = go.getComponents(ScriptComponent.class);
         for (ScriptComponent script : scripts) {
             createScriptView(go, script);
@@ -199,6 +202,58 @@ public class InspectorManager {
                     .show();
         });
         container.addView(deleteObjectButton);
+    }
+
+    private void createPrefabView(GameObject go) {
+        addComponentHeader("Prefab Component", true, false, () -> {
+            PrefabComponent p = go.getComponent(PrefabComponent.class);
+            if (p != null && p.spawnedInstances != null) {
+                for(String id : p.spawnedInstances) {
+                    GameObject child = sceneManager.findGameObject(id);
+                    if (child != null) sceneManager.removeGameObject(child);
+                }
+                go.childrenIds.removeAll(p.spawnedInstances);
+            }
+            go.components.removeIf(c -> c instanceof PrefabComponent);
+            populateInspector(go);
+            activity.updateHierarchy();
+        });
+
+        View view = inflater.inflate(R.layout.inspector_script, container, false);
+        setWhiteTextToAllChildren((ViewGroup) view);
+
+        TextView pathText = view.findViewById(R.id.text_script_path);
+        Button selectButton = view.findViewById(R.id.btn_select_script);
+
+        PrefabComponent prefab = go.getComponent(PrefabComponent.class);
+        pathText.setText(prefab.prefabFilePath != null ? prefab.prefabFilePath : "None (Select .rscene)");
+
+        selectButton.setOnClickListener(v -> showPrefabPicker(prefab, go));
+
+        container.addView(view);
+    }
+
+    private void showPrefabPicker(PrefabComponent prefab, GameObject rootGo) {
+        File projectFilesDir = ProjectManager.getInstance().getCurrentProject().getFilesDir();
+        File[] allFiles = projectFilesDir.listFiles((dir, name) -> name.toLowerCase().endsWith(".rscene"));
+
+        if (allFiles == null || allFiles.length == 0) {
+            Toast.makeText(activity, "No .rscene files found", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String[] names = new String[allFiles.length];
+        for (int i = 0; i < allFiles.length; i++) names[i] = allFiles[i].getName();
+
+        new android.app.AlertDialog.Builder(activity)
+                .setTitle("Select Prefab")
+                .setItems(names, (dialog, which) -> {
+                    prefab.prefabFilePath = names[which];
+                    sceneManager.rebuildGameObject(rootGo);
+                    populateInspector(rootGo);
+                    activity.updateHierarchy();
+                })
+                .show();
     }
 
     private void setWhiteTextToAllChildren(ViewGroup vg) {
@@ -621,13 +676,26 @@ public class InspectorManager {
         setupTextureSlot(go, view.findViewById(R.id.slot_occlusion_texture), material.occlusionTexturePath,
                 newPath -> material.occlusionTexturePath = newPath);
 
+        LinearLayout paramsContainer = view.findViewById(R.id.material_params_container); // Убедись, что добавишь id в XML, или просто используй (LinearLayout) view
+        if (paramsContainer == null && view instanceof LinearLayout) paramsContainer = (LinearLayout) view;
+
+        if (paramsContainer != null) {
+            addSimpleFloatInput(paramsContainer, "UV Scale X", material.uvScaleX, v -> {
+                material.uvScaleX = v;
+                sceneManager.setMaterialComponent(go, material);
+            });
+            addSimpleFloatInput(paramsContainer, "UV Scale Y", material.uvScaleY, v -> {
+                material.uvScaleY = v;
+                sceneManager.setMaterialComponent(go, material);
+            });
+        }
+
         container.addView(view);
     }
 
     private void createFogView(GameObject go) {
         addComponentHeader("Fog Settings", true, false, () -> {
             go.components.removeIf(c -> c instanceof FogComponent);
-            sceneManager.clearFogCache();
             populateInspector(go);
         });
 
@@ -761,6 +829,36 @@ public class InspectorManager {
         container.addView(view);
     }
 
+    private void addEffectColorParam(LinearLayout parent, String label, com.badlogic.gdx.graphics.Color initialColor, ColorConsumer onUpdate) {
+        View view = inflater.inflate(R.layout.inspector_param_color, parent, false);
+        ((TextView)view.findViewById(R.id.text_param_name)).setText(label);
+
+        Button colorBtn = view.findViewById(R.id.btn_color_picker);
+        colorBtn.setBackgroundColor(libGdxColorToAndroidColor(initialColor));
+
+        colorBtn.setOnClickListener(v -> {
+            ColorPickerDialogBuilder
+                    .with(activity)
+                    .setTitle("Choose " + label)
+                    .initialColor(libGdxColorToAndroidColor(initialColor))
+                    .wheelType(ColorPickerView.WHEEL_TYPE.FLOWER)
+                    .density(12)
+                    .setPositiveButton("OK", (dialog, selectedColor, allColors) -> {
+                        colorBtn.setBackgroundColor(selectedColor);
+                        float r = android.graphics.Color.red(selectedColor) / 255f;
+                        float g = android.graphics.Color.green(selectedColor) / 255f;
+                        float b = android.graphics.Color.blue(selectedColor) / 255f;
+                        float a = android.graphics.Color.alpha(selectedColor) / 255f;
+                        onUpdate.accept(new com.badlogic.gdx.graphics.Color(r, g, b, a));
+                    })
+                    .setNegativeButton("Cancel", null)
+                    .build()
+                    .show();
+        });
+
+        parent.addView(view);
+    }
+
     private void addEffectUiItem(LinearLayout container, PostProcessingData data, PostProcessingComponent pp, GameObject go) {
         View effectView = inflater.inflate(R.layout.inspector_effect_item, container, false);
 
@@ -801,6 +899,87 @@ public class InspectorManager {
             addFloatParam(paramsContainer, "Contrast", l.contrast, v -> { l.contrast = v; updatePP(pp); });
             addFloatParam(paramsContainer, "Saturation", l.saturation, v -> { l.saturation = v; updatePP(pp); });
             addFloatParam(paramsContainer, "Gamma", l.gamma, v -> { l.gamma = v; updatePP(pp); });
+        }
+        else if (data instanceof PostProcessingData.RayTracing) {
+            PostProcessingData.RayTracing rt = (PostProcessingData.RayTracing) data;
+            addFloatParam(paramsContainer, "Reflectivity Multi", rt.reflectivity, v -> { rt.reflectivity = v; updatePP(pp); });
+            addFloatParam(paramsContainer, "Edge Fade", rt.edgeFade, v -> { rt.edgeFade = v; updatePP(pp); });
+            addFloatParam(paramsContainer, "Thickness", rt.thickness, v -> { rt.thickness = v; updatePP(pp); });
+            addFloatParam(paramsContainer, "Distance", rt.maxDistance, v -> { rt.maxDistance = v; updatePP(pp); });
+            addFloatParam(paramsContainer, "Stride", rt.stride, v -> { rt.stride = v; updatePP(pp); });
+            addFloatParam(paramsContainer, "Steps", rt.steps, v -> { rt.steps = (int)v; updatePP(pp); });
+        }
+        else if (data instanceof PostProcessingData.VolumetricFog) {
+            PostProcessingData.VolumetricFog vf = (PostProcessingData.VolumetricFog) data;
+            addFloatParam(paramsContainer, "Density", vf.density, v -> { vf.density = v; updatePP(pp); });
+            addFloatParam(paramsContainer, "Scattering", vf.scattering, v -> { vf.scattering = v; updatePP(pp); });
+            addFloatParam(paramsContainer, "Max Distance", vf.maxDistance, v -> { vf.maxDistance = v; updatePP(pp); });
+            addFloatParam(paramsContainer, "Steps", vf.steps, v -> { vf.steps = (int)v; updatePP(pp); });
+        }
+        else if (data instanceof PostProcessingData.Upscaler) {
+            PostProcessingData.Upscaler up = (PostProcessingData.Upscaler) data;
+            addFloatParam(paramsContainer, "Sharpness", up.sharpness, v -> { up.sharpness = v; updatePP(pp); });
+        }
+        else if (data instanceof PostProcessingData.HeightFog) {
+            PostProcessingData.HeightFog fog = (PostProcessingData.HeightFog) data;
+            addFloatParam(paramsContainer, "Density", fog.density, v -> { fog.density = v; updatePP(pp); });
+            addFloatParam(paramsContainer, "Falloff", fog.falloff, v -> { fog.falloff = v; updatePP(pp); });
+            addFloatParam(paramsContainer, "Height Offset", fog.height, v -> { fog.height = v; updatePP(pp); });
+
+            addEffectColorParam(paramsContainer, "Fog Color", fog.color, newColor -> {
+                fog.color.set(newColor);
+                updatePP(pp);
+            });
+        }
+        else if (data instanceof PostProcessingData.DepthOfField) {
+            PostProcessingData.DepthOfField dof = (PostProcessingData.DepthOfField) data;
+
+            CheckBox autoFocusCheck = new CheckBox(activity);
+            autoFocusCheck.setText("Auto Focus (Center Screen)");
+            autoFocusCheck.setTextColor(android.graphics.Color.WHITE);
+            autoFocusCheck.setChecked(dof.autoFocus);
+            paramsContainer.addView(autoFocusCheck);
+
+            LinearLayout speedContainer = new LinearLayout(activity);
+            speedContainer.setOrientation(LinearLayout.VERTICAL);
+            paramsContainer.addView(speedContainer);
+            addFloatParam(speedContainer, "Auto Focus Speed", dof.autoFocusSpeed, v -> { dof.autoFocusSpeed = v; updatePP(pp); });
+
+            LinearLayout distanceContainer = new LinearLayout(activity);
+            distanceContainer.setOrientation(LinearLayout.VERTICAL);
+            paramsContainer.addView(distanceContainer);
+            addFloatParam(distanceContainer, "Manual Focus Dist", dof.focusDistance, v -> { dof.focusDistance = v; updatePP(pp); });
+            Runnable updateDofVisibility = () -> {
+                speedContainer.setVisibility(dof.autoFocus ? View.VISIBLE : View.GONE);
+                distanceContainer.setAlpha(dof.autoFocus ? 0.4f : 1.0f);
+                for(int i = 0; i < distanceContainer.getChildCount(); i++) {
+                    distanceContainer.getChildAt(i).setEnabled(!dof.autoFocus);
+                    distanceContainer.getChildAt(i).setClickable(!dof.autoFocus);
+                }
+            };
+            updateDofVisibility.run();
+
+            autoFocusCheck.setOnCheckedChangeListener((v, isChecked) -> {
+                dof.autoFocus = isChecked;
+                updateDofVisibility.run();
+                updatePP(pp);
+            });
+            addFloatParam(paramsContainer, "Focus Range", dof.focusRange, v -> { dof.focusRange = v; updatePP(pp); });
+            addFloatParam(paramsContainer, "Transition", dof.transition, v -> { dof.transition = v; updatePP(pp); });
+            addFloatParam(paramsContainer, "Blur Size", dof.blurSize, v -> { dof.blurSize = v; updatePP(pp); });
+        }
+        else if (data instanceof PostProcessingData.GodRays) {
+            PostProcessingData.GodRays gr = (PostProcessingData.GodRays) data;
+            addFloatParam(paramsContainer, "Exposure", gr.exposure, v -> { gr.exposure = v; updatePP(pp); });
+            addFloatParam(paramsContainer, "Decay", gr.decay, v -> { gr.decay = v; updatePP(pp); });
+            addFloatParam(paramsContainer, "Density", gr.density, v -> { gr.density = v; updatePP(pp); });
+            addFloatParam(paramsContainer, "Weight", gr.weight, v -> { gr.weight = v; updatePP(pp); });
+        }
+        else if (data instanceof PostProcessingData.SSAO) {
+            PostProcessingData.SSAO ssao = (PostProcessingData.SSAO) data;
+            addFloatParam(paramsContainer, "Bias", ssao.bias, v -> { ssao.bias = v; updatePP(pp); });
+            addFloatParam(paramsContainer, "Intensity", ssao.intensity, v -> { ssao.intensity = v; updatePP(pp); });
+            addFloatParam(paramsContainer, "Radius", ssao.radius, v -> { ssao.radius = v; updatePP(pp); });
         }
         else if (data instanceof PostProcessingData.Vignette) {
             PostProcessingData.Vignette v = (PostProcessingData.Vignette) data;
@@ -1296,7 +1475,9 @@ public class InspectorManager {
     private void showAddEffectDialog(PostProcessingComponent pp, GameObject go) {
         String[] effects = {
                 "Bloom", "Vignette", "Levels (Color)", "Film Grain", "FXAA", "Chromatic Aberration",
-                "Radial Blur", "Old TV", "CRT Monitor", "Fisheye", "Water", "Motion Blur", "Lens Flare", "Gaussian Blur", "Zoom Blur", "ACES Tonemapping", "Eye Adaptation"
+                "Radial Blur", "Old TV", "CRT Monitor", "Fisheye", "Water", "Motion Blur", "Lens Flare",
+                "Gaussian Blur", "Zoom Blur", "ACES Tonemapping", "Eye Adaptation", "Ray Tracing (SSR)", "SSAO",
+                "Height Fog", "Depth of Field (DoF)", "God Rays", "Volumetric Fog", "FSR Upscaler (CAS)"
         };
         new AlertDialog.Builder(activity)
                 .setTitle("Add Effect")
@@ -1319,6 +1500,13 @@ public class InspectorManager {
                         case 14: pp.effects.add(new PostProcessingData.Zoom()); break;
                         case 15: pp.effects.add(new PostProcessingData.ACES()); break;
                         case 16: pp.effects.add(new PostProcessingData.EyeAdaptation()); break;
+                        case 17: pp.effects.add(new PostProcessingData.RayTracing()); break;
+                        case 18: pp.effects.add(new PostProcessingData.SSAO()); break;
+                        case 19: pp.effects.add(new PostProcessingData.HeightFog()); break;
+                        case 20: pp.effects.add(new PostProcessingData.DepthOfField()); break;
+                        case 21: pp.effects.add(new PostProcessingData.GodRays()); break;
+                        case 22: pp.effects.add(new PostProcessingData.VolumetricFog()); break;
+                        case 23: pp.effects.add(new PostProcessingData.Upscaler()); break;
                     }
                     threeDManager.updatePostProcessing(pp);
                     populateInspector(go);
@@ -1710,7 +1898,7 @@ public class InspectorManager {
     }
 
     private void showAddComponentDialog(GameObject go) {
-        String[] components = {"Render", "Physics", "Light", "Animation", "Camera", "Material", "Post Processing", "Particle System", "Keyframe Animation"};
+        String[] components = {"Render", "Physics", "Light", "Animation", "Camera", "Material", "Post Processing", "Particle System", "Keyframe Animation", "Prefab"};
         new AlertDialog.Builder(activity)
                 .setTitle("Add Component")
                 .setItems(components, (dialog, which) -> {
@@ -1763,6 +1951,11 @@ public class InspectorManager {
                         case 8:
                             if (!go.hasComponent(KeyframeComponent.class)) {
                                 go.addComponent(new KeyframeComponent());
+                            }
+                            break;
+                        case 9:
+                            if (!go.hasComponent(PrefabComponent.class)) {
+                                go.addComponent(new PrefabComponent());
                             }
                             break;
                         /*case 9:

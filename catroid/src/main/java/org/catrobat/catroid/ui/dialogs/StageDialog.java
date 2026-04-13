@@ -69,7 +69,14 @@ public class StageDialog extends Dialog implements View.OnClickListener {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		setContentView(R.layout.dialog_stage);
+        try {
+            setContentView(R.layout.dialog_stage);
+        } catch (Exception e) {
+            e.printStackTrace();
+            dismiss();
+            return;
+        }
+
 		getWindow().getAttributes();
 
 		getWindow().getAttributes();
@@ -79,7 +86,7 @@ public class StageDialog extends Dialog implements View.OnClickListener {
 
 		getWindow().setLayout(width, height);
 
-		getWindow().setBackgroundDrawableResource(R.color.transparent);
+        getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
 
 		((Button) findViewById(R.id.stage_dialog_button_back)).setOnClickListener(this);
 		((Button) findViewById(R.id.stage_dialog_button_continue)).setOnClickListener(this);

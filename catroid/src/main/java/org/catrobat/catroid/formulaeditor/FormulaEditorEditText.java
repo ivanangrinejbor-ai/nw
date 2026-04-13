@@ -50,7 +50,7 @@ import java.util.Map;
 @LunoClass
 public class FormulaEditorEditText extends EditText implements OnTouchListener {
 
-	private static final String TAG = "FormulaEditorEditText"; // Добавьте TAG для логирования
+	private static final String TAG = "FormulaEditorEditText";
 
 	private static final BackgroundColorSpan COLOR_ERROR = new BackgroundColorSpan(0xFFF00000);
 	private static final BackgroundColorSpan COLOR_HIGHLIGHT = new BackgroundColorSpan(0xFF33B5E5);
@@ -156,23 +156,23 @@ public class FormulaEditorEditText extends EditText implements OnTouchListener {
 			Log.w(TAG, "addTokensToActiveFormula: internFormula is null or tokensToAdd is null/empty");
 			return;
 		}
-		// internFormula.handleKeyInput уже знает, как вставлять токены,
-		// но он ожидает resourceId. Мы можем эмулировать это или добавить новый метод в InternFormula.
-		// Проще всего добавить метод в InternFormula, который напрямую принимает List<InternToken>.
 
-		// Вариант 1: Добавить метод в InternFormula
-		internFormula.insertTokens(context, tokensToAdd); // Предполагаем, что вы создадите этот метод в InternFormula
 
-		// Вариант 2: Эмулировать через handleKeyInput (менее чистый)
-		// Это потребует специального resourceId и передачи списка токенов через 'name' или другое поле,
-		// что не очень хорошо. Поэтому Вариант 1 предпочтительнее.
+
+
+
+		internFormula.insertTokens(context, tokensToAdd);
+
+
+
+
 
 		pushToHistoryAndRefreshPreviewString();
 		if (formulaEditorFragment != null) {
 			formulaEditorFragment.updateButtonsOnKeyboardAndInvalidateOptionsMenu();
 		}
-		// Устанавливаем флаг, что были изменения, если это не делается внутри pushToHistory
-		// (обычно делается, так как history.push означает изменение)
+
+
 	}
 
 	@SuppressLint("ClickableViewAccessibility")
@@ -258,11 +258,35 @@ public class FormulaEditorEditText extends EditText implements OnTouchListener {
 	private final Runnable cursorAnimation = new Runnable() {
 		@Override
 		public void run() {
-			paint.setColor((paint.getColor() == 0x00000000) ? 0xff000000 : 0x00000000);
-			invalidate();
-			postDelayed(cursorAnimation, 500);
+            int textColor = getCurrentTextColor();
+            paint.setColor((paint.getColor() == 0x00000000) ? textColor : 0x00000000);
+            invalidate();
+            postDelayed(cursorAnimation, 500);
 		}
 	};
+
+    public void syncCursorPosition() {
+        absoluteCursorPosition = getSelectionStart();
+        absoluteCursorPosition = Math.min(absoluteCursorPosition, length());
+
+        if (internFormula != null) {
+            internFormula.setCursorAndSelection(absoluteCursorPosition, false);
+        }
+
+        highlightSelection();
+
+        if (history != null && internFormula != null) {
+            history.updateCurrentSelection(internFormula.getSelection());
+            history.updateCurrentCursor(absoluteCursorPosition);
+        }
+
+        if (formulaEditorFragment != null && internFormula != null) {
+            formulaEditorFragment.refreshFormulaPreviewString(internFormula.getExternFormulaString());
+            formulaEditorFragment.updateButtonsOnKeyboardAndInvalidateOptionsMenu();
+        }
+
+        postInvalidate();
+    }
 
 	@Override
 	protected void onDraw(Canvas canvas) {
@@ -276,7 +300,7 @@ public class FormulaEditorEditText extends EditText implements OnTouchListener {
 			float xCoordinate = layout.getPrimaryHorizontal(absoluteCursorPosition) + getPaddingLeft();
 			float startYCoordinate = layout.getLineBaseline(line) + layout.getLineAscent(line);
 			float endYCoordinate = layout.getLineBaseline(line) + layout.getLineAscent(line) + getTextSize();
-			endYCoordinate += line == 0 ? 5 : 0; // First line in FE is a little bit higher so we need a bigger cursor too.
+			endYCoordinate += line == 0 ? 5 : 0;
 
 			canvas.drawLine(xCoordinate, startYCoordinate, xCoordinate, endYCoordinate, paint);
 		}

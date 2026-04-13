@@ -1,5 +1,7 @@
 package org.catrobat.catroid.raptor;
 
+import com.badlogic.gdx.graphics.Color;
+
 public abstract class PostProcessingData {
     public boolean isEnabled = true;
     public abstract String getType();
@@ -117,5 +119,67 @@ public abstract class PostProcessingData {
 
     public static class ACES extends PostProcessingData {
         @Override public String getType() { return "ACES Tonemapping"; }
+    }
+
+    public static class RayTracing extends PostProcessingData {
+        public int steps = 30;
+        public float resolution = 1.0f;
+        public float reflectivity = 0.6f;
+        public float jitter = 0.1f;
+        public float thickness = 1.0f;
+        public float maxDistance = 50.0f;
+        public float stride = 0.5f;
+        public float edgeFade = 0.15f;
+
+        @Override public String getType() { return "Ray Tracing (SSR)"; }
+    }
+
+    public static class SSAO extends PostProcessingData {
+        public float radius = 1.0f;
+        public float intensity = 1.0f;
+        public float bias = 0.05f;
+
+        @Override public String getType() { return "SSAO"; }
+    }
+
+    public static class HeightFog extends PostProcessingData {
+        public float density = 0.01f;
+        public float falloff = 0.05f;
+        public float height = 0.0f;
+        public Color color = new Color(0.5f, 0.6f, 0.7f, 1.0f);
+        @Override public String getType() { return "Height Fog"; }
+    }
+
+    public static class DepthOfField extends PostProcessingData {
+        public boolean autoFocus = false;
+        public float autoFocusSpeed = 5.0f;
+
+        public float focusDistance = 15.0f;
+        public float focusRange = 5.0f;
+        public float blurSize = 0.015f;
+        public float transition = 10.0f;
+
+        @Override public String getType() { return "Depth of Field"; }
+    }
+
+    public static class GodRays extends PostProcessingData {
+        public float exposure = 0.3f;
+        public float decay = 0.95f;
+        public float density = 0.8f;
+        public float weight = 0.6f;
+        @Override public String getType() { return "God Rays"; }
+    }
+
+    public static class VolumetricFog extends PostProcessingData {
+        public float density = 0.3f;
+        public float scattering = 0.6f;
+        public int steps = 30;
+        public float maxDistance = 100.0f;
+        @Override public String getType() { return "Volumetric Fog (3D)"; }
+    }
+
+    public static class Upscaler extends PostProcessingData {
+        public float sharpness = 0.5f;
+        @Override public String getType() { return "FSR Upscaler (CAS)"; }
     }
 }

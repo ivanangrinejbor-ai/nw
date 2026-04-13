@@ -30,6 +30,7 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Rect;
 import android.location.LocationManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
@@ -120,8 +121,8 @@ import static org.catrobat.catroid.ui.SpriteActivityOnTabSelectedListenerKt.addT
 import static org.catrobat.catroid.ui.SpriteActivityOnTabSelectedListenerKt.removeTabLayout;
 import static org.catrobat.catroid.utils.SnackbarUtil.wasHintAlreadyShown;
 
-import org.catrobat.catroid.formulaeditor.InternFormulaKeyboardAdapter; // Убедитесь, что этот импорт есть
-import org.catrobat.catroid.formulaeditor.InternToken; // Убедитесь, что этот импорт есть
+import org.catrobat.catroid.formulaeditor.InternFormulaKeyboardAdapter;
+import org.catrobat.catroid.formulaeditor.InternToken;
 
 import static androidx.fragment.app.DialogFragment.STYLE_NORMAL;
 
@@ -145,7 +146,7 @@ public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.
 	public static final String DO_NOT_SHOW_WARNING = "DO_NOT_SHOW_WARNING";
 
 	private FormulaEditorEditText formulaEditorEditText;
-	private TableLayout formulaEditorKeyboard;
+    private ViewGroup formulaEditorKeyboard;
 	private LinearLayout formulaEditorBrick;
 
 	private FormulaBrick formulaBrick;
@@ -183,25 +184,25 @@ public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.
 			Log.w(TAG, "FormulaEditorEditText или его InternFormula не инициализированы в addCustomFunctionToActiveFormula");
 			return;
 		}
-		// InternFormulaKeyboardAdapter должен быть доступен здесь
-		// или создайте его экземпляр
-		InternFormulaKeyboardAdapter adapter = new InternFormulaKeyboardAdapter(); // или getAdapter()
-		List<InternToken> tokens = adapter.buildCustomJsFunction(customFunctionName); // Используем метод, который мы создали
+
+
+		InternFormulaKeyboardAdapter adapter = new InternFormulaKeyboardAdapter();
+		List<InternToken> tokens = adapter.buildCustomJsFunction(customFunctionName);
 		if (tokens != null) {
-			// Метод addTokensToActiveFormula должен существовать в FormulaEditorEditText или здесь
-			// Если в FormulaEditorEditText:
-			//formulaEditorEditText.addTokensToActiveFormula(tokens);
-			// Если здесь, то:
-			addTokensToActiveFormula(tokens); // И реализуйте этот метод
+
+
+
+
+			addTokensToActiveFormula(tokens);
 		} else {
 			Log.e(TAG, "Не удалось создать токены для кастомной функции: " + customFunctionName);
 		}
-		updateButtonsOnKeyboardAndInvalidateOptionsMenu(); // Обновляем UI после добавления
+		updateButtonsOnKeyboardAndInvalidateOptionsMenu();
 	}
 
 	private void addTokensToActiveFormula(List<InternToken> tokens) {
 		if (formulaEditorEditText != null) {
-			formulaEditorEditText.addTokensToActiveFormula(tokens); // Предполагаем, что такой метод есть или будет в FormulaEditorEditText
+			formulaEditorEditText.addTokensToActiveFormula(tokens);
 		}
 	}
 
@@ -315,13 +316,23 @@ public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.
 	@Override
 	public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		setHasOptionsMenu(true);
-		View fragmentView = inflater.inflate(R.layout.fragment_formula_editor, container, false);
+        boolean isPcMode = PreferenceManager.getDefaultSharedPreferences(getContext()).getBoolean("pref_pc_mode_enabled", false);
+
+        int layoutId = isPcMode ? R.layout.fragment_formula_editor_pc : R.layout.fragment_formula_editor;
+        View fragmentView = inflater.inflate(layoutId, container, false);
+
 		fragmentView.setFocusableInTouchMode(true);
 		fragmentView.requestFocus();
 
 		formulaEditorBrick = fragmentView.findViewById(R.id.formula_editor_brick_space);
 		formulaEditorEditText = fragmentView.findViewById(R.id.formula_editor_edit_field);
 		formulaEditorKeyboard = fragmentView.findViewById(R.id.formula_editor_keyboardview);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            formulaEditorEditText.setShowSoftInputOnFocus(false);
+        } else {
+            formulaEditorEditText.setInputType(android.text.InputType.TYPE_NULL);
+        }
 
 		updateBrickView();
 
@@ -442,19 +453,117 @@ public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.
 			}
 		};
 
-		for (int index = 0; index < formulaEditorKeyboard.getChildCount(); index++) {
-			View tableRow = formulaEditorKeyboard.getChildAt(index);
-			if (tableRow instanceof TableRow) {
-				TableRow row = (TableRow) tableRow;
-				for (int indexRow = 0; indexRow < row.getChildCount(); indexRow++) {
-					row.getChildAt(indexRow).setOnTouchListener(touchListener);
-				}
-			}
-		}
+        attachTouchListenerToButtons(formulaEditorKeyboard, touchListener);
+        updateButtonsOnKeyboardAndInvalidateOptionsMenu();
 
-		updateButtonsOnKeyboardAndInvalidateOptionsMenu();
+
+        formulaEditorEditText.requestFocus();
+
+        formulaEditorEditText.setOnKeyListener(new View.OnKeyListener() {
+            @Override
+            public boolean onKey(View v, int keyCode, android.view.KeyEvent event) {
+                if (formulaEditorEditText.getInternFormula() == null) return false;
+
+
+                if (event.isCtrlPressed() && event.getAction() == android.view.KeyEvent.ACTION_DOWN) {
+                    if (keyCode == android.view.KeyEvent.KEYCODE_C) {
+                        org.catrobat.catroid.ui.FormulaEditorClipboard.INSTANCE.checkIfSelectedAndCopy(formulaEditorEditText);
+                        return true;
+                    } else if (keyCode == android.view.KeyEvent.KEYCODE_V) {
+                        org.catrobat.catroid.ui.FormulaEditorClipboard.INSTANCE.paste(formulaEditorEditText);
+                        return true;
+                    } else if (keyCode == android.view.KeyEvent.KEYCODE_X) {
+                        org.catrobat.catroid.ui.FormulaEditorClipboard.INSTANCE.checkIfSelectedAndCopy(formulaEditorEditText);
+                        if (formulaEditorEditText.isThereSomethingToDelete()) {
+                            formulaEditorEditText.handleKeyEvent(R.id.formula_editor_keyboard_delete, "");
+                        }
+                        return true;
+                    } else if (keyCode == android.view.KeyEvent.KEYCODE_Z) {
+                        formulaEditorEditText.undo();
+                        updateButtonsOnKeyboardAndInvalidateOptionsMenu();
+                        return true;
+                    }
+                }
+
+                if (keyCode == android.view.KeyEvent.KEYCODE_DPAD_LEFT ||
+                        keyCode == android.view.KeyEvent.KEYCODE_DPAD_RIGHT ||
+                        keyCode == android.view.KeyEvent.KEYCODE_DPAD_UP ||
+                        keyCode == android.view.KeyEvent.KEYCODE_DPAD_DOWN) {
+
+                    if (event.getAction() == android.view.KeyEvent.ACTION_UP) {
+                        formulaEditorEditText.syncCursorPosition();
+                    }
+                    return false;
+                }
+
+
+                if (event.getAction() == android.view.KeyEvent.ACTION_DOWN) {
+                    int buttonId = -1;
+                    char unicodeChar = (char) event.getUnicodeChar();
+
+
+                    if (keyCode == android.view.KeyEvent.KEYCODE_ENTER || keyCode == android.view.KeyEvent.KEYCODE_NUMPAD_ENTER) {
+                        if (saveFormulaIfPossible()) {
+                            exitFormulaEditorFragment();
+                        }
+                        return true;
+                    }
+
+
+                    if (keyCode == android.view.KeyEvent.KEYCODE_DEL) {
+                        if (formulaEditorEditText.isThereSomethingToDelete()) {
+                            formulaEditorEditText.handleKeyEvent(R.id.formula_editor_keyboard_delete, "");
+                        }
+                        return true;
+                    }
+
+
+                    if (unicodeChar >= '0' && unicodeChar <= '9') {
+                        int[] numIds = {R.id.formula_editor_keyboard_0, R.id.formula_editor_keyboard_1,
+                                R.id.formula_editor_keyboard_2, R.id.formula_editor_keyboard_3,
+                                R.id.formula_editor_keyboard_4, R.id.formula_editor_keyboard_5,
+                                R.id.formula_editor_keyboard_6, R.id.formula_editor_keyboard_7,
+                                R.id.formula_editor_keyboard_8, R.id.formula_editor_keyboard_9};
+                        buttonId = numIds[unicodeChar - '0'];
+                    }
+
+                    else if (unicodeChar == '+') buttonId = R.id.formula_editor_keyboard_plus;
+                    else if (unicodeChar == '-') buttonId = R.id.formula_editor_keyboard_minus;
+                    else if (unicodeChar == '*' || unicodeChar == 'x' || unicodeChar == 'X') buttonId = R.id.formula_editor_keyboard_mult;
+                    else if (unicodeChar == '/') buttonId = R.id.formula_editor_keyboard_divide;
+                    else if (unicodeChar == '(') buttonId = R.id.formula_editor_keyboard_bracket_open;
+                    else if (unicodeChar == ')') buttonId = R.id.formula_editor_keyboard_bracket_close;
+                    else if (unicodeChar == '.' || unicodeChar == ',') buttonId = R.id.formula_editor_keyboard_decimal_mark;
+
+
+                    if (buttonId != -1) {
+                        formulaEditorEditText.handleKeyEvent(buttonId, "");
+                        updateButtonsOnKeyboardAndInvalidateOptionsMenu();
+                        return true;
+                    }
+
+
+                    if (event.isPrintingKey() || keyCode == android.view.KeyEvent.KEYCODE_SPACE) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        });
+
 		super.onStart();
 	}
+
+    private void attachTouchListenerToButtons(ViewGroup parent, View.OnTouchListener listener) {
+        for (int i = 0; i < parent.getChildCount(); i++) {
+            View child = parent.getChildAt(i);
+            if (child instanceof ViewGroup) {
+                attachTouchListenerToButtons((ViewGroup) child, listener);
+            } else if (child.getId() != View.NO_ID && child.getVisibility() != View.GONE) {
+                child.setOnTouchListener(listener);
+            }
+        }
+    }
 
 	private void showColorPicker(ShowFormulaEditorStrategy.Callback callback,
 			FragmentManager fragmentManager) {
@@ -502,17 +611,21 @@ public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.
 		}, fragmentManager);
 	}
 
-	public void toggleFunctionalButtons() {
-		View row1 = getActivity().findViewById(R.id.tableRow11);
-		View row2 = getActivity().findViewById(R.id.tableRow12);
-		ImageButton toggleButton = getActivity().findViewById(R.id.formula_editor_keyboard_functional_button_toggle);
+    public void toggleFunctionalButtons() {
+        View row1 = getActivity().findViewById(R.id.tableRow11);
+        View row2 = getActivity().findViewById(R.id.tableRow12);
+        ImageButton toggleButton = getActivity().findViewById(R.id.formula_editor_keyboard_functional_button_toggle);
 
-		boolean isVisible = row1.getVisibility() == View.VISIBLE;
-		row1.setVisibility(isVisible ? View.GONE : View.VISIBLE);
-		row2.setVisibility(isVisible ? View.GONE : View.VISIBLE);
-		toggleButton.setImageDrawable(ContextCompat.getDrawable(getContext(), isVisible ? R.drawable.ic_keyboard_toggle_caret_up : R.drawable.ic_keyboard_toggle_caret_down));
-		toggleFormulaEditorSpace(isVisible);
-	}
+        if (row1 == null || row2 == null || toggleButton == null) {
+            return;
+        }
+
+        boolean isVisible = row1.getVisibility() == View.VISIBLE;
+        row1.setVisibility(isVisible ? View.GONE : View.VISIBLE);
+        row2.setVisibility(isVisible ? View.GONE : View.VISIBLE);
+        toggleButton.setImageDrawable(ContextCompat.getDrawable(getContext(), isVisible ? R.drawable.ic_keyboard_toggle_caret_up : R.drawable.ic_keyboard_toggle_caret_down));
+        toggleFormulaEditorSpace(isVisible);
+    }
 
 	private void toggleFormulaEditorSpace(boolean isVisible) {
 		View keyboard = getActivity().findViewById(R.id.formula_editor_keyboardview);
@@ -805,6 +918,7 @@ public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.
 				formulaEditorEditText.enterNewFormula(new UndoState(currentFormula.getInternFormulaState(),
 						formulaField));
 				refreshFormulaPreviewString(formulaEditorEditText.getStringFromInternFormula());
+                formulaEditorEditText.getInternFormula().setCursorAndSelection(0, false);
 				break;
 			case SET_FORMULA_ON_RETURN_FROM_VISUAL_PLACEMENT:
 			case SET_FORMULA_ON_RETURN_FROM_COLOR_PICKER:
@@ -838,6 +952,7 @@ public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.
 				formulaEditorEditText.enterNewFormula(new UndoState(currentFormula.getInternFormulaState(),
 						currentFormulaField));
 				refreshFormulaPreviewString(formulaEditorEditText.getStringFromInternFormula());
+                formulaEditorEditText.getInternFormula().setCursorAndSelection(0, false);
 				break;
 			default:
 				break;
@@ -887,7 +1002,7 @@ public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.
 				if (currentFormulaField instanceof Brick.BrickField && Brick.BrickField.isExpectingStringValue((Brick.BrickField) currentFormulaField)) {
 					return saveValidFormula(new FormulaElement(FormulaElement.ElementType.STRING, "", null));
 				}
-				// fallthrough
+
 			default:
 				formulaEditorEditText.setParseErrorCursorAndSelection();
 				return checkReturnWithoutSaving(InternFormulaParser.PARSER_INPUT_SYNTAX_ERROR);
@@ -1090,39 +1205,45 @@ public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.
 		this.chosenUserDataItem = chosenUserDataItem;
 	}
 
-	@Override
-	public void onHiddenChanged(boolean hidden) {
-		if (!hidden) {
-			ActionBar actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
-			boolean isRestoringPreviouslyDestroyedActivity = actionBar == null;
-			if (!isRestoringPreviouslyDestroyedActivity) {
-				actionBar.setTitle(R.string.formula_editor_title);
-				BottomBar.hideBottomBar(getActivity());
-				updateButtonsOnKeyboardAndInvalidateOptionsMenu();
-				updateBrickView();
-			}
-			if (chosenCategoryItem != null) {
-				if (chosenCategoryItem.isCustomFunction && chosenCategoryItem.customFunctionName != null) {
-					// Это кастомная функция
-					addCustomFunctionToActiveFormula(chosenCategoryItem.customFunctionName);
-				} else {
-					// Это стандартный элемент
-					addResourceToActiveFormula(chosenCategoryItem.nameResId);
-				}
-				chosenCategoryItem = null; // Сбрасываем после обработки
-			}
-			if (chosenUserDataItem != null) {
-				if (chosenUserDataItem instanceof UserVariable) {
-					addUserVariableToActiveFormula(chosenUserDataItem.getName());
-				} else if (chosenUserDataItem instanceof UserList) {
-					addUserListToActiveFormula(chosenUserDataItem.getName());
-				} else if (chosenUserDataItem instanceof UserDefinedBrickInput) {
-					addUserDefinedBrickInputToActiveFormula(chosenUserDataItem.getName());
-				}
-				chosenUserDataItem = null; // Сбрасываем после обработки
-			}
-		}
-	}
+    @Override
+    public void onHiddenChanged(boolean hidden) {
+        if (!hidden) {
+            ActionBar actionBar = null;
+            if (getActivity() instanceof AppCompatActivity) {
+                actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
+            }
+
+            boolean isRestoringPreviouslyDestroyedActivity = actionBar == null;
+            if (!isRestoringPreviouslyDestroyedActivity) {
+                actionBar.setTitle(R.string.formula_editor_title);
+                BottomBar.hideBottomBar(getActivity());
+                updateButtonsOnKeyboardAndInvalidateOptionsMenu();
+                updateBrickView();
+            }
+            if (chosenCategoryItem != null) {
+                if (chosenCategoryItem.isCustomFunction && chosenCategoryItem.customFunctionName != null) {
+                    addCustomFunctionToActiveFormula(chosenCategoryItem.customFunctionName);
+                } else {
+                    addResourceToActiveFormula(chosenCategoryItem.nameResId);
+                }
+                chosenCategoryItem = null;
+            }
+            if (chosenUserDataItem != null) {
+                if (chosenUserDataItem instanceof UserVariable) {
+                    addUserVariableToActiveFormula(chosenUserDataItem.getName());
+                } else if (chosenUserDataItem instanceof UserList) {
+                    addUserListToActiveFormula(chosenUserDataItem.getName());
+                } else if (chosenUserDataItem instanceof UserDefinedBrickInput) {
+                    addUserDefinedBrickInputToActiveFormula(chosenUserDataItem.getName());
+                }
+                chosenUserDataItem = null;
+            }
+
+            if (formulaEditorEditText != null) {
+                formulaEditorEditText.requestFocus();
+            }
+        }
+    }
 
 	public void updateButtonsOnKeyboardAndInvalidateOptionsMenu() {
 		getActivity().invalidateOptionsMenu();

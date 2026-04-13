@@ -13,6 +13,8 @@ public class GameObject {
     public String parentId = null;
     public List<String> childrenIds = new ArrayList<>();
 
+    public transient boolean isPrefabInstance = false;
+
     public GameObject() {}
 
     public GameObject(String name) {

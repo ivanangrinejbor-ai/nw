@@ -28,14 +28,18 @@ import java.math.BigDecimal
 object FormatNumberUtil {
     @JvmStatic
     fun cutTrailingZeros(number: String): String {
-        var decimal = BigDecimal(number.trim { it <= ' ' })
-        decimal = decimal.stripTrailingZeros()
+        return try {
+            var decimal = BigDecimal(number.trim { it <= ' ' })
+            decimal = decimal.stripTrailingZeros()
 
-        // compare with Zero because of faulty implementation of stripTrailingZeros in the library
-        if (decimal.compareTo(BigDecimal.ZERO) == 0) {
-            decimal = BigDecimal.ZERO
+            // compare with Zero because of faulty implementation of stripTrailingZeros in the library
+            if (decimal.compareTo(BigDecimal.ZERO) == 0) {
+                decimal = BigDecimal.ZERO
+            }
+
+            decimal.toPlainString()
+        } catch (e: NumberFormatException) {
+            number
         }
-
-        return decimal.toPlainString()
     }
 }

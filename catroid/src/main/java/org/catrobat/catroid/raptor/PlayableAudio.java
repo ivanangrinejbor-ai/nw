@@ -16,4 +16,10 @@ public interface PlayableAudio {
     String getAttachedObjectId();
 
     void update3D(float volume, float pan);
+
+    void setVolume(float volume);
+    void setPitch(float pitch);
+
+    void setBaseVolume(float volume);
+    float getBaseVolume();
 }

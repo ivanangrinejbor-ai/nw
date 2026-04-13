@@ -55,10 +55,10 @@ public class PluginManager {
      * @return true в случае успеха, false в случае ошибки.
      */
     public boolean installPluginFromUri(Uri uri) {
-        // Распаковываем во временную папку, чтобы проверить манифест перед установкой
+
         File tempDir = new File(context.getCacheDir(), "plugin_install_temp");
         if (tempDir.exists()) {
-            deleteRecursive(tempDir); // Очищаем от предыдущих попыток
+            deleteRecursive(tempDir);
         }
         tempDir.mkdirs();
 
@@ -69,7 +69,7 @@ public class PluginManager {
             while ((entry = zipInputStream.getNextEntry()) != null) {
                 File newFile = new File(tempDir, entry.getName());
 
-                // Важная проверка безопасности от Path Traversal атак
+
                 if (!newFile.getCanonicalPath().startsWith(tempDir.getCanonicalPath() + File.separator)) {
                     throw new SecurityException("Zip Path Traversal Vulnerability");
                 }
@@ -77,7 +77,7 @@ public class PluginManager {
                 if (entry.isDirectory()) {
                     newFile.mkdirs();
                 } else {
-                    // Создаем родительские директории, если их нет
+
                     newFile.getParentFile().mkdirs();
                     try (FileOutputStream fos = new FileOutputStream(newFile);
                          BufferedOutputStream bos = new BufferedOutputStream(fos)) {
@@ -93,11 +93,11 @@ public class PluginManager {
 
         } catch (Exception e) {
             Log.e(TAG, "Failed to unzip plugin archive", e);
-            deleteRecursive(tempDir); // Очистка в случае ошибки
+            deleteRecursive(tempDir);
             return false;
         }
 
-        // Теперь, когда все распаковано во временную папку, проверим манифест
+
         File manifestFile = new File(tempDir, "plugin.json");
         if (!manifestFile.exists()) {
             Log.e(TAG, "Install failed: plugin.json not found in the archive.");
@@ -110,7 +110,7 @@ public class PluginManager {
             JSONObject manifest = new JSONObject(json);
             String packageName = manifest.getString("packageName");
 
-            // Проверяем, не установлен ли уже плагин с таким же пакетом
+
             File destDir = new File(pluginsDir, packageName);
             if (destDir.exists()) {
                 Log.e(TAG, "Install failed: Plugin with package name '" + packageName + "' already exists.");
@@ -118,7 +118,7 @@ public class PluginManager {
                 return false;
             }
 
-            // Перемещаем плагин из временной папки в постоянную
+
             if (!tempDir.renameTo(destDir)) {
                 throw new IOException("Failed to move plugin directory.");
             }
@@ -197,8 +197,8 @@ public class PluginManager {
         return deleteRecursive(pluginInfo.pluginDirectory);
     }
 
-    // TODO: Реализовать метод установки плагина из .nplug файла
-    // public void installPluginFromUri(Uri uri) { ... }
+
+
 
     private Set<String> getDisabledPluginSet() {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);

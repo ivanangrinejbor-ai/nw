@@ -242,6 +242,36 @@ public class InternFormulaKeyboardAdapter {
                 return buildSingleParameterFunction(Functions.PT_DUMP, STRING, "tensor");
             case R.string.formula_pt_argmax:
                 return buildSingleParameterFunction(Functions.PT_ARGMAX, STRING, "tensor");
+            case R.string.formula_f2d_is_touched:
+                return buildSingleParameterFunction(Functions.F2D_IS_TOUCHED, STRING, "id");
+            case R.string.formula_f2d_is_touched_index:
+                return buildDoubleParameterFunction(Functions.F2D_IS_TOUCHED_INDEX, STRING, "id", NUMBER, "0");
+            case R.string.formula_f2d_x:
+                return buildSingleParameterFunction(Functions.F2D_X, STRING, "id");
+            case R.string.formula_f2d_y:
+                return buildSingleParameterFunction(Functions.F2D_Y, STRING, "id");
+            case R.string.formula_f2d_rotation:
+                return buildSingleParameterFunction(Functions.F2D_ROTATION, STRING, "id");
+            case R.string.formula_f2d_scale_x:
+                return buildSingleParameterFunction(Functions.F2D_SCALE_X, STRING, "id");
+            case R.string.formula_f2d_scale_y:
+                return buildSingleParameterFunction(Functions.F2D_SCALE_Y, STRING, "id");
+            case R.string.formula_f2d_r:
+                return buildSingleParameterFunction(Functions.F2D_COLOR_R, STRING, "id");
+            case R.string.formula_f2d_g:
+                return buildSingleParameterFunction(Functions.F2D_COLOR_G, STRING, "id");
+            case R.string.formula_f2d_b:
+                return buildSingleParameterFunction(Functions.F2D_COLOR_B, STRING, "id");
+            case R.string.formula_f2d_alpha:
+                return buildSingleParameterFunction(Functions.F2D_ALPHA, STRING, "id");
+            case R.string.formula_f2d_texture:
+                return buildSingleParameterFunction(Functions.F2D_TEXTURE, STRING, "id");
+            case R.string.formula_f2d_cam_x:
+                return buildFunctionWithoutParametersAndBrackets(Functions.F2D_CAM_X);
+            case R.string.formula_f2d_cam_y:
+                return buildFunctionWithoutParametersAndBrackets(Functions.F2D_CAM_Y);
+            case R.string.formula_f2d_cam_zoom:
+                return buildFunctionWithoutParametersAndBrackets(Functions.F2D_CAM_ZOOM);
             case R.string.formula_pt_value:
                 return buildDoubleParameterFunction(Functions.PT_VALUE, STRING, "tensor", NUMBER, "0");
             case R.string.formula_pt_valuend:

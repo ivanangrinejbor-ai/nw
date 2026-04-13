@@ -9,6 +9,6 @@ class ClearPythonEnvironmentAction : TemporalAction() {
 
     override fun update(percent: Float) {
         val pythonEngine = MainMenuActivity.pythonEngine
-        pythonEngine.clearEnvironment()
+        pythonEngine?.clearEnvironment()
     }
 }

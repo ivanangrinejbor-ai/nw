@@ -11,6 +11,7 @@ import org.catrobat.catroid.content.bricks.RunPythonScriptBrick;
 
 import org.catrobat.catroid.content.bricks.LunoScriptBrick;
 
+import java.io.File;
 import java.util.List;
 import java.util.Objects;
 
@@ -18,10 +19,14 @@ import java.util.Objects;
 public class ProjectSecurityChecker {
 
     public static boolean projectContainsDangerousBricks(Project project) {
-        if (project == null) {
+        if (project == null || project.getLibsDir() == null) {
             return false;
         }
-        if (project.getLibsDir().listFiles() != null && Objects.requireNonNull(project.getLibsDir().listFiles()).length > 0) return true;
+
+        File[] files = project.getLibsDir().listFiles();
+        if (files != null && files.length > 0) {
+            return true;
+        }
 
         for (Scene scene : project.getSceneList()) {
             for (Sprite sprite : scene.getSpriteList()) {
@@ -32,9 +37,9 @@ public class ProjectSecurityChecker {
                 }
             }
         }
-
         return false;
     }
+
 
     private static boolean checkBrickRecursively(Brick brick) {
         if (brick == null) {

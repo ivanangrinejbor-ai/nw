@@ -50,6 +50,7 @@ import org.catrobat.catroid.content.bricks.PhiroRGBLightBrick;
 import org.catrobat.catroid.content.bricks.brickspinner.PickableDrum;
 import org.catrobat.catroid.content.bricks.brickspinner.PickableMusicalInstrument;
 import org.catrobat.catroid.formulaeditor.Formula;
+import org.catrobat.catroid.formulaeditor.InterpretationException;
 import org.catrobat.catroid.formulaeditor.UserData;
 import org.catrobat.catroid.formulaeditor.UserList;
 import org.catrobat.catroid.formulaeditor.UserVariable;
@@ -4007,6 +4008,104 @@ public class ActionFactory extends Actions {
         return action;
     }
 
+
+    public Action createRunChip8Action(Sprite sprite, SequenceAction sequence, Formula filename) {
+        RunChip8Action action = action(RunChip8Action.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setFilenameFormula(filename);
+        return action;
+    }
+
+    public Action createSetAIAction(Sprite sprite, ScriptSequenceAction sequence,
+                                    Formula objId, Formula mode, Formula target, Formula speed, Formula stop, Formula range, Formula step, Formula avoid) {
+        SetAIAction action = action(SetAIAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setObjectId(objId);
+        action.setMode(mode);
+        action.setTargetId(target);
+        action.setSpeed(speed);
+        action.setStopDist(stop);
+        action.setRange(range);
+        action.setStep(step);
+        action.setAvoid(avoid);
+        return action;
+    }
+
+    public Action createCameraTouchControlAction(Sprite sprite, ScriptSequenceAction sequence,
+                                                 Formula enabled, Formula sensitivity, Formula x, Formula y, Formula w, Formula h) {
+
+        CameraTouchControlAction action = action(CameraTouchControlAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+
+        action.setScope(scope);
+        action.setEnabled(enabled);
+        action.setSensitivity(sensitivity);
+        action.setBlockUI(false);
+        action.setAreaX(x);
+        action.setAreaY(y);
+        action.setAreaW(w);
+        action.setAreaH(h);
+
+        return action;
+    }
+
+    public Action createSetTextureTilingAction(Sprite sprite, ScriptSequenceAction seq, Formula objId, Formula u, Formula v) {
+        SetTextureTilingAction a = action(SetTextureTilingAction.class);
+        a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, seq));
+        a.setObjectId(objId); a.setScaleU(u); a.setScaleV(v);
+        return a;
+    }
+
+    public Action createSetSoundInstanceVolumeAction(Sprite sprite, ScriptSequenceAction seq, Formula name, Formula vol) {
+        SetSoundInstanceVolumeAction a = action(SetSoundInstanceVolumeAction.class);
+        a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, seq));
+        a.setInstanceName(name); a.setVolume(vol);
+        return a;
+    }
+
+    public Action createSetSoundInstancePitchAction(Sprite sprite, ScriptSequenceAction seq, Formula name, Formula pitch) {
+        SetSoundInstancePitchAction a = action(SetSoundInstancePitchAction.class);
+        a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, seq));
+        a.setInstanceName(name); a.setPitch(pitch);
+        return a;
+    }
+
+    public Action createSetParticleEmissionAction(Sprite sprite, ScriptSequenceAction seq, Formula objId, Formula rate) {
+        SetParticleEmissionAction a = action(SetParticleEmissionAction.class);
+        a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, seq));
+        a.setObjectId(objId); a.setRate(rate);
+        return a;
+    }
+
+    public Action createSetAnimationSpeedAction(Sprite sprite, ScriptSequenceAction seq, Formula objId, Formula speed) {
+        SetAnimationSpeedAction a = action(SetAnimationSpeedAction.class);
+        a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, seq));
+        a.setObjectId(objId); a.setSpeed(speed);
+        return a;
+    }
+
+    public Action createRotateCameraByAction(Sprite sprite, ScriptSequenceAction sequence,
+                                             Formula pitch, Formula yaw, Formula roll) {
+        RotateCameraByAction action = action(RotateCameraByAction.class);
+        action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        action.setPitch(pitch);
+        action.setYaw(yaw);
+        action.setRoll(roll);
+        return action;
+    }
+
+    public Action createCameraSettingsAction(Sprite sprite, ScriptSequenceAction sequence,
+                                             Formula fov, Formula intensity, Formula duration) {
+        CameraSettingsAction action = action(CameraSettingsAction.class);
+        action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        action.setFov(fov);
+        action.setShakeIntensity(intensity);
+        action.setShakeDuration(duration);
+        return action;
+    }
+
     public ThreedCreateFixedConstraintAction createThreedCreateFixedConstraintAction(
             Sprite sprite, ScriptSequenceAction sequence,
             Formula id, Formula a, Formula b) {
@@ -4017,5 +4116,205 @@ public class ActionFactory extends Actions {
         action.objA = a;
         action.objB = b;
         return action;
+    }
+
+    public Action createAttachRaySensorAction(Sprite sprite, ScriptSequenceAction sequence,
+                                              Formula rayName, Formula objectId,
+                                              Formula offX, Formula offY, Formula offZ,
+                                              Formula dirX, Formula dirY, Formula dirZ,
+                                              Formula dist) {
+        AttachRaySensorAction action = action(AttachRaySensorAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setRayName(rayName);
+        action.setObjectId(objectId);
+        action.setOffX(offX);
+        action.setOffY(offY);
+        action.setOffZ(offZ);
+        action.setDirX(dirX);
+        action.setDirY(dirY);
+        action.setDirZ(dirZ);
+        action.setDist(dist);
+        return action;
+    }
+
+    public Action createBakeByPrefixAction(Sprite sprite, ScriptSequenceAction sequence,
+                                           Formula prefix, Formula resultName) {
+        BakeByPrefixAction action = action(BakeByPrefixAction.class);
+        action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        action.setPrefix(prefix);
+        action.setResultName(resultName);
+        return action;
+    }
+
+    public Action createSetPostProcessingNewAction(Sprite sprite, ScriptSequenceAction sequence,
+                                                   int effectIndex, int paramIndex, Formula valueFormula) {
+        SetPostProcessingNewAction action = new SetPostProcessingNewAction();
+        action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        action.setEffectIndex(effectIndex);
+        action.setParamIndex(paramIndex);
+        action.setValueFormula(valueFormula);
+        return action;
+    }
+
+    public Action createSetShadowQualityAction(Sprite sprite, ScriptSequenceAction sequence, Formula size, Formula resolution) {
+        SetShadowQualityAction action = new SetShadowQualityAction();
+        action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        action.setSizeFormula(size);
+        action.setResolutionFormula(resolution);
+        return action;
+    }
+
+    public Action createAddHingeAction(Sprite sprite, ScriptSequenceAction sequence,
+                                       Formula id, Formula objA, Formula objB,
+                                       Formula pax, Formula pay, Formula paz,
+                                       Formula aax, Formula aay, Formula aaz,
+                                       Formula pbx, Formula pby, Formula pbz,
+                                       Formula abx, Formula aby, Formula abz) {
+        AddHingeAction action = action(AddHingeAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setConstraintId(id);
+        action.setObjectA(objA);
+        action.setObjectB(objB);
+        action.setPivotAX(pax); action.setPivotAY(pay); action.setPivotAZ(paz);
+        action.setAxisAX(aax);  action.setAxisAY(aay);  action.setAxisAZ(aaz);
+        action.setPivotBX(pbx); action.setPivotBY(pby); action.setPivotBZ(pbz);
+        action.setAxisBX(abx);  action.setAxisBY(aby);  action.setAxisBZ(abz);
+        return action;
+    }
+
+    public Action createSetHingeMotorAction(Sprite sprite, ScriptSequenceAction sequence,
+                                            Formula id, Formula targetAngle, Formula maxForce) {
+        SetHingeMotorAction action = action(SetHingeMotorAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setConstraintId(id);
+        action.setTargetAngle(targetAngle);
+        action.setMaxForce(maxForce);
+        return action;
+    }
+
+    public Action createFast2DCreateAction(Sprite sprite, SequenceAction sequence, Formula entityId) {
+        Fast2DCreateAction action = action(Fast2DCreateAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setEntityId(entityId);
+        return action;
+    }
+
+    public Action createFast2DSetPositionAction(Sprite sprite, SequenceAction sequence,
+                                                Formula entityId, Formula posX, Formula posY) {
+        Fast2DSetPositionAction action = action(Fast2DSetPositionAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setEntityId(entityId);
+        action.setPosX(posX);
+        action.setPosY(posY);
+        return action;
+    }
+
+    public Action createFast2DSetRotationAction(Sprite s, SequenceAction seq, Formula id, Formula angle) {
+        Fast2DSetRotationAction a = action(Fast2DSetRotationAction.class);
+        a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), s, seq));
+        a.setEntityId(id);
+        a.setAngle(angle);
+        return a;
+    }
+
+    public Action createFast2DSetScaleAction(Sprite s, SequenceAction seq, Formula id, Formula sx, Formula sy) {
+        Fast2DSetScaleAction a = action(Fast2DSetScaleAction.class);
+        a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), s, seq));
+        a.setEntityId(id);
+        a.setSx(sx); a.setSy(sy);
+        return a;
+    }
+
+    public Action createFast2DSetTextureAction(Sprite s, SequenceAction seq, Formula id, Formula file) {
+        Fast2DSetTextureAction a = action(Fast2DSetTextureAction.class);
+        a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), s, seq));
+        a.setEntityId(id);
+        a.setFileName(file);
+        return a;
+    }
+
+    public Action createFast2DSetZIndexAction(Sprite s, SequenceAction seq, Formula id, Formula z) {
+        Fast2DSetZIndexAction a = action(Fast2DSetZIndexAction.class);
+        a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), s, seq));
+        a.setEntityId(id);
+        a.setZIndex(z);
+        return a;
+    }
+
+    public Action createFast2DDeleteAction(Sprite s, SequenceAction seq, Formula id) {
+        Fast2DDeleteAction a = action(Fast2DDeleteAction.class);
+        a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), s, seq));
+        a.setEntityId(id);
+        return a;
+    }
+
+    public Action createFast2DSetColorAction(Sprite sprite, ScriptSequenceAction sequence, Formula formulaWithBrickField, Formula formulaWithBrickField1, Formula formulaWithBrickField2, Formula formulaWithBrickField3, Formula formulaWithBrickField4) {
+        Fast2DSetColorAction a = action(Fast2DSetColorAction.class);
+        a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        a.setEntityId(formulaWithBrickField);
+        a.setR(formulaWithBrickField1);
+        a.setG(formulaWithBrickField2);
+        a.setB(formulaWithBrickField3);
+        a.setA(formulaWithBrickField4);
+        return a;
+    }
+
+    public Action createFast2DSetCameraAction(Sprite sprite, ScriptSequenceAction sequence, Formula formulaWithBrickField, Formula formulaWithBrickField1, Formula formulaWithBrickField2) {
+        Fast2DSetCameraAction a = action(Fast2DSetCameraAction.class);
+        a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        a.setPosX(formulaWithBrickField);
+        a.setPosY(formulaWithBrickField1);
+        a.setZoom(formulaWithBrickField2);
+        return a;
+    }
+    // Movement
+    public Action createFast2DSetVelocityAction(Sprite s, SequenceAction seq, Formula id, Formula vx, Formula vy) {
+        Fast2DSetVelocityAction a = action(Fast2DSetVelocityAction.class);
+        a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), s, seq));
+        a.setEntityId(id); a.setVx(vx); a.setVy(vy); return a;
+    }
+
+    public Action createFast2DSetAngularVelocityAction(Sprite s, SequenceAction seq, Formula id, Formula v) {
+        Fast2DSetAngularVelocityAction a = action(Fast2DSetAngularVelocityAction.class);
+        a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), s, seq));
+        a.setEntityId(id); a.setAngVel(v); return a;
+    }
+
+    public Action createFast2DMakePhysicsAction(Sprite s, SequenceAction seq, Formula id, Formula dyn, Formula shape, Formula den, Formula fric, Formula bnc) {
+        Fast2DMakePhysicsAction a = action(Fast2DMakePhysicsAction.class);
+        a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), s, seq));
+        a.setEntityId(id); a.setDyn(dyn); a.setShape(shape); a.setDen(den); a.setFric(fric); a.setBnc(bnc); return a;
+    }
+
+    public Action createFast2DApplyForceAction(Sprite s, SequenceAction seq, Formula id, Formula fx, Formula fy) {
+        Fast2DApplyForceAction a = action(Fast2DApplyForceAction.class);
+        a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), s, seq));
+        a.setEntityId(id); a.setFx(fx); a.setFy(fy); return a;
+    }
+
+    public Action createFast2DApplyImpulseAction(Sprite s, SequenceAction seq, Formula id, Formula ix, Formula iy) {
+        Fast2DApplyImpulseAction a = action(Fast2DApplyImpulseAction.class);
+        a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), s, seq));
+        a.setEntityId(id); a.setFx(ix); a.setFy(iy); return a;
+    }
+
+    public Action createFast2DSetPhysicsVelocityAction(Sprite s, SequenceAction seq, Formula id, Formula vx, Formula vy) {
+        Fast2DSetPhysicsVelocityAction a = action(Fast2DSetPhysicsVelocityAction.class);
+        a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), s, seq));
+        a.setEntityId(id); a.setFx(vx); a.setFy(vy); return a;
+    }
+
+    public Action createFast2DSetCollisionFilterAction(Sprite s, SequenceAction seq, Formula id, Formula sensor, Formula group) {
+        Fast2DSetCollisionFilterAction a = action(Fast2DSetCollisionFilterAction.class);
+        a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), s, seq));
+        a.setEntityId(id);
+        a.setSensor(sensor);
+        a.setGroup(group);
+        return a;
     }
 }

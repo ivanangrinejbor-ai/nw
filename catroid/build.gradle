@@ -108,8 +108,8 @@ ext.copyGoogleServicesFile = { flavorName, flavorId ->
     }
 }
 
-def defaultVersionCode = 129
-def defaultVersionName = "2.1.3"
+def defaultVersionCode = 130
+def defaultVersionName = "2.2.0"
 
 android {
     compileSdk 34
@@ -158,6 +158,7 @@ android {
         buildConfigField "boolean", "FEATURE_PLOT_ENABLED", "true"
         buildConfigField "boolean", "FEATURE_NEURAL_ENABLED", "true"
         buildConfigField "boolean", "FEATURE_POCKETENSOR_ENABLED", "true"
+        buildConfigField "boolean", "FEATURE_FAST2D_ENABLED", "true"
         buildConfigField "boolean", "FEATURE_THREED_ENABLED", "true"
         buildConfigField "boolean", "FEATURE_INTERNET_ENABLED", "true"
         buildConfigField "boolean", "FEATURE_LEGO_NXT_ENABLED", "true"
@@ -627,6 +628,8 @@ dependencies {
     implementation "com.badlogicgames.gdx:gdx-bullet:$gdxVersion"
     implementation "com.badlogicgames.gdx:gdx-bullet-platform:$gdxVersion:natives-armeabi-v7a"
     implementation "com.badlogicgames.gdx:gdx-bullet-platform:$gdxVersion:natives-arm64-v8a"
+
+    implementation "net.onedaybeard.artemis:artemis-odb:2.3.0"
 
     implementation "com.google.android.gms:play-services-auth:17.0.0"
 

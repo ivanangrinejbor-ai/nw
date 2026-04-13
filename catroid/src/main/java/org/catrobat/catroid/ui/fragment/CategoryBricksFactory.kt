@@ -32,9 +32,11 @@ import org.catrobat.catroid.content.RaspiInterruptScript
 import org.catrobat.catroid.content.WhenBounceOffScript
 import org.catrobat.catroid.content.WhenConditionScript
 import org.catrobat.catroid.content.WhenGamepadButtonScript
+import org.catrobat.catroid.content.actions.SetAnimationSpeedAction
 import org.catrobat.catroid.content.actions.hideStatusBarAction
 import org.catrobat.catroid.content.bricks.AddEditBrick
 import org.catrobat.catroid.content.bricks.AddFileToApkBrick
+import org.catrobat.catroid.content.bricks.AddHingeBrick
 import org.catrobat.catroid.content.bricks.AddItemToUserListBrick
 import org.catrobat.catroid.content.bricks.AddRadioBrick
 import org.catrobat.catroid.content.bricks.Apply3dForceBrick
@@ -52,8 +54,10 @@ import org.catrobat.catroid.content.bricks.AskSpeechBrick
 import org.catrobat.catroid.content.bricks.AssertEqualsBrick
 import org.catrobat.catroid.content.bricks.AssertUserListsBrick
 import org.catrobat.catroid.content.bricks.AsyncRepeatBrick
+import org.catrobat.catroid.content.bricks.AttachRaySensorBrick
 import org.catrobat.catroid.content.bricks.AttachSOBrick
 import org.catrobat.catroid.content.bricks.BackgroundRequestBrick
+import org.catrobat.catroid.content.bricks.BakeByPrefixBrick
 import org.catrobat.catroid.content.bricks.BigAskBrick
 import org.catrobat.catroid.content.bricks.BindVmOutputBrick
 import org.catrobat.catroid.content.bricks.Brick
@@ -62,6 +66,8 @@ import org.catrobat.catroid.content.bricks.BroadcastReceiverBrick
 import org.catrobat.catroid.content.bricks.BroadcastWaitBrick
 import org.catrobat.catroid.content.bricks.CameraBrick
 import org.catrobat.catroid.content.bricks.CameraLookAtBrick
+import org.catrobat.catroid.content.bricks.CameraSettingsBrick
+import org.catrobat.catroid.content.bricks.CameraTouchControlBrick
 import org.catrobat.catroid.content.bricks.CastRayBrick
 import org.catrobat.catroid.content.bricks.ChangeBrightnessByNBrick
 import org.catrobat.catroid.content.bricks.ChangeColorByNBrick
@@ -147,6 +153,21 @@ import org.catrobat.catroid.content.bricks.ExitStageBrick
 import org.catrobat.catroid.content.bricks.ExportProjectFileBrick
 import org.catrobat.catroid.content.bricks.ExtractFileBrick
 import org.catrobat.catroid.content.bricks.FadeParticleEffectBrick
+import org.catrobat.catroid.content.bricks.Fast2DApplyForceBrick
+import org.catrobat.catroid.content.bricks.Fast2DApplyImpulseBrick
+import org.catrobat.catroid.content.bricks.Fast2DCreateBrick
+import org.catrobat.catroid.content.bricks.Fast2DDeleteBrick
+import org.catrobat.catroid.content.bricks.Fast2DMakePhysicsBrick
+import org.catrobat.catroid.content.bricks.Fast2DSetAngularVelocityBrick
+import org.catrobat.catroid.content.bricks.Fast2DSetCameraBrick
+import org.catrobat.catroid.content.bricks.Fast2DSetCollisionFilterBrick
+import org.catrobat.catroid.content.bricks.Fast2DSetColorBrick
+import org.catrobat.catroid.content.bricks.Fast2DSetPhysicsVelocityBrick
+import org.catrobat.catroid.content.bricks.Fast2DSetPositionBrick
+import org.catrobat.catroid.content.bricks.Fast2DSetRotationBrick
+import org.catrobat.catroid.content.bricks.Fast2DSetScaleBrick
+import org.catrobat.catroid.content.bricks.Fast2DSetTextureBrick
+import org.catrobat.catroid.content.bricks.Fast2DSetVelocityBrick
 import org.catrobat.catroid.content.bricks.FileUrlBrick
 import org.catrobat.catroid.content.bricks.FilesUrlBrick
 import org.catrobat.catroid.content.bricks.FinishStageBrick
@@ -287,6 +308,8 @@ import org.catrobat.catroid.content.bricks.ReportBrick
 import org.catrobat.catroid.content.bricks.ResetTimerBrick
 import org.catrobat.catroid.content.bricks.ResizeImgBrick
 import org.catrobat.catroid.content.bricks.ReturnToPreviousProjectBrick
+import org.catrobat.catroid.content.bricks.RotateCameraByBrick
+import org.catrobat.catroid.content.bricks.RunChip8Brick
 import org.catrobat.catroid.content.bricks.RunJSBrick
 import org.catrobat.catroid.content.bricks.RunLuaBrick
 import org.catrobat.catroid.content.bricks.RunPythonScriptBrick
@@ -314,8 +337,10 @@ import org.catrobat.catroid.content.bricks.Set3dPositionBrick
 import org.catrobat.catroid.content.bricks.Set3dRotationBrick
 import org.catrobat.catroid.content.bricks.Set3dScaleBrick
 import org.catrobat.catroid.content.bricks.Set3dVelocityBrick
+import org.catrobat.catroid.content.bricks.SetAIBrick
 import org.catrobat.catroid.content.bricks.SetActiveBrick
 import org.catrobat.catroid.content.bricks.SetAmbientLightBrick
+import org.catrobat.catroid.content.bricks.SetAnimationSpeedBrick
 import org.catrobat.catroid.content.bricks.SetAnisotropicFilterBrick
 import org.catrobat.catroid.content.bricks.SetBackgroundAndWaitBrick
 import org.catrobat.catroid.content.bricks.SetBackgroundBrick
@@ -345,6 +370,7 @@ import org.catrobat.catroid.content.bricks.SetGeminiKeyBrick
 import org.catrobat.catroid.content.bricks.SetGlobalSoundVolumeBrick
 import org.catrobat.catroid.content.bricks.SetGravityBrick
 import org.catrobat.catroid.content.bricks.SetHeightBrick
+import org.catrobat.catroid.content.bricks.SetHingeMotorBrick
 import org.catrobat.catroid.content.bricks.SetHitboxBrick
 import org.catrobat.catroid.content.bricks.SetInstrumentBrick
 import org.catrobat.catroid.content.bricks.SetListeningLanguageBrick
@@ -360,6 +386,7 @@ import org.catrobat.catroid.content.bricks.SetObjectColorBrick
 import org.catrobat.catroid.content.bricks.SetObjectTextureBrick
 import org.catrobat.catroid.content.bricks.SetParentBrick
 import org.catrobat.catroid.content.bricks.SetParticleColorBrick
+import org.catrobat.catroid.content.bricks.SetParticleEmissionBrick
 import org.catrobat.catroid.content.bricks.SetPenColorBrick
 import org.catrobat.catroid.content.bricks.SetPenSizeBrick
 import org.catrobat.catroid.content.bricks.SetPhysicsObjectTypeBrick
@@ -367,6 +394,7 @@ import org.catrobat.catroid.content.bricks.SetPhysicsStateBrick
 import org.catrobat.catroid.content.bricks.SetPointLightBrick
 import org.catrobat.catroid.content.bricks.SetPositiveBrick
 import org.catrobat.catroid.content.bricks.SetPostProcessingBrick
+import org.catrobat.catroid.content.bricks.SetPostProcessingNewBrick
 import org.catrobat.catroid.content.bricks.SetRestitutionBrick
 import org.catrobat.catroid.content.bricks.SetRotationLockBrick
 import org.catrobat.catroid.content.bricks.SetRotationStyleBrick
@@ -374,15 +402,19 @@ import org.catrobat.catroid.content.bricks.SetSaveScenesBrick
 import org.catrobat.catroid.content.bricks.SetShaderCodeBrick
 import org.catrobat.catroid.content.bricks.SetShaderUniformFloatBrick
 import org.catrobat.catroid.content.bricks.SetShaderUniformVec3Brick
+import org.catrobat.catroid.content.bricks.SetShadowQualityBrick
 import org.catrobat.catroid.content.bricks.SetShadowsBrick
 import org.catrobat.catroid.content.bricks.SetSizeToBrick
 import org.catrobat.catroid.content.bricks.SetSkyColorBrick
 import org.catrobat.catroid.content.bricks.SetSkyboxBrick
+import org.catrobat.catroid.content.bricks.SetSoundInstancePitchBrick
+import org.catrobat.catroid.content.bricks.SetSoundInstanceVolumeBrick
 import org.catrobat.catroid.content.bricks.SetSoundVolumeBrick
 import org.catrobat.catroid.content.bricks.SetSpawnInvisibleBrick
 import org.catrobat.catroid.content.bricks.SetSpotLightBrick
 import org.catrobat.catroid.content.bricks.SetStopSoundsBrick
 import org.catrobat.catroid.content.bricks.SetTempoBrick
+import org.catrobat.catroid.content.bricks.SetTextureTilingBrick
 import org.catrobat.catroid.content.bricks.SetThirdPersonCameraBrick
 import org.catrobat.catroid.content.bricks.SetThreadColorBrick
 import org.catrobat.catroid.content.bricks.SetTransparencyBrick
@@ -524,6 +556,7 @@ open class CategoryBricksFactory {
             context.getString(R.string.category_plot) -> return setupPlotCategoryList(context)
             context.getString(R.string.category_neural) -> return setupNeuralCategoryList(context)
             context.getString(R.string.pocketensor) -> return setupPocketensorCategoryList(context)
+            context.getString(R.string.fast2d) -> return setupFast2dCategoryList(context)
             context.getString(R.string.category_file) -> return setupFileCategoryList(context)
             context.getString(R.string.category_threed) -> return setupThreedCategoryList(context)
             context.getString(R.string.category_internet) -> return setupInternetCategoryList(context)
@@ -1040,6 +1073,7 @@ print("Bot has stopped.")""", "myVar"))
         deviceBrickList.add(KeyEventBrick("a", 1))
         deviceBrickList.add(SendVmInputBrick("ls ~/"))
         deviceBrickList.add(StopVMBrick())
+        deviceBrickList.add(RunChip8Brick("tetris.ch8"))
         /*deviceBrickList.add(ShaderBrick("""attribute vec4 a_position;
 attribute vec2 a_texCoord0;
 
@@ -1279,6 +1313,29 @@ void main() {
         return pocketensorBrickList
     }
 
+    private fun setupFast2dCategoryList(context: Context): List<Brick> {
+        val fast2dBrickList: MutableList<Brick> = ArrayList()
+
+        fast2dBrickList.add(Fast2DCreateBrick("object"))
+        fast2dBrickList.add(Fast2DDeleteBrick("object"))
+        fast2dBrickList.add(Fast2DSetPositionBrick("object", 100.0, 200.0))
+        fast2dBrickList.add(Fast2DSetRotationBrick("object", 90.0))
+        fast2dBrickList.add(Fast2DSetScaleBrick("object", 200.0, 15.0))
+        fast2dBrickList.add(Fast2DSetVelocityBrick("object", 10.0, 5.0))
+        fast2dBrickList.add(Fast2DSetAngularVelocityBrick("object", 10.0))
+        fast2dBrickList.add(Fast2DSetTextureBrick("object", "image.png"))
+        fast2dBrickList.add(Fast2DSetColorBrick("object", 255.0, 0.0, 0.0, 120.0))
+        fast2dBrickList.add(Fast2DSetCameraBrick(100.0, 200.0, 2.0))
+
+        fast2dBrickList.add(Fast2DMakePhysicsBrick("object", 1.0, "CIRCLE", 10.0, 0.7, 0.2))
+        fast2dBrickList.add(Fast2DSetCollisionFilterBrick("object", 0.0, -1.0))
+        fast2dBrickList.add(Fast2DApplyForceBrick("object", 100.0, 300.0))
+        fast2dBrickList.add(Fast2DApplyImpulseBrick("object", 10.0, 5.0))
+        fast2dBrickList.add(Fast2DSetPhysicsVelocityBrick("object", 10.0, 2.0))
+
+        return fast2dBrickList
+    }
+
     private fun setupFileCategoryList(context: Context): List<Brick> {
         val fileBrickList: MutableList<Brick> = ArrayList()
 
@@ -1361,18 +1418,26 @@ void main() {
         threedBrickList.add(RemoveParentBrick("child"))
         threedBrickList.add(CreatePointJointBrick("joint", "objA", "objB"))
         threedBrickList.add(ThreedCreateFixedConstraintBrick("joint", "objA", "objB"))
+        threedBrickList.add(AddHingeBrick())
+        threedBrickList.add(SetHingeMotorBrick("joint", 45.0, 10.0))
         threedBrickList.add(RemoveJointBrick("joint"))
+        threedBrickList.add(BakeByPrefixBrick("wall_", "bakedObject"))
+        threedBrickList.add(SetAIBrick("myObject", 1, "followingObject", 2f, 1f, 10f, 1f, 1))
         threedBrickList.add(SetCameraPositionBrick(200.0, 200.0, 200.0))
         threedBrickList.add(CameraLookAtBrick(0.0, 0.0, 0.0))
         threedBrickList.add(SetCameraRotationBrick(0.0, 180.0, 0.0))
+        threedBrickList.add(RotateCameraByBrick(0.0f, 180.0f, 0.0f))
         threedBrickList.add(SetCameraRangeBrick(0.1, 2500.0))
+        threedBrickList.add(CameraSettingsBrick(67f, 2f, 2f))
         threedBrickList.add(SetThirdPersonCameraBrick("myObject", 10.0, 10.0, -20.0))
         threedBrickList.add(SetFreeCameraBrick())
+        threedBrickList.add(CameraTouchControlBrick(1, 1f, 0f, 0f, 50f, 50f))
         threedBrickList.add(SetAmbientLightBrick(0.8, 0.8, 0.8))
         threedBrickList.add(SetDirectionalLightBrick("sun", 0.8, 0.8, 0.8, -1.0, -0.8, -0.2))
         threedBrickList.add(SetSkyColorBrick(0.5, 0.6, 1.0))
         threedBrickList.add(SetFogBrick(0.5f, 0.6f, 1f, 0.1f))
         threedBrickList.add(CastRayBrick("ray", 100.0, 100.0, 100.0, -1.0, -1.0, -1.0))
+        threedBrickList.add(AttachRaySensorBrick("ray", "myObject", 1f, 1f, 1f, 0f, -1f, 0f, 100f))
         threedBrickList.add(SetShaderCodeBrick("""attribute vec3 a_position;
 attribute vec3 a_normal;
 attribute vec2 a_texCoord0;
@@ -1416,7 +1481,9 @@ void main() {
         threedBrickList.add(EnablePbrRenderBrick(1))
         //threedBrickList.add(SetShadowsBrick(Formula(1)))
         threedBrickList.add(SetMaterialBrick("myObject", 255.0, 0.0, 255.0, 255.0, 100.0, 0.0, "none.png", "none.png", "none.png"))
+        threedBrickList.add(SetTextureTilingBrick("myObject", 10f, 10f))
         threedBrickList.add(PlayAnimationBrick("myObject", "idle", -1, 1.0, 0.2))
+        threedBrickList.add(SetAnimationSpeedBrick("myObject", 10f))
         threedBrickList.add(StopAnimationBrick("myObject"))
         threedBrickList.add(KeyframeAnimationBrick())
         threedBrickList.add(ThreedAttachObjectToBoneBrick("attachedObject", "hand", "Hand_R", 0.0, 0.0, 0.0))
@@ -1427,17 +1494,22 @@ void main() {
         threedBrickList.add(SetDirectionalLight2Brick(0.3, -0.2, -0.3, 5.0))
         threedBrickList.add(SetBackgroundLightBrick(0.3))
         threedBrickList.add(RemovePbrLightBrick("sun"))
+        threedBrickList.add(SetShadowQualityBrick(Formula(100), Formula(2048)))
         threedBrickList.add(LoadSceneBrick("my_level.rscene"))
         threedBrickList.add(LoadSceneAdditiveBrick("my_level.rscene"))
         threedBrickList.add(SetSkyboxBrick("skybox.hdr"))
         threedBrickList.add(PrepareSoundBrick2("sound.mp3", "sound"))
         threedBrickList.add(PrepareMusicAs3DSoundBrick("sound.mp3", "sound"))
         threedBrickList.add(PlaySoundAtPositionBrick("sound", "soundInstance"))
+        threedBrickList.add(SetSoundInstanceVolumeBrick("soundInstance", 60f))
+        threedBrickList.add(SetSoundInstancePitchBrick("soundInstance", 140f))
         threedBrickList.add(Set3DSoundPositionBrick("soundInstance", 10, 10, 10))
         threedBrickList.add(StopSoundBrick2("soundInstance"))
         threedBrickList.add(SetGlobalSoundVolumeBrick(60.0))
         threedBrickList.add(SetPostProcessingBrick(1, 4, Formula(2)))
+        threedBrickList.add(SetPostProcessingNewBrick())
         threedBrickList.add(CreateParticlesBrick("particles"))
+        threedBrickList.add(SetParticleEmissionBrick("particles", 10f))
         threedBrickList.add(DeleteParticlesBrick("particles"))
 
         return threedBrickList

@@ -87,7 +87,7 @@ class MainMenuFragment : Fragment(),
     private val projectManager: ProjectManager by inject()
     private var _binding: FragmentMainMenuBinding? = null
     private val binding get() = _binding!!
-    private lateinit var progressBar: LinearLayout
+    private var progressBar: LinearLayout? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -108,9 +108,9 @@ class MainMenuFragment : Fragment(),
         super.onActivityCreated(savedInstanceState)
 
         try {
-            progressBar = requireActivity().findViewById(R.id.progress_bar)
+            progressBar = requireActivity().findViewById<LinearLayout?>(R.id.progress_bar)
             viewModel.isLoading().observe(viewLifecycleOwner, Observer { show ->
-                progressBar.setVisibleOrGone(show)
+                progressBar?.setVisibleOrGone(show)
             })
         } catch (e: Exception) {
             e.printStackTrace()

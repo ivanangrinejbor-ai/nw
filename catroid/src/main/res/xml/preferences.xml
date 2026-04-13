@@ -60,6 +60,12 @@
         android:title="@string/preference_title_old_drag" />
 
     <CheckBoxPreference
+        android:key="pref_pc_mode_enabled"
+        android:title="PC Mode"
+        android:summary="@string/preference_title_pcmode"
+        android:defaultValue="false" />
+
+    <CheckBoxPreference
         android:defaultValue="@string/FEATURE_EMBROIDERY_PREFERENCES_ENABLED"
         android:key="setting_embroidery_bricks_checkbox_preference"
         android:summary="@string/preference_description_embroidery_bricks"
@@ -82,6 +88,12 @@
         android:key="setting_pocketensor_bricks"
         android:summary="@string/preference_description_pocketensor_bricks"
         android:title="@string/pocketensor" />
+
+    <CheckBoxPreference
+        android:defaultValue="@string/FEATURE_EMBROIDERY_PREFERENCES_ENABLED"
+        android:key="setting_fast2d_bricks"
+        android:summary="@string/preference_description_fast2d_bricks"
+        android:title="@string/fast2d" />
 
     <CheckBoxPreference
         android:defaultValue="@string/FEATURE_EMBROIDERY_PREFERENCES_ENABLED"
@@ -167,6 +179,12 @@
         android:key="setting_test_bricks"
         android:summary="@string/preference_description_test_bricks"
         android:title="@string/preference_title_enable_test_bricks" />
+
+    <CheckBoxPreference
+        android:key="pref_1_april_enabled"
+        android:title="1 APRIL"
+        android:summary=":]"
+        android:defaultValue="true" />
 
     <CheckBoxPreference
         android:key="pref_code_analysis_enabled"

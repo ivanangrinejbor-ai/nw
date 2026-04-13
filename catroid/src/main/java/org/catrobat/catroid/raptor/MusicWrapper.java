@@ -10,10 +10,12 @@ public class MusicWrapper implements PlayableAudio {
 
     private Vector3 position = new Vector3();
     private String attachedToObjectId;
+    private float baseVolume = 1.0f;
 
     public MusicWrapper(Music music, float volume, float pitch, boolean loop) {
         this.music = music;
         this.loop = loop;
+        this.baseVolume = volume;
         music.setVolume(volume);
         music.setLooping(loop);
     }
@@ -34,7 +36,26 @@ public class MusicWrapper implements PlayableAudio {
 
     @Override
     public void update3D(float volume, float pan) {
-        music.setVolume(volume);
+        music.setVolume(volume * baseVolume);
         music.setPan(pan, volume);
+    }
+
+    @Override
+    public void setVolume(float volume) {
+        music.setVolume(volume);
+    }
+
+    @Override
+    public void setPitch(float pitch) {
+    }
+
+    @Override
+    public void setBaseVolume(float volume) {
+        this.baseVolume = volume;
+    }
+
+    @Override
+    public float getBaseVolume() {
+        return baseVolume;
     }
 }

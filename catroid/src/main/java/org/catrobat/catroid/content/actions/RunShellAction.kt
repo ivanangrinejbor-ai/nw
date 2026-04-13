@@ -24,7 +24,7 @@ class RunShellAction : TemporalAction() {
             return
         }
 
-        val pythonEngine = MainMenuActivity.pythonEngine
+        val pythonEngine = MainMenuActivity.pythonEngine ?: return
 
         val commandmanager = PythonCommandManager(pythonEngine, scope!!.project!!)
 

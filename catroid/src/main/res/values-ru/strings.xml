@@ -22,7 +22,168 @@
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
 <resources xmlns:tools="http://schemas.android.com/tools">
+    <string name="preference_title_pcmode" formatted="false">Включить интерфейс для больших экранов (так же для планшетов)</string>
+    <string name="fast2d_set_collision_filter" formatted="false">Фильтр коллизий</string>
+    <string name="fast2d_is_sensor_param" formatted="false">Сенсор (1/0)</string>
+    <string name="fast2d_group_param" formatted="false">Группа (-1, 0, 1)</string>
+    <string name="fast2d_set_velocity">Скорость (Простая)</string>
+    <string name="fast2d_set_angular_velocity">Скорость вращения</string>
+    <string name="fast2d_vx_param">Vx</string>
+    <string name="fast2d_vy_param">Vy</string>
+    <string name="fast2d_ang_vel_param">Град/Сек</string>
+    <string name="fast2d_make_physics">Физическое тело</string>
+    <string name="fast2d_apply_force">Применить силу</string>
+    <string name="fast2d_apply_impulse">Применить импульс</string>
+    <string name="fast2d_set_physics_velocity">Скорость (Физика)</string>
+    <string name="fast2d_is_dynamic_param">Динамичный (1/0)</string>
+    <string name="fast2d_shape_param">Форма (BOX/CIRCLE)</string>
+    <string name="fast2d_density_param">Масса/Плотн.</string>
+    <string name="fast2d_friction_param">Трение</string>
+    <string name="fast2d_bounce_param">Прыгучесть</string>
+    <string name="formula_f2d_is_touched_index" formatted="false">F2D_объект_нажат_пальцем</string>
+    <string name="formula_f2d_is_touched_index_param" formatted="false">(\'id\', 0)</string>
+    <string name="formula_f2d_is_touched" formatted="false">F2D_объект_нажат</string>
+    <string name="formula_f2d_is_touched_param" formatted="false">(\'id\')</string>
+    <string name="formula_f2d_x" formatted="false">F2D_X</string>
+    <string name="formula_f2d_y" formatted="false">F2D_X</string>
+    <string name="formula_f2d_rotation" formatted="false">F2D_вращение</string>
+    <string name="formula_f2d_scale_x" formatted="false">F2D_ширина</string>
+    <string name="formula_f2d_scale_y" formatted="false">F2D_высота</string>
+    <string name="formula_f2d_r" formatted="false">F2D_цвет_R</string>
+    <string name="formula_f2d_g" formatted="false">F2D_цвет_G</string>
+    <string name="formula_f2d_b" formatted="false">F2D_цвет_B</string>
+    <string name="formula_f2d_alpha" formatted="false">F2D_alpha</string>
+    <string name="formula_f2d_texture" formatted="false">F2D_текстура</string>
+    <string name="formula_f2d_cam_x" formatted="false">F2D_камера_X</string>
+    <string name="formula_f2d_cam_y" formatted="false">F2D_камера_Y</string>
+    <string name="formula_f2d_cam_zoom" formatted="false">F2D_камера_zoom</string>
+    <string name="fast2d_set_color">Цвет и Альфа</string>
+    <string name="fast2d_set_camera">Камера</string>
+    <string name="fast2d_zoom_param">Зум</string>
+    <string name="fast2d_set_rotation">Повернуть</string>
+    <string name="fast2d_angle_param">Угол</string>
+    <string name="fast2d_set_scale">Размер</string>
+    <string name="fast2d_scale_x_param">Ширина</string>
+    <string name="fast2d_scale_y_param">Высота</string>
+    <string name="fast2d_set_texture">Текстура</string>
+    <string name="fast2d_file_param">Файл проекта</string>
+    <string name="fast2d_set_z">Слой (Z)</string>
+    <string name="fast2d_z_param">Z-индекс</string>
+    <string name="fast2d_delete">Удалить объект</string>
+    <string formatted="false" name="fast2d_create">Создать объект</string>
+    <string formatted="false" name="fast2d_set_position">Задать позицию</string>
+    <string formatted="false" name="fast2d_id_param">ID</string>
+    <string formatted="false" name="fast2d_x_param">X</string>
+    <string formatted="false" name="fast2d_y_param">Y</string>
+    <string formatted="false" name="physics_joint_id">ID шарнира</string>
+    <string formatted="false" name="physics_obj_a">Объект А</string>
+    <string formatted="false" name="physics_obj_b">Объект Б</string>
+    <string formatted="false" name="physics_pivot_a">Отступ А (X Y Z)</string>
+    <string formatted="false" name="physics_pivot_b">Отступ Б (X Y Z)</string>
+    <string formatted="false" name="threed_hinge_title">Шарнир-ось (Петля/Колесо)</string>
+    <string formatted="false" name="threed_hinge_axis_a">Ось вращения А (X Y Z)</string>
+    <string formatted="false" name="threed_hinge_axis_b">Ось вращения Б (X Y Z)</string>
 
+    <string formatted="false" name="threed_motor_title">Включить мотор шарнира</string>
+    <string formatted="false" name="threed_motor_target">Целевой угол</string>
+    <string formatted="false" name="threed_motor_max">Мощность мотора</string>
+    <string name="brick_set_shadow_quality_prefix">Установить тени</string>
+    <string name="shadow_area_size">область</string>
+    <string name="shadow_resolution">разрешение</string>
+    <string name="brick_set_post_processing_new">Задать эффект</string>
+    <string-array name="pp_new_effect_types">
+        <item>Глобальные настройки</item>
+        <item>Bloom (Свечение)</item>
+        <item>Vignette (Виньетка)</item>
+        <item>Levels (Цветокоррекция)</item>
+        <item>Film Grain (Зерно)</item>
+        <item>FXAA (Сглаживание)</item>
+        <item>Chromatic Aberration</item>
+        <item>Radial Blur</item>
+        <item>Old TV (Старый ТВ)</item>
+        <item>CRT Monitor (ЭЛТ)</item>
+        <item>Fisheye (Рыбий глаз)</item>
+        <item>Water Distortion (Вода)</item>
+        <item>Motion Blur (Размытие)</item>
+        <item>Lens Flare (Блики)</item>
+        <item>Gaussian Blur (Гаусс)</item>
+        <item>Zoom Blur (Зум)</item>
+        <item>ACES Tonemapping</item>
+        <item>Eye Adaptation</item>
+        <item>Ray Tracing (SSR)</item>
+        <item>SSAO (Затенение)</item>
+        <item>Height Fog (Туман)</item>
+        <item>Depth of Field (Фокус)</item>
+        <item>God Rays (Лучи)</item>
+        <item>Volumetric Fog (3D Туман)</item>
+        <item>FSR Upscaler (Резкость)</item>
+    </string-array>
+
+
+    <string-array name="pp_params_global"><item>Включен (1/0)</item><item>Масштаб качества</item></string-array>
+    <string-array name="pp_params_bloom"><item>Включен</item><item>Интенсивность</item><item>Порог</item><item>Сила блюра</item><item>Размер</item><item>Проходы блюра</item></string-array>
+    <string-array name="pp_params_vignette"><item>Включен</item><item>Интенсивность</item><item>Насыщенность</item></string-array>
+    <string-array name="pp_params_levels"><item>Включен</item><item>Контраст</item><item>Насыщенность</item><item>Гамма</item></string-array>
+    <string-array name="pp_params_grain"><item>Включен</item><item>Интенсивность</item></string-array>
+    <string-array name="pp_params_fxaa"><item>Включен</item></string-array>
+    <string-array name="pp_params_chromatic"><item>Включен</item><item>Сила</item><item>Макс. искажение</item></string-array>
+    <string-array name="pp_params_radial"><item>Включен</item><item>Сила</item><item>Размер</item><item>Проходы</item></string-array>
+    <string-array name="pp_params_oldtv"><item>Включен</item><item>Сила эффекта</item></string-array>
+    <string-array name="pp_params_crt"><item>Включен</item><item>Искажение</item><item>Зум</item></string-array>
+    <string-array name="pp_params_fisheye"><item>Включен</item><item>Интенсивность</item></string-array>
+    <string-array name="pp_params_water"><item>Включен</item><item>Сила</item><item>Скорость</item></string-array>
+    <string-array name="pp_params_motionblur"><item>Включен</item><item>Прозрачность блюра</item></string-array>
+    <string-array name="pp_params_lensflare"><item>Включен</item><item>Интенсивность</item><item>Порог</item><item>Рассеивание</item><item>Размер</item></string-array>
+    <string-array name="pp_params_gaussian"><item>Включен</item><item>Сила</item><item>Размер</item><item>Проходы</item></string-array>
+    <string-array name="pp_params_zoom"><item>Включен</item><item>Сила зума</item><item>Центр X</item><item>Центр Y</item></string-array>
+    <string-array name="pp_params_aces"><item>Включен</item></string-array>
+    <string-array name="pp_params_eyeadapt"><item>Включен</item><item>Яркость цели</item><item>Скорость</item><item>Мин. экспозиция</item><item>Макс. экспозиция</item></string-array>
+    <string-array name="pp_params_ssr"><item>Включен</item><item>Отражаемость</item><item>Шаги</item><item>Толщина</item><item>Дистанция</item><item>Stride (Шаг)</item><item>Jitter (Дрожание)</item><item>Затухание краев</item></string-array>
+    <string-array name="pp_params_ssao"><item>Включен</item><item>Интенсивность</item><item>Радиус</item><item>Bias (Смещение)</item></string-array>
+    <string-array name="pp_params_heightfog"><item>Включен</item><item>Плотность</item><item>Спад (Falloff)</item><item>Высота</item></string-array>
+    <string-array name="pp_params_dof"><item>Включен</item><item>Дистанция фокуса</item><item>Диапазон</item><item>Размер блюра</item><item>Переход (Transition)</item><item>Автофокус (1/0)</item><item>Скорость АФ</item></string-array>
+    <string-array name="pp_params_godrays"><item>Включен</item><item>Экспозиция</item><item>Затухание (Decay)</item><item>Плотность</item><item>Вес</item></string-array>
+    <string-array name="pp_params_volfog"><item>Включен</item><item>Плотность</item><item>Рассеивание</item><item>Шаги</item><item>Дистанция</item></string-array>
+    <string-array name="pp_params_fsr"><item>Включен</item><item>Резкость</item></string-array>
+    <string name="brick_bake_prefix">Запечь объекты с именем</string>
+    <string name="brick_bake_prefix_hint">Префикс (напр. wall_)</string>
+    <string name="brick_bake_new_name">Название группы</string>
+    <string name="brick_attach_ray_sensor">Прикрепить луч-сенсор</string>
+    <string name="brick_attach_ray_name">Имя луча</string>
+    <string name="brick_attach_ray_target">К объекту</string>
+    <string name="brick_attach_ray_offset">Смещение X Y Z:</string>
+    <string name="brick_attach_ray_direction">Напр. X Y Z:</string>
+    <string name="brick_attach_ray_distance">Дистанция:</string>
+    <string name="brick_particle_emission">Изменить плотность частиц</string>
+    <string name="brick_particle_rate2">Кол-во (Rate)</string>
+    <string name="brick_animation_speed">Скорость 3D анимации</string>
+    <string name="brick_anim_speed_val">Скорость</string>
+    <string name="brick_texture_tiling">Тайлинг (масштаб) текстуры</string>
+    <string name="brick_tiling_u">Scale X</string>
+    <string name="brick_tiling_v">Scale Y</string>
+    <string name="brick_sound_inst_vol">Установить громкость звука</string>
+    <string name="brick_sound_inst_pitch">Установить тон звука</string>
+    <string name="brick_rotate_camera_by">Повернуть камеру (относительно)</string>
+    <string name="brick_rotate_pitch">Pitch (X)</string>
+    <string name="brick_rotate_yaw">Yaw (Y)</string>
+    <string name="brick_rotate_roll">Roll (Z)</string>
+    <string name="brick_camera_control">Управление камерой пальцем</string>
+    <string name="brick_camera_sens">Чувствительность</string>
+    <string name="brick_camera_area">Область X Y W H (%)</string>
+    <string name="brick_ai_range">Зрение (дистанция)</string>
+    <string name="brick_camera_fov">Угол обзора (FOV)</string>
+    <string name="brick_camera_shake_int">Сила тряски</string>
+    <string name="brick_camera_shake_dur">Длительность тряски</string>
+    <string name="brick_camera_settings">Настроить камеру 3D</string>
+    <string name="brick_ai_set">ИИ для объекта</string>
+    <string name="brick_ai_mode">Режим (0:Стоп, 1:След, 2:Идти)</string>
+    <string name="brick_ai_step">Шаг (высота)</string>
+    <string name="brick_ai_avoid">Обход стен (1-Да, 0-Нет)</string>
+    <string name="brick_ai_target">Цель (Объект)</string>
+    <string name="brick_ai_speed">Скорость</string>
+    <string name="brick_ai_stop">Дистанция остановки</string>
+    <string formatted="false" name="brick_run_chip8">Запустить CHIP-8 игру: %1$s</string>
+    <string formatted="false" name="dialog_rom_name">файл проекта</string>
     <string formatted="false" name="brick_threed_fixed_joint_title">Создать Фикс. Шарнир</string>
     <string formatted="false" name="brick_threed_fixed_joint_id">ID</string>
     <string formatted="false" name="brick_threed_fixed_joint_obj_a">Объект А</string>
@@ -306,7 +467,7 @@
     <string name="formula_ray_hit_x2">луч_точка_x</string>
     <string name="formula_ray_hit_distance">луч_дистанция</string>
     <string name="formula_ray_hit_distance_parameter">("id_луча")</string>
-    <string name="brick_set_pp_effect">Задать эффект (постобработка)</string>
+    <string name="brick_set_pp_effect">Задать эффект (старый)</string>
     <string name="brick_set_pp_parameter">Параметр</string>
     <string name="brick_set_pp_value">Значение</string>
     <string name="brick_create_particles_title" formatted="false">Создать Частицы</string>
@@ -354,6 +515,7 @@
         <item>Zoom Blur</item>               <!-- 15 -->
         <item>ACES Tonemapping</item>        <!-- 16 -->
         <item>Eye Adaptation</item>          <!-- 17 -->
+        <item>Ray Tracing (SSR)</item>       <!-- 18 -->
     </string-array>
 
     <string-array name="pp_effect_params">
@@ -536,6 +698,20 @@
         <item>Услышал тебя родной... :)</item>
         <item>ЧИПИ ЧИПИ ЧАПА ЧАПА РУВИ РУВИ РАВА РАВА...</item>
         <item>каждая буханка хлеба - трагическая история зерен, которые мечтали стать пивом, но не стали....</item>
+        <item>Ставим ставки, когда NewCatroid забанит РКН?</item>
+        <item>Умный в гору не пойдет - умный удалит невкатроид</item>
+        <item>2.2... не выйдет никогда... потому что данвейд ленивый как всегда...</item>
+        <item>Самолайк залог успеха</item>
+        <item>мне сказали написать вам, что mestiqll очень крутой</item>
+        <item>Сумма Римана на самом деле просто более строгое определение интеграла</item>
+        <item>Это приложение называется NewCatroid. Прикольно, правда?</item>
+        <item>Если ты это видишь - имя овцы (адрессовано тому, кто поймет :> )</item>
+        <item>Кстати 2.1.3 (или же 2.2.0) делается уже 4 месяца... Хотя я планировал выпустить ее 1 апреля</item>
+        <item>Интересный факт: в 3D поддерживается трассировка лучей. (хоть и в экранном пространстве)</item>
+        <item>О, а я недавно в дс сидел и играл с кое-кем в майнкрафт. Я построил камеру для того, чтоб люди сходили с ума от верстаков. Бойтесь меня</item>
+        <item>А у тебя спина белая. ну типа понял, да? 1 апреля там все дела... (и мне пофиг что это сообщение 99.9% показывается не 1 апреля)</item>
+        <item>Ты ему яйца кенгуру... (далее поймут только кто слышал слова нашего информатика)</item>
+        <item>Оторви их (локальный мем, думайте)</item>
     </string-array>
     <string name="rebuild_cache_button">Обновить кэш физики</string>
     <string name="insert_image">Вставить изображение</string>
@@ -1102,6 +1278,8 @@
     <string formatted="false" name="category_internet">Сеть</string>
     <string formatted="false" name="preference_description_pocketensor_bricks">Добавляет работу с тензорами и позволяет создавать ИИ модели.</string>
     <string formatted="false" name="pocketensor">PockeTensor</string>
+    <string formatted="false" name="preference_description_fast2d_bricks">Добавляет блоки для новой системы 2D рендера (сложнее, но оптимизированее)</string>
+    <string formatted="false" name="fast2d">Fast 2D</string>
     <string formatted="false" name="preference_title_enable_plot_bricks">Расширение
         чертежей</string>
     <string formatted="false" name="preference_title_old_drag">Старый режим перетаскивания</string>
@@ -2823,7 +3001,7 @@
     <string formatted="false" name="formula_editor_function_round_parameter">(1.6)</string>
     <string formatted="false" name="formula_editor_function_roundto">округлить_до</string>
     <string formatted="false" name="formula_editor_function_roundto_parameter">(123.456, 1)</string>
-    <string formatted="false" name="formula_editor_function_mod">модуль</string>
+    <string formatted="false" name="formula_editor_function_mod">остаток_от_деления</string>
     <string formatted="false" name="formula_editor_function_mod_parameter">(3,2)</string>
     <string formatted="false" name="formula_editor_function_arcsin">арксинус</string>
     <string formatted="false" name="formula_editor_function_arcsin_parameter">(0.5)</string>

@@ -29,6 +29,8 @@ public class HierarchyAdapter extends RecyclerView.Adapter<HierarchyAdapter.View
     private final OnItemClickListener listener;
     private GameObject selectedObject = null;
 
+    private List<HierarchyItem> fullList = new ArrayList<>();
+
     public interface OnItemClickListener {
         void onItemClick(GameObject gameObject);
     }
@@ -71,8 +73,9 @@ public class HierarchyAdapter extends RecyclerView.Adapter<HierarchyAdapter.View
     }
 
     public void updateData(List<HierarchyItem> newItems) {
-        items.clear();
-        items.addAll(newItems);
+        this.fullList = new ArrayList<>(newItems);
+        this.items.clear();
+        this.items.addAll(newItems);
         notifyDataSetChanged();
     }
 
@@ -81,7 +84,23 @@ public class HierarchyAdapter extends RecyclerView.Adapter<HierarchyAdapter.View
     }
 
     public void setSelectedObject(GameObject go) {
+        if (this.selectedObject == go) return;
         this.selectedObject = go;
+        notifyDataSetChanged();
+    }
+
+    public void filter(String query) {
+        items.clear();
+        if (query.isEmpty()) {
+            items.addAll(fullList);
+        } else {
+            String lowerQuery = query.toLowerCase().trim();
+            for (HierarchyItem item : fullList) {
+                if (item.gameObject.name.toLowerCase().contains(lowerQuery)) {
+                    items.add(item);
+                }
+            }
+        }
         notifyDataSetChanged();
     }
 

@@ -1,0 +1,32 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal">
+
+    <CheckBox android:id="@+id/brick_checkbox" android:layout_width="wrap_content" android:layout_height="wrap_content" android:visibility="gone" />
+
+    <org.catrobat.catroid.ui.BrickLayout
+        android:id="@+id/brick_fast2d_color_layout"
+        style="@style/BrickContainer.Fast2d.Big">
+
+        <include layout="@layout/icon_brick_category_fast2d" />
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/fast2d_set_color" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="ID" app:layout_newLine="true"/>
+        <TextView android:id="@+id/brick_fast2d_color_id" style="@style/BrickEditText" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="R" app:layout_newLine="true"/>
+        <TextView android:id="@+id/brick_fast2d_color_r" style="@style/BrickEditText" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="G" app:layout_newLine="true"/>
+        <TextView android:id="@+id/brick_fast2d_color_g" style="@style/BrickEditText" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="B" app:layout_newLine="true"/>
+        <TextView android:id="@+id/brick_fast2d_color_b" style="@style/BrickEditText" />
+
+        <TextView style="@style/BrickText.SingleLine" android:text="Alpha" app:layout_newLine="true"/>
+        <TextView android:id="@+id/brick_fast2d_color_a" style="@style/BrickEditText" />
+    </org.catrobat.catroid.ui.BrickLayout>
+</LinearLayout>

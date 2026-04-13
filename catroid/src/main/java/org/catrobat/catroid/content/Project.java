@@ -376,7 +376,12 @@ public class Project implements Serializable {
 			}
 		}
 
-		return getDefaultScene().getSpriteList();
+        Scene defaultScene = getDefaultScene();
+        if (defaultScene != null && defaultScene.getSpriteList() != null) {
+            return defaultScene.getSpriteList();
+        }
+
+        return new ArrayList<>();
 	}
 
 	public void fireToAllSprites(EventWrapper event) {
