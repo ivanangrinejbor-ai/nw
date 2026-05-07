@@ -40,6 +40,7 @@ import org.catrobat.catroid.raptor.LightComponent;
 import org.catrobat.catroid.raptor.MaterialComponent;
 import org.catrobat.catroid.raptor.ParticleComponent;
 import org.catrobat.catroid.raptor.ParticleCurvePoint;
+import org.catrobat.catroid.raptor.ParticleSystem3DComponent;
 import org.catrobat.catroid.raptor.PhysicsComponent;
 import org.catrobat.catroid.raptor.PostProcessingComponent;
 import org.catrobat.catroid.raptor.PostProcessingData;
@@ -148,6 +149,7 @@ public class InspectorManager {
         if (go.hasComponent(MaterialComponent.class)) createMaterialView(go);
         if (go.hasComponent(PostProcessingComponent.class)) createPostProcessingView(go);
         if (go.hasComponent(ParticleComponent.class)) createParticleView(go);
+        if (go.hasComponent(ParticleSystem3DComponent.class)) createParticleSystem3DView(go);
         if (go.hasComponent(FogComponent.class)) createFogView(go);
         if (go.hasComponent(KeyframeComponent.class)) createKeyframeView(go);
         if (go.hasComponent(PrefabComponent.class)) createPrefabView(go);
@@ -676,7 +678,7 @@ public class InspectorManager {
         setupTextureSlot(go, view.findViewById(R.id.slot_occlusion_texture), material.occlusionTexturePath,
                 newPath -> material.occlusionTexturePath = newPath);
 
-        LinearLayout paramsContainer = view.findViewById(R.id.material_params_container); // Убедись, что добавишь id в XML, или просто используй (LinearLayout) view
+        LinearLayout paramsContainer = view.findViewById(R.id.material_params_container);
         if (paramsContainer == null && view instanceof LinearLayout) paramsContainer = (LinearLayout) view;
 
         if (paramsContainer != null) {
@@ -1080,6 +1082,1131 @@ public class InspectorManager {
         addSimpleTextListener(editText, s -> {
             try { onUpdate.accept(Float.parseFloat(s)); } catch (Exception ignored) {}
         });
+    }
+
+    private void createParticleSystem3DView(GameObject go) {
+        ParticleSystem3DComponent ps = go.getComponent(ParticleSystem3DComponent.class);
+        if (ps == null) return;
+
+        addComponentHeader("Particle System 3D", true, false, () -> {
+            go.components.removeIf(c -> c instanceof ParticleSystem3DComponent);
+            if (threeDManager != null) threeDManager.removeParticleEffect3D(go.id);
+            if (threeDManager != null) threeDManager.removeEditorProxy(go.id);
+            populateInspector(go);
+        });
+
+        LinearLayout mainLayout = new LinearLayout(activity);
+        mainLayout.setOrientation(LinearLayout.VERTICAL);
+        int pad = (int)(8 * activity.getResources().getDisplayMetrics().density);
+        mainLayout.setPadding(pad, pad, pad, pad);
+        container.addView(mainLayout);
+
+
+        addSectionHeader(mainLayout, "Main");
+
+        addCheckbox(mainLayout, "Looping", ps.looping, v -> { ps.looping = v; updatePS3DImmediate(go); });
+        addCheckbox(mainLayout, "Prewarm", ps.prewarm, v -> { ps.prewarm = v; updatePS3DImmediate(go); });
+        addSimpleFloatInput(mainLayout, "Duration", ps.duration, v -> { ps.duration = v; updatePS3D(go); });
+        addSimpleFloatInput(mainLayout, "Max Particles", ps.maxParticles, v -> { ps.maxParticles = (int)v; updatePS3D(go); });
+
+        addMinMaxCurveEditor(mainLayout, "Start Lifetime", ps.startLifetime, go);
+        addMinMaxCurveEditor(mainLayout, "Start Speed", ps.startSpeed, go);
+        addMinMaxCurveEditor(mainLayout, "Start Size", ps.startSize, go);
+        addMinMaxCurveEditor(mainLayout, "Gravity Modifier", ps.gravityModifier, go);
+
+        addSpinnerEnum(mainLayout, "Simulation Space", ParticleSystem3DComponent.SimulationSpace.values(),
+                ps.simulationSpace.ordinal(), v -> { ps.simulationSpace = v; updatePS3DImmediate(go); });
+
+
+        addModuleSection(mainLayout, "Emission", ps.emission.enabled, v -> { ps.emission.enabled = v; updatePS3D(go); }, () -> {
+            LinearLayout emLayout = new LinearLayout(activity);
+            emLayout.setOrientation(LinearLayout.VERTICAL);
+            addMinMaxCurveEditor(emLayout, "Rate over Time", ps.emission.rateOverTime, go);
+            addMinMaxCurveEditor(emLayout, "Rate over Distance", ps.emission.rateOverDistance, go);
+
+
+            addSectionHeader(emLayout, "Bursts");
+            for (int i = 0; i < ps.emission.bursts.size(); i++) {
+                ParticleSystem3DComponent.Burst burst = ps.emission.bursts.get(i);
+                int idx = i;
+                LinearLayout burstRow = new LinearLayout(activity);
+                burstRow.setOrientation(LinearLayout.HORIZONTAL);
+
+                addSmallFloatInput(burstRow, "Time", burst.time, v -> { burst.time = v; updatePS3D(go); });
+                addSmallFloatInput(burstRow, "Count", burst.count.constantMax, v -> { burst.count = new ParticleSystem3DComponent.MinMaxCurve(v); updatePS3D(go); });
+                addSmallFloatInput(burstRow, "Prob", burst.probability, v -> { burst.probability = v; updatePS3D(go); });
+
+                Button delBurst = new Button(activity, null, 0, android.R.style.Widget_Material_Button_Small);
+                delBurst.setText("X");
+                delBurst.setTextColor(android.graphics.Color.RED);
+                delBurst.setOnClickListener(v -> { ps.emission.bursts.remove(idx); updatePS3D(go); populateInspector(go); });
+                burstRow.addView(delBurst);
+
+                emLayout.addView(burstRow);
+            }
+            Button addBurst = new Button(activity, null, 0, android.R.style.Widget_Material_Button_Small);
+            addBurst.setText("+ Add Burst");
+            addBurst.setOnClickListener(v -> { ps.emission.bursts.add(new ParticleSystem3DComponent.Burst(0, 30)); updatePS3D(go); populateInspector(go); });
+            emLayout.addView(addBurst);
+
+            return emLayout;
+        });
+
+
+        addModuleSection(mainLayout, "Shape", ps.shape.enabled, v -> { ps.shape.enabled = v; updatePS3D(go); }, () -> {
+            LinearLayout shLayout = new LinearLayout(activity);
+            shLayout.setOrientation(LinearLayout.VERTICAL);
+
+            addSpinnerEnum(shLayout, "Type", ParticleSystem3DComponent.ShapeType.values(),
+                    ps.shape.type.ordinal(), v -> { ps.shape.type = v; updatePS3D(go); populateInspector(go); });
+
+            switch (ps.shape.type) {
+                case CONE:
+                    addSimpleFloatInput(shLayout, "Angle", ps.shape.coneAngle, v -> { ps.shape.coneAngle = v; updatePS3D(go); });
+                    addSimpleFloatInput(shLayout, "Radius", ps.shape.coneRadius, v -> { ps.shape.coneRadius = v; updatePS3D(go); });
+                    addSimpleFloatInput(shLayout, "Length", ps.shape.coneLength, v -> { ps.shape.coneLength = v; updatePS3D(go); });
+                    break;
+                case SPHERE: case HEMISPHERE:
+                    addSimpleFloatInput(shLayout, "Radius", ps.shape.sphereRadius, v -> { ps.shape.sphereRadius = v; updatePS3D(go); });
+                    break;
+                case BOX:
+                    addSimpleFloatInput(shLayout, "Size X", ps.shape.boxSize.x, v -> { ps.shape.boxSize.x = v; updatePS3D(go); });
+                    addSimpleFloatInput(shLayout, "Size Y", ps.shape.boxSize.y, v -> { ps.shape.boxSize.y = v; updatePS3D(go); });
+                    addSimpleFloatInput(shLayout, "Size Z", ps.shape.boxSize.z, v -> { ps.shape.boxSize.z = v; updatePS3D(go); });
+                    break;
+                case CIRCLE:
+                    addSimpleFloatInput(shLayout, "Radius", ps.shape.circleRadius, v -> { ps.shape.circleRadius = v; updatePS3D(go); });
+                    addSimpleFloatInput(shLayout, "Arc", ps.shape.circleArc, v -> { ps.shape.circleArc = v; updatePS3D(go); });
+                    break;
+                case EDGE:
+                    addSimpleFloatInput(shLayout, "Length", ps.shape.edgeLength, v -> { ps.shape.edgeLength = v; updatePS3D(go); });
+                    break;
+            }
+
+            addSpinnerEnum(shLayout, "Emit From", ParticleSystem3DComponent.EmitFrom.values(),
+                    ps.shape.emitFrom.ordinal(), v -> { ps.shape.emitFrom = v; updatePS3D(go); });
+
+            return shLayout;
+        });
+
+
+        addModuleSection(mainLayout, "Velocity over Lifetime", ps.velocityOverLifetime.enabled,
+                v -> { ps.velocityOverLifetime.enabled = v; updatePS3D(go); }, () -> {
+                    LinearLayout vLayout = new LinearLayout(activity);
+                    vLayout.setOrientation(LinearLayout.VERTICAL);
+                    addMinMaxCurveEditor(vLayout, "Linear X", ps.velocityOverLifetime.x, go);
+                    addMinMaxCurveEditor(vLayout, "Linear Y", ps.velocityOverLifetime.y, go);
+                    addMinMaxCurveEditor(vLayout, "Linear Z", ps.velocityOverLifetime.z, go);
+                    addMinMaxCurveEditor(vLayout, "Orbital Y", ps.velocityOverLifetime.orbitalY, go);
+                    addMinMaxCurveEditor(vLayout, "Radial", ps.velocityOverLifetime.radial, go);
+                    addMinMaxCurveEditor(vLayout, "Speed Modifier", ps.velocityOverLifetime.speedModifier, go);
+                    return vLayout;
+                });
+
+
+        addModuleSection(mainLayout, "Force over Lifetime", ps.forceOverLifetime.enabled,
+                v -> { ps.forceOverLifetime.enabled = v; updatePS3D(go); }, () -> {
+                    LinearLayout fLayout = new LinearLayout(activity);
+                    fLayout.setOrientation(LinearLayout.VERTICAL);
+                    addMinMaxCurveEditor(fLayout, "Force X", ps.forceOverLifetime.x, go);
+                    addMinMaxCurveEditor(fLayout, "Force Y", ps.forceOverLifetime.y, go);
+                    addMinMaxCurveEditor(fLayout, "Force Z", ps.forceOverLifetime.z, go);
+                    return fLayout;
+                });
+
+
+        addModuleSection(mainLayout, "Color over Lifetime", ps.colorOverLifetime.enabled,
+                v -> { ps.colorOverLifetime.enabled = v; updatePS3D(go); }, () -> {
+                    LinearLayout cLayout = new LinearLayout(activity);
+                    cLayout.setOrientation(LinearLayout.VERTICAL);
+                    addMinMaxGradientEditor(cLayout, "Color", ps.colorOverLifetime.color, go);
+                    return cLayout;
+                });
+
+
+        addModuleSection(mainLayout, "Size over Lifetime", ps.sizeOverLifetime.enabled,
+                v -> { ps.sizeOverLifetime.enabled = v; updatePS3D(go); }, () -> {
+                    LinearLayout sLayout = new LinearLayout(activity);
+                    sLayout.setOrientation(LinearLayout.VERTICAL);
+
+                    addCheckbox(sLayout, "Separate Axes", ps.sizeOverLifetime.separateAxes, v -> {
+                        ps.sizeOverLifetime.separateAxes = v; updatePS3D(go); populateInspector(go);
+                    });
+
+                    if (ps.sizeOverLifetime.separateAxes) {
+                        addMinMaxCurveEditor(sLayout, "Size X", ps.sizeOverLifetime.sizeX, go);
+                        addMinMaxCurveEditor(sLayout, "Size Y", ps.sizeOverLifetime.sizeY, go);
+                        addMinMaxCurveEditor(sLayout, "Size Z", ps.sizeOverLifetime.sizeZ, go);
+                    } else {
+                        addMinMaxCurveEditor(sLayout, "Size", ps.sizeOverLifetime.size, go);
+                    }
+                    return sLayout;
+                });
+
+
+        addModuleSection(mainLayout, "Rotation over Lifetime", ps.rotationOverLifetime.enabled,
+                v -> { ps.rotationOverLifetime.enabled = v; updatePS3D(go); }, () -> {
+                    LinearLayout rLayout = new LinearLayout(activity);
+                    rLayout.setOrientation(LinearLayout.VERTICAL);
+
+                    addCheckbox(rLayout, "Separate Axes", ps.rotationOverLifetime.separateAxes, v -> {
+                        ps.rotationOverLifetime.separateAxes = v; updatePS3D(go); populateInspector(go);
+                    });
+
+                    if (ps.rotationOverLifetime.separateAxes) {
+                        addMinMaxCurveEditor(rLayout, "Angular Vel X", ps.rotationOverLifetime.angularVelocityX, go);
+                        addMinMaxCurveEditor(rLayout, "Angular Vel Y", ps.rotationOverLifetime.angularVelocityY, go);
+                        addMinMaxCurveEditor(rLayout, "Angular Vel Z", ps.rotationOverLifetime.angularVelocityZ, go);
+                    } else {
+                        addMinMaxCurveEditor(rLayout, "Angular Velocity", ps.rotationOverLifetime.angularVelocity, go);
+                    }
+                    return rLayout;
+                });
+
+
+        addModuleSection(mainLayout, "Noise", ps.noise.enabled,
+                v -> { ps.noise.enabled = v; updatePS3D(go); }, () -> {
+                    LinearLayout nLayout = new LinearLayout(activity);
+                    nLayout.setOrientation(LinearLayout.VERTICAL);
+                    addSimpleFloatInput(nLayout, "Strength", ps.noise.strength, v -> { ps.noise.strength = v; updatePS3D(go); });
+                    addSimpleFloatInput(nLayout, "Frequency", ps.noise.frequency, v -> { ps.noise.frequency = v; updatePS3D(go); });
+                    addSimpleFloatInput(nLayout, "Octaves", ps.noise.octaves, v -> { ps.noise.octaves = Math.max(1, (int)v); updatePS3D(go); });
+                    addSimpleFloatInput(nLayout, "Scroll Speed", ps.noise.scrollSpeed, v -> { ps.noise.scrollSpeed = v; updatePS3D(go); });
+                    addCheckbox(nLayout, "Damping", ps.noise.damping, v -> { ps.noise.damping = v; updatePS3D(go); });
+
+                    addCheckbox(nLayout, "Separate Axes", ps.noise.separateAxes, v -> {
+                        ps.noise.separateAxes = v; updatePS3D(go); populateInspector(go);
+                    });
+                    if (ps.noise.separateAxes) {
+                        addSimpleFloatInput(nLayout, "Strength X", ps.noise.strengthX, v -> { ps.noise.strengthX = v; updatePS3D(go); });
+                        addSimpleFloatInput(nLayout, "Strength Y", ps.noise.strengthY, v -> { ps.noise.strengthY = v; updatePS3D(go); });
+                        addSimpleFloatInput(nLayout, "Strength Z", ps.noise.strengthZ, v -> { ps.noise.strengthZ = v; updatePS3D(go); });
+                    }
+                    return nLayout;
+                });
+
+
+        addModuleSection(mainLayout, "Collision", ps.collision.enabled,
+                v -> { ps.collision.enabled = v; updatePS3D(go); }, () -> {
+                    LinearLayout colLayout = new LinearLayout(activity);
+                    colLayout.setOrientation(LinearLayout.VERTICAL);
+
+                    addSpinnerEnum(colLayout, "Mode", ParticleSystem3DComponent.CollisionMode.values(),
+                            ps.collision.mode.ordinal(), v -> { ps.collision.mode = v; updatePS3D(go); populateInspector(go); });
+
+                    addSimpleFloatInput(colLayout, "Bounce", ps.collision.bounce, v -> { ps.collision.bounce = v; updatePS3D(go); });
+                    addSimpleFloatInput(colLayout, "Dampen", ps.collision.dampen, v -> { ps.collision.dampen = v; updatePS3D(go); });
+                    addSimpleFloatInput(colLayout, "Lifetime Loss", ps.collision.lifetimeLoss, v -> { ps.collision.lifetimeLoss = v; updatePS3D(go); });
+                    addSimpleFloatInput(colLayout, "Min Kill Speed", ps.collision.minKillSpeed, v -> { ps.collision.minKillSpeed = v; updatePS3D(go); });
+                    addSimpleFloatInput(colLayout, "Radius Scale", ps.collision.radiusScale, v -> { ps.collision.radiusScale = v; updatePS3D(go); });
+
+                    addSpinnerEnum(colLayout, "Quality", ParticleSystem3DComponent.CollisionQuality.values(),
+                            ps.collision.quality.ordinal(), v -> { ps.collision.quality = v; updatePS3D(go); });
+
+                    if (ps.collision.mode == ParticleSystem3DComponent.CollisionMode.PLANES) {
+                        addSectionHeader(colLayout, "Collision Planes");
+                        for (int i = 0; i < ps.collision.planes.size(); i++) {
+                            ParticleSystem3DComponent.CollisionPlane plane = ps.collision.planes.get(i);
+                            int planeIdx = i;
+                            LinearLayout planeRow = new LinearLayout(activity);
+                            planeRow.setOrientation(LinearLayout.VERTICAL);
+                            addSimpleFloatInput(planeRow, "Point Y", plane.point.y, v -> { plane.point.y = v; updatePS3D(go); });
+                            addSimpleFloatInput(planeRow, "Normal Y", plane.normal.y, v -> { plane.normal.y = v; updatePS3D(go); });
+
+                            Button delPlane = new Button(activity, null, 0, android.R.style.Widget_Material_Button_Small);
+                            delPlane.setText("Remove Plane");
+                            delPlane.setTextColor(android.graphics.Color.RED);
+                            delPlane.setOnClickListener(v -> { ps.collision.planes.remove(planeIdx); updatePS3D(go); populateInspector(go); });
+                            planeRow.addView(delPlane);
+                            colLayout.addView(planeRow);
+                        }
+                        Button addPlane = new Button(activity, null, 0, android.R.style.Widget_Material_Button_Small);
+                        addPlane.setText("+ Add Plane");
+                        addPlane.setOnClickListener(v -> { ps.collision.planes.add(new ParticleSystem3DComponent.CollisionPlane()); updatePS3D(go); populateInspector(go); });
+                        colLayout.addView(addPlane);
+                    }
+
+                    return colLayout;
+                });
+
+
+        addModuleSection(mainLayout, "Sub Emitters", ps.subEmitters.enabled,
+                v -> { ps.subEmitters.enabled = v; updatePS3D(go); }, () -> {
+                    LinearLayout subLayout = new LinearLayout(activity);
+                    subLayout.setOrientation(LinearLayout.VERTICAL);
+
+                    for (int i = 0; i < ps.subEmitters.entries.size(); i++) {
+                        ParticleSystem3DComponent.SubEmitterEntry entry = ps.subEmitters.entries.get(i);
+                        int idx = i;
+                        LinearLayout entryRow = new LinearLayout(activity);
+                        entryRow.setOrientation(LinearLayout.VERTICAL);
+
+                        addSpinnerEnum(entryRow, "Trigger", ParticleSystem3DComponent.SubEmitterTrigger.values(),
+                                entry.trigger.ordinal(), v -> { entry.trigger = v; updatePS3D(go); });
+
+                        Button pickObj = new Button(activity, null, 0, android.R.style.Widget_Material_Button_Small);
+                        pickObj.setText(entry.subEmitterObjectId != null && !entry.subEmitterObjectId.isEmpty()
+                                ? entry.subEmitterObjectId : "Select Object...");
+                        pickObj.setTextColor(android.graphics.Color.WHITE);
+                        pickObj.setAllCaps(false);
+                        pickObj.setOnClickListener(v -> {
+                            List<String> candidates = new ArrayList<>();
+                            for (GameObject candidate : sceneManager.getAllGameObjects().values()) {
+                                if (candidate.hasComponent(ParticleSystem3DComponent.class) && !candidate.id.equals(go.id)) {
+                                    candidates.add(candidate.id);
+                                }
+                            }
+                            if (candidates.isEmpty()) {
+                                Toast.makeText(activity, "No other objects with Particle System 3D found", Toast.LENGTH_SHORT).show();
+                                return;
+                            }
+                            new AlertDialog.Builder(activity)
+                                    .setTitle("Select Sub Emitter Object")
+                                    .setItems(candidates.toArray(new String[0]), (dialog, which) -> {
+                                        entry.subEmitterObjectId = candidates.get(which);
+                                        pickObj.setText(entry.subEmitterObjectId);
+                                        updatePS3DImmediate(go);
+                                    })
+                                    .show();
+                        });
+                        entryRow.addView(pickObj);
+                        addSimpleFloatInput(entryRow, "Probability", entry.probability, v -> { entry.probability = v; updatePS3D(go); });
+                        addSimpleFloatInput(entryRow, "Emit Count (0=auto)", entry.emitCount, v -> {
+                            entry.emitCount = Math.max(0, (int) v);
+                            updatePS3D(go);
+                        });
+
+                        Button delEntry = new Button(activity, null, 0, android.R.style.Widget_Material_Button_Small);
+                        delEntry.setText("Remove");
+                        delEntry.setTextColor(android.graphics.Color.RED);
+                        delEntry.setOnClickListener(v -> { ps.subEmitters.entries.remove(idx); updatePS3D(go); populateInspector(go); });
+                        entryRow.addView(delEntry);
+                        subLayout.addView(entryRow);
+                    }
+
+                    Button addEntry = new Button(activity, null, 0, android.R.style.Widget_Material_Button_Small);
+                    addEntry.setText("+ Add Sub Emitter");
+                    addEntry.setOnClickListener(v -> { ps.subEmitters.entries.add(new ParticleSystem3DComponent.SubEmitterEntry()); updatePS3D(go); populateInspector(go); });
+                    subLayout.addView(addEntry);
+
+                    return subLayout;
+                });
+
+
+        addModuleSection(mainLayout, "Trails", ps.trails.enabled,
+                v -> { ps.trails.enabled = v; updatePS3D(go); }, () -> {
+                    LinearLayout tLayout = new LinearLayout(activity);
+                    tLayout.setOrientation(LinearLayout.VERTICAL);
+                    addSimpleFloatInput(tLayout, "Ratio (0-1)", ps.trails.ratio, v -> { ps.trails.ratio = v; updatePS3D(go); });
+                    addSimpleFloatInput(tLayout, "Lifetime", ps.trails.lifetime, v -> { ps.trails.lifetime = v; updatePS3D(go); });
+                    addSimpleFloatInput(tLayout, "Min Vertex Dist", ps.trails.minimumVertexDistance, v -> { ps.trails.minimumVertexDistance = v; updatePS3D(go); });
+                    addCheckbox(tLayout, "World Space", ps.trails.worldSpace, v -> { ps.trails.worldSpace = v; updatePS3D(go); });
+                    addCheckbox(tLayout, "Die With Particles", ps.trails.dieWithParticles, v -> { ps.trails.dieWithParticles = v; updatePS3D(go); });
+                    addCheckbox(tLayout, "Inherit Color", ps.trails.inheritParticleColor, v -> { ps.trails.inheritParticleColor = v; updatePS3D(go); });
+                    addMinMaxCurveEditor(tLayout, "Width over Trail", ps.trails.widthOverTrail, go);
+                    return tLayout;
+                });
+
+
+        addModuleSection(mainLayout, "Texture Sheet Animation", ps.textureSheetAnimation.enabled,
+                v -> { ps.textureSheetAnimation.enabled = v; updatePS3D(go); }, () -> {
+                    LinearLayout tsLayout = new LinearLayout(activity);
+                    tsLayout.setOrientation(LinearLayout.VERTICAL);
+                    addSimpleFloatInput(tsLayout, "Tiles X", ps.textureSheetAnimation.tilesX, v -> { ps.textureSheetAnimation.tilesX = Math.max(1, (int)v); updatePS3D(go); });
+                    addSimpleFloatInput(tsLayout, "Tiles Y", ps.textureSheetAnimation.tilesY, v -> { ps.textureSheetAnimation.tilesY = Math.max(1, (int)v); updatePS3D(go); });
+                    addSimpleFloatInput(tsLayout, "Cycles", ps.textureSheetAnimation.cycles, v -> { ps.textureSheetAnimation.cycles = Math.max(1, (int)v); updatePS3D(go); });
+                    addMinMaxCurveEditor(tsLayout, "Frame over Time", ps.textureSheetAnimation.frameOverTime, go);
+                    return tsLayout;
+                });
+
+
+        addSectionHeader(mainLayout, "Renderer");
+
+        ParticleSystem3DComponent.RenderMode[] supportedModes = {
+                ParticleSystem3DComponent.RenderMode.BILLBOARD,
+                ParticleSystem3DComponent.RenderMode.STRETCHED_BILLBOARD,
+                ParticleSystem3DComponent.RenderMode.HORIZONTAL_BILLBOARD,
+                ParticleSystem3DComponent.RenderMode.VERTICAL_BILLBOARD,
+                ParticleSystem3DComponent.RenderMode.MESH,
+        };
+        int currentModeIdx = 0;
+        for (int i = 0; i < supportedModes.length; i++) {
+            if (supportedModes[i] == ps.renderer.renderMode) { currentModeIdx = i; break; }
+        }
+        addSpinnerEnum(mainLayout, "Render Mode", supportedModes, currentModeIdx,
+                v -> { ps.renderer.renderMode = v; updatePS3DImmediate(go); populateInspector(go); });
+
+        if (ps.renderer.renderMode == ParticleSystem3DComponent.RenderMode.STRETCHED_BILLBOARD) {
+            addSimpleFloatInput(mainLayout, "Length Scale", ps.renderer.lengthScale, v -> { ps.renderer.lengthScale = v; updatePS3D(go); });
+            addSimpleFloatInput(mainLayout, "Speed Scale", ps.renderer.speedScale, v -> { ps.renderer.speedScale = v; updatePS3D(go); });
+        }
+
+        if (ps.renderer.renderMode == ParticleSystem3DComponent.RenderMode.MESH) {
+
+            ParticleSystem3DComponent.MeshType[] meshTypes = {
+                    ParticleSystem3DComponent.MeshType.CUBE,
+                    ParticleSystem3DComponent.MeshType.SPHERE_LOW,
+                    ParticleSystem3DComponent.MeshType.CYLINDER_LOW,
+                    ParticleSystem3DComponent.MeshType.CUSTOM,
+            };
+            int currentMeshTypeIdx = 0;
+            for (int i = 0; i < meshTypes.length; i++) {
+                if (meshTypes[i] == ps.renderer.meshType) { currentMeshTypeIdx = i; break; }
+            }
+            addSpinnerEnum(mainLayout, "Mesh Shape", meshTypes, currentMeshTypeIdx,
+                    v -> { ps.renderer.meshType = v; updatePS3DImmediate(go); populateInspector(go); });
+
+
+            if (ps.renderer.meshType == ParticleSystem3DComponent.MeshType.CUSTOM) {
+                LinearLayout meshRow = new LinearLayout(activity);
+                meshRow.setOrientation(LinearLayout.HORIZONTAL);
+                meshRow.setGravity(android.view.Gravity.CENTER_VERTICAL);
+
+                TextView meshLabel = new TextView(activity);
+                meshLabel.setText("Model: " + (ps.renderer.meshPath != null ? ps.renderer.meshPath : "None"));
+                meshLabel.setTextColor(android.graphics.Color.WHITE);
+                meshLabel.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+                meshRow.addView(meshLabel);
+
+                Button selectMesh = new Button(activity, null, 0, android.R.style.Widget_Material_Button_Small);
+                selectMesh.setText("Select .glb");
+                selectMesh.setOnClickListener(v -> {
+                    File projectFilesDir = ProjectManager.getInstance().getCurrentProject().getFilesDir();
+                    File[] allFiles = projectFilesDir.listFiles();
+                    if (allFiles == null) return;
+
+                    List<String> modelFiles = new ArrayList<>();
+                    for (File file : allFiles) {
+                        String name = file.getName().toLowerCase();
+                        if (name.endsWith(".glb") || name.endsWith(".gltf") || name.endsWith(".obj")) {
+                            modelFiles.add(file.getName());
+                        }
+                    }
+                    if (modelFiles.isEmpty()) {
+                        Toast.makeText(activity, "No 3D models found in project", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    new AlertDialog.Builder(activity)
+                            .setTitle("Select Particle Mesh")
+                            .setItems(modelFiles.toArray(new String[0]), (dialog, which) -> {
+                                ps.renderer.meshPath = modelFiles.get(which);
+                                updatePS3DImmediate(go);
+                                populateInspector(go);
+                            })
+                            .show();
+                });
+                meshRow.addView(selectMesh);
+
+                Button clearMesh = new Button(activity, null, 0, android.R.style.Widget_Material_Button_Small);
+                clearMesh.setText("X");
+                clearMesh.setTextColor(android.graphics.Color.RED);
+                clearMesh.setOnClickListener(v -> {
+                    ps.renderer.meshPath = null;
+                    updatePS3DImmediate(go);
+                    populateInspector(go);
+                });
+                meshRow.addView(clearMesh);
+
+                mainLayout.addView(meshRow);
+            }
+
+            addCheckbox(mainLayout, "Align to Velocity", ps.renderer.alignToVelocity,
+                    v -> { ps.renderer.alignToVelocity = v; updatePS3DImmediate(go); });
+        }
+
+        addCheckbox(mainLayout, "Additive Blending", ps.renderer.isAdditive, v -> { ps.renderer.isAdditive = v; updatePS3DImmediate(go); });
+
+
+        LinearLayout texRow = new LinearLayout(activity);
+        texRow.setOrientation(LinearLayout.HORIZONTAL);
+        texRow.setGravity(android.view.Gravity.CENTER_VERTICAL);
+
+        TextView texLabel = new TextView(activity);
+        texLabel.setText("Texture: " + (ps.renderer.texturePath != null ? ps.renderer.texturePath : "Default"));
+        texLabel.setTextColor(android.graphics.Color.WHITE);
+        texLabel.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+        texRow.addView(texLabel);
+
+        Button selectTex = new Button(activity, null, 0, android.R.style.Widget_Material_Button_Small);
+        selectTex.setText("Select");
+        selectTex.setOnClickListener(v -> showTexturePicker(fileName -> {
+            ps.renderer.texturePath = fileName;
+            updatePS3DImmediate(go);
+            populateInspector(go);
+        }));
+        texRow.addView(selectTex);
+
+        Button clearTex = new Button(activity, null, 0, android.R.style.Widget_Material_Button_Small);
+        clearTex.setText("X");
+        clearTex.setTextColor(android.graphics.Color.RED);
+        clearTex.setOnClickListener(v -> { ps.renderer.texturePath = null; updatePS3DImmediate(go); populateInspector(go); });
+        texRow.addView(clearTex);
+
+        mainLayout.addView(texRow);
+    }
+
+
+
+    private android.os.Handler ps3dUpdateHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+    private Runnable pendingPS3DUpdate = null;
+
+    private void updatePS3D(GameObject go) {
+        if (pendingPS3DUpdate != null) {
+            ps3dUpdateHandler.removeCallbacks(pendingPS3DUpdate);
+        }
+        pendingPS3DUpdate = () -> {
+            if (threeDManager != null && go != null) {
+                ParticleSystem3DComponent ps = go.getComponent(ParticleSystem3DComponent.class);
+                if (ps != null) {
+                    Gdx.app.postRunnable(() -> {
+                        threeDManager.updateParticleEffect3D(go.id, ps, go.transform.worldTransform);
+                    });
+                }
+            }
+        };
+
+        ps3dUpdateHandler.postDelayed(pendingPS3DUpdate, 300);
+    }
+
+
+    private void updatePS3DImmediate(GameObject go) {
+        if (threeDManager != null && go != null) {
+            ParticleSystem3DComponent ps = go.getComponent(ParticleSystem3DComponent.class);
+            if (ps != null) {
+                Gdx.app.postRunnable(() -> {
+                    threeDManager.updateParticleEffect3D(go.id, ps, go.transform.worldTransform);
+                });
+            }
+        }
+    }
+
+
+
+    private interface BoolConsumer { void accept(boolean value); }
+    private interface ModuleContentBuilder { LinearLayout build(); }
+    private interface EnumConsumer<T> { void accept(T value); }
+
+    private void addSectionHeader(LinearLayout parent, String title) {
+        TextView header = new TextView(activity);
+        header.setText(title);
+        header.setTextColor(android.graphics.Color.WHITE);
+        header.setTextSize(13);
+        header.setTypeface(null, android.graphics.Typeface.BOLD);
+        header.setPadding(0, 20, 0, 8);
+        parent.addView(header);
+    }
+
+    private void addCheckbox(LinearLayout parent, String label, boolean initialValue, BoolConsumer onChange) {
+        CheckBox cb = new CheckBox(activity);
+        cb.setText(label);
+        cb.setTextColor(android.graphics.Color.WHITE);
+        cb.setChecked(initialValue);
+        cb.setOnCheckedChangeListener((v, isChecked) -> onChange.accept(isChecked));
+        parent.addView(cb);
+    }
+
+    private void addStringInput(LinearLayout parent, String label, String initialValue, StringConsumer onChange) {
+        LinearLayout row = new LinearLayout(activity);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setGravity(android.view.Gravity.CENTER_VERTICAL);
+
+        TextView tv = new TextView(activity);
+        tv.setText(label + ": ");
+        tv.setTextColor(android.graphics.Color.LTGRAY);
+        tv.setTextSize(12);
+        row.addView(tv);
+
+        EditText et = new EditText(activity);
+        et.setText(initialValue != null ? initialValue : "");
+        et.setTextColor(android.graphics.Color.WHITE);
+        et.setTextSize(12);
+        et.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+        addSimpleTextListener(et, s -> onChange.accept(s));
+        row.addView(et);
+
+        parent.addView(row);
+    }
+
+    private void addSmallFloatInput(LinearLayout parent, String label, float value, FloatConsumer onChange) {
+        LinearLayout col = new LinearLayout(activity);
+        col.setOrientation(LinearLayout.VERTICAL);
+        col.setPadding(4, 0, 4, 0);
+        col.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+
+        TextView tv = new TextView(activity);
+        tv.setText(label);
+        tv.setTextColor(android.graphics.Color.LTGRAY);
+        tv.setTextSize(10);
+        col.addView(tv);
+
+        EditText et = new EditText(activity);
+        et.setText(String.format(java.util.Locale.US, "%.2f", value));
+        et.setTextColor(android.graphics.Color.WHITE);
+        et.setTextSize(12);
+        et.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
+        addSimpleTextListener(et, s -> { try { onChange.accept(Float.parseFloat(s)); } catch(Exception e){} });
+        col.addView(et);
+
+        parent.addView(col);
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T extends Enum<T>> void addSpinnerEnum(LinearLayout parent, String label,
+                                                    T[] values, int selectedIdx,
+                                                    EnumConsumer<T> onChange) {
+        LinearLayout row = new LinearLayout(activity);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setGravity(android.view.Gravity.CENTER_VERTICAL);
+        row.setPadding(0, 4, 0, 4);
+
+        TextView tv = new TextView(activity);
+        tv.setText(label + ": ");
+        tv.setTextColor(android.graphics.Color.LTGRAY);
+        tv.setTextSize(12);
+        row.addView(tv);
+
+        Spinner spinner = new Spinner(activity);
+        ArrayAdapter<T> adapter = new ArrayAdapter<>(activity,
+                R.layout.simple_spinner_item_white_text, values);
+        adapter.setDropDownViewResource(R.layout.simple_spinner_dropdown_item_white_text);
+        spinner.setAdapter(adapter);
+        spinner.setSelection(Math.min(selectedIdx, values.length - 1));
+
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            private boolean isFirstCall = true;
+
+            @Override
+            public void onItemSelected(AdapterView<?> p, View v, int pos, long id) {
+                if (isFirstCall) {
+                    isFirstCall = false;
+                    return;
+                }
+                onChange.accept(values[pos]);
+            }
+            @Override public void onNothingSelected(AdapterView<?> p) {}
+        });
+
+        spinner.setLayoutParams(new LinearLayout.LayoutParams(0,
+                LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+        row.addView(spinner);
+
+        parent.addView(row);
+    }
+
+
+    private void addModuleSection(LinearLayout parent, String title, boolean enabled,
+                                  BoolConsumer onToggle, ModuleContentBuilder contentBuilder) {
+        LinearLayout section = new LinearLayout(activity);
+        section.setOrientation(LinearLayout.VERTICAL);
+        section.setPadding(0, 8, 0, 8);
+
+        LinearLayout headerRow = new LinearLayout(activity);
+        headerRow.setOrientation(LinearLayout.HORIZONTAL);
+        headerRow.setGravity(android.view.Gravity.CENTER_VERTICAL);
+        headerRow.setPadding(0, 12, 0, 4);
+
+        CheckBox enableCb = new CheckBox(activity);
+        enableCb.setChecked(enabled);
+
+        enableCb.setTag("initializing");
+        headerRow.addView(enableCb);
+
+        TextView titleTv = new TextView(activity);
+        titleTv.setText(title + (enabled ? " ▼" : " ▶"));
+        titleTv.setTextColor(enabled ? android.graphics.Color.WHITE : android.graphics.Color.GRAY);
+        titleTv.setTextSize(14);
+        titleTv.setTypeface(null, android.graphics.Typeface.BOLD);
+        titleTv.setPadding(8, 0, 0, 0);
+        headerRow.addView(titleTv);
+
+        section.addView(headerRow);
+
+        LinearLayout contentContainer = new LinearLayout(activity);
+        contentContainer.setOrientation(LinearLayout.VERTICAL);
+        contentContainer.setPadding(16, 0, 0, 0);
+        contentContainer.setVisibility(enabled ? View.VISIBLE : View.GONE);
+        section.addView(contentContainer);
+
+
+        if (enabled) {
+            LinearLayout content = contentBuilder.build();
+            if (content != null) {
+                contentContainer.addView(content);
+            }
+        }
+
+
+        View divider = new View(activity);
+        divider.setLayoutParams(new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, 1));
+        divider.setBackgroundColor(0x30FFFFFF);
+        section.addView(divider);
+
+
+        enableCb.setTag(null);
+        enableCb.setOnCheckedChangeListener((v, isChecked) -> {
+            if ("initializing".equals(v.getTag())) return;
+            onToggle.accept(isChecked);
+
+            titleTv.setText(title + (isChecked ? " ▼" : " ▶"));
+            titleTv.setTextColor(isChecked ? android.graphics.Color.WHITE : android.graphics.Color.GRAY);
+            contentContainer.removeAllViews();
+            if (isChecked) {
+                LinearLayout content = contentBuilder.build();
+                if (content != null) {
+                    contentContainer.addView(content);
+                }
+            }
+            contentContainer.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+        });
+
+
+        titleTv.setOnClickListener(v -> {
+            if (enableCb.isChecked()) {
+                boolean visible = contentContainer.getVisibility() == View.VISIBLE;
+                contentContainer.setVisibility(visible ? View.GONE : View.VISIBLE);
+                titleTv.setText(title + (visible ? " ▶" : " ▼"));
+            }
+        });
+
+        parent.addView(section);
+    }
+
+
+    private void addMinMaxCurveEditor(LinearLayout parent, String label,
+                                      ParticleSystem3DComponent.MinMaxCurve curve, GameObject go) {
+        LinearLayout wrapper = new LinearLayout(activity);
+        wrapper.setOrientation(LinearLayout.VERTICAL);
+        wrapper.setPadding(0, 4, 0, 4);
+
+
+        LinearLayout headerRow = new LinearLayout(activity);
+        headerRow.setOrientation(LinearLayout.HORIZONTAL);
+        headerRow.setGravity(android.view.Gravity.CENTER_VERTICAL);
+
+        TextView labelTv = new TextView(activity);
+        labelTv.setText(label);
+        labelTv.setTextColor(android.graphics.Color.LTGRAY);
+        labelTv.setTextSize(12);
+        labelTv.setLayoutParams(new LinearLayout.LayoutParams(0,
+                LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+        headerRow.addView(labelTv);
+
+        Spinner modeSpinner = new Spinner(activity);
+        String[] modes = {"Constant", "Random 2 Const", "Curve", "Random 2 Curves"};
+        ArrayAdapter<String> modeAdapter = new ArrayAdapter<>(activity,
+                R.layout.simple_spinner_item_white_text, modes);
+        modeAdapter.setDropDownViewResource(R.layout.simple_spinner_dropdown_item_white_text);
+        modeSpinner.setAdapter(modeAdapter);
+        modeSpinner.setSelection(curve.mode.ordinal());
+        modeSpinner.setLayoutParams(new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT));
+        headerRow.addView(modeSpinner);
+
+        wrapper.addView(headerRow);
+
+
+        LinearLayout contentArea = new LinearLayout(activity);
+        contentArea.setOrientation(LinearLayout.VERTICAL);
+        wrapper.addView(contentArea);
+
+        Runnable rebuildContent = () -> {
+            contentArea.removeAllViews();
+
+            switch (curve.mode) {
+                case CONSTANT:
+                    addSimpleFloatInput(contentArea, "Value", curve.constantMax, v -> {
+                        curve.constantMax = v;
+                        curve.constantMin = v;
+                        updatePS3D(go);
+                    });
+                    break;
+
+                case RANDOM_BETWEEN_TWO_CONSTANTS:
+                    LinearLayout twoConstRow = new LinearLayout(activity);
+                    twoConstRow.setOrientation(LinearLayout.HORIZONTAL);
+                    addSmallFloatInput(twoConstRow, "Min", curve.constantMin, v -> {
+                        curve.constantMin = v;
+                        updatePS3D(go);
+                    });
+                    addSmallFloatInput(twoConstRow, "Max", curve.constantMax, v -> {
+                        curve.constantMax = v;
+                        updatePS3D(go);
+                    });
+                    contentArea.addView(twoConstRow);
+                    break;
+
+                case CURVE:
+                    addSimpleFloatInput(contentArea, "Multiplier", curve.multiplier, v -> {
+                        curve.multiplier = v;
+                        updatePS3D(go);
+                    });
+                    buildCurveGraphForMinMaxCurve(contentArea, curve.curve, go);
+                    break;
+
+                case RANDOM_BETWEEN_TWO_CURVES:
+                    addSimpleFloatInput(contentArea, "Multiplier", curve.multiplier, v -> {
+                        curve.multiplier = v;
+                        updatePS3D(go);
+                    });
+                    TextView maxLabel = new TextView(activity);
+                    maxLabel.setText("Max Curve:");
+                    maxLabel.setTextColor(android.graphics.Color.WHITE);
+                    maxLabel.setTextSize(11);
+                    contentArea.addView(maxLabel);
+                    buildCurveGraphForMinMaxCurve(contentArea, curve.curve, go);
+
+                    TextView minLabel = new TextView(activity);
+                    minLabel.setText("Min Curve:");
+                    minLabel.setTextColor(android.graphics.Color.WHITE);
+                    minLabel.setTextSize(11);
+                    contentArea.addView(minLabel);
+                    buildCurveGraphForMinMaxCurve(contentArea, curve.curveMin, go);
+                    break;
+            }
+        };
+
+        rebuildContent.run();
+
+        modeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            private boolean isFirstCall = true;
+
+            @Override
+            public void onItemSelected(AdapterView<?> p, View v, int pos, long id) {
+                if (isFirstCall) {
+                    isFirstCall = false;
+                    return;
+                }
+                ParticleSystem3DComponent.CurveMode newMode =
+                        ParticleSystem3DComponent.CurveMode.values()[pos];
+                if (newMode != curve.mode) {
+                    curve.mode = newMode;
+
+                    if ((newMode == ParticleSystem3DComponent.CurveMode.CURVE ||
+                            newMode == ParticleSystem3DComponent.CurveMode.RANDOM_BETWEEN_TWO_CURVES)
+                            && curve.curve.isEmpty()) {
+                        curve.curve.add(new ParticleCurvePoint<Float>(0f, curve.constantMax));
+                        curve.curve.add(new ParticleCurvePoint<Float>(1f, curve.constantMax));
+                    }
+                    if (newMode == ParticleSystem3DComponent.CurveMode.RANDOM_BETWEEN_TWO_CURVES
+                            && curve.curveMin.isEmpty()) {
+                        curve.curveMin.add(new ParticleCurvePoint<Float>(0f, curve.constantMin));
+                        curve.curveMin.add(new ParticleCurvePoint<Float>(1f, curve.constantMin));
+                    }
+
+                    updatePS3DImmediate(go);
+                    rebuildContent.run();
+                }
+            }
+            @Override public void onNothingSelected(AdapterView<?> p) {}
+        });
+
+        parent.addView(wrapper);
+    }
+
+
+    private void buildCurveGraphForMinMaxCurve(LinearLayout container,
+                                               List<ParticleCurvePoint<Float>> curvePoints,
+                                               GameObject go) {
+        float computedMin = 0f, computedMax = 1f;
+        for (ParticleCurvePoint<Float> p : curvePoints) {
+            if (p.value < computedMin) computedMin = p.value;
+            if (p.value > computedMax) computedMax = p.value;
+        }
+        float range = computedMax - computedMin;
+        if (range < 0.1f) range = 1f;
+        computedMin -= range * 0.1f;
+        computedMax += range * 0.1f;
+
+
+        final float finalMinVal = computedMin;
+        final float finalMaxVal = computedMax;
+
+        CurveEditorView graphView = new CurveEditorView(activity);
+        LinearLayout.LayoutParams graphParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                (int) (120 * activity.getResources().getDisplayMetrics().density));
+        graphParams.setMargins(0, 4, 0, 4);
+        graphView.setLayoutParams(graphParams);
+        graphView.setData(curvePoints, finalMinVal, finalMaxVal, () -> updatePS3D(go));
+        container.addView(graphView);
+
+
+        LinearLayout btnRow = new LinearLayout(activity);
+        btnRow.setOrientation(LinearLayout.HORIZONTAL);
+        btnRow.setGravity(android.view.Gravity.END);
+
+        Button addPt = new Button(activity, null, 0, android.R.style.Widget_Material_Button_Small);
+        addPt.setText("+ Point");
+        addPt.setTextSize(10);
+        addPt.setOnClickListener(v -> {
+            float newTime = curvePoints.isEmpty() ? 0.5f :
+                    Math.min(1f, curvePoints.get(curvePoints.size() - 1).time + 0.2f);
+            float newVal = curvePoints.isEmpty() ? 1f :
+                    curvePoints.get(curvePoints.size() - 1).value;
+            curvePoints.add(new ParticleCurvePoint<>(newTime, newVal));
+            java.util.Collections.sort(curvePoints,
+                    (a, b) -> Float.compare(a.time, b.time));
+            graphView.setData(curvePoints, finalMinVal, finalMaxVal, () -> updatePS3D(go));
+            updatePS3D(go);
+        });
+        btnRow.addView(addPt);
+
+        Button delPt = new Button(activity, null, 0, android.R.style.Widget_Material_Button_Small);
+        delPt.setText("Del Sel");
+        delPt.setTextSize(10);
+        delPt.setOnClickListener(v -> {
+            if (graphView.deleteSelectedPoint()) {
+                updatePS3D(go);
+            }
+        });
+        btnRow.addView(delPt);
+
+        Button clearPts = new Button(activity, null, 0, android.R.style.Widget_Material_Button_Small);
+        clearPts.setText("Clear");
+        clearPts.setTextSize(10);
+        clearPts.setTextColor(android.graphics.Color.parseColor("#FF8A80"));
+        clearPts.setOnClickListener(v -> {
+            curvePoints.clear();
+            graphView.setData(curvePoints, 0, 1, () -> updatePS3D(go));
+            updatePS3D(go);
+        });
+        btnRow.addView(clearPts);
+
+        container.addView(btnRow);
+    }
+
+
+    private void addMinMaxGradientEditor(LinearLayout parent, String label,
+                                         ParticleSystem3DComponent.MinMaxGradient gradient,
+                                         GameObject go) {
+        LinearLayout wrapper = new LinearLayout(activity);
+        wrapper.setOrientation(LinearLayout.VERTICAL);
+        wrapper.setPadding(0, 4, 0, 4);
+
+
+        LinearLayout headerRow = new LinearLayout(activity);
+        headerRow.setOrientation(LinearLayout.HORIZONTAL);
+        headerRow.setGravity(android.view.Gravity.CENTER_VERTICAL);
+
+        TextView labelTv = new TextView(activity);
+        labelTv.setText(label);
+        labelTv.setTextColor(android.graphics.Color.LTGRAY);
+        labelTv.setTextSize(12);
+        labelTv.setLayoutParams(new LinearLayout.LayoutParams(0,
+                LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+        headerRow.addView(labelTv);
+
+        Spinner modeSpinner = new Spinner(activity);
+        String[] modes = {"Color", "Random 2 Colors", "Gradient", "Random 2 Gradients"};
+        ArrayAdapter<String> modeAdapter = new ArrayAdapter<>(activity,
+                R.layout.simple_spinner_item_white_text, modes);
+        modeAdapter.setDropDownViewResource(R.layout.simple_spinner_dropdown_item_white_text);
+        modeSpinner.setAdapter(modeAdapter);
+        modeSpinner.setSelection(gradient.mode.ordinal());
+        headerRow.addView(modeSpinner);
+
+        wrapper.addView(headerRow);
+
+        LinearLayout contentArea = new LinearLayout(activity);
+        contentArea.setOrientation(LinearLayout.VERTICAL);
+        wrapper.addView(contentArea);
+
+        Runnable rebuildContent = () -> {
+            contentArea.removeAllViews();
+
+            switch (gradient.mode) {
+                case COLOR:
+                    addEffectColorParam(contentArea, "Color", gradient.colorMax, c -> {
+                        gradient.colorMax.set(c);
+                        gradient.colorMin.set(c);
+                        updatePS3D(go);
+                    });
+                    break;
+
+                case RANDOM_BETWEEN_TWO_COLORS:
+                    addEffectColorParam(contentArea, "Color Min", gradient.colorMin, c -> {
+                        gradient.colorMin.set(c);
+                        updatePS3D(go);
+                    });
+                    addEffectColorParam(contentArea, "Color Max", gradient.colorMax, c -> {
+                        gradient.colorMax.set(c);
+                        updatePS3D(go);
+                    });
+                    break;
+
+                case GRADIENT:
+                    buildGradientEditor(contentArea, gradient.gradient, go);
+                    break;
+
+                case RANDOM_BETWEEN_TWO_GRADIENTS:
+                    TextView maxLbl = new TextView(activity);
+                    maxLbl.setText("Max Gradient:");
+                    maxLbl.setTextColor(android.graphics.Color.WHITE);
+                    maxLbl.setTextSize(11);
+                    contentArea.addView(maxLbl);
+                    buildGradientEditor(contentArea, gradient.gradient, go);
+
+                    TextView minLbl = new TextView(activity);
+                    minLbl.setText("Min Gradient:");
+                    minLbl.setTextColor(android.graphics.Color.WHITE);
+                    minLbl.setTextSize(11);
+                    contentArea.addView(minLbl);
+                    buildGradientEditor(contentArea, gradient.gradientMin, go);
+                    break;
+            }
+        };
+
+        rebuildContent.run();
+
+        modeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            boolean firstCall = true;
+            @Override
+            public void onItemSelected(AdapterView<?> p, View v, int pos, long id) {
+                if (firstCall) { firstCall = false; return; }
+                ParticleSystem3DComponent.GradientMode newMode =
+                        ParticleSystem3DComponent.GradientMode.values()[pos];
+                if (newMode != gradient.mode) {
+                    gradient.mode = newMode;
+
+                    if ((newMode == ParticleSystem3DComponent.GradientMode.GRADIENT ||
+                            newMode == ParticleSystem3DComponent.GradientMode.RANDOM_BETWEEN_TWO_GRADIENTS)
+                            && gradient.gradient.isEmpty()) {
+                        gradient.gradient.add(new ParticleCurvePoint<com.badlogic.gdx.graphics.Color>(0f, new com.badlogic.gdx.graphics.Color(gradient.colorMax)));
+                        gradient.gradient.add(new ParticleCurvePoint<com.badlogic.gdx.graphics.Color>(1f, new com.badlogic.gdx.graphics.Color(gradient.colorMax)));
+                    }
+                    if (newMode == ParticleSystem3DComponent.GradientMode.RANDOM_BETWEEN_TWO_GRADIENTS
+                            && gradient.gradientMin.isEmpty()) {
+                        gradient.gradientMin.add(new ParticleCurvePoint<com.badlogic.gdx.graphics.Color>(0f, new com.badlogic.gdx.graphics.Color(gradient.colorMin)));
+                        gradient.gradientMin.add(new ParticleCurvePoint<com.badlogic.gdx.graphics.Color>(1f, new com.badlogic.gdx.graphics.Color(gradient.colorMin)));
+                    }
+
+                    updatePS3D(go);
+                    rebuildContent.run();
+                }
+            }
+            @Override public void onNothingSelected(AdapterView<?> p) {}
+        });
+
+        parent.addView(wrapper);
+    }
+
+    private void buildGradientEditor(LinearLayout container,
+                                     List<ParticleCurvePoint<com.badlogic.gdx.graphics.Color>> gradientPoints,
+                                     GameObject go) {
+        LinearLayout listLayout = new LinearLayout(activity);
+        listLayout.setOrientation(LinearLayout.VERTICAL);
+        container.addView(listLayout);
+
+        Runnable refreshList = new Runnable() {
+            @Override
+            public void run() {
+                listLayout.removeAllViews();
+                java.util.Collections.sort(gradientPoints,
+                        (a, b) -> Float.compare(a.time, b.time));
+
+                for (int i = 0; i < gradientPoints.size(); i++) {
+                    final ParticleCurvePoint<com.badlogic.gdx.graphics.Color> point = gradientPoints.get(i);
+                    LinearLayout row = new LinearLayout(activity);
+                    row.setOrientation(LinearLayout.HORIZONTAL);
+                    row.setGravity(android.view.Gravity.CENTER_VERTICAL);
+                    row.setPadding(0, 2, 0, 2);
+
+
+                    EditText timeEdit = new EditText(activity);
+                    timeEdit.setText(String.format(java.util.Locale.US, "%.2f", point.time));
+                    timeEdit.setTextColor(android.graphics.Color.WHITE);
+                    timeEdit.setTextSize(11);
+                    timeEdit.setInputType(android.text.InputType.TYPE_CLASS_NUMBER |
+                            android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL);
+                    timeEdit.setLayoutParams(new LinearLayout.LayoutParams(0,
+                            LinearLayout.LayoutParams.WRAP_CONTENT, 0.3f));
+                    addSimpleTextListener(timeEdit, s -> {
+                        try {
+                            point.time = Math.max(0, Math.min(1, Float.parseFloat(s)));
+                            updatePS3D(go);
+                        } catch (Exception e) {}
+                    });
+                    row.addView(timeEdit);
+
+
+                    Button colorBtn = new Button(activity);
+                    com.badlogic.gdx.graphics.Color gdxCol = point.value;
+                    int androidColor = android.graphics.Color.argb(
+                            (int)(gdxCol.a * 255),
+                            (int)(gdxCol.r * 255),
+                            (int)(gdxCol.g * 255),
+                            (int)(gdxCol.b * 255));
+                    colorBtn.setBackgroundColor(androidColor);
+                    colorBtn.setLayoutParams(new LinearLayout.LayoutParams(
+                            (int)(48 * activity.getResources().getDisplayMetrics().density),
+                            (int)(32 * activity.getResources().getDisplayMetrics().density)));
+
+                    final Runnable refreshRef = this;
+                    colorBtn.setOnClickListener(v -> {
+                        ColorPickerDialogBuilder.with(activity)
+                                .setTitle("Pick Color")
+                                .initialColor(androidColor)
+                                .wheelType(ColorPickerView.WHEEL_TYPE.FLOWER)
+                                .density(12)
+                                .showAlphaSlider(true)
+                                .setPositiveButton("OK", (d, col, all) -> {
+                                    point.value.set(
+                                            android.graphics.Color.red(col) / 255f,
+                                            android.graphics.Color.green(col) / 255f,
+                                            android.graphics.Color.blue(col) / 255f,
+                                            android.graphics.Color.alpha(col) / 255f
+                                    );
+                                    colorBtn.setBackgroundColor(col);
+                                    updatePS3D(go);
+                                })
+                                .setNegativeButton("Cancel", null)
+                                .build()
+                                .show();
+                    });
+                    row.addView(colorBtn);
+
+
+                    TextView alphaLabel = new TextView(activity);
+                    alphaLabel.setText(String.format(java.util.Locale.US, " a:%.0f%%", gdxCol.a * 100));
+                    alphaLabel.setTextColor(android.graphics.Color.GRAY);
+                    alphaLabel.setTextSize(10);
+                    row.addView(alphaLabel);
+
+
+                    ImageButton delBtn = new ImageButton(activity);
+                    delBtn.setImageResource(android.R.drawable.ic_delete);
+                    delBtn.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+                    delBtn.setOnClickListener(v -> {
+                        gradientPoints.remove(point);
+                        updatePS3D(go);
+                        refreshRef.run();
+                    });
+                    row.addView(delBtn);
+
+                    listLayout.addView(row);
+                }
+            }
+        };
+
+        refreshList.run();
+
+
+        Button addBtn = new Button(activity, null, 0, android.R.style.Widget_Material_Button_Small);
+        addBtn.setText("+ Add Color Key");
+        addBtn.setOnClickListener(v -> {
+            float newTime = gradientPoints.isEmpty() ? 0f :
+                    Math.min(1f, gradientPoints.get(gradientPoints.size() - 1).time + 0.25f);
+            com.badlogic.gdx.graphics.Color lastCol = gradientPoints.isEmpty()
+                    ? new com.badlogic.gdx.graphics.Color(1, 1, 1, 1)
+                    : new com.badlogic.gdx.graphics.Color(gradientPoints.get(gradientPoints.size() - 1).value);
+            gradientPoints.add(new ParticleCurvePoint<>(newTime, lastCol));
+            updatePS3D(go);
+            refreshList.run();
+        });
+        container.addView(addBtn);
     }
 
     private void createParticleView(GameObject go) {
@@ -1598,14 +2725,7 @@ public class InspectorManager {
             sceneManager.setPhysicsComponent(go, physics);
             populateInspector(go);
         });
-        /*view.findViewById(R.id.btn_add_sphere_collider).setOnClickListener(v -> {
-            ColliderShapeData newCollider = new ColliderShapeData();
-            newCollider.type = ColliderShapeData.ShapeType.SPHERE;
-            newCollider.radius = 0.5f;
-            physics.colliders.add(newCollider);
-            sceneManager.setPhysicsComponent(go, physics);
-            populateInspector(go);
-        });*/
+
         view.findViewById(R.id.btn_add_capsule_collider).setOnClickListener(v -> {
             ColliderShapeData newCollider = new ColliderShapeData();
             newCollider.type = ColliderShapeData.ShapeType.CAPSULE;
@@ -1898,7 +3018,7 @@ public class InspectorManager {
     }
 
     private void showAddComponentDialog(GameObject go) {
-        String[] components = {"Render", "Physics", "Light", "Animation", "Camera", "Material", "Post Processing", "Particle System", "Keyframe Animation", "Prefab"};
+        String[] components = {"Render", "Physics", "Light", "Animation", "Camera", "Material", "Post Processing","Particle System (Legacy)", "Particle System 3D", "Keyframe Animation", "Prefab"};
         new AlertDialog.Builder(activity)
                 .setTitle("Add Component")
                 .setItems(components, (dialog, which) -> {
@@ -1949,20 +3069,24 @@ public class InspectorManager {
                             }
                             break;
                         case 8:
+                            if (!go.hasComponent(ParticleSystem3DComponent.class)) {
+                                ParticleSystem3DComponent ps3d = new ParticleSystem3DComponent();
+                                go.addComponent(ps3d);
+                                sceneManager.engine.createParticleProxy(go.id);
+                                sceneManager.engine.updateParticleEffect3D(go.id, ps3d, go.transform.worldTransform);
+                            }
+                            break;
+                        case 9:
                             if (!go.hasComponent(KeyframeComponent.class)) {
                                 go.addComponent(new KeyframeComponent());
                             }
                             break;
-                        case 9:
+                        case 10:
                             if (!go.hasComponent(PrefabComponent.class)) {
                                 go.addComponent(new PrefabComponent());
                             }
                             break;
-                        /*case 9:
-                            if (!go.hasComponent(FogComponent.class)) {
-                                go.addComponent(new FogComponent());
-                            }
-                            break;*/
+
                     }
                     populateInspector(go);
                 })

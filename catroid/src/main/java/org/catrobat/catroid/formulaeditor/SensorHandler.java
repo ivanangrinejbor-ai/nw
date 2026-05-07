@@ -447,7 +447,6 @@ public final class SensorHandler implements SensorEventListener, SensorCustomEve
 				int level = batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
 				int scale = batteryStatus.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
 
-				// Вычисляем процент заряда батареи
 				return (int) ((level * 100) / (float) scale);
 			case MICRO:
 				return Objects.requireNonNull(VolumeManager.Companion.getVolume());
@@ -456,7 +455,7 @@ public final class SensorHandler implements SensorEventListener, SensorCustomEve
 			case PORT:
 				return LocalServer.Companion.getPort();
 			case FREQ:
-				return Objects.requireNonNull(VolumeManager.Companion.getFrequency());
+				return (double) Objects.requireNonNull(VolumeManager.Companion.getFrequency());
 			case INTERNET:
 				return NetworkUtils.isInternetAvailable();
 			case ARCH:

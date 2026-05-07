@@ -22,6 +22,51 @@
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
 <resources xmlns:tools="http://schemas.android.com/tools">
+
+    <string name="formula_voxel_get_id" formatted="false">Voxel_получить_id</string>
+    <string name="formula_voxel_get_id_param" formatted="false">(\'worldId\', x, y, z)</string>
+    <string name="formula_voxel_get_data" formatted="false">Voxel_получить_данные</string>
+    <string name="formula_voxel_get_data_param" formatted="false">(\'worldId\', x, y, z)</string>
+    <string name="brick_voxel_world_pos">Мировые координаты (X Y Z):</string>
+    <string name="brick_voxel_transp">Voxel: Прозрачность блока</string>
+    <string name="brick_voxel_transp_id">ID блока:</string>
+    <string name="brick_voxel_transp_value">Включить (1/0):</string>
+    <string name="brick_voxel_delete">Voxel: Удалить мир</string>
+    <string name="brick_voxel_load_str">Voxel: Загрузить из строки</string>
+    <string name="brick_voxel_data">Данные (Строка):</string>
+    <string name="brick_voxel_delim_x">Разделитель X:</string>
+    <string name="brick_voxel_delim_y">Разделитель Y:</string>
+    <string name="brick_voxel_delim_z">Разделитель Z:</string>
+    <string name="world_name">Название мира</string>
+    <string name="brick_voxel_atlas_w">Кол-во блоков в атласе (Ширина):</string>
+    <string name="brick_voxel_atlas_h">Кол-во блоков в атласе (Высота):</string>
+    <string name="brick_voxel_config">Voxel: Настроить тип блока</string>
+    <string name="brick_voxel_config_id">ID блока:</string>
+    <string name="brick_voxel_config_shape">Форма (0:Куб, 1:Крест, 2-7:Слои):</string>
+    <string name="brick_voxel_config_atlas_x">Атлас X:</string>
+    <string name="brick_voxel_config_atlas_y">Атлас Y:</string>
+    <string name="brick_voxel_set">Voxel: Установить блок</string>
+    <string name="brick_voxel_set_id">ID мира:</string>
+    <string name="brick_voxel_set_coords">Позиция X Y Z:</string>
+    <string name="brick_voxel_set_type">ID типа:</string>
+    <string name="brick_voxel_set_data">Данные (0-255):</string>
+    <string name="brick_voxel_create">Voxel: Создать мир</string>
+    <string name="brick_voxel_size">Размер X Y Z</string>
+    <string name="brick_voxel_coords">Координаты X Y Z</string>
+    <string name="brick_voxel_type">Тип блока</string>
+    <string name="brick_voxel_build">Voxel: Пересобрать меш</string>
+    <string name="brick_voxel_atlas">Атлас текстур</string>
+    <string name="brick_voxel_div">Деление</string>
+    <string name="brick_buffer_mode">Режим буфера</string>
+    <string name="brick_buffer_cam_3d">3D Камера буфера</string>
+    <string name="brick_buffer_only">Рисовать только в буфере (1/0)</string>
+    <string formatted="false" name="buffer_create">Создать буфер</string>
+    <string formatted="false" name="buffer_add">Добавить в буфер</string>
+    <string formatted="false" name="buffer_remove">Удалить из буфера</string>
+    <string formatted="false" name="buffer_cam">2D Камера буфера</string>
+    <string formatted="false" name="buffer_apply">Установить образ из буфера</string>
+    <string formatted="false" name="buffer_save">Сохранить буфер в файл</string>
+    <string formatted="false" name="buffer_auto_update">Автообновление буфера</string>
     <string name="preference_title_pcmode" formatted="false">Включить интерфейс для больших экранов (так же для планшетов)</string>
     <string name="fast2d_set_collision_filter" formatted="false">Фильтр коллизий</string>
     <string name="fast2d_is_sensor_param" formatted="false">Сенсор (1/0)</string>
@@ -1245,7 +1290,6 @@
     <string formatted="false" name="brick_delete_vars">Удалить все локальные переменные</string>
     <string formatted="false" name="brick_create_var">Создать/Задать локальную переменную</string>
     <string formatted="false" name="brick_create_var2">значение</string>
-    <string formatted="false" name="brick_divide_poland">Разделить Польшу</string>
     <string formatted="false" name="formula_editor_sensor_frequency">частота_звука</string>
     <string formatted="false" name="formula_editor_sensor_internet">подключен_к_интернету</string>
     <string formatted="false" name="formula_editor_sensor_architecture">архитектура_процессора</string>
@@ -1258,6 +1302,7 @@
     <string formatted="false" name="formula_editor_sensor_stage_height">высота_экрана</string>
     <string formatted="false" name="formula_editor_sensor_battary">заряд_батареи</string>
     <string formatted="false" name="formula_editor_sensor_micro">громкость_микрофона</string>
+    <string formatted="false" name="formula_editor_sensor_micro_freq">частота_звука_микрофона</string>
     <string formatted="false" name="formula_editor_sensor_ip">айпи_локального_сервера</string>
     <string formatted="false" name="formula_editor_sensor_port">порт_локального_сервера</string>
     <string formatted="false" name="brick_change_width">Изменить ширину на</string>

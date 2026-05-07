@@ -809,9 +809,34 @@ class ProjectOptionsFragment : Fragment() {
     }
 
     private fun setupProjectUpload() {
-        //binding.projectOptionsUpload.setOnClickListener {
-        //    projectUpload()
-        //}
+        binding.projectOptionsUpload.setOnClickListener {
+            exportMatryoshkaForServer()
+        }
+    }
+
+    private fun exportMatryoshkaForServer() {
+        saveProject()
+        val currentProject = project ?: return
+
+        showProgressDialog("Сборка матрешки для сервера...")
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val readyToUploadZip = org.catrobat.catroid.utils.MatryoshkaManager.packForUpload(requireContext(), currentProject)
+
+                withContext(Dispatchers.Main) {
+                    hideProgressDialog()
+                    ToastUtil.showSuccess(requireContext(), "Матрешка собрана!")
+                    shareFile(readyToUploadZip)
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    hideProgressDialog()
+                    ToastUtil.showError(requireContext(), "Ошибка: ${e.message}")
+                    e.printStackTrace()
+                }
+            }
+        }
     }
 
     private fun setupProjectSaveExternal() {

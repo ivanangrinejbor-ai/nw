@@ -375,6 +375,19 @@ public class InternFormulaKeyboardAdapter {
 			case R.string.formula_editor_function_list_item:
 				return buildDoubleParameterFunction(Functions.LIST_ITEM, NUMBER, "1",
 						USER_LIST, "list name");
+            case R.string.formula_voxel_get_id:
+                return buildFourParameterFunction(Functions.VOXEL_GET_ID,
+                        STRING, "chunk1",
+                        NUMBER, "0",
+                        NUMBER, "0",
+                        NUMBER, "0");
+
+            case R.string.formula_voxel_get_data:
+                return buildFourParameterFunction(Functions.VOXEL_GET_DATA,
+                        STRING, "chunk1",
+                        NUMBER, "0",
+                        NUMBER, "0",
+                        NUMBER, "0");
 			case R.string.formula_editor_function_contains:
 				return buildDoubleParameterFunction(Functions.CONTAINS,
 						USER_LIST, "list name",
@@ -836,12 +849,12 @@ public class InternFormulaKeyboardAdapter {
 				return buildSensor(Sensors.BATTARY);
 			case R.string.formula_editor_sensor_micro:
 				return buildSensor(Sensors.MICRO);
+            case R.string.formula_editor_sensor_micro_freq:
+                return buildSensor(Sensors.FREQ);
 			case R.string.formula_editor_sensor_ip:
 				return buildSensor(Sensors.IP);
 			case R.string.formula_editor_sensor_port:
 				return buildSensor(Sensors.PORT);
-			case R.string.formula_editor_sensor_frequency:
-				return buildSensor(Sensors.FREQ);
 			case R.string.formula_editor_sensor_internet:
 				return buildSensor(Sensors.INTERNET);
 			case R.string.formula_editor_sensor_architecture:

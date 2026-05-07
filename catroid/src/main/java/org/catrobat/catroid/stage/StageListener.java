@@ -1282,7 +1282,6 @@ public class StageListener implements ApplicationListener {
 		try {
 			Look.tickGlobalFrame();
 
-
 			float color = 0f;
 			Gdx.gl20.glClearColor(color, color, color, 0f);
 			Gdx.gl20.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
@@ -1352,6 +1351,7 @@ public class StageListener implements ApplicationListener {
 				}
 			}
 
+            org.catrobat.catroid.content.RenderTextureManager.INSTANCE.renderAllTargets(batch);
 			batch.setProjectionMatrix(camera.combined);
 			shapeRenderer.setProjectionMatrix(camera.combined);
 
@@ -2213,6 +2213,7 @@ public class StageListener implements ApplicationListener {
 		sceneFbo.dispose();
 		GlobalShaderManager.INSTANCE.dispose();
 		GlobalShaderManager.INSTANCE.clear();
+        org.catrobat.catroid.content.RenderTextureManager.INSTANCE.clearAll();
 
 		SoundCacheManager.getInstance().release();
 

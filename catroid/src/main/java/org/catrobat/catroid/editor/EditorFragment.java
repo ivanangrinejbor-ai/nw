@@ -4,6 +4,9 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
+import androidx.preference.PreferenceManager;
+
 import com.badlogic.gdx.backends.android.AndroidFragmentApplication;
 import org.catrobat.catroid.raptor.SceneManager;
 
@@ -14,6 +17,10 @@ public class EditorFragment extends AndroidFragmentApplication {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         editorListener = new EditorListener((EditorActivity) getActivity());
+
+        boolean isPcMode = PreferenceManager.getDefaultSharedPreferences(requireContext()).getBoolean("pref_pc_mode_enabled", false);
+        editorListener.setPcMode(isPcMode);
+
         return initializeForView(editorListener);
     }
 

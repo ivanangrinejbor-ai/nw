@@ -23,20 +23,15 @@
 
 package org.catrobat.catroid.content.actions
 
-import android.widget.Toast
-import android.content.Context
-import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction
-import android.app.Activity
-import org.catrobat.catroid.stage.StageActivity
-import org.catrobat.catroid.stage.StageActivity.IntentListener
 import android.util.Log
-import org.catrobat.catroid.CatroidApplication
-import org.catrobat.catroid.R
-
+import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.catrobat.catroid.content.Scope
 import org.catrobat.catroid.formulaeditor.Formula
 import org.catrobat.catroid.formulaeditor.UserVariable
-import java.util.ArrayList
 import org.luaj.vm2.Globals
 import org.luaj.vm2.LuaValue
 import org.luaj.vm2.lib.jse.JsePlatform
@@ -46,11 +41,35 @@ class RunLuaAction() : TemporalAction() {
     var code: Formula? = null
     var userVariable: UserVariable? = null
 
-    override fun update(percent: Float) {
-        val code_str = code?.interpretString(scope) ?: "return 0"
-        val globals: Globals = JsePlatform.standardGlobals()
-        val result: LuaValue = globals.load(code_str).call()
+    private var isRunning = false
+    private var isFinished = false
 
-        userVariable?.value = result.tojstring()
+    override fun act(delta: Float): Boolean {
+        if (!isRunning) {
+            isRunning = true
+            val codeStr = code?.interpretString(scope) ?: "return 0"
+
+            CoroutineScope(Dispatchers.Default).launch {
+                try {
+                    val globals: Globals = JsePlatform.standardGlobals()
+                    val result: LuaValue = globals.load(codeStr).call()
+
+                    Gdx.app.postRunnable {
+                        userVariable?.value = result.tojstring()
+                        isFinished = true
+                    }
+                } catch (e: Exception) {
+                    Log.e("RunLuaAction", "FATAL LUA ERROR DURING GENERATION: ", e)
+                    Gdx.app.postRunnable {
+                        isFinished = true
+                    }
+                }
+            }
+        }
+
+        return isFinished
+    }
+
+    override fun update(percent: Float) {
     }
 }

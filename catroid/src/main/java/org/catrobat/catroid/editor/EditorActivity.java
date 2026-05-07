@@ -29,6 +29,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GestureDetectorCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -220,6 +221,16 @@ public class EditorActivity extends AppCompatActivity implements AndroidFragment
 
         this.touchHelper = new ItemTouchHelper(callback);
         touchHelper.attachToRecyclerView(hierarchyRecyclerView);
+
+        if (PreferenceManager.getDefaultSharedPreferences(this).getBoolean("pref_pc_mode_enabled", false)) {
+            findViewById(R.id.btn_cam_w).setVisibility(View.GONE);
+            findViewById(R.id.btn_cam_a).setVisibility(View.GONE);
+            findViewById(R.id.btn_cam_s).setVisibility(View.GONE);
+            findViewById(R.id.btn_cam_d).setVisibility(View.GONE);
+            findViewById(R.id.btn_cam_q).setVisibility(View.GONE);
+            findViewById(R.id.btn_cam_e).setVisibility(View.GONE);
+            findViewById(R.id.btn_cam_shift).setVisibility(View.GONE);
+        }
 
 
         hierarchyRecyclerView.addOnItemTouchListener(new RecyclerView.OnItemTouchListener() {
@@ -769,8 +780,13 @@ public class EditorActivity extends AppCompatActivity implements AndroidFragment
         android.widget.Spinner shadowResSpinner = dialogView.findViewById(R.id.spinner_shadow_resolution);
         Button applyShadowsBtn = dialogView.findViewById(R.id.btn_apply_shadows);
 
+        android.widget.CheckBox csmCheckBox = dialogView.findViewById(R.id.checkbox_csm);
+        android.view.View csmLayout = dialogView.findViewById(R.id.layout_csm_factor);
+        EditText csmFactorEdit = dialogView.findViewById(R.id.edit_csm_factor);
+        android.widget.TextView csmHintText = dialogView.findViewById(R.id.text_csm_hint);
 
-        String[] resolutions = {"128", "256", "512", "1024", "2048", "4096", "8192", "16384", "32768"};
+
+        String[] resolutions = {"2", "64", "128", "256", "512", "1024", "2048", "4096", "8192", "16384", "32768"};
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, resolutions);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         shadowResSpinner.setAdapter(adapter);
@@ -778,6 +794,9 @@ public class EditorActivity extends AppCompatActivity implements AndroidFragment
 
         if (threeDManager != null) {
             shadowDistEdit.setText(String.valueOf(threeDManager.getShadowSize()));
+            shadowDistEdit.setText(String.valueOf(threeDManager.getShadowSize()));
+            csmCheckBox.setChecked(threeDManager.isCSMEnabled());
+            csmFactorEdit.setText(String.valueOf(threeDManager.getCsmSplitFactor()));
 
             String currentRes = String.valueOf((int) threeDManager.getShadowResolution());
             for (int i = 0; i < resolutions.length; i++) {
@@ -788,14 +807,29 @@ public class EditorActivity extends AppCompatActivity implements AndroidFragment
             }
         }
 
+        Runnable updateCsmVisibility = () -> {
+            boolean checked = csmCheckBox.isChecked();
+            csmLayout.setVisibility(checked ? View.VISIBLE : View.GONE);
+            csmHintText.setVisibility(checked ? View.VISIBLE : View.GONE);
+        };
+        updateCsmVisibility.run();
+        csmCheckBox.setOnCheckedChangeListener((btn, isChecked) -> updateCsmVisibility.run());
+
         applyShadowsBtn.setOnClickListener(v -> {
             try {
                 float size = Float.parseFloat(shadowDistEdit.getText().toString());
                 int res = Integer.parseInt(shadowResSpinner.getSelectedItem().toString());
-
+                boolean enableCsm = csmCheckBox.isChecked();
+                float csmFactor = Float.parseFloat(csmFactorEdit.getText().toString());
 
                 if (threeDManager != null) {
-                    threeDManager.setShadowSettings(size, res);
+                    threeDManager.setShadowSettings(size, res, enableCsm, csmFactor);
+
+                    if (sceneManager != null && sceneManager.getCurrentSceneData() != null) {
+                        sceneManager.getCurrentSceneData().useCSM = enableCsm;
+                        sceneManager.getCurrentSceneData().csmSplitFactor = csmFactor;
+                    }
+
                     Toast.makeText(this, "Shadow settings applied.", Toast.LENGTH_SHORT).show();
                 }
             } catch (Exception e) {

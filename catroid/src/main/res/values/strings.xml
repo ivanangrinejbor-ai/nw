@@ -23,6 +23,50 @@
   -->
 <resources  xmlns:tools="http://schemas.android.com/tools">
 
+    <string name="formula_voxel_get_id" formatted="false">Voxel_get_id</string>
+    <string name="formula_voxel_get_id_param" formatted="false">(\'worldId\', x, y, z)</string>
+    <string name="formula_voxel_get_data" formatted="false">Voxel_get_data</string>
+    <string name="formula_voxel_get_data_param" formatted="false">(\'worldId\', x, y, z)</string>
+    <string name="brick_voxel_world_pos">World position (X Y Z):</string>
+    <string name="brick_voxel_transp">Voxel: Block Transparency</string>
+    <string name="brick_voxel_transp_id">Block ID:</string>
+    <string name="brick_voxel_transp_value">Enable (1/0):</string>
+    <string name="brick_voxel_delete">Voxel: Delete world</string>
+    <string name="brick_voxel_load_str">Voxel: Load from string</string>
+    <string name="brick_voxel_data">Data (string):</string>
+    <string name="brick_voxel_delim_x">Delimiter X:</string>
+    <string name="brick_voxel_delim_y">Delimiter Y:</string>
+    <string name="brick_voxel_delim_z">Delimiter Z:</string>
+    <string name="world_name">World name</string>
+    <string name="brick_voxel_atlas_w">Blocks in atlas (width):</string>
+    <string name="brick_voxel_atlas_h">Blocks in atlas (height):</string>
+    <string name="brick_voxel_config">Voxel: Configure block type</string>
+    <string name="brick_voxel_config_id">Block ID:</string>
+    <string name="brick_voxel_config_shape">Shape (0:Cube, 1:Cross, 2-7:Planes):</string>
+    <string name="brick_voxel_config_atlas_x">Atlas X:</string>
+    <string name="brick_voxel_config_atlas_y">Atlas Y:</string>
+    <string name="brick_voxel_set">Voxel: Set block</string>
+    <string name="brick_voxel_set_id">World ID:</string>
+    <string name="brick_voxel_set_coords">Position X Y Z:</string>
+    <string name="brick_voxel_set_type">Type ID:</string>
+    <string name="brick_voxel_set_data">Data (0-255):</string>
+    <string name="brick_voxel_create">Voxel: Create world</string>
+    <string name="brick_voxel_size">Size X Y Z</string>
+    <string name="brick_voxel_coords">Coords X Y Z</string>
+    <string name="brick_voxel_type">Block type</string>
+    <string name="brick_voxel_build">Voxel: Build mesh</string>
+    <string name="brick_voxel_atlas">Atlas texture</string>
+    <string name="brick_voxel_div">Divisions</string>
+    <string name="brick_buffer_mode">Buffer mode</string>
+    <string name="brick_buffer_cam_3d">3D Buffer Camera</string>
+    <string name="brick_buffer_only">Draw only in buffer (1/0)</string>
+    <string formatted="false" name="buffer_create">Create Buffer</string>
+    <string formatted="false" name="buffer_add">Add to Buffer</string>
+    <string formatted="false" name="buffer_remove">Remove from Buffer</string>
+    <string formatted="false" name="buffer_cam">2D Buffer Camera</string>
+    <string formatted="false" name="buffer_apply">Set look from Buffer</string>
+    <string formatted="false" name="buffer_save">Save Buffer to file</string>
+    <string formatted="false" name="buffer_auto_update">Buffer auto-update</string>
     <string name="preference_title_pcmode" formatted="false">Enable big-screen interface</string>
     <string name="fast2d_set_collision_filter" formatted="false">Collision filter</string>
     <string name="fast2d_is_sensor_param" formatted="false">Sensor (1/0)</string>
@@ -1315,7 +1359,6 @@
     <string formatted="false" name="brick_delete_vars">Delete all local variables</string>
     <string formatted="false" name="brick_create_var">Create/Set Local Variable</string>
     <string formatted="false" name="brick_create_var2">to</string>
-    <string formatted="false" name="brick_divide_poland">Divide Poland</string>
     <string formatted="false" name="formula_editor_sensor_frequency">micro frecuency</string>
     <string formatted="false" name="formula_editor_sensor_ip">local server ip</string>
     <string formatted="false" name="formula_editor_sensor_port">local server port</string>
@@ -1324,6 +1367,7 @@
     <string formatted="false" name="formula_editor_sensor_internet">connected to internet</string>
     <string formatted="false" name="formula_editor_sensor_architecture">cpu architecture</string>
     <string formatted="false" name="formula_editor_sensor_micro">micro volume</string>
+    <string formatted="false" name="formula_editor_sensor_micro_freq">micro frequency</string>
     <string formatted="false" name="brick_listen_micro">Start listen micro in times</string>
     <string formatted="false" name="brick_listen_micro2">ms</string>
     <string formatted="false" name="brick_change_width">Change width to</string>

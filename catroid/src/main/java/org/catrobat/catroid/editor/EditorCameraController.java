@@ -1,5 +1,7 @@
 package org.catrobat.catroid.editor;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.input.GestureDetector.GestureListener;
 import com.badlogic.gdx.math.Vector2;
@@ -9,9 +11,9 @@ public class EditorCameraController implements GestureListener {
 
     public Camera camera;
     public boolean enabled = true;
+    public boolean isPcMode = false;
+
     public float rotateSpeed = 0.2f;
-    public float moveSpeed = 5f;
-    private int lastTouchedX, lastTouchedY;
 
     public float baseMoveSpeed = 5f;
     public float maxMoveSpeed = 100f;
@@ -27,13 +29,19 @@ public class EditorCameraController implements GestureListener {
     }
 
     public void update(float delta) {
+        if (!enabled) return;
+
+        if (isPcMode) {
+            handlePcInputs();
+        }
+
         if (isAccelerating) {
             currentMoveSpeed = Math.min(currentMoveSpeed + acceleration * delta, maxMoveSpeed);
         } else {
             currentMoveSpeed = Math.max(currentMoveSpeed - acceleration * delta * 2, baseMoveSpeed);
         }
 
-        if (!enabled || velocity.isZero()) {
+        if (velocity.isZero() && isPcMode) {
             camera.update();
             return;
         }
@@ -55,25 +63,51 @@ public class EditorCameraController implements GestureListener {
         camera.update();
     }
 
-    @Override
-    public boolean touchDown(float x, float y, int pointer, int button) {
-        if (!enabled) return false;
-        lastTouchedX = (int) x;
-        lastTouchedY = (int) y;
-        return true;
+    private void handlePcInputs() {
+        velocity.setZero();
+        isAccelerating = Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT);
+
+        if (Gdx.input.isKeyPressed(Input.Keys.W)) velocity.z = 1;
+        if (Gdx.input.isKeyPressed(Input.Keys.S)) velocity.z = -1;
+        if (Gdx.input.isKeyPressed(Input.Keys.A)) velocity.x = -1;
+        if (Gdx.input.isKeyPressed(Input.Keys.D)) velocity.x = 1;
+        if (Gdx.input.isKeyPressed(Input.Keys.E)) velocity.y = 1;
+        if (Gdx.input.isKeyPressed(Input.Keys.Q)) velocity.y = -1;
+
+        if (Gdx.input.isButtonPressed(Input.Buttons.RIGHT) || Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
+
+            float deltaX = -Gdx.input.getDeltaX() * rotateSpeed;
+            float deltaY = -Gdx.input.getDeltaY() * rotateSpeed;
+
+            if (deltaX != 0) {
+                camera.rotate(Vector3.Y, deltaX);
+            }
+            if (deltaY != 0) {
+                tmp.set(camera.direction).crs(camera.up).nor();
+                camera.rotate(tmp, deltaY);
+            }
+        } else {
+            Gdx.input.getDeltaX();
+            Gdx.input.getDeltaY();
+        }
     }
 
     @Override
     public boolean pan(float x, float y, float deltaX, float deltaY) {
         if (!enabled) return false;
 
-        camera.rotate(Vector3.Y, -deltaX * rotateSpeed);
+        if (isPcMode) return false;
 
+        camera.rotate(Vector3.Y, -deltaX * rotateSpeed);
         tmp.set(camera.direction).crs(camera.up).nor();
         camera.rotate(tmp, -deltaY * rotateSpeed);
-
         camera.update();
         return true;
+    }
+
+    @Override
+    public boolean touchDown(float x, float y, int pointer, int button) {
+        return enabled;
     }
 
     @Override public boolean panStop(float x, float y, int pointer, int button) { return false; }

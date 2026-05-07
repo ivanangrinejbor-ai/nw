@@ -1,7 +1,13 @@
 package org.catrobat.catroid.editor;
 
+import android.content.Context;
+import android.view.View;
+import android.view.inputmethod.InputMethodManager;
+
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.InputAdapter;
+import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
@@ -49,8 +55,17 @@ public class EditorListener extends ApplicationAdapter {
     private ModelInstance keyframeProxyInstance;
     private ModelBatch debugBatch;
 
+    private boolean isPcMode = false;
+
     public EditorListener(EditorActivity activity) {
         this.activity = activity;
+    }
+
+    public void setPcMode(boolean isPcMode) {
+        this.isPcMode = isPcMode;
+        if (cameraController != null) {
+            cameraController.isPcMode = isPcMode;
+        }
     }
 
     @Override
@@ -131,6 +146,7 @@ public class EditorListener extends ApplicationAdapter {
             editorCamera.lookAt(0, 0, 0);
 
             cameraController = new EditorCameraController(editorCamera);
+            cameraController.isPcMode = this.isPcMode;
             gizmo = new Gizmo(activity, sceneManager, editorCamera);
 
             setupInputProcessor();
@@ -157,6 +173,10 @@ public class EditorListener extends ApplicationAdapter {
         gestureDetector = new GestureDetector(new GestureDetector.GestureAdapter() {
             @Override
             public boolean touchDown(float x, float y, int pointer, int button) {
+                if (isPcMode && button != com.badlogic.gdx.Input.Buttons.LEFT) {
+                    return false;
+                }
+
                 if (gizmo.touchDown(threeDManager.getCamera().getPickRay(x, y))) {
                     cameraController.enabled = false;
                     return true;
@@ -223,7 +243,46 @@ public class EditorListener extends ApplicationAdapter {
                 cameraController.pinchStop();
             }
         });
-        Gdx.input.setInputProcessor(gestureDetector);
+        InputAdapter pcInputAdapter = new InputAdapter() {
+            @Override
+            public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+                if (activity != null) {
+                    activity.runOnUiThread(() -> {
+                        View currentFocus = activity.getCurrentFocus();
+                        if (currentFocus != null) {
+                            currentFocus.clearFocus();
+
+                            InputMethodManager imm = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
+                            imm.hideSoftInputFromWindow(currentFocus.getWindowToken(), 0);
+                        }
+
+                        View fragmentContainer = activity.findViewById(org.catrobat.catroid.R.id.fragment_container);
+                        if (fragmentContainer != null) {
+                            fragmentContainer.requestFocus();
+                        }
+                    });
+                }
+
+                return false;
+            }
+
+            @Override
+            public boolean scrolled(float amountX, float amountY) {
+                if (isPcMode && cameraController != null) {
+                    cameraController.baseMoveSpeed -= amountY * 2.0f;
+                    if (cameraController.baseMoveSpeed < 0.5f) cameraController.baseMoveSpeed = 0.5f;
+                    if (cameraController.baseMoveSpeed > 50f) cameraController.baseMoveSpeed = 50f;
+                    return true;
+                }
+                return false;
+            }
+        };
+
+        InputMultiplexer multiplexer = new InputMultiplexer();
+        multiplexer.addProcessor(pcInputAdapter);
+        multiplexer.addProcessor(gestureDetector);
+
+        Gdx.input.setInputProcessor(multiplexer);
     }
 
     public void onCameraAccelerate(boolean accelerate) {

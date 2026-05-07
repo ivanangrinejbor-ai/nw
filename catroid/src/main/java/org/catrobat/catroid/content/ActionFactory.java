@@ -25,6 +25,7 @@ package org.catrobat.catroid.content;
 import com.badlogic.gdx.scenes.scene2d.Action;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.scenes.scene2d.actions.SequenceAction;
+import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction;
 import com.danvexteam.lunoscript_annotations.LunoClass;
 
 import org.catrobat.catroid.ProjectManager;
@@ -616,8 +617,8 @@ public class ActionFactory extends Actions {
 		action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
 		action.setUniformName(name);
 		action.setValueX(x);
-		action.setValueY(y); // Будет null для float
-		action.setValueZ(z); // Будет null для float
+		action.setValueY(y);
+		action.setValueZ(z);
 		return action;
 	}
 
@@ -637,7 +638,7 @@ public class ActionFactory extends Actions {
 		return action;
 	}
 
-	// в org.catrobat.catroid.content
+
 	public Action createSetCCDAction(Sprite sprite, SequenceAction sequence, Formula objectId, Formula enabled) {
 		SetCCDAction action = Actions.action(SetCCDAction.class);
 		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
@@ -654,7 +655,7 @@ public class ActionFactory extends Actions {
 		action.scope = scope;
 		action.objectId = objectId;
 		action.stateSelection = stateSelection;
-		action.shapeSelection = shapeSelection; // Добавляем новый параметр
+		action.shapeSelection = shapeSelection;
 		action.mass = mass;
 		return action;
 	}
@@ -1719,7 +1720,7 @@ public class ActionFactory extends Actions {
 		CustomAction action = Actions.action(CustomAction.class);
 		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
 
-		// Используем сеттеры для настройки
+
 		action.setScope(scope);
 		action.setDefinition(definition);
 		action.setParameterFormulas(parameterFormulas);
@@ -2001,17 +2002,17 @@ public class ActionFactory extends Actions {
 	public Action createRunPythonScriptAction(Sprite sprite, SequenceAction sequence, Formula script, Formula variableName) {
 		RunPythonScriptAction action = action(RunPythonScriptAction.class);
 		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
-		//scope.setContext(sprite.getContext());
+
 		action.setScope(scope);
 		action.setScript(script);
-		action.setVariableName(variableName); // Устанавливаем новое поле
+		action.setVariableName(variableName);
 		return action;
 	}
 
 	public Action createLoadPythonLibraryAction(Sprite sprite, SequenceAction sequence, Formula fileName) {
 		LoadPythonLibraryAction action = action(LoadPythonLibraryAction.class);
 		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
-		//scope.setContext(sprite.getContext());
+
 		action.setScope(scope);
 		action.setFileName(fileName);
 		return action;
@@ -2020,7 +2021,7 @@ public class ActionFactory extends Actions {
 	public Action createLoadNativeModuleAction(Sprite sprite, SequenceAction sequence, Formula fileName) {
 		LoadNativeModuleAction action = action(LoadNativeModuleAction.class);
 		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
-		//scope.setContext(sprite.getContext());
+
 		action.setScope(scope);
 		action.setFileName(fileName);
 		return action;
@@ -2029,7 +2030,7 @@ public class ActionFactory extends Actions {
 	public Action createClearPythonEnvironmentAction(Sprite sprite, SequenceAction sequence) {
 		ClearPythonEnvironmentAction action = action(ClearPythonEnvironmentAction.class);
 		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
-		//scope.setContext(sprite.getContext());
+
 		action.setScope(scope);
 		return action;
 	}
@@ -2410,15 +2411,15 @@ public class ActionFactory extends Actions {
 	}
 
 	public static String generateRandomString(int length) {
-		// Алфавит, из которого будут выбраны буквы
+
 		String alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 		Random random = new Random();
 		StringBuilder randomString = new StringBuilder(length);
 
 		for (int i = 0; i < length; i++) {
-			// Генерируем случайный индекс в пределах длины алфавита
+
 			int index = random.nextInt(alphabet.length());
-			// Добавляем случайно выбранную букву к результату
+
 			randomString.append(alphabet.charAt(index));
 		}
 
@@ -3381,9 +3382,9 @@ public class ActionFactory extends Actions {
 	}
 
 	public Action createStartListeningAction(UserVariable userVariable) {
-		// This is a fix to get the StartListeningBrick to work on Huawei Phones,
-		// can be changed once HMS is fully implemented and working
-		// As soon as this is the case, remove the if-statement and only use the else-branch
+
+
+
 		if (get(MobileServiceAvailability.class).isHmsAvailable(ProjectManager.getInstance().getApplicationContext())) {
 			AskSpeechAction action = Actions.action(AskSpeechAction.class);
 			action.setAnswerVariable(userVariable);
@@ -4272,7 +4273,7 @@ public class ActionFactory extends Actions {
         a.setZoom(formulaWithBrickField2);
         return a;
     }
-    // Movement
+
     public Action createFast2DSetVelocityAction(Sprite s, SequenceAction seq, Formula id, Formula vx, Formula vy) {
         Fast2DSetVelocityAction a = action(Fast2DSetVelocityAction.class);
         a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), s, seq));
@@ -4316,5 +4317,159 @@ public class ActionFactory extends Actions {
         a.setSensor(sensor);
         a.setGroup(group);
         return a;
+    }
+
+    public Action createBufferAction(Sprite sprite, SequenceAction sequence, Formula name, Formula w, Formula h) {
+        CreateBufferAction action = action(CreateBufferAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setNameFormula(name); action.setWidthFormula(w); action.setHeightFormula(h);
+        return action;
+    }
+
+    public Action removeBufferAction(Sprite sprite, SequenceAction sequence, Formula name) {
+        RemoveFromBufferAction action = action(RemoveFromBufferAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setNameFormula(name);
+        return action;
+    }
+
+    public Action createAddToBufferAction(Sprite sprite, SequenceAction sequence, Formula name) {
+        AddToBufferAction action = action(AddToBufferAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope); action.setNameFormula(name);
+        return action;
+    }
+
+    public Action createSetBufferCameraAction(Sprite sprite, SequenceAction sequence, Formula name, Formula x, Formula y, Formula zoom, Formula rot) {
+        SetBufferCameraAction action = action(SetBufferCameraAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope); action.setNameFormula(name);
+        action.setXFormula(x); action.setYFormula(y); action.setZoomFormula(zoom); action.setRotFormula(rot);
+        return action;
+    }
+
+    public Action createSaveBufferAction(Sprite sprite, SequenceAction sequence, Formula name, Formula file) {
+        SaveBufferAction action = action(SaveBufferAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope); action.setNameFormula(name); action.setFileFormula(file);
+        return action;
+    }
+
+    public Action createSetBufferAutoUpdateAction(Sprite sprite, SequenceAction sequence, Formula name, Formula state) {
+        SetBufferAutoUpdateAction action = action(SetBufferAutoUpdateAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope); action.setNameFormula(name); action.setStateFormula(state);
+        return action;
+    }
+
+    public Action createApplyBufferLookAction(Sprite sprite, SequenceAction sequence, Formula name) {
+        ApplyBufferLookAction action = action(ApplyBufferLookAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope); action.setNameFormula(name);
+        return action;
+    }
+
+    public Action createSetBufferOnlyAction(Sprite sprite, SequenceAction sequence, Formula state) {
+        SetBufferOnlyAction action = action(SetBufferOnlyAction.class);
+        action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        action.setStateFormula(state);
+        return action;
+    }
+
+    public Action createSetBufferModeAction(Sprite sprite, SequenceAction sequence, Formula name, Formula r2d, Formula r3d) {
+        SetBufferModeAction action = action(SetBufferModeAction.class);
+        action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        action.setNameFormula(name); action.setRender2DFormula(r2d); action.setRender3DFormula(r3d);
+        return action;
+    }
+
+    public Action createSetBufferCamera3DAction(Sprite sprite, SequenceAction sequence, Formula name, Formula x, Formula y, Formula z, Formula yaw, Formula pitch, Formula roll, Formula fov) {
+        SetBufferCamera3DAction action = action(SetBufferCamera3DAction.class);
+        action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        action.setNameFormula(name); action.setXForm(x); action.setYForm(y); action.setZForm(z);
+        action.setYawForm(yaw); action.setPitchForm(pitch); action.setRollForm(roll); action.setFovForm(fov);
+        return action;
+    }
+
+    public Action createVoxelBuildAction(Sprite sprite, ScriptSequenceAction sequence,
+                                         Formula worldId, Formula texture, Formula width, Formula height) {
+        VoxelBuildAction action = action(VoxelBuildAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setWorldId(worldId);
+        action.setTexture(texture);
+        action.setAtlasW(width);
+        action.setAtlasH(height);
+        return action;
+    }
+
+    public Action createVoxelLoadStringAction(Sprite sprite, ScriptSequenceAction sequence,
+                                              Formula id, Formula data, Formula dx, Formula dy, Formula dz) {
+        VoxelLoadStringAction action = action(VoxelLoadStringAction.class);
+        action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        action.setWorldId(id);
+        action.setDataStr(data);
+        action.setDelimX(dx);
+        action.setDelimY(dy);
+        action.setDelimZ(dz);
+        return action;
+    }
+
+    public Action createVoxelDeleteAction(Sprite sprite, ScriptSequenceAction sequence, Formula worldId) {
+        VoxelDeleteAction action = action(VoxelDeleteAction.class);
+        action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        action.setWorldId(worldId);
+        return action;
+    }
+
+    public Action createVoxelSetTransparentAction(Sprite sprite, ScriptSequenceAction sequence,
+                                                  Formula blockId, Formula isTransparent) {
+        VoxelSetTransparentAction action = action(VoxelSetTransparentAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setBlockId(blockId);
+        action.setTransparent(isTransparent);
+        return action;
+    }
+
+    public Action createVoxelCreateWorldAction(Sprite sprite, ScriptSequenceAction sequence,
+                                               Formula worldId, Formula sx, Formula sy, Formula sz, Formula wx, Formula wy, Formula wz) {
+        VoxelCreateWorldAction action = action(VoxelCreateWorldAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setWorldId(worldId);
+        action.setSizeX(sx);
+        action.setSizeY(sy);
+        action.setSizeZ(sz);
+        action.setWorldX(wx);
+        action.setWorldY(wy);
+        action.setWorldZ(wz);
+        return action;
+    }
+
+    public Action createVoxelConfigAction(Sprite sprite, ScriptSequenceAction sequence,
+                                          Formula id, Formula shape, Formula tx, Formula ty) {
+        VoxelConfigAction action = action(VoxelConfigAction.class);
+        action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        action.setBlockId(id);
+        action.setShape(shape);
+        action.setAtlasX(tx);
+        action.setAtlasY(ty);
+        return action;
+    }
+
+    public Action createVoxelSetBlockAction(Sprite sprite, ScriptSequenceAction sequence,
+                                            Formula id, Formula x, Formula y, Formula z, Formula type, Formula data) {
+        VoxelSetBlockAction action = action(VoxelSetBlockAction.class);
+        action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        action.setWorldId(id);
+        action.setX(x);
+        action.setY(y);
+        action.setZ(z);
+        action.setType(type);
+        action.setData(data);
+        return action;
     }
 }

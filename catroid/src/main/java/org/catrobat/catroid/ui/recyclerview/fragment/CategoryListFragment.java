@@ -255,7 +255,8 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 			R.string.formula_cam_rot_pitch, R.string.formula_cam_rot_yaw, R.string.formula_cam_rot_roll,
 			R.string.formula_vector_dir_x, R.string.formula_vector_dir_y, R.string.formula_vector_angle,
 			R.string.formula_ray_did_hit, R.string.formula_ray_distance, R.string.formula_ray_hit_object, R.string.formula_ray_hit_x, R.string.formula_ray_hit_y, R.string.formula_ray_hit_z, R.string.formula_ray_normal_x,
-			R.string.formula_ray_normal_y, R.string.formula_ray_normal_z
+			R.string.formula_ray_normal_y, R.string.formula_ray_normal_z, R.string.formula_voxel_get_id,
+            R.string.formula_voxel_get_data
 	);
 	private static final List<Integer> THREED_PARAMS = asList(
             R.string.formula_no_param,
@@ -268,7 +269,8 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 			R.string.formula_no_param, R.string.formula_no_param,
 			R.string.formula_vector_dir_param, R.string.formula_vector_dir_param, R.string.formula_vector_angle_param,
 			R.string.formula_ray_param, R.string.formula_ray_param, R.string.formula_ray_param, R.string.formula_ray_param, R.string.formula_ray_param, R.string.formula_ray_param,
-			R.string.formula_ray_param, R.string.formula_ray_param, R.string.formula_ray_param
+			R.string.formula_ray_param, R.string.formula_ray_param, R.string.formula_ray_param, R.string.formula_voxel_get_id_param,
+            R.string.formula_voxel_get_data_param
 	);
 	private static final List<Integer> LOGIC_BOOL = asList(R.string.formula_editor_logic_and,
 			R.string.formula_editor_logic_or, R.string.formula_editor_logic_not,
@@ -279,8 +281,8 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 			R.string.formula_editor_logic_greaterequal);
 	private static final List<Integer> SENSORS_DEFAULT = asList(R.string.formula_editor_sensor_loudness,
 			R.string.formula_editor_function_touched, R.string.formula_editor_sensor_stage_width,
-			R.string.formula_editor_sensor_stage_height, R.string.formula_editor_sensor_micro, R.string.formula_editor_sensor_ip, R.string.formula_editor_sensor_port, R.string.formula_editor_sensor_battary,
-			//R.string.formula_editor_sensor_frequency,
+			R.string.formula_editor_sensor_stage_height, R.string.formula_editor_sensor_micro, R.string.formula_editor_sensor_micro_freq,
+            R.string.formula_editor_sensor_ip, R.string.formula_editor_sensor_port, R.string.formula_editor_sensor_battary,
 			R.string.formula_editor_sensor_internet, R.string.formula_editor_sensor_architecture, R.string.formula_editor_sensor_fps);
 	private static final List<Integer> OBJECT_COLOR_COLLISION =
 			asList(R.string.formula_editor_function_collides_with_color, R.string.formula_editor_function_color_touches_color);
@@ -657,13 +659,10 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 			FormulaEditorFragment formulaEditorFragment =
 					((FormulaEditorFragment) getFragmentManager().findFragmentByTag(FORMULA_EDITOR_FRAGMENT_TAG));
 			if (formulaEditorFragment != null) {
-				// Вместо setChosenCategoryItem, нам нужно передать информацию о кастомной функции
-				// formulaEditorFragment.setChosenCategoryItem(item); // Это не сработает как надо
-				// Нам нужен способ добавить кастомную функцию по ее имени
 				formulaEditorFragment.addCustomFunctionToActiveFormula(item.customFunctionName);
 			}
 			getActivity().onBackPressed();
-			return; // Важно выйти здесь
+			return;
 		}
 		switch (item.type) {
 			case CategoryListRVAdapter.NXT:

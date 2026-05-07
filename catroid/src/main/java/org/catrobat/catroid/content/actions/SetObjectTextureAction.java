@@ -22,11 +22,13 @@ public class SetObjectTextureAction extends TemporalAction {
             String texFileName = textureName.interpretString(scope);
             if (id.isEmpty() || texFileName.isEmpty()) return;
 
-            // Получаем файл из хранилища проекта
-            File textureFile = scope.getProject().getFile(texFileName);
-            if (textureFile == null || !textureFile.exists()) return;
-
-            threeDManager.setObjectTexture(id, textureFile.getAbsolutePath());
+            if (texFileName.startsWith("buffer://")) {
+                threeDManager.setObjectTexture(id, texFileName);
+            } else {
+                File textureFile = scope.getProject().getFile(texFileName);
+                if (textureFile == null || !textureFile.exists()) return;
+                threeDManager.setObjectTexture(id, textureFile.getAbsolutePath());
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }

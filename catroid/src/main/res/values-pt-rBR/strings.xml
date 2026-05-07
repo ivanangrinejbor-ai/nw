@@ -668,7 +668,6 @@
     <string name="brick_delete_vars" formatted="false">Excluir todas as variáveis locais</string>
     <string name="brick_create_var" formatted="false">Criar/Definir variável local</string>
     <string name="brick_create_var2" formatted="false">valor</string>
-    <string name="brick_divide_poland" formatted="false">Particionar a Polônia</string>
     <string name="formula_editor_sensor_frequency" formatted="false">frequência do som</string>
     <string name="formula_editor_sensor_internet" formatted="false">conectado à internet</string>
     <string name="formula_editor_sensor_architecture" formatted="false">arquitetura do processador</string>

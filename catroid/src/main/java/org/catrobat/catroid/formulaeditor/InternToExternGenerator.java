@@ -375,12 +375,12 @@ public class InternToExternGenerator {
 				R.string.formula_editor_sensor_battary);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.MICRO.name(),
 				R.string.formula_editor_sensor_micro);
+        INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.FREQ.name(),
+                R.string.formula_editor_sensor_micro_freq);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.IP.name(),
 				R.string.formula_editor_sensor_ip);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.PORT.name(),
 				R.string.formula_editor_sensor_port);
-		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.FREQ.name(),
-				R.string.formula_editor_sensor_frequency);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.INTERNET.name(),
 				R.string.formula_editor_sensor_internet);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.ARCH.name(),
@@ -402,6 +402,8 @@ public class InternToExternGenerator {
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.RAY_HIT_Y.name(), R.string.formula_ray_hit_y2);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.RAY_HIT_DISTANCE.name(), R.string.formula_ray_hit_distance);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.OBJECT_X.name(), R.string.formula_editor_object_x);
+        INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.VOXEL_GET_ID.name(), R.string.formula_voxel_get_id);
+        INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.VOXEL_GET_DATA.name(), R.string.formula_voxel_get_data);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.OBJECT_Y.name(), R.string.formula_editor_object_y);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.OBJECT_TRANSPARENCY.name(), R.string.formula_editor_object_transparency);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.OBJECT_BRIGHTNESS.name(), R.string.formula_editor_object_brightness);
@@ -534,19 +536,16 @@ public class InternToExternGenerator {
 				String mappedOperatorValue = getExternStringForInternTokenValue(operatorValue, context);
 				return mappedOperatorValue == null ? operatorValue : mappedOperatorValue;
 
-			case FUNCTION_NAME: // Добавлено для обработки имен функций здесь
+			case FUNCTION_NAME:
 				String functionName = internToken.getTokenStringValue();
-				// Сначала проверяем стандартные функции
 				String mappedFunctionName = getExternStringForInternTokenValue(functionName, context);
 				if (mappedFunctionName != null) {
 					return mappedFunctionName;
 				}
-				// Затем проверяем кастомные функции
 				CustomFormula customFormula = CustomFormulaManager.INSTANCE.getFormulaByUniqueName(functionName);
 				if (customFormula != null) {
-					return customFormula.getDisplayName(); // Используем displayName для отображения
+					return customFormula.getDisplayName();
 				}
-				// Если не найдено ни там, ни там, возвращаем "как есть" (хотя это не должно происходить для валидных функций)
 				return functionName;
 
 			case BRACKET_OPEN:
@@ -573,8 +572,6 @@ public class InternToExternGenerator {
 			default:
 				return getExternStringForInternTokenValue(internToken.getTokenStringValue(), context);
 		}
-		//Log.w(TAG, "Необработанный тип токена в generateExternStringFromToken: " + internToken.getInternTokenType());
-		//return internToken.getTokenStringValue(); // запасной вариант
 	}
 
 	private String getExternStringForNumber(String number, boolean trimNumbers) {
@@ -633,8 +630,6 @@ public class InternToExternGenerator {
 	private String getExternStringForInternTokenValue(String internTokenValue, Context context) {
 		Integer stringResourceID = INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.get(internTokenValue);
 		if (stringResourceID == null) {
-			// Не логируем ошибку здесь, так как это может быть имя кастомной функции,
-			// которое будет обработано в другом месте или возвращено "как есть".
 			return null;
 		}
 		return context.getString(stringResourceID);

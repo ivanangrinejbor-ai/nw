@@ -740,7 +740,6 @@ class FormulaEditorSensorListTest(
             listOf(str(R.string.formula_editor_sensor_micro), "", ""),
             listOf(str(R.string.formula_editor_sensor_ip), "", ""),
             listOf(str(R.string.formula_editor_sensor_port), "", ""),
-            listOf(str(R.string.formula_editor_sensor_frequency), "", ""),
             listOf(str(R.string.formula_editor_sensor_internet), "", ""),
             listOf(
                 str(R.string.formula_editor_sensor_color_at_x_y),

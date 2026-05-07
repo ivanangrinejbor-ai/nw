@@ -15,5 +15,9 @@ public class SceneData {
 
     public float ambientIntensity = 1;
 
+    public boolean useCSM = false;
+
+    public float csmSplitFactor = 4f;
+
     public ThreeDManager.SceneSettings renderSettings = new ThreeDManager.SceneSettings();
 }

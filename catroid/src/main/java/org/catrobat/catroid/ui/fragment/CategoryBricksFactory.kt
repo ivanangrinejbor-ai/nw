@@ -39,8 +39,10 @@ import org.catrobat.catroid.content.bricks.AddFileToApkBrick
 import org.catrobat.catroid.content.bricks.AddHingeBrick
 import org.catrobat.catroid.content.bricks.AddItemToUserListBrick
 import org.catrobat.catroid.content.bricks.AddRadioBrick
+import org.catrobat.catroid.content.bricks.AddToBufferBrick
 import org.catrobat.catroid.content.bricks.Apply3dForceBrick
 import org.catrobat.catroid.content.bricks.ApplyAngularImpulseBrick
+import org.catrobat.catroid.content.bricks.ApplyBufferLookBrick
 import org.catrobat.catroid.content.bricks.ApplyForceBrick
 import org.catrobat.catroid.content.bricks.ApplyImpulseBrick
 import org.catrobat.catroid.content.bricks.ApplyTorqueBrick
@@ -96,6 +98,7 @@ import org.catrobat.catroid.content.bricks.CopyLookBrick
 import org.catrobat.catroid.content.bricks.CopyProjectFileBrick
 import org.catrobat.catroid.content.bricks.CopyTextBrick
 import org.catrobat.catroid.content.bricks.Create3dObjectBrick
+import org.catrobat.catroid.content.bricks.CreateBufferBrick
 import org.catrobat.catroid.content.bricks.CreateCubeBrick
 import org.catrobat.catroid.content.bricks.CreateDialogBrick
 import org.catrobat.catroid.content.bricks.CreateDiskBrick
@@ -298,6 +301,7 @@ import org.catrobat.catroid.content.bricks.ReadVariableFromDeviceBrick
 import org.catrobat.catroid.content.bricks.ReadVariableFromFileBrick
 import org.catrobat.catroid.content.bricks.RegexBrick
 import org.catrobat.catroid.content.bricks.Remove3dObjectBrick
+import org.catrobat.catroid.content.bricks.RemoveFromBufferBrick
 import org.catrobat.catroid.content.bricks.RemoveJointBrick
 import org.catrobat.catroid.content.bricks.RemoveParentBrick
 import org.catrobat.catroid.content.bricks.RemovePbrLightBrick
@@ -317,6 +321,7 @@ import org.catrobat.catroid.content.bricks.RunShellBrick
 import org.catrobat.catroid.content.bricks.RunVMBrick
 import org.catrobat.catroid.content.bricks.RunVm2Brick
 import org.catrobat.catroid.content.bricks.RunningStitchBrick
+import org.catrobat.catroid.content.bricks.SaveBufferBrick
 import org.catrobat.catroid.content.bricks.SaveLookBrick
 import org.catrobat.catroid.content.bricks.SaveLookFilesBrick
 import org.catrobat.catroid.content.bricks.SavePlotBrick
@@ -349,6 +354,11 @@ import org.catrobat.catroid.content.bricks.SetBackgroundByIndexBrick
 import org.catrobat.catroid.content.bricks.SetBackgroundLightBrick
 import org.catrobat.catroid.content.bricks.SetBounceBrick
 import org.catrobat.catroid.content.bricks.SetBrightnessBrick
+import org.catrobat.catroid.content.bricks.SetBufferAutoUpdateBrick
+import org.catrobat.catroid.content.bricks.SetBufferCamera3DBrick
+import org.catrobat.catroid.content.bricks.SetBufferCameraBrick
+import org.catrobat.catroid.content.bricks.SetBufferModeBrick
+import org.catrobat.catroid.content.bricks.SetBufferOnlyBrick
 import org.catrobat.catroid.content.bricks.SetCCDBrick
 import org.catrobat.catroid.content.bricks.SetCallbackBrick
 import org.catrobat.catroid.content.bricks.SetCameraFocusPointBrick
@@ -493,6 +503,13 @@ import org.catrobat.catroid.content.bricks.UserDefinedReceiverBrick
 import org.catrobat.catroid.content.bricks.VibrationBrick
 import org.catrobat.catroid.content.bricks.VmRelativeMouseMoveBrick
 import org.catrobat.catroid.content.bricks.VmSetMonitorSizeBrick
+import org.catrobat.catroid.content.bricks.VoxelBuildBrick
+import org.catrobat.catroid.content.bricks.VoxelConfigBrick
+import org.catrobat.catroid.content.bricks.VoxelCreateWorldBrick
+import org.catrobat.catroid.content.bricks.VoxelDeleteBrick
+import org.catrobat.catroid.content.bricks.VoxelLoadStringBrick
+import org.catrobat.catroid.content.bricks.VoxelSetBlockBrick
+import org.catrobat.catroid.content.bricks.VoxelSetTransparentBrick
 import org.catrobat.catroid.content.bricks.WaitBrick
 import org.catrobat.catroid.content.bricks.WaitTillIdleBrick
 import org.catrobat.catroid.content.bricks.WaitUntilBrick
@@ -880,40 +897,18 @@ open class CategoryBricksFactory {
         looksBrickList.add(ShowDialogBrick("myDialog"))
         looksBrickList.add(SquareBrick("square", "#ff0000", 0f, 0f, 100f, 100f, 1f, 0f, 0f))
         looksBrickList.add(DelSquareBrick("square"))
-        /*looksBrickList.add(ShaderBrick("""attribute vec4 a_position;
-attribute vec2 a_texCoord0;
 
-uniform mat4 u_projTrans;
+        looksBrickList.add(CreateBufferBrick("Map", "512", "512"))
+        looksBrickList.add(SetBufferModeBrick(Formula("Map"), Formula(1), Formula(0)))
+        looksBrickList.add(SetBufferAutoUpdateBrick(Formula("Map"), Formula(1)))
+        looksBrickList.add(AddToBufferBrick("Map"))
+        looksBrickList.add(RemoveFromBufferBrick(Formula("Map")))
+        looksBrickList.add(SetBufferOnlyBrick(Formula(1)))
+        looksBrickList.add(SetBufferCameraBrick("Map", "100", "200", "1", "0"))
+        looksBrickList.add(SetBufferCamera3DBrick(Formula("Map"), Formula(100), Formula(100), Formula(100), Formula(120), Formula(-20), Formula(0), Formula(67)))
+        looksBrickList.add(ApplyBufferLookBrick("Map"))
+        looksBrickList.add(SaveBufferBrick(Formula("Map"), Formula("buffer.png")))
 
-varying vec2 v_texCoords;
-
-void main() {
-    v_texCoords = a_texCoord0;
-    gl_Position = u_projTrans * a_position;
-}""", """// Fragment Shader
-// Этот код выполняется для каждого пикселя на экране.
-
-// v_texCoords - координаты текущего пикселя (от 0.0 до 1.0)
-varying vec2 v_texCoords;
-
-// u_texture - это текстура со всей вашей сценой
-uniform sampler2D u_texture;
-
-void main() {
-    // 1. Получаем оригинальный цвет пикселя из сцены
-    vec4 originalColor = texture2D(u_texture, v_texCoords);
-
-    // 2. (Здесь ваше волшебство) Манипулируем цветом.
-    // Например, инвертируем цвета:
-    originalColor.rgb = 1.0 - originalColor.rgb;
-
-    // Например, делаем черно-белым:
-    // float gray = dot(originalColor.rgb, vec3(0.299, 0.587, 0.114));
-    // originalColor.rgb = vec3(gray);
-
-    // 3. Задаем итоговый цвет пикселя
-    gl_FragColor = originalColor;
-}"""))*/
         looksBrickList.add(OpenUrlBrick(BrickValues.OPEN_IN_BROWSER))
         return looksBrickList
     }
@@ -1074,40 +1069,6 @@ print("Bot has stopped.")""", "myVar"))
         deviceBrickList.add(SendVmInputBrick("ls ~/"))
         deviceBrickList.add(StopVMBrick())
         deviceBrickList.add(RunChip8Brick("tetris.ch8"))
-        /*deviceBrickList.add(ShaderBrick("""attribute vec4 a_position;
-attribute vec2 a_texCoord0;
-
-uniform mat4 u_projTrans;
-
-varying vec2 v_texCoords;
-
-void main() {
-    v_texCoords = a_texCoord0;
-    gl_Position = u_projTrans * a_position;
-}""", """// Fragment Shader
-// Этот код выполняется для каждого пикселя на экране.
-
-// v_texCoords - координаты текущего пикселя (от 0.0 до 1.0)
-varying vec2 v_texCoords;
-
-// u_texture - это текстура со всей вашей сценой
-uniform sampler2D u_texture;
-
-void main() {
-    // 1. Получаем оригинальный цвет пикселя из сцены
-    vec4 originalColor = texture2D(u_texture, v_texCoords);
-
-    // 2. (Здесь ваше волшебство) Манипулируем цветом.
-    // Например, инвертируем цвета:
-    originalColor.rgb = 1.0 - originalColor.rgb;
-
-    // Например, делаем черно-белым:
-    // float gray = dot(originalColor.rgb, vec3(0.299, 0.587, 0.114));
-    // originalColor.rgb = vec3(gray);
-
-    // 3. Задаем итоговый цвет пикселя
-    gl_FragColor = originalColor;
-}"""))*/
         deviceBrickList.add(ScreenShotBrick())
         deviceBrickList.add(ResetTimerBrick())
         deviceBrickList.add(TestBrick())
@@ -1478,6 +1439,13 @@ void main() {
 }"""))
         threedBrickList.add(SetShaderUniformVec3Brick("lightColor", 0.4, 1.0, 0.4))
         threedBrickList.add(SetShaderUniformFloatBrick("meaningOfLife", 42.0))
+        threedBrickList.add(VoxelCreateWorldBrick(Formula("chunk1"), Formula(16), Formula(16), Formula(16), Formula(16), Formula(0), Formula(0)))
+        threedBrickList.add(VoxelConfigBrick("1", 0, 0, 0))
+        threedBrickList.add(VoxelSetTransparentBrick(1, 1))
+        threedBrickList.add(VoxelSetBlockBrick("chunk1", 0.0, 0.0, 0.0, 1, 0))
+        threedBrickList.add(VoxelLoadStringBrick(Formula("chunk1"), Formula("1$1#0$0&1$1#0$0"), Formula("$"), Formula("#"), Formula("&")))
+        threedBrickList.add(VoxelBuildBrick(Formula("chunk1"), Formula("atlas.png"),Formula(16), Formula(16)))
+        threedBrickList.add(VoxelDeleteBrick(Formula("chunk1")))
         threedBrickList.add(EnablePbrRenderBrick(1))
         //threedBrickList.add(SetShadowsBrick(Formula(1)))
         threedBrickList.add(SetMaterialBrick("myObject", 255.0, 0.0, 255.0, 255.0, 100.0, 0.0, "none.png", "none.png", "none.png"))

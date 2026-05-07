@@ -1064,6 +1064,25 @@ public class FormulaElement implements Serializable {
 				String rayName = String.valueOf(arguments.get(0));
 				return manager.getRaycastHitObjectId(rayName);
 			}
+            case VOXEL_GET_ID: {
+                String worldId = String.valueOf(arguments.get(0));
+                int x = (int) Math.floor(tryInterpretDoubleValue(arguments.get(1)));
+                int y = (int) Math.floor(tryInterpretDoubleValue(arguments.get(2)));
+                int z = (int) Math.floor(tryInterpretDoubleValue(arguments.get(3)));
+
+                return (double) (org.catrobat.catroid.raptor.VoxelManager.Companion.getBuffer(worldId) != null ?
+                        org.catrobat.catroid.raptor.VoxelManager.Companion.getBuffer(worldId).get(x, y, z) : 0.0);
+            }
+
+            case VOXEL_GET_DATA: {
+                String worldId = String.valueOf(arguments.get(0));
+                int x = (int) Math.floor(tryInterpretDoubleValue(arguments.get(1)));
+                int y = (int) Math.floor(tryInterpretDoubleValue(arguments.get(2)));
+                int z = (int) Math.floor(tryInterpretDoubleValue(arguments.get(3)));
+
+                var buffer = org.catrobat.catroid.raptor.VoxelManager.Companion.getBuffer(worldId);
+                return (double) (buffer != null ? buffer.getData(x, y, z) : 0);
+            }
 			case FLOATARRAY:
 				return FloatArrayManager.INSTANCE.getArraySize(String.valueOf(arguments.get(0)));
 			case TABLE_Y:

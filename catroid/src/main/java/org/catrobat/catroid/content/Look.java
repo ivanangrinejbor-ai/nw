@@ -132,6 +132,8 @@ public class Look extends Image {
 
 	private boolean isParticleEffectPaused = false;
 
+    public boolean drawOnlyInBuffer = false;
+
 	public Look(final Sprite sprite) {
 		this.sprite = sprite;
 		globalFrameTicker++;
@@ -389,6 +391,10 @@ public class Look extends Image {
 		if (shouldLog) {
 			Log.d("ShaderDebug", "    [Draw] >>> Drawing Look for: " + sprite.getName());
 		}
+
+        if (drawOnlyInBuffer && !org.catrobat.catroid.content.RenderTextureManager.INSTANCE.isRenderingToBuffer()) {
+            return;
+        }
 
 		if (particleEffect != null) {
 			if (shouldLog) Log.d("ShaderDebug", "    [Draw] Drawing particle effect.");

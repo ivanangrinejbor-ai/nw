@@ -120,6 +120,18 @@ public class SceneManager {
     public SceneManager(ThreeDManager lowLevelEngine) {
         this.engine = lowLevelEngine;
         this.engine.setSceneManager(this);
+
+        json.setIgnoreUnknownFields(true);
+        json.setUsePrototypes(false);
+
+        json.addClassTag("ParticleSystem3D", ParticleSystem3DComponent.class);
+        json.addClassTag("MinMaxCurve", ParticleSystem3DComponent.MinMaxCurve.class);
+        json.addClassTag("MinMaxGradient", ParticleSystem3DComponent.MinMaxGradient.class);
+        json.addClassTag("Burst", ParticleSystem3DComponent.Burst.class);
+        json.addClassTag("EmissionModule", ParticleSystem3DComponent.EmissionModule.class);
+        json.addClassTag("ShapeModule", ParticleSystem3DComponent.ShapeModule.class);
+        json.addClassTag("CollisionPlane", ParticleSystem3DComponent.CollisionPlane.class);
+        json.addClassTag("SubEmitterEntry", ParticleSystem3DComponent.SubEmitterEntry.class);
     }
 
     private void synchronizeTransformsFromEngine() {
@@ -475,6 +487,10 @@ public class SceneManager {
         if (go.hasComponent(ParticleComponent.class)) {
             engine.updateParticleTransform(go.id, go.transform.worldTransform);
         }
+
+        if (go.hasComponent(ParticleSystem3DComponent.class)) {
+            engine.updateParticleTransform3D(go.id, go.transform.worldTransform);
+        }
     }
 
     public void setPosition(GameObject go, Vector3 position) {
@@ -507,8 +523,10 @@ public class SceneManager {
             setSkyColor(sceneData.skyR, sceneData.skyG, sceneData.skyB);
             float size = (sceneData.shadowSize > 0) ? sceneData.shadowSize : 100f;
             float res = (sceneData.shadowResolution > 0) ? sceneData.shadowResolution : 2048f;
+            float csmFactor = (sceneData.csmSplitFactor >= 1f) ? sceneData.csmSplitFactor : 4f;
 
-            engine.setShadowSettings(size, (int) res);
+            engine.setShadowSettings(size, (int) res, sceneData.useCSM, csmFactor);
+
             if (sceneData.gameObjects == null) { return; }
 
 
@@ -844,8 +862,9 @@ public class SceneManager {
         setSkyColor(sceneData.skyR, sceneData.skyG, sceneData.skyB);
         float size = (sceneData.shadowSize > 0) ? sceneData.shadowSize : 100f;
         float res = (sceneData.shadowResolution > 0) ? sceneData.shadowResolution : 2048f;
+        float csmFactor = (sceneData.csmSplitFactor >= 1f) ? sceneData.csmSplitFactor : 4f;
 
-        engine.setShadowSettings(size, (int) res);
+        engine.setShadowSettings(size, (int) res, sceneData.useCSM, csmFactor);
 
         if (sceneData.gameObjects == null) return;
 
@@ -903,6 +922,11 @@ public class SceneManager {
 
         if (go.hasComponent(ParticleComponent.class)) {
             engine.removeParticleEffect(go.id);
+            engine.removeEditorProxy(go.id);
+        }
+
+        if (go.hasComponent(ParticleSystem3DComponent.class)) {
+            engine.removeParticleEffect3D(go.id);
             engine.removeEditorProxy(go.id);
         }
     }
@@ -1159,10 +1183,11 @@ public class SceneManager {
         setSkyColor(sceneData.skyR, sceneData.skyG, sceneData.skyB);
         float size = (sceneData.shadowSize > 0) ? sceneData.shadowSize : 100f;
         float res = (sceneData.shadowResolution > 0) ? sceneData.shadowResolution : 2048f;
+        float csmFactor = (sceneData.csmSplitFactor >= 1f) ? sceneData.csmSplitFactor : 4f;
 
-        engine.setShadowSettings(size, (int) res);
+        engine.setShadowSettings(size, (int) res, sceneData.useCSM, csmFactor);
 
-        if (sceneData == null || sceneData.gameObjects == null) { return; }
+        if (sceneData.gameObjects == null) { return; }
 
         for (GameObject go : sceneData.gameObjects) {
             gameObjects.put(go.id, go);
@@ -1278,10 +1303,19 @@ public class SceneManager {
             engine.updatePostProcessing(pp);
         }
 
-        ParticleComponent particle = go.getComponent(ParticleComponent.class);
-        if (particle != null) {
+        ParticleSystem3DComponent newParticle = go.getComponent(ParticleSystem3DComponent.class);
+
+
+        if (newParticle != null) {
             engine.createParticleProxy(go.id);
-            engine.updateParticleEffect(go.id, particle, go.transform.worldTransform);
+            engine.updateParticleEffect3D(go.id, newParticle, go.transform.worldTransform);
+        }
+
+
+        ParticleComponent oldParticle = go.getComponent(ParticleComponent.class);
+        if (oldParticle != null && newParticle == null) {
+            engine.createParticleProxy(go.id);
+            engine.updateParticleEffect(go.id, oldParticle, go.transform.worldTransform);
         }
 
         KeyframeComponent anim = go.getComponent(KeyframeComponent.class);
