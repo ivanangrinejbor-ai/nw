@@ -209,6 +209,12 @@
             android:summary="@string/plugins_desc"
             android:icon="@android:drawable/ic_menu_add" />
 
+        <PreferenceScreen
+            android:key="setting_ide_screen"
+            android:title="IDE"
+            android:summary="@string/ide_desc"
+            android:icon="@android:drawable/ic_menu_add" />
+
     </PreferenceCategory>
 
     <!-- https://www.meme-arsenal.com/memes/d3d151ea76e2feed9edb2d82e14133ff.jpg -->

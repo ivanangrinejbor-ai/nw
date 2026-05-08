@@ -334,6 +334,7 @@
     <string formatted="false" name="recovery_btn">Recover lost projects</string>
     <string formatted="false" name="recovery">Recovery</string>
     <string formatted="false" name="plugins_desc">Control installed plugins</string>
+    <string formatted="false" name="ide_desc">Develop environment of NewCatroid</string>
     <string formatted="false" name="additions">Additions</string>
     <string formatted="false" name="plugins">Plugins</string>
     <string formatted="false" name="brick_shadows_label">Set shadows enabled</string>

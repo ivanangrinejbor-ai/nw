@@ -180,7 +180,17 @@
 
         <activity
             android:name=".ui.PluginsActivity"
-            android:label="Плагины" />
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:label="Plugins" />
+
+        <activity
+            android:name=".ide.IdeActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:label="IDE" />
+
+        <activity
+            android:name=".ide.IdeDashboardActivity"
+            android:label="IDE Dashboard" />
 
         <activity
             android:name=".stage.GameActivity"
@@ -339,6 +349,11 @@
                     android:scheme="newcatroid" />
             </intent-filter>
         </activity>
+
+        <service
+            android:name="org.catrobat.catroid.ide.BuildMonitorService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync"/>
 
         <service
             android:name=".transfers.project.ProjectDownloadService"

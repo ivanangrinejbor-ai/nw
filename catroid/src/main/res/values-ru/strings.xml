@@ -334,6 +334,7 @@
     <string formatted="false" name="recovery_btn">Найти потерянные проекты</string>
     <string formatted="false" name="recovery">Восстановление</string>
     <string formatted="false" name="plugins_desc">Управление установленными плагинами</string>
+    <string formatted="false" name="ide_desc">Среда разработки NewCatroid</string>
     <string formatted="false" name="additions">Дополнения</string>
     <string formatted="false" name="plugins">Плагины</string>
     <string formatted="false" name="brick_easing_title">Анимация (Easing)</string>

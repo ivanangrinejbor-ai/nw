@@ -9,6 +9,7 @@ import org.catrobat.catroid.content.Project
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.MergeCommand
 import org.eclipse.jgit.api.ResetCommand
+import org.eclipse.jgit.internal.storage.file.WindowCache
 import org.eclipse.jgit.lib.CommitBuilder
 import org.eclipse.jgit.lib.Constants
 import org.eclipse.jgit.api.MergeResult as JGitMergeResult
@@ -376,5 +377,148 @@ class GitController(private val projectDir: File) {
             e.printStackTrace()
             null
         }
+    }
+
+    fun downloadAndUnpack(remoteUrl: String, authToken: String, targetDir: File): GitResult<Unit> = runCatching {
+        val client = okhttp3.OkHttpClient()
+        val zipUrl = remoteUrl.replace(".git", "") + "/archive/refs/heads/main.zip"
+
+        val request = okhttp3.Request.Builder().url(zipUrl).header("Authorization", "token $authToken").build()
+        client.newCall(request).execute().use { response ->
+            if (!response.isSuccessful) throw Exception("Failed to download ZIP: ${response.code}")
+            val zipFile = File(targetDir.parent, "temp_${System.currentTimeMillis()}.zip")
+            response.body?.byteStream()?.use { input -> zipFile.outputStream().use { output -> input.copyTo(output) } }
+            unzip(zipFile, targetDir)
+            zipFile.delete()
+        }
+
+
+        Git.init().setDirectory(targetDir).call().use { git ->
+            git.remoteAdd().setName("origin").setUri(org.eclipse.jgit.transport.URIish(remoteUrl)).call()
+
+
+            android.util.Log.d("GIT_DEBUG", "Создание базового коммита...")
+            git.add().addFilepattern(".").call()
+            git.commit()
+                .setMessage("Initial state from ZIP")
+                .setAuthor("NewCatroid IDE", "ide@newcatroid.org")
+                .call()
+        }
+
+        GitResult.Success(Unit)
+    }.getOrElse {
+        it.printStackTrace()
+        GitResult.Error("Download failed: ${it.message}", it)
+    }
+
+    fun commitAndPushFeature(branchName: String, token: String, message: String): GitResult<Unit> {
+        return try {
+
+            System.gc()
+
+            val lockFile = File(projectDir, ".git/index.lock")
+            if (lockFile.exists()) lockFile.delete()
+
+
+            val cacheConfig = org.eclipse.jgit.storage.file.WindowCacheConfig()
+            cacheConfig.isPackedGitMMAP = false
+            cacheConfig.packedGitLimit = 64 * 1024 * 1024
+            cacheConfig.packedGitWindowSize = 16 * 1024
+            cacheConfig.install()
+
+            Git.open(projectDir).use { git ->
+
+
+                val gitignore = File(projectDir, ".gitignore")
+                if (!gitignore.exists()) {
+                    gitignore.writeText("""
+                        /build/
+                        /bin/
+                        /gen/
+                        /out/
+                        .gradle/
+                        .idea/
+                        *.apk
+                        *.dex
+                    """.trimIndent())
+                }
+
+                android.util.Log.d("GIT_DEBUG", "3. ADD...")
+
+                git.add().addFilepattern(".").call()
+
+                android.util.Log.d("GIT_DEBUG", "4. COMMIT...")
+                git.commit()
+                    .setMessage(message)
+                    .setAuthor("AI Developer", "ai@newcatroid.com")
+                    .call()
+
+                android.util.Log.d("GIT_DEBUG", "5. PUSH...")
+                val refSpec = org.eclipse.jgit.transport.RefSpec("HEAD:refs/heads/$branchName")
+                git.push()
+                    .setRemote("origin")
+                    .setRefSpecs(refSpec)
+                    .setForce(true)
+                    .setCredentialsProvider(UsernamePasswordCredentialsProvider(token, ""))
+                    .call()
+            }
+            android.util.Log.d("GIT_DEBUG", "6. УСПЕХ!")
+            GitResult.Success(Unit)
+        } catch (e: Throwable) {
+
+            if (e.message?.contains("Inflater") == true) {
+                android.util.Log.e("GIT_DEBUG", "Критический баг Inflater. Пробую сбросить кэш...")
+                WindowCache.reconfigure(org.eclipse.jgit.storage.file.WindowCacheConfig())
+            }
+            GitResult.Error(e.message ?: "Push error", e)
+        }
+    }
+
+    private fun clearLocks() {
+        val lockFile = File(projectDir, ".git/index.lock")
+        if (lockFile.exists()) {
+            android.util.Log.d("GIT_DEBUG", "Удаляем застрявший lock-файл")
+            lockFile.delete()
+        }
+    }
+
+    private fun unzip(zipFile: File, targetDir: File) {
+        val zipInputStream = java.util.zip.ZipInputStream(zipFile.inputStream())
+        var entry = zipInputStream.nextEntry
+
+
+        while (entry != null) {
+            val name = entry.name
+            val parts = name.split("/")
+            if (parts.size > 1) {
+
+                val relativePath = parts.drop(1).joinToString("/")
+                if (relativePath.isNotEmpty()) {
+                    val destFile = File(targetDir, relativePath)
+                    if (entry.isDirectory) {
+                        destFile.mkdirs()
+                    } else {
+                        destFile.parentFile?.mkdirs()
+                        destFile.outputStream().use { zipInputStream.copyTo(it) }
+                    }
+                }
+            }
+            zipInputStream.closeEntry()
+            entry = zipInputStream.nextEntry
+        }
+        zipInputStream.close()
+    }
+
+    fun createAndCheckoutBranch(branchName: String): GitResult<Unit> = runCatching {
+        Git.open(projectDir).use { git ->
+            git.checkout()
+                .setCreateBranch(true)
+                .setName(branchName)
+                .call()
+        }
+        GitResult.Success(Unit)
+    }.getOrElse {
+        it.printStackTrace()
+        GitResult.Error("Failed to create branch: ${it.message}", it)
     }
 }

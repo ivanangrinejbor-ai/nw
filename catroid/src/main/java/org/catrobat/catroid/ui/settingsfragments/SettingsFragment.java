@@ -49,6 +49,8 @@ import org.catrobat.catroid.common.DroneConfigPreference;
 import org.catrobat.catroid.devices.mindstorms.ev3.sensors.EV3Sensor;
 import org.catrobat.catroid.devices.mindstorms.nxt.sensors.NXTSensor;
 import org.catrobat.catroid.formulaeditor.SensorHandler;
+import org.catrobat.catroid.ide.IdeActivity;
+import org.catrobat.catroid.ide.IdeDashboardActivity;
 import org.catrobat.catroid.sync.ProjectsCategoriesSync;
 import org.catrobat.catroid.ui.MainMenuActivity;
 import org.catrobat.catroid.ui.PluginsActivity;
@@ -129,6 +131,7 @@ public class SettingsFragment extends PreferenceFragment {
 	public static final String DRONE_SCREEN_KEY = "settings_drone_screen";
 	public static final String RASPBERRY_SCREEN_KEY = "settings_raspberry_screen";
 	public static final String PLUGINS_SCREEN_KEY = "setting_plugins_screen";
+    public static final String IDE_SCREEN_KEY = "setting_ide_screen";
 
 	public static final String NXT_SETTINGS_CATEGORY = "setting_nxt_category";
 	public static final String[] NXT_SENSORS = {"setting_mindstorms_nxt_sensor_1", "setting_mindstorms_nxt_sensor_2",
@@ -476,6 +479,10 @@ public class SettingsFragment extends PreferenceFragment {
 				Intent intent = new Intent(getActivity(), PluginsActivity.class);
 				startActivity(intent);
 				break;
+            case IDE_SCREEN_KEY:
+                Intent intent2 = new Intent(getActivity(), IdeDashboardActivity.class);
+                startActivity(intent2);
+                break;
 		}
 		return super.onPreferenceTreeClick(preferenceScreen, preference);
 	}
