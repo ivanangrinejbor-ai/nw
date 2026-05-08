@@ -31,11 +31,9 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.catrobat.catroid.R
-import org.catrobat.catroid.utils.git.FileUpdateBody
 import org.catrobat.catroid.utils.git.GitController
 import org.catrobat.catroid.utils.git.GitHubActionsApi
 import org.catrobat.catroid.utils.git.TokenManager
-import org.catrobat.catroid.utils.git.WorkflowDispatchBody
 import org.json.JSONObject
 import retrofit2.Retrofit
 import java.io.File
