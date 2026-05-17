@@ -57,21 +57,44 @@ class BuildMonitorService : Service() {
         val client = OkHttpClient()
         var runId: String? = null
 
+        delay(5000)
 
         val runsUrl = "https://api.github.com/repos/$login/NewCatroid/actions/runs?branch=$branch"
 
-        while (runId == null) {
+        android.util.Log.d("IDE_SERVICE", "Начинаем поиск активной сборки...")
+
+        var attempts = 0
+        while (runId == null && attempts < 10) {
             val req = Request.Builder().url(runsUrl).header("Authorization", "Bearer $token").build()
             client.newCall(req).execute().use { response ->
                 val json = JSONObject(response.body?.string() ?: "")
                 val runs = json.optJSONArray("workflow_runs")
+
                 if (runs != null && runs.length() > 0) {
-                    runId = runs.getJSONObject(0).getString("id")
+                    val latestRun = runs.getJSONObject(0)
+                    val status = latestRun.getString("status")
+                    val createdAt = latestRun.getString("created_at")
+
+                    if (status != "completed") {
+                        runId = latestRun.getString("id")
+                        android.util.Log.d("IDE_SERVICE", "Найдена новая сборка: $runId")
+                    } else {
+                        android.util.Log.d("IDE_SERVICE", "Найдена только старая сборка, ждем...")
+                    }
                 }
             }
-            if (runId == null) delay(7000)
+            if (runId == null) {
+                attempts++
+                delay(3000)
+            }
         }
 
+        if (runId == null) {
+            showFinalNotification("Ошибка", "GitHub не запустил сборку вовремя. Попробуй еще раз.", null)
+            stopForeground(true)
+            stopSelf()
+            return
+        }
 
         var isCompleted = false
         var isSuccess = false

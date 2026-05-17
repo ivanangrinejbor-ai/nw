@@ -308,6 +308,7 @@ android {
     productFlavors {
         danvex {
             applicationId "org.DanVexTeam.NewCatroid"
+            isDefault.set(true)
         }
         apktemplate {
             applicationId "org.DanVexTeam.NewCatroidApkTemplate"
@@ -322,7 +323,7 @@ android {
             manifestPlaceholders = [appName: "NewCatroid (APK Template)"]
         }
         catroid {
-            isDefault.set(true)
+
         }
         createAtSchool {
             applicationIdSuffix '.createatschool'

@@ -1,6 +1,8 @@
 package org.catrobat.catroid.ide
 
+import android.content.Context
 import android.content.Intent
+import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -46,16 +48,19 @@ class IdeActivity : AppCompatActivity() {
     private lateinit var aiInputField: EditText
     private lateinit var fileTreeRecycler: RecyclerView
     private lateinit var currentFileTab: TextView
+    private lateinit var tabsRecycler: RecyclerView
 
     private lateinit var projectDir: File
     private lateinit var currentDir: File
-    private var currentOpenedFile: File? = null
 
     private val modifiedFiles = HashSet<File>()
+    private val openFiles = mutableListOf<File>()
+    private var currentOpenedFile: File? = null
 
 
     private val filesList = mutableListOf<File>()
     private lateinit var fileAdapter: FileBrowserAdapter
+    private lateinit var tabAdapter: EditorTabAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -66,7 +71,7 @@ class IdeActivity : AppCompatActivity() {
         bottomPanel = findViewById(R.id.bottom_panel)
         aiInputField = findViewById(R.id.ai_input_field)
         fileTreeRecycler = findViewById(R.id.file_tree_recycler)
-        currentFileTab = findViewById(R.id.current_file_tab)
+        tabsRecycler = findViewById(R.id.tabs_recycler)
 
         val projectName = intent.getStringExtra("PROJECT_NAME") ?: "UnknownProject"
         projectDir = File(filesDir, "IdeProjects/$projectName")
@@ -75,10 +80,116 @@ class IdeActivity : AppCompatActivity() {
         setupEditor()
         setupButtons()
         setupFileBrowser()
+        setupTabs() // Настройка вкладок
 
+        // ЗАГРУЖАЕМ СОХРАНЕННУЮ СЕССИЮ!
+        loadWorkspace()
         loadDirectory(currentDir)
+    }
 
-        checkNotificationPermission()
+    // --- 1. ВКЛАДКИ (TABS) ---
+    private fun setupTabs() {
+        tabAdapter = EditorTabAdapter()
+        tabsRecycler.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+        tabsRecycler.adapter = tabAdapter
+    }
+
+    private fun openFileInEditor(file: File) {
+        saveCurrentFile() // Сохраняем предыдущий
+
+        // Если файла нет во вкладках - добавляем
+        if (!openFiles.contains(file)) {
+            openFiles.add(file)
+        }
+
+        currentOpenedFile = file
+        tabAdapter.notifyDataSetChanged()
+
+        // Скроллим к нужной вкладке
+        val index = openFiles.indexOf(file)
+        if (index != -1) tabsRecycler.smoothScrollToPosition(index)
+
+        // Загружаем контент
+        editor.setText(file.readText())
+        val lang: Language = when (file.extension.lowercase()) {
+            "java" -> JavaLanguage()
+            else -> JavaLanguage()
+        }
+        editor.setEditorLanguage(lang)
+
+        drawerLayout.closeDrawer(GravityCompat.START)
+        saveWorkspace() // Сохраняем состояние при открытии новой вкладки
+    }
+
+    private fun closeFileTab(file: File) {
+        if (currentOpenedFile == file) saveCurrentFile()
+        openFiles.remove(file)
+
+        if (openFiles.isEmpty()) {
+            currentOpenedFile = null
+            editor.setText("// Выберите файл слева в меню для редактирования")
+        } else {
+            // Если закрыли текущий, открываем последний в списке
+            if (currentOpenedFile == file) openFileInEditor(openFiles.last())
+        }
+        tabAdapter.notifyDataSetChanged()
+        saveWorkspace()
+    }
+
+    // --- 2. СОХРАНЕНИЕ СЕССИИ (PERSISTENCE) ---
+    private fun saveCurrentFile() {
+        currentOpenedFile?.let { file ->
+            val newContent = editor.text.toString()
+            if (file.exists() && file.readText() != newContent) {
+                file.writeText(newContent)
+                modifiedFiles.add(file)
+                android.util.Log.d("IDE_DEBUG", "Файл изменен: ${file.name}")
+                saveWorkspace() // Сохраняем список измененных файлов на диск
+            }
+        }
+    }
+
+    private fun saveWorkspace() {
+        val prefs = getSharedPreferences("IDE_STATE_${projectDir.name}", Context.MODE_PRIVATE)
+        prefs.edit().apply {
+            // Сохраняем измененные файлы
+            putStringSet("modified_files", modifiedFiles.map { it.absolutePath }.toSet())
+            // Сохраняем вкладки (соединяем через символ "|")
+            putString("open_files", openFiles.joinToString("|") { it.absolutePath })
+            // Сохраняем текущую активную вкладку
+            putString("current_file", currentOpenedFile?.absolutePath)
+        }.apply()
+    }
+
+    private fun loadWorkspace() {
+        val prefs = getSharedPreferences("IDE_STATE_${projectDir.name}", Context.MODE_PRIVATE)
+
+        // Восстанавливаем измененные файлы (для пуша)
+        val modifiedPaths = prefs.getStringSet("modified_files", emptySet()) ?: emptySet()
+        modifiedFiles.clear()
+        modifiedPaths.forEach { path ->
+            val f = File(path)
+            if (f.exists()) modifiedFiles.add(f)
+        }
+
+        // Восстанавливаем вкладки
+        openFiles.clear()
+        val openPaths = prefs.getString("open_files", "") ?: ""
+        if (openPaths.isNotEmpty()) {
+            openPaths.split("|").forEach { path ->
+                val f = File(path)
+                if (f.exists()) openFiles.add(f)
+            }
+        }
+
+        // Восстанавливаем активный файл
+        val currentPath = prefs.getString("current_file", null)
+        if (currentPath != null) {
+            val f = File(currentPath)
+            if (f.exists()) {
+                openFileInEditor(f) // Загрузит текст и вкладку
+            }
+        }
     }
 
     private fun setupEditor() {
@@ -118,40 +229,6 @@ class IdeActivity : AppCompatActivity() {
         filesList.addAll(sortedItems)
 
         fileAdapter.notifyDataSetChanged()
-    }
-
-    private fun openFileInEditor(file: File) {
-
-        saveCurrentFile()
-
-        currentOpenedFile = file
-        currentFileTab.text = file.name
-
-
-        val text = file.readText()
-        editor.setText(text)
-
-
-        val lang: Language = when (file.extension.lowercase()) {
-            "java" -> JavaLanguage()
-            else -> JavaLanguage()
-        }
-        editor.setEditorLanguage(lang)
-
-
-        drawerLayout.closeDrawer(GravityCompat.START)
-    }
-
-    private fun saveCurrentFile() {
-        currentOpenedFile?.let { file ->
-            val newContent = editor.text.toString()
-
-            if (file.exists() && file.readText() != newContent) {
-                file.writeText(newContent)
-                modifiedFiles.add(file)
-                android.util.Log.d("IDE_DEBUG", "Файл помечен как измененный: ${file.name}")
-            }
-        }
     }
 
     private fun checkNotificationPermission() {
@@ -210,6 +287,11 @@ class IdeActivity : AppCompatActivity() {
                             updateJson.toString().toRequestBody(jsonType))
                     }
                     modifiedFiles.clear()
+                    saveWorkspace()
+
+                    withContext(Dispatchers.Main) {
+                        tabAdapter.notifyDataSetChanged()
+                    }
                 }
 
 
@@ -379,5 +461,42 @@ class IdeActivity : AppCompatActivity() {
         }
 
         override fun getItemCount() = items.size
+    }
+
+    inner class EditorTabAdapter : RecyclerView.Adapter<EditorTabAdapter.TabViewHolder>() {
+        inner class TabViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+            val container: LinearLayout = view.findViewById(R.id.tab_container)
+            val name: TextView = view.findViewById(R.id.tab_file_name)
+            val closeBtn: ImageButton = view.findViewById(R.id.tab_close_btn)
+        }
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TabViewHolder {
+            val view = LayoutInflater.from(parent.context).inflate(R.layout.item_editor_tab, parent, false)
+            return TabViewHolder(view)
+        }
+
+        override fun onBindViewHolder(holder: TabViewHolder, position: Int) {
+            val file = openFiles[position]
+
+            // Звездочка (*), если файл изменен и еще не отправлен!
+            val isModified = modifiedFiles.contains(file)
+            holder.name.text = if (isModified) "${file.name} *" else file.name
+
+            // Подсвечиваем активную вкладку
+            val isActive = (file == currentOpenedFile)
+            if (isActive) {
+                holder.container.setBackgroundColor(Color.parseColor("#1E1E1E")) // Цвет как у редактора
+                holder.name.setTextColor(Color.WHITE)
+            } else {
+                holder.container.setBackgroundColor(Color.parseColor("#2D2D30")) // Темный фон
+                holder.name.setTextColor(Color.parseColor("#AAAAAA"))
+            }
+
+            // Клики
+            holder.container.setOnClickListener { openFileInEditor(file) }
+            holder.closeBtn.setOnClickListener { closeFileTab(file) }
+        }
+
+        override fun getItemCount() = openFiles.size
     }
 }
