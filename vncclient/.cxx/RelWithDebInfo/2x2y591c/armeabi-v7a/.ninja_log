@@ -518,3 +518,5 @@
 10156	19227	7799242071054998	CMakeFiles/wolfssl.dir/wolfssl/src/ssl.c.o	3221ebe39f3b9ce3
 19228	19331	7799242072265970	libwolfssl.a	ab729a0dd777174c
 19331	19391	7799242072961782	D:/Catroid-develop/vncclient/build/intermediates/cxx/RelWithDebInfo/2x2y591c/obj/armeabi-v7a/libnative-vnc.so	f59031d879aa00d
+1	203	0	clean	d60c0ea4c7f1e19
+0	23	0	clean	d60c0ea4c7f1e19

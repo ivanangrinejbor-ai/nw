@@ -550,7 +550,7 @@ import kotlin.contracts.contract
 
 open class CategoryBricksFactory {
 
-    fun getBricks(category: String, isBackgroundSprite: Boolean, context: Context): List<Brick> {
+    open fun getBricks(category: String, isBackgroundSprite: Boolean, context: Context): List<Brick> {
         if (category == context.getString(R.string.category_favorites)) {
             return setupFavoriteBricksCategoryList(context, isBackgroundSprite)
         }

@@ -43,6 +43,7 @@ public class RecentBricksHolder implements Serializable {
 	public int find(Brick brick) {
 		for (int i = 0; i < recentBricks.size(); i++) {
 			Brick b = recentBricks.get(i);
+            if (b == null) continue;
 			if (b.getClass().equals(brick.getClass())) {
 				return i;
 			}

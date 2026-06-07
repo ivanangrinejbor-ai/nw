@@ -95,6 +95,10 @@ import static org.catrobat.catroid.common.Constants.TMP_CODE_XML_FILE_NAME;
 import static org.catrobat.catroid.common.FlavoredConstants.DEFAULT_ROOT_DIRECTORY;
 
 public final class XstreamSerializer {
+    public interface XStreamSetupListener {
+        void onSetup(com.thoughtworks.xstream.XStream xstream);
+    }
+    public static final java.util.List<XStreamSetupListener> pluginListeners = new java.util.concurrent.CopyOnWriteArrayList<>();
 
 	private static XstreamSerializer instance;
 	private static final String TAG = XstreamSerializer.class.getSimpleName();
@@ -119,6 +123,10 @@ public final class XstreamSerializer {
 	private void prepareXstream(Class projectClass, Class sceneClass) {
 		xstream = new BackwardCompatibleCatrobatLanguageXStream(
 				new PureJavaReflectionProvider(new FieldDictionary(new CatroidFieldKeySorter())));
+
+        if (org.catrobat.catroid.CatroidApplication.globalPluginClassLoader != null) {
+            xstream.setClassLoader(org.catrobat.catroid.CatroidApplication.globalPluginClassLoader);
+        }
 
 		//xstream.registerConverter(new FormulaListConverter());
 
@@ -733,6 +741,12 @@ public final class XstreamSerializer {
 		xstream.alias("brick", ParticleEffectAdditivityBrick.class);
 		xstream.alias("brick", SetParticleColorBrick.class);
 		xstream.alias("brick", NoneBrick.class);
+
+        xstream.alias("brick", org.catrobat.catroid.content.bricks.UnknownBrick.class);
+
+        for (XStreamSetupListener listener : pluginListeners) {
+            listener.onSetup(xstream);
+        }
 	}
 
 	public Project loadProject(File projectDir, Context context) throws IOException, LoadingProjectException {

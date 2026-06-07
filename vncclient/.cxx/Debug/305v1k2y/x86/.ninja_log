@@ -548,3 +548,5 @@
 8677	8783	7837213648508047	libvncserver/CMakeFiles/test_wstest.dir/test/wstest.c.o	353611a622e912c3
 8752	8817	7837213648838051	libvncserver/test/encodingstest	c847c0e4c1f3dfc1
 8783	8847	7837213649098050	libvncserver/test/wstest	1f3d09df4484262d
+0	319	0	clean	d60c0ea4c7f1e19
+0	27	0	clean	d60c0ea4c7f1e19

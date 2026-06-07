@@ -83,39 +83,49 @@ public final class RecentBrickListManager {
 		recentBrickListDirectory.mkdir();
 	}
 
-	boolean isNotBackgroundSpriteBrick(Brick brick) {
-		for (Class c : nonBackgroundSpriteClasses) {
-			if (brick.getClass().equals(c)) {
-				return true;
-			}
-		}
-		return false;
-	}
+    boolean isNotBackgroundSpriteBrick(Brick brick) {
+        if (brick == null) {
+            return false;
+        }
+        for (Class c : nonBackgroundSpriteClasses) {
+            if (brick.getClass().equals(c)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
-	public List<Brick> getRecentBricks(boolean isBackgroundSprite) {
-		List<Brick> bricks = recentBricksHolder.getRecentBricks();
-		List<Brick> recentBricks = new ArrayList<>();
-		if (isBackgroundSprite) {
-			for (Brick brick : bricks) {
-				if (!isNotBackgroundSpriteBrick(brick)) {
-					recentBricks.add(brick);
-				}
-			}
-		} else {
-			recentBricks = bricks;
-		}
-		return recentBricks;
-	}
+    public List<Brick> getRecentBricks(boolean isBackgroundSprite) {
+        List<Brick> bricks = recentBricksHolder.getRecentBricks();
+        List<Brick> recentBricks = new ArrayList<>();
+        if (isBackgroundSprite) {
+            for (Brick brick : bricks) {
+                if (brick != null && !isNotBackgroundSpriteBrick(brick)) {
+                    recentBricks.add(brick);
+                }
+            }
+        } else {
+            for (Brick brick : bricks) {
+                if (brick != null) {
+                    recentBricks.add(brick);
+                }
+            }
+        }
+        return recentBricks;
+    }
 
-	public void addBrick(Brick brick) {
-		int index = recentBricksHolder.find(brick);
-		if (index >= 0) {
-			recentBricksHolder.remove(index);
-		} else if (recentBricksHolder.size() == 10) {
-			recentBricksHolder.remove();
-		}
-		recentBricksHolder.insert(brick);
-	}
+    public void addBrick(Brick brick) {
+        if (brick == null) {
+            return;
+        }
+        int index = recentBricksHolder.find(brick);
+        if (index >= 0) {
+            recentBricksHolder.remove(index);
+        } else if (recentBricksHolder.size() == 10) {
+            recentBricksHolder.remove();
+        }
+        recentBricksHolder.insert(brick);
+    }
 
 	public void saveRecentBrickList() {
 		recentBricksSerializer.saveRecentBricks(recentBricksHolder);

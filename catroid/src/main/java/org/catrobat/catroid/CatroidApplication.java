@@ -76,6 +76,8 @@ public class CatroidApplication extends Application {
 
 	public static CatroidApplication current;
 
+    public static PluginCompositeClassLoader globalPluginClassLoader;
+
 	@TargetApi(30)
 	@Override
 	public void onCreate() {
@@ -90,6 +92,22 @@ public class CatroidApplication extends Application {
 		}
 
 		super.onCreate();
+
+        try {
+            ClassLoader originalClassLoader = getClassLoader();
+            globalPluginClassLoader = new PluginCompositeClassLoader(originalClassLoader);
+
+            Context baseContext = getBaseContext();
+            Class<?> contextImplClass = Class.forName("android.app.ContextImpl");
+            java.lang.reflect.Field mClassLoaderField = contextImplClass.getDeclaredField("mClassLoader");
+            mClassLoaderField.setAccessible(true);
+
+            mClassLoaderField.set(baseContext, globalPluginClassLoader);
+            Log.d(TAG, "ClassLoader: Глобальный PluginCompositeClassLoader успешно внедрен в ContextImpl.");
+        } catch (Exception e) {
+            Log.e(TAG, "ClassLoader: Ошибка внедрения глобального ClassLoader", e);
+        }
+
 		Log.d(TAG, "CatroidApplication onCreate");
 		Log.d(TAG, "git commit info: " + BuildConfig.GIT_COMMIT_INFO);
 
@@ -114,7 +132,7 @@ public class CatroidApplication extends Application {
 		setupHuaweiMobileServices();
 		CustomFormulaManager.INSTANCE.initialize();
 
-
+        PluginExecutor.getInstance(this).prepareEnvironment();
 
 		registerActivityLifecycleCallbacks(new OverlayLifecycleCallbacks());
 
@@ -184,6 +202,53 @@ public class CatroidApplication extends Application {
 
 		Log.d("ThemeReset", "Настройки темы успешно сброшены.");
 	}
+
+    public static class PluginCompositeClassLoader extends ClassLoader {
+        private final java.util.List<ClassLoader> pluginLoaders = new java.util.concurrent.CopyOnWriteArrayList<>();
+
+        // Потокобезопасный маркер для отслеживания текущих загружаемых классов
+        private final ThreadLocal<java.util.Set<String>> loadingClasses = ThreadLocal.withInitial(java.util.HashSet::new);
+
+        public PluginCompositeClassLoader(ClassLoader parent) {
+            super(parent);
+        }
+
+        public void addPluginLoader(ClassLoader cl) {
+            if (cl != null && !pluginLoaders.contains(cl)) {
+                pluginLoaders.add(cl);
+            }
+        }
+
+        @Override
+        protected Class<?> findClass(String name) throws ClassNotFoundException {
+            java.util.Set<String> loading = loadingClasses.get();
+
+            if (loading.contains(name)) {
+                throw new ClassNotFoundException(name);
+            }
+
+            loading.add(name);
+            try {
+                for (ClassLoader cl : pluginLoaders) {
+                    try {
+                        return cl.loadClass(name);
+                    } catch (ClassNotFoundException ignored) {}
+                }
+            } finally {
+                loading.remove(name);
+            }
+            throw new ClassNotFoundException(name);
+        }
+
+        @Override
+        public Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+            try {
+                return getParent().loadClass(name);
+            } catch (ClassNotFoundException e) {
+                return findClass(name);
+            }
+        }
+    }
 
 	private static class OverlayLifecycleCallbacks implements ActivityLifecycleCallbacks {
 
