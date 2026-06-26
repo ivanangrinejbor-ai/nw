@@ -61,7 +61,7 @@
     <string name="debug_menu_list_format">%1$s%2$s: [%3$d эл.]</string>
     <string name="debug_menu_more_items">      ... и еще %d элементов</string>
     <string name="debug_menu_edit_variable">Изменить переменную: %s</string>
-    <string name="debug_menu_edit_list_item">Изменить элемент [%d] в %s</string>
+    <string name="debug_menu_edit_list_item" formatted="false">Изменить элемент [%d] в %s</string>
     <string name="debug_menu_copy_full">Копировать всё</string>
     <string name="debug_menu_copied">Скопировано в буфер обмена</string>
     <string name="debug_menu_save">Сохранить</string>

@@ -3,6 +3,7 @@ package org.catrobat.catroid.content.actions
 import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction
 import org.catrobat.catroid.content.Scope
 import org.catrobat.catroid.formulaeditor.Formula
+import org.catrobat.catroid.formulaeditor.UserDataWrapper
 import org.catrobat.catroid.stage.StageActivity
 
 class SavePathLengthToVarAction : TemporalAction() {
@@ -23,7 +24,7 @@ class SavePathLengthToVarAction : TemporalAction() {
             val b = waypoints[i + 1]
             total += com.badlogic.gdx.math.Vector2.dst(a.x, a.y, b.x, b.y)
         }
-        val userVar = s.getUserVariable(varName)
+        val userVar = UserDataWrapper.getUserVariable(varName, s)
         if (userVar != null) {
             userVar.value = total.toDouble()
         }

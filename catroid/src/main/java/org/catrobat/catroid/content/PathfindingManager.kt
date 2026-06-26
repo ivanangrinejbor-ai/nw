@@ -117,10 +117,10 @@ class PathfindingManager {
         if (obstacles.containsKey(name)) return
         val sprite = findSpriteByName(name) ?: return
         val look = sprite.look ?: return
-        val x = look.xInAbstractUserUnit
-        val y = look.yInAbstractUserUnit
-        val w = (look.widthInUserUnits / 2f).coerceAtLeast(1f)
-        val h = (look.heightInUserUnits / 2f).coerceAtLeast(1f)
+        val x = look.xInUserInterfaceDimensionUnit
+        val y = look.yInUserInterfaceDimensionUnit
+        val w = (look.widthInUserInterfaceDimensionUnit / 2f).coerceAtLeast(1f)
+        val h = (look.heightInUserInterfaceDimensionUnit / 2f).coerceAtLeast(1f)
         val points = mutableListOf<Vector2>()
         val step = navGrid?.cellSize?.coerceAtMost(1f) ?: 1f
         var wx = x - w
@@ -247,8 +247,8 @@ class PathfindingManager {
     fun findPathToObject(fromSprite: String, targetSprite: String): PathResult {
         val from = findSpriteByName(fromSprite)?.look ?: return PathResult(emptyList(), false)
         val to = findSpriteByName(targetSprite)?.look ?: return PathResult(emptyList(), false)
-        return findPath(from.xInAbstractUserUnit, from.yInAbstractUserUnit,
-            to.xInAbstractUserUnit, to.yInAbstractUserUnit)
+        return findPath(from.xInUserInterfaceDimensionUnit, from.yInUserInterfaceDimensionUnit,
+            to.xInUserInterfaceDimensionUnit, to.yInUserInterfaceDimensionUnit)
     }
 
     fun setPathForFollower(spriteName: String, path: List<Vector2>) {
@@ -299,8 +299,8 @@ class PathfindingManager {
             }
             val look = sprite?.look ?: continue
 
-            val currentX = look.xInAbstractUserUnit
-            val currentY = look.yInAbstractUserUnit
+            val currentX = look.xInUserInterfaceDimensionUnit
+            val currentY = look.yInUserInterfaceDimensionUnit
             val dx = target.x - currentX
             val dy = target.y - currentY
             val dist = kotlin.math.sqrt(dx * dx + dy * dy)
@@ -315,9 +315,9 @@ class PathfindingManager {
             val newX = currentX + dx * ratio
             val newY = currentY + dy * ratio
 
-            look.setXYInAbstractUserUnit(newX, newY)
+            look.setPositionInUserInterfaceDimensionUnit(newX, newY)
             val angleDeg = Math.toDegrees(kotlin.math.atan2(dy.toDouble(), dx.toDouble())).toFloat()
-            look.setDirectionInUserUnits(-angleDeg + 90f)
+            look.setMotionDirectionInUserInterfaceDimensionUnit(-angleDeg + 90f)
         }
     }
 

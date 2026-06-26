@@ -129,7 +129,7 @@ class TransitionManager {
             batch.end()
             Gdx.gl.glEnable(GL20.GL_BLEND)
             Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
-            overlayStage?.view?.apply()
+            overlayStage?.viewport?.apply()
             overlayStage?.act()
             overlayStage?.draw()
             batch.begin()
