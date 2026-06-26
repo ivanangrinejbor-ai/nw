@@ -346,6 +346,9 @@ class PathfindingManager {
         return followers[spriteName]?.state == FollowState.REACHED
     }
 
+    fun resize(width: Int, height: Int) {
+    }
+
     fun clearScene() {
         navGrid = null
         obstacles.clear()
