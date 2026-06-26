@@ -175,6 +175,36 @@ import org.catrobat.catroid.content.bricks.Fast2DSetRotationBrick
 import org.catrobat.catroid.content.bricks.Fast2DSetScaleBrick
 import org.catrobat.catroid.content.bricks.Fast2DSetTextureBrick
 import org.catrobat.catroid.content.bricks.Fast2DSetVelocityBrick
+import org.catrobat.catroid.content.bricks.CreateNavmeshBrick
+import org.catrobat.catroid.content.bricks.DeleteNavmeshBrick
+import org.catrobat.catroid.content.bricks.RebuildNavmeshBrick
+import org.catrobat.catroid.content.bricks.FindPathToXYBrick
+import org.catrobat.catroid.content.bricks.FindPathToObjectBrick
+import org.catrobat.catroid.content.bricks.SavePathToVarBrick
+import org.catrobat.catroid.content.bricks.SavePathLengthToVarBrick
+import org.catrobat.catroid.content.bricks.CheckPathExistsBrick
+import org.catrobat.catroid.content.bricks.FollowPathBrick
+import org.catrobat.catroid.content.bricks.FollowPathWithSpeedBrick
+import org.catrobat.catroid.content.bricks.StopFollowingBrick
+import org.catrobat.catroid.content.bricks.PausePathBrick
+import org.catrobat.catroid.content.bricks.ResumePathBrick
+import org.catrobat.catroid.content.bricks.AddObstacleBrick
+import org.catrobat.catroid.content.bricks.RemoveObstacleBrick
+import org.catrobat.catroid.content.bricks.UpdateObstaclesBrick
+import org.catrobat.catroid.content.bricks.AvoidObjectsByColorBrick
+import org.catrobat.catroid.content.bricks.CreateObstaclesFromBackgroundBrick
+import org.catrobat.catroid.content.bricks.GetPathPointCountBrick
+import org.catrobat.catroid.content.bricks.GetCurrentPathPointBrick
+import org.catrobat.catroid.content.bricks.GetNextPathPointBrick
+import org.catrobat.catroid.content.bricks.CheckEndOfPathBrick
+import org.catrobat.catroid.content.bricks.FadeToBlackBrick
+import org.catrobat.catroid.content.bricks.FadeFromBlackBrick
+import org.catrobat.catroid.content.bricks.CrossfadeBrick
+import org.catrobat.catroid.content.bricks.SlideLeftBrick
+import org.catrobat.catroid.content.bricks.SlideRightBrick
+import org.catrobat.catroid.content.bricks.SlideUpBrick
+import org.catrobat.catroid.content.bricks.SlideDownBrick
+import org.catrobat.catroid.content.bricks.InstantTransitionBrick
 import org.catrobat.catroid.content.bricks.FileUrlBrick
 import org.catrobat.catroid.content.bricks.FilesUrlBrick
 import org.catrobat.catroid.content.bricks.FinishStageBrick
@@ -598,6 +628,8 @@ open class CategoryBricksFactory {
             context.getString(R.string.category_neural) -> setupNeuralCategoryList(context)
             context.getString(R.string.pocketensor) -> setupPocketensorCategoryList(context)
             context.getString(R.string.fast2d) -> setupFast2dCategoryList(context)
+            context.getString(R.string.category_pathfinder) -> setupPathfinderCategoryList(context)
+            context.getString(R.string.category_transitions) -> setupTransitionCategoryList(context)
             context.getString(R.string.category_file) -> setupFileCategoryList(context)
             context.getString(R.string.category_threed) -> setupThreedCategoryList(context)
             context.getString(R.string.category_internet) -> setupInternetCategoryList(context)
@@ -2105,6 +2137,50 @@ void main() {
         fast2dBrickList.add(Fast2DSetPhysicsVelocityBrick("object", 10.0, 2.0))
 
         return fast2dBrickList
+    }
+
+    private fun setupPathfinderCategoryList(context: Context): List<Brick> {
+        val pathfinderBrickList: MutableList<Brick> = ArrayList()
+
+        pathfinderBrickList.add(CreateNavmeshBrick(10, 10, 32))
+        pathfinderBrickList.add(DeleteNavmeshBrick())
+        pathfinderBrickList.add(RebuildNavmeshBrick())
+        pathfinderBrickList.add(FindPathToXYBrick("sprite", 0.0, 0.0, 100.0, 100.0))
+        pathfinderBrickList.add(FindPathToObjectBrick("sprite", "target"))
+        pathfinderBrickList.add(SavePathToVarBrick("sprite", "path"))
+        pathfinderBrickList.add(SavePathLengthToVarBrick("sprite", "len"))
+        pathfinderBrickList.add(CheckPathExistsBrick(0.0, 0.0, 100.0, 100.0, "result"))
+        pathfinderBrickList.add(FollowPathBrick("sprite"))
+        pathfinderBrickList.add(FollowPathWithSpeedBrick("sprite", 200.0))
+        pathfinderBrickList.add(StopFollowingBrick("sprite"))
+        pathfinderBrickList.add(PausePathBrick("sprite"))
+        pathfinderBrickList.add(ResumePathBrick("sprite"))
+        pathfinderBrickList.add(AddObstacleBrick("sprite"))
+        pathfinderBrickList.add(RemoveObstacleBrick("sprite"))
+        pathfinderBrickList.add(UpdateObstaclesBrick())
+        pathfinderBrickList.add(AvoidObjectsByColorBrick("#FF0000"))
+        pathfinderBrickList.add(CreateObstaclesFromBackgroundBrick())
+        pathfinderBrickList.add(GetPathPointCountBrick("sprite", "count"))
+        pathfinderBrickList.add(GetCurrentPathPointBrick("sprite", "x", "y"))
+        pathfinderBrickList.add(GetNextPathPointBrick("sprite", "x", "y"))
+        pathfinderBrickList.add(CheckEndOfPathBrick("sprite", "done"))
+
+        return pathfinderBrickList
+    }
+
+    private fun setupTransitionCategoryList(context: Context): List<Brick> {
+        val transitionBrickList: MutableList<Brick> = ArrayList()
+
+        transitionBrickList.add(FadeToBlackBrick("Scene 1"))
+        transitionBrickList.add(FadeFromBlackBrick("Scene 1"))
+        transitionBrickList.add(CrossfadeBrick("Scene 1"))
+        transitionBrickList.add(SlideLeftBrick("Scene 1"))
+        transitionBrickList.add(SlideRightBrick("Scene 1"))
+        transitionBrickList.add(SlideUpBrick("Scene 1"))
+        transitionBrickList.add(SlideDownBrick("Scene 1"))
+        transitionBrickList.add(InstantTransitionBrick("Scene 1"))
+
+        return transitionBrickList
     }
 
     private fun setupFileCategoryList(context: Context): List<Brick> {

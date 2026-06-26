@@ -627,6 +627,55 @@
     <string formatted="false" name="buffer_apply">Set look from Buffer</string>
     <string formatted="false" name="buffer_save">Save Buffer to file</string>
     <string formatted="false" name="buffer_auto_update">Buffer auto-update</string>
+    <string formatted="false" name="pathfinder_create_navmesh">NavMesh</string>
+    <string formatted="false" name="pathfinder_delete_navmesh">Delete NavMesh</string>
+    <string formatted="false" name="pathfinder_rebuild_navmesh">Rebuild NavMesh</string>
+    <string formatted="false" name="pathfinder_find_path_to_xy">Path to XY</string>
+    <string formatted="false" name="pathfinder_find_path_to_object">Path to Object</string>
+    <string formatted="false" name="pathfinder_save_path_to_var">Save Path to Var</string>
+    <string formatted="false" name="pathfinder_save_path_length_to_var">Save Path Length</string>
+    <string formatted="false" name="pathfinder_check_path_exists">Path Exists?</string>
+    <string formatted="false" name="pathfinder_follow_path">Follow Path</string>
+    <string formatted="false" name="pathfinder_follow_path_with_speed">Follow Path+Speed</string>
+    <string formatted="false" name="pathfinder_stop_following">Stop Following</string>
+    <string formatted="false" name="pathfinder_pause_path">Pause Path</string>
+    <string formatted="false" name="pathfinder_resume_path">Resume Path</string>
+    <string formatted="false" name="pathfinder_add_obstacle">Add Obstacle</string>
+    <string formatted="false" name="pathfinder_remove_obstacle">Remove Obstacle</string>
+    <string formatted="false" name="pathfinder_update_obstacles">Update Obstacles</string>
+    <string formatted="false" name="pathfinder_avoid_objects_by_color">Avoid Color</string>
+    <string formatted="false" name="pathfinder_create_obstacles_from_background">Obstacles from Obj</string>
+    <string formatted="false" name="pathfinder_get_path_point_count">Path Points</string>
+    <string formatted="false" name="pathfinder_get_current_path_point">Current Point</string>
+    <string formatted="false" name="pathfinder_get_next_path_point">Next Point</string>
+    <string formatted="false" name="pathfinder_check_end_of_path">End of Path?</string>
+    <string formatted="false" name="pathfinder_width_param">Width</string>
+    <string formatted="false" name="pathfinder_height_param">Height</string>
+    <string formatted="false" name="pathfinder_cell_size_param">Cell</string>
+    <string formatted="false" name="pathfinder_start_x_param">Start X</string>
+    <string formatted="false" name="pathfinder_start_y_param">Start Y</string>
+    <string formatted="false" name="pathfinder_end_x_param">End X</string>
+    <string formatted="false" name="pathfinder_end_y_param">End Y</string>
+    <string formatted="false" name="pathfinder_sprite_param">Sprite</string>
+    <string formatted="false" name="pathfinder_variable_param">Variable</string>
+    <string formatted="false" name="pathfinder_speed_param">Speed</string>
+    <string formatted="false" name="pathfinder_color_param">Color (hex)</string>
+    <string formatted="false" name="pathfinder_result_var_param">Result Var</string>
+    <string formatted="false" name="pathfinder_var_x_param">Var X</string>
+    <string formatted="false" name="pathfinder_var_y_param">Var Y</string>
+    <string formatted="false" name="pathfinder_from_sprite_param">From</string>
+    <string formatted="false" name="pathfinder_to_sprite_param">To</string>
+    <string formatted="false" name="transition_fade_to_black">Fade to Black</string>
+    <string formatted="false" name="transition_fade_from_black">Fade from Black</string>
+    <string formatted="false" name="transition_crossfade">Crossfade</string>
+    <string formatted="false" name="transition_slide_left">Slide Left</string>
+    <string formatted="false" name="transition_slide_right">Slide Right</string>
+    <string formatted="false" name="transition_slide_up">Slide Up</string>
+    <string formatted="false" name="transition_slide_down">Slide Down</string>
+    <string formatted="false" name="transition_instant">Instant</string>
+    <string formatted="false" name="transition_scene_param">Scene</string>
+    <string formatted="false" name="category_transitions">Transitions</string>
+    <string formatted="false" name="transition">Transitions</string>
     <string name="preference_title_pcmode" formatted="false">Enable big-screen interface</string>
     <string name="fast2d_set_collision_filter" formatted="false">Collision filter</string>
     <string name="fast2d_is_sensor_param" formatted="false">Sensor (1/0)</string>
@@ -2192,6 +2241,10 @@
     <string formatted="false" name="category_internet">Internet</string>
     <string formatted="false" name="preference_description_pocketensor_bricks">Adds support for working with tensors and allows you to create AI models.</string>
     <string formatted="false" name="pocketensor">PockeTensor</string>
+    <string formatted="false" name="pathfinder">Pathfinder</string>
+    <string formatted="false" name="preference_description_transition_bricks">Adds blocks for scene transitions (fade, slide, crossfade)</string>
+    <string formatted="false" name="preference_description_pathfinder_bricks">Adds blocks for 2D pathfinding (A*, NavMesh, obstacles)</string>
+    <string formatted="false" name="category_pathfinder">Pathfinder</string>
     <string formatted="false" name="preference_description_fast2d_bricks">Adds blocks for the new 2D rendering system (more complex, but optimized)</string>
     <string formatted="false" name="fast2d">Fast 2D</string>
     <string formatted="false" name="preference_title_enable_internet_bricks">Internet Extension</string>

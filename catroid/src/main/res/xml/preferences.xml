@@ -116,6 +116,18 @@
 
     <CheckBoxPreference
         android:defaultValue="@string/FEATURE_EMBROIDERY_PREFERENCES_ENABLED"
+        android:key="setting_pathfinder_bricks"
+        android:summary="@string/preference_description_pathfinder_bricks"
+        android:title="@string/pathfinder" />
+
+    <CheckBoxPreference
+        android:defaultValue="@string/FEATURE_EMBROIDERY_PREFERENCES_ENABLED"
+        android:key="setting_transition_bricks"
+        android:summary="@string/preference_description_transition_bricks"
+        android:title="@string/transition" />
+
+    <CheckBoxPreference
+        android:defaultValue="@string/FEATURE_EMBROIDERY_PREFERENCES_ENABLED"
         android:key="setting_threed_bricks"
         android:summary="@string/preference_description_threed"
         android:title="@string/preference_title_enable_threed_bricks" />

@@ -107,6 +107,8 @@ import org.catrobat.catroid.content.eventids.MouseButtonEventId;
 import org.catrobat.catroid.embroidery.DSTPatternManager;
 import org.catrobat.catroid.embroidery.EmbroideryPatternManager;
 import org.catrobat.catroid.fast2d.FastTwoDManager;
+import org.catrobat.catroid.content.PathfindingManager;
+import org.catrobat.catroid.content.TransitionManager;
 import org.catrobat.catroid.formulaeditor.SensorHandler;
 import org.catrobat.catroid.formulaeditor.UserDataWrapper;
 import org.catrobat.catroid.io.SoundCacheManager;
@@ -225,6 +227,8 @@ public class StageListener implements ApplicationListener {
 	private float cameraRotation = 0f;
 
     public FastTwoDManager fastTwoDManager;
+    public PathfindingManager pathfindingManager;
+    public TransitionManager transitionManager;
 
 	public void setMaxViewPort(Resolution maxViewPort) {
 		this.maxViewPort = maxViewPort;
@@ -617,6 +621,12 @@ public class StageListener implements ApplicationListener {
             fastTwoDManager = new FastTwoDManager();
         }
         fastTwoDManager.init((SpriteBatch) batch);
+        if (pathfindingManager == null) {
+            pathfindingManager = new PathfindingManager();
+        }
+        if (transitionManager == null) {
+            transitionManager = new TransitionManager();
+        }
 		if (postProcessBatch == null) {
 			postProcessBatch = new SpriteBatch();
 		}
@@ -1162,6 +1172,12 @@ public class StageListener implements ApplicationListener {
         if (fastTwoDManager != null) {
             fastTwoDManager.clearScene();
         }
+        if (pathfindingManager != null) {
+            pathfindingManager.clearScene();
+        }
+        if (transitionManager != null) {
+            transitionManager.clearScene();
+        }
 
 		isVmDisplayVisible = false;
 
@@ -1431,8 +1447,17 @@ public class StageListener implements ApplicationListener {
                     if (fastTwoDManager != null && !paused) {
                         fastTwoDManager.updateAndRender(Gdx.graphics.getDeltaTime());
                     }
+                    if (pathfindingManager != null && !paused) {
+                        pathfindingManager.update(Gdx.graphics.getDeltaTime());
+                    }
+                    if (transitionManager != null && !paused) {
+                        transitionManager.update(Gdx.graphics.getDeltaTime());
+                    }
 
                     stage.draw();
+                    if (transitionManager != null) {
+                        transitionManager.renderOverlay((SpriteBatch) batch);
+                    }
 
 
                     uiStage.draw();
@@ -1627,6 +1652,8 @@ public class StageListener implements ApplicationListener {
 
         if (threeDManager != null) threeDManager.resize(width, height);
         if (fastTwoDManager != null) fastTwoDManager.resize(width, height);
+        if (pathfindingManager != null) pathfindingManager.resize(width, height);
+        if (transitionManager != null) transitionManager.resize(width, height);
     }
 
 
@@ -1749,6 +1776,14 @@ public class StageListener implements ApplicationListener {
         if (fastTwoDManager != null) {
             fastTwoDManager.dispose();
             fastTwoDManager = null;
+        }
+        if (pathfindingManager != null) {
+            pathfindingManager.dispose();
+            pathfindingManager = null;
+        }
+        if (transitionManager != null) {
+            transitionManager.dispose();
+            transitionManager = null;
         }
 
 		RenderManager.INSTANCE.dispose();

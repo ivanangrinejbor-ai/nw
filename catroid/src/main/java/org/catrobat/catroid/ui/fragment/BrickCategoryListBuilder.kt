@@ -64,6 +64,12 @@ class BrickCategoryListBuilder(private val activity: FragmentActivity) {
         if (SettingsFragment.isFast2dSharedPreferenceEnabled(activity)) {
             categories.add(inflater.inflate(R.layout.brick_category_fast2d, null))
         }
+        if (SettingsFragment.isPathfinderSharedPreferenceEnabled(activity)) {
+            categories.add(inflater.inflate(R.layout.brick_category_pathfinder, null))
+        }
+        if (SettingsFragment.isTransitionSharedPreferenceEnabled(activity)) {
+            categories.add(inflater.inflate(R.layout.brick_category_transitions, null))
+        }
         if (SettingsFragment.isThreedSharedPreferenceEnabled(activity)) {
             categories.add(inflater.inflate(R.layout.brick_category_threed, null))
         }

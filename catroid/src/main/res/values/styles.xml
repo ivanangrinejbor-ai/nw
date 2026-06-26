@@ -361,7 +361,63 @@
         <item name="android:background">@drawable/brick_3h_olive</item>
     </style>
 
+    <style name="BrickContainer.Transition" />
+
+    <style name="BrickContainer.Transition.Small">
+        <item name="android:minHeight">@dimen/brick_height_small</item>
+        <item name="android:background">@drawable/brick_1h_gold</item>
+    </style>
+
+    <style name="BrickContainer.Transition.Medium">
+        <item name="android:minHeight">@dimen/brick_height_medium</item>
+        <item name="android:background">@drawable/brick_2h_gold</item>
+    </style>
+
+    <style name="BrickContainer.Transition.Big" tools:ignore="UnusedResources">
+        <item name="android:minHeight">@dimen/brick_height_big</item>
+        <item name="android:background">@drawable/brick_3h_gold</item>
+    </style>
+
+    <style name="BrickCategory.Transition">
+        <item name="android:background">@drawable/brick_category_selector</item>
+        <item name="android:orientation">horizontal</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">@dimen/brick_category_height</item>
+        <item name="android:paddingStart">@dimen/brick_category_padding_start</item>
+        <item name="android:paddingEnd">@dimen/brick_category_padding_end</item>
+        <item name="android:minHeight">@dimen/brick_category_min_height</item>
+    </style>
+
     <style name="BrickContainer.Fast2d" />
+
+    <style name="BrickContainer.Pathfinder" />
+
+    <style name="BrickContainer.Pathfinder.Small">
+        <item name="android:minHeight">@dimen/brick_height_small</item>
+        <item name="android:background">@drawable/brick_1h_green</item>
+    </style>
+
+    <style name="BrickContainer.Pathfinder.Medium">
+        <item name="android:minHeight">@dimen/brick_height_medium</item>
+        <item name="android:background">@drawable/brick_2h_green</item>
+    </style>
+
+    <style name="BrickContainer.Pathfinder.Big" tools:ignore="UnusedResources">
+        <item name="android:minHeight">@dimen/brick_height_big</item>
+        <item name="android:background">@drawable/brick_3h_green</item>
+    </style>
+
+    <style name="BrickCategory.Pathfinder">
+        <item name="android:background">@drawable/brick_category_selector</item>
+        <item name="android:orientation">horizontal</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">@dimen/brick_category_height</item>
+        <item name="android:paddingStart">@dimen/brick_category_padding_start</item>
+        <item name="android:paddingEnd">@dimen/brick_category_padding_end</item>
+        <item name="android:minHeight">@dimen/brick_category_min_height</item>
+    </style>
 
     <style name="BrickContainer.Fast2d.Small">
         <item name="android:minHeight">@dimen/brick_height_small</item>

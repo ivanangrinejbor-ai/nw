@@ -628,6 +628,55 @@
     <string formatted="false" name="buffer_apply">Установить образ из буфера</string>
     <string formatted="false" name="buffer_save">Сохранить буфер в файл</string>
     <string formatted="false" name="buffer_auto_update">Автообновление буфера</string>
+    <string formatted="false" name="pathfinder_create_navmesh">Сетка навигации</string>
+    <string formatted="false" name="pathfinder_delete_navmesh">Удалить сетку</string>
+    <string formatted="false" name="pathfinder_rebuild_navmesh">Перестроить сетку</string>
+    <string formatted="false" name="pathfinder_find_path_to_xy">Путь к XY</string>
+    <string formatted="false" name="pathfinder_find_path_to_object">Путь к объекту</string>
+    <string formatted="false" name="pathfinder_save_path_to_var">Сохранить путь</string>
+    <string formatted="false" name="pathfinder_save_path_length_to_var">Длина пути</string>
+    <string formatted="false" name="pathfinder_check_path_exists">Путь существует?</string>
+    <string formatted="false" name="pathfinder_follow_path">Следовать пути</string>
+    <string formatted="false" name="pathfinder_follow_path_with_speed">Следовать+Скор.</string>
+    <string formatted="false" name="pathfinder_stop_following">Остановить</string>
+    <string formatted="false" name="pathfinder_pause_path">Пауза пути</string>
+    <string formatted="false" name="pathfinder_resume_path">Продолжить путь</string>
+    <string formatted="false" name="pathfinder_add_obstacle">Добавить препят.</string>
+    <string formatted="false" name="pathfinder_remove_obstacle">Удалить препят.</string>
+    <string formatted="false" name="pathfinder_update_obstacles">Обновить препят.</string>
+    <string formatted="false" name="pathfinder_avoid_objects_by_color">Избегать цвета</string>
+    <string formatted="false" name="pathfinder_create_obstacles_from_background">Препят. из фона</string>
+    <string formatted="false" name="pathfinder_get_path_point_count">Кол-во точек</string>
+    <string formatted="false" name="pathfinder_get_current_path_point">Текущая точка</string>
+    <string formatted="false" name="pathfinder_get_next_path_point">След. точка</string>
+    <string formatted="false" name="pathfinder_check_end_of_path">Конец пути?</string>
+    <string formatted="false" name="pathfinder_width_param">Ширина</string>
+    <string formatted="false" name="pathfinder_height_param">Высота</string>
+    <string formatted="false" name="pathfinder_cell_size_param">Ячейка</string>
+    <string formatted="false" name="pathfinder_start_x_param">Нач. X</string>
+    <string formatted="false" name="pathfinder_start_y_param">Нач. Y</string>
+    <string formatted="false" name="pathfinder_end_x_param">Кон. X</string>
+    <string formatted="false" name="pathfinder_end_y_param">Кон. Y</string>
+    <string formatted="false" name="pathfinder_sprite_param">Спрайт</string>
+    <string formatted="false" name="pathfinder_variable_param">Переменная</string>
+    <string formatted="false" name="pathfinder_speed_param">Скорость</string>
+    <string formatted="false" name="pathfinder_color_param">Цвет (hex)</string>
+    <string formatted="false" name="pathfinder_result_var_param">Рез. перем.</string>
+    <string formatted="false" name="pathfinder_var_x_param">Перем X</string>
+    <string formatted="false" name="pathfinder_var_y_param">Перем Y</string>
+    <string formatted="false" name="pathfinder_from_sprite_param">Откуда</string>
+    <string formatted="false" name="pathfinder_to_sprite_param">Куда</string>
+    <string formatted="false" name="transition_fade_to_black">Затемнение</string>
+    <string formatted="false" name="transition_fade_from_black">Появление</string>
+    <string formatted="false" name="transition_crossfade">Кроссфейд</string>
+    <string formatted="false" name="transition_slide_left">Выезд слева</string>
+    <string formatted="false" name="transition_slide_right">Выезд справа</string>
+    <string formatted="false" name="transition_slide_up">Выезд сверху</string>
+    <string formatted="false" name="transition_slide_down">Выезд снизу</string>
+    <string formatted="false" name="transition_instant">Мгновенно</string>
+    <string formatted="false" name="transition_scene_param">Сцена</string>
+    <string formatted="false" name="category_transitions">Переходы</string>
+    <string formatted="false" name="transition">Переходы</string>
     <string name="preference_title_pcmode" formatted="false">Включить интерфейс для больших экранов (так же для планшетов)</string>
     <string name="fast2d_set_collision_filter" formatted="false">Фильтр коллизий</string>
     <string name="fast2d_is_sensor_param" formatted="false">Сенсор (1/0)</string>
@@ -1900,6 +1949,10 @@
     <string formatted="false" name="category_internet">Сеть</string>
     <string formatted="false" name="preference_description_pocketensor_bricks">Добавляет работу с тензорами и позволяет создавать ИИ модели.</string>
     <string formatted="false" name="pocketensor">PockeTensor</string>
+    <string formatted="false" name="pathfinder">Поиск пути</string>
+    <string formatted="false" name="preference_description_transition_bricks">Добавляет блоки для переходов между сценами (затемнение, выезд, кроссфейд)</string>
+    <string formatted="false" name="preference_description_pathfinder_bricks">Добавляет блоки для 2D поиска пути (A*, NavMesh, препятствия)</string>
+    <string formatted="false" name="category_pathfinder">Поиск пути</string>
     <string formatted="false" name="preference_description_fast2d_bricks">Добавляет блоки для новой системы 2D рендера (сложнее, но оптимизированее)</string>
     <string formatted="false" name="fast2d">Fast 2D</string>
     <string formatted="false" name="preference_title_enable_plot_bricks">Расширение
