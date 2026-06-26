@@ -61,7 +61,7 @@
     <string name="debug_menu_list_format">%1$s%2$s: [%3$d items]</string>
     <string name="debug_menu_more_items">      ... and %d more items</string>
     <string name="debug_menu_edit_variable">Edit Variable: %s</string>
-    <string name="debug_menu_edit_list_item">Edit Item [%d] in %s</string>
+    <string name="debug_menu_edit_list_item" formatted="false">Edit Item [%d] in %s</string>
     <string name="debug_menu_copy_full">Copy Full</string>
     <string name="debug_menu_copied">Copied to clipboard</string>
     <string name="debug_menu_save">Save</string>

@@ -3,6 +3,7 @@ package org.catrobat.catroid.content.actions
 import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction
 import org.catrobat.catroid.content.Scope
 import org.catrobat.catroid.formulaeditor.Formula
+import org.catrobat.catroid.formulaeditor.UserDataWrapper
 import org.catrobat.catroid.stage.StageActivity
 
 class CheckPathExistsAction : TemporalAction() {
@@ -23,7 +24,7 @@ class CheckPathExistsAction : TemporalAction() {
         val path = pm.findPath(sx, sy, ex, ey)
         val exists = path.found && path.points.isNotEmpty()
         val varName = resultVar?.interpretString(s) ?: return
-        val userVar = s.getUserVariable(varName)
+        val userVar = UserDataWrapper.getUserVariable(varName, s)
         if (userVar != null) {
             userVar.value = if (exists) 1.0 else 0.0
         }

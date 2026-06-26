@@ -3,6 +3,7 @@ package org.catrobat.catroid.content.actions
 import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction
 import org.catrobat.catroid.content.Scope
 import org.catrobat.catroid.formulaeditor.Formula
+import org.catrobat.catroid.formulaeditor.UserDataWrapper
 import org.catrobat.catroid.stage.StageActivity
 
 class GetNextPathPointAction : TemporalAction() {
@@ -18,12 +19,12 @@ class GetNextPathPointAction : TemporalAction() {
         val point = pm.getNextPathPoint(name) ?: return
 
         val varXName = varX?.interpretString(s) ?: return
-        val userVarX = s.getUserVariable(varXName)
+        val userVarX = UserDataWrapper.getUserVariable(varXName, s)
         if (userVarX != null) {
             userVarX.value = point.x.toDouble()
         }
         val varYName = varY?.interpretString(s) ?: return
-        val userVarY = s.getUserVariable(varYName)
+        val userVarY = UserDataWrapper.getUserVariable(varYName, s)
         if (userVarY != null) {
             userVarY.value = point.y.toDouble()
         }

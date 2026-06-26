@@ -3,6 +3,7 @@ package org.catrobat.catroid.content.actions
 import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction
 import org.catrobat.catroid.content.Scope
 import org.catrobat.catroid.formulaeditor.Formula
+import org.catrobat.catroid.formulaeditor.UserDataWrapper
 import org.catrobat.catroid.stage.StageActivity
 
 class SavePathToVarAction : TemporalAction() {
@@ -17,7 +18,7 @@ class SavePathToVarAction : TemporalAction() {
         val pm = StageActivity.activeStageActivity.get()?.stageListener?.pathfindingManager ?: return
         val f = pm.getFollower(name) ?: return
         val result = f.waypoints.joinToString(";") { "${it.x},${it.y}" }
-        val userVar = s.getUserVariable(varName)
+        val userVar = UserDataWrapper.getUserVariable(varName, s)
         if (userVar != null) {
             userVar.value = result
         }
