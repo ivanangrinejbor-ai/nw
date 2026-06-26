@@ -379,14 +379,7 @@
     </style>
 
     <style name="BrickCategory.Transition">
-        <item name="android:background">@drawable/brick_category_selector</item>
-        <item name="android:orientation">horizontal</item>
-        <item name="android:gravity">center_vertical</item>
-        <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">@dimen/brick_category_height</item>
-        <item name="android:paddingStart">@dimen/brick_category_padding_start</item>
-        <item name="android:paddingEnd">@dimen/brick_category_padding_end</item>
-        <item name="android:minHeight">@dimen/brick_category_min_height</item>
+        <item name="android:background">@drawable/brick_categories_gold</item>
     </style>
 
     <style name="BrickContainer.Fast2d" />
@@ -409,14 +402,7 @@
     </style>
 
     <style name="BrickCategory.Pathfinder">
-        <item name="android:background">@drawable/brick_category_selector</item>
-        <item name="android:orientation">horizontal</item>
-        <item name="android:gravity">center_vertical</item>
-        <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">@dimen/brick_category_height</item>
-        <item name="android:paddingStart">@dimen/brick_category_padding_start</item>
-        <item name="android:paddingEnd">@dimen/brick_category_padding_end</item>
-        <item name="android:minHeight">@dimen/brick_category_min_height</item>
+        <item name="android:background">@drawable/brick_categories_green</item>
     </style>
 
     <style name="BrickContainer.Fast2d.Small">

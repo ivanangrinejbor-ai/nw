@@ -4,7 +4,7 @@
     android:layout_height="wrap_content">
 
     <ImageView
-        android:src="@drawable/pathfinder_24px"
+        android:src="@drawable/_pathfinder_24px"
         style="@style/CategoryIconStyle"
         android:contentDescription="@string/category_pathfinder" />
 
