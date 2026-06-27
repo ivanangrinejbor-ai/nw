@@ -659,6 +659,8 @@
     <string formatted="false" name="pathfinder_sprite_param">Sprite</string>
     <string formatted="false" name="pathfinder_variable_param">Variable</string>
     <string formatted="false" name="pathfinder_speed_param">Speed</string>
+    <string formatted="false" name="pathfinder_move_to_object">Move to</string>
+    <string formatted="false" name="pathfinder_stop_moving">Stop</string>
     <string formatted="false" name="pathfinder_color_param">Color (hex)</string>
     <string formatted="false" name="pathfinder_result_var_param">Result Var</string>
     <string formatted="false" name="pathfinder_var_x_param">Var X</string>
