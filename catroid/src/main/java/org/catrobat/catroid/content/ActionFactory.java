@@ -4879,4 +4879,20 @@ public class ActionFactory extends Actions {
         action.setSceneName(sceneName);
         return action;
     }
+
+    public Action createMoveToObjectAction(Sprite sprite, SequenceAction sequence, Formula targetObject, Formula speed) {
+        MoveToObjectAction action = action(MoveToObjectAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setTargetObject(targetObject);
+        action.setSpeed(speed);
+        return action;
+    }
+
+    public Action createStopMovingAction(Sprite sprite, SequenceAction sequence) {
+        StopMovingAction action = action(StopMovingAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        return action;
+    }
 }

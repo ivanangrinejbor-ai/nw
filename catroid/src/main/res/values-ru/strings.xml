@@ -660,6 +660,8 @@
     <string formatted="false" name="pathfinder_sprite_param">Спрайт</string>
     <string formatted="false" name="pathfinder_variable_param">Переменная</string>
     <string formatted="false" name="pathfinder_speed_param">Скорость</string>
+    <string formatted="false" name="pathfinder_move_to_object">Идти к</string>
+    <string formatted="false" name="pathfinder_stop_moving">Стоп</string>
     <string formatted="false" name="pathfinder_color_param">Цвет (hex)</string>
     <string formatted="false" name="pathfinder_result_var_param">Рез. перем.</string>
     <string formatted="false" name="pathfinder_var_x_param">Перем X</string>

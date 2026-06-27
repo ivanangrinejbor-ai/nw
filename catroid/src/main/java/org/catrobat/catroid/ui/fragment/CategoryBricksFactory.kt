@@ -175,28 +175,8 @@ import org.catrobat.catroid.content.bricks.Fast2DSetRotationBrick
 import org.catrobat.catroid.content.bricks.Fast2DSetScaleBrick
 import org.catrobat.catroid.content.bricks.Fast2DSetTextureBrick
 import org.catrobat.catroid.content.bricks.Fast2DSetVelocityBrick
-import org.catrobat.catroid.content.bricks.CreateNavmeshBrick
-import org.catrobat.catroid.content.bricks.DeleteNavmeshBrick
-import org.catrobat.catroid.content.bricks.RebuildNavmeshBrick
-import org.catrobat.catroid.content.bricks.FindPathToXYBrick
-import org.catrobat.catroid.content.bricks.FindPathToObjectBrick
-import org.catrobat.catroid.content.bricks.SavePathToVarBrick
-import org.catrobat.catroid.content.bricks.SavePathLengthToVarBrick
-import org.catrobat.catroid.content.bricks.CheckPathExistsBrick
-import org.catrobat.catroid.content.bricks.FollowPathBrick
-import org.catrobat.catroid.content.bricks.FollowPathWithSpeedBrick
-import org.catrobat.catroid.content.bricks.StopFollowingBrick
-import org.catrobat.catroid.content.bricks.PausePathBrick
-import org.catrobat.catroid.content.bricks.ResumePathBrick
-import org.catrobat.catroid.content.bricks.AddObstacleBrick
-import org.catrobat.catroid.content.bricks.RemoveObstacleBrick
-import org.catrobat.catroid.content.bricks.UpdateObstaclesBrick
-import org.catrobat.catroid.content.bricks.AvoidObjectsByColorBrick
-import org.catrobat.catroid.content.bricks.CreateObstaclesFromBackgroundBrick
-import org.catrobat.catroid.content.bricks.GetPathPointCountBrick
-import org.catrobat.catroid.content.bricks.GetCurrentPathPointBrick
-import org.catrobat.catroid.content.bricks.GetNextPathPointBrick
-import org.catrobat.catroid.content.bricks.CheckEndOfPathBrick
+import org.catrobat.catroid.content.bricks.MoveToObjectBrick
+import org.catrobat.catroid.content.bricks.StopMovingBrick
 import org.catrobat.catroid.content.bricks.FadeToBlackBrick
 import org.catrobat.catroid.content.bricks.FadeFromBlackBrick
 import org.catrobat.catroid.content.bricks.CrossfadeBrick
@@ -2142,28 +2122,8 @@ void main() {
     private fun setupPathfinderCategoryList(context: Context): List<Brick> {
         val pathfinderBrickList: MutableList<Brick> = ArrayList()
 
-        pathfinderBrickList.add(CreateNavmeshBrick(10, 10, 32))
-        pathfinderBrickList.add(DeleteNavmeshBrick())
-        pathfinderBrickList.add(RebuildNavmeshBrick())
-        pathfinderBrickList.add(FindPathToXYBrick("sprite", Formula(0.0), Formula(0.0), Formula(100.0), Formula(100.0)))
-        pathfinderBrickList.add(FindPathToObjectBrick("sprite", "target"))
-        pathfinderBrickList.add(SavePathToVarBrick("sprite", "path"))
-        pathfinderBrickList.add(SavePathLengthToVarBrick("sprite", "len"))
-        pathfinderBrickList.add(CheckPathExistsBrick(Formula(0.0), Formula(0.0), Formula(100.0), Formula(100.0), "result"))
-        pathfinderBrickList.add(FollowPathBrick("sprite"))
-        pathfinderBrickList.add(FollowPathWithSpeedBrick("sprite", Formula(200.0)))
-        pathfinderBrickList.add(StopFollowingBrick("sprite"))
-        pathfinderBrickList.add(PausePathBrick("sprite"))
-        pathfinderBrickList.add(ResumePathBrick("sprite"))
-        pathfinderBrickList.add(AddObstacleBrick("sprite"))
-        pathfinderBrickList.add(RemoveObstacleBrick("sprite"))
-        pathfinderBrickList.add(UpdateObstaclesBrick())
-        pathfinderBrickList.add(AvoidObjectsByColorBrick("#FF0000"))
-        pathfinderBrickList.add(CreateObstaclesFromBackgroundBrick())
-        pathfinderBrickList.add(GetPathPointCountBrick("sprite", "count"))
-        pathfinderBrickList.add(GetCurrentPathPointBrick("sprite", "x", "y"))
-        pathfinderBrickList.add(GetNextPathPointBrick("sprite", "x", "y"))
-        pathfinderBrickList.add(CheckEndOfPathBrick("sprite", "done"))
+        pathfinderBrickList.add(MoveToObjectBrick())
+        pathfinderBrickList.add(StopMovingBrick())
 
         return pathfinderBrickList
     }
