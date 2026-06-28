@@ -30,16 +30,16 @@ class StartPlotAction : TemporalAction() {
     private var sprite: Sprite? = null
 
     override fun update(delta: Float) {
-        if (sprite!!.plot.isPlotting())
-            return
+        val s = sprite ?: return
+        if (s.plot.isPlotting()) return
 
-        sprite!!.plot.startNewPlotLine(
+        s.plot.startNewPlotLine(
             PointF(
-                sprite!!.look.xInUserInterfaceDimensionUnit,
-                sprite!!.look.yInUserInterfaceDimensionUnit
+                s.look.xInUserInterfaceDimensionUnit,
+                s.look.yInUserInterfaceDimensionUnit
             )
         )
-        sprite!!.plot.resume()
+        s.plot.resume()
     }
 
     fun setSprite(sprite: Sprite?) {

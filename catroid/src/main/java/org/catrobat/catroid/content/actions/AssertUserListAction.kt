@@ -33,16 +33,16 @@ class AssertUserListAction : AssertAction() {
         assertTitle = "\nAssertUserListError\n"
         message = ""
 
-        if (actualUserList == null) {
+        val actual = actualUserList ?: run {
             failWith("Actual list is null")
             return false
         }
-        if (expectedUserList == null) {
+        val expected = expectedUserList ?: run {
             failWith("Expected list is null")
             return false
         }
 
-        validateLists()
+        validateLists(actual, expected)
 
         return if (message.isEmpty()) {
             true
@@ -52,9 +52,9 @@ class AssertUserListAction : AssertAction() {
         }
     }
 
-    private fun validateLists() {
-        val actualList = actualUserList!!.value
-        val expectedList = expectedUserList!!.value
+    private fun validateLists(actual: UserList, expected: UserList) {
+        val actualList = actual.value
+        val expectedList = expected.value
         if (actualList.size != expectedList.size) {
             message = "The number of list elements are not equal\n" +
                 "expected: ${expectedList.size} element/s\n" +

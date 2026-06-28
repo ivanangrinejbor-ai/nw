@@ -1,0 +1,1289 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<program>
+  <header>
+    <applicationBuildName></applicationBuildName>
+    <applicationBuildNumber>0</applicationBuildNumber>
+    <applicationBuildType>release</applicationBuildType>
+    <applicationName>NewCatroid</applicationName>
+    <applicationVersion>2.1.2BETA</applicationVersion>
+    <catrobatLanguageVersion>1.17</catrobatLanguageVersion>
+    <customResolution>false</customResolution>
+    <dateTimeUpload></dateTimeUpload>
+    <description></description>
+    <deviceName>Infinix X6716</deviceName>
+    <gitRemoteUrl></gitRemoteUrl>
+    <isCastProject>false</isCastProject>
+    <landscapeMode>false</landscapeMode>
+    <listeningLanguageTag></listeningLanguageTag>
+    <mediaLicense></mediaLicense>
+    <notesAndCredits></notesAndCredits>
+    <physicsHeightArea>2.0</physicsHeightArea>
+    <physicsWidthArea>3.0</physicsWidthArea>
+    <platform>Android</platform>
+    <platformVersion>33</platformVersion>
+    <programLicense></programLicense>
+    <programName>XuesOS</programName>
+    <remixOf></remixOf>
+    <scenesEnabled>true</scenesEnabled>
+    <screenHeight>2172</screenHeight>
+    <screenMode>STRETCH</screenMode>
+    <screenWidth>1080</screenWidth>
+    <tags></tags>
+    <url></url>
+    <userHandle></userHandle>
+  </header>
+  <settings/>
+  <scenes>
+    <scene sceneId="5cad7b7a-45ed-4511-b1e7-84191167c81c">
+      <name>Сцена</name>
+      <objectList>
+        <object type="Sprite" spriteId="821f242d-c4b9-47c9-8a85-04907c6feee9" name="Фон">
+          <lookList>
+            <look fileName="1000000352.png" lookId="fc6b6e86-fc4d-48b8-91e5-fc30cc587251" name="1000000352">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000000353.png" lookId="adf81e78-b081-4fb8-aff3-969d4a29fcdd" name="1000000353">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="SetBrightnessBrick">
+                  <brickId>5cb66a27-b171-4b1b-9760-6274d3ef49bd</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="BRIGHTNESS">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>100</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="WaitBrick">
+                  <brickId>841595df-8d29-41a4-9841-1fb8f1aa0127</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="TIME_TO_WAIT_IN_SECONDS">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>0.5</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="RepeatBrick">
+                  <brickId>6c2d54bb-0ac0-4d5e-b868-6b4dd6cb5296</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="TIMES_TO_REPEAT">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>100</value>
+                    </formula>
+                  </formulaList>
+                  <loopBricks>
+                    <brick type="ChangeBrightnessByNBrick">
+                      <brickId>7e7dbe6a-9fa5-48ab-901f-f21fc1e55375</brickId>
+                      <commentedOut>false</commentedOut>
+                      <formulaList>
+                        <formula category="BRIGHTNESS_CHANGE">
+                          <additionalChildren/>
+                          <type>NUMBER</type>
+                          <value>1</value>
+                        </formula>
+                      </formulaList>
+                    </brick>
+                  </loopBricks>
+                </brick>
+                <brick type="WaitBrick">
+                  <brickId>6f175e91-b240-4767-88f0-d665c65ffda7</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="TIME_TO_WAIT_IN_SECONDS">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>0.2</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="BroadcastBrick">
+                  <brickId>62cc4ac0-b84b-4644-b366-e54a924960a9</brickId>
+                  <commentedOut>false</commentedOut>
+                  <broadcastMessage>новое сообщение</broadcastMessage>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>26b9b9d2-5de1-4b38-b7e8-b30634f7bac1</scriptId>
+            </script>
+            <script type="BroadcastScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="SetBrightnessBrick">
+                  <brickId>fd9d081b-65a0-4200-9114-11575265450a</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="BRIGHTNESS">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>100</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="ExitStageBrick">
+                  <brickId>8775a13c-7b0b-49ce-870a-ce53c799dc0b</brickId>
+                  <commentedOut>false</commentedOut>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>799b971f-6966-4775-a6b1-c9b3597ba18e</scriptId>
+              <receivedMessage>ke</receivedMessage>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+        <object type="Sprite" spriteId="986f14f1-4780-4daf-8f29-88880847042a" name="1000000358">
+          <lookList>
+            <look fileName="1000000358.png" lookId="b8848c16-2eac-444a-a070-af644f00e9e0" name="1000000358">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="PlaceAtBrick">
+                  <brickId>2656dbae-e34b-40ff-ad9b-7aca37b75414</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="X_POSITION">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>0</value>
+                    </formula>
+                    <formula category="Y_POSITION">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>0</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="PointInDirectionBrick">
+                  <brickId>44a48f32-af25-4b74-aae4-21880172a419</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="DEGREES">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>90.0</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="SetSizeToBrick">
+                  <brickId>32c3b32b-d30a-4bdf-bddf-f08b84ffe4d4</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="SIZE">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>100.0</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="HideBrick">
+                  <brickId>f5afe4c2-e2a3-47e6-975e-db985c68bf1e</brickId>
+                  <commentedOut>false</commentedOut>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>95ace532-3197-415d-8b95-3e3a0185c548</scriptId>
+            </script>
+            <script type="BroadcastScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="CreateWebFileBrick">
+                  <brickId>9cabcd33-bac4-41e7-ba83-3e03a98f5fe3</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="POSX">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>50</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                    <formula category="WIDTH">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>1200</value>
+                    </formula>
+                    <formula category="NAME">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>myWebView</value>
+                    </formula>
+                    <formula category="HEIGHT">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>900</value>
+                    </formula>
+                    <formula category="POSY">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>0</value>
+                    </formula>
+                    <formula category="HTML">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;ru&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;title&gt;XuesOS&lt;/title&gt;
+    &lt;style&gt;
+        body {
+            margin: 0;
+            padding: 0;
+            background: transparent;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .main-content {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+        }
+        
+        .main-text {
+            font-size: 80px;
+            font-weight: bold;
+        }
+        
+        .xues {
+            color: white;
+            opacity: 0;
+            animation: appear 1s forwards 0.5s;
+        }
+        
+        .os-container {
+            display: inline-block;
+            position: relative;
+            margin-left: -10px;
+        }
+        
+        .os {
+            color: #2E1A47;
+            position: relative;
+            z-index: 2;
+            opacity: 0;
+            animation: appear 1s forwards 1s;
+        }
+        
+        .glow {
+            position: absolute;
+            top: -25px;
+            left: -25px;
+            right: -25px;
+            bottom: -25px;
+            background: radial-gradient(circle, #1A0B2E 0%, transparent 70%);
+            border-radius: 50%;
+            opacity: 0;
+            animation: glow 1.5s infinite alternate 1.5s;
+        }
+        
+        .glow-strong {
+            position: absolute;
+            top: -15px;
+            left: -15px;
+            right: -15px;
+            bottom: -15px;
+            background: radial-gradient(circle, #1A0B2E 0%, transparent 60%);
+            border-radius: 50%;
+            opacity: 0;
+            animation: glowStrong 1.5s infinite alternate 1.5s;
+            filter: blur(5px);
+        }
+        
+        .footer {
+            position: absolute;
+            bottom: 15px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .powered-by {
+            font-size: 20px;
+            opacity: 0;
+            animation: appear 1s forwards 2s;
+            display: inline-flex;
+            align-items: center;
+        }
+        
+        .powered {
+            color: white;
+        }
+        
+        .by {
+            color: white;
+        }
+        
+        .new {
+            color: #2E1A47;
+            font-weight: bold;
+            margin-left: 5px;
+        }
+        
+        .catroid {
+            color: #00FF00;
+            font-weight: bold;
+            text-shadow: 0 0 5px #00FF00;
+        }
+        
+        @keyframes appear {
+            to {
+                opacity: 1;
+            }
+        }
+        
+        @keyframes glow {
+            from {
+                opacity: 0.7;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1.2);
+            }
+        }
+        
+        @keyframes glowStrong {
+            from {
+                opacity: 0.5;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 0.9;
+                transform: scale(1.3);
+            }
+        }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;div class=&quot;main-content&quot;&gt;
+        &lt;div class=&quot;main-text&quot;&gt;
+            &lt;span class=&quot;xues&quot;&gt;Xues&lt;/span&gt;
+            &lt;span class=&quot;os-container&quot;&gt;
+                &lt;span class=&quot;os&quot;&gt;OS&lt;/span&gt;
+                &lt;div class=&quot;glow&quot;&gt;&lt;/div&gt;
+                &lt;div class=&quot;glow-strong&quot;&gt;&lt;/div&gt;
+            &lt;/span&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+    
+    &lt;div class=&quot;footer&quot;&gt;
+        &lt;div class=&quot;powered-by&quot;&gt;
+            &lt;span class=&quot;powered&quot;&gt;Powered&lt;/span&gt;
+            &lt;span class=&quot;by&quot;&gt;&amp;nbsp;by&amp;nbsp;&lt;/span&gt;
+            &lt;span class=&quot;new&quot;&gt;New&lt;/span&gt;
+            &lt;span class=&quot;catroid&quot;&gt;catroid&lt;/span&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="WaitBrick">
+                  <brickId>d9e0cad8-d96c-41a0-bbf0-8e860cf7b154</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="TIME_TO_WAIT_IN_SECONDS">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>1.5</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="VibrationBrick">
+                  <brickId>6e47dcac-e6ba-44e2-8656-6b4fcdba41fb</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="VIBRATE_DURATION_IN_SECONDS">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>0.1</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="WaitBrick">
+                  <brickId>63f8994b-fdcd-4cf2-a837-eb326909b882</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="TIME_TO_WAIT_IN_SECONDS">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>1</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="CreateWebFileBrick">
+                  <brickId>8fb9a6c7-8662-425d-b7a5-9699469a32b5</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="POSX">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>50</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                    <formula category="WIDTH">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>1200</value>
+                    </formula>
+                    <formula category="NAME">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>ло</value>
+                    </formula>
+                    <formula category="HEIGHT">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>1000</value>
+                    </formula>
+                    <formula category="POSY">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>1450</value>
+                    </formula>
+                    <formula category="HTML">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;ru&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no&quot;&gt;
+    &lt;title&gt;Загрузка&lt;/title&gt;
+    &lt;style&gt;
+        html, body {
+            margin: 0;
+            padding: 0;
+            background: transparent;
+            overflow: hidden;
+            touch-action: none;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+            height: 100%;
+            width: 100%;
+            position: fixed;
+        }
+        
+        .container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            width: 100vw;
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+        
+        .logo-container {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin-bottom: 40px;
+        }
+        
+        .logo-circle {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(
+                from 0deg,
+                #00FF00,
+                #2E1A47,
+                #1A0B2E,
+                #00FF00
+            );
+            animation: rotate 2s linear infinite;
+            filter: blur(10px);
+            opacity: 0.7;
+        }
+        
+        .logo-inner {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            top: 20px;
+            left: 20px;
+            background: #1A0B2E;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 36px;
+            font-weight: bold;
+            z-index: 2;
+            box-shadow: 0 0 30px rgba(26, 11, 46, 0.8);
+        }
+        
+        .particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        
+        .particle {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: #00FF00;
+            border-radius: 50%;
+            animation: float 3s infinite ease-in-out;
+        }
+        
+        .particle:nth-child(1) {
+            top: 20%;
+            left: 20%;
+            animation-delay: 0s;
+        }
+        
+        .particle:nth-child(2) {
+            top: 60%;
+            left: 80%;
+            animation-delay: 0.5s;
+            background: #2E1A47;
+        }
+        
+        .particle:nth-child(3) {
+            top: 80%;
+            left: 40%;
+            animation-delay: 1s;
+            background: #1A0B2E;
+        }
+        
+        .particle:nth-child(4) {
+            top: 30%;
+            left: 70%;
+            animation-delay: 1.5s;
+            background: #00FF00;
+        }
+        
+        .loading-text {
+            color: white;
+            font-size: 24px;
+            font-family: Arial, sans-serif;
+            margin-bottom: 20px;
+            letter-spacing: 3px;
+            position: relative;
+        }
+        
+        .loading-text::after {
+            content: &apos;&apos;;
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #00FF00, transparent);
+            animation: slide 2s infinite;
+        }
+        
+        .progress-bar {
+            width: 300px;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .progress-fill {
+            position: absolute;
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #1A0B2E, #2E1A47, #00FF00);
+            animation: loading 4s infinite ease-in-out;
+            border-radius: 3px;
+        }
+        
+        @keyframes rotate {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+        
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0) scale(1);
+                opacity: 0.5;
+            }
+            50% {
+                transform: translateY(-20px) scale(1.2);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slide {
+            0% {
+                transform: translateX(-100%);
+            }
+            100% {
+                transform: translateX(100%);
+            }
+        }
+        
+        @keyframes loading {
+            0% {
+                width: 0%;
+                left: 0;
+            }
+            50% {
+                width: 100%;
+                left: 0;
+            }
+            100% {
+                width: 0%;
+                left: 100%;
+            }
+        }
+        
+        /* Блокировка свайпов и скроллов */
+        body {
+            overscroll-behavior: none;
+            -webkit-overflow-scrolling: none;
+        }
+        
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;div class=&quot;container&quot;&gt;
+        &lt;div class=&quot;logo-container&quot;&gt;
+            &lt;div class=&quot;logo-circle&quot;&gt;&lt;/div&gt;
+            &lt;div class=&quot;particles&quot;&gt;
+                &lt;div class=&quot;particle&quot;&gt;&lt;/div&gt;
+                &lt;div class=&quot;particle&quot;&gt;&lt;/div&gt;
+                &lt;div class=&quot;particle&quot;&gt;&lt;/div&gt;
+                &lt;div class=&quot;particle&quot;&gt;&lt;/div&gt;
+            &lt;/div&gt;
+            &lt;div class=&quot;logo-inner&quot;&gt;X&lt;/div&gt;
+        &lt;/div&gt;
+        
+        &lt;div class=&quot;loading-text&quot;&gt;ЗАГРУЗКА&lt;/div&gt;
+        
+        &lt;div class=&quot;progress-bar&quot;&gt;
+            &lt;div class=&quot;progress-fill&quot;&gt;&lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;script&gt;
+        // Блокировка всех жестов и скроллов
+        document.addEventListener(&apos;touchmove&apos;, function(e) {
+            e.preventDefault();
+        }, { passive: false });
+        
+        document.addEventListener(&apos;wheel&apos;, function(e) {
+            e.preventDefault();
+        }, { passive: false });
+        
+        document.addEventListener(&apos;scroll&apos;, function(e) {
+            e.preventDefault();
+            window.scrollTo(0, 0);
+        });
+        
+        // Блокировка контекстного меню
+        document.addEventListener(&apos;contextmenu&apos;, function(e) {
+            e.preventDefault();
+            return false;
+        });
+        
+        // Фиксируем скролл при загрузке
+        window.scrollTo(0, 0);
+        document.body.style.overflow = &apos;hidden&apos;;
+        document.documentElement.style.overflow = &apos;hidden&apos;;
+    &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="WaitBrick">
+                  <brickId>95c2e264-5590-40b5-8444-40d029de1ea4</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="TIME_TO_WAIT_IN_SECONDS">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>5</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="CreateWebFileBrick">
+                  <brickId>dab8bb45-0158-42af-ab2f-f4a9dfe3495f</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="POSX">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>9999999999</value>
+                    </formula>
+                    <formula category="WIDTH">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>1200</value>
+                    </formula>
+                    <formula category="NAME">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>myWebView</value>
+                    </formula>
+                    <formula category="HEIGHT">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>900</value>
+                    </formula>
+                    <formula category="POSY">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>999999999</value>
+                    </formula>
+                    <formula category="HTML">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;ru&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;title&gt;XuesOS&lt;/title&gt;
+    &lt;style&gt;
+        body {
+            margin: 0;
+            padding: 0;
+            background: transparent;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .main-content {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+        }
+        
+        .main-text {
+            font-size: 80px;
+            font-weight: bold;
+        }
+        
+        .xues {
+            color: white;
+            opacity: 0;
+            animation: appear 1s forwards 0.5s;
+        }
+        
+        .os-container {
+            display: inline-block;
+            position: relative;
+            margin-left: -10px;
+        }
+        
+        .os {
+            color: #2E1A47;
+            position: relative;
+            z-index: 2;
+            opacity: 0;
+            animation: appear 1s forwards 1s;
+        }
+        
+        .glow {
+            position: absolute;
+            top: -25px;
+            left: -25px;
+            right: -25px;
+            bottom: -25px;
+            background: radial-gradient(circle, #1A0B2E 0%, transparent 70%);
+            border-radius: 50%;
+            opacity: 0;
+            animation: glow 1.5s infinite alternate 1.5s;
+        }
+        
+        .glow-strong {
+            position: absolute;
+            top: -15px;
+            left: -15px;
+            right: -15px;
+            bottom: -15px;
+            background: radial-gradient(circle, #1A0B2E 0%, transparent 60%);
+            border-radius: 50%;
+            opacity: 0;
+            animation: glowStrong 1.5s infinite alternate 1.5s;
+            filter: blur(5px);
+        }
+        
+        .footer {
+            position: absolute;
+            bottom: 15px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .powered-by {
+            font-size: 20px;
+            opacity: 0;
+            animation: appear 1s forwards 2s;
+            display: inline-flex;
+            align-items: center;
+        }
+        
+        .powered {
+            color: white;
+        }
+        
+        .by {
+            color: white;
+        }
+        
+        .new {
+            color: #2E1A47;
+            font-weight: bold;
+            margin-left: 5px;
+        }
+        
+        .catroid {
+            color: #00FF00;
+            font-weight: bold;
+            text-shadow: 0 0 5px #00FF00;
+        }
+        
+        @keyframes appear {
+            to {
+                opacity: 1;
+            }
+        }
+        
+        @keyframes glow {
+            from {
+                opacity: 0.7;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1.2);
+            }
+        }
+        
+        @keyframes glowStrong {
+            from {
+                opacity: 0.5;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 0.9;
+                transform: scale(1.3);
+            }
+        }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;div class=&quot;main-content&quot;&gt;
+        &lt;div class=&quot;main-text&quot;&gt;
+            &lt;span class=&quot;xues&quot;&gt;Xues&lt;/span&gt;
+            &lt;span class=&quot;os-container&quot;&gt;
+                &lt;span class=&quot;os&quot;&gt;OS&lt;/span&gt;
+                &lt;div class=&quot;glow&quot;&gt;&lt;/div&gt;
+                &lt;div class=&quot;glow-strong&quot;&gt;&lt;/div&gt;
+            &lt;/span&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+    
+    &lt;div class=&quot;footer&quot;&gt;
+        &lt;div class=&quot;powered-by&quot;&gt;
+            &lt;span class=&quot;powered&quot;&gt;Powered&lt;/span&gt;
+            &lt;span class=&quot;by&quot;&gt;&amp;nbsp;by&amp;nbsp;&lt;/span&gt;
+            &lt;span class=&quot;new&quot;&gt;New&lt;/span&gt;
+            &lt;span class=&quot;catroid&quot;&gt;catroid&lt;/span&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="CreateWebFileBrick">
+                  <brickId>3941b493-8ae9-4a40-8407-b192b5437b1d</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="POSX">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>9999999</value>
+                    </formula>
+                    <formula category="WIDTH">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>0</value>
+                    </formula>
+                    <formula category="NAME">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>ло</value>
+                    </formula>
+                    <formula category="HEIGHT">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>0</value>
+                    </formula>
+                    <formula category="POSY">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>99999999</value>
+                    </formula>
+                    <formula category="HTML">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;ru&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no&quot;&gt;
+    &lt;title&gt;Загрузка&lt;/title&gt;
+    &lt;style&gt;
+        html, body {
+            margin: 0;
+            padding: 0;
+            background: transparent;
+            overflow: hidden;
+            touch-action: none;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+            height: 100%;
+            width: 100%;
+            position: fixed;
+        }
+        
+        .container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            width: 100vw;
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+        
+        .logo-container {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin-bottom: 40px;
+        }
+        
+        .logo-circle {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(
+                from 0deg,
+                #00FF00,
+                #2E1A47,
+                #1A0B2E,
+                #00FF00
+            );
+            animation: rotate 2s linear infinite;
+            filter: blur(10px);
+            opacity: 0.7;
+        }
+        
+        .logo-inner {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            top: 20px;
+            left: 20px;
+            background: #1A0B2E;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 36px;
+            font-weight: bold;
+            z-index: 2;
+            box-shadow: 0 0 30px rgba(26, 11, 46, 0.8);
+        }
+        
+        .particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        
+        .particle {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: #00FF00;
+            border-radius: 50%;
+            animation: float 3s infinite ease-in-out;
+        }
+        
+        .particle:nth-child(1) {
+            top: 20%;
+            left: 20%;
+            animation-delay: 0s;
+        }
+        
+        .particle:nth-child(2) {
+            top: 60%;
+            left: 80%;
+            animation-delay: 0.5s;
+            background: #2E1A47;
+        }
+        
+        .particle:nth-child(3) {
+            top: 80%;
+            left: 40%;
+            animation-delay: 1s;
+            background: #1A0B2E;
+        }
+        
+        .particle:nth-child(4) {
+            top: 30%;
+            left: 70%;
+            animation-delay: 1.5s;
+            background: #00FF00;
+        }
+        
+        .loading-text {
+            color: white;
+            font-size: 24px;
+            font-family: Arial, sans-serif;
+            margin-bottom: 20px;
+            letter-spacing: 3px;
+            position: relative;
+        }
+        
+        .loading-text::after {
+            content: &apos;&apos;;
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #00FF00, transparent);
+            animation: slide 2s infinite;
+        }
+        
+        .progress-bar {
+            width: 300px;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .progress-fill {
+            position: absolute;
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #1A0B2E, #2E1A47, #00FF00);
+            animation: loading 4s infinite ease-in-out;
+            border-radius: 3px;
+        }
+        
+        @keyframes rotate {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+        
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0) scale(1);
+                opacity: 0.5;
+            }
+            50% {
+                transform: translateY(-20px) scale(1.2);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slide {
+            0% {
+                transform: translateX(-100%);
+            }
+            100% {
+                transform: translateX(100%);
+            }
+        }
+        
+        @keyframes loading {
+            0% {
+                width: 0%;
+                left: 0;
+            }
+            50% {
+                width: 100%;
+                left: 0;
+            }
+            100% {
+                width: 0%;
+                left: 100%;
+            }
+        }
+        
+        /* Блокировка свайпов и скроллов */
+        body {
+            overscroll-behavior: none;
+            -webkit-overflow-scrolling: none;
+        }
+        
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;div class=&quot;container&quot;&gt;
+        &lt;div class=&quot;logo-container&quot;&gt;
+            &lt;div class=&quot;logo-circle&quot;&gt;&lt;/div&gt;
+            &lt;div class=&quot;particles&quot;&gt;
+                &lt;div class=&quot;particle&quot;&gt;&lt;/div&gt;
+                &lt;div class=&quot;particle&quot;&gt;&lt;/div&gt;
+                &lt;div class=&quot;particle&quot;&gt;&lt;/div&gt;
+                &lt;div class=&quot;particle&quot;&gt;&lt;/div&gt;
+            &lt;/div&gt;
+            &lt;div class=&quot;logo-inner&quot;&gt;X&lt;/div&gt;
+        &lt;/div&gt;
+        
+        &lt;div class=&quot;loading-text&quot;&gt;ЗАГРУЗКА&lt;/div&gt;
+        
+        &lt;div class=&quot;progress-bar&quot;&gt;
+            &lt;div class=&quot;progress-fill&quot;&gt;&lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;script&gt;
+        // Блокировка всех жестов и скроллов
+        document.addEventListener(&apos;touchmove&apos;, function(e) {
+            e.preventDefault();
+        }, { passive: false });
+        
+        document.addEventListener(&apos;wheel&apos;, function(e) {
+            e.preventDefault();
+        }, { passive: false });
+        
+        document.addEventListener(&apos;scroll&apos;, function(e) {
+            e.preventDefault();
+            window.scrollTo(0, 0);
+        });
+        
+        // Блокировка контекстного меню
+        document.addEventListener(&apos;contextmenu&apos;, function(e) {
+            e.preventDefault();
+            return false;
+        });
+        
+        // Фиксируем скролл при загрузке
+        window.scrollTo(0, 0);
+        document.body.style.overflow = &apos;hidden&apos;;
+        document.documentElement.style.overflow = &apos;hidden&apos;;
+    &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="BroadcastBrick">
+                  <brickId>4c385a6d-ad85-4431-9ff8-89198438b041</brickId>
+                  <commentedOut>false</commentedOut>
+                  <broadcastMessage>ke</broadcastMessage>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>9df358a1-82cf-410e-8531-efbf39e3cc18</scriptId>
+              <receivedMessage>новое сообщение</receivedMessage>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+      </objectList>
+    </scene>
+    <scene sceneId="bb1de5e5-53f0-4e47-b2a7-029f230407d2">
+      <name>OC</name>
+      <objectList>
+        <object type="Sprite" spriteId="fb638aee-5b13-42ac-af4a-16098196f383" name="Фон">
+          <lookList>
+            <look fileName="1000000353.png" lookId="1650cba0-1003-4f76-b46f-3977b88e3b96" name="1000000353">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList/>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+      </objectList>
+    </scene>
+  </scenes>
+  <programVariableList/>
+  <programListOfLists/>
+  <programMultiplayerVariableList/>
+</program>

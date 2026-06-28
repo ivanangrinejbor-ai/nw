@@ -34,6 +34,7 @@ import org.catrobat.catroid.utils.notifications.StatusBarNotificationManager
 import org.catrobat.catroid.R
 import org.catrobat.catroid.common.Constants
 import org.catrobat.catroid.io.StorageOperations
+import org.catrobat.catroid.io.ProjectCrypto
 
 import java.io.File
 import java.io.IOException
@@ -43,7 +44,8 @@ class ProjectExportTask(
     private val projectDir: File,
     private val projectDestination: Uri,
     private val notificationData: NotificationData,
-    context: Context
+    context: Context,
+    private val password: String? = null
 ) : AsyncTask<Void?, Void?, Void?>() {
 
     private val contextWeakReference: WeakReference<Context> = WeakReference(context)
@@ -61,6 +63,14 @@ class ProjectExportTask(
         }
         try {
             ZipArchiver().zip(cacheFile, projectDir.listFiles())
+
+            if (password != null && password.isNotEmpty()) {
+                val encryptedFile = File(Constants.CACHE_DIRECTORY, "$projectFileName.enc")
+                ProjectCrypto.encrypt(cacheFile, encryptedFile, password)
+                cacheFile.delete()
+                encryptedFile.renameTo(cacheFile)
+            }
+
             val contentResolver = context.contentResolver
             StorageOperations.copyFileContentToUri(contentResolver, projectDestination, cacheFile)
             updateNotification(context)

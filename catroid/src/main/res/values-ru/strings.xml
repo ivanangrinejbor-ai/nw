@@ -588,6 +588,60 @@
     <string name="formula_voxel_get_id_param" formatted="false">(\'worldId\', x, y, z)</string>
     <string name="formula_voxel_get_data" formatted="false">Voxel_получить_данные</string>
     <string name="formula_voxel_get_data_param" formatted="false">(\'worldId\', x, y, z)</string>
+    <string name="formula_file_exists" formatted="false">Файл_существует</string>
+    <string name="formula_file_exists_param" formatted="false">(\'путь\')</string>
+    <string name="formula_device_name" formatted="false">Имя_устройства</string>
+    <string name="formula_device_manufacturer" formatted="false">Производитель</string>
+    <string name="formula_android_version" formatted="false">Версия_Android</string>
+    <string name="formula_api_level" formatted="false">API_уровень</string>
+    <string name="formula_system_language" formatted="false">Язык_системы</string>
+    <string name="formula_system_theme" formatted="false">Тема_системы</string>
+    <string name="formula_cpu_name" formatted="false">Назв_процессора</string>
+    <string name="formula_cpu_architecture" formatted="false">Архитектура_CPU</string>
+    <string name="formula_cpu_cores" formatted="false">Ядра_CPU</string>
+    <string name="formula_cpu_frequency" formatted="false">Частота_CPU</string>
+    <string name="formula_total_ram" formatted="false">ОЗУ_всего</string>
+    <string name="formula_free_ram" formatted="false">ОЗУ_свободно</string>
+    <string name="formula_total_storage" formatted="false">Память_всего</string>
+    <string name="formula_free_storage" formatted="false">Память_свободно</string>
+    <string name="formula_battery_percent" formatted="false">Батарея_процент</string>
+    <string name="formula_battery_charging" formatted="false">Батарея_заряжается</string>
+    <string name="formula_battery_temp" formatted="false">Батарея_темп</string>
+    <string name="formula_battery_voltage" formatted="false">Батарея_вольтаж</string>
+    <string name="formula_battery_state" formatted="false">Батарея_сост</string>
+    <string name="formula_internet_connected" formatted="false">Интернет_есть</string>
+    <string name="formula_internet_type" formatted="false">Интернет_тип</string>
+    <string name="formula_internet_speed" formatted="false">Интернет_скорость</string>
+    <string name="formula_local_ip" formatted="false">Локальный_IP</string>
+    <string name="formula_screen_width" formatted="false">Экран_ширина</string>
+    <string name="formula_screen_height" formatted="false">Экран_высота</string>
+    <string name="formula_screen_dpi" formatted="false">Экран_DPI</string>
+    <string name="formula_screen_refresh" formatted="false">Экран_Гц</string>
+    <string name="formula_screen_orientation" formatted="false">Экран_ориент</string>
+    <string name="formula_sprite_exists" formatted="false">Спрайт_существует</string>
+    <string name="formula_sprite_exists_param" formatted="false">(\'имя\')</string>
+    <string name="formula_sprite_x" formatted="false">Спрайт_X</string>
+    <string name="formula_sprite_y" formatted="false">Спрайт_Y</string>
+    <string name="formula_sprite_size" formatted="false">Спрайт_размер</string>
+    <string name="formula_sprite_width" formatted="false">Спрайт_ширина</string>
+    <string name="formula_sprite_height" formatted="false">Спрайт_высота</string>
+    <string name="formula_sprite_direction" formatted="false">Спрайт_направление</string>
+    <string name="formula_sprite_visible" formatted="false">Спрайт_видим</string>
+    <string name="formula_sprite_transparency" formatted="false">Спрайт_прозрачность</string>
+    <string name="formula_sprite_layer" formatted="false">Спрайт_слой</string>
+    <string name="formula_sprite_name_get" formatted="false">Спрайт_имя</string>
+    <string name="formula_sprite_index_get" formatted="false">Спрайт_индекс</string>
+    <string name="formula_sprite_uuid" formatted="false">Спрайт_UUID</string>
+    <string name="formula_sprite_clone_count" formatted="false">Спрайт_клонов</string>
+    <string name="formula_sprite_look_count" formatted="false">Спрайт_костюмов</string>
+    <string name="formula_sprite_sound_count" formatted="false">Спрайт_звуков</string>
+    <string name="formula_sprite_variable_count" formatted="false">Спрайт_переменных</string>
+    <string name="formula_sprite_list_count" formatted="false">Спрайт_списков</string>
+    <string name="formula_sprite_distance" formatted="false">Спрайт_расстояние</string>
+    <string name="formula_sprite_distance_param" formatted="false">(\'спрайт1\', \'спрайт2\')</string>
+    <string name="formula_sprite_touching" formatted="false">Спрайт_касается</string>
+    <string name="formula_sprite_angle_to" formatted="false">Спрайт_угол_к</string>
+    <string name="formula_sprite_param" formatted="false">(\'имя\')</string>
     <string name="brick_voxel_world_pos">Мировые координаты (X Y Z):</string>
     <string name="brick_voxel_transp">Voxel: Прозрачность блока</string>
     <string name="brick_voxel_transp_id">ID блока:</string>
@@ -628,46 +682,21 @@
     <string formatted="false" name="buffer_apply">Установить образ из буфера</string>
     <string formatted="false" name="buffer_save">Сохранить буфер в файл</string>
     <string formatted="false" name="buffer_auto_update">Автообновление буфера</string>
-    <string formatted="false" name="pathfinder_create_navmesh">Сетка навигации</string>
-    <string formatted="false" name="pathfinder_delete_navmesh">Удалить сетку</string>
-    <string formatted="false" name="pathfinder_rebuild_navmesh">Перестроить сетку</string>
-    <string formatted="false" name="pathfinder_find_path_to_xy">Путь к XY</string>
-    <string formatted="false" name="pathfinder_find_path_to_object">Путь к объекту</string>
-    <string formatted="false" name="pathfinder_save_path_to_var">Сохранить путь</string>
-    <string formatted="false" name="pathfinder_save_path_length_to_var">Длина пути</string>
-    <string formatted="false" name="pathfinder_check_path_exists">Путь существует?</string>
-    <string formatted="false" name="pathfinder_follow_path">Следовать пути</string>
-    <string formatted="false" name="pathfinder_follow_path_with_speed">Следовать+Скор.</string>
-    <string formatted="false" name="pathfinder_stop_following">Остановить</string>
-    <string formatted="false" name="pathfinder_pause_path">Пауза пути</string>
-    <string formatted="false" name="pathfinder_resume_path">Продолжить путь</string>
-    <string formatted="false" name="pathfinder_add_obstacle">Добавить препят.</string>
-    <string formatted="false" name="pathfinder_remove_obstacle">Удалить препят.</string>
-    <string formatted="false" name="pathfinder_update_obstacles">Обновить препят.</string>
-    <string formatted="false" name="pathfinder_avoid_objects_by_color">Избегать цвета</string>
-    <string formatted="false" name="pathfinder_create_obstacles_from_background">Препят. из фона</string>
-    <string formatted="false" name="pathfinder_get_path_point_count">Кол-во точек</string>
-    <string formatted="false" name="pathfinder_get_current_path_point">Текущая точка</string>
-    <string formatted="false" name="pathfinder_get_next_path_point">След. точка</string>
-    <string formatted="false" name="pathfinder_check_end_of_path">Конец пути?</string>
-    <string formatted="false" name="pathfinder_width_param">Ширина</string>
-    <string formatted="false" name="pathfinder_height_param">Высота</string>
-    <string formatted="false" name="pathfinder_cell_size_param">Ячейка</string>
-    <string formatted="false" name="pathfinder_start_x_param">Нач. X</string>
-    <string formatted="false" name="pathfinder_start_y_param">Нач. Y</string>
-    <string formatted="false" name="pathfinder_end_x_param">Кон. X</string>
-    <string formatted="false" name="pathfinder_end_y_param">Кон. Y</string>
-    <string formatted="false" name="pathfinder_sprite_param">Спрайт</string>
-    <string formatted="false" name="pathfinder_variable_param">Переменная</string>
-    <string formatted="false" name="pathfinder_speed_param">Скорость</string>
-    <string formatted="false" name="pathfinder_move_to_object">Идти к</string>
-    <string formatted="false" name="pathfinder_stop_moving">Стоп</string>
-    <string formatted="false" name="pathfinder_color_param">Цвет (hex)</string>
-    <string formatted="false" name="pathfinder_result_var_param">Рез. перем.</string>
-    <string formatted="false" name="pathfinder_var_x_param">Перем X</string>
-    <string formatted="false" name="pathfinder_var_y_param">Перем Y</string>
-    <string formatted="false" name="pathfinder_from_sprite_param">Откуда</string>
-    <string formatted="false" name="pathfinder_to_sprite_param">Куда</string>
+    <string formatted="false" name="pathfinder_grid">Создать сетку</string>
+    <string formatted="false" name="pathfinder_grid_x">X</string>
+    <string formatted="false" name="pathfinder_grid_y">Y</string>
+    <string formatted="false" name="pathfinder_grid_w">Ширина</string>
+    <string formatted="false" name="pathfinder_grid_h">Высота</string>
+    <string formatted="false" name="pathfinder_move_to">Идти к</string>
+    <string formatted="false" name="pathfinder_avoid">Избегать</string>
+    <string formatted="false" name="pathfinder_speed">Скорость</string>
+    <string formatted="false" name="pathfinder_stop">Остановить</string>
+    <string formatted="false" name="pathfinder_continue">Продолжить</string>
+    <string formatted="false" name="pathfinder_has_path">Есть путь к</string>
+    <string formatted="false" name="pathfinder_has_path_var">Сохранить в</string>
+    <string formatted="false" name="pathfinder_smooth">Сгладить путь</string>
+    <string formatted="false" name="pathfinder_replan">Дин. перестроение</string>
+    <string formatted="false" name="pathfinder_replan_enabled">Включено (1/0)</string>
     <string formatted="false" name="transition_fade_to_black">Затемнение</string>
     <string formatted="false" name="transition_fade_from_black">Появление</string>
     <string formatted="false" name="transition_crossfade">Кроссфейд</string>
@@ -1887,6 +1916,7 @@
     <string formatted="false" name="create_web_url2">URL</string>
     <string formatted="false" name="create_web_url3">позиция (x, y)</string>
     <string formatted="false" name="create_web_url4">размер (ширина, высота)</string>
+    <string formatted="false" name="create_web_z">Z</string>
     <string formatted="false" name="create_web_file">Создать WebView с названием</string>
     <string formatted="false" name="create_web_file2">HTML код</string>
     <string formatted="false" name="create_web_file3">позиция (x, y)</string>
@@ -1986,6 +2016,8 @@
     <string formatted="false" name="formula_editor_function_distance">расстояние_левенштейна</string>
     <string formatted="false" name="formula_editor_function_distance_parameter">(\'panda\', \'lavanda\')</string>
     <string formatted="false" name="ai_assist">AI ассистент</string>
+    <string formatted="false" name="preference_description_ai_assistant">AI ассистент анализирует проект и предлагает блоки каждые 5 секунд. Включите в редакторе блоков.</string>
+    <string formatted="false" name="ai_assist_no_suggestions">Пока нет предложений. Попробуйте добавить больше блоков в проект.</string>
     <string formatted="false" name="formula_editor_function_subtext_parameter">(3,5,\'hello
         world\')</string>
     <string formatted="false" name="formula_editor_function_clamp">ограничить</string>
@@ -2440,6 +2472,8 @@
     <string formatted="false" name="new_group">Новая группа</string>
     <string formatted="false" name="default_group_name">Группа</string>
     <!-- New Scene Menu -->
+    <string formatted="false" name="global_scene">Глобальная сцена</string>
+    <string formatted="false" name="global_scene_desc">Запускается один раз при старте проекта и не уничтожается при смене сцен</string>
     <string formatted="false" name="new_scene">Новая сцена</string>
     <!-- Action Toasts -->
     <!-- Backpack -->
@@ -2600,7 +2634,31 @@
     <string formatted="false" name="set_notes_and_credits">Добавить примечания и авторов</string>
     <string formatted="false" name="details_date_today">Сегодня</string>
     <string formatted="false" name="import_project">Импортировать проект</string>
+    <string formatted="false" name="build_apk_title">Сборка APK</string>
+    <string formatted="false" name="build_apk_name">Название приложения:</string>
+    <string formatted="false" name="build_apk_package">Пакет:</string>
+    <string formatted="false" name="build_apk_version_name">Версия:</string>
+    <string formatted="false" name="build_apk_version_code">Код версии:</string>
+    <string formatted="false" name="build_apk_icon">Иконка</string>
+    <string formatted="false" name="build_apk_start">Собрать APK</string>
+    <string formatted="false" name="build_apk_progress">Сборка APK...</string>
+    <string formatted="false" name="build_apk_success">APK успешно собран</string>
+    <string formatted="false" name="build_apk_error">Ошибка сборки</string>
+    <string formatted="false" name="build_apk_no_template">Шаблон APK не найден. Соберите шаблон сначала.</string>
     <string formatted="false" name="export_project">Экспортировать проект</string>
+    <string formatted="false" name="encrypt_project_title">Защитить проект паролем</string>
+    <string formatted="false" name="encrypt_project_summary">Проект будет зашифрован. Для импорта потребуется пароль.</string>
+    <string formatted="false" name="dialog_password_title">Введите пароль</string>
+    <string formatted="false" name="dialog_password_confirm">Повторите пароль</string>
+    <string formatted="false" name="dialog_password_hint">Введите пароль</string>
+    <string formatted="false" name="dialog_password_confirm_hint">Повторите пароль</string>
+    <string formatted="false" name="password_mismatch">Пароли не совпадают</string>
+    <string formatted="false" name="password_empty">Введите пароль</string>
+    <string formatted="false" name="import_protected_title">Проект защищён паролем</string>
+    <string formatted="false" name="import_protected_name">Название проекта: %1$s</string>
+    <string formatted="false" name="import_password_hint">Введите пароль</string>
+    <string formatted="false" name="wrong_password">Неверный пароль</string>
+    <string formatted="false" name="import_encrypted_action">Импорт</string>
     <string formatted="false" name="error_import_project">Что-то пошло не так при импорте проектов.</string>
     <string formatted="false" name="no_projects_selected">Проекты для импорта не выбраны</string>
     <string formatted="false" name="only_select_catrobat_files">Выберите файл .newtrobat или .catrobat</string>
@@ -2942,6 +3000,16 @@
     <string formatted="false" name="brick_point_to">Указать в направлении к</string>
     <string formatted="false" name="brick_glide">Скользить </string>
     <string formatted="false" name="brick_glide_to_x">по X:</string>
+    <string formatted="false" name="brick_tween_position">Плавно переместить по X:</string>
+    <string formatted="false" name="brick_tween_position_duration">за секунд:</string>
+    <string formatted="false" name="brick_tween_position_easing">тип анимации (0-24):</string>
+    <string formatted="false" name="brick_create_particle_system">Создать систему частиц</string>
+    <string formatted="false" name="brick_create_particle_system_count">макс. кол-во:</string>
+    <string formatted="false" name="brick_create_particle_system_lifetime">время жизни (сек):</string>
+    <string formatted="false" name="brick_create_particle_system_speed">скорость:</string>
+    <string formatted="false" name="brick_timer">Запустить таймер</string>
+    <string formatted="false" name="brick_timer_duration">длительность (сек):</string>
+    <string formatted="false" name="brick_timer_variable">сохранить в переменную:</string>
     <string formatted="false" name="brick_go_to">Перейти в</string>
     <string formatted="false" name="brick_go_to_touch_position">место касания</string>
     <string formatted="false" name="brick_go_to_random_position">случайное место</string>

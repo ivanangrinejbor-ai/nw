@@ -13,12 +13,12 @@ class CreateGearJointAction : TemporalAction() {
     private var ratio: Formula? = null
 
     override fun update(percent: Float) {
-        val id = jointId!!.interpretString(scope)
-        val idA = jointAId!!.interpretString(scope)
-        val idB = jointBId!!.interpretString(scope)
-        if (id == null || id.isEmpty() || idA == null || idB == null) return
+        val id = jointId?.interpretString(scope) ?: return
+        val idA = jointAId?.interpretString(scope) ?: return
+        val idB = jointBId?.interpretString(scope) ?: return
+        if (id.isEmpty() || idA.isEmpty() || idB.isEmpty()) return
 
-        val r = ratio!!.interpretFloat(scope)
+        val r = ratio?.interpretFloat(scope) ?: 1f
 
         val scene = ProjectManager.getInstance().currentlyPlayingScene ?: return
 

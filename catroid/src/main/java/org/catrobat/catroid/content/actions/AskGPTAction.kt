@@ -39,11 +39,11 @@ class AskGPTAction : GPTAction() {
     }
 
     override fun handleResponse() {
-        userVariable!!.value = response
+        userVariable?.value = response
     }
 
     override fun handleError(error: String) {
-        userVariable!!.value = error
+        userVariable?.value = error
     }
 
     override fun restart() {

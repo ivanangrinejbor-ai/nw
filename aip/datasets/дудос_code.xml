@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<program>
+  <header>
+    <applicationBuildName></applicationBuildName>
+    <applicationBuildNumber>0</applicationBuildNumber>
+    <applicationBuildType>release</applicationBuildType>
+    <applicationName>NewCatroid</applicationName>
+    <applicationVersion>2.1.1b2</applicationVersion>
+    <catrobatLanguageVersion>1.17</catrobatLanguageVersion>
+    <customResolution>false</customResolution>
+    <dateTimeUpload></dateTimeUpload>
+    <description></description>
+    <deviceName>TECNO KI5m</deviceName>
+    <gitRemoteUrl></gitRemoteUrl>
+    <isCastProject>false</isCastProject>
+    <landscapeMode>false</landscapeMode>
+    <listeningLanguageTag></listeningLanguageTag>
+    <mediaLicense></mediaLicense>
+    <notesAndCredits></notesAndCredits>
+    <physicsHeightArea>2.0</physicsHeightArea>
+    <physicsWidthArea>3.0</physicsWidthArea>
+    <platform>Android</platform>
+    <platformVersion>31</platformVersion>
+    <programLicense></programLicense>
+    <programName>дудос</programName>
+    <remixOf></remixOf>
+    <scenesEnabled>true</scenesEnabled>
+    <screenHeight>1444</screenHeight>
+    <screenMode>STRETCH</screenMode>
+    <screenWidth>720</screenWidth>
+    <tags></tags>
+    <url></url>
+    <userHandle></userHandle>
+  </header>
+  <settings/>
+  <scenes>
+    <scene sceneId="252409df-3b45-489a-8a17-dbf2a0cb14fe">
+      <name>Сцена</name>
+      <objectList>
+        <object type="Sprite" spriteId="f8440c8e-a146-4e9e-972f-1e7445949311" name="Фон">
+          <lookList>
+            <look fileName="Фон.png" lookId="e315c2a0-6250-4195-948c-93703534f6d4" name="Фон">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList/>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+        <object type="Sprite" spriteId="62498b77-edaf-4146-a732-44facd6a0e1f" name="Мой актер или объект">
+          <lookList>
+            <look fileName="Мой актер или объект.png" lookId="93cad5c3-4bee-4cb2-882c-6903a1eb9dd9" name="Мой актер или объект">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="PlaceAtBrick">
+                  <brickId>b8fb8fda-11b9-4a6d-b921-c7ed1777a856</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="Y_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>68</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                    <formula category="X_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>9</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>d9924f6b-14af-45f2-be7f-f2df9a40aabf</scriptId>
+            </script>
+            <script type="WhenScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="WriteBaseBrick">
+                  <brickId>d5f90618-025b-4345-8735-e5980e1866ad</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="FIREBASE_ID">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>https://www.firebaseio.com</value>
+                    </formula>
+                    <formula category="FIREBASE_KEY">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>ddos</value>
+                    </formula>
+                    <formula category="FIREBASE_VALUE">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>dead</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>7aa245d9-9d41-478f-a426-150d49e11be5</scriptId>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+        <object type="Sprite" spriteId="19ef89ff-99f0-48c9-96d4-eceaec928e20" name="Мой актер или объект (1)">
+          <lookList>
+            <look fileName="Мой актер или объект_#0.png" lookId="106a4fda-2519-4389-91c3-3a7da618f957" name="Мой актер или объект (1)">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="PlaceAtBrick">
+                  <brickId>20bbabde-64fe-42a1-bf9f-f42fb383d230</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="Y_POSITION">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>125</value>
+                    </formula>
+                    <formula category="X_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>6</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>6c09a69a-557f-489d-80cc-2e8915bb8531</scriptId>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+      </objectList>
+    </scene>
+  </scenes>
+  <programVariableList/>
+  <programListOfLists/>
+  <programMultiplayerVariableList/>
+</program>

@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<program>
+  <header>
+    <applicationBuildName></applicationBuildName>
+    <applicationBuildNumber>0</applicationBuildNumber>
+    <applicationBuildType>release</applicationBuildType>
+    <applicationName>NewCatroid</applicationName>
+    <applicationVersion>2.1.2BETA</applicationVersion>
+    <catrobatLanguageVersion>1.17</catrobatLanguageVersion>
+    <customResolution>false</customResolution>
+    <dateTimeUpload></dateTimeUpload>
+    <description></description>
+    <deviceName>TECNO LJ8</deviceName>
+    <gitRemoteUrl></gitRemoteUrl>
+    <isCastProject>false</isCastProject>
+    <landscapeMode>true</landscapeMode>
+    <listeningLanguageTag></listeningLanguageTag>
+    <mediaLicense></mediaLicense>
+    <notesAndCredits></notesAndCredits>
+    <physicsHeightArea>2.0</physicsHeightArea>
+    <physicsWidthArea>3.0</physicsWidthArea>
+    <platform>Android</platform>
+    <platformVersion>35</platformVersion>
+    <programLicense></programLicense>
+    <programName>далп (1)</programName>
+    <remixOf></remixOf>
+    <scenesEnabled>true</scenesEnabled>
+    <screenHeight>1224</screenHeight>
+    <screenMode>STRETCH</screenMode>
+    <screenWidth>2552</screenWidth>
+    <tags></tags>
+    <url></url>
+    <userHandle></userHandle>
+  </header>
+  <settings/>
+  <scenes>
+    <scene sceneId="9ac584c0-c515-4e83-aadd-62a217c9e308">
+      <name>Сцена</name>
+      <objectList>
+        <object type="Sprite" spriteId="c2070f43-f7b1-4873-8175-1f56fec6e005" name="Фон">
+          <lookList>
+            <look fileName="Фон.png" lookId="6c82bdc0-d7ab-4c3a-9201-e261da59fddb" name="Фон">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="VibrationBrick">
+                  <brickId>032d2395-52ae-4906-953c-ca9ede2eac19</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="VIBRATE_DURATION_IN_SECONDS">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>1.0</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="CreateWebUrlBrick">
+                  <brickId>7ef01768-f150-4479-bdce-a519bdd5dbf3</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="WIDTH">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>2650</value>
+                    </formula>
+                    <formula category="NAME">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>myWebView</value>
+                    </formula>
+                    <formula category="POSY">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>0</value>
+                    </formula>
+                    <formula category="HEIGHT">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>1240</value>
+                    </formula>
+                    <formula category="POSX">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>0</value>
+                    </formula>
+                    <formula category="URL">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>https://www.google.com/fbx?fbx=minesweeper</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>5a1e4d48-dfe9-4336-9930-66fd9fd83f35</scriptId>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+      </objectList>
+    </scene>
+  </scenes>
+  <programVariableList/>
+  <programListOfLists/>
+  <programMultiplayerVariableList/>
+</program>

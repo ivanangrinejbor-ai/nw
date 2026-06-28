@@ -696,7 +696,42 @@ public enum Functions {
    Vector3 pos = manager.getPosition(id);
    return (pos != null) ? pos.x : 0.0;
    }
-   case PT_ARGMAX: {
-   return MLBridge.nativeArgMax(String.valueOf(arguments.get(0)));
-   }
+    case PT_ARGMAX: {
+    return MLBridge.nativeArgMax(String.valueOf(arguments.get(0)));
+    }
 ```
+
+# AI Project Assistant (обучение и деплой)
+
+## Папка `aip/`
+- `datasets/` — `.code.xml` файлы проектов (датасет)
+- `training_data/projects.json` — распарсенные проекты (генерится автоматически)
+- `model/` — выходные файлы (model.tflite, vocab.json, patterns.json и др.)
+
+## Обучение на своём ПК (CPU)
+```bash
+cd aip
+python code_xml_parser.py datasets training_data/projects.json   # парсинг датасета
+python train.py                          # n-gram patterns (fallback v2)
+python train_lstm.py --epochs 15         # LSTM + TFLite (v3), долго на CPU
+```
+
+## Обучение в Google Colab (GPU, рекомендуется)
+1. `aip\prepare_colab.bat` — создаст `colab_pack.zip`
+2. Загрузить `colab_pack.zip` + `train_colab.ipynb` в Google Drive
+3. Открыть `train_colab.ipynb` в Colab, выбрать Runtime → T4 GPU
+4. Выполнить все ячейки по порядку
+5. Скачать `model.tflite`, `vocab.json`, `model_metadata.json`
+
+Подробнее: см. `aip/README_COLAB.txt`
+
+## Деплой в APK
+```bash
+aip\deploy.bat   # копирует model.* + patterns.json в catroid/src/main/assets/
+```
+
+## Как работает на устройстве
+- **v3 (TFLite):** `NeuralSuggestionEngine.kt` — LSTM, 500 токенов контекста
+- **v2 (n-gram):** `AiProjectAssistant.kt` — n-граммы 2-5 порядка, fallback если нет model.tflite
+- **v1 (frequency):** последний fallback, если нет patterns.json
+- `GhostSuggestionBrick.kt` — полупрозрачный блок [+] accept / [×] dismiss / swipe-left

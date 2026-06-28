@@ -11,11 +11,11 @@ class SetDampingAction : TemporalAction() {
     private var angularDamping: Formula? = null
 
     override fun update(percent: Float) {
-        val linear = linearDamping!!.interpretFloat(scope)
-        val angular = angularDamping!!.interpretFloat(scope)
+        val linear = linearDamping?.interpretFloat(scope) ?: 0f
+        val angular = angularDamping?.interpretFloat(scope) ?: 0f
 
         val scene = ProjectManager.getInstance().currentlyPlayingScene ?: return
-        val sprite = scope!!.sprite ?: return
+        val sprite = scope?.sprite ?: return
 
         val physicsObject = scene.physicsWorld.getPhysicsObject(sprite)
         physicsObject.setLinearDamping(linear)

@@ -1,0 +1,712 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<program>
+  <header>
+    <applicationBuildName></applicationBuildName>
+    <applicationBuildNumber>0</applicationBuildNumber>
+    <applicationBuildType>release</applicationBuildType>
+    <applicationName>NewCatroid</applicationName>
+    <applicationVersion>2.1.1b2</applicationVersion>
+    <catrobatLanguageVersion>1.17</catrobatLanguageVersion>
+    <customResolution>false</customResolution>
+    <dateTimeUpload></dateTimeUpload>
+    <description></description>
+    <deviceName>SM-S908E</deviceName>
+    <gitRemoteUrl></gitRemoteUrl>
+    <isCastProject>false</isCastProject>
+    <landscapeMode>false</landscapeMode>
+    <listeningLanguageTag></listeningLanguageTag>
+    <mediaLicense></mediaLicense>
+    <notesAndCredits></notesAndCredits>
+    <physicsHeightArea>2.0</physicsHeightArea>
+    <physicsWidthArea>3.0</physicsWidthArea>
+    <platform>Android</platform>
+    <platformVersion>28</platformVersion>
+    <programLicense></programLicense>
+    <programName>TimeFlux - Channels 1.1</programName>
+    <remixOf></remixOf>
+    <scenesEnabled>true</scenesEnabled>
+    <screenHeight>1920</screenHeight>
+    <screenMode>STRETCH</screenMode>
+    <screenWidth>1080</screenWidth>
+    <tags></tags>
+    <url></url>
+    <userHandle></userHandle>
+  </header>
+  <settings/>
+  <scenes>
+    <scene>
+      <name>Иконка </name>
+      <objectList>
+        <object type="Sprite" spriteId="094fd684-eb47-48ac-8d50-ed6d4ded350b" name="Фон">
+          <lookList>
+            <look fileName="e4b5671761da11f1a4379ed2a1fe89d6_1.jfif" lookId="7fcaeaa7-fd07-4908-b3f0-44101218f838" name="фон соц сети (1)">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="SetSizeToBrick">
+                  <brickId>35b78392-3c15-43d5-a5f5-a19caf6240b4</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="SIZE">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>250</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>a9f87030-8dee-4db0-a08e-06e12520a6c4</scriptId>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+        <object type="Sprite" spriteId="4ad1a40a-2193-4a95-abec-b95530558783" name="TimeFlux Logo">
+          <lookList>
+            <look fileName="TimeFlux Logo.png" lookId="89726c79-0fad-4d13-be2e-a6a7d40ab588" name="TimeFlux Logo">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="SetSizeToBrick">
+                  <brickId>7a4cb6d9-f8a6-44a5-9028-544580929f3b</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="SIZE">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>150</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="PlaceAtBrick">
+                  <brickId>97b18ef4-b54a-4fb8-a8bb-58fb62e154bf</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="X_POSITION">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>0</value>
+                    </formula>
+                    <formula category="Y_POSITION">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>0</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="SceneStartBrick">
+                  <brickId>17b5bf40-c13e-451a-b838-ec0eac4ca1c4</brickId>
+                  <commentedOut>false</commentedOut>
+                  <sceneToStart>Каналы</sceneToStart>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>5bc3c9f3-0154-4b52-98b0-3699ed8ad044</scriptId>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+      </objectList>
+    </scene>
+    <scene>
+      <name>Каналы</name>
+      <objectList>
+        <object type="Sprite" spriteId="38ef996c-931c-4728-be62-aa2fd84b5b34" name="Фон">
+          <lookList>
+            <look fileName="e4b5671761da11f1a4379ed2a1fe89d6_1.jfif" lookId="401df455-9b77-47d0-a226-fea845238f60" name="фон соц сети (1)">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="SetSizeToBrick">
+                  <brickId>845155fc-570e-4b32-b5b5-83c8e1a79f8d</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="SIZE">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>500</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>3b967ebb-bf6b-4185-809a-1deadac74650</scriptId>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+        <object type="Sprite" spriteId="158c48cf-7ad1-443b-a5e5-8194e5606d61" name="TimeFlux Logo">
+          <lookList>
+            <look fileName="TimeFlux Logo_#1.png" lookId="3fc18a4d-a67a-4d59-b532-9aef275126b5" name="TimeFlux Logo">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="PlaceAtBrick">
+                  <brickId>843b66e1-58df-43d6-bd8d-2765cc7da44c</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="X_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>378</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                    <formula category="Y_POSITION">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>878</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="PointInDirectionBrick">
+                  <brickId>26bb9ccf-c64d-4851-9092-0cde6c77f285</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="DEGREES">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>90.0</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="SetSizeToBrick">
+                  <brickId>2d6ec226-dd26-46e9-9ad3-3f70cedbe85d</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="SIZE">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>60</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>7f704f76-7314-4d60-835d-8c2b0463b818</scriptId>
+            </script>
+            <script type="WhenScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="RepeatBrick">
+                  <brickId>769c6ceb-e015-4637-9620-66523d86d9eb</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="TIMES_TO_REPEAT">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>25</value>
+                    </formula>
+                  </formulaList>
+                  <loopBricks>
+                    <brick type="ChangeTransparencyByNBrick">
+                      <brickId>fa9059ea-292c-44ec-95ef-280f45e0fa40</brickId>
+                      <commentedOut>false</commentedOut>
+                      <formulaList>
+                        <formula category="TRANSPARENCY_CHANGE">
+                          <additionalChildren/>
+                          <type>NUMBER</type>
+                          <value>4</value>
+                        </formula>
+                      </formulaList>
+                    </brick>
+                  </loopBricks>
+                </brick>
+                <brick type="SceneStartBrick">
+                  <brickId>dea8ec41-9215-4bdf-ae72-d9a2be6b01c8</brickId>
+                  <commentedOut>false</commentedOut>
+                  <sceneToStart>Каналы</sceneToStart>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>ed82aa49-3f44-46e3-8178-fbc704359841</scriptId>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+        <object type="Sprite" spriteId="129470ee-5e8e-443f-aa93-55bd425e504f" name="рама">
+          <lookList>
+            <look fileName="рама-edited-free (carve.photos)_#1.png" lookId="02c7276c-aae4-424e-bb59-67b47ad4316b" name="рама">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="SetSizeToBrick">
+                  <brickId>6fdd77de-3b7a-426c-9817-576309a6966e</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="SIZE">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>145</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="GoNStepsBackBrick">
+                  <brickId>c8ad30a1-fba5-452c-ad2b-655c7313d39a</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="STEPS">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>10</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="PlaceAtBrick">
+                  <brickId>ea0fa76c-13ed-48f2-bee6-1d0496239f69</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="X_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>70</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                    <formula category="Y_POSITION">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>945</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="PointInDirectionBrick">
+                  <brickId>fa12d3a3-3679-4975-a82d-855147d3299b</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="DEGREES">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>90.0</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>f9693d22-dc7e-45e5-af09-b5d79a1c7d4b</scriptId>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+        <object type="Sprite" spriteId="8eb66e66-f1d0-4f7f-892f-1973f58dd184" name="Создать канал Create channel">
+          <lookList>
+            <look fileName="кнопка-no-bg-preview (carve.photos)_#1.png" lookId="05a5d83c-5735-4501-8083-afae6352354a" name="Создать канал Create channel">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="PlaceAtBrick">
+                  <brickId>b4e42eb3-e41f-4c02-acce-dcc8cbc4b5c7</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="X_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>129</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                    <formula category="Y_POSITION">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>593</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>f329c781-f961-4cf3-a976-3ccbe7d3b1ee</scriptId>
+            </script>
+            <script type="WhenScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="AskBrick">
+                  <brickId>a2485650-c139-42f1-ad8c-cc2bddb16693</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="ASK_QUESTION">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>Введите id канала</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable type="UserVariable" serialization="custom">
+                    <userVariable>
+                      <default>
+                        <initialIndex>0</initialIndex>
+                        <deviceValueKey>c7db65a9-8a4f-4254-92af-84b37c01c231</deviceValueKey>
+                        <name>id</name>
+                      </default>
+                    </userVariable>
+                  </userVariable>
+                </brick>
+                <brick type="WriteBaseBrick">
+                  <brickId>21d53166-2cc3-4085-a085-435e29bff460</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="FIREBASE_KEY">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>1</value>
+                    </formula>
+                    <formula category="FIREBASE_VALUE">
+                      <additionalChildren/>
+                      <type>USER_VARIABLE</type>
+                      <value>id</value>
+                    </formula>
+                    <formula category="FIREBASE_ID">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>https://timeflux-channels-default-rtdb.firebaseio.com/</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="AskBrick">
+                  <brickId>b83c69f9-d4f2-49eb-93a2-fc6592551770</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="ASK_QUESTION">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>Введите ip канала</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable type="UserVariable" serialization="custom">
+                    <userVariable>
+                      <default>
+                        <initialIndex>0</initialIndex>
+                        <deviceValueKey>cfe31ef7-649f-47c1-8512-899fdc57ecb5</deviceValueKey>
+                        <name>ip</name>
+                      </default>
+                    </userVariable>
+                  </userVariable>
+                </brick>
+                <brick type="WriteBaseBrick">
+                  <brickId>569a22c3-cd08-4e8a-9752-f9e860b89835</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="FIREBASE_KEY">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>2</value>
+                    </formula>
+                    <formula category="FIREBASE_VALUE">
+                      <additionalChildren/>
+                      <type>USER_VARIABLE</type>
+                      <value>ip</value>
+                    </formula>
+                    <formula category="FIREBASE_ID">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>https://timeflux-channels-default-rtdb.firebaseio.com/</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="AskBrick">
+                  <brickId>d9e6ba30-bd59-45ac-a034-0e51f3ffdcdb</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="ASK_QUESTION">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>Введите название канала</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable type="UserVariable" serialization="custom">
+                    <userVariable>
+                      <default>
+                        <initialIndex>1</initialIndex>
+                        <deviceValueKey>a7009bcc-5e74-421f-b18f-3718fcfa2575</deviceValueKey>
+                        <name>name_channel</name>
+                      </default>
+                    </userVariable>
+                  </userVariable>
+                </brick>
+                <brick type="WriteBaseBrick">
+                  <brickId>b5c078c4-98e6-480e-aa99-819c5e2484b5</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="FIREBASE_KEY">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>3</value>
+                    </formula>
+                    <formula category="FIREBASE_VALUE">
+                      <additionalChildren/>
+                      <type>USER_VARIABLE</type>
+                      <value>name_channel</value>
+                    </formula>
+                    <formula category="FIREBASE_ID">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>https://timeflux-channels-default-rtdb.firebaseio.com/</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="AskBrick">
+                  <brickId>250def20-9015-4e06-a8a0-da88fff0a95d</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="ASK_QUESTION">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>Введите описание канала</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable type="UserVariable" serialization="custom">
+                    <userVariable>
+                      <default>
+                        <initialIndex>3</initialIndex>
+                        <deviceValueKey>58603170-5f9c-477c-88cf-d01c25e9d3fa</deviceValueKey>
+                        <name>discription</name>
+                      </default>
+                    </userVariable>
+                  </userVariable>
+                </brick>
+                <brick type="WriteBaseBrick">
+                  <brickId>ffd6a38a-61b2-430b-b162-546d6652e84a</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="FIREBASE_KEY">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>4</value>
+                    </formula>
+                    <formula category="FIREBASE_VALUE">
+                      <additionalChildren/>
+                      <type>USER_VARIABLE</type>
+                      <value>discription</value>
+                    </formula>
+                    <formula category="FIREBASE_ID">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>https://timeflux-channels-default-rtdb.firebaseio.com/</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="AskBrick">
+                  <brickId>84dc8f12-b5b1-40b6-ab51-58e20a67093b</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="ASK_QUESTION">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>Введите ссылку на иконку</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable type="UserVariable" serialization="custom">
+                    <userVariable>
+                      <default>
+                        <initialIndex>-1</initialIndex>
+                        <deviceValueKey>65721592-0870-4fc6-baf2-ab0c19cafb61</deviceValueKey>
+                        <name>icon</name>
+                      </default>
+                    </userVariable>
+                  </userVariable>
+                </brick>
+                <brick type="WriteBaseBrick">
+                  <brickId>91d9ca59-a527-4859-8509-a7d21c5f11fe</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="FIREBASE_KEY">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>5</value>
+                    </formula>
+                    <formula category="FIREBASE_VALUE">
+                      <additionalChildren/>
+                      <type>USER_VARIABLE</type>
+                      <value>icon</value>
+                    </formula>
+                    <formula category="FIREBASE_ID">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>https://timeflux-channels-default-rtdb.firebaseio.com/</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="AskBrick">
+                  <brickId>0fa39d30-df10-44de-8320-a1767f3eb36e</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="ASK_QUESTION">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>Введите ссылку на ваш тгк</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable type="UserVariable" serialization="custom">
+                    <userVariable>
+                      <default>
+                        <initialIndex>-1</initialIndex>
+                        <deviceValueKey>9cee87c0-3e4c-4bd0-87ec-68fcf2d74782</deviceValueKey>
+                        <name>tgc</name>
+                      </default>
+                    </userVariable>
+                  </userVariable>
+                </brick>
+                <brick type="WriteBaseBrick">
+                  <brickId>74fba215-d73e-4903-8adf-09fa466a3d0b</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="FIREBASE_KEY">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>6</value>
+                    </formula>
+                    <formula category="FIREBASE_VALUE">
+                      <additionalChildren/>
+                      <type>USER_VARIABLE</type>
+                      <value>tgc</value>
+                    </formula>
+                    <formula category="FIREBASE_ID">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>https://timeflux-channels-default-rtdb.firebaseio.com/</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="BroadcastBrick">
+                  <brickId>8cf1d251-7f39-4766-a8d8-9b2287bfac65</brickId>
+                  <commentedOut>false</commentedOut>
+                  <broadcastMessage>Канал</broadcastMessage>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>96f0ab0e-3976-4c4b-9f10-08cc09dffadf</scriptId>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+        <object type="Sprite" spriteId="1ca0e502-6032-46ed-ae07-662b5ad60b9c" name="Channels">
+          <lookList>
+            <look fileName="кнопка-no-bg-preview (carve.photos)_#2.png" lookId="0f72aa9c-8792-4096-9e01-8ea219390391" name="Channels">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="PlaceAtBrick">
+                  <brickId>870d66c0-65e3-4bca-a5b9-27111d651ba8</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="X_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>129</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                    <formula category="Y_POSITION">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>227</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="HideBrick">
+                  <brickId>23e34f44-12a9-47cf-b48a-b71cc46f382e</brickId>
+                  <commentedOut>false</commentedOut>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>3f628df3-b92b-49b0-8f90-07443810db87</scriptId>
+            </script>
+            <script type="BroadcastScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="ShowToastBlock">
+                  <brickId>e9d1cc5b-ae62-40f1-a77c-0a4d746bf153</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="TOAST">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>Напишите администратору @Garagniyhuligan чтобы добавить свой канал</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>6aabfd40-8f00-4091-b452-034e5f57a275</scriptId>
+              <receivedMessage>Канал</receivedMessage>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+      </objectList>
+    </scene>
+  </scenes>
+  <programVariableList>
+    <userVariable reference="../../scenes/scene[2]/objectList/object[4]/scriptList/script[2]/brickList/brick[9]/userVariable"/>
+    <userVariable reference="../../scenes/scene[2]/objectList/object[4]/scriptList/script[2]/brickList/brick[11]/userVariable"/>
+    <userVariable reference="../../scenes/scene[2]/objectList/object[4]/scriptList/script[2]/brickList/brick[3]/userVariable"/>
+    <userVariable reference="../../scenes/scene[2]/objectList/object[4]/scriptList/script[2]/brickList/brick/userVariable"/>
+    <userVariable reference="../../scenes/scene[2]/objectList/object[4]/scriptList/script[2]/brickList/brick[5]/userVariable"/>
+    <userVariable reference="../../scenes/scene[2]/objectList/object[4]/scriptList/script[2]/brickList/brick[7]/userVariable"/>
+  </programVariableList>
+  <programListOfLists/>
+  <programMultiplayerVariableList/>
+</program>

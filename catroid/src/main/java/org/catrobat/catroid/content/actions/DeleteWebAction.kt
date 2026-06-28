@@ -12,7 +12,8 @@ class DeleteWebAction : TemporalAction() {
     override fun update(percent: Float) {
         var namev = name?.interpretObject(scope)?.toString() ?: ""
 
-        StageActivity.activeStageActivity.get()?.removeView(namev);
-        StageActivity.activeStageActivity.get()?.setWebViewCallback(namev, null)
+        val activity = StageActivity.activeStageActivity.get() ?: return
+        activity.removeView(namev)
+        activity.setWebViewCallback(namev, null)
     }
 }

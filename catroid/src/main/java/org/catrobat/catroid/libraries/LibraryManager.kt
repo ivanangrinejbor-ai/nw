@@ -312,8 +312,8 @@ object LibraryManager {
     // ДОБАВЬ ЭТУ ВСПОМОГАТЕЛЬНУЮ ФУНКЦИЮ
     private fun mapStringToParameterType(typeName: String): ParameterType {
         return when (typeName.uppercase()) {
-            /*"VARIABLE_DROPDOWN" -> ParameterType.VARIABLE_DROPDOWN
-            "LIST_DROPDOWN" -> ParameterType.LIST_DROPDOWN*/
+            "VARIABLE_DROPDOWN" -> ParameterType.VARIABLE_DROPDOWN
+            "LIST_DROPDOWN" -> ParameterType.LIST_DROPDOWN
             else -> ParameterType.TEXT_FIELD
         }
     }

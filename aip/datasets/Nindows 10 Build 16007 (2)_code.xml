@@ -1,0 +1,1499 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<program>
+  <header>
+    <applicationBuildName></applicationBuildName>
+    <applicationBuildNumber>0</applicationBuildNumber>
+    <applicationBuildType>release</applicationBuildType>
+    <applicationName>Покет Код</applicationName>
+    <applicationVersion>1.2.4</applicationVersion>
+    <catrobatLanguageVersion>1.17</catrobatLanguageVersion>
+    <customResolution>false</customResolution>
+    <dateTimeUpload></dateTimeUpload>
+    <description></description>
+    <deviceName>F11</deviceName>
+    <gitRemoteUrl></gitRemoteUrl>
+    <isCastProject>false</isCastProject>
+    <landscapeMode>true</landscapeMode>
+    <listeningLanguageTag></listeningLanguageTag>
+    <mediaLicense></mediaLicense>
+    <notesAndCredits></notesAndCredits>
+    <physicsHeightArea>2.0</physicsHeightArea>
+    <physicsWidthArea>3.0</physicsWidthArea>
+    <platform>Android</platform>
+    <platformVersion>34</platformVersion>
+    <programLicense></programLicense>
+    <programName>Nindows 10 Build 16007</programName>
+    <remixOf></remixOf>
+    <scenesEnabled>true</scenesEnabled>
+    <screenHeight>1200</screenHeight>
+    <screenMode>STRETCH</screenMode>
+    <screenWidth>1883</screenWidth>
+    <tags></tags>
+    <url></url>
+    <userHandle></userHandle>
+  </header>
+  <settings/>
+  <scenes>
+    <scene>
+      <name>запуск</name>
+      <objectList>
+        <object type="Sprite" spriteId="41e974f7-9463-40c3-ad01-5f58384d2fea" name="Фон">
+          <lookList>
+            <look fileName="1000002089.jpg" lookId="0ce8fd92-f22a-4cdc-ab57-09d2cff0da15" name="1000002089">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000002090.jpg" lookId="f53f85a3-9ce0-43ac-a0c2-d68cf39df46b" name="1000002090">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000002091.jpg" lookId="e6beac46-93b9-4a28-a4cf-438b6e36b385" name="1000002091">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000002092.jpg" lookId="a6ff4e1a-e3a8-43cf-929f-e0da47de5a6c" name="1000002092">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000002093.jpg" lookId="cadf224c-c2af-4cdc-a964-9510baab7d9a" name="1000002093">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000002094.jpg" lookId="bed69325-b34b-4e88-9afe-5b0121b48854" name="1000002094">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000002095.jpg" lookId="d4594ce1-66b1-4c26-8318-5445cb7b16ca" name="1000002095">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000002096.jpg" lookId="7c448c76-2fcf-42b4-bd6c-3eff8494c752" name="1000002096">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000002097.jpg" lookId="35bce65e-6d35-4fce-86ce-c311a6560d41" name="1000002097">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000002098.jpg" lookId="c2b3c00f-80aa-4ae8-97c8-a8cc5689e493" name="1000002098">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000002099.jpg" lookId="90106f57-2748-425d-bcb2-c64985bfce77" name="1000002099">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000002100.jpg" lookId="e54cf69e-20ba-49e6-aa08-fbcb24b2aa02" name="1000002100">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000002101.jpg" lookId="42190cd1-48f7-4054-80e1-b9b861af399b" name="1000002101">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000002102.jpg" lookId="b69885de-f6a2-400d-8c17-97cce0f8fac1" name="1000002102">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000002103.jpg" lookId="a6d5e01c-0edb-4df8-b40f-89d9c10c2e0e" name="1000002103">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000002104.jpg" lookId="8c35a2ec-80de-468a-8e0f-82cbc890775b" name="1000002104">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000002105.jpg" lookId="300b8612-2ec5-4e08-a172-b0c851afe387" name="1000002105">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000002106.jpg" lookId="45194984-52ee-49df-afd0-70f4c8343470" name="1000002106">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000002107.jpg" lookId="e33676f4-0b6c-467d-9c6f-0a45a4d608f3" name="1000002107">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000002108.jpg" lookId="7010721c-f6bd-47a5-99d5-695fd70a2974" name="1000002108">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000002109.jpg" lookId="a849ce80-706a-48ac-a936-3f37da9c2cfd" name="1000002109">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000002110.jpg" lookId="169ddf0c-c944-4239-a417-781559f14cac" name="1000002110">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000002111.jpg" lookId="6fbd2669-8234-4d45-b12f-1d1d45eb0189" name="1000002111">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000002112.jpg" lookId="f2f130da-71cb-4bf8-8285-988a0c9b0bde" name="1000002112">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000002113.jpg" lookId="4820b38d-8c26-4e66-9184-fa8ee0727c4d" name="1000002113">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000002114.jpg" lookId="a139c450-9a65-4868-a53e-315b8340f3f6" name="1000002114">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000002115.jpg" lookId="be373d8c-05cf-42e1-b1b2-be898ef8ba6f" name="1000002115">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000002116.jpg" lookId="3dabfd2a-dd5e-404a-b7fa-60f82f09528c" name="1000002116">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000002117.jpg" lookId="87717030-5fcd-46e9-9619-ca236593289b" name="1000002117">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000002118.jpg" lookId="baee6291-dc6f-41fb-86dc-1e9d62621dff" name="1000002118">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000002119.jpg" lookId="f8fe5e85-49ed-480d-9c9a-96f6771631f6" name="1000002119">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000002120.jpg" lookId="7c941e6b-669b-47a3-a69d-708d193fffeb" name="1000002120">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000002121.jpg" lookId="344cc02f-5710-423b-a299-1af774f083ce" name="1000002121">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000002122.jpg" lookId="4cf3e998-9511-4646-bc8a-bc3ff3b27839" name="1000002122">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000002123.jpg" lookId="5a694494-593e-4994-8a1b-b50360340e5a" name="1000002123">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000002124.jpg" lookId="fa74e765-42fb-4baa-9610-a2f25fa618d4" name="1000002124">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000002125.jpg" lookId="a17a411b-a06b-4852-bb1f-35135b7c8e21" name="1000002125">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000002126.jpg" lookId="3e178c9a-25b0-466e-a347-7d3f51e50b3c" name="1000002126">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000002127.jpg" lookId="4ec31176-3c66-4ede-8f9d-c2b8bea79c1f" name="1000002127">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000002128.jpg" lookId="38f53fae-34ab-43b9-b5c8-d3626bf9aed8" name="1000002128">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000002129.jpg" lookId="dd317335-c303-49ab-8340-6875f11a7154" name="1000002129">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000002130.jpg" lookId="d49cd39e-9e9c-4803-89f8-3af266f51623" name="1000002130">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000002131.jpg" lookId="f8c4f853-46fb-4e5b-bcce-c034de163512" name="1000002131">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000002132.jpg" lookId="6043c511-a8b4-4a16-adc5-bcd52d3d3328" name="1000002132">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000002134.jpg" lookId="43146209-27e4-4dc5-bc6f-ff1655b95d01" name="1000002134">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000002135.jpg" lookId="d75421bc-1b7d-4bbd-bc2d-5a4dccfcb2bf" name="1000002135">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000002136.jpg" lookId="47866450-3706-4f33-8c18-3d26328002e2" name="1000002136">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000002137.jpg" lookId="706cabfb-a4a9-4158-8465-99850a6c69a1" name="1000002137">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000002138.jpg" lookId="70331203-099c-4215-933b-904908c3d280" name="1000002138">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000002139.jpg" lookId="be74a591-9a23-49aa-8276-ffbb46bfd700" name="1000002139">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000002140.jpg" lookId="4d6e8d52-5c0f-4566-bff1-cf78fe3a89db" name="1000002140">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000002141.jpg" lookId="3c0f8484-6961-4217-bca9-b5b8de04fb51" name="1000002141">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000002142.jpg" lookId="a635a7d6-e3b6-4f6a-b00b-143ab7e02c21" name="1000002142">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000002143.jpg" lookId="7f4dff09-60f6-47d9-9785-8014e77505a3" name="1000002143">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000002144.jpg" lookId="c9670a6e-be41-4653-ab99-ae5caf148778" name="1000002144">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000002145.jpg" lookId="ec9e6fef-c704-4869-944b-34ea98e0088e" name="1000002145">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000002146.jpg" lookId="aa8ec8b8-8ce7-4941-81f5-089c07d1cec1" name="1000002146">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000002147.jpg" lookId="afc6e25c-1424-439b-a587-2b9f8b7af06f" name="1000002147">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="SetSizeToBrick">
+                  <brickId>676f1322-9152-4b7e-9e43-0bdcea65130f</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="SIZE">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>240</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="WaitBrick">
+                  <brickId>40329c0c-9095-40eb-8f2a-6ed36a0202bd</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="TIME_TO_WAIT_IN_SECONDS">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>1</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="ForeverBrick">
+                  <brickId>f7943ad4-0986-4fac-b6cc-af3357c596d5</brickId>
+                  <commentedOut>false</commentedOut>
+                  <loopBricks>
+                    <brick type="WaitBrick">
+                      <brickId>09936770-09e1-4ca9-a4ad-a721f7ca05ad</brickId>
+                      <commentedOut>false</commentedOut>
+                      <formulaList>
+                        <formula category="TIME_TO_WAIT_IN_SECONDS">
+                          <additionalChildren/>
+                          <type>NUMBER</type>
+                          <value>0.1</value>
+                        </formula>
+                      </formulaList>
+                    </brick>
+                    <brick type="NextLookBrick">
+                      <brickId>2ccaac3d-517a-4a99-8466-d671dfc43be8</brickId>
+                      <commentedOut>false</commentedOut>
+                    </brick>
+                  </loopBricks>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>e22b3d06-3757-4a1b-b21f-b9da9219bba3</scriptId>
+            </script>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="WaitBrick">
+                  <brickId>ccd6b86c-c76c-467e-95ce-1815485d87a0</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="TIME_TO_WAIT_IN_SECONDS">
+                      <additionalChildren/>
+                      <leftChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>6.0</value>
+                      </leftChild>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>7.1</value>
+                      </rightChild>
+                      <type>FUNCTION</type>
+                      <value>RAND</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="SceneStartBrick">
+                  <brickId>612a1559-60f7-4da8-a4b0-7acf56580786</brickId>
+                  <commentedOut>false</commentedOut>
+                  <sceneToStart>запуск</sceneToStart>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>f3efe58c-2153-4f13-9103-25beb105be7f</scriptId>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+      </objectList>
+    </scene>
+    <scene sceneId="1e737e01-dcf4-43cc-a908-6f4bab58009e">
+      <name>Сцена</name>
+      <objectList>
+        <object type="Sprite" spriteId="fafd3607-0cdf-400e-9bdc-83749db3c0bb" name="Фон">
+          <lookList>
+            <look fileName="1000017044.png" lookId="46d31247-8ffe-4f2f-b0d7-34d3e2be1cc0" name="1000017044">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="SetSizeToBrick">
+                  <brickId>38b7d566-6f7c-432b-9a35-6e29bbfa5b66</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="SIZE">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>173</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>390e7ebd-30a2-49b9-b31f-5e6a320ea639</scriptId>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+        <object type="Sprite" spriteId="8a9a7779-7cb1-469a-b866-54ff9abba8a0" name="Мой актер или объект">
+          <lookList>
+            <look fileName="Мой актер или объект.png" lookId="d334a545-f732-436f-8dca-71ba183d0cb6" name="Мой актер или объект">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="PlaceAtBrick">
+                  <brickId>99c70a43-0c86-44d2-8f30-6793c4800ecd</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="Y_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>85</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                    <formula category="X_POSITION">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>25</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>10cb14c7-4766-412b-9a24-4a6cfb942fc0</scriptId>
+            </script>
+            <script type="WhenScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="ShowTextBrick">
+                  <brickId>7cd027dc-0d7c-4c9b-a548-5f85a6d139db</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="Y_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>69</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                    <formula category="X_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>4</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable type="UserVariable" serialization="custom">
+                    <userVariable>
+                      <default>
+                        <initialIndex>-1</initialIndex>
+                        <deviceValueKey>d6c0de74-f4c0-4f48-87e3-c60f5ae3b845</deviceValueKey>
+                        <name>Пароль</name>
+                      </default>
+                    </userVariable>
+                  </userVariable>
+                </brick>
+                <brick type="AskBrick">
+                  <brickId>7a6f9995-1e78-4c9e-8136-40f99413bb98</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="ASK_QUESTION">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value></value>
+                    </formula>
+                  </formulaList>
+                  <userVariable reference="../../brick/userVariable"/>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>bccb078d-0030-45fd-9ed5-fc5e681aa2bd</scriptId>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+        <object type="Sprite" spriteId="a54f76b1-ed12-46de-89b3-0d176e56bf74" name="Мой актер или объект (1)">
+          <lookList>
+            <look fileName="Мой актер или объект_#0.png" lookId="dab62d35-4f88-453a-b440-cc935f69c862" name="Мой актер или объект (1)">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="SetSizeToBrick">
+                  <brickId>ed0d57bf-3407-4980-b765-3893b867cc11</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="SIZE">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>60.0</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="PlaceAtBrick">
+                  <brickId>0ce4cb78-1f12-4fe5-87fc-c32d81a90450</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="Y_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>109</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                    <formula category="X_POSITION">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>150</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>0174e696-150b-4656-a579-a3c5bbdb45aa</scriptId>
+            </script>
+            <script type="WhenScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="SceneStartBrick">
+                  <brickId>63bc1306-c3a2-43c5-97bf-8ff470f6bad7</brickId>
+                  <commentedOut>false</commentedOut>
+                  <sceneToStart>Рабочий стол</sceneToStart>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>a84cccd6-75f9-4bc8-9305-a9e06081d09f</scriptId>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+      </objectList>
+    </scene>
+    <scene sceneId="9fc243ae-268f-4ddf-9879-4cbe7a3b49f4">
+      <name>Рабочий стол</name>
+      <objectList>
+        <object type="Sprite" spriteId="73c38655-8621-459d-b682-a923a5d89f3d" name="Фон">
+          <lookList>
+            <look fileName="Фон.png" lookId="1fa5792e-6790-4187-9704-2e2bd8c73bb1" name="Фон">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList/>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+        <object type="Sprite" spriteId="0405b5b6-7b35-4738-b787-844fe7cb76a1" name="1000017033">
+          <lookList>
+            <look fileName="1000017033.png" lookId="311824ab-8d62-4b04-b9c1-914347be9e70" name="1000017033">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="SetSizeToBrick">
+                  <brickId>278de347-2a93-4f83-997c-7d2b7ab315fd</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="SIZE">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>12</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="PlaceAtBrick">
+                  <brickId>608aee03-75dc-451e-b558-b18ed9c8ada2</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="Y_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>528</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                    <formula category="X_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>907</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>6d5e8ba8-da11-4456-81f0-1c76f8169fbe</scriptId>
+            </script>
+            <script type="WhenScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="BroadcastBrick">
+                  <brickId>888e14df-456c-4a82-b7aa-5c36cad521f5</brickId>
+                  <commentedOut>false</commentedOut>
+                  <broadcastMessage>Открыть меню пуск</broadcastMessage>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>38f1b7e4-2c99-4db1-876b-b7a843df8280</scriptId>
+            </script>
+            <script type="BroadcastScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="HideBrick">
+                  <brickId>134c31f3-196d-4a2d-a4d8-00f04ae2bf98</brickId>
+                  <commentedOut>false</commentedOut>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>090f36f8-98f2-4ea6-9e9c-f5b07af3fc55</scriptId>
+              <receivedMessage>Открыть меню пуск</receivedMessage>
+            </script>
+            <script type="BroadcastScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="ShowBrick">
+                  <brickId>cae7c92f-197d-4530-b897-86f86a5ad9d0</brickId>
+                  <commentedOut>false</commentedOut>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>2a25620d-030e-4559-bf5f-19917f9a5d8d</scriptId>
+              <receivedMessage>Закрыть меню пуск</receivedMessage>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+        <object type="Sprite" spriteId="4687c550-7406-4555-815f-626426baa296" name="Мой актер или объект">
+          <lookList>
+            <look fileName="Мой актер или объект.png" lookId="efd93a42-232a-4454-b2b7-6e14cc0e2bb9" name="Мой актер или объект">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="HideBrick">
+                  <brickId>399b8f36-88f5-484c-99bf-82d76b7aa13c</brickId>
+                  <commentedOut>false</commentedOut>
+                </brick>
+                <brick type="PlaceAtBrick">
+                  <brickId>c439fb8e-01e3-415b-889a-00a528c48594</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="Y_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>222</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                    <formula category="X_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>698</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>38a6b20b-6102-4d06-bc89-dbc56d4c3f83</scriptId>
+            </script>
+            <script type="BroadcastScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="ShowBrick">
+                  <brickId>030a0386-c781-4362-8cea-90f6a49af689</brickId>
+                  <commentedOut>false</commentedOut>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>69683479-d664-441b-8368-a8a2c5e7ca2a</scriptId>
+              <receivedMessage>Открыть меню пуск</receivedMessage>
+            </script>
+            <script type="BroadcastScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="HideBrick">
+                  <brickId>dad91eac-8da2-48b5-98d8-5ee514d85af0</brickId>
+                  <commentedOut>false</commentedOut>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>600403ee-0541-4741-ba49-9ee7d3745946</scriptId>
+              <receivedMessage>Закрыть меню пуск</receivedMessage>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+        <object type="Sprite" spriteId="b2a04ecf-d679-42a0-8e22-be5fe6e0b3f8" name="1000017033 (1)">
+          <lookList>
+            <look fileName="1000017033_#0.png" lookId="68b874fa-7886-4958-a0ae-930aa023fc74" name="1000017033">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="SetSizeToBrick">
+                  <brickId>0d25a3a5-6b07-49e9-a347-4cb312c6b83e</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="SIZE">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>12</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="HideBrick">
+                  <brickId>e7984652-07be-4537-87da-48e5d7943c7a</brickId>
+                  <commentedOut>false</commentedOut>
+                </brick>
+                <brick type="PlaceAtBrick">
+                  <brickId>478f0a66-156b-4d3e-9c71-86346308b52c</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="Y_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>528</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                    <formula category="X_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>907</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>20553271-9ff9-4834-b52d-f797f974cce0</scriptId>
+            </script>
+            <script type="BroadcastScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="ShowBrick">
+                  <brickId>e19601bc-3beb-4594-8e9b-d55fd5fbeafa</brickId>
+                  <commentedOut>false</commentedOut>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>7c767392-da35-4136-8de5-14e73632a44f</scriptId>
+              <receivedMessage>Открыть меню пуск</receivedMessage>
+            </script>
+            <script type="WhenScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="BroadcastBrick">
+                  <brickId>b7811d45-7593-4040-a367-86173d350a5e</brickId>
+                  <commentedOut>false</commentedOut>
+                  <broadcastMessage>Закрыть меню пуск</broadcastMessage>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>d0fdcafe-378e-424e-bd26-43273f15d780</scriptId>
+            </script>
+            <script type="BroadcastScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="HideBrick">
+                  <brickId>34a0c301-658a-45a9-b581-84bd3c7a3c85</brickId>
+                  <commentedOut>false</commentedOut>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>e733c5b1-efb3-4b20-80bc-efa57d562eaa</scriptId>
+              <receivedMessage>Закрыть меню пуск</receivedMessage>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+        <object type="Sprite" spriteId="ae723648-b345-4d74-9109-4bb56991fd53" name="Мой актер или объект (4)">
+          <lookList>
+            <look fileName="Мой актер или объект_#3.png" lookId="3ab17f94-141f-4f44-8158-f753ac24c69f" name="Мой актер или объект (4)">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="HideBrick">
+                  <brickId>706c3cc8-05e4-45fe-a2c9-abce1638f53c</brickId>
+                  <commentedOut>false</commentedOut>
+                </brick>
+                <brick type="PlaceAtBrick">
+                  <brickId>e57d01bb-820e-4116-b5c6-3baad380d436</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="Y_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>483</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                    <formula category="X_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>568</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>a0f794aa-3192-4293-b9de-da69902606e7</scriptId>
+            </script>
+            <script type="WhenScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="ExitStageBrick">
+                  <brickId>dff58aaf-34af-498e-9572-efecd52090be</brickId>
+                  <commentedOut>false</commentedOut>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>c9f53112-63d3-45d6-a396-e10f0b73e5d0</scriptId>
+            </script>
+            <script type="BroadcastScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="ShowBrick">
+                  <brickId>a2f11d6a-b1b6-43d7-bbae-5abeb2d6a429</brickId>
+                  <commentedOut>false</commentedOut>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>593a3a76-fff1-49f7-8bd7-18a631e9df67</scriptId>
+              <receivedMessage>Открыть меню пуск</receivedMessage>
+            </script>
+            <script type="BroadcastScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="HideBrick">
+                  <brickId>b1a143eb-4dc6-46e2-9d2c-be3d2919549c</brickId>
+                  <commentedOut>false</commentedOut>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>b7aea05e-7cb5-4c95-acad-e1bc37ff4626</scriptId>
+              <receivedMessage>Закрыть меню пуск</receivedMessage>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+        <object type="Sprite" spriteId="9d3a50c7-4d4d-43d7-bb8e-75535b4ba564" name="Мой актер или объект (1)">
+          <lookList>
+            <look fileName="Мой актер или объект_#0.png" lookId="c0f9b416-bf17-459e-8e99-eca50d9c1c14" name="Мой актер или объект (1)">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="HideBrick">
+                  <brickId>48c151ff-df79-417e-bd76-653fd68e14e0</brickId>
+                  <commentedOut>false</commentedOut>
+                </brick>
+                <brick type="PlaceAtBrick">
+                  <brickId>246267d7-5a92-4d16-940c-889e5d3e82c5</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="Y_POSITION">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>62</value>
+                    </formula>
+                    <formula category="X_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>717</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>098e5678-a72c-499c-bfda-b3ca28ddb4f9</scriptId>
+            </script>
+            <script type="BroadcastScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="ShowBrick">
+                  <brickId>53355de8-84af-4729-940f-3c4eeadb8089</brickId>
+                  <commentedOut>false</commentedOut>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>3096bf70-69aa-4526-9d48-da93e92f94a8</scriptId>
+              <receivedMessage>Открыть меню пуск</receivedMessage>
+            </script>
+            <script type="BroadcastScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="HideBrick">
+                  <brickId>8a6b7cdd-f4c1-4061-88e5-5725584cb94b</brickId>
+                  <commentedOut>false</commentedOut>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>8b899063-ba35-4807-8738-5caf5c0c44e9</scriptId>
+              <receivedMessage>Закрыть меню пуск</receivedMessage>
+            </script>
+            <script type="WhenScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="SceneStartBrick">
+                  <brickId>8c1368f6-ec13-407f-9623-db3191ace101</brickId>
+                  <commentedOut>false</commentedOut>
+                  <sceneToStart>Сцена (1)</sceneToStart>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>e1d5a503-14f2-4e87-bd02-a66ca51c9ed8</scriptId>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+        <object type="Sprite" spriteId="4dff2d2c-c11f-491a-b71e-97c6fa8dfac4" name="Мой актер или объект (2)">
+          <lookList>
+            <look fileName="Мой актер или объект_#1.png" lookId="685d24d3-adb2-44b2-bb8d-27e6a9b270a9" name="Мой актер или объект (2)">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="PlaceAtBrick">
+                  <brickId>9d5e85eb-f96e-4ffc-871e-d9191ddbdbb0</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="Y_POSITION">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>417</value>
+                    </formula>
+                    <formula category="X_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>678</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>31752a0d-9542-475d-80f1-c10c1d8120cd</scriptId>
+            </script>
+            <script type="WhenScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="SceneStartBrick">
+                  <brickId>df0c374f-cb49-4427-8bb2-287cfe7bce55</brickId>
+                  <commentedOut>false</commentedOut>
+                  <sceneToStart>Сцена (3)</sceneToStart>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>64490e94-0d9d-4fd2-8440-1441a15f0ae1</scriptId>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+      </objectList>
+    </scene>
+    <scene sceneId="ad4093c4-8aa1-427a-80c7-10df3a57890d">
+      <name>Сцена (1)</name>
+      <objectList>
+        <object type="Sprite" spriteId="8c9ef979-9591-47c4-9e9d-d0b98dfb48b2" name="Фон">
+          <lookList>
+            <look fileName="Фон.png" lookId="1770a7ab-4a16-4835-bda8-4bd0dc6b395b" name="Фон">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList/>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+        <object type="Sprite" spriteId="67d53094-ea59-4c3c-b336-d75f4e5517ff" name="Мой актер или объект">
+          <lookList>
+            <look fileName="Мой актер или объект.png" lookId="0f96ed07-c0fa-4d04-82c1-a19c14cb54fe" name="Мой актер или объект">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="PlaceAtBrick">
+                  <brickId>3d46427f-1fac-435b-a320-92aed141cef7</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="Y_POSITION">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>10</value>
+                    </formula>
+                    <formula category="X_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>12</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>1edc2c76-c2cd-480a-9080-a5cfad646dcd</scriptId>
+            </script>
+            <script type="WhenScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="ShowTextColorSizeAlignmentBrick">
+                  <brickId>e0aa1359-4b8a-41e4-bdf9-1fbe97edc051</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="COLOR">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>#FF0000</value>
+                    </formula>
+                    <formula category="SIZE">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>120.0</value>
+                    </formula>
+                    <formula category="Y_POSITION">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>42</value>
+                    </formula>
+                    <formula category="X_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>19</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable type="UserVariable" serialization="custom">
+                    <userVariable>
+                      <default>
+                        <initialIndex>-1</initialIndex>
+                        <deviceValueKey>481c7eae-625c-48e0-8b0a-608bd595f2fe</deviceValueKey>
+                        <name>Заметка</name>
+                      </default>
+                    </userVariable>
+                  </userVariable>
+                  <alignmentSelection>1</alignmentSelection>
+                </brick>
+                <brick type="AskBrick">
+                  <brickId>e1499896-0af2-49d2-97fe-ce1681556182</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="ASK_QUESTION">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value></value>
+                    </formula>
+                  </formulaList>
+                  <userVariable reference="../../brick/userVariable"/>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>320d2890-0876-41dd-a4d3-46469b5ffc75</scriptId>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+        <object type="Sprite" spriteId="2caadebb-d9c7-4f66-ad49-efd1ea551392" name="Мой актер или объект (1)">
+          <lookList>
+            <look fileName="Мой актер или объект_#0.png" lookId="b228a78c-b91e-4eed-827f-25b472a52e2d" name="Мой актер или объект (1)">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="PlaceAtBrick">
+                  <brickId>f6561208-85b5-4d73-88d6-d5afd4521e57</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="Y_POSITION">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>508</value>
+                    </formula>
+                    <formula category="X_POSITION">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>1068</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>a41a533b-0998-428d-92cc-8a5b2f2153ea</scriptId>
+            </script>
+            <script type="WhenScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="SceneStartBrick">
+                  <brickId>9767438c-9965-4db7-bc02-d137f26728d3</brickId>
+                  <commentedOut>false</commentedOut>
+                  <sceneToStart>Рабочий стол</sceneToStart>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>d5dd49fd-c6a4-4a28-8c27-0e682db72f7e</scriptId>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+      </objectList>
+    </scene>
+    <scene sceneId="4a35688b-a641-4bb4-845c-517c569910d5">
+      <name>Сцена (3)</name>
+      <objectList>
+        <object type="Sprite" spriteId="aaf687ae-72d5-4ac5-ad50-c79fead0f4e2" name="Фон">
+          <lookList>
+            <look fileName="Фон.png" lookId="3d020197-e026-4012-8f39-1b52afc4e715" name="Фон">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList/>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+        <object type="Sprite" spriteId="a1131827-3c43-4385-a46a-7668a11025c8" name="Мой актер или объект">
+          <lookList>
+            <look fileName="Мой актер или объект.png" lookId="99180ca6-fc6e-412e-b55b-d8ba0199c97c" name="Мой актер или объект">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="PlaceAtBrick">
+                  <brickId>d9c15fa0-9479-4de2-90a0-5d0cf0097a63</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="Y_POSITION">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>271</value>
+                    </formula>
+                    <formula category="X_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>58</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>ba570f21-f3d2-4ec9-a573-bcbb18f35257</scriptId>
+            </script>
+            <script type="WhenScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="SceneStartBrick">
+                  <brickId>b80ba685-ef6d-426c-8602-90e6f69a5743</brickId>
+                  <commentedOut>false</commentedOut>
+                  <sceneToStart>Сцена (2)</sceneToStart>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>d7615c2e-078b-4f5f-bb4e-1478d36ddac6</scriptId>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+        <object type="Sprite" spriteId="3adfd9c5-02bc-41a3-99a4-a3260ca3cc2f" name="Мой актер или объект (1)">
+          <lookList>
+            <look fileName="Мой актер или объект_#0.png" lookId="64518bac-1f33-462d-a6ad-426ad0456cfd" name="Мой актер или объект (1)">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="SetSizeToBrick">
+                  <brickId>ce5813ff-a72a-4b6b-98af-7d4d441bbaac</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="SIZE">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>120</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="PlaceAtBrick">
+                  <brickId>ccc58b92-e92b-4eb9-8f57-09e485baeb50</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="Y_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>89</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                    <formula category="X_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>18</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>e4d4cbf5-3752-4024-8db6-a49b9e53b22e</scriptId>
+            </script>
+            <script type="WhenScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="OpenUrlBrick">
+                  <brickId>5ae76dc3-6aaf-4a43-a88b-afb13cc1c873</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="OPEN_URL">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>https://disk.yandex.ru/d/2XKeUwPngpEqWQ</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>7efc77bf-1942-45ab-b277-5c234707ca89</scriptId>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+        <object type="Sprite" spriteId="98787b61-c5d0-4538-95c3-f3f689c17e72" name="Мой актер или объект (2)">
+          <lookList>
+            <look fileName="Мой актер или объект_#1.png" lookId="e57ec890-b74a-42c1-b57c-a5ea7f259e96" name="Мой актер или объект (1)">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="SetSizeToBrick">
+                  <brickId>92b88a2c-5a17-4bbf-b368-616755714715</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="SIZE">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>120</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="PlaceAtBrick">
+                  <brickId>f8e65573-190c-40ee-b4dd-ab883af026a9</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="Y_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>399</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                    <formula category="X_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>78</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>89a64502-fbca-4551-9e5e-8b630ca310d7</scriptId>
+            </script>
+            <script type="WhenScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="ExitStageBrick">
+                  <brickId>af73c3f5-ff61-4fba-bbab-6ffcf3846b78</brickId>
+                  <commentedOut>false</commentedOut>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>33f34f16-0d84-43e4-aa39-be218acb0cff</scriptId>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+        <object type="Sprite" spriteId="b32bd084-2c0f-4ff1-946e-d6f1dd920eac" name="Мой актер или объект (3)">
+          <lookList>
+            <look fileName="Мой актер или объект_#2.png" lookId="9bd0c633-a9e6-4b44-98b9-70867c668c61" name="Мой актер или объект (3)">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="PlaceAtBrick">
+                  <brickId>efd9f325-17e7-404a-9d5e-713e3832486b</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="Y_POSITION">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>278</value>
+                    </formula>
+                    <formula category="X_POSITION">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>637</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>0f31204b-e9b6-40ba-96fb-122181830247</scriptId>
+            </script>
+            <script type="WhenScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="OpenUrlBrick">
+                  <brickId>82139aac-15c9-484b-8c5d-ae38419b0ebd</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="OPEN_URL">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>https://t.me/+8SAbY5MGI5kyMjYy</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>d087eb50-4b2e-4dab-84c4-32467eb524a1</scriptId>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+      </objectList>
+    </scene>
+  </scenes>
+  <programVariableList>
+    <userVariable reference="../../scenes/scene[2]/objectList/object[2]/scriptList/script[2]/brickList/brick/userVariable"/>
+    <userVariable reference="../../scenes/scene[4]/objectList/object[2]/scriptList/script[2]/brickList/brick/userVariable"/>
+  </programVariableList>
+  <programListOfLists/>
+  <programMultiplayerVariableList/>
+</program>

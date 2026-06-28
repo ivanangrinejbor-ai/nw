@@ -170,6 +170,7 @@ public class StageListener implements ApplicationListener {
 	private Stage stage = null;
 	private Stage uiStage = null;
 	private boolean paused = true;
+	private boolean globalScriptsStarted = false;
 	private boolean finished = false;
 	private boolean reloadProject = false;
 	public boolean firstFrameDrawn = false;
@@ -332,6 +333,7 @@ public class StageListener implements ApplicationListener {
 
 		physicsWorld = scene.resetPhysicsWorld();
 		sprites = new ArrayList<>(scene.getSpriteList());
+		loadGlobalSprites();
 
 		resetConditionScriptTriggers();
 
@@ -745,14 +747,15 @@ public class StageListener implements ApplicationListener {
 		stage.addActor(vmMonitorActor);
 		vmMonitorActor.setZIndex(0);
 
-		if (sprites.isEmpty()) {
-			return;
-		}
+		Scene globalScene = project.getGlobalScene();
+		List<Sprite> globalSprites = globalScene != null ? globalScene.getSpriteList() : new ArrayList<>();
 
 		for (Sprite sprite : sprites) {
-			sprite.resetSprite();
+			boolean isGlobal = globalSprites.contains(sprite);
+			if (!isGlobal) {
+				sprite.resetSprite();
+			}
 			sprite.look.setRenderingContext(this.camera, this.viewPort, this.uiStage);
-
 			stage.addActor(sprite.look);
 		}
 
@@ -768,6 +771,13 @@ public class StageListener implements ApplicationListener {
 		EmbroideryActor embroideryActor = new EmbroideryActor(screenRatio, embroideryPatternManager, shapeRenderer);
 		stage.addActor(embroideryActor);
 		embroideryActor.setZIndex(Z_LAYER_EMBROIDERY_ACTOR);
+	}
+
+	private void loadGlobalSprites() {
+		Scene globalScene = project.getGlobalScene();
+		if (globalScene != null && globalScene.getSpriteList().size() > 0) {
+			sprites.addAll(globalScene.getSpriteList());
+		}
 	}
 
 	public void cloneSpriteAndAddToStage(Sprite cloneMe) {
@@ -1205,6 +1215,11 @@ public class StageListener implements ApplicationListener {
 		for (Scene scene : ProjectManager.getInstance().getCurrentProject().getSceneList()) {
 			scene.firstStart = true;
 		}
+		Scene globalScene = ProjectManager.getInstance().getCurrentProject().getGlobalScene();
+		if (globalScene != null) {
+			globalScene.firstStart = true;
+		}
+		globalScriptsStarted = false;
 		GlobalManager.Companion.setStopSounds(true);
 		GlobalManager.Companion.setSaveScenes(true);
 
@@ -1371,15 +1386,23 @@ public class StageListener implements ApplicationListener {
 			shapeRenderer.setProjectionMatrix(camera.combined);
 
 			if (scene.firstStart) {
+				Scene globalScene = project.getGlobalScene();
+				List<Sprite> globalSprites = globalScene.getSpriteList();
 				for (Sprite sprite : sprites) {
-					sprite.initializeEventThreads(EventId.START);
+					boolean isGlobal = globalSprites.contains(sprite);
+					if (!isGlobal || !globalScriptsStarted) {
+						sprite.initializeEventThreads(EventId.START);
+					}
 					sprite.initConditionScriptTriggers();
 					sprite.initIfConditionBrickTriggers();
-					if (!sprite.getLookList().isEmpty()) {
+					if (!isGlobal && !sprite.getLookList().isEmpty()) {
 						sprite.look.setLookData(sprite.getLookList().get(0));
 					}
 				}
 				scene.firstStart = false;
+				if (!globalScriptsStarted && globalSprites.size() > 0) {
+					globalScriptsStarted = true;
+				}
 			}
 
             if (!paused) {
@@ -2034,6 +2057,10 @@ public class StageListener implements ApplicationListener {
 		VibrationManager vibrationManager = StageActivity.getActiveVibrationManager();
 
 		backup.sprites = new ArrayList<>(sprites);
+		Scene globalScene = project.getGlobalScene();
+		if (globalScene != null) {
+			backup.sprites.removeAll(globalScene.getSpriteList());
+		}
 		backup.actors = new Array<>(stage.getActors());
 		backup.penActor = penActor;
 		backup.plotActor = plotActor;
@@ -2075,6 +2102,7 @@ public class StageListener implements ApplicationListener {
 	private void restoreFromBackup(StageBackup backup) {
 		sprites.clear();
 		sprites.addAll(backup.sprites);
+		loadGlobalSprites();
 		CameraManager cameraManager = StageActivity.getActiveCameraManager();
 		VibrationManager vibrationManager = StageActivity.getActiveVibrationManager();
 

@@ -10,10 +10,10 @@ class ApplyAngularImpulseAction : TemporalAction() {
     private var impulse: Formula? = null
 
     override fun update(percent: Float) {
-        val impulseValue = impulse!!.interpretFloat(scope)
+        val impulseValue = impulse?.interpretFloat(scope) ?: 0f
 
         val scene = ProjectManager.getInstance().currentlyPlayingScene ?: return
-        val sprite = scope!!.sprite ?: return
+        val sprite = scope?.sprite ?: return
 
         scene.physicsWorld.applyAngularImpulse(sprite, impulseValue)
     }

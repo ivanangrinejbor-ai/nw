@@ -1,0 +1,7 @@
+{
+  "vocab_size": 237,
+  "window": 500,
+  "epochs": 15,
+  "training_pairs": 27792,
+  "final_accuracy": 0.7622740864753723
+}

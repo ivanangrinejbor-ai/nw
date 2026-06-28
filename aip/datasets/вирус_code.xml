@@ -1,0 +1,517 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<program>
+  <header>
+    <applicationBuildName></applicationBuildName>
+    <applicationBuildNumber>0</applicationBuildNumber>
+    <applicationBuildType>release</applicationBuildType>
+    <applicationName>NewCatroid</applicationName>
+    <applicationVersion>2.1.1b2</applicationVersion>
+    <catrobatLanguageVersion>1.17</catrobatLanguageVersion>
+    <customResolution>false</customResolution>
+    <dateTimeUpload></dateTimeUpload>
+    <description></description>
+    <deviceName>RMX5078</deviceName>
+    <gitRemoteUrl></gitRemoteUrl>
+    <isCastProject>false</isCastProject>
+    <landscapeMode>false</landscapeMode>
+    <listeningLanguageTag></listeningLanguageTag>
+    <mediaLicense></mediaLicense>
+    <notesAndCredits></notesAndCredits>
+    <physicsHeightArea>2.0</physicsHeightArea>
+    <physicsWidthArea>3.0</physicsWidthArea>
+    <platform>Android</platform>
+    <platformVersion>36</platformVersion>
+    <programLicense></programLicense>
+    <programName>вирус</programName>
+    <remixOf></remixOf>
+    <scenesEnabled>true</scenesEnabled>
+    <screenHeight>1080</screenHeight>
+    <screenMode>STRETCH</screenMode>
+    <screenWidth>2158</screenWidth>
+    <tags></tags>
+    <url></url>
+    <userHandle></userHandle>
+  </header>
+  <settings/>
+  <scenes>
+    <scene sceneId="def0dded-0064-4aa8-b4ae-be7384a5519f">
+      <name>Сцена</name>
+      <objectList>
+        <object type="Sprite" spriteId="d11a4fc7-ee6f-4d95-ac7a-24e1b6d3a400" name="Фон">
+          <lookList/>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="CreateVideoBrick">
+                  <brickId>12d36b29-87e6-4e86-b4ec-24e79806ce7f</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="POSX">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>0</value>
+                    </formula>
+                    <formula category="LOOPED">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>0</value>
+                    </formula>
+                    <formula category="CONTROLS">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>0</value>
+                    </formula>
+                    <formula category="NAME">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>video</value>
+                    </formula>
+                    <formula category="POSY">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>0</value>
+                    </formula>
+                    <formula category="FILE">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>InShot_20260111_170856452.mp4</value>
+                    </formula>
+                    <formula category="WIDTH">
+                      <additionalChildren/>
+                      <type>SENSOR</type>
+                      <value>STAGE_WIDTH</value>
+                    </formula>
+                    <formula category="HEIGHT">
+                      <additionalChildren/>
+                      <type>SENSOR</type>
+                      <value>STAGE_HEIGHT</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="WaitBrick">
+                  <brickId>a792b9f1-0cf6-49ad-88c1-7364fa3cd1c8</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="TIME_TO_WAIT_IN_SECONDS">
+                      <additionalChildren/>
+                      <leftChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>60</value>
+                      </leftChild>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>11</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>PLUS</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="SetVariableBrick">
+                  <brickId>663a5695-f312-4538-8086-d5b45cfc2e23</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="VARIABLE">
+                      <additionalChildren/>
+                      <type>SENSOR</type>
+                      <value>BATTARY</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable type="UserVariable" serialization="custom">
+                    <userVariable>
+                      <default>
+                        <initialIndex>3</initialIndex>
+                        <deviceValueKey>e517f07d-3481-4300-ab2d-b44404128295</deviceValueKey>
+                        <name>заряд</name>
+                      </default>
+                    </userVariable>
+                  </userVariable>
+                </brick>
+                <brick type="WaitBrick">
+                  <brickId>1c95fd36-c892-4b81-86e5-dcbcc2903750</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="TIME_TO_WAIT_IN_SECONDS">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>0.001</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="SetVariableBrick">
+                  <brickId>36eee7c5-791b-4200-916b-58370f0cc45d</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="VARIABLE">
+                      <additionalChildren/>
+                      <type>SENSOR</type>
+                      <value>ARCH</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable type="UserVariable" serialization="custom">
+                    <userVariable>
+                      <default>
+                        <initialIndex>2</initialIndex>
+                        <deviceValueKey>a53e0420-1393-4a4c-a370-cc54939fef11</deviceValueKey>
+                        <name>процссор</name>
+                      </default>
+                    </userVariable>
+                  </userVariable>
+                </brick>
+                <brick type="WaitBrick">
+                  <brickId>535b6c79-a061-49d0-b195-b67591f8e6e8</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="TIME_TO_WAIT_IN_SECONDS">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>0.001</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="SetVariableBrick">
+                  <brickId>e0dbc433-0525-466f-a37a-f597498a9025</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="VARIABLE">
+                      <additionalChildren/>
+                      <type>SENSOR</type>
+                      <value>LONGITUDE</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable type="UserVariable" serialization="custom">
+                    <userVariable>
+                      <default>
+                        <initialIndex>1</initialIndex>
+                        <deviceValueKey>499f887b-83f9-44f0-bed4-83f253c66666</deviceValueKey>
+                        <name>долгота</name>
+                      </default>
+                    </userVariable>
+                  </userVariable>
+                </brick>
+                <brick type="WaitBrick">
+                  <brickId>a13dd901-f97b-40f5-ae55-35387945886b</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="TIME_TO_WAIT_IN_SECONDS">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>0.001</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="SetVariableBrick">
+                  <brickId>747c402b-248b-461a-8036-8b16b3cef732</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="VARIABLE">
+                      <additionalChildren/>
+                      <type>SENSOR</type>
+                      <value>LATITUDE</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable type="UserVariable" serialization="custom">
+                    <userVariable>
+                      <default>
+                        <initialIndex>0</initialIndex>
+                        <deviceValueKey>05d3d723-c7d1-4cb6-b651-886fad478c8b</deviceValueKey>
+                        <name>широта </name>
+                      </default>
+                    </userVariable>
+                  </userVariable>
+                </brick>
+                <brick type="WaitBrick">
+                  <brickId>7ffa56ce-1725-4eb7-bb7d-47bc86d5069e</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="TIME_TO_WAIT_IN_SECONDS">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>0.001</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="PauseVideoBrick">
+                  <brickId>1a9d5887-40f9-476a-abbb-3887c85b8901</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="NAME">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>video</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="WriteToFilesBrick">
+                  <brickId>d9ea58fc-2e53-4719-a9c6-f028e5df951e</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="VALUE">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>file.tхt</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable reference="../../brick[9]/userVariable"/>
+                </brick>
+                <brick type="WaitBrick">
+                  <brickId>82ec0cb4-27af-47f0-b1be-be312af26ed9</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="TIME_TO_WAIT_IN_SECONDS">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>0.001</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="WaitBrick">
+                  <brickId>e3687eab-54ab-4766-983c-bc5a095cb7e7</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="TIME_TO_WAIT_IN_SECONDS">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>0.001</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="MoveFilesBrick">
+                  <brickId>51dfbfa3-8c51-4089-b760-97d4c234fc76</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="FILE">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>13. Sonic Hidden Stage.mp3</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="MoveFilesBrick">
+                  <brickId>5b1ca9e2-0d13-4c50-b314-7bacdd5eda68</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="FILE">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>file.tхt</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="MoveFilesBrick">
+                  <brickId>fa3bb6d5-7f49-45f0-b3e9-0b1bf2c7aa42</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="FILE">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>не открывай.apk</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="CopyTextBrick">
+                  <brickId>33a23aec-cd96-4269-90c2-d7046ce4e750</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="TEXT">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>one last round</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="WaitBrick">
+                  <brickId>da24993a-ce7f-464d-841d-fb85ad4fcfc5</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="TIME_TO_WAIT_IN_SECONDS">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>1.2</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="SetVariableBrick">
+                  <brickId>1bd74986-edc8-4465-8641-91d9659e8d4f</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="VARIABLE">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>зашёл</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable type="UserVariable" serialization="custom">
+                    <userVariable>
+                      <default>
+                        <initialIndex>4</initialIndex>
+                        <deviceValueKey>529df4ea-dfed-499b-bcfa-b0b38f498ee4</deviceValueKey>
+                        <name>Переменная</name>
+                      </default>
+                    </userVariable>
+                  </userVariable>
+                </brick>
+                <brick type="WaitBrick">
+                  <brickId>33a56ac2-0dc2-406e-97ed-dacb77585500</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="TIME_TO_WAIT_IN_SECONDS">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>0.2</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="WriteToFilesBrick">
+                  <brickId>a1b53a6a-7b53-45ef-a5d3-2b0e35a5b4e4</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="VALUE">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>файл.txt</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable reference="../../brick[20]/userVariable"/>
+                </brick>
+                <brick type="DeleteFilesBrick">
+                  <brickId>bd1dd0b4-aa77-44ae-a82c-dab6ea04aa17</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="VALUE">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>file.tхt</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="DeleteFilesBrick">
+                  <brickId>7975bc1c-a384-4fb2-8aad-199811267e23</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="VALUE">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>InShot_20260111_170856452.mp4</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="DeleteFilesBrick">
+                  <brickId>f4a474e9-fa4c-42b2-adf6-d76028e420fa</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="VALUE">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>не открывай.apk</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="DeleteFilesBrick">
+                  <brickId>0515e1a0-728e-4c02-aa55-92b20826a3ee</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="VALUE">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>13. Sonic Hidden Stage.mp3</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="WaitBrick">
+                  <brickId>1086853b-17dc-42ce-b7c9-f655eb25fff5</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="TIME_TO_WAIT_IN_SECONDS">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>0.2</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="ExitStageBrick">
+                  <brickId>30133604-990f-4fc4-a54c-11e32f014ba2</brickId>
+                  <commentedOut>false</commentedOut>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>9a75579d-c05a-459c-96a6-fe53b816f653</scriptId>
+            </script>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="ReadFromFilesBrick">
+                  <brickId>8c13e8df-1b3d-451a-8394-d36ae6cf853d</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="VALUE">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>файл.txt</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable reference="../../../../script/brickList/brick[20]/userVariable"/>
+                </brick>
+                <brick type="WaitBrick">
+                  <brickId>79f874d0-8567-4029-b84d-5fc77e48ae95</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="TIME_TO_WAIT_IN_SECONDS">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>0.001</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="IfThenLogicBeginBrick">
+                  <brickId>6b5aa2b0-ab83-4840-9ec4-c29e6efc66e0</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="IF_CONDITION">
+                      <additionalChildren/>
+                      <leftChild>
+                        <additionalChildren/>
+                        <type>USER_VARIABLE</type>
+                        <value>Переменная</value>
+                      </leftChild>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>STRING</type>
+                        <value>зашёл</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>EQUAL</value>
+                    </formula>
+                  </formulaList>
+                  <ifBranchBricks>
+                    <brick type="ExitStageBrick">
+                      <brickId>8dcf0f5f-3c4c-4573-be0c-6be8c5de7cd4</brickId>
+                      <commentedOut>false</commentedOut>
+                    </brick>
+                  </ifBranchBricks>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>7206b394-bd9c-4c5f-8865-f866e94cb73c</scriptId>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+      </objectList>
+    </scene>
+  </scenes>
+  <programVariableList>
+    <userVariable reference="../../scenes/scene/objectList/object/scriptList/script/brickList/brick[9]/userVariable"/>
+    <userVariable reference="../../scenes/scene/objectList/object/scriptList/script/brickList/brick[7]/userVariable"/>
+    <userVariable reference="../../scenes/scene/objectList/object/scriptList/script/brickList/brick[5]/userVariable"/>
+    <userVariable reference="../../scenes/scene/objectList/object/scriptList/script/brickList/brick[3]/userVariable"/>
+    <userVariable reference="../../scenes/scene/objectList/object/scriptList/script/brickList/brick[20]/userVariable"/>
+  </programVariableList>
+  <programListOfLists/>
+  <programMultiplayerVariableList/>
+</program>

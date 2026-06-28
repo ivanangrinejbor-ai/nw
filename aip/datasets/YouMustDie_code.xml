@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<program>
+  <header>
+    <applicationBuildName></applicationBuildName>
+    <applicationBuildNumber>0</applicationBuildNumber>
+    <applicationBuildType>release</applicationBuildType>
+    <applicationName>NewCatroid 1.2.2</applicationName>
+    <applicationVersion>2.1.2</applicationVersion>
+    <catrobatLanguageVersion>1.17</catrobatLanguageVersion>
+    <customResolution>false</customResolution>
+    <dateTimeUpload></dateTimeUpload>
+    <description></description>
+    <deviceName>SM-A366B</deviceName>
+    <gitRemoteUrl></gitRemoteUrl>
+    <isCastProject>false</isCastProject>
+    <landscapeMode>false</landscapeMode>
+    <listeningLanguageTag></listeningLanguageTag>
+    <mediaLicense></mediaLicense>
+    <notesAndCredits></notesAndCredits>
+    <physicsHeightArea>2.0</physicsHeightArea>
+    <physicsWidthArea>3.0</physicsWidthArea>
+    <platform>Android</platform>
+    <platformVersion>36</platformVersion>
+    <programLicense></programLicense>
+    <programName>YouMustDie</programName>
+    <remixOf></remixOf>
+    <scenesEnabled>true</scenesEnabled>
+    <screenHeight>2113</screenHeight>
+    <screenMode>STRETCH</screenMode>
+    <screenWidth>1080</screenWidth>
+    <tags></tags>
+    <url></url>
+    <userHandle></userHandle>
+  </header>
+  <settings/>
+  <scenes>
+    <scene sceneId="9b54ee72-bd9d-4587-86b3-cf9fedeb3393">
+      <name>Сцена</name>
+      <objectList>
+        <object type="Sprite" spriteId="680f1a84-8ddd-450c-81c6-e30c6767ba32" name="Фон">
+          <lookList/>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="SetVariableBrick">
+                  <brickId>4aea860c-965d-405b-b697-6b440a2febd6</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="VARIABLE">
+                      <additionalChildren/>
+                      <leftChild>
+                        <additionalChildren/>
+                        <type>STRING</type>
+                        <value>you must die </value>
+                      </leftChild>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>9999999</value>
+                      </rightChild>
+                      <type>FUNCTION</type>
+                      <value>REPEAT</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable type="UserVariable" serialization="custom">
+                    <userVariable>
+                      <default>
+                        <initialIndex>0</initialIndex>
+                        <deviceValueKey>0cd8a642-1d52-4fba-b5a4-4762a47c9dc4</deviceValueKey>
+                        <name>.</name>
+                      </default>
+                    </userVariable>
+                  </userVariable>
+                </brick>
+                <brick type="ForeverBrick">
+                  <brickId>b0b4a0e6-ae74-48c1-8e02-673d6dcd643c</brickId>
+                  <commentedOut>false</commentedOut>
+                  <loopBricks>
+                    <brick type="WriteVariableToFileBrick">
+                      <brickId>5a3131e7-48e8-4197-918a-d4ededcddfff</brickId>
+                      <commentedOut>false</commentedOut>
+                      <formulaList>
+                        <formula category="WRITE_FILENAME">
+                          <additionalChildren>
+                            <org.catrobat.catroid.formulaeditor.FormulaElement>
+                              <additionalChildren/>
+                              <type>STRING</type>
+                              <value>.txt</value>
+                            </org.catrobat.catroid.formulaeditor.FormulaElement>
+                          </additionalChildren>
+                          <leftChild>
+                            <additionalChildren/>
+                            <type>STRING</type>
+                            <value>YouMustDie</value>
+                          </leftChild>
+                          <rightChild>
+                            <additionalChildren/>
+                            <type>USER_VARIABLE</type>
+                            <value>..</value>
+                          </rightChild>
+                          <type>FUNCTION</type>
+                          <value>JOIN3</value>
+                        </formula>
+                      </formulaList>
+                      <userVariable reference="../../../../brick/userVariable"/>
+                    </brick>
+                    <brick type="ChangeVariableBrick">
+                      <brickId>f73c7cdf-a5fb-416c-b9c1-fd7019f1b8de</brickId>
+                      <commentedOut>false</commentedOut>
+                      <formulaList>
+                        <formula category="VARIABLE_CHANGE">
+                          <additionalChildren/>
+                          <type>NUMBER</type>
+                          <value>1.0</value>
+                        </formula>
+                      </formulaList>
+                      <userVariable type="UserVariable" serialization="custom">
+                        <userVariable>
+                          <default>
+                            <initialIndex>1</initialIndex>
+                            <deviceValueKey>da12370b-908e-4f1d-8ae5-d1c834abe031</deviceValueKey>
+                            <name>..</name>
+                          </default>
+                        </userVariable>
+                      </userVariable>
+                    </brick>
+                  </loopBricks>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>6e51e8fa-c2b3-450a-a1e4-e9b44beaa302</scriptId>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+      </objectList>
+    </scene>
+  </scenes>
+  <programVariableList>
+    <userVariable reference="../../scenes/scene/objectList/object/scriptList/script/brickList/brick/userVariable"/>
+    <userVariable reference="../../scenes/scene/objectList/object/scriptList/script/brickList/brick[2]/loopBricks/brick[2]/userVariable"/>
+  </programVariableList>
+  <programListOfLists/>
+  <programMultiplayerVariableList/>
+</program>

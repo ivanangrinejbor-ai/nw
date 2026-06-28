@@ -27,6 +27,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.Parcelable;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -45,6 +47,7 @@ import android.widget.TextView;
 import org.catrobat.catroid.BuildConfig;
 import org.catrobat.catroid.ProjectManager;
 import org.catrobat.catroid.R;
+import org.catrobat.catroid.codeanalysis.AiProjectAssistant;
 import org.catrobat.catroid.codeanalysis.AnalysisManager;
 import org.catrobat.catroid.codeanalysis.AnalysisResult;
 import org.catrobat.catroid.codeanalysis.CodeAnalyzer;
@@ -174,6 +177,10 @@ public class ScriptFragment extends ListFragment implements
 
 	private CodeAnalyzer codeAnalyzer;
 
+	private Handler aiHandler;
+	private Runnable aiRunnable;
+	private static final long AI_INTERVAL_MS = 5000;
+
 	private SpriteActivity activity;
 
     private View analysisStatusIndicator;
@@ -211,6 +218,13 @@ public class ScriptFragment extends ListFragment implements
 			this.scriptToFocus = (Script) bundle.get(SCRIPT_TAG);
 		}
 		codeAnalyzer = new CodeAnalyzer(requireContext());
+		AiProjectAssistant.INSTANCE.init(requireContext());
+		
+		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
+		boolean aiEnabled = prefs.getBoolean("setting_ai_assistant", false);
+		codeAnalyzer.getAiRule().setEnabled(aiEnabled);
+		
+		aiHandler = new Handler(Looper.getMainLooper());
 	}
 
 	private List<UserVariable> savedUserVariables;
@@ -417,6 +431,7 @@ public class ScriptFragment extends ListFragment implements
 	@Override
 	public void onDestroyView() {
 		super.onDestroyView();
+		stopAiAnalysisTimer();
 		if (scriptFinder.isOpen() && activity != null) {
 			activity.findViewById(R.id.toolbar).setVisibility(View.VISIBLE);
 		}
@@ -502,9 +517,10 @@ public class ScriptFragment extends ListFragment implements
         scrollToFocusItem();
         SnackbarUtil.showHintSnackbar(getActivity(), R.string.hint_scripts);
 
-        runCodeAnalysis();
+		runCodeAnalysis();
+		startAiAnalysisTimer();
 
-        refreshFastScroll();
+		refreshFastScroll();
     }
 
     @Override
@@ -522,10 +538,40 @@ public class ScriptFragment extends ListFragment implements
             ((SpriteActivity) getActivity()).setUndoMenuItemVisibility(false);
         }
 
-        AnalysisManager.INSTANCE.clearResults();
-    }
+		AnalysisManager.INSTANCE.clearResults();
+		stopAiAnalysisTimer();
+	}
 
-    private void runCodeAnalysis() {
+	private void startAiAnalysisTimer() {
+		stopAiAnalysisTimer();
+		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getContext());
+		boolean aiEnabled = prefs.getBoolean("setting_ai_assistant", false);
+		if (!aiEnabled || !AiProjectAssistant.INSTANCE.isLoaded()) return;
+
+		aiRunnable = new Runnable() {
+			@Override
+			public void run() {
+				if (!isAdded()) return;
+				if (adapter != null) {
+					Sprite sprite = ProjectManager.getInstance().getCurrentSprite();
+					if (sprite != null) {
+						adapter.updateItems(sprite);
+					}
+				}
+				aiHandler.postDelayed(this, AI_INTERVAL_MS);
+			}
+		};
+		aiHandler.post(aiRunnable);
+	}
+
+	private void stopAiAnalysisTimer() {
+		if (aiRunnable != null) {
+			aiHandler.removeCallbacks(aiRunnable);
+			aiRunnable = null;
+		}
+	}
+
+	private void runCodeAnalysis() {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getContext());
         boolean isAnalysisEnabled = prefs.getBoolean("pref_code_analysis_enabled", true);
 
@@ -544,8 +590,9 @@ public class ScriptFragment extends ListFragment implements
         BuildersKt.launch(GlobalScope.INSTANCE, Dispatchers.getIO(), CoroutineStart.DEFAULT, (scope, continuation) -> {
             final Map<Brick, AnalysisResult> allResults = new HashMap<>();
 
+            codeAnalyzer.getAiRule().reanalyze();
             for (Script script : currentSprite.getScriptList()) {
-                Map<Brick, AnalysisResult> scriptResults = codeAnalyzer.analyzeScript(script);
+                Map<Brick, AnalysisResult> scriptResults = codeAnalyzer.analyzeScriptWithAi(script);
                 allResults.putAll(scriptResults);
             }
 

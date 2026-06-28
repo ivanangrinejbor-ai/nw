@@ -15,13 +15,13 @@ class PerformRayCastAction : TemporalAction() {
     private var endY: Formula? = null
 
     override fun update(percent: Float) {
-        val id = rayId!!.interpretString(scope)
-        if (id == null || id.isEmpty()) return
+        val id = rayId?.interpretString(scope) ?: return
+        if (id.isEmpty()) return
 
-        val sX = startX!!.interpretFloat(scope)
-        val sY = startY!!.interpretFloat(scope)
-        val eX = endX!!.interpretFloat(scope)
-        val eY = endY!!.interpretFloat(scope)
+        val sX = startX?.interpretFloat(scope) ?: 0f
+        val sY = startY?.interpretFloat(scope) ?: 0f
+        val eX = endX?.interpretFloat(scope) ?: 0f
+        val eY = endY?.interpretFloat(scope) ?: 0f
 
         val scene = ProjectManager.getInstance().currentlyPlayingScene ?: return
 

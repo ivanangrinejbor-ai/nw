@@ -34,7 +34,7 @@ class SetVariableEasingAction : TemporalAction() {
         val easingType = easingTypes[safeIndex]
 
         val result = EasingFunctions.calculate(easingType, currentTime, duration, startVal, endVal)
-        userVariable!!.value = result.toDouble()
+        userVariable?.value = result.toDouble()
     }
 
 

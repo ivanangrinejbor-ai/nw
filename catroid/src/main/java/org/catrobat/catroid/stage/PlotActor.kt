@@ -152,37 +152,36 @@ class PlotActor : Actor() {
     }
 
     override fun draw(batch: Batch, parentAlpha: Float) {
-        buffer!!.begin()
-        for (sprite in StageActivity.activeStageActivity.get()?.stageListener?.spritesFromStage!!) {
+        val buf = buffer ?: return
+        buf.begin()
+        val listener = StageActivity.activeStageActivity.get()?.stageListener ?: return
+        for (sprite in listener.spritesFromStage) {
             val plot = sprite.plot
             plot.drawLinesForSprite(screenRatio, stage.viewport.camera)
         }
-        buffer!!.end()
+        buf.end()
 
         batch.end()
-        val region = TextureRegion(buffer!!.colorBufferTexture)
+        val region = TextureRegion(buf.colorBufferTexture)
         region.flip(false, true)
         val image = Image(region)
-        image.setPosition((-buffer!!.width / 2).toFloat(), (-buffer!!.height / 2).toFloat())
+        image.setPosition((-buf.width / 2).toFloat(), (-buf.height / 2).toFloat())
         batch.begin()
         image.draw(batch, parentAlpha)
     }
 
     fun reset() {
-        buffer!!.begin()
+        val buf = buffer ?: return
+        buf.begin()
         Gdx.gl20.glClear(GL20.GL_COLOR_BUFFER_BIT)
-        buffer!!.end()
+        buf.end()
     }
 
     fun dispose() {
-        if (buffer != null) {
-            buffer!!.dispose()
-            buffer = null
-        }
-        if (bufferBatch != null) {
-            bufferBatch!!.dispose()
-            bufferBatch = null
-        }
+        buffer?.dispose()
+        buffer = null
+        bufferBatch?.dispose()
+        bufferBatch = null
     }
 
     private fun calculateScreenRatio(): Float {

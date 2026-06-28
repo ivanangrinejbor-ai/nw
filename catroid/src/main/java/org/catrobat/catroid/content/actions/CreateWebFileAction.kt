@@ -13,6 +13,7 @@ class CreateWebFileAction : TemporalAction() {
     var posY: Formula? = null
     var width: Formula? = null
     var height: Formula? = null
+    var zindex: Formula? = null
 
     override fun update(percent: Float) {
         val filev = file?.interpretObject(scope)?.toString() ?: ""
@@ -22,6 +23,7 @@ class CreateWebFileAction : TemporalAction() {
 
         val widthv = width?.interpretObject(scope)?.toString()?.toDoubleOrNull()?.toInt() ?: 0
         val heightv = height?.interpretObject(scope)?.toString()?.toDoubleOrNull()?.toInt() ?: 0
+        val zIndexv = zindex?.interpretFloat(scope) ?: 1f
 
         val activity: StageActivity? = StageActivity.activeStageActivity.get();
         if (activity == null) return
@@ -30,10 +32,11 @@ class CreateWebFileAction : TemporalAction() {
             activity.createWebViewWithHtml(
                 namev,
                 filev,
-                posXv,  // x
-                posYv,  // y
-                widthv,  // width
-                heightv // height
+                posXv,
+                posYv,
+                widthv,
+                heightv,
+                zIndexv
             )
         })
     }

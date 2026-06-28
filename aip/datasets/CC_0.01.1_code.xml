@@ -1,0 +1,1547 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<program>
+  <header>
+    <applicationBuildName></applicationBuildName>
+    <applicationBuildNumber>0</applicationBuildNumber>
+    <applicationBuildType>release</applicationBuildType>
+    <applicationName>NewCatroid</applicationName>
+    <applicationVersion>2.1.1b2</applicationVersion>
+    <catrobatLanguageVersion>1.17</catrobatLanguageVersion>
+    <customResolution>false</customResolution>
+    <dateTimeUpload></dateTimeUpload>
+    <description></description>
+    <deviceName>CRT-LX1</deviceName>
+    <gitRemoteUrl></gitRemoteUrl>
+    <isCastProject>false</isCastProject>
+    <landscapeMode>false</landscapeMode>
+    <listeningLanguageTag></listeningLanguageTag>
+    <mediaLicense></mediaLicense>
+    <notesAndCredits></notesAndCredits>
+    <physicsHeightArea>2.0</physicsHeightArea>
+    <physicsWidthArea>3.0</physicsWidthArea>
+    <platform>Android</platform>
+    <platformVersion>34</platformVersion>
+    <programLicense></programLicense>
+    <programName>Чипсо Коллекция</programName>
+    <remixOf></remixOf>
+    <scenesEnabled>true</scenesEnabled>
+    <screenHeight>2280</screenHeight>
+    <screenMode>STRETCH</screenMode>
+    <screenWidth>1080</screenWidth>
+    <tags></tags>
+    <url></url>
+    <userHandle></userHandle>
+  </header>
+  <settings/>
+  <scenes>
+    <scene sceneId="37c4a47e-1ccc-4374-91bc-cfdd7a9dd5b7">
+      <name>Интро</name>
+      <objectList>
+        <object type="Sprite" spriteId="2bd59274-c975-4a48-8676-54dc8c2e536d" name="Фон">
+          <lookList/>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="ReadVariableFromFileBrick">
+                  <brickId>c3edfc97-2c3d-40ac-82c5-0e0cb31cc970</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="READ_FILENAME">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>CC_M.save</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable type="UserVariable" serialization="custom">
+                    <userVariable>
+                      <default>
+                        <initialIndex>0</initialIndex>
+                        <deviceValueKey>a5ec7527-b6b5-4bcd-84bb-b7caf71682ab</deviceValueKey>
+                        <name>данные</name>
+                      </default>
+                    </userVariable>
+                  </userVariable>
+                  <spinnerSelectionID>0</spinnerSelectionID>
+                </brick>
+                <brick type="ChangeVariableBrick">
+                  <brickId>e7380736-5e4c-4ce8-ac57-9c601b81a7dc</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="VARIABLE_CHANGE">
+                      <additionalChildren/>
+                      <type>USER_VARIABLE</type>
+                      <value>данные</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable type="UserVariable" serialization="custom">
+                    <userVariable>
+                      <default>
+                        <initialIndex>0</initialIndex>
+                        <deviceValueKey>672a7514-fdaf-467d-ae19-df6f8b44fab9</deviceValueKey>
+                        <name>деньги</name>
+                      </default>
+                    </userVariable>
+                  </userVariable>
+                </brick>
+                <brick type="ReadVariableFromFileBrick">
+                  <brickId>583bed12-30da-4cf8-be35-90c306ab6dee</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="READ_FILENAME">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>CC_C.save</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable type="UserVariable" serialization="custom">
+                    <userVariable>
+                      <default>
+                        <initialIndex>1</initialIndex>
+                        <deviceValueKey>7e35db2b-5d70-4b08-9c50-cbb52fbf7bcf</deviceValueKey>
+                        <name>данные2</name>
+                      </default>
+                    </userVariable>
+                  </userVariable>
+                  <spinnerSelectionID>0</spinnerSelectionID>
+                </brick>
+                <brick type="IfThenLogicBeginBrick">
+                  <brickId>9812017c-f868-40be-aafe-65a6eaabe795</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="IF_CONDITION">
+                      <additionalChildren/>
+                      <leftChild>
+                        <additionalChildren/>
+                        <type>USER_VARIABLE</type>
+                        <value>данные2</value>
+                      </leftChild>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>0</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>NOT_EQUAL</value>
+                    </formula>
+                  </formulaList>
+                  <ifBranchBricks>
+                    <brick type="ChangeVariableBrick">
+                      <brickId>d0ffa08d-fd19-4359-b9e6-3ab34b609661</brickId>
+                      <commentedOut>false</commentedOut>
+                      <formulaList>
+                        <formula category="VARIABLE_CHANGE">
+                          <additionalChildren/>
+                          <type>USER_VARIABLE</type>
+                          <value>данные2</value>
+                        </formula>
+                      </formulaList>
+                      <userVariable type="UserVariable" serialization="custom">
+                        <userVariable>
+                          <default>
+                            <initialIndex>1</initialIndex>
+                            <deviceValueKey>6992e614-e553-4aec-9463-523d6bd26974</deviceValueKey>
+                            <name>Чипсы</name>
+                          </default>
+                        </userVariable>
+                      </userVariable>
+                    </brick>
+                  </ifBranchBricks>
+                </brick>
+                <brick type="WaitBrick">
+                  <brickId>40cd2577-6109-4080-bf14-9804372c6057</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="TIME_TO_WAIT_IN_SECONDS">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>2</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="SceneStartBrick">
+                  <brickId>116102a4-2aa1-4830-b200-bee8ab5381f6</brickId>
+                  <commentedOut>false</commentedOut>
+                  <sceneToStart>Игра</sceneToStart>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>74f7559d-8737-466f-97d4-7f9eef177b5f</scriptId>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables>
+            <userVariable reference="../../scriptList/script/brickList/brick/userVariable"/>
+            <userVariable reference="../../scriptList/script/brickList/brick[3]/userVariable"/>
+          </userVariables>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+        <object type="Sprite" spriteId="60b58496-3399-4758-a6e8-4f01ee80e806" name="лого">
+          <lookList>
+            <look fileName="1000000548.png" lookId="33d9a4a9-ac55-4cc6-8d1f-2382a95703ae" name="лого">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="PlaceAtBrick">
+                  <brickId>3924cdb5-983c-434c-a40d-c2cc419c6624</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="Y_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>21</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                    <formula category="X_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>6</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>10c4998c-1039-4aec-8ca6-078f4dafc3c7</scriptId>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+      </objectList>
+    </scene>
+    <scene sceneId="a6e6da87-7a70-4bdd-adf6-5145f3060ff9">
+      <name>Игра</name>
+      <objectList>
+        <object type="Sprite" spriteId="1417dfcb-87e6-44eb-9b13-2b6ec5fe8381" name="Фон">
+          <lookList>
+            <look fileName="Фон.png" lookId="269d8fda-c681-48b1-8be9-f38647af4274" name="Фон">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="ShowTextBrick">
+                  <brickId>5c0ea08a-a4c7-406a-bc69-58e67565f0f0</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="Y_POSITION">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>892</value>
+                    </formula>
+                    <formula category="X_POSITION">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>8</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable reference="../../../../../../../../scene/objectList/object/scriptList/script/brickList/brick[2]/userVariable"/>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>df5f7e91-c042-498a-b698-8087a5d6b58e</scriptId>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+        <object type="Sprite" spriteId="df8c92ef-ce50-4307-977d-fd7da341ca50" name="чипсы">
+          <lookList>
+            <look fileName="1000000651.jpg" lookId="490bef34-54b4-4e24-aa5b-9d9320e3dc6f" name="1">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000000654.jpg" lookId="3e94c2e7-2882-48f5-844c-e6a05c6a0c45" name="2">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000000653.jpg" lookId="02492291-cd56-432f-bda8-24146c360e0e" name="3">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000000652.jpg" lookId="bdbf576e-5656-44fb-87eb-c5cea8f356bf" name="4">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000000661.jpg" lookId="7dd38d66-cc55-4d6c-aff7-8b92d636b64b" name="5">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000000665.jpg" lookId="9faa1266-9209-4e6e-b85d-8085c9e643ba" name="6">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000000662.jpg" lookId="b33d6c98-3e3b-42f4-a9c3-6a4ed1b7b427" name="7">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000000655.jpg" lookId="196d8c20-e86f-43f8-a9d1-b4c7b84e10ea" name="8">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000000656.jpg" lookId="37428c65-1ae2-4dec-8c6e-83253841cd6c" name="9">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000000657.jpg" lookId="0c53fbfb-48f9-4423-9e3d-93ff484b804e" name="10">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="1000000667.jpg" lookId="7355744e-23e2-4cd1-ad8f-5a685aa3c423" name="11">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="PlaceAtBrick">
+                  <brickId>bd2fc9a7-8267-4959-bfe9-674688cb3a52</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="Y_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>52</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                    <formula category="X_POSITION">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>0</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>36f4a0b9-5946-40ca-874e-6d73952b1bf1</scriptId>
+            </script>
+            <script type="WhenScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="SetSizeToBrick">
+                  <brickId>2ec57b0f-69b6-40e2-9cbc-63f682182a7c</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="SIZE">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>90</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="WaitUntilBrick">
+                  <brickId>a0e6fae2-7b0f-4040-849f-4fa75646deba</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="IF_CONDITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>SENSOR</type>
+                        <value>FINGER_TOUCHED</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>LOGICAL_NOT</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="SetSizeToBrick">
+                  <brickId>91d92550-4aeb-4031-be92-a384e93d9b77</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="SIZE">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>100</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="ChangeVariableBrick">
+                  <brickId>d3c8c5ab-9213-4faf-9f01-77a332e9cd66</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="VARIABLE_CHANGE">
+                      <additionalChildren/>
+                      <type>SENSOR</type>
+                      <value>OBJECT_LOOK_NUMBER</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable reference="../../../../../../../../scene/objectList/object/scriptList/script/brickList/brick[2]/userVariable"/>
+                </brick>
+                <brick type="BroadcastBrick">
+                  <brickId>fd6dae9b-a139-4226-b7c0-2daec5dc310c</brickId>
+                  <commentedOut>false</commentedOut>
+                  <broadcastMessage>Кол-Чипс</broadcastMessage>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>54761682-85e5-40ec-a0a1-432d42057b74</scriptId>
+            </script>
+            <org.catrobat.catroid.content.ExitProjectScript type="ExitProjectScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="WriteVariableToFileBrick">
+                  <brickId>4df4a77b-3a32-4571-8771-ed0ceccb0d35</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="WRITE_FILENAME">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>CC_M.save</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable reference="../../../../../../../../scene/objectList/object/scriptList/script/brickList/brick[2]/userVariable"/>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>df2923a5-3860-44ae-bc1f-022935c406a0</scriptId>
+            </org.catrobat.catroid.content.ExitProjectScript>
+            <script type="BroadcastScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="SetLookByIndexBrick">
+                  <brickId>8b091b9b-7a55-4ab6-94c8-938bb29c078c</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="LOOK_INDEX">
+                      <additionalChildren/>
+                      <type>USER_VARIABLE</type>
+                      <value>Чипсы</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>6974ab97-a0f1-4fd8-85ce-2f1d73ec93e4</scriptId>
+              <receivedMessage>Чек</receivedMessage>
+            </script>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="SetLookByIndexBrick">
+                  <brickId>d88e424c-74bc-47cd-bd9e-9dae53e7d5b4</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="LOOK_INDEX">
+                      <additionalChildren/>
+                      <type>USER_VARIABLE</type>
+                      <value>Чипсы</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>27ee2abf-952f-4163-8f78-ec1e0b72755d</scriptId>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+        <object type="Sprite" spriteId="16bb84cd-5421-4b9b-85c3-71f9814a4403" name="Кол-Чипс">
+          <lookList/>
+          <soundList/>
+          <scriptList>
+            <script type="BroadcastScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="IfThenLogicBeginBrick">
+                  <brickId>914efe25-d1f6-4ad9-a774-9aed1784950b</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="IF_CONDITION">
+                      <additionalChildren/>
+                      <leftChild>
+                        <additionalChildren/>
+                        <leftChild>
+                          <additionalChildren/>
+                          <type>USER_VARIABLE</type>
+                          <value>деньги</value>
+                        </leftChild>
+                        <rightChild>
+                          <additionalChildren/>
+                          <type>NUMBER</type>
+                          <value>0</value>
+                        </rightChild>
+                        <type>OPERATOR</type>
+                        <value>GREATER_OR_EQUAL</value>
+                      </leftChild>
+                      <rightChild>
+                        <additionalChildren/>
+                        <leftChild>
+                          <additionalChildren/>
+                          <type>USER_VARIABLE</type>
+                          <value>деньги</value>
+                        </leftChild>
+                        <rightChild>
+                          <additionalChildren/>
+                          <type>NUMBER</type>
+                          <value>100</value>
+                        </rightChild>
+                        <type>OPERATOR</type>
+                        <value>SMALLER_THAN</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>LOGICAL_AND</value>
+                    </formula>
+                  </formulaList>
+                  <ifBranchBricks>
+                    <brick type="SetVariableBrick">
+                      <brickId>2d435f55-b9cf-43c8-9082-8a6070a04528</brickId>
+                      <commentedOut>false</commentedOut>
+                      <formulaList>
+                        <formula category="VARIABLE">
+                          <additionalChildren/>
+                          <type>NUMBER</type>
+                          <value>1</value>
+                        </formula>
+                      </formulaList>
+                      <userVariable reference="../../../../../../../../../../scene/objectList/object/scriptList/script/brickList/brick[4]/ifBranchBricks/brick/userVariable"/>
+                    </brick>
+                    <brick type="BroadcastBrick">
+                      <brickId>45318ff8-639b-402d-8028-0238d6aae277</brickId>
+                      <commentedOut>false</commentedOut>
+                      <broadcastMessage>Чек</broadcastMessage>
+                    </brick>
+                  </ifBranchBricks>
+                </brick>
+                <brick type="IfThenLogicBeginBrick">
+                  <brickId>fc3b53e5-5258-417e-8067-60f8f1705bf1</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="IF_CONDITION">
+                      <additionalChildren/>
+                      <leftChild>
+                        <additionalChildren/>
+                        <leftChild>
+                          <additionalChildren/>
+                          <type>USER_VARIABLE</type>
+                          <value>деньги</value>
+                        </leftChild>
+                        <rightChild>
+                          <additionalChildren/>
+                          <type>NUMBER</type>
+                          <value>100</value>
+                        </rightChild>
+                        <type>OPERATOR</type>
+                        <value>GREATER_OR_EQUAL</value>
+                      </leftChild>
+                      <rightChild>
+                        <additionalChildren/>
+                        <leftChild>
+                          <additionalChildren/>
+                          <type>USER_VARIABLE</type>
+                          <value>деньги</value>
+                        </leftChild>
+                        <rightChild>
+                          <additionalChildren/>
+                          <type>NUMBER</type>
+                          <value>1000</value>
+                        </rightChild>
+                        <type>OPERATOR</type>
+                        <value>SMALLER_THAN</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>LOGICAL_AND</value>
+                    </formula>
+                  </formulaList>
+                  <ifBranchBricks>
+                    <brick type="SetVariableBrick">
+                      <brickId>992d8157-747d-4017-aa13-c016fe66062a</brickId>
+                      <commentedOut>false</commentedOut>
+                      <formulaList>
+                        <formula category="VARIABLE">
+                          <additionalChildren/>
+                          <type>NUMBER</type>
+                          <value>2</value>
+                        </formula>
+                      </formulaList>
+                      <userVariable reference="../../../../../../../../../../scene/objectList/object/scriptList/script/brickList/brick[4]/ifBranchBricks/brick/userVariable"/>
+                    </brick>
+                    <brick type="BroadcastBrick">
+                      <brickId>a27b5681-d22e-4f84-b694-a8aa62410fc2</brickId>
+                      <commentedOut>false</commentedOut>
+                      <broadcastMessage>Чек</broadcastMessage>
+                    </brick>
+                  </ifBranchBricks>
+                </brick>
+                <brick type="IfThenLogicBeginBrick">
+                  <brickId>0dc1300b-ef12-44b7-84f9-a63802223298</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="IF_CONDITION">
+                      <additionalChildren/>
+                      <leftChild>
+                        <additionalChildren/>
+                        <leftChild>
+                          <additionalChildren/>
+                          <type>USER_VARIABLE</type>
+                          <value>деньги</value>
+                        </leftChild>
+                        <rightChild>
+                          <additionalChildren/>
+                          <type>NUMBER</type>
+                          <value>1000</value>
+                        </rightChild>
+                        <type>OPERATOR</type>
+                        <value>GREATER_OR_EQUAL</value>
+                      </leftChild>
+                      <rightChild>
+                        <additionalChildren/>
+                        <leftChild>
+                          <additionalChildren/>
+                          <type>USER_VARIABLE</type>
+                          <value>деньги</value>
+                        </leftChild>
+                        <rightChild>
+                          <additionalChildren/>
+                          <type>NUMBER</type>
+                          <value>2500</value>
+                        </rightChild>
+                        <type>OPERATOR</type>
+                        <value>SMALLER_THAN</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>LOGICAL_AND</value>
+                    </formula>
+                  </formulaList>
+                  <ifBranchBricks>
+                    <brick type="SetVariableBrick">
+                      <brickId>b066a1ea-5bf1-4f6f-8cde-e315234c7dd8</brickId>
+                      <commentedOut>false</commentedOut>
+                      <formulaList>
+                        <formula category="VARIABLE">
+                          <additionalChildren/>
+                          <type>NUMBER</type>
+                          <value>3</value>
+                        </formula>
+                      </formulaList>
+                      <userVariable reference="../../../../../../../../../../scene/objectList/object/scriptList/script/brickList/brick[4]/ifBranchBricks/brick/userVariable"/>
+                    </brick>
+                    <brick type="BroadcastBrick">
+                      <brickId>a8c4eb55-ffd5-40a8-982b-dec98e71e532</brickId>
+                      <commentedOut>false</commentedOut>
+                      <broadcastMessage>Чек</broadcastMessage>
+                    </brick>
+                  </ifBranchBricks>
+                </brick>
+                <brick type="IfThenLogicBeginBrick">
+                  <brickId>d5796bc4-2931-4083-81c9-4444fd492fab</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="IF_CONDITION">
+                      <additionalChildren/>
+                      <leftChild>
+                        <additionalChildren/>
+                        <leftChild>
+                          <additionalChildren/>
+                          <type>USER_VARIABLE</type>
+                          <value>деньги</value>
+                        </leftChild>
+                        <rightChild>
+                          <additionalChildren/>
+                          <type>NUMBER</type>
+                          <value>2500</value>
+                        </rightChild>
+                        <type>OPERATOR</type>
+                        <value>GREATER_OR_EQUAL</value>
+                      </leftChild>
+                      <rightChild>
+                        <additionalChildren/>
+                        <leftChild>
+                          <additionalChildren/>
+                          <type>USER_VARIABLE</type>
+                          <value>деньги</value>
+                        </leftChild>
+                        <rightChild>
+                          <additionalChildren/>
+                          <type>NUMBER</type>
+                          <value>5000</value>
+                        </rightChild>
+                        <type>OPERATOR</type>
+                        <value>SMALLER_THAN</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>LOGICAL_AND</value>
+                    </formula>
+                  </formulaList>
+                  <ifBranchBricks>
+                    <brick type="SetVariableBrick">
+                      <brickId>6f304ab5-9eae-43ce-b875-eddc41232acf</brickId>
+                      <commentedOut>false</commentedOut>
+                      <formulaList>
+                        <formula category="VARIABLE">
+                          <additionalChildren/>
+                          <type>NUMBER</type>
+                          <value>4</value>
+                        </formula>
+                      </formulaList>
+                      <userVariable reference="../../../../../../../../../../scene/objectList/object/scriptList/script/brickList/brick[4]/ifBranchBricks/brick/userVariable"/>
+                    </brick>
+                    <brick type="BroadcastBrick">
+                      <brickId>a175dc9c-5e68-420d-816c-d85c19872ee0</brickId>
+                      <commentedOut>false</commentedOut>
+                      <broadcastMessage>Чек</broadcastMessage>
+                    </brick>
+                  </ifBranchBricks>
+                </brick>
+                <brick type="IfThenLogicBeginBrick">
+                  <brickId>8017a377-bb90-4c1e-b88c-949fb18f13e0</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="IF_CONDITION">
+                      <additionalChildren/>
+                      <leftChild>
+                        <additionalChildren/>
+                        <leftChild>
+                          <additionalChildren/>
+                          <type>USER_VARIABLE</type>
+                          <value>деньги</value>
+                        </leftChild>
+                        <rightChild>
+                          <additionalChildren/>
+                          <type>NUMBER</type>
+                          <value>5000</value>
+                        </rightChild>
+                        <type>OPERATOR</type>
+                        <value>GREATER_OR_EQUAL</value>
+                      </leftChild>
+                      <rightChild>
+                        <additionalChildren/>
+                        <leftChild>
+                          <additionalChildren/>
+                          <type>USER_VARIABLE</type>
+                          <value>деньги</value>
+                        </leftChild>
+                        <rightChild>
+                          <additionalChildren/>
+                          <type>NUMBER</type>
+                          <value>15000</value>
+                        </rightChild>
+                        <type>OPERATOR</type>
+                        <value>SMALLER_THAN</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>LOGICAL_AND</value>
+                    </formula>
+                  </formulaList>
+                  <ifBranchBricks>
+                    <brick type="SetVariableBrick">
+                      <brickId>97450e28-ca65-47d3-b647-fb6eb72cba7e</brickId>
+                      <commentedOut>false</commentedOut>
+                      <formulaList>
+                        <formula category="VARIABLE">
+                          <additionalChildren/>
+                          <type>NUMBER</type>
+                          <value>5</value>
+                        </formula>
+                      </formulaList>
+                      <userVariable reference="../../../../../../../../../../scene/objectList/object/scriptList/script/brickList/brick[4]/ifBranchBricks/brick/userVariable"/>
+                    </brick>
+                    <brick type="BroadcastBrick">
+                      <brickId>462d8280-bfdf-4eb9-8954-1796874fbe4c</brickId>
+                      <commentedOut>false</commentedOut>
+                      <broadcastMessage>Чек</broadcastMessage>
+                    </brick>
+                  </ifBranchBricks>
+                </brick>
+                <brick type="IfThenLogicBeginBrick">
+                  <brickId>1d12b4b4-51fb-44f5-8f2f-653940cfbbd5</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="IF_CONDITION">
+                      <additionalChildren/>
+                      <leftChild>
+                        <additionalChildren/>
+                        <leftChild>
+                          <additionalChildren/>
+                          <type>USER_VARIABLE</type>
+                          <value>деньги</value>
+                        </leftChild>
+                        <rightChild>
+                          <additionalChildren/>
+                          <type>NUMBER</type>
+                          <value>15000</value>
+                        </rightChild>
+                        <type>OPERATOR</type>
+                        <value>GREATER_OR_EQUAL</value>
+                      </leftChild>
+                      <rightChild>
+                        <additionalChildren/>
+                        <leftChild>
+                          <additionalChildren/>
+                          <type>USER_VARIABLE</type>
+                          <value>деньги</value>
+                        </leftChild>
+                        <rightChild>
+                          <additionalChildren/>
+                          <type>NUMBER</type>
+                          <value>35000</value>
+                        </rightChild>
+                        <type>OPERATOR</type>
+                        <value>SMALLER_THAN</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>LOGICAL_AND</value>
+                    </formula>
+                  </formulaList>
+                  <ifBranchBricks>
+                    <brick type="SetVariableBrick">
+                      <brickId>ea2988c5-e2b5-4dbb-8870-c47af619e20b</brickId>
+                      <commentedOut>false</commentedOut>
+                      <formulaList>
+                        <formula category="VARIABLE">
+                          <additionalChildren/>
+                          <type>NUMBER</type>
+                          <value>6</value>
+                        </formula>
+                      </formulaList>
+                      <userVariable reference="../../../../../../../../../../scene/objectList/object/scriptList/script/brickList/brick[4]/ifBranchBricks/brick/userVariable"/>
+                    </brick>
+                    <brick type="BroadcastBrick">
+                      <brickId>f3fb04d9-a5d4-42ad-8a72-94111efe2ac1</brickId>
+                      <commentedOut>false</commentedOut>
+                      <broadcastMessage>Чек</broadcastMessage>
+                    </brick>
+                  </ifBranchBricks>
+                </brick>
+                <brick type="IfThenLogicBeginBrick">
+                  <brickId>f838267c-8778-480c-bdbe-07e2771a59b1</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="IF_CONDITION">
+                      <additionalChildren/>
+                      <leftChild>
+                        <additionalChildren/>
+                        <leftChild>
+                          <additionalChildren/>
+                          <type>USER_VARIABLE</type>
+                          <value>деньги</value>
+                        </leftChild>
+                        <rightChild>
+                          <additionalChildren/>
+                          <type>NUMBER</type>
+                          <value>35000</value>
+                        </rightChild>
+                        <type>OPERATOR</type>
+                        <value>GREATER_OR_EQUAL</value>
+                      </leftChild>
+                      <rightChild>
+                        <additionalChildren/>
+                        <leftChild>
+                          <additionalChildren/>
+                          <type>USER_VARIABLE</type>
+                          <value>деньги</value>
+                        </leftChild>
+                        <rightChild>
+                          <additionalChildren/>
+                          <type>NUMBER</type>
+                          <value>70000</value>
+                        </rightChild>
+                        <type>OPERATOR</type>
+                        <value>SMALLER_THAN</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>LOGICAL_AND</value>
+                    </formula>
+                  </formulaList>
+                  <ifBranchBricks>
+                    <brick type="SetVariableBrick">
+                      <brickId>84cb69bf-f568-462b-bf9b-e46decc962db</brickId>
+                      <commentedOut>false</commentedOut>
+                      <formulaList>
+                        <formula category="VARIABLE">
+                          <additionalChildren/>
+                          <type>NUMBER</type>
+                          <value>7</value>
+                        </formula>
+                      </formulaList>
+                      <userVariable reference="../../../../../../../../../../scene/objectList/object/scriptList/script/brickList/brick[4]/ifBranchBricks/brick/userVariable"/>
+                    </brick>
+                    <brick type="BroadcastBrick">
+                      <brickId>8ef89f72-27c4-42a7-b33d-2229729d5a0c</brickId>
+                      <commentedOut>false</commentedOut>
+                      <broadcastMessage>Чек</broadcastMessage>
+                    </brick>
+                  </ifBranchBricks>
+                </brick>
+                <brick type="IfThenLogicBeginBrick">
+                  <brickId>bad820b4-71fd-460c-af13-5c3af422a850</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="IF_CONDITION">
+                      <additionalChildren/>
+                      <leftChild>
+                        <additionalChildren/>
+                        <leftChild>
+                          <additionalChildren/>
+                          <type>USER_VARIABLE</type>
+                          <value>деньги</value>
+                        </leftChild>
+                        <rightChild>
+                          <additionalChildren/>
+                          <type>NUMBER</type>
+                          <value>70000</value>
+                        </rightChild>
+                        <type>OPERATOR</type>
+                        <value>GREATER_OR_EQUAL</value>
+                      </leftChild>
+                      <rightChild>
+                        <additionalChildren/>
+                        <leftChild>
+                          <additionalChildren/>
+                          <type>USER_VARIABLE</type>
+                          <value>деньги</value>
+                        </leftChild>
+                        <rightChild>
+                          <additionalChildren/>
+                          <type>NUMBER</type>
+                          <value>100000</value>
+                        </rightChild>
+                        <type>OPERATOR</type>
+                        <value>SMALLER_THAN</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>LOGICAL_AND</value>
+                    </formula>
+                  </formulaList>
+                  <ifBranchBricks>
+                    <brick type="SetVariableBrick">
+                      <brickId>9e25033e-c7ea-491d-9913-eef96a2f9393</brickId>
+                      <commentedOut>false</commentedOut>
+                      <formulaList>
+                        <formula category="VARIABLE">
+                          <additionalChildren/>
+                          <type>NUMBER</type>
+                          <value>8</value>
+                        </formula>
+                      </formulaList>
+                      <userVariable reference="../../../../../../../../../../scene/objectList/object/scriptList/script/brickList/brick[4]/ifBranchBricks/brick/userVariable"/>
+                    </brick>
+                    <brick type="BroadcastBrick">
+                      <brickId>82221257-fc38-47ba-a75a-6db95cb95331</brickId>
+                      <commentedOut>false</commentedOut>
+                      <broadcastMessage>Чек</broadcastMessage>
+                    </brick>
+                  </ifBranchBricks>
+                </brick>
+                <brick type="IfThenLogicBeginBrick">
+                  <brickId>dca49285-560c-4367-a01a-04de898765a1</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="IF_CONDITION">
+                      <additionalChildren/>
+                      <leftChild>
+                        <additionalChildren/>
+                        <leftChild>
+                          <additionalChildren/>
+                          <type>USER_VARIABLE</type>
+                          <value>деньги</value>
+                        </leftChild>
+                        <rightChild>
+                          <additionalChildren/>
+                          <type>NUMBER</type>
+                          <value>100000</value>
+                        </rightChild>
+                        <type>OPERATOR</type>
+                        <value>GREATER_OR_EQUAL</value>
+                      </leftChild>
+                      <rightChild>
+                        <additionalChildren/>
+                        <leftChild>
+                          <additionalChildren/>
+                          <type>USER_VARIABLE</type>
+                          <value>деньги</value>
+                        </leftChild>
+                        <rightChild>
+                          <additionalChildren/>
+                          <type>NUMBER</type>
+                          <value>150000</value>
+                        </rightChild>
+                        <type>OPERATOR</type>
+                        <value>SMALLER_THAN</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>LOGICAL_AND</value>
+                    </formula>
+                  </formulaList>
+                  <ifBranchBricks>
+                    <brick type="SetVariableBrick">
+                      <brickId>bea7bfc4-8e4c-45ed-8020-28ede724cc51</brickId>
+                      <commentedOut>false</commentedOut>
+                      <formulaList>
+                        <formula category="VARIABLE">
+                          <additionalChildren/>
+                          <type>NUMBER</type>
+                          <value>9</value>
+                        </formula>
+                      </formulaList>
+                      <userVariable reference="../../../../../../../../../../scene/objectList/object/scriptList/script/brickList/brick[4]/ifBranchBricks/brick/userVariable"/>
+                    </brick>
+                    <brick type="BroadcastBrick">
+                      <brickId>4a0ee9e7-d116-4a59-85ac-2d48cb6a0417</brickId>
+                      <commentedOut>false</commentedOut>
+                      <broadcastMessage>Чек</broadcastMessage>
+                    </brick>
+                  </ifBranchBricks>
+                </brick>
+                <brick type="IfThenLogicBeginBrick">
+                  <brickId>102505d2-3d9d-48b7-961f-60c6ee320f14</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="IF_CONDITION">
+                      <additionalChildren/>
+                      <leftChild>
+                        <additionalChildren/>
+                        <leftChild>
+                          <additionalChildren/>
+                          <type>USER_VARIABLE</type>
+                          <value>деньги</value>
+                        </leftChild>
+                        <rightChild>
+                          <additionalChildren/>
+                          <type>NUMBER</type>
+                          <value>150000</value>
+                        </rightChild>
+                        <type>OPERATOR</type>
+                        <value>GREATER_OR_EQUAL</value>
+                      </leftChild>
+                      <rightChild>
+                        <additionalChildren/>
+                        <leftChild>
+                          <additionalChildren/>
+                          <type>USER_VARIABLE</type>
+                          <value>деньги</value>
+                        </leftChild>
+                        <rightChild>
+                          <additionalChildren/>
+                          <type>NUMBER</type>
+                          <value>300000</value>
+                        </rightChild>
+                        <type>OPERATOR</type>
+                        <value>SMALLER_THAN</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>LOGICAL_AND</value>
+                    </formula>
+                  </formulaList>
+                  <ifBranchBricks>
+                    <brick type="SetVariableBrick">
+                      <brickId>24898f20-0730-485b-ae6c-686ac652e0f7</brickId>
+                      <commentedOut>false</commentedOut>
+                      <formulaList>
+                        <formula category="VARIABLE">
+                          <additionalChildren/>
+                          <type>NUMBER</type>
+                          <value>10</value>
+                        </formula>
+                      </formulaList>
+                      <userVariable reference="../../../../../../../../../../scene/objectList/object/scriptList/script/brickList/brick[4]/ifBranchBricks/brick/userVariable"/>
+                    </brick>
+                    <brick type="BroadcastBrick">
+                      <brickId>83b707ff-a3f7-47db-90bc-53dbb1ec61b3</brickId>
+                      <commentedOut>false</commentedOut>
+                      <broadcastMessage>Чек</broadcastMessage>
+                    </brick>
+                  </ifBranchBricks>
+                </brick>
+                <brick type="IfThenLogicBeginBrick">
+                  <brickId>f4b8b6c9-97c2-4075-af32-2caab21b1650</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="IF_CONDITION">
+                      <additionalChildren/>
+                      <leftChild>
+                        <additionalChildren/>
+                        <leftChild>
+                          <additionalChildren/>
+                          <type>USER_VARIABLE</type>
+                          <value>деньги</value>
+                        </leftChild>
+                        <rightChild>
+                          <additionalChildren/>
+                          <type>NUMBER</type>
+                          <value>300000</value>
+                        </rightChild>
+                        <type>OPERATOR</type>
+                        <value>GREATER_OR_EQUAL</value>
+                      </leftChild>
+                      <rightChild>
+                        <additionalChildren/>
+                        <leftChild>
+                          <additionalChildren/>
+                          <type>USER_VARIABLE</type>
+                          <value>деньги</value>
+                        </leftChild>
+                        <rightChild>
+                          <additionalChildren/>
+                          <type>NUMBER</type>
+                          <value>600000</value>
+                        </rightChild>
+                        <type>OPERATOR</type>
+                        <value>SMALLER_THAN</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>LOGICAL_AND</value>
+                    </formula>
+                  </formulaList>
+                  <ifBranchBricks>
+                    <brick type="SetVariableBrick">
+                      <brickId>e076edb4-77d5-4bc9-9f01-815b569ebd69</brickId>
+                      <commentedOut>false</commentedOut>
+                      <formulaList>
+                        <formula category="VARIABLE">
+                          <additionalChildren/>
+                          <type>NUMBER</type>
+                          <value>11</value>
+                        </formula>
+                      </formulaList>
+                      <userVariable reference="../../../../../../../../../../scene/objectList/object/scriptList/script/brickList/brick[4]/ifBranchBricks/brick/userVariable"/>
+                    </brick>
+                    <brick type="BroadcastBrick">
+                      <brickId>a1af3a2a-2cdc-4511-a211-ca82ed3a3bdf</brickId>
+                      <commentedOut>false</commentedOut>
+                      <broadcastMessage>Чек</broadcastMessage>
+                    </brick>
+                  </ifBranchBricks>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>86b65bf0-7439-472b-8b65-6707f23024a3</scriptId>
+              <receivedMessage>Кол-Чипс</receivedMessage>
+            </script>
+            <org.catrobat.catroid.content.ExitProjectScript type="ExitProjectScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="WriteVariableToFileBrick">
+                  <brickId>6adf269a-d62d-4ee3-8511-06a36abf5031</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="WRITE_FILENAME">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>CC_C.save</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable reference="../../../../../../../../scene/objectList/object/scriptList/script/brickList/brick[4]/ifBranchBricks/brick/userVariable"/>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>bf02c1a3-e51d-4121-b292-7acdf3d40947</scriptId>
+            </org.catrobat.catroid.content.ExitProjectScript>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+        <object type="Sprite" spriteId="06dd5df1-d095-4b3d-b0ad-08a867e8115c" name="Shop">
+          <lookList>
+            <look fileName="1000000677.png" lookId="0d1584ad-77b1-4ddb-9a79-d171e6bde69b" name="Shop">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="PlaceAtBrick">
+                  <brickId>b9dc9d6d-723c-49c9-aa15-5a287a0cabf7</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="Y_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>1008</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                    <formula category="X_POSITION">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>397</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="PointInDirectionBrick">
+                  <brickId>f04147db-acf1-406a-9198-4ddd20af6b01</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="DEGREES">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>90.0</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="SetSizeToBrick">
+                  <brickId>9a8538f1-42a4-4ebc-a09b-208263f147aa</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="SIZE">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>60.0</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>03cd75c7-2cb5-4173-8e09-b281d9dc35c6</scriptId>
+            </script>
+            <script type="WhenScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="SceneStartBrick">
+                  <brickId>323f324f-8d8f-41b0-8c49-81afa821dfc7</brickId>
+                  <commentedOut>false</commentedOut>
+                  <sceneToStart>магазин</sceneToStart>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>7ca7812a-2880-42cf-bf8f-8729dc7d8de2</scriptId>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+        <object type="Sprite" spriteId="709990ce-b3d6-46d1-aba9-380ff338ff6c" name="Чипсы + Механика">
+          <lookList/>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="ForeverBrick">
+                  <brickId>29f0b489-33c4-4b8e-8c04-ff21cdd8c501</brickId>
+                  <commentedOut>false</commentedOut>
+                  <loopBricks>
+                    <brick type="WaitBrick">
+                      <brickId>c510ffd0-491a-4ab5-b6a4-65dbc6de7b5f</brickId>
+                      <commentedOut>false</commentedOut>
+                      <formulaList>
+                        <formula category="TIME_TO_WAIT_IN_SECONDS">
+                          <additionalChildren/>
+                          <type>NUMBER</type>
+                          <value>1.0</value>
+                        </formula>
+                      </formulaList>
+                    </brick>
+                    <brick type="IfThenLogicBeginBrick">
+                      <brickId>411e9170-06e7-4b2e-a624-ca3c631e3212</brickId>
+                      <commentedOut>false</commentedOut>
+                      <formulaList>
+                        <formula category="IF_CONDITION">
+                          <additionalChildren/>
+                          <leftChild>
+                            <additionalChildren/>
+                            <type>USER_VARIABLE</type>
+                            <value>Чипсы +</value>
+                          </leftChild>
+                          <rightChild>
+                            <additionalChildren/>
+                            <type>NUMBER</type>
+                            <value>0</value>
+                          </rightChild>
+                          <type>OPERATOR</type>
+                          <value>GREATER_THAN</value>
+                        </formula>
+                      </formulaList>
+                      <ifBranchBricks>
+                        <brick type="BroadcastBrick">
+                          <brickId>6750d87a-18eb-4f24-b118-14f89af4ea61</brickId>
+                          <commentedOut>false</commentedOut>
+                          <broadcastMessage>Чипсы +</broadcastMessage>
+                        </brick>
+                      </ifBranchBricks>
+                    </brick>
+                  </loopBricks>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>d17d4e58-2edf-4ad4-9436-5484dc205a93</scriptId>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+        <object type="Sprite" spriteId="d86c891b-af1a-4a79-94b6-72166ae049e9" name="Чипсы +">
+          <lookList>
+            <look fileName="1000000679.png" lookId="2fad8d85-41f4-496f-8749-d563e14d36cb" name="1000000679">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="HideBrick">
+                  <brickId>85581c5e-59e0-451a-a2ec-a49082d1f91d</brickId>
+                  <commentedOut>false</commentedOut>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>fa3100ad-d9e9-4b89-8c36-da5d8d397709</scriptId>
+            </script>
+            <script type="BroadcastScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="GoToBrick">
+                  <brickId>a72eab91-f321-40bb-ba4a-4ca25483b676</brickId>
+                  <commentedOut>false</commentedOut>
+                  <spinnerSelection>81</spinnerSelection>
+                </brick>
+                <brick type="ChangeVariableBrick">
+                  <brickId>e73ff1a7-112d-4798-a7b1-e56298562710</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="VARIABLE_CHANGE">
+                      <additionalChildren/>
+                      <type>USER_VARIABLE</type>
+                      <value>Чипсы +</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable reference="../../../../../../../../scene/objectList/object/scriptList/script/brickList/brick[2]/userVariable"/>
+                </brick>
+                <brick type="ShowBrick">
+                  <brickId>d32fe605-5a74-4bd5-a1b6-c24594de6812</brickId>
+                  <commentedOut>false</commentedOut>
+                </brick>
+                <brick type="WaitBrick">
+                  <brickId>833d7c30-620c-4792-b717-8b40ee71a826</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="TIME_TO_WAIT_IN_SECONDS">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>0.2</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="HideBrick">
+                  <brickId>76a6c0ca-4244-4cb3-8c47-223840629ced</brickId>
+                  <commentedOut>false</commentedOut>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>bf941a65-d2f4-4d08-816f-faab02403851</scriptId>
+              <receivedMessage>Чипсы +</receivedMessage>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+      </objectList>
+    </scene>
+    <scene sceneId="321448fa-98ae-4228-a132-9f239865f37e">
+      <name>магазин</name>
+      <objectList>
+        <object type="Sprite" spriteId="7cf20125-0650-49d0-a295-3aae1b96fdb0" name="Фон">
+          <lookList>
+            <look fileName="Фон.png" lookId="5673bb08-2244-40aa-b95c-517e3f02bebe" name="Фон">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList>
+            <org.catrobat.catroid.content.BackPressedScript type="BackPressedScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="SceneStartBrick">
+                  <brickId>8c6676de-a09e-4721-8ee0-8f22da46560a</brickId>
+                  <commentedOut>false</commentedOut>
+                  <sceneToStart>Игра</sceneToStart>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>043d2ba7-6213-46c7-950d-2639d56abdcf</scriptId>
+            </org.catrobat.catroid.content.BackPressedScript>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+        <object type="Sprite" spriteId="26c75e63-eb16-4446-b5e5-a738176a4b7a" name="Чипсы +">
+          <lookList>
+            <look fileName="Мой актер или объект.png" lookId="30fd805d-1e25-4b21-b0e3-347216b46761" name="Чипсы +">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="PlaceAtBrick">
+                  <brickId>637f23af-d0e7-4e8f-a4e4-348e464c5327</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="Y_POSITION">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>690</value>
+                    </formula>
+                    <formula category="X_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>193</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>a61c5fc1-4314-4c95-b0cb-f85d250e7253</scriptId>
+            </script>
+            <script type="WhenScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="IfThenLogicBeginBrick">
+                  <brickId>6d53e95a-4fcc-4be8-8fcf-cbdc48583318</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="IF_CONDITION">
+                      <additionalChildren/>
+                      <leftChild>
+                        <additionalChildren/>
+                        <type>USER_VARIABLE</type>
+                        <value>деньги</value>
+                      </leftChild>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>500</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>GREATER_OR_EQUAL</value>
+                    </formula>
+                  </formulaList>
+                  <ifBranchBricks>
+                    <brick type="SetSizeToBrick">
+                      <brickId>aa97288c-bdf6-4a33-8152-4ea58c2960a8</brickId>
+                      <commentedOut>false</commentedOut>
+                      <formulaList>
+                        <formula category="SIZE">
+                          <additionalChildren/>
+                          <type>NUMBER</type>
+                          <value>90</value>
+                        </formula>
+                      </formulaList>
+                    </brick>
+                    <brick type="ChangeVariableBrick">
+                      <brickId>2ae3e840-c2ed-4532-b62c-b6cb6bb31115</brickId>
+                      <commentedOut>false</commentedOut>
+                      <formulaList>
+                        <formula category="VARIABLE_CHANGE">
+                          <additionalChildren/>
+                          <rightChild>
+                            <additionalChildren/>
+                            <type>NUMBER</type>
+                            <value>500</value>
+                          </rightChild>
+                          <type>OPERATOR</type>
+                          <value>MINUS</value>
+                        </formula>
+                      </formulaList>
+                      <userVariable reference="../../../../../../../../../../scene/objectList/object/scriptList/script/brickList/brick[2]/userVariable"/>
+                    </brick>
+                    <brick type="ChangeVariableBrick">
+                      <brickId>83af3951-94db-4286-b4a4-d383651ed950</brickId>
+                      <commentedOut>false</commentedOut>
+                      <formulaList>
+                        <formula category="VARIABLE_CHANGE">
+                          <additionalChildren/>
+                          <type>NUMBER</type>
+                          <value>1</value>
+                        </formula>
+                      </formulaList>
+                      <userVariable type="UserVariable" serialization="custom">
+                        <userVariable>
+                          <default>
+                            <initialIndex>2</initialIndex>
+                            <deviceValueKey>71225734-e8d1-4a78-b640-3e643c4352f8</deviceValueKey>
+                            <name>Чипсы +</name>
+                          </default>
+                        </userVariable>
+                      </userVariable>
+                    </brick>
+                    <brick type="WaitBrick">
+                      <brickId>7ad2e0f2-f373-426e-9e71-1d1559ca4f28</brickId>
+                      <commentedOut>false</commentedOut>
+                      <formulaList>
+                        <formula category="TIME_TO_WAIT_IN_SECONDS">
+                          <additionalChildren/>
+                          <type>NUMBER</type>
+                          <value>0.1</value>
+                        </formula>
+                      </formulaList>
+                    </brick>
+                    <brick type="SetSizeToBrick">
+                      <brickId>a792ede1-c108-4641-9887-4e8632e0e1b9</brickId>
+                      <commentedOut>false</commentedOut>
+                      <formulaList>
+                        <formula category="SIZE">
+                          <additionalChildren/>
+                          <type>NUMBER</type>
+                          <value>100</value>
+                        </formula>
+                      </formulaList>
+                    </brick>
+                  </ifBranchBricks>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>a50895e8-3830-420b-b094-5cd2e441c288</scriptId>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+      </objectList>
+    </scene>
+  </scenes>
+  <programVariableList>
+    <userVariable reference="../../scenes/scene/objectList/object/scriptList/script/brickList/brick[2]/userVariable"/>
+    <userVariable reference="../../scenes/scene/objectList/object/scriptList/script/brickList/brick[4]/ifBranchBricks/brick/userVariable"/>
+    <userVariable reference="../../scenes/scene[3]/objectList/object[2]/scriptList/script[2]/brickList/brick/ifBranchBricks/brick[3]/userVariable"/>
+  </programVariableList>
+  <programListOfLists/>
+  <programMultiplayerVariableList/>
+</program>

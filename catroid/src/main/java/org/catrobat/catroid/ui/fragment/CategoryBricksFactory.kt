@@ -97,6 +97,7 @@ import org.catrobat.catroid.content.bricks.CloneBrick
 import org.catrobat.catroid.content.bricks.CloneObjectBrick
 import org.catrobat.catroid.content.bricks.ComeToFrontBrick
 import org.catrobat.catroid.content.bricks.ConnectServerBrick
+import org.catrobat.catroid.content.bricks.ContinueMovementBrick
 import org.catrobat.catroid.content.bricks.CopyLookBrick
 import org.catrobat.catroid.content.bricks.CopyProjectFileBrick
 import org.catrobat.catroid.content.bricks.CopyTextBrick
@@ -176,7 +177,7 @@ import org.catrobat.catroid.content.bricks.Fast2DSetScaleBrick
 import org.catrobat.catroid.content.bricks.Fast2DSetTextureBrick
 import org.catrobat.catroid.content.bricks.Fast2DSetVelocityBrick
 import org.catrobat.catroid.content.bricks.MoveToObjectBrick
-import org.catrobat.catroid.content.bricks.StopMovingBrick
+import org.catrobat.catroid.content.bricks.StopMovementBrick
 import org.catrobat.catroid.content.bricks.FadeToBlackBrick
 import org.catrobat.catroid.content.bricks.FadeFromBlackBrick
 import org.catrobat.catroid.content.bricks.CrossfadeBrick
@@ -198,6 +199,8 @@ import org.catrobat.catroid.content.bricks.GlideToBrick
 import org.catrobat.catroid.content.bricks.GoNStepsBackBrick
 import org.catrobat.catroid.content.bricks.GoToBrick
 import org.catrobat.catroid.content.bricks.GrayscaleImgBrick
+import org.catrobat.catroid.content.bricks.GridBrick
+import org.catrobat.catroid.content.bricks.HasPathBrick
 import org.catrobat.catroid.content.bricks.HideBrick
 import org.catrobat.catroid.content.bricks.HideStatusBarBrick
 import org.catrobat.catroid.content.bricks.HideText3Brick
@@ -2122,8 +2125,11 @@ void main() {
     private fun setupPathfinderCategoryList(context: Context): List<Brick> {
         val pathfinderBrickList: MutableList<Brick> = ArrayList()
 
+        pathfinderBrickList.add(GridBrick())
         pathfinderBrickList.add(MoveToObjectBrick())
-        pathfinderBrickList.add(StopMovingBrick())
+        pathfinderBrickList.add(StopMovementBrick())
+        pathfinderBrickList.add(ContinueMovementBrick())
+        pathfinderBrickList.add(HasPathBrick())
 
         return pathfinderBrickList
     }

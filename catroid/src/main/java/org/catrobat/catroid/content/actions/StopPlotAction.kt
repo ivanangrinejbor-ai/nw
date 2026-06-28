@@ -29,12 +29,13 @@ class StopPlotAction : TemporalAction() {
     private var sprite: Sprite? = null
 
     override fun update(delta: Float) {
-        if(!sprite!!.plot.isPlotting()) return
+        val s = sprite ?: return
+        if (!s.plot.isPlotting()) return
 
-        sprite!!.plot.pause()
-        sprite?.plot?.addPoint(
-            PointF(sprite!!.look.xInUserInterfaceDimensionUnit,
-                   sprite!!.look.yInUserInterfaceDimensionUnit
+        s.plot.pause()
+        s.plot.addPoint(
+            PointF(s.look.xInUserInterfaceDimensionUnit,
+                   s.look.yInUserInterfaceDimensionUnit
             )
         )
     }

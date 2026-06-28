@@ -71,5 +71,6 @@ class RunLuaAction() : TemporalAction() {
     }
 
     override fun update(percent: Float) {
+        // Lua runs asynchronously via coroutine in act() — no per-frame update needed
     }
 }

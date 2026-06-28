@@ -81,7 +81,7 @@ class WriteVarToFileAction : TemporalAction(), IntentListener {
         if (userVariable == null || formula == null) {
             return
         }
-        saveOrOverwriteInDownloads(CatroidApplication.getAppContext(), getFileName(), userVariable!!.value.toString())
+        saveOrOverwriteInDownloads(CatroidApplication.getAppContext(), getFileName(), userVariable?.value?.toString() ?: "")
     }
 
     fun saveOrOverwriteInDownloads(context: Context, fileName: String, content: String): Uri? {

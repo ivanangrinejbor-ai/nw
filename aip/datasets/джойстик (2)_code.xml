@@ -1,0 +1,1393 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<program>
+  <header>
+    <applicationBuildName></applicationBuildName>
+    <applicationBuildNumber>0</applicationBuildNumber>
+    <applicationBuildType>debug</applicationBuildType>
+    <applicationName>NewCatroid</applicationName>
+    <applicationVersion>2.1.3</applicationVersion>
+    <catrobatLanguageVersion>1.17</catrobatLanguageVersion>
+    <customResolution>false</customResolution>
+    <dateTimeUpload></dateTimeUpload>
+    <description></description>
+    <deviceName>2412DPC0AG</deviceName>
+    <gitRemoteUrl></gitRemoteUrl>
+    <isCastProject>false</isCastProject>
+    <landscapeMode>true</landscapeMode>
+    <listeningLanguageTag></listeningLanguageTag>
+    <mediaLicense></mediaLicense>
+    <notesAndCredits></notesAndCredits>
+    <physicsHeightArea>2.0</physicsHeightArea>
+    <physicsWidthArea>3.0</physicsWidthArea>
+    <platform>Android</platform>
+    <platformVersion>36</platformVersion>
+    <programLicense></programLicense>
+    <programName>джойстик</programName>
+    <remixOf></remixOf>
+    <scenesEnabled>true</scenesEnabled>
+    <screenHeight>1220</screenHeight>
+    <screenMode>STRETCH</screenMode>
+    <screenWidth>2429</screenWidth>
+    <tags></tags>
+    <url></url>
+    <userHandle></userHandle>
+  </header>
+  <settings/>
+  <scenes>
+    <scene sceneId="aad84f5e-22a3-4b52-8935-14f5a943788d">
+      <name>Сцена</name>
+      <objectList>
+        <object type="Sprite" spriteId="07d2bc6e-681f-4f19-ae8c-90aa308da39a" name="Фон">
+          <lookList>
+            <look fileName="Фон.png" lookId="427b2233-def5-4351-88a6-08315136d808" name="Фон">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="CreateVideoBrick">
+                  <brickId>56eab37e-a97a-42ae-9a93-b84d5e348f0f</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="POSX">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>0</value>
+                    </formula>
+                    <formula category="POSY">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>0</value>
+                    </formula>
+                    <formula category="NAME">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>myVideoPlayer</value>
+                    </formula>
+                    <formula category="FILE">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>VID_20260420_101834.mp4</value>
+                    </formula>
+                    <formula category="WIDTH">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>1</value>
+                    </formula>
+                    <formula category="HEIGHT">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>1</value>
+                    </formula>
+                    <formula category="CONTROLS">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>0</value>
+                    </formula>
+                    <formula category="LOOPED">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>1</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>6a7707fd-c8ea-4ac3-b03e-5e45cae4c070</scriptId>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+        <object type="Sprite" spriteId="6d35705f-94ac-4012-bc8d-b29bf9d5a136" name=".">
+          <lookList/>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="ForeverBrick">
+                  <brickId>279feb5b-b05e-4733-9e5d-9cc4282f4819</brickId>
+                  <commentedOut>false</commentedOut>
+                  <loopBricks>
+                    <brick type="UserDefinedBrick">
+                      <brickId>5078d573-3271-4370-8cb5-32232a866b16</brickId>
+                      <commentedOut>false</commentedOut>
+                      <formulaList/>
+                      <isCallingBrick>true</isCallingBrick>
+                      <userDefinedBrickDataList>
+                        <userDefinedBrickLabel>
+                          <type>LABEL</type>
+                          <label>краш</label>
+                        </userDefinedBrickLabel>
+                      </userDefinedBrickDataList>
+                      <userDefinedBrickID>732cd0db-1ab7-4409-8674-a8d023407aee</userDefinedBrickID>
+                    </brick>
+                  </loopBricks>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>37c69a55-f54d-47f4-a3b7-1311a8210d64</scriptId>
+            </script>
+            <script type="UserDefinedScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="ForeverBrick">
+                  <brickId>ece12e72-c3c7-4cdb-8cd5-188e30b55092</brickId>
+                  <commentedOut>false</commentedOut>
+                  <loopBricks>
+                    <brick type="CloneBrick">
+                      <brickId>718fec7f-e6fa-4110-b88c-5f24db6ddbbe</brickId>
+                      <commentedOut>false</commentedOut>
+                    </brick>
+                  </loopBricks>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>e6e450c8-7ff7-485a-87d5-83a5b996e819</scriptId>
+              <screenRefresh>true</screenRefresh>
+              <userDefinedBrickID>732cd0db-1ab7-4409-8674-a8d023407aee</userDefinedBrickID>
+            </script>
+            <script type="WhenClonedScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="CloneBrick">
+                  <brickId>4d7b27ac-fdc4-4e33-9409-a73ee3a761c0</brickId>
+                  <commentedOut>false</commentedOut>
+                </brick>
+                <brick type="UserDefinedBrick">
+                  <brickId>31d2ec1b-44a9-48ed-9077-68720f70250a</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList/>
+                  <isCallingBrick>true</isCallingBrick>
+                  <userDefinedBrickDataList reference="../../../../script/brickList/brick/loopBricks/brick/userDefinedBrickDataList"/>
+                  <userDefinedBrickID>732cd0db-1ab7-4409-8674-a8d023407aee</userDefinedBrickID>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>5a338b8a-bbba-4831-b58b-7833c5e6ea82</scriptId>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList>
+            <brick type="UserDefinedBrick">
+              <brickId>8d2a13ef-fe86-4934-9fac-353c7d905b24</brickId>
+              <commentedOut>false</commentedOut>
+              <formulaList/>
+              <isCallingBrick>false</isCallingBrick>
+              <userDefinedBrickDataList reference="../../../scriptList/script/brickList/brick/loopBricks/brick/userDefinedBrickDataList"/>
+              <userDefinedBrickID>732cd0db-1ab7-4409-8674-a8d023407aee</userDefinedBrickID>
+            </brick>
+          </userDefinedBrickList>
+        </object>
+        <object type="Sprite" spriteId="3b7f092d-109b-4084-9d2a-fe5726407f14" name=". (1)">
+          <lookList/>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="ForeverBrick">
+                  <brickId>f739c36f-0a80-44a0-be6f-4e160197282d</brickId>
+                  <commentedOut>false</commentedOut>
+                  <loopBricks>
+                    <brick type="UserDefinedBrick">
+                      <brickId>c1a8cdb0-4eea-4264-80c0-7c5a78eafa4e</brickId>
+                      <commentedOut>false</commentedOut>
+                      <formulaList/>
+                      <isCallingBrick>true</isCallingBrick>
+                      <userDefinedBrickDataList reference="../../../../../../../../object[2]/scriptList/script/brickList/brick/loopBricks/brick/userDefinedBrickDataList"/>
+                      <userDefinedBrickID>732cd0db-1ab7-4409-8674-a8d023407aee</userDefinedBrickID>
+                    </brick>
+                  </loopBricks>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>c461ebea-4242-4b82-bfa9-5660921309cf</scriptId>
+            </script>
+            <script type="UserDefinedScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="ForeverBrick">
+                  <brickId>028ff2da-a35e-45a0-938e-9cc6e039c70b</brickId>
+                  <commentedOut>false</commentedOut>
+                  <loopBricks>
+                    <brick type="CloneBrick">
+                      <brickId>b5fcaac0-87f8-46d7-ba6e-e7dc25140de3</brickId>
+                      <commentedOut>false</commentedOut>
+                    </brick>
+                  </loopBricks>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>3cf44710-04ef-4afb-a9bd-396400171d61</scriptId>
+              <screenRefresh>true</screenRefresh>
+              <userDefinedBrickID>732cd0db-1ab7-4409-8674-a8d023407aee</userDefinedBrickID>
+            </script>
+            <script type="WhenClonedScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="CloneBrick">
+                  <brickId>e8a9f73e-d633-4080-9ebb-39bd1281fc14</brickId>
+                  <commentedOut>false</commentedOut>
+                </brick>
+                <brick type="UserDefinedBrick">
+                  <brickId>5adbdaeb-eebd-4fbe-8f77-e8f8a21e4a81</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList/>
+                  <isCallingBrick>true</isCallingBrick>
+                  <userDefinedBrickDataList reference="../../../../../../object[2]/scriptList/script/brickList/brick/loopBricks/brick/userDefinedBrickDataList"/>
+                  <userDefinedBrickID>732cd0db-1ab7-4409-8674-a8d023407aee</userDefinedBrickID>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>1c9f166c-e8b7-4f25-90d7-d357b396d363</scriptId>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList>
+            <brick type="UserDefinedBrick">
+              <brickId>80a99db1-45e1-44ad-a293-fa55b9782100</brickId>
+              <commentedOut>false</commentedOut>
+              <formulaList/>
+              <isCallingBrick>false</isCallingBrick>
+              <userDefinedBrickDataList>
+                <userDefinedBrickLabel>
+                  <type>LABEL</type>
+                  <label>краш</label>
+                </userDefinedBrickLabel>
+              </userDefinedBrickDataList>
+              <userDefinedBrickID>732cd0db-1ab7-4409-8674-a8d023407aee</userDefinedBrickID>
+            </brick>
+          </userDefinedBrickList>
+        </object>
+        <object type="Sprite" spriteId="9591d37e-161d-4435-891b-9a82b94bc2ee" name=". (2)">
+          <lookList/>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="ForeverBrick">
+                  <brickId>0ba03d91-5a33-427a-983b-826f3fa32681</brickId>
+                  <commentedOut>false</commentedOut>
+                  <loopBricks>
+                    <brick type="UserDefinedBrick">
+                      <brickId>ff479efd-52e1-41cb-96f3-a1fede4aea2f</brickId>
+                      <commentedOut>false</commentedOut>
+                      <formulaList/>
+                      <isCallingBrick>true</isCallingBrick>
+                      <userDefinedBrickDataList reference="../../../../../../../../object[2]/scriptList/script/brickList/brick/loopBricks/brick/userDefinedBrickDataList"/>
+                      <userDefinedBrickID>732cd0db-1ab7-4409-8674-a8d023407aee</userDefinedBrickID>
+                    </brick>
+                  </loopBricks>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>e2ce9918-5ea8-4846-9dc8-27f59d7f54d9</scriptId>
+            </script>
+            <script type="UserDefinedScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="ForeverBrick">
+                  <brickId>a5203e18-2aea-4d62-b680-a19ff7620e49</brickId>
+                  <commentedOut>false</commentedOut>
+                  <loopBricks>
+                    <brick type="CloneBrick">
+                      <brickId>545a833d-afd9-4494-b4ae-f1a40344acc9</brickId>
+                      <commentedOut>false</commentedOut>
+                    </brick>
+                  </loopBricks>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>c3709bd6-c955-4f4c-9e50-f86176fe66fb</scriptId>
+              <screenRefresh>true</screenRefresh>
+              <userDefinedBrickID>732cd0db-1ab7-4409-8674-a8d023407aee</userDefinedBrickID>
+            </script>
+            <script type="WhenClonedScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="CloneBrick">
+                  <brickId>415aaed5-2d0e-4ca4-8ac9-67410caf044d</brickId>
+                  <commentedOut>false</commentedOut>
+                </brick>
+                <brick type="UserDefinedBrick">
+                  <brickId>ecdd90f4-4374-4f0a-a9a1-371f18ce38e9</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList/>
+                  <isCallingBrick>true</isCallingBrick>
+                  <userDefinedBrickDataList reference="../../../../../../object[2]/scriptList/script/brickList/brick/loopBricks/brick/userDefinedBrickDataList"/>
+                  <userDefinedBrickID>732cd0db-1ab7-4409-8674-a8d023407aee</userDefinedBrickID>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>73d13ad2-25da-48fc-b902-3fa335063a5d</scriptId>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList>
+            <brick type="UserDefinedBrick">
+              <brickId>9862e02d-1aeb-4194-81de-d5c884af8a1e</brickId>
+              <commentedOut>false</commentedOut>
+              <formulaList/>
+              <isCallingBrick>false</isCallingBrick>
+              <userDefinedBrickDataList>
+                <userDefinedBrickLabel>
+                  <type>LABEL</type>
+                  <label>краш</label>
+                </userDefinedBrickLabel>
+              </userDefinedBrickDataList>
+              <userDefinedBrickID>732cd0db-1ab7-4409-8674-a8d023407aee</userDefinedBrickID>
+            </brick>
+          </userDefinedBrickList>
+        </object>
+        <object type="Sprite" spriteId="a66c98ae-3ece-44ec-a357-42e287367b84" name=". (3)">
+          <lookList/>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="ForeverBrick">
+                  <brickId>6d7ae4e7-c6ca-4889-8d6e-d3cdead30383</brickId>
+                  <commentedOut>false</commentedOut>
+                  <loopBricks>
+                    <brick type="UserDefinedBrick">
+                      <brickId>dba131fd-10ca-43e7-99e7-1381cf288505</brickId>
+                      <commentedOut>false</commentedOut>
+                      <formulaList/>
+                      <isCallingBrick>true</isCallingBrick>
+                      <userDefinedBrickDataList reference="../../../../../../../../object[2]/scriptList/script/brickList/brick/loopBricks/brick/userDefinedBrickDataList"/>
+                      <userDefinedBrickID>732cd0db-1ab7-4409-8674-a8d023407aee</userDefinedBrickID>
+                    </brick>
+                  </loopBricks>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>d79c1b78-1863-47ea-a20d-ee929fa1e457</scriptId>
+            </script>
+            <script type="UserDefinedScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="ForeverBrick">
+                  <brickId>cfacaced-aa4c-451f-9406-f0b00cd67e36</brickId>
+                  <commentedOut>false</commentedOut>
+                  <loopBricks>
+                    <brick type="CloneBrick">
+                      <brickId>bb8422a0-4e7d-48fc-a617-1e3579ae2a9c</brickId>
+                      <commentedOut>false</commentedOut>
+                    </brick>
+                  </loopBricks>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>0fcb6697-e65f-416c-bf3a-990233898707</scriptId>
+              <screenRefresh>true</screenRefresh>
+              <userDefinedBrickID>732cd0db-1ab7-4409-8674-a8d023407aee</userDefinedBrickID>
+            </script>
+            <script type="WhenClonedScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="CloneBrick">
+                  <brickId>e1f5422e-52b5-42b2-a339-adf8c38ce85b</brickId>
+                  <commentedOut>false</commentedOut>
+                </brick>
+                <brick type="UserDefinedBrick">
+                  <brickId>8e26e5e9-9890-450e-9146-069fb9ad56e9</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList/>
+                  <isCallingBrick>true</isCallingBrick>
+                  <userDefinedBrickDataList reference="../../../../../../object[2]/scriptList/script/brickList/brick/loopBricks/brick/userDefinedBrickDataList"/>
+                  <userDefinedBrickID>732cd0db-1ab7-4409-8674-a8d023407aee</userDefinedBrickID>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>dd32e39a-60fa-4adc-96ca-058c8c7d5ff1</scriptId>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList>
+            <brick type="UserDefinedBrick">
+              <brickId>b9b5eb4a-e70a-41eb-9500-912bc3881337</brickId>
+              <commentedOut>false</commentedOut>
+              <formulaList/>
+              <isCallingBrick>false</isCallingBrick>
+              <userDefinedBrickDataList>
+                <userDefinedBrickLabel>
+                  <type>LABEL</type>
+                  <label>краш</label>
+                </userDefinedBrickLabel>
+              </userDefinedBrickDataList>
+              <userDefinedBrickID>732cd0db-1ab7-4409-8674-a8d023407aee</userDefinedBrickID>
+            </brick>
+          </userDefinedBrickList>
+        </object>
+        <object type="Sprite" spriteId="af9595e5-5623-467b-82d9-15772311010f" name=". (4)">
+          <lookList/>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="ForeverBrick">
+                  <brickId>a9d5136e-c7c5-449d-a4c7-6148e11c2fc5</brickId>
+                  <commentedOut>false</commentedOut>
+                  <loopBricks>
+                    <brick type="UserDefinedBrick">
+                      <brickId>9658110e-9b91-4ddc-a326-205340cd1fa4</brickId>
+                      <commentedOut>false</commentedOut>
+                      <formulaList/>
+                      <isCallingBrick>true</isCallingBrick>
+                      <userDefinedBrickDataList reference="../../../../../../../../object[2]/scriptList/script/brickList/brick/loopBricks/brick/userDefinedBrickDataList"/>
+                      <userDefinedBrickID>732cd0db-1ab7-4409-8674-a8d023407aee</userDefinedBrickID>
+                    </brick>
+                  </loopBricks>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>0b4c4e63-5aa2-47ad-b506-62d9ef745572</scriptId>
+            </script>
+            <script type="UserDefinedScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="ForeverBrick">
+                  <brickId>a31a8ae7-c99e-4c39-9f07-8dffe3081189</brickId>
+                  <commentedOut>false</commentedOut>
+                  <loopBricks>
+                    <brick type="CloneBrick">
+                      <brickId>5ed8fcf4-391b-4909-928d-f42259b96f4d</brickId>
+                      <commentedOut>false</commentedOut>
+                    </brick>
+                  </loopBricks>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>19cc3284-274e-4f7d-8615-d76fd3639838</scriptId>
+              <screenRefresh>true</screenRefresh>
+              <userDefinedBrickID>732cd0db-1ab7-4409-8674-a8d023407aee</userDefinedBrickID>
+            </script>
+            <script type="WhenClonedScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="CloneBrick">
+                  <brickId>2ad5bea0-7acc-4bac-b419-5c484381684b</brickId>
+                  <commentedOut>false</commentedOut>
+                </brick>
+                <brick type="UserDefinedBrick">
+                  <brickId>bba8d556-9265-45fa-92a9-b658db5add7f</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList/>
+                  <isCallingBrick>true</isCallingBrick>
+                  <userDefinedBrickDataList reference="../../../../../../object[2]/scriptList/script/brickList/brick/loopBricks/brick/userDefinedBrickDataList"/>
+                  <userDefinedBrickID>732cd0db-1ab7-4409-8674-a8d023407aee</userDefinedBrickID>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>2f2b21f8-df41-4d2f-9a22-6af4909360b0</scriptId>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList>
+            <brick type="UserDefinedBrick">
+              <brickId>7024ddba-14d6-4ec1-86bc-8420f3ddf7ec</brickId>
+              <commentedOut>false</commentedOut>
+              <formulaList/>
+              <isCallingBrick>false</isCallingBrick>
+              <userDefinedBrickDataList>
+                <userDefinedBrickLabel>
+                  <type>LABEL</type>
+                  <label>краш</label>
+                </userDefinedBrickLabel>
+              </userDefinedBrickDataList>
+              <userDefinedBrickID>732cd0db-1ab7-4409-8674-a8d023407aee</userDefinedBrickID>
+            </brick>
+          </userDefinedBrickList>
+        </object>
+        <object type="Sprite" spriteId="d5ff1927-8a44-4c28-8fcc-f58407b2db82" name=". (5)">
+          <lookList/>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="ForeverBrick">
+                  <brickId>0e069311-62f4-4b5c-897e-a8d943aadaba</brickId>
+                  <commentedOut>false</commentedOut>
+                  <loopBricks>
+                    <brick type="UserDefinedBrick">
+                      <brickId>35cb300e-2051-44c3-babe-4d64d3766b85</brickId>
+                      <commentedOut>false</commentedOut>
+                      <formulaList/>
+                      <isCallingBrick>true</isCallingBrick>
+                      <userDefinedBrickDataList reference="../../../../../../../../object[2]/scriptList/script/brickList/brick/loopBricks/brick/userDefinedBrickDataList"/>
+                      <userDefinedBrickID>732cd0db-1ab7-4409-8674-a8d023407aee</userDefinedBrickID>
+                    </brick>
+                  </loopBricks>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>44ddcf0b-e259-4553-82f5-e71348c1ce42</scriptId>
+            </script>
+            <script type="UserDefinedScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="ForeverBrick">
+                  <brickId>5632d524-53b7-4ae5-a206-df119a60289d</brickId>
+                  <commentedOut>false</commentedOut>
+                  <loopBricks>
+                    <brick type="CloneBrick">
+                      <brickId>6fcd50de-cd62-4313-9774-f4aff61976a7</brickId>
+                      <commentedOut>false</commentedOut>
+                    </brick>
+                  </loopBricks>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>49e37d75-1fc6-4891-b880-652de9c7d5cc</scriptId>
+              <screenRefresh>true</screenRefresh>
+              <userDefinedBrickID>732cd0db-1ab7-4409-8674-a8d023407aee</userDefinedBrickID>
+            </script>
+            <script type="WhenClonedScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="CloneBrick">
+                  <brickId>98d37e8a-66da-44d7-b19a-cd9d9117e65c</brickId>
+                  <commentedOut>false</commentedOut>
+                </brick>
+                <brick type="UserDefinedBrick">
+                  <brickId>801030b1-9a83-404b-adbd-126c3b0d8d64</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList/>
+                  <isCallingBrick>true</isCallingBrick>
+                  <userDefinedBrickDataList reference="../../../../../../object[2]/scriptList/script/brickList/brick/loopBricks/brick/userDefinedBrickDataList"/>
+                  <userDefinedBrickID>732cd0db-1ab7-4409-8674-a8d023407aee</userDefinedBrickID>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>4fe09db9-eba5-45d7-8eef-6db04345e093</scriptId>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList>
+            <brick type="UserDefinedBrick">
+              <brickId>67f58a5f-cf9f-4fb2-b048-566bc5741a4d</brickId>
+              <commentedOut>false</commentedOut>
+              <formulaList/>
+              <isCallingBrick>false</isCallingBrick>
+              <userDefinedBrickDataList>
+                <userDefinedBrickLabel>
+                  <type>LABEL</type>
+                  <label>краш</label>
+                </userDefinedBrickLabel>
+              </userDefinedBrickDataList>
+              <userDefinedBrickID>732cd0db-1ab7-4409-8674-a8d023407aee</userDefinedBrickID>
+            </brick>
+          </userDefinedBrickList>
+        </object>
+        <object type="Sprite" spriteId="af4c4a12-9f0c-469a-8ca4-cdd4c9d7b1f1" name=". (6)">
+          <lookList/>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="ForeverBrick">
+                  <brickId>105f7227-6a58-45ad-a273-711eae4c3e07</brickId>
+                  <commentedOut>false</commentedOut>
+                  <loopBricks>
+                    <brick type="UserDefinedBrick">
+                      <brickId>ffc17f29-d9f8-49b2-9987-c70c3c02bb81</brickId>
+                      <commentedOut>false</commentedOut>
+                      <formulaList/>
+                      <isCallingBrick>true</isCallingBrick>
+                      <userDefinedBrickDataList reference="../../../../../../../../object[2]/scriptList/script/brickList/brick/loopBricks/brick/userDefinedBrickDataList"/>
+                      <userDefinedBrickID>732cd0db-1ab7-4409-8674-a8d023407aee</userDefinedBrickID>
+                    </brick>
+                  </loopBricks>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>b445a2dd-0b6c-4b20-8f0c-6befc6be973a</scriptId>
+            </script>
+            <script type="UserDefinedScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="ForeverBrick">
+                  <brickId>88bb7a18-d1b7-438d-ad40-61acc604f9b5</brickId>
+                  <commentedOut>false</commentedOut>
+                  <loopBricks>
+                    <brick type="CloneBrick">
+                      <brickId>49fd7f5c-eeb1-46e4-a57b-daf7c74edbb6</brickId>
+                      <commentedOut>false</commentedOut>
+                    </brick>
+                  </loopBricks>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>64082f7e-72bb-4dad-8cbd-f4a77c711282</scriptId>
+              <screenRefresh>true</screenRefresh>
+              <userDefinedBrickID>732cd0db-1ab7-4409-8674-a8d023407aee</userDefinedBrickID>
+            </script>
+            <script type="WhenClonedScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="CloneBrick">
+                  <brickId>c0a0e112-03d1-40ee-9a27-5f5f952f972a</brickId>
+                  <commentedOut>false</commentedOut>
+                </brick>
+                <brick type="UserDefinedBrick">
+                  <brickId>c87a453d-72d0-4fea-949d-de4b0085355e</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList/>
+                  <isCallingBrick>true</isCallingBrick>
+                  <userDefinedBrickDataList reference="../../../../../../object[2]/scriptList/script/brickList/brick/loopBricks/brick/userDefinedBrickDataList"/>
+                  <userDefinedBrickID>732cd0db-1ab7-4409-8674-a8d023407aee</userDefinedBrickID>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>6cec1798-bf94-486e-9387-086ae4d329ef</scriptId>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList>
+            <brick type="UserDefinedBrick">
+              <brickId>9bd2e0e9-630b-4ede-8601-b0e1e2e6e0fe</brickId>
+              <commentedOut>false</commentedOut>
+              <formulaList/>
+              <isCallingBrick>false</isCallingBrick>
+              <userDefinedBrickDataList>
+                <userDefinedBrickLabel>
+                  <type>LABEL</type>
+                  <label>краш</label>
+                </userDefinedBrickLabel>
+              </userDefinedBrickDataList>
+              <userDefinedBrickID>732cd0db-1ab7-4409-8674-a8d023407aee</userDefinedBrickID>
+            </brick>
+          </userDefinedBrickList>
+        </object>
+        <object type="Sprite" spriteId="789465ba-7dc7-49b0-a24f-8c643a894347" name=". (7)">
+          <lookList/>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="ForeverBrick">
+                  <brickId>c3e0fd1b-d24c-4858-9e4a-d0195785b716</brickId>
+                  <commentedOut>false</commentedOut>
+                  <loopBricks>
+                    <brick type="UserDefinedBrick">
+                      <brickId>e6de693c-0c59-40c4-af19-00eb4ff4302a</brickId>
+                      <commentedOut>false</commentedOut>
+                      <formulaList/>
+                      <isCallingBrick>true</isCallingBrick>
+                      <userDefinedBrickDataList reference="../../../../../../../../object[2]/scriptList/script/brickList/brick/loopBricks/brick/userDefinedBrickDataList"/>
+                      <userDefinedBrickID>732cd0db-1ab7-4409-8674-a8d023407aee</userDefinedBrickID>
+                    </brick>
+                  </loopBricks>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>2a5f3e44-3f19-4b55-aa33-484f2f11b917</scriptId>
+            </script>
+            <script type="UserDefinedScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="ForeverBrick">
+                  <brickId>1419c4f1-dd8e-405a-b7f8-ba0ff29567fe</brickId>
+                  <commentedOut>false</commentedOut>
+                  <loopBricks>
+                    <brick type="CloneBrick">
+                      <brickId>c7b69181-0e84-4513-b300-02b60892b928</brickId>
+                      <commentedOut>false</commentedOut>
+                    </brick>
+                  </loopBricks>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>6a40b543-6806-4529-899f-0c16ef824f51</scriptId>
+              <screenRefresh>true</screenRefresh>
+              <userDefinedBrickID>732cd0db-1ab7-4409-8674-a8d023407aee</userDefinedBrickID>
+            </script>
+            <script type="WhenClonedScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="CloneBrick">
+                  <brickId>89905914-53cc-475d-9767-ddca17a60c8d</brickId>
+                  <commentedOut>false</commentedOut>
+                </brick>
+                <brick type="UserDefinedBrick">
+                  <brickId>c980eb99-6fc3-4294-acb1-aa342310f884</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList/>
+                  <isCallingBrick>true</isCallingBrick>
+                  <userDefinedBrickDataList reference="../../../../../../object[2]/scriptList/script/brickList/brick/loopBricks/brick/userDefinedBrickDataList"/>
+                  <userDefinedBrickID>732cd0db-1ab7-4409-8674-a8d023407aee</userDefinedBrickID>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>b76aaea5-76cb-4e48-a0d1-28233682a372</scriptId>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList>
+            <brick type="UserDefinedBrick">
+              <brickId>2687ca24-41e0-4edc-b863-57780f2d3e5e</brickId>
+              <commentedOut>false</commentedOut>
+              <formulaList/>
+              <isCallingBrick>false</isCallingBrick>
+              <userDefinedBrickDataList>
+                <userDefinedBrickLabel>
+                  <type>LABEL</type>
+                  <label>краш</label>
+                </userDefinedBrickLabel>
+              </userDefinedBrickDataList>
+              <userDefinedBrickID>732cd0db-1ab7-4409-8674-a8d023407aee</userDefinedBrickID>
+            </brick>
+          </userDefinedBrickList>
+        </object>
+        <object type="Sprite" spriteId="41f9852f-aed6-40ed-a56b-132ab891fbab" name=". (8)">
+          <lookList/>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="ForeverBrick">
+                  <brickId>128dd8f8-4d7e-4e6b-a019-bcf8a932e054</brickId>
+                  <commentedOut>false</commentedOut>
+                  <loopBricks>
+                    <brick type="UserDefinedBrick">
+                      <brickId>bd1a76a8-15dc-41f1-8982-a33982d2a3ce</brickId>
+                      <commentedOut>false</commentedOut>
+                      <formulaList/>
+                      <isCallingBrick>true</isCallingBrick>
+                      <userDefinedBrickDataList reference="../../../../../../../../object[2]/scriptList/script/brickList/brick/loopBricks/brick/userDefinedBrickDataList"/>
+                      <userDefinedBrickID>732cd0db-1ab7-4409-8674-a8d023407aee</userDefinedBrickID>
+                    </brick>
+                  </loopBricks>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>9df21cca-39a8-4567-b1fb-f352648dbd75</scriptId>
+            </script>
+            <script type="UserDefinedScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="ForeverBrick">
+                  <brickId>25ca52d7-9bd1-4669-bf50-89867b527f90</brickId>
+                  <commentedOut>false</commentedOut>
+                  <loopBricks>
+                    <brick type="CloneBrick">
+                      <brickId>1b9a0d90-96a2-49d3-a069-20def48ec25c</brickId>
+                      <commentedOut>false</commentedOut>
+                    </brick>
+                  </loopBricks>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>d0b55a76-891f-4636-9754-e6bade7a5a0e</scriptId>
+              <screenRefresh>true</screenRefresh>
+              <userDefinedBrickID>732cd0db-1ab7-4409-8674-a8d023407aee</userDefinedBrickID>
+            </script>
+            <script type="WhenClonedScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="CloneBrick">
+                  <brickId>1ac75958-9bdd-4835-89af-ff70d972d432</brickId>
+                  <commentedOut>false</commentedOut>
+                </brick>
+                <brick type="UserDefinedBrick">
+                  <brickId>9f17de86-b09e-4578-a5c8-22fd9ac0f054</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList/>
+                  <isCallingBrick>true</isCallingBrick>
+                  <userDefinedBrickDataList reference="../../../../../../object[2]/scriptList/script/brickList/brick/loopBricks/brick/userDefinedBrickDataList"/>
+                  <userDefinedBrickID>732cd0db-1ab7-4409-8674-a8d023407aee</userDefinedBrickID>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>dcaa7da8-bb10-464f-95b3-8603b8fe79f6</scriptId>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList>
+            <brick type="UserDefinedBrick">
+              <brickId>eca71dc9-6592-41cb-aadc-2f96fa9c6bfd</brickId>
+              <commentedOut>false</commentedOut>
+              <formulaList/>
+              <isCallingBrick>false</isCallingBrick>
+              <userDefinedBrickDataList>
+                <userDefinedBrickLabel>
+                  <type>LABEL</type>
+                  <label>краш</label>
+                </userDefinedBrickLabel>
+              </userDefinedBrickDataList>
+              <userDefinedBrickID>732cd0db-1ab7-4409-8674-a8d023407aee</userDefinedBrickID>
+            </brick>
+          </userDefinedBrickList>
+        </object>
+        <object type="Sprite" spriteId="574b0b97-8f9b-45e1-b1c8-c737e5089b34" name=". (9)">
+          <lookList/>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="ForeverBrick">
+                  <brickId>73fabb12-46df-4f25-b507-0a85f87cbe14</brickId>
+                  <commentedOut>false</commentedOut>
+                  <loopBricks>
+                    <brick type="UserDefinedBrick">
+                      <brickId>1583409b-c627-4e1b-be2d-405584ba5900</brickId>
+                      <commentedOut>false</commentedOut>
+                      <formulaList/>
+                      <isCallingBrick>true</isCallingBrick>
+                      <userDefinedBrickDataList reference="../../../../../../../../object[2]/scriptList/script/brickList/brick/loopBricks/brick/userDefinedBrickDataList"/>
+                      <userDefinedBrickID>732cd0db-1ab7-4409-8674-a8d023407aee</userDefinedBrickID>
+                    </brick>
+                  </loopBricks>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>f696886b-e07a-4b14-bf00-6384e4260a0b</scriptId>
+            </script>
+            <script type="UserDefinedScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="ForeverBrick">
+                  <brickId>c9261e17-4c1a-4a16-9017-3663b34a3e1a</brickId>
+                  <commentedOut>false</commentedOut>
+                  <loopBricks>
+                    <brick type="CloneBrick">
+                      <brickId>e5fd6ce2-e549-459e-9dc0-33530a5dc136</brickId>
+                      <commentedOut>false</commentedOut>
+                    </brick>
+                  </loopBricks>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>ef682d87-0d2b-407a-ae4d-38878d563fc6</scriptId>
+              <screenRefresh>true</screenRefresh>
+              <userDefinedBrickID>732cd0db-1ab7-4409-8674-a8d023407aee</userDefinedBrickID>
+            </script>
+            <script type="WhenClonedScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="CloneBrick">
+                  <brickId>068999d1-32ff-4cfb-aba8-fd90f125443b</brickId>
+                  <commentedOut>false</commentedOut>
+                </brick>
+                <brick type="UserDefinedBrick">
+                  <brickId>ed7e8d41-6073-47c9-861c-89427e0f2573</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList/>
+                  <isCallingBrick>true</isCallingBrick>
+                  <userDefinedBrickDataList reference="../../../../../../object[2]/scriptList/script/brickList/brick/loopBricks/brick/userDefinedBrickDataList"/>
+                  <userDefinedBrickID>732cd0db-1ab7-4409-8674-a8d023407aee</userDefinedBrickID>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>d3abecdf-0a9e-4622-89b5-15e8a306d60e</scriptId>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList>
+            <brick type="UserDefinedBrick">
+              <brickId>4cc9e5cf-5543-4247-a5d5-037e4e098c41</brickId>
+              <commentedOut>false</commentedOut>
+              <formulaList/>
+              <isCallingBrick>false</isCallingBrick>
+              <userDefinedBrickDataList>
+                <userDefinedBrickLabel>
+                  <type>LABEL</type>
+                  <label>краш</label>
+                </userDefinedBrickLabel>
+              </userDefinedBrickDataList>
+              <userDefinedBrickID>732cd0db-1ab7-4409-8674-a8d023407aee</userDefinedBrickID>
+            </brick>
+          </userDefinedBrickList>
+        </object>
+        <object type="Sprite" spriteId="5c1f0480-a00d-453d-85a6-1618d4331291" name=". (10)">
+          <lookList/>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="ForeverBrick">
+                  <brickId>75e3b5c6-7be9-42f0-a924-7e55221e277a</brickId>
+                  <commentedOut>false</commentedOut>
+                  <loopBricks>
+                    <brick type="UserDefinedBrick">
+                      <brickId>50c8fccd-12b1-41a5-bc1f-d310cf2e8404</brickId>
+                      <commentedOut>false</commentedOut>
+                      <formulaList/>
+                      <isCallingBrick>true</isCallingBrick>
+                      <userDefinedBrickDataList reference="../../../../../../../../object[2]/scriptList/script/brickList/brick/loopBricks/brick/userDefinedBrickDataList"/>
+                      <userDefinedBrickID>732cd0db-1ab7-4409-8674-a8d023407aee</userDefinedBrickID>
+                    </brick>
+                  </loopBricks>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>03a02935-20a6-4bc3-914a-c1fb35b49ce3</scriptId>
+            </script>
+            <script type="UserDefinedScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="ForeverBrick">
+                  <brickId>984c1baa-5bd3-4501-b154-4ed0d3b45394</brickId>
+                  <commentedOut>false</commentedOut>
+                  <loopBricks>
+                    <brick type="CloneBrick">
+                      <brickId>182a31be-9d32-4374-9683-7fb163e0235b</brickId>
+                      <commentedOut>false</commentedOut>
+                    </brick>
+                  </loopBricks>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>a3a80f4b-c0e5-4893-ad3e-6c133f1f37e8</scriptId>
+              <screenRefresh>true</screenRefresh>
+              <userDefinedBrickID>732cd0db-1ab7-4409-8674-a8d023407aee</userDefinedBrickID>
+            </script>
+            <script type="WhenClonedScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="CloneBrick">
+                  <brickId>7e3d1cf2-968f-4e2f-9322-4f8cbcefe153</brickId>
+                  <commentedOut>false</commentedOut>
+                </brick>
+                <brick type="UserDefinedBrick">
+                  <brickId>5fd9b09c-b2f5-4c7f-a29d-6ad5aa644c0d</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList/>
+                  <isCallingBrick>true</isCallingBrick>
+                  <userDefinedBrickDataList reference="../../../../../../object[2]/scriptList/script/brickList/brick/loopBricks/brick/userDefinedBrickDataList"/>
+                  <userDefinedBrickID>732cd0db-1ab7-4409-8674-a8d023407aee</userDefinedBrickID>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>d4bbe2a0-4138-4370-a8d4-3f9bccabe4d2</scriptId>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList>
+            <brick type="UserDefinedBrick">
+              <brickId>b3ea7cf6-ff36-4222-930c-fdde3e8206ee</brickId>
+              <commentedOut>false</commentedOut>
+              <formulaList/>
+              <isCallingBrick>false</isCallingBrick>
+              <userDefinedBrickDataList>
+                <userDefinedBrickLabel>
+                  <type>LABEL</type>
+                  <label>краш</label>
+                </userDefinedBrickLabel>
+              </userDefinedBrickDataList>
+              <userDefinedBrickID>732cd0db-1ab7-4409-8674-a8d023407aee</userDefinedBrickID>
+            </brick>
+          </userDefinedBrickList>
+        </object>
+        <object type="Sprite" spriteId="b5f50729-0c4d-436e-b14a-b975f385079d" name=". (11)">
+          <lookList/>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="ForeverBrick">
+                  <brickId>57734745-ca70-41b9-b801-a493d47a8ad6</brickId>
+                  <commentedOut>false</commentedOut>
+                  <loopBricks>
+                    <brick type="UserDefinedBrick">
+                      <brickId>8bdae1a7-f6b3-46b0-8a25-eb47c4c1766c</brickId>
+                      <commentedOut>false</commentedOut>
+                      <formulaList/>
+                      <isCallingBrick>true</isCallingBrick>
+                      <userDefinedBrickDataList reference="../../../../../../../../object[2]/scriptList/script/brickList/brick/loopBricks/brick/userDefinedBrickDataList"/>
+                      <userDefinedBrickID>732cd0db-1ab7-4409-8674-a8d023407aee</userDefinedBrickID>
+                    </brick>
+                  </loopBricks>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>37cff31a-4d6f-45b7-b207-ee25b8e33e74</scriptId>
+            </script>
+            <script type="UserDefinedScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="ForeverBrick">
+                  <brickId>0fe0900f-f420-48b2-b3f4-38cb83693206</brickId>
+                  <commentedOut>false</commentedOut>
+                  <loopBricks>
+                    <brick type="CloneBrick">
+                      <brickId>64a9af22-814f-4e06-b913-931bc9b8a6de</brickId>
+                      <commentedOut>false</commentedOut>
+                    </brick>
+                  </loopBricks>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>2648ee98-590a-4ea6-b1a1-1363ffd7b71e</scriptId>
+              <screenRefresh>true</screenRefresh>
+              <userDefinedBrickID>732cd0db-1ab7-4409-8674-a8d023407aee</userDefinedBrickID>
+            </script>
+            <script type="WhenClonedScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="CloneBrick">
+                  <brickId>e390e380-262f-4d4d-b1c3-b0eecde00f85</brickId>
+                  <commentedOut>false</commentedOut>
+                </brick>
+                <brick type="UserDefinedBrick">
+                  <brickId>d6903f4e-25dd-4a8b-9b8f-34b72eca4aa8</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList/>
+                  <isCallingBrick>true</isCallingBrick>
+                  <userDefinedBrickDataList reference="../../../../../../object[2]/scriptList/script/brickList/brick/loopBricks/brick/userDefinedBrickDataList"/>
+                  <userDefinedBrickID>732cd0db-1ab7-4409-8674-a8d023407aee</userDefinedBrickID>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>9eebad41-af91-40d2-83bb-40abe9749618</scriptId>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList>
+            <brick type="UserDefinedBrick">
+              <brickId>d4ef5d7f-dfa4-47c8-b9a3-93514824d156</brickId>
+              <commentedOut>false</commentedOut>
+              <formulaList/>
+              <isCallingBrick>false</isCallingBrick>
+              <userDefinedBrickDataList>
+                <userDefinedBrickLabel>
+                  <type>LABEL</type>
+                  <label>краш</label>
+                </userDefinedBrickLabel>
+              </userDefinedBrickDataList>
+              <userDefinedBrickID>732cd0db-1ab7-4409-8674-a8d023407aee</userDefinedBrickID>
+            </brick>
+          </userDefinedBrickList>
+        </object>
+        <object type="Sprite" spriteId="7976e2e6-e45e-463f-abe5-3034ecebcfcd" name=". (12)">
+          <lookList/>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="ForeverBrick">
+                  <brickId>c730a266-8f02-4f6b-a704-049d37cfa122</brickId>
+                  <commentedOut>false</commentedOut>
+                  <loopBricks>
+                    <brick type="UserDefinedBrick">
+                      <brickId>db2c4570-7fa4-4a9d-bd1a-b7885b0c3993</brickId>
+                      <commentedOut>false</commentedOut>
+                      <formulaList/>
+                      <isCallingBrick>true</isCallingBrick>
+                      <userDefinedBrickDataList reference="../../../../../../../../object[2]/scriptList/script/brickList/brick/loopBricks/brick/userDefinedBrickDataList"/>
+                      <userDefinedBrickID>732cd0db-1ab7-4409-8674-a8d023407aee</userDefinedBrickID>
+                    </brick>
+                  </loopBricks>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>aada0569-fa6d-492e-bab5-aa641cfc54b6</scriptId>
+            </script>
+            <script type="UserDefinedScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="ForeverBrick">
+                  <brickId>f9c52ea7-986c-41eb-b54e-65c3e29bce6d</brickId>
+                  <commentedOut>false</commentedOut>
+                  <loopBricks>
+                    <brick type="CloneBrick">
+                      <brickId>f5a93243-e2ec-4f75-86d5-15c3b7767138</brickId>
+                      <commentedOut>false</commentedOut>
+                    </brick>
+                  </loopBricks>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>d37d06f9-9bfc-4c24-a19a-905331d50c89</scriptId>
+              <screenRefresh>true</screenRefresh>
+              <userDefinedBrickID>732cd0db-1ab7-4409-8674-a8d023407aee</userDefinedBrickID>
+            </script>
+            <script type="WhenClonedScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="CloneBrick">
+                  <brickId>0e2fd6b5-dc7c-4375-8f25-461b57d154f8</brickId>
+                  <commentedOut>false</commentedOut>
+                </brick>
+                <brick type="UserDefinedBrick">
+                  <brickId>9c15ba52-73ee-4a10-8654-31b62fe6c3e4</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList/>
+                  <isCallingBrick>true</isCallingBrick>
+                  <userDefinedBrickDataList reference="../../../../../../object[2]/scriptList/script/brickList/brick/loopBricks/brick/userDefinedBrickDataList"/>
+                  <userDefinedBrickID>732cd0db-1ab7-4409-8674-a8d023407aee</userDefinedBrickID>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>194b645e-d6ac-4210-9766-de56732e4803</scriptId>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList>
+            <brick type="UserDefinedBrick">
+              <brickId>98c6ed18-a8cf-4eb2-824b-f9182d156f18</brickId>
+              <commentedOut>false</commentedOut>
+              <formulaList/>
+              <isCallingBrick>false</isCallingBrick>
+              <userDefinedBrickDataList>
+                <userDefinedBrickLabel>
+                  <type>LABEL</type>
+                  <label>краш</label>
+                </userDefinedBrickLabel>
+              </userDefinedBrickDataList>
+              <userDefinedBrickID>732cd0db-1ab7-4409-8674-a8d023407aee</userDefinedBrickID>
+            </brick>
+          </userDefinedBrickList>
+        </object>
+        <object type="Sprite" spriteId="1a8d0786-911f-4d61-b8e4-5fa02a353aa0" name=". (13)">
+          <lookList/>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="ForeverBrick">
+                  <brickId>ba414bc7-ffe7-49af-829f-0588bbe89ac9</brickId>
+                  <commentedOut>false</commentedOut>
+                  <loopBricks>
+                    <brick type="UserDefinedBrick">
+                      <brickId>6842b4b2-fd5d-4ad3-aa78-4d7bbabc0d48</brickId>
+                      <commentedOut>false</commentedOut>
+                      <formulaList/>
+                      <isCallingBrick>true</isCallingBrick>
+                      <userDefinedBrickDataList reference="../../../../../../../../object[2]/scriptList/script/brickList/brick/loopBricks/brick/userDefinedBrickDataList"/>
+                      <userDefinedBrickID>732cd0db-1ab7-4409-8674-a8d023407aee</userDefinedBrickID>
+                    </brick>
+                  </loopBricks>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>32a043ab-4eb8-4c47-8f3e-528dd7e50a70</scriptId>
+            </script>
+            <script type="UserDefinedScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="ForeverBrick">
+                  <brickId>8b1769e8-9c2d-43fe-bea3-241a0cb9a590</brickId>
+                  <commentedOut>false</commentedOut>
+                  <loopBricks>
+                    <brick type="CloneBrick">
+                      <brickId>bf8ea470-6d2d-4604-a865-054d4b0df045</brickId>
+                      <commentedOut>false</commentedOut>
+                    </brick>
+                  </loopBricks>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>262ff4ff-1481-4be8-ad23-b4efdbee5081</scriptId>
+              <screenRefresh>true</screenRefresh>
+              <userDefinedBrickID>732cd0db-1ab7-4409-8674-a8d023407aee</userDefinedBrickID>
+            </script>
+            <script type="WhenClonedScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="CloneBrick">
+                  <brickId>8a9d7bb9-d5ed-4488-8777-a4b5792574b6</brickId>
+                  <commentedOut>false</commentedOut>
+                </brick>
+                <brick type="UserDefinedBrick">
+                  <brickId>b7e47eb8-c076-40e9-83a2-b71b50246cc3</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList/>
+                  <isCallingBrick>true</isCallingBrick>
+                  <userDefinedBrickDataList reference="../../../../../../object[2]/scriptList/script/brickList/brick/loopBricks/brick/userDefinedBrickDataList"/>
+                  <userDefinedBrickID>732cd0db-1ab7-4409-8674-a8d023407aee</userDefinedBrickID>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>537a8a2d-ffb0-4875-9ae0-574d926853aa</scriptId>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList>
+            <brick type="UserDefinedBrick">
+              <brickId>c582df49-02bf-4504-b534-c5c1aaeb3707</brickId>
+              <commentedOut>false</commentedOut>
+              <formulaList/>
+              <isCallingBrick>false</isCallingBrick>
+              <userDefinedBrickDataList>
+                <userDefinedBrickLabel>
+                  <type>LABEL</type>
+                  <label>краш</label>
+                </userDefinedBrickLabel>
+              </userDefinedBrickDataList>
+              <userDefinedBrickID>732cd0db-1ab7-4409-8674-a8d023407aee</userDefinedBrickID>
+            </brick>
+          </userDefinedBrickList>
+        </object>
+        <object type="Sprite" spriteId="d5f9e8f0-80c7-40ae-bff5-4373c660d1a9" name=". (14)">
+          <lookList/>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="ForeverBrick">
+                  <brickId>c9bdfec0-ca55-4321-bb5c-524f7a2980ab</brickId>
+                  <commentedOut>false</commentedOut>
+                  <loopBricks>
+                    <brick type="UserDefinedBrick">
+                      <brickId>bfb886de-18f3-447e-b4e5-6843506b78b8</brickId>
+                      <commentedOut>false</commentedOut>
+                      <formulaList/>
+                      <isCallingBrick>true</isCallingBrick>
+                      <userDefinedBrickDataList reference="../../../../../../../../object[2]/scriptList/script/brickList/brick/loopBricks/brick/userDefinedBrickDataList"/>
+                      <userDefinedBrickID>732cd0db-1ab7-4409-8674-a8d023407aee</userDefinedBrickID>
+                    </brick>
+                  </loopBricks>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>c30d9221-6d1b-467f-89d3-b20909583dfa</scriptId>
+            </script>
+            <script type="UserDefinedScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="ForeverBrick">
+                  <brickId>7fef10bc-8d3e-410a-9173-0f3053424c45</brickId>
+                  <commentedOut>false</commentedOut>
+                  <loopBricks>
+                    <brick type="CloneBrick">
+                      <brickId>6d1d7cec-7b2b-42c5-8a9c-be95992071fe</brickId>
+                      <commentedOut>false</commentedOut>
+                    </brick>
+                  </loopBricks>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>724f43f4-9a77-4ea9-8feb-9468d7087f13</scriptId>
+              <screenRefresh>true</screenRefresh>
+              <userDefinedBrickID>732cd0db-1ab7-4409-8674-a8d023407aee</userDefinedBrickID>
+            </script>
+            <script type="WhenClonedScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="CloneBrick">
+                  <brickId>f0a0b0f2-7db7-423a-8caf-4bcae4c44fd1</brickId>
+                  <commentedOut>false</commentedOut>
+                </brick>
+                <brick type="UserDefinedBrick">
+                  <brickId>b032915f-ae14-44d4-8c17-67f53e9d9e06</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList/>
+                  <isCallingBrick>true</isCallingBrick>
+                  <userDefinedBrickDataList reference="../../../../../../object[2]/scriptList/script/brickList/brick/loopBricks/brick/userDefinedBrickDataList"/>
+                  <userDefinedBrickID>732cd0db-1ab7-4409-8674-a8d023407aee</userDefinedBrickID>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>025ccd4c-eed4-4053-8fc2-34415c4dea97</scriptId>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList>
+            <brick type="UserDefinedBrick">
+              <brickId>50a1e0fd-8413-4890-87de-e8be8d30dc20</brickId>
+              <commentedOut>false</commentedOut>
+              <formulaList/>
+              <isCallingBrick>false</isCallingBrick>
+              <userDefinedBrickDataList>
+                <userDefinedBrickLabel>
+                  <type>LABEL</type>
+                  <label>краш</label>
+                </userDefinedBrickLabel>
+              </userDefinedBrickDataList>
+              <userDefinedBrickID>732cd0db-1ab7-4409-8674-a8d023407aee</userDefinedBrickID>
+            </brick>
+          </userDefinedBrickList>
+        </object>
+        <object type="Sprite" spriteId="ca7fd905-dc33-472a-8497-10bb993d0b28" name=". (15)">
+          <lookList/>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="ForeverBrick">
+                  <brickId>30435f85-ce9b-450a-9c27-c149f3edf856</brickId>
+                  <commentedOut>false</commentedOut>
+                  <loopBricks>
+                    <brick type="UserDefinedBrick">
+                      <brickId>00ab58a2-d65d-47c7-9938-becc66c401a3</brickId>
+                      <commentedOut>false</commentedOut>
+                      <formulaList/>
+                      <isCallingBrick>true</isCallingBrick>
+                      <userDefinedBrickDataList reference="../../../../../../../../object[2]/scriptList/script/brickList/brick/loopBricks/brick/userDefinedBrickDataList"/>
+                      <userDefinedBrickID>732cd0db-1ab7-4409-8674-a8d023407aee</userDefinedBrickID>
+                    </brick>
+                  </loopBricks>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>04a76bb5-2735-4c2e-80e6-7ae1aae934ee</scriptId>
+            </script>
+            <script type="UserDefinedScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="ForeverBrick">
+                  <brickId>df185c2f-edb1-448b-ac1a-5c8f51fefeae</brickId>
+                  <commentedOut>false</commentedOut>
+                  <loopBricks>
+                    <brick type="CloneBrick">
+                      <brickId>db38c67a-fb8d-431e-8a6e-9a4e79d1e76c</brickId>
+                      <commentedOut>false</commentedOut>
+                    </brick>
+                  </loopBricks>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>97096d02-b8c5-4ca1-ab09-adb0a2648ea1</scriptId>
+              <screenRefresh>true</screenRefresh>
+              <userDefinedBrickID>732cd0db-1ab7-4409-8674-a8d023407aee</userDefinedBrickID>
+            </script>
+            <script type="WhenClonedScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="CloneBrick">
+                  <brickId>fc180f65-352c-47df-b910-f61862fd1c8f</brickId>
+                  <commentedOut>false</commentedOut>
+                </brick>
+                <brick type="UserDefinedBrick">
+                  <brickId>32297b0b-8b28-4375-9023-3e59073aa930</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList/>
+                  <isCallingBrick>true</isCallingBrick>
+                  <userDefinedBrickDataList reference="../../../../../../object[2]/scriptList/script/brickList/brick/loopBricks/brick/userDefinedBrickDataList"/>
+                  <userDefinedBrickID>732cd0db-1ab7-4409-8674-a8d023407aee</userDefinedBrickID>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>8ad4c3e5-8158-48a8-aff7-fb8949d018fd</scriptId>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList>
+            <brick type="UserDefinedBrick">
+              <brickId>5c1ea1fb-a18d-4cc3-b173-aed87feea5df</brickId>
+              <commentedOut>false</commentedOut>
+              <formulaList/>
+              <isCallingBrick>false</isCallingBrick>
+              <userDefinedBrickDataList>
+                <userDefinedBrickLabel>
+                  <type>LABEL</type>
+                  <label>краш</label>
+                </userDefinedBrickLabel>
+              </userDefinedBrickDataList>
+              <userDefinedBrickID>732cd0db-1ab7-4409-8674-a8d023407aee</userDefinedBrickID>
+            </brick>
+          </userDefinedBrickList>
+        </object>
+      </objectList>
+    </scene>
+  </scenes>
+  <programVariableList/>
+  <programListOfLists/>
+  <programMultiplayerVariableList/>
+</program>

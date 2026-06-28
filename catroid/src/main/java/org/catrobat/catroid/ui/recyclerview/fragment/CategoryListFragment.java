@@ -243,6 +243,68 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
             R.string.formula_f2d_is_touched_param, R.string.formula_f2d_is_touched_index_param
     );
 
+    private static final List<Integer> DEVICE_FUNCTIONS = asList(
+            R.string.formula_file_exists,
+            R.string.formula_device_name, R.string.formula_device_manufacturer,
+            R.string.formula_android_version, R.string.formula_api_level,
+            R.string.formula_system_language, R.string.formula_system_theme,
+            R.string.formula_cpu_name, R.string.formula_cpu_architecture,
+            R.string.formula_cpu_cores, R.string.formula_cpu_frequency,
+            R.string.formula_total_ram, R.string.formula_free_ram,
+            R.string.formula_total_storage, R.string.formula_free_storage,
+            R.string.formula_battery_percent, R.string.formula_battery_charging,
+            R.string.formula_battery_temp, R.string.formula_battery_voltage,
+            R.string.formula_battery_state,
+            R.string.formula_internet_connected, R.string.formula_internet_type,
+            R.string.formula_internet_speed, R.string.formula_local_ip,
+            R.string.formula_screen_width, R.string.formula_screen_height,
+            R.string.formula_screen_dpi, R.string.formula_screen_refresh,
+            R.string.formula_screen_orientation
+    );
+
+    private static final List<Integer> OBJECTS_FUNCTIONS = asList(
+            R.string.formula_sprite_exists, R.string.formula_sprite_x, R.string.formula_sprite_y,
+            R.string.formula_sprite_size, R.string.formula_sprite_width, R.string.formula_sprite_height,
+            R.string.formula_sprite_direction, R.string.formula_sprite_visible,
+            R.string.formula_sprite_transparency, R.string.formula_sprite_layer,
+            R.string.formula_sprite_name_get, R.string.formula_sprite_index_get, R.string.formula_sprite_uuid,
+            R.string.formula_sprite_clone_count, R.string.formula_sprite_look_count,
+            R.string.formula_sprite_sound_count, R.string.formula_sprite_variable_count,
+            R.string.formula_sprite_list_count,
+            R.string.formula_sprite_distance, R.string.formula_sprite_touching, R.string.formula_sprite_angle_to
+    );
+
+    private static final List<Integer> OBJECTS_PARAMS = asList(
+            R.string.formula_sprite_param, R.string.formula_sprite_param, R.string.formula_sprite_param,
+            R.string.formula_sprite_param, R.string.formula_sprite_param, R.string.formula_sprite_param,
+            R.string.formula_sprite_param, R.string.formula_sprite_param,
+            R.string.formula_sprite_param, R.string.formula_sprite_param,
+            R.string.formula_sprite_param, R.string.formula_sprite_param, R.string.formula_sprite_param,
+            R.string.formula_sprite_param, R.string.formula_sprite_param,
+            R.string.formula_sprite_param, R.string.formula_sprite_param,
+            R.string.formula_sprite_param,
+            R.string.formula_sprite_distance_param, R.string.formula_sprite_distance_param, R.string.formula_sprite_distance_param
+    );
+
+    private static final List<Integer> DEVICE_PARAMS = asList(
+            R.string.formula_file_exists_param,
+            R.string.formula_no_param, R.string.formula_no_param,
+            R.string.formula_no_param, R.string.formula_no_param,
+            R.string.formula_no_param, R.string.formula_no_param,
+            R.string.formula_no_param, R.string.formula_no_param,
+            R.string.formula_no_param, R.string.formula_no_param,
+            R.string.formula_no_param, R.string.formula_no_param,
+            R.string.formula_no_param, R.string.formula_no_param,
+            R.string.formula_no_param, R.string.formula_no_param,
+            R.string.formula_no_param, R.string.formula_no_param,
+            R.string.formula_no_param,
+            R.string.formula_no_param, R.string.formula_no_param,
+            R.string.formula_no_param, R.string.formula_no_param,
+            R.string.formula_no_param, R.string.formula_no_param,
+            R.string.formula_no_param, R.string.formula_no_param,
+            R.string.formula_no_param
+    );
+
 	private static final List<Integer> THREED_FUNCTIONS = asList(
             R.string.formula_delta,
 			R.string.formula_3d_pos_x, R.string.formula_3d_pos_y, R.string.formula_3d_pos_z,
@@ -1087,6 +1149,10 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 				"3D"));
         result.addAll(addHeader(toCategoryListItems(PT_FUNCTIONS, PT_PARAMS),
                 "PockeTensor"));
+        result.addAll(addHeader(toCategoryListItems(DEVICE_FUNCTIONS, DEVICE_PARAMS),
+                "Device info"));
+        result.addAll(addHeader(toCategoryListItems(OBJECTS_FUNCTIONS, OBJECTS_PARAMS),
+                "Sprite info"));
 
 		List<CustomFormula> customFormulas = CustomFormulaManager.INSTANCE.getFormulas();
 		if (!customFormulas.isEmpty()) {
@@ -1346,6 +1412,8 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
         if (F2D_FUNCTIONS.contains(id)) return "Fast 2D";
         if (THREED_FUNCTIONS.contains(id)) return "3D";
         if (PT_FUNCTIONS.contains(id)) return "PockeTensor";
+        if (DEVICE_FUNCTIONS.contains(id)) return "Device info";
+        if (OBJECTS_FUNCTIONS.contains(id)) return "Sprite info";
         if (LOGIC_BOOL.contains(id)) return getString(R.string.formula_editor_logic_boolean);
         if (LOGIC_COMPARISION.contains(id)) return getString(R.string.formula_editor_logic_comparison);
 

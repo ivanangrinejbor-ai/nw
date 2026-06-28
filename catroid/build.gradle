@@ -300,7 +300,7 @@ android {
         targetCompatibility JavaVersion.VERSION_11
     }
     androidResources {
-        noCompress 'lite'
+        noCompress 'lite', 'tflite'
     }
     lint {
         abortOnError false
@@ -613,6 +613,9 @@ dependencies {
     implementation 'com.google.mlkit:object-detection:16.2.7'
     implementation 'com.google.mlkit:language-id:16.1.1'
     implementation 'com.google.mlkit:pose-detection:17.0.0'
+
+    // TensorFlow Lite for Neural AI Assistant
+    implementation 'org.tensorflow:tensorflow-lite:2.14.0'
 
     // HUAWEI Mobile Services
     implementation 'com.huawei.hms:base:6.4.0.303'

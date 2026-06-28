@@ -2436,7 +2436,7 @@ public class ActionFactory extends Actions {
 	}
 
 	public Action createWebUrlAction(Sprite sprite, SequenceAction sequence,
-										Formula name, Formula url, Formula x, Formula y, Formula width, Formula height) {
+										Formula name, Formula url, Formula x, Formula y, Formula width, Formula height, Formula zindex) {
 		CreateWebUrlAction action = action(CreateWebUrlAction.class);
 		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
 		action.setScope(scope);
@@ -2446,11 +2446,12 @@ public class ActionFactory extends Actions {
 		action.setPosY(y);
 		action.setWidth(width);
 		action.setHeight(height);
+		action.setZindex(zindex);
 		return action;
 	}
 
 	public Action createWebFileAction(Sprite sprite, SequenceAction sequence,
-									 Formula name, Formula url, Formula x, Formula y, Formula width, Formula height) {
+									 Formula name, Formula url, Formula x, Formula y, Formula width, Formula height, Formula zindex) {
 		CreateWebFileAction action = action(CreateWebFileAction.class);
 		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
 		action.setScope(scope);
@@ -2460,6 +2461,7 @@ public class ActionFactory extends Actions {
 		action.setPosY(y);
 		action.setWidth(width);
 		action.setHeight(height);
+		action.setZindex(zindex);
 		return action;
 	}
 
@@ -4624,194 +4626,48 @@ public class ActionFactory extends Actions {
         return action;
     }
 
-    public Action createCreateNavmeshAction(Sprite sprite, SequenceAction sequence, Formula gridWidth, Formula gridHeight, Formula cellSize) {
-        CreateNavmeshAction action = action(CreateNavmeshAction.class);
+    // --- Pathfinder 2.0 ---
+
+    public Action createGridAction(Sprite sprite, SequenceAction sequence, Formula gridX, Formula gridY, Formula gridW, Formula gridH) {
+        GridAction action = action(GridAction.class);
         Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
         action.setScope(scope);
-        action.setGridWidth(gridWidth);
-        action.setGridHeight(gridHeight);
-        action.setCellSize(cellSize);
+        action.setGridX(gridX);
+        action.setGridY(gridY);
+        action.setGridW(gridW);
+        action.setGridH(gridH);
         return action;
     }
 
-    public Action createDeleteNavmeshAction(Sprite sprite, SequenceAction sequence) {
-        DeleteNavmeshAction action = action(DeleteNavmeshAction.class);
+    public Action createMoveToObjectAction(Sprite sprite, SequenceAction sequence, String targetObject, Formula avoidObjects, Formula speed) {
+        MoveToObjectAction action = action(MoveToObjectAction.class);
         Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
         action.setScope(scope);
-        return action;
-    }
-
-    public Action createRebuildNavmeshAction(Sprite sprite, SequenceAction sequence) {
-        RebuildNavmeshAction action = action(RebuildNavmeshAction.class);
-        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
-        action.setScope(scope);
-        return action;
-    }
-
-    public Action createFindPathToXYAction(Sprite sprite, SequenceAction sequence, Formula spriteName, Formula startX, Formula startY, Formula endX, Formula endY) {
-        FindPathToXYAction action = action(FindPathToXYAction.class);
-        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
-        action.setScope(scope);
-        action.setSpriteName(spriteName);
-        action.setStartX(startX);
-        action.setStartY(startY);
-        action.setEndX(endX);
-        action.setEndY(endY);
-        return action;
-    }
-
-    public Action createFindPathToObjectAction(Sprite sprite, SequenceAction sequence, Formula fromSprite, Formula toSprite) {
-        FindPathToObjectAction action = action(FindPathToObjectAction.class);
-        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
-        action.setScope(scope);
-        action.setFromSprite(fromSprite);
-        action.setToSprite(toSprite);
-        return action;
-    }
-
-    public Action createSavePathToVarAction(Sprite sprite, SequenceAction sequence, Formula spriteName, Formula variableName) {
-        SavePathToVarAction action = action(SavePathToVarAction.class);
-        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
-        action.setScope(scope);
-        action.setSpriteName(spriteName);
-        action.setVariableName(variableName);
-        return action;
-    }
-
-    public Action createSavePathLengthToVarAction(Sprite sprite, SequenceAction sequence, Formula spriteName, Formula variableName) {
-        SavePathLengthToVarAction action = action(SavePathLengthToVarAction.class);
-        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
-        action.setScope(scope);
-        action.setSpriteName(spriteName);
-        action.setVariableName(variableName);
-        return action;
-    }
-
-    public Action createCheckPathExistsAction(Sprite sprite, SequenceAction sequence, Formula startX, Formula startY, Formula endX, Formula endY, Formula resultVar) {
-        CheckPathExistsAction action = action(CheckPathExistsAction.class);
-        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
-        action.setScope(scope);
-        action.setStartX(startX);
-        action.setStartY(startY);
-        action.setEndX(endX);
-        action.setEndY(endY);
-        action.setResultVar(resultVar);
-        return action;
-    }
-
-    public Action createFollowPathAction(Sprite sprite, SequenceAction sequence, Formula spriteName) {
-        FollowPathAction action = action(FollowPathAction.class);
-        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
-        action.setScope(scope);
-        action.setSpriteName(spriteName);
-        return action;
-    }
-
-    public Action createFollowPathWithSpeedAction(Sprite sprite, SequenceAction sequence, Formula spriteName, Formula speed) {
-        FollowPathWithSpeedAction action = action(FollowPathWithSpeedAction.class);
-        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
-        action.setScope(scope);
-        action.setSpriteName(spriteName);
+        action.setTargetObject(targetObject);
+        action.setAvoidObjects(avoidObjects);
         action.setSpeed(speed);
         return action;
     }
 
-    public Action createStopFollowingAction(Sprite sprite, SequenceAction sequence, Formula spriteName) {
-        StopFollowingAction action = action(StopFollowingAction.class);
-        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
-        action.setScope(scope);
-        action.setSpriteName(spriteName);
-        return action;
-    }
-
-    public Action createPausePathAction(Sprite sprite, SequenceAction sequence, Formula spriteName) {
-        PausePathAction action = action(PausePathAction.class);
-        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
-        action.setScope(scope);
-        action.setSpriteName(spriteName);
-        return action;
-    }
-
-    public Action createResumePathAction(Sprite sprite, SequenceAction sequence, Formula spriteName) {
-        ResumePathAction action = action(ResumePathAction.class);
-        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
-        action.setScope(scope);
-        action.setSpriteName(spriteName);
-        return action;
-    }
-
-    public Action createAddObstacleAction(Sprite sprite, SequenceAction sequence, Formula spriteName) {
-        AddObstacleAction action = action(AddObstacleAction.class);
-        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
-        action.setScope(scope);
-        action.setSpriteName(spriteName);
-        return action;
-    }
-
-    public Action createRemoveObstacleAction(Sprite sprite, SequenceAction sequence, Formula spriteName) {
-        RemoveObstacleAction action = action(RemoveObstacleAction.class);
-        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
-        action.setScope(scope);
-        action.setSpriteName(spriteName);
-        return action;
-    }
-
-    public Action createUpdateObstaclesAction(Sprite sprite, SequenceAction sequence) {
-        UpdateObstaclesAction action = action(UpdateObstaclesAction.class);
+    public Action createStopMovementAction(Sprite sprite, SequenceAction sequence) {
+        StopMovementAction action = action(StopMovementAction.class);
         Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
         action.setScope(scope);
         return action;
     }
 
-    public Action createAvoidObjectsByColorAction(Sprite sprite, SequenceAction sequence, Formula hexColor) {
-        AvoidObjectsByColorAction action = action(AvoidObjectsByColorAction.class);
-        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
-        action.setScope(scope);
-        action.setHexColor(hexColor);
-        return action;
-    }
-
-    public Action createCreateObstaclesFromBackgroundAction(Sprite sprite, SequenceAction sequence) {
-        CreateObstaclesFromBackgroundAction action = action(CreateObstaclesFromBackgroundAction.class);
+    public Action createContinueMovementAction(Sprite sprite, SequenceAction sequence) {
+        ContinueMovementAction action = action(ContinueMovementAction.class);
         Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
         action.setScope(scope);
         return action;
     }
 
-    public Action createGetPathPointCountAction(Sprite sprite, SequenceAction sequence, Formula spriteName, Formula variableName) {
-        GetPathPointCountAction action = action(GetPathPointCountAction.class);
+    public Action createHasPathAction(Sprite sprite, SequenceAction sequence, String targetObject, Formula resultVar) {
+        HasPathAction action = action(HasPathAction.class);
         Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
         action.setScope(scope);
-        action.setSpriteName(spriteName);
-        action.setVariableName(variableName);
-        return action;
-    }
-
-    public Action createGetCurrentPathPointAction(Sprite sprite, SequenceAction sequence, Formula spriteName, Formula varX, Formula varY) {
-        GetCurrentPathPointAction action = action(GetCurrentPathPointAction.class);
-        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
-        action.setScope(scope);
-        action.setSpriteName(spriteName);
-        action.setVarX(varX);
-        action.setVarY(varY);
-        return action;
-    }
-
-    public Action createGetNextPathPointAction(Sprite sprite, SequenceAction sequence, Formula spriteName, Formula varX, Formula varY) {
-        GetNextPathPointAction action = action(GetNextPathPointAction.class);
-        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
-        action.setScope(scope);
-        action.setSpriteName(spriteName);
-        action.setVarX(varX);
-        action.setVarY(varY);
-        return action;
-    }
-
-    public Action createCheckEndOfPathAction(Sprite sprite, SequenceAction sequence, Formula spriteName, Formula resultVar) {
-        CheckEndOfPathAction action = action(CheckEndOfPathAction.class);
-        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
-        action.setScope(scope);
-        action.setSpriteName(spriteName);
+        action.setTargetObject(targetObject);
         action.setResultVar(resultVar);
         return action;
     }
@@ -4880,19 +4736,53 @@ public class ActionFactory extends Actions {
         return action;
     }
 
-    public Action createMoveToObjectAction(Sprite sprite, SequenceAction sequence, Formula targetObject, Formula speed) {
-        MoveToObjectAction action = action(MoveToObjectAction.class);
+    public Action createTweenPositionAction(Sprite sprite, SequenceAction sequence, Formula xDestination, Formula yDestination, Formula duration, Formula easingType) {
+        TweenPositionAction action = action(TweenPositionAction.class);
         Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
         action.setScope(scope);
-        action.setTargetObject(targetObject);
+        action.setXDestination(xDestination);
+        action.setYDestination(yDestination);
+        action.setDuration(duration);
+        action.setEasingType(easingType);
+        return action;
+    }
+
+    public Action createParticleSystemAction(Sprite sprite, SequenceAction sequence, Formula particleId, Formula maxCount, Formula lifetime, Formula speed) {
+        CreateParticleSystemAction action = action(CreateParticleSystemAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setParticleId(particleId);
+        action.setMaxCount(maxCount);
+        action.setLifetime(lifetime);
         action.setSpeed(speed);
         return action;
     }
 
-    public Action createStopMovingAction(Sprite sprite, SequenceAction sequence) {
-        StopMovingAction action = action(StopMovingAction.class);
+    public Action createTimerAction(Sprite sprite, SequenceAction sequence, Formula timerName, Formula duration, Formula variable) {
+        TimerAction action = action(TimerAction.class);
         Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
         action.setScope(scope);
+        action.setTimerName(timerName);
+        action.setDuration(duration);
+        action.setVariable(variable);
         return action;
     }
+
+    public Action createSmoothPathAction(Sprite sprite, SequenceAction sequence, Formula spriteName) {
+        SmoothPathAction action = action(SmoothPathAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setSpriteName(spriteName);
+        return action;
+    }
+
+    public Action createEnableDynamicReplanningAction(Sprite sprite, SequenceAction sequence, Formula spriteName, Formula enabled) {
+        EnableDynamicReplanningAction action = action(EnableDynamicReplanningAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setSpriteName(spriteName);
+        action.setEnabled(enabled);
+        return action;
+    }
+
 }

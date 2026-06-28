@@ -41,6 +41,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.annotation.IntDef
 import org.catrobat.catroid.R
+import org.catrobat.catroid.codeanalysis.AiProjectAssistant
 import org.catrobat.catroid.codeanalysis.AnalysisManager
 import org.catrobat.catroid.codeanalysis.Severity
 import org.catrobat.catroid.content.Script
@@ -54,6 +55,7 @@ import org.catrobat.catroid.content.bricks.FormulaBrick
 import org.catrobat.catroid.content.bricks.ListSelectorBrick
 import org.catrobat.catroid.content.bricks.NoneBrick
 import org.catrobat.catroid.content.bricks.ScriptBrick
+import org.catrobat.catroid.content.bricks.GhostSuggestionBrick
 import org.catrobat.catroid.content.bricks.SetParticleColorBrick
 import org.catrobat.catroid.content.bricks.UserDefinedReceiverBrick
 import org.catrobat.catroid.ui.dragndrop.BrickAdapterInterface
@@ -148,9 +150,31 @@ class BrickAdapter(private val sprite: Sprite) :
             script.addToFlatList(tempItems)
         }
 
-        for (brick in tempItems) {
-            if (isBrickVisibleInCollapsedHierarchy(brick)) {
-                items.add(brick)
+        val visibleBricks = tempItems.filter { isBrickVisibleInCollapsedHierarchy(it) }
+        items.addAll(visibleBricks)
+
+        if (AiProjectAssistant.isLoaded()) {
+            for (script in scripts) {
+                if (script.brickList.isEmpty()) continue
+                val predictions = AiProjectAssistant.predictNext(script, 2)
+                if (predictions.isEmpty()) continue
+                val scriptBrickSet = mutableSetOf<Brick>()
+                val flatBricks = ArrayList<Brick>()
+                script.addToFlatList(flatBricks)
+                scriptBrickSet.addAll(flatBricks)
+                var lastIdx = -1
+                for (i in items.indices) {
+                    if (items[i] in scriptBrickSet) {
+                        lastIdx = i
+                    }
+                }
+                if (lastIdx >= 0) {
+                    var offset = 1
+                    for (s in predictions) {
+                        items.add(lastIdx + offset, GhostSuggestionBrick(script, s))
+                        offset++
+                    }
+                }
             }
         }
 
@@ -189,8 +213,10 @@ class BrickAdapter(private val sprite: Sprite) :
         itemView.visibility =
             if (viewStateManager.isVisible(position)) View.VISIBLE else View.INVISIBLE
 
-        val baseAlpha = if (viewStateManager.isEnabled(position)) 1F else DISABLED_BRICK_ALPHA
-        itemView.alpha = baseAlpha
+        if (item !is GhostSuggestionBrick) {
+            val baseAlpha = if (viewStateManager.isEnabled(position)) 1F else DISABLED_BRICK_ALPHA
+            itemView.alpha = baseAlpha
+        }
 
         var brickViewContainer = itemView.getChildAt(1)
         if (item is UserDefinedReceiverBrick) {
@@ -422,6 +448,7 @@ class BrickAdapter(private val sprite: Sprite) :
     override fun onItemClick(parent: AdapterView<*>?, view: View, position: Int, id: Long) {
         if (checkBoxMode == NONE) {
             val item = items[position]
+            if (item is GhostSuggestionBrick) return
             onItemClickListener?.onBrickClick(item, position)
         }
     }
@@ -434,6 +461,7 @@ class BrickAdapter(private val sprite: Sprite) :
     ): Boolean {
         if (checkBoxMode == NONE) {
             val item = items[position]
+            if (item is GhostSuggestionBrick) return false
             onItemClickListener?.onBrickLongClick(item, position)
             return true
         }
@@ -449,6 +477,8 @@ class BrickAdapter(private val sprite: Sprite) :
 
     private fun setSelectionTo(selected: Boolean, position: Int) {
         val item = items[position]
+
+        if (item is GhostSuggestionBrick) return
 
         val flatItems: List<Brick> = ArrayList()
         item.addToFlatList(flatItems)
@@ -614,6 +644,8 @@ class BrickAdapter(private val sprite: Sprite) :
         if (targetPosition < 0 || targetPosition >= items.size) return false
 
         val source = items[sourcePosition]
+        val target = items[targetPosition]
+        if (source is GhostSuggestionBrick || target is GhostSuggestionBrick) return false
         if (source !is ScriptBrick && targetPosition == 0) {
             return false
         }
@@ -779,11 +811,15 @@ class BrickAdapter(private val sprite: Sprite) :
     }
 
     private fun getBrickAbovePosition(position: Int): Brick {
-        var position = position
-        if (position > 0) {
-            position--
+        var pos = position
+        if (pos > 0) {
+            pos--
         }
-        return items[position]
+        while (pos >= 0 && items[pos] is GhostSuggestionBrick) {
+            pos--
+        }
+        if (pos < 0) pos = 0
+        return items[pos]
     }
 
     private fun isElseBrick(brick: Brick): Boolean {

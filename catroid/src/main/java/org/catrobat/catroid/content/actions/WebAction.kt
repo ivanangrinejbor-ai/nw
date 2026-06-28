@@ -55,11 +55,10 @@ abstract class WebAction : Action(), WebRequestListener {
 
     private fun interpretUrl(): Boolean {
         return try {
-            formula!!.interpretString(scope)!!.let {
-                url = if (it.startsWith("http://") || it.startsWith("https://")) {
-                    it
-                } else "https://$it"
-            }
+            val interpreted = formula?.interpretString(scope) ?: return false
+            url = if (interpreted.startsWith("http://") || interpreted.startsWith("https://")) {
+                interpreted
+            } else "https://$interpreted"
             val newlineIndex = url?.indexOf("\n")
             if (newlineIndex != -1) {
                 url = newlineIndex?.let { url?.subSequence(0, it).toString() }
@@ -129,10 +128,11 @@ abstract class WebAction : Action(), WebRequestListener {
 
     private fun sendRequest(): Boolean {
         requestStatus = RequestStatus.WAITING
-        webConnection = WebConnection(this, url!!)
+        val conn = WebConnection(this, url!!)
+        webConnection = conn
 
-        if (StageActivity.activeStageActivity.get()?.stageListener?.webConnectionHolder?.addConnection(webConnection!!) == true) {
-            webConnection!!.sendWebRequest()
+        if (StageActivity.activeStageActivity.get()?.stageListener?.webConnectionHolder?.addConnection(conn) == true) {
+            conn.sendWebRequest()
             return true
         } else {
             return false

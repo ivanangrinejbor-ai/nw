@@ -37,7 +37,9 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.EditText
 import android.widget.TextView
+import android.text.InputType
 import androidx.annotation.PluralsRes
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.lifecycleScope
@@ -58,6 +60,7 @@ import org.catrobat.catroid.content.Project
 import org.catrobat.catroid.content.backwardcompatibility.ProjectMetaDataParser
 import org.catrobat.catroid.exceptions.LoadingProjectException
 import org.catrobat.catroid.io.StorageOperations
+import org.catrobat.catroid.io.ProjectCrypto
 import org.catrobat.catroid.io.XstreamSerializer
 import org.catrobat.catroid.io.asynctask.ProjectCopier
 import org.catrobat.catroid.io.asynctask.ProjectLoader
@@ -401,12 +404,39 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
         filesForUnzipAndImportTask?.apply {
             if (isNotEmpty()) {
                 val filesToUnzipAndImport = toTypedArray()
-                /*ProjectUnZipperAndImporter({ success: Boolean -> onImportProjectFinished(success) })
-                    .unZipAndImportAsync(filesToUnzipAndImport)*/
-                ProjectUnZipperAndImporter({ result -> onImportProjectFinished(result) })
-                    .unZipAndImportAsync(filesToUnzipAndImport)
+                val firstFile = filesToUnzipAndImport.firstOrNull()
+                if (firstFile != null && ProjectCrypto.isEncrypted(firstFile)) {
+                    showEncryptedImportDialog(firstFile, filesToUnzipAndImport)
+                } else {
+                    doImport(filesToUnzipAndImport, null)
+                }
             }
         }
+    }
+
+    private fun showEncryptedImportDialog(encryptedFile: File, files: Array<File>) {
+        val builder = AlertDialog.Builder(requireContext())
+        builder.setTitle(R.string.import_protected_title)
+        builder.setMessage(getString(R.string.import_protected_name, encryptedFile.name))
+        val input = EditText(requireContext())
+        input.hint = getString(R.string.import_password_hint)
+        input.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+        builder.setView(input)
+        builder.setPositiveButton(R.string.import_encrypted_action) { _, _ ->
+            val password = input.text.toString()
+            if (password.isEmpty()) {
+                ToastUtil.showError(requireContext(), R.string.password_empty)
+                return@setPositiveButton
+            }
+            doImport(files, password)
+        }
+        builder.setNegativeButton(R.string.cancel, null)
+        builder.show()
+    }
+
+    private fun doImport(files: Array<File>, password: String?) {
+        ProjectUnZipperAndImporter({ result -> onImportProjectFinished(result) }, password = password)
+            .unZipAndImportAsync(files)
     }
 
     private fun prepareFilesForImport(urisToImport: ArrayList<Uri>) {
@@ -414,10 +444,10 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
             val contentResolver = requireActivity().contentResolver
             val fileName = StorageOperations.resolveFileName(contentResolver, uri)
 
-            /*if (!fileName.endsWith(Constants.CATROBAT_EXTENSION) && !fileName.endsWith(Constants.NEW_CATROBAT_EXTENSION)) {
+            if (!fileName.endsWith(Constants.CATROBAT_EXTENSION) && !fileName.endsWith(Constants.NEW_CATROBAT_EXTENSION)) {
                 ToastUtil.showError(requireContext(), R.string.only_select_catrobat_files)
                 continue
-            }*/
+            }
 
             val projectFile = StorageOperations.copyUriToDir(
                 contentResolver, uri, Constants.CACHE_DIRECTORY, fileName

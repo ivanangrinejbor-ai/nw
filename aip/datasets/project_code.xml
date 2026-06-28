@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<program>
+  <header>
+    <applicationBuildName></applicationBuildName>
+    <applicationBuildNumber>0</applicationBuildNumber>
+    <applicationBuildType>debug</applicationBuildType>
+    <applicationName>NewCatroid</applicationName>
+    <applicationVersion>2.0.6</applicationVersion>
+    <catrobatLanguageVersion>1.15</catrobatLanguageVersion>
+    <customResolution>false</customResolution>
+    <dateTimeUpload></dateTimeUpload>
+    <description></description>
+    <deviceName>21051182G</deviceName>
+    <isCastProject>false</isCastProject>
+    <landscapeMode>false</landscapeMode>
+    <listeningLanguageTag></listeningLanguageTag>
+    <mediaLicense></mediaLicense>
+    <notesAndCredits></notesAndCredits>
+    <physicsHeightArea>2.0</physicsHeightArea>
+    <physicsWidthArea>3.0</physicsWidthArea>
+    <platform>Android</platform>
+    <platformVersion>30</platformVersion>
+    <programLicense></programLicense>
+    <programName>тест</programName>
+    <remixOf></remixOf>
+    <scenesEnabled>true</scenesEnabled>
+    <screenHeight>2560</screenHeight>
+    <screenMode>STRETCH</screenMode>
+    <screenWidth>1564</screenWidth>
+    <tags></tags>
+    <url></url>
+    <userHandle></userHandle>
+  </header>
+  <settings/>
+  <scenes>
+    <scene>
+      <name>Сцена</name>
+      <objectList>
+        <object type="Sprite" name="Фон">
+          <lookList/>
+          <soundList/>
+          <scriptList>
+            <script type="WhenTouchDownScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="AskBrick">
+                  <brickId>e382eb00-2760-4fbc-99ad-22fb97b4a14a</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="ASK_QUESTION">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>что сохранить?</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable type="UserVariable" serialization="custom">
+                    <userVariable>
+                      <default>
+                        <initialIndex>-1</initialIndex>
+                        <deviceValueKey>17ff6521-3456-4ab8-a778-e6d6cad2b9cd</deviceValueKey>
+                        <name>абабуй</name>
+                      </default>
+                    </userVariable>
+                  </userVariable>
+                </brick>
+                <brick type="WriteVariableOnDeviceBrick">
+                  <brickId>c1de9ab5-638b-4c37-a6ed-a0787af3a9f9</brickId>
+                  <commentedOut>false</commentedOut>
+                  <userVariable reference="../../brick/userVariable"/>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>b2cef8e2-f083-4d03-9878-e7192412a2eb</scriptId>
+            </script>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="ReadVariableFromDeviceBrick">
+                  <brickId>ce57efdb-aabe-48ac-8a5c-bfa46ffe36a2</brickId>
+                  <commentedOut>false</commentedOut>
+                  <userVariable reference="../../../../script/brickList/brick/userVariable"/>
+                </brick>
+                <brick type="ShowTextColorSizeAlignmentBrick">
+                  <brickId>80e13da5-1195-49b9-bcbb-b001d5b8a6b4</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="Y_POSITION">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>0</value>
+                    </formula>
+                    <formula category="SIZE">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>120.0</value>
+                    </formula>
+                    <formula category="X_POSITION">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>0</value>
+                    </formula>
+                    <formula category="COLOR">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>#FFFFFF</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable reference="../../../../script/brickList/brick/userVariable"/>
+                  <alignmentSelection>1</alignmentSelection>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>cb3989f3-e68c-405d-8104-264b5a73271a</scriptId>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+      </objectList>
+    </scene>
+  </scenes>
+  <programVariableList>
+    <userVariable reference="../../scenes/scene/objectList/object/scriptList/script/brickList/brick/userVariable"/>
+  </programVariableList>
+  <programListOfLists/>
+  <programMultiplayerVariableList/>
+</program>

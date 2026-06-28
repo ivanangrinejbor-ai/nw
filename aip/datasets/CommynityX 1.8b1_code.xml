@@ -1,0 +1,996 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<program>
+  <header>
+    <applicationBuildName></applicationBuildName>
+    <applicationBuildNumber>0</applicationBuildNumber>
+    <applicationBuildType>release</applicationBuildType>
+    <applicationName>NewCatroid</applicationName>
+    <applicationVersion>2.1.2BETA</applicationVersion>
+    <catrobatLanguageVersion>1.17</catrobatLanguageVersion>
+    <customResolution>false</customResolution>
+    <dateTimeUpload></dateTimeUpload>
+    <description></description>
+    <deviceName>CRT-LX1</deviceName>
+    <gitRemoteUrl></gitRemoteUrl>
+    <isCastProject>false</isCastProject>
+    <landscapeMode>false</landscapeMode>
+    <listeningLanguageTag></listeningLanguageTag>
+    <mediaLicense></mediaLicense>
+    <notesAndCredits></notesAndCredits>
+    <physicsHeightArea>2.0</physicsHeightArea>
+    <physicsWidthArea>3.0</physicsWidthArea>
+    <platform>Android</platform>
+    <platformVersion>34</platformVersion>
+    <programLicense></programLicense>
+    <programName>CommynityX 1.8b1</programName>
+    <remixOf></remixOf>
+    <scenesEnabled>true</scenesEnabled>
+    <screenHeight>2280</screenHeight>
+    <screenMode>STRETCH</screenMode>
+    <screenWidth>1080</screenWidth>
+    <tags></tags>
+    <url></url>
+    <userHandle></userHandle>
+  </header>
+  <settings/>
+  <scenes>
+    <scene sceneId="eace5411-8586-4f36-ab8d-394c52293b74">
+      <name>Регистрация</name>
+      <objectList>
+        <object type="Sprite" spriteId="90423712-3f28-413b-a21c-8a753a9b526e" name="Фон">
+          <lookList>
+            <look fileName="1000001124.png" lookId="ae9d099e-7a83-481f-8398-b8b4959ff644" name="1000001124">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="ReadVariableFromFileBrick">
+                  <brickId>5126454e-b339-4d15-9bf7-6008918a7659</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="READ_FILENAME">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>id_cx.save</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable type="UserVariable" serialization="custom">
+                    <userVariable>
+                      <default>
+                        <initialIndex>0</initialIndex>
+                        <deviceValueKey>d72ea2ac-0a56-457e-a71d-74024fea7c32</deviceValueKey>
+                        <name>ID</name>
+                      </default>
+                    </userVariable>
+                  </userVariable>
+                  <spinnerSelectionID>0</spinnerSelectionID>
+                </brick>
+                <brick type="IfThenLogicBeginBrick">
+                  <brickId>edc7be8b-56f5-4aab-8a04-0536f6962c6f</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="IF_CONDITION">
+                      <additionalChildren/>
+                      <leftChild>
+                        <additionalChildren/>
+                        <type>USER_VARIABLE</type>
+                        <value>ID</value>
+                      </leftChild>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>0</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>EQUAL</value>
+                    </formula>
+                  </formulaList>
+                  <ifBranchBricks>
+                    <brick type="AskBrick">
+                      <brickId>7b1b07d8-fe38-4ae8-ad9d-5d50ecf210a0</brickId>
+                      <commentedOut>false</commentedOut>
+                      <formulaList>
+                        <formula category="ASK_QUESTION">
+                          <additionalChildren/>
+                          <type>STRING</type>
+                          <value>Как тебя зовут?</value>
+                        </formula>
+                      </formulaList>
+                      <userVariable reference="../../../../brick/userVariable"/>
+                    </brick>
+                    <brick type="WriteVariableToFileBrick">
+                      <brickId>b4602a98-f4fa-49bc-abf7-6dfdb468aaf3</brickId>
+                      <commentedOut>false</commentedOut>
+                      <formulaList>
+                        <formula category="WRITE_FILENAME">
+                          <additionalChildren/>
+                          <type>STRING</type>
+                          <value>id_cx.save</value>
+                        </formula>
+                      </formulaList>
+                      <userVariable reference="../../../../brick/userVariable"/>
+                    </brick>
+                  </ifBranchBricks>
+                </brick>
+                <brick type="SceneStartBrick">
+                  <brickId>5f32d313-1b7c-4147-82d4-7efc5eeb58bf</brickId>
+                  <commentedOut>false</commentedOut>
+                  <sceneToStart>Меню</sceneToStart>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>96b01e77-169d-4f8d-9085-0fe378c40a89</scriptId>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+      </objectList>
+    </scene>
+    <scene sceneId="098680e1-1662-409e-83ef-e58f9e428457">
+      <name>Меню</name>
+      <objectList>
+        <object type="Sprite" spriteId="ad15f037-1415-4b95-9139-c4b737f8d1e5" name="Фон">
+          <lookList>
+            <look fileName="1000001125.png" lookId="5eee24ef-65c7-4937-9e90-a8705a71b476" name="1000001125">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList/>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+        <object type="Sprite" spriteId="79abc233-82f9-4852-8e53-975cc206c647" name="Общее комьюнити">
+          <lookList>
+            <look fileName="1000001128.png" lookId="b8b72445-1710-4b34-bcfa-5a2898a223b5" name="Общее комьюнити">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="PlaceAtBrick">
+                  <brickId>6dd887d8-334b-4a14-ad03-0c5fc5f3528d</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="Y_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>39</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                    <formula category="X_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>16</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>6d83846c-e7ae-4195-abbc-89b227f17388</scriptId>
+            </script>
+            <script type="WhenScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="SetVariableBrick">
+                  <brickId>6dc5b21a-a7f5-471c-b2cc-2bb7a263a75b</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="VARIABLE">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>Общее Комьюнити</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable type="UserVariable" serialization="custom">
+                    <userVariable>
+                      <default>
+                        <initialIndex>1</initialIndex>
+                        <deviceValueKey>38f78778-f976-455a-933e-eda2c533ff5a</deviceValueKey>
+                        <name>ID_Commynity</name>
+                      </default>
+                    </userVariable>
+                  </userVariable>
+                </brick>
+                <brick type="SceneStartBrick">
+                  <brickId>dcf90586-4748-428b-a13c-db160363f62b</brickId>
+                  <commentedOut>false</commentedOut>
+                  <sceneToStart>Commynity</sceneToStart>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>68873eba-5afa-4e66-b1a4-072eeef61db1</scriptId>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+        <object type="Sprite" spriteId="08bde59f-22a1-4518-8153-25fa5088bc0e" name="создать">
+          <lookList>
+            <look fileName="1000001121.png" lookId="565ee704-ab71-423b-a87c-3578a145d29a" name="создать">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="PlaceAtBrick">
+                  <brickId>f54498cb-e2e8-44c7-bbb3-abffba2a68ca</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="Y_POSITION">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>49</value>
+                    </formula>
+                    <formula category="X_POSITION">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>207</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>04163c69-b549-4cb3-adcb-a3c3b351c42f</scriptId>
+            </script>
+            <script type="WhenScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="ShowToastBlock">
+                  <brickId>4ff87772-5baf-4d8b-9e11-aeee34cdf2f2</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="TOAST">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>Скоро</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>5c34deaf-162c-43fb-a582-28911bfd082e</scriptId>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+      </objectList>
+    </scene>
+    <scene sceneId="957d006d-6575-4c5a-9c8c-72f101bd2c6c">
+      <name>Commynity</name>
+      <objectList>
+        <object type="Sprite" spriteId="100cc07d-4f5c-424b-a193-40e7ffd2cb9d" name="Фон">
+          <lookList>
+            <look fileName="1000001124.png" lookId="b27305f3-11a4-43a1-961e-ea13827f5636" name="1000001124">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="ShowTextColorSizeAlignmentBrick">
+                  <brickId>521c5dc9-0fca-4d57-a727-05083cb93c46</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="Y_POSITION">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>881</value>
+                    </formula>
+                    <formula category="COLOR">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>#FFFFFF</value>
+                    </formula>
+                    <formula category="X_POSITION">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>21</value>
+                    </formula>
+                    <formula category="SIZE">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>120.0</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable reference="../../../../../../../../scene[2]/objectList/object[2]/scriptList/script[2]/brickList/brick/userVariable"/>
+                  <alignmentSelection>1</alignmentSelection>
+                </brick>
+                <brick type="ShowTextColorSizeAlignmentBrick">
+                  <brickId>93b50c83-4255-42d6-a7aa-623ced213bed</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="Y_POSITION">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>500</value>
+                    </formula>
+                    <formula category="COLOR">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>#FFFFFF</value>
+                    </formula>
+                    <formula category="X_POSITION">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>500</value>
+                    </formula>
+                    <formula category="SIZE">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>120.0</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable type="UserVariable" serialization="custom">
+                    <userVariable>
+                      <default>
+                        <initialIndex>2</initialIndex>
+                        <deviceValueKey>ba3fbaa9-418f-441e-bf11-228ad0149a8d</deviceValueKey>
+                        <name>msg1</name>
+                      </default>
+                    </userVariable>
+                  </userVariable>
+                  <alignmentSelection>2</alignmentSelection>
+                </brick>
+                <brick type="ShowTextColorSizeAlignmentBrick">
+                  <brickId>efd22544-557c-4470-aa32-d7cdffc8f3dc</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="Y_POSITION">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>300</value>
+                    </formula>
+                    <formula category="COLOR">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>#FFFFFF</value>
+                    </formula>
+                    <formula category="X_POSITION">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>500</value>
+                    </formula>
+                    <formula category="SIZE">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>120.0</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable type="UserVariable" serialization="custom">
+                    <userVariable>
+                      <default>
+                        <initialIndex>3</initialIndex>
+                        <deviceValueKey>7edf1351-6996-41e4-b638-13c3e6549409</deviceValueKey>
+                        <name>msg2</name>
+                      </default>
+                    </userVariable>
+                  </userVariable>
+                  <alignmentSelection>2</alignmentSelection>
+                </brick>
+                <brick type="ShowTextColorSizeAlignmentBrick">
+                  <brickId>12a818a1-31c5-4e88-a897-824c8cad200b</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="Y_POSITION">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>100</value>
+                    </formula>
+                    <formula category="COLOR">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>#FFFFFF</value>
+                    </formula>
+                    <formula category="X_POSITION">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>500</value>
+                    </formula>
+                    <formula category="SIZE">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>120.0</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable type="UserVariable" serialization="custom">
+                    <userVariable>
+                      <default>
+                        <initialIndex>4</initialIndex>
+                        <deviceValueKey>360ed907-4d3f-4f45-9bfd-e35280295b8c</deviceValueKey>
+                        <name>msg3</name>
+                      </default>
+                    </userVariable>
+                  </userVariable>
+                  <alignmentSelection>2</alignmentSelection>
+                </brick>
+                <brick type="ShowTextColorSizeAlignmentBrick">
+                  <brickId>da8b58af-95cc-4ad5-b2f0-198155aa57fd</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="Y_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>100</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                    <formula category="COLOR">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>#FFFFFF</value>
+                    </formula>
+                    <formula category="X_POSITION">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>500</value>
+                    </formula>
+                    <formula category="SIZE">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>120.0</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable type="UserVariable" serialization="custom">
+                    <userVariable>
+                      <default>
+                        <initialIndex>5</initialIndex>
+                        <deviceValueKey>88065f52-763c-457c-af85-7e6fa923ae28</deviceValueKey>
+                        <name>msg4</name>
+                      </default>
+                    </userVariable>
+                  </userVariable>
+                  <alignmentSelection>2</alignmentSelection>
+                </brick>
+                <brick type="ShowTextColorSizeAlignmentBrick">
+                  <brickId>21393ad8-33e6-45e5-8d08-4aa5149e42cc</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="Y_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>300</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                    <formula category="COLOR">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>#FFFFFF</value>
+                    </formula>
+                    <formula category="X_POSITION">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>500</value>
+                    </formula>
+                    <formula category="SIZE">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>120.0</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable type="UserVariable" serialization="custom">
+                    <userVariable>
+                      <default>
+                        <initialIndex>6</initialIndex>
+                        <deviceValueKey>19a82410-3377-4030-af12-8bde32066ce5</deviceValueKey>
+                        <name>msg5</name>
+                      </default>
+                    </userVariable>
+                  </userVariable>
+                  <alignmentSelection>2</alignmentSelection>
+                </brick>
+                <brick type="ForeverBrick">
+                  <brickId>d58dcc8e-c7d7-44a7-83ac-70d4c21ebfe9</brickId>
+                  <commentedOut>false</commentedOut>
+                  <loopBricks>
+                    <brick type="BroadcastBrick">
+                      <brickId>00e0692d-dd96-4f52-a4ee-7944e3341f4b</brickId>
+                      <commentedOut>false</commentedOut>
+                      <broadcastMessage>вывод</broadcastMessage>
+                    </brick>
+                    <brick type="WaitBrick">
+                      <brickId>2b514c8f-28fb-4514-b93c-ef3a269d6f2e</brickId>
+                      <commentedOut>false</commentedOut>
+                      <formulaList>
+                        <formula category="TIME_TO_WAIT_IN_SECONDS">
+                          <additionalChildren/>
+                          <type>NUMBER</type>
+                          <value>0.5</value>
+                        </formula>
+                      </formulaList>
+                    </brick>
+                  </loopBricks>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>f40d84e8-b85b-4627-994f-99db2972bfd0</scriptId>
+            </script>
+            <script type="BroadcastScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="WriteBaseBrick">
+                  <brickId>ac070c51-68dd-4a26-a155-f8c68b934538</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="FIREBASE_ID">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>https://horrexserverus-default-rtdb.firebaseio.com/</value>
+                    </formula>
+                    <formula category="FIREBASE_KEY">
+                      <additionalChildren/>
+                      <leftChild>
+                        <additionalChildren/>
+                        <type>USER_VARIABLE</type>
+                        <value>ID_Commynity</value>
+                      </leftChild>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>STRING</type>
+                        <value>msg1</value>
+                      </rightChild>
+                      <type>FUNCTION</type>
+                      <value>JOIN</value>
+                    </formula>
+                    <formula category="FIREBASE_VALUE">
+                      <additionalChildren/>
+                      <type>USER_VARIABLE</type>
+                      <value>msg2</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="WriteBaseBrick">
+                  <brickId>cf3e2bed-1491-438d-a24d-180c434237e1</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="FIREBASE_ID">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>https://horrexserverus-default-rtdb.firebaseio.com/</value>
+                    </formula>
+                    <formula category="FIREBASE_KEY">
+                      <additionalChildren/>
+                      <leftChild>
+                        <additionalChildren/>
+                        <type>USER_VARIABLE</type>
+                        <value>ID_Commynity</value>
+                      </leftChild>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>STRING</type>
+                        <value>msg2</value>
+                      </rightChild>
+                      <type>FUNCTION</type>
+                      <value>JOIN</value>
+                    </formula>
+                    <formula category="FIREBASE_VALUE">
+                      <additionalChildren/>
+                      <type>USER_VARIABLE</type>
+                      <value>msg3</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="WriteBaseBrick">
+                  <brickId>44c6a172-418a-404d-8f9e-9456572dab0a</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="FIREBASE_ID">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>https://horrexserverus-default-rtdb.firebaseio.com/</value>
+                    </formula>
+                    <formula category="FIREBASE_KEY">
+                      <additionalChildren/>
+                      <leftChild>
+                        <additionalChildren/>
+                        <type>USER_VARIABLE</type>
+                        <value>ID_Commynity</value>
+                      </leftChild>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>STRING</type>
+                        <value>msg3</value>
+                      </rightChild>
+                      <type>FUNCTION</type>
+                      <value>JOIN</value>
+                    </formula>
+                    <formula category="FIREBASE_VALUE">
+                      <additionalChildren/>
+                      <type>USER_VARIABLE</type>
+                      <value>msg4</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="WriteBaseBrick">
+                  <brickId>9c885b32-27ca-4307-bef5-08b3d331e612</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="FIREBASE_ID">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>https://horrexserverus-default-rtdb.firebaseio.com/</value>
+                    </formula>
+                    <formula category="FIREBASE_KEY">
+                      <additionalChildren/>
+                      <leftChild>
+                        <additionalChildren/>
+                        <type>USER_VARIABLE</type>
+                        <value>ID_Commynity</value>
+                      </leftChild>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>STRING</type>
+                        <value>msg4</value>
+                      </rightChild>
+                      <type>FUNCTION</type>
+                      <value>JOIN</value>
+                    </formula>
+                    <formula category="FIREBASE_VALUE">
+                      <additionalChildren/>
+                      <type>USER_VARIABLE</type>
+                      <value>msg5</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="AskBrick">
+                  <brickId>e78c40dc-2b56-4427-9d40-d5be4d349351</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="ASK_QUESTION">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>Сообщение</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable type="UserVariable" serialization="custom">
+                    <userVariable>
+                      <default>
+                        <initialIndex>0</initialIndex>
+                        <deviceValueKey>ee605354-5fe6-4d37-86a8-8740ff1f2e0c</deviceValueKey>
+                        <name>Сообщение</name>
+                      </default>
+                    </userVariable>
+                  </userVariable>
+                </brick>
+                <brick type="WriteBaseBrick">
+                  <brickId>0de1037a-c382-4b53-b012-c00d0336c710</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="FIREBASE_ID">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>https://horrexserverus-default-rtdb.firebaseio.com/</value>
+                    </formula>
+                    <formula category="FIREBASE_KEY">
+                      <additionalChildren/>
+                      <leftChild>
+                        <additionalChildren/>
+                        <type>USER_VARIABLE</type>
+                        <value>ID_Commynity</value>
+                      </leftChild>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>STRING</type>
+                        <value>msg5</value>
+                      </rightChild>
+                      <type>FUNCTION</type>
+                      <value>JOIN</value>
+                    </formula>
+                    <formula category="FIREBASE_VALUE">
+                      <additionalChildren>
+                        <org.catrobat.catroid.formulaeditor.FormulaElement>
+                          <additionalChildren/>
+                          <type>USER_VARIABLE</type>
+                          <value>Сообщение</value>
+                        </org.catrobat.catroid.formulaeditor.FormulaElement>
+                      </additionalChildren>
+                      <leftChild>
+                        <additionalChildren/>
+                        <type>USER_VARIABLE</type>
+                        <value>ID</value>
+                      </leftChild>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>STRING</type>
+                        <value> : </value>
+                      </rightChild>
+                      <type>FUNCTION</type>
+                      <value>JOIN3</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="BroadcastBrick">
+                  <brickId>12c2632a-9e52-4449-9791-d536bb5b19ef</brickId>
+                  <commentedOut>false</commentedOut>
+                  <broadcastMessage>вывод</broadcastMessage>
+                </brick>
+                <brick type="BroadcastBrick">
+                  <brickId>e5de1f5a-6055-4775-9622-719c3711b011</brickId>
+                  <commentedOut>false</commentedOut>
+                  <broadcastMessage>Модерация чата</broadcastMessage>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>d7d23563-9fb7-4cb0-aeb4-8f431539db22</scriptId>
+              <receivedMessage>ввод</receivedMessage>
+            </script>
+            <script type="BroadcastScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="ReadBaseBrick">
+                  <brickId>7d18185c-906a-409d-95fc-4d6941bdbf4c</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="FIREBASE_ID">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>https://horrexserverus-default-rtdb.firebaseio.com/</value>
+                    </formula>
+                    <formula category="FIREBASE_KEY">
+                      <additionalChildren/>
+                      <leftChild>
+                        <additionalChildren/>
+                        <type>USER_VARIABLE</type>
+                        <value>ID_Commynity</value>
+                      </leftChild>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>STRING</type>
+                        <value>msg1</value>
+                      </rightChild>
+                      <type>FUNCTION</type>
+                      <value>JOIN</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable reference="../../../../script/brickList/brick[2]/userVariable"/>
+                </brick>
+                <brick type="ReadBaseBrick">
+                  <brickId>51aa3abe-c4aa-4ad3-8351-5c3854a8988a</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="FIREBASE_ID">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>https://horrexserverus-default-rtdb.firebaseio.com/</value>
+                    </formula>
+                    <formula category="FIREBASE_KEY">
+                      <additionalChildren/>
+                      <leftChild>
+                        <additionalChildren/>
+                        <type>USER_VARIABLE</type>
+                        <value>ID_Commynity</value>
+                      </leftChild>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>STRING</type>
+                        <value>msg2</value>
+                      </rightChild>
+                      <type>FUNCTION</type>
+                      <value>JOIN</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable reference="../../../../script/brickList/brick[3]/userVariable"/>
+                </brick>
+                <brick type="ReadBaseBrick">
+                  <brickId>188cddb5-1f33-4fe6-b5d2-12ae3c52f2a7</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="FIREBASE_ID">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>https://horrexserverus-default-rtdb.firebaseio.com/</value>
+                    </formula>
+                    <formula category="FIREBASE_KEY">
+                      <additionalChildren/>
+                      <leftChild>
+                        <additionalChildren/>
+                        <type>USER_VARIABLE</type>
+                        <value>ID_Commynity</value>
+                      </leftChild>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>STRING</type>
+                        <value>msg3</value>
+                      </rightChild>
+                      <type>FUNCTION</type>
+                      <value>JOIN</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable reference="../../../../script/brickList/brick[4]/userVariable"/>
+                </brick>
+                <brick type="ReadBaseBrick">
+                  <brickId>216f89b1-29f3-4f96-9c63-76628b47a7bf</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="FIREBASE_ID">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>https://horrexserverus-default-rtdb.firebaseio.com/</value>
+                    </formula>
+                    <formula category="FIREBASE_KEY">
+                      <additionalChildren/>
+                      <leftChild>
+                        <additionalChildren/>
+                        <type>USER_VARIABLE</type>
+                        <value>ID_Commynity</value>
+                      </leftChild>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>STRING</type>
+                        <value>msg4</value>
+                      </rightChild>
+                      <type>FUNCTION</type>
+                      <value>JOIN</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable reference="../../../../script/brickList/brick[5]/userVariable"/>
+                </brick>
+                <brick type="ReadBaseBrick">
+                  <brickId>5f804e45-4f62-4b1b-851a-b22f0f092c49</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="FIREBASE_ID">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>https://horrexserverus-default-rtdb.firebaseio.com/</value>
+                    </formula>
+                    <formula category="FIREBASE_KEY">
+                      <additionalChildren/>
+                      <leftChild>
+                        <additionalChildren/>
+                        <type>USER_VARIABLE</type>
+                        <value>ID_Commynity</value>
+                      </leftChild>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>STRING</type>
+                        <value>msg5</value>
+                      </rightChild>
+                      <type>FUNCTION</type>
+                      <value>JOIN</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable reference="../../../../script/brickList/brick[6]/userVariable"/>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>16cfa3d9-f5a1-4f3f-99d0-19248881695e</scriptId>
+              <receivedMessage>вывод</receivedMessage>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+        <object type="Sprite" spriteId="b1435bbb-9234-4ce9-b98f-a5a85df65652" name="написать">
+          <lookList>
+            <look fileName="1000001130.png" lookId="12627274-cd5d-42c2-9e56-bef8c530fd63" name="написать">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="SetSizeToBrick">
+                  <brickId>8744b0fd-5d7d-4d19-90f5-c4224aa79e0f</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="SIZE">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>150</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="PlaceAtBrick">
+                  <brickId>bcd115ae-e266-4dae-bd31-b84dab6f3170</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="Y_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>919</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                    <formula category="X_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>11</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="PointInDirectionBrick">
+                  <brickId>f87b0488-a76a-44bd-8116-385d45716b10</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="DEGREES">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>90.0</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>6ab8b6c6-e3cf-46c2-8c61-c42a770f4a6e</scriptId>
+            </script>
+            <script type="WhenScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="BroadcastBrick">
+                  <brickId>9efe1f4b-45dc-404d-86d0-94383b08abf9</brickId>
+                  <commentedOut>false</commentedOut>
+                  <broadcastMessage>ввод</broadcastMessage>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>e2f73ebd-ee6d-40d8-80f9-49045e67d8df</scriptId>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+      </objectList>
+    </scene>
+  </scenes>
+  <programVariableList>
+    <userVariable reference="../../scenes/scene[3]/objectList/object/scriptList/script[2]/brickList/brick[5]/userVariable"/>
+    <userVariable reference="../../scenes/scene/objectList/object/scriptList/script/brickList/brick/userVariable"/>
+    <userVariable reference="../../scenes/scene[2]/objectList/object[2]/scriptList/script[2]/brickList/brick/userVariable"/>
+    <userVariable reference="../../scenes/scene[3]/objectList/object/scriptList/script/brickList/brick[2]/userVariable"/>
+    <userVariable reference="../../scenes/scene[3]/objectList/object/scriptList/script/brickList/brick[3]/userVariable"/>
+    <userVariable reference="../../scenes/scene[3]/objectList/object/scriptList/script/brickList/brick[4]/userVariable"/>
+    <userVariable reference="../../scenes/scene[3]/objectList/object/scriptList/script/brickList/brick[5]/userVariable"/>
+    <userVariable reference="../../scenes/scene[3]/objectList/object/scriptList/script/brickList/brick[6]/userVariable"/>
+  </programVariableList>
+  <programListOfLists/>
+  <programMultiplayerVariableList/>
+</program>

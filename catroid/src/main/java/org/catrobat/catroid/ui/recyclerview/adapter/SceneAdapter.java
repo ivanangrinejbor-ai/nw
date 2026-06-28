@@ -50,7 +50,7 @@ public class SceneAdapter extends ExtendedRVAdapter<Scene> {
 		Scene item = items.get(position);
 
 		File projectDir = ProjectManager.getInstance().getCurrentProject().getDirectory();
-		holder.title.setText(item.getName());
+		holder.title.setText(item.isGlobalScene ? "\uD83C\uDF10 " + item.getName() : item.getName());
 
 		loader.loadAndShowScreenshot(projectDir.getName(), item.getDirectory().getName(), false, holder.image);
 

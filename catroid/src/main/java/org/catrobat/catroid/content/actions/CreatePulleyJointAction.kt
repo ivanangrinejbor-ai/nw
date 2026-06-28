@@ -19,16 +19,16 @@ class CreatePulleyJointAction : TemporalAction() {
     private var ratio: Formula? = null
 
     override fun update(percent: Float) {
-        val id = jointId!!.interpretString(scope)
-        val nameA = spriteAName!!.interpretString(scope)
-        val nameB = spriteBName!!.interpretString(scope)
-        if (id == null || id.isEmpty() || nameA == null || nameB == null) return
+        val id = jointId?.interpretString(scope) ?: return
+        val nameA = spriteAName?.interpretString(scope) ?: return
+        val nameB = spriteBName?.interpretString(scope) ?: return
+        if (id.isEmpty() || nameA.isEmpty() || nameB.isEmpty()) return
 
-        val gAx = groundAnchorAx!!.interpretFloat(scope)
-        val gAy = groundAnchorAy!!.interpretFloat(scope)
-        val gBx = groundAnchorBx!!.interpretFloat(scope)
-        val gBy = groundAnchorBy!!.interpretFloat(scope)
-        val r = ratio!!.interpretFloat(scope)
+        val gAx = groundAnchorAx?.interpretFloat(scope) ?: 0f
+        val gAy = groundAnchorAy?.interpretFloat(scope) ?: 0f
+        val gBx = groundAnchorBx?.interpretFloat(scope) ?: 0f
+        val gBy = groundAnchorBy?.interpretFloat(scope) ?: 0f
+        val r = ratio?.interpretFloat(scope) ?: 1f
 
         val scene = ProjectManager.getInstance().currentlyPlayingScene ?: return
 

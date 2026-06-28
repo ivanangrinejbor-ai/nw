@@ -23,38 +23,42 @@
 
 package org.catrobat.catroid.content.actions
 
-import android.widget.Toast
-import android.content.Context
-import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction
-import android.app.Activity
-import org.catrobat.catroid.stage.StageActivity
-import org.catrobat.catroid.stage.StageActivity.IntentListener
-import android.util.Log
-import org.catrobat.catroid.CatroidApplication
-import org.catrobat.catroid.R
+import com.badlogic.gdx.scenes.scene2d.Action
 import org.catrobat.catroid.content.LocalServer
-
 import org.catrobat.catroid.content.Scope
-import org.catrobat.catroid.formulaeditor.Formula
 import org.catrobat.catroid.formulaeditor.UserVariable
-import java.util.ArrayList
-import java.util.*
 import java.util.concurrent.Executors
+import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 
-class ListenServerAction() : TemporalAction() {
+class ListenServerAction() : Action() {
+    companion object {
+        private var sharedScheduler: ScheduledExecutorService? = null
+
+        private fun getScheduler(): ScheduledExecutorService {
+            if (sharedScheduler == null || sharedScheduler!!.isShutdown) {
+                sharedScheduler = Executors.newSingleThreadScheduledExecutor()
+            }
+            return sharedScheduler!!
+        }
+
+        fun stopAll() {
+            sharedScheduler?.shutdownNow()
+            sharedScheduler = null
+        }
+    }
+
     var scope: Scope? = null
     var variable: UserVariable? = null
 
-    override fun update(percent: Float) {
-        if (variable == null) {
-            return
-        }
+    override fun act(delta: Float): Boolean {
+        if (variable == null) return true
+        val v = variable!!
 
-        val scheduler = Executors.newScheduledThreadPool(1)
-
-        scheduler.scheduleAtFixedRate({
-            variable?.value = LocalServer.getValue()
+        getScheduler().scheduleAtFixedRate({
+            v.value = LocalServer.getValue()
         }, 0, 30, TimeUnit.MILLISECONDS)
+
+        return true
     }
 }

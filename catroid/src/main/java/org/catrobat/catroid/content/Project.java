@@ -85,6 +85,8 @@ public class Project implements Serializable {
 	private List<UserList> userLists = new ArrayList<>();
 	@XStreamAlias("scenes")
 	private List<Scene> sceneList = new ArrayList<>();
+	@XStreamAlias("globalScene")
+	private Scene globalScene = null;
 
 	private transient File directory;
 
@@ -180,6 +182,25 @@ public class Project implements Serializable {
 		} catch (Exception e) {
 			return null;
 		}
+	}
+
+	public Scene getGlobalScene() {
+		if (globalScene == null) {
+			globalScene = new Scene("Global Scene", this);
+			globalScene.isGlobalScene = true;
+		}
+		return globalScene;
+	}
+
+	public void setGlobalScene(Scene globalScene) {
+		this.globalScene = globalScene;
+		if (this.globalScene != null) {
+			this.globalScene.setProject(this);
+		}
+	}
+
+	public boolean hasGlobalScene() {
+		return globalScene != null && globalScene.getSpriteList().size() > 0;
 	}
 
 	public <T> boolean hasUserDataChanged(List<T> newUserData, List<T> oldUserData) {

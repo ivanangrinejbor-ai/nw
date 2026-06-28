@@ -13,6 +13,7 @@ class CreateWebUrlAction : TemporalAction() {
     var posY: Formula? = null
     var width: Formula? = null
     var height: Formula? = null
+    var zindex: Formula? = null
 
     override fun update(percent: Float) {
         var urlv = url?.interpretObject(scope)?.toString() ?: ""
@@ -22,6 +23,7 @@ class CreateWebUrlAction : TemporalAction() {
 
         var widthv = width?.interpretObject(scope)?.toString()?.toDoubleOrNull()?.toInt() ?: 0
         var heightv = height?.interpretObject(scope)?.toString()?.toDoubleOrNull()?.toInt() ?: 0
+        val zIndexv = zindex?.interpretFloat(scope) ?: 1f
 
         val activity: StageActivity? = StageActivity.activeStageActivity.get();
         if (activity == null) return
@@ -33,7 +35,8 @@ class CreateWebUrlAction : TemporalAction() {
                 posXv,
                 posYv,
                 widthv,
-                heightv
+                heightv,
+                zIndexv
             )
         }
     }

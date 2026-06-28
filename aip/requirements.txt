@@ -1,0 +1,10 @@
+# AI Project Assistant - NewCatroid
+# Core
+numpy>=1.24.0
+lxml>=4.9.0
+json5>=0.9.0
+
+# ML / Pattern Mining (optional — for deep pattern learning)
+# scikit-learn>=1.2.0
+# transformers>=4.30.0  # если использовать LLM для дообучения
+# torch>=2.0.0          # если использовать нейросеть

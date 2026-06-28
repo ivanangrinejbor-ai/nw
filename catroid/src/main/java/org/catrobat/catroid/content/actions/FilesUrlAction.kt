@@ -107,26 +107,30 @@ class FilesUrlAction() : TemporalAction() {
     fun downloadFileFromUrl(fileUrl: String, newFileName: String) {
         scope?.project?.let { proj ->
             CoroutineScope(Dispatchers.IO).launch {
-                val url = URL(fileUrl)
-                val connection = url.openConnection() as HttpURLConnection
-                connection.requestMethod = "GET"
-                connection.setRequestProperty("User-Agent", "Mozilla/5.0")
-                connection.connect()
+                try {
+                    val url = URL(fileUrl)
+                    val connection = url.openConnection() as HttpURLConnection
+                    connection.requestMethod = "GET"
+                    connection.setRequestProperty("User-Agent", "Mozilla/5.0")
+                    connection.connect()
 
-                if (connection.responseCode != HttpURLConnection.HTTP_OK) {
-                    Log.e("DownloadFile", "Ошибка: ${connection.responseCode}")
-                    showToast("Ошибка: ${connection.responseCode}")
-                    return@launch
+                    if (connection.responseCode != HttpURLConnection.HTTP_OK) {
+                        Log.e("DownloadFile", "Ошибка: ${connection.responseCode}")
+                        showToast("Ошибка: ${connection.responseCode}")
+                        return@launch
+                    }
+
+                    val destFile = File(proj.filesDir, newFileName)
+                    connection.inputStream.use { inputStream ->
+                        FileOutputStream(destFile).use { fileOutputStream ->
+                            inputStream.copyTo(fileOutputStream)
+                        }
+                    }
+
+                    Log.d("DownloadFile", "Файл скачан: ${destFile.absolutePath}")
+                } catch (e: Exception) {
+                    Log.e("DownloadFile", "Download error: ${e.message}", e)
                 }
-
-                val inputStream = connection.inputStream
-                val downloadsFolder = proj.filesDir
-                val destFile = File(downloadsFolder, newFileName)
-
-                val fileOutputStream = FileOutputStream(destFile)
-                inputStream.copyTo(fileOutputStream)
-
-                Log.d("DownloadFile", "Файл скачан: ${destFile.absolutePath}")
             }
         }
     }

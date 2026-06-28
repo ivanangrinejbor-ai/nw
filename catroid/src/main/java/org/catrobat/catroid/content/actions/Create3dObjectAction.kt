@@ -15,14 +15,15 @@ class Create3dObjectAction : TemporalAction() {
     override fun update(percent: Float) {
         val threeDManager = StageActivity.activeStageActivity.get()?.stageListener?.threeDManager ?: return
 
-        val id = objectId!!.interpretString(scope)
-        val modelFileName = modelPath!!.interpretString(scope)
+        val id = objectId?.interpretString(scope) ?: return
+        val modelFileName = modelPath?.interpretString(scope) ?: return
 
         if (id.isEmpty() || modelFileName.isEmpty()) {
             return
         }
 
-        val modelFile = scope!!.project!!.getFile(modelFileName)
+        val project = scope?.project ?: return
+        val modelFile = project.getFile(modelFileName)
 
         if (modelFile == null || !modelFile.exists()) {
             return

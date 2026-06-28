@@ -15,20 +15,20 @@ class CreateDistanceJointAction : TemporalAction() {
     private var damping: Formula? = null
 
     override fun update(percent: Float) {
-        val id = jointId!!.interpretString(scope)
-        if (id == null || id.isEmpty()) return
-        val otherSpriteName = spriteBName!!.interpretString(scope)
-        if (otherSpriteName == null || otherSpriteName.isEmpty()) return
+        val id = jointId?.interpretString(scope) ?: return
+        if (id.isEmpty()) return
+        val otherSpriteName = spriteBName?.interpretString(scope) ?: return
+        if (otherSpriteName.isEmpty()) return
 
-        val lengthValue = length!!.interpretFloat(scope)
-        val frequencyValue = frequency!!.interpretFloat(scope)
-        val dampingValue = damping!!.interpretFloat(scope)
+        val lengthValue = length?.interpretFloat(scope) ?: 1f
+        val frequencyValue = frequency?.interpretFloat(scope) ?: 0f
+        val dampingValue = damping?.interpretFloat(scope) ?: 0f
 
-        val stage = scope!!.sprite.look.stage ?: return
+        val spriteA = scope?.sprite ?: return
+        val stage = spriteA.look.stage ?: return
 
         val scene = ProjectManager.getInstance().currentlyPlayingScene ?: return
 
-        val spriteA = scope!!.sprite
         val spriteB: Sprite = scene.getSprite(otherSpriteName)
             ?: return
 

@@ -121,7 +121,10 @@ class CustomBrick(
                     val spinner = getSpinnerView(index)
                     spinner?.visibility = View.VISIBLE
                 }
-                else -> TODO()
+                ParameterType.LIST_DROPDOWN -> {
+                    val spinner = getSpinnerView(index)
+                    spinner?.visibility = View.VISIBLE
+                }
             }
         }
 
@@ -150,7 +153,7 @@ class CustomBrick(
 
     private fun resetDynamicViews() {
         getHeaderTextViews().forEach { it?.visibility = View.GONE }
-        for (i in 0..4) {
+        for (i in 0..8) {
             getFormulaView(i)?.visibility = View.GONE
             getSpinnerView(i)?.visibility = View.GONE
         }
@@ -186,7 +189,21 @@ class CustomBrick(
         return if (id != -1) view.findViewById(id) else null
     }
 
-    private fun getSpinnerView(index: Int): Spinner? { return null }
+    private fun getSpinnerView(index: Int): Spinner? {
+        val id = when (index) {
+            0 -> R.id.custom_brick_spinner_1
+            1 -> R.id.custom_brick_spinner_2
+            2 -> R.id.custom_brick_spinner_3
+            3 -> R.id.custom_brick_spinner_4
+            4 -> R.id.custom_brick_spinner_5
+            5 -> R.id.custom_brick_spinner_6
+            6 -> R.id.custom_brick_spinner_7
+            7 -> R.id.custom_brick_spinner_8
+            8 -> R.id.custom_brick_spinner_9
+            else -> -1
+        }
+        return if (id != -1) view.findViewById(id) else null
+    }
 
     override fun addActionToSequence(sprite: Sprite, sequence: ScriptSequenceAction) {
         val definition = CustomBrickManager.findDefinitionById(definitionId) ?: return
