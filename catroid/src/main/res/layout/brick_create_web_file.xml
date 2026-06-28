@@ -85,6 +85,15 @@
             android:id="@+id/create_web_file_height"
             style="@style/BrickEditText" />
 
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/create_web_z"
+            app:layout_newLine="true"/>
+
+        <TextView
+            android:id="@+id/create_web_file_zindex"
+            style="@style/BrickEditText" />
+
     </org.catrobat.catroid.ui.BrickLayout>
 
 </LinearLayout>

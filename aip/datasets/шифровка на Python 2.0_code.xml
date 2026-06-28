@@ -1,0 +1,788 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<program>
+  <header>
+    <applicationBuildName></applicationBuildName>
+    <applicationBuildNumber>0</applicationBuildNumber>
+    <applicationBuildType>release</applicationBuildType>
+    <applicationName>NewCatroid</applicationName>
+    <applicationVersion>2.1.1b2</applicationVersion>
+    <catrobatLanguageVersion>1.17</catrobatLanguageVersion>
+    <customResolution>false</customResolution>
+    <dateTimeUpload></dateTimeUpload>
+    <description></description>
+    <deviceName>V2247</deviceName>
+    <gitRemoteUrl></gitRemoteUrl>
+    <isCastProject>false</isCastProject>
+    <landscapeMode>false</landscapeMode>
+    <listeningLanguageTag></listeningLanguageTag>
+    <mediaLicense></mediaLicense>
+    <notesAndCredits></notesAndCredits>
+    <physicsHeightArea>2.0</physicsHeightArea>
+    <physicsWidthArea>3.0</physicsWidthArea>
+    <platform>Android</platform>
+    <platformVersion>35</platformVersion>
+    <programLicense></programLicense>
+    <programName>шифровка на Python 2.0</programName>
+    <remixOf></remixOf>
+    <scenesEnabled>true</scenesEnabled>
+    <screenHeight>2182</screenHeight>
+    <screenMode>STRETCH</screenMode>
+    <screenWidth>1080</screenWidth>
+    <tags></tags>
+    <url></url>
+    <userHandle></userHandle>
+  </header>
+  <settings/>
+  <scenes>
+    <scene sceneId="5f2cba65-a390-4702-8248-b8ed87f63595">
+      <name>Сцена</name>
+      <objectList>
+        <object type="Sprite" spriteId="57222d49-6ebf-41a0-9ec4-364887ef22d7" name="Фон">
+          <lookList/>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="UserDefinedBrick">
+                  <brickId>24ea3986-6f48-4fcd-afc4-99f06e05da23</brickId>
+                  <commentedOut>true</commentedOut>
+                  <formulaList>
+                    <formula input="текст">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>Mkprt#Auwrh!</value>
+                    </formula>
+                    <formula input="ключ">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>2313</value>
+                    </formula>
+                  </formulaList>
+                  <isCallingBrick>true</isCallingBrick>
+                  <userDefinedBrickDataList>
+                    <userDefinedBrickLabel>
+                      <type>LABEL</type>
+                      <label>расшифровать:</label>
+                    </userDefinedBrickLabel>
+                    <userDefinedBrickInput>
+                      <type>INPUT</type>
+                      <initialIndex>-1</initialIndex>
+                      <input>
+                        <input>текст</input>
+                      </input>
+                    </userDefinedBrickInput>
+                    <userDefinedBrickLabel>
+                      <type>LABEL</type>
+                      <label>ключём</label>
+                    </userDefinedBrickLabel>
+                    <userDefinedBrickInput>
+                      <type>INPUT</type>
+                      <initialIndex>-1</initialIndex>
+                      <input>
+                        <input>ключ</input>
+                      </input>
+                    </userDefinedBrickInput>
+                  </userDefinedBrickDataList>
+                  <userDefinedBrickID>be52cfc6-8c31-4ff0-8721-3f01f1803a47</userDefinedBrickID>
+                </brick>
+                <brick type="UserDefinedBrick">
+                  <brickId>acacc4f8-e9ce-41d1-9d28-43785c288341</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula input="текст">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>Hello World!</value>
+                    </formula>
+                    <formula input="ключ">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>2313</value>
+                    </formula>
+                  </formulaList>
+                  <isCallingBrick>true</isCallingBrick>
+                  <userDefinedBrickDataList>
+                    <userDefinedBrickLabel>
+                      <type>LABEL</type>
+                      <label>зашифровать: </label>
+                    </userDefinedBrickLabel>
+                    <userDefinedBrickInput>
+                      <type>INPUT</type>
+                      <initialIndex>0</initialIndex>
+                      <input>
+                        <input>текст</input>
+                      </input>
+                    </userDefinedBrickInput>
+                    <userDefinedBrickLabel>
+                      <type>LABEL</type>
+                      <label>ключём</label>
+                    </userDefinedBrickLabel>
+                    <userDefinedBrickInput>
+                      <type>INPUT</type>
+                      <initialIndex>1</initialIndex>
+                      <input>
+                        <input>ключ</input>
+                      </input>
+                    </userDefinedBrickInput>
+                  </userDefinedBrickDataList>
+                  <userDefinedBrickID>e56239a6-8cba-4754-83d1-cee0e244ca13</userDefinedBrickID>
+                </brick>
+                <brick type="WaitBrick">
+                  <brickId>8e241f7a-a826-4026-91d4-662d7d83c623</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="TIME_TO_WAIT_IN_SECONDS">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>2</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="ExitStageBrick">
+                  <brickId>7654ab95-1992-4d94-9172-7e1c31db6a4f</brickId>
+                  <commentedOut>false</commentedOut>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>bd979f79-ef35-4686-aa8e-10104232b046</scriptId>
+            </script>
+            <script type="UserDefinedScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="NoteBrick">
+                  <brickId>7f5e905f-de40-4ae8-924a-a7aff130d23c</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="NOTE">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>переменные 1, 2, 3, 4, 5</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="SetVariableBrick">
+                  <brickId>d98dc56d-ae6d-4a35-8269-10e98955f388</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="VARIABLE">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>def vigenere_encrypt(user_text, user_key):
+    encrypted_text = []
+    key_length = len(user_key)
+    key_index = 0
+
+    # Определяем диапазоны для латиницы и кириллицы
+    latin_lower_start, latin_lower_end = ord(&apos;a&apos;), ord(&apos;z&apos;)
+    latin_upper_start, latin_upper_end = ord(&apos;A&apos;), ord(&apos;Z&apos;)
+    cyrillic_lower_start, cyrillic_lower_end = ord(&apos;а&apos;), ord(&apos;я&apos;)
+    cyrillic_upper_start, cyrillic_upper_end = ord(&apos;А&apos;), ord(&apos;Я&apos;)
+
+    for char in user_text:
+        if char.isalpha():
+            # Обработка латинских букв
+            if &apos;a&apos; &lt;= char &lt;= &apos;z&apos; or &apos;A&apos; &lt;= char &lt;= &apos;Z&apos;:
+                shift = ord(user_key[key_index % key_length].lower()) - ord(&apos;a&apos;)
+                if char.islower():
+                    encrypted_char = chr((ord(char) - ord(&apos;a&apos;) + shift) % 26 + ord(&apos;a&apos;))
+                else:
+                    encrypted_char = chr((ord(char) - ord(&apos;A&apos;) + shift) % 26 + ord(&apos;A&apos;))
+                encrypted_text.append(encrypted_char)
+                key_index += 1
+
+            # Обработка кириллических букв
+            elif &apos;а&apos; &lt;= char &lt;= &apos;я&apos;:
+                shift = (ord(user_key[key_index % key_length].lower()) - ord(&apos;а&apos;)) if &apos;а&apos; &lt;= user_key[key_index % key_length].lower() &lt;= &apos;я&apos; else 0
+                encrypted_char = chr((ord(char) - ord(&apos;а&apos;) + shift) % 32 + ord(&apos;а&apos;))
+                encrypted_text.append(encrypted_char)
+                key_index += 1
+            elif &apos;А&apos; &lt;= char &lt;= &apos;Я&apos;:
+                shift = (ord(user_key[key_index % key_length].upper()) - ord(&apos;А&apos;)) if &apos;А&apos; &lt;= user_key[key_index % key_length].upper() &lt;= &apos;Я&apos; else 0
+                encrypted_char = chr((ord(char) - ord(&apos;А&apos;) + shift) % 32 + ord(&apos;А&apos;))
+                encrypted_text.append(encrypted_char)
+                key_index += 1
+            else:
+                # Если символ не входит в известные диапазоны, оставляем его без изменений
+                encrypted_text.append(char)
+        elif char.isdigit():
+            # Шифруем цифры
+            encrypted_char = str((int(char) + int(user_key[key_index % key_length])) % 10)
+            encrypted_text.append(encrypted_char)
+            key_index += 1
+        elif char.isspace():
+            # Обработка пробелов
+            encrypted_text.append(&apos;#&apos;)
+            key_index += 1
+        else:
+            # Другие символы оставляем без изменений
+            encrypted_text.append(char)
+
+    return &apos;&apos;.join(encrypted_text)
+
+# Пример использования
+user_key = &quot;</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable type="UserVariable" serialization="custom">
+                    <userVariable>
+                      <default>
+                        <initialIndex>0</initialIndex>
+                        <deviceValueKey>c890d2d0-655e-4dd4-8fbc-ce0820b99e02</deviceValueKey>
+                        <name>1</name>
+                      </default>
+                    </userVariable>
+                  </userVariable>
+                </brick>
+                <brick type="SetVariableBrick">
+                  <brickId>25de072e-b46f-4596-ae4f-127378a5cd1a</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="VARIABLE">
+                      <additionalChildren/>
+                      <type>USER_DEFINED_BRICK_INPUT</type>
+                      <value>ключ</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable type="UserVariable" serialization="custom">
+                    <userVariable>
+                      <default>
+                        <initialIndex>1</initialIndex>
+                        <deviceValueKey>7047ed8b-44bc-42dd-9d7b-5720b3c59832</deviceValueKey>
+                        <name>2</name>
+                      </default>
+                    </userVariable>
+                  </userVariable>
+                </brick>
+                <brick type="SetVariableBrick">
+                  <brickId>55f474ee-6111-427d-93da-a7baeaca71da</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="VARIABLE">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>&quot;
+user_text = &quot;</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable type="UserVariable" serialization="custom">
+                    <userVariable>
+                      <default>
+                        <initialIndex>2</initialIndex>
+                        <deviceValueKey>c7a975b9-6a11-4fc9-99f8-b3cbcde209c1</deviceValueKey>
+                        <name>3</name>
+                      </default>
+                    </userVariable>
+                  </userVariable>
+                </brick>
+                <brick type="SetVariableBrick">
+                  <brickId>65d136d9-ff39-4967-9298-3cb2f238b0db</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="VARIABLE">
+                      <additionalChildren/>
+                      <type>USER_DEFINED_BRICK_INPUT</type>
+                      <value>текст</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable type="UserVariable" serialization="custom">
+                    <userVariable>
+                      <default>
+                        <initialIndex>3</initialIndex>
+                        <deviceValueKey>b3e183df-845c-42ed-979b-7f8e6ff3898f</deviceValueKey>
+                        <name>4</name>
+                      </default>
+                    </userVariable>
+                  </userVariable>
+                </brick>
+                <brick type="SetVariableBrick">
+                  <brickId>f5f129b0-17cd-45f1-a879-ab6f4028b99b</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="VARIABLE">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>&quot;
+
+encrypted_text = vigenere_encrypt(user_text, user_key)
+print(encrypted_text)</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable type="UserVariable" serialization="custom">
+                    <userVariable>
+                      <default>
+                        <initialIndex>4</initialIndex>
+                        <deviceValueKey>79b6abc4-fd6d-4872-81e5-90c7e5a441a6</deviceValueKey>
+                        <name>5</name>
+                      </default>
+                    </userVariable>
+                  </userVariable>
+                </brick>
+                <brick type="RunPythonScriptBrick">
+                  <brickId>ef3bc373-642a-4eb5-a3a2-44ca20ca4867</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="SCRIPT">
+                      <additionalChildren>
+                        <org.catrobat.catroid.formulaeditor.FormulaElement>
+                          <additionalChildren>
+                            <org.catrobat.catroid.formulaeditor.FormulaElement>
+                              <additionalChildren/>
+                              <type>USER_VARIABLE</type>
+                              <value>5</value>
+                            </org.catrobat.catroid.formulaeditor.FormulaElement>
+                          </additionalChildren>
+                          <leftChild>
+                            <additionalChildren/>
+                            <type>USER_VARIABLE</type>
+                            <value>3</value>
+                          </leftChild>
+                          <rightChild>
+                            <additionalChildren/>
+                            <type>USER_VARIABLE</type>
+                            <value>4</value>
+                          </rightChild>
+                          <type>FUNCTION</type>
+                          <value>JOIN3</value>
+                        </org.catrobat.catroid.formulaeditor.FormulaElement>
+                      </additionalChildren>
+                      <leftChild>
+                        <additionalChildren/>
+                        <type>USER_VARIABLE</type>
+                        <value>1</value>
+                      </leftChild>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>USER_VARIABLE</type>
+                        <value>2</value>
+                      </rightChild>
+                      <type>FUNCTION</type>
+                      <value>JOIN3</value>
+                    </formula>
+                    <formula category="VARIABLE_NAME">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>text</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="WaitBrick">
+                  <brickId>e8f834ce-cad7-4d30-8289-df30c0fed407</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="TIME_TO_WAIT_IN_SECONDS">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>1.0</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="SetVariableBrick">
+                  <brickId>98ec2383-d4b7-469e-aa8f-944e59ea0acb</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="VARIABLE">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>0</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable reference="../../brick[2]/userVariable"/>
+                </brick>
+                <brick type="SetVariableBrick">
+                  <brickId>b1fc5244-c59a-4936-af73-1bd01e4e100b</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="VARIABLE">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>0</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable reference="../../brick[3]/userVariable"/>
+                </brick>
+                <brick type="SetVariableBrick">
+                  <brickId>0c7381bc-2940-47ef-a7c4-1c63b5515d1f</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="VARIABLE">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>0</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable reference="../../brick[4]/userVariable"/>
+                </brick>
+                <brick type="SetVariableBrick">
+                  <brickId>b03acc8c-5cde-44a1-a6c0-84ced179f7c0</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="VARIABLE">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>0</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable reference="../../brick[5]/userVariable"/>
+                </brick>
+                <brick type="SetVariableBrick">
+                  <brickId>84cf7021-0efd-47ac-9854-e1146082fdf2</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="VARIABLE">
+                      <additionalChildren/>
+                      <leftChild>
+                        <additionalChildren/>
+                        <type>STRING</type>
+                        <value>text</value>
+                      </leftChild>
+                      <type>FUNCTION</type>
+                      <value>VAR</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable reference="../../brick[6]/userVariable"/>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>1bac7e10-0a91-43b3-a661-66c6809f1597</scriptId>
+              <screenRefresh>true</screenRefresh>
+              <userDefinedBrickID>e56239a6-8cba-4754-83d1-cee0e244ca13</userDefinedBrickID>
+              <userDefinedBrickInputs>
+                <userVariable type="UserVariable" serialization="custom">
+                  <userVariable>
+                    <default>
+                      <initialIndex>-1</initialIndex>
+                      <deviceValueKey>300971e4-5cf9-40d0-96f9-f4a67a596f39</deviceValueKey>
+                      <name>текст</name>
+                    </default>
+                  </userVariable>
+                </userVariable>
+                <userVariable type="UserVariable" serialization="custom">
+                  <userVariable>
+                    <default>
+                      <initialIndex>-1</initialIndex>
+                      <deviceValueKey>a923785a-d86a-4b99-9b03-ae64e4f00643</deviceValueKey>
+                      <name>ключ</name>
+                    </default>
+                  </userVariable>
+                </userVariable>
+              </userDefinedBrickInputs>
+            </script>
+            <script type="UserDefinedScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="SetVariableBrick">
+                  <brickId>5e5c92d0-f181-421e-9a59-7e287769e9ed</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="VARIABLE">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>def vigenere_decrypt(encrypted_text, user_key):
+    decrypted_text = []
+    key_length = len(user_key)
+    key_index = 0
+
+    # Определяем диапазоны для латиницы и кириллицы
+    latin_lower_start, latin_lower_end = ord(&apos;a&apos;), ord(&apos;z&apos;)
+    latin_upper_start, latin_upper_end = ord(&apos;A&apos;), ord(&apos;Z&apos;)
+    cyrillic_lower_start, cyrillic_lower_end = ord(&apos;а&apos;), ord(&apos;я&apos;)
+    cyrillic_upper_start, cyrillic_upper_end = ord(&apos;А&apos;), ord(&apos;Я&apos;)
+
+    for char in encrypted_text:
+        if char.isalpha():
+            # Обработка латинских букв
+            if &apos;a&apos; &lt;= char &lt;= &apos;z&apos; or &apos;A&apos; &lt;= char &lt;= &apos;Z&apos;:
+                shift = ord(user_key[key_index % key_length].lower()) - ord(&apos;a&apos;)
+                # Расшифровка
+                if char.islower():
+                    decrypted_char = chr((ord(char) - ord(&apos;a&apos;) - shift) % 26 + ord(&apos;a&apos;))
+                else:
+                    decrypted_char = chr((ord(char) - ord(&apos;A&apos;) - shift) % 26 + ord(&apos;A&apos;))
+                decrypted_text.append(decrypted_char)
+                key_index += 1
+
+            # Обработка кириллических букв
+            elif &apos;а&apos; &lt;= char &lt;= &apos;я&apos;:
+                # Вычисляем сдвиг для кириллицы
+                key_char = user_key[key_index % key_length]
+                if &apos;а&apos; &lt;= key_char &lt;= &apos;я&apos;:
+                    shift = ord(key_char.lower()) - ord(&apos;а&apos;)
+                elif &apos;А&apos; &lt;= key_char &lt;= &apos;Я&apos;:
+                    shift = ord(key_char.upper()) - ord(&apos;А&apos;)
+                else:
+                    shift = 0
+                decrypted_char = chr((ord(char) - ord(&apos;а&apos;) - shift) % 32 + ord(&apos;а&apos;))
+                decrypted_text.append(decrypted_char)
+                key_index += 1
+            elif &apos;А&apos; &lt;= char &lt;= &apos;Я&apos;:
+                key_char = user_key[key_index % key_length]
+                if &apos;А&apos; &lt;= key_char &lt;= &apos;Я&apos;:
+                    shift = ord(key_char.upper()) - ord(&apos;А&apos;)
+                elif &apos;а&apos; &lt;= key_char &lt;= &apos;я&apos;:
+                    shift = ord(key_char.lower()) - ord(&apos;а&apos;)
+                else:
+                    shift = 0
+                decrypted_char = chr((ord(char) - ord(&apos;А&apos;) - shift) % 32 + ord(&apos;А&apos;))
+                decrypted_text.append(decrypted_char)
+                key_index += 1
+            else:
+                # Если символ не входит в диапазоны, оставляем как есть
+                decrypted_text.append(char)
+        elif char.isdigit():
+            # Расшифровка цифр
+            shift = int(user_key[key_index % key_length]) if user_key[key_index % key_length].isdigit() else 0
+            decrypted_char = str((int(char) - shift) % 10)
+            decrypted_text.append(decrypted_char)
+            key_index += 1
+        elif char == &apos;#&apos;:
+            # Обратное преобразование для пробелов
+            decrypted_text.append(&apos; &apos;)
+            key_index += 1
+        else:
+            # Другие символы остаются без изменений
+            decrypted_text.append(char)
+
+    return &apos;&apos;.join(decrypted_text)
+
+# Пример использования
+user_key = &quot;</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable reference="../../../../script[2]/brickList/brick[2]/userVariable"/>
+                </brick>
+                <brick type="SetVariableBrick">
+                  <brickId>85b258c8-e6b9-490e-92c9-3eda0386d250</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="VARIABLE">
+                      <additionalChildren/>
+                      <type>USER_DEFINED_BRICK_INPUT</type>
+                      <value>ключ</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable reference="../../../../script[2]/brickList/brick[3]/userVariable"/>
+                </brick>
+                <brick type="SetVariableBrick">
+                  <brickId>70a3b353-70c9-469f-a88c-9573d0109247</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="VARIABLE">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>&quot;
+encrypted_text = &quot;</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable reference="../../../../script[2]/brickList/brick[4]/userVariable"/>
+                </brick>
+                <brick type="SetVariableBrick">
+                  <brickId>66b6d820-4367-4e64-8d23-09e131156161</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="VARIABLE">
+                      <additionalChildren/>
+                      <type>USER_DEFINED_BRICK_INPUT</type>
+                      <value>текст</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable reference="../../../../script[2]/brickList/brick[5]/userVariable"/>
+                </brick>
+                <brick type="SetVariableBrick">
+                  <brickId>ecaaf06f-ed8a-498e-bbaa-345f51254c9b</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="VARIABLE">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>&quot;  # замените на ваш зашифрованный текст
+
+decrypted_text = vigenere_decrypt(encrypted_text, user_key)
+print(decrypted_text)</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable reference="../../../../script[2]/brickList/brick[6]/userVariable"/>
+                </brick>
+                <brick type="RunPythonScriptBrick">
+                  <brickId>3ec69dea-82a6-4000-91f6-46ac4e67ad43</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="SCRIPT">
+                      <additionalChildren>
+                        <org.catrobat.catroid.formulaeditor.FormulaElement>
+                          <additionalChildren>
+                            <org.catrobat.catroid.formulaeditor.FormulaElement>
+                              <additionalChildren/>
+                              <type>USER_VARIABLE</type>
+                              <value>5</value>
+                            </org.catrobat.catroid.formulaeditor.FormulaElement>
+                          </additionalChildren>
+                          <leftChild>
+                            <additionalChildren/>
+                            <type>USER_VARIABLE</type>
+                            <value>3</value>
+                          </leftChild>
+                          <rightChild>
+                            <additionalChildren/>
+                            <type>USER_VARIABLE</type>
+                            <value>4</value>
+                          </rightChild>
+                          <type>FUNCTION</type>
+                          <value>JOIN3</value>
+                        </org.catrobat.catroid.formulaeditor.FormulaElement>
+                      </additionalChildren>
+                      <leftChild>
+                        <additionalChildren/>
+                        <type>USER_VARIABLE</type>
+                        <value>1</value>
+                      </leftChild>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>USER_VARIABLE</type>
+                        <value>2</value>
+                      </rightChild>
+                      <type>FUNCTION</type>
+                      <value>JOIN3</value>
+                    </formula>
+                    <formula category="VARIABLE_NAME">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>text</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="WaitBrick">
+                  <brickId>2a77c4b8-0417-4ef6-9b05-241098a6dc43</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="TIME_TO_WAIT_IN_SECONDS">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>1.0</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="SetVariableBrick">
+                  <brickId>a39c38da-d873-4fa5-8994-79ec66ca6497</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="VARIABLE">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>0</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable reference="../../../../script[2]/brickList/brick[2]/userVariable"/>
+                </brick>
+                <brick type="SetVariableBrick">
+                  <brickId>276b6f25-9c51-47c5-ad11-74fbdbc8a4a1</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="VARIABLE">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>0</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable reference="../../../../script[2]/brickList/brick[3]/userVariable"/>
+                </brick>
+                <brick type="SetVariableBrick">
+                  <brickId>3c4ec72a-4a4e-4a6e-9579-77236071157b</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="VARIABLE">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>0</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable reference="../../../../script[2]/brickList/brick[4]/userVariable"/>
+                </brick>
+                <brick type="SetVariableBrick">
+                  <brickId>0884d1cb-7d11-4a54-9795-3086d6854f18</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="VARIABLE">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>0</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable reference="../../../../script[2]/brickList/brick[5]/userVariable"/>
+                </brick>
+                <brick type="SetVariableBrick">
+                  <brickId>520d0be0-1689-4690-b01b-04ef95b1346e</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="VARIABLE">
+                      <additionalChildren/>
+                      <leftChild>
+                        <additionalChildren/>
+                        <type>STRING</type>
+                        <value>text</value>
+                      </leftChild>
+                      <type>FUNCTION</type>
+                      <value>VAR</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable reference="../../../../script[2]/brickList/brick[6]/userVariable"/>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>7bc80767-5aeb-4873-89f1-63cce228f252</scriptId>
+              <screenRefresh>true</screenRefresh>
+              <userDefinedBrickID>be52cfc6-8c31-4ff0-8721-3f01f1803a47</userDefinedBrickID>
+              <userDefinedBrickInputs>
+                <userVariable type="UserVariable" serialization="custom">
+                  <userVariable>
+                    <default>
+                      <initialIndex>-1</initialIndex>
+                      <deviceValueKey>7e6b7c16-d399-4431-b822-80ece634ed6f</deviceValueKey>
+                      <name>текст</name>
+                    </default>
+                  </userVariable>
+                </userVariable>
+                <userVariable type="UserVariable" serialization="custom">
+                  <userVariable>
+                    <default>
+                      <initialIndex>-1</initialIndex>
+                      <deviceValueKey>afd9b747-ca32-47e4-aaa2-a127f62f1c70</deviceValueKey>
+                      <name>ключ</name>
+                    </default>
+                  </userVariable>
+                </userVariable>
+              </userDefinedBrickInputs>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList>
+            <brick type="UserDefinedBrick">
+              <brickId>def81c7b-680f-4f30-a9df-dbb8932cc873</brickId>
+              <commentedOut>false</commentedOut>
+              <formulaList/>
+              <isCallingBrick>false</isCallingBrick>
+              <userDefinedBrickDataList reference="../../../scriptList/script/brickList/brick[2]/userDefinedBrickDataList"/>
+              <userDefinedBrickID>e56239a6-8cba-4754-83d1-cee0e244ca13</userDefinedBrickID>
+            </brick>
+            <brick type="UserDefinedBrick">
+              <brickId>d64cec5b-54e1-4a91-826d-7b8163571cb8</brickId>
+              <commentedOut>false</commentedOut>
+              <formulaList/>
+              <isCallingBrick>false</isCallingBrick>
+              <userDefinedBrickDataList reference="../../../scriptList/script/brickList/brick/userDefinedBrickDataList"/>
+              <userDefinedBrickID>be52cfc6-8c31-4ff0-8721-3f01f1803a47</userDefinedBrickID>
+            </brick>
+          </userDefinedBrickList>
+        </object>
+      </objectList>
+    </scene>
+  </scenes>
+  <programVariableList>
+    <userVariable reference="../../scenes/scene/objectList/object/scriptList/script[2]/brickList/brick[2]/userVariable"/>
+    <userVariable reference="../../scenes/scene/objectList/object/scriptList/script[2]/brickList/brick[3]/userVariable"/>
+    <userVariable reference="../../scenes/scene/objectList/object/scriptList/script[2]/brickList/brick[4]/userVariable"/>
+    <userVariable reference="../../scenes/scene/objectList/object/scriptList/script[2]/brickList/brick[5]/userVariable"/>
+    <userVariable reference="../../scenes/scene/objectList/object/scriptList/script[2]/brickList/brick[6]/userVariable"/>
+  </programVariableList>
+  <programListOfLists/>
+  <programMultiplayerVariableList/>
+</program>

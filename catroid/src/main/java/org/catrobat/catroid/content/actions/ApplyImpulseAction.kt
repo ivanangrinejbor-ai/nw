@@ -12,11 +12,11 @@ class ApplyImpulseAction : TemporalAction() {
     private var impulseY: Formula? = null
 
     override fun update(percent: Float) {
-        val x = impulseX!!.interpretFloat(scope)
-        val y = impulseY!!.interpretFloat(scope)
+        val x = impulseX?.interpretFloat(scope) ?: 0f
+        val y = impulseY?.interpretFloat(scope) ?: 0f
 
         val scene = ProjectManager.getInstance().currentlyPlayingScene ?: return
-        val sprite = scope!!.sprite ?: return
+        val sprite = scope?.sprite ?: return
 
         scene.physicsWorld.applyImpulse(sprite, Vector2(x, y), sprite.look.position)
     }

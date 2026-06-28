@@ -1,0 +1,1704 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<program>
+  <header>
+    <applicationBuildName></applicationBuildName>
+    <applicationBuildNumber>0</applicationBuildNumber>
+    <applicationBuildType>release</applicationBuildType>
+    <applicationName>NewCatroid</applicationName>
+    <applicationVersion>2.0.5OBT2</applicationVersion>
+    <catrobatLanguageVersion>1.17</catrobatLanguageVersion>
+    <customResolution>false</customResolution>
+    <dateTimeUpload></dateTimeUpload>
+    <description>Rear it&apos;s new messenger
+v 1.0</description>
+    <deviceName>LLY-LX1</deviceName>
+    <gitRemoteUrl></gitRemoteUrl>
+    <isCastProject>false</isCastProject>
+    <landscapeMode>false</landscapeMode>
+    <listeningLanguageTag></listeningLanguageTag>
+    <mediaLicense></mediaLicense>
+    <notesAndCredits>@Salohyddin_spyder</notesAndCredits>
+    <physicsHeightArea>2.0</physicsHeightArea>
+    <physicsWidthArea>3.0</physicsWidthArea>
+    <platform>Android</platform>
+    <platformVersion>34</platformVersion>
+    <programLicense></programLicense>
+    <programName>Rear</programName>
+    <remixOf></remixOf>
+    <scenesEnabled>true</scenesEnabled>
+    <screenHeight>2191</screenHeight>
+    <screenMode>MAXIMIZE</screenMode>
+    <screenWidth>1080</screenWidth>
+    <tags></tags>
+    <url></url>
+    <userHandle></userHandle>
+  </header>
+  <settings/>
+  <scenes>
+    <scene sceneId="cffa59d2-0561-4e11-997d-e75097062797">
+      <name>Rear</name>
+      <objectList>
+        <object type="Sprite" spriteId="73fcff66-5b1e-4bce-a623-a35c34ca187f" name="Фон">
+          <lookList>
+            <look fileName="Фон.png" lookId="4e0ddc02-607e-48e4-9fa3-1d47bf68054a" name="Фон">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList/>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+        <object type="Sprite" spriteId="7e56e61b-dc9f-480d-83a5-9d3826f79d88" name="Мой актер или объект">
+          <lookList>
+            <look fileName="Мой актер или объект.png" lookId="6664c772-b05c-4644-bcd9-257df533617f" name="Мой актер или объект">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="WaitBrick">
+                  <brickId>382d44c4-bf90-47fd-9773-5f3107c6c1ed</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="TIME_TO_WAIT_IN_SECONDS">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>0.02</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="SetTransparencyBrick">
+                  <brickId>2eb07c06-4a0a-4e49-abc5-9070cbcf72a6</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="TRANSPARENCY">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>100</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="WaitBrick">
+                  <brickId>548eb69c-a5e2-446c-bb5e-a58b1aa4da08</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="TIME_TO_WAIT_IN_SECONDS">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>0.2</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="SetTransparencyBrick">
+                  <brickId>fe47b1b2-ec40-4b2d-bb88-a6fb26bc8405</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="TRANSPARENCY">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>90</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="WaitBrick">
+                  <brickId>2116cd15-090b-4413-be56-39c267a87118</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="TIME_TO_WAIT_IN_SECONDS">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>0.2</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="SetTransparencyBrick">
+                  <brickId>54a04147-0ed0-4036-8d6f-dbaa9ce62205</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="TRANSPARENCY">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>80</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="WaitBrick">
+                  <brickId>0b3b68eb-3021-4232-81dc-c5d7fd3fb48f</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="TIME_TO_WAIT_IN_SECONDS">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>0.1</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="SetTransparencyBrick">
+                  <brickId>f7b79338-282c-40d8-83b7-1b466990c639</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="TRANSPARENCY">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>70</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="WaitBrick">
+                  <brickId>4f670eee-8dfc-42f5-9041-54a3d6d695b7</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="TIME_TO_WAIT_IN_SECONDS">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>0.1</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="SetTransparencyBrick">
+                  <brickId>ab4d9f40-2876-49b4-830f-f17f89dda606</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="TRANSPARENCY">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>60</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="WaitBrick">
+                  <brickId>3331eb1e-9fa9-46d0-b6eb-dfd2e1e62f7c</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="TIME_TO_WAIT_IN_SECONDS">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>0.1</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="SetTransparencyBrick">
+                  <brickId>c9b3e4cb-2d54-4ac1-946b-45f154a1473d</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="TRANSPARENCY">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>50</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="WaitBrick">
+                  <brickId>153fbe1c-f37e-401b-97ba-36abe8dfef7e</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="TIME_TO_WAIT_IN_SECONDS">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>0.01</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="SetTransparencyBrick">
+                  <brickId>dde66e84-c095-4b7a-9e50-1544810b6157</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="TRANSPARENCY">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>40</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="WaitBrick">
+                  <brickId>ed4b8ca6-efc0-4a67-a739-7f56b23c4d9a</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="TIME_TO_WAIT_IN_SECONDS">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>0.1</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="SetTransparencyBrick">
+                  <brickId>128a32ea-7207-43d0-ae8c-4ca92550108b</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="TRANSPARENCY">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>30</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="WaitBrick">
+                  <brickId>b5ca716f-6def-4bb2-a043-dda7442b7f51</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="TIME_TO_WAIT_IN_SECONDS">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>0.1</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="SetTransparencyBrick">
+                  <brickId>c3dfa568-0df1-4b74-8598-961deac8a33f</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="TRANSPARENCY">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>20</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="WaitBrick">
+                  <brickId>71e8d69d-d692-44bd-9831-6e129c9609d3</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="TIME_TO_WAIT_IN_SECONDS">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>0.1</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="SetTransparencyBrick">
+                  <brickId>861a1377-0fdc-402b-9825-2947edbc02ac</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="TRANSPARENCY">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>10</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="WaitBrick">
+                  <brickId>27e5f557-8913-4b4f-a428-f7e6eea68393</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="TIME_TO_WAIT_IN_SECONDS">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>0.01</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="SetTransparencyBrick">
+                  <brickId>d0e38b9d-0ad5-4bf4-933e-b67e581b6d90</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="TRANSPARENCY">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>5</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="WaitBrick">
+                  <brickId>b2bff527-55c1-4c49-b28f-03a995ab80ba</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="TIME_TO_WAIT_IN_SECONDS">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>0.1</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="SetTransparencyBrick">
+                  <brickId>e430ee96-2b76-486e-954b-b050a241c190</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="TRANSPARENCY">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>0</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="ShowToastBlock">
+                  <brickId>f9d4368a-f8f5-42a7-ab86-45e6043da8c4</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="TOAST">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>Author - @Salohiddin_spider</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="WaitBrick">
+                  <brickId>8dc40406-fa7b-4ea8-8450-868b6fdaa56b</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="TIME_TO_WAIT_IN_SECONDS">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>2</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="SceneStartBrick">
+                  <brickId>f39b7a89-a060-4340-9ec5-e6bbeac703a8</brickId>
+                  <commentedOut>false</commentedOut>
+                  <sceneToStart>global chat</sceneToStart>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>f6ec85df-d1d1-423f-ada9-9de9d7a9946c</scriptId>
+            </script>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="PlaceAtBrick">
+                  <brickId>e5d5c2a2-0d38-4f65-9e43-528b52d90df5</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="X_POSITION">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>8</value>
+                    </formula>
+                    <formula category="Y_POSITION">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>68</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>c141b886-a573-4e1b-a648-452b7b60d08d</scriptId>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+      </objectList>
+    </scene>
+    <scene sceneId="358ee8b8-65fb-4b92-a8a9-d183466e1877">
+      <name>global chat</name>
+      <objectList>
+        <object type="Sprite" spriteId="1e98b4fd-b83a-44a3-86bb-0d825089f7c2" name="Фон">
+          <lookList>
+            <look fileName="Фон.png" lookId="40ccdd71-49b7-4901-a8b0-47c0f4ca70a1" name="Фон">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList/>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+        <object type="Sprite" spriteId="70914b73-de9d-460f-b3e4-17db73f7a6fa" name="write Message ">
+          <lookList>
+            <look fileName="Написать.png" lookId="75192fde-52e7-4792-beec-64c5037cccc0" name="Написать">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="AskBrick">
+                  <brickId>0f03fb86-e4cf-4fa1-9e72-97d0e04c3afd</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="ASK_QUESTION">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>Write your nickname </value>
+                    </formula>
+                  </formulaList>
+                  <userVariable type="UserVariable" serialization="custom">
+                    <userVariable>
+                      <default>
+                        <initialIndex>2</initialIndex>
+                        <deviceValueKey>9b330167-850d-4a45-98b8-b0abffa9746d</deviceValueKey>
+                        <name>nickname </name>
+                      </default>
+                    </userVariable>
+                  </userVariable>
+                </brick>
+                <brick type="WriteVariableOnDeviceBrick">
+                  <brickId>d4af7a89-2818-4c9f-96f4-9538aa5dfe14</brickId>
+                  <commentedOut>false</commentedOut>
+                  <userVariable reference="../../brick/userVariable"/>
+                </brick>
+                <brick type="ReadVariableFromDeviceBrick">
+                  <brickId>0fbce83e-d9b5-49b1-942c-032d9802a223</brickId>
+                  <commentedOut>false</commentedOut>
+                  <userVariable reference="../../brick/userVariable"/>
+                </brick>
+                <brick type="PlaceAtBrick">
+                  <brickId>e57460a2-93df-4fcf-afdb-b0fcb41d4052</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="X_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>14</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                    <formula category="Y_POSITION">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>3</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="PointInDirectionBrick">
+                  <brickId>d8c0e410-4b78-4eca-b47a-7150b8f0a72b</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="DEGREES">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>90.0</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="SetSizeToBrick">
+                  <brickId>fb16bd18-f922-4409-8b18-06f7774c871b</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="SIZE">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>100.0</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="BroadcastBrick">
+                  <brickId>8ea26935-6c92-44f9-869e-c9a4fb80d215</brickId>
+                  <commentedOut>false</commentedOut>
+                  <broadcastMessage>Вывод</broadcastMessage>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>c5713af7-68a8-4d80-8923-73bfa92adcce</scriptId>
+            </script>
+            <script type="WhenScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="BroadcastBrick">
+                  <brickId>f9d66256-f153-436c-8f21-7e9b89c4dad4</brickId>
+                  <commentedOut>false</commentedOut>
+                  <broadcastMessage>Ввод</broadcastMessage>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>ebfdec87-c213-4bfb-84e0-1a278abea530</scriptId>
+            </script>
+            <script type="BroadcastScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="WriteBaseBrick">
+                  <brickId>def65de0-ac9b-4066-81e4-f8870bd27e5b</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="FIREBASE_VALUE">
+                      <additionalChildren/>
+                      <type>USER_VARIABLE</type>
+                      <value>сообщение 2</value>
+                    </formula>
+                    <formula category="FIREBASE_KEY">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>1</value>
+                    </formula>
+                    <formula category="FIREBASE_ID">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>https://rear-c3528-default-rtdb.firebaseio.com/</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="WriteBaseBrick">
+                  <brickId>4c6d6d9c-5b30-4df5-9f63-ffe7461009ce</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="FIREBASE_VALUE">
+                      <additionalChildren/>
+                      <type>USER_VARIABLE</type>
+                      <value>сообщение 3</value>
+                    </formula>
+                    <formula category="FIREBASE_KEY">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>2</value>
+                    </formula>
+                    <formula category="FIREBASE_ID">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>https://rear-c3528-default-rtdb.firebaseio.com/</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="WriteBaseBrick">
+                  <brickId>2762010f-0632-4d73-bbde-205cd8cffd61</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="FIREBASE_VALUE">
+                      <additionalChildren/>
+                      <type>USER_VARIABLE</type>
+                      <value>сообщение 4</value>
+                    </formula>
+                    <formula category="FIREBASE_KEY">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>3</value>
+                    </formula>
+                    <formula category="FIREBASE_ID">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>https://rear-c3528-default-rtdb.firebaseio.com/</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="WriteBaseBrick">
+                  <brickId>fbc13aa0-c3c4-4aa4-8e06-0ffea83e6720</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="FIREBASE_VALUE">
+                      <additionalChildren/>
+                      <type>USER_VARIABLE</type>
+                      <value>сообщение 5</value>
+                    </formula>
+                    <formula category="FIREBASE_KEY">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>4</value>
+                    </formula>
+                    <formula category="FIREBASE_ID">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>https://rear-c3528-default-rtdb.firebaseio.com/</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="WriteBaseBrick">
+                  <brickId>658328a2-bd57-4637-9c5b-b6a725cb2259</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="FIREBASE_VALUE">
+                      <additionalChildren/>
+                      <type>USER_VARIABLE</type>
+                      <value>сообщение 6</value>
+                    </formula>
+                    <formula category="FIREBASE_KEY">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>5</value>
+                    </formula>
+                    <formula category="FIREBASE_ID">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>https://rear-c3528-default-rtdb.firebaseio.com/</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="WriteBaseBrick">
+                  <brickId>347e89bd-45b9-4f5d-a6ef-445506fd3057</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="FIREBASE_VALUE">
+                      <additionalChildren/>
+                      <type>USER_VARIABLE</type>
+                      <value>сообщение 7</value>
+                    </formula>
+                    <formula category="FIREBASE_KEY">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>6</value>
+                    </formula>
+                    <formula category="FIREBASE_ID">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>https://rear-c3528-default-rtdb.firebaseio.com/</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="WriteBaseBrick">
+                  <brickId>6ce70acb-201e-4e4e-bbee-ba4d294b43fa</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="FIREBASE_VALUE">
+                      <additionalChildren/>
+                      <type>USER_VARIABLE</type>
+                      <value>сообщение 8</value>
+                    </formula>
+                    <formula category="FIREBASE_KEY">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>7</value>
+                    </formula>
+                    <formula category="FIREBASE_ID">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>https://rear-c3528-default-rtdb.firebaseio.com/</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="WriteBaseBrick">
+                  <brickId>3f5b8c3f-b302-4c9b-b8da-1a0581d53995</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="FIREBASE_VALUE">
+                      <additionalChildren/>
+                      <type>USER_VARIABLE</type>
+                      <value>сообщение 9</value>
+                    </formula>
+                    <formula category="FIREBASE_KEY">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>8</value>
+                    </formula>
+                    <formula category="FIREBASE_ID">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>https://rear-c3528-default-rtdb.firebaseio.com/</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="WriteBaseBrick">
+                  <brickId>465f6efd-9fd8-4b2b-ac02-8831adaf072a</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="FIREBASE_VALUE">
+                      <additionalChildren/>
+                      <type>USER_VARIABLE</type>
+                      <value>сообщение 10</value>
+                    </formula>
+                    <formula category="FIREBASE_KEY">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>9</value>
+                    </formula>
+                    <formula category="FIREBASE_ID">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>https://rear-c3528-default-rtdb.firebaseio.com/</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="AskBrick">
+                  <brickId>af296c0c-ce86-4c82-8908-6309e5891755</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="ASK_QUESTION">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>See your message </value>
+                    </formula>
+                  </formulaList>
+                  <userVariable type="UserVariable" serialization="custom">
+                    <userVariable>
+                      <default>
+                        <initialIndex>11</initialIndex>
+                        <deviceValueKey>3dc06e7a-681e-495a-a958-ddc577ab7320</deviceValueKey>
+                        <name>текст</name>
+                      </default>
+                    </userVariable>
+                  </userVariable>
+                </brick>
+                <brick type="WriteBaseBrick">
+                  <brickId>03680b2b-9e74-4815-bb3c-bad97e9a0487</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="FIREBASE_VALUE">
+                      <additionalChildren>
+                        <org.catrobat.catroid.formulaeditor.FormulaElement>
+                          <additionalChildren/>
+                          <type>USER_VARIABLE</type>
+                          <value>текст</value>
+                        </org.catrobat.catroid.formulaeditor.FormulaElement>
+                      </additionalChildren>
+                      <leftChild>
+                        <additionalChildren/>
+                        <type>USER_VARIABLE</type>
+                        <value>nickname </value>
+                      </leftChild>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>STRING</type>
+                        <value>: </value>
+                      </rightChild>
+                      <type>FUNCTION</type>
+                      <value>JOIN3</value>
+                    </formula>
+                    <formula category="FIREBASE_KEY">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>10</value>
+                    </formula>
+                    <formula category="FIREBASE_ID">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>https://rear-c3528-default-rtdb.firebaseio.com/</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="BroadcastBrick">
+                  <brickId>a1c854f8-91ab-4a4c-9901-6e312dab6563</brickId>
+                  <commentedOut>false</commentedOut>
+                  <broadcastMessage>Вывод</broadcastMessage>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>832afb43-6b29-4033-9c35-7df5af6428f5</scriptId>
+              <receivedMessage>Ввод</receivedMessage>
+            </script>
+            <script type="BroadcastScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="ReadBaseBrick">
+                  <brickId>7724ab88-1e8e-44f6-9bc5-91fa86d8fcf5</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="FIREBASE_KEY">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>1</value>
+                    </formula>
+                    <formula category="FIREBASE_ID">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>https://rear-c3528-default-rtdb.firebaseio.com/</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable type="UserVariable" serialization="custom">
+                    <userVariable>
+                      <default>
+                        <initialIndex>0</initialIndex>
+                        <deviceValueKey>619e7e46-68cd-4ab1-af0c-bff536e55470</deviceValueKey>
+                        <name>сообщение 1</name>
+                      </default>
+                    </userVariable>
+                  </userVariable>
+                </brick>
+                <brick type="ShowTextColorSizeAlignmentBrick">
+                  <brickId>f059cd9c-aa24-43f3-b50d-51fb72235257</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="SIZE">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>120.0</value>
+                    </formula>
+                    <formula category="COLOR">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>#FFFFFF</value>
+                    </formula>
+                    <formula category="X_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>400</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                    <formula category="Y_POSITION">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>800</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable reference="../../brick/userVariable"/>
+                  <alignmentSelection>0</alignmentSelection>
+                </brick>
+                <brick type="ReadBaseBrick">
+                  <brickId>812b3557-9557-4e94-86a0-4088390c8db5</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="FIREBASE_KEY">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>2</value>
+                    </formula>
+                    <formula category="FIREBASE_ID">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>https://rear-c3528-default-rtdb.firebaseio.com/</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable type="UserVariable" serialization="custom">
+                    <userVariable>
+                      <default>
+                        <initialIndex>1</initialIndex>
+                        <deviceValueKey>2076b269-366a-44a0-aa4c-519d615e3d76</deviceValueKey>
+                        <name>сообщение 2</name>
+                      </default>
+                    </userVariable>
+                  </userVariable>
+                </brick>
+                <brick type="ShowTextColorSizeAlignmentBrick">
+                  <brickId>fc41594f-f458-4522-b182-d3b0eeb2eb3c</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="SIZE">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>120.0</value>
+                    </formula>
+                    <formula category="COLOR">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>#FFFFFF</value>
+                    </formula>
+                    <formula category="X_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>400</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                    <formula category="Y_POSITION">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>680</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable reference="../../brick[3]/userVariable"/>
+                  <alignmentSelection>0</alignmentSelection>
+                </brick>
+                <brick type="ReadBaseBrick">
+                  <brickId>e06ddab8-ba12-42ef-8dc8-1b78a21933e3</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="FIREBASE_KEY">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>3</value>
+                    </formula>
+                    <formula category="FIREBASE_ID">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>https://rear-c3528-default-rtdb.firebaseio.com/</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable type="UserVariable" serialization="custom">
+                    <userVariable>
+                      <default>
+                        <initialIndex>2</initialIndex>
+                        <deviceValueKey>df1433ac-846a-473c-ba59-87e2b65bdde3</deviceValueKey>
+                        <name>сообщение 3</name>
+                      </default>
+                    </userVariable>
+                  </userVariable>
+                </brick>
+                <brick type="ShowTextColorSizeAlignmentBrick">
+                  <brickId>c9ae6db6-84ea-4c61-ae2b-b3f318917eda</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="SIZE">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>120.0</value>
+                    </formula>
+                    <formula category="COLOR">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>#FFFFFF</value>
+                    </formula>
+                    <formula category="X_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>400</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                    <formula category="Y_POSITION">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>560</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable reference="../../brick[5]/userVariable"/>
+                  <alignmentSelection>0</alignmentSelection>
+                </brick>
+                <brick type="ReadBaseBrick">
+                  <brickId>469ff79e-5a6c-431e-9aa8-546df1866bd4</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="FIREBASE_KEY">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>4</value>
+                    </formula>
+                    <formula category="FIREBASE_ID">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>https://rear-c3528-default-rtdb.firebaseio.com/</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable type="UserVariable" serialization="custom">
+                    <userVariable>
+                      <default>
+                        <initialIndex>3</initialIndex>
+                        <deviceValueKey>6740dc00-35fb-4ecf-bbaf-34b5fde5e971</deviceValueKey>
+                        <name>сообщение 4</name>
+                      </default>
+                    </userVariable>
+                  </userVariable>
+                </brick>
+                <brick type="ShowTextColorSizeAlignmentBrick">
+                  <brickId>76d144bc-1755-4bb8-8c1a-97b4b8c402ea</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="SIZE">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>120.0</value>
+                    </formula>
+                    <formula category="COLOR">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>#FFFFFF</value>
+                    </formula>
+                    <formula category="X_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>400</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                    <formula category="Y_POSITION">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>440</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable reference="../../brick[7]/userVariable"/>
+                  <alignmentSelection>0</alignmentSelection>
+                </brick>
+                <brick type="ReadBaseBrick">
+                  <brickId>805be35f-9780-44df-ba4e-19a40c703a85</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="FIREBASE_KEY">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>5</value>
+                    </formula>
+                    <formula category="FIREBASE_ID">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>https://rear-c3528-default-rtdb.firebaseio.com/</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable type="UserVariable" serialization="custom">
+                    <userVariable>
+                      <default>
+                        <initialIndex>4</initialIndex>
+                        <deviceValueKey>ff9579bd-66ae-4639-9e52-4764a767a4f5</deviceValueKey>
+                        <name>сообщение 5</name>
+                      </default>
+                    </userVariable>
+                  </userVariable>
+                </brick>
+                <brick type="ShowTextColorSizeAlignmentBrick">
+                  <brickId>f70b3001-8244-4d72-954c-6f4042f43d04</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="SIZE">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>120.0</value>
+                    </formula>
+                    <formula category="COLOR">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>#FFFFFF</value>
+                    </formula>
+                    <formula category="X_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>400</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                    <formula category="Y_POSITION">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>320</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable reference="../../brick[9]/userVariable"/>
+                  <alignmentSelection>0</alignmentSelection>
+                </brick>
+                <brick type="ReadBaseBrick">
+                  <brickId>b8d41d65-98d3-4668-b523-01d1cd7cf508</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="FIREBASE_KEY">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>6</value>
+                    </formula>
+                    <formula category="FIREBASE_ID">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>https://rear-c3528-default-rtdb.firebaseio.com/</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable type="UserVariable" serialization="custom">
+                    <userVariable>
+                      <default>
+                        <initialIndex>5</initialIndex>
+                        <deviceValueKey>feb458ec-3aba-4365-ba5c-fa2c50354032</deviceValueKey>
+                        <name>сообщение 6</name>
+                      </default>
+                    </userVariable>
+                  </userVariable>
+                </brick>
+                <brick type="ShowTextColorSizeAlignmentBrick">
+                  <brickId>65cb1d31-b061-440a-9cbf-249c32eb0374</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="SIZE">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>120.0</value>
+                    </formula>
+                    <formula category="COLOR">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>#FFFFFF</value>
+                    </formula>
+                    <formula category="X_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>400</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                    <formula category="Y_POSITION">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>200</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable reference="../../brick[11]/userVariable"/>
+                  <alignmentSelection>0</alignmentSelection>
+                </brick>
+                <brick type="ReadBaseBrick">
+                  <brickId>2e084065-328c-4ca3-8c22-4130f2c8c142</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="FIREBASE_KEY">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>7</value>
+                    </formula>
+                    <formula category="FIREBASE_ID">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>https://rear-c3528-default-rtdb.firebaseio.com/</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable type="UserVariable" serialization="custom">
+                    <userVariable>
+                      <default>
+                        <initialIndex>6</initialIndex>
+                        <deviceValueKey>80f6872d-93a3-4530-83af-f31da5f54f45</deviceValueKey>
+                        <name>сообщение 7</name>
+                      </default>
+                    </userVariable>
+                  </userVariable>
+                </brick>
+                <brick type="ShowTextColorSizeAlignmentBrick">
+                  <brickId>c8631c2e-3a0a-4c7f-a14e-086b42b2c368</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="SIZE">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>120.0</value>
+                    </formula>
+                    <formula category="COLOR">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>#FFFFFF</value>
+                    </formula>
+                    <formula category="X_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>400</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                    <formula category="Y_POSITION">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>80</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable reference="../../brick[13]/userVariable"/>
+                  <alignmentSelection>0</alignmentSelection>
+                </brick>
+                <brick type="ReadBaseBrick">
+                  <brickId>e2c8cce2-f8e7-4efa-b684-fdd50439097f</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="FIREBASE_KEY">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>8</value>
+                    </formula>
+                    <formula category="FIREBASE_ID">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>https://rear-c3528-default-rtdb.firebaseio.com/</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable type="UserVariable" serialization="custom">
+                    <userVariable>
+                      <default>
+                        <initialIndex>7</initialIndex>
+                        <deviceValueKey>16d139cd-d56c-4615-9750-1768865973e1</deviceValueKey>
+                        <name>сообщение 8</name>
+                      </default>
+                    </userVariable>
+                  </userVariable>
+                </brick>
+                <brick type="ShowTextColorSizeAlignmentBrick">
+                  <brickId>29370f07-1266-4e53-b922-28c5ce48932d</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="SIZE">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>120.0</value>
+                    </formula>
+                    <formula category="COLOR">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>#FFFFFF</value>
+                    </formula>
+                    <formula category="X_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>400</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                    <formula category="Y_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>40</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable reference="../../brick[15]/userVariable"/>
+                  <alignmentSelection>0</alignmentSelection>
+                </brick>
+                <brick type="ReadBaseBrick">
+                  <brickId>f765c70e-b32e-431a-a929-d0c6b7b17817</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="FIREBASE_KEY">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>9</value>
+                    </formula>
+                    <formula category="FIREBASE_ID">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>https://rear-c3528-default-rtdb.firebaseio.com/</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable type="UserVariable" serialization="custom">
+                    <userVariable>
+                      <default>
+                        <initialIndex>8</initialIndex>
+                        <deviceValueKey>0c3ca723-f27e-49c0-82f6-df8ec3e0fa31</deviceValueKey>
+                        <name>сообщение 9</name>
+                      </default>
+                    </userVariable>
+                  </userVariable>
+                </brick>
+                <brick type="ShowTextColorSizeAlignmentBrick">
+                  <brickId>fe577c6c-8be1-4f36-8684-6143189fe849</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="SIZE">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>120.0</value>
+                    </formula>
+                    <formula category="COLOR">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>#FFFFFF</value>
+                    </formula>
+                    <formula category="X_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>400</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                    <formula category="Y_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>160</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable reference="../../brick[17]/userVariable"/>
+                  <alignmentSelection>0</alignmentSelection>
+                </brick>
+                <brick type="ReadBaseBrick">
+                  <brickId>819d8bf8-6b47-4d1e-a942-9f2ed359f28d</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="FIREBASE_KEY">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>10</value>
+                    </formula>
+                    <formula category="FIREBASE_ID">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>https://rear-c3528-default-rtdb.firebaseio.com/</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable type="UserVariable" serialization="custom">
+                    <userVariable>
+                      <default>
+                        <initialIndex>9</initialIndex>
+                        <deviceValueKey>908c5cfc-8976-4db3-9ab6-17ab7a332340</deviceValueKey>
+                        <name>сообщение 10</name>
+                      </default>
+                    </userVariable>
+                  </userVariable>
+                </brick>
+                <brick type="ShowTextColorSizeAlignmentBrick">
+                  <brickId>9ae8f448-df39-4825-9f00-b66b31aa710b</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="SIZE">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>120.0</value>
+                    </formula>
+                    <formula category="COLOR">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>#FFFFFF</value>
+                    </formula>
+                    <formula category="X_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>400</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                    <formula category="Y_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>280</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable reference="../../brick[19]/userVariable"/>
+                  <alignmentSelection>0</alignmentSelection>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>41ae1791-f078-4f7a-91f6-4366d6d78ef8</scriptId>
+              <receivedMessage>Вывод</receivedMessage>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables>
+            <userVariable type="UserVariable" serialization="custom">
+              <userVariable>
+                <default>
+                  <initialIndex>0</initialIndex>
+                  <deviceValueKey>24065d7b-bd5f-46b7-a254-70fb90f30c14</deviceValueKey>
+                  <name>ник</name>
+                </default>
+              </userVariable>
+            </userVariable>
+            <userVariable reference="../../scriptList/script[4]/brickList/brick/userVariable"/>
+            <userVariable reference="../../scriptList/script[4]/brickList/brick[3]/userVariable"/>
+            <userVariable reference="../../scriptList/script[4]/brickList/brick[5]/userVariable"/>
+            <userVariable reference="../../scriptList/script[4]/brickList/brick[7]/userVariable"/>
+            <userVariable reference="../../scriptList/script[4]/brickList/brick[9]/userVariable"/>
+            <userVariable reference="../../scriptList/script[4]/brickList/brick[11]/userVariable"/>
+            <userVariable reference="../../scriptList/script[4]/brickList/brick[13]/userVariable"/>
+            <userVariable reference="../../scriptList/script[4]/brickList/brick[15]/userVariable"/>
+            <userVariable reference="../../scriptList/script[4]/brickList/brick[17]/userVariable"/>
+            <userVariable reference="../../scriptList/script[4]/brickList/brick[19]/userVariable"/>
+            <userVariable reference="../../scriptList/script[3]/brickList/brick[10]/userVariable"/>
+          </userVariables>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+        <object type="Sprite" spriteId="7085aa32-abfe-45fa-95a3-cc888f614edd" name="posts ">
+          <lookList>
+            <look fileName="newPost.png" lookId="f753f171-6dad-4e37-b245-df03ba4d412a" name="newPost">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="HideBrick">
+                  <brickId>93edf257-7d74-4951-a61e-389c3e881fce</brickId>
+                  <commentedOut>false</commentedOut>
+                </brick>
+                <brick type="PlaceAtBrick">
+                  <brickId>7b742419-feea-4526-b329-71d0e44511ea</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="X_POSITION">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>43</value>
+                    </formula>
+                    <formula category="Y_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>602</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="PointInDirectionBrick">
+                  <brickId>386c99b6-5860-4886-999f-e685d2e4cc72</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="DEGREES">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>90.0</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="SetSizeToBrick">
+                  <brickId>40caffa0-d771-443a-a970-6c14d418231b</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="SIZE">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>150</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>bc0d11aa-ce10-4510-85a9-df2023b02426</scriptId>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+        <object type="Sprite" spriteId="47c836c1-c9bc-44ec-a248-911cfce0a993" name="Мой актер или объект">
+          <lookList>
+            <look fileName="Мой актер или объект.png" lookId="a7de58f5-c993-403d-a7f3-90ddbd81fea3" name="Мой актер или объект">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="PlaceAtBrick">
+                  <brickId>6143a21d-fb62-4fe2-a622-60739c722681</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="X_POSITION">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>41</value>
+                    </formula>
+                    <formula category="Y_POSITION">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>54</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>a1bcf009-2301-48e1-a18a-e091bd71a5ad</scriptId>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+        <object type="Sprite" spriteId="a5d1b972-5dd8-4b3f-84fa-81a9be94c18d" name="Мой актер или объект (1)">
+          <lookList>
+            <look fileName="Мой актер или объект_#0.png" lookId="64290234-8517-4bd8-9981-acc9eaf7d573" name="Мой актер или объект (1)">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="PlaceAtBrick">
+                  <brickId>16d63260-6ad9-420e-9918-9d0ab90ed2bc</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="X_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>317</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                    <formula category="Y_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>875</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="PointInDirectionBrick">
+                  <brickId>fe3fe3cf-900d-4713-9f10-a2e347f73c71</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="DEGREES">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>90.0</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="SetSizeToBrick">
+                  <brickId>d3b3dc8f-0e9f-4126-85ae-5ac7da49629c</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="SIZE">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>60</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>3cd74586-85f0-4352-b881-d1ce3d146f45</scriptId>
+            </script>
+            <script type="WhenScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="AskBrick">
+                  <brickId>31874896-9933-44e5-afa0-335271cd4921</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="ASK_QUESTION">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>Change your nickname </value>
+                    </formula>
+                  </formulaList>
+                  <userVariable reference="../../../../../../object[2]/scriptList/script/brickList/brick/userVariable"/>
+                </brick>
+                <brick type="ShowToastBlock">
+                  <brickId>c4913790-3e3c-440c-82c3-3df8e0ec302b</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="TOAST">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>Author - @Salohiddin_spider</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>d32ca219-113c-43dc-bbff-8f45b419fb22</scriptId>
+            </script>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="WriteVariableOnDeviceBrick">
+                  <brickId>e7b44b28-5976-4913-af62-8300f970f97d</brickId>
+                  <commentedOut>false</commentedOut>
+                  <userVariable reference="../../../../../../object[2]/scriptList/script/brickList/brick/userVariable"/>
+                </brick>
+                <brick type="ShowTextColorSizeAlignmentBrick">
+                  <brickId>157fd090-3ce8-445f-8864-45bf03b91cbe</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="SIZE">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>200</value>
+                    </formula>
+                    <formula category="COLOR">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>#94D91D</value>
+                    </formula>
+                    <formula category="X_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>49</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                    <formula category="Y_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>906</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable reference="../../../../../../object[2]/scriptList/script/brickList/brick/userVariable"/>
+                  <alignmentSelection>1</alignmentSelection>
+                </brick>
+                <brick type="ReadVariableFromDeviceBrick">
+                  <brickId>1e3caec0-c292-4c3b-a02f-400046d2e2fa</brickId>
+                  <commentedOut>false</commentedOut>
+                  <userVariable reference="../../../../../../object[2]/scriptList/script/brickList/brick/userVariable"/>
+                </brick>
+                <brick type="PointInDirectionBrick">
+                  <brickId>e6c2ff30-d0d7-4257-9f4e-65cf1aae6929</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="DEGREES">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>90.0</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="SetSizeToBrick">
+                  <brickId>3aa75900-ea16-4209-9a61-8ad0a70a8a83</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="SIZE">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>100.0</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>c0d4cb3a-e3f1-45f8-8987-bfd55ccecb86</scriptId>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+      </objectList>
+    </scene>
+  </scenes>
+  <programVariableList>
+    <userVariable type="UserVariable" serialization="custom">
+      <userVariable>
+        <default>
+          <initialIndex>0</initialIndex>
+          <deviceValueKey>bfc24a19-98ff-4383-8cba-7bc06b5b1c21</deviceValueKey>
+          <name>ник</name>
+        </default>
+      </userVariable>
+    </userVariable>
+    <userVariable type="UserVariable" serialization="custom">
+      <userVariable>
+        <default>
+          <initialIndex>1</initialIndex>
+          <deviceValueKey>46a2f2e1-2a9a-47ae-8aff-9096afe741b5</deviceValueKey>
+          <name>итерация</name>
+        </default>
+      </userVariable>
+    </userVariable>
+    <userVariable reference="../../scenes/scene[2]/objectList/object[2]/scriptList/script/brickList/brick/userVariable"/>
+  </programVariableList>
+  <programListOfLists/>
+  <programMultiplayerVariableList/>
+</program>

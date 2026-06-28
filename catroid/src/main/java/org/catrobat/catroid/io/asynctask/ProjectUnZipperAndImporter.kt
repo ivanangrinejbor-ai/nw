@@ -34,6 +34,7 @@ import org.catrobat.catroid.content.backwardcompatibility.ProjectMetaDataParser
 import org.catrobat.catroid.io.StorageOperations
 import org.catrobat.catroid.io.XstreamSerializer
 import org.catrobat.catroid.io.ZipArchiver
+import org.catrobat.catroid.io.ProjectCrypto
 import org.catrobat.catroid.ui.recyclerview.util.UniqueNameProvider
 import org.catrobat.catroid.utils.FileMetaDataExtractor
 import java.io.File
@@ -49,7 +50,8 @@ sealed class ImportResult {
 
 class ProjectUnZipperAndImporter @JvmOverloads constructor(
     val onImportFinished: (ImportResult) -> Unit = {},
-    val scope: CoroutineScope = CoroutineScope(Dispatchers.IO)
+    val scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
+    var password: String? = null
 ) {
     fun unZipAndImportAsync(files: Array<File>) {
         scope.launch {
@@ -102,7 +104,25 @@ private fun unzipAndImportProject(projectZipFile: File): ImportResult = try {
     }
     cachedProjectDir.mkdirs()
 
-    ZipArchiver().unzip(projectZipFile, cachedProjectDir)
+    var fileToUnzip = projectZipFile
+    if (ProjectCrypto.isEncrypted(projectZipFile)) {
+        if (password.isNullOrEmpty()) {
+            Log.e(TAG, "Project is encrypted but no password provided")
+            return ImportResult.Failure
+        }
+        val decryptedFile = File(CACHE_DIRECTORY, tempDirName + "_decrypted.zip")
+        if (!ProjectCrypto.decrypt(projectZipFile, decryptedFile, password!!)) {
+            Log.e(TAG, "Failed to decrypt project (wrong password?)")
+            return ImportResult.Failure
+        }
+        fileToUnzip = decryptedFile
+    }
+
+    ZipArchiver().unzip(fileToUnzip, cachedProjectDir)
+
+    if (fileToUnzip != projectZipFile) {
+        fileToUnzip.delete()
+    }
 
     org.catrobat.catroid.utils.MatryoshkaManager.unpackIfMatryoshka(cachedProjectDir)
 

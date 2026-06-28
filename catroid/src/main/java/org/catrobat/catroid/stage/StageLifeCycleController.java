@@ -92,6 +92,10 @@ public final class StageLifeCycleController {
 		for (Scene scene : ProjectManager.getInstance().getCurrentProject().getSceneList()) {
 			scene.firstStart = true;
 		}
+		Scene globalScene = ProjectManager.getInstance().getCurrentProject().getGlobalScene();
+		if (globalScene != null) {
+			globalScene.firstStart = true;
+		}
 
 		stageActivity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 

@@ -1,0 +1,1076 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<program>
+  <header>
+    <applicationBuildName></applicationBuildName>
+    <applicationBuildNumber>0</applicationBuildNumber>
+    <applicationBuildType>release</applicationBuildType>
+    <applicationName>NewCatroid</applicationName>
+    <applicationVersion>2.0.3beta1</applicationVersion>
+    <catrobatLanguageVersion>1.13</catrobatLanguageVersion>
+    <dateTimeUpload></dateTimeUpload>
+    <description></description>
+    <deviceName>RMX3636</deviceName>
+    <isCastProject>false</isCastProject>
+    <landscapeMode>true</landscapeMode>
+    <listeningLanguageTag></listeningLanguageTag>
+    <mediaLicense></mediaLicense>
+    <notesAndCredits></notesAndCredits>
+    <platform>Android</platform>
+    <platformVersion>34</platformVersion>
+    <programLicense></programLicense>
+    <programName>players firebase</programName>
+    <remixOf></remixOf>
+    <scenesEnabled>true</scenesEnabled>
+    <screenHeight>1080</screenHeight>
+    <screenMode>STRETCH</screenMode>
+    <screenWidth>2161</screenWidth>
+    <tags></tags>
+    <url></url>
+    <userHandle></userHandle>
+  </header>
+  <settings/>
+  <scenes>
+    <scene>
+      <name>Сцена</name>
+      <objectList>
+        <object type="Sprite" name="Фон">
+          <lookList/>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="BigAskBrick">
+                  <brickId>0a0298df-1fd4-480d-8eb7-0706912c7373</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="CANEL">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value></value>
+                    </formula>
+                    <formula category="OK">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>OK</value>
+                    </formula>
+                    <formula category="DEFAULT">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value></value>
+                    </formula>
+                    <formula category="ASK_QUESTION">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>Ваш ID</value>
+                    </formula>
+                    <formula category="TEXT">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>От 1 до 2</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable type="UserVariable" serialization="custom">
+                    <userVariable>
+                      <default>
+                        <initialIndex>1</initialIndex>
+                        <deviceValueKey>ff33ca39-5b32-4a45-975b-58b3128ccf57</deviceValueKey>
+                        <name>id</name>
+                      </default>
+                    </userVariable>
+                  </userVariable>
+                </brick>
+                <brick type="IfLogicBeginBrick">
+                  <brickId>cde561be-5535-4c8f-b7cf-e8f96aebbd2b</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="IF_CONDITION">
+                      <additionalChildren/>
+                      <leftChild>
+                        <additionalChildren/>
+                        <type>USER_VARIABLE</type>
+                        <value>id</value>
+                      </leftChild>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>1</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>EQUAL</value>
+                    </formula>
+                  </formulaList>
+                  <elseBranchBricks>
+                    <brick type="IfLogicBeginBrick">
+                      <brickId>684ab8d7-085b-4560-b381-6d838a3d7ed3</brickId>
+                      <commentedOut>false</commentedOut>
+                      <formulaList>
+                        <formula category="IF_CONDITION">
+                          <additionalChildren/>
+                          <leftChild>
+                            <additionalChildren/>
+                            <type>USER_VARIABLE</type>
+                            <value>id</value>
+                          </leftChild>
+                          <rightChild>
+                            <additionalChildren/>
+                            <type>NUMBER</type>
+                            <value>2</value>
+                          </rightChild>
+                          <type>OPERATOR</type>
+                          <value>EQUAL</value>
+                        </formula>
+                      </formulaList>
+                      <elseBranchBricks>
+                        <brick type="BigAskBrick">
+                          <brickId>296f7300-acfa-4b0b-93d8-be2f8d175bf4</brickId>
+                          <commentedOut>false</commentedOut>
+                          <formulaList>
+                            <formula category="CANEL">
+                              <additionalChildren/>
+                              <type>STRING</type>
+                              <value></value>
+                            </formula>
+                            <formula category="OK">
+                              <additionalChildren/>
+                              <type>STRING</type>
+                              <value>OK</value>
+                            </formula>
+                            <formula category="DEFAULT">
+                              <additionalChildren/>
+                              <type>STRING</type>
+                              <value></value>
+                            </formula>
+                            <formula category="ASK_QUESTION">
+                              <additionalChildren/>
+                              <type>STRING</type>
+                              <value>Ваш ID</value>
+                            </formula>
+                            <formula category="TEXT">
+                              <additionalChildren/>
+                              <type>STRING</type>
+                              <value>От 1 до 2</value>
+                            </formula>
+                          </formulaList>
+                          <userVariable reference="../../../../../../brick/userVariable"/>
+                        </brick>
+                      </elseBranchBricks>
+                      <ifBranchBricks/>
+                    </brick>
+                  </elseBranchBricks>
+                  <ifBranchBricks/>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>23ed1aee-b905-4865-bcdf-bffd9e9d8c4f</scriptId>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+        <object type="Sprite" name="1">
+          <lookList>
+            <look fileName="Мой актер или объект.png" name="Мой актер или объект">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="SetSizeToBrick">
+                  <brickId>7ec39342-5e8d-4d8c-a297-5ac270f95746</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="SIZE">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>30</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>de16a133-680c-4626-955b-89788aab9c4e</scriptId>
+            </script>
+            <script type="WhenConditionScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="IfLogicBeginBrick">
+                  <brickId>03ce68a3-83e7-4239-9b9b-02f361586563</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="IF_CONDITION">
+                      <additionalChildren/>
+                      <leftChild>
+                        <additionalChildren/>
+                        <type>USER_VARIABLE</type>
+                        <value>id</value>
+                      </leftChild>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>2</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>EQUAL</value>
+                    </formula>
+                  </formulaList>
+                  <elseBranchBricks/>
+                  <ifBranchBricks>
+                    <brick type="ForeverBrick">
+                      <brickId>78806005-57eb-4d58-84a9-e9a77726882c</brickId>
+                      <commentedOut>false</commentedOut>
+                      <loopBricks>
+                        <brick type="ReadBaseBrick">
+                          <brickId>b0592b65-f0c4-474e-a724-20c3113d2854</brickId>
+                          <commentedOut>false</commentedOut>
+                          <formulaList>
+                            <formula category="FIREBASE_KEY">
+                              <additionalChildren/>
+                              <type>STRING</type>
+                              <value>1x</value>
+                            </formula>
+                            <formula category="FIREBASE_ID">
+                              <additionalChildren/>
+                              <type>STRING</type>
+                              <value>https://mindshop-78301-default-rtdb.firebaseio.com/</value>
+                            </formula>
+                          </formulaList>
+                          <userVariable type="UserVariable" serialization="custom">
+                            <userVariable>
+                              <default>
+                                <initialIndex>2</initialIndex>
+                                <deviceValueKey>ebce4612-e1d1-4ebb-8209-b20ba3d810a0</deviceValueKey>
+                                <name>MyX</name>
+                              </default>
+                            </userVariable>
+                          </userVariable>
+                        </brick>
+                        <brick type="ReadBaseBrick">
+                          <brickId>f2088d7c-743c-4538-aa12-159f55be9e4c</brickId>
+                          <commentedOut>false</commentedOut>
+                          <formulaList>
+                            <formula category="FIREBASE_KEY">
+                              <additionalChildren/>
+                              <type>STRING</type>
+                              <value>1y</value>
+                            </formula>
+                            <formula category="FIREBASE_ID">
+                              <additionalChildren/>
+                              <type>STRING</type>
+                              <value>https://mindshop-78301-default-rtdb.firebaseio.com/</value>
+                            </formula>
+                          </formulaList>
+                          <userVariable type="UserVariable" serialization="custom">
+                            <userVariable>
+                              <default>
+                                <initialIndex>3</initialIndex>
+                                <deviceValueKey>63badad5-2d1c-4321-a1ea-7a0220e3c8c8</deviceValueKey>
+                                <name>MyY</name>
+                              </default>
+                            </userVariable>
+                          </userVariable>
+                        </brick>
+                        <brick type="ReadBaseBrick">
+                          <brickId>0d183eb8-b11a-41d0-a460-fc12314caad2</brickId>
+                          <commentedOut>false</commentedOut>
+                          <formulaList>
+                            <formula category="FIREBASE_KEY">
+                              <additionalChildren/>
+                              <type>STRING</type>
+                              <value>1nav</value>
+                            </formula>
+                            <formula category="FIREBASE_ID">
+                              <additionalChildren/>
+                              <type>STRING</type>
+                              <value>https://mindshop-78301-default-rtdb.firebaseio.com/</value>
+                            </formula>
+                          </formulaList>
+                          <userVariable type="UserVariable" serialization="custom">
+                            <userVariable>
+                              <default>
+                                <initialIndex>4</initialIndex>
+                                <deviceValueKey>8f6c0723-8098-44a7-b632-8cbf8cb66bcb</deviceValueKey>
+                                <name>Nav</name>
+                              </default>
+                            </userVariable>
+                          </userVariable>
+                        </brick>
+                        <brick type="PlaceAtBrick">
+                          <brickId>1a5a866d-0ba0-453c-aee5-b570b70905d6</brickId>
+                          <commentedOut>false</commentedOut>
+                          <formulaList>
+                            <formula category="Y_POSITION">
+                              <additionalChildren/>
+                              <type>USER_VARIABLE</type>
+                              <value>MyY</value>
+                            </formula>
+                            <formula category="X_POSITION">
+                              <additionalChildren/>
+                              <type>USER_VARIABLE</type>
+                              <value>MyX</value>
+                            </formula>
+                          </formulaList>
+                        </brick>
+                        <brick type="PointInDirectionBrick">
+                          <brickId>f49869f5-0ed4-41ea-b7da-5b48c8a40266</brickId>
+                          <commentedOut>false</commentedOut>
+                          <formulaList>
+                            <formula category="DEGREES">
+                              <additionalChildren/>
+                              <type>USER_VARIABLE</type>
+                              <value>Nav</value>
+                            </formula>
+                          </formulaList>
+                        </brick>
+                        <brick type="WaitBrick">
+                          <brickId>0231c7e4-e6a0-4e44-81f8-e4f2e88496e8</brickId>
+                          <commentedOut>true</commentedOut>
+                          <formulaList>
+                            <formula category="TIME_TO_WAIT_IN_SECONDS">
+                              <additionalChildren/>
+                              <type>NUMBER</type>
+                              <value>0.15</value>
+                            </formula>
+                          </formulaList>
+                        </brick>
+                      </loopBricks>
+                    </brick>
+                  </ifBranchBricks>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>2a15d844-7615-4af3-bd63-5f3cdc024ac6</scriptId>
+              <formulaMap>
+                <formula category="IF_CONDITION">
+                  <additionalChildren/>
+                  <leftChild>
+                    <additionalChildren/>
+                    <type>USER_VARIABLE</type>
+                    <value>id</value>
+                  </leftChild>
+                  <rightChild>
+                    <additionalChildren/>
+                    <type>NUMBER</type>
+                    <value>2</value>
+                  </rightChild>
+                  <type>OPERATOR</type>
+                  <value>EQUAL</value>
+                </formula>
+              </formulaMap>
+            </script>
+            <script type="BroadcastScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="IfLogicBeginBrick">
+                  <brickId>8a78d95c-e9b8-45d9-bf4a-45ccac5990ce</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="IF_CONDITION">
+                      <additionalChildren/>
+                      <leftChild>
+                        <additionalChildren/>
+                        <type>USER_VARIABLE</type>
+                        <value>id</value>
+                      </leftChild>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>1</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>EQUAL</value>
+                    </formula>
+                  </formulaList>
+                  <elseBranchBricks/>
+                  <ifBranchBricks>
+                    <brick type="PointInDirectionBrick">
+                      <brickId>886ff498-5e7f-41d5-84d8-29c086454aa1</brickId>
+                      <commentedOut>false</commentedOut>
+                      <formulaList>
+                        <formula category="DEGREES">
+                          <additionalChildren/>
+                          <type>USER_VARIABLE</type>
+                          <value>направление игрока</value>
+                        </formula>
+                      </formulaList>
+                    </brick>
+                    <brick type="MoveNStepsBrick">
+                      <brickId>5093863e-8721-4e7d-9d38-263d695f062f</brickId>
+                      <commentedOut>false</commentedOut>
+                      <formulaList>
+                        <formula category="STEPS">
+                          <additionalChildren/>
+                          <type>NUMBER</type>
+                          <value>10.0</value>
+                        </formula>
+                      </formulaList>
+                    </brick>
+                  </ifBranchBricks>
+                </brick>
+                <brick type="IfLogicBeginBrick">
+                  <brickId>7a743e03-0e12-4407-b491-d876e914e139</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="IF_CONDITION">
+                      <additionalChildren/>
+                      <leftChild>
+                        <additionalChildren/>
+                        <type>USER_VARIABLE</type>
+                        <value>id</value>
+                      </leftChild>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>1</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>EQUAL</value>
+                    </formula>
+                  </formulaList>
+                  <elseBranchBricks/>
+                  <ifBranchBricks>
+                    <brick type="ForeverBrick">
+                      <brickId>a90c058b-a5fd-41d5-9f14-a5cc1e4a63a2</brickId>
+                      <commentedOut>false</commentedOut>
+                      <loopBricks>
+                        <brick type="WriteBaseBrick">
+                          <brickId>7aa0635a-0c8a-48ca-a243-d9ded900cbc1</brickId>
+                          <commentedOut>false</commentedOut>
+                          <formulaList>
+                            <formula category="FIREBASE_VALUE">
+                              <additionalChildren/>
+                              <type>SENSOR</type>
+                              <value>OBJECT_X</value>
+                            </formula>
+                            <formula category="FIREBASE_KEY">
+                              <additionalChildren/>
+                              <type>STRING</type>
+                              <value>1x</value>
+                            </formula>
+                            <formula category="FIREBASE_ID">
+                              <additionalChildren/>
+                              <type>STRING</type>
+                              <value>https://mindshop-78301-default-rtdb.firebaseio.com/</value>
+                            </formula>
+                          </formulaList>
+                        </brick>
+                        <brick type="WriteBaseBrick">
+                          <brickId>bd8185bc-3866-4470-9b27-7ff62633d227</brickId>
+                          <commentedOut>false</commentedOut>
+                          <formulaList>
+                            <formula category="FIREBASE_VALUE">
+                              <additionalChildren/>
+                              <type>SENSOR</type>
+                              <value>OBJECT_Y</value>
+                            </formula>
+                            <formula category="FIREBASE_KEY">
+                              <additionalChildren/>
+                              <type>STRING</type>
+                              <value>1y</value>
+                            </formula>
+                            <formula category="FIREBASE_ID">
+                              <additionalChildren/>
+                              <type>STRING</type>
+                              <value>https://mindshop-78301-default-rtdb.firebaseio.com/</value>
+                            </formula>
+                          </formulaList>
+                        </brick>
+                        <brick type="WriteBaseBrick">
+                          <brickId>45ff9085-e4a2-4f32-ac4a-da580e23c1a0</brickId>
+                          <commentedOut>false</commentedOut>
+                          <formulaList>
+                            <formula category="FIREBASE_VALUE">
+                              <additionalChildren/>
+                              <type>SENSOR</type>
+                              <value>LOOK_DIRECTION</value>
+                            </formula>
+                            <formula category="FIREBASE_KEY">
+                              <additionalChildren/>
+                              <type>STRING</type>
+                              <value>1nav</value>
+                            </formula>
+                            <formula category="FIREBASE_ID">
+                              <additionalChildren/>
+                              <type>STRING</type>
+                              <value>https://mindshop-78301-default-rtdb.firebaseio.com/</value>
+                            </formula>
+                          </formulaList>
+                        </brick>
+                        <brick type="PlaceAtBrick">
+                          <brickId>7445460c-cff8-408a-8aca-131423c0cb9b</brickId>
+                          <commentedOut>true</commentedOut>
+                          <formulaList>
+                            <formula category="Y_POSITION">
+                              <additionalChildren/>
+                              <type>USER_VARIABLE</type>
+                              <value>MyY</value>
+                            </formula>
+                            <formula category="X_POSITION">
+                              <additionalChildren/>
+                              <type>USER_VARIABLE</type>
+                              <value>MyX</value>
+                            </formula>
+                          </formulaList>
+                        </brick>
+                        <brick type="WaitBrick">
+                          <brickId>de2e6120-883b-4cc0-894f-0ddc04e93b20</brickId>
+                          <commentedOut>true</commentedOut>
+                          <formulaList>
+                            <formula category="TIME_TO_WAIT_IN_SECONDS">
+                              <additionalChildren/>
+                              <type>NUMBER</type>
+                              <value>0.15</value>
+                            </formula>
+                          </formulaList>
+                        </brick>
+                      </loopBricks>
+                    </brick>
+                  </ifBranchBricks>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>e7906a74-100c-43e4-83e2-21331fe1a3a8</scriptId>
+              <receivedMessage>идти</receivedMessage>
+            </script>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList/>
+              <commentedOut>false</commentedOut>
+              <scriptId>0fd28079-5517-442b-8586-dbc9eca8aea8</scriptId>
+            </script>
+            <script type="BroadcastScript" posX="0.0" posY="0.0">
+              <brickList/>
+              <commentedOut>false</commentedOut>
+              <scriptId>155f562c-5a29-421b-bf5d-18e7989ae217</scriptId>
+              <receivedMessage>идти</receivedMessage>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+        <object type="Sprite" name="joystick ">
+          <lookList>
+            <look fileName="Мой актер или объект_#0.png" name="Мой актер или объект (1)">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="Мой актер или объект_#1.png" name="Мой актер или объект (2)">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="PlaceAtBrick">
+                  <brickId>fb457c1d-6a60-4f0e-9307-ae0c795ebaad</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="Y_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>294</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                    <formula category="X_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>845</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="SetSizeToBrick">
+                  <brickId>9368067d-b27b-4462-a540-e1f547e7e657</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="SIZE">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>40</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>87c68650-3d45-4203-861e-30b8288e016d</scriptId>
+            </script>
+            <script type="WhenScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="RepeatUntilBrick">
+                  <brickId>be90589b-4e5b-44c3-a05a-6e0efbd5911e</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="REPEAT_UNTIL_CONDITION">
+                      <additionalChildren/>
+                      <leftChild>
+                        <additionalChildren/>
+                        <type>SENSOR</type>
+                        <value>FINGER_TOUCHED</value>
+                      </leftChild>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>FUNCTION</type>
+                        <value>FALSE</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>EQUAL</value>
+                    </formula>
+                  </formulaList>
+                  <loopBricks>
+                    <brick type="SetLookBrick">
+                      <brickId>60cd9fe6-d23f-4648-ad88-d317821462c7</brickId>
+                      <commentedOut>false</commentedOut>
+                      <look reference="../../../../../../../lookList/look[2]"/>
+                    </brick>
+                    <brick type="PointToBrick">
+                      <brickId>8dcafbe5-c9f9-42d4-b301-fbc306d9e8a9</brickId>
+                      <commentedOut>false</commentedOut>
+                      <pointedObject type="Sprite" name="Мой актер или объект (1)">
+                        <lookList>
+                          <look fileName="Мой актер или объект (1).png" name="Мой актер или объект (1)">
+                            <isWebRequest>false</isWebRequest>
+                            <valid>true</valid>
+                          </look>
+                        </lookList>
+                        <soundList/>
+                        <scriptList>
+                          <script type="StartScript" posX="0.0" posY="0.0">
+                            <brickList>
+                              <brick type="ForeverBrick">
+                                <brickId>2426696a-402d-48fb-a1b2-426dc1580b4c</brickId>
+                                <commentedOut>false</commentedOut>
+                                <loopBricks>
+                                  <brick type="GoToBrick">
+                                    <brickId>acd3fd5a-c661-44b4-a225-1a70f4f2f482</brickId>
+                                    <commentedOut>false</commentedOut>
+                                    <spinnerSelection>80</spinnerSelection>
+                                  </brick>
+                                </loopBricks>
+                              </brick>
+                            </brickList>
+                            <commentedOut>false</commentedOut>
+                            <scriptId>1ae039e6-84d2-47da-a9ee-d608eea876e7</scriptId>
+                          </script>
+                        </scriptList>
+                        <nfcTagList/>
+                        <userVariables/>
+                        <userLists/>
+                        <userDefinedBrickList/>
+                      </pointedObject>
+                    </brick>
+                    <brick type="BroadcastBrick">
+                      <brickId>bb798920-0547-4f37-aa20-40ff4f0df142</brickId>
+                      <commentedOut>false</commentedOut>
+                      <broadcastMessage>идти</broadcastMessage>
+                    </brick>
+                    <brick type="SetVariableBrick">
+                      <brickId>b9034ea0-9fe5-4f23-b747-b63fc58381e6</brickId>
+                      <commentedOut>false</commentedOut>
+                      <formulaList>
+                        <formula category="VARIABLE">
+                          <additionalChildren/>
+                          <type>SENSOR</type>
+                          <value>LOOK_DIRECTION</value>
+                        </formula>
+                      </formulaList>
+                      <userVariable type="UserVariable" serialization="custom">
+                        <userVariable>
+                          <default>
+                            <initialIndex>0</initialIndex>
+                            <deviceValueKey>02a6fd4e-b2c8-4e7b-a084-5abb21a8d0c9</deviceValueKey>
+                            <name>направление игрока</name>
+                          </default>
+                        </userVariable>
+                      </userVariable>
+                    </brick>
+                  </loopBricks>
+                </brick>
+                <brick type="SetLookBrick">
+                  <brickId>44af7780-8487-4213-80ae-eb6ebd0ffecf</brickId>
+                  <commentedOut>false</commentedOut>
+                  <look reference="../../../../../lookList/look"/>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>b25ec1bf-1368-4f3d-86ee-68ef8630ec98</scriptId>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+        <object reference="../object[3]/scriptList/script[2]/brickList/brick/loopBricks/brick[2]/pointedObject"/>
+        <object type="Sprite" name="2">
+          <lookList>
+            <look fileName="Мой актер или объект_#2.png" name="Мой актер или объект">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="SetSizeToBrick">
+                  <brickId>1587fdd0-c11b-4b1b-9853-4b43436f61dd</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="SIZE">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>30</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>da77ad88-6833-41a9-9ef9-2aaf61b10632</scriptId>
+            </script>
+            <script type="WhenConditionScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="IfLogicBeginBrick">
+                  <brickId>74b4baf2-9700-4637-b782-d9074d44c1e4</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="IF_CONDITION">
+                      <additionalChildren/>
+                      <leftChild>
+                        <additionalChildren/>
+                        <type>USER_VARIABLE</type>
+                        <value>id</value>
+                      </leftChild>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>1</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>EQUAL</value>
+                    </formula>
+                  </formulaList>
+                  <elseBranchBricks/>
+                  <ifBranchBricks>
+                    <brick type="ForeverBrick">
+                      <brickId>efde6550-5889-4174-b4db-d086e11fc095</brickId>
+                      <commentedOut>false</commentedOut>
+                      <loopBricks>
+                        <brick type="ReadBaseBrick">
+                          <brickId>05f7980e-b41d-4eec-8c2d-a7444866c50b</brickId>
+                          <commentedOut>false</commentedOut>
+                          <formulaList>
+                            <formula category="FIREBASE_KEY">
+                              <additionalChildren/>
+                              <type>STRING</type>
+                              <value>2x</value>
+                            </formula>
+                            <formula category="FIREBASE_ID">
+                              <additionalChildren/>
+                              <type>STRING</type>
+                              <value>https://mindshop-78301-default-rtdb.firebaseio.com/</value>
+                            </formula>
+                          </formulaList>
+                          <userVariable reference="../../../../../../../../../../object[2]/scriptList/script[2]/brickList/brick/ifBranchBricks/brick/loopBricks/brick/userVariable"/>
+                        </brick>
+                        <brick type="ReadBaseBrick">
+                          <brickId>782ef543-bee8-40b1-86d3-8b7c483ca8fb</brickId>
+                          <commentedOut>false</commentedOut>
+                          <formulaList>
+                            <formula category="FIREBASE_KEY">
+                              <additionalChildren/>
+                              <type>STRING</type>
+                              <value>2y</value>
+                            </formula>
+                            <formula category="FIREBASE_ID">
+                              <additionalChildren/>
+                              <type>STRING</type>
+                              <value>https://mindshop-78301-default-rtdb.firebaseio.com/</value>
+                            </formula>
+                          </formulaList>
+                          <userVariable reference="../../../../../../../../../../object[2]/scriptList/script[2]/brickList/brick/ifBranchBricks/brick/loopBricks/brick[2]/userVariable"/>
+                        </brick>
+                        <brick type="ReadBaseBrick">
+                          <brickId>6343fa99-a890-4aad-a0b9-ce43ea09fdcc</brickId>
+                          <commentedOut>false</commentedOut>
+                          <formulaList>
+                            <formula category="FIREBASE_KEY">
+                              <additionalChildren/>
+                              <type>STRING</type>
+                              <value>2nav</value>
+                            </formula>
+                            <formula category="FIREBASE_ID">
+                              <additionalChildren/>
+                              <type>STRING</type>
+                              <value>https://mindshop-78301-default-rtdb.firebaseio.com/</value>
+                            </formula>
+                          </formulaList>
+                          <userVariable reference="../../../../../../../../../../object[2]/scriptList/script[2]/brickList/brick/ifBranchBricks/brick/loopBricks/brick[3]/userVariable"/>
+                        </brick>
+                        <brick type="PlaceAtBrick">
+                          <brickId>6c072fd9-d6ec-44f1-a397-d08e5f5ae092</brickId>
+                          <commentedOut>false</commentedOut>
+                          <formulaList>
+                            <formula category="Y_POSITION">
+                              <additionalChildren/>
+                              <type>USER_VARIABLE</type>
+                              <value>MyY</value>
+                            </formula>
+                            <formula category="X_POSITION">
+                              <additionalChildren/>
+                              <type>USER_VARIABLE</type>
+                              <value>MyX</value>
+                            </formula>
+                          </formulaList>
+                        </brick>
+                        <brick type="PointInDirectionBrick">
+                          <brickId>9d1df8ee-14a0-4621-92ca-ca1db5575539</brickId>
+                          <commentedOut>false</commentedOut>
+                          <formulaList>
+                            <formula category="DEGREES">
+                              <additionalChildren/>
+                              <type>USER_VARIABLE</type>
+                              <value>Nav</value>
+                            </formula>
+                          </formulaList>
+                        </brick>
+                        <brick type="WaitBrick">
+                          <brickId>7d46f9df-4d76-4a77-97ed-239c736e0b38</brickId>
+                          <commentedOut>true</commentedOut>
+                          <formulaList>
+                            <formula category="TIME_TO_WAIT_IN_SECONDS">
+                              <additionalChildren/>
+                              <type>NUMBER</type>
+                              <value>0.15</value>
+                            </formula>
+                          </formulaList>
+                        </brick>
+                      </loopBricks>
+                    </brick>
+                  </ifBranchBricks>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>173ed3ad-0166-4728-a2ba-300e4241b973</scriptId>
+              <formulaMap>
+                <formula category="IF_CONDITION">
+                  <additionalChildren/>
+                  <leftChild>
+                    <additionalChildren/>
+                    <type>USER_VARIABLE</type>
+                    <value>id</value>
+                  </leftChild>
+                  <rightChild>
+                    <additionalChildren/>
+                    <type>NUMBER</type>
+                    <value>1</value>
+                  </rightChild>
+                  <type>OPERATOR</type>
+                  <value>EQUAL</value>
+                </formula>
+              </formulaMap>
+            </script>
+            <script type="BroadcastScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="IfLogicBeginBrick">
+                  <brickId>c698c5ff-12e8-479e-82ca-2ae43bc822ab</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="IF_CONDITION">
+                      <additionalChildren/>
+                      <leftChild>
+                        <additionalChildren/>
+                        <type>USER_VARIABLE</type>
+                        <value>id</value>
+                      </leftChild>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>2</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>EQUAL</value>
+                    </formula>
+                  </formulaList>
+                  <elseBranchBricks/>
+                  <ifBranchBricks>
+                    <brick type="PointInDirectionBrick">
+                      <brickId>9ebb5749-2211-478c-89f3-59da29901050</brickId>
+                      <commentedOut>false</commentedOut>
+                      <formulaList>
+                        <formula category="DEGREES">
+                          <additionalChildren/>
+                          <type>USER_VARIABLE</type>
+                          <value>направление игрока</value>
+                        </formula>
+                      </formulaList>
+                    </brick>
+                    <brick type="MoveNStepsBrick">
+                      <brickId>54c8252a-35a2-46a4-ae20-0da87c336d6e</brickId>
+                      <commentedOut>false</commentedOut>
+                      <formulaList>
+                        <formula category="STEPS">
+                          <additionalChildren/>
+                          <type>NUMBER</type>
+                          <value>10.0</value>
+                        </formula>
+                      </formulaList>
+                    </brick>
+                  </ifBranchBricks>
+                </brick>
+                <brick type="IfLogicBeginBrick">
+                  <brickId>3821441f-1ffc-43a3-ae64-7d5a1d15c438</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="IF_CONDITION">
+                      <additionalChildren/>
+                      <leftChild>
+                        <additionalChildren/>
+                        <type>USER_VARIABLE</type>
+                        <value>id</value>
+                      </leftChild>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>2</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>EQUAL</value>
+                    </formula>
+                  </formulaList>
+                  <elseBranchBricks/>
+                  <ifBranchBricks>
+                    <brick type="ForeverBrick">
+                      <brickId>413eb0ac-818f-4a4d-8e7f-9a37ec21cb66</brickId>
+                      <commentedOut>false</commentedOut>
+                      <loopBricks>
+                        <brick type="WriteBaseBrick">
+                          <brickId>a29b39ec-7627-4a36-be00-f72d9189865f</brickId>
+                          <commentedOut>false</commentedOut>
+                          <formulaList>
+                            <formula category="FIREBASE_VALUE">
+                              <additionalChildren/>
+                              <type>SENSOR</type>
+                              <value>OBJECT_X</value>
+                            </formula>
+                            <formula category="FIREBASE_KEY">
+                              <additionalChildren/>
+                              <type>STRING</type>
+                              <value>2x</value>
+                            </formula>
+                            <formula category="FIREBASE_ID">
+                              <additionalChildren/>
+                              <type>STRING</type>
+                              <value>https://mindshop-78301-default-rtdb.firebaseio.com/</value>
+                            </formula>
+                          </formulaList>
+                        </brick>
+                        <brick type="WriteBaseBrick">
+                          <brickId>043c6056-83b3-4e39-a7fa-8d57d9ed55c0</brickId>
+                          <commentedOut>false</commentedOut>
+                          <formulaList>
+                            <formula category="FIREBASE_VALUE">
+                              <additionalChildren/>
+                              <type>SENSOR</type>
+                              <value>OBJECT_Y</value>
+                            </formula>
+                            <formula category="FIREBASE_KEY">
+                              <additionalChildren/>
+                              <type>STRING</type>
+                              <value>2y</value>
+                            </formula>
+                            <formula category="FIREBASE_ID">
+                              <additionalChildren/>
+                              <type>STRING</type>
+                              <value>https://mindshop-78301-default-rtdb.firebaseio.com/</value>
+                            </formula>
+                          </formulaList>
+                        </brick>
+                        <brick type="WriteBaseBrick">
+                          <brickId>a2d04cbf-c265-42c4-93a8-86a45d5776e0</brickId>
+                          <commentedOut>false</commentedOut>
+                          <formulaList>
+                            <formula category="FIREBASE_VALUE">
+                              <additionalChildren/>
+                              <type>SENSOR</type>
+                              <value>LOOK_DIRECTION</value>
+                            </formula>
+                            <formula category="FIREBASE_KEY">
+                              <additionalChildren/>
+                              <type>STRING</type>
+                              <value>2nav</value>
+                            </formula>
+                            <formula category="FIREBASE_ID">
+                              <additionalChildren/>
+                              <type>STRING</type>
+                              <value>https://mindshop-78301-default-rtdb.firebaseio.com/</value>
+                            </formula>
+                          </formulaList>
+                        </brick>
+                        <brick type="PlaceAtBrick">
+                          <brickId>5984d0ec-6bf1-4c3b-9617-9fde865ef57a</brickId>
+                          <commentedOut>true</commentedOut>
+                          <formulaList>
+                            <formula category="Y_POSITION">
+                              <additionalChildren/>
+                              <type>USER_VARIABLE</type>
+                              <value>MyY</value>
+                            </formula>
+                            <formula category="X_POSITION">
+                              <additionalChildren/>
+                              <type>USER_VARIABLE</type>
+                              <value>MyX</value>
+                            </formula>
+                          </formulaList>
+                        </brick>
+                        <brick type="WaitBrick">
+                          <brickId>242dcf4d-e640-4d82-a0f3-88dfecae284f</brickId>
+                          <commentedOut>true</commentedOut>
+                          <formulaList>
+                            <formula category="TIME_TO_WAIT_IN_SECONDS">
+                              <additionalChildren/>
+                              <type>NUMBER</type>
+                              <value>0.15</value>
+                            </formula>
+                          </formulaList>
+                        </brick>
+                      </loopBricks>
+                    </brick>
+                  </ifBranchBricks>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>71feb39d-8829-4c31-89d9-1662904f31fb</scriptId>
+              <receivedMessage>идти</receivedMessage>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+      </objectList>
+    </scene>
+  </scenes>
+  <programVariableList>
+    <userVariable reference="../../scenes/scene/objectList/object[3]/scriptList/script[2]/brickList/brick/loopBricks/brick[4]/userVariable"/>
+    <userVariable reference="../../scenes/scene/objectList/object/scriptList/script/brickList/brick/userVariable"/>
+    <userVariable reference="../../scenes/scene/objectList/object[2]/scriptList/script[2]/brickList/brick/ifBranchBricks/brick/loopBricks/brick/userVariable"/>
+    <userVariable reference="../../scenes/scene/objectList/object[2]/scriptList/script[2]/brickList/brick/ifBranchBricks/brick/loopBricks/brick[2]/userVariable"/>
+    <userVariable reference="../../scenes/scene/objectList/object[2]/scriptList/script[2]/brickList/brick/ifBranchBricks/brick/loopBricks/brick[3]/userVariable"/>
+  </programVariableList>
+  <programListOfLists/>
+  <programMultiplayerVariableList/>
+</program>

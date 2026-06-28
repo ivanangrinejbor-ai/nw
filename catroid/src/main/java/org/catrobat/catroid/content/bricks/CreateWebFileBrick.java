@@ -38,13 +38,22 @@ public class CreateWebFileBrick extends FormulaBrick {
         addAllowedBrickField(Brick.BrickField.POSY, R.id.create_web_file_y);
         addAllowedBrickField(Brick.BrickField.WIDTH, R.id.create_web_file_width);
         addAllowedBrickField(Brick.BrickField.HEIGHT, R.id.create_web_file_height);
+        addAllowedBrickField(Brick.BrickField.Z_INDEX, R.id.create_web_file_zindex);
     }
 
     public CreateWebFileBrick(String name, String url, String x, String y, String width, String height) {
-        this(new Formula(name), new Formula(url), new Formula(x), new Formula(y), new Formula(width), new Formula(height));
+        this(name, url, x, y, width, height, "1");
     }
 
     public CreateWebFileBrick(Formula name, Formula url, Formula x, Formula y, Formula width, Formula height) {
+        this(name, url, x, y, width, height, new Formula(1));
+    }
+
+    public CreateWebFileBrick(String name, String url, String x, String y, String width, String height, String zindex) {
+        this(new Formula(name), new Formula(url), new Formula(x), new Formula(y), new Formula(width), new Formula(height), new Formula(zindex));
+    }
+
+    public CreateWebFileBrick(Formula name, Formula url, Formula x, Formula y, Formula width, Formula height, Formula zindex) {
         this();
         setFormulaWithBrickField(BrickField.NAME, name);
         setFormulaWithBrickField(BrickField.HTML, url);
@@ -52,6 +61,7 @@ public class CreateWebFileBrick extends FormulaBrick {
         setFormulaWithBrickField(BrickField.POSY, y);
         setFormulaWithBrickField(BrickField.WIDTH, width);
         setFormulaWithBrickField(BrickField.HEIGHT, height);
+        setFormulaWithBrickField(BrickField.Z_INDEX, zindex);
     }
 
     @Override
@@ -63,6 +73,12 @@ public class CreateWebFileBrick extends FormulaBrick {
     public void addActionToSequence(Sprite sprite, ScriptSequenceAction sequence) {
         sequence.addAction(sprite.getActionFactory()
                 .createWebFileAction(sprite, sequence,
-                        getFormulaWithBrickField(BrickField.NAME), getFormulaWithBrickField(BrickField.HTML), getFormulaWithBrickField(BrickField.POSX), getFormulaWithBrickField(BrickField.POSY), getFormulaWithBrickField(BrickField.WIDTH), getFormulaWithBrickField(BrickField.HEIGHT)));
+                        getFormulaWithBrickField(BrickField.NAME),
+                        getFormulaWithBrickField(BrickField.HTML),
+                        getFormulaWithBrickField(BrickField.POSX),
+                        getFormulaWithBrickField(BrickField.POSY),
+                        getFormulaWithBrickField(BrickField.WIDTH),
+                        getFormulaWithBrickField(BrickField.HEIGHT),
+                        getFormulaWithBrickField(BrickField.Z_INDEX)));
     }
 }

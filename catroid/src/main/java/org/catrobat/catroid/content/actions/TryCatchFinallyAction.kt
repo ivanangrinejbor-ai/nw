@@ -39,11 +39,12 @@ class TryCatchFinallyAction : Action() {
                 }
 
                 State.CATCHING -> {
-                    if (catchSequence == null || catchSequence!!.actions.size == 0) {
+                    val cs = catchSequence
+                    if (cs == null || cs.actions.size == 0) {
                         state = State.FINALLY
                         continue
                     }
-                    if (catchSequence?.act(delta) == true) {
+                    if (cs.act(delta) == true) {
                         state = State.FINALLY
                         continue
                     }
@@ -51,11 +52,12 @@ class TryCatchFinallyAction : Action() {
                 }
 
                 State.FINALLY -> {
-                    if (finallySequence == null || finallySequence!!.actions.size == 0) {
+                    val fs = finallySequence
+                    if (fs == null || fs.actions.size == 0) {
                         state = State.DONE
                         return true
                     }
-                    if (finallySequence?.act(delta) == true) {
+                    if (fs.act(delta) == true) {
                         state = State.DONE
                         return true
                     }

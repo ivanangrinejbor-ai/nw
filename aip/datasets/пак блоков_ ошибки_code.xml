@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<program>
+  <header>
+    <applicationBuildName></applicationBuildName>
+    <applicationBuildNumber>0</applicationBuildNumber>
+    <applicationBuildType>release</applicationBuildType>
+    <applicationName>NewCatroid</applicationName>
+    <applicationVersion>2.0.3</applicationVersion>
+    <catrobatLanguageVersion>1.13</catrobatLanguageVersion>
+    <dateTimeUpload></dateTimeUpload>
+    <description></description>
+    <deviceName>2207117BPG</deviceName>
+    <isCastProject>false</isCastProject>
+    <landscapeMode>false</landscapeMode>
+    <listeningLanguageTag></listeningLanguageTag>
+    <mediaLicense></mediaLicense>
+    <notesAndCredits></notesAndCredits>
+    <platform>Android</platform>
+    <platformVersion>33</platformVersion>
+    <programLicense></programLicense>
+    <programName>пак блоков: ошибки</programName>
+    <remixOf></remixOf>
+    <scenesEnabled>true</scenesEnabled>
+    <screenHeight>2177</screenHeight>
+    <screenMode>STRETCH</screenMode>
+    <screenWidth>1080</screenWidth>
+    <tags></tags>
+    <url></url>
+    <userHandle></userHandle>
+  </header>
+  <settings/>
+  <scenes>
+    <scene>
+      <name>Сцена</name>
+      <objectList>
+        <object type="Sprite" name="Фон">
+          <lookList/>
+          <soundList/>
+          <scriptList/>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+        <object type="Sprite" name="блок">
+          <lookList>
+            <look fileName="Мой актер или объект.png" name="блок">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList>
+            <script type="UserDefinedScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="CreateDialogBrick">
+                  <brickId>ba2d1319-da3b-4046-a188-20eb9e4902a7</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="MESSAGE">
+                      <additionalChildren/>
+                      <type>USER_DEFINED_BRICK_INPUT</type>
+                      <value>пояснение ошибки</value>
+                    </formula>
+                    <formula category="TITLE">
+                      <additionalChildren/>
+                      <leftChild>
+                        <additionalChildren/>
+                        <type>STRING</type>
+                        <value>error </value>
+                      </leftChild>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>USER_DEFINED_BRICK_INPUT</type>
+                        <value>Error 2 code</value>
+                      </rightChild>
+                      <type>FUNCTION</type>
+                      <value>JOIN</value>
+                    </formula>
+                    <formula category="NAME">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>error 2</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="ShowDialogBrick">
+                  <brickId>6e2bb5b1-d2cd-4585-951f-ebde56377e76</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="NAME">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>error 2</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="WaitBrick">
+                  <brickId>255639bc-c23f-4ab6-a661-6ed209a657c9</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="TIME_TO_WAIT_IN_SECONDS">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>2</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="ExitStageBrick">
+                  <brickId>44eadbcb-7552-486f-8fd6-d97567937032</brickId>
+                  <commentedOut>false</commentedOut>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>6d35c506-9eb5-4097-94cd-4a6e1c642048</scriptId>
+              <screenRefresh>true</screenRefresh>
+              <userDefinedBrickID>e4f9abdb-d824-47c5-8019-7ea9c1996700</userDefinedBrickID>
+              <userDefinedBrickInputs>
+                <userVariable type="UserVariable" serialization="custom">
+                  <userVariable>
+                    <default>
+                      <initialIndex>-1</initialIndex>
+                      <deviceValueKey>85d67a98-eb70-4ec4-910d-2a472481e1c0</deviceValueKey>
+                      <name>Error 2 code</name>
+                    </default>
+                  </userVariable>
+                </userVariable>
+                <userVariable type="UserVariable" serialization="custom">
+                  <userVariable>
+                    <default>
+                      <initialIndex>-1</initialIndex>
+                      <deviceValueKey>d51efd81-811e-4720-94e9-85806a4d2f0c</deviceValueKey>
+                      <name>пояснение ошибки</name>
+                    </default>
+                  </userVariable>
+                </userVariable>
+              </userDefinedBrickInputs>
+            </script>
+            <script type="UserDefinedScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="ShowToastBlock">
+                  <brickId>462d3626-7848-4278-a3da-450514da831e</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="TOAST">
+                      <additionalChildren/>
+                      <leftChild>
+                        <additionalChildren/>
+                        <type>STRING</type>
+                        <value>error </value>
+                      </leftChild>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>USER_DEFINED_BRICK_INPUT</type>
+                        <value>code error</value>
+                      </rightChild>
+                      <type>FUNCTION</type>
+                      <value>JOIN</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="ExitStageBrick">
+                  <brickId>69c73232-401d-4b95-bc0d-1ad42a007847</brickId>
+                  <commentedOut>false</commentedOut>
+                </brick>
+                <brick type="StopScriptBrick">
+                  <brickId>2e13996f-5ce3-4836-bcde-532bb933e020</brickId>
+                  <commentedOut>false</commentedOut>
+                  <spinnerSelection>0</spinnerSelection>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>234d77c3-f6a0-4552-8c25-eb8130e5e49f</scriptId>
+              <screenRefresh>true</screenRefresh>
+              <userDefinedBrickID>0c576b4b-a7a8-4540-814a-062c9882c12a</userDefinedBrickID>
+              <userDefinedBrickInputs>
+                <userVariable type="UserVariable" serialization="custom">
+                  <userVariable>
+                    <default>
+                      <initialIndex>-1</initialIndex>
+                      <deviceValueKey>b73acc77-8659-4b34-bd70-86781ab6c211</deviceValueKey>
+                      <name>code error</name>
+                    </default>
+                  </userVariable>
+                </userVariable>
+              </userDefinedBrickInputs>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList>
+            <brick type="UserDefinedBrick">
+              <brickId>dc4bc85c-210d-40d1-a5fd-0f938ffb3ef9</brickId>
+              <commentedOut>false</commentedOut>
+              <formulaList/>
+              <isCallingBrick>false</isCallingBrick>
+              <userDefinedBrickDataList>
+                <userDefinedBrickLabel>
+                  <type>LABEL</type>
+                  <label>мини ошибка с кодом</label>
+                </userDefinedBrickLabel>
+                <userDefinedBrickInput>
+                  <type>INPUT</type>
+                  <initialIndex>0</initialIndex>
+                  <input>
+                    <input>code error</input>
+                  </input>
+                </userDefinedBrickInput>
+              </userDefinedBrickDataList>
+              <userDefinedBrickID>0c576b4b-a7a8-4540-814a-062c9882c12a</userDefinedBrickID>
+            </brick>
+            <brick type="UserDefinedBrick">
+              <brickId>8f7968ab-01c9-4750-a3c8-76a623e50b3b</brickId>
+              <commentedOut>false</commentedOut>
+              <formulaList/>
+              <isCallingBrick>false</isCallingBrick>
+              <userDefinedBrickDataList>
+                <userDefinedBrickLabel>
+                  <type>LABEL</type>
+                  <label>показать ошибка с кодом</label>
+                </userDefinedBrickLabel>
+                <userDefinedBrickInput>
+                  <type>INPUT</type>
+                  <initialIndex>0</initialIndex>
+                  <input>
+                    <input>Error 2 code</input>
+                  </input>
+                </userDefinedBrickInput>
+                <userDefinedBrickLabel>
+                  <type>LABEL</type>
+                  <label>и с пояснением</label>
+                </userDefinedBrickLabel>
+                <userDefinedBrickInput>
+                  <type>INPUT</type>
+                  <initialIndex>1</initialIndex>
+                  <input>
+                    <input>пояснение ошибки</input>
+                  </input>
+                </userDefinedBrickInput>
+              </userDefinedBrickDataList>
+              <userDefinedBrickID>e4f9abdb-d824-47c5-8019-7ea9c1996700</userDefinedBrickID>
+            </brick>
+          </userDefinedBrickList>
+        </object>
+      </objectList>
+    </scene>
+  </scenes>
+  <programVariableList/>
+  <programListOfLists/>
+  <programMultiplayerVariableList/>
+</program>

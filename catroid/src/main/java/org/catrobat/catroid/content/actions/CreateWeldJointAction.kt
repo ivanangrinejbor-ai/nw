@@ -15,19 +15,19 @@ class CreateWeldJointAction : TemporalAction() {
     private var anchorY: Formula? = null
 
     override fun update(percent: Float) {
-        val id = jointId!!.interpretString(scope)
-        if (id == null || id.isEmpty()) return
-        val otherSpriteName = spriteBName!!.interpretString(scope)
-        if (otherSpriteName == null || otherSpriteName.isEmpty()) return
+        val id = jointId?.interpretString(scope) ?: return
+        if (id.isEmpty()) return
+        val otherSpriteName = spriteBName?.interpretString(scope) ?: return
+        if (otherSpriteName.isEmpty()) return
 
-        val x = anchorX!!.interpretFloat(scope)
-        val y = anchorY!!.interpretFloat(scope)
+        val x = anchorX?.interpretFloat(scope) ?: 0f
+        val y = anchorY?.interpretFloat(scope) ?: 0f
 
-        val stage = scope!!.sprite.look.stage ?: return
+        val spriteA = scope?.sprite ?: return
+        val stage = spriteA.look.stage ?: return
 
         val scene = ProjectManager.getInstance().currentlyPlayingScene ?: return
 
-        val spriteA = scope!!.sprite
         val spriteB: Sprite = scene.getSpriteAll(otherSpriteName)
             ?: return
 

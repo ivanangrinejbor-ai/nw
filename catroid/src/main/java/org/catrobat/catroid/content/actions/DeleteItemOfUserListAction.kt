@@ -45,7 +45,7 @@ class DeleteItemOfUserListAction : TemporalAction() {
         }
 
         if (indexToDelete in 0 until listSize) {
-            userList!!.value.removeAt(indexToDelete)
+            userList?.value?.removeAt(indexToDelete)
         }
     }
 }

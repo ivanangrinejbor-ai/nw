@@ -1,0 +1,672 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<program>
+  <header>
+    <applicationBuildName></applicationBuildName>
+    <applicationBuildNumber>0</applicationBuildNumber>
+    <applicationBuildType>release</applicationBuildType>
+    <applicationName>NewCatroid</applicationName>
+    <applicationVersion>2.1.1b2</applicationVersion>
+    <catrobatLanguageVersion>1.17</catrobatLanguageVersion>
+    <customResolution>false</customResolution>
+    <dateTimeUpload></dateTimeUpload>
+    <description></description>
+    <deviceName>Infinix X6532C</deviceName>
+    <gitRemoteUrl></gitRemoteUrl>
+    <isCastProject>false</isCastProject>
+    <landscapeMode>true</landscapeMode>
+    <listeningLanguageTag></listeningLanguageTag>
+    <mediaLicense></mediaLicense>
+    <notesAndCredits></notesAndCredits>
+    <physicsHeightArea>2.0</physicsHeightArea>
+    <physicsWidthArea>3.0</physicsWidthArea>
+    <platform>Android</platform>
+    <platformVersion>34</platformVersion>
+    <programLicense></programLicense>
+    <programName>3D RayCast</programName>
+    <remixOf></remixOf>
+    <scenesEnabled>true</scenesEnabled>
+    <screenHeight>720</screenHeight>
+    <screenMode>STRETCH</screenMode>
+    <screenWidth>1520</screenWidth>
+    <tags></tags>
+    <url></url>
+    <userHandle></userHandle>
+  </header>
+  <settings/>
+  <scenes>
+    <scene sceneId="5e64ef50-0c8c-4080-9c47-295502a6c26f">
+      <name>Escena</name>
+      <objectList>
+        <object type="Sprite" spriteId="4cc3ef2f-9f62-4276-8d2c-2504ff533bad" name="Fondo">
+          <lookList/>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="CreateWebFileBrick">
+                  <brickId>ac6182a7-3578-4e6b-8dec-c2faada55264</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="WIDTH">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>1600</value>
+                    </formula>
+                    <formula category="POSY">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>0</value>
+                    </formula>
+                    <formula category="NAME">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>HTML</value>
+                    </formula>
+                    <formula category="HTML">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;es&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0, user-scalable=no&quot;&gt;
+    &lt;title&gt;Raycasting 3D con Menú y Texturas Custom&lt;/title&gt;
+    
+    &lt;style&gt;
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #333;
+            user-select: none;
+        }
+
+        #screen3D {
+            display: block;
+            background-color: #000;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        #minimap {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            border: 2px solid white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 5;
+        }
+
+        /* --- Estilos del D-pad --- */
+        #controls {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .dpad-row {
+            display: flex;
+            justify-content: center;
+        }
+
+        #controls button {
+            width: 60px;
+            height: 60px;
+            margin: 5px;
+            font-size: 24px;
+            background-color: rgba(50, 50, 50, 0.8);
+            color: white;
+            border: 2px solid #555;
+            border-radius: 10px;
+            touch-action: manipulation;
+        }
+
+        #controls button:active {
+            background-color: #111;
+            border-color: #999;
+        }
+
+        /* --- Estilos del Menú --- */
+        #menu-toggle {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            width: 50px;
+            height: 50px;
+            font-size: 24px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border: none;
+            border-radius: 5px;
+            z-index: 20;
+            cursor: pointer;
+        }
+
+        #options-menu {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            color: white;
+            display: none; /* Oculto por defecto */
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 15;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        #options-menu.active {
+            display: flex;
+        }
+
+        .menu-control {
+            margin: 15px 0;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            width: 80%;
+            max-width: 400px;
+        }
+
+        .menu-control label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        #ray-count-value {
+            font-weight: normal;
+        }
+        
+        #texture-preview {
+            max-width: 100px;
+            max-height: 100px;
+            margin-top: 10px;
+            border: 1px solid white;
+            display: block;
+        }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+    &lt;canvas id=&quot;screen3D&quot;&gt;&lt;/canvas&gt;
+
+    &lt;canvas id=&quot;minimap&quot;&gt;&lt;/canvas&gt;
+
+    &lt;div id=&quot;controls&quot;&gt;
+        &lt;div class=&quot;dpad-row&quot;&gt;
+            &lt;button id=&quot;forward&quot;&gt;⬆️&lt;/button&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;dpad-row&quot;&gt;
+            &lt;button id=&quot;left&quot;&gt;⬅️&lt;/button&gt;
+            &lt;button id=&quot;backward&quot;&gt;⬇️&lt;/button&gt;
+            &lt;button id=&quot;right&quot;&gt;➡️&lt;/button&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;button id=&quot;menu-toggle&quot;&gt;⚙️&lt;/button&gt;
+
+    &lt;div id=&quot;options-menu&quot;&gt;
+        &lt;h2&gt;Menú de Opciones&lt;/h2&gt;
+
+        &lt;div class=&quot;menu-control&quot;&gt;
+            &lt;label for=&quot;ray-slider&quot;&gt;
+                Cantidad de Rayos (Calidad): &lt;span id=&quot;ray-count-value&quot;&gt;&lt;/span&gt;
+            &lt;/label&gt;
+            &lt;input type=&quot;range&quot; id=&quot;ray-slider&quot; min=&quot;100&quot; max=&quot;1000&quot; step=&quot;50&quot;&gt;
+        &lt;/div&gt;
+
+        &lt;div class=&quot;menu-control&quot;&gt;
+            &lt;label for=&quot;texture-input&quot;&gt;
+                Cargar Textura Customizada (Reemplaza el color de la pared)
+            &lt;/label&gt;
+            &lt;input type=&quot;file&quot; id=&quot;texture-input&quot; accept=&quot;image/*&quot;&gt;
+            &lt;img id=&quot;texture-preview&quot; src=&quot;&quot; alt=&quot;Vista Previa&quot; style=&quot;display:none;&quot;&gt;
+        &lt;/div&gt;
+
+        &lt;button id=&quot;close-menu&quot; style=&quot;padding: 10px 20px; margin-top: 20px; background: #007bff; color: white; border: none; border-radius: 5px;&quot;&gt;
+            Cerrar Menú
+        &lt;/button&gt;
+    &lt;/div&gt;
+
+    &lt;script&gt;
+        // --- CONFIGURACIÓN DEL JUEGO Y VARIABLES ---
+        const SCREEN_WIDTH = window.innerWidth;
+        const SCREEN_HEIGHT = window.innerHeight;
+        const MAP_SIZE = 8;
+        const TILE_SIZE = 64; 
+        let NUM_RAYS = 300; // Variable que se cambiará con el menú
+
+        // Textura personalizada
+        let customTexture = null;
+        let textureCanvas = document.createElement(&apos;canvas&apos;); // Canvas temporal para dibujar la textura
+        let textureCtx = textureCanvas.getContext(&apos;2d&apos;);
+
+        // El mapa (1 = pared, 0 = vacío)
+        const MAP = [
+            [1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 1, 1, 0, 1, 0, 1],
+            [1, 0, 0, 0, 0, 1, 0, 1],
+            [1, 0, 1, 0, 1, 1, 0, 1],
+            [1, 0, 1, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 1, 0, 1],
+            [1, 1, 1, 1, 1, 1, 1, 1]
+        ];
+
+        // Jugador
+        const player = {
+            x: TILE_SIZE * 1.5,
+            y: TILE_SIZE * 1.5,
+            angle: Math.PI / 2, 
+            fov: Math.PI / 3, 
+            speed: 3,
+            rotSpeed: 0.05
+        };
+
+        // Canvas 3D
+        const screen3D = document.getElementById(&apos;screen3D&apos;);
+        const ctx3D = screen3D.getContext(&apos;2d&apos;);
+        screen3D.width = SCREEN_WIDTH;
+        screen3D.height = SCREEN_HEIGHT;
+
+        // Minimapa
+        const MINIMAP_SCALE = 0.15;
+        const MINIMAP_WIDTH = MAP_SIZE * TILE_SIZE * MINIMAP_SCALE;
+        const MINIMAP_HEIGHT = MAP_SIZE * TILE_SIZE * MINIMAP_SCALE;
+        const minimapCanvas = document.getElementById(&apos;minimap&apos;);
+        const ctxMap = minimapCanvas.getContext(&apos;2d&apos;);
+        minimapCanvas.width = MINIMAP_WIDTH;
+        minimapCanvas.height = MINIMAP_HEIGHT;
+
+        // Controles de estado
+        const controls = {
+            forward: false,
+            backward: false,
+            left: false, 
+            right: false, 
+            touchStart: null 
+        };
+        
+        let isMenuOpen = false;
+
+        // --- MANEJO DEL MENÚ Y OPCIONES ---
+
+        const menu = document.getElementById(&apos;options-menu&apos;);
+        const menuToggle = document.getElementById(&apos;menu-toggle&apos;);
+        const closeMenuBtn = document.getElementById(&apos;close-menu&apos;);
+        const raySlider = document.getElementById(&apos;ray-slider&apos;);
+        const rayCountValue = document.getElementById(&apos;ray-count-value&apos;);
+        const textureInput = document.getElementById(&apos;texture-input&apos;);
+        const texturePreview = document.getElementById(&apos;texture-preview&apos;);
+
+        // Inicializar slider y valor
+        raySlider.value = NUM_RAYS;
+        rayCountValue.textContent = NUM_RAYS;
+        
+        // Evento para cambiar la cantidad de rayos
+        raySlider.addEventListener(&apos;input&apos;, () =&gt; {
+            NUM_RAYS = parseInt(raySlider.value);
+            rayCountValue.textContent = NUM_RAYS;
+        });
+
+        // Evento para abrir/cerrar el menú
+        function toggleMenu(open) {
+            isMenuOpen = open;
+            if (isMenuOpen) {
+                menu.classList.add(&apos;active&apos;);
+            } else {
+                menu.classList.remove(&apos;active&apos;);
+            }
+        }
+
+        menuToggle.addEventListener(&apos;click&apos;, () =&gt; toggleMenu(true));
+        closeMenuBtn.addEventListener(&apos;click&apos;, () =&gt; toggleMenu(false));
+
+        // Manejo de la carga de la imagen (Textura Custom)
+        textureInput.addEventListener(&apos;change&apos;, (e) =&gt; {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) =&gt; {
+                    const img = new Image();
+                    img.onload = () =&gt; {
+                        customTexture = img;
+                        // Prepara el canvas temporal para dibujar la textura
+                        textureCanvas.width = img.width;
+                        textureCanvas.height = img.height;
+                        textureCtx.drawImage(img, 0, 0);
+
+                        // Muestra y actualiza la vista previa
+                        texturePreview.src = event.target.result;
+                        texturePreview.style.display = &apos;block&apos;;
+                    };
+                    img.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            } else {
+                customTexture = null;
+                texturePreview.style.display = &apos;none&apos;;
+            }
+        });
+
+
+        // --- SETUP DE CONTROLES D-PAD Y TÁCTIL (SIN CAMBIOS) ---
+        function setupDpad() {
+            const buttons = {
+                &apos;forward&apos;: &apos;forward&apos;, &apos;backward&apos;: &apos;backward&apos;,
+                &apos;left&apos;: &apos;left&apos;, &apos;right&apos;: &apos;right&apos;
+            };
+
+            for (const id in buttons) {
+                const btn = document.getElementById(id);
+                const action = buttons[id];
+
+                btn.addEventListener(&apos;touchstart&apos;, (e) =&gt; {
+                    if (!isMenuOpen) {
+                        e.preventDefault();
+                        controls[action] = true;
+                    }
+                }, { passive: false });
+                btn.addEventListener(&apos;touchend&apos;, (e) =&gt; {
+                    e.preventDefault();
+                    controls[action] = false;
+                });
+            }
+        }
+        setupDpad();
+
+        screen3D.addEventListener(&apos;touchstart&apos;, (e) =&gt; {
+            if (e.target.tagName === &apos;CANVAS&apos; &amp;&amp; !isMenuOpen) {
+                controls.touchStart = e.touches[0].clientX;
+            }
+        });
+
+        screen3D.addEventListener(&apos;touchmove&apos;, (e) =&gt; {
+            if (controls.touchStart !== null &amp;&amp; !isMenuOpen) {
+                const currentX = e.touches[0].clientX;
+                const deltaX = currentX - controls.touchStart;
+                player.angle += (deltaX * 0.001); 
+                controls.touchStart = currentX;
+            }
+        });
+
+        screen3D.addEventListener(&apos;touchend&apos;, () =&gt; {
+            controls.touchStart = null;
+        });
+
+
+        // --- FUNCIÓN DE RAYCASTING (ACTUALIZADA PARA ENCONTRAR OFFSET DE TEXTURA) ---
+        function castRay(rayAngle) {
+            rayAngle = rayAngle % (2 * Math.PI);
+            if (rayAngle &lt; 0) rayAngle += 2 * Math.PI;
+
+            let hit = false;
+            let dist = 0;
+            const step = 1; 
+            const maxDist = 800; 
+
+            let x = player.x;
+            let y = player.y;
+            let wallHitX = 0; // Coordenada X del impacto en el mundo 2D
+            let wallHitY = 0; // Coordenada Y del impacto en el mundo 2D
+
+            const sinA = Math.sin(rayAngle);
+            const cosA = Math.cos(rayAngle);
+
+            while (!hit &amp;&amp; dist &lt; maxDist) {
+                x += cosA * step;
+                y += sinA * step;
+                dist += step;
+
+                const mapX = Math.floor(x / TILE_SIZE);
+                const mapY = Math.floor(y / TILE_SIZE);
+
+                if (mapY &gt;= 0 &amp;&amp; mapY &lt; MAP_SIZE &amp;&amp; mapX &gt;= 0 &amp;&amp; mapX &lt; MAP_SIZE) {
+                    if (MAP[mapY][mapX] === 1) {
+                        hit = true;
+                        wallHitX = x;
+                        wallHitY = y;
+                    }
+                } else {
+                    dist = maxDist;
+                    break;
+                }
+            }
+
+            const wallDist = dist * Math.cos(rayAngle - player.angle);
+
+            // Calcular el offset (dónde golpeó la pared dentro del tile)
+            let textureOffset = 0;
+            if (hit) {
+                // Determinar si golpeó una pared horizontal o vertical para el offset
+                const tileX = Math.floor(wallHitX / TILE_SIZE) * TILE_SIZE;
+                const tileY = Math.floor(wallHitY / TILE_SIZE) * TILE_SIZE;
+                
+                // Si la pared horizontal (Y) es la más cercana (o rayo mira arriba/abajo)
+                if (Math.abs(wallHitY - tileY) &lt; Math.abs(wallHitX - tileX)) {
+                    textureOffset = wallHitX % TILE_SIZE; // Usar la coordenada X dentro del tile
+                } else {
+                    textureOffset = wallHitY % TILE_SIZE; // Usar la coordenada Y dentro del tile
+                }
+            }
+
+
+            return {
+                dist: wallDist,
+                x: wallHitX,
+                y: wallHitY,
+                hit: hit,
+                offset: textureOffset / TILE_SIZE // Offset normalizado de 0 a 1
+            };
+        }
+
+        // --- RENDERIZADO 3D (ACTUALIZADO CON SOPORTE DE TEXTURAS) ---
+        function render3D() {
+            ctx3D.clearRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+
+            // Cielo
+            ctx3D.fillStyle = &apos;#66AADD&apos;;
+            ctx3D.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT / 2);
+
+            // Suelo
+            ctx3D.fillStyle = &apos;#444444&apos;;
+            ctx3D.fillRect(0, SCREEN_HEIGHT / 2, SCREEN_WIDTH, SCREEN_HEIGHT / 2);
+
+
+            const numRays = NUM_RAYS; // Usa la cantidad de rayos del menú
+            const angleStep = player.fov / numRays;
+
+            const walls = []; 
+
+            for (let i = 0; i &lt; numRays; i++) {
+                const rayAngle = player.angle - player.fov / 2 + i * angleStep;
+                const hitData = castRay(rayAngle);
+                walls.push(hitData);
+
+                if (hitData.hit) {
+                    const distance = hitData.dist;
+                    const projectedWallHeight = TILE_SIZE / distance * SCREEN_WIDTH;
+
+                    const lineStart = SCREEN_HEIGHT / 2 - projectedWallHeight / 2;
+                    const lineEnd = SCREEN_HEIGHT / 2 + projectedWallHeight / 2;
+
+                    // Oscurecer por distancia
+                    const darkness = Math.min(1, distance / 300); 
+                    const colorValue = Math.floor(255 * (1 - darkness));
+                    
+                    const wallX = i;
+                    const sliceWidth = SCREEN_WIDTH / numRays;
+
+                    if (customTexture) {
+                        // --- DIBUJO CON TEXTURA CUSTOM ---
+                        const textureWidth = customTexture.width;
+                        const textureHeight = customTexture.height;
+                        
+                        // Coordenada X dentro de la textura
+                        const textureX = Math.floor(hitData.offset * textureWidth); 
+                        
+                        // Dibuja la porción de la textura
+                        ctx3D.globalAlpha = 1.0 - darkness; // Aplica la oscuridad/niebla
+                        ctx3D.drawImage(
+                            customTexture, 
+                            textureX, 0, 
+                            1, textureHeight, // Recorta 1 pixel de ancho de la textura
+                            wallX, lineStart, 
+                            sliceWidth, lineEnd - lineStart // Dibuja en la pantalla
+                        );
+                        ctx3D.globalAlpha = 1.0; // Restaura la opacidad
+                    } else {
+                        // --- DIBUJO CON COLOR SÓLIDO POR DEFECTO ---
+                        ctx3D.fillStyle = `rgb(${colorValue}, ${colorValue}, ${colorValue})`;
+                        ctx3D.fillRect(wallX, lineStart, sliceWidth + 1, lineEnd - lineStart);
+                    }
+                }
+            }
+            return walls;
+        }
+
+        // --- RENDERIZADO DEL MINIMAPA (SIN CAMBIOS) ---
+        function renderMinimap(walls) {
+            // Solo renderiza el minimapa si el menú NO está abierto
+            if (isMenuOpen) {
+                minimapCanvas.style.display = &apos;none&apos;;
+                return;
+            }
+            minimapCanvas.style.display = &apos;block&apos;;
+
+            ctxMap.clearRect(0, 0, MINIMAP_WIDTH, MINIMAP_HEIGHT);
+            ctxMap.save();
+            ctxMap.scale(MINIMAP_SCALE, MINIMAP_SCALE);
+
+            // 1. Dibujar el mapa (Paredes)
+            for (let y = 0; y &lt; MAP_SIZE; y++) {
+                for (let x = 0; x &lt; MAP_SIZE; x++) {
+                    if (MAP[y][x] === 1) {
+                        ctxMap.fillStyle = &apos;rgba(255, 255, 255, 0.7)&apos;;
+                        ctxMap.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+                    }
+                }
+            }
+
+            // 2. Dibujar al Jugador
+            ctxMap.fillStyle = &apos;blue&apos;;
+            ctxMap.beginPath();
+            ctxMap.arc(player.x, player.y, 10, 0, 2 * Math.PI);
+            ctxMap.fill();
+
+            // 3. Dibujar la dirección
+            ctxMap.strokeStyle = &apos;blue&apos;;
+            ctxMap.lineWidth = 3;
+            ctxMap.beginPath();
+            ctxMap.moveTo(player.x, player.y);
+            ctxMap.lineTo(
+                player.x + Math.cos(player.angle) * 20,
+                player.y + Math.sin(player.angle) * 20
+            );
+            ctxMap.stroke();
+
+            // 4. Dibujar los Rayos
+            ctxMap.strokeStyle = &apos;rgba(255, 0, 0, 0.5)&apos;; 
+            ctxMap.lineWidth = 1;
+            walls.forEach(wall =&gt; {
+                if (wall.hit) {
+                    ctxMap.beginPath();
+                    ctxMap.moveTo(player.x, player.y);
+                    ctxMap.lineTo(wall.x, wall.y);
+                    ctxMap.stroke();
+                }
+            });
+
+            ctxMap.restore();
+        }
+
+
+        // --- ACTUALIZACIÓN DEL JUGADOR Y COLISIONES ---
+        function update() {
+            // Detiene el movimiento si el menú está abierto
+            if (isMenuOpen) return;
+
+            let newX = player.x;
+            let newY = player.y;
+
+            // Movimiento
+            if (controls.forward) {
+                newX += Math.cos(player.angle) * player.speed;
+                newY += Math.sin(player.angle) * player.speed;
+            }
+            if (controls.backward) {
+                newX -= Math.cos(player.angle) * player.speed;
+                newY -= Math.sin(player.angle) * player.speed;
+            }
+
+            // Rotación (D-pad)
+            if (controls.left) {
+                player.angle -= player.rotSpeed;
+            }
+            if (controls.right) {
+                player.angle += player.rotSpeed;
+            }
+            
+            // Colisión
+            const newMapX = Math.floor(newX / TILE_SIZE);
+            const newMapY = Math.floor(newY / TILE_SIZE);
+            
+            if (MAP[newMapY][newMapX] === 0) {
+                player.x = newX;
+                player.y = newY;
+            }
+
+            player.angle = player.angle % (2 * Math.PI);
+        }
+
+        // --- BUCLE PRINCIPAL DEL JUEGO ---
+        function gameLoop() {
+            update();
+            const wallsHit = render3D();
+            renderMinimap(wallsHit);
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Inicia el juego
+        gameLoop();
+    &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</value>
+                    </formula>
+                    <formula category="HEIGHT">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>720</value>
+                    </formula>
+                    <formula category="POSX">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>0</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>4fbc3ba3-ff6f-44ee-9b18-0aa7b5e5dff5</scriptId>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+      </objectList>
+    </scene>
+  </scenes>
+  <programVariableList/>
+  <programListOfLists/>
+  <programMultiplayerVariableList/>
+</program>

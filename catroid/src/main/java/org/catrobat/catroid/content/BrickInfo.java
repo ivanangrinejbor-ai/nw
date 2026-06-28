@@ -88,6 +88,9 @@ public final class BrickInfo {
         add(PointToBrick.class, "Поворачивает спрайт к другому спрайту");
         add(SetRotationStyleBrick.class, "Задает тип вращения.");
         add(GlideToBrick.class, "Плавно перемещает спрайт к позиции");
+        add(TweenPositionBrick.class, "Плавно перемещает спрайт к позиции с различными типами анимации (easing). 25 типов: linear, sine, quad, cubic, pow2, pow3, bounce, elastic, swing и др.");
+        add(CreateParticleSystemBrick.class, "Создает систему частиц с заданными параметрами: ID, максимальное количество частиц, время жизни и скорость");
+        add(TimerBrick.class, "Запускает таймер и сохраняет оставшееся время в переменную. Обновляется каждые 100мс");
         add(CreateRevoluteJointBrick.class, "Создает шарнир для 2-х спрайтов со смещением");
         add(CreatePulleyJointBrick.class, "Создает шарнир для 2-х спрайтов, который можно представить как лифт с противовесом\nТочка опоры А             Точка опоры Б\n" +
                 "             (gA)---------------------(gB)\n" +

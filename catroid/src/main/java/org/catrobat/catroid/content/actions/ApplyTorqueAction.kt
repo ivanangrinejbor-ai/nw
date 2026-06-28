@@ -10,10 +10,10 @@ class ApplyTorqueAction : TemporalAction() {
     private var torque: Formula? = null
 
     override fun update(percent: Float) {
-        val torqueValue = torque!!.interpretFloat(scope)
+        val torqueValue = torque?.interpretFloat(scope) ?: 0f
 
         val scene = ProjectManager.getInstance().currentlyPlayingScene ?: return
-        val sprite = scope!!.sprite ?: return
+        val sprite = scope?.sprite ?: return
 
         scene.physicsWorld.applyTorque(sprite, torqueValue)
     }

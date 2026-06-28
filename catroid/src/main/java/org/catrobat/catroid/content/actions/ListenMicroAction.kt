@@ -44,7 +44,7 @@ class ListenMicroAction : TemporalAction() {
     }
 
     override fun update(percent: Float) {
-
+        // Microphone runs via CountDownTimer in begin() — no per-frame update needed
     }
 
     fun stop() {

@@ -55,8 +55,8 @@ class AskAction : Action() {
     }
 
     fun setAnswerText(answer: String) {
-        answerVariable ?: return
-        answerVariable!!.value = answer
+        val variable = answerVariable ?: return
+        variable.value = answer
         answerReceived = true
     }
 

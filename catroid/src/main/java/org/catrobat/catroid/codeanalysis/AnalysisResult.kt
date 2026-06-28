@@ -2,7 +2,8 @@ package org.catrobat.catroid.codeanalysis
 
 enum class Severity {
     WARNING,
-    ERROR
+    ERROR,
+    SUGGESTION
 }
 
 data class AnalysisResult(

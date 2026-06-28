@@ -16,16 +16,17 @@ class RegexAction : TemporalAction() {
     override fun update(percent: Float) {
         val text = text_f?.interpretString(scope) ?: ""
         val regexPattern = regex_f?.interpretString(scope) ?: ""
+        val list = userlist
 
-        if (userlist != null) {
-            userlist!!.reset()
+        if (list != null) {
+            list.reset()
 
             try {
                 val regex = Regex(regexPattern)
                 val matches = regex.findAll(text)
 
                 for (match in matches) {
-                    userlist!!.addListItem(match.value)
+                    list.addListItem(match.value)
                 }
             } catch (e: Exception) {
                 ErrorLog.log(e.message?: "**message not provided :(**")

@@ -17,16 +17,19 @@ class PredictNNAction() : TemporalAction() {
     var variable: UserVariable? = null
 
     private var hasStarted = false
+    private var isFinished = false
 
     override fun act(delta: Float): Boolean {
-        if (!OnnxSessionManager.isWorking) return false
-        if (hasStarted) return true
+        if (!OnnxSessionManager.isWorking) return true
+        if (isFinished) return true
+        if (hasStarted) return false
         hasStarted = true
 
         val arrayName = input?.interpretString(scope)
         val safeVariable = variable
 
         if (arrayName.isNullOrBlank() || safeVariable == null) {
+            isFinished = true
             return true
         }
 
@@ -38,20 +41,21 @@ class PredictNNAction() : TemporalAction() {
                     val bestIndex = FloatArrayManager.findMaxIndex(rawResult)
                     val resultString = rawResult.joinToString(",")
                     safeVariable.value = "$bestIndex\n$resultString"
-
                 } else {
                     safeVariable.value = "ERROR"
                 }
+                isFinished = true
             }
         } else {
             safeVariable.value = "ARRAY_ERROR"
+            isFinished = true
         }
 
-        return true
+        return isFinished
     }
 
     override fun update(percent: Float) {
-
+        // NN prediction runs asynchronously in act() — no per-frame update needed
     }
 
     override fun restart() {

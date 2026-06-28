@@ -1,0 +1,3535 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<program>
+  <header>
+    <applicationBuildName></applicationBuildName>
+    <applicationBuildNumber>0</applicationBuildNumber>
+    <applicationBuildType>release</applicationBuildType>
+    <applicationName>NewCatroid</applicationName>
+    <applicationVersion>2.1.1b2</applicationVersion>
+    <catrobatLanguageVersion>1.17</catrobatLanguageVersion>
+    <customResolution>false</customResolution>
+    <dateTimeUpload></dateTimeUpload>
+    <description></description>
+    <deviceName>CRT-LX1</deviceName>
+    <gitRemoteUrl></gitRemoteUrl>
+    <isCastProject>false</isCastProject>
+    <landscapeMode>false</landscapeMode>
+    <listeningLanguageTag></listeningLanguageTag>
+    <mediaLicense></mediaLicense>
+    <notesAndCredits></notesAndCredits>
+    <physicsHeightArea>2.0</physicsHeightArea>
+    <physicsWidthArea>3.0</physicsWidthArea>
+    <platform>Android</platform>
+    <platformVersion>34</platformVersion>
+    <programLicense></programLicense>
+    <programName>PowerOS 3</programName>
+    <remixOf></remixOf>
+    <scenesEnabled>true</scenesEnabled>
+    <screenHeight>2280</screenHeight>
+    <screenMode>STRETCH</screenMode>
+    <screenWidth>1080</screenWidth>
+    <tags></tags>
+    <url></url>
+    <userHandle></userHandle>
+  </header>
+  <settings/>
+  <scenes>
+    <scene sceneId="d49598d2-622b-416f-b4c9-e94d7d9ac2c1">
+      <name>Запуск </name>
+      <objectList>
+        <object type="Sprite" spriteId="e1ad6a3b-6f6e-48d5-8678-277c38173432" name="Фон">
+          <lookList>
+            <look fileName="Фон.png" lookId="b0ae92bd-ed49-494d-9987-734368843e9b" name="Фон">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="ForeverBrick">
+                  <brickId>b902758a-4c00-47be-8619-f5e566e9386c</brickId>
+                  <commentedOut>false</commentedOut>
+                  <loopBricks>
+                    <brick type="TurnRightBrick">
+                      <brickId>a6766ba3-5c3d-4128-a0d1-fd04e890c09c</brickId>
+                      <commentedOut>false</commentedOut>
+                      <formulaList>
+                        <formula category="TURN_RIGHT_DEGREES">
+                          <additionalChildren/>
+                          <type>NUMBER</type>
+                          <value>1</value>
+                        </formula>
+                      </formulaList>
+                    </brick>
+                  </loopBricks>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>2c52e626-35f3-4401-8065-d79567ae4c35</scriptId>
+            </script>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="WaitBrick">
+                  <brickId>009535f5-6d49-4303-812b-4ca4d8ee483d</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="TIME_TO_WAIT_IN_SECONDS">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>3</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="SceneStartBrick">
+                  <brickId>92c20c31-2cd3-40ba-b4eb-79e1d891fb96</brickId>
+                  <commentedOut>false</commentedOut>
+                  <sceneToStart>Телефон</sceneToStart>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>51f88198-4c0c-4072-b348-b2f9b6dc684d</scriptId>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+      </objectList>
+    </scene>
+    <scene sceneId="55e6daa9-b8e0-4501-aa14-06b6a4ae3ddf">
+      <name>Телефон</name>
+      <objectList>
+        <object type="Sprite" spriteId="fd582f1a-1cda-40aa-b70d-883874d48923" name="Фон">
+          <lookList>
+            <look fileName="Фон.png" lookId="e4d27f0b-d8cc-4a8d-a8c6-d44dc16cc183" name="Фон">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="Фон_#0.png" lookId="0d2bd07c-0051-4439-aed3-0f4494ecd6c6" name="Фон 2">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+            <look fileName="Фон_#1.png" lookId="a2cb99b4-f05d-4d20-9e1d-f616bc3afdb0" name="Фон (1)">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="ForeverBrick">
+                  <brickId>3f311b49-05ee-45e1-b524-8e0450a516d7</brickId>
+                  <commentedOut>false</commentedOut>
+                  <loopBricks>
+                    <brick type="WaitBrick">
+                      <brickId>7ce280fa-e72f-46b6-baf7-cd7aad2c66d5</brickId>
+                      <commentedOut>false</commentedOut>
+                      <formulaList>
+                        <formula category="TIME_TO_WAIT_IN_SECONDS">
+                          <additionalChildren/>
+                          <type>NUMBER</type>
+                          <value>10</value>
+                        </formula>
+                      </formulaList>
+                    </brick>
+                    <brick type="NextLookBrick">
+                      <brickId>4d19978e-3342-4376-b8cc-0f6940b0a6d5</brickId>
+                      <commentedOut>false</commentedOut>
+                    </brick>
+                  </loopBricks>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>dbd2aa5c-9a5f-4f30-b1ea-d78596831000</scriptId>
+            </script>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="ShowTextBrick">
+                  <brickId>44fae997-477b-4630-95ae-e2ce3cbe7652</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="X_POSITION">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>336</value>
+                    </formula>
+                    <formula category="Y_POSITION">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>994</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable type="UserVariable" serialization="custom">
+                    <userVariable>
+                      <default>
+                        <initialIndex>1</initialIndex>
+                        <deviceValueKey>22d88314-08ea-446f-8ffe-1b6575f9c75d</deviceValueKey>
+                        <name>проценты</name>
+                      </default>
+                    </userVariable>
+                  </userVariable>
+                </brick>
+                <brick type="ShowTextBrick">
+                  <brickId>b599c041-b82c-4a42-b0f7-c957ae2b8cce</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="X_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>364</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                    <formula category="Y_POSITION">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>1005</value>
+                    </formula>
+                  </formulaList>
+                  <userVariable type="UserVariable" serialization="custom">
+                    <userVariable>
+                      <default>
+                        <initialIndex>0</initialIndex>
+                        <deviceValueKey>74eb7b9d-32ea-4c10-852e-ef1cabf08148</deviceValueKey>
+                        <name>время</name>
+                      </default>
+                    </userVariable>
+                  </userVariable>
+                </brick>
+                <brick type="ForeverBrick">
+                  <brickId>d4c4d37c-14b1-4d12-bd86-158b0d8df449</brickId>
+                  <commentedOut>false</commentedOut>
+                  <loopBricks>
+                    <brick type="SetVariableBrick">
+                      <brickId>f6fa5da7-01c2-498e-8cba-4452c1bbd3ce</brickId>
+                      <commentedOut>false</commentedOut>
+                      <formulaList>
+                        <formula category="VARIABLE">
+                          <additionalChildren/>
+                          <leftChild>
+                            <additionalChildren/>
+                            <type>SENSOR</type>
+                            <value>BATTARY</value>
+                          </leftChild>
+                          <rightChild>
+                            <additionalChildren/>
+                            <type>STRING</type>
+                            <value>%</value>
+                          </rightChild>
+                          <type>FUNCTION</type>
+                          <value>JOIN</value>
+                        </formula>
+                      </formulaList>
+                      <userVariable reference="../../../../brick/userVariable"/>
+                    </brick>
+                    <brick type="SetVariableBrick">
+                      <brickId>1fc37011-8f6f-4365-b5d6-8cdcc56d48fd</brickId>
+                      <commentedOut>false</commentedOut>
+                      <formulaList>
+                        <formula category="VARIABLE">
+                          <additionalChildren>
+                            <org.catrobat.catroid.formulaeditor.FormulaElement>
+                              <additionalChildren/>
+                              <type>SENSOR</type>
+                              <value>TIME_MINUTE</value>
+                            </org.catrobat.catroid.formulaeditor.FormulaElement>
+                          </additionalChildren>
+                          <leftChild>
+                            <additionalChildren/>
+                            <type>SENSOR</type>
+                            <value>TIME_HOUR</value>
+                          </leftChild>
+                          <rightChild>
+                            <additionalChildren/>
+                            <type>STRING</type>
+                            <value>:</value>
+                          </rightChild>
+                          <type>FUNCTION</type>
+                          <value>JOIN3</value>
+                        </formula>
+                      </formulaList>
+                      <userVariable reference="../../../../brick[2]/userVariable"/>
+                    </brick>
+                  </loopBricks>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>98b5cf70-672c-488a-931f-777128f99d2e</scriptId>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+        <object type="Sprite" spriteId="0edcfa7e-33fe-475a-a01c-d86268bcb29e" name="фон">
+          <lookList>
+            <look fileName="Мой актер или объект.png" lookId="982e279a-d537-40e4-9080-d04a9ae90934" name="фон">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList/>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+        <object type="Sprite" spriteId="9e6cd6e2-c82b-4341-ad96-38386b767f4e" name="Браузер">
+          <lookList>
+            <look fileName="Мой актер или объект_#0.png" lookId="ce7c4ac1-267d-4c43-8f66-26db40ec679f" name="Браузер">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="PlaceAtBrick">
+                  <brickId>ba4c75aa-d780-4c9d-819a-df7190b3a359</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="X_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>350</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                    <formula category="Y_POSITION">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>641</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>f2362118-7306-48eb-bb25-6b5239fd2cb9</scriptId>
+            </script>
+            <script type="WhenScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="CreateWebUrlBrick">
+                  <brickId>b987a3fe-69fc-4b4c-8d72-4276015b98dc</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="POSX">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>0</value>
+                    </formula>
+                    <formula category="WIDTH">
+                      <additionalChildren/>
+                      <type>SENSOR</type>
+                      <value>STAGE_WIDTH</value>
+                    </formula>
+                    <formula category="POSY">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>0</value>
+                    </formula>
+                    <formula category="NAME">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>Browser</value>
+                    </formula>
+                    <formula category="URL">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>https://google.com</value>
+                    </formula>
+                    <formula category="HEIGHT">
+                      <additionalChildren/>
+                      <type>SENSOR</type>
+                      <value>STAGE_HEIGHT</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>e6dc75b3-1edc-4f1b-a583-c9a9bc4ffa35</scriptId>
+            </script>
+            <org.catrobat.catroid.content.BackPressedScript type="BackPressedScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="CreateWebUrlBrick">
+                  <brickId>3b6243a7-5eee-4830-a1d3-f48490915f8c</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="POSX">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>0</value>
+                    </formula>
+                    <formula category="WIDTH">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>0</value>
+                    </formula>
+                    <formula category="POSY">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>0</value>
+                    </formula>
+                    <formula category="NAME">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>Browser</value>
+                    </formula>
+                    <formula category="URL">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>https://google.com</value>
+                    </formula>
+                    <formula category="HEIGHT">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>0</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>90203df0-e34a-4ae4-9b4e-53681164f9cb</scriptId>
+            </org.catrobat.catroid.content.BackPressedScript>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+        <object type="Sprite" spriteId="6b013136-0d0d-4340-9565-f777ac8dd744" name="EJ">
+          <lookList>
+            <look fileName="Мой актер или объект_#1.png" lookId="55496afc-d662-439d-87fd-7f5885c13769" name="Браузер (1)">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="PlaceAtBrick">
+                  <brickId>23838e37-c68d-4b73-b38c-16df444e36a9</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="X_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>2</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                    <formula category="Y_POSITION">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>641</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="PointInDirectionBrick">
+                  <brickId>203ea8bf-fc21-4e4b-93b4-f30fabee8ca5</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="DEGREES">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>90.0</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="SetSizeToBrick">
+                  <brickId>ebb6aaa8-1c7a-417b-848d-791d71be67fd</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="SIZE">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>100.0</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>8ab624d2-94ef-4683-b7e4-237ad7fae08e</scriptId>
+            </script>
+            <script type="WhenScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="CreateWebFileBrick">
+                  <brickId>33cf83a4-e011-48f4-9eeb-c4af0d4cfe35</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="POSX">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>0</value>
+                    </formula>
+                    <formula category="WIDTH">
+                      <additionalChildren/>
+                      <type>SENSOR</type>
+                      <value>STAGE_WIDTH</value>
+                    </formula>
+                    <formula category="POSY">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>0</value>
+                    </formula>
+                    <formula category="NAME">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>EJ</value>
+                    </formula>
+                    <formula category="HTML">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;ru&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no&quot;&gt;
+    &lt;title&gt;Doodle Jump Horizontal Fixed&lt;/title&gt;
+    &lt;style&gt;
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #f0f8ff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: &apos;Segoe UI&apos;, Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+        #gameContainer {
+            position: relative;
+            width: 400px;
+            height: 600px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            background-color: #fff;
+            overflow: hidden;
+            border-radius: 10px;
+        }
+        @media (max-width: 420px) {
+            #gameContainer {
+                width: 100vw;
+                height: 100vh;
+                border-radius: 0;
+            }
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            background: url(&apos;data:image/svg+xml;utf8,&lt;svg xmlns=&quot;http://www.w3.org/2000/svg&quot; width=&quot;40&quot; height=&quot;40&quot;&gt;&lt;rect width=&quot;40&quot; height=&quot;40&quot; fill=&quot;%23f9f9f9&quot;/&gt;&lt;path d=&quot;M0 40 L40 0&quot; stroke=&quot;%23ececec&quot; stroke-width=&quot;1&quot;/&gt;&lt;/svg&gt;&apos;);
+        }
+        .ui-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: rgba(255, 255, 255, 0.9);
+            z-index: 10;
+        }
+        .hidden {
+            display: none !important;
+        }
+        h1 {
+            color: #333;
+            font-size: 36px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        p {
+            color: #666;
+            font-size: 16px;
+            margin-bottom: 30px;
+            text-align: center;
+            line-height: 1.5;
+        }
+        button {
+            padding: 15px 40px;
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+            background-color: #4CAF50;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #scoreDisplay {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            z-index: 5;
+            display: none;
+        }
+        #mobileControls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 150px;
+            display: none;
+            z-index: 6;
+        }
+        .touch-btn {
+            position: absolute;
+            top: 0;
+            width: 50%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.02);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 40px;
+            color: rgba(0, 0, 0, 0.1);
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        #leftBtn { left: 0; border-right: 1px dashed rgba(0,0,0,0.05); }
+        #rightBtn { right: 0; }
+        .touch-btn:active {
+            background-color: rgba(0, 0, 0, 0.08);
+            color: rgba(0, 0, 0, 0.2);
+        }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+&lt;div id=&quot;gameContainer&quot;&gt;
+    &lt;div id=&quot;scoreDisplay&quot;&gt;0&lt;/div&gt;
+    &lt;canvas id=&quot;gameCanvas&quot; width=&quot;400&quot; height=&quot;600&quot;&gt;&lt;/canvas&gt;
+
+    &lt;div id=&quot;mobileControls&quot;&gt;
+        &lt;div id=&quot;leftBtn&quot; class=&quot;touch-btn&quot;&gt;◀&lt;/div&gt;
+        &lt;div id=&quot;rightBtn&quot; class=&quot;touch-btn&quot;&gt;▶&lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;div id=&quot;mainMenu&quot; class=&quot;ui-screen&quot;&gt;
+        &lt;h1&gt;Jumper&lt;/h1&gt;
+        &lt;p&gt;Управление на ПК: Стрелки или A/D&lt;br&gt;На телефоне: Нажимайте по краям экрана&lt;/p&gt;
+        &lt;button id=&quot;startBtn&quot;&gt;Играть&lt;/button&gt;
+    &lt;/div&gt;
+
+    &lt;div id=&quot;gameOverScreen&quot; class=&quot;ui-screen hidden&quot;&gt;
+        &lt;h1&gt;Игра окончена&lt;/h1&gt;
+        &lt;p&gt;Ваш счет: &lt;span id=&quot;finalScore&quot;&gt;0&lt;/span&gt;&lt;/p&gt;
+        &lt;button id=&quot;restartBtn&quot;&gt;Повторить&lt;/button&gt;
+    &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;script&gt;
+    const canvas = document.getElementById(&apos;gameCanvas&apos;);
+    const ctx = canvas.getContext(&apos;2d&apos;);
+    
+    const mainMenu = document.getElementById(&apos;mainMenu&apos;);
+    const gameOverScreen = document.getElementById(&apos;gameOverScreen&apos;);
+    const scoreDisplay = document.getElementById(&apos;scoreDisplay&apos;);
+    const mobileControls = document.getElementById(&apos;mobileControls&apos;);
+    const finalScore = document.getElementById(&apos;finalScore&apos;);
+    const startBtn = document.getElementById(&apos;startBtn&apos;);
+    const restartBtn = document.getElementById(&apos;restartBtn&apos;);
+    const leftBtn = document.getElementById(&apos;leftBtn&apos;);
+    const rightBtn = document.getElementById(&apos;rightBtn&apos;);
+
+    let gameState = &apos;menu&apos;;
+    let animationId;
+    
+    let score = 0;
+    let totalHeightClimbed = 0; 
+
+    const player = {
+        x: 200,
+        y: 300,
+        width: 30,
+        height: 30,
+        dx: 0,
+        dy: 0,
+        jumpPower: -10,
+        gravity: 0.4,
+        speed: 6
+    };
+
+    let platforms = [];
+    const platformWidth = 60;
+    const platformHeight = 15;
+    const platformCount = 7;
+    const maxHorizontalGap = 130; // Максимальное расстояние по горизонтали между платформами
+
+    let keys = { left: false, right: false };
+
+    document.addEventListener(&apos;keydown&apos;, (e) =&gt; {
+        if (e.code === &apos;ArrowLeft&apos; || e.code === &apos;KeyA&apos;) keys.left = true;
+        if (e.code === &apos;ArrowRight&apos; || e.code === &apos;KeyD&apos;) keys.right = true;
+    });
+
+    document.addEventListener(&apos;keyup&apos;, (e) =&gt; {
+        if (e.code === &apos;ArrowLeft&apos; || e.code === &apos;KeyA&apos;) keys.left = false;
+        if (e.code === &apos;ArrowRight&apos; || e.code === &apos;KeyD&apos;) keys.right = false;
+    });
+
+    leftBtn.addEventListener(&apos;touchstart&apos;, (e) =&gt; { e.preventDefault(); keys.left = true; });
+    leftBtn.addEventListener(&apos;touchend&apos;, (e) =&gt; { e.preventDefault(); keys.left = false; });
+    rightBtn.addEventListener(&apos;touchstart&apos;, (e) =&gt; { e.preventDefault(); keys.right = true; });
+    rightBtn.addEventListener(&apos;touchend&apos;, (e) =&gt; { e.preventDefault(); keys.right = false; });
+
+    leftBtn.addEventListener(&apos;mousedown&apos;, () =&gt; keys.left = true);
+    leftBtn.addEventListener(&apos;mouseup&apos;, () =&gt; keys.left = false);
+    leftBtn.addEventListener(&apos;mouseleave&apos;, () =&gt; keys.left = false);
+    rightBtn.addEventListener(&apos;mousedown&apos;, () =&gt; keys.right = true);
+    rightBtn.addEventListener(&apos;mouseup&apos;, () =&gt; keys.right = false);
+    rightBtn.addEventListener(&apos;mouseleave&apos;, () =&gt; keys.right = false);
+
+    // Функция генерации безопасной X координаты относительно предыдущей платформы
+    function getNextPlatformX(prevX) {
+        // Выбираем случайное смещение от -maxHorizontalGap до +maxHorizontalGap
+        let offset = (Math.random() * 2 - 1) * maxHorizontalGap;
+        let newX = prevX + offset;
+
+        // Удерживаем платформу в пределах видимости экрана
+        if (newX &lt; 0) newX = 0;
+        if (newX &gt; canvas.width - platformWidth) newX = canvas.width - platformWidth;
+
+        return newX;
+    }
+
+    function initPlatforms() {
+        platforms = [];
+        let currentY = player.y + 50;
+        let lastX = player.x - platformWidth / 2;
+
+        // Первая платформа строго под игроком
+        platforms.push({ x: lastX, y: currentY });
+        
+        for (let i = 1; i &lt; platformCount; i++) {
+            let gapY = 75 + Math.random() * 35;
+            currentY -= gapY;
+            
+            // Генерируем X на основе предыдущей платформы
+            let nextX = getNextPlatformX(lastX);
+            platforms.push({ x: nextX, y: currentY });
+            lastX = nextX;
+        }
+    }
+
+    function resetGame() {
+        player.x = canvas.width / 2;
+        player.y = canvas.height / 2;
+        player.dx = 0;
+        player.dy = 0;
+        score = 0;
+        totalHeightClimbed = 0;
+        scoreDisplay.innerText = score;
+        initPlatforms();
+    }
+
+    function drawPlayer() {
+        ctx.fillStyle = &apos;#4CAF50&apos;;
+        ctx.fillRect(player.x - player.width / 2, player.y - player.height / 2, player.width, player.height);
+        
+        ctx.fillStyle = &apos;#fff&apos;;
+        let eyeOffset = keys.left ? -3 : (keys.right ? 3 : 0);
+
+        ctx.fillRect(player.x - 8 + eyeOffset, player.y - 10, 6, 6);
+        ctx.fillRect(player.x + 2 + eyeOffset, player.y - 10, 6, 6);
+        ctx.fillStyle = &apos;#000&apos;;
+        ctx.fillRect(player.x - 6 + eyeOffset, player.y - 8, 2, 2);
+        ctx.fillRect(player.x + 4 + eyeOffset, player.y - 8, 2, 2);
+    }
+
+    function drawPlatforms() {
+        ctx.fillStyle = &apos;#8BC34A&apos;;
+        platforms.forEach(p =&gt; {
+            ctx.fillRect(p.x, p.y, platformWidth, platformHeight);
+            ctx.fillStyle = &apos;#689F38&apos;;
+            ctx.fillRect(p.x, p.y + platformHeight - 3, platformWidth, 3);
+            ctx.fillStyle = &apos;#8BC34A&apos;;
+        });
+    }
+
+    function update() {
+        if (gameState !== &apos;playing&apos;) return;
+
+        if (keys.left) player.x -= player.speed;
+        if (keys.right) player.x += player.speed;
+
+        if (player.x &lt; 0) player.x = canvas.width;
+        if (player.x &gt; canvas.width) player.x = 0;
+
+        player.dy += player.gravity;
+        player.y += player.dy;
+
+        if (player.dy &gt; 0) {
+            platforms.forEach(p =&gt; {
+                if (
+                    player.y + player.height / 2 &gt;= p.y &amp;&amp;
+                    player.y + player.height / 2 &lt;= p.y + platformHeight &amp;&amp;
+                    player.x + player.width / 2 &gt; p.x &amp;&amp;
+                    player.x - player.width / 2 &lt; p.x + platformWidth
+                ) {
+                    player.dy = player.jumpPower;
+                }
+            });
+        }
+
+        if (player.y &lt; canvas.height / 2) {
+            let offset = canvas.height / 2 - player.y;
+            player.y = canvas.height / 2;
+            
+            totalHeightClimbed += offset;
+            score = Math.floor(totalHeightClimbed / 5);
+            scoreDisplay.innerText = score;
+
+            platforms.forEach(p =&gt; { p.y += offset; });
+
+            // Ищем самую высокую платформу на данный момент по координате Y,
+            // а также сохраняем её координату X, чтобы отталкиваться от неё
+            let highestY = canvas.height;
+            let highestX = canvas.width / 2;
+
+            platforms.forEach(p =&gt; {
+                if (p.y &lt; highestY &amp;&amp; p.y &lt;= canvas.height) {
+                    highestY = p.y;
+                    highestX = p.x;
+                }
+            });
+
+            // ИСПРАВЛЕНИЕ: Переносим улетевшие платформы с умным расчётом по X и Y
+            for (let i = 0; i &lt; platforms.length; i++) {
+                if (platforms[i].y &gt; canvas.height) {
+                    let gapY = 75 + Math.random() * 35;
+                    
+                    platforms[i].y = highestY - gapY;
+                    // Генерируем X поблизости от текущей самой верхней платформы
+                    platforms[i].x = getNextPlatformX(highestX);
+                    
+                    // Обновляем верхние ориентиры для следующей итерации
+                    highestY = platforms[i].y; 
+                    highestX = platforms[i].x;
+                }
+            }
+        }
+
+        if (player.y &gt; canvas.height) {
+            gameState = &apos;gameover&apos;;
+            finalScore.innerText = score;
+            scoreDisplay.style.display = &apos;none&apos;;
+            mobileControls.style.display = &apos;none&apos;;
+            gameOverScreen.classList.remove(&apos;hidden&apos;);
+        }
+    }
+
+    function loop() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        if (gameState === &apos;playing&apos;) {
+            update();
+            drawPlatforms();
+            drawPlayer();
+        }
+        animationId = requestAnimationFrame(loop);
+    }
+
+    function startGame() {
+        mainMenu.classList.add(&apos;hidden&apos;);
+        gameOverScreen.classList.add(&apos;hidden&apos;);
+        scoreDisplay.style.display = &apos;block&apos;;
+        mobileControls.style.display = &apos;block&apos;;
+        resetGame();
+        gameState = &apos;playing&apos;;
+    }
+
+    startBtn.addEventListener(&apos;click&apos;, startGame);
+    restartBtn.addEventListener(&apos;click&apos;, startGame);
+
+    resetGame();
+    loop();
+&lt;/script&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;
+</value>
+                    </formula>
+                    <formula category="HEIGHT">
+                      <additionalChildren/>
+                      <type>SENSOR</type>
+                      <value>STAGE_HEIGHT</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>ec1eae6e-7db0-40f2-ad64-049a4a9ee025</scriptId>
+            </script>
+            <org.catrobat.catroid.content.BackPressedScript type="BackPressedScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="CreateWebFileBrick">
+                  <brickId>567caa57-58d6-4c8e-a4a8-51721ce64b47</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="POSX">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>0</value>
+                    </formula>
+                    <formula category="WIDTH">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>0</value>
+                    </formula>
+                    <formula category="POSY">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>0</value>
+                    </formula>
+                    <formula category="NAME">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>EJ</value>
+                    </formula>
+                    <formula category="HTML">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;ru&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no&quot;&gt;
+    &lt;title&gt;Doodle Jump Horizontal Fixed&lt;/title&gt;
+    &lt;style&gt;
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #f0f8ff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: &apos;Segoe UI&apos;, Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+        #gameContainer {
+            position: relative;
+            width: 400px;
+            height: 600px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            background-color: #fff;
+            overflow: hidden;
+            border-radius: 10px;
+        }
+        @media (max-width: 420px) {
+            #gameContainer {
+                width: 100vw;
+                height: 100vh;
+                border-radius: 0;
+            }
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            background: url(&apos;data:image/svg+xml;utf8,&lt;svg xmlns=&quot;http://www.w3.org/2000/svg&quot; width=&quot;40&quot; height=&quot;40&quot;&gt;&lt;rect width=&quot;40&quot; height=&quot;40&quot; fill=&quot;%23f9f9f9&quot;/&gt;&lt;path d=&quot;M0 40 L40 0&quot; stroke=&quot;%23ececec&quot; stroke-width=&quot;1&quot;/&gt;&lt;/svg&gt;&apos;);
+        }
+        .ui-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: rgba(255, 255, 255, 0.9);
+            z-index: 10;
+        }
+        .hidden {
+            display: none !important;
+        }
+        h1 {
+            color: #333;
+            font-size: 36px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        p {
+            color: #666;
+            font-size: 16px;
+            margin-bottom: 30px;
+            text-align: center;
+            line-height: 1.5;
+        }
+        button {
+            padding: 15px 40px;
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+            background-color: #4CAF50;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #scoreDisplay {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            z-index: 5;
+            display: none;
+        }
+        #mobileControls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 150px;
+            display: none;
+            z-index: 6;
+        }
+        .touch-btn {
+            position: absolute;
+            top: 0;
+            width: 50%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.02);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 40px;
+            color: rgba(0, 0, 0, 0.1);
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        #leftBtn { left: 0; border-right: 1px dashed rgba(0,0,0,0.05); }
+        #rightBtn { right: 0; }
+        .touch-btn:active {
+            background-color: rgba(0, 0, 0, 0.08);
+            color: rgba(0, 0, 0, 0.2);
+        }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+&lt;div id=&quot;gameContainer&quot;&gt;
+    &lt;div id=&quot;scoreDisplay&quot;&gt;0&lt;/div&gt;
+    &lt;canvas id=&quot;gameCanvas&quot; width=&quot;400&quot; height=&quot;600&quot;&gt;&lt;/canvas&gt;
+
+    &lt;div id=&quot;mobileControls&quot;&gt;
+        &lt;div id=&quot;leftBtn&quot; class=&quot;touch-btn&quot;&gt;◀&lt;/div&gt;
+        &lt;div id=&quot;rightBtn&quot; class=&quot;touch-btn&quot;&gt;▶&lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;div id=&quot;mainMenu&quot; class=&quot;ui-screen&quot;&gt;
+        &lt;h1&gt;Jumper&lt;/h1&gt;
+        &lt;p&gt;Управление на ПК: Стрелки или A/D&lt;br&gt;На телефоне: Нажимайте по краям экрана&lt;/p&gt;
+        &lt;button id=&quot;startBtn&quot;&gt;Играть&lt;/button&gt;
+    &lt;/div&gt;
+
+    &lt;div id=&quot;gameOverScreen&quot; class=&quot;ui-screen hidden&quot;&gt;
+        &lt;h1&gt;Игра окончена&lt;/h1&gt;
+        &lt;p&gt;Ваш счет: &lt;span id=&quot;finalScore&quot;&gt;0&lt;/span&gt;&lt;/p&gt;
+        &lt;button id=&quot;restartBtn&quot;&gt;Повторить&lt;/button&gt;
+    &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;script&gt;
+    const canvas = document.getElementById(&apos;gameCanvas&apos;);
+    const ctx = canvas.getContext(&apos;2d&apos;);
+    
+    const mainMenu = document.getElementById(&apos;mainMenu&apos;);
+    const gameOverScreen = document.getElementById(&apos;gameOverScreen&apos;);
+    const scoreDisplay = document.getElementById(&apos;scoreDisplay&apos;);
+    const mobileControls = document.getElementById(&apos;mobileControls&apos;);
+    const finalScore = document.getElementById(&apos;finalScore&apos;);
+    const startBtn = document.getElementById(&apos;startBtn&apos;);
+    const restartBtn = document.getElementById(&apos;restartBtn&apos;);
+    const leftBtn = document.getElementById(&apos;leftBtn&apos;);
+    const rightBtn = document.getElementById(&apos;rightBtn&apos;);
+
+    let gameState = &apos;menu&apos;;
+    let animationId;
+    
+    let score = 0;
+    let totalHeightClimbed = 0; 
+
+    const player = {
+        x: 200,
+        y: 300,
+        width: 30,
+        height: 30,
+        dx: 0,
+        dy: 0,
+        jumpPower: -10,
+        gravity: 0.4,
+        speed: 6
+    };
+
+    let platforms = [];
+    const platformWidth = 60;
+    const platformHeight = 15;
+    const platformCount = 7;
+    const maxHorizontalGap = 130; // Максимальное расстояние по горизонтали между платформами
+
+    let keys = { left: false, right: false };
+
+    document.addEventListener(&apos;keydown&apos;, (e) =&gt; {
+        if (e.code === &apos;ArrowLeft&apos; || e.code === &apos;KeyA&apos;) keys.left = true;
+        if (e.code === &apos;ArrowRight&apos; || e.code === &apos;KeyD&apos;) keys.right = true;
+    });
+
+    document.addEventListener(&apos;keyup&apos;, (e) =&gt; {
+        if (e.code === &apos;ArrowLeft&apos; || e.code === &apos;KeyA&apos;) keys.left = false;
+        if (e.code === &apos;ArrowRight&apos; || e.code === &apos;KeyD&apos;) keys.right = false;
+    });
+
+    leftBtn.addEventListener(&apos;touchstart&apos;, (e) =&gt; { e.preventDefault(); keys.left = true; });
+    leftBtn.addEventListener(&apos;touchend&apos;, (e) =&gt; { e.preventDefault(); keys.left = false; });
+    rightBtn.addEventListener(&apos;touchstart&apos;, (e) =&gt; { e.preventDefault(); keys.right = true; });
+    rightBtn.addEventListener(&apos;touchend&apos;, (e) =&gt; { e.preventDefault(); keys.right = false; });
+
+    leftBtn.addEventListener(&apos;mousedown&apos;, () =&gt; keys.left = true);
+    leftBtn.addEventListener(&apos;mouseup&apos;, () =&gt; keys.left = false);
+    leftBtn.addEventListener(&apos;mouseleave&apos;, () =&gt; keys.left = false);
+    rightBtn.addEventListener(&apos;mousedown&apos;, () =&gt; keys.right = true);
+    rightBtn.addEventListener(&apos;mouseup&apos;, () =&gt; keys.right = false);
+    rightBtn.addEventListener(&apos;mouseleave&apos;, () =&gt; keys.right = false);
+
+    // Функция генерации безопасной X координаты относительно предыдущей платформы
+    function getNextPlatformX(prevX) {
+        // Выбираем случайное смещение от -maxHorizontalGap до +maxHorizontalGap
+        let offset = (Math.random() * 2 - 1) * maxHorizontalGap;
+        let newX = prevX + offset;
+
+        // Удерживаем платформу в пределах видимости экрана
+        if (newX &lt; 0) newX = 0;
+        if (newX &gt; canvas.width - platformWidth) newX = canvas.width - platformWidth;
+
+        return newX;
+    }
+
+    function initPlatforms() {
+        platforms = [];
+        let currentY = player.y + 50;
+        let lastX = player.x - platformWidth / 2;
+
+        // Первая платформа строго под игроком
+        platforms.push({ x: lastX, y: currentY });
+        
+        for (let i = 1; i &lt; platformCount; i++) {
+            let gapY = 75 + Math.random() * 35;
+            currentY -= gapY;
+            
+            // Генерируем X на основе предыдущей платформы
+            let nextX = getNextPlatformX(lastX);
+            platforms.push({ x: nextX, y: currentY });
+            lastX = nextX;
+        }
+    }
+
+    function resetGame() {
+        player.x = canvas.width / 2;
+        player.y = canvas.height / 2;
+        player.dx = 0;
+        player.dy = 0;
+        score = 0;
+        totalHeightClimbed = 0;
+        scoreDisplay.innerText = score;
+        initPlatforms();
+    }
+
+    function drawPlayer() {
+        ctx.fillStyle = &apos;#4CAF50&apos;;
+        ctx.fillRect(player.x - player.width / 2, player.y - player.height / 2, player.width, player.height);
+        
+        ctx.fillStyle = &apos;#fff&apos;;
+        let eyeOffset = keys.left ? -3 : (keys.right ? 3 : 0);
+
+        ctx.fillRect(player.x - 8 + eyeOffset, player.y - 10, 6, 6);
+        ctx.fillRect(player.x + 2 + eyeOffset, player.y - 10, 6, 6);
+        ctx.fillStyle = &apos;#000&apos;;
+        ctx.fillRect(player.x - 6 + eyeOffset, player.y - 8, 2, 2);
+        ctx.fillRect(player.x + 4 + eyeOffset, player.y - 8, 2, 2);
+    }
+
+    function drawPlatforms() {
+        ctx.fillStyle = &apos;#8BC34A&apos;;
+        platforms.forEach(p =&gt; {
+            ctx.fillRect(p.x, p.y, platformWidth, platformHeight);
+            ctx.fillStyle = &apos;#689F38&apos;;
+            ctx.fillRect(p.x, p.y + platformHeight - 3, platformWidth, 3);
+            ctx.fillStyle = &apos;#8BC34A&apos;;
+        });
+    }
+
+    function update() {
+        if (gameState !== &apos;playing&apos;) return;
+
+        if (keys.left) player.x -= player.speed;
+        if (keys.right) player.x += player.speed;
+
+        if (player.x &lt; 0) player.x = canvas.width;
+        if (player.x &gt; canvas.width) player.x = 0;
+
+        player.dy += player.gravity;
+        player.y += player.dy;
+
+        if (player.dy &gt; 0) {
+            platforms.forEach(p =&gt; {
+                if (
+                    player.y + player.height / 2 &gt;= p.y &amp;&amp;
+                    player.y + player.height / 2 &lt;= p.y + platformHeight &amp;&amp;
+                    player.x + player.width / 2 &gt; p.x &amp;&amp;
+                    player.x - player.width / 2 &lt; p.x + platformWidth
+                ) {
+                    player.dy = player.jumpPower;
+                }
+            });
+        }
+
+        if (player.y &lt; canvas.height / 2) {
+            let offset = canvas.height / 2 - player.y;
+            player.y = canvas.height / 2;
+            
+            totalHeightClimbed += offset;
+            score = Math.floor(totalHeightClimbed / 5);
+            scoreDisplay.innerText = score;
+
+            platforms.forEach(p =&gt; { p.y += offset; });
+
+            // Ищем самую высокую платформу на данный момент по координате Y,
+            // а также сохраняем её координату X, чтобы отталкиваться от неё
+            let highestY = canvas.height;
+            let highestX = canvas.width / 2;
+
+            platforms.forEach(p =&gt; {
+                if (p.y &lt; highestY &amp;&amp; p.y &lt;= canvas.height) {
+                    highestY = p.y;
+                    highestX = p.x;
+                }
+            });
+
+            // ИСПРАВЛЕНИЕ: Переносим улетевшие платформы с умным расчётом по X и Y
+            for (let i = 0; i &lt; platforms.length; i++) {
+                if (platforms[i].y &gt; canvas.height) {
+                    let gapY = 75 + Math.random() * 35;
+                    
+                    platforms[i].y = highestY - gapY;
+                    // Генерируем X поблизости от текущей самой верхней платформы
+                    platforms[i].x = getNextPlatformX(highestX);
+                    
+                    // Обновляем верхние ориентиры для следующей итерации
+                    highestY = platforms[i].y; 
+                    highestX = platforms[i].x;
+                }
+            }
+        }
+
+        if (player.y &gt; canvas.height) {
+            gameState = &apos;gameover&apos;;
+            finalScore.innerText = score;
+            scoreDisplay.style.display = &apos;none&apos;;
+            mobileControls.style.display = &apos;none&apos;;
+            gameOverScreen.classList.remove(&apos;hidden&apos;);
+        }
+    }
+
+    function loop() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        if (gameState === &apos;playing&apos;) {
+            update();
+            drawPlatforms();
+            drawPlayer();
+        }
+        animationId = requestAnimationFrame(loop);
+    }
+
+    function startGame() {
+        mainMenu.classList.add(&apos;hidden&apos;);
+        gameOverScreen.classList.add(&apos;hidden&apos;);
+        scoreDisplay.style.display = &apos;block&apos;;
+        mobileControls.style.display = &apos;block&apos;;
+        resetGame();
+        gameState = &apos;playing&apos;;
+    }
+
+    startBtn.addEventListener(&apos;click&apos;, startGame);
+    restartBtn.addEventListener(&apos;click&apos;, startGame);
+
+    resetGame();
+    loop();
+&lt;/script&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;
+</value>
+                    </formula>
+                    <formula category="HEIGHT">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>0</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>5a21a5d8-198c-4865-97c4-df759b34dbea</scriptId>
+            </org.catrobat.catroid.content.BackPressedScript>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+        <object type="Sprite" spriteId="f976919e-c431-407a-b478-81d21d1d9ed0" name="Tic Tac Toe">
+          <lookList>
+            <look fileName="Мой актер или объект_#2.png" lookId="a9bf62da-d28e-4fae-9d18-540c9b317982" name="Браузер (1)">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="PlaceAtBrick">
+                  <brickId>717699e1-9310-4781-a4e6-cccdfca2508d</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="X_POSITION">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>346</value>
+                    </formula>
+                    <formula category="Y_POSITION">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>641</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="PointInDirectionBrick">
+                  <brickId>3140fdee-3c0c-455f-8e51-0026653e98be</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="DEGREES">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>90.0</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="SetSizeToBrick">
+                  <brickId>a1d57036-987e-45fd-8d95-efa90f6a0383</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="SIZE">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>100.0</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>69684e49-807c-4b7d-ba01-f87c8e4c7a49</scriptId>
+            </script>
+            <script type="WhenScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="CreateWebFileBrick">
+                  <brickId>216c6966-7ef0-40cc-b8c1-07055985b356</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="POSX">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>0</value>
+                    </formula>
+                    <formula category="WIDTH">
+                      <additionalChildren/>
+                      <type>SENSOR</type>
+                      <value>STAGE_WIDTH</value>
+                    </formula>
+                    <formula category="POSY">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>0</value>
+                    </formula>
+                    <formula category="NAME">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>TTT</value>
+                    </formula>
+                    <formula category="HTML">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;ru&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;title&gt;Крестики-Нолики&lt;/title&gt;
+    &lt;style&gt;
+        body {
+            font-family: sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #f0f0f0;
+            margin: 0;
+            padding: 20px;
+        }
+        .status {
+            font-size: 20px;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 80px);
+            grid-template-rows: repeat(3, 80px);
+            gap: 5px;
+        }
+        .cell {
+            width: 80px;
+            height: 80px;
+            background: #fff;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            font-size: 36px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+        }
+        .cell:hover { background: #e6e6e6; }
+        .cell.X { color: #ff4d4d; }
+        .cell.O { color: #3b82f6; }
+        .btn {
+            margin-top: 15px;
+            padding: 8px 16px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 4px;
+            border: 1px solid #999;
+            background: #fff;
+        }
+        .btn:hover { background: #ddd; }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+    &lt;div class=&quot;status&quot; id=&quot;status&quot;&gt;Твой ход (X)&lt;/div&gt;
+    &lt;div class=&quot;board&quot; id=&quot;board&quot;&gt;&lt;/div&gt;
+    &lt;button class=&quot;btn&quot; onclick=&quot;resetGame()&quot;&gt;Заново&lt;/button&gt;
+
+&lt;script&gt;
+    const boardElement = document.getElementById(&apos;board&apos;);
+    const statusElement = document.getElementById(&apos;status&apos;);
+    let board = [&quot;&quot;, &quot;&quot;, &quot;&quot;, &quot;&quot;, &quot;&quot;, &quot;&quot;, &quot;&quot;, &quot;&quot;, &quot;&quot;];
+    let isGameActive = true;
+
+    const winningConditions = [
+        [0, 1, 2], [3, 4, 5], [6, 7, 8], // Строки
+        [0, 3, 6], [1, 4, 7], [2, 5, 8], // Столбцы
+        [0, 4, 8], [2, 4, 6]             // Диагонали
+    ];
+
+    function createBoard() {
+        boardElement.innerHTML = &quot;&quot;;
+        board.forEach((cell, index) =&gt; {
+            const cellElement = document.createElement(&apos;div&apos;);
+            cellElement.classList.add(&apos;cell&apos;);
+            if (cell) cellElement.classList.add(cell);
+            cellElement.innerText = cell;
+            cellElement.addEventListener(&apos;click&apos;, () =&gt; handleCellClick(index));
+            boardElement.appendChild(cellElement);
+        });
+    }
+
+    function handleCellClick(index) {
+        if (board[index] !== &quot;&quot; || !isGameActive) return;
+        
+        board[index] = &quot;X&quot;;
+        createBoard();
+        if (checkWin(&quot;X&quot;)) {
+            statusElement.innerText = &quot;Ты победил! 🎉&quot;;
+            isGameActive = false;
+            return;
+        }
+        if (board.every(cell =&gt; cell !== &quot;&quot;)) {
+            statusElement.innerText = &quot;Ничья! 🤝&quot;;
+            isGameActive = false;
+            return;
+        }
+
+        isGameActive = false; // Блокируем ход игрока на время «думы» ИИ
+        statusElement.innerText = &quot;Компьютер думает...&quot;;
+        setTimeout(aiTurn, 400);
+    }
+
+    function aiTurn() {
+        let emptyCells = [];
+        board.forEach((cell, index) =&gt; {
+            if (cell === &quot;&quot;) emptyCells.push(index);
+        });
+
+        if (emptyCells.length &gt; 0) {
+            const randomIndex = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+            board[randomIndex] = &quot;O&quot;;
+            createBoard();
+
+            if (checkWin(&quot;O&quot;)) {
+                statusElement.innerText = &quot;Компьютер выиграл! 🤖&quot;;
+                isGameActive = false;
+                return;
+            }
+            if (board.every(cell =&gt; cell !== &quot;&quot;)) {
+                statusElement.innerText = &quot;Ничья! 🤝&quot;;
+                isGameActive = false;
+                return;
+            }
+        }
+        isGameActive = true;
+        statusElement.innerText = &quot;Твой ход (X)&quot;;
+    }
+
+    function checkWin(player) {
+        return winningConditions.some(condition =&gt; {
+            return condition.every(index =&gt; board[index] === player);
+        });
+    }
+
+    function resetGame() {
+        board = [&quot;&quot;, &quot;&quot;, &quot;&quot;, &quot;&quot;, &quot;&quot;, &quot;&quot;, &quot;&quot;, &quot;&quot;, &quot;&quot;];
+        isGameActive = true;
+        statusElement.innerText = &quot;Твой ход (X)&quot;;
+        createBoard();
+    }
+
+    createBoard();
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</value>
+                    </formula>
+                    <formula category="HEIGHT">
+                      <additionalChildren/>
+                      <type>SENSOR</type>
+                      <value>STAGE_HEIGHT</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>557177cf-e038-49e9-81f4-bcc6a7d5c62b</scriptId>
+            </script>
+            <org.catrobat.catroid.content.BackPressedScript type="BackPressedScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="CreateWebFileBrick">
+                  <brickId>787e4824-136b-4d30-970e-b76ce7cae310</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="POSX">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>0</value>
+                    </formula>
+                    <formula category="WIDTH">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>0</value>
+                    </formula>
+                    <formula category="POSY">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>0</value>
+                    </formula>
+                    <formula category="NAME">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>TTT</value>
+                    </formula>
+                    <formula category="HTML">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>&lt;html&gt;&lt;body style=&apos;background-color:lightyellow;&apos;&gt;&lt;h1&gt;Привет, мир!&lt;/h1&gt;&lt;p&gt;Это WebView, созданный прямо из кода.&lt;/p&gt;&lt;button onclick=&apos;alert(&quot;JavaScript работает!&quot;)&apos;&gt;Нажми меня&lt;/button&gt;&lt;/body&gt;&lt;/html&gt;</value>
+                    </formula>
+                    <formula category="HEIGHT">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>0</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>cb838e79-5b6e-4535-81c1-7ab8ee965c08</scriptId>
+            </org.catrobat.catroid.content.BackPressedScript>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+        <object type="Sprite" spriteId="9ede3f3c-92ca-4e89-88e4-426523532817" name="Сапер">
+          <lookList>
+            <look fileName="Мой актер или объект_#3.png" lookId="83c651ec-03ac-445d-ba05-cf87b512e9c5" name="Браузер (1)">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="PlaceAtBrick">
+                  <brickId>f3ade0e0-d0e7-4ff4-8b69-91410a44a7e6</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="X_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>350</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                    <formula category="Y_POSITION">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>303</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="PointInDirectionBrick">
+                  <brickId>b984ab58-98f2-4227-a0c7-6809de3b1e0b</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="DEGREES">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>90.0</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="SetSizeToBrick">
+                  <brickId>f6049bdf-4813-4f0b-b1d6-c8acd89b7bd8</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="SIZE">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>100.0</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>8c729281-7659-4e67-8f67-e52e08e3a5ac</scriptId>
+            </script>
+            <script type="WhenScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="CreateWebFileBrick">
+                  <brickId>b65d6113-d7c9-4a4d-968b-e339a3b62586</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="POSX">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>0</value>
+                    </formula>
+                    <formula category="WIDTH">
+                      <additionalChildren/>
+                      <type>SENSOR</type>
+                      <value>STAGE_WIDTH</value>
+                    </formula>
+                    <formula category="POSY">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>0</value>
+                    </formula>
+                    <formula category="NAME">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>myWebView</value>
+                    </formula>
+                    <formula category="HTML">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;ru&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;title&gt;Сапер&lt;/title&gt;
+    &lt;style&gt;
+        body {
+            font-family: sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #f0f0f0;
+            margin: 0;
+            padding: 20px;
+        }
+        .status {
+            font-size: 18px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        .instructions {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 15px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(8, 35px);
+            grid-template-rows: repeat(8, 35px);
+            gap: 2px;
+            background: #999;
+            padding: 4px;
+            border-radius: 4px;
+        }
+        .cell {
+            width: 35px;
+            height: 35px;
+            background: #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            cursor: pointer;
+            user-select: none;
+            border-top: 3px solid #fff;
+            border-left: 3px solid #fff;
+            border-bottom: 3px solid #777;
+            border-right: 3px solid #777;
+            box-sizing: border-box;
+        }
+        .cell.revealed {
+            background: #ddd;
+            border: 1px solid #aaa;
+        }
+        .cell.mine { background: #ff4d4d; }
+        .cell.flag { background: #ffeb3b; }
+        .btn {
+            margin-top: 15px;
+            padding: 8px 16px;
+            cursor: pointer;
+        }
+        /* Цвет цифр */
+        .c1 { color: blue; }
+        .c2 { color: green; }
+        .c3 { color: red; }
+        .c4 { color: darkblue; }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+    &lt;div class=&quot;status&quot; id=&quot;mine-status&quot;&gt;Сапер (Мин: 10)&lt;/div&gt;
+    &lt;div class=&quot;instructions&quot;&gt;Клик — открыть | Ctrl + Клик — поставить флажок 🚩&lt;/div&gt;
+    &lt;div class=&quot;grid&quot; id=&quot;grid&quot;&gt;&lt;/div&gt;
+    &lt;button class=&quot;btn&quot; onclick=&quot;startGame()&quot;&gt;Перезапуск&lt;/button&gt;
+
+&lt;script&gt;
+    const width = 8;
+    const bombAmount = 10;
+    const grid = document.getElementById(&apos;grid&apos;);
+    const statusTxt = document.getElementById(&apos;mine-status&apos;);
+    let squares = [];
+    let isGameOver = false;
+
+    function startGame() {
+        grid.innerHTML = &quot;&quot;;
+        squares = [];
+        isGameOver = false;
+        statusTxt.innerText = &quot;Сапер (Мин: 10)&quot;;
+
+        // Создаем перемешанный массив с бомбами
+        const bombsArray = Array(bombAmount).fill(&apos;bomb&apos;);
+        const emptyArray = Array(width * width - bombAmount).fill(&apos;valid&apos;);
+        const gameArray = emptyArray.concat(bombsArray).sort(() =&gt; Math.random() - 0.5);
+
+        for(let i = 0; i &lt; width * width; i++) {
+            const square = document.createElement(&apos;div&apos;);
+            square.setAttribute(&apos;id&apos;, i);
+            square.classList.add(&apos;cell&apos;);
+            square.dataset.type = gameArray[i];
+            grid.appendChild(square);
+            squares.push(square);
+
+            // Обработка клика
+            square.addEventListener(&apos;click&apos;, function(e) {
+                if (e.ctrlKey) {
+                    addFlag(square);
+                } else {
+                    clickSquare(square);
+                }
+            });
+            
+            // Защита от контекстного меню (чтобы ПКМ не мешал в OS)
+            square.addEventListener(&apos;contextmenu&apos;, e =&gt; {
+                e.preventDefault();
+                addFlag(square);
+            });
+        }
+
+        // Считаем мины вокруг каждой клетки
+        for (let i = 0; i &lt; squares.length; i++) {
+            let total = 0;
+            const isLeftEdge = (i % width === 0);
+            const isRightEdge = (i % width === width - 1);
+
+            if (squares[i].dataset.type === &apos;valid&apos;) {
+                if (i &gt; 0 &amp;&amp; !isLeftEdge &amp;&amp; squares[i - 1].dataset.type === &apos;bomb&apos;) total++;
+                if (i &gt; 7 &amp;&amp; !isRightEdge &amp;&amp; squares[i + 1 - width].dataset.type === &apos;bomb&apos;) total++;
+                if (i &gt; 8 &amp;&amp; squares[i - width].dataset.type === &apos;bomb&apos;) total++;
+                if (i &gt; 9 &amp;&amp; !isLeftEdge &amp;&amp; squares[i - 1 - width].dataset.type === &apos;bomb&apos;) total++;
+                if (i &lt; 63 &amp;&amp; !isRightEdge &amp;&amp; squares[i + 1].dataset.type === &apos;bomb&apos;) total++;
+                if (i &lt; 56 &amp;&amp; !isLeftEdge &amp;&amp; squares[i - 1 + width].dataset.type === &apos;bomb&apos;) total++;
+                if (i &lt; 54 &amp;&amp; !isRightEdge &amp;&amp; squares[i + 1 + width].dataset.type === &apos;bomb&apos;) total++;
+                if (i &lt; 56 &amp;&amp; squares[i + width].dataset.type === &apos;bomb&apos;) total++;
+                squares[i].setAttribute(&apos;data-total&apos;, total);
+            }
+        }
+    }
+
+    function addFlag(square) {
+        if (isGameOver || square.classList.contains(&apos;revealed&apos;)) return;
+        if (!square.classList.contains(&apos;flag&apos;)) {
+            square.classList.add(&apos;flag&apos;);
+            square.innerText = &apos;🚩&apos;;
+        } else {
+            square.classList.remove(&apos;flag&apos;);
+            square.innerText = &apos;&apos;;
+        }
+    }
+
+    function clickSquare(square) {
+        if (isGameOver || square.classList.contains(&apos;revealed&apos;) || square.classList.contains(&apos;flag&apos;)) return;
+
+        if (square.dataset.type === &apos;bomb&apos;) {
+            gameOver();
+        } else {
+            let total = square.getAttribute(&apos;data-total&apos;);
+            square.classList.add(&apos;revealed&apos;);
+            square.style.border = &quot;1px solid #aaa&quot;; 
+            if (total != 0) {
+                square.innerText = total;
+                if(total == 1) square.classList.add(&apos;c1&apos;);
+                if(total == 2) square.classList.add(&apos;c2&apos;);
+                if(total == 3) square.classList.add(&apos;c3&apos;);
+                if(total &gt;= 4) square.classList.add(&apos;c4&apos;);
+                checkWin();
+                return;
+            }
+            checkNeighbours(square.id);
+        }
+        checkWin();
+    }
+
+    // Рекурсивное открытие пустых клеток вокруг
+    function checkNeighbours(id) {
+        const currentId = parseInt(id);
+        const isLeftEdge = (currentId % width === 0);
+        const isRightEdge = (currentId % width === width - 1);
+
+        setTimeout(() =&gt; {
+            if (currentId &gt; 0 &amp;&amp; !isLeftEdge) clickSquare(squares[currentId - 1]);
+            if (currentId &gt; 7 &amp;&amp; !isRightEdge) clickSquare(squares[currentId + 1 - width]);
+            if (currentId &gt; 8) clickSquare(squares[currentId - width]);
+            if (currentId &gt; 9 &amp;&amp; !isLeftEdge) clickSquare(squares[currentId - 1 - width]);
+            if (currentId &lt; 63 &amp;&amp; !isRightEdge) clickSquare(squares[currentId + 1]);
+            if (currentId &lt; 56 &amp;&amp; !isLeftEdge) clickSquare(squares[currentId - 1 + width]);
+            if (currentId &lt; 54 &amp;&amp; !isRightEdge) clickSquare(squares[currentId + 1 + width]);
+            if (currentId &lt; 56) clickSquare(squares[currentId + width]);
+        }, 10);
+    }
+
+    function gameOver() {
+        statusTxt.innerText = &quot;Бум! Игра окончена 💥&quot;;
+        isGameOver = true;
+        squares.forEach(square =&gt; {
+            if (square.dataset.type === &apos;bomb&apos;) {
+                square.classList.add(&apos;revealed&apos;, &apos;mine&apos;);
+                square.innerText = &apos;💣&apos;;
+            }
+        });
+    }
+
+    function checkWin() {
+        let matches = 0;
+        for (let i = 0; i &lt; squares.length; i++) {
+            if (squares[i].classList.contains(&apos;revealed&apos;) &amp;&amp; squares[i].dataset.type === &apos;valid&apos;) {
+                matches++;
+            }
+        }
+        if (matches === (width * width - bombAmount)) {
+            statusTxt.innerText = &quot;Вы выиграли! 😎&quot;;
+            isGameOver = true;
+        }
+    }
+
+    startGame();
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</value>
+                    </formula>
+                    <formula category="HEIGHT">
+                      <additionalChildren/>
+                      <type>SENSOR</type>
+                      <value>STAGE_HEIGHT</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>1b257a17-f71b-4a6c-a61e-4057d6ba85d4</scriptId>
+            </script>
+            <org.catrobat.catroid.content.BackPressedScript type="BackPressedScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="CreateWebFileBrick">
+                  <brickId>4a425f44-6ce7-45fe-9d92-b9757f007db7</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="POSX">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>0</value>
+                    </formula>
+                    <formula category="WIDTH">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>0</value>
+                    </formula>
+                    <formula category="POSY">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>0</value>
+                    </formula>
+                    <formula category="NAME">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>myWebView</value>
+                    </formula>
+                    <formula category="HTML">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;ru&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;title&gt;Сапер&lt;/title&gt;
+    &lt;style&gt;
+        body {
+            font-family: sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #f0f0f0;
+            margin: 0;
+            padding: 20px;
+        }
+        .status {
+            font-size: 18px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        .instructions {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 15px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(8, 35px);
+            grid-template-rows: repeat(8, 35px);
+            gap: 2px;
+            background: #999;
+            padding: 4px;
+            border-radius: 4px;
+        }
+        .cell {
+            width: 35px;
+            height: 35px;
+            background: #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            cursor: pointer;
+            user-select: none;
+            border-top: 3px solid #fff;
+            border-left: 3px solid #fff;
+            border-bottom: 3px solid #777;
+            border-right: 3px solid #777;
+            box-sizing: border-box;
+        }
+        .cell.revealed {
+            background: #ddd;
+            border: 1px solid #aaa;
+        }
+        .cell.mine { background: #ff4d4d; }
+        .cell.flag { background: #ffeb3b; }
+        .btn {
+            margin-top: 15px;
+            padding: 8px 16px;
+            cursor: pointer;
+        }
+        /* Цвет цифр */
+        .c1 { color: blue; }
+        .c2 { color: green; }
+        .c3 { color: red; }
+        .c4 { color: darkblue; }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+    &lt;div class=&quot;status&quot; id=&quot;mine-status&quot;&gt;Сапер (Мин: 10)&lt;/div&gt;
+    &lt;div class=&quot;instructions&quot;&gt;Клик — открыть | Ctrl + Клик — поставить флажок 🚩&lt;/div&gt;
+    &lt;div class=&quot;grid&quot; id=&quot;grid&quot;&gt;&lt;/div&gt;
+    &lt;button class=&quot;btn&quot; onclick=&quot;startGame()&quot;&gt;Перезапуск&lt;/button&gt;
+
+&lt;script&gt;
+    const width = 8;
+    const bombAmount = 10;
+    const grid = document.getElementById(&apos;grid&apos;);
+    const statusTxt = document.getElementById(&apos;mine-status&apos;);
+    let squares = [];
+    let isGameOver = false;
+
+    function startGame() {
+        grid.innerHTML = &quot;&quot;;
+        squares = [];
+        isGameOver = false;
+        statusTxt.innerText = &quot;Сапер (Мин: 10)&quot;;
+
+        // Создаем перемешанный массив с бомбами
+        const bombsArray = Array(bombAmount).fill(&apos;bomb&apos;);
+        const emptyArray = Array(width * width - bombAmount).fill(&apos;valid&apos;);
+        const gameArray = emptyArray.concat(bombsArray).sort(() =&gt; Math.random() - 0.5);
+
+        for(let i = 0; i &lt; width * width; i++) {
+            const square = document.createElement(&apos;div&apos;);
+            square.setAttribute(&apos;id&apos;, i);
+            square.classList.add(&apos;cell&apos;);
+            square.dataset.type = gameArray[i];
+            grid.appendChild(square);
+            squares.push(square);
+
+            // Обработка клика
+            square.addEventListener(&apos;click&apos;, function(e) {
+                if (e.ctrlKey) {
+                    addFlag(square);
+                } else {
+                    clickSquare(square);
+                }
+            });
+            
+            // Защита от контекстного меню (чтобы ПКМ не мешал в OS)
+            square.addEventListener(&apos;contextmenu&apos;, e =&gt; {
+                e.preventDefault();
+                addFlag(square);
+            });
+        }
+
+        // Считаем мины вокруг каждой клетки
+        for (let i = 0; i &lt; squares.length; i++) {
+            let total = 0;
+            const isLeftEdge = (i % width === 0);
+            const isRightEdge = (i % width === width - 1);
+
+            if (squares[i].dataset.type === &apos;valid&apos;) {
+                if (i &gt; 0 &amp;&amp; !isLeftEdge &amp;&amp; squares[i - 1].dataset.type === &apos;bomb&apos;) total++;
+                if (i &gt; 7 &amp;&amp; !isRightEdge &amp;&amp; squares[i + 1 - width].dataset.type === &apos;bomb&apos;) total++;
+                if (i &gt; 8 &amp;&amp; squares[i - width].dataset.type === &apos;bomb&apos;) total++;
+                if (i &gt; 9 &amp;&amp; !isLeftEdge &amp;&amp; squares[i - 1 - width].dataset.type === &apos;bomb&apos;) total++;
+                if (i &lt; 63 &amp;&amp; !isRightEdge &amp;&amp; squares[i + 1].dataset.type === &apos;bomb&apos;) total++;
+                if (i &lt; 56 &amp;&amp; !isLeftEdge &amp;&amp; squares[i - 1 + width].dataset.type === &apos;bomb&apos;) total++;
+                if (i &lt; 54 &amp;&amp; !isRightEdge &amp;&amp; squares[i + 1 + width].dataset.type === &apos;bomb&apos;) total++;
+                if (i &lt; 56 &amp;&amp; squares[i + width].dataset.type === &apos;bomb&apos;) total++;
+                squares[i].setAttribute(&apos;data-total&apos;, total);
+            }
+        }
+    }
+
+    function addFlag(square) {
+        if (isGameOver || square.classList.contains(&apos;revealed&apos;)) return;
+        if (!square.classList.contains(&apos;flag&apos;)) {
+            square.classList.add(&apos;flag&apos;);
+            square.innerText = &apos;🚩&apos;;
+        } else {
+            square.classList.remove(&apos;flag&apos;);
+            square.innerText = &apos;&apos;;
+        }
+    }
+
+    function clickSquare(square) {
+        if (isGameOver || square.classList.contains(&apos;revealed&apos;) || square.classList.contains(&apos;flag&apos;)) return;
+
+        if (square.dataset.type === &apos;bomb&apos;) {
+            gameOver();
+        } else {
+            let total = square.getAttribute(&apos;data-total&apos;);
+            square.classList.add(&apos;revealed&apos;);
+            square.style.border = &quot;1px solid #aaa&quot;; 
+            if (total != 0) {
+                square.innerText = total;
+                if(total == 1) square.classList.add(&apos;c1&apos;);
+                if(total == 2) square.classList.add(&apos;c2&apos;);
+                if(total == 3) square.classList.add(&apos;c3&apos;);
+                if(total &gt;= 4) square.classList.add(&apos;c4&apos;);
+                checkWin();
+                return;
+            }
+            checkNeighbours(square.id);
+        }
+        checkWin();
+    }
+
+    // Рекурсивное открытие пустых клеток вокруг
+    function checkNeighbours(id) {
+        const currentId = parseInt(id);
+        const isLeftEdge = (currentId % width === 0);
+        const isRightEdge = (currentId % width === width - 1);
+
+        setTimeout(() =&gt; {
+            if (currentId &gt; 0 &amp;&amp; !isLeftEdge) clickSquare(squares[currentId - 1]);
+            if (currentId &gt; 7 &amp;&amp; !isRightEdge) clickSquare(squares[currentId + 1 - width]);
+            if (currentId &gt; 8) clickSquare(squares[currentId - width]);
+            if (currentId &gt; 9 &amp;&amp; !isLeftEdge) clickSquare(squares[currentId - 1 - width]);
+            if (currentId &lt; 63 &amp;&amp; !isRightEdge) clickSquare(squares[currentId + 1]);
+            if (currentId &lt; 56 &amp;&amp; !isLeftEdge) clickSquare(squares[currentId - 1 + width]);
+            if (currentId &lt; 54 &amp;&amp; !isRightEdge) clickSquare(squares[currentId + 1 + width]);
+            if (currentId &lt; 56) clickSquare(squares[currentId + width]);
+        }, 10);
+    }
+
+    function gameOver() {
+        statusTxt.innerText = &quot;Бум! Игра окончена 💥&quot;;
+        isGameOver = true;
+        squares.forEach(square =&gt; {
+            if (square.dataset.type === &apos;bomb&apos;) {
+                square.classList.add(&apos;revealed&apos;, &apos;mine&apos;);
+                square.innerText = &apos;💣&apos;;
+            }
+        });
+    }
+
+    function checkWin() {
+        let matches = 0;
+        for (let i = 0; i &lt; squares.length; i++) {
+            if (squares[i].classList.contains(&apos;revealed&apos;) &amp;&amp; squares[i].dataset.type === &apos;valid&apos;) {
+                matches++;
+            }
+        }
+        if (matches === (width * width - bombAmount)) {
+            statusTxt.innerText = &quot;Вы выиграли! 😎&quot;;
+            isGameOver = true;
+        }
+    }
+
+    startGame();
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</value>
+                    </formula>
+                    <formula category="HEIGHT">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>0</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>12959a41-95c1-4c60-ac96-30b918b022f0</scriptId>
+            </org.catrobat.catroid.content.BackPressedScript>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+        <object type="Sprite" spriteId="0147261d-6fc5-490b-88b2-4c429928595f" name="Space Shooter">
+          <lookList>
+            <look fileName="Мой актер или объект_#4.png" lookId="7492e080-172e-4b3d-9ffa-e339dd141b6e" name="Браузер (1)">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="PlaceAtBrick">
+                  <brickId>30268cd2-3c1d-40dc-a9f6-c70a208dd398</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="X_POSITION">
+                      <additionalChildren/>
+                      <rightChild>
+                        <additionalChildren/>
+                        <type>NUMBER</type>
+                        <value>2</value>
+                      </rightChild>
+                      <type>OPERATOR</type>
+                      <value>MINUS</value>
+                    </formula>
+                    <formula category="Y_POSITION">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>303</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="PointInDirectionBrick">
+                  <brickId>e5ba92c5-7a1d-46ed-b7f9-7662fc8042d2</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="DEGREES">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>90.0</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="SetSizeToBrick">
+                  <brickId>4e68a0d5-81f2-4a39-a873-8e722dc9c35a</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="SIZE">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>100.0</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>3ceaad3b-9a7e-4f53-aff1-0f5014eafbc2</scriptId>
+            </script>
+            <script type="WhenScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="CreateWebFileBrick">
+                  <brickId>7d5cd0ed-4113-4d1d-8f60-246dae45d98a</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="POSX">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>0</value>
+                    </formula>
+                    <formula category="WIDTH">
+                      <additionalChildren/>
+                      <type>SENSOR</type>
+                      <value>STAGE_WIDTH</value>
+                    </formula>
+                    <formula category="POSY">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>0</value>
+                    </formula>
+                    <formula category="NAME">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>SS</value>
+                    </formula>
+                    <formula category="HTML">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;ru&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;title&gt;Space Shooter&lt;/title&gt;
+    &lt;style&gt;
+        body {
+            background: #222;
+            color: #000;
+            font-family: monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 20px;
+            user-select: none;
+        }
+        /* Корпус телефона */
+        .phone {
+            width: 280px;
+            background: #cbd3c5;
+            border: 6px solid #4a5343;
+            border-radius: 20px;
+            padding: 15px;
+            box-shadow: 0 10px 0 #2d3329;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        /* Монохромный экран Nokia */
+        .screen-border {
+            background: #2b3027;
+            padding: 8px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+        canvas {
+            background: #849c74; /* Тот самый зеленый цвет */
+            display: block;
+            image-rendering: pixelated;
+            border: 2px solid #1c2019;
+        }
+        /* Клавиатура телефона */
+        .keyboard {
+            display: grid;
+            grid-template-columns: repeat(3, 60px);
+            gap: 10px;
+            justify-content: center;
+        }
+        .key {
+            width: 60px;
+            height: 40px;
+            background: #4a5343;
+            color: #fff;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            border-bottom: 3px solid #2d3329;
+        }
+        .key:active {
+            transform: translateY(2px);
+            border-bottom-width: 1px;
+        }
+        .key span {
+            font-size: 8px;
+            color: #bbb;
+        }
+        .info {
+            color: #fff;
+            margin-top: 15px;
+            font-size: 12px;
+            text-align: center;
+            max-width: 280px;
+        }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+&lt;div class=&quot;phone&quot;&gt;
+    &lt;div class=&quot;screen-border&quot;&gt;
+        &lt;canvas id=&quot;gameCanvas&quot; width=&quot;240&quot; height=&quot;120&quot;&gt;&lt;/canvas&gt;
+    &lt;/div&gt;
+    
+    &lt;div class=&quot;keyboard&quot;&gt;
+        &lt;div class=&quot;key&quot; id=&quot;key-blank1&quot;&gt;&lt;span&gt;&lt;/span&gt;&lt;/div&gt;
+        &lt;div class=&quot;key&quot; id=&quot;btn-up&quot;&gt;2&lt;span&gt;▲&lt;/span&gt;&lt;/div&gt;
+        &lt;div class=&quot;key&quot; id=&quot;key-blank2&quot;&gt;&lt;span&gt;&lt;/span&gt;&lt;/div&gt;
+        
+        &lt;div class=&quot;key&quot; id=&quot;btn-left&quot;&gt;4&lt;span&gt;◀&lt;/span&gt;&lt;/div&gt;
+        &lt;div class=&quot;key&quot; id=&quot;btn-fire&quot;&gt;5&lt;span&gt;FIRE&lt;/span&gt;&lt;/div&gt;
+        &lt;div class=&quot;key&quot; id=&quot;btn-right&quot;&gt;6&lt;span&gt;▶&lt;/span&gt;&lt;/div&gt;
+        
+        &lt;div class=&quot;key&quot; id=&quot;key-blank3&quot;&gt;&lt;span&gt;&lt;/span&gt;&lt;/div&gt;
+        &lt;div class=&quot;key&quot; id=&quot;btn-down&quot;&gt;8&lt;span&gt;▼&lt;/span&gt;&lt;/div&gt;
+        &lt;div class=&quot;key&quot; id=&quot;key-reset&quot;&gt;C&lt;span&gt;RESET&lt;/span&gt;&lt;/div&gt;
+    &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div class=&quot;info&quot;&gt;
+    Управление: Кнопки на экране или Стрелочки + Пробел на клавиатуре ПК.
+&lt;/div&gt;
+
+&lt;script&gt;
+    const canvas = document.getElementById(&apos;gameCanvas&apos;);
+    const ctx = canvas.getContext(&apos;2d&apos;);
+
+    ctx.fillStyle = &apos;#1c2019&apos;; 
+
+    let player = { x: 10, y: 54, w: 12, h: 8, speed: 2 };
+    let bullets = [];
+    let enemies = [];
+    let score = 0;
+    let lives = 3;
+    let isGameOver = false;
+    let gameTick = 0;
+
+    let keys = { up: false, down: false, left: false, right: false, fire: false };
+
+    // Клавиатура ПК
+    window.addEventListener(&apos;keydown&apos;, (e) =&gt; {
+        if (e.key === &apos;ArrowUp&apos;) keys.up = true;
+        if (e.key === &apos;ArrowDown&apos;) keys.down = true;
+        if (e.key === &apos;ArrowLeft&apos;) keys.left = true;
+        if (e.key === &apos;ArrowRight&apos;) keys.right = true;
+        if (e.key === &apos; &apos; || e.key === &apos;Spacebar&apos;) {
+            if (!keys.fire &amp;&amp; !isGameOver) fireBullet();
+            keys.fire = true;
+        }
+    });
+    window.addEventListener(&apos;keyup&apos;, (e) =&gt; {
+        if (e.key === &apos;ArrowUp&apos;) keys.up = false;
+        if (e.key === &apos;ArrowDown&apos;) keys.down = false;
+        if (e.key === &apos;ArrowLeft&apos;) keys.left = false;
+        if (e.key === &apos;ArrowRight&apos;) keys.right = false;
+        if (e.key === &apos; &apos; || e.key === &apos;Spacebar&apos;) keys.fire = false;
+    });
+
+    // Виртуальные кнопки
+    setupMobileBtn(&apos;btn-up&apos;, &apos;up&apos;);
+    setupMobileBtn(&apos;btn-down&apos;, &apos;down&apos;);
+    setupMobileBtn(&apos;btn-left&apos;, &apos;left&apos;);
+    setupMobileBtn(&apos;btn-right&apos;, &apos;right&apos;);
+    
+    document.getElementById(&apos;btn-fire&apos;).addEventListener(&apos;mousedown&apos;, () =&gt; { if(!isGameOver) fireBullet(); });
+    document.getElementById(&apos;btn-fire&apos;).addEventListener(&apos;touchstart&apos;, (e) =&gt; { e.preventDefault(); if(!isGameOver) fireBullet(); });
+    document.getElementById(&apos;key-reset&apos;).addEventListener(&apos;click&apos;, resetGame);
+
+    function setupMobileBtn(id, dir) {
+        const btn = document.getElementById(id);
+        btn.addEventListener(&apos;mousedown&apos;, () =&gt; keys[dir] = true);
+        btn.addEventListener(&apos;mouseup&apos;, () =&gt; keys[dir] = false);
+        btn.addEventListener(&apos;mouseleave&apos;, () =&gt; keys[dir] = false);
+        
+        btn.addEventListener(&apos;touchstart&apos;, (e) =&gt; { e.preventDefault(); keys[dir] = true; });
+        btn.addEventListener(&apos;touchend&apos;, (e) =&gt; { e.preventDefault(); keys[dir] = false; });
+    }
+
+    function fireBullet() {
+        bullets.push({ x: player.x + player.w, y: player.y + player.h / 2 - 1, w: 4, h: 2 });
+    }
+
+    function resetGame() {
+        player = { x: 10, y: 54, w: 12, h: 8, speed: 2 };
+        bullets = [];
+        enemies = [];
+        score = 0;
+        lives = 3;
+        isGameOver = false;
+    }
+
+    function update() {
+        if (isGameOver) return;
+
+        gameTick++;
+
+        if (keys.up &amp;&amp; player.y &gt; 14) player.y -= player.speed;
+        if (keys.down &amp;&amp; player.y &lt; canvas.height - player.h) player.y += player.speed;
+        if (keys.left &amp;&amp; player.x &gt; 0) player.x -= player.speed;
+        if (keys.right &amp;&amp; player.x &lt; canvas.width / 2) player.x += player.speed;
+
+        bullets.forEach((b, i) =&gt; {
+            b.x += 4;
+            if (b.x &gt; canvas.width) bullets.splice(i, 1);
+        });
+
+        if (gameTick % 40 === 0) {
+            let enemyY = 16 + Math.random() * (canvas.height - 26);
+            enemies.push({ x: canvas.width, y: enemyY, w: 8, h: 8, speed: 1.5 });
+        }
+
+        enemies.forEach((e, ei) =&gt; {
+            e.x -= e.speed;
+            
+            if (e.x &lt; player.x + player.w &amp;&amp; e.x + e.w &gt; player.x &amp;&amp; e.y &lt; player.y + player.h &amp;&amp; e.y + e.h &gt; player.y) {
+                enemies.splice(ei, 1);
+                lives--;
+                if (lives &lt;= 0) isGameOver = true;
+            }
+
+            if (e.x &lt; -10) enemies.splice(ei, 1);
+
+            bullets.forEach((b, bi) =&gt; {
+                if (b.x &lt; e.x + e.w &amp;&amp; b.x + b.w &gt; e.x &amp;&amp; b.y &lt; e.y + e.h &amp;&amp; b.y + b.h &gt; e.y) {
+                    enemies.splice(ei, 1);
+                    bullets.splice(bi, 1);
+                    score += 10;
+                }
+            });
+        });
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = &apos;#1c2019&apos;;
+
+        // Верхний интерфейс с новым названием
+        ctx.font = &apos;8px monospace&apos;;
+        ctx.fillText(`SPACE SHOOTER`, 4, 8);
+        ctx.fillText(`SCORE:${score}`, 110, 8);
+        ctx.fillText(`HP:${&apos;♥&apos;.repeat(lives)}`, canvas.width - 38, 8);
+        ctx.fillRect(0, 11, canvas.width, 1); 
+
+        if (isGameOver) {
+            ctx.font = &apos;12px monospace&apos;;
+            ctx.fillText(&quot;GAME OVER&quot;, canvas.width / 2 - 30, canvas.height / 2 + 5);
+            ctx.font = &apos;8px monospace&apos;;
+            ctx.fillText(&quot;Нажми C для сброса&quot;, canvas.width / 2 - 42, canvas.height / 2 + 20);
+            return;
+        }
+
+        // Корабль игрока
+        ctx.fillRect(player.x, player.y + 2, player.w, player.h - 4);
+        ctx.fillRect(player.x + 4, player.y, 4, player.h);
+
+        // Пули
+        bullets.forEach(b =&gt; ctx.fillRect(b.x, b.y, b.w, b.h));
+
+        // Враги
+        enemies.forEach(e =&gt; {
+            ctx.fillRect(e.x + 2, e.y + 2, e.w - 4, e.h - 4);
+            ctx.fillRect(e.x, e.y, 2, 2);
+            ctx.fillRect(e.x + 6, e.y, 2, 2);
+            ctx.fillRect(e.x, e.y + 6, 2, 2);
+            ctx.fillRect(e.x + 6, e.y + 6, 2, 2);
+        });
+    }
+
+    function gameLoop() {
+        update();
+        draw();
+        requestAnimationFrame(gameLoop);
+    }
+
+    gameLoop();
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</value>
+                    </formula>
+                    <formula category="HEIGHT">
+                      <additionalChildren/>
+                      <type>SENSOR</type>
+                      <value>STAGE_HEIGHT</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>9355605e-83b6-4ef8-816a-4192a2227ea7</scriptId>
+            </script>
+            <org.catrobat.catroid.content.BackPressedScript type="BackPressedScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="CreateWebFileBrick">
+                  <brickId>de62eedd-f2f1-457a-af62-2a73c38a1e92</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="POSX">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>0</value>
+                    </formula>
+                    <formula category="WIDTH">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>0</value>
+                    </formula>
+                    <formula category="POSY">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>0</value>
+                    </formula>
+                    <formula category="NAME">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>SS</value>
+                    </formula>
+                    <formula category="HTML">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;ru&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;title&gt;Space Shooter&lt;/title&gt;
+    &lt;style&gt;
+        body {
+            background: #222;
+            color: #000;
+            font-family: monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 20px;
+            user-select: none;
+        }
+        /* Корпус телефона */
+        .phone {
+            width: 280px;
+            background: #cbd3c5;
+            border: 6px solid #4a5343;
+            border-radius: 20px;
+            padding: 15px;
+            box-shadow: 0 10px 0 #2d3329;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        /* Монохромный экран Nokia */
+        .screen-border {
+            background: #2b3027;
+            padding: 8px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+        canvas {
+            background: #849c74; /* Тот самый зеленый цвет */
+            display: block;
+            image-rendering: pixelated;
+            border: 2px solid #1c2019;
+        }
+        /* Клавиатура телефона */
+        .keyboard {
+            display: grid;
+            grid-template-columns: repeat(3, 60px);
+            gap: 10px;
+            justify-content: center;
+        }
+        .key {
+            width: 60px;
+            height: 40px;
+            background: #4a5343;
+            color: #fff;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            border-bottom: 3px solid #2d3329;
+        }
+        .key:active {
+            transform: translateY(2px);
+            border-bottom-width: 1px;
+        }
+        .key span {
+            font-size: 8px;
+            color: #bbb;
+        }
+        .info {
+            color: #fff;
+            margin-top: 15px;
+            font-size: 12px;
+            text-align: center;
+            max-width: 280px;
+        }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+&lt;div class=&quot;phone&quot;&gt;
+    &lt;div class=&quot;screen-border&quot;&gt;
+        &lt;canvas id=&quot;gameCanvas&quot; width=&quot;240&quot; height=&quot;120&quot;&gt;&lt;/canvas&gt;
+    &lt;/div&gt;
+    
+    &lt;div class=&quot;keyboard&quot;&gt;
+        &lt;div class=&quot;key&quot; id=&quot;key-blank1&quot;&gt;&lt;span&gt;&lt;/span&gt;&lt;/div&gt;
+        &lt;div class=&quot;key&quot; id=&quot;btn-up&quot;&gt;2&lt;span&gt;▲&lt;/span&gt;&lt;/div&gt;
+        &lt;div class=&quot;key&quot; id=&quot;key-blank2&quot;&gt;&lt;span&gt;&lt;/span&gt;&lt;/div&gt;
+        
+        &lt;div class=&quot;key&quot; id=&quot;btn-left&quot;&gt;4&lt;span&gt;◀&lt;/span&gt;&lt;/div&gt;
+        &lt;div class=&quot;key&quot; id=&quot;btn-fire&quot;&gt;5&lt;span&gt;FIRE&lt;/span&gt;&lt;/div&gt;
+        &lt;div class=&quot;key&quot; id=&quot;btn-right&quot;&gt;6&lt;span&gt;▶&lt;/span&gt;&lt;/div&gt;
+        
+        &lt;div class=&quot;key&quot; id=&quot;key-blank3&quot;&gt;&lt;span&gt;&lt;/span&gt;&lt;/div&gt;
+        &lt;div class=&quot;key&quot; id=&quot;btn-down&quot;&gt;8&lt;span&gt;▼&lt;/span&gt;&lt;/div&gt;
+        &lt;div class=&quot;key&quot; id=&quot;key-reset&quot;&gt;C&lt;span&gt;RESET&lt;/span&gt;&lt;/div&gt;
+    &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div class=&quot;info&quot;&gt;
+    Управление: Кнопки на экране или Стрелочки + Пробел на клавиатуре ПК.
+&lt;/div&gt;
+
+&lt;script&gt;
+    const canvas = document.getElementById(&apos;gameCanvas&apos;);
+    const ctx = canvas.getContext(&apos;2d&apos;);
+
+    ctx.fillStyle = &apos;#1c2019&apos;; 
+
+    let player = { x: 10, y: 54, w: 12, h: 8, speed: 2 };
+    let bullets = [];
+    let enemies = [];
+    let score = 0;
+    let lives = 3;
+    let isGameOver = false;
+    let gameTick = 0;
+
+    let keys = { up: false, down: false, left: false, right: false, fire: false };
+
+    // Клавиатура ПК
+    window.addEventListener(&apos;keydown&apos;, (e) =&gt; {
+        if (e.key === &apos;ArrowUp&apos;) keys.up = true;
+        if (e.key === &apos;ArrowDown&apos;) keys.down = true;
+        if (e.key === &apos;ArrowLeft&apos;) keys.left = true;
+        if (e.key === &apos;ArrowRight&apos;) keys.right = true;
+        if (e.key === &apos; &apos; || e.key === &apos;Spacebar&apos;) {
+            if (!keys.fire &amp;&amp; !isGameOver) fireBullet();
+            keys.fire = true;
+        }
+    });
+    window.addEventListener(&apos;keyup&apos;, (e) =&gt; {
+        if (e.key === &apos;ArrowUp&apos;) keys.up = false;
+        if (e.key === &apos;ArrowDown&apos;) keys.down = false;
+        if (e.key === &apos;ArrowLeft&apos;) keys.left = false;
+        if (e.key === &apos;ArrowRight&apos;) keys.right = false;
+        if (e.key === &apos; &apos; || e.key === &apos;Spacebar&apos;) keys.fire = false;
+    });
+
+    // Виртуальные кнопки
+    setupMobileBtn(&apos;btn-up&apos;, &apos;up&apos;);
+    setupMobileBtn(&apos;btn-down&apos;, &apos;down&apos;);
+    setupMobileBtn(&apos;btn-left&apos;, &apos;left&apos;);
+    setupMobileBtn(&apos;btn-right&apos;, &apos;right&apos;);
+    
+    document.getElementById(&apos;btn-fire&apos;).addEventListener(&apos;mousedown&apos;, () =&gt; { if(!isGameOver) fireBullet(); });
+    document.getElementById(&apos;btn-fire&apos;).addEventListener(&apos;touchstart&apos;, (e) =&gt; { e.preventDefault(); if(!isGameOver) fireBullet(); });
+    document.getElementById(&apos;key-reset&apos;).addEventListener(&apos;click&apos;, resetGame);
+
+    function setupMobileBtn(id, dir) {
+        const btn = document.getElementById(id);
+        btn.addEventListener(&apos;mousedown&apos;, () =&gt; keys[dir] = true);
+        btn.addEventListener(&apos;mouseup&apos;, () =&gt; keys[dir] = false);
+        btn.addEventListener(&apos;mouseleave&apos;, () =&gt; keys[dir] = false);
+        
+        btn.addEventListener(&apos;touchstart&apos;, (e) =&gt; { e.preventDefault(); keys[dir] = true; });
+        btn.addEventListener(&apos;touchend&apos;, (e) =&gt; { e.preventDefault(); keys[dir] = false; });
+    }
+
+    function fireBullet() {
+        bullets.push({ x: player.x + player.w, y: player.y + player.h / 2 - 1, w: 4, h: 2 });
+    }
+
+    function resetGame() {
+        player = { x: 10, y: 54, w: 12, h: 8, speed: 2 };
+        bullets = [];
+        enemies = [];
+        score = 0;
+        lives = 3;
+        isGameOver = false;
+    }
+
+    function update() {
+        if (isGameOver) return;
+
+        gameTick++;
+
+        if (keys.up &amp;&amp; player.y &gt; 14) player.y -= player.speed;
+        if (keys.down &amp;&amp; player.y &lt; canvas.height - player.h) player.y += player.speed;
+        if (keys.left &amp;&amp; player.x &gt; 0) player.x -= player.speed;
+        if (keys.right &amp;&amp; player.x &lt; canvas.width / 2) player.x += player.speed;
+
+        bullets.forEach((b, i) =&gt; {
+            b.x += 4;
+            if (b.x &gt; canvas.width) bullets.splice(i, 1);
+        });
+
+        if (gameTick % 40 === 0) {
+            let enemyY = 16 + Math.random() * (canvas.height - 26);
+            enemies.push({ x: canvas.width, y: enemyY, w: 8, h: 8, speed: 1.5 });
+        }
+
+        enemies.forEach((e, ei) =&gt; {
+            e.x -= e.speed;
+            
+            if (e.x &lt; player.x + player.w &amp;&amp; e.x + e.w &gt; player.x &amp;&amp; e.y &lt; player.y + player.h &amp;&amp; e.y + e.h &gt; player.y) {
+                enemies.splice(ei, 1);
+                lives--;
+                if (lives &lt;= 0) isGameOver = true;
+            }
+
+            if (e.x &lt; -10) enemies.splice(ei, 1);
+
+            bullets.forEach((b, bi) =&gt; {
+                if (b.x &lt; e.x + e.w &amp;&amp; b.x + b.w &gt; e.x &amp;&amp; b.y &lt; e.y + e.h &amp;&amp; b.y + b.h &gt; e.y) {
+                    enemies.splice(ei, 1);
+                    bullets.splice(bi, 1);
+                    score += 10;
+                }
+            });
+        });
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = &apos;#1c2019&apos;;
+
+        // Верхний интерфейс с новым названием
+        ctx.font = &apos;8px monospace&apos;;
+        ctx.fillText(`SPACE SHOOTER`, 4, 8);
+        ctx.fillText(`SCORE:${score}`, 110, 8);
+        ctx.fillText(`HP:${&apos;♥&apos;.repeat(lives)}`, canvas.width - 38, 8);
+        ctx.fillRect(0, 11, canvas.width, 1); 
+
+        if (isGameOver) {
+            ctx.font = &apos;12px monospace&apos;;
+            ctx.fillText(&quot;GAME OVER&quot;, canvas.width / 2 - 30, canvas.height / 2 + 5);
+            ctx.font = &apos;8px monospace&apos;;
+            ctx.fillText(&quot;Нажми C для сброса&quot;, canvas.width / 2 - 42, canvas.height / 2 + 20);
+            return;
+        }
+
+        // Корабль игрока
+        ctx.fillRect(player.x, player.y + 2, player.w, player.h - 4);
+        ctx.fillRect(player.x + 4, player.y, 4, player.h);
+
+        // Пули
+        bullets.forEach(b =&gt; ctx.fillRect(b.x, b.y, b.w, b.h));
+
+        // Враги
+        enemies.forEach(e =&gt; {
+            ctx.fillRect(e.x + 2, e.y + 2, e.w - 4, e.h - 4);
+            ctx.fillRect(e.x, e.y, 2, 2);
+            ctx.fillRect(e.x + 6, e.y, 2, 2);
+            ctx.fillRect(e.x, e.y + 6, 2, 2);
+            ctx.fillRect(e.x + 6, e.y + 6, 2, 2);
+        });
+    }
+
+    function gameLoop() {
+        update();
+        draw();
+        requestAnimationFrame(gameLoop);
+    }
+
+    gameLoop();
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</value>
+                    </formula>
+                    <formula category="HEIGHT">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>0</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>ed481ae9-b94d-4d88-8fac-2973fdd82695</scriptId>
+            </org.catrobat.catroid.content.BackPressedScript>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+        <object type="Sprite" spriteId="f1ec6bb6-3adc-4480-9b17-b78d7e0adaef" name="CTB">
+          <lookList>
+            <look fileName="Мой актер или объект_#5.png" lookId="0ff9f4e6-6e62-4942-a1af-a701bd1e2191" name="Браузер (1)">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="PlaceAtBrick">
+                  <brickId>ab764c2d-fe50-46d0-a1e9-c3a164860cdb</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="X_POSITION">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>346</value>
+                    </formula>
+                    <formula category="Y_POSITION">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>303</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="PointInDirectionBrick">
+                  <brickId>02c57352-8889-4872-af3d-0d8c52398ae8</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="DEGREES">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>90.0</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="SetSizeToBrick">
+                  <brickId>82a3d2cf-bd0f-4ac6-88e9-12fde14580d1</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="SIZE">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>100.0</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>55ff3916-c548-4e82-80ba-524207d7d4db</scriptId>
+            </script>
+            <script type="WhenScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="CreateWebFileBrick">
+                  <brickId>40a8eb25-e38f-4fc4-a529-467c915bf4a0</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="POSX">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>0</value>
+                    </formula>
+                    <formula category="WIDTH">
+                      <additionalChildren/>
+                      <type>SENSOR</type>
+                      <value>STAGE_WIDTH</value>
+                    </formula>
+                    <formula category="POSY">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>0</value>
+                    </formula>
+                    <formula category="NAME">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>CTB</value>
+                    </formula>
+                    <formula category="HTML">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;ru&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no&quot;&gt;
+    &lt;title&gt;Catch the Balls&lt;/title&gt;
+    &lt;style&gt;
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            background: #111424;
+            color: #fff;
+            font-family: &apos;Segoe UI&apos;, Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            width: 100vw;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        /* Игровой контейнер (имитирует экран смартфона) */
+        #game-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            max-width: 450px;
+            max-height: 800px;
+            background: radial-gradient(circle at center, #1e223a 0%, #0f111a 100%);
+            overflow: hidden;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+        /* Экран GameOver */
+        #game-over-screen {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 17, 26, 0.85);
+            backdrop-filter: blur(5px);
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+        h1 {
+            font-size: 32px;
+            color: #ff3366;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(255, 51, 102, 0.5);
+        }
+        p {
+            font-size: 18px;
+            margin-bottom: 25px;
+            color: #8f94a5;
+        }
+        .btn {
+            background: #00cc99;
+            color: #fff;
+            border: none;
+            padding: 12px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 25px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 204, 153, 0.4);
+            transition: transform 0.1s;
+        }
+        .btn:active {
+            transform: scale(0.95);
+        }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+&lt;div id=&quot;game-container&quot;&gt;
+    &lt;canvas id=&quot;gameCanvas&quot;&gt;&lt;/canvas&gt;
+    
+    &lt;div id=&quot;game-over-screen&quot;&gt;
+        &lt;h1&gt;ИГРА ОКОНЧЕНА&lt;/h1&gt;
+        &lt;p&gt;Поймано шаров: &lt;span id=&quot;final-score&quot;&gt;0&lt;/span&gt;&lt;/p&gt;
+        &lt;button class=&quot;btn&quot; onclick=&quot;resetGame()&quot;&gt;ИГРАТЬ ЕЩЕ&lt;/button&gt;
+    &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;script&gt;
+    const canvas = document.getElementById(&apos;gameCanvas&apos;);
+    const ctx = canvas.getContext(&apos;2d&apos;);
+    const gameOverScreen = document.getElementById(&apos;game-over-screen&apos;);
+    const finalScoreTxt = document.getElementById(&apos;final-score&apos;);
+
+    // Настройка размеров под экран устройства
+    function resizeCanvas() {
+        const container = document.getElementById(&apos;game-container&apos;);
+        canvas.width = container.clientWidth;
+        canvas.height = container.clientHeight;
+    }
+    window.addEventListener(&apos;resize&apos;, resizeCanvas);
+    resizeCanvas();
+
+    // Параметры игры
+    let score = 0;
+    let lives = 3;
+    let isGameOver = false;
+    let spawnTimer = 0;
+
+    // Параметры коробки (корзины)
+    let basket = {
+        x: canvas.width / 2 - 40,
+        y: canvas.height - 70,
+        w: 80,
+        h: 20,
+        borderRadius: 8
+    };
+
+    // Массив падающих шариков
+    let balls = [];
+
+    // Цвета для красивых неоновых шаров
+    const ballColors = [&apos;#ff3366&apos;, &apos;#00cc99&apos;, &apos;#3399ff&apos;, &apos;#ffcc00&apos;, &apos;#b800ff&apos;];
+
+    // --- Управление (Тач и Мышь) ---
+    function moveBasket(clientX) {
+        if (isGameOver) return;
+        const rect = canvas.getBoundingClientRect();
+        const relativeX = clientX - rect.left;
+        
+        // Держим коробку по центру пальца/курсора и не даем вылететь за края
+        basket.x = relativeX - basket.w / 2;
+        if (basket.x &lt; 0) basket.x = 0;
+        if (basket.x &gt; canvas.width - basket.w) basket.x = canvas.width - basket.w;
+    }
+
+    // Слушатели для мыши
+    canvas.addEventListener(&apos;mousemove&apos;, (e) =&gt; moveBasket(e.clientX));
+    // Слушатели для тач-экранов смартфонов
+    canvas.addEventListener(&apos;touchmove&apos;, (e) =&gt; {
+        moveBasket(e.touches[0].clientX);
+    }, { passive: true });
+
+    function spawnBall() {
+        const radius = 10 + Math.random() * 8; // Разные размеры
+        const x = radius + Math.random() * (canvas.width - radius * 2);
+        const speed = 3 + Math.random() * 4 + (score * 0.1); // Скорость растет со счетом
+        const color = ballColors[Math.floor(Math.random() * ballColors.length)];
+
+        balls.push({ x, y: -radius, radius, speed, color });
+    }
+
+    function resetGame() {
+        score = 0;
+        lives = 3;
+        balls = [];
+        isGameOver = false;
+        basket.x = canvas.width / 2 - basket.w / 2;
+        basket.y = canvas.height - 70; // На случай если размер изменился
+        gameOverScreen.style.display = &apos;none&apos;;
+    }
+
+    function update() {
+        if (isGameOver) return;
+
+        // Спавн шаров по таймеру (частота зависит от текущего счета)
+        spawnTimer++;
+        const spawnRate = Math.max(20, 60 - Math.floor(score / 5));
+        if (spawnTimer &gt;= spawnRate) {
+            spawnBall();
+            spawnTimer = 0;
+        }
+
+        // Движение шаров
+        for (let i = balls.length - 1; i &gt;= 0; i--) {
+            let b = balls[i];
+            b.y += b.speed;
+
+            // Проверка пойман ли шар коробкой (коллизия)
+            if (b.y + b.radius &gt;= basket.y &amp;&amp; 
+                b.y - b.radius &lt;= basket.y + basket.h &amp;&amp;
+                b.x + b.radius &gt;= basket.x &amp;&amp; 
+                b.x - b.radius &lt;= basket.x + basket.w) {
+                
+                balls.splice(i, 1);
+                score++;
+                continue;
+            }
+
+            // Улетел за экран (промах)
+            if (b.y - b.radius &gt; canvas.height) {
+                balls.splice(i, 1);
+                lives--;
+                if (lives &lt;= 0) {
+                    isGameOver = true;
+                    finalScoreTxt.innerText = score;
+                    gameOverScreen.style.display = &apos;flex&apos;;
+                }
+            }
+        }
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // 1. Отрисовка интерфейса (Счет и жизни)
+        ctx.fillStyle = &apos;rgba(255, 255, 255, 0.8)&apos;;
+        ctx.font = &apos;bold 18px system-ui&apos;;
+        ctx.fillText(`Счет: ${score}`, 20, 40);
+
+        ctx.fillStyle = &apos;#ff3366&apos;;
+        ctx.fillText(`Жизни: ${&apos;♥&apos;.repeat(lives)}`, canvas.width - 110, 40);
+
+        // 2. Отрисовка коробки (с закругленными краями и неоновой тенью)
+        ctx.fillStyle = &apos;#00cc99&apos;;
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = &apos;#00cc99&apos;;
+        
+        ctx.beginPath();
+        ctx.roundRect(basket.x, basket.y, basket.w, basket.h, basket.borderRadius);
+        ctx.fill();
+
+        // 3. Отрисовка шаров
+        balls.forEach(b =&gt; {
+            ctx.fillStyle = b.color;
+            ctx.shadowColor = b.color;
+            ctx.shadowBlur = 10;
+            ctx.beginPath();
+            ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
+            ctx.fill();
+        });
+
+        // Сбрасываем тень, чтобы не размывать текст на следующем кадре
+        ctx.shadowBlur = 0;
+    }
+
+    function gameLoop() {
+        update();
+        draw();
+        requestAnimationFrame(gameLoop);
+    }
+
+    gameLoop();
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</value>
+                    </formula>
+                    <formula category="HEIGHT">
+                      <additionalChildren/>
+                      <type>SENSOR</type>
+                      <value>STAGE_HEIGHT</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>47a8fb05-db02-4137-8703-1c7697527d12</scriptId>
+            </script>
+            <org.catrobat.catroid.content.BackPressedScript type="BackPressedScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="CreateWebFileBrick">
+                  <brickId>34771542-931a-4fb6-a0f6-648c77d0a6e7</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="POSX">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>0</value>
+                    </formula>
+                    <formula category="WIDTH">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>0</value>
+                    </formula>
+                    <formula category="POSY">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>0</value>
+                    </formula>
+                    <formula category="NAME">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>CTB</value>
+                    </formula>
+                    <formula category="HTML">
+                      <additionalChildren/>
+                      <type>STRING</type>
+                      <value>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;ru&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no&quot;&gt;
+    &lt;title&gt;Catch the Balls&lt;/title&gt;
+    &lt;style&gt;
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            background: #111424;
+            color: #fff;
+            font-family: &apos;Segoe UI&apos;, Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            width: 100vw;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        /* Игровой контейнер (имитирует экран смартфона) */
+        #game-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            max-width: 450px;
+            max-height: 800px;
+            background: radial-gradient(circle at center, #1e223a 0%, #0f111a 100%);
+            overflow: hidden;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+        /* Экран GameOver */
+        #game-over-screen {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 17, 26, 0.85);
+            backdrop-filter: blur(5px);
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+        h1 {
+            font-size: 32px;
+            color: #ff3366;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(255, 51, 102, 0.5);
+        }
+        p {
+            font-size: 18px;
+            margin-bottom: 25px;
+            color: #8f94a5;
+        }
+        .btn {
+            background: #00cc99;
+            color: #fff;
+            border: none;
+            padding: 12px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 25px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 204, 153, 0.4);
+            transition: transform 0.1s;
+        }
+        .btn:active {
+            transform: scale(0.95);
+        }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+&lt;div id=&quot;game-container&quot;&gt;
+    &lt;canvas id=&quot;gameCanvas&quot;&gt;&lt;/canvas&gt;
+    
+    &lt;div id=&quot;game-over-screen&quot;&gt;
+        &lt;h1&gt;ИГРА ОКОНЧЕНА&lt;/h1&gt;
+        &lt;p&gt;Поймано шаров: &lt;span id=&quot;final-score&quot;&gt;0&lt;/span&gt;&lt;/p&gt;
+        &lt;button class=&quot;btn&quot; onclick=&quot;resetGame()&quot;&gt;ИГРАТЬ ЕЩЕ&lt;/button&gt;
+    &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;script&gt;
+    const canvas = document.getElementById(&apos;gameCanvas&apos;);
+    const ctx = canvas.getContext(&apos;2d&apos;);
+    const gameOverScreen = document.getElementById(&apos;game-over-screen&apos;);
+    const finalScoreTxt = document.getElementById(&apos;final-score&apos;);
+
+    // Настройка размеров под экран устройства
+    function resizeCanvas() {
+        const container = document.getElementById(&apos;game-container&apos;);
+        canvas.width = container.clientWidth;
+        canvas.height = container.clientHeight;
+    }
+    window.addEventListener(&apos;resize&apos;, resizeCanvas);
+    resizeCanvas();
+
+    // Параметры игры
+    let score = 0;
+    let lives = 3;
+    let isGameOver = false;
+    let spawnTimer = 0;
+
+    // Параметры коробки (корзины)
+    let basket = {
+        x: canvas.width / 2 - 40,
+        y: canvas.height - 70,
+        w: 80,
+        h: 20,
+        borderRadius: 8
+    };
+
+    // Массив падающих шариков
+    let balls = [];
+
+    // Цвета для красивых неоновых шаров
+    const ballColors = [&apos;#ff3366&apos;, &apos;#00cc99&apos;, &apos;#3399ff&apos;, &apos;#ffcc00&apos;, &apos;#b800ff&apos;];
+
+    // --- Управление (Тач и Мышь) ---
+    function moveBasket(clientX) {
+        if (isGameOver) return;
+        const rect = canvas.getBoundingClientRect();
+        const relativeX = clientX - rect.left;
+        
+        // Держим коробку по центру пальца/курсора и не даем вылететь за края
+        basket.x = relativeX - basket.w / 2;
+        if (basket.x &lt; 0) basket.x = 0;
+        if (basket.x &gt; canvas.width - basket.w) basket.x = canvas.width - basket.w;
+    }
+
+    // Слушатели для мыши
+    canvas.addEventListener(&apos;mousemove&apos;, (e) =&gt; moveBasket(e.clientX));
+    // Слушатели для тач-экранов смартфонов
+    canvas.addEventListener(&apos;touchmove&apos;, (e) =&gt; {
+        moveBasket(e.touches[0].clientX);
+    }, { passive: true });
+
+    function spawnBall() {
+        const radius = 10 + Math.random() * 8; // Разные размеры
+        const x = radius + Math.random() * (canvas.width - radius * 2);
+        const speed = 3 + Math.random() * 4 + (score * 0.1); // Скорость растет со счетом
+        const color = ballColors[Math.floor(Math.random() * ballColors.length)];
+
+        balls.push({ x, y: -radius, radius, speed, color });
+    }
+
+    function resetGame() {
+        score = 0;
+        lives = 3;
+        balls = [];
+        isGameOver = false;
+        basket.x = canvas.width / 2 - basket.w / 2;
+        basket.y = canvas.height - 70; // На случай если размер изменился
+        gameOverScreen.style.display = &apos;none&apos;;
+    }
+
+    function update() {
+        if (isGameOver) return;
+
+        // Спавн шаров по таймеру (частота зависит от текущего счета)
+        spawnTimer++;
+        const spawnRate = Math.max(20, 60 - Math.floor(score / 5));
+        if (spawnTimer &gt;= spawnRate) {
+            spawnBall();
+            spawnTimer = 0;
+        }
+
+        // Движение шаров
+        for (let i = balls.length - 1; i &gt;= 0; i--) {
+            let b = balls[i];
+            b.y += b.speed;
+
+            // Проверка пойман ли шар коробкой (коллизия)
+            if (b.y + b.radius &gt;= basket.y &amp;&amp; 
+                b.y - b.radius &lt;= basket.y + basket.h &amp;&amp;
+                b.x + b.radius &gt;= basket.x &amp;&amp; 
+                b.x - b.radius &lt;= basket.x + basket.w) {
+                
+                balls.splice(i, 1);
+                score++;
+                continue;
+            }
+
+            // Улетел за экран (промах)
+            if (b.y - b.radius &gt; canvas.height) {
+                balls.splice(i, 1);
+                lives--;
+                if (lives &lt;= 0) {
+                    isGameOver = true;
+                    finalScoreTxt.innerText = score;
+                    gameOverScreen.style.display = &apos;flex&apos;;
+                }
+            }
+        }
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // 1. Отрисовка интерфейса (Счет и жизни)
+        ctx.fillStyle = &apos;rgba(255, 255, 255, 0.8)&apos;;
+        ctx.font = &apos;bold 18px system-ui&apos;;
+        ctx.fillText(`Счет: ${score}`, 20, 40);
+
+        ctx.fillStyle = &apos;#ff3366&apos;;
+        ctx.fillText(`Жизни: ${&apos;♥&apos;.repeat(lives)}`, canvas.width - 110, 40);
+
+        // 2. Отрисовка коробки (с закругленными краями и неоновой тенью)
+        ctx.fillStyle = &apos;#00cc99&apos;;
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = &apos;#00cc99&apos;;
+        
+        ctx.beginPath();
+        ctx.roundRect(basket.x, basket.y, basket.w, basket.h, basket.borderRadius);
+        ctx.fill();
+
+        // 3. Отрисовка шаров
+        balls.forEach(b =&gt; {
+            ctx.fillStyle = b.color;
+            ctx.shadowColor = b.color;
+            ctx.shadowBlur = 10;
+            ctx.beginPath();
+            ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
+            ctx.fill();
+        });
+
+        // Сбрасываем тень, чтобы не размывать текст на следующем кадре
+        ctx.shadowBlur = 0;
+    }
+
+    function gameLoop() {
+        update();
+        draw();
+        requestAnimationFrame(gameLoop);
+    }
+
+    gameLoop();
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</value>
+                    </formula>
+                    <formula category="HEIGHT">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>0</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>6e8e9d81-f2e9-401d-8ffc-23dd414bac03</scriptId>
+            </org.catrobat.catroid.content.BackPressedScript>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+      </objectList>
+    </scene>
+  </scenes>
+  <programVariableList>
+    <userVariable reference="../../scenes/scene[2]/objectList/object/scriptList/script[2]/brickList/brick[2]/userVariable"/>
+    <userVariable reference="../../scenes/scene[2]/objectList/object/scriptList/script[2]/brickList/brick/userVariable"/>
+  </programVariableList>
+  <programListOfLists/>
+  <programMultiplayerVariableList/>
+</program>

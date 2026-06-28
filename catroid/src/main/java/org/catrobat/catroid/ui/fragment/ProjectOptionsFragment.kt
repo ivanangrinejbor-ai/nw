@@ -49,6 +49,8 @@ import com.android.apksig.ApkSigner
 import com.danvexteam.lunoscript_annotations.LunoClass
 import com.google.android.material.chip.Chip
 import com.google.android.material.snackbar.Snackbar
+import android.widget.EditText
+import android.widget.LinearLayout
 import com.google.android.material.textfield.TextInputEditText
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -79,6 +81,8 @@ import org.catrobat.catroid.ui.ProjectUploadActivity
 import org.catrobat.catroid.ui.SettingsActivity
 import org.catrobat.catroid.ui.runtimepermissions.RequiresPermissionTask
 import org.catrobat.catroid.utils.ToastUtil
+import org.catrobat.catroid.apkbuild.BakedApkBuilder
+import androidx.core.content.FileProvider
 import org.catrobat.catroid.utils.Utils
 import org.catrobat.catroid.utils.git.GitController
 import org.catrobat.catroid.utils.git.GitResult
@@ -144,6 +148,7 @@ class ProjectOptionsFragment : Fragment() {
         setupProjectUpload()
         setupProjectSaveExternal()
         //setupProjectSaveApk()
+        setupProjectSaveApk()
         setupRebuildCache()
         setupClearVars()
         setupChangeIcon()
@@ -863,11 +868,11 @@ class ProjectOptionsFragment : Fragment() {
         }
     }
 
-    /*private fun setupProjectSaveApk() {
+    private fun setupProjectSaveApk() {
         binding.projectOptionsSaveApk.setOnClickListener {
             buildApk()
         }
-    }*/
+    }
 
     private fun setupProjectMoreDetails() {
         binding.projectOptionsMoreDetails.setOnClickListener {
@@ -1416,11 +1421,64 @@ class ProjectOptionsFragment : Fragment() {
 
     private fun buildApk() {
         saveProject()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            buildUsingSystemFilePicker()
-        } else {
-            buildToExternalMemory()
-            //Log.e("BUILD", "Version SDK is not supported")
+        showApkBuildDialog()
+    }
+
+    private fun showApkBuildDialog() {
+        val project = project ?: return
+        val builder = AlertDialog.Builder(requireContext())
+        builder.setTitle(R.string.build_apk_title)
+
+        val view = LinearLayout(requireContext()).apply { orientation = LinearLayout.VERTICAL; setPadding(32, 16, 32, 16) }
+        val nameInput = EditText(requireContext()).apply { setText(project.name); hint = "App name" }
+        val pkgInput = EditText(requireContext()).apply { setText("org.DanVexTeam.NewCatroid"); hint = "Package" }
+        val verInput = EditText(requireContext()).apply { setText("1.0"); hint = "Version" }
+        val codeInput = EditText(requireContext()).apply { setText("1"); hint = "Version code"; inputType = android.text.InputType.TYPE_CLASS_NUMBER }
+
+        view.addView(nameInput)
+        view.addView(pkgInput)
+        view.addView(verInput)
+        view.addView(codeInput)
+        builder.setView(view)
+
+        builder.setPositiveButton(R.string.build_apk_start) { _, _ ->
+            val config = BakedApkBuilder.ApkConfig(
+                appName = nameInput.text.toString().ifEmpty { project.name },
+                packageName = pkgInput.text.toString().ifEmpty { "org.DanVexTeam.NewCatroid" },
+                versionName = verInput.text.toString().ifEmpty { "1.0" },
+                versionCode = codeInput.text.toString().toIntOrNull() ?: 1
+            )
+            startApkBuild(config)
+        }
+        builder.setNegativeButton(R.string.cancel, null)
+        builder.show()
+    }
+
+    private fun startApkBuild(config: BakedApkBuilder.ApkConfig) {
+        val projectDir = project?.directory ?: return
+        showToast(R.string.build_apk_progress)
+        lifecycleScope.launch {
+            val result = BakedApkBuilder.build(requireContext(), projectDir, config) { progress ->
+                lifecycleScope.launch(Dispatchers.Main) { showToast(progress) }
+            }
+            lifecycleScope.launch(Dispatchers.Main) {
+                when (result) {
+                    is BakedApkBuilder.BuildResult.Success -> {
+                        showToast(R.string.build_apk_success)
+                        val intent = Intent(Intent.ACTION_VIEW).apply {
+                            setDataAndType(androidx.core.content.FileProvider.getUriForFile(
+                                requireContext(), "${requireContext().packageName}.fileprovider", result.apkFile
+                            ), "application/vnd.android.package-archive")
+                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        }
+                        startActivity(Intent.createChooser(intent, getString(R.string.export_project)))
+                    }
+                    is BakedApkBuilder.BuildResult.Error -> {
+                        showToast(R.string.build_apk_error)
+                        ToastUtil.showError(requireContext(), result.message)
+                    }
+                }
+            }
         }
     }
 

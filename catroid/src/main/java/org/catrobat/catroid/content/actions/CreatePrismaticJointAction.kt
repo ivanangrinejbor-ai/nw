@@ -17,18 +17,18 @@ class CreatePrismaticJointAction : TemporalAction() {
     private var axisY: Formula? = null
 
     override fun update(percent: Float) {
-        val id = jointId!!.interpretString(scope)
-        if (id == null || id.isEmpty()) return
-        val otherSpriteName = spriteBName!!.interpretString(scope)
-        if (otherSpriteName == null || otherSpriteName.isEmpty()) return
+        val id = jointId?.interpretString(scope) ?: return
+        if (id.isEmpty()) return
+        val otherSpriteName = spriteBName?.interpretString(scope) ?: return
+        if (otherSpriteName.isEmpty()) return
 
-        val ax = anchorX!!.interpretFloat(scope)
-        val ay = anchorY!!.interpretFloat(scope)
-        val axisXVal = axisX!!.interpretFloat(scope)
-        val axisYVal = axisY!!.interpretFloat(scope)
+        val ax = anchorX?.interpretFloat(scope) ?: 0f
+        val ay = anchorY?.interpretFloat(scope) ?: 0f
+        val axisXVal = axisX?.interpretFloat(scope) ?: 1f
+        val axisYVal = axisY?.interpretFloat(scope) ?: 0f
 
         val scene = ProjectManager.getInstance().currentlyPlayingScene ?: return
-        val spriteA = scope!!.sprite ?: return
+        val spriteA = scope?.sprite ?: return
         val spriteB: Sprite = scene.getSpriteAll(otherSpriteName)
             ?: return
 

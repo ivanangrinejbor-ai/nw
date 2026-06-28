@@ -587,6 +587,60 @@
     <string name="formula_voxel_get_id_param" formatted="false">(\'worldId\', x, y, z)</string>
     <string name="formula_voxel_get_data" formatted="false">Voxel_get_data</string>
     <string name="formula_voxel_get_data_param" formatted="false">(\'worldId\', x, y, z)</string>
+    <string name="formula_file_exists" formatted="false">File_exists</string>
+    <string name="formula_file_exists_param" formatted="false">(\'path\')</string>
+    <string name="formula_device_name" formatted="false">Device_name</string>
+    <string name="formula_device_manufacturer" formatted="false">Device_manufacturer</string>
+    <string name="formula_android_version" formatted="false">Android_version</string>
+    <string name="formula_api_level" formatted="false">Api_level</string>
+    <string name="formula_system_language" formatted="false">System_language</string>
+    <string name="formula_system_theme" formatted="false">System_theme</string>
+    <string name="formula_cpu_name" formatted="false">Cpu_name</string>
+    <string name="formula_cpu_architecture" formatted="false">Cpu_architecture</string>
+    <string name="formula_cpu_cores" formatted="false">Cpu_cores</string>
+    <string name="formula_cpu_frequency" formatted="false">Cpu_frequency</string>
+    <string name="formula_total_ram" formatted="false">Total_ram</string>
+    <string name="formula_free_ram" formatted="false">Free_ram</string>
+    <string name="formula_total_storage" formatted="false">Total_storage</string>
+    <string name="formula_free_storage" formatted="false">Free_storage</string>
+    <string name="formula_battery_percent" formatted="false">Battery_percent</string>
+    <string name="formula_battery_charging" formatted="false">Battery_charging</string>
+    <string name="formula_battery_temp" formatted="false">Battery_temp</string>
+    <string name="formula_battery_voltage" formatted="false">Battery_voltage</string>
+    <string name="formula_battery_state" formatted="false">Battery_state</string>
+    <string name="formula_internet_connected" formatted="false">Internet_connected</string>
+    <string name="formula_internet_type" formatted="false">Internet_type</string>
+    <string name="formula_internet_speed" formatted="false">Internet_speed</string>
+    <string name="formula_local_ip" formatted="false">Local_ip</string>
+    <string name="formula_screen_width" formatted="false">Screen_width</string>
+    <string name="formula_screen_height" formatted="false">Screen_height</string>
+    <string name="formula_screen_dpi" formatted="false">Screen_dpi</string>
+    <string name="formula_screen_refresh" formatted="false">Screen_refresh</string>
+    <string name="formula_screen_orientation" formatted="false">Screen_orientation</string>
+    <string name="formula_sprite_exists" formatted="false">Sprite_exists</string>
+    <string name="formula_sprite_exists_param" formatted="false">(\'name\')</string>
+    <string name="formula_sprite_x" formatted="false">Sprite_x</string>
+    <string name="formula_sprite_y" formatted="false">Sprite_y</string>
+    <string name="formula_sprite_size" formatted="false">Sprite_size</string>
+    <string name="formula_sprite_width" formatted="false">Sprite_width</string>
+    <string name="formula_sprite_height" formatted="false">Sprite_height</string>
+    <string name="formula_sprite_direction" formatted="false">Sprite_direction</string>
+    <string name="formula_sprite_visible" formatted="false">Sprite_visible</string>
+    <string name="formula_sprite_transparency" formatted="false">Sprite_transparency</string>
+    <string name="formula_sprite_layer" formatted="false">Sprite_layer</string>
+    <string name="formula_sprite_name_get" formatted="false">Sprite_name</string>
+    <string name="formula_sprite_index_get" formatted="false">Sprite_index</string>
+    <string name="formula_sprite_uuid" formatted="false">Sprite_uuid</string>
+    <string name="formula_sprite_clone_count" formatted="false">Sprite_clone_count</string>
+    <string name="formula_sprite_look_count" formatted="false">Sprite_look_count</string>
+    <string name="formula_sprite_sound_count" formatted="false">Sprite_sound_count</string>
+    <string name="formula_sprite_variable_count" formatted="false">Sprite_variable_count</string>
+    <string name="formula_sprite_list_count" formatted="false">Sprite_list_count</string>
+    <string name="formula_sprite_distance" formatted="false">Sprite_distance</string>
+    <string name="formula_sprite_distance_param" formatted="false">(\'sprite1\', \'sprite2\')</string>
+    <string name="formula_sprite_touching" formatted="false">Sprite_touching</string>
+    <string name="formula_sprite_angle_to" formatted="false">Sprite_angle_to</string>
+    <string name="formula_sprite_param" formatted="false">(\'name\')</string>
     <string name="brick_voxel_world_pos">World position (X Y Z):</string>
     <string name="brick_voxel_transp">Voxel: Block Transparency</string>
     <string name="brick_voxel_transp_id">Block ID:</string>
@@ -627,46 +681,21 @@
     <string formatted="false" name="buffer_apply">Set look from Buffer</string>
     <string formatted="false" name="buffer_save">Save Buffer to file</string>
     <string formatted="false" name="buffer_auto_update">Buffer auto-update</string>
-    <string formatted="false" name="pathfinder_create_navmesh">NavMesh</string>
-    <string formatted="false" name="pathfinder_delete_navmesh">Delete NavMesh</string>
-    <string formatted="false" name="pathfinder_rebuild_navmesh">Rebuild NavMesh</string>
-    <string formatted="false" name="pathfinder_find_path_to_xy">Path to XY</string>
-    <string formatted="false" name="pathfinder_find_path_to_object">Path to Object</string>
-    <string formatted="false" name="pathfinder_save_path_to_var">Save Path to Var</string>
-    <string formatted="false" name="pathfinder_save_path_length_to_var">Save Path Length</string>
-    <string formatted="false" name="pathfinder_check_path_exists">Path Exists?</string>
-    <string formatted="false" name="pathfinder_follow_path">Follow Path</string>
-    <string formatted="false" name="pathfinder_follow_path_with_speed">Follow Path+Speed</string>
-    <string formatted="false" name="pathfinder_stop_following">Stop Following</string>
-    <string formatted="false" name="pathfinder_pause_path">Pause Path</string>
-    <string formatted="false" name="pathfinder_resume_path">Resume Path</string>
-    <string formatted="false" name="pathfinder_add_obstacle">Add Obstacle</string>
-    <string formatted="false" name="pathfinder_remove_obstacle">Remove Obstacle</string>
-    <string formatted="false" name="pathfinder_update_obstacles">Update Obstacles</string>
-    <string formatted="false" name="pathfinder_avoid_objects_by_color">Avoid Color</string>
-    <string formatted="false" name="pathfinder_create_obstacles_from_background">Obstacles from Obj</string>
-    <string formatted="false" name="pathfinder_get_path_point_count">Path Points</string>
-    <string formatted="false" name="pathfinder_get_current_path_point">Current Point</string>
-    <string formatted="false" name="pathfinder_get_next_path_point">Next Point</string>
-    <string formatted="false" name="pathfinder_check_end_of_path">End of Path?</string>
-    <string formatted="false" name="pathfinder_width_param">Width</string>
-    <string formatted="false" name="pathfinder_height_param">Height</string>
-    <string formatted="false" name="pathfinder_cell_size_param">Cell</string>
-    <string formatted="false" name="pathfinder_start_x_param">Start X</string>
-    <string formatted="false" name="pathfinder_start_y_param">Start Y</string>
-    <string formatted="false" name="pathfinder_end_x_param">End X</string>
-    <string formatted="false" name="pathfinder_end_y_param">End Y</string>
-    <string formatted="false" name="pathfinder_sprite_param">Sprite</string>
-    <string formatted="false" name="pathfinder_variable_param">Variable</string>
-    <string formatted="false" name="pathfinder_speed_param">Speed</string>
-    <string formatted="false" name="pathfinder_move_to_object">Move to</string>
-    <string formatted="false" name="pathfinder_stop_moving">Stop</string>
-    <string formatted="false" name="pathfinder_color_param">Color (hex)</string>
-    <string formatted="false" name="pathfinder_result_var_param">Result Var</string>
-    <string formatted="false" name="pathfinder_var_x_param">Var X</string>
-    <string formatted="false" name="pathfinder_var_y_param">Var Y</string>
-    <string formatted="false" name="pathfinder_from_sprite_param">From</string>
-    <string formatted="false" name="pathfinder_to_sprite_param">To</string>
+    <string formatted="false" name="pathfinder_grid">Create grid</string>
+    <string formatted="false" name="pathfinder_grid_x">X</string>
+    <string formatted="false" name="pathfinder_grid_y">Y</string>
+    <string formatted="false" name="pathfinder_grid_w">Width</string>
+    <string formatted="false" name="pathfinder_grid_h">Height</string>
+    <string formatted="false" name="pathfinder_move_to">Go to</string>
+    <string formatted="false" name="pathfinder_avoid">Avoid</string>
+    <string formatted="false" name="pathfinder_speed">Speed</string>
+    <string formatted="false" name="pathfinder_stop">Stop</string>
+    <string formatted="false" name="pathfinder_continue">Continue</string>
+    <string formatted="false" name="pathfinder_has_path">Has path to</string>
+    <string formatted="false" name="pathfinder_has_path_var">Store in</string>
+    <string formatted="false" name="pathfinder_smooth">Smooth path</string>
+    <string formatted="false" name="pathfinder_replan">Dynamic replan</string>
+    <string formatted="false" name="pathfinder_replan_enabled">Enabled (1/0)</string>
     <string formatted="false" name="transition_fade_to_black">Fade to Black</string>
     <string formatted="false" name="transition_fade_from_black">Fade from Black</string>
     <string formatted="false" name="transition_crossfade">Crossfade</string>
@@ -1954,11 +1983,14 @@
     <string formatted="false" name="formula_editor_function_distance">levenshtein distance</string>
     <string formatted="false" name="formula_editor_function_distance_parameter">(\'panda\', \'lavanda\')</string>
     <string formatted="false" name="ai_assist">AI assistant</string>
+    <string formatted="false" name="preference_description_ai_assistant">AI assistant analyzes your project and suggests blocks every 5 seconds. Enable in bricks editor.</string>
+    <string formatted="false" name="ai_assist_no_suggestions">No suggestions at this time. Try adding more blocks to your project.</string>
     <string formatted="false" name="delete_web">Delete Native View</string>
     <string formatted="false" name="create_web_url">Create WebView with name</string>
     <string formatted="false" name="create_web_url2">URL</string>
     <string formatted="false" name="create_web_url3">position (x, y)</string>
     <string formatted="false" name="create_web_url4">size (width, height)</string>
+    <string formatted="false" name="create_web_z">Z</string>
     <string formatted="false" name="create_web_file">Create WebView with name</string>
     <string formatted="false" name="create_web_file2">HTML code</string>
     <string formatted="false" name="create_web_file3">position (x, y)</string>
@@ -2498,6 +2530,8 @@
     <string formatted="false" name="default_group_name">Group</string>
 
     <!-- New Scene Menu -->
+    <string formatted="false" name="global_scene">Global Scene</string>
+    <string formatted="false" name="global_scene_desc">Runs once at project start and persists across all scene changes</string>
     <string formatted="false" name="new_scene">New scene</string>
 
     <!-- Action Toasts -->
@@ -2615,7 +2649,31 @@
     <string formatted="false" name="set_notes_and_credits">Set notes and credits</string>
     <string formatted="false" name="details_date_today">Today</string>
     <string formatted="false" name="import_project">Import project</string>
+    <string formatted="false" name="build_apk_title">Build APK</string>
+    <string formatted="false" name="build_apk_name">App name:</string>
+    <string formatted="false" name="build_apk_package">Package:</string>
+    <string formatted="false" name="build_apk_version_name">Version:</string>
+    <string formatted="false" name="build_apk_version_code">Version code:</string>
+    <string formatted="false" name="build_apk_icon">App icon</string>
+    <string formatted="false" name="build_apk_start">Build APK</string>
+    <string formatted="false" name="build_apk_progress">Building APK...</string>
+    <string formatted="false" name="build_apk_success">APK built successfully</string>
+    <string formatted="false" name="build_apk_error">Build failed</string>
+    <string formatted="false" name="build_apk_no_template">Template APK not found. Please build template first.</string>
     <string formatted="false" name="export_project">Export project</string>
+    <string formatted="false" name="encrypt_project_title">Protect project with password</string>
+    <string formatted="false" name="encrypt_project_summary">Project will be encrypted. Required password to import.</string>
+    <string formatted="false" name="dialog_password_title">Enter password</string>
+    <string formatted="false" name="dialog_password_confirm">Confirm password</string>
+    <string formatted="false" name="dialog_password_hint">Enter password</string>
+    <string formatted="false" name="dialog_password_confirm_hint">Repeat password</string>
+    <string formatted="false" name="password_mismatch">Passwords do not match</string>
+    <string formatted="false" name="password_empty">Please enter a password</string>
+    <string formatted="false" name="import_protected_title">Project is password-protected</string>
+    <string formatted="false" name="import_protected_name">Project name: %1$s</string>
+    <string formatted="false" name="import_password_hint">Enter password</string>
+    <string formatted="false" name="wrong_password">Wrong password</string>
+    <string formatted="false" name="import_encrypted_action">Import</string>
     <string formatted="false" name="error_import_project">Something went wrong while importing projects.</string>
     <string formatted="false" name="no_projects_selected">No projects selected for import</string>
     <string formatted="false" name="only_select_catrobat_files">Please select .catrobat or .newtrobat files</string>
@@ -3010,6 +3068,16 @@ For detailed license information, see the link below.\n</string>
     <string formatted="false" name="brick_point_to">Point towards</string>
     <string formatted="false" name="brick_glide">Glide</string>
     <string formatted="false" name="brick_glide_to_x">to x:</string>
+    <string formatted="false" name="brick_tween_position">Tween to x:</string>
+    <string formatted="false" name="brick_tween_position_duration">in seconds:</string>
+    <string formatted="false" name="brick_tween_position_easing">easing (0-24):</string>
+    <string formatted="false" name="brick_create_particle_system">Create particle system</string>
+    <string formatted="false" name="brick_create_particle_system_count">max count:</string>
+    <string formatted="false" name="brick_create_particle_system_lifetime">lifetime (sec):</string>
+    <string formatted="false" name="brick_create_particle_system_speed">speed:</string>
+    <string formatted="false" name="brick_timer">Start timer</string>
+    <string formatted="false" name="brick_timer_duration">duration (sec):</string>
+    <string formatted="false" name="brick_timer_variable">save to variable:</string>
     <string formatted="false" name="brick_go_to">Go to</string>
     <string formatted="false" name="brick_go_to_touch_position">touch position</string>
     <string formatted="false" name="brick_go_to_random_position">random position</string>

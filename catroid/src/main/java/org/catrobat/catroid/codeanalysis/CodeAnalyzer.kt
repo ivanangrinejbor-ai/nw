@@ -24,9 +24,17 @@ class CodeAnalyzer(private val context: Context) {
         DivisionByZeroRule(context)
     )
 
+    val aiRule = AiSuggestionRule(context)
+
     fun analyzeScript(script: Script): Map<Brick, AnalysisResult> {
         val results = mutableMapOf<Brick, AnalysisResult>()
         analyzeBrickList(script.brickList, results)
+        return results
+    }
+
+    fun analyzeScriptWithAi(script: Script): Map<Brick, AnalysisResult> {
+        val results = analyzeScript(script)
+        results.putAll(aiRule.getResults().filterKeys { it in script.brickList })
         return results
     }
 

@@ -124,6 +124,7 @@ public class SettingsFragment extends PreferenceFragment {
 			"setting_parrot_jumping_sumo_catrobat_terms_of_service_accepted_permanently";
 	public static final String SETTINGS_TEST_BRICKS = "setting_test_bricks";
 	public static final String SETTINGS_CODE_ANALIZE = "pref_code_analysis_enabled";
+	public static final String SETTINGS_AI_ASSISTANT = "setting_ai_assistant";
 	PreferenceScreen screen = null;
 
 	public static final String AI_SENSORS_SCREEN_KEY = "setting_ai_screen";

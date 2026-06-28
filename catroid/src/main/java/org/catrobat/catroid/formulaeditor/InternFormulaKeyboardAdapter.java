@@ -388,7 +388,107 @@ public class InternFormulaKeyboardAdapter {
                         NUMBER, "0",
                         NUMBER, "0",
                         NUMBER, "0");
-			case R.string.formula_editor_function_contains:
+            case R.string.formula_file_exists:
+                return buildSingleParameterFunction(Functions.FILE_EXISTS, STRING, "images/player.png");
+            case R.string.formula_device_name:
+                return buildFunctionWithoutParametersAndBrackets(Functions.DEVICE_NAME);
+            case R.string.formula_device_manufacturer:
+                return buildFunctionWithoutParametersAndBrackets(Functions.DEVICE_MANUFACTURER);
+            case R.string.formula_android_version:
+                return buildFunctionWithoutParametersAndBrackets(Functions.ANDROID_VERSION);
+            case R.string.formula_api_level:
+                return buildFunctionWithoutParametersAndBrackets(Functions.API_LEVEL);
+            case R.string.formula_system_language:
+                return buildFunctionWithoutParametersAndBrackets(Functions.SYSTEM_LANGUAGE);
+            case R.string.formula_system_theme:
+                return buildFunctionWithoutParametersAndBrackets(Functions.SYSTEM_THEME);
+            case R.string.formula_cpu_name:
+                return buildFunctionWithoutParametersAndBrackets(Functions.CPU_NAME);
+            case R.string.formula_cpu_architecture:
+                return buildFunctionWithoutParametersAndBrackets(Functions.CPU_ARCHITECTURE);
+            case R.string.formula_cpu_cores:
+                return buildFunctionWithoutParametersAndBrackets(Functions.CPU_CORES);
+            case R.string.formula_cpu_frequency:
+                return buildFunctionWithoutParametersAndBrackets(Functions.CPU_FREQUENCY);
+            case R.string.formula_total_ram:
+                return buildFunctionWithoutParametersAndBrackets(Functions.TOTAL_RAM);
+            case R.string.formula_free_ram:
+                return buildFunctionWithoutParametersAndBrackets(Functions.FREE_RAM);
+            case R.string.formula_total_storage:
+                return buildFunctionWithoutParametersAndBrackets(Functions.TOTAL_STORAGE);
+            case R.string.formula_free_storage:
+                return buildFunctionWithoutParametersAndBrackets(Functions.FREE_STORAGE);
+            case R.string.formula_battery_percent:
+                return buildFunctionWithoutParametersAndBrackets(Functions.BATTERY_PERCENT);
+            case R.string.formula_battery_charging:
+                return buildFunctionWithoutParametersAndBrackets(Functions.BATTERY_CHARGING);
+            case R.string.formula_battery_temp:
+                return buildFunctionWithoutParametersAndBrackets(Functions.BATTERY_TEMP);
+            case R.string.formula_battery_voltage:
+                return buildFunctionWithoutParametersAndBrackets(Functions.BATTERY_VOLTAGE);
+            case R.string.formula_battery_state:
+                return buildFunctionWithoutParametersAndBrackets(Functions.BATTERY_STATE);
+            case R.string.formula_internet_connected:
+                return buildFunctionWithoutParametersAndBrackets(Functions.INTERNET_CONNECTED);
+            case R.string.formula_internet_type:
+                return buildFunctionWithoutParametersAndBrackets(Functions.INTERNET_TYPE);
+            case R.string.formula_internet_speed:
+                return buildFunctionWithoutParametersAndBrackets(Functions.INTERNET_SPEED);
+            case R.string.formula_local_ip:
+                return buildFunctionWithoutParametersAndBrackets(Functions.LOCAL_IP);
+            case R.string.formula_screen_width:
+                return buildFunctionWithoutParametersAndBrackets(Functions.SCREEN_WIDTH);
+            case R.string.formula_screen_height:
+                return buildFunctionWithoutParametersAndBrackets(Functions.SCREEN_HEIGHT);
+            case R.string.formula_screen_dpi:
+                return buildFunctionWithoutParametersAndBrackets(Functions.SCREEN_DPI);
+            case R.string.formula_screen_refresh:
+                return buildFunctionWithoutParametersAndBrackets(Functions.SCREEN_REFRESH);
+            case R.string.formula_screen_orientation:
+                return buildFunctionWithoutParametersAndBrackets(Functions.SCREEN_ORIENTATION);
+            case R.string.formula_sprite_exists:
+                return buildSingleParameterFunction(Functions.SPRITE_EXISTS, STRING, "Player");
+            case R.string.formula_sprite_x:
+                return buildSingleParameterFunction(Functions.SPRITE_X, STRING, "Player");
+            case R.string.formula_sprite_y:
+                return buildSingleParameterFunction(Functions.SPRITE_Y, STRING, "Player");
+            case R.string.formula_sprite_size:
+                return buildSingleParameterFunction(Functions.SPRITE_SIZE, STRING, "Player");
+            case R.string.formula_sprite_width:
+                return buildSingleParameterFunction(Functions.SPRITE_WIDTH, STRING, "Player");
+            case R.string.formula_sprite_height:
+                return buildSingleParameterFunction(Functions.SPRITE_HEIGHT, STRING, "Player");
+            case R.string.formula_sprite_direction:
+                return buildSingleParameterFunction(Functions.SPRITE_DIRECTION, STRING, "Player");
+            case R.string.formula_sprite_visible:
+                return buildSingleParameterFunction(Functions.SPRITE_VISIBLE, STRING, "Player");
+            case R.string.formula_sprite_transparency:
+                return buildSingleParameterFunction(Functions.SPRITE_TRANSPARENCY, STRING, "Player");
+            case R.string.formula_sprite_layer:
+                return buildSingleParameterFunction(Functions.SPRITE_LAYER, STRING, "Player");
+            case R.string.formula_sprite_name_get:
+                return buildSingleParameterFunction(Functions.SPRITE_NAME_GET, STRING, "Player");
+            case R.string.formula_sprite_index_get:
+                return buildSingleParameterFunction(Functions.SPRITE_INDEX_GET, STRING, "Player");
+            case R.string.formula_sprite_uuid:
+                return buildSingleParameterFunction(Functions.SPRITE_UUID, STRING, "Player");
+            case R.string.formula_sprite_clone_count:
+                return buildSingleParameterFunction(Functions.SPRITE_CLONE_COUNT, STRING, "Player");
+            case R.string.formula_sprite_look_count:
+                return buildSingleParameterFunction(Functions.SPRITE_LOOK_COUNT, STRING, "Player");
+            case R.string.formula_sprite_sound_count:
+                return buildSingleParameterFunction(Functions.SPRITE_SOUND_COUNT, STRING, "Player");
+            case R.string.formula_sprite_variable_count:
+                return buildSingleParameterFunction(Functions.SPRITE_VARIABLE_COUNT, STRING, "Player");
+            case R.string.formula_sprite_list_count:
+                return buildSingleParameterFunction(Functions.SPRITE_LIST_COUNT, STRING, "Player");
+            case R.string.formula_sprite_distance:
+                return buildDoubleParameterFunction(Functions.SPRITE_DISTANCE, STRING, "Player", STRING, "Enemy");
+            case R.string.formula_sprite_touching:
+                return buildDoubleParameterFunction(Functions.SPRITE_TOUCHING, STRING, "Player", STRING, "Coin");
+            case R.string.formula_sprite_angle_to:
+                return buildDoubleParameterFunction(Functions.SPRITE_ANGLE_TO, STRING, "Player", STRING, "Enemy");
+            case R.string.formula_editor_function_contains:
 				return buildDoubleParameterFunction(Functions.CONTAINS,
 						USER_LIST, "list name",
 						NUMBER, "1");

@@ -762,7 +762,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 	}
 
 
-	public void createWebViewWithUrl(String viewId, String url, int x, int y, int width, int height) {
+	public void createWebViewWithUrl(String viewId, String url, int x, int y, int width, int height, float zIndex) {
 
 		WebView webView = new WebView(this);
 		webView.getSettings().setJavaScriptEnabled(true);
@@ -773,6 +773,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 		webView.setWebViewClient(new WebViewClient());
 		webView.loadUrl(url);
 
+		webView.setZ(zIndex);
 
 		FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(width, height);
 		params.gravity = Gravity.TOP | Gravity.START;
@@ -930,7 +931,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 	}
 
 
-	public void createWebViewWithHtml(String viewId, String htmlContent, int x, int y, int width, int height) {
+	public void createWebViewWithHtml(String viewId, String htmlContent, int x, int y, int width, int height, float zIndex) {
 
 		WebView webView = new WebView(this);
 		webView.getSettings().setJavaScriptEnabled(true);
@@ -938,6 +939,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 		webView.getSettings().setDomStorageEnabled(true);
 		webView.setBackgroundColor(Color.TRANSPARENT);
 		webView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+		webView.setZ(zIndex);
 
 
 

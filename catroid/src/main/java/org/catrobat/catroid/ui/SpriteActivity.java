@@ -29,6 +29,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.util.Pair;
 import android.view.ActionMode;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -43,6 +44,8 @@ import org.catrobat.catroid.BuildConfig;
 import org.catrobat.catroid.ProjectManager;
 import org.catrobat.catroid.R;
 import org.catrobat.catroid.cast.CastManager;
+import org.catrobat.catroid.codeanalysis.AiProjectAssistant;
+import org.catrobat.catroid.codeanalysis.AiSuggestionDialog;
 import org.catrobat.catroid.common.LookData;
 import org.catrobat.catroid.common.SoundInfo;
 import org.catrobat.catroid.content.MyActivityManager;
@@ -969,19 +972,7 @@ public class SpriteActivity extends BaseActivity {
 	}
 
 	public void ai_assist_dialog() {
-		View view = View.inflate(this, R.layout.dialog_ai_assist, null);
-
-		TextInputDialog.Builder builder = new TextInputDialog.Builder(this);
-		builder.setPositiveButton(getString(R.string.ok), (TextInputDialog.OnClickListener) (dialog, textInput) -> {
-			Log.d("ab", textInput);
-		});
-
-		final AlertDialog alertDialog = builder.setTitle(R.string.ai_assist)
-				.setView(view)
-				.setNegativeButton(getString(R.string.cancel), null)
-				.create();
-
-		alertDialog.show();
+		AiSuggestionDialog.INSTANCE.show(this);
 	}
 	public void handleAddUserDataButton() {
 		View view = View.inflate(this, R.layout.dialog_new_user_data, null);

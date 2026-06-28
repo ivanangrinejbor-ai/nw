@@ -12,13 +12,12 @@ class ApplyForceAction : TemporalAction() {
     private var forceY: Formula? = null
 
     override fun update(percent: Float) {
-        val x = forceX!!.interpretFloat(scope)
-        val y = forceY!!.interpretFloat(scope)
+        val x = forceX?.interpretFloat(scope) ?: 0f
+        val y = forceY?.interpretFloat(scope) ?: 0f
 
         val scene = ProjectManager.getInstance().currentlyPlayingScene ?: return
-        val sprite = scope!!.sprite ?: return
+        val sprite = scope?.sprite ?: return
 
-        // Прикладываем силу к центру масс
         scene.physicsWorld.applyForce(sprite, Vector2(x, y), Vector2(sprite.look.x, sprite.look.y))
     }
 

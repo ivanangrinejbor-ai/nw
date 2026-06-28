@@ -26,7 +26,8 @@ class RunShellAction : TemporalAction() {
 
         val pythonEngine = MainMenuActivity.pythonEngine ?: return
 
-        val commandmanager = PythonCommandManager(pythonEngine, scope!!.project!!)
+        val project = scope?.project ?: return
+        val commandmanager = PythonCommandManager(pythonEngine, project)
 
         commandmanager.executeCommandForResult(commandContent) { result: String ->
             userVariable?.value = result

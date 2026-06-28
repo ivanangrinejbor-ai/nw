@@ -34,12 +34,12 @@ class TextActor(private var text: String, private var posX: Int, private var pos
     }
 
     override fun draw(batch: Batch, parentAlpha: Float) {
-        font!!.draw(batch, text, posX.toFloat(), posY.toFloat())
+        font?.draw(batch, text, posX.toFloat(), posY.toFloat())
     }
 
     private fun init() {
         font = BitmapFont()
-        font!!.setColor(1.0f, 0.0f, 0.0f, 1.0f)
+        font?.setColor(1.0f, 0.0f, 0.0f, 1.0f)
     }
 
     fun setPosX(posX: Int) {

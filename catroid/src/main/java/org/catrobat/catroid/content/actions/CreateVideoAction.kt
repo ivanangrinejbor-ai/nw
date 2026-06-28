@@ -61,7 +61,7 @@ class CreateVideoAction() : TemporalAction() {
         val widthT = width?.interpretInteger(scope) ?: 0
         val heightT = height?.interpretInteger(scope) ?: 0
 
-        val projFile: File? = scope!!.project?.getFile(fileT)
+        val projFile: File? = scope?.project?.getFile(fileT)
         if (projFile == null) {
             Log.d("VideoPlayerAction", "project file is null")
             return

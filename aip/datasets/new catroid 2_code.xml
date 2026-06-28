@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<program>
+  <header>
+    <applicationBuildName></applicationBuildName>
+    <applicationBuildNumber>0</applicationBuildNumber>
+    <applicationBuildType>release</applicationBuildType>
+    <applicationName>NewCatroid</applicationName>
+    <applicationVersion>2.1.2BETA</applicationVersion>
+    <catrobatLanguageVersion>1.17</catrobatLanguageVersion>
+    <customResolution>false</customResolution>
+    <dateTimeUpload></dateTimeUpload>
+    <description></description>
+    <deviceName>2412DPC0AG</deviceName>
+    <gitRemoteUrl></gitRemoteUrl>
+    <isCastProject>false</isCastProject>
+    <landscapeMode>false</landscapeMode>
+    <listeningLanguageTag></listeningLanguageTag>
+    <mediaLicense></mediaLicense>
+    <notesAndCredits></notesAndCredits>
+    <physicsHeightArea>2.0</physicsHeightArea>
+    <physicsWidthArea>3.0</physicsWidthArea>
+    <platform>Android</platform>
+    <platformVersion>35</platformVersion>
+    <programLicense></programLicense>
+    <programName>new catroid 2</programName>
+    <remixOf></remixOf>
+    <scenesEnabled>true</scenesEnabled>
+    <screenHeight>2449</screenHeight>
+    <screenMode>STRETCH</screenMode>
+    <screenWidth>1220</screenWidth>
+    <tags></tags>
+    <url></url>
+    <userHandle></userHandle>
+  </header>
+  <settings/>
+  <scenes>
+    <scene sceneId="68d2cc86-f2ca-438f-aac9-4e2c82c9f0ab">
+      <name>Сцена</name>
+      <objectList>
+        <object type="Sprite" spriteId="089cebef-834a-431e-8842-5d47c92be12a" name="Фон">
+          <lookList>
+            <look fileName="Фон.png" lookId="fb9ef3f7-283a-4d5e-ade7-4c23c489b4f1" name="Фон">
+              <isWebRequest>false</isWebRequest>
+              <valid>true</valid>
+            </look>
+          </lookList>
+          <soundList>
+            <sound fileName="InShot_20260125_202845666.mp3" name="InShot_20260125_202845666" soundId="73736344-dfa0-492e-afb6-37c7c2d4c251">
+              <midiFile>false</midiFile>
+            </sound>
+          </soundList>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="PlaySoundAndWaitBrick">
+                  <brickId>b837f170-0549-4e95-92d9-f9e3fc94e583</brickId>
+                  <commentedOut>false</commentedOut>
+                  <sound reference="../../../../../soundList/sound"/>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>ba795f00-ddc2-4efb-b75e-178f735b5b5f</scriptId>
+            </script>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="FlashBrick">
+                  <brickId>b97e3987-7972-45e1-b27f-6b89c9f28dd0</brickId>
+                  <commentedOut>false</commentedOut>
+                  <spinnerSelectionID>1</spinnerSelectionID>
+                </brick>
+                <brick type="WaitBrick">
+                  <brickId>2e9d450f-0662-4cb9-9051-b04b18d89826</brickId>
+                  <commentedOut>false</commentedOut>
+                  <formulaList>
+                    <formula category="TIME_TO_WAIT_IN_SECONDS">
+                      <additionalChildren/>
+                      <type>NUMBER</type>
+                      <value>0.1</value>
+                    </formula>
+                  </formulaList>
+                </brick>
+                <brick type="FlashBrick">
+                  <brickId>66abfd27-fa2d-4ddb-a219-5c6c520814e0</brickId>
+                  <commentedOut>false</commentedOut>
+                  <spinnerSelectionID>0</spinnerSelectionID>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>6d201937-055c-47a8-91c6-9d2e14df79d3</scriptId>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList/>
+        </object>
+        <object type="Sprite" spriteId="a4c7ee18-d574-492d-927b-8448933fe68c" name="Мой актер или объект">
+          <lookList/>
+          <soundList/>
+          <scriptList>
+            <script type="StartScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="ForeverBrick">
+                  <brickId>87083680-a95c-46b5-bac2-2d53f6d5ae4f</brickId>
+                  <commentedOut>false</commentedOut>
+                  <loopBricks>
+                    <brick type="UserDefinedBrick">
+                      <brickId>b11fb6ec-fd95-4c94-a769-f001f30f9bde</brickId>
+                      <commentedOut>false</commentedOut>
+                      <formulaList/>
+                      <isCallingBrick>true</isCallingBrick>
+                      <userDefinedBrickDataList>
+                        <userDefinedBrickLabel>
+                          <type>LABEL</type>
+                          <label> </label>
+                        </userDefinedBrickLabel>
+                      </userDefinedBrickDataList>
+                      <userDefinedBrickID>171332d9-9599-4142-83ec-3b42fe5ad2ca</userDefinedBrickID>
+                    </brick>
+                  </loopBricks>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>1c2a9549-415f-4726-9f9b-dcdf542bf543</scriptId>
+            </script>
+            <script type="WhenClonedScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="ForeverBrick">
+                  <brickId>99aa8402-2489-4a0e-b213-27ee06b5268e</brickId>
+                  <commentedOut>false</commentedOut>
+                  <loopBricks>
+                    <brick type="UserDefinedBrick">
+                      <brickId>620c6024-fbd8-4016-ac11-0dc6704e82b6</brickId>
+                      <commentedOut>false</commentedOut>
+                      <formulaList/>
+                      <isCallingBrick>true</isCallingBrick>
+                      <userDefinedBrickDataList reference="../../../../../../script/brickList/brick/loopBricks/brick/userDefinedBrickDataList"/>
+                      <userDefinedBrickID>171332d9-9599-4142-83ec-3b42fe5ad2ca</userDefinedBrickID>
+                    </brick>
+                  </loopBricks>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>57946f58-a9e1-48e5-a76d-ba47f050fe3e</scriptId>
+            </script>
+            <script type="UserDefinedScript" posX="0.0" posY="0.0">
+              <brickList>
+                <brick type="ForeverBrick">
+                  <brickId>e2257300-5bf5-42d8-9410-e145c72345b9</brickId>
+                  <commentedOut>false</commentedOut>
+                  <loopBricks>
+                    <brick type="CloneBrick">
+                      <brickId>ff1f7fcf-b191-416f-8863-765267fe4813</brickId>
+                      <commentedOut>false</commentedOut>
+                    </brick>
+                    <brick type="CloneBrick">
+                      <brickId>485df1a1-7a63-492c-b369-2c6a409ebe53</brickId>
+                      <commentedOut>false</commentedOut>
+                    </brick>
+                    <brick type="CloneBrick">
+                      <brickId>3e1c510b-a9c3-4e02-a400-13fb73affd23</brickId>
+                      <commentedOut>false</commentedOut>
+                    </brick>
+                    <brick type="CloneBrick">
+                      <brickId>2c493d14-4208-4504-ade2-818cef5db2ba</brickId>
+                      <commentedOut>false</commentedOut>
+                    </brick>
+                    <brick type="CloneBrick">
+                      <brickId>c9a068f8-d852-4d60-b65d-8f9af56a5ed9</brickId>
+                      <commentedOut>false</commentedOut>
+                    </brick>
+                    <brick type="CloneBrick">
+                      <brickId>25ed1bf4-aa04-4e8f-a58a-2d9c35510938</brickId>
+                      <commentedOut>false</commentedOut>
+                    </brick>
+                    <brick type="CloneBrick">
+                      <brickId>e01db75b-a692-41ad-846b-11a46972f36f</brickId>
+                      <commentedOut>false</commentedOut>
+                    </brick>
+                    <brick type="CloneBrick">
+                      <brickId>bfb608eb-f4e6-4f51-a984-436dd2b36732</brickId>
+                      <commentedOut>false</commentedOut>
+                    </brick>
+                    <brick type="CloneBrick">
+                      <brickId>42a7f5e3-2d00-4379-953f-07be43a2b563</brickId>
+                      <commentedOut>false</commentedOut>
+                    </brick>
+                    <brick type="CloneBrick">
+                      <brickId>72419600-d06a-483d-995c-4abf9b4a44ea</brickId>
+                      <commentedOut>false</commentedOut>
+                    </brick>
+                    <brick type="CloneBrick">
+                      <brickId>467fbffd-ec66-42a6-80e5-513d1aeee640</brickId>
+                      <commentedOut>false</commentedOut>
+                    </brick>
+                    <brick type="CloneBrick">
+                      <brickId>8d1adcc7-dd6c-46c1-a640-fc84a4976485</brickId>
+                      <commentedOut>false</commentedOut>
+                    </brick>
+                    <brick type="CloneBrick">
+                      <brickId>1d90ba41-a4f6-40a0-94b1-4d8de042a0b1</brickId>
+                      <commentedOut>false</commentedOut>
+                    </brick>
+                    <brick type="CloneBrick">
+                      <brickId>f5be5862-f6a1-48d3-854c-7e45751a81e3</brickId>
+                      <commentedOut>false</commentedOut>
+                    </brick>
+                    <brick type="CloneBrick">
+                      <brickId>bae7cdb5-fa56-48eb-bb5e-7a2907457ec2</brickId>
+                      <commentedOut>false</commentedOut>
+                    </brick>
+                    <brick type="CloneBrick">
+                      <brickId>759aeef0-6d28-4019-8936-60dea841f064</brickId>
+                      <commentedOut>false</commentedOut>
+                    </brick>
+                    <brick type="CloneBrick">
+                      <brickId>ef4f4250-6f21-4553-9906-5f1ae5228b63</brickId>
+                      <commentedOut>false</commentedOut>
+                    </brick>
+                    <brick type="CloneBrick">
+                      <brickId>4c2b7278-2229-411f-82ea-a866466b5475</brickId>
+                      <commentedOut>false</commentedOut>
+                    </brick>
+                    <brick type="CloneBrick">
+                      <brickId>fc571942-04ad-4834-801e-297817b15c6c</brickId>
+                      <commentedOut>false</commentedOut>
+                    </brick>
+                    <brick type="CloneBrick">
+                      <brickId>afcb4b03-8546-40d4-9ad4-6cac5140eb21</brickId>
+                      <commentedOut>false</commentedOut>
+                    </brick>
+                    <brick type="CloneBrick">
+                      <brickId>bfabebf3-08ee-478e-a116-6d978cd5afa4</brickId>
+                      <commentedOut>false</commentedOut>
+                    </brick>
+                    <brick type="CloneBrick">
+                      <brickId>ab2038f9-4e90-426d-bb36-b145ef93f3a8</brickId>
+                      <commentedOut>false</commentedOut>
+                    </brick>
+                    <brick type="CloneBrick">
+                      <brickId>354147d7-a4c7-4424-b121-b8e50c43e7a6</brickId>
+                      <commentedOut>false</commentedOut>
+                    </brick>
+                    <brick type="CloneBrick">
+                      <brickId>29e7defe-c4a7-4468-bf28-ba39e1fa7a44</brickId>
+                      <commentedOut>false</commentedOut>
+                    </brick>
+                    <brick type="CloneBrick">
+                      <brickId>43345a84-26ab-4eb3-bad0-bf3ccba502a6</brickId>
+                      <commentedOut>false</commentedOut>
+                    </brick>
+                    <brick type="CloneBrick">
+                      <brickId>88287ba1-e96c-4e49-8815-49c2af494884</brickId>
+                      <commentedOut>false</commentedOut>
+                    </brick>
+                    <brick type="DeleteThisCloneBrick">
+                      <brickId>4ade1d54-d093-4e54-bae5-4201128ce822</brickId>
+                      <commentedOut>false</commentedOut>
+                    </brick>
+                  </loopBricks>
+                </brick>
+              </brickList>
+              <commentedOut>false</commentedOut>
+              <scriptId>3fff9c73-b445-4db1-ae43-2a12756740c8</scriptId>
+              <screenRefresh>true</screenRefresh>
+              <userDefinedBrickID>171332d9-9599-4142-83ec-3b42fe5ad2ca</userDefinedBrickID>
+            </script>
+          </scriptList>
+          <nfcTagList/>
+          <userVariables/>
+          <userLists/>
+          <userDefinedBrickList>
+            <brick type="UserDefinedBrick">
+              <brickId>354d1517-f77a-41f8-8a13-4aac49632980</brickId>
+              <commentedOut>false</commentedOut>
+              <formulaList/>
+              <isCallingBrick>false</isCallingBrick>
+              <userDefinedBrickDataList reference="../../../scriptList/script/brickList/brick/loopBricks/brick/userDefinedBrickDataList"/>
+              <userDefinedBrickID>171332d9-9599-4142-83ec-3b42fe5ad2ca</userDefinedBrickID>
+            </brick>
+          </userDefinedBrickList>
+        </object>
+      </objectList>
+    </scene>
+  </scenes>
+  <programVariableList/>
+  <programListOfLists/>
+  <programMultiplayerVariableList/>
+</program>

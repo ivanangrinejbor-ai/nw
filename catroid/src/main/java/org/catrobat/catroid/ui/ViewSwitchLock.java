@@ -64,21 +64,38 @@ public class ViewSwitchLock implements Lock {
 
 	@Override
 	public void lock() {
-		throw new UnsupportedOperationException("Unsupported Method");
+		while (!tryLock()) {
+			Thread.yield();
+		}
 	}
 
 	@Override
 	public void lockInterruptibly() throws InterruptedException {
-		throw new UnsupportedOperationException("Unsupported Method");
+		while (!tryLock()) {
+			if (Thread.interrupted()) {
+				throw new InterruptedException();
+			}
+			Thread.yield();
+		}
+	}
+
+	@Override
+	public boolean tryLock(long time, TimeUnit unit) throws InterruptedException {
+		long deadline = System.nanoTime() + unit.toNanos(time);
+		while (System.nanoTime() < deadline) {
+			if (tryLock()) {
+				return true;
+			}
+			if (Thread.interrupted()) {
+				throw new InterruptedException();
+			}
+			Thread.sleep(1);
+		}
+		return false;
 	}
 
 	@Override
 	public Condition newCondition() {
-		throw new UnsupportedOperationException("Unsupported Method");
-	}
-
-	@Override
-	public boolean tryLock(long arg0, TimeUnit arg1) throws InterruptedException {
-		throw new UnsupportedOperationException("Unsupported Method");
+		throw new UnsupportedOperationException("Condition not supported by ViewSwitchLock");
 	}
 }

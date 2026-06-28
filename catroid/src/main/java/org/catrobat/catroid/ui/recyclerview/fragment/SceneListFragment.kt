@@ -78,7 +78,11 @@ class SceneListFragment : RecyclerViewFragment<Scene?>(),
 
     override fun initializeAdapter() {
         sharedPreferenceDetailsKey = SharedPreferenceKeys.SHOW_DETAILS_SCENES_PREFERENCE_KEY
-        val items = projectManager.currentProject.sceneList
+        val items = ArrayList(projectManager.currentProject.sceneList)
+        val globalScene = projectManager.currentProject.globalScene
+        if (globalScene != null) {
+            items.add(0, globalScene)
+        }
         adapter = SceneAdapter(items)
         onAdapterReady()
     }

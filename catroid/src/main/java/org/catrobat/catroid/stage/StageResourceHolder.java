@@ -292,7 +292,7 @@ public class StageResourceHolder implements GatherCollisionInformationTask.OnPol
 		}
 
 		if (requiredResourcesSet.contains(Brick.NETWORK_CONNECTION)) {
-			/*if (!Utils.isNetworkAvailable(stageActivity)) {
+			if (!Utils.isNetworkAvailable(stageActivity)) {
 				new AlertDialog.Builder(new ContextThemeWrapper(stageActivity, R.style.Theme_AppCompat_Dialog))
 					.setTitle(R.string.error_no_network_title)
 					.setPositiveButton(R.string.preference_title, (dialog, whichButton) -> {
@@ -308,8 +308,7 @@ public class StageResourceHolder implements GatherCollisionInformationTask.OnPol
 					.show();
 			} else {
 				resourceInitialized();
-			}*/
-			resourceInitialized();
+			}
 		}
 
 		if (requiredResourcesSet.contains(Brick.SOCKET_RASPI)) {

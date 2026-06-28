@@ -1,9 +1,11 @@
 package org.catrobat.catroid.formulaeditor;
 
 import org.catrobat.catroid.ProjectManager;
+import org.catrobat.catroid.CatroidApplication;
 import org.catrobat.catroid.content.FloatArrayManager;
 import org.catrobat.catroid.content.Project;
 import org.catrobat.catroid.content.Scene;
+import org.catrobat.catroid.content.Sprite;
 import org.catrobat.catroid.content.Scope;
 import org.catrobat.catroid.content.TableManager;
 import org.catrobat.catroid.content.UserVarsManager;
@@ -989,6 +991,357 @@ public class FormulaElement implements Serializable {
                 return textBlockFunctionProvider.interpretFunctionTextBlockLanguage(tryInterpretDoubleValue(arg0));
             case COLOR_EQUALS_COLOR:
                 return booleanToDouble(new ColorEqualsColor().tryInterpretFunctionColorEqualsColor(arg0, arg1, arg2));
+            case FILE_EXISTS: {
+                String path = String.valueOf(arg0);
+                Project project = ProjectManager.getInstance().getCurrentProject();
+                if (project == null) return FALSE;
+                try {
+                    File file = new File(project.getDirectory(), path);
+                    return booleanToDouble(file.exists() && file.isFile());
+                } catch (Exception e) { return FALSE; }
+            }
+            case DEVICE_NAME:
+                return android.os.Build.MODEL != null ? android.os.Build.MODEL : "Unknown";
+            case DEVICE_MANUFACTURER:
+                return android.os.Build.MANUFACTURER != null ? android.os.Build.MANUFACTURER : "Unknown";
+            case ANDROID_VERSION:
+                return android.os.Build.VERSION.RELEASE != null ? android.os.Build.VERSION.RELEASE : "Unknown";
+            case API_LEVEL:
+                return (double) android.os.Build.VERSION.SDK_INT;
+            case SYSTEM_LANGUAGE: {
+                try {
+                    java.util.Locale locale = android.content.res.Resources.getSystem().getConfiguration().getLocales().get(0);
+                    return locale != null ? locale.getDisplayLanguage() : "Unknown";
+                } catch (Exception e) { return "Unknown"; }
+            }
+            case SYSTEM_THEME: {
+                try {
+                    int nightMode = CatroidApplication.getAppContext().getResources().getConfiguration().uiMode
+                        & android.content.res.Configuration.UI_MODE_NIGHT_MASK;
+                    return (nightMode == android.content.res.Configuration.UI_MODE_NIGHT_YES) ? "Dark" : "Light";
+                } catch (Exception e) { return "Unknown"; }
+            }
+            case CPU_NAME: {
+                try {
+                    java.io.RandomAccessFile reader = new java.io.RandomAccessFile("/proc/cpuinfo", "r");
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        if (line.toLowerCase().contains("hardware")) {
+                            reader.close();
+                            String[] parts = line.split(":");
+                            return parts.length > 1 ? parts[1].trim() : "Unknown";
+                        }
+                    }
+                    reader.close();
+                } catch (Exception e) { }
+                return "Unknown";
+            }
+            case CPU_ARCHITECTURE:
+                return android.os.Build.SUPPORTED_ABIS != null && android.os.Build.SUPPORTED_ABIS.length > 0
+                    ? android.os.Build.SUPPORTED_ABIS[0] : "Unknown";
+            case CPU_CORES:
+                return (double) Runtime.getRuntime().availableProcessors();
+            case CPU_FREQUENCY: {
+                try {
+                    java.io.RandomAccessFile reader = new java.io.RandomAccessFile("/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq", "r");
+                    String line = reader.readLine();
+                    reader.close();
+                    long khz = Long.parseLong(line != null ? line.trim() : "0");
+                    return (double) (khz / 1000);
+                } catch (Exception e) { return 0.0; }
+            }
+            case TOTAL_RAM: {
+                try {
+                    android.app.ActivityManager.MemoryInfo mi = new android.app.ActivityManager.MemoryInfo();
+                    android.app.ActivityManager activityManager = (android.app.ActivityManager)
+                        CatroidApplication.getAppContext().getSystemService(android.content.Context.ACTIVITY_SERVICE);
+                    activityManager.getMemoryInfo(mi);
+                    return (double) (mi.totalMem / (1024 * 1024));
+                } catch (Exception e) { return 0.0; }
+            }
+            case FREE_RAM: {
+                try {
+                    android.app.ActivityManager.MemoryInfo mi = new android.app.ActivityManager.MemoryInfo();
+                    android.app.ActivityManager activityManager = (android.app.ActivityManager)
+                        CatroidApplication.getAppContext().getSystemService(android.content.Context.ACTIVITY_SERVICE);
+                    activityManager.getMemoryInfo(mi);
+                    return (double) (mi.availMem / (1024 * 1024));
+                } catch (Exception e) { return 0.0; }
+            }
+            case TOTAL_STORAGE: {
+                try {
+                    android.os.StatFs stat = new android.os.StatFs(android.os.Environment.getDataDirectory().getPath());
+                    return (double) (stat.getBlockCountLong() * stat.getBlockSizeLong() / (1024 * 1024));
+                } catch (Exception e) { return 0.0; }
+            }
+            case FREE_STORAGE: {
+                try {
+                    android.os.StatFs stat = new android.os.StatFs(android.os.Environment.getDataDirectory().getPath());
+                    return (double) (stat.getAvailableBlocksLong() * stat.getBlockSizeLong() / (1024 * 1024));
+                } catch (Exception e) { return 0.0; }
+            }
+            case BATTERY_PERCENT: {
+                try {
+                    android.content.IntentFilter filter = new android.content.IntentFilter(android.content.Intent.ACTION_BATTERY_CHANGED);
+                    android.content.Intent batteryStatus = CatroidApplication.getAppContext().registerReceiver(null, filter);
+                    if (batteryStatus == null) return 0.0;
+                    int level = batteryStatus.getIntExtra(android.os.BatteryManager.EXTRA_LEVEL, -1);
+                    int scale = batteryStatus.getIntExtra(android.os.BatteryManager.EXTRA_SCALE, -1);
+                    return (level > 0 && scale > 0) ? (double) (level * 100 / scale) : 0.0;
+                } catch (Exception e) { return 0.0; }
+            }
+            case BATTERY_CHARGING: {
+                try {
+                    android.content.IntentFilter filter = new android.content.IntentFilter(android.content.Intent.ACTION_BATTERY_CHANGED);
+                    android.content.Intent batteryStatus = CatroidApplication.getAppContext().registerReceiver(null, filter);
+                    if (batteryStatus == null) return FALSE;
+                    int status = batteryStatus.getIntExtra(android.os.BatteryManager.EXTRA_STATUS, -1);
+                    boolean charging = status == android.os.BatteryManager.BATTERY_STATUS_CHARGING
+                        || status == android.os.BatteryManager.BATTERY_STATUS_FULL;
+                    return booleanToDouble(charging);
+                } catch (Exception e) { return FALSE; }
+            }
+            case BATTERY_TEMP: {
+                try {
+                    android.content.IntentFilter filter = new android.content.IntentFilter(android.content.Intent.ACTION_BATTERY_CHANGED);
+                    android.content.Intent batteryStatus = CatroidApplication.getAppContext().registerReceiver(null, filter);
+                    if (batteryStatus == null) return 0.0;
+                    int temp = batteryStatus.getIntExtra(android.os.BatteryManager.EXTRA_TEMPERATURE, 0);
+                    return (double) (temp / 10.0);
+                } catch (Exception e) { return 0.0; }
+            }
+            case BATTERY_VOLTAGE: {
+                try {
+                    android.content.IntentFilter filter = new android.content.IntentFilter(android.content.Intent.ACTION_BATTERY_CHANGED);
+                    android.content.Intent batteryStatus = CatroidApplication.getAppContext().registerReceiver(null, filter);
+                    if (batteryStatus == null) return 0.0;
+                    int voltage = batteryStatus.getIntExtra(android.os.BatteryManager.EXTRA_VOLTAGE, 0);
+                    return (double) (voltage / 1000.0);
+                } catch (Exception e) { return 0.0; }
+            }
+            case BATTERY_STATE: {
+                try {
+                    android.content.IntentFilter filter = new android.content.IntentFilter(android.content.Intent.ACTION_BATTERY_CHANGED);
+                    android.content.Intent batteryStatus = CatroidApplication.getAppContext().registerReceiver(null, filter);
+                    if (batteryStatus == null) return "Unknown";
+                    int status = batteryStatus.getIntExtra(android.os.BatteryManager.EXTRA_STATUS, -1);
+                    switch (status) {
+                        case android.os.BatteryManager.BATTERY_STATUS_CHARGING: return "Charging";
+                        case android.os.BatteryManager.BATTERY_STATUS_DISCHARGING: return "Discharging";
+                        case android.os.BatteryManager.BATTERY_STATUS_FULL: return "Full";
+                        case android.os.BatteryManager.BATTERY_STATUS_NOT_CHARGING: return "Not charging";
+                        default: return "Unknown";
+                    }
+                } catch (Exception e) { return "Unknown"; }
+            }
+            case INTERNET_CONNECTED: {
+                try {
+                    android.net.ConnectivityManager cm = (android.net.ConnectivityManager)
+                        CatroidApplication.getAppContext().getSystemService(android.content.Context.CONNECTIVITY_SERVICE);
+                    android.net.NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+                    return booleanToDouble(activeNetwork != null && activeNetwork.isConnected());
+                } catch (Exception e) { return FALSE; }
+            }
+            case INTERNET_TYPE: {
+                try {
+                    android.net.ConnectivityManager cm = (android.net.ConnectivityManager)
+                        CatroidApplication.getAppContext().getSystemService(android.content.Context.CONNECTIVITY_SERVICE);
+                    android.net.NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+                    if (activeNetwork == null || !activeNetwork.isConnected()) return "None";
+                    switch (activeNetwork.getType()) {
+                        case android.net.ConnectivityManager.TYPE_WIFI: return "Wi-Fi";
+                        case android.net.ConnectivityManager.TYPE_MOBILE: return "Mobile";
+                        case android.net.ConnectivityManager.TYPE_ETHERNET: return "Ethernet";
+                        default: return "Other";
+                    }
+                } catch (Exception e) { return "Unknown"; }
+            }
+            case INTERNET_SPEED: {
+                try {
+                    android.net.ConnectivityManager cm = (android.net.ConnectivityManager)
+                        CatroidApplication.getAppContext().getSystemService(android.content.Context.CONNECTIVITY_SERVICE);
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                        android.net.NetworkCapabilities nc = cm.getNetworkCapabilities(cm.getActiveNetwork());
+                        if (nc != null) {
+                            int down = nc.getLinkDownstreamBandwidthKbps();
+                            return (double) (down / 1000); // Mbps
+                        }
+                    }
+                } catch (Exception e) { }
+                return 0.0;
+            }
+            case LOCAL_IP: {
+                try {
+                    java.util.Enumeration<java.net.NetworkInterface> interfaces = java.net.NetworkInterface.getNetworkInterfaces();
+                    while (interfaces.hasMoreElements()) {
+                        java.net.NetworkInterface iface = interfaces.nextElement();
+                        if (iface.isLoopback() || !iface.isUp()) continue;
+                        java.util.Enumeration<java.net.InetAddress> addresses = iface.getInetAddresses();
+                        while (addresses.hasMoreElements()) {
+                            java.net.InetAddress addr = addresses.nextElement();
+                            if (addr instanceof java.net.Inet4Address && !addr.isLoopbackAddress()) {
+                                return addr.getHostAddress();
+                            }
+                        }
+                    }
+                } catch (Exception e) { }
+                return "Unknown";
+            }
+            case SCREEN_WIDTH: {
+                try {
+                    android.util.DisplayMetrics metrics = CatroidApplication.getAppContext()
+                        .getResources().getDisplayMetrics();
+                    return (double) metrics.widthPixels;
+                } catch (Exception e) { return 0.0; }
+            }
+            case SCREEN_HEIGHT: {
+                try {
+                    android.util.DisplayMetrics metrics = CatroidApplication.getAppContext()
+                        .getResources().getDisplayMetrics();
+                    return (double) metrics.heightPixels;
+                } catch (Exception e) { return 0.0; }
+            }
+            case SCREEN_DPI: {
+                try {
+                    android.util.DisplayMetrics metrics = CatroidApplication.getAppContext()
+                        .getResources().getDisplayMetrics();
+                    return (double) metrics.densityDpi;
+                } catch (Exception e) { return 0.0; }
+            }
+            case SCREEN_REFRESH: {
+                try {
+                    android.view.WindowManager wm = (android.view.WindowManager)
+                        CatroidApplication.getAppContext().getSystemService(android.content.Context.WINDOW_SERVICE);
+                    android.view.Display display = wm.getDefaultDisplay();
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                        android.view.Display.Mode mode = display.getMode();
+                        return (double) mode.getRefreshRate();
+                    } else {
+                        return (double) display.getRefreshRate();
+                    }
+                } catch (Exception e) { return 0.0; }
+            }
+            case SCREEN_ORIENTATION: {
+                try {
+                    int orientation = CatroidApplication.getAppContext().getResources()
+                        .getConfiguration().orientation;
+                    return (orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE)
+                        ? "Landscape" : "Portrait";
+                } catch (Exception e) { return "Unknown"; }
+            }
+            case SPRITE_EXISTS: {
+                Scene scene = ProjectManager.getInstance().getCurrentlyPlayingScene();
+                if (scene == null) return FALSE;
+                return booleanToDouble(scene.getSprite(String.valueOf(arg0)) != null);
+            }
+            case SPRITE_X: {
+                Sprite s = findSprite(String.valueOf(arg0));
+                return (s != null && s.look != null) ? (double) s.look.getXInUserInterfaceDimensionUnit() : 0.0;
+            }
+            case SPRITE_Y: {
+                Sprite s = findSprite(String.valueOf(arg0));
+                return (s != null && s.look != null) ? (double) s.look.getYInUserInterfaceDimensionUnit() : 0.0;
+            }
+            case SPRITE_SIZE: {
+                Sprite s = findSprite(String.valueOf(arg0));
+                return (s != null && s.look != null) ? (double) s.look.getSizeInUserInterfaceDimensionUnit() : 0.0;
+            }
+            case SPRITE_WIDTH: {
+                Sprite s = findSprite(String.valueOf(arg0));
+                return (s != null && s.look != null) ? (double) s.look.getWidthInUserInterfaceDimensionUnit() : 0.0;
+            }
+            case SPRITE_HEIGHT: {
+                Sprite s = findSprite(String.valueOf(arg0));
+                return (s != null && s.look != null) ? (double) s.look.getHeightInUserInterfaceDimensionUnit() : 0.0;
+            }
+            case SPRITE_DIRECTION: {
+                Sprite s = findSprite(String.valueOf(arg0));
+                return (s != null && s.look != null) ? (double) s.look.getDirectionInUserInterfaceDimensionUnit() : 0.0;
+            }
+            case SPRITE_VISIBLE: {
+                Sprite s = findSprite(String.valueOf(arg0));
+                return booleanToDouble(s != null && s.look != null && s.look.isLookVisible());
+            }
+            case SPRITE_TRANSPARENCY: {
+                Sprite s = findSprite(String.valueOf(arg0));
+                return (s != null && s.look != null) ? (double) s.look.getTransparencyInUserInterfaceDimensionUnit() : 0.0;
+            }
+            case SPRITE_LAYER: {
+                Scene scene = ProjectManager.getInstance().getCurrentlyPlayingScene();
+                if (scene == null) return 0.0;
+                java.util.List<Sprite> list = scene.getSpriteList();
+                for (int i = 0; i < list.size(); i++) {
+                    if (list.get(i).getName().equals(String.valueOf(arg0))) return (double) (list.size() - i);
+                }
+                return 0.0;
+            }
+            case SPRITE_NAME_GET: {
+                Sprite s = findSprite(String.valueOf(arg0));
+                return s != null ? s.getName() : "";
+            }
+            case SPRITE_INDEX_GET: {
+                Scene scene = ProjectManager.getInstance().getCurrentlyPlayingScene();
+                if (scene == null) return 0.0;
+                java.util.List<Sprite> list = scene.getSpriteList();
+                for (int i = 0; i < list.size(); i++) {
+                    if (list.get(i).getName().equals(String.valueOf(arg0))) return (double) (i + 1);
+                }
+                return 0.0;
+            }
+            case SPRITE_UUID: {
+                Sprite s = findSprite(String.valueOf(arg0));
+                return s != null ? s.getSpriteId() : "";
+            }
+            case SPRITE_CLONE_COUNT: {
+                StageListener listener = StageActivity.getActiveStageListener();
+                if (listener == null) return 0.0;
+                String name = String.valueOf(arg0);
+                int count = 0;
+                for (Sprite sp : listener.getSpritesFromStage()) {
+                    if (sp.isClone() && name.equals(sp.getName())) count++;
+                }
+                return (double) count;
+            }
+            case SPRITE_LOOK_COUNT: {
+                Sprite s = findSprite(String.valueOf(arg0));
+                return (s != null) ? (double) s.getLookList().size() : 0.0;
+            }
+            case SPRITE_SOUND_COUNT: {
+                Sprite s = findSprite(String.valueOf(arg0));
+                return (s != null) ? (double) s.getSoundList().size() : 0.0;
+            }
+            case SPRITE_VARIABLE_COUNT: {
+                Sprite s = findSprite(String.valueOf(arg0));
+                return (s != null) ? (double) s.getUserVariables().size() : 0.0;
+            }
+            case SPRITE_LIST_COUNT: {
+                Sprite s = findSprite(String.valueOf(arg0));
+                return (s != null) ? (double) s.getUserLists().size() : 0.0;
+            }
+            case SPRITE_DISTANCE: {
+                Sprite s1 = findSprite(String.valueOf(arg0));
+                Sprite s2 = findSprite(String.valueOf(arg1));
+                if (s1 == null || s2 == null || s1.look == null || s2.look == null) return 0.0;
+                float dx = s1.look.getXInUserInterfaceDimensionUnit() - s2.look.getXInUserInterfaceDimensionUnit();
+                float dy = s1.look.getYInUserInterfaceDimensionUnit() - s2.look.getYInUserInterfaceDimensionUnit();
+                return (double) (float) Math.sqrt(dx * dx + dy * dy);
+            }
+            case SPRITE_TOUCHING: {
+                Sprite s1 = findSprite(String.valueOf(arg0));
+                Sprite s2 = findSprite(String.valueOf(arg1));
+                if (s1 == null || s2 == null || s1.look == null || s2.look == null) return FALSE;
+                StageListener listener = StageActivity.getActiveStageListener();
+                if (listener == null) return FALSE;
+                return tryInterpretCollision(s1.look, s2.getName(), ProjectManager.getInstance().getCurrentlyPlayingScene(), listener);
+            }
+            case SPRITE_ANGLE_TO: {
+                Sprite s1 = findSprite(String.valueOf(arg0));
+                Sprite s2 = findSprite(String.valueOf(arg1));
+                if (s1 == null || s2 == null || s1.look == null || s2.look == null) return 0.0;
+                float dx = s2.look.getXInUserInterfaceDimensionUnit() - s1.look.getXInUserInterfaceDimensionUnit();
+                float dy = s2.look.getYInUserInterfaceDimensionUnit() - s1.look.getYInUserInterfaceDimensionUnit();
+                return (double) Math.toDegrees(Math.atan2(dy, dx));
+            }
             default:
                 return interpretFormulaFunction(function, arg0, arg1, arg2);
         }
@@ -1038,6 +1391,13 @@ public class FormulaElement implements Serializable {
             Log.e(TAG_FORMULA_ELEMENT, "Ошибка выполнения LunoScript для функции " + customFormula.getUniqueName(), e);
             return "LUNO ERROR";
         }
+    }
+
+    @Nullable
+    private Sprite findSprite(String name) {
+        if (name == null || name.isEmpty()) return null;
+        Scene scene = ProjectManager.getInstance().getCurrentlyPlayingScene();
+        return scene != null ? scene.getSprite(name) : null;
     }
 
     @Nullable

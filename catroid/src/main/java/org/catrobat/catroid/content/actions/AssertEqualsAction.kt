@@ -37,30 +37,30 @@ class AssertEqualsAction : AssertAction() {
 
     override fun act(delta: Float): Boolean {
         assertTitle = "\nAssertEqualsError\n"
-        if (actualFormula == null) {
+        val actual = actualFormula ?: run {
             failWith("Actual is null")
             return false
         }
-        if (expectedFormula == null) {
+        val expected = expectedFormula ?: run {
             failWith("Expected is null")
             return false
         }
 
-        actualValue = actualFormula!!.interpretObject(scope)
-        expectedValue = expectedFormula!!.interpretObject(scope)
+        actualValue = actual.interpretObject(scope)
+        expectedValue = expected.interpretObject(scope)
         if (!equalValues(actualValue.toString(), expectedValue.toString())) {
-            convertValuesToBooleanString()
+            convertValuesToBooleanString(actual, expected)
             failWith(formattedAssertEqualsError(actualValue, expectedValue))
             return false
         }
         return true
     }
 
-    private fun convertValuesToBooleanString() {
-        val actualBoolean = isValueBoolean(actualFormula!!.formulaTree.elementType,
-            actualFormula!!.formulaTree.value)
-        val expectedBoolean = isValueBoolean(expectedFormula!!.formulaTree.elementType,
-            expectedFormula!!.formulaTree.value)
+    private fun convertValuesToBooleanString(actual: Formula, expected: Formula) {
+        val actualBoolean = isValueBoolean(actual.formulaTree.elementType,
+            actual.formulaTree.value)
+        val expectedBoolean = isValueBoolean(expected.formulaTree.elementType,
+            expected.formulaTree.value)
 
         if (actualBoolean) {
             actualValue = (actualValue as Double > 0).toString()
