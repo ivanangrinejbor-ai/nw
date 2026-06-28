@@ -1,13 +1,14 @@
 package org.catrobat.catroid.content.bricks
 
 import org.catrobat.catroid.R
-import org.catrobat.catroid.content.Script
 import org.catrobat.catroid.content.Sprite
 import org.catrobat.catroid.content.actions.ScriptSequenceAction
 import org.catrobat.catroid.formulaeditor.Formula
 
 class SmoothPathBrick : FormulaBrick() {
-    private static final long serialVersionUID = 1L
+    companion object {
+        @JvmField val serialVersionUID: Long = 1L
+    }
 
     constructor() {
         addAllowedBrickField(BrickField.SPRITE_NAME, R.id.brick_smooth_path_sprite_edit)

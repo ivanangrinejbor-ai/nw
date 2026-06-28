@@ -147,7 +147,6 @@ class ProjectOptionsFragment : Fragment() {
         setupCustomResolution()
         setupProjectUpload()
         setupProjectSaveExternal()
-        //setupProjectSaveApk()
         setupProjectSaveApk()
         setupRebuildCache()
         setupClearVars()
