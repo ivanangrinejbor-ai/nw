@@ -70,6 +70,8 @@ ext {
 }
 
 apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-kapt'
 
 apply from: 'gradle/code_quality_tasks.gradle'
 apply from: 'gradle/release_crowdin_tasks.gradle'
