@@ -64,13 +64,13 @@ class SystemLoadingActor(
         batch.begin()
         font.color = Color.WHITE
         val text = "Loading..."
-        val tw = font.getBounds(text).width
-        font.draw(batch, text, x + (width - tw) / 2f, barY + barH + 40f)
+        val layout = com.badlogic.gdx.graphics.g2d.GlyphLayout(font, text)
+        font.draw(batch, text, x + (width - layout.width) / 2f, barY + barH + 40f)
 
         font.color = Color.LIGHT_GRAY
         val pct = "${(progress * 100).toInt()}%"
-        val pw = font.getBounds(pct).width
-        font.draw(batch, pct, x + (width - pw) / 2f, barY - 10f)
+        val pctLayout = com.badlogic.gdx.graphics.g2d.GlyphLayout(font, pct)
+        font.draw(batch, pct, x + (width - pctLayout.width) / 2f, barY - 10f)
 
         if (!loaded) {
             stepLoad()

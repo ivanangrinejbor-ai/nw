@@ -4,29 +4,25 @@ import org.catrobat.catroid.R
 import org.catrobat.catroid.content.Sprite
 import org.catrobat.catroid.content.actions.ScriptSequenceAction
 import org.catrobat.catroid.formulaeditor.Formula
-import org.catrobat.catroid.content.bricks.Brick.BrickField
 
-class EnableDynamicReplanningBrick : FormulaBrick() {
-    companion object {
-        @JvmField val serialVersionUID: Long = 1L
-    }
+class EnableDynamicReplanningBrick() : FormulaBrick() {
+    companion object { @JvmField val serialVersionUID: Long = 1L }
 
-    constructor() {
-        addAllowedBrickField(BrickField.SPRITE_NAME, R.id.brick_dynamic_replan_sprite_edit)
-        addAllowedBrickField(BrickField.ENABLED, R.id.brick_dynamic_replan_enabled_edit)
+    init { addFields() }
+    private fun addFields() {
+        addAllowedBrickField(Brick.BrickField.SPRITE_NAME, R.id.brick_dynamic_replan_sprite_edit)
+        addAllowedBrickField(Brick.BrickField.ENABLED, R.id.brick_dynamic_replan_enabled_edit)
     }
 
     constructor(spriteName: String, enabled: String) : this() {
-        setFormulaWithBrickField(BrickField.SPRITE_NAME, Formula(spriteName))
-        setFormulaWithBrickField(BrickField.ENABLED, Formula(enabled))
+        setFormulaWithBrickField(Brick.BrickField.SPRITE_NAME, Formula(spriteName))
+        setFormulaWithBrickField(Brick.BrickField.ENABLED, Formula(enabled))
     }
 
     override fun getViewResource(): Int = R.layout.brick_dynamic_replanning
-
     override fun addActionToSequence(sprite: Sprite, sequence: ScriptSequenceAction) {
-        sequence.addAction(sprite.actionFactory.createEnableDynamicReplanningAction(
-            sprite, sequence,
-            getFormulaWithBrickField(BrickField.SPRITE_NAME),
-            getFormulaWithBrickField(BrickField.ENABLED)))
+        sequence.addAction(sprite.actionFactory.createEnableDynamicReplanningAction(sprite, sequence,
+            getFormulaWithBrickField(Brick.BrickField.SPRITE_NAME),
+            getFormulaWithBrickField(Brick.BrickField.ENABLED)))
     }
 }
