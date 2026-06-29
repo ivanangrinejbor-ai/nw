@@ -82,6 +82,7 @@ public class CatroidApplication extends Application {
 	@Override
 	public void onCreate() {
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+		prefs.edit().putBoolean("RECOVERED_FROM_CRASH", false).apply();
 		boolean forceSafeMode = prefs.getBoolean("force_safe_mode", false);
 
 		if (forceSafeMode) {
@@ -160,12 +161,15 @@ public class CatroidApplication extends Application {
 	}
 
 	private void setupHuaweiMobileServices() {
-		if (AGConnectInstance.getInstance() == null) {
-			AGConnectInstance.initialize(this);
+		try {
+			if (AGConnectInstance.getInstance() == null) {
+				AGConnectInstance.initialize(this);
+			}
+			String apiKey = AGConnectServicesConfig.fromContext(this).getString("client/api_key");
+			MLApplication.getInstance().setApiKey(apiKey);
+		} catch (Exception e) {
+			Log.e(TAG, "Huawei Mobile Services not available, skipping HMS init", e);
 		}
-
-		String apiKey = AGConnectServicesConfig.fromContext(this).getString("client/api_key");
-		MLApplication.getInstance().setApiKey(apiKey);
 	}
 
 	public synchronized Tracker getDefaultTracker() {
