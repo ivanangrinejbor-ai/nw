@@ -526,7 +526,7 @@ class ProjectOptionsFragment : Fragment() {
         showProgressDialog("Синхронизация и публикация...")
         lifecycleScope.launch(Dispatchers.IO) {
             saveProject()
-            val result = gitController.commitAndPush(commitMessage, "NewCatroid_user", "nc_user@email.com", token)
+            val result = gitController.commitAndPush(commitMessage, "NeoCatroid_user", "nc_user@email.com", token)
             withContext(Dispatchers.Main) {
                 hideProgressDialog()
                 when (result) {
@@ -1436,7 +1436,7 @@ class ProjectOptionsFragment : Fragment() {
 
         val view = LinearLayout(requireContext()).apply { orientation = LinearLayout.VERTICAL; setPadding(32, 16, 32, 16) }
         val nameInput = EditText(requireContext()).apply { setText(project.name); hint = "App name" }
-        val pkgInput = EditText(requireContext()).apply { setText("org.DanVexTeam.NewCatroid"); hint = "Package" }
+        val pkgInput = EditText(requireContext()).apply { setText("org.DanVexTeam.NeoCatroid"); hint = "Package" }
         val verInput = EditText(requireContext()).apply { setText("1.0"); hint = "Version" }
         val codeInput = EditText(requireContext()).apply { setText("1"); hint = "Version code"; inputType = android.text.InputType.TYPE_CLASS_NUMBER }
 
@@ -1449,7 +1449,7 @@ class ProjectOptionsFragment : Fragment() {
         builder.setPositiveButton(R.string.build_apk_start) { _, _ ->
             val config = BakedApkBuilder.ApkConfig(
                 appName = nameInput.text.toString().ifEmpty { project.name },
-                packageName = pkgInput.text.toString().ifEmpty { "org.DanVexTeam.NewCatroid" },
+                packageName = pkgInput.text.toString().ifEmpty { "org.DanVexTeam.NeoCatroid" },
                 versionName = verInput.text.toString().ifEmpty { "1.0" },
                 versionCode = codeInput.text.toString().toIntOrNull() ?: 1
             )

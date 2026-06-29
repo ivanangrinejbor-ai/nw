@@ -91,11 +91,11 @@
         android:name="android.permission.NEARBY_WIFI_DEVICES" />
 
     <permission
-        android:name="newcatroid.permission.USE_COFFEE_MACHINE"
+        android:name="NeoCatroid.permission.USE_COFFEE_MACHINE"
         android:protectionLevel="normal"
         android:label="Разрешение на автоматическое заваривание кофе разработчику" />
     <permission
-        android:name="newcatroid.permission.EAT_WATERMELON_AT_3_AM"
+        android:name="NeoCatroid.permission.EAT_WATERMELON_AT_3_AM"
         android:protectionLevel="normal" />
 
 
@@ -336,7 +336,7 @@
         <activity
             android:name=".libraryeditor.data.LibraryEditorActivity"
             android:exported="false"
-            android:theme="@style/Theme.NewCatroid.LibraryEditor"
+            android:theme="@style/Theme.NeoCatroid.LibraryEditor"
             android:windowSoftInputMode="adjustResize" />
 
         <service
@@ -364,7 +364,7 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data
                     android:host="github-callback"
-                    android:scheme="newcatroid" />
+                    android:scheme="NeoCatroid" />
             </intent-filter>
         </activity>
 

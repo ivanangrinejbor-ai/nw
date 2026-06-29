@@ -268,7 +268,7 @@ class IdeActivity : AppCompatActivity() {
                         val relativePath = file.absolutePath.removePrefix(projectDir.absolutePath).removePrefix("/")
 
                         var fileSha: String? = null
-                        val fileRes = api.getFile(authHeader, login, "NewCatroid", relativePath, branchName)
+                        val fileRes = api.getFile(authHeader, login, "NeoCatroid", relativePath, branchName)
                         if (fileRes.isSuccessful) {
                             fileSha = JSONObject(fileRes.body()?.string() ?: "").getString("sha")
                         }
@@ -283,7 +283,7 @@ class IdeActivity : AppCompatActivity() {
                             if (fileSha != null) put("sha", fileSha)
                         }
 
-                        api.updateFile(authHeader, login, "NewCatroid", relativePath,
+                        api.updateFile(authHeader, login, "NeoCatroid", relativePath,
                             updateJson.toString().toRequestBody(jsonType))
                     }
                     modifiedFiles.clear()
@@ -304,7 +304,7 @@ class IdeActivity : AppCompatActivity() {
 
                 android.util.Log.d("IDE_DEBUG", "Запуск Action с телом: ${workflowJson.toString()}")
 
-                val actionRes = api.triggerWorkflow(authHeader, login, "NewCatroid",
+                val actionRes = api.triggerWorkflow(authHeader, login, "NeoCatroid",
                     workflowJson.toString().toRequestBody(jsonType))
 
                 if (actionRes.isSuccessful || actionRes.code() == 204) {
@@ -335,7 +335,7 @@ class IdeActivity : AppCompatActivity() {
     ) {
         android.util.Log.d("IDE_DEBUG", "Проверка ветки $branch на сервере...")
 
-        val check = api.getRef(auth, login, "NewCatroid", branch)
+        val check = api.getRef(auth, login, "NeoCatroid", branch)
 
         if (check.isSuccessful) {
             android.util.Log.d("IDE_DEBUG", "Ветка уже существует.")
@@ -346,13 +346,13 @@ class IdeActivity : AppCompatActivity() {
 
 
         var baseSha: String? = null
-        val mainRef = api.getRef(auth, login, "NewCatroid", "main")
+        val mainRef = api.getRef(auth, login, "NeoCatroid", "main")
 
         if (mainRef.isSuccessful) {
             baseSha = JSONObject(mainRef.body()?.string() ?: "").getJSONObject("object").getString("sha")
         } else {
 
-            val masterRef = api.getRef(auth, login, "NewCatroid", "master")
+            val masterRef = api.getRef(auth, login, "NeoCatroid", "master")
             if (masterRef.isSuccessful) {
                 baseSha = JSONObject(masterRef.body()?.string() ?: "").getJSONObject("object").getString("sha")
             }
@@ -366,7 +366,7 @@ class IdeActivity : AppCompatActivity() {
             put("sha", baseSha)
         }
 
-        val createRes = api.createRef(auth, login, "NewCatroid", createJson.toString().toRequestBody(jsonType))
+        val createRes = api.createRef(auth, login, "NeoCatroid", createJson.toString().toRequestBody(jsonType))
         if (!createRes.isSuccessful) {
             throw Exception("Не удалось создать ветку на GitHub: ${createRes.code()}")
         }
