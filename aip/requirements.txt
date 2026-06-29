@@ -1,4 +1,4 @@
-# AI Project Assistant - NewCatroid
+# AI Project Assistant - NeoCatroid
 # Core
 numpy>=1.24.0
 lxml>=4.9.0

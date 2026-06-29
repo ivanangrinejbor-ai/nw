@@ -489,7 +489,7 @@ public class VisualPlacementActivity extends BaseCastActivity implements View.On
 
 	private void showSaveChangesDialog(Context context) {
 		new AlertDialog.Builder(
-                new ContextThemeWrapper(context, R.style.Theme_NewCatroid_Dialog)
+                new ContextThemeWrapper(context, R.style.Theme_NeoCatroid_Dialog)
         )
 				.setTitle(R.string.formula_editor_discard_changes_dialog_title)
 				.setMessage(R.string.formula_editor_discard_changes_dialog_message)

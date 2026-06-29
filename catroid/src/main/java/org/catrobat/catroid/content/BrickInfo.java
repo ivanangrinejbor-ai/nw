@@ -223,7 +223,7 @@ public final class BrickInfo {
         add(ShowToastBlock.class, "Показывает сообщение снизу");
         add(CopyTextBrick.class, "Копирует текст в буфер обмена");
         add(RunJSBrick.class, "Выполняет JavaScript и сохраняет результат");
-        add(RunLuaBrick.class, "Выполняет ЧИСТЫЙ Lua и сохраняет результат ВАЖНО: Lua в Pocket Up и CCode и Lua в NewCatroid - НЕ ОДНО И ТО ЖЕ! в NewCatroid он не умеет отрисовывать что-то");
+        add(RunLuaBrick.class, "Выполняет ЧИСТЫЙ Lua и сохраняет результат ВАЖНО: Lua в Pocket Up и CCode и Lua в NeoCatroid - НЕ ОДНО И ТО ЖЕ! в NeoCatroid он не умеет отрисовывать что-то");
         add(LunoScriptBrick.class, "Выполняет LunoScript, это один из самых мощных инструментов, позволяет выполнять почти любой Java код внутри приложения. Документация есть на GitHub: Danveyd/LunoScript");
         add(ClearPythonEnvironmentBrick.class, "Очищает окружение Python");
         add(LoadNativeModuleBrick.class, "Загружает нативный модуль (.so), нужно для некоторых Python библиотек");
@@ -254,7 +254,7 @@ public final class BrickInfo {
         add(OrientationBrick.class, "Меняет ориентацию проекта ВАЖНО: блок тут вообще по приколу и работает плохо");
         add(CreateWebFileBrick.class, "Создает WebView из HTML кода");
         add(CreateWebUrlBrick.class, "Создает WebView по ссылке");
-        add(SetWebBrick.class, "Задает callback к WebView, чтобы из WebView можно было отправить значение в переменную NewCatroid, через Android.postMessage(\"Значение\");");
+        add(SetWebBrick.class, "Задает callback к WebView, чтобы из WebView можно было отправить значение в переменную NeoCatroid, через Android.postMessage(\"Значение\");");
         add(EvalWebBrick.class, "Выполняет JavaScript в контексте WebView");
         add(CreateVideoBrick.class, "Создает VideoPlayer, который позволяет просматривать видео из файлов проекта");
         add(CreateTextFieldBrick.class, "Создает TextField (текстовое поле), которое позволяет вводить текст");

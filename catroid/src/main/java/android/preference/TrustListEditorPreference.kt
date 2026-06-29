@@ -49,7 +49,7 @@ class TrustListEditorPreference(context: Context, attrs: AttributeSet) : EditTex
 
     override fun showDialog(state: Bundle?) {
         val mBuilder = AlertDialog.Builder(
-            android.view.ContextThemeWrapper(context, R.style.Theme_NewCatroid_Dialog)
+            android.view.ContextThemeWrapper(context, R.style.Theme_NeoCatroid_Dialog)
         )
             .setTitle(dialogTitle)
             .setIcon(dialogIcon)

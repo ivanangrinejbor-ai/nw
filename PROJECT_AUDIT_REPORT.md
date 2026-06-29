@@ -1,4 +1,4 @@
-# NewCatroid Project Audit Report
+# NeoCatroid Project Audit Report
 
 ## Executive Summary
 Проведён полный аудит кодовой базы. Найдено **33 критических бага**, **15 потенциальных утечек памяти**, **множественные проблемы с потоками**.

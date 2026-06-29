@@ -793,7 +793,7 @@ class PythonCommandManager(
             |    /\_/\    OS: Android $osName
             |   ( o.o )   Device: $device
             |    > ^ <    Arch: $arch
-            |             Engine: NewCatroid
+            |             Engine: NeoCatroid
         """.trimMargin()
         printOutput(logo)
     }

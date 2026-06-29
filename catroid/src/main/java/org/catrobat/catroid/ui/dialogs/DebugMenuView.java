@@ -420,7 +420,7 @@ public class DebugMenuView extends FrameLayout {
     }
 
     private void showEditVariableDialog(UserVariable var) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getContext(), R.style.Theme_NewCatroid_Dialog);
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext(), R.style.Theme_NeoCatroid_Dialog);
         builder.setTitle(String.format(getContext().getString(R.string.debug_menu_edit_variable), var.getName()));
 
         View container = createStyledInputContainer(String.valueOf(var.getValue()));
@@ -437,7 +437,7 @@ public class DebugMenuView extends FrameLayout {
     }
 
     private void showEditListItemDialog(UserList list, int index, String currentValue) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getContext(), R.style.Theme_NewCatroid_Dialog);
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext(), R.style.Theme_NeoCatroid_Dialog);
         builder.setTitle(String.format(getContext().getString(R.string.debug_menu_edit_list_item), index + 1, list.getName()));
 
         View container = createStyledInputContainer(currentValue);

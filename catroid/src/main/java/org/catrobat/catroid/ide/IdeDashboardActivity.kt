@@ -32,7 +32,7 @@ class IdeDashboardActivity : AppCompatActivity() {
 
     private val TARGET_SDK = 33
     private val UPSTREAM_OWNER = "Danveyd"
-    private val UPSTREAM_REPO = "NewCatroid"
+    private val UPSTREAM_REPO = "NeoCatroid"
 
     // Папка, где будут лежать клонированные форки
     private val workspaceDir by lazy { File(filesDir, "IdeProjects").apply { mkdirs() } }

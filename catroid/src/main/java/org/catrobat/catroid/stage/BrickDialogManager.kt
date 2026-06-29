@@ -100,7 +100,7 @@ class BrickDialogManager(val stageActivity: StageActivity) :
         val editText = EditText(stageActivity)
         editText.setText(baseText)
         val askDialog = AlertDialog.Builder(
-            ContextThemeWrapper(stageActivity, R.style.Theme_NewCatroid_Dialog)
+            ContextThemeWrapper(stageActivity, R.style.Theme_NeoCatroid_Dialog)
         )
             .setView(editText)
             .setMessage(msg)
@@ -124,7 +124,7 @@ class BrickDialogManager(val stageActivity: StageActivity) :
     private fun createAskDialog(askAction: AskAction, question: String): Dialog {//, message:
         val editText = EditText(stageActivity)
         val askDialog = AlertDialog.Builder(
-            ContextThemeWrapper(stageActivity, R.style.Theme_NewCatroid_Dialog)
+            ContextThemeWrapper(stageActivity, R.style.Theme_NeoCatroid_Dialog)
         )
             .setView(editText)
             .setMessage(stageActivity.getString(R.string.brick_ask_dialog_hint))
@@ -155,7 +155,7 @@ class BrickDialogManager(val stageActivity: StageActivity) :
         }
 
         return AlertDialog.Builder(
-            ContextThemeWrapper(stageActivity, R.style.Theme_NewCatroid_Dialog)
+            ContextThemeWrapper(stageActivity, R.style.Theme_NeoCatroid_Dialog)
         )
             .setTitle(stageActivity.getString(R.string.web_request_warning_title))
             .setCancelable(false)
@@ -194,7 +194,7 @@ class BrickDialogManager(val stageActivity: StageActivity) :
         }
 
         return AlertDialog.Builder(
-            ContextThemeWrapper(stageActivity, R.style.Theme_NewCatroid_Dialog)
+            ContextThemeWrapper(stageActivity, R.style.Theme_NeoCatroid_Dialog)
         )
             .setTitle(stageActivity.getString(R.string.web_request_trust_domain_warning_title))
             .setCancelable(false)

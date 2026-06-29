@@ -407,7 +407,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 
 		File downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
 		if (downloadsDir.canWrite() && NativeBridge.INSTANCE.isWorking()) {
-			File logFile = new File(downloadsDir, "NewCatroid_CPP_CrashLog.txt");
+			File logFile = new File(downloadsDir, "NeoCatroid_CPP_CrashLog.txt");
 			NativeBridge.INSTANCE.setCrashLogPath(logFile.getAbsolutePath());
 		}
 		checkAndRequestPermissions();

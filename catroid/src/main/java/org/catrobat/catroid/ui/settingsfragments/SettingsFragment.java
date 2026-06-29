@@ -163,7 +163,7 @@ public class SettingsFragment extends PreferenceFragment {
 	public static final String SETTINGS_USE_CATBLOCKS = "settings_use_catblocks";
 
 	private static final String GITHUB_CLIENT_ID = "Ov23liKoq3h0cTgAbVYA";
-	private static final String GITHUB_REDIRECT_URI = "newcatroid://github-callback";
+	private static final String GITHUB_REDIRECT_URI = "NeoCatroid://github-callback";
     public static final String SETTINGS_RECOVER_PROJECTS = "setting_recover_projects";
 
 	private Preference githubPreference;
