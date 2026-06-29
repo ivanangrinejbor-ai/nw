@@ -96,63 +96,50 @@ class ProjectUnZipperAndImporter @JvmOverloads constructor(
 
 private fun ProjectUnZipperAndImporter.unzipAndImportProject(projectZipFile: File): ImportResult {
     return try {
+        val tempDirName = StorageOperations.getSanitizedFileName(projectZipFile.name) + "_temp_import"
+        val cachedProjectDir = File(CACHE_DIRECTORY, tempDirName)
 
-    val tempDirName = StorageOperations.getSanitizedFileName(projectZipFile.name) + "_temp_import"
-    val cachedProjectDir = File(CACHE_DIRECTORY, tempDirName)
+        if (cachedProjectDir.isDirectory) { StorageOperations.deleteDir(cachedProjectDir) }
+        cachedProjectDir.mkdirs()
 
-    if (cachedProjectDir.isDirectory) {
-        StorageOperations.deleteDir(cachedProjectDir)
-    }
-    cachedProjectDir.mkdirs()
-
-    var fileToUnzip = projectZipFile
-    if (ProjectCrypto.isEncrypted(projectZipFile)) {
-        if (password.isNullOrEmpty()) {
-            Log.e(TAG, "Project is encrypted but no password provided")
-            return ImportResult.Failure
+        var fileToUnzip = projectZipFile
+        if (ProjectCrypto.isEncrypted(projectZipFile)) {
+            if (password.isNullOrEmpty()) {
+                Log.e(TAG, "Project is encrypted but no password provided")
+                return@unzipAndImportProject ImportResult.Failure
+            }
+            val decryptedFile = File(CACHE_DIRECTORY, tempDirName + "_decrypted.zip")
+            if (!ProjectCrypto.decrypt(projectZipFile, decryptedFile, password!!)) {
+                Log.e(TAG, "Failed to decrypt project (wrong password?)")
+                return@unzipAndImportProject ImportResult.Failure
+            }
+            fileToUnzip = decryptedFile
         }
-        val decryptedFile = File(CACHE_DIRECTORY, tempDirName + "_decrypted.zip")
-        if (!ProjectCrypto.decrypt(projectZipFile, decryptedFile, password!!)) {
-            Log.e(TAG, "Failed to decrypt project (wrong password?)")
-            return ImportResult.Failure
-        }
-        fileToUnzip = decryptedFile
-    }
 
-    ZipArchiver().unzip(fileToUnzip, cachedProjectDir)
+        ZipArchiver().unzip(fileToUnzip, cachedProjectDir)
+        if (fileToUnzip != projectZipFile) { fileToUnzip.delete() }
 
-    if (fileToUnzip != projectZipFile) {
-        fileToUnzip.delete()
-    }
+        org.catrobat.catroid.utils.MatryoshkaManager.unpackIfMatryoshka(cachedProjectDir)
+        val codeXml = File(cachedProjectDir, Constants.CODE_XML_FILE_NAME)
+        val initLunoTxt = File(cachedProjectDir, "init.luno.txt")
+        val initLunoBin = File(cachedProjectDir, "init.bin")
 
-    org.catrobat.catroid.utils.MatryoshkaManager.unpackIfMatryoshka(cachedProjectDir)
-
-    val codeXml = File(cachedProjectDir, Constants.CODE_XML_FILE_NAME)
-    val initLunoTxt = File(cachedProjectDir, "init.luno.txt")
-    val initLunoBin = File(cachedProjectDir, "init.bin")
-
-    if (codeXml.exists()) {
-
-        if (importStandardProject(cachedProjectDir)) {
-
-            StorageOperations.deleteDir(cachedProjectDir)
-            ImportResult.Success
+        if (codeXml.exists()) {
+            if (importStandardProject(cachedProjectDir)) {
+                StorageOperations.deleteDir(cachedProjectDir)
+                ImportResult.Success
+            } else { ImportResult.Failure }
+        } else if (initLunoTxt.exists() || initLunoBin.exists()) {
+            Log.d(TAG, "Detected baked project in: ${cachedProjectDir.absolutePath}")
+            ImportResult.BakedProject(cachedProjectDir)
         } else {
+            Log.e(TAG, "Invalid project structure")
             ImportResult.Failure
         }
-    } else if (initLunoTxt.exists() || initLunoBin.exists()) {
-
-
-        Log.d(TAG, "Detected baked project in: ${cachedProjectDir.absolutePath}")
-        ImportResult.BakedProject(cachedProjectDir)
-    } else {
-        Log.e(TAG, "Invalid project structure: No code.xml and no init script found.")
+    } catch (e: IOException) {
+        Log.e(TAG, "Cannot unzip project " + projectZipFile.name, e)
         ImportResult.Failure
     }
-
-} catch (e: IOException) {
-    Log.e(TAG, "Cannot unzip project " + projectZipFile.name, e)
-    ImportResult.Failure
 }
 
 
