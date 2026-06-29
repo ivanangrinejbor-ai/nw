@@ -7,10 +7,15 @@ import org.catrobat.catroid.CatroidApplication
 
 object FireBaseManager {
     private val isInitialized by lazy {
-        if (FirebaseApp.getApps(CatroidApplication.getAppContext()).isEmpty()) {
-            FirebaseApp.initializeApp(CatroidApplication.getAppContext())
+        try {
+            if (FirebaseApp.getApps(CatroidApplication.getAppContext()).isEmpty()) {
+                FirebaseApp.initializeApp(CatroidApplication.getAppContext())
+            }
+            true
+        } catch (e: Exception) {
+            Log.e("FireBaseManager", "Firebase init failed", e)
+            false
         }
-        true
     }
 
     private fun getDbRef(url: String, key: String): DatabaseReference {

@@ -1733,9 +1733,14 @@ public class StageActivity extends AndroidApplication implements ContextProvider
     void calculateScreenSizes() {
         ScreenValueHandler.updateScreenWidthAndHeight(getContext());
 
+        org.catrobat.catroid.content.Project currentProject = ProjectManager.getInstance().getCurrentProject();
+        if (currentProject == null || currentProject.getXmlHeader() == null) {
+            return;
+        }
+
         Resolution projectResolution = new Resolution(
-                ProjectManager.getInstance().getCurrentProject().getXmlHeader().getVirtualScreenWidth(),
-                ProjectManager.getInstance().getCurrentProject().getXmlHeader().getVirtualScreenHeight());
+                currentProject.getXmlHeader().getVirtualScreenWidth(),
+                currentProject.getXmlHeader().getVirtualScreenHeight());
 
         ScreenValues.currentScreenResolution =
                 ScreenValues.currentScreenResolution.flipToFit(projectResolution);
