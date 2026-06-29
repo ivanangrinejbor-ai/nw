@@ -795,20 +795,9 @@ afterEvaluate {
     android.applicationVariants.all { variant ->
 
         if (variant.flavorName == 'apktemplate' || variant.flavorName == 'standalone') {
-            println "Disabling Google Services and Kapt for flavor: ${variant.flavorName}"
+            println "Disabling Kapt for flavor: ${variant.flavorName}"
 
 
-            def googleServicesTaskName = "process${variant.name.capitalize()}GoogleServices"
-            Task googleServicesTask = tasks.findByName(googleServicesTaskName)
-            if (googleServicesTask != null) {
-                googleServicesTask.enabled = false
-            }
-
-
-
-
-
-            
             def variantCapitalized = variant.name.capitalize()
             tasks.matching { it.name.startsWith("kapt") && it.name.contains(variantCapitalized) }.all { task ->
                 println "  -> Disabling task: ${task.name}"
@@ -927,5 +916,18 @@ tasks.register('makeCoffee') {
                 "Ошибка: Не обнаружены кофейные зерна в USB-порту. " +
                         "Пожалуйста, вставьте чашку в дисковод и насыпьте зерна в корпус. После этого повторите попытку."
         )
+    }
+}
+
+tasks.register('copyTemplateApk', Copy) {
+    group = "build"
+    description = "Builds and copies the APK template to assets for APK builder"
+    dependsOn 'assembleApktemplateDebug'
+    from "$buildDir/outputs/apk/apktemplate/debug"
+    into "$projectDir/src/main/assets"
+    include '*-apktemplate-debug.apk'
+    rename { 'template.apk' }
+    doLast {
+        println "Template APK updated at: $projectDir/src/main/assets/template.apk"
     }
 }

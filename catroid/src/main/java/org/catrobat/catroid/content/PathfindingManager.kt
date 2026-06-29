@@ -35,7 +35,9 @@ data class PathFollower(
     var callback: PathCallback? = null,
     var rotationSpeed: Float = 360f,
     var arrivalDistance: Float = 2f,
-    var enableDynamicReplanning: Boolean = false
+    var enableDynamicReplanning: Boolean = false,
+    var targetName: String? = null,
+    var stopOnTouch: Boolean = false
 )
 
 class PathfindingManager {
@@ -267,6 +269,32 @@ class PathfindingManager {
             to.xInUserInterfaceDimensionUnit, to.yInUserInterfaceDimensionUnit)
     }
 
+    fun setPathForFollowerWithTarget(spriteName: String, path: List<Vector2>, targetSpriteName: String) {
+        val follower = followers.getOrPut(spriteName) { PathFollower(spriteName) }
+        val targetSprite = findSpriteByName(targetSpriteName)
+        val targetLook = targetSprite?.look
+        if (targetLook != null) {
+            val finalPoint = Vector2(targetLook.xInUserInterfaceDimensionUnit, targetLook.yInUserInterfaceDimensionUnit)
+            val points = path.toMutableList()
+            if (points.isEmpty() || points.last().dst(finalPoint) > 1f) {
+                points.add(finalPoint)
+            }
+            follower.waypoints = points
+        } else {
+            follower.waypoints = path
+        }
+        follower.currentIndex = 0
+        follower.state = if (follower.waypoints.isNotEmpty()) FollowState.FOLLOWING else FollowState.REACHED
+    }
+
+    fun setFollowerTarget(spriteName: String, targetName: String?) {
+        followers.getOrPut(spriteName) { PathFollower(spriteName) }.targetName = targetName
+    }
+
+    fun setFollowerStopOnTouch(spriteName: String, enabled: Boolean) {
+        followers.getOrPut(spriteName) { PathFollower(spriteName) }.stopOnTouch = enabled
+    }
+
     fun smoothPath(path: List<Vector2>): List<Vector2> {
         if (path.size <= 2) return path
         
@@ -366,8 +394,51 @@ class PathfindingManager {
             }
             val look = sprite?.look ?: continue
 
+            if (follower.stopOnTouch && follower.targetName != null) {
+                val targetSprite = findSpriteByName(follower.targetName!!)
+                val targetLook = targetSprite?.look
+                if (targetLook != null) {
+                    val sx = look.xInUserInterfaceDimensionUnit
+                    val sy = look.yInUserInterfaceDimensionUnit
+                    val tx = targetLook.xInUserInterfaceDimensionUnit
+                    val ty = targetLook.yInUserInterfaceDimensionUnit
+                    val sw = look.widthInUserInterfaceDimensionUnit / 2f
+                    val sh = look.heightInUserInterfaceDimensionUnit / 2f
+                    val tw = targetLook.widthInUserInterfaceDimensionUnit / 2f
+                    val th = targetLook.heightInUserInterfaceDimensionUnit / 2f
+                    if (Math.abs(sx - tx) < sw + tw && Math.abs(sy - ty) < sh + th) {
+                        follower.state = FollowState.REACHED
+                        follower.callback?.onPathCompleted(name)
+                        continue
+                    }
+                }
+            }
+
             val currentX = look.xInUserInterfaceDimensionUnit
             val currentY = look.yInUserInterfaceDimensionUnit
+
+            if (!isWalkable(target.x, target.y)) {
+                val finalTarget = if (follower.targetName != null) {
+                    val tSprite = findSpriteByName(follower.targetName!!)
+                    val tLook = tSprite?.look
+                    if (tLook != null) Vector2(tLook.xInUserInterfaceDimensionUnit, tLook.yInUserInterfaceDimensionUnit) else follower.waypoints.lastOrNull()
+                } else follower.waypoints.lastOrNull()
+                val endX = finalTarget?.x ?: target.x
+                val endY = finalTarget?.y ?: target.y
+                val replanResult = findPath(currentX, currentY, endX, endY)
+                if (replanResult.found) {
+                    follower.waypoints = smoothPath(replanResult.points)
+                    if (finalTarget != null && follower.waypoints.isNotEmpty() && follower.waypoints.last().dst(finalTarget) > 1f) {
+                        follower.waypoints = follower.waypoints.toMutableList().also { it.add(finalTarget) }
+                    }
+                    follower.currentIndex = 0
+                } else {
+                    follower.callback?.onPathBlocked(name, "Path blocked, no alternative found")
+                    follower.state = FollowState.IDLE
+                    continue
+                }
+            }
+
             val dx = target.x - currentX
             val dy = target.y - currentY
             val dist = kotlin.math.sqrt(dx * dx + dy * dy)
@@ -454,11 +525,15 @@ class PathfindingManager {
 
     fun findPathWithSmoothing(startX: Float, startY: Float, endX: Float, endY: Float): PathResult {
         val result = findPath(startX, startY, endX, endY)
-        return if (result.found) {
-            PathResult(smoothPath(result.points), true)
-        } else {
-            result
+        if (result.found && result.points.isNotEmpty()) {
+            val finalPoint = Vector2(endX, endY)
+            val points = result.points.toMutableList()
+            if (points.last().dst(finalPoint) > 1f) {
+                points.add(finalPoint)
+            }
+            return PathResult(smoothPath(points), true)
         }
+        return result
     }
 
     fun findPathToObjectWithSmoothing(fromSprite: String, targetSprite: String): PathResult {

@@ -689,6 +689,9 @@
     <string formatted="false" name="pathfinder_move_to">Go to</string>
     <string formatted="false" name="pathfinder_avoid">Avoid</string>
     <string formatted="false" name="pathfinder_speed">Speed</string>
+    <string formatted="false" name="pathfinder_mode">Mode</string>
+    <string formatted="false" name="pathfinder_mode_precise">precisely</string>
+    <string formatted="false" name="pathfinder_mode_touch">until touching</string>
     <string formatted="false" name="pathfinder_stop">Stop</string>
     <string formatted="false" name="pathfinder_continue">Continue</string>
     <string formatted="false" name="pathfinder_has_path">Has path to</string>
@@ -706,6 +709,20 @@
     <string formatted="false" name="transition_instant">Instant</string>
     <string formatted="false" name="transition_scene_param">Scene</string>
     <string formatted="false" name="category_transitions">Transitions</string>
+    <string name="scene_transition_title">Scene Transition</string>
+    <string name="scene_transition_none">None</string>
+    <string name="scene_transition_fade_out">Fade Out</string>
+    <string name="scene_transition_fade_in">Fade In</string>
+    <string name="scene_transition_duration">Duration (sec)</string>
+    <string name="export_with_password">Export with password</string>
+    <string name="enter_export_password">Enter export password</string>
+    <string name="password_hint">Password</string>
+    <string name="confirm_password_hint">Confirm password</string>
+    <string name="wrong_password">Wrong password. Please try again.</string>
+    <string name="passwords_dont_match">Passwords do not match</string>
+    <string name="encrypted_file_detected">Encrypted project detected. Enter password to open:</string>
+    <string name="exporting_project">Exporting project…</string>
+    <string name="encrypting_project">Encrypting…</string>
     <string formatted="false" name="transition">Transitions</string>
     <string name="preference_title_pcmode" formatted="false">Enable big-screen interface</string>
     <string name="fast2d_set_collision_filter" formatted="false">Collision filter</string>

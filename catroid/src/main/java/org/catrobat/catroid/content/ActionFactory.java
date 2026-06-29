@@ -4639,13 +4639,14 @@ public class ActionFactory extends Actions {
         return action;
     }
 
-    public Action createMoveToObjectAction(Sprite sprite, SequenceAction sequence, String targetObject, Formula avoidObjects, Formula speed) {
+    public Action createMoveToObjectAction(Sprite sprite, SequenceAction sequence, String targetObject, Formula avoidObjects, Formula speed, int moveMode) {
         MoveToObjectAction action = action(MoveToObjectAction.class);
         Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
         action.setScope(scope);
         action.setTargetObject(targetObject);
         action.setAvoidObjects(avoidObjects);
         action.setSpeed(speed);
+        action.setMoveMode(moveMode);
         return action;
     }
 

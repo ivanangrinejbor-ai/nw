@@ -100,6 +100,8 @@ public class SceneController {
 		Scene scene = new Scene();
 		scene.setName(name);
 		scene.setProject(dstProject);
+		scene.setTransitionType(sceneToCopy.getTransitionType());
+		scene.setTransitionDuration(sceneToCopy.getTransitionDuration());
 
 		if (!createDirectory(scene.getDirectory())) {
 			throw new IOException("Directory for Scene " + name + " could not be created.");
@@ -144,6 +146,8 @@ public class SceneController {
 		Scene scene = new Scene();
 		scene.setName(name);
 		scene.setProject(null);
+		scene.setTransitionType(sceneToPack.getTransitionType());
+		scene.setTransitionDuration(sceneToPack.getTransitionDuration());
 
 		if (!createDirectory(scene.getDirectory())) {
 			throw new IOException("Directory for Scene " + name + " could not be created.");

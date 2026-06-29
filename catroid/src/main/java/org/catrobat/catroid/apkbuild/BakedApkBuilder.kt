@@ -76,8 +76,14 @@ object BakedApkBuilder {
             // Step 1: Copy template APK from assets
             onProgress("Loading template APK...")
             val templateApk = File(tempDir, "template_temp.apk")
-            context.assets.open(TEMPLATE_APK).use { input ->
-                FileOutputStream(templateApk).use { output -> input.copyTo(output) }
+            try {
+                context.assets.open(TEMPLATE_APK).use { input ->
+                    FileOutputStream(templateApk).use { output -> input.copyTo(output) }
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Template APK not found in assets", e)
+                tempDir.deleteRecursively()
+                return@withContext BuildResult.Error("Template APK missing. Reinstall the app.")
             }
 
             // Step 2: Build project assets directory
@@ -94,7 +100,9 @@ object BakedApkBuilder {
                 versionName = config.versionName,
                 versionCode = config.versionCode
             )
-            ApkToolboxManager.updateManifest(templateApk.absolutePath, manifestConfig)
+            if (!ApkToolboxManager.updateManifest(templateApk.absolutePath, manifestConfig)) {
+                Log.e(TAG, "Manifest update failed")
+            }
 
             // Step 4: Extract template APK to temp dir
             onProgress("Extracting template...")
@@ -126,14 +134,17 @@ object BakedApkBuilder {
 
             // Step 9: Sign APK
             onProgress("Signing APK...")
-            val signedApk = File(tempDir, "${config.appName}.apk")
+            val signedApk = File(tempDir, "${config.appName.replace(" ", "_")}.apk")
             val keystoreFile = config.customKeystore ?: getOrCreateDebugKeystore(context, tempDir)
 
-            ApkToolboxManager.signApk(
+            if (!ApkToolboxManager.signApk(
                 context,
                 unsignedApk.absolutePath, signedApk.absolutePath,
                 keystoreFile.absolutePath, config.keyAlias, config.keyPass
-            )
+            )) {
+                tempDir.deleteRecursively()
+                return@withContext BuildResult.Error("APK signing failed")
+            }
 
             // Step 10: Cleanup
             onProgress("Cleaning up...")

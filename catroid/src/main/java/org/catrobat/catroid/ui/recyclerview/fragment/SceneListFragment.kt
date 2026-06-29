@@ -267,6 +267,7 @@ class SceneListFragment : RecyclerViewFragment<Scene?>(),
                 R.id.copy -> copyItems(itemList)
                 R.id.rename -> showRenameDialog(item)
                 R.id.delete -> deleteItems(itemList)
+                R.id.scene_transition -> showTransitionDialog(item)
                 else -> {
                 }
             }
@@ -274,6 +275,55 @@ class SceneListFragment : RecyclerViewFragment<Scene?>(),
         }
         popupMenu.menu.findItem(R.id.backpack).setTitle(R.string.pack)
         popupMenu.show()
+    }
+
+    private fun showTransitionDialog(scene: Scene?) {
+        if (scene == null) return
+        val context = requireContext()
+
+        val types = arrayOf(
+            context.getString(R.string.scene_transition_none),
+            context.getString(R.string.scene_transition_fade_out),
+            context.getString(R.string.scene_transition_fade_in)
+        )
+
+        val layout = android.widget.LinearLayout(context).apply {
+            orientation = android.widget.LinearLayout.VERTICAL
+            setPadding(60, 20, 60, 0)
+        }
+
+        val typeSpinner = android.widget.Spinner(context).apply {
+            adapter = android.widget.ArrayAdapter(context, android.R.layout.simple_spinner_item, types).also {
+                it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+            }
+            setSelection(scene.transitionType.coerceIn(0, 2))
+        }
+
+        val durLayout = android.widget.LinearLayout(context).apply { orientation = android.widget.LinearLayout.HORIZONTAL }
+        val durLabel = android.widget.TextView(context).apply {
+            text = context.getString(R.string.scene_transition_duration)
+            setPadding(0, 0, 16, 0)
+        }
+        val durInput = android.widget.EditText(context).apply {
+            setText(String.format(java.util.Locale.US, "%.1f", scene.transitionDuration))
+            inputType = android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL
+        }
+        durLayout.addView(durLabel)
+        durLayout.addView(durInput, android.widget.LinearLayout.LayoutParams(0, android.widget.LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+
+        layout.addView(typeSpinner)
+        layout.addView(durLayout)
+
+        androidx.appcompat.app.AlertDialog.Builder(context)
+            .setTitle(R.string.scene_transition_title)
+            .setView(layout)
+            .setPositiveButton(R.string.ok) { _, _ ->
+                scene.transitionType = typeSpinner.selectedItemPosition
+                val dur = try { durInput.text.toString().toFloat() } catch (_: Exception) { 1.0f }
+                scene.transitionDuration = dur
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
     }
 
     override fun onLoadFinished(success: Boolean) {

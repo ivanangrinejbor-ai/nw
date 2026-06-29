@@ -804,14 +804,6 @@ open class CategoryBricksFactory {
                 controlBrickList.add(SetPreloadingBrick(1))
                 controlBrickList.add(LaunchProjectBrick("project.newtrobat"))
         controlBrickList.add(ReturnToPreviousProjectBrick())
-        controlBrickList.add(FadeToBlackBrick("Scene 1"))
-        controlBrickList.add(FadeFromBlackBrick("Scene 1"))
-        controlBrickList.add(CrossfadeBrick("Scene 1"))
-        controlBrickList.add(SlideLeftBrick("Scene 1"))
-        controlBrickList.add(SlideRightBrick("Scene 1"))
-        controlBrickList.add(SlideUpBrick("Scene 1"))
-        controlBrickList.add(SlideDownBrick("Scene 1"))
-        controlBrickList.add(InstantTransitionBrick("Scene 1"))
                 if (SettingsFragment.isPhiroSharedPreferenceEnabled(context)) {
                     controlBrickList.add(PhiroIfLogicBeginBrick())
                 }
@@ -2143,21 +2135,6 @@ void main() {
         pathfinderBrickList.add(HasPathBrick())
 
         return pathfinderBrickList
-    }
-
-    private fun setupTransitionCategoryList(context: Context): List<Brick> {
-        val transitionBrickList: MutableList<Brick> = ArrayList()
-
-        transitionBrickList.add(FadeToBlackBrick("Scene 1"))
-        transitionBrickList.add(FadeFromBlackBrick("Scene 1"))
-        transitionBrickList.add(CrossfadeBrick("Scene 1"))
-        transitionBrickList.add(SlideLeftBrick("Scene 1"))
-        transitionBrickList.add(SlideRightBrick("Scene 1"))
-        transitionBrickList.add(SlideUpBrick("Scene 1"))
-        transitionBrickList.add(SlideDownBrick("Scene 1"))
-        transitionBrickList.add(InstantTransitionBrick("Scene 1"))
-
-        return transitionBrickList
     }
 
     private fun setupFileCategoryList(context: Context): List<Brick> {

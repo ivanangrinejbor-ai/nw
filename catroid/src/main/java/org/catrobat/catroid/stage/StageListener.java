@@ -933,6 +933,23 @@ public class StageListener implements ApplicationListener {
 			return;
 		}
 
+		if (transitionManager != null && newScene.getTransitionType() != 0) {
+			float duration = newScene.getTransitionDuration();
+			if (duration < 0.1f) duration = 0.1f;
+			if (newScene.getTransitionType() == 1) {
+				transitionManager.startTransition(TransitionManager.TransitionType.FADE_OUT, sceneName, duration);
+			} else {
+				transitionManager.startTransition(TransitionManager.TransitionType.FADE_IN, sceneName, duration);
+			}
+			return;
+		}
+
+		doSceneSwitch(newScene);
+	}
+
+	public void doSceneSwitch(Scene newScene) {
+		if (newScene == null || scene == null) return;
+
 		stageBackupMap.put(scene.getName(), saveToBackup());
 		pause();
 
@@ -945,6 +962,7 @@ public class StageListener implements ApplicationListener {
 
 		if (scene.firstStart) {
 			create();
+			resume();
 		} else {
 			resume();
 		}
@@ -973,6 +991,7 @@ public class StageListener implements ApplicationListener {
 
 		if (scene.firstStart) {
 			create();
+			resume();
 		} else {
 			resume();
 		}
@@ -1003,6 +1022,7 @@ public class StageListener implements ApplicationListener {
 
 		if (scene.firstStart) {
 			create();
+			resume();
 		} else {
 			resume();
 		}
@@ -1050,6 +1070,7 @@ public class StageListener implements ApplicationListener {
 
 		scene.firstStart = true;
 		create();
+		resume();
 	}
 
 	public void startScene(String sceneName, Boolean stopSound, Boolean save) {
@@ -1091,6 +1112,7 @@ public class StageListener implements ApplicationListener {
 
 		scene.firstStart = true;
 		create();
+		resume();
 	}
 
 	public void startScene(String sceneName) {
@@ -1126,6 +1148,7 @@ public class StageListener implements ApplicationListener {
 
 		scene.firstStart = true;
 		create();
+		resume();
 	}
 
 	public void startSceneById(Integer sceneId) {
@@ -1162,6 +1185,7 @@ public class StageListener implements ApplicationListener {
 
 		scene.firstStart = true;
 		create();
+		resume();
 	}
 
 	public void reloadProject(StageDialog stageDialog) {
