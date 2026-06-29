@@ -63,11 +63,12 @@ object ApkBuilder {
 
             apkModule = ApkModule.loadApkFile(tempApk)
 
+            val apk = apkModule ?: throw IOException("Failed to load APK template")
 
             onProgress("Внедрение кода...")
 
 
-            val existingDexFiles = apkModule!!.listDexFiles()
+            val existingDexFiles = apk.listDexFiles()
             var maxDexNumber = 1
 
             for (dex in existingDexFiles) {
@@ -85,26 +86,26 @@ object ApkBuilder {
 
             for (dexFile in dexFiles) {
                 val dexName = if (nextIndex == 1) "classes.dex" else "classes$nextIndex.dex"
-                apkModule!!.add(FileInputSource(dexFile, dexName))
+                apk.add(FileInputSource(dexFile, dexName))
                 nextIndex++
             }
 
 
 
             val entriesToRemove = ArrayList<String>()
-            for (entry in apkModule!!.zipEntryMap.listInputSources()) {
+            for (entry in apk.zipEntryMap.listInputSources()) {
                 if (entry.name.startsWith("META-INF/")) {
                     entriesToRemove.add(entry.name)
                 }
             }
             for (name in entriesToRemove) {
-                apkModule!!.zipEntryMap.remove(name)
+                apk.zipEntryMap.remove(name)
             }
 
 
 
             onProgress("Настройка манифеста...")
-            val manifest = apkModule!!.androidManifestBlock
+            val manifest = apk.androidManifestBlock
             manifest.packageName = config.packageName
             manifest.versionName = config.versionName
             manifest.versionCode = config.versionCode
@@ -260,84 +261,46 @@ object ApkBuilder {
             if (config.iconFile != null && config.iconFile.exists()) {
                 onProgress("Обновление графики...")
                 try {
-                    val tableBlock = apkModule!!.tableBlock
+                    val tableBlock = apk.tableBlock
                     val iconPathsToReplace = mutableListOf<String>()
                     val xmlPathsToRemove = mutableListOf<String>()
 
-
-                    if (config.iconFile != null && config.iconFile.exists()) {
-                        onProgress("Обновление графики...")
-                        try {
-                            val tableBlock = apkModule!!.tableBlock
-                            val iconPathsToReplace = mutableListOf<String>()
-                            val xmlPathsToRemove = mutableListOf<String>()
-
-
-                            tableBlock.listPackages().forEach { pkg ->
-
-
-                                pkg.listSpecTypePairs().forEach { specPair: SpecTypePair ->
-
-
-                                    if (specPair.typeName == "mipmap") {
-
-
-                                        val resIterator = specPair.resources
-                                        while (resIterator.hasNext()) {
-                                            val resEntry: ResourceEntry = resIterator.next()
-                                            val resName = resEntry.name ?: ""
-
-                                            if (resName.contains("ic_launcher")) {
-
-
-
-                                                val entryIterator = resEntry.iterator()
-                                                while (entryIterator.hasNext()) {
-                                                    val entry: Entry = entryIterator.next()
-                                                    val resValue: ResValue? = entry.resValue
-                                                    val path = resValue?.valueAsString
-
-                                                    if (path != null && path.contains("res/")) {
-                                                        if (path.endsWith(".xml")) {
-
-                                                            resValue.type = 0x00.toByte()
-                                                            resValue.data = 0
-                                                            xmlPathsToRemove.add(path)
-                                                        } else if (path.endsWith(".png") || path.endsWith(".webp")) {
-                                                            iconPathsToReplace.add(path)
-                                                        }
-                                                    }
+                    tableBlock.listPackages().forEach { pkg ->
+                        pkg.listSpecTypePairs().forEach { specPair: SpecTypePair ->
+                            if (specPair.typeName == "mipmap") {
+                                val resIterator = specPair.resources
+                                while (resIterator.hasNext()) {
+                                    val resEntry: ResourceEntry = resIterator.next()
+                                    val resName = resEntry.name ?: ""
+                                    if (resName.contains("ic_launcher")) {
+                                        val entryIterator = resEntry.iterator()
+                                        while (entryIterator.hasNext()) {
+                                            val entry: Entry = entryIterator.next()
+                                            val resValue: ResValue? = entry.resValue
+                                            val path = resValue?.valueAsString
+                                            if (path != null && path.contains("res/")) {
+                                                if (path.endsWith(".xml")) {
+                                                    resValue.type = 0x00.toByte()
+                                                    resValue.data = 0
+                                                    xmlPathsToRemove.add(path)
+                                                } else if (path.endsWith(".png") || path.endsWith(".webp")) {
+                                                    iconPathsToReplace.add(path)
                                                 }
                                             }
                                         }
                                     }
                                 }
                             }
-
-
-                            xmlPathsToRemove.distinct().forEach { path ->
-                                apkModule!!.zipEntryMap.remove(path)
-                            }
-
-                            iconPathsToReplace.distinct().forEach { path ->
-                                apkModule!!.zipEntryMap.remove(path)
-                                apkModule!!.add(FileInputSource(config.iconFile, path))
-                            }
-
-                        } catch (e: Exception) {
-                            e.printStackTrace()
                         }
                     }
 
-
-                    xmlPathsToRemove.forEach { path ->
-                        apkModule!!.zipEntryMap.remove(path)
+                    xmlPathsToRemove.distinct().forEach { path ->
+                        apk.zipEntryMap.remove(path)
                     }
 
-
-                    iconPathsToReplace.forEach { path ->
-                        apkModule!!.zipEntryMap.remove(path)
-                        apkModule!!.add(FileInputSource(config.iconFile, path))
+                    iconPathsToReplace.distinct().forEach { path ->
+                        apk.zipEntryMap.remove(path)
+                        apk.add(FileInputSource(config.iconFile, path))
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -349,13 +312,13 @@ object ApkBuilder {
 
             if (extraAssets.isNotEmpty()) {
                 for (file in extraAssets) {
-                    apkModule!!.add(FileInputSource(file, "assets/${file.name}"))
+                    apk.add(FileInputSource(file, "assets/${file.name}"))
                 }
             }
 
             val assetsDir = File(projectDir, "assets")
             if (assetsDir.exists()) {
-                addAssets(apkModule!!, assetsDir, "assets")
+                addAssets(apk, assetsDir, "assets")
             }
 
             // --- NATIVE LIBS (.so) ---
@@ -404,8 +367,8 @@ object ApkBuilder {
 
 
 
-                                        apkModule!!.zipEntryMap.remove(apkPath)
-                                        apkModule!!.add(FileInputSource(tempSo, apkPath))
+                                        apk.zipEntryMap.remove(apkPath)
+                                        apk.add(FileInputSource(tempSo, apkPath))
                                     }
                                 }
                             }
@@ -423,16 +386,16 @@ object ApkBuilder {
                         val relativePath = file.toRelativeString(jniLibsDir)
                         val apkPath = "lib/$relativePath"
 
-                        apkModule!!.zipEntryMap.remove(apkPath)
-                        apkModule!!.add(FileInputSource(file, apkPath))
+                        apk.zipEntryMap.remove(apkPath)
+                        apk.add(FileInputSource(file, apkPath))
                     }
                 }
             }
 
             // --- BUILD ---
             onProgress("Сборка APK...")
-            apkModule!!.writeApk(unsignedApk)
-            apkModule!!.close()
+            apk.writeApk(unsignedApk)
+            apk.close()
 
             // --- SIGN ---
             onProgress("Подпись...")

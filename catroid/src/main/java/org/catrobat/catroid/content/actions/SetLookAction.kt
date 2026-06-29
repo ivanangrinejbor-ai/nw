@@ -33,7 +33,7 @@ open class SetLookAction : MultiSpriteEventAction() {
 
     override fun getEventId(): EventId? {
         return if (lookData != null && sprite?.lookList?.contains(lookData) == true) {
-            sprite!!.look.lookData = lookData
+            sprite?.look?.lookData = lookData
             SetLookEventId(sprite, lookData)
         } else null
     }

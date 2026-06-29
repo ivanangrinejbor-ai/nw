@@ -98,7 +98,7 @@ object ProjectCrypto {
                 }
                 val salt = ByteArray(SALT_SIZE).also { input.read(it) }
                 val iv = ByteArray(IV_SIZE).also { input.read(it) }
-                val ciphertext = ByteArray(input.available()).also { input.read(it) }
+                val ciphertext = input.readBytes()
 
                 val key = deriveKey(password, salt)
                 val cipher = Cipher.getInstance(ALGORITHM)

@@ -33,15 +33,21 @@ import java.util.concurrent.TimeUnit
 
 class ListenServerAction() : Action() {
     companion object {
+        @Volatile
         private var sharedScheduler: ScheduledExecutorService? = null
 
+        @Synchronized
         private fun getScheduler(): ScheduledExecutorService {
-            if (sharedScheduler == null || sharedScheduler!!.isShutdown) {
-                sharedScheduler = Executors.newSingleThreadScheduledExecutor()
+            val current = sharedScheduler
+            if (current == null || current.isShutdown) {
+                val newScheduler = Executors.newSingleThreadScheduledExecutor()
+                sharedScheduler = newScheduler
+                return newScheduler
             }
-            return sharedScheduler!!
+            return current
         }
 
+        @Synchronized
         fun stopAll() {
             sharedScheduler?.shutdownNow()
             sharedScheduler = null

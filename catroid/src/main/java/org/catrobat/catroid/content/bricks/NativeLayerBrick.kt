@@ -52,8 +52,8 @@ class NativeLayerBrick(private var spinnerSelectionON: Int = 0) : BrickBaseType(
 
     private fun createArrayAdapter(context: Context): ArrayAdapter<String?> {
         val spinnerValues = arrayOf(
-            "Перед сценой",
-            "За сценой"
+            context.getString(R.string.native_layer_front),
+            context.getString(R.string.native_layer_back)
         )
         val spinnerAdapter =
             ArrayAdapter(context, android.R.layout.simple_spinner_item, spinnerValues)

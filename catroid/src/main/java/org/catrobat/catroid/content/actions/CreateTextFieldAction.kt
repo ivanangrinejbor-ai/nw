@@ -81,7 +81,7 @@ class CreateTextFieldAction() : TemporalAction() {
         customStyles[StageActivity.STYLE_TEXT_ALIGNMENT] =
             alignment_f?.interpretString(scope) ?: "left"
         font_path?.interpretString(scope)?.let {
-            customStyles[StageActivity.STYLE_FONT_PATH] = scope!!.project?.getFile(it)?.absolutePath ?: it
+            customStyles[StageActivity.STYLE_FONT_PATH] = scope?.project?.getFile(it)?.absolutePath ?: it
         }
         input_type?.interpretString(scope)?.let { customStyles[StageActivity.STYLE_INPUT_TYPE] = it }
         max_length?.interpretString(scope)?.let { customStyles[StageActivity.STYLE_MAX_LENGTH] = it }

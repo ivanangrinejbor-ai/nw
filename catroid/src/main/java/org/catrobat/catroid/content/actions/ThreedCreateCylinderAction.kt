@@ -14,8 +14,8 @@ class ThreedCreateCylinderAction : TemporalAction() {
         val threeDManager = listener.threeDManager ?: return
 
         try {
-            val id = objectId!!.interpretString(scope)
-            if (!id.isEmpty()) {
+            val id = objectId?.interpretString(scope) ?: return
+            if (id.isNotEmpty()) {
                 threeDManager.createCylinder(id)
             }
         } catch (e: Exception) {

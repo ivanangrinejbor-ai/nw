@@ -2894,7 +2894,7 @@ class Interpreter(
 
             
             if (sprite.obj is Sprite) {
-                val variable = args[0]
+                val variable = args[1]
 
                 if (variable !is LunoValue.NativeObject) {
                     throw LunoRuntimeError(

@@ -1882,6 +1882,8 @@
     <string formatted="false" name="formula_editor_function_floatarray_parameter">(\'FloatArray\')</string>
     <string formatted="false" name="formula_editor_function_table_y">размер_Y_таблицы</string>
     <string formatted="false" name="formula_editor_function_table_y_parameter">(\'myTable\')</string>
+    <string name="native_layer_front">Перед сценой</string>
+    <string name="native_layer_back">За сценой</string>
     <string formatted="false" name="formula_editor_function_table_element">элемент_таблицы</string>
     <string formatted="false" name="formula_editor_function_table_element_parameter">(\'myTable\', 3, 2)</string>
     <string formatted="false" name="formula_editor_function_table_join">соединить_таблицу_через</string>
@@ -1955,7 +1957,7 @@
         по</string>
     <string formatted="false" name="brick_listen_micro2">милисекунд</string>
     <string formatted="false" name="formula_editor_function_reverse">отразить</string>
-    <string formatted="false" name="formula_editor_function_reverse_parametr">(\'olleH\')</string>
+    <string formatted="false" name="formula_editor_function_reverse_parameter">(\'olleH\')</string>
     <string formatted="false" name="formula_editor_sensor_stage_width">ширина_экрана</string>
     <string formatted="false" name="formula_editor_sensor_stage_height">высота_экрана</string>
     <string formatted="false" name="formula_editor_sensor_battary">заряд_батареи</string>

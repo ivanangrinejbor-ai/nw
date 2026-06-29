@@ -15,9 +15,12 @@ class SendVmInputAction : TemporalAction() {
         val ctrlPattern = Pattern.compile("<CTRL\\+([A-Z])>")
         val matcher = ctrlPattern.matcher(input.uppercase())
         if (matcher.matches()) {
-            val letter = matcher.group(1)!![0]
-            val ctrlCode = letter.code - 'A'.code + 1
-            return ctrlCode.toChar().toString()
+            val group = matcher.group(1)
+            if (group != null && group.isNotEmpty()) {
+                val letter = group[0]
+                val ctrlCode = letter.code - 'A'.code + 1
+                return ctrlCode.toChar().toString()
+            }
         }
 
         return when (input.uppercase()) {
