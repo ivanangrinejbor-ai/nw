@@ -1264,7 +1264,7 @@ public class FormulaElement implements Serializable {
             }
             case SPRITE_DIRECTION: {
                 Sprite s = findSprite(String.valueOf(arg0));
-                return (s != null && s.look != null) ? (double) s.look.getDirectionInUserInterfaceDimensionUnit() : 0.0;
+                return (s != null && s.look != null) ? (double) s.look.getLookDirectionInUserInterfaceDimensionUnit() : 0.0;
             }
             case SPRITE_VISIBLE: {
                 Sprite s = findSprite(String.valueOf(arg0));
@@ -1306,7 +1306,7 @@ public class FormulaElement implements Serializable {
                 String name = String.valueOf(arg0);
                 int count = 0;
                 for (Sprite sp : listener.getSpritesFromStage()) {
-                    if (sp.isClone() && name.equals(sp.getName())) count++;
+                    if (sp.isClone && name.equals(sp.getName())) count++;
                 }
                 return (double) count;
             }

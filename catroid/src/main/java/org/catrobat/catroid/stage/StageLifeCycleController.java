@@ -79,7 +79,7 @@ public final class StageLifeCycleController {
 			return;
 		}
 
-		StageActivity.numberOfSpritesCloned = 0;
+		StageActivity.resetNumberOfClonedSprites();
 
 		if (ProjectManager.getInstance().isCurrentProjectLandscapeMode()) {
 			stageActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
