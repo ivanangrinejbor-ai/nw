@@ -11,6 +11,7 @@ import com.reandroid.arsc.value.Entry
 import com.reandroid.arsc.value.ResValue
 import java.io.File
 import java.io.FileOutputStream
+import java.io.IOException
 import java.security.KeyStore
 import java.security.PrivateKey
 import java.security.cert.X509Certificate

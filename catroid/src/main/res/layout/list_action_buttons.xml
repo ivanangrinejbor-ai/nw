@@ -28,7 +28,7 @@
               android:layout_height="match_parent"
               android:orientation="horizontal">
 
-    <!--<com.google.android.material.floatingactionbutton.FloatingActionButton
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/button_ai_assist"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -38,10 +38,10 @@
         android:layout_margin="@dimen/material_design_spacing_large"
         android:src="@drawable/ic_assistant"
         android:tint="@color/solid_white"
-        android:visibility="invisible"
+        android:visibility="gone"
         app:backgroundTint="@color/action_button"
         app:elevation="10dp"
-        android:onClick="handleAiAssistButton" />-->
+        android:onClick="handleAiAssistButton" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/button_play"
