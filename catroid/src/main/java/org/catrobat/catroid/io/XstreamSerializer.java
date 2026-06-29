@@ -100,7 +100,7 @@ public final class XstreamSerializer {
     }
     public static final java.util.List<XStreamSetupListener> pluginListeners = new java.util.concurrent.CopyOnWriteArrayList<>();
 
-	private static XstreamSerializer instance;
+	private static volatile XstreamSerializer instance;
 	private static final String TAG = XstreamSerializer.class.getSimpleName();
 	private static final String XML_HEADER = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\" ?>\n";
 	private static final String PROGRAM_NAME_START_TAG = "<programName>";

@@ -13,6 +13,7 @@ import java.io.IOException
 import java.util.concurrent.ConcurrentHashMap
 
 object VirtualMachineManager {
+    @Volatile
     var isWorking = true
     private val outputVariables = ConcurrentHashMap<String, UserVariable>()
 
@@ -26,7 +27,7 @@ object VirtualMachineManager {
     }
 
 
-    private val runningVMs = mutableMapOf<String, Int>()
+    private val runningVMs = ConcurrentHashMap<String, Int>()
 
     private val outputBuffers = ConcurrentHashMap<String, StringBuilder>()
 

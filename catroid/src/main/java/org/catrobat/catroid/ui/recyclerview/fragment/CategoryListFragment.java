@@ -171,7 +171,7 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 			R.string.formula_editor_function_subtext_parameter,
 			R.string.formula_editor_function_upper_parameter,
 			R.string.formula_editor_function_lower_parameter,
-			R.string.formula_editor_function_reverse_parametr,
+            R.string.formula_editor_function_reverse_parameter,
 			R.string.formula_editor_function_var_parameter,
 			R.string.formula_editor_function_var_name_parameter,
 			R.string.formula_editor_function_var_value_parameter,
@@ -221,7 +221,7 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
             R.string.formula_pt_shape, R.string.formula_pt_dump, R.string.formula_pt_totalsize
     );
     private static final List<Integer> PT_PARAMS = asList(
-            R.string.formula_pt_argmax_param, R.string.formula_pt_value_param, R.string.formula_pt_valuennd_param,
+            R.string.formula_pt_argmax_param, R.string.formula_pt_value_param, R.string.formula_pt_valuend_param,
             R.string.formula_pt_shape_param, R.string.formula_pt_dump_param, R.string.formula_pt_totalsize_param
     );
 

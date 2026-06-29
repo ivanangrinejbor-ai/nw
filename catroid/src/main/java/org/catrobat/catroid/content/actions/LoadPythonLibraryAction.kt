@@ -64,9 +64,12 @@ class LoadPythonLibraryAction : TemporalAction() {
                 if (entry.isDirectory) {
                     newFile.mkdirs()
                 } else {
-                    File(newFile.parent!!).mkdirs()
-                    FileOutputStream(newFile).use { fos ->
-                        zis.copyTo(fos)
+                    val parentFile = newFile.parentFile
+                    if (parentFile != null && newFile.canonicalPath.startsWith(targetDirectory.canonicalPath)) {
+                        parentFile.mkdirs()
+                        FileOutputStream(newFile).use { fos ->
+                            zis.copyTo(fos)
+                        }
                     }
                 }
                 zis.closeEntry()

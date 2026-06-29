@@ -82,7 +82,8 @@ abstract class GPTAction : Action(), WebRequestListener {
             denyPermission()
         } else {
             permissionStatus = PermissionStatus.PENDING
-            val params = arrayListOf(BrickDialogManager.DialogType.WEB_ACCESS_DIALOG, this, url!!)
+            val currentUrl = url ?: return
+            val params = arrayListOf(BrickDialogManager.DialogType.WEB_ACCESS_DIALOG, this, currentUrl)
             StageActivity.messageHandler.obtainMessage(StageActivity.SHOW_DIALOG, params).sendToTarget()
         }
     }
@@ -127,18 +128,20 @@ abstract class GPTAction : Action(), WebRequestListener {
     }
 
     private fun checkPermission() =
-        if (TrustedDomainManager.isURLTrusted(url!!)) {
+        if (TrustedDomainManager.isURLTrusted(url ?: "")) {
             grantPermission()
         } else {
             grantPermission()
         }
 
     private fun sendRequest(): Boolean {
+        val currentUrl = url ?: return false
         requestStatus = RequestStatus.WAITING
-        webConnection = WebConnection(this, url!!)
+        webConnection = WebConnection(this, currentUrl)
 
-        if (StageActivity.activeStageActivity.get()?.stageListener?.webConnectionHolder?.addConnection(webConnection!!) ?: false) {
-            webConnection!!.sendWebRequest()
+        val connection = webConnection ?: return false
+        if (StageActivity.activeStageActivity.get()?.stageListener?.webConnectionHolder?.addConnection(connection) == true) {
+            connection.sendWebRequest()
             return true
         } else {
             return false

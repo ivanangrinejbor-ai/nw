@@ -57,7 +57,7 @@ class CopyTextAction() : TemporalAction() {
     }
 
     private fun copyToClipboard(text: String) {
-        val clipboard = CatroidApplication.getAppContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        val clipboard = CatroidApplication.getAppContext().getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager ?: return
         val clip = ClipData.newPlainText("Response", text)
         clipboard.setPrimaryClip(clip)
     }

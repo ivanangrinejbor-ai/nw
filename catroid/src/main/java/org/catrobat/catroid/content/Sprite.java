@@ -664,7 +664,7 @@ public class Sprite implements Nameable, Serializable {
 		for (Sprite sprite : spriteList) {
 			for (Script currentScript : sprite.getScriptList()) {
 				if (currentScript == null) {
-					return;
+					continue;
 				}
 				List<Brick> flatList = new ArrayList();
 				currentScript.addToFlatList(flatList);

@@ -42,10 +42,10 @@ open class SetLookByIndexAction : SetLookAction() {
         try {
             if (sprite != null && scope?.sprite != null && scope?.sequence != null) {
                 val lookPosition = formula?.interpretInteger(scope) ?: 0
-                lookData = sprite!!.lookList?.getOrNull(lookPosition - 1)
+                lookData = sprite?.lookList?.getOrNull(lookPosition - 1)
             }
         } catch (e: InterpretationException) {
-            Log.d(javaClass.simpleName, "Formula Interpretation for look index failed", e)
+            Log.d(javaClass.simpleName, "Formula interpretation for look index failed", e)
         }
         return super.getEventId()
     }

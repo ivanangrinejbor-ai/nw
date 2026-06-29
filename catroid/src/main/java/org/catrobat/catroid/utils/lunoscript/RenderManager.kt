@@ -28,12 +28,12 @@ object RenderManager {
     // Инициализация. Вызывать один раз из StageListener.create()
     fun initialize(width: Int, height: Int) {
         if (fbo != null) fbo?.dispose()
-        fbo = FrameBuffer(Pixmap.Format.RGBA8888, width, height, false)
-        fboRegion = TextureRegion(fbo!!.colorBufferTexture)
-        fboRegion!!.flip(false, true)
+        val newFbo = FrameBuffer(Pixmap.Format.RGBA8888, width, height, false)
+        fbo = newFbo
+        val region = TextureRegion(newFbo.colorBufferTexture)
+        region.flip(false, true)
+        fboRegion = region
 
-        // --- ИЗМЕНЕНИЕ ---
-        // Если batch был уничтожен, создаем его заново
         if (batch != null) batch?.dispose()
         batch = SpriteBatch()
     }
@@ -65,16 +65,13 @@ object RenderManager {
     // Этот метод будет вызываться из главного рендер-цикла Catroid (из StageListener)
     private fun executeTasks() {
         if (tasks.isEmpty()) return
+        val currentFbo = fbo ?: return
 
-        fbo!!.begin()
+        currentFbo.begin()
         Gdx.gl.glClearColor(0f, 0f, 0f, 0f)
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
 
-        // --- НАЧАЛО РЕШАЮЩЕГО ИЗМЕНЕНИЯ ---
-        // Мы БОЛЬШЕ не используем матрицу из StageListener.
-        // Мы устанавливаем свою, простую, где координаты = пиксели.
-        shapeRenderer.projectionMatrix.setToOrtho2D(0f, 0f, fbo!!.width.toFloat(), fbo!!.height.toFloat())
-        // --- КОНЕЦ РЕШАЮЩЕГО ИЗМЕНЕНИЯ ---
+        shapeRenderer.projectionMatrix.setToOrtho2D(0f, 0f, currentFbo.width.toFloat(), currentFbo.height.toFloat())
 
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
 
@@ -86,7 +83,7 @@ object RenderManager {
         }
 
         shapeRenderer.end()
-        fbo!!.end()
+        currentFbo.end()
     }
 
     // Теперь render() больше не принимает матрицу

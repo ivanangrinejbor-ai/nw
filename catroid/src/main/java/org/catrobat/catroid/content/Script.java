@@ -238,7 +238,7 @@ public abstract class Script implements Serializable, Cloneable {
 			} else if (brick instanceof CompositeBrick) {
 				List<Brick> tmpBricks = brick.findBricksInNestedBricks(brickIds);
 				if (tmpBricks != null) {
-					return tmpBricks;
+					bricks.addAll(tmpBricks);
 				}
 			}
 

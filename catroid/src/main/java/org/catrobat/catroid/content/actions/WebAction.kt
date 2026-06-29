@@ -75,7 +75,8 @@ abstract class WebAction : Action(), WebRequestListener {
             denyPermission()
         } else {
             permissionStatus = PermissionStatus.PENDING
-            val params = arrayListOf(BrickDialogManager.DialogType.WEB_ACCESS_DIALOG, this, url!!)
+            val currentUrl = url ?: return
+            val params = arrayListOf(BrickDialogManager.DialogType.WEB_ACCESS_DIALOG, this, currentUrl)
             StageActivity.messageHandler.obtainMessage(StageActivity.SHOW_DIALOG, params).sendToTarget()
         }
     }
@@ -120,15 +121,16 @@ abstract class WebAction : Action(), WebRequestListener {
     }
 
     private fun checkPermission() =
-        if (TrustedDomainManager.isURLTrusted(url!!)) {
+        if (TrustedDomainManager.isURLTrusted(url ?: "")) {
             grantPermission()
         } else {
             grantPermission()
         }
 
     private fun sendRequest(): Boolean {
+        val currentUrl = url ?: return false
         requestStatus = RequestStatus.WAITING
-        val conn = WebConnection(this, url!!)
+        val conn = WebConnection(this, currentUrl)
         webConnection = conn
 
         if (StageActivity.activeStageActivity.get()?.stageListener?.webConnectionHolder?.addConnection(conn) == true) {

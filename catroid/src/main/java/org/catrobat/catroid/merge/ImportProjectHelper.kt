@@ -71,31 +71,33 @@ class ImportProjectHelper(
         }
         newProject?.let {
             for (userList in it.userLists) {
-                if (!currentScene?.project?.userLists!!.contains(userList)) {
+                if (currentScene?.project?.userLists?.contains(userList) == false) {
                     currentScene?.project?.userLists?.add(userList)
                 }
             }
         }
         newProject?.let {
             for (userVariable in it.userVariables) {
-                if (!currentScene?.project?.userVariables!!.contains(userVariable)) {
+                if (currentScene?.project?.userVariables?.contains(userVariable) == false) {
                     currentScene?.project?.userVariables?.add(userVariable)
                 }
             }
         }
-        addGlobalsToProject(newProject!!.userLists, currentScene!!.project.userLists)
-        addGlobalsToProject(newProject!!.userVariables, currentScene!!.project.userVariables)
-        addGlobalsToProject(newProject!!.broadcastMessageContainer.broadcastMessages,
-                            currentScene!!.project.broadcastMessageContainer.broadcastMessages)
+        val proj = newProject ?: return newSprite
+        val scene = currentScene ?: return newSprite
+        addGlobalsToProject(proj.userLists, scene.project.userLists)
+        addGlobalsToProject(proj.userVariables, scene.project.userVariables)
+        addGlobalsToProject(proj.broadcastMessageContainer.broadcastMessages,
+                            scene.project.broadcastMessageContainer.broadcastMessages)
 
         currentScene?.project?.broadcastMessageContainer?.update()
         return newSprite
     }
 
-    fun addGlobalsToProject(globalList: List<Any>, globalsToAdd: List<Any>) {
+    fun addGlobalsToProject(globalList: MutableList<Any>, globalsToAdd: List<Any>) {
         for (global in globalsToAdd) {
             if (!globalList.contains(global)) {
-                globalList.plus(global)
+                globalList.add(global)
             }
         }
     }
@@ -216,7 +218,7 @@ class ImportProjectHelper(
         val resolvedName = StorageOperations.getSanitizedFileName(lookFileName)
         val project = getProject(resolvedName)
         val firstScene = project?.defaultScene
-        if (project == null || firstScene!!.spriteList.size < 2) {
+        if (project == null || firstScene == null || firstScene.spriteList.size < 2) {
             rejectImportDialog(null)
         } else {
             newProject = project

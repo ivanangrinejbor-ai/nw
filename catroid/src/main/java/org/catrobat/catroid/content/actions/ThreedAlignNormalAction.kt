@@ -13,7 +13,7 @@ class ThreedAlignNormalAction : TemporalAction() {
     var ny: Formula? = null
     var nz: Formula? = null
     override fun update(percent: Float) {
-        val tm = StageActivity.getActiveStageListener().threeDManager ?: return
+        val tm = StageActivity.getActiveStageListener()?.threeDManager ?: return
         try {
             val id = objId?.interpretString(scope) ?: return
             if (id.isEmpty()) return

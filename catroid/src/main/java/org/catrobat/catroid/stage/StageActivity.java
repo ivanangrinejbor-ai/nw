@@ -187,7 +187,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 	BrickDialogManager brickDialogManager;
 	private boolean resizePossible;
 
-	static int numberOfSpritesCloned;
+	private static final java.util.concurrent.atomic.AtomicInteger numberOfSpritesCloned = new java.util.concurrent.atomic.AtomicInteger(0);
 
 	public static Handler messageHandler;
 	CameraManager cameraManager;
@@ -1783,11 +1783,11 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 	}
 
 	public static int getAndIncrementNumberOfClonedSprites() {
-		return ++numberOfSpritesCloned;
+		return numberOfSpritesCloned.incrementAndGet();
 	}
 
 	public static void resetNumberOfClonedSprites() {
-		numberOfSpritesCloned = 0;
+		numberOfSpritesCloned.set(0);
 	}
 
 	public static void setNfcTagMessage(NdefMessage message) {
@@ -1835,6 +1835,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 
 	@Override
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
+		super.onActivityResult(requestCode, resultCode, data);
 
 		if (requestCode == EXPORT_FILE_REQUEST_CODE) {
 
@@ -1922,6 +1923,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 
 	@Override
 	public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+		super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 		if (requestCode == 100) {
 			boolean allGranted = true;
 

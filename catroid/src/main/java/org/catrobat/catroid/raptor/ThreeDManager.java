@@ -2765,7 +2765,8 @@ public class ThreeDManager implements Disposable {
                 String objectId = entry.getKey();
                 btRigidBody body = entry.getValue();
 
-                boolean isManagedBySceneManager = (Objects.requireNonNull(StageActivity.getActiveStageListener()).sceneManager != null && Objects.requireNonNull(StageActivity.getActiveStageListener()).sceneManager.findGameObject(objectId) != null);
+                StageActivity.StageListener activeListener = StageActivity.getActiveStageListener();
+                boolean isManagedBySceneManager = (activeListener != null && activeListener.sceneManager != null && activeListener.sceneManager.findGameObject(objectId) != null);
 
                 if (!isManagedBySceneManager) {
                     ModelInstance instance = sceneObjects.get(objectId);

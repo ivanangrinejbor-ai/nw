@@ -440,7 +440,7 @@ public class FormulaElement implements Serializable {
                 if (additionalChildren.size() != 0) {
                     return additionalChildren.get(additionalChildren.size() - 1).interpretRecursive(scope);
                 }
-                return rightChild.interpretRecursive(scope);
+                return rightChild != null ? rightChild.interpretRecursive(scope) : 0.0;
             case NUMBER:
                 if (cachedDoubleValue != null) return cachedDoubleValue;
                 try {
@@ -557,10 +557,14 @@ public class FormulaElement implements Serializable {
                     return false;
                 }
             }
-            case FILES_PATH:
-                return getFileListString(ProjectManager.getInstance().getCurrentProject().getFilesDir());
-            case ALL_FILES:
-                return ProjectManager.getInstance().getCurrentProject().getFilesDir().getAbsolutePath();
+            case FILES_PATH: {
+                Project currentProject1 = ProjectManager.getInstance().getCurrentProject();
+                return currentProject1 != null ? getFileListString(currentProject1.getFilesDir()) : "";
+            }
+            case ALL_FILES: {
+                Project currentProject2 = ProjectManager.getInstance().getCurrentProject();
+                return currentProject2 != null ? currentProject2.getFilesDir().getAbsolutePath() : "";
+            }
             case LUA: {
                 if (luaGlobals == null) {
                     luaGlobals = org.luaj.vm2.lib.jse.JsePlatform.standardGlobals();
@@ -568,8 +572,11 @@ public class FormulaElement implements Serializable {
                 String luaScript = String.valueOf(arg0);
                 return luaGlobals.load(luaScript).call().tojstring();
             }
-            case FILE_SIZE:
-                return (int) getFileSize(ProjectManager.getInstance().getCurrentProject().getFile(String.valueOf(arg0)));
+            case FILE_SIZE: {
+                Project currentProject3 = ProjectManager.getInstance().getCurrentProject();
+                if (currentProject3 == null) return 0;
+                return (int) getFileSize(currentProject3.getFile(String.valueOf(arg0)));
+            }
             case TO_HEX: {
                 Integer decimal = tryParseIntFromObject(arg0);
                 return decimal != null ? Integer.toHexString(decimal).toUpperCase() : "0";
@@ -598,11 +605,11 @@ public class FormulaElement implements Serializable {
                 return result2.toString();
             }
             case GET_DIRECTION_X:
-                return (double) com.badlogic.gdx.math.MathUtils.cosDeg((float) tryInterpretDoubleValue(arg0));
+                return (double) com.badlogic.gdx.math.MathUtils.cosDeg((float) tryInterpretDoubleValue(arg0 != null ? arg0 : 0.0));
             case GET_DIRECTION_Y:
-                return (double) com.badlogic.gdx.math.MathUtils.sinDeg((float) tryInterpretDoubleValue(arg0));
+                return (double) com.badlogic.gdx.math.MathUtils.sinDeg((float) tryInterpretDoubleValue(arg0 != null ? arg0 : 0.0));
             case GET_ANGLE:
-                return (double) com.badlogic.gdx.math.MathUtils.atan2Deg((float) tryInterpretDoubleValue(arg1), (float) tryInterpretDoubleValue(arg0));
+                return (double) com.badlogic.gdx.math.MathUtils.atan2Deg((float) tryInterpretDoubleValue(arg1 != null ? arg1 : 0.0), (float) tryInterpretDoubleValue(arg0 != null ? arg0 : 0.0));
             case GET_3D_VELOCITY_X: {
                 ThreeDManager manager = getThreeDManager();
                 return manager != null ? (double) manager.getVelocity(String.valueOf(arg0)).x : 0.0;
@@ -669,11 +676,11 @@ public class FormulaElement implements Serializable {
                 return MLBridge.nativeGetValueND(String.valueOf(arg0), String.valueOf(arg1));
             case INTERSECT_LIST: {
                 ThreeDManager manager = getThreeDManager();
-                return manager != null ? manager.getIntersectionCollisionsList(String.valueOf(arg0)) : 0.0;
+                return manager != null ? manager.getIntersectionCollisionsList(String.valueOf(arg0)) : "";
             }
             case COLLISION_LIST: {
                 ThreeDManager manager = getThreeDManager();
-                return manager != null ? manager.getPhysicsCollisionsList(String.valueOf(arg0)) : 0.0;
+                return manager != null ? manager.getPhysicsCollisionsList(String.valueOf(arg0)) : "";
             }
             case DELTA: {
                 ThreeDManager manager = getThreeDManager();
@@ -827,12 +834,13 @@ public class FormulaElement implements Serializable {
                 return interpretFunctionJsonIsValid(arg0);
             case REPEAT: {
                 Integer timesOpt = tryParseIntFromObject(arg1);
-                return String.valueOf(arg0).repeat(timesOpt != null ? timesOpt : 0);
+                String sourceStr = arg0 != null ? String.valueOf(arg0) : "";
+                return sourceStr.repeat(Math.max(0, timesOpt != null ? timesOpt : 0));
             }
             case REPLACE:
-                return String.valueOf(arg0).replace(String.valueOf(arg1), String.valueOf(arg2));
+                return (arg0 != null ? String.valueOf(arg0) : "").replace(String.valueOf(arg1), String.valueOf(arg2));
             case CONTAINS_STR:
-                return String.valueOf(arg0).contains(String.valueOf(arg1));
+                return (arg0 != null ? String.valueOf(arg0) : "").contains(String.valueOf(arg1));
             case TABLE_X:
                 return TableManager.Companion.getTableXSize(String.valueOf(arg0));
             case VIEW_X: {
@@ -925,11 +933,11 @@ public class FormulaElement implements Serializable {
             case TABLE_JOIN:
                 return TableManager.Companion.tableToString(String.valueOf(arg0), String.valueOf(arg1), String.valueOf(arg2));
             case UPPER:
-                return String.valueOf(arg0).toUpperCase();
+                return arg0 != null ? String.valueOf(arg0).toUpperCase() : "";
             case LOWER:
-                return String.valueOf(arg0).toLowerCase();
+                return arg0 != null ? String.valueOf(arg0).toLowerCase() : "";
             case REVERSE:
-                return new StringBuilder(String.valueOf(arg0)).reverse().toString();
+                return new StringBuilder(arg0 != null ? String.valueOf(arg0) : "").reverse().toString();
             case VAR:
                 return UserVarsManager.INSTANCE.getVar(String.valueOf(arg0));
             case VARNAME: {
@@ -1047,7 +1055,7 @@ public class FormulaElement implements Serializable {
                     String line = reader.readLine();
                     reader.close();
                     long khz = Long.parseLong(line != null ? line.trim() : "0");
-                    return (double) (khz / 1000);
+                    return khz / 1000.0;
                 } catch (Exception e) { return 0.0; }
             }
             case TOTAL_RAM: {
@@ -1056,7 +1064,7 @@ public class FormulaElement implements Serializable {
                     android.app.ActivityManager activityManager = (android.app.ActivityManager)
                         CatroidApplication.getAppContext().getSystemService(android.content.Context.ACTIVITY_SERVICE);
                     activityManager.getMemoryInfo(mi);
-                    return (double) (mi.totalMem / (1024 * 1024));
+                    return mi.totalMem / (1024.0 * 1024.0);
                 } catch (Exception e) { return 0.0; }
             }
             case FREE_RAM: {
@@ -1065,19 +1073,19 @@ public class FormulaElement implements Serializable {
                     android.app.ActivityManager activityManager = (android.app.ActivityManager)
                         CatroidApplication.getAppContext().getSystemService(android.content.Context.ACTIVITY_SERVICE);
                     activityManager.getMemoryInfo(mi);
-                    return (double) (mi.availMem / (1024 * 1024));
+                    return mi.availMem / (1024.0 * 1024.0);
                 } catch (Exception e) { return 0.0; }
             }
             case TOTAL_STORAGE: {
                 try {
                     android.os.StatFs stat = new android.os.StatFs(android.os.Environment.getDataDirectory().getPath());
-                    return (double) (stat.getBlockCountLong() * stat.getBlockSizeLong() / (1024 * 1024));
+                    return stat.getBlockCountLong() * stat.getBlockSizeLong() / (1024.0 * 1024.0);
                 } catch (Exception e) { return 0.0; }
             }
             case FREE_STORAGE: {
                 try {
                     android.os.StatFs stat = new android.os.StatFs(android.os.Environment.getDataDirectory().getPath());
-                    return (double) (stat.getAvailableBlocksLong() * stat.getBlockSizeLong() / (1024 * 1024));
+                    return stat.getAvailableBlocksLong() * stat.getBlockSizeLong() / (1024.0 * 1024.0);
                 } catch (Exception e) { return 0.0; }
             }
             case BATTERY_PERCENT: {
@@ -1577,7 +1585,7 @@ public class FormulaElement implements Serializable {
                     parameterInterpretation = child.getValue();
                     break;
                 case NUMBER:
-                    parameterInterpretation = formatNumberString((String) objectInterpretation);
+                    parameterInterpretation = formatNumberString(child.getValue());
                     break;
                 default:
                     parameterInterpretation += objectInterpretation;

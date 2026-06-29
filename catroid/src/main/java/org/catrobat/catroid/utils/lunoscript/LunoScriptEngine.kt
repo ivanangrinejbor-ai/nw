@@ -44,12 +44,10 @@ class LunoScriptEngine(
             System.err.println("LunoScript Runtime Error (Engine): ${e.message} (Line: ${e.line})")
             e.cause?.printStackTrace(System.err)
             handleLunoError(e, "LunoRuntimeError: ${e.message}")
-        } catch (t: Throwable) { // Ловим ВСЕ остальное, включая Error
-            System.err.println("Unexpected LunoScript Engine Error (Throwable): ${t.javaClass.simpleName} - ${t.localizedMessage}")
-            t.printStackTrace(System.err)
-            handleLunoError(t, "LunoEngineError: ${t.javaClass.simpleName} - ${t.localizedMessage}")
         } catch (e: Exception) {
-            handleLunoError(e, "LunoException: ${e.message}")
+            System.err.println("LunoScript Error (Engine): ${e.message} (Line: ${(e as? LunoRuntimeError)?.line ?: -1})")
+            e.cause?.printStackTrace(System.err)
+            handleLunoError(e, "LunoEngineError: ${e.javaClass.simpleName} - ${e.localizedMessage}")
         }
     }
 

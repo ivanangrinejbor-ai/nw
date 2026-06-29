@@ -674,7 +674,7 @@
     <string name="brick_listen_micro" formatted="false">Começar a ouvir o microfone em segmentos de</string>
     <string name="brick_listen_micro2" formatted="false">milissegundos</string>
     <string name="formula_editor_function_reverse" formatted="false">inverter</string>
-    <string name="formula_editor_function_reverse_parametr" formatted="false">(\'oláH\')</string>
+    <string name="formula_editor_function_reverse_parameter" formatted="false">(\'oláH\')</string>
     <string name="formula_editor_sensor_stage_width" formatted="false">largura da tela</string>
     <string name="formula_editor_sensor_stage_height" formatted="false">altura da tela</string>
     <string name="formula_editor_sensor_battary" formatted="false">carga da bateria</string>

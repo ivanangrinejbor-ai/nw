@@ -86,30 +86,27 @@ object BakedApkBuilder {
             projectAssets.mkdirs()
             copyProjectFiles(projectDir, projectAssets)
 
-            // Step 3: Extract template APK to temp dir
+            // Step 3: Modify AndroidManifest in the template APK before extraction
+            onProgress("Configuring application...")
+            val manifestConfig = ApkToolboxManager.ManifestConfig(
+                appName = config.appName,
+                packageName = config.packageName,
+                versionName = config.versionName,
+                versionCode = config.versionCode
+            )
+            ApkToolboxManager.updateManifest(templateApk.absolutePath, manifestConfig)
+
+            // Step 4: Extract template APK to temp dir
             onProgress("Extracting template...")
             val extractedDir = File(tempDir, "extracted")
             extractedDir.mkdirs()
             extractApk(templateApk, extractedDir)
 
-            // Step 4: Inject project files into extracted APK
+            // Step 5: Inject project files into extracted APK
             onProgress("Embedding project files...")
             val projectDirInApk = File(extractedDir, PROJECT_ASSETS_PREFIX)
             projectDirInApk.mkdirs()
             projectAssets.copyRecursively(projectDirInApk, true)
-
-            // Step 5: Modify AndroidManifest
-            onProgress("Configuring application...")
-            val manifestFile = File(extractedDir, "AndroidManifest.xml")
-            if (manifestFile.exists()) {
-                val manifestConfig = ApkToolboxManager.ManifestConfig(
-                    appName = config.appName,
-                    packageName = config.packageName,
-                    versionName = config.versionName,
-                    versionCode = config.versionCode
-                )
-                ApkToolboxManager.updateManifest(manifestFile.absolutePath, manifestConfig)
-            }
 
             // Step 6: Replace icon if provided
             if (config.iconFile != null && config.iconFile.exists()) {
