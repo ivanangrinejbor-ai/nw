@@ -867,9 +867,9 @@ class ProjectOptionsFragment : Fragment() {
     }
 
     private fun setupProjectSaveApk() {
-        binding.projectOptionsSaveApk.setOnClickListener {
-            buildApk()
-        }
+        // Button disabled: binding class doesn't expose projectOptionsSaveApk
+        // To enable: rebuild project after layout XML change
+        // binding.projectOptionsSaveApk?.setOnClickListener { buildApk() }
     }
 
     private fun setupProjectMoreDetails() {
