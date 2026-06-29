@@ -94,7 +94,7 @@ class ProjectUnZipperAndImporter @JvmOverloads constructor(
     false
 }*/
 
-private fun unzipAndImportProject(projectZipFile: File): ImportResult = try {
+private fun ProjectUnZipperAndImporter.unzipAndImportProject(projectZipFile: File): ImportResult = try {
 
     val tempDirName = StorageOperations.getSanitizedFileName(projectZipFile.name) + "_temp_import"
     val cachedProjectDir = File(CACHE_DIRECTORY, tempDirName)

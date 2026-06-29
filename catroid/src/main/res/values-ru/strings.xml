@@ -2472,6 +2472,7 @@
     <string formatted="false" name="new_group">Новая группа</string>
     <string formatted="false" name="default_group_name">Группа</string>
     <!-- New Scene Menu -->
+    <string formatted="false" name="brick_set_preloading">Включить предзагрузку проекта</string>
     <string formatted="false" name="global_scene">Глобальная сцена</string>
     <string formatted="false" name="global_scene_desc">Запускается один раз при старте проекта и не уничтожается при смене сцен</string>
     <string formatted="false" name="new_scene">Новая сцена</string>

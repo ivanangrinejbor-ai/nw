@@ -401,7 +401,7 @@ class PathfindingManager {
             look.setPositionInUserInterfaceDimensionUnit(newX, newY)
             
             val targetAngle = Math.toDegrees(kotlin.math.atan2(dy.toDouble(), dx.toDouble())).toFloat()
-            val currentAngle = look.directionInUserInterfaceDimensionUnit
+            val currentAngle = look.getMotionDirectionInUserInterfaceDimensionUnit()
             val angleDiff = ((targetAngle - currentAngle + 540f) % 360f) - 180f
             val maxRotation = follower.rotationSpeed * delta
             val rotation = angleDiff.coerceIn(-maxRotation, maxRotation)

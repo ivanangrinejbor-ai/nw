@@ -38,7 +38,7 @@ import org.catrobat.catroid.content.Scope
 import org.catrobat.catroid.formulaeditor.Formula
 import java.util.ArrayList
 
-class SetNeutralButton() : TemporalAction() {
+class SetNeutralButtonAction() : TemporalAction() {
     var scope: Scope? = null
     var name: Formula? = null
     var text: Formula? = null

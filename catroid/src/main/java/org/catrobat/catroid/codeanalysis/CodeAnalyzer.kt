@@ -33,7 +33,7 @@ class CodeAnalyzer(private val context: Context) {
     }
 
     fun analyzeScriptWithAi(script: Script): Map<Brick, AnalysisResult> {
-        val results = analyzeScript(script)
+        val results = analyzeScript(script).toMutableMap()
         results.putAll(aiRule.getResults().filterKeys { it in script.brickList })
         return results
     }

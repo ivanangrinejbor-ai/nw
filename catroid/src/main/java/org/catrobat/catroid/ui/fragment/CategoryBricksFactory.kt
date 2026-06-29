@@ -33,7 +33,7 @@ import org.catrobat.catroid.content.WhenBounceOffScript
 import org.catrobat.catroid.content.WhenConditionScript
 import org.catrobat.catroid.content.WhenGamepadButtonScript
 import org.catrobat.catroid.content.actions.SetAnimationSpeedAction
-import org.catrobat.catroid.content.actions.hideStatusBarAction
+import org.catrobat.catroid.content.actions.HideStatusBarAction
 import org.catrobat.catroid.content.bricks.AddEditBrick
 import org.catrobat.catroid.content.bricks.AddFileToApkBrick
 import org.catrobat.catroid.content.bricks.AddHingeBrick
@@ -435,6 +435,7 @@ import org.catrobat.catroid.content.bricks.SetRenderResolutionBrick
 import org.catrobat.catroid.content.bricks.SetRestitutionBrick
 import org.catrobat.catroid.content.bricks.SetRotationLockBrick
 import org.catrobat.catroid.content.bricks.SetRotationStyleBrick
+import org.catrobat.catroid.content.bricks.SetPreloadingBrick
 import org.catrobat.catroid.content.bricks.SetSaveScenesBrick
 import org.catrobat.catroid.content.bricks.SetScreenShaderBrick
 import org.catrobat.catroid.content.bricks.SetShaderCodeBrick
@@ -612,7 +613,6 @@ open class CategoryBricksFactory {
             context.getString(R.string.pocketensor) -> setupPocketensorCategoryList(context)
             context.getString(R.string.fast2d) -> setupFast2dCategoryList(context)
             context.getString(R.string.category_pathfinder) -> setupPathfinderCategoryList(context)
-            context.getString(R.string.category_transitions) -> setupTransitionCategoryList(context)
             context.getString(R.string.category_file) -> setupFileCategoryList(context)
             context.getString(R.string.category_threed) -> setupThreedCategoryList(context)
             context.getString(R.string.category_internet) -> setupInternetCategoryList(context)
@@ -801,8 +801,17 @@ open class CategoryBricksFactory {
                 controlBrickList.add(ClearSceneBrick(null))
                 controlBrickList.add(SetSaveScenesBrick(1))
                 controlBrickList.add(SetStopSoundsBrick(1))
+                controlBrickList.add(SetPreloadingBrick(1))
                 controlBrickList.add(LaunchProjectBrick("project.newtrobat"))
-                controlBrickList.add(ReturnToPreviousProjectBrick())
+        controlBrickList.add(ReturnToPreviousProjectBrick())
+        controlBrickList.add(FadeToBlackBrick("Scene 1"))
+        controlBrickList.add(FadeFromBlackBrick("Scene 1"))
+        controlBrickList.add(CrossfadeBrick("Scene 1"))
+        controlBrickList.add(SlideLeftBrick("Scene 1"))
+        controlBrickList.add(SlideRightBrick("Scene 1"))
+        controlBrickList.add(SlideUpBrick("Scene 1"))
+        controlBrickList.add(SlideDownBrick("Scene 1"))
+        controlBrickList.add(InstantTransitionBrick("Scene 1"))
                 if (SettingsFragment.isPhiroSharedPreferenceEnabled(context)) {
                     controlBrickList.add(PhiroIfLogicBeginBrick())
                 }
@@ -870,6 +879,8 @@ open class CategoryBricksFactory {
         controlBrickList.add(SceneTransitionBrick(null))
         controlBrickList.add(ClearSceneBrick(null))
         controlBrickList.add(SetSaveScenesBrick(1))
+        controlBrickList.add(SetStopSoundsBrick(1))
+        controlBrickList.add(SetPreloadingBrick(1))
         controlBrickList.add(LaunchProjectBrick("project.newtrobat"))
         controlBrickList.add(ReturnToPreviousProjectBrick())
 

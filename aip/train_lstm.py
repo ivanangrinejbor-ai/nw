@@ -140,7 +140,7 @@ def main():
         'final_accuracy': round(float(history.history['accuracy'][-1]), 4),
         'final_loss': round(float(history.history['loss'][-1]), 4)
     }
-    with open(os.path.join(args.out_dir, 'training_stats.json'), 'w') as f:
+    with open(os.path.join(args.out_dir, 'training_stats.json'), 'w', encoding='utf-8') as f:
         json.dump(stats, f, indent=2)
     print(f"\n  Stats: acc={stats['final_accuracy']}, loss={stats['final_loss']}")
 
@@ -165,7 +165,7 @@ def main():
         'model_version': 3,
         'brick_types': list(tokenizer.word2id.keys())
     }
-    with open(os.path.join(args.out_dir, 'model_metadata.json'), 'w') as f:
+    with open(os.path.join(args.out_dir, 'model_metadata.json'), 'w', encoding='utf-8') as f:
         json.dump(metadata, f, indent=2)
 
     print(f"\n{'=' * 60}")

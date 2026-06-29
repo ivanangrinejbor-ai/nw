@@ -90,6 +90,8 @@ class BrickTokenizer:
 
         for proj in projects:
             all_tokens = self.build_project_sequence(proj, window * 3)
+            if len(all_tokens) <= window:
+                continue
             for i in range(window, len(all_tokens)):
                 context = all_tokens[i - window:i]
                 target = all_tokens[i]

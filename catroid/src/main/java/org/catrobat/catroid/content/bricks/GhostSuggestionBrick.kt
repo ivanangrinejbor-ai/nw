@@ -60,11 +60,13 @@ class GhostSuggestionBrick(
 
         view.setOnTouchListener { _, event ->
             gestureDetector.onTouchEvent(event)
-            true
         }
     }
 
     override fun addToFlatList(bricks: List<Brick?>?) {
+    }
+
+    override fun addActionToSequence(sprite: org.catrobat.catroid.content.Sprite, sequence: org.catrobat.catroid.content.actions.ScriptSequenceAction) {
     }
 
     override fun getDragAndDropTargetList(): List<Brick>? = null

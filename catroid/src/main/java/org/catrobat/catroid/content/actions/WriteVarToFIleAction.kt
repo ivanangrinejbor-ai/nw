@@ -75,7 +75,7 @@ class WriteVarToFileAction : TemporalAction(), IntentListener {
         if (ContextCompat.checkSelfPermission(CatroidApplication.getAppContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             val activity = StageActivity.activeStageActivity.get()
             activity?.runOnUiThread {
-                request(activity)
+                activity?.let { request(it) }
             }
         }
         if (userVariable == null || formula == null) {
@@ -203,7 +203,7 @@ class WriteVarToFileAction : TemporalAction(), IntentListener {
         if (resultCode == Activity.RESULT_OK) {
             data?.data?.let {
                 val content: String = when (val value = userVariable?.value ?: 0) {
-                    Double -> (value as Double).toBigDecimal().toPlainString()
+                    is Double -> (value as Double).toBigDecimal().toPlainString()
                     else -> value.toString()
                 }
                 writeToUri(it, content)

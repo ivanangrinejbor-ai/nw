@@ -31,6 +31,6 @@ class StopMovementAction : TemporalAction() {
     var scope: Scope? = null
 
     override fun update(percent: Float) {
-        StageActivity.stageListener?.pathfindingManager?.stopFollowing(scope?.sprite?.name ?: "")
+        StageActivity.activeStageActivity.get()?.stageListener?.pathfindingManager?.stopFollowing(scope?.sprite?.name ?: "")
     }
 }

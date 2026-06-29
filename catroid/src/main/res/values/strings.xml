@@ -2530,6 +2530,7 @@
     <string formatted="false" name="default_group_name">Group</string>
 
     <!-- New Scene Menu -->
+    <string formatted="false" name="brick_set_preloading">Enable project preloading</string>
     <string formatted="false" name="global_scene">Global Scene</string>
     <string formatted="false" name="global_scene_desc">Runs once at project start and persists across all scene changes</string>
     <string formatted="false" name="new_scene">New scene</string>

@@ -151,7 +151,7 @@ object AiProjectAssistant {
         if (fbObj != null) {
             firstBricks = fbObj.keys().asSequence().mapNotNull { key ->
                 val arr = fbObj.optJSONArray(key)
-                if (arr != null && arr.length() >= 2) key to arr.getInt(1) else null
+                if (arr != null && arr.length() >= 2) key to arr.optInt(1, 0) else null
             }.toMap()
         }
     }
@@ -220,7 +220,7 @@ object AiProjectAssistant {
 
         val lastType = brickTypes.last()
         for (n in listOf(5, 4, 3, 2)) {
-            val fallbackCtx = listOf(lastType)
+            val fallbackCtx = brickTypes.takeLast(n - 1)
             val fbkKey = fallbackCtx.joinToString("|")
             val fallbackPreds = ngrams[n]?.get(fbkKey)
             if (fallbackPreds != null) {
@@ -289,14 +289,15 @@ object AiProjectAssistant {
 
     fun addSuggestedBrick(brickType: String): Brick? {
         val fullName = "org.catrobat.catroid.content.bricks.$brickType"
+        val cls = try {
+            Class.forName(fullName)
+        } catch (e: Exception) { return null }
         return try {
-            val cls = Class.forName(fullName)
             val constructor = cls.getDeclaredConstructor()
             constructor.isAccessible = true
             constructor.newInstance() as? Brick
         } catch (e: Exception) {
             try {
-                val cls = Class.forName(fullName)
                 val constructor = cls.getDeclaredConstructor(String::class.java)
                 constructor.isAccessible = true
                 constructor.newInstance("") as? Brick

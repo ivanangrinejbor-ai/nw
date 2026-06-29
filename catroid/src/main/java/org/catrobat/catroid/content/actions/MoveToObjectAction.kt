@@ -38,7 +38,7 @@ class MoveToObjectAction : Action() {
     private var pathSet = false
 
     override fun act(delta: Float): Boolean {
-        val pf = StageActivity.stageListener?.pathfindingManager ?: run {
+        val pf = StageActivity.activeStageActivity.get()?.stageListener?.pathfindingManager ?: run {
             pathSet = false
             return true
         }

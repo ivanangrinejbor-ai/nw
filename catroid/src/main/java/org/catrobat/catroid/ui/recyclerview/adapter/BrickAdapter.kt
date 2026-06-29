@@ -213,8 +213,9 @@ class BrickAdapter(private val sprite: Sprite) :
         itemView.visibility =
             if (viewStateManager.isVisible(position)) View.VISIBLE else View.INVISIBLE
 
+        val baseAlpha = if (viewStateManager.isEnabled(position)) 1F else DISABLED_BRICK_ALPHA
+
         if (item !is GhostSuggestionBrick) {
-            val baseAlpha = if (viewStateManager.isEnabled(position)) 1F else DISABLED_BRICK_ALPHA
             itemView.alpha = baseAlpha
         }
 
