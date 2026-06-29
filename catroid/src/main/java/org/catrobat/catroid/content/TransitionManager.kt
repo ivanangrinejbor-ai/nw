@@ -20,7 +20,9 @@ enum class TransitionType {
     SLIDE_LEFT,
     SLIDE_RIGHT,
     SLIDE_UP,
-    SLIDE_DOWN
+    SLIDE_DOWN,
+    FADE_OUT,
+    FADE_IN
 }
 
 enum class TransitionState {
@@ -40,20 +42,25 @@ class TransitionManager {
     private var overlayStage: Stage? = null
 
     fun startTransition(transitionType: TransitionType, sceneName: String) {
+        startTransition(transitionType, sceneName, 0.5f)
+    }
+
+    fun startTransition(transitionType: TransitionType, sceneName: String, dur: Float) {
         type = transitionType
         targetSceneName = sceneName
         progress = 0f
+        duration = dur
 
         when (transitionType) {
             TransitionType.INSTANT -> {
                 performSceneSwitch()
                 state = TransitionState.IDLE
             }
-            TransitionType.FADE_TO_BLACK -> {
+            TransitionType.FADE_TO_BLACK, TransitionType.FADE_OUT -> {
                 initOverlay()
                 state = TransitionState.FADING_OUT
             }
-            TransitionType.FADE_FROM_BLACK -> {
+            TransitionType.FADE_FROM_BLACK, TransitionType.FADE_IN -> {
                 performSceneSwitch()
                 initOverlay()
                 overlay?.color?.a = 1f
@@ -138,7 +145,10 @@ class TransitionManager {
 
     private fun performSceneSwitch() {
         val listener = StageActivity.getActiveStageListener() ?: return
-        listener.transitionToScene(targetSceneName)
+        val newScene = org.catrobat.catroid.ProjectManager.getInstance().getCurrentProject().getSceneByName(targetSceneName)
+        if (newScene != null) {
+            listener.doSceneSwitch(newScene)
+        }
     }
 
     fun cancelTransition() {

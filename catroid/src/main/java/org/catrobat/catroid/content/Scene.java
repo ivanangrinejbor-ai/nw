@@ -54,7 +54,9 @@ import androidx.annotation.NonNull;
 @XStreamFieldKeyOrder({
 		"sceneId",
 		"name",
-		"objectList"
+		"objectList",
+		"transitionType",
+		"transitionDuration"
 })
 @LunoClass
 public class Scene implements Nameable, Serializable {
@@ -68,6 +70,11 @@ public class Scene implements Nameable, Serializable {
 	@XStreamAlias("objectList")
 	private List<Sprite> spriteList = new ArrayList<>();
 
+	@XStreamAlias("transitionType")
+	private int transitionType = 0;
+	@XStreamAlias("transitionDuration")
+	private float transitionDuration = 1.0f;
+
 	private transient PhysicsWorld physicsWorld;
 	private transient Project project;
 
@@ -75,6 +82,7 @@ public class Scene implements Nameable, Serializable {
 	public transient boolean isGlobalScene = false;
 
 	public Scene() {
+		this.sceneId = UUID.randomUUID().toString();
 	}
 
 	public Scene(String name, @NonNull Project project) {
@@ -112,6 +120,22 @@ public class Scene implements Nameable, Serializable {
 
 	public synchronized void setName(String name) {
 		this.name = name;
+	}
+
+	public int getTransitionType() {
+		return transitionType;
+	}
+
+	public void setTransitionType(int transitionType) {
+		this.transitionType = transitionType;
+	}
+
+	public float getTransitionDuration() {
+		return transitionDuration;
+	}
+
+	public void setTransitionDuration(float transitionDuration) {
+		this.transitionDuration = Math.max(0.1f, Math.min(40f, transitionDuration));
 	}
 
 	public Project getProject() {

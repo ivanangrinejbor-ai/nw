@@ -444,7 +444,8 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
             val contentResolver = requireActivity().contentResolver
             val fileName = StorageOperations.resolveFileName(contentResolver, uri)
 
-            if (!fileName.endsWith(Constants.CATROBAT_EXTENSION) && !fileName.endsWith(Constants.NEW_CATROBAT_EXTENSION)) {
+            if (!fileName.endsWith(Constants.CATROBAT_EXTENSION) && !fileName.endsWith(Constants.NEW_CATROBAT_EXTENSION)
+                && !fileName.endsWith(".ncp")) {
                 ToastUtil.showError(requireContext(), R.string.only_select_catrobat_files)
                 continue
             }

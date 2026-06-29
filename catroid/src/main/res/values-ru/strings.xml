@@ -690,6 +690,9 @@
     <string formatted="false" name="pathfinder_move_to">Идти к</string>
     <string formatted="false" name="pathfinder_avoid">Избегать</string>
     <string formatted="false" name="pathfinder_speed">Скорость</string>
+    <string formatted="false" name="pathfinder_mode">Режим</string>
+    <string formatted="false" name="pathfinder_mode_precise">точно</string>
+    <string formatted="false" name="pathfinder_mode_touch">до касания</string>
     <string formatted="false" name="pathfinder_stop">Остановить</string>
     <string formatted="false" name="pathfinder_continue">Продолжить</string>
     <string formatted="false" name="pathfinder_has_path">Есть путь к</string>
@@ -707,6 +710,20 @@
     <string formatted="false" name="transition_instant">Мгновенно</string>
     <string formatted="false" name="transition_scene_param">Сцена</string>
     <string formatted="false" name="category_transitions">Переходы</string>
+    <string name="scene_transition_title">Переход сцены</string>
+    <string name="scene_transition_none">Нет</string>
+    <string name="scene_transition_fade_out">Затемнение</string>
+    <string name="scene_transition_fade_in">Появление</string>
+    <string name="scene_transition_duration">Длительность (сек)</string>
+    <string name="export_with_password">Экспорт с паролем</string>
+    <string name="enter_export_password">Введите пароль для экспорта</string>
+    <string name="password_hint">Пароль</string>
+    <string name="confirm_password_hint">Подтвердите пароль</string>
+    <string name="wrong_password">Неверный пароль. Попробуйте снова.</string>
+    <string name="passwords_dont_match">Пароли не совпадают</string>
+    <string name="encrypted_file_detected">Обнаружен зашифрованный проект. Введите пароль:</string>
+    <string name="exporting_project">Экспорт проекта…</string>
+    <string name="encrypting_project">Шифрование…</string>
     <string formatted="false" name="transition">Переходы</string>
     <string name="preference_title_pcmode" formatted="false">Включить интерфейс для больших экранов (так же для планшетов)</string>
     <string name="fast2d_set_collision_filter" formatted="false">Фильтр коллизий</string>

@@ -53,6 +53,11 @@
         android:icon="@drawable/ic_edit"
         app:showAsAction="never" />
     <item
+        android:id="@+id/scene_transition"
+        android:title="@string/transition"
+        android:icon="@drawable/_transition_24px"
+        app:showAsAction="never" />
+    <item
         android:id="@+id/new_group"
         android:title="@string/new_group"
         app:showAsAction="never"

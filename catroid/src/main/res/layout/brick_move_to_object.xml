@@ -78,6 +78,16 @@
 
         <TextView
             style="@style/BrickText.SingleLine"
+            android:text="@string/pathfinder_mode"
+            app:layout_newLine="true" />
+
+        <Spinner
+            android:id="@+id/brick_move_to_mode_spinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            style="@style/BrickText.SingleLine"
             android:text="@string/pathfinder_speed"
             app:layout_newLine="true" />
 

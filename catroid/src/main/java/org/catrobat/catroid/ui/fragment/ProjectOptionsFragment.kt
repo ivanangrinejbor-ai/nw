@@ -116,6 +116,7 @@ class ProjectOptionsFragment : Fragment() {
     private var projectInZip: File? = null
     private var buildFilename: String? = null
     private var zipTempDir: File? = null
+    private var encFileToSave: File? = null
     private lateinit var gitController: GitController
     private var progressDialog: AlertDialog? = null
 
@@ -844,7 +845,15 @@ class ProjectOptionsFragment : Fragment() {
 
     private fun setupProjectSaveExternal() {
         binding.projectOptionsSaveExternal.setOnClickListener {
-            exportProject()
+            val items = arrayOf(
+                getString(R.string.export_project),
+                getString(R.string.export_with_password)
+            )
+            androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                .setItems(items) { _, which ->
+                    if (which == 0) exportProject() else exportWithPassword()
+                }
+                .show()
         }
     }
 
@@ -867,9 +876,7 @@ class ProjectOptionsFragment : Fragment() {
     }
 
     private fun setupProjectSaveApk() {
-        // Button disabled: binding class doesn't expose projectOptionsSaveApk
-        // To enable: rebuild project after layout XML change
-        // binding.projectOptionsSaveApk?.setOnClickListener { buildApk() }
+        binding.projectOptionsSaveApk.setOnClickListener { buildApk() }
     }
 
     private fun setupProjectMoreDetails() {
@@ -1454,26 +1461,33 @@ class ProjectOptionsFragment : Fragment() {
 
     private fun startApkBuild(config: BakedApkBuilder.ApkConfig) {
         val projectDir = project?.directory ?: return
+        val ctx = context ?: return
         showToast(getString(R.string.build_apk_progress))
-        lifecycleScope.launch {
-            val result = BakedApkBuilder.build(requireContext(), projectDir, config) { progress ->
-                lifecycleScope.launch(Dispatchers.Main) { showToast(progress) }
+        lifecycleScope.launch(Dispatchers.IO) {
+            val result = BakedApkBuilder.build(ctx, projectDir, config) { progress ->
+                kotlinx.coroutines.withContext(Dispatchers.Main) { context?.let { showToast(progress) } }
             }
-            lifecycleScope.launch(Dispatchers.Main) {
+            kotlinx.coroutines.withContext(Dispatchers.Main) {
+                val c = context ?: return@withContext
                 when (result) {
                     is BakedApkBuilder.BuildResult.Success -> {
                         showToast(getString(R.string.build_apk_success))
-                        val intent = Intent(Intent.ACTION_VIEW).apply {
-                            setDataAndType(androidx.core.content.FileProvider.getUriForFile(
-                                requireContext(), "${requireContext().packageName}.fileprovider", result.apkFile
-                            ), "application/vnd.android.package-archive")
-                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        try {
+                            val uri = androidx.core.content.FileProvider.getUriForFile(
+                                c, "${c.packageName}.fileprovider", result.apkFile
+                            )
+                            val intent = Intent(Intent.ACTION_VIEW).apply {
+                                setDataAndType(uri, "application/vnd.android.package-archive")
+                                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                            }
+                            startActivity(Intent.createChooser(intent, getString(R.string.export_project)))
+                        } catch (e: Exception) {
+                            showToast("APK saved: ${result.apkFile.name}")
                         }
-                        startActivity(Intent.createChooser(intent, getString(R.string.export_project)))
                     }
                     is BakedApkBuilder.BuildResult.Error -> {
                         showToast(getString(R.string.build_apk_error))
-                        ToastUtil.showError(requireContext(), result.message)
+                        ToastUtil.showError(c, result.message)
                     }
                 }
             }
@@ -1490,6 +1504,96 @@ class ProjectOptionsFragment : Fragment() {
         intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, Environment.DIRECTORY_DOWNLOADS)
         val title = requireContext().getString(R.string.export_project)
         startActivityForResult(Intent.createChooser(intent, title), REQUEST_EXPORT_PROJECT)
+    }
+
+    private fun exportWithPassword() {
+        saveProject()
+        val layout = android.widget.LinearLayout(requireContext()).apply {
+            orientation = android.widget.LinearLayout.VERTICAL
+            setPadding(60, 20, 60, 0)
+        }
+        val pwdEdit = android.widget.EditText(requireContext()).apply {
+            hint = getString(R.string.password_hint)
+            inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
+        }
+        val confirmEdit = android.widget.EditText(requireContext()).apply {
+            hint = getString(R.string.confirm_password_hint)
+            inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
+        }
+        layout.addView(pwdEdit)
+        layout.addView(confirmEdit)
+
+        androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setTitle(R.string.enter_export_password)
+            .setView(layout)
+            .setPositiveButton(R.string.ok) { _, _ ->
+                val pwd = pwdEdit.text.toString()
+                val confirm = confirmEdit.text.toString()
+                if (pwd.isEmpty() || pwd != confirm) {
+                    ToastUtil.showError(activity, R.string.passwords_dont_match)
+                    return@setPositiveButton
+                }
+                startEncryptedExport(pwd)
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
+    }
+
+    private fun startEncryptedExport(password: String) {
+        val proj = project ?: return
+        val progressView = android.widget.ProgressBar(requireContext()).apply {
+            isIndeterminate = true
+        }
+        val progressLayout = android.widget.LinearLayout(requireContext()).apply {
+            orientation = android.widget.LinearLayout.VERTICAL
+            setPadding(80, 40, 80, 0)
+            addView(android.widget.TextView(requireContext()).apply { text = getString(R.string.encrypting_project) })
+            addView(this@apply)
+        }
+        val progressDialog = androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setTitle(R.string.exporting_project)
+            .setView(progressLayout)
+            .setCancelable(false)
+            .create()
+        progressDialog.show()
+
+        kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+            try {
+                val zipFile = java.io.File(requireContext().cacheDir, "${proj.name}_export.zip")
+                zipDirectory(proj.directory, zipFile)
+                val encFile = java.io.File(requireContext().cacheDir, "${proj.name}.ncp")
+                org.catrobat.catroid.io.ProjectCrypto.encrypt(zipFile, encFile, password)
+                if (zipFile.exists()) zipFile.delete()
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                    progressDialog.dismiss()
+                    encFileToSave = encFile
+                    startEncryptedFilePicker(encFile, proj.name)
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Encrypted export failed", e)
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                    progressDialog.dismiss()
+                    ToastUtil.showError(activity, "Export failed: ${e.message}")
+                }
+            }
+        }
+    }
+
+    private fun startEncryptedFilePicker(encFile: java.io.File, projectName: String) {
+        val intent = Intent(Intent.ACTION_CREATE_DOCUMENT)
+        intent.addCategory(Intent.CATEGORY_OPENABLE)
+        intent.putExtra(Intent.EXTRA_TITLE, "$projectName.ncp")
+        intent.type = "*/*"
+        intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, Environment.DIRECTORY_DOWNLOADS)
+        startActivityForResult(Intent.createChooser(intent, getString(R.string.export_with_password)), REQUEST_EXPORT_ENCRYPTED)
+    }
+
+    private fun saveEncryptedFileToUri(sourceFile: java.io.File, uri: Uri) {
+        requireContext().contentResolver.openOutputStream(uri)?.use { out ->
+            java.io.FileInputStream(sourceFile).use { it.copyTo(out) }
+        }
+        sourceFile.delete()
+        showToast(getString(R.string.export_project) + " ✓")
     }
 
     fun zipDirectory(sourceDir: File, zipFile: File): File {
@@ -1613,6 +1717,11 @@ class ProjectOptionsFragment : Fragment() {
         if (requestCode == REQUEST_EXPORT_PROJECT && resultCode == Activity.RESULT_OK) {
             val projectDestination = data.data ?: return
             startAsyncProjectExport(projectDestination)
+        }
+        if (requestCode == REQUEST_EXPORT_ENCRYPTED && resultCode == Activity.RESULT_OK) {
+            val uri = data.data ?: return
+            encFileToSave?.let { saveEncryptedFileToUri(it, uri) }
+            encFileToSave = null
         }
         if (requestCode == REQUEST_BUILD_PROJECT && resultCode == Activity.RESULT_OK) {
             val projectDestination = data.data ?: return
@@ -1753,5 +1862,6 @@ class ProjectOptionsFragment : Fragment() {
         private const val REQUEST_EXPORT_PROJECT = 10
         private const val REQUEST_BUILD_PROJECT = 11
         private const val REQUEST_SELECT_IMAGE = 12
+        private const val REQUEST_EXPORT_ENCRYPTED = 13
     }
 }

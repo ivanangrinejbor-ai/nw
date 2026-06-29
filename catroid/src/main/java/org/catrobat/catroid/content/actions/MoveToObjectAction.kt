@@ -34,20 +34,16 @@ class MoveToObjectAction : Action() {
     var targetObject: String = ""
     var avoidObjects: Formula? = null
     var speed: Formula? = null
+    var moveMode: Int = 0
 
     private var pathSet = false
 
     override fun act(delta: Float): Boolean {
-        val pf = StageActivity.activeStageActivity.get()?.stageListener?.pathfindingManager ?: run {
-            pathSet = false
-            return true
-        }
-        val spriteName = scope?.sprite?.name ?: run {
-            pathSet = false
-            return true
-        }
+        val pf = StageActivity.activeStageActivity.get()?.stageListener?.pathfindingManager ?: return true
+        val spriteName = scope?.sprite?.name ?: return true
 
         if (!pathSet) {
+            pathSet = true
             val spd = speed?.interpretFloat(scope) ?: 100f
             val avoidStr = avoidObjects?.interpretString(scope) ?: ""
             for (name in avoidStr.split(",")) {
@@ -56,18 +52,28 @@ class MoveToObjectAction : Action() {
                     pf.addObstacle(trimmed)
                 }
             }
+            if (pf.navGrid == null) return true
+            pf.setFollowerTarget(spriteName, targetObject)
+            pf.setFollowerStopOnTouch(spriteName, moveMode == 1)
             val result = pf.findPathToObject(spriteName, targetObject)
             if (result.found) {
-                pf.setPathForFollower(spriteName, result.points)
+                if (moveMode == 1) {
+                    pf.setPathForFollower(spriteName, result.points)
+                } else {
+                    pf.setPathForFollowerWithTarget(spriteName, result.points, targetObject)
+                }
                 pf.startFollowing(spriteName, spd)
-                pathSet = true
+            } else {
+                return true
             }
         }
 
-        if (!pathSet) return true
-
+        if (pf.isEndReached(spriteName)) {
+            pathSet = false
+            return true
+        }
         val follower = pf.getFollower(spriteName)
-        if (follower == null || follower.state == FollowState.IDLE || follower.state == FollowState.REACHED) {
+        if (follower == null || follower.state == FollowState.IDLE) {
             pathSet = false
             return true
         }

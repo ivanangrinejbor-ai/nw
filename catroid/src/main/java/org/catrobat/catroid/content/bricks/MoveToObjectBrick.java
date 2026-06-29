@@ -26,7 +26,10 @@ package org.catrobat.catroid.content.bricks;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
@@ -48,6 +51,7 @@ import java.util.Set;
 public class MoveToObjectBrick extends FormulaBrick implements BrickSpinner.OnItemSelectedListener<Sprite> {
     private static final long serialVersionUID = 1L;
     private String targetObject;
+    private int moveMode = 0;
     private transient BrickSpinner<Sprite> spinner;
     private transient Set<String> avoidSet = new HashSet<>();
 
@@ -100,6 +104,28 @@ public class MoveToObjectBrick extends FormulaBrick implements BrickSpinner.OnIt
         if (avoidBtn != null) {
             avoidBtn.setOnClickListener(v -> showAvoidDialog(context));
         }
+
+        Spinner modeSpinner = view.findViewById(R.id.brick_move_to_mode_spinner);
+        if (modeSpinner != null) {
+            String[] modeItems = new String[] {
+                context.getString(R.string.pathfinder_mode_precise),
+                context.getString(R.string.pathfinder_mode_touch)
+            };
+            ArrayAdapter<String> modeAdapter = new ArrayAdapter<>(context,
+                android.R.layout.simple_spinner_item, modeItems);
+            modeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            modeSpinner.setAdapter(modeAdapter);
+            modeSpinner.setSelection(moveMode);
+            modeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                    moveMode = position;
+                }
+                @Override
+                public void onNothingSelected(AdapterView<?> parent) {}
+            });
+        }
+
         return view;
     }
 
@@ -160,6 +186,7 @@ public class MoveToObjectBrick extends FormulaBrick implements BrickSpinner.OnIt
                 .createMoveToObjectAction(sprite, sequence,
                         targetObject != null ? targetObject : "",
                         getFormulaWithBrickField(BrickField.SPRITE),
-                        getFormulaWithBrickField(BrickField.SPEED)));
+                        getFormulaWithBrickField(BrickField.SPEED),
+                        moveMode));
     }
 }

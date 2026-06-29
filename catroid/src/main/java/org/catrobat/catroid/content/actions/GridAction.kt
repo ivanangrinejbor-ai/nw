@@ -41,6 +41,9 @@ class GridAction : TemporalAction() {
         val y = gridY?.interpretFloat(scope) ?: 0f
         val w = (gridW?.interpretFloat(scope) ?: 32f).toInt().coerceIn(1, 2000)
         val h = (gridH?.interpretFloat(scope) ?: 32f).toInt().coerceIn(1, 2000)
-        StageActivity.activeStageActivity.get()?.stageListener?.pathfindingManager?.createGrid(w, h, 20f, true, x, y)
+        val cellSize = 20f
+        val offsetX = x - (w * cellSize) / 2f
+        val offsetY = y - (h * cellSize) / 2f
+        StageActivity.activeStageActivity.get()?.stageListener?.pathfindingManager?.createGrid(w, h, cellSize, true, offsetX, offsetY)
     }
 }
