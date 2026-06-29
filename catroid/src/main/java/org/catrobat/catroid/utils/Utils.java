@@ -392,10 +392,13 @@ public final class Utils {
 
 			SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
 			String currentProjectName = sharedPreferences.getString(Constants.PREF_PROJECTNAME_KEY, null);
-			if (currentProjectName == null
-					|| !FileMetaDataExtractor.getProjectNames(DEFAULT_ROOT_DIRECTORY).contains(currentProjectName)) {
-				currentProjectName = FileMetaDataExtractor.getProjectNames(DEFAULT_ROOT_DIRECTORY).get(0);
+		if (currentProjectName == null
+				|| !FileMetaDataExtractor.getProjectNames(DEFAULT_ROOT_DIRECTORY).contains(currentProjectName)) {
+			java.util.List<String> projectNames = FileMetaDataExtractor.getProjectNames(DEFAULT_ROOT_DIRECTORY);
+			if (!projectNames.isEmpty()) {
+				currentProjectName = projectNames.get(0);
 			}
+		}
 			return currentProjectName;
 		}
 		return ProjectManager.getInstance().getCurrentProject().getName();
