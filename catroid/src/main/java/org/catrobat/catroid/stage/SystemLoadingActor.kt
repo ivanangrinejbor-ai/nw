@@ -121,6 +121,8 @@ class SystemLoadingActor(
     }
 
     fun isComplete(): Boolean = loaded
+
+    fun dispose() {
         font.dispose()
         shapeRenderer.dispose()
     }
