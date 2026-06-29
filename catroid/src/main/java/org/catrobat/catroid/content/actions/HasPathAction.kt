@@ -34,7 +34,7 @@ class HasPathAction : TemporalAction() {
     var resultVar: Formula? = null
 
     override fun update(percent: Float) {
-        val pf = StageActivity.stageListener?.pathfindingManager ?: return
+        val pf = StageActivity.activeStageActivity.get()?.stageListener?.pathfindingManager ?: return
         val spriteName = scope?.sprite?.name ?: return
 
         val result = pf.findPathToObject(spriteName, targetObject)

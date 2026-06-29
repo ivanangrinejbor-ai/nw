@@ -38,7 +38,7 @@ import org.catrobat.catroid.content.Scope
 import org.catrobat.catroid.formulaeditor.Formula
 import java.util.ArrayList
 
-class CreateDIalogAction() : TemporalAction() {
+class CreateDialogAction() : TemporalAction() {
     var scope: Scope? = null
     var name: Formula? = null
     var title: Formula? = null

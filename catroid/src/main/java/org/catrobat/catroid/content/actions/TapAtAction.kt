@@ -66,7 +66,7 @@ class TapAtAction : TemporalAction() {
 
         if (!errorDetected) {
             pointer = scope.sprite.unusedPointer
-            stage = StageActivity.activeStageActivity.get()?.stageListener?.stage!!
+            stage = StageActivity.activeStageActivity.get()?.stageListener?.stage ?: return
             if (!skipUpdate) {
                 stage.stageToScreenCoordinates(dragCoords)
             }

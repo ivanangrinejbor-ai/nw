@@ -1875,7 +1875,7 @@ public class ActionFactory extends Actions {
 
 	public Action createHideStatusBarAction(Sprite sprite, SequenceAction sequence
 										) {
-		hideStatusBarAction action = action(hideStatusBarAction.class);
+		HideStatusBarAction action = action(HideStatusBarAction.class);
 		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
 		action.setScope(scope);
 		return action;
@@ -1961,7 +1961,7 @@ public class ActionFactory extends Actions {
 
 	public Action createDialogAction(Sprite sprite, SequenceAction sequence,
 										Formula name, Formula title, Formula message) {
-		CreateDIalogAction action = action(CreateDIalogAction.class);
+		CreateDialogAction action = action(CreateDialogAction.class);
 		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
 		action.setScope(scope);
 		action.setName(name);
@@ -1992,7 +1992,7 @@ public class ActionFactory extends Actions {
 
 	public Action createNeutralAction(Sprite sprite, SequenceAction sequence,
 									   Formula name, Formula text) {
-		SetNeutralButton action = action(SetNeutralButton.class);
+		SetNeutralButtonAction action = action(SetNeutralButtonAction.class);
 		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
 		action.setScope(scope);
 		action.setName(name);
@@ -3863,7 +3863,7 @@ public class ActionFactory extends Actions {
     }
 
     public Action createPtSetTrainingAction(Sprite sprite, ScriptSequenceAction sequence, Formula formulaWithBrickField) {
-        PtSetTraining action = action(PtSetTraining.class);
+        PtSetTrainingAction action = action(PtSetTrainingAction.class);
         action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
         action.setTrainingFormula(formulaWithBrickField);
         return action;
@@ -4783,6 +4783,10 @@ public class ActionFactory extends Actions {
         action.setSpriteName(spriteName);
         action.setEnabled(enabled);
         return action;
+    }
+
+    public Action createSetPreloadingAction(int enabled) {
+        return new SetPreloadingAction(enabled);
     }
 
 }

@@ -102,10 +102,13 @@ object BakedApkBuilder {
             onProgress("Configuring application...")
             val manifestFile = File(extractedDir, "AndroidManifest.xml")
             if (manifestFile.exists()) {
-                ApkToolboxManager.updateManifest(
-                    manifestFile.absolutePath, config.packageName,
-                    config.appName, config.versionName, config.versionCode
+                val manifestConfig = ApkToolboxManager.ManifestConfig(
+                    appName = config.appName,
+                    packageName = config.packageName,
+                    versionName = config.versionName,
+                    versionCode = config.versionCode
                 )
+                ApkToolboxManager.updateManifest(manifestFile.absolutePath, manifestConfig)
             }
 
             // Step 6: Replace icon if provided
@@ -130,9 +133,9 @@ object BakedApkBuilder {
             val keystoreFile = config.customKeystore ?: getOrCreateDebugKeystore(context, tempDir)
 
             ApkToolboxManager.signApk(
-                signedApk.absolutePath, unsignedApk.absolutePath,
-                keystoreFile.absolutePath, config.keystorePass,
-                config.keyAlias, config.keyPass
+                context,
+                unsignedApk.absolutePath, signedApk.absolutePath,
+                keystoreFile.absolutePath, config.keyAlias, config.keyPass
             )
 
             // Step 10: Cleanup
@@ -224,7 +227,7 @@ object BakedApkBuilder {
         val keystore = File(debugDir, "debug_auto.jks")
         if (!keystore.exists()) {
             ApkToolboxManager.generateKeyStore(
-                keystore.absolutePath, "keystore", "newcatroid",
+                keystore.absolutePath, "newcatroid",
                 "keystore", "CN=NewCatroid Auto,O=NewCatroid,C=US"
             )
         }

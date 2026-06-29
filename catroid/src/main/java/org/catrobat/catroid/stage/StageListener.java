@@ -173,7 +173,9 @@ public class StageListener implements ApplicationListener {
 	private boolean globalScriptsStarted = false;
 	private boolean finished = false;
 	private boolean reloadProject = false;
+	private boolean preloading = false;
 	public boolean firstFrameDrawn = false;
+	private SystemLoadingActor systemLoadingActor = null;
 
 	private boolean makeScreenshot = false;
 	private int screenshotWidth;
@@ -1314,8 +1316,25 @@ public class StageListener implements ApplicationListener {
 
 			float color = 0f;
 
-            Gdx.gl20.glClearColor(color, color, color, 0f);
+			Gdx.gl20.glClearColor(color, color, color, 0f);
 			Gdx.gl20.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
+
+			if (preloading && systemLoadingActor != null) {
+				systemLoadingActor.draw(batch, 1f);
+				if (systemLoadingActor.isComplete()) {
+					preloading = false;
+					systemLoadingActor.dispose();
+					stage.getActors().removeValue(systemLoadingActor, true);
+					systemLoadingActor = null;
+				}
+				return;
+			}
+			if (!preloading && GlobalManager.Companion.getPreloadProject() && scene != null && scene.firstStart
+					&& systemLoadingActor == null) {
+				preloading = true;
+				systemLoadingActor = new SystemLoadingActor(project);
+				stage.addActor(systemLoadingActor);
+			}
 
 			StageActivity stageActivity = StageActivity.activeStageActivity.get();
 

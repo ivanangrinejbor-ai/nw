@@ -148,7 +148,6 @@ class ProjectOptionsFragment : Fragment() {
         setupProjectUpload()
         setupProjectSaveExternal()
         setupProjectSaveApk()
-        setupRebuildCache()
         setupClearVars()
         setupChangeIcon()
         setupChangeOrientation()
@@ -1455,7 +1454,7 @@ class ProjectOptionsFragment : Fragment() {
 
     private fun startApkBuild(config: BakedApkBuilder.ApkConfig) {
         val projectDir = project?.directory ?: return
-        showToast(R.string.build_apk_progress)
+        showToast(getString(R.string.build_apk_progress))
         lifecycleScope.launch {
             val result = BakedApkBuilder.build(requireContext(), projectDir, config) { progress ->
                 lifecycleScope.launch(Dispatchers.Main) { showToast(progress) }
@@ -1463,7 +1462,7 @@ class ProjectOptionsFragment : Fragment() {
             lifecycleScope.launch(Dispatchers.Main) {
                 when (result) {
                     is BakedApkBuilder.BuildResult.Success -> {
-                        showToast(R.string.build_apk_success)
+                        showToast(getString(R.string.build_apk_success))
                         val intent = Intent(Intent.ACTION_VIEW).apply {
                             setDataAndType(androidx.core.content.FileProvider.getUriForFile(
                                 requireContext(), "${requireContext().packageName}.fileprovider", result.apkFile
@@ -1473,7 +1472,7 @@ class ProjectOptionsFragment : Fragment() {
                         startActivity(Intent.createChooser(intent, getString(R.string.export_project)))
                     }
                     is BakedApkBuilder.BuildResult.Error -> {
-                        showToast(R.string.build_apk_error)
+                        showToast(getString(R.string.build_apk_error))
                         ToastUtil.showError(requireContext(), result.message)
                     }
                 }

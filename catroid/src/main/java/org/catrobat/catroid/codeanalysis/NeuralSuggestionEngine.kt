@@ -88,13 +88,11 @@ object NeuralSuggestionEngine {
         val engine = interpreter ?: return emptyList()
         val sprite = ProjectManager.getInstance().getCurrentSprite() ?: return emptyList()
 
-        val contextTokens = buildProjectContext(sprite.scriptList)
+        val contextTokens = buildProjectContext(listOf(script))
 
         val existingTypes = mutableSetOf<String>()
-        for (s in sprite.scriptList) {
-            for (b in s.brickList) {
-                existingTypes.add(b.javaClass.simpleName)
-            }
+        for (b in script.brickList) {
+            existingTypes.add(b.javaClass.simpleName)
         }
 
         val inputBuffer = ByteBuffer.allocateDirect(4 * window).apply {

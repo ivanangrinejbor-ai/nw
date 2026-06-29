@@ -24,7 +24,7 @@ package org.catrobat.catroid.test.content.actions
 
 import com.badlogic.gdx.scenes.scene2d.actions.SequenceAction
 import org.catrobat.catroid.content.Sprite
-import org.catrobat.catroid.content.actions.WriteVariableToFileAction
+import org.catrobat.catroid.content.actions.WriteVarToFileAction
 import org.catrobat.catroid.formulaeditor.Formula
 import org.catrobat.catroid.formulaeditor.UserVariable
 import org.catrobat.catroid.test.StaticSingletonInitializer.Companion.initializeStaticSingletonMethods
@@ -95,7 +95,7 @@ class WriteVariableToFileActionTest(
             sequence,
             formula,
             userVariable
-        ) as WriteVariableToFileAction)
+        ) as WriteVarToFileAction)
 
         if (writeToFile > 0) {
             doReturn(file).`when`(action).createFile(anyString())

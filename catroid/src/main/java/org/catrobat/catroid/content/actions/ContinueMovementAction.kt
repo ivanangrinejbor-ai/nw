@@ -31,6 +31,6 @@ class ContinueMovementAction : TemporalAction() {
     var scope: Scope? = null
 
     override fun update(percent: Float) {
-        StageActivity.stageListener?.pathfindingManager?.resumeFollowing(scope?.sprite?.name ?: "")
+        StageActivity.activeStageActivity.get()?.stageListener?.pathfindingManager?.resumeFollowing(scope?.sprite?.name ?: "")
     }
 }

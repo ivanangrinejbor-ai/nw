@@ -40,7 +40,7 @@ import org.catrobat.catroid.content.Scope
 import org.catrobat.catroid.formulaeditor.Formula
 import java.util.ArrayList
 
-class hideStatusBarAction() : TemporalAction() {
+class HideStatusBarAction() : TemporalAction() {
     var scope: Scope? = null
 
     override fun update(percent: Float) {

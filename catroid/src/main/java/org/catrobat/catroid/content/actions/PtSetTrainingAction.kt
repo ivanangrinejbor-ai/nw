@@ -20,34 +20,19 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package org.catrobat.catroid.content.actions
 
 import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction
 import org.catrobat.catroid.content.Scope
 import org.catrobat.catroid.formulaeditor.Formula
+import org.catrobat.catroid.ml.MLBridge
 
-class CreateParticleSystemAction : TemporalAction() {
+class PtSetTrainingAction : TemporalAction() {
     var scope: Scope? = null
-    var particleId: Formula? = null
-    var maxCount: Formula? = null
-    var lifetime: Formula? = null
-    var speed: Formula? = null
+    var trainingFormula: Formula? = null
 
     override fun update(percent: Float) {
-        val sprite = scope?.sprite ?: return
-        val id = particleId?.interpretString(scope) ?: return
-        val count = maxCount?.interpretInteger(scope)?.toInt() ?: 100
-        val life = lifetime?.interpretFloat(scope) ?: 2.0f
-        val spd = speed?.interpretFloat(scope) ?: 50.0f
-
-        scope?.sprite?.let { sprite ->
-            val particleActor = com.badlogic.gdx.scenes.scene2d.ui.Label("Particles:$id",
-                com.badlogic.gdx.scenes.scene2d.ui.Skin())
-            sprite.addActor(particleActor)
-        }
-        com.badlogic.gdx.utils.Timer.schedule(object : com.badlogic.gdx.utils.Timer.Task() {
-            override fun run() {}
-        }, life)
+        val tg = trainingFormula?.interpretBoolean(scope) ?: false
+        MLBridge.nativeSetTrainingMode(tg)
     }
 }

@@ -72,18 +72,18 @@ class TweenPositionAction : TemporalAction() {
             1 -> com.badlogic.gdx.math.Interpolation.sine
             2 -> com.badlogic.gdx.math.Interpolation.sineIn
             3 -> com.badlogic.gdx.math.Interpolation.sineOut
-            4 -> com.badlogic.gdx.math.Interpolation.quad
-            5 -> com.badlogic.gdx.math.Interpolation.quadIn
-            6 -> com.badlogic.gdx.math.Interpolation.quadOut
-            7 -> com.badlogic.gdx.math.Interpolation.cubic
-            8 -> com.badlogic.gdx.math.Interpolation.cubicIn
-            9 -> com.badlogic.gdx.math.Interpolation.cubicOut
-            10 -> com.badlogic.gdx.math.Interpolation.pow2
-            11 -> com.badlogic.gdx.math.Interpolation.pow2In
-            12 -> com.badlogic.gdx.math.Interpolation.pow2Out
-            13 -> com.badlogic.gdx.math.Interpolation.pow3
-            14 -> com.badlogic.gdx.math.Interpolation.pow3In
-            15 -> com.badlogic.gdx.math.Interpolation.pow3Out
+            4 -> com.badlogic.gdx.math.Interpolation.pow2
+            5 -> com.badlogic.gdx.math.Interpolation.pow2In
+            6 -> com.badlogic.gdx.math.Interpolation.pow2Out
+            7 -> com.badlogic.gdx.math.Interpolation.pow3
+            8 -> com.badlogic.gdx.math.Interpolation.pow3In
+            9 -> com.badlogic.gdx.math.Interpolation.pow3Out
+            10 -> com.badlogic.gdx.math.Interpolation.pow4
+            11 -> com.badlogic.gdx.math.Interpolation.pow4In
+            12 -> com.badlogic.gdx.math.Interpolation.pow4Out
+            13 -> com.badlogic.gdx.math.Interpolation.pow5
+            14 -> com.badlogic.gdx.math.Interpolation.pow5In
+            15 -> com.badlogic.gdx.math.Interpolation.pow5Out
             16 -> com.badlogic.gdx.math.Interpolation.bounce
             17 -> com.badlogic.gdx.math.Interpolation.bounceIn
             18 -> com.badlogic.gdx.math.Interpolation.bounceOut
