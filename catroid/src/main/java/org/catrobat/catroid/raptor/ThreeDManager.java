@@ -143,6 +143,7 @@ import org.catrobat.catroid.raptor.postprocessing.TonemappingEffect;
 import org.catrobat.catroid.raptor.postprocessing.UniversalPBRShaderProvider;
 import org.catrobat.catroid.raptor.postprocessing.VolumetricFogEffect;
 import org.catrobat.catroid.stage.StageActivity;
+import org.catrobat.catroid.stage.StageListener;
 import org.catrobat.catroid.utils.ModelPathProcessor;
 
 import java.io.File;
@@ -2765,7 +2766,7 @@ public class ThreeDManager implements Disposable {
                 String objectId = entry.getKey();
                 btRigidBody body = entry.getValue();
 
-                StageActivity.StageListener activeListener = StageActivity.getActiveStageListener();
+                StageListener activeListener = StageActivity.getActiveStageListener();
                 boolean isManagedBySceneManager = (activeListener != null && activeListener.sceneManager != null && activeListener.sceneManager.findGameObject(objectId) != null);
 
                 if (!isManagedBySceneManager) {
