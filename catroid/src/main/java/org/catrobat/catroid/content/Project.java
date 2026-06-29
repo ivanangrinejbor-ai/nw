@@ -64,6 +64,7 @@ import static org.catrobat.catroid.utils.Utils.SPEECH_RECOGNITION_SUPPORTED_LANG
 		"header",
 		"settings",
 		"scenes",
+		"globalScene",
 		"programVariableList",
 		"programListOfLists",
 		"programMultiplayerVariableList"
