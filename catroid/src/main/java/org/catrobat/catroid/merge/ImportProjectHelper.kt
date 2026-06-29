@@ -94,10 +94,11 @@ class ImportProjectHelper(
         return newSprite
     }
 
-    fun addGlobalsToProject(globalList: MutableList<Any>, globalsToAdd: List<Any>) {
+    fun addGlobalsToProject(globalList: List<Any>, globalsToAdd: List<Any>) {
+        if (globalList !is MutableList) return
         for (global in globalsToAdd) {
             if (!globalList.contains(global)) {
-                globalList.add(global)
+                (globalList as MutableList<Any>).add(global)
             }
         }
     }
