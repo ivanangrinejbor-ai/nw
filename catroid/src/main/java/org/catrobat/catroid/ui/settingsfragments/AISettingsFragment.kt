@@ -58,7 +58,7 @@ class AISettingsFragment : PreferenceFragment() {
             val clamped = v.coerceIn(500, AiConfig.maxLimit)
             AiConfig.setMaxTokens(clamped)
             if (v != clamped) {
-                tokenPref.text = "$clamped"
+                tokenPref?.text = "$clamped"
                 Toast.makeText(activity, "Clamped to $clamped (valid range: 500..${AiConfig.maxLimit})", Toast.LENGTH_SHORT).show()
             }
             if (clamped > 25000) {
