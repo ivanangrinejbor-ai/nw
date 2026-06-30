@@ -718,7 +718,6 @@
     <string name="enter_export_password">Enter export password</string>
     <string name="password_hint">Password</string>
     <string name="confirm_password_hint">Confirm password</string>
-    <string name="wrong_password">Wrong password. Please try again.</string>
     <string name="passwords_dont_match">Passwords do not match</string>
     <string name="encrypted_file_detected">Encrypted project detected. Enter password to open:</string>
     <string name="exporting_project">Exporting project…</string>

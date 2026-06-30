@@ -719,7 +719,6 @@
     <string name="enter_export_password">Введите пароль для экспорта</string>
     <string name="password_hint">Пароль</string>
     <string name="confirm_password_hint">Подтвердите пароль</string>
-    <string name="wrong_password">Неверный пароль. Попробуйте снова.</string>
     <string name="passwords_dont_match">Пароли не совпадают</string>
     <string name="encrypted_file_detected">Обнаружен зашифрованный проект. Введите пароль:</string>
     <string name="exporting_project">Экспорт проекта…</string>
