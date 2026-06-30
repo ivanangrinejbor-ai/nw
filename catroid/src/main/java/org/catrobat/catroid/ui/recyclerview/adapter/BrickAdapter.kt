@@ -176,6 +176,24 @@ class BrickAdapter(private val sprite: Sprite) :
                     }
                 }
             }
+
+            for (script in scripts) {
+                val flatBricks = ArrayList<Brick>()
+                script.addToFlatList(flatBricks)
+                val compositeBricks = flatBricks.filter { it is org.catrobat.catroid.content.bricks.CompositeBrick && it.nestedBricks.isNotEmpty() }
+                for (composite in compositeBricks) {
+                    val predictions = AiProjectAssistant.predictNext(script, 1, composite)
+                    if (predictions.isEmpty()) continue
+                    val compIdx = items.indexOfFirst { it === composite }
+                    if (compIdx >= 0) {
+                        val depth = 0
+                        for (s in predictions) {
+                            items.add(compIdx + 1 + depth, GhostSuggestionBrick(script, s, composite.brickID))
+                            depth++
+                        }
+                    }
+                }
+            }
         }
 
         notifyDataSetChanged()

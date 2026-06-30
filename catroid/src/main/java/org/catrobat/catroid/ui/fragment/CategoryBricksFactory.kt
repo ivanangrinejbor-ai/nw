@@ -802,7 +802,7 @@ open class CategoryBricksFactory {
                 controlBrickList.add(SetSaveScenesBrick(1))
                 controlBrickList.add(SetStopSoundsBrick(1))
                 controlBrickList.add(SetPreloadingBrick(1))
-                controlBrickList.add(LaunchProjectBrick("project.newtrobat"))
+                controlBrickList.add(LaunchProjectBrick("project.neotrobat"))
         controlBrickList.add(ReturnToPreviousProjectBrick())
                 if (SettingsFragment.isPhiroSharedPreferenceEnabled(context)) {
                     controlBrickList.add(PhiroIfLogicBeginBrick())
@@ -873,7 +873,7 @@ open class CategoryBricksFactory {
         controlBrickList.add(SetSaveScenesBrick(1))
         controlBrickList.add(SetStopSoundsBrick(1))
         controlBrickList.add(SetPreloadingBrick(1))
-        controlBrickList.add(LaunchProjectBrick("project.newtrobat"))
+        controlBrickList.add(LaunchProjectBrick("project.neotrobat"))
         controlBrickList.add(ReturnToPreviousProjectBrick())
 
         controlBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_control_stopping), template))
