@@ -445,7 +445,7 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
             val fileName = StorageOperations.resolveFileName(contentResolver, uri)
 
             if (!fileName.endsWith(Constants.CATROBAT_EXTENSION) && !fileName.endsWith(Constants.NEW_CATROBAT_EXTENSION)
-                && !fileName.endsWith(".ncp")) {
+                && !fileName.endsWith(Constants.OLD_CATROBAT_EXTENSION) && !fileName.endsWith(".ncp")) {
                 ToastUtil.showError(requireContext(), R.string.only_select_catrobat_files)
                 continue
             }
@@ -457,7 +457,8 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
             if (fileName.endsWith(Constants.CATROBAT_EXTENSION)) {
 
                 filesForUnzipAndImportTask?.add(projectFile)
-            } else if (fileName.endsWith(Constants.NEW_CATROBAT_EXTENSION)) {
+            } else if (fileName.endsWith(Constants.NEW_CATROBAT_EXTENSION)
+                       || fileName.endsWith(Constants.OLD_CATROBAT_EXTENSION)) {
 
                 /*val unzippedDir = StorageOperations.unzipFileToDir(projectFile, Constants.CACHE_DIRECTORY)
                 if (!isValidNewStructure(unzippedDir)) {

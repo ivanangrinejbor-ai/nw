@@ -4243,4 +4243,6 @@
     <string formatted="false" name="undo_sort">Отменить сортировку</string>
     <string formatted="false" name="sort">Сортировка</string>
     <string formatted="false" name="checkbox">флажок</string>
+    <string name="ai_token_limit_title">Макс. токенов ИИ</string>
+    <string name="ai_token_limit_summary">Размер окна контекста (500–40000, по умолчанию 2000). Больше = шире контекст, медленнее вывод.</string>
 </resources>

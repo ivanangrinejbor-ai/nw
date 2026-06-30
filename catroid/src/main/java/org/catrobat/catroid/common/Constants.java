@@ -66,8 +66,9 @@ public final class Constants {
 			Environment.getExternalStorageDirectory(), POCKET_CODE_EXTERNAL_EXPORT_STORAGE_FOLDER_NAME);
 	public static final File DOWNLOAD_DIRECTORY =
 			Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-	public static final String CATROBAT_EXTENSION = ".newtrobat";
+	public static final String CATROBAT_EXTENSION = ".neotrobat";
 	public static final String NEW_CATROBAT_EXTENSION = ".catrobat";
+	public static final String OLD_CATROBAT_EXTENSION = ".newtrobat";
 
 	public static final String APK_EXTENSION = ".apk";
 	public static final String ZIP_EXTENSION = ".zip";

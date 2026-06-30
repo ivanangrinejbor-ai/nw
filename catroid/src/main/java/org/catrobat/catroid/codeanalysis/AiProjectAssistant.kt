@@ -1,9 +1,12 @@
 package org.catrobat.catroid.codeanalysis
 
 import android.content.Context
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.catrobat.catroid.ProjectManager
 import org.catrobat.catroid.content.Script
 import org.catrobat.catroid.content.bricks.Brick
+import org.catrobat.catroid.content.bricks.CompositeBrick
 import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -26,6 +29,20 @@ object AiProjectAssistant {
 
     fun init(context: Context) {
         if (loaded) return
+        AiConfig.init(context)
+
+        // 1) Transformer ONNX (modelVersion = 4)
+        try {
+            TransformerSuggestionEngine.init(context)
+            if (TransformerSuggestionEngine.isLoaded()) {
+                loaded = true
+                modelVersion = 4
+                return
+            }
+        } catch (_: Exception) {
+        }
+
+        // 2) TFLite neural (modelVersion = 3)
         try {
             NeuralSuggestionEngine.init(context)
             if (NeuralSuggestionEngine.isLoaded()) {
@@ -36,6 +53,7 @@ object AiProjectAssistant {
         } catch (_: Exception) {
         }
 
+        // 3) N-gram patterns (modelVersion = 1/2)
         try {
             val inputStream = context.assets.open("patterns.json")
             val reader = BufferedReader(InputStreamReader(inputStream))
@@ -156,17 +174,24 @@ object AiProjectAssistant {
         }
     }
 
-    fun predictNext(script: Script, maxN: Int = 3): List<Suggestion> {
+    fun predictNext(script: Script, maxN: Int = 3, parentBrick: Brick? = null): List<Suggestion> {
         if (!loaded) return emptyList()
 
-        if (modelVersion >= 3 && NeuralSuggestionEngine.isLoaded()) {
-            return NeuralSuggestionEngine.predictNext(script, maxN)
+        if (modelVersion >= 4 && TransformerSuggestionEngine.isLoaded()) {
+            return TransformerSuggestionEngine.predictNext(script, maxN, parentBrick)
         }
 
-        val brickTypes = script.brickList.map { it.javaClass.simpleName }
+        if (modelVersion >= 3 && NeuralSuggestionEngine.isLoaded()) {
+            return NeuralSuggestionEngine.predictNext(script, maxN, parentBrick)
+        }
+
+        val brickTypes = if (parentBrick is CompositeBrick) {
+            parentBrick.nestedBricks.map { it.javaClass.simpleName }
+        } else {
+            AipContextManager.buildSimpleContext(script)
+        }
         val result = mutableListOf<Suggestion>()
         val seen = mutableSetOf<String>()
-
         val existingTypes = brickTypes.toSet()
 
         if (brickTypes.isEmpty()) {
@@ -242,6 +267,9 @@ object AiProjectAssistant {
 
     fun getSuggestionsForAllScripts(): List<Pair<Script, List<Suggestion>>> {
         val sprite = ProjectManager.getInstance().getCurrentSprite() ?: return emptyList()
+        if (modelVersion >= 4 && TransformerSuggestionEngine.isLoaded()) {
+            return TransformerSuggestionEngine.getSuggestionsForAllScripts()
+        }
         if (modelVersion >= 3 && NeuralSuggestionEngine.isLoaded()) {
             return NeuralSuggestionEngine.getSuggestionsForAllScripts()
         }
@@ -306,4 +334,16 @@ object AiProjectAssistant {
             }
         }
     }
+
+    /**
+     * Async version of getSuggestionsForAllScripts.
+     * Builds full context via AipContextManager, runs inference on Dispatchers.Default.
+     * Checks RAM before running high-token-count inference.
+     */
+    suspend fun getSuggestionsForAllScriptsAsync(): List<Pair<Script, List<Suggestion>>> =
+        withContext(Dispatchers.Default) {
+            if (!loaded) return@withContext emptyList()
+            if (!AiConfig.hasEnoughRamForInference()) return@withContext emptyList()
+            getSuggestionsForAllScripts()
+        }
 }

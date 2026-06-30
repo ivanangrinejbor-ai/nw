@@ -63,7 +63,9 @@ class ListProjectFilesTask(listener: OnListProjectFilesListener) :
                     if (file.isDirectory) {
                         findProjectFiles(file, projectFiles)
                     }
-                    if (file.name.endsWith(Constants.CATROBAT_EXTENSION)) {
+                    if (file.name.endsWith(Constants.CATROBAT_EXTENSION)
+                        || file.name.endsWith(Constants.NEW_CATROBAT_EXTENSION)
+                        || file.name.endsWith(Constants.OLD_CATROBAT_EXTENSION)) {
                         projectFiles.add(file)
                     }
                 }

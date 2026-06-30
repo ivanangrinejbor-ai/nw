@@ -10,11 +10,29 @@ import org.catrobat.catroid.R
 import org.catrobat.catroid.codeanalysis.AiProjectAssistant
 import org.catrobat.catroid.codeanalysis.Suggestion
 import org.catrobat.catroid.content.Script
+import java.util.UUID
 
 class GhostSuggestionBrick(
     val targetScript: Script,
-    val suggestion: Suggestion
+    val suggestion: Suggestion,
+    val parentBrickId: UUID? = null
 ) : BrickBaseType() {
+
+    companion object {
+        val COMPOSITE_END_MAP: Map<String, () -> Brick> = mapOf(
+            "ForeverBrick" to { LoopEndlessBrick() },
+            "RepeatBrick" to { LoopEndBrick() },
+            "RepeatUntilBrick" to { LoopEndBrick() },
+            "AsyncRepeatBrick" to { LoopEndBrick() },
+            "IntervalRepeatBrick" to { LoopEndBrick() },
+            "ForVariableFromToBrick" to { LoopEndBrick() },
+            "ForItemInUserListBrick" to { LoopEndBrick() },
+            "IfThenLogicBeginBrick" to { IfThenLogicEndBrick() },
+            "IfLogicBeginBrick" to { IfLogicEndBrick() },
+            "PhiroIfLogicBeginBrick" to { IfLogicEndBrick() },
+            "RaspiIfLogicBeginBrick" to { IfLogicEndBrick() }
+        )
+    }
 
     private var isDismissed = false
     private var swipeTranslationX = 0f
@@ -79,7 +97,16 @@ class GhostSuggestionBrick(
             return
         }
 
-        targetScript.addBrick(newBrick)
+        val endBrick = COMPOSITE_END_MAP[suggestion.brickType]?.invoke()
+        val bricksToInsert = if (endBrick != null) listOf(newBrick, endBrick) else listOf(newBrick)
+
+        if (parentBrickId != null) {
+            targetScript.insertBrickAfter(parentBrickId, 0, bricksToInsert)
+        } else {
+            for (brick in bricksToInsert) {
+                targetScript.addBrick(brick)
+            }
+        }
         isDismissed = true
         Toast.makeText(context, "Added ${suggestion.brickType}", Toast.LENGTH_SHORT).show()
 

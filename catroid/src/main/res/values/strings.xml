@@ -4430,4 +4430,6 @@ needs read and write access to it. You can always change permissions through you
     <string formatted="false" name="undo_sort">Undo sort</string>
     <string formatted="false" name="sort">Sort</string>
     <string formatted="false" name="checkbox">checkbox</string>
+    <string name="ai_token_limit_title">AI max tokens</string>
+    <string name="ai_token_limit_summary">Context window size (500–40000, default 2000). Higher = more context, slower inference.</string>
 </resources>

@@ -27,7 +27,6 @@ import android.app.Activity
 import android.app.ProgressDialog
 import android.content.ContentResolver
 import android.content.Context
-import android.content.DialogInterface
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -45,7 +44,6 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
-import com.android.apksig.ApkSigner
 import com.danvexteam.lunoscript_annotations.LunoClass
 import com.google.android.material.chip.Chip
 import com.google.android.material.snackbar.Snackbar
@@ -97,12 +95,13 @@ import java.io.FileOutputStream
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
-import java.security.KeyStore
-import java.security.PrivateKey
-import java.security.cert.X509Certificate
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
+import com.android.apksig.ApkSigner
+import java.security.KeyStore
+import java.security.PrivateKey
+import java.security.cert.X509Certificate
 import kotlin.random.Random
 
 @LunoClass
@@ -129,8 +128,14 @@ class ProjectOptionsFragment : Fragment() {
         return binding.root
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        encFileToSave?.let { outState.putString(KEY_ENC_FILE, it.absolutePath) }
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        savedInstanceState?.getString(KEY_ENC_FILE)?.let { encFileToSave = File(it) }
         setHasOptionsMenu(true)
         (requireActivity() as AppCompatActivity).supportActionBar?.setTitle(R.string.project_options)
 
@@ -155,6 +160,8 @@ class ProjectOptionsFragment : Fragment() {
         setupProjectMoreDetails()
         setupProjectOptionDelete()
         setupMishkFrede()
+
+        setupRebuildCache()
 
         setupGitButtons()
 
@@ -334,7 +341,6 @@ class ProjectOptionsFragment : Fragment() {
 
         binding.gitConnectButton.setOnClickListener { handleGitConnect() }
         binding.gitPublishButton.setOnClickListener { showCommitMessageDialog() }
-        //binding.gitUpdateButton.setOnClickListener { handleGitUpdate() }
     }
 
     private fun updateGitButtonsVisibility() {
@@ -343,7 +349,6 @@ class ProjectOptionsFragment : Fragment() {
 
         binding.gitConnectButton.visibility = if (isConnected) View.GONE else View.VISIBLE
         binding.gitPublishButton.visibility = if (isConnected) View.VISIBLE else View.GONE
-        //binding.gitUpdateButton.visibility = if (isConnected) View.VISIBLE else View.GONE
     }
 
     private fun handleGitConnect() {
@@ -610,82 +615,6 @@ class ProjectOptionsFragment : Fragment() {
     }
 
     private fun setupMishkFrede() {
-        /*binding.projectOptionsMishkFrede.setOnClickListener {
-            AlertDialog.Builder(requireContext())
-                .setTitle("Мы подозреваем, что вы не кушаете огурцы")
-                .setMessage("Нам нужно удостоверится в этом, ответьте на вопрос. Едите ли вы огурцы?")
-                .setPositiveButton("ДА") { _: DialogInterface?, _: Int ->
-                    AlertDialog.Builder(requireContext())
-                        .setTitle("Мы так и знали! Вы - Фуфулшмерц")
-                        .setMessage("Грейпфрут")
-                        .setPositiveButton("Отмена") { _: DialogInterface?, _: Int ->
-                            AlertDialog.Builder(requireContext())
-                                .setTitle("Черепица")
-                                .setPositiveButton("Лом") { _: DialogInterface?, _: Int ->
-                                    AlertDialog.Builder(requireContext())
-                                        .setTitle("Громоотвод")
-                                        .setPositiveButton("Гора") { _: DialogInterface?, _: Int ->
-                                            AlertDialog.Builder(requireContext())
-                                                .setTitle("Угол")
-                                                .setPositiveButton("Ъ") { _: DialogInterface?, _: Int ->
-                                                    AlertDialog.Builder(requireContext())
-                                                        .setTitle("Я щас проект удалю")
-                                                        .setPositiveButton("Нинада") { _: DialogInterface?, _: Int ->
-                                                            AlertDialog.Builder(requireContext())
-                                                                .setTitle("Ок")
-                                                                .setPositiveButton("Ок") { _: DialogInterface?, _: Int ->
-
-                                                                }
-                                                                .setCancelable(false)
-                                                                .show()
-                                                        }
-                                                        .setCancelable(false)
-                                                        .show()
-                                                }
-                                                .setCancelable(false)
-                                                .show()
-                                        }
-                                        .setCancelable(false)
-                                        .show()
-                                }
-                                .setCancelable(false)
-                                .show()
-                        }
-                        .setNegativeButton("Ок", null)
-                        .setCancelable(false)
-                        .show()
-                }
-                .setNegativeButton("Нет") { _: DialogInterface?, _: Int ->
-                    AlertDialog.Builder(requireContext())
-                        .setTitle("Сейчас к вам залезет Андрей через окно")
-                        .setMessage("не бойтесь, он проверит огурцы в холодильнике")
-                        .setPositiveButton("...") { _: DialogInterface?, _: Int ->
-                            AlertDialog.Builder(requireContext())
-                                .setTitle("...")
-                                .setPositiveButton("...") { _: DialogInterface?, _: Int ->
-                                    AlertDialog.Builder(requireContext())
-                                        .setTitle(".")
-                                        .setPositiveButton("...") { _: DialogInterface?, _: Int ->
-                                            AlertDialog.Builder(requireContext())
-                                                .setTitle("Ладно, Андрей уснул, мы вам поверим наслово")
-                                                .setPositiveButton("Ок") { _: DialogInterface?, _: Int ->
-
-                                                }
-                                                .setCancelable(false)
-                                                .show()
-                                        }
-                                        .setCancelable(false)
-                                        .show()
-                                }
-                                .setCancelable(false)
-                                .show()
-                        }
-                        .setCancelable(false)
-                        .show()
-                }
-                .setCancelable(false)
-                .show()
-        }*/
     }
 
     private fun setupNameInputLayout() {
@@ -1022,34 +951,6 @@ class ProjectOptionsFragment : Fragment() {
         startActivity(intent)
     }
 
-    /*fun createApkFromTemplate(context: Context, projectZipFile: File): File {
-
-        val assetFile = "apk_template.zip"
-
-
-        val tempDir = File(context.cacheDir, "apk_temp")
-        tempDir.mkdirs()
-
-
-        unzip(context.assets.open(assetFile), tempDir)
-
-
-        val projectFile = File(tempDir, "assets/project.zip")
-        projectZipFile.copyTo(projectFile, overwrite = true)
-
-
-        val newApkFile = File(context.cacheDir, "project_build.apk")
-        ZipOutputStream(FileOutputStream(newApkFile)).use { zos ->
-            zipDirectory3(tempDir, zos)
-        }
-
-
-        tempDir.deleteRecursively()
-
-
-        return newApkFile
-    }*/
-
     fun copyInputStreamToFile(context: Context, inputStream: InputStream, outputFile: File) {
         val outputStream = FileOutputStream(outputFile)
         inputStream.use { input ->
@@ -1152,61 +1053,7 @@ class ProjectOptionsFragment : Fragment() {
         }
     }
 
-    /*fun signApkWithApksig(
-        unsignedApk: File,
-        signedApk: File,
-        keystore: File,
-        keystorePassword: String,
-        keyAlias: String,
-        keyPassword: String
-    ) {
-        try {
 
-            val keyStore = KeyStore.getInstance("JKS").apply {
-                load(FileInputStream(keystore), keystorePassword.toCharArray())
-            }
-
-
-            val privateKey = keyStore.getKey(keyAlias, keyPassword.toCharArray()) as PrivateKey
-
-
-            val certificates = keyStore.getCertificateChain(keyAlias)
-                .map { it as X509Certificate }
-                .toList()
-
-
-            val signerConfig = ApkSigner.SignerConfig.Builder(
-                keyAlias,
-                privateKey,
-                certificates
-            ).build()
-
-
-            ApkSigner.Builder(listOf(signerConfig))
-                .setInputApk(unsignedApk)
-                .setOutputApk(signedApk)
-                .build()
-                .sign()
-        } catch (e: Exception) {
-            throw RuntimeException("Ошибка при подписании APK: ${e.message}", e)
-        }
-    }*/
-
-
-    /*fun signApkWithZipSigner(context: Context, unsignedApk: File, signedApk: File) {
-        try {
-
-            val zipSigner = ZipSigner()
-
-
-            zipSigner.setKeymode("testkey")
-
-
-            zipSigner.signZip(unsignedApk.absolutePath, signedApk.absolutePath)
-        } catch (e: Exception) {
-            throw RuntimeException("Ошибка подписи APK: ${e.message}", e)
-        }
-    }*/
 
 
 
@@ -1227,27 +1074,6 @@ class ProjectOptionsFragment : Fragment() {
             }
         }
     }
-
-    /*fun zipDirectory3(dir: File, zos: ZipOutputStream, basePath: String = "") {
-
-        val dirEntry = ZipEntry(basePath)
-        zos.putNextEntry(dirEntry)
-        zos.closeEntry()
-
-        dir.listFiles()?.forEach { file ->
-            val filePath = basePath + file.name
-            if (file.isDirectory) {
-
-                zipDirectory3(file, zos, "$filePath/")
-            } else {
-                FileInputStream(file).use { fis ->
-                    zos.putNextEntry(ZipEntry(filePath))
-                    fis.copyTo(zos)
-                    zos.closeEntry()
-                }
-            }
-        }
-    }*/
 
     fun zipDirectory3(dir: File, zos: ZipOutputStream, basePath: String = "") {
 
@@ -1275,9 +1101,6 @@ class ProjectOptionsFragment : Fragment() {
             }
         }
     }
-
-    //dbg: keystore
-
 
     private fun exportProject() {
         saveProject()
@@ -1465,16 +1288,16 @@ class ProjectOptionsFragment : Fragment() {
         showToast(getString(R.string.build_apk_progress))
         lifecycleScope.launch(Dispatchers.IO) {
             val result = BakedApkBuilder.build(ctx, projectDir, config) { progress ->
-                kotlinx.coroutines.withContext(Dispatchers.Main) { context?.let { showToast(progress) } }
+                lifecycleScope.launch(Dispatchers.Main) { context?.let { showToast(progress) } }
             }
-            kotlinx.coroutines.withContext(Dispatchers.Main) {
+            withContext(Dispatchers.Main) {
                 val c = context ?: return@withContext
                 when (result) {
                     is BakedApkBuilder.BuildResult.Success -> {
                         showToast(getString(R.string.build_apk_success))
                         try {
                             val uri = androidx.core.content.FileProvider.getUriForFile(
-                                c, "${c.packageName}.fileprovider", result.apkFile
+                                c, "${c.packageName}.fileProvider", result.apkFile
                             )
                             val intent = Intent(Intent.ACTION_VIEW).apply {
                                 setDataAndType(uri, "application/vnd.android.package-archive")
@@ -1598,12 +1421,10 @@ class ProjectOptionsFragment : Fragment() {
 
     fun zipDirectory(sourceDir: File, zipFile: File): File {
         ZipOutputStream(FileOutputStream(zipFile)).use { zipOut ->
-            sourceDir.walk().forEach { file ->
-
+            sourceDir.walk().filter { it != sourceDir }.forEach { file ->
                 if(file.name != "undo_code.xml") {
                     val zipEntry = ZipEntry(file.relativeTo(sourceDir).path)
                     zipOut.putNextEntry(zipEntry)
-
 
                     if (file.isFile) {
                         FileInputStream(file).use { fis ->
@@ -1617,76 +1438,6 @@ class ProjectOptionsFragment : Fragment() {
         }
 
         return zipFile
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.O)
-    private fun buildUsingSystemFilePicker() {
-        try {
-            Log.d("BUILD", project?.directory?.name.toString())
-            Log.d("BUILD", project?.directory.toString())
-            val projectDirectory = project?.directory ?: return
-
-            val tempDir = File(CatroidApplication.getAppContext().cacheDir, "for_build")
-            tempDir.mkdirs()
-            zipTempDir = tempDir
-
-
-            val zipFile = File(tempDir, "project.zip")
-
-
-            projectInZip = zipDirectory(projectDirectory, zipFile)
-
-            Log.d("BUILD", "Zip файл успешно создан: ${zipFile.absolutePath}")
-            val fileName = project?.name + Constants.APK_EXTENSION
-            buildFilename = fileName
-            val intent = Intent(Intent.ACTION_CREATE_DOCUMENT)
-            intent.addCategory(Intent.CATEGORY_OPENABLE)
-            intent.putExtra(Intent.EXTRA_TITLE, fileName)
-            intent.type = "*/*"
-            intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, Environment.DIRECTORY_DOWNLOADS)
-            val title = requireContext().getString(R.string.build_apk)
-            startActivityForResult(Intent.createChooser(intent, title), REQUEST_BUILD_PROJECT)
-        } catch (e: IOException) {
-            Log.e("BUILD", "Can't start build: ", e)
-        }
-    }
-
-    private fun buildToExternalMemory() {
-        object : RequiresPermissionTask(
-            PERMISSIONS_REQUEST_EXPORT_TO_EXTERNAL_STORAGE,
-            listOf(permission.WRITE_EXTERNAL_STORAGE, permission.READ_EXTERNAL_STORAGE),
-            R.string.runtime_permission_general
-        ) {
-            override fun task() {
-                Log.d("BUILD", project?.directory?.name.toString())
-                Log.d("BUILD", project?.directory.toString())
-                val projectDirectory = project?.directory ?: return
-
-                val tempDir = File(CatroidApplication.getAppContext().cacheDir, "for_build")
-                tempDir.mkdirs()
-                zipTempDir = tempDir
-
-
-                val zipFile = File(tempDir, "project.zip")
-
-
-                projectInZip = zipDirectory(projectDirectory, zipFile)
-
-                Log.d("BUILD", "Zip файл успешно создан: ${zipFile.absolutePath}")
-                val fileName = project?.name + Constants.APK_EXTENSION
-                buildFilename = fileName
-                val projectZip = File(Constants.DOWNLOAD_DIRECTORY, fileName)
-                Constants.DOWNLOAD_DIRECTORY.mkdirs()
-                if (!Constants.DOWNLOAD_DIRECTORY.isDirectory) {
-                    return
-                }
-                if (projectZip.exists()) {
-                    projectZip.delete()
-                }
-                val projectDestination = Uri.fromFile(projectZip)
-                startAsyncProjectBuild(projectDestination)
-            }
-        }.execute(requireActivity())
     }
 
     private fun exportToExternalMemory() {
@@ -1857,6 +1608,7 @@ class ProjectOptionsFragment : Fragment() {
 
     companion object {
         val TAG: String = ProjectOptionsFragment::class.java.simpleName
+        private const val KEY_ENC_FILE = "encFileToSave"
 
         private const val PERMISSIONS_REQUEST_EXPORT_TO_EXTERNAL_STORAGE = 802
         private const val REQUEST_EXPORT_PROJECT = 10

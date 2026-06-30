@@ -23,12 +23,15 @@
 package org.catrobat.catroid.ui.settingsfragments
 
 import android.os.Bundle
+import android.preference.EditTextPreference
+import android.preference.Preference
 import android.preference.PreferenceFragment
 import android.preference.PreferenceScreen
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import org.catrobat.catroid.BuildConfig
 import org.catrobat.catroid.R
-
+import org.catrobat.catroid.codeanalysis.AiConfig
 import org.catrobat.catroid.ui.settingsfragments.SettingsFragment.AI_SENSORS_SCREEN_KEY
 
 class AISettingsFragment : PreferenceFragment() {
@@ -41,11 +44,27 @@ class AISettingsFragment : PreferenceFragment() {
         super.onActivityCreated(savedInstanceState)
         SettingsFragment.setToChosenLanguage(activity)
         addPreferencesFromResource(R.xml.ai_preferences)
+
         if (!BuildConfig.FEATURE_AI_SENSORS_ENABLED) {
             val aiSensorsPreference =
                 findPreference(AI_SENSORS_SCREEN_KEY) as PreferenceScreen
             aiSensorsPreference.isEnabled = false
             preferenceScreen.removePreference(aiSensorsPreference)
+        }
+
+        val tokenPref = findPreference("ai_max_tokens") as? EditTextPreference
+        tokenPref?.onPreferenceChangeListener = Preference.OnPreferenceChangeListener { _, newValue ->
+            val v = (newValue as? String)?.toIntOrNull() ?: return@OnPreferenceChangeListener true
+            val clamped = v.coerceIn(500, AiConfig.maxLimit)
+            AiConfig.setMaxTokens(clamped)
+            if (v != clamped) {
+                tokenPref.text = "$clamped"
+                Toast.makeText(activity, "Clamped to $clamped (valid range: 500..${AiConfig.maxLimit})", Toast.LENGTH_SHORT).show()
+            }
+            if (clamped > 25000) {
+                Toast.makeText(activity, AiConfig.warningMessage(), Toast.LENGTH_LONG).show()
+            }
+            true
         }
     }
 
