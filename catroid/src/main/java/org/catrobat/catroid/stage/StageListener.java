@@ -109,6 +109,7 @@ import org.catrobat.catroid.embroidery.EmbroideryPatternManager;
 import org.catrobat.catroid.fast2d.FastTwoDManager;
 import org.catrobat.catroid.content.PathfindingManager;
 import org.catrobat.catroid.content.TransitionManager;
+import org.catrobat.catroid.content.TransitionType;
 import org.catrobat.catroid.formulaeditor.SensorHandler;
 import org.catrobat.catroid.formulaeditor.UserDataWrapper;
 import org.catrobat.catroid.io.SoundCacheManager;
@@ -937,9 +938,9 @@ public class StageListener implements ApplicationListener {
 			float duration = newScene.getTransitionDuration();
 			if (duration < 0.1f) duration = 0.1f;
 			if (newScene.getTransitionType() == 1) {
-				transitionManager.startTransition(TransitionManager.TransitionType.FADE_OUT, sceneName, duration);
+				transitionManager.startTransition(TransitionType.FADE_OUT, sceneName, duration);
 			} else {
-				transitionManager.startTransition(TransitionManager.TransitionType.FADE_IN, sceneName, duration);
+				transitionManager.startTransition(TransitionType.FADE_IN, sceneName, duration);
 			}
 			return;
 		}
