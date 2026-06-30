@@ -186,7 +186,7 @@ class BrickAdapter(private val sprite: Sprite) :
                     if (predictions.isEmpty()) continue
                     val compIdx = items.indexOfFirst { it === composite }
                     if (compIdx >= 0) {
-                        val depth = 0
+                        var depth = 0
                         for (s in predictions) {
                             items.add(compIdx + 1 + depth, GhostSuggestionBrick(script, s, composite.brickID))
                             depth++
