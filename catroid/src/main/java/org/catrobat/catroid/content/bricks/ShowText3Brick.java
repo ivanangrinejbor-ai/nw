@@ -93,6 +93,7 @@ public class ShowText3Brick extends UserVariableBrickWithVisualPlacement {
         setFormulaWithBrickField(BrickField.COLOR, color);
     }
 
+    @Override
     public BrickField getDefaultBrickField() {
         return BrickField.NAME;
     }

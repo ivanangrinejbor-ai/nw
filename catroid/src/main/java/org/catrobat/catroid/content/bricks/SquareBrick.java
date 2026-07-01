@@ -71,6 +71,7 @@ public class SquareBrick extends VisualPlacementBrick {
     }
 
     @Override
+    @Override
     public BrickField getDefaultBrickField() {
         return X_POSITION;
     }

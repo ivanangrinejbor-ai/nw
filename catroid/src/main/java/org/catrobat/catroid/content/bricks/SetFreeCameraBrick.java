@@ -4,11 +4,10 @@ import org.catrobat.catroid.R;
 import org.catrobat.catroid.content.Sprite;
 import org.catrobat.catroid.content.actions.ScriptSequenceAction;
 
-public class SetFreeCameraBrick extends FormulaBrick {
+public class SetFreeCameraBrick extends BrickBaseType {
     private static final long serialVersionUID = 1L;
 
     public SetFreeCameraBrick() {
-
     }
 
     @Override

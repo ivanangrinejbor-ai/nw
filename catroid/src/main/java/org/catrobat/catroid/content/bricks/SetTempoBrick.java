@@ -32,6 +32,8 @@ import org.catrobat.catroid.formulaeditor.Formula;
 
 public class SetTempoBrick extends FormulaBrick {
 
+	private static final long serialVersionUID = 1L;
+
 	public SetTempoBrick() {
 		addAllowedBrickField(BrickField.TEMPO, R.id.brick_set_tempo_edit_text);
 	}

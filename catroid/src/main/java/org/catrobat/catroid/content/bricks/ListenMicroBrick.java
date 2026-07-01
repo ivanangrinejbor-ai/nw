@@ -50,6 +50,12 @@ public class ListenMicroBrick extends FormulaBrick {
 	}
 
 	@Override
+	public void addRequiredResources(final ResourcesSet requiredResourcesSet) {
+		requiredResourcesSet.add(MICROPHONE);
+		super.addRequiredResources(requiredResourcesSet);
+	}
+
+	@Override
 	public void addActionToSequence(Sprite sprite, ScriptSequenceAction sequence) {
 		sequence.addAction(sprite.getActionFactory()
 				.createListenMicroAction(sprite, sequence,

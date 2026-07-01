@@ -6,6 +6,7 @@ import org.catrobat.catroid.content.actions.ScriptSequenceAction;
 import org.catrobat.catroid.formulaeditor.Formula;
 
 public class CameraSettingsBrick extends FormulaBrick {
+    private static final long serialVersionUID = 1L;
     public CameraSettingsBrick() {
         addAllowedBrickField(BrickField.FOV, R.id.camera_fov_edit);
         addAllowedBrickField(BrickField.INTENSITY, R.id.camera_shake_int_edit);

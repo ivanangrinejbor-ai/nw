@@ -6,6 +6,7 @@ import org.catrobat.catroid.content.actions.ScriptSequenceAction;
 import org.catrobat.catroid.formulaeditor.Formula;
 
 public class SetHingeMotorBrick extends FormulaBrick {
+    private static final long serialVersionUID = 1L;
     public SetHingeMotorBrick() {
         addAllowedBrickField(BrickField.CONSTRAINT_ID, R.id.brick_motor_id);
         addAllowedBrickField(BrickField.MOTOR_TARGET, R.id.brick_motor_target);

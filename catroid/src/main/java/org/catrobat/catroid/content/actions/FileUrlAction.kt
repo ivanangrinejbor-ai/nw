@@ -108,7 +108,12 @@ class FileUrlAction() : TemporalAction() {
             try {
                 Log.d("DownloadFile", "Connecting to URL: $fileUrl")
                 val url = URL(fileUrl)
-                val connection = url.openConnection() as HttpURLConnection
+                val urlConnection = url.openConnection()
+                if (urlConnection !is HttpURLConnection) {
+                    Log.e("DownloadFile", "Connection is not HttpURLConnection")
+                    return@Thread
+                }
+                val connection = urlConnection
                 connection.requestMethod = "GET"
                 connection.setRequestProperty("User-Agent", "Mozilla/5.0")
                 Log.d("DownloadFile", "Connecting...")

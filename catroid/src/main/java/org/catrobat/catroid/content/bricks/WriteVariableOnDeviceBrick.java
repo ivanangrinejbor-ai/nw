@@ -37,6 +37,7 @@ public class WriteVariableOnDeviceBrick extends UserVariableBrick {
 		return R.layout.brick_write_variable_on_device;
 	}
 
+	@Override
 	protected int getSpinnerId() {
 		return R.id.write_variable_spinner;
 	}

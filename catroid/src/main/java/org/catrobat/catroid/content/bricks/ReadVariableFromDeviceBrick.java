@@ -38,6 +38,7 @@ public class ReadVariableFromDeviceBrick extends UserVariableBrick {
 		return R.layout.brick_read_variable_from_device;
 	}
 
+	@Override
 	protected int getSpinnerId() {
 		return R.id.read_variable_from_device_spinner;
 	}

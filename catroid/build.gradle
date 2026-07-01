@@ -23,8 +23,6 @@ import com.android.build.api.dsl.ManagedVirtualDevice
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-//373
-
 buildscript {
     repositories {
         google()

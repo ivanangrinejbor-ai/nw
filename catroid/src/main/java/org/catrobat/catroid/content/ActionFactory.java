@@ -722,7 +722,7 @@ public class ActionFactory extends Actions {
 
 	public Action createSetDirectionalLight2Action(Sprite sprite, ScriptSequenceAction sequence,
 												  Formula dirX, Formula dirY, Formula dirZ, Formula intensity) {
-		SetDirectionalLigh2tAction action = Actions.action(SetDirectionalLigh2tAction.class);
+		SetDirectionalLight2Action action = Actions.action(SetDirectionalLight2Action.class);
 		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
 		action.setScope(scope);
 		action.setDirX(dirX);
@@ -1847,7 +1847,7 @@ public class ActionFactory extends Actions {
 		return action;
 	}
 
-	public Action createUnoadNNAction(Sprite sprite, SequenceAction sequence) {
+	public Action createUnloadNNAction(Sprite sprite, SequenceAction sequence) {
 		UnloadNNAction action = action(UnloadNNAction.class);
 		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
 		action.setScope(scope);

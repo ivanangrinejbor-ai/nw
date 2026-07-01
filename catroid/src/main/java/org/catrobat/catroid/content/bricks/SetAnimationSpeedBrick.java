@@ -5,6 +5,7 @@ import org.catrobat.catroid.content.actions.ScriptSequenceAction;
 import org.catrobat.catroid.formulaeditor.Formula;
 
 public class SetAnimationSpeedBrick extends FormulaBrick {
+    private static final long serialVersionUID = 1L;
     public SetAnimationSpeedBrick() {
         addAllowedBrickField(BrickField.OBJECT_ID, R.id.anim_obj_id);
         addAllowedBrickField(BrickField.SPEED, R.id.anim_speed);

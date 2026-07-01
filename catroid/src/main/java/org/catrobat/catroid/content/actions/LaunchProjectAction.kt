@@ -40,8 +40,9 @@ class LaunchProjectAction : TemporalAction() {
             }
 
             val cacheDir = File(stage.cacheDir, "sub_projects")
-            if (!cacheDir.exists()) {
-                cacheDir.mkdirs()
+            if (!cacheDir.exists() && !cacheDir.mkdirs()) {
+                Log.e("LaunchProjectAction", "Failed to create cache directory: ${cacheDir.absolutePath}")
+                return
             }
             val projectName = projectFileName.substringBeforeLast('.')
             val unpackedProjectDir = File(cacheDir, projectName)
@@ -60,21 +61,28 @@ class LaunchProjectAction : TemporalAction() {
             projectToLaunchDir = unpackedProjectDir
 
         } else {
-            projectToLaunchDir = File(currentProject.filesDir, projectFileName)
+            val dir = currentProject.getFile(projectFileName)
+            if (dir == null || !dir.exists() || !dir.isDirectory) {
+                Log.e("LaunchProjectAction", "Project directory not found: $projectFileName")
+                return
+            }
+            projectToLaunchDir = dir
         }
 
-        if (projectToLaunchDir == null || !projectToLaunchDir.exists() || !projectToLaunchDir.isDirectory) {
-            Log.e("LaunchProjectAction", "Project directory to launch does not exist: ${projectToLaunchDir?.absolutePath}")
+        if (!projectToLaunchDir.isDirectory) {
+            Log.e("LaunchProjectAction", "Project path is not a directory: ${projectToLaunchDir.absolutePath}")
             return
         }
 
         ProjectManager.pushProjectHistory(currentProject.directory.absolutePath)
 
-        val intent = Intent(stage, StageActivity::class.java)
-
-        intent.putExtra(StageActivity.EXTRA_PROJECT_PATH, projectToLaunchDir.absolutePath)
+        val intent = Intent(stage, StageActivity::class.java).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            putExtra(StageActivity.EXTRA_PROJECT_PATH, projectToLaunchDir.absolutePath)
+        }
 
         stage.startActivity(intent)
+        stage.finish()
     }
 
     @Throws(IOException::class)
@@ -82,6 +90,11 @@ class LaunchProjectAction : TemporalAction() {
         ZipInputStream(zipFile.inputStream().buffered()).use { zis ->
             var entry = zis.nextEntry
             while (entry != null) {
+                val canonicalTarget = targetDirectory.canonicalPath
+                val canonicalDest = File(canonicalTarget, entry.name).canonicalPath
+                if (!canonicalDest.startsWith(canonicalTarget + File.separator)) {
+                    throw IOException("Zip slip attack detected: ${entry.name}")
+                }
                 val newFile = File(targetDirectory, entry.name)
                 if (entry.isDirectory) {
                     newFile.mkdirs()

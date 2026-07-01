@@ -47,7 +47,7 @@ public class WhenGamepadButtonBrick extends ScriptBrickBaseType implements Brick
 	private WhenGamepadButtonScript script;
 
 	public WhenGamepadButtonBrick() {
-		script = new WhenGamepadButtonScript();
+		this(new WhenGamepadButtonScript());
 	}
 
 	public WhenGamepadButtonBrick(@NonNull WhenGamepadButtonScript script) {

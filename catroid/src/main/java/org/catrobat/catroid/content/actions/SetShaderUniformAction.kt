@@ -6,7 +6,7 @@ import org.catrobat.catroid.formulaeditor.Formula
 import org.catrobat.catroid.stage.StageActivity
 
 class SetShaderUniformAction : TemporalAction() {
-    lateinit var scope: Scope
+    var scope: Scope? = null
     var uniformName: Formula? = null
     var valueX: Formula? = null
     var valueY: Formula? = null

@@ -48,6 +48,7 @@ public class RaspiIfLogicAction extends Action {
 		this.pinNumber = pinNumber;
 	}
 
+	@Override
 	protected void begin() {
 		Integer pinNumberInterpretation;
 

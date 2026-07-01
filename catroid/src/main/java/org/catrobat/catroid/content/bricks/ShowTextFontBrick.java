@@ -95,6 +95,7 @@ public class ShowTextFontBrick extends UserVariableBrickWithVisualPlacement {
         setFormulaWithBrickField(BrickField.COLOR, color);
     }
 
+    @Override
     public BrickField getDefaultBrickField() {
         return BrickField.NAME;
     }

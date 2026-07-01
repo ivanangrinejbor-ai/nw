@@ -6,6 +6,7 @@ import org.catrobat.catroid.content.actions.ScriptSequenceAction;
 import org.catrobat.catroid.formulaeditor.Formula;
 
 public class Fast2DApplyForceBrick extends FormulaBrick {
+    private static final long serialVersionUID = 1L;
     public Fast2DApplyForceBrick() {
         addAllowedBrickField(BrickField.NAME, R.id.brick_fast2d_force_id);
         addAllowedBrickField(BrickField.X_POSITION, R.id.brick_fast2d_force_x);

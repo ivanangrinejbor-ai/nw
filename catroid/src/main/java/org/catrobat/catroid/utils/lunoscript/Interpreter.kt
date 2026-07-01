@@ -1084,7 +1084,7 @@ class Interpreter(
 
                 if (lunoArg !is LunoValue.NativeObject) {
                     throw LunoRuntimeError(
-                        "AddProjectScene: Argument 1 must be a NativeObject.",
+                        "ProjectAddScene: Argument 1 must be a NativeObject.",
                         -1
                     )
                 }
@@ -1094,7 +1094,7 @@ class Interpreter(
                     
                     val gotType = lunoArg.obj.javaClass.name
                     throw LunoRuntimeError(
-                        "AddProjectScene: Argument 1 was not a Scene. Got '$gotType'.",
+                        "ProjectAddScene: Argument 1 was not a Scene. Got '$gotType'.",
                         -1
                     )
                 }
@@ -2779,7 +2779,7 @@ class Interpreter(
             val sprite = args[0]
 
             if (sprite !is LunoValue.NativeObject) {
-                throw LunoRuntimeError("SpriteIsClone: Argument 0 must be a NativeObject.", -1)
+                throw LunoRuntimeError("SpriteIsGliding: Argument 0 must be a NativeObject.", -1)
             }
 
             
@@ -2789,7 +2789,7 @@ class Interpreter(
                 
                 val gotType = sprite.obj.javaClass.name
                 throw LunoRuntimeError(
-                    "SpriteIsClone: Argument 0 was not a Sprite. Got '$gotType'.",
+                    "SpriteIsGliding: Argument 0 was not a Sprite. Got '$gotType'.",
                     -1
                 )
             }
@@ -3088,7 +3088,7 @@ class Interpreter(
             val sprite = args[0]
 
             if (sprite !is LunoValue.NativeObject) {
-                throw LunoRuntimeError("SpriteRemoveScript: Argument 0 must be a NativeObject.", -1)
+                throw LunoRuntimeError("SpriteIsBackground: Argument 0 must be a NativeObject.", -1)
             }
 
             
@@ -3098,7 +3098,7 @@ class Interpreter(
                 
                 val gotType = sprite.obj.javaClass.name
                 throw LunoRuntimeError(
-                    "SpriteRemoveScript: Argument 0 was not a Sprite. Got '$gotType'.",
+                    "SpriteIsBackground: Argument 0 was not a Sprite. Got '$gotType'.",
                     -1
                 )
             }
@@ -3132,7 +3132,7 @@ class Interpreter(
             val script = args[0]
 
             if (script !is LunoValue.NativeObject) {
-                throw LunoRuntimeError("ScriptGetBrickList: Argument 0 must be a NativeObject.", -1)
+                throw LunoRuntimeError("ScriptRun: Argument 0 must be a NativeObject.", -1)
             }
 
             
@@ -3141,7 +3141,7 @@ class Interpreter(
 
                 if (sprite !is LunoValue.NativeObject) {
                     throw LunoRuntimeError(
-                        "ScriptGetBrickList: Argument 1 must be a NativeObject.",
+                        "ScriptRun: Argument 1 must be a NativeObject.",
                         -1
                     )
                 }
@@ -3152,7 +3152,7 @@ class Interpreter(
 
                     if (sequence !is LunoValue.NativeObject) {
                         throw LunoRuntimeError(
-                            "ScriptGetBrickList: Argument 2 must be a NativeObject.",
+                            "ScriptRun: Argument 2 must be a NativeObject.",
                             -1
                         )
                     }
@@ -3165,7 +3165,7 @@ class Interpreter(
                         
                         val gotType = sequence.obj.javaClass.name
                         throw LunoRuntimeError(
-                            "ScriptGetBrickList: Argument 2 was not a ScriptSequenceAction. Got '$gotType'.",
+                            "ScriptRun: Argument 2 was not a ScriptSequenceAction. Got '$gotType'.",
                             -1
                         )
                     }
@@ -3173,7 +3173,7 @@ class Interpreter(
                     
                     val gotType = sprite.obj.javaClass.name
                     throw LunoRuntimeError(
-                        "ScriptGetBrickList: Argument 1 was not a Sprite. Got '$gotType'.",
+                        "ScriptRun: Argument 1 was not a Sprite. Got '$gotType'.",
                         -1
                     )
                 }
@@ -3843,18 +3843,16 @@ class Interpreter(
             } else {
                 
                 throw LunoRuntimeError(
-                    "GetSprite: Argument 0's native object is not a Scope. Got type: ${wrappedKotlinObject?.javaClass?.name ?: "null"}.",
+                    "GetProject: Argument 0's native object is not a Project. Got type: ${wrappedKotlinObject?.javaClass?.name ?: "null"}.",
                     -1 
                 )
-                return null
             }
         } else {
             
             throw LunoRuntimeError(
-                "GetSprite: Argument 0 must be a NativeObject containing a Scope. Got type: ${lunoArg::class.simpleName}.",
+                "GetProject: Argument 0 must be a NativeObject containing a Project. Got type: ${lunoArg::class.simpleName}.",
                 -1
             )
-            return null
         }
     }
 
@@ -4309,11 +4307,11 @@ class Interpreter(
     
     private fun lookUpVariable(nameToken: Token, exprNode: AstNode): LunoValue {
         
-        if (nameToken.lexeme == "this") {
-            
+            if (nameToken.lexeme == "this") {
+
             var scope: Scope? = currentScope
             while (scope != null) {
-                if (scope.values.containsKey("this")) return scope.values["this"]!!.value
+                if (scope.values.containsKey("this")) return scope.values["this"]?.value ?: LunoValue.Null
                 scope = scope.enclosing
             }
             throw LunoRuntimeError("'this' can only be used inside a method.", nameToken.line)

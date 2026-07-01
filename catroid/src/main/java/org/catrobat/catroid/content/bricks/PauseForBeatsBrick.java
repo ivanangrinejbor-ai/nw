@@ -29,6 +29,8 @@ import org.catrobat.catroid.formulaeditor.Formula;
 
 public class PauseForBeatsBrick extends FormulaBrick {
 
+	private static final long serialVersionUID = 1L;
+
 	public PauseForBeatsBrick() {
 		addAllowedBrickField(BrickField.BEATS_TO_PAUSE, R.id.brick_pause_for_beats_edit_text);
 	}

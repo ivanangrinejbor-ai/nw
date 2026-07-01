@@ -64,7 +64,7 @@ class ShowTextAction : TemporalAction() {
                     if (stageActor.javaClass != dummyActor.javaClass) {
                         continue
                     }
-                    val showTextActor = stageActor as ShowTextActor
+                    val showTextActor = stageActor as? ShowTextActor ?: continue
                     if (showTextActor.variableNameToCompare == variableToShow?.name && showTextActor.sprite == scope?.sprite) {
                         stageActor.remove()
                     }

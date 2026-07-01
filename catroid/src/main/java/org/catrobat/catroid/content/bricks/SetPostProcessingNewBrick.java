@@ -19,6 +19,13 @@ public class SetPostProcessingNewBrick extends FormulaBrick {
         addAllowedBrickField(BrickField.VALUE, R.id.brick_pp_value_edit);
     }
 
+    public SetPostProcessingNewBrick(int effectIdx, int paramIdx, double value) {
+        this();
+        this.effectIndex = effectIdx;
+        this.paramIndex = paramIdx;
+        setFormulaWithBrickField(BrickField.VALUE, new Formula(value));
+    }
+
     @Override
     public int getViewResource() {
         return R.layout.brick_set_post_processing_new;

@@ -37,7 +37,7 @@ class AddItemToUserListAction : TemporalAction() {
     override fun update(percent: Float) {
         var value = formulaItemToAdd?.interpretObject(scope) ?: 0.0
         if (formulaItemToAdd != null && formulaItemToAdd?.root?.isBoolean(scope) == true) {
-            value = value as Double != 0.0
+            value = (value as? Double)?.let { it != 0.0 } ?: false
         }
         userList?.addListItem(value)
     }

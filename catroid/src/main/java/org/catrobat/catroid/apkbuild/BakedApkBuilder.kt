@@ -26,7 +26,7 @@ import android.content.Context
 import android.util.Log
 import org.catrobat.catroid.CatroidApplication
 import org.catrobat.catroid.io.StorageOperations
-import org.catrobat.catroid.io.ZipArchiver
+
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File

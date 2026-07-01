@@ -5,6 +5,7 @@ import org.catrobat.catroid.content.actions.ScriptSequenceAction;
 import org.catrobat.catroid.formulaeditor.Formula;
 
 public class CloneObjectBrick extends FormulaBrick {
+    private static final long serialVersionUID = 1L;
     public CloneObjectBrick() {
         addAllowedBrickField(BrickField.VALUE_1, R.id.brick_clone_source_edit);
         addAllowedBrickField(BrickField.VALUE_2, R.id.brick_clone_new_name_edit);

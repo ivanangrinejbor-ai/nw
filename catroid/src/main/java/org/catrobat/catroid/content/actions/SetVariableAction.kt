@@ -47,7 +47,7 @@ class SetVariableAction : TemporalAction() {
 
         var value = changeVariable?.interpretObject(scope) ?: java.lang.Double.valueOf(0.0)
         if (changeVariable != null && changeVariable?.root?.isBoolean(scope) == true) {
-            value = value as Double != 0.0
+            value = (value as? Double)?.let { it != 0.0 } ?: false
         }
 
         val isFirstLevelStringTree = changeVariable != null &&

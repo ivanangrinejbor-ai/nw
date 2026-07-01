@@ -26,7 +26,6 @@ package org.catrobat.catroid.content.bricks;
 import org.catrobat.catroid.R;
 import org.catrobat.catroid.content.Sprite;
 import org.catrobat.catroid.content.actions.ScriptSequenceAction;
-import org.catrobat.catroid.formulaeditor.Formula;
 
 public class UnloadNNBrick extends FormulaBrick {
     private static final long serialVersionUID = 1L;
@@ -43,6 +42,6 @@ public class UnloadNNBrick extends FormulaBrick {
     @Override
     public void addActionToSequence(Sprite sprite, ScriptSequenceAction sequence) {
         sequence.addAction(sprite.getActionFactory()
-                .createUnoadNNAction(sprite, sequence));
+                .createUnloadNNAction(sprite, sequence));
     }
 }

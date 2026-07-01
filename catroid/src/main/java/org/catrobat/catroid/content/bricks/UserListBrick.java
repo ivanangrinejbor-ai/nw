@@ -78,7 +78,9 @@ public abstract class UserListBrick extends FormulaBrick implements BrickSpinner
 
 		List<Nameable> items = new ArrayList<>();
 		items.add(new NewOption(context.getString(R.string.new_option)));
-		items.addAll(sprite.getUserLists());
+		if (sprite != null) {
+			items.addAll(sprite.getUserLists());
+		}
 		items.addAll(ProjectManager.getInstance().getCurrentProject().getUserLists());
 
 		spinner = new BrickSpinner<>(getSpinnerId(), view, items);

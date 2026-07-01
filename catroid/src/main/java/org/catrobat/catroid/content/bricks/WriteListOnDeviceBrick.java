@@ -38,6 +38,7 @@ public class WriteListOnDeviceBrick extends UserListBrick {
 		return R.layout.brick_write_list_on_device;
 	}
 
+	@Override
 	protected int getSpinnerId() {
 		return R.id.write_list_spinner;
 	}

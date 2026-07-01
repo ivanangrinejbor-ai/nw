@@ -6,6 +6,8 @@ import org.catrobat.catroid.content.actions.ScriptSequenceAction;
 import org.catrobat.catroid.formulaeditor.Formula;
 
 public class SetAIBrick extends FormulaBrick {
+    private static final long serialVersionUID = 1L;
+
     public SetAIBrick() {
         addAllowedBrickField(BrickField.OBJECT_ID, R.id.brick_ai_obj_id);
         addAllowedBrickField(BrickField.MODE, R.id.brick_ai_mode);

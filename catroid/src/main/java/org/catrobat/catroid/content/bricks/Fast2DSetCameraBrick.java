@@ -6,6 +6,7 @@ import org.catrobat.catroid.content.actions.ScriptSequenceAction;
 import org.catrobat.catroid.formulaeditor.Formula;
 
 public class Fast2DSetCameraBrick extends FormulaBrick {
+    private static final long serialVersionUID = 1L;
     public Fast2DSetCameraBrick() {
         addAllowedBrickField(BrickField.X_POSITION, R.id.brick_fast2d_cam_edit_x);
         addAllowedBrickField(BrickField.Y_POSITION, R.id.brick_fast2d_cam_edit_y);

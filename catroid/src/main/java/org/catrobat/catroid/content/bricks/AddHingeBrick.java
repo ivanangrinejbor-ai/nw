@@ -6,6 +6,7 @@ import org.catrobat.catroid.content.actions.ScriptSequenceAction;
 import org.catrobat.catroid.formulaeditor.Formula;
 
 public class AddHingeBrick extends FormulaBrick {
+    private static final long serialVersionUID = 1L;
     public AddHingeBrick() {
         addAllowedBrickField(BrickField.CONSTRAINT_ID, R.id.brick_hinge_id);
         addAllowedBrickField(BrickField.OBJECT_A, R.id.brick_hinge_obja);

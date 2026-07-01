@@ -68,7 +68,7 @@ open class LookRequestAction : WebAction() {
 
     fun getLookFromResponse(): LookData? {
         when {
-            errorCode != null -> handleError(errorCode!!)
+            errorCode != null -> handleError(errorCode)
             response == null -> handleInvalidFormat()
             else -> try {
                 val lookFile = File.createTempFile(lookName, fileExtension)

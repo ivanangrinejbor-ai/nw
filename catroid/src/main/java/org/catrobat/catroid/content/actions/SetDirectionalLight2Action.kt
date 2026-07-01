@@ -12,7 +12,7 @@ import org.catrobat.catroid.content.Scope
 import org.catrobat.catroid.formulaeditor.Formula
 import org.catrobat.catroid.stage.StageActivity
 
-class SetDirectionalLigh2tAction : TemporalAction() {
+class SetDirectionalLight2Action : TemporalAction() {
     var scope: Scope? = null
     var dirX: Formula? = null
     var dirY: Formula? = null

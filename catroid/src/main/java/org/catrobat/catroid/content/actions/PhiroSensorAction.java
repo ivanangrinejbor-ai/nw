@@ -46,6 +46,7 @@ public class PhiroSensorAction extends Action {
 
 	private static final int DISTANCE_THRESHOLD_VALUE = 850;
 
+	@Override
 	protected void begin() {
 		try {
 			if (ifCondition == null) {

@@ -10,7 +10,7 @@
 
 <p align="center">
   <a href="https://t.me/Neocatroid">Telegram</a> •
-  <a href="#license">License</a>
+  <a href="https://github.com/ivanangrinejbor-ai/nw/blob/main/LICENSE">License</a>
 </p>
 
 ---
@@ -70,5 +70,5 @@ cd NeoCatroid
 
 <p align="center">
   <a href="https://t.me/Neocatroid">Telegram-канал</a> •
-  <a href="https://github.com/Danveyd/NeoCatroid/blob/main/LICENSE">AGPL v3 License</a>
+  <a href="https://github.com/ivanangrinejbor-ai/nw/blob/main/LICENSE">AGPL v3 License</a>
 </p>

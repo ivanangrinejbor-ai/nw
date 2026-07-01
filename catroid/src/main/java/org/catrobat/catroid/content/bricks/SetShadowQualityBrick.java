@@ -1,7 +1,5 @@
 package org.catrobat.catroid.content.bricks;
 
-import android.content.Context;
-import android.view.View;
 import org.catrobat.catroid.R;
 import org.catrobat.catroid.content.Sprite;
 import org.catrobat.catroid.content.actions.ScriptSequenceAction;
@@ -15,6 +13,10 @@ public class SetShadowQualityBrick extends FormulaBrick {
         addAllowedBrickField(BrickField.SHADOW_RESOLUTION, R.id.brick_shadow_resolution_edit);
     }
 
+    public SetShadowQualityBrick(double size, double resolution) {
+        this(new Formula(size), new Formula(resolution));
+    }
+
     public SetShadowQualityBrick(Formula size, Formula resolution) {
         this();
         setFormulaWithBrickField(BrickField.SHADOW_SIZE, size);
@@ -24,11 +26,6 @@ public class SetShadowQualityBrick extends FormulaBrick {
     @Override
     public int getViewResource() {
         return R.layout.brick_set_shadow_quality;
-    }
-
-    @Override
-    public View getView(Context context) {
-        return super.getView(context);
     }
 
     @Override

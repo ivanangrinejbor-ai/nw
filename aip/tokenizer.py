@@ -37,6 +37,18 @@ class BrickTokenizer:
 
         counter = Counter()
         for proj in projects:
+            # Add global variable/list/broadcast names to vocabulary
+            for var in proj.get('variables', []):
+                name = var.get('name', '')
+                if name:
+                    counter[f"var:{name}"] += 1
+            for lst in proj.get('lists', []):
+                name = lst.get('name', '')
+                if name:
+                    counter[f"list:{name}"] += 1
+            for msg in proj.get('broadcasts', []):
+                if msg:
+                    counter[f"msg:{msg}"] += 1
             for scene in proj.get('scenes', []):
                 for sprite in scene.get('sprites', []):
                     for script in sprite.get('scripts', []):

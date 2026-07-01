@@ -89,7 +89,9 @@ public abstract class UserVariableBrickWithVisualPlacement extends VisualPlaceme
 
 		List<Nameable> items = new ArrayList<>();
 		items.add(new NewOption(context.getString(R.string.new_option)));
-		items.addAll(sprite.getUserVariables());
+		if (sprite != null) {
+			items.addAll(sprite.getUserVariables());
+		}
 		items.addAll(ProjectManager.getInstance().getCurrentProject().getUserVariables());
 		items.addAll(ProjectManager.getInstance().getCurrentProject().getMultiplayerVariables());
 
@@ -143,7 +145,7 @@ public abstract class UserVariableBrickWithVisualPlacement extends VisualPlaceme
 		Intent intent = super.generateIntentForVisualPlacement(brickFieldX, brickFieldY);
 
 		Object variableValue = 0;
-		if (userVariable != null) {
+		if (userVariable != null && userVariable.getValue() != null) {
 			variableValue = userVariable.getValue();
 		}
 

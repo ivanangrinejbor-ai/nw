@@ -31,7 +31,6 @@ import org.catrobat.catroid.content.AdapterViewOnItemSelectedListenerImpl
 import org.catrobat.catroid.content.Sprite
 import org.catrobat.catroid.content.actions.ScriptSequenceAction
 import org.catrobat.catroid.content.bricks.Brick.BrickField
-import org.catrobat.catroid.content.bricks.Brick.ResourcesSet
 import org.catrobat.catroid.formulaeditor.Formula
 
 class ReadVariableFromFileBrick constructor() : UserVariableBrickWithFormula() {
@@ -92,8 +91,4 @@ class ReadVariableFromFileBrick constructor() : UserVariableBrickWithFormula() {
         }
     }
 
-    /*override fun addRequiredResources(requiredResourcesSet: ResourcesSet) {
-        requiredResourcesSet.add(STORAGE_READ)
-        super.addRequiredResources(requiredResourcesSet)
-    }*/
 }

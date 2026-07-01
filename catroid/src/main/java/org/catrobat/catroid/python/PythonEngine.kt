@@ -35,7 +35,6 @@ class PythonEngine(private val context: Context) {
             isSupportedArchitecture = true
             Log.d("PythonEngine", "Architecture is supported ($supportedAbi). Loading native libraries...")
 
-            val supportedAbi = "arm64-v8a"
             isSupportedArchitecture = Build.SUPPORTED_ABIS.contains(supportedAbi)
 
             if (!isSupportedArchitecture || !NativeLibraryManager.isLoaded(NativeLibraryManager.Feature.PYTHON)) {

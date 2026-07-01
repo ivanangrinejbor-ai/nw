@@ -9,7 +9,7 @@ public class SetShadowsBrick extends FormulaBrick {
     private static final long serialVersionUID = 1L;
 
     public SetShadowsBrick() {
-        addAllowedBrickField(Brick.BrickField.TEXT, R.id.brick_set_shadows_edit_text);
+        addAllowedBrickField(BrickField.TEXT, R.id.brick_set_shadows_edit_text);
     }
 
     public SetShadowsBrick(String value) {

@@ -2,6 +2,7 @@ package org.catrobat.catroid.content.bricks;
 import org.catrobat.catroid.R; import org.catrobat.catroid.content.Sprite; import org.catrobat.catroid.content.actions.ScriptSequenceAction; import org.catrobat.catroid.formulaeditor.Formula;
 
 public class CreateBufferBrick extends FormulaBrick {
+    private static final long serialVersionUID = 1L;
     public CreateBufferBrick() {
         addAllowedBrickField(BrickField.NAME, R.id.brick_buffer_name);
         addAllowedBrickField(BrickField.WIDTH, R.id.brick_buffer_width);

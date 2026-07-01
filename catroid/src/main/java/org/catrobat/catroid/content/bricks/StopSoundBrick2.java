@@ -6,6 +6,8 @@ import org.catrobat.catroid.content.actions.ScriptSequenceAction;
 import org.catrobat.catroid.formulaeditor.Formula;
 
 public class StopSoundBrick2 extends FormulaBrick {
+    private static final long serialVersionUID = 1L;
+
     public StopSoundBrick2() {
         addAllowedBrickField(BrickField.INSTANCE_NAME, R.id.brick_stop_sound_3d_instance_edit);
     }

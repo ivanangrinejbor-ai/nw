@@ -32,8 +32,8 @@ public class SetNeutralBrick extends FormulaBrick {
     private static final long serialVersionUID = 1L;
 
     public SetNeutralBrick() {
-        addAllowedBrickField(Brick.BrickField.NAME, R.id.brick_set_neutral_edit_name);
-        addAllowedBrickField(Brick.BrickField.TEXT, R.id.brick_set_neutral_edit_text);
+        addAllowedBrickField(BrickField.NAME, R.id.brick_set_neutral_edit_name);
+        addAllowedBrickField(BrickField.TEXT, R.id.brick_set_neutral_edit_text);
     }
 
     public SetNeutralBrick(String value, String value2) {

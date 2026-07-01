@@ -6,6 +6,7 @@ import org.catrobat.catroid.content.actions.ScriptSequenceAction;
 import org.catrobat.catroid.formulaeditor.Formula;
 
 public class AttachRaySensorBrick extends FormulaBrick {
+    private static final long serialVersionUID = 1L;
     public AttachRaySensorBrick() {
         addAllowedBrickField(BrickField.VALUE_1, R.id.brick_attach_ray_name);
         addAllowedBrickField(BrickField.VALUE_2, R.id.brick_attach_ray_obj);

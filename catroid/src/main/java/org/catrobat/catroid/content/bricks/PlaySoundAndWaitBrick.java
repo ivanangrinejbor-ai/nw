@@ -55,11 +55,21 @@ public class PlaySoundAndWaitBrick extends PlaySoundBrick {
 	}
 
 	private float getDurationOfSound() {
-		float duration;
 		MediaMetadataRetriever metadataRetriever = new MediaMetadataRetriever();
-		metadataRetriever.setDataSource(sound.getFile().getAbsolutePath());
-		duration = Integer.parseInt(metadataRetriever
-				.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)) / 1000.0f;
-		return duration;
+		try {
+			metadataRetriever.setDataSource(sound.getFile().getAbsolutePath());
+			String durationStr = metadataRetriever
+					.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
+			if (durationStr != null) {
+				return Integer.parseInt(durationStr) / 1000.0f;
+			}
+		} catch (Exception ignored) {
+		} finally {
+			try {
+				metadataRetriever.release();
+			} catch (Exception ignored) {
+			}
+		}
+		return 0f;
 	}
 }

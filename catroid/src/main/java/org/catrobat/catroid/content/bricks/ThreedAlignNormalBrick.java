@@ -5,6 +5,7 @@ import org.catrobat.catroid.content.actions.ScriptSequenceAction;
 import org.catrobat.catroid.formulaeditor.Formula;
 
 public class ThreedAlignNormalBrick extends FormulaBrick {
+    private static final long serialVersionUID = 1L;
     public ThreedAlignNormalBrick() {
         addAllowedBrickField(BrickField.VALUE_1, R.id.brick_align_id);
         addAllowedBrickField(BrickField.VALUE_2, R.id.brick_align_nx);

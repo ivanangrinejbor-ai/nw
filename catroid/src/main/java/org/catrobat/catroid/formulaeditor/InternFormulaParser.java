@@ -141,7 +141,6 @@ public class InternFormulaParser {
 		}
 		if (internTokensToParse.size() > MAXIMUM_TOKENS_TO_PARSE) {
 			errorTokenIndex = PARSER_STACK_OVERFLOW;
-			errorTokenIndex = 0;
 			return null;
 		}
 

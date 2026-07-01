@@ -43,8 +43,7 @@ public class SetGravityBrick extends FormulaBrick {
 	}
 
 	public SetGravityBrick(Formula gravityX, Formula gravityY) {
-		addAllowedBrickField(BrickField.PHYSICS_GRAVITY_X, R.id.brick_set_gravity_edit_text_x);
-		addAllowedBrickField(BrickField.PHYSICS_GRAVITY_Y, R.id.brick_set_gravity_edit_text_y);
+		this();
 		setFormulaWithBrickField(BrickField.PHYSICS_GRAVITY_X, gravityX);
 		setFormulaWithBrickField(BrickField.PHYSICS_GRAVITY_Y, gravityY);
 	}

@@ -67,7 +67,7 @@ public class PhiroPlayToneBrick extends FormulaBrick {
 
 	@Override
 	public void addRequiredResources(final ResourcesSet requiredResourcesSet) {
-		requiredResourcesSet.add(BLUETOOTH_LEGO_EV3);
+		requiredResourcesSet.add(BLUETOOTH_PHIRO);
 		super.addRequiredResources(requiredResourcesSet);
 	}
 
