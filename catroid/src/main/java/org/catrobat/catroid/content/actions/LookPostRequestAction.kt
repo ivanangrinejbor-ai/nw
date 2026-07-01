@@ -2,6 +2,7 @@ package org.catrobat.catroid.content.actions
 
 import android.util.Log
 import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaType
 import org.catrobat.catroid.CatroidApplication
 import org.catrobat.catroid.R
 import org.catrobat.catroid.common.LookData
@@ -52,7 +53,7 @@ class LookPostRequestAction : WebAction() {
             return false
         }
 
-        StageActivity.stageListener.webConnectionHolder.removeConnection(webConnection)
+        StageActivity.getActiveStageListener()?.webConnectionHolder?.removeConnection(webConnection)
         handleResponse()
         return true
     }
