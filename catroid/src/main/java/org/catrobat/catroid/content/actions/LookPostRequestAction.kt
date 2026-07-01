@@ -26,10 +26,6 @@ class LookPostRequestAction : WebAction() {
         requestBodyJson = json
     }
 
-    fun setUrl(newUrl: String) {
-        url = newUrl
-    }
-
     fun setHeader(value: String) {
         header = value
     }
