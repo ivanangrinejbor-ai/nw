@@ -5,12 +5,11 @@
 <h1 align="center">NeoCatroid</h1>
 
 <p align="center">
-  Расширенная версия <a href="https://github.com/Catrobat/Catroid">Catrobat/Catroid</a> — визуальное программирование с 3D, AI, Python и сборкой APK.
+  Расширенная версия <a href="https://github.com/Catrobat/Catroid">Catrobat/Catroid</a> и <a href="https://github.com/Danveyd/NewCatroid">NewCatroid</a> — визуальное программирование с 3D, AI, Python и сборкой APK.
 </p>
 
 <p align="center">
-  <a href="https://t.me/New_Catroid">Telegram</a> •
-  <a href="https://apps.rustore.ru/app/org.DanVexTeam.NeoCatroid">RuStore</a> •
+  <a href="https://t.me/Neocatroid">Telegram</a> •
   <a href="#license">License</a>
 </p>
 
@@ -70,6 +69,6 @@ cd NeoCatroid
 ---
 
 <p align="center">
-  <a href="https://t.me/New_Catroid">Telegram-канал</a> •
+  <a href="https://t.me/Neocatroid">Telegram-канал</a> •
   <a href="https://github.com/Danveyd/NeoCatroid/blob/main/LICENSE">AGPL v3 License</a>
 </p>
