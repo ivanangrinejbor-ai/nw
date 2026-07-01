@@ -111,13 +111,14 @@ class WriteVarToFileAction : TemporalAction(), IntentListener {
                 }
             }
 
+            val uri = existingFileUri
             try {
-                if (existingFileUri != null) {
-                    contentResolver.openOutputStream(existingFileUri, "w")?.use {
+                if (uri != null) {
+                    contentResolver.openOutputStream(uri, "w")?.use {
                         it.write(content.toByteArray(Charsets.UTF_8))
                     }
-                    println("Файл успешно перезаписан: $existingFileUri")
-                    return existingFileUri
+                    println("Файл успешно перезаписан: $uri")
+                    return uri
                 }
 
                 else {
