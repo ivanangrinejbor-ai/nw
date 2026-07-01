@@ -7,7 +7,6 @@ import org.catrobat.catroid.R
 import org.catrobat.catroid.common.LookData
 import org.catrobat.catroid.io.StorageOperations
 import org.catrobat.catroid.stage.StageActivity
-import org.catrobat.catroid.stage.StageActivity.stageListener
 import org.catrobat.catroid.utils.Utils
 import org.catrobat.catroid.web.WebConnection
 import java.io.File
@@ -53,7 +52,7 @@ class LookPostRequestAction : WebAction() {
             return false
         }
 
-        stageListener.webConnectionHolder.removeConnection(webConnection)
+        StageActivity.stageListener.webConnectionHolder.removeConnection(webConnection)
         handleResponse()
         return true
     }
@@ -63,7 +62,7 @@ class LookPostRequestAction : WebAction() {
         webConnection = WebConnection(this, url!!)
 
         val client = OkHttpClient()
-        val requestBody = RequestBody.create(MediaType.parse("${header}; charset=utf-8"), requestBodyJson!!)
+        val requestBody = RequestBody.create("${header}; charset=utf-8".toMediaType(), requestBodyJson!!)
 
         // Создание запроса с заголовками
         val requestBuilder = Request.Builder()
@@ -110,11 +109,11 @@ class LookPostRequestAction : WebAction() {
     override fun handleResponse() {
         response?.let {
             if (it.isSuccessful) {
-                val responseBody = it.body()?.string()
+                val responseBody = it.body?.string()
                 Log.d(javaClass.simpleName, "Response: $responseBody")
                 // Здесь можно обработать ответ, если это необходимо
             } else {
-                handleError(it.code().toString())
+                handleError(it.code.toString())
             }
         } ?: handleError("Response is null")
     }
