@@ -193,7 +193,7 @@ class WriteVariableToFileAction : TemporalAction(), IntentListener {
         if (resultCode == Activity.RESULT_OK) {
             data?.data?.let {
                 val content: String = when (val value = userVariable?.value ?: 0) {
-                    is Double -> (value as Double).toBigDecimal().toPlainString()
+                    is Double -> value.toBigDecimal().toPlainString()
                     else -> value.toString()
                 }
                 writeToUri(it, content)

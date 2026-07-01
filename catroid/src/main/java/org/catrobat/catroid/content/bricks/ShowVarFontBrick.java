@@ -91,6 +91,7 @@ public class ShowVarFontBrick extends UserVariableBrickWithVisualPlacement {
         setFormulaWithBrickField(BrickField.FILE, file);
     }
 
+    @Override
     public BrickField getDefaultBrickField() {
         return BrickField.X_POSITION;
     }

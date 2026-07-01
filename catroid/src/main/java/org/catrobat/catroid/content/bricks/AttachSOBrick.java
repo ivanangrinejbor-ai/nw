@@ -4,7 +4,6 @@ import org.catrobat.catroid.R;
 import org.catrobat.catroid.content.Sprite;
 import org.catrobat.catroid.content.actions.ScriptSequenceAction;
 import org.catrobat.catroid.formulaeditor.Formula;
-import java.util.List;
 
 public class AttachSOBrick extends FormulaBrick {
     private static final long serialVersionUID = 1L;

@@ -40,7 +40,7 @@ public class TurnRightBrick extends FormulaBrick {
 	}
 
 	public TurnRightBrick(Formula formula) {
-		addAllowedBrickField(BrickField.TURN_RIGHT_DEGREES, R.id.brick_turn_right_edit_text);
+		this();
 		setFormulaWithBrickField(BrickField.TURN_RIGHT_DEGREES, formula);
 	}
 

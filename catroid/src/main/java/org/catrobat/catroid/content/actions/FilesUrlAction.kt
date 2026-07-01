@@ -109,7 +109,12 @@ class FilesUrlAction() : TemporalAction() {
             CoroutineScope(Dispatchers.IO).launch {
                 try {
                     val url = URL(fileUrl)
-                    val connection = url.openConnection() as HttpURLConnection
+                    val urlConnection = url.openConnection()
+                    if (urlConnection !is HttpURLConnection) {
+                        Log.e("DownloadFile", "Connection is not HttpURLConnection")
+                        return@launch
+                    }
+                    val connection = urlConnection
                     connection.requestMethod = "GET"
                     connection.setRequestProperty("User-Agent", "Mozilla/5.0")
                     connection.connect()

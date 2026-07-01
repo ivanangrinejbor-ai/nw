@@ -58,8 +58,7 @@ class ListenServerAction() : Action() {
     var variable: UserVariable? = null
 
     override fun act(delta: Float): Boolean {
-        if (variable == null) return true
-        val v = variable!!
+        val v = variable ?: return true
 
         getScheduler().scheduleAtFixedRate({
             v.value = LocalServer.getValue()

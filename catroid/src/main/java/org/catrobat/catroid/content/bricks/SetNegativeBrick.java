@@ -32,8 +32,8 @@ public class SetNegativeBrick extends FormulaBrick {
     private static final long serialVersionUID = 1L;
 
     public SetNegativeBrick() {
-        addAllowedBrickField(Brick.BrickField.NAME, R.id.brick_set_negative_edit_name);
-        addAllowedBrickField(Brick.BrickField.TEXT, R.id.brick_set_negative_edit_text);
+        addAllowedBrickField(BrickField.NAME, R.id.brick_set_negative_edit_name);
+        addAllowedBrickField(BrickField.TEXT, R.id.brick_set_negative_edit_text);
     }
 
     public SetNegativeBrick(String value, String value2) {

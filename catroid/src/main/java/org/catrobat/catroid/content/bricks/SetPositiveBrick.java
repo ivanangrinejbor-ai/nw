@@ -32,8 +32,8 @@ public class SetPositiveBrick extends FormulaBrick {
     private static final long serialVersionUID = 1L;
 
     public SetPositiveBrick() {
-        addAllowedBrickField(Brick.BrickField.NAME, R.id.brick_set_positive_edit_name);
-        addAllowedBrickField(Brick.BrickField.TEXT, R.id.brick_set_positive_edit_text);
+        addAllowedBrickField(BrickField.NAME, R.id.brick_set_positive_edit_name);
+        addAllowedBrickField(BrickField.TEXT, R.id.brick_set_positive_edit_text);
     }
 
     public SetPositiveBrick(String value, String value2) {

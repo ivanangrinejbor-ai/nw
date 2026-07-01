@@ -51,6 +51,7 @@ import androidx.appcompat.app.AppCompatActivity;
 public abstract class BroadcastMessageBrick extends BrickBaseType implements
 		BrickSpinner.OnItemSelectedListener<StringOption> {
 
+	private static final long serialVersionUID = 1L;
 	private transient BrickSpinner<StringOption> spinner;
 
 	public abstract String getBroadcastMessage();

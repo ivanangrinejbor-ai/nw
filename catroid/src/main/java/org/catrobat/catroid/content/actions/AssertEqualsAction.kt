@@ -63,10 +63,10 @@ class AssertEqualsAction : AssertAction() {
             expected.formulaTree.value)
 
         if (actualBoolean) {
-            actualValue = (actualValue as Double > 0).toString()
+            actualValue = ((actualValue as? Double) ?: 0.0 > 0).toString()
         }
         if (expectedBoolean) {
-            expectedValue = (expectedValue as Double > 0).toString()
+            expectedValue = ((expectedValue as? Double) ?: 0.0 > 0).toString()
         }
     }
 

@@ -6,6 +6,7 @@ import org.catrobat.catroid.content.actions.ScriptSequenceAction;
 import org.catrobat.catroid.formulaeditor.Formula;
 
 public class Fast2DSetAngularVelocityBrick extends FormulaBrick {
+    private static final long serialVersionUID = 1L;
     public Fast2DSetAngularVelocityBrick() {
         addAllowedBrickField(BrickField.NAME, R.id.brick_fast2d_ang_vel_id);
         addAllowedBrickField(BrickField.ROTATION, R.id.brick_fast2d_ang_vel_v);

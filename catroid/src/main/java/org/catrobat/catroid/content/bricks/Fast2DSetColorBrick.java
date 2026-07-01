@@ -6,6 +6,7 @@ import org.catrobat.catroid.content.actions.ScriptSequenceAction;
 import org.catrobat.catroid.formulaeditor.Formula;
 
 public class Fast2DSetColorBrick extends FormulaBrick {
+    private static final long serialVersionUID = 1L;
     public Fast2DSetColorBrick() {
         addAllowedBrickField(BrickField.NAME, R.id.brick_fast2d_color_id);
         addAllowedBrickField(BrickField.X_POSITION, R.id.brick_fast2d_color_r);

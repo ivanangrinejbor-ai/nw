@@ -32,7 +32,7 @@ public class SetDnsBrick extends FormulaBrick {
     private static final long serialVersionUID = 1L;
 
     public SetDnsBrick() {
-        addAllowedBrickField(Brick.BrickField.VALUE, R.id.brick_set_dns_edit_text);
+        addAllowedBrickField(BrickField.VALUE, R.id.brick_set_dns_edit_text);
     }
 
     public SetDnsBrick(String value) {

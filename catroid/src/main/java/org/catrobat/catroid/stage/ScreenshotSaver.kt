@@ -107,7 +107,8 @@ class ScreenshotSaver(
             Bitmap.Config.ARGB_8888
         )
 
-        val aspectRatio = width / height.toDouble()
+        val safeHeight = if (height == 0) 1 else height
+        val aspectRatio = width / safeHeight.toDouble()
         var newWidth = (MAX_SCREEN_SHOT_HEIGHT * aspectRatio).toInt()
         if (newWidth > MAX_SCREEN_SHOT_WIDTH) {
             newWidth = MAX_SCREEN_SHOT_WIDTH
@@ -155,7 +156,8 @@ class ScreenshotSaver(
             Bitmap.Config.ARGB_8888
         )
 
-        val aspectRatio = width / height.toDouble()
+        val safeHeight = if (height == 0) 1 else height
+        val aspectRatio = width / safeHeight.toDouble()
         var newWidth = (NEW_MAX_SCREEN_SHOT_HEIGHT * aspectRatio).toInt()
         if (newWidth > NEW_MAX_SCREEN_SHOT_WIDTH) {
             newWidth = NEW_MAX_SCREEN_SHOT_WIDTH

@@ -113,7 +113,7 @@ class WriteVarToFileAction : TemporalAction(), IntentListener {
 
             try {
                 if (existingFileUri != null) {
-                    contentResolver.openOutputStream(existingFileUri!!, "w")?.use {
+                    contentResolver.openOutputStream(existingFileUri, "w")?.use {
                         it.write(content.toByteArray(Charsets.UTF_8))
                     }
                     println("Файл успешно перезаписан: $existingFileUri")
@@ -203,7 +203,7 @@ class WriteVarToFileAction : TemporalAction(), IntentListener {
         if (resultCode == Activity.RESULT_OK) {
             data?.data?.let {
                 val content: String = when (val value = userVariable?.value ?: 0) {
-                    is Double -> (value as Double).toBigDecimal().toPlainString()
+                    is Double -> value.toBigDecimal().toPlainString()
                     else -> value.toString()
                 }
                 writeToUri(it, content)

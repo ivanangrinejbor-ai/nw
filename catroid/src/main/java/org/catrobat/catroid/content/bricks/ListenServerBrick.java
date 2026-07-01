@@ -25,9 +25,6 @@ package org.catrobat.catroid.content.bricks;
 import org.catrobat.catroid.R;
 import org.catrobat.catroid.content.Sprite;
 import org.catrobat.catroid.content.actions.ScriptSequenceAction;
-import org.catrobat.catroid.formulaeditor.Formula;
-import org.catrobat.catroid.formulaeditor.FormulaElement;
-import org.catrobat.catroid.formulaeditor.Sensors;
 import org.catrobat.catroid.formulaeditor.UserVariable;
 
 public class ListenServerBrick extends UserVariableBrickWithFormula {
@@ -36,10 +33,6 @@ public class ListenServerBrick extends UserVariableBrickWithFormula {
 
     public ListenServerBrick() {
 
-    }
-
-    public ListenServerBrick(double value) {
-        this();
     }
 
     public ListenServerBrick(UserVariable userVariable) {

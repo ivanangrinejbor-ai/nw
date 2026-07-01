@@ -26,13 +26,23 @@ if "%DEPLOY%"=="--deploy" (
 )
 
 echo.
-if exist model\patterns.json (
-    echo  ✅ Training complete! model\patterns.json is ready.
-    echo.
-    echo  To deploy to app: copy /Y model\patterns.json ..\catroid\src\main\assets\patterns.json
-    echo  Or run: run_training.bat --deploy
+if "%DEPLOY%"=="--deploy" (
+    if exist ..\catroid\src\main\assets\patterns.json (
+        echo  ✅ Training complete! Deployed to Android assets.
+        echo  Or run: run_training.bat --deploy
+    ) else (
+        echo  ❌ No projects found in datasets/
+        echo     Put .code.xml files in datasets/ and try again.
+    )
 ) else (
-    echo  ❌ No projects found in datasets/
-    echo     Put .code.xml files in datasets/ and try again.
+    if exist model\patterns.json (
+        echo  ✅ Training complete! model\patterns.json is ready.
+        echo.
+        echo  To deploy to app: copy /Y model\patterns.json ..\catroid\src\main\assets\patterns.json
+        echo  Or run: run_training.bat --deploy
+    ) else (
+        echo  ❌ No projects found in datasets/
+        echo     Put .code.xml files in datasets/ and try again.
+    )
 )
 pause

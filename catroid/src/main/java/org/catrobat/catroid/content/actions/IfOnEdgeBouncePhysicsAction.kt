@@ -131,7 +131,7 @@ class IfOnEdgeBouncePhysicsAction : TemporalAction() {
         if (side == Side.LEFT || side == Side.RIGHT) {
             sprite.look.motionDirectionInUserInterfaceDimensionUnit = -realRotation
             calculateBoundaryBoxDimensions(physicsObject)
-            (sprite.look as PhysicsLook).updateFlippedByAction()
+            (sprite.look as? PhysicsLook)?.updateFlippedByAction()
         } else if (side == Side.TOP || side == Side.BOTTOM) {
             sprite.look.motionDirectionInUserInterfaceDimensionUnit = OPPOSITE_DIRECTION -
                 realRotation
@@ -167,7 +167,7 @@ class IfOnEdgeBouncePhysicsAction : TemporalAction() {
             sprite.look.rotationMode != Look.ROTATION_STYLE_ALL_AROUND) {
             sprite.look.motionDirectionInUserInterfaceDimensionUnit = -realRotation
             calculateBoundaryBoxDimensions(physicsObject)
-            (sprite.look as PhysicsLook).updateFlippedByAction()
+            (sprite.look as? PhysicsLook)?.updateFlippedByAction()
         } else if ((side == Side.TOP || side == Side.BOTTOM) &&
             sprite.look.rotationMode != Look.ROTATION_STYLE_ALL_AROUND) {
             sprite.look.motionDirectionInUserInterfaceDimensionUnit = OPPOSITE_DIRECTION -

@@ -32,7 +32,7 @@ public class SetLookFilesBrick extends FormulaBrick {
     private static final long serialVersionUID = 1L;
 
     public SetLookFilesBrick() {
-        addAllowedBrickField(Brick.BrickField.FILE, R.id.brick_set_look_files_edit_text);
+        addAllowedBrickField(BrickField.FILE, R.id.brick_set_look_files_edit_text);
     }
 
     public SetLookFilesBrick(String value) {

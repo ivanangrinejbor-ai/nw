@@ -5,6 +5,7 @@ import org.catrobat.catroid.content.actions.ScriptSequenceAction;
 import org.catrobat.catroid.formulaeditor.Formula;
 
 public class SetBufferOnlyBrick extends FormulaBrick {
+    private static final long serialVersionUID = 1L;
     public SetBufferOnlyBrick() {
         addAllowedBrickField(BrickField.TIME, R.id.brick_buffer_state);
     }

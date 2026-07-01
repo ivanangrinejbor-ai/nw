@@ -2,6 +2,7 @@ package org.catrobat.catroid.content.bricks;
 import org.catrobat.catroid.R; import org.catrobat.catroid.content.Sprite; import org.catrobat.catroid.content.actions.ScriptSequenceAction; import org.catrobat.catroid.formulaeditor.Formula;
 
 public class SetBufferCameraBrick extends FormulaBrick {
+    private static final long serialVersionUID = 1L;
     public SetBufferCameraBrick() {
         addAllowedBrickField(BrickField.NAME, R.id.brick_buffer_name);
         addAllowedBrickField(BrickField.X_POSITION, R.id.brick_buffer_x);

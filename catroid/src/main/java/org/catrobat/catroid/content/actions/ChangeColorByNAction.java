@@ -38,6 +38,7 @@ public class ChangeColorByNAction extends TemporalAction {
 	private Scope scope;
 	private Formula color;
 
+	@Override
 	protected void update(float delta) {
 		try {
 			float eightBitColor = color == null ? 25 : color.interpretFloat(scope);

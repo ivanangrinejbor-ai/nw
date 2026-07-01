@@ -38,6 +38,7 @@ public class ReadListFromDeviceBrick extends UserListBrick {
 		return R.layout.brick_read_list_from_device;
 	}
 
+	@Override
 	protected int getSpinnerId() {
 		return R.id.read_list_from_device_spinner;
 	}

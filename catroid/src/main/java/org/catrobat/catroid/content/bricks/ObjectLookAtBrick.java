@@ -1,7 +1,5 @@
 package org.catrobat.catroid.content.bricks;
 
-// package org.catrobat.catroid.content.bricks;
-
 import org.catrobat.catroid.R;
 import org.catrobat.catroid.content.Sprite;
 import org.catrobat.catroid.content.actions.ScriptSequenceAction;
@@ -18,11 +16,15 @@ public class ObjectLookAtBrick extends FormulaBrick {
     }
 
     public ObjectLookAtBrick(String id, double x, double y, double z) {
+        this(new Formula(id), new Formula(x), new Formula(y), new Formula(z));
+    }
+
+    public ObjectLookAtBrick(Formula id, Formula x, Formula y, Formula z) {
         this();
-        setFormulaWithBrickField(BrickField.VALUE_1, new Formula(id));
-        setFormulaWithBrickField(BrickField.VALUE_2, new Formula(x));
-        setFormulaWithBrickField(BrickField.VALUE_3, new Formula(y));
-        setFormulaWithBrickField(BrickField.VALUE_4, new Formula(z));
+        setFormulaWithBrickField(BrickField.VALUE_1, id);
+        setFormulaWithBrickField(BrickField.VALUE_2, x);
+        setFormulaWithBrickField(BrickField.VALUE_3, y);
+        setFormulaWithBrickField(BrickField.VALUE_4, z);
     }
 
     @Override

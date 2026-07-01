@@ -9,10 +9,11 @@ class Scope(internal val enclosing: Scope? = null) {
     fun assign(nameToken: Token, value: LunoValue): LunoValue {
         val name = nameToken.lexeme
         if (values.containsKey(name)) {
-            if (values[name]!!.isConstant) {
+            val entry = values[name] ?: throw LunoRuntimeError("Internal error: variable '${name}' disappeared.", nameToken.line)
+            if (entry.isConstant) {
                 throw LunoRuntimeError("Cannot assign to a constant variable '${name}'.", nameToken.line)
             }
-            values[name] = values[name]!!.copy(value = value)
+            values[name] = entry.copy(value = value)
             return value
         }
         if (enclosing != null) {
@@ -36,7 +37,7 @@ class Scope(internal val enclosing: Scope? = null) {
         val name = nameToken.lexeme
         android.util.Log.d("LunoScope", "GET: var '$name' from scope $this (enclosing: $enclosing). Keys: ${values.keys}")
         if (values.containsKey(name)) {
-            return values[name]!!.value
+            return values[name]?.value ?: throw LunoRuntimeError("Internal error: variable '${name}' disappeared.", nameToken.line)
         }
         if (enclosing != null) {
             return enclosing.get(nameToken)
@@ -53,10 +54,11 @@ class Scope(internal val enclosing: Scope? = null) {
         val name = nameToken.lexeme
 
         if (ancestorScope.values.containsKey(name)) {
-            if (ancestorScope.values[name]!!.isConstant) {
+            val entry = ancestorScope.values[name] ?: throw LunoRuntimeError("Internal error: variable '${name}' disappeared.", nameToken.line)
+            if (entry.isConstant) {
                 throw LunoRuntimeError("Cannot assign to a constant variable '${name}'.", nameToken.line)
             }
-            ancestorScope.values[name] = ancestorScope.values[name]!!.copy(value = value)
+            ancestorScope.values[name] = entry.copy(value = value)
         } else {
             ancestorScope.values[name] = ScopeEntry(value, false)
         }

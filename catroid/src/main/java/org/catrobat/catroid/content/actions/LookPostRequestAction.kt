@@ -1,4 +1,4 @@
-/*package org.catrobat.catroid.content.actions
+package org.catrobat.catroid.content.actions
 
 import android.util.Log
 import okhttp3.*
@@ -147,4 +147,3 @@ class LookPostRequestAction : WebAction() {
         super.onCancelledCall()
     }
 }
-*/

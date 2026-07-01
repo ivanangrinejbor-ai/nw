@@ -131,7 +131,12 @@ class Parser(private val tokens: List<Token>) {
 
             try {
                 if (match(TokenType.FUN)) {
-                    methods.add(funDeclaration("method") as FunDeclarationStatement)
+                    val decl = funDeclaration("method")
+                    if (decl is FunDeclarationStatement) {
+                        methods.add(decl)
+                    } else {
+                        throw error(peek(), "Expected a function declaration inside class.")
+                    }
                 } else {
                     throw error(peek(), "Only 'fun' declarations are allowed inside a class body.")
                 }
@@ -443,9 +448,9 @@ class Parser(private val tokens: List<Token>) {
             match(TokenType.TRUE) -> LiteralExpr(LunoValue.Boolean(true), previous().line)
             match(TokenType.NULL) -> LiteralExpr(LunoValue.Null, previous().line)
             match(TokenType.THIS) -> ThisExpr(previous(), previous().line)
-            match(TokenType.NUMBER_LITERAL) -> LiteralExpr(LunoValue.Number(previous().literal as Double), previous().line)
-            match(TokenType.FLOAT_LITERAL) -> LiteralExpr(LunoValue.Float(previous().literal as Float), previous().line)
-            match(TokenType.STRING_LITERAL) -> LiteralExpr(LunoValue.String(previous().literal as String), previous().line)
+            match(TokenType.NUMBER_LITERAL) -> LiteralExpr(LunoValue.Number((previous().literal as? Double) ?: 0.0), previous().line)
+            match(TokenType.FLOAT_LITERAL) -> LiteralExpr(LunoValue.Float((previous().literal as? Float) ?: 0f), previous().line)
+            match(TokenType.STRING_LITERAL) -> LiteralExpr(LunoValue.String((previous().literal as? String) ?: ""), previous().line)
             match(TokenType.IDENTIFIER) -> VariableExpr(previous(), previous().line)
             match(TokenType.F_STRING) -> parseFString()
             match(TokenType.FUN) -> functionExpression()
@@ -470,7 +475,7 @@ class Parser(private val tokens: List<Token>) {
 
     private fun parseFString(): Expression {
         val fStringToken = previous()
-        val content = fStringToken.literal as String
+        val content = fStringToken.literal as? String ?: ""
         val parts = mutableListOf<Expression>()
         var currentIndex = 0
 

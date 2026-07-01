@@ -6,6 +6,8 @@ import org.catrobat.catroid.content.actions.ScriptSequenceAction;
 import org.catrobat.catroid.formulaeditor.Formula;
 
 public class PrepareSoundBrick2 extends FormulaBrick {
+    private static final long serialVersionUID = 1L;
+
     public PrepareSoundBrick2() {
         addAllowedBrickField(BrickField.FILE_NAME, R.id.brick_prepare_sound_file_edit);
         addAllowedBrickField(BrickField.SOUND_NAME, R.id.brick_prepare_sound_name_edit);

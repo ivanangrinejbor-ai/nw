@@ -6,6 +6,7 @@ import org.catrobat.catroid.content.actions.ScriptSequenceAction;
 import org.catrobat.catroid.formulaeditor.Formula;
 
 public class SetParentBrick extends FormulaBrick {
+    private static final long serialVersionUID = 1L;
     public SetParentBrick() {
         addAllowedBrickField(BrickField.CHILD_OBJECT, R.id.brick_set_parent_child_edit);
         addAllowedBrickField(BrickField.PARENT_OBJECT, R.id.brick_set_parent_parent_edit);

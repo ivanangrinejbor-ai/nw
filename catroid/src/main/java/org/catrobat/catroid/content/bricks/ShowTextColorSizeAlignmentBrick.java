@@ -89,6 +89,7 @@ public class ShowTextColorSizeAlignmentBrick extends UserVariableBrickWithVisual
 		setFormulaWithBrickField(BrickField.COLOR, color);
 	}
 
+	@Override
 	public BrickField getDefaultBrickField() {
 		return BrickField.X_POSITION;
 	}

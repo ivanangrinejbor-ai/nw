@@ -64,7 +64,7 @@ class PlaySoundAtAction : TemporalAction() {
     }
 
     companion object {
-        val TAG: String = PlaySoundAction::class.java.simpleName
+        val TAG: String = PlaySoundAtAction::class.java.simpleName
         const val SECONDS_TO_MILLISECONDS: Int = 1000
     }
 

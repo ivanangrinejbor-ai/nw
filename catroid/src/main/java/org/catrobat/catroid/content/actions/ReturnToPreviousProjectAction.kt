@@ -14,17 +14,32 @@ class ReturnToPreviousProjectAction : Action() {
         started = true
 
         val stage = StageActivity.activeStageActivity?.get()
-
-        val previousProjectPath = ProjectManager.popProjectHistory()
-        if (previousProjectPath != null) {
-            try {
-                ProjectManager.getInstance().loadProject(File(previousProjectPath))
-            } catch (e: Exception) {
-                Log.e("ReturnAction", "Failed to reload previous project", e)
-            }
+        if (stage == null) {
+            Log.e("ReturnAction", "Stage is null, cannot return to previous project.")
+            return true
         }
 
-        stage?.finish()
+        val previousProjectPath = ProjectManager.popProjectHistory()
+        if (previousProjectPath == null) {
+            Log.e("ReturnAction", "No previous project in history.")
+            stage.finish()
+            return true
+        }
+
+        val projectDir = File(previousProjectPath)
+        if (!projectDir.exists() || !projectDir.isDirectory) {
+            Log.e("ReturnAction", "Previous project directory does not exist: $previousProjectPath")
+            stage.finish()
+            return true
+        }
+
+        try {
+            ProjectManager.getInstance().loadProject(projectDir)
+        } catch (e: Exception) {
+            Log.e("ReturnAction", "Failed to reload previous project", e)
+        }
+
+        stage.finish()
         return true
     }
 

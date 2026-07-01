@@ -97,6 +97,7 @@ public class ShowTextRotationBrick extends UserVariableBrickWithVisualPlacement 
         setFormulaWithBrickField(BrickField.VALUE, rotation);
     }
 
+    @Override
     public BrickField getDefaultBrickField() {
         return BrickField.NAME;
     }

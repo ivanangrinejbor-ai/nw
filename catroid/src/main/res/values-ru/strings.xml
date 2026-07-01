@@ -4245,4 +4245,86 @@
     <string formatted="false" name="checkbox">флажок</string>
     <string name="ai_token_limit_title">Макс. токенов ИИ</string>
     <string name="ai_token_limit_summary">Размер окна контекста (500–40000, по умолчанию 2000). Больше = шире контекст, медленнее вывод.</string>
+    <string formatted="false" name="actor_object_title">Актёры и Объекты</string>
+    <string-array name="brick_easing_types">
+        <item>Линейный</item>
+        <item>Квадр. вх.</item>
+        <item>Квадр. вых.</item>
+        <item>Квадр. вх/вых</item>
+        <item>Куб. вх.</item>
+        <item>Куб. вых.</item>
+        <item>Куб. вх/вых</item>
+        <item>Кварт. вх.</item>
+        <item>Кварт. вых.</item>
+        <item>Кварт. вх/вых</item>
+        <item>Квинт. вх.</item>
+        <item>Квинт. вых.</item>
+        <item>Квинт. вх/вых</item>
+        <item>Син. вх.</item>
+        <item>Син. вых.</item>
+        <item>Син. вх/вых</item>
+        <item>Эксп. вх.</item>
+        <item>Эксп. вых.</item>
+        <item>Эксп. вх/вых</item>
+        <item>Окр. вх.</item>
+        <item>Окр. вых.</item>
+        <item>Окр. вх/вых</item>
+        <item>Упруг. вх.</item>
+        <item>Упруг. вых.</item>
+        <item>Упруг. вх/вых</item>
+        <item>Откат вх.</item>
+        <item>Откат вых.</item>
+        <item>Откат вх/вых</item>
+        <item>Отскок вх.</item>
+        <item>Отскок вых.</item>
+        <item>Отскок вх/вых</item>
+        <item>Плавн. шаг</item>
+        <item>Плавнейший шаг</item>
+    </string-array>
+    <string-array name="brick_physics_states_full">
+        <item>Нет</item>
+        <item>Статика</item>
+        <item>Динамика</item>
+        <item>Сетка статика</item>
+        <item>Кинематика</item>
+    </string-array>
+    <string formatted="false" name="brick_show_toast_long">Долго</string>
+    <string formatted="false" name="brick_show_toast_short">Кратко</string>
+    <string formatted="false" name="error_plot_data_not_found">График отсутствует.</string>
+    <string formatted="false" name="error_plot_file_write">Ошибка при записи SVG-файла графика.</string>
+    <string formatted="false" name="formula_editor_function_collides_with_color_parameter" translatable="false">('#ff0000')</string>
+    <string formatted="false" name="formula_editor_function_color_touches_color_parameter" translatable="false">('#ff0000','#00ff00')</string>
+    <string formatted="false" name="formula_editor_sensor_color_at_x_y_parameter" translatable="false">(100,200)</string>
+    <string formatted="false" name="formula_editor_sensor_color_equals_color_parameter" translatable="false">('#ff0000 ','#fe0000 ',1)</string>
+    <string name="formula_editor_sensor_fps">FPS</string>
+    <string name="formula_f2d_id_param" formatted="false">('id')</string>
+    <string name="formula_f2d_no_param" formatted="false">()</string>
+    <string name="formula_pt_argmax_param" formatted="false">('tensor')</string>
+    <string name="formula_pt_dump_param" formatted="false">('tensor')</string>
+    <string name="formula_pt_shape_param" formatted="false">('tensor')</string>
+    <string name="formula_pt_totalsize_param" formatted="false">('tensor')</string>
+    <string name="formula_pt_value_param" formatted="false">('tensor', index)</string>
+    <string name="formula_pt_valuend_param" formatted="false">('tensor', '10,2')</string>
+    <string name="inspector_title">Инспектор</string>
+    <string-array name="light_types">
+        <item>Направленный</item>
+        <item>Точечный</item>
+        <item>Прожектор</item>
+    </string-array>
+    <string formatted="false" name="main_menu_play">Запустить проект</string>
+    <string name="menu_load_scene">Загрузить сцену</string>
+    <string name="menu_save_scene">Сохранить сцену</string>
+    <string name="navigation_drawer_close">Закрыть панель навигации</string>
+    <string name="navigation_drawer_open">Открыть панель навигации</string>
+    <string formatted="false" name="ogurec">А ты любишь огурцы?</string>
+    <string formatted="false" name="plus" translatable="false">+</string>
+    <string name="preference_dialog_appgallery">AppGallery</string>
+    <string name="preference_dialog_google_play">Google Play</string>
+    <string name="preference_dialog_use_full_features">Использовать все возможности</string>
+    <string name="preference_embroidery_dialog_text">Для использования всех возможностей расширения вышивки используйте приложение Catrobat Embroidery Designer.</string>
+    <string name="preference_lego_dialog_text">Для использования всех возможностей Lego Mindstorms используйте приложение Catrobat Mindstorms Code EV3 NXT.</string>
+    <string name="preference_phiro_dialog_text">Для использования всех возможностей расширения Phiro используйте приложение Catrobat Phiro Code.</string>
+    <string formatted="false" name="sans_serif_font" translatable="false">sans_serif</string>
+    <string formatted="false" name="serif_font" translatable="false">serif</string>
+    <string name="title_activity_editor">Редактор сцен</string>
 </resources>

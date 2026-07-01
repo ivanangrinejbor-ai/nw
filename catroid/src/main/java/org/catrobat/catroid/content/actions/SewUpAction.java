@@ -33,6 +33,7 @@ public class SewUpAction extends TemporalAction {
 	private Sprite sprite;
 	public static final int STEPS = 3;
 
+	@Override
 	protected void begin() {
 		double radians = Math.toRadians(sprite.look.getMotionDirectionInUserInterfaceDimensionUnit());
 
@@ -66,6 +67,10 @@ public class SewUpAction extends TemporalAction {
 		sprite.runningStitch.setStartCoordinates(sprite.look.getXInUserInterfaceDimensionUnit(),
 				sprite.look.getYInUserInterfaceDimensionUnit());
 		sprite.runningStitch.resume();
+	}
+
+	@Override
+	protected void update(float delta) {
 	}
 
 	public void setSprite(Sprite sprite) {
