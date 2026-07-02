@@ -22,7 +22,8 @@ class TextRecognizer {
 }
 
 class Text {
-    fun getTextBlocks(): List<TextBlock> = emptyList()
+    val textBlocks: List<TextBlock> = emptyList()
+    fun getTextBlocks(): List<TextBlock> = textBlocks
 }
 
 class TextBlock {

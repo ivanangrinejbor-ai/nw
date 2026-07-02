@@ -2,24 +2,13 @@ package com.google.mlkit.vision.objectdetection
 
 class ObjectDetectorOptions {
     companion object {
-        fun defaultOptions(): ObjectDetectorOptions = ObjectDetectorOptions()
-        fun builder(): Builder = Builder()
+        const val CLASSIFICATION_MODE_NONE = 1
     }
 
     class Builder {
-        private var enableMultipleObjects: Boolean = false
-        private var enableClassification: Boolean = false
-
-        fun enableMultipleObjects(): Builder {
-            this.enableMultipleObjects = true
-            return this
-        }
-
-        fun enableClassification(): Builder {
-            this.enableClassification = true
-            return this
-        }
-
+        fun setClassificationMode(mode: Int): Builder = this
+        fun enableMultipleObjects(): Builder = this
+        fun enableClassification(): Builder = this
         fun build(): ObjectDetectorOptions = ObjectDetectorOptions()
     }
 }
