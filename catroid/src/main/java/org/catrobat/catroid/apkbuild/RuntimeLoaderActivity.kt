@@ -46,7 +46,7 @@ class RuntimeLoaderActivity : AppCompatActivity() {
         handler.post { statusText.text = text }
     }
 
-    private fun setProgress(value: Int) {
+    private fun updateProgress(value: Int) {
         handler.post { progressBar.progress = value }
     }
 
@@ -55,7 +55,7 @@ class RuntimeLoaderActivity : AppCompatActivity() {
             try {
                 // Шаг 1: Извлекаем шифрованный проект из assets
                 setStatus("Расшифровка проекта...")
-                setProgress(10)
+                updateProgress(10)
 
                 val cacheDir = File(cacheDir, CACHE_DIR_NAME)
                 if (cacheDir.exists()) cacheDir.deleteRecursively()
@@ -71,14 +71,14 @@ class RuntimeLoaderActivity : AppCompatActivity() {
                 } catch (e: Exception) {
                     // Возможно проект уже распакован
                     setStatus("Загрузка проекта...")
-                    setProgress(50)
+                    updateProgress(50)
                     startProject(cacheDir)
                     return@Thread
                 }
 
                 // Шаг 2: Расшифровываем
                 setStatus("Расшифровка...")
-                setProgress(30)
+                updateProgress(30)
 
                 if (!ProjectCrypto.decrypt(encryptedFile, decryptedZip, ProtectedProjectPayload.PASSWORD)) {
                     setStatus("Ошибка: не удалось расшифровать проект")
@@ -88,14 +88,14 @@ class RuntimeLoaderActivity : AppCompatActivity() {
 
                 // Шаг 3: Распаковываем
                 setStatus("Распаковка проекта...")
-                setProgress(50)
+                updateProgress(50)
 
                 ZipArchiver().unzip(decryptedZip, cacheDir)
                 decryptedZip.delete()
 
                 // Шаг 4: Создаем проект из baked-данных
                 setStatus("Инициализация проекта...")
-                setProgress(70)
+                updateProgress(70)
 
                 startProject(cacheDir)
 
@@ -108,7 +108,7 @@ class RuntimeLoaderActivity : AppCompatActivity() {
 
     private fun startProject(projectDir: File) {
         setStatus("Запуск проекта...")
-        setProgress(90)
+        updateProgress(90)
 
         // Проверяем, есть ли init.bin (baked LunoScript)
         val initFile = File(projectDir, "init.bin")
@@ -123,7 +123,7 @@ class RuntimeLoaderActivity : AppCompatActivity() {
         } else {
             // Пытаемся загрузить через ProjectManager
             try {
-                val project = org.catrobat.catroid.io.asynctask.ProjectLoader(projectDir, null).loadProjectSync()
+                val project = org.catrobat.catroid.io.asynctask.ProjectLoader(projectDir, null).execute().get()
                 if (project != null) {
                     ProjectManager.getInstance().currentProject = project
                     StageActivity.handlePlayButton(ProjectManager.getInstance(), this)
