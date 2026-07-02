@@ -302,6 +302,24 @@ object ApkToolboxManager {
     }
 
 
+    fun replaceIconInApk(apkPath: String, iconFile: File): Boolean {
+        if (!iconFile.exists()) return false
+        return modifyApk(apkPath) { module ->
+            val targets = mutableListOf<String>()
+            for (entry in module.zipEntryMap.listInputSources()) {
+                val name = entry.name
+                val filename = name.substringAfterLast('/')
+                if (filename.startsWith("ic_launcher")) {
+                    targets.add(name)
+                }
+            }
+            targets.forEach { pathInApk ->
+                module.zipEntryMap.remove(pathInApk)
+                module.add(FileInputSource(iconFile, pathInApk))
+            }
+        }
+    }
+
     private fun fixManifestRecursive(element: ResXmlElement, oldPkg: String, newPkg: String) {
         element.attributes.forEach { attr ->
             val value = attr.valueAsString

@@ -16,7 +16,11 @@ class SmoothPathAction : TemporalAction() {
         
         val follower = pathfindingManager.getFollower(name) ?: return
         if (follower.waypoints.isNotEmpty()) {
-            val smoothedPath = pathfindingManager.smoothPath(follower.waypoints)
+            val sprite = stageListener.spritesFromStage.find { it.name == name }
+            val look = sprite?.look
+            val w = look?.widthInUserInterfaceDimensionUnit ?: 0f
+            val h = look?.heightInUserInterfaceDimensionUnit ?: 0f
+            val smoothedPath = pathfindingManager.smoothPath(follower.waypoints, follower.sizeCheckMode, w, h)
             follower.waypoints = smoothedPath
         }
     }

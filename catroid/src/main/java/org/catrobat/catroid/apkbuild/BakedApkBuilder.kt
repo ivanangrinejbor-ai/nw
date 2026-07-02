@@ -103,7 +103,7 @@ object BakedApkBuilder {
             val encryptedProject = File(tempDir, ProtectedProjectPayload.ENCRYPTED_ASSET_NAME)
             createProtectedProjectPayload(context, projectDir, encryptedProject)
 
-            // Step 3: Modify AndroidManifest in the template APK before extraction
+            // Step 3: Modify AndroidManifest in the template APK
             onProgress("Configuring application...")
             val manifestConfig = ApkToolboxManager.ManifestConfig(
                 appName = config.appName,
@@ -115,56 +115,40 @@ object BakedApkBuilder {
                 Log.e(TAG, "Manifest update failed")
             }
 
-            // Step 4: Extract template APK to temp dir
-            onProgress("Extracting template...")
-            val extractedDir = File(tempDir, "extracted")
-            extractedDir.mkdirs()
-            extractApk(templateApk, extractedDir)
-
-            // Step 5: Inject encrypted project payload into extracted APK
+            // Step 4: Inject encrypted project payload into template APK
             onProgress("Embedding protected project...")
-            val assetsDir = File(extractedDir, ASSETS_DIR)
-            assetsDir.mkdirs()
-            File(assetsDir, "project").deleteRecursively()
-            File(assetsDir, "project.zip").delete()
-            encryptedProject.copyTo(File(assetsDir, ProtectedProjectPayload.ENCRYPTED_ASSET_NAME), overwrite = true)
+            ApkToolboxManager.deleteFromApk(templateApk.absolutePath, "assets/project")
+            ApkToolboxManager.deleteFromApk(templateApk.absolutePath, "assets/project.zip")
+            ApkToolboxManager.addFileToApk(templateApk.absolutePath, encryptedProject, "assets/${ProtectedProjectPayload.ENCRYPTED_ASSET_NAME}")
 
-            // Step 6: Replace icon if provided
+            // Step 5: Replace icon if provided
             if (config.iconFile != null && config.iconFile.exists()) {
                 onProgress("Replacing icon...")
-                replaceIcon(extractedDir, config.iconFile)
+                ApkToolboxManager.replaceIconInApk(templateApk.absolutePath, config.iconFile)
             }
 
-            // Step 7: Remove old signatures
+            // Step 6: Remove old signatures
             onProgress("Removing old signatures...")
-            val metaInf = File(extractedDir, "META-INF")
-            if (metaInf.exists()) metaInf.deleteRecursively()
+            ApkToolboxManager.deleteFromApk(templateApk.absolutePath, "META-INF")
 
-            // Step 8: Repackage as unsigned APK
-            onProgress("Packaging APK...")
-            val unsignedApk = File(tempDir, "unsigned.apk")
-            zipDirectory(extractedDir, unsignedApk)
-
-            // Step 9: Sign APK
+            // Step 7: Sign APK
             onProgress("Signing APK...")
             val signedApk = File(tempDir, "${config.appName.replace(" ", "_")}.apk")
             val keystoreFile = config.customKeystore ?: getOrCreateDebugKeystore(context, tempDir)
 
             if (!ApkToolboxManager.signApk(
                 context,
-                unsignedApk.absolutePath, signedApk.absolutePath,
+                templateApk.absolutePath, signedApk.absolutePath,
                 keystoreFile.absolutePath, config.keyAlias, config.keyPass
             )) {
                 tempDir.deleteRecursively()
                 return@withContext BuildResult.Error("APK signing failed")
             }
 
-            // Step 10: Cleanup
+            // Step 8: Cleanup
             onProgress("Cleaning up...")
             templateApk.delete()
-            extractedDir.deleteRecursively()
             encryptedProject.delete()
-            unsignedApk.delete()
 
             val resultFile = File(context.cacheDir, signedApk.name)
             if (resultFile.exists()) resultFile.delete()
@@ -203,10 +187,14 @@ object BakedApkBuilder {
         currentProject.sceneList.forEach { scene ->
             scene.spriteList.forEach { sprite ->
                 sprite.lookList.forEach { look ->
-                    look.file?.takeIf { it.exists() }?.copyTo(File(imagesDir, it.name), overwrite = true)
+                    look.file?.takeIf { it.exists() }?.let { file ->
+                        file.copyTo(File(imagesDir, file.name), overwrite = true)
+                    }
                 }
                 sprite.soundList.forEach { sound ->
-                    sound.file?.takeIf { it.exists() }?.copyTo(File(soundsDir, it.name), overwrite = true)
+                    sound.file?.takeIf { it.exists() }?.let { file ->
+                        file.copyTo(File(soundsDir, file.name), overwrite = true)
+                    }
                 }
             }
         }
@@ -215,23 +203,6 @@ object BakedApkBuilder {
         ProjectCrypto.encrypt(bakedZip, encryptedProject, ProtectedProjectPayload.PASSWORD)
         bakedZip.delete()
         bakedDir.deleteRecursively()
-    }
-
-    private fun extractApk(apkFile: File, destDir: File) {
-        ZipInputStream(FileInputStream(apkFile)).use { zis ->
-            var entry = zis.nextEntry
-            while (entry != null) {
-                if (entry.name.contains("..")) { entry = zis.nextEntry; continue }
-                val targetFile = File(destDir, entry.name)
-                if (entry.isDirectory) {
-                    targetFile.mkdirs()
-                } else {
-                    targetFile.parentFile?.mkdirs()
-                    FileOutputStream(targetFile).use { zis.copyTo(it) }
-                }
-                entry = zis.nextEntry
-            }
-        }
     }
 
     private fun zipDirectory(sourceDir: File, destFile: File) {
@@ -247,21 +218,6 @@ object BakedApkBuilder {
                 }
                 zos.closeEntry()
             }
-        }
-    }
-
-    private fun replaceIcon(extractedDir: File, iconFile: File) {
-        // Find and replace mipmap icons
-        extractedDir.walkTopDown().filter { it.name.startsWith("ic_launcher") }
-            .forEach { existing -> existing.delete(); iconFile.copyTo(existing, true) }
-
-        val resDir = File(extractedDir, "res")
-        if (resDir.exists()) {
-            resDir.walkTopDown().filter { it.isDirectory && it.name.startsWith("mipmap") }
-                .forEach { dir ->
-                    dir.listFiles()?.filter { it.name.startsWith("ic_launcher") }
-                        ?.forEach { it.delete(); iconFile.copyTo(File(dir, it.name), true) }
-                }
         }
     }
 

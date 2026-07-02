@@ -493,7 +493,12 @@ class PathfindingManager {
         followers.getOrPut(spriteName) { PathFollower(spriteName) }.blockedPathAction = action
     }
 
-    fun smoothPath(path: List<Vector2>): List<Vector2> {
+    fun smoothPath(
+        path: List<Vector2>,
+        sizeCheckMode: Int = 0,
+        spriteWidth: Float = 0f,
+        spriteHeight: Float = 0f
+    ): List<Vector2> {
         if (path.size <= 2) return path
         
         val smoothed = mutableListOf<Vector2>()
@@ -505,7 +510,7 @@ class PathfindingManager {
             
             val maxCheck = kotlin.math.min(path.size - 1, currentIndex + 32)
             for (i in maxCheck downTo currentIndex + 2) {
-                if (hasLineOfSight(path[currentIndex], path[i])) {
+                if (hasLineOfSight(path[currentIndex], path[i], sizeCheckMode, spriteWidth, spriteHeight)) {
                     farthestVisible = i
                     break
                 }
@@ -523,7 +528,13 @@ class PathfindingManager {
         return smoothed
     }
     
-    private fun hasLineOfSight(from: Vector2, to: Vector2): Boolean {
+    private fun hasLineOfSight(
+        from: Vector2,
+        to: Vector2,
+        sizeCheckMode: Int = 0,
+        spriteWidth: Float = 0f,
+        spriteHeight: Float = 0f
+    ): Boolean {
         val grid = navGrid ?: return false
         val distance = from.dst(to)
         val steps = (distance / (grid.cellSize * 0.5f)).toInt().coerceAtLeast(1)
@@ -533,7 +544,8 @@ class PathfindingManager {
             val x = from.x + (to.x - from.x) * t
             val y = from.y + (to.y - from.y) * t
             
-            if (!isWalkable(x, y)) {
+            val cell = worldToCell(x, y) ?: return false
+            if (!isCellWalkableForSize(cell.first, cell.second, grid, sizeCheckMode, spriteWidth, spriteHeight)) {
                 return false
             }
         }
@@ -641,7 +653,7 @@ class PathfindingManager {
                     follower.blockedPathAction
                 )
                 if (replanResult.found || (follower.blockedPathAction == 1 && replanResult.points.isNotEmpty())) {
-                    follower.waypoints = smoothPath(replanResult.points)
+                    follower.waypoints = smoothPath(replanResult.points, follower.sizeCheckMode, look.widthInUserInterfaceDimensionUnit, look.heightInUserInterfaceDimensionUnit)
                     if (finalTarget != null && follower.waypoints.isNotEmpty() && follower.waypoints.last().dst(finalTarget) > 1f) {
                         follower.waypoints = follower.waypoints.toMutableList().also { it.add(finalTarget) }
                     }
@@ -674,7 +686,7 @@ class PathfindingManager {
                             follower.blockedPathAction
                         )
                         if (replanResult.found || (follower.blockedPathAction == 1 && replanResult.points.isNotEmpty())) {
-                            follower.waypoints = smoothPath(replanResult.points)
+                            follower.waypoints = smoothPath(replanResult.points, follower.sizeCheckMode, look.widthInUserInterfaceDimensionUnit, look.heightInUserInterfaceDimensionUnit)
                             follower.currentIndex = 0
                         } else {
                             follower.callback?.onPathBlocked(name, "Path blocked, no alternative found")
@@ -744,30 +756,43 @@ class PathfindingManager {
         clearScene()
     }
 
-    fun findPathWithSmoothing(startX: Float, startY: Float, endX: Float, endY: Float): PathResult {
-        val result = findPath(startX, startY, endX, endY)
+    fun findPathWithSmoothing(
+        startX: Float, startY: Float, endX: Float, endY: Float,
+        sizeCheckMode: Int = 0, spriteWidth: Float = 0f, spriteHeight: Float = 0f
+    ): PathResult {
+        val result = findPath(startX, startY, endX, endY, sizeCheckMode, spriteWidth, spriteHeight)
         if (result.found && result.points.isNotEmpty()) {
             val finalPoint = Vector2(endX, endY)
             val points = result.points.toMutableList()
             if (points.last().dst(finalPoint) > 1f) {
                 points.add(finalPoint)
             }
-            return PathResult(smoothPath(points), true)
+            return PathResult(smoothPath(points, sizeCheckMode, spriteWidth, spriteHeight), true)
         }
         return result
     }
 
-    fun findPathToObjectWithSmoothing(fromSprite: String, targetSprite: String): PathResult {
-        val result = findPathToObject(fromSprite, targetSprite)
+    fun findPathToObjectWithSmoothing(fromSprite: String, targetSprite: String, sizeCheckMode: Int = 0): PathResult {
+        val from = findSpriteByName(fromSprite)?.look ?: return PathResult(emptyList(), false)
+        findSpriteByName(targetSprite)?.look ?: return PathResult(emptyList(), false)
+        val result = findPathToObject(fromSprite, targetSprite, sizeCheckMode)
         return if (result.found) {
-            PathResult(smoothPath(result.points), true)
+            PathResult(smoothPath(result.points, sizeCheckMode, from.widthInUserInterfaceDimensionUnit, from.heightInUserInterfaceDimensionUnit), true)
         } else {
             result
         }
     }
 
     fun setPathForFollowerWithSmoothing(spriteName: String, path: List<Vector2>) {
-        val smoothedPath = smoothPath(path)
+        val follower = followers[spriteName]
+        val (sizeMode, w, h) = if (follower != null) {
+            val sprite = findSpriteByName(spriteName)
+            val look = sprite?.look
+            Triple(follower.sizeCheckMode, look?.widthInUserInterfaceDimensionUnit ?: 0f, look?.heightInUserInterfaceDimensionUnit ?: 0f)
+        } else {
+            Triple(0, 0f, 0f)
+        }
+        val smoothedPath = smoothPath(path, sizeMode, w, h)
         setPathForFollower(spriteName, smoothedPath)
     }
 
@@ -786,9 +811,16 @@ class PathfindingManager {
                 "current: ${follower.currentIndex}, speed: ${follower.speed}"
     }
 
-    fun isPathWalkable(path: List<Vector2>): Boolean {
+    fun isPathWalkable(
+        path: List<Vector2>,
+        sizeCheckMode: Int = 0,
+        spriteWidth: Float = 0f,
+        spriteHeight: Float = 0f
+    ): Boolean {
+        val grid = navGrid ?: return false
         for (point in path) {
-            if (!isWalkable(point.x, point.y)) {
+            val cell = worldToCell(point.x, point.y) ?: return false
+            if (!isCellWalkableForSize(cell.first, cell.second, grid, sizeCheckMode, spriteWidth, spriteHeight)) {
                 return false
             }
         }
