@@ -1,7 +1,5 @@
 package com.google.mlkit.vision.objects.defaults
 
-import com.google.mlkit.vision.objects.ObjectDetectorOptions
-
 class ObjectDetectorOptions {
     companion object {
         fun defaultOptions(): ObjectDetectorOptions = ObjectDetectorOptions()
