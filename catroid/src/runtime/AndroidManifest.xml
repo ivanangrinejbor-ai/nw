@@ -22,34 +22,19 @@
         <!-- Удаляем все остальные activities из main manifest -->
         <activity
             android:name=".ui.MainMenuActivity"
-            android:exported="false"
-            tools:node="merge">
-            <intent-filter tools:node="removeAll" />
-        </activity>
+            tools:node="remove" />
         <activity
             android:name=".ui.ProjectListActivity"
-            android:exported="false"
-            tools:node="merge">
-            <intent-filter tools:node="removeAll" />
-        </activity>
+            tools:node="remove" />
         <activity
             android:name=".ui.SpriteActivity"
-            android:exported="false"
-            tools:node="merge">
-            <intent-filter tools:node="removeAll" />
-        </activity>
+            tools:node="remove" />
         <activity
             android:name="org.catrobat.paintroid.MainActivity"
-            android:exported="false"
-            tools:node="merge">
-            <intent-filter tools:node="removeAll" />
-        </activity>
+            tools:node="remove" />
         <activity
             android:name=".ui.ProjectActivity"
-            android:exported="false"
-            tools:node="merge">
-            <intent-filter tools:node="removeAll" />
-        </activity>
+            tools:node="remove" />
     </application>
 
 </manifest>

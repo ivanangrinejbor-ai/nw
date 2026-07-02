@@ -99,6 +99,7 @@
 -->
 
         <!--<activity
+            tools:node="remove"
             android:exported="true"
             android:name=".ui.MainMenuActivity"
             android:screenOrientation="portrait"
@@ -150,6 +151,7 @@
             android:theme="@android:style/Theme.Light.NoTitleBar.Fullscreen" />-->
 
 <!--        <activity
+            tools:node="remove"
             android:exported="true"
             android:name=".ui.ProjectListActivity"
             android:screenOrientation="portrait"
@@ -182,6 +184,7 @@
             android:windowSoftInputMode="adjustNothing" />-->
 
 <!--        <activity
+            tools:node="remove"
             android:exported="true"
             android:name=".ui.SpriteActivity"
             android:screenOrientation="portrait"
