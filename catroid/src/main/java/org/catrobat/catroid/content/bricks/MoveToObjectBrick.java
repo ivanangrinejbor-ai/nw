@@ -43,6 +43,9 @@ import org.catrobat.catroid.content.actions.ScriptSequenceAction;
 import org.catrobat.catroid.content.bricks.brickspinner.BrickSpinner;
 import org.catrobat.catroid.formulaeditor.Formula;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -55,7 +58,7 @@ public class MoveToObjectBrick extends FormulaBrick implements BrickSpinner.OnIt
     private int sizeCheckMode = 0; // 0 = ignore size, 1 = check fit
     private int blockedPathAction = 0; // 0 = don't go, 1 = stop where blocked
     private transient BrickSpinner<Sprite> spinner;
-    private transient Set<String> avoidSet = new HashSet<>();
+    private Set<String> avoidSet = new HashSet<>();
 
     public MoveToObjectBrick() {
         addAllowedBrickField(BrickField.SPRITE, R.id.brick_move_to_avoid_edit);
@@ -228,6 +231,23 @@ public class MoveToObjectBrick extends FormulaBrick implements BrickSpinner.OnIt
     public void onItemSelected(Integer spinnerId, @Nullable Sprite item) {
         if (item != null) {
             targetObject = item.getName();
+        }
+    }
+
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.defaultWriteObject();
+        out.writeInt(avoidSet.size());
+        for (String s : avoidSet) {
+            out.writeObject(s);
+        }
+    }
+
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        int size = in.readInt();
+        avoidSet = new HashSet<>(size);
+        for (int i = 0; i < size; i++) {
+            avoidSet.add((String) in.readObject());
         }
     }
 

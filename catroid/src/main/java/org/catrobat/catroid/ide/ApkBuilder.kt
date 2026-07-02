@@ -19,6 +19,10 @@ import java.util.zip.ZipFile
 
 object ApkBuilder {
 
+    private const val TAG = "ApkBuilder"
+    // keyboard|orientation|screenSize|smallestScreenSize|screenLayout|density
+    private const val CONFIG_CHANGES_FLAGS = 0x04A0
+
     data class BuildConfig(
         val appName: String,
         val packageName: String,
@@ -54,6 +58,7 @@ object ApkBuilder {
         val finalApk = File(buildDir, "app-release.apk")
 
         var apkModule: ApkModule? = null
+        var tempLibDir: File? = null
 
         try {
 
@@ -100,6 +105,7 @@ object ApkBuilder {
             var nextIndex = maxDexNumber + 1
 
             for (dexFile in dexFiles) {
+                if (dexFile.name.contains("..")) continue // path traversal protection
                 val dexName = if (nextIndex == 1) "classes.dex" else "classes$nextIndex.dex"
                 apk.add(FileInputSource(dexFile, dexName))
                 nextIndex++
@@ -152,7 +158,7 @@ object ApkBuilder {
 
                 val configChangesAttr = mainActivity.getOrCreateAndroidAttribute("configChanges", 0x0101001f)
 
-                configChangesAttr.setValueAsDecimal(1184)
+                configChangesAttr.setValueAsDecimal(CONFIG_CHANGES_FLAGS)
             }
 
             val appElem = manifest.applicationElement
@@ -169,8 +175,8 @@ object ApkBuilder {
             var extractAttr = appElem.searchAttributeByName("extractNativeLibs")
             if (extractAttr == null) {
 
-
-                extractAttr = appElem.getOrCreateAndroidAttribute("extractNativeLibs", 0x01010281)
+                // 0x010104ea = android:extractNativeLibs
+                extractAttr = appElem.getOrCreateAndroidAttribute("extractNativeLibs", 0x010104ea)
             }
             extractAttr.setValueAsBoolean(true)
 
@@ -268,8 +274,7 @@ object ApkBuilder {
                 try {
                     el.removeSelf()
                 } catch (e: Exception) {
-
-
+                    Log.w(TAG, "Failed to remove manifest element: ${el.name}", e)
                 }
             }
 
@@ -341,9 +346,9 @@ object ApkBuilder {
             val libsDir = File(projectPath, "libs")
 
             if (libsDir.exists()) {
-                val tempLibDir = File(context.cacheDir, "temp_libs_apk")
-                tempLibDir.deleteRecursively()
-                tempLibDir.mkdirs()
+                tempLibDir = File(context.cacheDir, "temp_libs_apk")
+                tempLibDir!!.deleteRecursively()
+                tempLibDir!!.mkdirs()
 
                 libsDir.listFiles()?.filter { it.extension == "jar" }?.forEach { jarFile ->
                     try {
@@ -388,8 +393,8 @@ object ApkBuilder {
                                 }
                             }
                         }
-                    } catch (_: Exception) {
-
+                    } catch (e: Exception) {
+                        Log.w(TAG, "Failed to extract .so from JAR: ${jarFile.name}", e)
                     }
                 }
             }
@@ -429,10 +434,22 @@ object ApkBuilder {
                     val cert = ks.getCertificate(signing.keyAlias) as X509Certificate
                     Pair(key, cert)
                 } else {
-
-
-
-                    throw RuntimeException("Для Target SDK 30+ нужна настройка Keystore!")
+                    // Auto-generate debug keystore
+                    Log.i(TAG, "No signing config provided, generating debug keystore")
+                    val debugDir = File(context.cacheDir, "debug_signing")
+                    debugDir.mkdirs()
+                    val debugKeystore = File(debugDir, "debug_auto.p12")
+                    if (!debugKeystore.exists()) {
+                        org.catrobat.catroid.apkbuild.ApkToolboxManager.generateKeyStore(
+                            debugKeystore.absolutePath, "debug", "android",
+                            "CN=Debug,OU=NeoCatroid,O=NeoCatroid,C=US"
+                        )
+                    }
+                    val ks = KeyStore.getInstance("PKCS12")
+                    debugKeystore.inputStream().use { ks.load(it, "android".toCharArray()) }
+                    val key = ks.getKey("debug", "android".toCharArray()) as PrivateKey
+                    val cert = ks.getCertificate("debug") as X509Certificate
+                    Pair(key, cert)
                 }
 
 
@@ -465,8 +482,11 @@ object ApkBuilder {
         } catch (e: Exception) {
             e.printStackTrace()
             onProgress("Ошибка: ${e.message}")
-            try { apkModule?.close() } catch(ex: Exception){}
+            try { apkModule?.close() } catch(ex: Exception){ Log.w(TAG, "Failed to close APK module", ex) }
             return BuildResult(null, e)
+        } finally {
+            tempApk.delete()
+            tempLibDir?.deleteRecursively()
         }
     }
 

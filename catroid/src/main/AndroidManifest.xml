@@ -90,15 +90,6 @@
     <uses-permission
         android:name="android.permission.NEARBY_WIFI_DEVICES" />
 
-    <permission
-        android:name="NeoCatroid.permission.USE_COFFEE_MACHINE"
-        android:protectionLevel="normal"
-        android:label="Разрешение на автоматическое заваривание кофе разработчику" />
-    <permission
-        android:name="NeoCatroid.permission.EAT_WATERMELON_AT_3_AM"
-        android:protectionLevel="normal" />
-
-
     <queries>
         <intent>
             <action android:name="com.google.android.gms.cast.CATEGORY_CAST" />
@@ -116,9 +107,6 @@
         tools:ignore="UnusedAttribute"
         tools:replace="android:label,android:allowBackup,android:name"
         android:usesCleartextTraffic="true">
-
-        <meta-data android:name="secret_agent" android:value="Mr. ThisIs100%NotDanveyd" />
-        <meta-data android:name="developer_sanity_level" android:value="0.01%" />
 
         <activity
             android:name=".ui.SettingsActivity"

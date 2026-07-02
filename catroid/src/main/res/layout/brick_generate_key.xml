@@ -37,7 +37,8 @@
             app:layout_newLine="true"/>
         <TextView
             android:id="@+id/brick_gen_key_edit_pass"
-            style="@style/BrickEditText" />
+            style="@style/BrickEditText"
+            android:inputType="textPassword" />
 
         <TextView
             style="@style/BrickText.SingleLine"
