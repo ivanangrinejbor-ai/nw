@@ -45,6 +45,7 @@ private val TAG = ProjectUnZipperAndImporter::class.java.simpleName
 sealed class ImportResult {
     object Success : ImportResult()
     object Failure : ImportResult()
+    object WrongPassword : ImportResult()
     data class BakedProject(val projectDir: File) : ImportResult()
 }
 
@@ -103,18 +104,18 @@ private fun ProjectUnZipperAndImporter.unzipAndImportProject(projectZipFile: Fil
         cachedProjectDir.mkdirs()
 
         var fileToUnzip = projectZipFile
-        if (ProjectCrypto.isEncrypted(projectZipFile)) {
-            if (password.isNullOrEmpty()) {
-                Log.e(TAG, "Project is encrypted but no password provided")
-                return@unzipAndImportProject ImportResult.Failure
+            if (ProjectCrypto.isEncrypted(projectZipFile)) {
+                if (password.isNullOrEmpty()) {
+                    Log.e(TAG, "Project is encrypted but no password provided")
+                    return@unzipAndImportProject ImportResult.Failure
+                }
+                val decryptedFile = File(CACHE_DIRECTORY, tempDirName + "_decrypted.zip")
+                if (!ProjectCrypto.decrypt(projectZipFile, decryptedFile, password!!)) {
+                    Log.e(TAG, "Failed to decrypt project (wrong password?)")
+                    return@unzipAndImportProject ImportResult.WrongPassword
+                }
+                fileToUnzip = decryptedFile
             }
-            val decryptedFile = File(CACHE_DIRECTORY, tempDirName + "_decrypted.zip")
-            if (!ProjectCrypto.decrypt(projectZipFile, decryptedFile, password!!)) {
-                Log.e(TAG, "Failed to decrypt project (wrong password?)")
-                return@unzipAndImportProject ImportResult.Failure
-            }
-            fileToUnzip = decryptedFile
-        }
 
         ZipArchiver().unzip(fileToUnzip, cachedProjectDir)
         if (fileToUnzip != projectZipFile) { fileToUnzip.delete() }

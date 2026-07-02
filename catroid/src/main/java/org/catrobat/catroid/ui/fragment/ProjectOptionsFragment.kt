@@ -1458,7 +1458,12 @@ class ProjectOptionsFragment : Fragment() {
         ZipOutputStream(FileOutputStream(zipFile)).use { zipOut ->
             sourceDir.walk().filter { it != sourceDir }.forEach { file ->
                 if(file.name != "undo_code.xml") {
-                    val zipEntry = ZipEntry(file.relativeTo(sourceDir).path)
+                    val entryPath = file.relativeTo(sourceDir).path
+                    val zipEntry = if (file.isDirectory) {
+                        ZipEntry("$entryPath/")
+                    } else {
+                        ZipEntry(entryPath)
+                    }
                     zipOut.putNextEntry(zipEntry)
 
                     if (file.isFile) {
