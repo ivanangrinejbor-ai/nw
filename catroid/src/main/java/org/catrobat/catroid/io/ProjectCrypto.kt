@@ -30,8 +30,6 @@ import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.security.SecureRandom
 import javax.crypto.Cipher
-import javax.crypto.CipherInputStream
-import javax.crypto.CipherOutputStream
 import javax.crypto.SecretKey
 import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.GCMParameterSpec
@@ -78,19 +76,14 @@ object ProjectCrypto {
         val cipher = Cipher.getInstance(ALGORITHM)
         cipher.init(Cipher.ENCRYPT_MODE, key, GCMParameterSpec(GCM_TAG_LENGTH, iv))
 
-        FileOutputStream(destFile).use { fos ->
-            fos.write(MAGIC)
-            fos.write(salt)
-            fos.write(iv)
-            CipherOutputStream(fos, cipher).use { cos ->
-                FileInputStream(sourceFile).use { fis ->
-                    val buffer = ByteArray(8192)
-                    var bytesRead: Int
-                    while (fis.read(buffer).also { bytesRead = it } != -1) {
-                        cos.write(buffer, 0, bytesRead)
-                    }
-                }
-            }
+        val plaintext = FileInputStream(sourceFile).use { it.readBytes() }
+        val ciphertext = cipher.doFinal(plaintext)
+
+        FileOutputStream(destFile).use { out ->
+            out.write(MAGIC)
+            out.write(salt)
+            out.write(iv)
+            out.write(ciphertext)
         }
         Log.d(TAG, "Encrypted: ${sourceFile.name} -> ${destFile.name}")
     }
@@ -105,21 +98,15 @@ object ProjectCrypto {
                 }
                 val salt = ByteArray(SALT_SIZE).also { input.read(it) }
                 val iv = ByteArray(IV_SIZE).also { input.read(it) }
+                val ciphertext = input.readBytes()
 
                 val key = deriveKey(password, salt)
                 val cipher = Cipher.getInstance(ALGORITHM)
                 cipher.init(Cipher.DECRYPT_MODE, key, GCMParameterSpec(GCM_TAG_LENGTH, iv))
 
+                val plaintext = cipher.doFinal(ciphertext)
                 destFile.parentFile?.mkdirs()
-                FileOutputStream(destFile).use { fos ->
-                    CipherInputStream(input, cipher).use { cis ->
-                        val buffer = ByteArray(8192)
-                        var bytesRead: Int
-                        while (cis.read(buffer).also { bytesRead = it } != -1) {
-                            fos.write(buffer, 0, bytesRead)
-                        }
-                    }
-                }
+                FileOutputStream(destFile).use { out -> out.write(plaintext) }
                 Log.d(TAG, "Decrypted: ${sourceFile.name} -> ${destFile.name}")
                 true
             }
