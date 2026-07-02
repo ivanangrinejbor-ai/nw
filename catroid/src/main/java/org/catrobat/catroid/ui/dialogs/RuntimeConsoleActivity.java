@@ -55,7 +55,7 @@ public class RuntimeConsoleActivity extends AppCompatActivity {
         ProjectManager.getInstance().setCurrentSprite(sandboxSprite);
 
         FrameLayout rootLayout = new FrameLayout(this);
-        rootLayout.setBackgroundColor(Color.parseColor("#04223F"));
+        rootLayout.setBackgroundColor(Color.parseColor("#3A3A3C"));
 
         Toolbar toolbar = new Toolbar(this);
         toolbar.setBackgroundColor(Color.parseColor("#002B4D"));
