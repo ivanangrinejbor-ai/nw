@@ -634,13 +634,13 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
         val currentVersion = BuildConfig.VERSION_CODE
 
         val projectDir = File(
-            FlavoredConstants.DEFAULT_ROOT_DIRECTORY,
-            FileMetaDataExtractor.encodeSpecialCharsForFileSystem(BuildConfig.PROJECT_NAME)
+            cacheDir,
+            "files"
         )
 
         if (lastUnpackedVersion >= currentVersion && projectDir.exists()) {
             Log.d("STANDALONE", "Project version ($lastUnpackedVersion) is up to date. Loading from storage.")
-            ProjectLoader(projectDir, this).setListener(this).loadProjectAsync()
+            loadStandaloneProject(projectDir)
             return
         }
 
@@ -651,8 +651,17 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
             unpackStandaloneProject(tempDir)
             Log.d("STANDALONE", "Unpacked new project to temporary directory: ${tempDir.path}")
 
-            if (projectDir.exists() && lastUnpackedVersion != -1) {
-                Log.d("STANDALONE", "Old project found. Migrating user data...")
+            val oldProjectDir = File(
+                FlavoredConstants.DEFAULT_ROOT_DIRECTORY,
+                FileMetaDataExtractor.encodeSpecialCharsForFileSystem(BuildConfig.PROJECT_NAME)
+            )
+
+            if (oldProjectDir.exists() && lastUnpackedVersion != -1) {
+                Log.d("STANDALONE", "Old files-based project found. Migrating user data...")
+                migrateUserData(oldProjectDir, tempDir)
+                oldProjectDir.deleteRecursively()
+            } else if (projectDir.exists() && lastUnpackedVersion != -1) {
+                Log.d("STANDALONE", "Old cache-based project found. Migrating user data...")
                 migrateUserData(projectDir, tempDir)
             }
 
@@ -667,7 +676,7 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
                 tempDir.deleteRecursively()
             }
 
-            ProjectLoader(projectDir, this).setListener(this).loadProjectAsync()
+            loadStandaloneProject(projectDir)
 
             prefs.edit().putInt("standalone_project_version", currentVersion).apply()
             Log.d("STANDALONE", "Update complete. Saved new version: $currentVersion")
@@ -675,9 +684,23 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
         } catch (e: IOException) {
             Log.e("STANDALONE", "Cannot unpack or update standalone project: ", e)
             if (projectDir.exists()) {
-                ProjectLoader(projectDir, this).setListener(this).loadProjectAsync()
+                loadStandaloneProject(projectDir)
             }
         }
+    }
+
+    private fun loadStandaloneProject(projectDir: File) {
+        if (File(projectDir, "init.bin").exists() || File(projectDir, "init.luno.txt").exists()) {
+            startActivityForResult(
+                Intent(this, StageActivity::class.java)
+                    .putExtra(StageActivity.EXTRA_PROJECT_PATH, projectDir.absolutePath)
+                    .putExtra("IS_BAKED_LAUNCH", true),
+                StageActivity.REQUEST_START_STAGE
+            )
+            return
+        }
+
+        ProjectLoader(projectDir, this).setListener(this).loadProjectAsync()
     }
 
     private fun unpackStandaloneProject(tempDir: File) {
@@ -697,7 +720,7 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
             return false
         }
 
-        val encryptedFile = File(cacheDir, "standalone_${System.currentTimeMillis()}.ncp")
+        val encryptedFile = File(cacheDir, "standalone_${System.currentTimeMillis()}.dat")
         val decryptedZip = File(cacheDir, "standalone_${System.currentTimeMillis()}.zip")
 
         return try {
