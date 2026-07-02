@@ -177,6 +177,8 @@ import org.catrobat.catroid.content.bricks.Fast2DSetScaleBrick
 import org.catrobat.catroid.content.bricks.Fast2DSetTextureBrick
 import org.catrobat.catroid.content.bricks.Fast2DSetVelocityBrick
 import org.catrobat.catroid.content.bricks.MoveToObjectBrick
+import org.catrobat.catroid.content.bricks.SmoothPathBrick
+import org.catrobat.catroid.content.bricks.EnableDynamicReplanningBrick
 import org.catrobat.catroid.content.bricks.StopMovementBrick
 import org.catrobat.catroid.content.bricks.FadeToBlackBrick
 import org.catrobat.catroid.content.bricks.FadeFromBlackBrick
@@ -2133,6 +2135,8 @@ void main() {
         pathfinderBrickList.add(StopMovementBrick())
         pathfinderBrickList.add(ContinueMovementBrick())
         pathfinderBrickList.add(HasPathBrick())
+        pathfinderBrickList.add(SmoothPathBrick())
+        pathfinderBrickList.add(EnableDynamicReplanningBrick())
 
         return pathfinderBrickList
     }

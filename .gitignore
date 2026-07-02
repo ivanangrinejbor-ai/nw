@@ -78,3 +78,6 @@ Gemfile
 *.personal_life
 # Не коммитить здравый смысл, пж
 /sanity_logic/
+
+# template APK (generated at build time)
+catroid/src/main/assets/template.apk

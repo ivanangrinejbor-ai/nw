@@ -683,9 +683,9 @@ object ProjectManager {
             if (signObj != null) {
                 signingConfig = SigningConfig(
                     keystorePath = signObj.optString("path", "release.jks"),
-                    keystorePass = signObj.optString("pass", ""),
+                    keystorePass = "",
                     keyAlias = signObj.optString("alias", "key0"),
-                    keyPass = signObj.optString("keyPass", "")
+                    keyPass = ""
                 )
             }
 
@@ -737,9 +737,7 @@ object ProjectManager {
         if (config.signing != null) {
             val signObj = JSONObject()
             signObj.put("path", config.signing.keystorePath)
-            signObj.put("pass", config.signing.keystorePass)
             signObj.put("alias", config.signing.keyAlias)
-            signObj.put("keyPass", config.signing.keyPass)
             json.put("signing", signObj)
         }
 

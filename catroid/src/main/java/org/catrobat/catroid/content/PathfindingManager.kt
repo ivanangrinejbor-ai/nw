@@ -1,17 +1,40 @@
 package org.catrobat.catroid.content
 
+import android.util.Log
 import com.badlogic.gdx.graphics.Pixmap
 import com.badlogic.gdx.math.Vector2
 import org.catrobat.catroid.stage.StageActivity
 import java.util.PriorityQueue
 
-data class PathNode(
-    val x: Int, val y: Int,
+class PathNode(
+    var x: Int, var y: Int,
     var g: Float = 0f,
     var h: Float = 0f,
     var parent: PathNode? = null
 ) {
     val f: Float get() = g + h
+
+    fun set(x: Int, y: Int, g: Float = 0f, h: Float = 0f, parent: PathNode? = null) {
+        this.x = x
+        this.y = y
+        this.g = g
+        this.h = h
+        this.parent = parent
+    }
+
+    fun reset() {
+        parent = null
+        g = 0f
+        h = 0f
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is PathNode) return false
+        return x == other.x && y == other.y
+    }
+
+    override fun hashCode(): Int = 31 * x + y
 }
 
 data class PathResult(
@@ -45,6 +68,11 @@ data class PathFollower(
 
 class PathfindingManager {
 
+    companion object {
+        private const val TAG = "PathfindingManager"
+        private const val MAX_ITERATIONS = 50000
+    }
+
     data class NavGrid(
         val width: Int,
         val height: Int,
@@ -74,8 +102,10 @@ class PathfindingManager {
     var navGrid: NavGrid? = null
     private val obstacles = mutableMapOf<String, MutableList<Vector2>>()
     private val followers = mutableMapOf<String, PathFollower>()
-    private var avoidColorHex: String? = null
+    private val pathNodePool = mutableListOf<PathNode>()
+    private val maxPoolSize = 5000
 
+    @Synchronized
     fun createGrid(width: Int, height: Int, cellSize: Float, defaultWalkable: Boolean = true,
                    offsetX: Float = 0f, offsetY: Float = 0f) {
         val walkable = Array(width) { BooleanArray(height) { defaultWalkable } }
@@ -87,6 +117,7 @@ class PathfindingManager {
         }
     }
 
+    @Synchronized
     fun deleteGrid() {
         navGrid = null
         followers.clear()
@@ -107,6 +138,7 @@ class PathfindingManager {
     }
 
     private fun worldToCell(worldX: Float, worldY: Float): Pair<Int, Int>? {
+        if (worldX.isNaN() || worldY.isNaN()) return null
         val grid = navGrid ?: return null
         val cx = kotlin.math.floor((worldX - grid.offsetX) / grid.cellSize).toInt()
         val cy = kotlin.math.floor((worldY - grid.offsetY) / grid.cellSize).toInt()
@@ -134,6 +166,7 @@ class PathfindingManager {
         return null
     }
 
+    @Synchronized
     fun addObstacle(name: String) {
         if (obstacles.containsKey(name)) return
         val sprite = findSpriteByName(name) ?: return
@@ -143,7 +176,8 @@ class PathfindingManager {
         val w = (look.widthInUserInterfaceDimensionUnit / 2f).coerceAtLeast(1f)
         val h = (look.heightInUserInterfaceDimensionUnit / 2f).coerceAtLeast(1f)
         val points = mutableListOf<Vector2>()
-        val step = navGrid?.cellSize?.coerceAtMost(1f) ?: 1f
+        // Use cellSize as step to avoid excessive point creation
+        val step = navGrid?.cellSize ?: 1f
 
         // Try to get pixmap for alpha checking
         val pixmap: Pixmap? = try {
@@ -156,10 +190,13 @@ class PathfindingManager {
         val spriteW = look.widthInUserInterfaceDimensionUnit.coerceAtLeast(1f)
         val spriteH = look.heightInUserInterfaceDimensionUnit.coerceAtLeast(1f)
 
+        var iterations = 0
+        val maxIterations = 100000
         var wx = x - w
         while (wx <= x + w) {
             var wy = y - h
             while (wy <= y + h) {
+                if (++iterations > maxIterations) break
                 var isOpaque = true
 
                 if (pixmap != null && pixW > 1 && pixH > 1) {
@@ -182,11 +219,13 @@ class PathfindingManager {
                 }
                 wy += step
             }
+            if (iterations > maxIterations) break
             wx += step
         }
         obstacles[name] = points
     }
 
+    @Synchronized
     fun removeObstacle(name: String) {
         val points = obstacles.remove(name) ?: return
         for (pt in points) {
@@ -203,11 +242,7 @@ class PathfindingManager {
         }
     }
 
-    fun setAvoidColor(hexColor: String?) {
-        avoidColorHex = hexColor
-    }
 
-    fun getAvoidColor(): String? = avoidColorHex
 
     fun createObstaclesFromBackground(): Int {
         val stageListener = StageActivity.getActiveStageListener() ?: return 0
@@ -241,6 +276,19 @@ class PathfindingManager {
             }
         }
         return true
+    }
+
+    private fun obtainNode(x: Int, y: Int, g: Float = 0f, h: Float = 0f, parent: PathNode? = null): PathNode {
+        val node = if (pathNodePool.isNotEmpty()) pathNodePool.removeAt(pathNodePool.lastIndex) else PathNode(0, 0)
+        node.set(x, y, g, h, parent)
+        return node
+    }
+
+    private fun freeNode(node: PathNode) {
+        if (pathNodePool.size < maxPoolSize) {
+            node.reset()
+            pathNodePool.add(node)
+        }
     }
 
     fun findPath(
@@ -280,13 +328,14 @@ class PathfindingManager {
         val closedSet = mutableSetOf<Pair<Int, Int>>()
         val bestG = mutableMapOf<Pair<Int, Int>, Float>()
         val startKey = sx to sy
-        val startNode = PathNode(sx, sy)
+        val startNode = obtainNode(sx, sy)
         startNode.h = heuristic(sx, sy, ex, ey)
         openSet.add(startNode)
         bestG[startKey] = 0f
 
         var closestNode: PathNode? = startNode
         var minH = startNode.h
+        var iterations = 0
 
         val dirs = arrayOf(
             0 to 1, 1 to 0, 0 to -1, -1 to 0,
@@ -294,6 +343,10 @@ class PathfindingManager {
         )
 
         while (openSet.isNotEmpty()) {
+            if (++iterations > MAX_ITERATIONS) {
+                Log.w(TAG, "A* exceeded $MAX_ITERATIONS iterations, returning best partial path")
+                break
+            }
             val current = openSet.poll() ?: break
             val key = current.x to current.y
             if (key in closedSet) continue
@@ -305,7 +358,9 @@ class PathfindingManager {
             }
 
             if (current.x == ex && current.y == ey) {
-                return PathResult(retracePath(current).map { Vector2(it.x * cs + cs / 2 + grid.offsetX, it.y * cs + cs / 2 + grid.offsetY) }, true)
+                val result = PathResult(retracePath(current).map { Vector2(it.x * cs + cs / 2 + grid.offsetX, it.y * cs + cs / 2 + grid.offsetY) }, true)
+                while (openSet.isNotEmpty()) { freeNode(openSet.poll()) }
+                return result
             }
 
             for ((dx, dy) in dirs) {
@@ -315,6 +370,15 @@ class PathfindingManager {
                 if (!isCellWalkableForSize(nx, ny, grid, sizeCheckMode, spriteWidth, spriteHeight)) continue
                 if (nx to ny in closedSet) continue
 
+                // Corner cutting prevention: for diagonal moves, check that both
+                // adjacent cardinal cells are walkable to avoid passing through wall corners
+                if (dx != 0 && dy != 0) {
+                    if (!isCellWalkableForSize(current.x + dx, current.y, grid, sizeCheckMode, spriteWidth, spriteHeight) ||
+                        !isCellWalkableForSize(current.x, current.y + dy, grid, sizeCheckMode, spriteWidth, spriteHeight)) {
+                        continue
+                    }
+                }
+
                 val moveCost = if (dx != 0 && dy != 0) 1.414f else 1f
                 val g = current.g + moveCost
                 val nKey = nx to ny
@@ -323,15 +387,18 @@ class PathfindingManager {
 
                 val h = heuristic(nx, ny, ex, ey)
                 bestG[nKey] = g
-                openSet.add(PathNode(nx, ny, g, h, current))
+                openSet.add(obtainNode(nx, ny, g, h, current))
             }
         }
 
-        // Path not found to target
-        if (blockedPathAction == 1 && closestNode != null && closestNode != startNode) {
-            return PathResult(retracePath(closestNode).map { Vector2(it.x * cs + cs / 2 + grid.offsetX, it.y * cs + cs / 2 + grid.offsetY) }, false)
+        // Path not found to target — return partial path to closest point
+        if ((blockedPathAction == 1 || iterations > MAX_ITERATIONS) && closestNode != null && closestNode != startNode) {
+            val result = PathResult(retracePath(closestNode).map { Vector2(it.x * cs + cs / 2 + grid.offsetX, it.y * cs + cs / 2 + grid.offsetY) }, false)
+            while (openSet.isNotEmpty()) { freeNode(openSet.poll()) }
+            return result
         }
 
+        while (openSet.isNotEmpty()) { freeNode(openSet.poll()) }
         return PathResult(emptyList(), false)
     }
 
@@ -346,13 +413,15 @@ class PathfindingManager {
      * Used when start/end cell is blocked (e.g., target is inside an obstacle).
      */
     private fun findNearestWalkableCell(
-        cx: Int, cy: Int, grid: NavGrid, maxRadius: Int = 20,
+        cx: Int, cy: Int, grid: NavGrid,
+        maxRadius: Int = kotlin.math.max(grid.width, grid.height) / 4,
         sizeCheckMode: Int = 0, spriteWidth: Float = 0f, spriteHeight: Float = 0f
     ): Pair<Int, Int>? {
         if (isCellWalkableForSize(cx, cy, grid, sizeCheckMode, spriteWidth, spriteHeight)) {
             return cx to cy
         }
-        for (r in 1..maxRadius) {
+        val effectiveRadius = maxRadius.coerceIn(10, 100)
+        for (r in 1..effectiveRadius) {
             for (dx in -r..r) {
                 for (dy in -r..r) {
                     if (kotlin.math.abs(dx) != r && kotlin.math.abs(dy) != r) continue
@@ -434,11 +503,17 @@ class PathfindingManager {
         while (currentIndex < path.size - 1) {
             var farthestVisible = currentIndex + 1
             
-            for (i in path.size - 1 downTo currentIndex + 2) {
+            val maxCheck = kotlin.math.min(path.size - 1, currentIndex + 32)
+            for (i in maxCheck downTo currentIndex + 2) {
                 if (hasLineOfSight(path[currentIndex], path[i])) {
                     farthestVisible = i
                     break
                 }
+            }
+            
+            if (farthestVisible == currentIndex + 1) {
+                smoothed.add(path[++currentIndex])
+                continue
             }
             
             smoothed.add(path[farthestVisible])
@@ -506,6 +581,7 @@ class PathfindingManager {
         if (f.state == FollowState.PAUSED) f.state = FollowState.FOLLOWING
     }
 
+    @Synchronized
     fun update(delta: Float) {
         val stageListener = StageActivity.getActiveStageListener() ?: return
         for ((name, follower) in followers) {
@@ -535,7 +611,7 @@ class PathfindingManager {
                     val sh = look.heightInUserInterfaceDimensionUnit / 2f
                     val tw = targetLook.widthInUserInterfaceDimensionUnit / 2f
                     val th = targetLook.heightInUserInterfaceDimensionUnit / 2f
-                    if (Math.abs(sx - tx) < sw + tw && Math.abs(sy - ty) < sh + th) {
+                    if (kotlin.math.abs(sx - tx) < sw + tw && kotlin.math.abs(sy - ty) < sh + th) {
                         follower.state = FollowState.REACHED
                         follower.callback?.onPathCompleted(name)
                         continue
@@ -657,11 +733,11 @@ class PathfindingManager {
         createGrid(width, height, grid.cellSize, true, grid.offsetX, grid.offsetY)
     }
 
+    @Synchronized
     fun clearScene() {
         navGrid = null
         obstacles.clear()
         followers.clear()
-        avoidColorHex = null
     }
 
     fun dispose() {

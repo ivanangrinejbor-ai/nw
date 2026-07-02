@@ -40,7 +40,7 @@ import java.util.zip.ZipOutputStream;
 public class ZipArchiver {
 
 	private static final String DIRECTORY_LEVEL_UP = "../";
-	private static final int COMPRESSION_LEVEL = 0;
+	private static final int COMPRESSION_LEVEL = 9;
 
 	public void zip(File archive, File[] files) throws IOException {
 		archive.createNewFile();
