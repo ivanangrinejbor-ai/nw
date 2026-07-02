@@ -260,18 +260,9 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
     }
 
     private fun loadFinalContent() {
-        if (BuildConfig.FEATURE_APK_GENERATOR_ENABLED) {
-            prepareStandaloneProject()
-        } else {
-            setSupportActionBar(findViewById(R.id.toolbar))
-            supportActionBar?.setIcon(R.drawable.pc_toolbar_icon)
-            supportActionBar?.setTitle(R.string.app_name)
+        loadContent()
 
-            if (SettingsFragment.isCastSharedPreferenceEnabled(this)) {
-                CastManager.getInstance().initializeCast(this)
-            }
-            loadFragment()
-
+        if (!BuildConfig.FEATURE_APK_GENERATOR_ENABLED) {
             CatroidApplication.current.loadPluginsIfNotLoaded()
         }
 
@@ -343,18 +334,15 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
             val mainMenuSplashscreenBinding =
                 ActivityMainMenuSplashscreenBinding.inflate(layoutInflater)
             setContentView(mainMenuSplashscreenBinding.root)
-            if (oldPrivacyPolicy == Constants.CATROBAT_TERMS_OF_USE_ACCEPTED) {
-                prepareStandaloneProject()
-            }
+            setSupportActionBar(findViewById(R.id.toolbar))
+            supportActionBar?.setIcon(R.drawable.pc_toolbar_icon)
+            supportActionBar?.setTitle(R.string.app_name)
+            prepareStandaloneProject()
             return
         }
-        mainMenuBinding = ActivityMainMenuBinding.inflate(layoutInflater)
-        setContentView(mainMenuBinding.root)
         setSupportActionBar(findViewById(R.id.toolbar))
         supportActionBar?.setIcon(R.drawable.pc_toolbar_icon)
         supportActionBar?.setTitle(R.string.app_name)
-
-        setShowProgressBar(true)
 
         if (SettingsFragment.isCastSharedPreferenceEnabled(this)) {
             CastManager.getInstance().initializeCast(this)
