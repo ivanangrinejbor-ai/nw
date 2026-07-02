@@ -41,8 +41,14 @@ import java.util.Arrays;
 
 import androidx.annotation.VisibleForTesting;
 
-@LunoClass
+	@LunoClass
 public class PhysicsObject {
+
+	public void dispose() {
+		if (body != null && body.getWorld() != null) {
+			body.getWorld().destroyBody(body);
+		}
+	}
 
 	public enum Type {
 		DYNAMIC, FIXED, NONE
