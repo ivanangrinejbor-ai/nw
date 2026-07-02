@@ -189,6 +189,7 @@ public final class Constants {
 	public static final String RESTRICTED_USER = "restricted_user";
 	public static final String JSON_ERROR_CODE = "errorCode";
 
+	public static final String GOOGLE_LOGIN_PRIVATE_PREFS = "GOOGLE_LOGIN_PRIVATE_PREFS";
 	public static final String GOOGLE_ID = "GOOGLE_ID";
 	public static final String NO_GOOGLE_ID = "NO_GOOGLE_ID";
 	public static final String GOOGLE_USERNAME = "GOOGLE_USERNAME";

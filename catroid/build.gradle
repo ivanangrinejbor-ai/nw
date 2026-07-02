@@ -160,6 +160,9 @@ android {
         buildConfigField "boolean", "WEB_TEST_FLAG", (project.hasProperty('webTestUrl') ? 'true' :
                 'false')
 
+        buildConfigField "String", "GITHUB_CLIENT_ID", "\"\""
+        buildConfigField "String", "GITHUB_CLIENT_SECRET", "\"\""
+
         buildConfigField "String", "PROJECT_NAME", "\"project\""
         buildConfigField "String", "START_PROJECT", "\"project\""
 

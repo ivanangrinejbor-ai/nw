@@ -6,6 +6,7 @@ import org.catrobat.catroid.content.GlobalManager;
 public class SetPreloadingAction extends TemporalAction {
     private int enabled;
 
+    public SetPreloadingAction() {}
     public SetPreloadingAction(int enabled) { this.enabled = enabled; }
 
     @Override protected void update(float percent) {

@@ -82,39 +82,33 @@ class AskGeminiAction() : TemporalAction() {
     }
 
     override fun update(percent: Float) {
-        val client = OkHttpClient.Builder()
-            .dns(CustomDns())
-            .connectTimeout(0, TimeUnit.SECONDS)
-            .readTimeout(0, TimeUnit.SECONDS)
-            .writeTimeout(0, TimeUnit.SECONDS)
-            .hostnameVerifier { hostname, session -> true }
-            .build()
         val askVal = ask?.interpretObject(scope) ?: ""
-        val askReq = askVal.toString().replace("\"", "\\\"")
         val apiKey = GeminiManager.api_key
         if (apiKey.isNullOrBlank()) return
+        if (userVariable == null) return
+
+        val client = OkHttpClient.Builder()
+            .dns(CustomDns())
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(60, TimeUnit.SECONDS)
+            .writeTimeout(30, TimeUnit.SECONDS)
+            .build()
+
         val urlText = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
 
-        val json = """
-    {
-    "contents": [
-      {
-        "parts": [
-          {
-            "text": "$askReq"
-          }
-        ]
-      }
-    ]
-  }
-    """.trimIndent()
-
-        if (userVariable == null) {
-            return
-        }
+        val jsonBody = JSONObject()
+        val contentsArray = JSONArray()
+        val partsArray = JSONArray()
+        val partObj = JSONObject()
+        partObj.put("text", askVal.toString())
+        partsArray.put(partObj)
+        val contentObj = JSONObject()
+        contentObj.put("parts", partsArray)
+        contentsArray.put(contentObj)
+        jsonBody.put("contents", contentsArray)
 
         val mediaType = "application/json; charset=utf-8".toMediaType()
-        val body = RequestBody.create(mediaType, json)
+        val body = RequestBody.create(mediaType, jsonBody.toString())
 
         val request = Request.Builder()
             .url(urlText)
@@ -122,34 +116,29 @@ class AskGeminiAction() : TemporalAction() {
             .header("x-goog-api-key", apiKey)
             .build()
 
-        Log.d("GeminiAPI", "URL: $urlText")
-        Log.d("GeminiAPI", "Request Body: $json")
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                userVariable?.value = "Response error: ${e.message}"
+            }
 
-        Thread {
-            client.newCall(request).enqueue(object : Callback {
-                override fun onFailure(call: Call, e: IOException) {
-                    userVariable?.value = "Response error: ${e.message}"
-                }
-
-                override fun onResponse(call: Call, response: Response) {
-                    if (response.isSuccessful) {
-                        val bodyStr = response.body?.string() ?: "Empty response"
-                        try {
-                            val gson = Gson()
-                            val responseData = gson.fromJson(bodyStr, ResponseData::class.java)
-                            val text = responseData.candidates.first().content.parts.first().text
-                            userVariable?.value = text
-                        } catch (e: Exception) {
-                            userVariable?.value = "Error parsing JSON: ${e.message}"
-                            Log.e("GeminiAPI", "JSON Parsing Error: ${e.message}")
-                        }
-                    } else {
-                        userVariable?.value = "Error ${response.code}: ${response.message}"
-                        val errorBody = response.body?.string() ?: "Unknown error"
-                        Log.e("GeminiAPI", "Error body: $errorBody")
+            override fun onResponse(call: Call, response: Response) {
+                if (response.isSuccessful) {
+                    val bodyStr = response.body?.string() ?: "Empty response"
+                    try {
+                        val gson = Gson()
+                        val responseData = gson.fromJson(bodyStr, ResponseData::class.java)
+                        val text = responseData.candidates.first().content.parts.first().text
+                        userVariable?.value = text
+                    } catch (e: Exception) {
+                        userVariable?.value = "Error parsing JSON: ${e.message}"
+                        Log.e("GeminiAPI", "JSON Parsing Error: ${e.message}")
                     }
+                } else {
+                    userVariable?.value = "Error ${response.code}: ${response.message}"
+                    val errorBody = response.body?.string() ?: "Unknown error"
+                    Log.e("GeminiAPI", "Error body: $errorBody")
                 }
-            })
-        }.start()
+            }
+        })
     }
 }

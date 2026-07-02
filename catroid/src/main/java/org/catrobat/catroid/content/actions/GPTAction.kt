@@ -131,7 +131,7 @@ abstract class GPTAction : Action(), WebRequestListener {
         if (TrustedDomainManager.isURLTrusted(url ?: "")) {
             grantPermission()
         } else {
-            grantPermission()
+            askForPermission()
         }
 
     private fun sendRequest(): Boolean {
