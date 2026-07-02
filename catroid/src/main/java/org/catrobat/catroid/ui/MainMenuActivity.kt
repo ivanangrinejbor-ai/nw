@@ -37,6 +37,7 @@ import android.util.Log
 import android.view.KeyEvent
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.text.HtmlCompat
@@ -110,18 +111,13 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
         if (!BuildConfig.FEATURE_APK_GENERATOR_ENABLED) {
             val startTime = System.currentTimeMillis()
 
-            mainMenuBinding = ActivityMainMenuBinding.inflate(layoutInflater)
-            setContentView(mainMenuBinding.root)
+            val rootContent = FrameLayout(this)
+            setContentView(rootContent)
 
             loadingBinding = ActivityLoadingBinding.inflate(layoutInflater)
-            val windowContent = findViewById<android.view.ViewGroup>(android.R.id.content)
+            rootContent.addView(loadingBinding.root)
 
             val density = resources.displayMetrics.density
-            loadingBinding.root.elevation = 100f * density
-            loadingBinding.root.translationZ = 200f
-
-            windowContent.addView(loadingBinding.root)
-
             loadingBinding.loadingLogo.alpha = 0f
             loadingBinding.loadingLogo.scaleX = 0.6f
             loadingBinding.loadingLogo.scaleY = 0.6f
@@ -188,10 +184,16 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
             }
 
             lifecycleScope.launch {
+                var initFailed = false
                 val factJob = launch { showRandomFacts() }
 
-                withContext(Dispatchers.IO) {
-                    heavyInitialization()
+                try {
+                    withContext(Dispatchers.IO) {
+                        heavyInitialization()
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "heavyInitialization failed", e)
+                    initFailed = true
                 }
 
                 factJob.cancel()
@@ -202,33 +204,37 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
                     kotlinx.coroutines.delay(remainingTime)
                 }
 
+                var exitTransitionStarted = false
                 val performExitTransition = {
-                    loadingBinding.root.pivotX = loadingBinding.root.width / 2f
-                    loadingBinding.root.pivotY = loadingBinding.root.height / 2f
+                    if (!exitTransitionStarted) {
+                        exitTransitionStarted = true
+                        loadingBinding.root.pivotX = loadingBinding.root.width / 2f
+                        loadingBinding.root.pivotY = loadingBinding.root.height / 2f
 
-                    loadingBinding.root.animate()
-                        .scaleX(3.5f)
-                        .scaleY(3.5f)
-                        .alpha(0f)
-                        .setDuration(600)
-                        .setInterpolator(android.view.animation.AccelerateInterpolator())
-                        .withEndAction {
-                            windowContent.removeView(loadingBinding.root)
-                        }
-                        .start()
+                        loadingBinding.root.animate()
+                            .scaleX(3.5f)
+                            .scaleY(3.5f)
+                            .alpha(0f)
+                            .setDuration(600)
+                            .setInterpolator(android.view.animation.AccelerateInterpolator())
+                            .withEndAction {
+                                rootContent.removeView(loadingBinding.root)
+                            }
+                            .start()
+                    }
                 }
+
+                mainMenuBinding = ActivityMainMenuBinding.inflate(layoutInflater)
+                rootContent.addView(mainMenuBinding.root, 0)
+                loadFinalContent()
 
                 if (waveView != null) {
                     waveView.flatline(350) {
-                        loadFinalContent()
-
-                        lifecycleScope.launch {
-                            kotlinx.coroutines.delay(150)
-                            performExitTransition()
-                        }
+                        performExitTransition()
                     }
+                    kotlinx.coroutines.delay(2000)
+                    performExitTransition()
                 } else {
-                    loadFinalContent()
                     performExitTransition()
                 }
             }
