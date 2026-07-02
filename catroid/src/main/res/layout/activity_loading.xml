@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#04223F">
+    android:background="#3A3A3C">
 
     <org.catrobat.catroid.ui.WaveLoadingView
         android:id="@+id/loading_progress_bar"
@@ -19,7 +19,7 @@
         android:layout_width="110dp"
         android:layout_height="110dp"
         android:layout_marginBottom="0dp"
-        android:src="@drawable/ic_launcher_foreground"
+        android:src="@drawable/logo_app"
         app:layout_constraintBottom_toTopOf="@+id/loading_progress_bar"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
