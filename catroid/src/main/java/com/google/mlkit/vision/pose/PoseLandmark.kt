@@ -37,7 +37,11 @@ class PoseLandmark {
         const val TYPE_RIGHT_FOOT_INDEX = 32
     }
 
-    fun getPosition(): android.graphics.PointF = android.graphics.PointF()
-    fun getInFrameLikelihood(): Float = 0f
-    fun getLandmarkType(): Int = 0
+    fun getPosition(): android.graphics.PointF = position
+    fun getInFrameLikelihood(): Float = inFrameLikelihood
+    fun getLandmarkType(): Int = type
+
+    val type: Int = 0
+    val position: android.graphics.PointF = android.graphics.PointF()
+    val inFrameLikelihood: Float = 0f
 }

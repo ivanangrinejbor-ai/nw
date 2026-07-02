@@ -1,20 +1,12 @@
 package com.google.mlkit.vision.pose
 
 class PoseDetection {
-    class Options {
-        companion object {
-            fun defaultOptions(): Options = Options()
-            fun builder(): Builder = Builder()
-        }
-
-        class Builder {
-            fun build(): Options = Options()
-        }
+    companion object {
+        fun getClient(options: PoseDetectorOptions): Client = Client()
     }
 
     class Client {
-        companion object {
-            fun getClient(options: Options): Client = Client()
-        }
+        fun process(image: com.google.mlkit.vision.common.InputImage) = com.google.android.gms.tasks.Tasks.forResult(Pose())
+        fun close() {}
     }
 }

@@ -5,8 +5,11 @@ class DetectedObject {
         const val CATEGORY_UNKNOWN = -1
     }
 
-    fun getTrackingId(): Int = 0
-    fun getBoundingBox(): android.graphics.Rect = android.graphics.Rect()
+    val trackingId: Int = 0
+    val boundingBox: android.graphics.Rect = android.graphics.Rect()
+
+    fun getTrackingId(): Int = trackingId
+    fun getBoundingBox(): android.graphics.Rect = boundingBox
     fun getCategory(): Category = Category()
     fun getLabels(): List<Label> = emptyList()
 

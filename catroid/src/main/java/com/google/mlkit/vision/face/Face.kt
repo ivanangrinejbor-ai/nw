@@ -5,8 +5,11 @@ class Face {
         const val UNKNOWN_TRACKING_ID = -1
     }
 
-    fun getTrackingId(): Int = 0
-    fun getBoundingBox(): android.graphics.Rect = android.graphics.Rect()
+    val trackingId: Int = 0
+    val boundingBox: android.graphics.Rect = android.graphics.Rect()
+
+    fun getTrackingId(): Int = trackingId
+    fun getBoundingBox(): android.graphics.Rect = boundingBox
     fun getLandmarks(): Map<Landmark, android.graphics.PointF> = emptyMap()
     fun getContours(): Map<Contour, android.graphics.PointF> = emptyMap()
     fun getClassifications(): Map<Classification, Float> = emptyMap()
