@@ -38,7 +38,7 @@
 
     <org.catrobat.catroid.ui.BrickLayout
         android:id="@+id/brick_move_to_layout"
-        style="@style/BrickContainer.Look.Medium">
+        style="@style/BrickContainer.Look.Big">
 
         <include layout="@layout/icon_brick_category_look" />
 
@@ -83,6 +83,26 @@
 
         <Spinner
             android:id="@+id/brick_move_to_mode_spinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/pathfinder_size_check"
+            app:layout_newLine="true" />
+
+        <Spinner
+            android:id="@+id/brick_move_to_size_spinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/pathfinder_blocked_action"
+            app:layout_newLine="true" />
+
+        <Spinner
+            android:id="@+id/brick_move_to_blocked_spinner"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 

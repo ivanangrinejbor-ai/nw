@@ -52,6 +52,8 @@ public class MoveToObjectBrick extends FormulaBrick implements BrickSpinner.OnIt
     private static final long serialVersionUID = 1L;
     private String targetObject;
     private int moveMode = 0;
+    private int sizeCheckMode = 0; // 0 = ignore size, 1 = check fit
+    private int blockedPathAction = 0; // 0 = don't go, 1 = stop where blocked
     private transient BrickSpinner<Sprite> spinner;
     private transient Set<String> avoidSet = new HashSet<>();
 
@@ -65,6 +67,13 @@ public class MoveToObjectBrick extends FormulaBrick implements BrickSpinner.OnIt
         this.targetObject = targetObject;
         setFormulaWithBrickField(BrickField.SPRITE, new Formula(avoidObjects));
         setFormulaWithBrickField(BrickField.SPEED, new Formula(speed));
+    }
+
+    public MoveToObjectBrick(String targetObject, String avoidObjects, double speed, int moveMode, int sizeCheckMode, int blockedPathAction) {
+        this(targetObject, avoidObjects, speed);
+        this.moveMode = moveMode;
+        this.sizeCheckMode = sizeCheckMode;
+        this.blockedPathAction = blockedPathAction;
     }
 
     @Override
@@ -120,6 +129,48 @@ public class MoveToObjectBrick extends FormulaBrick implements BrickSpinner.OnIt
                 @Override
                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                     moveMode = position;
+                }
+                @Override
+                public void onNothingSelected(AdapterView<?> parent) {}
+            });
+        }
+
+        Spinner sizeSpinner = view.findViewById(R.id.brick_move_to_size_spinner);
+        if (sizeSpinner != null) {
+            String[] sizeItems = new String[] {
+                context.getString(R.string.pathfinder_size_ignore),
+                context.getString(R.string.pathfinder_size_check_fit)
+            };
+            ArrayAdapter<String> sizeAdapter = new ArrayAdapter<>(context,
+                android.R.layout.simple_spinner_item, sizeItems);
+            sizeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            sizeSpinner.setAdapter(sizeAdapter);
+            sizeSpinner.setSelection(sizeCheckMode);
+            sizeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                    sizeCheckMode = position;
+                }
+                @Override
+                public void onNothingSelected(AdapterView<?> parent) {}
+            });
+        }
+
+        Spinner blockedSpinner = view.findViewById(R.id.brick_move_to_blocked_spinner);
+        if (blockedSpinner != null) {
+            String[] blockedItems = new String[] {
+                context.getString(R.string.pathfinder_blocked_dont_go),
+                context.getString(R.string.pathfinder_blocked_stop_there)
+            };
+            ArrayAdapter<String> blockedAdapter = new ArrayAdapter<>(context,
+                android.R.layout.simple_spinner_item, blockedItems);
+            blockedAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            blockedSpinner.setAdapter(blockedAdapter);
+            blockedSpinner.setSelection(blockedPathAction);
+            blockedSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                    blockedPathAction = position;
                 }
                 @Override
                 public void onNothingSelected(AdapterView<?> parent) {}
@@ -187,6 +238,8 @@ public class MoveToObjectBrick extends FormulaBrick implements BrickSpinner.OnIt
                         targetObject != null ? targetObject : "",
                         getFormulaWithBrickField(BrickField.SPRITE),
                         getFormulaWithBrickField(BrickField.SPEED),
-                        moveMode));
+                        moveMode,
+                        sizeCheckMode,
+                        blockedPathAction));
     }
 }

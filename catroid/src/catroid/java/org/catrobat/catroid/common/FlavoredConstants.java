@@ -36,6 +36,8 @@ public final class FlavoredConstants {
 	// Web:
 	public static final String BASE_URL_HTTPS = MAIN_URL_HTTPS;
 
+	public static final String COMMUNITY_URL = "http://NeoCatroid.sois.site";
+
 	public static final String BASE_UPLOAD_URL = UPLOAD_URL + "/pocketcode/";
 
 	public static final String CATROBAT_HELP_URL = "https://catrob.at/help";

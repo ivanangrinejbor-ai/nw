@@ -72,19 +72,23 @@ class WriteVarToFileAction : TemporalAction(), IntentListener {
     }
 
     override fun update(percent: Float) {
-        if (ContextCompat.checkSelfPermission(CatroidApplication.getAppContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            val activity = StageActivity.activeStageActivity.get()
-            activity?.runOnUiThread {
-                activity?.let { request(it) }
+        val context = CatroidApplication.getAppContext()
+        if (context != null) {
+            if (ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                val activity = StageActivity.activeStageActivity.get()
+                activity?.runOnUiThread {
+                    activity?.let { request(it) }
+                }
             }
         }
         if (userVariable == null || formula == null) {
             return
         }
-        saveOrOverwriteInDownloads(CatroidApplication.getAppContext(), getFileName(), userVariable?.value?.toString() ?: "")
+        saveOrOverwriteInDownloads(context, getFileName(), userVariable?.value?.toString() ?: "")
     }
 
-    fun saveOrOverwriteInDownloads(context: Context, fileName: String, content: String): Uri? {
+    fun saveOrOverwriteInDownloads(context: Context?, fileName: String?, content: String?): Uri? {
+        if (context == null || fileName == null || content == null) return null
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             val contentResolver = context.contentResolver
 

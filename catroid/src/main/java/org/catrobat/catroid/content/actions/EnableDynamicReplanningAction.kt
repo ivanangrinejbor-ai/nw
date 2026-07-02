@@ -12,7 +12,8 @@ class EnableDynamicReplanningAction : TemporalAction() {
 
     override fun update(percent: Float) {
         val name = spriteName?.interpretString(scope) ?: return
-        val enabledValue = enabled?.interpretString(scope)?.toBoolean() ?: return
+        val strVal = enabled?.interpretString(scope) ?: ""
+        val enabledValue = strVal.equals("true", ignoreCase = true) || strVal == "1" || strVal == "1.0" || (strVal.toDoubleOrNull() ?: 0.0) > 0.5
         val stageListener = StageActivity.getActiveStageListener() ?: return
         val pathfindingManager = stageListener.pathfindingManager ?: return
         

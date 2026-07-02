@@ -1,17 +1,17 @@
 # This code is from the CMake FAQ
 
-if (NOT EXISTS "D:/Catroid-develop/vncclient/.cxx/Debug/305v1k2y/x86_64/install_manifest.txt")
-  message(FATAL_ERROR "Cannot find install manifest: \"D:/Catroid-develop/vncclient/.cxx/Debug/305v1k2y/x86_64/install_manifest.txt\"")
-endif(NOT EXISTS "D:/Catroid-develop/vncclient/.cxx/Debug/305v1k2y/x86_64/install_manifest.txt")
+if (NOT EXISTS "C:/Users/ivanp/NewCatroid/vncclient/.cxx/Debug/305v1k2y/x86_64/install_manifest.txt")
+  message(FATAL_ERROR "Cannot find install manifest: \"C:/Users/ivanp/NewCatroid/vncclient/.cxx/Debug/305v1k2y/x86_64/install_manifest.txt\"")
+endif(NOT EXISTS "C:/Users/ivanp/NewCatroid/vncclient/.cxx/Debug/305v1k2y/x86_64/install_manifest.txt")
 
-file(READ "D:/Catroid-develop/vncclient/.cxx/Debug/305v1k2y/x86_64/install_manifest.txt" files)
+file(READ "C:/Users/ivanp/NewCatroid/vncclient/.cxx/Debug/305v1k2y/x86_64/install_manifest.txt" files)
 string(REGEX REPLACE "\n" ";" files "${files}")
 list(REVERSE files)
 foreach (file ${files})
   message(STATUS "Uninstalling \"$ENV{DESTDIR}${file}\"")
     if (EXISTS "$ENV{DESTDIR}${file}")
       execute_process(
-        COMMAND "D:/AppData/Local/Android/Sdk/cmake/3.22.1/bin/cmake.exe" -E remove "$ENV{DESTDIR}${file}"
+        COMMAND "C:/Users/ivanp/AppData/Local/Android/Sdk/cmake/3.22.1/bin/cmake.exe" -E remove "$ENV{DESTDIR}${file}"
         OUTPUT_VARIABLE rm_out
         RESULT_VARIABLE rm_retval
       )

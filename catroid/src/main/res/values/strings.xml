@@ -699,6 +699,12 @@
     <string formatted="false" name="pathfinder_smooth">Smooth path</string>
     <string formatted="false" name="pathfinder_replan">Dynamic replan</string>
     <string formatted="false" name="pathfinder_replan_enabled">Enabled (1/0)</string>
+    <string formatted="false" name="pathfinder_size_check">Size</string>
+    <string formatted="false" name="pathfinder_size_ignore">ignore</string>
+    <string formatted="false" name="pathfinder_size_check_fit">check fit</string>
+    <string formatted="false" name="pathfinder_blocked_action">If blocked</string>
+    <string formatted="false" name="pathfinder_blocked_dont_go">don\'t go</string>
+    <string formatted="false" name="pathfinder_blocked_stop_there">stop where blocked</string>
     <string formatted="false" name="transition_fade_to_black">Fade to Black</string>
     <string formatted="false" name="transition_fade_from_black">Fade from Black</string>
     <string formatted="false" name="transition_crossfade">Crossfade</string>

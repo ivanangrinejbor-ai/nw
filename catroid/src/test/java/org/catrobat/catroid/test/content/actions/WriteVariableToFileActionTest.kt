@@ -33,14 +33,14 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
+import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
-import org.powermock.api.mockito.PowerMockito.doNothing
 import org.powermock.api.mockito.PowerMockito.doReturn
 import org.powermock.api.mockito.PowerMockito.spy
-import java.io.File
+import android.net.Uri
 
 @RunWith(Parameterized::class)
 class WriteVariableToFileActionTest(
@@ -53,7 +53,7 @@ class WriteVariableToFileActionTest(
 ) {
     private lateinit var sprite: Sprite
     private lateinit var sequence: SequenceAction
-    private lateinit var file: File
+    private lateinit var uri: Uri
 
     companion object {
         @JvmStatic
@@ -85,7 +85,7 @@ class WriteVariableToFileActionTest(
         initializeStaticSingletonMethods()
         sprite = Sprite("testSprite")
         sequence = SequenceAction()
-        file = Mockito.mock(File::class.java)
+        uri = Mockito.mock(Uri::class.java)
     }
 
     @Test
@@ -98,15 +98,13 @@ class WriteVariableToFileActionTest(
         ) as WriteVarToFileAction)
 
         if (writeToFile > 0) {
-            doReturn(file).`when`(action).createFile(anyString())
+            doReturn(uri).`when`(action).saveOrOverwriteInDownloads(any(), anyString(), anyString())
         } else {
-            doReturn(null).`when`(action).createFile(anyString())
+            doReturn(null).`when`(action).saveOrOverwriteInDownloads(any(), anyString(), anyString())
         }
 
-        doNothing().`when`(action).writeToFile(file, expectedFileContent)
         Assert.assertTrue(action.act(1f))
 
-        verify(action, times(createFile)).createFile(DEFAULT_FILE_NAME)
-        verify(action, times(writeToFile)).writeToFile(file, expectedFileContent)
+        verify(action, times(createFile)).saveOrOverwriteInDownloads(any(), anyString(), anyString())
     }
 }
