@@ -75,13 +75,12 @@ if (hasGoogleServices) {
     apply plugin: 'com.google.firebase.crashlytics'
 }
 
-// Disable Google Services for runtime flavors
-afterEvaluate {
-    android.applicationVariants.all { variant ->
-        if (variant.flavorName.contains('runtime')) {
-            variant.extensions.findByName('googleServices')?.let {
-                it.disable = true
-            }
+// Disable Google Services for runtime flavors by skipping the tasks
+android.applicationVariants.all { variant ->
+    if (variant.flavorName.contains('runtime')) {
+        def processGoogleServicesTask = tasks.findByName("process${variant.name.capitalize()}GoogleServices")
+        if (processGoogleServicesTask != null) {
+            processGoogleServicesTask.enabled = false
         }
     }
 }
@@ -453,7 +452,9 @@ android {
         }
     }
     productFlavors.all { flavor ->
-        copyGoogleServicesFile(flavor.name, defaultConfig.applicationId + (flavor.applicationIdSuffix ?: ""))
+        if (!flavor.name.contains('runtime')) {
+            copyGoogleServicesFile(flavor.name, defaultConfig.applicationId + (flavor.applicationIdSuffix ?: ""))
+        }
     }
 
     packagingOptions {
