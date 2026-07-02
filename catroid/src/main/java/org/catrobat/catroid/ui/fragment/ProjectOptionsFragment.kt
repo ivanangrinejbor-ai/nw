@@ -1285,31 +1285,45 @@ class ProjectOptionsFragment : Fragment() {
     private fun startApkBuild(config: BakedApkBuilder.ApkConfig) {
         val projectDir = project?.directory ?: return
         val ctx = context ?: return
-        showToast(getString(R.string.build_apk_progress))
+        val progressText = android.widget.TextView(ctx).apply {
+            text = getString(R.string.build_apk_progress)
+            setPadding(60, 30, 60, 10)
+        }
+        val buildDialog = AlertDialog.Builder(ctx)
+            .setTitle(R.string.build_apk_title)
+            .setView(android.widget.LinearLayout(ctx).apply {
+                orientation = android.widget.LinearLayout.VERTICAL
+                addView(progressText)
+                addView(android.widget.ProgressBar(ctx).apply { isIndeterminate = true; setPadding(60, 0, 60, 20) })
+            })
+            .setCancelable(false)
+            .create()
+        buildDialog.show()
         lifecycleScope.launch(Dispatchers.IO) {
             val result = BakedApkBuilder.build(ctx, projectDir, config) { progress ->
-                lifecycleScope.launch(Dispatchers.Main) { context?.let { showToast(progress) } }
+                lifecycleScope.launch(Dispatchers.Main) { progressText.text = progress }
             }
             withContext(Dispatchers.Main) {
+                buildDialog.dismiss()
                 val c = context ?: return@withContext
                 when (result) {
                     is BakedApkBuilder.BuildResult.Success -> {
-                        showToast(getString(R.string.build_apk_success))
+                        ToastUtil.showSuccess(c, getString(R.string.build_apk_success))
                         try {
                             val uri = androidx.core.content.FileProvider.getUriForFile(
                                 c, "${c.packageName}.fileProvider", result.apkFile
                             )
-                            val intent = Intent(Intent.ACTION_VIEW).apply {
-                                setDataAndType(uri, "application/vnd.android.package-archive")
+                            val intent = Intent(Intent.ACTION_SEND).apply {
+                                type = "application/vnd.android.package-archive"
+                                putExtra(Intent.EXTRA_STREAM, uri)
                                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                             }
                             startActivity(Intent.createChooser(intent, getString(R.string.export_project)))
                         } catch (e: Exception) {
-                            showToast("APK saved: ${result.apkFile.name}")
+                            ToastUtil.showSuccess(c, "APK saved: ${result.apkFile.name}")
                         }
                     }
                     is BakedApkBuilder.BuildResult.Error -> {
-                        showToast(getString(R.string.build_apk_error))
                         ToastUtil.showError(c, result.message)
                     }
                 }
@@ -1371,7 +1385,7 @@ class ProjectOptionsFragment : Fragment() {
             orientation = android.widget.LinearLayout.VERTICAL
             setPadding(80, 40, 80, 0)
             addView(android.widget.TextView(requireContext()).apply { text = getString(R.string.encrypting_project) })
-            addView(this@apply)
+            addView(progressView)
         }
         val progressDialog = androidx.appcompat.app.AlertDialog.Builder(requireContext())
             .setTitle(R.string.exporting_project)

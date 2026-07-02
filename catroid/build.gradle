@@ -789,21 +789,21 @@ configurations.all {
     }
 }
 
-afterEvaluate {
-    android.applicationVariants.all { variant ->
-
-        if (variant.flavorName == 'apktemplate' || variant.flavorName == 'standalone') {
-            println "Disabling Kapt for flavor: ${variant.flavorName}"
-
-
-            def variantCapitalized = variant.name.capitalize()
-            tasks.matching { it.name.startsWith("kapt") && it.name.contains(variantCapitalized) }.all { task ->
-                println "  -> Disabling task: ${task.name}"
-                task.enabled = false
-            }
-        }
-    }
-}
+// afterEvaluate {
+//     android.applicationVariants.all { variant ->
+// 
+//         if (variant.flavorName == 'apktemplate' || variant.flavorName == 'standalone') {
+//             println "Disabling Kapt for flavor: ${variant.flavorName}"
+// 
+// 
+//             def variantCapitalized = variant.name.capitalize()
+//             tasks.matching { it.name.startsWith("kapt") && it.name.contains(variantCapitalized) }.all { task ->
+//                 println "  -> Disabling task: ${task.name}"
+//                 task.enabled = false
+//             }
+//         }
+//     }
+// }
 
 android.applicationVariants.all { variant ->
     if (variant.buildType.name == "debug") {
