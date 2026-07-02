@@ -79,7 +79,7 @@ if (hasGoogleServices) {
 afterEvaluate {
     android.applicationVariants.all { variant ->
         if (variant.flavorName.contains('runtime')) {
-            variant.extensions.findByName('googleServices')?.disable = true
+            variant.googleServicesEnabled = false
         }
     }
 }
