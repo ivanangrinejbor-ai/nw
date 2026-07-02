@@ -1303,6 +1303,17 @@ class ProjectOptionsFragment : Fragment() {
                     }
                 }
             }
+            if (index == 2) {
+                rb.setOnCheckedChangeListener { _, isChecked ->
+                    if (isChecked) {
+                        AlertDialog.Builder(requireContext())
+                            .setTitle("Внимание!")
+                            .setMessage("В шаблоне No ARMv7 отсутствует armeabi-v7a. На старых 32-bit ARM устройствах приложение будет падать.")
+                            .setPositiveButton("Понятно", null)
+                            .show()
+                    }
+                }
+            }
             radioGroup.addView(rb)
         }
         view.addView(radioGroup)
