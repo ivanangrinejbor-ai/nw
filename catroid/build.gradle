@@ -37,8 +37,6 @@ buildscript {
 plugins {
     id "io.gitlab.arturbosch.detekt" version "1.23.0"
     id 'checkstyle'
-    id 'com.google.gms.google-services'
-    id 'com.google.firebase.crashlytics'
     id 'org.jetbrains.kotlin.android'
 }
 
@@ -70,7 +68,13 @@ ext {
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
-apply plugin: 'com.google.gms.google-services'
+
+def hasGoogleServices = project.file('google-services-template.json').exists() ||
+    project.file('src/danvex/google-services.json').exists()
+if (hasGoogleServices) {
+    apply plugin: 'com.google.gms.google-services'
+    apply plugin: 'com.google.firebase.crashlytics'
+}
 
 apply from: 'gradle/code_quality_tasks.gradle'
 apply from: 'gradle/release_crowdin_tasks.gradle'
