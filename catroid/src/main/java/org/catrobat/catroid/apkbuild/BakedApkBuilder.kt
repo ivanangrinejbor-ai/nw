@@ -34,33 +34,35 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.util.zip.ZipEntry
-import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
 
 /**
  * Local APK builder for Catroid visual projects.
- * 
- * Embedds project files directly (NOT as project.zip) into the template APK.
- * Uses ApkToolboxManager for signing and manifest editing.
- * 
- * Template APK is loaded from assets/template.apk.
+ * Builds minimal runtime APK (без редактора) with encrypted project payload.
+ * Template APK is loaded from assets/template_runtime.apk.
  * Debug keystore is auto-generated on first run.
  */
 object BakedApkBuilder {
     private const val TAG = "BakedApkBuilder"
-    private const val TEMPLATE_APK = "template.apk"
-    private const val ASSETS_DIR = "assets"
+    private const val TEMPLATE_RUNTIME_APK = "template_runtime.apk"
+    private const val TEMPLATE_RUNTIME_LITE_APK = "template_runtime_lite.apk"
+    private const val TEMPLATE_RUNTIME_NOARM_APK = "template_runtime_noarm.apk"
+
+    enum class TemplateType {
+        FULL, LITE, NO_ARM
+    }
 
     data class ApkConfig(
         val appName: String,
-        val packageName: String = "org.DanVexTeam.NewCatroid",
+        val packageName: String = "org.DanVexTeam.NewCatroidRuntime",
         val versionName: String = "1.0",
         val versionCode: Int = 1,
         val iconFile: File? = null,
         val customKeystore: File? = null,
         val keystorePass: String = "keystore",
         val keyAlias: String = "newcatroid",
-        val keyPass: String = "keystore"
+        val keyPass: String = "keystore",
+        val templateType: TemplateType = TemplateType.FULL
     )
 
     sealed class BuildResult {
@@ -74,19 +76,26 @@ object BakedApkBuilder {
             val tempDir = File(context.cacheDir, "apk_build_${System.currentTimeMillis()}")
             tempDir.mkdirs()
 
-            // Step 1: Copy template APK from assets, fallback to running app's APK
+            // Step 1: Load template APK
             onProgress("Loading template APK...")
             val templateApk = File(tempDir, "template_temp.apk")
+
             var templateLoaded = false
+            val templateAssetName = when (config.templateType) {
+                TemplateType.LITE -> TEMPLATE_RUNTIME_LITE_APK
+                TemplateType.NO_ARM -> TEMPLATE_RUNTIME_NOARM_APK
+                else -> TEMPLATE_RUNTIME_APK
+            }
             try {
-                context.assets.open(TEMPLATE_APK).use { input ->
+                context.assets.open(templateAssetName).use { input ->
                     FileOutputStream(templateApk).use { output -> input.copyTo(output) }
                 }
                 templateLoaded = true
-                Log.d(TAG, "Loaded template APK from assets")
+                Log.d(TAG, "Loaded template APK from assets: $templateAssetName")
             } catch (e: Exception) {
-                Log.w(TAG, "Template APK not found in assets, using self-APK as fallback")
+                Log.w(TAG, "Template APK not found in assets: $templateAssetName")
             }
+
             if (!templateLoaded) {
                 val selfApkPath = context.applicationInfo.sourceDir
                 if (selfApkPath != null && File(selfApkPath).exists()) {

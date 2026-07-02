@@ -1261,22 +1261,62 @@ class ProjectOptionsFragment : Fragment() {
 
         val view = LinearLayout(requireContext()).apply { orientation = LinearLayout.VERTICAL; setPadding(32, 16, 32, 16) }
         val nameInput = EditText(requireContext()).apply { setText(project.name); hint = "App name" }
-        val pkgInput = EditText(requireContext()).apply { setText("org.DanVexTeam.NeoCatroid"); hint = "Package" }
+        val pkgInput = EditText(requireContext()).apply { setText("org.DanVexTeam.NewCatroidRuntime"); hint = "Package" }
         val verInput = EditText(requireContext()).apply { setText("1.0"); hint = "Version" }
         val codeInput = EditText(requireContext()).apply { setText("1"); hint = "Version code"; inputType = android.text.InputType.TYPE_CLASS_NUMBER }
+
+        val templateItems = arrayOf(
+            "Полный (~45 МБ) — ARM + x86",
+            "Lite (~18 МБ) — только ARM, без x86",
+            "No ARMv7 (~12 МБ) — только arm64"
+        )
+        val templateTypes = arrayOf(
+            BakedApkBuilder.TemplateType.FULL,
+            BakedApkBuilder.TemplateType.LITE,
+            BakedApkBuilder.TemplateType.NO_ARM
+        )
+        var selectedTemplate = 0
 
         view.addView(nameInput)
         view.addView(pkgInput)
         view.addView(verInput)
         view.addView(codeInput)
+
+        val label = TextView(requireContext()).apply {
+            text = "Шаблон APK:"
+            setPadding(0, 16, 0, 8)
+            textSize = 14f
+        }
+        view.addView(label)
+
+        val radioGroup = RadioGroup(requireContext())
+        templateItems.forEachIndexed { index, item ->
+            val rb = RadioButton(requireContext()).apply { text = item; isChecked = index == 0 }
+            if (index == 1) {
+                rb.setOnCheckedChangeListener { _, isChecked ->
+                    if (isChecked) {
+                        AlertDialog.Builder(requireContext())
+                            .setTitle("Внимание!")
+                            .setMessage("В шаблоне Lite нет поддержки x86/x86_64. На устройствах x86 (эмуляторы) приложение будет падать.")
+                            .setPositiveButton("Понятно", null)
+                            .show()
+                    }
+                }
+            }
+            radioGroup.addView(rb)
+        }
+        view.addView(radioGroup)
+
         builder.setView(view)
 
         builder.setPositiveButton(R.string.build_apk_start) { _, _ ->
+            selectedTemplate = radioGroup.checkedRadioButtonId.let { radioGroup.indexOfChild(radioGroup.findViewById(it)) }
             val config = BakedApkBuilder.ApkConfig(
                 appName = nameInput.text.toString().ifEmpty { project.name },
-                packageName = pkgInput.text.toString().ifEmpty { "org.DanVexTeam.NeoCatroid" },
+                packageName = pkgInput.text.toString().ifEmpty { "org.DanVexTeam.NewCatroidRuntime" },
                 versionName = verInput.text.toString().ifEmpty { "1.0" },
-                versionCode = codeInput.text.toString().toIntOrNull() ?: 1
+                versionCode = codeInput.text.toString().toIntOrNull() ?: 1,
+                templateType = templateTypes[selectedTemplate]
             )
             startApkBuild(config)
         }

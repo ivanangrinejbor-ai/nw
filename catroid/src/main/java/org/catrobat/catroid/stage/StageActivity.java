@@ -1681,13 +1681,11 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 
 	private void handleBack() {
 		if (BuildConfig.FEATURE_APK_GENERATOR_ENABLED) {
-			//BluetoothDeviceService service = ServiceProvider.getService(CatroidService.BLUETOOTH_DEVICE_SERVICE);
-
-
-			//TextToSpeechHolder.getInstance().deleteSpeechFiles();
-			//Intent marketingIntent = new Intent(this, MarketingActivity.class);
-			//startActivity(marketingIntent);
-			//finish();
+			// В собранном APK (runtime/standalone) — просто выходим
+			StageLifeCycleController.stagePause(this);
+			stageListener.pause();
+			stageListener.finish();
+			finish();
 		} else {
 			StageLifeCycleController.stagePause(this);
 			idlingResource.increment();

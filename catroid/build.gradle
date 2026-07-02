@@ -235,6 +235,10 @@ android {
         androidTest {
             resources.srcDirs += ['src/androidTest/res', 'src/androidTest/assets']
         }
+        runtime {
+            java.srcDirs += ['src/runtime/java']
+            manifest.srcFile 'src/runtime/AndroidManifest.xml'
+        }
     }
 
     packagingOptions {
@@ -332,18 +336,6 @@ android {
             applicationId "org.DanVexTeam.NeoCatroid"
             isDefault.set(true)
         }
-        apktemplate {
-            applicationId "org.DanVexTeam.NeoCatroidApkTemplate"
-
-            versionCode 1
-            versionName '1.0'
-
-            ext.set("disableGoogleServices", true)
-
-            resValue "string", "FEATURE_APK_GENERATOR_ENABLED", "true"
-            buildConfigField "boolean", "FEATURE_APK_GENERATOR_ENABLED", "true"
-            manifestPlaceholders = [appName: "NeoCatroid (APK Template)"]
-        }
         catroid {
 
         }
@@ -382,16 +374,61 @@ android {
 
             buildConfigField "boolean", "FEATURE_APK_GENERATOR_ENABLED", "true"
         }
+
+        runtime {
+            applicationId "org.DanVexTeam.NewCatroidRuntime"
+            versionCode 1
+            versionName '1.0'
+
+            ext.set("disableGoogleServices", true)
+
+            buildConfigField "boolean", "FEATURE_APK_GENERATOR_ENABLED", "true"
+            manifestPlaceholders = [appName: "NeoCatroid Runtime"]
+
+            ndk {
+                // Keep all ABIs for full runtime
+                abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
+            }
+        }
+
+        runtimeLite {
+            applicationId "org.DanVexTeam.NewCatroidRuntimeLite"
+            versionCode 1
+            versionName '1.0'
+
+            ext.set("disableGoogleServices", true)
+
+            buildConfigField "boolean", "FEATURE_APK_GENERATOR_ENABLED", "true"
+            manifestPlaceholders = [appName: "NeoCatroid Runtime Lite"]
+
+            ndk {
+                // Only ARM, no x86 (x86/x86_64 removed)
+                abiFilters 'armeabi-v7a', 'arm64-v8a'
+            }
+        }
+
+        runtimeNoArm {
+            applicationId "org.DanVexTeam.NewCatroidRuntimeNoArm"
+            versionCode 1
+            versionName '1.0'
+
+            ext.set("disableGoogleServices", true)
+
+            buildConfigField "boolean", "FEATURE_APK_GENERATOR_ENABLED", "true"
+            manifestPlaceholders = [appName: "NeoCatroid Runtime (No ARMv7)"]
+
+            ndk {
+                // Only 64-bit ARM
+                abiFilters 'arm64-v8a'
+            }
+        }
     }
 
     applicationVariants.all { variant ->
         variant.outputs.all { output ->
-
-            if(variant.buildType.name == "signedRelease")
-            {
+            if (variant.buildType.name == "signedRelease") {
                 def flavorName
-                switch(variant.flavorName)
-                {
+                switch (variant.flavorName) {
                     case "catroid":
                         flavorName = "pocketCode"
                         break
@@ -483,6 +520,7 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlinScriptingVersion"
 
 
+
     implementation "org.jetbrains.kotlin:kotlin-scripting-jvm:$kotlinScriptingVersion"
 
 
@@ -490,7 +528,9 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-scripting-jvm-host:$kotlinScriptingVersion"
 
 
+
     implementation "org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:$kotlinScriptingVersion"
+
 
 
     //implementation "org.jetbrains.kotlin:kotlin-script-util:$kotlinScriptingVersion"
@@ -538,7 +578,6 @@ dependencies {
     implementation "io.insert-koin:koin-core:$koin_version"
     implementation "io.insert-koin:koin-android:$koin_version"
     implementation "io.insert-koin:koin-androidx-viewmodel:$koin_version"
-    implementation "io.insert-koin:koin-androidx-fragment:$koin_version"
     implementation "io.insert-koin:koin-androidx-scope:$koin_version"
 
     // Retrofit
@@ -616,9 +655,9 @@ dependencies {
     // ML Kit
     implementation 'com.google.android.gms:play-services-mlkit-face-detection:16.1.4'
     implementation 'com.google.android.gms:play-services-mlkit-text-recognition:16.1.3'
-    implementation 'com.google.mlkit:object-detection:16.2.7'
-    implementation 'com.google.mlkit:language-id:16.1.1'
-    implementation 'com.google.mlkit:pose-detection:17.0.0'
+    implementation 'com.google.android.gms:play-services-mlkit-object-detection:16.2.7'
+    implementation 'com.google.android.gms:play-services-mlkit-language-id:16.1.1'
+    implementation 'com.google.android.gms:play-services-mlkit-pose-detection:17.0.0'
 
     // TensorFlow Lite for Neural AI Assistant
     implementation 'org.tensorflow:tensorflow-lite:2.14.0'
@@ -799,11 +838,11 @@ configurations.all {
 
 // afterEvaluate {
 //     android.applicationVariants.all { variant ->
-// 
+
 //         if (variant.flavorName == 'apktemplate' || variant.flavorName == 'standalone') {
 //             println "Disabling Kapt for flavor: ${variant.flavorName}"
-// 
-// 
+
+
 //             def variantCapitalized = variant.name.capitalize()
 //             tasks.matching { it.name.startsWith("kapt") && it.name.contains(variantCapitalized) }.all { task ->
 //                 println "  -> Disabling task: ${task.name}"
@@ -859,7 +898,6 @@ android.applicationVariants.all { variant ->
                 configurations.pluginLibs.each { File depFile ->
                     def fileName = depFile.name
                     def destName = ""
-
                     if (fileName.contains('gdx-')) {
                         destName = 'gdx.jar'
                     } else if (fileName.contains('xstream')) {
@@ -927,13 +965,42 @@ tasks.register('makeCoffee') {
 
 tasks.register('copyTemplateApk', Copy) {
     group = "build"
-    description = "Builds and copies the APK template to assets for APK builder"
-    dependsOn 'assembleApktemplateDebug'
-    from "$buildDir/outputs/apk/apktemplate/debug"
+    description = "Builds and copies the minimal runtime APK template to assets"
+    dependsOn 'assembleRuntimeDebug'
+    from "$buildDir/outputs/apk/runtime/debug"
     into "$projectDir/src/main/assets"
-    include '*-apktemplate-debug.apk'
-    rename { 'template.apk' }
+    include '*-runtime-debug.apk'
+    rename { 'template_runtime.apk' }
     doLast {
-        println "Template APK updated at: $projectDir/src/main/assets/template.apk"
+        println "Runtime Template APK updated at: $projectDir/src/main/assets/template_runtime.apk"
     }
 }
+
+tasks.register('copyTemplateRuntimeLite', Copy) {
+    group = "build"
+    description = "Builds and copies the lite runtime APK template (no x86/x64)"
+    dependsOn 'assembleRuntimeLiteDebug'
+    from "$buildDir/outputs/apk/runtimeLite/debug"
+    into "$projectDir/src/main/assets"
+    include '*-runtimeLite-debug.apk'
+    rename { 'template_runtime_lite.apk' }
+    doLast {
+        println "Lite Runtime Template APK updated at: $projectDir/src/main/assets/template_runtime_lite.apk"
+    }
+}
+
+tasks.register('copyTemplateRuntimeNoArm', Copy) {
+    group = "build"
+    description = "Builds and copies the no-ARMv7 runtime APK template (arm64 only)"
+    dependsOn 'assembleRuntimeNoArmDebug'
+    from "$buildDir/outputs/apk/runtimeNoArm/debug"
+    into "$projectDir/src/main/assets"
+    include '*-runtimeNoArm-debug.apk'
+    rename { 'template_runtime_noarm.apk' }
+    doLast {
+        println "No-ARMv7 Runtime Template APK updated at: $projectDir/src/main/assets/template_runtime_noarm.apk"
+    }
+}
+
+</parameter>
+</write_to_file>
