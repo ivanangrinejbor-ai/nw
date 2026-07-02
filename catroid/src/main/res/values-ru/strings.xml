@@ -700,6 +700,12 @@
     <string formatted="false" name="pathfinder_smooth">Сгладить путь</string>
     <string formatted="false" name="pathfinder_replan">Дин. перестроение</string>
     <string formatted="false" name="pathfinder_replan_enabled">Включено (1/0)</string>
+    <string formatted="false" name="pathfinder_size_check">Размер</string>
+    <string formatted="false" name="pathfinder_size_ignore">игнорировать</string>
+    <string formatted="false" name="pathfinder_size_check_fit">по размеру</string>
+    <string formatted="false" name="pathfinder_blocked_action">Если заблокирован</string>
+    <string formatted="false" name="pathfinder_blocked_dont_go">не идти</string>
+    <string formatted="false" name="pathfinder_blocked_stop_there">остановиться где заблокировано</string>
     <string formatted="false" name="transition_fade_to_black">Затемнение</string>
     <string formatted="false" name="transition_fade_from_black">Появление</string>
     <string formatted="false" name="transition_crossfade">Кроссфейд</string>

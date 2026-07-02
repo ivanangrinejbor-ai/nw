@@ -35,6 +35,8 @@ class MoveToObjectAction : Action() {
     var avoidObjects: Formula? = null
     var speed: Formula? = null
     var moveMode: Int = 0
+    var sizeCheckMode: Int = 0
+    var blockedPathAction: Int = 0
 
     private var pathSet = false
 
@@ -55,8 +57,10 @@ class MoveToObjectAction : Action() {
             if (pf.navGrid == null) return true
             pf.setFollowerTarget(spriteName, targetObject)
             pf.setFollowerStopOnTouch(spriteName, moveMode == 1)
-            val result = pf.findPathToObject(spriteName, targetObject)
-            if (result.found) {
+            pf.setFollowerSizeCheckMode(spriteName, sizeCheckMode)
+            pf.setFollowerBlockedPathAction(spriteName, blockedPathAction)
+            val result = pf.findPathToObject(spriteName, targetObject, sizeCheckMode, blockedPathAction)
+            if (result.found || (blockedPathAction == 1 && result.points.isNotEmpty())) {
                 if (moveMode == 1) {
                     pf.setPathForFollower(spriteName, result.points)
                 } else {
