@@ -1,6 +1,7 @@
 package org.catrobat.catroid.ide
 
 import android.content.Context
+import android.util.Log
 import com.android.apksig.ApkSigner
 import com.reandroid.apk.ApkModule
 import com.reandroid.archive.FileInputSource
