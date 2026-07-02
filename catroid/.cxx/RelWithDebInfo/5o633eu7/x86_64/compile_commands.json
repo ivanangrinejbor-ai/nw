@@ -1,0 +1,12 @@
+[
+{
+  "directory": "C:/Users/ivanp/NewCatroid/catroid/.cxx/RelWithDebInfo/5o633eu7/x86_64",
+  "command": "C:\\Users\\ivanp\\AppData\\Local\\Android\\Sdk\\ndk\\25.1.8937393\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang++.exe --target=x86_64-none-linux-android26 --sysroot=C:/Users/ivanp/AppData/Local/Android/Sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/windows-x86_64/sysroot -Dexample_core_EXPORTS -IC:/Users/ivanp/NewCatroid/catroid/src/main/cpp/onnx -IC:/Users/ivanp/NewCatroid/catroid/src/main/cpp/include -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -O2 -g -DNDEBUG -fPIC -std=gnu++17 -o CMakeFiles\\example_core.dir\\example_core.cpp.o -c C:\\Users\\ivanp\\NewCatroid\\catroid\\src\\main\\cpp\\example_core.cpp",
+  "file": "C:\\Users\\ivanp\\NewCatroid\\catroid\\src\\main\\cpp\\example_core.cpp"
+},
+{
+  "directory": "C:/Users/ivanp/NewCatroid/catroid/.cxx/RelWithDebInfo/5o633eu7/x86_64",
+  "command": "C:\\Users\\ivanp\\AppData\\Local\\Android\\Sdk\\ndk\\25.1.8937393\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang++.exe --target=x86_64-none-linux-android26 --sysroot=C:/Users/ivanp/AppData/Local/Android/Sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/windows-x86_64/sysroot -Dcatroid_EXPORTS -IC:/Users/ivanp/NewCatroid/catroid/src/main/cpp/onnx -IC:/Users/ivanp/NewCatroid/catroid/src/main/cpp/include -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -O2 -g -DNDEBUG -fPIC -std=gnu++17 -o CMakeFiles\\catroid.dir\\catroid.cpp.o -c C:\\Users\\ivanp\\NewCatroid\\catroid\\src\\main\\cpp\\catroid.cpp",
+  "file": "C:\\Users\\ivanp\\NewCatroid\\catroid\\src\\main\\cpp\\catroid.cpp"
+}
+]

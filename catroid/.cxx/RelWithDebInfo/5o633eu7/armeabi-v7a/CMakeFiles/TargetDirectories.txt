@@ -1,0 +1,4 @@
+C:/Users/ivanp/NewCatroid/catroid/.cxx/RelWithDebInfo/5o633eu7/armeabi-v7a/CMakeFiles/example_core.dir
+C:/Users/ivanp/NewCatroid/catroid/.cxx/RelWithDebInfo/5o633eu7/armeabi-v7a/CMakeFiles/catroid.dir
+C:/Users/ivanp/NewCatroid/catroid/.cxx/RelWithDebInfo/5o633eu7/armeabi-v7a/CMakeFiles/edit_cache.dir
+C:/Users/ivanp/NewCatroid/catroid/.cxx/RelWithDebInfo/5o633eu7/armeabi-v7a/CMakeFiles/rebuild_cache.dir

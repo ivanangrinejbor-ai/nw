@@ -1,0 +1,578 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"childIndexes" : 
+					[
+						1,
+						4
+					],
+					"jsonFile" : "directory-.-Debug-d0094a50bb2071803777.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.6.0"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						29,
+						46
+					]
+				},
+				{
+					"build" : "libjpeg-turbo",
+					"childIndexes" : 
+					[
+						2,
+						3
+					],
+					"jsonFile" : "directory-libjpeg-turbo-Debug-ca91b1af9c3b55856d7c.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "2.8.12"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 1,
+					"source" : "libjpeg-turbo",
+					"targetIndexes" : 
+					[
+						0,
+						4,
+						5,
+						6,
+						25,
+						26,
+						30,
+						32,
+						33,
+						38,
+						39,
+						40,
+						41,
+						42,
+						43,
+						47
+					]
+				},
+				{
+					"build" : "libjpeg-turbo/simd",
+					"jsonFile" : "directory-libjpeg-turbo.simd-Debug-246a1615144f993eb440.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "2.8.12"
+					},
+					"parentIndex" : 1,
+					"projectIndex" : 1,
+					"source" : "libjpeg-turbo/simd",
+					"targetIndexes" : 
+					[
+						27,
+						31
+					]
+				},
+				{
+					"build" : "libjpeg-turbo/md5",
+					"jsonFile" : "directory-libjpeg-turbo.md5-Debug-4086c777906b55d189fc.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "2.8.12"
+					},
+					"parentIndex" : 1,
+					"projectIndex" : 1,
+					"source" : "libjpeg-turbo/md5",
+					"targetIndexes" : 
+					[
+						28
+					]
+				},
+				{
+					"build" : "libvncserver",
+					"jsonFile" : "directory-libvncserver-Debug-aeb4d2dc92418f631ae8.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.4"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 2,
+					"source" : "libvncserver",
+					"targetIndexes" : 
+					[
+						1,
+						2,
+						3,
+						7,
+						8,
+						9,
+						10,
+						11,
+						12,
+						13,
+						14,
+						15,
+						16,
+						17,
+						18,
+						19,
+						20,
+						21,
+						22,
+						23,
+						24,
+						34,
+						35,
+						36,
+						37,
+						44,
+						45
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"childIndexes" : 
+					[
+						1,
+						2
+					],
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "VncClientBridge",
+					"targetIndexes" : 
+					[
+						29,
+						46
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						1,
+						2,
+						3
+					],
+					"name" : "libjpeg-turbo",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						0,
+						4,
+						5,
+						6,
+						25,
+						26,
+						27,
+						28,
+						30,
+						31,
+						32,
+						33,
+						38,
+						39,
+						40,
+						41,
+						42,
+						43,
+						47
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						4
+					],
+					"name" : "LibVNCServer",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						1,
+						2,
+						3,
+						7,
+						8,
+						9,
+						10,
+						11,
+						12,
+						13,
+						14,
+						15,
+						16,
+						17,
+						18,
+						19,
+						20,
+						21,
+						22,
+						23,
+						24,
+						34,
+						35,
+						36,
+						37,
+						44,
+						45
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 1,
+					"id" : "cjpeg-static::@4d4a656a4ff6bc0d959c",
+					"jsonFile" : "target-cjpeg-static-Debug-bb8b175961ec4ad39182.json",
+					"name" : "cjpeg-static",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "client_examples_backchannel::@0fec0a8495017b2d3a39",
+					"jsonFile" : "target-client_examples_backchannel-Debug-5a0df179f6582bd8862e.json",
+					"name" : "client_examples_backchannel",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "client_examples_ppmtest::@0fec0a8495017b2d3a39",
+					"jsonFile" : "target-client_examples_ppmtest-Debug-e1d257a73532592c5750.json",
+					"name" : "client_examples_ppmtest",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "copy-compile-commands::@0fec0a8495017b2d3a39",
+					"jsonFile" : "target-copy-compile-commands-Debug-d45a218d8017949bfec1.json",
+					"name" : "copy-compile-commands",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "croptest::@4d4a656a4ff6bc0d959c",
+					"jsonFile" : "target-croptest-Debug-93abfe31e3a534ae15c1.json",
+					"name" : "croptest",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "dist::@4d4a656a4ff6bc0d959c",
+					"jsonFile" : "target-dist-Debug-88b52d95cb31225fee43.json",
+					"name" : "dist",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "djpeg-static::@4d4a656a4ff6bc0d959c",
+					"jsonFile" : "target-djpeg-static-Debug-97b0597fddd83e1b8bb5.json",
+					"name" : "djpeg-static",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "examples_androidvncserver::@0fec0a8495017b2d3a39",
+					"jsonFile" : "target-examples_androidvncserver-Debug-48f291977ef3fe6006fd.json",
+					"name" : "examples_androidvncserver",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "examples_backchannel::@0fec0a8495017b2d3a39",
+					"jsonFile" : "target-examples_backchannel-Debug-8285b314d150fb8b9f1c.json",
+					"name" : "examples_backchannel",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "examples_blooptest::@0fec0a8495017b2d3a39",
+					"jsonFile" : "target-examples_blooptest-Debug-edf3df4aba192ded686f.json",
+					"name" : "examples_blooptest",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "examples_camera::@0fec0a8495017b2d3a39",
+					"jsonFile" : "target-examples_camera-Debug-9b81f242a481f85a20d6.json",
+					"name" : "examples_camera",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "examples_colourmaptest::@0fec0a8495017b2d3a39",
+					"jsonFile" : "target-examples_colourmaptest-Debug-f47f26f84bdc8387faae.json",
+					"name" : "examples_colourmaptest",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "examples_cursors::@0fec0a8495017b2d3a39",
+					"jsonFile" : "target-examples_cursors-Debug-9cf71826bd97f4afc894.json",
+					"name" : "examples_cursors",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "examples_example::@0fec0a8495017b2d3a39",
+					"jsonFile" : "target-examples_example-Debug-f4d7347a05feb9dd11d4.json",
+					"name" : "examples_example",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "examples_filetransfer::@0fec0a8495017b2d3a39",
+					"jsonFile" : "target-examples_filetransfer-Debug-7c82b2b2d4803459fc52.json",
+					"name" : "examples_filetransfer",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "examples_fontsel::@0fec0a8495017b2d3a39",
+					"jsonFile" : "target-examples_fontsel-Debug-3ed88cd5b2f2e1fe66a6.json",
+					"name" : "examples_fontsel",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "examples_pnmshow::@0fec0a8495017b2d3a39",
+					"jsonFile" : "target-examples_pnmshow-Debug-1588300071d3057e4b8f.json",
+					"name" : "examples_pnmshow",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "examples_pnmshow24::@0fec0a8495017b2d3a39",
+					"jsonFile" : "target-examples_pnmshow24-Debug-054c96dea820363c186f.json",
+					"name" : "examples_pnmshow24",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "examples_regiontest::@0fec0a8495017b2d3a39",
+					"jsonFile" : "target-examples_regiontest-Debug-33215aee373c26642b4e.json",
+					"name" : "examples_regiontest",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "examples_repeater::@0fec0a8495017b2d3a39",
+					"jsonFile" : "target-examples_repeater-Debug-48706c5995622d0572c1.json",
+					"name" : "examples_repeater",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "examples_rotate::@0fec0a8495017b2d3a39",
+					"jsonFile" : "target-examples_rotate-Debug-fab313a7f9967f26bcc8.json",
+					"name" : "examples_rotate",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "examples_simple::@0fec0a8495017b2d3a39",
+					"jsonFile" : "target-examples_simple-Debug-1831ed7d632ec9e4ba7d.json",
+					"name" : "examples_simple",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "examples_simple15::@0fec0a8495017b2d3a39",
+					"jsonFile" : "target-examples_simple15-Debug-f521454f5ce4b4c86ff7.json",
+					"name" : "examples_simple15",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "examples_storepasswd::@0fec0a8495017b2d3a39",
+					"jsonFile" : "target-examples_storepasswd-Debug-a81a10a13374b4fdf6ae.json",
+					"name" : "examples_storepasswd",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "examples_vncev::@0fec0a8495017b2d3a39",
+					"jsonFile" : "target-examples_vncev-Debug-776701e11d477cfc924a.json",
+					"name" : "examples_vncev",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "jpeg-static::@4d4a656a4ff6bc0d959c",
+					"jsonFile" : "target-jpeg-static-Debug-9fdb2315f1d4496f39c6.json",
+					"name" : "jpeg-static",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "jpegtran-static::@4d4a656a4ff6bc0d959c",
+					"jsonFile" : "target-jpegtran-static-Debug-bf086c8d31a114710b41.json",
+					"name" : "jpegtran-static",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "jsimdcfg::@94917bd5066ac320edfd",
+					"jsonFile" : "target-jsimdcfg-Debug-d9ba9b182e15d615b5f3.json",
+					"name" : "jsimdcfg",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 3,
+					"id" : "md5cmp::@59abb547d11294bb0ea1",
+					"jsonFile" : "target-md5cmp-Debug-ccafb3ce58df4bab6471.json",
+					"name" : "md5cmp",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "native-vnc::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-native-vnc-Debug-033baa6573aca01a1ea0.json",
+					"name" : "native-vnc",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "rdjpgcom::@4d4a656a4ff6bc0d959c",
+					"jsonFile" : "target-rdjpgcom-Debug-ecbe0e1dcb311dd89347.json",
+					"name" : "rdjpgcom",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "simd::@94917bd5066ac320edfd",
+					"jsonFile" : "target-simd-Debug-5aa6db374bc40e43d53c.json",
+					"name" : "simd",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "strtest::@4d4a656a4ff6bc0d959c",
+					"jsonFile" : "target-strtest-Debug-0d3eccf26433ced0e4e4.json",
+					"name" : "strtest",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "tarball::@4d4a656a4ff6bc0d959c",
+					"jsonFile" : "target-tarball-Debug-0b12870f4d5b6e2b4ee1.json",
+					"name" : "tarball",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "test_cargstest::@0fec0a8495017b2d3a39",
+					"jsonFile" : "target-test_cargstest-Debug-b8d6fbb4fd924f9dd718.json",
+					"name" : "test_cargstest",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "test_copyrecttest::@0fec0a8495017b2d3a39",
+					"jsonFile" : "target-test_copyrecttest-Debug-ec7b9d2854a79f145162.json",
+					"name" : "test_copyrecttest",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "test_encodingstest::@0fec0a8495017b2d3a39",
+					"jsonFile" : "target-test_encodingstest-Debug-1f6faf10fc42a2fdb02c.json",
+					"name" : "test_encodingstest",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "test_wstest::@0fec0a8495017b2d3a39",
+					"jsonFile" : "target-test_wstest-Debug-b8e36e681dae1569d047.json",
+					"name" : "test_wstest",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "testclean::@4d4a656a4ff6bc0d959c",
+					"jsonFile" : "target-testclean-Debug-874a472423679fb3f125.json",
+					"name" : "testclean",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "tjbench-static::@4d4a656a4ff6bc0d959c",
+					"jsonFile" : "target-tjbench-static-Debug-ea294f3ed984ba6dda56.json",
+					"name" : "tjbench-static",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "tjtest::@4d4a656a4ff6bc0d959c",
+					"jsonFile" : "target-tjtest-Debug-ad7b11a36a22b85991ba.json",
+					"name" : "tjtest",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "tjunittest-static::@4d4a656a4ff6bc0d959c",
+					"jsonFile" : "target-tjunittest-static-Debug-19cba7cdb8adf7317e9e.json",
+					"name" : "tjunittest-static",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "turbojpeg-static::@4d4a656a4ff6bc0d959c",
+					"jsonFile" : "target-turbojpeg-static-Debug-9ddb16b7abe8aad0d295.json",
+					"name" : "turbojpeg-static",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "uninstall::@4d4a656a4ff6bc0d959c",
+					"jsonFile" : "target-uninstall-Debug-3178880704e209d47d59.json",
+					"name" : "uninstall",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "vncclient::@0fec0a8495017b2d3a39",
+					"jsonFile" : "target-vncclient-Debug-6bc560d77d54220075fc.json",
+					"name" : "vncclient",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "vncserver::@0fec0a8495017b2d3a39",
+					"jsonFile" : "target-vncserver-Debug-3bfd3c020373a85eba63.json",
+					"name" : "vncserver",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "wolfssl::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-wolfssl-Debug-0dd15c72db1d9fab0d76.json",
+					"name" : "wolfssl",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "wrjpgcom::@4d4a656a4ff6bc0d959c",
+					"jsonFile" : "target-wrjpgcom-Debug-3202536d21bbe7de0ee8.json",
+					"name" : "wrjpgcom",
+					"projectIndex" : 1
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "C:/Users/ivanp/NewCatroid/vncclient/.cxx/Debug/2w3s532r/x86",
+		"source" : "C:/Users/ivanp/NewCatroid/vncclient/src/main/cpp"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 3
+	}
+}

@@ -1,0 +1,111 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.7/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+
+> Configure project :catroid
+WARNING: The option 'android.enableBuildCache' is deprecated.
+The current default is 'false'.
+It was removed in version 7.0 of the Android Gradle plugin.
+The Android-specific build caches were superseded by the Gradle build cache (https://docs.gradle.org/current/userguide/build_cache.html).
+VersionCode is 130
+VersionName is 2.2.0
+WARNING: API 'variant.getJavaCompiler()' is obsolete and has been replaced with 'variant.getJavaCompileProvider()'.
+It will be removed in version 9.0 of the Android Gradle plugin.
+For more information, see https://d.android.com/r/tools/task-configuration-avoidance.
+To determine what is calling variant.getJavaCompiler(), use -Pandroid.debug.obsoleteApi=true on the command line to display more information.
+Warning: SDK processing. This version only understands SDK XML versions up to 3 but an SDK XML file of version 4 was encountered. This can happen if you use versions of Android Studio and the command-line tools that were released at different times.
+
+> Task :vncclient:preBuild UP-TO-DATE
+> Task :catroid:preBuild UP-TO-DATE
+> Task :vncclient:preDebugBuild UP-TO-DATE
+> Task :catroid:preCatroidDebugBuild UP-TO-DATE
+> Task :catroid:mergeCatroidDebugNativeDebugMetadata NO-SOURCE
+> Task :catroid:checkKotlinGradlePluginConfigurationErrors
+> Task :lunoscript-annotations:checkKotlinGradlePluginConfigurationErrors
+> Task :lunoscript-processor:checkKotlinGradlePluginConfigurationErrors
+> Task :lunoscript-processor:processResources NO-SOURCE
+> Task :vncclient:generateDebugResValues UP-TO-DATE
+> Task :vncclient:generateDebugResources UP-TO-DATE
+> Task :vncclient:packageDebugResources UP-TO-DATE
+> Task :vncclient:writeDebugAarMetadata UP-TO-DATE
+> Task :vncclient:extractDeepLinksDebug UP-TO-DATE
+> Task :vncclient:processDebugManifest UP-TO-DATE
+> Task :vncclient:compileDebugLibraryResources UP-TO-DATE
+> Task :vncclient:parseDebugLocalResources UP-TO-DATE
+> Task :lunoscript-annotations:compileKotlin UP-TO-DATE
+> Task :lunoscript-annotations:compileJava NO-SOURCE
+> Task :lunoscript-annotations:processResources NO-SOURCE
+> Task :lunoscript-annotations:classes UP-TO-DATE
+> Task :lunoscript-annotations:jar UP-TO-DATE
+> Task :lunoscript-processor:kaptGenerateStubsKotlin UP-TO-DATE
+> Task :lunoscript-processor:kaptKotlin UP-TO-DATE
+> Task :lunoscript-processor:compileKotlin UP-TO-DATE
+> Task :lunoscript-processor:compileJava NO-SOURCE
+> Task :lunoscript-processor:classes UP-TO-DATE
+> Task :lunoscript-processor:jar UP-TO-DATE
+> Task :vncclient:generateDebugRFile UP-TO-DATE
+> Task :vncclient:checkKotlinGradlePluginConfigurationErrors
+> Task :vncclient:compileDebugKotlin UP-TO-DATE
+> Task :vncclient:javaPreCompileDebug UP-TO-DATE
+> Task :vncclient:compileDebugJavaWithJavac NO-SOURCE
+> Task :vncclient:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :vncclient:mergeDebugShaders UP-TO-DATE
+> Task :vncclient:compileDebugShaders NO-SOURCE
+> Task :vncclient:generateDebugAssets UP-TO-DATE
+> Task :vncclient:packageDebugAssets UP-TO-DATE
+> Task :vncclient:processDebugJavaRes UP-TO-DATE
+> Task :vncclient:bundleLibRuntimeToDirDebug UP-TO-DATE
+> Task :vncclient:configureCMakeDebug[arm64-v8a]
+> Task :catroid:dataBindingMergeDependencyArtifactsCatroidDebug UP-TO-DATE
+> Task :catroid:generateCatroidDebugResValues UP-TO-DATE
+> Task :vncclient:buildCMakeDebug[arm64-v8a]
+> Task :vncclient:configureCMakeDebug[armeabi-v7a]
+> Task :catroid:generateCatroidDebugResources UP-TO-DATE
+> Task :catroid:injectCrashlyticsMappingFileIdCatroidDebug UP-TO-DATE
+> Task :catroid:processCatroidDebugGoogleServices UP-TO-DATE
+> Task :vncclient:buildCMakeDebug[armeabi-v7a]
+> Task :vncclient:configureCMakeDebug[x86]
+> Task :vncclient:buildCMakeDebug[x86]
+> Task :vncclient:configureCMakeDebug[x86_64]
+> Task :vncclient:buildCMakeDebug[x86_64]
+> Task :vncclient:mergeDebugJniLibFolders UP-TO-DATE
+> Task :vncclient:mergeDebugNativeLibs UP-TO-DATE
+> Task :vncclient:copyDebugJniLibsProjectOnly UP-TO-DATE
+> Task :catroid:mergeCatroidDebugResources UP-TO-DATE
+> Task :catroid:dataBindingGenBaseClassesCatroidDebug UP-TO-DATE
+> Task :catroid:generateCatroidDebugBuildConfig UP-TO-DATE
+> Task :catroid:checkCatroidDebugAarMetadata UP-TO-DATE
+> Task :catroid:mapCatroidDebugSourceSetPaths UP-TO-DATE
+> Task :catroid:createCatroidDebugCompatibleScreenManifests UP-TO-DATE
+> Task :catroid:extractDeepLinksCatroidDebug UP-TO-DATE
+> Task :catroid:processCatroidDebugMainManifest UP-TO-DATE
+> Task :catroid:processCatroidDebugManifest UP-TO-DATE
+> Task :catroid:processCatroidDebugManifestForPackage UP-TO-DATE
+> Task :catroid:processCatroidDebugResources UP-TO-DATE
+> Task :catroid:javaPreCompileCatroidDebug UP-TO-DATE
+> Task :catroid:mergeCatroidDebugShaders UP-TO-DATE
+> Task :catroid:compileCatroidDebugShaders NO-SOURCE
+> Task :catroid:copyPluginLibsCatroidDebug UP-TO-DATE
+> Task :catroid:generateCatroidDebugAssets UP-TO-DATE
+> Task :catroid:copyAndroidNatives
+> Task :catroid:checkCatroidDebugDuplicateClasses UP-TO-DATE
+> Task :catroid:desugarCatroidDebugFileDependencies UP-TO-DATE
+> Task :catroid:mergeExtDexCatroidDebug UP-TO-DATE
+> Task :catroid:mergeLibDexCatroidDebug UP-TO-DATE
+> Task :catroid:preRuntimeNoArmDebugBuild UP-TO-DATE
+> Task :catroid:configureCMakeDebug[arm64-v8a]
+> Task :catroid:buildCMakeDebug[arm64-v8a]
+> Task :catroid:preRuntimeLiteDebugBuild UP-TO-DATE
+> Task :catroid:configureCMakeDebug[armeabi-v7a]
+> Task :catroid:buildCMakeDebug[armeabi-v7a]
+> Task :catroid:preRuntimeDebugBuild UP-TO-DATE
+> Task :catroid:configureCMakeDebug[x86]
+> Task :catroid:buildCMakeDebug[x86]
+> Task :catroid:configureCMakeDebug[x86_64]
+> Task :catroid:buildCMakeDebug[x86_64]
+> Task :catroid:mergeCatroidDebugJniLibFolders UP-TO-DATE
+> Task :catroid:mergeCatroidDebugNativeLibs UP-TO-DATE
+> Task :catroid:stripCatroidDebugDebugSymbols UP-TO-DATE
+> Task :catroid:validateSigningCatroidDebug UP-TO-DATE
+> Task :catroid:writeCatroidDebugAppMetadata UP-TO-DATE
+> Task :catroid:writeCatroidDebugSigningConfigVersions UP-TO-DATE
+> Task :catroid:kaptGenerateStubsCatroidDebugKotlin
