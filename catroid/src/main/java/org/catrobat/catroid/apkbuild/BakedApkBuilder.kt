@@ -73,17 +73,28 @@ object BakedApkBuilder {
             val tempDir = File(context.cacheDir, "apk_build_${System.currentTimeMillis()}")
             tempDir.mkdirs()
 
-            // Step 1: Copy template APK from assets
+            // Step 1: Copy template APK from assets, fallback to running app's APK
             onProgress("Loading template APK...")
             val templateApk = File(tempDir, "template_temp.apk")
+            var templateLoaded = false
             try {
                 context.assets.open(TEMPLATE_APK).use { input ->
                     FileOutputStream(templateApk).use { output -> input.copyTo(output) }
                 }
+                templateLoaded = true
+                Log.d(TAG, "Loaded template APK from assets")
             } catch (e: Exception) {
-                Log.e(TAG, "Template APK not found in assets", e)
-                tempDir.deleteRecursively()
-                return@withContext BuildResult.Error("Template APK missing. Reinstall the app.")
+                Log.w(TAG, "Template APK not found in assets, using self-APK as fallback")
+            }
+            if (!templateLoaded) {
+                val selfApkPath = context.applicationInfo.sourceDir
+                if (selfApkPath != null && File(selfApkPath).exists()) {
+                    File(selfApkPath).copyTo(templateApk, overwrite = true)
+                    Log.d(TAG, "Using self-APK as template: $selfApkPath")
+                } else {
+                    tempDir.deleteRecursively()
+                    return@withContext BuildResult.Error("Template APK missing and self-APK unavailable.")
+                }
             }
 
             // Step 2: Build project assets directory

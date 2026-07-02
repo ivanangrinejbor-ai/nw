@@ -58,8 +58,22 @@ object ApkBuilder {
         try {
 
             onProgress("Подготовка шаблона...")
-            context.assets.open("template.apk").use { input ->
-                FileOutputStream(tempApk).use { output -> input.copyTo(output) }
+            var templateLoaded = false
+            try {
+                context.assets.open("template.apk").use { input ->
+                    FileOutputStream(tempApk).use { output -> input.copyTo(output) }
+                }
+                templateLoaded = true
+            } catch (e: Exception) {
+                // template.apk not in assets, try self-APK
+            }
+            if (!templateLoaded) {
+                val selfApkPath = context.applicationInfo.sourceDir
+                if (selfApkPath != null && File(selfApkPath).exists()) {
+                    File(selfApkPath).copyTo(tempApk, overwrite = true)
+                } else {
+                    return BuildResult(null, IOException("Template APK missing"))
+                }
             }
 
             apkModule = ApkModule.loadApkFile(tempApk)
