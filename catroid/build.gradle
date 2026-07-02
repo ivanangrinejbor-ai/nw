@@ -1002,5 +1002,5 @@ tasks.register('copyTemplateRuntimeNoArm', Copy) {
     }
 }
 
-</parameter>
-</write_to_file>
+
+
