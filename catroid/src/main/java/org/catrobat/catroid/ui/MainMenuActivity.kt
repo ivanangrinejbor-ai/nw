@@ -266,10 +266,28 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
     }
 
     private fun loadFinalContent() {
-        loadContent()
+        try {
+            loadContent()
+        } catch (e: Exception) {
+            Log.e(TAG, "loadContent failed", e)
+            val tv = android.widget.TextView(this).apply {
+                text = "Fragment error: ${e.message}"
+                setTextColor(0xFFFF0000.toInt())
+                textSize = 16f
+                gravity = android.view.Gravity.CENTER
+            }
+            mainMenuBinding?.fragmentContainer?.let { container ->
+                container.removeAllViews()
+                container.addView(tv)
+            }
+        }
 
         if (!BuildConfig.FEATURE_APK_GENERATOR_ENABLED) {
-            CatroidApplication.current.loadPluginsIfNotLoaded()
+            try {
+                CatroidApplication.current.loadPluginsIfNotLoaded()
+            } catch (e: Exception) {
+                Log.e(TAG, "loadPluginsIfNotLoaded failed", e)
+            }
         }
 
         oldPrivacyPolicy = PreferenceManager.getDefaultSharedPreferences(this)
