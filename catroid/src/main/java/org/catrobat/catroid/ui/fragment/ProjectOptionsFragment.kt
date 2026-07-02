@@ -26,12 +26,14 @@ import android.Manifest.permission
 import android.app.Activity
 import android.app.ProgressDialog
 import android.content.ContentResolver
+import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.provider.MediaStore
 import android.provider.DocumentsContract
 import android.text.Editable
 import android.util.Log
@@ -1308,26 +1310,45 @@ class ProjectOptionsFragment : Fragment() {
                 val c = context ?: return@withContext
                 when (result) {
                     is BakedApkBuilder.BuildResult.Success -> {
-                        ToastUtil.showSuccess(c, getString(R.string.build_apk_success))
-                        try {
-                            val uri = androidx.core.content.FileProvider.getUriForFile(
-                                c, "${c.packageName}.fileProvider", result.apkFile
-                            )
-                            val intent = Intent(Intent.ACTION_SEND).apply {
-                                type = "application/vnd.android.package-archive"
-                                putExtra(Intent.EXTRA_STREAM, uri)
-                                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                            }
-                            startActivity(Intent.createChooser(intent, getString(R.string.export_project)))
-                        } catch (e: Exception) {
-                            ToastUtil.showSuccess(c, "APK saved: ${result.apkFile.name}")
-                        }
+                        saveApkToDownloads(c, result.apkFile)
                     }
                     is BakedApkBuilder.BuildResult.Error -> {
                         ToastUtil.showError(c, result.message)
                     }
                 }
             }
+        }
+    }
+
+    private fun saveApkToDownloads(context: Context, apkFile: File) {
+        val apkDir = "NeoCatroidAPK"
+        val fileName = apkFile.name
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                val contentValues = ContentValues().apply {
+                    put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
+                    put(MediaStore.MediaColumns.MIME_TYPE, "application/vnd.android.package-archive")
+                    put(MediaStore.MediaColumns.RELATIVE_PATH, "${Environment.DIRECTORY_DOWNLOADS}/$apkDir")
+                }
+                val uri = context.contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
+                if (uri != null) {
+                    context.contentResolver.openOutputStream(uri)?.use { out ->
+                        FileInputStream(apkFile).use { it.copyTo(out) }
+                    }
+                    ToastUtil.showSuccess(context, "APK сохранён в Загрузки/$apkDir/")
+                } else {
+                    ToastUtil.showError(context, "Не удалось сохранить APK")
+                }
+            } else {
+                val dir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), apkDir)
+                dir.mkdirs()
+                val dest = File(dir, fileName)
+                apkFile.copyTo(dest, true)
+                ToastUtil.showSuccess(context, "APK сохранён: ${dest.absolutePath}")
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to save APK to Downloads", e)
+            ToastUtil.showError(context, "Ошибка сохранения APK: ${e.message}")
         }
     }
 
