@@ -27,10 +27,13 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <!--<ImageView
-        android:src="@drawable/icon"
+    <include layout="@layout/toolbar" />
+
+    <include layout="@layout/progress_bar" />
+
+    <FrameLayout
+        android:id="@+id/fragment_container"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:scaleType="fitCenter" />-->
+        android:layout_height="match_parent" />
 
 </LinearLayout>
