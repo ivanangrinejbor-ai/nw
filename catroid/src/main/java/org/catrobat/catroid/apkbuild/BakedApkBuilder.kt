@@ -24,8 +24,9 @@ package org.catrobat.catroid.apkbuild
 
 import android.content.Context
 import android.util.Log
-import org.catrobat.catroid.CatroidApplication
-import org.catrobat.catroid.io.StorageOperations
+import org.catrobat.catroid.ProjectManager
+import org.catrobat.catroid.io.ProjectCrypto
+import org.catrobat.catroid.utils.lunoscript.baker.ProjectBaker
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -48,7 +49,7 @@ import java.util.zip.ZipOutputStream
 object BakedApkBuilder {
     private const val TAG = "BakedApkBuilder"
     private const val TEMPLATE_APK = "template.apk"
-    private const val PROJECT_ASSETS_PREFIX = "assets/project/"
+    private const val ASSETS_DIR = "assets"
 
     data class ApkConfig(
         val appName: String,
@@ -97,11 +98,10 @@ object BakedApkBuilder {
                 }
             }
 
-            // Step 2: Build project assets directory
-            onProgress("Building project assets...")
-            val projectAssets = File(tempDir, "project_assets")
-            projectAssets.mkdirs()
-            copyProjectFiles(projectDir, projectAssets)
+            // Step 2: Build encrypted baked project payload
+            onProgress("Protecting project payload...")
+            val encryptedProject = File(tempDir, ProtectedProjectPayload.ENCRYPTED_ASSET_NAME)
+            createProtectedProjectPayload(context, projectDir, encryptedProject)
 
             // Step 3: Modify AndroidManifest in the template APK before extraction
             onProgress("Configuring application...")
@@ -121,11 +121,13 @@ object BakedApkBuilder {
             extractedDir.mkdirs()
             extractApk(templateApk, extractedDir)
 
-            // Step 5: Inject project files into extracted APK
-            onProgress("Embedding project files...")
-            val projectDirInApk = File(extractedDir, PROJECT_ASSETS_PREFIX)
-            projectDirInApk.mkdirs()
-            projectAssets.copyRecursively(projectDirInApk, true)
+            // Step 5: Inject encrypted project payload into extracted APK
+            onProgress("Embedding protected project...")
+            val assetsDir = File(extractedDir, ASSETS_DIR)
+            assetsDir.mkdirs()
+            File(assetsDir, "project").deleteRecursively()
+            File(assetsDir, "project.zip").delete()
+            encryptedProject.copyTo(File(assetsDir, ProtectedProjectPayload.ENCRYPTED_ASSET_NAME), overwrite = true)
 
             // Step 6: Replace icon if provided
             if (config.iconFile != null && config.iconFile.exists()) {
@@ -161,7 +163,7 @@ object BakedApkBuilder {
             onProgress("Cleaning up...")
             templateApk.delete()
             extractedDir.deleteRecursively()
-            projectAssets.deleteRecursively()
+            encryptedProject.delete()
             unsignedApk.delete()
 
             val resultFile = File(context.cacheDir, signedApk.name)
@@ -176,20 +178,43 @@ object BakedApkBuilder {
         }
     }
 
-    private fun copyProjectFiles(projectDir: File, destAssets: File) {
-        val filesDir = File(destAssets, "files")
-        filesDir.mkdirs()
-        projectDir.listFiles()?.forEach { file ->
-            if (file.isDirectory && file.name != "tmp") {
-                val dest = File(filesDir, file.name)
-                file.copyRecursively(dest, true)
+    private fun createProtectedProjectPayload(context: Context, projectDir: File, encryptedProject: File) {
+        val currentProject = ProjectManager.getInstance().currentProject
+            ?: error("No current project available for protected APK build.")
+
+        val bakedDir = File(encryptedProject.parentFile, "baked_project")
+        val bakedZip = File(encryptedProject.parentFile, "baked_project.zip")
+        bakedDir.deleteRecursively()
+        bakedZip.delete()
+        bakedDir.mkdirs()
+
+        val lunoCode = ProjectBaker(context).bake(currentProject)
+        File(bakedDir, "init.bin").writeText(lunoCode)
+
+        val sourceFilesDir = File(projectDir, "files")
+        if (sourceFilesDir.exists()) {
+            sourceFilesDir.copyRecursively(File(bakedDir, "files"), overwrite = true)
+        } else {
+            File(bakedDir, "files").mkdirs()
+        }
+
+        val imagesDir = File(bakedDir, "images").apply { mkdirs() }
+        val soundsDir = File(bakedDir, "sounds").apply { mkdirs() }
+        currentProject.sceneList.forEach { scene ->
+            scene.spriteList.forEach { sprite ->
+                sprite.lookList.forEach { look ->
+                    look.file?.takeIf { it.exists() }?.copyTo(File(imagesDir, it.name), overwrite = true)
+                }
+                sprite.soundList.forEach { sound ->
+                    sound.file?.takeIf { it.exists() }?.copyTo(File(soundsDir, it.name), overwrite = true)
+                }
             }
         }
-        // Copy code.xml directly
-        val codeXml = File(projectDir, "code.xml")
-        if (codeXml.exists()) {
-            codeXml.copyTo(File(destAssets, "code.xml"), true)
-        }
+
+        zipDirectory(bakedDir, bakedZip)
+        ProjectCrypto.encrypt(bakedZip, encryptedProject, ProtectedProjectPayload.PASSWORD)
+        bakedZip.delete()
+        bakedDir.deleteRecursively()
     }
 
     private fun extractApk(apkFile: File, destDir: File) {

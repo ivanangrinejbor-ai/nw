@@ -50,6 +50,7 @@ import org.catrobat.catroid.BuildConfig
 import org.catrobat.catroid.CatroidApplication
 import org.catrobat.catroid.ProjectManager
 import org.catrobat.catroid.R
+import org.catrobat.catroid.apkbuild.ProtectedProjectPayload
 import org.catrobat.catroid.cast.CastManager
 import org.catrobat.catroid.common.Constants
 import org.catrobat.catroid.common.FlavoredConstants
@@ -61,6 +62,7 @@ import org.catrobat.catroid.databinding.ActivityMainMenuSplashscreenBinding
 import org.catrobat.catroid.databinding.DeclinedTermsOfUseAndServiceAlertViewBinding
 import org.catrobat.catroid.databinding.PrivacyPolicyViewBinding
 import org.catrobat.catroid.databinding.ProgressBarBinding
+import org.catrobat.catroid.io.ProjectCrypto
 import org.catrobat.catroid.io.ZipArchiver
 import org.catrobat.catroid.io.asynctask.ProjectLoader
 import org.catrobat.catroid.io.asynctask.ProjectLoader.ProjectLoadListener
@@ -359,13 +361,13 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
                 ActivityMainMenuSplashscreenBinding.inflate(layoutInflater)
             setContentView(mainMenuSplashscreenBinding.root)
             setSupportActionBar(findViewById(R.id.toolbar))
-            supportActionBar?.setIcon(R.drawable.pc_toolbar_icon)
+            supportActionBar?.setIcon(R.drawable.main_menu_toolbar_logo)
             supportActionBar?.setTitle(R.string.app_name)
             prepareStandaloneProject()
             return
         }
         setSupportActionBar(findViewById(R.id.toolbar))
-        supportActionBar?.setIcon(R.drawable.pc_toolbar_icon)
+        supportActionBar?.setIcon(R.drawable.main_menu_toolbar_logo)
         supportActionBar?.setTitle(R.string.app_name)
 
         if (SettingsFragment.isCastSharedPreferenceEnabled(this)) {
@@ -646,8 +648,7 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
 
         try {
             val tempDir = File(cacheDir, "standalone_temp_${System.currentTimeMillis()}")
-            val inputStream = assets.open(BuildConfig.START_PROJECT + ".zip")
-            ZipArchiver().unzip(inputStream, tempDir)
+            unpackStandaloneProject(tempDir)
             Log.d("STANDALONE", "Unpacked new project to temporary directory: ${tempDir.path}")
 
             if (projectDir.exists() && lastUnpackedVersion != -1) {
@@ -676,6 +677,41 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
             if (projectDir.exists()) {
                 ProjectLoader(projectDir, this).setListener(this).loadProjectAsync()
             }
+        }
+    }
+
+    private fun unpackStandaloneProject(tempDir: File) {
+        if (unpackProtectedStandaloneProject(tempDir)) {
+            return
+        }
+
+        assets.open(BuildConfig.START_PROJECT + ".zip").use { inputStream ->
+            ZipArchiver().unzip(inputStream, tempDir)
+        }
+    }
+
+    private fun unpackProtectedStandaloneProject(tempDir: File): Boolean {
+        val encryptedAsset = try {
+            assets.open(ProtectedProjectPayload.ENCRYPTED_ASSET_NAME)
+        } catch (e: IOException) {
+            return false
+        }
+
+        val encryptedFile = File(cacheDir, "standalone_${System.currentTimeMillis()}.ncp")
+        val decryptedZip = File(cacheDir, "standalone_${System.currentTimeMillis()}.zip")
+
+        return try {
+            encryptedAsset.use { input ->
+                encryptedFile.outputStream().use { output -> input.copyTo(output) }
+            }
+            if (!ProjectCrypto.decrypt(encryptedFile, decryptedZip, ProtectedProjectPayload.PASSWORD)) {
+                throw IOException("Cannot decrypt protected standalone project.")
+            }
+            ZipArchiver().unzip(decryptedZip, tempDir)
+            true
+        } finally {
+            encryptedFile.delete()
+            decryptedZip.delete()
         }
     }
 
