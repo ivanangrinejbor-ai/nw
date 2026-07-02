@@ -1,0 +1,137 @@
+Performing C SOURCE FILE Test CMAKE_HAVE_LIBC_PTHREAD failed with the following output:
+Change Dir: C:/Users/ivanp/NewCatroid/vncclient/.cxx/RelWithDebInfo/193o6o4k/arm64-v8a/CMakeFiles/CMakeTmp
+
+Run Build Command(s):C:\Users\ivanp\AppData\Local\Android\Sdk\cmake\3.22.1\bin\ninja.exe cmTC_e9a8d && [1/2] Building C object CMakeFiles/cmTC_e9a8d.dir/src.c.o
+C:/Users/ivanp/NewCatroid/vncclient/.cxx/RelWithDebInfo/193o6o4k/arm64-v8a/CMakeFiles/CMakeTmp/src.c:13:3: warning: implicit declaration of function 'pthread_cancel' is invalid in C99 [-Wimplicit-function-declaration]
+  pthread_cancel(thread);
+  ^
+1 warning generated.
+[2/2] Linking C executable cmTC_e9a8d
+FAILED: cmTC_e9a8d 
+cmd.exe /C "cd . && C:\Users\ivanp\AppData\Local\Android\Sdk\ndk\25.1.8937393\toolchains\llvm\prebuilt\windows-x86_64\bin\clang.exe --target=aarch64-none-linux-android24 --sysroot=C:/Users/ivanp/AppData/Local/Android/Sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/windows-x86_64/sysroot -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security -static-libstdc++ -Wl,--build-id=sha1 -Wl,--no-rosegment -Wl,--fatal-warnings -Wl,--gc-sections -Wl,--no-undefined -Qunused-arguments -Wl,--gc-sections CMakeFiles/cmTC_e9a8d.dir/src.c.o -o cmTC_e9a8d  -latomic -lm && cd ."
+ld: error: undefined symbol: pthread_cancel
+>>> referenced by src.c:13
+>>>               CMakeFiles/cmTC_e9a8d.dir/src.c.o:(main)
+clang: error: linker command failed with exit code 1 (use -v to see invocation)
+ninja: build stopped: subcommand failed.
+
+
+Source file was:
+#include <pthread.h>
+
+static void* test_func(void* data)
+{
+  return data;
+}
+
+int main(void)
+{
+  pthread_t thread;
+  pthread_create(&thread, NULL, test_func, NULL);
+  pthread_detach(thread);
+  pthread_cancel(thread);
+  pthread_join(thread, NULL);
+  pthread_atfork(NULL, NULL, NULL);
+  pthread_exit(NULL);
+
+  return 0;
+}
+
+Determining if the function pthread_create exists in the pthreads failed with the following output:
+Change Dir: C:/Users/ivanp/NewCatroid/vncclient/.cxx/RelWithDebInfo/193o6o4k/arm64-v8a/CMakeFiles/CMakeTmp
+
+Run Build Command(s):C:\Users\ivanp\AppData\Local\Android\Sdk\cmake\3.22.1\bin\ninja.exe cmTC_831c4 && [1/2] Building C object CMakeFiles/cmTC_831c4.dir/CheckFunctionExists.c.o
+[2/2] Linking C executable cmTC_831c4
+FAILED: cmTC_831c4 
+cmd.exe /C "cd . && C:\Users\ivanp\AppData\Local\Android\Sdk\ndk\25.1.8937393\toolchains\llvm\prebuilt\windows-x86_64\bin\clang.exe --target=aarch64-none-linux-android24 --sysroot=C:/Users/ivanp/AppData/Local/Android/Sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/windows-x86_64/sysroot -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -DCHECK_FUNCTION_EXISTS=pthread_create -static-libstdc++ -Wl,--build-id=sha1 -Wl,--no-rosegment -Wl,--fatal-warnings -Wl,--gc-sections -Wl,--no-undefined -Qunused-arguments -Wl,--gc-sections CMakeFiles/cmTC_831c4.dir/CheckFunctionExists.c.o -o cmTC_831c4  -lpthreads  -latomic -lm && cd ."
+ld: error: unable to find library -lpthreads
+clang: error: linker command failed with exit code 1 (use -v to see invocation)
+ninja: build stopped: subcommand failed.
+
+
+
+Determining if the function pthread_create exists in the pthread failed with the following output:
+Change Dir: C:/Users/ivanp/NewCatroid/vncclient/.cxx/RelWithDebInfo/193o6o4k/arm64-v8a/CMakeFiles/CMakeTmp
+
+Run Build Command(s):C:\Users\ivanp\AppData\Local\Android\Sdk\cmake\3.22.1\bin\ninja.exe cmTC_f0745 && [1/2] Building C object CMakeFiles/cmTC_f0745.dir/CheckFunctionExists.c.o
+[2/2] Linking C executable cmTC_f0745
+FAILED: cmTC_f0745 
+cmd.exe /C "cd . && C:\Users\ivanp\AppData\Local\Android\Sdk\ndk\25.1.8937393\toolchains\llvm\prebuilt\windows-x86_64\bin\clang.exe --target=aarch64-none-linux-android24 --sysroot=C:/Users/ivanp/AppData/Local/Android/Sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/windows-x86_64/sysroot -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -DCHECK_FUNCTION_EXISTS=pthread_create -static-libstdc++ -Wl,--build-id=sha1 -Wl,--no-rosegment -Wl,--fatal-warnings -Wl,--gc-sections -Wl,--no-undefined -Qunused-arguments -Wl,--gc-sections CMakeFiles/cmTC_f0745.dir/CheckFunctionExists.c.o -o cmTC_f0745  -lpthread  -latomic -lm && cd ."
+ld: error: unable to find library -lpthread
+clang: error: linker command failed with exit code 1 (use -v to see invocation)
+ninja: build stopped: subcommand failed.
+
+
+
+Determining if the include file vfork.h exists failed with the following output:
+Change Dir: C:/Users/ivanp/NewCatroid/vncclient/.cxx/RelWithDebInfo/193o6o4k/arm64-v8a/CMakeFiles/CMakeTmp
+
+Run Build Command(s):C:\Users\ivanp\AppData\Local\Android\Sdk\cmake\3.22.1\bin\ninja.exe cmTC_4ada5 && [1/2] Building C object CMakeFiles/cmTC_4ada5.dir/CheckIncludeFile.c.o
+FAILED: CMakeFiles/cmTC_4ada5.dir/CheckIncludeFile.c.o 
+C:\Users\ivanp\AppData\Local\Android\Sdk\ndk\25.1.8937393\toolchains\llvm\prebuilt\windows-x86_64\bin\clang.exe --target=aarch64-none-linux-android24 --sysroot=C:/Users/ivanp/AppData/Local/Android/Sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/windows-x86_64/sysroot   -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -fPIE -MD -MT CMakeFiles/cmTC_4ada5.dir/CheckIncludeFile.c.o -MF CMakeFiles\cmTC_4ada5.dir\CheckIncludeFile.c.o.d -o CMakeFiles/cmTC_4ada5.dir/CheckIncludeFile.c.o -c C:/Users/ivanp/NewCatroid/vncclient/.cxx/RelWithDebInfo/193o6o4k/arm64-v8a/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+C:/Users/ivanp/NewCatroid/vncclient/.cxx/RelWithDebInfo/193o6o4k/arm64-v8a/CMakeFiles/CMakeTmp/CheckIncludeFile.c:1:10: fatal error: 'vfork.h' file not found
+#include <vfork.h>
+         ^~~~~~~~~
+1 error generated.
+ninja: build stopped: subcommand failed.
+
+
+
+Determining if the include file ws2tcpip.h exists failed with the following output:
+Change Dir: C:/Users/ivanp/NewCatroid/vncclient/.cxx/RelWithDebInfo/193o6o4k/arm64-v8a/CMakeFiles/CMakeTmp
+
+Run Build Command(s):C:\Users\ivanp\AppData\Local\Android\Sdk\cmake\3.22.1\bin\ninja.exe cmTC_6e4da && [1/2] Building C object CMakeFiles/cmTC_6e4da.dir/CheckIncludeFile.c.o
+FAILED: CMakeFiles/cmTC_6e4da.dir/CheckIncludeFile.c.o 
+C:\Users\ivanp\AppData\Local\Android\Sdk\ndk\25.1.8937393\toolchains\llvm\prebuilt\windows-x86_64\bin\clang.exe --target=aarch64-none-linux-android24 --sysroot=C:/Users/ivanp/AppData/Local/Android/Sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/windows-x86_64/sysroot   -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -fPIE -MD -MT CMakeFiles/cmTC_6e4da.dir/CheckIncludeFile.c.o -MF CMakeFiles\cmTC_6e4da.dir\CheckIncludeFile.c.o.d -o CMakeFiles/cmTC_6e4da.dir/CheckIncludeFile.c.o -c C:/Users/ivanp/NewCatroid/vncclient/.cxx/RelWithDebInfo/193o6o4k/arm64-v8a/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+C:/Users/ivanp/NewCatroid/vncclient/.cxx/RelWithDebInfo/193o6o4k/arm64-v8a/CMakeFiles/CMakeTmp/CheckIncludeFile.c:1:10: fatal error: 'ws2tcpip.h' file not found
+#include <ws2tcpip.h>
+         ^~~~~~~~~~~~
+1 error generated.
+ninja: build stopped: subcommand failed.
+
+
+
+Determining if the function ftime exists failed with the following output:
+Change Dir: C:/Users/ivanp/NewCatroid/vncclient/.cxx/RelWithDebInfo/193o6o4k/arm64-v8a/CMakeFiles/CMakeTmp
+
+Run Build Command(s):C:\Users\ivanp\AppData\Local\Android\Sdk\cmake\3.22.1\bin\ninja.exe cmTC_457da && [1/2] Building C object CMakeFiles/cmTC_457da.dir/CheckFunctionExists.c.o
+[2/2] Linking C executable cmTC_457da
+FAILED: cmTC_457da 
+cmd.exe /C "cd . && C:\Users\ivanp\AppData\Local\Android\Sdk\ndk\25.1.8937393\toolchains\llvm\prebuilt\windows-x86_64\bin\clang.exe --target=aarch64-none-linux-android24 --sysroot=C:/Users/ivanp/AppData/Local/Android/Sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/windows-x86_64/sysroot -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -DCHECK_FUNCTION_EXISTS=ftime -static-libstdc++ -Wl,--build-id=sha1 -Wl,--no-rosegment -Wl,--fatal-warnings -Wl,--gc-sections -Wl,--no-undefined -Qunused-arguments -Wl,--gc-sections CMakeFiles/cmTC_457da.dir/CheckFunctionExists.c.o -o cmTC_457da  -latomic -lm && cd ."
+ld: error: undefined symbol: ftime
+>>> referenced by CheckFunctionExists.c:17 (C:/Users/ivanp/AppData/Local/Android/Sdk/cmake/3.22.1/share/cmake-3.22/Modules/CheckFunctionExists.c:17)
+>>>               CMakeFiles/cmTC_457da.dir/CheckFunctionExists.c.o:(main)
+>>> did you mean: ctime
+>>> defined in: C:/Users/ivanp/AppData/Local/Android/Sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/windows-x86_64/sysroot/usr/lib/aarch64-linux-android/24/libc.so
+clang: error: linker command failed with exit code 1 (use -v to see invocation)
+ninja: build stopped: subcommand failed.
+
+
+
+Determining if the OSSwapHostToBigInt64 exist failed with the following output:
+Change Dir: C:/Users/ivanp/NewCatroid/vncclient/.cxx/RelWithDebInfo/193o6o4k/arm64-v8a/CMakeFiles/CMakeTmp
+
+Run Build Command(s):C:\Users\ivanp\AppData\Local\Android\Sdk\cmake\3.22.1\bin\ninja.exe cmTC_3d986 && [1/2] Building C object CMakeFiles/cmTC_3d986.dir/CheckSymbolExists.c.o
+FAILED: CMakeFiles/cmTC_3d986.dir/CheckSymbolExists.c.o 
+C:\Users\ivanp\AppData\Local\Android\Sdk\ndk\25.1.8937393\toolchains\llvm\prebuilt\windows-x86_64\bin\clang.exe --target=aarch64-none-linux-android24 --sysroot=C:/Users/ivanp/AppData/Local/Android/Sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/windows-x86_64/sysroot   -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -fPIE -MD -MT CMakeFiles/cmTC_3d986.dir/CheckSymbolExists.c.o -MF CMakeFiles\cmTC_3d986.dir\CheckSymbolExists.c.o.d -o CMakeFiles/cmTC_3d986.dir/CheckSymbolExists.c.o -c C:/Users/ivanp/NewCatroid/vncclient/.cxx/RelWithDebInfo/193o6o4k/arm64-v8a/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+C:/Users/ivanp/NewCatroid/vncclient/.cxx/RelWithDebInfo/193o6o4k/arm64-v8a/CMakeFiles/CMakeTmp/CheckSymbolExists.c:2:10: fatal error: 'libkern/OSByteOrder.h' file not found
+#include <libkern/OSByteOrder.h>
+         ^~~~~~~~~~~~~~~~~~~~~~~
+1 error generated.
+ninja: build stopped: subcommand failed.
+
+
+File C:/Users/ivanp/NewCatroid/vncclient/.cxx/RelWithDebInfo/193o6o4k/arm64-v8a/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <libkern/OSByteOrder.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef OSSwapHostToBigInt64
+  return ((int*)(&OSSwapHostToBigInt64))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}

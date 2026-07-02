@@ -1,0 +1,4 @@
+C:/Users/ivanp/NewCatroid/catroid/.cxx/Debug/1i176b6s/x86_64/CMakeFiles/example_core.dir
+C:/Users/ivanp/NewCatroid/catroid/.cxx/Debug/1i176b6s/x86_64/CMakeFiles/catroid.dir
+C:/Users/ivanp/NewCatroid/catroid/.cxx/Debug/1i176b6s/x86_64/CMakeFiles/edit_cache.dir
+C:/Users/ivanp/NewCatroid/catroid/.cxx/Debug/1i176b6s/x86_64/CMakeFiles/rebuild_cache.dir

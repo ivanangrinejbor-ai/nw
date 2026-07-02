@@ -1,0 +1,35 @@
+{
+  "buildFiles": [
+    "C:\\Users\\ivanp\\NewCatroid\\catroid\\src\\main\\cpp\\CMakeLists.txt"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "C:\\Users\\ivanp\\AppData\\Local\\Android\\Sdk\\cmake\\3.22.1\\bin\\ninja.exe",
+      "-C",
+      "C:\\Users\\ivanp\\NewCatroid\\catroid\\.cxx\\Debug\\1i176b6s\\x86",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "C:\\Users\\ivanp\\AppData\\Local\\Android\\Sdk\\cmake\\3.22.1\\bin\\ninja.exe",
+    "-C",
+    "C:\\Users\\ivanp\\NewCatroid\\catroid\\.cxx\\Debug\\1i176b6s\\x86",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {
+    "example_core::@6890427a1f51a3e7e1df": {
+      "artifactName": "example_core",
+      "abi": "x86",
+      "output": "C:\\Users\\ivanp\\NewCatroid\\catroid\\build\\intermediates\\cxx\\Debug\\1i176b6s\\obj\\x86\\libexample_core.so",
+      "runtimeFiles": []
+    },
+    "catroid::@6890427a1f51a3e7e1df": {
+      "artifactName": "catroid",
+      "abi": "x86",
+      "output": "C:\\Users\\ivanp\\NewCatroid\\catroid\\build\\intermediates\\cxx\\Debug\\1i176b6s\\obj\\x86\\libcatroid.so",
+      "runtimeFiles": [
+        "C:\\Users\\ivanp\\NewCatroid\\catroid\\src\\main\\jniLibs\\x86\\libonnxruntime.so"
+      ]
+    }
+  }
+}

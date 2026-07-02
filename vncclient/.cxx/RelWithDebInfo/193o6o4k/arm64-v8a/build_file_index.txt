@@ -1,0 +1,14 @@
+C:\Users\ivanp\NewCatroid\vncclient\src\main\cpp\CMakeLists.txt
+C:\Users\ivanp\NewCatroid\vncclient\src\main\cpp\libjpeg-turbo\CMakeLists.txt
+C:\Users\ivanp\NewCatroid\vncclient\src\main\cpp\libjpeg-turbo\cmakescripts\BuildPackages.cmake
+C:\Users\ivanp\NewCatroid\vncclient\src\main\cpp\libjpeg-turbo\cmakescripts\cmake_uninstall.cmake.in
+C:\Users\ivanp\NewCatroid\vncclient\src\main\cpp\libjpeg-turbo\cmakescripts\GNUInstallDirs.cmake
+C:\Users\ivanp\NewCatroid\vncclient\src\main\cpp\libjpeg-turbo\cmakescripts\PackageInfo.cmake
+C:\Users\ivanp\NewCatroid\vncclient\src\main\cpp\libjpeg-turbo\md5\CMakeLists.txt
+C:\Users\ivanp\NewCatroid\vncclient\src\main\cpp\libjpeg-turbo\release\Config.cmake.in
+C:\Users\ivanp\NewCatroid\vncclient\src\main\cpp\libjpeg-turbo\simd\CMakeLists.txt
+C:\Users\ivanp\NewCatroid\vncclient\src\main\cpp\libvncserver\cmake\Modules\FindFFMPEG.cmake
+C:\Users\ivanp\NewCatroid\vncclient\src\main\cpp\libvncserver\cmake\Modules\FindLZO.cmake
+C:\Users\ivanp\NewCatroid\vncclient\src\main\cpp\libvncserver\cmake\Modules\FindSDL2.cmake
+C:\Users\ivanp\NewCatroid\vncclient\src\main\cpp\libvncserver\cmake\Modules\LibVNCServerConfig.cmake.in
+C:\Users\ivanp\NewCatroid\vncclient\src\main\cpp\libvncserver\CMakeLists.txt

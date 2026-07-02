@@ -1,0 +1,12 @@
+# CMake generated Testfile for 
+# Source directory: C:/Users/ivanp/NewCatroid/vncclient/src/main/cpp/libvncserver
+# Build directory: C:/Users/ivanp/NewCatroid/vncclient/.cxx/Debug/2w3s532r/x86/libvncserver
+# 
+# This file includes the relevant testing commands required for 
+# testing this directory and lists subdirectories to be tested as well.
+add_test(cargs "C:/Users/ivanp/NewCatroid/vncclient/.cxx/Debug/2w3s532r/x86/libvncserver/test/cargstest")
+set_tests_properties(cargs PROPERTIES  _BACKTRACE_TRIPLES "C:/Users/ivanp/NewCatroid/vncclient/src/main/cpp/libvncserver/CMakeLists.txt;756;add_test;C:/Users/ivanp/NewCatroid/vncclient/src/main/cpp/libvncserver/CMakeLists.txt;0;")
+add_test(includetest "C:/Users/ivanp/NewCatroid/vncclient/src/main/cpp/libvncserver/test/includetest.sh" "/opt/VncClientBridge/include" "C:\\Users\\ivanp\\AppData\\Local\\Android\\Sdk\\cmake\\3.22.1\\bin\\ninja.exe")
+set_tests_properties(includetest PROPERTIES  _BACKTRACE_TRIPLES "C:/Users/ivanp/NewCatroid/vncclient/src/main/cpp/libvncserver/CMakeLists.txt;758;add_test;C:/Users/ivanp/NewCatroid/vncclient/src/main/cpp/libvncserver/CMakeLists.txt;0;")
+add_test(wstest "C:/Users/ivanp/NewCatroid/vncclient/.cxx/Debug/2w3s532r/x86/libvncserver/test/wstest")
+set_tests_properties(wstest PROPERTIES  _BACKTRACE_TRIPLES "C:/Users/ivanp/NewCatroid/vncclient/src/main/cpp/libvncserver/CMakeLists.txt;764;add_test;C:/Users/ivanp/NewCatroid/vncclient/src/main/cpp/libvncserver/CMakeLists.txt;0;")

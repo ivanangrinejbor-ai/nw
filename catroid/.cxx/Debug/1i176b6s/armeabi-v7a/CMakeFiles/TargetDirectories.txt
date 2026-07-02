@@ -1,0 +1,4 @@
+C:/Users/ivanp/NewCatroid/catroid/.cxx/Debug/1i176b6s/armeabi-v7a/CMakeFiles/example_core.dir
+C:/Users/ivanp/NewCatroid/catroid/.cxx/Debug/1i176b6s/armeabi-v7a/CMakeFiles/catroid.dir
+C:/Users/ivanp/NewCatroid/catroid/.cxx/Debug/1i176b6s/armeabi-v7a/CMakeFiles/edit_cache.dir
+C:/Users/ivanp/NewCatroid/catroid/.cxx/Debug/1i176b6s/armeabi-v7a/CMakeFiles/rebuild_cache.dir

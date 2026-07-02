@@ -1,0 +1,5 @@
+# ninja log v5
+2	10384	8047373838376335	CMakeFiles/example_core.dir/example_core.cpp.o	85b5df88bca1ab57
+10390	10658	8047373840939411	C:/Users/ivanp/NewCatroid/catroid/build/intermediates/cxx/RelWithDebInfo/5o633eu7/obj/arm64-v8a/libexample_core.so	422aea09e25d04c1
+10	16135	8047373895632912	CMakeFiles/catroid.dir/catroid.cpp.o	b2b328ac7c519520
+16138	16453	8047373898537733	C:/Users/ivanp/NewCatroid/catroid/build/intermediates/cxx/RelWithDebInfo/5o633eu7/obj/arm64-v8a/libcatroid.so	54b95e4192fdd2d1
