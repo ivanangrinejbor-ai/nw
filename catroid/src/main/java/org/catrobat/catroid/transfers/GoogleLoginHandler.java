@@ -92,7 +92,8 @@ public class GoogleLoginHandler implements CheckOAuthTokenTask.OnCheckOAuthToken
 		String idToken = account.getIdToken();
 		String code = account.getServerAuthCode();
 
-		PreferenceManager.getDefaultSharedPreferences(activity).edit()
+		activity.getSharedPreferences(Constants.GOOGLE_LOGIN_PRIVATE_PREFS, android.content.Context.MODE_PRIVATE)
+				.edit()
 				.putString(Constants.GOOGLE_ID, id)
 				.putString(Constants.GOOGLE_USERNAME, personName)
 				.putString(Constants.GOOGLE_EMAIL, email)

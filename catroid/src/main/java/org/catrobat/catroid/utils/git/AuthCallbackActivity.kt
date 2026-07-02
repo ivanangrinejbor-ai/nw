@@ -14,8 +14,8 @@ import org.json.JSONObject
 
 class AuthCallbackActivity : AppCompatActivity() {
 
-    private val GITHUB_CLIENT_ID = "Ov23liKoq3h0cTgAbVYA"
-    private val GITHUB_CLIENT_SECRET = "936da4332f8a31ebed1bc97aa5d2f89a989a56d2"
+    private val GITHUB_CLIENT_ID = BuildConfig.GITHUB_CLIENT_ID
+    private val GITHUB_CLIENT_SECRET = BuildConfig.GITHUB_CLIENT_SECRET
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

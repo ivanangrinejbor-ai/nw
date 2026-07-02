@@ -157,6 +157,28 @@ public class PhysicsWorld {
 		}
 	}
 
+	public void dispose() {
+		for (Map.Entry<String, Joint> entry : joints.entrySet()) {
+			try {
+				world.destroyJoint(entry.getValue());
+			} catch (Exception ignored) { }
+		}
+		joints.clear();
+		for (PhysicsObject obj : physicsObjects.values()) {
+			obj.dispose();
+		}
+		physicsObjects.clear();
+		activeVerticalBounces.clear();
+		activeHorizontalBounces.clear();
+		if (renderer != null) {
+			renderer.dispose();
+			renderer = null;
+		}
+		boundaryBox = null;
+		physicsShapeBuilder = null;
+		world.dispose();
+	}
+
 	public void render(Matrix4 perspectiveMatrix) {
 		if (renderer == null) {
 			renderer = new Box2DDebugRenderer(PhysicsDebugSettings.Render.RENDER_BODIES,
