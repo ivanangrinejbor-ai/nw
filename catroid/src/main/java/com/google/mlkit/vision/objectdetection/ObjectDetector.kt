@@ -1,10 +1,9 @@
 package com.google.mlkit.vision.objectdetection
 
-class ObjectDetector {
-    companion object {
-        fun getClient(options: ObjectDetectorOptions): ObjectDetector = ObjectDetector()
-    }
+import com.google.android.gms.tasks.Task
+import com.google.mlkit.vision.common.InputImage
 
-    fun process(image: com.google.mlkit.vision.common.InputImage) = com.google.android.gms.tasks.Tasks.forResult(emptyList<DetectedObject>())
+class ObjectDetector {
+    fun process(image: InputImage): Task<List<DetectedObject>> = com.google.android.gms.tasks.Tasks.forResult(emptyList())
     fun close() {}
 }
