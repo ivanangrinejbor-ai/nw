@@ -650,9 +650,12 @@ dependencies {
 
     kapt project(':lunoscript-processor')
 
-    // ML Kit (removed for runtime-only build - not critical for playback)
+    // ML Kit
     implementation 'com.google.android.gms:play-services-mlkit-face-detection:16.1.4'
     implementation 'com.google.android.gms:play-services-mlkit-text-recognition:16.1.3'
+    implementation 'com.google.android.gms:play-services-mlkit-object-detection:16.2.7'
+    implementation 'com.google.android.gms:play-services-mlkit-language-id:16.1.1'
+    implementation 'com.google.android.gms:play-services-mlkit-pose-detection:17.0.0'
 
     // TensorFlow Lite for Neural AI Assistant
     implementation 'org.tensorflow:tensorflow-lite:2.14.0'
