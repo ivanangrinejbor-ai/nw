@@ -960,6 +960,18 @@ android.applicationVariants.all { variant ->
     }
 }
 
+afterEvaluate {
+    def runtimeCopyPluginLibsTasks = tasks.matching { it.name.startsWith("copyPluginLibs") && it.name.contains("Runtime") }
+    def runtimeMergeAssetsTasks = tasks.matching { it.name.startsWith("merge") && it.name.contains("Runtime") && it.name.endsWith("Assets") }
+    def runtimePackageClassesTasks = tasks.matching { it.name.startsWith("packageAppClasses") && it.name.contains("Runtime") }
+    def allRuntimeAssetTasks = []
+    allRuntimeAssetTasks.addAll(runtimeCopyPluginLibsTasks)
+    allRuntimeAssetTasks.addAll(runtimePackageClassesTasks)
+    runtimeMergeAssetsTasks.configureEach {
+        dependsOn allRuntimeAssetTasks
+    }
+}
+
 tasks.register('makeCoffee') {
     group = "help"
     description = "Попытка заварить кофе через USB-порт"
@@ -971,42 +983,57 @@ tasks.register('makeCoffee') {
     }
 }
 
-tasks.register('copyTemplateApk', Copy) {
+tasks.register('copyTemplateApk') {
     group = "build"
     description = "Builds and copies the minimal runtime APK template to assets"
     dependsOn 'assembleRuntimeDebug'
-    from "$buildDir/outputs/apk/runtime/debug"
-    into "$projectDir/src/main/assets"
-    include '*-runtime-debug.apk'
-    rename { 'template_runtime.apk' }
     doLast {
+        copy {
+            from "$buildDir/outputs/apk/runtime/debug"
+            into "$projectDir/src/main/assets"
+            include "*-runtime-debug.apk"
+            rename { "template_runtime.apk" }
+        }
         println "Runtime Template APK updated at: $projectDir/src/main/assets/template_runtime.apk"
     }
 }
 
-tasks.register('copyTemplateRuntimeLite', Copy) {
+tasks.register('copyTemplateRuntimeLite') {
     group = "build"
     description = "Builds and copies the lite runtime APK template (no x86/x64)"
     dependsOn 'assembleRuntimeLiteDebug'
-    from "$buildDir/outputs/apk/runtimeLite/debug"
-    into "$projectDir/src/main/assets"
-    include '*-runtimeLite-debug.apk'
-    rename { 'template_runtime_lite.apk' }
     doLast {
+        copy {
+            from "$buildDir/outputs/apk/runtimeLite/debug"
+            into "$projectDir/src/main/assets"
+            include "*-runtimeLite-debug.apk"
+            rename { "template_runtime_lite.apk" }
+        }
         println "Lite Runtime Template APK updated at: $projectDir/src/main/assets/template_runtime_lite.apk"
     }
 }
 
-tasks.register('copyTemplateRuntimeNoArm', Copy) {
+tasks.register('copyTemplateRuntimeNoArm') {
     group = "build"
     description = "Builds and copies the no-ARMv7 runtime APK template (arm64 only)"
     dependsOn 'assembleRuntimeNoArmDebug'
-    from "$buildDir/outputs/apk/runtimeNoArm/debug"
-    into "$projectDir/src/main/assets"
-    include '*-runtimeNoArm-debug.apk'
-    rename { 'template_runtime_noarm.apk' }
     doLast {
+        copy {
+            from "$buildDir/outputs/apk/runtimeNoArm/debug"
+            into "$projectDir/src/main/assets"
+            include "*-runtimeNoArm-debug.apk"
+            rename { "template_runtime_noarm.apk" }
+        }
         println "No-ARMv7 Runtime Template APK updated at: $projectDir/src/main/assets/template_runtime_noarm.apk"
+    }
+}
+
+tasks.register('copyAllRuntimeTemplates') {
+    group = "build"
+    description = "Builds and copies all runtime template APKs to assets"
+    dependsOn 'copyTemplateApk', 'copyTemplateRuntimeLite', 'copyTemplateRuntimeNoArm'
+    doLast {
+        println "All runtime template APKs copied to: $projectDir/src/main/assets"
     }
 }
 
