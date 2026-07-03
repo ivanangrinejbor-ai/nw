@@ -247,6 +247,14 @@ android {
         runtime {
             manifest.srcFile 'src/runtime/AndroidManifest.xml'
         }
+        runtimeLite {
+            manifest.srcFile 'src/runtime/AndroidManifest.xml'
+            java.srcDirs += 'src/runtime/java'
+        }
+        runtimeNoArm {
+            manifest.srcFile 'src/runtime/AndroidManifest.xml'
+            java.srcDirs += 'src/runtime/java'
+        }
     }
 
     packagingOptions {
