@@ -48,10 +48,10 @@ public final class FlavoredConstants {
 
 	public static final String POCKET_CODE_EXTERNAL_STORAGE_FOLDER_NAME = "Pocket Code";
 
-	public static final File DEFAULT_ROOT_DIRECTORY = CatroidApplication.getAppContext().getFilesDir();
+	public static final String DEFAULT_ROOT_DIRECTORY = CatroidApplication.getAppContext().getFilesDir().getAbsolutePath();
 
-	public static final File EXTERNAL_STORAGE_ROOT_DIRECTORY = new File(
-			Environment.getExternalStorageDirectory(), POCKET_CODE_EXTERNAL_STORAGE_FOLDER_NAME);
+	public static final String EXTERNAL_STORAGE_ROOT_DIRECTORY = new File(
+			Environment.getExternalStorageDirectory(), POCKET_CODE_EXTERNAL_STORAGE_FOLDER_NAME).getAbsolutePath();
 
 	// Media Library:
 	public static final String LIBRARY_BASE_URL = MAIN_URL_HTTPS;
