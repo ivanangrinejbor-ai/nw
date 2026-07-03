@@ -4,6 +4,6 @@ import com.google.android.gms.tasks.Task
 import com.google.mlkit.vision.common.InputImage
 
 class ObjectDetector {
-    fun process(image: InputImage) = com.google.android.gms.tasks.Tasks.forResult(emptyList<DetectedObject>())
+    fun process(image: InputImage) = com.google.android.gms.tasks.Tasks.forResult(emptyList<com.google.mlkit.vision.objects.DetectedObject>())
     fun close() {}
 }

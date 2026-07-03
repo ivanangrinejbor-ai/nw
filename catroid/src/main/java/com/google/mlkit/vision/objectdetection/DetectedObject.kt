@@ -8,8 +8,6 @@ class DetectedObject {
     val trackingId: Int = 0
     val boundingBox: android.graphics.Rect = android.graphics.Rect()
 
-    fun getTrackingId(): Int = trackingId
-    fun getBoundingBox(): android.graphics.Rect = boundingBox
     fun getCategory(): Category = Category()
     fun getLabels(): List<Label> = emptyList()
 

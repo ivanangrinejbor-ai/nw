@@ -3,6 +3,8 @@ package com.google.mlkit.vision.text
 class TextRecognition {
     companion object {
         fun getClient(options: Options): TextRecognizer = TextRecognizer()
+        // Backwards-compatible overload used in code: getClient()
+        fun getClient(): TextRecognizer = TextRecognizer()
     }
 }
 
@@ -21,15 +23,10 @@ class TextRecognizer {
     fun close() {}
 }
 
-class Text {
-    val textBlocks: List<TextBlock> = emptyList()
-    fun getTextBlocks(): List<TextBlock> = textBlocks
-}
-
-class TextBlock {
-    fun getText(): String = ""
-    fun getBoundingBox(): android.graphics.Rect = android.graphics.Rect()
-    fun getLines(): List<Line> = emptyList()
+class Text(val text: String = "", val textBlocks: List<Text.TextBlock> = emptyList()) {
+    class TextBlock(val text: String = "", val boundingBox: android.graphics.Rect = android.graphics.Rect()) {
+        fun getLines(): List<Line> = emptyList()
+    }
 }
 
 class Line {

@@ -1,10 +1,11 @@
 package com.google.mlkit.vision.objects
 
 import com.google.mlkit.vision.objectdetection.ObjectDetector
-import com.google.mlkit.vision.objectdetection.ObjectDetectorOptions
 
 class ObjectDetection {
     companion object {
-        fun getClient(options: ObjectDetectorOptions): ObjectDetector = ObjectDetector()
+        // Accept either the legacy `objectdetection.ObjectDetectorOptions` or
+        // the newer `objects.defaults.ObjectDetectorOptions` (or any options type)
+        fun getClient(options: Any): ObjectDetector = ObjectDetector()
     }
 }
