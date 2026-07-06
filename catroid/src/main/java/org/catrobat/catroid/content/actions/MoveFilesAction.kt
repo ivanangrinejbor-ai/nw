@@ -1,74 +1,65 @@
-/*
- * Catroid: An on-device visual programming system for Android devices
- * Copyright (C) 2010-2024 The Catrobat Team
- * (<http://developer.catrobat.org/credits>)
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * An additional term exception under section 7 of the GNU Affero
- * General Public License, version 3, is available at
- * http://developer.catrobat.org/license_additional_term
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package org.catrobat.catroid.content.actions
 
-import android.widget.Toast
 import android.content.Context
-import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction
-import android.app.Activity
 import android.content.ContentValues
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
-import org.catrobat.catroid.stage.StageActivity
-import org.catrobat.catroid.stage.StageActivity.IntentListener
 import android.util.Log
 import androidx.annotation.RequiresApi
+import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction
 import org.catrobat.catroid.CatroidApplication
-import org.catrobat.catroid.R
-
 import org.catrobat.catroid.content.Scope
 import org.catrobat.catroid.formulaeditor.Formula
+import org.catrobat.catroid.formulaeditor.InterpretationException
 import java.io.File
 import java.io.IOException
-import java.util.ArrayList
 
 class MoveFilesAction() : TemporalAction() {
-    private var contextt: Context? = null
     var scope: Scope? = null
     var fileName: Formula? = null
 
-    @RequiresApi(Build.VERSION_CODES.Q)
     override fun update(percent: Float) {
-        val fileName_s = scope?.project?.checkExtension(fileName?.interpretString(scope), "txt") ?: "variable.txt"
-        scope?.project?.let {
-            val file = it.getFile(fileName_s)
+        val project = scope?.project ?: return
+        val context = CatroidApplication.getAppContext() ?: return
 
-            copyFileToDownloads(CatroidApplication.getAppContext(), file)
+        val fileNameStr: String
+        try {
+            fileNameStr = fileName?.interpretString(scope) ?: ""
+        } catch (e: InterpretationException) {
+            Log.e("MoveFilesAction", "Formula interpretation error", e)
+            return
+        }
+
+        val name = project.checkExtension(fileNameStr, "txt")
+        if (name.isEmpty()) return
+
+        val file = project.getFile(name)
+        if (!file.exists() || file.isDirectory) return
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            copyFileToDownloads(context, file)
+        } else {
+            copyFileToLegacy(file)
         }
     }
 
-    private fun copyFileToDir(file: File, dir: File): File {
-        val newFile = File(dir, file.name)
-        if (newFile.exists()) newFile.delete()
-        file.copyTo(newFile, overwrite = true)
-        return newFile
+    private fun copyFileToLegacy(file: File) {
+        val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+        if (!downloadsDir.exists()) {
+            downloadsDir.mkdirs()
+        }
+        val destFile = File(downloadsDir, file.name)
+        try {
+            file.copyTo(destFile, overwrite = true)
+        } catch (e: IOException) {
+            Log.e("MoveFilesAction", "Error copying file to Downloads", e)
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.Q)
-    private fun copyFileToDownloads(context: Context, sourceFile: File): File? {
-        val resolver = context.contentResolver
+    private fun copyFileToDownloads(context: Context, sourceFile: File) {
+        val resolver = context.contentResolver ?: return
 
         val contentValues = ContentValues().apply {
             put(MediaStore.MediaColumns.DISPLAY_NAME, sourceFile.name)
@@ -84,10 +75,8 @@ class MoveFilesAction() : TemporalAction() {
                     inputStream.copyTo(outputStream)
                 }
             }
-            return File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), sourceFile.name)
         } catch (e: IOException) {
             Log.e("MoveFilesAction", "Error copying file to Downloads: ${e.message}")
-            return null
         }
     }
 }

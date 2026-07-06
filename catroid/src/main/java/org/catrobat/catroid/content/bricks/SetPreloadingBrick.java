@@ -5,6 +5,7 @@ import org.catrobat.catroid.content.Sprite;
 import org.catrobat.catroid.content.actions.ScriptSequenceAction;
 
 public class SetPreloadingBrick extends BrickBaseType {
+    private static final long serialVersionUID = 1L;
     private int preloadEnabled;
 
     public SetPreloadingBrick() { this.preloadEnabled = 1; }

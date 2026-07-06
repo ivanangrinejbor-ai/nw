@@ -11,6 +11,16 @@
 #   http://developer.android.com/guide/developing/tools/proguard.html
 
 # Add any project specific keep options here:
+-ignorewarnings
+
+# AppCompat LayoutInflater Factory2 fix (AbstractMethodError on API 34)
+-keep class * extends android.view.LayoutInflater$Factory2 { *; }
+-keepclassmembers class * extends android.view.LayoutInflater$Factory2 { *; }
+-keep class androidx.appcompat.app.AppCompatDelegateImpl { *; }
+-keep class androidx.appcompat.app.AppCompatViewInflater { *; }
+-keep class * extends androidx.appcompat.app.AppCompatViewInflater { *; }
+-keep class androidx.appcompat.R { *; }
+-keep class androidx.appcompat.** { *; }
 
 # If your project uses WebView with JS, uncomment the following
 # and specify the fully qualified class name to the JavaScript interface
@@ -60,7 +70,7 @@
 
 # Retrofit
 -keep,allowobfuscation,allowshrinking interface retrofit2.Call
--keep,allowobfuscation,allowshrinding class retrofit2.Response
+-keep,allowobfuscation,allowshrinking class retrofit2.Response
 -keep,allowobfuscation,allowshrinking class kotlin.coroutines.Continuation
 
 # Moshi
@@ -99,15 +109,4 @@
 # ONNX Runtime
 -keep class ai.onnxruntime.** { *; }
 
-# XStream special serialization
--keepclassmembers class * implements java.io.Serializable {
-    static final long serialVersionUID;
-    private static final java.io.ObjectStreamField[] serialPersistentFields;
-    !static !transient <fields>;
-    !private <fields>;
-    !private <methods>;
-    private void writeObject(java.io.ObjectOutputStream);
-    private void readObject(java.io.ObjectInputStream);
-    java.lang.Object writeReplace();
-    java.lang.Object readResolve();
-}
+# XStream special serialization (duplicate of above, keep once)

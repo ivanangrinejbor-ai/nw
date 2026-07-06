@@ -4,7 +4,12 @@
 
     <application
         android:name=".apkbuild.RuntimeApp"
-        tools:replace="android:name">
+        android:extractNativeLibs="true"
+        tools:replace="android:name,android:extractNativeLibs">
+        <property
+            android:name="android.adservices.AD_SERVICES_CONFIG"
+            android:resource="@xml/gma_ad_services_config"
+            tools:replace="android:resource" />
 
         <!-- Runtime loader activity - единственный launcher -->
         <activity
@@ -19,22 +24,6 @@
             </intent-filter>
         </activity>
 
-        <!-- Удаляем все остальные activities из main manifest -->
-        <activity
-            android:name=".ui.MainMenuActivity"
-            tools:node="remove" />
-        <activity
-            android:name=".ui.ProjectListActivity"
-            tools:node="remove" />
-        <activity
-            android:name=".ui.SpriteActivity"
-            tools:node="remove" />
-        <activity
-            android:name="org.catrobat.paintroid.MainActivity"
-            tools:node="remove" />
-        <activity
-            android:name=".ui.ProjectActivity"
-            tools:node="remove" />
     </application>
 
 </manifest>

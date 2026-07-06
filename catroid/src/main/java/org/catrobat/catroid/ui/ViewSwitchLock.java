@@ -65,7 +65,12 @@ public class ViewSwitchLock implements Lock {
 	@Override
 	public void lock() {
 		while (!tryLock()) {
-			Thread.yield();
+			try {
+				Thread.sleep(1);
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				return;
+			}
 		}
 	}
 
@@ -75,7 +80,7 @@ public class ViewSwitchLock implements Lock {
 			if (Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			Thread.yield();
+			Thread.sleep(1);
 		}
 	}
 

@@ -69,31 +69,27 @@ class AskGemini2Action() : TemporalAction() {
     override fun update(percent: Float) {
         val client = OkHttpClient.Builder()
             .dns(CustomDns())
-            .connectTimeout(0, TimeUnit.SECONDS)
-            .readTimeout(0, TimeUnit.SECONDS)
-            .writeTimeout(0, TimeUnit.SECONDS)
-            .hostnameVerifier { hostname, session -> true }
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(60, TimeUnit.SECONDS)
+            .writeTimeout(30, TimeUnit.SECONDS)
             .build()
         val model_str = model?.interpretString(scope) ?: "models/gemini-1.5-flash-latest"
         val askVal = ask?.interpretObject(scope) ?: ""
-        val askReq = askVal.toString().replace("\"", "\\\"")
         val apiKey = GeminiManager.api_key
         if (apiKey.isNullOrBlank()) return
         val urlText = "https://generativelanguage.googleapis.com/v1beta/$model_str:generateContent"
 
-        val json = """
-    {
-    "contents": [
-      {
-        "parts": [
-          {
-            "text": "$askReq"
-          }
-        ]
-      }
-    ]
-  }
-    """.trimIndent()
+        val json = JSONObject().apply {
+            put("contents", JSONArray().apply {
+                put(JSONObject().apply {
+                    put("parts", JSONArray().apply {
+                        put(JSONObject().apply {
+                            put("text", askVal.toString())
+                        })
+                    })
+                })
+            })
+        }.toString()
 
         if (userVariable == null) {
             return

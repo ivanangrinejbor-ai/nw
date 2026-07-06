@@ -29,12 +29,14 @@ import org.catrobat.catroid.content.Scope
 import org.catrobat.catroid.formulaeditor.UserVariable
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
 
 class ListenServerAction() : Action() {
     companion object {
         @Volatile
         private var sharedScheduler: ScheduledExecutorService? = null
+        private var scheduledTask: ScheduledFuture<*>? = null
 
         @Synchronized
         private fun getScheduler(): ScheduledExecutorService {
@@ -49,6 +51,8 @@ class ListenServerAction() : Action() {
 
         @Synchronized
         fun stopAll() {
+            scheduledTask?.cancel(false)
+            scheduledTask = null
             sharedScheduler?.shutdownNow()
             sharedScheduler = null
         }
@@ -60,7 +64,8 @@ class ListenServerAction() : Action() {
     override fun act(delta: Float): Boolean {
         val v = variable ?: return true
 
-        getScheduler().scheduleAtFixedRate({
+        val scheduler = getScheduler()
+        scheduledTask = scheduler.scheduleAtFixedRate({
             v.value = LocalServer.getValue()
         }, 0, 30, TimeUnit.MILLISECONDS)
 

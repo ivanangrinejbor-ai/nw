@@ -117,6 +117,7 @@
     <string formatted="false" name="brick_promote_light">Promote light to object</string>
 
     <string formatted="false" name="brick_attach_to_camera">Attach object to camera</string>
+    <string formatted="false" name="brick_attach_camera_offset">Attach to camera with offset</string>
     <string formatted="false" name="brick_detach_from_camera">Detach object from camera</string>
     <string formatted="false" name="brick_set_max_point_lights">Set max active point lights</string>
     <string formatted="false" name="brick_3d_object_name">Object ID</string>
@@ -537,6 +538,7 @@
     <string name="subcategory_event_conditions">Conditions &amp; Changes</string>
     <string name="subcategory_event_cloning">Cloning</string>
     <string name="subcategory_event_system">System</string>
+    <string name="subcategory_event_notifications">Notifications</string>
 
     <string name="subcategory_motion_coordinates">Coordinates &amp; Sliding</string>
     <string name="subcategory_motion_rotation">Rotation &amp; Direction</string>
@@ -589,6 +591,13 @@
     <string name="formula_voxel_get_data_param" formatted="false">(\'worldId\', x, y, z)</string>
     <string name="formula_file_exists" formatted="false">File_exists</string>
     <string name="formula_file_exists_param" formatted="false">(\'path\')</string>
+    <string name="formula_file_project_exists" formatted="false">Project_file_exists</string>
+    <string name="formula_file_project_exists_param" formatted="false">(\'fileName\')</string>
+    <string name="formula_file_exists_in_dir" formatted="false">File_exists_in</string>
+    <string name="formula_file_exists_in_dir_param" formatted="false">(\'fileName\', \'dirName\')</string>
+    <string name="formula_file_exists_at_path" formatted="false">File_exists_at</string>
+    <string name="formula_file_exists_at_path_param" formatted="false">(\'fileName\', \'path\')</string>
+    <string name="formula_file_project_size_param" formatted="false">(\'fileName\')</string>
     <string name="formula_device_name" formatted="false">Device_name</string>
     <string name="formula_device_manufacturer" formatted="false">Device_manufacturer</string>
     <string name="formula_android_version" formatted="false">Android_version</string>
@@ -617,6 +626,16 @@
     <string name="formula_screen_dpi" formatted="false">Screen_dpi</string>
     <string name="formula_screen_refresh" formatted="false">Screen_refresh</string>
     <string name="formula_screen_orientation" formatted="false">Screen_orientation</string>
+    <string formatted="false" name="formula_used_ram">Used RAM</string>
+    <string formatted="false" name="formula_used_storage">Used storage</string>
+    <string formatted="false" name="formula_volume_level">Volume level</string>
+    <string formatted="false" name="formula_screen_brightness">Screen brightness</string>
+    <string formatted="false" name="formula_is_in_foreground">App is in foreground</string>
+    <string formatted="false" name="formula_cpu_frequency_min">CPU min frequency</string>
+    <string formatted="false" name="formula_cpu_usage">CPU usage</string>
+    <string formatted="false" name="formula_gpu_name">GPU name</string>
+    <string formatted="false" name="formula_opengl_version">OpenGL version</string>
+    <string formatted="false" name="formula_vulkan_supported">Vulkan supported</string>
     <string name="formula_sprite_exists" formatted="false">Sprite_exists</string>
     <string name="formula_sprite_exists_param" formatted="false">(\'name\')</string>
     <string name="formula_sprite_x" formatted="false">Sprite_x</string>
@@ -1085,6 +1104,50 @@
     <string formatted="false" name="brick_open_files">Open file from project</string>
     <string formatted="false" name="brick_move_files">Copy file (project -> Downloads)</string>
     <string formatted="false" name="brick_move_downloads">Copy file (Downloads -> project)</string>
+    <string formatted="false" name="brick_create_folder">Create folder</string>
+    <string formatted="false" name="brick_delete_folder">Delete folder</string>
+    <string formatted="false" name="brick_create_folder_by_path">Create folder by path</string>
+    <string formatted="false" name="brick_delete_folder_by_path">Delete folder by path</string>
+    <string formatted="false" name="brick_copy_project_file_to_folder">Copy project file to folder</string>
+    <string formatted="false" name="brick_copy_project_file_to_folder_source">Source file</string>
+    <string formatted="false" name="brick_copy_project_file_to_folder_destination">Folder name</string>
+    <string formatted="false" name="brick_copy_project_file_to_path">Copy project file to path</string>
+    <string formatted="false" name="brick_copy_project_file_to_path_source">Source file</string>
+    <string formatted="false" name="brick_copy_project_file_to_path_destination">Path</string>
+    <string formatted="false" name="brick_put_file_into_folder">Put file into folder</string>
+    <string formatted="false" name="brick_put_file_into_path">Put file to path</string>
+    <string formatted="false" name="brick_prepare_notification">Prepare notification</string>
+    <string formatted="false" name="brick_send_notification">Send notification</string>
+    <string formatted="false" name="brick_remove_notification">Remove notification</string>
+    <string formatted="false" name="brick_prepare_notification_id">ID</string>
+    <string formatted="false" name="brick_prepare_notification_channel">Channel</string>
+    <string formatted="false" name="brick_prepare_notification_title">Title</string>
+    <string formatted="false" name="brick_prepare_notification_text">Text</string>
+    <string formatted="false" name="brick_prepare_notification_icon">Icon</string>
+    <string formatted="false" name="brick_prepare_notification_importance">Importance</string>
+    <string formatted="false" name="brick_prepare_notification_pinned">Pinned</string>
+    <string formatted="false" name="notification_importance_min">Minimal</string>
+    <string formatted="false" name="notification_importance_low">Low</string>
+    <string formatted="false" name="notification_importance_default">Default</string>
+    <string formatted="false" name="notification_importance_high">High</string>
+    <string formatted="false" name="notification_importance_max">Max</string>
+    <string formatted="false" name="brick_notification_action">Notification button</string>
+    <string formatted="false" name="brick_notification_action_id">Action ID</string>
+    <string formatted="false" name="brick_notification_action_text">Button text</string>
+    <string formatted="false" name="brick_notification_action_icon">Icon</string>
+    <string formatted="false" name="brick_notification_action_hint">Reply hint</string>
+    <string formatted="false" name="brick_notification_action_behavior">Behavior</string>
+    <string formatted="false" name="brick_notification_action_has_input">Has input</string>
+    <string formatted="false" name="notification_action_launch_app">Open app</string>
+    <string formatted="false" name="notification_action_background">Background</string>
+    <string formatted="false" name="notification_action_silent">Silent</string>
+    <string formatted="false" name="notification_action_input">With input</string>
+    <string formatted="false" name="brick_show_scheduled_notification">Show notification (scheduled)</string>
+    <string formatted="false" name="brick_show_scheduled_notification_duration">Delay (seconds)</string>
+    <string formatted="false" name="brick_when_notification_action_clicked">When notification action clicked</string>
+    <string formatted="false" name="brick_when_notification_reply">When notification reply</string>
+    <string formatted="false" name="brick_when_notification_shown">When notification shown</string>
+    <string formatted="false" name="brick_when_notification_dismissed">When notification dismissed</string>
     <string formatted="false" name="brick_save_look_files">Look to file (project)</string>
     <string formatted="false" name="brick_set_look_files">Look from file (project)</string>
     <string formatted="false" name="brick_files_url">Save file (in project)</string>
@@ -1657,6 +1720,8 @@
     <string formatted="false" name="preference_title_old_dragd">Enables drag and drop mode for blocks from Pocket Code 1.2.4</string>
     <string name="brick_when_back_pressed" formatted="false">When back pressed</string>
     <string name="brick_when_project_exits" formatted="false">When project exits</string>
+    <string name="brick_when_app_minimized" formatted="false">When app minimized</string>
+    <string name="brick_when_app_restored" formatted="false">When app restored</string>
     <string name="brick_set_sound_volume_text" formatted="false">Set volume for sound</string>
     <string name="brick_set_sound_volume_volume" formatted="false">Volume (%)</string>
     <string name="brick_copy_file_text" formatted="false">Copy project file</string>
@@ -2062,6 +2127,38 @@
     <string formatted="false" name="post_web_request_header">with header</string>
     <string formatted="false" name="post_web_request_body">and data</string>
     <string formatted="false" name="post_web_request_var">and store response in</string>
+
+    <!-- PUT -->
+    <string formatted="false" name="put_web_request">PUT web request to</string>
+    <string formatted="false" name="put_web_request_header">with header</string>
+    <string formatted="false" name="put_web_request_body">and data</string>
+    <string formatted="false" name="put_web_request_timeout">timeout (s)</string>
+    <string formatted="false" name="put_web_request_var">and store response in</string>
+
+    <!-- PATCH -->
+    <string formatted="false" name="patch_web_request">PATCH web request to</string>
+    <string formatted="false" name="patch_web_request_header">with header</string>
+    <string formatted="false" name="patch_web_request_body">and data</string>
+    <string formatted="false" name="patch_web_request_timeout">timeout (s)</string>
+    <string formatted="false" name="patch_web_request_var">and store response in</string>
+
+    <!-- DELETE -->
+    <string formatted="false" name="delete_web_request">DELETE web request to</string>
+    <string formatted="false" name="delete_web_request_header">with header</string>
+    <string formatted="false" name="delete_web_request_timeout">timeout (s)</string>
+    <string formatted="false" name="delete_web_request_var">and store response in</string>
+
+    <!-- HEAD -->
+    <string formatted="false" name="head_web_request">HEAD web request to</string>
+    <string formatted="false" name="head_web_request_header">with header</string>
+    <string formatted="false" name="head_web_request_timeout">timeout (s)</string>
+    <string formatted="false" name="head_web_request_var">and store headers in</string>
+
+    <!-- OPTIONS -->
+    <string formatted="false" name="options_web_request">OPTIONS web request to</string>
+    <string formatted="false" name="options_web_request_header">with header</string>
+    <string formatted="false" name="options_web_request_timeout">timeout (s)</string>
+    <string formatted="false" name="options_web_request_var">and store allowed methods in</string>
     <string formatted="false" name="brick_show_toast2"></string>
     <string formatted="false" name="brick_show_toast">Show toast</string>
     <string formatted="false" name="stage">Stage</string>
@@ -2297,6 +2394,7 @@
         for plotting machines</string>
     <string formatted="false" name="preference_description_internet_bricks">It expands the possibilities of interacting with the Internet and allows you to create local servers.</string>
     <string formatted="false" name="category_internet">Internet</string>
+    <string formatted="false" name="category_preload">Preload</string>
     <string formatted="false" name="preference_description_pocketensor_bricks">Adds support for working with tensors and allows you to create AI models.</string>
     <string formatted="false" name="pocketensor">PockeTensor</string>
     <string formatted="false" name="pathfinder">Pathfinder</string>
@@ -2701,9 +2799,20 @@
     <string formatted="false" name="import_encrypted_action">Import</string>
     <string formatted="false" name="error_import_project">Something went wrong while importing projects.</string>
     <string formatted="false" name="no_projects_selected">No projects selected for import</string>
-    <string formatted="false" name="only_select_catrobat_files">Please select .catrobat or .newtrobat files</string>
+    <string formatted="false" name="only_select_catrobat_files">Please select .catrobat, .newtrobat, .neotrobat, .npc, or .zip files</string>
     <string formatted="false" name="error_no_files_found">No project files found.</string>
     <string formatted="false" name="import_sprite_from_project_launcher">Import Object from Local Project</string>
+    <string formatted="false" name="import_progress_title">Importing project</string>
+    <string formatted="false" name="import_progress_details">Details</string>
+    <string formatted="false" name="import_progress_hide_details">Hide details</string>
+    <string formatted="false" name="import_step_decrypt">Decrypting…</string>
+    <string formatted="false" name="import_step_unzip">Extracting archive…</string>
+    <string formatted="false" name="import_step_unzip_progress">Unzipping: file %1$d/%2$d — %3$s</string>
+    <string formatted="false" name="import_step_scanning">Scanning project…</string>
+    <string formatted="false" name="import_step_scene">Scene: %1$s</string>
+    <string formatted="false" name="import_step_sprite">  — Object: %1$s</string>
+    <string formatted="false" name="import_step_copy">Copying files…</string>
+    <string formatted="false" name="import_step_finish">Finishing…</string>
 
     <!-- ProjectOptionsFragment -->
     <string formatted="false" name="project_options_description">Description</string>
@@ -3091,6 +3200,7 @@ For detailed license information, see the link below.\n</string>
     <string formatted="false" name="brick_turn_right">Turn right</string>
     <string formatted="false" name="brick_point_in_direction">Point in direction</string>
     <string formatted="false" name="brick_point_to">Point towards</string>
+    <string formatted="false" name="brick_point_touch_direction">Point to touch</string>
     <string formatted="false" name="brick_glide">Glide</string>
     <string formatted="false" name="brick_glide_to_x">to x:</string>
     <string formatted="false" name="brick_tween_position">Tween to x:</string>
@@ -3274,6 +3384,9 @@ For detailed license information, see the link below.\n</string>
     <string formatted="false" name="brick_broadcast_wait">Broadcast and wait</string>
     <string formatted="false" name="brick_scene_transition">Continue scene</string>
     <string formatted="false" name="brick_scene_start">Start scene</string>
+    <string formatted="false" name="brick_preload_scene">Preload scene</string>
+    <string formatted="false" name="brick_scene_preloaded">Scene preloaded?</string>
+    <string formatted="false" name="brick_scene_preloaded_save_to">save to</string>
     <string formatted="false" name="brick_note"></string>
     <string formatted="false" name="project_options_custom_resolution">User resolution</string>
     <string formatted="false" name="brick_think_bubble">Think</string>
@@ -3291,6 +3404,7 @@ For detailed license information, see the link below.\n</string>
     <string formatted="false" name="brick_clone_this">yourself</string>
     <string formatted="false" name="brick_when_cloned">When you start as a clone</string>
     <string formatted="false" name="brick_delete_this_clone">Delete this clone</string>
+    <string formatted="false" name="brick_delete_clone_by_number">Delete clone</string>
 
     <string formatted="false" name="brick_assert_that">Assert</string>
     <string formatted="false" name="brick_is_equal_to">equals expected</string>
@@ -3329,6 +3443,7 @@ For detailed license information, see the link below.\n</string>
     </plurals>
 
     <string formatted="false" name="brick_loop_end">End of loop</string>
+    <string formatted="false" name="brick_execute_for_clone_number">Execute for clone number</string>
     <string formatted="false" name="brick_if_begin">If</string>
     <string formatted="false" name="brick_if_begin_second_part">is true then</string>
     <string formatted="false" name="brick_if_else">Else</string>
@@ -3348,6 +3463,7 @@ For detailed license information, see the link below.\n</string>
     <string formatted="false" name="brick_read_variable_from_file_delete">delete the file</string>
     <string formatted="false" name="brick_write_list_on_device">Write list on device</string>
     <string formatted="false" name="brick_read_list_from_device">Read list from device</string>
+    <string formatted="false" name="unknown_brick_text">This block is not available in this engine: %s</string>
     <string formatted="false" name="brick_note_default_value">add comment here…</string>
     <string formatted="false" name="brick_think_bubble_default_value">Hmmmm!</string>
     <string formatted="false" name="brick_say_bubble_default_value">Hello!</string>
@@ -3940,6 +4056,11 @@ needs read and write access to it. You can always change permissions through you
     <string formatted="false" name="formula_editor_function_files_path">project files path</string>
     <string formatted="false" name="formula_editor_function_all_files">all project files</string>
     <string formatted="false" name="formula_editor_function_file_size">project file size</string>
+    <string formatted="false" name="formula_file_project_size">project_file_size</string>
+    <string formatted="false" name="formula_file_size_in_dir">file_size_in</string>
+    <string formatted="false" name="formula_file_size_in_dir_param">(\'fileName\', \'dirName\')</string>
+    <string formatted="false" name="formula_file_size_at_path">file_size_at</string>
+    <string formatted="false" name="formula_file_size_at_path_param">(\'fileName\', \'path\')</string>
     <string formatted="false" name="formula_editor_function_file_parameter">(\'variable.txt\')</string>
     <string formatted="false" name="formula_editor_function_lua">lua</string>
     <string formatted="false" name="formula_editor_function_lua_parameter">(\'return math.sqrt(25)\')</string>
@@ -4437,5 +4558,129 @@ needs read and write access to it. You can always change permissions through you
     <string formatted="false" name="sort">Sort</string>
     <string formatted="false" name="checkbox">checkbox</string>
     <string name="ai_token_limit_title">AI max tokens</string>
-    <string name="ai_token_limit_summary">Context window size (500–40000, default 2000). Higher = more context, slower inference.</string>
+    <string name="ai_token_limit_summary">Context window size (500�?"40000, default 2000). Higher = more context, slower inference.</string>
+    <string formatted="false" name="brick_count_loop">repeat %s times store</string>
+    <string formatted="false" name="brick_count_loop_variable">iteration in var</string>
+    <string formatted="false" name="brick_delay_microseconds">delay</string>
+    <string formatted="false" name="brick_microseconds_label">microseconds</string>
+    <string formatted="false" name="brick_timer_start">start timer</string>
+    <string formatted="false" name="brick_timer_stop">stop timer</string>
+    <string formatted="false" name="brick_timer_reset">reset timer</string>
+    <string formatted="false" name="brick_schedule">schedule after</string>
+    <string formatted="false" name="brick_schedule_label">seconds run:</string>
+    <string formatted="false" name="brick_vibrate_pattern">vibrate pattern</string>
+    <string formatted="false" name="brick_keep_screen_on">keep screen on</string>
+    <string formatted="false" name="brick_keep_screen_off">keep screen off</string>
+    <string formatted="false" name="brick_screen_brightness">screen brightness</string>
+    <string formatted="false" name="brick_run_on_ui_thread">run on UI thread</string>
+    <string formatted="false" name="brick_play_tone">play tone</string>
+    <string formatted="false" name="brick_play_tone_frequency">frequency Hz</string>
+    <string formatted="false" name="brick_play_tone_duration">duration s</string>
+    <string formatted="false" name="brick_set_pan">set pan</string>
+    <string formatted="false" name="brick_set_pitch">set pitch</string>
+    <string formatted="false" name="brick_audio_fade_in">audio fade in</string>
+    <string formatted="false" name="brick_audio_fade_out">audio fade out</string>
+    <string formatted="false" name="brick_equalizer_set_band">equalizer band</string>
+    <string formatted="false" name="brick_equalizer_band">band</string>
+    <string formatted="false" name="brick_equalizer_gain">gain</string>
+    <string formatted="false" name="brick_sound_stop_all">stop all sounds</string>
+    <string formatted="false" name="brick_set_border_color">set border color</string>
+    <string formatted="false" name="brick_set_border_width">set border width</string>
+    <string formatted="false" name="brick_set_corner_radius">set corner radius</string>
+    <string formatted="false" name="brick_set_filter_blur">set filter blur</string>
+    <string formatted="false" name="brick_set_filter_sepia">set filter sepia</string>
+    <string formatted="false" name="brick_set_filter_pixelate">set filter pixelate</string>
+    <string formatted="false" name="brick_fill_rect">fill rect</string>
+    <string formatted="false" name="brick_fill_circle">fill circle</string>
+    <string formatted="false" name="brick_fill_polygon">fill polygon</string>
+    <string formatted="false" name="brick_draw_rect">draw rect</string>
+    <string formatted="false" name="brick_draw_circle">draw circle</string>
+    <string formatted="false" name="brick_draw_line">draw line</string>
+    <string formatted="false" name="brick_set_canvas">set canvas</string>
+    <string formatted="false" name="brick_clear_canvas">clear canvas</string>
+    <string formatted="false" name="brick_set_font">set font</string>
+    <string formatted="false" name="brick_draw_text">draw text</string>
+    <string formatted="false" name="brick_map_create">create map</string>
+    <string formatted="false" name="brick_map_set">map set</string>
+    <string formatted="false" name="brick_map_get">map get</string>
+    <string formatted="false" name="brick_map_delete">map delete</string>
+    <string formatted="false" name="brick_set_add">set add</string>
+    <string formatted="false" name="brick_set_remove">set remove</string>
+    <string formatted="false" name="brick_set_contains">set contains</string>
+    <string formatted="false" name="brick_queue_enqueue">queue enqueue</string>
+    <string formatted="false" name="brick_queue_dequeue">queue dequeue</string>
+    <string formatted="false" name="brick_stack_push">stack push</string>
+    <string formatted="false" name="brick_stack_pop">stack pop</string>
+    <string formatted="false" name="brick_switch_begin">switch</string>
+    <string formatted="false" name="brick_switch_case">case</string>
+    <string formatted="false" name="brick_switch_end">end switch</string>
+    <string formatted="false" name="brick_label_text">text</string>
+    <string formatted="false" name="brick_label_radius">radius</string>
+    <string formatted="false" name="brick_label_width">width</string>
+    <string formatted="false" name="brick_label_height">height</string>
+    <string formatted="false" name="brick_label_font_name">font name</string>
+    <string formatted="false" name="brick_label_font_size">font size</string>
+    <string formatted="false" name="brick_map_delete_at">at key</string>
+    <string formatted="false" name="brick_map_get_at">at key</string>
+    <string formatted="false" name="brick_map_get_into">into var</string>
+    <string formatted="false" name="brick_map_set_at">at key</string>
+    <string formatted="false" name="brick_map_set_to">to value</string>
+    <string formatted="false" name="brick_queue_dequeue_into">into var</string>
+    <string formatted="false" name="brick_queue_enqueue_value">value</string>
+    <string formatted="false" name="brick_schedule_script">script</string>
+    <string formatted="false" name="brick_set_add_value">value</string>
+    <string formatted="false" name="brick_set_contains_value">value</string>
+    <string formatted="false" name="brick_set_contains_into">into var</string>
+    <string formatted="false" name="brick_set_remove_value">value</string>
+    <string formatted="false" name="brick_stack_pop_into">into var</string>
+    <string formatted="false" name="brick_stack_push_value">value</string>
+    <string formatted="false" name="brick_enable_background">Enable background work</string>
+    <string formatted="false" name="brick_stop_background">Stop background work</string>
+
+    <!-- AdMob -->
+    <string name="category_admob">AdMob</string>
+    <string name="brick_admob_enable_test_mode">Enable test mode</string>
+    <string name="brick_admob_set_app_id">Set App ID</string>
+    <string name="brick_admob_initialize">Init AdMob</string>
+    <string name="brick_admob_set_banner_unit_id">Banner Unit ID</string>
+    <string name="brick_admob_load_banner">Load banner</string>
+    <string name="brick_admob_show_banner">Show banner</string>
+    <string name="brick_admob_hide_banner">Hide banner</string>
+    <string name="brick_admob_destroy_banner">Destroy banner</string>
+    <string name="brick_admob_set_interstitial_unit_id">Interstitial Unit ID</string>
+    <string name="brick_admob_load_interstitial">Load interstitial</string>
+    <string name="brick_admob_show_interstitial">Show interstitial</string>
+    <string name="brick_admob_set_rewarded_unit_id">Rewarded Unit ID</string>
+    <string name="brick_admob_load_rewarded">Load rewarded</string>
+    <string name="brick_admob_show_rewarded">Show rewarded</string>
+    <string name="brick_admob_set_app_open_unit_id">App Open Unit ID</string>
+    <string name="brick_admob_load_app_open">Load App Open</string>
+    <string name="brick_admob_show_app_open">Show App Open</string>
+    <string name="brick_event_admob_initialized">When AdMob initialized</string>
+    <string name="brick_event_admob_init_failed">When AdMob init failed</string>
+    <string name="brick_event_admob_banner_loaded">When banner loaded</string>
+    <string name="brick_event_admob_banner_failed">When banner failed</string>
+    <string name="brick_event_admob_banner_shown">When banner shown</string>
+    <string name="brick_event_admob_banner_hidden">When banner hidden</string>
+    <string name="brick_event_admob_interstitial_loaded">When interstitial loaded</string>
+    <string name="brick_event_admob_interstitial_failed">When interstitial failed</string>
+    <string name="brick_event_admob_interstitial_shown">When interstitial shown</string>
+    <string name="brick_event_admob_interstitial_closed">When interstitial closed</string>
+    <string name="brick_event_admob_rewarded_loaded">When rewarded loaded</string>
+    <string name="brick_event_admob_rewarded_failed">When rewarded failed</string>
+    <string name="brick_event_admob_rewarded_shown">When rewarded shown</string>
+    <string name="brick_event_admob_rewarded_reward">When reward earned</string>
+    <string name="brick_event_admob_rewarded_closed">When rewarded closed</string>
+    <string name="brick_event_admob_app_open_loaded">When App Open loaded</string>
+    <string name="brick_event_admob_app_open_shown">When App Open shown</string>
+    <string name="brick_event_admob_app_open_closed">When App Open closed</string>
+    <string name="formula_admob_is_initialized">AdMob initialized</string>
+    <string name="formula_admob_is_test_mode">Test mode enabled</string>
+    <string name="formula_admob_is_banner_loaded">Banner loaded</string>
+    <string name="formula_admob_is_interstitial_loaded">Interstitial loaded</string>
+    <string name="formula_admob_is_rewarded_loaded">Rewarded loaded</string>
+    <string name="formula_admob_is_app_open_loaded">App Open loaded</string>
+    <string name="formula_admob_last_error_code">Last AdMob error code</string>
+    <string name="formula_admob_last_error_message">Last AdMob error message</string>
+    <string name="formula_admob_is_google_play_services_available">Google Play Services available</string>
 </resources>

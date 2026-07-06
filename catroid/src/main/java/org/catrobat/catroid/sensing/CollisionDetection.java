@@ -1,6 +1,7 @@
 package org.catrobat.catroid.sensing;
 
 import android.graphics.PointF;
+import android.util.Log;
 
 import com.badlogic.gdx.math.Circle;
 import com.badlogic.gdx.math.Intersector;
@@ -37,7 +38,10 @@ public final class CollisionDetection {
 	}
 
 	public static boolean checkCollisionBetweenLooks(Look firstLook, Look secondLook) {
-		if (!NativeLookOptimizer.isWorking) return false;
+		if (!NativeLookOptimizer.isWorking) {
+			Log.w(CollisionDetection.class.getSimpleName(), "NativeLookOptimizer is not working, collision detection disabled");
+			return false;
+		}
 
 		if (firstLook == null || secondLook == null ||
 				!firstLook.isVisible() || !firstLook.isLookVisible() ||

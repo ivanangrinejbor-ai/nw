@@ -390,6 +390,18 @@ public class InternFormulaKeyboardAdapter {
                         NUMBER, "0");
             case R.string.formula_file_exists:
                 return buildSingleParameterFunction(Functions.FILE_EXISTS, STRING, "images/player.png");
+            case R.string.formula_file_project_exists:
+                return buildSingleParameterFunction(Functions.FILE_PROJECT_EXISTS, STRING, "music.mp3");
+            case R.string.formula_file_exists_in_dir:
+                return buildDoubleParameterFunction(Functions.FILE_EXISTS_IN_DIR, STRING, "save.dat", STRING, "Save");
+            case R.string.formula_file_exists_at_path:
+                return buildDoubleParameterFunction(Functions.FILE_EXISTS_AT_PATH, STRING, "save.dat", STRING, "Downloads/Save");
+            case R.string.formula_file_project_size:
+                return buildSingleParameterFunction(Functions.FILE_PROJECT_SIZE, STRING, "music.mp3");
+            case R.string.formula_file_size_in_dir:
+                return buildDoubleParameterFunction(Functions.FILE_SIZE_IN_DIR, STRING, "save.dat", STRING, "Save");
+            case R.string.formula_file_size_at_path:
+                return buildDoubleParameterFunction(Functions.FILE_SIZE_AT_PATH, STRING, "save.dat", STRING, "Downloads/Save");
             case R.string.formula_device_name:
                 return buildFunctionWithoutParametersAndBrackets(Functions.DEVICE_NAME);
             case R.string.formula_device_manufacturer:
@@ -446,6 +458,26 @@ public class InternFormulaKeyboardAdapter {
                 return buildFunctionWithoutParametersAndBrackets(Functions.SCREEN_REFRESH);
             case R.string.formula_screen_orientation:
                 return buildFunctionWithoutParametersAndBrackets(Functions.SCREEN_ORIENTATION);
+            case R.string.formula_used_ram:
+                return buildFunctionWithoutParametersAndBrackets(Functions.USED_RAM);
+            case R.string.formula_used_storage:
+                return buildFunctionWithoutParametersAndBrackets(Functions.USED_STORAGE);
+            case R.string.formula_volume_level:
+                return buildFunctionWithoutParametersAndBrackets(Functions.VOLUME_LEVEL);
+            case R.string.formula_screen_brightness:
+                return buildFunctionWithoutParametersAndBrackets(Functions.SCREEN_BRIGHTNESS);
+            case R.string.formula_is_in_foreground:
+                return buildFunctionWithoutParametersAndBrackets(Functions.IS_IN_FOREGROUND);
+            case R.string.formula_cpu_frequency_min:
+                return buildFunctionWithoutParametersAndBrackets(Functions.CPU_FREQUENCY_MIN);
+            case R.string.formula_cpu_usage:
+                return buildFunctionWithoutParametersAndBrackets(Functions.CPU_USAGE);
+            case R.string.formula_gpu_name:
+                return buildFunctionWithoutParametersAndBrackets(Functions.GPU_NAME);
+            case R.string.formula_opengl_version:
+                return buildFunctionWithoutParametersAndBrackets(Functions.OPENGL_VERSION);
+            case R.string.formula_vulkan_supported:
+                return buildFunctionWithoutParametersAndBrackets(Functions.VULKAN_SUPPORTED);
             case R.string.formula_sprite_exists:
                 return buildSingleParameterFunction(Functions.SPRITE_EXISTS, STRING, "Player");
             case R.string.formula_sprite_x:

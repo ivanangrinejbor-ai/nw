@@ -81,6 +81,11 @@ public class ShowTextActor extends Actor {
 
 	private Boolean isText;
 
+	private Texture cachedTexture;
+	private String lastRenderedText;
+	private String lastRenderedColor;
+	private float lastRenderedTextSize;
+
 	public ShowTextActor(Boolean text, UserVariable userVariable, int xPosition, int yPosition, float relativeSize,
 			String color, Sprite sprite, int alignment, AndroidStringProvider androidStringProvider) {
 		this.variableToShow = userVariable;
@@ -182,132 +187,105 @@ public class ShowTextActor extends Actor {
 	}
 
 	public void drawText(Batch batch, String text, float posX, float posY, String color) {
-		// Convert to bitmap
-		Paint paint = new Paint();
+		if (text == null) text = "";
 		float textSizeInPx = sanitizeTextSize(textSize);
-		paint.setTextSize(textSizeInPx);
 
-		// Устанавливаем шрифт, если он выбран
+		String currentColor = color != null ? color : "";
+
+		boolean textChanged = !text.equals(lastRenderedText)
+				|| !currentColor.equals(lastRenderedColor)
+				|| textSizeInPx != lastRenderedTextSize;
+
+		if (textChanged && cachedTexture != null) {
+			cachedTexture.dispose();
+			cachedTexture = null;
+		}
+
+		if (!textChanged && cachedTexture != null) {
+			batch.draw(cachedTexture, posX, posY);
+			return;
+		}
+
+		Paint paint = new Paint();
+		paint.setTextSize(textSizeInPx);
 		if (this.typeface != null) {
 			paint.setTypeface(this.typeface);
 		}
+		paint.setAntiAlias(true);
 
 		if (isValidColorString(color)) {
-			color = color.toUpperCase(Locale.getDefault());
-			int[] rgb;
-			rgb = calculateColorRGBs(color);
+			String upperColor = color.toUpperCase(Locale.getDefault());
+			int[] rgb = calculateColorRGBs(upperColor);
 			paint.setColor((0xFF000000) | (rgb[0] << 16) | (rgb[1] << 8) | (rgb[2]));
 			batch.setColor((float) rgb[0] / 255, (float) rgb[1] / 255, (float) rgb[2] / 255, 1);
 		} else {
 			paint.setColor(Color.BLACK);
 		}
 
-		float baseline = -paint.ascent(); // Базовая линия текста
-		paint.setAntiAlias(true);
+		float baseline = -paint.ascent();
+		int textHeight = (int) (baseline + paint.descent());
+		String[] lines = isTextWrapped ? text.split("\n") : new String[]{text};
 
-		String[] lines = text.split("\n"); // Разбиваем текст на строки по символу \n
-		float totalHeight = 0;
-
+		float totalWidth = 0;
 		for (String line : lines) {
 			if (!line.isEmpty()) {
-				totalHeight += textSizeInPx; // Добавляем высоту каждой строки
+				float lineWidth = paint.measureText(line);
+				if (lineWidth > totalWidth) totalWidth = (int) Math.ceil(lineWidth);
 			}
 		}
 
-		posY -= totalHeight / 2;
+		int totalHeight = textHeight * (isTextWrapped ? Math.max(lines.length, 1) : 1);
+		int bitmapWidth = Math.max((int) totalWidth, 1);
+		int bitmapHeight = Math.max(totalHeight, 1);
 
-		if (this.isTextWrapped) {
-			for (int i = lines.length - 1; i >= 0; i--) {
-				String line = lines[i];
-				if (line.isEmpty()) {
-					continue;
-				}
+		float adjustedPosY = posY;
+		if (isTextWrapped) {
+			adjustedPosY -= totalHeight / 2f;
+		}
 
-				// Измеряем ширину строки
-				int lineWidth = (int) paint.measureText(line);
-				int availableWidth = (int) Math.ceil(ScreenValues.currentScreenResolution.getWidth() + 2 * Math.abs(posX));
+		switch (alignment) {
+			case ALIGNMENT_STYLE_CENTERED:
+				posX -= totalWidth / 2;
+				break;
+			case ShowTextUtils.ALIGNMENT_STYLE_RIGHT:
+				posX -= totalWidth;
+				break;
+		}
 
-				/*if (lineWidth > availableWidth) {
-					// Если строка слишком длинная, пропускаем её
-					continue;
-				}*/
+		Bitmap bitmap = Bitmap.createBitmap(bitmapWidth, bitmapHeight, Bitmap.Config.ARGB_8888);
+		Canvas canvas = new Canvas(bitmap);
 
-				// Устанавливаем позицию X для выравнивания
-				// Устанавливаем позицию X для выравнивания
-				float adjustedPosX = posX; // Создаем вспомогательную переменную для позиции X
+		float drawPosY = isTextWrapped ? textHeight : baseline;
+		for (String line : lines) {
+			if (line.isEmpty()) continue;
+			float drawPosX = 0;
+			if (isTextWrapped) {
 				switch (alignment) {
 					case ALIGNMENT_STYLE_CENTERED:
-						adjustedPosX -= lineWidth / 2; // Центрируем строку
+						drawPosX = (totalWidth - paint.measureText(line)) / 2;
 						break;
 					case ShowTextUtils.ALIGNMENT_STYLE_RIGHT:
-						adjustedPosX -= lineWidth; // Выравниваем вправо
+						drawPosX = totalWidth - paint.measureText(line);
 						break;
-					// По умолчанию - выравнивание влево (ничего не меняем)
 				}
-
-				// Convert to bitmap
-				Bitmap bitmap = Bitmap.createBitmap(lineWidth, (int) (baseline + paint.descent()), Bitmap.Config.ARGB_8888);
-				Canvas canvas = new Canvas(bitmap);
-				canvas.drawText(line, 0, baseline, paint);
-
-				// Convert to texture
-				Texture tex = new Texture(bitmap.getWidth(), bitmap.getHeight(), Pixmap.Format.RGBA8888);
-				GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, tex.getTextureObjectHandle());
-				GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0);
-				GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
-				bitmap.recycle();
-
-				// Draw and dispose
-				batch.draw(tex, adjustedPosX, posY);
-				batch.flush();
-				tex.dispose();
-
-				posY += textSizeInPx; // Смещение вниз для следующей строки
 			}
-		} else {
-			// Если перенос строк не требуется, рисуем текст целиком
-			int lineWidth = (int) paint.measureText(text);
-			int availableWidth = (int) Math.ceil(ScreenValues.currentScreenResolution.getWidth() + 2 * Math.abs(posX));
-
-			if (lineWidth <= availableWidth) {
-				// Устанавливаем позицию X для выравнивания
-				switch (alignment) {
-					case ALIGNMENT_STYLE_CENTERED:
-						posX -= lineWidth / 2; // Центрируем текст
-						break;
-					case ShowTextUtils.ALIGNMENT_STYLE_RIGHT:
-						posX -= lineWidth; // Выравниваем вправо
-						break;
-					// Выравнивание влево по умолчанию
-				}
-
-				// Convert to bitmap
-				Bitmap bitmap = Bitmap.createBitmap(lineWidth, (int) (baseline + paint.descent()), Bitmap.Config.ARGB_8888);
-				Canvas canvas = new Canvas(bitmap);
-				canvas.drawText(text, 0, baseline, paint);
-
-				// Convert to texture
-				Texture tex = new Texture(bitmap.getWidth(), bitmap.getHeight(), Pixmap.Format.RGBA8888);
-				GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, tex.getTextureObjectHandle());
-				GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0);
-				GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
-				bitmap.recycle();
-
-				// Draw and dispose
-				batch.draw(tex, posX, posY);
-				batch.flush();
-				tex.dispose();
-			}
+			canvas.drawText(line, drawPosX, drawPosY, paint);
+			if (isTextWrapped) drawPosY += textHeight;
 		}
 
-		// Корректируем позицию Y для центрирования текста
-		if (this.isTextWrapped) {
-			posY -= totalHeight / 2; // Приводим позицию Y к центру
-		} else {
-			posY -= textSizeInPx / 2; // Приводим позицию Y к центру
-		}
+		cachedTexture = new Texture(bitmap.getWidth(), bitmap.getHeight(), Pixmap.Format.RGBA8888);
+		GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, cachedTexture.getTextureObjectHandle());
+		GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0);
+		GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
+		bitmap.recycle();
 
-		batch.setColor(1, 1, 1, 1); // Сбрасываем цвет
+		batch.draw(cachedTexture, posX, adjustedPosY);
+
+		lastRenderedText = text;
+		lastRenderedColor = color;
+		lastRenderedTextSize = textSizeInPx;
+
+		batch.setColor(1, 1, 1, 1);
 	}
 
 	public void setPositionX(int xPosition) {

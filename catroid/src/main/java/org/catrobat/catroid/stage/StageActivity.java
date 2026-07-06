@@ -259,6 +259,8 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+
 		if (getIntent().hasExtra(EXTRA_PROJECT_PATH)) {
 			String projectPath = getIntent().getStringExtra(EXTRA_PROJECT_PATH);
 			File projectDir = new File(projectPath);
@@ -276,24 +278,25 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 							new org.catrobat.catroid.utils.lunoscript.LunoValue.String(projectDir.getAbsolutePath())
 					);
 
-					String scriptCode = "";
-					if (initTxt.exists()) {
-						scriptCode = new String(java.nio.file.Files.readAllBytes(initTxt.toPath()));
-					} else {
-						scriptCode = new String(java.nio.file.Files.readAllBytes(initBin.toPath()));
-					}
+					String scriptCode = initTxt.exists()
+							? new String(java.nio.file.Files.readAllBytes(initTxt.toPath()))
+							: new String(java.nio.file.Files.readAllBytes(initBin.toPath()));
 
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                        engine.execute(scriptCode);
-                    }
+					engine.execute(scriptCode);
 
 					if (ProjectManager.getInstance().getCurrentProject() != null) {
 						ProjectManager.getInstance().getCurrentProject().setDirectory(projectDir);
 					}
-
 				} catch (Exception e) {
 					Log.e(TAG, "Failed to load baked project via LunoScript", e);
+					org.catrobat.catroid.utils.lunoscript.LunoScriptEngine.saveCrashLog("BakedProjectError", e);
 					Toast.makeText(this, "Error executing LunoScript: " + e.getMessage(), Toast.LENGTH_LONG).show();
+					finish();
+					return;
+				} catch (Throwable e) {
+					Log.e(TAG, "Fatal error loading baked project", e);
+					org.catrobat.catroid.utils.lunoscript.LunoScriptEngine.saveCrashLog("BakedProjectFatal", e);
+					Toast.makeText(this, "Fatal: " + e.getMessage(), Toast.LENGTH_LONG).show();
 					finish();
 					return;
 				}
@@ -301,31 +304,24 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 				try {
 					ProjectManager.getInstance().loadProject(projectDir);
 				} catch (ProjectException e) {
+					Log.e(TAG, "Failed to load project from baked path", e);
+					Toast.makeText(this, "Project load error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+					finish();
+					return;
 				}
 			}
 		}
-
-		super.onCreate(savedInstanceState);
-
 
 		rootLayout = new FrameLayout(this);
 		cameraContainer = new FrameLayout(this);
 		backgroundLayout = new FrameLayout(this);
 		foregroundLayout = new FrameLayout(this);
 
-
 		StageLifeCycleController.stageCreate(this);
 		activeStageActivity = new WeakReference<>(this);
 		MyActivityManager.Companion.setStage_activity(this);
 
-
-		configuration = new AndroidApplicationConfiguration();
-		configuration.r = 8;
-		configuration.g = 8;
-		configuration.b = 8;
-		configuration.a = 8;
-
-		gameView = initializeForView(getApplicationListener(), configuration);
+		gameView = getGdxGraphics().getView();
 
 		injectSafeKeyboardProvider();
 
@@ -345,6 +341,9 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 
 		rootLayout.addView(cameraContainer);
 		rootLayout.addView(backgroundLayout);
+		if (gameView.getParent() != null) {
+			((ViewGroup) gameView.getParent()).removeView(gameView);
+		}
 		rootLayout.addView(gameView);
 		rootLayout.addView(foregroundLayout);
 
@@ -529,6 +528,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 
 	public void reloadWithNewProject(final String newProjectPath) {
 
+		if (isFinishing() || isDestroyed()) return;
 		runOnUiThread(() -> {
 
 			try {
@@ -626,6 +626,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 
 	public void attachVMScreen(String viewId) {
 		if(!VirtualMachineManager.INSTANCE.isWorking()) return;
+		if (isFinishing() || isDestroyed()) return;
 		runOnUiThread(() -> {
 
 
@@ -786,6 +787,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 
 
 	public void playVideo(final String viewId) {
+		if (isFinishing() || isDestroyed()) return;
 		runOnUiThread(() -> {
 			View view = dynamicViews.get(viewId);
 			if (view instanceof VideoView) {
@@ -796,6 +798,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 
 
 	public void pauseVideo(final String viewId) {
+		if (isFinishing() || isDestroyed()) return;
 		runOnUiThread(() -> {
 			View view = dynamicViews.get(viewId);
 			if (view instanceof VideoView) {
@@ -1200,6 +1203,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 
 	public void removeAllNativeViews() {
 
+		if (isFinishing() || isDestroyed()) return;
 		runOnUiThread(() -> {
 			if (NativeBridge.INSTANCE.isWorking()) NativeBridge.INSTANCE.cleanupAllInstances();
 
@@ -1218,6 +1222,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 
 
 	public void executeJavaScript(final String viewId, final String javascriptCode) {
+		if (isFinishing() || isDestroyed()) return;
 		runOnUiThread(() -> {
 			View view = dynamicViews.get(viewId);
 			if (view instanceof WebView) {
@@ -1304,6 +1309,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 
 
 	public void setViewPosition(final String viewId, final int x, final int y) {
+		if (isFinishing() || isDestroyed()) return;
 		runOnUiThread(() -> {
 			View view = dynamicViews.get(viewId);
 			if (view != null && view.getLayoutParams() instanceof FrameLayout.LayoutParams) {
@@ -1369,6 +1375,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 	public void addViewToStage(final String viewId, final View view, final FrameLayout.LayoutParams params) {
 		removeViewFromStage(viewId);
 
+		if (isFinishing() || isDestroyed()) return;
 		runOnUiThread(() -> {
 			view.setLayoutParams(params);
 			dynamicViews.put(viewId, view);
@@ -1381,6 +1388,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 
 	public void removeViewFromStage(final String viewId) {
 		if (dynamicViews.containsKey(viewId)) {
+			if (isFinishing() || isDestroyed()) return;
 			runOnUiThread(() -> {
 				View viewToRemove = dynamicViews.get(viewId);
 				if (viewToRemove != null && viewToRemove.getParent() instanceof ViewGroup) {
@@ -1467,6 +1475,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 	@Override
 	public void onPause() {
 		StageLifeCycleController.stagePause(this);
+		broadcastEventToAllSprites(new EventId(EventId.APP_MINIMIZED));
 		super.onPause();
 
 		if (surveyCampaign != null) {
@@ -1507,6 +1516,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 	@Override
 	public void onResume() {
 		StageLifeCycleController.stageResume(this);
+		broadcastEventToAllSprites(new EventId(EventId.APP_RESTORED));
 		super.onResume();
 		activeStageActivity = new WeakReference<>(this);
 
@@ -1520,8 +1530,6 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 	protected void onDestroy() {
 
 
-		super.onDestroy();
-
 		if (NativeBridge.INSTANCE.isWorking()) NativeBridge.INSTANCE.cleanupAllInstances();
 
 
@@ -1531,6 +1539,9 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 
 
 		RunJSAction.Companion.destroyWebView();
+		messageHandler = null;
+
+		super.onDestroy();
 	}
 
 	AndroidGraphics getGdxGraphics() {
@@ -1540,10 +1551,12 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 
 
 	void setupAskHandler() {
-		final StageActivity currentStage = this;
+		final WeakReference<StageActivity> weakRef = new WeakReference<>(this);
 		messageHandler = new Handler(Looper.getMainLooper()) {
 			@Override
 			public void handleMessage(Message message) {
+				StageActivity currentStage = weakRef.get();
+				if (currentStage == null) return;
 				List<Object> params = (ArrayList<Object>) message.obj;
 
 				switch (message.what) {
@@ -1554,14 +1567,14 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 						currentStage.startQueuedIntent((Integer) params.get(0));
 						break;
 					case SHOW_DIALOG:
-						brickDialogManager.showDialog((BrickDialogManager.DialogType) params.get(0),
+						currentStage.brickDialogManager.showDialog((BrickDialogManager.DialogType) params.get(0),
 								(Action) params.get(1), (String) params.get(2), (String) params.get(3), (String) params.get(4), (String) params.get(5), (String) params.get(6));
 						break;
 					case SHOW_TOAST:
-						showToastMessage((String) params.get(0));
+						currentStage.showToastMessage((String) params.get(0));
 						break;
 					case SHOW_LONG_TOAST:
-						showLongToastMessage((String) params.get(0));
+						currentStage.showLongToastMessage((String) params.get(0));
 						break;
 					default:
 						Log.e(TAG, "Unhandled message in messagehandler, case " + message.what);

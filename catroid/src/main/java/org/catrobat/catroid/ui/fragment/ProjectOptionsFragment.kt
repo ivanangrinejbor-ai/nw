@@ -1269,14 +1269,10 @@ class ProjectOptionsFragment : Fragment() {
         val codeInput = EditText(requireContext()).apply { setText("1"); hint = "Version code"; inputType = android.text.InputType.TYPE_CLASS_NUMBER }
 
         val templateItems = arrayOf(
-            "Полный (~45 МБ) — ARM + x86",
-            "Lite (~18 МБ) — только ARM, без x86",
-            "No ARMv7 (~12 МБ) — только arm64"
+            "Полный (~45 МБ) — ARM + x86"
         )
         val templateTypes = arrayOf(
-            BakedApkBuilder.TemplateType.FULL,
-            BakedApkBuilder.TemplateType.LITE,
-            BakedApkBuilder.TemplateType.NO_ARM
+            BakedApkBuilder.TemplateType.FULL
         )
         var selectedTemplate = 0
 
@@ -1295,28 +1291,6 @@ class ProjectOptionsFragment : Fragment() {
         val radioGroup = RadioGroup(requireContext())
         templateItems.forEachIndexed { index, item ->
             val rb = RadioButton(requireContext()).apply { text = item; isChecked = index == 0 }
-            if (index == 1) {
-                rb.setOnCheckedChangeListener { _, isChecked ->
-                    if (isChecked) {
-                        AlertDialog.Builder(requireContext())
-                            .setTitle("Внимание!")
-                            .setMessage("В шаблоне Lite нет поддержки x86/x86_64. На устройствах x86 (эмуляторы) приложение будет падать.")
-                            .setPositiveButton("Понятно", null)
-                            .show()
-                    }
-                }
-            }
-            if (index == 2) {
-                rb.setOnCheckedChangeListener { _, isChecked ->
-                    if (isChecked) {
-                        AlertDialog.Builder(requireContext())
-                            .setTitle("Внимание!")
-                            .setMessage("В шаблоне No ARMv7 отсутствует armeabi-v7a. На старых 32-bit ARM устройствах приложение будет падать.")
-                            .setPositiveButton("Понятно", null)
-                            .show()
-                    }
-                }
-            }
             radioGroup.addView(rb)
         }
         view.addView(radioGroup)
@@ -1329,8 +1303,7 @@ class ProjectOptionsFragment : Fragment() {
                 appName = nameInput.text.toString().ifEmpty { project.name },
                 packageName = pkgInput.text.toString().ifEmpty { "org.DanVexTeam.NewCatroidRuntime" },
                 versionName = verInput.text.toString().ifEmpty { "1.0" },
-                versionCode = codeInput.text.toString().toIntOrNull() ?: 1,
-                templateType = templateTypes[selectedTemplate]
+                versionCode = codeInput.text.toString().toIntOrNull() ?: 1
             )
             startApkBuild(config)
         }
@@ -1473,7 +1446,7 @@ class ProjectOptionsFragment : Fragment() {
             try {
                 val zipFile = java.io.File(requireContext().cacheDir, "${proj.name}_export.zip")
                 zipDirectory(proj.directory, zipFile)
-                val encFile = java.io.File(requireContext().cacheDir, "${proj.name}.ncp")
+                val encFile = java.io.File(requireContext().cacheDir, "${proj.name}${Constants.NPC_EXTENSION}")
                 org.catrobat.catroid.io.ProjectCrypto.encrypt(zipFile, encFile, password)
                 if (zipFile.exists()) zipFile.delete()
                 kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
@@ -1494,7 +1467,7 @@ class ProjectOptionsFragment : Fragment() {
     private fun startEncryptedFilePicker(encFile: java.io.File, projectName: String) {
         val intent = Intent(Intent.ACTION_CREATE_DOCUMENT)
         intent.addCategory(Intent.CATEGORY_OPENABLE)
-        intent.putExtra(Intent.EXTRA_TITLE, "$projectName.ncp")
+        intent.putExtra(Intent.EXTRA_TITLE, "$projectName${Constants.NPC_EXTENSION}")
         intent.type = "*/*"
         intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, Environment.DIRECTORY_DOWNLOADS)
         startActivityForResult(Intent.createChooser(intent, getString(R.string.export_with_password)), REQUEST_EXPORT_ENCRYPTED)

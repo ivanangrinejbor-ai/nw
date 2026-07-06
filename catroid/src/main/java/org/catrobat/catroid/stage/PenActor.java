@@ -258,6 +258,14 @@ public class PenActor extends Actor {
 		bufferBatch.end();
 	}
 
+	public FrameBuffer getBuffer() {
+		return buffer;
+	}
+
+	public OrthographicCamera getCanvasCamera() {
+		return camera;
+	}
+
 	public void dispose() {
 		if (buffer != null) {
 			buffer.dispose();

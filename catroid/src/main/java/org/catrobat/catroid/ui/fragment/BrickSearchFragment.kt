@@ -247,9 +247,13 @@ class BrickSearchFragment : ListFragment() {
 
     private fun searchBrick(query: String) {
         availableBricks.forEach { brick ->
-            val regexQuery = (".*" + query.toLowerCase(Locale.ROOT).replace("\\s".toRegex(), ".*") + ".*").toRegex()
-            val brickView = brick.getView(context)
-            if (regexQuery.containsMatchIn(findBrickString(brickView)) && !searchResultContains(brick)) {
+            val ctx = context ?: return
+            val parts = query.toLowerCase(Locale.ROOT).split("\\s".toRegex())
+            val escapedParts = parts.map { Regex.escape(it) }
+            val regexQuery = ".*" + escapedParts.joinToString(".*") + ".*"
+            val pattern = regexQuery.toRegex()
+            val brickView = brick.getView(ctx)
+            if (pattern.containsMatchIn(findBrickString(brickView)) && !searchResultContains(brick)) {
                 searchResults.add(brick)
             }
         }
@@ -271,7 +275,7 @@ class BrickSearchFragment : ListFragment() {
                 val stringFoundInBrick = findBrickString(child)
                 if (stringFoundInBrick.isNotBlank()) wholeStringFoundInBrick = wholeStringFoundInBrick.plus(stringFoundInBrick)
             }
-        } else if (view is TextView) return view.text.toString().toLowerCase(Locale.ROOT)
+        } else if (view is TextView) return view.text?.toString()?.toLowerCase(Locale.ROOT) ?: ""
         return wholeStringFoundInBrick
         }
 

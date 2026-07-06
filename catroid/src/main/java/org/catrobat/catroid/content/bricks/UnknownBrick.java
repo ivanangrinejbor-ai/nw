@@ -13,12 +13,14 @@ import org.catrobat.catroid.content.actions.ScriptSequenceAction;
 public class UnknownBrick extends BrickBaseType {
     private static final long serialVersionUID = 1L;
 
-    public static transient String lastUnknownClassName = "UnknownBrick";
-
     private String unknownClassName;
 
     public UnknownBrick() {
-        this.unknownClassName = lastUnknownClassName;
+        this.unknownClassName = null;
+    }
+
+    public UnknownBrick(String unknownClassName) {
+        this.unknownClassName = unknownClassName;
     }
 
     @Override
@@ -29,21 +31,28 @@ public class UnknownBrick extends BrickBaseType {
     @Override
     public View getView(Context context) {
         View view = super.getView(context);
-        replaceLabelText(view);
+        replaceLabelText(view, context);
         return view;
     }
 
     @Override
     public View getPrototypeView(Context context) {
         View view = super.getPrototypeView(context);
-        replaceLabelText(view);
+        replaceLabelText(view, context);
         return view;
     }
 
-    private void replaceLabelText(View view) {
+    private void replaceLabelText(View view, Context context) {
         TextView tv = findFirstTextView(view);
         if (tv != null) {
-            tv.setText("Неизвестный блок: " + getShortClassName(unknownClassName));
+            String msg;
+            if (context != null) {
+                msg = context.getString(R.string.unknown_brick_text,
+                    getShortClassName(unknownClassName));
+            } else {
+                msg = "Unknown brick: " + getShortClassName(unknownClassName);
+            }
+            tv.setText(msg);
         }
     }
 

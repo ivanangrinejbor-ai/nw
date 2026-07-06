@@ -194,32 +194,38 @@ public class ShowBubbleActor extends Actor {
 
 		//Setup Bitmap and textbox
 		Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-		Canvas canvas = new Canvas(bitmap);
-		RectF rect = new RectF(0f, 0f, width, height);
+		try {
+			Canvas canvas = new Canvas(bitmap);
+			RectF rect = new RectF(0f, 0f, width, height);
 
-		//Draw rounded textbox
-		canvas.drawRoundRect(rect, 20, 20, paint);
-		rect = new RectF(rect.left + border, rect.top + border, rect.right - border, rect.bottom - border);
-		paint.setColor(android.graphics.Color.WHITE);
-		canvas.drawRoundRect(rect, 15, 15, paint);
-		paint.setColor(Color.BLACK);
+			//Draw rounded textbox
+			canvas.drawRoundRect(rect, 20, 20, paint);
+			rect = new RectF(rect.left + border, rect.top + border, rect.right - border, rect.bottom - border);
+			paint.setColor(android.graphics.Color.WHITE);
+			canvas.drawRoundRect(rect, 15, 15, paint);
+			paint.setColor(Color.BLACK);
 
-		//Calculate x position for every line
-		for (int i = 0; i < xPositions.size(); i++) {
-			float x = ((float) width - xPositions.get(i)) / 2f;
-			xPositions.set(i, x);
+			//Calculate x position for every line
+			int xPositionsSize = xPositions.size();
+			for (int i = 0; i < xPositionsSize; i++) {
+				float x = ((float) width - xPositions.get(i)) / 2f;
+				xPositions.set(i, x);
+			}
+
+			//Draw text in textbox
+			int ii = 0;
+			int linesSize = lines.size();
+			for (String line : lines) {
+				canvas.drawText(line, xPositions.get(ii), y, paint);
+				y += lineHeight;
+				ii++;
+			}
+
+			//Draw think bubbles or say triangle and convert to pixmap
+			return getFinalBubble(width, height, bitmap, right);
+		} finally {
+			bitmap.recycle();
 		}
-
-		//Draw text in textbox
-		int i = 0;
-		for (String line : lines) {
-			canvas.drawText(line, xPositions.get(i), y, paint);
-			y += lineHeight;
-			i++;
-		}
-
-		//Draw think bubbles or say triangle and convert to pixmap
-		return getFinalBubble(width, height, bitmap, right);
 	}
 
 	private Pixmap getFinalBubble(int width, int height, Bitmap bitmap, boolean right) {
@@ -228,23 +234,31 @@ public class ShowBubbleActor extends Actor {
 		paint.setStyle(Paint.Style.FILL_AND_STROKE);
 		paint.setStrokeWidth(2);
 		Bitmap tempBitmap = Bitmap.createBitmap(width, height + Constants.OFFSET_FOR_THINK_BUBBLES_AND_ARROW, Bitmap.Config.ARGB_8888);
-		Canvas tempCanvas = new Canvas(tempBitmap);
-		tempCanvas.drawBitmap(bitmap, 0, 0, null);
+		try {
+			Canvas tempCanvas = new Canvas(tempBitmap);
+			tempCanvas.drawBitmap(bitmap, 0, 0, null);
 
-		if (type == Constants.SAY_BRICK) {
-			tempCanvas.drawPath(getSayTrianglePath(tempBitmap.getHeight(), tempBitmap.getWidth(), right), paint);
-			paint.setColor(android.graphics.Color.WHITE);
-			tempCanvas.drawPath(getSayTrianglePathSmaller(tempBitmap.getHeight(), tempBitmap.getWidth(), right), paint);
-		} else {
-			Bitmap thinkBubbles = getThinkBubbles(right);
-			int startPos = right ? 0 : tempBitmap.getWidth() - 2 * Constants.OFFSET_FOR_THINK_BUBBLES_AND_ARROW;
-			tempCanvas.drawBitmap(thinkBubbles, startPos, bitmap.getHeight(), null);
+			if (type == Constants.SAY_BRICK) {
+				tempCanvas.drawPath(getSayTrianglePath(tempBitmap.getHeight(), tempBitmap.getWidth(), right), paint);
+				paint.setColor(android.graphics.Color.WHITE);
+				tempCanvas.drawPath(getSayTrianglePathSmaller(tempBitmap.getHeight(), tempBitmap.getWidth(), right), paint);
+			} else {
+				Bitmap thinkBubbles = getThinkBubbles(right);
+				try {
+					int startPos = right ? 0 : tempBitmap.getWidth() - 2 * Constants.OFFSET_FOR_THINK_BUBBLES_AND_ARROW;
+					tempCanvas.drawBitmap(thinkBubbles, startPos, bitmap.getHeight(), null);
+				} finally {
+					thinkBubbles.recycle();
+				}
+			}
+
+			ByteArrayOutputStream stream = new ByteArrayOutputStream();
+			tempBitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
+			byte[] bytes = stream.toByteArray();
+			return new Pixmap(bytes, 0, bytes.length);
+		} finally {
+			tempBitmap.recycle();
 		}
-
-		ByteArrayOutputStream stream = new ByteArrayOutputStream();
-		tempBitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
-		byte[] bytes = stream.toByteArray();
-		return new Pixmap(bytes, 0, bytes.length);
 	}
 
 	private Path getSayTrianglePath(int bitmapHeight, int bitmapWidth, boolean right) {

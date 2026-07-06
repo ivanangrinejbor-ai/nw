@@ -7,6 +7,7 @@ import org.catrobat.catroid.content.bricks.FormulaBrick;
 import org.catrobat.catroid.formulaeditor.Formula;
 
 public class LaunchProjectBrick extends FormulaBrick {
+    private static final long serialVersionUID = 1L;
     public LaunchProjectBrick() {
         addAllowedBrickField(BrickField.PROJECT_NAME, R.id.brick_launch_project_name);
     }

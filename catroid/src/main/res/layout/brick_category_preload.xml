@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    style="@style/BrickCategory.Preload"
+    android:contentDescription="@string/category_preload">
+
+    <include layout="@layout/icon_brick_category_preload" />
+
+    <TextView
+        style="@style/BrickCategoryText"
+        android:text="@string/category_preload">
+    </TextView>
+
+</LinearLayout>

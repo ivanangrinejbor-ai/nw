@@ -66,7 +66,7 @@ abstract class BaseActivity : AppCompatActivity(), PermissionHandlingActivity {
         SettingsFragment.setToChosenLanguage(this)
         applyAccessibilityStyles()
 
-        // Thread.setDefaultUncaughtExceptionHandler(BaseExceptionHandler(this))
+        Thread.setDefaultUncaughtExceptionHandler(BaseExceptionHandler(this))
         checkIfCrashRecoveryAndFinishActivity(this)
         checkIfProcessRecreatedAndFinishActivity(savedInstanceState)
 
@@ -74,6 +74,16 @@ abstract class BaseActivity : AppCompatActivity(), PermissionHandlingActivity {
             CastManager.getInstance().initializeCast(this)
         }
         MyActivityManager.base_activity = this
+    }
+
+    override fun onDestroy() {
+        MyActivityManager.base_activity = null
+        try {
+            MainMenuActivity.pythonEngine?.shutdown()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        super.onDestroy()
     }
 
     override fun dispatchTouchEvent(ev: android.view.MotionEvent): Boolean {
@@ -205,15 +215,6 @@ abstract class BaseActivity : AppCompatActivity(), PermissionHandlingActivity {
 
     override fun addToRequiresPermissionTaskList(task: RequiresPermissionTask) {
         permissionRequestActivityExtension.addToRequiresPermissionTaskList(task)
-    }
-
-    override fun onDestroy() {
-        try {
-            MainMenuActivity.pythonEngine?.shutdown()
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-        super.onDestroy()
     }
 
     override fun onRequestPermissionsResult(

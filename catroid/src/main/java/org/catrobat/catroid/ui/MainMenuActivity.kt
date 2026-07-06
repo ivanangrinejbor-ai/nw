@@ -286,7 +286,7 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
 
         if (!BuildConfig.FEATURE_APK_GENERATOR_ENABLED) {
             try {
-                CatroidApplication.current.loadPluginsIfNotLoaded()
+                CatroidApplication.getInstance().loadPluginsIfNotLoaded()
             } catch (e: Exception) {
                 Log.e(TAG, "loadPluginsIfNotLoaded failed", e)
             }

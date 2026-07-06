@@ -35,8 +35,8 @@ class BigAskAction : Action() {
     var scope: Scope? = null
     var questionFormula: Formula? = null
     var msg: Formula? = null
-    var sumb: Formula? = null
-    var canel: Formula? = null
+    var submit: Formula? = null
+    var cancel: Formula? = null
     var standardText: Formula? = null
     //var messageFormula: Formula? = null
     //var sumbitFormula: Formula? = null
@@ -54,8 +54,8 @@ class BigAskAction : Action() {
         try {
             question = questionFormula?.interpretString(scope) ?: ""
             msgs = msg?.interpretString(scope) ?: ""
-            sumbs = sumb?.interpretString(scope) ?: ""
-            canels = canel?.interpretString(scope) ?: ""
+            sumbs = submit?.interpretString(scope) ?: ""
+            canels = cancel?.interpretString(scope) ?: ""
             standard = standardText?.interpretString(scope) ?: ""
         } catch (e: InterpretationException) {
             Log.e(

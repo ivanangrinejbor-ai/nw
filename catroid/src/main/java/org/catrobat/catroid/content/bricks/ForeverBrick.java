@@ -36,6 +36,7 @@ import java.util.List;
 
 public class ForeverBrick extends BrickBaseType implements CompositeBrick {
 
+	private static final long serialVersionUID = 1L;
 	private transient EndBrick endBrick = new EndBrick(this);
 
 	private List<Brick> loopBricks = new ArrayList<>();

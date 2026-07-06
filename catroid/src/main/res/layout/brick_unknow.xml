@@ -44,7 +44,7 @@
 
         <TextView
             style="@style/BrickText.SingleLine"
-            android:text="Unknow brick" />
+            android:text="@string/unknown_brick_text" />
 
     </org.catrobat.catroid.ui.BrickLayout>
 

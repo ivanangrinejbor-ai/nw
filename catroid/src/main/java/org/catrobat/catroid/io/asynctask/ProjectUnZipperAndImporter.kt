@@ -37,7 +37,10 @@ import org.catrobat.catroid.io.ZipArchiver
 import org.catrobat.catroid.io.ProjectCrypto
 import org.catrobat.catroid.ui.recyclerview.util.UniqueNameProvider
 import org.catrobat.catroid.utils.FileMetaDataExtractor
+import org.xmlpull.v1.XmlPullParser
+import org.xmlpull.v1.XmlPullParserFactory
 import java.io.File
+import java.io.FileInputStream
 import java.io.IOException
 
 private val TAG = ProjectUnZipperAndImporter::class.java.simpleName
@@ -52,8 +55,13 @@ sealed class ImportResult {
 class ProjectUnZipperAndImporter @JvmOverloads constructor(
     val onImportFinished: (ImportResult) -> Unit = {},
     val scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
-    var password: String? = null
+    var password: String? = null,
+    val onProgress: ((percent: Int, detail: String) -> Unit)? = null
 ) {
+
+    fun reportProgress(percent: Int, detail: String) {
+        onProgress?.invoke(percent, detail)
+    }
     fun unZipAndImportAsync(files: Array<File>) {
         scope.launch {
 
@@ -104,20 +112,27 @@ private fun ProjectUnZipperAndImporter.unzipAndImportProject(projectZipFile: Fil
         cachedProjectDir.mkdirs()
 
         var fileToUnzip = projectZipFile
-            if (ProjectCrypto.isEncrypted(projectZipFile)) {
-                if (password.isNullOrEmpty()) {
-                    Log.e(TAG, "Project is encrypted but no password provided")
-                    return@unzipAndImportProject ImportResult.Failure
-                }
-                val decryptedFile = File(CACHE_DIRECTORY, tempDirName + "_decrypted.zip")
-                if (!ProjectCrypto.decrypt(projectZipFile, decryptedFile, password!!)) {
-                    Log.e(TAG, "Failed to decrypt project (wrong password?)")
-                    return@unzipAndImportProject ImportResult.WrongPassword
-                }
-                fileToUnzip = decryptedFile
+        if (ProjectCrypto.isEncrypted(projectZipFile)) {
+            reportProgress(5, "import_step_decrypt")
+            if (password.isNullOrEmpty()) {
+                Log.e(TAG, "Project is encrypted but no password provided")
+                return@unzipAndImportProject ImportResult.Failure
             }
+            val decryptedFile = File(CACHE_DIRECTORY, tempDirName + "_decrypted.zip")
+            if (!ProjectCrypto.decrypt(projectZipFile, decryptedFile, password!!)) {
+                Log.e(TAG, "Failed to decrypt project (wrong password?)")
+                return@unzipAndImportProject ImportResult.WrongPassword
+            }
+            fileToUnzip = decryptedFile
+        }
 
-        ZipArchiver().unzip(fileToUnzip, cachedProjectDir)
+        val zipArchiver = ZipArchiver()
+        zipArchiver.unzip(fileToUnzip, cachedProjectDir, object : ZipArchiver.UnzipProgressListener {
+            override fun onProgress(percent: Int, filesDone: Int, totalFiles: Int, currentFile: String) {
+                val overallPercent = 15 + (percent * 10 / 100)
+                reportProgress(overallPercent, "import_step_unzip|$filesDone|$totalFiles|$currentFile")
+            }
+        })
         if (fileToUnzip != projectZipFile) { fileToUnzip.delete() }
 
         org.catrobat.catroid.utils.MatryoshkaManager.unpackIfMatryoshka(cachedProjectDir)
@@ -126,14 +141,33 @@ private fun ProjectUnZipperAndImporter.unzipAndImportProject(projectZipFile: Fil
         val initLunoBin = File(cachedProjectDir, "init.bin")
 
         if (codeXml.exists()) {
+            reportProgress(25, "import_step_scanning")
+            val entries = scanProjectEntries(codeXml)
+            val totalEntries = entries.size.coerceAtLeast(1)
+            var current = 0
+            for ((sceneName, spriteName) in entries) {
+                current++
+                val pct = 25 + (current * 45 / totalEntries)
+                val detail = if (spriteName != null) {
+                    "scene|$sceneName\nsprite|$spriteName"
+                } else {
+                    "scene|$sceneName"
+                }
+                reportProgress(pct, detail)
+            }
+
+            reportProgress(75, "import_step_copy")
             if (importStandardProject(cachedProjectDir)) {
+                reportProgress(100, "import_step_finish")
                 StorageOperations.deleteDir(cachedProjectDir)
                 ImportResult.Success
             } else { ImportResult.Failure }
         } else if (initLunoTxt.exists() || initLunoBin.exists()) {
             Log.d(TAG, "Detected baked project in: ${cachedProjectDir.absolutePath}")
+            reportProgress(100, "import_step_finish")
             ImportResult.BakedProject(cachedProjectDir)
         } else {
+            reportProgress(100, "import_step_finish")
             Log.e(TAG, "Invalid project structure")
             ImportResult.Failure
         }
@@ -143,6 +177,59 @@ private fun ProjectUnZipperAndImporter.unzipAndImportProject(projectZipFile: Fil
     }
 }
 
+private fun scanProjectEntries(codeXml: File): List<Pair<String, String?>> {
+    val entries = mutableListOf<Pair<String, String?>>()
+    try {
+        val factory = XmlPullParserFactory.newInstance()
+        val parser = factory.newPullParser()
+        parser.setInput(FileInputStream(codeXml), "UTF-8")
+
+        var currentSceneName: String? = null
+        var depth = 0
+        var inScene = false
+        var inSpriteList = false
+
+        while (parser.eventType != XmlPullParser.END_DOCUMENT) {
+            when (parser.eventType) {
+                XmlPullParser.START_TAG -> {
+                    val tagName = parser.name
+                    if (!inScene && (tagName.endsWith(".Scene") || (tagName == "scene"))) {
+                        inScene = true
+                        currentSceneName = null
+                    } else if (inScene && !inSpriteList && tagName == "name") {
+                        currentSceneName = parser.nextText()
+                        if (currentSceneName != null) {
+                            entries.add(currentSceneName to null)
+                        }
+                    } else if (inScene && (tagName.endsWith(".Sprite") || tagName == "sprite" || tagName == "Sprite")) {
+                        inSpriteList = true
+                    } else if (inSpriteList && tagName == "name") {
+                        val spriteName = parser.nextText()
+                        if (currentSceneName != null && spriteName != null) {
+                            entries.add(currentSceneName to spriteName)
+                        }
+                    }
+                    depth++
+                }
+                XmlPullParser.END_TAG -> {
+                    val tagName = parser.name
+                    if (inScene && (tagName.endsWith(".Scene") || tagName == "scene")) {
+                        inScene = false
+                        currentSceneName = null
+                    }
+                    if (inSpriteList && (tagName.endsWith(".Sprite") || tagName == "sprite" || tagName == "Sprite")) {
+                        inSpriteList = false
+                    }
+                    depth--
+                }
+            }
+            parser.next()
+        }
+    } catch (e: Exception) {
+        Log.e(TAG, "Failed to scan project XML", e)
+    }
+    return entries
+}
 
 private fun importStandardProject(cachedProjectDir: File): Boolean {
     val projectName = getProjectName(cachedProjectDir) ?: return false

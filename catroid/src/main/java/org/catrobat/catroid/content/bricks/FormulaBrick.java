@@ -63,6 +63,8 @@ import androidx.fragment.app.FragmentActivity;
 
 public abstract class FormulaBrick extends BrickBaseType implements View.OnClickListener {
 
+	private static final long serialVersionUID = 1L;
+
 	@XStreamAlias("formulaList")
 	ConcurrentFormulaHashMap formulaMap = new ConcurrentFormulaHashMap();
 

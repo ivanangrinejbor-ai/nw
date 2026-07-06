@@ -29,6 +29,8 @@ import java.util.UUID;
 
 public class LoopEndBrick extends BrickBaseType {
 
+	private static final long serialVersionUID = 1L;
+
 	@Override
 	public int getViewResource() {
 		return 0;

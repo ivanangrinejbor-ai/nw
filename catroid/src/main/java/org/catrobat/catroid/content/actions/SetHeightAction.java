@@ -37,6 +37,7 @@ public class SetHeightAction extends TemporalAction {
 
 	@Override
 	protected void update(float delta) {
+		if (scope == null) return;
 		try {
 			Float newSize = size == null ? Float.valueOf(0f) : size.interpretFloat(scope);
 			scope.getSprite().look.setHeightV(newSize / 100f);

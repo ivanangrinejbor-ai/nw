@@ -92,7 +92,6 @@ class ScreenshotSaver(
         fileName: String
     ): Boolean {
         val length = data.size
-        val fullScreenBitmap: Bitmap
         val colors = IntArray(length / NUMBER_OF_COLORS)
 
         if (colors.size != width * height || colors.isEmpty()) {
@@ -102,38 +101,50 @@ class ScreenshotSaver(
         for (i in 0 until length step NUMBER_OF_COLORS) {
             colors[i / NUMBER_OF_COLORS] = retrieveColorFromData(data, i)
         }
-        fullScreenBitmap = Bitmap.createBitmap(
+        val fullScreenBitmap = Bitmap.createBitmap(
             colors, 0, width, width, height,
             Bitmap.Config.ARGB_8888
         )
 
-        val safeHeight = if (height == 0) 1 else height
-        val aspectRatio = width / safeHeight.toDouble()
-        var newWidth = (MAX_SCREEN_SHOT_HEIGHT * aspectRatio).toInt()
-        if (newWidth > MAX_SCREEN_SHOT_WIDTH) {
-            newWidth = MAX_SCREEN_SHOT_WIDTH
-        }
-
-        val resizedBitMap = Bitmap.createScaledBitmap(fullScreenBitmap, newWidth, MAX_SCREEN_SHOT_HEIGHT, false)
-
-        val imageScene = gdxFileHandler.absolute(folder + fileName)
-        val streamScene = imageScene.write(false)
         try {
-            File(folder + Constants.NO_MEDIA_FILE).createNewFile()
-            resizedBitMap.compress(Bitmap.CompressFormat.PNG, IMAGE_QUALITY, streamScene)
-            streamScene.close()
-
-            if (ProjectManager.getInstance().currentProject != null) {
-                val projectFolder = ProjectManager.getInstance().currentProject.directory.absolutePath + "/"
-                val imageProject = gdxFileHandler.absolute(projectFolder + fileName)
-                val streamProject = imageProject.write(false)
-                File(projectFolder + Constants.NO_MEDIA_FILE).createNewFile()
-                resizedBitMap.compress(Bitmap.CompressFormat.PNG, IMAGE_QUALITY, streamProject)
-                streamProject.close()
+            val safeHeight = if (height == 0) 1 else height
+            val aspectRatio = width / safeHeight.toDouble()
+            var newWidth = (MAX_SCREEN_SHOT_HEIGHT * aspectRatio).toInt()
+            if (newWidth > MAX_SCREEN_SHOT_WIDTH) {
+                newWidth = MAX_SCREEN_SHOT_WIDTH
             }
-        } catch (e: IOException) {
-            Log.w(TAG, "Could not save screenshot to file", e)
-            return false
+
+            val resizedBitMap = Bitmap.createScaledBitmap(fullScreenBitmap, newWidth, MAX_SCREEN_SHOT_HEIGHT, false)
+
+            try {
+                val imageScene = gdxFileHandler.absolute(folder + fileName)
+                val streamScene = imageScene.write(false)
+                try {
+                    File(folder + Constants.NO_MEDIA_FILE).createNewFile()
+                    resizedBitMap.compress(Bitmap.CompressFormat.PNG, IMAGE_QUALITY, streamScene)
+
+                    if (ProjectManager.getInstance().currentProject != null) {
+                        val projectFolder = ProjectManager.getInstance().currentProject.directory.absolutePath + "/"
+                        val imageProject = gdxFileHandler.absolute(projectFolder + fileName)
+                        val streamProject = imageProject.write(false)
+                        try {
+                            File(projectFolder + Constants.NO_MEDIA_FILE).createNewFile()
+                            resizedBitMap.compress(Bitmap.CompressFormat.PNG, IMAGE_QUALITY, streamProject)
+                        } finally {
+                            streamProject.close()
+                        }
+                    }
+                } catch (e: IOException) {
+                    Log.w(TAG, "Could not save screenshot to file", e)
+                    return false
+                } finally {
+                    streamScene.close()
+                }
+            } finally {
+                resizedBitMap.recycle()
+            }
+        } finally {
+            fullScreenBitmap.recycle()
         }
 
         return true
@@ -141,7 +152,6 @@ class ScreenshotSaver(
 
     fun getScreenshot(data: ByteArray): InputStream {
         val length = data.size
-        val fullScreenBitmap: Bitmap
         val colors = IntArray(length / NUMBER_OF_COLORS)
 
         if (colors.size != width * height || colors.isEmpty()) {
@@ -151,25 +161,32 @@ class ScreenshotSaver(
         for (i in 0 until length step NUMBER_OF_COLORS) {
             colors[i / NUMBER_OF_COLORS] = retrieveColorFromData(data, i)
         }
-        fullScreenBitmap = Bitmap.createBitmap(
+        val fullScreenBitmap = Bitmap.createBitmap(
             colors, 0, width, width, height,
             Bitmap.Config.ARGB_8888
         )
 
-        val safeHeight = if (height == 0) 1 else height
-        val aspectRatio = width / safeHeight.toDouble()
-        var newWidth = (NEW_MAX_SCREEN_SHOT_HEIGHT * aspectRatio).toInt()
-        if (newWidth > NEW_MAX_SCREEN_SHOT_WIDTH) {
-            newWidth = NEW_MAX_SCREEN_SHOT_WIDTH
+        try {
+            val safeHeight = if (height == 0) 1 else height
+            val aspectRatio = width / safeHeight.toDouble()
+            var newWidth = (NEW_MAX_SCREEN_SHOT_HEIGHT * aspectRatio).toInt()
+            if (newWidth > NEW_MAX_SCREEN_SHOT_WIDTH) {
+                newWidth = NEW_MAX_SCREEN_SHOT_WIDTH
+            }
+
+            val resizedBitMap = Bitmap.createScaledBitmap(fullScreenBitmap, newWidth, NEW_MAX_SCREEN_SHOT_HEIGHT, false)
+
+            try {
+                val byteArrayOutputStream = ByteArrayOutputStream()
+                resizedBitMap.compress(Bitmap.CompressFormat.PNG, IMAGE_QUALITY, byteArrayOutputStream)
+
+                return ByteArrayInputStream(byteArrayOutputStream.toByteArray())
+            } finally {
+                resizedBitMap.recycle()
+            }
+        } finally {
+            fullScreenBitmap.recycle()
         }
-
-        val resizedBitMap = Bitmap.createScaledBitmap(fullScreenBitmap, newWidth, NEW_MAX_SCREEN_SHOT_HEIGHT, false)
-
-        val byteArrayOutputStream = ByteArrayOutputStream()
-        resizedBitMap.compress(Bitmap.CompressFormat.PNG, IMAGE_QUALITY, byteArrayOutputStream)
-
-        // Возвращаем InputStream, всегда возвращаем не-null значение
-        return ByteArrayInputStream(byteArrayOutputStream.toByteArray())
     }
 
 

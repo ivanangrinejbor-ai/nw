@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal">
+
+    <CheckBox
+        android:id="@+id/brick_checkbox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:visibility="gone" />
+
+    <org.catrobat.catroid.ui.BrickLayout
+        android:id="@+id/brick_notification_action_layout"
+        style="@style/BrickContainer.Device.Big">
+
+        <include layout="@layout/icon_brick_category_device" />
+
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_notification_action" />
+
+        <!-- Action ID -->
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_notification_action_id"
+            app:layout_newLine="true" />
+        <TextView
+            android:id="@+id/brick_notification_action_edit_action_id"
+            style="@style/BrickEditText" />
+
+        <!-- Button text -->
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_notification_action_text"
+            app:layout_newLine="true" />
+        <TextView
+            android:id="@+id/brick_notification_action_edit_text"
+            style="@style/BrickEditText" />
+
+        <!-- Icon -->
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_notification_action_icon"
+            app:layout_newLine="true" />
+        <TextView
+            android:id="@+id/brick_notification_action_edit_icon"
+            style="@style/BrickEditText" />
+
+        <!-- Reply hint -->
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_notification_action_hint"
+            app:layout_newLine="true" />
+        <TextView
+            android:id="@+id/brick_notification_action_edit_hint"
+            style="@style/BrickEditText" />
+
+        <!-- Behavior spinner -->
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_notification_action_behavior"
+            app:layout_newLine="true" />
+        <Spinner
+            android:id="@+id/brick_notification_action_behavior_spinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textDirection="locale" />
+
+        <!-- Has input checkbox -->
+        <CheckBox
+            android:id="@+id/brick_notification_action_has_input"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/brick_notification_action_has_input"
+            app:layout_newLine="true" />
+
+    </org.catrobat.catroid.ui.BrickLayout>
+</LinearLayout>

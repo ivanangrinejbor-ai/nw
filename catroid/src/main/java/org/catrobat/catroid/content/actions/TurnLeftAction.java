@@ -38,6 +38,7 @@ public class TurnLeftAction extends TemporalAction {
 
 	@Override
 	protected void update(float percent) {
+		if (scope == null) return;
 		try {
 			Float newDegrees = degrees == null ? Float.valueOf(0f)
 					: -degrees.interpretFloat(scope);

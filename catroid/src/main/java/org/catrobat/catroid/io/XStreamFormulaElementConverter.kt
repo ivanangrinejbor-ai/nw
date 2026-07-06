@@ -75,7 +75,7 @@ internal class XStreamFormulaElementConverter(
             "FACE_X_POSITION" -> Sensors.FACE_X.name
             "FACE_Y_POSITION" -> Sensors.FACE_Y.name
             "SECOND_FACE_X_POSITION" -> Sensors.SECOND_FACE_X.name
-            "SECOND_FACE_Y_POSITION" -> Sensors.FACE_Y.name
+            "SECOND_FACE_Y_POSITION" -> Sensors.SECOND_FACE_Y.name
             else -> formulaElement.value
         }
 }

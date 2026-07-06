@@ -33,7 +33,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
@@ -110,6 +116,76 @@ public class ZipArchiver {
 						fileOutputStream.write(b, 0, len);
 					}
 				}
+			}
+		}
+	}
+
+	public interface UnzipProgressListener {
+		void onProgress(int percent, int filesDone, int totalFiles, String currentFile);
+	}
+
+	public void unzip(File archive, File dstDir, UnzipProgressListener listener) throws IOException {
+		createDirIfNecessary(dstDir);
+
+		try (ZipFile zipFile = new ZipFile(archive)) {
+			List<ZipEntry> allEntries = new ArrayList<>();
+			java.util.Enumeration<? extends ZipEntry> e = zipFile.entries();
+			while (e.hasMoreElements()) allEntries.add(e.nextElement());
+			List<ZipEntry> fileEntries = new ArrayList<>();
+
+			for (ZipEntry entry : allEntries) {
+				if (entry.getName().contains(DIRECTORY_LEVEL_UP)) {
+					continue;
+				}
+				if (entry.isDirectory()) {
+					createDirIfNecessary(new File(dstDir, entry.getName()));
+					continue;
+				}
+				fileEntries.add(entry);
+			}
+
+			int totalFiles = fileEntries.size();
+			if (totalFiles == 0) return;
+
+			int threads = Math.max(2, Runtime.getRuntime().availableProcessors());
+			ExecutorService executor = Executors.newFixedThreadPool(threads, r -> {
+				Thread t = new Thread(r, "unzip-worker");
+				t.setDaemon(true);
+				return t;
+			});
+
+			AtomicInteger processed = new AtomicInteger(0);
+
+			for (ZipEntry entry : fileEntries) {
+				executor.submit(() -> {
+					File zipEntryFile = new File(dstDir, entry.getName());
+					zipEntryFile.getParentFile().mkdirs();
+
+					try (InputStream in = zipFile.getInputStream(entry);
+						 FileOutputStream out = new FileOutputStream(zipEntryFile)) {
+						byte[] b = new byte[Constants.BUFFER_8K];
+						int len;
+						while ((len = in.read(b)) != -1) {
+							out.write(b, 0, len);
+						}
+					} catch (IOException ioEx) {
+						throw new RuntimeException("Failed to extract: " + entry.getName(), ioEx);
+					}
+
+					int done = processed.incrementAndGet();
+					if (listener != null) {
+						int pct = done * 100 / totalFiles;
+						listener.onProgress(pct, done, totalFiles, entry.getName());
+					}
+				});
+			}
+
+			executor.shutdown();
+			try {
+				executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+			} catch (InterruptedException intEx) {
+				Thread.currentThread().interrupt();
+				throw new IOException("Unzip was interrupted", intEx);
 			}
 		}
 	}

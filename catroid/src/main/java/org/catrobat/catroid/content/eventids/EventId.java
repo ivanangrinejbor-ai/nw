@@ -29,7 +29,12 @@ import androidx.annotation.IntDef;
 
 public class EventId {
 	@Retention(RetentionPolicy.SOURCE)
-	@IntDef({TAP, TAP_BACKGROUND, START, START_AS_CLONE, ANY_NFC, OTHER, PROJECT_EXIT, BACK_PRESSED, MOUSE_BUTTON_CLICKED, MOUSE_WHEEL_SCROLLED})
+	@IntDef({TAP, TAP_BACKGROUND, START, START_AS_CLONE, ANY_NFC, OTHER, PROJECT_EXIT, BACK_PRESSED, MOUSE_BUTTON_CLICKED, MOUSE_WHEEL_SCROLLED, APP_MINIMIZED, APP_RESTORED, BATTERY_CONNECTED, BATTERY_DISCONNECTED, BATTERY_LOW, BATTERY_FULL, BATTERY_SAVER_ON, BATTERY_SAVER_OFF, INTERNET_AVAILABLE, INTERNET_LOST, WIFI_CONNECTED, WIFI_DISCONNECTED, NETWORK_TYPE_CHANGED, APP_FIRST_LAUNCH,
+		ADMOB_INITIALIZED, ADMOB_INIT_FAILED, ADMOB_BANNER_LOADED, ADMOB_BANNER_FAILED, ADMOB_BANNER_SHOWN, ADMOB_BANNER_HIDDEN,
+		ADMOB_INTERSTITIAL_LOADED, ADMOB_INTERSTITIAL_FAILED, ADMOB_INTERSTITIAL_SHOWN, ADMOB_INTERSTITIAL_CLOSED,
+		ADMOB_REWARDED_LOADED, ADMOB_REWARDED_FAILED, ADMOB_REWARDED_SHOWN, ADMOB_REWARDED_REWARD, ADMOB_REWARDED_CLOSED,
+		ADMOB_APP_OPEN_LOADED, ADMOB_APP_OPEN_SHOWN, ADMOB_APP_OPEN_CLOSED,
+		NOTIFICATION_ACTION_CLICKED, NOTIFICATION_REPLY_SENT, NOTIFICATION_SHOWN, NOTIFICATION_DISMISSED})
 	public @interface EventType {
 	}
 
@@ -44,6 +49,45 @@ public class EventId {
 	public static final int BACK_PRESSED = 7;
 	public static final int MOUSE_BUTTON_CLICKED = 8;
 	public static final int MOUSE_WHEEL_SCROLLED = 9;
+
+	public static final int APP_MINIMIZED = 10;
+	public static final int APP_RESTORED = 11;
+	public static final int BATTERY_CONNECTED = 12;
+	public static final int BATTERY_DISCONNECTED = 13;
+	public static final int BATTERY_LOW = 14;
+	public static final int BATTERY_FULL = 15;
+	public static final int BATTERY_SAVER_ON = 16;
+	public static final int BATTERY_SAVER_OFF = 17;
+	public static final int INTERNET_AVAILABLE = 18;
+	public static final int INTERNET_LOST = 19;
+	public static final int WIFI_CONNECTED = 20;
+	public static final int WIFI_DISCONNECTED = 21;
+	public static final int NETWORK_TYPE_CHANGED = 22;
+	public static final int APP_FIRST_LAUNCH = 23;
+
+	public static final int ADMOB_INITIALIZED = 24;
+	public static final int ADMOB_INIT_FAILED = 25;
+	public static final int ADMOB_BANNER_LOADED = 26;
+	public static final int ADMOB_BANNER_FAILED = 27;
+	public static final int ADMOB_BANNER_SHOWN = 28;
+	public static final int ADMOB_BANNER_HIDDEN = 29;
+	public static final int ADMOB_INTERSTITIAL_LOADED = 30;
+	public static final int ADMOB_INTERSTITIAL_FAILED = 31;
+	public static final int ADMOB_INTERSTITIAL_SHOWN = 32;
+	public static final int ADMOB_INTERSTITIAL_CLOSED = 33;
+	public static final int ADMOB_REWARDED_LOADED = 34;
+	public static final int ADMOB_REWARDED_FAILED = 35;
+	public static final int ADMOB_REWARDED_SHOWN = 36;
+	public static final int ADMOB_REWARDED_REWARD = 37;
+	public static final int ADMOB_REWARDED_CLOSED = 38;
+	public static final int ADMOB_APP_OPEN_LOADED = 39;
+	public static final int ADMOB_APP_OPEN_SHOWN = 40;
+	public static final int ADMOB_APP_OPEN_CLOSED = 41;
+
+	public static final int NOTIFICATION_ACTION_CLICKED = 42;
+	public static final int NOTIFICATION_REPLY_SENT = 43;
+	public static final int NOTIFICATION_SHOWN = 44;
+	public static final int NOTIFICATION_DISMISSED = 45;
 
 	@EventType
 	private final int type;

@@ -40,6 +40,7 @@ import androidx.annotation.Nullable;
 
 public class SetInstrumentBrick extends BrickBaseType implements BrickSpinner.OnItemSelectedListener<PickableMusicalInstrument> {
 
+	private static final long serialVersionUID = 1L;
 	public PickableMusicalInstrument instrumentSelection = PickableMusicalInstrument.values()[0];
 
 	@Override

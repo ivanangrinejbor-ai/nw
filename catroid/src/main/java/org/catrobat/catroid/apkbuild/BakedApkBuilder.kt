@@ -45,11 +45,9 @@ import java.util.zip.ZipOutputStream
 object BakedApkBuilder {
     private const val TAG = "BakedApkBuilder"
     private const val TEMPLATE_RUNTIME_APK = "template_runtime.apk"
-    private const val TEMPLATE_RUNTIME_LITE_APK = "template_runtime_lite.apk"
-    private const val TEMPLATE_RUNTIME_NOARM_APK = "template_runtime_noarm.apk"
 
     enum class TemplateType {
-        FULL, LITE, NO_ARM
+        FULL
     }
 
     data class ApkConfig(
@@ -61,8 +59,7 @@ object BakedApkBuilder {
         val customKeystore: File? = null,
         val keystorePass: String = "keystore",
         val keyAlias: String = "newcatroid",
-        val keyPass: String = "keystore",
-        val templateType: TemplateType = TemplateType.FULL
+        val keyPass: String = "keystore"
     )
 
     sealed class BuildResult {
@@ -81,11 +78,7 @@ object BakedApkBuilder {
             val templateApk = File(tempDir, "template_temp.apk")
 
             var templateLoaded = false
-            val templateAssetName = when (config.templateType) {
-                TemplateType.LITE -> TEMPLATE_RUNTIME_LITE_APK
-                TemplateType.NO_ARM -> TEMPLATE_RUNTIME_NOARM_APK
-                else -> TEMPLATE_RUNTIME_APK
-            }
+            val templateAssetName = TEMPLATE_RUNTIME_APK
             try {
                 context.assets.open(templateAssetName).use { input ->
                     FileOutputStream(templateApk).use { output -> input.copyTo(output) }

@@ -51,6 +51,8 @@ import static org.catrobat.catroid.ui.SpriteActivity.EXTRA_ROTATION;
 
 public abstract class VisualPlacementBrick extends FormulaBrick {
 
+	private static final long serialVersionUID = 1L;
+
 	@Override
 	public void showFormulaEditorToEditFormula(View view) {
 		AppCompatActivity activity = UiUtils.getActivityFromView(view);

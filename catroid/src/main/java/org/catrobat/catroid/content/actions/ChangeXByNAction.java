@@ -37,6 +37,7 @@ public class ChangeXByNAction extends TemporalAction {
 
 	@Override
 	protected void update(float percent) {
+		if (scope == null) return;
 		try {
 			Float newX = xMovement == null ? Float.valueOf(0f) : xMovement.interpretFloat(scope);
 			scope.getSprite().look.changeXInUserInterfaceDimensionUnit(newX);

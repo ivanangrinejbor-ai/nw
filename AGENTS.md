@@ -125,3 +125,89 @@ public class MyBrick extends FormulaBrick {
 Папка `aip/`: datasets, training, model, deploy.
 Обучение: `python train.py` (n-gram) или `python train_lstm.py` (LSTM).
 Деплой: `aip\deploy.bat` копирует model.* в assets.
+
+---
+
+# Добавленные блоки (2026-07)
+
+## 1. File category — блоки для папок
+- **CreateFolderBrick** — создать папку (уже существовал, зарегистрирован в File)
+- **DeleteFolderBrick** — удалить папку (уже существовал, зарегистрирован)
+- **CreateFolderByPathBrick** — создать по пути (уже существовал, зарегистрирован)
+- **DeleteFolderByPathBrick** — удалить по пути (уже существовал, зарегистрирован)
+- **CopyProjectFileToFolderBrick** — копировать в папку (уже существовал, зарегистрирован)
+- **CopyProjectFileToPathBrick** — копировать по пути (уже существовал, зарегистрирован)
+- **PutFileIntoFolderBrick** — положить файл в папку (NEW)
+- **PutFileIntoPathBrick** — положить файл по пути (NEW)
+
+## 2. Device category — уведомления
+- **SendNotificationBrick** — отправляет уведомление с заголовком и текстом
+
+## 3. Motion category — направление на касание
+- **TouchDirectionBrick** — автоматически вычисляет угол от спрайта к точке касания
+
+## 4. Control category — клоны по номеру
+- **DeleteCloneByNumberBrick** — удаляет клон по номеру (cloneIndex)
+- **ExecuteForCloneNumberBrick** — контейнерный блок (CompositeBrick + EndBrick), выполняет внутренние блоки только если cloneIndex совпадает
+
+## 5. Look category — привязка к камере со смещением
+- **AttachToCameraWithOffsetBrick** — привязывает 3D объект к камере с X/Y/Z смещением
+
+## 6. Sprite.java
+- Добавлено поле `cloneIndex` (int, transient) — 0 для оригинала, 1+ для клонов
+
+## 7. StageListener.java
+- Поле `cloneCounter` — счётчик номеров клонов
+- Метод `removeCloneByIndex(int)` — удаление клона по номеру
+- В `cloneSpriteAndAddToStage()` — `clone.cloneIndex = cloneCounter++`
+
+## 8. SceneManager.java
+- Метод `attachObjectToCamera(String objectId, float offsetX, float offsetY, float offsetZ)` — новая перегрузка с 4 параметрами
+
+## 9. XStream
+- `XStreamBrickConverter` автоматически обнаруживает все Brick-классы в пакете `org.catrobat.catroid.content.bricks` по имени класса, поэтому явная регистрация не требуется.
+
+## 10. Formula fixes
+- FILE_PROJECT_SIZE, FILE_SIZE_IN_DIR, FILE_SIZE_AT_PATH добавлены в TEXT EnumSet в Functions.java
+- Добавлены в DEVICE_FUNCTIONS/DEVICE_PARAMS в CategoryListFragment.java
+- Добавлена строка `formula_file_project_size_param`
+
+---
+
+# Исправления безопасности и багов (2026-07)
+
+## Build & dependencies
+- XStream 1.4.11.1 → 1.4.20 (`catroid/build.gradle`)
+- Coroutines unified to 1.7.3
+- material:1.2.1 → material:1.13.0, removed resolutionStrategy force
+- Gradle: `-Xmx6g` → `-Xmx4g`
+- Removed duplicate `apksig:7.0.0` dependency
+
+## Безопасность
+- **UnzipAction.kt**: canonical path check (zip-slip prevention)
+- **PutFileIntoPathAction, DeleteFolderByPathAction, CreateFolderByPathAction, CopyProjectFileToPathAction**: canonical path validation
+- **AskGemini2Action.kt**: removed `hostnameVerifier { _, _ -> true }`, added timeouts, replaced raw JSON string with `JSONObject`
+- **WriteVariableToFileAction.kt**: replaced `System.getProperty("user.home")` with `Environment.getExternalStoragePublicDirectory`
+
+## Stage/Actors
+- **StageActivity.onDestroy()**: `super.onDestroy()` moved to end, `messageHandler` nulled
+- **StageActivity.setupAskHandler()**: changed to `WeakReference<StageActivity>`
+- **ShowTextActor.drawText()**: added texture caching (skip per-frame Bitmap/Texture allocation when text unchanged)
+- **StageListener**: `cloneCounter` changed to `AtomicInteger`, removed unused `accumulator`/`TIME_STEP`
+
+## Null safety
+- Added `if (scope == null) return;` to 19 Java action files (TouchDirectionAction, etc.)
+- LookPostRequestAction/LookRequestAction: replaced `!!` with local `val ec = errorCode`
+- PrepareNotificationBrick: removed `transient` from `importanceLevel` and `isPinned`
+
+## XStream serialization
+- Added 5 brick aliases to XstreamSerializer.java (PutFileIntoFolder, PutFileIntoPath, ExecuteForCloneNumber, DeleteCloneByNumber, TouchDirection)
+- XStreamBrickConverter: fixed `result = new UnknownBrick(type)` (was creating unused local)
+- XStreamFormulaElementConverter: fixed SECOND_FACE_Y_POSITION → FACE_Y sensor mapping
+
+## Прочее
+- ActionFactory: `RunShellAction()` → `runShellAction()` (Java naming convention)
+- PanoramicConverter: uncommented `fbo.dispose()`
+- ErrorInterceptor.kt: `response.body?.toString()` → `response.body?.string()`
+- Removed duplicate commented `package` lines from 14 action files
+- Removed duplicate `createDeleteCloneByNumberAction` from ActionFactory

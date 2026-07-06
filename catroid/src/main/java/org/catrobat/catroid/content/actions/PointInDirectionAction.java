@@ -38,6 +38,7 @@ public class PointInDirectionAction extends TemporalAction {
 
 	@Override
 	protected void update(float percent) {
+		if (scope == null) return;
 		try {
 			Float degreeInterpretation = degrees == null ? Float.valueOf(0f)
 					: degrees.interpretFloat(scope);

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal">
+
+    <CheckBox
+        android:id="@+id/brick_checkbox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:visibility="gone" />
+
+    <org.catrobat.catroid.ui.BrickLayout
+        android:id="@+id/brick_show_scheduled_notification_layout"
+        style="@style/BrickContainer.Device.Medium">
+
+        <include layout="@layout/icon_brick_category_device" />
+
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_show_scheduled_notification" />
+
+        <!-- ID -->
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_prepare_notification_id"
+            app:layout_newLine="true" />
+        <TextView
+            android:id="@+id/brick_show_scheduled_notification_edit_id"
+            style="@style/BrickEditText" />
+
+        <!-- Duration -->
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_show_scheduled_notification_duration"
+            app:layout_newLine="true" />
+        <TextView
+            android:id="@+id/brick_show_scheduled_notification_edit_duration"
+            style="@style/BrickEditText" />
+
+    </org.catrobat.catroid.ui.BrickLayout>
+</LinearLayout>

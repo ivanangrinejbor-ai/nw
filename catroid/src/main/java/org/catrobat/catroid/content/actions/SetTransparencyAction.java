@@ -37,6 +37,7 @@ public class SetTransparencyAction extends TemporalAction {
 
 	@Override
 	protected void update(float percent) {
+		if (scope == null) return;
 		try {
 			Float newTransparency = transparency == null ? Float.valueOf(0f)
 					: transparency.interpretFloat(scope);

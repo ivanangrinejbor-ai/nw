@@ -48,6 +48,8 @@ import androidx.appcompat.app.AppCompatActivity;
 
 public abstract class UserListBrick extends FormulaBrick implements BrickSpinner.OnItemSelectedListener<UserList> {
 
+	private static final long serialVersionUID = 1L;
+
 	protected UserList userList;
 
 	private transient BrickSpinner<UserList> spinner;

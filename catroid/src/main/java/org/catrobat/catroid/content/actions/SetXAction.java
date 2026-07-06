@@ -37,6 +37,7 @@ public class SetXAction extends TemporalAction {
 
 	@Override
 	protected void update(float delta) {
+		if (scope == null) return;
 		try {
 			Float newX = xPosition == null ? Float.valueOf(0f) : xPosition.interpretFloat(scope);
 			scope.getSprite().look.setXInUserInterfaceDimensionUnit(newX);

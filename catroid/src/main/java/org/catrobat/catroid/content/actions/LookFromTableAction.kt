@@ -86,12 +86,17 @@ class LookFromTableAction : TemporalAction() {
 
     private fun setLookFromFile(file: File) {
         val currentSprite = scope?.sprite ?: return
+        try {
+            val newLookData = LookData(file.name, file)
+            newLookData.collisionInformation.calculate()
 
-        val newLookData = LookData(file.name, file)
-        newLookData.collisionInformation.calculate()
-
-        updateLookListIndex()
-        currentSprite.look.lookData = newLookData
+            updateLookListIndex()
+            currentSprite.look.lookData = newLookData
+        } finally {
+            if (file.exists()) {
+                file.delete()
+            }
+        }
     }
 
     private fun updateLookListIndex() {

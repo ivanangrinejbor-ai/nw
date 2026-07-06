@@ -24,6 +24,7 @@ class LunoScriptProcessor : AbstractProcessor() {
         return setOf(
             LunoFunction::class.java.name,
             LunoClass::class.java.name
+            // TODO: add LunoProperty handling — currently the annotation is defined but not processed
         )
     }
 

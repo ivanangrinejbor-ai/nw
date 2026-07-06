@@ -46,6 +46,8 @@ import androidx.appcompat.app.AppCompatActivity;
 
 public abstract class UserVariableBrick extends BrickBaseType implements UserVariableBrickInterface {
 
+	private static final long serialVersionUID = 1L;
+
 	protected UserVariable userVariable;
 
 	private transient BrickSpinner<UserVariable> spinner;

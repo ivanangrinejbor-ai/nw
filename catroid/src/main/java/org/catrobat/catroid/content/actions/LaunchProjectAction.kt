@@ -29,6 +29,7 @@ class LaunchProjectAction : TemporalAction() {
 
         val isZipFile = projectFileName.endsWith(".zip", true) || projectFileName.endsWith(".neotrobat", true)
                 || projectFileName.endsWith(".newtrobat", true) || projectFileName.endsWith(".catrobat", true)
+                || projectFileName.endsWith(".npc", true) || projectFileName.endsWith(".ncp", true)
 
         val projectToLaunchDir: File?
 

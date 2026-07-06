@@ -405,6 +405,12 @@ public class InternToExternGenerator {
         INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.VOXEL_GET_ID.name(), R.string.formula_voxel_get_id);
         INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.VOXEL_GET_DATA.name(), R.string.formula_voxel_get_data);
         INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.FILE_EXISTS.name(), R.string.formula_file_exists);
+        INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.FILE_PROJECT_EXISTS.name(), R.string.formula_file_project_exists);
+        INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.FILE_EXISTS_IN_DIR.name(), R.string.formula_file_exists_in_dir);
+        INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.FILE_EXISTS_AT_PATH.name(), R.string.formula_file_exists_at_path);
+        INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.FILE_PROJECT_SIZE.name(), R.string.formula_file_project_size);
+        INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.FILE_SIZE_IN_DIR.name(), R.string.formula_file_size_in_dir);
+        INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.FILE_SIZE_AT_PATH.name(), R.string.formula_file_size_at_path);
         INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.DEVICE_NAME.name(), R.string.formula_device_name);
         INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.DEVICE_MANUFACTURER.name(), R.string.formula_device_manufacturer);
         INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.ANDROID_VERSION.name(), R.string.formula_android_version);
@@ -419,6 +425,16 @@ public class InternToExternGenerator {
         INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.FREE_RAM.name(), R.string.formula_free_ram);
         INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.TOTAL_STORAGE.name(), R.string.formula_total_storage);
         INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.FREE_STORAGE.name(), R.string.formula_free_storage);
+        INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.USED_RAM.name(), R.string.formula_used_ram);
+        INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.USED_STORAGE.name(), R.string.formula_used_storage);
+        INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.VOLUME_LEVEL.name(), R.string.formula_volume_level);
+        INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.SCREEN_BRIGHTNESS.name(), R.string.formula_screen_brightness);
+        INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.IS_IN_FOREGROUND.name(), R.string.formula_is_in_foreground);
+        INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.CPU_FREQUENCY_MIN.name(), R.string.formula_cpu_frequency_min);
+        INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.CPU_USAGE.name(), R.string.formula_cpu_usage);
+        INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.GPU_NAME.name(), R.string.formula_gpu_name);
+        INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.OPENGL_VERSION.name(), R.string.formula_opengl_version);
+        INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.VULKAN_SUPPORTED.name(), R.string.formula_vulkan_supported);
         INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.BATTERY_PERCENT.name(), R.string.formula_battery_percent);
         INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.BATTERY_CHARGING.name(), R.string.formula_battery_charging);
         INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.BATTERY_TEMP.name(), R.string.formula_battery_temp);
@@ -512,6 +528,16 @@ public class InternToExternGenerator {
 				R.string.formula_editor_function_get_id_of_detected_object);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.OBJECT_WITH_ID_VISIBLE.name(),
 				R.string.formula_editor_function_object_with_id_visible);
+
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.ADMOB_IS_INITIALIZED.name(), R.string.formula_admob_is_initialized);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.ADMOB_IS_TEST_MODE.name(), R.string.formula_admob_is_test_mode);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.ADMOB_IS_BANNER_LOADED.name(), R.string.formula_admob_is_banner_loaded);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.ADMOB_IS_INTERSTITIAL_LOADED.name(), R.string.formula_admob_is_interstitial_loaded);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.ADMOB_IS_REWARDED_LOADED.name(), R.string.formula_admob_is_rewarded_loaded);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.ADMOB_IS_APP_OPEN_LOADED.name(), R.string.formula_admob_is_app_open_loaded);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.ADMOB_LAST_ERROR_CODE.name(), R.string.formula_admob_last_error_code);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.ADMOB_LAST_ERROR_MESSAGE.name(), R.string.formula_admob_last_error_message);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.ADMOB_IS_GOOGLE_PLAY_SERVICES_AVAILABLE.name(), R.string.formula_admob_is_google_play_services_available);
 	}
 	public InternToExternGenerator(Context context) {
 		this.context = context;

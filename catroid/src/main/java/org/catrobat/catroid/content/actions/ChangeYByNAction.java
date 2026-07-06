@@ -37,6 +37,7 @@ public class ChangeYByNAction extends TemporalAction {
 
 	@Override
 	protected void update(float arg0) {
+		if (scope == null) return;
 		try {
 			Float newY = yMovement == null ? Float.valueOf(0f) : yMovement.interpretFloat(scope);
 			scope.getSprite().look.changeYInUserInterfaceDimensionUnit(newY);

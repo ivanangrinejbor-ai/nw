@@ -70,12 +70,12 @@ class BrickDialogManager(val stageActivity: StageActivity) :
         action: Action,
         content: String,
         msg: String,
-        sumb: String,
-        canel: String,
+        submit: String,
+        cancel: String,
         defaultValue: String
     ) {
         val dialog = when (type) {
-            DialogType.ASK_2_DIALOG -> createAsk2Dialog(action as BigAskAction, content, msg, sumb, canel, defaultValue)
+            DialogType.ASK_2_DIALOG -> createAsk2Dialog(action as BigAskAction, content, msg, submit, cancel, defaultValue)
             DialogType.ASK_DIALOG -> createAskDialog(action as AskAction, content)
             DialogType.WEB_ACCESS_DIALOG -> createWebAccessDialog(action as WebAction, content)
         }
@@ -93,8 +93,8 @@ class BrickDialogManager(val stageActivity: StageActivity) :
         askAction: BigAskAction,
         question: String,
         msg: String,
-        sumb: String,
-        canel: String,
+        submit: String,
+        cancel: String,
         baseText: String
     ): Dialog {
         val editText = EditText(stageActivity)
@@ -108,10 +108,10 @@ class BrickDialogManager(val stageActivity: StageActivity) :
             .setCancelable(false)
             .setOnKeyListener(this)
             .setOnDismissListener(this)
-            .setPositiveButton(sumb) { _, _ ->
+            .setPositiveButton(submit) { _, _ ->
                 askAction.setAnswerText(editText.text.toString())
             }
-            .setNegativeButton(canel) { _, _ ->
+            .setNegativeButton(cancel) { _, _ ->
                 askAction.setAnswerText("0")
             }
             .create()

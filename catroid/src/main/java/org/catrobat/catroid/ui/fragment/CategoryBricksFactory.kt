@@ -60,6 +60,7 @@ import org.catrobat.catroid.content.bricks.AsyncRepeatBrick
 import org.catrobat.catroid.content.bricks.AttachRaySensorBrick
 import org.catrobat.catroid.content.bricks.AttachSOBrick
 import org.catrobat.catroid.content.bricks.AttachToCameraBrick
+import org.catrobat.catroid.content.bricks.AttachToCameraWithOffsetBrick
 import org.catrobat.catroid.content.bricks.BackgroundRequestBrick
 import org.catrobat.catroid.content.bricks.BakeByPrefixBrick
 import org.catrobat.catroid.content.bricks.BigAskBrick
@@ -100,6 +101,8 @@ import org.catrobat.catroid.content.bricks.ConnectServerBrick
 import org.catrobat.catroid.content.bricks.ContinueMovementBrick
 import org.catrobat.catroid.content.bricks.CopyLookBrick
 import org.catrobat.catroid.content.bricks.CopyProjectFileBrick
+import org.catrobat.catroid.content.bricks.CopyProjectFileToFolderBrick
+import org.catrobat.catroid.content.bricks.CopyProjectFileToPathBrick
 import org.catrobat.catroid.content.bricks.CopyTextBrick
 import org.catrobat.catroid.content.bricks.Create3dObjectBrick
 import org.catrobat.catroid.content.bricks.CreateBufferBrick
@@ -108,6 +111,8 @@ import org.catrobat.catroid.content.bricks.CreateDialogBrick
 import org.catrobat.catroid.content.bricks.CreateDiskBrick
 import org.catrobat.catroid.content.bricks.CreateDistanceJointBrick
 import org.catrobat.catroid.content.bricks.CreateFloatBrick
+import org.catrobat.catroid.content.bricks.CreateFolderBrick
+import org.catrobat.catroid.content.bricks.CreateFolderByPathBrick
 import org.catrobat.catroid.content.bricks.CreateGLViewBrick
 import org.catrobat.catroid.content.bricks.CreateGearJointBrick
 import org.catrobat.catroid.content.bricks.CreateParticlesBrick
@@ -127,9 +132,12 @@ import org.catrobat.catroid.content.bricks.CustomBrick
 import org.catrobat.catroid.content.bricks.CutLookBrick
 import org.catrobat.catroid.content.bricks.DelSquareBrick
 import org.catrobat.catroid.content.bricks.DeleteAllTablesBrick
+import org.catrobat.catroid.content.bricks.DeleteCloneByNumberBrick
 import org.catrobat.catroid.content.bricks.DeleteBaseBrick
 import org.catrobat.catroid.content.bricks.DeleteFilesBrick
 import org.catrobat.catroid.content.bricks.DeleteFloatBrick
+import org.catrobat.catroid.content.bricks.DeleteFolderBrick
+import org.catrobat.catroid.content.bricks.DeleteFolderByPathBrick
 import org.catrobat.catroid.content.bricks.DeleteFromApkBrick
 import org.catrobat.catroid.content.bricks.DeleteItemOfUserListBrick
 import org.catrobat.catroid.content.bricks.DeleteLookBrick
@@ -139,6 +147,7 @@ import org.catrobat.catroid.content.bricks.DeleteThisCloneBrick
 import org.catrobat.catroid.content.bricks.DeleteVarBrick
 import org.catrobat.catroid.content.bricks.DeleteVarsBrick
 import org.catrobat.catroid.content.bricks.DeleteWebBrick
+import org.catrobat.catroid.content.bricks.DeleteWebRequestBrick
 import org.catrobat.catroid.content.bricks.DestroyJointBrick
 import org.catrobat.catroid.content.bricks.DetachFromCameraBrick
 import org.catrobat.catroid.content.bricks.DroneEmergencyBrick
@@ -155,8 +164,10 @@ import org.catrobat.catroid.content.bricks.DroneTakeOffLandBrick
 import org.catrobat.catroid.content.bricks.DroneTurnLeftBrick
 import org.catrobat.catroid.content.bricks.DroneTurnRightBrick
 import org.catrobat.catroid.content.bricks.EditLookBrick
+import org.catrobat.catroid.content.bricks.EnableBackgroundBrick
 import org.catrobat.catroid.content.bricks.EnablePbrRenderBrick
 import org.catrobat.catroid.content.bricks.EvalWebBrick
+import org.catrobat.catroid.content.bricks.ExecuteForCloneNumberBrick
 import org.catrobat.catroid.content.bricks.ExitStageBrick
 import org.catrobat.catroid.content.bricks.ExportProjectFileBrick
 import org.catrobat.catroid.content.bricks.ExtractFileBrick
@@ -207,6 +218,7 @@ import org.catrobat.catroid.content.bricks.HideBrick
 import org.catrobat.catroid.content.bricks.HideStatusBarBrick
 import org.catrobat.catroid.content.bricks.HideText3Brick
 import org.catrobat.catroid.content.bricks.HideTextBrick
+import org.catrobat.catroid.content.bricks.HeadWebRequestBrick
 import org.catrobat.catroid.content.bricks.IfLogicBeginBrick
 import org.catrobat.catroid.content.bricks.IfOnEdgeBounceBrick
 import org.catrobat.catroid.content.bricks.IfThenLogicBeginBrick
@@ -265,6 +277,7 @@ import org.catrobat.catroid.content.bricks.ObjectLookAtBrick
 import org.catrobat.catroid.content.bricks.OpenFileBrick
 import org.catrobat.catroid.content.bricks.OpenFilesBrick
 import org.catrobat.catroid.content.bricks.OpenUrlBrick
+import org.catrobat.catroid.content.bricks.OptionsWebRequestBrick
 import org.catrobat.catroid.content.bricks.OrientationBrick
 import org.catrobat.catroid.content.bricks.PaintNewLookBrick
 import org.catrobat.catroid.content.bricks.ParameterizedBrick
@@ -272,6 +285,7 @@ import org.catrobat.catroid.content.bricks.ParameterizedEndBrick
 import org.catrobat.catroid.content.bricks.ParticleEffectAdditivityBrick
 import org.catrobat.catroid.content.bricks.PauseForBeatsBrick
 import org.catrobat.catroid.content.bricks.PauseVideoBrick
+import org.catrobat.catroid.content.bricks.PatchWebRequestBrick
 import org.catrobat.catroid.content.bricks.PenDownBrick
 import org.catrobat.catroid.content.bricks.PenUpBrick
 import org.catrobat.catroid.content.bricks.PerformRayCastBrick
@@ -310,6 +324,9 @@ import org.catrobat.catroid.content.bricks.PtSetByIndexBrick
 import org.catrobat.catroid.content.bricks.PtSetTensorBrick
 import org.catrobat.catroid.content.bricks.PtSetTrainingBrick
 import org.catrobat.catroid.content.bricks.PtStepBrick
+import org.catrobat.catroid.content.bricks.PutFileIntoFolderBrick
+import org.catrobat.catroid.content.bricks.PutFileIntoPathBrick
+import org.catrobat.catroid.content.bricks.PutWebRequestBrick
 import org.catrobat.catroid.content.bricks.PutFloatBrick
 import org.catrobat.catroid.content.bricks.RaspiIfLogicBeginBrick
 import org.catrobat.catroid.content.bricks.RaspiPwmBrick
@@ -438,6 +455,8 @@ import org.catrobat.catroid.content.bricks.SetRestitutionBrick
 import org.catrobat.catroid.content.bricks.SetRotationLockBrick
 import org.catrobat.catroid.content.bricks.SetRotationStyleBrick
 import org.catrobat.catroid.content.bricks.SetPreloadingBrick
+import org.catrobat.catroid.content.bricks.PreloadSceneBrick
+import org.catrobat.catroid.content.bricks.ScenePreloadedBrick
 import org.catrobat.catroid.content.bricks.SetSaveScenesBrick
 import org.catrobat.catroid.content.bricks.SetScreenShaderBrick
 import org.catrobat.catroid.content.bricks.SetShaderCodeBrick
@@ -472,6 +491,11 @@ import org.catrobat.catroid.content.bricks.SewUpBrick
 import org.catrobat.catroid.content.bricks.ShaderBrick
 import org.catrobat.catroid.content.bricks.ShowBrick
 import org.catrobat.catroid.content.bricks.ShowDialogBrick
+import org.catrobat.catroid.content.bricks.PrepareNotificationBrick
+import org.catrobat.catroid.content.bricks.SendNotificationBrick
+import org.catrobat.catroid.content.bricks.RemoveNotificationBrick
+import org.catrobat.catroid.content.bricks.ShowScheduledNotificationBrick
+import org.catrobat.catroid.content.bricks.NotificationActionBrick
 import org.catrobat.catroid.content.bricks.ShowText3Brick
 import org.catrobat.catroid.content.bricks.ShowTextBrick
 import org.catrobat.catroid.content.bricks.ShowTextColorSizeAlignmentBrick
@@ -487,6 +511,7 @@ import org.catrobat.catroid.content.bricks.SpeakBrick
 import org.catrobat.catroid.content.bricks.SplitBrick
 import org.catrobat.catroid.content.bricks.SquareBrick
 import org.catrobat.catroid.content.bricks.StampBrick
+import org.catrobat.catroid.content.bricks.StopBackgroundBrick
 import org.catrobat.catroid.content.bricks.StartListeningBrick
 import org.catrobat.catroid.content.bricks.StartPlotBrick
 import org.catrobat.catroid.content.bricks.StartRecordingBrick
@@ -518,6 +543,7 @@ import org.catrobat.catroid.content.bricks.ThreedCreateCylinderBrick
 import org.catrobat.catroid.content.bricks.ThreedCreateFixedConstraintBrick
 import org.catrobat.catroid.content.bricks.ToggleDisplayBrick
 import org.catrobat.catroid.content.bricks.TouchAndSlideBrick
+import org.catrobat.catroid.content.bricks.TouchDirectionBrick
 import org.catrobat.catroid.content.bricks.TripleStitchBrick
 import org.catrobat.catroid.content.bricks.TryCatchFinallyBrick
 import org.catrobat.catroid.content.bricks.TurnLeftBrick
@@ -556,6 +582,12 @@ import org.catrobat.catroid.content.bricks.WhenGamepadButtonBrick
 import org.catrobat.catroid.content.bricks.WhenMouseButtonClickedBrick
 import org.catrobat.catroid.content.bricks.WhenMouseWheelScrolledBrick
 import org.catrobat.catroid.content.bricks.WhenNfcBrick
+import org.catrobat.catroid.content.bricks.WhenAppMinimizedBrick
+import org.catrobat.catroid.content.bricks.WhenAppRestoredBrick
+import org.catrobat.catroid.content.bricks.WhenNotificationActionClickedBrick
+import org.catrobat.catroid.content.bricks.WhenNotificationDismissedBrick
+import org.catrobat.catroid.content.bricks.WhenNotificationReplyBrick
+import org.catrobat.catroid.content.bricks.WhenNotificationShownBrick
 import org.catrobat.catroid.content.bricks.WhenProjectExitsBrick
 import org.catrobat.catroid.content.bricks.WhenRaspiPinChangedBrick
 import org.catrobat.catroid.content.bricks.WhenStartedBrick
@@ -568,6 +600,88 @@ import org.catrobat.catroid.content.bricks.WriteVariableOnDeviceBrick
 import org.catrobat.catroid.content.bricks.WriteVariableToFileBrick
 import org.catrobat.catroid.content.bricks.ZigZagStitchBrick
 import org.catrobat.catroid.content.bricks.ZipBrick
+import org.catrobat.catroid.content.bricks.AdmobEnableTestModeBrick
+import org.catrobat.catroid.content.bricks.AdmobSetAppIdBrick
+import org.catrobat.catroid.content.bricks.AdmobInitializeBrick
+import org.catrobat.catroid.content.bricks.AdmobSetBannerUnitIdBrick
+import org.catrobat.catroid.content.bricks.AdmobLoadBannerBrick
+import org.catrobat.catroid.content.bricks.AdmobShowBannerBrick
+import org.catrobat.catroid.content.bricks.AdmobHideBannerBrick
+import org.catrobat.catroid.content.bricks.AdmobDestroyBannerBrick
+import org.catrobat.catroid.content.bricks.AdmobSetInterstitialUnitIdBrick
+import org.catrobat.catroid.content.bricks.AdmobLoadInterstitialBrick
+import org.catrobat.catroid.content.bricks.AdmobShowInterstitialBrick
+import org.catrobat.catroid.content.bricks.AdmobSetRewardedUnitIdBrick
+import org.catrobat.catroid.content.bricks.AdmobLoadRewardedBrick
+import org.catrobat.catroid.content.bricks.AdmobShowRewardedBrick
+import org.catrobat.catroid.content.bricks.AdmobSetAppOpenUnitIdBrick
+import org.catrobat.catroid.content.bricks.AdmobLoadAppOpenBrick
+import org.catrobat.catroid.content.bricks.AdmobShowAppOpenBrick
+import org.catrobat.catroid.content.bricks.AdmobInitializedEventBrick
+import org.catrobat.catroid.content.bricks.AdmobInitFailedEventBrick
+import org.catrobat.catroid.content.bricks.AdmobBannerLoadedEventBrick
+import org.catrobat.catroid.content.bricks.AdmobBannerFailedEventBrick
+import org.catrobat.catroid.content.bricks.AdmobBannerShownEventBrick
+import org.catrobat.catroid.content.bricks.AdmobBannerHiddenEventBrick
+import org.catrobat.catroid.content.bricks.AdmobInterstitialLoadedEventBrick
+import org.catrobat.catroid.content.bricks.AdmobInterstitialFailedEventBrick
+import org.catrobat.catroid.content.bricks.AdmobInterstitialShownEventBrick
+import org.catrobat.catroid.content.bricks.AdmobInterstitialClosedEventBrick
+import org.catrobat.catroid.content.bricks.AdmobRewardedLoadedEventBrick
+import org.catrobat.catroid.content.bricks.AdmobRewardedFailedEventBrick
+import org.catrobat.catroid.content.bricks.AdmobRewardedShownEventBrick
+import org.catrobat.catroid.content.bricks.AdmobRewardedRewardEventBrick
+import org.catrobat.catroid.content.bricks.AdmobRewardedClosedEventBrick
+import org.catrobat.catroid.content.bricks.AdmobAppOpenLoadedEventBrick
+import org.catrobat.catroid.content.bricks.AdmobAppOpenShownEventBrick
+import org.catrobat.catroid.content.bricks.AdmobAppOpenClosedEventBrick
+import org.catrobat.catroid.content.bricks.AudioFadeInBrick
+import org.catrobat.catroid.content.bricks.AudioFadeOutBrick
+import org.catrobat.catroid.content.bricks.ClearCanvasBrick
+import org.catrobat.catroid.content.bricks.CountLoopBrick
+import org.catrobat.catroid.content.bricks.DelayMicrosecondsBrick
+import org.catrobat.catroid.content.bricks.DrawCircleBrick
+import org.catrobat.catroid.content.bricks.DrawLineBrick
+import org.catrobat.catroid.content.bricks.DrawRectBrick
+import org.catrobat.catroid.content.bricks.DrawTextBrick
+import org.catrobat.catroid.content.bricks.EqualizerSetBandBrick
+import org.catrobat.catroid.content.bricks.FillCircleBrick
+import org.catrobat.catroid.content.bricks.FillPolygonBrick
+import org.catrobat.catroid.content.bricks.FillRectBrick
+import org.catrobat.catroid.content.bricks.KeepScreenOffBrick
+import org.catrobat.catroid.content.bricks.KeepScreenOnBrick
+import org.catrobat.catroid.content.bricks.MapCreateBrick
+import org.catrobat.catroid.content.bricks.MapDeleteBrick
+import org.catrobat.catroid.content.bricks.MapGetBrick
+import org.catrobat.catroid.content.bricks.MapSetBrick
+import org.catrobat.catroid.content.bricks.PlayToneBrick
+import org.catrobat.catroid.content.bricks.QueueDequeueBrick
+import org.catrobat.catroid.content.bricks.QueueEnqueueBrick
+import org.catrobat.catroid.content.bricks.RunOnUiThreadBrick
+import org.catrobat.catroid.content.bricks.ScheduleBrick
+import org.catrobat.catroid.content.bricks.ScreenBrightnessBrick
+import org.catrobat.catroid.content.bricks.SetAddBrick
+import org.catrobat.catroid.content.bricks.SetBorderColorBrick
+import org.catrobat.catroid.content.bricks.SetBorderWidthBrick
+import org.catrobat.catroid.content.bricks.SetCanvasBrick
+import org.catrobat.catroid.content.bricks.SetContainsBrick
+import org.catrobat.catroid.content.bricks.SetCornerRadiusBrick
+import org.catrobat.catroid.content.bricks.SetFilterBlurBrick
+import org.catrobat.catroid.content.bricks.SetFilterPixelateBrick
+import org.catrobat.catroid.content.bricks.SetFilterSepiaBrick
+import org.catrobat.catroid.content.bricks.SetFontBrick
+import org.catrobat.catroid.content.bricks.SetPanBrick
+import org.catrobat.catroid.content.bricks.SetPitchOnlyBrick
+import org.catrobat.catroid.content.bricks.SetRemoveBrick
+import org.catrobat.catroid.content.bricks.Sound_StopAllBrick
+import org.catrobat.catroid.content.bricks.StackPopBrick
+import org.catrobat.catroid.content.bricks.StackPushBrick
+import org.catrobat.catroid.content.bricks.SwitchBeginBrick
+import org.catrobat.catroid.content.bricks.SwitchCaseBrick
+import org.catrobat.catroid.content.bricks.TimerResetBrick
+import org.catrobat.catroid.content.bricks.TimerStartBrick
+import org.catrobat.catroid.content.bricks.TimerStopBrick
+import org.catrobat.catroid.content.bricks.VibratePatternBrick
 import org.catrobat.catroid.formulaeditor.Formula
 import org.catrobat.catroid.formulaeditor.FormulaElement
 import org.catrobat.catroid.formulaeditor.Operators
@@ -617,7 +731,9 @@ open class CategoryBricksFactory {
             context.getString(R.string.category_pathfinder) -> setupPathfinderCategoryList(context)
             context.getString(R.string.category_file) -> setupFileCategoryList(context)
             context.getString(R.string.category_threed) -> setupThreedCategoryList(context)
+            context.getString(R.string.category_preload) -> setupPreloadCategoryList(context)
             context.getString(R.string.category_internet) -> setupInternetCategoryList(context)
+            context.getString(R.string.category_admob) -> setupAdmobCategoryList(context)
             context.getString(R.string.category_assertions) -> setupAssertionsCategoryList(context)
             context.getString(R.string.category_libraries) -> setupLibrariesCategoryList()
             else -> emptyList()
@@ -699,6 +815,8 @@ open class CategoryBricksFactory {
                 eventBrickList.add(BroadcastBrick(broadcastMessage))
                 eventBrickList.add(BroadcastWaitBrick(broadcastMessage))
                 eventBrickList.add(WhenProjectExitsBrick())
+                eventBrickList.add(WhenAppMinimizedBrick())
+                eventBrickList.add(WhenAppRestoredBrick())
                 eventBrickList.add(WhenBackPressedBrick())
                 eventBrickList.add(WhenConditionBrick(WhenConditionScript(Formula(defaultIf))))
                 if (!isBackgroundSprite) {
@@ -762,9 +880,17 @@ open class CategoryBricksFactory {
 
         eventBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_event_system), template))
         eventBrickList.add(WhenProjectExitsBrick())
+        eventBrickList.add(WhenAppMinimizedBrick())
+        eventBrickList.add(WhenAppRestoredBrick())
         if (SettingsFragment.isNfcSharedPreferenceEnabled(context)) {
             eventBrickList.add(WhenNfcBrick())
         }
+
+        eventBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_event_notifications), template))
+        eventBrickList.add(WhenNotificationActionClickedBrick())
+        eventBrickList.add(WhenNotificationReplyBrick())
+        eventBrickList.add(WhenNotificationShownBrick())
+        eventBrickList.add(WhenNotificationDismissedBrick())
 
         return eventBrickList
     }
@@ -817,6 +943,8 @@ open class CategoryBricksFactory {
                 controlBrickList.add(CloneBrick())
                 controlBrickList.add(CloneAndNameBrick("clone"))
                 controlBrickList.add(DeleteThisCloneBrick())
+                controlBrickList.add(DeleteCloneByNumberBrick(1))
+                controlBrickList.add(ExecuteForCloneNumberBrick(1))
                 if (SettingsFragment.isNfcSharedPreferenceEnabled(context)) {
                     controlBrickList.add(SetNfcTagBrick(context.getString(R.string.brick_set_nfc_tag_default_value)))
                 }
@@ -833,6 +961,10 @@ open class CategoryBricksFactory {
                 controlBrickList.add(TapForBrick(BrickValues.TOUCH_X_START, BrickValues.TOUCH_Y_START, BrickValues.TOUCH_DURATION))
                 controlBrickList.add(TouchAndSlideBrick(BrickValues.TOUCH_X_START, BrickValues.TOUCH_Y_START, BrickValues.TOUCH_X_GOAL, BrickValues.TOUCH_Y_GOAL, BrickValues.TOUCH_DURATION))
                 controlBrickList.add(OpenUrlBrick(BrickValues.OPEN_IN_BROWSER))
+                controlBrickList.add(CountLoopBrick(Formula(0)))
+                controlBrickList.add(DelayMicrosecondsBrick(Formula(1.0)))
+                controlBrickList.add(SwitchBeginBrick(Formula(0)))
+                controlBrickList.add(SwitchCaseBrick(Formula(0)))
                 return controlBrickList
             }
         }
@@ -887,6 +1019,8 @@ open class CategoryBricksFactory {
         controlBrickList.add(CloneBrick())
         controlBrickList.add(CloneAndNameBrick("clone"))
         controlBrickList.add(DeleteThisCloneBrick())
+        controlBrickList.add(DeleteCloneByNumberBrick(1))
+        controlBrickList.add(ExecuteForCloneNumberBrick(1))
         controlBrickList.add(RunAsSpriteBrick(Formula("Sprite")))
 
         controlBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_control_messages), template))
@@ -908,6 +1042,10 @@ open class CategoryBricksFactory {
         controlBrickList.add(TapForBrick(BrickValues.TOUCH_X_START, BrickValues.TOUCH_Y_START, BrickValues.TOUCH_DURATION))
         controlBrickList.add(TouchAndSlideBrick(BrickValues.TOUCH_X_START, BrickValues.TOUCH_Y_START, BrickValues.TOUCH_X_GOAL, BrickValues.TOUCH_Y_GOAL, BrickValues.TOUCH_DURATION))
         controlBrickList.add(OpenUrlBrick(BrickValues.OPEN_IN_BROWSER))
+        controlBrickList.add(CountLoopBrick(Formula(0)))
+        controlBrickList.add(DelayMicrosecondsBrick(Formula(1.0)))
+        controlBrickList.add(SwitchBeginBrick(Formula(0)))
+        controlBrickList.add(SwitchCaseBrick(Formula(0)))
 
         return controlBrickList
     }
@@ -952,6 +1090,7 @@ open class CategoryBricksFactory {
                 motionBrickList.add(TurnRightBrick(BrickValues.TURN_DEGREES))
                 motionBrickList.add(PointInDirectionBrick(BrickValues.POINT_IN_DIRECTION))
                 motionBrickList.add(PointToBrick(null))
+                motionBrickList.add(TouchDirectionBrick())
                 motionBrickList.add(SetRotationStyleBrick())
                 motionBrickList.add(GlideToBrick(BrickValues.X_POSITION, BrickValues.Y_POSITION, BrickValues.GLIDE_SECONDS))
                 if (!isBackgroundSprite) {
@@ -1011,6 +1150,7 @@ open class CategoryBricksFactory {
         motionBrickList.add(TurnRightBrick(BrickValues.TURN_DEGREES))
         motionBrickList.add(PointInDirectionBrick(BrickValues.POINT_IN_DIRECTION))
         motionBrickList.add(PointToBrick(null))
+        motionBrickList.add(TouchDirectionBrick())
         motionBrickList.add(SetRotationStyleBrick())
 
         motionBrickList.add(SubCategoryHeaderBrick(context?.getString(R.string.subcategory_motion_layers) ?: "", template))
@@ -1108,6 +1248,13 @@ open class CategoryBricksFactory {
                 soundBrickList.add(SetTempoBrick(BrickValues.DEFAULT_TEMPO))
                 soundBrickList.add(ChangeTempoByNBrick(BrickValues.CHANGE_TEMPO))
                 soundBrickList.add(PauseForBeatsBrick(BrickValues.PAUSED_BEATS_FLOAT))
+                soundBrickList.add(PlayToneBrick(Formula(440.0), Formula(1.0)))
+                soundBrickList.add(SetPanBrick(Formula(0.0)))
+                soundBrickList.add(SetPitchOnlyBrick(Formula(1.0)))
+                soundBrickList.add(AudioFadeInBrick(Formula(1.0)))
+                soundBrickList.add(AudioFadeOutBrick(Formula(1.0)))
+                soundBrickList.add(EqualizerSetBandBrick(Formula(0), Formula(0)))
+                soundBrickList.add(Sound_StopAllBrick())
                 return soundBrickList
             }
         }
@@ -1157,6 +1304,13 @@ open class CategoryBricksFactory {
         if (SettingsFragment.isPhiroSharedPreferenceEnabled(context)) {
             soundBrickList.add(PhiroPlayToneBrick(PhiroPlayToneBrick.Tone.DO, BrickValues.PHIRO_DURATION))
         }
+        soundBrickList.add(PlayToneBrick(Formula(440.0), Formula(1.0)))
+        soundBrickList.add(SetPanBrick(Formula(0.0)))
+        soundBrickList.add(SetPitchOnlyBrick(Formula(1.0)))
+        soundBrickList.add(AudioFadeInBrick(Formula(1.0)))
+        soundBrickList.add(AudioFadeOutBrick(Formula(1.0)))
+        soundBrickList.add(EqualizerSetBandBrick(Formula(0), Formula(0)))
+        soundBrickList.add(Sound_StopAllBrick())
 
         return soundBrickList
     }
@@ -1211,6 +1365,7 @@ open class CategoryBricksFactory {
                 looksBrickList.add(SetCameraZoomBrick(3.0))
                 looksBrickList.add(PinToCameraBrick())
                 looksBrickList.add(UnpinFromCameraBrick())
+                looksBrickList.add(AttachToCameraWithOffsetBrick("camera_object", 0f, 0f, 0f))
                 looksBrickList.add(WhenBackgroundChangesBrick())
                 looksBrickList.add(SetBackgroundBrick())
                 looksBrickList.add(SetBackgroundByIndexBrick(BrickValues.SET_LOOK_BY_INDEX))
@@ -1263,6 +1418,12 @@ open class CategoryBricksFactory {
                 looksBrickList.add(SetBufferCamera3DBrick(Formula("Map"), Formula(100), Formula(100), Formula(100), Formula(120), Formula(-20), Formula(0), Formula(67)))
                 looksBrickList.add(ApplyBufferLookBrick("Map"))
                 looksBrickList.add(SaveBufferBrick(Formula("Map"), Formula("buffer.png")))
+                looksBrickList.add(SetBorderColorBrick(Formula(0)))
+                looksBrickList.add(SetBorderWidthBrick(Formula(1.0)))
+                looksBrickList.add(SetCornerRadiusBrick(Formula(0.0)))
+                looksBrickList.add(SetFilterBlurBrick(Formula(0.0)))
+                looksBrickList.add(SetFilterSepiaBrick(Formula(0.0)))
+                looksBrickList.add(SetFilterPixelateBrick(Formula(0.0)))
 
                 looksBrickList.add(OpenUrlBrick(BrickValues.OPEN_IN_BROWSER))
                 return looksBrickList
@@ -1338,6 +1499,7 @@ open class CategoryBricksFactory {
         looksBrickList.add(SetCameraZoomBrick(3.0))
         looksBrickList.add(PinToCameraBrick())
         looksBrickList.add(UnpinFromCameraBrick())
+        looksBrickList.add(AttachToCameraWithOffsetBrick("camera_object", 0f, 0f, 0f))
 
         looksBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_looks_camera_device), template))
         if (!ProjectManager.getInstance().currentProject.isCastProject) {
@@ -1379,6 +1541,12 @@ open class CategoryBricksFactory {
         looksBrickList.add(SetBufferCamera3DBrick(Formula("Map"), Formula(100), Formula(100), Formula(100), Formula(120), Formula(-20), Formula(0), Formula(67)))
         looksBrickList.add(ApplyBufferLookBrick("Map"))
         looksBrickList.add(SaveBufferBrick(Formula("Map"), Formula("buffer.png")))
+        looksBrickList.add(SetBorderColorBrick(Formula(0)))
+        looksBrickList.add(SetBorderWidthBrick(Formula(1.0)))
+        looksBrickList.add(SetCornerRadiusBrick(Formula(0.0)))
+        looksBrickList.add(SetFilterBlurBrick(Formula(0.0)))
+        looksBrickList.add(SetFilterSepiaBrick(Formula(0.0)))
+        looksBrickList.add(SetFilterPixelateBrick(Formula(0.0)))
 
         return looksBrickList
     }
@@ -1393,6 +1561,16 @@ open class CategoryBricksFactory {
             penBrickList.add(StampBrick())
         }
         penBrickList.add(ClearBackgroundBrick())
+        penBrickList.add(FillRectBrick(Formula(0.0), Formula(0.0), Formula(100.0), Formula(100.0)))
+        penBrickList.add(FillCircleBrick(Formula(0.0), Formula(0.0), Formula(50.0)))
+        penBrickList.add(FillPolygonBrick(Formula("0,0;100,0;50,100")))
+        penBrickList.add(DrawRectBrick(Formula(0.0), Formula(0.0), Formula(100.0), Formula(100.0)))
+        penBrickList.add(DrawCircleBrick(Formula(0.0), Formula(0.0), Formula(50.0)))
+        penBrickList.add(DrawLineBrick(Formula(0.0), Formula(0.0), Formula(100.0), Formula(100.0)))
+        penBrickList.add(SetCanvasBrick(Formula("canvas")))
+        penBrickList.add(ClearCanvasBrick())
+        penBrickList.add(SetFontBrick(Formula("Arial"), Formula(12)))
+        penBrickList.add(DrawTextBrick(Formula(0.0), Formula(0.0), Formula("")))
         return penBrickList
     }
 
@@ -1448,6 +1626,18 @@ open class CategoryBricksFactory {
                 dataBrickList.add(PostWebRequestBrick("https://api.calfire.com/v2/texts?limit=50&offset=200",
                     "Content-Type:application/json",
                     "{\nusername=password\n}"))
+                dataBrickList.add(PutWebRequestBrick("https://api.calfire.com/v2/texts?limit=50&offset=200",
+                    "Content-Type:application/json",
+                    "{\nusername=password\n}"))
+                dataBrickList.add(PatchWebRequestBrick("https://api.calfire.com/v2/texts?limit=50&offset=200",
+                    "Content-Type:application/json",
+                    "{\nusername=password\n}"))
+                dataBrickList.add(DeleteWebRequestBrick("https://api.calfire.com/v2/texts?limit=50&offset=200",
+                    "Content-Type:application/json"))
+                dataBrickList.add(HeadWebRequestBrick("https://api.calfire.com/v2/texts?limit=50&offset=200",
+                    "Content-Type:application/json"))
+                dataBrickList.add(OptionsWebRequestBrick("https://api.calfire.com/v2/texts?limit=50&offset=200",
+                    "Content-Type:application/json"))
                 dataBrickList.add(CreateVarBrick("variable1", "0"))
                 dataBrickList.add(DeleteVarBrick("variable1"))
                 dataBrickList.add(DeleteVarsBrick())
@@ -1478,6 +1668,17 @@ open class CategoryBricksFactory {
                 if (SettingsFragment.isNfcSharedPreferenceEnabled(context)) {
                     dataBrickList.add(SetNfcTagBrick(context.getString(R.string.brick_set_nfc_tag_default_value)))
                 }
+                dataBrickList.add(MapCreateBrick())
+                dataBrickList.add(MapSetBrick())
+                dataBrickList.add(MapGetBrick())
+                dataBrickList.add(MapDeleteBrick())
+                dataBrickList.add(SetAddBrick())
+                dataBrickList.add(SetRemoveBrick())
+                dataBrickList.add(SetContainsBrick())
+                dataBrickList.add(QueueEnqueueBrick())
+                dataBrickList.add(QueueDequeueBrick())
+                dataBrickList.add(StackPushBrick())
+                dataBrickList.add(StackPopBrick())
                 return dataBrickList
             }
         }
@@ -1561,6 +1762,17 @@ open class CategoryBricksFactory {
         if (SettingsFragment.isNfcSharedPreferenceEnabled(context)) {
             dataBrickList.add(SetNfcTagBrick(context.getString(R.string.brick_set_nfc_tag_default_value)))
         }
+        dataBrickList.add(MapCreateBrick())
+        dataBrickList.add(MapSetBrick())
+        dataBrickList.add(MapGetBrick())
+        dataBrickList.add(MapDeleteBrick())
+        dataBrickList.add(SetAddBrick())
+        dataBrickList.add(SetRemoveBrick())
+        dataBrickList.add(SetContainsBrick())
+        dataBrickList.add(QueueEnqueueBrick())
+        dataBrickList.add(QueueDequeueBrick())
+        dataBrickList.add(StackPushBrick())
+        dataBrickList.add(StackPopBrick())
 
         return dataBrickList
     }
@@ -1608,6 +1820,13 @@ print("Bot has stopped.")""", "myVar"))
                 deviceBrickList.add(MoveDownloadsBrick("variable.txt"))
                 deviceBrickList.add(CopyProjectFileBrick("variable.txt", "copy_variable.txt"))
                 //deviceBrickList.add(OpenFilesBrick("my_actor.png"))
+                deviceBrickList.add(PrepareNotificationBrick())
+                deviceBrickList.add(SendNotificationBrick(0))
+                deviceBrickList.add(RemoveNotificationBrick(0))
+                deviceBrickList.add(NotificationActionBrick())
+                deviceBrickList.add(ShowScheduledNotificationBrick(1, 0))
+                deviceBrickList.add(EnableBackgroundBrick())
+                deviceBrickList.add(StopBackgroundBrick())
                 deviceBrickList.add(OrientationBrick())
                 deviceBrickList.add(CreateWebUrlBrick("myWebView", "https://google.com", "0", "0", "500", "700"))
                 deviceBrickList.add(CreateWebFileBrick("myWebView", "<html><body style='background-color:lightyellow;'>" +
@@ -1718,6 +1937,15 @@ void main() {
                 if (SettingsFragment.isArduinoSharedPreferenceEnabled(context)) deviceBrickList.addAll(setupArduinoCategoryList())
                 if (SettingsFragment.isRaspiSharedPreferenceEnabled(context)) deviceBrickList.addAll(setupRaspiCategoryList())
                 if (SettingsFragment.isEmroiderySharedPreferenceEnabled(context)) deviceBrickList.addAll(setupEmbroideryCategoryList(context))
+                deviceBrickList.add(TimerStartBrick())
+                deviceBrickList.add(TimerStopBrick())
+                deviceBrickList.add(TimerResetBrick())
+                deviceBrickList.add(ScheduleBrick(Formula(0)))
+                deviceBrickList.add(VibratePatternBrick(""))
+                deviceBrickList.add(KeepScreenOnBrick())
+                deviceBrickList.add(KeepScreenOffBrick())
+                deviceBrickList.add(ScreenBrightnessBrick(Formula(1.0)))
+                deviceBrickList.add(RunOnUiThreadBrick())
                 return deviceBrickList
             }
         }
@@ -1825,6 +2053,8 @@ bot.polling()""", "myVar"))
         }
 
         deviceBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_device_misc), template))
+        deviceBrickList.add(EnableBackgroundBrick())
+        deviceBrickList.add(StopBackgroundBrick())
         deviceBrickList.add(ResetTimerBrick())
         deviceBrickList.add(TestBrick())
         deviceBrickList.add(ApplyShaderToImageBrick("image.png", """attribute vec4 a_position;
@@ -1867,6 +2097,15 @@ void main() {
         if (SettingsFragment.isArduinoSharedPreferenceEnabled(context)) deviceBrickList.addAll(setupArduinoCategoryList())
         if (SettingsFragment.isRaspiSharedPreferenceEnabled(context)) deviceBrickList.addAll(setupRaspiCategoryList())
         if (SettingsFragment.isEmroiderySharedPreferenceEnabled(context)) deviceBrickList.addAll(setupEmbroideryCategoryList(context))
+        deviceBrickList.add(TimerStartBrick())
+        deviceBrickList.add(TimerStopBrick())
+        deviceBrickList.add(TimerResetBrick())
+        deviceBrickList.add(ScheduleBrick(Formula(0)))
+        deviceBrickList.add(VibratePatternBrick(""))
+        deviceBrickList.add(KeepScreenOnBrick())
+        deviceBrickList.add(KeepScreenOffBrick())
+        deviceBrickList.add(ScreenBrightnessBrick(Formula(1.0)))
+        deviceBrickList.add(RunOnUiThreadBrick())
 
         return deviceBrickList
     }
@@ -2158,6 +2397,14 @@ void main() {
         fileBrickList.add(MoveFilesBrick("variable.txt"))
         fileBrickList.add(MoveDownloadsBrick("variable.txt"))
         fileBrickList.add(CopyProjectFileBrick("variable.txt", "copy_variable.txt"))
+        fileBrickList.add(CopyProjectFileToFolderBrick("variable.txt", "DownloadsFolder"))
+        fileBrickList.add(CopyProjectFileToPathBrick("variable.txt", "/storage/emulated/0/Download/MyFolder"))
+        fileBrickList.add(PutFileIntoFolderBrick("variable.txt", "DownloadsFolder"))
+        fileBrickList.add(PutFileIntoPathBrick("variable.txt", "/storage/emulated/0/Download/MyFolder"))
+        fileBrickList.add(CreateFolderBrick("NewFolder"))
+        fileBrickList.add(DeleteFolderBrick("NewFolder"))
+        fileBrickList.add(CreateFolderByPathBrick("/storage/emulated/0/Download", "NewFolder"))
+        fileBrickList.add(DeleteFolderByPathBrick("/storage/emulated/0/Download", "NewFolder"))
         fileBrickList.add(ChooseFileBrick())
         fileBrickList.add(ExportProjectFileBrick("file.txt"))
         fileBrickList.add(SaveToInternalStorageBrick("file.txt", "myAwesomeApp/file.txt"))
@@ -2512,6 +2759,13 @@ void main() {
         return threedBrickList
     }
 
+    private fun setupPreloadCategoryList(context: Context): List<Brick> {
+        val bricks: MutableList<Brick> = ArrayList()
+        bricks.add(PreloadSceneBrick())
+        bricks.add(ScenePreloadedBrick())
+        return bricks
+    }
+
     private fun setupInternetCategoryList(context: Context): List<Brick> {
         val internetBrickList: MutableList<Brick> = ArrayList()
         internetBrickList.add(StartServerBrick("1234"))
@@ -2529,6 +2783,46 @@ void main() {
             "{\nusername=password\n}"))
         //internetBrickList.add(SetDnsBrick("dns.comss.one"))
         return internetBrickList
+    }
+
+    private fun setupAdmobCategoryList(context: Context): List<Brick> {
+        val admobBrickList: MutableList<Brick> = ArrayList()
+        admobBrickList.add(AdmobEnableTestModeBrick())
+        admobBrickList.add(AdmobSetAppIdBrick())
+        admobBrickList.add(AdmobInitializeBrick())
+        admobBrickList.add(AdmobSetBannerUnitIdBrick())
+        admobBrickList.add(AdmobLoadBannerBrick())
+        admobBrickList.add(AdmobShowBannerBrick())
+        admobBrickList.add(AdmobHideBannerBrick())
+        admobBrickList.add(AdmobDestroyBannerBrick())
+        admobBrickList.add(AdmobSetInterstitialUnitIdBrick())
+        admobBrickList.add(AdmobLoadInterstitialBrick())
+        admobBrickList.add(AdmobShowInterstitialBrick())
+        admobBrickList.add(AdmobSetRewardedUnitIdBrick())
+        admobBrickList.add(AdmobLoadRewardedBrick())
+        admobBrickList.add(AdmobShowRewardedBrick())
+        admobBrickList.add(AdmobSetAppOpenUnitIdBrick())
+        admobBrickList.add(AdmobLoadAppOpenBrick())
+        admobBrickList.add(AdmobShowAppOpenBrick())
+        admobBrickList.add(AdmobInitializedEventBrick())
+        admobBrickList.add(AdmobInitFailedEventBrick())
+        admobBrickList.add(AdmobBannerLoadedEventBrick())
+        admobBrickList.add(AdmobBannerFailedEventBrick())
+        admobBrickList.add(AdmobBannerShownEventBrick())
+        admobBrickList.add(AdmobBannerHiddenEventBrick())
+        admobBrickList.add(AdmobInterstitialLoadedEventBrick())
+        admobBrickList.add(AdmobInterstitialFailedEventBrick())
+        admobBrickList.add(AdmobInterstitialShownEventBrick())
+        admobBrickList.add(AdmobInterstitialClosedEventBrick())
+        admobBrickList.add(AdmobRewardedLoadedEventBrick())
+        admobBrickList.add(AdmobRewardedFailedEventBrick())
+        admobBrickList.add(AdmobRewardedShownEventBrick())
+        admobBrickList.add(AdmobRewardedRewardEventBrick())
+        admobBrickList.add(AdmobRewardedClosedEventBrick())
+        admobBrickList.add(AdmobAppOpenLoadedEventBrick())
+        admobBrickList.add(AdmobAppOpenShownEventBrick())
+        admobBrickList.add(AdmobAppOpenClosedEventBrick())
+        return admobBrickList
     }
 
     private fun setupAssertionsCategoryList(context: Context): List<Brick> {
@@ -2573,6 +2867,7 @@ void main() {
             searchList(brick, setupChromecastCategoryList(context)) -> res.getString(R.string.category_cast)
             searchList(brick, setupEmbroideryCategoryList(context)) -> res.getString(R.string.category_embroidery)
             searchList(brick, setupAssertionsCategoryList(context)) -> res.getString(R.string.category_assertions)
+            searchList(brick, setupAdmobCategoryList(context)) -> res.getString(R.string.category_admob)
             else -> "No Match"
         }
 
@@ -2632,6 +2927,7 @@ void main() {
         all.addAll(setupThreedCategoryList(context))
         all.addAll(setupInternetCategoryList(context))
         all.addAll(setupAssertionsCategoryList(context))
+        all.addAll(setupAdmobCategoryList(context))
         all.addAll(setupLibrariesCategoryList())
 
         return all.distinctBy { it.javaClass.name }

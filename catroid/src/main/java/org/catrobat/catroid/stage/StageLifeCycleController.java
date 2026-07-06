@@ -113,7 +113,7 @@ public final class StageLifeCycleController {
 			CastManager.getInstance()
 					.addStageViewToLayout((GLSurfaceView20) stageActivity.initializeForView(stageActivity.stageListener, stageActivity.configuration));
 		} else {
-			stageActivity.initialize(stageActivity.stageListener, stageActivity.configuration);
+			stageActivity.initializeForView(stageActivity.stageListener, stageActivity.configuration);
 		}
 
 		//CATROID-105 - TODO: does this make any difference? probably necessary for cast:
@@ -146,7 +146,7 @@ public final class StageLifeCycleController {
 				} catch (IllegalStateException illegalStateException) {
 					Log.e(TAG, "Disabling NFC foreground dispatching went wrong!", illegalStateException);
 				} catch (Exception e) {
-                    e.printStackTrace();
+                    Log.e(TAG, "Error in stagePause", e);
                 }
 			}
 
@@ -158,7 +158,11 @@ public final class StageLifeCycleController {
 				}
 			}
 
-			get(SpeechRecognitionHolderFactory.class).getInstance().destroy();
+			try {
+				get(SpeechRecognitionHolderFactory.class).getInstance().destroy();
+			} catch (Exception e) {
+				Log.w(TAG, "SpeechRecognition destroy skipped: " + e.getMessage());
+			}
 
 			SensorHandler.timerPauseValue = SystemClock.uptimeMillis();
 

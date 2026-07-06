@@ -37,7 +37,9 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.Button
 import android.widget.EditText
+import android.widget.ProgressBar
 import android.widget.TextView
 import android.text.InputType
 import androidx.annotation.PluralsRes
@@ -410,7 +412,9 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
             if (isNotEmpty()) {
                 val filesToUnzipAndImport = toTypedArray()
                 val firstFile = filesToUnzipAndImport.firstOrNull()
-                if (firstFile != null && ProjectCrypto.isEncrypted(firstFile)) {
+                if (firstFile != null
+                    && (firstFile.name.endsWith(Constants.NPC_EXTENSION) || firstFile.name.endsWith(".ncp"))
+                    && ProjectCrypto.isEncrypted(firstFile)) {
                     showEncryptedImportDialog(firstFile, filesToUnzipAndImport)
                 } else {
                     doImport(filesToUnzipAndImport, null)
@@ -440,8 +444,95 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
     }
 
     private fun doImport(files: Array<File>, password: String?) {
-        ProjectUnZipperAndImporter({ result -> onImportProjectFinished(result) }, password = password)
-            .unZipAndImportAsync(files)
+        val context = requireContext()
+        val dialogView = layoutInflater.inflate(R.layout.dialog_import_progress, null)
+        val titleView = dialogView.findViewById<TextView>(R.id.dialog_import_title)
+        val nameView = dialogView.findViewById<TextView>(R.id.dialog_import_project_name)
+        val progressBar = dialogView.findViewById<ProgressBar>(R.id.dialog_import_progress_bar)
+        val percentView = dialogView.findViewById<TextView>(R.id.dialog_import_percent)
+        val detailsBtn = dialogView.findViewById<Button>(R.id.dialog_import_details_btn)
+        val detailText = dialogView.findViewById<TextView>(R.id.dialog_import_detail_text)
+
+        val projectFile = files.firstOrNull()
+        val projectFileName = projectFile?.name ?: ""
+
+        titleView.text = getString(R.string.import_progress_title)
+        nameView.text = projectFileName
+
+        var detailsExpanded = false
+        detailsBtn.setOnClickListener {
+            detailsExpanded = !detailsExpanded
+            detailText.visibility = if (detailsExpanded) View.VISIBLE else View.GONE
+            detailsBtn.setText(if (detailsExpanded) R.string.import_progress_hide_details else R.string.import_progress_details)
+        }
+
+        progressBar.progress = 0
+        percentView.text = "0%"
+
+        val dialog = AlertDialog.Builder(context)
+            .setView(dialogView)
+            .setCancelable(false)
+            .show()
+
+        val importer = ProjectUnZipperAndImporter(
+            onImportFinished = { result ->
+                dialog.dismiss()
+                onImportProjectFinished(result)
+            },
+            password = password,
+            onProgress = { percent, detail ->
+                requireActivity().runOnUiThread {
+                    progressBar.progress = percent
+                    percentView.text = "$percent%"
+                    val sb = StringBuilder()
+                    val lines = detail.split("\n")
+                    for (line in lines) {
+                        val trimmed = line.trim()
+                        if (trimmed.startsWith("scene|")) {
+                            val sceneName = trimmed.removePrefix("scene|")
+                            if (sb.isNotEmpty()) sb.append("\n")
+                            sb.append(getString(R.string.import_step_scene, sceneName))
+                        } else if (trimmed.startsWith("sprite|")) {
+                            val spriteName = trimmed.removePrefix("sprite|")
+                            sb.append("\n")
+                            sb.append(getString(R.string.import_step_sprite, spriteName))
+                        } else if (trimmed.startsWith("import_step_unzip|")) {
+                            val parts = trimmed.split("\\|".toRegex())
+                            if (parts.size >= 4) {
+                                val filesDone = parts[1]
+                                val totalFiles = parts[2]
+                                val currentFile = parts[3]
+                                sb.append(getString(R.string.import_step_unzip_progress, filesDone, totalFiles, currentFile))
+                            } else {
+                                if (sb.isNotEmpty()) sb.append("\n")
+                                sb.append(getString(R.string.import_step_unzip))
+                            }
+                        } else {
+                            val resId = when (trimmed) {
+                                "import_step_decrypt" -> R.string.import_step_decrypt
+                                "import_step_unzip" -> R.string.import_step_unzip
+                                "import_step_scanning" -> R.string.import_step_scanning
+                                "import_step_copy" -> R.string.import_step_copy
+                                "import_step_finish" -> R.string.import_step_finish
+                                else -> 0
+                            }
+                            if (resId != 0) {
+                                if (sb.isNotEmpty()) sb.append("\n")
+                                sb.append(getString(resId))
+                            } else if (trimmed.isNotBlank()) {
+                                if (sb.isNotEmpty()) sb.append("\n")
+                                sb.append(trimmed)
+                            }
+                        }
+                    }
+                    detailText.text = sb.toString()
+                    if (detailsExpanded) {
+                        detailText.visibility = View.VISIBLE
+                    }
+                }
+            }
+        )
+        importer.unZipAndImportAsync(files)
     }
 
     private fun prepareFilesForImport(urisToImport: ArrayList<Uri>) {
@@ -450,7 +541,8 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
             val fileName = StorageOperations.resolveFileName(contentResolver, uri)
 
             if (!fileName.endsWith(Constants.CATROBAT_EXTENSION) && !fileName.endsWith(Constants.NEW_CATROBAT_EXTENSION)
-                && !fileName.endsWith(Constants.OLD_CATROBAT_EXTENSION) && !fileName.endsWith(".ncp")) {
+                && !fileName.endsWith(Constants.OLD_CATROBAT_EXTENSION) && !fileName.endsWith(Constants.ZIP_EXTENSION)
+                && !fileName.endsWith(Constants.NPC_EXTENSION) && !fileName.endsWith(".ncp")) {
                 ToastUtil.showError(requireContext(), R.string.only_select_catrobat_files)
                 continue
             }
@@ -459,25 +551,7 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
                 contentResolver, uri, Constants.CACHE_DIRECTORY, fileName
             )
 
-            if (fileName.endsWith(Constants.CATROBAT_EXTENSION)) {
-
-                filesForUnzipAndImportTask?.add(projectFile)
-            } else if (fileName.endsWith(Constants.NEW_CATROBAT_EXTENSION)
-                       || fileName.endsWith(Constants.OLD_CATROBAT_EXTENSION)) {
-
-                /*val unzippedDir = StorageOperations.unzipFileToDir(projectFile, Constants.CACHE_DIRECTORY)
-                if (!isValidNewStructure(unzippedDir)) {
-                    ToastUtil.showError(requireContext(), R.string.error_import_project)
-                    continue
-                }*/
-                filesForUnzipAndImportTask?.add(projectFile)
-            } else {
-                try {
-                    filesForUnzipAndImportTask?.add(projectFile)
-                } catch (e: Exception) {
-                    ToastUtil.showError(requireContext(), R.string.only_select_catrobat_files)
-                }
-            }
+            filesForUnzipAndImportTask?.add(projectFile)
 
             hasUnzipAndImportTaskFinished = false
         }

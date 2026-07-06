@@ -5,6 +5,7 @@ import org.catrobat.catroid.content.Sprite;
 import org.catrobat.catroid.content.actions.ScriptSequenceAction;
 
 public class ReturnToPreviousProjectBrick extends BrickBaseType {
+    private static final long serialVersionUID = 1L;
     @Override public int getViewResource() { return R.layout.brick_return_to_previous_project; }
     @Override public void addActionToSequence(Sprite sprite, ScriptSequenceAction sequence) {
         sequence.addAction(sprite.getActionFactory().createReturnToPreviousProjectAction());

@@ -69,6 +69,7 @@ public final class Constants {
 	public static final String CATROBAT_EXTENSION = ".neotrobat";
 	public static final String NEW_CATROBAT_EXTENSION = ".catrobat";
 	public static final String OLD_CATROBAT_EXTENSION = ".newtrobat";
+	public static final String NPC_EXTENSION = ".npc";
 
 	public static final String APK_EXTENSION = ".apk";
 	public static final String ZIP_EXTENSION = ".zip";
@@ -130,6 +131,7 @@ public final class Constants {
 	public static final String TEXT_TO_SPEECH_TMP_PATH = TMP_PATH + "/textToSpeech";
 
 	// Web:
+	// TODO: Configure MAIN_URL_PRODUCTION to a proper API endpoint for production builds
 	private static final String MAIN_URL_PRODUCTION = "https://t.me/NeoCatroidDevs";
 	public static final String UPLOAD_URL = "https://upload.catrob.at";
 	private static final String WEB_TEST_URL = BuildConfig.WEB_TEST_URL;

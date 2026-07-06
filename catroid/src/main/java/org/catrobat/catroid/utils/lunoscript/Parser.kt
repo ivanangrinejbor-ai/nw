@@ -571,9 +571,7 @@ class Parser(private val tokens: List<Token>) {
 
     private var expressionDepth = 0
     private fun isExpressionContext(): Boolean {
-
-
-
+        // TODO: use expressionDepth > 0 instead of hardcoded true
         return true
     }
 

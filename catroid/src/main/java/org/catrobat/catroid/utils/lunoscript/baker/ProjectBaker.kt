@@ -192,7 +192,9 @@ class ProjectBaker(private val context: Context) {
 
                     body.append("$varName.script = $scriptCode;\n")
 
-                    body.append("$varName.formulaMap = $scriptCode.getFormulaMap();\n")
+                    if (value is WhenConditionScript) {
+                        body.append("$varName.formulaMap = $scriptCode.getFormulaMap();\n")
+                    }
 
                     body.append("$scriptCode.setScriptBrick($varName);\n")
                 }

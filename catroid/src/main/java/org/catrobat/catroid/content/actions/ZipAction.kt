@@ -1,64 +1,16 @@
-/*
- * Catroid: An on-device visual programming system for Android devices
- * Copyright (C) 2010-2022 The Catrobat Team
- * (<http://developer.catrobat.org/credits>)
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * An additional term exception under section 7 of the GNU Affero
- * General Public License, version 3, is available at
- * http://developer.catrobat.org/license_additional_term
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
 package org.catrobat.catroid.content.actions
 
-import android.app.Activity
-import android.content.pm.PackageManager
-import android.graphics.Bitmap
-import android.graphics.Canvas
 import android.os.Environment
 import android.util.Log
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
-import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction
-import com.badlogic.gdx.utils.ScreenUtils
-import kotlinx.coroutines.GlobalScope
 import org.catrobat.catroid.CatroidApplication
-import org.catrobat.catroid.ProjectManager
-import org.catrobat.catroid.common.LookData
-import org.catrobat.catroid.common.ScreenValues
-import org.catrobat.catroid.content.MyActivityManager
 import org.catrobat.catroid.content.Scope
 import org.catrobat.catroid.formulaeditor.Formula
-import org.catrobat.catroid.io.StorageOperations
-import org.catrobat.catroid.stage.ScreenshotSaver
-import org.catrobat.catroid.stage.ScreenshotSaverCallback
-import org.catrobat.catroid.stage.StageActivity
-import org.catrobat.paintroid.common.PERMISSION_EXTERNAL_STORAGE_SAVE
-import org.catrobat.paintroid.common.PERMISSION_EXTERNAL_STORAGE_SAVE_COPY
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
+import org.catrobat.catroid.formulaeditor.InterpretationException
 import java.io.File
-import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.IOException
-import java.io.InputStream
-import java.net.HttpURLConnection
-import java.net.URL
-import java.util.jar.Manifest
 import java.util.zip.ZipEntry
-import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
 
 open class ZipAction : TemporalAction() {
@@ -67,56 +19,40 @@ open class ZipAction : TemporalAction() {
     var files: Formula? = null
 
     override fun update(percent: Float) {
-        val activity = StageActivity.activeStageActivity.get()
-        activity?.runOnUiThread {
-            if (ContextCompat.checkSelfPermission(
-                    CatroidApplication.getAppContext(),
-                    android.Manifest.permission.WRITE_EXTERNAL_STORAGE
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
-                ActivityCompat.requestPermissions(
-                    activity,
-                    arrayOf(android.Manifest.permission.WRITE_EXTERNAL_STORAGE),
-                    PERMISSION_EXTERNAL_STORAGE_SAVE
-                )
-            }
-            if (ContextCompat.checkSelfPermission(
-                    CatroidApplication.getAppContext(),
-                    android.Manifest.permission.READ_EXTERNAL_STORAGE
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
-                ActivityCompat.requestPermissions(
-                    activity,
-                    arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE),
-                    PERMISSION_EXTERNAL_STORAGE_SAVE_COPY
-                )
-            }
+        val fileName: String
+        val filesListStr: String
+        try {
+            fileName = name?.interpretString(scope) ?: ""
+            filesListStr = files?.interpretString(scope) ?: ""
+        } catch (e: InterpretationException) {
+            Log.e("ZipAction", "Formula interpretation error", e)
+            return
         }
 
-        val fileName = getName(name) ?: "myZip.zip"
-        val paths = getFilePaths(files?.interpretString(scope) ?: "")
+        val zipName = sanitizeZipName(fileName)
+        if (zipName.isEmpty()) return
+
+        val paths = getFilePaths(filesListStr)
+        if (paths.isEmpty()) return
 
         val dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-        val file = File(dir, fileName)
-        val path = file.absolutePath
-
-        zipFiles(paths, path)
-    }
-
-
-    fun getName(inputName: Formula?): String? {
-        inputName?.let { inname ->
-            var name = inname.interpretString(scope)
-            val lastDotIndex = name.lastIndexOf('.')
-            if(lastDotIndex <= 0 && lastDotIndex >= name.length - 1) {
-                name += ".zip"
-            }
-            return name
+        if (!dir.exists()) {
+            dir.mkdirs()
         }
-        return null
+        val file = File(dir, zipName)
+        zipFiles(paths, file.absolutePath)
     }
 
-    fun getFilePaths(input: String): List<String> {
+    private fun sanitizeZipName(input: String): String {
+        var name = input
+        val lastDotIndex = name.lastIndexOf('.')
+        if (lastDotIndex < 0) {
+            name += ".zip"
+        }
+        return name
+    }
+
+    private fun getFilePaths(input: String): List<String> {
         val delimiter = ","
         val dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
 
@@ -127,14 +63,14 @@ open class ZipAction : TemporalAction() {
             }
     }
 
-    fun zipFiles(fileList: List<String>, zipFilePath: String) {
+    private fun zipFiles(fileList: List<String>, zipFilePath: String) {
         try {
             ZipOutputStream(FileOutputStream(zipFilePath)).use { zos ->
                 for (filePath in fileList) {
                     val file = File(filePath)
+                    if (!file.exists() || file.isDirectory) continue
                     val zipEntry = ZipEntry(file.name)
                     zos.putNextEntry(zipEntry)
-
                     file.inputStream().use { input ->
                         input.copyTo(zos)
                     }
@@ -142,7 +78,7 @@ open class ZipAction : TemporalAction() {
                 }
             }
         } catch (e: IOException) {
-            e.printStackTrace()
+            Log.e("ZipAction", "Error creating zip file", e)
         }
     }
 }

@@ -1,18 +1,13 @@
 package org.catrobat.catroid.utils.lunoscript
 
-import android.content.ContentUris
 import android.content.ContentValues
 import android.content.Context
-import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
-import android.util.Log
 import android.widget.Toast
-import androidx.annotation.RequiresApi
 import org.catrobat.catroid.CatroidApplication
 import org.catrobat.catroid.content.Scope
 import org.catrobat.catroid.stage.StageActivity
-import java.io.OutputStream
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -29,7 +24,6 @@ class LunoScriptEngine(
         interpreter.globals.define(name, LunoValue.NativeCallable(CallableNativeLunoFunction(name, arity, func)))
     }
 
-    @RequiresApi(Build.VERSION_CODES.Q)
     fun execute(script: String) {
         try {
             val lexer = Lexer(script)
@@ -48,30 +42,27 @@ class LunoScriptEngine(
             System.err.println("LunoScript Error (Engine): ${e.message} (Line: ${(e as? LunoRuntimeError)?.line ?: -1})")
             e.cause?.printStackTrace(System.err)
             handleLunoError(e, "LunoEngineError: ${e.javaClass.simpleName} - ${e.localizedMessage}")
+        } catch (e: Throwable) {
+            System.err.println("LunoScript Fatal Error (Engine): ${e.message}")
+            handleLunoError(e, "LunoFatalError: ${e.javaClass.simpleName} - ${e.localizedMessage}")
         }
     }
 
     private fun toast(msg: String) {
         try {
-            val params = ArrayList<Any>(listOf(msg))
-            StageActivity.messageHandler.obtainMessage(StageActivity.SHOW_TOAST, params)
-                .sendToTarget()
-        } catch (e: Exception) {
+            val handler = StageActivity.messageHandler
+            if (handler != null) {
+                val params = ArrayList<Any>(listOf(msg))
+                handler.obtainMessage(StageActivity.SHOW_TOAST, params).sendToTarget()
+                return
+            }
+        } catch (ignored: Exception) { }
+        try {
             Toast.makeText(androidContext, msg, Toast.LENGTH_SHORT).show()
-        }
+        } catch (ignored: Exception) { }
     }
 
-    @RequiresApi(Build.VERSION_CODES.Q)
     private fun handleLunoError(throwable: Throwable, toastMessagePrefix: String) {
-        android.util.Log.d("LunoEngine", "handleLunoError CALLED for: $toastMessagePrefix, Exception: ${throwable.javaClass.simpleName}")
-        val appContext = CatroidApplication.getAppContext() // Получаем контекст здесь
-
-        if (appContext == null) { // Добавим проверку на null на всякий случай
-            Log.d("LunoScriptEngine", "LunoScript Error: CatroidApplication.getAppContext() returned null. Cannot save log or show toast.")
-            return
-        }
-
-        // Формируем сообщение для лога и Toast
         val timestamp = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())
         var logMessage = "$timestamp - $toastMessagePrefix\n"
         logMessage += "Details: ${throwable.message}\n"
@@ -88,68 +79,61 @@ class LunoScriptEngine(
         }
         logMessage += "-------------------------------------------------\n"
 
-        // 1. Сохранение в файл
-        val logFileName = "LunoLog.txt"
-        try {
-            val resolver = appContext.contentResolver
-            var outputStream: OutputStream? = null
-            var uri: Uri? = null
+        System.err.println(logMessage)
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                val collection = MediaStore.Downloads.EXTERNAL_CONTENT_URI
-                val projection = arrayOf(MediaStore.Downloads._ID)
-                val selection = "${MediaStore.Downloads.DISPLAY_NAME} = ? AND ${MediaStore.Downloads.RELATIVE_PATH} = ?"
-                val selectionArgs = arrayOf(logFileName, android.os.Environment.DIRECTORY_DOWNLOADS + "/")
-
-                resolver.query(collection, projection, selection, selectionArgs, null)?.use { cursor ->
-                    if (cursor.moveToFirst()) {
-                        val id = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Downloads._ID))
-                        uri = ContentUris.withAppendedId(collection, id)
-                    }
-                }
-            }
-
-            if (uri == null) {
-                val contentValues = ContentValues().apply {
-                    put(MediaStore.MediaColumns.DISPLAY_NAME, logFileName)
-                    put(MediaStore.MediaColumns.MIME_TYPE, "text/plain")
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                        put(MediaStore.MediaColumns.RELATIVE_PATH, android.os.Environment.DIRECTORY_DOWNLOADS)
-                    }
-                }
-                uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
-            }
-
-            if (uri == null) {
-                throw Exception("Failed to find or create MediaStore record.")
-            }
-
-            outputStream = resolver.openOutputStream(uri!!)
-
-            if (outputStream == null) {
-                throw Exception("Failed to open output stream for URI: $uri")
-            }
-
-            outputStream.use { stream ->
-                stream.write(logMessage.toByteArray())
-            }
-
-            val finalToastMsg = "$toastMessagePrefix. Log saved to Downloads/$logFileName"
-            android.os.Handler(android.os.Looper.getMainLooper()).post {
-                toast(finalToastMsg)
-            }
-
-        } catch (e: Exception) {
-            System.err.println("LunoScript Error: Failed to write to log file: ${e.message}")
-            e.printStackTrace(System.err)
-            val finalToastMsg = "$toastMessagePrefix (Failed to save log)"
-            android.os.Handler(android.os.Looper.getMainLooper()).post {
-                toast(finalToastMsg)
-            }
+        val ctx = CatroidApplication.getAppContext() ?: androidContext
+        if (ctx != null) {
+            writeLogFileStatic(logMessage, "lunoscriprcrash.log", ctx)
         }
+
+        val finalToastMsg = "$toastMessagePrefix (see logcat or cache for details)"
+        try {
+            android.os.Handler(android.os.Looper.getMainLooper()).post {
+                toast(finalToastMsg)
+            }
+        } catch (ignored: Exception) { }
     }
 
     fun getInterpreter(): Interpreter {
         return interpreter
     }
+
+    companion object {
+        @JvmStatic
+        fun saveCrashLog(message: String, throwable: Throwable) {
+            val timestamp = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())
+            var logMessage = "$timestamp - $message\n"
+            logMessage += "Details: ${throwable.message}\n"
+            logMessage += "Stack Trace:\n${throwable.stackTraceToString()}\n"
+            throwable.cause?.let {
+                logMessage += "\nCaused by: ${it.javaClass.simpleName} - ${it.localizedMessage}\n${it.stackTraceToString()}\n"
+            }
+            logMessage += "-------------------------------------------------\n"
+
+            System.err.println(logMessage)
+            writeLogFileStatic(logMessage, "lunoscriprcrash.log")
+        }
+    }
+}
+
+private fun writeLogFileStatic(logMessage: String, logFileName: String, ctx: Context? = null) {
+    val resolvedCtx = ctx ?: CatroidApplication.getAppContext() ?: return
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        try {
+            val resolver = resolvedCtx.contentResolver
+            val contentValues = ContentValues().apply {
+                put(MediaStore.MediaColumns.DISPLAY_NAME, logFileName)
+                put(MediaStore.MediaColumns.MIME_TYPE, "text/plain")
+                put(MediaStore.MediaColumns.RELATIVE_PATH, android.os.Environment.DIRECTORY_DOWNLOADS)
+            }
+            var uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
+            if (uri != null) {
+                resolver.openOutputStream(uri)?.use { it.write(logMessage.toByteArray()) }
+            }
+        } catch (_: Exception) { }
+    }
+    try {
+        val crashFile = java.io.File(resolvedCtx.cacheDir, logFileName)
+        crashFile.writeText(logMessage)
+    } catch (_: Exception) { }
 }

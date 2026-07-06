@@ -91,10 +91,7 @@ public class PanoramicConverter implements Disposable {
 
         Cubemap result = fbo.getColorBufferTexture();
 
-        // Убрано, так как getColorBufferTexture() уже возвращает Cubemap, а не FrameBuffer.
-        // fbo.dispose() будет вызван в любом случае, но результат уже в переменной result.
-
-        // fbo.dispose(); // LibGDX сам удалит FBO, когда удалится Cubemap, который он создал
+        fbo.dispose();
         Gdx.app.log("PanoramicConverter", "Conversion finished.");
         return result;
     }

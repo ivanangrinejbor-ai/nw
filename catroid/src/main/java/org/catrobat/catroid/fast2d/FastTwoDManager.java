@@ -207,6 +207,12 @@ public class FastTwoDManager implements Disposable {
     public void setTexture(final String id, final String absolutePath) {
         Gdx.app.postRunnable(() -> {
             int e = getOrCreateEntity(id);
+            if (mTexture.has(e)) {
+                TextureComponent old = mTexture.get(e);
+                if (old.region != null && old.region.getTexture() != null) {
+                    old.region.getTexture().dispose();
+                }
+            }
             Texture texture = getOrLoadTexture(absolutePath);
             if (texture == null) return;
 
@@ -227,7 +233,13 @@ public class FastTwoDManager implements Disposable {
 
     public void setColor(final String id, final float r, final float g, final float b, final float a) {
         Gdx.app.postRunnable(() -> {
-            TextureComponent tex = mTexture.create(getOrCreateEntity(id));
+            int e = getOrCreateEntity(id);
+            TextureComponent tex;
+            if (mTexture.has(e)) {
+                tex = mTexture.get(e);
+            } else {
+                tex = mTexture.create(e);
+            }
             tex.color.set(r / 255f, g / 255f, b / 255f, a / 100f);
         });
     }

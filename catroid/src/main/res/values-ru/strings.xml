@@ -118,6 +118,7 @@
     <string formatted="false" name="brick_promote_light">Превратить свет в объект</string>
 
     <string formatted="false" name="brick_attach_to_camera">Привязать объект к камере</string>
+    <string formatted="false" name="brick_attach_camera_offset">Привязать к камере со смещением</string>
     <string formatted="false" name="brick_detach_from_camera">Отвязать объект от камеры</string>
     <string formatted="false" name="brick_set_max_point_lights">Максимум точечных светов</string>
     <string formatted="false" name="brick_3d_object_name">ID объекта</string>
@@ -529,6 +530,7 @@
     <string name="subcategory_event_conditions">Условия и изменения</string>
     <string name="subcategory_event_cloning">Клонирование</string>
     <string name="subcategory_event_system">Системные</string>
+    <string name="subcategory_event_notifications">Уведомления</string>
 
     <string name="subcategory_control_waiting">Ожидание и задержки</string>
     <string name="subcategory_control_loops">Циклы</string>
@@ -590,6 +592,12 @@
     <string name="formula_voxel_get_data_param" formatted="false">(\'worldId\', x, y, z)</string>
     <string name="formula_file_exists" formatted="false">Файл_существует</string>
     <string name="formula_file_exists_param" formatted="false">(\'путь\')</string>
+    <string name="formula_file_project_exists" formatted="false">ФайлПроекта_существует</string>
+    <string name="formula_file_project_exists_param" formatted="false">(\'имяФайла\')</string>
+    <string name="formula_file_exists_in_dir" formatted="false">Файл_существует_в</string>
+    <string name="formula_file_exists_in_dir_param" formatted="false">(\'имяФайла\', \'папка\')</string>
+    <string name="formula_file_exists_at_path" formatted="false">Файл_существует_по</string>
+    <string name="formula_file_exists_at_path_param" formatted="false">(\'имяФайла\', \'путь\')</string>
     <string name="formula_device_name" formatted="false">Имя_устройства</string>
     <string name="formula_device_manufacturer" formatted="false">Производитель</string>
     <string name="formula_android_version" formatted="false">Версия_Android</string>
@@ -618,6 +626,16 @@
     <string name="formula_screen_dpi" formatted="false">Экран_DPI</string>
     <string name="formula_screen_refresh" formatted="false">Экран_Гц</string>
     <string name="formula_screen_orientation" formatted="false">Экран_ориент</string>
+    <string formatted="false" name="formula_used_ram">Использовано RAM</string>
+    <string formatted="false" name="formula_used_storage">Использовано памяти</string>
+    <string formatted="false" name="formula_volume_level">Уровень громкости</string>
+    <string formatted="false" name="formula_screen_brightness">Яркость экрана</string>
+    <string formatted="false" name="formula_is_in_foreground">Приложение в фореграунде</string>
+    <string formatted="false" name="formula_cpu_frequency_min">Мин. частота CPU</string>
+    <string formatted="false" name="formula_cpu_usage">Использование CPU</string>
+    <string formatted="false" name="formula_gpu_name">Название GPU</string>
+    <string formatted="false" name="formula_opengl_version">Версия OpenGL</string>
+    <string formatted="false" name="formula_vulkan_supported">Vulkan поддерживается</string>
     <string name="formula_sprite_exists" formatted="false">Спрайт_существует</string>
     <string name="formula_sprite_exists_param" formatted="false">(\'имя\')</string>
     <string name="formula_sprite_x" formatted="false">Спрайт_X</string>
@@ -1050,6 +1068,46 @@
     <string formatted="false" name="brick_open_files">Открыть файл из проекта</string>
     <string formatted="false" name="brick_move_files">Копировать файл (проект -> Загрузки)</string>
     <string formatted="false" name="brick_move_downloads">Копировать файл (Загрузки -> проект)</string>
+    <string formatted="false" name="brick_create_folder">Создать папку</string>
+    <string formatted="false" name="brick_delete_folder">Удалить папку</string>
+    <string formatted="false" name="brick_create_folder_by_path">Создать папку по пути</string>
+    <string formatted="false" name="brick_delete_folder_by_path">Удалить папку по пути</string>
+    <string formatted="false" name="brick_copy_project_file_to_folder">Скопировать файл проекта в папку</string>
+    <string formatted="false" name="brick_copy_project_file_to_folder_source">Исходный файл</string>
+    <string formatted="false" name="brick_copy_project_file_to_folder_destination">Имя папки</string>
+    <string formatted="false" name="brick_copy_project_file_to_path">Скопировать файл проекта по пути</string>
+    <string formatted="false" name="brick_copy_project_file_to_path_source">Исходный файл</string>
+    <string formatted="false" name="brick_copy_project_file_to_path_destination">Путь</string>
+    <string formatted="false" name="brick_prepare_notification">Подготовить уведомление</string>
+    <string formatted="false" name="brick_send_notification">Отправить уведомление</string>
+    <string formatted="false" name="brick_remove_notification">Удалить уведомление</string>
+    <string formatted="false" name="brick_prepare_notification_id">ID</string>
+    <string formatted="false" name="brick_prepare_notification_channel">Канал</string>
+    <string formatted="false" name="brick_prepare_notification_title">Заголовок</string>
+    <string formatted="false" name="brick_prepare_notification_text">Текст</string>
+    <string formatted="false" name="brick_prepare_notification_icon">Иконка</string>
+    <string formatted="false" name="brick_prepare_notification_importance">Важность</string>
+    <string formatted="false" name="brick_prepare_notification_pinned">Закрепить</string>
+    <string formatted="false" name="notification_importance_min">Минимальная</string>
+    <string formatted="false" name="notification_importance_low">Низкая</string>
+    <string formatted="false" name="notification_importance_default">Обычная</string>
+    <string formatted="false" name="notification_importance_high">Высокая</string>
+    <string formatted="false" name="notification_importance_max">Максимальная</string>
+    <string formatted="false" name="brick_notification_action">Кнопка уведомления</string>
+    <string formatted="false" name="brick_notification_action_id">ID действия</string>
+    <string formatted="false" name="brick_notification_action_text">Текст кнопки</string>
+    <string formatted="false" name="brick_notification_action_icon">Иконка</string>
+    <string formatted="false" name="brick_notification_action_hint">Подсказка ответа</string>
+    <string formatted="false" name="notification_action_behavior_launch_app">Открыть приложение</string>
+    <string formatted="false" name="notification_action_behavior_run_in_background">Фон</string>
+    <string formatted="false" name="notification_action_behavior_silent_background">Тихий фон</string>
+    <string formatted="false" name="notification_action_behavior_add_input_field">С вводом текста</string>
+    <string formatted="false" name="brick_show_scheduled_notification">Показать уведомление (отложенно)</string>
+    <string formatted="false" name="brick_show_scheduled_notification_duration">Задержка (сек)</string>
+    <string formatted="false" name="brick_when_notification_action_clicked">Когда нажата кнопка уведомления</string>
+    <string formatted="false" name="brick_when_notification_reply">Когда ответ на уведомление</string>
+    <string formatted="false" name="brick_when_notification_shown">Когда уведомление показано</string>
+    <string formatted="false" name="brick_when_notification_dismissed">Когда уведомление закрыто</string>
     <string formatted="false" name="brick_save_look_files">Образ в файл (проект)</string>
     <string formatted="false" name="brick_set_look_files">Образ из файла (проект)</string>
     <string formatted="false" name="brick_files_url">Сохранить файл (в проект)</string>
@@ -1600,6 +1658,8 @@
     <string name="brick_run_shell" formatted="false">Выполнить команду</string>
     <string name="brick_when_back_pressed" formatted="false">При нажатии на "назад"</string>
     <string name="brick_when_project_exits" formatted="false">При выходе из проекта</string>
+    <string name="brick_when_app_minimized" formatted="false">Когда приложение свернули</string>
+    <string name="brick_when_app_restored" formatted="false">Когда приложение развернули</string>
     <string name="brick_set_sound_volume_text" formatted="false">Громкость для звука</string>
     <string name="brick_set_sound_volume_volume" formatted="false">Громкость (%)</string>
     <string name="brick_copy_file_text" formatted="false">Копировать файл проекта</string>
@@ -1997,12 +2057,45 @@
     <string formatted="false" name="post_web_request_header">с заголовком (header)</string>
     <string formatted="false" name="post_web_request_body">и содержанием (body)</string>
     <string formatted="false" name="post_web_request_var">и сохранить ответ в</string>
+
+    <!-- PUT -->
+    <string formatted="false" name="put_web_request">PUT запрос к</string>
+    <string formatted="false" name="put_web_request_header">с заголовком</string>
+    <string formatted="false" name="put_web_request_body">и данными</string>
+    <string formatted="false" name="put_web_request_timeout">таймаут (с)</string>
+    <string formatted="false" name="put_web_request_var">и сохранить ответ в</string>
+
+    <!-- PATCH -->
+    <string formatted="false" name="patch_web_request">PATCH запрос к</string>
+    <string formatted="false" name="patch_web_request_header">с заголовком</string>
+    <string formatted="false" name="patch_web_request_body">и данными</string>
+    <string formatted="false" name="patch_web_request_timeout">таймаут (с)</string>
+    <string formatted="false" name="patch_web_request_var">и сохранить ответ в</string>
+
+    <!-- DELETE -->
+    <string formatted="false" name="delete_web_request">DELETE запрос к</string>
+    <string formatted="false" name="delete_web_request_header">с заголовком</string>
+    <string formatted="false" name="delete_web_request_timeout">таймаут (с)</string>
+    <string formatted="false" name="delete_web_request_var">и сохранить ответ в</string>
+
+    <!-- HEAD -->
+    <string formatted="false" name="head_web_request">HEAD запрос к</string>
+    <string formatted="false" name="head_web_request_header">с заголовком</string>
+    <string formatted="false" name="head_web_request_timeout">таймаут (с)</string>
+    <string formatted="false" name="head_web_request_var">и сохранить заголовки в</string>
+
+    <!-- OPTIONS -->
+    <string formatted="false" name="options_web_request">OPTIONS запрос к</string>
+    <string formatted="false" name="options_web_request_header">с заголовком</string>
+    <string formatted="false" name="options_web_request_timeout">таймаут (с)</string>
+    <string formatted="false" name="options_web_request_var">и сохранить методы в</string>
     <string formatted="false" name="brick_show_toast2"></string>
     <string formatted="false" name="brick_show_toast">Показать тост</string>
     <string formatted="false" name="category_plot">Чертежи</string>
     <string formatted="false" name="category_neural">Нейросети</string>
     <string formatted="false" name="category_threed">3D</string>
     <string formatted="false" name="category_internet">Сеть</string>
+    <string formatted="false" name="category_preload">Предзагрузка</string>
     <string formatted="false" name="preference_description_pocketensor_bricks">Добавляет работу с тензорами и позволяет создавать ИИ модели.</string>
     <string formatted="false" name="pocketensor">PockeTensor</string>
     <string formatted="false" name="pathfinder">Поиск пути</string>
@@ -2027,6 +2120,12 @@
     <string formatted="false" name="formula_editor_function_file">файл_проекта</string>
     <string formatted="false" name="formula_editor_function_all_files">путь_к_файлам_проекта</string>
     <string formatted="false" name="formula_editor_function_file_size">размер_файла_проекта</string>
+    <string formatted="false" name="formula_file_project_size">размер_файла_проекта</string>
+    <string formatted="false" name="formula_file_project_size_param">(\'имяФайла\')</string>
+    <string formatted="false" name="formula_file_size_in_dir">размер_файла_в</string>
+    <string formatted="false" name="formula_file_size_in_dir_param">(\'имяФайла\', \'папка\')</string>
+    <string formatted="false" name="formula_file_size_at_path">размер_файла_по</string>
+    <string formatted="false" name="formula_file_size_at_path_param">(\'имяФайла\', \'путь\')</string>
     <string formatted="false" name="formula_editor_function_files_path">все_файлы_проекта</string>
     <string formatted="false" name="formula_editor_function_file_parameter">(\'variable.txt\')</string>
     <string formatted="false" name="formula_editor_function_lua">lua</string>
@@ -2686,9 +2785,20 @@
     <string formatted="false" name="import_encrypted_action">Импорт</string>
     <string formatted="false" name="error_import_project">Что-то пошло не так при импорте проектов.</string>
     <string formatted="false" name="no_projects_selected">Проекты для импорта не выбраны</string>
-    <string formatted="false" name="only_select_catrobat_files">Выберите файл .newtrobat или .catrobat</string>
+    <string formatted="false" name="only_select_catrobat_files">Выберите файл .catrobat, .newtrobat, .neotrobat, .npc или .zip</string>
     <string formatted="false" name="error_no_files_found">Файлы проекта не найдены.</string>
     <string formatted="false" name="import_sprite_from_project_launcher">Импорт объекта из локального проекта</string>
+    <string formatted="false" name="import_progress_title">Импорт проекта</string>
+    <string formatted="false" name="import_progress_details">Подробнее</string>
+    <string formatted="false" name="import_progress_hide_details">Скрыть</string>
+    <string formatted="false" name="import_step_decrypt">Расшифровка…</string>
+    <string formatted="false" name="import_step_unzip">Распаковка архива…</string>
+    <string formatted="false" name="import_step_unzip_progress">Распаковка: файл %1$d/%2$d — %3$s</string>
+    <string formatted="false" name="import_step_scanning">Сканирование проекта…</string>
+    <string formatted="false" name="import_step_scene">Сцена: %1$s</string>
+    <string formatted="false" name="import_step_sprite">  — Объект: %1$s</string>
+    <string formatted="false" name="import_step_copy">Копирование файлов…</string>
+    <string formatted="false" name="import_step_finish">Завершение…</string>
     <!-- ProjectOptionsFragment -->
     <string formatted="false" name="project_options_description">Описание</string>
     <string formatted="false" name="project_options_notes_and_credits">Примечания и авторы</string>
@@ -3189,6 +3299,9 @@
     <string formatted="false" name="brick_broadcast_wait">Вещать всем и ждать</string>
     <string formatted="false" name="brick_scene_transition">Продолжить сцену</string>
     <string formatted="false" name="brick_scene_start">Запустить сцену</string>
+    <string formatted="false" name="brick_preload_scene">Предзагрузить сцену</string>
+    <string formatted="false" name="brick_scene_preloaded">Сцена предзагружена?</string>
+    <string formatted="false" name="brick_scene_preloaded_save_to">сохранить в</string>
     <string formatted="false" name="brick_note"></string>
     <string formatted="false" name="project_options_custom_resolution">Пользовательское разрешение</string>
     <string formatted="false" name="brick_think_bubble">Думать</string>
@@ -3206,6 +3319,8 @@
     <string formatted="false" name="brick_clone_this">себя</string>
     <string formatted="false" name="brick_when_cloned">Когда начинает как клон</string>
     <string formatted="false" name="brick_delete_this_clone">Удалить этот клон</string>
+    <string formatted="false" name="brick_delete_clone_by_number">Удалить клон</string>
+    <string formatted="false" name="brick_execute_for_clone_number">Выполнить для номера клона</string>
     <string formatted="false" name="brick_assert_that">Утвердить</string>
     <string formatted="false" name="brick_is_equal_to">равно ожидаемому</string>
     <string formatted="false" name="brick_wait_till_idle">Ждать остановки всех других скриптов</string>
@@ -3246,6 +3361,7 @@
         <item quantity="other">разa</item>
     </plurals>
     <string formatted="false" name="brick_loop_end">Конец (цикла)</string>
+
     <string formatted="false" name="brick_if_begin">Если</string>
     <string formatted="false" name="brick_if_begin_second_part">истина, то</string>
     <string formatted="false" name="brick_if_else">Инaче</string>
@@ -3268,6 +3384,7 @@
     <string formatted="false" name="brick_write_list_on_device">Сохранить список на
         устройство</string>
     <string formatted="false" name="brick_read_list_from_device">Прочитать список с устройства</string>
+    <string formatted="false" name="unknown_brick_text">Этого блока нет в движке: %s</string>
     <string formatted="false" name="brick_note_default_value">добавьте заметку&#8230;</string>
     <string formatted="false" name="brick_think_bubble_default_value">Хмммм!</string>
     <string formatted="false" name="brick_say_bubble_default_value">Привет!</string>
@@ -4333,4 +4450,131 @@
     <string formatted="false" name="sans_serif_font" translatable="false">sans_serif</string>
     <string formatted="false" name="serif_font" translatable="false">serif</string>
     <string name="title_activity_editor">Редактор сцен</string>
+    <string formatted="false" name="brick_point_touch_direction">Направить на касание</string>
+    <string formatted="false" name="brick_put_file_into_folder">Положить файл в папку</string>
+    <string formatted="false" name="brick_put_file_into_path">Положить файл по пути</string>
+    <string formatted="false" name="brick_count_loop">повторить %s раз сохранить</string>
+    <string formatted="false" name="brick_count_loop_variable">итерацию в переменную</string>
+    <string formatted="false" name="brick_delay_microseconds">задержка</string>
+    <string formatted="false" name="brick_microseconds_label">микросекунд</string>
+    <string formatted="false" name="brick_timer_start">запустить таймер</string>
+    <string formatted="false" name="brick_timer_stop">остановить таймер</string>
+    <string formatted="false" name="brick_timer_reset">сбросить таймер</string>
+    <string formatted="false" name="brick_schedule">запланировать через</string>
+    <string formatted="false" name="brick_schedule_label">секунд запустить:</string>
+    <string formatted="false" name="brick_vibrate_pattern">вибрация паттерн</string>
+    <string formatted="false" name="brick_keep_screen_on">не выключать экран</string>
+    <string formatted="false" name="brick_keep_screen_off">разрешить выключение экрана</string>
+    <string formatted="false" name="brick_screen_brightness">яркость экрана</string>
+    <string formatted="false" name="brick_run_on_ui_thread">выполнить на UI потоке</string>
+    <string formatted="false" name="brick_play_tone">воспроизвести тон</string>
+    <string formatted="false" name="brick_play_tone_frequency">частота Гц</string>
+    <string formatted="false" name="brick_play_tone_duration">длительность с</string>
+    <string formatted="false" name="brick_set_pan">панорама звука</string>
+    <string formatted="false" name="brick_set_pitch">высота тона</string>
+    <string formatted="false" name="brick_audio_fade_in">плавное увеличение громкости</string>
+    <string formatted="false" name="brick_audio_fade_out">плавное уменьшение громкости</string>
+    <string formatted="false" name="brick_equalizer_set_band">эквалайзер полоса</string>
+    <string formatted="false" name="brick_equalizer_band">полоса</string>
+    <string formatted="false" name="brick_equalizer_gain">усиление</string>
+    <string formatted="false" name="brick_sound_stop_all">остановить все звуки</string>
+    <string formatted="false" name="brick_set_border_color">цвет границы</string>
+    <string formatted="false" name="brick_set_border_width">толщина границы</string>
+    <string formatted="false" name="brick_set_corner_radius">радиус скругления</string>
+    <string formatted="false" name="brick_set_filter_blur">эффект размытия</string>
+    <string formatted="false" name="brick_set_filter_sepia">эффект сепии</string>
+    <string formatted="false" name="brick_set_filter_pixelate">эффект пикселизации</string>
+    <string formatted="false" name="brick_fill_rect">заполнить прямоугольник</string>
+    <string formatted="false" name="brick_fill_circle">заполнить круг</string>
+    <string formatted="false" name="brick_fill_polygon">заполнить многоугольник</string>
+    <string formatted="false" name="brick_draw_rect">нарисовать прямоугольник</string>
+    <string formatted="false" name="brick_draw_circle">нарисовать круг</string>
+    <string formatted="false" name="brick_draw_line">нарисовать линию</string>
+    <string formatted="false" name="brick_set_canvas">выбрать холст</string>
+    <string formatted="false" name="brick_clear_canvas">очистить холст</string>
+    <string formatted="false" name="brick_set_font">шрифт</string>
+    <string formatted="false" name="brick_draw_text">нарисовать текст</string>
+    <string formatted="false" name="brick_map_create">создать таблицу</string>
+    <string formatted="false" name="brick_map_set">таблица записать</string>
+    <string formatted="false" name="brick_map_get">таблица прочитать</string>
+    <string formatted="false" name="brick_map_delete">таблица удалить</string>
+    <string formatted="false" name="brick_set_add">множество добавить</string>
+    <string formatted="false" name="brick_set_remove">множество удалить</string>
+    <string formatted="false" name="brick_set_contains">множество содержит</string>
+    <string formatted="false" name="brick_queue_enqueue">очередь добавить</string>
+    <string formatted="false" name="brick_queue_dequeue">очередь извлечь</string>
+    <string formatted="false" name="brick_stack_push">стек положить</string>
+    <string formatted="false" name="brick_stack_pop">стек извлечь</string>
+    <string formatted="false" name="brick_switch_begin">переключатель</string>
+    <string formatted="false" name="brick_switch_case">случай</string>
+    <string formatted="false" name="brick_switch_end">конец переключателя</string>
+    <string formatted="false" name="brick_label_text">текст</string>
+    <string formatted="false" name="brick_label_radius">радиус</string>
+    <string formatted="false" name="brick_label_width">ширина</string>
+    <string formatted="false" name="brick_label_height">высота</string>
+    <string formatted="false" name="brick_label_font_name">имя шрифта</string>
+    <string formatted="false" name="brick_label_font_size">размер шрифта</string>
+    <string formatted="false" name="brick_map_delete_at">по ключу</string>
+    <string formatted="false" name="brick_map_get_at">по ключу</string>
+    <string formatted="false" name="brick_map_get_into">в переменную</string>
+    <string formatted="false" name="brick_map_set_at">по ключу</string>
+    <string formatted="false" name="brick_map_set_to">значение</string>
+    <string formatted="false" name="brick_queue_dequeue_into">в переменную</string>
+    <string formatted="false" name="brick_queue_enqueue_value">значение</string>
+    <string formatted="false" name="brick_schedule_script">скрипт</string>
+    <string formatted="false" name="brick_set_add_value">значение</string>
+    <string formatted="false" name="brick_set_contains_value">значение</string>
+    <string formatted="false" name="brick_set_contains_into">в переменную</string>
+    <string formatted="false" name="brick_set_remove_value">значение</string>
+    <string formatted="false" name="brick_stack_pop_into">в переменную</string>
+    <string formatted="false" name="brick_stack_push_value">значение</string>
+    <string formatted="false" name="brick_enable_background">Включить фоновую работу</string>
+    <string formatted="false" name="brick_stop_background">Выключить фоновую работу</string>
+
+    <!-- AdMob -->
+    <string name="category_admob">Реклама</string>
+    <string name="brick_admob_enable_test_mode">Вкл. тестовый режим</string>
+    <string name="brick_admob_set_app_id">Указать App ID</string>
+    <string name="brick_admob_initialize">Инициализ. AdMob</string>
+    <string name="brick_admob_set_banner_unit_id">ID баннера</string>
+    <string name="brick_admob_load_banner">Загрузить баннер</string>
+    <string name="brick_admob_show_banner">Показать баннер</string>
+    <string name="brick_admob_hide_banner">Скрыть баннер</string>
+    <string name="brick_admob_destroy_banner">Удалить баннер</string>
+    <string name="brick_admob_set_interstitial_unit_id">ID межстр. рекламы</string>
+    <string name="brick_admob_load_interstitial">Загрузить межстр.</string>
+    <string name="brick_admob_show_interstitial">Показать межстр.</string>
+    <string name="brick_admob_set_rewarded_unit_id">ID награды</string>
+    <string name="brick_admob_load_rewarded">Загрузить награду</string>
+    <string name="brick_admob_show_rewarded">Показать награду</string>
+    <string name="brick_admob_set_app_open_unit_id">ID App Open</string>
+    <string name="brick_admob_load_app_open">Загрузить App Open</string>
+    <string name="brick_admob_show_app_open">Показать App Open</string>
+    <string name="brick_event_admob_initialized">Когда AdMob инициализирован</string>
+    <string name="brick_event_admob_init_failed">Когда AdMob не инициализ.</string>
+    <string name="brick_event_admob_banner_loaded">Когда баннер загружен</string>
+    <string name="brick_event_admob_banner_failed">Когда баннер не загружен</string>
+    <string name="brick_event_admob_banner_shown">Когда баннер показан</string>
+    <string name="brick_event_admob_banner_hidden">Когда баннер скрыт</string>
+    <string name="brick_event_admob_interstitial_loaded">Когда межстр. загружена</string>
+    <string name="brick_event_admob_interstitial_failed">Когда межстр. не загружена</string>
+    <string name="brick_event_admob_interstitial_shown">Когда межстр. показана</string>
+    <string name="brick_event_admob_interstitial_closed">Когда межстр. закрыта</string>
+    <string name="brick_event_admob_rewarded_loaded">Когда награда загружена</string>
+    <string name="brick_event_admob_rewarded_failed">Когда награда не загруж.</string>
+    <string name="brick_event_admob_rewarded_shown">Когда награда показана</string>
+    <string name="brick_event_admob_rewarded_reward">Когда награда получена</string>
+    <string name="brick_event_admob_rewarded_closed">Когда награда закрыта</string>
+    <string name="brick_event_admob_app_open_loaded">Когда App Open загружен</string>
+    <string name="brick_event_admob_app_open_shown">Когда App Open показан</string>
+    <string name="brick_event_admob_app_open_closed">Когда App Open закрыт</string>
+    <string name="formula_admob_is_initialized">AdMob инициализирован</string>
+    <string name="formula_admob_is_test_mode">Тестовый режим вкл.</string>
+    <string name="formula_admob_is_banner_loaded">Баннер загружен</string>
+    <string name="formula_admob_is_interstitial_loaded">Межстр. загружена</string>
+    <string name="formula_admob_is_rewarded_loaded">Награда загружена</string>
+    <string name="formula_admob_is_app_open_loaded">App Open загружен</string>
+    <string name="formula_admob_last_error_code">Посл. код ошибки AdMob</string>
+    <string name="formula_admob_last_error_message">Посл. сообщ. ошибки AdMob</string>
+    <string name="formula_admob_is_google_play_services_available">Google Play Services доступны</string>
 </resources>

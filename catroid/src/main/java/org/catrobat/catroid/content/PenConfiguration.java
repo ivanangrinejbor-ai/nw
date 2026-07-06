@@ -41,6 +41,11 @@ public class PenConfiguration {
 	private PenColor penColor = new PenColor(0, 0, 1, 1);
 	private boolean stamp = false;
 	private int queuesToFinish = 0;
+	private PenColor borderColor = new PenColor(0, 0, 0, 1);
+	private double borderWidth = 2.0;
+	private double cornerRadius = 5.0;
+	private String fontName = "Arial";
+	private double fontSize = 24.0;
 
 	public PenConfiguration() {
 	}
@@ -127,6 +132,10 @@ public class PenConfiguration {
 		this.penSize = penSize;
 	}
 
+	public double getPenSize() {
+		return penSize;
+	}
+
 	public void setPenColor(PenColor penColor) {
 		this.penColor = penColor;
 	}
@@ -141,5 +150,45 @@ public class PenConfiguration {
 
 	public Queue<Queue<PointF>> getPositions() {
 		return positions;
+	}
+
+	public void setBorderColor(PenColor borderColor) {
+		this.borderColor = borderColor;
+	}
+
+	public PenColor getBorderColor() {
+		return borderColor;
+	}
+
+	public void setBorderWidth(double borderWidth) {
+		this.borderWidth = borderWidth;
+	}
+
+	public double getBorderWidth() {
+		return borderWidth;
+	}
+
+	public void setCornerRadius(double cornerRadius) {
+		this.cornerRadius = cornerRadius;
+	}
+
+	public double getCornerRadius() {
+		return cornerRadius;
+	}
+
+	public void setFontName(String fontName) {
+		this.fontName = fontName;
+	}
+
+	public String getFontName() {
+		return fontName;
+	}
+
+	public void setFontSize(double fontSize) {
+		this.fontSize = fontSize;
+	}
+
+	public double getFontSize() {
+		return fontSize;
 	}
 }

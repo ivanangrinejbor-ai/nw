@@ -40,6 +40,7 @@ public class SetColorAction extends TemporalAction {
 
 	@Override
 	protected void update(float delta) {
+		if (scope == null) return;
 		try {
 			float eightBitColor = color == null ? 0 : color.interpretFloat(scope);
 			scope.getSprite().look.setColorInUserInterfaceDimensionUnit(eightBitColor);

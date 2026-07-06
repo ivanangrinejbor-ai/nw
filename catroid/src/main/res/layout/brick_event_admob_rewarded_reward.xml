@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+    <CheckBox
+        android:id="@+id/brick_checkbox"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+    <org.catrobat.catroid.ui.BrickLayout
+        style="@style/BrickContainer.AdMob.Small">
+        <include layout="@layout/icon_brick_category_admob" />
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_event_admob_rewarded_reward" />
+    </org.catrobat.catroid.ui.BrickLayout>
+</LinearLayout>

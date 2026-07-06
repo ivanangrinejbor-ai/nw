@@ -6,6 +6,7 @@ import org.catrobat.catroid.content.actions.ScriptSequenceAction;
 import org.catrobat.catroid.formulaeditor.Formula;
 
 public class SetGlobalSoundVolumeBrick extends FormulaBrick {
+    private static final long serialVersionUID = 1L;
     public SetGlobalSoundVolumeBrick() {
         addAllowedBrickField(BrickField.VOLUME, R.id.brick_set_global_sound_volume_edit);
     }

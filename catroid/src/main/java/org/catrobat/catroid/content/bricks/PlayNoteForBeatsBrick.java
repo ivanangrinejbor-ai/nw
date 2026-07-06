@@ -37,6 +37,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 public class PlayNoteForBeatsBrick extends FormulaBrick {
 
+	private static final long serialVersionUID = 1L;
 	private final transient ShowFormulaEditorStrategy showFormulaEditorStrategy;
 
 	public PlayNoteForBeatsBrick() {

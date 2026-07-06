@@ -1,4 +1,3 @@
-// Находится в пакете: org.catrobat.catroid.content.actions
 package org.catrobat.catroid.content.actions
 
 import android.util.Log
@@ -7,6 +6,7 @@ import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction
 import org.catrobat.catroid.CatroidApplication
 import org.catrobat.catroid.content.Scope
 import org.catrobat.catroid.formulaeditor.Formula
+import org.catrobat.catroid.formulaeditor.InterpretationException
 import java.io.IOException
 
 class CopyProjectFileAction : TemporalAction() {
@@ -16,32 +16,32 @@ class CopyProjectFileAction : TemporalAction() {
 
     override fun update(percent: Float) {
         val project = scope?.project ?: return
-        val context = CatroidApplication.getAppContext()
+        val context = CatroidApplication.getAppContext() ?: return
 
-        val sourceName = sourceFileName?.interpretString(scope)
-        val newName = newFileName?.interpretString(scope)
+        val sourceName: String
+        val newName: String
+        try {
+            sourceName = sourceFileName?.interpretString(scope) ?: ""
+            newName = newFileName?.interpretString(scope) ?: ""
+        } catch (e: InterpretationException) {
+            Log.e("CopyProjectFileAction", "Formula interpretation error", e)
+            return
+        }
 
-        if (sourceName.isNullOrEmpty() || newName.isNullOrEmpty()) {
-            Toast.makeText(context, "Имена файлов не могут быть пустыми", Toast.LENGTH_SHORT).show()
+        if (sourceName.isEmpty() || newName.isEmpty()) {
             return
         }
 
         try {
             val sourceFile = project.getFile(sourceName)
             if (!sourceFile.exists() || sourceFile.isDirectory) {
-                Toast.makeText(context, "Исходный файл не найден: $sourceName", Toast.LENGTH_SHORT).show()
                 return
             }
 
             val newFile = project.getFile(newName)
-
-            // Копируем файл, перезаписывая, если он уже существует
             sourceFile.copyTo(newFile, overwrite = true)
-
-            //Toast.makeText(context, "Файл скопирован: $newName", Toast.LENGTH_SHORT).show()
         } catch (e: IOException) {
-            Log.e("CopyProjectFileAction", "Ошибка при копировании файла '$sourceName' в '$newName'", e)
-            Toast.makeText(context, "Ошибка копирования файла", Toast.LENGTH_SHORT).show()
+            Log.e("CopyProjectFileAction", "Error copying file '$sourceName' to '$newName'", e)
         }
     }
 }

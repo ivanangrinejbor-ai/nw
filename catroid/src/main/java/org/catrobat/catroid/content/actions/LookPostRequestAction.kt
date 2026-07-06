@@ -56,14 +56,16 @@ class LookPostRequestAction : WebAction() {
 
     private fun sendRequest(): Boolean {
         requestStatus = RequestStatus.WAITING
-        webConnection = WebConnection(this, url!!)
+        val requestUrl = url ?: return false
+        webConnection = WebConnection(this, requestUrl)
 
         val client = OkHttpClient()
-        val requestBody = RequestBody.create("${header}; charset=utf-8".toMediaType(), requestBodyJson!!)
+        val bodyJson = requestBodyJson ?: return false
+        val requestBody = RequestBody.create("${header}; charset=utf-8".toMediaType(), bodyJson)
 
         // Создание запроса с заголовками
         val requestBuilder = Request.Builder()
-            .url(url!!)
+            .url(requestUrl)
             .post(requestBody)
 
         val request = requestBuilder.build()
@@ -85,8 +87,9 @@ class LookPostRequestAction : WebAction() {
     }
 
     fun getLookFromResponse(response: InputStream): LookData? {
+        val ec = errorCode
         when {
-            errorCode != null -> handleError(errorCode!!)
+            ec != null -> handleError(ec)
             response == null -> showToastMessage("Invalid format: response empty")
             else -> try {
                 val lookFile = File.createTempFile(lookName, fileExtension)

@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal">
+
+    <CheckBox
+        android:id="@+id/brick_checkbox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:visibility="gone" />
+
+    <org.catrobat.catroid.ui.BrickLayout
+        android:id="@+id/brick_prepare_notification_layout"
+        style="@style/BrickContainer.Device.Big">
+
+        <include layout="@layout/icon_brick_category_device" />
+
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_prepare_notification" />
+
+        <!-- ID -->
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_prepare_notification_id"
+            app:layout_newLine="true" />
+        <TextView
+            android:id="@+id/brick_prepare_notification_edit_id"
+            style="@style/BrickEditText" />
+
+        <!-- Channel name -->
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_prepare_notification_channel"
+            app:layout_newLine="true" />
+        <TextView
+            android:id="@+id/brick_prepare_notification_edit_channel"
+            style="@style/BrickEditText" />
+
+        <!-- Title -->
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_prepare_notification_title"
+            app:layout_newLine="true" />
+        <TextView
+            android:id="@+id/brick_prepare_notification_edit_title"
+            style="@style/BrickEditText" />
+
+        <!-- Text -->
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_prepare_notification_text"
+            app:layout_newLine="true" />
+        <TextView
+            android:id="@+id/brick_prepare_notification_edit_text"
+            style="@style/BrickEditText" />
+
+        <!-- Icon (file path) -->
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_prepare_notification_icon"
+            app:layout_newLine="true" />
+        <TextView
+            android:id="@+id/brick_prepare_notification_edit_icon"
+            style="@style/BrickEditText" />
+
+        <!-- Importance spinner -->
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_prepare_notification_importance"
+            app:layout_newLine="true" />
+        <Spinner
+            android:id="@+id/brick_prepare_notification_importance_spinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textDirection="locale" />
+
+        <!-- Pinned checkbox -->
+        <CheckBox
+            android:id="@+id/brick_prepare_notification_pinned"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/brick_prepare_notification_pinned"
+            app:layout_newLine="true" />
+
+    </org.catrobat.catroid.ui.BrickLayout>
+</LinearLayout>

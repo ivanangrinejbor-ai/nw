@@ -180,8 +180,16 @@ public class CatroidApplication extends Application {
 		return googleTracker;
 	}
 
+	public static CatroidApplication getInstance() {
+		return (CatroidApplication) context;
+	}
+
 	public static Context getAppContext() {
 		return CatroidApplication.context;
+	}
+
+	public static void setAppContext(Context context) {
+		CatroidApplication.context = context;
 	}
 
 	private void resetThemeSettings() {

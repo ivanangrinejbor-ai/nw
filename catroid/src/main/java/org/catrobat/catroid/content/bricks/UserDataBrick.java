@@ -58,6 +58,8 @@ import androidx.appcompat.app.AppCompatActivity;
 
 public abstract class UserDataBrick extends FormulaBrick implements BrickSpinner.OnItemSelectedListener<UserData> {
 
+	private static final long serialVersionUID = 1L;
+
 	public transient BiMap<BrickData, Integer> brickDataToTextViewIdMap = HashBiMap.create(2);
 
 	protected UserDataHashMap userDataList = new UserDataHashMap();

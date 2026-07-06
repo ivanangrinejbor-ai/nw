@@ -75,34 +75,23 @@ class SoundFilesAction : TemporalAction() {
                 }
                 val file = File(CatroidApplication.getAppContext().filesDir, fileName)
                 StorageOperations.copyFile(file0, file)
-                if (true) {
-                    if (file0.exists()) {
-                        val isMidiFile = file.name.endsWith(".mid", ignoreCase = true) ||
-                                file.name.endsWith(".midi", ignoreCase = true)
-                        val sound = SoundInfo(
-                            "playingFileSound_" + generateRandomString(7),
-                            file,
-                            isMidiFile
-                        )
-                        if (sound.isMidiFile) {
-                            MidiSoundManager.getInstance()
-                                .playSoundFile(sound.file.absolutePath, sprite)
-                        } else {
-                            SoundManager.getInstance()
-                                .playSoundFile(sound.file.absolutePath, sprite)
-                        }
-                    } else {
-                        Log.e("SoundFile", "File has not exists")
-                    }
-                    file.delete()
-                } else {
-                    if (!file0.exists()) {
-                        Log.e("SoundFile", "file has not exists: " + file0.absolutePath)
-                    }
-                    Log.e(
-                        "SoundFile",
-                        "InputStream is null, file might not exist or be inaccessible"
+                if (file0.exists()) {
+                    val isMidiFile = file.name.endsWith(".mid", ignoreCase = true) ||
+                            file.name.endsWith(".midi", ignoreCase = true)
+                    val sound = SoundInfo(
+                        "playingFileSound_" + generateRandomString(7),
+                        file,
+                        isMidiFile
                     )
+                    if (sound.isMidiFile) {
+                        MidiSoundManager.getInstance()
+                            .playSoundFile(sound.file.absolutePath, sprite)
+                    } else {
+                        SoundManager.getInstance()
+                            .playSoundFile(sound.file.absolutePath, sprite)
+                    }
+                } else {
+                    Log.e("SoundFile", "File has not exists")
                 }
                 file.delete()
             }

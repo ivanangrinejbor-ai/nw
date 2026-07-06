@@ -35,6 +35,7 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
@@ -42,7 +43,6 @@
     <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <!--uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" /-->
@@ -86,6 +86,7 @@
     <!-- foreground services -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
 
     <uses-permission
         android:name="android.permission.NEARBY_WIFI_DEVICES" />
@@ -106,7 +107,13 @@
         android:requestLegacyExternalStorage="false"
         tools:ignore="UnusedAttribute"
         tools:replace="android:label,android:allowBackup,android:name"
-        android:usesCleartextTraffic="true">
+        android:usesCleartextTraffic="true"
+        android:networkSecurityConfig="@xml/network_security_config">
+
+        <meta-data
+            android:name="com.google.android.gms.ads.AD_ID"
+            android:value="@string/category_admob"
+            tools:ignore="ManifestOrder" />
 
         <activity
             android:name=".ui.SettingsActivity"
@@ -374,6 +381,13 @@
                 <action android:name="com.google.android.gms.cast.remote_display.REMOTE_DISPLAY_SERVICE" />
             </intent-filter>
         </service>
+
+        <service android:name=".content.service.ForegroundService"
+            android:foregroundServiceType="dataSync" />
+
+        <receiver
+            android:name=".content.notification.NotificationEventReceiver"
+            android:exported="false" />
 
         <provider
             android:authorities="${applicationId}.fileProvider"

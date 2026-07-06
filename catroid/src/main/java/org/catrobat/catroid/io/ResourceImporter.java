@@ -44,20 +44,22 @@ public final class ResourceImporter {
 			throw new IllegalArgumentException("scaleFactor was: " + scaleFactor + ", it has to be > 0.");
 		}
 
-		InputStream inputStream = resources.openRawResource(resourceId);
-		File file = StorageOperations.copyStreamToDir(inputStream, dstDir, fileName);
+		try (InputStream inputStream = resources.openRawResource(resourceId)) {
+			File file = StorageOperations.copyStreamToDir(inputStream, dstDir, fileName);
 
-		if (scaleFactor != 1) {
-			ImageEditing.scaleImageFile(file, scaleFactor);
+			if (scaleFactor != 1) {
+				ImageEditing.scaleImageFile(file, scaleFactor);
+			}
+
+			return file;
 		}
-
-		return file;
 	}
 
 	public static File createSoundFileFromResourcesInDirectory(Resources resources, int resourceId, File dstDir,
 			String fileName) throws IOException {
 
-		InputStream inputStream = resources.openRawResource(resourceId);
-		return StorageOperations.copyStreamToDir(inputStream, dstDir, fileName);
+		try (InputStream inputStream = resources.openRawResource(resourceId)) {
+			return StorageOperations.copyStreamToDir(inputStream, dstDir, fileName);
+		}
 	}
 }

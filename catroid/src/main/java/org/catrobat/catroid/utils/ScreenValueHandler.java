@@ -37,9 +37,13 @@ public final class ScreenValueHandler {
 	public static void updateScreenWidthAndHeight(Context context) {
 		if (context != null) {
 			WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
-			DisplayMetrics displayMetrics = new DisplayMetrics();
-			windowManager.getDefaultDisplay().getMetrics(displayMetrics);
-			ScreenValues.currentScreenResolution = new Resolution(displayMetrics.widthPixels, displayMetrics.heightPixels);
+			if (windowManager != null) {
+				DisplayMetrics displayMetrics = new DisplayMetrics();
+				windowManager.getDefaultDisplay().getMetrics(displayMetrics);
+				ScreenValues.currentScreenResolution = new Resolution(displayMetrics.widthPixels, displayMetrics.heightPixels);
+			} else {
+				ScreenValues.setToDefaultScreenSize();
+			}
 		} else {
 			ScreenValues.setToDefaultScreenSize();
 		}

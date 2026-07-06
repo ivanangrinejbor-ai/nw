@@ -132,7 +132,7 @@ class Interpreter(
 
         defineNative("GetStageListener", 0..0) { _, _ ->
             StageActivity.activeStageActivity.get()?.stageListener?.let {
-                LunoValue.NativeObject(it)
+                return@defineNative LunoValue.NativeObject(it)
             }
             LunoValue.Null
         }
@@ -201,6 +201,7 @@ class Interpreter(
 
         defineNative("CreateEmptyProjectContext", 0..0) { _, _ ->
             val context = CatroidApplication.getAppContext()
+                ?: throw LunoRuntimeError("CreateEmptyProjectContext: App context is null. Was setAppContext() called?", -1)
             val proj = Project(context, "Temp")
 
             proj.sceneList.clear()
@@ -4030,7 +4031,11 @@ class Interpreter(
                         }
                     }
                     if (field != null) {
-                        field.isAccessible = true
+                        try {
+                            field.isAccessible = true
+                        } catch (e: SecurityException) {
+                            throw LunoRuntimeError("Cannot access property '$propName' due to security restrictions.", target.line)
+                        }
                         val expectedType = field.type
                         val kotlinValue = lunoValueToKotlin(valueToAssign, expectedType)
                         field.set(nativeObj, kotlinValue)
@@ -4133,8 +4138,13 @@ class Interpreter(
 
     private fun executeWhileStatement(stmt: WhileStatement) {
         loopDepth++
+        var iterations = 0
+        val maxIterations = 100000
         try {
             while (evaluate(stmt.condition).isTruthy()) {
+                if (iterations++ >= maxIterations) {
+                    throw LunoRuntimeError("Maximum loop iterations ($maxIterations) exceeded.", stmt.line)
+                }
                 try {
                     execute(stmt.body)
                 } catch (_: ContinueSignal) {

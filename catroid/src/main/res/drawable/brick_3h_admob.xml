@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:ignore="UnusedResources">
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@color/brick_color_admob" />
+        </shape>
+    </item>
+</layer-list>

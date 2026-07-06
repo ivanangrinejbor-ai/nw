@@ -496,7 +496,7 @@ public class SettingsFragment extends PreferenceFragment {
 		hintCheckBoxPreference.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
 			@Override
 			public boolean onPreferenceChange(Preference preference, Object newValue) {
-				preference.getEditor().remove(SnackbarUtil.SHOWN_HINT_LIST).commit();
+				preference.getEditor().remove(SnackbarUtil.SHOWN_HINT_LIST).apply();
 				return true;
 			}
 		});

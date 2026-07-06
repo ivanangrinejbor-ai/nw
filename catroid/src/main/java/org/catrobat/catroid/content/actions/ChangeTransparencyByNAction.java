@@ -37,6 +37,7 @@ public class ChangeTransparencyByNAction extends TemporalAction {
 
 	@Override
 	protected void update(float delta) {
+		if (scope == null) return;
 		try {
 			Float newChangeTransparency = changeTransparency == null ? Float.valueOf(0f) : changeTransparency
 					.interpretFloat(scope);

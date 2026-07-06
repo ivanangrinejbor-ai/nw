@@ -79,5 +79,5 @@ Gemfile
 # Не коммитить здравый смысл, пж
 /sanity_logic/
 
-# template APK (generated at build time)
-catroid/src/main/assets/template.apk
+# template APKs (generated at build time by copyTemplate* tasks)
+catroid/src/main/assets/template*.apk

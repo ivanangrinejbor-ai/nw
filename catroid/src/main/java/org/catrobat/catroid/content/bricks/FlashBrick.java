@@ -36,6 +36,7 @@ import kotlin.Unit;
 
 public class FlashBrick extends BrickBaseType {
 
+	private static final long serialVersionUID = 1L;
 	private static final int FLASH_OFF = 0;
 	private static final int FLASH_ON = 1;
 

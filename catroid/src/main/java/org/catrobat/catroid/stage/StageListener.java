@@ -145,6 +145,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CountDownLatch;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
@@ -157,8 +160,6 @@ import static org.koin.java.KoinJavaComponent.get;
 @LunoClass
 public class StageListener implements ApplicationListener {
 
-	private double accumulator = 0.0;
-	private final double TIME_STEP = 1.0 / 60.0;
 	private final double MAX_ACCUMULATOR = 0.25;
 
 	private static final int AXIS_WIDTH = 4;
@@ -201,7 +202,7 @@ public class StageListener implements ApplicationListener {
 	public EmbroideryPatternManager embroideryPatternManager;
 	public WebConnectionHolder webConnectionHolder;
 
-	private List<Sprite> sprites;
+	private CopyOnWriteArrayList<Sprite> sprites;
 	public CameraPositioner cameraPositioner;
 
 	private float virtualWidthHalf;
@@ -216,6 +217,7 @@ public class StageListener implements ApplicationListener {
 	private Texture axes;
 
 	private boolean makeTestPixels = false;
+	private CountDownLatch testPixelsLatch;
 	private SpriteBatch postProcessBatch;
 	private byte[] testPixels;
 	private int testX = 0;
@@ -243,6 +245,8 @@ public class StageListener implements ApplicationListener {
 
 	private static final int Z_LAYER_PEN_ACTOR = 1;
 	private static final int Z_LAYER_EMBROIDERY_ACTOR = 2;
+
+	private final java.util.concurrent.atomic.AtomicInteger cloneCounter = new java.util.concurrent.atomic.AtomicInteger(1);
 
 	private ShaderProgram postProcessShader;
 	private String lastFragmentShaderCode = null;
@@ -335,7 +339,7 @@ public class StageListener implements ApplicationListener {
 		font = getLabelFont(project);
 
 		physicsWorld = scene.resetPhysicsWorld();
-		sprites = new ArrayList<>(scene.getSpriteList());
+		sprites = new CopyOnWriteArrayList<>(scene.getSpriteList());
 		loadGlobalSprites();
 
 		resetConditionScriptTriggers();
@@ -794,6 +798,7 @@ public class StageListener implements ApplicationListener {
 		copy.look.setRenderingContext(this.camera, this.viewPort, this.uiStage);
 		addCloneActorToStage(stage, stage.getRoot(), cloneMe.look, copy.look);
 		sprites.add(copy);
+		copy.cloneIndex = cloneCounter.getAndIncrement();
 		if (!copy.getLookList().isEmpty()) {
 			int currentLookDataIndex = cloneMe.getLookList().indexOf(cloneMe.look.getLookData());
 			copy.look.setLookData(copy.getLookList().get(currentLookDataIndex));
@@ -813,6 +818,7 @@ public class StageListener implements ApplicationListener {
 		copy.look.setRenderingContext(this.camera, this.viewPort, this.uiStage);
 		addCloneActorToStage(stage, stage.getRoot(), cloneMe.look, copy.look);
 		sprites.add(copy);
+		copy.cloneIndex = cloneCounter.getAndIncrement();
 		if (!copy.getLookList().isEmpty()) {
 			int currentLookDataIndex = cloneMe.getLookList().indexOf(cloneMe.look.getLookData());
 			copy.look.setLookData(copy.getLookList().get(currentLookDataIndex));
@@ -1574,6 +1580,9 @@ public class StageListener implements ApplicationListener {
 			if (makeTestPixels) {
 				testPixels = ScreenUtils.getFrameBufferPixels(testX, testY, testWidth, testHeight, false);
 				makeTestPixels = false;
+				if (testPixelsLatch != null) {
+					testPixelsLatch.countDown();
+				}
 			}
 
 			cameraPositioner.updateCameraPositionForFocusedSprite();
@@ -1923,9 +1932,13 @@ public class StageListener implements ApplicationListener {
 		testY = y;
 		testWidth = width;
 		testHeight = height;
+		testPixelsLatch = new CountDownLatch(1);
 		makeTestPixels = true;
-		while (makeTestPixels) {
-			Thread.yield();
+		try {
+			testPixelsLatch.await();
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			return new byte[0];
 		}
 		byte[] copyOfTestPixels = new byte[testPixels.length];
 		System.arraycopy(testPixels, 0, copyOfTestPixels, 0, testPixels.length);
@@ -2059,6 +2072,19 @@ public class StageListener implements ApplicationListener {
 
 	public ShowBubbleActor getBubbleActorForSprite(Sprite sprite) {
 		return bubbleActorMap.get(sprite);
+	}
+
+	public void removeCloneByIndex(int index) {
+		Sprite spriteToRemove = null;
+		for (Sprite sprite : ProjectManager.getInstance().getCurrentlyPlayingScene().getSpriteList()) {
+			if (sprite.isClone && sprite.cloneIndex == index) {
+				spriteToRemove = sprite;
+				break;
+			}
+		}
+		if (spriteToRemove != null) {
+			removeClonedSpriteFromStage(spriteToRemove);
+		}
 	}
 
 	public List<Sprite> getSpritesFromStage() {

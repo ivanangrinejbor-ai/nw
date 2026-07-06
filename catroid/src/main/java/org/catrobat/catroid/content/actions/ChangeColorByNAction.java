@@ -40,6 +40,7 @@ public class ChangeColorByNAction extends TemporalAction {
 
 	@Override
 	protected void update(float delta) {
+		if (scope == null) return;
 		try {
 			float eightBitColor = color == null ? 25 : color.interpretFloat(scope);
 			scope.getSprite().look.changeColorInUserInterfaceDimensionUnit(eightBitColor);

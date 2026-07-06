@@ -1,5 +1,7 @@
 package org.catrobat.catroid.editor;
 
+import android.util.Log;
+
 import androidx.appcompat.app.AlertDialog;
 import android.graphics.Color;
 import android.text.Editable;
@@ -58,6 +60,8 @@ import java.util.List;
 import java.util.Locale;
 
 public class InspectorManager {
+
+    private static final String TAG = "InspectorManager";
 
     private final EditorActivity activity;
     private final LayoutInflater inflater;
@@ -498,12 +502,12 @@ public class InspectorManager {
         });
 
         addSimpleTextListener(speedEditor, s -> {
-            try { finalAnimComponent.speed = Float.parseFloat(s); } catch (Exception e) {}
+            try { finalAnimComponent.speed = Float.parseFloat(s); } catch (Exception e) { Log.e(TAG, "Error updating field", e); }
             sceneManager.playAnimationFromComponent(go);
         });
 
         addSimpleTextListener(transitionEditor, s -> {
-            try { finalAnimComponent.transitionTime = Float.parseFloat(s); } catch (Exception e) {}
+            try { finalAnimComponent.transitionTime = Float.parseFloat(s); } catch (Exception e) { Log.e(TAG, "Error updating field", e); }
             sceneManager.playAnimationFromComponent(go);
         });
 
@@ -559,7 +563,7 @@ public class InspectorManager {
                 camComp.nearPlane = Float.parseFloat(nearEditor.getText().toString());
                 camComp.farPlane = Float.parseFloat(farEditor.getText().toString());
                 sceneManager.setCameraComponent(go, camComp);
-            } catch (Exception e) {}
+            } catch (Exception e) { Log.e(TAG, "Error updating field", e); }
         });
 
         fovEditor.addTextChangedListener(watcher);
@@ -771,10 +775,10 @@ public class InspectorManager {
                     .show();
         });
 
-        addSimpleTextListener(densityEdit, s -> { try { fog.density = Float.parseFloat(s); } catch (Exception e) {} });
-        addSimpleTextListener(startEdit, s -> { try { fog.startDistance = Float.parseFloat(s); } catch (Exception e) {} });
-        addSimpleTextListener(endEdit, s -> { try { fog.endDistance = Float.parseFloat(s); } catch (Exception e) {} });
-        addSimpleTextListener(heightEdit, s -> { try { fog.heightFalloff = Float.parseFloat(s); } catch (Exception e) {} });
+        addSimpleTextListener(densityEdit, s -> { try { fog.density = Float.parseFloat(s); } catch (Exception e) { Log.e(TAG, "Error updating field", e); } });
+        addSimpleTextListener(startEdit, s -> { try { fog.startDistance = Float.parseFloat(s); } catch (Exception e) { Log.e(TAG, "Error updating field", e); } });
+        addSimpleTextListener(endEdit, s -> { try { fog.endDistance = Float.parseFloat(s); } catch (Exception e) { Log.e(TAG, "Error updating field", e); } });
+        addSimpleTextListener(heightEdit, s -> { try { fog.heightFalloff = Float.parseFloat(s); } catch (Exception e) { Log.e(TAG, "Error updating field", e); } });
 
         container.addView(view);
     }
@@ -812,7 +816,7 @@ public class InspectorManager {
             try {
                 pp.qualityScale = Float.parseFloat(s);
                 threeDManager.updatePostProcessing(pp);
-            } catch(Exception e){}
+            } catch (Exception e) { Log.e(TAG, "Error updating field", e); }
         });
 
 
@@ -1070,7 +1074,7 @@ public class InspectorManager {
         edit.setText(String.format(Locale.US, "%.3f", value));
 
         addSimpleTextListener(edit, s -> {
-            try { onChange.accept(Float.parseFloat(s)); } catch(Exception e){}
+            try { onChange.accept(Float.parseFloat(s)); } catch (Exception e) { Log.e(TAG, "Error updating field", e); }
         });
         parent.addView(view);
     }
@@ -1081,7 +1085,7 @@ public class InspectorManager {
         EditText editText = paramView.findViewById(R.id.edit_param_value);
         editText.setText(String.format(Locale.US, "%.2f", initialValue));
         addSimpleTextListener(editText, s -> {
-            try { onUpdate.accept(Float.parseFloat(s)); } catch (Exception ignored) {}
+            try { onUpdate.accept(Float.parseFloat(s)); } catch (Exception e) { Log.e(TAG, "Error updating field", e); }
         });
     }
 
@@ -1620,7 +1624,7 @@ public class InspectorManager {
         et.setTextColor(android.graphics.Color.WHITE);
         et.setTextSize(12);
         et.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
-        addSimpleTextListener(et, s -> { try { onChange.accept(Float.parseFloat(s)); } catch(Exception e){} });
+        addSimpleTextListener(et, s -> { try { onChange.accept(Float.parseFloat(s)); } catch (Exception e) { Log.e(TAG, "Error updating field", e); } });
         col.addView(et);
 
         parent.addView(col);
@@ -2102,7 +2106,7 @@ public class InspectorManager {
                         try {
                             point.time = Math.max(0, Math.min(1, Float.parseFloat(s)));
                             updatePS3D(go);
-                        } catch (Exception e) {}
+                        } catch (Exception e) { Log.e(TAG, "Error updating field", e); }
                     });
                     row.addView(timeEdit);
 
@@ -2266,7 +2270,7 @@ public class InspectorManager {
         EditText edit = view.findViewById(R.id.edit_param_value);
         edit.setText(String.format(Locale.US, "%.2f", val));
         addSimpleTextListener(edit, s -> {
-            try { onChange.accept(Float.parseFloat(s)); } catch(Exception e){}
+            try { onChange.accept(Float.parseFloat(s)); } catch (Exception e) { Log.e(TAG, "Error updating field", e); }
         });
         parent.addView(view);
     }
@@ -2389,7 +2393,7 @@ public class InspectorManager {
 
                 if (min >= max) max = min + 0.1f;
                 graphView.setRange(min, max);
-            } catch (Exception e) {}
+            } catch (Exception e) { Log.e(TAG, "Error updating field", e); }
         };
 
         addSimpleTextListener(minEdit, s -> updateRange.run());
@@ -2414,7 +2418,7 @@ public class InspectorManager {
             try {
                 currentMin = Float.parseFloat(minEdit.getText().toString());
                 currentMax = Float.parseFloat(maxEdit.getText().toString());
-            } catch(Exception e){}
+            } catch (Exception e) { Log.e(TAG, "Error updating field", e); }
 
             graphView.setData(graph, currentMin, currentMax, () -> updateParticles(go));
             updateParticles(go);
@@ -2440,7 +2444,7 @@ public class InspectorManager {
             try {
                 currentMin = Float.parseFloat(minEdit.getText().toString());
                 currentMax = Float.parseFloat(maxEdit.getText().toString());
-            } catch(Exception e){}
+            } catch (Exception e) { Log.e(TAG, "Error updating field", e); }
 
 
             float newTime = graph.isEmpty() ? 0.5f : graph.get(graph.size()-1).time + 0.2f;
@@ -2512,7 +2516,7 @@ public class InspectorManager {
                     colorBtn.setBackgroundColor(androidColor);
 
                     addSimpleTextListener(timeEdit, s -> {
-                        try { point.time = Math.max(0, Math.min(1, Float.parseFloat(s))); updateParticles(go); } catch(Exception e){}
+                        try { point.time = Math.max(0, Math.min(1, Float.parseFloat(s))); updateParticles(go); } catch (Exception e) { Log.e(TAG, "Error updating field", e); }
                     });
 
                     colorBtn.setOnClickListener(v -> {
@@ -2728,9 +2732,9 @@ public class InspectorManager {
         frictionEditor.setText(String.valueOf(physics.friction));
         restitutionEditor.setText(String.valueOf(physics.restitution));
 
-        addSimpleTextListener(massEditor, s -> { try { physics.mass = Float.parseFloat(s); sceneManager.setPhysicsComponent(go, physics); } catch (Exception e) {} });
-        addSimpleTextListener(frictionEditor, s -> { try { physics.friction = Float.parseFloat(s); sceneManager.setFriction(go.id, physics.friction); } catch (Exception e) {} });
-        addSimpleTextListener(restitutionEditor, s -> { try { physics.restitution = Float.parseFloat(s); sceneManager.setRestitution(go.id, physics.restitution); } catch (Exception e) {} });
+        addSimpleTextListener(massEditor, s -> { try { physics.mass = Float.parseFloat(s); sceneManager.setPhysicsComponent(go, physics); } catch (Exception e) { Log.e(TAG, "Error updating field", e); } });
+        addSimpleTextListener(frictionEditor, s -> { try { physics.friction = Float.parseFloat(s); sceneManager.setFriction(go.id, physics.friction); } catch (Exception e) { Log.e(TAG, "Error updating field", e); } });
+        addSimpleTextListener(restitutionEditor, s -> { try { physics.restitution = Float.parseFloat(s); sceneManager.setRestitution(go.id, physics.restitution); } catch (Exception e) { Log.e(TAG, "Error updating field", e); } });
 
         container.addView(view);
     }
@@ -2946,13 +2950,13 @@ public class InspectorManager {
             try {
                 light.exponent = Float.parseFloat(s);
                 sceneManager.setLightComponent(go, light);
-            } catch (Exception e) {}
+            } catch (Exception e) { Log.e(TAG, "Error updating field", e); }
         });
 
 
-        addSimpleTextListener(intensityEditor, s -> { try { light.intensity = Float.parseFloat(s); sceneManager.setLightComponent(go, light); } catch (Exception e) {} });
-        addSimpleTextListener(rangeEditor, s -> { try { light.range = Float.parseFloat(s); sceneManager.setLightComponent(go, light); } catch (Exception e) {} });
-        addSimpleTextListener(angleEditor, s -> { try { light.cutoffAngle = Float.parseFloat(s); sceneManager.setLightComponent(go, light); } catch (Exception e) {} });
+        addSimpleTextListener(intensityEditor, s -> { try { light.intensity = Float.parseFloat(s); sceneManager.setLightComponent(go, light); } catch (Exception e) { Log.e(TAG, "Error updating field", e); } });
+        addSimpleTextListener(rangeEditor, s -> { try { light.range = Float.parseFloat(s); sceneManager.setLightComponent(go, light); } catch (Exception e) { Log.e(TAG, "Error updating field", e); } });
+        addSimpleTextListener(angleEditor, s -> { try { light.cutoffAngle = Float.parseFloat(s); sceneManager.setLightComponent(go, light); } catch (Exception e) { Log.e(TAG, "Error updating field", e); } });
 
         container.addView(view);
     }

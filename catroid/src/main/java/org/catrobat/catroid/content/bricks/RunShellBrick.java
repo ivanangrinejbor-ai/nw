@@ -68,7 +68,7 @@ public class RunShellBrick extends UserVariableBrickWithFormula {
 
     @Override
     public void addActionToSequence(Sprite sprite, ScriptSequenceAction sequence) {
-        sequence.addAction(sprite.getActionFactory().RunShellAction(sprite, sequence,
+        sequence.addAction(sprite.getActionFactory().runShellAction(sprite, sequence,
                 getFormulaWithBrickField(BrickField.CODE), userVariable));
     }
 }

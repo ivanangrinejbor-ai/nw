@@ -60,6 +60,8 @@ object ApkToolboxManager {
                 manifest.packageName = config.packageName
 
                 fixManifestRecursive(manifest.manifestElement, oldPackage, newPackage)
+
+                fixClassNameReferences(manifest.manifestElement, oldPackage, newPackage)
             }
             if (config.versionCode != null) manifest.versionCode = config.versionCode
             if (config.versionName != null) manifest.versionName = config.versionName
@@ -332,6 +334,22 @@ object ApkToolboxManager {
         }
     }
 
+
+    private fun fixClassNameReferences(element: ResXmlElement, oldPkg: String, newPkg: String) {
+        element.attributes.forEach { attr ->
+            val value = attr.valueAsString
+            if (value != null && value.contains(".")) {
+                if (value.startsWith(".")) {
+                    attr.valueAsString = oldPkg + value
+                } else if (value.startsWith(newPkg)) {
+                    attr.valueAsString = value.replaceFirst(newPkg, oldPkg)
+                }
+            }
+        }
+        element.listElements().forEach { child ->
+            fixClassNameReferences(child, oldPkg, newPkg)
+        }
+    }
 
     private fun modifyApk(apkPath: String, action: (ApkModule) -> Unit): Boolean {
         var module: ApkModule? = null

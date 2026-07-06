@@ -327,6 +327,19 @@
     </style>
 
 
+    <style name="BrickContainer.AdMob" />
+    <style name="BrickContainer.AdMob.Small">
+        <item name="android:minHeight">@dimen/brick_height_small</item>
+        <item name="android:background">@drawable/brick_1h_admob</item>
+    </style>
+    <style name="BrickContainer.AdMob.Medium">
+        <item name="android:minHeight">@dimen/brick_height_medium</item>
+        <item name="android:background">@drawable/brick_2h_admob</item>
+    </style>
+    <style name="BrickContainer.AdMob.Big" tools:ignore="UnusedResources">
+        <item name="android:minHeight">@dimen/brick_height_big</item>
+        <item name="android:background">@drawable/brick_3h_admob</item>
+    </style>
     <style name="BrickContainer.Plot" />
 
     <style name="BrickContainer.Plot.Small">
@@ -545,6 +558,23 @@
     <style name="BrickContainer.UserList.Medium">
         <item name="android:minHeight">@dimen/brick_height_medium</item>
         <item name="android:background">@drawable/brick_2h_red</item>
+    </style>
+
+    <style name="BrickContainer.Preload" />
+
+    <style name="BrickContainer.Preload.Small">
+        <item name="android:minHeight">@dimen/brick_height_small</item>
+        <item name="android:background">@drawable/brick_1h_red</item>
+    </style>
+
+    <style name="BrickContainer.Preload.Medium">
+        <item name="android:minHeight">@dimen/brick_height_medium</item>
+        <item name="android:background">@drawable/brick_2h_red</item>
+    </style>
+
+    <style name="BrickContainer.Preload.Big">
+        <item name="android:minHeight">@dimen/brick_height_big</item>
+        <item name="android:background">@drawable/brick_3h_red</item>
     </style>
 
     <style name="BrickContainer.Drone" tools:ignore="UnusedResources" />
@@ -820,7 +850,10 @@
     </style>
 
     <style name="BrickCategory.Neural">
-        <item name="android:background">@drawable/brick_categories_cyan</item>
+        <item name="android:background">@drawable/brick_categories_neural</item>
+    </style>
+    <style name="BrickCategory.AdMob">
+        <item name="android:background">@drawable/brick_categories_admob</item>
     </style>
 
     <style name="BrickCategory.Threed">
@@ -833,6 +866,10 @@
 
     <style name="BrickCategory.Internet">
         <item name="android:background">@drawable/brick_categories_orange</item>
+    </style>
+
+    <style name="BrickCategory.Preload">
+        <item name="android:background">@drawable/brick_categories_red</item>
     </style>
 
     <style name="BrickCategory.Drone">

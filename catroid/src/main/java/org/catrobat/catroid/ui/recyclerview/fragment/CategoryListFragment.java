@@ -160,7 +160,7 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 			R.string.formula_editor_function_table_join, R.string.formula_editor_function_floatarray,
 			R.string.formula_editor_function_lua,
 			R.string.view_x, R.string.view_y, R.string.view_width, R.string.view_height, R.string.is_video_playing, //R.string.video_time,
-			R.string.formula_editor_function_file, R.string.formula_editor_function_files_path, R.string.formula_editor_function_all_files, R.string.formula_editor_function_file_size, R.string.formula_editor_function_json_get, R.string.formula_editor_function_json_set, R.string.formula_editor_function_json_is_valid,
+			R.string.formula_editor_function_file, R.string.formula_editor_function_files_path, R.string.formula_editor_function_all_files, R.string.formula_editor_function_file_size, R.string.formula_file_project_size, R.string.formula_file_size_in_dir, R.string.formula_file_size_at_path, R.string.formula_editor_function_json_get, R.string.formula_editor_function_json_set, R.string.formula_editor_function_json_is_valid,
 			R.string.formula_ray_did_hit2,
 			R.string.formula_ray_hit_sprite_name,
 			R.string.formula_ray_hit_x2,
@@ -199,7 +199,7 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 			R.string.view_params,
 			R.string.videoplayer_params,
 			//R.string.videoplayer_params,
-			R.string.formula_editor_function_file_parameter, R.string.formula_no_param, R.string.formula_no_param, R.string.formula_editor_function_file_parameter, R.string.formula_editor_function_json_get_parameter, R.string.formula_editor_function_json_set_parameter, R.string.formula_editor_function_json_is_valid_parameter,
+			R.string.formula_editor_function_file_parameter, R.string.formula_no_param, R.string.formula_no_param, R.string.formula_editor_function_file_parameter, R.string.formula_file_project_size_param, R.string.formula_file_size_in_dir_param, R.string.formula_file_size_at_path_param, R.string.formula_editor_function_json_get_parameter, R.string.formula_editor_function_json_set_parameter, R.string.formula_editor_function_json_is_valid_parameter,
 			R.string.formula_ray_did_hit_parameter,
 			R.string.formula_ray_hit_sprite_name_parameter,
 			R.string.formula_ray_hit_x_parameter,
@@ -245,6 +245,9 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 
     private static final List<Integer> DEVICE_FUNCTIONS = asList(
             R.string.formula_file_exists,
+            R.string.formula_file_project_exists,
+            R.string.formula_file_exists_in_dir,
+            R.string.formula_file_exists_at_path,
             R.string.formula_device_name, R.string.formula_device_manufacturer,
             R.string.formula_android_version, R.string.formula_api_level,
             R.string.formula_system_language, R.string.formula_system_theme,
@@ -259,7 +262,17 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
             R.string.formula_internet_speed, R.string.formula_local_ip,
             R.string.formula_screen_width, R.string.formula_screen_height,
             R.string.formula_screen_dpi, R.string.formula_screen_refresh,
-            R.string.formula_screen_orientation
+            R.string.formula_screen_orientation,
+            R.string.formula_used_ram,
+            R.string.formula_used_storage,
+            R.string.formula_volume_level,
+            R.string.formula_screen_brightness,
+            R.string.formula_is_in_foreground,
+            R.string.formula_cpu_frequency_min,
+            R.string.formula_cpu_usage,
+            R.string.formula_gpu_name,
+            R.string.formula_opengl_version,
+            R.string.formula_vulkan_supported
     );
 
     private static final List<Integer> OBJECTS_FUNCTIONS = asList(
@@ -286,8 +299,29 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
             R.string.formula_sprite_distance_param, R.string.formula_sprite_distance_param, R.string.formula_sprite_distance_param
     );
 
+    private static final List<Integer> ADMOB_FUNCTIONS = asList(
+            R.string.formula_admob_is_initialized,
+            R.string.formula_admob_is_test_mode,
+            R.string.formula_admob_is_banner_loaded,
+            R.string.formula_admob_is_interstitial_loaded,
+            R.string.formula_admob_is_rewarded_loaded,
+            R.string.formula_admob_is_app_open_loaded,
+            R.string.formula_admob_last_error_code,
+            R.string.formula_admob_last_error_message,
+            R.string.formula_admob_is_google_play_services_available
+    );
+
+    private static final List<Integer> ADMOB_PARAMS = asList(
+            R.string.formula_no_param, R.string.formula_no_param, R.string.formula_no_param,
+            R.string.formula_no_param, R.string.formula_no_param, R.string.formula_no_param,
+            R.string.formula_no_param, R.string.formula_no_param, R.string.formula_no_param
+    );
+
     private static final List<Integer> DEVICE_PARAMS = asList(
             R.string.formula_file_exists_param,
+            R.string.formula_file_project_exists_param,
+            R.string.formula_file_exists_in_dir_param,
+            R.string.formula_file_exists_at_path_param,
             R.string.formula_no_param, R.string.formula_no_param,
             R.string.formula_no_param, R.string.formula_no_param,
             R.string.formula_no_param, R.string.formula_no_param,
@@ -302,6 +336,16 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
             R.string.formula_no_param, R.string.formula_no_param,
             R.string.formula_no_param, R.string.formula_no_param,
             R.string.formula_no_param, R.string.formula_no_param,
+            R.string.formula_no_param,
+            R.string.formula_no_param,
+            R.string.formula_no_param,
+            R.string.formula_no_param,
+            R.string.formula_no_param,
+            R.string.formula_no_param,
+            R.string.formula_no_param,
+            R.string.formula_no_param,
+            R.string.formula_no_param,
+            R.string.formula_no_param,
             R.string.formula_no_param
     );
 
@@ -1151,6 +1195,8 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
                 "PockeTensor"));
         result.addAll(addHeader(toCategoryListItems(DEVICE_FUNCTIONS, DEVICE_PARAMS),
                 "Device info"));
+        result.addAll(addHeader(toCategoryListItems(ADMOB_FUNCTIONS, ADMOB_PARAMS),
+                "AdMob"));
         result.addAll(addHeader(toCategoryListItems(OBJECTS_FUNCTIONS, OBJECTS_PARAMS),
                 "Sprite info"));
 
@@ -1413,6 +1459,7 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
         if (THREED_FUNCTIONS.contains(id)) return "3D";
         if (PT_FUNCTIONS.contains(id)) return "PockeTensor";
         if (DEVICE_FUNCTIONS.contains(id)) return "Device info";
+        if (ADMOB_FUNCTIONS.contains(id)) return "AdMob";
         if (OBJECTS_FUNCTIONS.contains(id)) return "Sprite info";
         if (LOGIC_BOOL.contains(id)) return getString(R.string.formula_editor_logic_boolean);
         if (LOGIC_COMPARISION.contains(id)) return getString(R.string.formula_editor_logic_comparison);

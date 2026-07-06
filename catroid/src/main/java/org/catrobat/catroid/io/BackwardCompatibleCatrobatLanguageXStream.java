@@ -1089,7 +1089,12 @@ public class BackwardCompatibleCatrobatLanguageXStream extends XStream {
 						}
 						brickListNode.replaceChild(newBrickNode, brickNode);
 					} else {
-						Log.e(TAG, brickNode.getNodeName() + ": Found no bricks to convert to new structure.");
+						Log.e(TAG, brickNode.getNodeName() + ": Found no bricks to convert to new structure, preserving as UnknownBrick");
+						newBrickNode.setAttribute("type", "UnknownBrick");
+						Element unknownNameNode = originalDocument.createElement("unknownClassName");
+						unknownNameNode.setTextContent(brickNode.getNodeName());
+						newBrickNode.appendChild(unknownNameNode);
+						brickListNode.replaceChild(newBrickNode, brickNode);
 					}
 				}
 			}

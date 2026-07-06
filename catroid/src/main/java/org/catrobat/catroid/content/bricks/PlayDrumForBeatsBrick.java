@@ -40,6 +40,7 @@ import androidx.annotation.Nullable;
 
 public class PlayDrumForBeatsBrick extends FormulaBrick implements BrickSpinner.OnItemSelectedListener<PickableDrum> {
 
+	private static final long serialVersionUID = 1L;
 	private PickableDrum drumSelection = PickableDrum.values()[0];
 
 	@Override

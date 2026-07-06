@@ -153,7 +153,9 @@ class BrickAdapter(private val sprite: Sprite) :
         val visibleBricks = tempItems.filter { isBrickVisibleInCollapsedHierarchy(it) }
         items.addAll(visibleBricks)
 
-        if (AiProjectAssistant.isLoaded()) {
+        val aiEnabled = android.preference.PreferenceManager.getDefaultSharedPreferences(org.catrobat.catroid.CatroidApplication.getAppContext())
+            .getBoolean("setting_ai_assistant", false)
+        if (AiProjectAssistant.isLoaded() && aiEnabled) {
             for (script in scripts) {
                 if (script.brickList.isEmpty()) continue
                 val predictions = AiProjectAssistant.predictNext(script, 2)

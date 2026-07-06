@@ -41,6 +41,7 @@ import static org.catrobat.catroid.ui.recyclerview.adapter.BrickAdapter.DISABLED
 
 public class EmptyEventBrick extends ScriptBrickBaseType {
 
+	private static final long serialVersionUID = 1L;
 	private EmptyScript script;
 
 	public EmptyEventBrick() {

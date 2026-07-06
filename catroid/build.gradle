@@ -59,7 +59,7 @@ ext {
     playServicesVersion = '17.0.1'
     cameraXVersion = "1.0.0-beta07"
     room_version = "2.3.0"
-    coroutines_version = "1.3.2"
+    coroutines_version = "1.7.3"
     work_manager_version = '2.7.1'
     kotlinScriptingVersion = "1.9.22"
 }
@@ -68,21 +68,15 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
 
+kapt {
+    includeCompileClasspath = false
+}
+
 def hasGoogleServices = project.file('google-services-template.json').exists() ||
     project.file('src/danvex/google-services.json').exists()
 if (hasGoogleServices) {
     apply plugin: 'com.google.gms.google-services'
     apply plugin: 'com.google.firebase.crashlytics'
-}
-
-// Disable Google Services for runtime flavors by skipping the tasks
-android.applicationVariants.all { variant ->
-    if (variant.flavorName.contains('runtime')) {
-        def processGoogleServicesTask = tasks.findByName("process${variant.name.capitalize()}GoogleServices")
-        if (processGoogleServicesTask != null) {
-            processGoogleServicesTask.enabled = false
-        }
-    }
 }
 
 apply from: 'gradle/code_quality_tasks.gradle'
@@ -101,7 +95,7 @@ if (rootProject.hasProperty('independent')) {
 }
 
 if (!rootProject.hasProperty("signingKeystore")) {
-    ext.signingKeystore = "dummyKeystore"
+    ext.signingKeystore = "external/debug.keystore"
 }
 
 ext.getProperty = { property, defaultValue ->
@@ -128,7 +122,7 @@ configurations {
 
 dependencies {
     pluginLibs "com.badlogicgames.gdx:gdx:$gdxVersion"
-    pluginLibs "com.thoughtworks.xstream:xstream:1.4.11.1"
+    pluginLibs "com.thoughtworks.xstream:xstream:1.4.20"
     pluginLibs "io.insert-koin:koin-core:$koin_version"
     pluginLibs "androidx.fragment:fragment:1.6.2"
     pluginLibs "androidx.activity:activity:1.8.0"
@@ -232,6 +226,7 @@ android {
 
 
     testOptions {
+        // intentional: prevents test failures for un-mocked Android methods
         unitTests.returnDefaultValues = true
         unitTests.includeAndroidResources = true
         unitTests.all {
@@ -243,6 +238,8 @@ android {
     sourceSets {
         androidTest {
             resources.srcDirs += ['src/androidTest/res', 'src/androidTest/assets']
+        }
+        main {
         }
         runtime {
             manifest.srcFile 'src/runtime/AndroidManifest.xml'
@@ -263,6 +260,7 @@ android {
         }
         resources {
             excludes += ['LICENSE.txt', 'META-INF/LICENSE.md', 'META-INF/INDEX.LIST', 'lib/mips/*', 'lib/armeabi/*', "classes.dex"]
+            excludes += ['META-INF/services/javax.tools.JavaCompiler']
         }
     }
 
@@ -299,7 +297,6 @@ android {
             resValue "string", "DEBUG_MODE", "true"
             buildConfigField "boolean", "FEATURE_CATBLOCKS_ENABLED", "true"
             buildConfigField "boolean", "FEATURE_CATBLOCKS_DEBUGABLE", "true"
-            buildConfigField "boolean", "FEATURE_AI_ASSIST_ENABLED", "true"
             testCoverageEnabled = rootProject.hasProperty('enableCoverage')
             signingConfig signingConfigs.debug
         }
@@ -310,13 +307,19 @@ android {
             buildConfigField "boolean", "FEATURE_USER_REPORTERS_ENABLED", "false"
             resValue "string", "SNACKBAR_HINTS_ENABLED", "true"
             minifyEnabled true
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-project.txt'
         }
 
         signedRelease {
             initWith buildTypes.release
             signingConfig signingConfigs.signedRelease
             matchingFallbacks = ["release"]
+        }
+
+        template {
+            initWith debug // intentional: templates need debug symbols and proguard
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-project.txt', 'proguard-runtime.pro' // both proguard files applied intentionally
+            matchingFallbacks = ['debug']
         }
     }
 
@@ -386,8 +389,6 @@ android {
             versionCode 1
             versionName '1.0'
 
-            ext.set("disableGoogleServices", true)
-
             buildConfigField "boolean", "FEATURE_APK_GENERATOR_ENABLED", "true"
         }
 
@@ -399,11 +400,12 @@ android {
             ext.set("disableGoogleServices", true)
 
             buildConfigField "boolean", "FEATURE_APK_GENERATOR_ENABLED", "true"
+            buildConfigField "boolean", "FEATURE_AI_SENSORS_ENABLED", "false"
+            buildConfigField "boolean", "FEATURE_AI_ASSIST_ENABLED", "false"
             manifestPlaceholders = [appName: "NeoCatroid Runtime"]
 
             ndk {
-                // Keep all ABIs for full runtime
-                abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
+                abiFilters 'arm64-v8a'
             }
         }
 
@@ -412,13 +414,12 @@ android {
             versionCode 1
             versionName '1.0'
 
-            ext.set("disableGoogleServices", true)
-
             buildConfigField "boolean", "FEATURE_APK_GENERATOR_ENABLED", "true"
+            buildConfigField "boolean", "FEATURE_AI_SENSORS_ENABLED", "false"
+            buildConfigField "boolean", "FEATURE_AI_ASSIST_ENABLED", "false"
             manifestPlaceholders = [appName: "NeoCatroid Runtime Lite"]
 
             ndk {
-                // Only ARM, no x86 (x86/x86_64 removed)
                 abiFilters 'armeabi-v7a', 'arm64-v8a'
             }
         }
@@ -428,13 +429,12 @@ android {
             versionCode 1
             versionName '1.0'
 
-            ext.set("disableGoogleServices", true)
-
             buildConfigField "boolean", "FEATURE_APK_GENERATOR_ENABLED", "true"
+            buildConfigField "boolean", "FEATURE_AI_SENSORS_ENABLED", "false"
+            buildConfigField "boolean", "FEATURE_AI_ASSIST_ENABLED", "false"
             manifestPlaceholders = [appName: "NeoCatroid Runtime (No ARMv7)"]
 
             ndk {
-                // Only 64-bit ARM
                 abiFilters 'arm64-v8a'
             }
         }
@@ -460,9 +460,7 @@ android {
         }
     }
     productFlavors.all { flavor ->
-        if (!flavor.name.contains('runtime')) {
-            copyGoogleServicesFile(flavor.name, defaultConfig.applicationId + (flavor.applicationIdSuffix ?: ""))
-        }
+        copyGoogleServicesFile(flavor.name, defaultConfig.applicationId + (flavor.applicationIdSuffix ?: ""))
     }
 
     packagingOptions {
@@ -479,6 +477,59 @@ android {
     }
 }
 
+// Удаляем QEMU, Python, ML-модели, тестовые файлы из runtime-templete APK
+android.applicationVariants.all { variant ->
+    if (variant.flavorName in ['runtime', 'runtimeLite', 'runtimeNoArm'] && variant.buildType.name == 'template') {
+        def mergeAssetsTask = tasks.findByName("merge${variant.name.capitalize()}Assets")
+        if (mergeAssetsTask != null) {
+            mergeAssetsTask.outputs.upToDateWhen { false }
+            mergeAssetsTask.doLast {
+                delete(fileTree(mergeAssetsTask.outputDir) {
+                    include '**/qemu_x86_64/**'
+                    include '**/python3.12/**'
+                    include '**/default_pylibs/**'
+                    include '**/transformer_model.*'
+                    include '**/model.tflite'
+                    include '**/model_metadata.json'
+                    include '**/app-classes.jar'
+                    include '**/test.png'
+                    include '**/gta_*'
+                    include '**/nsa_*'
+                    include '**/veryimportant.txt'
+                    include '**/xz*.jpg'
+                    include '**/penguin.webp'
+                    include '**/template*.apk'
+                    include '**/catblocks/**'
+                    include '**/project.zip'
+                    include '**/stub_project.zip'
+                    include '**/patterns.json'
+                    include '**/trustedDomains.json'
+                    include '**/vocab.json'
+                    include '**/activity.jar'
+                    include '**/core.jar'
+                    include '**/fragment.jar'
+                })
+            }
+        }
+        def mergeNativeLibsTask = tasks.findByName("merge${variant.name.capitalize()}NativeLibs")
+        if (mergeNativeLibsTask != null) {
+            mergeNativeLibsTask.doLast {
+                delete(fileTree(mergeNativeLibsTask.outputDir) {
+                    include '**/libpython3.12.so'
+                    include '**/libonnxruntime.so'
+                    include '**/libopenblas.so'
+                    include '**/libtensorflowlite_jni.so'
+                    include '**/libMNN*.so'
+                    include '**/libllm.so'
+                    include '**/libcrypto.so'
+                    include '**/libssl.so'
+                    include '**/libmidi.so'
+                })
+            }
+        }
+    }
+}
+
 configurations {
     implementation.exclude group: 'xpp3' //compile problem with xstream
     natives
@@ -487,7 +538,10 @@ configurations {
 
 dependencies {
     def markwon_version = "4.6.2"
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation fileTree(dir: 'libs', include: ['*.jar'], exclude: ['zipsigner.jar'])
+    // zipsigner.jar has both .class and classes.dex (breaks R8); use proper Maven deps for BouncyCastle
+    implementation 'org.bouncycastle:bcpkix-jdk15to18:1.76'
+    implementation 'org.bouncycastle:bcprov-jdk15to18:1.76'
 
     // Paintroid local aar lib files
     if(rootProject.hasProperty('paintroidLocal')) {
@@ -522,7 +576,7 @@ dependencies {
     implementation 'com.github.QuadFlask:colorpicker:0.0.13'
 
     implementation 'com.nostra13.universalimageloader:universal-image-loader:1.9.5'
-    implementation ('com.esotericsoftware:kryo:5.1.1')
+    //implementation ('com.esotericsoftware:kryo:5.1.1')
     implementation 'id.zelory:compressor:2.1.1'
     //implementation "org.jetbrains.kotlin:kotlin-scripting-jvm:1.5.31"
     //implementation "org.jetbrains.kotlin:kotlin-scripting-common:1.8.10"
@@ -557,17 +611,16 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-scripting-common:$kotlinScriptingVersion"
 
 
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3'
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_version"
 
     // WorkManager
     implementation "androidx.work:work-runtime-ktx:$work_manager_version"
     implementation "androidx.work:work-runtime:$work_manager_version"
-    implementation "com.android.tools.build:apksig:7.0.0"
     implementation "androidx.fragment:fragment-ktx:1.6.2"
     //implementation "https://github.com/dvstLab/docker-builder/blob/c66a4711ca3acb38aab03c8636aaee04178afb04/zipsigner-4.0.jar"
 
     // Kotlin
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines_version"
     androidTestImplementation project(path: ':catroid')
     androidTestImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutines_version"
@@ -576,10 +629,10 @@ dependencies {
     }
 
     // Support libraries
-    implementation 'androidx.appcompat:appcompat:1.2.0'
+    implementation 'androidx.appcompat:appcompat:1.7.1'
     implementation 'androidx.mediarouter:mediarouter:1.6.0'
     implementation 'androidx.cardview:cardview:1.0.0'
-    implementation 'com.google.android.material:material:1.2.1'
+    implementation 'com.google.android.material:material:1.13.0'
     implementation 'androidx.browser:browser:1.2.0'
     implementation 'androidx.core:core-ktx:1.3.2'
 
@@ -607,7 +660,8 @@ dependencies {
     implementation 'com.github.bumptech.glide:glide:4.11.0'
 
     // Lifecycle
-    implementation "androidx.lifecycle:lifecycle-extensions:$lifecycle_version"
+    implementation "androidx.lifecycle:lifecycle-runtime-ktx:$lifecycle_version"
+    implementation "androidx.lifecycle:lifecycle-process:$lifecycle_version"
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version"
     implementation "androidx.lifecycle:lifecycle-livedata-ktx:$lifecycle_version"
 
@@ -643,6 +697,7 @@ dependencies {
 
     // Analytics
     implementation "com.google.android.gms:play-services-analytics:$playServicesVersion"
+    implementation 'com.google.android.gms:play-services-ads:23.5.0'
 
     implementation 'com.google.guava:guava:28.2-android'
     implementation 'com.google.code.gson:gson:2.8.7'
@@ -652,7 +707,7 @@ dependencies {
     implementation 'ar.com.hjg:pngj:2.1.0'
     implementation 'app.cash.quickjs:quickjs-android:0.9.2'
 
-    implementation ('com.thoughtworks.xstream:xstream:1.4.11.1') {
+    implementation ('com.thoughtworks.xstream:xstream:1.4.20') {
         exclude group: 'xmlpull'
     }
 
@@ -670,10 +725,7 @@ dependencies {
 
     kapt project(':lunoscript-processor')
 
-    // ML Kit
-    implementation 'com.google.android.gms:play-services-mlkit-face-detection:16.1.4'
-    implementation 'com.google.android.gms:play-services-mlkit-text-recognition:16.1.3'
-    // Note: object-detection, language-id, pose-detection use bundled stubs below
+    // Note: face-detection, text-recognition, object-detection, language-id, pose-detection use bundled stubs below
 
     // TensorFlow Lite for Neural AI Assistant
     implementation 'org.tensorflow:tensorflow-lite:2.14.0'
@@ -737,7 +789,6 @@ dependencies {
     testImplementation "org.mockito:mockito-core:$mockitoVersion"
     testImplementation 'org.hamcrest:hamcrest-library:1.3'
 
-    testImplementation 'org.powermock:powermock:1.6.6'
     testImplementation 'org.powermock:powermock-module-junit4:2.0.0'
     testImplementation 'org.powermock:powermock-api-mockito2:2.0.0'
 
@@ -841,7 +892,6 @@ configurations.all {
     exclude group: 'net.sf.kxml', module: 'kxml2'
 
     resolutionStrategy {
-        force 'com.google.android.material:material:1.2.1'
         force 'net.bytebuddy:byte-buddy:1.14.9'
         force 'net.bytebuddy:byte-buddy-agent:1.14.9'
         force 'com.github.mgsx-dev.gdx-gltf:core:2.2.1'
@@ -869,7 +919,7 @@ configurations.all {
 // }
 
 android.applicationVariants.all { variant ->
-    if (variant.buildType.name == "debug") {
+    if (variant.buildType.name in ['debug', 'template']) {
         def variantName = variant.name.capitalize()
         def taskName = "packageAppClasses${variantName}"
 
@@ -902,7 +952,7 @@ android.applicationVariants.all { variant ->
     }
 }
 android.applicationVariants.all { variant ->
-    if (variant.buildType.name == "debug") {
+    if (variant.buildType.name in ['debug', 'template']) {
         def variantName = variant.name.capitalize()
         def copyLibsTaskName = "copyPluginLibs${variantName}"
 
@@ -993,55 +1043,25 @@ tasks.register('makeCoffee') {
 
 tasks.register('copyTemplateApk') {
     group = "build"
-    description = "Builds and copies the minimal runtime APK template to assets"
-    dependsOn 'assembleRuntimeDebug'
+    description = "Builds and copies the minimal runtime APK template to assets (with proguard)"
+    dependsOn 'assembleRuntimeTemplate'
     doLast {
         copy {
-            from "$buildDir/outputs/apk/runtime/debug"
+            from "$buildDir/outputs/apk/runtime/template"
             into "$projectDir/src/main/assets"
-            include "*-runtime-debug.apk"
+            include "*-runtime-template.apk"
             rename { "template_runtime.apk" }
         }
         println "Runtime Template APK updated at: $projectDir/src/main/assets/template_runtime.apk"
     }
 }
 
-tasks.register('copyTemplateRuntimeLite') {
-    group = "build"
-    description = "Builds and copies the lite runtime APK template (no x86/x64)"
-    dependsOn 'assembleRuntimeLiteDebug'
-    doLast {
-        copy {
-            from "$buildDir/outputs/apk/runtimeLite/debug"
-            into "$projectDir/src/main/assets"
-            include "*-runtimeLite-debug.apk"
-            rename { "template_runtime_lite.apk" }
-        }
-        println "Lite Runtime Template APK updated at: $projectDir/src/main/assets/template_runtime_lite.apk"
-    }
-}
-
-tasks.register('copyTemplateRuntimeNoArm') {
-    group = "build"
-    description = "Builds and copies the no-ARMv7 runtime APK template (arm64 only)"
-    dependsOn 'assembleRuntimeNoArmDebug'
-    doLast {
-        copy {
-            from "$buildDir/outputs/apk/runtimeNoArm/debug"
-            into "$projectDir/src/main/assets"
-            include "*-runtimeNoArm-debug.apk"
-            rename { "template_runtime_noarm.apk" }
-        }
-        println "No-ARMv7 Runtime Template APK updated at: $projectDir/src/main/assets/template_runtime_noarm.apk"
-    }
-}
-
 tasks.register('copyAllRuntimeTemplates') {
     group = "build"
-    description = "Builds and copies all runtime template APKs to assets"
-    dependsOn 'copyTemplateApk', 'copyTemplateRuntimeLite', 'copyTemplateRuntimeNoArm'
+    description = "Builds and copies the full runtime template APK to assets"
+    dependsOn 'copyTemplateApk'
     doLast {
-        println "All runtime template APKs copied to: $projectDir/src/main/assets"
+        println "Full runtime template APK copied to: $projectDir/src/main/assets"
     }
 }
 

@@ -33,6 +33,7 @@ import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import com.thoughtworks.xstream.mapper.Mapper;
 
 import org.catrobat.catroid.content.bricks.Brick;
+import org.catrobat.catroid.content.bricks.UnknownBrick;
 
 public class XStreamBrickConverter extends ReflectionConverter {
 
@@ -73,8 +74,9 @@ public class XStreamBrickConverter extends ReflectionConverter {
 			}
 		}
 
-		Log.e(TAG, "Brick " + type + " not found in packages");
+		Log.e(TAG, "Brick " + type + " not found in packages, using UnknownBrick placeholder");
 
+		result = new UnknownBrick(type);
 		return super.doUnmarshal(result, reader, context);
 	}
 }

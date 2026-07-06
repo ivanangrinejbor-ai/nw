@@ -3672,11 +3672,11 @@ public class ThreeDManager implements Disposable {
             Log.e("ThreeDManager", "FATAL 3D RENDER ERROR", e);
             e.printStackTrace();
 
-            try { depthFbo.end(); } catch (Exception ignored) {}
-            try { depthBatch.end(); } catch (Exception ignored) {}
-            try { modelBatch.end(); } catch (Exception ignored) {}
-            try { particleModelBatch.end(); } catch (Exception ignored) {}
-            try { if (sceneFbo2 != null) sceneFbo2.end(); } catch (Exception ignored) {}
+            try { depthFbo.end(); } catch (Exception ignored) { /* cleanup on error */ }
+            try { depthBatch.end(); } catch (Exception ignored) { /* cleanup on error */ }
+            try { modelBatch.end(); } catch (Exception ignored) { /* cleanup on error */ }
+            try { particleModelBatch.end(); } catch (Exception ignored) { /* cleanup on error */ }
+            try { if (sceneFbo2 != null) sceneFbo2.end(); } catch (Exception ignored) { /* cleanup on error */ }
         }
     }
 
@@ -6019,7 +6019,7 @@ public class ThreeDManager implements Disposable {
 
         } catch (Exception e) {
             Log.e("ThreeDManager", "Critical error in buffer rendering", e);
-            try { targetFbo.end(); } catch (Exception ignored) {}
+            try { targetFbo.end(); } catch (Exception ignored) { /* cleanup on error */ }
         } finally {
             this.camera = (PerspectiveCamera) originalCamera;
             if (realisticMode && sceneManager != null) {

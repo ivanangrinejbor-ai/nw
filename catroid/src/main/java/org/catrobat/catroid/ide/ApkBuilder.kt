@@ -66,12 +66,12 @@ object ApkBuilder {
             onProgress("Подготовка шаблона...")
             var templateLoaded = false
             try {
-                context.assets.open("template.apk").use { input ->
+                context.assets.open("template_runtime.apk").use { input ->
                     FileOutputStream(tempApk).use { output -> input.copyTo(output) }
                 }
                 templateLoaded = true
             } catch (e: Exception) {
-                // template.apk not in assets, try self-APK
+                // template_runtime.apk not in assets, try self-APK
             }
             if (!templateLoaded) {
                 val selfApkPath = context.applicationInfo.sourceDir

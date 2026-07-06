@@ -1,5 +1,8 @@
 package org.catrobat.catroid.formulaeditor;
 
+import android.app.Activity;
+import android.os.Environment;
+
 import org.catrobat.catroid.ProjectManager;
 import org.catrobat.catroid.CatroidApplication;
 import org.catrobat.catroid.content.FloatArrayManager;
@@ -32,6 +35,7 @@ import org.catrobat.catroid.sensing.CollisionDetection;
 import org.catrobat.catroid.sensing.ColorAtXYDetection;
 import org.catrobat.catroid.sensing.ColorCollisionDetection;
 import org.catrobat.catroid.sensing.ColorEqualsColor;
+import org.catrobat.catroid.admob.AdMobManager;
 import org.catrobat.catroid.stage.StageActivity;
 import org.catrobat.catroid.stage.StageListener;
 import org.catrobat.catroid.utils.lunoscript.Interpreter;
@@ -577,6 +581,31 @@ public class FormulaElement implements Serializable {
                 if (currentProject3 == null) return 0;
                 return (int) getFileSize(currentProject3.getFile(String.valueOf(arg0)));
             }
+            case FILE_PROJECT_SIZE: {
+                Project currentProject4 = ProjectManager.getInstance().getCurrentProject();
+                if (currentProject4 == null) return 0;
+                return (int) getFileSize(currentProject4.getFile(String.valueOf(arg0)));
+            }
+            case FILE_SIZE_IN_DIR: {
+                String fileName = String.valueOf(arg0);
+                String dirName = String.valueOf(arg1);
+                try {
+                    File downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+                    File dir = new File(downloadsDir, dirName);
+                    File file = new File(dir, fileName);
+                    return (int) getFileSize(file);
+                } catch (Exception e) { return 0; }
+            }
+            case FILE_SIZE_AT_PATH: {
+                String fileName = String.valueOf(arg0);
+                String path = String.valueOf(arg1);
+                try {
+                    File downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+                    File dir = new File(downloadsDir, path);
+                    File file = new File(dir, fileName);
+                    return (int) getFileSize(file);
+                } catch (Exception e) { return 0; }
+            }
             case TO_HEX: {
                 Integer decimal = tryParseIntFromObject(arg0);
                 return decimal != null ? Integer.toHexString(decimal).toUpperCase() : "0";
@@ -1008,6 +1037,35 @@ public class FormulaElement implements Serializable {
                     return booleanToDouble(file.exists() && file.isFile());
                 } catch (Exception e) { return FALSE; }
             }
+            case FILE_PROJECT_EXISTS: {
+                String fileName = String.valueOf(arg0);
+                Project project = ProjectManager.getInstance().getCurrentProject();
+                if (project == null) return FALSE;
+                try {
+                    File file = project.getFile(fileName);
+                    return booleanToDouble(file.exists() && file.isFile());
+                } catch (Exception e) { return FALSE; }
+            }
+            case FILE_EXISTS_IN_DIR: {
+                String fileName = String.valueOf(arg0);
+                String dirName = String.valueOf(arg1);
+                try {
+                    File downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+                    File dir = new File(downloadsDir, dirName);
+                    File file = new File(dir, fileName);
+                    return booleanToDouble(file.exists() && file.isFile());
+                } catch (Exception e) { return FALSE; }
+            }
+            case FILE_EXISTS_AT_PATH: {
+                String fileName = String.valueOf(arg0);
+                String path = String.valueOf(arg1);
+                try {
+                    File downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+                    File dir = new File(downloadsDir, path);
+                    File file = new File(dir, fileName);
+                    return booleanToDouble(file.exists() && file.isFile());
+                } catch (Exception e) { return FALSE; }
+            }
             case DEVICE_NAME:
                 return android.os.Build.MODEL != null ? android.os.Build.MODEL : "Unknown";
             case DEVICE_MANUFACTURER:
@@ -1041,7 +1099,9 @@ public class FormulaElement implements Serializable {
                         }
                     }
                     reader.close();
-                } catch (Exception e) { }
+                } catch (Exception e) {
+                    Log.e(TAG_FORMULA_ELEMENT, "Failed to read CPU info", e);
+                }
                 return "Unknown";
             }
             case CPU_ARCHITECTURE:
@@ -1056,6 +1116,29 @@ public class FormulaElement implements Serializable {
                     reader.close();
                     long khz = Long.parseLong(line != null ? line.trim() : "0");
                     return khz / 1000.0;
+                } catch (Exception e) { return 0.0; }
+            }
+            case CPU_FREQUENCY_MIN: {
+                try {
+                    java.io.RandomAccessFile reader = new java.io.RandomAccessFile("/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_min_freq", "r");
+                    String line = reader.readLine();
+                    reader.close();
+                    long khz = Long.parseLong(line != null ? line.trim() : "0");
+                    return khz / 1000.0;
+                } catch (Exception e) { return 0.0; }
+            }
+            case CPU_USAGE: {
+                try {
+                    java.io.RandomAccessFile reader = new java.io.RandomAccessFile("/proc/stat", "r");
+                    String line = reader.readLine();
+                    reader.close();
+                    if (line == null) return 0.0;
+                    String[] fields = line.trim().split("\\s+");
+                    if (fields.length < 5) return 0.0;
+                    long idle = Long.parseLong(fields[4]);
+                    long total = 0;
+                    for (int i = 1; i < fields.length; i++) total += Long.parseLong(fields[i]);
+                    return (double) (total - idle) * 100.0 / total;
                 } catch (Exception e) { return 0.0; }
             }
             case TOTAL_RAM: {
@@ -1076,6 +1159,15 @@ public class FormulaElement implements Serializable {
                     return mi.availMem / (1024.0 * 1024.0);
                 } catch (Exception e) { return 0.0; }
             }
+            case USED_RAM: {
+                try {
+                    android.app.ActivityManager.MemoryInfo mi = new android.app.ActivityManager.MemoryInfo();
+                    android.app.ActivityManager activityManager = (android.app.ActivityManager)
+                        CatroidApplication.getAppContext().getSystemService(android.content.Context.ACTIVITY_SERVICE);
+                    activityManager.getMemoryInfo(mi);
+                    return (mi.totalMem - mi.availMem) / (1024.0 * 1024.0);
+                } catch (Exception e) { return 0.0; }
+            }
             case TOTAL_STORAGE: {
                 try {
                     android.os.StatFs stat = new android.os.StatFs(android.os.Environment.getDataDirectory().getPath());
@@ -1086,6 +1178,14 @@ public class FormulaElement implements Serializable {
                 try {
                     android.os.StatFs stat = new android.os.StatFs(android.os.Environment.getDataDirectory().getPath());
                     return stat.getAvailableBlocksLong() * stat.getBlockSizeLong() / (1024.0 * 1024.0);
+                } catch (Exception e) { return 0.0; }
+            }
+            case USED_STORAGE: {
+                try {
+                    android.os.StatFs stat = new android.os.StatFs(android.os.Environment.getDataDirectory().getPath());
+                    long total = stat.getBlockCountLong() * stat.getBlockSizeLong();
+                    long free = stat.getAvailableBlocksLong() * stat.getBlockSizeLong();
+                    return (total - free) / (1024.0 * 1024.0);
                 } catch (Exception e) { return 0.0; }
             }
             case BATTERY_PERCENT: {
@@ -1175,7 +1275,9 @@ public class FormulaElement implements Serializable {
                             return (double) (down / 1000); // Mbps
                         }
                     }
-                } catch (Exception e) { }
+                } catch (Exception e) {
+                    Log.e(TAG_FORMULA_ELEMENT, "Failed to read network bandwidth", e);
+                }
                 return 0.0;
             }
             case LOCAL_IP: {
@@ -1192,7 +1294,9 @@ public class FormulaElement implements Serializable {
                             }
                         }
                     }
-                } catch (Exception e) { }
+                } catch (Exception e) {
+                    Log.e(TAG_FORMULA_ELEMENT, "Failed to read local IP", e);
+                }
                 return "Unknown";
             }
             case SCREEN_WIDTH: {
@@ -1236,6 +1340,44 @@ public class FormulaElement implements Serializable {
                     return (orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE)
                         ? "Landscape" : "Portrait";
                 } catch (Exception e) { return "Unknown"; }
+            }
+            case VOLUME_LEVEL: {
+                try {
+                    android.media.AudioManager audio = (android.media.AudioManager)
+                        CatroidApplication.getAppContext().getSystemService(android.content.Context.AUDIO_SERVICE);
+                    return (double) audio.getStreamVolume(android.media.AudioManager.STREAM_MUSIC);
+                } catch (Exception e) { return 0.0; }
+            }
+            case SCREEN_BRIGHTNESS: {
+                try {
+                    int brightness = android.provider.Settings.System.getInt(
+                            CatroidApplication.getAppContext().getContentResolver(),
+                            android.provider.Settings.System.SCREEN_BRIGHTNESS, 255);
+                    return (double) (brightness * 100.0 / 255.0);
+                } catch (Exception e) { return 0.0; }
+            }
+            case IS_IN_FOREGROUND: {
+                try {
+                    StageActivity activity = StageActivity.activeStageActivity != null ? StageActivity.activeStageActivity.get() : null;
+                    return booleanToDouble(activity != null && !activity.isFinishing());
+                } catch (Exception e) { return FALSE; }
+            }
+            case GPU_NAME: {
+                try {
+                    return com.badlogic.gdx.Gdx.graphics.getGLVersion().getRendererString();
+                } catch (Exception e) { return ""; }
+            }
+            case OPENGL_VERSION: {
+                try {
+                    return com.badlogic.gdx.Gdx.graphics.getGLVersion().getVersionString();
+                } catch (Exception e) { return ""; }
+            }
+            case VULKAN_SUPPORTED: {
+                try {
+                    android.content.pm.PackageManager pm = CatroidApplication.getAppContext().getPackageManager();
+                    boolean hasVulkan = pm.hasSystemFeature("android.hardware.vulkan");
+                    return booleanToDouble(hasVulkan);
+                } catch (Exception e) { return FALSE; }
             }
             case SPRITE_EXISTS: {
                 Scene scene = ProjectManager.getInstance().getCurrentlyPlayingScene();
@@ -1349,6 +1491,30 @@ public class FormulaElement implements Serializable {
                 float dx = s2.look.getXInUserInterfaceDimensionUnit() - s1.look.getXInUserInterfaceDimensionUnit();
                 float dy = s2.look.getYInUserInterfaceDimensionUnit() - s1.look.getYInUserInterfaceDimensionUnit();
                 return (double) Math.toDegrees(Math.atan2(dy, dx));
+            }
+            case ADMOB_IS_INITIALIZED:
+                return AdMobManager.isInitialized();
+            case ADMOB_IS_TEST_MODE:
+                return AdMobManager.isTestMode();
+            case ADMOB_IS_BANNER_LOADED:
+                return AdMobManager.isBannerLoaded();
+            case ADMOB_IS_INTERSTITIAL_LOADED:
+                return AdMobManager.isInterstitialLoaded();
+            case ADMOB_IS_REWARDED_LOADED:
+                return AdMobManager.isRewardedLoaded();
+            case ADMOB_IS_APP_OPEN_LOADED:
+                return AdMobManager.isAppOpenLoaded();
+            case ADMOB_LAST_ERROR_CODE:
+                return (double) AdMobManager.getLastErrorCode();
+            case ADMOB_LAST_ERROR_MESSAGE:
+                return AdMobManager.getLastErrorMessage();
+            case ADMOB_IS_GOOGLE_PLAY_SERVICES_AVAILABLE: {
+                Activity activity = StageActivity.activeStageActivity.get();
+                if (activity != null) {
+                    return AdMobManager.isGooglePlayServicesAvailable(activity);
+                } else {
+                    return false;
+                }
             }
             default:
                 return interpretFormulaFunction(function, arg0, arg1, arg2);

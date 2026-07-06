@@ -39,6 +39,7 @@ public class GoNStepsBackAction extends TemporalAction {
 
 	@Override
 	protected void update(float delta) {
+		if (scope == null) return;
 		Float stepsValue;
 		try {
 			stepsValue = steps == null ? Float.valueOf(0f) : steps.interpretFloat(scope);

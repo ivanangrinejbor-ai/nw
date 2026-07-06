@@ -37,6 +37,7 @@ public class MoveNStepsAction extends TemporalAction {
 
 	@Override
 	protected void update(float percent) {
+		if (scope == null) return;
 		try {
 			Double stepsValue = steps == null ? Double.valueOf(0d)
 					: steps.interpretDouble(scope);

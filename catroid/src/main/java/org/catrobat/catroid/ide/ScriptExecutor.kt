@@ -83,7 +83,6 @@ object ScriptExecutor {
     ) {
         Thread {
             try {
-                System.gc()
                 val projectDir = File(projectPath)
                 val srcDir = File(projectDir, "src")
                 val libraries = DependencyManager.getLibraries(projectPath)

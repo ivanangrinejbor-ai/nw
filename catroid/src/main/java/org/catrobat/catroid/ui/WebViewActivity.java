@@ -94,7 +94,7 @@ public class WebViewActivity extends AppCompatActivity {
 		setContentView(R.layout.activity_webview);
 
 		String url = getIntent().getStringExtra(INTENT_PARAMETER_URL);
-		if (url == null) {
+		if (url == null || !(url.startsWith("http://") || url.startsWith("https://"))) {
 			url = FlavoredConstants.BASE_URL_HTTPS;
 		}
 
@@ -104,6 +104,7 @@ public class WebViewActivity extends AppCompatActivity {
 		webView.setBackgroundColor(ResourcesCompat.getColor(getResources(), R.color.app_background, null));
 		webView.setWebViewClient(new MyWebViewClient());
 		webView.getSettings().setJavaScriptEnabled(true);
+		webView.getSettings().setAllowFileAccess(false);
 		String language = String.valueOf(Constants.CURRENT_CATROBAT_LANGUAGE_VERSION);
 		String flavor = Constants.FLAVOR_DEFAULT;
 		String version = Utils.getVersionName(getApplicationContext());

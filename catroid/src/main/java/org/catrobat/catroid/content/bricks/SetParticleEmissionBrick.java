@@ -5,6 +5,7 @@ import org.catrobat.catroid.content.actions.ScriptSequenceAction;
 import org.catrobat.catroid.formulaeditor.Formula;
 
 public class SetParticleEmissionBrick extends FormulaBrick {
+    private static final long serialVersionUID = 1L;
     public SetParticleEmissionBrick() {
         addAllowedBrickField(BrickField.OBJECT_ID, R.id.particle_obj_id);
         addAllowedBrickField(BrickField.EMISSION_RATE, R.id.particle_rate2);

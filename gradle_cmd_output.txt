@@ -1,0 +1,81 @@
+RETURN CODE: 0
+STDOUT:
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.7/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+
+> Configure project :catroid
+WARNING: The option 'android.enableBuildCache' is deprecated.
+The current default is 'false'.
+It was removed in version 7.0 of the Android Gradle plugin.
+The Android-specific build caches were superseded by the Gradle build cache (https://docs.gradle.org/current/userguide/build_cache.html).
+VersionCode is 130
+VersionName is 2.2.0
+WARNING: API 'variant.getJavaCompiler()' is obsolete and has been replaced with 'variant.getJavaCompileProvider()'.
+It will be removed in version 9.0 of the Android Gradle plugin.
+For more information, see https://d.android.com/r/tools/task-configuration-avoidance.
+To determine what is calling variant.getJavaCompiler(), use -Pandroid.debug.obsoleteApi=true on the command line to display more information.
+
+> Task :vncclient:preBuild UP-TO-DATE
+> Task :vncclient:preDebugBuild UP-TO-DATE
+> Task :catroid:checkKotlinGradlePluginConfigurationErrors
+> Task :lunoscript-processor:checkKotlinGradlePluginConfigurationErrors
+> Task :lunoscript-annotations:checkKotlinGradlePluginConfigurationErrors
+> Task :catroid:preBuild UP-TO-DATE
+> Task :catroid:preRuntimeDebugBuild UP-TO-DATE
+> Task :lunoscript-processor:processResources NO-SOURCE
+> Task :vncclient:generateDebugResValues UP-TO-DATE
+> Task :vncclient:generateDebugResources UP-TO-DATE
+> Task :vncclient:packageDebugResources UP-TO-DATE
+> Task :vncclient:writeDebugAarMetadata UP-TO-DATE
+> Task :vncclient:extractDeepLinksDebug UP-TO-DATE
+> Task :vncclient:processDebugManifest UP-TO-DATE
+> Task :vncclient:compileDebugLibraryResources UP-TO-DATE
+> Task :lunoscript-annotations:compileKotlin UP-TO-DATE
+> Task :lunoscript-annotations:compileJava NO-SOURCE
+> Task :lunoscript-annotations:processResources NO-SOURCE
+> Task :lunoscript-annotations:classes UP-TO-DATE
+> Task :vncclient:parseDebugLocalResources UP-TO-DATE
+> Task :lunoscript-annotations:jar UP-TO-DATE
+> Task :lunoscript-processor:kaptGenerateStubsKotlin UP-TO-DATE
+> Task :lunoscript-processor:kaptKotlin UP-TO-DATE
+> Task :lunoscript-processor:compileKotlin UP-TO-DATE
+> Task :lunoscript-processor:compileJava NO-SOURCE
+> Task :lunoscript-processor:classes UP-TO-DATE
+> Task :lunoscript-processor:jar UP-TO-DATE
+> Task :vncclient:generateDebugRFile UP-TO-DATE
+> Task :vncclient:checkKotlinGradlePluginConfigurationErrors
+> Task :vncclient:compileDebugKotlin UP-TO-DATE
+> Task :vncclient:javaPreCompileDebug UP-TO-DATE
+> Task :vncclient:compileDebugJavaWithJavac NO-SOURCE
+> Task :vncclient:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :catroid:dataBindingMergeDependencyArtifactsRuntimeDebug UP-TO-DATE
+> Task :catroid:generateRuntimeDebugResValues UP-TO-DATE
+> Task :catroid:generateRuntimeDebugResources UP-TO-DATE
+> Task :catroid:injectCrashlyticsMappingFileIdRuntimeDebug UP-TO-DATE
+> Task :catroid:processRuntimeDebugGoogleServices SKIPPED
+> Task :catroid:mergeRuntimeDebugResources UP-TO-DATE
+> Task :catroid:dataBindingGenBaseClassesRuntimeDebug UP-TO-DATE
+> Task :catroid:generateRuntimeDebugBuildConfig UP-TO-DATE
+> Task :catroid:checkRuntimeDebugAarMetadata UP-TO-DATE
+> Task :catroid:mapRuntimeDebugSourceSetPaths UP-TO-DATE
+> Task :catroid:createRuntimeDebugCompatibleScreenManifests UP-TO-DATE
+> Task :catroid:extractDeepLinksRuntimeDebug UP-TO-DATE
+> Task :catroid:processRuntimeDebugMainManifest UP-TO-DATE
+> Task :catroid:processRuntimeDebugManifest UP-TO-DATE
+> Task :catroid:processRuntimeDebugManifestForPackage UP-TO-DATE
+> Task :catroid:processRuntimeDebugResources UP-TO-DATE
+> Task :catroid:kaptGenerateStubsRuntimeDebugKotlin UP-TO-DATE
+> Task :catroid:kaptRuntimeDebugKotlin UP-TO-DATE
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.7/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 35s
+39 actionable tasks: 4 executed, 35 up-to-date
+
+STDERR:
+Warning: SDK processing. This version only understands SDK XML versions up to 3 but an SDK XML file of version 4 was encountered. This can happen if you use versions of Android Studio and the command-line tools that were released at different times.
+

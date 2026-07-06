@@ -111,23 +111,37 @@ public final class CastManager {
 		return INSTANCE;
 	}
 
-	public synchronized void initializeGamepadActivity(StageActivity gamepadActivity) { //TODO needs to be synced?
+	public synchronized void initializeGamepadActivity(StageActivity gamepadActivity) {
 		this.gamepadActivity = gamepadActivity;
-		initGamepadListeners();
+		if (gamepadActivity != null) {
+			initGamepadListeners();
+		}
+	}
+
+	public synchronized void clearGamepadActivity() {
+		this.gamepadActivity = null;
 	}
 
 	public synchronized void setIsConnected(boolean isConnected) {
-
-		int drawableId = isConnected ? R.drawable.ic_cast_connected_white : R.drawable.ic_cast_white;
-		castButton.setIcon(drawableId);
+		if (castButton != null) {
+			int drawableId = isConnected ? R.drawable.ic_cast_connected_white : R.drawable.ic_cast_white;
+			castButton.setIcon(drawableId);
+		}
 		this.isConnected = isConnected;
-		initializingActivity.invalidateOptionsMenu();
+		if (initializingActivity != null) {
+			initializingActivity.invalidateOptionsMenu();
+		}
 	}
 
 	public void startCastButtonAnimation() {
+		if (castButton == null) {
+			return;
+		}
 		int drawableId = R.drawable.animation_cast_button_connecting;
 		castButton.setIcon(drawableId);
-		((AnimationDrawable) castButton.getIcon()).start();
+		if (castButton.getIcon() instanceof AnimationDrawable) {
+			((AnimationDrawable) castButton.getIcon()).start();
+		}
 	}
 
 	public synchronized boolean isConnected() {
@@ -356,10 +370,12 @@ public final class CastManager {
 	}
 
 	public synchronized void onStageDestroyed() {
-		if (isConnected) {
+		if (isConnected && initializingActivity != null) {
 			setRemoteLayoutToIdleScreen(initializingActivity);
 		}
 		stageViewDisplayedOnCast = null;
+		gamepadActivity = null;
+		initializingActivity = null;
 		pausedView = null;
 		pausedScreenShowing = false;
 	}
@@ -457,7 +473,11 @@ public final class CastManager {
 
 
 
-			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+				notificationPendingIntent = PendingIntent.getActivity(activity, 0,
+						intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+			} else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+
 				notificationPendingIntent = PendingIntent.getActivity(activity, 0,
 						intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 			} else {

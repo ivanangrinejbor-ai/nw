@@ -65,7 +65,10 @@ class ListProjectFilesTask(listener: OnListProjectFilesListener) :
                     }
                     if (file.name.endsWith(Constants.CATROBAT_EXTENSION)
                         || file.name.endsWith(Constants.NEW_CATROBAT_EXTENSION)
-                        || file.name.endsWith(Constants.OLD_CATROBAT_EXTENSION)) {
+                        || file.name.endsWith(Constants.OLD_CATROBAT_EXTENSION)
+                        || file.name.endsWith(Constants.NPC_EXTENSION)
+                        || file.name.endsWith(".ncp")
+                        || file.name.endsWith(Constants.ZIP_EXTENSION)) {
                         projectFiles.add(file)
                     }
                 }

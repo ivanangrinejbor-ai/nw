@@ -1982,6 +1982,17 @@ public class SceneManager {
         }
     }
 
+    public void attachObjectToCamera(String objectId, float offsetX, float offsetY, float offsetZ) {
+        if (gameObjects.containsKey(objectId)) {
+            detachObjectFromCamera(objectId);
+            Matrix4 offset = new Matrix4();
+            offset.setTranslation(offsetX, offsetY, offsetZ);
+            cameraAttachments.add(new CameraAttachment(objectId, offset));
+        } else {
+            engine.attachObjectToCamera(objectId);
+        }
+    }
+
     public void detachObjectFromCamera(String objectId) {
         cameraAttachments.removeIf(a -> a.childId.equals(objectId));
         engine.detachObjectFromCamera(objectId);

@@ -234,23 +234,6 @@ public class MoveToObjectBrick extends FormulaBrick implements BrickSpinner.OnIt
         }
     }
 
-    private void writeObject(ObjectOutputStream out) throws IOException {
-        out.defaultWriteObject();
-        out.writeInt(avoidSet.size());
-        for (String s : avoidSet) {
-            out.writeObject(s);
-        }
-    }
-
-    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-        in.defaultReadObject();
-        int size = in.readInt();
-        avoidSet = new HashSet<>(size);
-        for (int i = 0; i < size; i++) {
-            avoidSet.add((String) in.readObject());
-        }
-    }
-
     @Override
     public void addActionToSequence(Sprite sprite, ScriptSequenceAction sequence) {
         sequence.addAction(sprite.getActionFactory()

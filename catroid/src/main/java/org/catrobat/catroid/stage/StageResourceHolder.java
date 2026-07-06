@@ -89,11 +89,23 @@ public class StageResourceHolder implements GatherCollisionInformationTask.OnPol
 	private Set<Integer> failedResources;
 
 	private StageActivity stageActivity;
-	private final SpeechRecognitionHolderFactory speechRecognitionHolderFactory = get(SpeechRecognitionHolderFactory.class);
+	private SpeechRecognitionHolderFactory speechRecognitionHolderFactory;
 
 	StageResourceHolder(final StageActivity stageActivity) {
 		this.stageActivity = stageActivity;
 		TouchUtil.reset();
+	}
+
+	private SpeechRecognitionHolderFactory getSpeechRecognitionHolderFactory() {
+		if (speechRecognitionHolderFactory == null) {
+			try {
+				speechRecognitionHolderFactory = get(SpeechRecognitionHolderFactory.class);
+			} catch (Exception e) {
+				Log.w(TAG, "SpeechRecognitionHolderFactory not available: " + e.getMessage());
+				return null;
+			}
+		}
+		return speechRecognitionHolderFactory;
 	}
 
 	@VisibleForTesting(otherwise = VisibleForTesting.PACKAGE_PRIVATE)
@@ -149,10 +161,15 @@ public class StageResourceHolder implements GatherCollisionInformationTask.OnPol
 		}
 
 		if (requiredResourcesSet.contains(Brick.TEXT_TO_SPEECH)) {
-			MobileServiceAvailability mobileServiceAvailability = get(MobileServiceAvailability.class);
-			if (mobileServiceAvailability.isGmsAvailable(stageActivity)) {
+			MobileServiceAvailability mobileServiceAvailability = null;
+			try {
+				mobileServiceAvailability = get(MobileServiceAvailability.class);
+			} catch (Exception e) {
+				Log.w(TAG, "MobileServiceAvailability not available: " + e.getMessage());
+			}
+			if (mobileServiceAvailability != null && mobileServiceAvailability.isGmsAvailable(stageActivity)) {
 				TextToSpeechHolder.Companion.getInstance().initTextToSpeech(stageActivity, this);
-			} else if (mobileServiceAvailability.isHmsAvailable(stageActivity)) {
+			} else if (mobileServiceAvailability != null && mobileServiceAvailability.isHmsAvailable(stageActivity)) {
 				HuaweiTextToSpeechHolder.Companion.getInstance().initTextToSpeech(stageActivity, this);
 			}
 		}
@@ -332,7 +349,8 @@ public class StageResourceHolder implements GatherCollisionInformationTask.OnPol
 		}
 
 		if (requiredResourcesSet.contains(Brick.SPEECH_RECOGNITION)) {
-			if (speechRecognitionHolderFactory.isRecognitionAvailable(stageActivity)) {
+			SpeechRecognitionHolderFactory factory = getSpeechRecognitionHolderFactory();
+			if (factory != null && factory.isRecognitionAvailable(stageActivity)) {
 				resourceInitialized();
 			} else {
 				resourceFailed(Brick.SPEECH_RECOGNITION);
@@ -356,7 +374,10 @@ public class StageResourceHolder implements GatherCollisionInformationTask.OnPol
 			Log.e(TAG, e.getMessage());
 		}
 		stageActivity.setupAskHandler();
-		speechRecognitionHolderFactory.getInstance().initSpeechRecognition(stageActivity, this);
+		SpeechRecognitionHolderFactory factory = getSpeechRecognitionHolderFactory();
+		if (factory != null) {
+			factory.getInstance().initSpeechRecognition(stageActivity, this);
+		}
 		Intent intent = new Intent(stageActivity, getClass());
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
 			int flags = PendingIntent.FLAG_IMMUTABLE | Intent.FLAG_ACTIVITY_SINGLE_TOP;

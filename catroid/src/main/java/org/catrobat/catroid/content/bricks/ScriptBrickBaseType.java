@@ -27,6 +27,8 @@ import java.util.List;
 
 public abstract class ScriptBrickBaseType extends BrickBaseType implements ScriptBrick {
 
+	private static final long serialVersionUID = 1L;
+
 	@Override
 	public void addToFlatList(List<Brick> bricks) {
 		super.addToFlatList(bricks);

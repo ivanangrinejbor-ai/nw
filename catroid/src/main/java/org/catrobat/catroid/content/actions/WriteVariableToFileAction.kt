@@ -88,7 +88,7 @@ class WriteVariableToFileAction : TemporalAction(), IntentListener {
     fun saveToFile(data: String, fileName: String) {
         val finalFileName = if (fileName.contains(".")) fileName else "$fileName.txt"
 
-        val downloadsPath = System.getProperty("user.home") + "/Downloads"
+        val downloadsPath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).absolutePath
         val file = File(downloadsPath, finalFileName)
 
         file.writeText(data)
