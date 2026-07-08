@@ -81,3 +81,55 @@ Gemfile
 
 # template APKs (generated at build time by copyTemplate* tasks)
 catroid/src/main/assets/template*.apk
+
+# Android Studio / Gradle / CMake / NDK build artifacts
+.cxx/
+CMakeFiles/
+.cmake/
+obj/
+externalNativeBuild/
+.externalNativeBuild/
+lib/
+
+# Ninja build artifacts
+*.ninja_log
+*.ninja_deps
+
+# CMake generated files
+compile_commands.json.bin
+configure_fingerprint.bin
+android_gradle_build.json
+android_gradle_build_mini.json
+app-classes.jar
+
+# Native object files and libraries
+*.o
+*.obj
+*.so
+*.a
+*.bin
+
+# Build logs and temp files in project root
+*.log
+hs_err_pid*.log
+replay_*.log
+cpu-perfetto-*.trace
+build_*.log
+assemble*.txt
+clean_compile*.txt
+compile_*.txt
+gradle_*.txt
+copy_template_*.txt
+build_output*.txt
+build_debug*.txt
+
+# Ignore all .bin files that are likely build artifacts
+# (but not if .bin is a legitimate asset — typically assets have specific names)
+*.bin
+
+# Kotlin/Java annotation/kapt generated dirs (sometimes not covered by build/)
+buildSrc/build/
+
+# KSP / KAPT generated files
+.ksp/
+.kotlin/
