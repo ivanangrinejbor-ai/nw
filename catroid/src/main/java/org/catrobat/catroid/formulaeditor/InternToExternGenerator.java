@@ -444,6 +444,8 @@ public class InternToExternGenerator {
         INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.INTERNET_TYPE.name(), R.string.formula_internet_type);
         INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.INTERNET_SPEED.name(), R.string.formula_internet_speed);
         INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.LOCAL_IP.name(), R.string.formula_local_ip);
+        INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.GET_STATUS_CODE.name(), R.string.formula_get_status_code);
+        INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.DOWNLOAD_PROGRESS.name(), R.string.formula_download_progress);
         INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.SCREEN_WIDTH.name(), R.string.formula_screen_width);
         INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.SCREEN_HEIGHT.name(), R.string.formula_screen_height);
         INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.SCREEN_DPI.name(), R.string.formula_screen_dpi);

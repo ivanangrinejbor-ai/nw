@@ -19,6 +19,7 @@ public class SetFogAction extends TemporalAction {
 
     @Override
     protected void update(float percent) {
+        if (scope == null) return;
         if (StageActivity.getActiveStageListener() == null || StageActivity.getActiveStageListener().getThreeDManager() == null) {
             return;
         }

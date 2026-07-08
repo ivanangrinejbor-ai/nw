@@ -33,6 +33,7 @@ import org.catrobat.catroid.content.bricks.Brick;
 import org.catrobat.catroid.content.bricks.SceneStartBrick;
 import org.catrobat.catroid.content.bricks.SceneTransitionBrick;
 import org.catrobat.catroid.io.StorageOperations;
+import org.catrobat.catroid.io.XstreamSerializer;
 import org.catrobat.catroid.physics.PhysicsWorld;
 import org.catrobat.catroid.ui.controller.BackpackListManager;
 import org.catrobat.catroid.ui.recyclerview.util.UniqueNameProvider;
@@ -137,6 +138,7 @@ public class SceneController {
 	public void delete(Scene sceneToDelete) throws IOException {
 		ProjectManager.getInstance().getCurrentProject().removeScene(sceneToDelete);
 		StorageOperations.deleteDir(sceneToDelete.getDirectory());
+		XstreamSerializer.getInstance().saveProject(ProjectManager.getInstance().getCurrentProject());
 	}
 
 	public Scene pack(Scene sceneToPack) throws IOException {

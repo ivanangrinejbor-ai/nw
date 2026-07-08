@@ -131,8 +131,7 @@ public final class Constants {
 	public static final String TEXT_TO_SPEECH_TMP_PATH = TMP_PATH + "/textToSpeech";
 
 	// Web:
-	// TODO: Configure MAIN_URL_PRODUCTION to a proper API endpoint for production builds
-	private static final String MAIN_URL_PRODUCTION = "https://t.me/NeoCatroidDevs";
+	private static final String MAIN_URL_PRODUCTION = "https://api.neo-catroid.org";
 	public static final String UPLOAD_URL = "https://upload.catrob.at";
 	private static final String WEB_TEST_URL = BuildConfig.WEB_TEST_URL;
 	public static final String MAIN_URL_HTTPS = BuildConfig.WEB_TEST_FLAG ? WEB_TEST_URL : MAIN_URL_PRODUCTION;

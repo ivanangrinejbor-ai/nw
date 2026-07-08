@@ -43,6 +43,7 @@ public class ThinkSayBubbleAction extends TemporalAction {
 
 	@Override
 	protected void update(float delta) {
+		if (scope == null) return;
 		ShowBubbleActor showBubbleActor;
 		try {
 			showBubbleActor = createBubbleActor(androidStringProvider);

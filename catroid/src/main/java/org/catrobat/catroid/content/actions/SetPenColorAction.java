@@ -41,6 +41,7 @@ public class SetPenColorAction extends TemporalAction {
 
 	@Override
 	protected void update(float delta) {
+		if (scope == null) return;
 		try {
 			int newRed = red == null ? 0 : red.interpretInteger(scope);
 			int newGreen = green == null ? 0 : green.interpretInteger(scope);

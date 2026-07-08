@@ -85,6 +85,7 @@ import org.catrobat.catroid.ui.recyclerview.adapter.RVAdapter
 import org.catrobat.catroid.ui.recyclerview.adapter.multiselection.MultiSelectionManager
 import org.catrobat.catroid.ui.recyclerview.viewholder.CheckableViewHolder
 import org.catrobat.catroid.ui.runtimepermissions.RequiresPermissionTask
+import org.catrobat.catroid.utils.FileMetaDataExtractor
 import org.catrobat.catroid.utils.ToastUtil
 import org.koin.android.ext.android.inject
 import java.io.File
@@ -648,6 +649,10 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
 
     fun checkForEmptyList() {
         if (adapter.items.isEmpty()) {
+            if (FileMetaDataExtractor.getProjectNames(FlavoredConstants.DEFAULT_ROOT_DIRECTORY).isNotEmpty()) {
+                setAdapterItems(adapter.projectsSorted)
+                return
+            }
             setShowProgressBar(true)
             if (projectManager.initializeDefaultProject()) {
                 setAdapterItems(adapter.projectsSorted)
@@ -909,6 +914,11 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
                 adapter.notifyDataSetChanged()
 
                 if (adapter.items.isEmpty()) {
+                    if (FileMetaDataExtractor.getProjectNames(FlavoredConstants.DEFAULT_ROOT_DIRECTORY).isNotEmpty()) {
+                        setAdapterItems(adapter.projectsSorted)
+                        setShowProgressBar(false)
+                        return@withContext
+                    }
                     if (projectManager.initializeDefaultProject()) {
                         updateAdapterAsync()
                     } else {

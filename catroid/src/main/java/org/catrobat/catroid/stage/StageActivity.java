@@ -767,6 +767,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 
 		WebView webView = new WebView(this);
 		webView.getSettings().setJavaScriptEnabled(true);
+		webView.getSettings().setAllowFileAccess(false);
 		webView.addJavascriptInterface(new WebAppInterface(viewId), "Android");
 
 		webView.setBackgroundColor(Color.TRANSPARENT);
@@ -938,6 +939,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 
 		WebView webView = new WebView(this);
 		webView.getSettings().setJavaScriptEnabled(true);
+		webView.getSettings().setAllowFileAccess(false);
 		webView.addJavascriptInterface(new WebAppInterface(viewId), "Android");
 		webView.getSettings().setDomStorageEnabled(true);
 		webView.setBackgroundColor(Color.TRANSPARENT);
@@ -1540,6 +1542,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 
 		RunJSAction.Companion.destroyWebView();
 		messageHandler = null;
+		MyActivityManager.Companion.clearActivity(this);
 
 		super.onDestroy();
 	}
@@ -1628,7 +1631,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 	}
 
 
-	private void broadcastEventToAllSprites(EventId eventId) {
+	public void broadcastEventToAllSprites(EventId eventId) {
 		Scene scene = ProjectManager.getInstance().getCurrentlyPlayingScene();
 		if (scene == null) {
 			return;

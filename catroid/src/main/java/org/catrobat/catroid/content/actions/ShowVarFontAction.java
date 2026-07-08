@@ -97,6 +97,7 @@ public class ShowVarFontAction extends TemporalAction {
 
     @Override
     protected void update(float percent) {
+        if (scope == null) return;
         try {
             int xPosition = this.xPosition.interpretInteger(scope);
             int yPosition = this.yPosition.interpretInteger(scope);

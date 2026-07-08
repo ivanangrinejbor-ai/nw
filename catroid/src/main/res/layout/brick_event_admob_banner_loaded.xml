@@ -9,8 +9,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
     <org.catrobat.catroid.ui.BrickLayout
-        style="@style/BrickContainer.AdMob.Small">
-        <include layout="@layout/icon_brick_category_admob" />
+        style="@style/BrickContainer.Event.Small">
+        <include layout="@layout/icon_brick_category_event" />
         <TextView
             style="@style/BrickText.SingleLine"
             android:text="@string/brick_event_admob_banner_loaded" />

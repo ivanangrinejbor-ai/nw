@@ -46,6 +46,7 @@ public class PhiroPlayToneAction extends TemporalAction {
 
 	@Override
 	protected void update(float percent) {
+		if (scope == null) return;
 		int durationInterpretation;
 
 		try {

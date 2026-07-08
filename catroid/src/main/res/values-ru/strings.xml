@@ -531,6 +531,7 @@
     <string name="subcategory_event_cloning">Клонирование</string>
     <string name="subcategory_event_system">Системные</string>
     <string name="subcategory_event_notifications">Уведомления</string>
+    <string name="subcategory_event_admob">Реклама</string>
 
     <string name="subcategory_control_waiting">Ожидание и задержки</string>
     <string name="subcategory_control_loops">Циклы</string>
@@ -621,6 +622,8 @@
     <string name="formula_internet_type" formatted="false">Интернет_тип</string>
     <string name="formula_internet_speed" formatted="false">Интернет_скорость</string>
     <string name="formula_local_ip" formatted="false">Локальный_IP</string>
+    <string name="formula_get_status_code" formatted="false">Получить_код_статуса</string>
+    <string name="formula_download_progress" formatted="false">Прогресс_загрузки</string>
     <string name="formula_screen_width" formatted="false">Экран_ширина</string>
     <string name="formula_screen_height" formatted="false">Экран_высота</string>
     <string name="formula_screen_dpi" formatted="false">Экран_DPI</string>
@@ -1094,6 +1097,7 @@
     <string formatted="false" name="notification_importance_high">Высокая</string>
     <string formatted="false" name="notification_importance_max">Максимальная</string>
     <string formatted="false" name="brick_notification_action">Кнопка уведомления</string>
+    <string formatted="false" name="brick_notification_action_notification_id">ID уведомления</string>
     <string formatted="false" name="brick_notification_action_id">ID действия</string>
     <string formatted="false" name="brick_notification_action_text">Текст кнопки</string>
     <string formatted="false" name="brick_notification_action_icon">Иконка</string>
@@ -2091,6 +2095,23 @@
     <string formatted="false" name="options_web_request_var">и сохранить методы в</string>
     <string formatted="false" name="brick_show_toast2"></string>
     <string formatted="false" name="brick_show_toast">Показать тост</string>
+    <string formatted="false" name="brick_websocket_connect">WebSocket подключиться</string>
+    <string formatted="false" name="brick_websocket_connect_url">к URL</string>
+    <string formatted="false" name="brick_websocket_send">WebSocket отправить</string>
+    <string formatted="false" name="brick_websocket_send_message">сообщение</string>
+    <string formatted="false" name="brick_websocket_receive">WebSocket получить</string>
+    <string formatted="false" name="brick_websocket_receive_variable">сохранить в</string>
+    <string formatted="false" name="brick_websocket_close">WebSocket закрыть</string>
+    <string formatted="false" name="brick_download_file">Скачать файл</string>
+    <string formatted="false" name="brick_download_file_url">с URL</string>
+    <string formatted="false" name="brick_download_file_name">сохранить как</string>
+    <string formatted="false" name="brick_download_to_path">Скачать по пути</string>
+    <string formatted="false" name="brick_download_to_path_url">с URL</string>
+    <string formatted="false" name="brick_download_to_path_label">в путь</string>
+    <string formatted="false" name="brick_cancel_download">Отменить скачивание</string>
+    <string formatted="false" name="brick_ping">Ping</string>
+    <string formatted="false" name="brick_ping2">хост</string>
+    <string formatted="false" name="brick_ping3">сохранить результат в</string>
     <string formatted="false" name="category_plot">Чертежи</string>
     <string formatted="false" name="category_neural">Нейросети</string>
     <string formatted="false" name="category_threed">3D</string>
@@ -2447,6 +2468,11 @@
     <string formatted="false" name="screen_size">Размер сцены:</string>
     <string formatted="false" name="mode">Режим:</string>
     <string formatted="false" name="remix_of">Ремикс программы:</string>
+    <string formatted="false" name="details_blocks_count">Всего блоков:</string>
+    <string formatted="false" name="details_sprites_count">Всего спрайтов:</string>
+    <string formatted="false" name="details_sounds_count">Всего звуков:</string>
+    <string formatted="false" name="details_scenes_count">Всего сцен:</string>
+    <string formatted="false" name="details_counting">Подсчёт…</string>
     <string formatted="false" name="description_hint">Нажмите, чтобы добавить описание</string>
     <string formatted="false" name="notes_and_credits_hint">Нажмите, чтобы добавить примечания и авторов</string>
     <!-- ScratchReconvertDialog Strings -->
@@ -4577,4 +4603,10 @@
     <string name="formula_admob_last_error_code">Посл. код ошибки AdMob</string>
     <string name="formula_admob_last_error_message">Посл. сообщ. ошибки AdMob</string>
     <string name="formula_admob_is_google_play_services_available">Google Play Services доступны</string>
+    <string formatted="false" name="brick_notification_action_behavior">Поведение</string>
+    <string formatted="false" name="brick_notification_action_has_input">С вводом</string>
+    <string formatted="false" name="notification_action_launch_app">Открыть приложение</string>
+    <string formatted="false" name="notification_action_background">Фон</string>
+    <string formatted="false" name="notification_action_silent">Без звука</string>
+    <string formatted="false" name="notification_action_input">С вводом</string>
 </resources>

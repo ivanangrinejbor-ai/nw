@@ -77,7 +77,7 @@ abstract class BaseActivity : AppCompatActivity(), PermissionHandlingActivity {
     }
 
     override fun onDestroy() {
-        MyActivityManager.base_activity = null
+        MyActivityManager.clearActivity(this)
         try {
             MainMenuActivity.pythonEngine?.shutdown()
         } catch (e: Exception) {

@@ -261,14 +261,29 @@ class ColorAtXYDetection(
         } else {
             bitmap.getPixel(bitmapXCoordinatePortrait, bitmapYCoordinatePortrait)
         }
-        return argbColorToRGBHexString(Color(bitmapPixel))
+        // Android Bitmap.getPixel() returns an ARGB int, while libGDX Color(int)
+        // interprets the int as RGBA (swapping A and B). Extract the ARGB channels
+        // explicitly and build a correctly-ordered libGDX Color (RGBA).
+        val color = Color(
+            ((bitmapPixel shr 16) and 0xFF) / 255f,
+            ((bitmapPixel shr 8) and 0xFF) / 255f,
+            (bitmapPixel and 0xFF) / 255f,
+            ((bitmapPixel shr 24) and 0xFF) / 255f
+        )
+        return argbColorToRGBHexString(color)
     }
 
     private fun rgbaColorToRGBHexString(color: Color): String =
         COLOR_HEX_PREFIX + color.toString().substring(RGBA_START_INDEX, RGBA_END_INDEX)
 
-    private fun argbColorToRGBHexString(color: Color): String =
-        COLOR_HEX_PREFIX + color.toString().substring(ARGB_START_INDEX, ARGB_END_INDEX)
+    private fun argbColorToRGBHexString(color: Color): String {
+        // Build the hex string directly from the float components so we always get the
+        // correct "#RRGGBB" regardless of Color.toString()'s ("RRGGBBAA") format.
+        val r = (color.r * 255).roundToInt().coerceIn(0, 255)
+        val g = (color.g * 255).roundToInt().coerceIn(0, 255)
+        val b = (color.b * 255).roundToInt().coerceIn(0, 255)
+        return COLOR_HEX_PREFIX + String.format("%02X%02X%02X", r, g, b)
+    }
 
     private fun convertStageToBitmapCoordinate(
         position: Int,

@@ -48,6 +48,7 @@ public class PhiroMotorMoveForwardAction extends TemporalAction {
 
 	@Override
 	protected void update(float percent) {
+		if (scope == null) return;
 		int speedValue;
 		try {
 			speedValue = speed.interpretInteger(scope);

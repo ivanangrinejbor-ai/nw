@@ -39,7 +39,7 @@ class ShowScheduledNotificationAction : TemporalAction() {
 
             if (delaySec <= 0) {
                 showNotification(activity, id)
-                NotificationStorage.remove(id)
+                NotificationStorage.removeNotification(id)
             } else {
                 val alarmManager = activity.getSystemService(Context.ALARM_SERVICE) as AlarmManager
                 val scheduleIntent = Intent(activity, NotificationEventReceiver::class.java)
@@ -57,6 +57,7 @@ class ShowScheduledNotificationAction : TemporalAction() {
     }
 
     companion object {
+        @JvmStatic
         fun showNotification(context: Context, id: Int) {
             val data = NotificationStorage.get(id) ?: return
             val actions = NotificationStorage.getActions(id)

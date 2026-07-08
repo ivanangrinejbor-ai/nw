@@ -39,6 +39,7 @@ public class TurnLeftSpeedAction extends TemporalAction {
 
 	@Override
 	protected void update(float percent) {
+		if (scope == null) return;
 		Float newSpeed;
 		try {
 			newSpeed = speed == null ? Float.valueOf(0f) : speed.interpretFloat(scope);

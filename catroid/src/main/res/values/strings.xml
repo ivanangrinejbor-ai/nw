@@ -539,6 +539,7 @@
     <string name="subcategory_event_cloning">Cloning</string>
     <string name="subcategory_event_system">System</string>
     <string name="subcategory_event_notifications">Notifications</string>
+    <string name="subcategory_event_admob">AdMob</string>
 
     <string name="subcategory_motion_coordinates">Coordinates &amp; Sliding</string>
     <string name="subcategory_motion_rotation">Rotation &amp; Direction</string>
@@ -621,6 +622,8 @@
     <string name="formula_internet_type" formatted="false">Internet_type</string>
     <string name="formula_internet_speed" formatted="false">Internet_speed</string>
     <string name="formula_local_ip" formatted="false">Local_ip</string>
+    <string name="formula_get_status_code" formatted="false">Get_status_code</string>
+    <string name="formula_download_progress" formatted="false">Download_progress</string>
     <string name="formula_screen_width" formatted="false">Screen_width</string>
     <string name="formula_screen_height" formatted="false">Screen_height</string>
     <string name="formula_screen_dpi" formatted="false">Screen_dpi</string>
@@ -1132,6 +1135,7 @@
     <string formatted="false" name="notification_importance_high">High</string>
     <string formatted="false" name="notification_importance_max">Max</string>
     <string formatted="false" name="brick_notification_action">Notification button</string>
+    <string formatted="false" name="brick_notification_action_notification_id">Notification ID</string>
     <string formatted="false" name="brick_notification_action_id">Action ID</string>
     <string formatted="false" name="brick_notification_action_text">Button text</string>
     <string formatted="false" name="brick_notification_action_icon">Icon</string>
@@ -2161,6 +2165,23 @@
     <string formatted="false" name="options_web_request_var">and store allowed methods in</string>
     <string formatted="false" name="brick_show_toast2"></string>
     <string formatted="false" name="brick_show_toast">Show toast</string>
+    <string formatted="false" name="brick_websocket_connect">WebSocket connect</string>
+    <string formatted="false" name="brick_websocket_connect_url">to URL</string>
+    <string formatted="false" name="brick_websocket_send">WebSocket send</string>
+    <string formatted="false" name="brick_websocket_send_message">message</string>
+    <string formatted="false" name="brick_websocket_receive">WebSocket receive</string>
+    <string formatted="false" name="brick_websocket_receive_variable">store in</string>
+    <string formatted="false" name="brick_websocket_close">WebSocket close</string>
+    <string formatted="false" name="brick_download_file">Download file</string>
+    <string formatted="false" name="brick_download_file_url">from URL</string>
+    <string formatted="false" name="brick_download_file_name">save as</string>
+    <string formatted="false" name="brick_download_to_path">Download to path</string>
+    <string formatted="false" name="brick_download_to_path_url">from URL</string>
+    <string formatted="false" name="brick_download_to_path_label">to path</string>
+    <string formatted="false" name="brick_cancel_download">Cancel download</string>
+    <string formatted="false" name="brick_ping">Ping</string>
+    <string formatted="false" name="brick_ping2">host</string>
+    <string formatted="false" name="brick_ping3">store result in</string>
     <string formatted="false" name="stage">Stage</string>
     <string formatted="false" name="play">Play</string>
     <string formatted="false" name="settings">Settings</string>
@@ -2504,6 +2525,11 @@
     <string formatted="false" name="screen_size">Stage size:</string>
     <string formatted="false" name="mode">Mode:</string>
     <string formatted="false" name="remix_of">Remix of:</string>
+    <string formatted="false" name="details_blocks_count">Total blocks:</string>
+    <string formatted="false" name="details_sprites_count">Total sprites:</string>
+    <string formatted="false" name="details_sounds_count">Total sounds:</string>
+    <string formatted="false" name="details_scenes_count">Total scenes:</string>
+    <string formatted="false" name="details_counting">Counting…</string>
     <string formatted="false" name="description_hint">Press to add description</string>
     <string formatted="false" name="notes_and_credits_hint">Press to add notes and credits</string>
 
@@ -4639,6 +4665,7 @@ needs read and write access to it. You can always change permissions through you
 
     <!-- AdMob -->
     <string name="category_admob">AdMob</string>
+    <string name="admob_application_id">ca-app-pub-3940256099942544~3347511713</string>
     <string name="brick_admob_enable_test_mode">Enable test mode</string>
     <string name="brick_admob_set_app_id">Set App ID</string>
     <string name="brick_admob_initialize">Init AdMob</string>

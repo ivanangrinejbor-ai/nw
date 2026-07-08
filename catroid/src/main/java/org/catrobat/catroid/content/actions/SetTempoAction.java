@@ -38,6 +38,7 @@ public class SetTempoAction extends TemporalAction {
 
 	@Override
 	protected void update(float delta) {
+		if (scope == null) return;
 		try {
 			int newTempo = tempo == null ? Integer.valueOf(0) : tempo.interpretInteger(scope);
 			MidiSoundManager.getInstance().setTempo(newTempo);

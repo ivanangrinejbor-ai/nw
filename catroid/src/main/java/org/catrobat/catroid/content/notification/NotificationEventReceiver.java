@@ -31,7 +31,7 @@ public class NotificationEventReceiver extends BroadcastReceiver {
             replyText = remoteInput.getString("reply_text");
         }
 
-        NotificationStorage.setEventData(notificationId, actionId, replyText, buttonText);
+        NotificationStorage.INSTANCE.setEventData(notificationId, String.valueOf(actionId), buttonText, replyText);
 
         String action = intent.getAction();
 
@@ -49,13 +49,13 @@ public class NotificationEventReceiver extends BroadcastReceiver {
             int nid = intent.getIntExtra(EXTRA_NOTIFICATION_ID, -1);
             if (nid != -1) {
                 ShowScheduledNotificationAction.showNotification(context, nid);
-                NotificationStorage.remove(nid);
+                NotificationStorage.removeNotification(nid);
             }
             broadcastEvent(EventId.NOTIFICATION_SHOWN);
         }
     }
 
-    private void broadcastEvent(int eventId) {
+    public void broadcastEvent(int eventId) {
         StageActivity stage = StageActivity.activeStageActivity.get();
         if (stage != null) {
             stage.broadcastEventToAllSprites(new EventId(eventId));

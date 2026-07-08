@@ -1063,10 +1063,15 @@ class ProjectOptionsFragment : Fragment() {
 
 
     fun unzip(inputStream: InputStream, outDir: File) {
+        val outCanonical = outDir.canonicalPath
         ZipInputStream(inputStream).use { zis ->
             var entry: ZipEntry?
             while (zis.nextEntry.also { entry = it } != null) {
                 val file = File(outDir, entry!!.name)
+                if (!file.canonicalPath.startsWith(outCanonical + File.separator)) {
+                    zis.closeEntry()
+                    continue
+                }
                 if (entry!!.isDirectory) {
                     file.mkdirs()
                 } else {

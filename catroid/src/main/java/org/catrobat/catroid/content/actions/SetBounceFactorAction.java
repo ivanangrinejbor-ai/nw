@@ -39,6 +39,7 @@ public class SetBounceFactorAction extends TemporalAction {
 
 	@Override
 	protected void update(float percent) {
+		if (scope == null) return;
 		Float newBounceFactor;
 		try {
 			newBounceFactor = bounceFactor == null ? Float.valueOf(0f)

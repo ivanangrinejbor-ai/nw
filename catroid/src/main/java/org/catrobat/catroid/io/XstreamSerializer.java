@@ -83,7 +83,7 @@ import org.catrobat.catroid.content.scripts.AdmobRewardedLoadedScript;
 import org.catrobat.catroid.content.scripts.AdmobRewardedRewardScript;
 import org.catrobat.catroid.content.scripts.AdmobRewardedShownScript;
 import org.catrobat.catroid.content.actions.AskGPTAction;
-import org.catrobat.catroid.content.actions.ShowTextFontAction;
+import org.catrobat.catroid.content.bricks.ShowTextFontBrick;
 import org.catrobat.catroid.content.backwardcompatibility.LegacyDataContainer;
 import org.catrobat.catroid.content.backwardcompatibility.LegacyProjectWithoutScenes;
 import org.catrobat.catroid.content.backwardcompatibility.ProjectMetaDataParser;
@@ -152,6 +152,30 @@ public final class XstreamSerializer {
 
 		//xstream.registerConverter(new FormulaListConverter());
 
+		// Deny-by-default: запрещаем опасные системные пакеты для предотвращения RCE
+		xstream.denyTypesByWildcard(new String[] {
+			"java.lang.reflect.**",
+			"java.beans.**",
+			"java.rmi.**",
+			"sun.reflect.**",
+			"javax.script.**",
+			"javax.tools.**",
+			"java.lang.ProcessBuilder",
+			"java.lang.Runtime",
+			"java.lang.reflect.Proxy",
+			"java.net.URL",
+			"java.net.URI",
+			"javax.xml.**",
+			"org.xml.sax.**",
+			"org.dom4j.**",
+			"com.sun.**",
+			"org.mozilla.javascript.**",
+			"org.python.**",
+			"org.jruby.**",
+			"org.codehaus.groovy.**",
+			"bsh.**",
+		});
+
 		xstream.allowTypesByWildcard(new String[] {"org.catrobat.catroid.**"});
 
 		xstream.processAnnotations(projectClass);
@@ -201,7 +225,6 @@ public final class XstreamSerializer {
 		xstream.omitField(HideTextBrick.class, "formulaList");
 		xstream.omitField(HideTextBrick.class, "userDataList");
 
-		xstream.omitField(SayBubbleBrick.class, "type");
 		xstream.omitField(SayBubbleBrick.class, "type");
 
 		xstream.omitField(ThinkBubbleBrick.class, "type");
@@ -419,7 +442,6 @@ public final class XstreamSerializer {
 		xstream.alias("brick", ExportProjectFileBrick.class);
 		xstream.alias("brick", LoadNativeModuleBrick.class);
 		xstream.alias("brick", LoadPythonLibraryBrick.class);
-		xstream.alias("brick", LoadPythonLibraryBrick.class);
 		xstream.alias("brick", ClearPythonEnvironmentBrick.class);
 		xstream.alias("brick", Remove3dObjectBrick.class);
 		xstream.alias("brick", SetCameraPositionBrick.class);
@@ -448,7 +470,15 @@ public final class XstreamSerializer {
 		xstream.alias("brick", CreateVarBrick.class);
 		xstream.alias("brick", DeleteVarBrick.class);
 		xstream.alias("brick", DeleteVarsBrick.class);
-		xstream.alias("brick", ShowToastBlock.class);
+		xstream.alias("brick", ShowToastBrick.class);
+		xstream.alias("brick", WebSocketConnectBrick.class);
+		xstream.alias("brick", WebSocketSendBrick.class);
+		xstream.alias("brick", WebSocketReceiveBrick.class);
+		xstream.alias("brick", WebSocketCloseBrick.class);
+		xstream.alias("brick", DownloadFileBrick.class);
+		xstream.alias("brick", DownloadToPathBrick.class);
+		xstream.alias("brick", CancelDownloadBrick.class);
+		xstream.alias("brick", PingBrick.class);
 		xstream.alias("brick", SplitBrick.class);
 		xstream.alias("brick", CreateTableBrick.class);
 		xstream.alias("brick", InsertTableBrick.class);
@@ -751,7 +781,6 @@ public final class XstreamSerializer {
 		xstream.alias("brick", UnzipBrick.class);
 		xstream.alias("brick", GetZipFileNamesBrick.class);
 		xstream.alias("brick", ShowText3Brick.class);
-		xstream.alias("brick", ShowTextFontAction.class);
 		xstream.alias("brick", HideText3Brick.class);
 		xstream.alias("brick", StitchBrick.class);
 		xstream.alias("brick", RunningStitchBrick.class);
@@ -789,17 +818,34 @@ public final class XstreamSerializer {
 		xstream.alias("brick", NoneBrick.class);
 
         xstream.alias("brick", org.catrobat.catroid.content.bricks.UnknownBrick.class);
+        xstream.alias("brick", AttachToCameraWithOffsetBrick.class);
+        xstream.alias("brick", CopyProjectFileToFolderBrick.class);
+        xstream.alias("brick", CopyProjectFileToPathBrick.class);
+        xstream.alias("brick", CreateFolderBrick.class);
+        xstream.alias("brick", CreateFolderByPathBrick.class);
+        xstream.alias("brick", CreateParticleSystemBrick.class);
+        xstream.alias("brick", DeleteCloneByNumberBrick.class);
+        xstream.alias("brick", DeleteFolderBrick.class);
+        xstream.alias("brick", DeleteFolderByPathBrick.class);
+        xstream.alias("brick", EnableDynamicReplanningBrick.class);
+        xstream.alias("brick", ExecuteForCloneNumberBrick.class);
+        xstream.alias("brick", NotificationActionBrick.class);
+        xstream.alias("brick", PrepareNotificationBrick.class);
         xstream.alias("brick", PutFileIntoFolderBrick.class);
         xstream.alias("brick", PutFileIntoPathBrick.class);
-        xstream.alias("brick", ExecuteForCloneNumberBrick.class);
-        xstream.alias("brick", DeleteCloneByNumberBrick.class);
-        xstream.alias("brick", TouchDirectionBrick.class);
-        xstream.alias("brick", NotificationActionBrick.class);
+        xstream.alias("brick", SavePlotBrick.class);
+        xstream.alias("brick", SendNotificationBrick.class);
         xstream.alias("brick", ShowScheduledNotificationBrick.class);
+        xstream.alias("brick", SmoothPathBrick.class);
+        xstream.alias("brick", StartPlotBrick.class);
+        xstream.alias("brick", StopPlotBrick.class);
+        xstream.alias("brick", TimerBrick.class);
+        xstream.alias("brick", TouchDirectionBrick.class);
+        xstream.alias("brick", TweenPositionBrick.class);
         xstream.alias("brick", WhenNotificationActionClickedBrick.class);
+        xstream.alias("brick", WhenNotificationDismissedBrick.class);
         xstream.alias("brick", WhenNotificationReplyBrick.class);
         xstream.alias("brick", WhenNotificationShownBrick.class);
-        xstream.alias("brick", WhenNotificationDismissedBrick.class);
 
         xstream.alias("brick", AdmobEnableTestModeBrick.class);
         xstream.alias("brick", AdmobSetAppIdBrick.class);

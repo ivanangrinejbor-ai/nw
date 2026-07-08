@@ -48,8 +48,9 @@ public class Fast2DRenderSystem extends BaseEntitySystem {
     @Override
     protected void processSystem() {
         IntBag activeEntities = getSubscription().getEntities();
-        int[] ids = activeEntities.getData();
         int size = activeEntities.size();
+        int[] ids = new int[size];
+        System.arraycopy(activeEntities.getData(), 0, ids, 0, size);
 
         if (needSort && size > 1) {
             insertionSort(ids, size);

@@ -61,7 +61,7 @@ public final class NfcHandler {
 			return;
 		}
 
-		Tag tagFromIntent = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
+		Tag tagFromIntent = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG, Tag.class);
 		if (tagFromIntent != null) {
 			lastTag = tagFromIntent;
 		}
@@ -179,7 +179,7 @@ public final class NfcHandler {
 		if (NfcAdapter.ACTION_TAG_DISCOVERED.equals(intent.getAction())
 				|| NfcAdapter.ACTION_NDEF_DISCOVERED.equals(intent.getAction())
 				|| NfcAdapter.ACTION_TECH_DISCOVERED.equals(intent.getAction())) {
-			Parcelable[] rawMsgs = intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES);
+			Parcelable[] rawMsgs = intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES, Parcelable.class);
 			if (rawMsgs != null) {
 				try {
 					NdefMessage[] messages = new NdefMessage[rawMsgs.length];

@@ -51,6 +51,7 @@ public class GlideToAction extends TemporalAction {
 
 	@Override
 	protected void begin() {
+		if (scope == null) return;
 		Float durationInterpretation;
 		Float endXInterpretation = 0f;
 		Float endYInterpretation = 0f;
@@ -106,6 +107,7 @@ public class GlideToAction extends TemporalAction {
 
 	@Override
 	protected void update(float percent) {
+		if (scope == null) return;
 		float deltaX = scope.getSprite().look.getXInUserInterfaceDimensionUnit() - currentXValue;
 		float deltaY = scope.getSprite().look.getYInUserInterfaceDimensionUnit() - currentYValue;
 		if ((-0.1f > deltaX || deltaX > 0.1f) || (-0.1f > deltaY || deltaY > 0.1f)) {
@@ -121,6 +123,7 @@ public class GlideToAction extends TemporalAction {
 
 	@Override
 	protected void end() {
+		if (scope == null) return;
 		scope.getSprite().setGliding(false);
 		scope.getSprite().setGlidingVelocityX(0);
 		scope.getSprite().setGlidingVelocityY(0);

@@ -31,6 +31,7 @@ public class WaitForBubbleBrickAction extends WaitAction {
 
 	@Override
 	protected void end() {
+		if (scope == null) return;
 		if (StageActivity.getActiveStageListener().getBubbleActorForSprite(scope.getSprite()) != null) {
 			StageActivity.getActiveStageListener().removeBubbleActorForSprite(scope.getSprite());
 		}

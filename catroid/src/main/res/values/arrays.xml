@@ -291,7 +291,6 @@
         <item>@string/formula_editor_function_arcsin</item>
         <item>@string/formula_editor_function_arctan</item>
         <item>@string/formula_editor_function_arctan2</item>
-        <item>@string/formula_editor_function_arctan2</item>
         <item>@string/formula_editor_function_arduino_read_pin_value_analog</item>
         <item>@string/formula_editor_function_arduino_read_pin_value_digital</item>
         <item>@string/formula_editor_function_ceil</item>
@@ -453,6 +452,8 @@
         <item>@string/formula_editor_object_x_velocity</item>
         <item>@string/formula_editor_object_y</item>
         <item>@string/formula_editor_object_y_velocity</item>
+        <item>@string/formula_get_status_code</item>
+        <item>@string/formula_download_progress</item>
     </string-array>
 
 </resources>

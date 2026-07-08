@@ -29,9 +29,9 @@ import org.catrobat.catroid.content.bricks.Brick.BrickField
 import org.catrobat.catroid.formulaeditor.Formula
 
 class SetBackgroundByIndexBrick : FormulaBrick {
-    constructor()
+    constructor() : this(Formula(0))
     constructor(index: Int) : this(Formula(index))
-    constructor(formula: Formula) {
+    constructor(formula: Formula) : super() {
         setFormulaWithBrickField(BrickField.BACKGROUND_INDEX, formula)
     }
 

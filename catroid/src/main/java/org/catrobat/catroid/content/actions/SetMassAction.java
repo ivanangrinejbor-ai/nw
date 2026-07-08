@@ -39,6 +39,7 @@ public class SetMassAction extends TemporalAction {
 
 	@Override
 	protected void update(float percent) {
+		if (scope == null) return;
 		Float newMass;
 		try {
 			newMass = mass == null ? Float.valueOf(0f) : mass.interpretFloat(scope);

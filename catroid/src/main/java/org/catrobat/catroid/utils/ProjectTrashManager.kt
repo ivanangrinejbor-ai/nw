@@ -45,7 +45,7 @@ object ProjectTrashManager {
             if (!success) {
                 Log.w(TAG, "renameTo failed, using manual copy-and-delete fallback")
                 StorageOperations.copyDir(projectDir, targetDir)
-                StorageOperations.deleteDir(projectDir)
+                deleteDirBestEffort(projectDir)
                 success = true
             }
             success
@@ -53,6 +53,13 @@ object ProjectTrashManager {
             Log.e(TAG, "Failed to move project to trash: ${projectDir.name}", e)
             false
         }
+    }
+
+    private fun deleteDirBestEffort(dir: File) {
+        dir.listFiles()?.forEach { file ->
+            if (file.isDirectory) deleteDirBestEffort(file) else file.delete()
+        }
+        dir.delete()
     }
 
     @JvmStatic
@@ -143,25 +150,21 @@ object ProjectTrashManager {
             .setMessage(context.getString(R.string.delete_project_message, projectDir.name))
             .setView(container)
             .setPositiveButton(R.string.delete) { dialog, _ ->
-                if (deletePermanentlyCheckBox.isChecked) {
-                    Thread {
-                        try {
+                Thread {
+                    try {
+                        if (deletePermanentlyCheckBox.isChecked) {
                             StorageOperations.deleteDir(projectDir)
-                            Handler(Looper.getMainLooper()).post {
-                                onFinished.run()
-                            }
-                        } catch (e: IOException) {
-                            Log.e(TAG, "Failed to delete project permanently", e)
+                        } else {
+                            moveToTrash(context, projectDir)
                         }
-                    }.start()
-                } else {
-                    val success = moveToTrash(context, projectDir)
-                    if (success) {
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Failed to delete project", e)
+                    } finally {
                         Handler(Looper.getMainLooper()).post {
                             onFinished.run()
                         }
                     }
-                }
+                }.start()
                 dialog.dismiss()
             }
             .setNegativeButton(R.string.cancel) { dialog, _ -> dialog.dismiss() }
@@ -198,9 +201,14 @@ object ProjectTrashManager {
                     .setTitle(originalName)
                     .setMessage(R.string.trash_bin_item_action)
                     .setPositiveButton(R.string.trash_bin_restore) { dialog, _ ->
-                        restoreFromTrash(context, selectedFile)
-                        Handler(Looper.getMainLooper()).post {
-                            onFinished.run()
+                        try {
+                            restoreFromTrash(context, selectedFile)
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Failed to restore project from trash", e)
+                        } finally {
+                            Handler(Looper.getMainLooper()).post {
+                                onFinished.run()
+                            }
                         }
                         dialog.dismiss()
                     }
@@ -208,11 +216,12 @@ object ProjectTrashManager {
                         Thread {
                             try {
                                 StorageOperations.deleteDir(selectedFile)
+                            } catch (e: Exception) {
+                                Log.e(TAG, "Failed to delete trashed file", e)
+                            } finally {
                                 Handler(Looper.getMainLooper()).post {
                                     onFinished.run()
                                 }
-                            } catch (e: IOException) {
-                                Log.e(TAG, "Failed to delete trashed file", e)
                             }
                         }.start()
                         dialog.dismiss()
@@ -228,11 +237,12 @@ object ProjectTrashManager {
                         Thread {
                             try {
                                 trashedFiles.forEach { StorageOperations.deleteDir(it) }
+                            } catch (e: Exception) {
+                                Log.e(TAG, "Failed to empty trash", e)
+                            } finally {
                                 Handler(Looper.getMainLooper()).post {
                                     onFinished.run()
                                 }
-                            } catch (e: IOException) {
-                                Log.e(TAG, "Failed to empty trash", e)
                             }
                         }.start()
                     }
@@ -281,11 +291,12 @@ object ProjectTrashManager {
                                 moveToTrash(context, projectDir)
                             }
                         }
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Failed to delete multiple projects", e)
+                    } finally {
                         Handler(Looper.getMainLooper()).post {
                             onFinished.run()
                         }
-                    } catch (e: Exception) {
-                        Log.e(TAG, "Failed to delete multiple projects", e)
                     }
                 }.start()
                 dialog.dismiss()

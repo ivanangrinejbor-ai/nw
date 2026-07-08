@@ -93,7 +93,11 @@ public abstract class JobMessage extends Message {
 	public static <T extends JobMessage> T fromJson(JSONObject jsonMessage) throws JSONException {
 		final JSONObject jsonData = jsonMessage.getJSONObject(JsonKeys.DATA.toString());
 		final long jobID = jsonData.getLong(JsonDataKeys.JOB_ID.toString());
-		switch (Type.valueOf(jsonMessage.getInt(JsonKeys.TYPE.toString()))) {
+		final Type type = Type.valueOf(jsonMessage.getInt(JsonKeys.TYPE.toString()));
+		if (type == null) {
+			return null;
+		}
+		switch (type) {
 			case JOB_FAILED:
 				return (T) new JobFailedMessage(jobID, jsonData.getString(JsonDataKeys.MSG.toString()));
 

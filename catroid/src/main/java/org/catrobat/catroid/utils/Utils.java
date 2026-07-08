@@ -288,10 +288,10 @@ public final class Utils {
 		return fileName.substring(0, Math.min(fileName.length(), MAX_FILE_NAME_LENGTH));
 	}
 
-	public static String md5Checksum(File file) {
+	public static String sha256Checksum(File file) {
 
 		if (!file.isFile()) {
-			Log.e(TAG, String.format("md5Checksum() Error with file %s isFile: %s isDirectory: %s exists: %s",
+			Log.e(TAG, String.format("sha256Checksum() Error with file %s isFile: %s isDirectory: %s exists: %s",
 					file.getName(),
 					file.isFile(),
 					file.isDirectory(),
@@ -299,7 +299,7 @@ public final class Utils {
 			return null;
 		}
 
-		MessageDigest messageDigest = getMD5MessageDigest();
+		MessageDigest messageDigest = getSHA256MessageDigest();
 
 		FileInputStream fis = null;
 		try {
@@ -311,22 +311,22 @@ public final class Utils {
 				messageDigest.update(buffer, 0, length);
 			}
 		} catch (IOException e) {
-			Log.w(TAG, "IOException thrown in md5Checksum()");
+			Log.w(TAG, "IOException thrown in sha256Checksum()");
 		} finally {
 			try {
 				if (fis != null) {
 					fis.close();
 				}
 			} catch (IOException e) {
-				Log.w(TAG, "IOException thrown in finally block of md5Checksum()");
+				Log.w(TAG, "IOException thrown in finally block of sha256Checksum()");
 			}
 		}
 
 		return toHex(messageDigest.digest()).toLowerCase(Locale.US);
 	}
 
-	public static String md5Checksum(String string) {
-		MessageDigest messageDigest = getMD5MessageDigest();
+	public static String sha256Checksum(String string) {
+		MessageDigest messageDigest = getSHA256MessageDigest();
 
 		messageDigest.update(string.getBytes());
 
@@ -351,16 +351,26 @@ public final class Utils {
 		return String.valueOf(hexBuffer);
 	}
 
-	private static MessageDigest getMD5MessageDigest() {
+	private static MessageDigest getSHA256MessageDigest() {
 		MessageDigest messageDigest = null;
 
 		try {
-			messageDigest = MessageDigest.getInstance("MD5");
+			messageDigest = MessageDigest.getInstance("SHA-256");
 		} catch (NoSuchAlgorithmException e) {
-			Log.w(TAG, "NoSuchAlgorithmException thrown in getMD5MessageDigest()");
+			Log.w(TAG, "NoSuchAlgorithmException thrown in getSHA256MessageDigest()");
 		}
 
 		return messageDigest;
+	}
+
+	@Deprecated
+	public static String md5Checksum(File file) {
+		return sha256Checksum(file);
+	}
+
+	@Deprecated
+	public static String md5Checksum(String string) {
+		return sha256Checksum(string);
 	}
 
 	public static InputStream getInputStreamFromAsset(Context context, String filename) throws IOException, NullPointerException {
@@ -399,6 +409,9 @@ public final class Utils {
 				currentProjectName = projectNames.get(0);
 			}
 		}
+			if (currentProjectName == null) {
+				currentProjectName = context.getString(R.string.default_project_name);
+			}
 			return currentProjectName;
 		}
 		return ProjectManager.getInstance().getCurrentProject().getName();

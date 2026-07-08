@@ -501,8 +501,16 @@ import org.catrobat.catroid.content.bricks.ShowTextBrick
 import org.catrobat.catroid.content.bricks.ShowTextColorSizeAlignmentBrick
 import org.catrobat.catroid.content.bricks.ShowTextFontBrick
 import org.catrobat.catroid.content.bricks.ShowTextRotationBrick
-import org.catrobat.catroid.content.bricks.ShowToastBlock
+import org.catrobat.catroid.content.bricks.ShowToastBrick
 import org.catrobat.catroid.content.bricks.ShowVarFontBrick
+import org.catrobat.catroid.content.bricks.WebSocketConnectBrick
+import org.catrobat.catroid.content.bricks.WebSocketSendBrick
+import org.catrobat.catroid.content.bricks.WebSocketReceiveBrick
+import org.catrobat.catroid.content.bricks.WebSocketCloseBrick
+import org.catrobat.catroid.content.bricks.DownloadFileBrick
+import org.catrobat.catroid.content.bricks.DownloadToPathBrick
+import org.catrobat.catroid.content.bricks.CancelDownloadBrick
+import org.catrobat.catroid.content.bricks.PingBrick
 import org.catrobat.catroid.content.bricks.SignApkBrick
 import org.catrobat.catroid.content.bricks.SoundFileBrick
 import org.catrobat.catroid.content.bricks.SoundFilesBrick
@@ -830,10 +838,24 @@ open class CategoryBricksFactory {
                 if (SettingsFragment.isNfcSharedPreferenceEnabled(context)) {
                     eventBrickList.add(WhenNfcBrick())
                 }
-                //eventBrickList.add(WhenMouseButtonClickedBrick())
-                //eventBrickList.add(LockMouseBrick())
-                //eventBrickList.add(UnlockMouseBrick())
-                //eventBriFckList.add(WhenMouseWheelScrolledBrick())
+                eventBrickList.add(AdmobInitializedEventBrick())
+                eventBrickList.add(AdmobInitFailedEventBrick())
+                eventBrickList.add(AdmobBannerLoadedEventBrick())
+                eventBrickList.add(AdmobBannerFailedEventBrick())
+                eventBrickList.add(AdmobBannerShownEventBrick())
+                eventBrickList.add(AdmobBannerHiddenEventBrick())
+                eventBrickList.add(AdmobInterstitialLoadedEventBrick())
+                eventBrickList.add(AdmobInterstitialFailedEventBrick())
+                eventBrickList.add(AdmobInterstitialShownEventBrick())
+                eventBrickList.add(AdmobInterstitialClosedEventBrick())
+                eventBrickList.add(AdmobRewardedLoadedEventBrick())
+                eventBrickList.add(AdmobRewardedFailedEventBrick())
+                eventBrickList.add(AdmobRewardedShownEventBrick())
+                eventBrickList.add(AdmobRewardedRewardEventBrick())
+                eventBrickList.add(AdmobRewardedClosedEventBrick())
+                eventBrickList.add(AdmobAppOpenLoadedEventBrick())
+                eventBrickList.add(AdmobAppOpenShownEventBrick())
+                eventBrickList.add(AdmobAppOpenClosedEventBrick())
                 return eventBrickList
             }
         }
@@ -891,6 +913,26 @@ open class CategoryBricksFactory {
         eventBrickList.add(WhenNotificationReplyBrick())
         eventBrickList.add(WhenNotificationShownBrick())
         eventBrickList.add(WhenNotificationDismissedBrick())
+
+        eventBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_event_admob), template))
+        eventBrickList.add(AdmobInitializedEventBrick())
+        eventBrickList.add(AdmobInitFailedEventBrick())
+        eventBrickList.add(AdmobBannerLoadedEventBrick())
+        eventBrickList.add(AdmobBannerFailedEventBrick())
+        eventBrickList.add(AdmobBannerShownEventBrick())
+        eventBrickList.add(AdmobBannerHiddenEventBrick())
+        eventBrickList.add(AdmobInterstitialLoadedEventBrick())
+        eventBrickList.add(AdmobInterstitialFailedEventBrick())
+        eventBrickList.add(AdmobInterstitialShownEventBrick())
+        eventBrickList.add(AdmobInterstitialClosedEventBrick())
+        eventBrickList.add(AdmobRewardedLoadedEventBrick())
+        eventBrickList.add(AdmobRewardedFailedEventBrick())
+        eventBrickList.add(AdmobRewardedShownEventBrick())
+        eventBrickList.add(AdmobRewardedRewardEventBrick())
+        eventBrickList.add(AdmobRewardedClosedEventBrick())
+        eventBrickList.add(AdmobAppOpenLoadedEventBrick())
+        eventBrickList.add(AdmobAppOpenShownEventBrick())
+        eventBrickList.add(AdmobAppOpenClosedEventBrick())
 
         return eventBrickList
     }
@@ -1645,7 +1687,7 @@ open class CategoryBricksFactory {
                 dataBrickList.add(InsertTableBrick("myTable", "1", 3, 2))
                 dataBrickList.add(DeleteTableBrick("myTable"))
                 dataBrickList.add(DeleteAllTablesBrick())
-                dataBrickList.add(ShowToastBlock("Hello World!"))
+                dataBrickList.add(ShowToastBrick("Hello World!"))
                 dataBrickList.add(CopyTextBrick("Котлета"))
                 dataBrickList.add(ListenMicroBrick("100"))
                 dataBrickList.add(SquareBrick("square", "#ff0000", 0f, 0f, 100f, 100f, 1f, 0f, 0f))
@@ -1713,7 +1755,7 @@ open class CategoryBricksFactory {
         dataBrickList.add(ShowTextFontBrick("myText", "Ababuy!", "font.ttf", BrickValues.X_POSITION, BrickValues.Y_POSITION, BrickValues.RELATIVE_SIZE_IN_PERCENT, BrickValues.SHOW_VARIABLE_COLOR))
         dataBrickList.add(HideTextBrick())
         dataBrickList.add(HideText3Brick("myText"))
-        dataBrickList.add(ShowToastBlock("Hello World!"))
+        dataBrickList.add(ShowToastBrick("Hello World!"))
         dataBrickList.add(SquareBrick("square", "#ff0000", 0f, 0f, 100f, 100f, 1f, 0f, 0f))
         dataBrickList.add(DelSquareBrick("square"))
 
@@ -1788,7 +1830,7 @@ open class CategoryBricksFactory {
 
             if (!isGroupingEnabled) {
                 val deviceBrickList: MutableList<Brick> = ArrayList()
-                deviceBrickList.add(ShowToastBlock("Hello World"))
+                deviceBrickList.add(ShowToastBrick("Hello World"))
                 deviceBrickList.add(CopyTextBrick("Котлета"))
                 deviceBrickList.add(ListenMicroBrick("100"))
                 deviceBrickList.add(RunJSBrick("1 + 2"))
@@ -2027,7 +2069,7 @@ bot.polling()""", "myVar"))
         }
 
         deviceBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_device_speech), template))
-        deviceBrickList.add(ShowToastBlock("Hello World"))
+        deviceBrickList.add(ShowToastBrick("Hello World"))
         deviceBrickList.add(CopyTextBrick("Котлета"))
         deviceBrickList.add(ListenMicroBrick("100"))
         deviceBrickList.add(AskBrick(context.getString(R.string.brick_ask_default_question)))
@@ -2781,6 +2823,14 @@ void main() {
         internetBrickList.add(PostWebRequestBrick("https://api.calfire.com/v2/texts?limit=50&offset=200",
             "Content-Type:application/json",
             "{\nusername=password\n}"))
+        internetBrickList.add(WebSocketConnectBrick("ws://echo.websocket.org"))
+        internetBrickList.add(WebSocketSendBrick("Hello!"))
+        internetBrickList.add(WebSocketReceiveBrick())
+        internetBrickList.add(WebSocketCloseBrick())
+        internetBrickList.add(DownloadFileBrick("https://example.com/file.zip", "file.zip"))
+        internetBrickList.add(DownloadToPathBrick("https://example.com/file.zip", "/storage/emulated/0/Download/file.zip"))
+        internetBrickList.add(CancelDownloadBrick())
+        internetBrickList.add(PingBrick("8.8.8.8"))
         //internetBrickList.add(SetDnsBrick("dns.comss.one"))
         return internetBrickList
     }
@@ -2804,24 +2854,6 @@ void main() {
         admobBrickList.add(AdmobSetAppOpenUnitIdBrick())
         admobBrickList.add(AdmobLoadAppOpenBrick())
         admobBrickList.add(AdmobShowAppOpenBrick())
-        admobBrickList.add(AdmobInitializedEventBrick())
-        admobBrickList.add(AdmobInitFailedEventBrick())
-        admobBrickList.add(AdmobBannerLoadedEventBrick())
-        admobBrickList.add(AdmobBannerFailedEventBrick())
-        admobBrickList.add(AdmobBannerShownEventBrick())
-        admobBrickList.add(AdmobBannerHiddenEventBrick())
-        admobBrickList.add(AdmobInterstitialLoadedEventBrick())
-        admobBrickList.add(AdmobInterstitialFailedEventBrick())
-        admobBrickList.add(AdmobInterstitialShownEventBrick())
-        admobBrickList.add(AdmobInterstitialClosedEventBrick())
-        admobBrickList.add(AdmobRewardedLoadedEventBrick())
-        admobBrickList.add(AdmobRewardedFailedEventBrick())
-        admobBrickList.add(AdmobRewardedShownEventBrick())
-        admobBrickList.add(AdmobRewardedRewardEventBrick())
-        admobBrickList.add(AdmobRewardedClosedEventBrick())
-        admobBrickList.add(AdmobAppOpenLoadedEventBrick())
-        admobBrickList.add(AdmobAppOpenShownEventBrick())
-        admobBrickList.add(AdmobAppOpenClosedEventBrick())
         return admobBrickList
     }
 

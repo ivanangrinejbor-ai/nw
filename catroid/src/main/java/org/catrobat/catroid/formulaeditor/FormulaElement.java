@@ -1333,6 +1333,17 @@ public class FormulaElement implements Serializable {
                     }
                 } catch (Exception e) { return 0.0; }
             }
+            case GET_STATUS_CODE: {
+                try {
+                    return (double) org.catrobat.catroid.content.actions.DownloadState.lastStatusCode;
+                } catch (Exception e) { return 0.0; }
+            }
+            case DOWNLOAD_PROGRESS: {
+                try {
+                    int prog = org.catrobat.catroid.content.actions.DownloadState.progress;
+                    return prog >= 0 ? (double) prog : 0.0;
+                } catch (Exception e) { return 0.0; }
+            }
             case SCREEN_ORIENTATION: {
                 try {
                     int orientation = CatroidApplication.getAppContext().getResources()
@@ -1493,25 +1504,25 @@ public class FormulaElement implements Serializable {
                 return (double) Math.toDegrees(Math.atan2(dy, dx));
             }
             case ADMOB_IS_INITIALIZED:
-                return AdMobManager.isInitialized();
+                return AdMobManager.INSTANCE.isInitialized();
             case ADMOB_IS_TEST_MODE:
-                return AdMobManager.isTestMode();
+                return AdMobManager.INSTANCE.isTestMode();
             case ADMOB_IS_BANNER_LOADED:
-                return AdMobManager.isBannerLoaded();
+                return AdMobManager.INSTANCE.isBannerLoaded();
             case ADMOB_IS_INTERSTITIAL_LOADED:
-                return AdMobManager.isInterstitialLoaded();
+                return AdMobManager.INSTANCE.isInterstitialLoaded();
             case ADMOB_IS_REWARDED_LOADED:
-                return AdMobManager.isRewardedLoaded();
+                return AdMobManager.INSTANCE.isRewardedLoaded();
             case ADMOB_IS_APP_OPEN_LOADED:
-                return AdMobManager.isAppOpenLoaded();
+                return AdMobManager.INSTANCE.isAppOpenLoaded();
             case ADMOB_LAST_ERROR_CODE:
-                return (double) AdMobManager.getLastErrorCode();
+                return (double) AdMobManager.INSTANCE.getLastErrorCode();
             case ADMOB_LAST_ERROR_MESSAGE:
-                return AdMobManager.getLastErrorMessage();
+                return AdMobManager.INSTANCE.getLastErrorMessage();
             case ADMOB_IS_GOOGLE_PLAY_SERVICES_AVAILABLE: {
                 Activity activity = StageActivity.activeStageActivity.get();
                 if (activity != null) {
-                    return AdMobManager.isGooglePlayServicesAvailable(activity);
+                    return AdMobManager.INSTANCE.isGooglePlayServicesAvailable(activity);
                 } else {
                     return false;
                 }

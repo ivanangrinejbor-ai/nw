@@ -46,6 +46,7 @@ public class WaitForSoundAction extends WaitAction {
 
 	@Override
 	protected void update(float percent) {
+		if (scope == null) return;
 		if (soundFilePath != null && !midiSoundManager.getStartedSoundfilePaths().isEmpty()) {
 			SoundFilePathWithSprite spriteSoundFilePath = new SoundFilePathWithSprite(soundFilePath, scope.getSprite());
 			Set<SoundFilePathWithSprite> recentlyStarted = midiSoundManager.getStartedSoundfilePaths();
@@ -71,6 +72,7 @@ public class WaitForSoundAction extends WaitAction {
 
 	@Override
 	protected void end() {
+		if (scope == null) return;
 		for (MediaPlayerWithSoundDetails mediaPlayer : soundManager.getMediaPlayers()) {
 			if (mediaPlayer.isPlaying() && mediaPlayer.getStartedBySprite() == scope.getSprite() && mediaPlayer.getPathToSoundFile().equals(soundFilePath) && !soundStopped) {
 				restart();

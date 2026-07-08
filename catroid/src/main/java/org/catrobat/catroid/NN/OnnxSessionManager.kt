@@ -10,7 +10,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.catrobat.catroid.utils.NativeBridge
 import org.catrobat.catroid.utils.NativeLibraryManager
 
 object OnnxSessionManager {

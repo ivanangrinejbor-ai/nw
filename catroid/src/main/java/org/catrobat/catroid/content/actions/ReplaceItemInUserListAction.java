@@ -41,6 +41,7 @@ public class ReplaceItemInUserListAction extends TemporalAction {
 
 	@Override
 	protected void update(float percent) {
+		if (scope == null) return;
 		if (userList == null) {
 			return;
 		}

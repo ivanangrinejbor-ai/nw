@@ -75,7 +75,10 @@ public class FormulaEditorEditText extends EditText implements OnTouchListener {
     private PopupWindow foldButtonPopup = null;
     private Button foldButton = null;
 
-	final GestureDetector gestureDetector = new GestureDetector(context, new GestureDetector.SimpleOnGestureListener() {
+	private GestureDetector gestureDetector;
+
+	private GestureDetector createGestureDetector() {
+		return new GestureDetector(context, new GestureDetector.SimpleOnGestureListener() {
 		@Override
 		public boolean onDoubleTap(MotionEvent event) {
 			internFormula.setCursorAndSelection(absoluteCursorPosition, true);
@@ -149,15 +152,18 @@ public class FormulaEditorEditText extends EditText implements OnTouchListener {
 			return true;
 		}
 	});
+	}
 
 	public FormulaEditorEditText(Context context) {
 		super(context);
 		this.context = context;
+		gestureDetector = createGestureDetector();
 	}
 
 	public FormulaEditorEditText(Context context, AttributeSet attrs) {
 		super(context, attrs);
 		this.context = context;
+		gestureDetector = createGestureDetector();
 	}
 
 	/**

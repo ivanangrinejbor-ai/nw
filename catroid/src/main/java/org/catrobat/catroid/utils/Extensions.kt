@@ -72,7 +72,7 @@ fun List<ProjectResponseApi>.toProjectResponsesList(projectType: String): List<P
             version = src.version,
             views = src.views,
             download = src.download,
-            private = src.private,
+            isPrivate = src.isPrivate,
             flavor = src.flavor,
             tags = src.tags,
             uploaded = src.uploaded,

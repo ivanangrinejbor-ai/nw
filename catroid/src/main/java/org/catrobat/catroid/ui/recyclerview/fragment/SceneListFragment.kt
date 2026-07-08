@@ -155,6 +155,9 @@ class SceneListFragment : RecyclerViewFragment<Scene?>(),
         setShowProgressBar(true)
         var deletedItemsCount = 0
         for (item in selectedItems) {
+            if (item?.isGlobalScene == true) {
+                continue
+            }
             try {
                 sceneController.delete(item)
             } catch (e: IOException) {

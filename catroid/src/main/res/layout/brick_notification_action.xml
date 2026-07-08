@@ -23,6 +23,15 @@
             style="@style/BrickText.SingleLine"
             android:text="@string/brick_notification_action" />
 
+        <!-- Notification ID -->
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_notification_action_notification_id"
+            app:layout_newLine="true" />
+        <TextView
+            android:id="@+id/brick_notification_action_edit_id"
+            style="@style/BrickEditText" />
+
         <!-- Action ID -->
         <TextView
             style="@style/BrickText.SingleLine"
@@ -72,7 +81,7 @@
 
         <!-- Has input checkbox -->
         <CheckBox
-            android:id="@+id/brick_notification_action_has_input"
+            android:id="@+id/brick_notification_action_input_checkbox"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/brick_notification_action_has_input"

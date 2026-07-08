@@ -65,7 +65,7 @@ class LoadPythonLibraryAction : TemporalAction() {
                     newFile.mkdirs()
                 } else {
                     val parentFile = newFile.parentFile
-                    if (parentFile != null && newFile.canonicalPath.startsWith(targetDirectory.canonicalPath)) {
+                    if (parentFile != null && newFile.canonicalPath.startsWith(targetDirectory.canonicalPath + File.separator)) {
                         parentFile.mkdirs()
                         FileOutputStream(newFile).use { fos ->
                             zis.copyTo(fos)

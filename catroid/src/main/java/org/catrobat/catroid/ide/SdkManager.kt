@@ -166,6 +166,7 @@ object SdkManager {
     private fun unzipPlatform(zipFile: File, destDir: File) {
 
         if (!destDir.exists()) destDir.mkdirs()
+        val destCanonical = destDir.canonicalPath
 
         ZipInputStream(zipFile.inputStream()).use { zis ->
             var entry = zis.nextEntry
@@ -176,6 +177,11 @@ object SdkManager {
                     val cleanName = name.substring(slashIndex + 1)
                     if (cleanName.isNotEmpty() && !entry.isDirectory) {
                         val targetFile = File(destDir, cleanName)
+                        if (!targetFile.canonicalPath.startsWith(destCanonical + File.separator)) {
+                            zis.closeEntry()
+                            entry = zis.nextEntry
+                            continue
+                        }
                         targetFile.parentFile?.mkdirs()
                         FileOutputStream(targetFile).use { fos ->
                             val buffer = ByteArray(4096)

@@ -45,6 +45,7 @@ public class LegoNxtPlayToneAction extends TemporalAction {
 
 	@Override
 	protected void update(float percent) {
+		if (scope == null) return;
 		int hertzInterpretation;
 		float durationInterpretation;
 

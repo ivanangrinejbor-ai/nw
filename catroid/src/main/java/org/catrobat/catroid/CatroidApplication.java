@@ -48,7 +48,9 @@ import com.huawei.agconnect.AGConnectInstance;
 import com.huawei.agconnect.config.AGConnectServicesConfig;
 import com.huawei.hms.mlsdk.common.MLApplication;
 
-import org.catrobat.catroid.formulaeditor.CustomFormulaManager;
+import com.google.android.material.color.DynamicColors;
+ 
+ import org.catrobat.catroid.formulaeditor.CustomFormulaManager;
 import org.catrobat.catroid.koin.CatroidKoinHelperKt;
 import org.catrobat.catroid.plugins.PluginEventBus;
 import org.catrobat.catroid.plugins.PluginExecutor;
@@ -122,8 +124,10 @@ public class CatroidApplication extends Application {
 		context = getApplicationContext();
 
 		CatroidKoinHelperKt.start(this, CatroidKoinHelperKt.getMyModules());
-
-		Utils.fetchSpeechRecognitionSupportedLanguages(this);
+ 
+ 		DynamicColors.applyToActivitiesIfAvailable(this);
+ 
+ 		Utils.fetchSpeechRecognitionSupportedLanguages(this);
 
 		defaultSystemLanguage = Locale.getDefault().toLanguageTag();
 

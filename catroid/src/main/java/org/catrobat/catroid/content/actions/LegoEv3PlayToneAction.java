@@ -46,6 +46,7 @@ public class LegoEv3PlayToneAction extends TemporalAction {
 
 	@Override
 	protected void update(float percent) {
+		if (scope == null) return;
 		int hertzInterpretation;
 		float durationInterpretation;
 		int volumeInterpretation;

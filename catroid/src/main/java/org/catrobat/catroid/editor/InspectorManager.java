@@ -2815,7 +2815,7 @@ public class InspectorManager {
         } else if (collider.type == ColliderShapeData.ShapeType.SPHERE) {
             sizeLayout.setVisibility(View.GONE);
             radiusLayout.setVisibility(View.VISIBLE);
-            radiusEditor.setText(String.format(Locale.US, "%.3", collider.radius));
+            radiusEditor.setText(String.format(Locale.US, "%.3f", collider.radius));
         } else {
             sizeLayout.setVisibility(View.VISIBLE);
             radiusLayout.setVisibility(View.VISIBLE);

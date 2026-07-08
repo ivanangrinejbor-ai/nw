@@ -66,11 +66,8 @@ ext {
 
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
+apply plugin: 'com.google.devtools.ksp'
 apply plugin: 'kotlin-kapt'
-
-kapt {
-    includeCompileClasspath = false
-}
 
 def hasGoogleServices = project.file('google-services-template.json').exists() ||
     project.file('src/danvex/google-services.json').exists()
@@ -98,7 +95,7 @@ if (!rootProject.hasProperty("signingKeystore")) {
     ext.signingKeystore = "external/debug.keystore"
 }
 
-ext.getProperty = { property, defaultValue ->
+ext.getCustomProperty = { property, defaultValue ->
     rootProject.hasProperty(property) ? rootProject.property(property) : defaultValue
 }
 
@@ -141,6 +138,15 @@ android {
     buildFeatures {
         buildConfig = true
         viewBinding = true
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+
+    kotlinOptions {
+        jvmTarget = "11"
     }
 
     defaultConfig {
@@ -243,14 +249,9 @@ android {
         }
         runtime {
             manifest.srcFile 'src/runtime/AndroidManifest.xml'
-        }
-        runtimeLite {
-            manifest.srcFile 'src/runtime/AndroidManifest.xml'
             java.srcDirs += 'src/runtime/java'
         }
-        runtimeNoArm {
-            manifest.srcFile 'src/runtime/AndroidManifest.xml'
-            java.srcDirs += 'src/runtime/java'
+        catroid {
         }
     }
 
@@ -307,27 +308,25 @@ android {
             buildConfigField "boolean", "FEATURE_USER_REPORTERS_ENABLED", "false"
             resValue "string", "SNACKBAR_HINTS_ENABLED", "true"
             minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-runtime.pro'
         }
 
         signedRelease {
             initWith buildTypes.release
             signingConfig signingConfigs.signedRelease
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-project.txt', 'proguard-runtime.pro'
             matchingFallbacks = ["release"]
         }
 
         template {
             initWith debug // intentional: templates need debug symbols and proguard
-            minifyEnabled false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-project.txt', 'proguard-runtime.pro' // both proguard files applied intentionally
             matchingFallbacks = ['debug']
         }
     }
 
     flavorDimensions = ["default"]
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_11
-        targetCompatibility JavaVersion.VERSION_11
-    }
     androidResources {
         noCompress 'lite', 'tflite'
     }
@@ -402,37 +401,7 @@ android {
             buildConfigField "boolean", "FEATURE_APK_GENERATOR_ENABLED", "true"
             buildConfigField "boolean", "FEATURE_AI_SENSORS_ENABLED", "false"
             buildConfigField "boolean", "FEATURE_AI_ASSIST_ENABLED", "false"
-            manifestPlaceholders = [appName: "NeoCatroid Runtime"]
-
-            ndk {
-                abiFilters 'arm64-v8a'
-            }
-        }
-
-        runtimeLite {
-            applicationId "org.DanVexTeam.NewCatroidRuntimeLite"
-            versionCode 1
-            versionName '1.0'
-
-            buildConfigField "boolean", "FEATURE_APK_GENERATOR_ENABLED", "true"
-            buildConfigField "boolean", "FEATURE_AI_SENSORS_ENABLED", "false"
-            buildConfigField "boolean", "FEATURE_AI_ASSIST_ENABLED", "false"
-            manifestPlaceholders = [appName: "NeoCatroid Runtime Lite"]
-
-            ndk {
-                abiFilters 'armeabi-v7a', 'arm64-v8a'
-            }
-        }
-
-        runtimeNoArm {
-            applicationId "org.DanVexTeam.NewCatroidRuntimeNoArm"
-            versionCode 1
-            versionName '1.0'
-
-            buildConfigField "boolean", "FEATURE_APK_GENERATOR_ENABLED", "true"
-            buildConfigField "boolean", "FEATURE_AI_SENSORS_ENABLED", "false"
-            buildConfigField "boolean", "FEATURE_AI_ASSIST_ENABLED", "false"
-            manifestPlaceholders = [appName: "NeoCatroid Runtime (No ARMv7)"]
+            manifestPlaceholders.appName = "NeoCatroid Runtime"
 
             ndk {
                 abiFilters 'arm64-v8a'
@@ -477,9 +446,12 @@ android {
     }
 }
 
-// Удаляем QEMU, Python, ML-модели, тестовые файлы из runtime-templete APK
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
 android.applicationVariants.all { variant ->
-    if (variant.flavorName in ['runtime', 'runtimeLite', 'runtimeNoArm'] && variant.buildType.name == 'template') {
+    if (variant.flavorName in ['runtime'] && variant.buildType.name == 'template') {
         def mergeAssetsTask = tasks.findByName("merge${variant.name.capitalize()}Assets")
         if (mergeAssetsTask != null) {
             mergeAssetsTask.outputs.upToDateWhen { false }
@@ -573,7 +545,9 @@ dependencies {
     implementation 'com.crashinvaders.vfx:gdx-vfx-core:0.5.4'
     implementation 'com.crashinvaders.vfx:gdx-vfx-effects:0.5.4'
 
-    implementation 'com.github.QuadFlask:colorpicker:0.0.13'
+    implementation('com.github.QuadFlask:colorpicker:0.0.13') {
+        exclude group: 'com.android.support'
+    }
 
     implementation 'com.nostra13.universalimageloader:universal-image-loader:1.9.5'
     //implementation ('com.esotericsoftware:kryo:5.1.1')
@@ -622,7 +596,7 @@ dependencies {
     // Kotlin
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines_version"
-    androidTestImplementation project(path: ':catroid')
+    //androidTestImplementation project(path: ':catroid') // removed circular dependency
     androidTestImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutines_version"
     androidTestImplementation('androidx.arch.core:core-testing:2.2.0') {
         exclude group: 'org.mockito', module: 'mockito-core'
@@ -655,7 +629,7 @@ dependencies {
     implementation 'com.squareup.retrofit2:retrofit:2.9.0'
     implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
     // retrofit moshi converter
-    implementation 'com.squareup.retrofit2:converter-moshi:2.7.1'
+    implementation 'com.squareup.retrofit2:converter-moshi:2.9.0'
     // Glide (Images downloader)
     implementation 'com.github.bumptech.glide:glide:4.11.0'
 
@@ -723,9 +697,10 @@ dependencies {
 
     implementation project(':lunoscript-annotations')
 
-    kapt project(':lunoscript-processor')
+    ksp project(':lunoscript-processor')
 
     // Note: face-detection, text-recognition, object-detection, language-id, pose-detection use bundled stubs below
+
 
     // TensorFlow Lite for Neural AI Assistant
     implementation 'org.tensorflow:tensorflow-lite:2.14.0'
@@ -778,7 +753,7 @@ dependencies {
 
     implementation "net.onedaybeard.artemis:artemis-odb:2.3.0"
 
-    implementation "com.google.android.gms:play-services-auth:17.0.0"
+    implementation "com.google.android.gms:play-services-auth:20.7.0"
 
     androidTestImplementation('tools.fastlane:screengrab:2.1.1') {
         exclude group: 'com.android.support.test.uiautomator', module: 'uiautomator-v18'
@@ -802,7 +777,7 @@ dependencies {
     implementation project(':vncclient')
 
     // Retrofit testing
-    androidTestImplementation 'com.squareup.okhttp3:mockwebserver:3.14.9'
+    androidTestImplementation 'com.squareup.okhttp3:mockwebserver:4.9.3'
     //testImplementation 'com.squareup.okhttp3:logging-interceptor:3.14.9'
 
     // Koin for Unit tests
@@ -902,21 +877,7 @@ configurations.all {
     }
 }
 
-// afterEvaluate {
-//     android.applicationVariants.all { variant ->
 
-//         if (variant.flavorName == 'apktemplate' || variant.flavorName == 'standalone') {
-//             println "Disabling Kapt for flavor: ${variant.flavorName}"
-
-
-//             def variantCapitalized = variant.name.capitalize()
-//             tasks.matching { it.name.startsWith("kapt") && it.name.contains(variantCapitalized) }.all { task ->
-//                 println "  -> Disabling task: ${task.name}"
-//                 task.enabled = false
-//             }
-//         }
-//     }
-// }
 
 android.applicationVariants.all { variant ->
     if (variant.buildType.name in ['debug', 'template']) {
@@ -1058,10 +1019,10 @@ tasks.register('copyTemplateApk') {
 
 tasks.register('copyAllRuntimeTemplates') {
     group = "build"
-    description = "Builds and copies the full runtime template APK to assets"
+    description = "Builds and copies the runtime template APK to assets"
     dependsOn 'copyTemplateApk'
     doLast {
-        println "Full runtime template APK copied to: $projectDir/src/main/assets"
+        println "Runtime template APK copied to: $projectDir/src/main/assets"
     }
 }
 

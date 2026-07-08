@@ -13,6 +13,7 @@ public class ThreedBindBoneToObjectAction extends TemporalAction {
 
     @Override
     protected void update(float percent) {
+        if (scope == null) return;
         var listener = StageActivity.getActiveStageListener();
         if (listener == null) return;
         var threeDManager = listener.getThreeDManager();

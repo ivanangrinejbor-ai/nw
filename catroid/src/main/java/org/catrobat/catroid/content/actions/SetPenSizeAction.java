@@ -37,6 +37,7 @@ public class SetPenSizeAction extends TemporalAction {
 
 	@Override
 	protected void update(float delta) {
+		if (scope == null) return;
 		try {
 			Float newSize = penSize == null ? Float.valueOf(0f) : penSize.interpretFloat(scope);
 			scope.getSprite().penConfiguration.setPenSize(newSize);

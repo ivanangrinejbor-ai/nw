@@ -40,6 +40,7 @@ public class SetVelocityAction extends TemporalAction {
 
 	@Override
 	protected void update(float percent) {
+		if (scope == null) return;
 		Float newVelocityX;
 		try {
 			newVelocityX = velocityX == null ? Float.valueOf(0f)

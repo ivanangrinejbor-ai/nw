@@ -34,6 +34,7 @@ import static org.catrobat.catroid.common.Constants.UPLOAD_URL;
 
 public final class FlavoredConstants {
 	// Web:
+	public static final String COMMUNITY_URL = "http://NeoCatroid.sois.site";
 	public static final String BASE_URL_HTTPS = MAIN_URL_HTTPS + "/mindstorms/";
 
 	public static final String BASE_UPLOAD_URL = UPLOAD_URL + "/mindstorms/";

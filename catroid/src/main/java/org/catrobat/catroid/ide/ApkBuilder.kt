@@ -301,8 +301,8 @@ object ApkBuilder {
                                             val path = resValue?.valueAsString
                                             if (path != null && path.contains("res/")) {
                                                 if (path.endsWith(".xml")) {
-                                                    resValue.type = 0x00.toByte()
-                                                    resValue.data = 0
+                                                    resValue!!.type = 0x00.toByte()
+                                                    resValue!!.data = 0
                                                     xmlPathsToRemove.add(path)
                                                 } else if (path.endsWith(".png") || path.endsWith(".webp")) {
                                                     iconPathsToReplace.add(path)

@@ -38,6 +38,7 @@ public class TripleStitchAction extends TemporalAction {
 
 	@Override
 	protected void update(float delta) {
+		if (scope == null) return;
 		int stepsInterpretation = 0;
 		try {
 			if (steps != null) {

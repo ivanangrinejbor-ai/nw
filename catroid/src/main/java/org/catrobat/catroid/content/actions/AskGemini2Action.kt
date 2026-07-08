@@ -23,7 +23,7 @@
 
 package org.catrobat.catroid.content.actions
 
-import CustomDns
+import org.catrobat.catroid.content.CustomDns
 import android.widget.Toast
 import android.content.Context
 import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction

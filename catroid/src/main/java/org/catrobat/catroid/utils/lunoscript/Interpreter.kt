@@ -41,7 +41,7 @@ import org.catrobat.catroid.content.bricks.AskGeminiBrick
 import org.catrobat.catroid.content.bricks.AskSpeechBrick
 import org.catrobat.catroid.content.bricks.Brick
 import org.catrobat.catroid.content.bricks.CloneBrick
-import org.catrobat.catroid.content.bricks.ShowToastBlock
+import org.catrobat.catroid.content.bricks.ShowToastBrick
 import org.catrobat.catroid.content.bricks.UserDefinedBrick
 import org.catrobat.catroid.formulaeditor.CustomFormula
 import org.catrobat.catroid.formulaeditor.CustomFormulaManager
@@ -56,7 +56,7 @@ import org.catrobat.catroid.utils.ErrorLog
 import java.io.File
 import java.util.ArrayList 
 import kotlin.math.pow
-import org.catrobat.catroid.utils.lunoscript.generated.registerAllNatives
+// import org.catrobat.catroid.utils.lunoscript.generated.registerAllNatives
 import org.json.JSONArray
 import org.json.JSONObject
 import java.nio.charset.Charset
@@ -3527,12 +3527,12 @@ class Interpreter(
                 "showtoastblock" -> { 
                     if (constructorArgs.isEmpty() || constructorArgs[0] !is LunoValue.String) {
                         throw LunoRuntimeError(
-                            "ShowToastBlock expects a String message as its first parameter.",
+                            "ShowToastBrick expects a String message as its first parameter.",
                             -1
                         )
                     }
                     val message = (constructorArgs[0] as LunoValue.String).value
-                    ShowToastBlock(message) 
+                    ShowToastBrick(message) 
                 }
 
                 "addeditbrick" -> {

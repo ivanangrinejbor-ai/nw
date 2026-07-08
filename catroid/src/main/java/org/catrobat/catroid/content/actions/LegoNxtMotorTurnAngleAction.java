@@ -46,6 +46,7 @@ public class LegoNxtMotorTurnAngleAction extends TemporalAction {
 
 	@Override
 	protected void update(float percent) {
+		if (scope == null) return;
 		int degreesValue;
 		try {
 			degreesValue = degrees.interpretInteger(scope);

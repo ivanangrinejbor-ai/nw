@@ -45,9 +45,13 @@ import org.catrobat.catroid.formulaeditor.Formula;
 import org.catrobat.catroid.formulaeditor.FormulaElement;
 import org.catrobat.catroid.formulaeditor.Functions;
 import org.catrobat.catroid.formulaeditor.Operators;
+import org.catrobat.catroid.exceptions.LoadingProjectException;
 import org.catrobat.catroid.io.ResourceImporter;
+import org.catrobat.catroid.io.StorageOperations;
 import org.catrobat.catroid.io.XstreamSerializer;
 import org.catrobat.catroid.utils.ImageEditing;
+
+import static org.catrobat.catroid.common.Constants.CODE_XML_FILE_NAME;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -74,9 +78,15 @@ public class DefaultProjectCreator extends ProjectCreator {
 		Project project = new Project(context, name, landscapeMode);
 
 		if (project.getDirectory().exists()) {
-			throw new IOException("Cannot create new project at "
-					+ project.getDirectory().getAbsolutePath()
-					+ ", directory already exists.");
+			File codeXml = new File(project.getDirectory(), CODE_XML_FILE_NAME);
+			if (codeXml.isFile()) {
+				try {
+					return XstreamSerializer.getInstance().loadProject(project.getDirectory(), context);
+				} catch (LoadingProjectException e) {
+					throw new IOException("Failed to load existing default project", e);
+				}
+			}
+			StorageOperations.deleteDir(project.getDirectory());
 		}
 
 		XstreamSerializer.getInstance().saveProject(project);

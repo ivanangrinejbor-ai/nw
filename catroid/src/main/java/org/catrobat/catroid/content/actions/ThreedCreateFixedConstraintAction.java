@@ -16,6 +16,7 @@ public class ThreedCreateFixedConstraintAction extends TemporalAction {
 
     @Override
     protected void update(float percent) {
+        if (scope == null) return;
         var tm = StageActivity.getActiveStageListener().getThreeDManager();
         if (tm == null) return;
 

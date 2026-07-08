@@ -1,4 +1,4 @@
-package org.catrobat.catroid.libraryeditor.ui
+package org.catrobat.catroid.libraryeditor.data
 
 import android.app.Dialog
 import android.os.Bundle

@@ -79,6 +79,7 @@ public class RaspiPwmAction extends TemporalAction {
 
 	@Override
 	protected void update(float percent) {
+		if (scope == null) return;
 
 		RPiSocketConnection connection = RaspberryPiService.getInstance().connection;
 		try {

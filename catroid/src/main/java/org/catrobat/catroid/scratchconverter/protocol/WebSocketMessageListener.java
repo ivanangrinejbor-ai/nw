@@ -70,10 +70,14 @@ public class WebSocketMessageListener implements MessageListener, WebSocket.Stri
 				return;
 			}
 
-			final int categoryID = jsonMessage.getInt(JsonKeys.CATEGORY.toString());
-			final CategoryType categoryType = CategoryType.valueOf(categoryID);
+		final int categoryID = jsonMessage.getInt(JsonKeys.CATEGORY.toString());
+		final CategoryType categoryType = CategoryType.valueOf(categoryID);
+		if (categoryType == null) {
+			Log.w(TAG, "Message of unsupported category-id " + categoryID + " received");
+			return;
+		}
 
-			switch (categoryType) {
+		switch (categoryType) {
 				case BASE:
 					baseMessageHandler.onBaseMessage(BaseMessage.fromJson(jsonMessage));
 					break;

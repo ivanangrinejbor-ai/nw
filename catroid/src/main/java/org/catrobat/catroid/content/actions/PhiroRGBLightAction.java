@@ -51,6 +51,7 @@ public class PhiroRGBLightAction extends TemporalAction {
 
 	@Override
 	protected void update(float percent) {
+		if (scope == null) return;
 
 		int redValue = updateFormulaValue(red);
 		int greenValue = updateFormulaValue(green);

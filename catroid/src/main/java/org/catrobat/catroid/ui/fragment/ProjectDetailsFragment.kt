@@ -31,7 +31,11 @@ import android.view.Menu
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import com.danvexteam.lunoscript_annotations.LunoClass
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import io.noties.markwon.Markwon
 import io.noties.markwon.image.ImagesPlugin
 import io.noties.markwon.image.file.FileSchemeHandler
@@ -152,9 +156,39 @@ class ProjectDetailsFragment : Fragment() {
                     handleNotesAndCreditsPressed()
                 }*/
             }
+            blocksCountValue.text = getString(R.string.details_counting)
+            spritesCountValue.text = getString(R.string.details_counting)
+            soundsCountValue.text = getString(R.string.details_counting)
+            scenesCountValue.text = getString(R.string.details_counting)
         }
 
+        computeProjectCounts()
+
         hideBottomBar(requireActivity())
+    }
+
+    private fun computeProjectCounts() {
+        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+            val scenes = ArrayList(project.sceneList)
+            project.globalScene?.let { if (!scenes.contains(it)) scenes.add(it) }
+            var blocks = 0
+            var sounds = 0
+            var sprites = 0
+            for (scene in scenes) {
+                sprites += scene.spriteList.size
+                for (sprite in scene.spriteList) {
+                    blocks += sprite.allBricks.size
+                    sounds += sprite.soundList.size
+                }
+            }
+            val sceneCount = project.sceneList.size
+            withContext(Dispatchers.Main) {
+                binding.blocksCountValue.text = blocks.toString()
+                binding.spritesCountValue.text = sprites.toString()
+                binding.soundsCountValue.text = sounds.toString()
+                binding.scenesCountValue.text = sceneCount.toString()
+            }
+        }
     }
 
     /**

@@ -49,6 +49,7 @@ public class LegoEv3MotorMoveAction extends TemporalAction {
 
 	@Override
 	protected void update(float percent) {
+		if (scope == null) return;
 		int speedValue;
 
 		try {

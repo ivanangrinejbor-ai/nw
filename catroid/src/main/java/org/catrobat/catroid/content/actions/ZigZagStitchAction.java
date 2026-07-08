@@ -40,6 +40,7 @@ public class ZigZagStitchAction extends TemporalAction {
 
 	@Override
 	protected void update(float delta) {
+		if (scope == null) return;
 		float lengthInterpretation = 0;
 		float heightInterpretation = 0;
 		try {

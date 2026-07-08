@@ -480,18 +480,22 @@ class GitController(private val projectDir: File) {
     }
 
     private fun unzip(zipFile: File, targetDir: File) {
+        val targetCanonical = targetDir.canonicalPath
         val zipInputStream = java.util.zip.ZipInputStream(zipFile.inputStream())
         var entry = zipInputStream.nextEntry
-
 
         while (entry != null) {
             val name = entry.name
             val parts = name.split("/")
             if (parts.size > 1) {
-
                 val relativePath = parts.drop(1).joinToString("/")
                 if (relativePath.isNotEmpty()) {
                     val destFile = File(targetDir, relativePath)
+                    if (!destFile.canonicalPath.startsWith(targetCanonical + File.separator)) {
+                        zipInputStream.closeEntry()
+                        entry = zipInputStream.nextEntry
+                        continue
+                    }
                     if (entry.isDirectory) {
                         destFile.mkdirs()
                     } else {

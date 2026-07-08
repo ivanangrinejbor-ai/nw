@@ -709,7 +709,6 @@ public class EditorActivity extends AppCompatActivity implements AndroidFragment
 
         if (threeDManager != null) {
             shadowDistEdit.setText(String.valueOf(threeDManager.getShadowSize()));
-            shadowDistEdit.setText(String.valueOf(threeDManager.getShadowSize()));
             csmCheckBox.setChecked(threeDManager.isCSMEnabled());
             csmFactorEdit.setText(String.valueOf(threeDManager.getCsmSplitFactor()));
 

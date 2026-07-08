@@ -39,6 +39,7 @@ public class SetThreadColorAction extends TemporalAction {
 
 	@Override
 	protected void update(float delta) {
+		if (scope == null) return;
 		try {
 			String colorStringInterpretation = "0xff0000";
 			if (color != null) {

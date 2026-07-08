@@ -39,7 +39,7 @@
 
         <!-- android:textColorPrimaryDisableOnly changes Checkboxes and RadioButton description -->
         <item name="android:textColorPrimaryDisableOnly">@color/checkbox_and_radio_button_description</item>
-5
+
         <!-- android:textColorSecondary changes unchecked Checkboxes, disabled buttons, spinner icon -->
         <item name="android:textColorSecondary">@color/spinner_icon_and_inactive_elements</item>
 
@@ -211,6 +211,8 @@
     <style name="BrickContainer">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
+        <item name="android:paddingStart">@dimen/brick_space_padding</item>
+        <item name="android:paddingEnd">@dimen/brick_space_padding</item>
         <item name="android:gravity">center_horizontal</item>
         <item name="android:descendantFocusability">blocksDescendants</item>
         <item name="android:layout_marginTop">?attr/element_spacing</item>

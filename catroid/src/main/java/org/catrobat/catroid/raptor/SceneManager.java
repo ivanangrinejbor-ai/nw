@@ -69,7 +69,6 @@ public class SceneManager {
         String parentModelId;
         String boneName;
 
-
         Vector3 localPosOffset = new Vector3();
         Quaternion localRotOffset = new Quaternion();
 
@@ -79,7 +78,6 @@ public class SceneManager {
             this.boneName = bone;
         }
     }
-
 
     private final List<BoneAttachment> activeAttachments = new ArrayList<>();
 
@@ -95,9 +93,9 @@ public class SceneManager {
         activeAttachments.add(attachment);
     }
 
-
     public void detachObject(String childId) {
         activeAttachments.removeIf(a -> a.childId.equals(childId));
+        cameraAttachments.removeIf(a -> a.childId.equals(childId));
     }
 
     public void setEditorMode(boolean isEditor) {

@@ -94,6 +94,9 @@ public final class FileMetaDataExtractor {
 	}
 
 	public static String encodeSpecialCharsForFileSystem(String projectName) {
+		if (projectName == null) {
+			return null;
+		}
 		if (projectName.equals(".") || projectName.equals("..")) {
 			projectName = projectName.replace(".", "%2E");
 		} else {
@@ -112,6 +115,9 @@ public final class FileMetaDataExtractor {
 	}
 
 	public static String decodeSpecialCharsForFileSystem(String projectName) {
+		if (projectName == null) {
+			return null;
+		}
 		projectName = projectName.replace("%2E", ".");
 
 		projectName = projectName.replace("%2A", "*");

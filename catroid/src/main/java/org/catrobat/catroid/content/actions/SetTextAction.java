@@ -42,6 +42,7 @@ public class SetTextAction extends TemporalAction {
 
 	@Override
 	protected void begin() {
+		if (scope == null) return;
 		try {
 			String string = text.interpretString(scope);
 			int posX = endX.interpretInteger(scope);
@@ -56,6 +57,7 @@ public class SetTextAction extends TemporalAction {
 
 	@Override
 	protected void update(float percent) {
+		if (scope == null) return;
 		try {
 			String str = text.interpretString(scope);
 			int posX = endX.interpretInteger(scope);

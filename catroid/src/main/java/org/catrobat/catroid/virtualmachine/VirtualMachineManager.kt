@@ -3,7 +3,6 @@ package org.catrobat.catroid.virtualmachine
 import android.content.Context
 import android.util.Log
 import androidx.annotation.Keep
-import com.gaurav.avnc.vnc.VncClient
 import org.catrobat.catroid.ProjectManager
 import org.catrobat.catroid.formulaeditor.UserVariable
 import org.catrobat.catroid.utils.NativeLibraryManager
@@ -158,6 +157,14 @@ object VirtualMachineManager {
         }
 
         var finalArgs = args
+
+        val blockedPatterns = listOf(";", "|", "`", "\$(", "\${")
+        for (pattern in blockedPatterns) {
+            if (finalArgs.contains(pattern)) {
+                Log.e("VMManager", "Blocked shell metacharacter in VM args: $pattern")
+                return
+            }
+        }
 
         if (outputVariables.containsKey(vmName)) {
             if (!finalArgs.contains("-append")) {

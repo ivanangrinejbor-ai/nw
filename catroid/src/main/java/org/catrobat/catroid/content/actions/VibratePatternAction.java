@@ -88,5 +88,6 @@ public class VibratePatternAction extends TemporalAction {
 
 	@Override
 	protected void update(float percent) {
+		if (scope == null) return;
 	}
 }

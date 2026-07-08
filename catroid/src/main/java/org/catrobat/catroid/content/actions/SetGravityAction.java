@@ -40,6 +40,7 @@ public class SetGravityAction extends TemporalAction {
 
 	@Override
 	protected void update(float percent) {
+		if (scope == null) return;
 		Float newGravityX;
 		try {
 			newGravityX = gravityX == null ? Float.valueOf(0f) : gravityX.interpretFloat(scope);

@@ -13,6 +13,7 @@ public class SetAmbientLightAction extends TemporalAction {
 
     @Override
     protected void update(float percent) {
+        if (scope == null) return;
         var threeDManager = StageActivity.getActiveStageListener().getThreeDManager();
         if (threeDManager == null) return;
 

@@ -88,7 +88,6 @@ public class LoginTask extends AsyncTask<Void, Void, Void> {
 		}
 		SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
 		String token = sharedPreferences.getString(Constants.TOKEN, Constants.NO_TOKEN);
-		Log.d(TAG, token);
 
 		ServerAuthenticator authenticator = new ServerAuthenticator(username, password, token,
 				CatrobatWebClient.INSTANCE.getClient(),

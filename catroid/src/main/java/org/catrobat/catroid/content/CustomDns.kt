@@ -1,8 +1,9 @@
+package org.catrobat.catroid.content
+
 import android.util.Log
 import java.net.InetAddress
 import java.net.UnknownHostException
 import okhttp3.Dns
-import org.catrobat.catroid.content.GeminiManager
 
 class CustomDns : Dns {
     override fun lookup(hostname: String): List<InetAddress> {

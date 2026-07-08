@@ -11,7 +11,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import org.catrobat.catroid.R
-import org.catrobat.catroid.libraryeditor.ui.FormulaEditDialogFragment
+import org.catrobat.catroid.libraryeditor.data.FormulaEditDialogFragment
 
 class FormulasEditorFragment : Fragment() {
 

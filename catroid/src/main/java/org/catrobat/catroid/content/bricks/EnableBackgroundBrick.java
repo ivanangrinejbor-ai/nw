@@ -18,7 +18,7 @@ import kotlin.Unit;
 public class EnableBackgroundBrick extends FormulaBrick {
     private static final long serialVersionUID = 1L;
 
-    private transient int importanceLevel = NotificationManager.IMPORTANCE_DEFAULT;
+    private int importanceLevel = NotificationManager.IMPORTANCE_DEFAULT;
 
     private static final int IMPORTANCE_MIN = 0;
     private static final int IMPORTANCE_LOW = 1;

@@ -24,6 +24,10 @@
 -keep class org.catrobat.catroid.raptor.** { *; }
 -keep class com.artemis.** { *; }
 
+# Keep Room generated implementations
+-keep class * extends androidx.room.RoomDatabase { *; }
+-keep class **._Impl { *; }
+
 # Keep XStream for baked project loading
 -keep class com.thoughtworks.xstream.** { *; }
 -keep interface com.thoughtworks.xstream.** { *; }
@@ -127,6 +131,16 @@
 -dontwarn javax.management.NotificationListener
 -dontwarn javax.management.ObjectInstance
 
+# Keep AppCompat LayoutInflater factory (prevents AbstractMethodError on Factory2)
+-keep class * extends androidx.appcompat.app.AppCompatActivity { *; }
+-keep class * extends androidx.appcompat.app.AppCompatDelegateImpl { *; }
+-keepclassmembers class * implements android.view.LayoutInflater$Factory2 {
+    public android.view.View onCreateView(android.view.View, java.lang.String, android.content.Context, android.util.AttributeSet);
+}
+-keepclassmembers class * {
+    public android.view.View onCreateView(android.view.View, java.lang.String, android.content.Context, android.util.AttributeSet);
+}
+
 # Don't fail on missing classes (EclipseCompiler is desktop-only, not on Android)
 -ignorewarnings
 
@@ -139,3 +153,26 @@
     public static int d(...);
     public static int e(...);
 }
+
+# R8: don't fail on optional/transitive classes that are not present on Android
+# (Huawei HMS, okhttp platform providers, XStream AWT converters, Eclipse JDT,
+#  Kryo, markwon svg/gif decoders, LuaJ script engine, GSSAPI, FindBugs, etc.)
+-dontwarn android.media.LoudnessCodecController*
+-dontwarn android.telephony.HwTelephonyManager
+-dontwarn com.caverock.androidsvg.**
+-dontwarn com.esotericsoftware.kryo.**
+-dontwarn com.huawei.**
+-dontwarn edu.umd.cs.findbugs.**
+-dontwarn java.awt.**
+-dontwarn java.lang.management.**
+-dontwarn javax.lang.model.**
+-dontwarn javax.script.**
+-dontwarn javax.swing.**
+-dontwarn javax.tools.**
+-dontwarn org.bouncycastle.jsse.**
+-dontwarn org.conscrypt.**
+-dontwarn org.eclipse.jdt.**
+-dontwarn org.ietf.jgss.**
+-dontwarn org.luaj.vm2.script.**
+-dontwarn org.openjsse.**
+-dontwarn pl.droidsonroids.gif.**

@@ -46,6 +46,7 @@ import java.util.zip.ZipOutputStream;
 public class ZipArchiver {
 
 	private static final String DIRECTORY_LEVEL_UP = "../";
+	private static final int ZIP_SLIP_BUFFER = 8192;
 	private static final int COMPRESSION_LEVEL = 9;
 
 	public void zip(File archive, File[] files) throws IOException {
@@ -94,23 +95,24 @@ public class ZipArchiver {
 
 	public void unzip(InputStream is, File dstDir) throws IOException {
 		createDirIfNecessary(dstDir);
+		String dstCanonical = dstDir.getCanonicalPath();
 
 		try (ZipInputStream zipInputStream = new ZipInputStream(is)) {
 			ZipEntry zipEntry;
 			while ((zipEntry = zipInputStream.getNextEntry()) != null) {
-				if (zipEntry.getName().contains(DIRECTORY_LEVEL_UP)) {
+				File zipEntryFile = new File(dstDir, zipEntry.getName());
+				if (!zipEntryFile.getCanonicalPath().startsWith(dstCanonical + File.separator)) {
 					continue;
 				}
 				if (zipEntry.isDirectory()) {
-					createDirIfNecessary(new File(dstDir, zipEntry.getName()));
+					createDirIfNecessary(zipEntryFile);
 					continue;
 				}
 
-				File zipEntryFile = new File(dstDir, zipEntry.getName());
 				zipEntryFile.getParentFile().mkdirs();
 
 				try (FileOutputStream fileOutputStream = new FileOutputStream(zipEntryFile)) {
-					byte[] b = new byte[Constants.BUFFER_8K];
+					byte[] b = new byte[ZIP_SLIP_BUFFER];
 					int len;
 					while ((len = zipInputStream.read(b)) != -1) {
 						fileOutputStream.write(b, 0, len);
@@ -133,16 +135,18 @@ public class ZipArchiver {
 			while (e.hasMoreElements()) allEntries.add(e.nextElement());
 			List<ZipEntry> fileEntries = new ArrayList<>();
 
-			for (ZipEntry entry : allEntries) {
-				if (entry.getName().contains(DIRECTORY_LEVEL_UP)) {
-					continue;
-				}
-				if (entry.isDirectory()) {
-					createDirIfNecessary(new File(dstDir, entry.getName()));
-					continue;
-				}
-				fileEntries.add(entry);
+		String dstCanonical = dstDir.getCanonicalPath();
+		for (ZipEntry entry : allEntries) {
+			File entryFile = new File(dstDir, entry.getName());
+			if (!entryFile.getCanonicalPath().startsWith(dstCanonical + File.separator)) {
+				continue;
 			}
+			if (entry.isDirectory()) {
+				createDirIfNecessary(entryFile);
+				continue;
+			}
+			fileEntries.add(entry);
+		}
 
 			int totalFiles = fileEntries.size();
 			if (totalFiles == 0) return;
@@ -159,6 +163,13 @@ public class ZipArchiver {
 			for (ZipEntry entry : fileEntries) {
 				executor.submit(() -> {
 					File zipEntryFile = new File(dstDir, entry.getName());
+					try {
+						if (!zipEntryFile.getCanonicalPath().startsWith(dstCanonical + File.separator)) {
+							return;
+						}
+					} catch (IOException ioe) {
+						return;
+					}
 					zipEntryFile.getParentFile().mkdirs();
 
 					try (InputStream in = zipFile.getInputStream(entry);

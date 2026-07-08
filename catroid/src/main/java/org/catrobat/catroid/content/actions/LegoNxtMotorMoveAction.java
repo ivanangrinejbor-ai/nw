@@ -48,6 +48,7 @@ public class LegoNxtMotorMoveAction extends TemporalAction {
 
 	@Override
 	protected void update(float percent) {
+		if (scope == null) return;
 		int speedValue;
 		try {
 			speedValue = speed.interpretInteger(scope);

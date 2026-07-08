@@ -80,6 +80,7 @@ public class ArduinoSendPWMValueAction extends TemporalAction {
 
 	@Override
 	protected void update(float percent) {
+		if (scope == null) return;
 		Arduino arduino = ServiceProvider.getService(CatroidService.BLUETOOTH_DEVICE_SERVICE).getDevice(BluetoothDevice.ARDUINO);
 		if (arduino != null) {
 			arduino.setAnalogArduinoPin(pin, value);

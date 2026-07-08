@@ -119,7 +119,7 @@ class CatrobatServerCalls(private val okHttpClient: OkHttpClient = CatrobatWebCl
     }
 
     @Throws(WebConnectionException::class)
-    fun checkOAuthToken(id: String, oauthProvider: String, context: Context?): Boolean? {
+    fun checkOAuthToken(id: String, oauthProvider: String, context: Context): Boolean? {
         var statusCode: Int
         var message: String
         try {

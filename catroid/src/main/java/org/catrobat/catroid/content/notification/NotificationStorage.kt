@@ -79,7 +79,7 @@ object NotificationStorage {
     }
 
     @JvmStatic
-    fun removeStatic(id: Int) {
+    fun removeNotification(id: Int) {
         notifications.remove(id)
         notificationActions.remove(id)
     }

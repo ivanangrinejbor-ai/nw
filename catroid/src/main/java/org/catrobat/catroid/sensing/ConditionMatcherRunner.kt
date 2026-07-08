@@ -37,7 +37,7 @@ private fun Color.equalsColor(color: Color): Boolean {
     return this.r.absDiff(color.r) < EPSILON &&
         this.g.absDiff(color.g) < EPSILON &&
         this.b.absDiff(color.b) < EPSILON &&
-        this != clearColor
+        this.a.absDiff(color.a) < EPSILON
 }
 
 private fun Float.absDiff(f: Float): Float = (this - f).absoluteValue

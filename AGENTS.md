@@ -141,7 +141,10 @@ public class MyBrick extends FormulaBrick {
 - **PutFileIntoPathBrick** — положить файл по пути (NEW)
 
 ## 2. Device category — уведомления
-- **SendNotificationBrick** — отправляет уведомление с заголовком и текстом
+- **SendNotificationBrick** — отправляет уведомление по ID (использует NOTIFICATION_ID)
+- **ShowScheduledNotificationBrick** — отправляет отложенное уведомление с заголовком, текстом и временем
+- **NotificationActionBrick** — действие при нажатии на уведомление
+- **PrepareNotificationBrick** — подготовка уведомления с заголовком, текстом, важностью и pin
 
 ## 3. Motion category — направление на касание
 - **TouchDirectionBrick** — автоматически вычисляет угол от спрайта к точке касания

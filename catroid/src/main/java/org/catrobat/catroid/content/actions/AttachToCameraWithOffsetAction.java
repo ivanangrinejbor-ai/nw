@@ -16,6 +16,7 @@ public class AttachToCameraWithOffsetAction extends TemporalAction {
 
     @Override
     protected void update(float percent) {
+        if (scope == null) return;
         var listener = StageActivity.getActiveStageListener();
         if (listener == null || listener.sceneManager == null) return;
 

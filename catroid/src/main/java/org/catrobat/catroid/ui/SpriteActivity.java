@@ -260,13 +260,13 @@ public class SpriteActivity extends BaseActivity {
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		getMenuInflater().inflate(R.menu.menu_script_activity, menu);
-		optionsMenu = menu;
+		setOptionsMenu(menu);
 		return super.onCreateOptionsMenu(menu);
 	}
 
 	public void showUndo(boolean visible) {
-		if (optionsMenu != null) {
-			optionsMenu.findItem(R.id.menu_undo).setVisible(visible);
+		if (getOptionsMenu() != null) {
+			getOptionsMenu().findItem(R.id.menu_undo).setVisible(visible);
 			if (visible) {
 				ProjectManager.getInstance().changedProject(currentProject.getName());
 			}
@@ -274,8 +274,8 @@ public class SpriteActivity extends BaseActivity {
 	}
 
 	public void checkForChange() {
-		if (optionsMenu != null) {
-			if (optionsMenu.findItem(R.id.menu_undo).isVisible()) {
+		if (getOptionsMenu() != null) {
+			if (getOptionsMenu().findItem(R.id.menu_undo).isVisible()) {
 				ProjectManager.getInstance().changedProject(currentProject.getName());
 			} else {
 				ProjectManager.getInstance().resetChangedFlag(currentProject);
@@ -769,6 +769,12 @@ public class SpriteActivity extends BaseActivity {
 		} catch (IOException e) {
 			Log.e(TAG, Log.getStackTraceString(e));
 		}
+	}
+
+	@Override
+	protected void onDestroy() {
+		MyActivityManager.Companion.clearActivity(this);
+		super.onDestroy();
 	}
 
 	public void handleAiAssistButton(View view) {

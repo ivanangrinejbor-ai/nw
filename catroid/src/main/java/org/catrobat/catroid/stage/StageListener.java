@@ -2076,7 +2076,7 @@ public class StageListener implements ApplicationListener {
 
 	public void removeCloneByIndex(int index) {
 		Sprite spriteToRemove = null;
-		for (Sprite sprite : ProjectManager.getInstance().getCurrentlyPlayingScene().getSpriteList()) {
+		for (Sprite sprite : sprites) {
 			if (sprite.isClone && sprite.cloneIndex == index) {
 				spriteToRemove = sprite;
 				break;

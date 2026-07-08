@@ -21,11 +21,14 @@ class PutFileIntoPathAction : TemporalAction() {
             val sourceFile = project.getFile(sourceName)
             if (!sourceFile.exists() || sourceFile.isDirectory) return
 
-            val destFile = File(pathStr)
-            if (destFile.canonicalPath != destFile.absolutePath && !destFile.exists()) {
+            val downloadsDir = android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DOWNLOADS)
+            val baseCanonical = downloadsDir.canonicalPath
+            val destFile = File(pathStr).canonicalFile
+            if (!destFile.canonicalPath.startsWith(baseCanonical + File.separator) && destFile.canonicalPath != baseCanonical) {
                 Log.e("PutFileIntoPathAction", "Path traversal detected: $pathStr")
                 return
             }
+
             if (destFile.isDirectory) {
                 val fileInDir = File(destFile, sourceFile.name)
                 sourceFile.copyTo(fileInDir, overwrite = true)

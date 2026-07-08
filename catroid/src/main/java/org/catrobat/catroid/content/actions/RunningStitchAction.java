@@ -38,6 +38,7 @@ public class RunningStitchAction extends TemporalAction {
 
 	@Override
 	protected void update(float delta) {
+		if (scope == null) return;
 		int lengthInterpretation = 0;
 		try {
 			if (length != null) {

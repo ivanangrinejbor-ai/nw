@@ -47,13 +47,14 @@ public class InputFormulaField implements Brick.FormulaField {
 
 	@Override
 	public int hashCode() {
-		return this.input.hashCode();
+		return input == null ? 0 : input.hashCode();
 	}
 
 	@Override
 	public boolean equals(@Nullable Object obj) {
 		if (obj instanceof InputFormulaField) {
-			return this.input.equals(((InputFormulaField) obj).input);
+			InputFormulaField other = (InputFormulaField) obj;
+			return input == null ? other.input == null : input.equals(other.input);
 		}
 		return false;
 	}
@@ -61,6 +62,6 @@ public class InputFormulaField implements Brick.FormulaField {
 	@NonNull
 	@Override
 	public String toString() {
-		return this.input;
+		return input == null ? "" : input;
 	}
 }

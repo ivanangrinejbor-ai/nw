@@ -22,6 +22,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.utils.BufferUtils;
 import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
@@ -53,6 +54,7 @@ import com.badlogic.gdx.graphics.g3d.particles.influencers.ScaleInfluencer;
 import com.badlogic.gdx.graphics.g3d.particles.renderers.BillboardRenderer;
 import com.badlogic.gdx.graphics.g3d.particles.values.PointSpawnShapeValue;
 import com.badlogic.gdx.graphics.g3d.particles.values.PrimitiveSpawnShapeValue;
+import java.nio.IntBuffer;
 import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader;
 import com.badlogic.gdx.graphics.g3d.utils.AnimationController;
 import com.badlogic.gdx.graphics.g3d.utils.DefaultShaderProvider;
@@ -204,6 +206,8 @@ public class ThreeDManager implements Disposable {
     public ModelBatch getWireframeBatch() { return wireframeBatch; }
 
     public void resize(int width, int height) {
+        lastScreenWidth = width;
+        lastScreenHeight = height;
         camera.viewportWidth = width;
         camera.viewportHeight = height;
         camera.update();
@@ -486,7 +490,7 @@ public class ThreeDManager implements Disposable {
     private final Vector3 slCenter = new Vector3();
     private final Vector3 slForward = new Vector3();
 
-    private int maxActivePointLights = 15;
+    private int maxActivePointLights = 8;
     private final List<net.mgsx.gltf.scene3d.lights.PointLightEx> sortedPointLights = new ArrayList<>();
 
     public String cameraTrackTargetId = null;
@@ -494,7 +498,7 @@ public class ThreeDManager implements Disposable {
     public final Vector3 cameraTrackPosOffset = new Vector3();
     public final Quaternion cameraTrackRotOffset = new Quaternion();
 
-    private float renderScale = 1.0f;
+    private float renderScale = 0.75f;
     private int aspectMode = 0; // 0: Auto, 1: 4:3, 2: 16:9, 3: 1:1
     private int lastScreenWidth;
     private int lastScreenHeight;
@@ -527,7 +531,7 @@ public class ThreeDManager implements Disposable {
         solver = new btSequentialImpulseConstraintSolver();
         dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfig);
         dynamicsWorld.setGravity(new Vector3(0, -9.81f, 0));
-        dynamicsWorld.getSolverInfo().setNumIterations(20);
+        dynamicsWorld.getSolverInfo().setNumIterations(6);
 
         debugDrawer = new DebugDrawer();
         debugDrawer.setDebugMode(btIDebugDraw.DebugDrawModes.DBG_MAX_DEBUG_DRAW_MODE);
@@ -3216,12 +3220,24 @@ public class ThreeDManager implements Disposable {
     public void renderShadowsOnly() {
         camera.update();
         if (realisticMode) {
-            Gdx.gl.glEnable(GL20.GL_CULL_FACE);
+            boolean wasCullFace = Gdx.gl.glIsEnabled(GL20.GL_CULL_FACE);
+            IntBuffer prevCullFaceBuf = BufferUtils.newIntBuffer(1);
+
+            if (wasCullFace) {
+                Gdx.gl.glGetIntegerv(GL20.GL_CULL_FACE_MODE, prevCullFaceBuf);
+            }
+
+            if (!wasCullFace) {
+                Gdx.gl.glEnable(GL20.GL_CULL_FACE);
+            }
             Gdx.gl.glCullFace(GL20.GL_FRONT);
 
             sceneManager.renderShadows();
 
-            Gdx.gl.glCullFace(GL20.GL_BACK);
+            Gdx.gl.glCullFace(wasCullFace ? prevCullFaceBuf.get(0) : GL20.GL_BACK);
+            if (!wasCullFace) {
+                Gdx.gl.glDisable(GL20.GL_CULL_FACE);
+            }
         }
     }
 
@@ -3297,29 +3313,33 @@ public class ThreeDManager implements Disposable {
     }
 
     private void drawFinalTextureToScreen(Texture texture) {
-        Gdx.gl.glViewport(0, 0, lastScreenWidth, lastScreenHeight);
+        int width = Gdx.graphics.getWidth();
+        int height = Gdx.graphics.getHeight();
+
+        if (width <= 0 || height <= 0) return;
+        Gdx.gl.glViewport(0, 0, width, height);
 
         Gdx.gl.glClearColor(0f, 0f, 0f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        blitCamera.setToOrtho(false, lastScreenWidth, lastScreenHeight);
+        blitCamera.setToOrtho(false, width, height);
         blitCamera.update();
         blitBatch.setProjectionMatrix(blitCamera.combined);
 
-        float screenAspect = (float) lastScreenWidth / lastScreenHeight;
+        float screenAspect = (float) width / height;
         float targetAspect = (float) renderWidth / renderHeight;
 
-        float drawWidth = lastScreenWidth;
-        float drawHeight = lastScreenHeight;
+        float drawWidth = width;
+        float drawHeight = height;
 
         if (screenAspect > targetAspect) {
-            drawWidth = lastScreenHeight * targetAspect;
+            drawWidth = height * targetAspect;
         } else {
-            drawHeight = lastScreenWidth / targetAspect;
+            drawHeight = width / targetAspect;
         }
 
-        float drawX = (lastScreenWidth - drawWidth) / 2f;
-        float drawY = (lastScreenHeight - drawHeight) / 2f;
+        float drawX = (width - drawWidth) / 2f;
+        float drawY = (height - drawHeight) / 2f;
 
         blitBatch.begin();
         blitBatch.draw(texture, drawX, drawY, drawWidth, drawHeight, 0, 0, texture.getWidth(), texture.getHeight(), false, true);
@@ -5758,6 +5778,11 @@ public class ThreeDManager implements Disposable {
         gltfObjectIds.clear();
         rayCastResults.clear();
         cameraAttachments.clear();
+
+        for (Model model : loadedModels.values()) if (model != null) model.dispose();
+        for (Texture texture : loadedTextures.values()) if (texture != null) texture.dispose();
+        loadedModels.clear();
+        loadedTextures.clear();
 
         cameraTargetId = null;
         cameraYaw = 0f;

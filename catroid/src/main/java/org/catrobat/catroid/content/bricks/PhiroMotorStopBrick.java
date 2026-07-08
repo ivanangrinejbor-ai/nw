@@ -82,6 +82,6 @@ public class PhiroMotorStopBrick extends BrickBaseType {
 
 	@Override
 	public void addActionToSequence(Sprite sprite, ScriptSequenceAction sequence) {
-		sequence.addAction(sprite.getActionFactory().createPhiroMotorStopActionAction(Motor.valueOf(motor)));
+		sequence.addAction(sprite.getActionFactory().createPhiroMotorStopAction(Motor.valueOf(motor)));
 	}
 }

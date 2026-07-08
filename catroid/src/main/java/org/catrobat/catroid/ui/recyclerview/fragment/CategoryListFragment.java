@@ -260,6 +260,7 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
             R.string.formula_battery_state,
             R.string.formula_internet_connected, R.string.formula_internet_type,
             R.string.formula_internet_speed, R.string.formula_local_ip,
+            R.string.formula_get_status_code, R.string.formula_download_progress,
             R.string.formula_screen_width, R.string.formula_screen_height,
             R.string.formula_screen_dpi, R.string.formula_screen_refresh,
             R.string.formula_screen_orientation,
@@ -346,8 +347,9 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
             R.string.formula_no_param,
             R.string.formula_no_param,
             R.string.formula_no_param,
-            R.string.formula_no_param
-    );
+            R.string.formula_no_param,
+            R.string.formula_no_param, R.string.formula_no_param
+        );
 
 	private static final List<Integer> THREED_FUNCTIONS = asList(
             R.string.formula_delta,

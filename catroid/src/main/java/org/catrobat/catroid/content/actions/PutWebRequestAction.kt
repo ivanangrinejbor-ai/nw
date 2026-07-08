@@ -51,7 +51,7 @@ class PutWebRequestAction : TemporalAction() {
             .writeTimeout(timeoutSec, TimeUnit.SECONDS)
             .build()
 
-        val mediaType = mediaTypeString.toMediaTypeOrNull() ?: "application/json".toMediaTypeOrNull()!!
+        val mediaType = mediaTypeString.toMediaTypeOrNull() ?: "application/json".toMediaTypeOrNull() ?: return
         val bodyn = RequestBody.create(mediaType, json)
         val request = Request.Builder()
             .url(urlText)
