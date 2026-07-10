@@ -93,6 +93,9 @@ public class Formula implements Serializable {
 
 	public void setFormulaTree(FormulaElement tree) {
 		formulaTree = tree;
+		// Invalidate caches: tree has changed, cached values are stale
+		cachedNumberValue = null;
+		cachedStringValue = null;
 	}
 
     private void init(ElementType number, String s) {
@@ -160,7 +163,7 @@ public class Formula implements Serializable {
 	}
 
     public Double interpretDouble(Scope scope) throws InterpretationException {
-        PerformanceTracker.formulaEvaluations++;
+        PerformanceTracker.formulaEvaluations.incrementAndGet();
 
         if (sceneFirstStart) {
             sceneFirstStart = false;
@@ -206,7 +209,7 @@ public class Formula implements Serializable {
 	}
 
     public String interpretString(Scope scope) throws InterpretationException {
-        PerformanceTracker.formulaEvaluations++;
+        PerformanceTracker.formulaEvaluations.incrementAndGet();
 
         if (cachedStringValue != null) {
             return cachedStringValue;
@@ -229,6 +232,9 @@ public class Formula implements Serializable {
 	public void setRoot(FormulaElement formula) {
 		formulaTree = formula;
 		internFormula = new InternFormula(formula.getInternTokenList());
+		// Invalidate caches: root has changed, cached values are stale
+		cachedNumberValue = null;
+		cachedStringValue = null;
 	}
 
 	public FormulaElement getRoot() {

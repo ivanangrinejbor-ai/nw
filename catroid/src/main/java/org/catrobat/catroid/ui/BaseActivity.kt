@@ -56,7 +56,7 @@ internal const val RECOVERED_FROM_CRASH = "RECOVERED_FROM_CRASH"
 abstract class BaseActivity : AppCompatActivity(), PermissionHandlingActivity {
     lateinit var optionsMenu: Menu
     private val permissionRequestActivityExtension = PermissionRequestActivityExtension()
-    private var savedInstanceStateExpected = false
+    protected var savedInstanceStateExpected = false
 
     private var touchDownX = 0f
     private var touchDownY = 0f

@@ -167,7 +167,12 @@ public abstract class DeviceUserDataAccessor {
 
 			List<UUID> globalVariableKeys = getKeyList(getUserData(project));
 			List<UUID> localVariableKeys = new ArrayList<>();
-			for (Scene scene : project.getSceneList()) {
+			List<Scene> allScenes = new ArrayList<>(project.getSceneList());
+			Scene globalScene = project.getGlobalScene();
+			if (globalScene != null) {
+				allScenes.add(globalScene);
+			}
+			for (Scene scene : allScenes) {
 				for (Sprite sprite : scene.getSpriteList()) {
 					localVariableKeys.addAll(getKeyList(getUserData(sprite)));
 				}

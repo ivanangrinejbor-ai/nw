@@ -59,7 +59,7 @@ public class ThreadScheduler {
     public void tick(float delta) {
         Array<Action> actions = actor.getActions();
 
-        org.catrobat.catroid.utils.PerformanceTracker.activeThreads += actions.size;
+        org.catrobat.catroid.utils.PerformanceTracker.activeThreads.addAndGet(actions.size);
 
         startThreadsInStartQueue();
         runThreadsForOneTick(actions, delta);

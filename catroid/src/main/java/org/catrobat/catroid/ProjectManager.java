@@ -138,6 +138,7 @@ public final class ProjectManager {
 			throw new LoadingProjectException(context.getString(R.string.error_load_project));
 		}
 
+        try {
         double loadedVersion = project.getCatrobatLanguageVersion();
         if (loadedVersion < 1.17) {
             this.needsPhysicsCacheWarning = true;
@@ -252,6 +253,14 @@ public final class ProjectManager {
 
 		currentlyPlayingScene = project.getDefaultScene();
 		currentSprite = null;
+        } catch (Exception migrationException) {
+            if (migrationException instanceof ProjectException) {
+                throw (ProjectException) migrationException;
+            }
+            Log.e(TAG, "Failed to load/migrate project", migrationException);
+            restorePreviousProject(previousProject);
+            throw new LoadingProjectException(context.getString(R.string.error_load_project));
+        }
 	}
 
 	private void restorePreviousProject(Project previousProject) {
@@ -261,13 +270,28 @@ public final class ProjectManager {
 		}
 	}
 
+	private static List<Scene> getAllScenesIncludingGlobal(Project project) {
+		List<Scene> allScenes = new ArrayList<>();
+		if (project == null) {
+			return allScenes;
+		}
+		if (project.getSceneList() != null) {
+			allScenes.addAll(project.getSceneList());
+		}
+		Scene globalScene = project.getGlobalScene();
+		if (globalScene != null) {
+			allScenes.add(globalScene);
+		}
+		return allScenes;
+	}
+
 	private boolean migrateProjectToV1_17(Project project) {
 		boolean changesMade = false;
-		if (project == null || project.getSceneList() == null) {
+		if (project == null) {
 			return false;
 		}
 
-		for (Scene scene : project.getSceneList()) {
+		for (Scene scene : getAllScenesIncludingGlobal(project)) {
 			if (scene.getSceneId() == null || scene.getSceneId().isEmpty()) {
 				scene.setSceneId(UUID.randomUUID().toString());
 				changesMade = true;
@@ -305,7 +329,7 @@ public final class ProjectManager {
 
 	@VisibleForTesting
 	public static void makeShallowCopiesDeepAgain(Project project) {
-		for (Scene scene : project.getSceneList()) {
+		for (Scene scene : getAllScenesIncludingGlobal(project)) {
 
 			List<String> fileNames = new ArrayList<>();
 
@@ -360,7 +384,7 @@ public final class ProjectManager {
 	}
 
 	private static void initializeScripts(Project project) {
-		for (Scene scene : project.getSceneList()) {
+		for (Scene scene : getAllScenesIncludingGlobal(project)) {
 			for (Sprite sprite : scene.getSpriteList()) {
 				for (Script script : sprite.getScriptList()) {
 					script.setParents();
@@ -435,7 +459,7 @@ public final class ProjectManager {
 	}
 
 	public static void flattenAllLists(Project project) {
-		for (Scene scene : project.getSceneList()) {
+		for (Scene scene : getAllScenesIncludingGlobal(project)) {
 			for (Sprite sprite : scene.getSpriteList()) {
 				for (Script script : sprite.getScriptList()) {
 					List<Brick> flatList = new ArrayList();
@@ -455,7 +479,7 @@ public final class ProjectManager {
 
 	@VisibleForTesting
 	public static void updateCollisionFormulasTo993(Project project) {
-		for (Scene scene : project.getSceneList()) {
+		for (Scene scene : getAllScenesIncludingGlobal(project)) {
 			for (Sprite sprite : scene.getSpriteList()) {
 				for (Script script : sprite.getScriptList()) {
 					List<Brick> flatList = new ArrayList();
@@ -475,7 +499,7 @@ public final class ProjectManager {
 
 	@VisibleForTesting
 	public static void updateSetPenColorFormulasTo994(Project project) {
-		for (Scene scene : project.getSceneList()) {
+		for (Scene scene : getAllScenesIncludingGlobal(project)) {
 			for (Sprite sprite : scene.getSpriteList()) {
 				for (Script script : sprite.getScriptList()) {
 					for (Brick brick : script.getBrickList()) {
@@ -493,7 +517,7 @@ public final class ProjectManager {
 
 	@VisibleForTesting
 	public static void updateArduinoValuesTo995(Project project) {
-		for (Scene scene : project.getSceneList()) {
+		for (Scene scene : getAllScenesIncludingGlobal(project)) {
 			for (Sprite sprite : scene.getSpriteList()) {
 				for (Script script : sprite.getScriptList()) {
 					for (Brick brick : script.getBrickList()) {
@@ -509,7 +533,7 @@ public final class ProjectManager {
 
 	@VisibleForTesting
 	public static void updateCollisionScriptsTo996(Project project) {
-		for (Scene scene : project.getSceneList()) {
+		for (Scene scene : getAllScenesIncludingGlobal(project)) {
 			for (Sprite sprite : scene.getSpriteList()) {
 				for (Script script : sprite.getScriptList()) {
 					if (script instanceof WhenBounceOffScript) {
@@ -529,7 +553,7 @@ public final class ProjectManager {
 
 	@VisibleForTesting
 	public static void updateBackgroundIndexTo9999995(Project project) {
-		for (Scene scene : project.getSceneList()) {
+		for (Scene scene : getAllScenesIncludingGlobal(project)) {
 			for (Sprite sprite : scene.getSpriteList()) {
 				for (Script script : sprite.getScriptList()) {
 					for (Brick brick : script.getBrickList()) {
@@ -550,7 +574,7 @@ public final class ProjectManager {
 
 	@VisibleForTesting
 	public static void updateScriptsToTreeStructure(Project project) {
-		for (Scene scene : project.getSceneList()) {
+		for (Scene scene : getAllScenesIncludingGlobal(project)) {
 			for (Sprite sprite : scene.getSpriteList()) {
 				for (Script script : sprite.getScriptList()) {
 					BrickTreeBuilder brickTreeBuilder = new BrickTreeBuilder();
@@ -572,7 +596,7 @@ public final class ProjectManager {
 
 	@VisibleForTesting
 	public static void updateDirectionProperty(Project project) {
-		for (Scene scene : project.getSceneList()) {
+		for (Scene scene : getAllScenesIncludingGlobal(project)) {
 			for (Sprite sprite : scene.getSpriteList()) {
 				for (Script script : sprite.getScriptList()) {
 					List<Brick> flatList = new ArrayList();
@@ -709,7 +733,7 @@ public final class ProjectManager {
 	}
 
 	public boolean setCurrentSceneAndSprite(String sceneName, String spriteName) {
-		for (Scene scene : project.getSceneList()) {
+		for (Scene scene : getAllScenesIncludingGlobal(project)) {
 			if (scene.getName().equals(sceneName)) {
 				setCurrentlyEditedScene(scene);
 				for (Sprite sprite : scene.getSpriteList()) {

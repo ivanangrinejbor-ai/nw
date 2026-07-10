@@ -63,28 +63,38 @@ class WriteVarToFileAction : TemporalAction(), IntentListener {
     var formula: Formula? = null
     var userVariable: UserVariable? = null
 
-    fun request(activity: Activity) {
-        ActivityCompat.requestPermissions(
-            activity,
-            arrayOf(android.Manifest.permission.WRITE_EXTERNAL_STORAGE),
-            1001,
-        )
+    // Prevent execution on every libGDX frame
+    private var started = false
+
+    override fun restart() {
+        started = false
+        super.restart()
     }
 
-    override fun update(percent: Float) {
-        val context = CatroidApplication.getAppContext()
-        if (context != null) {
+    private fun requestWritePermissionIfNeeded() {
+        // WRITE_EXTERNAL_STORAGE is not needed on Android 10+ (Q+) when using MediaStore.
+        // On older devices, request only once, not every frame.
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            val context = CatroidApplication.getAppContext()
             if (ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
                 val activity = StageActivity.activeStageActivity.get()
                 activity?.runOnUiThread {
-                    activity?.let { request(it) }
+                    ActivityCompat.requestPermissions(
+                        activity,
+                        arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
+                        1001
+                    )
                 }
             }
         }
-        if (userVariable == null || formula == null) {
-            return
-        }
-        saveOrOverwriteInDownloads(context, getFileName(), userVariable?.value?.toString() ?: "")
+    }
+
+    override fun update(percent: Float) {
+        if (started) return
+        if (userVariable == null || formula == null) return
+        started = true
+        requestWritePermissionIfNeeded()
+        saveOrOverwriteInDownloads(CatroidApplication.getAppContext(), getFileName(), userVariable?.value?.toString() ?: "")
     }
 
     fun saveOrOverwriteInDownloads(context: Context?, fileName: String?, content: String?): Uri? {
@@ -121,41 +131,36 @@ class WriteVarToFileAction : TemporalAction(), IntentListener {
                     contentResolver.openOutputStream(uri, "w")?.use {
                         it.write(content.toByteArray(Charsets.UTF_8))
                     }
-                    println("Файл успешно перезаписан: $uri")
+                    Log.d(javaClass.simpleName, "File overwritten: $uri")
                     return uri
-                }
-
-                else {
+                } else {
                     val newValues = ContentValues().apply {
                         put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
                         put(MediaStore.MediaColumns.MIME_TYPE, "*/*")
                         put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
                     }
                     val newFileUri = contentResolver.insert(MediaStore.Downloads.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY), newValues)
-
                     newFileUri?.let { uri ->
                         contentResolver.openOutputStream(uri)?.use {
                             it.write(content.toByteArray(Charsets.UTF_8))
                         }
-                        println("Новый файл успешно создан: $newFileUri")
+                        Log.d(javaClass.simpleName, "New file created: $newFileUri")
                     }
                     return newFileUri
                 }
             } catch (e: Exception) {
-                println("Ошибка при сохранении/перезаписи файла: ${e.message}")
+                Log.e(javaClass.simpleName, "Error saving/overwriting file: ${e.message}", e)
                 return null
             }
-        }
-        else {
+        } else {
             val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
             val file = File(downloadsDir, fileName)
-
             try {
                 file.writeText(content, Charsets.UTF_8)
-                println("Файл успешно сохранен/перезаписан: ${file.absolutePath}")
+                Log.d(javaClass.simpleName, "File saved: ${file.absolutePath}")
                 return Uri.fromFile(file)
             } catch (e: Exception) {
-                println("Ошибка при сохранении/перезаписи файла: ${e.message}")
+                Log.e(javaClass.simpleName, "Error saving file: ${e.message}", e)
                 return null
             }
         }

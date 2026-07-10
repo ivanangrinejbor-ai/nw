@@ -38,11 +38,22 @@ class ChangeVariableAction : Action() {
     var userVariable: UserVariable? = null
 
     override fun act(delta: Float): Boolean {
-        val originalValue = userVariable?.value as? Double ?: return true
-        val value = changeVariable?.interpretObject(scope) ?: 0.0
-        (value as? Double ?: (value as? String)?.toDoubleOrNull())?.run {
-            updateUserVariable(originalValue, this)
+        val variable = userVariable ?: return true
+        // UserVariable.value can be Double, String, or Boolean
+        val originalValue: Double = when (val v = variable.value) {
+            is Double -> v
+            is Boolean -> if (v) 1.0 else 0.0
+            is String -> v.toDoubleOrNull() ?: 0.0
+            else -> 0.0
         }
+        val change = changeVariable?.interpretObject(scope)
+        val changeValue: Double = when (change) {
+            is Double -> change
+            is Boolean -> if (change) 1.0 else 0.0
+            is String -> change.toDoubleOrNull() ?: 0.0
+            else -> 0.0
+        }
+        updateUserVariable(originalValue, changeValue)
         return true
     }
 

@@ -876,7 +876,12 @@ public class StageListener implements ApplicationListener {
 	}
 
 	private void disposeClonedSprites() {
-		for (Scene scene : ProjectManager.getInstance().getCurrentProject().getSceneList()) {
+		List<Scene> allScenes = new ArrayList<>(ProjectManager.getInstance().getCurrentProject().getSceneList());
+		Scene globalScene = ProjectManager.getInstance().getCurrentProject().getGlobalScene();
+		if (globalScene != null) {
+			allScenes.add(globalScene);
+		}
+		for (Scene scene : allScenes) {
 			scene.removeClonedSprites();
 		}
 	}
@@ -2013,7 +2018,12 @@ public class StageListener implements ApplicationListener {
 	}
 
 	private void disposeTextures() {
-		for (Scene scene : project.getSceneList()) {
+		List<Scene> allScenes = new ArrayList<>(project.getSceneList());
+		Scene globalScene = project.getGlobalScene();
+		if (globalScene != null) {
+			allScenes.add(globalScene);
+		}
+		for (Scene scene : allScenes) {
 			for (Sprite sprite : scene.getSpriteList()) {
 				for (LookData lookData : sprite.getLookList()) {
 					lookData.dispose();

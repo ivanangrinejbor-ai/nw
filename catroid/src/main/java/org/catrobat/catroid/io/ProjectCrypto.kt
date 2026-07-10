@@ -36,6 +36,8 @@ import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.spec.PBEKeySpec
 import javax.crypto.spec.SecretKeySpec
 
+private const val STREAM_BUFFER = 64 * 1024
+
 /**
  * Project encryption/decryption using AES-256-GCM + PBKDF2 key derivation.
  *
@@ -76,14 +78,23 @@ object ProjectCrypto {
         val cipher = Cipher.getInstance(ALGORITHM)
         cipher.init(Cipher.ENCRYPT_MODE, key, GCMParameterSpec(GCM_TAG_LENGTH, iv))
 
-        val plaintext = FileInputStream(sourceFile).use { it.readBytes() }
-        val ciphertext = cipher.doFinal(plaintext)
-
-        FileOutputStream(destFile).use { out ->
-            out.write(MAGIC)
-            out.write(salt)
-            out.write(iv)
-            out.write(ciphertext)
+        destFile.parentFile?.mkdirs()
+        FileInputStream(sourceFile).use { input ->
+            FileOutputStream(destFile).use { out ->
+                out.write(MAGIC)
+                out.write(salt)
+                out.write(iv)
+                val buffer = ByteArray(STREAM_BUFFER)
+                var n: Int
+                while (input.read(buffer).also { n = it } != -1) {
+                    if (n > 0) {
+                        val encoded = cipher.update(buffer, 0, n)
+                        if (encoded != null && encoded.isNotEmpty()) out.write(encoded)
+                    }
+                }
+                val finalBlock = cipher.doFinal()
+                if (finalBlock != null && finalBlock.isNotEmpty()) out.write(finalBlock)
+            }
         }
         Log.d(TAG, "Encrypted: ${sourceFile.name} -> ${destFile.name}")
     }
@@ -98,19 +109,28 @@ object ProjectCrypto {
                 }
                 val salt = ByteArray(SALT_SIZE).also { input.read(it) }
                 val iv = ByteArray(IV_SIZE).also { input.read(it) }
-                val ciphertext = input.readBytes()
 
                 val key = deriveKey(password, salt)
                 val cipher = Cipher.getInstance(ALGORITHM)
                 cipher.init(Cipher.DECRYPT_MODE, key, GCMParameterSpec(GCM_TAG_LENGTH, iv))
 
-                val plaintext = cipher.doFinal(ciphertext)
                 destFile.parentFile?.mkdirs()
-                FileOutputStream(destFile).use { out -> out.write(plaintext) }
+                FileOutputStream(destFile).use { out ->
+                    val buffer = ByteArray(STREAM_BUFFER)
+                    var n: Int
+                    while (input.read(buffer).also { n = it } != -1) {
+                        if (n > 0) {
+                            val decoded = cipher.update(buffer, 0, n)
+                            if (decoded != null && decoded.isNotEmpty()) out.write(decoded)
+                        }
+                    }
+                    val finalBlock = cipher.doFinal()
+                    if (finalBlock != null && finalBlock.isNotEmpty()) out.write(finalBlock)
+                }
                 Log.d(TAG, "Decrypted: ${sourceFile.name} -> ${destFile.name}")
                 true
             }
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             Log.e(TAG, "Decryption failed (wrong password or corrupted file)", e)
             destFile.delete()
             false

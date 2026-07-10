@@ -1618,7 +1618,12 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 		if (project == null || scriptClass == null) {
 			return false;
 		}
-		for (Scene scene : project.getSceneList()) {
+		List<Scene> allScenes = new ArrayList<>(project.getSceneList());
+		Scene globalScene = project.getGlobalScene();
+		if (globalScene != null) {
+			allScenes.add(globalScene);
+		}
+		for (Scene scene : allScenes) {
 			for (Sprite sprite : scene.getSpriteList()) {
 				for (Script script : sprite.getScriptList()) {
 					if (scriptClass.isInstance(script)) {
@@ -1914,7 +1919,12 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 		Brick.ResourcesSet requiredResources = new Brick.ResourcesSet();
 		Project project = ProjectManager.getInstance().getCurrentProject();
 
-		for (Scene scene: project.getSceneList()) {
+		List<Scene> allScenes = new ArrayList<>(project.getSceneList());
+		Scene globalScene = project.getGlobalScene();
+		if (globalScene != null) {
+			allScenes.add(globalScene);
+		}
+		for (Scene scene: allScenes) {
 			for (Sprite sprite : scene.getSpriteList()) {
 				for (Brick brick : sprite.getAllBricks()) {
 					brick.addRequiredResources(requiredResources);

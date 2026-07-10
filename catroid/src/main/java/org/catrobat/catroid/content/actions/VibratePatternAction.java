@@ -59,9 +59,17 @@ public class VibratePatternAction extends TemporalAction {
 			long[] patternArray = new long[parts.length];
 			long totalDuration = 0;
 			for (int i = 0; i < parts.length; i++) {
-				patternArray[i] = Long.parseLong(parts[i].trim());
-				totalDuration += patternArray[i];
+				try {
+					long val = Long.parseLong(parts[i].trim());
+					if (val < 0) val = 0; // negative values would crash VibrationEffect
+					patternArray[i] = val;
+					totalDuration += val;
+				} catch (NumberFormatException nfe) {
+					Log.d(getClass().getSimpleName(), "Invalid vibration pattern value: '" + parts[i].trim() + "'", nfe);
+					return;
+				}
 			}
+			if (totalDuration <= 0) return;
 			super.setDuration(totalDuration / 1000f);
 			Context context = StageActivity.activeStageActivity.get();
 			if (context == null) {

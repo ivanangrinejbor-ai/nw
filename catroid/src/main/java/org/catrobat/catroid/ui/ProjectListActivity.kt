@@ -51,6 +51,8 @@ class ProjectListActivity : BaseCastActivity() {
         BottomBar.hidePlayButton(this)
         BottomBar.hideAiAssistButton(this)
 
+        savedInstanceStateExpected = true
+
         val projectListFragment = ProjectListFragment()
         if (intent.hasExtra(IMPORT_LOCAL_INTENT)) {
             BottomBar.hideAddButton(this)

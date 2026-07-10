@@ -22,7 +22,7 @@ public class NotificationEventReceiver extends BroadcastReceiver {
         if (intent == null) return;
 
         int notificationId = intent.getIntExtra(EXTRA_NOTIFICATION_ID, -1);
-        int actionId = intent.getIntExtra(EXTRA_ACTION_ID, -1);
+        String actionId = intent.getStringExtra(EXTRA_ACTION_ID);
         String buttonText = intent.getStringExtra(EXTRA_BUTTON_TEXT);
 
         Bundle remoteInput = RemoteInput.getResultsFromIntent(intent);
@@ -31,7 +31,12 @@ public class NotificationEventReceiver extends BroadcastReceiver {
             replyText = remoteInput.getString("reply_text");
         }
 
-        NotificationStorage.INSTANCE.setEventData(notificationId, String.valueOf(actionId), buttonText, replyText);
+        NotificationStorage.INSTANCE.setEventData(
+                notificationId,
+                actionId != null ? actionId : "",
+                buttonText != null ? buttonText : "",
+                replyText
+        );
 
         String action = intent.getAction();
 

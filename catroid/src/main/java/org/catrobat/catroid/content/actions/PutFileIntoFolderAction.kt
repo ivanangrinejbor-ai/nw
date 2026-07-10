@@ -23,7 +23,12 @@ class PutFileIntoFolderAction : TemporalAction() {
             if (!sourceFile.exists() || sourceFile.isDirectory) return
 
             val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-            val destDir = File(downloadsDir, folder)
+            val destDir = File(downloadsDir, folder).canonicalFile
+            val baseCanonical = downloadsDir.canonicalPath
+            if (!destDir.canonicalPath.startsWith(baseCanonical + File.separator) && destDir.canonicalPath != baseCanonical) {
+                Log.e("PutFileIntoFolderAction", "Path traversal detected: $folder")
+                return
+            }
             if (!destDir.exists()) {
                 destDir.mkdirs()
             }

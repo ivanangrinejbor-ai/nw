@@ -2,6 +2,7 @@ package org.catrobat.catroid.content.actions
 
 import com.badlogic.gdx.scenes.scene2d.Action
 import org.catrobat.catroid.ProjectManager
+import android.content.Intent
 import org.catrobat.catroid.stage.StageActivity
 import android.util.Log
 import java.io.File
@@ -33,12 +34,11 @@ class ReturnToPreviousProjectAction : Action() {
             return true
         }
 
-        try {
-            ProjectManager.getInstance().loadProject(projectDir)
-        } catch (e: Exception) {
-            Log.e("ReturnAction", "Failed to reload previous project", e)
+        val intent = Intent(stage, StageActivity::class.java).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            putExtra(StageActivity.EXTRA_PROJECT_PATH, projectDir.absolutePath)
         }
-
+        stage.startActivity(intent)
         stage.finish()
         return true
     }

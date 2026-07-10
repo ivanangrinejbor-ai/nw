@@ -136,6 +136,7 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
     private fun onImportProjectFinished(result: org.catrobat.catroid.io.asynctask.ImportResult) {
 
         filesForUnzipAndImportTask?.clear()
+        if (!isAdded) return
         setShowProgressBar(false)
 
         when (result) {
@@ -408,26 +409,28 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
     }
 
     private fun importProjectUris(uris: ArrayList<Uri>) {
-        prepareFilesForImport(uris)
-        filesForUnzipAndImportTask?.apply {
-            if (isNotEmpty()) {
-                val filesToUnzipAndImport = toTypedArray()
-                val firstFile = filesToUnzipAndImport.firstOrNull()
-                if (firstFile != null
-                    && (firstFile.name.endsWith(Constants.NPC_EXTENSION) || firstFile.name.endsWith(".ncp"))
-                    && ProjectCrypto.isEncrypted(firstFile)) {
-                    showEncryptedImportDialog(firstFile, filesToUnzipAndImport)
-                } else {
-                    doImport(filesToUnzipAndImport, null)
-                }
-            }
+        val firstUri = uris.firstOrNull() ?: return
+        val fileName = StorageOperations.resolveFileName(requireActivity().contentResolver, firstUri)
+
+        if (!fileName.endsWith(Constants.CATROBAT_EXTENSION) && !fileName.endsWith(Constants.NEW_CATROBAT_EXTENSION)
+            && !fileName.endsWith(Constants.OLD_CATROBAT_EXTENSION) && !fileName.endsWith(Constants.ZIP_EXTENSION)
+            && !fileName.endsWith(Constants.NPC_EXTENSION) && !fileName.endsWith(".ncp")) {
+            ToastUtil.showError(requireContext(), R.string.only_select_catrobat_files)
+            return
+        }
+
+        if (fileName.endsWith(Constants.NPC_EXTENSION) || fileName.endsWith(".ncp")) {
+            showEncryptedImportDialog(firstUri, uris)
+        } else {
+            doImportWithUris(uris, null)
         }
     }
 
-    private fun showEncryptedImportDialog(encryptedFile: File, files: Array<File>) {
+    private fun showEncryptedImportDialog(encryptedUri: Uri, uris: ArrayList<Uri>) {
         val builder = AlertDialog.Builder(requireContext())
         builder.setTitle(R.string.import_protected_title)
-        builder.setMessage(getString(R.string.import_protected_name, encryptedFile.name))
+        val fileName = StorageOperations.resolveFileName(requireActivity().contentResolver, encryptedUri)
+        builder.setMessage(getString(R.string.import_protected_name, fileName))
         val input = EditText(requireContext())
         input.hint = getString(R.string.import_password_hint)
         input.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
@@ -438,13 +441,13 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
                 ToastUtil.showError(requireContext(), R.string.password_empty)
                 return@setPositiveButton
             }
-            doImport(files, password)
+            doImportWithUris(uris, password)
         }
         builder.setNegativeButton(R.string.cancel, null)
         builder.show()
     }
 
-    private fun doImport(files: Array<File>, password: String?) {
+    private fun doImportWithUris(uris: List<Uri>, password: String?) {
         val context = requireContext()
         val dialogView = layoutInflater.inflate(R.layout.dialog_import_progress, null)
         val titleView = dialogView.findViewById<TextView>(R.id.dialog_import_title)
@@ -454,8 +457,8 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
         val detailsBtn = dialogView.findViewById<Button>(R.id.dialog_import_details_btn)
         val detailText = dialogView.findViewById<TextView>(R.id.dialog_import_detail_text)
 
-        val projectFile = files.firstOrNull()
-        val projectFileName = projectFile?.name ?: ""
+        val firstUri = uris.firstOrNull()
+        val projectFileName = firstUri?.let { StorageOperations.resolveFileName(requireActivity().contentResolver, it) } ?: ""
 
         titleView.text = getString(R.string.import_progress_title)
         nameView.text = projectFileName
@@ -477,12 +480,15 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
 
         val importer = ProjectUnZipperAndImporter(
             onImportFinished = { result ->
-                dialog.dismiss()
-                onImportProjectFinished(result)
+                if (isAdded) {
+                    dialog.dismiss()
+                    onImportProjectFinished(result)
+                }
             },
             password = password,
             onProgress = { percent, detail ->
-                requireActivity().runOnUiThread {
+                activity?.runOnUiThread {
+                    if (!isAdded) return@runOnUiThread
                     progressBar.progress = percent
                     percentView.text = "$percent%"
                     val sb = StringBuilder()
@@ -500,8 +506,8 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
                         } else if (trimmed.startsWith("import_step_unzip|")) {
                             val parts = trimmed.split("\\|".toRegex())
                             if (parts.size >= 4) {
-                                val filesDone = parts[1]
-                                val totalFiles = parts[2]
+                                val filesDone = parts[1].toIntOrNull() ?: 0
+                                val totalFiles = parts[2].toIntOrNull() ?: 0
                                 val currentFile = parts[3]
                                 sb.append(getString(R.string.import_step_unzip_progress, filesDone, totalFiles, currentFile))
                             } else {
@@ -510,6 +516,7 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
                             }
                         } else {
                             val resId = when (trimmed) {
+                                "import_step_prepare" -> R.string.import_step_prepare
                                 "import_step_decrypt" -> R.string.import_step_decrypt
                                 "import_step_unzip" -> R.string.import_step_unzip
                                 "import_step_scanning" -> R.string.import_step_scanning
@@ -531,31 +538,10 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
                         detailText.visibility = View.VISIBLE
                     }
                 }
-            }
+            },
+            contentResolver = context.contentResolver
         )
-        importer.unZipAndImportAsync(files)
-    }
-
-    private fun prepareFilesForImport(urisToImport: ArrayList<Uri>) {
-        for (uri in urisToImport) {
-            val contentResolver = requireActivity().contentResolver
-            val fileName = StorageOperations.resolveFileName(contentResolver, uri)
-
-            if (!fileName.endsWith(Constants.CATROBAT_EXTENSION) && !fileName.endsWith(Constants.NEW_CATROBAT_EXTENSION)
-                && !fileName.endsWith(Constants.OLD_CATROBAT_EXTENSION) && !fileName.endsWith(Constants.ZIP_EXTENSION)
-                && !fileName.endsWith(Constants.NPC_EXTENSION) && !fileName.endsWith(".ncp")) {
-                ToastUtil.showError(requireContext(), R.string.only_select_catrobat_files)
-                continue
-            }
-
-            val projectFile = StorageOperations.copyUriToDir(
-                contentResolver, uri, Constants.CACHE_DIRECTORY, fileName
-            )
-
-            filesForUnzipAndImportTask?.add(projectFile)
-
-            hasUnzipAndImportTaskFinished = false
-        }
+        importer.unZipAndImportFromUris(uris)
     }
 
     private fun isValidNewStructure(projectDir: File): Boolean {
@@ -563,15 +549,6 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
         val scenesDir = File(projectDir, "scenes")
         val filesDir = File(projectDir, "files")
         return codeXml.exists() && scenesDir.isDirectory && filesDir.isDirectory
-    }
-
-    private fun copyFileContentToCacheFile(uri: Uri, fileName: String) {
-        val projectFile = StorageOperations.copyUriToDir(
-            requireActivity().contentResolver, uri,
-            Constants.CACHE_DIRECTORY, fileName
-        )
-        filesForUnzipAndImportTask?.add(projectFile)
-        hasUnzipAndImportTaskFinished = false
     }
 
     override fun prepareActionMode(@ActionModeType type: Int) {

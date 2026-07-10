@@ -35,7 +35,7 @@ public class TouchDirectionAction extends TemporalAction {
 
     @Override
     protected void update(float percent) {
-        if (scope == null) return;
+        if (scope == null || scope.getSprite() == null || scope.getSprite().look == null) return;
         if (TouchUtil.getNumberOfCurrentTouches() < 1) {
             return;
         }

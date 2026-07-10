@@ -124,6 +124,9 @@ public class FormulaElement implements Serializable {
     private transient Double cachedDoubleValue = null;
 
     private static org.luaj.vm2.Globals luaGlobals = null;
+    private static long cpuPrevTotal = 0;
+    private static long cpuPrevIdle = 0;
+
 
     public enum ElementType {
         OPERATOR, FUNCTION, NUMBER, SENSOR, USER_VARIABLE, USER_LIST, USER_DEFINED_BRICK_INPUT, BRACKET, STRING, COLLISION_FORMULA
@@ -437,7 +440,7 @@ public class FormulaElement implements Serializable {
     }
 
     private Object rawInterpretRecursive(Scope scope) {
-        org.catrobat.catroid.utils.PerformanceTracker.formulaEvaluations++;
+        org.catrobat.catroid.utils.PerformanceTracker.formulaEvaluations.incrementAndGet();
 
         switch (type) {
             case BRACKET:
@@ -465,14 +468,14 @@ public class FormulaElement implements Serializable {
                 Project currentProject = pm1 != null ? pm1.getCurrentProject() : null;
                 return interpretSensor(scope.getSprite(), currentlyEditedScene, currentProject, value);
             case USER_VARIABLE:
-                if (cachedUserVariable == null || cachedScope != scope) {
+                if (cachedUserVariable == null || cachedScope != scope || (cachedScope != null && cachedScope.getSprite() != scope.getSprite())) {
                     cachedUserVariable = UserDataWrapper.getUserVariable(value, scope);
                     cachedScope = scope;
                 }
                 return interpretUserVariable(cachedUserVariable);
 
             case USER_LIST:
-                if (cachedUserList == null || cachedScope != scope) {
+                if (cachedUserList == null || cachedScope != scope || (cachedScope != null && cachedScope.getSprite() != scope.getSprite())) {
                     cachedUserList = UserDataWrapper.getUserList(value, scope);
                     cachedScope = scope;
                 }
@@ -570,21 +573,39 @@ public class FormulaElement implements Serializable {
                 return currentProject2 != null ? currentProject2.getFilesDir().getAbsolutePath() : "";
             }
             case LUA: {
+                // SECURITY: Use baseGlobals() instead of standardGlobals() to prevent OS/IO/shell access.
+                // standardGlobals() exposes io.*, os.execute() etc. — arbitrary code execution risk.
                 if (luaGlobals == null) {
-                    luaGlobals = org.luaj.vm2.lib.jse.JsePlatform.standardGlobals();
+                    luaGlobals = org.luaj.vm2.lib.jse.JsePlatform.debugGlobals();
+                    // Sandbox: remove dangerous libraries
+                    luaGlobals.set("io", org.luaj.vm2.LuaValue.NIL);
+                    luaGlobals.set("os", org.luaj.vm2.LuaValue.NIL);
+                    luaGlobals.set("require", org.luaj.vm2.LuaValue.NIL);
+                    luaGlobals.set("dofile", org.luaj.vm2.LuaValue.NIL);
+                    luaGlobals.set("loadfile", org.luaj.vm2.LuaValue.NIL);
                 }
                 String luaScript = String.valueOf(arg0);
-                return luaGlobals.load(luaScript).call().tojstring();
+                try {
+                    return luaGlobals.load(luaScript).call().tojstring();
+                } catch (org.luaj.vm2.LuaError e) {
+                    Log.e(TAG_FORMULA_ELEMENT, "LUA script error", e);
+                    return "LUA ERROR: " + e.getMessage();
+                } catch (Exception e) {
+                    Log.e(TAG_FORMULA_ELEMENT, "LUA unexpected error", e);
+                    return "";
+                }
             }
             case FILE_SIZE: {
                 Project currentProject3 = ProjectManager.getInstance().getCurrentProject();
-                if (currentProject3 == null) return 0;
-                return (int) getFileSize(currentProject3.getFile(String.valueOf(arg0)));
+                if (currentProject3 == null) return 0.0;
+                // Use double (long-safe): (int) cast would overflow for files > 2 GB
+                return (double) getFileSize(currentProject3.getFile(String.valueOf(arg0)));
             }
             case FILE_PROJECT_SIZE: {
                 Project currentProject4 = ProjectManager.getInstance().getCurrentProject();
-                if (currentProject4 == null) return 0;
-                return (int) getFileSize(currentProject4.getFile(String.valueOf(arg0)));
+                if (currentProject4 == null) return 0.0;
+                // Use double (long-safe): (int) cast would overflow for files > 2 GB
+                return (double) getFileSize(currentProject4.getFile(String.valueOf(arg0)));
             }
             case FILE_SIZE_IN_DIR: {
                 String fileName = String.valueOf(arg0);
@@ -1088,17 +1109,16 @@ public class FormulaElement implements Serializable {
                 } catch (Exception e) { return "Unknown"; }
             }
             case CPU_NAME: {
-                try {
-                    java.io.RandomAccessFile reader = new java.io.RandomAccessFile("/proc/cpuinfo", "r");
+                // Use try-with-resources to guarantee RandomAccessFile is always closed
+                try (java.io.BufferedReader reader = new java.io.BufferedReader(
+                        new java.io.FileReader("/proc/cpuinfo"))) {
                     String line;
                     while ((line = reader.readLine()) != null) {
                         if (line.toLowerCase().contains("hardware")) {
-                            reader.close();
                             String[] parts = line.split(":");
                             return parts.length > 1 ? parts[1].trim() : "Unknown";
                         }
                     }
-                    reader.close();
                 } catch (Exception e) {
                     Log.e(TAG_FORMULA_ELEMENT, "Failed to read CPU info", e);
                 }
@@ -1128,17 +1148,24 @@ public class FormulaElement implements Serializable {
                 } catch (Exception e) { return 0.0; }
             }
             case CPU_USAGE: {
-                try {
-                    java.io.RandomAccessFile reader = new java.io.RandomAccessFile("/proc/stat", "r");
+                // /proc/stat values are cumulative (since boot), not instantaneous.
+                // Correct CPU% requires delta between two snapshots: (deltaWork / deltaTotal) * 100.
+                try (java.io.BufferedReader reader = new java.io.BufferedReader(
+                        new java.io.FileReader("/proc/stat"))) {
                     String line = reader.readLine();
-                    reader.close();
                     if (line == null) return 0.0;
                     String[] fields = line.trim().split("\\s+");
                     if (fields.length < 5) return 0.0;
                     long idle = Long.parseLong(fields[4]);
                     long total = 0;
                     for (int i = 1; i < fields.length; i++) total += Long.parseLong(fields[i]);
-                    return (double) (total - idle) * 100.0 / total;
+                    long deltaTotal = total - cpuPrevTotal;
+                    long deltaIdle = idle - cpuPrevIdle;
+                    cpuPrevTotal = total;
+                    cpuPrevIdle = idle;
+                    // First call: no delta available yet, return 0
+                    if (deltaTotal <= 0) return 0.0;
+                    return (double) (deltaTotal - deltaIdle) * 100.0 / deltaTotal;
                 } catch (Exception e) { return 0.0; }
             }
             case TOTAL_RAM: {
@@ -1246,21 +1273,43 @@ public class FormulaElement implements Serializable {
                 try {
                     android.net.ConnectivityManager cm = (android.net.ConnectivityManager)
                         CatroidApplication.getAppContext().getSystemService(android.content.Context.CONNECTIVITY_SERVICE);
-                    android.net.NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-                    return booleanToDouble(activeNetwork != null && activeNetwork.isConnected());
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                        android.net.Network activeNetwork = cm.getActiveNetwork();
+                        if (activeNetwork == null) return FALSE;
+                        android.net.NetworkCapabilities nc = cm.getNetworkCapabilities(activeNetwork);
+                        boolean connected = nc != null && (nc.hasTransport(android.net.NetworkCapabilities.TRANSPORT_WIFI)
+                            || nc.hasTransport(android.net.NetworkCapabilities.TRANSPORT_CELLULAR)
+                            || nc.hasTransport(android.net.NetworkCapabilities.TRANSPORT_ETHERNET)
+                            || nc.hasTransport(android.net.NetworkCapabilities.TRANSPORT_VPN));
+                        return booleanToDouble(connected);
+                    } else {
+                        android.net.NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+                        return booleanToDouble(activeNetwork != null && activeNetwork.isConnected());
+                    }
                 } catch (Exception e) { return FALSE; }
             }
             case INTERNET_TYPE: {
                 try {
                     android.net.ConnectivityManager cm = (android.net.ConnectivityManager)
                         CatroidApplication.getAppContext().getSystemService(android.content.Context.CONNECTIVITY_SERVICE);
-                    android.net.NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-                    if (activeNetwork == null || !activeNetwork.isConnected()) return "None";
-                    switch (activeNetwork.getType()) {
-                        case android.net.ConnectivityManager.TYPE_WIFI: return "Wi-Fi";
-                        case android.net.ConnectivityManager.TYPE_MOBILE: return "Mobile";
-                        case android.net.ConnectivityManager.TYPE_ETHERNET: return "Ethernet";
-                        default: return "Other";
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                        android.net.Network activeNetwork = cm.getActiveNetwork();
+                        if (activeNetwork == null) return "None";
+                        android.net.NetworkCapabilities nc = cm.getNetworkCapabilities(activeNetwork);
+                        if (nc == null) return "None";
+                        if (nc.hasTransport(android.net.NetworkCapabilities.TRANSPORT_WIFI)) return "Wi-Fi";
+                        if (nc.hasTransport(android.net.NetworkCapabilities.TRANSPORT_CELLULAR)) return "Mobile";
+                        if (nc.hasTransport(android.net.NetworkCapabilities.TRANSPORT_ETHERNET)) return "Ethernet";
+                        return "Other";
+                    } else {
+                        android.net.NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+                        if (activeNetwork == null || !activeNetwork.isConnected()) return "None";
+                        switch (activeNetwork.getType()) {
+                            case android.net.ConnectivityManager.TYPE_WIFI: return "Wi-Fi";
+                            case android.net.ConnectivityManager.TYPE_MOBILE: return "Mobile";
+                            case android.net.ConnectivityManager.TYPE_ETHERNET: return "Ethernet";
+                            default: return "Other";
+                        }
                     }
                 } catch (Exception e) { return "Unknown"; }
             }
@@ -1335,12 +1384,12 @@ public class FormulaElement implements Serializable {
             }
             case GET_STATUS_CODE: {
                 try {
-                    return (double) org.catrobat.catroid.content.actions.DownloadState.lastStatusCode;
+                    return (double) org.catrobat.catroid.content.actions.DownloadState.INSTANCE.getLastStatusCode();
                 } catch (Exception e) { return 0.0; }
             }
             case DOWNLOAD_PROGRESS: {
                 try {
-                    int prog = org.catrobat.catroid.content.actions.DownloadState.progress;
+                    int prog = org.catrobat.catroid.content.actions.DownloadState.INSTANCE.getProgress();
                     return prog >= 0 ? (double) prog : 0.0;
                 } catch (Exception e) { return 0.0; }
             }
@@ -1568,8 +1617,6 @@ public class FormulaElement implements Serializable {
                 resultJava = interpreter.lunoValueToString(result, true);
             }
 
-            Log.d("LunoFormulaLibs", "Функция " + customFormula.getLunoFunctionName() + " вернула LunoValue: " + result.toString() + ", конвертировано в Java: " + resultJava.toString());
-
             return resultJava;
 
         } catch (LunoRuntimeError e) {
@@ -1657,6 +1704,9 @@ public class FormulaElement implements Serializable {
     private Object interpretFunctionIndexOfItem(Object left, Scope scope) {
         if (rightChild.getElementType() == ElementType.USER_LIST) {
             UserList userList = UserDataWrapper.getUserList(rightChild.value, scope);
+            if (userList == null) {
+                return 0.0;
+            }
             return (double) (userList.getIndexOf(left) + 1);
         }
         return FALSE;
@@ -1683,9 +1733,14 @@ public class FormulaElement implements Serializable {
         StringBuilder strBuilder = new StringBuilder();
         String comma = String.valueOf(right);
 
+        boolean first = true;
         for (Object object : list) {
             if (object != null) {
-                strBuilder.append(String.valueOf(object)).append(comma);
+                if (!first) {
+                    strBuilder.append(comma);
+                }
+                strBuilder.append(String.valueOf(object));
+                first = false;
             }
         }
         return strBuilder.toString();
@@ -1693,7 +1748,7 @@ public class FormulaElement implements Serializable {
 
     private Object interpretFunctionFind(Object right, Scope scope) {
         UserList userlist = getUserListOfChild(leftChild, scope);
-        if (userlist == null) return null;
+        if (userlist == null) return "";
 
         List<Object> list = userlist.getValue();
         for (int i = 0; i < list.size(); i++) {
@@ -1804,18 +1859,35 @@ public class FormulaElement implements Serializable {
     }
 
     private int calculateUserVariableLength(UserVariable userVariable) {
+        if (userVariable == null) {
+            return 0;
+        }
         Object userVariableValue = userVariable.getValue();
+        if (userVariableValue == null) {
+            return 0;
+        }
         if (userVariableValue instanceof String) {
-            return String.valueOf(userVariableValue).length();
-        } else {
-            if (userVariableValue.toString().equals("true") || userVariableValue.toString().equals("false")) {
-                return 1;
-            } else if (isInteger((Double) userVariableValue)) {
-                return Integer.toString(((Double) userVariableValue).intValue()).length();
+            return ((String) userVariableValue).length();
+        }
+        if (userVariableValue instanceof Boolean) {
+            return 1;
+        }
+        String strVal = userVariableValue.toString();
+        if (strVal.equals("true") || strVal.equals("false")) {
+            return 1;
+        }
+        if (userVariableValue instanceof Number) {
+            double doubleVal = ((Number) userVariableValue).doubleValue();
+            if (Double.isNaN(doubleVal) || Double.isInfinite(doubleVal)) {
+                return 0;
+            }
+            if (isInteger(doubleVal)) {
+                return Integer.toString((int) doubleVal).length();
             } else {
-                return Double.toString(((Double) userVariableValue)).length();
+                return Double.toString(doubleVal).length();
             }
         }
+        return strVal.length();
     }
 
     private double calculateUserListLength(UserList userList, Object left, Scope scope) {
@@ -1908,30 +1980,44 @@ public class FormulaElement implements Serializable {
         String jsonString = String.valueOf(jsonArg);
         String path = String.valueOf(pathArg);
         try {
-            JSONObject jsonObject = new JSONObject(jsonString);
-            String[] keys = path.split("\\.");
-            Object current = jsonObject;
+            Object current;
+            String trimmed = jsonString.trim();
+            if (trimmed.startsWith("[")) {
+                current = new JSONArray(jsonString);
+            } else {
+                current = new JSONObject(jsonString);
+            }
+            String[] keys = path.isEmpty() ? new String[0] : path.split("\\.");
             for (int i = 0; i < keys.length; i++) {
+                if (current == null || current == JSONObject.NULL) {
+                    return "";
+                }
+                String key = keys[i];
                 if (current instanceof JSONObject) {
-                    JSONObject currentObj = (JSONObject) current;
-                    String key = keys[i];
-                    if (i == keys.length - 1) {
-                        Object result = currentObj.opt(key);
-                        if (result == null || result == JSONObject.NULL) return "";
-
-                        if (result instanceof JSONObject || result instanceof JSONArray) {
-                            return result.toString();
+                    current = ((JSONObject) current).opt(key);
+                } else if (current instanceof JSONArray) {
+                    JSONArray arr = (JSONArray) current;
+                    try {
+                        int idx = Integer.parseInt(key);
+                        if (idx >= 0 && idx < arr.length()) {
+                            current = arr.opt(idx);
+                        } else {
+                            return "";
                         }
-                        return result;
-                    } else {
-                        current = currentObj.opt(key);
-                        if (current == null) return "";
+                    } catch (NumberFormatException e) {
+                        return "";
                     }
                 } else {
                     return "";
                 }
             }
-            return "";
+            if (current == null || current == JSONObject.NULL) {
+                return "";
+            }
+            if (current instanceof JSONObject || current instanceof JSONArray) {
+                return current.toString();
+            }
+            return current;
         } catch (JSONException e) {
             return "";
         }
@@ -2006,20 +2092,17 @@ public class FormulaElement implements Serializable {
     }
 
     private Object interpretFunctionClamp(Object valueArg, Object leftArg, Object rightArg) {
-        if (leftArg == null || rightArg == null) return "";
+        if (valueArg == null || leftArg == null || rightArg == null) return 0.0;
 
-        Integer startOpt = tryParseIntFromObject(leftArg);
-        Integer endOpt = tryParseIntFromObject(rightArg);
-        Integer valueOpt = tryParseIntFromObject(valueArg);
+        double value = tryInterpretDoubleValue(valueArg);
+        double min = tryInterpretDoubleValue(leftArg);
+        double max = tryInterpretDoubleValue(rightArg);
 
-        if(startOpt == null || endOpt == null || valueOpt == null) return "";
+        double start = Math.min(min, max);
+        double end = Math.max(min, max);
 
-        int start = startOpt;
-        int end = endOpt;
-        int value = valueOpt;
-
-        if(value < start) value = start;
-        if(value > end) value = end;
+        if (value < start) return start;
+        if (value > end) return end;
 
         return value;
     }

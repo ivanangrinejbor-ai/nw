@@ -1,16 +1,19 @@
 package org.catrobat.catroid.content.actions
 
+import android.Manifest
 import android.app.AlarmManager
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.RemoteInput
+import androidx.core.content.ContextCompat
 import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction
 import org.catrobat.catroid.content.Scope
 import org.catrobat.catroid.content.notification.NotificationEventReceiver
@@ -23,13 +26,32 @@ class ShowScheduledNotificationAction : TemporalAction() {
     var notificationId: Formula? = null
     var delay: Formula? = null
 
+    private var started = false
+
+    override fun restart() {
+        started = false
+        super.restart()
+    }
+
     override fun update(percent: Float) {
+        if (started) return
         val id = notificationId?.interpretInteger(scope) ?: return
         val delaySec = delay?.interpretInteger(scope) ?: 0
         val data = NotificationStorage.get(id) ?: return
 
         try {
             val activity = StageActivity.activeStageActivity.get() ?: return
+
+            // Android 13+ requires POST_NOTIFICATIONS permission
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                if (ContextCompat.checkSelfPermission(activity, Manifest.permission.POST_NOTIFICATIONS)
+                    != PackageManager.PERMISSION_GRANTED) {
+                    Log.w(javaClass.simpleName, "POST_NOTIFICATIONS permission not granted. Notification $id skipped.")
+                    return
+                }
+            }
+
+            started = true
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 val channel = NotificationChannel(data.channelName, data.channelName, data.importanceLevel)
@@ -45,10 +67,18 @@ class ShowScheduledNotificationAction : TemporalAction() {
                 val scheduleIntent = Intent(activity, NotificationEventReceiver::class.java)
                 scheduleIntent.action = "SCHEDULED_NOTIFICATION"
                 scheduleIntent.putExtra("notification_id", id)
-                val schedPending = PendingIntent.getBroadcast(activity, 300000 + id, scheduleIntent,
-                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+                // Use id * 1000 offset to avoid PendingIntent request code collisions
+                val schedPending = PendingIntent.getBroadcast(
+                    activity, 300000 + id, scheduleIntent,
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                )
                 val triggerAt = System.currentTimeMillis() + delaySec * 1000L
-                alarmManager.set(AlarmManager.RTC_WAKEUP, triggerAt, schedPending)
+                // Use setExactAndAllowWhileIdle for reliable delivery in Doze mode
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, schedPending)
+                } else {
+                    alarmManager.setExact(AlarmManager.RTC_WAKEUP, triggerAt, schedPending)
+                }
                 Log.d(javaClass.simpleName, "Notification $id scheduled in ${delaySec}s")
             }
         } catch (e: Exception) {
@@ -70,14 +100,14 @@ class ShowScheduledNotificationAction : TemporalAction() {
                 .setAutoCancel(false)
                 .setOngoing(data.isPinned)
 
-            for (act in actions) {
+            actions.forEachIndexed { index, act ->
                 val intent = Intent(context, NotificationEventReceiver::class.java)
                 intent.action = if (act.hasInput) "NOTIFICATION_REPLY_SENT" else "NOTIFICATION_ACTION_CLICKED"
                 intent.putExtra("notification_id", id)
                 intent.putExtra("action_id", act.actionId)
                 intent.putExtra("button_text", act.text)
 
-                val requestCode = "$id:${act.actionId}".hashCode()
+                val requestCode = id * 1000 + index // deterministic, collision-free
                 val pIntent = PendingIntent.getBroadcast(context, requestCode, intent,
                     PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
 

@@ -2,26 +2,27 @@ package org.catrobat.catroid.utils;
 
 import android.util.Log;
 import org.catrobat.catroid.content.Script;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class PerformanceTracker {
-    private static long totalPhysicsTime = 0;
-    private static long totalLogicTime = 0;
-    private static long totalRenderTime = 0;
-    private static long frames = 0;
+    private static final AtomicLong totalPhysicsTime = new AtomicLong(0);
+    private static final AtomicLong totalLogicTime = new AtomicLong(0);
+    private static final AtomicLong totalRenderTime = new AtomicLong(0);
+    private static final AtomicLong frames = new AtomicLong(0);
 
-    public static long formulaEvaluations = 0;
-    public static long blocksExecuted = 0;
+    public static final AtomicLong formulaEvaluations = new AtomicLong(0);
+    public static final AtomicLong blocksExecuted = new AtomicLong(0);
 
-    public static long activeThreads = 0;
-    public static long totalBlockTimeNs = 0;
+    public static final AtomicLong activeThreads = new AtomicLong(0);
+    public static final AtomicLong totalBlockTimeNs = new AtomicLong(0);
 
     private static long lastLogTime = System.currentTimeMillis();
 
     public static void recordFrame(long physicsNs, long logicNs, long renderNs) {
-        totalPhysicsTime += physicsNs;
-        totalLogicTime += logicNs;
-        totalRenderTime += renderNs;
-        frames++;
+        totalPhysicsTime.addAndGet(physicsNs);
+        totalLogicTime.addAndGet(logicNs);
+        totalRenderTime.addAndGet(renderNs);
+        frames.incrementAndGet();
 
         long currentTime = System.currentTimeMillis();
         if (currentTime - lastLogTime >= 1000) {
@@ -38,28 +39,29 @@ public class PerformanceTracker {
     }
 
     private static void printStats() {
-        if (frames == 0) return;
+        long f = frames.get();
+        if (f == 0) return;
 
-        double avgPhysics = (totalPhysicsTime / (double) frames) / 1_000_000.0;
-        double avgLogic = (totalLogicTime / (double) frames) / 1_000_000.0;
-        double avgRender = (totalRenderTime / (double) frames) / 1_000_000.0;
-        double avgBlock = (totalBlockTimeNs / (double) frames) / 1_000_000.0;
-        long avgThreads = activeThreads / frames;
+        double avgPhysics = (totalPhysicsTime.get() / (double) f) / 1_000_000.0;
+        double avgLogic = (totalLogicTime.get() / (double) f) / 1_000_000.0;
+        double avgRender = (totalRenderTime.get() / (double) f) / 1_000_000.0;
+        double avgBlock = (totalBlockTimeNs.get() / (double) f) / 1_000_000.0;
+        long avgThreads = activeThreads.get() / f;
 
         Log.i("CAT_PROFILER", String.format(
                 "FPS: %d | Threads: %d | Logic: %.2fms (Blocks alone: %.2fms) | Render: %.2fms | Physics: %.2fms | Formulas: %d | Blocks: %d",
-                frames, avgThreads, avgLogic, avgBlock, avgRender, avgPhysics, formulaEvaluations, blocksExecuted
+                f, avgThreads, avgLogic, avgBlock, avgRender, avgPhysics, formulaEvaluations.get(), blocksExecuted.get()
         ));
     }
 
     private static void reset() {
-        totalPhysicsTime = 0;
-        totalLogicTime = 0;
-        totalRenderTime = 0;
-        frames = 0;
-        formulaEvaluations = 0;
-        blocksExecuted = 0;
-        activeThreads = 0;
-        totalBlockTimeNs = 0;
+        totalPhysicsTime.set(0);
+        totalLogicTime.set(0);
+        totalRenderTime.set(0);
+        frames.set(0);
+        formulaEvaluations.set(0);
+        blocksExecuted.set(0);
+        activeThreads.set(0);
+        totalBlockTimeNs.set(0);
     }
 }

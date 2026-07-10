@@ -5567,22 +5567,22 @@ public class ActionFactory extends Actions {
     public Action createWebSocketConnectAction(Sprite sprite, SequenceAction sequence, Formula url) {
         WebSocketConnectAction action = action(WebSocketConnectAction.class);
         Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
-        action.scope = scope;
-        action.url = url;
+        action.setScope(scope);
+        action.setUrl(url);
         return action;
     }
 
     public Action createWebSocketSendAction(Sprite sprite, SequenceAction sequence, Formula message) {
         WebSocketSendAction action = action(WebSocketSendAction.class);
         Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
-        action.scope = scope;
-        action.message = message;
+        action.setScope(scope);
+        action.setMessage(message);
         return action;
     }
 
     public Action createWebSocketReceiveAction(Sprite sprite, SequenceAction sequence, UserVariable variable) {
         WebSocketReceiveAction action = action(WebSocketReceiveAction.class);
-        action.variable = variable;
+        action.setVariable(variable);
         return action;
     }
 
@@ -5594,18 +5594,18 @@ public class ActionFactory extends Actions {
     public Action createDownloadFileAction(Sprite sprite, SequenceAction sequence, Formula url, Formula fileName) {
         DownloadFileAction action = action(DownloadFileAction.class);
         Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
-        action.scope = scope;
-        action.url = url;
-        action.fileName = fileName;
+        action.setScope(scope);
+        action.setUrl(url);
+        action.setFileName(fileName);
         return action;
     }
 
     public Action createDownloadToPathAction(Sprite sprite, SequenceAction sequence, Formula url, Formula path) {
         DownloadToPathAction action = action(DownloadToPathAction.class);
         Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
-        action.scope = scope;
-        action.url = url;
-        action.path = path;
+        action.setScope(scope);
+        action.setUrl(url);
+        action.setPath(path);
         return action;
     }
 
@@ -5617,9 +5617,9 @@ public class ActionFactory extends Actions {
     public Action createPingAction(Sprite sprite, SequenceAction sequence, Formula host, UserVariable variable) {
         PingAction action = action(PingAction.class);
         Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
-        action.scope = scope;
-        action.host = host;
-        action.variable = variable;
+        action.setScope(scope);
+        action.setHost(host);
+        action.setVariable(variable);
         return action;
     }
 }

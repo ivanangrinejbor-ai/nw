@@ -177,7 +177,8 @@ public final class SensorHandler implements SensorEventListener, SensorCustomEve
 	}
 
 	public static boolean gpsAvailable() {
-		return gpsSensorAvailable() | networkGpsAvailable();
+		// Use || (logical OR) for short-circuit: if gpsSensor is available, skip network check
+		return gpsSensorAvailable() || networkGpsAvailable();
 	}
 
 	private static boolean gpsSensorAvailable() {
@@ -313,7 +314,8 @@ public final class SensorHandler implements SensorEventListener, SensorCustomEve
 
 	@NonNull
 	public static Object getSensorValue(Sensors sensor) {
-		if (instance.sensorManager == null) {
+		// Guard: instance may be null if startSensorListener() was never called
+		if (instance == null || instance.sensorManager == null) {
 			return 0d;
 		}
 		float[] rotationMatrixOut = new float[16];
@@ -443,10 +445,11 @@ public final class SensorHandler implements SensorEventListener, SensorCustomEve
 			case BATTARY:
 				IntentFilter intentFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
 				Intent batteryStatus = CatroidApplication.getAppContext().registerReceiver(null, intentFilter);
-
+				// registerReceiver() can return null if no sticky broadcast is available (documented)
+				if (batteryStatus == null) return 0;
 				int level = batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
 				int scale = batteryStatus.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
-
+				if (level < 0 || scale <= 0) return 0;
 				return (int) ((level * 100) / (float) scale);
 			case MICRO:
 				return Objects.requireNonNull(VolumeManager.Companion.getVolume());

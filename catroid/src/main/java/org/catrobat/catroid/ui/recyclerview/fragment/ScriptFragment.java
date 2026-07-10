@@ -355,7 +355,12 @@ public class ScriptFragment extends ListFragment implements
 											   textView
 		) -> {
 			Project currentProject = ProjectManager.getInstance().getCurrentProject();
-			Scene currentScene = currentProject.getSceneList().get(sceneIndex);
+			java.util.List<Scene> allScenes = new java.util.ArrayList<>(currentProject.getSceneList());
+			Scene globalScene = currentProject.getGlobalScene();
+			if (globalScene != null) {
+				allScenes.add(globalScene);
+			}
+			Scene currentScene = allScenes.get(sceneIndex);
 			Sprite currentSprite = currentScene.getSpriteList().get(spriteIndex);
 
 			textView.setText(createActionBarTitle(currentProject,

@@ -1,162 +1,217 @@
 {
-  "project_info": {
-    "project_number": "259464105300",
-    "project_id": "catroid-b0d71",
-    "storage_bucket": "catroid-b0d71.firebasestorage.app"
-  },
-  "client": [
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:259464105300:android:102ecae14f7872a8b28cc1",
-        "android_client_info": {
-          "package_name": "org.DanVexTeam.NeoCatroid"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyDsVXl-dm1wgY4GAaLoSGDDyKL-Pvo1bDw"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:259464105300:android:102ecae14f7872a8b28cc1",
-        "android_client_info": {
-          "package_name": "org.catrobat.catroid"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyDsVXl-dm1wgY4GAaLoSGDDyKL-Pvo1bDw"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:259464105300:android:102ecae14f7872a8b28cc1",
-        "android_client_info": {
-          "package_name": "org.catrobat.catroid.standalone"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyDsVXl-dm1wgY4GAaLoSGDDyKL-Pvo1bDw"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:259464105300:android:102ecae14f7872a8b28cc1",
-        "android_client_info": {
-          "package_name": "org.DanVexTeam.NeoCatroid.standalone"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyDsVXl-dm1wgY4GAaLoSGDDyKL-Pvo1bDw"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:259464105300:android:102ecae14f7872a8b28cc1",
-        "android_client_info": {
-          "package_name": "org.DanVexTeam.NeoCatroidApkTemplate"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyDsVXl-dm1wgY4GAaLoSGDDyKL-Pvo1bDw"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:259464105300:android:102ecae14f7872a8b28cc1",
-        "android_client_info": {
-          "package_name": "org.DanVexTeam.NewCatroidRuntime"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyDsVXl-dm1wgY4GAaLoSGDDyKL-Pvo1bDw"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:259464105300:android:102ecae14f7872a8b28cc1",
-        "android_client_info": {
-          "package_name": "org.DanVexTeam.NewCatroidRuntimeLite"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyDsVXl-dm1wgY4GAaLoSGDDyKL-Pvo1bDw"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:259464105300:android:102ecae14f7872a8b28cc1",
-        "android_client_info": {
-          "package_name": "org.DanVexTeam.NewCatroidRuntimeNoArm"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyDsVXl-dm1wgY4GAaLoSGDDyKL-Pvo1bDw"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    }
-  ],
-  "configuration_version": "1"
+    "project_info":  {
+                         "project_number":  "259464105300",
+                         "project_id":  "catroid-b0d71",
+                         "storage_bucket":  "catroid-b0d71.firebasestorage.app"
+                     },
+    "client":  [
+                   {
+                       "client_info":  {
+                                           "mobilesdk_app_id":  "1:259464105300:android:102ecae14f7872a8b28cc1",
+                                           "android_client_info":  {
+                                                                       "package_name":  "org.DanVexTeam.NeoCatroid"
+                                                                   }
+                                       },
+                       "oauth_client":  [
+
+                                        ],
+                       "api_key":  [
+                                       {
+                                           "current_key":  "AIzaSyDsVXl-dm1wgY4GAaLoSGDDyKL-Pvo1bDw"
+                                       }
+                                   ],
+                       "services":  {
+                                        "appinvite_service":  {
+                                                                  "other_platform_oauth_client":  [
+
+                                                                                                  ]
+                                                              }
+                                    }
+                   },
+                   {
+                       "client_info":  {
+                                           "mobilesdk_app_id":  "1:259464105300:android:102ecae14f7872a8b28cc1",
+                                           "android_client_info":  {
+                                                                       "package_name":  "org.catrobat.catroid"
+                                                                   }
+                                       },
+                       "oauth_client":  [
+
+                                        ],
+                       "api_key":  [
+                                       {
+                                           "current_key":  "AIzaSyDsVXl-dm1wgY4GAaLoSGDDyKL-Pvo1bDw"
+                                       }
+                                   ],
+                       "services":  {
+                                        "appinvite_service":  {
+                                                                  "other_platform_oauth_client":  [
+
+                                                                                                  ]
+                                                              }
+                                    }
+                   },
+                   {
+                       "client_info":  {
+                                           "mobilesdk_app_id":  "1:259464105300:android:102ecae14f7872a8b28cc1",
+                                           "android_client_info":  {
+                                                                       "package_name":  "org.catrobat.catroid.standalone"
+                                                                   }
+                                       },
+                       "oauth_client":  [
+
+                                        ],
+                       "api_key":  [
+                                       {
+                                           "current_key":  "AIzaSyDsVXl-dm1wgY4GAaLoSGDDyKL-Pvo1bDw"
+                                       }
+                                   ],
+                       "services":  {
+                                        "appinvite_service":  {
+                                                                  "other_platform_oauth_client":  [
+
+                                                                                                  ]
+                                                              }
+                                    }
+                   },
+                   {
+                       "client_info":  {
+                                           "mobilesdk_app_id":  "1:259464105300:android:102ecae14f7872a8b28cc1",
+                                           "android_client_info":  {
+                                                                       "package_name":  "org.DanVexTeam.NeoCatroid.standalone"
+                                                                   }
+                                       },
+                       "oauth_client":  [
+
+                                        ],
+                       "api_key":  [
+                                       {
+                                           "current_key":  "AIzaSyDsVXl-dm1wgY4GAaLoSGDDyKL-Pvo1bDw"
+                                       }
+                                   ],
+                       "services":  {
+                                        "appinvite_service":  {
+                                                                  "other_platform_oauth_client":  [
+
+                                                                                                  ]
+                                                              }
+                                    }
+                   },
+                   {
+                       "client_info":  {
+                                           "mobilesdk_app_id":  "1:259464105300:android:102ecae14f7872a8b28cc1",
+                                           "android_client_info":  {
+                                                                       "package_name":  "org.DanVexTeam.NeoCatroidApkTemplate"
+                                                                   }
+                                       },
+                       "oauth_client":  [
+
+                                        ],
+                       "api_key":  [
+                                       {
+                                           "current_key":  "AIzaSyDsVXl-dm1wgY4GAaLoSGDDyKL-Pvo1bDw"
+                                       }
+                                   ],
+                       "services":  {
+                                        "appinvite_service":  {
+                                                                  "other_platform_oauth_client":  [
+
+                                                                                                  ]
+                                                              }
+                                    }
+                   },
+                   {
+                       "client_info":  {
+                                           "mobilesdk_app_id":  "1:259464105300:android:102ecae14f7872a8b28cc1",
+                                           "android_client_info":  {
+                                                                       "package_name":  "org.DanVexTeam.NewCatroidRuntime"
+                                                                   }
+                                       },
+                       "oauth_client":  [
+
+                                        ],
+                       "api_key":  [
+                                       {
+                                           "current_key":  "AIzaSyDsVXl-dm1wgY4GAaLoSGDDyKL-Pvo1bDw"
+                                       }
+                                   ],
+                       "services":  {
+                                        "appinvite_service":  {
+                                                                  "other_platform_oauth_client":  [
+
+                                                                                                  ]
+                                                              }
+                                    }
+                   },
+                   {
+                       "client_info":  {
+                                           "mobilesdk_app_id":  "1:259464105300:android:102ecae14f7872a8b28cc1",
+                                           "android_client_info":  {
+                                                                       "package_name":  "org.DanVexTeam.NewCatroidRuntimeLite"
+                                                                   }
+                                       },
+                       "oauth_client":  [
+
+                                        ],
+                       "api_key":  [
+                                       {
+                                           "current_key":  "AIzaSyDsVXl-dm1wgY4GAaLoSGDDyKL-Pvo1bDw"
+                                       }
+                                   ],
+                       "services":  {
+                                        "appinvite_service":  {
+                                                                  "other_platform_oauth_client":  [
+
+                                                                                                  ]
+                                                              }
+                                    }
+                   },
+                   {
+                       "client_info":  {
+                                           "mobilesdk_app_id":  "1:259464105300:android:102ecae14f7872a8b28cc1",
+                                           "android_client_info":  {
+                                                                       "package_name":  "org.DanVexTeam.NewCatroidRuntimeNoArm"
+                                                                   }
+                                       },
+                       "oauth_client":  [
+
+                                        ],
+                       "api_key":  [
+                                       {
+                                           "current_key":  "AIzaSyDsVXl-dm1wgY4GAaLoSGDDyKL-Pvo1bDw"
+                                       }
+                                   ],
+                       "services":  {
+                                        "appinvite_service":  {
+                                                                  "other_platform_oauth_client":  [
+
+                                                                                                  ]
+                                                              }
+                                    }
+                   },
+                   {
+                       "client_info":  {
+                                           "mobilesdk_app_id":  "1:259464105300:android:102ecae14f7872a8b28cc1",
+                                           "android_client_info":  {
+                                                                       "package_name":  "org.ivproduction.neocatroid"
+                                                                   }
+                                       },
+                       "oauth_client":  [
+
+                                        ],
+                       "api_key":  [
+                                       {
+                                           "current_key":  "AIzaSyDsVXl-dm1wgY4GAaLoSGDDyKL-Pvo1bDw"
+                                       }
+                                   ],
+                       "services":  {
+                                        "appinvite_service":  {
+                                                                  "other_platform_oauth_client":  [
+
+                                                                                                  ]
+                                                              }
+                                    }
+                   }
+               ],
+    "configuration_version":  "1"
 }

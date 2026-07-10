@@ -28,19 +28,44 @@ import android.os.Process
 import android.preference.PreferenceManager
 import android.util.Log
 import kotlin.system.exitProcess
+import java.io.File
+import java.io.FileWriter
+import java.io.PrintWriter
+import java.io.StringWriter
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 private const val EXIT_CODE = 10
 
 open class BaseExceptionHandler(context: Context) : Thread.UncaughtExceptionHandler {
 
     private val preferences: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+    private val appContext: Context = context.applicationContext
 
     override fun uncaughtException(thread: Thread, exception: Throwable) {
         Log.e(TAG, "uncaughtException: ", exception)
+        writeCrashToFile(thread, exception)
         preferences.edit()
             .putBoolean(RECOVERED_FROM_CRASH, true)
             .apply()
         exit()
+    }
+
+    private fun writeCrashToFile(thread: Thread, exception: Throwable) {
+        try {
+            val cacheDir = appContext.cacheDir ?: return
+            val crashFile = File(cacheDir, "crash_log.txt")
+            val time = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US).format(Date())
+            val sw = StringWriter()
+            sw.append("TIME: ").append(time).append("\n")
+            sw.append("THREAD: ").append(thread.name).append("\n")
+            exception.printStackTrace(PrintWriter(sw))
+            val existing = if (crashFile.exists()) crashFile.readText() else ""
+            FileWriter(crashFile, false).use { it.write(existing + "\n===== CRASH =====\n" + sw.toString()) }
+        } catch (e: Throwable) {
+            Log.e(TAG, "Failed to write crash log", e)
+        }
     }
 
     protected fun exit() {

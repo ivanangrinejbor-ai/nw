@@ -26,7 +26,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Rect;
 import android.location.LocationManager;
@@ -94,11 +93,10 @@ import org.catrobat.catroid.ui.runtimepermissions.RequiresPermissionTask;
 import org.catrobat.catroid.ui.settingsfragments.SettingsFragment;
 import org.catrobat.catroid.ui.workspace.WorkspaceLayout;
 import org.catrobat.catroid.userbrick.UserDefinedBrickInput;
-import org.catrobat.catroid.utils.ProjectManagerExtensionsKt;
 import org.catrobat.catroid.utils.ShowTextUtils.AndroidStringProvider;
 import org.catrobat.catroid.utils.SnackbarUtil;
 import org.catrobat.catroid.utils.ToastUtil;
-import org.catrobat.paintroid.colorpicker.ColorPickerDialog;
+import org.catrobat.catroid.ui.neopaint.ColorPickerDialog;
 
 import java.io.File;
 import java.io.IOException;
@@ -124,8 +122,6 @@ import static org.catrobat.catroid.utils.SnackbarUtil.wasHintAlreadyShown;
 
 import org.catrobat.catroid.formulaeditor.InternFormulaKeyboardAdapter;
 import org.catrobat.catroid.formulaeditor.InternToken;
-
-import static androidx.fragment.app.DialogFragment.STYLE_NORMAL;
 
 @LunoClass
 public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.OnGlobalLayoutListener,
@@ -608,16 +604,11 @@ public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.
     }
 
 	private void showColorPicker(ShowFormulaEditorStrategy.Callback callback,
-			FragmentManager fragmentManager) {
+			AppCompatActivity activity) {
 		int currentColor = callback.getValue();
-		ColorPickerDialog dialog = ColorPickerDialog.Companion.newInstance(currentColor, true,
-				true);
-		Bitmap projectBitmap = ProjectManagerExtensionsKt
-				.getProjectBitmap(ProjectManager.getInstance());
-		dialog.setBitmap(projectBitmap);
-		dialog.addOnColorPickedListener(callback::setValue);
-		dialog.setStyle(STYLE_NORMAL, R.style.AlertDialogWithTitle);
-		dialog.show(fragmentManager, null);
+		ColorPickerDialog dialog = new ColorPickerDialog(activity, currentColor,
+				value -> callback.setValue(value));
+		dialog.show();
 	}
 
 	private void showColorPickerDialog(View view) {
@@ -629,7 +620,8 @@ public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.
 		if (fragmentManager.isStateSaved()) {
 			return;
 		}
-		showColorPicker(new ShowFormulaEditorStrategy.Callback() {
+		showColorPicker(
+				new ShowFormulaEditorStrategy.Callback() {
 			@Override
 			public void showFormulaEditor(View view) {
 			}
@@ -650,7 +642,7 @@ public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.
 					return 0;
 				}
 			}
-		}, fragmentManager);
+		}, activity);
 	}
 
     public void toggleFunctionalButtons() {

@@ -116,6 +116,9 @@ import static org.catrobat.catroid.common.Constants.SOUND_DIRECTORY_NAME;
 import static org.catrobat.catroid.common.Constants.TMP_CODE_XML_FILE_NAME;
 import static org.catrobat.catroid.common.FlavoredConstants.DEFAULT_ROOT_DIRECTORY;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public final class XstreamSerializer {
     public interface XStreamSetupListener {
         void onSetup(com.thoughtworks.xstream.XStream xstream);
@@ -946,6 +949,11 @@ public final class XstreamSerializer {
 				for (Scene scene : project.getSceneList()) {
 					scene.setProject(project);
 				}
+				Scene globalScene = project.getGlobalScene();
+				if (globalScene != null) {
+					globalScene.setProject(project);
+					globalScene.isGlobalScene = true;
+				}
 			}
 			project.checkForInvisibleSprites();
 			project.setDirectory(projectDir);
@@ -1001,7 +1009,12 @@ public final class XstreamSerializer {
 	}
 
 	private static void setFileReferences(Project project) {
-		for (Scene scene : project.getSceneList()) {
+		List<Scene> allScenes = new ArrayList<>(project.getSceneList());
+		Scene globalScene = project.getGlobalScene();
+		if (globalScene != null) {
+			allScenes.add(globalScene);
+		}
+		for (Scene scene : allScenes) {
 			File imageDir = new File(scene.getDirectory(), IMAGE_DIRECTORY_NAME);
 			File soundDir = new File(scene.getDirectory(), SOUND_DIRECTORY_NAME);
 
@@ -1096,7 +1109,12 @@ public final class XstreamSerializer {
 			StorageOperations.createDir(DEFAULT_ROOT_DIRECTORY);
 			StorageOperations.createDir(project.getDirectory());
 
-			for (Scene scene : project.getSceneList()) {
+			List<Scene> allScenes = new ArrayList<>(project.getSceneList());
+			Scene globalScene = project.getGlobalScene();
+			if (globalScene != null) {
+				allScenes.add(globalScene);
+			}
+			for (Scene scene : allScenes) {
 				StorageOperations.createSceneDirectory(scene.getDirectory());
 			}
 			StorageOperations.writeToFile(tmpCodeFile, currentXml);

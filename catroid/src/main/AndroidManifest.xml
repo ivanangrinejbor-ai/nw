@@ -349,14 +349,10 @@
             android:configChanges="orientation|screenSize|keyboardHidden"/>
 
         <activity
-            android:name="org.catrobat.paintroid.MainActivity"
+            android:name="org.catrobat.catroid.ui.neopaint.NeoPaintActivity"
+            android:exported="false"
             android:theme="@style/Theme.PaintroidFix"
-            tools:replace="android:theme" />
-
-        <activity
-            android:name="org.catrobat.paintroid.WelcomeActivity"
-            android:theme="@style/Theme.PaintroidFix"
-            tools:replace="android:theme" />
+            android:windowSoftInputMode="adjustResize" />
 
         <activity
             android:name=".utils.git.AuthCallbackActivity"

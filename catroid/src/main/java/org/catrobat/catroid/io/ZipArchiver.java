@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.ZipEntry;
@@ -160,8 +161,9 @@ public class ZipArchiver {
 
 			AtomicInteger processed = new AtomicInteger(0);
 
+			List<Future<?>> futures = new ArrayList<>();
 			for (ZipEntry entry : fileEntries) {
-				executor.submit(() -> {
+				futures.add(executor.submit(() -> {
 					File zipEntryFile = new File(dstDir, entry.getName());
 					try {
 						if (!zipEntryFile.getCanonicalPath().startsWith(dstCanonical + File.separator)) {
@@ -172,12 +174,19 @@ public class ZipArchiver {
 					}
 					zipEntryFile.getParentFile().mkdirs();
 
-					try (InputStream in = zipFile.getInputStream(entry);
-						 FileOutputStream out = new FileOutputStream(zipEntryFile)) {
-						byte[] b = new byte[Constants.BUFFER_8K];
-						int len;
-						while ((len = in.read(b)) != -1) {
-							out.write(b, 0, len);
+					try {
+						// ZipFile.getInputStream() is NOT thread-safe: concurrent access from
+						// multiple worker threads corrupts the shared Inflater / file position
+						// and can crash the process natively. Synchronize on the ZipFile.
+						synchronized (zipFile) {
+							try (InputStream in = zipFile.getInputStream(entry);
+								 FileOutputStream out = new FileOutputStream(zipEntryFile)) {
+								byte[] b = new byte[Constants.BUFFER_8K];
+								int len;
+								while ((len = in.read(b)) != -1) {
+									out.write(b, 0, len);
+								}
+							}
 						}
 					} catch (IOException ioEx) {
 						throw new RuntimeException("Failed to extract: " + entry.getName(), ioEx);
@@ -188,7 +197,7 @@ public class ZipArchiver {
 						int pct = done * 100 / totalFiles;
 						listener.onProgress(pct, done, totalFiles, entry.getName());
 					}
-				});
+				}));
 			}
 
 			executor.shutdown();
@@ -197,6 +206,25 @@ public class ZipArchiver {
 			} catch (InterruptedException intEx) {
 				Thread.currentThread().interrupt();
 				throw new IOException("Unzip was interrupted", intEx);
+			}
+
+			IOException firstError = null;
+			for (Future<?> future : futures) {
+				try {
+					future.get();
+				} catch (InterruptedException ie) {
+					Thread.currentThread().interrupt();
+				} catch (java.util.concurrent.ExecutionException ee) {
+					Throwable cause = ee.getCause();
+					if (firstError == null) {
+						firstError = (cause instanceof IOException)
+							? (IOException) cause
+							: new IOException("Unzip failed: " + cause.getMessage(), cause);
+					}
+				}
+			}
+			if (firstError != null) {
+				throw firstError;
 			}
 		}
 	}

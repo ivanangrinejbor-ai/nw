@@ -75,6 +75,10 @@ object AdMobManager {
                 Log.e(TAG, "Event callback error", e)
             }
         }
+        val stage = StageActivity.activeStageActivity?.get()
+        if (stage != null) {
+            stage.broadcastEventToAllSprites(eventId)
+        }
     }
 
     fun enableTestMode() {
@@ -115,234 +119,254 @@ object AdMobManager {
 
 
     fun loadBanner(activity: Activity) {
-        val unitId = bannerUnitId ?: return
-        destroyBanner()
-        try {
-            val request = AdRequest.Builder().build()
-            adView = AdView(activity).apply {
-                adUnitId = unitId
-                setAdSize(AdSize.BANNER)
-                loadAd(request)
-                setAdListener(object : com.google.android.gms.ads.AdListener() {
-                    override fun onAdLoaded() {
-                        isBannerLoaded = true
-                        Log.d(TAG, "Banner loaded")
-                        fireEvent(EventId.ADMOB_BANNER_LOADED)
-                    }
-                    override fun onAdFailedToLoad(loadAdError: LoadAdError) {
-                        isBannerLoaded = false
-                        lastErrorCode = loadAdError.code
-                        lastErrorMessage = loadAdError.message ?: ""
-                        Log.e(TAG, "Banner failed: $lastErrorMessage")
-                        fireEvent(EventId.ADMOB_BANNER_FAILED)
-                    }
-                    override fun onAdOpened() {
-                        Log.d(TAG, "Banner shown")
-                        fireEvent(EventId.ADMOB_BANNER_SHOWN)
-                    }
-                    override fun onAdClosed() {
-                        Log.d(TAG, "Banner hidden")
-                        fireEvent(EventId.ADMOB_BANNER_HIDDEN)
-                    }
-                })
+        mainHandler.post {
+            val unitId = bannerUnitId ?: return@post
+            destroyBanner()
+            try {
+                val request = AdRequest.Builder().build()
+                adView = AdView(activity).apply {
+                    adUnitId = unitId
+                    setAdSize(AdSize.BANNER)
+                    loadAd(request)
+                    setAdListener(object : com.google.android.gms.ads.AdListener() {
+                        override fun onAdLoaded() {
+                            isBannerLoaded = true
+                            Log.d(TAG, "Banner loaded")
+                            fireEvent(EventId.ADMOB_BANNER_LOADED)
+                        }
+                        override fun onAdFailedToLoad(loadAdError: LoadAdError) {
+                            isBannerLoaded = false
+                            lastErrorCode = loadAdError.code
+                            lastErrorMessage = loadAdError.message ?: ""
+                            Log.e(TAG, "Banner failed: $lastErrorMessage")
+                            fireEvent(EventId.ADMOB_BANNER_FAILED)
+                        }
+                        override fun onAdOpened() {
+                            Log.d(TAG, "Banner shown")
+                            fireEvent(EventId.ADMOB_BANNER_SHOWN)
+                        }
+                        override fun onAdClosed() {
+                            Log.d(TAG, "Banner hidden")
+                            fireEvent(EventId.ADMOB_BANNER_HIDDEN)
+                        }
+                    })
+                }
+            } catch (e: Exception) {
+                lastErrorCode = -2
+                lastErrorMessage = e.message ?: ""
+                Log.e(TAG, "Banner load error", e)
             }
-        } catch (e: Exception) {
-            lastErrorCode = -2
-            lastErrorMessage = e.message ?: ""
-            Log.e(TAG, "Banner load error", e)
         }
     }
 
     fun showBanner(activity: Activity) {
-        val view = adView ?: return
-        try {
-            val rootView = activity.window.decorView.findViewById<android.view.ViewGroup>(android.R.id.content)
-            if (view.parent == null) {
-                val params = android.widget.FrameLayout.LayoutParams(
-                    android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
-                    android.widget.FrameLayout.LayoutParams.WRAP_CONTENT
-                )
-                params.gravity = when (bannerPosition) {
-                    BannerPosition.TOP -> android.view.Gravity.TOP
-                    BannerPosition.BOTTOM -> android.view.Gravity.BOTTOM
+        mainHandler.post {
+            val view = adView ?: return@post
+            try {
+                val rootView = activity.window.decorView.findViewById<android.view.ViewGroup>(android.R.id.content)
+                if (view.parent == null) {
+                    val params = android.widget.FrameLayout.LayoutParams(
+                        android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
+                        android.widget.FrameLayout.LayoutParams.WRAP_CONTENT
+                    )
+                    params.gravity = when (bannerPosition) {
+                        BannerPosition.TOP -> android.view.Gravity.TOP
+                        BannerPosition.BOTTOM -> android.view.Gravity.BOTTOM
+                    }
+                    rootView.addView(view, params)
                 }
-                rootView.addView(view, params)
+                view.visibility = android.view.View.VISIBLE
+            } catch (e: Exception) {
+                Log.e(TAG, "Show banner error", e)
             }
-            view.visibility = android.view.View.VISIBLE
-        } catch (e: Exception) {
-            Log.e(TAG, "Show banner error", e)
         }
     }
 
     fun hideBanner() {
-        adView?.visibility = android.view.View.GONE
+        mainHandler.post {
+            adView?.visibility = android.view.View.GONE
+        }
     }
 
     fun destroyBanner() {
-        adView?.destroy()
-        adView = null
-        isBannerLoaded = false
+        mainHandler.post {
+            adView?.destroy()
+            adView = null
+            isBannerLoaded = false
+        }
     }
 
 
     fun loadInterstitial(activity: Activity) {
-        val unitId = interstitialUnitId ?: return
-        try {
-            val request = AdRequest.Builder().build()
-            InterstitialAd.load(activity, unitId, request, object : InterstitialAdLoadCallback() {
-                override fun onAdLoaded(ad: InterstitialAd) {
-                    interstitialAd = ad
-                    isInterstitialLoaded = true
-                    Log.d(TAG, "Interstitial loaded")
-                    fireEvent(EventId.ADMOB_INTERSTITIAL_LOADED)
-                    ad.fullScreenContentCallback = object : FullScreenContentCallback() {
-                        override fun onAdDismissedFullScreenContent() {
-                            interstitialAd = null
-                            isInterstitialLoaded = false
-                            Log.d(TAG, "Interstitial closed")
-                            fireEvent(EventId.ADMOB_INTERSTITIAL_CLOSED)
-                        }
-                        override fun onAdShowedFullScreenContent() {
-                            Log.d(TAG, "Interstitial shown")
-                            fireEvent(EventId.ADMOB_INTERSTITIAL_SHOWN)
-                        }
-                        override fun onAdFailedToShowFullScreenContent(adError: AdError) {
-                            lastErrorCode = adError.code
-                            lastErrorMessage = adError.message ?: ""
-                            Log.e(TAG, "Interstitial show failed: $lastErrorMessage")
+        mainHandler.post {
+            val unitId = interstitialUnitId ?: return@post
+            try {
+                val request = AdRequest.Builder().build()
+                InterstitialAd.load(activity, unitId, request, object : InterstitialAdLoadCallback() {
+                    override fun onAdLoaded(ad: InterstitialAd) {
+                        interstitialAd = ad
+                        isInterstitialLoaded = true
+                        Log.d(TAG, "Interstitial loaded")
+                        fireEvent(EventId.ADMOB_INTERSTITIAL_LOADED)
+                        ad.fullScreenContentCallback = object : FullScreenContentCallback() {
+                            override fun onAdDismissedFullScreenContent() {
+                                interstitialAd = null
+                                isInterstitialLoaded = false
+                                Log.d(TAG, "Interstitial closed")
+                                fireEvent(EventId.ADMOB_INTERSTITIAL_CLOSED)
+                            }
+                            override fun onAdShowedFullScreenContent() {
+                                Log.d(TAG, "Interstitial shown")
+                                fireEvent(EventId.ADMOB_INTERSTITIAL_SHOWN)
+                            }
+                            override fun onAdFailedToShowFullScreenContent(adError: AdError) {
+                                lastErrorCode = adError.code
+                                lastErrorMessage = adError.message ?: ""
+                                Log.e(TAG, "Interstitial show failed: $lastErrorMessage")
+                            }
                         }
                     }
-                }
-                override fun onAdFailedToLoad(loadAdError: LoadAdError) {
-                    isInterstitialLoaded = false
-                    lastErrorCode = loadAdError.code
-                    lastErrorMessage = loadAdError.message ?: ""
-                    Log.e(TAG, "Interstitial load failed: $lastErrorMessage")
-                    fireEvent(EventId.ADMOB_INTERSTITIAL_FAILED)
-                }
-            })
-        } catch (e: Exception) {
-            lastErrorCode = -3
-            lastErrorMessage = e.message ?: ""
-            Log.e(TAG, "Interstitial load error", e)
+                    override fun onAdFailedToLoad(loadAdError: LoadAdError) {
+                        isInterstitialLoaded = false
+                        lastErrorCode = loadAdError.code
+                        lastErrorMessage = loadAdError.message ?: ""
+                        Log.e(TAG, "Interstitial load failed: $lastErrorMessage")
+                        fireEvent(EventId.ADMOB_INTERSTITIAL_FAILED)
+                    }
+                })
+            } catch (e: Exception) {
+                lastErrorCode = -3
+                lastErrorMessage = e.message ?: ""
+                Log.e(TAG, "Interstitial load error", e)
+            }
         }
     }
 
     fun showInterstitial(activity: Activity) {
-        val ad = interstitialAd ?: return
-        try {
-            ad.show(activity)
-        } catch (e: Exception) {
-            Log.e(TAG, "Show interstitial error", e)
+        mainHandler.post {
+            val ad = interstitialAd ?: return@post
+            try {
+                ad.show(activity)
+            } catch (e: Exception) {
+                Log.e(TAG, "Show interstitial error", e)
+            }
         }
     }
 
 
     fun loadRewarded(activity: Activity) {
-        val unitId = rewardedUnitId ?: return
-        try {
-            val request = AdRequest.Builder().build()
-            RewardedAd.load(activity, unitId, request, object : RewardedAdLoadCallback() {
-                override fun onAdLoaded(ad: RewardedAd) {
-                    rewardedAd = ad
-                    isRewardedLoaded = true
-                    Log.d(TAG, "Rewarded loaded")
-                    fireEvent(EventId.ADMOB_REWARDED_LOADED)
-                    ad.fullScreenContentCallback = object : FullScreenContentCallback() {
-                        override fun onAdDismissedFullScreenContent() {
-                            rewardedAd = null
-                            isRewardedLoaded = false
-                            Log.d(TAG, "Rewarded closed")
-                            fireEvent(EventId.ADMOB_REWARDED_CLOSED)
-                        }
-                        override fun onAdShowedFullScreenContent() {
-                            Log.d(TAG, "Rewarded shown")
-                            fireEvent(EventId.ADMOB_REWARDED_SHOWN)
-                        }
-                        override fun onAdFailedToShowFullScreenContent(adError: AdError) {
-                            lastErrorCode = adError.code
-                            lastErrorMessage = adError.message ?: ""
-                            Log.e(TAG, "Rewarded show failed: $lastErrorMessage")
+        mainHandler.post {
+            val unitId = rewardedUnitId ?: return@post
+            try {
+                val request = AdRequest.Builder().build()
+                RewardedAd.load(activity, unitId, request, object : RewardedAdLoadCallback() {
+                    override fun onAdLoaded(ad: RewardedAd) {
+                        rewardedAd = ad
+                        isRewardedLoaded = true
+                        Log.d(TAG, "Rewarded loaded")
+                        fireEvent(EventId.ADMOB_REWARDED_LOADED)
+                        ad.fullScreenContentCallback = object : FullScreenContentCallback() {
+                            override fun onAdDismissedFullScreenContent() {
+                                rewardedAd = null
+                                isRewardedLoaded = false
+                                Log.d(TAG, "Rewarded closed")
+                                fireEvent(EventId.ADMOB_REWARDED_CLOSED)
+                            }
+                            override fun onAdShowedFullScreenContent() {
+                                Log.d(TAG, "Rewarded shown")
+                                fireEvent(EventId.ADMOB_REWARDED_SHOWN)
+                            }
+                            override fun onAdFailedToShowFullScreenContent(adError: AdError) {
+                                lastErrorCode = adError.code
+                                lastErrorMessage = adError.message ?: ""
+                                Log.e(TAG, "Rewarded show failed: $lastErrorMessage")
+                            }
                         }
                     }
-                }
-                override fun onAdFailedToLoad(loadAdError: LoadAdError) {
-                    isRewardedLoaded = false
-                    lastErrorCode = loadAdError.code
-                    lastErrorMessage = loadAdError.message ?: ""
-                    Log.e(TAG, "Rewarded load failed: $lastErrorMessage")
-                    fireEvent(EventId.ADMOB_REWARDED_FAILED)
-                }
-            })
-        } catch (e: Exception) {
-            lastErrorCode = -4
-            lastErrorMessage = e.message ?: ""
-            Log.e(TAG, "Rewarded load error", e)
+                    override fun onAdFailedToLoad(loadAdError: LoadAdError) {
+                        isRewardedLoaded = false
+                        lastErrorCode = loadAdError.code
+                        lastErrorMessage = loadAdError.message ?: ""
+                        Log.e(TAG, "Rewarded load failed: $lastErrorMessage")
+                        fireEvent(EventId.ADMOB_REWARDED_FAILED)
+                    }
+                })
+            } catch (e: Exception) {
+                lastErrorCode = -4
+                lastErrorMessage = e.message ?: ""
+                Log.e(TAG, "Rewarded load error", e)
+            }
         }
     }
 
     fun showRewarded(activity: Activity) {
-        val ad = rewardedAd ?: return
-        try {
-            ad.show(activity) { rewardItem ->
-                Log.d(TAG, "Reward earned: ${rewardItem.amount} ${rewardItem.type}")
-                fireEvent(EventId.ADMOB_REWARDED_REWARD)
+        mainHandler.post {
+            val ad = rewardedAd ?: return@post
+            try {
+                ad.show(activity) { rewardItem ->
+                    Log.d(TAG, "Reward earned: ${rewardItem.amount} ${rewardItem.type}")
+                    fireEvent(EventId.ADMOB_REWARDED_REWARD)
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Show rewarded error", e)
             }
-        } catch (e: Exception) {
-            Log.e(TAG, "Show rewarded error", e)
         }
     }
 
 
     fun loadAppOpen(activity: Activity) {
-        val unitId = appOpenUnitId ?: return
-        try {
-            val request = AdRequest.Builder().build()
-            AppOpenAd.load(activity, unitId, request, AppOpenAd.APP_OPEN_AD_ORIENTATION_PORTRAIT,
-                object : AppOpenAd.AppOpenAdLoadCallback() {
-                    override fun onAdLoaded(ad: AppOpenAd) {
-                        appOpenAd = ad
-                        isAppOpenLoaded = true
-                        Log.d(TAG, "App Open loaded")
-                        fireEvent(EventId.ADMOB_APP_OPEN_LOADED)
-                        ad.fullScreenContentCallback = object : FullScreenContentCallback() {
-                            override fun onAdDismissedFullScreenContent() {
-                                appOpenAd = null
-                                isAppOpenLoaded = false
-                                Log.d(TAG, "App Open closed")
-                                fireEvent(EventId.ADMOB_APP_OPEN_CLOSED)
-                            }
-                            override fun onAdShowedFullScreenContent() {
-                                Log.d(TAG, "App Open shown")
-                                fireEvent(EventId.ADMOB_APP_OPEN_SHOWN)
-                            }
-                            override fun onAdFailedToShowFullScreenContent(adError: AdError) {
-                                lastErrorCode = adError.code
-                                lastErrorMessage = adError.message ?: ""
-                                Log.e(TAG, "App Open show failed: $lastErrorMessage")
+        mainHandler.post {
+            val unitId = appOpenUnitId ?: return@post
+            try {
+                val request = AdRequest.Builder().build()
+                AppOpenAd.load(activity, unitId, request, AppOpenAd.APP_OPEN_AD_ORIENTATION_PORTRAIT,
+                    object : AppOpenAd.AppOpenAdLoadCallback() {
+                        override fun onAdLoaded(ad: AppOpenAd) {
+                            appOpenAd = ad
+                            isAppOpenLoaded = true
+                            Log.d(TAG, "App Open loaded")
+                            fireEvent(EventId.ADMOB_APP_OPEN_LOADED)
+                            ad.fullScreenContentCallback = object : FullScreenContentCallback() {
+                                override fun onAdDismissedFullScreenContent() {
+                                    appOpenAd = null
+                                    isAppOpenLoaded = false
+                                    Log.d(TAG, "App Open closed")
+                                    fireEvent(EventId.ADMOB_APP_OPEN_CLOSED)
+                                }
+                                override fun onAdShowedFullScreenContent() {
+                                    Log.d(TAG, "App Open shown")
+                                    fireEvent(EventId.ADMOB_APP_OPEN_SHOWN)
+                                }
+                                override fun onAdFailedToShowFullScreenContent(adError: AdError) {
+                                    lastErrorCode = adError.code
+                                    lastErrorMessage = adError.message ?: ""
+                                    Log.e(TAG, "App Open show failed: $lastErrorMessage")
+                                }
                             }
                         }
-                    }
-                    override fun onAdFailedToLoad(loadAdError: LoadAdError) {
-                        isAppOpenLoaded = false
-                        lastErrorCode = loadAdError.code
-                        lastErrorMessage = loadAdError.message ?: ""
-                        Log.e(TAG, "App Open load failed: $lastErrorMessage")
-                    }
-                })
-        } catch (e: Exception) {
-            lastErrorCode = -5
-            lastErrorMessage = e.message ?: ""
-            Log.e(TAG, "App Open load error", e)
+                        override fun onAdFailedToLoad(loadAdError: LoadAdError) {
+                            isAppOpenLoaded = false
+                            lastErrorCode = loadAdError.code
+                            lastErrorMessage = loadAdError.message ?: ""
+                            Log.e(TAG, "App Open load failed: $lastErrorMessage")
+                        }
+                    })
+            } catch (e: Exception) {
+                lastErrorCode = -5
+                lastErrorMessage = e.message ?: ""
+                Log.e(TAG, "App Open load error", e)
+            }
         }
     }
 
     fun showAppOpen(activity: Activity) {
-        val ad = appOpenAd ?: return
-        try {
-            ad.show(activity)
-        } catch (e: Exception) {
-            Log.e(TAG, "Show App Open error", e)
+        mainHandler.post {
+            val ad = appOpenAd ?: return@post
+            try {
+                ad.show(activity)
+            } catch (e: Exception) {
+                Log.e(TAG, "Show App Open error", e)
+            }
         }
     }
 
@@ -357,17 +381,20 @@ object AdMobManager {
     }
 
     fun reset() {
-        destroyBanner()
-        interstitialAd = null
-        rewardedAd = null
-        appOpenAd = null
-        isInitialized = false
-        isBannerLoaded = false
-        isInterstitialLoaded = false
-        isRewardedLoaded = false
-        isAppOpenLoaded = false
-        lastErrorCode = 0
-        lastErrorMessage = ""
-        isSdkInitializing = false
+        mainHandler.post {
+            adView?.destroy()
+            adView = null
+            interstitialAd = null
+            rewardedAd = null
+            appOpenAd = null
+            isInitialized = false
+            isBannerLoaded = false
+            isInterstitialLoaded = false
+            isRewardedLoaded = false
+            isAppOpenLoaded = false
+            lastErrorCode = 0
+            lastErrorMessage = ""
+            isSdkInitializing = false
+        }
     }
 }

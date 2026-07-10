@@ -258,7 +258,7 @@ public final class Constants {
 
 	// Pocket Paint
 	public static final String EXTRA_PICTURE_PATH_POCKET_PAINT = "org.catrobat.extra.PAINTROID_PICTURE_PATH";
-	public static final String POCKET_PAINT_INTENT_ACTIVITY_NAME = "org.catrobat.paintroid.MainActivity";
+	public static final String POCKET_PAINT_INTENT_ACTIVITY_NAME = "org.catrobat.catroid.ui.neopaint.NeoPaintActivity";
 
 	// Intent Extra / Bundle Keys
 	public static final String EXTRA_PROJECT_NAME = "projectName";

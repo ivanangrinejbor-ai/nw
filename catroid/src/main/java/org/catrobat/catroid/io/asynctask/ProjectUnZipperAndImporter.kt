@@ -22,7 +22,10 @@
  */
 package org.catrobat.catroid.io.asynctask
 
+import android.content.ContentResolver
+import android.net.Uri
 import android.util.Log
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -54,9 +57,14 @@ sealed class ImportResult {
 
 class ProjectUnZipperAndImporter @JvmOverloads constructor(
     val onImportFinished: (ImportResult) -> Unit = {},
-    val scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
+    val scope: CoroutineScope = CoroutineScope(
+        Dispatchers.IO + CoroutineExceptionHandler { _, throwable ->
+            Log.e(TAG, "Uncaught exception in import coroutine", throwable)
+        }
+    ),
     var password: String? = null,
-    val onProgress: ((percent: Int, detail: String) -> Unit)? = null
+    val onProgress: ((percent: Int, detail: String) -> Unit)? = null,
+    val contentResolver: ContentResolver? = null
 ) {
 
     fun reportProgress(percent: Int, detail: String) {
@@ -75,6 +83,58 @@ class ProjectUnZipperAndImporter @JvmOverloads constructor(
             withContext(Dispatchers.Main) {
                 onImportFinished(result)
             }
+        }
+    }
+
+    fun unZipAndImportFromUris(uris: List<Uri>) {
+        scope.launch {
+            try {
+                Log.d(TAG, "Starting import from URIs...")
+                val result = if (uris.isNotEmpty()) {
+                    val cachedFile = copyUrisToCache(uris)
+                    if (cachedFile != null) {
+                        Log.d(TAG, "Copy success, starting unzip: ${cachedFile.absolutePath}")
+                        unzipAndImportProject(cachedFile)
+                    } else {
+                        Log.e(TAG, "No valid file could be copied to cache")
+                        ImportResult.Failure
+                    }
+                } else {
+                    ImportResult.Failure
+                }
+                withContext(Dispatchers.Main) {
+                    onImportFinished(result)
+            }
+        } catch (e: Throwable) {
+            Log.e(TAG, "CRITICAL ERROR during import from URIs: ${e.message}", e)
+            withContext(Dispatchers.Main) {
+                onImportFinished(ImportResult.Failure)
+            }
+        }
+        }
+    }
+
+    private fun copyUrisToCache(uris: List<Uri>): File? {
+        val resolver = contentResolver ?: return null
+        for (uri in uris) {
+            val fileName = StorageOperations.resolveFileName(resolver, uri)
+            if (!isValidImportExtension(fileName)) continue
+            reportProgress(0, "import_step_prepare")
+            val cachedFile = StorageOperations.copyUriToDir(resolver, uri, CACHE_DIRECTORY, fileName)
+            reportProgress(14, "import_step_prepare")
+            return cachedFile
+        }
+        return null
+    }
+
+    companion object {
+        private fun isValidImportExtension(fileName: String): Boolean {
+            return fileName.endsWith(Constants.CATROBAT_EXTENSION) ||
+                fileName.endsWith(Constants.NEW_CATROBAT_EXTENSION) ||
+                fileName.endsWith(Constants.OLD_CATROBAT_EXTENSION) ||
+                fileName.endsWith(Constants.ZIP_EXTENSION) ||
+                fileName.endsWith(Constants.NPC_EXTENSION) ||
+                fileName.endsWith(".ncp")
         }
     }
 }
@@ -171,7 +231,7 @@ private fun ProjectUnZipperAndImporter.unzipAndImportProject(projectZipFile: Fil
             Log.e(TAG, "Invalid project structure")
             ImportResult.Failure
         }
-    } catch (e: IOException) {
+    } catch (e: Throwable) {
         Log.e(TAG, "Cannot unzip project " + projectZipFile.name, e)
         ImportResult.Failure
     }

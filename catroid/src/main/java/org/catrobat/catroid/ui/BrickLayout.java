@@ -114,7 +114,11 @@ public class BrickLayout extends ViewGroup {
 	}
 
 	public int getPaddingLeft(int widthMeasureSpec) {
-		return super.getPaddingLeft();
+		if (!usePng) {
+			return super.getPaddingLeft() + (int) (MeasureSpec.getSize(widthMeasureSpec) * 0.14);
+		} else {
+			return super.getPaddingLeft();
+		}
 	}
 
 	@Override

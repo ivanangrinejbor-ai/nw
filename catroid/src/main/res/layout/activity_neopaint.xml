@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#2B2B2B">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/neopaint_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#1A1A1A"
+        app:titleTextColor="#FFFFFF"
+        app:title="@string/neopaint_title" />
+
+    <FrameLayout
+        android:id="@+id/canvas_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/property_bar"
+        android:layout_below="@id/neopaint_toolbar">
+        <org.catrobat.catroid.ui.neopaint.DrawingView
+            android:id="@+id/drawing_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </FrameLayout>
+
+    <LinearLayout
+        android:id="@+id/property_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/tool_palette"
+        android:background="#333333"
+        android:orientation="horizontal"
+        android:padding="8dp"
+        android:gravity="center_vertical">
+        <Button
+            android:id="@+id/btn_color_swatch"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="#FFFFFF" />
+        <SeekBar
+            android:id="@+id/seek_brush_size"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:max="60"
+            android:progress="8" />
+        <SeekBar
+            android:id="@+id/seek_opacity"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:max="100"
+            android:progress="100" />
+    </LinearLayout>
+
+    <HorizontalScrollView
+        android:id="@+id/tool_palette"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:background="#1A1A1A">
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="4dp">
+            <Button android:id="@+id/tool_brush" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/neopaint_tool_brush" />
+            <Button android:id="@+id/tool_eraser" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/neopaint_tool_eraser" />
+            <Button android:id="@+id/tool_fill" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/neopaint_tool_fill" />
+            <Button android:id="@+id/tool_line" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/neopaint_tool_line" />
+            <Button android:id="@+id/tool_rect" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/neopaint_tool_rect" />
+            <Button android:id="@+id/tool_oval" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/neopaint_tool_oval" />
+            <Button android:id="@+id/tool_text" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/neopaint_tool_text" />
+            <Button android:id="@+id/tool_picker" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/neopaint_tool_picker" />
+            <Button android:id="@+id/tool_smudge" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/neopaint_tool_smudge" />
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <LinearLayout
+        android:id="@+id/action_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/property_bar"
+        android:background="#333333"
+        android:orientation="horizontal"
+        android:gravity="center">
+        <Button android:id="@+id/btn_undo" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/neopaint_undo" />
+        <Button android:id="@+id/btn_redo" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/neopaint_redo" />
+        <Button android:id="@+id/btn_clear" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/neopaint_clear" />
+        <Button android:id="@+id/btn_layers" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/neopaint_layers" />
+        <Button android:id="@+id/btn_flip_h" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/neopaint_flip_h" />
+        <Button android:id="@+id/btn_flip_v" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/neopaint_flip_v" />
+        <Button android:id="@+id/btn_rotate" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/neopaint_rotate" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/layout_layers"
+        android:layout_width="200dp"
+        android:layout_height="match_parent"
+        android:layout_alignParentRight="true"
+        android:background="#444444"
+        android:orientation="vertical"
+        android:padding="8dp"
+        android:visibility="gone">
+        <Button android:id="@+id/btn_new_layer" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/neopaint_layer_new" />
+        <Button android:id="@+id/btn_del_layer" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/neopaint_layer_del" />
+        <Button android:id="@+id/btn_dup_layer" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/neopaint_layer_dup" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/neopaint_layer_opacity" android:textColor="#FFF" />
+            <SeekBar android:id="@+id/seek_layer_opacity" android:layout_width="match_parent" android:layout_height="wrap_content" android:max="100" android:progress="100" />
+        </LinearLayout>
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+            <LinearLayout
+                android:id="@+id/list_layers"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+        </ScrollView>
+    </LinearLayout>
+</RelativeLayout>

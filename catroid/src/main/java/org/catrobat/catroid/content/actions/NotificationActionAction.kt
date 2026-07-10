@@ -17,7 +17,19 @@ class NotificationActionAction : TemporalAction() {
     var behaviorIndex: Int = 0
     var hasInput: Boolean = false
 
+    // Guard: addAction must execute once per block invocation, not per frame.
+    // Without this, the notification accumulates duplicate buttons at 60 FPS.
+    private var started = false
+
+    override fun restart() {
+        started = false
+        super.restart()
+    }
+
     override fun update(percent: Float) {
+        if (started) return
+        started = true
+
         val nid = notificationId?.interpretInteger(scope) ?: return
         val aid = actionId?.interpretString(scope) ?: return
         val txt = text?.interpretString(scope) ?: ""

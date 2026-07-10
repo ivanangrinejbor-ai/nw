@@ -271,7 +271,12 @@ public final class CollisionDetection {
 
 
 
-		for (Scene scene : currentProject.getSceneList()) {
+		List<Scene> allScenes = new ArrayList<>(currentProject.getSceneList());
+		Scene globalScene = currentProject.getGlobalScene();
+		if (globalScene != null) {
+			allScenes.add(globalScene);
+		}
+		for (Scene scene : allScenes) {
 			if (scene == null) continue;
 			for (Sprite sprite : scene.getSpriteList()) {
 				if (sprite == null || sprite.getName() == null) continue;

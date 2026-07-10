@@ -221,7 +221,12 @@ public final class RaspberryPiService {
 	}
 
 	public void enableRaspberryInterruptPinsForProject(Project project) {
-		for (Scene scene : project.getSceneList()) {
+		java.util.List<Scene> allScenes = new ArrayList<>(project.getSceneList());
+		Scene globalScene = project.getGlobalScene();
+		if (globalScene != null) {
+			allScenes.add(globalScene);
+		}
+		for (Scene scene : allScenes) {
 			for (Sprite sprite : scene.getSpriteList()) {
 				for (Script script : sprite.getScriptList()) {
 					if (script instanceof RaspiInterruptScript) {

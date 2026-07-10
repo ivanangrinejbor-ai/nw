@@ -24,6 +24,7 @@ package org.catrobat.catroid.io.asynctask
 
 import android.content.Context
 import android.util.Log
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -50,7 +51,11 @@ class ProjectLoader(private var projectDir: File, context: Context) {
     }
 
     @JvmOverloads
-    fun loadProjectAsync(scope: CoroutineScope = CoroutineScope(Dispatchers.IO)) {
+    fun loadProjectAsync(scope: CoroutineScope = CoroutineScope(
+        Dispatchers.IO + CoroutineExceptionHandler { _, throwable ->
+            Log.e(TAG, "Uncaught exception while loading project", throwable)
+        }
+    )) {
         val context = weakContextReference.get() ?: return
         scope.launch {
             val projectSaved = loadProject(projectDir, context)
@@ -78,6 +83,10 @@ fun loadProject(projectDir: File?, context: Context): Boolean {
     } catch (e: ProjectException) {
         projectDir ?: return false
         Log.e(ProjectLoader.TAG, "Cannot load project in " + projectDir.absolutePath, e)
+        false
+    } catch (e: Exception) {
+        projectDir ?: return false
+        Log.e(ProjectLoader.TAG, "Unexpected error loading project in " + projectDir.absolutePath, e)
         false
     }
 }

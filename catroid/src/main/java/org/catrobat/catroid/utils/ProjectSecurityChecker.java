@@ -28,7 +28,12 @@ public class ProjectSecurityChecker {
             return true;
         }
 
-        for (Scene scene : project.getSceneList()) {
+        java.util.List<Scene> allScenes = new java.util.ArrayList<>(project.getSceneList());
+        Scene globalScene = project.getGlobalScene();
+        if (globalScene != null) {
+            allScenes.add(globalScene);
+        }
+        for (Scene scene : allScenes) {
             for (Sprite sprite : scene.getSpriteList()) {
                 for (Script script : sprite.getScriptList()) {
                     if (checkBrickRecursively(script)) {

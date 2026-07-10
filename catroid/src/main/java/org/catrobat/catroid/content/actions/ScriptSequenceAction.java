@@ -105,8 +105,8 @@ public class ScriptSequenceAction extends SequenceAction {
         long start = System.nanoTime();
         boolean isFinished = super.act(delta);
         long durationNs = System.nanoTime() - start;
-        org.catrobat.catroid.utils.PerformanceTracker.blocksExecuted++;
-        org.catrobat.catroid.utils.PerformanceTracker.totalBlockTimeNs += durationNs;
+        org.catrobat.catroid.utils.PerformanceTracker.blocksExecuted.incrementAndGet();
+        org.catrobat.catroid.utils.PerformanceTracker.totalBlockTimeNs.addAndGet(durationNs);
 
         return isFinished;
     }

@@ -217,7 +217,7 @@
         <item name="android:descendantFocusability">blocksDescendants</item>
         <item name="android:layout_marginTop">?attr/element_spacing</item>
         <item name="android:layout_marginBottom">?attr/element_spacing</item>
-        <item name="usePng">true</item>
+        <item name="usePng">false</item>
     </style>
 
     <style name="CategoryIconStyle">
