@@ -919,6 +919,13 @@ public class BackwardCompatibleCatrobatLanguageXStream extends XStream {
 			serializer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
 
 			DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
+			// Prevent XXE (XML External Entity) injection
+			docFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+			docFactory.setFeature("http://xml.org/sax/features/external-general-entities", false);
+			docFactory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+			docFactory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+			docFactory.setXIncludeAware(false);
+			docFactory.setExpandEntityReferences(false);
 			DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
 			Document doc = docBuilder.parse(file);
 			normalizeWhiteSpaces(doc);

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FF000000">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="48dp">
+
+        <!-- Logo -->
+        <ImageView
+            android:id="@+id/preloader_logo"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:src="@mipmap/ic_launcher"
+            android:contentDescription="@string/app_name" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/app_name"
+            android:textColor="#FFFFFF"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
+        <!-- Fact -->
+        <TextView
+            android:id="@+id/preloader_fact"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="40dp"
+            android:gravity="center"
+            android:maxWidth="400dp"
+            android:textColor="#B2FFFFFF"
+            android:textSize="14sp"
+            android:text="@string/preloader_loading" />
+
+        <!-- Progress bar -->
+        <ProgressBar
+            android:id="@+id/preloader_progress"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="280dp"
+            android:layout_height="8dp"
+            android:layout_marginTop="24dp"
+            android:max="100"
+            android:progress="0" />
+
+        <!-- Percentage -->
+        <TextView
+            android:id="@+id/preloader_percent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textColor="#80FFFFFF"
+            android:textSize="13sp"
+            android:text="0%" />
+
+    </LinearLayout>
+</FrameLayout>

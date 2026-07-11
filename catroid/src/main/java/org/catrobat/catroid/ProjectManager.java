@@ -270,19 +270,9 @@ public final class ProjectManager {
 		}
 	}
 
-	private static List<Scene> getAllScenesIncludingGlobal(Project project) {
-		List<Scene> allScenes = new ArrayList<>();
-		if (project == null) {
-			return allScenes;
-		}
-		if (project.getSceneList() != null) {
-			allScenes.addAll(project.getSceneList());
-		}
-		Scene globalScene = project.getGlobalScene();
-		if (globalScene != null) {
-			allScenes.add(globalScene);
-		}
-		return allScenes;
+	private static List<Scene> getAllScenes(Project project) {
+		if (project == null) return new ArrayList<>();
+		return project.getSceneList() != null ? project.getSceneList() : new ArrayList<>();
 	}
 
 	private boolean migrateProjectToV1_17(Project project) {
@@ -291,7 +281,7 @@ public final class ProjectManager {
 			return false;
 		}
 
-		for (Scene scene : getAllScenesIncludingGlobal(project)) {
+		for (Scene scene : getAllScenes(project)) {
 			if (scene.getSceneId() == null || scene.getSceneId().isEmpty()) {
 				scene.setSceneId(UUID.randomUUID().toString());
 				changesMade = true;
@@ -849,5 +839,16 @@ public final class ProjectManager {
 
     public void setNeedsPhysicsCacheWarning(boolean needsPhysicsCacheWarning) {
         this.needsPhysicsCacheWarning = needsPhysicsCacheWarning;
+    }
+
+    private static List<Scene> getAllScenesIncludingGlobal(Project project) {
+        List<Scene> scenes = project.getSceneList();
+        Scene globalScene = project.getGlobalSceneForMigration();
+        if (globalScene != null) {
+            List<Scene> result = new ArrayList<>(scenes);
+            result.add(globalScene);
+            return result;
+        }
+        return scenes;
     }
 }

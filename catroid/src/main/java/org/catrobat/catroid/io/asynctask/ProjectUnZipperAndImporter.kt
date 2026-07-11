@@ -53,6 +53,7 @@ sealed class ImportResult {
     object Failure : ImportResult()
     object WrongPassword : ImportResult()
     data class BakedProject(val projectDir: File) : ImportResult()
+    data class UnsupportedVersion(val version: Double, val projectDir: File?) : ImportResult()
 }
 
 class ProjectUnZipperAndImporter @JvmOverloads constructor(
@@ -70,6 +71,31 @@ class ProjectUnZipperAndImporter @JvmOverloads constructor(
     fun reportProgress(percent: Int, detail: String) {
         onProgress?.invoke(percent, detail)
     }
+    fun continueImport(projectDir: File) {
+        scope.launch {
+            val result = withContext(Dispatchers.IO) {
+                if (importStandardProject(projectDir)) {
+                    StorageOperations.deleteDir(projectDir)
+                    ImportResult.Success
+                } else {
+                    StorageOperations.deleteDir(projectDir)
+                    ImportResult.Failure
+                }
+            }
+            withContext(Dispatchers.Main) {
+                onImportFinished(result)
+            }
+        }
+    }
+
+    fun cancelImport(projectDir: File) {
+        scope.launch {
+            withContext(Dispatchers.IO) {
+                if (projectDir.exists()) StorageOperations.deleteDir(projectDir)
+            }
+        }
+    }
+
     fun unZipAndImportAsync(files: Array<File>) {
         scope.launch {
 
@@ -120,6 +146,10 @@ class ProjectUnZipperAndImporter @JvmOverloads constructor(
             val fileName = StorageOperations.resolveFileName(resolver, uri)
             if (!isValidImportExtension(fileName)) continue
             reportProgress(0, "import_step_prepare")
+            // Delegate to StorageOperations which handles WebP and unique filenames
+            // Progress detail between 0-14% is approximate since fine-grained progress
+            // during the copy would require StorageOperations API changes
+            reportProgress(7, "import_step_prepare")
             val cachedFile = StorageOperations.copyUriToDir(resolver, uri, CACHE_DIRECTORY, fileName)
             reportProgress(14, "import_step_prepare")
             return cachedFile
@@ -129,12 +159,12 @@ class ProjectUnZipperAndImporter @JvmOverloads constructor(
 
     companion object {
         private fun isValidImportExtension(fileName: String): Boolean {
-            return fileName.endsWith(Constants.CATROBAT_EXTENSION) ||
-                fileName.endsWith(Constants.NEW_CATROBAT_EXTENSION) ||
-                fileName.endsWith(Constants.OLD_CATROBAT_EXTENSION) ||
-                fileName.endsWith(Constants.ZIP_EXTENSION) ||
-                fileName.endsWith(Constants.NPC_EXTENSION) ||
-                fileName.endsWith(".ncp")
+            return fileName.endsWith(Constants.CATROBAT_EXTENSION, ignoreCase = true) ||
+                fileName.endsWith(Constants.NEW_CATROBAT_EXTENSION, ignoreCase = true) ||
+                fileName.endsWith(Constants.OLD_CATROBAT_EXTENSION, ignoreCase = true) ||
+                fileName.endsWith(Constants.ZIP_EXTENSION, ignoreCase = true) ||
+                fileName.endsWith(Constants.NPC_EXTENSION, ignoreCase = true) ||
+                fileName.endsWith(".ncp", ignoreCase = true)
         }
     }
 }
@@ -164,11 +194,16 @@ class ProjectUnZipperAndImporter @JvmOverloads constructor(
 }*/
 
 private fun ProjectUnZipperAndImporter.unzipAndImportProject(projectZipFile: File): ImportResult {
+    val tempDirName = StorageOperations.getSanitizedFileName(projectZipFile.name) + "_temp_import"
+    val cachedProjectDir = File(CACHE_DIRECTORY, tempDirName)
     return try {
-        val tempDirName = StorageOperations.getSanitizedFileName(projectZipFile.name) + "_temp_import"
-        val cachedProjectDir = File(CACHE_DIRECTORY, tempDirName)
-
         if (cachedProjectDir.isDirectory) { StorageOperations.deleteDir(cachedProjectDir) }
+        val requiredSpace = projectZipFile.length() * 5
+        val usableSpace = CACHE_DIRECTORY.usableSpace
+        if (usableSpace > 0 && requiredSpace > usableSpace) {
+            Log.e(TAG, "Not enough disk space: need ${requiredSpace / 1024 / 1024}MB, have ${usableSpace / 1024 / 1024}MB")
+            return@unzipAndImportProject ImportResult.Failure
+        }
         cachedProjectDir.mkdirs()
 
         var fileToUnzip = projectZipFile
@@ -195,12 +230,21 @@ private fun ProjectUnZipperAndImporter.unzipAndImportProject(projectZipFile: Fil
         })
         if (fileToUnzip != projectZipFile) { fileToUnzip.delete() }
 
-        org.catrobat.catroid.utils.MatryoshkaManager.unpackIfMatryoshka(cachedProjectDir)
+        try {
+            org.catrobat.catroid.utils.MatryoshkaManager.unpackIfMatryoshka(cachedProjectDir)
+        } catch (e: Exception) {
+            Log.e(TAG, "Matryoshka check failed, continuing with raw project", e)
+        }
         val codeXml = File(cachedProjectDir, Constants.CODE_XML_FILE_NAME)
         val initLunoTxt = File(cachedProjectDir, "init.luno.txt")
         val initLunoBin = File(cachedProjectDir, "init.bin")
 
         if (codeXml.exists()) {
+            val appVersion = readApplicationVersion(codeXml)
+            if (appVersion != null && isUnsupportedVersion(appVersion)) {
+                Log.e(TAG, "Unsupported .newtrobat application version: $appVersion")
+                return@unzipAndImportProject ImportResult.UnsupportedVersion(appVersion.toDoubleOrNull() ?: 0.0, cachedProjectDir)
+            }
             reportProgress(25, "import_step_scanning")
             val entries = scanProjectEntries(codeXml)
             val totalEntries = entries.size.coerceAtLeast(1)
@@ -232,7 +276,10 @@ private fun ProjectUnZipperAndImporter.unzipAndImportProject(projectZipFile: Fil
             ImportResult.Failure
         }
     } catch (e: Throwable) {
-        Log.e(TAG, "Cannot unzip project " + projectZipFile.name, e)
+        Log.e(TAG, "Cannot unzip project ${projectZipFile.name}: ${e.javaClass.simpleName}: ${e.message}", e)
+        try {
+            if (cachedProjectDir.exists()) StorageOperations.deleteDir(cachedProjectDir)
+        } catch (_: Exception) {}
         ImportResult.Failure
     }
 }
@@ -292,7 +339,11 @@ private fun scanProjectEntries(codeXml: File): List<Pair<String, String?>> {
 }
 
 private fun importStandardProject(cachedProjectDir: File): Boolean {
-    val projectName = getProjectName(cachedProjectDir) ?: return false
+    val projectName = getProjectName(cachedProjectDir)
+    if (projectName == null) {
+        Log.e(TAG, "Failed to get project name from ${cachedProjectDir.absolutePath}")
+        return false
+    }
     val uniqueName = UniqueNameProvider().getUniqueName(projectName, FileMetaDataExtractor
         .getProjectNames(FlavoredConstants.DEFAULT_ROOT_DIRECTORY))
 
@@ -301,10 +352,11 @@ private fun importStandardProject(cachedProjectDir: File): Boolean {
         FileMetaDataExtractor.encodeSpecialCharsForFileSystem(uniqueName))
 
     return try {
+        Log.d(TAG, "Copying project to: ${destinationDirectory.absolutePath}")
         copyProject(cachedProjectDir, destinationDirectory, uniqueName)
         true
     } catch (e: IOException) {
-        Log.e(TAG, "Something went wrong while importing project", e)
+        Log.e(TAG, "Copy failed at phase '${destinationDirectory.absolutePath}': ${e.message}", e)
         errorWhileImporting(cachedProjectDir, destinationDirectory)
         false
     }
@@ -322,6 +374,45 @@ private fun getProjectName(projectDir: File): String? {
         Log.d(TAG, "Cannot extract projectName from xml", e)
         null
     }
+}
+
+private fun readApplicationVersion(codeXml: File): String? {
+    return try {
+        val factory = XmlPullParserFactory.newInstance()
+        val parser = factory.newPullParser()
+        parser.setInput(FileInputStream(codeXml), "UTF-8")
+        var inHeader = false
+        while (parser.eventType != XmlPullParser.END_DOCUMENT) {
+            when (parser.eventType) {
+                XmlPullParser.START_TAG -> {
+                    if (parser.name == "header") inHeader = true
+                    else if (inHeader && parser.name == "applicationVersion") {
+                        return parser.nextText()
+                    }
+                }
+                XmlPullParser.END_TAG -> {
+                    if (parser.name == "header") inHeader = false
+                }
+            }
+            parser.next()
+        }
+        null
+    } catch (_: Exception) { null }
+}
+
+private const val MAX_SUPPORTED_VERSION = "2.1.2"
+
+private fun isUnsupportedVersion(versionStr: String): Boolean {
+    val parts = versionStr.split(".").mapNotNull { it.toIntOrNull() }
+    val maxParts = MAX_SUPPORTED_VERSION.split(".").map { it.toInt() }
+    val maxLen = maxOf(parts.size, maxParts.size)
+    for (i in 0 until maxLen) {
+        val v = parts.getOrElse(i) { 0 }
+        val m = maxParts.getOrElse(i) { 0 }
+        if (v > m) return true
+        if (v < m) return false
+    }
+    return false
 }
 
 private fun importProject(projectDir: File): Boolean {
@@ -350,9 +441,9 @@ private fun errorWhileImporting(projectDir: File, destinationDirectory: File) {
     if (destinationDirectory.isDirectory) {
         Log.e(TAG, "Folder exists, trying to delete folder.")
         try {
-            StorageOperations.deleteDir(projectDir)
+            StorageOperations.deleteDir(destinationDirectory)
         } catch (deleteException: IOException) {
-            Log.e(TAG, "Cannot delete folder $projectDir", deleteException)
+            Log.e(TAG, "Cannot delete folder $destinationDirectory", deleteException)
         }
     }
 }

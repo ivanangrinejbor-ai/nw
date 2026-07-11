@@ -136,9 +136,18 @@ public class SceneController {
 	}
 
 	public void delete(Scene sceneToDelete) throws IOException {
-		ProjectManager.getInstance().getCurrentProject().removeScene(sceneToDelete);
+		Project currentProject = ProjectManager.getInstance().getCurrentProject();
+		for (Sprite sprite : sceneToDelete.getSpriteList()) {
+			if (sprite.isGlobal()) {
+				if (!currentProject.getSceneList().isEmpty()) {
+					Scene firstScene = currentProject.getSceneList().get(0);
+					firstScene.addSprite(sprite);
+				}
+			}
+		}
+		currentProject.removeScene(sceneToDelete);
 		StorageOperations.deleteDir(sceneToDelete.getDirectory());
-		XstreamSerializer.getInstance().saveProject(ProjectManager.getInstance().getCurrentProject());
+		XstreamSerializer.getInstance().saveProject(currentProject);
 	}
 
 	public Scene pack(Scene sceneToPack) throws IOException {

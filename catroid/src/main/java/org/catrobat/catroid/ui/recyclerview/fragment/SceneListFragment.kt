@@ -78,12 +78,7 @@ class SceneListFragment : RecyclerViewFragment<Scene?>(),
 
     override fun initializeAdapter() {
         sharedPreferenceDetailsKey = SharedPreferenceKeys.SHOW_DETAILS_SCENES_PREFERENCE_KEY
-        val items = ArrayList(projectManager.currentProject.sceneList)
-        val globalScene = projectManager.currentProject.globalScene
-        if (globalScene != null) {
-            items.add(0, globalScene)
-        }
-        adapter = SceneAdapter(items)
+        adapter = SceneAdapter(ArrayList(projectManager.currentProject.sceneList))
         onAdapterReady()
     }
 
@@ -155,9 +150,6 @@ class SceneListFragment : RecyclerViewFragment<Scene?>(),
         setShowProgressBar(true)
         var deletedItemsCount = 0
         for (item in selectedItems) {
-            if (item?.isGlobalScene == true) {
-                continue
-            }
             try {
                 sceneController.delete(item)
             } catch (e: IOException) {
@@ -187,10 +179,17 @@ class SceneListFragment : RecyclerViewFragment<Scene?>(),
     private fun createEmptySceneWithDefaultName() {
         setShowProgressBar(true)
         val currentProject = projectManager.currentProject
+        val globalSprites = currentProject.allGlobalSprites.toList()
+        for (sprite in globalSprites) {
+            currentProject.sceneList.forEach { it.removeSprite(sprite) }
+        }
         val scene = Scene(getString(R.string.default_scene_name), currentProject)
         val backgroundSprite = Sprite(getString(R.string.background))
         backgroundSprite.look.zIndex = Constants.Z_INDEX_BACKGROUND
         scene.addSprite(backgroundSprite)
+        for (sprite in globalSprites) {
+            scene.addSprite(sprite)
+        }
         adapter.add(scene)
         if (!currentProject.hasScene()) {
             currentProject.addScene(scene)

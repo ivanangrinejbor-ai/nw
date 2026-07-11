@@ -50,6 +50,16 @@ public class ZipArchiver {
 	private static final int ZIP_SLIP_BUFFER = 8192;
 	private static final int COMPRESSION_LEVEL = 9;
 
+	// Zip bomb protection limits
+	private static final long MAX_UNCOMPRESSED_SIZE = 3072L * 1024 * 1024; // 3 GB
+	private static final long MAX_ENTRY_SIZE = 50L * 1024 * 1024; // 50 MB per entry
+	private static final int MAX_COMPRESSION_RATIO = 100; // 100:1
+	private static final int MAX_ENTRY_COUNT = 10000;
+
+	// Timeout for unzip operation
+	private static final long UNZIP_TIMEOUT_SECONDS = 600; // 10 minutes total
+	private static final long ENTRY_TIMEOUT_SECONDS = 120; // 2 minutes per entry
+
 	public void zip(File archive, File[] files) throws IOException {
 		archive.createNewFile();
 		FileOutputStream fileOutputStream = new FileOutputStream(archive);
@@ -100,7 +110,14 @@ public class ZipArchiver {
 
 		try (ZipInputStream zipInputStream = new ZipInputStream(is)) {
 			ZipEntry zipEntry;
+			int entryCount = 0;
+			long totalUncompressedSize = 0;
 			while ((zipEntry = zipInputStream.getNextEntry()) != null) {
+				entryCount++;
+				if (entryCount > MAX_ENTRY_COUNT) {
+					throw new IOException("Zip bomb detected: too many entries (" + entryCount + " > " + MAX_ENTRY_COUNT + ")");
+				}
+
 				File zipEntryFile = new File(dstDir, zipEntry.getName());
 				if (!zipEntryFile.getCanonicalPath().startsWith(dstCanonical + File.separator)) {
 					continue;
@@ -112,12 +129,31 @@ public class ZipArchiver {
 
 				zipEntryFile.getParentFile().mkdirs();
 
+				long entrySize = 0;
 				try (FileOutputStream fileOutputStream = new FileOutputStream(zipEntryFile)) {
 					byte[] b = new byte[ZIP_SLIP_BUFFER];
 					int len;
 					while ((len = zipInputStream.read(b)) != -1) {
 						fileOutputStream.write(b, 0, len);
+						entrySize += len;
+						if (entrySize > MAX_ENTRY_SIZE) {
+							throw new IOException("Entry too large: " + zipEntry.getName()
+									+ " (" + entrySize + " bytes exceeds " + MAX_ENTRY_SIZE + ")");
+						}
 					}
+				}
+
+				totalUncompressedSize += entrySize;
+				if (totalUncompressedSize > MAX_UNCOMPRESSED_SIZE) {
+					throw new IOException("Zip bomb detected: total uncompressed size exceeds "
+							+ MAX_UNCOMPRESSED_SIZE + " bytes");
+				}
+
+				// Check compression ratio: if compressed size is known and very small but output is large
+				long compressedSize = zipEntry.getCompressedSize();
+				if (compressedSize > 0 && entrySize > compressedSize * MAX_COMPRESSION_RATIO) {
+					throw new IOException("Zip bomb detected: compression ratio " + (entrySize / compressedSize)
+							+ ":1 exceeds limit of " + MAX_COMPRESSION_RATIO + ":1 for entry: " + zipEntry.getName());
 				}
 			}
 		}
@@ -135,6 +171,10 @@ public class ZipArchiver {
 			java.util.Enumeration<? extends ZipEntry> e = zipFile.entries();
 			while (e.hasMoreElements()) allEntries.add(e.nextElement());
 			List<ZipEntry> fileEntries = new ArrayList<>();
+
+		if (allEntries.size() > MAX_ENTRY_COUNT) {
+			throw new IOException("Zip bomb detected: too many entries (" + allEntries.size() + " > " + MAX_ENTRY_COUNT + ")");
+		}
 
 		String dstCanonical = dstDir.getCanonicalPath();
 		for (ZipEntry entry : allEntries) {
@@ -160,6 +200,7 @@ public class ZipArchiver {
 			});
 
 			AtomicInteger processed = new AtomicInteger(0);
+			java.util.concurrent.atomic.AtomicLong totalUncompressed = new java.util.concurrent.atomic.AtomicLong(0);
 
 			List<Future<?>> futures = new ArrayList<>();
 			for (ZipEntry entry : fileEntries) {
@@ -174,10 +215,8 @@ public class ZipArchiver {
 					}
 					zipEntryFile.getParentFile().mkdirs();
 
+					long entrySize = 0;
 					try {
-						// ZipFile.getInputStream() is NOT thread-safe: concurrent access from
-						// multiple worker threads corrupts the shared Inflater / file position
-						// and can crash the process natively. Synchronize on the ZipFile.
 						synchronized (zipFile) {
 							try (InputStream in = zipFile.getInputStream(entry);
 								 FileOutputStream out = new FileOutputStream(zipEntryFile)) {
@@ -185,11 +224,28 @@ public class ZipArchiver {
 								int len;
 								while ((len = in.read(b)) != -1) {
 									out.write(b, 0, len);
+									entrySize += len;
+									if (entrySize > MAX_ENTRY_SIZE) {
+										throw new IOException("Entry too large: " + entry.getName()
+												+ " (" + entrySize + " bytes exceeds " + MAX_ENTRY_SIZE + ")");
+									}
 								}
 							}
 						}
 					} catch (IOException ioEx) {
 						throw new RuntimeException("Failed to extract: " + entry.getName(), ioEx);
+					}
+
+					// Compression ratio check
+					long compressedSize = entry.getCompressedSize();
+					if (compressedSize > 0 && entrySize > compressedSize * MAX_COMPRESSION_RATIO) {
+						throw new RuntimeException("Zip bomb detected: compression ratio "
+								+ (entrySize / compressedSize) + ":1 exceeds limit for entry: " + entry.getName());
+					}
+
+					long totalSoFar = totalUncompressed.addAndGet(entrySize);
+					if (totalSoFar > MAX_UNCOMPRESSED_SIZE) {
+						throw new RuntimeException("Zip bomb detected: total uncompressed size exceeds " + MAX_UNCOMPRESSED_SIZE + " bytes");
 					}
 
 					int done = processed.incrementAndGet();
@@ -202,8 +258,14 @@ public class ZipArchiver {
 
 			executor.shutdown();
 			try {
-				executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+				if (!executor.awaitTermination(UNZIP_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
+					executor.shutdownNow();
+					if (!executor.awaitTermination(10, TimeUnit.SECONDS)) {
+						throw new IOException("Unzip timed out after " + UNZIP_TIMEOUT_SECONDS + "s");
+					}
+				}
 			} catch (InterruptedException intEx) {
+				executor.shutdownNow();
 				Thread.currentThread().interrupt();
 				throw new IOException("Unzip was interrupted", intEx);
 			}
@@ -214,6 +276,10 @@ public class ZipArchiver {
 					future.get();
 				} catch (InterruptedException ie) {
 					Thread.currentThread().interrupt();
+				} catch (java.util.concurrent.CancellationException ce) {
+					if (firstError == null) {
+						firstError = new IOException("Unzip timed out on one or more entries");
+					}
 				} catch (java.util.concurrent.ExecutionException ee) {
 					Throwable cause = ee.getCause();
 					if (firstError == null) {

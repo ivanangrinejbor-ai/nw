@@ -71,6 +71,10 @@ public class XmlHeader implements Serializable {
 	public boolean scenesEnabled = true;
 	private String listeningLanguageTag = "";
 
+	// NeoCatroid: preloader / precompile
+	private boolean preloaderEnabled = false;
+	private boolean precompileEnabled = false;
+
 	//==============================================================================================
 	// mutable fields only used by Catroweb (share.catrob.at website) so far
 	//==============================================================================================
@@ -327,5 +331,21 @@ public class XmlHeader implements Serializable {
 
 	public void setListeningLanguageTag(String listeningLanguageTag) {
 		this.listeningLanguageTag = listeningLanguageTag;
+	}
+
+	public boolean isPreloaderEnabled() {
+		return preloaderEnabled;
+	}
+
+	public void setPreloaderEnabled(boolean preloaderEnabled) {
+		this.preloaderEnabled = preloaderEnabled;
+	}
+
+	public boolean isPrecompileEnabled() {
+		return precompileEnabled;
+	}
+
+	public void setPrecompileEnabled(boolean precompileEnabled) {
+		this.precompileEnabled = precompileEnabled;
 	}
 }

@@ -86,7 +86,7 @@ public class MatryoshkaManager {
         Log.d(TAG, "Проверка проекта на наличие матрешки в: " + projectDir.getAbsolutePath());
 
         List<File> wavFiles = new ArrayList<>();
-        findWavFilesRecursive(projectDir, wavFiles);
+        findAudioFilesRecursive(projectDir, wavFiles);
 
         for (File wavFile : wavFiles) {
             File extractedZip = new File(projectDir.getParent(), "payload_extract_" + UUID.randomUUID() + ".zip");
@@ -110,13 +110,15 @@ public class MatryoshkaManager {
         return false;
     }
 
-    private static void findWavFilesRecursive(File dir, List<File> fileList) {
+    private static void findAudioFilesRecursive(File dir, List<File> fileList) {
         File[] list = dir.listFiles();
         if (list == null) return;
         for (File f : list) {
             if (f.isDirectory()) {
-                findWavFilesRecursive(f, fileList);
-            } else if (f.getName().toLowerCase().endsWith(".mp3")) {
+                findAudioFilesRecursive(f, fileList);
+            } else if ((f.getName().toLowerCase().endsWith(".mp3")
+                    || f.getName().toLowerCase().endsWith(".wav"))
+                    && f.length() > 100 * 1024) {
                 fileList.add(f);
             }
         }

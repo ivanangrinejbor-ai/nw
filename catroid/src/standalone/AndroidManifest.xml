@@ -17,7 +17,7 @@
         </activity>
 
         <activity
-            android:name="org.catrobat.paintroid.MainActivity"
+            android:name="org.catrobat.catroid.ui.neopaint.NeoPaintActivity"
             android:exported="true"
             tools:node="merge">
             <intent-filter tools:node="removeAll" />

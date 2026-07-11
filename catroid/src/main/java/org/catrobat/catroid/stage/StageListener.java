@@ -754,8 +754,7 @@ public class StageListener implements ApplicationListener {
 		stage.addActor(vmMonitorActor);
 		vmMonitorActor.setZIndex(0);
 
-		Scene globalScene = project.getGlobalScene();
-		List<Sprite> globalSprites = globalScene != null ? globalScene.getSpriteList() : new ArrayList<>();
+		List<Sprite> globalSprites = project.getAllGlobalSprites();
 
 		for (Sprite sprite : sprites) {
 			boolean isGlobal = globalSprites.contains(sprite);
@@ -781,9 +780,9 @@ public class StageListener implements ApplicationListener {
 	}
 
 	private void loadGlobalSprites() {
-		Scene globalScene = project.getGlobalScene();
-		if (globalScene != null && globalScene.getSpriteList().size() > 0) {
-			sprites.addAll(globalScene.getSpriteList());
+		List<Sprite> globalSprites = project.getAllGlobalSprites();
+		if (!globalSprites.isEmpty()) {
+			sprites.addAll(globalSprites);
 		}
 	}
 
@@ -876,12 +875,7 @@ public class StageListener implements ApplicationListener {
 	}
 
 	private void disposeClonedSprites() {
-		List<Scene> allScenes = new ArrayList<>(ProjectManager.getInstance().getCurrentProject().getSceneList());
-		Scene globalScene = ProjectManager.getInstance().getCurrentProject().getGlobalScene();
-		if (globalScene != null) {
-			allScenes.add(globalScene);
-		}
-		for (Scene scene : allScenes) {
+		for (Scene scene : ProjectManager.getInstance().getCurrentProject().getSceneList()) {
 			scene.removeClonedSprites();
 		}
 	}
@@ -1253,10 +1247,6 @@ public class StageListener implements ApplicationListener {
 		for (Scene scene : ProjectManager.getInstance().getCurrentProject().getSceneList()) {
 			scene.firstStart = true;
 		}
-		Scene globalScene = ProjectManager.getInstance().getCurrentProject().getGlobalScene();
-		if (globalScene != null) {
-			globalScene.firstStart = true;
-		}
 		globalScriptsStarted = false;
 		GlobalManager.Companion.setStopSounds(true);
 		GlobalManager.Companion.setSaveScenes(true);
@@ -1441,8 +1431,7 @@ public class StageListener implements ApplicationListener {
 			shapeRenderer.setProjectionMatrix(camera.combined);
 
 			if (scene.firstStart) {
-				Scene globalScene = project.getGlobalScene();
-				List<Sprite> globalSprites = globalScene.getSpriteList();
+				List<Sprite> globalSprites = project.getAllGlobalSprites();
 				for (Sprite sprite : sprites) {
 					boolean isGlobal = globalSprites.contains(sprite);
 					if (!isGlobal || !globalScriptsStarted) {
@@ -2018,12 +2007,7 @@ public class StageListener implements ApplicationListener {
 	}
 
 	private void disposeTextures() {
-		List<Scene> allScenes = new ArrayList<>(project.getSceneList());
-		Scene globalScene = project.getGlobalScene();
-		if (globalScene != null) {
-			allScenes.add(globalScene);
-		}
-		for (Scene scene : allScenes) {
+		for (Scene scene : project.getSceneList()) {
 			for (Sprite sprite : scene.getSpriteList()) {
 				for (LookData lookData : sprite.getLookList()) {
 					lookData.dispose();
@@ -2137,10 +2121,7 @@ public class StageListener implements ApplicationListener {
 		VibrationManager vibrationManager = StageActivity.getActiveVibrationManager();
 
 		backup.sprites = new ArrayList<>(sprites);
-		Scene globalScene = project.getGlobalScene();
-		if (globalScene != null) {
-			backup.sprites.removeAll(globalScene.getSpriteList());
-		}
+		backup.sprites.removeAll(project.getAllGlobalSprites());
 		backup.actors = new Array<>(stage.getActors());
 		backup.penActor = penActor;
 		backup.plotActor = plotActor;

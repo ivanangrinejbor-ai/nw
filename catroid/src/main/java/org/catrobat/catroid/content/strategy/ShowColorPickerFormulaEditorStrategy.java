@@ -28,11 +28,13 @@ import android.view.View;
 import org.catrobat.catroid.R;
 import org.catrobat.catroid.ui.UiUtils;
 import org.catrobat.catroid.ui.fragment.FormulaEditorFragment;
+import org.catrobat.catroid.paintroid.colorpicker.ColorPickerDialog;
 import org.catrobat.catroid.ui.recyclerview.fragment.ScriptFragment;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 
 public class ShowColorPickerFormulaEditorStrategy implements ShowFormulaEditorStrategy {
 	private static final int OPTION_PICK_COLOR = 0;
@@ -93,8 +95,8 @@ public class ShowColorPickerFormulaEditorStrategy implements ShowFormulaEditorSt
 
 	private void showColorPicker(Callback callback, AppCompatActivity activity) {
 		int currentColor = callback.getValue();
-		ColorPickerDialog dialog = new ColorPickerDialog(activity, currentColor,
-				value -> callback.setValue(value));
-		dialog.show();
+		ColorPickerDialog dialog = ColorPickerDialog.newInstance(currentColor, true, true);
+		dialog.addOnColorPickedListener(color -> callback.setValue(color));
+		dialog.show(activity.getSupportFragmentManager(), "ColorPickerDialog");
 	}
 }

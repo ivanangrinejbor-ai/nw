@@ -415,6 +415,9 @@ class ProjectActivity : BaseCastActivity() {
                     )
                     addObjectFromUri(uri)
                 }
+            StageActivity.REQUEST_START_STAGE -> {
+                // User returned from stage — nothing else to do
+            }
         }
     }
 

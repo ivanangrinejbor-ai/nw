@@ -68,7 +68,7 @@ import static org.catrobat.catroid.utils.Utils.SPEECH_RECOGNITION_SUPPORTED_LANG
 		"programVariableList",
 		"programListOfLists",
 		"programMultiplayerVariableList"
-})
+	})
 @LunoClass
 public class Project implements Serializable {
 
@@ -86,6 +86,9 @@ public class Project implements Serializable {
 	private List<UserList> userLists = new ArrayList<>();
 	@XStreamAlias("scenes")
 	private List<Scene> sceneList = new ArrayList<>();
+	/** @deprecated Kept for backward-compatible XStream deserialization of old projects.
+	 *  Migrated to sprites with global=true in sceneList in XstreamSerializer. */
+	@Deprecated
 	@XStreamAlias("globalScene")
 	private Scene globalScene = null;
 
@@ -185,23 +188,22 @@ public class Project implements Serializable {
 		}
 	}
 
-	public Scene getGlobalScene() {
-		if (globalScene == null) {
-			globalScene = new Scene("Global Scene", this);
-			globalScene.isGlobalScene = true;
-		}
+	/** @deprecated Only for migration of old projects in XstreamSerializer */
+	@Deprecated
+	public Scene getGlobalSceneForMigration() {
 		return globalScene;
 	}
 
-	public void setGlobalScene(Scene globalScene) {
-		this.globalScene = globalScene;
-		if (this.globalScene != null) {
-			this.globalScene.setProject(this);
+	public List<Sprite> getAllGlobalSprites() {
+		List<Sprite> result = new ArrayList<>();
+		for (Scene scene : sceneList) {
+			for (Sprite sprite : scene.getSpriteList()) {
+				if (sprite.isGlobal()) {
+					result.add(sprite);
+				}
+			}
 		}
-	}
-
-	public boolean hasGlobalScene() {
-		return globalScene != null && globalScene.getSpriteList().size() > 0;
+		return result;
 	}
 
 	public <T> boolean hasUserDataChanged(List<T> newUserData, List<T> oldUserData) {

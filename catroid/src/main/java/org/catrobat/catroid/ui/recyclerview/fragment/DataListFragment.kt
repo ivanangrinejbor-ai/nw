@@ -707,8 +707,9 @@ class DataListFragment : Fragment(),
         }
 
         @JvmStatic
+        @Suppress("UNCHECKED_CAST")
         fun updateUserVariableValue(value: String?, item: UserData<*>) {
-            item.value = value
+            (item as UserData<Any?>).value = value
         }
     }
 

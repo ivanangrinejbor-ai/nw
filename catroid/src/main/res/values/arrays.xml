@@ -252,6 +252,30 @@
         <item>@string/phiro_sensor_bottom_right</item>
     </string-array>
 
+    <!-- Paintroid preset colors -->
+    <integer-array name="pocketpaint_color_picker_preset_colors">
+        <item>0xFF000000</item>
+        <item>0xFFFFFFFF</item>
+        <item>0xFFD32F2F</item>
+        <item>0xFFF57C00</item>
+        <item>0xFFFFB74D</item>
+        <item>0xFF388E3C</item>
+        <item>0xFF81C784</item>
+        <item>0xFF1976D2</item>
+        <item>0xFF64B5F6</item>
+        <item>0xFF7B1FA2</item>
+        <item>0xFFFFC107</item>
+        <item>0xFF795548</item>
+        <item>0xFF9E9E9E</item>
+        <item>0xFF607D8B</item>
+        <item>0xFFFF5722</item>
+        <item>0xFFE91E63</item>
+        <item>0xFF4CAF50</item>
+        <item>0xFF03A9F4</item>
+        <item>0xFF009688</item>
+        <item>0xFFFF9800</item>
+    </integer-array>
+
     <!-- Color picker selection -->
     <string-array name="brick_select_color_picker">
         <item>@string/brick_context_dialog_pick_color</item>

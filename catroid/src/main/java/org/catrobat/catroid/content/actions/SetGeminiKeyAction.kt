@@ -23,5 +23,10 @@ class SetGeminiKeyAction(): TemporalAction() {
         var keyStr = keyVal.toString()
 
         GeminiManager.api_key = keyStr
+        // Also save to EncryptedSharedPreferences for persistence
+        val ctx = org.catrobat.catroid.CatroidApplication.current
+        if (ctx != null && keyStr.isNotEmpty()) {
+            GeminiManager.setApiKey(ctx, keyStr)
+        }
     }
 }

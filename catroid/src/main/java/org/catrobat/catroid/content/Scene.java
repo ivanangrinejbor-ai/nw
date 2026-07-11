@@ -79,7 +79,6 @@ public class Scene implements Nameable, Serializable {
 	private transient Project project;
 
 	public transient boolean firstStart = true;
-	public transient boolean isGlobalScene = false;
 
 	public Scene() {
 		this.sceneId = UUID.randomUUID().toString();

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="#FF2B2B2B">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="12dp">
+
+        <!-- Category: Drawing Tools -->
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="Drawing" android:textColor="#FFAAAAAA" android:textSize="12sp"
+            android:textStyle="bold" android:padding="4dp" />
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:gravity="center">
+            <ImageButton android:id="@+id/dlg_tool_eraser" android:layout_width="48dp" android:layout_height="48dp"
+                android:background="@drawable/tool_button_bg" android:src="@drawable/ic_eraser"
+                android:contentDescription="@string/neopaint_tool_eraser" android:layout_margin="2dp" />
+            <ImageButton android:id="@+id/dlg_tool_fill" android:layout_width="48dp" android:layout_height="48dp"
+                android:background="@drawable/tool_button_bg" android:src="@drawable/ic_fill"
+                android:contentDescription="@string/neopaint_tool_fill" android:layout_margin="2dp" />
+            <ImageButton android:id="@+id/dlg_tool_line" android:layout_width="48dp" android:layout_height="48dp"
+                android:background="@drawable/tool_button_bg" android:src="@drawable/ic_line"
+                android:contentDescription="@string/neopaint_tool_line" android:layout_margin="2dp" />
+            <ImageButton android:id="@+id/dlg_tool_smudge" android:layout_width="48dp" android:layout_height="48dp"
+                android:background="@drawable/tool_button_bg" android:src="@drawable/ic_smudge"
+                android:contentDescription="@string/neopaint_tool_smudge" android:layout_margin="2dp" />
+            <ImageButton android:id="@+id/dlg_tool_spray" android:layout_width="48dp" android:layout_height="48dp"
+                android:background="@drawable/tool_button_bg" android:src="@drawable/ic_spray"
+                android:contentDescription="Spray can" android:layout_margin="2dp" />
+        </LinearLayout>
+
+        <!-- Category: Shapes -->
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="Shapes" android:textColor="#FFAAAAAA" android:textSize="12sp"
+            android:textStyle="bold" android:padding="4dp" android:layout_marginTop="8dp" />
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:gravity="center">
+            <ImageButton android:id="@+id/dlg_tool_rect" android:layout_width="48dp" android:layout_height="48dp"
+                android:background="@drawable/tool_button_bg" android:src="@drawable/ic_rect"
+                android:contentDescription="@string/neopaint_tool_rect" android:layout_margin="2dp" />
+            <ImageButton android:id="@+id/dlg_tool_oval" android:layout_width="48dp" android:layout_height="48dp"
+                android:background="@drawable/tool_button_bg" android:src="@drawable/ic_oval"
+                android:contentDescription="@string/neopaint_tool_oval" android:layout_margin="2dp" />
+            <ImageButton android:id="@+id/dlg_tool_star" android:layout_width="48dp" android:layout_height="48dp"
+                android:background="@drawable/tool_button_bg" android:src="@drawable/ic_star"
+                android:contentDescription="Star" android:layout_margin="2dp" />
+            <ImageButton android:id="@+id/dlg_tool_heart" android:layout_width="48dp" android:layout_height="48dp"
+                android:background="@drawable/tool_button_bg" android:src="@drawable/ic_heart"
+                android:contentDescription="Heart" android:layout_margin="2dp" />
+        </LinearLayout>
+
+        <!-- Category: Tools -->
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="Tools" android:textColor="#FFAAAAAA" android:textSize="12sp"
+            android:textStyle="bold" android:padding="4dp" android:layout_marginTop="8dp" />
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:gravity="center">
+            <ImageButton android:id="@+id/dlg_tool_text" android:layout_width="48dp" android:layout_height="48dp"
+                android:background="@drawable/tool_button_bg" android:src="@drawable/ic_text"
+                android:contentDescription="@string/neopaint_tool_text" android:layout_margin="2dp" />
+            <ImageButton android:id="@+id/dlg_tool_picker" android:layout_width="48dp" android:layout_height="48dp"
+                android:background="@drawable/tool_button_bg" android:src="@drawable/ic_eyedropper"
+                android:contentDescription="@string/neopaint_tool_picker" android:layout_margin="2dp" />
+            <ImageButton android:id="@+id/dlg_tool_zoom" android:layout_width="48dp" android:layout_height="48dp"
+                android:background="@drawable/tool_button_bg" android:src="@drawable/ic_zoom"
+                android:contentDescription="Resize canvas" android:layout_margin="2dp" />
+            <ImageButton android:id="@+id/dlg_tool_clipboard" android:layout_width="48dp" android:layout_height="48dp"
+                android:background="@drawable/tool_button_bg" android:src="@drawable/ic_clipboard"
+                android:contentDescription="Clipboard" android:layout_margin="2dp" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

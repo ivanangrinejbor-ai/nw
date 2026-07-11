@@ -156,6 +156,8 @@ class ProjectOptionsFragment : Fragment() {
         addTags()
         setupProjectAspectRatio()
         setupCustomResolution()
+        setupPreloader()
+        setupPrecompile()
         setupProjectUpload()
         setupProjectSaveExternal()
         setupProjectSaveApk()
@@ -746,6 +748,24 @@ class ProjectOptionsFragment : Fragment() {
         }
     }
 
+    private fun setupPreloader() {
+        binding.projectOptionsPreloader.apply {
+            isChecked = project?.xmlHeader?.isPreloaderEnabled == true
+            setOnCheckedChangeListener { _, isChecked ->
+                project?.xmlHeader?.setPreloaderEnabled(isChecked)
+            }
+        }
+    }
+
+    private fun setupPrecompile() {
+        binding.projectOptionsPrecompile.apply {
+            isChecked = project?.xmlHeader?.isPrecompileEnabled == true
+            setOnCheckedChangeListener { _, isChecked ->
+                project?.xmlHeader?.setPrecompileEnabled(isChecked)
+            }
+        }
+    }
+
     private fun setupProjectUpload() {
         binding.projectOptionsUpload.setOnClickListener {
             exportMatryoshkaForServer()
@@ -881,6 +901,10 @@ class ProjectOptionsFragment : Fragment() {
         setupDescriptionInputLayout()
         setupNotesAndCreditsInputLayout()
 
+        // Sync switch states from project
+        setupPreloader()
+        setupPrecompile()
+
         addTags()
         hideBottomBar(requireActivity())
     }
@@ -903,13 +927,16 @@ class ProjectOptionsFragment : Fragment() {
     }
 
     private fun setPhysicsArea() {
-        val width = binding.projectOptionsPhysicsWidthLayout.editText?.text.toString().toFloat()
-        val height = binding.projectOptionsPhysicsHeightLayout.editText?.text.toString().toFloat()
         project ?: return
-
-        val xml = project?.xmlHeader
-        xml?.setPhysicsWidthArea(width)
-        xml?.setPhysicsHeightArea(height)
+        val xml = project?.xmlHeader ?: return
+        try {
+            val width = binding.projectOptionsPhysicsWidthLayout.editText?.text.toString().toFloat()
+            val height = binding.projectOptionsPhysicsHeightLayout.editText?.text.toString().toFloat()
+            xml.setPhysicsWidthArea(width)
+            xml.setPhysicsHeightArea(height)
+        } catch (e: NumberFormatException) {
+            // Empty or invalid physics fields — leave defaults
+        }
     }
 
     fun saveDescription() {

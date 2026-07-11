@@ -25,7 +25,9 @@ package org.catrobat.catroid.ui.recyclerview.adapter;
 
 import android.view.View;
 
-import com.squareup.picasso.Picasso;
+import coil.Coil;
+import coil.ImageLoader;
+import coil.request.ImageRequest;
 
 import org.catrobat.catroid.R;
 import org.catrobat.catroid.common.ScratchProgramData;
@@ -51,7 +53,12 @@ public class ScratchProgramAdapter extends ExtendedRVAdapter<ScratchProgramData>
 					.scratch_project_thumbnail_height);
 			String originalImageURL = item.getImage().getUrl().toString();
 			String thumbnailImageURL = Utils.changeSizeOfScratchImageURL(originalImageURL, height);
-			Picasso.get().load(thumbnailImageURL).into(holder.image);
+			ImageLoader imageLoader = Coil.imageLoader(holder.image.getContext());
+			ImageRequest request = new ImageRequest.Builder(holder.image.getContext())
+					.data(thumbnailImageURL)
+					.target(holder.image)
+					.build();
+			imageLoader.enqueue(request);
 		} else {
 			holder.image.setImageBitmap(null);
 		}

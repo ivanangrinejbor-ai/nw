@@ -2256,6 +2256,7 @@
     <string formatted="false" name="main_menu_community">Сообщество NeoCatroid</string>
     <string formatted="false" name="main_menu_upload">Выложить проект</string>
     <string formatted="false" name="main_menu_rate_app">Оцените нас!</string>
+    <string formatted="false" name="menu_rate_us">Оценить</string>
     <string formatted="false" name="main_menu_terms_of_use">Условия пользования и обслуживания</string>
     <string formatted="false" name="main_menu_privacy_policy">Политика конфиденциальности</string>
     <string formatted="false" name="main_menu_about">Об этом приложении</string>
@@ -3330,6 +3331,10 @@
     <string formatted="false" name="brick_scene_preloaded_save_to">сохранить в</string>
     <string formatted="false" name="brick_note"></string>
     <string formatted="false" name="project_options_custom_resolution">Пользовательское разрешение</string>
+    <string formatted="false" name="project_options_preloader">Экран предзагрузки</string>
+    <string formatted="false" name="project_options_precompile">Предкомпиляция при запуске</string>
+    <string formatted="false" name="preloader_compiling">Компиляция сцены:</string>
+    <string formatted="false" name="preloader_loading">Загрузка...</string>
     <string formatted="false" name="brick_think_bubble">Думать</string>
     <string formatted="false" name="brick_say_bubble">Cказать</string>
     <string formatted="false" name="brick_think_say_for_text">в течении</string>
@@ -4609,4 +4614,38 @@
     <string formatted="false" name="notification_action_background">Фон</string>
     <string formatted="false" name="notification_action_silent">Без звука</string>
     <string formatted="false" name="notification_action_input">С вводом</string>
+
+    <!-- NeoPaint editor -->
+    <string formatted="false" name="neopaint_color_picker">Палитра цветов</string>
+    <string formatted="false" name="neopaint_title">Редактор NeoPaint</string>
+    <string formatted="false" name="neopaint_tool_brush">Кисть</string>
+    <string formatted="false" name="neopaint_tool_eraser">Ластик</string>
+    <string formatted="false" name="neopaint_tool_fill">Заливка</string>
+    <string formatted="false" name="neopaint_tool_line">Линия</string>
+    <string formatted="false" name="neopaint_tool_rect">Прям.</string>
+    <string formatted="false" name="neopaint_tool_oval">Овал</string>
+    <string formatted="false" name="neopaint_tool_text">Текст</string>
+    <string formatted="false" name="neopaint_tool_picker">Пипетка</string>
+    <string formatted="false" name="neopaint_tool_smudge">Растуш.</string>
+    <string formatted="false" name="neopaint_undo">Отмена</string>
+    <string formatted="false" name="neopaint_redo">Повтор</string>
+    <string formatted="false" name="neopaint_clear">Очистить</string>
+    <string formatted="false" name="neopaint_layers">Слои</string>
+    <string formatted="false" name="neopaint_flip_h">Отраж. Г</string>
+    <string formatted="false" name="neopaint_flip_v">Отраж. В</string>
+    <string formatted="false" name="neopaint_rotate">Поворот</string>
+    <string formatted="false" name="neopaint_save">Сохранить</string>
+    <string formatted="false" name="neopaint_cancel">Отмена</string>
+    <string formatted="false" name="neopaint_layer_new">Новый слой</string>
+    <string formatted="false" name="neopaint_layer_del">Удалить</string>
+    <string formatted="false" name="neopaint_layer_dup">Дубликат</string>
+    <string formatted="false" name="neopaint_layer_opacity">Непрозрач.</string>
+    <string formatted="false" name="neopaint_text_prompt">Введите текст:</string>
+    <string formatted="false" name="neopaint_text_ok">ОК</string>
+    <string name="neopaint_toggle_visibility">Переключить видимость</string>
+    <string name="neopaint_color_picker_title">Выбор цвета</string>
+    <string name="neopaint_save_changes_title">Сохранить изменения?</string>
+    <string name="neopaint_save_changes_message">Хотите сохранить изменения перед выходом?</string>
+    <string name="neopaint_save_exit">Сохранить и выйти</string>
+    <string name="neopaint_discard">Отменить</string>
 </resources>

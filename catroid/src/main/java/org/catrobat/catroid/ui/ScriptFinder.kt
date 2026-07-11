@@ -232,11 +232,7 @@ class ScriptFinder(context: Context, attrs: AttributeSet?) : LinearLayout(contex
                     binding.progressBar.visibility = VISIBLE
                 }
             }
-            val scenes = ArrayList<Scene>(projectManager.currentProject.sceneList)
-            val globalScene = projectManager.currentProject.globalScene
-            if (globalScene != null) {
-                scenes.add(globalScene)
-            }
+            val scenes = projectManager.currentProject.sceneList
             for (i in scenes.indices) {
                 val scene = scenes[i]
                 val spriteList = scene.spriteList

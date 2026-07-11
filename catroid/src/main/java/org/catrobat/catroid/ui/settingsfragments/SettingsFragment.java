@@ -162,8 +162,15 @@ public class SettingsFragment extends PreferenceFragment {
 
 	public static final String SETTINGS_USE_CATBLOCKS = "settings_use_catblocks";
 
-	private static final String GITHUB_CLIENT_ID = "Ov23liKoq3h0cTgAbVYA";
 	private static final String GITHUB_REDIRECT_URI = "NeoCatroid://github-callback";
+
+	private static String getGitHubClientId() {
+		String buildConfigId = BuildConfig.GITHUB_CLIENT_ID;
+		if (buildConfigId != null && !buildConfigId.isEmpty()) {
+			return buildConfigId;
+		}
+		return "Ov23liKoq3h0cTgAbVYA"; // fallback default
+	}
     public static final String SETTINGS_RECOVER_PROJECTS = "setting_recover_projects";
 
 	private Preference githubPreference;
@@ -347,7 +354,7 @@ public class SettingsFragment extends PreferenceFragment {
 
 	private void startGitHubLogin() {
 		String authUrl = "https://github.com/login/oauth/authorize" +
-				"?client_id=" + GITHUB_CLIENT_ID +
+				"?client_id=" + getGitHubClientId() +
 				"&redirect_uri=" + GITHUB_REDIRECT_URI +
 				"&scope=repo";
 

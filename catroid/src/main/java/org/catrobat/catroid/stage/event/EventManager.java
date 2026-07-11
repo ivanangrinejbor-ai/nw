@@ -13,12 +13,7 @@ public class EventManager {
         if (project == null || scriptClass == null) {
             return false;
         }
-        List<Scene> allScenes = new ArrayList<>(project.getSceneList());
-        Scene globalScene = project.getGlobalScene();
-        if (globalScene != null) {
-            allScenes.add(globalScene);
-        }
-        for (Scene scene : allScenes) {
+        for (Scene scene : project.getSceneList()) {
             for (Sprite sprite : scene.getSpriteList()) {
                 for (Script script : sprite.getScriptList()) {
                     if (scriptClass.isInstance(script)) {

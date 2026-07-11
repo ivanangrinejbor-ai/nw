@@ -1,16 +1,21 @@
 package com.google.mlkit.vision.objects
 
+import android.graphics.Rect
+
 class DetectedObject {
-    companion object {
-        const val CATEGORY_UNKNOWN = -1
+    val trackingId: Int = 0
+    val boundingBox: Rect = Rect()
+
+    constructor()
+
+    constructor(boundingBox: Rect, trackingId: Int, labels: List<Label>) {
+        this.labelsInternal = labels
     }
 
-    // Kotlin code expects property access `trackingId` and `boundingBox`
-    val trackingId: Int = 0
-    val boundingBox: android.graphics.Rect = android.graphics.Rect()
+    private var labelsInternal: List<Label> = emptyList()
 
     fun getCategory(): Category = Category()
-    fun getLabels(): List<Label> = emptyList()
+    fun getLabels(): List<Label> = labelsInternal
 
     class Category {
         companion object {
@@ -24,7 +29,16 @@ class DetectedObject {
         companion object {
             const val CATEGORY_UNKNOWN = -1
         }
-        fun getText(): String = ""
-        fun getConfidence(): Float = 0f
+        constructor()
+        constructor(text: String, confidence: Float, index: Int) {
+            this.textInternal = text
+            this.confidenceInternal = confidence
+        }
+
+        private var textInternal: String = ""
+        private var confidenceInternal: Float = 0f
+
+        fun getText(): String = textInternal
+        fun getConfidence(): Float = confidenceInternal
     }
 }

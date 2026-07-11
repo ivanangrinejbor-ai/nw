@@ -155,6 +155,9 @@ public final class XstreamSerializer {
 
 		//xstream.registerConverter(new FormulaListConverter());
 
+		// Enable XStream security framework (setupDefaultSecurity denies types not explicitly registered)
+		XStream.setupDefaultSecurity(xstream);
+
 		// Deny-by-default: запрещаем опасные системные пакеты для предотвращения RCE
 		xstream.denyTypesByWildcard(new String[] {
 			"java.lang.reflect.**",
@@ -949,10 +952,17 @@ public final class XstreamSerializer {
 				for (Scene scene : project.getSceneList()) {
 					scene.setProject(project);
 				}
-				Scene globalScene = project.getGlobalScene();
-				if (globalScene != null) {
-					globalScene.setProject(project);
-					globalScene.isGlobalScene = true;
+				// Migrate old globalScene → global sprites in default scene
+				Scene oldGlobal = project.getGlobalSceneForMigration();
+				if (oldGlobal != null && !oldGlobal.getSpriteList().isEmpty()) {
+					Scene defaultScene = project.getDefaultScene();
+					if (defaultScene != null) {
+						for (Sprite sprite : oldGlobal.getSpriteList()) {
+							sprite.setGlobal(true);
+							defaultScene.addSprite(sprite);
+						}
+					}
+					oldGlobal.getSpriteList().clear();
 				}
 			}
 			project.checkForInvisibleSprites();
@@ -1009,12 +1019,7 @@ public final class XstreamSerializer {
 	}
 
 	private static void setFileReferences(Project project) {
-		List<Scene> allScenes = new ArrayList<>(project.getSceneList());
-		Scene globalScene = project.getGlobalScene();
-		if (globalScene != null) {
-			allScenes.add(globalScene);
-		}
-		for (Scene scene : allScenes) {
+		for (Scene scene : project.getSceneList()) {
 			File imageDir = new File(scene.getDirectory(), IMAGE_DIRECTORY_NAME);
 			File soundDir = new File(scene.getDirectory(), SOUND_DIRECTORY_NAME);
 
@@ -1109,12 +1114,7 @@ public final class XstreamSerializer {
 			StorageOperations.createDir(DEFAULT_ROOT_DIRECTORY);
 			StorageOperations.createDir(project.getDirectory());
 
-			List<Scene> allScenes = new ArrayList<>(project.getSceneList());
-			Scene globalScene = project.getGlobalScene();
-			if (globalScene != null) {
-				allScenes.add(globalScene);
-			}
-			for (Scene scene : allScenes) {
+			for (Scene scene : project.getSceneList()) {
 				StorageOperations.createSceneDirectory(scene.getDirectory());
 			}
 			StorageOperations.writeToFile(tmpCodeFile, currentXml);

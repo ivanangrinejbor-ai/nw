@@ -32,6 +32,7 @@ import android.provider.OpenableColumns;
 import android.util.Log;
 
 import java.io.BufferedWriter;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -220,9 +221,57 @@ public final class StorageOperations {
 			IOException, InvalidPathException {
 		File destinationFile = getDestinationFile(destinationDir, fileName);
 		FileOutputStream fileOutputStream = new FileOutputStream(destinationFile);
-		BitmapFactory.decodeStream(inputStream).compress(Bitmap.CompressFormat.PNG, 100, fileOutputStream);
-		inputStream.close();
-		fileOutputStream.close();
+
+		try {
+			// Read full stream into byte array so we can decode multiple times
+			ByteArrayOutputStream byteBuffer = new ByteArrayOutputStream();
+			byte[] buf = new byte[BUFFER_8K];
+			int len;
+			while ((len = inputStream.read(buf)) != -1) {
+				byteBuffer.write(buf, 0, len);
+			}
+			byte[] imageBytes = byteBuffer.toByteArray();
+
+			// First decode with inJustDecodeBounds to get dimensions (no allocation)
+			BitmapFactory.Options options = new BitmapFactory.Options();
+			options.inJustDecodeBounds = true;
+			BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length, options);
+
+			// Calculate inSampleSize to limit max dimension to 2048px
+			int maxDimension = 2048;
+			int inSampleSize = 1;
+			if (options.outHeight > maxDimension || options.outWidth > maxDimension) {
+				int halfHeight = options.outHeight / 2;
+				int halfWidth = options.outWidth / 2;
+				while ((halfHeight / inSampleSize) >= maxDimension
+						|| (halfWidth / inSampleSize) >= maxDimension) {
+					inSampleSize *= 2;
+				}
+			}
+
+			// Decode with sampling
+			options.inJustDecodeBounds = false;
+			options.inSampleSize = inSampleSize;
+			Bitmap bitmap = null;
+			try {
+				bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length, options);
+			} catch (OutOfMemoryError e) {
+				Log.e(TAG, "OOM during image decode, doubling sample rate", e);
+				options.inSampleSize *= 2;
+				bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length, options);
+			}
+
+			if (bitmap != null) {
+				bitmap.compress(Bitmap.CompressFormat.PNG, 100, fileOutputStream);
+				bitmap.recycle();
+			} else {
+				// Fallback: write raw bytes if decode fails
+				fileOutputStream.write(imageBytes);
+			}
+		} finally {
+			inputStream.close();
+			fileOutputStream.close();
+		}
 		return destinationFile;
 	}
 

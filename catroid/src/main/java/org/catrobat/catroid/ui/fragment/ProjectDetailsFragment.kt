@@ -169,8 +169,7 @@ class ProjectDetailsFragment : Fragment() {
 
     private fun computeProjectCounts() {
         viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-            val scenes = ArrayList(project.sceneList)
-            project.globalScene?.let { if (!scenes.contains(it)) scenes.add(it) }
+            val scenes = project.sceneList
             var blocks = 0
             var sounds = 0
             var sprites = 0

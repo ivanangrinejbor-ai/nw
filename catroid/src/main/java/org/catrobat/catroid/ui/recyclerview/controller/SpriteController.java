@@ -99,6 +99,7 @@ public class SpriteController {
 			((GroupItemSprite) sprite).setCollapsed(((GroupItemSprite) spriteToCopy).isCollapsed());
 		}
 
+		sprite.setGlobal(spriteToCopy.isGlobal());
 		return sprite;
 	}
 
@@ -283,6 +284,7 @@ public class SpriteController {
 			}
 		}
 
+		sprite.setGlobal(spriteToPack.isGlobal());
 		return sprite;
 	}
 
@@ -318,6 +320,7 @@ public class SpriteController {
 			}
 		}
 
+		sprite.setGlobal(spriteToUnpack.isGlobal());
 		return sprite;
 	}
 }

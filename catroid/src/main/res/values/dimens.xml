@@ -96,4 +96,9 @@
     <dimen name="pocketmusic_fastscroller_handle_inset_bottom">3dp</dimen>
     <dimen name="pocketmusic_fastscroller_handle_clickable_width">50dp</dimen>
 
+    <!-- NeoPaint dimensions -->
+    <dimen name="neopaint_tool_button_size">48dp</dimen>
+    <dimen name="neopaint_action_button_size">40dp</dimen>
+    <dimen name="neopaint_layers_panel_width">200dp</dimen>
+
 </resources>

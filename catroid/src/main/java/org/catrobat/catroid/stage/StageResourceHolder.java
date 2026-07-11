@@ -368,6 +368,9 @@ public class StageResourceHolder implements GatherCollisionInformationTask.OnPol
 
 	@SuppressLint("WrongConstant")
     public void initFinishedRunStage() {
+		// Hide precompile overlay when stage is ready
+		stageActivity.hidePrecompileOverlay();
+
 		try {
 			ServiceProvider.getService(CatroidService.BLUETOOTH_DEVICE_SERVICE).initialise();
 		} catch (MindstormsException e) {
@@ -432,6 +435,9 @@ public class StageResourceHolder implements GatherCollisionInformationTask.OnPol
 	}
 
 	private void showResourceFailedErrorDialog() {
+		// Hide precompile overlay so error dialog is visible
+		stageActivity.hidePrecompileOverlay();
+
 		StringBuilder failedResourcesMessage = new StringBuilder(stageActivity.getString(R.string.prestage_resource_not_available_text));
 		Iterator resourceIter = failedResources.iterator();
 		while (resourceIter.hasNext()) {

@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="20dp"
+    android:padding="16dp"
     android:gravity="center">
     <TextView
         android:layout_width="wrap_content"
@@ -15,10 +15,98 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Text..." />
+
+    <!-- Outline + Glow checkboxes row -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginTop="8dp">
+        <CheckBox
+            android:id="@+id/chk_outline"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Outline" />
+        <Button
+            android:id="@+id/btn_outline_color"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:background="#000000"
+            android:layout_marginStart="4dp" />
+        <CheckBox
+            android:id="@+id/chk_glow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Glow"
+            android:layout_marginStart="12dp" />
+        <Button
+            android:id="@+id/btn_glow_color"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:background="#80FFFFFF"
+            android:layout_marginStart="4dp" />
+    </LinearLayout>
+
+    <!-- Glow radius slider -->
+    <LinearLayout
+        android:id="@+id/glow_radius_row"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:visibility="gone">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Glow:"
+            android:textSize="12sp" />
+        <SeekBar
+            android:id="@+id/seek_glow_radius"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:max="20"
+            android:progress="5" />
+    </LinearLayout>
+
+    <!-- Gradient toggle -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginTop="4dp">
+        <CheckBox
+            android:id="@+id/chk_gradient"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Gradient" />
+        <Button
+            android:id="@+id/btn_grad_start"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:background="#FF0000"
+            android:visibility="gone" />
+        <TextView
+            android:id="@+id/lbl_grad_to"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=" → "
+            android:visibility="gone" />
+        <Button
+            android:id="@+id/btn_grad_end"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:background="#0000FF"
+            android:visibility="gone" />
+    </LinearLayout>
+
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:layout_marginTop="12dp">
         <Button
             android:id="@+id/btn_text_cancel"
             android:layout_width="wrap_content"
@@ -28,6 +116,7 @@
             android:id="@+id/btn_text_ok"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/neopaint_text_ok" />
-        </LinearLayout>
+            android:text="@string/neopaint_text_ok"
+            android:layout_marginStart="12dp" />
+    </LinearLayout>
 </LinearLayout>

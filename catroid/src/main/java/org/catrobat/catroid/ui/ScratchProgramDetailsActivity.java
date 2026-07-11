@@ -38,7 +38,9 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.google.common.base.Preconditions;
-import com.squareup.picasso.Picasso;
+import coil.Coil;
+import coil.ImageLoader;
+import coil.request.ImageRequest;
 
 import org.catrobat.catroid.R;
 import org.catrobat.catroid.common.Constants;
@@ -153,7 +155,12 @@ public class ScratchProgramDetailsActivity extends BaseActivity implements
 			final String originalImageURL = programData.getImage().getUrl().toString();
 			final String thumbnailImageURL = Utils.changeSizeOfScratchImageURL(originalImageURL, height);
 			ImageView image = findViewById(R.id.project_image_view);
-			Picasso.get().load(thumbnailImageURL).into(image);
+			ImageLoader imageLoader = Coil.imageLoader(image.getContext());
+			ImageRequest request = new ImageRequest.Builder(image.getContext())
+					.data(thumbnailImageURL)
+					.target(image)
+					.build();
+			imageLoader.enqueue(request);
 		}
 
 		fetchRemixesTask

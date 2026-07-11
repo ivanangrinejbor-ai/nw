@@ -7,7 +7,12 @@ enum class ToolType {
     LINE,
     RECTANGLE,
     OVAL,
+    STAR,
+    HEART,
     TEXT,
     EYEDROPPER,
-    SMUDGE
+    SMUDGE,
+    SPRAY_CAN,
+    CLIPBOARD,
+    ZOOM
 }

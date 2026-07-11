@@ -1,127 +1,196 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#2B2B2B">
+    android:background="@color/neopaint_bg_dark">
 
-    <androidx.appcompat.widget.Toolbar
-        android:id="@+id/neopaint_toolbar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="#1A1A1A"
-        app:titleTextColor="#FFFFFF"
-        app:title="@string/neopaint_title" />
-
-    <FrameLayout
-        android:id="@+id/canvas_container"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_above="@id/property_bar"
-        android:layout_below="@id/neopaint_toolbar">
-        <org.catrobat.catroid.ui.neopaint.DrawingView
-            android:id="@+id/drawing_view"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-    </FrameLayout>
+        android:orientation="vertical">
 
-    <LinearLayout
-        android:id="@+id/property_bar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_above="@id/tool_palette"
-        android:background="#333333"
-        android:orientation="horizontal"
-        android:padding="8dp"
-        android:gravity="center_vertical">
-        <Button
-            android:id="@+id/btn_color_swatch"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:background="#FFFFFF" />
-        <SeekBar
-            android:id="@+id/seek_brush_size"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:max="60"
-            android:progress="8" />
-        <SeekBar
-            android:id="@+id/seek_opacity"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:max="100"
-            android:progress="100" />
-    </LinearLayout>
-
-    <HorizontalScrollView
-        android:id="@+id/tool_palette"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:background="#1A1A1A">
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:padding="4dp">
-            <Button android:id="@+id/tool_brush" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/neopaint_tool_brush" />
-            <Button android:id="@+id/tool_eraser" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/neopaint_tool_eraser" />
-            <Button android:id="@+id/tool_fill" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/neopaint_tool_fill" />
-            <Button android:id="@+id/tool_line" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/neopaint_tool_line" />
-            <Button android:id="@+id/tool_rect" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/neopaint_tool_rect" />
-            <Button android:id="@+id/tool_oval" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/neopaint_tool_oval" />
-            <Button android:id="@+id/tool_text" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/neopaint_tool_text" />
-            <Button android:id="@+id/tool_picker" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/neopaint_tool_picker" />
-            <Button android:id="@+id/tool_smudge" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/neopaint_tool_smudge" />
-        </LinearLayout>
-    </HorizontalScrollView>
-
-    <LinearLayout
-        android:id="@+id/action_bar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_above="@id/property_bar"
-        android:background="#333333"
-        android:orientation="horizontal"
-        android:gravity="center">
-        <Button android:id="@+id/btn_undo" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/neopaint_undo" />
-        <Button android:id="@+id/btn_redo" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/neopaint_redo" />
-        <Button android:id="@+id/btn_clear" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/neopaint_clear" />
-        <Button android:id="@+id/btn_layers" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/neopaint_layers" />
-        <Button android:id="@+id/btn_flip_h" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/neopaint_flip_h" />
-        <Button android:id="@+id/btn_flip_v" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/neopaint_flip_v" />
-        <Button android:id="@+id/btn_rotate" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/neopaint_rotate" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/layout_layers"
-        android:layout_width="200dp"
-        android:layout_height="match_parent"
-        android:layout_alignParentRight="true"
-        android:background="#444444"
-        android:orientation="vertical"
-        android:padding="8dp"
-        android:visibility="gone">
-        <Button android:id="@+id/btn_new_layer" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/neopaint_layer_new" />
-        <Button android:id="@+id/btn_del_layer" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/neopaint_layer_del" />
-        <Button android:id="@+id/btn_dup_layer" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/neopaint_layer_dup" />
-        <LinearLayout
+        <!-- Toolbar -->
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/neopaint_toolbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/neopaint_layer_opacity" android:textColor="#FFF" />
-            <SeekBar android:id="@+id/seek_layer_opacity" android:layout_width="match_parent" android:layout_height="wrap_content" android:max="100" android:progress="100" />
-        </LinearLayout>
-        <ScrollView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-            <LinearLayout
-                android:id="@+id/list_layers"
-                android:layout_width="match_parent"
+            android:background="@color/neopaint_bg_darker"
+            android:elevation="4dp"
+            app:titleTextColor="#FFFFFF"
+            app:title="@string/neopaint_title"
+            app:subtitleTextColor="#AAAAAA">
+            <Button
+                android:id="@+id/btn_save"
+                style="@style/Widget.AppCompat.Button.Borderless"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="vertical" />
-        </ScrollView>
+                android:layout_gravity="end"
+                android:textColor="#FFFFFF"
+                android:text="@string/neopaint_save" />
+        </androidx.appcompat.widget.Toolbar>
+
+        <!-- Action bar (undo/redo/etc) -->
+        <LinearLayout
+            android:id="@+id/action_bar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/neopaint_bg_medium"
+            android:orientation="horizontal"
+            android:gravity="center">
+            <ImageButton android:id="@+id/btn_undo" android:layout_width="@dimen/neopaint_action_button_size" android:layout_height="@dimen/neopaint_action_button_size" android:background="@drawable/action_button_bg" android:src="@drawable/ic_undo" android:contentDescription="@string/neopaint_undo" />
+            <ImageButton android:id="@+id/btn_redo" android:layout_width="@dimen/neopaint_action_button_size" android:layout_height="@dimen/neopaint_action_button_size" android:background="@drawable/action_button_bg" android:src="@drawable/ic_redo" android:contentDescription="@string/neopaint_redo" />
+            <ImageButton android:id="@+id/btn_clear" android:layout_width="@dimen/neopaint_action_button_size" android:layout_height="@dimen/neopaint_action_button_size" android:background="@drawable/action_button_bg" android:src="@drawable/ic_delete" android:contentDescription="@string/neopaint_clear" />
+
+            <ImageButton android:id="@+id/btn_flip_h" android:layout_width="@dimen/neopaint_action_button_size" android:layout_height="@dimen/neopaint_action_button_size" android:background="@drawable/action_button_bg" android:src="@drawable/ic_flip_h" android:contentDescription="@string/neopaint_flip_h" />
+            <ImageButton android:id="@+id/btn_flip_v" android:layout_width="@dimen/neopaint_action_button_size" android:layout_height="@dimen/neopaint_action_button_size" android:background="@drawable/action_button_bg" android:src="@drawable/ic_flip_v" android:contentDescription="@string/neopaint_flip_v" />
+            <ImageButton android:id="@+id/btn_rotate" android:layout_width="@dimen/neopaint_action_button_size" android:layout_height="@dimen/neopaint_action_button_size" android:background="@drawable/action_button_bg" android:src="@drawable/ic_rotate" android:contentDescription="@string/neopaint_rotate" />
+        </LinearLayout>
+
+        <!-- Canvas (fills remaining space via weight) -->
+        <FrameLayout
+            android:id="@+id/canvas_container"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+            <org.catrobat.catroid.ui.neopaint.DrawingView
+                android:id="@+id/drawing_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+        </FrameLayout>
+
+        <!-- Property bar (color, brush size, opacity, shape fill, transform) -->
+        <LinearLayout
+            android:id="@+id/property_bar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/neopaint_bg_medium"
+            android:orientation="horizontal"
+            android:padding="8dp"
+            android:gravity="center_vertical">
+
+            <Button
+                android:id="@+id/btn_color_swatch"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="#FFFFFF"
+                android:contentDescription="@string/neopaint_color_picker" />
+
+            <!-- Brush / drawing controls -->
+            <TextView
+                android:id="@+id/lbl_brush_size"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="9"
+                android:textColor="#AAA"
+                android:textSize="12sp"
+                android:layout_marginStart="4dp" />
+            <SeekBar
+                android:id="@+id/seek_brush_size"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:max="60"
+                android:progress="8" />
+            <TextView
+                android:id="@+id/lbl_opacity"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="100%"
+                android:textColor="#AAA"
+                android:textSize="12sp"
+                android:layout_marginStart="4dp" />
+            <SeekBar
+                android:id="@+id/seek_opacity"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:max="100"
+                android:progress="100" />
+            <TextView
+                android:id="@+id/lbl_shape_fill"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Fill"
+                android:textColor="#AAA"
+                android:textSize="12sp"
+                android:layout_marginStart="4dp"
+                android:visibility="gone" />
+            <SeekBar
+                android:id="@+id/seek_shape_fill"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:max="100"
+                android:progress="100"
+                android:visibility="gone" />
+
+            <!-- Transform controls (visible when overlay active) -->
+            <TextView
+                android:id="@+id/lbl_rotation"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0°"
+                android:textColor="#AAA"
+                android:textSize="12sp"
+                android:layout_marginStart="4dp"
+                android:visibility="gone" />
+            <SeekBar
+                android:id="@+id/seek_rotation"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:max="360"
+                android:progress="0"
+                android:visibility="gone" />
+            <ImageButton
+                android:id="@+id/btn_flip_x"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:background="@drawable/action_button_bg"
+                android:src="@drawable/ic_flip_h"
+                android:contentDescription="Flip X"
+                android:visibility="gone" />
+            <ImageButton
+                android:id="@+id/btn_flip_y"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:background="@drawable/action_button_bg"
+                android:src="@drawable/ic_flip_v"
+                android:contentDescription="Flip Y"
+                android:visibility="gone" />
+
+            <!-- Confirm/Cancel overlay buttons -->
+            <ImageButton
+                android:id="@+id/btn_overlay_confirm"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="@drawable/action_button_bg"
+                android:src="@drawable/ic_confirm"
+                android:contentDescription="Confirm"
+                android:visibility="gone" />
+            <ImageButton
+                android:id="@+id/btn_overlay_cancel"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="@drawable/action_button_bg"
+                android:src="@drawable/ic_cancel"
+                android:contentDescription="Cancel"
+                android:visibility="gone" />
+        </LinearLayout>
+
+        <!-- Tool palette (brush + more button) -->
+        <LinearLayout
+            android:id="@+id/tool_palette"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/neopaint_bg_darker"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:padding="4dp">
+            <ImageButton android:id="@+id/tool_brush" android:layout_width="@dimen/neopaint_tool_button_size" android:layout_height="@dimen/neopaint_tool_button_size" android:background="@drawable/tool_button_bg" android:src="@drawable/ic_brush" android:contentDescription="@string/neopaint_tool_brush" />
+            <TextView android:id="@+id/btn_more_tools" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="•••" android:textSize="24sp" android:textColor="#FFF" android:background="@drawable/tool_button_bg" android:contentDescription="More tools" />
+        </LinearLayout>
     </LinearLayout>
-</RelativeLayout>
+
+</FrameLayout>

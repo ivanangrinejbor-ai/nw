@@ -95,6 +95,7 @@ import java.io.IOException
 class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadListener {
     private var filesForUnzipAndImportTask: ArrayList<File>? = null
     private var hasUnzipAndImportTaskFinished = false
+    private var importTask: ProjectUnZipperAndImporter? = null
 
     private val projectManager: ProjectManager by inject()
 
@@ -159,7 +160,24 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
                 ToastUtil.showSuccess(requireContext(), "Запуск запеченного проекта...")
                 launchBakedProject(result.projectDir)
             }
+
+            is org.catrobat.catroid.io.asynctask.ImportResult.UnsupportedVersion -> return
         }
+    }
+
+    private fun showUnsupportedVersionDialog(result: org.catrobat.catroid.io.asynctask.ImportResult.UnsupportedVersion) {
+        AlertDialog.Builder(requireContext())
+            .setTitle(R.string.unsupported_version_dialog_title)
+            .setMessage(R.string.unsupported_version_dialog_message)
+            .setPositiveButton(R.string.unsupported_version_skip) { _, _ ->
+                result.projectDir?.let { importTask?.continueImport(it) }
+            }
+            .setNegativeButton(R.string.unsupported_version_cancel) { _, _ ->
+                result.projectDir?.let { importTask?.cancelImport(it) }
+                ToastUtil.showError(requireContext(), R.string.import_cancelled)
+            }
+            .setCancelable(false)
+            .show()
     }
 
     private fun launchBakedProject(projectDir: File) {
@@ -412,14 +430,18 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
         val firstUri = uris.firstOrNull() ?: return
         val fileName = StorageOperations.resolveFileName(requireActivity().contentResolver, firstUri)
 
-        if (!fileName.endsWith(Constants.CATROBAT_EXTENSION) && !fileName.endsWith(Constants.NEW_CATROBAT_EXTENSION)
-            && !fileName.endsWith(Constants.OLD_CATROBAT_EXTENSION) && !fileName.endsWith(Constants.ZIP_EXTENSION)
-            && !fileName.endsWith(Constants.NPC_EXTENSION) && !fileName.endsWith(".ncp")) {
+        if (!fileName.endsWith(Constants.CATROBAT_EXTENSION, ignoreCase = true)
+            && !fileName.endsWith(Constants.NEW_CATROBAT_EXTENSION, ignoreCase = true)
+            && !fileName.endsWith(Constants.OLD_CATROBAT_EXTENSION, ignoreCase = true)
+            && !fileName.endsWith(Constants.ZIP_EXTENSION, ignoreCase = true)
+            && !fileName.endsWith(Constants.NPC_EXTENSION, ignoreCase = true)
+            && !fileName.endsWith(".ncp", ignoreCase = true)) {
             ToastUtil.showError(requireContext(), R.string.only_select_catrobat_files)
             return
         }
 
-        if (fileName.endsWith(Constants.NPC_EXTENSION) || fileName.endsWith(".ncp")) {
+        if (fileName.endsWith(Constants.NPC_EXTENSION, ignoreCase = true)
+            || fileName.endsWith(".ncp", ignoreCase = true)) {
             showEncryptedImportDialog(firstUri, uris)
         } else {
             doImportWithUris(uris, null)
@@ -481,8 +503,16 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
         val importer = ProjectUnZipperAndImporter(
             onImportFinished = { result ->
                 if (isAdded) {
-                    dialog.dismiss()
-                    onImportProjectFinished(result)
+                    try {
+                        dialog.dismiss()
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Could not dismiss import dialog", e)
+                    }
+                    if (result is org.catrobat.catroid.io.asynctask.ImportResult.UnsupportedVersion) {
+                        showUnsupportedVersionDialog(result)
+                    } else {
+                        onImportProjectFinished(result)
+                    }
                 }
             },
             password = password,
@@ -541,6 +571,7 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
             },
             contentResolver = context.contentResolver
         )
+        importTask = importer
         importer.unZipAndImportFromUris(uris)
     }
 

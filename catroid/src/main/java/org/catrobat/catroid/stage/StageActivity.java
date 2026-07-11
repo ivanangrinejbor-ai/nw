@@ -66,6 +66,9 @@ import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.FrameLayout;
 import android.widget.MediaController;
 import android.widget.Toast;
@@ -112,6 +115,7 @@ import org.catrobat.catroid.io.StageAudioFocus;
 import org.catrobat.catroid.nfc.NfcHandler;
 import org.catrobat.catroid.stage.event.EventManager;
 import org.catrobat.catroid.ui.MarketingActivity;
+import org.catrobat.catroid.ui.PreloaderActivity;
 import org.catrobat.catroid.ui.dialogs.StageDialog;
 import org.catrobat.catroid.ui.recyclerview.dialog.PlaySceneDialog;
 import org.catrobat.catroid.ui.recyclerview.dialog.TextInputDialog;
@@ -165,6 +169,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 	public StageListener stageListener;
 
 	public static final int REQUEST_START_STAGE = 101;
+	private static boolean isLaunching = false;
 
 	public static final String EXTRA_PROJECT_PATH = "EXTRA_PROJECT_PATH";
 
@@ -206,6 +211,9 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 	public static WeakReference<StageActivity> activeStageActivity;
 
 	private FrameLayout rootLayout;
+	private View precompileOverlay;
+	private TextView precompileFactText;
+	private Handler precompileFactHandler;
 	private FrameLayout backgroundLayout;
 	private FrameLayout foregroundLayout;
 	private FrameLayout activeNativeLayer;
@@ -316,6 +324,11 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 		cameraContainer = new FrameLayout(this);
 		backgroundLayout = new FrameLayout(this);
 		foregroundLayout = new FrameLayout(this);
+
+		// Precompile overlay — show BEFORE stageCreate so it's visible during init
+		if (shouldShowPrecompileOverlay()) {
+			showPrecompileOverlay(rootLayout);
+		}
 
 		StageLifeCycleController.stageCreate(this);
 		activeStageActivity = new WeakReference<>(this);
@@ -764,6 +777,16 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 
 
 	public void createWebViewWithUrl(String viewId, String url, int x, int y, int width, int height, float zIndex) {
+		// Security: only allow HTTPS URLs for WebView to prevent XSS and data leaks
+		if (url == null || (!url.startsWith("https://") && !url.startsWith("http://"))) {
+			Log.w(TAG, "Blocked WebView load: URL must start with http:// or https://: " + url);
+			return;
+		}
+		// Only allow HTTPS in release builds
+		if (!BuildConfig.DEBUG && url.startsWith("http://")) {
+			Log.w(TAG, "Blocked WebView load: HTTP not allowed in release builds: " + url);
+			return;
+		}
 
 		WebView webView = new WebView(this);
 		webView.getSettings().setJavaScriptEnabled(true);
@@ -1530,7 +1553,10 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 
 	@Override
 	protected void onDestroy() {
-
+		if (precompileFactHandler != null) {
+			precompileFactHandler.removeCallbacksAndMessages(null);
+			precompileFactHandler = null;
+		}
 
 		if (NativeBridge.INSTANCE.isWorking()) NativeBridge.INSTANCE.cleanupAllInstances();
 
@@ -1618,12 +1644,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 		if (project == null || scriptClass == null) {
 			return false;
 		}
-		List<Scene> allScenes = new ArrayList<>(project.getSceneList());
-		Scene globalScene = project.getGlobalScene();
-		if (globalScene != null) {
-			allScenes.add(globalScene);
-		}
-		for (Scene scene : allScenes) {
+		for (Scene scene : project.getSceneList()) {
 			for (Sprite sprite : scene.getSpriteList()) {
 				for (Script script : sprite.getScriptList()) {
 					if (scriptClass.isInstance(script)) {
@@ -1919,12 +1940,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 		Brick.ResourcesSet requiredResources = new Brick.ResourcesSet();
 		Project project = ProjectManager.getInstance().getCurrentProject();
 
-		List<Scene> allScenes = new ArrayList<>(project.getSceneList());
-		Scene globalScene = project.getGlobalScene();
-		if (globalScene != null) {
-			allScenes.add(globalScene);
-		}
-		for (Scene scene: allScenes) {
+		for (Scene scene : project.getSceneList()) {
 			for (Sprite sprite : scene.getSpriteList()) {
 				for (Brick brick : sprite.getAllBricks()) {
 					brick.addRequiredResources(requiredResources);
@@ -2039,10 +2055,14 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 			projectManager.setStartScene(defaultScene);
 			startStageActivity(activity);
 		} else {
-			new PlaySceneDialog.Builder(activity)
-					.setPositiveButton(R.string.play, (dialog, which) -> startStageActivity(activity))
-					.create()
-					.show();
+		final PlaySceneDialog.Builder playSceneBuilder = new PlaySceneDialog.Builder(activity);
+		playSceneBuilder
+				.setPositiveButton(R.string.play, (dialog, which) -> {
+					playSceneBuilder.applySceneSelection();
+					startStageActivity(activity);
+				})
+				.create()
+				.show();
 		}
 	}
 
@@ -2063,6 +2083,20 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 	}
 
 	private static void startStageActivity(Activity activity) {
+		if (isLaunching) return;
+		isLaunching = true;
+		// Reset after next dispatch cycle so repeated taps are blocked during activity transition
+		new Handler(activity.getMainLooper()).post(() -> isLaunching = false);
+
+        Project project = ProjectManager.getInstance().getCurrentProject();
+
+        // Preloader screen
+        if (project != null && project.getXmlHeader() != null && project.getXmlHeader().isPreloaderEnabled()) {
+            Intent preloaderIntent = new Intent(activity, PreloaderActivity.class);
+            activity.startActivityForResult(preloaderIntent, REQUEST_START_STAGE);
+            return;
+        }
+
         boolean isFreeStageEnabled = PreferenceManager.getDefaultSharedPreferences(activity)
                 .getBoolean("pref_workspace_stage", false);
 
@@ -2074,6 +2108,99 @@ public class StageActivity extends AndroidApplication implements ContextProvider
         }
         activity.startActivityForResult(intent, StageActivity.REQUEST_START_STAGE);
 	}
+
+	// ── Precompile overlay ─────────────────────────────────────
+
+	private boolean shouldShowPrecompileOverlay() {
+		Project project = ProjectManager.getInstance().getCurrentProject();
+		return project != null && project.getXmlHeader() != null && project.getXmlHeader().isPrecompileEnabled();
+	}
+
+	private void showPrecompileOverlay(FrameLayout parent) {
+		FrameLayout overlay = new FrameLayout(this);
+		overlay.setBackgroundColor(0x88000000); // semi-transparent black
+		overlay.setLayoutParams(new FrameLayout.LayoutParams(
+				ViewGroup.LayoutParams.MATCH_PARENT,
+				ViewGroup.LayoutParams.MATCH_PARENT));
+
+		LinearLayout content = new LinearLayout(this);
+		content.setOrientation(LinearLayout.VERTICAL);
+		content.setGravity(Gravity.CENTER);
+		content.setPadding(48, 48, 48, 48);
+
+		// Logo
+		ImageView logo = new ImageView(this);
+		logo.setImageResource(R.mipmap.ic_launcher);
+		LinearLayout.LayoutParams logoParams = new LinearLayout.LayoutParams(80, 80);
+		logo.setLayoutParams(logoParams);
+		content.addView(logo);
+
+		// App name
+		TextView appName = new TextView(this);
+		appName.setText(R.string.app_name);
+		appName.setTextColor(Color.WHITE);
+		appName.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
+		appName.setTypeface(null, Typeface.BOLD);
+		appName.setGravity(Gravity.CENTER);
+		appName.setPadding(0, 8, 0, 0);
+		content.addView(appName);
+
+		// Compiling text
+		String sceneName = ProjectManager.getInstance().getCurrentlyPlayingScene() != null
+				? ProjectManager.getInstance().getCurrentlyPlayingScene().getName()
+				: "...";
+		TextView compilingText = new TextView(this);
+		compilingText.setText(getString(R.string.preloader_compiling) + " " + sceneName);
+		compilingText.setTextColor(0xB2FFFFFF);
+		compilingText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+		compilingText.setGravity(Gravity.CENTER);
+		compilingText.setPadding(0, 24, 0, 0);
+		content.addView(compilingText);
+
+		// Fact
+		precompileFactText = new TextView(this);
+		precompileFactText.setTextColor(0x99FFFFFF);
+		precompileFactText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
+		precompileFactText.setGravity(Gravity.CENTER);
+		precompileFactText.setMaxWidth(400);
+		precompileFactText.setPadding(0, 16, 0, 0);
+		content.addView(precompileFactText);
+
+		overlay.addView(content);
+		parent.addView(overlay);
+		this.precompileOverlay = overlay;
+		this.precompileOverlay.bringToFront();
+
+		// Start cycling facts
+		startPrecompileFacts();
+	}
+
+	private void startPrecompileFacts() {
+		final String[] facts = getResources().getStringArray(R.array.loading_facts);
+		if (facts.length == 0) return;
+		precompileFactHandler = new Handler(Looper.getMainLooper());
+		final int[] index = {new java.util.Random().nextInt(facts.length)};
+		precompileFactHandler.post(new Runnable() {
+			@Override
+			public void run() {
+				if (isFinishing() || isDestroyed() || precompileOverlay == null
+						|| precompileOverlay.getVisibility() != View.VISIBLE) {
+					return;
+				}
+				precompileFactText.setText(facts[index[0] % facts.length]);
+				index[0]++;
+				precompileFactHandler.postDelayed(this, 7000L);
+			}
+		});
+	}
+
+	public void hidePrecompileOverlay() {
+		if (precompileOverlay != null) {
+			precompileOverlay.setVisibility(View.GONE);
+		}
+	}
+
+	// ──
 
 	public static void finishStage() {
 		StageActivity stageActivity = StageActivity.activeStageActivity.get();

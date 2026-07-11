@@ -41,12 +41,17 @@ public final class PlaySceneDialog extends AlertDialog {
 
 	public static class Builder extends AlertDialog.Builder {
 
+		private int checkedIndex = 0;
+		private final Scene defaultScene;
+		private final Scene currentScene;
+		private final ProjectManager projectManager;
+
 		public Builder(@NonNull Context context) {
 			super(context);
 
-			final ProjectManager projectManager = ProjectManager.getInstance();
-			final Scene currentScene = projectManager.getCurrentlyEditedScene();
-			final Scene defaultScene = projectManager.getCurrentProject().getDefaultScene();
+			projectManager = ProjectManager.getInstance();
+			currentScene = projectManager.getCurrentlyEditedScene();
+			defaultScene = projectManager.getCurrentProject().getDefaultScene();
 
 			String[] dialogOptions = new String[] {
 					String.format(context.getString(R.string.play_scene_dialog_default), defaultScene.getName()),
@@ -55,26 +60,27 @@ public final class PlaySceneDialog extends AlertDialog {
 
 			setTitle(R.string.play_scene_dialog_title);
 
-			projectManager.setCurrentlyPlayingScene(defaultScene);
-			projectManager.setStartScene(defaultScene);
-
 			setSingleChoiceItems(dialogOptions, 0, new OnClickListener() {
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
-					switch (which) {
-						case 0:
-							projectManager.setCurrentlyPlayingScene(defaultScene);
-							projectManager.setStartScene(defaultScene);
-							break;
-						case 1:
-							projectManager.setCurrentlyPlayingScene(currentScene);
-							projectManager.setStartScene(currentScene);
-							break;
-						default:
-							break;
-					}
+					checkedIndex = which;
 				}
 			});
+		}
+
+		public void applySceneSelection() {
+			switch (checkedIndex) {
+				case 0:
+					projectManager.setCurrentlyPlayingScene(defaultScene);
+					projectManager.setStartScene(defaultScene);
+					break;
+				case 1:
+					projectManager.setCurrentlyPlayingScene(currentScene);
+					projectManager.setStartScene(currentScene);
+					break;
+				default:
+					break;
+			}
 		}
 	}
 }

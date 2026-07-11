@@ -47,12 +47,30 @@ class GeminiManager {
             }
         }
 
-        @Deprecated("Use getApiKey(context) instead. Direct api_key field kept for backward compatibility.")
-        var api_key: String? = ""
+        @Deprecated("Use getApiKey(context) / setApiKey(context, key) instead. This field will be removed.")
+        var api_key: String? = null
             set(value) {
                 field = value
+                // Sync to secure storage if app context is available
+                try {
+                    val ctx = org.catrobat.catroid.CatroidApplication.current
+                    if (ctx != null && value != null && value.isNotEmpty()) {
+                        setApiKey(ctx, value)
+                    }
+                } catch (_: Exception) { }
+            }
+            get() {
+                if (field == null || field!!.isEmpty()) {
+                    try {
+                        val ctx = org.catrobat.catroid.CatroidApplication.current
+                        if (ctx != null) {
+                            field = getApiKey(ctx)
+                        }
+                    } catch (_: Exception) { }
+                }
+                return field
             }
 
-        var dns_server: String? = ""
+        var dns_server: String? = null
     }
 }

@@ -79,6 +79,7 @@ import androidx.annotation.NonNull;
 @XStreamFieldKeyOrder({
 		"spriteId",
 		"name",
+		"global",
 		"lookList",
 		"soundList",
 		"scriptList",
@@ -112,6 +113,7 @@ public class Sprite implements Nameable, Serializable {
 	private String spriteId;
 	@XStreamAsAttribute
 	private String name;
+	private boolean global = false;
 	private List<Script> scriptList = new ArrayList<>();
 	private List<LookData> lookList = new ArrayList<>();
 	private List<SoundInfo> soundList = new ArrayList<>();
@@ -515,6 +517,7 @@ public class Sprite implements Nameable, Serializable {
 		convertedSprite.userVariables = userVariables;
 		convertedSprite.userLists = userLists;
 		convertedSprite.userDefinedBrickList = userDefinedBrickList;
+		convertedSprite.global = this.global;
 
 		return convertedSprite;
 	}
@@ -533,6 +536,14 @@ public class Sprite implements Nameable, Serializable {
 
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	public boolean isGlobal() {
+		return global;
+	}
+
+	public void setGlobal(boolean global) {
+		this.global = global;
 	}
 
 	public void addScript(Script script) {
@@ -818,6 +829,7 @@ public class Sprite implements Nameable, Serializable {
 		sprite.look.copyTo(this.look);
 		this.myOriginal = sprite;
 		this.name = sprite.getName();
+		this.global = sprite.global;
 	}
 
 	private void copyLooksAndSounds(Sprite sprite, Scene destinationScene,
@@ -882,6 +894,7 @@ public class Sprite implements Nameable, Serializable {
 		}
 
 		this.userDefinedBrickList.addAll(sprite.userDefinedBrickList);
+		this.global = this.global || sprite.global;
 	}
 
 	public UserDefinedScript getUserDefinedScript(UUID userDefinedBrickId) {

@@ -24,15 +24,5 @@
 package org.catrobat.catroid.test.robolectric
 
 import org.catrobat.catroid.CatroidApplication
-import org.koin.core.context.stopKoin
-import org.robolectric.TestLifecycleApplication
-import java.lang.reflect.Method
 
-class TestCatroidApplication : CatroidApplication(), TestLifecycleApplication {
-
-    override fun beforeTest(method: Method?) = Unit
-
-    override fun prepareTest(test: Any?) = Unit
-
-    override fun afterTest(method: Method?) = stopKoin()
-}
+class TestCatroidApplication : CatroidApplication()

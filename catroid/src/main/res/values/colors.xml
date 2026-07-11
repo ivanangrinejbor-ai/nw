@@ -121,4 +121,70 @@
     <color name="text_secondary">#8E8E93</color>
     <color name="black_overlay">#66000000</color>
 
+    <!-- Previously provided by the Paintroid/colorpicker AAR (now in-app) -->
+    <color name="pocketpaint_color_picker_gray">#757575</color>
+    <color name="pocketpaint_color_picker_white">#FFFFFF</color>
+    <!-- Additional colorpicker colors from Paintroid -->
+    <color name="pocketpaint_color_picker_rgb_red">#DA3D0E</color>
+    <color name="pocketpaint_color_picker_rgb_green">#138913</color>
+    <color name="pocketpaint_color_picker_rgb_blue">#0C78CB</color>
+    <color name="pocketpaint_color_picker_rgb_alpha">#787676</color>
+    <color name="pocketpaint_color_picker_blue1">#FF0074CD</color>
+    <color name="pocketpaint_color_picker_blue2">#FF00B4F1</color>
+    <color name="pocketpaint_color_picker_green1">#FF078707</color>
+    <color name="pocketpaint_color_picker_green2">#FF8EC430</color>
+    <color name="pocketpaint_color_picker_brown1">#FF61290E</color>
+    <color name="pocketpaint_color_picker_brown2">#FFA84818</color>
+    <color name="pocketpaint_color_picker_brown3">#FFDEAE66</color>
+    <color name="pocketpaint_color_picker_brown4">#FFF0E4A8</color>
+    <!-- purple3, purple4, red1+ etc from Paintroid colorpicker -->
+    <color name="pocketpaint_color_picker_purple3">#FFCA0186</color>
+    <color name="pocketpaint_color_picker_purple4">#FFEB90D3</color>
+    <color name="pocketpaint_color_picker_red1">#FFC5060E</color>
+    <color name="pocketpaint_color_picker_orange1">#FFEB4618</color>
+    <color name="pocketpaint_color_picker_orange2">#FFF9921C</color>
+    <color name="pocketpaint_color_picker_yellow">#FFF3D605</color>
+    <color name="pocketpaint_color_picker_black">#FF000000</color>
+    <color name="pocketpaint_color_picker_transparent">#00000000</color>
+    <color name="pocketpaint_color_picker_hex_wrong_value_red">#FFFE4A49</color>
+    <color name="pocketpaint_color_picker_hex_correct_black">#FF000000</color>
+    <color name="pocketpaint_color_picker_hex_black">#ECECEC</color>
+    <color name="pocketpaint_color_picker_separation_color">#B8B8B8</color>
+    <color name="pocketpaint_color_picker_btn_color">#DFDADA</color>
+    <color name="pocketpaint_color_picker_surface_background">#D3D3D3</color>
+
+    <!-- NeoPaint colors -->
+    <color name="neopaint_bg_dark">#FF2B2B2B</color>
+    <color name="neopaint_bg_darker">#FF1A1A1A</color>
+    <color name="neopaint_bg_medium">#FF333333</color>
+    <color name="neopaint_border">#FF444444</color>
+
+    <!-- Paintroid dark theme palette -->
+    <color name="pocketpaint_colorPrimary">#1C1C1E</color>
+    <color name="pocketpaint_colorPrimaryDark">#121212</color>
+    <color name="pocketpaint_colorAccent">#B0BEC5</color>
+    <color name="pocketpaint_colorAccentAlpha60">#99B0BEC5</color>
+    <color name="pocketpaint_text_color_link">#FFB74D</color>
+    <color name="pocketpaint_surface">#121212</color>
+    <color name="pocketpaint_surface_elevated">#1E1E1E</color>
+    <color name="pocketpaint_surface_nav">#1A1A1A</color>
+    <color name="pocketpaint_main_separator_color">#2C2C2C</color>
+    <color name="pocketpaint_main_bottom_bar_selected">#B0BEC5</color>
+    <color name="pocketpaint_main_drawing_surface_active">#00000000</color>
+    <color name="pocketpaint_main_drawing_surface_inactive">#80000000</color>
+    <color name="pocketpaint_main_drawing_surface_background">#2A2A2A</color>
+    <color name="pocketpaint_main_rectangle_tool_primary_color">#99555555</color>
+    <color name="pocketpaint_main_rectangle_tool_accent_color">#9933B5E5</color>
+    <color name="pocketpaint_main_rectangle_tool_highlight_color">#99E56B33</color>
+    <color name="pocketpaint_main_cursor_tool_inactive_primary_color">#AAAAAA</color>
+    <color name="pocketpaint_welcome_dot_active">#FFFFFFFF</color>
+    <color name="pocketpaint_welcome_dot_inactive">#64FFFFFF</color>
+    <color name="pocketpaint_lighter_gray">#2E2E2E</color>
+    <color name="pocketpaint_color_merge_layer">#33ac86</color>
+    <color name="pocketpaint_chip_selected_background_color">#48484A</color>
+    <color name="pocketpaint_icon_tint">#E6EDF0</color>
+    <color name="pocketpaint_text_primary">#ECECEC</color>
+    <color name="pocketpaint_text_secondary">#B0B0B0</color>
+    <color name="pocketpaint_text_on_accent">#06231F</color>
+
     </resources>

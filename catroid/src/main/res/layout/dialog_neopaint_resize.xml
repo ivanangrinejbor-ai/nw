@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView android:id="@+id/resize_lbl_info"
+        android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:text="Current: 512x512" android:textColor="#AAA"
+        android:textSize="14sp" android:layout_marginBottom="12dp" />
+
+    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:text="Width:" android:textColor="#FFF"
+        android:textSize="13sp" />
+    <EditText android:id="@+id/resize_edit_w"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:inputType="number" android:text="512"
+        android:textColor="#FFF" android:backgroundTint="#888" />
+    <SeekBar android:id="@+id/seek_resize_w"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:max="4096" android:progress="512" />
+    <TextView android:id="@+id/resize_txt_w"
+        android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:text="512" android:textColor="#AAA" android:textSize="12sp" />
+
+    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:text="Height:" android:textColor="#FFF"
+        android:textSize="13sp" android:layout_marginTop="8dp" />
+    <EditText android:id="@+id/resize_edit_h"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:inputType="number" android:text="512"
+        android:textColor="#FFF" android:backgroundTint="#888" />
+    <SeekBar android:id="@+id/seek_resize_h"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:max="4096" android:progress="512" />
+    <TextView android:id="@+id/resize_txt_h"
+        android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:text="512" android:textColor="#AAA" android:textSize="12sp" />
+</LinearLayout>

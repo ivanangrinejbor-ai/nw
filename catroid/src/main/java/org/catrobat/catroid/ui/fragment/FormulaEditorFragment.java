@@ -45,8 +45,6 @@ import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
-import android.widget.TableLayout;
-import android.widget.TableRow;
 import android.widget.TextView;
 
 import com.danvexteam.lunoscript_annotations.LunoClass;
@@ -70,6 +68,7 @@ import org.catrobat.catroid.formulaeditor.FormulaElement;
 import org.catrobat.catroid.formulaeditor.FormulaSpannableStringBuilder;
 import org.catrobat.catroid.formulaeditor.InternFormulaKeyboardAdapter;
 import org.catrobat.catroid.formulaeditor.InternFormulaParser;
+import org.catrobat.catroid.formulaeditor.InternToken;
 import org.catrobat.catroid.formulaeditor.SensorHandler;
 import org.catrobat.catroid.formulaeditor.UndoState;
 import org.catrobat.catroid.formulaeditor.UserData;
@@ -96,7 +95,7 @@ import org.catrobat.catroid.userbrick.UserDefinedBrickInput;
 import org.catrobat.catroid.utils.ShowTextUtils.AndroidStringProvider;
 import org.catrobat.catroid.utils.SnackbarUtil;
 import org.catrobat.catroid.utils.ToastUtil;
-import org.catrobat.catroid.ui.neopaint.ColorPickerDialog;
+import org.catrobat.catroid.paintroid.colorpicker.ColorPickerDialog;
 
 import java.io.File;
 import java.io.IOException;
@@ -119,9 +118,6 @@ import static org.catrobat.catroid.ui.SpriteActivity.FRAGMENT_SCRIPTS;
 import static org.catrobat.catroid.ui.SpriteActivityOnTabSelectedListenerKt.addTabLayout;
 import static org.catrobat.catroid.ui.SpriteActivityOnTabSelectedListenerKt.removeTabLayout;
 import static org.catrobat.catroid.utils.SnackbarUtil.wasHintAlreadyShown;
-
-import org.catrobat.catroid.formulaeditor.InternFormulaKeyboardAdapter;
-import org.catrobat.catroid.formulaeditor.InternToken;
 
 @LunoClass
 public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.OnGlobalLayoutListener,
@@ -606,9 +602,9 @@ public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.
 	private void showColorPicker(ShowFormulaEditorStrategy.Callback callback,
 			AppCompatActivity activity) {
 		int currentColor = callback.getValue();
-		ColorPickerDialog dialog = new ColorPickerDialog(activity, currentColor,
-				value -> callback.setValue(value));
-		dialog.show();
+		ColorPickerDialog dialog = ColorPickerDialog.newInstance(currentColor, true, true);
+		dialog.addOnColorPickedListener(color -> callback.setValue(color));
+		dialog.show(activity.getSupportFragmentManager(), "ColorPickerDialog");
 	}
 
 	private void showColorPickerDialog(View view) {
