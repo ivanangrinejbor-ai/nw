@@ -31,6 +31,7 @@ open class LayerModel : LayerContracts.Model {
     override val layers: ArrayList<LayerContracts.Layer> = arrayListOf()
     override val layerCount: Int
         get() = layers.size
+    private var alphaPaint = Paint().apply { isFilterBitmap = false }
 
     override fun reset() {
         layers.clear()
@@ -79,13 +80,14 @@ open class LayerModel : LayerContracts.Model {
 
     override fun getBitmapListOfAllLayers(): List<Bitmap?> = layers.map { it.bitmap }
 
+    private fun updateAlphaPaint(layer: LayerContracts.Layer) {
+        alphaPaint.alpha = layer.getValueForOpacityPercentage()
+    }
+
     fun drawLayersOntoCanvas(canvas: Canvas?) {
         layers.asReversed().forEach { layer ->
             if (layer.isVisible) {
-                val alphaPaint = Paint().apply {
-                    isFilterBitmap = false
-                    alpha = layer.getValueForOpacityPercentage()
-                }
+                updateAlphaPaint(layer)
                 canvas?.drawBitmap(layer.bitmap, 0f, 0f, alphaPaint)
             }
         }
@@ -100,10 +102,7 @@ open class LayerModel : LayerContracts.Model {
         layers.asReversed().forEach { layer ->
             val layerIndex = getLayerIndexOf(layer)
             if (layer.isVisible) {
-                val alphaPaint = Paint().apply {
-                    isFilterBitmap = false
-                    alpha = layer.getValueForOpacityPercentage()
-                }
+                updateAlphaPaint(layer)
                 surfaceViewCanvas?.drawBitmap(layer.bitmap, 0f, 0f, alphaPaint)
                 drawingBoardCanvas?.drawBitmap(layer.bitmap, 0f, 0f, alphaPaint)
                 if (surfaceViewCanvas != null && layerIndex == currentLayerIndex) {
@@ -126,10 +125,7 @@ open class LayerModel : LayerContracts.Model {
         layers.asReversed().forEach { layer ->
             val layerIndex = getLayerIndexOf(layer)
             if (layer.isVisible) {
-                val alphaPaint = Paint().apply {
-                    isFilterBitmap = false
-                    alpha = layer.getValueForOpacityPercentage()
-                }
+                updateAlphaPaint(layer)
                 surfaceViewCanvas?.drawBitmap(layer.bitmap, 0f, 0f, alphaPaint)
                 if (surfaceViewCanvas != null && layerIndex == currentLayerIndex) {
                     bitmapWithEraseApplied = currentLayer?.bitmap

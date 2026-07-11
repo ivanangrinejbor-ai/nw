@@ -4648,4 +4648,25 @@
     <string name="neopaint_save_changes_message">Хотите сохранить изменения перед выходом?</string>
     <string name="neopaint_save_exit">Сохранить и выйти</string>
     <string name="neopaint_discard">Отменить</string>
+
+    <!-- Paintroid tool labels -->
+    <string name="button_brush">Кисть</string>
+    <string name="button_hand">Рука</string>
+    <string name="button_eraser">Ластик</string>
+    <string name="button_line">Линия</string>
+    <string name="button_shape">Фигуры</string>
+    <string name="button_fill">Заливка</string>
+    <string name="button_spray_can">Распылитель</string>
+    <string name="button_cursor">Курсор</string>
+    <string name="button_text">Текст</string>
+    <string name="button_clipboard">Буфер</string>
+    <string name="button_transform">Трансформ</string>
+    <string name="button_import_image">Импорт</string>
+    <string name="button_pipette">Пипетка</string>
+    <string name="button_watercolor">Акварель</string>
+    <string name="button_smudge">Палец</string>
+    <string name="button_clip">Обрезка</string>
+    <string name="gallery">Галерея</string>
+    <string name="stickers">Стикеры</string>
+    <string name="dialog_import_image_title">Импорт изображения</string>
 </resources>

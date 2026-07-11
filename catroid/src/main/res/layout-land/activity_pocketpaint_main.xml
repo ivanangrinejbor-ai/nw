@@ -75,11 +75,11 @@
         <LinearLayout
             android:id="@+id/pocketpaint_main_bottom_bar"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:orientation="horizontal"
-            android:layout_alignParentEnd="true"
+            android:layout_below="@id/pocketpaint_layout_top_bar"
             android:layout_above="@+id/pocketpaint_main_bottom_navigation"
-                android:background="?attr/colorSurface"
+            android:background="?attr/colorSurface"
             android:visibility="gone">
 
             <include layout="@layout/pocketpaint_layout_bottom_bar"/>

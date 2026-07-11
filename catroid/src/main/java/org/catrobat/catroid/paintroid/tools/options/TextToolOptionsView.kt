@@ -45,9 +45,7 @@ interface TextToolOptionsView {
 
     fun toggleShapeSizeVisibility(isVisible: Boolean)
 
-    fun setUseProjectFontCheckboxVisible(visible: Boolean)
-
-    fun isProjectFontChecked(): Boolean
+    fun setProjectFontName(name: String)
 
     interface Callback {
         fun setText(text: String)
@@ -61,8 +59,6 @@ interface TextToolOptionsView {
         fun setBold(bold: Boolean)
 
         fun setTextSize(size: Int)
-
-        fun setUseProjectFont(enabled: Boolean)
 
         fun hideToolOptions()
     }

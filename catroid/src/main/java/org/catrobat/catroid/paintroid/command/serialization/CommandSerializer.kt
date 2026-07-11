@@ -71,6 +71,7 @@ import org.catrobat.catroid.paintroid.iotasks.WorkspaceReturnValue
 import org.catrobat.catroid.paintroid.model.CommandManagerModel
 import org.catrobat.catroid.paintroid.tools.drawable.HeartDrawable
 import org.catrobat.catroid.paintroid.tools.drawable.OvalDrawable
+import org.catrobat.catroid.paintroid.tools.drawable.PixelDrawable
 import org.catrobat.catroid.paintroid.tools.drawable.RectangleDrawable
 import org.catrobat.catroid.paintroid.tools.drawable.ShapeDrawable
 import org.catrobat.catroid.paintroid.tools.drawable.StarDrawable
@@ -137,6 +138,7 @@ open class CommandSerializer(private val activityContext: Context, private val c
             put(RectangleDrawable::class.java, GeometricFillCommandSerializer.RectangleDrawableSerializer(version))
             put(StarDrawable::class.java, GeometricFillCommandSerializer.StarDrawableSerializer(version))
             put(ShapeDrawable::class.java, null)
+            put(PixelDrawable::class.java, null)
             put(RectF::class.java, DataStructuresSerializer.RectFSerializer(version))
             put(ClipboardCommand::class.java, ClipboardCommandSerializer(version))
             put(SerializableTypeface::class.java, SerializableTypeface.TypefaceSerializer(version))

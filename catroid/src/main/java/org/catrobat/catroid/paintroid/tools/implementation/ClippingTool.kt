@@ -95,13 +95,9 @@ class ClippingTool(
     }
 
     fun copyBitmapOfCurrentLayer() {
-        if (workspace.bitmapOfCurrentLayer != null) {
-            newBitmap = workspace.bitmapOfCurrentLayer?.config?.let {
-                workspace.bitmapOfCurrentLayer?.copy(
-                    it, true
-                )
-            }
-        }
+        val src = workspace.bitmapOfCurrentLayer ?: return
+        val config = src.config ?: return
+        newBitmap = src.copy(config, true)
     }
 
     override fun handleDown(coordinate: PointF?): Boolean {

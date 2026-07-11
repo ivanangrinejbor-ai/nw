@@ -54,7 +54,7 @@ internal const val RECOVERED_FROM_CRASH = "RECOVERED_FROM_CRASH"
 
 @LunoClass
 abstract class BaseActivity : AppCompatActivity(), PermissionHandlingActivity {
-    lateinit var optionsMenu: Menu
+    var optionsMenu: Menu? = null
     private val permissionRequestActivityExtension = PermissionRequestActivityExtension()
     protected var savedInstanceStateExpected = false
 
@@ -87,9 +87,9 @@ abstract class BaseActivity : AppCompatActivity(), PermissionHandlingActivity {
     }
 
     override fun dispatchTouchEvent(ev: android.view.MotionEvent): Boolean {
-        val isAprilFoolsEnabled = PreferenceManager.getDefaultSharedPreferences(CatroidApplication.getAppContext()).getBoolean("pref_1_april_enabled", true);
+        val isAprilFoolsEnabled = PreferenceManager.getDefaultSharedPreferences(CatroidApplication.getAppContext()).getBoolean("pref_1_april_enabled", false);
 
-        if (LimboMinigameManager.isPlaying || SansMinigameManager.isPlaying || OtherPranksManager.isPrankRunning) {
+        if (LimboMinigameManager.isPlaying || OtherPranksManager.isPrankRunning) {
             return super.dispatchTouchEvent(ev)
         }
 
@@ -107,19 +107,15 @@ abstract class BaseActivity : AppCompatActivity(), PermissionHandlingActivity {
                             val prankType = Math.random()
 
                             when {
-                                prankType < 0.20 -> {
+                                prankType < 0.25 -> {
                                     LimboMinigameManager.startLimbo(this, targetView)
                                     return true
                                 }
-                                prankType < 0.40 -> {
-                                    SansMinigameManager.startSans(this, targetView)
-                                    return true
-                                }
-                                prankType < 0.60 -> {
+                                prankType < 0.50 -> {
                                     OtherPranksManager.runAway(this, targetView)
                                     return true
                                 }
-                                prankType < 0.80 -> {
+                                prankType < 0.75 -> {
                                     OtherPranksManager.gravityDrop(this, targetView)
                                     return true
                                 }

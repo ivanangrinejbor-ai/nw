@@ -27,7 +27,6 @@ import android.view.View
 import android.view.View.OnFocusChangeListener
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
-import android.widget.CheckBox
 import android.widget.Checkable
 import android.widget.EditText
 import android.widget.LinearLayout
@@ -57,7 +56,6 @@ class DefaultTextToolOptionsView(rootView: ViewGroup) : TextToolOptionsView {
     private val fontTypes: List<FontType>
     private val topLayout: View
     private val bottomLayout: View
-    private val projectFontCheckBox: CheckBox
     private val textToolOptionsViewShapeSizeChip: Chip
     private val changeSizeShapeSizeChip: Chip
 
@@ -73,7 +71,6 @@ class DefaultTextToolOptionsView(rootView: ViewGroup) : TextToolOptionsView {
         italicToggleButton =
             textToolView.findViewById(R.id.pocketpaint_text_tool_dialog_toggle_italic)
         boldToggleButton = textToolView.findViewById(R.id.pocketpaint_text_tool_dialog_toggle_bold)
-        projectFontCheckBox = textToolView.findViewById(R.id.pocketpaint_text_tool_dialog_project_font)
         fontSizeText = textToolView.findViewById(R.id.pocketpaint_font_size_text)
         fontSizeText.setText(DEFAULT_TEXTSIZE)
         underlinedToggleButton.paintFlags =
@@ -124,9 +121,6 @@ class DefaultTextToolOptionsView(rootView: ViewGroup) : TextToolOptionsView {
             val bold = (v as Checkable).isChecked
             notifyBoldChanged(bold)
             hideKeyboard()
-        }
-        projectFontCheckBox.setOnCheckedChangeListener { _, isChecked ->
-            callback?.setUseProjectFont(isChecked)
         }
         fontSizeText.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(charSequence: CharSequence, i: Int, i1: Int, i2: Int) = Unit
@@ -217,9 +211,7 @@ class DefaultTextToolOptionsView(rootView: ViewGroup) : TextToolOptionsView {
         changeSizeShapeSizeChip.visibility = if (isVisible) View.VISIBLE else View.GONE
     }
 
-    override fun setUseProjectFontCheckboxVisible(visible: Boolean) {
-        projectFontCheckBox.visibility = if (visible) View.VISIBLE else View.GONE
+    override fun setProjectFontName(name: String) {
+        (fontList.adapter as? FontListAdapter)?.setProjectFontName(name)
     }
-
-    override fun isProjectFontChecked(): Boolean = projectFontCheckBox.isChecked
 }

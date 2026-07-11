@@ -37,6 +37,7 @@ class FontListAdapter internal constructor(
 ) : RecyclerView.Adapter<FontListAdapter.ViewHolder>() {
     private val mInflater: LayoutInflater = LayoutInflater.from(context)
     private var selectedIndex = 0
+    var customFontName: String? = null
 
     private val sansSerif = Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL)
     private val monospace = Typeface.create(Typeface.MONOSPACE, Typeface.NORMAL)
@@ -49,7 +50,8 @@ class FontListAdapter internal constructor(
         monospace,
         serif,
         dubai,
-        stc
+        stc,
+        null
     )
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -59,8 +61,13 @@ class FontListAdapter internal constructor(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val font = fontTypes[position]
-        holder.fontChip.setText(font.nameResource)
-        holder.fontChip.typeface = typeFaces[position]
+        if (font == FontType.PROJECT_FONT) {
+            holder.fontChip.text = customFontName ?: holder.itemView.context.getString(R.string.text_tool_dialog_project_font)
+            holder.fontChip.typeface = null
+        } else {
+            holder.fontChip.setText(font.nameResource)
+            holder.fontChip.typeface = typeFaces.getOrNull(position)
+        }
         holder.fontChip.isChecked = position == selectedIndex
     }
 
@@ -74,6 +81,14 @@ class FontListAdapter internal constructor(
     }
 
     fun getSelectedItem(): FontType = fontTypes[selectedIndex]
+
+    fun setProjectFontName(name: String) {
+        customFontName = name
+        val projectIndex = fontTypes.indexOf(FontType.PROJECT_FONT)
+        if (projectIndex >= 0) {
+            notifyItemChanged(projectIndex)
+        }
+    }
 
     inner class ViewHolder internal constructor(itemView: View) :
         RecyclerView.ViewHolder(itemView),

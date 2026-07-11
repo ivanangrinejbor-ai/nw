@@ -109,7 +109,6 @@ class TextTool(
     private val stc: Typeface?
     private val dubai: Typeface?
     private var projectFontTypeface: Typeface? = null
-    private var useProjectFont = false
     private var oldBoxWidth = 0f
     private var oldBoxHeight = 0f
     private var oldToolPosition: PointF? = null
@@ -152,9 +151,17 @@ class TextTool(
 
             override fun setFont(fontType: FontType) {
                 if (fontType === font) return
-                    if (fontType == FontType.PROJECT_FONT) return
-                    this@TextTool.font = fontType
-                updateTypeface()
+                this@TextTool.font = fontType
+                if (fontType == FontType.PROJECT_FONT) {
+                    if (projectFontTypeface != null) {
+                        updateTypeface()
+                    } else {
+                        onProjectFontNeededListener?.invoke()
+                        return
+                    }
+                } else {
+                    updateTypeface()
+                }
                 storeAttributes()
                 resetPreview()
                 workspace.invalidate()
@@ -205,10 +212,6 @@ class TextTool(
 
             override fun hideToolOptions() {
                 this@TextTool.toolOptionsViewController.hide()
-            }
-
-            override fun setUseProjectFont(enabled: Boolean) {
-                this@TextTool.useProjectFont = enabled
             }
         }
         textToolOptionsView.setCallback(callback)
@@ -385,7 +388,7 @@ class TextTool(
 
     @SuppressWarnings("TooGenericExceptionCaught")
     private fun updateTypeface() {
-        if (useProjectFont && projectFontTypeface != null) {
+        if (font == FontType.PROJECT_FONT && projectFontTypeface != null) {
             textPaint.typeface = projectFontTypeface
             textPaint.textSkewX = if (italic) ITALIC_TEXT_SKEW else DEFAULT_TEXT_SKEW
             return
@@ -409,7 +412,11 @@ class TextTool(
                 } catch (e: Exception) {
                     Log.e(TAG, "dubai")
                 }
-            FontType.PROJECT_FONT -> {}
+            FontType.PROJECT_FONT -> {
+                if (projectFontTypeface != null) {
+                    textPaint.typeface = projectFontTypeface
+                }
+            }
         }
     }
 
@@ -427,15 +434,11 @@ class TextTool(
     override fun resetInternalState() = Unit
 
     override fun onClickOnButton() {
-        if (useProjectFont && projectFontTypeface == null) {
-            onProjectFontNeededListener?.invoke()
-            return
-        }
         highlightBox()
         val toolPosition = PointF(toolPosition.x, toolPosition.y)
 
         val typeFaceInfo = SerializableTypeface(
-            if (useProjectFont) FontType.PROJECT_FONT else font,
+            font,
             bold,
             underlined,
             italic,
@@ -454,19 +457,20 @@ class TextTool(
             typeFaceInfo
         )
         commandManager.addCommand(command)
-        useProjectFont = false
         projectFontTypeface = null
     }
 
     var onProjectFontNeededListener: (() -> Unit)? = null
 
-    fun setProjectFontTypeface(typeface: Typeface) {
+    fun setProjectFontTypeface(typeface: Typeface, fontName: String? = null) {
         projectFontTypeface = typeface
         font = FontType.PROJECT_FONT
         updateTypeface()
         resetPreview()
         workspace.invalidate()
-        onClickOnButton()
+        if (fontName != null) {
+            textToolOptionsView.setProjectFontName(fontName)
+        }
     }
 
     @VisibleForTesting

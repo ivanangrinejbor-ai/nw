@@ -184,7 +184,10 @@ class MainActivity : AppCompatActivity(), MainView, CommandListener {
                 val typeface = Typeface.createFromFile(tempFile)
                 val tool = toolReference.tool
                 if (tool is TextTool) {
-                    tool.setProjectFontTypeface(typeface)
+                    val fontName = uri.lastPathSegment
+                        ?.removeSuffix(".ttf")?.removeSuffix(".otf")?.removeSuffix(".TTF")?.removeSuffix(".OTF")
+                        ?: uri.lastPathSegment ?: "Custom font"
+                    tool.setProjectFontTypeface(typeface, fontName)
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to load font", e)

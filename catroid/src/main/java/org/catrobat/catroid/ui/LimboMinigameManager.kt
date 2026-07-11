@@ -10,7 +10,6 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.PorterDuff
-import android.media.MediaPlayer
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AccelerateDecelerateInterpolator
@@ -146,10 +145,6 @@ object LimboMinigameManager {
         val centerY = overlayH / 2f - finalBitmap.height / 2f
         val baseRadius = min(overlayW, overlayH) * 0.32f
 
-        val mediaPlayer = try {
-            MediaPlayer.create(activity, R.raw.limbo_music)?.apply { start() }
-        } catch (e: Exception) { null }
-
         for (i in 0 until 8) {
             val angle = Math.toRadians(i * 45.0)
             val key = ImageView(activity).apply {
@@ -167,20 +162,20 @@ object LimboMinigameManager {
 
         overlay.postDelayed({
             keys[0].clearColorFilter()
-            executeChoreography(activity, overlay, keys, originalView, mediaPlayer, 0, IntArray(8) { it }, centerX, centerY, baseRadius, null)
+            executeChoreography(activity, overlay, keys, originalView, 0, IntArray(8) { it }, centerX, centerY, baseRadius, null)
         }, 1500)
     }
 
     private fun executeChoreography(
         activity: Activity, overlay: FrameLayout, keys: List<ImageView>,
-        originalView: View, mediaPlayer: MediaPlayer?, moveIndex: Int,
+        originalView: View, moveIndex: Int,
         currentSlots: IntArray, centerX: Float, centerY: Float, radius: Float,
         preFlash: View?
     ) {
         if (moveIndex >= MOVES.size) {
             overlay.translationX = 0f
             overlay.translationY = 0f
-            triggerFocusEndgame(activity, overlay, keys, originalView, mediaPlayer, preFlash)
+            triggerFocusEndgame(activity, overlay, keys, originalView, preFlash)
             return
         }
 
@@ -275,13 +270,13 @@ object LimboMinigameManager {
         animSet.addListener(object : AnimatorListenerAdapter() {
             override fun onAnimationEnd(animation: Animator) {
                 for (i in 0..7) currentSlots[i] = nextSlots[i]
-                executeChoreography(activity, overlay, keys, originalView, mediaPlayer, moveIndex + 1, currentSlots, centerX, centerY, radius, activePreFlash)
+                executeChoreography(activity, overlay, keys, originalView, moveIndex + 1, currentSlots, centerX, centerY, radius, activePreFlash)
             }
         })
         animSet.start()
     }
 
-    private fun triggerFocusEndgame(activity: Activity, overlay: FrameLayout, keys: List<ImageView>, originalView: View, mediaPlayer: MediaPlayer?, preFlash: View?) {
+    private fun triggerFocusEndgame(activity: Activity, overlay: FrameLayout, keys: List<ImageView>, originalView: View, preFlash: View?) {
         if (preFlash != null) {
             preFlash.alpha = 1f
             preFlash.animate().alpha(0f).setDuration(800).withEndAction { overlay.removeView(preFlash) }.start()
@@ -299,8 +294,6 @@ object LimboMinigameManager {
 
                 floatAnim?.cancel()
                 for (k in keys) k.isClickable = false
-
-                mediaPlayer?.apply { stop(); release() }
 
                 if (keys[i] == keys[0]) Toast.makeText(activity, "FOCUS: УСПЕХ", Toast.LENGTH_SHORT).show()
 

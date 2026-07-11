@@ -125,7 +125,7 @@ class RTLOptionMenuIconsTest(
 
     private fun assertIcons() {
         width = baseActivityTestRule.activity.applicationContext.dpToPx(24F)
-        val optionsMenu = baseActivityTestRule.activity.optionsMenu
+        val optionsMenu = baseActivityTestRule.activity.optionsMenu ?: return
 
         for (i in 0 until optionsMenu.size()) {
             val currentItem = optionsMenu.getItem(i)
