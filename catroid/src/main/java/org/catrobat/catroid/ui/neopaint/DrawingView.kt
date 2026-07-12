@@ -73,6 +73,7 @@ class DrawingView @JvmOverloads constructor(
     private val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
     private val layerPaint = Paint()
     private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
+    private val textOutlinePaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val overlayFill = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.FILL
         color = 0x33000000.toInt()
@@ -117,6 +118,10 @@ class DrawingView @JvmOverloads constructor(
     private var previewX = -1f
     private var previewY = -1f
     private var showPreview = false
+    private val previewPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.STROKE
+        strokeWidth = 2f
+    }
 
     // ─── Shape overlay ─────────────────────────────────
 
@@ -149,6 +154,7 @@ class DrawingView @JvmOverloads constructor(
         val mutable = ensureMutable(bitmap)
         bitmapWidth = mutable.width
         bitmapHeight = mutable.height
+        for (l in layers) l.bitmap.recycle()
         layers.clear()
         layers.add(PaintLayer(mutable, "Layer 1"))
         currentLayerIndex = 0
@@ -182,6 +188,7 @@ class DrawingView @JvmOverloads constructor(
 
     fun removeLayer(index: Int) {
         if (layers.size <= 1 || index < 0 || index >= layers.size) return
+        layers[index].bitmap.recycle()
         layers.removeAt(index)
         if (currentLayerIndex >= layers.size) currentLayerIndex = layers.size - 1
         onChangeListener?.invoke()
@@ -190,7 +197,7 @@ class DrawingView @JvmOverloads constructor(
     fun duplicateLayer(index: Int) {
         if (index < 0 || index >= layers.size) return
         val src = layers[index]
-        val copy = ensureMutable(src.bitmap)
+        val copy = src.bitmap.copy(Bitmap.Config.ARGB_8888, true)
         layers.add(index + 1, PaintLayer(copy, "${src.name} copy", src.visible, src.opacity))
         currentLayerIndex = index + 1
         onChangeListener?.invoke()
@@ -257,6 +264,7 @@ class DrawingView @JvmOverloads constructor(
         val (index, snapshot) = undoStack.removeLast()
         val layer = layers.getOrNull(index) ?: return
         redoStack.add(Pair(index, ensureMutable(layer.bitmap)))
+        if (redoStack.size > 30) redoStack.removeFirst()
         layer.bitmap = ensureMutable(snapshot)
         invalidate(); onChangeListener?.invoke()
     }
@@ -292,7 +300,7 @@ class DrawingView @JvmOverloads constructor(
         return result
     }
 
-    fun copyCurrentLayerBitmap(): Bitmap? = getCurrentLayer()?.let { ensureMutable(it.bitmap) }
+    fun copyCurrentLayerBitmap(): Bitmap? = getCurrentLayer()?.let { it.bitmap.copy(Bitmap.Config.ARGB_8888, true) }
 
     fun pasteBitmapAsNewLayer(bmp: Bitmap) {
         val scaled = Bitmap.createScaledBitmap(bmp, bitmapWidth, bitmapHeight, true)
@@ -380,6 +388,7 @@ class DrawingView @JvmOverloads constructor(
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
+        if (width <= 0 || height <= 0 || bitmapWidth <= 0 || bitmapHeight <= 0) return
         canvas.drawColor(0xFF2B2B2B.toInt())
         canvas.save()
         canvas.translate(fitOffsetX + userPanX, fitOffsetY + userPanY)
@@ -456,11 +465,7 @@ class DrawingView @JvmOverloads constructor(
             val sx = toScreenX(previewX)
             val sy = toScreenY(previewY)
             val sr = strokeWidth * fitScale * userZoom / 2f
-            val previewPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                style = Paint.Style.STROKE
-                strokeWidth = 2f
-                color = if (toolType == ToolType.ERASER) 0xFFFFFFFF.toInt() else (paintColor and 0x00FFFFFF or 0x88000000.toInt())
-            }
+            previewPaint.color = if (toolType == ToolType.ERASER) 0xFFFFFFFF.toInt() else (paintColor and 0x00FFFFFF or 0x88000000.toInt())
             canvas.drawCircle(sx, sy, sr.coerceAtLeast(4f), previewPaint)
         }
     }
@@ -742,7 +747,7 @@ class DrawingView @JvmOverloads constructor(
     // ═══════════════════════════════════════════════════════
 
     private fun pushUndo(layer: PaintLayer) {
-        undoStack.add(Pair(currentLayerIndex, ensureMutable(layer.bitmap)))
+        undoStack.add(Pair(currentLayerIndex, layer.bitmap.copy(Bitmap.Config.ARGB_8888, true)))
         if (undoStack.size > 30) undoStack.removeFirst()
         redoStack.clear()
     }
@@ -955,14 +960,13 @@ class DrawingView @JvmOverloads constructor(
 
         // Outline pass (stroke only)
         if (textOutlineWidth > 0f) {
-            val outlinePaint = Paint(textPaint).apply {
-                style = Paint.Style.STROKE
-                strokeWidth = textOutlineWidth
-                color = textOutlineColor
-                shader = null
-                clearShadowLayer()
-            }
-            c.drawText(text, cx - tw / 2f, cy + size / 3f, outlinePaint)
+            textOutlinePaint.set(textPaint)
+            textOutlinePaint.style = Paint.Style.STROKE
+            textOutlinePaint.strokeWidth = textOutlineWidth
+            textOutlinePaint.color = textOutlineColor
+            textOutlinePaint.shader = null
+            textOutlinePaint.clearShadowLayer()
+            c.drawText(text, cx - tw / 2f, cy + size / 3f, textOutlinePaint)
         }
 
         // Fill pass
@@ -1028,15 +1032,25 @@ class DrawingView @JvmOverloads constructor(
         val t = 40
         val oA = (oldColor shr 24) and 0xff; val oR = (oldColor shr 16) and 0xff
         val oG = (oldColor shr 8) and 0xff; val oB = oldColor and 0xff
+        
+        fun tolMatch(c: Int): Boolean =
+            abs(((c shr 24) and 0xff) - oA) <= t && abs(((c shr 16) and 0xff) - oR) <= t &&
+            abs(((c shr 8) and 0xff) - oG) <= t && abs((c and 0xff) - oB) <= t
+        
+        // Mark seed at push time
+        pixels[y * w + x] = newColor
+        
         while (stack.isNotEmpty()) {
-            val idx = stack.removeLast(); val c = pixels[idx]
-            if (abs(((c shr 24) and 0xff) - oA) <= t && abs(((c shr 16) and 0xff) - oR) <= t &&
-                abs(((c shr 8) and 0xff) - oG) <= t && abs((c and 0xff) - oB) <= t) {
-                pixels[idx] = newColor
-                val px = idx % w; val py = idx / w
-                if (px > 0) stack.add(idx - 1); if (px < w - 1) stack.add(idx + 1)
-                if (py > 0) stack.add(idx - w); if (py < h - 1) stack.add(idx + w)
-            }
+            val idx = stack.removeLast()
+            val px = idx % w; val py = idx / w
+            if (px > 0) { val ni = idx - 1; val nc = pixels[ni]
+                if (nc != newColor && tolMatch(nc)) { pixels[ni] = newColor; stack.add(ni) } }
+            if (px < w - 1) { val ni = idx + 1; val nc = pixels[ni]
+                if (nc != newColor && tolMatch(nc)) { pixels[ni] = newColor; stack.add(ni) } }
+            if (py > 0) { val ni = idx - w; val nc = pixels[ni]
+                if (nc != newColor && tolMatch(nc)) { pixels[ni] = newColor; stack.add(ni) } }
+            if (py < h - 1) { val ni = idx + w; val nc = pixels[ni]
+                if (nc != newColor && tolMatch(nc)) { pixels[ni] = newColor; stack.add(ni) } }
         }
         bmp.setPixels(pixels, 0, w, 0, 0, w, h)
     }
@@ -1090,5 +1104,10 @@ class DrawingView @JvmOverloads constructor(
         private val SHAPE_TOOLS = setOf(
             ToolType.RECTANGLE, ToolType.OVAL, ToolType.STAR, ToolType.HEART
         )
+    }
+
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        cancelIdle()
     }
 }

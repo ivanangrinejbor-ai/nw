@@ -23,10 +23,12 @@
 
 package org.catrobat.catroid.content.actions
 
+import android.os.Environment
 import android.util.Log
 import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction
 import org.catrobat.catroid.content.Scope
 import org.catrobat.catroid.formulaeditor.Formula
+import org.catrobat.catroid.utils.Utils
 import java.io.File
 import java.io.FileOutputStream
 import java.net.HttpURLConnection
@@ -37,36 +39,51 @@ class DownloadToPathAction() : TemporalAction() {
     var scope: Scope? = null
     var url: Formula? = null
     var path: Formula? = null
+    private var started = false
 
     override fun update(percent: Float) {
         if (scope == null) return
+        if (started) return; started = true
         val urlStr = url?.interpretString(scope) ?: return
+        if (urlStr.isBlank()) return
         val pathStr = path?.interpretString(scope) ?: return
+        if (pathStr.isBlank()) return
         thread {
             var connection: HttpURLConnection? = null
             try {
                 val urlObj = URL(urlStr)
+                if (urlObj.protocol !in arrayOf("http", "https")) {
+                    Log.e("DownloadToPathAction", "Invalid URL scheme: ${urlObj.protocol}")
+                    return@thread
+                }
                 connection = urlObj.openConnection() as HttpURLConnection
                 connection.connect()
                 val statusCode = connection.responseCode
                 DownloadState.lastStatusCode = statusCode
                 val contentLength = connection.contentLength
-                val inputStream = connection.inputStream
+                val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
                 val file = File(pathStr)
+                val baseCanonical = downloadsDir.canonicalPath
+                val fileCanonical = file.canonicalPath
+                if (!fileCanonical.startsWith(baseCanonical + File.separator)) {
+                    Log.e("DownloadToPathAction", "Path traversal detected: $pathStr")
+                    return@thread
+                }
                 file.parentFile?.mkdirs()
-                val outputStream = FileOutputStream(file)
-                val buffer = ByteArray(8192)
-                var bytesRead: Int
-                var totalRead = 0L
-                while (inputStream.read(buffer).also { bytesRead = it } != -1) {
-                    outputStream.write(buffer, 0, bytesRead)
-                    totalRead += bytesRead
-                    if (contentLength > 0) {
-                        DownloadState.progress = (totalRead * 100 / contentLength).toInt()
+                connection.inputStream.use { inputStream ->
+                    FileOutputStream(file).use { outputStream ->
+                        val buffer = ByteArray(8192)
+                        var bytesRead: Int
+                        var totalRead = 0L
+                        while (inputStream.read(buffer).also { bytesRead = it } != -1) {
+                            outputStream.write(buffer, 0, bytesRead)
+                            totalRead += bytesRead
+                            if (contentLength > 0) {
+                                DownloadState.progress = (totalRead * 100 / contentLength).toInt()
+                            }
+                        }
                     }
                 }
-                outputStream.close()
-                inputStream.close()
                 Log.d("DownloadToPath", "Downloaded to: ${file.absolutePath}")
             } catch (e: Exception) {
                 Log.e("DownloadToPath", "Error: ${e.message}")

@@ -31,6 +31,7 @@ import org.catrobat.catroid.R
 
 import org.catrobat.catroid.paintroid.command.implementation.TextToolCommand
 import org.catrobat.catroid.paintroid.tools.FontType
+import org.catrobat.catroid.paintroid.tools.ImportedFontRegistry
 
 class TextToolCommandSerializer(version: Int, private val activityContext: Context) : VersionSerializer<TextToolCommand>(version) {
     override fun write(kryo: Kryo, output: Output, command: TextToolCommand) {
@@ -76,7 +77,9 @@ class TextToolCommandSerializer(version: Int, private val activityContext: Conte
                         FontType.MONOSPACE -> Typeface.create(Typeface.MONOSPACE, style)
                         FontType.STC -> ResourcesCompat.getFont(activityContext, R.font.stc_regular)
                         FontType.DUBAI -> ResourcesCompat.getFont(activityContext, R.font.dubai)
-                        FontType.PROJECT_FONT -> Typeface.create(Typeface.SANS_SERIF, style)
+                        FontType.PROJECT_FONT -> typeFaceInfo.fontName?.let {
+                            ImportedFontRegistry.getTypeface(activityContext, it)
+                        } ?: Typeface.create(Typeface.SANS_SERIF, style)
                     }
                 } catch (e: Exception) {
                     Log.e("LoadImageAsync", "Typeface not supported on this mobile phone")

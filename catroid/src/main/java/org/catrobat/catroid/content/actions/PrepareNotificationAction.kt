@@ -16,7 +16,17 @@ class PrepareNotificationAction : TemporalAction() {
     var importanceLevel: Int = android.app.NotificationManager.IMPORTANCE_DEFAULT
     var isPinned: Boolean = false
 
+    private var started = false
+
+    override fun restart() {
+        super.restart()
+        started = false
+    }
+
     override fun update(percent: Float) {
+        if (started) return
+        started = true
+
         val id = notificationId?.interpretInteger(scope) ?: return
         val channel = channelName?.interpretString(scope) ?: "default"
         val notifTitle = title?.interpretString(scope) ?: ""

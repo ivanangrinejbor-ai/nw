@@ -33,21 +33,34 @@ class EqualizerSetBandAction : TemporalAction() {
     var scope: Scope? = null
     var band: Formula? = null
     var gain: Formula? = null
+    private var equalizer: Equalizer? = null
+
+    override fun begin() {
+        try {
+            equalizer = Equalizer(0, 0)
+        } catch (e: Exception) {
+            Log.d(javaClass.simpleName, "Equalizer init failed", e)
+        }
+    }
 
     override fun update(percent: Float) {
+        val eq = equalizer ?: return
         try {
             val bandIndex = band?.interpretInteger(scope) ?: return
             val gainMb = gain?.interpretInteger(scope) ?: return
-            val equalizer = Equalizer(0, 0)
-            val numberOfBands = equalizer.numberOfBands
+            val numberOfBands = eq.numberOfBands
             if (bandIndex in 0 until numberOfBands) {
-                equalizer.setBandLevel(bandIndex.toShort(), gainMb.toShort())
+                eq.setBandLevel(bandIndex.toShort(), gainMb.toShort())
             }
-            equalizer.release()
         } catch (e: InterpretationException) {
             Log.d(javaClass.simpleName, "Formula interpretation failed", e)
         } catch (e: Exception) {
             Log.d(javaClass.simpleName, "Equalizer failed", e)
         }
+    }
+
+    override fun end() {
+        equalizer?.release()
+        equalizer = null
     }
 }

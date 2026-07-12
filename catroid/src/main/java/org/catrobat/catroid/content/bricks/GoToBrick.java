@@ -45,7 +45,7 @@ public class GoToBrick extends BrickBaseType implements BrickSpinner.OnItemSelec
 	private static final long serialVersionUID = 1L;
 
 	private Sprite destinationSprite;
-	private int spinnerSelection;
+	private int spinnerSelection = BrickValues.GO_TO_TOUCH_POSITION;
 
 	public GoToBrick() {
 	}

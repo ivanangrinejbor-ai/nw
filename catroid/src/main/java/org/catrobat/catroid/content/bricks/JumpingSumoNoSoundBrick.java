@@ -40,5 +40,6 @@ public class JumpingSumoNoSoundBrick extends BrickBaseType {
 
 	@Override
 	public void addActionToSequence(Sprite sprite, ScriptSequenceAction sequence) {
+		sequence.addAction(sprite.getActionFactory().createJumpingSumoNoSoundAction(sprite, sequence));
 	}
 }

@@ -31,6 +31,7 @@ class MapCreateAction : TemporalAction() {
     var userVariable: UserVariable? = null
 
     override fun update(percent: Float) {
+        if (scope == null) return
         if (userVariable == null) return
         userVariable?.value = HashMap<String, Any?>()
     }

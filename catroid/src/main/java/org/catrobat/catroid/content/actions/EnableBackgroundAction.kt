@@ -1,8 +1,10 @@
 package org.catrobat.catroid.content.actions
 
+import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Build
 import android.util.Log
 import androidx.core.content.ContextCompat
@@ -29,6 +31,26 @@ class EnableBackgroundAction : TemporalAction() {
             val notifTitle = title?.interpretString(scope) ?: "Background Work"
             val notifText = text?.interpretString(scope) ?: "App is running in background"
             val icon = iconPath?.interpretString(scope) ?: ""
+
+            // Create notification channel for API 26+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val notificationChannel = NotificationChannel(
+                    channel,
+                    channel,
+                    NotificationManager.IMPORTANCE_LOW
+                )
+                val notificationManager = activity.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                notificationManager.createNotificationChannel(notificationChannel)
+            }
+
+            // Check POST_NOTIFICATIONS permission on API 33+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                if (ContextCompat.checkSelfPermission(activity, android.Manifest.permission.POST_NOTIFICATIONS)
+                    != PackageManager.PERMISSION_GRANTED) {
+                    Log.w(javaClass.simpleName, "POST_NOTIFICATIONS permission not granted")
+                    return
+                }
+            }
 
             val intent = Intent(activity, ForegroundService::class.java).apply {
                 putExtra("notification_id", id)

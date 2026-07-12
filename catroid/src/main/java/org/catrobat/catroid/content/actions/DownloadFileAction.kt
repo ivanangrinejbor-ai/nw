@@ -32,42 +32,56 @@ import java.io.File
 import java.io.FileOutputStream
 import java.net.HttpURLConnection
 import java.net.URL
+import org.catrobat.catroid.utils.Utils
 import kotlin.concurrent.thread
 
 class DownloadFileAction() : TemporalAction() {
     var scope: Scope? = null
     var url: Formula? = null
     var fileName: Formula? = null
+    private var started = false
 
     override fun update(percent: Float) {
         if (scope == null) return
+        if (started) return; started = true
         val urlStr = url?.interpretString(scope) ?: return
-        val fileNameStr = fileName?.interpretString(scope) ?: "download"
+        if (urlStr.isBlank()) return
+        val fileNameStr = Utils.sanitizeFileName(fileName?.interpretString(scope) ?: "download")
         thread {
             var connection: HttpURLConnection? = null
             try {
                 val urlObj = URL(urlStr)
+                if (urlObj.protocol !in arrayOf("http", "https")) {
+                    Log.e("DownloadFileAction", "Invalid URL scheme: ${urlObj.protocol}")
+                    return@thread
+                }
                 connection = urlObj.openConnection() as HttpURLConnection
                 connection.connect()
                 val statusCode = connection.responseCode
                 DownloadState.lastStatusCode = statusCode
                 val contentLength = connection.contentLength
-                val inputStream = connection.inputStream
                 val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
                 val file = File(downloadsDir, fileNameStr)
-                val outputStream = FileOutputStream(file)
-                val buffer = ByteArray(8192)
-                var bytesRead: Int
-                var totalRead = 0L
-                while (inputStream.read(buffer).also { bytesRead = it } != -1) {
-                    outputStream.write(buffer, 0, bytesRead)
-                    totalRead += bytesRead
-                    if (contentLength > 0) {
-                        DownloadState.progress = (totalRead * 100 / contentLength).toInt()
+                val baseCanonical = downloadsDir.canonicalPath
+                val fileCanonical = file.canonicalPath
+                if (!fileCanonical.startsWith(baseCanonical + File.separator) && fileCanonical != baseCanonical) {
+                    Log.e("DownloadFileAction", "Path traversal detected: $fileNameStr")
+                    return@thread
+                }
+                connection.inputStream.use { inputStream ->
+                    FileOutputStream(file).use { outputStream ->
+                        val buffer = ByteArray(8192)
+                        var bytesRead: Int
+                        var totalRead = 0L
+                        while (inputStream.read(buffer).also { bytesRead = it } != -1) {
+                            outputStream.write(buffer, 0, bytesRead)
+                            totalRead += bytesRead
+                            if (contentLength > 0) {
+                                DownloadState.progress = (totalRead * 100 / contentLength).toInt()
+                            }
+                        }
                     }
                 }
-                outputStream.close()
-                inputStream.close()
                 Log.d("DownloadFile", "Downloaded to: ${file.absolutePath}")
             } catch (e: Exception) {
                 Log.e("DownloadFile", "Error: ${e.message}")

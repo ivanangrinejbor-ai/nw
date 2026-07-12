@@ -17,6 +17,18 @@ import java.io.IOException
 import java.util.concurrent.TimeUnit
 
 class PutWebRequestAction : TemporalAction() {
+    companion object {
+        private val okHttpClient by lazy {
+            OkHttpClient.Builder()
+                .connectTimeout(30, TimeUnit.SECONDS)
+                .readTimeout(30, TimeUnit.SECONDS)
+                .writeTimeout(30, TimeUnit.SECONDS)
+                .build()
+        }
+    }
+
+    private var started = false
+
     var scope: Scope? = null
     var rurl: Formula? = null
     var header: Formula? = null
@@ -29,6 +41,9 @@ class PutWebRequestAction : TemporalAction() {
     }
 
     override fun update(percent: Float) {
+        if (started) return
+        started = true
+        if (scope == null) { started = false; return }
         var urlVal = rurl?.interpretObject(scope) ?: ""
         var urlText = urlVal.toString()
         var headerVal = header?.interpretObject(scope) ?: ""
@@ -45,12 +60,6 @@ class PutWebRequestAction : TemporalAction() {
 
         if (userVariable == null) return
 
-        val client = OkHttpClient.Builder()
-            .connectTimeout(timeoutSec, TimeUnit.SECONDS)
-            .readTimeout(timeoutSec, TimeUnit.SECONDS)
-            .writeTimeout(timeoutSec, TimeUnit.SECONDS)
-            .build()
-
         val mediaType = mediaTypeString.toMediaTypeOrNull() ?: "application/json".toMediaTypeOrNull() ?: return
         val bodyn = RequestBody.create(mediaType, json)
         val request = Request.Builder()
@@ -58,7 +67,7 @@ class PutWebRequestAction : TemporalAction() {
             .put(bodyn)
             .build()
         Thread {
-            client.newCall(request).enqueue(object : Callback {
+            okHttpClient.newCall(request).enqueue(object : Callback {
                 override fun onFailure(call: Call, e: IOException) {
                     MyActivityManager.stage_activity?.runOnUiThread {
                         userVariable?.value = "Response error: ${e.message}"
@@ -80,5 +89,10 @@ class PutWebRequestAction : TemporalAction() {
                 }
             })
         }.start()
+    }
+
+    override fun restart() {
+        super.restart()
+        started = false
     }
 }

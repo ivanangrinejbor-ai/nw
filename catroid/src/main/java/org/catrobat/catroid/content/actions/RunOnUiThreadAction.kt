@@ -1,9 +1,8 @@
 package org.catrobat.catroid.content.actions
 
-import android.os.Handler
-import android.os.Looper
 import com.badlogic.gdx.scenes.scene2d.Action
 import com.badlogic.gdx.scenes.scene2d.Actor
+import org.catrobat.catroid.runtime.RuntimeServicesHolder
 
 class RunOnUiThreadAction : Action() {
     var nestedAction: Action? = null
@@ -13,11 +12,8 @@ class RunOnUiThreadAction : Action() {
         if (!posted) {
             posted = true
             val action = nestedAction ?: return true
-            Handler(Looper.getMainLooper()).post {
-                var remaining = action.act(delta)
-                while (!remaining) {
-                    remaining = action.act(delta)
-                }
+            RuntimeServicesHolder.services.postToMainThread {
+                action.act(delta)
             }
         }
         return true

@@ -39,6 +39,10 @@ import android.util.Log;
 import android.view.Surface;
 import android.view.WindowManager;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
+import androidx.core.content.ContextCompat;
+
 import org.catrobat.catroid.CatroidApplication;
 import org.catrobat.catroid.ProjectManager;
 import org.catrobat.catroid.bluetooth.base.BluetoothDevice;
@@ -177,6 +181,9 @@ public final class SensorHandler implements SensorEventListener, SensorCustomEve
 	}
 
 	public static boolean gpsAvailable() {
+		if (instance == null || instance.locationManager == null) {
+			return false;
+		}
 		// Use || (logical OR) for short-circuit: if gpsSensor is available, skip network check
 		return gpsSensorAvailable() || networkGpsAvailable();
 	}
@@ -237,16 +244,23 @@ public final class SensorHandler implements SensorEventListener, SensorCustomEve
 			instance.sensorLoudness.registerListener(instance);
 		}
 
-		if (instance.locationManager != null) {
+			if (instance.locationManager != null) {
 			instance.locationManager.removeUpdates(instance);
 			instance.gpsSensor.deregisterGNSSCallback(instance.locationManager);
 			instance.gpsSensor.registerGNSSCallback(instance.locationManager, context);
 
-			if (gpsSensorAvailable()) {
-				instance.locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, instance);
-			}
-			if (networkGpsAvailable()) {
-				instance.locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, instance);
+			boolean hasLocationPermission =
+					ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
+							== PackageManager.PERMISSION_GRANTED
+					|| ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION)
+							== PackageManager.PERMISSION_GRANTED;
+			if (hasLocationPermission) {
+				if (gpsSensorAvailable()) {
+					instance.locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, instance);
+				}
+				if (networkGpsAvailable()) {
+					instance.locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, instance);
+				}
 			}
 		}
 	}
@@ -451,20 +465,24 @@ public final class SensorHandler implements SensorEventListener, SensorCustomEve
 				int scale = batteryStatus.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
 				if (level < 0 || scale <= 0) return 0;
 				return (int) ((level * 100) / (float) scale);
-			case MICRO:
-				return Objects.requireNonNull(VolumeManager.Companion.getVolume());
-			case IP:
-				return LocalServer.Companion.getIP();
-			case PORT:
-				return LocalServer.Companion.getPort();
-			case FREQ:
-				return (double) Objects.requireNonNull(VolumeManager.Companion.getFrequency());
+		case MICRO:
+			Integer volume = VolumeManager.Companion.getVolume();
+			return (double) (volume != null ? volume : 0);
+		case IP:
+			return LocalServer.Companion.getIP();
+		case PORT:
+			return LocalServer.Companion.getPort();
+		case FREQ:
+			Float frequency = VolumeManager.Companion.getFrequency();
+			return (double) (frequency != null ? frequency : 0f);
 			case INTERNET:
 				return NetworkUtils.isInternetAvailable();
 			case ARCH:
 				return MainMenuActivity.Companion.getCpuArchitecture();
-			default:
-				return Objects.requireNonNull(instance.sensorValueMap.getOrDefault(sensor, 0.0d));
+		default:
+			// DRONE_* sensors intentionally fall through here and return 0/false:
+			// they require drone hardware, which is not present in this project.
+			return Objects.requireNonNull(instance.sensorValueMap.getOrDefault(sensor, 0.0d));
 		}
 		return 0.0d;
 	}

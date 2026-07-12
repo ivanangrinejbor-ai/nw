@@ -25,6 +25,7 @@ import org.mockito.Mockito
 import org.powermock.api.mockito.PowerMockito
 import org.powermock.core.classloader.annotations.PrepareForTest
 import org.powermock.modules.junit4.PowerMockRunner
+import org.powermock.reflect.Whitebox
 
 @RunWith(PowerMockRunner::class)
 @PrepareForTest(GdxNativesLoader::class, StageActivity::class)
@@ -81,7 +82,7 @@ class SendNotificationActionTest {
             isPinned = false
         ))
 
-        PowerMockito.`when`(StageActivity.activeStageActivity).thenReturn(null)
+        Whitebox.setInternalState(StageActivity::class.java, "activeStageActivity", null)
 
         val action = sprite.actionFactory.createSendNotificationAction(
             sprite, scriptSequence, Formula(1)
@@ -107,9 +108,7 @@ class SendNotificationActionTest {
         val mockNotificationManager = Mockito.mock(NotificationManager::class.java)
         Mockito.`when`(mockActivity.getSystemService(Context.NOTIFICATION_SERVICE))
             .thenReturn(mockNotificationManager)
-        PowerMockito.`when`(StageActivity.activeStageActivity).thenReturn(
-            java.lang.ref.WeakReference(mockActivity)
-        )
+        Whitebox.setInternalState(StageActivity::class.java, "activeStageActivity", java.lang.ref.WeakReference(mockActivity))
 
         // After restart should re-execute
         action.restart()

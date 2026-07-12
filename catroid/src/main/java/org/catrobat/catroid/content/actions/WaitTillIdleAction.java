@@ -28,6 +28,7 @@ import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.utils.Array;
 
 import org.catrobat.catroid.stage.StageActivity;
+import org.catrobat.catroid.stage.StageListener;
 
 public class WaitTillIdleAction extends Action {
 
@@ -37,7 +38,11 @@ public class WaitTillIdleAction extends Action {
 	}
 
 	private boolean allActorsIdle() {
-		int numberOfActors = StageActivity.getActiveStageListener().getStage().getActors().size;
+		StageListener stageListener = StageActivity.getActiveStageListener();
+		if (stageListener == null || stageListener.getStage() == null) {
+			return false;
+		}
+		int numberOfActors = stageListener.getStage().getActors().size;
 		if (numberOfActors == 0) {
 			return false;
 		}

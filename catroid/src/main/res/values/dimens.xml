@@ -31,8 +31,8 @@
     <dimen name="text_size_large" >18sp</dimen >
 
     <dimen name="actionbar_height" >48dip</dimen >
-    <dimen name="project_thumbnail_height" >65dip</dimen >
-    <dimen name="project_thumbnail_width" >72dip</dimen >
+    <dimen name="project_thumbnail_height" >135dip</dimen >
+    <dimen name="project_thumbnail_width" >150dip</dimen >
     <dimen name="scratch_project_thumbnail_height">65dp</dimen>
 
     <dimen name="scratch_project_image_height">130dp</dimen>

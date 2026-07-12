@@ -76,8 +76,10 @@ class PaintNewLookAction : PocketPaintAction() {
             currentProject.xmlHeader.virtualScreenWidth,
             currentProject.xmlHeader.getVirtualScreenHeight(), Bitmap.Config.ARGB_8888
         )
-        return StorageOperations.compressBitmapToPng(
+        val file = StorageOperations.compressBitmapToPng(
             bitmap, File(Constants.POCKET_PAINT_CACHE_DIRECTORY, pocketPaintImageFileName))
+        bitmap.recycle()
+        return file
     }
 
     override fun onIntentResult(requestCode: Int, resultCode: Int, data: Intent?): Boolean {

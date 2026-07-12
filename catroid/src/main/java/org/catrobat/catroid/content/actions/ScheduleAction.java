@@ -22,9 +22,8 @@
  */
 package org.catrobat.catroid.content.actions;
 
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
+import org.catrobat.catroid.runtime.RuntimeServicesHolder;
 
 import com.badlogic.gdx.scenes.scene2d.Action;
 
@@ -36,8 +35,8 @@ public class ScheduleAction extends Action {
 	private Scope scope;
 	private Formula delay;
 	private Action scheduledAction;
-	private boolean initialized;
-	private boolean scheduled;
+	private volatile boolean initialized;
+	private volatile boolean scheduled;
 
 	public void setScope(Scope scope) {
 		this.scope = scope;
@@ -61,8 +60,7 @@ public class ScheduleAction extends Action {
 			try {
 				float delaySeconds = delay.interpretFloat(scope);
 				long delayMillis = (long) (delaySeconds * 1000);
-				Handler handler = new Handler(Looper.getMainLooper());
-				handler.postDelayed(new Runnable() {
+				RuntimeServicesHolder.services.postDelayed(new Runnable() {
 					@Override
 					public void run() {
 						scheduled = true;

@@ -39,7 +39,7 @@ import org.catrobat.catroid.utils.ShowTextUtils.AndroidStringProvider;
 
 public class ShowText3Action extends TemporalAction {
 
-    public static final String TAG = ShowTextColorSizeAlignmentAction.class.getSimpleName();
+    public static final String TAG = ShowText3Action.class.getSimpleName();
 
     private Formula xPosition;
     private Formula yPosition;

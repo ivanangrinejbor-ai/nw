@@ -172,29 +172,6 @@ class MainActivity : AppCompatActivity(), MainView, CommandListener {
     private var userInteraction = false
     private var isTemporaryFileSavingTest = false
 
-    private val fontPickerLauncher = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        if (uri != null) {
-            try {
-                val tempFile = File(cacheDir, "project_font_${System.currentTimeMillis()}.ttf")
-                contentResolver.openInputStream(uri)?.use { input ->
-                    tempFile.outputStream().use { output ->
-                        input.copyTo(output)
-                    }
-                }
-                val typeface = Typeface.createFromFile(tempFile)
-                val tool = toolReference.tool
-                if (tool is TextTool) {
-                    val fontName = uri.lastPathSegment
-                        ?.removeSuffix(".ttf")?.removeSuffix(".otf")?.removeSuffix(".TTF")?.removeSuffix(".OTF")
-                        ?: uri.lastPathSegment ?: "Custom font"
-                    tool.setProjectFontTypeface(typeface, fontName)
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "Failed to load font", e)
-            }
-        }
-    }
-
     private val isRunningEspressoTests: Boolean by lazy {
         try {
             Class.forName("androidx.test.espresso.Espresso")
@@ -667,9 +644,8 @@ class MainActivity : AppCompatActivity(), MainView, CommandListener {
         }
         val currentTool = toolReference.tool
         if (currentTool is TextTool) {
-            currentTool.onProjectFontNeededListener = {
-                fontPickerLauncher.launch(arrayOf("font/*", "application/octet-stream", "application/x-font-ttf"))
-            }
+            // Imported/project fonts are now chosen via the "+" button in the
+            // text tool options view (ProjectPickerDialog).
         }
 
         topBar.plusButton.setOnClickListener {

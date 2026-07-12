@@ -40,5 +40,6 @@ public class JumpingSumoTurnBrick extends BrickBaseType {
 
 	@Override
 	public void addActionToSequence(Sprite sprite, ScriptSequenceAction sequence) {
+		sequence.addAction(sprite.getActionFactory().createJumpingSumoTurnAction(sprite, sequence));
 	}
 }

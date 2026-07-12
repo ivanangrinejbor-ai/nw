@@ -49,7 +49,7 @@ public class TouchDirectionActionTest {
         action.setScope(scope);
         action.act(1.0f);
 
-        assertEquals(0f, sprite.look.getDirectionInUserInterfaceDimensionUnit(), 0.01f);
+        assertEquals(0f, sprite.look.getLookDirectionInUserInterfaceDimensionUnit(), 0.01f);
     }
 
     @Test
@@ -62,7 +62,7 @@ public class TouchDirectionActionTest {
         action.setScope(scope);
         action.act(1.0f);
 
-        assertEquals(180f, sprite.look.getDirectionInUserInterfaceDimensionUnit(), 0.01f);
+        assertEquals(180f, sprite.look.getLookDirectionInUserInterfaceDimensionUnit(), 0.01f);
     }
 
     @Test
@@ -75,7 +75,7 @@ public class TouchDirectionActionTest {
         action.setScope(scope);
         action.act(1.0f);
 
-        assertEquals(90f, sprite.look.getDirectionInUserInterfaceDimensionUnit(), 0.01f);
+        assertEquals(90f, sprite.look.getLookDirectionInUserInterfaceDimensionUnit(), 0.01f);
     }
 
     @Test
@@ -88,7 +88,7 @@ public class TouchDirectionActionTest {
         action.setScope(scope);
         action.act(1.0f);
 
-        assertEquals(-90f, sprite.look.getDirectionInUserInterfaceDimensionUnit(), 0.01f);
+        assertEquals(-90f, sprite.look.getLookDirectionInUserInterfaceDimensionUnit(), 0.01f);
     }
 
     @Test
@@ -101,7 +101,7 @@ public class TouchDirectionActionTest {
         action.setScope(scope);
         action.act(1.0f);
 
-        assertEquals(90f, sprite.look.getDirectionInUserInterfaceDimensionUnit(), 0.01f);
+        assertEquals(90f, sprite.look.getLookDirectionInUserInterfaceDimensionUnit(), 0.01f);
     }
 
     @Test
@@ -114,7 +114,7 @@ public class TouchDirectionActionTest {
         action.setScope(scope);
         action.act(1.0f);
 
-        assertEquals(45f, sprite.look.getDirectionInUserInterfaceDimensionUnit(), 0.01f);
+        assertEquals(45f, sprite.look.getLookDirectionInUserInterfaceDimensionUnit(), 0.01f);
     }
 
     @Test
@@ -135,6 +135,6 @@ public class TouchDirectionActionTest {
         action.act(1.0f);
 
         float expected = 90f - (float) Math.toDegrees(Math.atan2(100, 100));
-        assertEquals(expected, sprite.look.getDirectionInUserInterfaceDimensionUnit(), 0.01f);
+        assertEquals(expected, sprite.look.getLookDirectionInUserInterfaceDimensionUnit(), 0.01f);
     }
 }

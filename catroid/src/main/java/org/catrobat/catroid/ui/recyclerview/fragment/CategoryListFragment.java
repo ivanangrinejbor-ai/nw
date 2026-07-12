@@ -160,7 +160,7 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 			R.string.formula_editor_function_table_join, R.string.formula_editor_function_floatarray,
 			R.string.formula_editor_function_lua,
 			R.string.view_x, R.string.view_y, R.string.view_width, R.string.view_height, R.string.is_video_playing, //R.string.video_time,
-			R.string.formula_editor_function_file, R.string.formula_editor_function_files_path, R.string.formula_editor_function_all_files, R.string.formula_editor_function_file_size, R.string.formula_file_project_size, R.string.formula_file_size_in_dir, R.string.formula_file_size_at_path, R.string.formula_editor_function_json_get, R.string.formula_editor_function_json_set, R.string.formula_editor_function_json_is_valid,
+			R.string.formula_editor_function_file, R.string.formula_editor_function_files_path, R.string.formula_editor_function_all_files, R.string.formula_editor_function_file_size, R.string.formula_file_project_size, R.string.formula_file_size_in_dir, R.string.formula_file_size_at_path, R.string.formula_file_read_string, R.string.formula_editor_function_json_get, R.string.formula_editor_function_json_set, R.string.formula_editor_function_json_is_valid,
 			R.string.formula_ray_did_hit2,
 			R.string.formula_ray_hit_sprite_name,
 			R.string.formula_ray_hit_x2,
@@ -199,7 +199,7 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 			R.string.view_params,
 			R.string.videoplayer_params,
 			//R.string.videoplayer_params,
-			R.string.formula_editor_function_file_parameter, R.string.formula_no_param, R.string.formula_no_param, R.string.formula_editor_function_file_parameter, R.string.formula_file_project_size_param, R.string.formula_file_size_in_dir_param, R.string.formula_file_size_at_path_param, R.string.formula_editor_function_json_get_parameter, R.string.formula_editor_function_json_set_parameter, R.string.formula_editor_function_json_is_valid_parameter,
+			R.string.formula_editor_function_file_parameter, R.string.formula_no_param, R.string.formula_no_param, R.string.formula_editor_function_file_parameter, R.string.formula_file_project_size_param, R.string.formula_file_size_in_dir_param, R.string.formula_file_size_at_path_param, R.string.formula_file_read_string_param, R.string.formula_editor_function_json_get_parameter, R.string.formula_editor_function_json_set_parameter, R.string.formula_editor_function_json_is_valid_parameter,
 			R.string.formula_ray_did_hit_parameter,
 			R.string.formula_ray_hit_sprite_name_parameter,
 			R.string.formula_ray_hit_x_parameter,
@@ -315,8 +315,85 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
     private static final List<Integer> ADMOB_PARAMS = asList(
             R.string.formula_no_param, R.string.formula_no_param, R.string.formula_no_param,
             R.string.formula_no_param, R.string.formula_no_param, R.string.formula_no_param,
-            R.string.formula_no_param, R.string.formula_no_param, R.string.formula_no_param
+            R.string.formula_no_param, R.string.formula_no_param
     );
+
+    private static final List<Integer> CRYPTO_FUNCTIONS = asList(
+            R.string.formula_crypto_sha_224,
+            R.string.formula_crypto_sha_256,
+            R.string.formula_crypto_sha_384,
+            R.string.formula_crypto_sha_512,
+            R.string.formula_crypto_hash_bytes,
+            R.string.formula_crypto_hash_file,
+            R.string.formula_crypto_aes_encrypt,
+            R.string.formula_crypto_aes_decrypt,
+            R.string.formula_crypto_chacha20_encrypt,
+            R.string.formula_crypto_chacha20_decrypt,
+            R.string.formula_crypto_pbkdf2,
+            R.string.formula_crypto_generate_salt,
+            R.string.formula_crypto_derive_key,
+            R.string.formula_crypto_generate_aes_key,
+            R.string.formula_crypto_generate_random_bytes,
+            R.string.formula_crypto_generate_password,
+            R.string.formula_crypto_generate_uuid,
+            R.string.formula_crypto_random_hex,
+            R.string.formula_crypto_random_base64,
+            R.string.formula_crypto_random_int_secure,
+            R.string.formula_crypto_random_string_secure,
+            R.string.formula_crypto_base64_encode,
+            R.string.formula_crypto_base64_decode,
+            R.string.formula_crypto_hex_encode,
+            R.string.formula_crypto_hex_decode,
+            R.string.formula_crypto_compare_hash,
+            R.string.formula_crypto_is_base64,
+            R.string.formula_crypto_is_hex,
+            R.string.formula_crypto_hmac_sha_256,
+            R.string.formula_crypto_hmac_sha_512,
+            R.string.formula_crypto_rsa_generate_key_pair,
+            R.string.formula_crypto_rsa_encrypt,
+            R.string.formula_crypto_rsa_decrypt,
+            R.string.formula_crypto_rsa_sign,
+            R.string.formula_crypto_rsa_verify
+    );
+
+    private static final List<Integer> CRYPTO_PARAMS = asList(
+            R.string.formula_crypto_sha_224_param,
+            R.string.formula_crypto_sha_256_param,
+            R.string.formula_crypto_sha_384_param,
+            R.string.formula_crypto_sha_512_param,
+            R.string.formula_crypto_hash_bytes_param,
+            R.string.formula_crypto_hash_file_param,
+            R.string.formula_crypto_aes_encrypt_param,
+            R.string.formula_crypto_aes_decrypt_param,
+            R.string.formula_crypto_chacha20_encrypt_param,
+            R.string.formula_crypto_chacha20_decrypt_param,
+            R.string.formula_crypto_pbkdf2_param,
+            R.string.formula_crypto_generate_salt_param,
+            R.string.formula_crypto_derive_key_param,
+            R.string.formula_crypto_generate_aes_key_param,
+            R.string.formula_crypto_generate_random_bytes_param,
+            R.string.formula_crypto_generate_password_param,
+            R.string.formula_no_param,
+            R.string.formula_crypto_random_hex_param,
+            R.string.formula_crypto_random_base64_param,
+            R.string.formula_crypto_random_int_secure_param,
+            R.string.formula_crypto_random_string_secure_param,
+            R.string.formula_crypto_base64_encode_param,
+            R.string.formula_crypto_base64_decode_param,
+            R.string.formula_crypto_hex_encode_param,
+            R.string.formula_crypto_hex_decode_param,
+            R.string.formula_crypto_compare_hash_param,
+            R.string.formula_crypto_is_base64_param,
+            R.string.formula_crypto_is_hex_param,
+            R.string.formula_crypto_hmac_sha_256_param,
+            R.string.formula_crypto_hmac_sha_512_param,
+            R.string.formula_no_param,
+            R.string.formula_crypto_rsa_encrypt_param,
+            R.string.formula_crypto_rsa_decrypt_param,
+            R.string.formula_crypto_rsa_sign_param,
+            R.string.formula_crypto_rsa_verify_param
+    );
+
 
     private static final List<Integer> DEVICE_PARAMS = asList(
             R.string.formula_file_exists_param,
@@ -659,22 +736,14 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 			R.string.formula_editor_sensor_date_day, R.string.formula_editor_sensor_date_weekday,
 			R.string.formula_editor_sensor_time_hour, R.string.formula_editor_sensor_time_minute,
 			R.string.formula_editor_sensor_time_second);
-	private static final List<Integer> SENSORS_NXT = asList(R.string.formula_editor_sensor_lego_nxt_touch,
-			R.string.formula_editor_sensor_lego_nxt_sound, R.string.formula_editor_sensor_lego_nxt_light,
-			R.string.formula_editor_sensor_lego_nxt_light_active,
-			R.string.formula_editor_sensor_lego_nxt_ultrasonic);
-	private static final List<Integer> SENSORS_EV3 = asList(R.string.formula_editor_sensor_lego_ev3_sensor_touch,
-			R.string.formula_editor_sensor_lego_ev3_sensor_infrared,
-			R.string.formula_editor_sensor_lego_ev3_sensor_color,
-			R.string.formula_editor_sensor_lego_ev3_sensor_color_ambient,
-			R.string.formula_editor_sensor_lego_ev3_sensor_color_reflected,
-			R.string.formula_editor_sensor_lego_ev3_sensor_hitechnic_color,
-			R.string.formula_editor_sensor_lego_ev3_sensor_nxt_temperature_c,
-			R.string.formula_editor_sensor_lego_ev3_sensor_nxt_temperature_f,
-			R.string.formula_editor_sensor_lego_ev3_sensor_nxt_light,
-			R.string.formula_editor_sensor_lego_ev3_sensor_nxt_light_active,
-			R.string.formula_editor_sensor_lego_ev3_sensor_nxt_sound,
-			R.string.formula_editor_sensor_lego_ev3_sensor_nxt_ultrasonic);
+	private static final List<Integer> SENSORS_NXT = asList(R.string.formula_editor_sensor_lego_nxt_1,
+			R.string.formula_editor_sensor_lego_nxt_2,
+			R.string.formula_editor_sensor_lego_nxt_3,
+			R.string.formula_editor_sensor_lego_nxt_4);
+	private static final List<Integer> SENSORS_EV3 = asList(R.string.formula_editor_sensor_lego_ev3_1,
+			R.string.formula_editor_sensor_lego_ev3_2,
+			R.string.formula_editor_sensor_lego_ev3_3,
+			R.string.formula_editor_sensor_lego_ev3_4);
 	private static final List<Integer> SENSORS_PHIRO = asList(R.string.formula_editor_phiro_sensor_front_left,
 			R.string.formula_editor_phiro_sensor_front_right,
 			R.string.formula_editor_phiro_sensor_side_left,
@@ -1199,6 +1268,8 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
                 "Device info"));
         result.addAll(addHeader(toCategoryListItems(ADMOB_FUNCTIONS, ADMOB_PARAMS),
                 "AdMob"));
+        result.addAll(addHeader(toCategoryListItems(CRYPTO_FUNCTIONS, CRYPTO_PARAMS),
+                getString(R.string.formula_editor_functions_crypto)));
         result.addAll(addHeader(toCategoryListItems(OBJECTS_FUNCTIONS, OBJECTS_PARAMS),
                 "Sprite info"));
 
@@ -1462,6 +1533,7 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
         if (PT_FUNCTIONS.contains(id)) return "PockeTensor";
         if (DEVICE_FUNCTIONS.contains(id)) return "Device info";
         if (ADMOB_FUNCTIONS.contains(id)) return "AdMob";
+        if (CRYPTO_FUNCTIONS.contains(id)) return getString(R.string.formula_editor_functions_crypto);
         if (OBJECTS_FUNCTIONS.contains(id)) return "Sprite info";
         if (LOGIC_BOOL.contains(id)) return getString(R.string.formula_editor_logic_boolean);
         if (LOGIC_COMPARISION.contains(id)) return getString(R.string.formula_editor_logic_comparison);

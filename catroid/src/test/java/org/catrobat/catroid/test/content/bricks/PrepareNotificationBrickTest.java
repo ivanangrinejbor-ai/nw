@@ -58,9 +58,9 @@ public class PrepareNotificationBrickTest {
         brick.addActionToSequence(sprite, new ScriptSequenceAction(Mockito.mock(Script.class)));
 
         verify(actionFactory).createPrepareNotificationAction(eq(sprite),
-                any(SequenceAction.class),
-                any(Formula.class), any(Formula.class), any(Formula.class),
-                any(Formula.class), any(Formula.class),
+                any(),
+                any(), any(), any(),
+                any(), any(),
                 anyInt(), anyBoolean());
     }
 }

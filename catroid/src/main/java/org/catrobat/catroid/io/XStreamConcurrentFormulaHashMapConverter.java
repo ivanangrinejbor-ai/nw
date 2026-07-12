@@ -28,6 +28,8 @@ import com.thoughtworks.xstream.converters.UnmarshallingContext;
 import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 
+import android.util.Log;
+
 import org.catrobat.catroid.content.bricks.Brick;
 import org.catrobat.catroid.content.bricks.ConcurrentFormulaHashMap;
 import org.catrobat.catroid.formulaeditor.Formula;
@@ -36,6 +38,7 @@ import org.catrobat.catroid.userbrick.InputFormulaField;
 
 public class XStreamConcurrentFormulaHashMapConverter implements Converter {
 
+	private static final String TAG = XStreamConcurrentFormulaHashMapConverter.class.getSimpleName();
 	private static final String FORMULA = "formula";
 	private static final String CATEGORY = "category";
 	private static final String USER_DEFINED_INPUT = "input";
@@ -88,7 +91,11 @@ public class XStreamConcurrentFormulaHashMapConverter implements Converter {
 			}
 			hierarchicalStreamReader.moveUp();
 
-			concurrentFormulaHashMap.putIfAbsent(formulaField, formula);
+			Formula previous = concurrentFormulaHashMap.putIfAbsent(formulaField, formula);
+			if (previous != null) {
+				Log.w(TAG, "Duplicate <category> node for " + formulaField
+						+ " ignored; keeping the previously loaded formula.");
+			}
 		}
 		return concurrentFormulaHashMap;
 	}

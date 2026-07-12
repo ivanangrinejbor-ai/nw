@@ -178,6 +178,10 @@ class ColorPickerDialog(
                 // Draw color
                 c.drawColor(currentColor())
             }
+            override fun onDetachedFromWindow() {
+                super.onDetachedFromWindow()
+                if (!checkerBmp.isRecycled) checkerBmp.recycle()
+            }
         }.apply {
             val previewSize = (56 * dp).toInt()
             layoutParams = LinearLayout.LayoutParams(previewSize, previewSize).apply {

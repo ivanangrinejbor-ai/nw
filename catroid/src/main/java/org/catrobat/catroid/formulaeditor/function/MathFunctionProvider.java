@@ -89,7 +89,7 @@ public class MathFunctionProvider implements FunctionProvider {
 
 	private double interpretFunctionArcTan2(double firstArgument, double secondArgument) {
 		if ((firstArgument == 0) && (secondArgument == 0)) {
-			return Math.random() * 360 - 180;
+			return 0.0;
 		} else {
 			return Math.toDegrees(Math.atan2(firstArgument, secondArgument));
 		}

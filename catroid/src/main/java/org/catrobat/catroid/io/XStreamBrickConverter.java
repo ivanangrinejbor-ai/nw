@@ -35,6 +35,9 @@ import com.thoughtworks.xstream.mapper.Mapper;
 import org.catrobat.catroid.content.bricks.Brick;
 import org.catrobat.catroid.content.bricks.UnknownBrick;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 public class XStreamBrickConverter extends ReflectionConverter {
 
 	private static final String TAG = XStreamBrickConverter.class.getSimpleName();
@@ -44,6 +47,10 @@ public class XStreamBrickConverter extends ReflectionConverter {
 			"org.catrobat.catroid.physics.content.bricks"};
 
 	private static final String TYPE = "type";
+
+	// Cache resolved brick type -> Class so loading a project does not repeat
+	// Class.forName() across every brick package for every brick instance.
+	private static final Map<String, Class<?>> BRICK_CLASS_CACHE = new ConcurrentHashMap<>();
 
 	public XStreamBrickConverter(Mapper mapper, ReflectionProvider reflectionProvider) {
 		super(mapper, reflectionProvider);
@@ -64,14 +71,22 @@ public class XStreamBrickConverter extends ReflectionConverter {
 	public Object doUnmarshal(Object result, HierarchicalStreamReader reader, UnmarshallingContext context) {
 
 		String type = reader.getAttribute(TYPE);
-		for (int index = 0; index < BRICKS_PACKAGE_NAMES.length; index++) {
-			try {
-				Class cls = Class.forName(BRICKS_PACKAGE_NAMES[index] + "." + type);
-				Brick brick = (Brick) reflectionProvider.newInstance(cls);
-				return super.doUnmarshal(brick, reader, context);
-			} catch (ClassNotFoundException exception) {
-				Log.d(TAG, "Brick " + type + " not found in " + BRICKS_PACKAGE_NAMES[index]);
+		Class<?> cls = BRICK_CLASS_CACHE.get(type);
+		if (cls == null) {
+			for (int index = 0; index < BRICKS_PACKAGE_NAMES.length; index++) {
+				try {
+					cls = Class.forName(BRICKS_PACKAGE_NAMES[index] + "." + type);
+					BRICK_CLASS_CACHE.put(type, cls);
+					break;
+				} catch (ClassNotFoundException exception) {
+					Log.d(TAG, "Brick " + type + " not found in " + BRICKS_PACKAGE_NAMES[index]);
+				}
 			}
+		}
+
+		if (cls != null) {
+			Brick brick = (Brick) reflectionProvider.newInstance(cls);
+			return super.doUnmarshal(brick, reader, context);
 		}
 
 		Log.e(TAG, "Brick " + type + " not found in packages, using UnknownBrick placeholder");

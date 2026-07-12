@@ -57,6 +57,19 @@ import java.util.concurrent.TimeUnit
 
 
 class AskGemini2Action() : TemporalAction() {
+    companion object {
+        private val okHttpClient by lazy {
+            OkHttpClient.Builder()
+                .dns(CustomDns())
+                .connectTimeout(30, TimeUnit.SECONDS)
+                .readTimeout(30, TimeUnit.SECONDS)
+                .writeTimeout(30, TimeUnit.SECONDS)
+                .build()
+        }
+    }
+
+    private var started = false
+
     var scope: Scope? = null
     var ask: Formula? = null
     var model: Formula? = null
@@ -67,12 +80,9 @@ class AskGemini2Action() : TemporalAction() {
     }
 
     override fun update(percent: Float) {
-        val client = OkHttpClient.Builder()
-            .dns(CustomDns())
-            .connectTimeout(30, TimeUnit.SECONDS)
-            .readTimeout(60, TimeUnit.SECONDS)
-            .writeTimeout(30, TimeUnit.SECONDS)
-            .build()
+        if (started) return
+        started = true
+        if (scope == null) { started = false; return }
         val model_str = model?.interpretString(scope) ?: "models/gemini-1.5-flash-latest"
         val askVal = ask?.interpretObject(scope) ?: ""
         val apiKey = GeminiManager.api_key
@@ -108,7 +118,7 @@ class AskGemini2Action() : TemporalAction() {
         Log.d("GeminiAPI", "Request Body: $json")
 
         Thread {
-            client.newCall(request).enqueue(object : Callback {
+            okHttpClient.newCall(request).enqueue(object : Callback {
                 override fun onFailure(call: Call, e: IOException) {
                     userVariable?.value = "Response error: ${e.message}"
                 }
@@ -133,5 +143,10 @@ class AskGemini2Action() : TemporalAction() {
                 }
             })
         }.start()
+    }
+
+    override fun restart() {
+        super.restart()
+        started = false
     }
 }

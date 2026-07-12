@@ -35,6 +35,7 @@ class SetCameraFocusPointAction : Action() {
     var vertical: Formula? = null
 
     override fun act(delta: Float): Boolean {
+        if (scope == null) return true
         StageActivity.activeStageActivity.get()?.stageListener?.cameraPositioner?.horizontalFlex =
             horizontal?.interpretFloat(scope) ?: 0.0f
         StageActivity.activeStageActivity.get()?.stageListener?.cameraPositioner?.verticalFlex =

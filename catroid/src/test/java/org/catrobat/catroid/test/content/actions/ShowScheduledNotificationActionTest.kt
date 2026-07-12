@@ -25,6 +25,7 @@ import org.mockito.Mockito
 import org.powermock.api.mockito.PowerMockito
 import org.powermock.core.classloader.annotations.PrepareForTest
 import org.powermock.modules.junit4.PowerMockRunner
+import org.powermock.reflect.Whitebox
 
 @RunWith(PowerMockRunner::class)
 @PrepareForTest(GdxNativesLoader::class, StageActivity::class)
@@ -76,7 +77,7 @@ class ShowScheduledNotificationActionTest {
             iconPath = "", importanceLevel = NotificationManager.IMPORTANCE_DEFAULT, isPinned = false
         ))
 
-        PowerMockito.`when`(StageActivity.activeStageActivity).thenReturn(null)
+        Whitebox.setInternalState(StageActivity::class.java, "activeStageActivity", null)
 
         val action = sprite.actionFactory.createShowScheduledNotificationAction(
             sprite, scriptSequence, Formula(1), Formula(0)
@@ -96,9 +97,7 @@ class ShowScheduledNotificationActionTest {
         val mockNotificationManager = Mockito.mock(NotificationManager::class.java)
         Mockito.`when`(mockActivity.getSystemService(Mockito.eq(Context.NOTIFICATION_SERVICE)))
             .thenReturn(mockNotificationManager)
-        PowerMockito.`when`(StageActivity.activeStageActivity).thenReturn(
-            java.lang.ref.WeakReference(mockActivity)
-        )
+        Whitebox.setInternalState(StageActivity::class.java, "activeStageActivity", java.lang.ref.WeakReference(mockActivity))
 
         val action = sprite.actionFactory.createShowScheduledNotificationAction(
             sprite, scriptSequence, Formula(2), Formula(0)

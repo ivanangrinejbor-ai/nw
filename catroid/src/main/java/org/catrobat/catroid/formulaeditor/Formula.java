@@ -198,8 +198,8 @@ public class Formula implements Serializable {
 	}
 
 	private double assertNotNaN(Double doubleReturnValue) throws InterpretationException {
-		if (doubleReturnValue.isNaN()) {
-			throw new InterpretationException("NaN in interpretDouble()");
+		if (doubleReturnValue.isNaN() || doubleReturnValue.isInfinite()) {
+			throw new InterpretationException("NaN/Infinity in interpretDouble()");
 		}
 		return doubleReturnValue;
 	}

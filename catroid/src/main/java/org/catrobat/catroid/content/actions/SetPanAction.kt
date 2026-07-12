@@ -22,16 +22,22 @@
  */
 package org.catrobat.catroid.content.actions
 
-import android.util.Log
 import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction
 import org.catrobat.catroid.content.Scope
 import org.catrobat.catroid.formulaeditor.Formula
+import org.catrobat.catroid.io.SoundManager
 
 class SetPanAction : TemporalAction() {
     var scope: Scope? = null
     var pan: Formula? = null
 
     override fun update(percent: Float) {
-        Log.d(javaClass.simpleName, "Audio pan value: " + (pan?.interpretFloat(scope) ?: 0f) + " — audio system not available")
+        var value = pan?.interpretFloat(scope) ?: 0f
+        if (value > 1f) {
+            value = 1f
+        } else if (value < -1f) {
+            value = -1f
+        }
+        SoundManager.getInstance().setPan(value)
     }
 }

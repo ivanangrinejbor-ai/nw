@@ -33,7 +33,10 @@ import org.catrobat.catroid.paintroid.command.CommandManager
 import org.catrobat.catroid.paintroid.command.serialization.SerializableTypeface
 import org.catrobat.catroid.paintroid.common.ITALIC_FONT_BOX_ADJUSTMENT
 import org.catrobat.catroid.paintroid.tools.ContextCallback
+import org.catrobat.catroid.paintroid.tools.FontEntry
 import org.catrobat.catroid.paintroid.tools.FontType
+import org.catrobat.catroid.paintroid.tools.ImportedFont
+import org.catrobat.catroid.paintroid.tools.ImportedFontRegistry
 import org.catrobat.catroid.paintroid.tools.ToolPaint
 import org.catrobat.catroid.paintroid.tools.ToolType
 import org.catrobat.catroid.paintroid.tools.Workspace
@@ -62,6 +65,7 @@ private const val BUNDLE_TOOL_BOLD = "BUNDLE_TOOL_BOLD"
 private const val BUNDLE_TOOL_TEXT = "BUNDLE_TOOL_TEXT"
 private const val BUNDLE_TOOL_TEXT_SIZE = "BUNDLE_TOOL_TEXT_SIZE"
 private const val BUNDLE_TOOL_FONT = "BUNDLE_TOOL_FONT"
+private const val BUNDLE_TOOL_IMPORTED_FONT = "BUNDLE_TOOL_IMPORTED_FONT"
 private const val TAG = "Can't set custom font"
 
 class TextTool(
@@ -92,6 +96,8 @@ class TextTool(
     @VisibleForTesting
     @JvmField
     var font = FontType.SANS_SERIF
+
+    private var importedFontName: String? = null
 
     @VisibleForTesting
     @JvmField
@@ -149,18 +155,23 @@ class TextTool(
                 workspace.invalidate()
             }
 
-            override fun setFont(fontType: FontType) {
-                if (fontType === font) return
-                this@TextTool.font = fontType
-                if (fontType == FontType.PROJECT_FONT) {
-                    if (projectFontTypeface != null) {
+            override fun setFont(fontEntry: FontEntry, typeface: Typeface?) {
+                when (fontEntry) {
+                    is FontEntry.BuiltIn -> {
+                        if (fontEntry.fontType === font && importedFontName == null) return
+                        this@TextTool.font = fontEntry.fontType
+                        importedFontName = null
+                        projectFontTypeface = null
                         updateTypeface()
-                    } else {
-                        onProjectFontNeededListener?.invoke()
-                        return
                     }
-                } else {
-                    updateTypeface()
+                    is FontEntry.Imported -> {
+                        this@TextTool.font = FontType.PROJECT_FONT
+                        importedFontName = fontEntry.font.name
+                        if (typeface != null) {
+                            projectFontTypeface = typeface
+                        }
+                        updateTypeface()
+                    }
                 }
                 storeAttributes()
                 resetPreview()
@@ -367,6 +378,7 @@ class TextTool(
             putString(BUNDLE_TOOL_TEXT, text)
             putInt(BUNDLE_TOOL_TEXT_SIZE, textSize)
             putString(BUNDLE_TOOL_FONT, font.name)
+            putString(BUNDLE_TOOL_IMPORTED_FONT, importedFontName ?: "")
         }
     }
 
@@ -379,8 +391,9 @@ class TextTool(
             text = getString(BUNDLE_TOOL_TEXT, text)
             textSize = getInt(BUNDLE_TOOL_TEXT_SIZE, textSize)
             font = FontType.valueOf(getString(BUNDLE_TOOL_FONT, font.name))
+            importedFontName = getString(BUNDLE_TOOL_IMPORTED_FONT, "")?.ifEmpty { null }
         }
-        textToolOptionsView.setState(bold, italic, underlined, text, textSize, font)
+        textToolOptionsView.setState(bold, italic, underlined, text, textSize, currentFontEntry())
         textPaint.isUnderlineText = underlined
         textPaint.isFakeBoldText = bold
         updateTypeface()
@@ -388,14 +401,13 @@ class TextTool(
 
     @SuppressWarnings("TooGenericExceptionCaught")
     private fun updateTypeface() {
-        if (font == FontType.PROJECT_FONT && projectFontTypeface != null) {
-            textPaint.typeface = projectFontTypeface
-            textPaint.textSkewX = if (italic) ITALIC_TEXT_SKEW else DEFAULT_TEXT_SKEW
-            return
-        }
         val style = if (italic) Typeface.ITALIC else Typeface.NORMAL
         val textSkewX = if (italic) ITALIC_TEXT_SKEW else DEFAULT_TEXT_SKEW
         textPaint.textSkewX = textSkewX
+        if (font == FontType.PROJECT_FONT) {
+            textPaint.typeface = projectFontTypeface ?: Typeface.create(Typeface.SANS_SERIF, style)
+            return
+        }
         when (font) {
             FontType.SANS_SERIF -> textPaint.typeface = Typeface.create(Typeface.SANS_SERIF, style)
             FontType.SERIF -> textPaint.typeface = Typeface.create(Typeface.SERIF, style)
@@ -412,13 +424,16 @@ class TextTool(
                 } catch (e: Exception) {
                     Log.e(TAG, "dubai")
                 }
-            FontType.PROJECT_FONT -> {
-                if (projectFontTypeface != null) {
-                    textPaint.typeface = projectFontTypeface
-                }
-            }
+            FontType.PROJECT_FONT -> { /* handled above */ }
         }
     }
+
+    private fun currentFontEntry(): FontEntry =
+        if (font == FontType.PROJECT_FONT && importedFontName != null) {
+            FontEntry.Imported(ImportedFont(importedFontName!!, importedFontName!!))
+        } else {
+            FontEntry.BuiltIn(font)
+        }
 
     private fun changeTextColor() {
         val width = boxWidth
@@ -443,7 +458,8 @@ class TextTool(
             underlined,
             italic,
             textPaint.textSize,
-            textPaint.textSkewX
+            textPaint.textSkewX,
+            importedFontName
         )
 
         val command = commandFactory.createTextToolCommand(
@@ -460,18 +476,6 @@ class TextTool(
         projectFontTypeface = null
     }
 
-    var onProjectFontNeededListener: (() -> Unit)? = null
-
-    fun setProjectFontTypeface(typeface: Typeface, fontName: String? = null) {
-        projectFontTypeface = typeface
-        font = FontType.PROJECT_FONT
-        updateTypeface()
-        resetPreview()
-        workspace.invalidate()
-        if (fontName != null) {
-            textToolOptionsView.setProjectFontName(fontName)
-        }
-    }
 
     @VisibleForTesting
     fun resetBoxPosition() {

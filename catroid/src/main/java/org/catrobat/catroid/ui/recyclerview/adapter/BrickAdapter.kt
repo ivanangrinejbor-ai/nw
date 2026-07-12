@@ -219,9 +219,13 @@ class BrickAdapter(private val sprite: Sprite) :
 
         if (item is SetParticleColorBrick) {
             val colorFormula = item.getFormulaWithBrickField(BrickField.COLOR, true)
-                ?: return createUnknownView("NoneBrick", parent)
+                ?: return createUnknownView("NoneBrick", parent).also { it.tag = item }
         }
-        val itemView = item.getView(parent.context)
+        // Reuse the already-built view for the same brick instead of re-inflating
+        // the full brick UI on every scroll. ListView only passes a recycled view
+        // for the identical Brick instance, so there is no stale-data risk.
+        val itemView: View =
+            if (convertView != null && convertView.tag === item) convertView else item.getView(parent.context)
 
         clearHighlights(itemView as ViewGroup)
 
@@ -350,6 +354,7 @@ class BrickAdapter(private val sprite: Sprite) :
                     indentedLayout.measure(widthSpec, heightSpec)
                     indentedLayout.layout(0, 0, indentedLayout.measuredWidth, indentedLayout.measuredHeight)
 
+                    indentedLayout.tag = item
                     return indentedLayout
                 }
             }
@@ -360,6 +365,7 @@ class BrickAdapter(private val sprite: Sprite) :
             existingParent.removeView(itemView)
         }
 
+        itemView.tag = item
         return itemView
     }
 

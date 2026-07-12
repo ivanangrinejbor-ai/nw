@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/textView"
+    android:layout_width="wrap_content"
+    android:layout_height="40dp"
+    android:background="@drawable/item_font_background"
+    android:gravity="center"
+    android:minWidth="48dp"
+    android:paddingStart="12dp"
+    android:paddingEnd="12dp"
+    android:textColor="@color/pocketpaint_text_primary"
+    android:textSize="16sp"
+    android:textStyle="bold" />

@@ -1029,14 +1029,17 @@ public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.
 		switch (formulaToParse.getErrorTokenIndex()) {
 			case InternFormulaParser.PARSER_OK:
 				return saveValidFormula(formulaParseTree);
-			case InternFormulaParser.PARSER_STACK_OVERFLOW:
-				return checkReturnWithoutSaving(InternFormulaParser.PARSER_STACK_OVERFLOW);
-			case InternFormulaParser.PARSER_NO_INPUT:
-				if (currentFormulaField instanceof Brick.BrickField && Brick.BrickField.isExpectingStringValue((Brick.BrickField) currentFormulaField)) {
-					return saveValidFormula(new FormulaElement(FormulaElement.ElementType.STRING, "", null));
-				}
+		case InternFormulaParser.PARSER_STACK_OVERFLOW:
+			return checkReturnWithoutSaving(InternFormulaParser.PARSER_STACK_OVERFLOW);
+			// break; unreachable after return
 
-			default:
+		case InternFormulaParser.PARSER_NO_INPUT:
+			if (currentFormulaField instanceof Brick.BrickField && Brick.BrickField.isExpectingStringValue((Brick.BrickField) currentFormulaField)) {
+				return saveValidFormula(new FormulaElement(FormulaElement.ElementType.STRING, "", null));
+			}
+			return checkReturnWithoutSaving(InternFormulaParser.PARSER_INPUT_SYNTAX_ERROR);
+
+		default:
 				formulaEditorEditText.setParseErrorCursorAndSelection();
 				return checkReturnWithoutSaving(InternFormulaParser.PARSER_INPUT_SYNTAX_ERROR);
 		}

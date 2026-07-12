@@ -27,7 +27,7 @@ import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction
 import org.catrobat.catroid.content.Scope
 import org.catrobat.catroid.formulaeditor.Formula
 import org.catrobat.catroid.formulaeditor.InterpretationException
-import org.catrobat.catroid.stage.StageActivity
+import org.catrobat.catroid.runtime.RuntimeServicesHolder
 
 // Maximum vibration duration in seconds. Capped at 60s to prevent runaway vibration.
 const val MAX_TIME_TO_VIBRATE: Long = 60
@@ -44,8 +44,7 @@ class VibrateAction : TemporalAction() {
                 newDuration = MAX_TIME_TO_VIBRATE.toFloat()
             }
             super.setDuration(newDuration)
-            val vibrationManager = StageActivity.activeStageActivity.get()?.vibrationManager
-            vibrationManager?.vibrateFor((newDuration * UNIT_CONVERSION).toLong())
+            RuntimeServicesHolder.services.vibrate((newDuration * UNIT_CONVERSION).toLong())
         } catch (interpretationException: InterpretationException) {
             Log.d(
                 javaClass.simpleName,

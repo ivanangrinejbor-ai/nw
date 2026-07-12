@@ -33,6 +33,7 @@ class SetAddAction : TemporalAction() {
     var valueFormula: Formula? = null
 
     override fun update(percent: Float) {
+        if (scope == null) return
         if (userVariable == null) return
         @Suppress("UNCHECKED_CAST")
         val set = userVariable?.value as? HashSet<Any?> ?: return

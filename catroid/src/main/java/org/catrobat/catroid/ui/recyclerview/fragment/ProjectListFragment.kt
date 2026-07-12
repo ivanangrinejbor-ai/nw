@@ -569,7 +569,8 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
                     }
                 }
             },
-            contentResolver = context.contentResolver
+            contentResolver = context.contentResolver,
+            importContext = context
         )
         importTask = importer
         importer.unZipAndImportFromUris(uris)

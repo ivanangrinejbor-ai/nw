@@ -51,12 +51,14 @@ import com.google.android.material.chip.Chip
 import com.google.android.material.snackbar.Snackbar
 import android.widget.EditText
 import android.widget.LinearLayout
+import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.RadioGroup
 import android.widget.RadioButton
 import com.google.android.material.textfield.TextInputEditText
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import org.catrobat.catroid.CatroidApplication
 import org.catrobat.catroid.ProjectManager
@@ -180,7 +182,7 @@ class ProjectOptionsFragment : Fragment() {
     private fun setupBakeOption() {
         val bakeBtn = view?.findViewById<android.widget.TextView>(R.id.project_options_bake)
         bakeBtn?.setOnClickListener {
-            exportBakedProject()
+            runExportWalkthrough { exportBakedProject() }
         }
     }
 
@@ -805,9 +807,66 @@ class ProjectOptionsFragment : Fragment() {
             )
             androidx.appcompat.app.AlertDialog.Builder(requireContext())
                 .setItems(items) { _, which ->
-                    if (which == 0) exportProject() else exportWithPassword()
+                    if (which == 0) runExportWalkthrough { exportProject() }
+                    else runExportWalkthrough { exportWithPassword() }
                 }
                 .show()
+        }
+    }
+
+    /**
+     * Mini progress menu shown while an export begins: walks the project's
+     * scenes, their objects and sounds, showing the current item, then starts
+     * the real export (save to device). No upfront "what will be exported" list.
+     */
+    private fun runExportWalkthrough(onExport: () -> Unit) {
+        saveProject()
+        val proj = project ?: return
+        val context: Context = requireContext()
+        val density = resources.displayMetrics.density
+        val pad = (24 * density).toInt()
+
+        val status = TextView(context).apply {
+            textSize = 15f
+            gravity = android.view.Gravity.CENTER
+            setPadding(pad, pad, pad, pad)
+            setText(R.string.export_exporting)
+        }
+        val dialog = androidx.appcompat.app.AlertDialog.Builder(context)
+            .setTitle(R.string.export_project)
+            .setView(status)
+            .setCancelable(false)
+            .create()
+        dialog.show()
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            val scenes = proj.sceneList
+            if (scenes.isEmpty()) {
+                withContext(Dispatchers.Main) { status.setText(R.string.export_summary_empty) }
+                delay(600)
+            }
+            for (scene in scenes) {
+                withContext(Dispatchers.Main) {
+                    status.text = "${getString(R.string.export_summary_scene)}: ${scene.name}"
+                }
+                delay(120)
+                for (sprite in scene.spriteList) {
+                    withContext(Dispatchers.Main) {
+                        status.text = "${getString(R.string.export_summary_object)}: ${sprite.name}"
+                    }
+                    delay(60)
+                    for (sound in sprite.soundList) {
+                        withContext(Dispatchers.Main) {
+                            status.text = "${getString(R.string.export_summary_sound)}: ${sound.name}"
+                        }
+                        delay(30)
+                    }
+                }
+            }
+            withContext(Dispatchers.Main) {
+                dialog.dismiss()
+                onExport()
+            }
         }
     }
 

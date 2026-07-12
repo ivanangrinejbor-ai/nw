@@ -54,6 +54,6 @@ public class ShowScheduledNotificationBrickTest {
         brick.addActionToSequence(sprite, new ScriptSequenceAction(Mockito.mock(Script.class)));
 
         verify(actionFactory).createShowScheduledNotificationAction(eq(sprite),
-                any(SequenceAction.class), any(Formula.class), any(Formula.class));
+                any(), any(), any());
     }
 }

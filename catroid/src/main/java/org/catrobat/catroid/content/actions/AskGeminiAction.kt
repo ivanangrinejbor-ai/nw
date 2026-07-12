@@ -73,6 +73,19 @@ data class Part(
 
 
 class AskGeminiAction() : TemporalAction() {
+    companion object {
+        private val okHttpClient by lazy {
+            OkHttpClient.Builder()
+                .dns(CustomDns())
+                .connectTimeout(30, TimeUnit.SECONDS)
+                .readTimeout(30, TimeUnit.SECONDS)
+                .writeTimeout(30, TimeUnit.SECONDS)
+                .build()
+        }
+    }
+
+    private var started = false
+
     var scope: Scope? = null
     var ask: Formula? = null
     var userVariable: UserVariable? = null
@@ -82,17 +95,13 @@ class AskGeminiAction() : TemporalAction() {
     }
 
     override fun update(percent: Float) {
+        if (started) return
+        started = true
+        if (scope == null) { started = false; return }
         val askVal = ask?.interpretObject(scope) ?: ""
         val apiKey = GeminiManager.api_key
         if (apiKey.isNullOrBlank()) return
         if (userVariable == null) return
-
-        val client = OkHttpClient.Builder()
-            .dns(CustomDns())
-            .connectTimeout(30, TimeUnit.SECONDS)
-            .readTimeout(60, TimeUnit.SECONDS)
-            .writeTimeout(30, TimeUnit.SECONDS)
-            .build()
 
         val urlText = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
 
@@ -116,7 +125,7 @@ class AskGeminiAction() : TemporalAction() {
             .header("x-goog-api-key", apiKey)
             .build()
 
-        client.newCall(request).enqueue(object : Callback {
+        okHttpClient.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 userVariable?.value = "Response error: ${e.message}"
             }
@@ -140,5 +149,10 @@ class AskGeminiAction() : TemporalAction() {
                 }
             }
         })
+    }
+
+    override fun restart() {
+        super.restart()
+        started = false
     }
 }

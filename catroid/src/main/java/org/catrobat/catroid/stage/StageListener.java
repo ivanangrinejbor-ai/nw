@@ -796,8 +796,8 @@ public class StageListener implements ApplicationListener {
 
 		copy.look.setRenderingContext(this.camera, this.viewPort, this.uiStage);
 		addCloneActorToStage(stage, stage.getRoot(), cloneMe.look, copy.look);
-		sprites.add(copy);
 		copy.cloneIndex = cloneCounter.getAndIncrement();
+		sprites.add(copy);
 		if (!copy.getLookList().isEmpty()) {
 			int currentLookDataIndex = cloneMe.getLookList().indexOf(cloneMe.look.getLookData());
 			copy.look.setLookData(copy.getLookList().get(currentLookDataIndex));
@@ -816,8 +816,8 @@ public class StageListener implements ApplicationListener {
 
 		copy.look.setRenderingContext(this.camera, this.viewPort, this.uiStage);
 		addCloneActorToStage(stage, stage.getRoot(), cloneMe.look, copy.look);
-		sprites.add(copy);
 		copy.cloneIndex = cloneCounter.getAndIncrement();
+		sprites.add(copy);
 		if (!copy.getLookList().isEmpty()) {
 			int currentLookDataIndex = cloneMe.getLookList().indexOf(cloneMe.look.getLookData());
 			copy.look.setLookData(copy.getLookList().get(currentLookDataIndex));
@@ -853,6 +853,7 @@ public class StageListener implements ApplicationListener {
 			}
 		}
 		StageActivity.resetNumberOfClonedSprites();
+		cloneCounter.set(1);
 	}
 
 	public List<Sprite> getAllClonesOfSprite(Sprite sprite) {
@@ -932,25 +933,32 @@ public class StageListener implements ApplicationListener {
 	}
 
 	public void transitionToScene(String sceneName) {
-
 		Scene newScene = ProjectManager.getInstance().getCurrentProject().getSceneByName(sceneName);
-
 		if (newScene == null) {
 			return;
 		}
+		startSceneTransition(sceneName, newScene, () -> doSceneSwitch(newScene));
+	}
 
-		if (transitionManager != null && newScene.getTransitionType() != 0) {
-			float duration = newScene.getTransitionDuration();
-			if (duration < 0.1f) duration = 0.1f;
-			if (newScene.getTransitionType() == 1) {
-				transitionManager.startTransition(TransitionType.FADE_OUT, sceneName, duration);
-			} else {
-				transitionManager.startTransition(TransitionType.FADE_IN, sceneName, duration);
-			}
-			return;
+	private void startSceneTransition(String sceneName, Scene newScene, Runnable switchAction) {
+		Scene oldScene = this.scene;
+		int exitType = (oldScene != null && oldScene != newScene)
+				? oldScene.getExitTransitionType() : Scene.TRANSITION_TYPE_NONE;
+		float exitDur = (oldScene != null) ? oldScene.getExitTransitionDuration() : 0.5f;
+		int enterType = newScene.getStartTransitionType();
+		float enterDur = newScene.getStartTransitionDuration();
+		if (transitionManager != null
+				&& (exitType != Scene.TRANSITION_TYPE_NONE || enterType != Scene.TRANSITION_TYPE_NONE)) {
+			org.catrobat.catroid.content.TransitionType exitT = exitType == Scene.TRANSITION_TYPE_FADE
+					? org.catrobat.catroid.content.TransitionType.FADE_OUT
+					: org.catrobat.catroid.content.TransitionType.NONE;
+			org.catrobat.catroid.content.TransitionType enterT = enterType == Scene.TRANSITION_TYPE_FADE
+					? org.catrobat.catroid.content.TransitionType.FADE_IN
+					: org.catrobat.catroid.content.TransitionType.NONE;
+			transitionManager.startSceneTransition(exitT, exitDur, enterT, enterDur, sceneName, switchAction);
+		} else {
+			switchAction.run();
 		}
-
-		doSceneSwitch(newScene);
 	}
 
 	public void doSceneSwitch(Scene newScene) {
@@ -1005,27 +1013,25 @@ public class StageListener implements ApplicationListener {
 	}
 
 	public void transitionToScene(String sceneName, Boolean stopSounds, Boolean save) {
-
 		Scene newScene = ProjectManager.getInstance().getCurrentProject().getSceneByName(sceneName);
-
 		if (newScene == null) {
 			return;
 		}
+		startSceneTransition(sceneName, newScene, () -> applySceneSwitch(newScene, stopSounds, save));
+	}
 
-		if(save) {
+	private void applySceneSwitch(Scene newScene, boolean stopSounds, boolean save) {
+		if (save) {
 			stageBackupMap.put(scene.getName(), saveToBackup());
 		}
-		if(stopSounds) {
+		if (stopSounds) {
 			pause();
 		}
-
 		scene = newScene;
 		ProjectManager.getInstance().setCurrentlyPlayingScene(scene);
-
 		if (stageBackupMap.containsKey(scene.getName())) {
 			restoreFromBackup(stageBackupMap.get(scene.getName()));
 		}
-
 		if (scene.firstStart) {
 			create();
 			resume();
@@ -1040,60 +1046,24 @@ public class StageListener implements ApplicationListener {
 	}
 
 	public void startScene(String sceneName, Boolean stopSound) {
-
-		Scene newScene = ProjectManager.getInstance().getCurrentProject().getSceneByName(sceneName);
-
-		if (newScene == null) {
-			return;
-		}
-
-		stageBackupMap.put(scene.getName(), saveToBackup());
-		if(stopSound) {
-			pause();
-		}
-
-		scene = newScene;
-		ProjectManager.getInstance().setCurrentlyPlayingScene(scene);
-
-		CameraManager cameraManager = StageActivity.getActiveCameraManager();
-		if (cameraManager != null) {
-			StageActivity.runOnMainThread(new Runnable() {
-				@Override
-				public void run() {
-					cameraManager.resume();
-				}
-			});
-		}
-
-		if(stopSound) {
-			SoundManager.getInstance().clear();
-		}
-		get(SpeechRecognitionHolderFactory.class).getInstance().destroy();
-
-		stageBackupMap.remove(sceneName);
-
-		Gdx.input.setInputProcessor(stage);
-
-		scene.firstStart = true;
-		create();
-		resume();
+		startScene(sceneName, stopSound, false);
 	}
 
 	public void startScene(String sceneName, Boolean stopSound, Boolean save) {
-
 		Scene newScene = ProjectManager.getInstance().getCurrentProject().getSceneByName(sceneName);
-
 		if (newScene == null) {
 			return;
 		}
+		startSceneTransition(sceneName, newScene, () -> applyStartScene(newScene, stopSound, save));
+	}
 
-		if(save) {
+	private void applyStartScene(Scene newScene, boolean stopSound, boolean save) {
+		if (save) {
 			stageBackupMap.put(scene.getName(), saveToBackup());
 		}
-		if(stopSound) {
+		if (stopSound) {
 			pause();
 		}
-
 		scene = newScene;
 		ProjectManager.getInstance().setCurrentlyPlayingScene(scene);
 
@@ -1107,12 +1077,12 @@ public class StageListener implements ApplicationListener {
 			});
 		}
 
-		if(stopSound) {
+		if (stopSound) {
 			SoundManager.getInstance().clear();
 		}
 		get(SpeechRecognitionHolderFactory.class).getInstance().destroy();
 
-		stageBackupMap.remove(sceneName);
+		stageBackupMap.remove(newScene.getName());
 
 		Gdx.input.setInputProcessor(stage);
 
@@ -1122,76 +1092,16 @@ public class StageListener implements ApplicationListener {
 	}
 
 	public void startScene(String sceneName) {
-
-		Scene newScene = ProjectManager.getInstance().getCurrentProject().getSceneByName(sceneName);
-
-		if (newScene == null) {
-			return;
-		}
-
-		stageBackupMap.put(scene.getName(), saveToBackup());
-		pause();
-
-		scene = newScene;
-		ProjectManager.getInstance().setCurrentlyPlayingScene(scene);
-
-		CameraManager cameraManager = StageActivity.getActiveCameraManager();
-		if (cameraManager != null) {
-			StageActivity.runOnMainThread(new Runnable() {
-				@Override
-				public void run() {
-					cameraManager.resume();
-				}
-			});
-		}
-
-		SoundManager.getInstance().clear();
-		get(SpeechRecognitionHolderFactory.class).getInstance().destroy();
-
-		stageBackupMap.remove(sceneName);
-
-		Gdx.input.setInputProcessor(stage);
-
-		scene.firstStart = true;
-		create();
-		resume();
+		startScene(sceneName, true, true);
 	}
 
 	public void startSceneById(Integer sceneId) {
-
 		Scene newScene = ProjectManager.getInstance().getCurrentProject().getSceneById(sceneId);
 		String sceneName = ProjectManager.getInstance().getCurrentProject().getSceneNameById(sceneId);
-
 		if (newScene == null) {
 			return;
 		}
-
-		stageBackupMap.put(scene.getName(), saveToBackup());
-		pause();
-
-		scene = newScene;
-		ProjectManager.getInstance().setCurrentlyPlayingScene(scene);
-
-		CameraManager cameraManager = StageActivity.getActiveCameraManager();
-		if (cameraManager != null) {
-			StageActivity.runOnMainThread(new Runnable() {
-				@Override
-				public void run() {
-					cameraManager.resume();
-				}
-			});
-		}
-
-		SoundManager.getInstance().clear();
-		get(SpeechRecognitionHolderFactory.class).getInstance().destroy();
-
-		stageBackupMap.remove(sceneName);
-
-		Gdx.input.setInputProcessor(stage);
-
-		scene.firstStart = true;
-		create();
-		resume();
+		startScene(sceneName, true, true);
 	}
 
 	public void reloadProject(StageDialog stageDialog) {

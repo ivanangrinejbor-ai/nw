@@ -362,7 +362,7 @@ public class InternFormulaParser {
 	private String number() throws InternFormulaParserException {
 		String numberToCheck = currentToken.getTokenStringValue();
 
-		if (!numberToCheck.matches("-?(\\d)+(\\.(\\d)+)?")) {
+		if (!numberToCheck.matches("[+-]?(\\d)+(\\.\\d*)?([eE][+-]?\\d+)?")) {
 			throw new InternFormulaParserException("Parse Error");
 		}
 

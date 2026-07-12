@@ -32,6 +32,7 @@ class QueueDequeueAction : TemporalAction() {
     var destVariable: UserVariable? = null
 
     override fun update(percent: Float) {
+        if (scope == null) return
         if (userVariable == null || destVariable == null) return
         @Suppress("UNCHECKED_CAST")
         val queue = userVariable?.value as? java.util.LinkedList<Any?> ?: return

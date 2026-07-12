@@ -283,46 +283,93 @@ class SceneListFragment : RecyclerViewFragment<Scene?>(),
         if (scene == null) return
         val context = requireContext()
 
-        val types = arrayOf(
-            context.getString(R.string.scene_transition_none),
-            context.getString(R.string.scene_transition_fade_out),
-            context.getString(R.string.scene_transition_fade_in)
-        )
-
         val layout = android.widget.LinearLayout(context).apply {
             orientation = android.widget.LinearLayout.VERTICAL
             setPadding(60, 20, 60, 0)
         }
 
-        val typeSpinner = android.widget.Spinner(context).apply {
-            adapter = android.widget.ArrayAdapter(context, android.R.layout.simple_spinner_item, types).also {
-                it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        fun buildSection(
+            headerRes: Int,
+            options: Array<String>,
+            selected: Int,
+            duration: Float,
+            onSeek: (Float) -> Unit
+        ): android.widget.Spinner {
+            val header = android.widget.TextView(context).apply {
+                setText(headerRes)
+                textSize = 16f
+                setPadding(0, 16, 0, 4)
             }
-            setSelection(scene.transitionType.coerceIn(0, 2))
+
+            val spinner = android.widget.Spinner(context).apply {
+                adapter = android.widget.ArrayAdapter(context, android.R.layout.simple_spinner_item, options).also {
+                    it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+                }
+                setSelection(selected.coerceIn(0, options.size - 1))
+            }
+
+            val valueText = android.widget.TextView(context).apply {
+                text = String.format(java.util.Locale.US, "%.1f s", duration)
+                setPadding(0, 0, 16, 0)
+            }
+            val seek = android.widget.SeekBar(context).apply {
+                max = 50
+                progress = (duration * 10).toInt().coerceIn(1, 50)
+                setOnSeekBarChangeListener(object : android.widget.SeekBar.OnSeekBarChangeListener {
+                    override fun onProgressChanged(s: android.widget.SeekBar?, p: Int, fromUser: Boolean) {
+                        val v = (p / 10f).coerceAtLeast(0.1f)
+                        valueText.text = String.format(java.util.Locale.US, "%.1f s", v)
+                        onSeek(v)
+                    }
+                    override fun onStartTrackingTouch(s: android.widget.SeekBar?) {}
+                    override fun onStopTrackingTouch(s: android.widget.SeekBar?) {}
+                })
+            }
+
+            val durRow = android.widget.LinearLayout(context).apply { orientation = android.widget.LinearLayout.HORIZONTAL }
+            val durLabel = android.widget.TextView(context).apply {
+                setText(R.string.scene_transition_duration)
+                setPadding(0, 0, 16, 0)
+            }
+            durRow.addView(durLabel)
+            durRow.addView(valueText, android.widget.LinearLayout.LayoutParams(0, android.widget.LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+
+            layout.addView(header)
+            layout.addView(spinner)
+            layout.addView(durRow)
+            layout.addView(seek)
+            return spinner
         }
 
-        val durLayout = android.widget.LinearLayout(context).apply { orientation = android.widget.LinearLayout.HORIZONTAL }
-        val durLabel = android.widget.TextView(context).apply {
-            text = context.getString(R.string.scene_transition_duration)
-            setPadding(0, 0, 16, 0)
-        }
-        val durInput = android.widget.EditText(context).apply {
-            setText(String.format(java.util.Locale.US, "%.1f", scene.transitionDuration))
-            inputType = android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL
-        }
-        durLayout.addView(durLabel)
-        durLayout.addView(durInput, android.widget.LinearLayout.LayoutParams(0, android.widget.LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+        val startOptions = arrayOf(
+            context.getString(R.string.scene_transition_none),
+            context.getString(R.string.scene_transition_fade_in)
+        )
+        val exitOptions = arrayOf(
+            context.getString(R.string.scene_transition_none),
+            context.getString(R.string.scene_transition_fade_out)
+        )
 
-        layout.addView(typeSpinner)
-        layout.addView(durLayout)
+        var startType = scene.startTransitionType
+        var startDur = scene.startTransitionDuration
+        var exitType = scene.exitTransitionType
+        var exitDur = scene.exitTransitionDuration
+
+        val startSpinner = buildSection(
+            R.string.scene_transition_start, startOptions, scene.startTransitionType, scene.startTransitionDuration
+        ) { startDur = it }
+        val exitSpinner = buildSection(
+            R.string.scene_transition_exit, exitOptions, scene.exitTransitionType, scene.exitTransitionDuration
+        ) { exitDur = it }
 
         androidx.appcompat.app.AlertDialog.Builder(context)
             .setTitle(R.string.scene_transition_title)
             .setView(layout)
             .setPositiveButton(R.string.ok) { _, _ ->
-                scene.transitionType = typeSpinner.selectedItemPosition
-                val dur = try { durInput.text.toString().toFloat() } catch (_: Exception) { 1.0f }
-                scene.transitionDuration = dur
+                scene.startTransitionType = startSpinner.selectedItemPosition
+                scene.startTransitionDuration = startDur.coerceAtLeast(0.1f)
+                scene.exitTransitionType = exitSpinner.selectedItemPosition
+                scene.exitTransitionDuration = exitDur.coerceAtLeast(0.1f)
             }
             .setNegativeButton(R.string.cancel, null)
             .show()

@@ -51,5 +51,7 @@ public class JumpingSumoRotateLeftBrick extends FormulaBrick {
 
 	@Override
 	public void addActionToSequence(Sprite sprite, ScriptSequenceAction sequence) {
+		sequence.addAction(sprite.getActionFactory().createJumpingSumoRotateLeftAction(sprite, sequence,
+				getFormulaWithBrickField(BrickField.JUMPING_SUMO_ROTATE)));
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Paintroid: An image manipulation application for Android.
+ * NeoCatroid / NeoPaint — font list adapter for the text tool.
  *  Copyright (C) 2010-2022 The Catrobat Team
  * (<http://developer.catrobat.org/credits>)
  *
@@ -23,85 +23,67 @@ import android.graphics.Typeface
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import androidx.core.content.res.ResourcesCompat
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.chip.Chip
 import org.catrobat.catroid.R
-
+import org.catrobat.catroid.paintroid.tools.FontEntry
 import org.catrobat.catroid.paintroid.tools.FontType
+import org.catrobat.catroid.paintroid.tools.ImportedFontRegistry
 
-class FontListAdapter internal constructor(
-    context: Context,
-    private val fontTypes: List<FontType>,
-    private val onFontChanged: (FontType) -> Unit
+class FontListAdapter(
+    private val context: Context,
+    var fontEntries: List<FontEntry>,
+    private val onFontClicked: (FontEntry) -> Unit
 ) : RecyclerView.Adapter<FontListAdapter.ViewHolder>() {
-    private val mInflater: LayoutInflater = LayoutInflater.from(context)
-    private var selectedIndex = 0
-    var customFontName: String? = null
 
-    private val sansSerif = Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL)
-    private val monospace = Typeface.create(Typeface.MONOSPACE, Typeface.NORMAL)
-    private val serif = Typeface.create(Typeface.SERIF, Typeface.NORMAL)
-    private val dubai = ResourcesCompat.getFont(context, R.font.dubai)
-    private val stc = ResourcesCompat.getFont(context, R.font.stc_regular)
+    var selectedIndex = 0
+        private set
 
-    private val typeFaces = arrayOf(
-        sansSerif,
-        monospace,
-        serif,
-        dubai,
-        stc,
-        null
-    )
+    class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        val textView: TextView = itemView.findViewById(R.id.textView)
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view: View = mInflater.inflate(R.layout.pocketpaint_item_font, parent, false)
+        val view = LayoutInflater.from(context).inflate(R.layout.item_font, parent, false)
         return ViewHolder(view)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val font = fontTypes[position]
-        if (font == FontType.PROJECT_FONT) {
-            holder.fontChip.text = customFontName ?: holder.itemView.context.getString(R.string.text_tool_dialog_project_font)
-            holder.fontChip.typeface = null
-        } else {
-            holder.fontChip.setText(font.nameResource)
-            holder.fontChip.typeface = typeFaces.getOrNull(position)
+        val entry = fontEntries[position]
+        val typeface = when (entry) {
+            is FontEntry.Imported ->
+                ImportedFontRegistry.getTypeface(context, entry.font.name) ?: Typeface.SANS_SERIF
+            is FontEntry.BuiltIn -> when (entry.fontType) {
+                FontType.SANS_SERIF -> Typeface.SANS_SERIF
+                FontType.SERIF -> Typeface.SERIF
+                FontType.MONOSPACE -> Typeface.MONOSPACE
+                FontType.STC -> ResourcesCompat.getFont(context, R.font.stc_regular)
+                FontType.DUBAI -> ResourcesCompat.getFont(context, R.font.dubai)
+                FontType.PROJECT_FONT -> Typeface.SANS_SERIF
+            }
         }
-        holder.fontChip.isChecked = position == selectedIndex
-    }
-
-    override fun getItemCount(): Int = fontTypes.size
-
-    fun setSelectedIndex(selectedIndex: Int) {
-        val oldSelectedIndex = this.selectedIndex
-        this.selectedIndex = selectedIndex
-        notifyItemChanged(oldSelectedIndex)
-        notifyItemChanged(selectedIndex)
-    }
-
-    fun getSelectedItem(): FontType = fontTypes[selectedIndex]
-
-    fun setProjectFontName(name: String) {
-        customFontName = name
-        val projectIndex = fontTypes.indexOf(FontType.PROJECT_FONT)
-        if (projectIndex >= 0) {
-            notifyItemChanged(projectIndex)
+        holder.textView.typeface = typeface
+        holder.textView.text = entry.displayName(context)
+        holder.textView.isSelected = position == selectedIndex
+        holder.itemView.setOnClickListener {
+            val previous = selectedIndex
+            selectedIndex = position
+            notifyItemChanged(previous)
+            notifyItemChanged(selectedIndex)
+            onFontClicked(entry)
         }
     }
 
-    inner class ViewHolder internal constructor(itemView: View) :
-        RecyclerView.ViewHolder(itemView),
-        View.OnClickListener {
-        var fontChip: Chip = itemView.findViewById(R.id.pocketpaint_font_type)
+    override fun getItemCount(): Int = fontEntries.size
 
-        init {
-            fontChip.setOnClickListener(this)
-        }
+    fun setSelectedFontIndex(index: Int) {
+        selectedIndex = index
+        notifyItemChanged(index)
+    }
 
-        override fun onClick(p0: View?) {
-            setSelectedIndex(layoutPosition)
-            onFontChanged(fontTypes[layoutPosition])
-        }
+    fun updateEntries(entries: List<FontEntry>) {
+        fontEntries = entries
+        notifyDataSetChanged()
     }
 }

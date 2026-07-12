@@ -56,7 +56,11 @@ import androidx.annotation.NonNull;
 		"name",
 		"objectList",
 		"transitionType",
-		"transitionDuration"
+		"transitionDuration",
+		"startTransitionType",
+		"startTransitionDuration",
+		"exitTransitionType",
+		"exitTransitionDuration"
 })
 @LunoClass
 public class Scene implements Nameable, Serializable {
@@ -74,6 +78,18 @@ public class Scene implements Nameable, Serializable {
 	private int transitionType = 0;
 	@XStreamAlias("transitionDuration")
 	private float transitionDuration = 1.0f;
+
+	public static final int TRANSITION_TYPE_NONE = 0;
+	public static final int TRANSITION_TYPE_FADE = 1;
+
+	@XStreamAlias("startTransitionType")
+	private int startTransitionType = TRANSITION_TYPE_NONE;
+	@XStreamAlias("startTransitionDuration")
+	private float startTransitionDuration = 1.0f;
+	@XStreamAlias("exitTransitionType")
+	private int exitTransitionType = TRANSITION_TYPE_NONE;
+	@XStreamAlias("exitTransitionDuration")
+	private float exitTransitionDuration = 1.0f;
 
 	private transient PhysicsWorld physicsWorld;
 	private transient Project project;
@@ -135,6 +151,38 @@ public class Scene implements Nameable, Serializable {
 
 	public void setTransitionDuration(float transitionDuration) {
 		this.transitionDuration = Math.max(0.1f, Math.min(40f, transitionDuration));
+	}
+
+	public int getStartTransitionType() {
+		return startTransitionType;
+	}
+
+	public void setStartTransitionType(int startTransitionType) {
+		this.startTransitionType = startTransitionType;
+	}
+
+	public float getStartTransitionDuration() {
+		return startTransitionDuration;
+	}
+
+	public void setStartTransitionDuration(float startTransitionDuration) {
+		this.startTransitionDuration = Math.max(0.1f, Math.min(40f, startTransitionDuration));
+	}
+
+	public int getExitTransitionType() {
+		return exitTransitionType;
+	}
+
+	public void setExitTransitionType(int exitTransitionType) {
+		this.exitTransitionType = exitTransitionType;
+	}
+
+	public float getExitTransitionDuration() {
+		return exitTransitionDuration;
+	}
+
+	public void setExitTransitionDuration(float exitTransitionDuration) {
+		this.exitTransitionDuration = Math.max(0.1f, Math.min(40f, exitTransitionDuration));
 	}
 
 	public Project getProject() {

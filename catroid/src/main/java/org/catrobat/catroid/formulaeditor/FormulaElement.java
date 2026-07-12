@@ -51,6 +51,8 @@ import org.luaj.vm2.Globals;
 import org.luaj.vm2.lib.jse.JsePlatform;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.MathContext;
@@ -440,6 +442,9 @@ public class FormulaElement implements Serializable {
     }
 
     private Object rawInterpretRecursive(Scope scope) {
+        if (scope == null) {
+            return FALSE;
+        }
         org.catrobat.catroid.utils.PerformanceTracker.formulaEvaluations.incrementAndGet();
 
         switch (type) {
@@ -528,6 +533,9 @@ public class FormulaElement implements Serializable {
     }
 
     private Object interpretFunction(Functions function, Scope scope) {
+        if (scope == null) {
+            return FALSE;
+        }
         if (function == Functions.IF_THEN_ELSE) {
             Double condition = convertArgumentToDouble(tryInterpretRecursive(leftChild, scope));
 
@@ -563,6 +571,9 @@ public class FormulaElement implements Serializable {
                 } catch (Exception e) {
                     return false;
                 }
+            }
+            case FILE_READ_STRING: {
+                return readLineFromFile(scope.getProject().getFilesDir(), String.valueOf(arg0), String.valueOf(arg1));
             }
             case FILES_PATH: {
                 Project currentProject1 = ProjectManager.getInstance().getCurrentProject();
@@ -614,7 +625,7 @@ public class FormulaElement implements Serializable {
                     File downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
                     File dir = new File(downloadsDir, dirName);
                     File file = new File(dir, fileName);
-                    return (int) getFileSize(file);
+                    return (double) getFileSize(file);
                 } catch (Exception e) { return 0; }
             }
             case FILE_SIZE_AT_PATH: {
@@ -624,7 +635,7 @@ public class FormulaElement implements Serializable {
                     File downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
                     File dir = new File(downloadsDir, path);
                     File file = new File(dir, fileName);
-                    return (int) getFileSize(file);
+                    return (double) getFileSize(file);
                 } catch (Exception e) { return 0; }
             }
             case TO_HEX: {
@@ -743,6 +754,14 @@ public class FormulaElement implements Serializable {
             case OBJECT_INTERSECTS_OBJECT: {
                 ThreeDManager manager = getThreeDManager();
                 return manager != null ? Conversions.booleanToDouble(manager.checkIntersection(String.valueOf(arg0), String.valueOf(arg1))) : Conversions.FALSE;
+            }
+            case ID_OF_DETECTED_OBJECT: {
+                // Wired to the real object-detection source (ObjectDetectorResults, populated by
+                // ObjectDetectorFunctionProvider) so this is intentional, not a silent default fall-through.
+                return interpretFormulaFunction(function, arg0, arg1, arg2);
+            }
+            case OBJECT_WITH_ID_VISIBLE: {
+                return interpretFormulaFunction(function, arg0, arg1, arg2);
             }
             case GET_CAMERA_ROTATION_YAW: {
                 ThreeDManager manager = getThreeDManager();
@@ -1576,6 +1595,95 @@ public class FormulaElement implements Serializable {
                     return false;
                 }
             }
+
+            // -- Cryptography ---
+            case SHA_224:
+                return CryptoFormulaHelper.sha("SHA-224", String.valueOf(arg0));
+            case SHA_256:
+                return CryptoFormulaHelper.sha("SHA-256", String.valueOf(arg0));
+            case SHA_384:
+                return CryptoFormulaHelper.sha("SHA-384", String.valueOf(arg0));
+            case SHA_512:
+                return CryptoFormulaHelper.sha("SHA-512", String.valueOf(arg0));
+            case HASH_BYTES:
+                return CryptoFormulaHelper.hashBytes(String.valueOf(arg0));
+            case HASH_FILE:
+                return CryptoFormulaHelper.hashFile(String.valueOf(arg0));
+            case AES_ENCRYPT:
+                return CryptoFormulaHelper.aesEncrypt(String.valueOf(arg0), String.valueOf(arg1));
+            case AES_DECRYPT:
+                return CryptoFormulaHelper.aesDecrypt(String.valueOf(arg0), String.valueOf(arg1));
+            case CHACHA20_ENCRYPT:
+                return CryptoFormulaHelper.chaCha20Encrypt(String.valueOf(arg0), String.valueOf(arg1), String.valueOf(arg2));
+            case CHACHA20_DECRYPT:
+                return CryptoFormulaHelper.chaCha20Decrypt(String.valueOf(arg0), String.valueOf(arg1), String.valueOf(arg2));
+            case PBKDF2: {
+                Integer iters = tryParseIntFromObject(arg2);
+                return CryptoFormulaHelper.pbkdf2(String.valueOf(arg0), String.valueOf(arg1), iters != null ? iters : 10000);
+            }
+            case GENERATE_SALT: {
+                Integer len = tryParseIntFromObject(arg0);
+                return CryptoFormulaHelper.generateSalt(len != null ? len : 16);
+            }
+            case DERIVE_KEY:
+                return CryptoFormulaHelper.deriveKey(String.valueOf(arg0));
+            case GENERATE_AES_KEY: {
+                Integer bits = tryParseIntFromObject(arg0);
+                return CryptoFormulaHelper.generateAesKey(bits != null ? bits : 256);
+            }
+            case GENERATE_RANDOM_BYTES: {
+                Integer len = tryParseIntFromObject(arg0);
+                return CryptoFormulaHelper.generateRandomBytes(len != null ? len : 16);
+            }
+            case GENERATE_PASSWORD: {
+                Integer len = tryParseIntFromObject(arg0);
+                return CryptoFormulaHelper.generatePassword(len != null ? len : 16);
+            }
+            case GENERATE_UUID:
+                return CryptoFormulaHelper.generateUuid();
+            case RANDOM_HEX: {
+                Integer len = tryParseIntFromObject(arg0);
+                return CryptoFormulaHelper.randomHex(len != null ? len : 16);
+            }
+            case RANDOM_BASE64: {
+                Integer len = tryParseIntFromObject(arg0);
+                return CryptoFormulaHelper.randomBase64(len != null ? len : 16);
+            }
+            case RANDOM_INT_SECURE:
+                return CryptoFormulaHelper.randomIntSecure(tryInterpretDoubleValue(arg0), tryInterpretDoubleValue(arg1));
+            case RANDOM_STRING_SECURE: {
+                Integer len = tryParseIntFromObject(arg0);
+                return CryptoFormulaHelper.randomStringSecure(len != null ? len : 16);
+            }
+            case BASE64_ENCODE:
+                return CryptoFormulaHelper.base64Encode(String.valueOf(arg0));
+            case BASE64_DECODE:
+                return CryptoFormulaHelper.base64Decode(String.valueOf(arg0));
+            case HEX_ENCODE:
+                return CryptoFormulaHelper.hexEncode(String.valueOf(arg0));
+            case HEX_DECODE:
+                return CryptoFormulaHelper.hexDecode(String.valueOf(arg0));
+            case COMPARE_HASH:
+                return CryptoFormulaHelper.compareHash(String.valueOf(arg0), String.valueOf(arg1));
+            case IS_BASE64:
+                return CryptoFormulaHelper.isBase64(String.valueOf(arg0));
+            case IS_HEX:
+                return CryptoFormulaHelper.isHex(String.valueOf(arg0));
+            case HMAC_SHA_256:
+                return CryptoFormulaHelper.hmacSha256(String.valueOf(arg0), String.valueOf(arg1));
+            case HMAC_SHA_512:
+                return CryptoFormulaHelper.hmacSha512(String.valueOf(arg0), String.valueOf(arg1));
+            case RSA_GENERATE_KEY_PAIR:
+                return CryptoFormulaHelper.rsaGenerateKeyPair();
+            case RSA_ENCRYPT:
+                return CryptoFormulaHelper.rsaEncrypt(String.valueOf(arg0), String.valueOf(arg1));
+            case RSA_DECRYPT:
+                return CryptoFormulaHelper.rsaDecrypt(String.valueOf(arg0), String.valueOf(arg1));
+            case RSA_SIGN:
+                return CryptoFormulaHelper.rsaSign(String.valueOf(arg0), String.valueOf(arg1));
+            case RSA_VERIFY:
+                return CryptoFormulaHelper.rsaVerify(String.valueOf(arg0), String.valueOf(arg1), String.valueOf(arg2));
+
             default:
                 return interpretFormulaFunction(function, arg0, arg1, arg2);
         }
@@ -1828,12 +1936,17 @@ public class FormulaElement implements Serializable {
     }
 
     private static String formatNumberString(String numberString) {
-        double number = Double.parseDouble(numberString);
-        String formattedNumberString = "";
-        if (!Double.isNaN(number)) {
-            formattedNumberString += isInteger(number) ? (int) number : number;
+        try {
+            double number = Double.parseDouble(numberString);
+            String formattedNumberString = "";
+            if (!Double.isNaN(number)) {
+                formattedNumberString += isInteger(number) ? (int) number : number;
+            }
+            return trimTrailingCharacters(formattedNumberString);
+        } catch (NumberFormatException e) {
+            // Corrupt/malformed NUMBER token: return the raw string instead of throwing.
+            return trimTrailingCharacters(numberString);
         }
-        return trimTrailingCharacters(formattedNumberString);
     }
 
     private Object interpretFunctionLength(Object left, Scope scope) {
@@ -2127,7 +2240,7 @@ public class FormulaElement implements Serializable {
         return element != null && element.type == ElementType.NUMBER && element.value.contains(".");
     }
 
-    private double interpretOperator(@NotNull Operators operator, Scope scope) {
+    private Object interpretOperator(@NotNull Operators operator, Scope scope) {
         if (leftChild != null) {
             return interpretBinaryOperator(operator, scope);
         } else {
@@ -2149,29 +2262,36 @@ public class FormulaElement implements Serializable {
         }
     }
 
-    private double interpretBinaryOperator(@NotNull Operators operator, Scope scope) {
+    private Object interpretBinaryOperator(@NotNull Operators operator, Scope scope) {
         Object leftObject = tryInterpretElementRecursive(leftChild, scope);
         Object rightObject = tryInterpretElementRecursive(rightChild, scope);
+
+        // Bug #3: string concatenation for '+'. A String operand means a non-numeric value,
+        // so concatenate instead of producing a NaN that later throws InterpretationException.
+        if (operator == Operators.PLUS
+                && (leftObject instanceof String || rightObject instanceof String)) {
+            return String.valueOf(leftObject) + String.valueOf(rightObject);
+        }
 
         Double leftDouble = tryInterpretDoubleValue(leftObject);
         Double rightDouble = tryInterpretDoubleValue(rightObject);
 
-        double left = (leftDouble != null) ? leftDouble : 0.0;
-        double right = (rightDouble != null) ? rightDouble : 0.0;
-
-        boolean atLeastOneIsNaN = Double.isNaN(left) || Double.isNaN(right);
+        // Bug #3/#4: coerce an unparseable-string (NaN) operand to 0.0 so it can never become
+        // a NaN result (which would abort the action) nor count as "true" in logical ops.
+        double left = (leftDouble != null && !Double.isNaN(leftDouble)) ? leftDouble : 0.0;
+        double right = (rightDouble != null && !Double.isNaN(rightDouble)) ? rightDouble : 0.0;
 
         switch (operator) {
             case PLUS:
-                return atLeastOneIsNaN ? Double.NaN : (left + right);
+                return left + right;
             case MINUS:
-                return atLeastOneIsNaN ? Double.NaN : (left - right);
+                return left - right;
             case MULT:
-                return atLeastOneIsNaN ? Double.NaN : (left * right);
+                return left * right;
             case DIVIDE:
-                return (atLeastOneIsNaN || right == 0.0) ? Double.NaN : (left / right);
+                return (right == 0.0) ? Double.NaN : (left / right);
             case POW:
-                return atLeastOneIsNaN ? Double.NaN : Math.pow(left, right);
+                return Math.pow(left, right);
             case EQUAL:
                 return booleanToDouble(interpretOperatorEqual(leftObject, rightObject));
             case NOT_EQUAL:
@@ -2185,6 +2305,7 @@ public class FormulaElement implements Serializable {
             case SMALLER_OR_EQUAL:
                 return booleanToDouble(left <= right);
             case LOGICAL_AND:
+                // Bug #4: a NaN operand is coerced to 0.0 above, so it is treated as false here.
                 return booleanToDouble(left != FALSE && right != FALSE);
             case LOGICAL_OR:
                 return booleanToDouble(left != FALSE || right != FALSE);
@@ -2407,6 +2528,21 @@ public class FormulaElement implements Serializable {
             builder.append(file.getName()).append("\n");
         }
         return builder.toString();
+    }
+
+    static String readLineFromFile(File filesDir, String lineStr, String fileName) {
+        if (filesDir == null) return "";
+        File file = new File(filesDir, fileName);
+        if (!file.exists() || !file.isFile() || !file.canRead()) return "";
+        try {
+            int lineNo = Integer.parseInt(lineStr.trim());
+            if (lineNo < 1) return "";
+            List<String> lines = Files.readAllLines(file.toPath(), StandardCharsets.UTF_8);
+            if (lineNo > lines.size()) return "";
+            return lines.get(lineNo - 1);
+        } catch (Exception e) {
+            return "";
+        }
     }
 
     private org.catrobat.catroid.raptor.ThreeDManager getThreeDManager() {

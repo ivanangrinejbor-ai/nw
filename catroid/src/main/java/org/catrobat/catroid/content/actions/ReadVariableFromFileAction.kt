@@ -42,6 +42,7 @@ import org.catrobat.catroid.R
 import org.catrobat.catroid.common.Constants
 import org.catrobat.catroid.content.Scope
 import org.catrobat.catroid.formulaeditor.Formula
+import org.catrobat.catroid.formulaeditor.InterpretationException
 import org.catrobat.catroid.formulaeditor.UserVariable
 import org.catrobat.catroid.stage.StageActivity
 import org.catrobat.catroid.stage.StageActivity.IntentListener
@@ -71,6 +72,7 @@ class ReadVariableFromFileAction : Action(), IntentListener {
             activity?.runOnUiThread {
                 request(activity)
             }
+            return true
         }
 
         if (userVariable == null || formula == null) {
@@ -133,7 +135,8 @@ class ReadVariableFromFileAction : Action(), IntentListener {
     }
 
     private fun getFileName(): String {
-        var fileName = Utils.sanitizeFileName(formula?.interpretString(scope))
+        val fileNameStr = try { formula?.interpretString(scope) } catch (e: InterpretationException) { null }
+        var fileName = Utils.sanitizeFileName(fileNameStr ?: "")
         if (!fileName.contains(Regex("\\.\\w+$"))) {
             fileName += ".txt"
         }

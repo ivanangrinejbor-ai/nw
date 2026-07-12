@@ -28,6 +28,7 @@ import org.catrobat.catroid.CatroidApplication
 import org.catrobat.catroid.R
 import org.catrobat.catroid.common.Constants
 import org.catrobat.catroid.common.LookData
+import org.catrobat.catroid.common.ScreenValues
 import org.catrobat.catroid.content.GroupSprite
 import org.catrobat.catroid.content.Look
 import org.catrobat.catroid.content.Project
@@ -95,8 +96,8 @@ object FormulaElementOperations {
             is Boolean -> Conversions.booleanToDouble(value)
             is Int -> value.toDouble()
             is Double -> when (value) {
-                Double.NEGATIVE_INFINITY -> -Double.MAX_VALUE
-                Double.POSITIVE_INFINITY -> Double.MAX_VALUE
+                Double.NEGATIVE_INFINITY -> Double.NaN
+                Double.POSITIVE_INFINITY -> Double.NaN
                 else -> value
             }
             else -> 0.0
@@ -178,7 +179,9 @@ object FormulaElementOperations {
             Sensors.OBJECT_BRIGHTNESS -> look.brightnessInUserInterfaceDimensionUnit.toDouble()
             Sensors.OBJECT_COLOR -> look.colorInUserInterfaceDimensionUnit.toDouble()
             Sensors.OBJECT_TRANSPARENCY -> look.transparencyInUserInterfaceDimensionUnit.toDouble()
-            Sensors.OBJECT_LAYER -> getLookLayerIndex(sprite, look, currentlyEditedScene.spriteList)
+            Sensors.OBJECT_LAYER -> currentlyEditedScene?.let {
+                getLookLayerIndex(sprite, look, it.spriteList)
+            } ?: 0.0
             Sensors.MOTION_DIRECTION -> look.motionDirectionInUserInterfaceDimensionUnit.toDouble()
             Sensors.LOOK_DIRECTION -> look.lookDirectionInUserInterfaceDimensionUnit.toDouble()
             Sensors.OBJECT_SIZE -> look.sizeInUserInterfaceDimensionUnit.toDouble()
@@ -197,12 +200,14 @@ object FormulaElementOperations {
             Sensors.OBJECT_BACKGROUND_NAME -> getLookName(lookData)
             Sensors.OBJECT_LOOK_WIDTH -> getLookWidth(lookData)
             Sensors.OBJECT_LOOK_HEIGHT -> getLookHeight(lookData)
+            Sensors.WIDTH -> ScreenValues.currentScreenResolution?.width?.toDouble() ?: 0.0
+            Sensors.HEIGHT -> ScreenValues.currentScreenResolution?.height?.toDouble() ?: 0.0
             Sensors.NFC_TAG_MESSAGE -> NfcHandler.getLastNfcTagMessage()
             Sensors.NFC_TAG_ID -> NfcHandler.getLastNfcTagId()
             Sensors.COLLIDES_WITH_EDGE -> tryCalculateCollidesWithEdge(
                 look,
                 StageActivity.activeStageActivity.get()?.stageListener,
-                currentProject.screenRectangle
+                currentProject?.screenRectangle
             )
             Sensors.COLLIDES_WITH_FINGER -> calculateCollidesWithFinger(look)
             else -> Conversions.FALSE

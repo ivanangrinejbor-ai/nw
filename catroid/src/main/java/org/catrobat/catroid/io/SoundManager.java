@@ -24,6 +24,8 @@ package org.catrobat.catroid.io;
 
 import android.content.pm.PackageManager;
 import android.media.MediaPlayer;
+import android.media.PlaybackParams;
+import android.os.Build;
 import android.util.Log;
 
 import org.catrobat.catroid.CatroidApplication;
@@ -54,6 +56,8 @@ public class SoundManager {
 
 	private final List<MediaPlayerWithSoundDetails> mediaPlayers = new ArrayList<>(MAX_MEDIA_PLAYERS);
 	private float volume = 70.0f;
+	private float pan = 0.0f;
+	private float pitch = 1.0f;
 
 	private final Set<SoundFilePathWithSprite> recentlyStoppedSoundfilePaths = new HashSet<>();
 
@@ -79,14 +83,12 @@ public class SoundManager {
 			volume = 0.0f;
 		}
 
-		float volumeScalar = volume * 0.01f;
-
 		for (MediaPlayerWithSoundDetails mediaPlayer : mediaPlayers) {
 			if (mediaPlayer.isPlaying() &&
 					mediaPlayer.getStartedBySprite() == sprite &&
 					mediaPlayer.getPathToSoundFile().equals(soundFilePath)) {
 
-				mediaPlayer.setVolume(volumeScalar, volumeScalar);
+				applyVolumeTo(mediaPlayer);
 			}
 		}
 	}
@@ -103,6 +105,7 @@ public class SoundManager {
 				mediaPlayer.prepare();
 				mediaPlayer.seekTo(startTimeInMilSeconds);
 				mediaPlayer.start();
+				applyPitchTo(mediaPlayer);
 			} catch (Exception exception) {
 				Log.e(TAG, "Couldn't play sound file '" + soundFilePath + "'", exception);
 			}
@@ -166,14 +169,78 @@ public class SoundManager {
 		}
 
 		this.volume = volume;
-		float volumeScalar = volume * 0.01f;
 		for (MediaPlayer mediaPlayer : mediaPlayers) {
-			mediaPlayer.setVolume(volumeScalar, volumeScalar);
+			applyVolumeTo(mediaPlayer);
 		}
 	}
 
 	public synchronized float getVolume() {
 		return this.volume;
+	}
+
+	public synchronized void setPan(float panValue) {
+		if (panValue > 1.0f) {
+			panValue = 1.0f;
+		} else if (panValue < -1.0f) {
+			panValue = -1.0f;
+		}
+
+		this.pan = panValue;
+		for (MediaPlayer mediaPlayer : mediaPlayers) {
+			applyVolumeTo(mediaPlayer);
+		}
+	}
+
+	public synchronized float getPan() {
+		return this.pan;
+	}
+
+	public synchronized void setPitch(float pitchValue) {
+		if (pitchValue > 2.0f) {
+			pitchValue = 2.0f;
+		} else if (pitchValue < 0.5f) {
+			pitchValue = 0.5f;
+		}
+
+		this.pitch = pitchValue;
+		for (MediaPlayer mediaPlayer : mediaPlayers) {
+			applyPitchTo(mediaPlayer);
+		}
+	}
+
+	public synchronized float getPitch() {
+		return this.pitch;
+	}
+
+	private void applyVolumeTo(MediaPlayer mediaPlayer) {
+		float vol = volume * 0.01f;
+		float left = vol * (1.0f - pan);
+		float right = vol * (1.0f + pan);
+		if (left < 0.0f) {
+			left = 0.0f;
+		} else if (left > 1.0f) {
+			left = 1.0f;
+		}
+		if (right < 0.0f) {
+			right = 0.0f;
+		} else if (right > 1.0f) {
+			right = 1.0f;
+		}
+		mediaPlayer.setVolume(left, right);
+	}
+
+	private void applyPitchTo(MediaPlayer mediaPlayer) {
+		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+			return;
+		}
+		try {
+			PlaybackParams params = mediaPlayer.getPlaybackParams();
+			if (params != null) {
+				mediaPlayer.setPlaybackParams(params.setPitch(pitch));
+			}
+		} catch (Exception exception) {
+			Log.d(TAG, "Couldn't set playback pitch", exception);
+		}
 	}
 
 	public synchronized void clear() {
@@ -243,8 +310,7 @@ public class SoundManager {
 			mediaPlayer.setDataSource(soundFilePath);
 			mediaPlayer.prepare(); // This is the slow part we do in advance
 
-			float volumeScalar = volume * 0.01f;
-			mediaPlayer.setVolume(volumeScalar, volumeScalar);
+			applyVolumeTo(mediaPlayer);
 
 			preparedSounds.put(cacheName, mediaPlayer);
 			return true;
@@ -274,6 +340,7 @@ public class SoundManager {
 
 		mediaPlayer.seekTo(0);
 		mediaPlayer.start();
+		applyPitchTo(mediaPlayer);
 		return true;
 	}
 

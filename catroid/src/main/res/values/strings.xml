@@ -742,6 +742,8 @@
     <string name="scene_transition_fade_out">Fade Out</string>
     <string name="scene_transition_fade_in">Fade In</string>
     <string name="scene_transition_duration">Duration (sec)</string>
+    <string name="scene_transition_start">On start</string>
+    <string name="scene_transition_exit">On leave</string>
     <string name="export_with_password">Export with password</string>
     <string name="enter_export_password">Enter export password</string>
     <string name="password_hint">Password</string>
@@ -2811,6 +2813,11 @@
     <string formatted="false" name="build_apk_error">Build failed</string>
     <string formatted="false" name="build_apk_no_template">Template APK not found. Please build template first.</string>
     <string formatted="false" name="export_project">Export project</string>
+    <string formatted="false" name="export_summary_scene">Scene</string>
+    <string formatted="false" name="export_summary_object">Object</string>
+    <string formatted="false" name="export_summary_sound">Sound</string>
+    <string formatted="false" name="export_summary_empty">This project is empty.</string>
+    <string formatted="false" name="export_exporting">Exporting project…</string>
     <string formatted="false" name="encrypt_project_title">Protect project with password</string>
     <string formatted="false" name="encrypt_project_summary">Project will be encrypted. Required password to import.</string>
     <string formatted="false" name="dialog_password_title">Enter password</string>
@@ -4098,6 +4105,8 @@ needs read and write access to it. You can always change permissions through you
     <string formatted="false" name="formula_file_size_in_dir_param">(\'fileName\', \'dirName\')</string>
     <string formatted="false" name="formula_file_size_at_path">file_size_at</string>
     <string formatted="false" name="formula_file_size_at_path_param">(\'fileName\', \'path\')</string>
+    <string formatted="false" name="formula_file_read_string">read string from project file</string>
+    <string formatted="false" name="formula_file_read_string_param">(\'line\', \'fileName\')</string>
     <string formatted="false" name="formula_editor_function_file_parameter">(\'variable.txt\')</string>
     <string formatted="false" name="formula_editor_function_lua">lua</string>
     <string formatted="false" name="formula_editor_function_lua_parameter">(\'return math.sqrt(25)\')</string>
@@ -4722,6 +4731,79 @@ needs read and write access to it. You can always change permissions through you
     <string name="formula_admob_last_error_message">Last AdMob error message</string>
     <string name="formula_admob_is_google_play_services_available">Google Play Services available</string>
 
+    <!-- Cryptography formula functions -->
+    <string name="formula_editor_functions_crypto">Cryptography</string>
+    <string name="formula_crypto_sha_224" formatted="false">SHA_224</string>
+    <string name="formula_crypto_sha_224_param" formatted="false">(text)</string>
+    <string name="formula_crypto_sha_256" formatted="false">SHA_256</string>
+    <string name="formula_crypto_sha_256_param" formatted="false">(text)</string>
+    <string name="formula_crypto_sha_384" formatted="false">SHA_384</string>
+    <string name="formula_crypto_sha_384_param" formatted="false">(text)</string>
+    <string name="formula_crypto_sha_512" formatted="false">SHA_512</string>
+    <string name="formula_crypto_sha_512_param" formatted="false">(text)</string>
+    <string name="formula_crypto_hash_bytes" formatted="false">Hash_bytes</string>
+    <string name="formula_crypto_hash_bytes_param" formatted="false">(bytes)</string>
+    <string name="formula_crypto_hash_file" formatted="false">Hash_file</string>
+    <string name="formula_crypto_hash_file_param" formatted="false">(path)</string>
+    <string name="formula_crypto_aes_encrypt" formatted="false">AES_encrypt</string>
+    <string name="formula_crypto_aes_encrypt_param" formatted="false">(text, password)</string>
+    <string name="formula_crypto_aes_decrypt" formatted="false">AES_decrypt</string>
+    <string name="formula_crypto_aes_decrypt_param" formatted="false">(data, password)</string>
+    <string name="formula_crypto_chacha20_encrypt" formatted="false">ChaCha20_encrypt</string>
+    <string name="formula_crypto_chacha20_encrypt_param" formatted="false">(text, key, nonce)</string>
+    <string name="formula_crypto_chacha20_decrypt" formatted="false">ChaCha20_decrypt</string>
+    <string name="formula_crypto_chacha20_decrypt_param" formatted="false">(data, key, nonce)</string>
+    <string name="formula_crypto_pbkdf2" formatted="false">PBKDF2</string>
+    <string name="formula_crypto_pbkdf2_param" formatted="false">(password, salt, iterations)</string>
+    <string name="formula_crypto_generate_salt" formatted="false">Generate_salt</string>
+    <string name="formula_crypto_generate_salt_param" formatted="false">(length)</string>
+    <string name="formula_crypto_derive_key" formatted="false">Derive_key</string>
+    <string name="formula_crypto_derive_key_param" formatted="false">(password)</string>
+    <string name="formula_crypto_generate_aes_key" formatted="false">Generate_AES_key</string>
+    <string name="formula_crypto_generate_aes_key_param" formatted="false">(bits)</string>
+    <string name="formula_crypto_generate_random_bytes" formatted="false">Generate_random_bytes</string>
+    <string name="formula_crypto_generate_random_bytes_param" formatted="false">(length)</string>
+    <string name="formula_crypto_generate_password" formatted="false">Generate_password</string>
+    <string name="formula_crypto_generate_password_param" formatted="false">(length)</string>
+    <string name="formula_crypto_generate_uuid" formatted="false">Generate_UUID</string>
+    <string name="formula_crypto_generate_uuid_param" formatted="false"></string>
+    <string name="formula_crypto_random_hex" formatted="false">Random_hex</string>
+    <string name="formula_crypto_random_hex_param" formatted="false">(length)</string>
+    <string name="formula_crypto_random_base64" formatted="false">Random_base64</string>
+    <string name="formula_crypto_random_base64_param" formatted="false">(length)</string>
+    <string name="formula_crypto_random_int_secure" formatted="false">Random_int_secure</string>
+    <string name="formula_crypto_random_int_secure_param" formatted="false">(min, max)</string>
+    <string name="formula_crypto_random_string_secure" formatted="false">Random_string_secure</string>
+    <string name="formula_crypto_random_string_secure_param" formatted="false">(length)</string>
+    <string name="formula_crypto_base64_encode" formatted="false">Base64_encode</string>
+    <string name="formula_crypto_base64_encode_param" formatted="false">(text)</string>
+    <string name="formula_crypto_base64_decode" formatted="false">Base64_decode</string>
+    <string name="formula_crypto_base64_decode_param" formatted="false">(text)</string>
+    <string name="formula_crypto_hex_encode" formatted="false">Hex_encode</string>
+    <string name="formula_crypto_hex_encode_param" formatted="false">(bytes)</string>
+    <string name="formula_crypto_hex_decode" formatted="false">Hex_decode</string>
+    <string name="formula_crypto_hex_decode_param" formatted="false">(text)</string>
+    <string name="formula_crypto_compare_hash" formatted="false">Compare_hash</string>
+    <string name="formula_crypto_compare_hash_param" formatted="false">(text, hash)</string>
+    <string name="formula_crypto_is_base64" formatted="false">Is_base64</string>
+    <string name="formula_crypto_is_base64_param" formatted="false">(text)</string>
+    <string name="formula_crypto_is_hex" formatted="false">Is_hex</string>
+    <string name="formula_crypto_is_hex_param" formatted="false">(text)</string>
+    <string name="formula_crypto_hmac_sha_256" formatted="false">HMAC_SHA_256</string>
+    <string name="formula_crypto_hmac_sha_256_param" formatted="false">(text, key)</string>
+    <string name="formula_crypto_hmac_sha_512" formatted="false">HMAC_SHA_512</string>
+    <string name="formula_crypto_hmac_sha_512_param" formatted="false">(text, key)</string>
+    <string name="formula_crypto_rsa_generate_key_pair" formatted="false">RSA_generate_key_pair</string>
+    <string name="formula_crypto_rsa_generate_key_pair_param" formatted="false"></string>
+    <string name="formula_crypto_rsa_encrypt" formatted="false">RSA_encrypt</string>
+    <string name="formula_crypto_rsa_encrypt_param" formatted="false">(text, publicKey)</string>
+    <string name="formula_crypto_rsa_decrypt" formatted="false">RSA_decrypt</string>
+    <string name="formula_crypto_rsa_decrypt_param" formatted="false">(data, privateKey)</string>
+    <string name="formula_crypto_rsa_sign" formatted="false">RSA_sign</string>
+    <string name="formula_crypto_rsa_sign_param" formatted="false">(text, privateKey)</string>
+    <string name="formula_crypto_rsa_verify" formatted="false">RSA_verify</string>
+    <string name="formula_crypto_rsa_verify_param" formatted="false">(text, signature, publicKey)</string>
+
     <!-- Missing resources from deleted Paintroid AAR stub -->
     <string name="cancel_button_text">Cancel</string>
     <string name="import_step_prepare">Preparing import…</string>
@@ -4974,4 +5056,10 @@ needs read and write access to it. You can always change permissions through you
     <string name="dialog_save_image_title">Save image</string>
     <string name="text_tool_dialog_project_font">Use font from project</string>
     <string name="text_tool_dialog_select_font">Select font file</string>
+    <string name="text_tool_dialog_no_fonts">No TTF font files in project</string>
+    <string name="text_tool_dialog_font_load_error">Could not load font file</string>
+    <string name="add_font">Add font</string>
+    <string name="import_fonts_from_project">Import fonts from project</string>
+    <string name="import_selected">Import</string>
+    <string name="no_projects_available">No projects available</string>
 </resources>

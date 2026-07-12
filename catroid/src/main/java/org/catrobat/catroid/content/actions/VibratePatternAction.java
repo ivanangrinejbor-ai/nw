@@ -50,6 +50,7 @@ public class VibratePatternAction extends TemporalAction {
 
 	@Override
 	protected void begin() {
+		if (scope == null) return;
 		try {
 			String patternStr = pattern == null ? "" : pattern.interpretString(scope);
 			if (patternStr.isEmpty()) {

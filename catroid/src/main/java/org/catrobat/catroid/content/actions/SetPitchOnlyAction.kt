@@ -22,16 +22,22 @@
  */
 package org.catrobat.catroid.content.actions
 
-import android.util.Log
 import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction
 import org.catrobat.catroid.content.Scope
 import org.catrobat.catroid.formulaeditor.Formula
+import org.catrobat.catroid.io.SoundManager
 
 class SetPitchOnlyAction : TemporalAction() {
     var scope: Scope? = null
     var pitch: Formula? = null
 
     override fun update(percent: Float) {
-        Log.d(javaClass.simpleName, "Audio pitch value: " + (pitch?.interpretFloat(scope) ?: 1f) + " — audio system not available")
+        var value = pitch?.interpretFloat(scope) ?: 1f
+        if (value > 2f) {
+            value = 2f
+        } else if (value < 0.5f) {
+            value = 0.5f
+        }
+        SoundManager.getInstance().setPitch(value)
     }
 }

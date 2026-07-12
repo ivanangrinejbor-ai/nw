@@ -30,13 +30,17 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.Checkable
 import android.widget.EditText
 import android.widget.LinearLayout
+import androidx.fragment.app.FragmentActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.chip.Chip
+import org.catrobat.catroid.ProjectManager
 import org.catrobat.catroid.R
-
+import org.catrobat.catroid.paintroid.dialog.ProjectPickerDialog
+import org.catrobat.catroid.paintroid.tools.FontEntry
 import org.catrobat.catroid.paintroid.tools.FontType
+import org.catrobat.catroid.paintroid.tools.ImportedFontRegistry
 import org.catrobat.catroid.paintroid.tools.options.TextToolOptionsView
 
 private const val DEFAULT_TEXTSIZE = "20"
@@ -50,10 +54,11 @@ class DefaultTextToolOptionsView(rootView: ViewGroup) : TextToolOptionsView {
     private val textEditText: EditText
     private val fontSizeText: EditText
     private val fontList: RecyclerView
+    private val addFontButton: View
     private val underlinedToggleButton: MaterialButton
     private val italicToggleButton: MaterialButton
     private val boldToggleButton: MaterialButton
-    private val fontTypes: List<FontType>
+    private var fontListAdapter: FontListAdapter? = null
     private val topLayout: View
     private val bottomLayout: View
     private val textToolOptionsViewShapeSizeChip: Chip
@@ -66,6 +71,7 @@ class DefaultTextToolOptionsView(rootView: ViewGroup) : TextToolOptionsView {
         bottomLayout = textToolView.findViewById(R.id.pocketpaint_text_bottom_layout)
         textEditText = textToolView.findViewById(R.id.pocketpaint_text_tool_dialog_input_text)
         fontList = textToolView.findViewById(R.id.pocketpaint_text_tool_dialog_list_font)
+        addFontButton = textToolView.findViewById(R.id.addFontButton)
         underlinedToggleButton =
             textToolView.findViewById(R.id.pocketpaint_text_tool_dialog_toggle_underlined)
         italicToggleButton =
@@ -75,8 +81,6 @@ class DefaultTextToolOptionsView(rootView: ViewGroup) : TextToolOptionsView {
         fontSizeText.setText(DEFAULT_TEXTSIZE)
         underlinedToggleButton.paintFlags =
             underlinedToggleButton.paintFlags or Paint.UNDERLINE_TEXT_FLAG
-        @Suppress("SpreadOperator")
-        fontTypes = FontType.values().toList()
         initializeListeners()
         textEditText.requestFocus()
         val viewShapeSizeLayout =
@@ -101,10 +105,29 @@ class DefaultTextToolOptionsView(rootView: ViewGroup) : TextToolOptionsView {
                 hideKeyboard()
             }
         }
-        fontList.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
-        fontList.adapter = FontListAdapter(context, fontTypes) { font ->
-            notifyFontChanged(font)
+
+        val entries = buildEntries()
+        fontListAdapter = FontListAdapter(context, entries) { entry ->
+            notifyFontChanged(entry)
             hideKeyboard()
+        }
+        fontList.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+        fontList.adapter = fontListAdapter
+
+        addFontButton.setOnClickListener {
+            // Scan the CURRENT project's "files" folder for fonts first.
+            val project = ProjectManager.getInstance().getCurrentProject()
+            val filesDir = project?.getFilesDir()
+            if (project != null && filesDir != null && filesDir.isDirectory) {
+                val imported = ImportedFontRegistry.importFromProject(context, project.directory)
+                if (imported.isNotEmpty()) {
+                    rebuildFontList()
+                    return@setOnClickListener
+                }
+            }
+            // No usable fonts in the current project -> fall back to other projects.
+            val fm = (context as? FragmentActivity)?.supportFragmentManager ?: return@setOnClickListener
+            ProjectPickerDialog.newInstance { rebuildFontList() }.show(fm, "ProjectPickerDialog")
         }
 
         underlinedToggleButton.setOnClickListener { v ->
@@ -145,8 +168,19 @@ class DefaultTextToolOptionsView(rootView: ViewGroup) : TextToolOptionsView {
         })
     }
 
-    private fun notifyFontChanged(fontType: FontType) {
-        callback?.setFont(fontType)
+    private fun buildEntries(): List<FontEntry> =
+        FontType.values().map { FontEntry.BuiltIn(it) } +
+            ImportedFontRegistry.getAll(context).map { FontEntry.Imported(it) }
+
+    private fun rebuildFontList() {
+        fontListAdapter?.updateEntries(buildEntries())
+    }
+
+    private fun notifyFontChanged(entry: FontEntry) {
+        when (entry) {
+            is FontEntry.BuiltIn -> callback?.setFont(entry, null)
+            is FontEntry.Imported -> callback?.setFont(entry, ImportedFontRegistry.getTypeface(context, entry.font.name))
+        }
     }
 
     private fun notifyUnderlinedChanged(underlined: Boolean) {
@@ -175,14 +209,26 @@ class DefaultTextToolOptionsView(rootView: ViewGroup) : TextToolOptionsView {
         underlined: Boolean,
         text: String,
         textSize: Int,
-        fontType: FontType
+        fontEntry: FontEntry
     ) {
         boldToggleButton.isChecked = bold
         italicToggleButton.isChecked = italic
         underlinedToggleButton.isChecked = underlined
         textEditText.setText(text)
-        (fontList.adapter as FontListAdapter).setSelectedIndex(fontTypes.indexOf(fontType))
+        val index = fontListAdapter?.fontEntries?.indexOfFirst { matches(it, fontEntry) } ?: -1
+        if (index >= 0) {
+            fontListAdapter?.setSelectedFontIndex(index)
+        }
+        // Push the selection to the tool so an imported font's typeface resolves
+        // (e.g. after a rotation/restore, when projectFontTypeface is not yet set).
+        notifyFontChanged(fontEntry)
         fontSizeText.setText(DEFAULT_TEXTSIZE)
+    }
+
+    private fun matches(entry: FontEntry, target: FontEntry): Boolean = when {
+        entry is FontEntry.BuiltIn && target is FontEntry.BuiltIn -> entry.fontType == target.fontType
+        entry is FontEntry.Imported && target is FontEntry.Imported -> entry.font.name == target.font.name
+        else -> false
     }
 
     override fun setCallback(listener: TextToolOptionsView.Callback) {
@@ -209,9 +255,5 @@ class DefaultTextToolOptionsView(rootView: ViewGroup) : TextToolOptionsView {
 
     override fun toggleShapeSizeVisibility(isVisible: Boolean) {
         changeSizeShapeSizeChip.visibility = if (isVisible) View.VISIBLE else View.GONE
-    }
-
-    override fun setProjectFontName(name: String) {
-        (fontList.adapter as? FontListAdapter)?.setProjectFontName(name)
     }
 }

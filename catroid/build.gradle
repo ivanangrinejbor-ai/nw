@@ -235,6 +235,13 @@ android {
         unitTests.includeAndroidResources = true
         unitTests.all {
             jvmArgs '-Xmx2g'
+            // PowerMock needs reflective access to JDK internals, blocked by JDK 17 module encapsulation
+            jvmArgs '--add-opens', 'java.base/java.lang=ALL-UNNAMED'
+            jvmArgs '--add-opens', 'java.base/java.lang.reflect=ALL-UNNAMED'
+            jvmArgs '--add-opens', 'java.base/java.util=ALL-UNNAMED'
+            jvmArgs '--add-opens', 'java.base/sun.reflect.generics.reflectiveObjects=ALL-UNNAMED'
+            jvmArgs '--add-opens', 'java.base/sun.nio.ch=ALL-UNNAMED'
+            jvmArgs '--add-opens', 'java.base/jdk.internal.reflect=ALL-UNNAMED'
         }
         animationsDisabled = true
     }

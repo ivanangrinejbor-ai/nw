@@ -42,7 +42,7 @@ import java.io.File;
 
 public class ShowTextFontAction extends TemporalAction {
 
-    public static final String TAG = ShowTextColorSizeAlignmentAction.class.getSimpleName();
+    public static final String TAG = ShowTextFontAction.class.getSimpleName();
 
     private Formula xPosition;
     private Formula yPosition;

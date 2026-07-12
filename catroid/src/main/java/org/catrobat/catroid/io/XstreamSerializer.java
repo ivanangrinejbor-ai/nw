@@ -908,6 +908,40 @@ public final class XstreamSerializer {
         xstream.alias("script", AdmobAppOpenShownScript.class);
         xstream.alias("script", AdmobAppOpenClosedScript.class);
 
+        // Event: app lifecycle bricks (reported missing by full block-category audit)
+        xstream.alias("brick", WhenAppMinimizedBrick.class);
+        xstream.alias("brick", WhenAppRestoredBrick.class);
+        xstream.alias("script", org.catrobat.catroid.content.WhenAppMinimizedScript.class);
+        xstream.alias("script", org.catrobat.catroid.content.WhenAppRestoredScript.class);
+
+        // Looks: border/radius/filter bricks
+        xstream.alias("brick", SetBorderColorBrick.class);
+        xstream.alias("brick", SetBorderWidthBrick.class);
+        xstream.alias("brick", SetCornerRadiusBrick.class);
+        xstream.alias("brick", SetFilterBlurBrick.class);
+        xstream.alias("brick", SetFilterSepiaBrick.class);
+        xstream.alias("brick", SetFilterPixelateBrick.class);
+
+        // File: prepare sound
+        xstream.alias("brick", PrepareSoundBrick.class);
+
+        // Control: scene/save/switch bricks
+        xstream.alias("brick", ClearSceneBrick.class);
+        xstream.alias("brick", SetSaveScenesBrick.class);
+        xstream.alias("brick", SetStopSoundsBrick.class);
+        xstream.alias("brick", SetPreloadingBrick.class);
+        xstream.alias("brick", CountLoopBrick.class);
+        xstream.alias("brick", DelayMicrosecondsBrick.class);
+        xstream.alias("brick", SwitchBeginBrick.class);
+        xstream.alias("brick", SwitchCaseBrick.class);
+
+        // Pathfinder: grid/movement bricks
+        xstream.alias("brick", GridBrick.class);
+        xstream.alias("brick", MoveToObjectBrick.class);
+        xstream.alias("brick", StopMovementBrick.class);
+        xstream.alias("brick", ContinueMovementBrick.class);
+        xstream.alias("brick", HasPathBrick.class);
+
         for (XStreamSetupListener listener : pluginListeners) {
             listener.onSetup(xstream);
         }

@@ -40,5 +40,6 @@ public class DroneEmergencyBrick extends BrickBaseType {
 
 	@Override
 	public void addActionToSequence(Sprite sprite, ScriptSequenceAction sequence) {
+		sequence.addAction(sprite.getActionFactory().createDroneEmergencyAction(sprite, sequence));
 	}
 }

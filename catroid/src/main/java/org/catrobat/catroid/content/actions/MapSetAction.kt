@@ -34,6 +34,7 @@ class MapSetAction : TemporalAction() {
     var valueFormula: Formula? = null
 
     override fun update(percent: Float) {
+        if (scope == null) return
         if (userVariable == null) return
         @Suppress("UNCHECKED_CAST")
         val map = userVariable?.value as? HashMap<String, Any?> ?: return

@@ -132,9 +132,14 @@ val myModules = listOf(
 )
 
 fun start(application: Application, modules: List<Module>) {
-    startKoin {
-        androidContext(application.applicationContext)
-        androidLogger(Level.ERROR)
-        modules(modules)
+    try {
+        startKoin {
+            androidContext(application.applicationContext)
+            androidLogger(Level.ERROR)
+            modules(modules)
+        }
+    } catch (e: IllegalStateException) {
+        // Koin already started (e.g. Robolectric recreates the Application between test methods
+        // while the global Koin context persists in the JVM). Safe to ignore.
     }
 }

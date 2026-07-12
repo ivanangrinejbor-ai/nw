@@ -23,7 +23,15 @@ import com.esotericsoftware.kryo.io.Input
 import com.esotericsoftware.kryo.io.Output
 import org.catrobat.catroid.paintroid.tools.FontType
 
-data class SerializableTypeface(val font: FontType, val bold: Boolean, val underline: Boolean, val italic: Boolean, val textSize: Float, val textSkewX: Float) {
+data class SerializableTypeface(
+    val font: FontType,
+    val bold: Boolean,
+    val underline: Boolean,
+    val italic: Boolean,
+    val textSize: Float,
+    val textSkewX: Float,
+    val fontName: String? = null
+) {
 
     class TypefaceSerializer(version: Int) : VersionSerializer<SerializableTypeface>(version) {
         override fun write(kryo: Kryo, output: Output, typeface: SerializableTypeface) {
@@ -34,6 +42,7 @@ data class SerializableTypeface(val font: FontType, val bold: Boolean, val under
                 writeBoolean(typeface.italic)
                 writeFloat(typeface.textSize)
                 writeFloat(typeface.textSkewX)
+                writeString(typeface.fontName ?: "")
             }
         }
 
@@ -42,7 +51,14 @@ data class SerializableTypeface(val font: FontType, val bold: Boolean, val under
 
         override fun readCurrentVersion(kryo: Kryo, input: Input, type: Class<out SerializableTypeface>): SerializableTypeface {
             return with(input) {
-                SerializableTypeface(FontType.valueOf(readString()), readBoolean(), readBoolean(), readBoolean(), readFloat(), readFloat())
+                val font = FontType.valueOf(readString())
+                val bold = readBoolean()
+                val underline = readBoolean()
+                val italic = readBoolean()
+                val textSize = readFloat()
+                val textSkewX = readFloat()
+                val fontName = readString().ifEmpty { null }
+                SerializableTypeface(font, bold, underline, italic, textSize, textSkewX, fontName)
             }
         }
     }

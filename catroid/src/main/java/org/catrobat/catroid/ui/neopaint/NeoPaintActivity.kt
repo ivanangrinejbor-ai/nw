@@ -76,7 +76,13 @@ class NeoPaintActivity : AppCompatActivity() {
 
         if (bitmap == null) {
             bitmap = if (picturePath != null) {
-                BitmapFactory.decodeFile(picturePath) ?: Bitmap.createBitmap(512, 512, Bitmap.Config.ARGB_8888)
+                val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                BitmapFactory.decodeFile(picturePath, options)
+                val maxDim = 2048
+                var scale = 1
+                while (options.outWidth / scale > maxDim || options.outHeight / scale > maxDim) { scale *= 2 }
+                val decodeOptions = BitmapFactory.Options().apply { inSampleSize = scale }
+                BitmapFactory.decodeFile(picturePath, decodeOptions) ?: Bitmap.createBitmap(512, 512, Bitmap.Config.ARGB_8888)
             } else {
                 Bitmap.createBitmap(512, 512, Bitmap.Config.ARGB_8888)
             }
@@ -546,6 +552,14 @@ class NeoPaintActivity : AppCompatActivity() {
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
+    }
+
+    override fun onDestroy() {
+        clipboardBitmap?.recycle()
+        clipboardBitmap = null
+        moreToolsDialog?.dismiss()
+        moreToolsDialog = null
+        super.onDestroy()
     }
 
     companion object {

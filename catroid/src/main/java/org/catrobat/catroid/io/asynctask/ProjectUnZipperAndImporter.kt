@@ -23,6 +23,7 @@
 package org.catrobat.catroid.io.asynctask
 
 import android.content.ContentResolver
+import android.content.Context
 import android.net.Uri
 import android.util.Log
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -65,8 +66,11 @@ class ProjectUnZipperAndImporter @JvmOverloads constructor(
     ),
     var password: String? = null,
     val onProgress: ((percent: Int, detail: String) -> Unit)? = null,
-    val contentResolver: ContentResolver? = null
+    val contentResolver: ContentResolver? = null,
+    val importContext: Context? = null
 ) {
+
+
 
     fun reportProgress(percent: Int, detail: String) {
         onProgress?.invoke(percent, detail)
@@ -74,13 +78,9 @@ class ProjectUnZipperAndImporter @JvmOverloads constructor(
     fun continueImport(projectDir: File) {
         scope.launch {
             val result = withContext(Dispatchers.IO) {
-                if (importStandardProject(projectDir)) {
-                    StorageOperations.deleteDir(projectDir)
-                    ImportResult.Success
-                } else {
-                    StorageOperations.deleteDir(projectDir)
-                    ImportResult.Failure
-                }
+                val dest = importStandardProject(projectDir)
+                StorageOperations.deleteDir(projectDir)
+                if (dest != null) ImportResult.Success else ImportResult.Failure
             }
             withContext(Dispatchers.Main) {
                 onImportFinished(result)
@@ -241,7 +241,13 @@ private fun ProjectUnZipperAndImporter.unzipAndImportProject(projectZipFile: Fil
 
         if (codeXml.exists()) {
             val appVersion = readApplicationVersion(codeXml)
-            if (appVersion != null && isUnsupportedVersion(appVersion)) {
+            // Only the legacy ".newtrobat" format is version-gated. Other formats
+            // (.catrobat, .neotrobat, .zip, ...) import as-is, regardless of
+            // the application version written in code.xml.
+            if (appVersion != null &&
+                projectZipFile.name.endsWith(Constants.OLD_CATROBAT_EXTENSION, true) &&
+                isUnsupportedVersion(appVersion)
+            ) {
                 Log.e(TAG, "Unsupported .newtrobat application version: $appVersion")
                 return@unzipAndImportProject ImportResult.UnsupportedVersion(appVersion.toDoubleOrNull() ?: 0.0, cachedProjectDir)
             }
@@ -261,7 +267,7 @@ private fun ProjectUnZipperAndImporter.unzipAndImportProject(projectZipFile: Fil
             }
 
             reportProgress(75, "import_step_copy")
-            if (importStandardProject(cachedProjectDir)) {
+            if (importStandardProject(cachedProjectDir) != null) {
                 reportProgress(100, "import_step_finish")
                 StorageOperations.deleteDir(cachedProjectDir)
                 ImportResult.Success
@@ -338,11 +344,11 @@ private fun scanProjectEntries(codeXml: File): List<Pair<String, String?>> {
     return entries
 }
 
-private fun importStandardProject(cachedProjectDir: File): Boolean {
+private fun ProjectUnZipperAndImporter.importStandardProject(cachedProjectDir: File): File? {
     val projectName = getProjectName(cachedProjectDir)
     if (projectName == null) {
         Log.e(TAG, "Failed to get project name from ${cachedProjectDir.absolutePath}")
-        return false
+        return null
     }
     val uniqueName = UniqueNameProvider().getUniqueName(projectName, FileMetaDataExtractor
         .getProjectNames(FlavoredConstants.DEFAULT_ROOT_DIRECTORY))
@@ -354,11 +360,29 @@ private fun importStandardProject(cachedProjectDir: File): Boolean {
     return try {
         Log.d(TAG, "Copying project to: ${destinationDirectory.absolutePath}")
         copyProject(cachedProjectDir, destinationDirectory, uniqueName)
-        true
+        normalizeProject(destinationDirectory)
+        destinationDirectory
     } catch (e: IOException) {
         Log.e(TAG, "Copy failed at phase '${destinationDirectory.absolutePath}': ${e.message}", e)
         errorWhileImporting(cachedProjectDir, destinationDirectory)
-        false
+        null
+    }
+}
+
+/**
+ * Best-effort: load the freshly imported project and re-save it so any
+ * legacy / unknown bricks are converted to UnknownBrick and the on-disk project
+ * is in a clean, current, loadable state. If loading or saving fails for any
+ * reason we keep the copied project as-is (still a valid project on disk), so
+ * this can never leave the project in a worse state than the plain copy.
+ */
+private fun ProjectUnZipperAndImporter.normalizeProject(projectDir: File) {
+    val ctx = importContext ?: return
+    try {
+        val project = XstreamSerializer.getInstance().loadProject(projectDir, ctx)
+        XstreamSerializer.getInstance().saveProject(project)
+    } catch (e: Exception) {
+        Log.w(TAG, "Project normalization (load/save) failed; keeping imported copy as-is", e)
     }
 }
 

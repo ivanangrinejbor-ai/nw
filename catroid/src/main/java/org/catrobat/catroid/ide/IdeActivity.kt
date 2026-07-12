@@ -85,6 +85,9 @@ class IdeActivity : AppCompatActivity() {
         // ЗАГРУЖАЕМ СОХРАНЕННУЮ СЕССИЮ!
         loadWorkspace()
         loadDirectory(currentDir)
+
+        // Request POST_NOTIFICATIONS permission on Android 13+
+        checkNotificationPermission()
     }
 
     // --- 1. ВКЛАДКИ (TABS) ---

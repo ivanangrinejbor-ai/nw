@@ -64,6 +64,7 @@ class FileUrlAction() : TemporalAction() {
     var name: Formula? = null
 
     override fun update(percent: Float) {
+        if (scope == null) return
         val activity = StageActivity.activeStageActivity.get()
         activity?.runOnUiThread {
             if (ContextCompat.checkSelfPermission(

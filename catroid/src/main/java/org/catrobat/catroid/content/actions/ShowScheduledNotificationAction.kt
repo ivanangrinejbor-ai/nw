@@ -54,9 +54,11 @@ class ShowScheduledNotificationAction : TemporalAction() {
             started = true
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                val channel = NotificationChannel(data.channelName, data.channelName, data.importanceLevel)
                 val manager = activity.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-                manager.createNotificationChannel(channel)
+                val channel = NotificationChannel(data.channelName, data.channelName, data.importanceLevel)
+                if (createdChannels.add(data.channelName)) {
+                    manager.createNotificationChannel(channel)
+                }
             }
 
             if (delaySec <= 0) {
@@ -87,6 +89,8 @@ class ShowScheduledNotificationAction : TemporalAction() {
     }
 
     companion object {
+        private val createdChannels = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
+
         @JvmStatic
         fun showNotification(context: Context, id: Int) {
             val data = NotificationStorage.get(id) ?: return

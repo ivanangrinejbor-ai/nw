@@ -266,8 +266,12 @@ public class StageActivity extends AndroidApplication implements ContextProvider
     private org.catrobat.catroid.ui.workspace.WindowContainer window;
 
 	@Override
-	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
+ 	public void onCreate(Bundle savedInstanceState) {
+ 		super.onCreate(savedInstanceState);
+
+		org.catrobat.catroid.runtime.RuntimeServicesHolder.services =
+				new org.catrobat.catroid.runtime.AndroidRuntimeServices(this);
+
 
 		if (getIntent().hasExtra(EXTRA_PROJECT_PATH)) {
 			String projectPath = getIntent().getStringExtra(EXTRA_PROJECT_PATH);
@@ -1754,14 +1758,20 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 
 	public static CameraManager getActiveCameraManager() {
 		if (activeStageActivity != null) {
-			return activeStageActivity.get().cameraManager;
+			StageActivity activity = activeStageActivity.get();
+			if (activity != null) {
+				return activity.cameraManager;
+			}
 		}
 		return null;
 	}
 
 	public static VibrationManager getActiveVibrationManager() {
 		if (activeStageActivity != null) {
-			return activeStageActivity.get().vibrationManager;
+			StageActivity activity = activeStageActivity.get();
+			if (activity != null) {
+				return activity.vibrationManager;
+			}
 		}
 		return null;
 	}

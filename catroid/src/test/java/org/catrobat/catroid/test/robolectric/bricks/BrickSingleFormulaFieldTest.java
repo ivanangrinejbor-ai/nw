@@ -118,7 +118,7 @@ public class BrickSingleFormulaFieldTest {
 				{SetVariableBrick.class.getSimpleName(), new SetVariableBrick(), R.id.brick_set_variable_edit_text},
 				{ChangeVariableBrick.class.getSimpleName(), new ChangeVariableBrick(), R.id.brick_change_variable_edit_text},
 				{AddItemToUserListBrick.class.getSimpleName(), new AddItemToUserListBrick(), R.id.brick_add_item_to_userlist_edit_text},
-				{ShowToastBlock.class.getSimpleName(), new ShowToastBlock(),
+				{ShowToastBrick.class.getSimpleName(), new ShowToastBrick(),
 						R.id.brick_show_toast_edit_text},
 				{LookFileBrick.class.getSimpleName(), new LookFileBrick(),
 						R.id.brick_look_file_edit_text},

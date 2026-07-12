@@ -15,6 +15,7 @@ class PerformRayCastAction : TemporalAction() {
     private var endY: Formula? = null
 
     override fun update(percent: Float) {
+        if (scope == null) return
         val id = rayId?.interpretString(scope) ?: return
         if (id.isEmpty()) return
 

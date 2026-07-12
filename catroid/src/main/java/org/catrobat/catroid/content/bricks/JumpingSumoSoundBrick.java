@@ -86,5 +86,7 @@ public class JumpingSumoSoundBrick extends FormulaBrick {
 
 	@Override
 	public void addActionToSequence(Sprite sprite, ScriptSequenceAction sequence) {
+		sequence.addAction(sprite.getActionFactory().createJumpingSumoSoundAction(sprite, sequence,
+				soundName, getFormulaWithBrickField(BrickField.JUMPING_SUMO_VOLUME)));
 	}
 }

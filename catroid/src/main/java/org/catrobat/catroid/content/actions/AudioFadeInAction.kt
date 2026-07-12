@@ -10,22 +10,23 @@ import org.catrobat.catroid.io.SoundManager
 class AudioFadeInAction : TemporalAction() {
     var scope: Scope? = null
     var duration: Formula? = null
+    private var startVolume = 0f
 
     override fun begin() {
         try {
             val dur = duration?.interpretFloat(scope) ?: 1f
             super.setDuration(dur.coerceAtLeast(0f))
+            startVolume = SoundManager.getInstance().volume
         } catch (e: InterpretationException) {
             Log.d(javaClass.simpleName, "Formula interpretation failed", e)
         }
     }
 
     override fun update(percent: Float) {
-        val target = SoundManager.getInstance().volume
-        SoundManager.getInstance().volume = target * percent
+        SoundManager.getInstance().volume = startVolume * percent
     }
 
     override fun end() {
-        SoundManager.getInstance().volume = SoundManager.getInstance().volume
+        SoundManager.getInstance().volume = startVolume
     }
 }

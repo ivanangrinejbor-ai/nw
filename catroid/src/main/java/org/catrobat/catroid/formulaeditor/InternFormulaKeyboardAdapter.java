@@ -402,6 +402,8 @@ public class InternFormulaKeyboardAdapter {
                 return buildDoubleParameterFunction(Functions.FILE_SIZE_IN_DIR, STRING, "save.dat", STRING, "Save");
             case R.string.formula_file_size_at_path:
                 return buildDoubleParameterFunction(Functions.FILE_SIZE_AT_PATH, STRING, "save.dat", STRING, "Downloads/Save");
+            case R.string.formula_file_read_string:
+                return buildDoubleParameterFunction(Functions.FILE_READ_STRING, STRING, "lines.txt", STRING, "file.txt");
             case R.string.formula_device_name:
                 return buildFunctionWithoutParametersAndBrackets(Functions.DEVICE_NAME);
             case R.string.formula_device_manufacturer:

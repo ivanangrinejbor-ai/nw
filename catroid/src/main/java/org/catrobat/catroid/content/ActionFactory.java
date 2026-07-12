@@ -952,7 +952,9 @@ public class ActionFactory extends Actions {
 				otherSpritePositionAction.setDestinationSprite(destinationSprite);
 				return otherSpritePositionAction;
 			default:
-				return null;
+				GoToTouchPositionAction fallbackAction = Actions.action(GoToTouchPositionAction.class);
+				fallbackAction.setSprite(sprite);
+				return fallbackAction;
 		}
 	}
 
@@ -5620,6 +5622,202 @@ public class ActionFactory extends Actions {
         action.setScope(scope);
         action.setHost(host);
         action.setVariable(variable);
+        return action;
+    }
+
+    // Drone bricks (wired: no drone hardware SDK present, actions log intent)
+    public Action createDroneMoveForwardAction(Sprite sprite, ScriptSequenceAction sequence, Formula duration, Formula power) {
+        DroneMoveForwardAction action = action(DroneMoveForwardAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setDuration(duration);
+        action.setPower(power);
+        return action;
+    }
+
+    public Action createDroneMoveBackwardAction(Sprite sprite, ScriptSequenceAction sequence, Formula duration, Formula power) {
+        DroneMoveBackwardAction action = action(DroneMoveBackwardAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setDuration(duration);
+        action.setPower(power);
+        return action;
+    }
+
+    public Action createDroneMoveUpAction(Sprite sprite, ScriptSequenceAction sequence, Formula duration, Formula power) {
+        DroneMoveUpAction action = action(DroneMoveUpAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setDuration(duration);
+        action.setPower(power);
+        return action;
+    }
+
+    public Action createDroneMoveDownAction(Sprite sprite, ScriptSequenceAction sequence, Formula duration, Formula power) {
+        DroneMoveDownAction action = action(DroneMoveDownAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setDuration(duration);
+        action.setPower(power);
+        return action;
+    }
+
+    public Action createDroneMoveLeftAction(Sprite sprite, ScriptSequenceAction sequence, Formula duration, Formula power) {
+        DroneMoveLeftAction action = action(DroneMoveLeftAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setDuration(duration);
+        action.setPower(power);
+        return action;
+    }
+
+    public Action createDroneMoveRightAction(Sprite sprite, ScriptSequenceAction sequence, Formula duration, Formula power) {
+        DroneMoveRightAction action = action(DroneMoveRightAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setDuration(duration);
+        action.setPower(power);
+        return action;
+    }
+
+    public Action createDroneTurnLeftAction(Sprite sprite, ScriptSequenceAction sequence, Formula duration, Formula power) {
+        DroneTurnLeftAction action = action(DroneTurnLeftAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setDuration(duration);
+        action.setPower(power);
+        return action;
+    }
+
+    public Action createDroneTurnRightAction(Sprite sprite, ScriptSequenceAction sequence, Formula duration, Formula power) {
+        DroneTurnRightAction action = action(DroneTurnRightAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setDuration(duration);
+        action.setPower(power);
+        return action;
+    }
+
+    public Action createDroneTakeOffLandAction(Sprite sprite, ScriptSequenceAction sequence) {
+        DroneTakeOffLandAction action = action(DroneTakeOffLandAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        return action;
+    }
+
+    public Action createDroneSwitchCameraAction(Sprite sprite, ScriptSequenceAction sequence) {
+        DroneSwitchCameraAction action = action(DroneSwitchCameraAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        return action;
+    }
+
+    public Action createDroneFlipAction(Sprite sprite, ScriptSequenceAction sequence) {
+        DroneFlipAction action = action(DroneFlipAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        return action;
+    }
+
+    public Action createDroneEmergencyAction(Sprite sprite, ScriptSequenceAction sequence) {
+        DroneEmergencyAction action = action(DroneEmergencyAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        return action;
+    }
+
+    public Action createDronePlayLedAnimationAction(Sprite sprite, ScriptSequenceAction sequence, String animationName) {
+        DronePlayLedAnimationAction action = action(DronePlayLedAnimationAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setAnimationName(animationName);
+        return action;
+    }
+
+    // Jumping Sumo bricks (wired: no hardware SDK present, actions log intent)
+    public Action createJumpingSumoMoveForwardAction(Sprite sprite, ScriptSequenceAction sequence, Formula duration, Formula speed) {
+        JumpingSumoMoveForwardAction action = action(JumpingSumoMoveForwardAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setDuration(duration);
+        action.setSpeed(speed);
+        return action;
+    }
+
+    public Action createJumpingSumoMoveBackwardAction(Sprite sprite, ScriptSequenceAction sequence, Formula duration, Formula speed) {
+        JumpingSumoMoveBackwardAction action = action(JumpingSumoMoveBackwardAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setDuration(duration);
+        action.setSpeed(speed);
+        return action;
+    }
+
+    public Action createJumpingSumoRotateLeftAction(Sprite sprite, ScriptSequenceAction sequence, Formula degree) {
+        JumpingSumoRotateLeftAction action = action(JumpingSumoRotateLeftAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setDegree(degree);
+        return action;
+    }
+
+    public Action createJumpingSumoRotateRightAction(Sprite sprite, ScriptSequenceAction sequence, Formula degree) {
+        JumpingSumoRotateRightAction action = action(JumpingSumoRotateRightAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setDegree(degree);
+        return action;
+    }
+
+    public Action createJumpingSumoTurnAction(Sprite sprite, ScriptSequenceAction sequence) {
+        JumpingSumoTurnAction action = action(JumpingSumoTurnAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        return action;
+    }
+
+    public Action createJumpingSumoSoundAction(Sprite sprite, ScriptSequenceAction sequence, String soundName, Formula volume) {
+        JumpingSumoSoundAction action = action(JumpingSumoSoundAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setSoundName(soundName);
+        action.setVolume(volume);
+        return action;
+    }
+
+    public Action createJumpingSumoNoSoundAction(Sprite sprite, ScriptSequenceAction sequence) {
+        JumpingSumoNoSoundAction action = action(JumpingSumoNoSoundAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        return action;
+    }
+
+    public Action createJumpingSumoTakingPictureAction(Sprite sprite, ScriptSequenceAction sequence) {
+        JumpingSumoTakingPictureAction action = action(JumpingSumoTakingPictureAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        return action;
+    }
+
+    public Action createJumpingSumoJumpHighAction(Sprite sprite, ScriptSequenceAction sequence) {
+        JumpingSumoJumpHighAction action = action(JumpingSumoJumpHighAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        return action;
+    }
+
+    public Action createJumpingSumoJumpLongAction(Sprite sprite, ScriptSequenceAction sequence) {
+        JumpingSumoJumpLongAction action = action(JumpingSumoJumpLongAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        return action;
+    }
+
+    public Action createJumpingSumoAnimationsAction(Sprite sprite, ScriptSequenceAction sequence, String animationName) {
+        JumpingSumoAnimationsAction action = action(JumpingSumoAnimationsAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setAnimationName(animationName);
         return action;
     }
 }

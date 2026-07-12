@@ -53,6 +53,18 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 class PostWebRequestAction() : TemporalAction() {
+    companion object {
+        private val okHttpClient by lazy {
+            OkHttpClient.Builder()
+                .connectTimeout(30, TimeUnit.SECONDS)
+                .readTimeout(30, TimeUnit.SECONDS)
+                .writeTimeout(30, TimeUnit.SECONDS)
+                .build()
+        }
+    }
+
+    private var started = false
+
     var scope: Scope? = null
     var rurl: Formula? = null
     var header: Formula? = null
@@ -64,13 +76,9 @@ class PostWebRequestAction() : TemporalAction() {
     }
 
     override fun update(percent: Float) {
-        val client = OkHttpClient.Builder()
-            .connectTimeout(0, TimeUnit.SECONDS)
-            .readTimeout(0, TimeUnit.SECONDS)
-            .writeTimeout(0, TimeUnit.SECONDS)
-            .build()
-
-
+        if (started) return
+        started = true
+        if (scope == null) { started = false; return }
         var urlVal = rurl?.interpretObject(scope) ?: ""
         var urlText = urlVal.toString()
         var headerVal = header?.interpretObject(scope) ?: ""
@@ -92,7 +100,7 @@ class PostWebRequestAction() : TemporalAction() {
             .post(bodyn)
             .build()
         Thread {
-            client.newCall(request).enqueue(object : Callback {
+            okHttpClient.newCall(request).enqueue(object : Callback {
                 override fun onFailure(call: okhttp3.Call, e: IOException) {
                     MyActivityManager.stage_activity?.runOnUiThread {
                         userVariable?.value = "Response error: ${e.message}"
@@ -114,5 +122,10 @@ class PostWebRequestAction() : TemporalAction() {
                 }
             })
         }.start()
+    }
+
+    override fun restart() {
+        super.restart()
+        started = false
     }
 }

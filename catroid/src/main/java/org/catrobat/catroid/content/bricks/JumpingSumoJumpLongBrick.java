@@ -40,5 +40,6 @@ public class JumpingSumoJumpLongBrick extends BrickBaseType {
 
 	@Override
 	public void addActionToSequence(Sprite sprite, ScriptSequenceAction sequence) {
+		sequence.addAction(sprite.getActionFactory().createJumpingSumoJumpLongAction(sprite, sequence));
 	}
 }

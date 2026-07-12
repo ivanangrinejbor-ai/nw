@@ -22,10 +22,20 @@
  */
 package org.catrobat.catroid.content.actions
 
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.opengl.GLES20
+import android.opengl.GLUtils
+import com.badlogic.gdx.graphics.Pixmap
+import com.badlogic.gdx.graphics.Texture
+import com.badlogic.gdx.graphics.g2d.SpriteBatch
+import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction
 import org.catrobat.catroid.content.Scope
 import org.catrobat.catroid.formulaeditor.Formula
+import org.catrobat.catroid.formulaeditor.InterpretationException
 import org.catrobat.catroid.stage.StageActivity
 
 class DrawTextAction : TemporalAction() {
@@ -34,23 +44,61 @@ class DrawTextAction : TemporalAction() {
     var y: Formula? = null
     var text: Formula? = null
 
+    private var batch: SpriteBatch? = null
+
     override fun update(delta: Float) {
+        if (scope == null) return
         val s = scope ?: return
         val stageListener = StageActivity.getActiveStageListener() ?: return
-        val penActor = stageListener.penActor
-        val shapeRenderer = stageListener.shapeRenderer
+        val penActor = stageListener.penActor ?: return
+
+        val textStr: String = try {
+            text?.interpretString(s) ?: return
+        } catch (e: InterpretationException) {
+            return
+        }
+        if (textStr.isEmpty()) return
+
+        val xVal = try { x?.interpretFloat(s) ?: 0f } catch (e: InterpretationException) { 0f }
+        val yVal = try { y?.interpretFloat(s) ?: 0f } catch (e: InterpretationException) { 0f }
+
+        // Render the text into an Android Bitmap (mirrors ShowTextActor.drawText),
+        // then upload it as a libGDX Texture and draw it into the pen FrameBuffer.
+        val paint = Paint().apply {
+            isAntiAlias = true
+            color = Color.BLACK
+            textSize = 40f
+        }
+        val baseline = -paint.ascent()
+        val textHeight = (baseline + paint.descent()).toInt().coerceAtLeast(1)
+        val textWidth = paint.measureText(textStr).toInt().coerceAtLeast(1)
+
+        val bitmap = Bitmap.createBitmap(textWidth, textHeight, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+        canvas.drawText(textStr, 0f, baseline, paint)
+
+        val texture = Texture(bitmap.width, bitmap.height, Pixmap.Format.RGBA8888)
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, texture.getTextureObjectHandle())
+        GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0)
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
+        bitmap.recycle()
+
+        // Pre-flip vertically: the pen layer is displayed with a vertical flip,
+        // so flipping here keeps the glyphs upright on screen.
+        val region = TextureRegion(texture)
+        region.flip(false, true)
+
         val buffer = penActor.buffer
         val camera = penActor.canvasCamera
+        val spriteBatch = batch ?: SpriteBatch().also { batch = it }
 
-        val xVal = x?.interpretFloat(s) ?: 0f
-        val yVal = y?.interpretFloat(s) ?: 0f
-
-        camera.update()
         buffer.begin()
-        shapeRenderer.projectionMatrix = camera.combined
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
-        shapeRenderer.rect(xVal - 10f, yVal - 5f, 20f, 10f)
-        shapeRenderer.end()
+        spriteBatch.setProjectionMatrix(camera.combined)
+        spriteBatch.begin()
+        spriteBatch.draw(region, xVal, yVal)
+        spriteBatch.end()
         buffer.end()
+
+        texture.dispose()
     }
 }

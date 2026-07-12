@@ -411,6 +411,7 @@ public class InternToExternGenerator {
         INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.FILE_PROJECT_SIZE.name(), R.string.formula_file_project_size);
         INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.FILE_SIZE_IN_DIR.name(), R.string.formula_file_size_in_dir);
         INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.FILE_SIZE_AT_PATH.name(), R.string.formula_file_size_at_path);
+        INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.FILE_READ_STRING.name(), R.string.formula_file_read_string);
         INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.DEVICE_NAME.name(), R.string.formula_device_name);
         INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.DEVICE_MANUFACTURER.name(), R.string.formula_device_manufacturer);
         INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.ANDROID_VERSION.name(), R.string.formula_android_version);
@@ -522,6 +523,7 @@ public class InternToExternGenerator {
 				R.string.formula_editor_logic_leserequal);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Operators.SMALLER_THAN.name(),
 				R.string.formula_editor_logic_lesserthan);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Operators.POW.name(), R.string.formula_editor_operator_power);
 
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.SPEECH_RECOGNITION_LANGUAGE.name(),
 				R.string.formula_editor_listening_language_sensor);
@@ -540,6 +542,43 @@ public class InternToExternGenerator {
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.ADMOB_LAST_ERROR_CODE.name(), R.string.formula_admob_last_error_code);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.ADMOB_LAST_ERROR_MESSAGE.name(), R.string.formula_admob_last_error_message);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.ADMOB_IS_GOOGLE_PLAY_SERVICES_AVAILABLE.name(), R.string.formula_admob_is_google_play_services_available);
+
+		// Cryptography
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.SHA_224.name(), R.string.formula_crypto_sha_224);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.SHA_256.name(), R.string.formula_crypto_sha_256);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.SHA_384.name(), R.string.formula_crypto_sha_384);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.SHA_512.name(), R.string.formula_crypto_sha_512);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.HASH_BYTES.name(), R.string.formula_crypto_hash_bytes);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.HASH_FILE.name(), R.string.formula_crypto_hash_file);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.AES_ENCRYPT.name(), R.string.formula_crypto_aes_encrypt);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.AES_DECRYPT.name(), R.string.formula_crypto_aes_decrypt);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.CHACHA20_ENCRYPT.name(), R.string.formula_crypto_chacha20_encrypt);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.CHACHA20_DECRYPT.name(), R.string.formula_crypto_chacha20_decrypt);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.PBKDF2.name(), R.string.formula_crypto_pbkdf2);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.GENERATE_SALT.name(), R.string.formula_crypto_generate_salt);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.DERIVE_KEY.name(), R.string.formula_crypto_derive_key);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.GENERATE_AES_KEY.name(), R.string.formula_crypto_generate_aes_key);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.GENERATE_RANDOM_BYTES.name(), R.string.formula_crypto_generate_random_bytes);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.GENERATE_PASSWORD.name(), R.string.formula_crypto_generate_password);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.GENERATE_UUID.name(), R.string.formula_crypto_generate_uuid);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.RANDOM_HEX.name(), R.string.formula_crypto_random_hex);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.RANDOM_BASE64.name(), R.string.formula_crypto_random_base64);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.RANDOM_INT_SECURE.name(), R.string.formula_crypto_random_int_secure);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.RANDOM_STRING_SECURE.name(), R.string.formula_crypto_random_string_secure);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.BASE64_ENCODE.name(), R.string.formula_crypto_base64_encode);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.BASE64_DECODE.name(), R.string.formula_crypto_base64_decode);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.HEX_ENCODE.name(), R.string.formula_crypto_hex_encode);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.HEX_DECODE.name(), R.string.formula_crypto_hex_decode);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.COMPARE_HASH.name(), R.string.formula_crypto_compare_hash);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.IS_BASE64.name(), R.string.formula_crypto_is_base64);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.IS_HEX.name(), R.string.formula_crypto_is_hex);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.HMAC_SHA_256.name(), R.string.formula_crypto_hmac_sha_256);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.HMAC_SHA_512.name(), R.string.formula_crypto_hmac_sha_512);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.RSA_GENERATE_KEY_PAIR.name(), R.string.formula_crypto_rsa_generate_key_pair);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.RSA_ENCRYPT.name(), R.string.formula_crypto_rsa_encrypt);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.RSA_DECRYPT.name(), R.string.formula_crypto_rsa_decrypt);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.RSA_SIGN.name(), R.string.formula_crypto_rsa_sign);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.RSA_VERIFY.name(), R.string.formula_crypto_rsa_verify);
 	}
 	public InternToExternGenerator(Context context) {
 		this.context = context;
@@ -658,6 +697,10 @@ public class InternToExternGenerator {
 			number = getNumberExponentRepresentation(number);
 		}
 
+		if (number.contains("E") || number.contains("e")) {
+			return number;
+		}
+
 		if (!number.contains(".")) {
 			return number;
 		}
@@ -714,7 +757,8 @@ public class InternToExternGenerator {
 	}
 
 	public static int getMappedString(String token) {
-		return INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.get(token);
+		Integer mapped = INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.get(token);
+		return mapped == null ? -1 : mapped;
 	}
 
 	public static void setInternExternLanguageConverterMap(Sensors sensor, Integer output) {

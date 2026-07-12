@@ -18,8 +18,9 @@
  */
 package org.catrobat.catroid.paintroid.tools.options
 
+import android.graphics.Typeface
 import android.view.View
-import org.catrobat.catroid.paintroid.tools.FontType
+import org.catrobat.catroid.paintroid.tools.FontEntry
 
 interface TextToolOptionsView {
     fun setState(
@@ -28,7 +29,7 @@ interface TextToolOptionsView {
         underlined: Boolean,
         text: String,
         textSize: Int,
-        fontType: FontType
+        fontEntry: FontEntry
     )
 
     fun setCallback(listener: Callback)
@@ -45,12 +46,10 @@ interface TextToolOptionsView {
 
     fun toggleShapeSizeVisibility(isVisible: Boolean)
 
-    fun setProjectFontName(name: String)
-
     interface Callback {
         fun setText(text: String)
 
-        fun setFont(fontType: FontType)
+        fun setFont(fontEntry: FontEntry, typeface: Typeface?)
 
         fun setUnderlined(underlined: Boolean)
 
