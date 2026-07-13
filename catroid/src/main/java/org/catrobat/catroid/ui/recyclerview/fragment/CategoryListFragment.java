@@ -429,6 +429,7 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
             R.string.formula_no_param,
             R.string.formula_no_param, R.string.formula_no_param,
             R.string.formula_no_param, R.string.formula_no_param
+    );
 
 	private static final List<Integer> THREED_FUNCTIONS = asList(
             R.string.formula_delta,

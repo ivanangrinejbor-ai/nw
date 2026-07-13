@@ -4,6 +4,13 @@ setlocal enabledelayedexpansion
 set "ROOT=%~dp0"
 set "PROJECT_ROOT=%ROOT%.."
 set "DIST=%ROOT%build\win-dist"
+rem Gradle discovery: search upward for gradlew.bat so the script also works
+rem when launched from a project folder (not the repo's desktop-runtime).
+set "GRADLEW="
+for %%D in ("%ROOT%.." "%ROOT%..\.." "%ROOT%..\..\..") do (
+    if not defined GRADLEW if exist "%%~D\gradlew.bat" set "GRADLEW=%%~D\gradlew.bat"
+)
+if not defined GRADLEW set "GRADLEW=%PROJECT_ROOT%\gradlew.bat"
 set "ICON_SRC=%PROJECT_ROOT%\catroid\src\main\res\mipmap-xxxhdpi\ic_launcher.png"
 set "ICON_ICO=%DIST%\icon.ico"
 set "PLAYER_JAR=%PROJECT_ROOT%\desktop-runtime\build\libs\player.jar"
@@ -25,7 +32,7 @@ if exist "%ROOT%template_win.zip" (
 )
 if not exist "%TEMPLATE_JAR%" (
     echo   building player jar via gradle...
-    call "%PROJECT_ROOT%\gradlew.bat" :desktop-runtime:jar --offline
+    call "%GRADLEW%" :desktop-runtime:jar --offline
     if errorlevel 1 goto :fail
     copy /y "%PLAYER_JAR%" "%TEMPLATE_JAR%" >nul
 )
@@ -36,9 +43,21 @@ if not exist "%TEMPLATE_JAR%" (
 
 rem Resolve launch4j AFTER extracting the template, so a bundled launch4j\
 rem inside the template (bundle\launch4j) is found too — no manual drop needed.
-set "LAUNCH4J_EXE=%LAUNCH4J_HOME%\launch4j.exe"
-if not exist "%LAUNCH4J_EXE%" set "LAUNCH4J_EXE=%ROOT%launch4j\launch4j.exe"
-if not exist "%LAUNCH4J_EXE%" set "LAUNCH4J_EXE=%DIST%\bundle\launch4j\launch4j.exe"
+rem Also look next to this script (launch4j\ subfolder OR a flattened launch4j.exe),
+rem and in the repo's desktop-runtime, so running from a project folder works.
+set "LAUNCH4J_EXE="
+set "L4J_MIRROR="
+if defined LAUNCH4J_HOME if exist "%LAUNCH4J_HOME%\launch4j.exe" set "LAUNCH4J_EXE=%LAUNCH4J_HOME%\launch4j.exe"
+if not defined LAUNCH4J_EXE if exist "%ROOT%launch4j.exe" set "LAUNCH4J_EXE=%ROOT%launch4j.exe"
+if not defined LAUNCH4J_EXE if exist "%ROOT%launch4j\launch4j.exe" set "LAUNCH4J_EXE=%ROOT%launch4j\launch4j.exe" & set "L4J_MIRROR=%ROOT%launch4j"
+if not defined LAUNCH4J_EXE if exist "%ROOT%..\desktop-runtime\launch4j\launch4j.exe" set "LAUNCH4J_EXE=%ROOT%..\desktop-runtime\launch4j\launch4j.exe" & set "L4J_MIRROR=%ROOT%..\desktop-runtime\launch4j"
+if not defined LAUNCH4J_EXE if exist "%DIST%\bundle\launch4j\launch4j.exe" set "LAUNCH4J_EXE=%DIST%\bundle\launch4j\launch4j.exe" & set "L4J_MIRROR=%DIST%\bundle\launch4j"
+rem If found inside a real launch4j\ folder, mirror it into %ROOT%launch4j\ so
+rem step 6 bakes it into the regenerated template (later runs need no manual drop).
+if defined L4J_MIRROR if not exist "%ROOT%launch4j\launch4j.exe" (
+    if exist "%ROOT%launch4j" rmdir /s /q "%ROOT%launch4j"
+    powershell -NoProfile -ExecutionPolicy Bypass -Command "Copy-Item -Recurse -Force '%L4J_MIRROR%' '%ROOT%launch4j'"
+)
 
 echo [2/6] Preparing bundled JRE (jlink)...
 if not exist "%DIST%\bundle\jre" (
@@ -110,6 +129,7 @@ echo Built: %EXE_OUT%
 echo [6/6] Building template bundle for Android assets (bare player + jre)...
 rem Bake launch4j into the template so end users need no manual drop.
 if exist "%ROOT%launch4j\launch4j.exe" (
+    if exist "%DIST%\bundle\launch4j" rmdir /s /q "%DIST%\bundle\launch4j"
     powershell -NoProfile -ExecutionPolicy Bypass -Command "Copy-Item -Recurse -Force '%ROOT%launch4j' '%DIST%\bundle\launch4j'" 2>nul
 )
 if exist "%ICON_ICO%" copy /y "%ICON_ICO%" "%DIST%\bundle\icon.ico" >nul

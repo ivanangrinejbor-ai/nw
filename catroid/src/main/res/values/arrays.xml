@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <!--
   ~ Catroid: An on-device visual programming system for Android devices
   ~ Copyright (C) 2010-2022 The Catrobat Team
@@ -478,6 +478,141 @@
         <item>@string/formula_editor_object_y_velocity</item>
         <item>@string/formula_get_status_code</item>
         <item>@string/formula_download_progress</item>
+    </string-array>
+
+    <string-array name="brick_physics_states">
+        <item>No physics</item>
+        <item>Static (Primitive)</item>
+        <item>Dynamic (Primitive)</item>
+        <item>Static complex</item>
+        <item>Kinematic</item>
+    </string-array>
+
+    <string-array name="brick_physics_shapes">
+        <item>Cube</item>
+        <item>Sphere</item>
+        <item>Capsule</item>
+    </string-array>
+
+    <string-array name="mouse_buttons">
+        <item>Left</item>
+        <item>Right</item>
+        <item>Middle</item>
+    </string-array>
+
+    <string-array name="brick_pbr_render_states">
+        <item>Off</item>
+        <item>On</item>
+    </string-array>
+
+    <string-array name="upload_file_types">
+        <item>Default (Text)</item>
+        <item>Binary</item>
+    </string-array>
+
+    <string-array name="upload_storage_types">
+        <item>Permanent</item>
+        <item>Temporary</item>
+    </string-array>
+
+    <string-array name="pt_ops_array">
+        <item>add</item>
+        <item>sub</item>
+        <item>mul</item>
+        <item>matmul</item>
+        <item>relu</item>
+        <item>sigmoid</item>
+        <item>tanh</item>
+        <item>softmax</item>
+        <item>mse_loss</item>
+        <item>sum</item>
+    </string-array>
+
+    <string-array name="pp_effect_types">
+        <item>Global (Enable/Quality)</item>
+        <item>Bloom</item>
+        <item>Vignette</item>
+        <item>Levels (Color)</item>
+        <item>Film Grain</item>
+        <item>FXAA</item>
+        <item>Chromatic Aberration</item>
+        <item>Radial Blur</item>
+        <item>Old TV</item>
+        <item>CRT Monitor</item>
+        <item>Fisheye</item>
+        <item>Water Distortion</item>
+        <item>Motion Blur</item>
+        <item>Lens Flare</item>
+        <item>Gaussian Blur</item>
+        <item>Zoom Blur</item>
+        <item>ACES Tonemapping</item>
+        <item>Eye Adaptation</item>
+        <item>Ray Tracing (SSR)</item>
+    </string-array>
+
+    <string-array name="brick_set_active_states">
+        <item>Active</item>
+        <item>Inactive</item>
+    </string-array>
+
+    <string-array name="keyframe_actions">
+        <item>Add</item>
+        <item>Remove</item>
+        <item>Move</item>
+    </string-array>
+
+    <string-array name="brick_easing_types">
+        <item>None</item>
+        <item>Linear</item>
+        <item>Quad Ease In</item>
+        <item>Quad Ease Out</item>
+        <item>Quad Ease In Out</item>
+        <item>Cubic Ease In</item>
+        <item>Cubic Ease Out</item>
+        <item>Cubic Ease In Out</item>
+        <item>Quart Ease In</item>
+        <item>Quart Ease Out</item>
+        <item>Quart Ease In Out</item>
+        <item>Quint Ease In</item>
+        <item>Quint Ease Out</item>
+        <item>Quint Ease In Out</item>
+        <item>Sine Ease In</item>
+        <item>Sine Ease Out</item>
+        <item>Sine Ease In Out</item>
+        <item>Expo Ease In</item>
+        <item>Expo Ease Out</item>
+        <item>Expo Ease In Out</item>
+        <item>Circ Ease In</item>
+        <item>Circ Ease Out</item>
+        <item>Circ Ease In Out</item>
+        <item>Back Ease In</item>
+        <item>Back Ease Out</item>
+        <item>Back Ease In Out</item>
+        <item>Elastic Ease In</item>
+        <item>Elastic Ease Out</item>
+        <item>Elastic Ease In Out</item>
+        <item>Bounce Ease In</item>
+        <item>Bounce Ease Out</item>
+        <item>Bounce Ease In Out</item>
+    </string-array>
+
+    <string-array name="pp_effect_params">
+        <item>Enabled (1/0)</item>
+        <item>Intensity / Strength / Threshold</item>
+        <item>Radius</item>
+        <item>Angle / Rotation</item>
+        <item>Color (RGB)</item>
+        <item>Offset</item>
+        <item>Scale</item>
+        <item>Speed</item>
+        <item>Quality</item>
+        <item>Distance</item>
+        <item>Power</item>
+        <item>Center X</item>
+        <item>Center Y</item>
+        <item>Amount</item>
+        <item>Softness</item>
+        <item>Vignette</item>
     </string-array>
 
 </resources>

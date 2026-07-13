@@ -109,7 +109,7 @@ public enum Functions {
     BASE64_ENCODE, BASE64_DECODE, HEX_ENCODE, HEX_DECODE,
     COMPARE_HASH, IS_BASE64, IS_HEX,
     HMAC_SHA_256, HMAC_SHA_512,
-    RSA_GENERATE_KEY_PAIR, RSA_ENCRYPT, RSA_DECRYPT, RSA_SIGN, RSA_VERIFY,;
+            RSA_GENERATE_KEY_PAIR, RSA_ENCRYPT, RSA_DECRYPT, RSA_SIGN, RSA_VERIFY, IS_PC, IS_MOBILE;
 
 	private static final String TAG = Functions.class.getSimpleName();
 	// NOTE: unused/dead — visibility is driven by CategoryListFragment lists + InternFormulaKeyboardAdapter
