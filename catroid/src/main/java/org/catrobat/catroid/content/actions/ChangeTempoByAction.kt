@@ -27,7 +27,7 @@ import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction
 import org.catrobat.catroid.content.Scope
 import org.catrobat.catroid.formulaeditor.Formula
 import org.catrobat.catroid.formulaeditor.InterpretationException
-import org.catrobat.catroid.pocketmusic.mididriver.MidiSoundManager
+import org.catrobat.catroid.audio.MidiServiceHolder
 
 class ChangeTempoByAction : TemporalAction() {
     lateinit var scope: Scope
@@ -35,7 +35,7 @@ class ChangeTempoByAction : TemporalAction() {
     override fun update(delta: Float) {
         try {
             val newTempo: Int = tempo?.interpretInteger(scope) ?: 0
-            MidiSoundManager.getInstance().tempo = MidiSoundManager.getInstance().tempo + newTempo
+            MidiServiceHolder.midiService.setTempo(MidiServiceHolder.midiService.getTempo() + newTempo)
         } catch (interpretationException: InterpretationException) {
             Log.d(
                 javaClass.simpleName,

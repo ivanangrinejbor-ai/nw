@@ -1,7 +1,5 @@
 package org.catrobat.catroid.content.actions
 
-import android.app.NotificationChannel
-import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -12,6 +10,8 @@ import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction
 import org.catrobat.catroid.content.Scope
 import org.catrobat.catroid.content.service.ForegroundService
 import org.catrobat.catroid.formulaeditor.Formula
+import org.catrobat.catroid.notification.NotificationService
+import org.catrobat.catroid.notification.NotificationServiceHolder
 import org.catrobat.catroid.stage.StageActivity
 
 class EnableBackgroundAction : TemporalAction() {
@@ -21,7 +21,7 @@ class EnableBackgroundAction : TemporalAction() {
     var title: Formula? = null
     var text: Formula? = null
     var iconPath: Formula? = null
-    var importanceLevel: Int = NotificationManager.IMPORTANCE_DEFAULT
+    var importanceLevel: Int = NotificationService.IMPORTANCE_DEFAULT
 
     override fun update(percent: Float) {
         try {
@@ -32,16 +32,8 @@ class EnableBackgroundAction : TemporalAction() {
             val notifText = text?.interpretString(scope) ?: "App is running in background"
             val icon = iconPath?.interpretString(scope) ?: ""
 
-            // Create notification channel for API 26+
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                val notificationChannel = NotificationChannel(
-                    channel,
-                    channel,
-                    NotificationManager.IMPORTANCE_LOW
-                )
-                val notificationManager = activity.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-                notificationManager.createNotificationChannel(notificationChannel)
-            }
+            // Create notification channel for API 26+ (via notification service seam)
+            NotificationServiceHolder.service.ensureChannel(channel, NotificationService.IMPORTANCE_LOW)
 
             // Check POST_NOTIFICATIONS permission on API 33+
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {

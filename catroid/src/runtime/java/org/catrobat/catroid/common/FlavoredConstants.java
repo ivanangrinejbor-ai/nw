@@ -7,11 +7,11 @@ import org.catrobat.catroid.CatroidApplication;
 import java.io.File;
 
 public final class FlavoredConstants {
+    public static final String COMMUNITY_URL = "http://NeoCatroid.sois.site";
     public static final String BASE_URL_HTTPS = "https://share.catrob.at/";
     public static final String BASE_UPLOAD_URL = BASE_URL_HTTPS + "api/upload/";
     public static final String CATROBAT_HELP_URL = "https://catrob.at/help";
     public static final String CATEGORY_URL = BASE_URL_HTTPS + "#home-projects__";
-    public static final String COMMUNITY_URL = BASE_URL_HTTPS + "community/";
     public static final String FLAVOR_NAME = "runtime";
     public static final String POCKET_CODE_EXTERNAL_STORAGE_FOLDER_NAME = "NeoCatroid";
 

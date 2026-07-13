@@ -30,6 +30,8 @@ import org.catrobat.catroid.content.Scope
 import org.catrobat.catroid.content.Sprite
 import org.catrobat.catroid.formulaeditor.Formula
 import org.catrobat.catroid.formulaeditor.InterpretationException
+import org.catrobat.catroid.audio.AudioServiceHolder
+import org.catrobat.catroid.audio.MidiServiceHolder
 import org.catrobat.catroid.io.SoundManager
 import org.catrobat.catroid.pocketmusic.mididriver.MidiSoundManager
 
@@ -51,12 +53,12 @@ class PlaySoundAtAction : TemporalAction() {
 
             sound?.let {
                 if (it.isMidiFile) {
-                    MidiSoundManager.getInstance().playSoundFileWithStartTime(
-                        it.file.absolutePath, sprite, offsetMilliseconds
+                    MidiServiceHolder.midiService.playSoundFileWithStartTime(
+                        it.file.absolutePath, sprite.name, offsetMilliseconds
                     )
                 } else {
-                    SoundManager.getInstance().playSoundFileWithStartTime(
-                        it.file.absolutePath, sprite, offsetMilliseconds
+                    AudioServiceHolder.audioService.playSoundFileWithStartTime(
+                        it.file.absolutePath, sprite.name, offsetMilliseconds
                     )
                 }
             }

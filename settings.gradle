@@ -22,6 +22,8 @@
  */
 
 include ':catroid'
+include ':core'
+include ':desktop-runtime'
 include ':lunoscript-processor'
 include ':lunoscript-annotations'
 include ':vncclient'

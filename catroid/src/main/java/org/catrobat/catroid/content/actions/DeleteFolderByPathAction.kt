@@ -1,7 +1,7 @@
 package org.catrobat.catroid.content.actions
 
-import android.os.Environment
 import android.util.Log
+import org.catrobat.catroid.runtime.RuntimeServicesHolder
 import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction
 import org.catrobat.catroid.content.Scope
 import org.catrobat.catroid.formulaeditor.Formula
@@ -18,7 +18,7 @@ class DeleteFolderByPathAction : TemporalAction() {
         if (pathStr.isBlank() || name.isBlank()) return
 
         try {
-            val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+            val downloadsDir = File(RuntimeServicesHolder.services.getDownloadsDir())
             val baseCanonical = downloadsDir.canonicalPath
             val parentDir = File(downloadsDir, pathStr).canonicalFile
             if (!parentDir.canonicalPath.startsWith(baseCanonical + File.separator) && parentDir.canonicalPath != baseCanonical) {

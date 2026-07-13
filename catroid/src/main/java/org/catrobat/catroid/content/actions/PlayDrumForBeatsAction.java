@@ -30,7 +30,7 @@ import org.catrobat.catroid.content.Scope;
 import org.catrobat.catroid.content.bricks.brickspinner.PickableDrum;
 import org.catrobat.catroid.formulaeditor.Formula;
 import org.catrobat.catroid.formulaeditor.InterpretationException;
-import org.catrobat.catroid.pocketmusic.mididriver.MidiSoundManager;
+import org.catrobat.catroid.audio.MidiServiceHolder;
 import org.catrobat.catroid.pocketmusic.note.Drum;
 
 public class PlayDrumForBeatsAction extends TemporalAction {
@@ -44,8 +44,8 @@ public class PlayDrumForBeatsAction extends TemporalAction {
 		try {
 			Drum drum = Drum.getDrumFromProgram(selectedDrum.getValue());
 			float playedBeats = beats == null ? Float.valueOf(0f) : beats.interpretFloat(scope);
-			MidiSoundManager.getInstance().playDrumForBeats(drum, playedBeats, scope.getSprite());
-			super.setDuration((float) MidiSoundManager.getInstance().getDurationForBeats(playedBeats) / 1000);
+			MidiServiceHolder.midiService.playDrumForBeats(drum, playedBeats, scope.getSprite().getName());
+			super.setDuration((float) MidiServiceHolder.midiService.getDurationForBeats(playedBeats) / 1000);
 		} catch (InterpretationException interpretationException) {
 			Log.d(getClass().getSimpleName(), "Formula interpretation for this specific Brick failed.", interpretationException);
 		}

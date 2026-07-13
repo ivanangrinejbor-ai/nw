@@ -1,7 +1,7 @@
 package org.catrobat.catroid.content.actions
 
-import android.os.Environment
 import android.util.Log
+import org.catrobat.catroid.runtime.RuntimeServicesHolder
 import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction
 import org.catrobat.catroid.content.Scope
 import org.catrobat.catroid.formulaeditor.Formula
@@ -22,7 +22,7 @@ class PutFileIntoFolderAction : TemporalAction() {
             val sourceFile = project.getFile(sourceName)
             if (!sourceFile.exists() || sourceFile.isDirectory) return
 
-            val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+            val downloadsDir = File(RuntimeServicesHolder.services.getDownloadsDir())
             val destDir = File(downloadsDir, folder).canonicalFile
             val baseCanonical = downloadsDir.canonicalPath
             if (!destDir.canonicalPath.startsWith(baseCanonical + File.separator) && destDir.canonicalPath != baseCanonical) {

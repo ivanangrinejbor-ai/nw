@@ -639,6 +639,8 @@
     <string formatted="false" name="formula_gpu_name">Название GPU</string>
     <string formatted="false" name="formula_opengl_version">Версия OpenGL</string>
     <string formatted="false" name="formula_vulkan_supported">Vulkan поддерживается</string>
+    <string formatted="false" name="formula_is_pc">Это ПК</string>
+    <string formatted="false" name="formula_is_mobile">Это мобильное устройство</string>
     <string name="formula_sprite_exists" formatted="false">Спрайт_существует</string>
     <string name="formula_sprite_exists_param" formatted="false">(\'имя\')</string>
     <string name="formula_sprite_x" formatted="false">Спрайт_X</string>
@@ -1991,6 +1993,7 @@
     <string formatted="false" name="brick_file_url">Сохранить файл (Загрузки)</string>
     <string formatted="false" name="build_apk">Сохранить APK</string>
     <string formatted="false" name="save_apk_button">Билд APK</string>
+    <string formatted="false" name="build_desktop_bundle_button">Билд ZIP для Windows</string>
     <string formatted="false" name="change_icon_button">Изменить иконку</string>
     <string formatted="false" name="change_orientation_button">Изменить ориентацию</string>
     <string formatted="false" name="clear_vars_button">Очистить сохраненные переменные</string>
@@ -2790,6 +2793,7 @@
     <string formatted="false" name="details_date_today">Сегодня</string>
     <string formatted="false" name="import_project">Импортировать проект</string>
     <string formatted="false" name="build_apk_title">Сборка APK</string>
+    <string formatted="false" name="build_desktop_bundle_title">Сборка ZIP для Windows</string>
     <string formatted="false" name="build_apk_name">Название приложения:</string>
     <string formatted="false" name="build_apk_package">Пакет:</string>
     <string formatted="false" name="build_apk_version_name">Версия:</string>
@@ -2797,6 +2801,9 @@
     <string formatted="false" name="build_apk_icon">Иконка</string>
     <string formatted="false" name="build_apk_start">Собрать APK</string>
     <string formatted="false" name="build_apk_progress">Сборка APK...</string>
+    <string formatted="false" name="build_desktop_bundle_progress">Сборка ZIP для Windows...</string>
+    <string formatted="false" name="build_desktop_bundle_done">ZIP для Windows готов</string>
+    <string formatted="false" name="build_desktop_bundle_failed">Сборка ZIP для Windows не удалась</string>
     <string formatted="false" name="build_apk_success">APK успешно собран</string>
     <string formatted="false" name="build_apk_error">Ошибка сборки</string>
     <string formatted="false" name="build_apk_no_template">Шаблон APK не найден. Соберите шаблон сначала.</string>
@@ -3342,6 +3349,7 @@
     <string formatted="false" name="project_options_custom_resolution">Пользовательское разрешение</string>
     <string formatted="false" name="project_options_preloader">Экран предзагрузки</string>
     <string formatted="false" name="project_options_precompile">Предкомпиляция при запуске</string>
+    <string formatted="false" name="project_options_build_exe">Собрать EXE</string>
     <string formatted="false" name="preloader_compiling">Компиляция сцены:</string>
     <string formatted="false" name="preloader_loading">Загрузка...</string>
     <string formatted="false" name="brick_think_bubble">Думать</string>

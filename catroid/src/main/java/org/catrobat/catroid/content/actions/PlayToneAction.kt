@@ -1,10 +1,30 @@
+/*
+ * Catroid: An on-device visual programming system for Android devices
+ * Copyright (C) 2010-2022 The Catrobat Team
+ * (<http://developer.catrobat.org/credits>)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * An additional term exception under section 7 of the GNU Affero
+ * General Public License, version 3, is available at
+ * http://developer.catrobat.org/license_additional_term
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package org.catrobat.catroid.content.actions
 
-import android.media.AudioAttributes
-import android.media.AudioFormat
-import android.media.AudioTrack
 import android.util.Log
 import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction
+import org.catrobat.catroid.audio.AudioServiceHolder
 import org.catrobat.catroid.content.Scope
 import org.catrobat.catroid.formulaeditor.Formula
 import org.catrobat.catroid.formulaeditor.InterpretationException
@@ -13,7 +33,6 @@ class PlayToneAction : TemporalAction() {
     var scope: Scope? = null
     var frequency: Formula? = null
     var duration: Formula? = null
-    private var audioTrack: AudioTrack? = null
 
     override fun begin() {
         try {
@@ -29,26 +48,7 @@ class PlayToneAction : TemporalAction() {
                 val sample = (Math.sin(2.0 * Math.PI * freq / sampleRate * i) * Short.MAX_VALUE).toInt().toShort()
                 samples[i] = sample
             }
-
-            val attr = AudioAttributes.Builder()
-                .setUsage(AudioAttributes.USAGE_MEDIA)
-                .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                .build()
-            val format = AudioFormat.Builder()
-                .setSampleRate(sampleRate)
-                .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
-                .setChannelMask(AudioFormat.CHANNEL_OUT_MONO)
-                .build()
-
-            audioTrack = AudioTrack.Builder()
-                .setAudioAttributes(attr)
-                .setAudioFormat(format)
-                .setBufferSizeInBytes(numSamples * 2)
-                .setTransferMode(AudioTrack.MODE_STATIC)
-                .build()
-
-            audioTrack?.write(samples, 0, numSamples)
-            audioTrack?.play()
+            AudioServiceHolder.audioService.playTone(samples, sampleRate)
         } catch (e: InterpretationException) {
             Log.d(javaClass.simpleName, "Formula interpretation failed", e)
         } catch (e: Exception) {
@@ -60,12 +60,6 @@ class PlayToneAction : TemporalAction() {
     }
 
     override fun end() {
-        try {
-            audioTrack?.stop()
-            audioTrack?.release()
-        } catch (e: Exception) {
-            Log.d(javaClass.simpleName, "Failed to stop tone", e)
-        }
-        audioTrack = null
+        AudioServiceHolder.audioService.stopTone()
     }
 }

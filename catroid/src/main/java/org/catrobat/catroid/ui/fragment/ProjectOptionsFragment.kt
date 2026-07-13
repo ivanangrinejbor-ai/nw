@@ -175,6 +175,7 @@ class ProjectOptionsFragment : Fragment() {
         setupGitButtons()
 
         setupBakeOption()
+        setupBuildExeOption()
 
         hideBottomBar(requireActivity())
     }
@@ -183,6 +184,13 @@ class ProjectOptionsFragment : Fragment() {
         val bakeBtn = view?.findViewById<android.widget.TextView>(R.id.project_options_bake)
         bakeBtn?.setOnClickListener {
             runExportWalkthrough { exportBakedProject() }
+        }
+    }
+
+    private fun setupBuildExeOption() {
+        val buildExeBtn = view?.findViewById<android.widget.TextView>(R.id.project_options_build_exe)
+        buildExeBtn?.setOnClickListener {
+            runExportWalkthrough { buildExe() }
         }
     }
 
@@ -892,6 +900,7 @@ class ProjectOptionsFragment : Fragment() {
         binding.projectOptionsSaveApk.setOnClickListener { buildApk() }
     }
 
+
     private fun setupProjectMoreDetails() {
         binding.projectOptionsMoreDetails.setOnClickListener {
             moreDetails()
@@ -1342,6 +1351,110 @@ class ProjectOptionsFragment : Fragment() {
         }
     }
 
+
+    private fun buildExe() {
+        saveProject()
+        project ?: return
+
+        showProgressDialog("Сборка Windows-пакета...")
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val proj = project!!
+                val projectName = proj.name
+                val tempDir = File(requireContext().cacheDir, "exe_build_${System.currentTimeMillis()}")
+                tempDir.mkdirs()
+
+                // 1. Zip the project directory
+                val projectZip = File(tempDir, "${projectName}.zip")
+                zipDirectory(proj.directory, projectZip)
+
+                // 2. Find project icon (manual_screenshot.png or automatic_screenshot.png)
+                var iconFile: File? = null
+                val manualIcon = File(proj.directory, "manual_screenshot.png")
+                val autoIcon = File(proj.directory, "automatic_screenshot.png")
+                if (manualIcon.exists()) iconFile = manualIcon
+                else if (autoIcon.exists()) iconFile = autoIcon
+
+                // 3. Build the final output package
+                val outputZip = File(requireContext().cacheDir, "${projectName}_win.zip")
+                ZipOutputStream(FileOutputStream(outputZip)).use { zos ->
+                    // Add the project zip
+                    zos.putNextEntry(ZipEntry("${projectName}.zip"))
+                    FileInputStream(projectZip).use { it.copyTo(zos) }
+                    zos.closeEntry()
+
+                    // Add project icon as icon.png (for EXE conversion)
+                    if (iconFile != null) {
+                        zos.putNextEntry(ZipEntry("icon.png"))
+                        FileInputStream(iconFile).use { it.copyTo(zos) }
+                        zos.closeEntry()
+                    }
+
+                    // Try to include template_win.zip from assets (player runtime)
+                    try {
+                        val templateAsset = "template_win.zip"
+                        requireContext().assets.open(templateAsset).use { input ->
+                            zos.putNextEntry(ZipEntry("template_win.zip"))
+                            input.copyTo(zos)
+                            zos.closeEntry()
+                        }
+                    } catch (_: Exception) {
+                        // template_win.zip not in assets — skip
+                    }
+
+                    // Try to include build_exe.bat from assets
+                    try {
+                        val batAsset = "build_exe.bat"
+                        requireContext().assets.open(batAsset).use { input ->
+                            zos.putNextEntry(ZipEntry("build_exe.bat"))
+                            input.copyTo(zos)
+                            zos.closeEntry()
+                        }
+                    } catch (_: Exception) {
+                        // Not found — skip
+                    }
+
+                    // Add instructions for Windows build
+                    zos.putNextEntry(ZipEntry("README_WINDOWS.txt"))
+                    val readme = buildString {
+                        appendLine("NeoCatroid Windows Desktop Build")
+                        appendLine("=================================")
+                        appendLine()
+                        appendLine("Проект: $projectName")
+                        appendLine()
+                        appendLine("Инструкция по сборке EXE на Windows:")
+                        appendLine("1. Убедитесь, что у вас установлен Java 11+ и launch4j")
+                        appendLine("2. Распакуйте этот архив")
+                        appendLine("3. Поместите папку desktop-runtime/ рядом с проектом")
+                        appendLine("4. Запустите: build_exe.bat")
+                        appendLine("5. Готовый EXE появится в build/win-dist/")
+                        appendLine()
+                        appendLine("Или запустите вручную:")
+                        appendLine("  copyTemplateWin.bat")
+                        appendLine("  build_exe.bat")
+                    }
+                    zos.write(readme.toByteArray(Charsets.UTF_8))
+                    zos.closeEntry()
+                }
+
+                // Cleanup temp
+                tempDir.deleteRecursively()
+
+                withContext(Dispatchers.Main) {
+                    hideProgressDialog()
+                    shareFile(outputZip)
+                }
+
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    hideProgressDialog()
+                    ToastUtil.showError(requireContext(), "Ошибка: ${e.message}")
+                    e.printStackTrace()
+                }
+            }
+        }
+    }
 
     private fun buildApk() {
         saveProject()

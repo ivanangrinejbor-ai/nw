@@ -29,7 +29,7 @@ import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction;
 import org.catrobat.catroid.content.Scope;
 import org.catrobat.catroid.formulaeditor.Formula;
 import org.catrobat.catroid.formulaeditor.InterpretationException;
-import org.catrobat.catroid.io.SoundManager;
+import org.catrobat.catroid.audio.AudioServiceHolder;
 
 public class SetVolumeToAction extends TemporalAction {
 
@@ -41,7 +41,7 @@ public class SetVolumeToAction extends TemporalAction {
 		if (scope == null) return;
 		try {
 			Float newVolume = volume == null ? Float.valueOf(0f) : volume.interpretFloat(scope);
-			SoundManager.getInstance().setVolume(newVolume);
+			AudioServiceHolder.audioService.setVolume(newVolume);
 		} catch (InterpretationException interpretationException) {
 			Log.d(getClass().getSimpleName(), "Formula interpretation for this specific Brick failed.", interpretationException);
 		}

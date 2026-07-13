@@ -5,6 +5,7 @@ import org.catrobat.catroid.content.Scope
 import org.catrobat.catroid.content.notification.NotificationData
 import org.catrobat.catroid.content.notification.NotificationStorage
 import org.catrobat.catroid.formulaeditor.Formula
+import org.catrobat.catroid.notification.NotificationService
 
 class PrepareNotificationAction : TemporalAction() {
     var scope: Scope? = null
@@ -13,7 +14,7 @@ class PrepareNotificationAction : TemporalAction() {
     var title: Formula? = null
     var text: Formula? = null
     var iconPath: Formula? = null
-    var importanceLevel: Int = android.app.NotificationManager.IMPORTANCE_DEFAULT
+    var importanceLevel: Int = NotificationService.IMPORTANCE_DEFAULT
     var isPinned: Boolean = false
 
     private var started = false

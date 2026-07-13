@@ -22,9 +22,9 @@
  */
 package org.catrobat.catroid.content.actions
 
-import android.media.audiofx.Equalizer
 import android.util.Log
 import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction
+import org.catrobat.catroid.audio.AudioServiceHolder
 import org.catrobat.catroid.content.Scope
 import org.catrobat.catroid.formulaeditor.Formula
 import org.catrobat.catroid.formulaeditor.InterpretationException
@@ -33,34 +33,16 @@ class EqualizerSetBandAction : TemporalAction() {
     var scope: Scope? = null
     var band: Formula? = null
     var gain: Formula? = null
-    private var equalizer: Equalizer? = null
-
-    override fun begin() {
-        try {
-            equalizer = Equalizer(0, 0)
-        } catch (e: Exception) {
-            Log.d(javaClass.simpleName, "Equalizer init failed", e)
-        }
-    }
 
     override fun update(percent: Float) {
-        val eq = equalizer ?: return
         try {
             val bandIndex = band?.interpretInteger(scope) ?: return
             val gainMb = gain?.interpretInteger(scope) ?: return
-            val numberOfBands = eq.numberOfBands
-            if (bandIndex in 0 until numberOfBands) {
-                eq.setBandLevel(bandIndex.toShort(), gainMb.toShort())
-            }
+            AudioServiceHolder.audioService.setEqualizerBand(bandIndex, gainMb.toShort())
         } catch (e: InterpretationException) {
             Log.d(javaClass.simpleName, "Formula interpretation failed", e)
         } catch (e: Exception) {
             Log.d(javaClass.simpleName, "Equalizer failed", e)
         }
-    }
-
-    override fun end() {
-        equalizer?.release()
-        equalizer = null
     }
 }

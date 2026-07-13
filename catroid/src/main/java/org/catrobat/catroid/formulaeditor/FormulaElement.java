@@ -2,6 +2,7 @@ package org.catrobat.catroid.formulaeditor;
 
 import android.app.Activity;
 import android.os.Environment;
+import org.catrobat.catroid.runtime.RuntimeServicesHolder;
 
 import org.catrobat.catroid.ProjectManager;
 import org.catrobat.catroid.CatroidApplication;
@@ -471,7 +472,9 @@ public class FormulaElement implements Serializable {
                 ProjectManager pm1 = ProjectManager.getInstance();
                 Scene currentlyEditedScene = pm1 != null ? pm1.getCurrentlyEditedScene() : null;
                 Project currentProject = pm1 != null ? pm1.getCurrentProject() : null;
-                return interpretSensor(scope.getSprite(), currentlyEditedScene, currentProject, value);
+                Sprite sprite = scope.getSprite();
+                if (sprite == null) return 0.0;
+                return interpretSensor(sprite, currentlyEditedScene, currentProject, value);
             case USER_VARIABLE:
                 if (cachedUserVariable == null || cachedScope != scope || (cachedScope != null && cachedScope.getSprite() != scope.getSprite())) {
                     cachedUserVariable = UserDataWrapper.getUserVariable(value, scope);
@@ -496,7 +499,9 @@ public class FormulaElement implements Serializable {
                 ProjectManager pm2 = ProjectManager.getInstance();
                 Scene currentlyPlayingScene = pm2 != null ? pm2.getCurrentlyPlayingScene() : null;
                 StageListener stageListener = StageActivity.getActiveStageListener();
-                return tryInterpretCollision(scope.getSprite().look, value, currentlyPlayingScene,
+                Sprite collisionSprite = scope.getSprite();
+                if (collisionSprite == null || collisionSprite.look == null) return FALSE;
+                return tryInterpretCollision(collisionSprite.look, value, currentlyPlayingScene,
                         stageListener);
         }
         return FALSE;
@@ -565,6 +570,7 @@ public class FormulaElement implements Serializable {
                 return interpretFunctionSubtext(arg0, arg1, arg2);
             case FILE: {
                 String fileName = String.valueOf(arg0);
+                if (scope.getProject() == null) return false;
                 try {
                     File file = scope.getProject().getFile(fileName);
                     return file != null && file.exists() && file.isFile() && file.canRead();
@@ -573,6 +579,7 @@ public class FormulaElement implements Serializable {
                 }
             }
             case FILE_READ_STRING: {
+                if (scope.getProject() == null) return "";
                 return readLineFromFile(scope.getProject().getFilesDir(), String.valueOf(arg0), String.valueOf(arg1));
             }
             case FILES_PATH: {
@@ -622,7 +629,7 @@ public class FormulaElement implements Serializable {
                 String fileName = String.valueOf(arg0);
                 String dirName = String.valueOf(arg1);
                 try {
-                    File downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+                    File downloadsDir = new File(RuntimeServicesHolder.services.getDownloadsDir());
                     File dir = new File(downloadsDir, dirName);
                     File file = new File(dir, fileName);
                     return (double) getFileSize(file);
@@ -632,7 +639,7 @@ public class FormulaElement implements Serializable {
                 String fileName = String.valueOf(arg0);
                 String path = String.valueOf(arg1);
                 try {
-                    File downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+                    File downloadsDir = new File(RuntimeServicesHolder.services.getDownloadsDir());
                     File dir = new File(downloadsDir, path);
                     File file = new File(dir, fileName);
                     return (double) getFileSize(file);
@@ -1055,8 +1062,10 @@ public class FormulaElement implements Serializable {
             case TOUCHES_OBJECT_BY_NAME: {
                 StageListener stageListener = StageActivity.getActiveStageListener();
                 if (stageListener == null) return FALSE;
+                Sprite touchSprite = scope.getSprite();
+                if (touchSprite == null || touchSprite.look == null) return FALSE;
                 return tryInterpretCollision(
-                        scope.getSprite().look,
+                        touchSprite.look,
                         String.valueOf(arg0),
                         ProjectManager.getInstance().getCurrentlyPlayingScene(),
                         stageListener
@@ -1090,7 +1099,7 @@ public class FormulaElement implements Serializable {
                 String fileName = String.valueOf(arg0);
                 String dirName = String.valueOf(arg1);
                 try {
-                    File downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+                    File downloadsDir = new File(RuntimeServicesHolder.services.getDownloadsDir());
                     File dir = new File(downloadsDir, dirName);
                     File file = new File(dir, fileName);
                     return booleanToDouble(file.exists() && file.isFile());
@@ -1100,7 +1109,7 @@ public class FormulaElement implements Serializable {
                 String fileName = String.valueOf(arg0);
                 String path = String.valueOf(arg1);
                 try {
-                    File downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+                    File downloadsDir = new File(RuntimeServicesHolder.services.getDownloadsDir());
                     File dir = new File(downloadsDir, path);
                     File file = new File(dir, fileName);
                     return booleanToDouble(file.exists() && file.isFile());
@@ -1149,19 +1158,15 @@ public class FormulaElement implements Serializable {
             case CPU_CORES:
                 return (double) Runtime.getRuntime().availableProcessors();
             case CPU_FREQUENCY: {
-                try {
-                    java.io.RandomAccessFile reader = new java.io.RandomAccessFile("/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq", "r");
+                try (java.io.RandomAccessFile reader = new java.io.RandomAccessFile("/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq", "r")) {
                     String line = reader.readLine();
-                    reader.close();
                     long khz = Long.parseLong(line != null ? line.trim() : "0");
                     return khz / 1000.0;
                 } catch (Exception e) { return 0.0; }
             }
             case CPU_FREQUENCY_MIN: {
-                try {
-                    java.io.RandomAccessFile reader = new java.io.RandomAccessFile("/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_min_freq", "r");
+                try (java.io.RandomAccessFile reader = new java.io.RandomAccessFile("/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_min_freq", "r")) {
                     String line = reader.readLine();
-                    reader.close();
                     long khz = Long.parseLong(line != null ? line.trim() : "0");
                     return khz / 1000.0;
                 } catch (Exception e) { return 0.0; }
@@ -1337,7 +1342,9 @@ public class FormulaElement implements Serializable {
                     android.net.ConnectivityManager cm = (android.net.ConnectivityManager)
                         CatroidApplication.getAppContext().getSystemService(android.content.Context.CONNECTIVITY_SERVICE);
                     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-                        android.net.NetworkCapabilities nc = cm.getNetworkCapabilities(cm.getActiveNetwork());
+                        android.net.Network activeNetwork = cm.getActiveNetwork();
+                        if (activeNetwork == null) return 0.0;
+                        android.net.NetworkCapabilities nc = cm.getNetworkCapabilities(activeNetwork);
                         if (nc != null) {
                             int down = nc.getLinkDownstreamBandwidthKbps();
                             return (double) (down / 1000); // Mbps
@@ -1440,6 +1447,12 @@ public class FormulaElement implements Serializable {
                     StageActivity activity = StageActivity.activeStageActivity != null ? StageActivity.activeStageActivity.get() : null;
                     return booleanToDouble(activity != null && !activity.isFinishing());
                 } catch (Exception e) { return FALSE; }
+            }
+            case IS_PC: {
+                return 0.0; // On Android, this is always false
+            }
+            case IS_MOBILE: {
+                return 1.0; // On Android, this is always true
             }
             case GPU_NAME: {
                 try {

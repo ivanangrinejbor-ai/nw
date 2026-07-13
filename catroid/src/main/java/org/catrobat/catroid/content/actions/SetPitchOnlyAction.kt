@@ -25,7 +25,7 @@ package org.catrobat.catroid.content.actions
 import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction
 import org.catrobat.catroid.content.Scope
 import org.catrobat.catroid.formulaeditor.Formula
-import org.catrobat.catroid.io.SoundManager
+import org.catrobat.catroid.audio.AudioServiceHolder
 
 class SetPitchOnlyAction : TemporalAction() {
     var scope: Scope? = null
@@ -38,6 +38,6 @@ class SetPitchOnlyAction : TemporalAction() {
         } else if (value < 0.5f) {
             value = 0.5f
         }
-        SoundManager.getInstance().setPitch(value)
+        AudioServiceHolder.audioService.setPitch(value)
     }
 }

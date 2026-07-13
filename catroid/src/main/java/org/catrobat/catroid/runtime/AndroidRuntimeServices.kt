@@ -20,6 +20,9 @@ class AndroidRuntimeServices(private val context: Context) : RuntimeServices {
     override fun getExternalStorageDir(): String =
         Environment.getExternalStorageDirectory().absolutePath
 
+    override fun getDownloadsDir(): String =
+        Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).absolutePath
+
     override fun postToMainThread(runnable: Runnable) {
         Handler(Looper.getMainLooper()).post(runnable)
     }

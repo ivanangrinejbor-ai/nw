@@ -23,6 +23,7 @@
 package org.catrobat.catroid.stage
 
 import android.content.res.Resources
+import org.catrobat.catroid.stage.StageListenerHolder
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.OrthographicCamera

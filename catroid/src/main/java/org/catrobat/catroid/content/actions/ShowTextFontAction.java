@@ -23,7 +23,6 @@
 
 package org.catrobat.catroid.content.actions;
 
-import android.graphics.Typeface;
 import android.util.Log;
 
 import com.badlogic.gdx.scenes.scene2d.Actor;
@@ -71,7 +70,7 @@ public class ShowTextFontAction extends TemporalAction {
                 Log.e("fontShow", "file " + file_font + " not exsists");
                 return;
             }
-            Typeface font = Typeface.createFromFile(file);
+
             variableToShow = new UserVariable(namestr, textstr);
             int xPosition = this.xPosition.interpretInteger(scope);
             int yPosition = this.yPosition.interpretInteger(scope);
@@ -81,7 +80,7 @@ public class ShowTextFontAction extends TemporalAction {
                 Array<Actor> stageActors = StageActivity.getActiveStageListener().getStage().getActors();
                 ShowTextActor dummyActor = new ShowTextActor(true, new UserVariable("dummyActor"), 0,
                         0, relativeTextSize, color, scope.getSprite(), alignment, androidStringProvider);
-                dummyActor.setFont(font);
+                dummyActor.setFont(file.getAbsolutePath());
                 dummyActor.setWrap(true);
                 for (Actor actor : stageActors) {
                     if (actor.getClass().equals(dummyActor.getClass())) {
@@ -94,7 +93,7 @@ public class ShowTextFontAction extends TemporalAction {
                 }
                 actor = new ShowTextActor(true, variableToShow, xPosition, yPosition, relativeTextSize,
                         color, scope.getSprite(), alignment, androidStringProvider);
-                actor.setFont(font);
+                actor.setFont(file.getAbsolutePath());
                 actor.setWrap(true);
             }
             StageActivity.getActiveStageListener().addActor(actor);

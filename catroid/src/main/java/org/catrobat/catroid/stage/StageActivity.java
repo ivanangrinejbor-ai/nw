@@ -272,6 +272,18 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 		org.catrobat.catroid.runtime.RuntimeServicesHolder.services =
 				new org.catrobat.catroid.runtime.AndroidRuntimeServices(this);
 
+		org.catrobat.catroid.audio.AudioServiceHolder.audioService =
+				new org.catrobat.catroid.audio.AndroidAudioService();
+
+		org.catrobat.catroid.audio.MidiServiceHolder.midiService =
+				new org.catrobat.catroid.audio.AndroidMidiService();
+
+		org.catrobat.catroid.text.TextServiceHolder.textService =
+				new org.catrobat.catroid.text.AndroidTextService();
+
+		org.catrobat.catroid.notification.NotificationServiceHolder.service =
+				new org.catrobat.catroid.notification.AndroidNotificationService(this);
+
 
 		if (getIntent().hasExtra(EXTRA_PROJECT_PATH)) {
 			String projectPath = getIntent().getStringExtra(EXTRA_PROJECT_PATH);

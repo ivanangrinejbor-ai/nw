@@ -502,6 +502,7 @@ android.applicationVariants.all { variant ->
 
 configurations {
     implementation.exclude group: 'xpp3' //compile problem with xstream
+    implementation.exclude group: 'xmlpull', module: 'xmlpull' // duplicate classes with APKEditor
     natives
     extractForNativeBuild
 }
@@ -739,6 +740,7 @@ dependencies {
     testImplementation 'org.json:json:20190722'
 
     implementation project(':vncclient')
+    implementation project(':core')
 
     // Retrofit testing
     androidTestImplementation 'com.squareup.okhttp3:mockwebserver:4.12.0'
@@ -988,6 +990,39 @@ tasks.register('copyAllRuntimeTemplates') {
     dependsOn 'copyTemplateApk'
     doLast {
         println "Runtime template APK copied to: $projectDir/src/main/assets"
+    }
+}
+
+tasks.register('copyDesktopTemplate') {
+    group = "build"
+    description = "Copies the Windows desktop player template (template_win.zip, build_exe.bat) to Android assets"
+    doLast {
+        def desktopRuntimeDir = file("$rootDir/desktop-runtime")
+        def assetsDir = file("$projectDir/src/main/assets")
+        def templateZip = file("$desktopRuntimeDir/template_win.zip")
+        def buildExeBat = file("$desktopRuntimeDir/build_exe.bat")
+        if (templateZip.exists()) {
+            copy {
+                from templateZip
+                into assetsDir
+            }
+            println "Desktop template copied: $templateZip -> $assetsDir"
+        } else {
+            println "WARNING: $templateZip not found — run ':desktop-runtime:jar' first, or build_exe.bat on Windows."
+        }
+        if (buildExeBat.exists()) {
+            copy {
+                from buildExeBat
+                into assetsDir
+            }
+            println "build_exe.bat copied to assets."
+        }
+    }
+}
+
+tasks.whenTaskAdded { task ->
+    if (task.name.startsWith('merge') && task.name.endsWith('Assets')) {
+        task.dependsOn 'copyDesktopTemplate'
     }
 }
 

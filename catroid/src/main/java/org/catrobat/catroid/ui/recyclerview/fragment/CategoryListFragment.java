@@ -273,7 +273,9 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
             R.string.formula_cpu_usage,
             R.string.formula_gpu_name,
             R.string.formula_opengl_version,
-            R.string.formula_vulkan_supported
+            R.string.formula_vulkan_supported,
+            R.string.formula_is_pc,
+            R.string.formula_is_mobile
     );
 
     private static final List<Integer> OBJECTS_FUNCTIONS = asList(
@@ -425,8 +427,8 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
             R.string.formula_no_param,
             R.string.formula_no_param,
             R.string.formula_no_param,
+            R.string.formula_no_param, R.string.formula_no_param,
             R.string.formula_no_param, R.string.formula_no_param
-        );
 
 	private static final List<Integer> THREED_FUNCTIONS = asList(
             R.string.formula_delta,

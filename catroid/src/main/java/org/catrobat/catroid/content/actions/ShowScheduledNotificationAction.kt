@@ -1,25 +1,10 @@
 package org.catrobat.catroid.content.actions
 
-import android.Manifest
-import android.app.AlarmManager
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.PendingIntent
-import android.content.Context
-import android.content.Intent
-import android.content.pm.PackageManager
-import android.os.Build
 import android.util.Log
-import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
-import androidx.core.app.RemoteInput
-import androidx.core.content.ContextCompat
 import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction
 import org.catrobat.catroid.content.Scope
-import org.catrobat.catroid.content.notification.NotificationEventReceiver
-import org.catrobat.catroid.content.notification.NotificationStorage
 import org.catrobat.catroid.formulaeditor.Formula
-import org.catrobat.catroid.stage.StageActivity
+import org.catrobat.catroid.notification.NotificationServiceHolder
 
 class ShowScheduledNotificationAction : TemporalAction() {
     var scope: Scope? = null
@@ -36,113 +21,12 @@ class ShowScheduledNotificationAction : TemporalAction() {
     override fun update(percent: Float) {
         if (started) return
         val id = notificationId?.interpretInteger(scope) ?: return
-        val delaySec = delay?.interpretInteger(scope) ?: 0
-        val data = NotificationStorage.get(id) ?: return
-
+        val delayMs = (delay?.interpretDouble(scope)?.toLong() ?: 0L) * 1000L
+        started = true
         try {
-            val activity = StageActivity.activeStageActivity.get() ?: return
-
-            // Android 13+ requires POST_NOTIFICATIONS permission
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                if (ContextCompat.checkSelfPermission(activity, Manifest.permission.POST_NOTIFICATIONS)
-                    != PackageManager.PERMISSION_GRANTED) {
-                    Log.w(javaClass.simpleName, "POST_NOTIFICATIONS permission not granted. Notification $id skipped.")
-                    return
-                }
-            }
-
-            started = true
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                val manager = activity.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-                val channel = NotificationChannel(data.channelName, data.channelName, data.importanceLevel)
-                if (createdChannels.add(data.channelName)) {
-                    manager.createNotificationChannel(channel)
-                }
-            }
-
-            if (delaySec <= 0) {
-                showNotification(activity, id)
-                NotificationStorage.removeNotification(id)
-            } else {
-                val alarmManager = activity.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-                val scheduleIntent = Intent(activity, NotificationEventReceiver::class.java)
-                scheduleIntent.action = "SCHEDULED_NOTIFICATION"
-                scheduleIntent.putExtra("notification_id", id)
-                // Use id * 1000 offset to avoid PendingIntent request code collisions
-                val schedPending = PendingIntent.getBroadcast(
-                    activity, 300000 + id, scheduleIntent,
-                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-                )
-                val triggerAt = System.currentTimeMillis() + delaySec * 1000L
-                // Use setExactAndAllowWhileIdle for reliable delivery in Doze mode
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, schedPending)
-                } else {
-                    alarmManager.setExact(AlarmManager.RTC_WAKEUP, triggerAt, schedPending)
-                }
-                Log.d(javaClass.simpleName, "Notification $id scheduled in ${delaySec}s")
-            }
+            NotificationServiceHolder.service.showScheduled(id, delayMs)
         } catch (e: Exception) {
             Log.e(javaClass.simpleName, "Failed to show/schedule notification $id", e)
-        }
-    }
-
-    companion object {
-        private val createdChannels = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
-
-        @JvmStatic
-        fun showNotification(context: Context, id: Int) {
-            val data = NotificationStorage.get(id) ?: return
-            val actions = NotificationStorage.getActions(id)
-
-            val builder = NotificationCompat.Builder(context, data.channelName)
-                .setSmallIcon(android.R.drawable.ic_dialog_info)
-                .setContentTitle(data.title)
-                .setContentText(data.text)
-                .setStyle(NotificationCompat.BigTextStyle().bigText(data.text))
-                .setAutoCancel(false)
-                .setOngoing(data.isPinned)
-
-            actions.forEachIndexed { index, act ->
-                val intent = Intent(context, NotificationEventReceiver::class.java)
-                intent.action = if (act.hasInput) "NOTIFICATION_REPLY_SENT" else "NOTIFICATION_ACTION_CLICKED"
-                intent.putExtra("notification_id", id)
-                intent.putExtra("action_id", act.actionId)
-                intent.putExtra("button_text", act.text)
-
-                val requestCode = id * 1000 + index // deterministic, collision-free
-                val pIntent = PendingIntent.getBroadcast(context, requestCode, intent,
-                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-
-                if (act.hasInput) {
-                    val remoteInput = RemoteInput.Builder("reply_text")
-                        .setLabel(act.inputHint.ifEmpty { "Reply" })
-                        .build()
-                    val action = NotificationCompat.Action.Builder(
-                        android.R.drawable.ic_menu_edit, act.text, pIntent
-                    ).addRemoteInput(remoteInput).build()
-                    builder.addAction(action)
-                } else {
-                    builder.addAction(android.R.drawable.ic_menu_edit, act.text, pIntent)
-                }
-            }
-
-            val showIntent = Intent(context, NotificationEventReceiver::class.java)
-            showIntent.action = "NOTIFICATION_SHOWN"
-            showIntent.putExtra("notification_id", id)
-            val showPending = PendingIntent.getBroadcast(context, 100000 + id, showIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-            builder.setContentIntent(showPending)
-
-            val deleteIntent = Intent(context, NotificationEventReceiver::class.java)
-            deleteIntent.action = "NOTIFICATION_DISMISSED"
-            deleteIntent.putExtra("notification_id", id)
-            val deletePending = PendingIntent.getBroadcast(context, 200000 + id, deleteIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-            builder.setDeleteIntent(deletePending)
-
-            NotificationManagerCompat.from(context).notify(id, builder.build())
         }
     }
 }

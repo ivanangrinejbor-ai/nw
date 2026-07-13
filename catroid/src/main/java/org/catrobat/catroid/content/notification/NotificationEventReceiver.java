@@ -8,7 +8,8 @@ import android.os.Bundle;
 import androidx.core.app.RemoteInput;
 
 import org.catrobat.catroid.content.eventids.EventId;
-import org.catrobat.catroid.content.actions.ShowScheduledNotificationAction;
+import org.catrobat.catroid.content.notification.NotificationStorage;
+import org.catrobat.catroid.notification.NotificationServiceHolder;
 import org.catrobat.catroid.stage.StageActivity;
 
 public class NotificationEventReceiver extends BroadcastReceiver {
@@ -53,7 +54,7 @@ public class NotificationEventReceiver extends BroadcastReceiver {
         } else if ("SCHEDULED_NOTIFICATION".equals(action)) {
             int nid = intent.getIntExtra(EXTRA_NOTIFICATION_ID, -1);
             if (nid != -1) {
-                ShowScheduledNotificationAction.showNotification(context, nid);
+                NotificationServiceHolder.service.show(nid);
                 NotificationStorage.removeNotification(nid);
             }
             broadcastEvent(EventId.NOTIFICATION_SHOWN);

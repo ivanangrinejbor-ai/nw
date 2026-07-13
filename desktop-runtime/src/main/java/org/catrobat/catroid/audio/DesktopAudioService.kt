@@ -1,0 +1,130 @@
+package org.catrobat.catroid.audio
+
+import java.io.File
+import javax.sound.sampled.AudioFormat
+import javax.sound.sampled.AudioSystem
+import javax.sound.sampled.Clip
+import javax.sound.sampled.FloatControl
+import javax.sound.sampled.SourceDataLine
+
+/**
+ * Desktop (Windows) implementation of [AudioService] using the JDK sound API
+ * (`javax.sound.sampled`). Mirrors the Android [org.catrobat.catroid.io.SoundManager]
+ * surface closely enough for the brick runtime; sprite coupling is ignored (desktop
+ * plays by file path).
+ */
+class DesktopAudioService : AudioService {
+    private val clips = LinkedHashMap<String, Clip>()
+    private var volume = 1.0f
+    private var pan = 0.0f
+    private var pitch = 1.0f
+
+    override fun setVolume(v: Float) {
+        volume = v.coerceIn(0f, 1f)
+        clips.values.forEach { setClipVolume(it) }
+    }
+
+    override fun getVolume(): Float = volume
+
+    override fun setPan(p: Float) {
+        pan = p.coerceIn(-1f, 1f)
+    }
+
+    override fun getPan(): Float = pan
+
+    override fun setPitch(p: Float) {
+        pitch = p.coerceIn(0.01f, 16f)
+    }
+
+    override fun getPitch(): Float = pitch
+
+    override fun stopAllSounds() {
+        clips.values.forEach { try { it.stop(); it.close() } catch (_: Exception) { /* ignore */ } }
+        clips.clear()
+    }
+
+    override fun clear() {
+        stopAllSounds()
+    }
+
+    override fun pause() {
+        clips.values.forEach { try { it.stop() } catch (_: Exception) { /* ignore */ } }
+    }
+
+    override fun resume() {}
+
+    override fun playSoundFile(filePath: String, spriteName: String) = playFile(filePath)
+
+    override fun playSoundFileWithStartTime(filePath: String, spriteName: String, startTime: Int) =
+        playFile(filePath, startTime)
+
+    override fun stopSoundInSprite(filePath: String, spriteName: String) {
+        clips[filePath]?.let {
+            try { it.stop() } catch (_: Exception) { /* ignore */ }
+            clips.remove(filePath)
+        }
+    }
+
+    override fun setVolumeForSound(filePath: String, spriteName: String, volume: Float) {
+        clips[filePath]?.let { setClipVolume(it, volume) }
+    }
+
+    private fun playFile(filePath: String, startTime: Int = 0) {
+        try {
+            // Закрыть старый clip для того же файла, если есть
+            clips[filePath]?.let { old ->
+                try { old.stop(); old.close() } catch (_: Exception) { /* ignore */ }
+            }
+            val clip = AudioSystem.getClip()
+            clip.open(AudioSystem.getAudioInputStream(File(filePath)))
+            setClipVolume(clip, volume)
+            if (startTime > 0 && clip.format.sampleRate > 0f) {
+                clip.framePosition = (startTime * clip.format.sampleRate / 1000).toInt()
+            }
+            clip.start()
+            clips[filePath] = clip
+        } catch (_: Exception) {
+            // Unplayable file on desktop — skip silently.
+        }
+    }
+
+    private fun setClipVolume(clip: Clip, v: Float = volume) {
+        try {
+            if (clip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
+                val control = clip.getControl(FloatControl.Type.MASTER_GAIN) as FloatControl
+                val gain = (kotlin.math.log10((v.coerceIn(0f, 1f)).toDouble()) * 20).toFloat()
+                control.value = gain.coerceIn(control.minimum, control.maximum)
+            }
+        } catch (_: Exception) {
+            // Gain not adjustable on this clip.
+        }
+    }
+
+    override fun playTone(samples: ShortArray, sampleRate: Int) {
+        try {
+            val format = AudioFormat(sampleRate.toFloat(), 16, 1, true, false)
+            val line = AudioSystem.getSourceDataLine(format)
+            line.open(format)
+            line.start()
+            val bytes = ByteArray(samples.size * 2)
+            for (i in samples.indices) {
+                bytes[i * 2] = (samples[i].toInt() and 0xFF).toByte()
+                bytes[i * 2 + 1] = (samples[i].toInt() shr 8 and 0xFF).toByte()
+            }
+            line.write(bytes, 0, bytes.size)
+            line.drain()
+            line.close()
+        } catch (_: Exception) {
+            // Tone output unavailable.
+        }
+    }
+
+    override fun stopTone() {}
+
+    override fun setEqualizerBand(band: Int, gain: Short) {
+        // No system equalizer on desktop; intentionally a no-op.
+    }
+
+    override fun isSoundPlaying(soundFilePath: String, spriteName: String): Boolean =
+        clips[soundFilePath]?.isRunning ?: false
+}

@@ -7,7 +7,7 @@ import org.catrobat.catroid.common.SoundInfo
 import org.catrobat.catroid.content.Scope
 import org.catrobat.catroid.formulaeditor.Formula
 import org.catrobat.catroid.formulaeditor.InterpretationException
-import org.catrobat.catroid.io.SoundManager
+import org.catrobat.catroid.audio.AudioServiceHolder
 
 class SetSoundVolumeAction : TemporalAction() {
     var scope: Scope? = null
@@ -26,7 +26,7 @@ class SetSoundVolumeAction : TemporalAction() {
             val newVolume = volume?.interpretFloat(scope) ?: 100f
             val soundPath = soundInfo.file.absolutePath
 
-            SoundManager.getInstance().setVolumeForSound(soundPath, sprite, newVolume)
+            AudioServiceHolder.audioService.setVolumeForSound(soundPath, sprite.name, newVolume)
 
         } catch (e: InterpretationException) {
             Log.d(javaClass.simpleName, "Formula interpretation failed.", e)

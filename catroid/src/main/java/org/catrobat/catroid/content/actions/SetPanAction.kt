@@ -25,7 +25,7 @@ package org.catrobat.catroid.content.actions
 import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction
 import org.catrobat.catroid.content.Scope
 import org.catrobat.catroid.formulaeditor.Formula
-import org.catrobat.catroid.io.SoundManager
+import org.catrobat.catroid.audio.AudioServiceHolder
 
 class SetPanAction : TemporalAction() {
     var scope: Scope? = null
@@ -38,6 +38,6 @@ class SetPanAction : TemporalAction() {
         } else if (value < -1f) {
             value = -1f
         }
-        SoundManager.getInstance().setPan(value)
+        AudioServiceHolder.audioService.setPan(value)
     }
 }

@@ -29,7 +29,7 @@ import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction;
 import org.catrobat.catroid.content.Scope;
 import org.catrobat.catroid.formulaeditor.Formula;
 import org.catrobat.catroid.formulaeditor.InterpretationException;
-import org.catrobat.catroid.pocketmusic.mididriver.MidiSoundManager;
+import org.catrobat.catroid.audio.MidiServiceHolder;
 
 public class SetTempoAction extends TemporalAction {
 
@@ -41,7 +41,7 @@ public class SetTempoAction extends TemporalAction {
 		if (scope == null) return;
 		try {
 			int newTempo = tempo == null ? Integer.valueOf(0) : tempo.interpretInteger(scope);
-			MidiSoundManager.getInstance().setTempo(newTempo);
+			MidiServiceHolder.midiService.setTempo(newTempo);
 		} catch (InterpretationException interpretationException) {
 			Log.d(getClass().getSimpleName(), "Formula interpretation for this specific Brick failed.", interpretationException);
 		}

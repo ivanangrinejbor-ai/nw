@@ -185,9 +185,7 @@ public class PenActor extends Actor {
 
 package org.catrobat.catroid.stage;
 
-import android.content.res.Resources;
-import android.util.DisplayMetrics;
-
+import org.catrobat.catroid.stage.StageListenerHolder;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -223,7 +221,13 @@ public class PenActor extends Actor {
 	@Override
 	public void draw(Batch batch, float parentAlpha) {
 		buffer.begin();
-		for (Sprite sprite : StageActivity.getActiveStageListener().getSpritesFromStage()) {
+		Object listener = StageListenerHolder.INSTANCE.getListener();
+		if (!(listener instanceof StageListener)) {
+			buffer.end();
+			return;
+		}
+		StageListener stageListener = (StageListener) listener;
+		for (Sprite sprite : stageListener.getSpritesFromStage()) {
 			PenConfiguration pen = sprite.penConfiguration;
 			pen.drawLinesForSprite(screenRatio, getStage().getViewport().getCamera());
 		}
@@ -247,7 +251,14 @@ public class PenActor extends Actor {
 	public void stampToFrameBuffer() {
 		bufferBatch.begin();
 		buffer.begin();
-		for (Sprite sprite : StageActivity.getActiveStageListener().getSpritesFromStage()) {
+		Object listener = StageListenerHolder.INSTANCE.getListener();
+		if (!(listener instanceof StageListener)) {
+			buffer.end();
+			bufferBatch.end();
+			return;
+		}
+		StageListener stageListener = (StageListener) listener;
+		for (Sprite sprite : stageListener.getSpritesFromStage()) {
 			PenConfiguration pen = sprite.penConfiguration;
 			if (pen.hasStamp()) {
 				sprite.look.draw(bufferBatch, 1.0f);
@@ -278,8 +289,7 @@ public class PenActor extends Actor {
 	}
 
 	private float calculateScreenRatio() {
-		DisplayMetrics metrics = Resources.getSystem().getDisplayMetrics();
-		float deviceDiagonalPixel = (float) Math.sqrt(Math.pow(metrics.widthPixels, 2) + Math.pow(metrics.heightPixels, 2));
+		float deviceDiagonalPixel = (float) Math.sqrt(Math.pow(Gdx.graphics.getWidth(), 2) + Math.pow(Gdx.graphics.getHeight(), 2));
 
 		XmlHeader header = ProjectManager.getInstance().getCurrentProject().getXmlHeader();
 		float creatorDiagonalPixel = (float) Math.sqrt(Math.pow(header.getVirtualScreenWidth(), 2)

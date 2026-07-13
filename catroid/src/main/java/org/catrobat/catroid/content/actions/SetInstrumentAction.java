@@ -25,7 +25,7 @@ package org.catrobat.catroid.content.actions;
 import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction;
 
 import org.catrobat.catroid.content.bricks.brickspinner.PickableMusicalInstrument;
-import org.catrobat.catroid.pocketmusic.mididriver.MidiSoundManager;
+import org.catrobat.catroid.audio.MidiServiceHolder;
 import org.catrobat.catroid.pocketmusic.note.MusicalInstrument;
 
 public class SetInstrumentAction extends TemporalAction {
@@ -35,7 +35,7 @@ public class SetInstrumentAction extends TemporalAction {
 	@Override
 	protected void update(float percent) {
 		MusicalInstrument instrument = MusicalInstrument.getInstrumentFromProgram(selectedInstrument.getValue());
-		MidiSoundManager.getInstance().setInstrument(instrument);
+			MidiServiceHolder.midiService.setInstrument(instrument);
 	}
 
 	public void setInstrument(PickableMusicalInstrument selectedInstrument) {

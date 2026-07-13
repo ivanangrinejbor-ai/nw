@@ -169,8 +169,6 @@
 
        </LinearLayout>
 
-
-
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -311,25 +309,45 @@
 
        </LinearLayout>
 
-       <LinearLayout
-           android:layout_width="match_parent"
-           android:layout_height="wrap_content"
-           android:divider="@drawable/divider"
-           android:orientation="vertical"
-           android:showDividers="end">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:divider="@drawable/divider"
+            android:orientation="vertical"
+            android:showDividers="end">
 
-           <TextView
-               android:id="@+id/project_options_save_external"
-               android:layout_width="match_parent"
-               android:layout_height="wrap_content"
-               android:paddingBottom="@dimen/material_design_spacing_x_large"
-               android:paddingEnd="@dimen/material_design_spacing_x_large"
-               android:paddingStart="@dimen/material_design_spacing_x_large"
-               android:paddingTop="@dimen/material_design_spacing_x_large"
-               android:background="@drawable/button_background_selector_dark"
-               android:text="@string/save_to_external_storage_button" />
+            <TextView
+                android:id="@+id/project_options_bake"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingBottom="@dimen/material_design_spacing_x_large"
+                android:paddingEnd="@dimen/material_design_spacing_x_large"
+                android:paddingStart="@dimen/material_design_spacing_x_large"
+                android:paddingTop="@dimen/material_design_spacing_x_large"
+                android:background="@drawable/button_background_selector_dark"
+                android:text="Запечь проект (Bake)" />
 
-       </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:divider="@drawable/divider"
+            android:orientation="vertical"
+            android:showDividers="end">
+
+            <TextView
+                android:id="@+id/project_options_build_exe"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingBottom="@dimen/material_design_spacing_x_large"
+                android:paddingEnd="@dimen/material_design_spacing_x_large"
+                android:paddingStart="@dimen/material_design_spacing_x_large"
+                android:paddingTop="@dimen/material_design_spacing_x_large"
+                android:background="@drawable/button_background_selector_dark"
+                android:text="@string/project_options_build_exe" />
+
+        </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -472,81 +490,6 @@
 
         </LinearLayout>-->
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:divider="@drawable/divider"
-            android:orientation="vertical"
-            android:showDividers="end"
-            android:visibility="gone">
-
-            <TextView
-                android:id="@+id/project_options_bake"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingBottom="@dimen/material_design_spacing_x_large"
-                android:paddingEnd="@dimen/material_design_spacing_x_large"
-                android:paddingStart="@dimen/material_design_spacing_x_large"
-                android:paddingTop="@dimen/material_design_spacing_x_large"
-                android:background="@drawable/button_background_selector_dark"
-                android:text="Запечь проект (Bake)" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:divider="@drawable/divider"
-            android:orientation="vertical"
-            android:paddingTop="8dp"
-            android:showDividers="middle|end">
-
-            <TextView
-                style="@style/TextAppearance.AppCompat.Subhead"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingStart="@dimen/material_design_spacing_x_large"
-                android:paddingEnd="@dimen/material_design_spacing_x_large"
-                android:paddingBottom="8dp"
-                android:text="@string/github_integration" />
-
-            <TextView
-                android:id="@+id/git_connect_button"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@drawable/button_background_selector_dark"
-                android:paddingStart="@dimen/material_design_spacing_x_large"
-                android:paddingTop="@dimen/material_design_spacing_x_large"
-                android:paddingEnd="@dimen/material_design_spacing_x_large"
-                android:paddingBottom="@dimen/material_design_spacing_x_large"
-                android:text="@string/git_connect" />
-
-            <TextView
-                android:id="@+id/git_publish_button"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@drawable/button_background_selector_dark"
-                android:paddingStart="@dimen/material_design_spacing_x_large"
-                android:paddingTop="@dimen/material_design_spacing_x_large"
-                android:paddingEnd="@dimen/material_design_spacing_x_large"
-                android:paddingBottom="@dimen/material_design_spacing_x_large"
-                android:text="@string/git_publish_changes"
-                android:visibility="gone" />
-
-            <TextView
-                android:id="@+id/git_update_button"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@drawable/button_background_selector_dark"
-                android:paddingStart="@dimen/material_design_spacing_x_large"
-                android:paddingTop="@dimen/material_design_spacing_x_large"
-                android:paddingEnd="@dimen/material_design_spacing_x_large"
-                android:paddingBottom="@dimen/material_design_spacing_x_large"
-                android:text="@string/git_update_project"
-                android:visibility="gone" />
-
-        </LinearLayout>
-
         <Button
             android:id="@+id/project_options_delete"
             android:layout_width="220dp"
@@ -558,5 +501,5 @@
             android:text="@string/project_options_delete_project"
             android:textAllCaps="true" />
 
-     </LinearLayout>
- </ScrollView>
+    </LinearLayout>
+</ScrollView>

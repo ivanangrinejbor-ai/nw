@@ -1,0 +1,23 @@
+/*
+ * NeoCatroid — :core module.
+ *
+ * Pure-JVM home for the platform-agnostic runtime: the RuntimeServices
+ * contract, its global accessor, and (eventually) the portable parts of
+ * content/, formulaeditor/, stage/, io/ and utils/lunoscript.
+ *
+ * No android.* here — both :catroid (Android) and the future
+ * :desktop-runtime depend on this module and supply their own
+ * RuntimeServices implementation.
+ */
+
+plugins {
+    id 'org.jetbrains.kotlin.jvm'
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    implementation "com.badlogicgames.gdx:gdx:1.13.1"
+    implementation "com.thoughtworks.xstream:xstream:1.4.20"
+    implementation "com.squareup.okhttp3:okhttp:4.12.0"
+    implementation "com.squareup.retrofit2:retrofit:2.9.0"
+}

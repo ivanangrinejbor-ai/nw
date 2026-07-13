@@ -23,13 +23,6 @@
 
 package org.catrobat.catroid.stage;
 
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.Typeface;
-import android.opengl.GLES20;
-import android.opengl.GLUtils;
 import android.util.Log;
 
 import com.badlogic.gdx.graphics.Pixmap;
@@ -43,6 +36,8 @@ import org.catrobat.catroid.R;
 import org.catrobat.catroid.common.ScreenValues;
 import org.catrobat.catroid.content.Sprite;
 import org.catrobat.catroid.formulaeditor.UserVariable;
+import org.catrobat.catroid.text.RasterizedText;
+import org.catrobat.catroid.text.TextServiceHolder;
 import org.catrobat.catroid.utils.ShowTextUtils;
 import org.catrobat.catroid.utils.ShowTextUtils.AndroidStringProvider;
 
@@ -52,7 +47,6 @@ import java.util.Locale;
 import static org.catrobat.catroid.utils.ShowTextUtils.ALIGNMENT_STYLE_CENTERED;
 import static org.catrobat.catroid.utils.ShowTextUtils.ALIGNMENT_STYLE_RIGHT;
 import static org.catrobat.catroid.utils.ShowTextUtils.DEFAULT_TEXT_SIZE;
-import static org.catrobat.catroid.utils.ShowTextUtils.DEFAULT_X_OFFSET;
 import static org.catrobat.catroid.utils.ShowTextUtils.calculateAlignmentValuesForText;
 import static org.catrobat.catroid.utils.ShowTextUtils.calculateColorRGBs;
 import static org.catrobat.catroid.utils.ShowTextUtils.getStringAsInteger;
@@ -73,7 +67,7 @@ public class ShowTextActor extends Actor {
 	private Sprite sprite;
 	private AndroidStringProvider androidStringProvider;
 
-	private Typeface typeface;
+	private String typefaceName;
 
 	private boolean isTextWrapped;
 
@@ -100,16 +94,16 @@ public class ShowTextActor extends Actor {
 		this.isText = text;
 	}
 
-	public void setFont(Typeface typeface) {
-		this.typeface = typeface; // Устанавливаем переданный шрифт
+	public void setFont(String typefaceName) {
+		this.typefaceName = typefaceName;
 	}
 
 	public void setWrap(boolean wrap) {
-		this.isTextWrapped = wrap; // Устанавливаем переданный шрифт
+		this.isTextWrapped = wrap;
 	}
 
 	public void setRotation(float angle) {
-		this.rotation = angle; // Устанавливаем переданный шрифт
+		this.rotation = angle;
 	}
 
 	public ShowTextActor(Boolean text, String name, int xPosition, int yPosition, float relativeSize,
@@ -152,7 +146,7 @@ public class ShowTextActor extends Actor {
 			return;
 		}
 
-		if(this.isText) {
+		if (this.isText) {
 			drawText(batch,
 					String.valueOf(this.variableToShow.getValue()),
 					xPosition, yPosition, color);
@@ -206,37 +200,11 @@ public class ShowTextActor extends Actor {
 			return;
 		}
 
-		Paint paint = new Paint();
-		paint.setTextSize(textSizeInPx);
-		if (this.typeface != null) {
-			paint.setTypeface(this.typeface);
-		}
-		paint.setAntiAlias(true);
+		RasterizedText rt = TextServiceHolder.textService.rasterizeText(
+				text, textSizeInPx, color, this.typefaceName, isTextWrapped, alignment);
 
-		if (isValidColorString(color)) {
-			String upperColor = color.toUpperCase(Locale.getDefault());
-			int[] rgb = calculateColorRGBs(upperColor);
-			paint.setColor((0xFF000000) | (rgb[0] << 16) | (rgb[1] << 8) | (rgb[2]));
-			batch.setColor((float) rgb[0] / 255, (float) rgb[1] / 255, (float) rgb[2] / 255, 1);
-		} else {
-			paint.setColor(Color.BLACK);
-		}
-
-		float baseline = -paint.ascent();
-		int textHeight = (int) (baseline + paint.descent());
-		String[] lines = isTextWrapped ? text.split("\n") : new String[]{text};
-
-		float totalWidth = 0;
-		for (String line : lines) {
-			if (!line.isEmpty()) {
-				float lineWidth = paint.measureText(line);
-				if (lineWidth > totalWidth) totalWidth = (int) Math.ceil(lineWidth);
-			}
-		}
-
-		int totalHeight = textHeight * (isTextWrapped ? Math.max(lines.length, 1) : 1);
-		int bitmapWidth = Math.max((int) totalWidth, 1);
-		int bitmapHeight = Math.max(totalHeight, 1);
+		int totalWidth = rt.getWidth();
+		int totalHeight = rt.getHeight();
 
 		float adjustedPosY = posY;
 		if (isTextWrapped) {
@@ -252,40 +220,21 @@ public class ShowTextActor extends Actor {
 				break;
 		}
 
-		Bitmap bitmap = Bitmap.createBitmap(bitmapWidth, bitmapHeight, Bitmap.Config.ARGB_8888);
-		Canvas canvas = new Canvas(bitmap);
-
-		float drawPosY = isTextWrapped ? textHeight : baseline;
-		for (String line : lines) {
-			if (line.isEmpty()) continue;
-			float drawPosX = 0;
-			if (isTextWrapped) {
-				switch (alignment) {
-					case ALIGNMENT_STYLE_CENTERED:
-						drawPosX = (totalWidth - paint.measureText(line)) / 2;
-						break;
-					case ShowTextUtils.ALIGNMENT_STYLE_RIGHT:
-						drawPosX = totalWidth - paint.measureText(line);
-						break;
-				}
-			}
-			canvas.drawText(line, drawPosX, drawPosY, paint);
-			if (isTextWrapped) drawPosY += textHeight;
-		}
-
-		cachedTexture = new Texture(bitmap.getWidth(), bitmap.getHeight(), Pixmap.Format.RGBA8888);
-		GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, cachedTexture.getTextureObjectHandle());
-		GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0);
-		GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
-		bitmap.recycle();
-
+		cachedTexture = buildTexture(rt);
+		batch.setColor(1, 1, 1, 1);
 		batch.draw(cachedTexture, posX, adjustedPosY);
 
 		lastRenderedText = text;
 		lastRenderedColor = color;
 		lastRenderedTextSize = textSizeInPx;
+	}
 
-		batch.setColor(1, 1, 1, 1);
+	private Texture buildTexture(RasterizedText rt) {
+		Pixmap pixmap = new Pixmap(rt.getWidth(), rt.getHeight(), Pixmap.Format.RGBA8888);
+		pixmap.getPixels().put(rt.getRgba()).position(0);
+		Texture texture = new Texture(pixmap);
+		pixmap.dispose();
+		return texture;
 	}
 
 	public void setPositionX(int xPosition) {

@@ -22,14 +22,7 @@
  */
 package org.catrobat.catroid.stage;
 
-import android.content.Context;
-import android.content.res.Resources;
-import android.os.SystemClock;
-import android.provider.Settings;
-import android.util.DisplayMetrics;
 import android.util.Log;
-import android.view.WindowManager;
-
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputAdapter;
@@ -438,16 +431,16 @@ public class StageListener implements ApplicationListener {
 			vncSwizzleShader = new ShaderProgram(vertexShader, fragmentShader);
 
 			if (!vncSwizzleShader.isCompiled()) {
-				Log.e("SHADER_ERROR", "Error compiling shader: " + vncSwizzleShader.getLog());
+								Log.e("SHADER_ERROR", "Error compiling shader: " + vncSwizzleShader.getLog());
 			}
 
 			if (!vncSwizzleShader.isCompiled()) {
-				Log.e("SHADER_ERROR", "VNC Swizzle Shader failed to compile: " + vncSwizzleShader.getLog());
+								Log.e("SHADER_ERROR", "VNC Swizzle Shader failed to compile: " + vncSwizzleShader.getLog());
 			} else {
-				Log.i("SHADER_INFO", "VNC Swizzle Shader compiled successfully.");
+								Log.i("SHADER_INFO", "VNC Swizzle Shader compiled successfully.");
 			}
 		} catch (Exception e) {
-			Log.e("SHADER_ERROR", "Could not load VNC Swizzle Shader files", e);
+						Log.e("SHADER_ERROR", "Could not load VNC Swizzle Shader files", e);
 		}
 	}
 
@@ -525,7 +518,7 @@ public class StageListener implements ApplicationListener {
 
 	public void setVmDisplayVisible(boolean visible) {
 		this.isVmDisplayVisible = visible;
-		Log.d("Display", "Display is: " + isVmDisplayVisible);
+				Log.d("Display", "Display is: " + isVmDisplayVisible);
 	}
 
 	private void updateVmScreenMesh() {
@@ -674,7 +667,7 @@ public class StageListener implements ApplicationListener {
 		initMouseInputAdapter();
 
 
-		SensorHandler.timerReferenceValue = SystemClock.uptimeMillis();
+		SensorHandler.timerReferenceValue = com.badlogic.gdx.utils.TimeUtils.millis();
 	}
 
 	private final Vector3 tempVec3ForTouch = new Vector3();
@@ -1167,7 +1160,7 @@ public class StageListener implements ApplicationListener {
 			threeDManager.init();
 			sceneManager = new SceneManager(threeDManager);
 		} catch (Exception e) {
-			Log.e("StageListener", "INITIALIZE ERROR: " + e);
+					Log.e("StageListener", "INITIALIZE ERROR: " + e);
 		}
 
 		reloadProject = true;
@@ -1284,7 +1277,7 @@ public class StageListener implements ApplicationListener {
                             client.uploadFrameTexture();
                             Gdx.gl.glPixelStorei(GL20.GL_UNPACK_ALIGNMENT, 4);
                         } catch (Exception e) {
-                            Log.e("VNC_RENDER", "Error uploading VM frame", e);
+							Log.e("VNC_RENDER", "Error uploading VM frame", e);
                         } finally {
                             stageActivity.frameReadyToRender = false;
                         }
@@ -1418,7 +1411,7 @@ public class StageListener implements ApplicationListener {
 							threeDManager.render();
 						}
                     } catch (Exception e) {
-                        Log.e("3DRENDER", "ERROR: " + e);
+						Log.e("3DRENDER", "ERROR: " + e);
                     }
 
                     if (fastTwoDManager != null && !paused) {
@@ -1439,7 +1432,7 @@ public class StageListener implements ApplicationListener {
 
                     uiStage.draw();
                 } catch (Exception e) {
-                    Log.e("RENDER", "FATAL ERROR: " + e);
+					Log.e("RENDER", "FATAL ERROR: " + e);
                 }
                 firstFrameDrawn = true;
             }
@@ -1491,7 +1484,7 @@ public class StageListener implements ApplicationListener {
 
 			cameraPositioner.updateCameraPositionForFocusedSprite();
 		} catch (Exception e) {
-			Log.e("RENDER_CRASH", "Fatal error during render loop", e);
+						Log.e("RENDER_CRASH", "Fatal error during render loop", e);
 		}
 
         long endRender = System.nanoTime();
@@ -1638,10 +1631,10 @@ public class StageListener implements ApplicationListener {
 
 
 	public void executeExitScriptsSynchronously() {
-		Log.d("StageListener", "Force-executing exit scripts...");
+				Log.d("StageListener", "Force-executing exit scripts...");
 		Project project = ProjectManager.getInstance().getCurrentProject();
 		if (project == null || sprites == null) {
-			Log.e("StageListener", "Cannot execute exit scripts, project or sprites are null.");
+					Log.e("StageListener", "Cannot execute exit scripts, project or sprites are null.");
 			return;
 		}
 
@@ -1649,7 +1642,7 @@ public class StageListener implements ApplicationListener {
 			for (Script script : sprite.getScriptList()) {
 
 				if (script instanceof ExitProjectScript && !script.isCommentedOut()) {
-					Log.d("StageListener", "Found exit script in sprite: " + sprite.getName());
+										Log.d("StageListener", "Found exit script in sprite: " + sprite.getName());
 
 					ScriptSequenceAction sequence = sprite.createSequenceAction(script);
 
@@ -1660,7 +1653,7 @@ public class StageListener implements ApplicationListener {
 				}
 			}
 		}
-		Log.d("StageListener", "Finished executing exit scripts.");
+				Log.d("StageListener", "Finished executing exit scripts.");
 	}
 
 
@@ -1827,7 +1820,7 @@ public class StageListener implements ApplicationListener {
 			screenshotSaverCallback.screenshotSaved(success);
 			this.screenshotSaverCallback = null;
 		} else {
-			Log.e("StageListener", "Lost reference to screenshot callback");
+						Log.e("StageListener", "Lost reference to screenshot callback");
 		}
 	}
 
@@ -1938,7 +1931,7 @@ public class StageListener implements ApplicationListener {
 	public void gamepadPressed(String buttonType) {
 
 		if (project == null) {
-			Log.e("StageListener", "Gamepad event received, but project is null. Ignoring.");
+						Log.e("StageListener", "Gamepad event received, but project is null. Ignoring.");
 			return;
 		}
 		EventId eventId = new GamepadEventId(buttonType);
@@ -2128,9 +2121,8 @@ public class StageListener implements ApplicationListener {
 	}
 
 	private float calculateScreenRatio() {
-		DisplayMetrics metrics = Resources.getSystem().getDisplayMetrics();
 		XmlHeader header = ProjectManager.getInstance().getCurrentProject().getXmlHeader();
-		float deviceDiagonalPixel = (float) Math.sqrt(Math.pow(metrics.widthPixels, 2) + Math.pow(metrics.heightPixels, 2));
+		float deviceDiagonalPixel = (float) Math.sqrt(Math.pow(Gdx.graphics.getWidth(), 2) + Math.pow(Gdx.graphics.getHeight(), 2));
 		float creatorDiagonalPixel = (float) Math.sqrt(Math.pow(header.getVirtualScreenWidth(), 2)
 				+ Math.pow(header.getVirtualScreenHeight(), 2));
 		return creatorDiagonalPixel / deviceDiagonalPixel;
@@ -2152,7 +2144,7 @@ public class StageListener implements ApplicationListener {
                 targetSprite.look.addAction(sequence);
 
             } catch (Exception e) {
-                Log.e("RuntimeConsole", "Failed to execute sandbox script", e);
+				Log.e("RuntimeConsole", "Failed to execute sandbox script", e);
             }
         });
     }

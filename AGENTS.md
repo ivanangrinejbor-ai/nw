@@ -296,3 +296,315 @@ public class MyBrick extends FormulaBrick {
 | Guava | 28.2-android | 33.4.0-android |
 | Browser | 1.2.0 | 1.8.0 |
 | **Не обновлено** (high risk): Koin 2.1.6, CameraX 1.0.0-beta07, Mockito 3.12.4 (заблокирован PowerMock)
+
+---
+
+# Windows Desktop Player (build_exe)
+
+## Модули
+
+- `:core` — JVM-модуль с портативными seam-интерфейсами (RuntimeServices, AudioService, MidiService, TextService, NotificationService) и holder-ами.
+- `:desktop-runtime` — JVM-модуль с Desktop-реализациями seam (DesktopAudioService, DesktopMidiService, DesktopTextService, DesktopNotificationService, DesktopRuntimeServices) и точкой входа DesktopStage.
+- `:catroid` (Android) — содержит кнопку **«Собрать EXE»** в ProjectOptionsFragment.
+
+## UI: Кнопка "Собрать EXE" (ProjectOptionsFragment)
+
+- **Layout**: `fragment_project_options.xml` → `@id/project_options_build_exe`
+- **Kotlin**: `setupBuildExeOption()` (уже была) + `buildExe()` (реализована 2026-07)
+- **Что делает**:
+  1. Сохраняет проект
+  2. Пакует проект в `{projectName}.zip`
+  3. Находит иконку проекта (`manual_screenshot.png` или `automatic_screenshot.png`)
+  4. Добавляет `template_win.zip` (из assets) + `build_exe.bat` (из assets) + README_WINDOWS.txt
+  5. Создаёт итоговый `{projectName}_win.zip` и открывает share-диалог
+- **Переводы**: `project_options_build_exe` (values + values-ru)
+
+## Gradle: copyDesktopTemplate
+
+- `catroid/build.gradle` — задача `copyDesktopTemplate`, копирует `template_win.zip` и `build_exe.bat` из `desktop-runtime/` в `catroid/src/main/assets/`.
+- Автоматически запускается перед mergeAssets.
+
+## build_exe.bat (Windows, launch4j)
+
+- Лежит в `desktop-runtime/build_exe.bat`
+- Собирает `player.jar` → конвертирует PNG в ICO → создаёт `template_win.zip` (player.jar + icon.ico)
+- При наличии launch4j создаёт `.exe`
+
+## Переносимые seam (в `:core`)
+
+| Seam | Интерфейс | Holder |
+|---|---|---|
+| Runtime | `RuntimeServices` | `RuntimeServicesHolder` |
+| Audio | `AudioService` | `AudioServiceHolder` |
+| Midi | `MidiService` | `MidiServiceHolder` |
+| Text | `TextService` | `TextServiceHolder` |
+| Notification | `NotificationService` | `NotificationServiceHolder` |
+
+StageListenerHolder: `object StageListenerHolder { var listener: StageListener? = null }` (в `:core`).
+
+## Исправления багов (2026-07-13)
+
+### DesktopMidiService
+- `playSoundFile()` / `playSoundFileWithStartTime()` — были пустыми заглушками → теперь делегируют `AudioServiceHolder`.
+
+### DesktopSprite
+- Добавлено поле `visible: Boolean = true`.
+
+### DesktopPhysicsWorld
+- Добавлен метод `getBody(sprite): Body?` (был приватным).
+
+### DesktopSprite
+- Добавлены поля: `transparency`, `brightness`, `color` (графические эффекты); `width`, `height` (переопределение размера); `penDown`, `penSize`, `penColorRed/Green/Blue` (перо); `rotationStyle` (0/1/2); `lookWidth`, `lookHeight` (computed).
+
+### DesktopStageListener
+- Невидимые спрайты (`!sprite.visible`) пропускаются при рендере.
+
+### DesktopInput (обновлён 2026-07-13)
+- Добавлены: `mouseDeltaX`, `mouseDeltaY` (для сенсоров MOUSE_DELTA), `fingerX`, `fingerY`, `isTouched` (зеркало мыши для сенсоров касания).
+
+### DesktopScriptEngine — полная переработка (2026-07-13)
+- **Стековая машина**: каждый скрипт = свой `ScriptState` со стеком фреймов.
+- Фрейм: `{blocks, ip, repeatRemaining, waitTimer, glideState}`.
+- **RuntimeFormula**: формулы с сенсорами/переменными вычисляются при каждом проходе (а не при парсинге).
+
+#### Поддерживаемые контейнерные брики
+- **ForeverBrick** → `repeatRemaining = -1`, сброс ip на 0 при завершении.
+- **RepeatBrick** → `repeatRemaining = N`, декремент, сброс ip.
+- **RepeatUntilBrick** → forever + wait_until condition.
+- **IfLogicBeginBrick** → then-branch / else-branch (IfLogicElseBrick).
+- **IfThenLogicBeginBrick** → if без else.
+- **ForVariableFromToBrick** → repeat с вычисленным числом итераций.
+- **ScheduleBrick** → wait + выполнение детей.
+- **ExecuteForCloneNumberBrick** → repeat 1 с детьми.
+- **RunAsSpriteBrick / RunOnUiThreadBrick** → inline-выполнение детей.
+- **BroadcastBrick, BroadcastWaitBrick** → событие broadcast.
+- **StopScriptBrick** → frame.ip = blocks.size (выход).
+
+#### Поддерживаемые листовые брики (~60 типов)
+- **Motion**: MoveNSteps, TurnLeft/Right, SetX/Y, ChangeX/Y, GoTo, PlaceAt, PointInDirection, SetSizeTo, GlideTo, IfOnEdgeBounce, ComeToFront, GoNStepsBack, SetRotationStyle, TouchDirection
+- **Looks**: Show, Hide, Next/Previous Look, SetLook(byIndex), SetBackground(byIndex), SetSizeTo, ChangeSize, Set/Change Transparency/Brightness/Color, ClearEffects, Set/Change Width/Height
+- **Sound**: PlaySound, PlaySoundAndWait, StopSound, StopAllSounds, SetVolume, ChangeVolume
+- **Music**: PlayNoteForBeats, PlayDrumForBeats, SetInstrument, SetTempo, ChangeTempo, PauseForBeats
+- **Pen**: PenDown/Up, SetPenSize, SetPenColor, Stamp, ClearBackground
+- **Control**: Wait (с runtime-формулами), WaitUntil, Note (комментарий), FinishStage, ExitStage
+- **Variables**: SetVariable, ChangeVariable (с runtime-формулами), ShowText, HideText
+- **Web**: WebRequestBrick (GET), PostWebRequestBrick, PutWebRequestBrick, DeleteWebRequestBrick
+- **Data**: WriteVariableOnDevice, ReadVariableFromDevice
+- **Sensing**: ResetTimer
+
+#### Рекурсивный вычислитель формул
+Заменяет статический `extractFormulaValue`. Поддерживает:
+
+| Тип | Значение | Поддержка |
+|-----|----------|-----------|
+| `NUMBER` | `value.toDouble()` | ✅ |
+| `STRING` | строковая константа | ✅ |
+| `OPERATOR` | PLUS, MINUS, MULT, DIVIDE, MOD, POW, EQUAL, NOT_EQUAL, SMALLER_THAN, GREATER_THAN, SMALLER_OR_EQUAL, GREATER_OR_EQUAL, LOGICAL_AND, LOGICAL_OR, LOGICAL_NOT | ✅ все |
+| `FUNCTION` | Математические: SIN, COS, TAN, LN, LOG, SQRT, ABS, ROUND, FLOOR, CEIL, PI, TRUE, FALSE, RAND, MAX, MIN, POWER, MOD, ARCSIN, ARCCOS, ARCTAN, ARCTAN2, EXP, ROUNDTO, CLAMP | ✅ |
+| `FUNCTION` | Строковые: LENGTH, LETTER, SUBTEXT, UPPER, LOWER, JOIN, JOIN3, REVERSE | ✅ |
+| `FUNCTION` | Системные: SCREEN_WIDTH, SCREEN_HEIGHT, DEVICE_NAME | ✅ |
+| `SENSOR` | OBJECT_X, OBJECT_Y, OBJECT_SIZE, OBJECT_WIDTH, OBJECT_HEIGHT, OBJECT_DIRECTION, MOTION_DIRECTION, LOOK_DIRECTION, OBJECT_TRANSPARENCY, OBJECT_BRIGHTNESS, OBJECT_COLOR, OBJECT_LOOK_NUMBER, OBJECT_NUMBER_OF_LOOKS, OBJECT_X_VELOCITY, OBJECT_Y_VELOCITY, STAGE_WIDTH, STAGE_HEIGHT | ✅ |
+| `SENSOR` | MOUSE_X, MOUSE_Y, MOUSE_DELTA_X, MOUSE_DELTA_Y, FINGER_X, FINGER_Y, FINGER_TOUCHED, NUMBER_CURRENT_TOUCHES, INDEX_CURRENT_TOUCH | ✅ |
+| `SENSOR` | DATE_YEAR, DATE_MONTH, DATE_DAY, DATE_WEEKDAY, TIME_HOUR, TIME_MINUTE, TIME_SECOND | ✅ |
+| `SENSOR` | X_ACCELERATION, Y_ACCELERATION, Z_ACCELERATION, COMPASS_DIRECTION, LATITUDE, LONGITUDE (заглушки = 0) | ✅ заглушки |
+| `USER_VARIABLE` | lookup(name) в `variables[name]` | ✅ |
+| `USER_LIST` | возвращает "" | ✅ заглушка |
+| `BRACKET` | вычисляет rightChild | ✅ |
+| `COLLISION_FORMULA` | возвращает value как Double | ✅ |
+
+### DesktopNetworkService (новый seam, 2026-07-13)
+- `NetworkService` (интерфейс, `:core`): `httpGet(url)` + `httpPost(url, body)`.
+- `NetworkServiceHolder` (объект, `:core`): точка инъекции.
+- `DesktopNetworkService` (`:desktop-runtime`): реализация через `java.net.HttpURLConnection` с 10s таймаутами.
+- Зарегистрирован в `DesktopStage.main()`.
+
+## Desktop-реализации seam
+
+| Модуль | Файл | Методы | Статус |
+|--------|------|--------|--------|
+| :core | RuntimeServices (7 методов) | DesktopRuntimeServices | ✅ все |
+| :core | AudioService (15 методов) | DesktopAudioService | ✅ все |
+| :core | MidiService (15 методов) | DesktopMidiService | ✅ все |
+| :core | TextService (1 метод) | DesktopTextService | ✅ |
+| :core | NotificationService (4 метода) | DesktopNotificationService | ✅ все |
+
+## Исправления багов рантайма (2026-07-13)
+- **DesktopInput**: `isMouseJustPressed` всегда был `false` из-за `wasMouseDown = isMouseDown` (текущее состояние вместо предыдущего) — переделано на двухкадровый трекинг через `previousMouseDown`.
+- **DesktopInput**: `update()` вызывался дважды за кадр (в `DesktopScriptEngine.update()` + `DesktopScriptRunner.updateInput()`) — вызов перенесён ОДИН раз в `DesktopStageListener.render()`.
+- **DesktopProjectManager**: имя спрайта (`"sprite$i"`) и `direction` не читались из `code.xml` — теперь читаются.
+- **DesktopMidiService**: `playNote` вызывал `Thread.sleep` на render-потоке — вынесен в daemon-поток (isDaemon = true).
+- **DesktopPhysicsWorld**: `syncSpritesFromPhysics` делал бессмысленный `body.setTransform` после чтения позиции — удалён.
+- **DesktopStage**: `extractPayload` не очищал temp-директорию — `walkTopDown().forEach { it.deleteOnExit() }`.
+
+Сборка: `./gradlew :core:compileKotlin --offline -q` — **BUILD SUCCESSFUL**.
+Сборка desktop-runtime: `./gradlew :desktop-runtime:compileKotlin --offline -q` — **BUILD SUCCESSFUL**.
+
+## Полный DesktopScriptEngine (2026-07-13)
+
+Полная переработка `DesktopScriptEngine.kt` (960 строк):
+- **Рекурсивный вычислитель формул** — `evaluateFormulaNode()` обрабатывает 10 типов (NUMBER, STRING, OPERATOR, FUNCTION, SENSOR, USER_VARIABLE, USER_LIST, BRACKET, COLLISION_FORMULA) с рекурсивным обходом leftChild/rightChild/additionalChildren.
+- **15 операторов**: PLUS, MINUS, MULT, DIVIDE, MOD, POW, EQUAL, NOT_EQUAL, SMALLER_THAN, GREATER_THAN, SMALLER_OR_EQUAL, GREATER_OR_EQUAL, LOGICAL_AND, LOGICAL_OR, LOGICAL_NOT.
+- **30+ функций**: SIN, COS, TAN, SQRT, RAND, ABS, ROUND, FLOOR, CEIL, PI, TRUE, FALSE, MAX, MIN, POWER, MOD, ARCSIN, ARCCOS, ARCTAN, ARCTAN2, EXP, ROUNDTO, CLAMP, LENGTH, LETTER, SUBTEXT, UPPER, LOWER, JOIN, JOIN3, REVERSE, SCREEN_WIDTH, SCREEN_HEIGHT, DEVICE_NAME.
+- **40+ сенсоров**: OBJECT_X/Y/SIZE/WIDTH/HEIGHT/TRANSPARENCY/BRIGHTNESS/COLOR/LOOK_NUMBER/VELOCITY, MOUSE_X/Y/DELTA, FINGER_X/Y/TOUCHED, дата/время, заглушки для акселерометра/компаса/GPS.
+- **~60 типов бриков**: Motion (14), Looks (14), Sound (6), Music (6), Pen (6), Control (8), Variables (4), Web (4), Data (2), Sensing (1).
+- **RuntimeFormula** — для SetVariable/ChangeVariable/Wait формулы с сенсорами/переменными вычисляются при каждом проходе, а не при парсинге.
+- **6 контейнерных бриков**: Forever, Repeat, RepeatUntil, IfLogicBegin(+else), ForVariableFromTo, Schedule, ExecuteForCloneNumber, RunAsSprite, Broadcast.
+
+## Исправления багов (2026-07-13, второй заход)
+
+### 🔴 Critical (8)
+1. **WaitUntilBrick**: BrickField `REPEAT_UNTIL_CONDITION` → `IF_CONDITION`. Теперь использует RuntimeFormula.
+2. **RepeatUntilBrick**: Условие никогда не проверялось (бесконечный цикл). Переделано на новый `repeat_until` тип с `repeatRemaining = -2` и проверкой условия при каждом входе.
+3. **SetWidth/ChangeWidth/SetHeight/ChangeHeight**: BrickField `WIDTH`/`HEIGHT` → `SIZE` (все четыре поля используют один BrickField `SIZE`).
+4. **spriteIndex=0**: `extractFormulaValue/String` использовали хардкодный `spriteIndex=0` при парсинге. Исправлено через Kotlin-shadowing: локальные функции внутри `parseBrickListRecursive` захватывают `spriteIndex`.
+5. **USER_DEFINED_BRICK_INPUT**: Добавлен case в `evaluateFormulaNode()` — возвращает `value.toDoubleOrNull() ?: value`.
+6. **DeleteWebRequestBrick**: Использовал `http_get` вместо `http_delete`. Добавлены `httpDelete()` в NetworkService + DesktopNetworkService.
+7. **PutWebRequestBrick**: Хардкодное тело `__put_body`. Исправлено: парсит `BODY` формулу, использует `http_put`.
+8. **TouchDirectionBrick**: Хардкодный угол 0°. Теперь вычисляет `atan2(touchY - spriteY, touchX - spriteX)` в executeMotion.
+
+### 🟡 Important (7)
+- **SetRotationStyleBrick**: Парсит `selection` из XML-элемента (был хардкод 0).
+- **SetInstrumentBrick**: Парсит `instrumentSelection` из XML, маппит через `INSTRUMENT_PROGRAM_MAP`.
+- **PlayDrumForBeatsBrick**: Поле `BEATS_TO_PLAY_NOTE` → `PLAY_DRUM`. Парсит `drumSelection` из XML через `DRUM_PROGRAM_MAP`.
+- **ChangeVolumeByNBrick**: Теперь читает текущую громкость через `AudioService.getVolume()`, добавляет дельту, устанавливает новую.
+- **TIMER sensor**: Добавлен счётчик `timerSeconds`, обновляется каждый кадр. ResetTimerBrick → `timerSeconds = 0`.
+- **LAST_FINGER_INDEX sensor**: Был на одной строке с FINGER_X (возвращал fingerX). Теперь возвращает 0 если есть касание, -1 если нет.
+- **USER_LANGUAGE / SYSTEM_LANGUAGE**: Возвращали `1.0` (проверка существования property). Теперь возвращают строку языка. Тип `evaluateSensor` изменён на `Any?`.
+
+### 🟢 Medium (4)
+- **SetLookBrick**: Парсит `<look name="...">` из XML, маппит через `sprite.looks.indexOfFirst { it.name == name }`.
+- **GoToBrick**: Парсит `spinnerSelection` (80=touch, 81=random, 82=other sprite), создаёт `goto_touch/goto_random/goto_sprite` блоки.
+- **ForVariableFromToBrick**: Добавлен синтетический `inc_var` блок в конец детей цикла.
+- **RunAsSpriteBrick**: Добавлены маркеры `run_as_start`/`run_as_end` с защитой от рекурсии (макс. 10 уровней).
+
+### 🌐 NetworkService
+- Добавлены `httpPut(url, body)` и `httpDelete(url)` в интерфейс и `DesktopNetworkService`.
+
+### 📊 Статистика DesktopScriptEngine
+- Размер: ~1780 строк.
+- Типов блоков уже портировано: ~70 (все основные категории).
+- Операторов: 15.
+- Функций: 41+.
+- Сенсоров: 55+.
+- RuntimeFormula: используется в Wait, WaitUntil, RepeatUntil, SetVariable, ChangeVariable.
+- Сборка: `./gradlew :core:compileKotlin :desktop-runtime:compileKotlin --offline -q` — **BUILD SUCCESSFUL**.
+
+---
+
+## Инвентаризация бриков для портирования на Windows
+
+Всего в Android: **~390+ brick-классов**. Уже портировано: **~70**.
+
+Ниже — анализ оставшихся ~320 бриков по категориям с указанием портируемости.
+
+### ✅ Легко портируются (нет Android-зависимостей, только Formula + Action)
+
+#### 1. User List bricks — 8 шт.
+`AddItemToUserListBrick`, `DeleteItemOfUserListBrick`, `InsertItemIntoUserListBrick`, `ReplaceItemInUserListBrick`, `ClearUserListBrick`, `SplitBrick`, `StoreCSVIntoUserListBrick`, `RegexBrick`
+- **Что нужно**: парсер для `UserListBrick` (считывает variable + formula), поддержка списковых операций в engine (usersList: Map<name, List>)
+- **Оценка**: 1 день
+
+#### 2. Control bricks — 8 шт.  
+`ForItemInUserListBrick`, `TryCatchFinallyBrick`, `SwitchBeginBrick`+`SwitchCaseBrick`, `UserDefinedBrick`+`UserDefinedReceiverBrick`, `WaitTillIdleBrick`, `CloneObjectBrick`+`DeleteThisCloneBrick`, `IntervalRepeatBrick`
+- **Что нужно**: парсеры + runtime-обработчики. Для TryCatch — нужна обработка ошибок
+- **Оценка**: 2-3 дня
+
+#### 3. Pen drawing bricks — 10 шт.
+`DrawLineBrick`, `DrawCircleBrick`, `DrawRectBrick`, `DrawTextBrick`, `FillCircleBrick`, `FillRectBrick`, `FillPolygonBrick`, `SetCornerRadiusBrick`, `SetBorderWidthBrick`, `SetBorderColorBrick`
+- **Что нужно**: команды `draw_line`, `draw_circle`, `draw_rect`, `draw_text`, `fill_*` в executePen
+- **Движок**: libGDX ShapeRenderer или Pixmap
+- **Оценка**: 1 день
+
+#### 4. Sound bricks — 15 шт.
+`PlaySoundAtBrick`, `StopSoundBrick2`, `SetSoundVolumeBrick`, `SetGlobalSoundVolumeBrick`, `PrepareSoundBrick`, `PlayPreparedSoundBrick`, `SetPanBrick`, `PlayToneBrick`, `PrepareMusicAs3DSoundBrick`, `Set3DSoundPositionBrick`, `EqualizerSetBandBrick`, `SetStopSoundsBrick`, `PlaySoundAtPositionBrick`, `SetSoundInstanceVolumeBrick`, `SetSoundInstancePitchBrick`
+- **Что нужно**: расширение AudioService (pan, 3D position, EQ). Большинство — FormulaBrick
+- **Оценка**: 2-3 дня
+
+#### 5. Web/Network bricks — 20+ шт.
+`HeadWebRequestBrick`, `PatchWebRequestBrick`, `OptionsWebRequestBrick`, `WebSocketConnectBrick`(+Send/Receive/Close), `CreateWebUrlBrick`, `CreateWebFileBrick`, `DownloadFileBrick`, `DownloadToPathBrick`, `UploadFileBrick`, `PingBrick`, `SetDnsBrick`, `StartServerBrick`(+Stop/Send), `ConnectServerBrick`, `ListenServerBrick`
+- **Что нужно**: `httpHead()`, `httpPatch()`, `httpOptions()` в NetworkService; WebSocket через `java.net.http.WebSocket` (Java 11+); HTTP-сервер через `com.sun.net.httpserver`
+- **Оценка**: 3-4 дня
+
+#### 6. File System bricks — 20 шт.
+`DeleteFilesBrick`, `MoveFilesBrick`, `MoveDownloadsBrick`, `OpenFileBrick`, `OpenFilesBrick`, `ReadFromFilesBrick`, `WriteToFilesBrick`, `ZipBrick`, `UnzipBrick`, `ExtractFileBrick`, `GetZipFileNamesBrick`, `CopyProjectFileBrick`, `ReadVariableFromFileBrick`, `WriteVariableToFileBrick`, `SaveToInternalStorageBrick`, `LoadFromInternalStorageBrick`, `ExportProjectFileBrick`
+- **Что нужно**: java.io/java.nio — всё уже есть в JDK
+- **Оценка**: 1-2 дня
+
+#### 7. Text/Speech/Bubble bricks — 12 шт.
+`ThinkBubbleBrick`, `ThinkForBubbleBrick`, `SayBubbleBrick`, `SayForBubbleBrick`, `ShowTextColorSizeAlignmentBrick`, `ShowTextFontBrick`, `ShowTextRotationBrick`, `ShowText3Brick`, `HideText3Brick`, `CreateTextFieldBrick`, `SetTextBrick`, `SetFontBrick`, `ShowDialogBrick`
+- **Что нужно**: рендеринг текста на экране через libGDX BitmapFont; диалоги — JOptionPane
+- **Оценка**: 1-2 дня
+
+#### 8. Physics (Box2D) bricks — 25+ шт.
+`SetGravityBrick`, `SetBounceBrick`, `SetFrictionBrick`, `SetMassBrick`, `SetDampingBrick`, `SetRestitutionBrick`, `SetPhysicsObjectTypeBrick`, `SetHitboxBrick`, `ApplyForceBrick`, `ApplyImpulseBrick`, `ApplyTorqueBrick`, `ApplyAngularImpulseBrick`, все Joint-брики (8 шт.), `CastRayBrick`, `PerformRayCastBrick`, `HasPathBrick`, `SetPhysicsStateBrick`
+- **Что нужно**: расширение DesktopPhysicsWorld. libGDX Box2D уже подключён
+- **Оценка**: 2-3 дня
+
+#### 9. Camera/3D Camera bricks — 20+ шт.
+Все SetCamera*, RotateCamera*, PinToCamera*, AttachToCamera*, SetViewPosition*, SetBufferCamera* брики
+- **Что нужно**: реализация через Desktop3DManager (если есть) — большинство FormulaBrick
+- **Оценка**: 1-2 дня
+
+#### 10. Event triggers — 10+ шт.
+`WhenTouchDownBrick`, `WhenClonedBrick`, `WhenConditionBrick`, `WhenBackgroundChangesBrick`, `WhenBounceOffBrick`, `WhenBackPressedBrick`(→Escape), `WhenMouseButtonClickedBrick`, `WhenMouseWheelScrolledBrick`, `WhenGamepadButtonBrick`, `KeyEventBrick`, `MouseEventBrick`
+- **Что нужно**: новые типы ScriptEvent. Большинство — ScriptBrickBaseType
+- **Оценка**: 2 дня
+
+#### 11. Variable bricks — 8 шт.
+`CreateVarBrick`, `DeleteVarBrick`, `DeleteVarsBrick`, `CreateFloatBrick`, `DeleteFloatBrick`, `SetVariableEasingBrick`, `ReadListFromDeviceBrick`, `WriteListOnDeviceBrick`
+- **Что нужно**: управление переменными (создание/удаление). Списки сериализовать в JSON
+- **Оценка**: 1 день
+
+#### 12. Data bricks — 4 шт.
+`ReadVariableFromDeviceBrick`, `WriteVariableOnDeviceBrick`, `ReadListFromDeviceBrick`, `WriteListOnDeviceBrick`
+- **Что нужно**: чтение/запись в файлы (уже есть через File I/O)
+- **Оценка**: 0.5 дня
+
+### ⚠️ Портятся с минимальными изменениями
+
+#### 13. Ask/Speech/AI bricks — 6 шт.
+`AskBrick` (консольный ввод), `SpeakBrick` (FreeTTS), `SpeakAndWaitBrick`, `CopyTextBrick` (Clipboard), `SetAIBrick`, `SetGeminiKeyBrick`
+- **Что нужно**: FreeTTS (перед TTS engine), System.in для Ask, AWT Clipboard для CopyText
+- **Оценка**: 1 день
+
+#### 14. Device bricks — 8 шт.
+`VibrationBrick` (заглушка), `KeepScreenOnBrick`, `KeepScreenOffBrick`, `ScreenBrightnessBrick` (заглушка), `LockMouseBrick`, `UnlockMouseBrick`, `OrientationBrick`, `ScreenShotBrick`
+- **Что нужно**: LockMouse/UnlockMouse — уже есть! ScreenShot — libGDX ScreenUtils; остальные — заглушки
+- **Оценка**: 0.5 дня
+
+#### 15. Notification bricks — 6 шт.
+`SendNotificationBrick`, `ShowScheduledNotificationBrick`, `PrepareNotificationBrick`, `NotificationActionBrick`, `RemoveNotificationBrick`, `EnableBackgroundBrick`
+- **Что нужно**: DesktopNotificationService (уже есть). Большинство уже реализовано в Action-классах
+- **Оценка**: 0.5 дня (только парсинг)
+
+### 🔴 Не портятся (Android-only)
+- **Camera/Photo** (FlashBrick, CameraBrick, ChooseCameraBrick, PhotoBrick, CameraSettingsBrick) — аппаратная камера
+- **NFC** (WhenNfcBrick, SetNfcTagBrick) — NFC-чип
+- **Bluetooth/BLE** — если есть (не найдены в бриках)
+- **Audio Recording** (StartRecordingBrick, StopRecordingBrick, ListenMicroBrick) — микрофон через Java? javax.sound.sampled поддерживается, но не гарантируется
+
+---
+
+## Итого: что портировать в первую очередь
+
+| Приоритет | Категория | Бриков | Сложность |
+|-----------|-----------|--------|-----------|
+| 🥇 | **User List** | 8 | Лёгкая |
+| 🥇 | **Pen Drawing** | 10 | Лёгкая |
+| 🥇 | **File I/O** | 20 | Лёгкая |
+| 🥇 | **Текст/Баблики** | 12 | Средняя |
+| 🥇 | **Event Triggers** | 10 | Средняя |
+| 🥇 | **Data (device read/write)** | 4 | Лёгкая |
+| 🥈 | **Control (Switch, Try, Clone)** | 8 | Средняя |
+| 🥈 | **Sound (pan, tone, 3D)** | 15 | Средняя |
+| 🥈 | **Web (WebSocket, Server)** | 20 | Сложная |
+| 🥈 | **Physics (joints, forces)** | 25 | Средняя |
+| 🥉 | **Camera 3D** | 20 | Средняя |
+| 🥉 | **Variables (create/delete)** | 8 | Лёгкая |
+| 🥉 | **Ask/Speak/AI** | 6 | Средняя |
+| 🥉 | **Notifications** | 6 | Лёгкая |
+| 🥉 | **Device** | 8 | Лёгкая |
+
+**Итого портируемых: ~170 шт.** (из ~390 Android)
+**Уже портировано: ~70 шт.**
+**Осталось: ~100 шт.** ценных для портирования (исключая 3D-специфичные и Android-only).

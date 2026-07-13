@@ -23,22 +23,13 @@
 
 package org.catrobat.catroid.content.actions;
 
-import org.catrobat.catroid.content.MediaPlayerWithSoundDetails;
-import org.catrobat.catroid.content.SoundFilePathWithSprite;
-import org.catrobat.catroid.io.SoundManager;
-import org.catrobat.catroid.pocketmusic.mididriver.MidiPlayer;
-import org.catrobat.catroid.pocketmusic.mididriver.MidiSoundManager;
-
-import java.util.Set;
-
-import androidx.annotation.VisibleForTesting;
+import org.catrobat.catroid.audio.AudioServiceHolder;
 
 public class WaitForSoundAction extends WaitAction {
 	public static final String TAG = WaitForSoundAction.class.getSimpleName();
 	private String soundFilePath;
-	private SoundManager soundManager = SoundManager.getInstance();
-	private MidiSoundManager midiSoundManager = MidiSoundManager.getInstance();
 	private boolean soundStopped = false;
+	private boolean started = false;
 
 	public void setSoundFilePath(String soundFilePath) {
 		this.soundFilePath = soundFilePath;
@@ -47,53 +38,22 @@ public class WaitForSoundAction extends WaitAction {
 	@Override
 	protected void update(float percent) {
 		if (scope == null) return;
-		if (soundFilePath != null && !midiSoundManager.getStartedSoundfilePaths().isEmpty()) {
-			SoundFilePathWithSprite spriteSoundFilePath = new SoundFilePathWithSprite(soundFilePath, scope.getSprite());
-			Set<SoundFilePathWithSprite> recentlyStarted = midiSoundManager.getStartedSoundfilePaths();
-			if (recentlyStarted.contains(spriteSoundFilePath) && !midiSoundManager.isSoundInSpritePlaying(scope.getSprite(), soundFilePath)) {
-				recentlyStarted.remove(spriteSoundFilePath);
-				finish();
-				soundStopped = true;
-				return;
-			}
+		if (soundFilePath == null) return;
+		if (scope.getSprite() == null) return;
+
+		boolean playing = AudioServiceHolder.audioService.isSoundPlaying(
+				soundFilePath, scope.getSprite().getName());
+		if (playing) {
+			started = true;
 		}
-		if (soundFilePath != null && !soundManager.getRecentlyStoppedSoundfilePaths().isEmpty()) {
-			SoundFilePathWithSprite spriteSoundFilePath =
-					new SoundFilePathWithSprite(soundFilePath, scope.getSprite());
-			Set<SoundFilePathWithSprite> recentlyStopped =
-					soundManager.getRecentlyStoppedSoundfilePaths();
-			if (recentlyStopped.contains(spriteSoundFilePath)) {
-				recentlyStopped.remove(spriteSoundFilePath);
-				finish();
-				soundStopped = true;
-			}
+		if (started && !playing) {
+			finish();
+			soundStopped = true;
 		}
 	}
 
 	@Override
 	protected void end() {
-		if (scope == null) return;
-		for (MediaPlayerWithSoundDetails mediaPlayer : soundManager.getMediaPlayers()) {
-			if (mediaPlayer.isPlaying() && mediaPlayer.getStartedBySprite() == scope.getSprite() && mediaPlayer.getPathToSoundFile().equals(soundFilePath) && !soundStopped) {
-				restart();
-				setTime(mediaPlayer.getCurrentPosition());
-			}
-		}
-		for (MidiPlayer midiPlayer : midiSoundManager.getMidiPlayers()) {
-			if (midiPlayer.isPlaying() && midiPlayer.getStartedBySprite() == scope.getSprite() && midiPlayer.getPathToSoundFile().equals(soundFilePath) && !soundStopped) {
-				restart();
-				setTime(midiPlayer.getCurrentPosition());
-			}
-		}
-	}
-
-	@VisibleForTesting
-	public void setSoundManager(SoundManager soundManager) {
-		this.soundManager = soundManager;
-	}
-
-	@VisibleForTesting
-	public void setMidiSoundManager(MidiSoundManager midiSoundManager) {
-		this.midiSoundManager = midiSoundManager;
+		// Platform-specific restart/seek is handled inside the audio service.
 	}
 }

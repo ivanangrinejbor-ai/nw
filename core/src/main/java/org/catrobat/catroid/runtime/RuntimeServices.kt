@@ -17,6 +17,9 @@ interface RuntimeServices {
     /** Absolute path to the external storage root (Android) / user home (desktop). */
     fun getExternalStorageDir(): String
 
+    /** Absolute path to the public Downloads directory. */
+    fun getDownloadsDir(): String
+
     /** Post a task onto the platform main/UI thread. */
     fun postToMainThread(runnable: Runnable)
 

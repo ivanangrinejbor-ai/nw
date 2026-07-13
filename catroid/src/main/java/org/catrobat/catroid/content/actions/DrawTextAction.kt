@@ -22,12 +22,6 @@
  */
 package org.catrobat.catroid.content.actions
 
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
-import android.opengl.GLES20
-import android.opengl.GLUtils
 import com.badlogic.gdx.graphics.Pixmap
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
@@ -37,6 +31,7 @@ import org.catrobat.catroid.content.Scope
 import org.catrobat.catroid.formulaeditor.Formula
 import org.catrobat.catroid.formulaeditor.InterpretationException
 import org.catrobat.catroid.stage.StageActivity
+import org.catrobat.catroid.text.TextServiceHolder
 
 class DrawTextAction : TemporalAction() {
     var scope: Scope? = null
@@ -47,50 +42,55 @@ class DrawTextAction : TemporalAction() {
     private var batch: SpriteBatch? = null
 
     override fun update(delta: Float) {
-        if (scope == null) return
-        val s = scope ?: return
+        val currentScope = scope ?: return
         val stageListener = StageActivity.getActiveStageListener() ?: return
         val penActor = stageListener.penActor ?: return
 
-        val textStr: String = try {
-            text?.interpretString(s) ?: return
-        } catch (e: InterpretationException) {
+        val textStr = try {
+            text?.interpretString(currentScope) ?: return
+        } catch (_: InterpretationException) {
             return
         }
         if (textStr.isEmpty()) return
 
-        val xVal = try { x?.interpretFloat(s) ?: 0f } catch (e: InterpretationException) { 0f }
-        val yVal = try { y?.interpretFloat(s) ?: 0f } catch (e: InterpretationException) { 0f }
-
-        // Render the text into an Android Bitmap (mirrors ShowTextActor.drawText),
-        // then upload it as a libGDX Texture and draw it into the pen FrameBuffer.
-        val paint = Paint().apply {
-            isAntiAlias = true
-            color = Color.BLACK
-            textSize = 40f
+        val xVal = try {
+            x?.interpretFloat(currentScope) ?: 0f
+        } catch (_: InterpretationException) {
+            0f
         }
-        val baseline = -paint.ascent()
-        val textHeight = (baseline + paint.descent()).toInt().coerceAtLeast(1)
-        val textWidth = paint.measureText(textStr).toInt().coerceAtLeast(1)
+        val yVal = try {
+            y?.interpretFloat(currentScope) ?: 0f
+        } catch (_: InterpretationException) {
+            0f
+        }
 
-        val bitmap = Bitmap.createBitmap(textWidth, textHeight, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(bitmap)
-        canvas.drawText(textStr, 0f, baseline, paint)
+        val rasterizedText = try {
+            TextServiceHolder.textService.rasterizeText(
+                textStr,
+                40f,
+                null,
+                null,
+                false,
+                0
+            )
+        } catch (_: UninitializedPropertyAccessException) {
+            return
+        }
 
-        val texture = Texture(bitmap.width, bitmap.height, Pixmap.Format.RGBA8888)
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, texture.getTextureObjectHandle())
-        GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0)
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
-        bitmap.recycle()
+        val pixmap = Pixmap(rasterizedText.width, rasterizedText.height, Pixmap.Format.RGBA8888)
+        pixmap.pixels.put(rasterizedText.rgba)
+        pixmap.pixels.position(0)
 
-        // Pre-flip vertically: the pen layer is displayed with a vertical flip,
-        // so flipping here keeps the glyphs upright on screen.
-        val region = TextureRegion(texture)
-        region.flip(false, true)
+        val texture = Texture(pixmap)
+        pixmap.dispose()
 
+        val region = TextureRegion(texture).apply {
+            flip(false, true)
+        }
+
+        val spriteBatch = batch ?: SpriteBatch().also { batch = it }
         val buffer = penActor.buffer
         val camera = penActor.canvasCamera
-        val spriteBatch = batch ?: SpriteBatch().also { batch = it }
 
         buffer.begin()
         spriteBatch.setProjectionMatrix(camera.combined)

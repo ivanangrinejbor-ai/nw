@@ -25,8 +25,8 @@ package org.catrobat.catroid.content.actions
 import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction
 import org.catrobat.catroid.common.SoundInfo
 import org.catrobat.catroid.content.Sprite
-import org.catrobat.catroid.io.SoundManager
-import org.catrobat.catroid.pocketmusic.mididriver.MidiSoundManager
+import org.catrobat.catroid.audio.AudioServiceHolder
+import org.catrobat.catroid.audio.MidiServiceHolder
 
 class PlaySoundAction : TemporalAction() {
     lateinit var sprite: Sprite
@@ -36,9 +36,9 @@ class PlaySoundAction : TemporalAction() {
         if (sprite.soundList.contains(sound)) {
             sound?.let {
                 if (it.isMidiFile) {
-                    MidiSoundManager.getInstance().playSoundFile(it.file.absolutePath, sprite)
+                    MidiServiceHolder.midiService.playSoundFile(it.file.absolutePath, sprite.name)
                 } else {
-                    SoundManager.getInstance().playSoundFile(it.file.absolutePath, sprite)
+                    AudioServiceHolder.audioService.playSoundFile(it.file.absolutePath, sprite.name)
                 }
             }
         }
