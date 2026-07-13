@@ -15,10 +15,9 @@
 *.jpeg binary
 *.bmp  binary
 *.mp3  binary
-*.zip  binary
+*.zip filter=lfs diff=lfs merge=lfs -text
 # For more info see
 # https://timclem.wordpress.com/2012/03/01/mind-the-end-of-your-line/
 catroid/build/outputs/apk/runtime/template/catroid-runtime-template.apk filter=lfs diff=lfs merge=lfs -text
-*.zip filter=lfs diff=lfs merge=lfs -text
 desktop-runtime/launch4j/**/*.exe filter=lfs diff=lfs merge=lfs -text
 desktop-runtime/launch4j/**/*.jar filter=lfs diff=lfs merge=lfs -text
