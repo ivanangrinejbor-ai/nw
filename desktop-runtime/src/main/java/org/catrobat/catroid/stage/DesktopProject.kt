@@ -31,7 +31,9 @@ data class TextOverlay(
     /** For think/say bubbles: remaining visible time in seconds, -1 = permanent */
     var remainingSeconds: Float = -1f,
     /** true = "Think" (thought bubble prefix), false = "Say" (speech bubble prefix) */
-    val isThink: Boolean = false
+    val isThink: Boolean = false,
+    /** Rotation of the overlay text in degrees (ShowTextRotationBrick). */
+    var rotation: Float = 0f
 )
 
 /**
@@ -110,7 +112,14 @@ class DesktopSprite(
     var penBorderColorGreen: Float = 0f,
     var penBorderColorBlue: Float = 0f,
     // ── Rotation ──
-    var rotationStyle: Int = 0          // 0=free, 1=mirror, 2=no_rotation
+    var rotationStyle: Int = 0,         // 0=free, 1=mirror, 2=no_rotation
+    // ── Clone / parenting ──
+    var cloneIndex: Int = 0,            // 0 = original, 1+ = clone number
+    var parentName: String? = null,     // имя родительского спрайта (SetParent)
+    // ── Fast2D scale / z-order ──
+    var scaleX: Float = 1f,
+    var scaleY: Float = 1f,
+    var zIndex: Int = 0
 ) {
     var sprite: Sprite? = null
         private set
@@ -136,7 +145,8 @@ class DesktopSprite(
             penDrawCommands = penDrawCommands.toMutableList(),
             penCornerRadius = penCornerRadius, penBorderWidth = penBorderWidth,
             penBorderColorRed = penBorderColorRed, penBorderColorGreen = penBorderColorGreen,
-            penBorderColorBlue = penBorderColorBlue, rotationStyle = rotationStyle
+            penBorderColorBlue = penBorderColorBlue, rotationStyle = rotationStyle,
+            cloneIndex = 0, parentName = null, scaleX = scaleX, scaleY = scaleY, zIndex = zIndex
         )
         clone.sprite = null
         return clone
@@ -154,8 +164,8 @@ class DesktopSprite(
             sprite!!.texture = tex
         }
         sprite!!.setSize(
-            tex.width * size / 100f,
-            tex.height * size / 100f
+            tex.width * size / 100f * scaleX,
+            tex.height * size / 100f * scaleY
         )
         sprite!!.setOriginCenter()
     }

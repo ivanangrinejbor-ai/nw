@@ -1369,6 +1369,16 @@ class ProjectOptionsFragment : Fragment() {
                 val projectZip = File(tempDir, "${projectName}.zip")
                 zipDirectory(proj.directory, projectZip)
 
+                // 1b. Encrypt the project (AES-256-GCM + PBKDF2), identical scheme to the
+                //     Baked APK (org.catrobat.catroid.io.ProjectCrypto). The desktop EXE
+                //     decrypts it at startup with the same shared payload password.
+                val projectEnc = File(tempDir, "${projectName}.enc")
+                org.catrobat.catroid.io.ProjectCrypto.encrypt(
+                    projectZip,
+                    projectEnc,
+                    org.catrobat.catroid.apkbuild.ProtectedProjectPayload.PASSWORD
+                )
+
                 // 2. Find project icon (manual_screenshot.png or automatic_screenshot.png)
                 var iconFile: File? = null
                 val manualIcon = File(proj.directory, "manual_screenshot.png")
@@ -1379,9 +1389,10 @@ class ProjectOptionsFragment : Fragment() {
                 // 3. Build the final output package
                 val outputZip = File(requireContext().cacheDir, "${projectName}_win.zip")
                 ZipOutputStream(FileOutputStream(outputZip)).use { zos ->
-                    // Add the project zip
-                    zos.putNextEntry(ZipEntry("${projectName}.zip"))
-                    FileInputStream(projectZip).use { it.copyTo(zos) }
+                    // Add the encrypted project as "project.zip" so build_exe.bat can embed it
+                    // (NEOCAT01 payload) into the player jar / exe automatically.
+                    zos.putNextEntry(ZipEntry("project.zip"))
+                    FileInputStream(projectEnc).use { it.copyTo(zos) }
                     zos.closeEntry()
 
                     // Add project icon as icon.png (for EXE conversion)
@@ -1424,13 +1435,17 @@ class ProjectOptionsFragment : Fragment() {
                         appendLine("Проект: $projectName")
                         appendLine()
                         appendLine("Инструкция по сборке EXE на Windows:")
-                        appendLine("1. Убедитесь, что у вас установлен Java 11+ и launch4j")
-                        appendLine("2. Распакуйте этот архив")
-                        appendLine("3. Поместите папку desktop-runtime/ рядом с проектом")
-                        appendLine("4. Запустите: build_exe.bat")
-                        appendLine("5. Готовый EXE появится в build/win-dist/")
+                        appendLine("1. Убедитесь, что у вас установлен Java 11+ (launch4j опционален)")
+                        appendLine("2. Распакуйте этот архив в отдельную папку")
+                        appendLine("3. Запустите build_exe.bat")
+                        appendLine("4. Готовый NeoCatroid.exe появится в build/win-dist/")
                         appendLine()
-                        appendLine("Или запустите вручную:")
+                        appendLine("Проект (project.zip) автоматически встраивается в exe/jar,")
+                        appendLine("при этом он шифруется (AES-256-GCM) перед упаковкой и")
+                        appendLine("расшифровывается при запуске — так же, как в Baked APK.")
+                        appendLine("Если launch4j не установлен, запустите: java -jar player_embedded.jar")
+                        appendLine()
+                        appendLine("Или соберите шаблон вручную:")
                         appendLine("  copyTemplateWin.bat")
                         appendLine("  build_exe.bat")
                     }

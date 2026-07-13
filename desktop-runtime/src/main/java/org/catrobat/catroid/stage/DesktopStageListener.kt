@@ -8,6 +8,7 @@ import com.badlogic.gdx.math.Vector3
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.utils.ScreenUtils
+import com.badlogic.gdx.utils.viewport.FitViewport
 import org.catrobat.catroid.audio.AudioServiceHolder
 import org.catrobat.catroid.audio.MidiServiceHolder
 import org.catrobat.catroid.notification.NotificationServiceHolder
@@ -26,6 +27,7 @@ import org.catrobat.catroid.text.TextServiceHolder
 class DesktopStageListener : ApplicationAdapter() {
 
     private lateinit var camera: OrthographicCamera
+    private lateinit var viewport: FitViewport
     private lateinit var batch: SpriteBatch
     private lateinit var shapeRenderer: ShapeRenderer
     private lateinit var font: BitmapFont
@@ -41,12 +43,13 @@ class DesktopStageListener : ApplicationAdapter() {
     override fun create() {
         Gdx.app.log(TAG, "DesktopStageListener created")
 
-        // Camera: Y axis down (as in Catrobat: x right, y down from centre)
-        camera = OrthographicCamera().apply {
-            setToOrtho(false, VIRTUAL_WIDTH, VIRTUAL_HEIGHT)
-            position.set(VIRTUAL_WIDTH / 2f, VIRTUAL_HEIGHT / 2f, 0f)
-            update()
-        }
+        // Camera: Y axis down (as in Catrobat: x right, y down from centre).
+        // FitViewport сохраняет пропорции 16:9 с чёрными полями (letterbox), чтобы
+        // спрайты не растягивались на окнах с другим соотношением сторон.
+        camera = OrthographicCamera()
+        viewport = FitViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, camera)
+        camera.up.set(0f, -1f, 0f) // Catrobat: ось Y направлена вниз
+        viewport.update(Gdx.graphics.width, Gdx.graphics.height)
 
         batch = SpriteBatch()
         shapeRenderer = ShapeRenderer()
@@ -80,8 +83,12 @@ class DesktopStageListener : ApplicationAdapter() {
         // Clear the screen
         ScreenUtils.clear(0.95f, 0.95f, 0.95f, 1f)
 
-        // Apply the emulated 3D-camera state (pan / zoom / rotate) to the orthographic view.
-        camera.setToOrtho(false, VIRTUAL_WIDTH, VIRTUAL_HEIGHT)
+        // Применяем состояние эмулированной 3D-камеры (pan / zoom / поворот).
+        // Пропорции и glViewport уже заданы FitViewport в resize(); setToOrtho здесь
+        // не вызываем, чтобы не сбрасывать letterbox и не растягивать изображение.
+        // Каждый кадр сбрасываем ориентацию, иначе camera.rotate накапливается.
+        camera.direction.set(0f, 0f, -1f)
+        camera.up.set(0f, -1f, 0f)
         camera.position.set(VIRTUAL_WIDTH / 2f + cameraState.x, VIRTUAL_HEIGHT / 2f - cameraState.y, 0f)
         camera.zoom = cameraState.zoom
         if (cameraState.rotation != 0f) {
@@ -226,9 +233,8 @@ class DesktopStageListener : ApplicationAdapter() {
     }
 
     override fun resize(width: Int, height: Int) {
-        camera.viewportWidth = width.toFloat()
-        camera.viewportHeight = height.toFloat()
-        camera.update()
+        // FitViewport пересчитывает glViewport с сохранением пропорций 16:9.
+        viewport.update(width, height)
     }
 
     override fun dispose() {

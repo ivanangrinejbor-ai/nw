@@ -314,9 +314,10 @@ public class MyBrick extends FormulaBrick {
 - **Что делает**:
   1. Сохраняет проект
   2. Пакует проект в `{projectName}.zip`
-  3. Находит иконку проекта (`manual_screenshot.png` или `automatic_screenshot.png`)
-  4. Добавляет `template_win.zip` (из assets) + `build_exe.bat` (из assets) + README_WINDOWS.txt
-  5. Создаёт итоговый `{projectName}_win.zip` и открывает share-диалог
+  3. **Шифрует** zip тем же `ProjectCrypto.encrypt` (AES-256-GCM + PBKDF2, пароль `ProtectedProjectPayload.PASSWORD` — как в Baked APK) → `{projectName}.enc`
+  4. Находит иконку проекта (`manual_screenshot.png` или `automatic_screenshot.png`)
+  5. Добавляет в `{projectName}_win.zip`: зашифрованный проект (entry `project.zip`), `template_win.zip` (из assets), `build_exe.bat` (из assets), `icon.png`, README_WINDOWS.txt
+  6. Создаёт итоговый `{projectName}_win.zip` и открывает share-диалог
 - **Переводы**: `project_options_build_exe` (values + values-ru)
 
 ## Gradle: copyDesktopTemplate
@@ -327,8 +328,10 @@ public class MyBrick extends FormulaBrick {
 ## build_exe.bat (Windows, launch4j)
 
 - Лежит в `desktop-runtime/build_exe.bat`
-- Собирает `player.jar` → конвертирует PNG в ICO → создаёт `template_win.zip` (player.jar + icon.ico)
-- При наличии launch4j создаёт `.exe`
+- **Шифрование проекта**: телефон кладёт уже зашифрованный `project.zip` (AES-256-GCM, магия `NCPP`). `DesktopStage.extractPayload()` при старте проверяет магию `NCPP` и расшифровывает тем же паролем `ProtectedProjectPayload.PASSWORD`; если магии нет — грузит как обычный zip (обратная совместимость со старыми/нешифрованными проектами).
+- **Автономность**: `template_win.zip` собирается с **вшитым JRE** (`jre/`) и **вшитым launch4j** (`launch4j/`). `build_exe.bat` ищет launch4j в порядке `%LAUNCH4J_HOME%` → `%ROOT%launch4j\` → распакованный шаблон `build\win-dist\bundle\launch4j\`, поэтому конечному пользователю ничего подкладывать не надо.
+- Собирает `player.jar` (или берёт из шаблона) → встраивает `project.zip` как NEOCAT01-footer → конвертирует PNG в ICO → при наличии launch4j в шаблоне создаёт `NeoCatroid.exe` (с бандлом `jre/`), иначе `NeoCatroid.bat`.
+- Шаг упаковки шаблона (`template_win.zip`) копирует `launch4j/` из `desktop-runtime\launch4j\` в bundle, чтобы launch4j попал в ассеты Android-пакета.
 
 ## Переносимые seam (в `:core`)
 

@@ -20,6 +20,11 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
+import javax.crypto.Cipher
+import javax.crypto.SecretKeyFactory
+import javax.crypto.spec.GCMParameterSpec
+import javax.crypto.spec.PBEKeySpec
+import javax.crypto.spec.SecretKeySpec
 
 /**
  * Desktop (Windows) entry point for the NeoCatroid player.
@@ -34,6 +39,11 @@ object DesktopStage {
     private const val EMBEDDED_PAYLOAD_FLAG = "--embedded-payload"
     private const val PAYLOAD_MAGIC = "NEOCAT01"
 
+    // Project encryption — same scheme as the Android Baked APK (org.catrobat.catroid.io.ProjectCrypto).
+    // Format: [magic "NCPP":4][salt:32][iv:12][ciphertext]. Password is the shared payload password.
+    private const val CRYPTO_MAGIC = "NCPP"
+    private const val PAYLOAD_PASSWORD = "NeoCatroid:BakedProject:Payload:v1"
+
     @JvmStatic
     fun main(args: Array<String>) {
         // 1. Регистрируем все десктопные сервисы
@@ -44,13 +54,13 @@ object DesktopStage {
         NotificationServiceHolder.service = DesktopNotificationService()
         NetworkServiceHolder.service = DesktopNetworkService()
 
-        // 2. Определяем источник проекта
-        val embeddedPayloadRequested = args.any { it == EMBEDDED_PAYLOAD_FLAG }
+        // 2. Определяем источник проекта.
+        // Приоритет: явно переданный путь > встроенный payload (NEOCAT01, если exe/jar
+        // собран с проектом) > пустая сцена. Флаг --embedded-payload больше не нужен.
         val projectInput = args.firstOrNull { !it.startsWith("--") && it != EMBEDDED_PAYLOAD_FLAG }
         val loadedProject: File? = when {
-            embeddedPayloadRequested -> loadEmbeddedPayload()?.let { extractPayload(it) }
             projectInput != null -> resolveProjectInput(File(projectInput))
-            else -> null
+            else -> loadEmbeddedPayload()?.let { extractPayload(it) }
         }
 
         if (loadedProject != null) {
@@ -125,11 +135,12 @@ object DesktopStage {
     }
 
     private fun extractPayload(payload: ByteArray): File? {
+        val data = maybeDecrypt(payload)
         return try {
             val tempDir = Files.createTempDirectory("neocatroid-player").toFile()
             // Рекурсивно удалить всё при выходе (walk + deleteOnExit на каждом файле)
             tempDir.walkTopDown().forEach { it.deleteOnExit() }
-            val zis = java.util.zip.ZipInputStream(java.io.ByteArrayInputStream(payload))
+            val zis = java.util.zip.ZipInputStream(java.io.ByteArrayInputStream(data))
             var entry = zis.nextEntry
             while (entry != null) {
                 val outFile = File(tempDir, entry.name)
@@ -147,5 +158,55 @@ object DesktopStage {
         } catch (_: Exception) {
             null
         }
+    }
+
+    /**
+     * If [payload] is an NCPP-encrypted project (same scheme as the Android
+     * [org.catrobat.catroid.io.ProjectCrypto] used by the Baked APK), decrypt it
+     * with the shared payload password. Otherwise return it unchanged so plain
+     * (legacy) projects still load.
+     *
+     * Format: [magic "NCPP":4][salt:32][iv:12][ciphertext]
+     */
+    private fun maybeDecrypt(payload: ByteArray): ByteArray {
+        val magic = CRYPTO_MAGIC.toByteArray(StandardCharsets.US_ASCII)
+        if (payload.size >= magic.size && payload.copyOfRange(0, magic.size).contentEquals(magic)) {
+            return decryptPayload(payload)
+        }
+        return payload
+    }
+
+    private fun decryptPayload(data: ByteArray): ByteArray {
+        val input = java.io.ByteArrayInputStream(data)
+        val header = ByteArray(4)
+        if (input.read(header) < 4 ||
+            !header.contentEquals(CRYPTO_MAGIC.toByteArray(StandardCharsets.US_ASCII))
+        ) {
+            throw IllegalArgumentException("Encrypted payload has wrong magic")
+        }
+        val salt = ByteArray(32).also { input.read(it) }
+        val iv = ByteArray(12).also { input.read(it) }
+        val key = deriveKey(PAYLOAD_PASSWORD, salt)
+        val cipher = Cipher.getInstance("AES/GCM/NoPadding")
+        cipher.init(Cipher.DECRYPT_MODE, key, GCMParameterSpec(128, iv))
+        val out = java.io.ByteArrayOutputStream()
+        val buffer = ByteArray(64 * 1024)
+        var n: Int
+        while (input.read(buffer).also { n = it } != -1) {
+            if (n > 0) {
+                val decoded = cipher.update(buffer, 0, n)
+                if (decoded != null) out.write(decoded)
+            }
+        }
+        val finalBlock = cipher.doFinal()
+        if (finalBlock != null && finalBlock.isNotEmpty()) out.write(finalBlock)
+        return out.toByteArray()
+    }
+
+    private fun deriveKey(password: String, salt: ByteArray): javax.crypto.SecretKey {
+        val factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")
+        val spec = PBEKeySpec(password.toCharArray(), salt, 100_000, 256)
+        val tmpKey = factory.generateSecret(spec)
+        return SecretKeySpec(tmpKey.encoded, "AES")
     }
 }

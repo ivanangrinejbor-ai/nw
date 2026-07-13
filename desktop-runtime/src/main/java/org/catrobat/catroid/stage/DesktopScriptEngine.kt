@@ -76,7 +76,7 @@ class DesktopScriptEngine(
         val args: List<Any> = emptyList(),
         val children: List<Block> = emptyList()
     ) {
-        enum class Type { MOTION, LOOKS, SOUND, MUSIC, PEN, CONTROL, EVENT, SENSING, VARIABLE, WEB, DATA, FILE, PHYSICS, CAMERA }
+        enum class Type { MOTION, LOOKS, SOUND, MUSIC, PEN, CONTROL, EVENT, SENSING, VARIABLE, WEB, DATA, FILE, PHYSICS, CAMERA, VIDEO }
     }
 
     /** Невычисленная формула — вычисляется в рантайме. */
@@ -112,6 +112,16 @@ class DesktopScriptEngine(
 
     /** Определение пользовательской процедуры (UserDefinedBrick). */
     private data class ProcedureDef(val paramNames: List<String>, val body: List<Block>)
+
+    /** Состояние видеопроигрывателя (видео-блоки). Воспроизведение best-effort. */
+    private data class VideoState(
+        var fileName: String = "",
+        var x: Float = 0f, var y: Float = 0f,
+        var width: Float = 0f, var height: Float = 0f,
+        var looped: Boolean = false,
+        var playing: Boolean = false,
+        var position: Float = 0f   // текущая позиция (сек)
+    )
 
     /** Состояние исполнения одного скрипта. */
     private class ScriptState(
@@ -215,12 +225,22 @@ class DesktopScriptEngine(
     val textOverlays = mutableMapOf<String, TextOverlay>()
     private var running = true
     private var timerSeconds = 0f                       // таймер сенсора TIMER
+    private var timerRunning = true                     // TimerStart/TimerStop управляют инкрементом
+    private var cloneCounter = 0                        // счётчик номеров клонов (cloneIndex)
+    /** Локальная «база данных» таблиц (2D), ключ — имя таблицы. */
+    private val localDb = mutableMapOf<String, MutableList<MutableList<Double>>>()
+    /** Локальное облачное хранилище (Firebase-like), ключ — "id:key". */
+    private val baseStore = mutableMapOf<String, String>()
+    /** Проигрыватели видео (имя → состояние). Воспроизведение best-effort. */
+    private val videos = mutableMapOf<String, VideoState>()
     private var runAsSpriteDepth = 0                    // глубина RunAsSpriteBrick (защита от рекурсии)
     private var scriptIndexForSprite: (Int) -> Int = { 0 }
     /** Сообщения для broadcast, ожидающие обработки в этом кадре. */
     private val pendingBroadcasts = mutableSetOf<String>()
     /** Флаг: был ли вызван ExitStage/FinishStage. */
     private var hasProjectExited = false
+    /** Локальный HTTP-сервер (для Server-блоков). */
+    private var localHttpServer: com.sun.net.httpserver.HttpServer? = null
 
     init {
         parseProject()
@@ -249,7 +269,7 @@ class DesktopScriptEngine(
     fun update(deltaSeconds: Float) {
         if (!running) return
 
-        timerSeconds += deltaSeconds
+        if (timerRunning) timerSeconds += deltaSeconds
 
         // update text overlays (bubble timers)
         updateTextOverlays(deltaSeconds)
@@ -491,6 +511,7 @@ class DesktopScriptEngine(
             Block.Type.FILE -> executeFile(block, frame)
             Block.Type.PHYSICS -> executePhysics(block, sprite, frame)
             Block.Type.CAMERA -> executeCamera(block, sprite, frame)
+            Block.Type.VIDEO -> executeVideo(block, frame)
         }
     }
 
@@ -824,6 +845,40 @@ class DesktopScriptEngine(
                 } catch (_: Exception) { }
                 frame.ip++
             }
+            "notification_action" -> {
+                val id = (block.args.getOrNull(1) as? Number)?.toInt() ?: 0
+                val actionId = block.args.getOrNull(2) as? String ?: ""
+                val text = block.args.getOrNull(3) as? String ?: ""
+                val icon = block.args.getOrNull(4) as? String ?: ""
+                val hint = block.args.getOrNull(5) as? String ?: ""
+                try {
+                    org.catrobat.catroid.content.notification.NotificationStorage.addAction(
+                        id,
+                        org.catrobat.catroid.content.notification.NotificationActionData(
+                            actionId = actionId,
+                            text = text,
+                            iconPath = icon,
+                            behavior = org.catrobat.catroid.content.notification.ActionBehavior.RUN_IN_BACKGROUND,
+                            hasInput = false,
+                            inputHint = hint,
+                            autoCancel = true
+                        )
+                    )
+                } catch (_: Exception) { }
+                frame.ip++
+            }
+            "remove_notification" -> {
+                val id = (block.args.getOrNull(1) as? Number)?.toInt() ?: 0
+                try {
+                    org.catrobat.catroid.notification.NotificationServiceHolder.service?.remove(id)
+                    org.catrobat.catroid.content.notification.NotificationStorage.removeNotification(id)
+                } catch (_: Exception) { }
+                frame.ip++
+            }
+            "enable_background" -> {
+                // На Desktop фоновое выполнение не применимо — no-op
+                frame.ip++
+            }
             // ── Clone bricks ──
             "clone_object" -> {
                 val srcName = block.args.getOrNull(1) as? String ?: ""
@@ -832,6 +887,7 @@ class DesktopScriptEngine(
                 if (src != null) {
                     val clone = src.copy()
                     clone.name = if (newName.isNotEmpty()) newName else "${srcName}_clone"
+                    clone.cloneIndex = ++cloneCounter
                     project.sprites.add(clone)
                 }
             }
@@ -1354,6 +1410,61 @@ class DesktopScriptEngine(
                     b.fixtureList.first().restitution = bounce
                 }
             }
+
+            // ── Core game logic (remaining portable) ──
+            "clone_and_name" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                if (name.isNotEmpty()) {
+                    val clone = sprite.copy()
+                    clone.name = name
+                    clone.cloneIndex = ++cloneCounter
+                    project.sprites.add(clone)
+                }
+            }
+            "delete_clone_by_number" -> {
+                val n = (block.args.getOrNull(1) as? Number)?.toInt() ?: 0
+                val idx = project.sprites.indexOfFirst { it.cloneIndex == n && n > 0 }
+                if (idx >= 0) project.sprites.removeAt(idx)
+            }
+            "timer_start" -> timerRunning = true
+            "timer_stop" -> timerRunning = false
+            "set_parent" -> {
+                val childName = block.args.getOrNull(1) as? String ?: ""
+                val parentName = block.args.getOrNull(2) as? String ?: ""
+                project.sprites.find { it.name == childName }?.parentName = parentName
+            }
+            "remove_parent" -> {
+                val childName = block.args.getOrNull(1) as? String ?: ""
+                project.sprites.find { it.name == childName }?.parentName = null
+            }
+            "stop_background" -> {
+                AudioServiceHolder.audioService?.stopAllSounds()
+                MidiServiceHolder.midiService?.stopAllSounds()
+            }
+            "load_scene_additive" -> { /* Desktop: единая сцена — no-op */ }
+            "preload_scene" -> { /* Desktop: no-op */ }
+            "cast_ray" -> {
+                val x1 = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
+                val y1 = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
+                val dx = (block.args.getOrNull(5) as? Number)?.toFloat() ?: 0f
+                val dy = (block.args.getOrNull(6) as? Number)?.toFloat() ?: 0f
+                val maxd = (block.args.getOrNull(7) as? Number)?.toFloat() ?: 1000f
+                val results = physicsWorld?.rayCast(x1, y1, x1 + dx * maxd, y1 + dy * maxd) ?: emptyList()
+                val hit = results.firstOrNull()?.let { r ->
+                    project.sprites.firstOrNull { sp ->
+                        val b = physicsWorld?.getBody(sp)
+                        b != null && b.fixtureList.any { it === r.fixture }
+                    }?.name ?: ""
+                } ?: ""
+                variables["__cast_ray_hit"] = hit
+            }
+            "add_edit" -> { /* редактор-блок: no-op в рантайме */ }
+            "add_radio" -> { /* редактор-блок: no-op в рантайме */ }
+            "set_ai" -> { /* AI-блок: no-op в рантайме (best-effort) */ }
+            "delay" -> {
+                val t = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
+                if (t > 0f) frame.waitTimer = maxOf(frame.waitTimer, t)
+            }
         }
         frame.ip++
     }
@@ -1521,6 +1632,117 @@ class DesktopScriptEngine(
                 val name = (block.args.getOrNull(1) as? String) ?: ""
                 if (name.isNotEmpty()) physicsWorld?.destroyJoint(name)
             }
+
+            // ── Fast2D bricks (best-effort на Desktop: 2D-спрайты + Box2D) ──
+            "fast2d_create" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                if (name.isNotEmpty() && project.sprites.none { it.name == name }) {
+                    val ns = DesktopSprite(name = name)
+                    ns.cloneIndex = ++cloneCounter
+                    project.sprites.add(ns)
+                }
+            }
+            "fast2d_delete" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                val idx = project.sprites.indexOfFirst { it.name == name }
+                if (idx >= 0) project.sprites.removeAt(idx)
+            }
+            "fast2d_make_physics" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                val x = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
+                val y = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 0f
+                val rot = (block.args.getOrNull(4) as? Number)?.toFloat() ?: 0f
+                val size = (block.args.getOrNull(5) as? Number)?.toFloat() ?: 100f
+                val tex = block.args.getOrNull(6) as? String ?: ""
+                val sp = project.sprites.find { it.name == name }
+                if (sp != null) {
+                    sp.x = x; sp.y = y; sp.direction = rot; sp.size = size
+                    physicsWorld?.ensureBody(sp)
+                }
+            }
+            "fast2d_set_position" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                val x = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
+                val y = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 0f
+                project.sprites.find { it.name == name }?.let { it.x = x; it.y = y }
+            }
+            "fast2d_set_rotation" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                val rot = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
+                project.sprites.find { it.name == name }?.direction = rot
+            }
+            "fast2d_set_scale" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                val sx = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 1f
+                val sy = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 1f
+                project.sprites.find { it.name == name }?.let { it.scaleX = sx; it.scaleY = sy }
+            }
+            "fast2d_set_color" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                val x = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
+                val y = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 0f
+                val rot = (block.args.getOrNull(4) as? Number)?.toFloat() ?: 0f
+                val size = (block.args.getOrNull(5) as? Number)?.toFloat() ?: 100f
+                project.sprites.find { it.name == name }?.let { it.x = x; it.y = y; it.direction = rot; it.size = size }
+            }
+            "fast2d_set_texture" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                val tex = block.args.getOrNull(2) as? String ?: ""
+                // Меняем look по имени файла (best-effort)
+                project.sprites.find { it.name == name }?.let { sp ->
+                    if (tex.isNotEmpty()) {
+                        val idx = sp.looks.indexOfFirst { it.name == tex }
+                        if (idx >= 0) { sp.currentLookIndex = idx; sp.resetSprite() }
+                    }
+                }
+            }
+            "fast2d_set_velocity" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                val x = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
+                val y = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 0f
+                val sp = project.sprites.find { it.name == name }
+                val b = if (sp != null) physicsWorld?.getBody(sp) else null
+                if (b != null) b.linearVelocity = com.badlogic.gdx.math.Vector2(x, y)
+            }
+            "fast2d_phys_vel" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                val x = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
+                val y = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 0f
+                val sp = project.sprites.find { it.name == name }
+                val b = if (sp != null) physicsWorld?.getBody(sp) else null
+                if (b != null) b.linearVelocity = com.badlogic.gdx.math.Vector2(x, y)
+            }
+            "fast2d_angular_vel" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                val rot = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
+                val sp = project.sprites.find { it.name == name }
+                val b = if (sp != null) physicsWorld?.getBody(sp) else null
+                if (b != null) b.angularVelocity = rot
+            }
+            "fast2d_apply_force" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                val fx = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
+                val fy = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 0f
+                project.sprites.find { it.name == name }?.let { physicsWorld?.applyForce(it, fx, fy) }
+            }
+            "fast2d_apply_impulse" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                val ix = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
+                val iy = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 0f
+                project.sprites.find { it.name == name }?.let { physicsWorld?.applyImpulse(it, ix, iy) }
+            }
+            "fast2d_collision_filter" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                val cat = (block.args.getOrNull(2) as? Number)?.toInt() ?: 1
+                val mask = (block.args.getOrNull(3) as? Number)?.toInt() ?: -1
+                // Категория/маска коллизий: best-effort (храним в переменной)
+                if (name.isNotEmpty()) variables["__collision_${name}"] = "$cat:$mask"
+            }
+            "fast2d_set_zindex" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                val z = (block.args.getOrNull(2) as? Number)?.toInt() ?: 0
+                project.sprites.find { it.name == name }?.zIndex = z
+            }
         }
         frame.ip++
     }
@@ -1633,6 +1855,8 @@ class DesktopScriptEngine(
             "stop_all_sounds" -> {
                 AudioServiceHolder.audioService?.stopAllSounds()
             }
+            "sound_file" -> { /* выбор звукового файла: no-op в рантайме */ }
+            "sound_files" -> { /* выбор списка звуков: no-op в рантайме */ }
             "set_volume" -> {
                 val vol = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 1f
                 AudioServiceHolder.audioService?.setVolume(vol)
@@ -1644,6 +1868,33 @@ class DesktopScriptEngine(
                 val newVol = (current + delta).coerceIn(0f, 1f)
                 AudioServiceHolder.audioService?.setVolume(newVol)
                 MidiServiceHolder.midiService?.setVolume(newVol)
+            }
+            "play_sound_3d" -> {
+                val path = block.args.getOrNull(1) as? String ?: ""
+                val vol = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 1f
+                val pitch = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 1f
+                if (path.isNotEmpty()) {
+                    AudioServiceHolder.audioService?.setVolume(vol)
+                    AudioServiceHolder.audioService?.setPitch(pitch)
+                    AudioServiceHolder.audioService?.playSoundFile(path, sprite.name)
+                }
+            }
+            "set_sound_inst_vol" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                val vol = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 1f
+                if (name.isNotEmpty()) {
+                    AudioServiceHolder.audioService?.setVolumeForSound(name, sprite.name, vol)
+                }
+            }
+            "set_sound_inst_pitch" -> {
+                val pitch = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 1f
+                AudioServiceHolder.audioService?.setPitch(pitch)
+            }
+            "prepare_3d_sound" -> {
+                // 3D-подготовка звука не поддерживается на Desktop — no-op
+            }
+            "set_3d_pos" -> {
+                // 3D-позиция звука не поддерживается на Desktop — no-op
             }
 
             // ── New Sound bricks ──
@@ -1929,6 +2180,19 @@ class DesktopScriptEngine(
                 val name = block.args.getOrNull(1) as? String ?: ""
                 // скрыть переменную
             }
+            "create_float" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                if (name.isNotEmpty() && !variables.containsKey(name)) variables[name] = 0f
+            }
+            "delete_float" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                variables.remove(name)
+            }
+            "set_easing" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                val end = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
+                if (name.isNotEmpty()) variables[name] = end
+            }
 
             // ── User List operations ──
             "list_add" -> {
@@ -2140,11 +2404,139 @@ class DesktopScriptEngine(
                     textOverlays[name] = TextOverlay(name = name, text = text, x = x, y = y)
                 }
             }
+
+            // ── Show text with rotation / font (UserVariableBrickWithVisualPlacement) ──
+            "show_text_rotation" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                val x = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
+                val y = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 0f
+                val rot = (block.args.getOrNull(4) as? Number)?.toFloat() ?: 0f
+                if (name.isNotEmpty()) {
+                    val value = getVariable(name).toString()
+                    textOverlays[name] = TextOverlay(name = name, text = value, x = x, y = y, rotation = rot)
+                }
+            }
+            "show_var_font" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                val x = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
+                val y = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 0f
+                val size = (block.args.getOrNull(4) as? Number)?.toFloat() ?: 14f
+                if (name.isNotEmpty()) {
+                    val value = getVariable(name).toString()
+                    textOverlays[name] = TextOverlay(name = name, text = value, x = x, y = y, size = size)
+                }
+            }
+
+            // ── Database tables (local, in-memory) ──
+            "db_create" -> {
+                val tname = block.args.getOrNull(1) as? String ?: ""
+                val sx = (block.args.getOrNull(2) as? Number)?.toInt() ?: 1
+                val sy = (block.args.getOrNull(3) as? Number)?.toInt() ?: 1
+                if (tname.isNotEmpty()) {
+                    val table = MutableList(sy) { MutableList(sx) { 0.0 } }
+                    localDb[tname] = table
+                }
+            }
+            "db_delete_all" -> localDb.clear()
+            "db_delete_table" -> {
+                val tname = block.args.getOrNull(1) as? String ?: ""
+                localDb.remove(tname)
+            }
+            "db_delete_base" -> {
+                val id = block.args.getOrNull(1) as? String ?: ""
+                val key = block.args.getOrNull(2) as? String ?: ""
+                val resp = firebaseRequest("DELETE", firebaseUrl(id, key))
+                if (resp == null) baseStore.remove("$id:$key")   // фолбэк при ошибке сети
+            }
+            "db_insert" -> {
+                val tname = block.args.getOrNull(1) as? String ?: ""
+                val col = (block.args.getOrNull(2) as? Number)?.toInt() ?: 0
+                val row = (block.args.getOrNull(3) as? Number)?.toInt() ?: 0
+                val value = (block.args.getOrNull(4) as? Number)?.toFloat() ?: 0f
+                localDb[tname]?.let { table ->
+                    if (row in table.indices && col in table[row].indices) table[row][col] = value.toDouble()
+                }
+            }
+            "db_look_from" -> {
+                // Читает значение из первой таблицы в цветовые переменные (best-effort)
+                val red = (block.args.getOrNull(1) as? Number)?.toInt() ?: 0
+                val green = (block.args.getOrNull(2) as? Number)?.toInt() ?: 0
+                val blue = (block.args.getOrNull(3) as? Number)?.toInt() ?: 0
+                val alpha = (block.args.getOrNull(4) as? Number)?.toInt() ?: 0
+                variables["__table_red"] = red.toDouble()
+                variables["__table_green"] = green.toDouble()
+                variables["__table_blue"] = blue.toDouble()
+                variables["__table_alpha"] = alpha.toDouble()
+            }
+            "db_look_to" -> {
+                val red = (block.args.getOrNull(1) as? Number)?.toInt() ?: 0
+                val green = (block.args.getOrNull(2) as? Number)?.toInt() ?: 0
+                val blue = (block.args.getOrNull(3) as? Number)?.toInt() ?: 0
+                val alpha = (block.args.getOrNull(4) as? Number)?.toInt() ?: 0
+                variables["__table_red"] = red.toDouble()
+                variables["__table_green"] = green.toDouble()
+                variables["__table_blue"] = blue.toDouble()
+                variables["__table_alpha"] = alpha.toDouble()
+            }
+            "db_read_base" -> {
+                val id = block.args.getOrNull(1) as? String ?: ""
+                val key = block.args.getOrNull(2) as? String ?: ""
+                val name = block.args.getOrNull(3) as? String ?: ""
+                val resp = firebaseRequest("GET", firebaseUrl(id, key))
+                if (name.isNotEmpty()) {
+                    variables[name] = if (resp != null) stripJsonString(resp) else (baseStore["$id:$key"] ?: "")
+                }
+            }
+            "db_string_to" -> {
+                val tname = block.args.getOrNull(1) as? String ?: ""
+                val str = block.args.getOrNull(2) as? String ?: ""
+                val col = (block.args.getOrNull(3) as? Number)?.toInt() ?: 0
+                val row = (block.args.getOrNull(4) as? Number)?.toInt() ?: 0
+                if (tname.isNotEmpty()) {
+                    val table = localDb.getOrPut(tname) { mutableListOf(mutableListOf(0.0)) }
+                    while (table.size <= row) table.add(mutableListOf(0.0))
+                    while (table[row].size <= col) table[row].add(0.0)
+                    table[row][col] = str.length.toDouble()
+                }
+            }
+            "db_table_to_float" -> {
+                val tname = block.args.getOrNull(1) as? String ?: ""
+                val name = block.args.getOrNull(2) as? String ?: ""
+                val v = localDb[tname]?.firstOrNull()?.firstOrNull() ?: 0.0
+                if (name.isNotEmpty()) variables[name] = v
+            }
+            "db_write_base" -> {
+                val id = block.args.getOrNull(1) as? String ?: ""
+                val key = block.args.getOrNull(2) as? String ?: ""
+                val value = block.args.getOrNull(3) as? String ?: ""
+                val resp = firebaseRequest("PUT", firebaseUrl(id, key), jsonString(value))
+                if (resp == null) baseStore["$id:$key"] = value   // фолбэк при ошибке сети
+            }
         }
         frame.ip++
     }
 
     // ──────────────────────────── WEB ────────────────────────────
+
+    /** Запускает локальный HTTP-сервер. storeVar (опционально) получает тело запроса. */
+    private fun startLocalServer(port: Int, storeVar: String?) {
+        try {
+            localHttpServer?.stop(0)
+            val server = com.sun.net.httpserver.HttpServer.create(java.net.InetSocketAddress(port), 0)
+            server.createContext("/") { exchange ->
+                val body = try { exchange.requestBody.bufferedReader().readText() } catch (_: Exception) { "" }
+                if (storeVar != null && body.isNotEmpty()) variables[storeVar] = body
+                val response = "Catroid Desktop Server"
+                exchange.sendResponseHeaders(200, response.length.toLong())
+                exchange.responseBody.write(response.toByteArray())
+                exchange.responseBody.close()
+            }
+            server.executor = null
+            server.start()
+            localHttpServer = server
+            variables["__server_port"] = port.toDouble()
+        } catch (_: Exception) { /* ignore */ }
+    }
 
     private fun executeWeb(block: Block, frame: Frame) {
         when (block.args.getOrNull(0) as? String) {
@@ -2276,6 +2668,49 @@ class DesktopScriptEngine(
             "ws_close" -> {
                 variables["__ws_connected"] = "0"
             }
+            "create_web_url" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                val url = block.args.getOrNull(2) as? String ?: ""
+                if (name.isNotEmpty()) variables[name] = url
+            }
+            "create_web_file" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                val file = block.args.getOrNull(2) as? String ?: ""
+                if (name.isNotEmpty()) variables[name] = file
+            }
+            "download_to_path" -> {
+                val url = block.args.getOrNull(1) as? String ?: ""
+                val path = block.args.getOrNull(2) as? String ?: ""
+                if (url.isNotEmpty() && path.isNotEmpty()) {
+                    try {
+                        val dest = java.io.File(path)
+                        dest.parentFile?.mkdirs()
+                        val conn = java.net.URI(url).toURL().openConnection()
+                        conn.connect()
+                        dest.outputStream().use { out -> conn.inputStream.copyTo(out) }
+                    } catch (_: Exception) { /* ignore */ }
+                }
+            }
+            "set_dns" -> {
+                // DNS-сервер не настраивается на Desktop — no-op
+            }
+            "stop_server" -> {
+                try { localHttpServer?.stop(0) } catch (_: Exception) { /* ignore */ }
+                localHttpServer = null
+            }
+            "connect_server" -> {
+                val port = (block.args.getOrNull(2) as? Number)?.toInt() ?: 8080
+                startLocalServer(port, null)
+            }
+            "listen_server" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                val port = (variables["__server_port"] as? Number)?.toInt() ?: 8080
+                startLocalServer(port, if (name.isNotEmpty()) name else null)
+            }
+            "ws_receive" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                if (name.isNotEmpty()) variables[name] = variables["__ws_last_received"] ?: ""
+            }
             "download_file" -> {
                 val url = block.args.getOrNull(1) as? String ?: ""
                 val fileName = block.args.getOrNull(2) as? String ?: ""
@@ -2321,18 +2756,28 @@ class DesktopScriptEngine(
             }
             "start_server" -> {
                 val port = (block.args.getOrNull(1) as? Number)?.toInt() ?: 8080
-                try {
-                    val server = com.sun.net.httpserver.HttpServer.create(java.net.InetSocketAddress(port), 0)
-                    server.createContext("/") { exchange ->
-                        val response = "Catroid Desktop Server"
-                        exchange.sendResponseHeaders(200, response.length.toLong())
-                        exchange.responseBody.write(response.toByteArray())
-                        exchange.responseBody.close()
+                startLocalServer(port, null)
+            }
+            "cancel_download" -> { /* активные загрузки не трекаются на Desktop — no-op */ }
+            "send_server" -> {
+                val value = block.args.getOrNull(1) as? String ?: ""
+                val url = (variables["__server_url"] as? String)
+                    ?: (variables["__ws_url"] as? String) ?: ""
+                if (url.isNotEmpty()) {
+                    NetworkServiceHolder.service?.let { svc ->
+                        try { svc.httpPost(url, value) } catch (_: Exception) { /* ignore */ }
                     }
-                    server.executor = null
-                    server.start()
-                    variables["__server_port"] = port.toDouble()
-                } catch (_: Exception) { /* ignore */ }
+                }
+            }
+            "file_url" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                val url = block.args.getOrNull(2) as? String ?: ""
+                if (name.isNotEmpty()) variables[name] = url
+            }
+            "files_url" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                val url = block.args.getOrNull(2) as? String ?: ""
+                if (name.isNotEmpty()) variables[name] = url
             }
         }
         frame.ip++
@@ -2409,6 +2854,31 @@ class DesktopScriptEngine(
                             val content = file.readText().trim()
                             variables[name] = content.toDoubleOrNull() ?: content
                         }
+                    } catch (_: Exception) { /* ignore */ }
+                }
+            }
+            "read_list_device" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                if (name.isNotEmpty()) {
+                    try {
+                        val projectDir = DesktopProjectManager.getInstance().getCurrentProject()?.projectDir
+                        val file = java.io.File(projectDir ?: java.io.File("."), "${name}.list.txt")
+                        if (file.exists()) {
+                            val lines = file.readLines().map { it.trim() }.filter { it.isNotEmpty() }
+                            userLists[name] = lines.map { it.toDoubleOrNull() ?: it as Any }.toMutableList()
+                        }
+                    } catch (_: Exception) { /* ignore */ }
+                }
+            }
+            "write_list_device" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                if (name.isNotEmpty()) {
+                    try {
+                        val list = userLists[name] ?: mutableListOf()
+                        val projectDir = DesktopProjectManager.getInstance().getCurrentProject()?.projectDir
+                        val file = java.io.File(projectDir ?: java.io.File("."), "${name}.list.txt")
+                        file.parentFile?.mkdirs()
+                        file.writeText(list.joinToString("\n") { it.toString() })
                     } catch (_: Exception) { /* ignore */ }
                 }
             }
@@ -2727,9 +3197,64 @@ class DesktopScriptEngine(
                         } catch (_: Exception) { /* ignore */ }
                     }
                 }
+                "has_path" -> {
+                    val varName = block.args.getOrNull(1) as? String ?: ""
+                    if (varName.isNotEmpty()) {
+                        val path = variables[varName]?.toString() ?: ""
+                        val exists = java.io.File(path).exists()
+                        variables[varName] = if (exists) 1.0 else 0.0
+                    }
+                }
+                "put_float" -> {
+                    val name = block.args.getOrNull(1) as? String ?: ""
+                    val value = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 0f
+                    if (name.isNotEmpty()) {
+                        val projectDir = DesktopProjectManager.getInstance().getCurrentProject()?.projectDir
+                        val f = if (projectDir != null) java.io.File(projectDir, "$name.float.txt") else java.io.File("$name.float.txt")
+                        f.parentFile?.mkdirs()
+                        f.appendText("${value}\n")
+                    }
+                }
             }
         } catch (_: Exception) {
             // SILENT FAIL — same as Android: file ops don't crash the script
+        }
+        frame.ip++
+    }
+
+    // ──────────────────────────── VIDEO (best-effort) ────────────────────────────
+
+    /**
+     * Видео-блоки. На Desktop нет аппаратного воспроизведения видео в рантайме —
+     * состояние проигрывателя хранится, но кадры не отрисовываются (best-effort).
+     */
+    private fun executeVideo(block: Block, frame: Frame) {
+        when (block.args.getOrNull(0) as? String) {
+            "create_video" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                val file = block.args.getOrNull(2) as? String ?: ""
+                val x = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 0f
+                val y = (block.args.getOrNull(4) as? Number)?.toFloat() ?: 0f
+                val w = (block.args.getOrNull(5) as? Number)?.toFloat() ?: 0f
+                val h = (block.args.getOrNull(6) as? Number)?.toFloat() ?: 0f
+                val looped = (block.args.getOrNull(7) as? Number)?.toInt() ?: 0
+                if (name.isNotEmpty()) {
+                    videos[name] = VideoState(fileName = file, x = x, y = y, width = w, height = h, looped = looped == 1)
+                }
+            }
+            "play_video" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                videos[name]?.playing = true
+            }
+            "pause_video" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                videos[name]?.playing = false
+            }
+            "seek_video" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                val t = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
+                videos[name]?.position = t
+            }
         }
         frame.ip++
     }
@@ -2989,6 +3514,13 @@ class DesktopScriptEngine(
                     result.add(Block(Block.Type.CONTROL, listOf("repeat", times ?: 1), children))
                     idx = findLoopEnd(nodes, idx + 1)
                 }
+                "CountLoopBrick" -> {
+                    val times = extractFormulaValue(el, "TIMES_TO_REPEAT") ?: 1f
+                    val (children, rf) = parseBrickListRecursive(nodes, idx + 1, spriteIndex)
+                    allRuntimeFormulas.addAll(rf)
+                    result.add(Block(Block.Type.CONTROL, listOf("repeat", times.toInt().coerceAtLeast(1)), children))
+                    idx = findLoopEnd(nodes, idx + 1)
+                }
                 "RepeatUntilBrick" -> {
                     val condFe = getFormulaElement(el, "REPEAT_UNTIL_CONDITION")
                     val (children, rf) = parseBrickListRecursive(nodes, idx + 1, spriteIndex)
@@ -3205,6 +3737,35 @@ class DesktopScriptEngine(
                 "HideTextBrick" -> {
                     val varName = extractVariableName(el)
                     result.add(Block(Block.Type.VARIABLE, listOf("hide_variable", varName ?: "")))
+                    idx++
+                }
+
+                // ── Variable extras (float / easing / device list) ──
+                "CreateFloatBrick" -> {
+                    val name = extractFormulaString(el, "FLOAT_ARRAY") ?: ""
+                    result.add(Block(Block.Type.VARIABLE, listOf("create_float", name)))
+                    idx++
+                }
+                "DeleteFloatBrick" -> {
+                    val name = extractFormulaString(el, "FLOAT_ARRAY") ?: ""
+                    result.add(Block(Block.Type.VARIABLE, listOf("delete_float", name)))
+                    idx++
+                }
+                "SetVariableEasingBrick" -> {
+                    val name = extractVariableName(el) ?: ""
+                    val end = extractFormulaValue(el, "INSERT_ITEM_INTO_USERLIST_INDEX") ?: 0f
+                    val duration = extractFormulaValue(el, "INSERT_ITEM_INTO_USERLIST_VALUE") ?: 0f
+                    result.add(Block(Block.Type.VARIABLE, listOf("set_easing", name, end, duration)))
+                    idx++
+                }
+                "ReadListFromDeviceBrick" -> {
+                    val name = extractUserListName(el) ?: ""
+                    result.add(Block(Block.Type.DATA, listOf("read_list_device", name)))
+                    idx++
+                }
+                "WriteListOnDeviceBrick" -> {
+                    val name = extractUserListName(el) ?: ""
+                    result.add(Block(Block.Type.DATA, listOf("write_list_device", name)))
                     idx++
                 }
 
@@ -3677,6 +4238,35 @@ class DesktopScriptEngine(
             "SetSoundVolumeBrick" -> {
                 val vol = extractFormulaValue(el, "VOLUME") ?: 100f
                 Block(Block.Type.SOUND, listOf("set_volume", vol / 100f))
+            }
+            // ── Sound 3D / instance (best-effort на Desktop) ──
+            "PlaySoundAtPositionBrick" -> {
+                val sound = extractFormulaString(el, "SOUND_NAME") ?: ""
+                val vol = extractFormulaValue(el, "VOLUME") ?: 100f
+                val pitch = extractFormulaValue(el, "PITCH") ?: 100f
+                Block(Block.Type.SOUND, listOf("play_sound_3d", sound, vol / 100f, pitch / 100f))
+            }
+            "SetSoundInstanceVolumeBrick" -> {
+                val name = extractFormulaString(el, "NAME") ?: ""
+                val vol = extractFormulaValue(el, "VOLUME") ?: 100f
+                Block(Block.Type.SOUND, listOf("set_sound_inst_vol", name, vol / 100f))
+            }
+            "SetSoundInstancePitchBrick" -> {
+                val name = extractFormulaString(el, "NAME") ?: ""
+                val pitch = extractFormulaValue(el, "PITCH") ?: 100f
+                Block(Block.Type.SOUND, listOf("set_sound_inst_pitch", name, pitch / 100f))
+            }
+            "PrepareMusicAs3DSoundBrick" -> {
+                val file = extractFormulaString(el, "FILE_NAME") ?: ""
+                val sound = extractFormulaString(el, "SOUND_NAME") ?: ""
+                Block(Block.Type.SOUND, listOf("prepare_3d_sound", file, sound))
+            }
+            "Set3DSoundPositionBrick" -> {
+                val name = extractFormulaString(el, "NAME") ?: ""
+                val x = extractFormulaValue(el, "VALUE_X") ?: 0f
+                val y = extractFormulaValue(el, "VALUE_Y") ?: 0f
+                val z = extractFormulaValue(el, "VALUE_Z") ?: 0f
+                Block(Block.Type.SOUND, listOf("set_3d_pos", name, x, y, z))
             }
 
             // ═══════ MUSIC ═══════
@@ -4170,6 +4760,40 @@ class DesktopScriptEngine(
                 val port = extractFormulaValue(el, "PORT") ?: 8080f
                 Block(Block.Type.WEB, listOf("start_server", port.toInt()))
             }
+            // ── Web extras (server / websocket / create / download-to-path) ──
+            "CreateWebUrlBrick" -> {
+                val name = extractFormulaString(el, "NAME") ?: ""
+                val url = extractFormulaString(el, "URL") ?: ""
+                Block(Block.Type.WEB, listOf("create_web_url", name, url))
+            }
+            "CreateWebFileBrick" -> {
+                val name = extractFormulaString(el, "NAME") ?: ""
+                val file = extractFormulaString(el, "HTML") ?: ""
+                Block(Block.Type.WEB, listOf("create_web_file", name, file))
+            }
+            "DownloadToPathBrick" -> {
+                val url = extractFormulaString(el, "URL") ?: ""
+                val path = extractFormulaString(el, "DOWNLOAD_PATH") ?: ""
+                Block(Block.Type.WEB, listOf("download_to_path", url, path))
+            }
+            "SetDnsBrick" -> {
+                val value = extractFormulaString(el, "VALUE") ?: ""
+                Block(Block.Type.WEB, listOf("set_dns", value))
+            }
+            "StopServerBrick" -> Block(Block.Type.WEB, listOf("stop_server"))
+            "ConnectServerBrick" -> {
+                val ip = extractFormulaString(el, "IP") ?: ""
+                val port = extractFormulaValue(el, "PORT") ?: 8080f
+                Block(Block.Type.WEB, listOf("connect_server", ip, port.toInt()))
+            }
+            "ListenServerBrick" -> {
+                val name = extractVariableName(el) ?: ""
+                Block(Block.Type.WEB, listOf("listen_server", name))
+            }
+            "WebSocketReceiveBrick" -> {
+                val name = extractVariableName(el) ?: ""
+                Block(Block.Type.WEB, listOf("ws_receive", name))
+            }
 
             // ═══════ SENSING (remaining portable) ═══════
             "LockMouseBrick" -> Block(Block.Type.SENSING, listOf("lock_mouse"))
@@ -4493,6 +5117,298 @@ class DesktopScriptEngine(
                 val text = extractFormulaString(el, "NOTIFICATION_TEXT") ?: ""
                 val icon = extractFormulaString(el, "NOTIFICATION_ICON") ?: ""
                 Block(Block.Type.CONTROL, listOf("enable_background", id, channel, title, text, icon))
+            }
+
+            // ═══════ Core game logic (remaining portable) ═══════
+            "CloneAndNameBrick" -> {
+                val name = extractFormulaString(el, "CLONE_NAME") ?: ""
+                Block(Block.Type.CONTROL, listOf("clone_and_name", name))
+            }
+            "DeleteCloneByNumberBrick" -> {
+                val n = extractFormulaValue(el, "NUMBER") ?: 0f
+                Block(Block.Type.CONTROL, listOf("delete_clone_by_number", n.toInt()))
+            }
+            "TimerResetBrick" -> Block(Block.Type.SENSING, listOf("reset_timer"))
+            "TimerStartBrick" -> Block(Block.Type.CONTROL, listOf("timer_start"))
+            "TimerStopBrick" -> Block(Block.Type.CONTROL, listOf("timer_stop"))
+            "SetParentBrick" -> {
+                val child = extractFormulaString(el, "CHILD_OBJECT") ?: ""
+                val parent = extractFormulaString(el, "PARENT_OBJECT") ?: ""
+                Block(Block.Type.CONTROL, listOf("set_parent", child, parent))
+            }
+            "RemoveParentBrick" -> {
+                val child = extractFormulaString(el, "CHILD_OBJECT") ?: ""
+                Block(Block.Type.CONTROL, listOf("remove_parent", child))
+            }
+            "StopBackgroundBrick" -> Block(Block.Type.CONTROL, listOf("stop_background"))
+            "LoadSceneAdditiveBrick" -> {
+                val scene = extractFormulaString(el, "TEXT") ?: ""
+                Block(Block.Type.CONTROL, listOf("load_scene_additive", scene))
+            }
+            "PreloadSceneBrick" -> Block(Block.Type.CONTROL, listOf("preload_scene"))
+            "CastRayBrick" -> {
+                val x1 = extractFormulaValue(el, "VALUE_1") ?: 0f
+                val y1 = extractFormulaValue(el, "VALUE_2") ?: 0f
+                val x2 = extractFormulaValue(el, "VALUE_3") ?: 0f
+                val y2 = extractFormulaValue(el, "VALUE_4") ?: 0f
+                val dx = extractFormulaValue(el, "VALUE_5") ?: 0f
+                val dy = extractFormulaValue(el, "VALUE_6") ?: 0f
+                val maxd = extractFormulaValue(el, "VALUE_7") ?: 1000f
+                Block(Block.Type.CONTROL, listOf("cast_ray", x1, y1, x2, y2, dx, dy, maxd))
+            }
+            "ShowTextRotationBrick" -> {
+                val name = extractVariableName(el) ?: ""
+                val x = extractFormulaValue(el, "X_POSITION") ?: 0f
+                val y = extractFormulaValue(el, "Y_POSITION") ?: 0f
+                val rot = extractFormulaValue(el, "COLOR") ?: 0f
+                Block(Block.Type.VARIABLE, listOf("show_text_rotation", name, x, y, rot))
+            }
+            "ShowVarFontBrick" -> {
+                val name = extractVariableName(el) ?: ""
+                val x = extractFormulaValue(el, "X_POSITION") ?: 0f
+                val y = extractFormulaValue(el, "Y_POSITION") ?: 0f
+                val size = extractFormulaValue(el, "SIZE") ?: 14f
+                Block(Block.Type.VARIABLE, listOf("show_var_font", name, x, y, size))
+            }
+
+            // ═══════ Network / File (remaining portable) ═══════
+            "CancelDownloadBrick" -> Block(Block.Type.WEB, listOf("cancel_download"))
+            "SendServerBrick" -> {
+                val value = extractFormulaString(el, "VALUE") ?: ""
+                Block(Block.Type.WEB, listOf("send_server", value))
+            }
+            "FileUrlBrick" -> {
+                val file = extractFormulaString(el, "FILE") ?: ""
+                val url = extractFormulaString(el, "FILE_URL") ?: ""
+                Block(Block.Type.WEB, listOf("file_url", file, url))
+            }
+            "FilesUrlBrick" -> {
+                val file = extractFormulaString(el, "FILE") ?: ""
+                val url = extractFormulaString(el, "FILE_URL") ?: ""
+                Block(Block.Type.WEB, listOf("files_url", file, url))
+            }
+            "HasPathBrick" -> {
+                val varName = extractVariableName(el) ?: ""
+                Block(Block.Type.FILE, listOf("has_path", varName))
+            }
+            "PutFloatBrick" -> {
+                val name = extractFormulaString(el, "FLOAT_ARRAY") ?: ""
+                val idx = extractFormulaValue(el, "LOOK_INDEX") ?: 0f
+                val value = extractFormulaValue(el, "VALUE") ?: 0f
+                Block(Block.Type.FILE, listOf("put_float", name, idx.toInt(), value))
+            }
+
+            // ═══════ Database tables (remaining portable) ═══════
+            "CreateTableBrick" -> {
+                val sx = extractFormulaValue(el, "SIZE_X") ?: 1f
+                val sy = extractFormulaValue(el, "SIZE_Y") ?: 1f
+                val tname = extractFormulaString(el, "TABLE_NAME") ?: ""
+                Block(Block.Type.VARIABLE, listOf("db_create", tname, sx.toInt(), sy.toInt()))
+            }
+            "DeleteAllTablesBrick" -> Block(Block.Type.VARIABLE, listOf("db_delete_all"))
+            "DeleteBaseBrick" -> {
+                val id = extractFormulaString(el, "FIREBASE_ID") ?: ""
+                val key = extractFormulaString(el, "FIREBASE_KEY") ?: ""
+                Block(Block.Type.VARIABLE, listOf("db_delete_base", id, key))
+            }
+            "DeleteTableBrick" -> {
+                val tname = extractFormulaString(el, "TABLE_NAME") ?: ""
+                Block(Block.Type.VARIABLE, listOf("db_delete_table", tname))
+            }
+            "InsertTableBrick" -> {
+                val sx = extractFormulaValue(el, "SIZE_X") ?: 0f
+                val sy = extractFormulaValue(el, "SIZE_Y") ?: 0f
+                val tname = extractFormulaString(el, "TABLE_NAME") ?: ""
+                val value = extractFormulaValue(el, "VALUE") ?: 0f
+                Block(Block.Type.VARIABLE, listOf("db_insert", tname, sx.toInt(), sy.toInt(), value))
+            }
+            "LookFromTableBrick" -> {
+                val alpha = extractFormulaValue(el, "ALPHA") ?: 0f
+                val blue = extractFormulaValue(el, "BLUE") ?: 0f
+                val green = extractFormulaValue(el, "GREEN") ?: 0f
+                val red = extractFormulaValue(el, "RED") ?: 0f
+                Block(Block.Type.VARIABLE, listOf("db_look_from", red.toInt(), green.toInt(), blue.toInt(), alpha.toInt()))
+            }
+            "LookToTableBrick" -> {
+                val alpha = extractFormulaValue(el, "ALPHA") ?: 0f
+                val blue = extractFormulaValue(el, "BLUE") ?: 0f
+                val green = extractFormulaValue(el, "GREEN") ?: 0f
+                val red = extractFormulaValue(el, "RED") ?: 0f
+                Block(Block.Type.VARIABLE, listOf("db_look_to", red.toInt(), green.toInt(), blue.toInt(), alpha.toInt()))
+            }
+            "ReadBaseBrick" -> {
+                val id = extractFormulaString(el, "FIREBASE_ID") ?: ""
+                val key = extractFormulaString(el, "FIREBASE_KEY") ?: ""
+                val name = extractVariableName(el) ?: ""
+                Block(Block.Type.VARIABLE, listOf("db_read_base", id, key, name))
+            }
+            "StringToTableBrick" -> {
+                val str = extractFormulaString(el, "STRING") ?: ""
+                val tname = extractFormulaString(el, "TABLE_NAME") ?: ""
+                val x = extractFormulaValue(el, "X_POSITION") ?: 0f
+                val y = extractFormulaValue(el, "Y_POSITION") ?: 0f
+                Block(Block.Type.VARIABLE, listOf("db_string_to", tname, str, x.toInt(), y.toInt()))
+            }
+            "TableToFloatBrick" -> {
+                val name = extractFormulaString(el, "FLOAT_ARRAY") ?: ""
+                val tname = extractFormulaString(el, "TABLE_NAME") ?: ""
+                Block(Block.Type.VARIABLE, listOf("db_table_to_float", tname, name))
+            }
+            "WriteBaseBrick" -> {
+                val id = extractFormulaString(el, "FIREBASE_ID") ?: ""
+                val key = extractFormulaString(el, "FIREBASE_KEY") ?: ""
+                val value = extractFormulaString(el, "FIREBASE_VALUE") ?: ""
+                Block(Block.Type.VARIABLE, listOf("db_write_base", id, key, value))
+            }
+
+            // ═══════ Fast2D (remaining portable) ═══════
+            "Fast2DCreateBrick" -> {
+                val name = extractFormulaString(el, "NAME") ?: ""
+                Block(Block.Type.PHYSICS, listOf("fast2d_create", name))
+            }
+            "Fast2DDeleteBrick" -> {
+                val name = extractFormulaString(el, "NAME") ?: ""
+                Block(Block.Type.PHYSICS, listOf("fast2d_delete", name))
+            }
+            "Fast2DMakePhysicsBrick" -> {
+                val name = extractFormulaString(el, "NAME") ?: ""
+                val rot = extractFormulaValue(el, "ROTATION") ?: 0f
+                val size = extractFormulaValue(el, "SIZE") ?: 100f
+                val tex = extractFormulaString(el, "STRING") ?: ""
+                val x = extractFormulaValue(el, "X_POSITION") ?: 0f
+                val y = extractFormulaValue(el, "Y_POSITION") ?: 0f
+                Block(Block.Type.PHYSICS, listOf("fast2d_make_physics", name, x, y, rot, size, tex))
+            }
+            "Fast2DSetAngularVelocityBrick" -> {
+                val name = extractFormulaString(el, "NAME") ?: ""
+                val rot = extractFormulaValue(el, "ROTATION") ?: 0f
+                Block(Block.Type.PHYSICS, listOf("fast2d_angular_vel", name, rot))
+            }
+            "Fast2DSetCollisionFilterBrick" -> {
+                val name = extractFormulaString(el, "NAME") ?: ""
+                val cat = extractFormulaValue(el, "X_POSITION") ?: 0f
+                val mask = extractFormulaValue(el, "Y_POSITION") ?: 0f
+                Block(Block.Type.PHYSICS, listOf("fast2d_collision_filter", name, cat.toInt(), mask.toInt()))
+            }
+            "Fast2DSetColorBrick" -> {
+                val name = extractFormulaString(el, "NAME") ?: ""
+                val rot = extractFormulaValue(el, "ROTATION") ?: 0f
+                val size = extractFormulaValue(el, "SIZE") ?: 100f
+                val x = extractFormulaValue(el, "X_POSITION") ?: 0f
+                val y = extractFormulaValue(el, "Y_POSITION") ?: 0f
+                Block(Block.Type.PHYSICS, listOf("fast2d_set_color", name, x, y, rot, size))
+            }
+            "Fast2DSetPhysicsVelocityBrick" -> {
+                val name = extractFormulaString(el, "NAME") ?: ""
+                val x = extractFormulaValue(el, "X_POSITION") ?: 0f
+                val y = extractFormulaValue(el, "Y_POSITION") ?: 0f
+                Block(Block.Type.PHYSICS, listOf("fast2d_phys_vel", name, x, y))
+            }
+            "Fast2DSetPositionBrick" -> {
+                val name = extractFormulaString(el, "NAME") ?: ""
+                val x = extractFormulaValue(el, "X_POSITION") ?: 0f
+                val y = extractFormulaValue(el, "Y_POSITION") ?: 0f
+                Block(Block.Type.PHYSICS, listOf("fast2d_set_position", name, x, y))
+            }
+            "Fast2DSetRotationBrick" -> {
+                val name = extractFormulaString(el, "NAME") ?: ""
+                val rot = extractFormulaValue(el, "ROTATION") ?: 0f
+                Block(Block.Type.PHYSICS, listOf("fast2d_set_rotation", name, rot))
+            }
+            "Fast2DSetScaleBrick" -> {
+                val name = extractFormulaString(el, "NAME") ?: ""
+                val sx = extractFormulaValue(el, "X_SCALE") ?: 1f
+                val sy = extractFormulaValue(el, "Y_SCALE") ?: 1f
+                Block(Block.Type.PHYSICS, listOf("fast2d_set_scale", name, sx, sy))
+            }
+            "Fast2DSetTextureBrick" -> {
+                val name = extractFormulaString(el, "NAME") ?: ""
+                val tex = extractFormulaString(el, "STRING") ?: ""
+                Block(Block.Type.PHYSICS, listOf("fast2d_set_texture", name, tex))
+            }
+            "Fast2DSetVelocityBrick" -> {
+                val name = extractFormulaString(el, "NAME") ?: ""
+                val x = extractFormulaValue(el, "X_POSITION") ?: 0f
+                val y = extractFormulaValue(el, "Y_POSITION") ?: 0f
+                Block(Block.Type.PHYSICS, listOf("fast2d_set_velocity", name, x, y))
+            }
+            "Fast2DApplyForceBrick" -> {
+                val name = extractFormulaString(el, "NAME") ?: ""
+                val x = extractFormulaValue(el, "X_POSITION") ?: 0f
+                val y = extractFormulaValue(el, "Y_POSITION") ?: 0f
+                Block(Block.Type.PHYSICS, listOf("fast2d_apply_force", name, x, y))
+            }
+            "Fast2DApplyImpulseBrick" -> {
+                val name = extractFormulaString(el, "NAME") ?: ""
+                val x = extractFormulaValue(el, "X_POSITION") ?: 0f
+                val y = extractFormulaValue(el, "Y_POSITION") ?: 0f
+                Block(Block.Type.PHYSICS, listOf("fast2d_apply_impulse", name, x, y))
+            }
+            "Fast2DSetZIndexBrick" -> {
+                val name = extractFormulaString(el, "NAME") ?: ""
+                val z = extractFormulaValue(el, "VIBRATE_DURATION") ?: 0f
+                Block(Block.Type.PHYSICS, listOf("fast2d_set_zindex", name, z.toInt()))
+            }
+
+            // ═══════ Video (remaining portable) ═══════
+            "CreateVideoBrick" -> {
+                val name = extractFormulaString(el, "NAME") ?: ""
+                val file = extractFormulaString(el, "FILE") ?: ""
+                val x = extractFormulaValue(el, "POSX") ?: 0f
+                val y = extractFormulaValue(el, "POSY") ?: 0f
+                val w = extractFormulaValue(el, "WIDTH") ?: 0f
+                val h = extractFormulaValue(el, "HEIGHT") ?: 0f
+                val looped = (extractFormulaValue(el, "LOOPED") ?: 0f) != 0f
+                Block(Block.Type.VIDEO, listOf("create_video", name, file, x, y, w, h, if (looped) 1 else 0))
+            }
+            "PlayVideoBrick" -> {
+                val name = extractFormulaString(el, "NAME") ?: ""
+                Block(Block.Type.VIDEO, listOf("play_video", name))
+            }
+            "PauseVideoBrick" -> {
+                val name = extractFormulaString(el, "NAME") ?: ""
+                Block(Block.Type.VIDEO, listOf("pause_video", name))
+            }
+            "SeekVideoBrick" -> {
+                val name = extractFormulaString(el, "NAME") ?: ""
+                val t = extractFormulaValue(el, "TIME") ?: 0f
+                Block(Block.Type.VIDEO, listOf("seek_video", name, t))
+            }
+
+            // ═══════ Editor / AI / UI (remaining portable) ═══════
+            "AddEditBrick" -> {
+                val name = extractFormulaString(el, "NAME") ?: ""
+                val text = extractFormulaString(el, "TEXT") ?: ""
+                Block(Block.Type.CONTROL, listOf("add_edit", name, text))
+            }
+            "AddRadioBrick" -> {
+                val name = extractFormulaString(el, "NAME") ?: ""
+                val text = extractFormulaString(el, "TEXT") ?: ""
+                Block(Block.Type.CONTROL, listOf("add_radio", name, text))
+            }
+            "SetAIBrick" -> {
+                val avoid = extractFormulaValue(el, "AVOID_OBSTACLES") ?: 0f
+                val dist = extractFormulaValue(el, "DISTANCE") ?: 0f
+                val mode = extractFormulaValue(el, "MODE") ?: 0f
+                val objId = extractFormulaString(el, "OBJECT_ID") ?: ""
+                val range = extractFormulaValue(el, "RANGE") ?: 0f
+                val speed = extractFormulaValue(el, "SPEED") ?: 0f
+                val step = extractFormulaValue(el, "STEP_HEIGHT") ?: 0f
+                val target = extractFormulaString(el, "TARGET") ?: ""
+                Block(Block.Type.CONTROL, listOf("set_ai", objId, mode.toInt(), speed, dist, range, avoid, step, target))
+            }
+            "SoundFileBrick" -> {
+                val file = extractFormulaString(el, "FILE") ?: ""
+                Block(Block.Type.SOUND, listOf("sound_file", file))
+            }
+            "SoundFilesBrick" -> {
+                val file = extractFormulaString(el, "FILE") ?: ""
+                Block(Block.Type.SOUND, listOf("sound_files", file))
+            }
+            "Sound_StopAllBrick" -> Block(Block.Type.SOUND, listOf("stop_all_sounds"))
+            "DelayMicrosecondsBrick" -> {
+                val t = extractFormulaValue(el, "TIME_TO_WAIT_IN_SECONDS") ?: 0f
+                Block(Block.Type.CONTROL, listOf("delay", t))
             }
 
             // ═══════ CLONE bricks ═══════
@@ -5321,5 +6237,69 @@ class DesktopScriptEngine(
     private fun extractTextContent(el: Element, tagName: String): String? {
         val field = el.getElementsByTagName(tagName)?.item(0) as? Element
         return field?.textContent?.trim()
+    }
+
+    // ════════════════════════ FIREBASE REST (Realtime Database) ════════════════════════
+
+    /** Построить REST-URL Firebase Realtime Database: <base>/<key>.json */
+    private fun firebaseUrl(base: String, key: String): String {
+        var url = base.trim()
+        if (!url.startsWith("http://") && !url.startsWith("https://")) url = "https://$url"
+        url = url.trimEnd('/')
+        val k = key.trim().trimStart('/').trimEnd('/')
+        return "$url/$k.json"
+    }
+
+    /** Экранировать строку как JSON-строку (тело PUT). */
+    private fun jsonString(s: String): String {
+        val sb = StringBuilder("\"")
+        for (c in s) {
+            when (c) {
+                '\\' -> sb.append("\\\\")
+                '"' -> sb.append("\\\"")
+                '\n' -> sb.append("\\n")
+                '\r' -> sb.append("\\r")
+                '\t' -> sb.append("\\t")
+                else -> sb.append(c)
+            }
+        }
+        sb.append("\"")
+        return sb.toString()
+    }
+
+    /** Убрать обёртку JSON-строки из ответа Firebase. */
+    private fun stripJsonString(s: String?): String {
+        if (s == null) return ""
+        val t = s.trim()
+        if (t == "null" || t.isEmpty()) return ""
+        if (t.startsWith("\"") && t.endsWith("\"")) {
+            return t.substring(1, t.length - 1)
+                .replace("\\\\", "\\").replace("\\\"", "\"")
+                .replace("\\n", "\n").replace("\\r", "\r").replace("\\t", "\t")
+        }
+        return t
+    }
+
+    /** Синхронный REST-запрос к Firebase. Возвращает тело ответа или null при ошибке. */
+    private fun firebaseRequest(method: String, url: String, body: String? = null): String? {
+        return try {
+            val conn = java.net.URL(url).openConnection() as java.net.HttpURLConnection
+            conn.requestMethod = method
+            conn.connectTimeout = 5000
+            conn.readTimeout = 5000
+            if (body != null) {
+                conn.doOutput = true
+                conn.setRequestProperty("Content-Type", "application/json")
+                conn.outputStream.use { it.write(body.toByteArray(Charsets.UTF_8)) }
+            }
+            val code = conn.responseCode
+            val resp = if (code in 200..299) {
+                conn.inputStream.bufferedReader().readText()
+            } else {
+                conn.errorStream?.bufferedReader()?.readText() ?: ""
+            }
+            conn.disconnect()
+            resp
+        } catch (_: Exception) { null }
     }
 }
