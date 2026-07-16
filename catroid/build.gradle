@@ -62,6 +62,8 @@ ext {
     coroutines_version = "1.9.0"
     work_manager_version = '2.10.0'
     kotlinScriptingVersion = "2.0.21"
+    koin_version = rootProject.koin_version
+    lifecycle_version = rootProject.lifecycle_version
 }
 
 apply plugin: 'com.android.application'
@@ -234,7 +236,7 @@ android {
         unitTests.returnDefaultValues = true
         unitTests.includeAndroidResources = true
         unitTests.all {
-            jvmArgs '-Xmx2g'
+            jvmArgs '-Xmx4g'
             // PowerMock needs reflective access to JDK internals, blocked by JDK 17 module encapsulation
             jvmArgs '--add-opens', 'java.base/java.lang=ALL-UNNAMED'
             jvmArgs '--add-opens', 'java.base/java.lang.reflect=ALL-UNNAMED'
@@ -252,12 +254,26 @@ android {
         }
         main {
         }
+        danvex {
+            // default flavor — isolates generated asset dirs from other flavors
+        }
         runtime {
             manifest.srcFile 'src/runtime/AndroidManifest.xml'
             java.srcDirs += 'src/runtime/java'
         }
+        template {
+            manifest.srcFile 'src/apkplayer/AndroidManifest.xml'
+            res.srcDirs += 'src/apkplayer/res'
+        }
         catroid {
         }
+        createAtSchool {}
+        embroideryDesigner {}
+        lunaAndCat {}
+        phiro {}
+        pocketCodeBeta {}
+        mindstorms {}
+        standalone {}
     }
 
     packagingOptions {
@@ -412,10 +428,6 @@ android {
             buildConfigField "boolean", "FEATURE_AI_SENSORS_ENABLED", "false"
             buildConfigField "boolean", "FEATURE_AI_ASSIST_ENABLED", "false"
             manifestPlaceholders.appName = "NeoCatroid Runtime"
-
-            ndk {
-                abiFilters 'arm64-v8a'
-            }
         }
     }
 
@@ -438,14 +450,32 @@ android {
             }
         }
     }
-    productFlavors.all { flavor ->
-        copyGoogleServicesFile(flavor.name, defaultConfig.applicationId + (flavor.applicationIdSuffix ?: ""))
+    // Only copy google-services-template to the default danvex flavor;
+    // other flavors must provide their own google-services.json if needed.
+    def danvexGoogleServices = file("src/danvex/google-services.json")
+    if (!danvexGoogleServices.exists()) {
+        copyGoogleServicesFile('danvex', defaultConfig.applicationId)
     }
-
 }
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
+}
+
+// Disable processGoogleServices for flavors without valid config.
+// These flavors don't have their own google-services.json and the
+// default template doesn't contain entries for their package names.
+afterEvaluate {
+    def flavorsWithoutGoogleServices = [
+        'createAtSchool', 'embroideryDesigner', 'lunaAndCat',
+        'mindstorms', 'phiro', 'pocketCodeBeta', 'standalone', 'runtime'
+    ]
+    tasks.matching { task ->
+        task.name.startsWith('process') && task.name.endsWith('GoogleServices') &&
+        flavorsWithoutGoogleServices.any { task.name.contains(it.capitalize()) }
+    }.configureEach { task ->
+        task.enabled = false
+    }
 }
 
 android.applicationVariants.all { variant ->
@@ -846,14 +876,23 @@ configurations.all {
 
 
 
+// ──────────────────────────────────────────────────────────────
+// Per-variant tasks: packageAppClasses*, copyPluginLibs*
+// Each variant writes its assets to a variant-specific build dir,
+// which is then registered as an asset source dir for that variant.
+// Cross-variant dependencies are handled at the bottom of this block.
+// ──────────────────────────────────────────────────────────────
 android.applicationVariants.all { variant ->
     if (variant.buildType.name in ['debug', 'template']) {
         def variantName = variant.name.capitalize()
-        def taskName = "packageAppClasses${variantName}"
 
-        tasks.register(taskName, Jar) {
+        // ── packageAppClasses(VariantName) Jar task ────────────
+        def pkgTaskName = "packageAppClasses${variantName}"
+        def pkgAssetsDir = file("${buildDir}/tmp/packageAppAssets/${variantName}/")
+
+        tasks.register(pkgTaskName, Jar) {
             archiveFileName = 'app-classes.jar'
-            destinationDirectory = file("${projectDir}/src/main/assets")
+            destinationDirectory = pkgAssetsDir
 
             if (variant.hasProperty('javaCompileProvider')) {
                 from(variant.javaCompileProvider.flatMap { it.destinationDirectory })
@@ -874,21 +913,22 @@ android.applicationVariants.all { variant ->
             exclude '**/BuildConfig.class'
         }
 
-        tasks.named("merge${variantName}Assets").configure {
-            dependsOn taskName
-        }
-    }
-}
-android.applicationVariants.all { variant ->
-    if (variant.buildType.name in ['debug', 'template']) {
-        def variantName = variant.name.capitalize()
-        def copyLibsTaskName = "copyPluginLibs${variantName}"
+        // Register pkgAssetsDir as an asset source for this variant ONLY
+        // (not the shared flavor source set, to avoid duplicate resources
+        // between debug and template variants of the same flavor)
+        def ss = android.sourceSets.findByName(variant.name) ?: android.sourceSets.create(variant.name)
+        ss.assets.srcDirs += pkgAssetsDir
 
-        tasks.register(copyLibsTaskName) {
+        // ── copyPluginLibs(VariantName) task ───────────────────
+        def libsTaskName = "copyPluginLibs${variantName}"
+        def libsAssetsDir = file("${buildDir}/tmp/pluginLibAssets/${variantName}/")
+
+        tasks.register(libsTaskName) {
             inputs.files(configurations.pluginLibs)
-            outputs.dir("${projectDir}/src/main/assets")
+            outputs.dir(libsAssetsDir)
 
             doLast {
+                libsAssetsDir.mkdirs()
                 configurations.pluginLibs.each { File depFile ->
                     def fileName = depFile.name
                     def destName = ""
@@ -909,8 +949,6 @@ android.applicationVariants.all { variant ->
                     if (destName != "") {
                         println "[PluginLibs] Копирование: ${fileName} (${depFile.length()} байт) -> ${destName}"
 
-                        File destFile = file("${projectDir}/src/main/assets/${destName}")
-
                         if (fileName.endsWith('.aar')) {
                             def tempExtractDir = file("${buildDir}/tmp/aar_extract_${destName}")
                             delete(tempExtractDir)
@@ -924,14 +962,14 @@ android.applicationVariants.all { variant ->
 
                             copy {
                                 from "${tempExtractDir}/classes.jar"
-                                into "${projectDir}/src/main/assets"
+                                into libsAssetsDir
                                 rename { destName }
                             }
                             delete(tempExtractDir)
                         } else {
                             copy {
                                 from depFile
-                                into "${projectDir}/src/main/assets"
+                                into libsAssetsDir
                                 rename { destName }
                             }
                         }
@@ -940,21 +978,32 @@ android.applicationVariants.all { variant ->
             }
         }
 
-        tasks.named("merge${variantName}Assets").configure {
-            dependsOn copyLibsTaskName
-        }
+        // Register libsAssetsDir as an asset source for this variant ONLY
+        ss.assets.srcDirs += libsAssetsDir
     }
 }
 
-afterEvaluate {
-    def runtimeCopyPluginLibsTasks = tasks.matching { it.name.startsWith("copyPluginLibs") && it.name.contains("Runtime") }
-    def runtimeMergeAssetsTasks = tasks.matching { it.name.startsWith("merge") && it.name.contains("Runtime") && it.name.endsWith("Assets") }
-    def runtimePackageClassesTasks = tasks.matching { it.name.startsWith("packageAppClasses") && it.name.contains("Runtime") }
-    def allRuntimeAssetTasks = []
-    allRuntimeAssetTasks.addAll(runtimeCopyPluginLibsTasks)
-    allRuntimeAssetTasks.addAll(runtimePackageClassesTasks)
-    runtimeMergeAssetsTasks.configureEach {
-        dependsOn allRuntimeAssetTasks
+// ──────────────────────────────────────────────────────────────
+// Cross-variant dependency: each merge*Assets task depends on
+// copyPluginLibs* and packageAppClasses* tasks of the SAME
+// FLAVOR only (not all flavors), because each flavor's source
+// set may include build-type-specific dirs from same-flavor
+// variants (e.g. danvex source set includes DanvexDebug and
+// DanvexTemplate build dirs).
+// ──────────────────────────────────────────────────────────────
+tasks.whenTaskAdded { task ->
+    if (task.name.startsWith('merge') && task.name.endsWith('Assets')) {
+        // Extract flavor name from task name: merge{Flavor}{BuildType}Assets
+        def variantName = task.name.replace('merge', '').replace('Assets', '')
+        def flavorName = variantName.replace('Debug', '').replace('Template', '')
+        if (flavorName) {
+            tasks.matching { it.name.startsWith('copyPluginLibs') && it.name.contains(flavorName) }.configureEach { dep ->
+                task.dependsOn dep
+            }
+            tasks.matching { it.name.startsWith('packageAppClasses') && it.name.contains(flavorName) }.configureEach { dep ->
+                task.dependsOn dep
+            }
+        }
     }
 }
 

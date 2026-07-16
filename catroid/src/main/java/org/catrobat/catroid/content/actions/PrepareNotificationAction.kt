@@ -28,11 +28,12 @@ class PrepareNotificationAction : TemporalAction() {
         if (started) return
         started = true
 
-        val id = notificationId?.interpretInteger(scope) ?: return
-        val channel = channelName?.interpretString(scope) ?: "default"
-        val notifTitle = title?.interpretString(scope) ?: ""
-        val notifText = text?.interpretString(scope) ?: ""
-        val icon = iconPath?.interpretString(scope) ?: ""
+        val s = scope ?: return
+        val id = notificationId?.interpretInteger(s) ?: return
+        val channel = channelName?.interpretString(s) ?: "default"
+        val notifTitle = title?.interpretString(s) ?: ""
+        val notifText = text?.interpretString(s) ?: ""
+        val icon = iconPath?.interpretString(s) ?: ""
 
         val data = NotificationData(
             id = id,

@@ -73,4 +73,10 @@ object FireBaseManager {
             Log.e("FireBaseManager", "Error deleting data: ${error.message}")
         }
     }
+
+    fun observeValue(databaseUrl: String, key: String, listener: ValueEventListener): DatabaseReference? {
+        val ref = getDbRef(databaseUrl, key) ?: return null
+        ref.addValueEventListener(listener)
+        return ref
+    }
 }

@@ -211,26 +211,6 @@
 
         </LinearLayout>
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:divider="@drawable/divider"
-            android:orientation="vertical"
-            android:showDividers="end">
-
-            <com.google.android.material.switchmaterial.SwitchMaterial
-                android:id="@+id/project_options_precompile"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:checked="false"
-                android:paddingBottom="@dimen/material_design_spacing_x_large"
-                android:paddingEnd="@dimen/material_design_spacing_x_large"
-                android:paddingStart="@dimen/material_design_spacing_x_large"
-                android:paddingTop="@dimen/material_design_spacing_x_large"
-                android:textColor="#B2FFFFFF"
-                android:text="@string/project_options_precompile"/>
-
-        </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -317,7 +297,7 @@
             android:showDividers="end">
 
             <TextView
-                android:id="@+id/project_options_bake"
+                android:id="@+id/project_options_export"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:paddingBottom="@dimen/material_design_spacing_x_large"
@@ -325,29 +305,10 @@
                 android:paddingStart="@dimen/material_design_spacing_x_large"
                 android:paddingTop="@dimen/material_design_spacing_x_large"
                 android:background="@drawable/button_background_selector_dark"
-                android:text="Запечь проект (Bake)" />
+                android:text="@string/export_project" />
 
         </LinearLayout>
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:divider="@drawable/divider"
-            android:orientation="vertical"
-            android:showDividers="end">
-
-            <TextView
-                android:id="@+id/project_options_build_exe"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingBottom="@dimen/material_design_spacing_x_large"
-                android:paddingEnd="@dimen/material_design_spacing_x_large"
-                android:paddingStart="@dimen/material_design_spacing_x_large"
-                android:paddingTop="@dimen/material_design_spacing_x_large"
-                android:background="@drawable/button_background_selector_dark"
-                android:text="@string/project_options_build_exe" />
-
-        </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -380,45 +341,7 @@
 
         </LinearLayout>
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:divider="@drawable/divider"
-            android:orientation="vertical"
-            android:showDividers="end">
 
-            <TextView
-                android:id="@+id/projectOptionsSaveExternal"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingBottom="@dimen/material_design_spacing_x_large"
-                android:paddingEnd="@dimen/material_design_spacing_x_large"
-                android:paddingStart="@dimen/material_design_spacing_x_large"
-                android:paddingTop="@dimen/material_design_spacing_x_large"
-                android:background="@drawable/button_background_selector_dark"
-                android:text="Сохранить во внешнее хранилище" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:divider="@drawable/divider"
-            android:orientation="vertical"
-            android:showDividers="end">
-
-            <TextView
-                android:id="@+id/project_options_save_apk"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingBottom="@dimen/material_design_spacing_x_large"
-                android:paddingEnd="@dimen/material_design_spacing_x_large"
-                android:paddingStart="@dimen/material_design_spacing_x_large"
-                android:paddingTop="@dimen/material_design_spacing_x_large"
-                android:background="@drawable/button_background_selector_dark"
-                android:text="@string/save_apk_button" />
-
-        </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"

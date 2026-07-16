@@ -71,10 +71,10 @@ class LunoScriptProcessor(private val environment: SymbolProcessorEnvironment) :
                     
                     val returnType = funcElement.returnType?.resolve()?.toTypeName()
                     if (returnType != null && returnType != UNIT) {
-                        registerFunctionBuilder.addStatement("val result = %L", functionName)
+                        registerFunctionBuilder.addStatement("val result = %L(%L)", functionName, joinedArgs)
                         registerFunctionBuilder.addStatement("%T.fromKotlin(result)", lunoValueClass)
                     } else {
-                        registerFunctionBuilder.addStatement("%L", functionName)
+                        registerFunctionBuilder.addStatement("%L(%L)", functionName, joinedArgs)
                         registerFunctionBuilder.addStatement("%T.Null", lunoValueClass)
                     }
                     registerFunctionBuilder.addCode("}\n")

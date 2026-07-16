@@ -14,11 +14,21 @@ public class AttachToCameraWithOffsetAction extends TemporalAction {
     private Formula offsetY;
     private Formula offsetZ;
 
+    private boolean started;
+
+    @Override
+    public void restart() {
+        super.restart();
+        started = false;
+    }
+
     @Override
     protected void update(float percent) {
+        if (started) return;
         if (scope == null) return;
         var listener = StageActivity.getActiveStageListener();
         if (listener == null || listener.sceneManager == null) return;
+        started = true;
 
         try {
             String name = objectName != null ? objectName.interpretString(scope) : null;

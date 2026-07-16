@@ -105,6 +105,16 @@ public class PluginManager {
             JSONObject manifest = new JSONObject(json);
             String packageName = manifest.getString("packageName");
 
+            // SECURITY: reject package names that could escape the plugins directory
+            // (absolute paths, path separators, or ".." traversal).
+            if (packageName == null || packageName.isEmpty()
+                    || new File(packageName).isAbsolute()
+                    || packageName.contains("..")
+                    || packageName.contains("/") || packageName.contains("\\")) {
+                Log.e(TAG, "Install failed: invalid packageName in manifest: " + packageName);
+                deleteRecursive(tempDir);
+                return false;
+            }
 
             File destDir = new File(pluginsDir, packageName);
             if (destDir.exists()) {
@@ -192,11 +202,11 @@ public class PluginManager {
     }
 
     private String readFileToString(File file) throws IOException {
-        FileInputStream fis = new FileInputStream(file);
-        byte[] data = new byte[(int) file.length()];
-        fis.read(data);
-        fis.close();
-        return new String(data, StandardCharsets.UTF_8);
+        try (FileInputStream fis = new FileInputStream(file)) {
+            byte[] data = new byte[(int) file.length()];
+            fis.read(data);
+            return new String(data, StandardCharsets.UTF_8);
+        }
     }
 
     private boolean deleteRecursive(File fileOrDirectory) {

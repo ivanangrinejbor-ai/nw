@@ -31,6 +31,7 @@ import android.widget.Spinner;
 
 import org.catrobat.catroid.R;
 import org.catrobat.catroid.content.Script;
+import org.catrobat.catroid.utils.PasswordHash;
 import org.catrobat.catroid.ui.recyclerview.fragment.ScriptFragment;
 
 import java.util.ArrayList;
@@ -56,6 +57,9 @@ public abstract class BrickBaseType implements Brick {
 
 	protected UUID brickId = UUID.randomUUID();
 
+	private String lockHash;
+	private String lockSalt;
+
 	@Override
 	public boolean isCommentedOut() {
 		return commentedOut;
@@ -80,6 +84,8 @@ public abstract class BrickBaseType implements Brick {
 		clone.parent = null;
 		clone.commentedOut = commentedOut;
 		clone.brickId = UUID.randomUUID();
+		clone.lockHash = lockHash;
+		clone.lockSalt = lockSalt;
 		return clone;
 	}
 
@@ -206,6 +212,31 @@ public abstract class BrickBaseType implements Brick {
 	@Override
 	public UUID getBrickID() {
 		return brickId;
+	}
+
+	@Override
+	public boolean isLocked() {
+		return lockHash != null && lockSalt != null;
+	}
+
+	@Override
+	public void setLock(String password) {
+		this.lockSalt = PasswordHash.generateSalt();
+		this.lockHash = PasswordHash.hash(password, this.lockSalt);
+	}
+
+	@Override
+	public void clearLock() {
+		this.lockHash = null;
+		this.lockSalt = null;
+	}
+
+	@Override
+	public boolean verifyLock(String password) {
+		if (!isLocked()) {
+			return true;
+		}
+		return PasswordHash.verify(password, lockSalt, lockHash);
 	}
 
 	@Override

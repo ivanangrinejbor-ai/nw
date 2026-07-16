@@ -93,8 +93,10 @@ public class CollisionInformation {
 	public void calculateBubblePositions() {
 		String path = lookData.getFile().getAbsolutePath();
 		Bitmap bitmap = BitmapFactory.decodeFile(path);
+		if (bitmap == null) return;
 
 		calculateBubblePositions(bitmap);
+		bitmap.recycle();
 	}
 
 	@VisibleForTesting
@@ -164,6 +166,7 @@ public class CollisionInformation {
 		if (bitmap == null) {
 			return;
 		}
+		try {
 
 		final int MIN_SIZE_FOR_COMPLEX_COLLISION = 100;
 
@@ -281,6 +284,9 @@ public class CollisionInformation {
 		writeCollisionVerticesToPNGMeta(collisionPolygons, path);
 		// Теперь лог должен показать гораздо большее количество "shapes"
 		Log.i(TAG_COLLISION_POLYGON, "Polygon size of look " + lookData.getName() + ": " + getNumberOfVertices() + " vertices in " + collisionPolygons.length + " convex shapes (triangles).");
+		} finally {
+			if (bitmap != null) bitmap.recycle();
+		}
 	}
 
 	public static ArrayList<ArrayList<CollisionPolygonVertex>> createBoundingPolygonVertices(String absoluteBitmapPath,

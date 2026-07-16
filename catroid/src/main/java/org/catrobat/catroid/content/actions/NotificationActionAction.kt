@@ -30,11 +30,12 @@ class NotificationActionAction : TemporalAction() {
         if (started) return
         started = true
 
-        val nid = notificationId?.interpretInteger(scope) ?: return
-        val aid = actionId?.interpretString(scope) ?: return
-        val txt = text?.interpretString(scope) ?: ""
-        val icon = iconPath?.interpretString(scope) ?: ""
-        val hnt = hint?.interpretString(scope) ?: ""
+        val s = scope ?: return
+        val nid = notificationId?.interpretInteger(s) ?: return
+        val aid = actionId?.interpretString(s) ?: return
+        val txt = text?.interpretString(s) ?: ""
+        val icon = iconPath?.interpretString(s) ?: ""
+        val hnt = hint?.interpretString(s) ?: ""
         val behavior = ActionBehavior.values().getOrElse(behaviorIndex) { ActionBehavior.LAUNCH_APP }
 
         val data = NotificationActionData(

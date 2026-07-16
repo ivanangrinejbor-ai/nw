@@ -63,11 +63,6 @@ object DesktopStage {
             else -> loadEmbeddedPayload()?.let { extractPayload(it) }
         }
 
-        if (loadedProject != null) {
-            // Загружаем проект в десктопный менеджер (code.xml + images/)
-            DesktopProjectManager.getInstance().loadProject(loadedProject)
-        }
-
         // 3. Настраиваем LWJGL3 окно
         val config = Lwjgl3ApplicationConfiguration().apply {
             setTitle("NeoCatroid Desktop Player")
@@ -77,8 +72,10 @@ object DesktopStage {
             setBackBufferConfig(8, 8, 8, 8, 16, 0, 4)
         }
 
-        // 4. Запускаем полноценный DesktopStageListener как ApplicationListener
-        Lwjgl3Application(DesktopStageListener(), config)
+        // 4. Запускаем DesktopStageListener. Сам проект загружается внутри его
+        //    create() — после старта приложения, когда доступны Gdx.app и GL-контекст
+        //    (loadProject создаёт Texture для look'ов и логирует через Gdx.app).
+        Lwjgl3Application(DesktopStageListener(loadedProject), config)
     }
 
     private fun resolveProjectInput(input: File): File? {
@@ -138,12 +135,24 @@ object DesktopStage {
         val data = maybeDecrypt(payload)
         return try {
             val tempDir = Files.createTempDirectory("neocatroid-player").toFile()
-            // Рекурсивно удалить всё при выходе (walk + deleteOnExit на каждом файле)
-            tempDir.walkTopDown().forEach { it.deleteOnExit() }
+            // Real recursive cleanup on exit. deleteOnExit() only marks files that
+            // are visited before their parent dirs are emptied, so it silently
+            // leaves the payload behind; use a full deleteRecursively() hook instead.
+            Runtime.getRuntime().addShutdownHook(Thread {
+                tempDir.deleteRecursively()
+            })
+            val destPath = tempDir.toPath().normalize()
             val zis = java.util.zip.ZipInputStream(java.io.ByteArrayInputStream(data))
             var entry = zis.nextEntry
             while (entry != null) {
-                val outFile = File(tempDir, entry.name)
+                // Zip-slip guard: resolve the entry against the target directory and
+                // reject anything that escapes it (e.g. names containing "../").
+                val resolved = destPath.resolve(entry.name).normalize()
+                if (resolved != destPath && !resolved.startsWith(destPath)) {
+                    zis.closeEntry()
+                    throw SecurityException("Zip entry '${entry.name}' escapes the target directory")
+                }
+                val outFile = resolved.toFile()
                 if (entry.isDirectory) {
                     outFile.mkdirs()
                 } else {

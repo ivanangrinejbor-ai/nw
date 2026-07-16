@@ -1109,5 +1109,10 @@ class DrawingView @JvmOverloads constructor(
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
         cancelIdle()
+        smudgeScratchBitmap?.recycle()
+        smudgeScratchBitmap = null
+        smudgeScratchCanvas = null
+        smudgeSrc?.recycle()
+        smudgeSrc = null
     }
 }

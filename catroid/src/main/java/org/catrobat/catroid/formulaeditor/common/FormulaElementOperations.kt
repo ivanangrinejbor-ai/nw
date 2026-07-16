@@ -84,7 +84,7 @@ object FormulaElementOperations {
             } catch (_: NumberFormatException) {
                 Double.NaN
             }
-            else -> obj as Double
+            else -> (obj as? Number)?.toDouble() ?: Double.NaN
         }
     }
 
@@ -297,7 +297,7 @@ object FormulaElementOperations {
         currentProject: Project,
         value: String?
     ): Any {
-        val sensor = Sensors.getSensorByValue(value)
+        val sensor = Sensors.getSensorByValue(value) ?: return 0.0
         return if (sensor.isObjectSensor) {
             interpretObjectSensor(sensor, sprite, currentlyEditedScene, currentProject)
         } else {
@@ -362,7 +362,7 @@ object FormulaElementOperations {
     fun tryParseIntFromObject(value: Any): Int {
         return when (value) {
             is String -> tryParseIntFromString(value)
-            else -> (value as Double).toInt()
+            else -> (value as? Number)?.toInt() ?: 0
         }
     }
 

@@ -63,6 +63,10 @@ public class InternFormulaParser {
 
 	private void getNextToken() {
 		currentTokenParseIndex++;
+		if (currentTokenParseIndex >= internTokensToParse.size()) {
+			currentToken = null;
+			return;
+		}
 		currentToken = internTokensToParse.get(currentTokenParseIndex);
 	}
 

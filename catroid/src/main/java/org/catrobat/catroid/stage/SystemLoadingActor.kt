@@ -39,11 +39,17 @@ class SystemLoadingActor(
 
     override fun draw(batch: Batch, parentAlpha: Float) {
         if (loaded) return
-        batch.end()
 
         // Black background
         Gdx.gl.glClearColor(0f, 0f, 0f, 1f)
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
+
+        // End the batch only if it is currently active (e.g. when drawn via a Stage) so the
+        // ShapeRenderer can take over. The batch must be started before it is ended.
+        val wasDrawing = batch.isDrawing
+        if (wasDrawing) {
+            batch.end()
+        }
 
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
         shapeRenderer.color = Color.DARK_GRAY
@@ -71,6 +77,10 @@ class SystemLoadingActor(
         val pct = "${(progress * 100).toInt()}%"
         val pctLayout = com.badlogic.gdx.graphics.g2d.GlyphLayout(font, pct)
         font.draw(batch, pct, x + (width - pctLayout.width) / 2f, barY - 10f)
+
+        if (!wasDrawing) {
+            batch.end()
+        }
 
         if (!loaded) {
             stepLoad()

@@ -295,6 +295,9 @@ public class StageListener implements ApplicationListener {
 
 	public StageListener() {
 		webConnectionHolder = new WebConnectionHolder();
+		// Wire the shared holder so PenActor (and other stage actors) can reach this
+		// listener. Previously nothing set it, so pen drawing/stamping was dead on Android.
+		StageListenerHolder.INSTANCE.setListener(this);
 	}
 
 	private ShaderProgram vncSwizzleShader;
@@ -797,6 +800,7 @@ public class StageListener implements ApplicationListener {
 		}
 		copy.initializeEventThreads(EventId.START_AS_CLONE);
 		copy.initConditionScriptTriggers();
+		copy.initFirebaseChangedTriggers();
 	}
 
 	public void cloneSpriteAndAddToStage(Sprite cloneMe, String newName) {
@@ -817,6 +821,7 @@ public class StageListener implements ApplicationListener {
 		}
 		copy.initializeEventThreads(EventId.START_AS_CLONE);
 		copy.initConditionScriptTriggers();
+		copy.initFirebaseChangedTriggers();
 	}
 
 	public void addCloneActorToStage(Stage stage, Group rootGroup, Look cloneMeLook, Look copyLook) {
@@ -1341,6 +1346,7 @@ public class StageListener implements ApplicationListener {
 						sprite.initializeEventThreads(EventId.START);
 					}
 					sprite.initConditionScriptTriggers();
+					sprite.initFirebaseChangedTriggers();
 					sprite.initIfConditionBrickTriggers();
 					if (!isGlobal && !sprite.getLookList().isEmpty()) {
 						sprite.look.setLookData(sprite.getLookList().get(0));
@@ -1692,6 +1698,13 @@ public class StageListener implements ApplicationListener {
 	public void dispose() {
 		executeExitScriptsSynchronously();
 
+		// Dispose the native Box2D world. Previously never released, leaking the
+		// world (and all bodies) in native memory on every stage exit.
+		if (physicsWorld != null) {
+			physicsWorld.dispose();
+			physicsWorld = null;
+		}
+
 		if (stage != null) {
 			for (Actor actor : stage.getActors()) {
 				if (actor instanceof Look) {
@@ -1801,6 +1814,11 @@ public class StageListener implements ApplicationListener {
 		if (vmTexture != null) {
 			vmTexture.dispose();
 			vmTexture = null;
+		}
+
+		// Detach the shared holder to avoid leaking this StageListener after teardown.
+		if (StageListenerHolder.INSTANCE.getListener() == this) {
+			StageListenerHolder.INSTANCE.setListener(null);
 		}
 	}
 

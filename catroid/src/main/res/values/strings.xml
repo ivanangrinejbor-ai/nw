@@ -121,6 +121,9 @@
     <string formatted="false" name="brick_detach_from_camera">Detach object from camera</string>
     <string formatted="false" name="brick_set_max_point_lights">Set max active point lights</string>
     <string formatted="false" name="brick_3d_object_name">Object ID</string>
+    <string formatted="false" name="brick_offset_x">X:</string>
+    <string formatted="false" name="brick_offset_y">Y:</string>
+    <string formatted="false" name="brick_offset_z">Z:</string>
 
     <string name="particle_lifetime">Lifetime</string>
     <string name="particle_color">Color</string>
@@ -747,6 +750,12 @@
     <string name="scene_transition_start">On start</string>
     <string name="scene_transition_exit">On leave</string>
     <string name="export_with_password">Export with password</string>
+    <string name="export_bake">Bake project</string>
+    <string name="export_as_apk">Export as APK</string>
+    <string name="export_as_exe">Export as EXE (2D only)</string>
+    <string name="export_as_apk_v2">Export as APK v2</string>
+    <string name="export_exe_coming_soon">EXE export is 2D-only. 3D blocks are not supported in the desktop player yet.</string>
+    <string name="export_exe_2d_only_warning">Warning: this desktop EXE is 2D-only. 3D blocks, 3D camera, and 3D renderer features are not supported.</string>
     <string name="enter_export_password">Enter export password</string>
     <string name="password_hint">Password</string>
     <string name="confirm_password_hint">Confirm password</string>
@@ -1135,6 +1144,16 @@
 <string formatted="false" name="firebase_key">Key</string>
 <string formatted="false" name="firebase_value">Value</string>
 <string formatted="false" name="firebase_store">and store in</string>
+<string formatted="false" name="firebase_upload">Upload to Firebase Storage</string>
+<string formatted="false" name="firebase_download">Download from Firebase Storage</string>
+<string formatted="false" name="firebase_list">List Firebase Storage files</string>
+<string formatted="false" name="firebase_delete_storage">Delete from Firebase Storage</string>
+<string formatted="false" name="firebase_bucket">Bucket URL</string>
+    <string formatted="false" name="firebase_storage_path">Remote path</string>
+    <string formatted="false" name="brick_when_firebase_changed">When Firebase value changes at</string>
+    <string formatted="false" name="brick_when_firebase_changed_path">path</string>
+<string formatted="false" name="firebase_storage_prefix">Prefix</string>
+<string formatted="false" name="firebase_local_file">Local file</string>
 <string name="brick_set_3d_sound_position">Set 3D sound position</string>
 <string name="brick_load_scene_additive">Load scene additively</string>
 <string name="brick_load_scene_additive_path">from file</string>
@@ -2161,12 +2180,29 @@
 <string formatted="false" name="build_apk_package">Package:</string>
 <string formatted="false" name="build_apk_version_name">Version:</string>
 <string formatted="false" name="build_apk_version_code">Version code:</string>
+<string formatted="false" name="build_apk_password">Protection password (optional):</string>
+<string formatted="false" name="build_apk_invalid_package">Invalid package name. Use lowercase letters, digits and dots, e.g. com.example.app</string>
+<string formatted="false" name="build_apk_invalid_sdk">Min SDK cannot be greater than Target SDK</string>
+<string formatted="false" name="payload_password_title">Encrypted project</string>
+<string formatted="false" name="payload_password_message">This project is protected. Enter the password set when the APK was built.</string>
+<string formatted="false" name="payload_password_hint">Password</string>
 <string formatted="false" name="build_apk_icon">App icon</string>
 <string formatted="false" name="build_apk_start">Build APK</string>
-<string formatted="false" name="build_apk_progress">Building APK...</string>
+    <string formatted="false" name="build_apk_progress">Building APK...</string>
+    <string formatted="false" name="build_apk_tab_basic">Basic</string>
+    <string formatted="false" name="build_apk_tab_permissions">Permissions</string>
+    <string formatted="false" name="build_apk_tab_sdk">SDK</string>
+    <string formatted="false" name="build_apk_tab_icon">Icon</string>
+    <string formatted="false" name="build_apk_permissions_hint">Select the permissions the app needs:</string>
+    <string formatted="false" name="build_apk_min_sdk">Min SDK:</string>
+    <string formatted="false" name="build_apk_target_sdk">Target SDK:</string>
+    <string formatted="false" name="build_apk_icon_from_project">Project icon (screenshot)</string>
+    <string formatted="false" name="build_apk_icon_default">NeoCatroid icon</string>
+    <string formatted="false" name="build_apk_icon_none_hint">Project has no icon, NeoCatroid icon will be used.</string>
 <string formatted="false" name="build_apk_success">APK built successfully</string>
 <string formatted="false" name="build_apk_error">Build failed</string>
 <string formatted="false" name="build_apk_no_template">Template APK not found. Please build template first.</string>
+<string formatted="false" name="build_apk_versioncode_warning">Warning: version code 1. If you already installed this app, increase the version code to update it.</string>
 <string formatted="false" name="export_project">Export project</string>
 <string formatted="false" name="encrypt_project_title">Protect project with password</string>
 <string formatted="false" name="encrypt_project_summary">Project will be encrypted. Required password to import.</string>
@@ -2310,7 +2346,14 @@
 <string formatted="false" name="brick_context_dialog_highlight_brick_parts">Highlight brick parts</string>
 <string formatted="false" name="brick_context_dialog_comment_in_script">Enable script</string>
 <string formatted="false" name="brick_context_dialog_comment_out_script">Disable script</string>
-<string formatted="false" name="brick_context_dialog_help">Help</string>
+    <string formatted="false" name="brick_context_dialog_help">Help</string>
+    <string formatted="false" name="brick_context_dialog_lock">Lock brick</string>
+    <string formatted="false" name="brick_context_dialog_unlock">Unlock brick</string>
+    <string formatted="false" name="brick_locked">Brick locked</string>
+    <string formatted="false" name="brick_unlocked">Brick unlocked</string>
+    <string formatted="false" name="brick_wrong_password">Wrong password</string>
+    <string formatted="false" name="brick_password_empty">Password cannot be empty</string>
+    <string formatted="false" name="brick_lock_warning">If you forget the password, the brick cannot be unlocked or deleted.</string>
 <string formatted="false" name="comment_in_out">Disable/enable</string>
 <string formatted="false" name="catblocks">Toggle 2D</string>
 <string formatted="false" name="catblocks_reorder">Clean up scripts</string>
@@ -2600,7 +2643,7 @@
 <string formatted="false" name="brick_note"></string>
 <string formatted="false" name="project_options_custom_resolution">User resolution</string>
 <string formatted="false" name="project_options_preloader">Preloader screen</string>
-<string formatted="false" name="project_options_precompile">Precompile on launch</string>
+
 <string formatted="false" name="preloader_compiling">Compiling scene:</string>
 <string formatted="false" name="preloader_loading">Loading...</string>
 <string formatted="false" name="brick_think_bubble">Think</string>
@@ -4296,5 +4339,34 @@ needs read and write access to it. You can always change permissions through you
         <item>Almost any value on the stage can be read by a sensor block.</item>
         <item>You can back up your projects and restore them later from a zip file.</item>
     </string-array>
+
+    <!-- ============ APK Builder V3 ============ -->
+    <string name="export_as_apk_v3">APK Builder V3</string>
+    <string name="v3_loading_title">NeoCatroid</string>
+    <string name="v3_loading">Loading…</string>
+    <string name="v3_decrypting">Decrypting project…</string>
+    <string name="v3_decrypting_meta">Decrypting metadata…</string>
+    <string name="v3_extracting">Extracting resources…</string>
+    <string name="v3_preparing">Preparing scenes…</string>
+    <string name="v3_initializing">Initializing runtime…</string>
+    <string name="v3_starting">Starting game…</string>
+    <string name="v3_load_failed">Failed to load project</string>
+    <string name="v3_fun_fact_prefix">Fun fact: %s</string>
+
+    <string name="v3_building_apk">Building APK…</string>
+
+    <string name="v3_app_name">App name</string>
+    <string name="v3_package_name">Package name</string>
+    <string name="v3_version_name">Version name</string>
+    <string name="v3_version_code">Version code</string>
+    <string name="v3_min_sdk">Min SDK</string>
+    <string name="v3_target_sdk">Target SDK</string>
+    <string name="v3_template_type">Template</string>
+    <string name="v3_template_light">Light (low memory)</string>
+    <string name="v3_template_full">Full (fast)</string>
+    <string name="v3_permissions">Permissions</string>
+    <string name="v3_icon">App icon</string>
+    <string name="v3_icon_project">Use project icon</string>
+    <string name="v3_icon_default">Default icon</string>
 
 </resources>

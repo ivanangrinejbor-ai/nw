@@ -9,7 +9,7 @@ import android.util.Log
 import android.widget.ProgressBar
 import android.widget.TextView
 import org.catrobat.catroid.R
-import org.catrobat.catroid.io.ProjectCrypto
+import org.catrobat.catroid.apkbuild.PayloadDecryptor
 import org.catrobat.catroid.io.ZipArchiver
 import org.catrobat.catroid.stage.StageActivity
 import java.io.File
@@ -67,9 +67,9 @@ class RuntimeLoaderActivity : Activity() {
     }
 
     private fun prepareBakedProject(): File? {
+        val cacheBase = File(cacheDir, "baked_project")
         return try {
             val encryptedName = ProtectedProjectPayload.ENCRYPTED_ASSET_NAME
-            val cacheBase = File(cacheDir, "baked_project")
             if (cacheBase.exists()) {
                 cacheBase.deleteRecursively()
             }
@@ -84,7 +84,17 @@ class RuntimeLoaderActivity : Activity() {
                 }
             }
 
-            if (!ProjectCrypto.decrypt(encryptedFile, decryptedZip, ProtectedProjectPayload.PASSWORD)) {
+            // Try to read the per-build dynamic key first
+            val password = try {
+                assets.open(ProtectedProjectPayload.KEY_ASSET_NAME).use { keyInput ->
+                    keyInput.bufferedReader().readText().trim()
+                }
+            } catch (e: Exception) {
+                // No key file — fall back to static password (backward compat)
+                ProtectedProjectPayload.PASSWORD
+            }
+
+            if (!PayloadDecryptor.decrypt(this, encryptedFile, decryptedZip, password)) {
                 Log.e("RuntimeLoader", "Failed to decrypt baked project")
                 return null
             }
@@ -95,6 +105,7 @@ class RuntimeLoaderActivity : Activity() {
             cacheBase
         } catch (e: Exception) {
             Log.e("RuntimeLoader", "Cannot prepare baked project", e)
+            try { cacheBase.deleteRecursively() } catch (_: Exception) {}
             null
         }
     }

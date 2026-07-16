@@ -9,14 +9,17 @@ import org.catrobat.catroid.content.bricks.FormulaBrick
 import org.catrobat.catroid.content.bricks.ScriptBrick
 import org.catrobat.catroid.formulaeditor.Formula
 import org.catrobat.catroid.userbrick.UserDefinedBrickInput
+import java.io.BufferedWriter
 import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
+import java.io.Writer
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
 import java.util.IdentityHashMap
 
 class ProjectBaker(private val context: Context) {
 
-    private val sb = StringBuilder()
     private val imports = mutableSetOf<String>()
 
     private val bakedObjects = IdentityHashMap<Any, String>()
@@ -44,31 +47,54 @@ class ProjectBaker(private val context: Context) {
         addImport("org.catrobat.catroid.content.bricks.ScriptBrick")
     }
 
-    fun bake(project: Project): String {
-        sb.setLength(0)
+    fun bake(project: Project, writer: Writer): List<String> {
         bakedObjects.clear()
         varCounter = 0
         imports.clear()
 
         addDefaultImports()
 
-        val body = StringBuilder()
-
         val pVar = "proj"
         bakedObjects[project] = pVar
-        body.append("var $pVar = CreateEmptyProjectContext();\n")
+        writer.append("var $pVar = CreateEmptyProjectContext();\n")
 
-        fillFields(body, pVar, project)
+        fillFields(writer, pVar, project)
 
-        body.append("\nSetGlobalProject($pVar);\n")
+        writer.append("\nSetGlobalProject($pVar);\n")
 
-        val header = StringBuilder()
-        imports.sorted().forEach { header.append("import $it;\n") }
-
-        return header.toString() + "\n" + body.toString()
+        return imports.sorted()
     }
 
-    private fun getValueCode(body: StringBuilder, value: Any?): String {
+    /**
+     * Bakes [project] into a minified LunoScript file at [initFile].
+     *
+     * The (potentially huge) script is streamed straight to disk, so it is never held
+     * as a single String in the heap -- this is what lets very large projects be baked
+     * without an OutOfMemoryError. Imports are collected during traversal and written at
+     * the top of the file (as required by LunoScript).
+     */
+    fun bakeToFile(project: Project, initFile: File) {
+        val bodyFile = File(initFile.parent ?: ".", "${initFile.nameWithoutExtension}.body.tmp")
+        val imports = try {
+            FileOutputStream(bodyFile).bufferedWriter(Charsets.UTF_8).use { bw ->
+                MinifyingWriter(bw).use { mw -> bake(project, mw) }
+            }
+        } catch (e: Throwable) {
+            bodyFile.delete()
+            throw e
+        }
+        try {
+            val header = buildString { imports.forEach { append("import $it;\n") } }
+            FileOutputStream(initFile).use { fos ->
+                fos.write(header.toByteArray(Charsets.UTF_8))
+                FileInputStream(bodyFile).use { bis -> bis.copyTo(fos, 64 * 1024) }
+            }
+        } finally {
+            bodyFile.delete()
+        }
+    }
+
+    private fun getValueCode(body: Appendable, value: Any?): String {
         if (value == null) return "null"
 
         return when (value) {
@@ -109,7 +135,7 @@ class ProjectBaker(private val context: Context) {
         }
     }
 
-    private fun bakeObject(body: StringBuilder, obj: Any): String {
+    private fun bakeObject(body: Appendable, obj: Any): String {
         if (bakedObjects.containsKey(obj)) {
             return bakedObjects[obj]!!
         }
@@ -144,7 +170,7 @@ class ProjectBaker(private val context: Context) {
         return varName
     }
 
-    private fun bakeList(body: StringBuilder, list: List<*>): String {
+    private fun bakeList(body: Appendable, list: List<*>): String {
         val listVar = nextVar("list")
         body.append("var $listVar = ArrayList();\n")
 
@@ -161,7 +187,7 @@ class ProjectBaker(private val context: Context) {
         return listVar
     }
 
-    private fun fillFields(body: StringBuilder, varName: String, obj: Any) {
+    private fun fillFields(body: Appendable, varName: String, obj: Any) {
 
         if (obj is Scene) {
             val proj = obj.project
@@ -292,14 +318,14 @@ class ProjectBaker(private val context: Context) {
         return sb.toString()
     }
 
-    private fun bakeFormula(body: StringBuilder, formula: Formula): String {
+    private fun bakeFormula(body: Appendable, formula: Formula): String {
         addImport(org.catrobat.catroid.formulaeditor.Formula::class.java.name)
         val rootElement = formula.formulaTree
         val rootVar = bakeFormulaElement(body, rootElement)
         return "Formula($rootVar)"
     }
 
-    private fun bakeFormulaElement(body: StringBuilder, element: org.catrobat.catroid.formulaeditor.FormulaElement?): String {
+    private fun bakeFormulaElement(body: Appendable, element: org.catrobat.catroid.formulaeditor.FormulaElement?): String {
         if (element == null) return "null"
 
         val varName = nextVar("elem")
@@ -322,4 +348,79 @@ class ProjectBaker(private val context: Context) {
 
         return varName
     }
+
+    companion object {
+        // (Minification is now done on the fly by MinifyingWriter during streaming bake.)
+    }
+}
+
+/**
+ * A [Writer] that minifies LunoScript on the fly: it drops `//` and `/* */` comments and
+ * collapses runs of whitespace to a single space (outside of string literals), while
+ * preserving string contents verbatim. Because it writes straight to the wrapped writer,
+ * the (potentially huge) script is never buffered as a whole in memory.
+ */
+private class MinifyingWriter(private val out: Writer) : Writer() {
+    private var inString = false
+    private var inLineComment = false
+    private var inBlockComment = false
+    private var prevSpace = false
+    private var wroteAny = false
+    private var pending = -1
+
+    private fun emit(c: Char) {
+        out.write(c.code)
+        wroteAny = true
+        prevSpace = false
+    }
+
+    override fun write(cbuf: CharArray?, off: Int, len: Int) {
+        if (cbuf == null) return
+        var i = off
+        val end = off + len
+
+        // Carry over a char buffered at the end of the previous write() because it needed
+        // the following char to decide (a potential comment start, or an escape in a string).
+        if (pending != -1) {
+            val p = pending.toChar()
+            pending = -1
+            val nxt = if (i < end) cbuf[i] else '\u0000'
+            when {
+                p == '\\' && inString && nxt != '\u0000' -> { out.write(p.code); out.write(nxt.code); wroteAny = true; prevSpace = false; i++ }
+                p == '/' && nxt == '/' -> { inLineComment = true; i++ }
+                p == '/' && nxt == '*' -> { inBlockComment = true; i++ }
+                else -> { emit(p); i++ }
+            }
+        }
+
+        while (i < end) {
+            val c = cbuf[i]
+            val next = if (i + 1 < end) cbuf[i + 1] else '\u0000'
+            when {
+                inLineComment -> { if (c == '\n') inLineComment = false; i++ }
+                inBlockComment -> { if (c == '*' && next == '/') { inBlockComment = false; i += 2 } else i++ }
+                inString -> {
+                    out.write(c.code); wroteAny = true; prevSpace = false
+                    when {
+                        c == '\\' && i + 1 < end -> { out.write(next.code); i += 2 }
+                        c == '\\' -> { pending = c.code; i++ }   // escape; need next buffer
+                        c == '"' -> { inString = false; i++ }
+                        else -> i++
+                    }
+                }
+                c == '"' -> { out.write(c.code); inString = true; wroteAny = true; prevSpace = false; i++ }
+                c == '/' && next == '/' -> { inLineComment = true; i += 2 }
+                c == '/' && next == '*' -> { inBlockComment = true; i += 2 }
+                c == '/' && i + 1 >= end -> { pending = c.code; i++ }  // hold, decide next buffer
+                c.isWhitespace() -> {
+                    if (!prevSpace && wroteAny) { out.write(' '.code); prevSpace = true }
+                    i++
+                }
+                else -> { out.write(c.code); wroteAny = true; prevSpace = false; i++ }
+            }
+        }
+    }
+
+    override fun flush() { out.flush() }
+    override fun close() { out.close() }
 }

@@ -109,7 +109,8 @@ public interface Brick extends Serializable, Cloneable {
 		NOTIFICATION_ACTION_ID, NOTIFICATION_ACTION_ICON, NOTIFICATION_ACTION_HINT,
 		NOTIFICATION_ACTION_BEHAVIOR, NOTIFICATION_ACTION_HAS_INPUT,
 		PING_HOST, DOWNLOAD_URL, DOWNLOAD_FILENAME, DOWNLOAD_PATH, WS_URL, WS_MESSAGE,
-		AD_UNIT_ID, AD_APP_ID, AD_POSITION;
+		AD_UNIT_ID, AD_APP_ID, AD_POSITION,
+		FIREBASE_BUCKET, FIREBASE_STORAGE_PATH, FIREBASE_TRIGGER_BUCKET, FIREBASE_TRIGGER_PATH;
 
 	public static final BrickField[] EXPECTS_STRING_VALUE = {VARIABLE, NOTE, SPEAK, STRING, ASK_QUESTION,
 			NFC_NDEF_MESSAGE, ASK_SPEECH_QUESTION, LIST_ADD_ITEM, INSERT_ITEM_INTO_USERLIST_VALUE,
@@ -234,6 +235,14 @@ public interface Brick extends Serializable, Cloneable {
 	String getHelpUrl(String category);
 
 	UUID getBrickID();
+
+	boolean isLocked();
+
+	void setLock(String password);
+
+	void clearLock();
+
+	boolean verifyLock(String password);
 
 	List<Brick> findBricksInNestedBricks(List<UUID> brickIds);
 

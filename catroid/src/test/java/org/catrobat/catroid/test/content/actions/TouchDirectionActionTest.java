@@ -6,10 +6,10 @@
  */
 package org.catrobat.catroid.test.content.actions;
 
+import com.badlogic.gdx.scenes.scene2d.actions.SequenceAction;
+
 import org.catrobat.catroid.content.Scope;
-import org.catrobat.catroid.content.Script;
 import org.catrobat.catroid.content.Sprite;
-import org.catrobat.catroid.content.actions.ScriptSequenceAction;
 import org.catrobat.catroid.content.actions.TouchDirectionAction;
 import org.catrobat.catroid.utils.TouchUtil;
 import org.junit.Before;
@@ -36,7 +36,7 @@ public class TouchDirectionActionTest {
         sprite = new Sprite("testSprite");
         sprite.look.setXInUserInterfaceDimensionUnit(0f);
         sprite.look.setYInUserInterfaceDimensionUnit(0f);
-        scope = new Scope(null, sprite, new ScriptSequenceAction(null));
+        scope = new Scope(null, sprite, new SequenceAction());
     }
 
     @Test

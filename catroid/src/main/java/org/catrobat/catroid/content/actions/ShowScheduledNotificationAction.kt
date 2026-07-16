@@ -20,8 +20,10 @@ class ShowScheduledNotificationAction : TemporalAction() {
 
     override fun update(percent: Float) {
         if (started) return
-        val id = notificationId?.interpretInteger(scope) ?: return
-        val delayMs = (delay?.interpretDouble(scope)?.toLong() ?: 0L) * 1000L
+        val s = scope ?: return
+        val id = notificationId?.interpretInteger(s) ?: return
+        val rawDelay = delay?.interpretDouble(s) ?: 0.0
+        val delayMs = if (rawDelay > Long.MAX_VALUE / 1000) 0L else (rawDelay * 1000).toLong()
         started = true
         try {
             NotificationServiceHolder.service.showScheduled(id, delayMs)

@@ -53,6 +53,9 @@ public class Formula implements Serializable {
     private String cachedStringValue = null;
 
 	public Formula(FormulaElement formulaElement) {
+		if (formulaElement == null) {
+			formulaElement = new FormulaElement(ElementType.NUMBER, "0", null);
+		}
 		formulaTree = formulaElement;
 		internFormula = new InternFormula(formulaTree.getInternTokenList());
 	}
@@ -159,7 +162,10 @@ public class Formula implements Serializable {
 	}
 
 	public Integer interpretInteger(Scope scope) throws InterpretationException {
-		return interpretDouble(scope).intValue();
+		double d = interpretDouble(scope);
+		if (d < Integer.MIN_VALUE) return Integer.MIN_VALUE;
+		if (d > Integer.MAX_VALUE) return Integer.MAX_VALUE;
+		return (int) d;
 	}
 
     public Double interpretDouble(Scope scope) throws InterpretationException {
@@ -221,7 +227,7 @@ public class Formula implements Serializable {
 			throw new InterpretationException("NaN in interpretString()");
 		}
 
-		String value = String.valueOf(interpretation);
+		String value = interpretation == null ? "" : String.valueOf(interpretation);
 		return trimTrailingCharacters(value);
 	}
 

@@ -8,6 +8,10 @@
     native <methods>;
 }
 
+# Keep APK Builder V3 runtime (loader + decryption + strategies)
+-keep class org.catrobat.catroid.apkbuildV3.** { *; }
+-keep class org.catrobat.catroid.apkbuildV3.runtime.** { *; }
+
 # Keep all action/brick classes used by baked runtime
 -keep class org.catrobat.catroid.CatroidApplication { *; }
 -keep class org.catrobat.catroid.content.** { *; }

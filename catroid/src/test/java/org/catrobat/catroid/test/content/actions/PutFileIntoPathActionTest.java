@@ -8,15 +8,14 @@ package org.catrobat.catroid.test.content.actions;
 
 import android.os.Environment;
 
+import com.badlogic.gdx.scenes.scene2d.actions.SequenceAction;
 import com.badlogic.gdx.utils.GdxNativesLoader;
 
 import org.catrobat.catroid.ProjectManager;
 import org.catrobat.catroid.content.Project;
 import org.catrobat.catroid.content.Scene;
 import org.catrobat.catroid.content.Scope;
-import org.catrobat.catroid.content.Script;
 import org.catrobat.catroid.content.Sprite;
-import org.catrobat.catroid.content.actions.ScriptSequenceAction;
 import org.catrobat.catroid.formulaeditor.Formula;
 import org.catrobat.catroid.test.MockUtil;
 import org.junit.Before;
@@ -57,7 +56,7 @@ public class PutFileIntoPathActionTest {
         scene.addSprite(sprite);
         project.addScene(scene);
         ProjectManager.getInstance().setCurrentProject(project);
-        scope = new Scope(project, sprite, new ScriptSequenceAction(null));
+        scope = new Scope(project, sprite, new SequenceAction());
 
         downloadsDir = tempFolder.newFolder("Downloads");
         when(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS))
@@ -74,7 +73,7 @@ public class PutFileIntoPathActionTest {
         String destPath = new File(destDir, "copied.txt").getAbsolutePath();
 
         sprite.getActionFactory()
-                .createPutFileIntoPathAction(sprite, new ScriptSequenceAction(null),
+                .createPutFileIntoPathAction(sprite, new SequenceAction(),
                         new Formula("test.txt"), new Formula(destPath))
                 .act(1.0f);
 
@@ -90,7 +89,7 @@ public class PutFileIntoPathActionTest {
         File destDir = tempFolder.newFolder("destDir");
 
         sprite.getActionFactory()
-                .createPutFileIntoPathAction(sprite, new ScriptSequenceAction(null),
+                .createPutFileIntoPathAction(sprite, new SequenceAction(),
                         new Formula("test.txt"), new Formula(destDir.getAbsolutePath()))
                 .act(1.0f);
 
@@ -107,7 +106,7 @@ public class PutFileIntoPathActionTest {
         String traversalPath = new File(downloadsDir.getParentFile(), "outside.txt").getAbsolutePath();
 
         sprite.getActionFactory()
-                .createPutFileIntoPathAction(sprite, new ScriptSequenceAction(null),
+                .createPutFileIntoPathAction(sprite, new SequenceAction(),
                         new Formula("test.txt"), new Formula(traversalPath))
                 .act(1.0f);
 
@@ -119,7 +118,7 @@ public class PutFileIntoPathActionTest {
         String destPath = new File(downloadsDir, "copied.txt").getAbsolutePath();
 
         sprite.getActionFactory()
-                .createPutFileIntoPathAction(sprite, new ScriptSequenceAction(null),
+                .createPutFileIntoPathAction(sprite, new SequenceAction(),
                         new Formula("nonexistent.txt"), new Formula(destPath))
                 .act(1.0f);
 
@@ -129,7 +128,7 @@ public class PutFileIntoPathActionTest {
     @Test
     public void testNullSourceNameDoesNothing() {
         sprite.getActionFactory()
-                .createPutFileIntoPathAction(sprite, new ScriptSequenceAction(null),
+                .createPutFileIntoPathAction(sprite, new SequenceAction(),
                         null, new Formula("/some/path"))
                 .act(1.0f);
         // Should not throw
@@ -142,7 +141,7 @@ public class PutFileIntoPathActionTest {
         assertTrue(sourceFile.createNewFile());
 
         sprite.getActionFactory()
-                .createPutFileIntoPathAction(sprite, new ScriptSequenceAction(null),
+                .createPutFileIntoPathAction(sprite, new SequenceAction(),
                         new Formula("test.txt"), new Formula(""))
                 .act(1.0f);
 

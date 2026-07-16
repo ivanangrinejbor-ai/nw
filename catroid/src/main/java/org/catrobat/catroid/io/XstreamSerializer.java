@@ -55,6 +55,7 @@ import org.catrobat.catroid.content.WhenBackgroundChangesScript;
 import org.catrobat.catroid.content.WhenBounceOffScript;
 import org.catrobat.catroid.content.WhenClonedScript;
 import org.catrobat.catroid.content.WhenConditionScript;
+import org.catrobat.catroid.content.WhenFirebaseChangedScript;
 import org.catrobat.catroid.content.WhenGamepadButtonScript;
 import org.catrobat.catroid.content.WhenNfcScript;
 import org.catrobat.catroid.content.WhenScript;
@@ -262,6 +263,7 @@ public final class XstreamSerializer {
 		xstream.alias("script", WhenClonedScript.class);
 		xstream.alias("script", WhenScript.class);
 		xstream.alias("script", WhenConditionScript.class);
+		xstream.alias("whenFirebaseChangedScript", WhenFirebaseChangedScript.class);
 		xstream.alias("script", WhenNfcScript.class);
 		xstream.alias("script", BroadcastScript.class);
 		xstream.alias("script", RaspiInterruptScript.class);
@@ -942,6 +944,12 @@ public final class XstreamSerializer {
         xstream.alias("brick", ContinueMovementBrick.class);
         xstream.alias("brick", HasPathBrick.class);
 
+        // Firebase Storage bricks
+        xstream.alias("brick", UploadFileToFirebaseBrick.class);
+        xstream.alias("brick", DownloadFileFromFirebaseBrick.class);
+        xstream.alias("brick", ListFirebaseFilesBrick.class);
+        xstream.alias("brick", DeleteFirebaseFileBrick.class);
+
         for (XStreamSetupListener listener : pluginListeners) {
             listener.onSetup(xstream);
         }
@@ -1053,9 +1061,11 @@ public final class XstreamSerializer {
 	}
 
 	private static void setFileReferences(Project project) {
+		int removedTotal = 0;
 		for (Scene scene : project.getSceneList()) {
 			File imageDir = new File(scene.getDirectory(), IMAGE_DIRECTORY_NAME);
 			File soundDir = new File(scene.getDirectory(), SOUND_DIRECTORY_NAME);
+			int sceneRemoved = 0;
 
 			for (Sprite sprite : scene.getSpriteList()) {
 				for (Iterator<LookData> iterator = sprite.getLookList().iterator(); iterator.hasNext(); ) {
@@ -1066,6 +1076,7 @@ public final class XstreamSerializer {
 						lookData.setFile(lookFile);
 					} else {
 						iterator.remove();
+						sceneRemoved++;
 					}
 				}
 
@@ -1080,6 +1091,12 @@ public final class XstreamSerializer {
 					}
 				}
 			}
+			removedTotal += sceneRemoved;
+			Log.d(TAG, "setFileReferences: scene='" + scene.getName() + "' imageDir=" + imageDir.getAbsolutePath()
+					+ " removedLooks=" + sceneRemoved);
+		}
+		if (removedTotal > 0) {
+			Log.w(TAG, "setFileReferences: REMOVED " + removedTotal + " looks/sounds because files were missing!");
 		}
 	}
 	private boolean unnecessaryChanges(String currentXml, String previousXml) {

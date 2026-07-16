@@ -4,42 +4,46 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
 
 class DesktopInput {
-    /** Состояние мыши на ПРЕДЫДУЩЕМ кадре (для justPressed/justReleased). */
+    /** Mouse state on the previous frame (for justPressed/justReleased). */
     var wasMouseDown = false
-    /** Внутренний флаг для двухкадрового трекинга. */
+    /** Internal flag for two-frame tracking. */
     private var previousMouseDown = false
-    /** Позиция мыши на предыдущем кадре (для delta). */
-    private var prevMouseX = 0f
-    private var prevMouseY = 0f
-    /** Флаг касания для сенсоров. */
+    /** Mouse position on the previous frame, in stage coordinates. */
+    private var prevMouseWorldX = 0f
+    private var prevMouseWorldY = 0f
+    /** Touch state for sensing bricks. */
     var isTouched: Boolean = false
         private set
-    /** Позиция пальца/мыши для сенсоров FINGER_X/Y. */
+    /** Finger/mouse position in stage coordinates. */
     var fingerX: Float = 0f
         private set
     var fingerY: Float = 0f
         private set
 
-    /** Simulate a tap at the given position (used by TapAtBrick). */
+    /** Simulate a tap at the given stage position (used by TapAtBrick). */
     fun simulateTap(x: Float, y: Float) {
         fingerX = x
         fingerY = y
         isTouched = true
     }
-    /** Дельта мыши за кадр. */
+
+    /** Mouse delta per frame in stage coordinates. */
     val mouseDeltaX: Float
-        get() = mouseX - prevMouseX
+        get() = mouseWorldX - prevMouseWorldX
     val mouseDeltaY: Float
-        get() = mouseY - prevMouseY
+        get() = mouseWorldY - prevMouseWorldY
 
     val mouseX: Float
         get() = Gdx.input.x.toFloat()
     val mouseY: Float
         get() = Gdx.input.y.toFloat()
+
+    /** Mouse position in stage coordinates, centered at (0, 0). */
     val mouseWorldX: Float
-        get() = mouseX
+        get() = mouseX - Gdx.graphics.width / 2f
     val mouseWorldY: Float
-        get() = Gdx.graphics.height - mouseY
+        get() = Gdx.graphics.height / 2f - mouseY
+
     val isMouseDown: Boolean
         get() = Gdx.input.isButtonPressed(Input.Buttons.LEFT)
     val isMouseJustPressed: Boolean
@@ -49,21 +53,22 @@ class DesktopInput {
 
     init {
         previousMouseDown = isMouseDown
-        prevMouseX = mouseX
-        prevMouseY = mouseY
+        prevMouseWorldX = mouseWorldX
+        prevMouseWorldY = mouseWorldY
     }
 
     var mouseScroll: Float = 0f
         private set
-    /** Вызывается ОДИН раз за кадр, ДО проверки состояний. */
+
+    /** Called once per frame before sensing checks. */
     fun update() {
         wasMouseDown = previousMouseDown
         previousMouseDown = isMouseDown
         isTouched = isMouseDown
-        fingerX = mouseX
-        fingerY = Gdx.graphics.height - mouseY
-        prevMouseX = mouseX
-        prevMouseY = mouseY
+        fingerX = mouseWorldX
+        fingerY = mouseWorldY
+        prevMouseWorldX = mouseWorldX
+        prevMouseWorldY = mouseWorldY
         mouseScroll = Gdx.input.deltaY.toFloat()
     }
 

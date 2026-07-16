@@ -3,31 +3,25 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <application
-        tools:replace="android:theme, android:label"
-        android:theme="@style/AppTheme.Player"
-        android:label="APK Template">
+        tools:replace="android:theme"
+        android:theme="@style/AppTheme.Player">
         <!-- app_name_player мы создадим ниже -->
 
-        <!-- Удаляем лишние intent-фильтры -->
+        <!-- Удаляем intent-фильтры из редакторских Activity — они не нужны в плеере -->
         <activity
             android:name=".ui.ProjectListActivity"
-            android:exported="true"
             tools:node="merge">
             <intent-filter tools:node="removeAll" />
         </activity>
         <activity
             android:name="org.catrobat.catroid.ui.neopaint.NeoPaintActivity"
-            android:exported="true"
             tools:node="merge">
             <intent-filter tools:node="removeAll" />
         </activity>
         <activity
             android:name=".ui.MainMenuActivity"
-            android:exported="true"
             tools:node="merge">
-            <intent-filter
-                android:autoVerify="true"
-                tools:node="remove" />
+            <intent-filter tools:node="removeAll" />
         </activity>
     </application>
 </manifest>

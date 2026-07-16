@@ -16,6 +16,8 @@ catroid/google-services.json
 *.pk8
 *.pem
 catroid/keystore
+# extensionless real keystore accidentally committed
+catroid/dummyKeystore
 
 # Gradle
 .gradle/
@@ -121,8 +123,9 @@ app-classes.jar
 *.log
 hs_err_pid*.log
 replay_*.log
+*.trace
 cpu-perfetto-*.trace
-build_*.log
+build_*.txt
 assemble*.txt
 clean_compile*.txt
 compile_*.txt
@@ -130,6 +133,8 @@ gradle_*.txt
 copy_template_*.txt
 build_output*.txt
 build_debug*.txt
+*.perfetto-trace
+*.trace.gz
 
 # Ignore all .bin files that are likely build artifacts
 # (but not if .bin is a legitimate asset — typically assets have specific names)

@@ -32,7 +32,12 @@ object DesktopProjectManager {
         }
 
         val project = DesktopProject(name = projectDir.name, projectDir = projectDir)
-        val imagesDir = File(projectDir, "images")
+        // Catrobat projects may nest media under a project-name folder
+        // (e.g. <project>/images, <project>/sounds), so resolve recursively.
+        val imagesDir = findDir(projectDir, "images") ?: File(projectDir, "images")
+        val soundsDir = findDir(projectDir, "sounds") ?: File(projectDir, "sounds")
+        project.imagesDir = imagesDir
+        project.soundsDir = soundsDir
 
         try {
             val factory = DocumentBuilderFactory.newInstance()
@@ -53,7 +58,7 @@ object DesktopProjectManager {
                 if (objNode.nodeType != Node.ELEMENT_NODE) continue
                 val objEl = objNode as Element
 
-                val spriteName = textOf(objEl, "name")?.trim() ?: "sprite$i"
+                val spriteName = attrOrText(objEl, "name")?.trim() ?: "sprite$i"
                 val sprite = DesktopSprite(name = spriteName)
 
                 // Позиция, размер и направление
@@ -68,10 +73,10 @@ object DesktopProjectManager {
                     val lookNode = looks.item(j)
                     if (lookNode.nodeType != Node.ELEMENT_NODE) continue
                     val lookEl = lookNode as Element
-                    val fileName = textOf(lookEl, "fileName")?.trim()
+                    val fileName = attrOrText(lookEl, "fileName")?.trim()
                     if (!fileName.isNullOrEmpty()) {
                         val look = DesktopLook(
-                            name = textOf(lookEl, "name")?.trim() ?: fileName,
+                            name = attrOrText(lookEl, "name")?.trim() ?: fileName,
                             fileName = fileName
                         )
                         loadTexture(imagesDir, fileName)?.let { look.texture = it }
@@ -97,6 +102,18 @@ object DesktopProjectManager {
         return nodes.item(0).textContent
     }
 
+    /**
+     * Catrobat's code.xml stores many fields BOTH as XML attributes and/or as
+     * child elements depending on the exporter/version. Read the attribute first,
+     * then fall back to the child-element text, so look/sprite metadata
+     * (e.g. <look fileName="...">, <object name="...">) resolves either way.
+     */
+    private fun attrOrText(el: Element, tag: String): String? {
+        val a = el.getAttribute(tag)
+        if (!a.isNullOrBlank()) return a
+        return textOf(el, tag)?.trim()
+    }
+
     private fun loadTexture(imagesDir: File, fileName: String): Texture? {
         val file = File(imagesDir, fileName)
         if (!file.exists()) {
@@ -104,11 +121,30 @@ object DesktopProjectManager {
             return null
         }
         return try {
-            Texture(file.absolutePath)
+            Texture(Gdx.files.absolute(file.absolutePath))
         } catch (e: Exception) {
             Gdx.app.error(TAG, "Failed to load texture $fileName", e)
             null
         }
+    }
+
+    /**
+     * Depth-limited recursive search for a subdirectory by [name] under [root].
+     * Catrobat zips can place media under a project-name folder, so a flat
+     * `File(root, "images")` lookup misses it.
+     */
+    private fun findDir(root: File, name: String, maxDepth: Int = 6): File? {
+        if (!root.isDirectory || maxDepth < 0) return null
+        root.listFiles()?.forEach { f ->
+            if (f.isDirectory && f.name.equals(name, ignoreCase = true)) return f
+        }
+        root.listFiles()?.forEach { f ->
+            if (f.isDirectory) {
+                val found = findDir(f, name, maxDepth - 1)
+                if (found != null) return found
+            }
+        }
+        return null
     }
 
     fun getCurrentProject(): DesktopProject? = currentProject

@@ -91,7 +91,9 @@ public class PanoramicConverter implements Disposable {
 
         Cubemap result = fbo.getColorBufferTexture();
 
-        fbo.dispose();
+        // Do NOT dispose the FBO here: its color buffer texture is the returned Cubemap
+        // and is still referenced by the caller. Disposing it would free the cubemap that
+        // is about to be used (use-after-dispose). The caller owns the returned Cubemap.
         Gdx.app.log("PanoramicConverter", "Conversion finished.");
         return result;
     }

@@ -361,7 +361,7 @@ public class ScratchConversionManager implements ConversionManager {
 					viewListener.onJobFinished(job);
 				}
 
-				downloadCallbacks.put(downloadURL, downloadCallback);
+				downloadCallbacks.put(fullDownloadURL, downloadCallback);
 
 				if (finalLocalDownloadState == Job.DownloadState.DOWNLOADING) {
 					Log.i(TAG, "Download of converted project is already RUNNNING!!");

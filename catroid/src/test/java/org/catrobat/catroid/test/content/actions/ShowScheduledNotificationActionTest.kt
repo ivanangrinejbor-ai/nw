@@ -77,7 +77,7 @@ class ShowScheduledNotificationActionTest {
             iconPath = "", importanceLevel = NotificationManager.IMPORTANCE_DEFAULT, isPinned = false
         ))
 
-        Whitebox.setInternalState(StageActivity::class.java, "activeStageActivity", null)
+        Whitebox.setInternalState(StageActivity::class.java, "activeStageActivity", null as Any?)
 
         val action = sprite.actionFactory.createShowScheduledNotificationAction(
             sprite, scriptSequence, Formula(1), Formula(0)

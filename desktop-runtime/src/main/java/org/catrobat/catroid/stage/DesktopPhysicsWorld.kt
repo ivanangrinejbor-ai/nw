@@ -37,6 +37,14 @@ class DesktopPhysicsWorld(
 
     fun getBody(sprite: DesktopSprite): Body? = bodiesBySprite[sprite]
 
+    /** Remove and destroy the physics body attached to a sprite (e.g. on clone delete). */
+    fun removeBody(sprite: DesktopSprite) {
+        val body = bodiesBySprite.remove(sprite)
+        if (body != null) {
+            world.destroyBody(body)
+        }
+    }
+
     fun hasBody(sprite: DesktopSprite): Boolean = bodiesBySprite.containsKey(sprite)
 
     /** Создать тело, если его нет. */

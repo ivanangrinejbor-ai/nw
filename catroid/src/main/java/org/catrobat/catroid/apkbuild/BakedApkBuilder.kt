@@ -23,16 +23,22 @@
 package org.catrobat.catroid.apkbuild
 
 import android.content.Context
+import android.os.StatFs
 import android.util.Log
+import android.os.Parcel
+import android.os.Parcelable
 import org.catrobat.catroid.ProjectManager
+import org.catrobat.catroid.content.Project
 import org.catrobat.catroid.io.ProjectCrypto
-import org.catrobat.catroid.utils.lunoscript.baker.ProjectBaker
+import org.catrobat.catroid.io.XstreamSerializer
+import org.catrobat.catroid.common.Constants
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
+import java.security.SecureRandom
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
@@ -52,15 +58,58 @@ object BakedApkBuilder {
 
     data class ApkConfig(
         val appName: String,
-        val packageName: String = "org.DanVexTeam.NewCatroidRuntime",
+        val packageName: String = "org.danvexteam.newcatroidruntime",
         val versionName: String = "1.0",
         val versionCode: Int = 1,
+        val permissions: List<String> = emptyList(),
+        val minSdk: Int = 21,
+        val targetSdk: Int = 35,
         val iconFile: File? = null,
+        val payloadPassword: String? = null,
         val customKeystore: File? = null,
         val keystorePass: String = "keystore",
         val keyAlias: String = "newcatroid",
         val keyPass: String = "keystore"
-    )
+    ) : Parcelable {
+        constructor(parcel: Parcel) : this(
+            appName = parcel.readString() ?: "",
+            packageName = parcel.readString() ?: "org.danvexteam.newcatroidruntime",
+            versionName = parcel.readString() ?: "1.0",
+            versionCode = parcel.readInt(),
+            permissions = parcel.createStringArrayList() ?: emptyList(),
+            minSdk = parcel.readInt(),
+            targetSdk = parcel.readInt(),
+            iconFile = parcel.readString()?.let { File(it) },
+            payloadPassword = parcel.readString(),
+            customKeystore = parcel.readString()?.let { File(it) },
+            keystorePass = parcel.readString() ?: "keystore",
+            keyAlias = parcel.readString() ?: "newcatroid",
+            keyPass = parcel.readString() ?: "keystore"
+        )
+
+        override fun writeToParcel(parcel: Parcel, flags: Int) {
+            parcel.writeString(appName)
+            parcel.writeString(packageName)
+            parcel.writeString(versionName)
+            parcel.writeInt(versionCode)
+            parcel.writeStringList(permissions)
+            parcel.writeInt(minSdk)
+            parcel.writeInt(targetSdk)
+            parcel.writeString(iconFile?.absolutePath)
+            parcel.writeString(payloadPassword)
+            parcel.writeString(customKeystore?.absolutePath)
+            parcel.writeString(keystorePass)
+            parcel.writeString(keyAlias)
+            parcel.writeString(keyPass)
+        }
+
+        override fun describeContents(): Int = 0
+
+        companion object CREATOR : Parcelable.Creator<ApkConfig> {
+            override fun createFromParcel(parcel: Parcel): ApkConfig = ApkConfig(parcel)
+            override fun newArray(size: Int): Array<ApkConfig?> = arrayOfNulls(size)
+        }
+    }
 
     sealed class BuildResult {
         data class Success(val apkFile: File) : BuildResult()
@@ -68,12 +117,27 @@ object BakedApkBuilder {
     }
 
     suspend fun build(context: Context, projectDir: File, config: ApkConfig, onProgress: (String) -> Unit): BuildResult = withContext(Dispatchers.IO) {
+        var tempDir: File? = null
         try {
             onProgress("Preparing project files...")
-            val tempDir = File(context.cacheDir, "apk_build_${System.currentTimeMillis()}")
+            tempDir = File(context.cacheDir, "apk_build_${System.currentTimeMillis()}")
             tempDir.mkdirs()
 
-            // Step 1: Load template APK
+            // Pre-flight: ensure enough temp space (~3x project size + 200 MB headroom for
+            // baked zip / encrypted payload / final APK). Avoids a mid-build disk-full crash.
+            val needed = projectDir.sizeRecursively() * 3 + 200L * 1024 * 1024
+            runCatching {
+                val stat = StatFs(tempDir.absolutePath)
+                val usable = stat.blockSizeLong * stat.availableBlocksLong
+                if (usable < needed) {
+                    tempDir.deleteRecursively()
+                    return@withContext BuildResult.Error(
+                        "Недостаточно места во временном хранилище (нужно ~${needed / (1024 * 1024)} МБ)."
+                    )
+                }
+            }
+
+            // Step 1: Load template APK (small, project-independent)
             onProgress("Loading template APK...")
             val templateApk = File(tempDir, "template_temp.apk")
 
@@ -84,6 +148,7 @@ object BakedApkBuilder {
                     FileOutputStream(templateApk).use { output -> input.copyTo(output) }
                 }
                 templateLoaded = true
+                Log.d(TAG, "DIAG: template APK extracted = ${templateApk.length() / (1024*1024)} MB")
                 Log.d(TAG, "Loaded template APK from assets: $templateAssetName")
             } catch (e: Exception) {
                 Log.w(TAG, "Template APK not found in assets: $templateAssetName")
@@ -100,54 +165,132 @@ object BakedApkBuilder {
                 }
             }
 
-            // Step 2: Build encrypted baked project payload
+            // Step 2: Build encrypted baked project payload (streaming crypto -> memory-flat)
             onProgress("Protecting project payload...")
-            val encryptedProject = File(tempDir, ProtectedProjectPayload.ENCRYPTED_ASSET_NAME)
-            createProtectedProjectPayload(context, projectDir, encryptedProject)
+            // In the editor process this is the live, possibly edited project. When the build
+            // runs in the isolated :apkbuild process, ProjectManager is empty, so reload the
+            // project from disk (the caller persists edits before launching the service).
+            val currentProject = ProjectManager.getInstance()?.currentProject
+                ?: try {
+                    XstreamSerializer.getInstance().loadProject(projectDir, context)
+                } catch (e: Exception) {
+                    tempDir.deleteRecursively()
+                    return@withContext BuildResult.Error("Не удалось загрузить проект для сборки: ${e.message}")
+                }
+            if (currentProject == null || currentProject.sceneList.isEmpty()) {
+                tempDir.deleteRecursively()
+                return@withContext BuildResult.Error("Проект пустой: нет ни одной сцены для сборки.")
+            }
 
-            // Step 3: Modify AndroidManifest in the template APK
+            // DIAGNOSTIC: project size breakdown
+            Log.d(TAG, "=== DIAG: Project directory size breakdown ===")
+            Log.d(TAG, "DIAG: projectDir = ${projectDir.absolutePath}")
+            Log.d(TAG, "DIAG: projectDir total size = ${projectDir.sizeRecursively() / (1024*1024)} MB")
+            val projFilesDir = File(projectDir, "files")
+            if (projFilesDir.exists()) Log.d(TAG, "DIAG: projectDir/files/ size = ${projFilesDir.sizeRecursively() / (1024*1024)} MB")
+            currentProject.sceneList.forEach { scene ->
+                val sceneImageDir = File(scene.directory, "images")
+                val sceneSoundDir = File(scene.directory, "sounds")
+                Log.d(TAG, "DIAG: scene '${scene.name}' image dir = ${sceneImageDir.absolutePath} exists=${sceneImageDir.exists()} size=${sceneImageDir.sizeRecursively() / (1024*1024)} MB")
+                Log.d(TAG, "DIAG: scene '${scene.name}' sound dir = ${sceneSoundDir.absolutePath} exists=${sceneSoundDir.exists()} size=${sceneSoundDir.sizeRecursively() / (1024*1024)} MB")
+                Log.d(TAG, "DIAG: scene '${scene.name}' sprites=${scene.spriteList.size}")
+            }
+            var totalLooks = 0
+            var totalSounds = 0
+            var looksWithFile = 0
+            var soundsWithFile = 0
+            var looksFileMissing = 0
+            var soundsFileMissing = 0
+            currentProject.sceneList.forEach { scene ->
+                scene.spriteList.forEach { sprite ->
+                    sprite.lookList.forEach { look ->
+                        totalLooks++
+                        if (look.file != null && look.file!!.exists()) looksWithFile++
+                        else looksFileMissing++
+                    }
+                    sprite.soundList.forEach { sound ->
+                        totalSounds++
+                        if (sound.file != null && sound.file!!.exists()) soundsWithFile++
+                        else soundsFileMissing++
+                    }
+                }
+            }
+            Log.d(TAG, "DIAG: looks total=$totalLooks withFile=$looksWithFile missing=$looksFileMissing")
+            Log.d(TAG, "DIAG: sounds total=$totalSounds withFile=$soundsWithFile missing=$soundsFileMissing")
+
+            val encryptedProject = File(tempDir, ProtectedProjectPayload.ENCRYPTED_ASSET_NAME)
+            val payloadPassword = config.payloadPassword ?: generateRandomPassword()
+            createProtectedProjectPayload(
+                context, projectDir, encryptedProject, payloadPassword, currentProject, tempDir
+            )
+            Log.d(TAG, "DIAG: encrypted payload size = ${encryptedProject.length() / (1024*1024)} MB")
+
+            // Password key file — embedded alongside the encrypted payload so RuntimeLoaderActivity
+            // can decrypt it. If the user set a custom password, that same password is used for
+            // encryption and then stored in the key file (it's still inside the APK, not secret
+            // from a determined attacker — real protection comes from the user-chosen password).
+            val keyFile = File(tempDir, ProtectedProjectPayload.KEY_ASSET_NAME)
+            keyFile.writeText(payloadPassword)
+
+            // Step 3: Apply ALL changes to the template in a SINGLE reandroid
+            // load-write cycle. This avoids corrupting binary XML files in res/
+            // which happens when tableBlock.refresh() is called multiple times
+            // (each individual modifyApk call does styleArray.clear() + refresh()).
             onProgress("Configuring application...")
             val manifestConfig = ApkToolboxManager.ManifestConfig(
                 appName = config.appName,
                 packageName = config.packageName,
                 versionName = config.versionName,
-                versionCode = config.versionCode
+                versionCode = config.versionCode,
+                minSdkVersion = config.minSdk,
+                targetSdkVersion = config.targetSdk,
+                permissionsToAdd = config.permissions,
+                debuggable = false
             )
-            if (!ApkToolboxManager.updateManifest(templateApk.absolutePath, manifestConfig)) {
-                Log.e(TAG, "Manifest update failed")
+            val pathsToDelete = listOf(
+                "assets/project",
+                "assets/project.zip",
+                "META-INF/"
+            )
+            val filesToAdd = listOf(
+                encryptedProject to "assets/${ProtectedProjectPayload.ENCRYPTED_ASSET_NAME}",
+                keyFile to "assets/${ProtectedProjectPayload.KEY_ASSET_NAME}"
+            )
+            if (!ApkToolboxManager.configureApk(
+                    templateApk.absolutePath,
+                    manifestConfig,
+                    iconFile = config.iconFile,
+                    pathsToDelete = pathsToDelete,
+                    filesToAdd = filesToAdd,
+                    workDir = tempDir
+                )) {
+                Log.e(TAG, "Combined APK configuration failed")
+                tempDir.deleteRecursively()
+                return@withContext BuildResult.Error("Не удалось настроить APK (манифест/иконка/payload).")
             }
+            Log.d(TAG, "DIAG: configured APK = ${templateApk.length() / (1024*1024)} MB")
+            val unsignedApk = templateApk
+            Log.d(TAG, "DIAG: unsigned APK (template + payload embedded) = ${unsignedApk.length() / (1024*1024)} MB")
 
-            // Step 4: Inject encrypted project payload into template APK
-            onProgress("Embedding protected project...")
-            ApkToolboxManager.deleteFromApk(templateApk.absolutePath, "assets/project")
-            ApkToolboxManager.deleteFromApk(templateApk.absolutePath, "assets/project.zip")
-            ApkToolboxManager.addFileToApk(templateApk.absolutePath, encryptedProject, "assets/${ProtectedProjectPayload.ENCRYPTED_ASSET_NAME}")
-
-            // Step 5: Replace icon if provided
-            if (config.iconFile != null && config.iconFile.exists()) {
-                onProgress("Replacing icon...")
-                ApkToolboxManager.replaceIconInApk(templateApk.absolutePath, config.iconFile)
-            }
-
-            // Step 6: Remove old signatures
-            onProgress("Removing old signatures...")
-            ApkToolboxManager.deleteFromApk(templateApk.absolutePath, "META-INF")
-
-            // Step 7: Sign APK
+            // Step 5: Sign APK
             onProgress("Signing APK...")
-            val signedApk = File(tempDir, "${config.appName.replace(" ", "_")}.apk")
+            val rawName = config.appName.replace(" ", "_")
+                .replace(Regex("""[\\/:*?"<>|]"""), "_").trim('_', '.')
+            val safeName = if (rawName.isBlank()) "app" else rawName
+            val signedApk = File(tempDir, "$safeName.apk")
             val keystoreFile = config.customKeystore ?: getOrCreateDebugKeystore(context, tempDir)
 
             if (!ApkToolboxManager.signApk(
                 context,
-                templateApk.absolutePath, signedApk.absolutePath,
+                unsignedApk.absolutePath, signedApk.absolutePath,
                 keystoreFile.absolutePath, config.keyAlias, config.keyPass
             )) {
                 tempDir.deleteRecursively()
                 return@withContext BuildResult.Error("APK signing failed")
             }
+            Log.d(TAG, "DIAG: signed APK = ${signedApk.length() / (1024*1024)} MB")
 
-            // Step 8: Cleanup
+            // Step 6: Cleanup
             onProgress("Cleaning up...")
             templateApk.delete()
             encryptedProject.delete()
@@ -158,53 +301,101 @@ object BakedApkBuilder {
             tempDir.deleteRecursively()
 
             BuildResult.Success(resultFile)
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
+            // Catch Throwable (not just Exception) so an OutOfMemoryError is reported as a
+            // friendly message instead of silently killing the process (black screen + restart).
             Log.e(TAG, "Build failed", e)
-            BuildResult.Error(e.message ?: "Unknown error")
+            tempDir?.deleteRecursively()
+            val message = if (e is OutOfMemoryError) {
+                "Not enough memory to build this project. Close other apps and try again."
+            } else {
+                e.message ?: "Unknown error"
+            }
+            BuildResult.Error(message)
         }
     }
 
-    private fun createProtectedProjectPayload(context: Context, projectDir: File, encryptedProject: File) {
-        val currentProject = ProjectManager.getInstance().currentProject
-            ?: error("No current project available for protected APK build.")
+    private fun File.sizeRecursively(): Long {
+        if (!exists()) return 0L
+        if (isFile) return length()
+        return walkTopDown().filter { it.isFile }.map { it.length() }.sum()
+    }
 
-        val bakedDir = File(encryptedProject.parentFile, "baked_project")
-        val bakedZip = File(encryptedProject.parentFile, "baked_project.zip")
-        bakedDir.deleteRecursively()
-        bakedZip.delete()
-        bakedDir.mkdirs()
+    private fun createProtectedProjectPayload(
+        context: Context,
+        projectDir: File,
+        encryptedProject: File,
+        password: String,
+        currentProject: Project,
+        tempDir: File
+    ) {
+        val stagingDir = File(tempDir, "project_payload")
+        val payloadZip = File(tempDir, "project_payload.zip")
+        stagingDir.deleteRecursively()
+        payloadZip.delete()
+        stagingDir.mkdirs()
 
-        val lunoCode = ProjectBaker(context).bake(currentProject)
-        File(bakedDir, "init.bin").writeText(lunoCode)
+        // Save the project in standard Catroid format (code.xml) — StageActivity reads this.
+        // The encryption (AES-256-GCM) provides real protection; the format inside is
+        // a regular Catroid project that the runtime loader can hand off to StageActivity
+        // without any conversion.
+        val xmlHeader = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\" ?>\n"
+        val projectXml = xmlHeader + XstreamSerializer.getInstance().getXmlAsStringFromProject(currentProject)
+        File(stagingDir, Constants.CODE_XML_FILE_NAME).writeText(projectXml)
+        Log.d(TAG, "DIAG: code.xml saved to staging dir (${projectXml.length / 1024} KB)")
 
         val sourceFilesDir = File(projectDir, "files")
         if (sourceFilesDir.exists()) {
-            sourceFilesDir.copyRecursively(File(bakedDir, "files"), overwrite = true)
+            sourceFilesDir.copyRecursively(File(stagingDir, "files"), overwrite = true)
+            val filesSize = File(stagingDir, "files").sizeRecursively()
+            Log.d(TAG, "DIAG: files/ copied: ${filesSize/(1024*1024)} MB")
         } else {
-            File(bakedDir, "files").mkdirs()
+            File(stagingDir, "files").mkdirs()
+            Log.d(TAG, "DIAG: files/ dir NOT FOUND at ${sourceFilesDir.absolutePath}")
         }
 
-        val imagesDir = File(bakedDir, "images").apply { mkdirs() }
-        val soundsDir = File(bakedDir, "sounds").apply { mkdirs() }
+        val imagesDir = File(stagingDir, "images").apply { mkdirs() }
+        val soundsDir = File(stagingDir, "sounds").apply { mkdirs() }
+        var looksCopied = 0
+        var soundsCopied = 0
+        var looksSize = 0L
+        var soundsSize = 0L
         currentProject.sceneList.forEach { scene ->
             scene.spriteList.forEach { sprite ->
                 sprite.lookList.forEach { look ->
                     look.file?.takeIf { it.exists() }?.let { file ->
-                        file.copyTo(File(imagesDir, file.name), overwrite = true)
+                        val target = File(imagesDir, file.name)
+                        file.copyTo(target, overwrite = true)
+                        looksCopied++
+                        looksSize += target.length()
                     }
                 }
                 sprite.soundList.forEach { sound ->
                     sound.file?.takeIf { it.exists() }?.let { file ->
-                        file.copyTo(File(soundsDir, file.name), overwrite = true)
+                        val target = File(soundsDir, file.name)
+                        file.copyTo(target, overwrite = true)
+                        soundsCopied++
+                        soundsSize += target.length()
                     }
                 }
             }
         }
+        Log.d(TAG, "DIAG: looks copied: $looksCopied files, $looksSize bytes (${looksSize/(1024*1024)} MB)")
+        Log.d(TAG, "DIAG: sounds copied: $soundsCopied files, $soundsSize bytes (${soundsSize/(1024*1024)} MB)")
 
-        zipDirectory(bakedDir, bakedZip)
-        ProjectCrypto.encrypt(bakedZip, encryptedProject, ProtectedProjectPayload.PASSWORD)
-        bakedZip.delete()
-        bakedDir.deleteRecursively()
+        zipDirectory(stagingDir, payloadZip)
+        Log.d(TAG, "DIAG: payload zip = ${payloadZip.length()/(1024*1024)} MB (before encryption)")
+        ProjectCrypto.encrypt(payloadZip, encryptedProject, password)
+        Log.d(TAG, "DIAG: encrypted payload = ${encryptedProject.length()/(1024*1024)} MB")
+        payloadZip.delete()
+        stagingDir.deleteRecursively()
+    }
+
+    private fun generateRandomPassword(): String {
+        val random = SecureRandom()
+        val bytes = ByteArray(16)
+        random.nextBytes(bytes)
+        return bytes.joinToString("") { "%02x".format(it) }
     }
 
     private fun zipDirectory(sourceDir: File, destFile: File) {
@@ -226,12 +417,26 @@ object BakedApkBuilder {
     private fun getOrCreateDebugKeystore(context: Context, tempDir: File): File {
         val debugDir = File(context.filesDir, "apk_signing")
         debugDir.mkdirs()
-        val keystore = File(debugDir, "debug_auto.jks")
+        // Fixed, bundled keystore so builds are reproducible across editor reinstalls.
+        // The old behaviour generated a random key on first run; because filesDir is wiped
+        // when the editor is reinstalled, every reinstall produced a different key, so a
+        // previously installed runtime APK (signed by the old key) could no longer be
+        // replaced -> "signed by a different certificate" install failure.
+        // NOTE: this is a debug signing key with a known password, fine for local sideload
+        // builds; swap in a real release keystore before any public distribution.
+        val keystore = File(debugDir, "debug_fixed.jks")
         if (!keystore.exists()) {
-            ApkToolboxManager.generateKeyStore(
-                keystore.absolutePath, "newcatroid",
-                "keystore", "CN=NewCatroid Auto,O=NewCatroid,C=US"
-            )
+            try {
+                context.assets.open("debug_build.keystore").use { input ->
+                    FileOutputStream(keystore).use { output -> input.copyTo(output) }
+                }
+            } catch (e: Exception) {
+                Log.w(TAG, "Bundled keystore missing, generating a random one", e)
+                ApkToolboxManager.generateKeyStore(
+                    keystore.absolutePath, "newcatroid",
+                    "keystore", "CN=NewCatroid Auto,O=NewCatroid,C=US"
+                )
+            }
         }
         return keystore
     }

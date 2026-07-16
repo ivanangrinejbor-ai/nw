@@ -435,7 +435,8 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
             && !fileName.endsWith(Constants.OLD_CATROBAT_EXTENSION, ignoreCase = true)
             && !fileName.endsWith(Constants.ZIP_EXTENSION, ignoreCase = true)
             && !fileName.endsWith(Constants.NPC_EXTENSION, ignoreCase = true)
-            && !fileName.endsWith(".ncp", ignoreCase = true)) {
+            && !fileName.endsWith(".ncp", ignoreCase = true)
+            && !fileName.endsWith(".enc", ignoreCase = true)) {
             ToastUtil.showError(requireContext(), R.string.only_select_catrobat_files)
             return
         }
@@ -444,6 +445,8 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
             || fileName.endsWith(".ncp", ignoreCase = true)) {
             showEncryptedImportDialog(firstUri, uris)
         } else {
+            // .enc (Baked/EXE payload) is encrypted with the static protected-project
+            // key, so import it directly without prompting for a password.
             doImportWithUris(uris, null)
         }
     }

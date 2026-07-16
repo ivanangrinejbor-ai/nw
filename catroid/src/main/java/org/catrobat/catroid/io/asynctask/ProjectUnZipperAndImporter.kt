@@ -39,6 +39,7 @@ import org.catrobat.catroid.io.StorageOperations
 import org.catrobat.catroid.io.XstreamSerializer
 import org.catrobat.catroid.io.ZipArchiver
 import org.catrobat.catroid.io.ProjectCrypto
+import org.catrobat.catroid.apkbuild.ProtectedProjectPayload
 import org.catrobat.catroid.ui.recyclerview.util.UniqueNameProvider
 import org.catrobat.catroid.utils.FileMetaDataExtractor
 import org.xmlpull.v1.XmlPullParser
@@ -164,7 +165,8 @@ class ProjectUnZipperAndImporter @JvmOverloads constructor(
                 fileName.endsWith(Constants.OLD_CATROBAT_EXTENSION, ignoreCase = true) ||
                 fileName.endsWith(Constants.ZIP_EXTENSION, ignoreCase = true) ||
                 fileName.endsWith(Constants.NPC_EXTENSION, ignoreCase = true) ||
-                fileName.endsWith(".ncp", ignoreCase = true)
+                fileName.endsWith(".ncp", ignoreCase = true) ||
+                fileName.endsWith(".enc", ignoreCase = true)
         }
     }
 }
@@ -209,12 +211,11 @@ private fun ProjectUnZipperAndImporter.unzipAndImportProject(projectZipFile: Fil
         var fileToUnzip = projectZipFile
         if (ProjectCrypto.isEncrypted(projectZipFile)) {
             reportProgress(5, "import_step_decrypt")
-            if (password.isNullOrEmpty()) {
-                Log.e(TAG, "Project is encrypted but no password provided")
-                return@unzipAndImportProject ImportResult.Failure
-            }
+            // Сначала пробуем статический ключ запечённых проектов (bake/EXE),
+            // если пароль не задан явно. Иначе — предоставленный пароль.
+            val key = if (!password.isNullOrEmpty()) password!! else ProtectedProjectPayload.PASSWORD
             val decryptedFile = File(CACHE_DIRECTORY, tempDirName + "_decrypted.zip")
-            if (!ProjectCrypto.decrypt(projectZipFile, decryptedFile, password!!)) {
+            if (!ProjectCrypto.decrypt(projectZipFile, decryptedFile, key)) {
                 Log.e(TAG, "Failed to decrypt project (wrong password?)")
                 return@unzipAndImportProject ImportResult.WrongPassword
             }

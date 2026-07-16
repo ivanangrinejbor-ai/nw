@@ -1,10 +1,12 @@
 package org.catrobat.catroid.stage
 
 import com.badlogic.gdx.ApplicationAdapter
+import java.io.File
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.math.Vector3
+import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.utils.ScreenUtils
@@ -20,22 +22,26 @@ import org.catrobat.catroid.text.TextServiceHolder
  *
  * Initialises desktop services (audio, MIDI, text, notifications),
  * sets up the camera and begins the render loop. The project is loaded
- * through [DesktopStage] before this listener is created, and all
- * project sprites are rendered here, including pen drawing commands
+ * inside [create] (via [DesktopProjectManager.loadProject]) once the
+ * libGDX application and GL context are ready, and all project sprites
+ * are rendered here, including pen drawing commands
  * (lines, circles, rectangles, text, filled polygons, stamps).
  */
-class DesktopStageListener : ApplicationAdapter() {
+class DesktopStageListener(private val projectDir: File? = null) : ApplicationAdapter() {
 
     private lateinit var camera: OrthographicCamera
     private lateinit var viewport: FitViewport
     private lateinit var batch: SpriteBatch
     private lateinit var shapeRenderer: ShapeRenderer
     private lateinit var font: BitmapFont
+    /** Cached Cyrillic-capable HUD texture (rendered once per project). */
+    private var hudProjectTex: Texture? = null
     private lateinit var physicsWorld: DesktopPhysicsWorld
     private lateinit var scriptEngine: DesktopScriptEngine
     private lateinit var scriptRunner: DesktopScriptRunner
     private lateinit var input: DesktopInput
     private lateinit var cameraState: DesktopCameraState
+    private var lastFrameNanos: Long = 0L
 
     private val VIRTUAL_WIDTH: Float = 1280f
     private val VIRTUAL_HEIGHT: Float = 720f
@@ -43,12 +49,17 @@ class DesktopStageListener : ApplicationAdapter() {
     override fun create() {
         Gdx.app.log(TAG, "DesktopStageListener created")
 
+        // Загружаем проект после старта приложения: здесь доступны Gdx.app и
+        // GL-контекст, необходимые для loadProject (Texture look'ов + логи).
+        // Раньше loadProject вызывался из DesktopStage.main() до создания
+        // Lwjgl3Application — из-за этого Gdx.app был null и падал NPE.
+        projectDir?.let { DesktopProjectManager.getInstance().loadProject(it) }
+
         // Camera: Y axis down (as in Catrobat: x right, y down from centre).
         // FitViewport сохраняет пропорции 16:9 с чёрными полями (letterbox), чтобы
         // спрайты не растягивались на окнах с другим соотношением сторон.
         camera = OrthographicCamera()
         viewport = FitViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, camera)
-        camera.up.set(0f, -1f, 0f) // Catrobat: ось Y направлена вниз
         viewport.update(Gdx.graphics.width, Gdx.graphics.height)
 
         batch = SpriteBatch()
@@ -61,6 +72,7 @@ class DesktopStageListener : ApplicationAdapter() {
         val project = DesktopProjectManager.getInstance().getCurrentProject()
         scriptEngine = project?.let { DesktopScriptEngine(it, physicsWorld, input, cameraState) } ?: DesktopScriptEngine(DesktopProject("empty"), physicsWorld, input, cameraState)
         scriptRunner = project?.let { DesktopScriptRunner(it, input) } ?: DesktopScriptRunner(DesktopProject("empty"), input)
+        lastFrameNanos = System.nanoTime()
 
         // Start the script engine
         scriptEngine.start()
@@ -88,8 +100,19 @@ class DesktopStageListener : ApplicationAdapter() {
         // не вызываем, чтобы не сбрасывать letterbox и не растягивать изображение.
         // Каждый кадр сбрасываем ориентацию, иначе camera.rotate накапливается.
         camera.direction.set(0f, 0f, -1f)
-        camera.up.set(0f, -1f, 0f)
+        camera.up.set(0f, 1f, 0f)
         camera.position.set(VIRTUAL_WIDTH / 2f + cameraState.x, VIRTUAL_HEIGHT / 2f - cameraState.y, 0f)
+        val projectForCamera = DesktopProjectManager.getInstance().getCurrentProject()
+        cameraState.followTargetName?.let { targetName ->
+            val target = projectForCamera?.sprites?.find { it.name == targetName }
+            if (target != null) {
+                camera.position.set(
+                    VIRTUAL_WIDTH / 2f + target.x + cameraState.followOffsetX,
+                    VIRTUAL_HEIGHT / 2f - (target.y + cameraState.followOffsetY),
+                    0f
+                )
+            }
+        }
         camera.zoom = cameraState.zoom
         if (cameraState.rotation != 0f) {
             camera.rotate(com.badlogic.gdx.math.Vector3(0f, 0f, 1f), cameraState.rotation)
@@ -119,6 +142,12 @@ class DesktopStageListener : ApplicationAdapter() {
                 sprite.sprite?.setPosition(
                     screenX - sprite.sprite!!.width / 2f,
                     screenY - sprite.sprite!!.height / 2f
+                )
+                sprite.sprite?.setColor(
+                    sprite.objectColorRed.coerceIn(0f, 1f),
+                    sprite.objectColorGreen.coerceIn(0f, 1f),
+                    sprite.objectColorBlue.coerceIn(0f, 1f),
+                    (1f - sprite.transparency / 100f).coerceIn(0f, 1f)
                 )
                 sprite.sprite?.draw(batch)
             }
@@ -219,8 +248,13 @@ class DesktopStageListener : ApplicationAdapter() {
             }
 
             // ── 5. Render HUD text ──
-            font.draw(batch, "Project: ${project.name} | Sprites: ${project.sprites.size}",
-                20f, VIRTUAL_HEIGHT - 24f)
+            // Project name may be Cyrillic — BitmapFont lacks those glyphs,
+            // so render it once via CyrillicText (AWT + system TTF).
+            if (hudProjectTex == null) {
+                hudProjectTex = CyrillicText.render(
+                    "Project: ${project.name} | Sprites: ${project.sprites.size}")
+            }
+            hudProjectTex?.let { batch.draw(it, 20f, (VIRTUAL_HEIGHT - 24f) - it.height) }
             font.draw(batch, "FPS: ${Gdx.graphics.framesPerSecond}", 20f, 32f)
             batch.end()
         } else {
@@ -229,6 +263,22 @@ class DesktopStageListener : ApplicationAdapter() {
             font.draw(batch, "No project loaded. Pass project path as argument.", 32f, VIRTUAL_HEIGHT - 84f)
             font.draw(batch, "FPS: ${Gdx.graphics.framesPerSecond}", 20f, 32f)
             batch.end()
+        }
+
+        val requestedFps = scriptEngine.getTargetFps()
+        if (requestedFps > 0) {
+            val frameNanos = (1_000_000_000L / requestedFps).coerceAtLeast(1L)
+            val now = System.nanoTime()
+            val elapsed = now - lastFrameNanos
+            if (elapsed < frameNanos) {
+                val sleepMillis = (frameNanos - elapsed) / 1_000_000L
+                if (sleepMillis > 0) {
+                    try { Thread.sleep(sleepMillis) } catch (_: InterruptedException) { }
+                }
+            }
+            lastFrameNanos = System.nanoTime()
+        } else {
+            lastFrameNanos = System.nanoTime()
         }
     }
 
@@ -245,6 +295,8 @@ class DesktopStageListener : ApplicationAdapter() {
         batch.dispose()
         shapeRenderer.dispose()
         font.dispose()
+        hudProjectTex?.dispose()
+        hudProjectTex = null
         physicsWorld.dispose()
         DesktopProjectManager.getInstance().clear()
     }

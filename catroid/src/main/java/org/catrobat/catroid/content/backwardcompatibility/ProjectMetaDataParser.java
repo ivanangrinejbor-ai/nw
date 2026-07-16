@@ -46,7 +46,12 @@ public class ProjectMetaDataParser {
 			throw new FileNotFoundException(xmlFile.getAbsolutePath() + " does not exist.");
 		}
 		XStream xstream = new XStream();
-		xstream.allowTypesByWildcard(new String[] {"org.catrobat.catroid.**"});
+		// SECURITY: lock down deserialization. Without setupDefaultSecurity() the
+		// allowTypes* calls are ignored and ANY type can be instantiated from XML.
+		XStream.setupDefaultSecurity(xstream);
+		// Only the metadata wrapper is ever expected here. Tight allow-list prevents
+		// gadget-class instantiation from an untrusted project file.
+		xstream.allowTypes(new Class[] { ProjectMetaData.class });
 		xstream.processAnnotations(ProjectMetaData.class);
 		xstream.ignoreUnknownElements();
 		ProjectMetaData metaData;

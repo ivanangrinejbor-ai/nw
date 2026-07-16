@@ -33,14 +33,20 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.os.Handler
+import android.os.Looper
+import android.os.ResultReceiver
 import android.provider.MediaStore
 import android.provider.DocumentsContract
 import android.text.Editable
+import android.text.InputType
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.View
 import android.view.ViewGroup
+import android.widget.CheckBox
+import android.widget.FrameLayout
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -55,6 +61,7 @@ import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.RadioGroup
 import android.widget.RadioButton
+import com.google.android.material.tabs.TabLayout
 import com.google.android.material.textfield.TextInputEditText
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -62,6 +69,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import org.catrobat.catroid.CatroidApplication
 import org.catrobat.catroid.ProjectManager
+import org.catrobat.catroid.apkbuild.ApkToolboxManager
 import org.catrobat.catroid.R
 import org.catrobat.catroid.common.Constants
 import org.catrobat.catroid.common.LookData
@@ -86,7 +94,11 @@ import org.catrobat.catroid.ui.ProjectUploadActivity
 import org.catrobat.catroid.ui.SettingsActivity
 import org.catrobat.catroid.ui.runtimepermissions.RequiresPermissionTask
 import org.catrobat.catroid.utils.ToastUtil
+import org.catrobat.catroid.apkbuild.ApkBuildService
 import org.catrobat.catroid.apkbuild.BakedApkBuilder
+import org.catrobat.catroid.apkbuild.AlignedApkBuilder
+import org.catrobat.catroid.ui.fragment.ApkBuilderV3ExportDialog
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import org.catrobat.catroid.utils.Utils
 import org.catrobat.catroid.utils.git.GitController
@@ -159,10 +171,8 @@ class ProjectOptionsFragment : Fragment() {
         setupProjectAspectRatio()
         setupCustomResolution()
         setupPreloader()
-        setupPrecompile()
         setupProjectUpload()
-        setupProjectSaveExternal()
-        setupProjectSaveApk()
+        setupExportMenu()
         setupClearVars()
         setupChangeIcon()
         setupChangeOrientation()
@@ -174,25 +184,45 @@ class ProjectOptionsFragment : Fragment() {
 
         setupGitButtons()
 
-        setupBakeOption()
-        setupBuildExeOption()
 
         hideBottomBar(requireActivity())
     }
 
-    private fun setupBakeOption() {
-        val bakeBtn = view?.findViewById<android.widget.TextView>(R.id.project_options_bake)
-        bakeBtn?.setOnClickListener {
-            runExportWalkthrough { exportBakedProject() }
+    private fun setupExportMenu() {
+        val exportBtn = view?.findViewById<android.widget.TextView>(R.id.project_options_export)
+        exportBtn?.setOnClickListener {
+            val items = arrayOf(
+                getString(R.string.export_bake),
+                getString(R.string.export_project),
+                getString(R.string.export_with_password),
+                getString(R.string.export_as_apk_v2),
+                getString(R.string.export_as_exe),
+                getString(R.string.export_as_apk_v3)
+            )
+            androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                .setTitle(R.string.export_project)
+                .setItems(items) { _, which ->
+                    when (which) {
+                        0 -> runExportWalkthrough { exportBakedProject() }
+                        1 -> runExportWalkthrough { exportProject() }
+                        2 -> runExportWalkthrough { exportWithPassword() }
+                        3 -> buildApkV2()
+                        4 -> {
+                            android.widget.Toast.makeText(
+                                requireContext(),
+                                getString(R.string.export_exe_2d_only_warning),
+                                android.widget.Toast.LENGTH_LONG
+                            ).show()
+                            runExportWalkthrough { buildExe() }
+                        }
+                        5 -> buildApkV3()
+                    }
+                }
+                .show()
         }
     }
 
-    private fun setupBuildExeOption() {
-        val buildExeBtn = view?.findViewById<android.widget.TextView>(R.id.project_options_build_exe)
-        buildExeBtn?.setOnClickListener {
-            runExportWalkthrough { buildExe() }
-        }
-    }
+
 
     private fun exportBakedProject() {
         saveProject()
@@ -206,13 +236,9 @@ class ProjectOptionsFragment : Fragment() {
                 tempDir.deleteRecursively()
                 tempDir.mkdirs()
 
-                val baker = ProjectBaker(requireContext())
-                val lunoCode = baker.bake(project!!)
-
                 val initFile = File(tempDir, "init.bin")
-                //LunoSecurity.saveEncrypted(initFile, lunoCode)
-
-                initFile.writeText(lunoCode)
+                org.catrobat.catroid.utils.lunoscript.baker.ProjectBaker(requireContext())
+                    .bakeToFile(project!!, initFile)
 
 
 
@@ -257,11 +283,21 @@ class ProjectOptionsFragment : Fragment() {
                     zipDirectory3(tempDir, zos)
                 }
 
+                // Зашифровать запечённый проект тем же статическим ключом, что и EXE
+                // (AES-256-GCM, магия NCPP). Обычный unzip не даст содержимого;
+                // импорт расшифрует по той же константе.
+                val encFile = File(requireContext().cacheDir, "${project!!.name}_baked.enc")
+                org.catrobat.catroid.io.ProjectCrypto.encrypt(
+                    zipFile,
+                    encFile,
+                    org.catrobat.catroid.apkbuild.ProtectedProjectPayload.PASSWORD
+                )
+                zipFile.delete()
                 tempDir.deleteRecursively()
 
                 withContext(Dispatchers.Main) {
                     hideProgressDialog()
-                    shareFile(zipFile)
+                    shareFile(encFile)
                 }
 
             } catch (e: Exception) {
@@ -281,7 +317,7 @@ class ProjectOptionsFragment : Fragment() {
             file
         )
         val intent = Intent(Intent.ACTION_SEND)
-        intent.type = "application/zip"
+        intent.type = if (file.name.endsWith(".enc", true)) "application/octet-stream" else "application/zip"
         intent.putExtra(Intent.EXTRA_STREAM, uri)
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         startActivity(Intent.createChooser(intent, "Сохранить запеченный проект"))
@@ -767,15 +803,6 @@ class ProjectOptionsFragment : Fragment() {
         }
     }
 
-    private fun setupPrecompile() {
-        binding.projectOptionsPrecompile.apply {
-            isChecked = project?.xmlHeader?.isPrecompileEnabled == true
-            setOnCheckedChangeListener { _, isChecked ->
-                project?.xmlHeader?.setPrecompileEnabled(isChecked)
-            }
-        }
-    }
-
     private fun setupProjectUpload() {
         binding.projectOptionsUpload.setOnClickListener {
             exportMatryoshkaForServer()
@@ -807,20 +834,7 @@ class ProjectOptionsFragment : Fragment() {
         }
     }
 
-    private fun setupProjectSaveExternal() {
-        binding.projectOptionsSaveExternal.setOnClickListener {
-            val items = arrayOf(
-                getString(R.string.export_project),
-                getString(R.string.export_with_password)
-            )
-            androidx.appcompat.app.AlertDialog.Builder(requireContext())
-                .setItems(items) { _, which ->
-                    if (which == 0) runExportWalkthrough { exportProject() }
-                    else runExportWalkthrough { exportWithPassword() }
-                }
-                .show()
-        }
-    }
+
 
     /**
      * Mini progress menu shown while an export begins: walks the project's
@@ -896,9 +910,6 @@ class ProjectOptionsFragment : Fragment() {
         }
     }
 
-    private fun setupProjectSaveApk() {
-        binding.projectOptionsSaveApk.setOnClickListener { buildApk() }
-    }
 
 
     private fun setupProjectMoreDetails() {
@@ -952,6 +963,13 @@ class ProjectOptionsFragment : Fragment() {
         super.onPause()
     }
 
+    override fun onDestroyView() {
+        progressDialog?.dismiss()
+        progressDialog = null
+        _binding = null
+        super.onDestroyView()
+    }
+
     private fun saveProject() {
         project ?: return
         setProjectName()
@@ -971,7 +989,6 @@ class ProjectOptionsFragment : Fragment() {
 
         // Sync switch states from project
         setupPreloader()
-        setupPrecompile()
 
         addTags()
         hideBottomBar(requireActivity())
@@ -1061,28 +1078,34 @@ class ProjectOptionsFragment : Fragment() {
     }
 
     fun createApkFromTemplate(context: Context, projectZipFile: File): File {
-
-        val assetFile = "apk_template.zip"
-
-
         val tempDir = File(context.cacheDir, "apk_temp")
         tempDir.mkdirs()
 
-
-        unzip(context.assets.open(assetFile), tempDir)
-
-
-        val projectFile = File(tempDir, "assets/project.zip")
-        projectZipFile.copyTo(projectFile, overwrite = true)
-
-
-        val unsignedApkFile = File(context.cacheDir, "unsigned_project_build.apk")
-        ZipOutputStream(FileOutputStream(unsignedApkFile)).use { zos ->
-            zipDirectory3(tempDir, zos)
+        val templateApk = File(tempDir, "template_runtime.apk")
+        val templateCopied = try {
+            context.assets.open("template_runtime.apk").use { input ->
+                FileOutputStream(templateApk).use { output -> input.copyTo(output) }
+            }
+            true
+        } catch (_: Exception) {
+            false
+        }
+        if (!templateCopied) {
+            tempDir.deleteRecursively()
+            throw IllegalStateException("Template APK missing from assets")
         }
 
-
-        tempDir.deleteRecursively()
+        val configured = ApkToolboxManager.configureApk(
+            templateApk.absolutePath,
+            ApkToolboxManager.ManifestConfig(debuggable = false),
+            pathsToDelete = listOf("assets/project", "assets/project.zip", "META-INF/"),
+            filesToAdd = listOf(projectZipFile to "assets/project.zip"),
+            workDir = tempDir
+        )
+        if (!configured) {
+            tempDir.deleteRecursively()
+            throw IllegalStateException("Failed to configure APK template")
+        }
 
 
         val signedApkFile = File(context.cacheDir, "signed_project_build.apk")
@@ -1090,10 +1113,9 @@ class ProjectOptionsFragment : Fragment() {
         val outputFile = File(context.filesDir, "debug.jks")
 
         copyInputStreamToFile(CatroidApplication.getAppContext(), keystoreInputStream, outputFile)
-        signApkWithApksig(context, unsignedApkFile, signedApkFile, "debug.p12", "keystore", "dbg", "keystore")
-
-
-        unsignedApkFile.delete()
+        signApkWithApksig(context, templateApk, signedApkFile, "debug.p12", "keystore", "dbg", "keystore")
+        templateApk.delete()
+        tempDir.deleteRecursively()
 
         return signedApkFile
     }
@@ -1145,6 +1167,8 @@ class ProjectOptionsFragment : Fragment() {
             ApkSigner.Builder(listOf(signerConfig))
                 .setInputApk(unsignedApk)
                 .setOutputApk(signedApk)
+                .setV1SigningEnabled(true)
+                .setV2SigningEnabled(true)
                 .build()
                 .sign()
         } catch (e: Exception) {
@@ -1476,53 +1500,222 @@ class ProjectOptionsFragment : Fragment() {
         showApkBuildDialog()
     }
 
+    private fun buildApkV3() {
+        val p = project ?: return
+        saveProject()
+        ApkBuilderV3ExportDialog().show(this, p.directory)
+    }
+
+    private fun buildApkV2() {
+        val p = project ?: return
+        val ctx = context ?: return
+        saveProject()
+
+        // Simple progress dialog — v2 uses defaults (no tabs, just builds)
+        val progressText = android.widget.TextView(ctx).apply {
+            text = getString(R.string.build_apk_progress)
+            setPadding(60, 30, 60, 10)
+        }
+        val buildDialog = AlertDialog.Builder(ctx)
+            .setTitle("APK v2")
+            .setView(android.widget.LinearLayout(ctx).apply {
+                orientation = android.widget.LinearLayout.VERTICAL
+                addView(progressText)
+                addView(android.widget.ProgressBar(ctx).apply { isIndeterminate = true; setPadding(60, 0, 60, 20) })
+            })
+            .setCancelable(false)
+            .create()
+        buildDialog.show()
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val iconFile: File? = {
+                    val manual = File(p.directory, "manual_screenshot.png")
+                    val auto = File(p.directory, "automatic_screenshot.png")
+                    when { manual.exists() -> manual; auto.exists() -> auto; else -> null }
+                }()
+                val config = AlignedApkBuilder.ApkConfig(
+                    appName = p.name,
+                    permissions = listOf("android.permission.INTERNET"),
+                    iconFile = iconFile
+                )
+                val result = AlignedApkBuilder.build(ctx, p.directory, config) { progress ->
+                    android.os.Handler(android.os.Looper.getMainLooper()).post { progressText.text = progress }
+                }
+                withContext(Dispatchers.Main) {
+                    buildDialog.dismiss()
+                    when (result) {
+                        is AlignedApkBuilder.BuildResult.Success -> {
+                            saveApkToDownloads(ctx, result.apkFile)
+                        }
+                        is AlignedApkBuilder.BuildResult.Error -> {
+                            ToastUtil.showError(ctx, result.message)
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    buildDialog.dismiss()
+                    ToastUtil.showError(ctx, e.message ?: "Build failed")
+                }
+            }
+        }
+    }
+
+    private val BUILD_APK_PERMISSIONS = listOf(
+        "android.permission.INTERNET",
+        "android.permission.ACCESS_NETWORK_STATE",
+        "android.permission.ACCESS_WIFI_STATE",
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.READ_MEDIA_AUDIO",
+        "android.permission.VIBRATE",
+        "android.permission.WAKE_LOCK",
+        "android.permission.POST_NOTIFICATIONS"
+    )
+
     private fun showApkBuildDialog() {
         val project = project ?: return
-        val builder = AlertDialog.Builder(requireContext())
+        val ctx = requireContext()
+        val builder = AlertDialog.Builder(ctx)
         builder.setTitle(R.string.build_apk_title)
 
-        val view = LinearLayout(requireContext()).apply { orientation = LinearLayout.VERTICAL; setPadding(32, 16, 32, 16) }
-        val nameInput = EditText(requireContext()).apply { setText(project.name); hint = "App name" }
-        val pkgInput = EditText(requireContext()).apply { setText("org.DanVexTeam.NewCatroidRuntime"); hint = "Package" }
-        val verInput = EditText(requireContext()).apply { setText("1.0"); hint = "Version" }
-        val codeInput = EditText(requireContext()).apply { setText("1"); hint = "Version code"; inputType = android.text.InputType.TYPE_CLASS_NUMBER }
+        val root = LinearLayout(ctx).apply { orientation = LinearLayout.VERTICAL; setPadding(24, 16, 24, 16) }
 
-        val templateItems = arrayOf(
-            "Полный (~45 МБ) — ARM + x86"
-        )
-        val templateTypes = arrayOf(
-            BakedApkBuilder.TemplateType.FULL
-        )
-        var selectedTemplate = 0
+        val tabLayout = TabLayout(ctx)
+        tabLayout.addTab(tabLayout.newTab().setText(R.string.build_apk_tab_basic))
+        tabLayout.addTab(tabLayout.newTab().setText(R.string.build_apk_tab_permissions))
+        tabLayout.addTab(tabLayout.newTab().setText(R.string.build_apk_tab_sdk))
+        tabLayout.addTab(tabLayout.newTab().setText(R.string.build_apk_tab_icon))
+        root.addView(tabLayout)
 
-        view.addView(nameInput)
-        view.addView(pkgInput)
-        view.addView(verInput)
-        view.addView(codeInput)
+        val container = FrameLayout(ctx).apply { setPadding(0, 12, 0, 0) }
+        root.addView(container)
 
-        val label = TextView(requireContext()).apply {
-            text = "Шаблон APK:"
-            setPadding(0, 16, 0, 8)
-            textSize = 14f
+        // ---- Basic panel ----
+        val basicPanel = LinearLayout(ctx).apply { orientation = LinearLayout.VERTICAL }
+        val nameInput = EditText(ctx).apply { setText(project.name); hint = getString(R.string.build_apk_name) }
+        val pkgInput = EditText(ctx).apply { setText("org.danvexteam.newcatroidruntime"); hint = getString(R.string.build_apk_package) }
+        val verInput = EditText(ctx).apply { setText("1.0"); hint = getString(R.string.build_apk_version_name) }
+        val codeInput = EditText(ctx).apply {
+            setText("1"); hint = getString(R.string.build_apk_version_code)
+            inputType = InputType.TYPE_CLASS_NUMBER
         }
-        view.addView(label)
-
-        val radioGroup = RadioGroup(requireContext())
-        templateItems.forEachIndexed { index, item ->
-            val rb = RadioButton(requireContext()).apply { text = item; isChecked = index == 0 }
-            radioGroup.addView(rb)
+        val passInput = EditText(ctx).apply {
+            hint = getString(R.string.build_apk_password)
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
         }
-        view.addView(radioGroup)
+        basicPanel.addView(nameInput)
+        basicPanel.addView(pkgInput)
+        basicPanel.addView(verInput)
+        basicPanel.addView(codeInput)
+        basicPanel.addView(passInput)
 
-        builder.setView(view)
+        // ---- Permissions panel ----
+        val permPanel = LinearLayout(ctx).apply { orientation = LinearLayout.VERTICAL }
+        permPanel.addView(TextView(ctx).apply {
+            text = getString(R.string.build_apk_permissions_hint)
+            setPadding(0, 0, 0, 8)
+        })
+        val permChecks = BUILD_APK_PERMISSIONS.map { perm ->
+            val cb = CheckBox(ctx).apply {
+                text = perm.substringAfterLast('.')
+                isChecked = perm == "android.permission.INTERNET"
+            }
+            permPanel.addView(cb)
+            perm to cb
+        }
 
+        // ---- SDK panel ----
+        val sdkPanel = LinearLayout(ctx).apply { orientation = LinearLayout.VERTICAL }
+        val minSdkInput = EditText(ctx).apply {
+            setText("21"); hint = getString(R.string.build_apk_min_sdk)
+            inputType = InputType.TYPE_CLASS_NUMBER
+        }
+        val targetSdkInput = EditText(ctx).apply {
+            setText("35"); hint = getString(R.string.build_apk_target_sdk)
+            inputType = InputType.TYPE_CLASS_NUMBER
+        }
+        sdkPanel.addView(minSdkInput)
+        sdkPanel.addView(targetSdkInput)
+
+        // ---- Icon panel ----
+        val iconPanel = LinearLayout(ctx).apply { orientation = LinearLayout.VERTICAL }
+        val projectHasIcon = File(project.directory, "manual_screenshot.png").exists()
+            || File(project.directory, "automatic_screenshot.png").exists()
+        val iconRadio = RadioGroup(ctx)
+        val rbProject = RadioButton(ctx).apply { text = getString(R.string.build_apk_icon_from_project); isChecked = projectHasIcon }
+        val rbDefault = RadioButton(ctx).apply { text = getString(R.string.build_apk_icon_default); isChecked = !projectHasIcon }
+        iconRadio.addView(rbProject)
+        iconRadio.addView(rbDefault)
+        iconPanel.addView(iconRadio)
+        if (!projectHasIcon) {
+            iconPanel.addView(TextView(ctx).apply {
+                text = getString(R.string.build_apk_icon_none_hint)
+                setPadding(0, 8, 0, 0)
+            })
+        }
+
+        container.addView(basicPanel)
+        container.addView(permPanel)
+        container.addView(sdkPanel)
+        container.addView(iconPanel)
+        permPanel.visibility = View.GONE
+        sdkPanel.visibility = View.GONE
+        iconPanel.visibility = View.GONE
+
+        tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
+            override fun onTabSelected(tab: TabLayout.Tab) {
+                basicPanel.visibility = if (tab.position == 0) View.VISIBLE else View.GONE
+                permPanel.visibility = if (tab.position == 1) View.VISIBLE else View.GONE
+                sdkPanel.visibility = if (tab.position == 2) View.VISIBLE else View.GONE
+                iconPanel.visibility = if (tab.position == 3) View.VISIBLE else View.GONE
+            }
+            override fun onTabUnselected(tab: TabLayout.Tab?) {}
+            override fun onTabReselected(tab: TabLayout.Tab?) {}
+        })
+
+        builder.setView(root)
         builder.setPositiveButton(R.string.build_apk_start) { _, _ ->
-            selectedTemplate = radioGroup.checkedRadioButtonId.let { radioGroup.indexOfChild(radioGroup.findViewById(it)) }
+            val rawPkg = pkgInput.text.toString().ifEmpty { "org.danvexteam.newcatroidruntime" }
+            val pkg = rawPkg.lowercase()
+            if (!pkg.matches(Regex("^[a-z][a-z0-9_]*(\\.[a-z0-9_]+)+\$"))) {
+                ToastUtil.showError(ctx, getString(R.string.build_apk_invalid_package))
+                return@setPositiveButton
+            }
+            val minSdk = minSdkInput.text.toString().toIntOrNull() ?: 21
+            val targetSdk = targetSdkInput.text.toString().toIntOrNull() ?: 35
+            if (minSdk > targetSdk) {
+                ToastUtil.showError(ctx, getString(R.string.build_apk_invalid_sdk))
+                return@setPositiveButton
+            }
+            val code = codeInput.text.toString().toIntOrNull() ?: 1
+            if (code <= 1) {
+                ToastUtil.showInfoLong(ctx, getString(R.string.build_apk_versioncode_warning))
+            }
+            val permissions = permChecks.filter { it.second.isChecked }.map { it.first }
+            val iconFile: File? = if (rbProject.isChecked) {
+                val manual = File(project.directory, "manual_screenshot.png")
+                val auto = File(project.directory, "automatic_screenshot.png")
+                when {
+                    manual.exists() -> manual
+                    auto.exists() -> auto
+                    else -> null
+                }
+            } else null
             val config = BakedApkBuilder.ApkConfig(
                 appName = nameInput.text.toString().ifEmpty { project.name },
-                packageName = pkgInput.text.toString().ifEmpty { "org.DanVexTeam.NewCatroidRuntime" },
+                packageName = pkg,
                 versionName = verInput.text.toString().ifEmpty { "1.0" },
-                versionCode = codeInput.text.toString().toIntOrNull() ?: 1
+                versionCode = code,
+                permissions = permissions,
+                minSdk = minSdk,
+                targetSdk = targetSdk,
+                iconFile = iconFile,
+                payloadPassword = passInput.text.toString().ifEmpty { null }
             )
             startApkBuild(config)
         }
@@ -1547,21 +1740,42 @@ class ProjectOptionsFragment : Fragment() {
             .setCancelable(false)
             .create()
         buildDialog.show()
-        lifecycleScope.launch(Dispatchers.IO) {
-            val result = BakedApkBuilder.build(ctx, projectDir, config) { progress ->
-                lifecycleScope.launch(Dispatchers.Main) { progressText.text = progress }
-            }
-            withContext(Dispatchers.Main) {
-                buildDialog.dismiss()
-                val c = context ?: return@withContext
-                when (result) {
-                    is BakedApkBuilder.BuildResult.Success -> {
-                        saveApkToDownloads(c, result.apkFile)
+
+        // Results arrive from the isolated :apkbuild process via this receiver (runs on main thread).
+        val receiver = object : ResultReceiver(Handler(Looper.getMainLooper())) {
+            override fun onReceiveResult(resultCode: Int, resultData: Bundle?) {
+                when (resultCode) {
+                    ApkBuildService.WHAT_PROGRESS -> {
+                        val p = resultData?.getString(ApkBuildService.KEY_PROGRESS)
+                        if (!p.isNullOrEmpty()) progressText.text = p
                     }
-                    is BakedApkBuilder.BuildResult.Error -> {
-                        ToastUtil.showError(c, result.message)
+                    ApkBuildService.WHAT_RESULT -> {
+                        buildDialog.dismiss()
+                        val c = context ?: return
+                        val success = resultData?.getBoolean(ApkBuildService.KEY_SUCCESS) ?: false
+                        if (success) {
+                            val apkPath = resultData?.getString(ApkBuildService.KEY_APK_PATH)
+                            if (!apkPath.isNullOrEmpty()) saveApkToDownloads(c, java.io.File(apkPath))
+                        } else {
+                            val err = resultData?.getString(ApkBuildService.KEY_ERROR) ?: getString(R.string.build_apk_error)
+                            ToastUtil.showError(c, err)
+                        }
                     }
                 }
+            }
+        }
+
+        // Persist the (possibly edited) project so the build process reloads the latest
+        // version from disk, then launch the isolated build service.
+        lifecycleScope.launch(Dispatchers.IO) {
+            projectManager.currentProject?.let { saveProjectSerial(it, ctx) }
+            withContext(Dispatchers.Main) {
+                val intent = Intent(ctx, ApkBuildService::class.java).apply {
+                    putExtra(ApkBuildService.EXTRA_PROJECT_DIR, projectDir.absolutePath)
+                    putExtra(ApkBuildService.EXTRA_CONFIG, config)
+                    putExtra(ApkBuildService.EXTRA_RECEIVER, receiver)
+                }
+                ContextCompat.startForegroundService(ctx, intent)
             }
         }
     }
@@ -1831,29 +2045,30 @@ class ProjectOptionsFragment : Fragment() {
     }
 
     private fun startAsyncProjectBuild(projectDestination: Uri) {
-        buildFilename?.let { fileName ->
-            projectInZip?.let { zip ->
-                project?.let {
-                    val notificationData = StatusBarNotificationManager(requireContext())
-                        .createBuildProjectToExternalMemoryNotification(
-                            requireContext(),
-                            projectDestination,
-                            it.name
-                        )
-                    //ProjectExportTask(it.directory, projectDestination, notificationData, requireContext())
-                    //    .execute()
-                    if (zip.exists()) {
-                        Log.d("BUILD", "Project directory: ${zip.absolutePath}")
-                        val builded_apk = createApkFromTemplate(CatroidApplication.getAppContext(), zip)
-                        requireContext().grantUriPermission(requireActivity().packageName, projectDestination, Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
-                        copyFileToUri2(CatroidApplication.getAppContext(), builded_apk, projectDestination, fileName)
-                        builded_apk.delete()
-                        zipTempDir?.deleteRecursively()
-                        StatusBarNotificationManager(context).showOrUpdateNotification(
-                            context, notificationData, 100, null)
-                    } else {
-                        Log.e("BUILD", "Файл project.zip не существует по состоянию на момент копирования!")
-                    }
+        val ctx = context ?: return
+        val pkg = requireActivity().packageName
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val fileName = buildFilename ?: return@launch
+                val zip = projectInZip ?: return@launch
+                val proj = project ?: return@launch
+                if (!zip.exists()) {
+                    Log.e("BUILD", "Файл project.zip не существует по состоянию на момент копирования!")
+                    return@launch
+                }
+                val notificationData = StatusBarNotificationManager(ctx)
+                    .createBuildProjectToExternalMemoryNotification(ctx, projectDestination, proj.name)
+                Log.d("BUILD", "Project directory: ${zip.absolutePath}")
+                val builded_apk = createApkFromTemplate(CatroidApplication.getAppContext(), zip)
+                ctx.grantUriPermission(pkg, projectDestination, Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+                copyFileToUri2(CatroidApplication.getAppContext(), builded_apk, projectDestination, fileName)
+                builded_apk.delete()
+                zipTempDir?.deleteRecursively()
+                StatusBarNotificationManager(ctx).showOrUpdateNotification(ctx, notificationData, 100, null)
+            } catch (e: Exception) {
+                Log.e("BUILD", "Build failed", e)
+                withContext(Dispatchers.Main) {
+                    ToastUtil.showError(ctx, "Ошибка сборки: ${e.message}")
                 }
             }
         }

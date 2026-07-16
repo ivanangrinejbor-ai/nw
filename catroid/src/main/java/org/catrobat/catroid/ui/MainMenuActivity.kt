@@ -50,6 +50,7 @@ import org.catrobat.catroid.BuildConfig
 import org.catrobat.catroid.CatroidApplication
 import org.catrobat.catroid.ProjectManager
 import org.catrobat.catroid.R
+import org.catrobat.catroid.apkbuild.PayloadDecryptor
 import org.catrobat.catroid.apkbuild.ProtectedProjectPayload
 import org.catrobat.catroid.cast.CastManager
 import org.catrobat.catroid.common.Constants
@@ -727,7 +728,7 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
             encryptedAsset.use { input ->
                 encryptedFile.outputStream().use { output -> input.copyTo(output) }
             }
-            if (!ProjectCrypto.decrypt(encryptedFile, decryptedZip, ProtectedProjectPayload.PASSWORD)) {
+            if (!PayloadDecryptor.decrypt(this, encryptedFile, decryptedZip)) {
                 throw IOException("Cannot decrypt protected standalone project.")
             }
             ZipArchiver().unzip(decryptedZip, tempDir)

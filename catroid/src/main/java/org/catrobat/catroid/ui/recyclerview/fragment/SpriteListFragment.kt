@@ -43,6 +43,7 @@ import org.catrobat.catroid.common.Constants.TMP_IMAGE_FILE_NAME
 import org.catrobat.catroid.common.FlavoredConstants
 import org.catrobat.catroid.common.SharedPreferenceKeys
 import org.catrobat.catroid.content.GroupSprite
+import org.catrobat.catroid.utils.LockUtils
 import org.catrobat.catroid.content.Sprite
 import org.catrobat.catroid.io.StorageOperations
 import org.catrobat.catroid.merge.ImportProjectHelper
@@ -247,6 +248,21 @@ class SpriteListFragment : RecyclerViewFragment<Sprite?>() {
     override fun getDeleteAlertTitleId() = R.plurals.delete_sprites
 
     override fun deleteItems(selectedItems: List<Sprite?>) {
+        val locked = selectedItems.filterNotNull().flatMap { LockUtils.getLockedBricks(it) }
+        if (locked.isEmpty()) {
+            performDelete(selectedItems)
+        } else {
+            LockUtils.requestPassword(requireContext(), R.string.brick_context_dialog_delete_brick) { pw ->
+                if (LockUtils.verify(locked, pw)) {
+                    performDelete(selectedItems)
+                } else {
+                    ToastUtil.showError(requireContext(), R.string.brick_wrong_password)
+                }
+            }
+        }
+    }
+
+    private fun performDelete(selectedItems: List<Sprite?>) {
         setShowProgressBar(true)
         var deletedItemsCount = 0
         for (item in selectedItems) {
@@ -408,7 +424,9 @@ class SpriteListFragment : RecyclerViewFragment<Sprite?>() {
             when (menuItem.itemId) {
                 R.id.backpack -> packItems(itemList)
                 R.id.copy -> copyItems(itemList)
-                R.id.delete -> showDeleteAlert(itemList)
+                R.id.delete -> {
+                    showDeleteAlert(itemList)
+                }
                 R.id.rename -> showRenameDialog(item)
                 R.id.from_library -> addFromLibrary(item)
                 R.id.from_local -> addFromLocalProject(item)

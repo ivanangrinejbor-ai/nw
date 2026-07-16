@@ -17,11 +17,18 @@ class SignApkAction : Action() {
     var aliasFormula: Formula? = null
 
     private var executed = false
+    private var job: Job? = null
+
+    override fun restart() {
+        super.restart()
+        job?.cancel()
+        executed = false
+    }
 
     override fun act(delta: Float): Boolean {
         if (!executed) {
             executed = true
-            GlobalScope.launch(Dispatchers.IO) {
+            job = CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
                 val inputFile = inputApkFormula?.interpretString(scope) ?: "game-unsigned.apk"
                 val outputFile = outputApkFormula?.interpretString(scope) ?: "game-signed.apk"
 

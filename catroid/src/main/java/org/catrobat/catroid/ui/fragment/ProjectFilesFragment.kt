@@ -159,7 +159,7 @@ class ProjectFilesFragment : Fragment() {
             } else {
 
                 try {
-                    val authority = "${BuildConfig.APPLICATION_ID}.fileProvider"
+                    val authority = "${requireContext().packageName}.fileProvider"
                     val uri = FileProvider.getUriForFile(requireContext(), authority, file)
 
                     val intent = Intent(Intent.ACTION_VIEW)

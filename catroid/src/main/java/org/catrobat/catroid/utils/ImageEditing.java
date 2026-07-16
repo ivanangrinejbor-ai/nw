@@ -116,8 +116,11 @@ public final class ImageEditing {
 		bitmapOptions.inSampleSize = loadingSampleSize;
 		bitmapOptions.inJustDecodeBounds = false;
 		Bitmap tempBitmap = BitmapFactory.decodeFile(imagePath, bitmapOptions);
-
-		return scaleBitmap(tempBitmap, newWidth, newHeight);
+		Bitmap result = scaleBitmap(tempBitmap, newWidth, newHeight);
+		if (result != tempBitmap && tempBitmap != null) {
+			tempBitmap.recycle();
+		}
+		return result;
 	}
 
 	public static int[] getImageDimensions(String imagePath) {

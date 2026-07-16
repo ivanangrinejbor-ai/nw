@@ -381,11 +381,13 @@ class ProjectActivity : BaseCastActivity() {
                 addSpriteFromUri(uri)
             }
             SPRITE_LIBRARY -> {
-                uri = Uri.fromFile(File(data!!.getStringExtra(WebViewActivity.MEDIA_FILE_PATH)))
+                uri = data?.let { Uri.fromFile(File(it.getStringExtra(WebViewActivity.MEDIA_FILE_PATH))) }
+                if (uri == null) return
                 addSpriteFromUri(uri)
             }
             SPRITE_OBJECT -> {
-                uri = Uri.fromFile(File(data!!.getStringExtra(WebViewActivity.MEDIA_FILE_PATH)))
+                uri = data?.let { Uri.fromFile(File(it.getStringExtra(WebViewActivity.MEDIA_FILE_PATH))) }
+                if (uri == null) return
                 addObjectFromUri(uri)
             }
             SPRITE_FILE -> {
@@ -460,13 +462,14 @@ class ProjectActivity : BaseCastActivity() {
                 currentScene.spriteList
             )
         }
+        val curFrag = currentFragment ?: return
         NewSpriteDialogFragment(
             false,
             lookDataName,
             lookFileName,
             contentResolver,
             uri,
-            currentFragment!!,
+            curFrag,
             isObject,
             importProjectHelper
         ).show(supportFragmentManager, NewSpriteDialogFragment.TAG)
@@ -478,10 +481,11 @@ class ProjectActivity : BaseCastActivity() {
             getString(R.string.default_sprite_name),
             currentScene.spriteList
         )
+        val curFrag = currentFragment ?: return
         NewSpriteDialogFragment(
             true,
             lookDataName,
-            currentFragment!!
+            curFrag
         ).show(supportFragmentManager, NewSpriteDialogFragment.TAG)
     }
 

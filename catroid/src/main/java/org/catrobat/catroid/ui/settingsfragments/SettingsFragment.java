@@ -169,7 +169,7 @@ public class SettingsFragment extends PreferenceFragment {
 		if (buildConfigId != null && !buildConfigId.isEmpty()) {
 			return buildConfigId;
 		}
-		return "Ov23liKoq3h0cTgAbVYA"; // fallback default
+		return null;
 	}
     public static final String SETTINGS_RECOVER_PROJECTS = "setting_recover_projects";
 
@@ -353,8 +353,17 @@ public class SettingsFragment extends PreferenceFragment {
 	}
 
 	private void startGitHubLogin() {
+		String clientId = getGitHubClientId();
+		if (clientId == null) {
+			if (getActivity() != null) {
+				getActivity().runOnUiThread(() -> {
+					githubPreference.setSummary("GitHub Client ID не настроен");
+				});
+			}
+			return;
+		}
 		String authUrl = "https://github.com/login/oauth/authorize" +
-				"?client_id=" + getGitHubClientId() +
+				"?client_id=" + clientId +
 				"&redirect_uri=" + GITHUB_REDIRECT_URI +
 				"&scope=repo";
 

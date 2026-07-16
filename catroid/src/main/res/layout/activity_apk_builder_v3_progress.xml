@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:background="#F5F5F5"
+    android:padding="32dp">
+
+    <TextView
+        android:id="@+id/v3_progress_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/v3_building_apk"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="24dp" />
+
+    <ProgressBar
+        android:id="@+id/v3_build_progress_bar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="14dp"
+        android:layout_marginBottom="12dp"
+        android:max="100"
+        android:progress="0"
+        android:progressTint="#4CAF50" />
+
+    <TextView
+        android:id="@+id/v3_progress_percent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="0%"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:textColor="#333333"
+        android:layout_marginBottom="8dp" />
+
+    <TextView
+        android:id="@+id/v3_progress_stage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/v3_preparing"
+        android:textSize="14sp"
+        android:textColor="#666666"
+        android:layout_marginBottom="32dp" />
+
+    <TextView
+        android:id="@+id/v3_build_fact"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text=""
+        android:textSize="12sp"
+        android:textColor="#999999"
+        android:gravity="center"
+        android:maxLines="3"
+        android:layout_marginHorizontal="16dp" />
+
+</LinearLayout>

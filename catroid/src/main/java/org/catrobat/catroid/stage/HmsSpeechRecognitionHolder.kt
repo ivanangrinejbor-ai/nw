@@ -51,8 +51,10 @@ class HmsSpeechRecognitionHolder : SpeechRecognitionHolderInterface {
 
         override fun onError(error: Int, errorMessage: String?) {
             when (error) {
-                MLAsrConstants.ERR_NO_NETWORK ->
-                    ToastUtil.showError(context.get(), R.string.error_no_network_title)
+                MLAsrConstants.ERR_NO_NETWORK -> {
+                    val ctx = context.get() ?: return
+                    ToastUtil.showError(ctx, R.string.error_no_network_title)
+                }
             }
         }
 

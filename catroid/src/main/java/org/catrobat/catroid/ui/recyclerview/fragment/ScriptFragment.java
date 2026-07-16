@@ -40,6 +40,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
+import android.text.InputType;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListAdapter;
 import android.widget.TextView;
@@ -65,7 +67,9 @@ import org.catrobat.catroid.content.bricks.FormulaBrick;
 import org.catrobat.catroid.content.bricks.ScriptBrick;
 import org.catrobat.catroid.content.bricks.UserDefinedBrick;
 import org.catrobat.catroid.content.bricks.UserDefinedReceiverBrick;
+import org.catrobat.catroid.content.bricks.CompositeBrick;
 import org.catrobat.catroid.content.bricks.VisualPlacementBrick;
+import java.util.function.Consumer;
 import org.catrobat.catroid.formulaeditor.Formula;
 import org.catrobat.catroid.formulaeditor.InternToExternGenerator;
 import org.catrobat.catroid.formulaeditor.Sensors;
@@ -1007,7 +1011,13 @@ public class ScriptFragment extends ListFragment implements
 			}
 		}
 
-        items.add(R.string.brick_context_dialog_system_info);
+		// password protection can only be removed via a delete flow (which asks for
+		// the password), so the normal menu shows "protect" only when unlocked
+		if (!brick.isLocked()) {
+			items.add(R.string.brick_context_dialog_lock);
+		}
+
+		items.add(R.string.brick_context_dialog_system_info);
 
 		return items;
 	}
@@ -1020,9 +1030,14 @@ public class ScriptFragment extends ListFragment implements
 				brick.addToFlatList(bricksToPack);
 				showNewScriptGroupAlert(bricksToPack);
 				break;
+			case R.string.brick_context_dialog_lock:
+				showLockDialog(brick, false);
+				break;
+			case R.string.brick_context_dialog_unlock:
+				showLockDialog(brick, true);
+				break;
 			case R.string.brick_context_dialog_copy_brick:
-			case R.string.brick_context_dialog_copy_script:
-				try {
+			case R.string.brick_context_dialog_copy_script:				try {
 					Brick clonedBrick = brick.getAllParts().get(0).clone();
 					adapter.addItem(position, clonedBrick);
 					listView.startMoving(clonedBrick);
@@ -1058,7 +1073,13 @@ public class ScriptFragment extends ListFragment implements
 						visualPlacementBrick.getYBrickField());
 				break;
 			case R.string.brick_context_dialog_formula_edit_brick:
-				((FormulaBrick) brick).onClick(listView);
+				if (brick.isLocked()) {
+					// password is only asked on delete, so a locked brick cannot be
+					// edited from the menu — it must be deleted (with the password)
+					ToastUtil.showError(getContext(), R.string.brick_locked);
+				} else {
+					((FormulaBrick) brick).onClick(listView);
+				}
 				break;
 			case R.string.brick_context_dialog_move_brick:
 			case R.string.brick_context_dialog_move_script:
@@ -1198,6 +1219,17 @@ public class ScriptFragment extends ListFragment implements
 	@Override
 	public boolean onBrickLongClick(Brick brick, int position) {
 		showUndo(false);
+		List<Brick> group = getLockGroup(brick);
+		if (isGroupLocked(group)) {
+			showPasswordDialog(R.string.brick_context_dialog_move_brick, password -> {
+				if (verifyGroup(group, password)) {
+					listView.startMoving(brick);
+				} else {
+					ToastUtil.showError(getContext(), R.string.brick_wrong_password);
+				}
+			});
+			return true;
+		}
 		if (listView.isCurrentlyHighlighted()) {
 			listView.cancelHighlighting();
 		} else {
@@ -1302,11 +1334,143 @@ public class ScriptFragment extends ListFragment implements
 	}
 
 	private void showDeleteAlert(List<Brick> selectedBricks) {
+		List<Brick> group = collectLockGroups(selectedBricks);
+		if (isGroupLocked(group)) {
+			showPasswordDialog(R.string.brick_context_dialog_delete_brick, password -> {
+				if (verifyGroup(group, password)) {
+					proceedDelete(selectedBricks);
+				} else {
+					ToastUtil.showError(getContext(), R.string.brick_wrong_password);
+				}
+			});
+			return;
+		}
+		proceedDelete(selectedBricks);
+	}
+
+	private void proceedDelete(List<Brick> selectedBricks) {
 		if (selectedBricks.size() > 0 && copyProjectForUndoOption()) {
 			showUndo(true);
 			undoBrickPosition = adapter.getPosition(selectedBricks.get(0));
 		}
 		delete(selectedBricks);
+	}
+
+	private List<Brick> collectLockGroups(List<Brick> bricks) {
+		List<Brick> group = new ArrayList<>();
+		for (Brick brick : bricks) {
+			for (Brick lockedBrick : getLockGroup(brick)) {
+				if (!group.contains(lockedBrick)) {
+					group.add(lockedBrick);
+				}
+			}
+		}
+		return group;
+	}
+
+	private List<Brick> getLockGroup(Brick root) {
+		List<Brick> group = new ArrayList<>();
+		if (root instanceof ScriptBrick) {
+			// also lock the script header itself, otherwise its context menu still
+			// offers "protect" and re-locking would silently overwrite the children
+			addToLockGroup(group, root);
+			Script script = root.getScript();
+			if (script != null) {
+				for (Brick brick : script.getBrickList()) {
+					addToLockGroup(group, brick);
+				}
+			}
+		} else {
+			addToLockGroup(group, root);
+		}
+		return group;
+	}
+
+	private void addToLockGroup(List<Brick> group, Brick brick) {
+		if (brick == null || group.contains(brick)) {
+			return;
+		}
+		group.add(brick);
+		if (brick instanceof CompositeBrick) {
+			CompositeBrick composite = (CompositeBrick) brick;
+			for (Brick child : composite.getNestedBricks()) {
+				addToLockGroup(group, child);
+			}
+			if (composite.hasSecondaryList()) {
+				for (Brick child : composite.getSecondaryNestedBricks()) {
+					addToLockGroup(group, child);
+				}
+			}
+		}
+	}
+
+	private boolean isGroupLocked(List<Brick> group) {
+		for (Brick brick : group) {
+			if (brick.isLocked()) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private boolean verifyGroup(List<Brick> group, String password) {
+		for (Brick brick : group) {
+			if (brick.isLocked() && !brick.verifyLock(password)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	private void showLockDialog(Brick brick, boolean unlock) {
+		List<Brick> group = getLockGroup(brick);
+		if (unlock) {
+			if (!isGroupLocked(group)) {
+				return;
+			}
+			showPasswordDialog(R.string.brick_context_dialog_unlock, password -> {
+				if (verifyGroup(group, password)) {
+					for (Brick lockedBrick : group) {
+						lockedBrick.clearLock();
+					}
+					adapter.notifyDataSetChanged();
+					ToastUtil.showSuccess(getContext(), R.string.brick_unlocked);
+				} else {
+					ToastUtil.showError(getContext(), R.string.brick_wrong_password);
+				}
+			});
+		} else {
+			// Lock is only offered when the group is NOT already locked, so this path
+			// can never overwrite an existing protection.
+			showPasswordDialog(R.string.brick_context_dialog_lock, password -> applyLock(group, password));
+		}
+	}
+
+	private void applyLock(List<Brick> group, String password) {
+		for (Brick lockedBrick : group) {
+			lockedBrick.setLock(password);
+		}
+		adapter.notifyDataSetChanged();
+		ToastUtil.showSuccess(getContext(), R.string.brick_locked);
+		ToastUtil.showError(getContext(), R.string.brick_lock_warning);
+	}
+
+	private void showPasswordDialog(int titleRes, Consumer<String> onOk) {
+		AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+		builder.setTitle(titleRes);
+		final EditText input = new EditText(getContext());
+		input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+		builder.setView(input);
+		builder.setPositiveButton(R.string.ok, (dialog, which) -> {
+			String password = input.getText().toString();
+			if (password.isEmpty()) {
+				ToastUtil.showError(getContext(), R.string.brick_password_empty);
+				return;
+			}
+			onOk.accept(password);
+		});
+		builder.setNegativeButton(R.string.cancel, null);
+		builder.show();
 	}
 
 	private void delete(List<Brick> selectedItems) {
@@ -1816,6 +1980,7 @@ public class ScriptFragment extends ListFragment implements
             case "WhenConditionScript": return "Когда условие становится истинным:";
             case "WhenClonedScript": return "Когда я начинаю как клон:";
             case "WhenBackgroundChangesScript": return "Когда фон меняется:";
+            case "WhenFirebaseChangedScript": return "Когда значение Firebase изменяется:";
             default: return "Скрипт [" + name + "]:";
         }
     }

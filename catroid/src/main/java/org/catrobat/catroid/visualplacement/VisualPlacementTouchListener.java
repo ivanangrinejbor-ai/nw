@@ -109,8 +109,10 @@ public class VisualPlacementTouchListener {
 					}
 					break;
 			}
-			coordinateInterface.setXCoordinate(imageView.getX());
-			coordinateInterface.setYCoordinate(-imageView.getY());
+			// Сохраняем ЦЕНТР объекта (а не левый-верхний угол),
+			// т.к. PlaceAtBrick/спрайт позиционируются по центру.
+			coordinateInterface.setXCoordinate(imageView.getX() + (float) imageView.getWidth() / 2f);
+			coordinateInterface.setYCoordinate(-(imageView.getY() + (float) imageView.getHeight() / 2f));
 			return true;
 		} else {
 			return false;

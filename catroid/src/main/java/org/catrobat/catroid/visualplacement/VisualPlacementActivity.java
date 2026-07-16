@@ -134,6 +134,7 @@ public class VisualPlacementActivity extends BaseCastActivity implements View.On
 	private float xOffsetText;
 	private float yOffsetText;
 	private Resolution layoutResolution;
+	private Resolution projectResolution;
 	private float layoutWidthRatio;
 	private float layoutHeightRatio;
 	private VisualPlacementTouchListener visualPlacementTouchListener;
@@ -214,7 +215,7 @@ public class VisualPlacementActivity extends BaseCastActivity implements View.On
 
 		frameLayout = findViewById(R.id.frame_container);
 
-		Resolution projectResolution = new Resolution(
+		projectResolution = new Resolution(
 				currentProject.getXmlHeader().getVirtualScreenWidth(),
 				currentProject.getXmlHeader().getVirtualScreenHeight());
 
@@ -349,8 +350,13 @@ public class VisualPlacementActivity extends BaseCastActivity implements View.On
 		imageView.setImageBitmap(scaledBitmap);
 		imageView.setScaleType(ImageView.ScaleType.CENTER);
 
-		float finalX = translateX; // - (scaledBitmap.getWidth() / 2.0f);
-		float finalY = -translateY;// - (scaledBitmap.getHeight() / 2.0f); // -Y т.к. ось Y перевернута
+		// Центр сцены Catroid находится в центре frameLayout, а не в углу.
+		// Переводим координаты спрайта (origin в центре) в пиксели frameLayout.
+		float sceneCenterX = layoutResolution.getWidth() / 2f + translateX * layoutWidthRatio;
+		float sceneCenterY = layoutResolution.getHeight() / 2f - translateY * layoutHeightRatio;
+
+		float finalX = sceneCenterX - scaledBitmap.getWidth() / 2f;
+		float finalY = sceneCenterY - scaledBitmap.getHeight() / 2f;
 
 		if (isText) {
 			imageView.setTranslationX(finalX + xOffsetText);
@@ -436,8 +442,8 @@ public class VisualPlacementActivity extends BaseCastActivity implements View.On
 	@Override
 	public void onBackPressed() {
         super.onBackPressed();
-        int xCoordinate = Math.round(xCoord / layoutWidthRatio);
-		int yCoordinate = Math.round(yCoord / layoutHeightRatio);
+		int xCoordinate = pixelToStageX(xCoord, layoutWidthRatio, projectResolution.getWidth());
+		int yCoordinate = pixelToStageY(yCoord, layoutHeightRatio, projectResolution.getHeight());
 
 		if (translateX != xCoordinate || translateY != yCoordinate) {
 			showSaveChangesDialog(this);
@@ -463,8 +469,8 @@ public class VisualPlacementActivity extends BaseCastActivity implements View.On
 		Intent returnIntent = new Intent();
 		Bundle extras = new Bundle();
 		extras.putInt(EXTRA_BRICK_HASH, getIntent().getIntExtra(EXTRA_BRICK_HASH, -1));
-		int xCoordinate = Math.round(xCoord / layoutWidthRatio);
-		int yCoordinate = Math.round(yCoord / layoutHeightRatio);
+		int xCoordinate = pixelToStageX(xCoord, layoutWidthRatio, projectResolution.getWidth());
+		int yCoordinate = pixelToStageY(yCoord, layoutHeightRatio, projectResolution.getHeight());
 
 		// Вычисляем размер в процентах от исходного.
 		// imageView.getScaleX() вернет ОБЩИЙ масштаб.
@@ -515,6 +521,20 @@ public class VisualPlacementActivity extends BaseCastActivity implements View.On
 		} else {
 			yCoord = yCoordinate;
 		}
+	}
+
+	/**
+	 * Переводит пиксельную координату центра объекта внутри frameLayout
+	 * (origin в левом верхнем углу, ось Y вниз) в координату сцены Catroid
+	 * (origin в центре, ось Y вверх). Без учёта смещения центра тап в середине
+	 * экрана превращался в край/за пределы сцены.
+	 */
+	static int pixelToStageX(float xCoord, float layoutWidthRatio, int projectWidth) {
+		return Math.round(xCoord / layoutWidthRatio - projectWidth / 2f);
+	}
+
+	static int pixelToStageY(float yCoord, float layoutHeightRatio, int projectHeight) {
+		return Math.round(yCoord / layoutHeightRatio + projectHeight / 2f);
 	}
 
 	private class MyScaleGestureListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {

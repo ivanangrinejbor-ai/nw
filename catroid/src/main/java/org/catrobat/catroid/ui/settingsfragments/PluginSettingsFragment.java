@@ -49,11 +49,9 @@ public class PluginSettingsFragment extends PreferenceFragmentCompat {
         PreferenceScreen preferenceScreen = getPreferenceManager().createPreferenceScreen(getContext());
         setPreferenceScreen(preferenceScreen);
 
-        try {
-            FileInputStream fis = new FileInputStream(plugin.settingsFile);
+        try (FileInputStream fis = new FileInputStream(plugin.settingsFile)) {
             byte[] data = new byte[(int) plugin.settingsFile.length()];
             fis.read(data);
-            fis.close();
             String json = new String(data, StandardCharsets.UTF_8);
             JSONArray settingsArray = new JSONArray(json);
 
@@ -128,11 +126,9 @@ public class PluginSettingsFragment extends PreferenceFragmentCompat {
     }
 
     private boolean hasSharedSettings(PluginInfo plugin) {
-        try {
-            FileInputStream fis = new FileInputStream(plugin.settingsFile);
+        try (FileInputStream fis = new FileInputStream(plugin.settingsFile)) {
             byte[] data = new byte[(int) plugin.settingsFile.length()];
             fis.read(data);
-            fis.close();
             String json = new String(data, StandardCharsets.UTF_8);
             JSONArray settingsArray = new JSONArray(json);
             for (int i = 0; i < settingsArray.length(); i++) {

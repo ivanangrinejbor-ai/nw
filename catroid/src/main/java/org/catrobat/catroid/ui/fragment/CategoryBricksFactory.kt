@@ -564,6 +564,10 @@ import org.catrobat.catroid.content.bricks.UnpinFromCameraBrick
 import org.catrobat.catroid.content.bricks.UnzipBrick
 import org.catrobat.catroid.content.bricks.UpdateManifestBrick
 import org.catrobat.catroid.content.bricks.UploadFileBrick
+import org.catrobat.catroid.content.bricks.UploadFileToFirebaseBrick
+import org.catrobat.catroid.content.bricks.DownloadFileFromFirebaseBrick
+import org.catrobat.catroid.content.bricks.ListFirebaseFilesBrick
+import org.catrobat.catroid.content.bricks.DeleteFirebaseFileBrick
 import org.catrobat.catroid.content.bricks.UserDefinedBrick
 import org.catrobat.catroid.content.bricks.UserDefinedReceiverBrick
 import org.catrobat.catroid.content.bricks.VibrationBrick
@@ -586,6 +590,7 @@ import org.catrobat.catroid.content.bricks.WhenBounceOffBrick
 import org.catrobat.catroid.content.bricks.WhenBrick
 import org.catrobat.catroid.content.bricks.WhenClonedBrick
 import org.catrobat.catroid.content.bricks.WhenConditionBrick
+import org.catrobat.catroid.content.bricks.WhenFirebaseChangedBrick
 import org.catrobat.catroid.content.bricks.WhenGamepadButtonBrick
 import org.catrobat.catroid.content.bricks.WhenMouseButtonClickedBrick
 import org.catrobat.catroid.content.bricks.WhenMouseWheelScrolledBrick
@@ -830,7 +835,9 @@ open class CategoryBricksFactory {
                 if (!isBackgroundSprite) {
                     eventBrickList.add(WhenBounceOffBrick(WhenBounceOffScript(null)))
                 }
-                eventBrickList.add(WhenBackgroundChangesBrick())
+        eventBrickList.add(WhenBackgroundChangesBrick())
+        eventBrickList.add(WhenFirebaseChangedBrick())
+                eventBrickList.add(WhenFirebaseChangedBrick())
                 eventBrickList.add(WhenClonedBrick())
                 eventBrickList.add(CloneBrick())
                 eventBrickList.add(CloneAndNameBrick("clone"))
@@ -2818,6 +2825,10 @@ void main() {
         internetBrickList.add(WriteBaseBrick("firebase_id", "key", "hello"))
         internetBrickList.add(ReadBaseBrick("firebase_id", "key"))
         internetBrickList.add(DeleteBaseBrick("firebase_id", "key"))
+        internetBrickList.add(UploadFileToFirebaseBrick("bucket", "images/photo.jpg", "screenshot.png"))
+        internetBrickList.add(DownloadFileFromFirebaseBrick("bucket", "images/photo.jpg", "downloaded.png"))
+        internetBrickList.add(ListFirebaseFilesBrick("bucket", "images/"))
+        internetBrickList.add(DeleteFirebaseFileBrick("bucket", "images/old.jpg"))
         internetBrickList.add(UploadFileBrick(Formula("https://"), Formula("file.txt"), 0, Formula("application/"), 0))
         internetBrickList.add(WebRequestBrick(context.getString(R.string.brick_web_request_default_value)))
         internetBrickList.add(PostWebRequestBrick("https://api.calfire.com/v2/texts?limit=50&offset=200",

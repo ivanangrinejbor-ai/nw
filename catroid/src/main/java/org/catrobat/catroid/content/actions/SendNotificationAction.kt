@@ -20,7 +20,8 @@ class SendNotificationAction : TemporalAction() {
 
     override fun update(percent: Float) {
         if (started) return
-        val id = notificationId?.interpretInteger(scope) ?: return
+        val s = scope ?: return
+        val id = notificationId?.interpretInteger(s) ?: return
         started = true
         try {
             NotificationServiceHolder.service.show(id)

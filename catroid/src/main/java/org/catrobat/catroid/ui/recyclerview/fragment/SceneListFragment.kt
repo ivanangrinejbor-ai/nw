@@ -34,6 +34,7 @@ import org.catrobat.catroid.common.Constants
 import org.catrobat.catroid.common.SharedPreferenceKeys
 import org.catrobat.catroid.content.Scene
 import org.catrobat.catroid.content.Sprite
+import org.catrobat.catroid.utils.LockUtils
 import org.catrobat.catroid.io.XstreamSerializer
 import org.catrobat.catroid.io.asynctask.ProjectLoader.ProjectLoadListener
 import org.catrobat.catroid.io.asynctask.loadProject
@@ -147,6 +148,21 @@ class SceneListFragment : RecyclerViewFragment<Scene?>(),
     override fun getDeleteAlertTitleId() = R.plurals.delete_scenes
 
     override fun deleteItems(selectedItems: List<Scene?>) {
+        val locked = selectedItems.filterNotNull().flatMap { LockUtils.getLockedBricks(it) }
+        if (locked.isEmpty()) {
+            performDelete(selectedItems)
+        } else {
+            LockUtils.requestPassword(requireContext(), R.string.brick_context_dialog_delete_brick) { pw ->
+                if (LockUtils.verify(locked, pw)) {
+                    performDelete(selectedItems)
+                } else {
+                    ToastUtil.showError(requireContext(), R.string.brick_wrong_password)
+                }
+            }
+        }
+    }
+
+    private fun performDelete(selectedItems: List<Scene?>) {
         setShowProgressBar(true)
         var deletedItemsCount = 0
         for (item in selectedItems) {
@@ -268,7 +284,9 @@ class SceneListFragment : RecyclerViewFragment<Scene?>(),
                 R.id.backpack -> packItems(itemList)
                 R.id.copy -> copyItems(itemList)
                 R.id.rename -> showRenameDialog(item)
-                R.id.delete -> deleteItems(itemList)
+                R.id.delete -> {
+                    deleteItems(itemList)
+                }
                 R.id.scene_transition -> showTransitionDialog(item)
                 else -> {
                 }

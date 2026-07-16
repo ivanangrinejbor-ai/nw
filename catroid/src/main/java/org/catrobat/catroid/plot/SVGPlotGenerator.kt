@@ -45,12 +45,12 @@ class SVGPlotGenerator(plot : Plot?){
         var path = ""
         if(line.size < 2) return path
         path = "<path fill=\"none\" style=\"stroke:rgb(0,0,0);stroke-width:1;stroke-linecap:round;stroke-opacity:1;\" d=\"M"
-        path += dotDecinalRound(line[0].x - xAlignment!!) + " " + dotDecinalRound(line[0].y - yAlignment!!)
+        path += dotDecinalRound(line[0].x - (xAlignment ?: 0f)) + " " + dotDecinalRound(line[0].y - (yAlignment ?: 0f))
 
         for (point in line.subList(1, line.size))
-            path = path + " L" + dotDecinalRound(point.x - xAlignment) + " " + dotDecinalRound(point
-                                                                                               .y
-                                                                                               - yAlignment)
+            path = path + " L" + dotDecinalRound(point.x - (xAlignment ?: 0f)) + " " + dotDecinalRound(point
+                                                                                                .y
+                                                                                                - (yAlignment ?: 0f))
 
         path += "\" />\n"
         return path

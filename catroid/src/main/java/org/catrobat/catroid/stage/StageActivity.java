@@ -334,6 +334,19 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 					return;
 				}
 			}
+
+			// Fallback: a baked/decrypted project may carry an init script
+			// (init.luno.txt / init.bin) that runs but does not register the
+			// project with ProjectManager. Load it the standard Android way
+			// so the stage can actually run.
+			if (ProjectManager.getInstance().getCurrentProject() == null
+					&& projectDir.exists() && projectDir.isDirectory()) {
+				try {
+					ProjectManager.getInstance().loadProject(projectDir);
+				} catch (ProjectException e) {
+					Log.e(TAG, "Fallback load after baked init failed", e);
+				}
+			}
 		}
 
 		rootLayout = new FrameLayout(this);
@@ -347,6 +360,13 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 		}
 
 		StageLifeCycleController.stageCreate(this);
+
+		if (ProjectManager.getInstance().getCurrentProject() == null || getGdxGraphics() == null) {
+			Toast.makeText(this, getString(R.string.error_load_project), Toast.LENGTH_LONG).show();
+			finish();
+			return;
+		}
+
 		activeStageActivity = new WeakReference<>(this);
 		MyActivityManager.Companion.setStage_activity(this);
 
@@ -794,13 +814,8 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 
 	public void createWebViewWithUrl(String viewId, String url, int x, int y, int width, int height, float zIndex) {
 		// Security: only allow HTTPS URLs for WebView to prevent XSS and data leaks
-		if (url == null || (!url.startsWith("https://") && !url.startsWith("http://"))) {
-			Log.w(TAG, "Blocked WebView load: URL must start with http:// or https://: " + url);
-			return;
-		}
-		// Only allow HTTPS in release builds
-		if (!BuildConfig.DEBUG && url.startsWith("http://")) {
-			Log.w(TAG, "Blocked WebView load: HTTP not allowed in release builds: " + url);
+		if (url == null || !url.startsWith("https://")) {
+			Log.w(TAG, "Blocked WebView load: URL must start with https://: " + url);
 			return;
 		}
 

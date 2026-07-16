@@ -591,10 +591,11 @@ public class FormulaElement implements Serializable {
                 return currentProject2 != null ? currentProject2.getFilesDir().getAbsolutePath() : "";
             }
             case LUA: {
-                // SECURITY: Use baseGlobals() instead of standardGlobals() to prevent OS/IO/shell access.
-                // standardGlobals() exposes io.*, os.execute() etc. — arbitrary code execution risk.
+                // SECURITY: use standardGlobals() — unlike debugGlobals() it does NOT install
+                // the debug library, so the sandbox cannot be escaped via
+                // debug.getupvalue/setmetatable even after io/os are stripped.
                 if (luaGlobals == null) {
-                    luaGlobals = org.luaj.vm2.lib.jse.JsePlatform.debugGlobals();
+                    luaGlobals = org.luaj.vm2.lib.jse.JsePlatform.standardGlobals();
                     // Sandbox: remove dangerous libraries
                     luaGlobals.set("io", org.luaj.vm2.LuaValue.NIL);
                     luaGlobals.set("os", org.luaj.vm2.LuaValue.NIL);
@@ -1601,12 +1602,13 @@ public class FormulaElement implements Serializable {
             case ADMOB_LAST_ERROR_MESSAGE:
                 return AdMobManager.INSTANCE.getLastErrorMessage();
             case ADMOB_IS_GOOGLE_PLAY_SERVICES_AVAILABLE: {
-                Activity activity = StageActivity.activeStageActivity.get();
-                if (activity != null) {
-                    return AdMobManager.INSTANCE.isGooglePlayServicesAvailable(activity);
-                } else {
-                    return false;
+                if (StageActivity.activeStageActivity != null) {
+                    Activity activity = StageActivity.activeStageActivity.get();
+                    if (activity != null) {
+                        return AdMobManager.INSTANCE.isGooglePlayServicesAvailable(activity);
+                    }
                 }
+                return false;
             }
 
             // -- Cryptography ---
@@ -1795,7 +1797,7 @@ public class FormulaElement implements Serializable {
     }
 
     private Object interpretFunctionNumberOfItems(Object left, Scope scope) {
-        if (leftChild.type == ElementType.USER_LIST) {
+        if (leftChild != null && leftChild.type == ElementType.USER_LIST) {
             UserList userList = UserDataWrapper.getUserList(leftChild.value, scope);
             return (double) handleNumberOfItemsOfUserListParameter(userList);
         }
@@ -1823,7 +1825,7 @@ public class FormulaElement implements Serializable {
     }
 
     private Object interpretFunctionIndexOfItem(Object left, Scope scope) {
-        if (rightChild.getElementType() == ElementType.USER_LIST) {
+        if (rightChild != null && rightChild.getElementType() == ElementType.USER_LIST) {
             UserList userList = UserDataWrapper.getUserList(rightChild.value, scope);
             if (userList == null) {
                 return 0.0;
@@ -1883,7 +1885,7 @@ public class FormulaElement implements Serializable {
 
     @Nullable
     private UserList getUserListOfChild(FormulaElement child, Scope scope) {
-        if (child.getElementType() != ElementType.USER_LIST) {
+        if (child == null || child.getElementType() != ElementType.USER_LIST) {
             return null;
         }
         return UserDataWrapper.getUserList(child.value, scope);
@@ -1900,8 +1902,10 @@ public class FormulaElement implements Serializable {
     }
 
     private static String interpretFunctionJoin3(Scope scope, FormulaElement leftChild, FormulaElement rightChild, List<FormulaElement> additionalChildren) {
+        String third = (additionalChildren != null && !additionalChildren.isEmpty())
+            ? interpretFunctionString(additionalChildren.get(0), scope) : "";
         return interpretFunctionString(leftChild, scope).concat(interpretFunctionString(rightChild,
-                scope).concat(interpretFunctionString(additionalChildren.get(0), scope)));
+                scope).concat(third));
     }
 
     private static String interpretFunctionFlatten(Scope scope, FormulaElement leftChild) {
@@ -2303,6 +2307,8 @@ public class FormulaElement implements Serializable {
                 return left * right;
             case DIVIDE:
                 return (right == 0.0) ? Double.NaN : (left / right);
+            case MOD:
+                return (right == 0.0) ? Double.NaN : (left % right);
             case POW:
                 return Math.pow(left, right);
             case EQUAL:
@@ -2409,7 +2415,9 @@ public class FormulaElement implements Serializable {
     }
 
     private boolean isUserListBoolean(Scope scope) {
-        List<Object> listValues = UserDataWrapper.getUserList(value, scope).getValue();
+        UserList ul = UserDataWrapper.getUserList(value, scope);
+        if (ul == null) return false;
+        List<Object> listValues = ul.getValue();
         if (listValues.size() != 1) {
             return false;
         }

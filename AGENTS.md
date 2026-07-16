@@ -410,13 +410,13 @@ StageListenerHolder: `object StageListenerHolder { var listener: StageListener? 
 | `SENSOR` | MOUSE_X, MOUSE_Y, MOUSE_DELTA_X, MOUSE_DELTA_Y, FINGER_X, FINGER_Y, FINGER_TOUCHED, NUMBER_CURRENT_TOUCHES, INDEX_CURRENT_TOUCH | ✅ |
 | `SENSOR` | DATE_YEAR, DATE_MONTH, DATE_DAY, DATE_WEEKDAY, TIME_HOUR, TIME_MINUTE, TIME_SECOND | ✅ |
 | `SENSOR` | X_ACCELERATION, Y_ACCELERATION, Z_ACCELERATION, COMPASS_DIRECTION, LATITUDE, LONGITUDE (заглушки = 0) | ✅ заглушки |
-| `USER_VARIABLE` | lookup(name) в `variables[name]` | ✅ |
+| `USER_VARIABLE` | lookup(name) в `variables[name]` (возвращает `Any`, по умолчанию `0f`) | ✅ |
 | `USER_LIST` | возвращает "" | ✅ заглушка |
 | `BRACKET` | вычисляет rightChild | ✅ |
 | `COLLISION_FORMULA` | возвращает value как Double | ✅ |
 
 ### DesktopNetworkService (новый seam, 2026-07-13)
-- `NetworkService` (интерфейс, `:core`): `httpGet(url)` + `httpPost(url, body)`.
+- `NetworkService` (интерфейс, `:core`): `httpGet(url)`, `httpPost(url, body)`, `httpPut(url, body)`, `httpDelete(url)` (4 метода).
 - `NetworkServiceHolder` (объект, `:core`): точка инъекции.
 - `DesktopNetworkService` (`:desktop-runtime`): реализация через `java.net.HttpURLConnection` с 10s таймаутами.
 - Зарегистрирован в `DesktopStage.main()`.
@@ -426,8 +426,8 @@ StageListenerHolder: `object StageListenerHolder { var listener: StageListener? 
 | Модуль | Файл | Методы | Статус |
 |--------|------|--------|--------|
 | :core | RuntimeServices (7 методов) | DesktopRuntimeServices | ✅ все |
-| :core | AudioService (15 методов) | DesktopAudioService | ✅ все |
-| :core | MidiService (15 методов) | DesktopMidiService | ✅ все |
+| :core | AudioService (18 методов) | DesktopAudioService | ✅ все |
+| :core | MidiService (16 методов) | DesktopMidiService | ✅ все |
 | :core | TextService (1 метод) | DesktopTextService | ✅ |
 | :core | NotificationService (4 метода) | DesktopNotificationService | ✅ все |
 
@@ -611,3 +611,18 @@ StageListenerHolder: `object StageListenerHolder { var listener: StageListener? 
 **Итого портируемых: ~170 шт.** (из ~390 Android)
 **Уже портировано: ~70 шт.**
 **Осталось: ~100 шт.** ценных для портирования (исключая 3D-специфичные и Android-only).
+
+## APK Builder V3 — полная замена имени пакета (2026-07)
+V3 собирает автономный APK из 	emplate_runtime.apk с переименованием пакета на выбранный пользователем.
+
+- **Реализация**: catroid/.../apkbuildV3/V3ApkAssembler.kt
+  - pplyPackageRename(manifest, newPackage): manifest.packageName = newPackage + manifest.ensureFullClassNames() (квалифицирует относительные имена компонентов против СТАРОГО пакета ДО смены) + eplacePackageInAuthority (authority provider через searchAttributeByResourceId(0x01010018)).
+  - makeRuntimeLoaderLauncher(manifest) (internal) — делает RuntimeLoaderActivityV3 единственным launcher.
+  - doSign(input, output, keystore, alias, password) (internal) — подпись apksig v1+v2+v3.
+- **Runtime пакет-независим**: FileProvider authority, content URI, PendingIntent, getPackageInfo/getPackageName, reflection (BRICKS_PACKAGE_NAMES — FQN) — всё строится динамически из getPackageName(); хардкод-строк org.catrobat.catroid в манифест-зависимом коде НЕТ. ProjectFilesFragment/ProjectLibsFragment: BuildConfig.APPLICATION_ID → equireContext().packageName.
+- **Верификация**: catroid/src/test/java/org/catrobat/catroid/apkbuildV3/V3PackageRenameTest.kt (5 тестов, все зелёные), в т.ч. exportTwoGames_coexistAndVerify — реальный репак 	emplate_runtime.apk (188 МБ) ×2 → org.test.game1/org.test.game2, reandroid-репарс + apksig verify (package, <pkg>.fileProvider authority, RuntimeLoaderActivityV3 launcher, payload project.ncv3, отсутствие ${...} плейсхолдеров и старого пакета вне 
+ame). test heap -Xmx4g в catroid/build.gradle.
+- **Ограничение среды**: нет устройства/SDK ⇒ реальный db install не проверялся; сосуществование доказано логически (разные applicationId + authorities) и тестом.
+- **Локатор шаблона**: catroid/.../apkbuildV3/TemplateManagerV3.kt — prepareBaseApk берёт template_runtime.apk из assets, fallback на собственный APK (applicationInfo.sourceDir); бросает IllegalStateException с обеими причинами отказа (нет в assets / нет места / невалидный ZIP / нет sourceDir) вместо null. V3ApkAssembler.assemble пробрасывает исключение, поэтому ApkBuilderV3Engine показывает реальную причину, а не обобщённое «проверьте template_runtime.apk». Пайплайн inject→patch→sign проверен headless на обеих базах (runtime-шаблон 188 МБ и self-APK 624 МБ) — работает; значит сбой на устройстве = locateBaseApk вернул null (нет файла в установленном APK либо не хватает места в cacheDir).
+- **Подпись (исправлено 2026-07)**: `V3ApkAssembler.doSign` НЕ должен ссылаться на провайдер по имени `BouncyCastleProvider.PROVIDER_NAME` (= "BC") — на Android под именем "BC" уже зарегистрирован урезанный платформенный провайдер (Conscrypt), который не реализует BC content-signer, отсюда `NoSuchAlgorithmException: SHA256WithRSA for provider BC`. Используется ЭКЗЕМПЛЯР `BouncyCastleProvider()` (`.setProvider(bc)`) и генерация ключа `KeyPairGenerator.getInstance("RSA", bc)`. На JVM-тесте "BC" — полный BC, поэтому тест проходил, а устройство падало.
+- **СТАЛЫЙ template_runtime.apk (исправлено 2026-07)**: закоммиченный `catroid/src/main/assets/template_runtime.apk` был СТАРЫМ (собран до появления V3-runtime) и НЕ содержал классов `RuntimeLoaderActivityV3`/`ProjectLoaderV3`. Игра собиралась и ставилась, но падала сразу при запуске (ClassNotFoundException на launcher). Перегенерирован через `./gradlew copyTemplateApk` (собирает `assembleRuntimeTemplate` = flavor `runtime` + buildType `template`, minify с `proguard-runtime.pro`, который держит `org.catrobat.catroid.apkbuildV3.**` и `apkbuildV3.runtime.**`). Результат 171 МБ и содержит V3-runtime (проверено dex-сканом). `copyTemplateApk` падает на задаче `uploadCrashlyticsMappingFileRuntimeTemplate` (нет Firebase appId для runtime-флейвора) — обход: `./gradlew copyTemplateApk -x uploadCrashlyticsMappingFileRuntimeTemplate`. Рекомендация: перегенерировать template при любом изменении V3-runtime; желательно зашить `copyTemplateApk` в mergeAssets редактора, чтобы ассет не протухал.

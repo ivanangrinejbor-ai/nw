@@ -28,6 +28,7 @@ import android.os.AsyncTask;
 import android.util.Log;
 
 import org.catrobat.catroid.web.CatrobatServerCalls;
+import org.catrobat.catroid.common.Constants;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -94,7 +95,27 @@ public class GetSurveyTask extends AsyncTask<String, Void, String> {
 	}
 
 	private boolean isUrlStatusCodeOk(String surveyUrl) throws IOException {
-		HttpsURLConnection connection = (HttpsURLConnection) (new URL(surveyUrl)).openConnection();
+		// SECURITY (SSRF): only allow https URLs on the known Catrobat host.
+		URL url;
+		try {
+			url = new URL(surveyUrl);
+		} catch (Exception e) {
+			Log.e(TAG, "Rejected survey url: malformed url", e);
+			return false;
+		}
+
+		if (!"https".equalsIgnoreCase(url.getProtocol())) {
+			Log.e(TAG, "Rejected survey url: cleartext/non-https scheme not allowed: " + surveyUrl);
+			return false;
+		}
+
+		String allowedHost = new URL(Constants.MAIN_URL_HTTPS).getHost();
+		if (url.getHost() == null || !allowedHost.equalsIgnoreCase(url.getHost())) {
+			Log.e(TAG, "Rejected survey url: host not allowed: " + surveyUrl);
+			return false;
+		}
+
+		HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
 		connection.connect();
 		int status = connection.getResponseCode();
 		connection.disconnect();

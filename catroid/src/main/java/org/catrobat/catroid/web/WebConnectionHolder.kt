@@ -24,6 +24,7 @@ package org.catrobat.catroid.web
 
 import android.util.Log
 import okhttp3.ConnectionSpec
+import org.catrobat.catroid.BuildConfig
 import okhttp3.ConnectionSpec.Companion.COMPATIBLE_TLS
 import okhttp3.ConnectionSpec.Companion.MODERN_TLS
 import okhttp3.Dispatcher
@@ -39,7 +40,7 @@ class WebConnectionHolder {
 
     companion object {
         private const val MAX_CONNECTIONS = 10
-        private const val TIMEOUT_DURATION = 60L
+        private const val TIMEOUT_DURATION = 30L
     }
 
     init {
@@ -51,18 +52,22 @@ class WebConnectionHolder {
             level = HttpLoggingInterceptor.Level.BODY // Логировать заголовки и тело запроса/ответа
         }*/
 
-        val logging = HttpLoggingInterceptor()
-        logging.setLevel(HttpLoggingInterceptor.Level.BODY) // Уровень BODY покажет все: заголовки и тело запроса/ответа
-
-        okHttpClient = OkHttpClient.Builder()
-            .addInterceptor(logging)
+        val clientBuilder = OkHttpClient.Builder()
             .connectTimeout(TIMEOUT_DURATION, TimeUnit.SECONDS)
             .readTimeout(TIMEOUT_DURATION, TimeUnit.SECONDS)
             .writeTimeout(TIMEOUT_DURATION, TimeUnit.SECONDS)
-            .connectionSpecs(listOf(MODERN_TLS, COMPATIBLE_TLS, ConnectionSpec.CLEARTEXT))
+            // Force HTTPS/TLS only; never allow cleartext (http) connections.
+            .connectionSpecs(listOf(MODERN_TLS, COMPATIBLE_TLS))
             .dispatcher(Dispatcher())
-            //.addInterceptor(loggingInterceptor) // <--- Добавляем интерсептор
-            .build()
+
+        // Log request/response bodies only in debug builds to avoid leaking data in release.
+        if (BuildConfig.DEBUG) {
+            val logging = HttpLoggingInterceptor()
+            logging.setLevel(HttpLoggingInterceptor.Level.BODY)
+            clientBuilder.addInterceptor(logging)
+        }
+
+        okHttpClient = clientBuilder.build()
 
         okHttpClient.dispatcher.maxRequests = MAX_CONNECTIONS
         okHttpClient.dispatcher.maxRequestsPerHost = MAX_CONNECTIONS

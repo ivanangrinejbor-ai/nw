@@ -43,12 +43,23 @@ object CatdroidImageAnalyzer : ImageAnalysis.Analyzer {
 
     @ExperimentalGetImage
     override fun analyze(imageProxy: ImageProxy) {
-        imageProxy.image?.let { mediaImage ->
-            val completeListener = DetectorsCompleteListener(activeDetectors.size, imageProxy)
-            val image = InputImage.fromMediaImage(mediaImage, imageProxy.imageInfo.rotationDegrees)
-            for (detector in activeDetectors) {
-                detector.processImage(mediaImage, image, completeListener)
-            }
+        val mediaImage = imageProxy.image
+        if (mediaImage == null) {
+            // No image to analyze: must still close the proxy to avoid a leak.
+            imageProxy.close()
+            return
+        }
+
+        if (activeDetectors.isEmpty()) {
+            // Nothing registered to process the image: close the proxy immediately.
+            imageProxy.close()
+            return
+        }
+
+        val completeListener = DetectorsCompleteListener(activeDetectors.size, imageProxy)
+        val image = InputImage.fromMediaImage(mediaImage, imageProxy.imageInfo.rotationDegrees)
+        for (detector in activeDetectors) {
+            detector.processImage(mediaImage, image, completeListener)
         }
     }
 

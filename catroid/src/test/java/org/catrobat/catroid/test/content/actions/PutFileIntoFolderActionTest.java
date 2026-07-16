@@ -8,15 +8,14 @@ package org.catrobat.catroid.test.content.actions;
 
 import android.os.Environment;
 
+import com.badlogic.gdx.scenes.scene2d.actions.SequenceAction;
 import com.badlogic.gdx.utils.GdxNativesLoader;
 
 import org.catrobat.catroid.ProjectManager;
 import org.catrobat.catroid.content.Project;
 import org.catrobat.catroid.content.Scene;
 import org.catrobat.catroid.content.Scope;
-import org.catrobat.catroid.content.Script;
 import org.catrobat.catroid.content.Sprite;
-import org.catrobat.catroid.content.actions.ScriptSequenceAction;
 import org.catrobat.catroid.formulaeditor.Formula;
 import org.catrobat.catroid.test.MockUtil;
 import org.junit.Before;
@@ -57,7 +56,7 @@ public class PutFileIntoFolderActionTest {
         scene.addSprite(sprite);
         project.addScene(scene);
         ProjectManager.getInstance().setCurrentProject(project);
-        scope = new Scope(project, sprite, new ScriptSequenceAction(null));
+        scope = new Scope(project, sprite, new SequenceAction());
 
         downloadsDir = tempFolder.newFolder("Downloads");
         when(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS))
@@ -73,7 +72,7 @@ public class PutFileIntoFolderActionTest {
 
         // Execute action
         sprite.getActionFactory()
-                .createPutFileIntoFolderAction(sprite, new ScriptSequenceAction(null),
+                .createPutFileIntoFolderAction(sprite, new SequenceAction(),
                         new Formula("test.txt"), new Formula("myFolder"))
                 .act(1.0f);
 
@@ -85,7 +84,7 @@ public class PutFileIntoFolderActionTest {
     @Test
     public void testSourceFileNotFoundDoesNothing() {
         sprite.getActionFactory()
-                .createPutFileIntoFolderAction(sprite, new ScriptSequenceAction(null),
+                .createPutFileIntoFolderAction(sprite, new SequenceAction(),
                         new Formula("nonexistent.txt"), new Formula("myFolder"))
                 .act(1.0f);
 
@@ -101,7 +100,7 @@ public class PutFileIntoFolderActionTest {
 
         // Attempt path traversal
         sprite.getActionFactory()
-                .createPutFileIntoFolderAction(sprite, new ScriptSequenceAction(null),
+                .createPutFileIntoFolderAction(sprite, new SequenceAction(),
                         new Formula("test.txt"), new Formula("../outside"))
                 .act(1.0f);
 
@@ -113,7 +112,7 @@ public class PutFileIntoFolderActionTest {
     @Test
     public void testNullSourceNameDoesNothing() {
         sprite.getActionFactory()
-                .createPutFileIntoFolderAction(sprite, new ScriptSequenceAction(null),
+                .createPutFileIntoFolderAction(sprite, new SequenceAction(),
                         null, new Formula("folder"))
                 .act(1.0f);
         // Should not throw
@@ -126,7 +125,7 @@ public class PutFileIntoFolderActionTest {
         assertTrue(sourceFile.createNewFile());
 
         sprite.getActionFactory()
-                .createPutFileIntoFolderAction(sprite, new ScriptSequenceAction(null),
+                .createPutFileIntoFolderAction(sprite, new SequenceAction(),
                         new Formula("test.txt"), new Formula(""))
                 .act(1.0f);
 

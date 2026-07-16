@@ -97,7 +97,18 @@ class IdeActivity : AppCompatActivity() {
         tabsRecycler.adapter = tabAdapter
     }
 
+    private fun isWithinProjectDir(file: File): Boolean {
+        val projectCanonical = projectDir.canonicalFile
+        val targetCanonical = file.canonicalFile
+        return targetCanonical == projectCanonical
+                || targetCanonical.absolutePath.startsWith(projectCanonical.absolutePath + File.separator)
+    }
+
     private fun openFileInEditor(file: File) {
+        if (!isWithinProjectDir(file)) {
+            Toast.makeText(this, "Доступ к файлам вне проекта запрещён", Toast.LENGTH_SHORT).show()
+            return
+        }
         saveCurrentFile() // Сохраняем предыдущий
 
         // Если файла нет во вкладках - добавляем
@@ -218,6 +229,9 @@ class IdeActivity : AppCompatActivity() {
     }
 
     private fun loadDirectory(dir: File) {
+        if (!isWithinProjectDir(dir)) {
+            return
+        }
         currentDir = dir
         filesList.clear()
 

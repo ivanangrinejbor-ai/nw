@@ -15,11 +15,18 @@ class GenerateKeyAction : Action() {
     var commonNameFormula: Formula? = null
 
     private var executed = false
+    private var job: Job? = null
+
+    override fun restart() {
+        super.restart()
+        job?.cancel()
+        executed = false
+    }
 
     override fun act(delta: Float): Boolean {
         if (!executed) {
             executed = true
-            GlobalScope.launch(Dispatchers.IO) {
+            job = CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
                 val filename = filenameFormula?.interpretString(scope) ?: "release.jks"
                 val password = passwordFormula?.interpretString(scope) ?: "123456"
                 val alias = aliasFormula?.interpretString(scope) ?: "key0"

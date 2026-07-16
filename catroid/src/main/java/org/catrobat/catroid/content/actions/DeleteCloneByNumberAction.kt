@@ -9,8 +9,18 @@ class DeleteCloneByNumberAction : TemporalAction() {
     var scope: Scope? = null
     var cloneNumber: Formula? = null
 
+    private var started = false
+
+    override fun restart() {
+        started = false
+        super.restart()
+    }
+
     override fun update(percent: Float) {
-        val number = cloneNumber?.interpretInteger(scope) ?: return
+        if (started) return
+        val s = scope ?: return
+        val number = cloneNumber?.interpretInteger(s) ?: return
+        started = true
         val stageListener = StageActivity.getActiveStageListener() ?: return
         stageListener.removeCloneByIndex(number)
     }

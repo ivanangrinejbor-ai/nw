@@ -33,7 +33,6 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.graphics.glutils.FrameBuffer
 import com.badlogic.gdx.scenes.scene2d.Actor
-import com.badlogic.gdx.scenes.scene2d.ui.Image
 import org.catrobat.catroid.ProjectManager
 import kotlin.math.pow
 import kotlin.math.sqrt
@@ -133,6 +132,7 @@ class PlotActor : Actor() {
     private var bufferBatch: Batch?
     private val camera: OrthographicCamera
     private val screenRatio: Float
+    private var region: TextureRegion? = null
 
     init {
         val header = ProjectManager.getInstance().currentProject.xmlHeader
@@ -162,13 +162,13 @@ class PlotActor : Actor() {
         }
         buf.end()
 
-        batch.end()
-        val region = TextureRegion(buf.colorBufferTexture)
-        region.flip(false, true)
-        val image = Image(region)
-        image.setPosition((-buf.width / 2).toFloat(), (-buf.height / 2).toFloat())
-        batch.begin()
-        image.draw(batch, parentAlpha)
+        // Cache TextureRegion — don't allocate every frame
+        val r = region ?: TextureRegion(buf.colorBufferTexture).also {
+            it.flip(false, true)
+            region = it
+        }
+        // Draw directly without creating Image wrapper
+        batch.draw(r, (-buf.width / 2).toFloat(), (-buf.height / 2).toFloat())
     }
 
     fun reset() {

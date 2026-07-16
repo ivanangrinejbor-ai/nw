@@ -270,7 +270,7 @@ public class PhysicsObject {
 			this.mass = PhysicsObject.MIN_MASS;
 		}
 		if (mass < PhysicsObject.MIN_MASS) {
-			mass = PhysicsObject.MIN_MASS;
+			this.mass = PhysicsObject.MIN_MASS;
 		}
 		if (isStaticObject()) {
 			return;

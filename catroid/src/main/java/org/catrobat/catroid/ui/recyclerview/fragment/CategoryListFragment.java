@@ -501,14 +501,14 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 			R.string.formula_editor_function_is_multi_finger_touching,
 			R.string.formula_editor_function_index_of_last_finger,
 			R.string.formula_editor_function_number_of_current_touches,
-			R.string.formula_editor_function_index_of_current_touch);
-			//R.string.formula_editor_function_is_mouse_button_down,R.string.formula_editor_sensor_mouse_x, R.string.formula_editor_sensor_mouse_y, R.string.formula_editor_sensor_mouse_delta_x, R.string.formula_editor_sensor_mouse_delta_y, R.string.formula_editor_sensor_mouse_scroll);
+			R.string.formula_editor_function_index_of_current_touch,
+			R.string.formula_editor_function_is_mouse_button_down, R.string.formula_editor_sensor_mouse_x, R.string.formula_editor_sensor_mouse_y, R.string.formula_editor_sensor_mouse_delta_x, R.string.formula_editor_sensor_mouse_delta_y, R.string.formula_editor_sensor_mouse_scroll);
 	private static final List<Integer> SENSORS_TOUCH_PARAMS = asList(R.string.formula_editor_function_no_parameter,
 			R.string.formula_editor_function_no_parameter, R.string.formula_editor_function_no_parameter,
 			R.string.formula_editor_function_touch_parameter, R.string.formula_editor_function_touch_parameter,
 			R.string.formula_editor_function_touch_parameter, R.string.formula_editor_function_no_parameter,
-			R.string.formula_editor_function_no_parameter, R.string.formula_editor_function_touch_parameter);/*, R.string.formula_editor_function_is_mouse_button_down_parameter, R.string.formula_editor_function_no_parameter, R.string.formula_editor_function_no_parameter, R.string.formula_editor_function_no_parameter, R.string.formula_editor_function_no_parameter,
-			R.string.formula_editor_function_no_parameter);*/
+			R.string.formula_editor_function_no_parameter, R.string.formula_editor_function_touch_parameter, R.string.formula_editor_function_is_mouse_button_down_parameter, R.string.formula_editor_function_no_parameter, R.string.formula_editor_function_no_parameter, R.string.formula_editor_function_no_parameter, R.string.formula_editor_function_no_parameter,
+			R.string.formula_editor_function_no_parameter);
 	private static final List<Integer> SENSORS_FACE_DETECTION = asList(R.string.formula_editor_sensor_face_detected,
 			R.string.formula_editor_sensor_face_size, R.string.formula_editor_sensor_face_x_position,
 			R.string.formula_editor_sensor_face_y_position,
@@ -1229,14 +1229,10 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 
 	private List<CategoryListItem> toCategoryListItems(List<Integer> nameResIds, @Nullable List<Integer> paramResIds,
 			@CategoryListItemType int type) {
-		if (paramResIds != null && paramResIds.size() != nameResIds.size()) {
-			throw new IllegalArgumentException("Sizes of paramResIds and nameResIds parameters do not fit");
-		}
-
 		List<CategoryListItem> result = new ArrayList<>();
 		for (int i = 0; i < nameResIds.size(); i++) {
 			String param = "";
-			if (paramResIds != null) {
+			if (paramResIds != null && i < paramResIds.size()) {
 				param = getString(paramResIds.get(i));
 			}
 			result.add(new CategoryListItem(nameResIds.get(i), getString(nameResIds.get(i)) + param, type));

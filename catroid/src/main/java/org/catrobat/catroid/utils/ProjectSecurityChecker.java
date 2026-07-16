@@ -7,6 +7,7 @@ import org.catrobat.catroid.content.Scene;
 import org.catrobat.catroid.content.Script;
 import org.catrobat.catroid.content.Sprite;
 import org.catrobat.catroid.content.bricks.Brick;
+import org.catrobat.catroid.content.bricks.CompositeBrick;
 import org.catrobat.catroid.content.bricks.RunPythonScriptBrick;
 
 import org.catrobat.catroid.content.bricks.LunoScriptBrick;
@@ -46,7 +47,21 @@ public class ProjectSecurityChecker {
             return false;
         }
 
-        return brick instanceof LunoScriptBrick || brick instanceof RunPythonScriptBrick;
+        if (brick instanceof LunoScriptBrick || brick instanceof RunPythonScriptBrick) {
+            return true;
+        }
+
+        // Recurse into composite bricks (IfBrick, RepeatBrick, ForeverBrick, ...) so that
+        // dangerous bricks nested inside them are also validated.
+        if (brick instanceof CompositeBrick) {
+            for (Brick nestedBrick : ((CompositeBrick) brick).getNestedBricks()) {
+                if (checkBrickRecursively(nestedBrick)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     private static boolean checkBrickRecursively(Script brick) {

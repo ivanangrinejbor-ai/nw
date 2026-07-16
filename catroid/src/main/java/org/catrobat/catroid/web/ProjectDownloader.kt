@@ -28,6 +28,7 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
+import android.os.Looper
 import android.os.ResultReceiver
 import android.util.Log
 import androidx.annotation.VisibleForTesting
@@ -113,7 +114,7 @@ class ProjectDownloader(
         val downloadIntent = Intent(context, ProjectDownloadService::class.java)
         downloadIntent.putExtra(ProjectDownloadService.EXTRA_DOWNLOAD_NAME, projectName)
         downloadIntent.putExtra(ProjectDownloadService.EXTRA_URL, url)
-        downloadIntent.putExtra(ProjectDownloadService.EXTRA_RESULT_RECEIVER, Receiver(projectName, Handler()))
+        downloadIntent.putExtra(ProjectDownloadService.EXTRA_RESULT_RECEIVER, Receiver(projectName, Handler(Looper.getMainLooper())))
 
         val statusBarNotificationManager = StatusBarNotificationManager(context)
         val notificationData = statusBarNotificationManager.createProjectDownloadNotification(context, projectName)

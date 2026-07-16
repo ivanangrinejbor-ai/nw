@@ -95,6 +95,22 @@ class DesktopSprite(
     var transparency: Float = 0f,       // 0..100
     var brightness: Float = 100f,       // 0..200
     var color: Float = 0f,              // 0..200
+    var filterBlur: Float = 0f,
+    var filterPixelate: Float = 0f,
+    var filterSepia: Float = 0f,
+    var fontName: String = "",
+    var fontSize: Float = 14f,
+    var objectColorRed: Float = 1f,
+    var objectColorGreen: Float = 1f,
+    var objectColorBlue: Float = 1f,
+    var objectTexturePath: String = "",
+    var objectShaderVertex: String = "",
+    var objectShaderFragment: String = "",
+    val objectShaderUniforms: MutableMap<String, Triple<Float, Float, Float>> = mutableMapOf(),
+    var rotationLockX: Boolean = false,
+    var rotationLockY: Boolean = false,
+    var rotationLockZ: Boolean = false,
+    var canvasName: String = "",
     // ── Dimensions (override) ──
     var width: Float = -1f,             // -1 = use look native
     var height: Float = -1f,
@@ -139,6 +155,13 @@ class DesktopSprite(
             currentLookIndex = currentLookIndex,
             visible = visible, transparency = transparency,
             brightness = brightness, color = color,
+            filterBlur = filterBlur, filterPixelate = filterPixelate, filterSepia = filterSepia,
+            fontName = fontName, fontSize = fontSize,
+            objectColorRed = objectColorRed, objectColorGreen = objectColorGreen, objectColorBlue = objectColorBlue,
+            objectTexturePath = objectTexturePath, objectShaderVertex = objectShaderVertex, objectShaderFragment = objectShaderFragment,
+            objectShaderUniforms = objectShaderUniforms.toMutableMap(),
+            rotationLockX = rotationLockX, rotationLockY = rotationLockY, rotationLockZ = rotationLockZ,
+            canvasName = canvasName,
             width = width, height = height,
             penDown = penDown, penSize = penSize,
             penColorRed = penColorRed, penColorGreen = penColorGreen, penColorBlue = penColorBlue,
@@ -180,6 +203,10 @@ class DesktopProject(
     var name: String,
     val sprites: MutableList<DesktopSprite> = mutableListOf(),
     var projectDir: java.io.File? = null,
+    /** Resolved directory holding look images (may be nested under a project-name folder). */
+    var imagesDir: java.io.File? = null,
+    /** Resolved directory holding sound files (may be nested under a project-name folder). */
+    var soundsDir: java.io.File? = null,
     var stageWidth: Int = 480,
     var stageHeight: Int = 720
 )

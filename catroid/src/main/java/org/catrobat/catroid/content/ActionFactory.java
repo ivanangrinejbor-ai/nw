@@ -5820,4 +5820,50 @@ public class ActionFactory extends Actions {
         action.setAnimationName(animationName);
         return action;
     }
+
+    public Action createUploadFileToFirebaseAction(Sprite sprite, SequenceAction sequence,
+                                                    Formula bucket, Formula path, Formula file) {
+        UploadFileToFirebaseAction action = action(UploadFileToFirebaseAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setBucket(bucket);
+        action.setPath(path);
+        action.setFile(file);
+        return action;
+    }
+
+    public Action createDownloadFileFromFirebaseAction(Sprite sprite, SequenceAction sequence,
+                                                        Formula bucket, Formula path, Formula destFile,
+                                                        UserVariable variable) {
+        DownloadFileFromFirebaseAction action = action(DownloadFileFromFirebaseAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setBucket(bucket);
+        action.setPath(path);
+        action.setDestFile(destFile);
+        action.setVariable(variable);
+        return action;
+    }
+
+    public Action createListFirebaseFilesAction(Sprite sprite, SequenceAction sequence,
+                                                 Formula bucket, Formula prefix,
+                                                 UserVariable variable) {
+        ListFirebaseFilesAction action = action(ListFirebaseFilesAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setBucket(bucket);
+        action.setPrefix(prefix);
+        action.setVariable(variable);
+        return action;
+    }
+
+    public Action createDeleteFirebaseFileAction(Sprite sprite, SequenceAction sequence,
+                                                  Formula bucket, Formula path) {
+        DeleteFirebaseFileAction action = action(DeleteFirebaseFileAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setBucket(bucket);
+        action.setPath(path);
+        return action;
+    }
 }

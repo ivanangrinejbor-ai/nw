@@ -82,7 +82,7 @@ class SendNotificationActionTest {
             isPinned = false
         ))
 
-        Whitebox.setInternalState(StageActivity::class.java, "activeStageActivity", null)
+        Whitebox.setInternalState(StageActivity::class.java, "activeStageActivity", null as Any?)
 
         val action = sprite.actionFactory.createSendNotificationAction(
             sprite, scriptSequence, Formula(1)

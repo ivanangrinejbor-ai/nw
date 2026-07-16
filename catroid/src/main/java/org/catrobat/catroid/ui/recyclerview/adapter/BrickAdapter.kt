@@ -249,10 +249,15 @@ class BrickAdapter(private val sprite: Sprite) :
         }
 
         val background = brickViewContainer.background
-        if (item.isCommentedOut || item is EmptyEventBrick) {
-            colorAsCommentedOut(background)
-        } else {
-            background.clearColorFilter()
+        if (background != null) {
+            if (item.isCommentedOut || item is EmptyEventBrick) {
+                colorAsCommentedOut(background)
+            } else if (item.isLocked) {
+                // locked bricks (and their whole script) render gray, like a disabled script
+                colorAsCommentedOut(background)
+            } else {
+                background.clearColorFilter()
+            }
         }
 
         if (item is CompositeBrick) {
@@ -628,7 +633,13 @@ class BrickAdapter(private val sprite: Sprite) :
     }
 
     fun addItem(position: Int, item: Brick?) {
-        item?.let { items.add(position, it) }
+        item?.let {
+            // never drop a brick inside a locked group (right after a locked brick)
+            if (position > 0 && items.getOrNull(position - 1)?.isLocked == true) {
+                return
+            }
+            items.add(position, it)
+        }
         notifyDataSetChanged()
     }
 
@@ -673,6 +684,8 @@ class BrickAdapter(private val sprite: Sprite) :
         val source = items[sourcePosition]
         val target = items[targetPosition]
         if (source is GhostSuggestionBrick || target is GhostSuggestionBrick) return false
+        // locked bricks can neither be moved nor receive a dropped neighbour
+        if (source.isLocked || target.isLocked) return false
         if (source !is ScriptBrick && targetPosition == 0) {
             return false
         }
@@ -785,6 +798,10 @@ class BrickAdapter(private val sprite: Sprite) :
 
     override fun moveItemTo(position: Int, itemToMove: Brick?) {
         val brickAboveTargetPosition = getBrickAbovePosition(position)
+
+        if (itemToMove?.isLocked == true) return
+        // do not drop into a locked group (right after a locked brick)
+        if (position > 0 && brickAboveTargetPosition.isLocked) return
 
         if (itemToMove is ScriptBrick) {
             moveScript(itemToMove, brickAboveTargetPosition)

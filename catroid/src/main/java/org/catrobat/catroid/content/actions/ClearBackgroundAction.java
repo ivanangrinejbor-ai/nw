@@ -30,6 +30,9 @@ public class ClearBackgroundAction extends TemporalAction {
 
 	@Override
 	protected void update(float delta) {
-		StageActivity.getActiveStageListener().clearBackground();
+		var stageListener = StageActivity.getActiveStageListener();
+		if (stageListener != null) {
+			stageListener.clearBackground();
+		}
 	}
 }

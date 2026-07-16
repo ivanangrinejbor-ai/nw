@@ -818,6 +818,9 @@ public final class ProjectManager {
 		currentlyEditedScene = null;
 		currentlyPlayingScene = null;
 		currentSprite = null;
+		// Release the retained project reference so a closed project's sprites/bitmaps
+		// can be garbage-collected. The singleton instance is intentionally kept.
+		project = null;
 	}
 
 	public static void pushProjectHistory(String projectPath) {

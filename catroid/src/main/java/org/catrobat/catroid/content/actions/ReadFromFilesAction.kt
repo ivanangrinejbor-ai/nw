@@ -34,6 +34,7 @@ import org.catrobat.catroid.CatroidApplication
 import org.catrobat.catroid.R
 
 import org.catrobat.catroid.content.Scope
+import org.catrobat.catroid.content.Project
 import org.catrobat.catroid.formulaeditor.Formula
 import org.catrobat.catroid.formulaeditor.UserVariable
 import java.io.File
@@ -46,21 +47,30 @@ class ReadFromFilesAction() : TemporalAction() {
 
     override fun update(percent: Float) {
         scope?.let {
-            Log.d("ReadFiles", "scope is not null")
-            val fileName_str = fileName?.interpretString(it) ?: "variable.txt"
-            Log.d("ReadFiles", "fileName: " + fileName_str)
+            val fileNameStr = fileName?.interpretString(it) ?: "variable.txt"
             val project = it.project
-            val name = project?.checkExtension(fileName_str, "txt") ?: "variable.txt"
-            Log.d("ReadFiles", "fileName2: " + name)
-            val file = project?.getFile(name)
+            // Читаем файл по точному имени (любое расширение: .txt, .img, .json,
+            // либо вообще без расширения). Файл с текстовым содержимым, переименованный
+            // во что угодно (например .img), читается как есть.
+            // Обратная совместимость: если файл с точным именем не найден и в имени нет
+            // точки — пробуем <имя>.txt (так раньше дописывалось при записи).
+            val file = resolveFile(project, fileNameStr)
             variable?.value = 0
             file?.let { fil ->
-                Log.d("ReadFiles", "file is not null")
                 variable?.value = readFromFile(fil)
-                Log.d("ReadFiles", "filedata: " + readFromFile(fil))
             }
         }
-        Log.d("ReadFiles", "end")
+    }
+
+    private fun resolveFile(project: Project?, name: String): File? {
+        if (project == null) return null
+        val exact = project.getFile(name)
+        if (exact.exists()) return exact
+        if (!name.contains('.')) {
+            val withTxt = project.getFile("$name.txt")
+            if (withTxt.exists()) return withTxt
+        }
+        return null
     }
 
     fun readFromFile(file: File): String {

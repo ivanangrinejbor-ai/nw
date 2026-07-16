@@ -33,19 +33,11 @@ class DesktopScriptRunner(private val project: DesktopProject,
         keyState.down = Gdx.input.isKeyPressed(Input.Keys.DOWN)
         keyState.space = Gdx.input.isKeyPressed(Input.Keys.SPACE)
 
-        // Минимальная логика: двигаем первый спрайт к тачу/мыши
-        if (project.sprites.isNotEmpty()) {
-            val sprite = project.sprites[0]
-            if (touchState.isDown) {
-                sprite.x += (touchState.x - sprite.x) * 4 * deltaSeconds
-                sprite.y += (touchState.y - sprite.y) * 4 * deltaSeconds
-            }
-            if (keyState.left) sprite.x -= 120 * deltaSeconds
-            if (keyState.right) sprite.x += 120 * deltaSeconds
-            if (keyState.up) sprite.y += 120 * deltaSeconds
-            if (keyState.down) sprite.y -= 120 * deltaSeconds
-            if (keyState.space) sprite.direction = (sprite.direction + 90 * deltaSeconds) % 360f
-        }
+        // NOTE: sprite movement is driven exclusively by DesktopScriptEngine (direct
+        // position writes from motion/glide/etc. bricks). This runner previously
+        // also mutated sprite[0].x/y every frame, which conflicted with the engine
+        // and caused drift. That redundant write has been removed — the engine is
+        // now the single source of truth for sprite positions.
     }
 
     fun getTouchState(): TouchState = touchState

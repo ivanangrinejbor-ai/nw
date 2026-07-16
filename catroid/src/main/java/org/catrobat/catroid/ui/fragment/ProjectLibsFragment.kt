@@ -135,7 +135,7 @@ class ProjectLibsFragment : Fragment() {
 
 
 
-            val authority = "${BuildConfig.APPLICATION_ID}.provider"
+            val authority = "${requireContext().packageName}.provider"
             val uri = FileProvider.getUriForFile(requireContext(), authority, file)
 
             val intent = Intent(Intent.ACTION_VIEW)

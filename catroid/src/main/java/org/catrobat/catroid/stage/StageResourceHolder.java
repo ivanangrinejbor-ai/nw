@@ -114,7 +114,11 @@ public class StageResourceHolder implements GatherCollisionInformationTask.OnPol
 				ProjectManager.getInstance().getCurrentProject().getRequiredResources());
 	}
 
+	private long initStart = 0L;
+
 	public void initResources() {
+		initStart = System.currentTimeMillis();
+		Log.i(TAG, "initResources: required=" + requiredResourcesSet);
 		failedResources = new HashSet<>();
 		requiredResourcesSet = ProjectManager.getInstance().getCurrentProject().getRequiredResources();
 		requiredResourceCounter = requiredResourcesSet.size();
@@ -368,6 +372,7 @@ public class StageResourceHolder implements GatherCollisionInformationTask.OnPol
 
 	@SuppressLint("WrongConstant")
     public void initFinishedRunStage() {
+		Log.i(TAG, "initFinishedRunStage after " + (System.currentTimeMillis() - initStart) + "ms; failed=" + failedResources.size());
 		// Hide precompile overlay when stage is ready
 		stageActivity.hidePrecompileOverlay();
 
@@ -405,6 +410,7 @@ public class StageResourceHolder implements GatherCollisionInformationTask.OnPol
 
 	public synchronized void resourceInitialized() {
 		requiredResourceCounter--;
+		Log.d(TAG, "resourceInitialized: remaining=" + requiredResourceCounter);
 		if (requiredResourceCounter == 0) {
 			if (failedResources.isEmpty()) {
 				initFinishedRunStage();

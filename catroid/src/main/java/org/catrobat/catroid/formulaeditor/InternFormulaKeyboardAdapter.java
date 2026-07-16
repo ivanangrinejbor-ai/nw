@@ -1000,6 +1000,105 @@ public class InternFormulaKeyboardAdapter {
 				return buildSingleParameterFunction(Functions.OBJECT_WITH_ID_VISIBLE, NUMBER, "1");
 			case CUSTOM_JS_FUNCTION_RESOURCE_ID:
 				return buildCustomJsFunction(name);
+
+			// NeoCatroid: Device info
+			case R.string.formula_is_pc:
+				return buildFunctionWithoutParametersAndBrackets(Functions.IS_PC);
+			case R.string.formula_is_mobile:
+				return buildFunctionWithoutParametersAndBrackets(Functions.IS_MOBILE);
+
+			// NeoCatroid: AdMob
+			case R.string.formula_admob_is_initialized:
+				return buildFunctionWithoutParametersAndBrackets(Functions.ADMOB_IS_INITIALIZED);
+			case R.string.formula_admob_is_test_mode:
+				return buildFunctionWithoutParametersAndBrackets(Functions.ADMOB_IS_TEST_MODE);
+			case R.string.formula_admob_is_banner_loaded:
+				return buildFunctionWithoutParametersAndBrackets(Functions.ADMOB_IS_BANNER_LOADED);
+			case R.string.formula_admob_is_interstitial_loaded:
+				return buildFunctionWithoutParametersAndBrackets(Functions.ADMOB_IS_INTERSTITIAL_LOADED);
+			case R.string.formula_admob_is_rewarded_loaded:
+				return buildFunctionWithoutParametersAndBrackets(Functions.ADMOB_IS_REWARDED_LOADED);
+			case R.string.formula_admob_is_app_open_loaded:
+				return buildFunctionWithoutParametersAndBrackets(Functions.ADMOB_IS_APP_OPEN_LOADED);
+			case R.string.formula_admob_last_error_code:
+				return buildFunctionWithoutParametersAndBrackets(Functions.ADMOB_LAST_ERROR_CODE);
+			case R.string.formula_admob_last_error_message:
+				return buildFunctionWithoutParametersAndBrackets(Functions.ADMOB_LAST_ERROR_MESSAGE);
+			case R.string.formula_admob_is_google_play_services_available:
+				return buildFunctionWithoutParametersAndBrackets(Functions.ADMOB_IS_GOOGLE_PLAY_SERVICES_AVAILABLE);
+
+			// NeoCatroid: Cryptography
+			case R.string.formula_crypto_sha_224:
+				return buildSingleParameterFunction(Functions.SHA_224, STRING, "text");
+			case R.string.formula_crypto_sha_256:
+				return buildSingleParameterFunction(Functions.SHA_256, STRING, "text");
+			case R.string.formula_crypto_sha_384:
+				return buildSingleParameterFunction(Functions.SHA_384, STRING, "text");
+			case R.string.formula_crypto_sha_512:
+				return buildSingleParameterFunction(Functions.SHA_512, STRING, "text");
+			case R.string.formula_crypto_hash_bytes:
+				return buildSingleParameterFunction(Functions.HASH_BYTES, STRING, "bytes");
+			case R.string.formula_crypto_hash_file:
+				return buildSingleParameterFunction(Functions.HASH_FILE, STRING, "path");
+			case R.string.formula_crypto_aes_encrypt:
+				return buildDoubleParameterFunction(Functions.AES_ENCRYPT, STRING, "text", STRING, "key");
+			case R.string.formula_crypto_aes_decrypt:
+				return buildDoubleParameterFunction(Functions.AES_DECRYPT, STRING, "data", STRING, "password");
+			case R.string.formula_crypto_chacha20_encrypt:
+				return buildTripleParameterFunction(Functions.CHACHA20_ENCRYPT, STRING, "text", STRING, "key", STRING, "nonce");
+			case R.string.formula_crypto_chacha20_decrypt:
+				return buildTripleParameterFunction(Functions.CHACHA20_DECRYPT, STRING, "data", STRING, "key", STRING, "nonce");
+			case R.string.formula_crypto_pbkdf2:
+				return buildTripleParameterFunction(Functions.PBKDF2, STRING, "password", STRING, "salt", STRING, "iterations");
+			case R.string.formula_crypto_generate_salt:
+				return buildSingleParameterFunction(Functions.GENERATE_SALT, NUMBER, "16");
+			case R.string.formula_crypto_derive_key:
+				return buildSingleParameterFunction(Functions.DERIVE_KEY, STRING, "password");
+			case R.string.formula_crypto_generate_aes_key:
+				return buildSingleParameterFunction(Functions.GENERATE_AES_KEY, NUMBER, "256");
+			case R.string.formula_crypto_generate_random_bytes:
+				return buildSingleParameterFunction(Functions.GENERATE_RANDOM_BYTES, NUMBER, "16");
+			case R.string.formula_crypto_generate_password:
+				return buildSingleParameterFunction(Functions.GENERATE_PASSWORD, NUMBER, "16");
+			case R.string.formula_crypto_generate_uuid:
+				return buildFunctionWithoutParametersAndBrackets(Functions.GENERATE_UUID);
+			case R.string.formula_crypto_random_hex:
+				return buildSingleParameterFunction(Functions.RANDOM_HEX, NUMBER, "16");
+			case R.string.formula_crypto_random_base64:
+				return buildSingleParameterFunction(Functions.RANDOM_BASE64, NUMBER, "16");
+			case R.string.formula_crypto_random_int_secure:
+				return buildDoubleParameterFunction(Functions.RANDOM_INT_SECURE, NUMBER, "0", NUMBER, "100");
+			case R.string.formula_crypto_random_string_secure:
+				return buildSingleParameterFunction(Functions.RANDOM_STRING_SECURE, NUMBER, "16");
+			case R.string.formula_crypto_base64_encode:
+				return buildSingleParameterFunction(Functions.BASE64_ENCODE, STRING, "text");
+			case R.string.formula_crypto_base64_decode:
+				return buildSingleParameterFunction(Functions.BASE64_DECODE, STRING, "text");
+			case R.string.formula_crypto_hex_encode:
+				return buildSingleParameterFunction(Functions.HEX_ENCODE, STRING, "text");
+			case R.string.formula_crypto_hex_decode:
+				return buildSingleParameterFunction(Functions.HEX_DECODE, STRING, "text");
+			case R.string.formula_crypto_compare_hash:
+				return buildDoubleParameterFunction(Functions.COMPARE_HASH, STRING, "text", STRING, "hash");
+			case R.string.formula_crypto_is_base64:
+				return buildSingleParameterFunction(Functions.IS_BASE64, STRING, "text");
+			case R.string.formula_crypto_is_hex:
+				return buildSingleParameterFunction(Functions.IS_HEX, STRING, "text");
+			case R.string.formula_crypto_hmac_sha_256:
+				return buildDoubleParameterFunction(Functions.HMAC_SHA_256, STRING, "text", STRING, "key");
+			case R.string.formula_crypto_hmac_sha_512:
+				return buildDoubleParameterFunction(Functions.HMAC_SHA_512, STRING, "text", STRING, "key");
+			case R.string.formula_crypto_rsa_generate_key_pair:
+				return buildFunctionWithoutParametersAndBrackets(Functions.RSA_GENERATE_KEY_PAIR);
+			case R.string.formula_crypto_rsa_encrypt:
+				return buildDoubleParameterFunction(Functions.RSA_ENCRYPT, STRING, "text", STRING, "publicKey");
+			case R.string.formula_crypto_rsa_decrypt:
+				return buildDoubleParameterFunction(Functions.RSA_DECRYPT, STRING, "data", STRING, "privateKey");
+			case R.string.formula_crypto_rsa_sign:
+				return buildDoubleParameterFunction(Functions.RSA_SIGN, STRING, "text", STRING, "privateKey");
+			case R.string.formula_crypto_rsa_verify:
+				return buildTripleParameterFunction(Functions.RSA_VERIFY, STRING, "text", STRING, "signature", STRING, "publicKey");
+
 		}
 		return null;
 	}

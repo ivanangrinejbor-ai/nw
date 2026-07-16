@@ -48,6 +48,7 @@ import org.catrobat.catroid.content.bricks.IfThenLogicBeginBrick;
 import org.catrobat.catroid.content.bricks.PlaySoundBrick;
 import org.catrobat.catroid.content.bricks.UserDefinedBrick;
 import org.catrobat.catroid.content.bricks.WhenConditionBrick;
+import org.catrobat.catroid.content.bricks.WhenFirebaseChangedBrick;
 import org.catrobat.catroid.content.eventids.EventId;
 import org.catrobat.catroid.embroidery.RunningStitch;
 import org.catrobat.catroid.formulaeditor.Formula;
@@ -104,6 +105,7 @@ public class Sprite implements Nameable, Serializable {
 	private transient String runtimeName;
 	private transient Multimap<EventId, ScriptSequenceAction> idToEventThreadMap = LinkedHashMultimap.create();
 	private transient Set<ConditionScriptTrigger> conditionScriptTriggers = new HashSet<>();
+	private transient Set<FirebaseChangedTrigger> firebaseChangedTriggers = new HashSet<>();
 	private transient List<Integer> usedTouchPointer = new ArrayList<>();
 	private transient Color embroideryThreadColor = Color.BLACK;
 
@@ -404,6 +406,7 @@ public class Sprite implements Nameable, Serializable {
 	public void invalidate() {
 		idToEventThreadMap = null;
 		conditionScriptTriggers = null;
+		firebaseChangedTriggers = null;
 		penConfiguration = null;
 		plot = null;
 		runningStitch = null;
@@ -464,6 +467,36 @@ public class Sprite implements Nameable, Serializable {
 	void evaluateConditionScriptTriggers() {
 		for (ConditionScriptTrigger conditionScriptTrigger : conditionScriptTriggers) {
 			conditionScriptTrigger.evaluateAndTriggerActions(this);
+		}
+	}
+
+	public void initFirebaseChangedTriggers() {
+		stopFirebaseChangedTriggers();
+		for (Script script : scriptList) {
+			if (script instanceof WhenFirebaseChangedScript) {
+				WhenFirebaseChangedBrick brick = (WhenFirebaseChangedBrick) script.getScriptBrick();
+				Formula bucket = brick.getFormulaWithBrickField(Brick.BrickField.FIREBASE_TRIGGER_BUCKET);
+				Formula path = brick.getFormulaWithBrickField(Brick.BrickField.FIREBASE_TRIGGER_PATH);
+				FirebaseChangedTrigger trigger = new FirebaseChangedTrigger(bucket, path, this);
+				firebaseChangedTriggers.add(trigger);
+				trigger.startListening();
+			}
+		}
+	}
+
+	public void stopFirebaseChangedTriggers() {
+		if (firebaseChangedTriggers == null) {
+			return;
+		}
+		for (FirebaseChangedTrigger trigger : firebaseChangedTriggers) {
+			trigger.stopListening();
+		}
+		firebaseChangedTriggers.clear();
+	}
+
+	void evaluateFirebaseChangedTriggers() {
+		for (FirebaseChangedTrigger trigger : firebaseChangedTriggers) {
+			trigger.evaluateAndTriggerActions();
 		}
 	}
 

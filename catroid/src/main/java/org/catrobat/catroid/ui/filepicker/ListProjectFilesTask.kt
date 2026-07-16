@@ -68,6 +68,7 @@ class ListProjectFilesTask(listener: OnListProjectFilesListener) :
                         || file.name.endsWith(Constants.OLD_CATROBAT_EXTENSION)
                         || file.name.endsWith(Constants.NPC_EXTENSION)
                         || file.name.endsWith(".ncp")
+                        || file.name.endsWith(".enc")
                         || file.name.endsWith(Constants.ZIP_EXTENSION)) {
                         projectFiles.add(file)
                     }

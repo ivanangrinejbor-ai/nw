@@ -34,7 +34,7 @@
 
         <TextView
             style="@style/BrickText.SingleLine"
-            android:text="X:"
+            android:text="@string/brick_offset_x"
             app:layout_newLine="true" />
 
         <TextView
@@ -43,7 +43,7 @@
 
         <TextView
             style="@style/BrickText.SingleLine"
-            android:text="Y:"
+            android:text="@string/brick_offset_y"
             app:layout_newLine="true" />
 
         <TextView
@@ -52,7 +52,7 @@
 
         <TextView
             style="@style/BrickText.SingleLine"
-            android:text="Z:"
+            android:text="@string/brick_offset_z"
             app:layout_newLine="true" />
 
         <TextView

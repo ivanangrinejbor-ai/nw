@@ -37,7 +37,9 @@ import android.util.Log
 import android.view.ContextThemeWrapper
 import androidx.appcompat.app.AlertDialog
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.catrobat.catroid.R
 import org.catrobat.catroid.formulaeditor.SensorHandler
@@ -136,18 +138,22 @@ class SpeechRecognitionHolder : SpeechRecognitionHolderInterface {
         }
     }
 
+    private var speechJob: Job? = null
+
     override fun startListening() {
         //  needed only for some smart phones like:
         //  Note 8 with ANDROID 9, Xiaomi MI A2 Android 10
         SensorHandler.stopSensorListeners()
-        GlobalScope.launch(Dispatchers.Main.immediate) {
+        speechJob?.cancel()
+        speechJob = CoroutineScope(Dispatchers.Main.immediate + SupervisorJob()).launch {
             speechRecognizer.setRecognitionListener(listener)
             speechRecognizer.startListening(speechIntent)
         }
     }
 
     override fun destroy() {
-        GlobalScope.launch(Dispatchers.Main.immediate) {
+        speechJob?.cancel()
+        speechJob = CoroutineScope(Dispatchers.Main.immediate + SupervisorJob()).launch {
             speechRecognizer.cancel()
             speechRecognizer.destroy()
         }

@@ -96,6 +96,18 @@ public final class StageLifeCycleController {
 		stageActivity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
 		stageActivity.stageListener = new StageListener();
+		// DIAGNOSTIC: detect silently-dropped assets (black stage root cause)
+		int dScenes = ProjectManager.getInstance().getCurrentProject().getSceneList().size();
+		int dSprites = 0, dLooks = 0, dSounds = 0;
+		for (Scene s : ProjectManager.getInstance().getCurrentProject().getSceneList()) {
+			dSprites += s.getSpriteList().size();
+			for (Sprite sp : s.getSpriteList()) {
+				dLooks += sp.getLookList().size();
+				dSounds += sp.getSoundList().size();
+			}
+		}
+		Log.i(TAG, "stageCreate: project=" + ProjectManager.getInstance().getCurrentProject().getName()
+				+ " scenes=" + dScenes + " sprites=" + dSprites + " looks=" + dLooks + " sounds=" + dSounds);
 		stageActivity.stageDialog = new StageDialog(stageActivity, stageActivity.stageListener, R.style.StageDialog);
 		stageActivity.brickDialogManager = new BrickDialogManager(stageActivity);
 		stageActivity.calculateScreenSizes();

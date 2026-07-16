@@ -210,7 +210,14 @@ public class FastTwoDManager implements Disposable {
             if (mTexture.has(e)) {
                 TextureComponent old = mTexture.get(e);
                 if (old.region != null && old.region.getTexture() != null) {
-                    old.region.getTexture().dispose();
+                    Texture oldTexture = old.region.getTexture();
+                    // Only dispose textures uniquely owned by this entity. Textures loaded
+                    // through getOrLoadTexture() are shared via textureCache and are disposed
+                    // together with the cache in dispose(); freeing them here would dispose a
+                    // texture still in use by other entities (use-after-dispose / double free).
+                    if (!textureCache.containsValue(oldTexture)) {
+                        oldTexture.dispose();
+                    }
                 }
             }
             Texture texture = getOrLoadTexture(absolutePath);

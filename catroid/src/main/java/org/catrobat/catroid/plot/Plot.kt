@@ -120,8 +120,8 @@ class Plot
     }
 
     private fun drawLine(screenRatio: Float, renderer: ShapeRenderer, camera: Camera) {
-        val currentPosition: PointF = drawQueue.first().removeFirst()
-        val nextPosition: PointF = drawQueue.first().first()
+        val currentPosition: PointF = PointF(drawQueue.first().removeFirst())
+        val nextPosition: PointF = PointF(drawQueue.first().first())
         currentPosition.x += camera.position.x
         currentPosition.y += camera.position.y
         nextPosition.x += camera.position.x
@@ -135,7 +135,5 @@ class Plot
             )
             renderer.circle(nextPosition.x, nextPosition.y, penSize / 2)
         }
-        nextPosition.x -= camera.position.x
-        nextPosition.y -= camera.position.y
     }
 }

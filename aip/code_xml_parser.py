@@ -30,6 +30,10 @@ class Brick:
     # For bricks with spinners / string fields:
     sprite_ref: Optional[str] = None
     string_value: Optional[str] = None
+    # Composite bricks (If/Repeat/Forever/...) keep their children here.
+    # Previously this was silently dropped, so training data missed all
+    # control-block contents.
+    nested_bricks: list['Brick'] = field(default_factory=list)
 
 
 @dataclass
@@ -100,6 +104,16 @@ def parse_brick(brick_el: ET.Element) -> Brick:
     formula_list = brick_el.find('formulaList')
     if formula_list is not None:
         brick.formulas = parse_formulas(formula_list)
+    # Recurse into composite-brick children (IfBrick, RepeatBrick, ForeverBrick, ...).
+    nested = brick_el.find('nestedBrickList')
+    if nested is not None:
+        for child_el in nested.findall('brick'):
+            brick.nested_bricks.append(parse_brick(child_el))
+    # Some containers use <brickList> instead of <nestedBrickList>.
+    nested2 = brick_el.find('brickList')
+    if nested2 is not None:
+        for child_el in nested2.findall('brick'):
+            brick.nested_bricks.append(parse_brick(child_el))
     return brick
 
 
@@ -211,6 +225,19 @@ def format_formula_summary(fe: FormulaElement, max_depth: int = 2) -> str:
         return f"[{fe.el_type}:{fe.value}]"
 
 
+def _bricks_to_data(bricks: list[Brick]) -> list[dict]:
+    """Recursively serialise a brick list (including nested composite children)."""
+    out = []
+    for brick in bricks:
+        formulas_data = {cat: format_formula_summary(fe) for cat, fe in brick.formulas.items()}
+        out.append({
+            'type': brick.brick_type,
+            'formulas': formulas_data,
+            'nested_bricks': _bricks_to_data(brick.nested_bricks)
+        })
+    return out
+
+
 def project_to_dict(proj: Project) -> dict:
     """Convert a Project object to a serializable dict (for JSON export)."""
     scenes_data = []
@@ -226,7 +253,8 @@ def project_to_dict(proj: Project) -> dict:
                         formulas_data[cat] = format_formula_summary(fe)
                     bricks_data.append({
                         'type': brick.brick_type,
-                        'formulas': formulas_data
+                        'formulas': formulas_data,
+                        'nested_bricks': _bricks_to_data(brick.nested_bricks)
                     })
                 scripts_data.append({
                     'type': script.script_type,

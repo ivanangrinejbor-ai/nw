@@ -579,6 +579,10 @@ public class InternToExternGenerator {
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.RSA_DECRYPT.name(), R.string.formula_crypto_rsa_decrypt);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.RSA_SIGN.name(), R.string.formula_crypto_rsa_sign);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.RSA_VERIFY.name(), R.string.formula_crypto_rsa_verify);
+
+		// NeoCatroid: Device info (display only — evaluation is constant)
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.IS_PC.name(), R.string.formula_is_pc);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.IS_MOBILE.name(), R.string.formula_is_mobile);
 	}
 	public InternToExternGenerator(Context context) {
 		this.context = context;

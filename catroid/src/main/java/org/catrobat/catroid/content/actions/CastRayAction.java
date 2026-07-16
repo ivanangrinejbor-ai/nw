@@ -19,7 +19,9 @@ public class CastRayAction extends TemporalAction {
     @Override
     protected void update(float percent) {
         if (scope == null) return;
-        ThreeDManager manager = StageActivity.getActiveStageListener().getThreeDManager();
+        var stageListener = StageActivity.getActiveStageListener();
+        if (stageListener == null) return;
+        ThreeDManager manager = stageListener.getThreeDManager();
         if (manager == null) return;
 
         try {

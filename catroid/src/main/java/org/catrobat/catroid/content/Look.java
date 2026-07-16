@@ -468,6 +468,7 @@ public class Look extends Image {
 			if (myUpdateBucket == globalFrameTicker % UPDATE_BUCKETS) {
 				sprite.runningStitch.update();
 				sprite.evaluateConditionScriptTriggers();
+				sprite.evaluateFirebaseChangedTriggers();
 			}
 		}
 	}

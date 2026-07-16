@@ -19,6 +19,22 @@ class DesktopCameraState {
     /** View rotation in degrees around the Z axis. */
     var rotation: Float = 0f
 
+    /** Optional camera target for the more advanced camera bricks. */
+    var followTargetName: String? = null
+    var followOffsetX: Float = 0f
+    var followOffsetY: Float = 0f
+    var followDistance: Float = 0f
+    var followHeight: Float = 0f
+    var followPitch: Float = 0f
+
+    /** Best-effort settings from the camera settings/range bricks. */
+    var fieldOfView: Float = 0f
+    var shakeIntensity: Float = 0f
+    var shakeDuration: Float = 0f
+    var rangeNear: Float = 0f
+    var rangeFar: Float = 0f
+    var touchControlEnabled: Boolean = false
+
     /** Objects pinned/attached to the camera, with their world offset captured at attach time. */
     val cameraPinned: MutableMap<String, Pair<Float, Float>> = mutableMapOf()
 }

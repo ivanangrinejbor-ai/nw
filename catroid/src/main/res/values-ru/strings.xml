@@ -122,6 +122,9 @@
     <string formatted="false" name="brick_detach_from_camera">Отвязать объект от камеры</string>
     <string formatted="false" name="brick_set_max_point_lights">Максимум точечных светов</string>
     <string formatted="false" name="brick_3d_object_name">ID объекта</string>
+    <string formatted="false" name="brick_offset_x">X:</string>
+    <string formatted="false" name="brick_offset_y">Y:</string>
+    <string formatted="false" name="brick_offset_z">Z:</string>
 
 
     <string name="particle_lifetime">Время жизни</string>
@@ -747,6 +750,11 @@
     <string name="scene_transition_start">При запуске</string>
     <string name="scene_transition_exit">При выходе</string>
     <string name="export_with_password">Экспорт с паролем</string>
+    <string name="export_bake">Запечь проект</string>
+    <string name="export_as_apk">Экспортировать как APK</string>
+    <string name="export_as_exe">Экспортировать как EXE</string>
+    <string name="export_as_apk_v2">Экспортировать как APK v2</string>
+    <string name="export_exe_coming_soon">Функция «Экспорт как EXE» появится в будущем.</string>
     <string name="enter_export_password">Введите пароль для экспорта</string>
     <string name="password_hint">Пароль</string>
     <string name="confirm_password_hint">Подтвердите пароль</string>
@@ -1151,6 +1159,16 @@
     <string formatted="false" name="firebase_key">Ключ</string>
     <string formatted="false" name="firebase_value">Значение</string>
     <string formatted="false" name="firebase_store">и сохранить в</string>
+    <string formatted="false" name="firebase_upload">Загрузить в Firebase Storage</string>
+    <string formatted="false" name="firebase_download">Скачать из Firebase Storage</string>
+    <string formatted="false" name="firebase_list">Список файлов в Firebase Storage</string>
+    <string formatted="false" name="firebase_delete_storage">Удалить из Firebase Storage</string>
+    <string formatted="false" name="firebase_bucket">URL хранилища</string>
+    <string formatted="false" name="firebase_storage_path">Путь на сервере</string>
+    <string formatted="false" name="brick_when_firebase_changed">Когда значение Firebase изменится по адресу</string>
+    <string formatted="false" name="brick_when_firebase_changed_path">путь</string>
+    <string formatted="false" name="firebase_storage_prefix">Префикс</string>
+    <string formatted="false" name="firebase_local_file">Локальный файл</string>
     <!-- General terms -->
     <string name="brick_set_3d_sound_position">Задать позицию 3D звука</string>
     <string name="brick_load_scene_additive">Загрузить сцену (добавить)</string>
@@ -2798,15 +2816,32 @@
     <string formatted="false" name="build_apk_package">Пакет:</string>
     <string formatted="false" name="build_apk_version_name">Версия:</string>
     <string formatted="false" name="build_apk_version_code">Код версии:</string>
+    <string formatted="false" name="build_apk_password">Пароль защиты (необязательно):</string>
+    <string formatted="false" name="build_apk_invalid_package">Неверное имя пакета. Строчные буквы, цифры и точки, напр. com.example.app</string>
+    <string formatted="false" name="build_apk_invalid_sdk">Мин. SDK не может быть больше целевого SDK</string>
+    <string formatted="false" name="payload_password_title">Зашифрованный проект</string>
+    <string formatted="false" name="payload_password_message">Этот проект защищён. Введите пароль, заданный при сборке APK.</string>
+    <string formatted="false" name="payload_password_hint">Пароль</string>
     <string formatted="false" name="build_apk_icon">Иконка</string>
     <string formatted="false" name="build_apk_start">Собрать APK</string>
     <string formatted="false" name="build_apk_progress">Сборка APK...</string>
+    <string formatted="false" name="build_apk_tab_basic">Основное</string>
+    <string formatted="false" name="build_apk_tab_permissions">Разрешения</string>
+    <string formatted="false" name="build_apk_tab_sdk">SDK</string>
+    <string formatted="false" name="build_apk_tab_icon">Иконка</string>
+    <string formatted="false" name="build_apk_permissions_hint">Выберите разрешения, которые нужны приложению:</string>
+    <string formatted="false" name="build_apk_min_sdk">Мин. SDK:</string>
+    <string formatted="false" name="build_apk_target_sdk">Целевой SDK:</string>
+    <string formatted="false" name="build_apk_icon_from_project">Иконка проекта (скриншот)</string>
+    <string formatted="false" name="build_apk_icon_default">Иконка NeoCatroid</string>
+    <string formatted="false" name="build_apk_icon_none_hint">У проекта нет иконки, будет использована иконка NeoCatroid.</string>
     <string formatted="false" name="build_desktop_bundle_progress">Сборка ZIP для Windows...</string>
     <string formatted="false" name="build_desktop_bundle_done">ZIP для Windows готов</string>
     <string formatted="false" name="build_desktop_bundle_failed">Сборка ZIP для Windows не удалась</string>
     <string formatted="false" name="build_apk_success">APK успешно собран</string>
     <string formatted="false" name="build_apk_error">Ошибка сборки</string>
     <string formatted="false" name="build_apk_no_template">Шаблон APK не найден. Соберите шаблон сначала.</string>
+    <string formatted="false" name="build_apk_versioncode_warning">Внимание: version code = 1. Если приложение уже установлено, увеличьте номер версии для обновления.</string>
     <string formatted="false" name="export_project">Экспортировать проект</string>
     <string formatted="false" name="export_summary_scene">Сцена</string>
     <string formatted="false" name="export_summary_object">Объект</string>
@@ -3001,6 +3036,13 @@
     <string formatted="false" name="brick_context_dialog_comment_in_script">Включить скрипт</string>
     <string formatted="false" name="brick_context_dialog_comment_out_script">Отключить скрипт</string>
     <string formatted="false" name="brick_context_dialog_help">Помощь</string>
+    <string formatted="false" name="brick_context_dialog_lock">Защитить блок</string>
+    <string formatted="false" name="brick_context_dialog_unlock">Снять защиту</string>
+    <string formatted="false" name="brick_locked">Блок защищён</string>
+    <string formatted="false" name="brick_unlocked">Защита снята</string>
+    <string formatted="false" name="brick_wrong_password">Неверный пароль</string>
+    <string formatted="false" name="brick_password_empty">Пароль не может быть пустым</string>
+    <string formatted="false" name="brick_lock_warning">Если забудете пароль, блок нельзя будет разблокировать или удалить.</string>
     <string formatted="false" name="comment_in_out">Отключить/включить</string>
     <string formatted="false" name="catblocks">Переключить в 2D</string>
     <string formatted="false" name="catblocks_reorder">Перегрупировать скрипты</string>
@@ -3348,7 +3390,6 @@
     <string formatted="false" name="brick_note"></string>
     <string formatted="false" name="project_options_custom_resolution">Пользовательское разрешение</string>
     <string formatted="false" name="project_options_preloader">Экран предзагрузки</string>
-    <string formatted="false" name="project_options_precompile">Предкомпиляция при запуске</string>
     <string formatted="false" name="project_options_build_exe">Собрать EXE</string>
     <string formatted="false" name="preloader_compiling">Компиляция сцены:</string>
     <string formatted="false" name="preloader_loading">Загрузка...</string>
@@ -4767,4 +4808,33 @@
     <string name="formula_crypto_rsa_sign_param" formatted="false">(текст, приватныйКлюч)</string>
     <string name="formula_crypto_rsa_verify" formatted="false">RSA_проверка</string>
     <string name="formula_crypto_rsa_verify_param" formatted="false">(текст, подпись, публичныйКлюч)</string>
+
+    <!-- ============ APK Builder V3 ============ -->
+    <string name="export_as_apk_v3">APK Builder V3</string>
+    <string name="v3_loading_title">NeoCatroid</string>
+    <string name="v3_loading">Загрузка…</string>
+    <string name="v3_decrypting">Расшифровка проекта…</string>
+    <string name="v3_decrypting_meta">Расшифровка метаданных…</string>
+    <string name="v3_extracting">Распаковка ресурсов…</string>
+    <string name="v3_preparing">Подготовка сцен…</string>
+    <string name="v3_initializing">Инициализация рантайма…</string>
+    <string name="v3_starting">Запуск игры…</string>
+    <string name="v3_load_failed">Не удалось загрузить проект</string>
+    <string name="v3_fun_fact_prefix">Интересный факт: %s</string>
+
+    <string name="v3_building_apk">Сборка APK…</string>
+
+    <string name="v3_app_name">Название приложения</string>
+    <string name="v3_package_name">Имя пакета</string>
+    <string name="v3_version_name">Версия</string>
+    <string name="v3_version_code">Код версии</string>
+    <string name="v3_min_sdk">Минимальный SDK</string>
+    <string name="v3_target_sdk">Целевой SDK</string>
+    <string name="v3_template_type">Шаблон</string>
+    <string name="v3_template_light">Light (мало памяти)</string>
+    <string name="v3_template_full">Full (быстро)</string>
+    <string name="v3_permissions">Разрешения</string>
+    <string name="v3_icon">Иконка приложения</string>
+    <string name="v3_icon_project">Иконка проекта</string>
+    <string name="v3_icon_default">Иконка по умолчанию</string>
 </resources>

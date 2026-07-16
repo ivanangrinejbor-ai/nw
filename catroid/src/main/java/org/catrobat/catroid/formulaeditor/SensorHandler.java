@@ -108,8 +108,8 @@ public final class SensorHandler implements SensorEventListener, SensorCustomEve
 	private boolean isGpsConnected;
 	private final GpsStatusHandler gpsSensor;
 
-	public static double timerReferenceValue;
-	public static double timerPauseValue;
+	public static volatile double timerReferenceValue;
+	public static volatile double timerPauseValue;
 
 	private static String listeningLanguageSensor;
 
@@ -189,10 +189,12 @@ public final class SensorHandler implements SensorEventListener, SensorCustomEve
 	}
 
 	private static boolean gpsSensorAvailable() {
+		if (instance == null || instance.locationManager == null) return false;
 		return instance.locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
 	}
 
 	private static boolean networkGpsAvailable() {
+		if (instance == null || instance.locationManager == null) return false;
 		return instance.locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
 	}
 

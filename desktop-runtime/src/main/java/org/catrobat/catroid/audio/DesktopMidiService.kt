@@ -14,6 +14,7 @@ import javax.sound.midi.Synthesizer
 class DesktopMidiService : MidiService {
     private var synth: Synthesizer? = null
     private var channel: MidiChannel? = null
+    private var drumChannel: MidiChannel? = null
     private var tempo = 60f
     private var volume = 1.0f
     private var instrument = MusicalInstrument.ACOUSTIC_GRAND_PIANO
@@ -28,6 +29,10 @@ class DesktopMidiService : MidiService {
                 synth = MidiSystem.getSynthesizer().also {
                     it.open()
                     channel = it.channels.firstOrNull()
+                    // GM percussion lives on channel 10 (0-indexed 9). Route drums there
+                    // with the standard kit so they don't play on the melodic channel.
+                    drumChannel = it.channels.getOrNull(9)
+                    drumChannel?.programChange(0)
                 }
                 channel?.programChange(instrument.ordinal.coerceIn(0, 127))
             } catch (_: Exception) {
@@ -47,7 +52,7 @@ class DesktopMidiService : MidiService {
     }
 
     override fun playDrumForBeats(drum: Drum, beats: Float, spriteName: String) {
-        val ch = ensureChannel() ?: return
+        val ch = drumChannel ?: ensureChannel() ?: return
         val note = 35 + (drum.ordinal % 47)
         playNote(ch, note, beats)
     }
