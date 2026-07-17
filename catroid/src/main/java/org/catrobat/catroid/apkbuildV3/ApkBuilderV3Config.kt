@@ -18,7 +18,8 @@ data class ApkBuilderV3Config(
     val targetSdk: Int = 35,
     val iconFile: File? = null,
     val permissions: List<String> = DEFAULT_PERMISSIONS,
-    val templateType: TemplateType = TemplateType.FULL
+    val templateType: TemplateType = TemplateType.FULL,
+    val firebaseConfig: FirebaseConfig? = null
 ) : Parcelable {
 
     constructor(parcel: Parcel) : this(
@@ -30,7 +31,8 @@ data class ApkBuilderV3Config(
         targetSdk = parcel.readInt(),
         iconFile = parcel.readString()?.let { File(it) },
         permissions = parcel.createStringArrayList() ?: DEFAULT_PERMISSIONS,
-        templateType = TemplateType.valueOf(parcel.readString() ?: TemplateType.FULL.name)
+        templateType = TemplateType.valueOf(parcel.readString() ?: TemplateType.FULL.name),
+        firebaseConfig = parcel.readSerializable() as? FirebaseConfig
     )
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
@@ -43,6 +45,8 @@ data class ApkBuilderV3Config(
         parcel.writeString(iconFile?.absolutePath)
         parcel.writeStringList(permissions)
         parcel.writeString(templateType.name)
+        @Suppress("UNCHECKED_CAST")
+        parcel.writeSerializable(firebaseConfig as java.io.Serializable?)
     }
 
     override fun describeContents(): Int = 0

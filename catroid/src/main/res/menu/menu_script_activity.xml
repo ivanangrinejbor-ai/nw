@@ -49,6 +49,15 @@
         android:icon="@drawable/ic_delete"
         app:showAsAction="never" />
     <item
+        android:id="@+id/save_as_script"
+        android:title="@string/menu_save_as_script"
+        android:visible="false"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/import_script_module"
+        android:title="@string/menu_import_script_module"
+        app:showAsAction="never" />
+    <item
         android:id="@+id/rename"
         android:title="@string/rename"
         android:icon="@drawable/ic_edit"

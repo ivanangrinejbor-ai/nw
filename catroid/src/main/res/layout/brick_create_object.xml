@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal">
+
+    <CheckBox
+        android:id="@+id/brick_checkbox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone" />
+
+    <org.catrobat.catroid.ui.BrickLayout
+        style="@style/BrickContainer.File.Medium"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1">
+
+        <include layout="@layout/icon_brick_category_file" />
+
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_create_object" />
+
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_create_object_name"
+            app:layout_newLine="true" />
+
+        <TextView
+            android:id="@+id/brick_create_object_name_edit"
+            style="@style/BrickEditText" />
+
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_create_object_scene"
+            app:layout_newLine="true" />
+
+        <Spinner
+            android:id="@+id/brick_create_object_scene_spinner"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp" />
+
+    </org.catrobat.catroid.ui.BrickLayout>
+
+</LinearLayout>

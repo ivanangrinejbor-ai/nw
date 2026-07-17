@@ -292,6 +292,7 @@ public final class StageLifeCycleController {
 	}
 
 	static void stageDestroy(StageActivity stageActivity) {
+		try {
 		if (checkPermission(stageActivity, getProjectsRuntimePermissionList())) {
 			if (stageActivity.brickDialogManager != null) {
 				stageActivity.brickDialogManager.dismissAllDialogs();
@@ -314,5 +315,10 @@ public final class StageLifeCycleController {
 			//StageActivity.activeStageActivity.get().stageListener = null;
 		}
 		ProjectManager.getInstance().setCurrentlyPlayingScene(ProjectManager.getInstance().getCurrentlyEditedScene());
+		} catch (Throwable t) {
+			// Тайм-аут/safe-teardown: падение при выходе не должно убивать процесс
+			// (иначе Android пересоздаёт активность — чёрный экран и «реинициализация»).
+			Log.e(TAG, "Error during stage destroy; ignored to prevent app crash on exit", t);
+		}
 	}
 }

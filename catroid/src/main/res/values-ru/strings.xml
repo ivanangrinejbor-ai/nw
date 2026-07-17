@@ -1371,6 +1371,7 @@
     <string formatted="false" name="brick_vm_height">Высота</string>
 
     <string name="category_file">Файлы</string>
+<string name="category_neoscript">NeoScript</string>
 
     <string name="category_favorites">Избранные</string>
 
@@ -4837,4 +4838,54 @@
     <string name="v3_icon">Иконка приложения</string>
     <string name="v3_icon_project">Иконка проекта</string>
     <string name="v3_icon_default">Иконка по умолчанию</string>
+
+    <!-- Firebase конфигурация для APK Builder V3 -->
+    <string name="v3_firebase_section">Firebase</string>
+    <string name="v3_firebase_add_button">Добавить свой google-services.json</string>
+    <string name="v3_firebase_file_added">google-services.json добавлен</string>
+    <string name="v3_firebase_remove_button">Удалить google-services.json</string>
+    <string name="v3_firebase_error_not_json">Выбранный файл не является JSON-файлом</string>
+    <string name="v3_firebase_error_invalid_json">Неверный JSON в google-services.json</string>
+    <string name="v3_firebase_error_no_project_info">В google-services.json отсутствует project_info</string>
+    <string name="v3_firebase_error_no_client">В google-services.json нет раздела client</string>
+    <string name="v3_firebase_error_no_android_client">В google-services.json нет Android-клиента</string>
+    <string name="v3_firebase_error_no_package_name">Не удалось определить package name из google-services.json</string>
+    <string name="v3_firebase_error_package_mismatch">В google-services.json не найдено приложение с пакетом: %s. Добавьте этот пакет как Android-приложение в проект Firebase и скачайте новый google-services.json.</string>
+    <string name="v3_firebase_error_read_failed">Не удалось прочитать google-services.json</string>
+    <string name="v3_firebase_error_copy_failed">Не удалось скопировать google-services.json</string>
+    <string name="v3_firebase_error_processing">Ошибка обработки конфигурации Firebase</string>
+
+    <string formatted="false" name="brick_import_script">Импортировать скрипты</string>
+    <string formatted="false" name="brick_import_script_object">в объект</string>
+    <string formatted="false" name="brick_import_script_file">из файла</string>
+    <string formatted="false" name="brick_import_script_file_hint">нажмите, чтобы выбрать файл .neoscript</string>
+    <string formatted="false" name="brick_import_script_overwrite">если объект уже содержит импортированные скрипты?</string>
+    <string formatted="false" name="menu_save_as_script">Сохранить как скрипт…</string>
+    <string formatted="false" name="menu_import_script_module">Импортировать модуль скрипта…</string>
+    <string formatted="false" name="save_script_title">Сохранить скрипт</string>
+    <string formatted="false" name="script_name">Имя скрипта</string>
+    <string formatted="false" name="save_script_invalid_name">Введите корректное имя</string>
+    <string formatted="false" name="save_script_success">Сохранено\n%1$s</string>
+    <string formatted="false" name="save_script_failed_title">Не удалось сохранить скрипт</string>
+    <string formatted="false" name="save_script_folder">NeocatroidScript</string>
+    <string formatted="false" name="import_script_success">Модуль скрипта импортирован</string>
+    <string formatted="false" name="import_script_failed">Не удалось импортировать модуль скрипта: %1$s</string>
+    <string formatted="false" name="import_script_object_not_found">Объект не найден</string>
+    <string formatted="false" name="brick_create_object">Создать объект</string>
+    <string formatted="false" name="brick_create_object_name">имя</string>
+    <string formatted="false" name="brick_create_object_scene">в сцене</string>
+    <string formatted="false" name="brick_create_object_current_scene">Текущая сцена</string>
+    <string formatted="false" name="brick_assign_scripts">Задать скрипты</string>
+    <string formatted="false" name="brick_assign_scripts_file">из файла проекта</string>
+    <string formatted="false" name="brick_assign_scripts_file_hint">нажмите, чтобы выбрать файл .neoscript</string>
+    <string formatted="false" name="brick_assign_scripts_object">объекту</string>
+    <string formatted="false" name="brick_assign_scripts_scene">в сцене</string>
+    <string formatted="false" name="brick_assign_scripts_replace_existing">Заменить существующие скрипты?</string>
+    <string formatted="false" name="current_scene">Текущая сцена</string>
+    <string formatted="false" name="scene_not_found">Сцена не найдена: %1$s</string>
+    <string formatted="false" name="unknown_blocks_detected_title">Обнаружены неизвестные блоки</string>
+    <string formatted="false" name="unknown_blocks_detected_message">Некоторые блоки из этого скрипта не поддерживаются вашей версией Neocatroid.</string>
+    <string formatted="false" name="unknown_blocks_continue">Продолжить</string>
+    <string formatted="false" name="unknown_blocks_cancel">Отмена</string>
+    <string formatted="false" name="block_not_supported">Этот блок не поддерживается</string>
 </resources>

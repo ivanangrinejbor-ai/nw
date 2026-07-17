@@ -334,7 +334,7 @@ class ProjectActivity : BaseCastActivity() {
 
             projectManager.resetProjectManager()
         }
-        val multiSceneProject = projectManager.currentProject.sceneList.size > 1
+        val multiSceneProject = currentProject.sceneList.size > 1
         if (currentFragment is SpriteListFragment && multiSceneProject) {
             supportFragmentManager.beginTransaction()
                 .replace(R.id.fragment_container, SceneListFragment(), SceneListFragment.TAG)

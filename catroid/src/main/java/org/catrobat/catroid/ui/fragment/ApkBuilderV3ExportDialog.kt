@@ -13,12 +13,14 @@ import android.provider.DocumentsContract
 import android.text.InputType
 import android.util.Log
 import android.view.LayoutInflater
+import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.RadioButton
 import android.widget.TextView
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -29,6 +31,8 @@ import org.catrobat.catroid.apkbuildV3.ApkBuilderV3Config
 import org.catrobat.catroid.apkbuildV3.ApkBuilderV3Engine
 import org.catrobat.catroid.apkbuildV3.AssemblyResult
 import org.catrobat.catroid.apkbuildV3.BuildProgressListener
+import org.catrobat.catroid.apkbuildV3.FirebaseConfig
+import org.catrobat.catroid.apkbuildV3.FirebaseConfigManager
 import org.catrobat.catroid.apkbuildV3.TemplateType
 import org.catrobat.catroid.io.asynctask.saveProjectSerial
 import org.catrobat.catroid.utils.ToastUtil
@@ -54,6 +58,8 @@ class ApkBuilderV3ExportDialog {
     private val tag = "ApkBuilderV3ExportDialog"
     private var config: ApkBuilderV3Config? = null
     private var projectDir: File? = null
+    private var firebaseUri: Uri? = null
+    private var firebaseConfig: FirebaseConfig? = null
 
     fun show(activity: Fragment, projectDir: File) {
         this.projectDir = projectDir
@@ -94,6 +100,49 @@ class ApkBuilderV3ExportDialog {
 
         // Template type — Full is the default (complete, proven path; Light is experimental)
         view.findViewById<RadioButton>(R.id.v3_template_full)?.isChecked = true
+
+        // ── Firebase Configuration ──
+        val firebaseAddButton = view.findViewById<Button>(R.id.v3_firebase_add_button)
+        val firebaseStatus = view.findViewById<TextView>(R.id.v3_firebase_status)
+        val firebaseRemoveButton = view.findViewById<Button>(R.id.v3_firebase_remove_button)
+
+        val firebaseLauncher = host.registerForActivityResult(
+            ActivityResultContracts.OpenDocument()
+        ) { uri: Uri? ->
+            if (uri != null) {
+                firebaseUri = uri
+                val pkgInput = view.findViewById<TextInputEditText>(R.id.v3_package_input)?.text.toString()
+                    .ifBlank { "org.neocatroid.runtime.v3" }.lowercase()
+                val result = FirebaseConfigManager.processGoogleServicesJson(ctx, uri, pkgInput)
+                if (result.error != null) {
+                    firebaseUri = null
+                    firebaseConfig = null
+                    ToastUtil.showError(ctx, result.error.message)
+                    firebaseStatus.visibility = android.view.View.GONE
+                    firebaseRemoveButton.visibility = android.view.View.GONE
+                    firebaseAddButton.text = ctx.getString(R.string.v3_firebase_add_button)
+                } else if (result.config != null) {
+                    firebaseConfig = result.config
+                    val fileName = result.config.sourceFileName
+                    firebaseStatus.text = "${ctx.getString(R.string.v3_firebase_file_added)}: $fileName"
+                    firebaseStatus.visibility = android.view.View.VISIBLE
+                    firebaseRemoveButton.visibility = android.view.View.VISIBLE
+                    firebaseAddButton.text = ctx.getString(R.string.v3_firebase_add_button)
+                }
+            }
+        }
+
+        firebaseAddButton.setOnClickListener {
+            firebaseLauncher.launch(arrayOf("application/json", "*/*"))
+        }
+
+        firebaseRemoveButton.setOnClickListener {
+            firebaseUri = null
+            firebaseConfig = null
+            firebaseStatus.visibility = android.view.View.GONE
+            firebaseRemoveButton.visibility = android.view.View.GONE
+            firebaseAddButton.text = ctx.getString(R.string.v3_firebase_add_button)
+        }
 
         val builder = AlertDialog.Builder(ctx)
             .setTitle("APK Builder V3")
@@ -149,7 +198,8 @@ class ApkBuilderV3ExportDialog {
                     targetSdk = targetSdk,
                     iconFile = iconFile,
                     permissions = permissions,
-                    templateType = templateType
+                    templateType = templateType,
+                    firebaseConfig = firebaseConfig
                 )
 
                 // Start build

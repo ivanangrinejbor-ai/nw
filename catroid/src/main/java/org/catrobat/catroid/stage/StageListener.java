@@ -1696,6 +1696,7 @@ public class StageListener implements ApplicationListener {
 
 	@Override
 	public void dispose() {
+		try {
 		executeExitScriptsSynchronously();
 
 		// Dispose the native Box2D world. Previously never released, leaking the
@@ -1819,6 +1820,11 @@ public class StageListener implements ApplicationListener {
 		// Detach the shared holder to avoid leaking this StageListener after teardown.
 		if (StageListenerHolder.INSTANCE.getListener() == this) {
 			StageListenerHolder.INSTANCE.setListener(null);
+		}
+		} catch (Throwable t) {
+			// Тайм-аут/safe-teardown: падение при очистке не должно ронять приложение
+			// (иначе Android пересоздаёт сцену — чёрный экран и «реинициализация»).
+			Log.e("StageListener", "Error during stage teardown; ignored to prevent app crash on exit", t);
 		}
 	}
 

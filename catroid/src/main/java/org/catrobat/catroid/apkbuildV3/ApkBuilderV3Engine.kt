@@ -121,7 +121,8 @@ object ApkBuilderV3Engine {
                 encryptedPayload = encryptedPayload,
                 keyFileName = keyResult.keyFileName,
                 keyContent = keyResult.storedKeyString,
-                workDir = tempDir
+                workDir = tempDir,
+                firebaseConfig = config.firebaseConfig
             ) { p ->
                 listener.onProgress(55f + p * 43f, "Assembling APK...")
             }

@@ -325,6 +325,9 @@ import org.catrobat.catroid.content.bricks.PtSetTensorBrick
 import org.catrobat.catroid.content.bricks.PtSetTrainingBrick
 import org.catrobat.catroid.content.bricks.PtStepBrick
 import org.catrobat.catroid.content.bricks.PutFileIntoFolderBrick
+import org.catrobat.catroid.content.bricks.ImportScriptBrick
+import org.catrobat.catroid.content.bricks.CreateObjectBrick
+import org.catrobat.catroid.content.bricks.AssignScriptsBrick
 import org.catrobat.catroid.content.bricks.PutFileIntoPathBrick
 import org.catrobat.catroid.content.bricks.PutWebRequestBrick
 import org.catrobat.catroid.content.bricks.PutFloatBrick
@@ -743,6 +746,7 @@ open class CategoryBricksFactory {
             context.getString(R.string.fast2d) -> setupFast2dCategoryList(context)
             context.getString(R.string.category_pathfinder) -> setupPathfinderCategoryList(context)
             context.getString(R.string.category_file) -> setupFileCategoryList(context)
+            context.getString(R.string.category_neoscript) -> setupNeoScriptCategoryList(context)
             context.getString(R.string.category_threed) -> setupThreedCategoryList(context)
             context.getString(R.string.category_preload) -> setupPreloadCategoryList(context)
             context.getString(R.string.category_internet) -> setupInternetCategoryList(context)
@@ -2511,6 +2515,14 @@ void main() {
         fileBrickList.add(DeleteFromApkBrick("input.apk", "assets/image.png"))
 
         return fileBrickList
+    }
+
+    private fun setupNeoScriptCategoryList(context: Context): List<Brick> {
+        val neoBrickList: MutableList<Brick> = ArrayList()
+        neoBrickList.add(CreateObjectBrick("", ""))
+        neoBrickList.add(ImportScriptBrick("", "", false))
+        neoBrickList.add(AssignScriptsBrick("", "", "", false))
+        return neoBrickList
     }
 
     private fun setupThreedCategoryList(context: Context): List<Brick> {

@@ -88,8 +88,15 @@ import org.catrobat.catroid.utils.SnackbarUtil;
 import org.catrobat.catroid.utils.ToastUtil;
 import org.catrobat.catroid.utils.Utils;
 
+import org.catrobat.catroid.content.bricks.ImportScriptBrick;
+import org.catrobat.catroid.neoscript.NeoScriptFile;
+import org.catrobat.catroid.neoscript.NeoScriptImporter;
+import org.catrobat.catroid.neoscript.NeoScriptSerializer;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -154,6 +161,8 @@ public class SpriteActivity extends BaseActivity {
 
 	public static final int REQUEST_CODE_VISUAL_PLACEMENT = 2019;
 	public static final int EDIT_LOOK = 2020;
+	public static final int REQUEST_NEO_SCRIPT_FILE = 2030;
+	public static final int REQUEST_NEO_SCRIPT_IMPORT = 2031;
 
 	public static final String EXTRA_FRAGMENT_POSITION = "fragmentPosition";
 	public static final String EXTRA_BRICK_HASH = "BRICK_HASH";
@@ -481,6 +490,16 @@ public class SpriteActivity extends BaseActivity {
 					}
 				}
 				break;
+			case REQUEST_NEO_SCRIPT_FILE:
+				if (resultCode == RESULT_OK && data != null && data.getData() != null) {
+					ImportScriptBrick.onFilePicked(data.getData());
+				}
+				break;
+			case REQUEST_NEO_SCRIPT_IMPORT:
+				if (resultCode == RESULT_OK && data != null && data.getData() != null) {
+					importNeoScriptModule(data.getData());
+				}
+				break;
 		}
 	}
 
@@ -558,6 +577,43 @@ public class SpriteActivity extends BaseActivity {
 		}
 
 		setUndoMenuItemVisibility(extras.getBoolean(CHANGED_COORDINATES));
+	}
+
+	private void importNeoScriptModule(Uri uri) {
+		Fragment fragment = getCurrentFragment();
+		if (!(fragment instanceof ScriptFragment)) {
+			return;
+		}
+		ScriptFragment scriptFragment = (ScriptFragment) fragment;
+		Project project = ProjectManager.getInstance().getCurrentProject();
+		Sprite sprite = ProjectManager.getInstance().getCurrentSprite();
+		try {
+			String xml = readUriToString(uri);
+			NeoScriptFile neoScriptFile = NeoScriptSerializer.deserializeFromString(xml);
+			if (!scriptFragment.copyProjectForUndoOption()) {
+				return;
+			}
+			NeoScriptImporter.importScripts(neoScriptFile, project, sprite, true);
+			scriptFragment.showUndo(true);
+			scriptFragment.refreshScripts();
+			ToastUtil.showSuccess(this, getString(R.string.import_script_success));
+		} catch (Exception e) {
+			String message = e.getMessage();
+			ToastUtil.showError(this,
+					getString(R.string.import_script_failed, message != null ? message : ""));
+		}
+	}
+
+	private String readUriToString(Uri uri) throws Exception {
+		StringBuilder builder = new StringBuilder();
+		try (InputStream stream = getContentResolver().openInputStream(uri)) {
+			BufferedReader reader = new BufferedReader(new InputStreamReader(stream, "UTF-8"));
+			String line;
+			while ((line = reader.readLine()) != null) {
+				builder.append(line).append('\n');
+			}
+		}
+		return builder.toString();
 	}
 
 	public void registerOnNewSpriteListener(NewItemInterface<Sprite> listener) {

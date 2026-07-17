@@ -4898,6 +4898,36 @@ public class ActionFactory extends Actions {
         return action;
     }
 
+    public Action createImportScriptAction(Sprite sprite, SequenceAction sequence, Formula objectName, Formula filePath, boolean overwrite) {
+        ImportScriptAction action = action(ImportScriptAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setObjectName(objectName);
+        action.setFilePath(filePath);
+        action.setOverwrite(overwrite);
+        return action;
+    }
+
+    public Action createCreateObjectAction(Sprite sprite, SequenceAction sequence, Formula objectName, String targetScene) {
+        CreateObjectAction action = action(CreateObjectAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setObjectName(objectName);
+        action.setTargetSceneName(targetScene);
+        return action;
+    }
+
+    public Action createAssignScriptsAction(Sprite sprite, SequenceAction sequence, Formula filePath, Formula objectName, String targetScene, boolean replaceExistingScripts) {
+        AssignScriptsAction action = action(AssignScriptsAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setFilePath(filePath);
+        action.setObjectName(objectName);
+        action.setTargetSceneName(targetScene);
+        action.setReplaceExistingScripts(replaceExistingScripts);
+        return action;
+    }
+
     public Action createSendNotificationAction(Sprite sprite, SequenceAction sequence, Formula notificationId) {
         SendNotificationAction action = action(SendNotificationAction.class);
         Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);

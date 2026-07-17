@@ -456,6 +456,14 @@ android {
     if (!danvexGoogleServices.exists()) {
         copyGoogleServicesFile('danvex', defaultConfig.applicationId)
     }
+    // The runtime template APK (template_runtime.apk) reuses the same Firebase
+    // project as the danvex flavor, so copy the template config into its source
+    // set too. Without this, Firebase resources are never generated for the
+    // runtime flavor and Firebase is a silent no-op in the built template.
+    def runtimeGoogleServices = file("src/runtime/google-services.json")
+    if (!runtimeGoogleServices.exists()) {
+        copyGoogleServicesFile('runtime', 'org.DanVexTeam.NewCatroidRuntime')
+    }
 }
 
 tasks.withType(JavaCompile).configureEach {
@@ -468,7 +476,7 @@ tasks.withType(JavaCompile).configureEach {
 afterEvaluate {
     def flavorsWithoutGoogleServices = [
         'createAtSchool', 'embroideryDesigner', 'lunaAndCat',
-        'mindstorms', 'phiro', 'pocketCodeBeta', 'standalone', 'runtime'
+        'mindstorms', 'phiro', 'pocketCodeBeta', 'standalone'
     ]
     tasks.matching { task ->
         task.name.startsWith('process') && task.name.endsWith('GoogleServices') &&

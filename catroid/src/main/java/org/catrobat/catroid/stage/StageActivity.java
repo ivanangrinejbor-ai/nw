@@ -1584,22 +1584,28 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 
 	@Override
 	protected void onDestroy() {
-		if (precompileFactHandler != null) {
-			precompileFactHandler.removeCallbacksAndMessages(null);
-			precompileFactHandler = null;
+		try {
+			if (precompileFactHandler != null) {
+				precompileFactHandler.removeCallbacksAndMessages(null);
+				precompileFactHandler = null;
+			}
+
+			if (NativeBridge.INSTANCE.isWorking()) NativeBridge.INSTANCE.cleanupAllInstances();
+
+
+			if (ProjectManager.getInstance().getCurrentProject() != null) {
+				StageLifeCycleController.stageDestroy(this);
+			}
+
+
+			RunJSAction.Companion.destroyWebView();
+			messageHandler = null;
+			MyActivityManager.Companion.clearActivity(this);
+		} catch (Throwable t) {
+			// Тайм-аут/safe-teardown: любое падение при выходе не должно убивать процесс
+			// (иначе Android пересоздаёт активность — чёрный экран и «реинициализация»).
+			Log.e(TAG, "Error during StageActivity destroy; ignored to prevent app crash on exit", t);
 		}
-
-		if (NativeBridge.INSTANCE.isWorking()) NativeBridge.INSTANCE.cleanupAllInstances();
-
-
-		if (ProjectManager.getInstance().getCurrentProject() != null) {
-			StageLifeCycleController.stageDestroy(this);
-		}
-
-
-		RunJSAction.Companion.destroyWebView();
-		messageHandler = null;
-		MyActivityManager.Companion.clearActivity(this);
 
 		super.onDestroy();
 	}
@@ -1769,18 +1775,28 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 	}
 
 	public void manageLoadAndFinish() {
-		stageListener.pause();
-		stageListener.finish();
+		try {
+			stageListener.pause();
+			stageListener.finish();
 
-		TextToSpeechHolder.getInstance().shutDownTextToSpeech();
-		get(SpeechRecognitionHolderFactory.class).getInstance().destroy();
+			TextToSpeechHolder.getInstance().shutDownTextToSpeech();
+			try {
+				get(SpeechRecognitionHolderFactory.class).getInstance().destroy();
+			} catch (Exception e) {
+				Log.w(TAG, "SpeechRecognition destroy failed", e);
+			}
 
-		BluetoothDeviceService service = ServiceProvider.getService(CatroidService.BLUETOOTH_DEVICE_SERVICE);
-		if (service != null) {
-			service.pause();
+			BluetoothDeviceService service = ServiceProvider.getService(CatroidService.BLUETOOTH_DEVICE_SERVICE);
+			if (service != null) {
+				service.pause();
+			}
+
+			RaspberryPiService.getInstance().disconnect();
+		} catch (Throwable t) {
+			// Тайм-аут/safe-teardown: падение при выходе не должно ронять приложение
+			// (иначе Android пересоздаёт активность — чёрный экран и «реинициализация»).
+			Log.e(TAG, "Error during stage teardown; ignored to prevent app crash on exit", t);
 		}
-
-		RaspberryPiService.getInstance().disconnect();
 	}
 
 	public static CameraManager getActiveCameraManager() {

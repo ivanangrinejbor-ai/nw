@@ -83,6 +83,7 @@ object V3ApkAssembler {
         keyFileName: String,
         keyContent: String,
         workDir: File,
+        firebaseConfig: FirebaseConfig? = null,
         onProgress: ((Float) -> Unit)? = null
     ): File {
         onProgress?.invoke(0f)
@@ -102,12 +103,22 @@ object V3ApkAssembler {
         // ── 3. Патчим манифест ──
         val patchedApk = File(workDir, "v3_patched.apk")
         patchManifest(injectedApk, patchedApk, config)
+        onProgress?.invoke(0.55f)
+
+        // ── 4. Внедряем Firebase-конфиг (если выбран) ──
+        val firebaseApk = if (firebaseConfig != null) {
+            val fApk = File(workDir, "v3_firebase.apk")
+            injectFirebaseConfig(patchedApk, fApk, firebaseConfig, config.packageName)
+            fApk
+        } else {
+            patchedApk
+        }
         onProgress?.invoke(0.7f)
 
-        // ── 4. Подписываем ──
+        // ── 5. Подписываем ──
         val signedApk = File(workDir, "v3_signed.apk")
         val keystore = File(workDir, "v3_keystore.jks")
-        signApk(patchedApk, signedApk, keystore, "neocatroidv3", "keystore")
+        signApk(firebaseApk, signedApk, keystore, "neocatroidv3", "keystore")
         onProgress?.invoke(1f)
 
         Log.i(TAG, "APK собран: ${signedApk.absolutePath} (${signedApk.length() / (1024 * 1024)} MB)")
@@ -304,6 +315,61 @@ object V3ApkAssembler {
                 segment.startsWith("$oldPackage.") -> newPackage + segment.substring(oldPackage.length)
                 else -> segment
             }
+        }
+    }
+
+    /**
+     * Внедряет Firebase конфигурацию в ресурсы APK.
+     * Обновляет существующие строковые ресурсы Firebase в resources.arsc
+     * значениями из выбранного пользователем google-services.json.
+     */
+    private fun injectFirebaseConfig(
+        inputApk: File,
+        outputApk: File,
+        firebaseConfig: FirebaseConfig,
+        targetPackage: String
+    ) {
+        inputApk.copyTo(outputApk, overwrite = true)
+
+        ApkModule.loadApkFile(outputApk).use { module ->
+            val table = module.getTableBlock(false) ?: run {
+                Log.w(TAG, "Cannot inject Firebase config: no TableBlock found")
+                return
+            }
+
+            val replacements = mapOf(
+                "google_app_id" to firebaseConfig.mobileSdkAppId,
+                "gcm_defaultSenderId" to firebaseConfig.projectNumber,
+                "google_api_key" to firebaseConfig.apiKey,
+                "google_crash_reporting_api_key" to firebaseConfig.apiKey,
+                "project_id" to firebaseConfig.projectId,
+                "google_storage_bucket" to firebaseConfig.storageBucket,
+                "firebase_database_url" to firebaseConfig.databaseUrl,
+                "default_web_client_id" to firebaseConfig.defaultWebClientId
+            )
+
+            var updatedCount = 0
+            for ((resName, resValue) in replacements) {
+                if (resValue.isBlank()) {
+                    Log.d(TAG, "Firebase resource '$resName' has empty value, skipping")
+                    continue
+                }
+                try {
+                    val entry = table.getEntry("string", resName, "")
+                    if (entry != null) {
+                        entry.resValue?.setValueAsString(resValue)
+                        updatedCount++
+                        Log.d(TAG, "Updated Firebase resource: $resName = $resValue")
+                    } else {
+                        Log.w(TAG, "Firebase resource '$resName' not found in resources.arsc")
+                    }
+                } catch (e: Exception) {
+                    Log.w(TAG, "Failed to update Firebase resource '$resName'", e)
+                }
+            }
+
+            Log.i(TAG, "Firebase config injected: $updatedCount resources updated")
+            module.writeApk(outputApk)
         }
     }
 

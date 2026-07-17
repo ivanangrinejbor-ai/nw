@@ -78,6 +78,14 @@ import org.catrobat.catroid.formulaeditor.UserList;
 import org.catrobat.catroid.formulaeditor.UserVariable;
 import org.catrobat.catroid.io.StorageOperations;
 import org.catrobat.catroid.io.XstreamSerializer;
+import org.catrobat.catroid.neoscript.NeoScriptExporter;
+import org.catrobat.catroid.neoscript.NeoScriptFile;
+import org.catrobat.catroid.neoscript.NeoScriptSerializer;
+import android.app.ProgressDialog;
+import android.net.Uri;
+import java.io.File;
+import java.io.IOException;
+import org.catrobat.catroid.common.Constants;
 import org.catrobat.catroid.io.asynctask.ProjectLoader;
 import org.catrobat.catroid.io.asynctask.ProjectSaver;
 import org.catrobat.catroid.ui.BottomBar;
@@ -150,7 +158,7 @@ public class ScriptFragment extends ListFragment implements
 	private static final String SCRIPT_TAG = "scriptToFocus";
 
 	@Retention(RetentionPolicy.SOURCE)
-	@IntDef({NONE, BACKPACK, COPY, DELETE, COMMENT, CATBLOCKS})
+	@IntDef({NONE, BACKPACK, COPY, DELETE, COMMENT, CATBLOCKS, SAVE_AS_SCRIPT})
 	@interface ActionModeType {
 	}
 
@@ -160,6 +168,7 @@ public class ScriptFragment extends ListFragment implements
 	private static final int DELETE = 3;
 	private static final int COMMENT = 4;
 	private static final int CATBLOCKS = 5;
+	private static final int SAVE_AS_SCRIPT = 6;
 
 	@ActionModeType
 	private int actionModeType = NONE;
@@ -255,6 +264,10 @@ public class ScriptFragment extends ListFragment implements
 				adapter.setCheckBoxMode(BrickAdapter.ALL);
 				mode.setTitle(getString(R.string.am_delete));
 				break;
+			case SAVE_AS_SCRIPT:
+				adapter.setCheckBoxMode(BrickAdapter.SCRIPTS_ONLY);
+				mode.setTitle(getString(R.string.menu_save_as_script));
+				break;
 			case COMMENT:
 				adapter.selectAllCommentedOutBricks();
 				adapter.setCheckBoxMode(BrickAdapter.ALL);
@@ -306,6 +319,9 @@ public class ScriptFragment extends ListFragment implements
 				break;
 			case DELETE:
 				showDeleteAlert(adapter.getSelectedItems());
+				break;
+			case SAVE_AS_SCRIPT:
+				showSaveScriptDialog(collectSelectedScripts());
 				break;
 			case COMMENT:
 				toggleComments(adapter.getSelectedItems());
@@ -638,6 +654,12 @@ public class ScriptFragment extends ListFragment implements
             indentItem.setTitle(enabled ? R.string.menu_disable_indentation : R.string.menu_enable_indentation);
         }
 
+        MenuItem saveAsScriptItem = menu.findItem(R.id.save_as_script);
+        if (saveAsScriptItem != null) {
+            Sprite currentSprite = ProjectManager.getInstance().getCurrentSprite();
+            saveAsScriptItem.setVisible(currentSprite != null && !currentSprite.getScriptList().isEmpty());
+        }
+
         super.onPrepareOptionsMenu(menu);
     }
 
@@ -662,6 +684,12 @@ public class ScriptFragment extends ListFragment implements
 				break;
 			case R.id.delete:
 				prepareActionMode(DELETE);
+				break;
+			case R.id.save_as_script:
+				startActionMode(SAVE_AS_SCRIPT);
+				break;
+			case R.id.import_script_module:
+				launchNeoScriptFilePicker();
 				break;
 			case R.id.comment_in_out:
 				startActionMode(COMMENT);
@@ -802,6 +830,9 @@ public class ScriptFragment extends ListFragment implements
 				break;
 			case DELETE:
 				actionMode.setTitle(getString(R.string.am_delete) + " " + selectedItemCnt);
+				break;
+			case SAVE_AS_SCRIPT:
+				actionMode.setTitle(getString(R.string.menu_save_as_script) + " " + selectedItemCnt);
 				break;
 			case COMMENT:
 				actionMode.setTitle(getString(R.string.comment_in_out) + " " + selectedItemCnt);
@@ -1279,6 +1310,107 @@ public class ScriptFragment extends ListFragment implements
 		}
 
 		finishActionMode();
+	}
+
+	private List<Script> collectSelectedScripts() {
+		List<Script> selectedScripts = new ArrayList<>();
+		for (Brick brick : adapter.getSelectedItems()) {
+			if (brick instanceof ScriptBrick) {
+				selectedScripts.add(((ScriptBrick) brick).getScript());
+			}
+		}
+		return selectedScripts;
+	}
+
+	private void launchNeoScriptFilePicker() {
+		Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+		intent.addCategory(Intent.CATEGORY_OPENABLE);
+		intent.setType("*/*");
+		intent.putExtra(Intent.EXTRA_MIME_TYPES, new String[]{"application/octet-stream", "text/xml"});
+		((AppCompatActivity) getActivity())
+				.startActivityForResult(intent, SpriteActivity.REQUEST_NEO_SCRIPT_IMPORT);
+	}
+
+	private void showSaveScriptDialog(List<Script> scripts) {
+		if (scripts == null || scripts.isEmpty()) {
+			finishActionMode();
+			return;
+		}
+
+		final EditText input = new EditText(getActivity());
+		input.setInputType(InputType.TYPE_CLASS_TEXT);
+		input.setHint(R.string.script_name);
+
+		AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+		builder.setTitle(R.string.save_script_title);
+		builder.setView(input);
+		builder.setPositiveButton(R.string.save, (dialog, which) -> {
+			String name = input.getText().toString().trim();
+			if (name.isEmpty() || !isValidFileName(name)) {
+				ToastUtil.showError(getActivity(), R.string.save_script_invalid_name);
+				return;
+			}
+			exportScripts(scripts, name);
+		});
+		builder.setNegativeButton(R.string.cancel, null);
+		builder.show();
+		finishActionMode();
+	}
+
+	private boolean isValidFileName(String name) {
+		return !name.matches(".*[\\\\/:*?\"<>|].*");
+	}
+
+	private void exportScripts(List<Script> scripts, String name) {
+		Project project = ProjectManager.getInstance().getCurrentProject();
+		Sprite sprite = ProjectManager.getInstance().getCurrentSprite();
+
+		ProgressDialog progress = ProgressDialog.show(getActivity(), null,
+				getString(R.string.please_wait), true, false);
+
+		new Thread(() -> {
+			try {
+				NeoScriptFile neoScriptFile = NeoScriptExporter.buildFromScripts(scripts, project, sprite);
+				File directory = new File(Constants.DOWNLOAD_DIRECTORY,
+						getString(R.string.save_script_folder));
+				if (!directory.exists() && !directory.mkdirs()) {
+					throw new IOException("Cannot create directory: " + directory.getAbsolutePath());
+				}
+				File targetFile = new File(directory, name + NeoScriptFile.EXTENSION);
+				NeoScriptSerializer.serializeToFile(neoScriptFile, targetFile);
+
+				String relativePath = "Download/" + getString(R.string.save_script_folder)
+						+ "/" + targetFile.getName();
+				if (getActivity() != null) {
+					getActivity().runOnUiThread(() -> {
+						progress.dismiss();
+						ToastUtil.showSuccess(getActivity(),
+								getString(R.string.save_script_success, relativePath));
+					});
+				}
+			} catch (Exception e) {
+				final String message = e.getMessage();
+				if (getActivity() != null) {
+					getActivity().runOnUiThread(() -> {
+						progress.dismiss();
+						showExportFailureDialog(message);
+					});
+				}
+			}
+		}).start();
+	}
+
+	private void showExportFailureDialog(String message) {
+		AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+		builder.setTitle(R.string.save_script_failed_title);
+		builder.setMessage(message != null ? message : getString(R.string.error));
+		builder.setPositiveButton(R.string.ok, null);
+		builder.show();
+	}
+
+	public void refreshScripts() {
+		Sprite sprite = ProjectManager.getInstance().getCurrentSprite();
+		adapter.updateItems(sprite);
 	}
 
 	private void switchToBackpack() {

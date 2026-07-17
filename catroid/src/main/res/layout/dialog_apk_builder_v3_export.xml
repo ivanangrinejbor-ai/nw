@@ -204,5 +204,40 @@
                 android:text="@string/v3_icon_default" />
         </RadioGroup>
 
+        <!-- Firebase Configuration -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/v3_firebase_section"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="4dp"
+            android:paddingStart="4dp" />
+
+        <Button
+            android:id="@+id/v3_firebase_add_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/v3_firebase_add_button"
+            android:layout_marginBottom="4dp" />
+
+        <TextView
+            android:id="@+id/v3_firebase_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:padding="8dp"
+            android:textSize="13sp"
+            android:background="@android:color/transparent" />
+
+        <Button
+            android:id="@+id/v3_firebase_remove_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:text="@string/v3_firebase_remove_button"
+            android:layout_marginBottom="4dp" />
+
     </LinearLayout>
 </ScrollView>

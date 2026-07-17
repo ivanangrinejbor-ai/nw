@@ -175,6 +175,81 @@ public class MyBrick extends FormulaBrick {
 - Добавлены в DEVICE_FUNCTIONS/DEVICE_PARAMS в CategoryListFragment.java
 - Добавлена строка `formula_file_project_size_param`
 
+## 11. NeoScript — reusable script modules (.neoscript)
+
+### Summary
+Система экспорта/импорта переиспользуемых модулей скриптов в формате `.neoscript`. Позволяет сохранить выделенные скрипты в файл и импортировать их в любой объект того же или другого проекта.
+
+### Files
+```
+neoscript/
+  NeoScriptFile.java        — корневая модель (список Script + UserVariable + UserList)
+  NeoScriptSerializer.java  — XStream-сериализация с валидацией версии
+  NeoScriptExporter.java    — сборка NeoScriptFile из выбранных скриптов + референсов
+  NeoScriptImporter.java    — вливание скриптов в target Sprite с dedup
+  NeoScriptUserData.java    — сбор/перелинковка UserVariable/UserList (reflection)
+  NeoScriptException.java   — кастомное исключение
+
+content/actions/
+  ImportScriptAction.kt     — TemporalAction: runtime-импорт .neoscript в объект
+
+content/bricks/
+  ImportScriptBrick.java    — Brick (File category): objectName + filePath + overwrite Spinner
+
+res/layout/
+  brick_import_script.xml   — BrickLayout с двумя FormulaEditText + Spinner
+
+ui/recyclerview/fragment/
+  ScriptFragment.java       — SAVE_AS_SCRIPT action mode + exportScripts() + launchNeoScriptFilePicker()
+
+ui/
+  SpriteActivity.java       — importNeoScriptModule() + REQUEST_NEO_SCRIPT_FILE/IMPORT handlers
+
+test/neoscript/
+  NeoScriptModuleTest.java  — 13 тестов: round-trip, import, dedup, overwrite, version validation, large load, undo model
+```
+
+### Design decisions
+- **Container root**: `NeoScriptFile` (не Project) — содержит только выбранные скрипты + необходимые переменные/списки. Без сцен, ассетов, настроек.
+- **Serialization**: переиспользует XStream-конфигурацию проекта (`XstreamSerializer.getInstance().getXstream()`), поэтому все Brick/Formula-конвертеры работают автоматически. Добавлен алиас `<neoscript>` для корня.
+- **Versioning**: `formatVersion` (int), MIN=1, MAX=1. Старые/будущие версии отклоняются с понятным сообщением.
+- **Unknown blocks**: `XStreamBrickConverter` автоматически создаёт `UnknownBrick` для неизвестных типов блоков — совместимость с будущими версиями.
+- **ID remapping**: при импорте скрипты клонируются через `Script.clone()`, который генерирует свежие scriptId и brickId (через XStream ID-генератор).
+- **Variable relinking**: `NeoScriptUserData` через reflection обходит все `UserVariable`/`UserList` поля в бриках, находит или создаёт переменные с тем же именем в целевом проекте/спрайте.
+- **Duplicate detection**: стабильная сигнатура = `ClassName(simple)#trigger(TEXT)` (для BroadcastScript — broadcastMessage). Overwrite = replace, иначе skip.
+- **Undo/redo**: редакторский импорт вызывает `copyProjectForUndoOption()` перед изменениями.
+- **Security**: XStream security deny-by-wildcard для системных пакетов. File path validation через кастомные Formula (не raw strings).
+- **Runtime brick** (`ImportScriptBrick`): Formula-поля для objectName и filePath, Spinner для overwrite. Файл открывается через `ACTION_OPEN_DOCUMENT` с `REQUEST_NEO_SCRIPT_FILE`.
+- **Save path**: `Download/NeocatroidScript/{name}.neoscript` через `Constants.DOWNLOAD_DIRECTORY`.
+- **Format**: XML с `<neoscript>` корнем, без сжатия/архивации — plain text для ручного редактирования.
+
+### Adding a new .neoscript brick type
+Любой новый Brick в пакете `org.catrobat.catroid.content.bricks` обнаруживается автоматически — не требуется регистрация в XStream. Для корректной сериализации достаточно конструктора без параметров и соответствия имени класса.
+
+### NeoScript brick reference (current)
+| Brick | Action | Parameters | Description |
+|-------|--------|------------|-------------|
+| `ImportScriptBrick` (File→NeoScript cat.) | `ImportScriptAction` | objectName, filePath, overwrite | Import .neoscript into existing object |
+| `CreateObjectBrick` (NeoScript cat., NEW) | `CreateObjectAction` | objectName (Formula), scene (spinner) | Create blank sprite in scene |
+| `AssignScriptsBrick` (NeoScript cat., NEW) | `AssignScriptsAction` | filePath, objectName, scene, overwrite | Assign .neoscript to object in scene |
+
+### Scene-aware bricks design
+- Scene stored as `String` (name): `null`/empty = Current scene, otherwise `project.getSceneByName(name)`.
+- Spinner: StringOption("Current scene") + Scene items.
+- Backward compat: missing/empty scene field → Current scene.
+- Object lookup scoped to the resolved scene (not global).
+- Inactive scene: scripts added to model only (no runtime registration).
+- Active scene: `executeConsoleScript()` starts added scripts.
+- UnknownBrick detection: `AssignScriptsAction` checks for `UnknownBrick` instances pre-import, replaces with `NoteBrick`.
+- `AssignScriptsBrick` "Replace existing scripts?" spinner [0/1]: 0 = keep existing + add imported (`ImportStrategy.APPEND_ALL`), 1 = remove ALL existing + add imported (`ImportStrategy.REPLACE_ALL`). This is SEPARATE from the `ImportScriptBrick` duplicate-overwrite (boolean → `SKIP_DUPLICATES`/`REPLACE_DUPLICATES`). Do not conflate the two.
+- `NeoScriptImporter.ImportStrategy` enum: `SKIP_DUPLICATES`, `REPLACE_DUPLICATES`, `APPEND_ALL`, `REPLACE_ALL`. `REPLACE_ALL` is atomic — all scripts are cloned+relinked first; only on full success is the target sprite's script list cleared and the new scripts added. Default serialized value MUST be 0 (least destructive).
+
+### XStream
+- `XStreamBrickConverter` автоматически обнаруживает все Brick-классы по имени класса.
+- Пакеты поиска: `org.catrobat.catroid.content.bricks`, `org.catrobat.catroid.physics.content.bricks`.
+- Неизвестные типы → `UnknownBrick` (не ломает загрузку).
+- Явная регистрация не требуется, но для обратной совместимости в `XstreamSerializer.java` есть `xstream.alias("brick", ConcreteBrick.class)`.
+
 ---
 
 # Исправления безопасности и багов (2026-07)

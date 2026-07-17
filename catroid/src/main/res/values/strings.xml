@@ -1077,6 +1077,39 @@
 <string formatted="false" name="brick_copy_project_file_to_path_source">Source file</string>
 <string formatted="false" name="brick_copy_project_file_to_path_destination">Path</string>
 <string formatted="false" name="brick_put_file_into_folder">Put file into folder</string>
+<string formatted="false" name="brick_import_script">Import scripts</string>
+<string formatted="false" name="brick_import_script_object">into object</string>
+<string formatted="false" name="brick_import_script_file">from file</string>
+<string formatted="false" name="brick_import_script_file_hint">tap to choose .neoscript file</string>
+<string formatted="false" name="brick_import_script_overwrite">if object already contains imported scripts?</string>
+<string formatted="false" name="menu_save_as_script">Save as Script...</string>
+<string formatted="false" name="menu_import_script_module">Import Script Module...</string>
+<string formatted="false" name="save_script_title">Save Script</string>
+<string formatted="false" name="script_name">Script name</string>
+<string formatted="false" name="save_script_invalid_name">Please enter a valid name</string>
+<string formatted="false" name="save_script_success">Saved\n%1$s</string>
+<string formatted="false" name="save_script_failed_title">Failed to save script</string>
+<string formatted="false" name="save_script_folder">NeocatroidScript</string>
+<string formatted="false" name="import_script_success">Imported script module</string>
+<string formatted="false" name="import_script_failed">Failed to import script module: %1$s</string>
+<string formatted="false" name="import_script_object_not_found">Object not found</string>
+<string formatted="false" name="brick_create_object">Create object</string>
+<string formatted="false" name="brick_create_object_name">name</string>
+<string formatted="false" name="brick_create_object_scene">in scene</string>
+<string formatted="false" name="brick_create_object_current_scene">Current scene</string>
+<string formatted="false" name="brick_assign_scripts">Assign scripts</string>
+<string formatted="false" name="brick_assign_scripts_file">from project file</string>
+<string formatted="false" name="brick_assign_scripts_file_hint">tap to choose .neoscript file</string>
+<string formatted="false" name="brick_assign_scripts_object">to object</string>
+<string formatted="false" name="brick_assign_scripts_scene">in scene</string>
+  <string formatted="false" name="brick_assign_scripts_replace_existing">Replace existing scripts?</string>
+<string formatted="false" name="current_scene">Current scene</string>
+<string formatted="false" name="scene_not_found">Scene not found: %1$s</string>
+<string formatted="false" name="unknown_blocks_detected_title">Unknown blocks detected</string>
+<string formatted="false" name="unknown_blocks_detected_message">Some blocks in this script are not supported by your version of Neocatroid.</string>
+<string formatted="false" name="unknown_blocks_continue">Continue</string>
+<string formatted="false" name="unknown_blocks_cancel">Cancel</string>
+<string formatted="false" name="block_not_supported">This block is not supported</string>
 <string formatted="false" name="brick_put_file_into_path">Put file to path</string>
 <string formatted="false" name="brick_prepare_notification">Prepare notification</string>
 <string formatted="false" name="brick_send_notification">Send notification</string>
@@ -1301,6 +1334,7 @@
 <string name="brick_particle_rot_yaw" formatted="false">Rotation Yaw (Y)</string>
 <string name="brick_particle_rot_roll" formatted="false">Rotation Roll (Z)</string>
 <string name="category_file">Files</string>
+<string name="category_neoscript">NeoScript</string>
 <string name="category_favorites">Favorites</string>
 <string name="loading_fact_placeholder">Loading...</string>
 <string name="rebuild_cache_button">Update physics cache</string>
@@ -4368,5 +4402,21 @@ needs read and write access to it. You can always change permissions through you
     <string name="v3_icon">App icon</string>
     <string name="v3_icon_project">Use project icon</string>
     <string name="v3_icon_default">Default icon</string>
+
+    <!-- Firebase config for APK Builder V3 -->
+    <string name="v3_firebase_section">Firebase</string>
+    <string name="v3_firebase_add_button">Add custom google-services.json</string>
+    <string name="v3_firebase_file_added">google-services.json added</string>
+    <string name="v3_firebase_remove_button">Remove google-services.json</string>
+    <string name="v3_firebase_error_not_json">Selected file is not a JSON file</string>
+    <string name="v3_firebase_error_invalid_json">Invalid JSON in google-services.json</string>
+    <string name="v3_firebase_error_no_project_info">google-services.json is missing project_info section</string>
+    <string name="v3_firebase_error_no_client">google-services.json has no client section</string>
+    <string name="v3_firebase_error_no_android_client">google-services.json has no Android client</string>
+    <string name="v3_firebase_error_no_package_name">Could not determine package name from google-services.json</string>
+    <string name="v3_firebase_error_package_mismatch">In google-services.json no app found with package: %s. Add this package as an Android app in your Firebase project and download a new google-services.json.</string>
+    <string name="v3_firebase_error_read_failed">Failed to read google-services.json</string>
+    <string name="v3_firebase_error_copy_failed">Failed to copy google-services.json</string>
+    <string name="v3_firebase_error_processing">Error processing Firebase configuration</string>
 
 </resources>
