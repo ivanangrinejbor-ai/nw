@@ -17,8 +17,13 @@ package org.catrobat.catroid.neoscript;
 
 import org.catrobat.catroid.content.BroadcastScript;
 import org.catrobat.catroid.content.Project;
+import org.catrobat.catroid.content.RaspiInterruptScript;
 import org.catrobat.catroid.content.Script;
 import org.catrobat.catroid.content.Sprite;
+import org.catrobat.catroid.content.UserDefinedScript;
+import org.catrobat.catroid.content.WhenBackgroundChangesScript;
+import org.catrobat.catroid.content.WhenFirebaseChangedScript;
+import org.catrobat.catroid.content.WhenGamepadButtonScript;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -93,9 +98,58 @@ public final class NeoScriptImporter {
 			return result;
 		}
 
-		Set<String> existingSignatures = new HashSet<>();
+		// Only scripts with a *parameterized* trigger (e.g. BroadcastScript+message)
+		// can be meaningfully deduplicated. Scripts whose signature is null
+		// (StartScript, WhenClonedScript, WhenTouchDownScript, WhenConditionScript, …)
+		// are always unique — a sprite can have many of them doing different things.
+		Set<String> targetSignatures = new HashSet<>();
 		for (Script script : targetSprite.getScriptList()) {
-			existingSignatures.add(scriptSignature(script));
+			String sig = scriptSignature(script);
+			if (sig != null) {
+				targetSignatures.add(sig);
+			}
+		}
+
+		if (strategy == ImportStrategy.REPLACE_DUPLICATES) {
+			// Only collect parameterized-trigger scripts as candidates for removal.
+			// Non-parameterized scripts in the incoming file are always added as-is.
+			Set<String> importedParameterizedSigs = new HashSet<>();
+			for (Script s : file.getScripts()) {
+				String sig = scriptSignature(s);
+				if (sig != null) {
+					importedParameterizedSigs.add(sig);
+				}
+			}
+			// BUG-NS-06/07/08 fix: atomic approach — clone all first, only then mutate.
+			List<Script> toRemove = new ArrayList<>();
+			for (Script script : targetSprite.getScriptList()) {
+				String sig = scriptSignature(script);
+				if (sig != null && importedParameterizedSigs.contains(sig)) {
+					toRemove.add(script);
+				}
+			}
+			// Clone + relink every incoming script atomically
+			List<Script> cloned = new ArrayList<>();
+			try {
+				for (Script original : file.getScripts()) {
+					Script clone = original.clone();
+					NeoScriptUserData.relink(clone, project, targetSprite);
+					clone.setParents();
+					cloned.add(clone);
+				}
+			} catch (CloneNotSupportedException e) {
+				throw new NeoScriptException("Failed to clone script: " + e.getMessage(), e);
+			}
+			// All clones succeeded — atomically swap parameterized duplicates, add the rest
+			targetSprite.getScriptList().removeAll(toRemove);
+			for (Script s : cloned) {
+				targetSprite.addScript(s);
+				result.added.add(s);
+				if (scriptSignature(s) != null) {
+					result.replaced.add(s);
+				}
+			}
+			return result;
 		}
 
 		try {
@@ -107,25 +161,16 @@ public final class NeoScriptImporter {
 				String signature = scriptSignature(clone);
 
 				if (strategy == ImportStrategy.APPEND_ALL) {
+					// Always add, regardless of signature
 					targetSprite.addScript(clone);
-					existingSignatures.add(signature);
 					result.added.add(clone);
-				} else {
-					boolean duplicate = existingSignatures.contains(signature);
+				} else if (strategy == ImportStrategy.SKIP_DUPLICATES) {
+					// null signature = non-parameterized = always unique, always add
+					boolean duplicate = signature != null && targetSignatures.contains(signature);
 					if (duplicate) {
-						if (strategy == ImportStrategy.REPLACE_DUPLICATES) {
-							removeScriptBySignature(targetSprite, signature);
-							existingSignatures.remove(signature);
-							targetSprite.addScript(clone);
-							existingSignatures.add(signature);
-							result.replaced.add(clone);
-							result.added.add(clone);
-						} else {
-							result.skipped.add(clone);
-						}
+						result.skipped.add(clone);
 					} else {
 						targetSprite.addScript(clone);
-						existingSignatures.add(signature);
 						result.added.add(clone);
 					}
 				}
@@ -148,13 +193,49 @@ public final class NeoScriptImporter {
 
 	/**
 	 * Builds a stable, reference-free signature used for duplicate detection.
-	 * Combines the script type (class simple name) with its trigger / metadata.
+	 *
+	 * <p>Returns a non-null string <em>only</em> for scripts whose trigger is parameterized
+	 * (i.e. two scripts of the same type with the same parameter are genuinely duplicates).
+	 * For non-parameterized scripts (StartScript, WhenClonedScript, WhenConditionScript,
+	 * WhenTouchDownScript, WhenScript, etc.) returns {@code null}, meaning "always unique —
+	 * never treat as a duplicate".
+	 *
+	 * <p>This prevents BUG-NS-07/08: losing multiple StartScript blocks that perform
+	 * different actions just because they share the same class name.
 	 */
 	public static String scriptSignature(Script script) {
-		StringBuilder signature = new StringBuilder(script.getClass().getSimpleName());
 		if (script instanceof BroadcastScript) {
-			signature.append('#').append(((BroadcastScript) script).getBroadcastMessage());
+			return "BroadcastScript#" + ((BroadcastScript) script).getBroadcastMessage();
 		}
-		return signature.toString();
+		if (script instanceof WhenBackgroundChangesScript) {
+			org.catrobat.catroid.common.LookData look = ((WhenBackgroundChangesScript) script).getLook();
+			return "WhenBackgroundChangesScript#" + (look != null ? look.getName() : "");
+		}
+		if (script instanceof WhenGamepadButtonScript) {
+			return "WhenGamepadButtonScript#" + ((WhenGamepadButtonScript) script).getAction();
+		}
+		if (script instanceof WhenFirebaseChangedScript) {
+			WhenFirebaseChangedScript fb = (WhenFirebaseChangedScript) script;
+			// Use the formula map's bucket+path as a stable key
+			String bucket = fb.getFormulaMap().containsKey(org.catrobat.catroid.content.bricks.Brick.BrickField.FIREBASE_TRIGGER_BUCKET)
+					? fb.getFormulaMap().get(org.catrobat.catroid.content.bricks.Brick.BrickField.FIREBASE_TRIGGER_BUCKET).getTrimmedFormulaString(null)
+					: "";
+			String path = fb.getFormulaMap().containsKey(org.catrobat.catroid.content.bricks.Brick.BrickField.FIREBASE_TRIGGER_PATH)
+					? fb.getFormulaMap().get(org.catrobat.catroid.content.bricks.Brick.BrickField.FIREBASE_TRIGGER_PATH).getTrimmedFormulaString(null)
+					: "";
+			return "WhenFirebaseChangedScript#" + bucket + "/" + path;
+		}
+		if (script instanceof RaspiInterruptScript) {
+			RaspiInterruptScript raspi = (RaspiInterruptScript) script;
+			return "RaspiInterruptScript#" + raspi.getPin() + "+" + raspi.getEventValue();
+		}
+		if (script instanceof UserDefinedScript) {
+			UserDefinedScript uds = (UserDefinedScript) script;
+			return "UserDefinedScript#" + uds.getUserDefinedBrickID();
+		}
+		// All other script types (StartScript, WhenClonedScript, WhenConditionScript,
+		// WhenTouchDownScript, WhenScript, WhenNfcScript, WhenMouseButton*, etc.)
+		// have no unique trigger parameter → cannot be deduplicated → return null.
+		return null;
 	}
 }

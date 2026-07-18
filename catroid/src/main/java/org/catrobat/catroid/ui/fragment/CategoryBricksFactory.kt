@@ -613,6 +613,8 @@ import org.catrobat.catroid.content.bricks.WriteEmbroideryToFileBrick
 import org.catrobat.catroid.content.bricks.WriteListOnDeviceBrick
 import org.catrobat.catroid.content.bricks.WriteToFilesBrick
 import org.catrobat.catroid.content.bricks.WriteVariableOnDeviceBrick
+import org.catrobat.catroid.content.bricks.SecureSaveVariableBrick
+import org.catrobat.catroid.content.bricks.SecureReadVariableBrick
 import org.catrobat.catroid.content.bricks.WriteVariableToFileBrick
 import org.catrobat.catroid.content.bricks.ZigZagStitchBrick
 import org.catrobat.catroid.content.bricks.ZipBrick
@@ -1649,6 +1651,10 @@ open class CategoryBricksFactory {
                 dataBrickList.add(ShowText3Brick("myText", "Hello!", BrickValues.X_POSITION, BrickValues.Y_POSITION, BrickValues.RELATIVE_SIZE_IN_PERCENT, BrickValues.SHOW_VARIABLE_COLOR))
                 dataBrickList.add(ShowTextFontBrick("myText", "Ababuy!", "font.ttf", BrickValues.X_POSITION, BrickValues.Y_POSITION, BrickValues.RELATIVE_SIZE_IN_PERCENT, BrickValues.SHOW_VARIABLE_COLOR))
                 //dataBrickList.add(ShowTextRotationBrick("myText", "Ababuy!", 90f, "font.ttf", BrickValues.X_POSITION, BrickValues.Y_POSITION, BrickValues.RELATIVE_SIZE_IN_PERCENT, BrickValues.SHOW_VARIABLE_COLOR))
+                dataBrickList.add(WriteVariableOnDeviceBrick())
+                dataBrickList.add(SecureSaveVariableBrick())
+                dataBrickList.add(ReadVariableFromDeviceBrick())
+                dataBrickList.add(SecureReadVariableBrick())
                 dataBrickList.add(HideTextBrick())
                 dataBrickList.add(HideText3Brick("myText"))
                 dataBrickList.add(WriteVariableOnDeviceBrick())
@@ -1776,6 +1782,10 @@ open class CategoryBricksFactory {
         dataBrickList.add(StringToTableBrick("1,2,3\n4,5,6\n7,8,9", ",", "\n", "myTable"))
         dataBrickList.add(RegexBrick("panda ananas", "a[^n]+"))
         dataBrickList.add(CopyTextBrick("Котлета"))
+        dataBrickList.add(WriteVariableOnDeviceBrick())
+        dataBrickList.add(SecureSaveVariableBrick())
+        dataBrickList.add(ReadVariableFromDeviceBrick())
+        dataBrickList.add(SecureReadVariableBrick())
 
         dataBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_data_files), template))
         dataBrickList.add(WriteVariableOnDeviceBrick())
@@ -2062,7 +2072,9 @@ bot.polling()""", "myVar"))
         deviceBrickList.add(SaveToInternalStorageBrick("file.txt", "myAwesomeApp/file.txt"))
         deviceBrickList.add(LoadFromInternalStorageBrick("myAwesomeApp/file.txt"))
         deviceBrickList.add(WriteVariableOnDeviceBrick())
+        deviceBrickList.add(SecureSaveVariableBrick())
         deviceBrickList.add(ReadVariableFromDeviceBrick())
+        deviceBrickList.add(SecureReadVariableBrick())
         deviceBrickList.add(WriteVariableToFileBrick(context.getString(R.string.brick_write_variable_to_file_default_value)))
         deviceBrickList.add(ReadVariableFromFileBrick(context.getString(R.string.brick_write_variable_to_file_default_value)))
         deviceBrickList.add(WriteListOnDeviceBrick())

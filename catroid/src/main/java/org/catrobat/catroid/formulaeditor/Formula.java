@@ -177,7 +177,7 @@ public class Formula implements Serializable {
         }
 
         if (cachedNumberValue != null) {
-            return cachedNumberValue;
+            return assertNotNaN(cachedNumberValue);
         }
 
         try {

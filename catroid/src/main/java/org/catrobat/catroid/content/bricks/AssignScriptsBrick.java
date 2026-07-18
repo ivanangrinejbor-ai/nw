@@ -52,6 +52,7 @@ public class AssignScriptsBrick extends FormulaBrick implements BrickSpinner.OnI
 
 	private String targetScene;
 	private int replaceExistingSelection = 0; // 0 = keep existing + add imported; 1 = replace all existing scripts
+	private int savePersistentSelection = 0; // 0 = runtime only, 1 = persist to project
 
 	private transient BrickSpinner<Scene> sceneSpinner;
 
@@ -118,6 +119,24 @@ public class AssignScriptsBrick extends FormulaBrick implements BrickSpinner.OnI
 			}
 		});
 
+		// Save after exiting project spinner (No = runtime only, Yes = persist)
+		Spinner savePersistentSpinner = view.findViewById(R.id.brick_assign_scripts_save_spinner);
+		ArrayAdapter<String> saveAdapter = new ArrayAdapter<>(context,
+				R.layout.simple_spinner_item_white_text,
+				new String[]{context.getString(R.string.no), context.getString(R.string.yes)});
+		saveAdapter.setDropDownViewResource(R.layout.simple_spinner_dropdown_item_white_text);
+		savePersistentSpinner.setAdapter(saveAdapter);
+		savePersistentSpinner.setSelection(savePersistentSelection);
+		savePersistentSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+			@Override
+			public void onItemSelected(AdapterView<?> parent, View v, int position, long id) {
+				savePersistentSelection = position;
+			}
+			@Override
+			public void onNothingSelected(AdapterView<?> parent) {
+			}
+		});
+
 		return view;
 	}
 
@@ -147,10 +166,15 @@ public class AssignScriptsBrick extends FormulaBrick implements BrickSpinner.OnI
 				getFormulaWithBrickField(BrickField.ASSIGN_SCRIPTS_FILE),
 				getFormulaWithBrickField(BrickField.ASSIGN_SCRIPTS_OBJECT),
 				targetScene,
-				isReplaceExistingScripts()));
+				isReplaceExistingScripts(),
+				isSavePersistent()));
 	}
 
 	public boolean isReplaceExistingScripts() {
 		return replaceExistingSelection == 1;
+	}
+
+	public boolean isSavePersistent() {
+		return savePersistentSelection == 1;
 	}
 }

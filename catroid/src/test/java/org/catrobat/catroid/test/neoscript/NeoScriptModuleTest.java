@@ -32,6 +32,7 @@ import org.catrobat.catroid.content.bricks.SetVariableBrick;
 import org.catrobat.catroid.formulaeditor.Formula;
 import org.catrobat.catroid.formulaeditor.UserVariable;
 import org.catrobat.catroid.neoscript.NeoScriptException;
+import org.catrobat.catroid.neoscript.NeoScriptExporter;
 import org.catrobat.catroid.neoscript.NeoScriptFile;
 import org.catrobat.catroid.neoscript.NeoScriptImporter;
 import org.catrobat.catroid.neoscript.NeoScriptSerializer;
@@ -60,7 +61,8 @@ public class NeoScriptModuleTest {
 	}
 
 	private NeoScriptFile buildSampleFile(String variableName) {
-		StartScript script = new StartScript();
+		org.catrobat.catroid.content.BroadcastScript script =
+				new org.catrobat.catroid.content.BroadcastScript("msg_" + variableName);
 		UserVariable variable = new UserVariable(variableName);
 		script.addBrick(new SetVariableBrick(new Formula(0), variable));
 		NeoScriptFile file = new NeoScriptFile();
@@ -238,7 +240,12 @@ public class NeoScriptModuleTest {
 
 	@Test
 	public void testExporterCollectsReferencedVariables() {
-		NeoScriptFile file = buildSampleFile("exportedVar");
+		StartScript script = new StartScript();
+		UserVariable variable = new UserVariable("exportedVar");
+		script.addBrick(new SetVariableBrick(new Formula(0), variable));
+		List<Script> scripts = new ArrayList<>();
+		scripts.add(script);
+		NeoScriptFile file = NeoScriptExporter.buildFromScripts(scripts, project, sprite);
 		assertEquals(1, file.getScripts().size());
 		assertFalse(file.getUserVariables().isEmpty());
 		assertEquals("exportedVar", file.getUserVariables().get(0).getName());
@@ -264,4 +271,124 @@ public class NeoScriptModuleTest {
 		assertEquals(1, sprite.getScriptList().size());
 		assertNull(sprite.getUserVariable("neverCreated"));
 	}
+
+	// -----------------------------------------------------------------------
+	// BUG-NS-07/08 Regression: multiple StartScript blocks must never be dropped
+	// -----------------------------------------------------------------------
+
+	/**
+	 * NS-07a: Importing 3 StartScript blocks into an empty sprite must add all 3,
+	 * even though they share the class name "StartScript".
+	 */
+	@Test
+	public void ns07a_multipleStartScripts_importedIntoEmptySprite_allAdded()
+			throws NeoScriptException {
+		// Build a NeoScriptFile with 3 distinct StartScripts
+		NeoScriptFile file = new NeoScriptFile();
+		for (int i = 0; i < 3; i++) {
+			StartScript s = new StartScript();
+			s.addBrick(new org.catrobat.catroid.content.bricks.NoteBrick("Block " + i));
+			file.getScripts().add(s);
+		}
+
+		NeoScriptImporter.ImportResult result =
+				NeoScriptImporter.importScripts(file, project, sprite,
+						NeoScriptImporter.ImportStrategy.SKIP_DUPLICATES);
+
+		assertEquals("All 3 StartScripts must be added", 3, result.added.size());
+		assertEquals("Sprite must have 3 scripts", 3, sprite.getScriptList().size());
+		assertEquals("Nothing should be skipped", 0, result.skipped.size());
+	}
+
+	/**
+	 * NS-07b: Importing 3 StartScript blocks when the sprite ALREADY has one StartScript
+	 * must still add all 3 new ones (SKIP_DUPLICATES must not treat non-parameterized
+	 * scripts as duplicates of each other).
+	 */
+	@Test
+	public void ns07b_multipleStartScripts_importedIntoSpriteWithExisting_allAdded()
+			throws NeoScriptException {
+		// Sprite already has 1 StartScript
+		StartScript existing = new StartScript();
+		existing.addBrick(new org.catrobat.catroid.content.bricks.NoteBrick("Existing"));
+		sprite.addScript(existing);
+
+		// NeoScriptFile has 3 more StartScripts doing different things
+		NeoScriptFile file = new NeoScriptFile();
+		for (int i = 0; i < 3; i++) {
+			StartScript s = new StartScript();
+			s.addBrick(new org.catrobat.catroid.content.bricks.NoteBrick("Imported " + i));
+			file.getScripts().add(s);
+		}
+
+		NeoScriptImporter.ImportResult result =
+				NeoScriptImporter.importScripts(file, project, sprite,
+						NeoScriptImporter.ImportStrategy.SKIP_DUPLICATES);
+
+		// All 3 imported scripts must be added (not skipped)
+		assertEquals("All 3 imported StartScripts must be added", 3, result.added.size());
+		assertEquals("Sprite must have 4 scripts total (1 existing + 3 new)", 4,
+				sprite.getScriptList().size());
+		assertEquals("Nothing should be skipped", 0, result.skipped.size());
+	}
+
+	/**
+	 * NS-08: REPLACE_DUPLICATES with multiple StartScripts in the file must add all of them
+	 * and must NOT remove the existing StartScript from the sprite (since StartScript
+	 * has no unique trigger parameter, so it cannot be deduplicated).
+	 */
+	@Test
+	public void ns08_replaceDuplicates_multipleStartScripts_existingPreserved()
+			throws NeoScriptException {
+		// Sprite already has 1 StartScript
+		StartScript existing = new StartScript();
+		existing.addBrick(new org.catrobat.catroid.content.bricks.NoteBrick("Existing"));
+		sprite.addScript(existing);
+
+		// NeoScriptFile has 2 StartScripts
+		NeoScriptFile file = new NeoScriptFile();
+		for (int i = 0; i < 2; i++) {
+			StartScript s = new StartScript();
+			s.addBrick(new org.catrobat.catroid.content.bricks.NoteBrick("New " + i));
+			file.getScripts().add(s);
+		}
+
+		NeoScriptImporter.ImportResult result =
+				NeoScriptImporter.importScripts(file, project, sprite,
+						NeoScriptImporter.ImportStrategy.REPLACE_DUPLICATES);
+
+		// Existing StartScript must NOT be removed (no parameterized signature to match)
+		assertTrue("Existing StartScript must be preserved",
+				sprite.getScriptList().contains(existing));
+		// 2 new ones must be added
+		assertEquals("2 new StartScripts added", 2, result.added.size());
+		assertEquals("Sprite has 3 scripts total", 3, sprite.getScriptList().size());
+	}
+
+	/**
+	 * Sanity check: BroadcastScript WITH THE SAME MESSAGE should still be deduplicated
+	 * under SKIP_DUPLICATES (parameterized trigger = genuine duplicate).
+	 */
+	@Test
+	public void ns07_sanity_broadcastScriptWithSameMessage_skippedCorrectly()
+			throws NeoScriptException {
+		org.catrobat.catroid.content.BroadcastScript existing =
+				new org.catrobat.catroid.content.BroadcastScript();
+		existing.setBroadcastMessage("hello");
+		sprite.addScript(existing);
+
+		NeoScriptFile file = new NeoScriptFile();
+		org.catrobat.catroid.content.BroadcastScript duplicate =
+				new org.catrobat.catroid.content.BroadcastScript();
+		duplicate.setBroadcastMessage("hello");
+		file.getScripts().add(duplicate);
+
+		NeoScriptImporter.ImportResult result =
+				NeoScriptImporter.importScripts(file, project, sprite,
+						NeoScriptImporter.ImportStrategy.SKIP_DUPLICATES);
+
+		assertEquals("Duplicate BroadcastScript('hello') must be skipped", 1, result.skipped.size());
+		assertEquals("Sprite should still have only 1 script", 1, sprite.getScriptList().size());
+	}
 }
+

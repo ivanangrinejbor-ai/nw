@@ -193,6 +193,14 @@ set /a WAITED+=2
 if %WAITED% LSS 90 goto :wait_exe
 echo   WARNING: launcher exe not produced within 90s
 :exe_ready
+rem Embed the project into the EXE as a NEOCAT01 footer so the app is fully
+rem self-contained (copying only NeoCatroid.exe still loads the project).
+rem Footer layout consumed by DesktopStage.loadEmbeddedPayload:
+rem   [payload bytes][size:int64 LE][magic "NEOCAT01":8]
+if exist "%PROJ_ZIP%" if exist "%EXE_OUT%" (
+    echo   embedding project into exe (NEOCAT01 footer)...
+    powershell -NoProfile -ExecutionPolicy Bypass -Command "$exe='%EXE_OUT:\=\\%'; $payload=Get-Content -Raw -Encoding Byte '%PROJ_ZIP:\=\\%'; $size=[int64]$payload.Length; $magic=[System.Text.Encoding]::ASCII.GetBytes('NEOCAT01'); $lenBytes=$size.ToByteArray(); $fs=[System.IO.File]::Open($exe,[System.IO.FileMode]::Append); try { $fs.Write($payload,0,$payload.Length); $fs.Write($lenBytes,0,8); $fs.Write($magic,0,8) } finally { $fs.Close() }; echo ('  embedded ' + $size + ' bytes')"
+)
 rem Reap any lingering java/javaw (launch4j's builder child) so it cannot
 rem crash this console after we return.
 ping -n 2 127.0.0.1 >nul

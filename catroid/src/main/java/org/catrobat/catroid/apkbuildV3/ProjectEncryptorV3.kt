@@ -65,12 +65,20 @@ object ProjectEncryptorV3 {
 
         destFile.parentFile?.mkdirs()
 
-        FileOutputStream(destFile).use { out ->
-            // Write header placeholder
-            val headerSizePos = writeHeaderPlaceholder(out, totalChunks)
+        // Use a single RandomAccessFile for BOTH writing and seeking so the file
+        // pointer stays consistent (mixing FileOutputStream.write() with
+        // out.channel.position() desyncs the stream buffer and corrupts the layout).
+        java.io.RandomAccessFile(destFile, "rw").use { raf ->
+            raf.setLength(0)
 
-            // Compute SHA-256 of plaintext by streaming the source file so the whole
-            // (possibly very large) project is never buffered in memory at once.
+            // ── Header ──
+            raf.write(MAGIC)
+            writeShort(raf, FORMAT_VERSION.toInt())
+            writeShort(raf, 0) // flags
+            writeInt(raf, 0)   // reserved
+            writeInt(raf, totalChunks) // total chunks (final value)
+
+            // ── Integrity hash (SHA-256 of plaintext) ──
             val digest = java.security.MessageDigest.getInstance(SHA256)
             FileInputStream(sourceFile).use { hashIn ->
                 val hashBuf = ByteArray(64 * 1024)
@@ -79,63 +87,52 @@ object ProjectEncryptorV3 {
                     digest.update(hashBuf, 0, hashN)
                 }
             }
-            val hash = digest.digest()
+            raf.write(digest.digest())
 
-            // Write integrity hash
-            out.write(hash)
+            // ── Chunk index table placeholder ──
+            val chunkTablePos = raf.filePointer
+            for (i in 0 until totalChunks) {
+                writeInt(raf, 0)    // chunk index
+                writeLong(raf, 0L)  // offset
+                writeInt(raf, 0)    // encrypted length
+            }
 
-                // Write chunk index table placeholder
-                val chunkTablePos = out.channel.position()
-                for (i in 0 until totalChunks) {
-                    writeInt(out, 0)    // chunk index
-                    writeLong(out, 0L)  // offset
-                    writeInt(out, 0)    // encrypted length
+            // ── Chunk data ──
+            val dataStartPos = raf.filePointer
+            FileInputStream(sourceFile).use { sourceIn ->
+                val buffer = ByteArray(CHUNK_SIZE)
+                var bytesRead: Int
+                var chunkIndex = 0
+                while (sourceIn.read(buffer).also { bytesRead = it } != -1) {
+                    val cipher = Cipher.getInstance(ALGORITHM)
+                    val iv = ByteArray(GCM_IV_SIZE).also { SecureRandom().nextBytes(it) }
+                    cipher.init(Cipher.ENCRYPT_MODE, aesKey, GCMParameterSpec(GCM_TAG_LENGTH, iv))
+
+                    val plaintext = if (bytesRead == buffer.size) buffer else buffer.copyOf(bytesRead)
+                    val ciphertext = cipher.doFinal(plaintext)
+
+                    val chunkStart = raf.filePointer
+                    raf.write(iv)
+                    raf.write(ciphertext)
+                    val chunkEnd = raf.filePointer
+
+                    chunkOffsets[chunkIndex] = (chunkStart - dataStartPos).toInt()
+                    chunkEncLens[chunkIndex] = (chunkEnd - chunkStart).toInt()
+                    chunkIndex++
+
+                    onProgress?.invoke(chunkIndex.toFloat() / maxOf(totalChunks, 1))
                 }
+            }
 
-                // Process chunks
-                FileInputStream(sourceFile).use { sourceIn ->
-                    val buffer = ByteArray(CHUNK_SIZE)
-                    var bytesRead: Int
-                    var chunkIndex = 0
-                    var dataStartPos = out.channel.position()
-
-                    while (sourceIn.read(buffer).also { bytesRead = it } != -1) {
-                        val cipher = Cipher.getInstance(ALGORITHM)
-                        val iv = ByteArray(GCM_IV_SIZE).also { SecureRandom().nextBytes(it) }
-                        cipher.init(Cipher.ENCRYPT_MODE, aesKey, GCMParameterSpec(GCM_TAG_LENGTH, iv))
-
-                        val plaintext = if (bytesRead == buffer.size) buffer else buffer.copyOf(bytesRead)
-                        val ciphertext = cipher.doFinal(plaintext)
-
-                        // Write chunk: [iv:12][ciphertext:N]
-                        val chunkStart = out.channel.position()
-                        out.write(iv)
-                        out.write(ciphertext)
-
-                        val chunkEnd = out.channel.position()
-                        chunkOffsets[chunkIndex] = (chunkStart - dataStartPos).toInt()
-                        chunkEncLens[chunkIndex] = (chunkEnd - chunkStart).toInt()
-                        chunkIndex++
-
-                        onProgress?.invoke(chunkIndex.toFloat() / totalChunks)
-                    }
-
-                    // Go back and write the actual chunk table
-                    val finalDataEnd = out.channel.position()
-                    out.channel.position(chunkTablePos)
-                    for (i in 0 until totalChunks) {
-                        writeInt(out, i)
-                        writeLong(out, chunkOffsets[i].toLong())
-                        writeInt(out, chunkEncLens[i])
-                    }
-
-                    // Seek back to end (not strictly needed but clean)
-                    out.channel.position(finalDataEnd)
-                }
-
-                // Update header with actual chunk count
-                out.channel.position(headerSizePos - 4)
-                writeInt(out, totalChunks)
+            // ── Rewrite the actual chunk table ──
+            val finalDataEnd = raf.filePointer
+            raf.seek(chunkTablePos)
+            for (i in 0 until totalChunks) {
+                writeInt(raf, i)
+                writeLong(raf, chunkOffsets[i].toLong())
+                writeInt(raf, chunkEncLens[i])
+            }
+            raf.seek(finalDataEnd)
         }
 
         Log.d(TAG, "Encrypted ${sourceFile.name} → ${destFile.name} " +
@@ -235,36 +232,27 @@ object ProjectEncryptorV3 {
         }
     }
 
-    private fun writeHeaderPlaceholder(out: FileOutputStream, totalChunks: Int): Long {
-        out.write(MAGIC)
-        writeShort(out, FORMAT_VERSION.toInt())
-        writeShort(out, 0) // flags
-        writeInt(out, 0)   // reserved
-        writeInt(out, totalChunks) // will be updated later
-        return out.channel.position()
+    private fun writeShort(raf: java.io.RandomAccessFile, value: Int) {
+        raf.write((value shr 8) and 0xFF)
+        raf.write(value and 0xFF)
     }
 
-    private fun writeShort(out: FileOutputStream, value: Int) {
-        out.write((value shr 8) and 0xFF)
-        out.write(value and 0xFF)
+    private fun writeInt(raf: java.io.RandomAccessFile, value: Int) {
+        raf.write((value shr 24) and 0xFF)
+        raf.write((value shr 16) and 0xFF)
+        raf.write((value shr 8) and 0xFF)
+        raf.write(value and 0xFF)
     }
 
-    private fun writeInt(out: FileOutputStream, value: Int) {
-        out.write((value shr 24) and 0xFF)
-        out.write((value shr 16) and 0xFF)
-        out.write((value shr 8) and 0xFF)
-        out.write(value and 0xFF)
-    }
-
-    private fun writeLong(out: FileOutputStream, value: Long) {
-        out.write(((value shr 56) and 0xFF).toInt())
-        out.write(((value shr 48) and 0xFF).toInt())
-        out.write(((value shr 40) and 0xFF).toInt())
-        out.write(((value shr 32) and 0xFF).toInt())
-        out.write(((value shr 24) and 0xFF).toInt())
-        out.write(((value shr 16) and 0xFF).toInt())
-        out.write(((value shr 8) and 0xFF).toInt())
-        out.write((value and 0xFF).toInt())
+    private fun writeLong(raf: java.io.RandomAccessFile, value: Long) {
+        raf.write(((value shr 56) and 0xFF).toInt())
+        raf.write(((value shr 48) and 0xFF).toInt())
+        raf.write(((value shr 40) and 0xFF).toInt())
+        raf.write(((value shr 32) and 0xFF).toInt())
+        raf.write(((value shr 24) and 0xFF).toInt())
+        raf.write(((value shr 16) and 0xFF).toInt())
+        raf.write(((value shr 8) and 0xFF).toInt())
+        raf.write((value and 0xFF).toInt())
     }
 
     private fun readInt(fileIn: FileInputStream): Int {

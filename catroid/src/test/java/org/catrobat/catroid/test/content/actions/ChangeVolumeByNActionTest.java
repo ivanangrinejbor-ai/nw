@@ -24,6 +24,8 @@ package org.catrobat.catroid.test.content.actions;
 
 import com.badlogic.gdx.scenes.scene2d.actions.SequenceAction;
 
+import org.catrobat.catroid.audio.AndroidAudioService;
+import org.catrobat.catroid.audio.AudioServiceHolder;
 import org.catrobat.catroid.content.Sprite;
 import org.catrobat.catroid.formulaeditor.Formula;
 import org.catrobat.catroid.io.SoundManager;
@@ -50,6 +52,7 @@ public class ChangeVolumeByNActionTest {
 	public void setUp() throws Exception {
 		initializeStaticSingletonMethods();
 		sprite = new Sprite("testSprite");
+		AudioServiceHolder.audioService = new AndroidAudioService();
 		SoundManager.getInstance().setVolume(INITIALIZED_VALUE);
 	}
 

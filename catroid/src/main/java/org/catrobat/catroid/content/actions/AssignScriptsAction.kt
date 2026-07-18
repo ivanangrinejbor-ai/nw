@@ -4,7 +4,14 @@ import android.content.ContentResolver
 import android.net.Uri
 import android.util.Log
 import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.catrobat.catroid.CatroidApplication
+import org.catrobat.catroid.content.RuntimeMutationTracker
+import org.catrobat.catroid.io.asynctask.ProjectSaver
 import org.catrobat.catroid.ProjectManager
 import org.catrobat.catroid.content.Project
 import org.catrobat.catroid.content.Scene
@@ -28,6 +35,7 @@ class AssignScriptsAction : TemporalAction() {
     var objectName: Formula? = null
     var targetSceneName: String? = null  // null = Current scene
     var replaceExistingScripts: Boolean = false
+    var savePersistent: Boolean = false
 
     private var executed = false
 
@@ -54,37 +62,58 @@ class AssignScriptsAction : TemporalAction() {
             return
         }
 
-        try {
-            val neoScriptFile = loadNeoScriptFile(path)
+        // BUG-NS-02 fix: offload all blocking I/O and XStream work to Dispatchers.IO so
+        // the GDX render thread is not stalled on file reads or large deserializations.
+        ioScope.launch {
+            try {
+                val neoScriptFile = loadNeoScriptFile(path)
 
-            // Phase 6: UnknownBrick detection — check before import
-            val hasUnknownBricks = checkForUnknownBricks(neoScriptFile)
-            if (hasUnknownBricks) {
-                // Cannot show dialog from runtime — log warning and continue
-                Log.w(TAG, "Unknown blocks detected in .neoscript file. Continuing with replacement.")
-                replaceUnknownBricks(neoScriptFile)
-            }
+                // Phase 6: UnknownBrick detection — check before import
+                val hasUnknownBricks = checkForUnknownBricks(neoScriptFile)
+                if (hasUnknownBricks) {
+                    // Cannot show dialog from runtime — log warning and continue
+                    Log.w(TAG, "Unknown blocks detected in .neoscript file. Continuing with replacement.")
+                    replaceUnknownBricks(neoScriptFile)
+                }
 
-            // Mode 0 = keep existing + add imported (APPEND_ALL); Mode 1 = replace all (REPLACE_ALL)
-            val strategy = if (replaceExistingScripts) ImportStrategy.REPLACE_ALL else ImportStrategy.APPEND_ALL
-            val result = NeoScriptImporter.importScripts(neoScriptFile, project, targetSprite, strategy)
+                // Mode 0 = keep existing + add imported (APPEND_ALL); Mode 1 = replace all (REPLACE_ALL)
+                val strategy = if (replaceExistingScripts) ImportStrategy.REPLACE_ALL else ImportStrategy.APPEND_ALL
+                val result = NeoScriptImporter.importScripts(neoScriptFile, project, targetSprite, strategy)
 
-            // Execute added scripts — only if the scene is currently active
-            val stageListener = StageActivity.getActiveStageListener()
-            if (stageListener != null) {
-                val activeScene = ProjectManager.getInstance().getCurrentlyPlayingScene()
-                val sceneIsActive = activeScene != null && activeScene.getSceneId() == scene.getSceneId()
-                if (sceneIsActive) {
-                    for (script in result.added) {
-                        stageListener.executeConsoleScript(targetSprite, script)
+                // Optionally persist the assigned scripts to the canonical project on disk
+                if (savePersistent) {
+                    RuntimeMutationTracker.hasPersistentMutations = true
+                    try {
+                        ProjectSaver(project, CatroidApplication.getAppContext()).saveProjectAsync(onSaveProjectComplete = { success ->
+                            if (!success) Log.e(TAG, "Failed to persist project after assigning scripts to '$targetName'")
+                        })
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Could not persist assigned scripts to '$targetName'", e)
+                    }
+                } else {
+                    RuntimeMutationTracker.hasTemporaryMutations = true
+                }
+
+                // Execute added scripts — only if the scene is currently active.
+                // Marshal back to main thread for thread-safety with the Stage actor graph.
+                withContext(Dispatchers.Main) {
+                    val stageListener = StageActivity.getActiveStageListener()
+                    if (stageListener != null) {
+                        val activeScene = ProjectManager.getInstance().getCurrentlyPlayingScene()
+                        val sceneIsActive = activeScene != null && activeScene.getSceneId() == scene.getSceneId()
+                        if (sceneIsActive) {
+                            for (script in result.added) {
+                                stageListener.executeConsoleScript(targetSprite, script)
+                            }
+                        }
+                        // If inactive: scripts are in the model and will execute when scene starts
                     }
                 }
-                // If inactive: scripts are in the model and will execute when scene starts
+            } catch (e: NeoScriptException) {
+                Log.e(TAG, "Failed to assign scripts: " + e.message, e)
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to assign scripts", e)
             }
-        } catch (e: NeoScriptException) {
-            Log.e(TAG, "Failed to assign scripts: " + e.message, e)
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to assign scripts", e)
         }
     }
 
@@ -98,21 +127,23 @@ class AssignScriptsAction : TemporalAction() {
         return project.getSceneByName(sceneName)
     }
 
-    private fun loadNeoScriptFile(path: String): NeoScriptFile = if (path.startsWith("content://")) {
-        val context = CatroidApplication.getAppContext()
-        val resolver: ContentResolver = context.contentResolver
-        val builder = StringBuilder()
-        resolver.openInputStream(Uri.parse(path))?.use { stream ->
-            val reader = BufferedReader(InputStreamReader(stream, "UTF-8"))
-            var line: String? = reader.readLine()
-            while (line != null) {
-                builder.append(line).append('\n')
-                line = reader.readLine()
+    private suspend fun loadNeoScriptFile(path: String): NeoScriptFile = withContext(Dispatchers.IO) {
+        if (path.startsWith("content://")) {
+            val context = CatroidApplication.getAppContext()
+            val resolver: ContentResolver = context.contentResolver
+            val builder = StringBuilder()
+            resolver.openInputStream(Uri.parse(path))?.use { stream ->
+                val reader = BufferedReader(InputStreamReader(stream, "UTF-8"))
+                var line: String? = reader.readLine()
+                while (line != null) {
+                    builder.append(line).append('\n')
+                    line = reader.readLine()
+                }
             }
+            NeoScriptSerializer.deserializeFromString(builder.toString())
+        } else {
+            NeoScriptSerializer.deserializeFromFile(java.io.File(path))
         }
-        NeoScriptSerializer.deserializeFromString(builder.toString())
-    } else {
-        NeoScriptSerializer.deserializeFromFile(java.io.File(path))
     }
 
     private fun checkForUnknownBricks(file: NeoScriptFile): Boolean {
@@ -144,5 +175,9 @@ class AssignScriptsAction : TemporalAction() {
 
     companion object {
         private const val TAG = "AssignScriptsAction"
+
+        // Coroutine scope for background file I/O (survives action lifetime;
+        // SupervisorJob prevents one failure cancelling sibling actions).
+        private val ioScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     }
 }

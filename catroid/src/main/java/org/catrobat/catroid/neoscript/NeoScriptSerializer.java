@@ -37,13 +37,28 @@ public final class NeoScriptSerializer {
 	private NeoScriptSerializer() {
 	}
 
+	// BUG-NS-03 fix: guard the alias/processAnnotations calls so they are applied
+	// exactly once to the shared singleton XStream instance. Without this guard,
+	// concurrent calls (e.g. project save + neoscript parse at the same time)
+	// could mutate the XStream instance mid-use, causing corrupt object-id tables
+	// or duplicate alias registrations.
+	private static volatile boolean xstreamConfigured = false;
+	private static final Object XSTREAM_LOCK = new Object();
+
 	private static XStream configuredXStream() {
 		// Ensure the shared XStream is fully configured (project + scene aliases,
 		// converters, security allow-list) before we add our own alias.
 		XstreamSerializer.getInstance();
 		XStream xstream = XstreamSerializer.getInstance().getXstream();
-		xstream.alias(NeoScriptFile.ROOT_ELEMENT, NeoScriptFile.class);
-		xstream.processAnnotations(NeoScriptFile.class);
+		if (!xstreamConfigured) {
+			synchronized (XSTREAM_LOCK) {
+				if (!xstreamConfigured) {
+					xstream.alias(NeoScriptFile.ROOT_ELEMENT, NeoScriptFile.class);
+					xstream.processAnnotations(NeoScriptFile.class);
+					xstreamConfigured = true;
+				}
+			}
+		}
 		return xstream;
 	}
 

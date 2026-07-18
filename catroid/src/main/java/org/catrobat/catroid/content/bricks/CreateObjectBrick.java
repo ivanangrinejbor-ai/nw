@@ -16,6 +16,9 @@ package org.catrobat.catroid.content.bricks;
 
 import android.content.Context;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Spinner;
 
 import org.catrobat.catroid.ProjectManager;
 import org.catrobat.catroid.R;
@@ -30,6 +33,7 @@ import org.catrobat.catroid.formulaeditor.Formula;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import androidx.annotation.Nullable;
 
@@ -49,6 +53,7 @@ public class CreateObjectBrick extends FormulaBrick implements BrickSpinner.OnIt
 	private String targetScene;      // null or empty = Current scene
 
 	private transient BrickSpinner<Scene> spinner;
+	private int persistentSelection = 0; // 0 = runtime only, 1 = persist to project
 
 	public CreateObjectBrick() {
 		addAllowedBrickField(BrickField.CREATE_OBJECT_NAME, R.id.brick_create_object_name_edit);
@@ -90,6 +95,24 @@ public class CreateObjectBrick extends FormulaBrick implements BrickSpinner.OnIt
 		spinner.setOnItemSelectedListener(this);
 		spinner.setSelection(targetScene != null ? targetScene : "");
 
+		// Persist to project spinner (No = runtime only, Yes = persist)
+		Spinner persistentSpinner = view.findViewById(R.id.brick_create_object_persistent_spinner);
+		ArrayAdapter<String> persistentAdapter = new ArrayAdapter<>(context,
+				R.layout.simple_spinner_item_white_text,
+				new String[]{context.getString(R.string.no), context.getString(R.string.yes)});
+		persistentAdapter.setDropDownViewResource(R.layout.simple_spinner_dropdown_item_white_text);
+		persistentSpinner.setAdapter(persistentAdapter);
+		persistentSpinner.setSelection(persistentSelection);
+		persistentSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+			@Override
+			public void onItemSelected(AdapterView<?> parent, View v, int position, long id) {
+				persistentSelection = position;
+			}
+			@Override
+			public void onNothingSelected(AdapterView<?> parent) {
+			}
+		});
+
 		return view;
 	}
 
@@ -117,6 +140,11 @@ public class CreateObjectBrick extends FormulaBrick implements BrickSpinner.OnIt
 	public void addActionToSequence(Sprite sprite, ScriptSequenceAction sequence) {
 		sequence.addAction(sprite.getActionFactory().createCreateObjectAction(sprite, sequence,
 				getFormulaWithBrickField(BrickField.CREATE_OBJECT_NAME),
-				targetScene));
+				targetScene,
+				isPersistent()));
+	}
+
+	public boolean isPersistent() {
+		return persistentSelection == 1;
 	}
 }

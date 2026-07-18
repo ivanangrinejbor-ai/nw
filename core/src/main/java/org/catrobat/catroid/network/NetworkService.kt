@@ -30,4 +30,20 @@ interface NetworkService {
      * Perform a synchronous HTTP DELETE and return the response body as a string.
      */
     fun httpDelete(url: String): String
+
+    /**
+     * Perform a synchronous HTTP HEAD and return the response body as a string.
+     */
+    fun httpHead(url: String): String
+
+    /**
+     * Perform a synchronous HTTP PATCH with the given body and return the
+     * response body as a string.
+     */
+    fun httpPatch(url: String, body: String): String
+
+    /**
+     * Perform a synchronous HTTP OPTIONS and return the response body as a string.
+     */
+    fun httpOptions(url: String): String
 }

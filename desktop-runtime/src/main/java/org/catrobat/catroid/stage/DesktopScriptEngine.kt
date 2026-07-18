@@ -121,7 +121,10 @@ class DesktopScriptEngine(
         var targetX: Float,
         var targetY: Float,
         var duration: Float,
-        var elapsed: Float = 0f
+        var elapsed: Float = 0f,
+        /** Позиция спрайта на предыдущем кадре — для детекции внешнего перемещения. */
+        var previousX: Float = startX,
+        var previousY: Float = startY
     )
 
     /** Один фрейм исполнения — стек таких фреймов на скрипт. */
@@ -293,7 +296,7 @@ class DesktopScriptEngine(
     private var running = true
     private var timerSeconds = 0f                       // таймер сенсора TIMER
     private var timerRunning = true                     // TimerStart/TimerStop управляют инкрементом
-    private var cloneCounter = 0                        // счётчик номеров клонов (cloneIndex)
+    private var cloneCounter = java.util.concurrent.atomic.AtomicInteger(0) // счётчик номеров клонов (cloneIndex)
     /** Локальная «база данных» таблиц (2D), ключ — имя таблицы. */
     private val localDb = mutableMapOf<String, MutableList<MutableList<Double>>>()
     /** Локальное облачное хранилище (Firebase-like), ключ — "id:key". */
@@ -535,12 +538,30 @@ class DesktopScriptEngine(
     private fun processGlideForState(state: ScriptState, delta: Float) {
         for (frame in state.frames) {
             val g = frame.glideState ?: continue
+            val sprite = project.sprites.getOrNull(state.spriteIndex) ?: return
+
+            // Детекция внешнего перемещения: если спрайт сдвинулся с предыдущей
+            // позиции (другим блоком, физикой или drag-ом), перезапускаем glide
+            // из новой позиции с оставшимся временем.
+            val movedExternally = abs(sprite.x - g.previousX) > 0.001f || abs(sprite.y - g.previousY) > 0.001f
+            if (movedExternally && g.elapsed > 0f) {
+                val remaining = maxOf(g.duration - g.elapsed, 0.01f)
+                g.startX = sprite.x
+                g.startY = sprite.y
+                g.duration = remaining
+                g.elapsed = 0f
+                g.previousX = sprite.x
+                g.previousY = sprite.y
+                break
+            }
+
             g.elapsed += delta
             val dur = if (g.duration > 0f) g.duration else 1f
             val t = (g.elapsed / dur).coerceIn(0f, 1f)
-            val sprite = project.sprites.getOrNull(state.spriteIndex) ?: return
             sprite.x = g.startX + (g.targetX - g.startX) * t
             sprite.y = g.startY + (g.targetY - g.startY) * t
+            g.previousX = sprite.x
+            g.previousY = sprite.y
             val body = physicsWorld?.getBody(sprite)
             body?.setTransform(sprite.x, sprite.y, body.angle)
             if (t >= 1f) {
@@ -1100,7 +1121,7 @@ class DesktopScriptEngine(
                 if (src != null) {
                     val clone = src.copy()
                     clone.name = if (newName.isNotEmpty()) newName else "${srcName}_clone"
-                    clone.cloneIndex = ++cloneCounter
+                    clone.cloneIndex = cloneCounter.incrementAndGet()
                     project.sprites.add(clone)
                 }
             }
@@ -1579,10 +1600,10 @@ class DesktopScriptEngine(
                 body?.setTransform(sprite.x, sprite.y, body.angle)
             }
             "goto_random" -> {
-                val w = project.stageWidth ?: 480
-                val h = project.stageHeight ?: 720
-                sprite.x = (Math.random() * w).toFloat()
-                sprite.y = (Math.random() * h).toFloat()
+                val w = (project.stageWidth ?: 480).toFloat()
+                val h = (project.stageHeight ?: 720).toFloat()
+                sprite.x = (Math.random() * (w + 1f)).toFloat() - w / 2f
+                sprite.y = (Math.random() * (h + 1f)).toFloat() - h / 2f
                 body?.setTransform(sprite.x, sprite.y, body.angle)
             }
             "goto_sprite" -> {
@@ -1624,7 +1645,21 @@ class DesktopScriptEngine(
                 )
             }
             "bounce" -> {
-                sprite.direction = (sprite.direction + 180f) % 360f
+                // Edge bounce with direction mirroring
+                val halfW = sprite.lookWidth / 2f * sprite.size / 100f
+                val halfH = sprite.lookHeight / 2f * sprite.size / 100f
+                val sw = (project.stageWidth ?: 480) / 2f
+                val sh = (project.stageHeight ?: 720) / 2f
+                val hitLeft = sprite.x - halfW <= -sw
+                val hitRight = sprite.x + halfW >= sw
+                val hitBottom = sprite.y - halfH <= -sh
+                val hitTop = sprite.y + halfH >= sh
+                if (hitLeft || hitRight) {
+                    sprite.direction = (180f - sprite.direction + 360f) % 360f
+                }
+                if (hitTop || hitBottom) {
+                    sprite.direction = (360f - sprite.direction) % 360f
+                }
             }
             "come_to_front" -> {
                 // переместить на передний план
@@ -1660,7 +1695,7 @@ class DesktopScriptEngine(
                 if (dest != null) {
                     val dx = dest.x - sprite.x
                     val dy = dest.y - sprite.y
-                    sprite.direction = Math.toDegrees(atan2(dy.toDouble(), dx.toDouble())).toFloat()
+                    sprite.direction = (90f - Math.toDegrees(atan2(dy.toDouble(), dx.toDouble())).toFloat() + 360f) % 360f
                 }
             }
             "set_velocity" -> {
@@ -1720,7 +1755,7 @@ class DesktopScriptEngine(
                 if (name.isNotEmpty()) {
                     val clone = sprite.copy()
                     clone.name = name
-                    clone.cloneIndex = ++cloneCounter
+                    clone.cloneIndex = cloneCounter.incrementAndGet()
                     project.sprites.add(clone)
                 }
             }
@@ -2528,8 +2563,8 @@ class DesktopScriptEngine(
     // ──────────────────────────── PEN ────────────────────────────
 
     private fun executePen(block: Block, sprite: DesktopSprite, frame: Frame) {
-        val VIRTUAL_WIDTH = 1280f
-        val VIRTUAL_HEIGHT = 720f
+        val VIRTUAL_WIDTH = (project.stageWidth ?: 480).toFloat()
+        val VIRTUAL_HEIGHT = (project.stageHeight ?: 720).toFloat()
         fun toScreenX(x: Float) = VIRTUAL_WIDTH / 2f + x
         fun toScreenY(y: Float) = VIRTUAL_HEIGHT / 2f - y
 
@@ -2663,14 +2698,26 @@ class DesktopScriptEngine(
         when (block.args.getOrNull(0) as? String) {
             "set" -> {
                 val name = block.args.getOrNull(1) as? String ?: ""
-                val value = evalBlockArgFloat(block, 2, sprite, state) ?: 0f
-                if (name.isNotEmpty()) variables[name] = value
+                val arg = block.args.getOrNull(2)
+                if (name.isNotEmpty()) {
+                    val value = when (arg) {
+                        is RuntimeFormula -> evaluateBrickFieldFormulaAsObject(sprite, state, arg)
+                        is Number -> arg.toDouble()
+                        else -> 0.0
+                    }
+                    variables[name] = value
+                }
             }
             "change" -> {
                 val name = block.args.getOrNull(1) as? String ?: ""
-                val delta = evalBlockArgFloat(block, 2, sprite, state) ?: 0f
+                val arg = block.args.getOrNull(2)
                 if (name.isNotEmpty()) {
-                    val old = getVariableFloat(name)
+                    val delta = when (arg) {
+                        is RuntimeFormula -> (evaluateBrickFieldFormula(sprite, state, arg) ?: 0f).toDouble()
+                        is Number -> arg.toDouble()
+                        else -> 0.0
+                    }
+                    val old = getVariableDouble(name)
                     variables[name] = old + delta
                 }
             }
@@ -3800,6 +3847,28 @@ class DesktopScriptEngine(
     private fun evaluateBrickFieldFormulaString(sprite: DesktopSprite, state: ScriptState, rf: RuntimeFormula): String? {
         val spriteIndex = state.spriteIndex
         return evaluateFormulaNode(rf.formulaElement, spriteIndex)?.toString()
+    }
+
+    /** Вычислить runtime-формулу с сохранением оригинального типа (Double или String). */
+    private fun evaluateBrickFieldFormulaAsObject(sprite: DesktopSprite, state: ScriptState, rf: RuntimeFormula): Any {
+        val spriteIndex = state.spriteIndex
+        val result = evaluateFormulaNode(rf.formulaElement, spriteIndex)
+        return when (result) {
+            is Double -> result
+            is String -> result
+            is Number -> result.toDouble()
+            else -> result ?: 0.0
+        }
+    }
+
+    /** Получить числовое значение переменной как Double. */
+    private fun getVariableDouble(name: String): Double {
+        val v = variables[name]
+        return when (v) {
+            is Number -> v.toDouble()
+            is String -> v.toDoubleOrNull() ?: 0.0
+            else -> 0.0
+        }
     }
 
     // ════════════════════════ ПАРСИНГ code.xml ════════════════════════

@@ -28,6 +28,10 @@ import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.net.Uri
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import android.os.Bundle
 import android.preference.PreferenceManager
 import android.util.Log
@@ -418,7 +422,69 @@ class ProjectActivity : BaseCastActivity() {
                     addObjectFromUri(uri)
                 }
             StageActivity.REQUEST_START_STAGE -> {
-                // User returned from stage — nothing else to do
+                if (org.catrobat.catroid.content.RuntimeMutationTracker.needsReload) {
+                    val projectDir = projectManager.currentProject?.directory
+                    if (projectDir != null) {
+                        val previousSceneName = projectManager.currentlyEditedScene?.name
+                        val previousSpriteName = projectManager.currentSprite?.name
+
+                        ProjectReloadOverlay.show(this)
+                        
+                        lifecycleScope.launch {
+                            try {
+                                withContext(Dispatchers.IO) {
+                                    projectManager.loadProject(projectDir)
+                                }
+                                
+                                val project = projectManager.currentProject
+                                val scene = if (previousSceneName != null) {
+                                    project.getSceneByName(previousSceneName)
+                                } else {
+                                    project.defaultScene
+                                }
+                                projectManager.currentlyEditedScene = scene ?: project.defaultScene
+
+                                val sprite = if (previousSpriteName != null) {
+                                    projectManager.currentlyEditedScene.spriteList.find { it.name == previousSpriteName }
+                                } else {
+                                    projectManager.currentlyEditedScene.backgroundSprite
+                                }
+                                projectManager.currentSprite = sprite ?: projectManager.currentlyEditedScene.backgroundSprite
+
+                                org.catrobat.catroid.content.RuntimeMutationTracker.reset()
+                                
+                                refreshUiAfterProjectReload()
+                            } catch (e: Exception) {
+                                Log.e("ProjectActivity", "Failed to reload project", e)
+                                ToastUtil.showError(this@ProjectActivity, R.string.error_load_project)
+                            } finally {
+                                ProjectReloadOverlay.hide()
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun refreshUiAfterProjectReload() {
+        val isWorkspaceEnabled = PreferenceManager.getDefaultSharedPreferences(this)
+            .getBoolean("pref_workspace_project_level", false)
+        if (isWorkspaceEnabled) {
+            val creators = mapOf(
+                SceneListFragment.TAG to Pair("Сцены", { SceneListFragment() }),
+                SpriteListFragment.TAG to Pair("Спрайты", { SpriteListFragment() }),
+                org.catrobat.catroid.ui.recyclerview.fragment.ScriptFragment.TAG to Pair("Скрипты", { org.catrobat.catroid.ui.recyclerview.fragment.ScriptFragment() }),
+                org.catrobat.catroid.ui.recyclerview.fragment.LookListFragment.TAG to Pair("Образы", { org.catrobat.catroid.ui.recyclerview.fragment.LookListFragment() }),
+                org.catrobat.catroid.ui.recyclerview.fragment.SoundListFragment.TAG to Pair("Звуки", { org.catrobat.catroid.ui.recyclerview.fragment.SoundListFragment() })
+            )
+            workspaceLayout?.restoreLayoutState(creators)
+        } else {
+            val currentFragment = currentFragment
+            if (currentFragment is SceneListFragment) {
+                loadFragment(FRAGMENT_SCENES)
+            } else if (currentFragment is SpriteListFragment) {
+                loadFragment(FRAGMENT_SPRITES)
             }
         }
     }

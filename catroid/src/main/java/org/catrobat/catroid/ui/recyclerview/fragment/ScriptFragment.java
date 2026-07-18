@@ -265,7 +265,7 @@ public class ScriptFragment extends ListFragment implements
 				mode.setTitle(getString(R.string.am_delete));
 				break;
 			case SAVE_AS_SCRIPT:
-				adapter.setCheckBoxMode(BrickAdapter.SCRIPTS_ONLY);
+				adapter.setCheckBoxMode(BrickAdapter.ALL);
 				mode.setTitle(getString(R.string.menu_save_as_script));
 				break;
 			case COMMENT:
@@ -523,8 +523,18 @@ public class ScriptFragment extends ListFragment implements
             BottomBar.showAiAssistButton(getActivity());
         }
 
-        if (sprite != null && adapter != null) {
-            adapter.updateItems(sprite);
+        if (sprite != null) {
+            if (adapter == null || adapter.getSprite() != sprite) {
+                adapter = new BrickAdapter(sprite);
+                adapter.setSelectionListener(this);
+                adapter.setOnItemClickListener(this);
+                adapter.setOnScriptChangedListener(this);
+                listView.setAdapter(adapter);
+                listView.setOnItemClickListener(adapter);
+                listView.setOnItemLongClickListener(adapter);
+            } else {
+                adapter.updateItems(sprite);
+            }
             if (DEBUG_SPRITE_PRINTER) {
                 printSpriteScriptsToLog(sprite);
             }

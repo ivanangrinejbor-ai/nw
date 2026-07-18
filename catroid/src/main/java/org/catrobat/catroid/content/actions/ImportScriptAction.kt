@@ -4,8 +4,14 @@ import android.content.ContentResolver
 import android.net.Uri
 import android.util.Log
 import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.catrobat.catroid.CatroidApplication
 import org.catrobat.catroid.content.Project
+import org.catrobat.catroid.content.RuntimeMutationTracker
 import org.catrobat.catroid.content.Scene
 import org.catrobat.catroid.content.Scope
 import org.catrobat.catroid.content.Sprite
@@ -44,17 +50,26 @@ class ImportScriptAction : TemporalAction() {
             return
         }
 
-        try {
-            val neoScriptFile = loadNeoScriptFile(path)
-            val result = NeoScriptImporter.importScripts(neoScriptFile, project, targetSprite, overwrite)
-            val stageListener = StageActivity.getActiveStageListener()
-            for (script in result.added) {
-                stageListener?.executeConsoleScript(targetSprite, script)
+        // BUG-NS-02 fix: file I/O and XStream parse can block for tens of ms on large
+        // files or slow storage. Move work to IO dispatcher so the GDX render thread is
+        // not stalled. executeConsoleScript is marshalled back to Main afterwards.
+        ioScope.launch {
+            try {
+                val neoScriptFile = loadNeoScriptFile(path)
+                val result = NeoScriptImporter.importScripts(neoScriptFile, project, targetSprite, overwrite)
+                // ImportScriptBrick has no persist flag — mutations are always temporary
+                RuntimeMutationTracker.hasTemporaryMutations = true
+                withContext(Dispatchers.Main) {
+                    val stageListener = StageActivity.getActiveStageListener()
+                    for (script in result.added) {
+                        stageListener?.executeConsoleScript(targetSprite, script)
+                    }
+                }
+            } catch (e: NeoScriptException) {
+                Log.e(TAG, "Failed to import script module: " + e.message, e)
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to import script module", e)
             }
-        } catch (e: NeoScriptException) {
-            Log.e(TAG, "Failed to import script module: " + e.message, e)
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to import script module", e)
         }
     }
 
@@ -68,24 +83,30 @@ class ImportScriptAction : TemporalAction() {
         return null
     }
 
-    private fun loadNeoScriptFile(path: String) = if (path.startsWith("content://")) {
-        val context = CatroidApplication.getAppContext()
-        val resolver: ContentResolver = context.contentResolver
-        val builder = StringBuilder()
-        resolver.openInputStream(Uri.parse(path))?.use { stream ->
-            val reader = BufferedReader(InputStreamReader(stream, "UTF-8"))
-            var line: String? = reader.readLine()
-            while (line != null) {
-                builder.append(line).append('\n')
-                line = reader.readLine()
+    private suspend fun loadNeoScriptFile(path: String) = withContext(Dispatchers.IO) {
+        if (path.startsWith("content://")) {
+            val context = CatroidApplication.getAppContext()
+            val resolver: ContentResolver = context.contentResolver
+            val builder = StringBuilder()
+            resolver.openInputStream(Uri.parse(path))?.use { stream ->
+                val reader = BufferedReader(InputStreamReader(stream, "UTF-8"))
+                var line: String? = reader.readLine()
+                while (line != null) {
+                    builder.append(line).append('\n')
+                    line = reader.readLine()
+                }
             }
+            NeoScriptSerializer.deserializeFromString(builder.toString())
+        } else {
+            NeoScriptSerializer.deserializeFromFile(java.io.File(path))
         }
-        NeoScriptSerializer.deserializeFromString(builder.toString())
-    } else {
-        NeoScriptSerializer.deserializeFromFile(java.io.File(path))
     }
 
     companion object {
         private const val TAG = "ImportScriptAction"
+
+        // Coroutine scope for background file I/O (survives action lifetime;
+        // SupervisorJob prevents one failure cancelling sibling actions).
+        private val ioScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     }
 }

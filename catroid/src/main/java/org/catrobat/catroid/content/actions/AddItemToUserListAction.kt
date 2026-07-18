@@ -39,6 +39,6 @@ class AddItemToUserListAction : TemporalAction() {
         if (formulaItemToAdd != null && formulaItemToAdd?.root?.isBoolean(scope) == true) {
             value = (value as? Double)?.let { it != 0.0 } ?: false
         }
-        userList?.addListItem(value)
+        userList?.addListItem(if (formulaItemToAdd != null) value.toString() else value)
     }
 }

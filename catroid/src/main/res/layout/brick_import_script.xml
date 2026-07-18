@@ -15,9 +15,9 @@
 
     <org.catrobat.catroid.ui.BrickLayout
         android:id="@+id/brick_import_script_layout"
-        style="@style/BrickContainer.File.Medium">
+        style="@style/BrickContainer.NeoScript.Medium">
 
-        <include layout="@layout/icon_brick_category_file" />
+        <include layout="@layout/icon_brick_category_neoscript" />
 
         <TextView
             style="@style/BrickText.SingleLine"

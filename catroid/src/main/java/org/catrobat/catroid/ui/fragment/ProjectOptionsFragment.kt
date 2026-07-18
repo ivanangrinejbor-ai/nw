@@ -47,6 +47,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.CheckBox
 import android.widget.FrameLayout
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -138,6 +140,17 @@ class ProjectOptionsFragment : Fragment() {
     private lateinit var gitController: GitController
     private var progressDialog: AlertDialog? = null
 
+    private lateinit var firebaseLauncher: ActivityResultLauncher<Array<String>>
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        firebaseLauncher = registerForActivityResult(
+            ActivityResultContracts.OpenDocument()
+        ) { uri: Uri? ->
+            ApkBuilderV3ExportDialog.onFirebaseUriResult(uri)
+        }
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -195,7 +208,6 @@ class ProjectOptionsFragment : Fragment() {
                 getString(R.string.export_bake),
                 getString(R.string.export_project),
                 getString(R.string.export_with_password),
-                getString(R.string.export_as_apk_v2),
                 getString(R.string.export_as_exe),
                 getString(R.string.export_as_apk_v3)
             )
@@ -206,8 +218,7 @@ class ProjectOptionsFragment : Fragment() {
                         0 -> runExportWalkthrough { exportBakedProject() }
                         1 -> runExportWalkthrough { exportProject() }
                         2 -> runExportWalkthrough { exportWithPassword() }
-                        3 -> buildApkV2()
-                        4 -> {
+                        3 -> {
                             android.widget.Toast.makeText(
                                 requireContext(),
                                 getString(R.string.export_exe_2d_only_warning),
@@ -215,7 +226,7 @@ class ProjectOptionsFragment : Fragment() {
                             ).show()
                             runExportWalkthrough { buildExe() }
                         }
-                        5 -> buildApkV3()
+                        4 -> buildApkV3()
                     }
                 }
                 .show()
@@ -1464,9 +1475,11 @@ class ProjectOptionsFragment : Fragment() {
                         appendLine("3. Запустите build_exe.bat")
                         appendLine("4. Готовый NeoCatroid.exe появится в build/win-dist/")
                         appendLine()
-                        appendLine("Проект (project.zip) автоматически встраивается в exe/jar,")
-                        appendLine("при этом он шифруется (AES-256-GCM) перед упаковкой и")
-                        appendLine("расшифровывается при запуске — так же, как в Baked APK.")
+                        appendLine("Проект (project.zip) копируется рядом с NeoCatroid.exe,")
+                        appendLine("а build_exe.bat дополнительно встраивает его внутрь EXE")
+                        appendLine("(footer NEOCAT01) — так что можно распространять один")
+                        appendLine("только NeoCatroid.exe. Проект шифруется (AES-256-GCM)")
+                        appendLine("перед упаковкой и расшифровывается при запуске.")
                         appendLine("Если launch4j не установлен, запустите: java -jar player_embedded.jar")
                         appendLine()
                         appendLine("Или соберите шаблон вручную:")
@@ -1503,7 +1516,12 @@ class ProjectOptionsFragment : Fragment() {
     private fun buildApkV3() {
         val p = project ?: return
         saveProject()
-        ApkBuilderV3ExportDialog().show(this, p.directory)
+        try {
+            ApkBuilderV3ExportDialog().show(this, p.directory, firebaseLauncher)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to open APK Builder V3 dialog", e)
+            ToastUtil.showError(requireContext(), "Ошибка открытия сборщика APK: ${e.message}")
+        }
     }
 
     private fun buildApkV2() {

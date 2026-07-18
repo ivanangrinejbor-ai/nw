@@ -3460,7 +3460,9 @@
     <string formatted="false" name="brick_change_variable">Изменить значение переменной</string>
     <string formatted="false" name="brick_write_variable_on_device">Сохранить переменную на
         устройство</string>
+    <string formatted="false" name="brick_secure_save_variable">Сохранить защищенную переменную</string>
     <string formatted="false" name="brick_read_variable_from_device">Прочитать переменную с устройства</string>
+    <string formatted="false" name="brick_secure_read_variable">Прочитать защищенную переменную</string>
     <string formatted="false" name="brick_write_variable_to_file_top">Сохранить переменную</string>
     <string formatted="false" name="brick_write_variable_to_file_bottom">в файл</string>
     <string formatted="false" name="brick_write_variable_to_file_default_value">переменная.txt</string>

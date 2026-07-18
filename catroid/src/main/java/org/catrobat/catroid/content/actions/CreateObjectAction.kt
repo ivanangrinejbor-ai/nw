@@ -2,18 +2,22 @@ package org.catrobat.catroid.content.actions
 
 import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction
 import org.catrobat.catroid.ProjectManager
+import org.catrobat.catroid.content.RuntimeMutationTracker
 import org.catrobat.catroid.content.Scope
 import org.catrobat.catroid.content.Scene
 import org.catrobat.catroid.content.Sprite
 import org.catrobat.catroid.content.eventids.EventId
 import org.catrobat.catroid.formulaeditor.Formula
 import org.catrobat.catroid.stage.StageActivity
+import org.catrobat.catroid.CatroidApplication
+import org.catrobat.catroid.io.asynctask.ProjectSaver
 import android.util.Log
 
 class CreateObjectAction : TemporalAction() {
     var scope: Scope? = null
     var objectName: Formula? = null
     var targetSceneName: String? = null  // null = Current scene
+    var persist: Boolean = false
 
     private var executed = false
 
@@ -43,6 +47,20 @@ class CreateObjectAction : TemporalAction() {
         // Create the new blank sprite and add to the scene model
         val newSprite = Sprite(name)
         scene.spriteList.add(newSprite)
+
+        // Track mutation so the editor can reload on Stage exit
+        if (persist) {
+            RuntimeMutationTracker.hasPersistentMutations = true
+            try {
+                ProjectSaver(project, CatroidApplication.getAppContext()).saveProjectAsync(onSaveProjectComplete = { success ->
+                    if (!success) Log.e(TAG, "Failed to persist project after creating object '$name'")
+                })
+            } catch (e: Exception) {
+                Log.e(TAG, "Could not persist newly created object '$name'", e)
+            }
+        } else {
+            RuntimeMutationTracker.hasTemporaryMutations = true
+        }
 
         // If this scene is currently active on stage, initialize the sprite
         // so its Start scripts (if any) will execute on the next frame.

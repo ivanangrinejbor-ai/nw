@@ -21,9 +21,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.catrobat.catroid.test.visualplacement;
-
-import org.catrobat.catroid.visualplacement.VisualPlacementActivity;
+package org.catrobat.catroid.visualplacement;
 
 import org.junit.Test;
 

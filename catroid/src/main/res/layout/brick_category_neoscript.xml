@@ -1,0 +1,11 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    style="@style/BrickCategory.NeoScript">
+
+    <include layout="@layout/icon_brick_category_neoscript" />
+
+    <TextView
+        style="@style/BrickCategoryText"
+        android:text="@string/category_neoscript">
+    </TextView>
+
+</LinearLayout>

@@ -72,7 +72,7 @@ class EditLookAction : PocketPaintAction() {
             setLookData()
             return true
         }
-        LookRequester.anyAsked = false
+        LookRequester.reset()
         responseReceived = true
         stageActivity?.onResume()
         return false

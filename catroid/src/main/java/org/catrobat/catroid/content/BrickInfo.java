@@ -205,7 +205,9 @@ public final class BrickInfo {
         add(SetCallbackBrick.class, "Задает переменную, в которую вернется значение диалога");
         add(ShowDialogBrick.class, "Показывает готовый диалог ВАЖНО: не ждет окончания, продолжает выполнять код дальше");
         add(WriteVariableOnDeviceBrick.class, "Записывает переменную в специальный файл в проекте");
+        add(SecureSaveVariableBrick.class, "Сохраняет переменную в зашифрованное хранилище (AES-256, ключ привязан к устройству)");
         add(ReadVariableFromDeviceBrick.class, "Читает переменную из специального файла в проекте");
+        add(SecureReadVariableBrick.class, "Читает зашифрованную переменную с устройства (AES-256, ключ привязан к устройству)");
         add(WriteVariableToFileBrick.class, "Записывает переменную в файл в \"Загрузки\" пользователя");
         add(ReadVariableFromFileBrick.class, "Читает переменную из файла в \"Загрузках\" пользователя");
         add(WriteToFilesBrick.class, "Сохраняет переменную в файлы проекта");
@@ -624,10 +626,10 @@ public final class BrickInfo {
         addEn(IfLogicBeginBrick.class, "Executes the inner blocks if the condition is true, otherwise executes the blocks in the \"else\" branch.");
         add(ImportScriptBrick.class, "Импортирует модуль скрипта (.neoscript) из файла в выбранный обьект и выполняет добавленные скрипты. ВАЖНО: не ждет окончания импорта.");
         addEn(ImportScriptBrick.class, "Imports a script module (.neoscript) from a file into the chosen object and runs the added scripts. IMPORTANT: it does not wait for the import to finish.");
-        add(CreateObjectBrick.class, "Создает новый пустой объект с указанным именем в указанной сцене. Если сцена выбрана, объект создается именно в ней, иначе — в текущей сцене.");
-        addEn(CreateObjectBrick.class, "Creates a new empty object with the given name in the specified scene. If a scene is selected, the object is created there; otherwise in the current scene.");
-        add(AssignScriptsBrick.class, "Загружает модуль скрипта (.neoscript) из файла проекта и назначает его указанному объекту в указанной сцене. Если сцена выбрана, скрипты назначаются именно в ней. Поддерживает замену или пропуск дубликатов скриптов. ВАЖНО: не ждет окончания импорта. Обнаруживает неизвестные блоки и заменяет их на блоки-заметки.");
-        addEn(AssignScriptsBrick.class, "Loads a script module (.neoscript) from a project file and assigns it to the specified object in the specified scene. Supports overwriting or skipping duplicate scripts. IMPORTANT: does not wait for import to finish. Detects unknown blocks and replaces them with note bricks.");
+        add(CreateObjectBrick.class, "Создает новый пустой объект с указанным именем в указанной сцене. Если сцена выбрана, объект создается именно в ней, иначе — в текущей сцене. Опция «Создать объект навсегда?» записывает объект в файл проекта (по умолчанию — только на время выполнения).");
+        addEn(CreateObjectBrick.class, "Creates a new empty object with the given name in the specified scene. If a scene is selected, the object is created there; otherwise in the current scene. The 'Create object permanently?' option writes the object to the project file (default: runtime only).");
+        add(AssignScriptsBrick.class, "Загружает модуль скрипта (.neoscript) из файла проекта и назначает его указанному объекту в указанной сцене. Если сцена выбрана, скрипты назначаются именно в ней. Поддерживает замену или пропуск дубликатов скриптов. Опция «Сохранять скрипты после выхода из проекта?» записывает скрипты в файл проекта (по умолчанию — только на время выполнения). ВАЖНО: не ждет окончания импорта. Обнаруживает неизвестные блоки и заменяет их на блоки-заметки.");
+        addEn(AssignScriptsBrick.class, "Loads a script module (.neoscript) from a project file and assigns it to the specified object in the specified scene. Supports overwriting or skipping duplicate scripts. The 'Save scripts after exiting project?' option writes the scripts to the project file (default: runtime only). IMPORTANT: does not wait for import to finish. Detects unknown blocks and replaces them with note bricks.");
         add(InsertItemIntoUserListBrick.class, "Вставляет значение в список по указанному индексу.");
         addEn(InsertItemIntoUserListBrick.class, "Inserts a value into the list at the given index.");
         add(InsertTableBrick.class, "Вставляет значение в таблицу по позиции (X, Y).");
@@ -1174,7 +1176,9 @@ public final class BrickInfo {
         addEn(SetCallbackBrick.class, "Sets a variable to receive the dialog return value");
         addEn(ShowDialogBrick.class, "Shows a prepared dialog IMPORTANT: does not wait for completion, continues executing code");
         addEn(WriteVariableOnDeviceBrick.class, "Writes a variable to a special file in the project");
+        addEn(SecureSaveVariableBrick.class, "Saves a variable to AES-256 encrypted storage (key derived from device ANDROID_ID, anti-cheat)");
         addEn(ReadVariableFromDeviceBrick.class, "Reads a variable from a special file in the project");
+        addEn(SecureReadVariableBrick.class, "Reads an AES-256 encrypted variable from device storage (key derived from device ANDROID_ID)");
         addEn(WriteVariableToFileBrick.class, "Writes a variable to a file in the user's Downloads folder");
         addEn(ReadVariableFromFileBrick.class, "Reads a variable from a file in the user's Downloads");
         addEn(WriteToFilesBrick.class, "Saves a variable to project files");

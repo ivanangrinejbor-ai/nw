@@ -407,6 +407,13 @@ public class SpriteActivity extends BaseActivity {
 			clipboard.setPrimaryClip(testResult);
 		}
 
+		if (requestCode == StageActivity.REQUEST_START_STAGE) {
+			if (org.catrobat.catroid.content.RuntimeMutationTracker.INSTANCE.getNeedsReload()) {
+				reloadProjectFromDisk();
+			}
+			return;
+		}
+
 		if (resultCode != RESULT_OK) {
 			if (SettingsFragment.isCastSharedPreferenceEnabled(this)
 					&& projectManager.getCurrentProject().isCastProject()
@@ -1222,5 +1229,99 @@ public class SpriteActivity extends BaseActivity {
 
 	public void addTabs() {
 		addTabLayout(this, getTabPositionInSpriteActivity(getCurrentFragment()));
+	}
+
+	private void reloadProjectFromDisk() {
+		final File projectDir = projectManager.getCurrentProject().getDirectory();
+		if (projectDir == null) {
+			return;
+		}
+
+		final String previousSceneName = projectManager.getCurrentlyEditedScene() != null ?
+				projectManager.getCurrentlyEditedScene().getName() : null;
+		final String previousSpriteName = projectManager.getCurrentSprite() != null ?
+				projectManager.getCurrentSprite().getName() : null;
+
+		ProjectReloadOverlay.show(this);
+
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					projectManager.loadProject(projectDir);
+
+					runOnUiThread(new Runnable() {
+						@Override
+						public void run() {
+							Project project = projectManager.getCurrentProject();
+							Scene scene = null;
+							if (previousSceneName != null) {
+								scene = project.getSceneByName(previousSceneName);
+							}
+							if (scene == null) {
+								scene = project.getDefaultScene();
+							}
+							projectManager.setCurrentlyEditedScene(scene);
+
+							Sprite sprite = null;
+							if (previousSpriteName != null && scene != null) {
+								for (Sprite s : scene.getSpriteList()) {
+									if (s.getName().equals(previousSpriteName)) {
+										sprite = s;
+										break;
+									}
+								}
+							}
+							if (sprite == null && scene != null) {
+								sprite = scene.getBackgroundSprite();
+							}
+							projectManager.setCurrentSprite(sprite);
+
+							currentProject = project;
+							currentScene = scene;
+							currentSprite = sprite;
+
+							org.catrobat.catroid.content.RuntimeMutationTracker.INSTANCE.reset();
+
+							refreshUiAfterProjectReload();
+						}
+					});
+				} catch (final Exception e) {
+					Log.e(TAG, "Failed to reload project from disk", e);
+					runOnUiThread(new Runnable() {
+						@Override
+						public void run() {
+							ToastUtil.showError(SpriteActivity.this, R.string.error_load_project);
+						}
+					});
+				} finally {
+					ProjectReloadOverlay.hide();
+				}
+			}
+		}).start();
+	}
+
+	private void refreshUiAfterProjectReload() {
+		boolean isFreeWindowModeEnabled = PreferenceManager.getDefaultSharedPreferences(this)
+				.getBoolean("pref_free_window_mode", false);
+
+		if (isFreeWindowModeEnabled) {
+			java.util.Map<String, kotlin.Pair<String, kotlin.jvm.functions.Function0<Fragment>>> creators = new java.util.HashMap<>();
+			creators.put(ScriptFragment.TAG, new kotlin.Pair<>("Скрипты", ScriptFragment::new));
+			creators.put(LookListFragment.TAG, new kotlin.Pair<>("Образы", LookListFragment::new));
+			creators.put(SoundListFragment.TAG, new kotlin.Pair<>("Звуки", SoundListFragment::new));
+
+			workspaceLayout.restoreLayoutState(creators);
+		} else {
+			int fragmentPosition = getTabPositionInSpriteActivity(getCurrentFragment());
+			if (fragmentPosition == -1) {
+				fragmentPosition = FRAGMENT_SCRIPTS;
+			}
+			loadFragment(this, fragmentPosition);
+			addTabLayout(this, fragmentPosition);
+		}
+		if (getSupportActionBar() != null) {
+			getSupportActionBar().setTitle(createActionBarTitle());
+		}
 	}
 }

@@ -182,8 +182,12 @@ public final class NeoScriptUserData {
 							}
 						}
 					}
-				} catch (IllegalAccessException ignored) {
-					// field not accessible / not relevant - skip
+				} catch (IllegalAccessException e) {
+					// BUG-NS-04 fix: log at WARN so silent failures (e.g. restricted module
+					// access on API 30+) surface during debugging instead of quietly leaving
+					// brick fields pointing at detached, ghost UserVariable/UserList objects.
+					android.util.Log.w("NeoScriptUserData",
+							"Cannot relink field " + field.getName() + " in " + obj.getClass().getSimpleName(), e);
 				}
 			}
 			cls = cls.getSuperclass();

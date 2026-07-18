@@ -538,9 +538,11 @@ class NeoPaintActivity : AppCompatActivity() {
         currentOpacityValue = savedInstanceState.getFloat("currentOpacityValue", 1f)
         shapeFillAmount = savedInstanceState.getInt("shapeFillAmount", 100)
         drawingView.setShapeFill(shapeFillAmount)
+        drawingView.setColor(currentColor)
         updateShapeFillLabel()
     }
 
+    @Suppress("DEPRECATION")
     override fun onBackPressed() {
         AlertDialog.Builder(this)
             .setTitle(R.string.neopaint_save_changes_title)

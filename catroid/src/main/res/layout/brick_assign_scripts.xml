@@ -13,12 +13,12 @@
         android:visibility="gone" />
 
     <org.catrobat.catroid.ui.BrickLayout
-        style="@style/BrickContainer.File.Big"
+        style="@style/BrickContainer.NeoScript.Big"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1">
 
-        <include layout="@layout/icon_brick_category_file" />
+        <include layout="@layout/icon_brick_category_neoscript" />
 
         <TextView
             style="@style/BrickText.SingleLine"
@@ -61,6 +61,17 @@
 
         <Spinner
             android:id="@+id/brick_assign_scripts_replace_spinner"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp" />
+
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_assign_scripts_save"
+            app:layout_newLine="true" />
+
+        <Spinner
+            android:id="@+id/brick_assign_scripts_save_spinner"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="4dp" />

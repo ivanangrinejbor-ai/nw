@@ -76,10 +76,13 @@ class PaintNewLookAction : PocketPaintAction() {
             currentProject.xmlHeader.virtualScreenWidth,
             currentProject.xmlHeader.getVirtualScreenHeight(), Bitmap.Config.ARGB_8888
         )
-        val file = StorageOperations.compressBitmapToPng(
-            bitmap, File(Constants.POCKET_PAINT_CACHE_DIRECTORY, pocketPaintImageFileName))
-        bitmap.recycle()
-        return file
+        try {
+            val file = StorageOperations.compressBitmapToPng(
+                bitmap, File(Constants.POCKET_PAINT_CACHE_DIRECTORY, pocketPaintImageFileName))
+            return file
+        } finally {
+            bitmap.recycle()
+        }
     }
 
     override fun onIntentResult(requestCode: Int, resultCode: Int, data: Intent?): Boolean {
@@ -87,10 +90,16 @@ class PaintNewLookAction : PocketPaintAction() {
             val file = LookRequester.getFile()
             if (file != null) {
                 addLookFromFile(file)
-                xstreamSerializer.saveProject(ProjectManager.getInstance().currentProject)
+                Thread {
+                    try {
+                        xstreamSerializer.saveProject(ProjectManager.getInstance().currentProject)
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Failed to save project after painting new look", e)
+                    }
+                }.start()
             }
         } else {
-            LookRequester.anyAsked = false
+            LookRequester.reset()
         }
         StageActivity.activeStageActivity.get()?.onResume()
         responseReceived = true
@@ -117,15 +126,15 @@ class PaintNewLookAction : PocketPaintAction() {
 }
 
 object LookRequester {
-    var anyAsked = false
+    private val anyAsked = java.util.concurrent.atomic.AtomicBoolean(false)
+
     @Synchronized
     fun requestNewLook(pocketPaintAction: PocketPaintAction): Boolean {
-        if (anyAsked) {
+        if (anyAsked.getAndSet(true)) {
             return false
         }
         StageActivity.messageHandler?.obtainMessage(StageActivity.REGISTER_INTENT, arrayListOf(pocketPaintAction)
         )?.sendToTarget()
-        anyAsked = true
         return true
     }
 
@@ -142,7 +151,11 @@ object LookRequester {
         } catch (e: IOException) {
             Log.e(TAG, Log.getStackTraceString(e))
         }
-        anyAsked = false
+        anyAsked.set(false)
         return file
+    }
+
+    fun reset() {
+        anyAsked.set(false)
     }
 }

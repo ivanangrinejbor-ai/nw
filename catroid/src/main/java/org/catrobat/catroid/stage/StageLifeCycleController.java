@@ -44,6 +44,7 @@ import org.catrobat.catroid.bluetooth.base.BluetoothDeviceService;
 import org.catrobat.catroid.cast.CastManager;
 import org.catrobat.catroid.common.CatroidService;
 import org.catrobat.catroid.common.ServiceProvider;
+import org.catrobat.catroid.content.RuntimeMutationTracker;
 import org.catrobat.catroid.content.Scene;
 import org.catrobat.catroid.content.Sprite;
 import org.catrobat.catroid.content.bricks.Brick;
@@ -78,6 +79,9 @@ public final class StageLifeCycleController {
 			Log.d(TAG, "no current project set, cowardly refusing to run");
 			return;
 		}
+
+		// Reset mutation tracking flags for the new session
+		RuntimeMutationTracker.INSTANCE.reset();
 
 		StageActivity.resetNumberOfClonedSprites();
 

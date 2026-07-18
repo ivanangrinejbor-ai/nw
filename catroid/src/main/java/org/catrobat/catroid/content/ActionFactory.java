@@ -3296,6 +3296,19 @@ public class ActionFactory extends Actions {
 		return action;
 	}
 
+	public Action createSecureSaveVariableAction(UserVariable userVariable) {
+		SecureSaveVariableAction action = Actions.action(SecureSaveVariableAction.class);
+		action.setUserVariable(userVariable);
+		return action;
+	}
+
+	public Action createSecureReadVariableAction(UserVariable userVariable) {
+		SecureReadVariableAction action = Actions.action(SecureReadVariableAction.class);
+		action.setUserVariable(userVariable);
+		return action;
+	}
+
+
 	public Action createWriteVariableToFileAction(Sprite sprite, SequenceAction sequence,
 			Formula variableFormula, UserVariable userVariable) {
 		WriteVarToFileAction action = action(WriteVarToFileAction.class);
@@ -4908,16 +4921,17 @@ public class ActionFactory extends Actions {
         return action;
     }
 
-    public Action createCreateObjectAction(Sprite sprite, SequenceAction sequence, Formula objectName, String targetScene) {
+    public Action createCreateObjectAction(Sprite sprite, SequenceAction sequence, Formula objectName, String targetScene, boolean persist) {
         CreateObjectAction action = action(CreateObjectAction.class);
         Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
         action.setScope(scope);
         action.setObjectName(objectName);
         action.setTargetSceneName(targetScene);
+        action.setPersist(persist);
         return action;
     }
 
-    public Action createAssignScriptsAction(Sprite sprite, SequenceAction sequence, Formula filePath, Formula objectName, String targetScene, boolean replaceExistingScripts) {
+    public Action createAssignScriptsAction(Sprite sprite, SequenceAction sequence, Formula filePath, Formula objectName, String targetScene, boolean replaceExistingScripts, boolean savePersistent) {
         AssignScriptsAction action = action(AssignScriptsAction.class);
         Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
         action.setScope(scope);
@@ -4925,6 +4939,7 @@ public class ActionFactory extends Actions {
         action.setObjectName(objectName);
         action.setTargetSceneName(targetScene);
         action.setReplaceExistingScripts(replaceExistingScripts);
+        action.setSavePersistent(savePersistent);
         return action;
     }
 

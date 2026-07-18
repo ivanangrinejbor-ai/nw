@@ -20,6 +20,7 @@ import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.RadioButton
 import android.widget.TextView
+import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
@@ -60,12 +61,65 @@ class ApkBuilderV3ExportDialog {
     private var projectDir: File? = null
     private var firebaseUri: Uri? = null
     private var firebaseConfig: FirebaseConfig? = null
+    private var hostContext: android.content.Context? = null
+    private var lastView: android.view.View? = null
 
-    fun show(activity: Fragment, projectDir: File) {
+    // The OpenDocument launcher must be registered by the host Fragment in its
+    // onCreate (Android forbids registering after creation), so it is passed in.
+    private var firebaseLauncher: ActivityResultLauncher<Array<String>>? = null
+
+    // Single active instance so the fragment-level launcher can route results.
+    companion object {
+        @Volatile
+        var activeInstance: ApkBuilderV3ExportDialog? = null
+
+        // Entry point invoked from ProjectOptionsFragment's pre-registered launcher.
+        fun onFirebaseUriResult(uri: Uri?) {
+            activeInstance?.onFirebaseUriResult(uri)
+        }
+    }
+
+    fun show(activity: Fragment, projectDir: File, firebaseLauncher: ActivityResultLauncher<Array<String>>) {
         this.projectDir = projectDir
+        this.hostContext = activity.requireContext()
+        this.firebaseLauncher = firebaseLauncher
+        activeInstance = this
         val dialog = buildDialog(activity)
+        dialog.setOnDismissListener { if (activeInstance === this) activeInstance = null }
         dialog.show()
     }
+
+    // Called by ProjectOptionsFragment when the OpenDocument launcher returns.
+    fun onFirebaseUriResult(uri: Uri?) {
+        if (uri != null) {
+            firebaseUri = uri
+            val ctx = hostContext ?: return
+            val pkgInput = lastView?.findViewById<TextInputEditText>(R.id.v3_package_input)?.text.toString()
+                .ifBlank { "org.neocatroid.runtime.v3" }.lowercase()
+            val result = FirebaseConfigManager.processGoogleServicesJson(ctx, uri, pkgInput)
+            val firebaseAddButton = lastView?.findViewById<Button>(R.id.v3_firebase_add_button)
+            val firebaseStatus = lastView?.findViewById<TextView>(R.id.v3_firebase_status)
+            val firebaseRemoveButton = lastView?.findViewById<Button>(R.id.v3_firebase_remove_button)
+            if (result.error != null) {
+                firebaseConfig = null
+                ToastUtil.showError(ctx, result.error.message)
+                firebaseStatus?.visibility = android.view.View.GONE
+                firebaseRemoveButton?.visibility = android.view.View.GONE
+                firebaseAddButton?.text = ctx.getString(R.string.v3_firebase_add_button)
+            } else if (result.config != null) {
+                firebaseConfig = result.config
+                val fileName = result.config.sourceFileName
+                firebaseStatus?.text = "${ctx.getString(R.string.v3_firebase_file_added)}: $fileName"
+                firebaseStatus?.visibility = android.view.View.VISIBLE
+                firebaseRemoveButton?.visibility = android.view.View.VISIBLE
+                firebaseAddButton?.text = ctx.getString(R.string.v3_firebase_add_button)
+            }
+            } else {
+            firebaseUri = null
+            firebaseConfig = null
+        }
+    }
+
 
     private fun buildDialog(host: Fragment): AlertDialog {
         val ctx = host.requireContext()
@@ -106,34 +160,12 @@ class ApkBuilderV3ExportDialog {
         val firebaseStatus = view.findViewById<TextView>(R.id.v3_firebase_status)
         val firebaseRemoveButton = view.findViewById<Button>(R.id.v3_firebase_remove_button)
 
-        val firebaseLauncher = host.registerForActivityResult(
-            ActivityResultContracts.OpenDocument()
-        ) { uri: Uri? ->
-            if (uri != null) {
-                firebaseUri = uri
-                val pkgInput = view.findViewById<TextInputEditText>(R.id.v3_package_input)?.text.toString()
-                    .ifBlank { "org.neocatroid.runtime.v3" }.lowercase()
-                val result = FirebaseConfigManager.processGoogleServicesJson(ctx, uri, pkgInput)
-                if (result.error != null) {
-                    firebaseUri = null
-                    firebaseConfig = null
-                    ToastUtil.showError(ctx, result.error.message)
-                    firebaseStatus.visibility = android.view.View.GONE
-                    firebaseRemoveButton.visibility = android.view.View.GONE
-                    firebaseAddButton.text = ctx.getString(R.string.v3_firebase_add_button)
-                } else if (result.config != null) {
-                    firebaseConfig = result.config
-                    val fileName = result.config.sourceFileName
-                    firebaseStatus.text = "${ctx.getString(R.string.v3_firebase_file_added)}: $fileName"
-                    firebaseStatus.visibility = android.view.View.VISIBLE
-                    firebaseRemoveButton.visibility = android.view.View.VISIBLE
-                    firebaseAddButton.text = ctx.getString(R.string.v3_firebase_add_button)
-                }
-            }
-        }
+        // The launcher is registered by the host Fragment (ProjectOptionsFragment)
+        // in its onCreate and passed via show(); we only trigger it here.
+        lastView = view
 
         firebaseAddButton.setOnClickListener {
-            firebaseLauncher.launch(arrayOf("application/json", "*/*"))
+            firebaseLauncher?.launch(arrayOf("application/json", "*/*"))
         }
 
         firebaseRemoveButton.setOnClickListener {
@@ -228,10 +260,13 @@ class ApkBuilderV3ExportDialog {
             .create()
         buildDialog.show()
 
-        // Show initial random fact
-        showV3Fact(factText)
-
         val mainHandler = Handler(Looper.getMainLooper())
+
+        // Инициализация фактов: берутся из списка при старте сборки и меняются
+        // по мере продвижения этапов (по индексу, а не случайно).
+        var factIndex = 0
+        factIndex = showV3Fact(factText, factIndex)
+
         host.lifecycleScope.launch(Dispatchers.IO) {
             try {
                 // Save project first
@@ -248,9 +283,8 @@ class ApkBuilderV3ExportDialog {
                             progressBar.progress = progress.toInt()
                             percentText.text = "${progress.toInt()}%"
                             stageText.text = stage
-                            if (Math.random() < 0.3) {
-                                showV3Fact(factText)
-                            }
+                            // Факт меняется на каждом этапе сборки (по инициализированному списку)
+                            factIndex = showV3Fact(factText, factIndex)
                         }
                     }
                 )
@@ -279,23 +313,30 @@ class ApkBuilderV3ExportDialog {
         }
     }
 
-    private fun showV3Fact(textView: TextView) {
-        val facts = listOf(
-            "The first Android phone was released in 2008.",
-            "Catrobat was inspired by Scratch from MIT.",
-            "NeoCatroid supports over 390 different brick types.",
-            "APK Builder V3 uses dynamic AES-256-GCM encryption.",
-            "Over 2.5 billion Android devices are active worldwide.",
-            "Visual programming helps children learn logic and creativity.",
-            "FULL template preloads all scenes for instant transitions.",
-            "LIGHT template loads only ~30% on startup, rest on demand.",
-            "Each build generates a unique encryption key.",
-            "The key is stored in assets with a random filename.",
-            "Android's first version had no copy-paste support.",
-            "The Android robot logo was created by Irina Blok."
-        )
-        val fact = facts[Math.abs(kotlin.random.Random.nextInt()) % facts.size]
-        textView.text = "Fun fact: $fact"
+    // Список фактов инициализируется один раз при создании диалога и используется
+    // для последовательной смены текста во время сборки (по индексу, а не случайно).
+    private val v3Facts = listOf(
+        "The first Android phone was released in 2008.",
+        "Catrobat was inspired by Scratch from MIT.",
+        "NeoCatroid supports over 390 different brick types.",
+        "APK Builder V3 uses dynamic AES-256-GCM encryption.",
+        "Over 2.5 billion Android devices are active worldwide.",
+        "Visual programming helps children learn logic and creativity.",
+        "FULL template preloads all scenes for instant transitions.",
+        "LIGHT template loads only ~30% on startup, rest on demand.",
+        "Each build generates a unique encryption key.",
+        "The key is stored in assets with a random filename.",
+        "Android's first version had no copy-paste support.",
+        "The Android robot logo was created by Irina Blok."
+    )
+
+    private fun showV3Fact(textView: TextView, index: Int): Int {
+        val next = if (v3Facts.isEmpty()) index else (index % v3Facts.size)
+        val ctx = hostContext
+        textView.text = if (ctx != null)
+            ctx.getString(R.string.v3_fun_fact_prefix, v3Facts[next])
+        else "Fun fact: ${v3Facts[next]}"
+        return next + 1
     }
 
     private fun saveApkToDownloads(context: android.content.Context, apkFile: File) {

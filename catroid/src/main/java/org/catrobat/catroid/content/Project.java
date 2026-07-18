@@ -581,7 +581,7 @@ public class Project implements Serializable {
 
 	public Scene getSceneByName(String name) {
 		for (Scene scene : sceneList) {
-			if (scene.getName().equals(name)) {
+			if (name != null && name.equals(scene.getName())) {
 				return scene;
 			}
 		}

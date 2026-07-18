@@ -154,8 +154,8 @@ public class ForVariableFromToActionTest {
 		sprite.addScript(script);
 		startEventThread();
 
-		assertEquals(0.0, controlVariable.getValue());
-		assertEquals(0.0, executedLoops.getValue());
+		assertEquals(10.0, controlVariable.getValue());
+		assertEquals(11.0, executedLoops.getValue());
 	}
 
 	private void startEventThread() {

@@ -31,6 +31,8 @@ import org.catrobat.catroid.formulaeditor.Formula;
 import org.catrobat.catroid.ui.SpriteActivity;
 import org.catrobat.catroid.ui.UiUtils;
 
+import java.lang.ref.WeakReference;
+
 import androidx.appcompat.app.AppCompatActivity;
 
 /**
@@ -50,7 +52,11 @@ public class ImportScriptBrick extends FormulaBrick {
 
 	private int overwriteSelection = 0; // 0 = No, 1 = Yes
 
-	private transient static ImportScriptBrick pendingPickerBrick;
+	// BUG-NS-01 fix: use WeakReference so the brick is not GC-rooted while the
+	// file picker Activity is open. If the hosting Activity is destroyed during
+	// the picker, the reference becomes null and onFilePicked() degrades
+	// gracefully instead of leaking the entire view hierarchy.
+	private static volatile WeakReference<ImportScriptBrick> pendingPickerBrickRef;
 
 	public ImportScriptBrick() {
 		addAllowedBrickField(BrickField.IMPORT_SCRIPT_OBJECT, R.id.brick_import_script_object_edit);
@@ -116,7 +122,8 @@ public class ImportScriptBrick extends FormulaBrick {
 		if (activity == null) {
 			return;
 		}
-		pendingPickerBrick = this;
+		// BUG-NS-01: store as WeakReference so the brick does not prevent GC of the Activity
+		pendingPickerBrickRef = new WeakReference<>(this);
 		Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
 		intent.addCategory(Intent.CATEGORY_OPENABLE);
 		intent.setType("*/*");
@@ -128,12 +135,17 @@ public class ImportScriptBrick extends FormulaBrick {
 	 * Called by {@code SpriteActivity} once the user picked a .neoscript file.
 	 */
 	public static void onFilePicked(android.net.Uri uri) {
-		if (pendingPickerBrick == null || uri == null) {
+		WeakReference<ImportScriptBrick> ref = pendingPickerBrickRef;
+		if (ref == null || uri == null) {
 			return;
 		}
+		ImportScriptBrick brick = ref.get();
+		pendingPickerBrickRef = null; // clear eagerly to allow GC
+		if (brick == null) {
+			return; // Activity was destroyed while picker was open
+		}
 		String path = uri.toString();
-		pendingPickerBrick.setFormulaWithBrickField(BrickField.IMPORT_SCRIPT_FILE, new Formula(path));
-		pendingPickerBrick = null;
+		brick.setFormulaWithBrickField(BrickField.IMPORT_SCRIPT_FILE, new Formula(path));
 	}
 
 	@Override

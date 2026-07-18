@@ -158,8 +158,8 @@ class DrawingView @JvmOverloads constructor(
         layers.clear()
         layers.add(PaintLayer(mutable, "Layer 1"))
         currentLayerIndex = 0
-        undoStack.clear()
-        redoStack.clear()
+        clearUndoStack()
+        clearRedoStack()
         userZoom = 1f
         userPanX = 0f
         userPanY = 0f
@@ -167,6 +167,20 @@ class DrawingView @JvmOverloads constructor(
         computeFitTransform()
         invalidate()
         onChangeListener?.invoke()
+    }
+
+    private fun clearUndoStack() {
+        for (pair in undoStack) {
+            pair.second.recycle()
+        }
+        undoStack.clear()
+    }
+
+    private fun clearRedoStack() {
+        for (pair in redoStack) {
+            pair.second.recycle()
+        }
+        redoStack.clear()
     }
 
     // ═══════════════════════════════════════════════════════
@@ -263,8 +277,12 @@ class DrawingView @JvmOverloads constructor(
         if (undoStack.isEmpty()) return
         val (index, snapshot) = undoStack.removeLast()
         val layer = layers.getOrNull(index) ?: return
-        redoStack.add(Pair(index, ensureMutable(layer.bitmap)))
-        if (redoStack.size > 30) redoStack.removeFirst()
+        val currentBmp = ensureMutable(layer.bitmap)
+        redoStack.add(Pair(index, currentBmp))
+        if (redoStack.size > 30) {
+            val removed = redoStack.removeFirst()
+            removed.second.recycle()
+        }
         layer.bitmap = ensureMutable(snapshot)
         invalidate(); onChangeListener?.invoke()
     }
@@ -273,7 +291,12 @@ class DrawingView @JvmOverloads constructor(
         if (redoStack.isEmpty()) return
         val (index, snapshot) = redoStack.removeLast()
         val layer = layers.getOrNull(index) ?: return
-        undoStack.add(Pair(index, ensureMutable(layer.bitmap)))
+        val currentBmp = ensureMutable(layer.bitmap)
+        undoStack.add(Pair(index, currentBmp))
+        if (undoStack.size > 30) {
+            val removed = undoStack.removeFirst()
+            removed.second.recycle()
+        }
         layer.bitmap = ensureMutable(snapshot)
         invalidate(); onChangeListener?.invoke()
     }
@@ -285,7 +308,11 @@ class DrawingView @JvmOverloads constructor(
     private fun transform(operation: (Bitmap) -> Bitmap) {
         val layer = getCurrentLayer() ?: return
         pushUndo(layer)
-        layer.bitmap = operation(ensureMutable(layer.bitmap))
+        val oldBmp = layer.bitmap
+        layer.bitmap = operation(ensureMutable(oldBmp))
+        if (oldBmp !== layer.bitmap) {
+            oldBmp.recycle()
+        }
         invalidate(); onChangeListener?.invoke()
     }
 
@@ -507,7 +534,10 @@ class DrawingView @JvmOverloads constructor(
             ToolType.ERASER -> handleDraw(event, bx, by, true)
             ToolType.SMUDGE -> handleSmudge(event, bx, by)
             ToolType.FILL -> if (event.action == MotionEvent.ACTION_DOWN) {
-                getCurrentLayer()?.let { floodFill(it.bitmap, bx.toInt(), by.toInt(), paintColor) }
+                getCurrentLayer()?.let {
+                    pushUndo(it)
+                    floodFill(it.bitmap, bx.toInt(), by.toInt(), paintColor)
+                }
                 invalidate(); onChangeListener?.invoke()
             }
             ToolType.EYEDROPPER -> if (event.action == MotionEvent.ACTION_DOWN) {
@@ -748,8 +778,11 @@ class DrawingView @JvmOverloads constructor(
 
     private fun pushUndo(layer: PaintLayer) {
         undoStack.add(Pair(currentLayerIndex, layer.bitmap.copy(Bitmap.Config.ARGB_8888, true)))
-        if (undoStack.size > 30) undoStack.removeFirst()
-        redoStack.clear()
+        if (undoStack.size > 30) {
+            val removed = undoStack.removeFirst()
+            removed.second.recycle()
+        }
+        clearRedoStack()
     }
 
     private fun handleDraw(event: MotionEvent, bx: Float, by: Float, erase: Boolean) {
@@ -779,7 +812,7 @@ class DrawingView @JvmOverloads constructor(
         when (event.action) {
             MotionEvent.ACTION_DOWN -> {
                 pushUndo(layer)
-                shapeSnapshot = ensureMutable(layer.bitmap)
+                shapeSnapshot = layer.bitmap.copy(Bitmap.Config.ARGB_8888, true)
                 startX = bx; startY = by; lastX = bx; lastY = by
             }
             MotionEvent.ACTION_MOVE -> {
@@ -790,6 +823,7 @@ class DrawingView @JvmOverloads constructor(
             MotionEvent.ACTION_UP -> {
                 restoreFrom(shapeSnapshot)
                 applyPaint(false); Canvas(layer.bitmap).drawLine(startX, startY, bx, by, drawPaint)
+                shapeSnapshot?.recycle()
                 shapeSnapshot = null; invalidate(); onChangeListener?.invoke()
             }
         }
@@ -815,7 +849,7 @@ class DrawingView @JvmOverloads constructor(
                     smudgeScratchBitmap = Bitmap.createBitmap(sw, sh, Bitmap.Config.ARGB_8888)
                     smudgeScratchCanvas = Canvas(smudgeScratchBitmap!!)
                 }
-                smudgeScratchCanvas!!.drawBitmap(src, sx.toFloat(), sy.toFloat(), null)
+                smudgeScratchCanvas!!.drawBitmap(src, -sx.toFloat(), -sy.toFloat(), null)
                 val dx = (bx - r).coerceIn(0f, (bitmapWidth - 2 * r).toFloat())
                 val dy = (by - r).coerceIn(0f, (bitmapHeight - 2 * r).toFloat())
                 val p = Paint().apply { alpha = (toolOpacity * 160).toInt().coerceIn(0, 255) }
@@ -857,7 +891,11 @@ class DrawingView @JvmOverloads constructor(
     private fun restoreFrom(snapshot: Bitmap?) {
         val layer = getCurrentLayer() ?: return
         if (snapshot == null) return
-        layer.bitmap = ensureMutable(snapshot)
+        val oldBmp = layer.bitmap
+        layer.bitmap = snapshot.copy(Bitmap.Config.ARGB_8888, true)
+        if (oldBmp !== layer.bitmap) {
+            oldBmp.recycle()
+        }
     }
 
     // ═══════════════════════════════════════════════════════
@@ -987,18 +1025,23 @@ class DrawingView @JvmOverloads constructor(
     private fun applyPaint(erase: Boolean) {
         drawPaint.strokeWidth = strokeWidth
         if (erase) {
-            drawPaint.color = Color.TRANSPARENT
+            drawPaint.color = Color.WHITE
             drawPaint.alpha = (toolOpacity * 255).toInt().coerceIn(0, 255)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 drawPaint.xfermode = null
-                drawPaint.colorFilter = BlendModeColorFilter(Color.TRANSPARENT, BlendMode.DST_OUT)
+                drawPaint.blendMode = BlendMode.DST_OUT
+                drawPaint.colorFilter = null
             } else {
                 drawPaint.xfermode = PorterDuffXfermode(PorterDuff.Mode.DST_OUT)
+                drawPaint.colorFilter = null
             }
         } else {
             drawPaint.color = paintColor
             drawPaint.alpha = (toolOpacity * 255).toInt().coerceIn(0, 255)
             drawPaint.xfermode = null
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                drawPaint.blendMode = null
+            }
             drawPaint.colorFilter = null
         }
     }
@@ -1114,5 +1157,11 @@ class DrawingView @JvmOverloads constructor(
         smudgeScratchCanvas = null
         smudgeSrc?.recycle()
         smudgeSrc = null
+        clearUndoStack()
+        clearRedoStack()
+        for (l in layers) {
+            l.bitmap.recycle()
+        }
+        layers.clear()
     }
 }

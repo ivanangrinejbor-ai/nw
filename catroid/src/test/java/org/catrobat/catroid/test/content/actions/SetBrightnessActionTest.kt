@@ -85,7 +85,7 @@ class SetBrightnessActionTest {
         sprite?.actionFactory?.createSetBrightnessAction(sprite, SequenceAction(), Formula(BRIGHTNESS.toString()))?.act(1.0f)
         Assert.assertEquals(BRIGHTNESS, sprite?.look?.brightnessInUserInterfaceDimensionUnit)
         sprite?.actionFactory?.createSetBrightnessAction(sprite, SequenceAction(), Formula(NOT_NUMERICAL_STRING))?.act(1.0f)
-        Assert.assertEquals(BRIGHTNESS, sprite?.look?.brightnessInUserInterfaceDimensionUnit)
+        Assert.assertEquals(0f, sprite?.look?.brightnessInUserInterfaceDimensionUnit)
     }
 
     @Test

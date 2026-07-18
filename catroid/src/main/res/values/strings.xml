@@ -23,6 +23,19 @@
   -->
 <resources  xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Project Reload Overlay -->
+    <string name="project_reload_status">Reloading project…</string>
+    <string-array name="project_reload_facts">
+        <item>You can share .neoscript modules between projects!</item>
+        <item>Hold a brick to access copy, paste, and cut actions.</item>
+        <item>Variables can be local to a sprite or global to all sprites.</item>
+        <item>Use «When I start as clone» to run code only on clones.</item>
+        <item>LunoScript lets you write scripts in a real programming language.</item>
+        <item>3D objects and 2D sprites can coexist in the same scene.</item>
+        <item>You can create and assign scripts at runtime with NeoScript bricks.</item>
+        <item>The Formula Editor supports if-else, abs, round, and many functions.</item>
+    </string-array>
+
     <!-- Physics warning -->
     <string name="physics_warning_title">Compatibility Update</string>
     <string name="physics_warning_message">This project was created in an older version. It is highly recommended to update the physics cache now to prevent crashes and freezes. P.S. recommend to update it in Project Options</string>
@@ -1097,12 +1110,14 @@
 <string formatted="false" name="brick_create_object_name">name</string>
 <string formatted="false" name="brick_create_object_scene">in scene</string>
 <string formatted="false" name="brick_create_object_current_scene">Current scene</string>
+    <string formatted="false" name="brick_create_object_persistent">Create object permanently?</string>
 <string formatted="false" name="brick_assign_scripts">Assign scripts</string>
 <string formatted="false" name="brick_assign_scripts_file">from project file</string>
 <string formatted="false" name="brick_assign_scripts_file_hint">tap to choose .neoscript file</string>
 <string formatted="false" name="brick_assign_scripts_object">to object</string>
 <string formatted="false" name="brick_assign_scripts_scene">in scene</string>
   <string formatted="false" name="brick_assign_scripts_replace_existing">Replace existing scripts?</string>
+<string formatted="false" name="brick_assign_scripts_save">Save scripts after exiting project?</string>
 <string formatted="false" name="current_scene">Current scene</string>
 <string formatted="false" name="scene_not_found">Scene not found: %1$s</string>
 <string formatted="false" name="unknown_blocks_detected_title">Unknown blocks detected</string>
@@ -2720,7 +2735,9 @@
 <string formatted="false" name="brick_set_variable">Set variable</string>
 <string formatted="false" name="brick_change_variable">Change variable</string>
 <string formatted="false" name="brick_write_variable_on_device">Write variable on device</string>
+<string formatted="false" name="brick_secure_save_variable">Write secure variable</string>
 <string formatted="false" name="brick_read_variable_from_device">Read variable from device</string>
+<string formatted="false" name="brick_secure_read_variable">Read secure variable</string>
 <string formatted="false" name="brick_write_variable_to_file_top">Write variable</string>
 <string formatted="false" name="brick_write_variable_to_file_bottom">to file</string>
 <string formatted="false" name="brick_write_variable_to_file_default_value">variable.txt</string>

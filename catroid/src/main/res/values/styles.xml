@@ -43,8 +43,8 @@
         <!-- android:textColorSecondary changes unchecked Checkboxes, disabled buttons, spinner icon -->
         <item name="android:textColorSecondary">@color/spinner_icon_and_inactive_elements</item>
 
-        <item name="android:itemTextAppearance">@color/solid_black</item>
-        <item name="itemTextColor">@color/solid_black</item>
+        <item name="android:itemTextAppearance">@color/solid_white</item>
+        <item name="itemTextColor">@color/solid_white</item>
         <item name="actionMenuTextColor">@color/toolbar_title</item>
         <!-- android:textColorHint changes only non focused hints -->
         <!-- <item name="android:textColorHint">@color/accent</item> -->
@@ -452,6 +452,23 @@
         <item name="android:background">@drawable/brick_3h_olive</item>
     </style>
 
+    <style name="BrickContainer.NeoScript" />
+
+    <style name="BrickContainer.NeoScript.Small">
+        <item name="android:minHeight">@dimen/brick_height_small</item>
+        <item name="android:background">@drawable/brick_1h_olive</item>
+    </style>
+
+    <style name="BrickContainer.NeoScript.Medium">
+        <item name="android:minHeight">@dimen/brick_height_medium</item>
+        <item name="android:background">@drawable/brick_2h_olive</item>
+    </style>
+
+    <style name="BrickContainer.NeoScript.Big" tools:ignore="UnusedResources">
+        <item name="android:minHeight">@dimen/brick_height_big</item>
+        <item name="android:background">@drawable/brick_3h_olive</item>
+    </style>
+
     <style name="BrickContainer.Neural" />
 
     <style name="BrickContainer.Neural.Small">
@@ -848,6 +865,10 @@
     </style>
 
     <style name="BrickCategory.File">
+        <item name="android:background">@drawable/brick_categories_olive</item>
+    </style>
+
+    <style name="BrickCategory.NeoScript">
         <item name="android:background">@drawable/brick_categories_olive</item>
     </style>
 

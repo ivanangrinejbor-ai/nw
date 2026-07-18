@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     android:gravity="center"
     android:orientation="vertical"
-    android:background="#F5F5F5"
+    android:background="@color/app_background"
     android:padding="32dp">
 
     <TextView
@@ -14,6 +14,7 @@
         android:text="@string/v3_building_apk"
         android:textSize="20sp"
         android:textStyle="bold"
+        android:textColor="@color/dialog_title_and_text_view"
         android:layout_marginBottom="24dp" />
 
     <ProgressBar
@@ -24,7 +25,9 @@
         android:layout_marginBottom="12dp"
         android:max="100"
         android:progress="0"
-        android:progressTint="#4CAF50" />
+        android:progressTint="@color/progress_blue"
+        android:indeterminateTint="@color/progress_blue"
+        android:progressBackgroundTint="@color/progress_blue_track" />
 
     <TextView
         android:id="@+id/v3_progress_percent"
@@ -33,7 +36,7 @@
         android:text="0%"
         android:textSize="24sp"
         android:textStyle="bold"
-        android:textColor="#333333"
+        android:textColor="@color/dialog_title_and_text_view"
         android:layout_marginBottom="8dp" />
 
     <TextView
@@ -42,7 +45,7 @@
         android:layout_height="wrap_content"
         android:text="@string/v3_preparing"
         android:textSize="14sp"
-        android:textColor="#666666"
+        android:textColor="@color/checkbox_and_radio_button_description"
         android:layout_marginBottom="32dp" />
 
     <TextView
@@ -51,7 +54,7 @@
         android:layout_height="wrap_content"
         android:text=""
         android:textSize="12sp"
-        android:textColor="#999999"
+        android:textColor="@color/spinner_icon_and_inactive_elements"
         android:gravity="center"
         android:maxLines="3"
         android:layout_marginHorizontal="16dp" />

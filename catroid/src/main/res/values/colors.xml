@@ -24,6 +24,8 @@
 
     <!-- Accent Colors -->
     <color name="accent">#B0BEC5</color>
+    <color name="progress_blue">#2196F3</color>
+    <color name="progress_blue_track">#37474F</color>
     <color name="brick_field_highlight">#FFAB08</color>
     <color name="snackbar">#FF3A3A3C</color>
     <color name="separator">#48484A</color>

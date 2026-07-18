@@ -65,7 +65,7 @@ import org.catrobat.catroid.ui.recyclerview.util.IndentedBrickLayout
 import java.util.ArrayList
 import java.util.Collections
 
-class BrickAdapter(private val sprite: Sprite) :
+class BrickAdapter(val sprite: Sprite) :
     BaseAdapter(),
     BrickAdapterInterface,
     AdapterView.OnItemClickListener,
@@ -325,8 +325,8 @@ class BrickAdapter(private val sprite: Sprite) :
         }
 
         checkBoxClickListener(item, itemView, position)
-        item.checkBox.isChecked = selectionManager.isPositionSelected(position)
-        item.checkBox.isEnabled = viewStateManager.isEnabled(position)
+        item.checkBox?.isChecked = selectionManager.isPositionSelected(position)
+        item.checkBox?.isEnabled = viewStateManager.isEnabled(position)
 
         val useIndentation = getUseIndentation(parent.context)
 
@@ -439,7 +439,7 @@ class BrickAdapter(private val sprite: Sprite) :
 
 
     private fun checkBoxClickListener(item: Brick, itemView: ViewGroup, position: Int) {
-        item.checkBox.setOnClickListener { onCheckBoxClick(position) }
+        item.checkBox?.setOnClickListener { onCheckBoxClick(position) }
         when (checkBoxMode) {
             NONE -> handleCheckBoxModeNone(item)
             CONNECTED_ONLY -> handleCheckBoxModeConnectedOnly(item, itemView, position)
@@ -450,17 +450,17 @@ class BrickAdapter(private val sprite: Sprite) :
 
     private fun handleCheckBoxModeScriptsOnly(item: Brick) {
         val isScriptBrick = item is ScriptBrick
-        item.checkBox.visibility = if (isScriptBrick) View.VISIBLE else View.INVISIBLE
+        item.checkBox?.visibility = if (isScriptBrick) View.VISIBLE else View.GONE
         item.disableSpinners()
     }
 
     private fun handleCheckBoxModeAll(item: Brick) {
-        item.checkBox.visibility = View.VISIBLE
+        item.checkBox?.visibility = View.VISIBLE
         item.disableSpinners()
     }
 
     private fun handleCheckBoxModeNone(item: Brick) {
-        item.checkBox.visibility = View.GONE
+        item.checkBox?.visibility = View.GONE
         if (item is FormulaBrick) {
             item.setClickListeners()
         } else if (item is ListSelectorBrick) {
@@ -473,7 +473,7 @@ class BrickAdapter(private val sprite: Sprite) :
             viewStateManager.setEnabled(false, position)
             itemView.alpha = DISABLED_BRICK_ALPHA
         }
-        item.checkBox.visibility = View.VISIBLE
+        item.checkBox?.visibility = View.VISIBLE
         item.disableSpinners()
     }
 

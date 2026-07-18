@@ -230,8 +230,8 @@ test/neoscript/
 | Brick | Action | Parameters | Description |
 |-------|--------|------------|-------------|
 | `ImportScriptBrick` (File→NeoScript cat.) | `ImportScriptAction` | objectName, filePath, overwrite | Import .neoscript into existing object |
-| `CreateObjectBrick` (NeoScript cat., NEW) | `CreateObjectAction` | objectName (Formula), scene (spinner) | Create blank sprite in scene |
-| `AssignScriptsBrick` (NeoScript cat., NEW) | `AssignScriptsAction` | filePath, objectName, scene, overwrite | Assign .neoscript to object in scene |
+| `CreateObjectBrick` (NeoScript cat., NEW) | `CreateObjectAction` | objectName (Formula), scene (spinner), persist (Yes/No) | Create blank sprite in scene; if persist=Yes, save canonical project to disk |
+| `AssignScriptsBrick` (NeoScript cat., NEW) | `AssignScriptsAction` | filePath, objectName, scene, replace (Yes/No), save (Yes/No) | Assign .neoscript to object in scene; if save=Yes, save canonical project to disk |
 
 ### Scene-aware bricks design
 - Scene stored as `String` (name): `null`/empty = Current scene, otherwise `project.getSceneByName(name)`.
@@ -243,6 +243,17 @@ test/neoscript/
 - UnknownBrick detection: `AssignScriptsAction` checks for `UnknownBrick` instances pre-import, replaces with `NoteBrick`.
 - `AssignScriptsBrick` "Replace existing scripts?" spinner [0/1]: 0 = keep existing + add imported (`ImportStrategy.APPEND_ALL`), 1 = remove ALL existing + add imported (`ImportStrategy.REPLACE_ALL`). This is SEPARATE from the `ImportScriptBrick` duplicate-overwrite (boolean → `SKIP_DUPLICATES`/`REPLACE_DUPLICATES`). Do not conflate the two.
 - `NeoScriptImporter.ImportStrategy` enum: `SKIP_DUPLICATES`, `REPLACE_DUPLICATES`, `APPEND_ALL`, `REPLACE_ALL`. `REPLACE_ALL` is atomic — all scripts are cloned+relinked first; only on full success is the target sprite's script list cleared and the new scripts added. Default serialized value MUST be 0 (least destructive).
+
+### NeoScript persistence (2026-07)
+
+`CreateObjectBrick` and `AssignScriptsBrick` have an OPTIONAL persistence flag so a runtime change can also be written to the canonical project on disk.
+
+- **Flags**: `CreateObjectBrick.persistentSelection` (0 = runtime only, 1 = persist) and `AssignScriptsBrick.savePersistentSelection` (same). Both plain `int`, serialized by XStream. Missing field on load → `0` (runtime only, least destructive). Getters: `isPersistent()` / `isSavePersistent()`.
+- **Default**: No (runtime only). Old serialized bricks without the field keep working.
+- **Mechanism**: the action mutates the live canonical `Project` (which `scope.project` already is — no clone), THEN calls `ProjectSaver(project, CatroidApplication.getAppContext()).saveProjectAsync {}`. On device this serialises the project (XstreamSerializer atomic temp+rename). The save is best-effort / fire-and-forget and is wrapped in try/catch: if the app context is unavailable the save is skipped (the in-memory model is still mutated).
+- **Scene isolation**: the resolved scene (see above) is authoritative; object lookup is scoped to it. A persisted object/script lands in that scene's model.
+- **Behaviour**: `persist`/`save` do NOT change runtime behaviour — the object/script is added to the canonical project model regardless; the flag only decides whether the canonical project is also written to disk.
+- **Tests**: `NeoScriptPersistenceTest` (catroid/src/test/.../neoscript) covers in-memory canonical mutation, scene isolation, replace semantics, unknown→Note, large import, and XStream round-trip of the flag (forward + backward-compat). Full project save/load is environment-gated (device / Robolectric) and reuses Catroid's standard `ProjectSaver`.
 
 ### XStream
 - `XStreamBrickConverter` автоматически обнаруживает все Brick-классы по имени класса.
@@ -269,7 +280,106 @@ test/neoscript/
 - `assets/ababuy.txt` — удалён
 
 ## 🛠️ Система сборки
-- XStream 1.4.11.1 → 1.4.20
+## Desktop Runtime — code.xml parsing (важно)
+
+`BakedApkBuilder.kt` пишет `code.xml` через `XstreamSerializer` (XStream). Но **реальный
+`code.xml`, который кладётся в `project.zip` (NCPP-зашифрованный бандл проекта, см. ниже),
+имеет ДРУГОЙ формат** — тот, что экспортирует редактор Catrobat/XStream при сохранении
+проекта, а не формат runtime-конвертеров. Проверено по расшифрованному `project.zip`
+пользователя (720×1600 портретный проект, 4 спрайта: Фон + 3 рабочих).
+
+### Реальный формат `code.xml` (из `project.zip`)
+
+- **Кодировка**: файл объявляет `<?xml ... encoding="UTF-8"?>`, но РЕАЛЬНО записан в
+  **CP1251** (кириллические имена спрайтов/проекта). `DesktopProjectManager.loadProject`
+  делает `transcodeToUtf8` (UTF-8 decoder + REPORT unmappable → fallback) перед парсингом.
+- **Вложенная структура** (НЕ плоская):
+  ```
+  <program><header screenWidth=.. screenHeight=.. landscapeMode=.. screenMode=..>
+    <scenes>
+      <scene>
+        <objectList>
+          <object type="Sprite" name="Фон">
+            <scriptList/>            <!-- пустой для фона -->
+          </object>
+          <object type="Sprite" name="Птица">
+            <scriptList>
+              <script type="StartScript" posX="0.0" posY="0.0">
+                <brick type="PlaceAtBrick"> ... </brick>
+                <brick type="ForeverBrick">
+                  <loopBricks> ...дети... </loopBricks>
+                </brick>
+              </script>
+              <script type="WhenScript"> ... </script>
+            </scriptList>
+          </object>
+        </objectList>
+      </scene>
+    </scenes>
+  </program>
+  ```
+  Парсер (`DesktopScriptEngine.parseXmlScripts`) ищет спрайты в
+  `scenes/scene/objectList/object` с фолбэком на плоский `<object>` (compat).
+  Порядок спрайтов совпадает с `DesktopProjectManager.loadProject` (тот же `spriteEls`).
+- **Контейнерные брики**: дети лежат в `<loopBricks>` (если есть), иначе старый
+  `findLoopEnd` по `</brick>`. Helpers `kidsOf`/`containerEnd` обрабатывают оба случая.
+- **Формулы**: legacy-вид `<formulaList><formula category="X_POSITION"><additionalChildren/>
+  <type>NUMBER</type><value>0</value><rightChild>...</rightChild></formula></formulaList>`.
+  НЕТ `<formulaMap>`/`<formulaTree>` в этом проекте. `getFormulaElement` читает legacy
+  `<formula>`, рекурсивно строит `<formulaElement>` из `type`/`value`/`leftChild`/`rightChild`
+  через `convertLegacyFormula` (поддерживает дерево OPERATOR, напр. `MINUS`/`RAND`, и
+  унарный минус через `leftChild=null`). Поддерживается и XStream-вид (`<formulaMap>`) через
+  `convertXStreamFormulaElement`.
+
+### История багов парсинга
+- **БАГ (исправлен 2026-07, повторно 2026-07)**: парсер искал `<object>`/`<scriptList>` на
+  верхнем уровне и legacy `<formulaTree>/<formulaElement>` → ничего не находил → скрипты не
+  создавались, формулы `null`. Исправлено: вложенная структура `scenes/scene/objectList/object`,
+  `loopBricks`, legacy `<formula>` через `convertLegacyFormula`, CP1251→UTF-8. Верифицировано
+  на реальном проекте: 4 спрайта, 5 скриптов (вкл. `WhenScript`), формулы читаются.
+
+Bug B (инверсия X при drag): в коде desktop-рантайма инверсии НЕТ — проверено
+`DesktopInput.mouseWorldX = mouseX - width/2`, `fingerX = mouseWorldX`, рендер
+`screenX = VIRTUAL_WIDTH/2 + sprite.x`, `goto_touch`/`touch_direction`/сенсоры `MOUSE_X`/`FINGER_X`.
+Если инверсия повторяется после фикса формул — нужен конкретный проект/блоки пользователя.
+
+## Desktop Runtime — проектный бандл (`project.zip` / NCPP)
+
+- `desktop-runtime/project.zip` — зашифрованный бандл проекта, который кладётся рядом с
+  `NeoCatroid.exe` (71 КБ launch4j-лаунчер + внешний `player.jar`).
+- Формат: magic `NCPP` (4E 43 50 50) = AES-256-GCM + PBKDF2. Layout: `NCPP`(4) + salt(32) +
+  IV(12) + ciphertext. Пароль: `PAYLOAD_PASSWORD = "NeoCatroid:BakedProject:Payload:v1"`
+  (тот же, что в Android `ProtectedProjectPayload.PASSWORD`).
+- `DesktopStage.extractPayload()` проверяет магию `NCPP` и расшифровывает; нет магии →
+  грузит как обычный zip (backward-compat).
+- **Важно для сборки EXE**: `build_exe.bat` на шаге staging удаляет ВСЕ папки в корне
+  `desktop-runtime`, кроме `icon`/`jre` (в т.ч. `src`!). Запускать повторно только ПОСЛЕ
+  `git checkout -- desktop-runtime/src` и восстановления полного `launch4j`.
+- Для правки рантайма достаточно пересобрать `player.jar` (`./gradlew :desktop-runtime:jar
+  --offline`) и положить рядом с `NeoCatroid.exe` (dontWrapJar=true → EXE берёт jar снаружи).
+  Перевыпаковывать EXE НЕ нужно.
+
+## Desktop Runtime — Letterbox (2026-07)
+
+- Проекты с соотношением сторон, отличным от окна (напр. вертикальный 720×1600 в окне
+  1280×720), НЕ растягиваются — используется `FitViewport(virtualWidth, virtualHeight)` +
+  чёрная заливка `ScreenUtils.clear(0,0,0,1)` вне viewport. Результат: чёрные полосы снаружи,
+  сцена по центру («чёрные полосы до фона»).
+- `virtualWidth`/`virtualHeight` берутся из `code.xml` (`screenWidth`/`screenHeight` в
+  `<header>`), поля добавлены в `DesktopProject`, заполняются в `DesktopProjectManager`.
+  Дефолт 1280×720 (если проект не задал).
+- Координаты спрайтов (`screenX = VW/2 + x`), HUD-текст и overlay-баблики (think/say)
+  используют локальные `VW`/`VH` из проекта, НЕ хардкод 1280×720.
+
+## Desktop Runtime — тормоза старта (исправлено 2026-07)
+
+- Единственный неограниченный сетевой вызов был `askGeminiApi` (DesktopScriptEngine.kt) —
+  без `connectTimeout`/`readTimeout`. При стартовом блоке Ask Gemini и недоступности сети
+  поток висел на TCP/DNS-таймауте ОС 5–20 мин. Исправлено: `connectTimeout = readTimeout =
+  15_000`. Все остальные сетевые пути уже ограничены (WebRequest=10с, firebase=5с).
+- EXE/player.jar после фикса стартует мгновенно (проверено: лог появляется сразу).
+
+## Сборка/зависимости (обновлено 2026-07)
 - Coroutines unified to 1.7.3 → 1.9.0
 - material:1.2.1 → 1.13.0 → 1.14.0, removed resolutionStrategy force
 - Gradle: `-Xmx6g` → `-Xmx4g`
@@ -407,6 +517,20 @@ test/neoscript/
 - **Автономность**: `template_win.zip` собирается с **вшитым JRE** (`jre/`) и **вшитым launch4j** (`launch4j/`). `build_exe.bat` ищет launch4j в порядке `%LAUNCH4J_HOME%` → `%ROOT%launch4j\` → распакованный шаблон `build\win-dist\bundle\launch4j\`, поэтому конечному пользователю ничего подкладывать не надо.
 - Собирает `player.jar` (или берёт из шаблона) → встраивает `project.zip` как NEOCAT01-footer → конвертирует PNG в ICO → при наличии launch4j в шаблоне создаёт `NeoCatroid.exe` (с бандлом `jre/`), иначе `NeoCatroid.bat`.
 - Шаг упаковки шаблона (`template_win.zip`) копирует `launch4j/` из `desktop-runtime\launch4j\` в bundle, чтобы launch4j попал в ассеты Android-пакета.
+
+### ⚠️ Известный регрессионный баг сборки EXE (2026-07)
+`git`-версия `desktop-runtime/launch4j/` **НЕПОЛНАЯ** — в ней нет `lib/` (xstream.jar и т.п.),
+`bin/` (windres.exe/ld.exe), `head/` (guihead.o, head.o) и `w32api/` (crt2.o и MinGW .a).
+Поэтому `launch4jc.exe`/`launch4j.exe` падают (NoClassDefFoundError → затем
+"cannot find crt2.o / guihead.o"). Полный `launch4j` лежит в `template_win.zip`
+(`build/win-dist/bundle/launch4j/`) и в `C:\Users\ivanp\Downloads\launch4j-3.50-win32\launch4j\`.
+**Решение**: скопировать `lib/`,`bin/`,`head/`,`w32api/` из полного launch4j в `desktop-runtime/launch4j/`.
+Дополнительно: `build_exe.bat` на шаге staging (6a) удаляет ВСЕ папки в корне `desktop-runtime`,
+кроме `icon`/`jre` — в т.ч. удаляет сам `launch4j` и `build`. Запускать повторно только ПОСЛЕ
+восстановления `launch4j` (например, `git checkout -- desktop-runtime/launch4j` + долить недостающие папки).
+Для headless-сборки использовать КОНСОЛЬНЫЙ `launch4jc.exe`, а не GUI `launch4j.exe`
+(GUI может не подняться без desktop-сессии). Иконку в `launch4j.xml` задавать АБСОЛЮТНЫМ путём
+(launch4j резолвит icon относительно файла xml, а не exe).
 
 ## Переносимые seam (в `:core`)
 
@@ -701,3 +825,27 @@ ame). test heap -Xmx4g в catroid/build.gradle.
 - **Локатор шаблона**: catroid/.../apkbuildV3/TemplateManagerV3.kt — prepareBaseApk берёт template_runtime.apk из assets, fallback на собственный APK (applicationInfo.sourceDir); бросает IllegalStateException с обеими причинами отказа (нет в assets / нет места / невалидный ZIP / нет sourceDir) вместо null. V3ApkAssembler.assemble пробрасывает исключение, поэтому ApkBuilderV3Engine показывает реальную причину, а не обобщённое «проверьте template_runtime.apk». Пайплайн inject→patch→sign проверен headless на обеих базах (runtime-шаблон 188 МБ и self-APK 624 МБ) — работает; значит сбой на устройстве = locateBaseApk вернул null (нет файла в установленном APK либо не хватает места в cacheDir).
 - **Подпись (исправлено 2026-07)**: `V3ApkAssembler.doSign` НЕ должен ссылаться на провайдер по имени `BouncyCastleProvider.PROVIDER_NAME` (= "BC") — на Android под именем "BC" уже зарегистрирован урезанный платформенный провайдер (Conscrypt), который не реализует BC content-signer, отсюда `NoSuchAlgorithmException: SHA256WithRSA for provider BC`. Используется ЭКЗЕМПЛЯР `BouncyCastleProvider()` (`.setProvider(bc)`) и генерация ключа `KeyPairGenerator.getInstance("RSA", bc)`. На JVM-тесте "BC" — полный BC, поэтому тест проходил, а устройство падало.
 - **СТАЛЫЙ template_runtime.apk (исправлено 2026-07)**: закоммиченный `catroid/src/main/assets/template_runtime.apk` был СТАРЫМ (собран до появления V3-runtime) и НЕ содержал классов `RuntimeLoaderActivityV3`/`ProjectLoaderV3`. Игра собиралась и ставилась, но падала сразу при запуске (ClassNotFoundException на launcher). Перегенерирован через `./gradlew copyTemplateApk` (собирает `assembleRuntimeTemplate` = flavor `runtime` + buildType `template`, minify с `proguard-runtime.pro`, который держит `org.catrobat.catroid.apkbuildV3.**` и `apkbuildV3.runtime.**`). Результат 171 МБ и содержит V3-runtime (проверено dex-сканом). `copyTemplateApk` падает на задаче `uploadCrashlyticsMappingFileRuntimeTemplate` (нет Firebase appId для runtime-флейвора) — обход: `./gradlew copyTemplateApk -x uploadCrashlyticsMappingFileRuntimeTemplate`. Рекомендация: перегенерировать template при любом изменении V3-runtime; желательно зашить `copyTemplateApk` в mergeAssets редактора, чтобы ассет не протухал.
+
+---
+
+## Desktop EXE — тормоза запуска (2026-07)
+
+**Симптом**: EXE не открывается / проект «не оживает» 5–20 мин на маленьких проектах.
+**Причина**: единственный неограниченный сетевой вызов — `askGeminiApi` в
+`DesktopScriptEngine.kt` (открывал `HttpURLConnection` без `connectTimeout`/`readTimeout`).
+При стартовом блоке **Ask Gemini** и недоступности сети до Google поток висит на
+TCP/DNS-таймауте ОС — ровно 5–20 мин. Все остальные сетевые пути уже ограничены:
+`DesktopNetworkService` (Web Request) = 10с, `firebaseRequest` = 5с.
+**Фикс**: `askGeminiApi` теперь `connectTimeout = readTimeout = 15_000`.
+**Пересборка**: EXE собран с `dontWrapJar=true` (71 КБ — лаунчер), поэтому достаточно
+пересобрать `player.jar` (`./gradlew :desktop-runtime:jar --offline`) и положить рядом
+с `NeoCatroid.exe` (корень `desktop-runtime/`). Перевыпаковывать EXE НЕ нужно.
+
+**Если после фикса всё ещё 5–20 мин и окно вообще не появляется** — причина НЕ в сети,
+а в старте JVM/GLFW (бандл-JRE `jlink --add-modules ALL-MODULE-PATH` очень большой →
+медленная инициализация + первичное сканирование Defender). Тогда: собрать JRE уже с
+курируемым списком модулей (java.base, java.xml, java.desktop, java.logging, jdk.httpserver)
+вместо ALL-MODULE-PATH и/или проверить GLFW-инит на машине пользователя.
+**ВАЖНО**: `build_exe.bat` на шаге staging удаляет все папки в корне `desktop-runtime`,
+кроме `icon`/`jre` (в т.ч. `src`!). Не запускать повторно без восстановления `src`
+(`git checkout -- desktop-runtime/src`) и полного `launch4j`.
