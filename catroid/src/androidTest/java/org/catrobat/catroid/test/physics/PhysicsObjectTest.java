@@ -194,15 +194,50 @@ public class PhysicsObjectTest {
 
 		physicsObject.setType(PhysicsObject.Type.FIXED);
 		assertEquals(PhysicsObject.Type.FIXED, PhysicsTestUtils.getType(physicsObject));
-		assertEquals(BodyType.KinematicBody, body.getType());
+		assertEquals(BodyType.StaticBody, body.getType());
 
 		physicsObject.setType(PhysicsObject.Type.DYNAMIC);
 		assertEquals(PhysicsObject.Type.DYNAMIC, PhysicsTestUtils.getType(physicsObject));
 		assertEquals(BodyType.DynamicBody, body.getType());
+		assertTrue(body.isBullet());
 
 		physicsObject.setType(PhysicsObject.Type.NONE);
 		assertEquals(PhysicsObject.Type.NONE, PhysicsTestUtils.getType(physicsObject));
-		assertEquals(BodyType.KinematicBody, body.getType());
+		assertEquals(BodyType.StaticBody, body.getType());
+		assertFalse(body.isBullet());
+	}
+
+	@Test
+	public void testSetTypeBulletTransitions() throws Exception {
+		PhysicsObject physicsObject = PhysicsTestUtils.createPhysicsObject(physicsWorld);
+		Body body = PhysicsTestUtils.getBody(physicsObject);
+
+		// Initial state (NONE) — no bullet
+		assertFalse(body.isBullet());
+
+		// NONE → DYNAMIC → bullet=true
+		physicsObject.setType(PhysicsObject.Type.DYNAMIC);
+		assertTrue(body.isBullet());
+
+		// DYNAMIC → FIXED → bullet=false
+		physicsObject.setType(PhysicsObject.Type.FIXED);
+		assertFalse(body.isBullet());
+
+		// FIXED → NONE → bullet=false (stays false)
+		physicsObject.setType(PhysicsObject.Type.NONE);
+		assertFalse(body.isBullet());
+
+		// NONE → DYNAMIC → bullet=true (reactivates CCD)
+		physicsObject.setType(PhysicsObject.Type.DYNAMIC);
+		assertTrue(body.isBullet());
+
+		// Same type no-op — bullet unchanged
+		physicsObject.setType(PhysicsObject.Type.DYNAMIC);
+		assertTrue(body.isBullet());
+
+		// DYNAMIC → NONE → bullet=false
+		physicsObject.setType(PhysicsObject.Type.NONE);
+		assertFalse(body.isBullet());
 	}
 
 	@Test

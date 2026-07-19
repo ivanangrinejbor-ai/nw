@@ -26,7 +26,9 @@ import android.util.Log;
 
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
+import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
 import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.Joint;
@@ -50,8 +52,12 @@ import org.catrobat.catroid.content.XmlHeader;
 import org.catrobat.catroid.physics.shapebuilder.PhysicsShapeBuilder;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 @LunoClass
 public class PhysicsWorld {
@@ -72,8 +78,8 @@ public class PhysicsWorld {
 	public static final short MASK_TO_BOUNCE = -1; // collides with everything
 	public static final short MASK_NO_COLLISION = 0; // collides with NOBODY
 
-	public static float ACTIVE_AREA_WIDTH_FACTOR = 3.0f;
-	public static float ACTIVE_AREA_HEIGHT_FACTOR = 2.0f;
+	public static final float DEFAULT_ACTIVE_AREA_WIDTH_FACTOR = 3.0f;
+	public static final float DEFAULT_ACTIVE_AREA_HEIGHT_FACTOR = 2.0f;
 
 	public static final float RATIO = 10.0f;
 	public static final int VELOCITY_ITERATIONS = 3;
@@ -81,53 +87,67 @@ public class PhysicsWorld {
 
 	public static final Vector2 DEFAULT_GRAVITY = new Vector2(0.0f, -10.0f);
 	public static final boolean IGNORE_SLEEPING_OBJECTS = true;
-	public static Vector2 activeArea;
 
 	public static final int STABILIZING_STEPS = 6;
+
+	private boolean disposed = false;
 	private final World world = new World(PhysicsWorld.DEFAULT_GRAVITY, PhysicsWorld.IGNORE_SLEEPING_OBJECTS);
-	private final Map<Sprite, PhysicsObject> physicsObjects = new HashMap<>();
-	private final ArrayList<Sprite> activeVerticalBounces = new ArrayList<>();
-	private final ArrayList<Sprite> activeHorizontalBounces = new ArrayList<>();
-	private final Map<String, Joint> joints = new HashMap<>();
+	private final ConcurrentHashMap<Sprite, PhysicsObject> physicsObjects = new ConcurrentHashMap<>();
+	private final List<Sprite> activeVerticalBounces = Collections.synchronizedList(new ArrayList<>());
+	private final List<Sprite> activeHorizontalBounces = Collections.synchronizedList(new ArrayList<>());
+	private final ConcurrentHashMap<String, Joint> joints = new ConcurrentHashMap<>();
+
+	private final float activeAreaWidthFactor;
+	private final float activeAreaHeightFactor;
+	private final Vector2 activeArea;
+	private final Vector2 gravityTemp = new Vector2();
 
 	private Box2DDebugRenderer renderer;
+	private final Object rendererLock = new Object();
+	private final Matrix4 debugMatrix = new Matrix4();
 	private int stabilizingSteCounter = 0;
 	private PhysicsBoundaryBox boundaryBox;
-
-	private PhysicsShapeBuilder physicsShapeBuilder = PhysicsShapeBuilder.getInstance();
 
 	public static class RayCastResult {
 		public boolean hasHit = false;
 		public Sprite hitSprite = null;
 		public Vector2 hitPoint = new Vector2();
 		public Vector2 hitNormal = new Vector2();
-		public float hitFraction = -1f; // Расстояние от 0.0 до 1.0
+		public float hitFraction = -1f;
 	}
-	private final Map<String, RayCastResult> rayCastResults = new HashMap<>();
-	private final RayCastResult currentRayCastResult = new RayCastResult();
-	private final ClosestRayCastCallback closestRayCastCallback = new ClosestRayCastCallback();
+	private final Map<String, RayCastResult> rayCastResults = new ConcurrentHashMap<>();
 
 	public PhysicsWorld(Project project) {
-		this(ScreenValues.currentScreenResolution.getWidth(), ScreenValues.currentScreenResolution.getHeight(), project);
+		this(ScreenValues.currentScreenResolution != null
+				? ScreenValues.currentScreenResolution.getWidth() : 1920,
+				ScreenValues.currentScreenResolution != null
+						? ScreenValues.currentScreenResolution.getHeight() : 1080,
+				project);
 	}
 
 	public PhysicsWorld(int width, int height, Project project) {
+		Objects.requireNonNull(project, "project must not be null");
+		Objects.requireNonNull(project.getXmlHeader(), "project.getXmlHeader() must not be null");
 		XmlHeader xml = project.getXmlHeader();
-		ACTIVE_AREA_WIDTH_FACTOR = xml.getPhysicsWidthArea();
-		ACTIVE_AREA_HEIGHT_FACTOR = xml.getPhysicsHeightArea();
+		activeAreaWidthFactor = xml.getPhysicsWidthArea();
+		activeAreaHeightFactor = xml.getPhysicsHeightArea();
 		boundaryBox = new PhysicsBoundaryBox(world);
 		boundaryBox.create(width, height);
-		activeArea = new Vector2(width * ACTIVE_AREA_WIDTH_FACTOR, height * ACTIVE_AREA_HEIGHT_FACTOR);
+		activeArea = new Vector2(width * activeAreaWidthFactor, height * activeAreaHeightFactor);
 		world.setContactListener(new PhysicsCollisionListener(this));
 	}
 
 	public PhysicsWorld(int width, int height) {
-		ACTIVE_AREA_WIDTH_FACTOR = 3.0f;
-		ACTIVE_AREA_HEIGHT_FACTOR = 2.0f;
+		activeAreaWidthFactor = DEFAULT_ACTIVE_AREA_WIDTH_FACTOR;
+		activeAreaHeightFactor = DEFAULT_ACTIVE_AREA_HEIGHT_FACTOR;
 		boundaryBox = new PhysicsBoundaryBox(world);
 		boundaryBox.create(width, height);
-		activeArea = new Vector2(width * ACTIVE_AREA_WIDTH_FACTOR, height * ACTIVE_AREA_HEIGHT_FACTOR);
+		activeArea = new Vector2(width * activeAreaWidthFactor, height * activeAreaHeightFactor);
 		world.setContactListener(new PhysicsCollisionListener(this));
+	}
+
+	public Vector2 getActiveArea() {
+		return activeArea;
 	}
 
 	public void setBounceOnce(Sprite sprite, PhysicsBoundaryBox.BoundaryBoxIdentifier boundaryBoxIdentifier) {
@@ -149,22 +169,28 @@ public class PhysicsWorld {
 		if (stabilizingSteCounter < STABILIZING_STEPS) {
 			stabilizingSteCounter++;
 		} else {
+			// Clamp delta to prevent Box2D divergence after large frametime jumps (e.g. app resume)
+			float clampedDelta = Math.min(deltaTime, 1.0f / 30.0f);
 			try {
-				world.step(deltaTime, PhysicsWorld.VELOCITY_ITERATIONS, PhysicsWorld.POSITION_ITERATIONS);
+				world.step(clampedDelta, PhysicsWorld.VELOCITY_ITERATIONS, PhysicsWorld.POSITION_ITERATIONS);
 			} catch (Exception exception) {
-				Log.e(TAG, Log.getStackTraceString(exception));
+				Log.e(TAG, "Box2D step exception: " + Log.getStackTraceString(exception));
 			}
 		}
 	}
 
 	public void dispose() {
+		if (disposed) return;
+		disposed = true;
+
 		for (Map.Entry<String, Joint> entry : joints.entrySet()) {
 			try {
 				world.destroyJoint(entry.getValue());
 			} catch (Exception ignored) { }
 		}
 		joints.clear();
-		for (PhysicsObject obj : physicsObjects.values()) {
+		// Snapshot iteration to avoid ConcurrentModificationException
+		for (PhysicsObject obj : new ArrayList<>(physicsObjects.values())) {
 			obj.dispose();
 		}
 		physicsObjects.clear();
@@ -175,24 +201,29 @@ public class PhysicsWorld {
 			renderer = null;
 		}
 		boundaryBox = null;
-		physicsShapeBuilder = null;
 		world.dispose();
 	}
 
 	public void render(Matrix4 perspectiveMatrix) {
 		if (renderer == null) {
-			renderer = new Box2DDebugRenderer(PhysicsDebugSettings.Render.RENDER_BODIES,
-					PhysicsDebugSettings.Render.RENDER_JOINTS, PhysicsDebugSettings.Render.RENDER_AABB,
-					PhysicsDebugSettings.Render.RENDER_INACTIVE_BODIES, PhysicsDebugSettings.Render.RENDER_VELOCITIES,
-					PhysicsDebugSettings.Render.RENDER_CONTACTS);
+			synchronized (rendererLock) {
+				if (renderer == null) {
+					renderer = new Box2DDebugRenderer(PhysicsDebugSettings.Render.RENDER_BODIES,
+							PhysicsDebugSettings.Render.RENDER_JOINTS, PhysicsDebugSettings.Render.RENDER_AABB,
+							PhysicsDebugSettings.Render.RENDER_INACTIVE_BODIES, PhysicsDebugSettings.Render.RENDER_VELOCITIES,
+							PhysicsDebugSettings.Render.RENDER_CONTACTS);
+				}
+			}
 		}
-		renderer.render(world, perspectiveMatrix.scl(PhysicsWorld.RATIO));
+		debugMatrix.set(perspectiveMatrix).scl(PhysicsWorld.RATIO);
+		renderer.render(world, debugMatrix);
 	}
 
 	public boolean createPrismaticJoint(String jointId, Sprite spriteA, Sprite spriteB, Vector2 worldAnchor, Vector2 worldAxis) {
 		if (jointId == null || jointId.isEmpty() || joints.containsKey(jointId)) return false;
 		PhysicsObject objA = getPhysicsObject(spriteA);
 		PhysicsObject objB = getPhysicsObject(spriteB);
+		if (objA == null || objB == null) return false;
 
 		PrismaticJointDef jointDef = new PrismaticJointDef();
 		jointDef.initialize(objA.body, objB.body, PhysicsWorldConverter.convertCatroidToBox2dVector(worldAnchor), PhysicsWorldConverter.convertCatroidToBox2dVector(worldAxis));
@@ -301,8 +332,25 @@ public class PhysicsWorld {
 		jointDef.joint1 = jointA;
 		jointDef.joint2 = jointB;
 
-		jointDef.bodyA = jointA.getBodyA();
-		jointDef.bodyB = jointB.getBodyB();
+		// GearJoint requires identifying the common body between the two child joints.
+		// bodyA and bodyB must be the two NON-common bodies.
+		Body a1 = jointA.getBodyA(), a2 = jointA.getBodyB();
+		Body b1 = jointB.getBodyA(), b2 = jointB.getBodyB();
+		Body common, uniqueA, uniqueB;
+		if (a1 == b1 || a1 == b2) {
+			common = a1;
+			uniqueA = a2;
+		} else {
+			common = a2;
+			uniqueA = a1;
+		}
+		if (b1 == common) {
+			uniqueB = b2;
+		} else {
+			uniqueB = b1;
+		}
+		jointDef.bodyA = uniqueA;
+		jointDef.bodyB = uniqueB;
 
 		jointDef.ratio = ratio;
 
@@ -322,55 +370,72 @@ public class PhysicsWorld {
 
 	public void applyForce(Sprite sprite, Vector2 force, Vector2 point) {
 		PhysicsObject obj = getPhysicsObject(sprite);
+		if (obj.body.getType() == BodyType.StaticBody) {
+			Log.w(TAG, "Cannot apply force to static body");
+			return;
+		}
+		if (obj.body.getWorld() == null) return; // body was destroyed
 		obj.body.applyForce(force, obj.body.getWorldPoint(PhysicsWorldConverter.convertCatroidToBox2dVector(point)), true);
 	}
 
 	public void applyImpulse(Sprite sprite, Vector2 impulse, Vector2 point) {
 		PhysicsObject obj = getPhysicsObject(sprite);
+		if (obj.body.getType() == BodyType.StaticBody) {
+			Log.w(TAG, "Cannot apply impulse to static body");
+			return;
+		}
+		if (obj.body.getWorld() == null) return;
 		obj.body.applyLinearImpulse(impulse, obj.body.getWorldPoint(PhysicsWorldConverter.convertCatroidToBox2dVector(point)), true);
 	}
 
 	public void applyTorque(Sprite sprite, float torque) {
-		getPhysicsObject(sprite).body.applyTorque(torque, true);
+		PhysicsObject obj = getPhysicsObject(sprite);
+		if (obj.body.getType() == BodyType.StaticBody) {
+			Log.w(TAG, "Cannot apply torque to static body");
+			return;
+		}
+		if (obj.body.getWorld() == null) return;
+		obj.body.applyTorque(torque, true);
 	}
 
 	public void applyAngularImpulse(Sprite sprite, float impulse) {
-		getPhysicsObject(sprite).body.applyAngularImpulse(impulse, true);
+		PhysicsObject obj = getPhysicsObject(sprite);
+		if (obj.body.getType() == BodyType.StaticBody) {
+			Log.w(TAG, "Cannot apply angular impulse to static body");
+			return;
+		}
+		if (obj.body.getWorld() == null) return;
+		obj.body.applyAngularImpulse(impulse, true);
 	}
 
-	private class ClosestRayCastCallback implements RayCastCallback {
-		public ClosestRayCastCallback() {
-			super();
-		}
+	private static class PerCallRayCastCallback implements RayCastCallback {
+		final RayCastResult result = new RayCastResult();
 
 		@Override
 		public float reportRayFixture(Fixture fixture, Vector2 point, Vector2 normal, float fraction) {
-			if (fraction < currentRayCastResult.hitFraction || !currentRayCastResult.hasHit) {
-				currentRayCastResult.hasHit = true;
-				currentRayCastResult.hitSprite = (Sprite) fixture.getBody().getUserData();
-				currentRayCastResult.hitPoint = PhysicsWorldConverter.convertBox2dToNormalVector(point);
-				currentRayCastResult.hitNormal = normal.cpy();
-				currentRayCastResult.hitFraction = fraction;
+			if (fraction < result.hitFraction || !result.hasHit) {
+				result.hasHit = true;
+				Object userData = fixture.getBody().getUserData();
+				if (userData instanceof Sprite) {
+					result.hitSprite = (Sprite) userData;
+				}
+				result.hitPoint.set(PhysicsWorldConverter.convertBox2dToNormal(point));
+				result.hitNormal.set(normal);
+				result.hitFraction = fraction;
 			}
 			return fraction;
 		}
 	}
 
 	public void performRayCast(String rayId, Vector2 start, Vector2 end) {
-		currentRayCastResult.hasHit = false;
-		currentRayCastResult.hitFraction = -1f;
+		PerCallRayCastCallback callback = new PerCallRayCastCallback();
+		callback.result.hitFraction = -1f;
 
-		world.rayCast(closestRayCastCallback, PhysicsWorldConverter.convertCatroidToBox2dVector(start), PhysicsWorldConverter.convertCatroidToBox2dVector(end));
+		world.rayCast(callback,
+				PhysicsWorldConverter.convertCatroidToBox2d(start),
+				PhysicsWorldConverter.convertCatroidToBox2d(end));
 
-		RayCastResult finalResult = new RayCastResult();
-		finalResult.hasHit = currentRayCastResult.hasHit;
-		if(finalResult.hasHit) {
-			finalResult.hitSprite = currentRayCastResult.hitSprite;
-			finalResult.hitPoint = currentRayCastResult.hitPoint;
-			finalResult.hitNormal = currentRayCastResult.hitNormal;
-			finalResult.hitFraction = currentRayCastResult.hitFraction;
-		}
-		rayCastResults.put(rayId, finalResult);
+		rayCastResults.put(rayId, callback.result);
 	}
 
 	public RayCastResult getRayCastResult(String rayId) {
@@ -378,7 +443,8 @@ public class PhysicsWorld {
 	}
 
 	public void setGravity(float x, float y) {
-		world.setGravity(new Vector2(x, y));
+		gravityTemp.set(x, y);
+		world.setGravity(gravityTemp);
 	}
 
 	public Vector2 getGravity() {
@@ -395,24 +461,18 @@ public class PhysicsWorld {
 	}
 
 	public PhysicsObject getPhysicsObject(Sprite sprite) {
-		if (sprite == null) {
-			throw new NullPointerException();
-		}
-
-		if (physicsObjects.containsKey(sprite)) {
-			return physicsObjects.get(sprite);
-		}
-
-		PhysicsObject physicsObject = createPhysicsObject(sprite);
-		physicsObjects.put(sprite, physicsObject);
-
-		return physicsObject;
-		//throw new NullPointerException();
+		Objects.requireNonNull(sprite, "sprite must not be null");
+		return physicsObjects.computeIfAbsent(sprite, this::createPhysicsObject);
 	}
 
 	private PhysicsObject createPhysicsObject(Sprite sprite) {
 		BodyDef bodyDef = new BodyDef();
-		return new PhysicsObject(world.createBody(bodyDef), sprite);
+		bodyDef.type = BodyType.DynamicBody;
+		bodyDef.allowSleep = false;
+		bodyDef.fixedRotation = false;
+		Body body = world.createBody(bodyDef);
+		Objects.requireNonNull(body, "Box2D body creation failed");
+		return new PhysicsObject(body, sprite);
 	}
 
 	public void bouncedOnEdge(Sprite sprite, PhysicsBoundaryBox.BoundaryBoxIdentifier boundaryBoxIdentifier) {

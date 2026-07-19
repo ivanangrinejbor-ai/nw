@@ -48,6 +48,17 @@ public class PhysicsObject {
 		if (body != null && body.getWorld() != null) {
 			body.getWorld().destroyBody(body);
 		}
+		disposeShapes();
+	}
+
+	private void disposeShapes() {
+		if (shapes != null) {
+			for (Shape shape : shapes) {
+				if (shape != null) {
+					shape.dispose();
+				}
+			}
+		}
 	}
 
 	public enum Type {
@@ -58,7 +69,7 @@ public class PhysicsObject {
 	public static final float DEFAULT_FRICTION = 0.2f;
 	public static final float MAX_FRICTION = 1.0f;
 	public static final float MIN_FRICTION = 0.0f;
-	public static final float MIN_DENSITY = 0.0f;
+	public static final float MIN_DENSITY = 0.0001f;
 	public static final float MIN_BOUNCE_FACTOR = 0.0f;
 	public static final float DEFAULT_BOUNCE_FACTOR = 0.8f;
 	public static final float DEFAULT_MASS = 1.0f;
@@ -93,9 +104,12 @@ public class PhysicsObject {
 		fixtureDef.density = PhysicsObject.DEFAULT_DENSITY;
 		fixtureDef.friction = PhysicsObject.DEFAULT_FRICTION;
 		fixtureDef.restitution = PhysicsObject.DEFAULT_BOUNCE_FACTOR;
-		setType(Type.NONE);
-
+		bodyAabbLowerLeft = new Vector2();
+		bodyAabbUpperRight = new Vector2();
+		fixtureAabbLowerLeft = new Vector2();
+		fixtureAabbUpperRight = new Vector2();
 		tmpVertice = new Vector2();
+		setType(Type.NONE);
 	}
 
 	public void copyTo(PhysicsObject destination) {
@@ -107,12 +121,16 @@ public class PhysicsObject {
 		destination.setBounceFactor(this.getBounceFactor());
 		destination.setFriction(this.getFriction());
 		destination.setVelocity(this.getVelocity());
+		destination.setGravityScale(this.getGravityScale());
+		if (this.shapes != null) {
+			// Shapes are cloned by PhysicsShapeBuilder on demand; copy reference
+			destination.setShape(this.shapes);
+		}
 	}
 
 	public void setShape(Shape[] shapes) {
-		if (Arrays.equals(this.shapes, shapes)) {
-			return;
-		}
+		// Dispose old shapes before replacing to prevent native memory leak
+		disposeShapes();
 
 		if (shapes != null) {
 			this.shapes = Arrays.copyOf(shapes, shapes.length);
@@ -165,6 +183,11 @@ public class PhysicsObject {
 		}
 		this.type = type;
 
+		// Disable CCD when leaving DYNAMIC — bullet is only needed for fast-moving dynamic bodies
+		if (body.isBullet()) {
+			body.setBullet(false);
+		}
+
 		switch (type) {
 			case DYNAMIC:
 				body.setType(BodyType.DynamicBody);
@@ -174,11 +197,13 @@ public class PhysicsObject {
 				collisionMaskRecord = PhysicsWorld.MASK_PHYSICSOBJECT;
 				break;
 			case FIXED:
-				body.setType(BodyType.KinematicBody);
+				body.setType(BodyType.StaticBody);
+				body.setGravityScale(0.0f);
 				collisionMaskRecord = PhysicsWorld.MASK_PHYSICSOBJECT;
 				break;
 			case NONE:
-				body.setType(BodyType.KinematicBody);
+				body.setType(BodyType.StaticBody);
+				body.setGravityScale(0.0f);
 				collisionMaskRecord = PhysicsWorld.MASK_NO_COLLISION;
 				break;
 		}
@@ -264,24 +289,26 @@ public class PhysicsObject {
 	}
 
 	public void setMass(float mass) {
-		this.mass = mass;
+		this.mass = Math.max(mass, PhysicsObject.MIN_MASS);
 
-		if (mass < 0) {
-			this.mass = PhysicsObject.MIN_MASS;
-		}
-		if (mass < PhysicsObject.MIN_MASS) {
-			this.mass = PhysicsObject.MIN_MASS;
-		}
-		if (isStaticObject()) {
+		// Check logical type, not body mass — StaticBody always reports mass=0 from Box2D
+		if (type == Type.FIXED || type == Type.NONE) {
 			return;
 		}
-		float area = body.getMass() / fixtureDef.density;
-		float density = mass / area;
-		setDensity(density);
-	}
 
-	private boolean isStaticObject() {
-		return body.getMass() == 0.0f;
+		// Compute area from actual fixture masses, not from template fixtureDef.density
+		float area = 0f;
+		for (Fixture fixture : body.getFixtureList()) {
+			float fixtureDensity = fixture.getDensity();
+			if (fixtureDensity > 0) {
+				area += fixture.getMass() / fixtureDensity;
+			}
+		}
+		if (area <= 0) {
+			return; // no fixtures or all zero-density — cannot set mass
+		}
+		float density = this.mass / area;
+		setDensity(density);
 	}
 
 	@VisibleForTesting
@@ -413,11 +440,12 @@ public class PhysicsObject {
 			setVelocity(velocity.x, velocity.y);
 			setRotationSpeed(rotationSpeed);
 		} else {
-			setGravityScale(1);
+			setGravityScale(gravityScale);
 		}
 	}
 
 	public void activateNonColliding(boolean updateState) {
+		collisionMaskRecord = PhysicsWorld.MASK_NO_COLLISION;
 		setCollisionBits(categoryMaskRecord, PhysicsWorld.MASK_NO_COLLISION, updateState);
 	}
 
@@ -425,6 +453,10 @@ public class PhysicsObject {
 		if (record) {
 			setCollisionBits(categoryMaskRecord, collisionMaskRecord, updateState);
 		}
+	}
+
+	public void setCollisionMaskRecord(short mask) {
+		collisionMaskRecord = mask;
 	}
 
 	public void activateFixed() {
@@ -443,26 +475,23 @@ public class PhysicsObject {
 	}
 
 	private void calculateAabb() {
-		bodyAabbLowerLeft = new Vector2(Integer.MAX_VALUE, Integer.MAX_VALUE);
-		bodyAabbUpperRight = new Vector2(Integer.MIN_VALUE, Integer.MIN_VALUE);
+		bodyAabbLowerLeft.set(Float.MAX_VALUE, Float.MAX_VALUE);
+		bodyAabbUpperRight.set(-Float.MAX_VALUE, -Float.MAX_VALUE);
 		Transform transform = body.getTransform();
-		int len = body.getFixtureList().size;
 		Array<Fixture> fixtures = body.getFixtureList();
 		if (fixtures.size == 0) {
-			bodyAabbLowerLeft.x = 0;
-			bodyAabbLowerLeft.y = 0;
-			bodyAabbUpperRight.x = 0;
-			bodyAabbUpperRight.y = 0;
+			bodyAabbLowerLeft.set(0, 0);
+			bodyAabbUpperRight.set(0, 0);
 		}
-		for (int i = 0; i < len; i++) {
+		for (int i = 0; i < fixtures.size; i++) {
 			Fixture fixture = fixtures.get(i);
 			calculateAabb(fixture, transform);
 		}
 	}
 
 	private void calculateAabb(Fixture fixture, Transform transform) {
-		fixtureAabbLowerLeft = new Vector2(Integer.MAX_VALUE, Integer.MAX_VALUE);
-		fixtureAabbUpperRight = new Vector2(Integer.MIN_VALUE, Integer.MIN_VALUE);
+		fixtureAabbLowerLeft.set(Float.MAX_VALUE, Float.MAX_VALUE);
+		fixtureAabbUpperRight.set(-Float.MAX_VALUE, -Float.MAX_VALUE);
 		if (fixture.getType() == Shape.Type.Circle) {
 			CircleShape shape = (CircleShape) fixture.getShape();
 			float radius = shape.getRadius();

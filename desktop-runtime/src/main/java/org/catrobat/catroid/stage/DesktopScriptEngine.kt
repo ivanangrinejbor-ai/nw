@@ -2639,11 +2639,19 @@ class DesktopScriptEngine(
                 val maxForce = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 0f
                 if (id.isNotEmpty()) variables["__hinge_motor_$id"] = "$target|$maxForce"
             }
-            // ── Hitbox: currently a no-op on desktop (all sprites use default box) ──
+            // ── Hitbox: set polygon fixture matching look/sprite dimensions ──
             "set_hitbox" -> {
                 val lookName = block.args.getOrNull(1) as? String ?: ""
                 if (lookName.isNotEmpty()) {
-                    variables["__hitbox_${sprite.name}"] = lookName
+                    // Try to find a look by name and use its texture dimensions
+                    val look = sprite.looks.find { it.name == lookName }
+                    val tex = look?.texture
+                    val w = if (tex != null) tex.width.toFloat()
+                        else sprite.width.takeIf { it > 0f } ?: sprite.size
+                    val h = if (tex != null) tex.height.toFloat()
+                        else sprite.height.takeIf { it > 0f } ?: sprite.size
+                    physicsWorld?.ensureBody(sprite)
+                    physicsWorld?.setHitbox(sprite, w, h)
                 }
             }
             // ── 3D object stubs (no 3D renderer on desktop) ──

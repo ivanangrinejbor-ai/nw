@@ -55,4 +55,16 @@ public final class PhysicsWorldConverter {
 		return new Vector2(convertNormalToBox2dCoordinate(catroidVector.x),
 				convertNormalToBox2dCoordinate(catroidVector.y));
 	}
+
+	public static Vector2 convertBox2dToNormal(Vector2 box2DVector) {
+		return new Vector2(
+				convertBox2dToNormalCoordinate(box2DVector.x),
+				convertBox2dToNormalCoordinate(box2DVector.y));
+	}
+
+	public static Vector2 convertCatroidToBox2d(Vector2 catroidVector) {
+		return new Vector2(
+				convertNormalToBox2dCoordinate(catroidVector.x),
+				convertNormalToBox2dCoordinate(catroidVector.y));
+	}
 }

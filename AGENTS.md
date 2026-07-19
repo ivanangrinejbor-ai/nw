@@ -920,3 +920,24 @@ TCP/DNS-таймауте ОС — ровно 5–20 мин. Все осталь�
 1. **Сборка**: `./gradlew :core:compileKotlin :desktop-runtime:compileKotlin --offline -q` — проверить ошибки
 2. **Real WebSocket**: через `java.net.http.WebSocket` (Java 11+)
 3. **Тестирование**: открыть тестовый .catroid проект с новыми бриками
+
+---
+
+## Physics collision fix — Desktop + Android (2026-07-19)
+
+### Desktop (DesktopPhysicsWorld.kt)
+- **Баг**: `createBodyForSprite()` создавал ВСЕ тела с `CircleShape`. Статические стены должны быть `PolygonShape` (прямоугольник), иначе объекты проходят сквозь при наклонном ударе.
+- **Фикс**: static → `PolygonShape.setAsBox(halfWidth, halfHeight)`, dynamic → `CircleShape` + `setBullet(true)` (CCD).
+- **setBodyType**: при смене на Static пересоздаёт фикстуру в Polygon; при смене на Dynamic — Circle + bullet.
+- **setHitbox**: больше не no-op — вызывает `physicsWorld.setHitbox()`.
+- **Добавлено**: `customHitboxSprites` (Set), `clearAllBodies()`.
+- **Тесты**: `DesktopPhysicsWorldCollisionTest.kt` — 36 тестов, все пройдены.
+
+### Android (PhysicsObject.java)
+- **Баг**: `setType(Type.FIXED)` и `setType(Type.NONE)` использовали `BodyType.KinematicBody`. FIXED-объекты (стены, пол) должны быть `StaticBody` — truly immovable. KinematicBody может проталкивать динамические тела иначе, чем StaticBody, что приводит к некорректной коллизии при наклонных ударах.
+- **Фикс**:
+  - `FIXED` → `BodyType.StaticBody` + `gravityScale(0.0f)`
+  - `NONE` → `BodyType.StaticBody` + `gravityScale(0.0f)`
+  - `body.setBullet(false)` при выходе из DYNAMIC (CCD не нужен на статике)
+- **PhysicsBoundaryBox**: уже `StaticBody` + `PolygonShape` — трогать не пришлось.
+- **Тесты**: `PhysicsObjectTest` — обновлён `testSetType()` (KinematicBody→StaticBody), добавлен `testSetTypeBulletTransitions()` (7 переходов bullet=true/false).

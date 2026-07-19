@@ -10,6 +10,13 @@ import com.badlogic.gdx.utils.Array
  * Создаёт мир с гравитацией, позволяет создавать динамические/статические тела
  * для спрайтов и шагает симуляцию. Используется как замена Android-физике
  * внутри [DesktopStageListener].
+ *
+ * ## Исправление бага коллизии статики под углом (2026-07)
+ * Статические тела (стены, полы) теперь используют прямоугольный PolygonShape
+ * вместо CircleShape — это предотвращает прохождение динамических объектов
+ * сквозь стену при наклонном подходе (краевой эффект Box2D EdgeShape).
+ * Динамические тела получают setBullet(true) для CCD (Continuous Collision
+ * Detection), что устраняет tunneling при быстром движении.
  */
 class DesktopPhysicsWorld(
     private var gravityX: Float = 0f,
@@ -17,10 +24,17 @@ class DesktopPhysicsWorld(
 ) {
     val world: World = World(Vector2(gravityX, gravityY), true)
     private val bodiesBySprite = mutableMapOf<DesktopSprite, Body>()
+    private val customHitboxSprites = mutableSetOf<DesktopSprite>() // setHitbox() called explicitly
     private var accumulator = 0f
     private val timeStep = 1 / 60f
     private val maxSteps = 5
 
+    /**
+     * Создать Box2D-тело для спрайта.
+     *
+     * - **Static**: прямоугольный PolygonShape (ширина/высота спрайта либо size/100)
+     * - **Dynamic**: CircleShape + setBullet(true) для CCD
+     */
     fun createBodyForSprite(sprite: DesktopSprite, isStatic: Boolean = false): Body {
         val def = BodyDef().apply {
             type = if (isStatic) BodyDef.BodyType.StaticBody else BodyDef.BodyType.DynamicBody
@@ -28,9 +42,22 @@ class DesktopPhysicsWorld(
             linearDamping = 0.5f
         }
         val body = world.createBody(def)
-        val shape = CircleShape().apply { radius = sprite.size / 200f }
-        body.createFixture(shape, 1f)
-        shape.dispose()
+        if (isStatic) {
+            // Static body → PolygonShape (прямоугольник), чтобы не было краевого
+            // проскальзывания при наклонном ударе (BUG FIX 2026-07).
+            val w = if (sprite.width > 0f) sprite.width / 100f else sprite.size / 100f
+            val h = if (sprite.height > 0f) sprite.height / 100f else sprite.size / 100f
+            val shape = PolygonShape()
+            shape.setAsBox(maxOf(w, 0.5f) / 2f, maxOf(h, 0.5f) / 2f)
+            body.createFixture(shape, 1f)
+            shape.dispose()
+        } else {
+            // Dynamic body → CircleShape + CCD
+            val shape = CircleShape().apply { radius = maxOf(sprite.size / 200f, 0.25f) }
+            body.createFixture(shape, 1f)
+            shape.dispose()
+            body.setBullet(true) // CCD: предотвращает tunneling (BUG FIX 2026-07)
+        }
         bodiesBySprite[sprite] = body
         return body
     }
@@ -47,7 +74,11 @@ class DesktopPhysicsWorld(
 
     fun hasBody(sprite: DesktopSprite): Boolean = bodiesBySprite.containsKey(sprite)
 
-    /** Создать тело, если его нет. */
+    /**
+     * Создать тело, если его нет.
+     * Если спрайт уже имеет явный hitbox (setHitbox), возвращает существующее тело
+     * без изменения фикстур.
+     */
     fun ensureBody(sprite: DesktopSprite, isStatic: Boolean = false): Body {
         return bodiesBySprite.getOrPut(sprite) { createBodyForSprite(sprite, isStatic) }
     }
@@ -115,24 +146,66 @@ class DesktopPhysicsWorld(
         body.angularDamping = angular
     }
 
-    /** Сменить тип тела (Static/Dynamic/Kinematic). */
+    /**
+     * Сменить тип тела (Static/Dynamic/Kinematic).
+     *
+     * При переключении в Static пересоздаёт фикстуру с PolygonShape (если не был
+     * установлен явный hitbox), чтобы стены корректно отражали объекты под углом.
+     * При переключении в Dynamic включает CCD (setBullet(true)).
+     */
     fun setBodyType(sprite: DesktopSprite, type: BodyDef.BodyType) {
         val body = bodiesBySprite[sprite] ?: return
+        val oldType = body.type
         body.type = type
+        // Если тип изменился и не было явного hitbox — пересоздать фикстуру
+        if (oldType != type && sprite !in customHitboxSprites) {
+            for (f in body.fixtureList.toList()) {
+                body.destroyFixture(f)
+            }
+            if (type == BodyDef.BodyType.StaticBody || type == BodyDef.BodyType.KinematicBody) {
+                // Rectangle shape for static/kinematic
+                val w = if (sprite.width > 0f) sprite.width / 100f else sprite.size / 100f
+                val h = if (sprite.height > 0f) sprite.height / 100f else sprite.size / 100f
+                val shape = PolygonShape()
+                shape.setAsBox(maxOf(w, 0.5f) / 2f, maxOf(h, 0.5f) / 2f)
+                body.createFixture(shape, 1f)
+                shape.dispose()
+            } else {
+                // Circle + CCD for dynamic
+                val shape = CircleShape().apply { radius = maxOf(sprite.size / 200f, 0.25f) }
+                body.createFixture(shape, 1f)
+                shape.dispose()
+                body.setBullet(true)
+            }
+        } else if (type == BodyDef.BodyType.DynamicBody) {
+            body.setBullet(true)
+        }
     }
 
-    /** Создать новую фикстуру с прямоугольной формой (hitbox). */
+    /**
+     * Заменить все фикстуры спрайта на прямоугольный PolygonShape.
+     * Отмечает спрайт как имеющий явный hitbox, чтобы [createBodyForSprite]
+     * не пересоздавал круглую форму при автоматическом ensureBody.
+     */
     fun setHitbox(sprite: DesktopSprite, width: Float, height: Float) {
         val body = bodiesBySprite[sprite] ?: return
+        customHitboxSprites.add(sprite)
         // Удалить старые фикстуры
         for (f in body.fixtureList.toList()) {
             body.destroyFixture(f)
         }
         val shape = PolygonShape()
-        shape.setAsBox(width / 2f, height / 2f)
+        shape.setAsBox(maxOf(width, 0.5f) / 2f, maxOf(height, 0.5f) / 2f)
         body.createFixture(shape, 1f)
         shape.dispose()
+        // Динамические тела должны сохранять CCD и после замены фикстуры
+        if (body.type == BodyDef.BodyType.DynamicBody) {
+            body.setBullet(true)
+        }
     }
+
+    /** Проверить, установлен ли явный hitbox для спрайта. */
+    fun hasCustomHitbox(sprite: DesktopSprite): Boolean = sprite in customHitboxSprites
 
     /** Симулировать бросок луча (ray cast). Возвращает список {fixture, pointX, pointY, normalX, normalY, fraction}. */
     fun rayCast(startX: Float, startY: Float, endX: Float, endY: Float): List<RayCastResult> {

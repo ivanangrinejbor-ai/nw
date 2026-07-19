@@ -31,12 +31,17 @@ import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.World;
 import com.danvexteam.lunoscript_annotations.LunoClass;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @LunoClass
 public class PhysicsBoundaryBox {
 
 	public static final int FRAME_SIZE = 5;
 
 	private final World world;
+	private final List<Body> createdBodies = new ArrayList<>();
+	private boolean created = false;
 
 	public enum BoundaryBoxIdentifier {BBI_HORIZONTAL, BBI_VERTICAL}
 
@@ -51,6 +56,7 @@ public class PhysicsBoundaryBox {
 	 * @param width
 	 */
 	public void create(int width, int height) {
+		destroy(); // prevent double-create body leak
 		float boxWidth = PhysicsWorldConverter.convertNormalToBox2dCoordinate(width);
 		float boxHeight = PhysicsWorldConverter.convertNormalToBox2dCoordinate(height);
 		float boxElementSize = PhysicsWorldConverter.convertNormalToBox2dCoordinate(PhysicsBoundaryBox.FRAME_SIZE);
@@ -82,5 +88,16 @@ public class PhysicsBoundaryBox {
 		Body body = world.createBody(bodyDef);
 		body.createFixture(fixtureDef);
 		body.setUserData(identifier);
+		shape.dispose(); // Box2D copies shape data into fixture — native peer must be freed
+		createdBodies.add(body);
+	}
+
+	public void destroy() {
+		for (Body body : createdBodies) {
+			if (body.getWorld() != null) {
+				world.destroyBody(body);
+			}
+		}
+		createdBodies.clear();
 	}
 }
