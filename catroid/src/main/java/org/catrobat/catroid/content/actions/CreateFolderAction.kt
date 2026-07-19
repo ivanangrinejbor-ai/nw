@@ -17,7 +17,12 @@ class CreateFolderAction : TemporalAction() {
 
         try {
             val downloadsDir = File(RuntimeServicesHolder.services.getDownloadsDir())
-            val folder = File(downloadsDir, name)
+            val baseCanonical = downloadsDir.canonicalPath
+            val folder = File(downloadsDir, name).canonicalFile
+            if (!folder.canonicalPath.startsWith(baseCanonical + File.separator) && folder.canonicalPath != baseCanonical) {
+                Log.e("CreateFolderAction", "Path traversal detected: $name")
+                return
+            }
             if (!folder.exists()) {
                 folder.mkdirs()
             }

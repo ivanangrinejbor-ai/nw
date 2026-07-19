@@ -1,18 +1,3 @@
-/*
- * NeoCatroid
- * Copyright (C) 2026 The NeoCatroid Team
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Affero General Public License for more details.
- */
-
 package org.catrobat.catroid.content.bricks;
 
 import android.content.Context;
@@ -21,6 +6,7 @@ import android.net.Uri;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.CheckBox;
 import android.widget.Spinner;
 import android.widget.TextView;
 
@@ -35,32 +21,20 @@ import java.lang.ref.WeakReference;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-/**
- * Imports a reusable script module (.neoscript file) into a target object at
- * runtime.
- *
- * Parameters:
- * <ul>
- *   <li>Object name   – name of the object that should receive the scripts</li>
- *   <li>File          – path / content uri of the .neoscript file</li>
- *   <li>Overwrite     – Yes/No: replace existing duplicates or skip them</li>
- * </ul>
- */
 public class ImportScriptBrick extends FormulaBrick {
 
 	private static final long serialVersionUID = 1L;
 
-	private int overwriteSelection = 0; // 0 = No, 1 = Yes
+	private int overwriteSelection = 0;
+	private int useSceneSelection = 0;
 
-	// BUG-NS-01 fix: use WeakReference so the brick is not GC-rooted while the
-	// file picker Activity is open. If the hosting Activity is destroyed during
-	// the picker, the reference becomes null and onFilePicked() degrades
-	// gracefully instead of leaking the entire view hierarchy.
 	private static volatile WeakReference<ImportScriptBrick> pendingPickerBrickRef;
 
 	public ImportScriptBrick() {
 		addAllowedBrickField(BrickField.IMPORT_SCRIPT_OBJECT, R.id.brick_import_script_object_edit);
 		addAllowedBrickField(BrickField.IMPORT_SCRIPT_FILE, R.id.brick_import_script_file_edit);
+		addAllowedBrickField(BrickField.IMPORT_SCRIPT_SCENE, R.id.brick_import_script_scene_edit);
+		setFormulaWithBrickField(BrickField.IMPORT_SCRIPT_SCENE, new Formula(""));
 	}
 
 	public ImportScriptBrick(String objectName, String filePath, boolean overwrite) {
@@ -85,6 +59,14 @@ public class ImportScriptBrick extends FormulaBrick {
 		this.overwriteSelection = overwrite ? 1 : 0;
 	}
 
+	public boolean isUseScene() {
+		return useSceneSelection == 1;
+	}
+
+	public void setUseScene(boolean useScene) {
+		this.useSceneSelection = useScene ? 1 : 0;
+	}
+
 	@Override
 	public int getViewResource() {
 		return R.layout.brick_import_script;
@@ -94,9 +76,24 @@ public class ImportScriptBrick extends FormulaBrick {
 	public View getView(Context context) {
 		super.getView(context);
 
+		CheckBox sceneCheckbox = view.findViewById(R.id.brick_import_script_scene_checkbox);
+		TextView sceneEdit = view.findViewById(R.id.brick_import_script_scene_edit);
+		TextView sceneLabel = view.findViewById(R.id.brick_import_script_scene_label);
+
+		sceneCheckbox.setChecked(useSceneSelection == 1);
+		sceneEdit.setVisibility(useSceneSelection == 1 ? View.VISIBLE : View.GONE);
+		sceneLabel.setVisibility(useSceneSelection == 1 ? View.VISIBLE : View.GONE);
+
+		sceneCheckbox.setOnCheckedChangeListener((buttonView, isChecked) -> {
+			useSceneSelection = isChecked ? 1 : 0;
+			sceneEdit.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+			sceneLabel.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+		});
+
 		Spinner overwriteSpinner = view.findViewById(R.id.brick_import_script_overwrite_spinner);
 		ArrayAdapter<String> adapter = new ArrayAdapter<>(context,
-				R.layout.simple_spinner_item_white_text, new String[]{"No", "Yes"});
+				R.layout.simple_spinner_item_white_text,
+				new String[]{context.getString(R.string.no), context.getString(R.string.yes)});
 		adapter.setDropDownViewResource(R.layout.simple_spinner_dropdown_item_white_text);
 		overwriteSpinner.setAdapter(adapter);
 		overwriteSpinner.setSelection(overwriteSelection);
@@ -122,7 +119,6 @@ public class ImportScriptBrick extends FormulaBrick {
 		if (activity == null) {
 			return;
 		}
-		// BUG-NS-01: store as WeakReference so the brick does not prevent GC of the Activity
 		pendingPickerBrickRef = new WeakReference<>(this);
 		Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
 		intent.addCategory(Intent.CATEGORY_OPENABLE);
@@ -131,18 +127,15 @@ public class ImportScriptBrick extends FormulaBrick {
 		activity.startActivityForResult(intent, org.catrobat.catroid.ui.SpriteActivity.REQUEST_NEO_SCRIPT_FILE);
 	}
 
-	/**
-	 * Called by {@code SpriteActivity} once the user picked a .neoscript file.
-	 */
 	public static void onFilePicked(android.net.Uri uri) {
 		WeakReference<ImportScriptBrick> ref = pendingPickerBrickRef;
 		if (ref == null || uri == null) {
 			return;
 		}
 		ImportScriptBrick brick = ref.get();
-		pendingPickerBrickRef = null; // clear eagerly to allow GC
+		pendingPickerBrickRef = null;
 		if (brick == null) {
-			return; // Activity was destroyed while picker was open
+			return;
 		}
 		String path = uri.toString();
 		brick.setFormulaWithBrickField(BrickField.IMPORT_SCRIPT_FILE, new Formula(path));
@@ -153,6 +146,7 @@ public class ImportScriptBrick extends FormulaBrick {
 		sequence.addAction(sprite.getActionFactory().createImportScriptAction(sprite, sequence,
 				getFormulaWithBrickField(BrickField.IMPORT_SCRIPT_OBJECT),
 				getFormulaWithBrickField(BrickField.IMPORT_SCRIPT_FILE),
-				isOverwrite()));
+				isOverwrite(),
+				isUseScene() ? getFormulaWithBrickField(BrickField.IMPORT_SCRIPT_SCENE) : null));
 	}
 }

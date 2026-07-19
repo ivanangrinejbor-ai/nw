@@ -27,7 +27,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
 
-                <androidx.cardview.widget.CardView
+                <com.google.android.material.card.MaterialCardView
                     android:id="@+id/currentProjectLayout"
                     android:layout_width="match_parent"
                     android:layout_height="250dp"
@@ -79,7 +79,7 @@
                             android:src="@drawable/ic_play_circle" />
 
                     </RelativeLayout>
-                </androidx.cardview.widget.CardView>
+                </com.google.android.material.card.MaterialCardView>
 
                 <TextView
                     android:id="@+id/myProjectsTextView"

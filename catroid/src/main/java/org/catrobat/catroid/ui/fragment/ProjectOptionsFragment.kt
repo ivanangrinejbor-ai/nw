@@ -1391,6 +1391,9 @@ class ProjectOptionsFragment : Fragment() {
         saveProject()
         project ?: return
 
+        // Force GC before starting heavy build to maximize available heap
+        System.gc()
+
         showProgressDialog("Сборка Windows-пакета...")
 
         lifecycleScope.launch(Dispatchers.IO) {
@@ -1403,18 +1406,19 @@ class ProjectOptionsFragment : Fragment() {
                 // 1. Zip the project directory
                 val projectZip = File(tempDir, "${projectName}.zip")
                 zipDirectory(proj.directory, projectZip)
+                System.gc()
 
-                // 1b. Encrypt the project (AES-256-GCM + PBKDF2), identical scheme to the
-                //     Baked APK (org.catrobat.catroid.io.ProjectCrypto). The desktop EXE
-                //     decrypts it at startup with the same shared payload password.
+                // 1b. Encrypt the project (AES-256-GCM + PBKDF2)
                 val projectEnc = File(tempDir, "${projectName}.enc")
                 org.catrobat.catroid.io.ProjectCrypto.encrypt(
                     projectZip,
                     projectEnc,
                     org.catrobat.catroid.apkbuild.ProtectedProjectPayload.PASSWORD
                 )
+                projectZip.delete()
+                System.gc()
 
-                // 2. Find project icon (manual_screenshot.png or automatic_screenshot.png)
+                // 2. Find project icon
                 var iconFile: File? = null
                 val manualIcon = File(proj.directory, "manual_screenshot.png")
                 val autoIcon = File(proj.directory, "automatic_screenshot.png")
@@ -1424,10 +1428,11 @@ class ProjectOptionsFragment : Fragment() {
                 // 3. Build the final output package
                 val outputZip = File(requireContext().cacheDir, "${projectName}_win.zip")
                 ZipOutputStream(FileOutputStream(outputZip)).use { zos ->
-                    // Add the encrypted project as "project.zip" so build_exe.bat can embed it
-                    // (NEOCAT01 payload) into the player jar / exe automatically.
+                    zos.setLevel(1) // fastest compression, reduces CPU/memory
                     zos.putNextEntry(ZipEntry("project.zip"))
-                    FileInputStream(projectEnc).use { it.copyTo(zos) }
+                    FileInputStream(projectEnc).use { input ->
+                        input.copyTo(zos, 8192) // explicit small buffer to avoid OOM
+                    }
                     zos.closeEntry()
 
                     // Add project icon as icon.png (for EXE conversion)
@@ -1934,6 +1939,7 @@ class ProjectOptionsFragment : Fragment() {
 
     fun zipDirectory(sourceDir: File, zipFile: File): File {
         ZipOutputStream(FileOutputStream(zipFile)).use { zipOut ->
+            zipOut.setLevel(1) // fastest compression to reduce CPU/memory
             sourceDir.walk().filter { it != sourceDir }.forEach { file ->
                 if(file.name != "undo_code.xml") {
                     val entryPath = file.relativeTo(sourceDir).path
@@ -1946,7 +1952,7 @@ class ProjectOptionsFragment : Fragment() {
 
                     if (file.isFile) {
                         FileInputStream(file).use { fis ->
-                            fis.copyTo(zipOut)
+                            fis.copyTo(zipOut, 8192) // explicit small buffer
                         }
                     }
 

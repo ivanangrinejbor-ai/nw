@@ -1095,6 +1095,7 @@
 <string formatted="false" name="brick_import_script_file">from file</string>
 <string formatted="false" name="brick_import_script_file_hint">tap to choose .neoscript file</string>
 <string formatted="false" name="brick_import_script_overwrite">if object already contains imported scripts?</string>
+    <string formatted="false" name="brick_import_script_scene">in scene</string>
 <string formatted="false" name="menu_save_as_script">Save as Script...</string>
 <string formatted="false" name="menu_import_script_module">Import Script Module...</string>
 <string formatted="false" name="save_script_title">Save Script</string>

@@ -206,7 +206,7 @@ android {
         buildConfigField "boolean", "FEATURE_TESTBRICK_ENABLED", "true"
         buildConfigField "boolean", "FEATURE_CATBLOCKS_ENABLED", "true"
         buildConfigField "boolean", "FEATURE_CATBLOCKS_DEBUGABLE", "false"
-        buildConfigField "boolean", "FEATURE_AI_ASSIST_ENABLED", "true"
+        buildConfigField "boolean", "FEATURE_AI_ASSIST_ENABLED", "false"
         resValue "string", "FEATURE_EMBROIDERY_PREFERENCES_ENABLED", "true"
         resValue "string", "FEATURE_PHIRO_PREFERENCES_ENABLED", "true"
         resValue "string", "FEATURE_MINDSTORMS_PREFERENCES_ENABLED", "true"
@@ -818,11 +818,6 @@ static def getGitCommitInfo() {
     def branch = 'git rev-parse --abbrev-ref HEAD'.execute().text.trim()
 
     return "branch $branch @$hash"
-}
-
-project.gradle.taskGraph.whenReady {
-    // TODO: Fix failing tests and remove this. Tests that fail should fail the build.
-    connectedCatroidDebugAndroidTest.ignoreFailures = true
 }
 
 task copyAndroidNatives {

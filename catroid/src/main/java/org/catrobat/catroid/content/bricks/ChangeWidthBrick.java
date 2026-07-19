@@ -32,7 +32,7 @@ public class ChangeWidthBrick extends FormulaBrick {
 	private static final long serialVersionUID = 1L;
 
 	public ChangeWidthBrick() {
-		addAllowedBrickField(BrickField.SIZE, R.id.brick_change_width_edit_text);
+		addAllowedBrickField(BrickField.WIDTH_CHANGE, R.id.brick_change_width_edit_text);
 	}
 
 	public ChangeWidthBrick(double size) {
@@ -41,7 +41,7 @@ public class ChangeWidthBrick extends FormulaBrick {
 
 	public ChangeWidthBrick(Formula formula) {
 		this();
-		setFormulaWithBrickField(BrickField.SIZE, formula);
+		setFormulaWithBrickField(BrickField.WIDTH_CHANGE, formula);
 	}
 
 	@Override
@@ -52,6 +52,6 @@ public class ChangeWidthBrick extends FormulaBrick {
 	@Override
 	public void addActionToSequence(Sprite sprite, ScriptSequenceAction sequence) {
 		sequence.addAction(sprite.getActionFactory().createChangeWidthAction(sprite, sequence,
-				getFormulaWithBrickField(BrickField.SIZE)));
+				getFormulaWithBrickField(BrickField.WIDTH_CHANGE)));
 	}
 }

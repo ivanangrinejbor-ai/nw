@@ -27,6 +27,8 @@ import android.os.Build;
 import android.util.DisplayMetrics;
 import android.view.WindowManager;
 
+import android.util.Log;
+
 import com.badlogic.gdx.math.Rectangle;
 import com.danvexteam.lunoscript_annotations.LunoClass;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
@@ -50,6 +52,7 @@ import org.catrobat.catroid.utils.ScreenValueHandler;
 import org.catrobat.catroid.utils.Utils;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.Serializable;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -467,12 +470,17 @@ public class Project implements Serializable {
 	}
 
 	public File getFile(String fileName) {
-		File file = new File(getFilesDir(), fileName);
-		/*if(file.exists()) {
-			return file;
-		} else {
-			return null;
-		}*/
+		File base = getFilesDir();
+		File file = new File(base, fileName);
+		try {
+			if (!file.getCanonicalPath().startsWith(base.getCanonicalPath() + File.separator)
+					&& !file.getCanonicalPath().equals(base.getCanonicalPath())) {
+				Log.e("Project", "Path traversal detected: " + fileName);
+				file = new File(base, new File(fileName).getName());
+			}
+		} catch (IOException e) {
+			file = new File(base, new File(fileName).getName());
+		}
 		return file;
 	}
 

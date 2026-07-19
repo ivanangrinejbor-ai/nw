@@ -32,6 +32,8 @@ data class TextOverlay(
     var remainingSeconds: Float = -1f,
     /** true = "Think" (thought bubble prefix), false = "Say" (speech bubble prefix) */
     val isThink: Boolean = false,
+    /** true = this overlay displays a variable value that should update each frame */
+    val isVariable: Boolean = false,
     /** Rotation of the overlay text in degrees (ShowTextRotationBrick). */
     var rotation: Float = 0f
 )

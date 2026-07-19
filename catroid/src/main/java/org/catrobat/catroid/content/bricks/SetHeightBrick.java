@@ -32,7 +32,7 @@ public class SetHeightBrick extends FormulaBrick {
 	private static final long serialVersionUID = 1L;
 
 	public SetHeightBrick() {
-		addAllowedBrickField(BrickField.SIZE, R.id.brick_set_height_edit_text);
+		addAllowedBrickField(BrickField.HEIGHT, R.id.brick_set_height_edit_text);
 	}
 
 	public SetHeightBrick(double size) {
@@ -41,7 +41,7 @@ public class SetHeightBrick extends FormulaBrick {
 
 	public SetHeightBrick(Formula formula) {
 		this();
-		setFormulaWithBrickField(BrickField.SIZE, formula);
+		setFormulaWithBrickField(BrickField.HEIGHT, formula);
 	}
 
 	@Override
@@ -52,6 +52,6 @@ public class SetHeightBrick extends FormulaBrick {
 	@Override
 	public void addActionToSequence(Sprite sprite, ScriptSequenceAction sequence) {
 		sequence.addAction(sprite.getActionFactory().createSetHeightAction(sprite, sequence,
-				getFormulaWithBrickField(BrickField.SIZE)));
+				getFormulaWithBrickField(BrickField.HEIGHT)));
 	}
 }

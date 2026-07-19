@@ -18,6 +18,8 @@ $xml = @"
   <jre>
     <path>jre</path>
     <minVersion>11</minVersion>
+    <initialHeapSize>512</initialHeapSize>
+    <maxHeapSize>4096</maxHeapSize>
   </jre>
 </launch4jConfig>
 "@

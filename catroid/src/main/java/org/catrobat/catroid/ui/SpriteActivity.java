@@ -840,11 +840,6 @@ public class SpriteActivity extends BaseActivity {
 		super.onDestroy();
 	}
 
-	public void handleAiAssistButton(View view) {
-		//Log.d(TAG, "Here a Flutter module will be called in the future.");
-		ai_assist_dialog();
-	}
-
 	public void handleAddButton(View view) {
         if (workspaceLayout != null && workspaceLayout.getVisibility() == View.VISIBLE) {
             String focusedTag = workspaceLayout.getFocusedWindowTag();
@@ -1040,9 +1035,6 @@ public class SpriteActivity extends BaseActivity {
 		alertDialog.show();
 	}
 
-	public void ai_assist_dialog() {
-		AiSuggestionDialog.INSTANCE.show(this);
-	}
 	public void handleAddUserDataButton() {
 		View view = View.inflate(this, R.layout.dialog_new_user_data, null);
 

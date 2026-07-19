@@ -10,6 +10,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.catrobat.catroid.CatroidApplication
+import org.catrobat.catroid.ProjectManager
 import org.catrobat.catroid.content.Project
 import org.catrobat.catroid.content.RuntimeMutationTracker
 import org.catrobat.catroid.content.Scene
@@ -28,6 +29,7 @@ class ImportScriptAction : TemporalAction() {
     var objectName: Formula? = null
     var filePath: Formula? = null
     var overwrite: Boolean = false
+    var sceneName: Formula? = null
 
     private var executed = false
 
@@ -44,20 +46,25 @@ class ImportScriptAction : TemporalAction() {
             return
         }
 
-        val targetSprite = findSprite(project, targetName)
+        // Resolve scene
+        val sceneStr = sceneName?.interpretString(scope)
+        val targetScene = resolveScene(project, sceneStr)
+
+        val targetSprite = if (targetScene != null) {
+            targetScene.getSprite(targetName)
+        } else {
+            findSprite(project, targetName)
+        }
         if (targetSprite == null) {
-            Log.e(TAG, "Object not found: $targetName")
+            Log.e(TAG, "Object not found: $targetName" + if (targetScene != null) " in scene ${targetScene.name}" else "")
             return
         }
 
-        // BUG-NS-02 fix: file I/O and XStream parse can block for tens of ms on large
-        // files or slow storage. Move work to IO dispatcher so the GDX render thread is
-        // not stalled. executeConsoleScript is marshalled back to Main afterwards.
         ioScope.launch {
             try {
                 val neoScriptFile = loadNeoScriptFile(path)
-                val result = NeoScriptImporter.importScripts(neoScriptFile, project, targetSprite, overwrite)
-                // ImportScriptBrick has no persist flag — mutations are always temporary
+                val strategy = if (overwrite) NeoScriptImporter.ImportStrategy.REPLACE_DUPLICATES else NeoScriptImporter.ImportStrategy.SKIP_DUPLICATES
+                val result = NeoScriptImporter.importScripts(neoScriptFile, project, targetSprite, strategy)
                 RuntimeMutationTracker.hasTemporaryMutations = true
                 withContext(Dispatchers.Main) {
                     val stageListener = StageActivity.getActiveStageListener()
@@ -71,6 +78,11 @@ class ImportScriptAction : TemporalAction() {
                 Log.e(TAG, "Failed to import script module", e)
             }
         }
+    }
+
+    private fun resolveScene(project: Project, sceneStr: String?): Scene? {
+        if (sceneStr.isNullOrEmpty()) return null
+        return project.getSceneByName(sceneStr)
     }
 
     private fun findSprite(project: Project, name: String): Sprite? {
@@ -105,8 +117,6 @@ class ImportScriptAction : TemporalAction() {
     companion object {
         private const val TAG = "ImportScriptAction"
 
-        // Coroutine scope for background file I/O (survives action lifetime;
-        // SupervisorJob prevents one failure cancelling sibling actions).
         private val ioScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     }
 }

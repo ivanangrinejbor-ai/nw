@@ -23,7 +23,12 @@ class CopyProjectFileToFolderAction : TemporalAction() {
             if (!sourceFile.exists() || sourceFile.isDirectory) return
 
             val downloadsDir = File(RuntimeServicesHolder.services.getDownloadsDir())
-            val destDir = File(downloadsDir, folder)
+            val baseCanonical = downloadsDir.canonicalPath
+            val destDir = File(downloadsDir, folder).canonicalFile
+            if (!destDir.canonicalPath.startsWith(baseCanonical + File.separator) && destDir.canonicalPath != baseCanonical) {
+                Log.e("CopyProjectFileToFolderAction", "Path traversal detected: $folder")
+                return
+            }
             if (!destDir.exists()) {
                 destDir.mkdirs()
             }

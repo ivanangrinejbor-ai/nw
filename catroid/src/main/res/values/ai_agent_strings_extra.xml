@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string formatted="false" name="ai_agent_enable_first">Enable AI Agent first in Settings</string>
+    <string formatted="false" name="ai_agent_history_cleared">History cleared</string>
+    <string formatted="false" name="ai_agent_memory_cleared">Memory cleared</string>
+    <string formatted="false" name="ai_agent_clear_memory_confirm">This will permanently delete all stored memories. Continue?</string>
+    <string formatted="false" name="ai_agent_no_tool_history">No tool calls yet</string>
+    <string formatted="false" name="ai_agent_no_models_downloaded">No models downloaded yet</string>
+
+</resources>

@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- AI Agent Main -->
+    <string formatted="false" name="ai_agent_pref_title">AI Agent</string>
+    <string formatted="false" name="ai_agent_pref_summary">Intelligent project assistant with local AI models</string>
+    <string formatted="false" name="ai_agent_enabled_title">Enable AI Agent</string>
+    <string formatted="false" name="ai_agent_enabled_summary">Enable the AI Agent to help with project development</string>
+
+    <!-- Chat -->
+    <string formatted="false" name="ai_agent_chat_title">Open AI Chat</string>
+    <string formatted="false" name="ai_agent_chat_summary">Start a conversation with the AI Agent</string>
+    <string formatted="false" name="ai_agent_chat_title_short">AI Chat</string>
+    <string formatted="false" name="ai_agent_chat_hint">Ask me anything about your project…</string>
+    <string formatted="false" name="ai_agent_send">Send</string>
+    <string formatted="false" name="ai_agent_copy">Copy</string>
+    <string formatted="false" name="ai_agent_regenerate">Regenerate</string>
+    <string formatted="false" name="ai_agent_copied">Copied</string>
+    <string formatted="false" name="ai_agent_clear_history_title">Clear History</string>
+    <string formatted="false" name="ai_agent_clear_history_message">Delete all messages in the current conversation?</string>
+
+    <!-- Model -->
+    <string formatted="false" name="ai_agent_model_category">Model</string>
+    <string formatted="false" name="ai_agent_model_title">Active Model</string>
+    <string formatted="false" name="ai_agent_model_summary">Select the GGUF model for inference</string>
+    <string formatted="false" name="ai_agent_download_title">Download Model</string>
+    <string formatted="false" name="ai_agent_download_summary">Download a GGUF language model</string>
+    <string formatted="false" name="ai_agent_delete_title">Delete Model</string>
+    <string formatted="false" name="ai_agent_delete_summary">Remove the downloaded model from storage</string>
+
+    <!-- Behavior -->
+    <string formatted="false" name="ai_agent_behavior_category">Behavior</string>
+    <string formatted="false" name="ai_agent_auto_read_title">Auto-read Project</string>
+    <string formatted="false" name="ai_agent_auto_read_summary">Automatically analyze the project before each response</string>
+    <string formatted="false" name="ai_agent_auto_modify_title">Auto-modify Project</string>
+    <string formatted="false" name="ai_agent_auto_modify_summary">Allow the AI to automatically apply changes</string>
+    <string formatted="false" name="ai_agent_confirm_title">Confirm Changes</string>
+    <string formatted="false" name="ai_agent_confirm_summary">Ask before applying changes to the project</string>
+
+    <!-- Parameters -->
+    <string formatted="false" name="ai_agent_params_category">Parameters</string>
+    <string formatted="false" name="ai_agent_temperature_title">Temperature</string>
+    <string formatted="false" name="ai_agent_temperature_summary">Model creativity (0 = deterministic, 100 = creative)</string>
+    <string formatted="false" name="ai_agent_max_context_title">Max Context</string>
+    <string formatted="false" name="ai_agent_max_context_summary">Maximum tokens for context window</string>
+    <string formatted="false" name="ai_agent_max_tool_calls_title">Max Tool Calls</string>
+    <string formatted="false" name="ai_agent_max_tool_calls_summary">Maximum tool calls per response cycle</string>
+
+    <!-- Memory -->
+    <string formatted="false" name="ai_agent_memory_category">Memory</string>
+    <string formatted="false" name="ai_agent_clear_history_summary">Reset conversation history</string>
+    <string formatted="false" name="ai_agent_clear_memory_title">Clear Memory</string>
+    <string formatted="false" name="ai_agent_clear_memory_summary">Wipe all stored memories and cached data</string>
+    <string formatted="false" name="ai_agent_tool_history_title">Tool History</string>
+    <string formatted="false" name="ai_agent_tool_history_summary">View recent tool calls and results</string>
+
+    <!-- Download Dialog -->
+    <string formatted="false" name="ai_agent_download_dialog_title">Download AI Model</string>
+    <string formatted="false" name="ai_agent_download_dialog_message">Select a model to download:</string>
+    <string formatted="false" name="ai_agent_download_started">Download started: %s</string>
+    <string formatted="false" name="ai_agent_download_complete">Download complete: %s</string>
+    <string formatted="false" name="ai_agent_download_failed">Download failed: %s</string>
+    <string formatted="false" name="ai_agent_delete_confirm">Delete model %s?</string>
+    <string formatted="false" name="ai_agent_model_loading">Loading model…</string>
+    <string formatted="false" name="ai_agent_model_loaded">Model loaded: %s</string>
+    <string formatted="false" name="ai_agent_model_unloaded">Model unloaded</string>
+
+    <!-- Model entries -->
+    <string formatted="false" name="ai_model_none">None (disabled)</string>
+    <string formatted="false" name="ai_model_qwen_0_5b">Qwen 2.5 0.5B (Fastest)</string>
+    <string formatted="false" name="ai_model_qwen_1b">Qwen 2.5 1B (Balanced)</string>
+    <string formatted="false" name="ai_model_qwen_3b">Qwen 2.5 3B (Powerful)</string>
+    <string formatted="false" name="ai_model_qwen_7b">Qwen 2.5 7B (Max)</string>
+
+    <!-- Notifications -->
+    <string formatted="false" name="ai_agent_thinking">AI Agent is thinking…</string>
+    <string formatted="false" name="ai_agent_using_tools">AI Agent is using tools…</string>
+    <string formatted="false" name="ai_agent_error">AI Agent encountered an error</string>
+
+    <!-- Custom model -->
+    <string formatted="false" name="ai_agent_load_custom_title">Load Custom GGUF</string>
+    <string formatted="false" name="ai_agent_load_custom_summary">Load a .gguf model file from device storage</string>
+    <string formatted="false" name="ai_agent_load_custom_failed">Failed to load custom model. Ensure it is a valid .gguf file.</string>
+    <string formatted="false" name="ai_agent_all_downloaded">All models are already downloaded</string>
+    <string formatted="false" name="ai_agent_download_progress_text">Downloading…</string>
+    <string formatted="false" name="ai_agent_download_complete_text">Download complete</string>
+
+    <!-- Chat -->
+    <string formatted="false" name="ai_agent_chat_menu_title">AI Chat</string>
+</resources>

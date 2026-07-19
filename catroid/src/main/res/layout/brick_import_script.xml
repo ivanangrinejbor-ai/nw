@@ -15,7 +15,7 @@
 
     <org.catrobat.catroid.ui.BrickLayout
         android:id="@+id/brick_import_script_layout"
-        style="@style/BrickContainer.NeoScript.Medium">
+        style="@style/BrickContainer.NeoScript.Big">
 
         <include layout="@layout/icon_brick_category_neoscript" />
 
@@ -30,6 +30,22 @@
 
         <TextView
             android:id="@+id/brick_import_script_object_edit"
+            style="@style/BrickEditText" />
+
+        <TextView
+            android:id="@+id/brick_import_script_scene_label"
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_import_script_scene"
+            app:layout_newLine="true" />
+
+        <CheckBox
+            android:id="@+id/brick_import_script_scene_checkbox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical" />
+
+        <TextView
+            android:id="@+id/brick_import_script_scene_edit"
             style="@style/BrickEditText" />
 
         <TextView

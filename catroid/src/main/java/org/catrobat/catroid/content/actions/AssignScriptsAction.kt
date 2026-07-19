@@ -33,7 +33,7 @@ class AssignScriptsAction : TemporalAction() {
     var scope: Scope? = null
     var filePath: Formula? = null
     var objectName: Formula? = null
-    var targetSceneName: String? = null  // null = Current scene
+    var sceneName: Formula? = null  // null = Current scene
     var replaceExistingScripts: Boolean = false
     var savePersistent: Boolean = false
 
@@ -49,7 +49,8 @@ class AssignScriptsAction : TemporalAction() {
         if (path.isBlank() || targetName.isBlank()) return
 
         // Resolve scene
-        val scene = resolveScene(project)
+        val sceneStr = sceneName?.interpretString(scope)
+        val scene = resolveScene(project, sceneStr)
         if (scene == null) {
             Log.e(TAG, "Scene not found")
             return
@@ -62,8 +63,7 @@ class AssignScriptsAction : TemporalAction() {
             return
         }
 
-        // BUG-NS-02 fix: offload all blocking I/O and XStream work to Dispatchers.IO so
-        // the GDX render thread is not stalled on file reads or large deserializations.
+        // BUG-NS-02 fix: offload all blocking I/O and XStream work to Dispatchers.IO
         ioScope.launch {
             try {
                 val neoScriptFile = loadNeoScriptFile(path)
@@ -71,7 +71,6 @@ class AssignScriptsAction : TemporalAction() {
                 // Phase 6: UnknownBrick detection — check before import
                 val hasUnknownBricks = checkForUnknownBricks(neoScriptFile)
                 if (hasUnknownBricks) {
-                    // Cannot show dialog from runtime — log warning and continue
                     Log.w(TAG, "Unknown blocks detected in .neoscript file. Continuing with replacement.")
                     replaceUnknownBricks(neoScriptFile)
                 }
@@ -95,7 +94,6 @@ class AssignScriptsAction : TemporalAction() {
                 }
 
                 // Execute added scripts — only if the scene is currently active.
-                // Marshal back to main thread for thread-safety with the Stage actor graph.
                 withContext(Dispatchers.Main) {
                     val stageListener = StageActivity.getActiveStageListener()
                     if (stageListener != null) {
@@ -106,7 +104,6 @@ class AssignScriptsAction : TemporalAction() {
                                 stageListener.executeConsoleScript(targetSprite, script)
                             }
                         }
-                        // If inactive: scripts are in the model and will execute when scene starts
                     }
                 }
             } catch (e: NeoScriptException) {
@@ -117,14 +114,13 @@ class AssignScriptsAction : TemporalAction() {
         }
     }
 
-    private fun resolveScene(project: Project): Scene? {
-        val sceneName = targetSceneName
-        if (sceneName == null || sceneName.isEmpty()) {
+    private fun resolveScene(project: Project, sceneStr: String?): Scene? {
+        if (sceneStr.isNullOrEmpty()) {
             val current = ProjectManager.getInstance().getCurrentlyPlayingScene()
             if (current != null) return current
             return project.defaultScene
         }
-        return project.getSceneByName(sceneName)
+        return project.getSceneByName(sceneStr)
     }
 
     private suspend fun loadNeoScriptFile(path: String): NeoScriptFile = withContext(Dispatchers.IO) {
@@ -176,8 +172,6 @@ class AssignScriptsAction : TemporalAction() {
     companion object {
         private const val TAG = "AssignScriptsAction"
 
-        // Coroutine scope for background file I/O (survives action lifetime;
-        // SupervisorJob prevents one failure cancelling sibling actions).
         private val ioScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     }
 }

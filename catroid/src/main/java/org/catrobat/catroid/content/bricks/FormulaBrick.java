@@ -173,6 +173,9 @@ public abstract class FormulaBrick extends BrickBaseType implements View.OnClick
 		super.getView(context);
 		for (BiMap.Entry<FormulaField, Integer> entry : brickFieldToTextViewIdMap.entrySet()) {
 			TextView formulaFieldView = view.findViewById(entry.getValue());
+			if (!formulaMap.containsKey(entry.getKey())) {
+				formulaMap.put(entry.getKey(), new Formula(0));
+			}
 			String text =
 					getFormulaWithBrickField(entry.getKey()).clone().getTrimmedFormulaString(context);
 			formulaFieldView.setText(
@@ -310,6 +313,9 @@ public abstract class FormulaBrick extends BrickBaseType implements View.OnClick
 
 	protected void setSecondsLabel(View view, FormulaField formulaField) {
 		TextView textView = view.findViewById(R.id.brick_seconds_label);
+		if (textView == null) {
+			return;
+		}
 		Context context = textView.getContext();
 
 		if (getFormulaWithBrickField(formulaField).isNumber()) {

@@ -102,7 +102,6 @@ public class SettingsFragment extends PreferenceFragment {
     public static final String SETTINGS_SHOW_POCKETENSOR_BRICKS = "setting_pocketensor_bricks";
     public static final String SETTINGS_SHOW_FAST2D_BRICKS = "setting_fast2d_bricks";
     public static final String SETTINGS_SHOW_PATHFINDER_BRICKS = "setting_pathfinder_bricks";
-    public static final String SETTINGS_SHOW_TRANSITION_BRICKS = "setting_transition_bricks";
 	public static final String SETTINGS_OLD_DRAG = "setting_old_drag";
 	public static final String SETTINGS_SHOW_THREED_BRICKS = "setting_threed_bricks";
 	public static final String SETTINGS_SHOW_INTERNET_BRICKS = "setting_internet_bricks";
@@ -124,9 +123,7 @@ public class SettingsFragment extends PreferenceFragment {
 			"setting_parrot_jumping_sumo_catrobat_terms_of_service_accepted_permanently";
 	public static final String SETTINGS_TEST_BRICKS = "setting_test_bricks";
 	public static final String SETTINGS_CODE_ANALIZE = "pref_code_analysis_enabled";
-	public static final String SETTINGS_AI_ASSISTANT = "setting_ai_assistant";
 	PreferenceScreen screen = null;
-
 	public static final String AI_SENSORS_SCREEN_KEY = "setting_ai_screen";
 	public static final String ACCESSIBILITY_SCREEN_KEY = "setting_accessibility_screen";
 	public static final String NXT_SCREEN_KEY = "setting_nxt_screen";
@@ -537,9 +534,6 @@ public class SettingsFragment extends PreferenceFragment {
     }
     public static boolean isPathfinderSharedPreferenceEnabled(Context context) {
         return getBooleanSharedPreference(true, SETTINGS_SHOW_PATHFINDER_BRICKS, context);
-    }
-    public static boolean isTransitionSharedPreferenceEnabled(Context context) {
-        return getBooleanSharedPreference(true, SETTINGS_SHOW_TRANSITION_BRICKS, context);
     }
 	public static boolean isOldDragEnabled(Context context) {
 		return getBooleanSharedPreference(false, SETTINGS_OLD_DRAG, context);

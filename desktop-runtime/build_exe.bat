@@ -181,7 +181,7 @@ echo [5/6] Creating launcher...
 if exist "%LAUNCH4J_EXE%" goto :wrap_launch4j
 echo   launch4j not found - writing NeoCatroid.bat launcher instead.
 echo @echo off > "%APP_DIR%\NeoCatroid.bat"
-echo start "" jre\bin\javaw.exe -jar player.jar >> "%APP_DIR%\NeoCatroid.bat"
+echo start "" jre\bin\javaw.exe -Xmx4g -jar player.jar >> "%APP_DIR%\NeoCatroid.bat"
 goto :after_launcher
 
 :wrap_launch4j

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22.1)
-project("catroid")
+project("catroid" C CXX ASM)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -67,4 +67,38 @@ target_link_libraries(
         android
         EGL
         GLESv2
+)
+
+#
+# llama.cpp + AI Agent JNI
+#
+
+if(ANDROID_ABI STREQUAL "arm64-v8a")
+    set(GGML_CPU_ARM_ARCH "armv8-a" CACHE STRING "ARM arch for Android")
+endif()
+set(GGML_NATIVE OFF CACHE BOOL "Disable native optimizations for cross-compilation")
+set(GGML_ACCELERATE OFF CACHE BOOL "Disable Accelerate framework (not available on Android)")
+set(GGML_OPENMP OFF CACHE BOOL "Disable OpenMP for Android")
+set(GGML_LLAMAFILE OFF CACHE BOOL "Disable llamafile for Android")
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build static libs for llama")
+set(GGML_CUDA OFF CACHE BOOL "Disable CUDA")
+set(GGML_METAL OFF CACHE BOOL "Disable Metal")
+set(GGML_VULKAN OFF CACHE BOOL "Disable Vulkan")
+set(GGML_SYCL OFF CACHE BOOL "Disable SYCL")
+set(GGML_CPU_HBM OFF CACHE BOOL "Disable HBM")
+
+add_subdirectory(llama/llama.cpp-master)
+
+add_library(ai_agent_jni SHARED ai_agent_jni.cpp)
+
+target_include_directories(ai_agent_jni PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    llama/llama.cpp-master/include
+)
+
+target_link_libraries(ai_agent_jni
+    PRIVATE
+    llama
+    ${log-lib}
+    ${dl-lib}
 )

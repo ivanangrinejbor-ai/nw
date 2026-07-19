@@ -34,15 +34,20 @@
             style="@style/BrickEditText" />
 
         <TextView
+            android:id="@+id/brick_create_object_scene_label"
             style="@style/BrickText.SingleLine"
             android:text="@string/brick_create_object_scene"
             app:layout_newLine="true" />
 
-        <Spinner
-            android:id="@+id/brick_create_object_scene_spinner"
+        <CheckBox
+            android:id="@+id/brick_create_object_scene_checkbox"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="4dp" />
+            android:gravity="center_vertical" />
+
+        <TextView
+            android:id="@+id/brick_create_object_scene_edit"
+            style="@style/BrickEditText" />
 
         <TextView
             style="@style/BrickText.SingleLine"

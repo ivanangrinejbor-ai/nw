@@ -758,7 +758,7 @@ public class ScriptFragment extends ListFragment implements
 		BrickCategoryFragment brickCategoryFragment = new BrickCategoryFragment();
 		brickCategoryFragment.setOnCategorySelectedListener(this);
 
-		getFragmentManager().beginTransaction()
+		getParentFragmentManager().beginTransaction()
 				.add(R.id.fragment_container, brickCategoryFragment, BrickCategoryFragment.BRICK_CATEGORY_FRAGMENT_TAG)
 				.addToBackStack(BrickCategoryFragment.BRICK_CATEGORY_FRAGMENT_TAG)
 				.commit();
@@ -780,7 +780,7 @@ public class ScriptFragment extends ListFragment implements
 			tag = AddBrickFragment.ADD_BRICK_FRAGMENT_TAG;
 		}
 
-		getFragmentManager().beginTransaction()
+		getParentFragmentManager().beginTransaction()
 				.add(R.id.fragment_container, fragment, tag)
 				.addToBackStack(null)
 				.commit();

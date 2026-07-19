@@ -444,19 +444,15 @@ fun addBrickToScript(brick: Brick, activity: android.app.Activity, addBrickListe
                 )
             }
         } else {
-            val fragmentTransaction = parentFragmentManager.beginTransaction()
             val categoryFragment =
                 parentFragmentManager.findFragmentByTag(BrickCategoryFragment.BRICK_CATEGORY_FRAGMENT_TAG)
-            if (categoryFragment != null) {
-                fragmentTransaction.remove(categoryFragment)
-                parentFragmentManager.popBackStack()
+            val brickFragment = parentFragmentManager.findFragmentByTag(tag)
+            if (brickFragment != null || categoryFragment != null) {
+                parentFragmentManager.popBackStack(
+                    BrickCategoryFragment.BRICK_CATEGORY_FRAGMENT_TAG,
+                    FragmentManager.POP_BACK_STACK_INCLUSIVE
+                )
             }
-            val fragment = parentFragmentManager.findFragmentByTag(tag)
-            if (fragment != null) {
-                fragmentTransaction.remove(fragment)
-                parentFragmentManager.popBackStack()
-            }
-            fragmentTransaction.commit()
         }
     } catch (e: CloneNotSupportedException) {
         Log.e(tag, e.localizedMessage)

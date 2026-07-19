@@ -50,7 +50,8 @@ import com.huawei.hms.mlsdk.common.MLApplication;
 
 import com.google.android.material.color.DynamicColors;
  
- import org.catrobat.catroid.formulaeditor.CustomFormulaManager;
+ import org.catrobat.catroid.ai.AiAgentManager;
+import org.catrobat.catroid.formulaeditor.CustomFormulaManager;
 import org.catrobat.catroid.koin.CatroidKoinHelperKt;
 import org.catrobat.catroid.plugins.PluginEventBus;
 import org.catrobat.catroid.plugins.PluginExecutor;
@@ -136,6 +137,7 @@ public class CatroidApplication extends Application {
 
 		setupHuaweiMobileServices();
 		CustomFormulaManager.INSTANCE.initialize();
+        AiAgentManager.getInstance().init(this);
 
         PluginExecutor.getInstance(this).prepareEnvironment();
 

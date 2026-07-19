@@ -132,6 +132,11 @@
             <!--android:screenOrientation="portrait"-->
 
         <activity
+            android:name=".ai.chat.ChatActivity"
+            android:theme="@style/Theme.AppCompat.NoActionBar"
+            android:configChanges="orientation|screenSize|keyboardHidden"/>
+
+        <activity
             android:name=".utils.SimpleTextEditorActivity"
             android:noHistory="true"
             android:configChanges="orientation|screenSize|keyboardHidden"/>

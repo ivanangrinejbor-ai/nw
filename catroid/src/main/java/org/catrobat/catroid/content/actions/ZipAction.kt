@@ -39,7 +39,12 @@ open class ZipAction : TemporalAction() {
         if (!dir.exists()) {
             dir.mkdirs()
         }
-        val file = File(dir, zipName)
+        val baseCanonical = dir.canonicalPath
+        val file = File(dir, zipName).canonicalFile
+        if (!file.canonicalPath.startsWith(baseCanonical + File.separator)) {
+            Log.e("ZipAction", "Path traversal detected: $zipName")
+            return
+        }
         zipFiles(paths, file.absolutePath)
     }
 
@@ -55,11 +60,18 @@ open class ZipAction : TemporalAction() {
     private fun getFilePaths(input: String): List<String> {
         val delimiter = ","
         val dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+        val baseCanonical = dir.canonicalPath
 
         return input.split(delimiter).map { it.trim() }
             .filter { it.isNotEmpty() }
-            .map { fileName ->
-                File(dir, fileName).absolutePath
+            .mapNotNull { fileName ->
+                val f = File(dir, fileName).canonicalFile
+                if (!f.canonicalPath.startsWith(baseCanonical + File.separator)) {
+                    Log.e("ZipAction", "Path traversal detected in file list: $fileName")
+                    null
+                } else {
+                    f.absolutePath
+                }
             }
     }
 

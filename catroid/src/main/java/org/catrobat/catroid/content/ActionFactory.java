@@ -2521,7 +2521,7 @@ public class ActionFactory extends Actions {
 	}
 
 	public Action createDeleteVarsAction(Sprite sprite, SequenceAction sequence) {
-		DeleteVarAction action = action(DeleteVarAction.class);
+		DeleteVarsAction action = action(DeleteVarsAction.class);
 		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
 		action.setScope(scope);
 		return action;
@@ -4912,32 +4912,37 @@ public class ActionFactory extends Actions {
     }
 
     public Action createImportScriptAction(Sprite sprite, SequenceAction sequence, Formula objectName, Formula filePath, boolean overwrite) {
+        return createImportScriptAction(sprite, sequence, objectName, filePath, overwrite, null);
+    }
+
+    public Action createImportScriptAction(Sprite sprite, SequenceAction sequence, Formula objectName, Formula filePath, boolean overwrite, Formula sceneName) {
         ImportScriptAction action = action(ImportScriptAction.class);
         Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
         action.setScope(scope);
         action.setObjectName(objectName);
         action.setFilePath(filePath);
         action.setOverwrite(overwrite);
+        action.setSceneName(sceneName);
         return action;
     }
 
-    public Action createCreateObjectAction(Sprite sprite, SequenceAction sequence, Formula objectName, String targetScene, boolean persist) {
+    public Action createCreateObjectAction(Sprite sprite, SequenceAction sequence, Formula objectName, Formula sceneName, boolean persist) {
         CreateObjectAction action = action(CreateObjectAction.class);
         Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
         action.setScope(scope);
         action.setObjectName(objectName);
-        action.setTargetSceneName(targetScene);
+        action.setSceneName(sceneName);
         action.setPersist(persist);
         return action;
     }
 
-    public Action createAssignScriptsAction(Sprite sprite, SequenceAction sequence, Formula filePath, Formula objectName, String targetScene, boolean replaceExistingScripts, boolean savePersistent) {
+    public Action createAssignScriptsAction(Sprite sprite, SequenceAction sequence, Formula filePath, Formula objectName, Formula sceneName, boolean replaceExistingScripts, boolean savePersistent) {
         AssignScriptsAction action = action(AssignScriptsAction.class);
         Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
         action.setScope(scope);
         action.setFilePath(filePath);
         action.setObjectName(objectName);
-        action.setTargetSceneName(targetScene);
+        action.setSceneName(sceneName);
         action.setReplaceExistingScripts(replaceExistingScripts);
         action.setSavePersistent(savePersistent);
         return action;

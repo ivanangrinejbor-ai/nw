@@ -4862,6 +4862,7 @@
     <string formatted="false" name="brick_import_script_file">из файла</string>
     <string formatted="false" name="brick_import_script_file_hint">нажмите, чтобы выбрать файл .neoscript</string>
     <string formatted="false" name="brick_import_script_overwrite">если объект уже содержит импортированные скрипты?</string>
+    <string formatted="false" name="brick_import_script_scene">в сцене</string>
     <string formatted="false" name="menu_save_as_script">Сохранить как скрипт…</string>
     <string formatted="false" name="menu_import_script_module">Импортировать модуль скрипта…</string>
     <string formatted="false" name="save_script_title">Сохранить скрипт</string>
@@ -4883,6 +4884,8 @@
     <string formatted="false" name="brick_assign_scripts_object">объекту</string>
     <string formatted="false" name="brick_assign_scripts_scene">в сцене</string>
     <string formatted="false" name="brick_assign_scripts_replace_existing">Заменить существующие скрипты?</string>
+    <string formatted="false" name="brick_create_object_persistent">Создать объект навсегда?</string>
+    <string formatted="false" name="brick_assign_scripts_save">Сохранить скрипты после выхода из проекта?</string>
     <string formatted="false" name="current_scene">Текущая сцена</string>
     <string formatted="false" name="scene_not_found">Сцена не найдена: %1$s</string>
     <string formatted="false" name="unknown_blocks_detected_title">Обнаружены неизвестные блоки</string>

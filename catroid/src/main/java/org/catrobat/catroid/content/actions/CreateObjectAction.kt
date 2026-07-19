@@ -16,7 +16,7 @@ import android.util.Log
 class CreateObjectAction : TemporalAction() {
     var scope: Scope? = null
     var objectName: Formula? = null
-    var targetSceneName: String? = null  // null = Current scene
+    var sceneName: Formula? = null  // null = Current scene
     var persist: Boolean = false
 
     private var executed = false
@@ -30,7 +30,8 @@ class CreateObjectAction : TemporalAction() {
         if (name.isBlank()) return
 
         // Resolve scene
-        val scene = resolveScene(project)
+        val sceneStr = sceneName?.interpretString(scope)
+        val scene = resolveScene(project, sceneStr)
         if (scene == null) {
             Log.e(TAG, "Target scene not found")
             return
@@ -63,7 +64,6 @@ class CreateObjectAction : TemporalAction() {
         }
 
         // If this scene is currently active on stage, initialize the sprite
-        // so its Start scripts (if any) will execute on the next frame.
         val stageListener = StageActivity.getActiveStageListener()
         if (stageListener != null) {
             val activeScene = ProjectManager.getInstance().getCurrentlyPlayingScene()
@@ -74,19 +74,16 @@ class CreateObjectAction : TemporalAction() {
         }
     }
 
-    private fun resolveScene(project: org.catrobat.catroid.content.Project): Scene? {
-        val sceneName = targetSceneName
-        if (sceneName == null || sceneName.isEmpty()) {
-            // Current scene
+    private fun resolveScene(project: org.catrobat.catroid.content.Project, sceneStr: String?): Scene? {
+        if (sceneStr.isNullOrEmpty()) {
             val current = ProjectManager.getInstance().getCurrentlyPlayingScene()
             if (current != null) return current
             return project.getDefaultScene()
         }
-        return project.getSceneByName(sceneName)
+        return project.getSceneByName(sceneStr)
     }
 
     companion object {
         private const val TAG = "CreateObjectAction"
     }
 }
-

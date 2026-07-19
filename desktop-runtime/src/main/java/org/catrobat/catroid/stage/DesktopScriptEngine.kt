@@ -311,6 +311,9 @@ class DesktopScriptEngine(
     private var hasProjectExited = false
     /** Локальный HTTP-сервер (для Server-блоков). */
     private var localHttpServer: com.sun.net.httpserver.HttpServer? = null
+    /** Broadcast-wait: сообщения, ожидающие завершения получателей.
+     *  Ключ = сообщение, значение = список индексов sender-скриптов (ScriptState). */
+    private val pendingBroadcastWaits = mutableMapOf<String, MutableList<ScriptState>>()
     /** Screen shader placeholder (2D best-effort). */
     private var screenShaderVertexCode: String = ""
     private var screenShaderFragmentCode: String = ""
@@ -353,11 +356,17 @@ class DesktopScriptEngine(
         // update text overlays (bubble timers)
         updateTextOverlays(deltaSeconds)
 
+        // update variable display overlays with latest values
+        updateVariableOverlays()
+
         // Audio fade processing
         processAudioFades(deltaSeconds)
 
         // ── Фаза 1: проверка событий для event-скриптов ──
         checkEvents()
+
+        // ── Проверка broadcast_wait: если все получатели завершились, разблокировать sender'ов ──
+        checkBroadcastWaits()
 
         // ── Фаза 2: выполнение ──
         for (state in scriptStates) {
@@ -509,6 +518,29 @@ class DesktopScriptEngine(
     }
 
     /**
+     * Запустить WhenCloned скрипты для нового клона.
+     * @param cloneIdx индекс клона в project.sprites
+     * @param srcIdx индекс исходного спрайта
+     */
+    private fun triggerWhenClonedForClone(cloneIdx: Int, srcIdx: Int) {
+        val clone = project.sprites.getOrNull(cloneIdx) ?: return
+        for (origState in scriptStates) {
+            if (origState.eventType == "cloned" && origState.spriteIndex == srcIdx) {
+                // Копируем блоки из оригинального WhenCloned скрипта
+                val blocks = origState.frames.firstOrNull()?.blocks ?: continue
+                val cloneState = ScriptState(
+                    spriteIndex = cloneIdx,
+                    originalBlocks = blocks,
+                    eventType = "cloned",
+                    spriteName = clone.name
+                )
+                cloneState.eventFired = true
+                scriptStates.add(cloneState)
+            }
+        }
+    }
+
+    /**
      * Доставить broadcast-сообщение всем BroadcastScript-получателям.
      * Активирует (eventFired = true) каждый скрипт-получатель с совпадающим
      * сообщением, независимо от их количества (все получатели запускаются).
@@ -520,6 +552,34 @@ class DesktopScriptEngine(
                 state.eventFired = true
             }
         }
+    }
+
+    /**
+     * Проверить, завершились ли все получатели для каждого broadcast_wait.
+     * Если да — разблокировать sender'ов (продвинуть их IP).
+     */
+    private fun checkBroadcastWaits() {
+        val completed = mutableListOf<String>()
+        for ((msg, senders) in pendingBroadcastWaits) {
+            // Проверяем, есть ли ещё активные receiver-скрипты для этого сообщения
+            val anyReceiverStillRunning = scriptStates.any { state ->
+                state.eventType == "broadcast_receiver" &&
+                state.eventParam == msg &&
+                !state.isDone
+            }
+            if (!anyReceiverStillRunning) {
+                // Все получатели завершились — разблокируем sender'ов
+                for (sender in senders) {
+                    val rootFrame = sender.frames.firstOrNull()
+                    if (rootFrame != null) {
+                        // Продвигаем IP sender'а за broadcast_wait блок
+                        rootFrame.ip++
+                    }
+                }
+                completed.add(msg)
+            }
+        }
+        completed.forEach { pendingBroadcastWaits.remove(it) }
     }
 
     /**
@@ -757,38 +817,40 @@ class DesktopScriptEngine(
                 frame.ip++
             }
             "broadcast_wait" -> {
-                // broadcast and wait — доставляем сообщение всем получателям.
-                // (Примечание: блок не блокирует отправителя до завершения
-                //  получателей — реализована только доставка.)
+                // broadcast and wait — доставляем сообщение и ждём завершения
+                // всех скриптов-получателей.
                 val msg = block.args.getOrNull(1) as? String ?: ""
                 deliverBroadcast(msg)
-                frame.ip++
+                // Регистрируем sender в pendingBroadcastWaits — executeState
+                // не будет продвигать IP, пока все получатели не завершатся.
+                val list = pendingBroadcastWaits.getOrPut(msg) { mutableListOf() }
+                if (!list.contains(state)) list.add(state)
+                // frame.ip НЕ продвигаем — wait снимается после завершения получателей
             }
             "clone" -> {
-                // клонировать спрайт
-                val sprite = project.sprites.getOrNull(state.spriteIndex)
-                if (sprite != null) {
-                    val clone = sprite.copy()
+                // клонировать спрайт и запустить WhenCloned скрипты
+                val srcSprite = project.sprites.getOrNull(state.spriteIndex)
+                if (srcSprite != null) {
+                    val clone = srcSprite.copy()
+                    clone.cloneIndex = cloneCounter.incrementAndGet()
                     project.sprites.add(clone)
+                    val cloneIdx = project.sprites.lastIndex
+                    triggerWhenClonedForClone(cloneIdx, state.spriteIndex)
                 }
                 frame.ip++
             }
-            "delete_clone" -> {
-                // удалить текущий спрайт (клон)
+            "delete_this_clone" -> {
                 val spriteIdx = state.spriteIndex
                 if (spriteIdx > 0 && spriteIdx < project.sprites.size) {
                     val removedSprite = project.sprites[spriteIdx]
                     project.sprites.removeAt(spriteIdx)
-                    // Удалить физическое тело клона, иначе оно остаётся в мире (утечка).
                     physicsWorld?.removeBody(removedSprite)
-                    // Перенумеровать индексы спрайтов у остальных скриптов, т.к.
-                    // удаление из середины списка сдвигает индексы всех последующих.
                     for (s in scriptStates) {
                         if (s !== state && s.spriteIndex > spriteIdx) s.spriteIndex--
                     }
-                    state.frames.clear() // остановить скрипт клона
+                    state.frames.clear()
                 }
-                frame.ip = frame.blocks.size // выход
+                frame.ip = frame.blocks.size
             }
             "stop_script" -> {
                 // остановить текущий скрипт
@@ -1123,7 +1185,232 @@ class DesktopScriptEngine(
                     clone.name = if (newName.isNotEmpty()) newName else "${srcName}_clone"
                     clone.cloneIndex = cloneCounter.incrementAndGet()
                     project.sprites.add(clone)
+                    val cloneIdx = project.sprites.lastIndex
+                    val srcIdx = project.sprites.indexOfFirst { it.name == srcName }
+                    if (srcIdx >= 0) triggerWhenClonedForClone(cloneIdx, srcIdx)
                 }
+                frame.ip++
+            }
+            // ── Clone-by-number ──
+            "delete_clone_by_number" -> {
+                val n = (block.args.getOrNull(1) as? Number)?.toInt() ?: 0
+                if (n > 0) {
+                    for (state in scriptStates) {
+                        val sp = project.sprites.getOrNull(state.spriteIndex)
+                        if (sp != null && sp.cloneIndex == n) {
+                            project.sprites.removeAt(state.spriteIndex)
+                            physicsWorld?.removeBody(sp)
+                            state.frames.clear()
+                            break
+                        }
+                    }
+                }
+                frame.ip++
+            }
+            "clone_and_name" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                val srcSprite = project.sprites.getOrNull(state.spriteIndex)
+                if (srcSprite != null && name.isNotEmpty()) {
+                    val clone = srcSprite.copy()
+                    clone.name = name
+                    clone.cloneIndex = cloneCounter.incrementAndGet()
+                    project.sprites.add(clone)
+                    val cloneIdx = project.sprites.lastIndex
+                    triggerWhenClonedForClone(cloneIdx, state.spriteIndex)
+                }
+                frame.ip++
+            }
+            "timer_start" -> {
+                variables["__timer_running"] = 1f
+                variables["__timer_start"] = System.nanoTime().toDouble()
+                frame.ip++
+            }
+            "timer_stop" -> {
+                variables["__timer_running"] = 0f
+                frame.ip++
+            }
+            "stop_background" -> {
+                // Desktop: no background processing — no-op
+                frame.ip++
+            }
+            "load_scene_additive" -> {
+                val scene = block.args.getOrNull(1) as? String ?: ""
+                if (scene.isNotEmpty()) {
+                    val targetDir = project.projectDir?.resolve(scene)
+                    if (targetDir?.exists() == true) {
+                        project.projectDir = targetDir
+                        parseProject()
+                    }
+                }
+                frame.ip++
+            }
+            "preload_scene" -> {
+                // Desktop: scenes preloaded on demand — no-op
+                frame.ip++
+            }
+            "cast_ray" -> {
+                val x1 = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
+                val y1 = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
+                val x2 = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 0f
+                val y2 = (block.args.getOrNull(4) as? Number)?.toFloat() ?: 0f
+                val dx = (block.args.getOrNull(5) as? Number)?.toFloat() ?: 0f
+                val dy = (block.args.getOrNull(6) as? Number)?.toFloat() ?: 0f
+                val maxd = (block.args.getOrNull(7) as? Number)?.toFloat() ?: 1000f
+                val results = physicsWorld?.rayCast(x1, y1, x2, y2) ?: emptyList()
+                val asVar = "raycast_result"
+                variables[asVar] = results.size.toFloat()
+                results.forEachIndexed { idx, r ->
+                    variables["${asVar}_${idx}_x"] = r.pointX
+                    variables["${asVar}_${idx}_y"] = r.pointY
+                }
+                frame.ip++
+            }
+            "set_parent" -> {
+                val child = block.args.getOrNull(1) as? String ?: ""
+                val parent = block.args.getOrNull(2) as? String ?: ""
+                if (child.isNotEmpty() && parent.isNotEmpty()) {
+                    variables["__parent_$child"] = parent
+                }
+                frame.ip++
+            }
+            "remove_parent" -> {
+                val child = block.args.getOrNull(1) as? String ?: ""
+                if (child.isNotEmpty()) variables.remove("__parent_$child")
+                frame.ip++
+            }
+            "delay" -> {
+                val t = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
+                frame.waitTimer = maxOf(frame.waitTimer, t)
+                frame.ip++
+            }
+            // ── NeoScript runtime stubs ──
+            "assign_scripts" -> {
+                val filePath = block.args.getOrNull(1) as? String ?: ""
+                val objName = block.args.getOrNull(2) as? String ?: ""
+                val sceneName = block.args.getOrNull(3) as? String ?: ""
+                val replaceSel = block.args.getOrNull(4) as? String ?: "0"
+                val saveSel = block.args.getOrNull(5) as? String ?: "0"
+                // На Desktop .neoscript импорт — заглушка (загрузка file-path не поддерживается в runtime)
+                if (filePath.isNotEmpty()) variables["__assign_script_$objName"] = filePath
+                frame.ip++
+            }
+            "import_script" -> {
+                val objName = block.args.getOrNull(1) as? String ?: ""
+                val filePath = block.args.getOrNull(2) as? String ?: ""
+                val overwriteSel = block.args.getOrNull(3) as? String ?: "0"
+                if (filePath.isNotEmpty()) variables["__import_script_$objName"] = filePath
+                frame.ip++
+            }
+            "create_object" -> {
+                val objName = block.args.getOrNull(1) as? String ?: ""
+                val sceneSel = block.args.getOrNull(2) as? String ?: "0"
+                val persistSel = block.args.getOrNull(3) as? String ?: "0"
+                if (objName.isNotEmpty()) {
+                    val newSprite = DesktopSprite(name = objName)
+                    newSprite.cloneIndex = cloneCounter.incrementAndGet()
+                    project.sprites.add(newSprite)
+                }
+                frame.ip++
+            }
+            // ── Dialog/misc stubs ──
+            "create_dialog" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                val text = block.args.getOrNull(2) as? String ?: ""
+                val varName = block.args.getOrNull(3) as? String ?: ""
+                if (text.isNotEmpty() && varName.isNotEmpty()) {
+                    val answer = javax.swing.JOptionPane.showInputDialog(null, text, name.ifEmpty { "Dialog" }, javax.swing.JOptionPane.QUESTION_MESSAGE)
+                    variables[varName] = answer ?: ""
+                }
+                frame.ip++
+            }
+            "hide_status_bar" -> {
+                // Desktop: нет status bar — no-op
+                frame.ip++
+            }
+            "toggle_display" -> {
+                val stateVal = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
+                variables["__display_on"] = stateVal
+                frame.ip++
+            }
+            "set_orientation" -> {
+                val orientation = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
+                variables["__orientation"] = orientation
+                frame.ip++
+            }
+            "set_save_scenes" -> {
+                val save = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
+                variables["__save_scenes"] = save
+                frame.ip++
+            }
+            "add_edit" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                val text = block.args.getOrNull(2) as? String ?: ""
+                // Add/edit UI element — no-op on desktop
+                frame.ip++
+            }
+            "add_radio" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                val text = block.args.getOrNull(2) as? String ?: ""
+                frame.ip++
+            }
+            "create_buffer" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                val w = (block.args.getOrNull(2) as? Number)?.toInt() ?: 0
+                val h = (block.args.getOrNull(3) as? Number)?.toInt() ?: 0
+                if (name.isNotEmpty()) variables["__buffer_$name"] = "$w,$h"
+                frame.ip++
+            }
+            "add_to_buffer" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                frame.ip++
+            }
+            "remove_from_buffer" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                frame.ip++
+            }
+            "save_buffer" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                val file = block.args.getOrNull(2) as? String ?: ""
+                frame.ip++
+            }
+            "apply_buffer_look" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                frame.ip++
+            }
+            "set_buffer_auto_update" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                val stateVal = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
+                frame.ip++
+            }
+            "set_buffer_mode" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                val r2d = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
+                val r3d = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 0f
+                frame.ip++
+            }
+            "set_buffer_only" -> {
+                val stateVal = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
+                frame.ip++
+            }
+            "grid" -> {
+                val x = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
+                val y = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
+                val w = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 0f
+                val h = (block.args.getOrNull(4) as? Number)?.toFloat() ?: 0f
+                variables["__grid"] = "$x,$y,$w,$h"
+                frame.ip++
+            }
+            "set_ai" -> {
+                val objId = block.args.getOrNull(1) as? String ?: ""
+                val mode = (block.args.getOrNull(2) as? Number)?.toInt() ?: 0
+                val speed = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 0f
+                val dist = (block.args.getOrNull(4) as? Number)?.toFloat() ?: 0f
+                val range = (block.args.getOrNull(5) as? Number)?.toFloat() ?: 0f
+                val avoid = (block.args.getOrNull(6) as? Number)?.toFloat() ?: 0f
+                val step = (block.args.getOrNull(7) as? Number)?.toFloat() ?: 0f
+                val target = block.args.getOrNull(8) as? String ?: ""
+                if (objId.isNotEmpty()) variables["__ai_$objId"] = "$mode,$speed,$dist,$range,$avoid,$step,$target"
+                frame.ip++
             }
         }
     }
@@ -1523,6 +1810,191 @@ class DesktopScriptEngine(
                     variables[varName] = answer ?: ""
                 }
             }
+
+            // ═══════ 3D lighting/rendering stubs ═══════
+            "set_ambient_light" -> {
+                val r = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
+                val g = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
+                val b = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 0f
+                val intensity = (block.args.getOrNull(4) as? Number)?.toFloat() ?: 1f
+                variables["__ambient_light"] = "$r,$g,$b,$intensity"
+            }
+            "set_point_light" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                val r = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 1f
+                val g = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 1f
+                val b = (block.args.getOrNull(4) as? Number)?.toFloat() ?: 1f
+                val intensity = (block.args.getOrNull(5) as? Number)?.toFloat() ?: 1f
+                val range = (block.args.getOrNull(6) as? Number)?.toFloat() ?: 10f
+                if (name.isNotEmpty()) variables["__point_light_$name"] = "$r,$g,$b,$intensity,$range"
+            }
+            "set_spot_light" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                if (name.isNotEmpty()) variables["__spot_light_$name"] = "stored"
+            }
+            "set_directional_light" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                val r = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 1f
+                val g = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 1f
+                val b = (block.args.getOrNull(4) as? Number)?.toFloat() ?: 1f
+                val intensity = (block.args.getOrNull(5) as? Number)?.toFloat() ?: 1f
+                if (name.isNotEmpty()) variables["__dir_light_$name"] = "$r,$g,$b,$intensity"
+            }
+            "set_directional_light2" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                val r = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 1f
+                val g = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 1f
+                val b = (block.args.getOrNull(4) as? Number)?.toFloat() ?: 1f
+                val intensity = (block.args.getOrNull(5) as? Number)?.toFloat() ?: 1f
+                if (name.isNotEmpty()) variables["__dir_light2_$name"] = "$r,$g,$b,$intensity"
+            }
+            "set_skybox" -> {
+                val texture = block.args.getOrNull(1) as? String ?: ""
+                if (texture.isNotEmpty()) variables["__skybox"] = texture
+            }
+            "set_sky_color" -> {
+                val r = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
+                val g = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
+                val b = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 0f
+                variables["__sky_color"] = "$r,$g,$b"
+            }
+            "set_fog" -> {
+                val r = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
+                val g = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
+                val b = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 0f
+                val density = (block.args.getOrNull(4) as? Number)?.toFloat() ?: 0f
+                variables["__fog"] = "$r,$g,$b,$density"
+            }
+            "set_shadows" -> {
+                val enabled = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
+                variables["__shadows"] = enabled
+            }
+            "set_shadow_quality" -> {
+                val quality = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
+                variables["__shadow_quality"] = quality
+            }
+            "set_material" -> {
+                val objectId = block.args.getOrNull(1) as? String ?: ""
+                val metallic = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
+                val roughness = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 0f
+                if (objectId.isNotEmpty()) variables["__material_$objectId"] = "$metallic,$roughness"
+            }
+            "set_emissive" -> {
+                val objectId = block.args.getOrNull(1) as? String ?: ""
+                val r = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
+                val g = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 0f
+                val b = (block.args.getOrNull(4) as? Number)?.toFloat() ?: 0f
+                val intensity = (block.args.getOrNull(5) as? Number)?.toFloat() ?: 1f
+                if (objectId.isNotEmpty()) variables["__emissive_$objectId"] = "$r,$g,$b,$intensity"
+            }
+            "set_texture_tiling" -> {
+                val objectId = block.args.getOrNull(1) as? String ?: ""
+                val tx = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 1f
+                val ty = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 1f
+                if (objectId.isNotEmpty()) variables["__tiling_$objectId"] = "$tx,$ty"
+            }
+            "set_post_processing" -> {
+                val effect = block.args.getOrNull(1) as? String ?: ""
+                val intensity = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 1f
+                if (effect.isNotEmpty()) variables["__post_effect"] = "$effect,$intensity"
+            }
+            "set_post_processing_new" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                val intensity = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 1f
+                if (name.isNotEmpty()) variables["__post_effect_$name"] = intensity
+            }
+            "enable_pbr" -> {
+                val enabled = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
+                variables["__pbr_enabled"] = enabled
+            }
+            "set_anisotropic" -> {
+                val level = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
+                variables["__anisotropic"] = level
+            }
+            "set_ccd" -> {
+                val enabled = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
+                variables["__ccd"] = enabled
+            }
+            "set_particle_emission" -> {
+                val objectId = block.args.getOrNull(1) as? String ?: ""
+                val rate = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
+                if (objectId.isNotEmpty()) variables["__particle_$objectId"] = rate
+            }
+            "set_spawn_invisible" -> {
+                val invisible = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
+                variables["__spawn_invisible"] = invisible
+            }
+            "set_pitch_only" -> {
+                val objectId = block.args.getOrNull(1) as? String ?: ""
+                val pitchOnly = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
+                if (objectId.isNotEmpty()) variables["__pitch_only_$objectId"] = pitchOnly
+            }
+            "promote_light" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                if (name.isNotEmpty()) variables["__promote_light_$name"] = 1f
+            }
+            "set_shader_code" -> {
+                val objectId = block.args.getOrNull(1) as? String ?: ""
+                val vertex = block.args.getOrNull(2) as? String ?: ""
+                val fragment = block.args.getOrNull(3) as? String ?: ""
+                if (objectId.isNotEmpty()) {
+                    variables["__shader_v_$objectId"] = vertex
+                    variables["__shader_f_$objectId"] = fragment
+                }
+            }
+            "set_shader_uniform_float" -> {
+                val objectId = block.args.getOrNull(1) as? String ?: ""
+                val uniformName = block.args.getOrNull(2) as? String ?: ""
+                val value = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 0f
+                if (objectId.isNotEmpty() && uniformName.isNotEmpty()) {
+                    variables["__uniform_${objectId}_$uniformName"] = value
+                }
+            }
+            "set_shader_uniform_vec3" -> {
+                val objectId = block.args.getOrNull(1) as? String ?: ""
+                val uniformName = block.args.getOrNull(2) as? String ?: ""
+                val v1 = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 0f
+                val v2 = (block.args.getOrNull(4) as? Number)?.toFloat() ?: 0f
+                val v3 = (block.args.getOrNull(5) as? Number)?.toFloat() ?: 0f
+                if (objectId.isNotEmpty() && uniformName.isNotEmpty()) {
+                    variables["__uniform3_${objectId}_$uniformName"] = "$v1,$v2,$v3"
+                }
+            }
+            "set_max_point_lights" -> {
+                val count = (block.args.getOrNull(1) as? Number)?.toInt() ?: 4
+                variables["__max_point_lights"] = count.toFloat()
+            }
+            "remove_pbr_light" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                if (name.isNotEmpty()) {
+                    variables.remove("__point_light_$name")
+                    variables.remove("__spot_light_$name")
+                    variables.remove("__dir_light_$name")
+                    variables.remove("__dir_light2_$name")
+                }
+            }
+            "set_background_light" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                val r = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
+                val g = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 0f
+                val b = (block.args.getOrNull(4) as? Number)?.toFloat() ?: 0f
+                if (name.isNotEmpty()) variables["__bg_light_$name"] = "$r,$g,$b"
+            }
+            "apply_shader_to_image" -> {
+                val fileName = block.args.getOrNull(1) as? String ?: ""
+                val shaderName = block.args.getOrNull(2) as? String ?: ""
+                if (fileName.isNotEmpty() && shaderName.isNotEmpty()) {
+                    variables["__shader_img_$fileName"] = shaderName
+                }
+            }
+            "big_ask" -> {
+                val question = block.args.getOrNull(1) as? String ?: ""
+                val varName = block.args.getOrNull(2) as? String ?: ""
+                if (question.isNotEmpty() && varName.isNotEmpty()) {
+                    val answer = javax.swing.JOptionPane.showInputDialog(null, question, "Input", javax.swing.JOptionPane.QUESTION_MESSAGE)
+                    variables[varName] = answer ?: ""
+                }
+            }
         }
         frame.ip++
     }
@@ -1535,6 +2007,8 @@ class DesktopScriptEngine(
             val conn = url.openConnection() as java.net.HttpURLConnection
             conn.requestMethod = "POST"
             conn.setRequestProperty("Content-Type", "application/json")
+            conn.connectTimeout = 15_000
+            conn.readTimeout = 15_000
             conn.doOutput = true
             val escaped = question.replace("\\", "\\\\").replace("\"", "\\\"")
             val jsonBody = """{"contents":[{"parts":[{"text":"$escaped"}]}]}"""
@@ -1567,6 +2041,27 @@ class DesktopScriptEngine(
             }
         }
         expired.forEach { textOverlays.remove(it) }
+    }
+
+    /** Обновить текст переменных в overlay каждый кадр (для ShowTextBrick). */
+    private fun updateVariableOverlays() {
+        val toRemove = mutableListOf<String>()
+        for ((key, overlay) in textOverlays) {
+            if (!overlay.isVariable) continue
+            // key format: "var_${spriteName}_$varName"
+            val parts = key.split("_", limit = 3)
+            if (parts.size < 3) continue
+            val varName = parts[2]
+            val varValue = variables[varName]
+            val text = when (varValue) {
+                is Double -> if (varValue == varValue.toLong().toDouble()) varValue.toLong().toString() else varValue.toString()
+                is Float -> if (varValue == varValue.toLong().toFloat()) varValue.toLong().toString() else varValue.toString()
+                is Number -> varValue.toString()
+                else -> varValue?.toString() ?: ""
+            }
+            overlay.text = "$varName: $text"
+        }
+        toRemove.forEach { textOverlays.remove(it) }
     }
 
     private fun executeMotion(block: Block, sprite: DesktopSprite, frame: Frame) {
@@ -1757,6 +2252,8 @@ class DesktopScriptEngine(
                     clone.name = name
                     clone.cloneIndex = cloneCounter.incrementAndGet()
                     project.sprites.add(clone)
+                    val cloneIdx = project.sprites.lastIndex
+                    triggerWhenClonedForClone(cloneIdx, project.sprites.indexOfFirst { it.name == sprite.name })
                 }
             }
                 "delete_clone_by_number" -> {
@@ -1806,66 +2303,6 @@ class DesktopScriptEngine(
             "add_edit" -> { /* редактор-блок: no-op в рантайме */ }
             "add_radio" -> { /* редактор-блок: no-op в рантайме */ }
             "set_ai" -> { /* AI-блок: no-op в рантайме (best-effort) */ }
-            "create_buffer" -> {
-                val name = block.args.getOrNull(1) as? String ?: ""
-                val width = (block.args.getOrNull(2) as? Number)?.toInt() ?: 0
-                val height = (block.args.getOrNull(3) as? Number)?.toInt() ?: 0
-                if (name.isNotEmpty()) {
-                    buffers[name] = BufferState(width = width, height = height)
-                }
-            }
-            "add_to_buffer" -> {
-                val name = block.args.getOrNull(1) as? String ?: ""
-                if (name.isNotEmpty()) {
-                    val state = buffers.getOrPut(name) { BufferState() }
-                    state.entries.add(sprite.name)
-                }
-            }
-            "remove_from_buffer" -> {
-                val name = block.args.getOrNull(1) as? String ?: ""
-                if (name.isNotEmpty()) {
-                    buffers[name]?.entries?.removeLastOrNull()
-                }
-            }
-            "save_buffer" -> {
-                val name = block.args.getOrNull(1) as? String ?: ""
-                val fileName = block.args.getOrNull(2) as? String ?: ""
-                val state = buffers[name]
-                if (state != null && fileName.isNotEmpty()) {
-                    try {
-                        val out = java.io.File(fileName)
-                        out.parentFile?.mkdirs()
-                        out.writeText(state.entries.joinToString("\n"))
-                    } catch (_: Exception) { /* ignore */ }
-                }
-            }
-            "apply_buffer_look" -> {
-                val name = block.args.getOrNull(1) as? String ?: ""
-                if (name.isNotEmpty()) {
-                    buffers.getOrPut(name) { BufferState() }
-                }
-            }
-            "set_buffer_auto_update" -> {
-                val name = block.args.getOrNull(1) as? String ?: ""
-                val state = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
-                if (name.isNotEmpty()) {
-                    buffers.getOrPut(name) { BufferState() }.autoUpdate = state != 0f
-                }
-            }
-            "set_buffer_mode" -> {
-                val name = block.args.getOrNull(1) as? String ?: ""
-                val mode2d = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
-                val mode3d = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 0f
-                if (name.isNotEmpty()) {
-                    val state = buffers.getOrPut(name) { BufferState() }
-                    state.mode2d = mode2d != 0f
-                    state.bufferOnly = mode3d != 0f && !state.mode2d
-                }
-            }
-            "set_buffer_only" -> {
-                val state = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
-                buffers.getOrPut(sprite.name) { BufferState() }.bufferOnly = state != 0f
-            }
             "create_buffer" -> {
                 val name = block.args.getOrNull(1) as? String ?: ""
                 val width = (block.args.getOrNull(2) as? Number)?.toInt() ?: 0
@@ -2121,12 +2558,158 @@ class DesktopScriptEngine(
                 if (name.isNotEmpty()) physicsWorld?.destroyJoint(name)
             }
 
+            // ── Gear joint (Box2D) ──
+            "create_joint_gear" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                val jointAName = block.args.getOrNull(2) as? String ?: ""
+                val jointBName = block.args.getOrNull(3) as? String ?: ""
+                val ratio = (block.args.getOrNull(4) as? Number)?.toFloat() ?: 1f
+                if (name.isNotEmpty() && jointAName.isNotEmpty() && jointBName.isNotEmpty()) {
+                    val jointA = physicsWorld?.getJoint(jointAName)
+                    val jointB = physicsWorld?.getJoint(jointBName)
+                    if (jointA != null && jointB != null) {
+                        val jd = com.badlogic.gdx.physics.box2d.joints.GearJointDef()
+                        jd.joint1 = jointA
+                        jd.joint2 = jointB
+                        jd.ratio = ratio
+                        val joint = physicsWorld?.world?.createJoint(jd)
+                        if (joint != null) physicsWorld?.addJoint(name, joint)
+                    }
+                }
+            }
+            // ── Pulley joint (Box2D) ──
+            "create_joint_pulley" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                val spriteAName = block.args.getOrNull(2) as? String ?: ""
+                val spriteBName = block.args.getOrNull(3) as? String ?: ""
+                val gaAX = (block.args.getOrNull(4) as? Number)?.toFloat() ?: 0f
+                val gaAY = (block.args.getOrNull(5) as? Number)?.toFloat() ?: 0f
+                val gaBX = (block.args.getOrNull(6) as? Number)?.toFloat() ?: 0f
+                val gaBY = (block.args.getOrNull(7) as? Number)?.toFloat() ?: 0f
+                val ratio = (block.args.getOrNull(8) as? Number)?.toFloat() ?: 1f
+                val spriteA = project.sprites.find { it.name == spriteAName }
+                val spriteB = project.sprites.find { it.name == spriteBName }
+                val bA = if (spriteA != null) physicsWorld?.ensureBody(spriteA) else physicsWorld?.getBody(sprite)
+                val bB = if (spriteB != null) physicsWorld?.ensureBody(spriteB) else bA
+                if (bA != null && bB != null && bA != bB) {
+                    val jd = com.badlogic.gdx.physics.box2d.joints.PulleyJointDef()
+                    jd.bodyA = bA
+                    jd.bodyB = bB
+                    jd.collideConnected = true
+                    jd.groundAnchorA.set(gaAX, gaAY)
+                    jd.groundAnchorB.set(gaBX, gaBY)
+                    jd.lengthA = spriteA?.let { kotlin.math.sqrt((it.x - gaAX)*(it.x - gaAX) + (it.y - gaAY)*(it.y - gaAY)) } ?: 1f
+                    jd.lengthB = spriteB?.let { kotlin.math.sqrt((it.x - gaBX)*(it.x - gaBX) + (it.y - gaBY)*(it.y - gaBY)) } ?: 1f
+                    jd.ratio = ratio
+                    val joint = physicsWorld?.world?.createJoint(jd)
+                    if (joint != null && name.isNotEmpty()) physicsWorld?.addJoint(name, joint)
+                }
+            }
+            // ── Point joint (Box2D: approximated as WeldJoint at anchor) ──
+            "create_joint_point" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                val objAName = block.args.getOrNull(2) as? String ?: ""
+                val objBName = block.args.getOrNull(3) as? String ?: ""
+                val paX = (block.args.getOrNull(4) as? Number)?.toFloat() ?: 0f
+                val paY = (block.args.getOrNull(5) as? Number)?.toFloat() ?: 0f
+                val spriteA = if (objAName.isNotEmpty()) project.sprites.find { it.name == objAName } else null
+                val spriteB = if (objBName.isNotEmpty()) project.sprites.find { it.name == objBName } else null
+                val bA = if (spriteA != null) physicsWorld?.ensureBody(spriteA) else physicsWorld?.getBody(sprite)
+                val bB = if (spriteB != null) physicsWorld?.ensureBody(spriteB) else null
+                if (bA != null && bB != null) {
+                    val jd = com.badlogic.gdx.physics.box2d.joints.WeldJointDef()
+                    jd.bodyA = bA
+                    jd.bodyB = bB
+                    jd.collideConnected = true
+                    jd.localAnchorA.set(paX, paY)
+                    val joint = physicsWorld?.world?.createJoint(jd)
+                    if (joint != null && name.isNotEmpty()) physicsWorld?.addJoint(name, joint)
+                }
+            }
+            // ── Hinge and motor (3D stubs) ──
+            "add_hinge" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                val objA = block.args.getOrNull(2) as? String ?: ""
+                val objB = block.args.getOrNull(3) as? String ?: ""
+                if (name.isNotEmpty()) variables["__hinge_$name"] = "$objA|$objB"
+            }
+            "set_hinge_motor" -> {
+                val id = block.args.getOrNull(1) as? String ?: ""
+                val target = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
+                val maxForce = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 0f
+                if (id.isNotEmpty()) variables["__hinge_motor_$id"] = "$target|$maxForce"
+            }
+            // ── Hitbox: currently a no-op on desktop (all sprites use default box) ──
+            "set_hitbox" -> {
+                val lookName = block.args.getOrNull(1) as? String ?: ""
+                if (lookName.isNotEmpty()) {
+                    variables["__hitbox_${sprite.name}"] = lookName
+                }
+            }
+            // ── 3D object stubs (no 3D renderer on desktop) ──
+            "create_3d_object" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                val file = block.args.getOrNull(2) as? String ?: ""
+                if (name.isNotEmpty()) variables["__3dobj_$name"] = file
+            }
+            "remove_3d_object" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                variables.remove("__3dobj_$name")
+            }
+            "set_3d_position" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                val x = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
+                val y = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 0f
+                val z = (block.args.getOrNull(4) as? Number)?.toFloat() ?: 0f
+                if (name.isNotEmpty()) variables["__3dpos_$name"] = "$x,$y,$z"
+            }
+            "set_3d_rotation" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                val rx = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
+                val ry = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 0f
+                val rz = (block.args.getOrNull(4) as? Number)?.toFloat() ?: 0f
+                if (name.isNotEmpty()) variables["__3drot_$name"] = "$rx,$ry,$rz"
+            }
+            "set_3d_scale" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                val sx = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 1f
+                val sy = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 1f
+                val sz = (block.args.getOrNull(4) as? Number)?.toFloat() ?: 1f
+                if (name.isNotEmpty()) variables["__3dscale_$name"] = "$sx,$sy,$sz"
+            }
+            "set_3d_velocity" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                val vx = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
+                val vy = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 0f
+                val vz = (block.args.getOrNull(4) as? Number)?.toFloat() ?: 0f
+                if (name.isNotEmpty()) variables["__3dvel_$name"] = "$vx,$vy,$vz"
+            }
+            "set_3d_friction" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                val friction = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
+                if (name.isNotEmpty()) variables["__3dfric_$name"] = friction
+            }
+            "set_3d_gravity" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                val gx = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
+                val gy = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 0f
+                val gz = (block.args.getOrNull(4) as? Number)?.toFloat() ?: 0f
+                if (name.isNotEmpty()) variables["__3dgrav_$name"] = "$gx,$gy,$gz"
+            }
+            "apply_3d_force" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                val fx = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
+                val fy = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 0f
+                val fz = (block.args.getOrNull(4) as? Number)?.toFloat() ?: 0f
+                if (name.isNotEmpty()) variables["__3dforce_$name"] = "$fx,$fy,$fz"
+            }
+
             // ── Fast2D bricks (best-effort на Desktop: 2D-спрайты + Box2D) ──
             "fast2d_create" -> {
                 val name = block.args.getOrNull(1) as? String ?: ""
                 if (name.isNotEmpty() && project.sprites.none { it.name == name }) {
                     val ns = DesktopSprite(name = name)
-                    ns.cloneIndex = ++cloneCounter
+                    ns.cloneIndex = cloneCounter.incrementAndGet()
                     project.sprites.add(ns)
                 }
             }
@@ -2362,6 +2945,46 @@ class DesktopScriptEngine(
             // SetBufferCamera / SetBufferCamera3D: off-screen buffers have no 2D equivalent.
             "set_buffer_camera", "set_buffer_camera_3d" -> {
                 // No-op: buffer cameras are not rendered in the desktop player.
+            }
+
+            // ── Camera HW stubs (no-op on desktop — no camera hardware) ──
+            "camera_preview" -> {
+                // CameraBrick: enable/disable camera preview — no-op on desktop
+            }
+            "camera_choose" -> {
+                // ChooseCameraBrick: front/back camera — no-op on desktop
+            }
+            "camera_flash" -> {
+                // FlashBrick: flash on/off — no-op on desktop
+            }
+            "camera_photo" -> {
+                // PhotoBrick: take picture — no-op on desktop
+            }
+            "camera_tracking" -> {
+                // CameraTrackingBrick: 3D tracking — no-op on desktop
+            }
+            "camera_focus" -> {
+                // SetCameraFocusPointBrick: 3D focus point — no-op on desktop
+            }
+
+            // ── New Camera stubs (no 3D scene on desktop) ──
+            "object_look_at" -> {
+                // ObjectLookAtBrick: makes 3D object look at a point — no-op
+            }
+            "visual_placement" -> {
+                // VisualPlacementBrick: placement mode — no-op
+            }
+            "keyframe_animation" -> {
+                // KeyframeAnimationBrick: animate 3D object along keyframes — no-op
+            }
+            "create_gl_view" -> {
+                // CreateGLViewBrick: separate GLSurfaceView — no-op
+            }
+            "attach_so" -> {
+                // AttachSOB: attach sub-object — no-op
+            }
+            "load_native_module" -> {
+                // LoadNativeModuleBrick: load native library — no-op (security)
             }
         }
         frame.ip++
@@ -2729,14 +3352,33 @@ class DesktopScriptEngine(
                 }
             }
             "show_variable" -> {
-                val name = block.args.getOrNull(1) as? String ?: ""
-                val x = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
-                val y = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 0f
-                // показ переменной на экране
+                val varName = block.args.getOrNull(1) as? String ?: ""
+                val x = evalBlockArgFloat(block, 2, sprite, state) ?: 0f
+                val y = evalBlockArgFloat(block, 3, sprite, state) ?: 0f
+                if (varName.isNotEmpty()) {
+                    val varValue = variables[varName]
+                    val text = when (varValue) {
+                        is Double -> if (varValue == varValue.toLong().toDouble()) varValue.toLong().toString() else varValue.toString()
+                        is Float -> if (varValue == varValue.toLong().toFloat()) varValue.toLong().toString() else varValue.toString()
+                        is Number -> varValue.toString()
+                        else -> varValue?.toString() ?: ""
+                    }
+                    val overlayName = "var_${sprite.name}_$varName"
+                    textOverlays[overlayName] = TextOverlay(
+                        name = overlayName,
+                        text = "$varName: $text",
+                        x = x, y = y,
+                        remainingSeconds = -1f,
+                        isVariable = true
+                    )
+                }
             }
             "hide_variable" -> {
                 val name = block.args.getOrNull(1) as? String ?: ""
-                // скрыть переменную
+                if (name.isNotEmpty()) {
+                    val overlayName = "var_${sprite.name}_$name"
+                    textOverlays.remove(overlayName)
+                }
             }
             "create_float" -> {
                 val name = block.args.getOrNull(1) as? String ?: ""
@@ -3070,6 +3712,148 @@ class DesktopScriptEngine(
                 val resp = firebaseRequest("PUT", firebaseUrl(id, key), jsonString(value))
                 if (resp == null) baseStore["$id:$key"] = value   // фолбэк при ошибке сети
             }
+
+            // ── Firebase Storage (REST API — firebasestorage.googleapis.com) ──
+            "firebase_upload" -> {
+                val bucket = block.args.getOrNull(1) as? String ?: ""
+                val path = block.args.getOrNull(2) as? String ?: ""
+                val file = block.args.getOrNull(3) as? String ?: ""
+                if (bucket.isNotEmpty() && path.isNotEmpty() && file.isNotEmpty()) {
+                    try {
+                        val projectDir = DesktopProjectManager.getInstance().getCurrentProject()?.projectDir
+                        val localFile = java.io.File(projectDir ?: java.io.File("."), file)
+                        if (localFile.exists()) {
+                            val encodedPath = java.net.URLEncoder.encode(path, "UTF-8")
+                            val url = "https://firebasestorage.googleapis.com/v0/b/$bucket/o?name=$encodedPath"
+                            val conn = java.net.URL(url).openConnection() as java.net.HttpURLConnection
+                            conn.requestMethod = "POST"
+                            conn.doOutput = true
+                            conn.setRequestProperty("Content-Type", "application/octet-stream")
+                            conn.connectTimeout = 15000
+                            conn.readTimeout = 15000
+                            localFile.inputStream().use { input ->
+                                conn.outputStream.use { output ->
+                                    input.copyTo(output)
+                                }
+                            }
+                            val code = conn.responseCode
+                            if (code in 200..299) {
+                                // success
+                            }
+                            conn.disconnect()
+                        }
+                    } catch (_: Exception) { /* ignore */ }
+                }
+            }
+            "firebase_download" -> {
+                val bucket = block.args.getOrNull(1) as? String ?: ""
+                val path = block.args.getOrNull(2) as? String ?: ""
+                val dest = block.args.getOrNull(3) as? String ?: ""
+                val varName = block.args.getOrNull(4) as? String ?: ""
+                if (bucket.isNotEmpty() && path.isNotEmpty()) {
+                    try {
+                        val encodedPath = java.net.URLEncoder.encode(path, "UTF-8")
+                        val url = "https://firebasestorage.googleapis.com/v0/b/$bucket/o/$encodedPath?alt=media"
+                        val conn = java.net.URL(url).openConnection() as java.net.HttpURLConnection
+                        conn.requestMethod = "GET"
+                        conn.connectTimeout = 15000
+                        conn.readTimeout = 15000
+                        if (conn.responseCode in 200..299) {
+                            val projectDir = DesktopProjectManager.getInstance().getCurrentProject()?.projectDir
+                            val destFile = if (dest.isNotEmpty()) java.io.File(dest) else
+                                java.io.File(projectDir ?: java.io.File("."), java.io.File(path).name)
+                            destFile.parentFile?.mkdirs()
+                            destFile.outputStream().use { output ->
+                                conn.inputStream.use { input ->
+                                    input.copyTo(output)
+                                }
+                            }
+                            if (varName.isNotEmpty()) {
+                                variables[varName] = destFile.absolutePath
+                            }
+                        } else {
+                            if (varName.isNotEmpty()) variables[varName] = "ERROR"
+                        }
+                        conn.disconnect()
+                    } catch (_: Exception) {
+                        if (varName.isNotEmpty()) variables[varName] = "ERROR"
+                    }
+                }
+            }
+            "firebase_delete" -> {
+                val bucket = block.args.getOrNull(1) as? String ?: ""
+                val path = block.args.getOrNull(2) as? String ?: ""
+                if (bucket.isNotEmpty() && path.isNotEmpty()) {
+                    try {
+                        val encodedPath = java.net.URLEncoder.encode(path, "UTF-8")
+                        val url = "https://firebasestorage.googleapis.com/v0/b/$bucket/o/$encodedPath"
+                        val conn = java.net.URL(url).openConnection() as java.net.HttpURLConnection
+                        conn.requestMethod = "DELETE"
+                        conn.connectTimeout = 15000
+                        conn.readTimeout = 15000
+                        conn.disconnect()
+                    } catch (_: Exception) { /* ignore */ }
+                }
+            }
+            "firebase_list" -> {
+                val bucket = block.args.getOrNull(1) as? String ?: ""
+                val prefix = block.args.getOrNull(2) as? String ?: ""
+                val varName = block.args.getOrNull(3) as? String ?: ""
+                if (bucket.isNotEmpty() && varName.isNotEmpty()) {
+                    try {
+                        val encodedPrefix = java.net.URLEncoder.encode(prefix, "UTF-8")
+                        val url = "https://firebasestorage.googleapis.com/v0/b/$bucket/o?prefix=$encodedPrefix"
+                        val conn = java.net.URL(url).openConnection() as java.net.HttpURLConnection
+                        conn.requestMethod = "GET"
+                        conn.connectTimeout = 15000
+                        conn.readTimeout = 15000
+                        if (conn.responseCode in 200..299) {
+                            val body = conn.inputStream.bufferedReader().readText()
+                            // Manual parse: walk "name":" occurrences
+                            val names = mutableListOf<String>()
+                            var searchFrom = 0
+                            while (true) {
+                                val keyIdx = body.indexOf("\"name\":\"", searchFrom)
+                                if (keyIdx < 0) break
+                                val start = keyIdx + "\"name\":\"".length
+                                val end = body.indexOf("\"", start)
+                                if (end < 0) break
+                                names.add(body.substring(start, end))
+                                searchFrom = end + 1
+                            }
+                            variables[varName] = if (names.isEmpty()) "" else names.joinToString(", ")
+                        } else {
+                            variables[varName] = "ERROR"
+                        }
+                        conn.disconnect()
+                    } catch (_: Exception) {
+                        variables[varName] = "ERROR"
+                    }
+                }
+            }
+
+            // ── Secure read / secure save (stubs — no hardware-backed keystore on desktop) ──
+            "secure_read" -> {
+                val varName = block.args.getOrNull(1) as? String ?: ""
+                // key is arg[2], unused — desktop stub returns 0
+                if (varName.isNotEmpty()) {
+                    // No encrypted storage on desktop; return current value or 0
+                    variables[varName] = getVariableDouble(varName)
+                }
+            }
+            "secure_save" -> {
+                val varName = block.args.getOrNull(1) as? String ?: ""
+                val value = block.args.getOrNull(2)
+                // key is arg[3], unused
+                if (varName.isNotEmpty()) {
+                    val v = when (value) {
+                        is Number -> value.toDouble()
+                        is String -> value.toDoubleOrNull() ?: 0.0
+                        else -> 0.0
+                    }
+                    variables[varName] = v
+                }
+            }
         }
         frame.ip++
     }
@@ -3243,7 +4027,9 @@ class DesktopScriptEngine(
                     try {
                         val dest = java.io.File(path)
                         dest.parentFile?.mkdirs()
-                        val conn = java.net.URI(url).toURL().openConnection()
+                        val conn = java.net.URI(url).toURL().openConnection() as java.net.HttpURLConnection
+                        conn.connectTimeout = 15_000
+                        conn.readTimeout = 15_000
                         conn.connect()
                         dest.outputStream().use { out -> conn.inputStream.copyTo(out) }
                     } catch (_: Exception) { /* ignore */ }
@@ -3310,6 +4096,41 @@ class DesktopScriptEngine(
                         val rtt = (System.nanoTime() - start) / 1_000_000.0
                         variables[varName] = if (reachable) "OK (${rtt.toInt()}ms)" else "TIMEOUT"
                     } catch (e: Exception) { variables[varName] = "Error: ${e.message}" }
+                }
+            }
+            // ── Web extras ──
+            "http_set" -> {
+                val url = block.args.getOrNull(1) as? String ?: ""
+                val body = block.args.getOrNull(2) as? String ?: ""
+                val resultVar = block.args.getOrNull(3) as? String ?: ""
+                if (url.isNotEmpty() && resultVar.isNotEmpty()) {
+                    try {
+                        val conn = java.net.URI(url).toURL().openConnection() as java.net.HttpURLConnection
+                        conn.requestMethod = "POST"
+                        conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded")
+                        conn.doOutput = true
+                        if (body.isNotEmpty()) conn.outputStream.write(body.toByteArray())
+                        val response = conn.inputStream.bufferedReader().readText()
+                        variables[resultVar] = response
+                        conn.disconnect()
+                    } catch (e: Exception) { variables[resultVar] = "Error: ${e.message}" }
+                }
+            }
+            "http_eval" -> {
+                val script = block.args.getOrNull(1) as? String ?: ""
+                val resultVar = block.args.getOrNull(2) as? String ?: ""
+                if (script.isNotEmpty() && resultVar.isNotEmpty()) {
+                    try {
+                        // Eval-style: POST script as text/plain to a server endpoint
+                        val conn = java.net.URI("http://localhost:8080/eval").toURL().openConnection() as java.net.HttpURLConnection
+                        conn.requestMethod = "POST"
+                        conn.setRequestProperty("Content-Type", "text/plain")
+                        conn.doOutput = true
+                        conn.outputStream.write(script.toByteArray())
+                        val response = conn.inputStream.bufferedReader().readText()
+                        variables[resultVar] = response
+                        conn.disconnect()
+                    } catch (e: Exception) { variables[resultVar] = "Error: ${e.message}" }
                 }
             }
             "start_server" -> {
@@ -3486,7 +4307,12 @@ class DesktopScriptEngine(
                         java.util.zip.ZipInputStream(java.io.FileInputStream(zipFile)).use { zis ->
                             var entry = zis.nextEntry
                             while (entry != null) {
-                                val outFile = java.io.File(destDir, entry.name)
+                                val outFile = java.io.File(destDir, entry.name).canonicalFile
+                                val destCanonical = destDir.canonicalPath
+                                if (!outFile.path.startsWith(destCanonical)) {
+                                    entry = zis.nextEntry
+                                    continue
+                                }
                                 if (!entry.isDirectory) {
                                     outFile.parentFile?.mkdirs()
                                     java.io.FileOutputStream(outFile).use { zis.copyTo(it) }
@@ -3896,6 +4722,7 @@ class DesktopScriptEngine(
             "WhenTouchDownScript" -> "touch_down"
             "WhenClonedScript" -> "cloned"
             "WhenConditionScript" -> "condition"
+            "WhenFirebaseChangedScript" -> "firebase_changed"
             "WhenBackgroundChangesScript" -> "background_changes"
             "WhenBounceOffScript" -> "bounce_off"
             "BackPressedScript" -> "back_pressed"
@@ -3958,6 +4785,10 @@ class DesktopScriptEngine(
         if (!codeXml.exists()) return false
         return try {
             val factory = DocumentBuilderFactory.newInstance()
+            factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true)
+            factory.setFeature("http://xml.org/sax/features/external-general-entities", false)
+            factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false)
+            factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false)
             val builder = factory.newDocumentBuilder()
             val doc = builder.parse(codeXml)
             doc.documentElement.normalize()
@@ -4004,6 +4835,15 @@ class DesktopScriptEngine(
                             val fb = firstBrick as Element
                             if (fb.getAttribute("type") == "WhenConditionBrick") {
                                 conditionElement = getFormulaElement(fb, "IF_CONDITION")
+                            }
+                        }
+                    } else if (eventType == "firebase_changed") {
+                        // WhenFirebaseChangedBrick — buckets + path как для WhenCondition
+                        val firstBrick = brickListEl.firstChild
+                        if (firstBrick != null && firstBrick.nodeType == Node.ELEMENT_NODE) {
+                            val fb = firstBrick as Element
+                            if (fb.getAttribute("type") == "WhenFirebaseChangedBrick") {
+                                eventParam2 = extractFormulaString(fb, "FIREBASE_TRIGGER_BUCKET") ?: ""
                             }
                         }
                     } else if (eventType == "bounce_off") {
@@ -4110,10 +4950,12 @@ class DesktopScriptEngine(
                     idx = findLoopEnd(nodes, idx + 1)
                 }
                 "RepeatBrick" -> {
-                    val times = extractFormulaValue(el, "TIMES_TO_REPEAT")
+                    val timesRf = getRuntimeFormula(el, "TIMES_TO_REPEAT")
+                    val times = extractFormulaValue(el, "TIMES_TO_REPEAT") ?: 1f
                     val (children, rf) = parseBrickListRecursive(nodes, idx + 1, spriteIndex)
                     allRuntimeFormulas.addAll(rf)
-                    result.add(Block(Block.Type.CONTROL, listOf("repeat", times ?: 1), children))
+                    val arg: Any = timesRf ?: times
+                    result.add(Block(Block.Type.CONTROL, listOf("repeat", arg), children))
                     idx = findLoopEnd(nodes, idx + 1)
                 }
                 "CountLoopBrick" -> {
@@ -4133,12 +4975,19 @@ class DesktopScriptEngine(
                 }
                 "ForVariableFromToBrick" -> {
                     val varName = extractVariableName(el)
+                    val fromRf = getRuntimeFormula(el, "FOR_LOOP_FROM")
+                    val toRf = getRuntimeFormula(el, "FOR_LOOP_TO")
                     val fromVal = extractFormulaValue(el, "FOR_LOOP_FROM") ?: 0f
                     val toVal = extractFormulaValue(el, "FOR_LOOP_TO") ?: 0f
                     val (children, rf) = parseBrickListRecursive(nodes, idx + 1, spriteIndex)
                     allRuntimeFormulas.addAll(rf)
-                    val count = maxOf(1, (toVal - fromVal + 1f).toInt())
-                    if (varName != null) variables[varName] = fromVal
+                    val fromArg: Any = fromRf ?: fromVal
+                    val toArg: Any = toRf ?: toVal
+                    if (varName != null && fromRf == null) variables[varName] = fromVal
+                    // repeat count: use static values only if both are non-RuntimeFormula
+                    val count = if (fromRf == null && toRf == null) {
+                        maxOf(1, (toVal - fromVal + 1f).toInt())
+                    } else 1 // dynamic: assume at least 1, runtime re-evaluates via inc_var
                     // Добавляем синтетический блок для инкремента переменной в конце каждой итерации
                     val loopChildren = if (varName != null) {
                         children + Block(Block.Type.VARIABLE, listOf("inc_var", varName))
@@ -4147,10 +4996,12 @@ class DesktopScriptEngine(
                     idx = findLoopEnd(nodes, idx + 1)
                 }
                 "ScheduleBrick" -> {
+                    val delayRf = getRuntimeFormula(el, "TIME_TO_WAIT_IN_SECONDS")
                     val delay = extractFormulaValue(el, "TIME_TO_WAIT_IN_SECONDS") ?: 1f
                     val (children, rf) = parseBrickListRecursive(nodes, idx + 1, spriteIndex)
                     allRuntimeFormulas.addAll(rf)
-                    result.add(Block(Block.Type.CONTROL, listOf("wait", delay)))
+                    val arg: Any = delayRf ?: delay
+                    result.add(Block(Block.Type.CONTROL, listOf("wait", arg)))
                     result.addAll(children)
                     idx = findLoopEnd(nodes, idx + 1)
                 }
@@ -4193,11 +5044,15 @@ class DesktopScriptEngine(
                     idx = findLoopEnd(nodes, idx + 1)
                 }
                 "IntervalRepeatBrick" -> {
+                    val countRf = getRuntimeFormula(el, "TIMES_TO_REPEAT")
+                    val intervalRf = getRuntimeFormula(el, "INTERVAL")
                     val count = extractFormulaValue(el, "TIMES_TO_REPEAT") ?: 1f
                     val interval = extractFormulaValue(el, "INTERVAL") ?: 0f
                     val (children, rf) = parseBrickListRecursive(nodes, idx + 1, spriteIndex)
                     allRuntimeFormulas.addAll(rf)
-                    result.add(Block(Block.Type.CONTROL, listOf("interval_repeat", count.toInt(), interval), children))
+                    val countArg: Any = countRf ?: count.toInt()
+                    val intervalArg: Any = intervalRf ?: interval
+                    result.add(Block(Block.Type.CONTROL, listOf("interval_repeat", countArg, intervalArg), children))
                     idx = findLoopEnd(nodes, idx + 1)
                 }
                 "TryCatchFinallyBrick" -> {
@@ -4273,7 +5128,8 @@ class DesktopScriptEngine(
 
                 // ── If container ──
                 "IfLogicBeginBrick" -> {
-                    val condVal = extractFormulaValue(el, "IF_CONDITION")
+                    val condRf = getRuntimeFormula(el, "IF_CONDITION")
+                    val condVal = extractFormulaValue(el, "IF_CONDITION") ?: 0f
                     val (thenChildren, rf) = parseBrickListRecursive(nodes, idx + 1, spriteIndex)
                     allRuntimeFormulas.addAll(rf)
 
@@ -4291,7 +5147,8 @@ class DesktopScriptEngine(
                         afterIfIdx = findIfEnd(nodes, afterIfIdx + 1)
                     }
 
-                    result.add(Block(Block.Type.CONTROL, listOf("if", condVal ?: 0f, thenChildren, elseChildren), thenChildren))
+                    val condArg: Any = condRf ?: condVal
+                    result.add(Block(Block.Type.CONTROL, listOf("if", condArg, thenChildren, elseChildren), thenChildren))
                     idx = afterIfIdx
                 }
                 "IfLogicElseBrick" -> {
@@ -4301,10 +5158,12 @@ class DesktopScriptEngine(
                     return Pair(result, allRuntimeFormulas)
                 }
                 "IfThenLogicBeginBrick" -> {
-                    val condVal = extractFormulaValue(el, "IF_CONDITION")
+                    val condRf = getRuntimeFormula(el, "IF_CONDITION")
+                    val condVal = extractFormulaValue(el, "IF_CONDITION") ?: 0f
                     val (thenChildren, rf) = parseBrickListRecursive(nodes, idx + 1, spriteIndex)
                     allRuntimeFormulas.addAll(rf)
-                    result.add(Block(Block.Type.CONTROL, listOf("if", condVal ?: 0f, thenChildren, emptyList<Block>()), thenChildren))
+                    val condArg: Any = condRf ?: condVal
+                    result.add(Block(Block.Type.CONTROL, listOf("if", condArg, thenChildren, emptyList<Block>()), thenChildren))
                     idx = findIfEnd(nodes, idx + 1)
                 }
                 "IfThenLogicEndBrick" -> {
@@ -4331,15 +5190,19 @@ class DesktopScriptEngine(
                     idx++
                 }
                 "ShowTextBrick" -> {
-                    val varName = extractVariableName(el)
-                    val x = extractFormulaValue(el, "X_POSITION") ?: 0f
-                    val y = extractFormulaValue(el, "Y_POSITION") ?: 0f
-                    result.add(Block(Block.Type.VARIABLE, listOf("show_variable", varName ?: "", x, y)))
+                    val varName = extractVariableName(el) ?: ""
+                    val xRf = getRuntimeFormula(el, "X_POSITION")
+                    val yRf = getRuntimeFormula(el, "Y_POSITION")
+                    val x = xRf ?: (extractFormulaValue(el, "X_POSITION") ?: 0f)
+                    val y = yRf ?: (extractFormulaValue(el, "Y_POSITION") ?: 0f)
+                    if (xRf != null) allRuntimeFormulas.add(xRf)
+                    if (yRf != null) allRuntimeFormulas.add(yRf)
+                    result.add(Block(Block.Type.VARIABLE, listOf("show_variable", varName, x, y)))
                     idx++
                 }
                 "HideTextBrick" -> {
-                    val varName = extractVariableName(el)
-                    result.add(Block(Block.Type.VARIABLE, listOf("hide_variable", varName ?: "")))
+                    val varName = extractVariableName(el) ?: ""
+                    result.add(Block(Block.Type.VARIABLE, listOf("hide_variable", varName)))
                     idx++
                 }
 
@@ -6149,6 +7012,8 @@ class DesktopScriptEngine(
                 val far = extractFormulaValue(el, "FAR") ?: 0f
                 Block(Block.Type.CAMERA, listOf("set_camera_range", near, far))
             }
+            "CameraTrackingBrick" -> Block(Block.Type.CAMERA, listOf("camera_tracking"))
+            "SetCameraFocusPointBrick" -> Block(Block.Type.CAMERA, listOf("camera_focus"))
             "ClearCanvasBrick" -> Block(Block.Type.PEN, listOf("clear_canvas"))
             "SetFpsBrick" -> {
                 val fps = extractFormulaValue(el, "VALUE") ?: 0f
@@ -6255,6 +7120,454 @@ class DesktopScriptEngine(
                 Block(Block.Type.EVENT, listOf("broadcast_receiver", msg))
             }
             "WhenClonedBrick" -> Block(Block.Type.EVENT, listOf("cloned"))
+
+            // ═══════ Firebase event brick ═══════
+            "WhenFirebaseChangedBrick" -> Block(Block.Type.EVENT, listOf("firebase_changed"))
+
+            // ═══════ Camera HW bricks (no-op on desktop) ═══════
+            "CameraBrick" -> {
+                val onText = getTagText(el, "spinnerSelectionON")
+                val on = onText != null && (onText.equals("true", ignoreCase = true) || onText == "1")
+                Block(Block.Type.CAMERA, listOf("camera_preview", if (on) 1 else 0))
+            }
+            "ChooseCameraBrick" -> {
+                val frontText = getTagText(el, "spinnerSelectionFRONT")
+                val front = frontText != null && (frontText.equals("true", ignoreCase = true) || frontText == "1")
+                Block(Block.Type.CAMERA, listOf("camera_choose", if (front) 1 else 0))
+            }
+            "FlashBrick" -> {
+                val id = getTagText(el, "spinnerSelectionID")?.toIntOrNull() ?: 0
+                Block(Block.Type.CAMERA, listOf("camera_flash", id))
+            }
+            "PhotoBrick" -> Block(Block.Type.CAMERA, listOf("camera_photo"))
+
+            // ═══════ Firebase Storage bricks ═══════
+            "UploadFileToFirebaseBrick" -> {
+                val bucket = extractFormulaString(el, "FIREBASE_BUCKET") ?: ""
+                val path = extractFormulaString(el, "FIREBASE_STORAGE_PATH") ?: ""
+                val file = extractFormulaString(el, "FILE") ?: ""
+                Block(Block.Type.DATA, listOf("firebase_upload", bucket, path, file))
+            }
+            "DownloadFileFromFirebaseBrick" -> {
+                val bucket = extractFormulaString(el, "FIREBASE_BUCKET") ?: ""
+                val path = extractFormulaString(el, "FIREBASE_STORAGE_PATH") ?: ""
+                val dest = extractFormulaString(el, "DOWNLOAD_PATH") ?: ""
+                val varName = extractVariableName(el) ?: ""
+                Block(Block.Type.DATA, listOf("firebase_download", bucket, path, dest, varName))
+            }
+            "DeleteFirebaseFileBrick" -> {
+                val bucket = extractFormulaString(el, "FIREBASE_BUCKET") ?: ""
+                val path = extractFormulaString(el, "FIREBASE_STORAGE_PATH") ?: ""
+                Block(Block.Type.DATA, listOf("firebase_delete", bucket, path))
+            }
+            "ListFirebaseFilesBrick" -> {
+                val bucket = extractFormulaString(el, "FIREBASE_BUCKET") ?: ""
+                val prefix = extractFormulaString(el, "FIREBASE_STORAGE_PATH") ?: ""
+                val varName = extractVariableName(el) ?: ""
+                Block(Block.Type.DATA, listOf("firebase_list", bucket, prefix, varName))
+            }
+
+            // ═══════ Physics (new joints) ═══════
+            "CreateGearJointBrick" -> {
+                val name = extractFormulaString(el, "JOINT_ID") ?: ""
+                val jointA = extractFormulaString(el, "JOINT_A_ID") ?: ""
+                val jointB = extractFormulaString(el, "JOINT_B_ID") ?: ""
+                val ratio = extractFormulaValue(el, "RATIO") ?: 1f
+                Block(Block.Type.PHYSICS, listOf("create_joint_gear", name, jointA, jointB, ratio))
+            }
+            "CreatePulleyJointBrick" -> {
+                val name = extractFormulaString(el, "JOINT_ID") ?: ""
+                val spriteA = extractFormulaString(el, "SPRITE_A") ?: ""
+                val spriteB = extractFormulaString(el, "SPRITE_B") ?: ""
+                val gaAX = extractFormulaValue(el, "GROUND_ANCHOR_A_X") ?: 0f
+                val gaAY = extractFormulaValue(el, "GROUND_ANCHOR_A_Y") ?: 0f
+                val gaBX = extractFormulaValue(el, "GROUND_ANCHOR_B_X") ?: 0f
+                val gaBY = extractFormulaValue(el, "GROUND_ANCHOR_B_Y") ?: 0f
+                val ratio = extractFormulaValue(el, "RATIO") ?: 1f
+                Block(Block.Type.PHYSICS, listOf("create_joint_pulley", name, spriteA, spriteB, gaAX, gaAY, gaBX, gaBY, ratio))
+            }
+            "CreatePointJointBrick" -> {
+                val name = extractFormulaString(el, "JOINT_NAME") ?: ""
+                val objA = extractFormulaString(el, "OBJECT_A") ?: ""
+                val objB = extractFormulaString(el, "OBJECT_B") ?: ""
+                val paX = extractFormulaValue(el, "PIVOT_A_X") ?: 0f
+                val paY = extractFormulaValue(el, "PIVOT_A_Y") ?: 0f
+                val paZ = extractFormulaValue(el, "PIVOT_A_Z") ?: 0f
+                val pbX = extractFormulaValue(el, "PIVOT_B_X") ?: 0f
+                val pbY = extractFormulaValue(el, "PIVOT_B_Y") ?: 0f
+                val pbZ = extractFormulaValue(el, "PIVOT_B_Z") ?: 0f
+                Block(Block.Type.PHYSICS, listOf("create_joint_point", name, objA, objB, paX, paY, paZ, pbX, pbY, pbZ))
+            }
+            "AddHingeBrick" -> {
+                val name = extractFormulaString(el, "CONSTRAINT_ID") ?: ""
+                val objA = extractFormulaString(el, "OBJECT_A") ?: ""
+                val objB = extractFormulaString(el, "OBJECT_B") ?: ""
+                Block(Block.Type.PHYSICS, listOf("add_hinge", name, objA, objB))
+            }
+            "SetHingeMotorBrick" -> {
+                val id = extractFormulaString(el, "CONSTRAINT_ID") ?: ""
+                val target = extractFormulaValue(el, "MOTOR_TARGET") ?: 0f
+                val maxForce = extractFormulaValue(el, "MOTOR_MAX_FORCE") ?: 0f
+                Block(Block.Type.PHYSICS, listOf("set_hinge_motor", id, target, maxForce))
+            }
+            "SetHitboxBrick" -> {
+                val lookEl = getChildElement(el, "look")
+                val lookName = lookEl?.getAttribute("lookName") ?: ""
+                Block(Block.Type.PHYSICS, listOf("set_hitbox", lookName))
+            }
+
+            // ═══════ Web extra ═══════
+            "DeleteWebBrick" -> {
+                val url = extractFormulaString(el, "URL") ?: ""
+                val varName = extractVariableName(el) ?: ""
+                Block(Block.Type.WEB, listOf("http_delete", url, varName))
+            }
+            "SetWebBrick" -> {
+                val url = extractFormulaString(el, "URL") ?: ""
+                val varName = extractVariableName(el) ?: ""
+                val body = extractFormulaString(el, "BODY") ?: ""
+                Block(Block.Type.WEB, listOf("http_set", url, body, varName))
+            }
+            "EvalWebBrick" -> {
+                val script = extractFormulaString(el, "TEXT") ?: ""
+                val varName = extractVariableName(el) ?: ""
+                Block(Block.Type.WEB, listOf("http_eval", script, varName))
+            }
+
+            // ═══════ NeoScript bricks (runtime stubs) ═══════
+            "AssignScriptsBrick" -> {
+                val filePath = extractFormulaString(el, "TEXT") ?: ""
+                val objName = extractFormulaString(el, "NAME") ?: ""
+                val sceneName = extractFormulaString(el, "TEXT_2") ?: ""
+                val replaceSel = extractTextContent(el, "spinnerSelection") ?: "0"
+                val saveSel = extractTextContent(el, "spinnerSelection_2") ?: "0"
+                Block(Block.Type.CONTROL, listOf("assign_scripts", filePath, objName, sceneName, replaceSel, saveSel))
+            }
+            "ImportScriptBrick" -> {
+                val objName = extractFormulaString(el, "NAME") ?: ""
+                val filePath = extractFormulaString(el, "TEXT") ?: ""
+                val overwriteSel = extractTextContent(el, "spinnerSelection") ?: "0"
+                Block(Block.Type.CONTROL, listOf("import_script", objName, filePath, overwriteSel))
+            }
+            "CreateObjectBrick" -> {
+                val objName = extractFormulaString(el, "NAME") ?: ""
+                val sceneSel = extractTextContent(el, "spinnerSelection") ?: "0"
+                val persistSel = extractTextContent(el, "spinnerSelection_2") ?: "0"
+                Block(Block.Type.CONTROL, listOf("create_object", objName, sceneSel, persistSel))
+            }
+
+            // ═══════ Security bricks ═══════
+            "SecureReadVariableBrick" -> {
+                val varName = extractVariableName(el) ?: ""
+                val key = extractFormulaString(el, "VALUE") ?: ""
+                Block(Block.Type.VARIABLE, listOf("secure_read", varName, key))
+            }
+            "SecureSaveVariableBrick" -> {
+                val varName = extractVariableName(el) ?: ""
+                val value = extractFormulaValue(el, "VARIABLE") ?: 0f
+                val key = extractFormulaString(el, "VALUE") ?: ""
+                Block(Block.Type.VARIABLE, listOf("secure_save", varName, value, key))
+            }
+
+            // ═══════ 3D lighting/rendering stubs ═══════
+            "SetAmbientLightBrick" -> {
+                val r = extractFormulaValue(el, "RED") ?: 0f
+                val g = extractFormulaValue(el, "GREEN") ?: 0f
+                val b = extractFormulaValue(el, "BLUE") ?: 0f
+                val intensity = extractFormulaValue(el, "INTENSITY") ?: 1f
+                Block(Block.Type.LOOKS, listOf("set_ambient_light", r, g, b, intensity))
+            }
+            "SetPointLightBrick" -> {
+                val name = extractFormulaString(el, "NAME") ?: ""
+                val r = extractFormulaValue(el, "RED") ?: 1f
+                val g = extractFormulaValue(el, "GREEN") ?: 1f
+                val b = extractFormulaValue(el, "BLUE") ?: 1f
+                val intensity = extractFormulaValue(el, "INTENSITY") ?: 1f
+                val range = extractFormulaValue(el, "RANGE") ?: 10f
+                val x = extractFormulaValue(el, "X") ?: 0f
+                val y = extractFormulaValue(el, "Y") ?: 0f
+                val z = extractFormulaValue(el, "Z") ?: 0f
+                Block(Block.Type.LOOKS, listOf("set_point_light", name, r, g, b, intensity, range, x, y, z))
+            }
+            "SetSpotLightBrick" -> {
+                val name = extractFormulaString(el, "NAME") ?: ""
+                val r = extractFormulaValue(el, "RED") ?: 1f
+                val g = extractFormulaValue(el, "GREEN") ?: 1f
+                val b = extractFormulaValue(el, "BLUE") ?: 1f
+                val intensity = extractFormulaValue(el, "INTENSITY") ?: 1f
+                val range = extractFormulaValue(el, "RANGE") ?: 10f
+                val x = extractFormulaValue(el, "X") ?: 0f
+                val y = extractFormulaValue(el, "Y") ?: 0f
+                val z = extractFormulaValue(el, "Z") ?: 0f
+                val dx = extractFormulaValue(el, "DIRECTION_X") ?: 0f
+                val dy = extractFormulaValue(el, "DIRECTION_Y") ?: 0f
+                val dz = extractFormulaValue(el, "DIRECTION_Z") ?: -1f
+                val cutoff = extractFormulaValue(el, "CUTOFF") ?: 45f
+                Block(Block.Type.LOOKS, listOf("set_spot_light", name, r, g, b, intensity, range, x, y, z, dx, dy, dz, cutoff))
+            }
+            "SetDirectionalLightBrick" -> {
+                val name = extractFormulaString(el, "NAME") ?: ""
+                val r = extractFormulaValue(el, "RED") ?: 1f
+                val g = extractFormulaValue(el, "GREEN") ?: 1f
+                val b = extractFormulaValue(el, "BLUE") ?: 1f
+                val intensity = extractFormulaValue(el, "INTENSITY") ?: 1f
+                val dx = extractFormulaValue(el, "DIRECTION_X") ?: 0f
+                val dy = extractFormulaValue(el, "DIRECTION_Y") ?: -1f
+                val dz = extractFormulaValue(el, "DIRECTION_Z") ?: 0f
+                Block(Block.Type.LOOKS, listOf("set_directional_light", name, r, g, b, intensity, dx, dy, dz))
+            }
+            "SetDirectionalLight2Brick" -> {
+                val name = extractFormulaString(el, "NAME") ?: ""
+                val r = extractFormulaValue(el, "RED") ?: 1f
+                val g = extractFormulaValue(el, "GREEN") ?: 1f
+                val b = extractFormulaValue(el, "BLUE") ?: 1f
+                val intensity = extractFormulaValue(el, "INTENSITY") ?: 1f
+                val dx = extractFormulaValue(el, "VALUE_1") ?: 0f
+                val dy = extractFormulaValue(el, "VALUE_2") ?: -1f
+                val dz = extractFormulaValue(el, "VALUE_3") ?: 0f
+                Block(Block.Type.LOOKS, listOf("set_directional_light2", name, r, g, b, intensity, dx, dy, dz))
+            }
+            "SetSkyboxBrick" -> {
+                val texture = extractFormulaString(el, "VALUE") ?: ""
+                Block(Block.Type.LOOKS, listOf("set_skybox", texture))
+            }
+            "SetSkyColorBrick" -> {
+                val r = extractFormulaValue(el, "RED") ?: 0f
+                val g = extractFormulaValue(el, "GREEN") ?: 0f
+                val b = extractFormulaValue(el, "BLUE") ?: 0f
+                Block(Block.Type.LOOKS, listOf("set_sky_color", r, g, b))
+            }
+            "SetFogBrick" -> {
+                val r = extractFormulaValue(el, "RED") ?: 0f
+                val g = extractFormulaValue(el, "GREEN") ?: 0f
+                val b = extractFormulaValue(el, "BLUE") ?: 0f
+                val density = extractFormulaValue(el, "DENSITY") ?: 0f
+                Block(Block.Type.LOOKS, listOf("set_fog", r, g, b, density))
+            }
+            "SetShadowsBrick" -> {
+                val enabled = extractFormulaValue(el, "VALUE") ?: 0f
+                Block(Block.Type.LOOKS, listOf("set_shadows", enabled))
+            }
+            "SetShadowQualityBrick" -> {
+                val quality = extractFormulaValue(el, "VALUE") ?: 0f
+                Block(Block.Type.LOOKS, listOf("set_shadow_quality", quality))
+            }
+            "SetMaterialBrick" -> {
+                val objectId = extractFormulaString(el, "NAME") ?: ""
+                val metallic = extractFormulaValue(el, "METALLIC") ?: 0f
+                val roughness = extractFormulaValue(el, "ROUGHNESS") ?: 0f
+                Block(Block.Type.LOOKS, listOf("set_material", objectId, metallic, roughness))
+            }
+            "SetEmissiveBrick" -> {
+                val objectId = extractFormulaString(el, "NAME") ?: ""
+                val r = extractFormulaValue(el, "VALUE") ?: 0f
+                val g = extractFormulaValue(el, "VALUE_2") ?: 0f
+                val b = extractFormulaValue(el, "VALUE_3") ?: 0f
+                val intensity = extractFormulaValue(el, "VALUE_4") ?: 1f
+                Block(Block.Type.LOOKS, listOf("set_emissive", objectId, r, g, b, intensity))
+            }
+            "SetTextureTilingBrick" -> {
+                val objectId = extractFormulaString(el, "NAME") ?: ""
+                val tx = extractFormulaValue(el, "X") ?: 1f
+                val ty = extractFormulaValue(el, "Y") ?: 1f
+                Block(Block.Type.LOOKS, listOf("set_texture_tiling", objectId, tx, ty))
+            }
+            "SetPostProcessingBrick" -> {
+                val effect = extractFormulaString(el, "EFFECT") ?: ""
+                val intensity = extractFormulaValue(el, "INTENSITY") ?: 1f
+                Block(Block.Type.LOOKS, listOf("set_post_processing", effect, intensity))
+            }
+            "SetPostProcessingNewBrick" -> {
+                val name = extractFormulaString(el, "NAME") ?: ""
+                val intensity = extractFormulaValue(el, "VALUE") ?: 1f
+                Block(Block.Type.LOOKS, listOf("set_post_processing_new", name, intensity))
+            }
+            "EnablePbrRenderBrick" -> {
+                val enabled = extractFormulaValue(el, "VALUE") ?: 0f
+                Block(Block.Type.LOOKS, listOf("enable_pbr", enabled))
+            }
+            "SetAnisotropicFilterBrick" -> {
+                val level = extractFormulaValue(el, "VALUE") ?: 0f
+                Block(Block.Type.LOOKS, listOf("set_anisotropic", level))
+            }
+            "SetCCDBrick" -> {
+                val enabled = extractFormulaValue(el, "VALUE") ?: 0f
+                Block(Block.Type.LOOKS, listOf("set_ccd", enabled))
+            }
+            "Apply3dForceBrick" -> {
+                val objectId = extractFormulaString(el, "NAME") ?: ""
+                val fx = extractFormulaValue(el, "FORCE_X") ?: 0f
+                val fy = extractFormulaValue(el, "FORCE_Y") ?: 0f
+                val fz = extractFormulaValue(el, "FORCE_Z") ?: 0f
+                Block(Block.Type.PHYSICS, listOf("apply_3d_force", objectId, fx, fy, fz))
+            }
+            "SetParticleEmissionBrick" -> {
+                val objectId = extractFormulaString(el, "NAME") ?: ""
+                val rate = extractFormulaValue(el, "VALUE") ?: 0f
+                Block(Block.Type.LOOKS, listOf("set_particle_emission", objectId, rate))
+            }
+            "SetSpawnInvisibleBrick" -> {
+                val invisible = extractFormulaValue(el, "VALUE") ?: 0f
+                Block(Block.Type.LOOKS, listOf("set_spawn_invisible", invisible))
+            }
+            "SetPitchOnlyBrick" -> {
+                val objectId = extractFormulaString(el, "NAME") ?: ""
+                val pitchOnly = extractFormulaValue(el, "VALUE") ?: 0f
+                Block(Block.Type.LOOKS, listOf("set_pitch_only", objectId, pitchOnly))
+            }
+            "PromoteLightBrick" -> {
+                val name = extractFormulaString(el, "NAME") ?: ""
+                Block(Block.Type.LOOKS, listOf("promote_light", name))
+            }
+            "SetShaderCodeBrick" -> {
+                val objectId = extractFormulaString(el, "NAME") ?: ""
+                val vertex = extractFormulaString(el, "VERTEX_SHADER") ?: ""
+                val fragment = extractFormulaString(el, "FRAGMENT_SHADER") ?: ""
+                Block(Block.Type.LOOKS, listOf("set_shader_code", objectId, vertex, fragment))
+            }
+            "SetShaderUniformFloatBrick" -> {
+                val objectId = extractFormulaString(el, "NAME") ?: ""
+                val uniformName = extractFormulaString(el, "UNIFORM_NAME") ?: ""
+                val value = extractFormulaValue(el, "VALUE") ?: 0f
+                Block(Block.Type.LOOKS, listOf("set_shader_uniform_float", objectId, uniformName, value))
+            }
+            "SetShaderUniformVec3Brick" -> {
+                val objectId = extractFormulaString(el, "NAME") ?: ""
+                val uniformName = extractFormulaString(el, "UNIFORM_NAME") ?: ""
+                val v1 = extractFormulaValue(el, "VALUE") ?: 0f
+                val v2 = extractFormulaValue(el, "VALUE_2") ?: 0f
+                val v3 = extractFormulaValue(el, "VALUE_3") ?: 0f
+                Block(Block.Type.LOOKS, listOf("set_shader_uniform_vec3", objectId, uniformName, v1, v2, v3))
+            }
+            "SetMaxPointLightsBrick" -> {
+                val count = extractFormulaValue(el, "VALUE") ?: 4f
+                Block(Block.Type.LOOKS, listOf("set_max_point_lights", count.toInt()))
+            }
+            "RemovePbrLightBrick" -> {
+                val name = extractFormulaString(el, "NAME") ?: ""
+                Block(Block.Type.LOOKS, listOf("remove_pbr_light", name))
+            }
+            "SetBackgroundLightBrick" -> {
+                val name = extractFormulaString(el, "NAME") ?: ""
+                val r = extractFormulaValue(el, "VALUE") ?: 0f
+                val g = extractFormulaValue(el, "VALUE_2") ?: 0f
+                val b = extractFormulaValue(el, "VALUE_3") ?: 0f
+                Block(Block.Type.LOOKS, listOf("set_background_light", name, r, g, b))
+            }
+            "Create3dObjectBrick" -> {
+                val name = extractFormulaString(el, "NAME") ?: ""
+                val file = extractFormulaString(el, "FILE") ?: ""
+                Block(Block.Type.PHYSICS, listOf("create_3d_object", name, file))
+            }
+            "Remove3dObjectBrick" -> {
+                val name = extractFormulaString(el, "NAME") ?: ""
+                Block(Block.Type.PHYSICS, listOf("remove_3d_object", name))
+            }
+            "Set3dPositionBrick" -> {
+                val name = extractFormulaString(el, "NAME") ?: ""
+                val x = extractFormulaValue(el, "X") ?: 0f
+                val y = extractFormulaValue(el, "Y") ?: 0f
+                val z = extractFormulaValue(el, "Z") ?: 0f
+                Block(Block.Type.PHYSICS, listOf("set_3d_position", name, x, y, z))
+            }
+            "Set3dRotationBrick" -> {
+                val name = extractFormulaString(el, "NAME") ?: ""
+                val rx = extractFormulaValue(el, "VALUE") ?: 0f
+                val ry = extractFormulaValue(el, "VALUE_2") ?: 0f
+                val rz = extractFormulaValue(el, "VALUE_3") ?: 0f
+                Block(Block.Type.PHYSICS, listOf("set_3d_rotation", name, rx, ry, rz))
+            }
+            "Set3dScaleBrick" -> {
+                val name = extractFormulaString(el, "NAME") ?: ""
+                val sx = extractFormulaValue(el, "VALUE") ?: 1f
+                val sy = extractFormulaValue(el, "VALUE_2") ?: 1f
+                val sz = extractFormulaValue(el, "VALUE_3") ?: 1f
+                Block(Block.Type.PHYSICS, listOf("set_3d_scale", name, sx, sy, sz))
+            }
+            "Set3dVelocityBrick" -> {
+                val name = extractFormulaString(el, "NAME") ?: ""
+                val vx = extractFormulaValue(el, "VALUE") ?: 0f
+                val vy = extractFormulaValue(el, "VALUE_2") ?: 0f
+                val vz = extractFormulaValue(el, "VALUE_3") ?: 0f
+                Block(Block.Type.PHYSICS, listOf("set_3d_velocity", name, vx, vy, vz))
+            }
+            "Set3dFrictionBrick" -> {
+                val name = extractFormulaString(el, "NAME") ?: ""
+                val friction = extractFormulaValue(el, "VALUE") ?: 0f
+                Block(Block.Type.PHYSICS, listOf("set_3d_friction", name, friction))
+            }
+            "Set3dGravityBrick" -> {
+                val name = extractFormulaString(el, "NAME") ?: ""
+                val gx = extractFormulaValue(el, "VALUE") ?: 0f
+                val gy = extractFormulaValue(el, "VALUE_2") ?: 0f
+                val gz = extractFormulaValue(el, "VALUE_3") ?: 0f
+                Block(Block.Type.PHYSICS, listOf("set_3d_gravity", name, gx, gy, gz))
+            }
+
+            // ═══════ 3D Camera/View stubs ═══════
+            "ObjectLookAtBrick" -> {
+                val objectId = extractFormulaString(el, "NAME") ?: ""
+                val x = extractFormulaValue(el, "X") ?: 0f
+                val y = extractFormulaValue(el, "Y") ?: 0f
+                val z = extractFormulaValue(el, "Z") ?: 0f
+                Block(Block.Type.CAMERA, listOf("object_look_at", objectId, x, y, z))
+            }
+            "VisualPlacementBrick" -> {
+                val enabled = extractFormulaValue(el, "VALUE") ?: 0f
+                Block(Block.Type.CAMERA, listOf("visual_placement", enabled))
+            }
+            "KeyframeAnimationBrick" -> {
+                val objectId = extractFormulaString(el, "NAME") ?: ""
+                val animName = extractFormulaString(el, "VALUE") ?: ""
+                Block(Block.Type.CAMERA, listOf("keyframe_anim", objectId, animName))
+            }
+            "CreateGLViewBrick" -> {
+                val name = extractFormulaString(el, "NAME") ?: ""
+                Block(Block.Type.CAMERA, listOf("create_gl_view", name))
+            }
+            "AttachSOBrick" -> {
+                val name = extractFormulaString(el, "NAME") ?: ""
+                val target = extractFormulaString(el, "VALUE") ?: ""
+                Block(Block.Type.CAMERA, listOf("attach_so", name, target))
+            }
+            "LoadNativeModuleBrick" -> {
+                val path = extractFormulaString(el, "VALUE") ?: ""
+                Block(Block.Type.CAMERA, listOf("load_native_module", path))
+            }
+
+            // ═══════ Misc stubs ═══════
+            "CreateDialogBrick" -> {
+                val name = extractFormulaString(el, "NAME") ?: ""
+                val text = extractFormulaString(el, "TEXT") ?: ""
+                val varName = extractVariableName(el) ?: ""
+                Block(Block.Type.CONTROL, listOf("create_dialog", name, text, varName))
+            }
+            "BigAskBrick" -> {
+                val question = extractFormulaString(el, "ASK_QUESTION") ?: ""
+                val varName = extractVariableName(el) ?: ""
+                Block(Block.Type.LOOKS, listOf("big_ask", question, varName))
+            }
+            "HideStatusBarBrick" -> {
+                val hidden = extractFormulaValue(el, "VALUE") ?: 0f
+                Block(Block.Type.CONTROL, listOf("hide_status_bar", hidden))
+            }
+            "ToggleDisplayBrick" -> {
+                val state = extractFormulaValue(el, "VALUE") ?: 0f
+                Block(Block.Type.CONTROL, listOf("toggle_display", state))
+            }
+            "OrientationBrick" -> {
+                val orientation = extractFormulaValue(el, "VALUE") ?: 0f
+                Block(Block.Type.CONTROL, listOf("set_orientation", orientation))
+            }
+            "SetSaveScenesBrick" -> {
+                val save = extractFormulaValue(el, "VALUE") ?: 0f
+                Block(Block.Type.CONTROL, listOf("set_save_scenes", save))
+            }
+            "ApplyShaderToImageBrick" -> {
+                val fileName = extractFormulaString(el, "FILE") ?: ""
+                val shaderName = extractFormulaString(el, "TEXT") ?: ""
+                Block(Block.Type.LOOKS, listOf("apply_shader_to_image", fileName, shaderName))
+            }
 
             // Неизвестный тип — вернём null, будет пропущен
             else -> null
@@ -6788,8 +8101,9 @@ class DesktopScriptEngine(
 
             "MULTI_FINGER_X", "MULTI_FINGER_Y", "MULTI_FINGER_TOUCHED" -> 0.0
 
-            "TEXT_BLOCK_X", "TEXT_BLOCK_Y", "TEXT_BLOCK_SIZE",
-            "TEXT_BLOCK_FROM_CAMERA", "TEXT_BLOCK_LANGUAGE_FROM_CAMERA" -> 0.0
+            "TEXT_BLOCK_X", "TEXT_BLOCK_SIZE" -> 0.0
+            "TEXT_BLOCK_Y" -> 0.0
+            "TEXT_BLOCK_FROM_CAMERA", "TEXT_BLOCK_LANGUAGE_FROM_CAMERA" -> ""
 
             "VIDEO_PLAYING", "VIDEO_TIME" -> 0.0
 
@@ -7010,6 +8324,12 @@ class DesktopScriptEngine(
             "FREQ" -> 0.0
             "BATTARY" -> 100.0 // Desktop is always "fully charged"
             "LOUDNESS" -> 0.0
+
+            // ═══════════════ ML Kit стubs (face / text) ═══════════════
+            "FACE_DETECTED", "FACE_SIZE", "FACE_X", "FACE_Y" -> 0.0
+            "SECOND_FACE_DETECTED", "SECOND_FACE_SIZE", "SECOND_FACE_X", "SECOND_FACE_Y" -> 0.0
+            "TEXT_FROM_CAMERA" -> ""
+            "TEXT_BLOCKS_NUMBER" -> 0.0
 
             // ═══════════════ Все остальное — 0.0 ═══════════════
             else -> 0.0

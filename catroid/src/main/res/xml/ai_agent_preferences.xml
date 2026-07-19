@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    android:key="setting_ai_agent_screen"
+    android:summary="@string/ai_agent_pref_summary"
+    android:title="@string/ai_agent_pref_title">
+
+    <CheckBoxPreference
+        android:defaultValue="false"
+        android:key="ai_agent_enabled"
+        android:summary="@string/ai_agent_enabled_summary"
+        android:title="@string/ai_agent_enabled_title" />
+
+    <Preference
+        android:key="ai_agent_chat"
+        android:summary="@string/ai_agent_chat_summary"
+        android:title="@string/ai_agent_chat_title" />
+
+    <PreferenceCategory android:title="@string/ai_agent_model_category">
+
+        <ListPreference
+            android:defaultValue=""
+            android:entries="@array/ai_model_entries"
+            android:entryValues="@array/ai_model_values"
+            android:key="ai_agent_model_id"
+            android:summary="@string/ai_agent_model_summary"
+            android:title="@string/ai_agent_model_title" />
+
+        <Preference
+            android:key="ai_agent_download_model"
+            android:summary="@string/ai_agent_download_summary"
+            android:title="@string/ai_agent_download_title" />
+
+        <Preference
+            android:key="ai_agent_delete_model"
+            android:summary="@string/ai_agent_delete_summary"
+            android:title="@string/ai_agent_delete_title" />
+
+        <Preference
+            android:key="ai_agent_load_custom_model"
+            android:summary="@string/ai_agent_load_custom_summary"
+            android:title="@string/ai_agent_load_custom_title" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/ai_agent_behavior_category">
+
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="ai_agent_auto_read"
+            android:summary="@string/ai_agent_auto_read_summary"
+            android:title="@string/ai_agent_auto_read_title" />
+
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="ai_agent_auto_modify"
+            android:summary="@string/ai_agent_auto_modify_summary"
+            android:title="@string/ai_agent_auto_modify_title" />
+
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="ai_agent_confirm_changes"
+            android:summary="@string/ai_agent_confirm_summary"
+            android:title="@string/ai_agent_confirm_title" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/ai_agent_params_category">
+
+        <EditTextPreference
+            android:defaultValue="0.7"
+            android:key="ai_agent_temperature"
+            android:summary="@string/ai_agent_temperature_summary"
+            android:title="@string/ai_agent_temperature_title" />
+
+        <EditTextPreference
+            android:defaultValue="4096"
+            android:key="ai_agent_max_context"
+            android:summary="@string/ai_agent_max_context_summary"
+            android:title="@string/ai_agent_max_context_title" />
+
+        <EditTextPreference
+            android:defaultValue="10"
+            android:key="ai_agent_max_tool_calls"
+            android:summary="@string/ai_agent_max_tool_calls_summary"
+            android:title="@string/ai_agent_max_tool_calls_title" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/ai_agent_memory_category">
+
+        <Preference
+            android:key="ai_agent_clear_history"
+            android:summary="@string/ai_agent_clear_history_summary"
+            android:title="@string/ai_agent_clear_history_title" />
+
+        <Preference
+            android:key="ai_agent_clear_memory"
+            android:summary="@string/ai_agent_clear_memory_summary"
+            android:title="@string/ai_agent_clear_memory_title" />
+
+        <Preference
+            android:key="ai_agent_view_tool_history"
+            android:summary="@string/ai_agent_tool_history_summary"
+            android:title="@string/ai_agent_tool_history_title" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

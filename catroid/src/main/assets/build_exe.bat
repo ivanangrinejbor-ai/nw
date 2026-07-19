@@ -1,5 +1,8 @@
 @echo off
 setlocal enabledelayedexpansion
+rem Use UTF-8 codepage throughout so PowerShell commands with non-ASCII
+rem (Cyrillic) paths are never corrupted by codepage switches.
+chcp 65001 >nul 2>nul
 
 rem ============================================================
 rem NeoCatroid Windows EXE builder.
@@ -154,7 +157,13 @@ rem and it consistently received the correct %ROOT% during steps 1/4/4.5.
 rem Reap the launch4j builder (it may still hold launch4j.exe) so the
 rem cleanup below can remove the mirrored launch4j\ folder without a lock.
 taskkill /f /im launch4j.exe >nul 2>nul
-powershell -NoProfile -ExecutionPolicy Bypass -Command "$r='%ROOT%'; $a='%APP_DIR%'; if (Test-Path \"$r\project.zip\") { if (Test-Path \"$a\NeoCatroid.exe\") { Copy-Item \"$a\NeoCatroid.exe\" \"$r\NeoCatroid.exe\" -Force; echo ('  - Runnable app (root): ' + $r + 'NeoCatroid.exe') }; if (Test-Path \"$a\player.jar\") { Copy-Item \"$a\player.jar\" \"$r\player.jar\" -Force }; if (Test-Path \"$a\project.zip\") { Copy-Item \"$a\project.zip\" \"$r\project.zip\" -Force; echo ('  - Project: ' + $r + 'project.zip') }; if (Test-Path \"$a\jre\") { if (Test-Path \"$r\jre\") { Remove-Item \"$r\jre\" -Recurse -Force }; Copy-Item \"$a\jre\" \"$r\jre\" -Recurse -Force }; Get-ChildItem $r -Directory | Where-Object { $_.Name -notin 'icon','jre' } | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue; echo ('  - Icon: ' + '%ICON_ICO%') }"
+rem Stage the runnable app + project into the project root via a .ps1 script
+rem (avoids inline-PowerShell quoting/codepage corruption on Cyrillic paths).
+if exist "%ROOT%stage_root.ps1" (
+    powershell -NoProfile -ExecutionPolicy Bypass -File "%ROOT%stage_root.ps1" -Root "%ROOT%." -AppDir "%APP_DIR%" -IconIco "%ICON_ICO%"
+) else (
+    echo   WARNING: stage_root.ps1 missing - skipping root staging.
+)
 
 echo Done.
 echo   - Runnable app (give this to end users): %APP_DIR%
@@ -165,11 +174,14 @@ rem ============================================================
 rem :post  -- runs in the DETACHED child console (step 5 wrap + 6b template)
 rem ============================================================
 :post
+rem UTF-8 codepage so inline PowerShell (launch4j XML + NEOCAT01 footer) with
+rem Cyrillic paths is not corrupted. This runs in a fresh detached console.
+chcp 65001 >nul 2>nul
 echo [5/6] Creating launcher...
 if exist "%LAUNCH4J_EXE%" goto :wrap_launch4j
 echo   launch4j not found - writing NeoCatroid.bat launcher instead.
 echo @echo off > "%APP_DIR%\NeoCatroid.bat"
-echo start "" jre\bin\javaw.exe -jar player.jar >> "%APP_DIR%\NeoCatroid.bat"
+echo start "" jre\bin\javaw.exe -Xmx4g -jar player.jar >> "%APP_DIR%\NeoCatroid.bat"
 goto :after_launcher
 
 :wrap_launch4j
@@ -181,7 +193,7 @@ if exist "%ROOT%launch4j\launch4j.exe" (
 echo   wrapping with launch4j (bundled JRE)...
 if exist "%APP_DIR%\NeoCatroid.bat" del /f /q "%APP_DIR%\NeoCatroid.bat"
 set "L4J_XML=%DIST%\launch4j.xml"
-powershell -NoProfile -ExecutionPolicy Bypass -Command "$out='%EXE_OUT:\=\\%'; $ico='%ICON_L4J:\=\\%'; $xml='<launch4jConfig>' + [Environment]::NewLine + '  <headerType>gui</headerType>' + [Environment]::NewLine + '  <dontWrapJar>true</dontWrapJar>' + [Environment]::NewLine + '  <jar>player.jar</jar>' + [Environment]::NewLine + '  <cmdLine>project.zip</cmdLine>' + [Environment]::NewLine + '  <outfile>' + $out + '</outfile>' + [Environment]::NewLine + '  <icon>' + $ico + '</icon>' + [Environment]::NewLine + '  <classPath>' + [Environment]::NewLine + '    <mainClass>org.catrobat.catroid.stage.DesktopStage</mainClass>' + [Environment]::NewLine + '  </classPath>' + [Environment]::NewLine + '  <jre>' + [Environment]::NewLine + '    <path>jre</path>' + [Environment]::NewLine + '    <minVersion>11</minVersion>' + [Environment]::NewLine + '  </jre>' + [Environment]::NewLine + '</launch4jConfig>' + [Environment]::NewLine; Set-Content -Path '%L4J_XML%' -Value $xml -Encoding UTF8"
+powershell -NoProfile -ExecutionPolicy Bypass -File "%ROOT%\write_launch4j_xml.ps1" -OutFile "%EXE_OUT%" -Icon "%ICON_L4J%" -XmlPath "%L4J_XML%"
 rem Run launch4j in this (already detached) child console. Poll for the built
 rem exe, then reap any lingering java/javaw so it cannot crash this console.
 start "" /min "%LAUNCH4J_EXE%" "%L4J_XML%"
@@ -199,7 +211,7 @@ rem Footer layout consumed by DesktopStage.loadEmbeddedPayload:
 rem   [payload bytes][size:int64 LE][magic "NEOCAT01":8]
 if exist "%PROJ_ZIP%" if exist "%EXE_OUT%" (
     echo   embedding project into exe (NEOCAT01 footer)...
-    powershell -NoProfile -ExecutionPolicy Bypass -Command "$exe='%EXE_OUT:\=\\%'; $payload=Get-Content -Raw -Encoding Byte '%PROJ_ZIP:\=\\%'; $size=[int64]$payload.Length; $magic=[System.Text.Encoding]::ASCII.GetBytes('NEOCAT01'); $lenBytes=$size.ToByteArray(); $fs=[System.IO.File]::Open($exe,[System.IO.FileMode]::Append); try { $fs.Write($payload,0,$payload.Length); $fs.Write($lenBytes,0,8); $fs.Write($magic,0,8) } finally { $fs.Close() }; echo ('  embedded ' + $size + ' bytes')"
+    powershell -NoProfile -ExecutionPolicy Bypass -File "%ROOT%\embed_payload.ps1" -Exe "%EXE_OUT%" -Payload "%PROJ_ZIP%"
 )
 rem Reap any lingering java/javaw (launch4j's builder child) so it cannot
 rem crash this console after we return.
@@ -214,7 +226,7 @@ rem 6b. Build the template bundle (bare player + jre) for Android assets.
 rem PowerShell Compress-Archive is Unicode/long-path safe and never crashes
 rem the console the way bsdtar can on a non-ASCII path with a locked file.
 if exist "%ICON_ICO%" copy /y "%ICON_ICO%" "%DIST%\bundle\icon.ico" >nul
-powershell -NoProfile -Command "if (Test-Path '%ZIP_OUT%') { Remove-Item '%ZIP_OUT%' -Force }; Compress-Archive -Path '%DIST%\bundle\*' -DestinationPath '%ZIP_OUT%' -Force" 2>nul
+powershell -NoProfile -ExecutionPolicy Bypass -File "%ROOT%\build_template.ps1" -BundleDir "%DIST%\bundle" -IconIco "%ICON_ICO%" -ZipOut "%ZIP_OUT%"
 if errorlevel 1 echo   WARNING: template bundle (template_win.zip) could not be rebuilt - the existing copy is kept.
 echo Child wrap+template steps complete.
 goto :eof

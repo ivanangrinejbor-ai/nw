@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string formatted="false" name="ai_agent_pref_title">AI Агент</string>
+    <string formatted="false" name="ai_agent_pref_summary">Интеллектуальный помощник для разработки проектов</string>
+    <string formatted="false" name="ai_agent_enabled_title">Включить AI Агента</string>
+    <string formatted="false" name="ai_agent_enabled_summary">Включить AI Агента для помощи в разработке проектов</string>
+    <string formatted="false" name="ai_agent_chat_title">Открыть чат с AI</string>
+    <string formatted="false" name="ai_agent_chat_summary">Начать разговор с AI Агентом</string>
+    <string formatted="false" name="ai_agent_chat_title_short">AI Чат</string>
+    <string formatted="false" name="ai_agent_chat_hint">Спроси меня о своём проекте…</string>
+    <string formatted="false" name="ai_agent_send">Отправить</string>
+    <string formatted="false" name="ai_agent_copy">Копировать</string>
+    <string formatted="false" name="ai_agent_regenerate">Перегенерировать</string>
+    <string formatted="false" name="ai_agent_copied">Скопировано</string>
+    <string formatted="false" name="ai_agent_clear_history_message">Удалить все сообщения в текущем разговоре?</string>
+    <string formatted="false" name="ai_agent_model_category">Модель</string>
+    <string formatted="false" name="ai_agent_model_title">Активная модель</string>
+    <string formatted="false" name="ai_agent_model_summary">Выберите GGUF модель для инференса</string>
+    <string formatted="false" name="ai_agent_download_title">Скачать модель</string>
+    <string formatted="false" name="ai_agent_download_summary">Скачать GGUF языковую модель</string>
+    <string formatted="false" name="ai_agent_delete_title">Удалить модель</string>
+    <string formatted="false" name="ai_agent_delete_summary">Удалить скачанную модель</string>
+    <string formatted="false" name="ai_agent_behavior_category">Поведение</string>
+    <string formatted="false" name="ai_agent_auto_read_title">Авто-чтение проекта</string>
+    <string formatted="false" name="ai_agent_auto_read_summary">Автоматически анализировать проект перед ответом</string>
+    <string formatted="false" name="ai_agent_auto_modify_title">Авто-изменение проекта</string>
+    <string formatted="false" name="ai_agent_auto_modify_summary">Разрешить AI автоматически применять изменения</string>
+    <string formatted="false" name="ai_agent_confirm_title">Подтверждение изменений</string>
+    <string formatted="false" name="ai_agent_confirm_summary">Спрашивать перед применением изменений в проекте</string>
+    <string formatted="false" name="ai_agent_params_category">Параметры</string>
+    <string formatted="false" name="ai_agent_temperature_title">Температура</string>
+    <string formatted="false" name="ai_agent_temperature_summary">Креативность модели (0 = детерминировано, 2 = креативно)</string>
+    <string formatted="false" name="ai_agent_max_context_title">Макс. контекст</string>
+    <string formatted="false" name="ai_agent_max_context_summary">Максимальное количество токенов контекста</string>
+    <string formatted="false" name="ai_agent_max_tool_calls_title">Макс. вызовов инструментов</string>
+    <string formatted="false" name="ai_agent_max_tool_calls_summary">Максимальное количество вызовов инструментов за цикл</string>
+    <string formatted="false" name="ai_agent_memory_category">Память</string>
+    <string formatted="false" name="ai_agent_clear_history_title">Очистить историю</string>
+    <string formatted="false" name="ai_agent_clear_history_summary">Сбросить историю разговора</string>
+    <string formatted="false" name="ai_agent_clear_memory_title">Очистить память</string>
+    <string formatted="false" name="ai_agent_clear_memory_summary">Удалить все сохранённые воспоминания и кэш</string>
+    <string formatted="false" name="ai_agent_tool_history_title">История инструментов</string>
+    <string formatted="false" name="ai_agent_tool_history_summary">Просмотреть последние вызовы инструментов</string>
+    <string formatted="false" name="ai_agent_download_dialog_title">Скачать AI модель</string>
+    <string formatted="false" name="ai_agent_download_dialog_message">Выберите модель для скачивания:</string>
+    <string formatted="false" name="ai_agent_download_started">Скачивание начато: %s</string>
+    <string formatted="false" name="ai_agent_download_complete">Скачивание завершено: %s</string>
+    <string formatted="false" name="ai_agent_download_failed">Ошибка скачивания: %s</string>
+    <string formatted="false" name="ai_agent_delete_confirm">Удалить модель %s?</string>
+    <string formatted="false" name="ai_agent_model_loading">Загрузка модели…</string>
+    <string formatted="false" name="ai_agent_model_loaded">Модель загружена: %s</string>
+    <string formatted="false" name="ai_agent_model_unloaded">Модель выгружена</string>
+    <string formatted="false" name="ai_model_none">Нет (выключено)</string>
+    <string formatted="false" name="ai_model_qwen_0_5b">Qwen 2.5 0.5B (Быстрый)</string>
+    <string formatted="false" name="ai_model_qwen_1b">Qwen 2.5 1B (Сбалансированный)</string>
+    <string formatted="false" name="ai_model_qwen_3b">Qwen 2.5 3B (Мощный)</string>
+    <string formatted="false" name="ai_model_qwen_7b">Qwen 2.5 7B (Максимум)</string>
+    <string formatted="false" name="ai_agent_thinking">AI Агент думает…</string>
+    <string formatted="false" name="ai_agent_using_tools">AI Агент использует инструменты…</string>
+    <string formatted="false" name="ai_agent_error">AI Агент получил ошибку</string>
+    <string formatted="false" name="ai_agent_enable_first">Сначала включите AI Агента в настройках</string>
+    <string formatted="false" name="ai_agent_history_cleared">История очищена</string>
+    <string formatted="false" name="ai_agent_memory_cleared">Память очищена</string>
+    <string formatted="false" name="ai_agent_clear_memory_confirm">Это безвозвратно удалит все сохранённые воспоминания. Продолжить?</string>
+    <string formatted="false" name="ai_agent_no_tool_history">История вызовов инструментов пуста</string>
+    <string formatted="false" name="ai_agent_no_models_downloaded">Нет скачанных моделей</string>
+    <string formatted="false" name="ai_agent_load_custom_title">Загрузить свою GGUF</string>
+    <string formatted="false" name="ai_agent_load_custom_summary">Загрузить .gguf файл модели из памяти устройства</string>
+    <string formatted="false" name="ai_agent_load_custom_failed">Не удалось загрузить модель. Убедитесь, что это .gguf файл.</string>
+    <string formatted="false" name="ai_agent_all_downloaded">Все модели уже скачаны</string>
+    <string formatted="false" name="ai_agent_download_progress_text">Скачивание…</string>
+    <string formatted="false" name="ai_agent_download_complete_text">Скачивание завершено</string>
+    <string formatted="false" name="ai_agent_chat_menu_title">AI Чат</string>
+</resources>

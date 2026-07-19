@@ -191,14 +191,6 @@ import org.catrobat.catroid.content.bricks.MoveToObjectBrick
 import org.catrobat.catroid.content.bricks.SmoothPathBrick
 import org.catrobat.catroid.content.bricks.EnableDynamicReplanningBrick
 import org.catrobat.catroid.content.bricks.StopMovementBrick
-import org.catrobat.catroid.content.bricks.FadeToBlackBrick
-import org.catrobat.catroid.content.bricks.FadeFromBlackBrick
-import org.catrobat.catroid.content.bricks.CrossfadeBrick
-import org.catrobat.catroid.content.bricks.SlideLeftBrick
-import org.catrobat.catroid.content.bricks.SlideRightBrick
-import org.catrobat.catroid.content.bricks.SlideUpBrick
-import org.catrobat.catroid.content.bricks.SlideDownBrick
-import org.catrobat.catroid.content.bricks.InstantTransitionBrick
 import org.catrobat.catroid.content.bricks.FileUrlBrick
 import org.catrobat.catroid.content.bricks.FilesUrlBrick
 import org.catrobat.catroid.content.bricks.FinishStageBrick
@@ -2531,9 +2523,9 @@ void main() {
 
     private fun setupNeoScriptCategoryList(context: Context): List<Brick> {
         val neoBrickList: MutableList<Brick> = ArrayList()
-        neoBrickList.add(CreateObjectBrick("", ""))
+        neoBrickList.add(CreateObjectBrick(""))
         neoBrickList.add(ImportScriptBrick("", "", false))
-        neoBrickList.add(AssignScriptsBrick("", "", "", false))
+        neoBrickList.add(AssignScriptsBrick("", "", false))
         return neoBrickList
     }
 

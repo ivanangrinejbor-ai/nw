@@ -106,7 +106,13 @@ class OpenFileAction() : TemporalAction() {
         }
 
         val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-        val fileToOpen = File(downloadsDir, fileName)
+        val baseCanonical = downloadsDir.canonicalPath
+        val fileToOpen = File(downloadsDir, fileName).canonicalFile
+        if (!fileToOpen.canonicalPath.startsWith(baseCanonical + File.separator)) {
+            Log.e("OpenFileAction", "Path traversal detected: $fileName")
+            toast("Invalid file path")
+            return
+        }
 
         Log.d("OpenFileAction", "Trying to open file: ${fileToOpen.absolutePath}")
 
