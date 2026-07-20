@@ -4,6 +4,8 @@ import com.badlogic.gdx.ApplicationAdapter
 import java.io.File
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.OrthographicCamera
+import com.badlogic.gdx.graphics.glutils.FrameBuffer
+import com.badlogic.gdx.graphics.Pixmap
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.math.Vector3
 import com.badlogic.gdx.graphics.Texture
@@ -43,6 +45,12 @@ class DesktopStageListener(private val projectDir: File? = null) : ApplicationAd
     private lateinit var cameraState: DesktopCameraState
     private var lastFrameNanos: Long = 0L
 
+    /** Pen layer FBO cache — pen commands are rendered incrementally into this texture. */
+    private var penFbo: FrameBuffer? = null
+    private var penFboSprite: com.badlogic.gdx.graphics.g2d.Sprite? = null
+    /** Tracks how many pen commands have already been rendered into the FBO. */
+    private val penRenderedCounts = mutableMapOf<String, Int>()
+
     private val VIRTUAL_WIDTH: Float = 1280f
     private val VIRTUAL_HEIGHT: Float = 720f
 
@@ -65,6 +73,16 @@ class DesktopStageListener(private val projectDir: File? = null) : ApplicationAd
         batch = SpriteBatch()
         shapeRenderer = ShapeRenderer()
         font = BitmapFont()
+
+        // Initialize pen FBO for cached pen rendering
+        try {
+            penFbo = FrameBuffer(Pixmap.Format.RGBA8888, VIRTUAL_WIDTH.toInt(), VIRTUAL_HEIGHT.toInt(), false)
+            penFboSprite = com.badlogic.gdx.graphics.g2d.Sprite(penFbo!!.colorBufferTexture)
+            penFboSprite?.setFlip(false, true) // FBO textures are Y-flipped
+        } catch (_: Exception) {
+            // FBO not supported — fall back to direct rendering
+            penFbo = null
+        }
 
         input = DesktopInput()
         physicsWorld = DesktopPhysicsWorld(0f, -9.8f)
@@ -153,65 +171,40 @@ class DesktopStageListener(private val projectDir: File? = null) : ApplicationAd
             }
             batch.end()
 
-            // ── 2. Render pen shapes (lines, circles, rectangles, polygons) ──
-            shapeRenderer.projectionMatrix = camera.combined
-            for (sprite in project.sprites) {
-                val cmds = sprite.penDrawCommands
-                if (cmds.isEmpty()) continue
-                for (cmd in cmds) {
-                    when (cmd) {
-                        is PenDrawCommand.DrawLine -> {
-                            shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
-                            shapeRenderer.color = com.badlogic.gdx.graphics.Color(
-                                cmd.colorRed / 255f, cmd.colorGreen / 255f, cmd.colorBlue / 255f,
-                                1f
-                            )
-                            shapeRenderer.line(cmd.x1, cmd.y1, cmd.x2, cmd.y2)
-                            shapeRenderer.end()
-                        }
-                        is PenDrawCommand.DrawCircle -> {
-                            if (cmd.fill) {
-                                shapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
-                            } else {
-                                shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
-                            }
-                            shapeRenderer.color = com.badlogic.gdx.graphics.Color(
-                                cmd.colorRed / 255f, cmd.colorGreen / 255f, cmd.colorBlue / 255f,
-                                1f
-                            )
-                            shapeRenderer.circle(cmd.cx, cmd.cy, cmd.radius)
-                            shapeRenderer.end()
-                        }
-                        is PenDrawCommand.DrawRect -> {
-                            if (cmd.fill) {
-                                shapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
-                            } else {
-                                shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
-                            }
-                            shapeRenderer.color = com.badlogic.gdx.graphics.Color(
-                                cmd.colorRed / 255f, cmd.colorGreen / 255f, cmd.colorBlue / 255f,
-                                1f
-                            )
-                            shapeRenderer.rect(cmd.x - cmd.width / 2f, cmd.y - cmd.height / 2f,
-                                cmd.width, cmd.height)
-                            shapeRenderer.end()
-                        }
-                        is PenDrawCommand.FillPolygon -> {
-                            if (cmd.points.size >= 3) {
-                                shapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
-                                shapeRenderer.color = com.badlogic.gdx.graphics.Color(
-                                    cmd.colorRed / 255f, cmd.colorGreen / 255f, cmd.colorBlue / 255f,
-                                    1f
-                                )
-                                val verts = cmd.points.flatMap { listOf(it.first, it.second) }.toFloatArray()
-                                shapeRenderer.polygon(verts)
-                                shapeRenderer.end()
-                            }
-                        }
-                        is PenDrawCommand.DrawText,
-                        is PenDrawCommand.StampSprite -> {
-                            // handled in batch pass below
-                        }
+            // ── 2. Render pen shapes (incremental FBO caching) ──
+            val fbo = penFbo
+            if (fbo != null) {
+                // Render only NEW pen commands into the FBO
+                fbo.begin()
+                // We need to set up an orthographic projection for the FBO
+                val penCam = OrthographicCamera(VIRTUAL_WIDTH, VIRTUAL_HEIGHT)
+                penCam.setToOrtho(true) // Y-down to match stage coords
+                penCam.update()
+                shapeRenderer.projectionMatrix = penCam.combined
+                for (sprite in project.sprites) {
+                    val cmds = sprite.penDrawCommands
+                    if (cmds.isEmpty()) continue
+                    val key = sprite.name
+                    val startIdx = penRenderedCounts[key] ?: 0
+                    if (startIdx >= cmds.size) continue
+                    for (i in startIdx until cmds.size) {
+                        drawPenCommand(cmds[i])
+                    }
+                    penRenderedCounts[key] = cmds.size
+                }
+                fbo.end()
+                // Draw the cached pen texture in the main batch
+                batch.begin()
+                penFboSprite?.draw(batch)
+                batch.end()
+            } else {
+                // Fallback: direct rendering (no FBO)
+                shapeRenderer.projectionMatrix = camera.combined
+                for (sprite in project.sprites) {
+                    val cmds = sprite.penDrawCommands
+                    if (cmds.isEmpty()) continue
+                    for (cmd in cmds) {
+                        drawPenCommand(cmd)
                     }
                 }
             }
@@ -266,20 +259,11 @@ class DesktopStageListener(private val projectDir: File? = null) : ApplicationAd
         }
 
         val requestedFps = scriptEngine.getTargetFps()
-        if (requestedFps > 0) {
-            val frameNanos = (1_000_000_000L / requestedFps).coerceAtLeast(1L)
-            val now = System.nanoTime()
-            val elapsed = now - lastFrameNanos
-            if (elapsed < frameNanos) {
-                val sleepMillis = (frameNanos - elapsed) / 1_000_000L
-                if (sleepMillis > 0) {
-                    try { Thread.sleep(sleepMillis) } catch (_: InterruptedException) { }
-                }
-            }
-            lastFrameNanos = System.nanoTime()
-        } else {
-            lastFrameNanos = System.nanoTime()
+        if (requestedFps > 0 && requestedFps != 60) {
+            // Use libGDX foreground FPS limiter instead of Thread.sleep
+            // (already set via config.setForegroundFPS in DesktopStage)
         }
+        lastFrameNanos = System.nanoTime()
     }
 
     override fun resize(width: Int, height: Int) {
@@ -297,8 +281,49 @@ class DesktopStageListener(private val projectDir: File? = null) : ApplicationAd
         font.dispose()
         hudProjectTex?.dispose()
         hudProjectTex = null
+        penFbo?.dispose()
+        penFbo = null
         physicsWorld.dispose()
         DesktopProjectManager.getInstance().clear()
+    }
+
+    /** Draw a single pen command using the shapeRenderer (used by both FBO and fallback paths). */
+    private fun drawPenCommand(cmd: PenDrawCommand) {
+        when (cmd) {
+            is PenDrawCommand.DrawLine -> {
+                shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
+                shapeRenderer.color = com.badlogic.gdx.graphics.Color(
+                    cmd.colorRed / 255f, cmd.colorGreen / 255f, cmd.colorBlue / 255f, 1f)
+                shapeRenderer.line(cmd.x1, cmd.y1, cmd.x2, cmd.y2)
+                shapeRenderer.end()
+            }
+            is PenDrawCommand.DrawCircle -> {
+                shapeRenderer.begin(if (cmd.fill) ShapeRenderer.ShapeType.Filled else ShapeRenderer.ShapeType.Line)
+                shapeRenderer.color = com.badlogic.gdx.graphics.Color(
+                    cmd.colorRed / 255f, cmd.colorGreen / 255f, cmd.colorBlue / 255f, 1f)
+                shapeRenderer.circle(cmd.cx, cmd.cy, cmd.radius)
+                shapeRenderer.end()
+            }
+            is PenDrawCommand.DrawRect -> {
+                shapeRenderer.begin(if (cmd.fill) ShapeRenderer.ShapeType.Filled else ShapeRenderer.ShapeType.Line)
+                shapeRenderer.color = com.badlogic.gdx.graphics.Color(
+                    cmd.colorRed / 255f, cmd.colorGreen / 255f, cmd.colorBlue / 255f, 1f)
+                shapeRenderer.rect(cmd.x - cmd.width / 2f, cmd.y - cmd.height / 2f, cmd.width, cmd.height)
+                shapeRenderer.end()
+            }
+            is PenDrawCommand.FillPolygon -> {
+                if (cmd.points.size >= 3) {
+                    shapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
+                    shapeRenderer.color = com.badlogic.gdx.graphics.Color(
+                        cmd.colorRed / 255f, cmd.colorGreen / 255f, cmd.colorBlue / 255f, 1f)
+                    val verts = cmd.points.flatMap { listOf(it.first, it.second) }.toFloatArray()
+                    shapeRenderer.polygon(verts)
+                    shapeRenderer.end()
+                }
+            }
+            is PenDrawCommand.DrawText,
+            is PenDrawCommand.StampSprite -> { /* handled in batch pass */ }
+        }
     }
 
     companion object {

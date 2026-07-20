@@ -1,0 +1,3 @@
+- All Gradle modules share versioned dependencies declared in the root `build.gradle` `ext` block rather than per-module hard-coded versions.
+- Kotlin code across modules uses KSP annotation processing (e.g. `@LunoClass`/`@LunoFunction`/`@LunoProperty`) instead of runtime reflection for code generation.
+- Android-specific modules declare product flavors through a common flavor configuration pattern defined in the top-level build script.

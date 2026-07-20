@@ -1,0 +1,1 @@
+Windows desktop runtime that implements Catrobat's service interfaces on top of the standard JDK and libGDX/LWJGL3 to run NeoCatroid projects as a standalone executable.

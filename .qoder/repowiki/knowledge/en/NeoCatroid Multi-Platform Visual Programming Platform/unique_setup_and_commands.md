@@ -1,0 +1,1 @@
+Open the repo in Android Studio and sync Gradle to resolve all subprojects. Build the embedded APK template via `./gradlew copyTemplateApk`. Full CI pipelines are driven from the root `Jenkinsfile*` files (standalone build, manual tests, outgoing-network tests, sensorbox tests, release APK).

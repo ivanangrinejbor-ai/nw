@@ -1945,6 +1945,15 @@
     <string formatted="false" name="brick_choose_file2">сохранить название в переменную</string>
     <string formatted="false" name="brick_choose_file3">и копировать в файлы проекта</string>
     <string formatted="false" name="brick_set_hitbox">Задать образ, оставив хитбокс</string>
+    <string formatted="false" name="hitbox_editor_title">Редактор хитбоксов</string>
+    <string formatted="false" name="hitbox_add">Добавить хитбокс</string>
+    <string formatted="false" name="hitbox_delete">Удалить хитбокс</string>
+    <string formatted="false" name="hitbox_save">Сохранить хитбоксы</string>
+    <string formatted="false" name="hitbox_hint_default">Коснитесь хитбокса • Тяните углы для размера • Долгое нажатие — перемещение • Двойное касание — поворот</string>
+    <string formatted="false" name="hitbox_hint_modified">Изменено — нажмите «Сохранить»</string>
+    <string formatted="false" name="hitbox_hint_added">Хитбокс добавлен</string>
+    <string formatted="false" name="hitbox_hint_deleted">Хитбокс удалён</string>
+    <string formatted="false" name="hitbox_editor_menu">Редактор хитбоксов</string>
     <string formatted="false" name="only_numbers">Здесь разрешены только дробные и обычные числа</string>
     <string formatted="false" name="project_physics_height">Область ширины физики</string>
     <string formatted="false" name="project_physics_width">Область высоты физики</string>

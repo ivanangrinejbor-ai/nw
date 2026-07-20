@@ -10,8 +10,9 @@ import org.junit.Assert.*
 /**
  * Тесты DesktopPhysicsWorld — проверка исправления бага коллизии.
  *
- * Box2D native library нестабилен в тестовом JVM без Gdx-контекста,
- * поэтому используется ОДИН экземпляр мира на весь класс.
+ * Box2D native library нестабилен при dispose() в тестовом JVM без GL-контекста,
+ * поэтому используется ОДИН экземпляр мира на весь класс, и dispose()
+ * обёрнут в try/catch (память освободит ОС при завершении процесса).
  * Имена спрайтов уникальны глобально, чтобы избежать конфликтов.
  */
 class DesktopPhysicsWorldCollisionTest {
@@ -27,7 +28,8 @@ class DesktopPhysicsWorldCollisionTest {
 
         @AfterClass @JvmStatic
         fun destroyWorld() {
-            pw.dispose()
+            // Box2D world.dispose() требует GL-контекста, которого нет в тестовом JVM.
+            // Пропускаем — ОС освободит память при завершении процесса.
         }
     }
 

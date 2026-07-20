@@ -39,6 +39,32 @@ public final class PhysicsShapeScaleUtils {
 	private PhysicsShapeScaleUtils() {
 	}
 
+	/**
+	 * Creates a deep copy of an array of Shapes. For PolygonShape instances,
+	 * a new PolygonShape with identical vertices is created. Non-PolygonShape
+	 * entries are passed through by reference (no general-purpose clone exists).
+	 * This prevents cache corruption when scaleShapes disposes old shapes.
+	 */
+	public static Shape[] copyShapes(Shape[] shapes) {
+		Shape[] copies = new Shape[shapes.length];
+		for (int i = 0; i < shapes.length; i++) {
+			if (shapes[i] instanceof PolygonShape) {
+				PolygonShape original = (PolygonShape) shapes[i];
+				Vector2[] vertices = new Vector2[original.getVertexCount()];
+				for (int j = 0; j < vertices.length; j++) {
+					vertices[j] = new Vector2();
+					original.getVertex(j, vertices[j]);
+				}
+				PolygonShape copy = new PolygonShape();
+				copy.set(vertices);
+				copies[i] = copy;
+			} else {
+				copies[i] = shapes[i]; // Pass through non-PolygonShape types
+			}
+		}
+		return copies;
+	}
+
 	public static Shape[] scaleShapes(Shape[] shapes, float targetScale) {
 		return scaleShapes(shapes, targetScale, 1.0f);
 	}
@@ -54,8 +80,14 @@ public final class PhysicsShapeScaleUtils {
 		List<Shape> scaledShapes = new LinkedList<>();
 		if (shapes != null) {
 			for (Shape shape : shapes) {
-				List<Vector2> vertices = new LinkedList<>();
+				if (!(shape instanceof PolygonShape)) {
+					// Non-polygon shapes are passed through unchanged
+					scaledShapes.add(shape);
+					continue;
+				}
+
 				PolygonShape polygon = (PolygonShape) shape;
+				List<Vector2> vertices = new LinkedList<>();
 				for (int index = 0; index < polygon.getVertexCount(); index++) {
 					Vector2 vertex = new Vector2();
 					polygon.getVertex(index, vertex);
@@ -65,6 +97,10 @@ public final class PhysicsShapeScaleUtils {
 				PolygonShape polygonShape = new PolygonShape();
 				polygonShape.set(vertices.toArray(new Vector2[vertices.size()]));
 				scaledShapes.add(polygonShape);
+
+				// Dispose the old shape after creating the replacement to prevent
+				// native memory leaks (Box2D shapes hold native peer objects).
+				shape.dispose();
 			}
 		}
 		return scaledShapes.toArray(new Shape[scaledShapes.size()]);

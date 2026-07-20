@@ -1,0 +1,2 @@
+- Each public API surface is exposed through a `SOURCE`-retention annotation carrying an optional `name` parameter that defaults to the element's own identifier, letting callers override the LunoScript binding name.
+- Generated code is always written as a single `FileSpec` named `GeneratedLunoRegistry` inside package `org.catrobat.catroid.utils.lunoscript.generated`, built by appending `FunSpec`s to a shared `registerFunctionBuilder` before emission.

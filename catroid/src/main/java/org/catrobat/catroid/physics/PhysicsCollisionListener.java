@@ -33,6 +33,8 @@ import org.catrobat.catroid.content.Sprite;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 @LunoClass
 public class PhysicsCollisionListener implements ContactListener {
@@ -48,6 +50,12 @@ public class PhysicsCollisionListener implements ContactListener {
 	}
 
 	private Map<CollidingSprites, PhysicalCollision> collidingSpritesToCollisionMap = new HashMap<>();
+
+	/**
+	 * Deferred event queue for collision events that must not fire during Box2D's world step.
+	 * Events are queued in beginContact/endContact and flushed after world.step() completes.
+	 */
+	private final Queue<Runnable> deferredEvents = new ConcurrentLinkedQueue<>();
 
 	private void registerContact(Sprite sprite1, Sprite sprite2) {
 		CollidingSprites collidingSprites = new CollidingSprites(sprite1, sprite2);
@@ -76,9 +84,13 @@ public class PhysicsCollisionListener implements ContactListener {
 		Body b = contact.getFixtureB().getBody();
 
 		if (a.getUserData() instanceof Sprite && b.getUserData() instanceof PhysicsBoundaryBox.BoundaryBoxIdentifier) {
-			physicsWorld.bouncedOnEdge((Sprite) a.getUserData(), (PhysicsBoundaryBox.BoundaryBoxIdentifier) b.getUserData());
+			Sprite sprite = (Sprite) a.getUserData();
+			PhysicsBoundaryBox.BoundaryBoxIdentifier boxId = (PhysicsBoundaryBox.BoundaryBoxIdentifier) b.getUserData();
+			deferredEvents.add(() -> physicsWorld.bouncedOnEdge(sprite, boxId));
 		} else if (a.getUserData() instanceof PhysicsBoundaryBox.BoundaryBoxIdentifier && (b.getUserData() instanceof Sprite)) {
-			physicsWorld.bouncedOnEdge((Sprite) b.getUserData(), (PhysicsBoundaryBox.BoundaryBoxIdentifier) a.getUserData());
+			Sprite sprite = (Sprite) b.getUserData();
+			PhysicsBoundaryBox.BoundaryBoxIdentifier boxId = (PhysicsBoundaryBox.BoundaryBoxIdentifier) a.getUserData();
+			deferredEvents.add(() -> physicsWorld.bouncedOnEdge(sprite, boxId));
 		} else if (a.getUserData() instanceof Sprite && b.getUserData() instanceof Sprite) {
 			Sprite sprite1 = (Sprite) a.getUserData();
 			Sprite sprite2 = (Sprite) b.getUserData();
@@ -94,7 +106,7 @@ public class PhysicsCollisionListener implements ContactListener {
 		if (a.getUserData() instanceof Sprite && b.getUserData() instanceof Sprite) {
 			Sprite sprite1 = (Sprite) a.getUserData();
 			Sprite sprite2 = (Sprite) b.getUserData();
-			unregisterContact(sprite1, sprite2);
+			deferredEvents.add(() -> unregisterContact(sprite1, sprite2));
 		}
 	}
 
@@ -104,5 +116,13 @@ public class PhysicsCollisionListener implements ContactListener {
 
 	@Override
 	public void postSolve(Contact contact, ContactImpulse impulse) {
+	}
+
+	/** Processes all deferred collision events accumulated during the last world.step(). */
+	public void flushDeferredEvents() {
+		Runnable event;
+		while ((event = deferredEvents.poll()) != null) {
+			event.run();
+		}
 	}
 }

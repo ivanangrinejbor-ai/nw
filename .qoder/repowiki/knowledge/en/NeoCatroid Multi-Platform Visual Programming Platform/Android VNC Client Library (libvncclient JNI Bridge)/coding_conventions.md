@@ -1,0 +1,5 @@
+- Native callbacks are exposed as `@Keep`-annotated private Kotlin functions whose names match the `cb*` convention expected by the C++ side (e.g. `cbGetPassword`, `cbVerifyServerCertificate`, `cbGotXCutText`, `cbHandleCursorPos`).
+- All mutable client state (`connected`, `destroyed`) is guarded by a single `ReentrantReadWriteLock`; read-side access goes through a non-blocking `tryRead` helper to avoid ANRs when the write lock is contended by long-running IO.
+- Input-path methods wrap their body in `ifConnectedAndInteractive`, which first checks `connected && !destroyed` and then rejects if `inputDisabled` is set, centralizing the preconditions for every send operation.
+- Every JNI-bound function follows the `native<PascalCase>(clientPtr: Long, ...)` naming scheme and takes the opaque `rfbClient*` as a `Long` parameter, keeping the native handle out of the public type system.
+- The CMake build overrides `install()`/`export()` globally and forces `ENABLE_SHARED=OFF` / `ENABLE_STATIC=ON` for libjpeg-turbo so the three embedded subprojects link as static targets into one `native-vnc` shared library.

@@ -32,6 +32,7 @@ public class PhysicsObjectStateHandler {
 
 	private PhysicsLook physicsLook;
 	private PhysicsObject physicsObject;
+	private PhysicsWorld physicsWorld;
 
 	private LinkedList<PhysicsObjectStateCondition> hangupConditions = new LinkedList<>();
 	private LinkedList<PhysicsObjectStateCondition> nonCollidingConditions = new LinkedList<>();
@@ -47,9 +48,10 @@ public class PhysicsObjectStateHandler {
 	private boolean fixed = false;
 	private boolean nonColliding = false;
 
-	PhysicsObjectStateHandler(PhysicsLook physicsLook, PhysicsObject physicsObject) {
+	PhysicsObjectStateHandler(PhysicsLook physicsLook, PhysicsObject physicsObject, PhysicsWorld physicsWorld) {
 		this.physicsLook = physicsLook;
 		this.physicsObject = physicsObject;
+		this.physicsWorld = physicsWorld;
 
 		positionCondition = new PhysicsObjectStateCondition() {
 			@Override
@@ -63,12 +65,12 @@ public class PhysicsObjectStateHandler {
 
 			private boolean isXOutsideActiveArea() {
 				return Math.abs(PhysicsWorldConverter.convertBox2dToNormalCoordinate(physicsObject.getMassCenter().x))
-						- physicsObject.getCircumference() > PhysicsWorld.activeArea.x / 2.0f;
+						- physicsObject.getCircumference() > physicsWorld.getActiveArea().x / 2.0f;
 			}
 
 			private boolean isYOutsideActiveArea() {
 				return Math.abs(PhysicsWorldConverter.convertBox2dToNormalCoordinate(physicsObject.getMassCenter().y))
-						- physicsObject.getCircumference() > PhysicsWorld.activeArea.y / 2.0f;
+						- physicsObject.getCircumference() > physicsWorld.getActiveArea().y / 2.0f;
 			}
 		};
 

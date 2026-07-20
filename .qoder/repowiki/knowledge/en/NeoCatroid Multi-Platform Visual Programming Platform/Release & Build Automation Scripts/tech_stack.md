@@ -1,0 +1,1 @@
+Python 3 stdlib (`shutil`, `os`, `time`) for Gradle/Manifest patching and APK staging; POSIX `sh` + `curl` for network retries; LogParser-Plugin rule syntax for build-log failure detection.

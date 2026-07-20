@@ -296,16 +296,13 @@ public class PhysicsObject {
 			return;
 		}
 
-		// Compute area from actual fixture masses, not from template fixtureDef.density
+		// Compute area from fixture shapes, not from mass/density
 		float area = 0f;
 		for (Fixture fixture : body.getFixtureList()) {
-			float fixtureDensity = fixture.getDensity();
-			if (fixtureDensity > 0) {
-				area += fixture.getMass() / fixtureDensity;
-			}
+			area += PhysicsWorldConverter.computeShapeArea(fixture.getShape());
 		}
 		if (area <= 0) {
-			return; // no fixtures or all zero-density — cannot set mass
+			return; // no fixtures or zero-area shapes — cannot set mass
 		}
 		float density = this.mass / area;
 		setDensity(density);

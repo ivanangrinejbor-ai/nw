@@ -1,0 +1,1 @@
+Android library that wraps libvncclient behind a Kotlin/JNI API to connect to remote RFB servers, stream framebuffer updates via OpenGL ES textures, and forward keyboard/mouse/cut-text input.

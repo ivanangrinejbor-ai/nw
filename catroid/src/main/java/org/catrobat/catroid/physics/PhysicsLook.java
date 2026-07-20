@@ -46,7 +46,7 @@ public class PhysicsLook extends Look {
 	public PhysicsLook(Sprite sprite, PhysicsWorld physicsWorld) {
 		super(sprite);
 		physicsObject = physicsWorld.getPhysicsObject(sprite);
-		physicsObjectStateHandler = new PhysicsObjectStateHandler(this, physicsObject);
+		physicsObjectStateHandler = new PhysicsObjectStateHandler(this, physicsObject, physicsWorld);
 	}
 
 	@Override

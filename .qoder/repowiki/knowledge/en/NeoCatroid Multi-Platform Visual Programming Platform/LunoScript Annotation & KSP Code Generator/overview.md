@@ -1,0 +1,1 @@
+Kotlin annotation library and KSP processor that scans @LunoClass/@LunoFunction/@LunoProperty annotations to generate a native-function registry for the LunoScript interpreter.

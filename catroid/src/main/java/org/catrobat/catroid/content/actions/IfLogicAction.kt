@@ -39,6 +39,10 @@ class IfLogicAction : Action() {
     private var isInterpretedCorrectly: Boolean = false
 
     private fun interpretCondition() {
+        if (scope == null) {
+            isInterpretedCorrectly = false
+            return
+        }
         isInterpretedCorrectly = try {
             ifConditionValue = ifCondition?.interpretDouble(scope)?.toInt() != 0
             ifCondition != null

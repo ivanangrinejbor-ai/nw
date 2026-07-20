@@ -1,0 +1,11 @@
+schema_version: 1
+module_path: catroid_android_app
+title: Catroid Android App (NeoCatroid) — Build & Flavor Assembly
+scope:
+    - catroid/
+source_files: []
+depends_on: []
+related_to:
+    - path: core_library
+    - path: lunoscript_tooling
+    - path: vnc_client

@@ -321,6 +321,24 @@ class ProjectOptionsFragment : Fragment() {
         }
     }
 
+    /**
+     * Release all cached pixmaps and texture regions from memory.
+     * For large projects (1000+ sprites) this frees hundreds of MB of RAM.
+     * The caches are lazily re-loaded when needed (getPixmap/getTextureRegion).
+     */
+    private fun releaseAllLookCaches() {
+        val proj = project ?: return
+        for (scene in proj.sceneList) {
+            for (sprite in scene.spriteList) {
+                for (look in sprite.lookList) {
+                    look.invalidateThumbnailBitmap()
+                    // dispose() releases pixmap + textureRegion native memory
+                    look.dispose()
+                }
+            }
+        }
+    }
+
     private fun shareFile(file: File) {
         val uri = androidx.core.content.FileProvider.getUriForFile(
             requireContext(),
@@ -328,10 +346,14 @@ class ProjectOptionsFragment : Fragment() {
             file
         )
         val intent = Intent(Intent.ACTION_SEND)
-        intent.type = if (file.name.endsWith(".enc", true)) "application/octet-stream" else "application/zip"
+        intent.type = when {
+            file.name.endsWith(".ncpp", true) -> "application/octet-stream"
+            file.name.endsWith(".enc", true) -> "application/octet-stream"
+            else -> "application/zip"
+        }
         intent.putExtra(Intent.EXTRA_STREAM, uri)
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        startActivity(Intent.createChooser(intent, "Сохранить запеченный проект"))
+        startActivity(Intent.createChooser(intent, "Сохранить проект"))
     }
 
     private fun setupRebuildCache() {
@@ -1388,10 +1410,14 @@ class ProjectOptionsFragment : Fragment() {
 
 
     private fun buildExe() {
-        saveProject()
+        // saveProject() already called by runExportWalkthrough — don't repeat
         project ?: return
 
-        // Force GC before starting heavy build to maximize available heap
+        // Release ALL cached pixmaps/textures from memory before export.
+        // For 1000 sprites × 5 looks = 5000 decoded images in RAM (hundreds of MB).
+        // encryptDirectory() reads files from DISK — doesn't need in-memory caches.
+        // They will be re-loaded lazily when the user returns to the editor/stage.
+        releaseAllLookCaches()
         System.gc()
 
         showProgressDialog("Сборка Windows-пакета...")
@@ -1400,107 +1426,24 @@ class ProjectOptionsFragment : Fragment() {
             try {
                 val proj = project!!
                 val projectName = proj.name
-                val tempDir = File(requireContext().cacheDir, "exe_build_${System.currentTimeMillis()}")
-                tempDir.mkdirs()
 
-                // 1. Zip the project directory
-                val projectZip = File(tempDir, "${projectName}.zip")
-                zipDirectory(proj.directory, projectZip)
-                System.gc()
-
-                // 1b. Encrypt the project (AES-256-GCM + PBKDF2)
-                val projectEnc = File(tempDir, "${projectName}.enc")
-                org.catrobat.catroid.io.ProjectCrypto.encrypt(
-                    projectZip,
-                    projectEnc,
+                // Single-pass: zip + encrypt directly into output file.
+                // No intermediate files — avoids OOM on large projects (758MB+).
+                // Output: NCPP header + AES-256-GCM encrypted zip stream.
+                val outputFile = File(requireContext().cacheDir, "${projectName}_win.ncpp")
+                org.catrobat.catroid.io.ProjectCrypto.encryptDirectory(
+                    proj.directory,
+                    outputFile,
                     org.catrobat.catroid.apkbuild.ProtectedProjectPayload.PASSWORD
-                )
-                projectZip.delete()
-                System.gc()
-
-                // 2. Find project icon
-                var iconFile: File? = null
-                val manualIcon = File(proj.directory, "manual_screenshot.png")
-                val autoIcon = File(proj.directory, "automatic_screenshot.png")
-                if (manualIcon.exists()) iconFile = manualIcon
-                else if (autoIcon.exists()) iconFile = autoIcon
-
-                // 3. Build the final output package
-                val outputZip = File(requireContext().cacheDir, "${projectName}_win.zip")
-                ZipOutputStream(FileOutputStream(outputZip)).use { zos ->
-                    zos.setLevel(1) // fastest compression, reduces CPU/memory
-                    zos.putNextEntry(ZipEntry("project.zip"))
-                    FileInputStream(projectEnc).use { input ->
-                        input.copyTo(zos, 8192) // explicit small buffer to avoid OOM
-                    }
-                    zos.closeEntry()
-
-                    // Add project icon as icon.png (for EXE conversion)
-                    if (iconFile != null) {
-                        zos.putNextEntry(ZipEntry("icon.png"))
-                        FileInputStream(iconFile).use { it.copyTo(zos) }
-                        zos.closeEntry()
-                    }
-
-                    // Try to include template_win.zip from assets (player runtime)
-                    try {
-                        val templateAsset = "template_win.zip"
-                        requireContext().assets.open(templateAsset).use { input ->
-                            zos.putNextEntry(ZipEntry("template_win.zip"))
-                            input.copyTo(zos)
-                            zos.closeEntry()
-                        }
-                    } catch (_: Exception) {
-                        // template_win.zip not in assets — skip
-                    }
-
-                    // Try to include build_exe.bat from assets
-                    try {
-                        val batAsset = "build_exe.bat"
-                        requireContext().assets.open(batAsset).use { input ->
-                            zos.putNextEntry(ZipEntry("build_exe.bat"))
-                            input.copyTo(zos)
-                            zos.closeEntry()
-                        }
-                    } catch (_: Exception) {
-                        // Not found — skip
-                    }
-
-                    // Add instructions for Windows build
-                    zos.putNextEntry(ZipEntry("README_WINDOWS.txt"))
-                    val readme = buildString {
-                        appendLine("NeoCatroid Windows Desktop Build")
-                        appendLine("=================================")
-                        appendLine()
-                        appendLine("Проект: $projectName")
-                        appendLine()
-                        appendLine("Инструкция по сборке EXE на Windows:")
-                        appendLine("1. Убедитесь, что у вас установлен Java 11+ (launch4j опционален)")
-                        appendLine("2. Распакуйте этот архив в отдельную папку")
-                        appendLine("3. Запустите build_exe.bat")
-                        appendLine("4. Готовый NeoCatroid.exe появится в build/win-dist/")
-                        appendLine()
-                        appendLine("Проект (project.zip) копируется рядом с NeoCatroid.exe,")
-                        appendLine("а build_exe.bat дополнительно встраивает его внутрь EXE")
-                        appendLine("(footer NEOCAT01) — так что можно распространять один")
-                        appendLine("только NeoCatroid.exe. Проект шифруется (AES-256-GCM)")
-                        appendLine("перед упаковкой и расшифровывается при запуске.")
-                        appendLine("Если launch4j не установлен, запустите: java -jar player_embedded.jar")
-                        appendLine()
-                        appendLine("Или соберите шаблон вручную:")
-                        appendLine("  copyTemplateWin.bat")
-                        appendLine("  build_exe.bat")
-                    }
-                    zos.write(readme.toByteArray(Charsets.UTF_8))
-                    zos.closeEntry()
+                ) { fileName ->
+                    // Skip undo files
+                    fileName != "undo_code.xml"
                 }
-
-                // Cleanup temp
-                tempDir.deleteRecursively()
+                System.gc()
 
                 withContext(Dispatchers.Main) {
                     hideProgressDialog()
-                    shareFile(outputZip)
+                    shareFile(outputFile)
                 }
 
             } catch (e: Exception) {

@@ -1,0 +1,1 @@
+Android application module that builds the NeoCatroid/Pocket Code app, its runtime and template flavors, and a standalone APK generator via Gradle product flavors.

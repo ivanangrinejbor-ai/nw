@@ -1,0 +1,3 @@
+- Each app variant gets a triple of lanes named `upload_Metadata_<Variant>`, `upload_APK_<Variant>`, and `promote_<Variant>`, keeping metadata-only, APK-only, and promotion operations separate.
+- All Play Store calls go through `upload_to_play_store` with `track: 'alpha'` and `track_promote_to: 'production'` rather than direct production uploads, enforcing a two-stage release process.
+- Secrets are never baked into the repo — authentication uses the `googlePlayJsonKey` environment variable instead of a checked-in JSON file.

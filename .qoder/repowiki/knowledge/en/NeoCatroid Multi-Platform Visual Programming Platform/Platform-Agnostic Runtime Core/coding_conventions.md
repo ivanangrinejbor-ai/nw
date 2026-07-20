@@ -1,0 +1,2 @@
+- Each platform-facing capability is exposed as a pure-Kotlin interface paired with a singleton `*ServiceHolder` object holding a `lateinit var` of that interface, allowing the host app to install the platform-specific implementation once at startup.
+- All public contracts avoid Android imports so the module compiles as pure JVM; platform specifics live exclusively in the holder initialization site documented in each holder's KDoc.

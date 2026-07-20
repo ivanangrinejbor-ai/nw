@@ -1,0 +1,4 @@
+- Each platform-specific capability is exposed through a holder singleton (e.g. `RuntimeServicesHolder`, `AudioServiceHolder`) populated once in `DesktopStage.main`, keeping the core logic free of import-time platform wiring.
+- Desktop implementations are thin wrappers over the JDK/libGDX that delegate to `Gdx.app.postRunnable` when the GL thread is available and fall back to plain `Thread` otherwise, preserving the same threading contract as the Android side.
+- The render loop in `DesktopStageListener` follows a fixed four-pass order — sprites via `SpriteBatch`, pen shapes via `ShapeRenderer`, stamps/text via `SpriteBatch` again, then HUD overlays — so draw calls stay batched per renderer.
+- Payload loading supports three sources with strict precedence: explicit CLI path > embedded NEOCAT01 footer appended to the running JAR/EXE > empty stage, and zip extraction guards against directory traversal by resolving entries against the target temp directory.

@@ -36,13 +36,20 @@ import java.io.IOException
 class LookController {
     private val uniqueNameProvider = UniqueNameProvider()
 
+    /** Preserve custom hitboxes when a look is duplicated. */
+    private fun carryHitboxes(source: LookData?, target: LookData) {
+        if (source?.hasCustomHitboxes() == true) {
+            target.hitboxes = source.hitboxes.map { it.copy() }
+        }
+    }
+
     @Throws(IOException::class)
     fun copy(lookToCopy: LookData?, dstScene: Scene?, dstSprite: Sprite?): LookData {
         val name =
             uniqueNameProvider.getUniqueNameInNameables(lookToCopy?.name, dstSprite?.lookList)
         val dstDir = dstScene?.let { getImageDir(it) }
         val file = StorageOperations.copyFileToDir(lookToCopy?.file, dstDir)
-        return LookData(name, file)
+        return LookData(name, file).also { carryHitboxes(lookToCopy, it) }
     }
 
     @Throws(IOException::class)
@@ -72,7 +79,7 @@ class LookController {
             lookToPack?.file,
             BackpackListManager.getInstance().backpackImageDirectory
         )
-        return LookData(name, file)
+        return LookData(name, file).also { carryHitboxes(lookToPack, it) }
     }
 
     @Throws(IOException::class)
@@ -86,6 +93,7 @@ class LookController {
             BackpackListManager.getInstance().backpackImageDirectory
         )
         val look = LookData(lookToPack?.name, file)
+        carryHitboxes(lookToPack, look)
         dstSprite?.lookList?.add(look)
         return look
     }
@@ -96,7 +104,7 @@ class LookController {
             uniqueNameProvider.getUniqueNameInNameables(lookToUnpack?.name, dstSprite?.lookList)
         val file =
             StorageOperations.copyFileToDir(lookToUnpack?.file, dstScene?.let { getImageDir(it) })
-        return LookData(name, file)
+        return LookData(name, file).also { carryHitboxes(lookToUnpack, it) }
     }
 
     @Throws(IOException::class)

@@ -6,6 +6,10 @@ import org.catrobat.catroid.formulaeditor.Formula
 import android.util.Log
 
 class IntervalRepeatAction : Action() {
+    companion object {
+        private const val MAX_ITERATIONS = 100_000
+    }
+
     var scope: Scope? = null
     var repeatCount: Formula? = null
     var interval: Formula? = null
@@ -24,10 +28,16 @@ class IntervalRepeatAction : Action() {
         if (repeatCountValue > 0 && executedCount >= repeatCountValue) {
             return true
         }
+        if (executedCount >= MAX_ITERATIONS) {
+            Log.w(javaClass.simpleName, "Interval repeat exceeded max iterations ($MAX_ITERATIONS), stopping")
+            return true
+        }
 
         timer += delta
         if (timer >= intervalValue) {
             if (repeatCountValue > 0) {
+                executedCount++
+            } else {
                 executedCount++
             }
 

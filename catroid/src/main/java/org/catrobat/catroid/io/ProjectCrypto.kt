@@ -29,7 +29,10 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.security.SecureRandom
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
 import javax.crypto.Cipher
+import javax.crypto.CipherOutputStream
 import javax.crypto.SecretKey
 import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.GCMParameterSpec
@@ -135,6 +138,65 @@ object ProjectCrypto {
             destFile.delete()
             false
         }
+    }
+
+    /**
+     * Single-pass zip + encrypt: reads files from [sourceDir], zips them,
+     * and encrypts the zip stream directly into [destFile] (NCPP format).
+     * No intermediate files are created — constant memory usage regardless
+     * of project size (even 758MB+ projects).
+     *
+     * @param filter optional predicate: return true to include the file, false to skip.
+     */
+    fun encryptDirectory(
+        sourceDir: File,
+        destFile: File,
+        password: String,
+        filter: ((String) -> Boolean)? = null
+    ) {
+        val salt = ByteArray(SALT_SIZE).also { SecureRandom().nextBytes(it) }
+        val iv = ByteArray(IV_SIZE).also { SecureRandom().nextBytes(it) }
+
+        val key = deriveKey(password, salt)
+        val cipher = Cipher.getInstance(ALGORITHM)
+        cipher.init(Cipher.ENCRYPT_MODE, key, GCMParameterSpec(GCM_TAG_LENGTH, iv))
+
+        destFile.parentFile?.mkdirs()
+        FileOutputStream(destFile).use { fos ->
+            // Write NCPP header
+            fos.write(MAGIC)
+            fos.write(salt)
+            fos.write(iv)
+
+            // Wrap in CipherOutputStream — all zip data flows through encryption
+            CipherOutputStream(fos, cipher).use { cos ->
+                ZipOutputStream(cos).use { zos ->
+                    zos.setLevel(1) // fastest compression, minimal memory
+                    val buffer = ByteArray(STREAM_BUFFER)
+
+                    sourceDir.walk().filter { it != sourceDir }.forEach { file ->
+                        val entryPath = file.relativeTo(sourceDir).path.replace('\\', '/')
+                        // Apply filter
+                        if (filter != null && !filter(file.name)) return@forEach
+
+                        if (file.isDirectory) {
+                            zos.putNextEntry(ZipEntry("$entryPath/"))
+                            zos.closeEntry()
+                        } else {
+                            zos.putNextEntry(ZipEntry(entryPath))
+                            FileInputStream(file).use { fis ->
+                                var n: Int
+                                while (fis.read(buffer).also { n = it } != -1) {
+                                    if (n > 0) zos.write(buffer, 0, n)
+                                }
+                            }
+                            zos.closeEntry()
+                        }
+                    }
+                }
+            }
+        }
+        Log.d(TAG, "Encrypted directory: ${sourceDir.name} -> ${destFile.name}")
     }
 
     private fun deriveKey(password: String, salt: ByteArray): SecretKey {

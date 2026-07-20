@@ -107,7 +107,15 @@ public class ExecuteForCloneNumberBrick extends FormulaBrick implements Composit
 
     @Override
     public boolean removeChild(Brick brick) {
-        return cloneBranchBricks.remove(brick);
+        if (cloneBranchBricks.remove(brick)) {
+            return true;
+        }
+        for (Brick child : cloneBranchBricks) {
+            if (child instanceof CompositeBrick && ((CompositeBrick) child).removeChild(brick)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override

@@ -1,0 +1,10 @@
+schema_version: 1
+module_path: lunoscript_tooling
+title: LunoScript Annotation & KSP Code Generator
+scope:
+    - lunoscript-annotations/
+    - lunoscript-processor/
+source_files: []
+depends_on: []
+related_to:
+    - path: catroid_android_app

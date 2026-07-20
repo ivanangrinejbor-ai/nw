@@ -26,8 +26,10 @@ import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction;
 
 import org.catrobat.catroid.ProjectManager;
 import org.catrobat.catroid.content.GlobalManager;
+import org.catrobat.catroid.content.Scene;
 import org.catrobat.catroid.content.Sprite;
 import org.catrobat.catroid.stage.StageActivity;
+import org.catrobat.catroid.stage.StageListener;
 
 public class SceneTransitionAction extends TemporalAction {
 
@@ -36,10 +38,21 @@ public class SceneTransitionAction extends TemporalAction {
 
 	@Override
 	protected void update(float percent) {
-		if (sceneName != null && !ProjectManager.getInstance().getCurrentlyPlayingScene().getName().equals(sceneName)) {
-			sprite.releaseAllPointers();
-			StageActivity.getActiveStageListener().transitionToScene(sceneName, GlobalManager.Companion.getStopSounds(), GlobalManager.Companion.getSaveScenes());
+		if (sceneName == null) {
+			return;
 		}
+		Scene currentScene = ProjectManager.getInstance().getCurrentlyPlayingScene();
+		if (currentScene == null || currentScene.getName().equals(sceneName)) {
+			return;
+		}
+		StageListener listener = StageActivity.getActiveStageListener();
+		if (listener == null) {
+			return;
+		}
+		if (sprite != null) {
+			sprite.releaseAllPointers();
+		}
+		listener.transitionToScene(sceneName, GlobalManager.Companion.getStopSounds(), GlobalManager.Companion.getSaveScenes());
 	}
 
 	@Override

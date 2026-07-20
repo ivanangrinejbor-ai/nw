@@ -1,0 +1,1 @@
+Kotlin 2.0.21 with AGP 8.7.3 and KSP 2.0.21 across all Gradle modules; Koin 2.1.6 and AndroidX Lifecycle 2.8.7 pinned at root; libGDX/LWJGL3 for the desktop runtime; Python for the AI brick-suggestion pipeline; Fastlane + Jenkins Docker for release automation.

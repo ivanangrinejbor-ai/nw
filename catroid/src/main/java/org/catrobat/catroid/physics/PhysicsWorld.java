@@ -96,6 +96,7 @@ public class PhysicsWorld {
 	private final List<Sprite> activeVerticalBounces = Collections.synchronizedList(new ArrayList<>());
 	private final List<Sprite> activeHorizontalBounces = Collections.synchronizedList(new ArrayList<>());
 	private final ConcurrentHashMap<String, Joint> joints = new ConcurrentHashMap<>();
+	private final PhysicsCollisionListener collisionListener = new PhysicsCollisionListener(this);
 
 	private final float activeAreaWidthFactor;
 	private final float activeAreaHeightFactor;
@@ -134,7 +135,7 @@ public class PhysicsWorld {
 		boundaryBox = new PhysicsBoundaryBox(world);
 		boundaryBox.create(width, height);
 		activeArea = new Vector2(width * activeAreaWidthFactor, height * activeAreaHeightFactor);
-		world.setContactListener(new PhysicsCollisionListener(this));
+		world.setContactListener(collisionListener);
 	}
 
 	public PhysicsWorld(int width, int height) {
@@ -143,7 +144,7 @@ public class PhysicsWorld {
 		boundaryBox = new PhysicsBoundaryBox(world);
 		boundaryBox.create(width, height);
 		activeArea = new Vector2(width * activeAreaWidthFactor, height * activeAreaHeightFactor);
-		world.setContactListener(new PhysicsCollisionListener(this));
+		world.setContactListener(collisionListener);
 	}
 
 	public Vector2 getActiveArea() {
@@ -177,6 +178,9 @@ public class PhysicsWorld {
 				Log.e(TAG, "Box2D step exception: " + Log.getStackTraceString(exception));
 			}
 		}
+		// Flush deferred collision events OUTSIDE the Box2D callback context,
+		// so bounce events and script firings don't modify Box2D state during step.
+		collisionListener.flushDeferredEvents();
 	}
 
 	public void dispose() {
@@ -454,7 +458,7 @@ public class PhysicsWorld {
 	public void changeLook(PhysicsObject physicsObject, Look look) {
 		Shape[] shapes = null;
 		if (look.getLookData() != null && look.getLookData().getFile() != null) {
-			shapes = physicsShapeBuilder.getScaledShapes(look.getLookData(),
+			shapes = PhysicsShapeBuilder.getInstance().getScaledShapes(look.getLookData(),
 					look.getSizeInUserInterfaceDimensionUnit() / 100f);
 		}
 		physicsObject.setShape(shapes);

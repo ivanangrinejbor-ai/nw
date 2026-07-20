@@ -1,0 +1,3 @@
+- Each script is self-contained with no cross-imports; multi-step workflows are expressed as sequential function calls inside a single `main()` guarded by `if __name__ == "__main__"`.
+- File mutations target sibling `../catroid/` paths using explicit backup copies (e.g. `.backup` suffix) before write, followed by restoration at the end of the workflow.
+- Build artifacts are named with an ISO-like timestamp suffix (`%Y-%m-%d_%Hh%M`) produced via `time.strftime` to avoid overwrites across runs.

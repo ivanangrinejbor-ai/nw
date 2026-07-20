@@ -46,6 +46,8 @@ import org.junit.runners.JUnit4;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertTrue;
+import static junit.framework.Assert.fail;
 
 @RunWith(JUnit4.class)
 public class IfLogicActionTest {
@@ -173,6 +175,28 @@ public class IfLogicActionTest {
 	@Test
 	public void testNotANumberFormula() {
 		testFormula(new Formula(Double.NaN), 0.0);
+	}
+
+	@Test
+	public void testNullScope() throws Exception {
+		Action ifAction = testSprite.getActionFactory()
+				.createSetVariableAction(testSprite, new SequenceAction(), new Formula(IF_TRUE_VALUE), userVariable);
+		Action elseAction = testSprite.getActionFactory()
+				.createSetVariableAction(testSprite, new SequenceAction(), new Formula(IF_FALSE_VALUE), userVariable);
+		Action ifLogicAction = testSprite.getActionFactory()
+				.createIfLogicAction(testSprite, new SequenceAction(), new Formula(1), ifAction, elseAction);
+
+		Reflection.setPrivateField(ifLogicAction, "scope", null);
+
+		boolean finished = false;
+		try {
+			finished = ifLogicAction.act(1.0f);
+		} catch (Throwable t) {
+			fail("act() threw with null scope: " + t);
+		}
+		assertTrue(finished);
+		Object isInterpretedCorrectly = Reflection.getPrivateField(ifLogicAction, "isInterpretedCorrectly");
+		assertFalse((Boolean) isInterpretedCorrectly);
 	}
 
 	private void testFormula(Formula formula, Object expected) {

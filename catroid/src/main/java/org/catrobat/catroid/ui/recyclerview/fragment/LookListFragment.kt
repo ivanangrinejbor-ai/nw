@@ -58,6 +58,7 @@ class LookListFragment : RecyclerViewFragment<LookData?>() {
     companion object {
         @JvmField
         val TAG = LookListFragment::class.java.simpleName
+        private const val HITBOX_EDITOR_MENU_ID = 9001
     }
 
     public override fun initializeAdapter() {
@@ -261,12 +262,16 @@ class LookListFragment : RecyclerViewFragment<LookData?>() {
         val popupMenu = UiUtils.createSettingsPopUpMenu(view, requireContext(), R.menu
             .menu_project_activity, hiddenOptionMenuIds)
 
+        // Add "Hitbox editor" option dynamically
+        val hitboxMenuItem = popupMenu.menu.add(0, HITBOX_EDITOR_MENU_ID, 0, R.string.hitbox_editor_menu)
+
         popupMenu.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.backpack -> packItems(itemList)
                 R.id.copy -> copyItems(itemList)
                 R.id.rename -> showRenameDialog(item)
                 R.id.delete -> showDeleteAlert(itemList)
+                HITBOX_EDITOR_MENU_ID -> launchHitboxEditor(item)
                 else -> {
                 }
             }
@@ -274,5 +279,16 @@ class LookListFragment : RecyclerViewFragment<LookData?>() {
         }
         popupMenu.menu.findItem(R.id.backpack).setTitle(R.string.pack)
         popupMenu.show()
+    }
+
+    private fun launchHitboxEditor(item: LookData?) {
+        item ?: return
+        val sprite = projectManager.currentSprite ?: return
+        val lookIndex = sprite.lookList.indexOf(item)
+        if (lookIndex < 0) return
+        val intent = android.content.Intent(requireContext(),
+            org.catrobat.catroid.ui.hitbox.HitboxEditorActivity::class.java)
+        intent.putExtra(org.catrobat.catroid.ui.hitbox.HitboxEditorActivity.EXTRA_LOOK_INDEX, lookIndex)
+        startActivity(intent)
     }
 }

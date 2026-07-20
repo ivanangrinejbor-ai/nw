@@ -38,7 +38,6 @@ public class SwitchBeginBrick extends FormulaBrick implements CompositeBrick {
 	private static final long serialVersionUID = 1L;
 
 	private transient EndBrick endBrick = new EndBrick(this, R.layout.brick_switch_end);
-	private transient ScriptSequenceAction switchBody;
 
 	private List<Brick> caseBricks = new ArrayList<>();
 
@@ -144,7 +143,6 @@ public class SwitchBeginBrick extends FormulaBrick implements CompositeBrick {
 
 	@Override
 	public void addActionToSequence(Sprite sprite, ScriptSequenceAction sequence) {
-		switchBody = (ScriptSequenceAction) ActionFactory.createScriptSequenceAction(sequence.getScript());
 		List<Formula> caseValues = new ArrayList<>();
 		List<ScriptSequenceAction> caseSequences = new ArrayList<>();
 

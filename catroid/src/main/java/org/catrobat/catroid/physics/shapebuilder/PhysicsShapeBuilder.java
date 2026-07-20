@@ -53,7 +53,7 @@ public final class PhysicsShapeBuilder {
 	private PhysicsShapeBuilder() {
 	}
 
-	public void reset() {
+	public synchronized void reset() {
 		strategy = new PhysicsShapeBuilderStrategyFastHull();
 		imageShapesMap = new HashMap<>();
 	}
@@ -77,14 +77,17 @@ public final class PhysicsShapeBuilder {
 		}
 
 		float accuracyLevel = getAccuracyLevel(scaleFactor);
-		Shape[] shapes = imageShapesMap.get(imageIdentifier).getShapes(accuracyLevel);
+		ImageShapes imageShapes = imageShapesMap.get(imageIdentifier);
+		Shape[] shapes = imageShapes.getShapes(accuracyLevel);
 
 		if (shapes == null) {
 			Log.e(TAG, "shapes should not be null");
 			return null;
 		}
 
-		return PhysicsShapeScaleUtils.scaleShapes(shapes, scaleFactor);
+		// Deep copy to prevent cache corruption when scaleShapes disposes old shapes
+		Shape[] shapesCopy = PhysicsShapeScaleUtils.copyShapes(shapes);
+		return PhysicsShapeScaleUtils.scaleShapes(shapesCopy, scaleFactor);
 	}
 
 	private static float getAccuracyLevel(float scaleFactor) {
@@ -97,7 +100,7 @@ public final class PhysicsShapeBuilder {
 		}
 
 		for (int accuracyIdx = 0; accuracyIdx < ACCURACY_LEVELS.length - 1; accuracyIdx++) {
-			float average = (ACCURACY_LEVELS[accuracyIdx] + ACCURACY_LEVELS[accuracyIdx]) / 2;
+			float average = (ACCURACY_LEVELS[accuracyIdx] + ACCURACY_LEVELS[accuracyIdx + 1]) / 2;
 			if (scaleFactor < average) {
 				return ACCURACY_LEVELS[accuracyIdx];
 			}
@@ -153,6 +156,8 @@ public final class PhysicsShapeBuilder {
 			scaledPixmap.setFilter(Pixmap.Filter.NearestNeighbour);
 			scaledPixmap.drawPixmap(pixmap, 0, 0, width, height, 0, 0, scaledWidth, scaledHeight);
 			Shape[] scaledShapes = strategy.build(scaledPixmap, 1.0f);
+
+			scaledPixmap.dispose();
 
 			return PhysicsShapeScaleUtils.scaleShapes(scaledShapes, 1.0f, sizeAdjustmentScaleFactor * accuracy);
 		}

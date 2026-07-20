@@ -1,0 +1,1 @@
+Python toolchain that parses NewCatroid .code.xml projects, mines n-gram brick patterns and trains a GPT-style Transformer to suggest the next Catroid brick during scripting.

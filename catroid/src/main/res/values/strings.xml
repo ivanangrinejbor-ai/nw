@@ -1759,6 +1759,15 @@
 <string formatted="false" name="brick_choose_file2">save name to variable</string>
 <string formatted="false" name="brick_choose_file3">and copy to project files</string>
 <string formatted="false" name="brick_set_hitbox">Set look, but keep hitbox</string>
+    <string formatted="false" name="hitbox_editor_title">Hitbox Editor</string>
+    <string formatted="false" name="hitbox_add">Add hitbox</string>
+    <string formatted="false" name="hitbox_delete">Delete hitbox</string>
+    <string formatted="false" name="hitbox_save">Save hitboxes</string>
+    <string formatted="false" name="hitbox_hint_default">Tap hitbox to select • Drag handles to resize • Long press to move • Double tap to rotate</string>
+    <string formatted="false" name="hitbox_hint_modified">Modified — press save to apply</string>
+    <string formatted="false" name="hitbox_hint_added">Hitbox added</string>
+    <string formatted="false" name="hitbox_hint_deleted">Hitbox deleted</string>
+    <string formatted="false" name="hitbox_editor_menu">Hitbox editor</string>
 <string formatted="false" name="ogurec">�� T�T� ��TΦ-��T�T� �-��T�T�T�T�?</string>
 <string formatted="false" name="only_numbers">Only numbers and fractional numbers allowed here</string>
 <string formatted="false" name="project_physics_height">Physics height area</string>

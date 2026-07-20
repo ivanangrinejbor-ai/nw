@@ -23,6 +23,9 @@
 package org.catrobat.catroid.physics;
 
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.physics.box2d.CircleShape;
+import com.badlogic.gdx.physics.box2d.PolygonShape;
+import com.badlogic.gdx.physics.box2d.Shape;
 import com.danvexteam.lunoscript_annotations.LunoClass;
 
 @LunoClass
@@ -66,5 +69,35 @@ public final class PhysicsWorldConverter {
 		return new Vector2(
 				convertNormalToBox2dCoordinate(catroidVector.x),
 				convertNormalToBox2dCoordinate(catroidVector.y));
+	}
+
+	/** Computes the area of a Box2D Shape. Returns 0 for unsupported shape types. */
+	public static float computeShapeArea(Shape shape) {
+		switch (shape.getType()) {
+			case Circle: {
+				CircleShape circle = (CircleShape) shape;
+				float r = circle.getRadius();
+				return (float) (Math.PI * r * r);
+			}
+			case Polygon: {
+				PolygonShape poly = (PolygonShape) shape;
+				int count = poly.getVertexCount();
+				if (count < 3) return 0f;
+				Vector2[] verts = new Vector2[count];
+				for (int i = 0; i < count; i++) {
+					verts[i] = new Vector2();
+					poly.getVertex(i, verts[i]);
+				}
+				float area = 0f;
+				for (int i = 0; i < count; i++) {
+					int next = (i + 1) % count;
+					area += verts[i].x * verts[next].y;
+					area -= verts[next].x * verts[i].y;
+				}
+				return Math.abs(area) / 2f;
+			}
+			default:
+				return 0f;
+		}
 	}
 }

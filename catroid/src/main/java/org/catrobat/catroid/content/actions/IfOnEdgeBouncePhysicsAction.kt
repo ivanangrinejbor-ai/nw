@@ -56,7 +56,7 @@ class IfOnEdgeBouncePhysicsAction : TemporalAction() {
     private var boundaryBoxCenterY = 0.0f
 
     override fun update(percent: Float) {
-        val physicsObject = physicsWorld.getPhysicsObject(sprite)
+        val physicsObject = physicsWorld.getPhysicsObject(sprite) ?: return
         calculateBoundaryBoxDimensions(physicsObject)
 
         if (isBoundaryBoxCenterInLeftCollisionArea()) {
@@ -125,7 +125,7 @@ class IfOnEdgeBouncePhysicsAction : TemporalAction() {
     }
 
     private fun changeDirectionOnStepsTaken(side: Side) {
-        val physicsObject = physicsWorld.getPhysicsObject(sprite)
+        val physicsObject = physicsWorld.getPhysicsObject(sprite) ?: return
         val realRotation = sprite.look.motionDirectionInUserInterfaceDimensionUnit
 
         if (side == Side.LEFT || side == Side.RIGHT) {
@@ -160,7 +160,7 @@ class IfOnEdgeBouncePhysicsAction : TemporalAction() {
     }
 
     private fun changeDirectionOnVelocityOrGravity(side: Side) {
-        val physicsObject = physicsWorld.getPhysicsObject(sprite)
+        val physicsObject = physicsWorld.getPhysicsObject(sprite) ?: return
         val realRotation = sprite.look.motionDirectionInUserInterfaceDimensionUnit
 
         if ((side == Side.LEFT || side == Side.RIGHT) &&

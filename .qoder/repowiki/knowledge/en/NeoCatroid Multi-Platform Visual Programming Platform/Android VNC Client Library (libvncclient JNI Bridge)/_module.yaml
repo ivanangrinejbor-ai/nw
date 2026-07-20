@@ -1,0 +1,9 @@
+schema_version: 1
+module_path: vnc_client
+title: Android VNC Client Library (libvncclient JNI Bridge)
+scope:
+    - vncclient/
+source_files: []
+depends_on: []
+related_to:
+    - path: catroid_android_app

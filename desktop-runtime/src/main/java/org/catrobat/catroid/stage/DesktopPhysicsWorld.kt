@@ -247,6 +247,16 @@ class DesktopPhysicsWorld(
     }
 
     fun step(deltaSeconds: Float) {
+        // Early exit: no bodies at all — skip Box2D entirely
+        if (bodiesBySprite.isEmpty()) return
+
+        // Early exit: only static/kinematic bodies — no need to run the solver
+        val hasDynamic = bodiesBySprite.values.any { it.type == BodyDef.BodyType.DynamicBody }
+        if (!hasDynamic) {
+            syncSpritesFromPhysics()
+            return
+        }
+
         accumulator += deltaSeconds
         var steps = 0
         while (accumulator >= timeStep && steps < maxSteps) {

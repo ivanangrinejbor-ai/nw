@@ -207,9 +207,7 @@ class SceneListFragment : RecyclerViewFragment<Scene?>(),
             scene.addSprite(sprite)
         }
         adapter.add(scene)
-        if (!currentProject.hasScene()) {
-            currentProject.addScene(scene)
-        }
+        currentProject.addScene(scene)
         setShowProgressBar(false)
     }
 

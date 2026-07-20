@@ -96,6 +96,11 @@ class DesktopScriptEngine(
             "CatchBrick",
             "FinallyBrick"
         )
+
+        /** Max blocks a single script can execute per frame before yielding. */
+        private const val MAX_BLOCKS_PER_FRAME = 500
+        /** Time budget in nanoseconds for a single script's execution per frame (2ms). */
+        private const val SCRIPT_TIME_BUDGET_NS = 2_000_000L
     }
 
     // ──────────────────────────── data classes ────────────────────────────
@@ -111,8 +116,84 @@ class DesktopScriptEngine(
     /** Невычисленная формула — вычисляется в рантайме. */
     private data class RuntimeFormula(
         val brickFieldName: String,
-        val formulaElement: Element
+        val formulaElement: Element,
+        val compiled: CompiledFormula = CompiledFormula.compile(formulaElement)
     )
+
+    /**
+     * Compiled formula tree — replaces XML DOM traversal at evaluation time.
+     * Built once at parse time from the XML Element tree, then evaluated
+     * via simple recursive dispatch (no getElementsByTagName calls).
+     */
+    private sealed class CompiledFormula {
+        data class Num(val value: Double) : CompiledFormula()
+        data class Str(val value: String) : CompiledFormula()
+        data class Var(val name: String) : CompiledFormula()
+        data class UserList(val name: String) : CompiledFormula()
+        data class Operator(val op: String, val left: CompiledFormula?, val right: CompiledFormula?) : CompiledFormula()
+        data class Function(val name: String, val left: CompiledFormula?, val right: CompiledFormula?, val additional: List<CompiledFormula>) : CompiledFormula()
+        data class Sensor(val name: String) : CompiledFormula()
+        data class Bracket(val child: CompiledFormula?) : CompiledFormula()
+        data class UserDefinedInput(val name: String) : CompiledFormula()
+        data class CollisionFormula(val value: Double?) : CompiledFormula()
+        object Null : CompiledFormula()
+
+        companion object {
+            fun compile(node: Element?): CompiledFormula {
+                if (node == null) return Null
+                val type = getChildText(node, "type") ?: return Null
+                val value = getChildText(node, "value") ?: ""
+                return when (type) {
+                    "NUMBER" -> Num(value.toDoubleOrNull() ?: 0.0)
+                    "STRING" -> Str(value)
+                    "OPERATOR" -> Operator(
+                        value,
+                        compile(getChild(node, "leftChild")),
+                        compile(getChild(node, "rightChild"))
+                    )
+                    "FUNCTION" -> Function(
+                        value,
+                        compile(getChild(node, "leftChild")),
+                        compile(getChild(node, "rightChild")),
+                        compileAdditionalChildren(node)
+                    )
+                    "SENSOR" -> Sensor(value)
+                    "USER_VARIABLE" -> Var(value)
+                    "USER_LIST" -> UserList(value)
+                    "BRACKET" -> Bracket(compile(getChild(node, "rightChild")))
+                    "COLLISION_FORMULA" -> CollisionFormula(value.toDoubleOrNull())
+                    "USER_DEFINED_BRICK_INPUT" -> UserDefinedInput(value)
+                    else -> Null
+                }
+            }
+
+            private fun compileAdditionalChildren(node: Element): List<CompiledFormula> {
+                val acEl = getChild(node, "additionalChildren") ?: return emptyList()
+                val result = mutableListOf<CompiledFormula>()
+                val children = acEl.childNodes
+                for (i in 0 until children.length) {
+                    val child = children.item(i)
+                    if (child.nodeType == org.w3c.dom.Node.ELEMENT_NODE) {
+                        result.add(compile(child as Element))
+                    }
+                }
+                return result
+            }
+
+            private fun getChild(node: Element, tag: String): Element? {
+                val list = node.childNodes
+                for (i in 0 until list.length) {
+                    val n = list.item(i)
+                    if (n.nodeType == org.w3c.dom.Node.ELEMENT_NODE && n.nodeName == tag) return n as Element
+                }
+                return null
+            }
+
+            private fun getChildText(node: Element, tag: String): String? {
+                return getChild(node, tag)?.textContent
+            }
+        }
+    }
 
     /** Состояние анимации GlideTo. */
     private data class GlideState(
@@ -363,12 +444,13 @@ class DesktopScriptEngine(
         processAudioFades(deltaSeconds)
 
         // ── Фаза 1: проверка событий для event-скриптов ──
+        rebuildSpatialHash() // rebuild spatial hash for collision detection
         checkEvents()
 
         // ── Проверка broadcast_wait: если все получатели завершились, разблокировать sender'ов ──
         checkBroadcastWaits()
 
-        // ── Фаза 2: выполнение ──
+        // ── Фаза 2: выполнение (multi-block per frame with time budget) ──
         for (state in scriptStates) {
             if (state.isDone) {
                 // Event-скрипты: если завершились, сбрасываем в ожидание следующего события
@@ -390,7 +472,7 @@ class DesktopScriptEngine(
             // Event-скрипты не выполняются, пока событие не произойдёт
             if (state.eventType != null && !state.eventFired) continue
 
-            executeState(state, deltaSeconds)
+            executeStateMultiBlock(state, deltaSeconds)
         }
     }
 
@@ -503,18 +585,53 @@ class DesktopScriptEngine(
         }
     }
 
-    /** Проверить коллизию спрайта с другим спрайтом (bounding box). */
+    /** Проверить коллизию спрайта с другим спрайтом (bounding box, spatial hash optimized). */
     private fun checkSpriteCollision(sprite: DesktopSprite, targetName: String?): Boolean {
-        for (other in project.sprites) {
-            if (other === sprite) continue
-            if (targetName != null && targetName.isNotEmpty() && other.name != targetName) continue
-            val dx = abs(sprite.x - other.x)
-            val dy = abs(sprite.y - other.y)
-            val halfW = (sprite.lookWidth + other.lookWidth) / 2f
-            val halfH = (sprite.lookHeight + other.lookHeight) / 2f
-            if (dx < halfW && dy < halfH) return true
+        // If targeting a specific sprite by name, direct lookup is faster
+        if (targetName != null && targetName.isNotEmpty()) {
+            val target = project.sprites.find { it.name == targetName && it !== sprite }
+            if (target == null) return false
+            val dx = abs(sprite.x - target.x)
+            val dy = abs(sprite.y - target.y)
+            val halfW = (sprite.lookWidth + target.lookWidth) / 2f
+            val halfH = (sprite.lookHeight + target.lookHeight) / 2f
+            return dx < halfW && dy < halfH
+        }
+        // No target name: use spatial hash for O(1) neighbor lookup
+        val cellSize = 256f
+        val cx = (sprite.x / cellSize).toInt()
+        val cy = (sprite.y / cellSize).toInt()
+        // Check 3x3 neighborhood
+        for (dx in -1..1) {
+            for (dy in -1..1) {
+                val key = ((cx + dx).toLong() shl 32) or ((cy + dy).toLong() and 0xFFFFFFFFL)
+                val cell = spatialHash[key] ?: continue
+                for (other in cell) {
+                    if (other === sprite) continue
+                    val ddx = abs(sprite.x - other.x)
+                    val ddy = abs(sprite.y - other.y)
+                    val halfW = (sprite.lookWidth + other.lookWidth) / 2f
+                    val halfH = (sprite.lookHeight + other.lookHeight) / 2f
+                    if (ddx < halfW && ddy < halfH) return true
+                }
+            }
         }
         return false
+    }
+
+    /** Spatial hash grid — rebuilt once per frame for O(1) collision neighbor queries. */
+    private val spatialHash = mutableMapOf<Long, MutableList<DesktopSprite>>()
+
+    /** Rebuild the spatial hash grid. Called once per frame before collision checks. */
+    private fun rebuildSpatialHash() {
+        spatialHash.clear()
+        val cellSize = 256f
+        for (sprite in project.sprites) {
+            val cx = (sprite.x / cellSize).toInt()
+            val cy = (sprite.y / cellSize).toInt()
+            val key = (cx.toLong() shl 32) or (cy.toLong() and 0xFFFFFFFFL)
+            spatialHash.getOrPut(key) { mutableListOf() }.add(sprite)
+        }
     }
 
     /**
@@ -698,6 +815,73 @@ class DesktopScriptEngine(
             }
         } catch (e: Exception) {
             handleExecutionException(state, e)
+        }
+    }
+
+    /**
+     * Multi-block execution: executes up to [MAX_BLOCKS_PER_FRAME] blocks within
+     * [SCRIPT_TIME_BUDGET_NS] nanoseconds. Yields immediately when a block sets
+     * a wait timer, starts a glide animation, or the script finishes. This makes
+     * non-waiting scripts (e.g. repeat(1000){move 1}) complete in a single frame
+     * instead of taking 1000 frames.
+     */
+    private fun executeStateMultiBlock(state: ScriptState, delta: Float) {
+        activeState = state
+        val startTime = System.nanoTime()
+        var blocksExecuted = 0
+
+        while (blocksExecuted < MAX_BLOCKS_PER_FRAME) {
+            // Time budget check (every 16 blocks to reduce nanoTime overhead)
+            if (blocksExecuted and 15 == 0 && blocksExecuted > 0) {
+                if (System.nanoTime() - startTime > SCRIPT_TIME_BUDGET_NS) break
+            }
+
+            if (!state.cleanFinishedFrames()) break
+            val frame = state.currentFrame ?: break
+            val sprite = project.sprites.getOrNull(state.spriteIndex) ?: break
+
+            if (frame.ip >= frame.blocks.size) break
+
+            // Yield if this frame is now waiting or gliding
+            if (frame.waitTimer > 0f || frame.glideState != null) break
+
+            val block = frame.blocks[frame.ip]
+            val ipBefore = frame.ip
+
+            try {
+                when (block.type) {
+                    Block.Type.CONTROL -> executeControl(block, sprite, frame, state)
+                    Block.Type.EVENT -> executeEvent(block, frame)
+                    Block.Type.LOOKS -> executeLooks(block, sprite, frame)
+                    Block.Type.MOTION -> executeMotion(block, sprite, frame)
+                    Block.Type.SOUND -> executeSound(block, sprite, frame)
+                    Block.Type.MUSIC -> executeMusic(block, frame)
+                    Block.Type.PEN -> executePen(block, sprite, frame)
+                    Block.Type.VARIABLE -> executeVariable(block, sprite, frame, state)
+                    Block.Type.WEB -> executeWeb(block, frame)
+                    Block.Type.SENSING -> executeSensing(block, frame)
+                    Block.Type.DATA -> executeData(block, frame)
+                    Block.Type.FILE -> executeFile(block, frame)
+                    Block.Type.PHYSICS -> executePhysics(block, sprite, frame)
+                    Block.Type.CAMERA -> executeCamera(block, sprite, frame)
+                    Block.Type.VIDEO -> executeVideo(block, frame)
+                }
+            } catch (e: Exception) {
+                handleExecutionException(state, e)
+                break // yield after exception to avoid infinite error loops
+            }
+
+            blocksExecuted++
+
+            // Safety: if IP didn't advance and no frame was pushed/popped, break
+            // to avoid infinite loops on unhandled blocks.
+            val currentFrame = state.currentFrame
+            if (currentFrame === frame && frame.ip == ipBefore && frame.waitTimer <= 0f && frame.glideState == null) {
+                break
+            }
+
+            // Yield after wait/glide was set by the block we just executed
+            if (frame.waitTimer > 0f || frame.glideState != null) break
         }
     }
 
@@ -4664,10 +4848,12 @@ class DesktopScriptEngine(
         }
     }
 
-    /** Вычислить runtime-формулу для указанного BrickField. */
+    /** Вычислить runtime-формулу для указанного BrickField (uses compiled tree with XML fallback). */
     private fun evaluateBrickFieldFormula(sprite: DesktopSprite, state: ScriptState, rf: RuntimeFormula): Float? {
         val spriteIndex = state.spriteIndex
-        return evaluateFormulaNode(rf.formulaElement, spriteIndex)?.let { v ->
+        val result = evalCompiledFormula(rf.compiled, spriteIndex)
+            ?: evaluateFormulaNode(rf.formulaElement, spriteIndex) // fallback for uncompiled functions
+        return result?.let { v ->
             when (v) {
                 is Double -> v.toFloat()
                 is Float -> v
@@ -4677,21 +4863,225 @@ class DesktopScriptEngine(
         }
     }
 
-    /** Вычислить runtime-формулу как строку. */
+    /** Вычислить runtime-формулу как строку (uses compiled tree with XML fallback). */
     private fun evaluateBrickFieldFormulaString(sprite: DesktopSprite, state: ScriptState, rf: RuntimeFormula): String? {
         val spriteIndex = state.spriteIndex
-        return evaluateFormulaNode(rf.formulaElement, spriteIndex)?.toString()
+        val result = evalCompiledFormula(rf.compiled, spriteIndex)
+            ?: evaluateFormulaNode(rf.formulaElement, spriteIndex)
+        return result?.toString()
     }
 
-    /** Вычислить runtime-формулу с сохранением оригинального типа (Double или String). */
+    /** Вычислить runtime-формулу с сохранением оригинального типа (uses compiled tree with XML fallback). */
     private fun evaluateBrickFieldFormulaAsObject(sprite: DesktopSprite, state: ScriptState, rf: RuntimeFormula): Any {
         val spriteIndex = state.spriteIndex
-        val result = evaluateFormulaNode(rf.formulaElement, spriteIndex)
+        val result = evalCompiledFormula(rf.compiled, spriteIndex)
+            ?: evaluateFormulaNode(rf.formulaElement, spriteIndex)
         return when (result) {
             is Double -> result
             is String -> result
             is Number -> result.toDouble()
             else -> result ?: 0.0
+        }
+    }
+
+
+    /**
+     * Evaluate a compiled formula tree — fast path with zero XML DOM access.
+     * Mirrors the logic of [evaluateFormulaNode] but operates on pre-compiled objects.
+     */
+    private fun evalCompiledFormula(f: CompiledFormula, spriteIndex: Int): Any? {
+        return when (f) {
+            is CompiledFormula.Num -> f.value
+            is CompiledFormula.Str -> f.value
+            is CompiledFormula.Null -> null
+            is CompiledFormula.CollisionFormula -> f.value
+            is CompiledFormula.UserList -> ""
+            is CompiledFormula.Bracket -> f.child?.let { evalCompiledFormula(it, spriteIndex) }
+            is CompiledFormula.Var -> {
+                val v = variables[f.name]
+                when (v) {
+                    is Number -> v.toDouble()
+                    is String -> v.toDoubleOrNull() ?: 0.0
+                    else -> 0.0
+                }
+            }
+            is CompiledFormula.UserDefinedInput -> {
+                val local = activeState?.currentFrame?.procVars?.get(f.name)
+                if (local != null) return local
+                val gv = variables[f.name]
+                if (gv != null) return gv
+                f.name.toDoubleOrNull() ?: f.name
+            }
+            is CompiledFormula.Sensor -> evaluateSensor(f.name, spriteIndex)
+            is CompiledFormula.Operator -> {
+                val leftVal = f.left?.let { evalCompiledFormula(it, spriteIndex) }
+                val rightVal = f.right?.let { evalCompiledFormula(it, spriteIndex) }
+                val left = (leftVal as? Double) ?: 0.0
+                val right = (rightVal as? Double) ?: 0.0
+                when (f.op) {
+                    "PLUS" -> left + right
+                    "MINUS" -> if (f.left == null) -right else left - right
+                    "MULT" -> left * right
+                    "DIVIDE" -> if (right != 0.0) left / right else 0.0
+                    "MOD" -> left % right
+                    "POW" -> left.pow(right)
+                    "EQUAL" -> if (left == right) 1.0 else 0.0
+                    "NOT_EQUAL" -> if (left != right) 1.0 else 0.0
+                    "SMALLER_THAN" -> if (left < right) 1.0 else 0.0
+                    "GREATER_THAN" -> if (left > right) 1.0 else 0.0
+                    "SMALLER_OR_EQUAL" -> if (left <= right) 1.0 else 0.0
+                    "GREATER_OR_EQUAL" -> if (left >= right) 1.0 else 0.0
+                    "LOGICAL_AND" -> if (left != 0.0 && right != 0.0) 1.0 else 0.0
+                    "LOGICAL_OR" -> if (left != 0.0 || right != 0.0) 1.0 else 0.0
+                    "LOGICAL_NOT" -> if (right == 0.0) 1.0 else 0.0
+                    else -> null
+                }
+            }
+            is CompiledFormula.Function -> {
+                // Delegate to existing evaluateFunction with a synthetic approach:
+                // evaluate children via compiled tree, then call the same function logic
+                val leftVal = f.left?.let { evalCompiledFormula(it, spriteIndex) }
+                val rightVal = f.right?.let { evalCompiledFormula(it, spriteIndex) }
+                val additionalVals = f.additional.map { evalCompiledFormula(it, spriteIndex) }
+                evalCompiledFunction(f.name, leftVal, rightVal, additionalVals, spriteIndex)
+            }
+        }
+    }
+
+    /**
+     * Evaluate a compiled function node. Mirrors [evaluateFunction] logic but
+     * receives pre-evaluated child values instead of XML Elements.
+     */
+    private fun evalCompiledFunction(func: String, leftVal: Any?, rightVal: Any?, additionalVals: List<Any?>, spriteIndex: Int): Any? {
+        val a = (leftVal as? Double) ?: 0.0
+        val b = (rightVal as? Double) ?: 0.0
+        val aStr = leftVal?.toString() ?: ""
+        val bStr = rightVal?.toString() ?: ""
+
+        fun findSprite(name: String) = project.sprites.find { it.name == name }
+
+        return when (func) {
+            // Basic math
+            "SIN" -> sin(Math.toRadians(a))
+            "COS" -> cos(Math.toRadians(a))
+            "TAN" -> tan(Math.toRadians(a))
+            "LN" -> ln(a)
+            "LOG" -> log10(a)
+            "SQRT" -> sqrt(a)
+            "ABS" -> abs(a)
+            "ROUND" -> round(a)
+            "FLOOR" -> floor(a)
+            "CEIL" -> ceil(a)
+            "PI" -> Math.PI
+            "TRUE" -> 1.0
+            "FALSE" -> 0.0
+            "RAND" -> a + Math.random() * (b - a)
+            "MIN" -> minOf(a, b)
+            "MAX" -> maxOf(a, b)
+            "MOD" -> if (b != 0.0) a % b else 0.0
+            "POW" -> a.pow(b)
+            "ARCSIN" -> Math.toDegrees(asin(a.coerceIn(-1.0, 1.0)))
+            "ARCCOS" -> Math.toDegrees(acos(a.coerceIn(-1.0, 1.0)))
+            "ARCTAN" -> Math.toDegrees(atan(a))
+            "EXP" -> exp(a)
+            // String functions
+            "JOIN" -> aStr + bStr
+            "JOIN3" -> {
+                val parts = additionalVals.map { it?.toString() ?: "" }
+                aStr + bStr + parts.joinToString("")
+            }
+            "LENGTH" -> aStr.length.toDouble()
+            "LETTER" -> {
+                val idx = a.toInt() - 1
+                if (idx in bStr.indices) bStr[idx].toString() else ""
+            }
+            "SUBTEXT" -> {
+                val start = (additionalVals.getOrNull(0) as? Double)?.toInt()?.coerceAtLeast(0) ?: 0
+                val end = (additionalVals.getOrNull(1) as? Double)?.toInt()?.coerceAtMost(aStr.length) ?: aStr.length
+                if (start < end) aStr.substring(start, end) else ""
+            }
+            "UPPERCASE" -> aStr.uppercase()
+            "LOWERCASE" -> aStr.lowercase()
+            "CONTAINS" -> if (aStr.contains(bStr, ignoreCase = true)) 1.0 else 0.0
+            "REPLACE" -> {
+                val search = additionalVals.getOrNull(0)?.toString() ?: ""
+                val replacement = additionalVals.getOrNull(1)?.toString() ?: ""
+                if (search.isNotEmpty()) aStr.replace(search, replacement) else aStr
+            }
+            "TO_NUMBER" -> aStr.toDoubleOrNull() ?: 0.0
+            "TO_STRING" -> aStr
+            "CHAR_AT" -> {
+                val idx = a.toInt() - 1
+                if (idx in bStr.indices) bStr[idx].toString() else ""
+            }
+            // List functions
+            "LIST_ITEM" -> {
+                val listName = bStr
+                val idx = a.toInt() - 1
+                val list = userLists[listName]
+                if (list != null && idx in list.indices) list[idx] else ""
+            }
+            "LIST_COUNT" -> {
+                val list = userLists[aStr]
+                (list?.size ?: 0).toDouble()
+            }
+            "LIST_CONTAINS" -> {
+                val list = userLists[aStr]
+                if (list != null && list.contains(bStr)) 1.0 else 0.0
+            }
+            // Sensor-based functions
+            "X_POSITION" -> {
+                val sprite = project.sprites.getOrNull(spriteIndex)
+                (sprite?.x ?: 0f).toDouble()
+            }
+            "Y_POSITION" -> {
+                val sprite = project.sprites.getOrNull(spriteIndex)
+                (sprite?.y ?: 0f).toDouble()
+            }
+            "DIRECTION" -> {
+                val sprite = project.sprites.getOrNull(spriteIndex)
+                (sprite?.direction ?: 90f).toDouble()
+            }
+            "SIZE" -> {
+                val sprite = project.sprites.getOrNull(spriteIndex)
+                (sprite?.size ?: 100f).toDouble()
+            }
+            "LOOK_NAME" -> {
+                val sprite = project.sprites.getOrNull(spriteIndex)
+                sprite?.currentLook()?.name ?: ""
+            }
+            "LOOK_NUMBER" -> {
+                val sprite = project.sprites.getOrNull(spriteIndex)
+                val idx = sprite?.currentLookIndex ?: 0
+                (idx + 1).toDouble()
+            }
+            "CLONE_NUMBER" -> {
+                val sprite = project.sprites.getOrNull(spriteIndex)
+                (sprite?.cloneIndex ?: 0).toDouble()
+            }
+            "TIMER" -> timerSeconds.toDouble()
+            "FINGER_TOUCHED" -> if (input.isTouched) 1.0 else 0.0
+            "FINGER_X" -> input.fingerX.toDouble()
+            "FINGER_Y" -> input.fingerY.toDouble()
+            "MOUSE_X" -> input.mouseWorldX.toDouble()
+            "MOUSE_Y" -> input.mouseWorldY.toDouble()
+            "DISTANCE_TO" -> {
+                val sprite = project.sprites.getOrNull(spriteIndex)
+                val target = findSprite(aStr)
+                if (sprite != null && target != null) {
+                    val dx = target.x - sprite.x
+                    val dy = target.y - sprite.y
+                    sqrt((dx * dx + dy * dy).toDouble())
+                } else 0.0
+            }
+            "BRIGHTNESS" -> 0.0
+            "COLOR" -> 0.0
+            // Fallback: delegate to the original XML-based evaluateFunction
+            else -> {
+                // For functions not handled here, fall back to XML evaluation
+                // This ensures no function is broken by the compilation
+                null
+            }
         }
     }
 

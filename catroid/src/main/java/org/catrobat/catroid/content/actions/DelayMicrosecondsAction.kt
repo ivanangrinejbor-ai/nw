@@ -35,10 +35,11 @@ class DelayMicrosecondsAction : TemporalAction() {
     override fun begin() {
         try {
             val micros = delay?.interpretFloat(scope) ?: 0f
-            val millis = (micros / 1000f).toLong()
-            if (millis > 0) {
-                super.setDuration(millis / 1000f)
-                Thread.sleep(millis)
+            val seconds = micros / 1_000_000f
+            if (seconds > 0f) {
+                super.setDuration(seconds)
+            } else {
+                super.setDuration(0f)
             }
         } catch (interpretationException: InterpretationException) {
             Log.d(
@@ -46,8 +47,7 @@ class DelayMicrosecondsAction : TemporalAction() {
                 "Formula interpretation for this specific Brick failed.",
                 interpretationException
             )
-        } catch (interruptedException: InterruptedException) {
-            Thread.currentThread().interrupt()
+            super.setDuration(0f)
         }
     }
 

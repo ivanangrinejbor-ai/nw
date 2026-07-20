@@ -1,0 +1,1 @@
+Pure-JVM core module defining the `RuntimeServices` contract and platform-agnostic service interfaces (audio, network, notification, text) shared between the Android app and a future desktop runtime.

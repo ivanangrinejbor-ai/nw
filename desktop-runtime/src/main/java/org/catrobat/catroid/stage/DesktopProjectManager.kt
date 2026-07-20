@@ -71,7 +71,7 @@ object DesktopProjectManager {
                 textOf(objEl, "size")?.toFloatOrNull()?.let { sprite.size = it }
                 textOf(objEl, "direction")?.toFloatOrNull()?.let { sprite.direction = it }
 
-                // Look'и
+                // Look'и (lazy — textures loaded on first access)
                 val looks = objEl.getElementsByTagName("look")
                 for (j in 0 until looks.length) {
                     val lookNode = looks.item(j)
@@ -83,7 +83,7 @@ object DesktopProjectManager {
                             name = attrOrText(lookEl, "name")?.trim() ?: fileName,
                             fileName = fileName
                         )
-                        loadTexture(imagesDir, fileName)?.let { look.texture = it }
+                        // Texture will be loaded lazily on first render access
                         sprite.looks.add(look)
                     }
                 }
@@ -116,6 +116,16 @@ object DesktopProjectManager {
         val a = el.getAttribute(tag)
         if (!a.isNullOrBlank()) return a
         return textOf(el, tag)?.trim()
+    }
+
+    /**
+     * Lazily load a texture by fileName from the current project's images directory.
+     * Called by [DesktopLook.texture] getter on first access.
+     */
+    fun loadTextureLazy(fileName: String): Texture? {
+        val dir = currentProject?.projectDir ?: return null
+        val imagesDir = File(dir, "images")
+        return loadTexture(imagesDir, fileName)
     }
 
     private fun loadTexture(imagesDir: File, fileName: String): Texture? {

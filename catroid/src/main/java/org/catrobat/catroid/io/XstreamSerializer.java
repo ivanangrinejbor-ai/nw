@@ -33,6 +33,7 @@ import com.thoughtworks.xstream.converters.reflection.PureJavaReflectionProvider
 
 import org.catrobat.catroid.BuildConfig;
 import org.catrobat.catroid.ProjectManager;
+import org.catrobat.catroid.common.HitboxData;
 import org.catrobat.catroid.common.LookData;
 import org.catrobat.catroid.common.NfcTagData;
 import org.catrobat.catroid.common.ProjectData;
@@ -249,6 +250,7 @@ public final class XstreamSerializer {
 		xstream.omitField(NoneBrick.class, "formulaList");
 
 		xstream.alias("look", LookData.class);
+		xstream.alias("hitbox", HitboxData.class);
 		xstream.alias("sound", SoundInfo.class);
 		xstream.alias("nfcTag", NfcTagData.class);
 		xstream.alias("userVariable", UserVariable.class);

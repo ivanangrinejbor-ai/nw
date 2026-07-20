@@ -57,6 +57,7 @@ public class SetVelocityAction extends TemporalAction {
 			Log.d(getClass().getSimpleName(), "Formula interpretation for this specific Brick failed.", interpretationException);
 			return;
 		}
+		if (physicsObject == null) return;
 		physicsObject.setVelocity(newVelocityX, newVelocityY);
 	}
 

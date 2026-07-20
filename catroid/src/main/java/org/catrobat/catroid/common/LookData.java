@@ -44,6 +44,8 @@ import org.catrobat.catroid.utils.ImageEditing;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -82,6 +84,9 @@ public class LookData implements Cloneable, Nameable, Serializable {
 	private boolean valid = true;
 
 	private boolean isWebRequest = false;
+
+	/** Custom hitboxes defined by the user in the Hitbox Editor. Null/empty = use auto collision. */
+	private List<HitboxData> hitboxes = null;
 
 	public LookData() {
 	}
@@ -173,7 +178,15 @@ public class LookData implements Cloneable, Nameable, Serializable {
 	@Override
 	public LookData clone() {
 		try {
-			return new LookData(name, StorageOperations.duplicateFile(file));
+			LookData copy = new LookData(name, StorageOperations.duplicateFile(file));
+			if (hitboxes != null && !hitboxes.isEmpty()) {
+				List<HitboxData> copiedBoxes = new ArrayList<>();
+				for (HitboxData hb : hitboxes) {
+					copiedBoxes.add(hb.copy());
+				}
+				copy.hitboxes = copiedBoxes;
+			}
+			return copy;
 		} catch (IOException e) {
 			throw new RuntimeException(TAG + ": Could not copy file: " + file.getAbsolutePath());
 		}
@@ -261,5 +274,20 @@ public class LookData implements Cloneable, Nameable, Serializable {
 
 	public void invalidate() {
 		valid = false;
+	}
+
+	public List<HitboxData> getHitboxes() {
+		if (hitboxes == null) {
+			hitboxes = new ArrayList<>();
+		}
+		return hitboxes;
+	}
+
+	public void setHitboxes(List<HitboxData> hitboxes) {
+		this.hitboxes = hitboxes;
+	}
+
+	public boolean hasCustomHitboxes() {
+		return hitboxes != null && !hitboxes.isEmpty();
 	}
 }

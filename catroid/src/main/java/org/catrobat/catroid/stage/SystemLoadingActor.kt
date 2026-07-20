@@ -25,11 +25,15 @@ class SystemLoadingActor(
     private val project: Project
 ) : Actor() {
     private var progress = 0f
-    private val totalSteps = 5f
     private var currentStep = 0
     private val shapeRenderer = ShapeRenderer()
     private var font: BitmapFont = BitmapFont()
     private var loaded = false
+
+    // Progressive look loading state
+    private var looksToLoad: List<org.catrobat.catroid.common.LookData>? = null
+    private var lookLoadIndex = 0
+    private val LOOKS_PER_FRAME = 20 // load N textures per frame to avoid freeze
 
     init {
         val header = project.xmlHeader
@@ -89,10 +93,34 @@ class SystemLoadingActor(
 
     private fun stepLoad() {
         when (currentStep) {
-            0 -> { preloadRuntime(); currentStep++; progress = 0.2f }
-            1 -> { preloadScenes(); currentStep++; progress = 0.4f }
-            2 -> { preloadLooks(); currentStep++; progress = 0.6f }
-            3 -> { preloadSounds(); currentStep++; progress = 0.8f }
+            0 -> { preloadRuntime(); currentStep++; progress = 0.1f }
+            1 -> { preloadScenes(); currentStep++; progress = 0.2f }
+            2 -> {
+                // Progressive look loading — load N textures per frame instead of all at once
+                if (looksToLoad == null) {
+                    val allLooks = mutableListOf<org.catrobat.catroid.common.LookData>()
+                    for (scene in project.sceneList) {
+                        for (sprite in scene.spriteList) {
+                            allLooks.addAll(sprite.lookList)
+                        }
+                    }
+                    looksToLoad = allLooks
+                    lookLoadIndex = 0
+                }
+                val looks = looksToLoad!!
+                val end = minOf(lookLoadIndex + LOOKS_PER_FRAME, looks.size)
+                for (i in lookLoadIndex until end) {
+                    try { looks[i].pixmap } catch (_: Exception) {}
+                }
+                lookLoadIndex = end
+                // Progress: 0.2 → 0.8 based on looks loaded
+                progress = 0.2f + 0.6f * (lookLoadIndex.toFloat() / maxOf(looks.size, 1))
+                if (lookLoadIndex >= looks.size) {
+                    currentStep++
+                    looksToLoad = null
+                }
+            }
+            3 -> { preloadSounds(); currentStep++; progress = 0.9f }
             4 -> { currentStep++; progress = 1f; loaded = true }
         }
     }
@@ -106,16 +134,6 @@ class SystemLoadingActor(
             for (sprite in scene.spriteList) {
                 sprite.resetSprite()
                 sprite.look?.setRenderingContext(null, null, null)
-            }
-        }
-    }
-
-    private fun preloadLooks() {
-        for (scene in project.sceneList) {
-            for (sprite in scene.spriteList) {
-                for (look in sprite.lookList) {
-                    look.pixmap?.let { it.width } // force load
-                }
             }
         }
     }

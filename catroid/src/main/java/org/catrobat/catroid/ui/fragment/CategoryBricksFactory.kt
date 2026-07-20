@@ -835,7 +835,6 @@ open class CategoryBricksFactory {
                 }
         eventBrickList.add(WhenBackgroundChangesBrick())
         eventBrickList.add(WhenFirebaseChangedBrick())
-                eventBrickList.add(WhenFirebaseChangedBrick())
                 eventBrickList.add(WhenClonedBrick())
                 eventBrickList.add(CloneBrick())
                 eventBrickList.add(CloneAndNameBrick("clone"))
@@ -1089,8 +1088,14 @@ open class CategoryBricksFactory {
         controlBrickList.add(TapForBrick(BrickValues.TOUCH_X_START, BrickValues.TOUCH_Y_START, BrickValues.TOUCH_DURATION))
         controlBrickList.add(TouchAndSlideBrick(BrickValues.TOUCH_X_START, BrickValues.TOUCH_Y_START, BrickValues.TOUCH_X_GOAL, BrickValues.TOUCH_Y_GOAL, BrickValues.TOUCH_DURATION))
         controlBrickList.add(OpenUrlBrick(BrickValues.OPEN_IN_BROWSER))
+
+        controlBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_control_loops), template))
         controlBrickList.add(CountLoopBrick(Formula(0)))
+
+        controlBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_control_waiting), template))
         controlBrickList.add(DelayMicrosecondsBrick(Formula(1.0)))
+
+        controlBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_control_conditions), template))
         controlBrickList.add(SwitchBeginBrick(Formula(0)))
         controlBrickList.add(SwitchCaseBrick(Formula(0)))
 
@@ -1649,16 +1654,14 @@ open class CategoryBricksFactory {
                 dataBrickList.add(SecureReadVariableBrick())
                 dataBrickList.add(HideTextBrick())
                 dataBrickList.add(HideText3Brick("myText"))
-                dataBrickList.add(WriteVariableOnDeviceBrick())
-                dataBrickList.add(ReadVariableFromDeviceBrick())
                 dataBrickList.add(WriteVariableToFileBrick(context.getString(R.string.brick_write_variable_to_file_default_value)))
                 dataBrickList.add(ReadVariableFromFileBrick(context.getString(R.string.brick_write_variable_to_file_default_value)))
                 dataBrickList.add(WriteToFilesBrick("variable.txt"))
                 dataBrickList.add(ReadFromFilesBrick("variable.txt"))
                 dataBrickList.add(DeleteFilesBrick("variable.txt"))
                 //dataBrickList.add(SaveLookBrick("my_actor.png"))
-                dataBrickList.add(FileUrlBrick("http://e95814zx.beget.tech/map.jpg", "fileFromUrl.jpg"))
-                dataBrickList.add(FilesUrlBrick("http://e95814zx.beget.tech/map.jpg", "fileFromUrl.jpg"))
+                dataBrickList.add(FileUrlBrick("https://example.com/file.jpg", "fileFromUrl.jpg"))
+                dataBrickList.add(FilesUrlBrick("https://example.com/file.jpg", "fileFromUrl.jpg"))
                 dataBrickList.add(ZipBrick("myZip.zip", "my_actor.png,fileFromUrl.jpg"))
                 dataBrickList.add(GetZipFileNamesBrick("myZip.zip"))
                 dataBrickList.add(UnzipBrick("myZip.zip"))
@@ -1915,7 +1918,7 @@ print("Bot has stopped.")""", "myVar"))
                 deviceBrickList.add(RunChip8Brick("tetris.ch8"))
                 deviceBrickList.add(ScreenShotBrick())
                 deviceBrickList.add(ResetTimerBrick())
-                deviceBrickList.add(TestBrick())
+                //deviceBrickList.add(TestBrick())
                 deviceBrickList.add(HideStatusBarBrick())
                 deviceBrickList.add(ChooseFileBrick())
                 deviceBrickList.add(ExportProjectFileBrick("file.txt"))
@@ -2445,8 +2448,8 @@ void main() {
         fileBrickList.add(WriteToFilesBrick("variable.txt"))
         fileBrickList.add(ReadFromFilesBrick("variable.txt"))
         fileBrickList.add(DeleteFilesBrick("variable.txt"))
-        fileBrickList.add(FileUrlBrick("http://e95814zx.beget.tech/map.jpg", "fileFromUrl.jpg"))
-        fileBrickList.add(FilesUrlBrick("http://e95814zx.beget.tech/map.jpg", "fileFromUrl.jpg"))
+        fileBrickList.add(FileUrlBrick("https://example.com/file.jpg", "fileFromUrl.jpg"))
+        fileBrickList.add(FilesUrlBrick("https://example.com/file.jpg", "fileFromUrl.jpg"))
         fileBrickList.add(ZipBrick("myZip.zip", "my_actor.png,fileFromUrl.jpg"))
         fileBrickList.add(GetZipFileNamesBrick("myZip.zip"))
         fileBrickList.add(UnzipBrick("myZip.zip"))
@@ -2899,7 +2902,7 @@ void main() {
         return assertionsBrickList
     }
 
-    fun searchList(searchBrick: Brick, list: List<Brick>): Boolean = list.any { it == searchBrick.javaClass }
+    fun searchList(searchBrick: Brick, list: List<Brick>): Boolean = list.any { it.javaClass == searchBrick.javaClass }
 
     fun getBrickCategory(brick: Brick, isBackgroundSprite: Boolean, context: Context): String {
         val res = context.resources

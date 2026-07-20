@@ -1,0 +1,1 @@
+Kotlin/JVM + libGDX 1.13.1 with LWJGL3 backend and Box2D natives; JCodec for video; AES/GCM+PBKDF2 for baked-project encryption; Launch4j for EXE wrapping; jlink for bundling a minimal JRE.

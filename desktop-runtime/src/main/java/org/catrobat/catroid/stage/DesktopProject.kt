@@ -11,11 +11,20 @@ import com.badlogic.gdx.graphics.g2d.Sprite
  * (текстур). Загрузка выполняется [DesktopProjectManager]'ом из
  * директории проекта (формат Catrobat: code.xml + images/).
  */
-data class DesktopLook(
+class DesktopLook(
     val name: String,
     val fileName: String,
-    var texture: Texture? = null
-)
+    texture: Texture? = null
+) {
+    /** Lazy-loaded texture — only created on first access to save VRAM and startup time. */
+    var texture: Texture? = texture
+        get() {
+            if (field == null && fileName.isNotEmpty()) {
+                field = DesktopProjectManager.getInstance().loadTextureLazy(fileName)
+            }
+            return field
+        }
+}
 
 /** Text overlay on the stage — rendered each frame. */
 data class TextOverlay(

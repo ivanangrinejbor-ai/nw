@@ -40,6 +40,7 @@ public class SetFrictionAction extends TemporalAction {
 	@Override
 	protected void update(float percent) {
 		if (scope == null) return;
+		if (physicsObject == null) return;
 		try {
 			Float newFriction = friction == null ? Float.valueOf(0f)
 					: friction.interpretFloat(scope);

@@ -48,6 +48,7 @@ public class SetBounceFactorAction extends TemporalAction {
 			Log.d(getClass().getSimpleName(), "Formula interpretation for this specific Brick failed.", interpretationException);
 			return;
 		}
+		if (physicsObject == null) return;
 		physicsObject.setBounceFactor(newBounceFactor / 100.0f);
 	}
 

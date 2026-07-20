@@ -50,6 +50,9 @@ import java.io.IOException
 
 private val TAG = ProjectUnZipperAndImporter::class.java.simpleName
 
+private const val IMPORT_SPACE_MARGIN = 1.25
+private const val IMPORT_SPACE_OVERHEAD = 1024L * 1024L // 1 MB filesystem overhead
+
 sealed class ImportResult {
     object Success : ImportResult()
     object Failure : ImportResult()
@@ -200,10 +203,16 @@ private fun ProjectUnZipperAndImporter.unzipAndImportProject(projectZipFile: Fil
     val cachedProjectDir = File(CACHE_DIRECTORY, tempDirName)
     return try {
         if (cachedProjectDir.isDirectory) { StorageOperations.deleteDir(cachedProjectDir) }
-        val requiredSpace = projectZipFile.length() * 5
-        val usableSpace = CACHE_DIRECTORY.usableSpace
-        if (usableSpace > 0 && requiredSpace > usableSpace) {
-            Log.e(TAG, "Not enough disk space: need ${requiredSpace / 1024 / 1024}MB, have ${usableSpace / 1024 / 1024}MB")
+        val requiredCacheSpace = estimateRequiredCacheSpace(projectZipFile)
+        val requiredDestSpace = estimateRequiredDestSpace(projectZipFile)
+        val cacheUsable = CACHE_DIRECTORY.usableSpace
+        val destUsable = FlavoredConstants.DEFAULT_ROOT_DIRECTORY.usableSpace
+        if (cacheUsable > 0 && requiredCacheSpace > cacheUsable) {
+            Log.e(TAG, "Not enough disk space in cache: need ${requiredCacheSpace / 1024 / 1024}MB, have ${cacheUsable / 1024 / 1024}MB")
+            return@unzipAndImportProject ImportResult.Failure
+        }
+        if (destUsable > 0 && requiredDestSpace > destUsable) {
+            Log.e(TAG, "Not enough disk space in projects directory: need ${requiredDestSpace / 1024 / 1024}MB, have ${destUsable / 1024 / 1024}MB")
             return@unzipAndImportProject ImportResult.Failure
         }
         cachedProjectDir.mkdirs()
@@ -288,6 +297,45 @@ private fun ProjectUnZipperAndImporter.unzipAndImportProject(projectZipFile: Fil
             if (cachedProjectDir.exists()) StorageOperations.deleteDir(cachedProjectDir)
         } catch (_: Exception) {}
         ImportResult.Failure
+    }
+}
+
+/**
+ * Realistic estimate of the space the import needs in the cache directory:
+ * the archive itself, the unzipped contents, and (for encrypted projects) the
+ * temporary decrypted copy. Uses the actual sum of uncompressed entry sizes
+ * instead of a flat multiple of the archive size, which previously over-
+ * estimated by 5x and wrongly rejected projects on storage-limited devices.
+ */
+private fun estimateRequiredCacheSpace(zipFile: File): Long {
+    val zipLen = zipFile.length()
+    val encrypted = ProjectCrypto.isEncrypted(zipFile)
+    val uncompressed = if (!encrypted) sumUncompressedZipSizes(zipFile) else 0L
+    val unzip = if (uncompressed > 0L) uncompressed else zipLen
+    val decryptedCopy = if (encrypted) zipLen else 0L
+    return ((zipLen + unzip + decryptedCopy) * IMPORT_SPACE_MARGIN + IMPORT_SPACE_OVERHEAD).toLong()
+}
+
+private fun estimateRequiredDestSpace(zipFile: File): Long {
+    val encrypted = ProjectCrypto.isEncrypted(zipFile)
+    val uncompressed = if (!encrypted) sumUncompressedZipSizes(zipFile) else 0L
+    val unzip = if (uncompressed > 0L) uncompressed else zipFile.length()
+    return (unzip * IMPORT_SPACE_MARGIN + IMPORT_SPACE_OVERHEAD).toLong()
+}
+
+private fun sumUncompressedZipSizes(zipFile: File): Long {
+    return try {
+        var total = 0L
+        java.util.zip.ZipFile(zipFile).use { zf ->
+            val entries = zf.entries()
+            while (entries.hasMoreElements()) {
+                val entry = entries.nextElement()
+                if (!entry.isDirectory) total += entry.size
+            }
+        }
+        total
+    } catch (_: Exception) {
+        0L
     }
 }
 

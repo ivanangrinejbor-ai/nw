@@ -16,7 +16,14 @@ class RunAsSpriteAction(
     var scope: Scope? = null
     var spriteName: Formula? = null
 
+    private var executed = false
+
     override fun act(delta: Float): Boolean {
+        if (executed) {
+            return true
+        }
+        executed = true
+
         val targetName = spriteName?.interpretString(scope) ?: return true
         val stageListener = StageActivity.getActiveStageListener() ?: return true
 
@@ -37,5 +44,10 @@ class RunAsSpriteAction(
         }
 
         return true
+    }
+
+    override fun restart() {
+        executed = false
+        super.restart()
     }
 }

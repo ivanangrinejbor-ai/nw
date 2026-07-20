@@ -1,0 +1,4 @@
+- Per-flavor branding overrides are isolated to `src/<flavor>/java/org/catrobat/catroid/common/FlavoredConstants.java` plus resource overlays, keeping shared logic in `src/main`.
+- Feature toggles are exposed as `buildConfigField boolean FEATURE_*` constants generated from `defaultConfig`, allowing flavors/build types to enable/disable capabilities without changing source.
+- Each flavor defines only `applicationIdSuffix` and optional `resValue` overrides; the base `applicationId` and version come from `ext.appId` / `defaultConfig`.
+- Instrumented test suites are grouped under `src/androidTest/java/org/catrobat/catroid/testsuites/` with dedicated `AllUiEspressoTestsSuite`, `OutgoingNetworkCallsTestSuite`, etc., and individual tests are annotated with `@Flaky` when needed.

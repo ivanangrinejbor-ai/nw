@@ -17,7 +17,7 @@ class SetDampingAction : TemporalAction() {
         val scene = ProjectManager.getInstance().currentlyPlayingScene ?: return
         val sprite = scope?.sprite ?: return
 
-        val physicsObject = scene.physicsWorld.getPhysicsObject(sprite)
+        val physicsObject = scene.physicsWorld.getPhysicsObject(sprite) ?: return
         physicsObject.setLinearDamping(linear)
         physicsObject.setAngularDamping(angular)
     }

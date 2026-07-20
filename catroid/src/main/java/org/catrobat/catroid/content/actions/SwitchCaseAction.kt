@@ -37,18 +37,30 @@ class SwitchCaseAction : Action() {
     private var matchedAction: Action? = null
     private var isInitialized = false
     private var matched = false
+    private var expressionValue: Double = 0.0
+    private var expressionString: String = ""
 
     private fun evaluateSwitch() {
-        val expression: Double = try {
+        if (scope == null) {
+            matched = true
+            matchedAction = defaultAction
+            return
+        }
+        expressionValue = try {
             expressionFormula?.interpretDouble(scope) ?: 0.0
         } catch (e: InterpretationException) {
             Log.d(javaClass.simpleName, "Switch expression interpretation failed", e)
-            return
+            0.0
+        }
+        expressionString = try {
+            expressionFormula?.interpretString(scope) ?: expressionValue.toString()
+        } catch (e: InterpretationException) {
+            expressionValue.toString()
         }
 
         for (caseAction in caseActions) {
             if (caseAction is CaseAction) {
-                if (caseAction.matches(expression)) {
+                if (caseAction.matches(expressionValue, expressionString)) {
                     matchedAction = caseAction
                     matched = true
                     return
@@ -93,9 +105,11 @@ class SwitchCaseAction : Action() {
         var caseFormula: Formula? = null
         var bodyAction: Action? = null
         private var caseValue: Double = 0.0
+        private var caseString: String = ""
         private var evaluated = false
 
-        fun matches(switchValue: Double): Boolean {
+        fun matches(switchValue: Double, switchString: String): Boolean {
+            if (scope == null) return false
             if (!evaluated) {
                 caseValue = try {
                     caseFormula?.interpretDouble(scope) ?: 0.0
@@ -103,9 +117,19 @@ class SwitchCaseAction : Action() {
                     Log.d(javaClass.simpleName, "Case value interpretation failed", e)
                     0.0
                 }
+                caseString = try {
+                    caseFormula?.interpretString(scope) ?: caseValue.toString()
+                } catch (e: InterpretationException) {
+                    caseValue.toString()
+                }
                 evaluated = true
             }
-            return caseValue == switchValue
+            // Numeric comparison when both switch and case parse as numbers ("1" == "1.0")
+            if (caseString.toDoubleOrNull() != null && switchString.toDoubleOrNull() != null) {
+                return caseValue == switchValue
+            }
+            // Otherwise compare as trimmed strings
+            return caseString.trim() == switchString.trim()
         }
 
         override fun act(delta: Float): Boolean {

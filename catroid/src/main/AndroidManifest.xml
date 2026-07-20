@@ -414,6 +414,12 @@
             android:windowSoftInputMode="adjustResize" />
 
         <activity
+            android:name="org.catrobat.catroid.ui.hitbox.HitboxEditorActivity"
+            android:exported="false"
+            android:screenOrientation="unspecified"
+            android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />
+
+        <activity
             android:name=".utils.git.AuthCallbackActivity"
             android:exported="true"
             android:launchMode="singleTask">

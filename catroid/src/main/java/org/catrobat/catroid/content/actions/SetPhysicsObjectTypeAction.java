@@ -34,6 +34,7 @@ public class SetPhysicsObjectTypeAction extends TemporalAction {
 
 	@Override
 	protected void update(float percent) {
+		if (physicsObject == null) return;
 		physicsObject.setType(type);
 	}
 
