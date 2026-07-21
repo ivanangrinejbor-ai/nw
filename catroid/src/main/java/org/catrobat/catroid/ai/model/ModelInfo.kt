@@ -16,6 +16,7 @@ data class ModelInfo(
 enum class ModelSize(val label: String, val paramCount: String) {
     SIZE_0_5B("0.5B parameters", "0.5B"),
     SIZE_1B("1B parameters", "1B"),
+    SIZE_1_5B("1.5B parameters", "1.5B"),
     SIZE_2B("2B parameters", "2B"),
     SIZE_3B("3B parameters", "3B"),
     SIZE_4B("4B parameters", "4B"),

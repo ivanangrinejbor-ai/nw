@@ -96,11 +96,14 @@ class AiAgentManager private constructor() {
         )
         _messages.update { it + userMsg }
 
-        if (!isEnabled() || !cloudRuntime.isReady()) {
-            val reason = if (!isEnabled()) {
-                "AI Agent is disabled. Enable it in Settings → AI Agent."
-            } else {
-                "No Gemini API key set. Open Settings → AI Agent (or the chat menu) and enter your Google AI Studio key first."
+        if (!isEnabled() || !isBackendReady()) {
+            val reason = when {
+                !isEnabled() ->
+                    "AI Agent is disabled. Enable it in Settings → AI Agent."
+                AiPreferences.isLocalBackend() ->
+                    "No local model loaded. Open the model picker → More models, download a model and tap Use."
+                else ->
+                    "No Gemini API key set. Open Settings → AI Agent (or the chat menu) and enter your Google AI Studio key first."
             }
             val errMsg = ChatMessage(
                 role = ChatMessage.Role.ASSISTANT,
@@ -112,6 +115,18 @@ class AiAgentManager private constructor() {
         }
         processMessage(text)
     }
+
+    /** Whether the currently selected backend can serve a request. */
+    private fun isBackendReady(): Boolean =
+        if (AiPreferences.isLocalBackend()) ModelRuntime.isModelLoaded() else cloudRuntime.isReady()
+
+    /** Routes generation to the local llama.cpp runtime or the cloud Gemini runtime. */
+    private suspend fun generate(input: String, temperature: Float, maxTokens: Int): String =
+        if (AiPreferences.isLocalBackend() && ModelRuntime.isModelLoaded()) {
+            modelRuntime.generate(input, temperature, maxTokens)
+        } else {
+            cloudRuntime.generate(input, temperature, maxTokens = maxTokens.coerceIn(256, 8192))
+        }
 
     private fun processMessage(userInput: String) {
         scope.launch {
@@ -149,10 +164,10 @@ class AiAgentManager private constructor() {
 
                 while (iteration < maxRounds) {
                     _activity.value = "Thinking… (round ${iteration + 1}/$maxRounds)"
-                    val response = cloudRuntime.generate(
+                    val response = generate(
                         modelInput.toString(),
                         temperature = temperature,
-                        maxTokens = maxTokens.coerceIn(256, 8192)
+                        maxTokens = maxTokens
                     )
                     if (response.startsWith("Error")) {
                         toolResult = response
@@ -188,10 +203,10 @@ class AiAgentManager private constructor() {
                     iteration++
                 }
 
-                val finalResponse = toolResult ?: cloudRuntime.generate(
+                val finalResponse = toolResult ?: generate(
                     modelInput.toString(),
                     temperature = temperature,
-                    maxTokens = maxTokens.coerceIn(256, 8192)
+                    maxTokens = maxTokens
                 )
 
                 kotlinx.coroutines.delay(200)

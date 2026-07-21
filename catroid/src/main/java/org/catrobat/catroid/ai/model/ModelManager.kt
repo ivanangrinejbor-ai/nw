@@ -45,40 +45,40 @@ object ModelManager {
 
     private val defaultModels = listOf(
         ModelInfo(
-            id = "qwen2.5-0.5b-q4",
-            name = "Qwen 2.5 0.5B Q4",
+            id = "qwen2.5-1.5b",
+            name = "Qwen2.5 1.5B Instruct",
+            provider = "Qwen",
+            size = ModelSize.SIZE_1_5B,
+            uri = "https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF/resolve/main/qwen2.5-1.5b-instruct-q5_k_m.gguf?download=true",
+            filename = "qwen2.5-1.5b-instruct-q5_k_m.gguf",
+            description = "Balanced on-device model, good quality"
+        ),
+        ModelInfo(
+            id = "llama3.2-1b",
+            name = "Llama 3.2 1B Instruct",
+            provider = "Meta",
+            size = ModelSize.SIZE_1B,
+            uri = "https://huggingface.co/bartowski/Llama-3.2-1B-Instruct-GGUF/resolve/main/Llama-3.2-1B-Instruct-Q5_K_M.gguf?download=true",
+            filename = "Llama-3.2-1B-Instruct-Q5_K_M.gguf",
+            description = "Compact Llama model for on-device use"
+        ),
+        ModelInfo(
+            id = "smollm2-1.7b",
+            name = "SmolLM2 1.7B Instruct",
+            provider = "HuggingFaceTB",
+            size = ModelSize.SIZE_2B,
+            uri = "https://huggingface.co/bartowski/SmolLM2-1.7B-Instruct-GGUF/resolve/main/SmolLM2-1.7B-Instruct-Q4_K_S.gguf?download=true",
+            filename = "SmolLM2-1.7B-Instruct-Q4_K_S.gguf",
+            description = "Capable small model for chat"
+        ),
+        ModelInfo(
+            id = "qwen2.5-0.5b",
+            name = "Qwen2.5 0.5B Instruct",
             provider = "Qwen",
             size = ModelSize.SIZE_0_5B,
-            uri = "https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/qwen2.5-0.5b-instruct-q4_k_m.gguf",
-            filename = "qwen2.5-0.5b-instruct-q4_k_m.gguf",
-            description = "Lightweight model for basic tasks"
-        ),
-        ModelInfo(
-            id = "qwen2.5-1b-q4",
-            name = "Qwen 2.5 1B Q4",
-            provider = "Qwen",
-            size = ModelSize.SIZE_1B,
-            uri = "https://huggingface.co/Qwen/Qwen2.5-1B-Instruct-GGUF/resolve/main/qwen2.5-1b-instruct-q4_k_m.gguf",
-            filename = "qwen2.5-1b-instruct-q4_k_m.gguf",
-            description = "Balanced model for most tasks"
-        ),
-        ModelInfo(
-            id = "qwen2.5-3b-q4",
-            name = "Qwen 2.5 3B Q4",
-            provider = "Qwen",
-            size = ModelSize.SIZE_3B,
-            uri = "https://huggingface.co/Qwen/Qwen2.5-3B-Instruct-GGUF/resolve/main/qwen2.5-3b-instruct-q4_k_m.gguf",
-            filename = "qwen2.5-3b-instruct-q4_k_m.gguf",
-            description = "Powerful model for complex analysis"
-        ),
-        ModelInfo(
-            id = "qwen2.5-7b-q4",
-            name = "Qwen 2.5 7B Q4",
-            provider = "Qwen",
-            size = ModelSize.SIZE_7B,
-            uri = "https://huggingface.co/Qwen/Qwen2.5-7B-Instruct-GGUF/resolve/main/qwen2.5-7b-instruct-q4_k_m.gguf",
-            filename = "qwen2.5-7b-instruct-q4_k_m.gguf",
-            description = "Maximum quality model"
+            uri = "https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/qwen2.5-0.5b-instruct-q5_k_m.gguf?download=true",
+            filename = "qwen2.5-0.5b-instruct-q5_k_m.gguf",
+            description = "Lightest model for basic tasks"
         )
     )
 
@@ -110,6 +110,33 @@ object ModelManager {
     fun getCurrentModel(): ModelInfo? {
         val id = _currentModelId.value ?: return null
         return _availableModels.value.find { it.id == id }
+    }
+
+    fun getModelById(modelId: String): ModelInfo? =
+        _availableModels.value.find { it.id == modelId }
+
+    /** True while a download (foreground or service) is running. */
+    fun isDownloadRunning(): Boolean = _isLoading.value
+
+    /** Called by [ModelDownloadService] when a download starts. */
+    fun onDownloadStarted() {
+        _isLoading.value = true
+    }
+
+    /** Called by [ModelDownloadService] to publish streaming progress. */
+    fun publishProgress(state: DownloadState) {
+        _downloadProgress.value = Pair(state.modelId, state.progress)
+        _downloadSpeed.value = formatSpeed(state.speedBytesPerSec)
+        _detailedProgress.value = state
+    }
+
+    /** Called by [ModelDownloadService] when a download finishes (success or failure). */
+    fun onDownloadFinished() {
+        _isLoading.value = false
+        _downloadProgress.value = null
+        _downloadSpeed.value = null
+        _detailedProgress.value = null
+        refreshModels()
     }
 
     suspend fun downloadModel(modelId: String): Boolean = withContext(Dispatchers.IO) {

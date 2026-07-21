@@ -9,9 +9,10 @@ object ModelRuntime {
 
     private const val TAG = "ModelRuntime"
 
-    // Kill-switch: local on-device GGUF inference is disabled (the JNI path is
-    // non-functional). The agent uses the cloud (Gemini) backend exclusively.
-    private const val LOCAL_MODELS_ENABLED = false
+    // Local on-device GGUF inference via llama.cpp (JNI). When the native library
+    // is present it is used for models selected under the "local" backend; the
+    // cloud (Gemini) backend remains available independently.
+    private const val LOCAL_MODELS_ENABLED = true
 
     private var nativeLoaded = false
     private var nativeContext: Long = 0

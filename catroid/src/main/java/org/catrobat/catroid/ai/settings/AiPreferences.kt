@@ -15,6 +15,10 @@ object AiPreferences {
     private const val KEY_MAX_CONTEXT = "ai_agent_max_context"
     private const val KEY_MAX_TOOL_CALLS = "ai_agent_max_tool_calls"
     private const val KEY_CLOUD_MODEL = "ai_agent_cloud_model"
+    private const val KEY_BACKEND = "ai_agent_backend"
+
+    const val BACKEND_CLOUD = "cloud"
+    const val BACKEND_LOCAL = "local"
 
     private const val DEFAULT_TEMPERATURE = 0.7f
     private const val DEFAULT_MAX_CONTEXT = 4096
@@ -101,4 +105,15 @@ object AiPreferences {
     fun setCloudModelId(id: String) {
         prefs?.edit()?.putString(KEY_CLOUD_MODEL, id)?.apply()
     }
+
+    /** Active inference backend: [BACKEND_CLOUD] (Gemini) or [BACKEND_LOCAL] (llama.cpp). */
+    fun getBackend(): String {
+        return prefs?.getString(KEY_BACKEND, BACKEND_CLOUD) ?: BACKEND_CLOUD
+    }
+
+    fun setBackend(backend: String) {
+        prefs?.edit()?.putString(KEY_BACKEND, backend)?.apply()
+    }
+
+    fun isLocalBackend(): Boolean = getBackend() == BACKEND_LOCAL
 }
