@@ -44,6 +44,19 @@ class AiAgentManager private constructor() {
     private val _messages = MutableStateFlow<List<ChatMessage>>(emptyList())
     val messages: StateFlow<List<ChatMessage>> = _messages.asStateFlow()
 
+    private val _activity = MutableStateFlow("")
+    val activity: StateFlow<String> = _activity.asStateFlow()
+
+    /** null = global scope (all projects); otherwise the agent is confined to this project. */
+    @Volatile
+    var scopeProjectName: String? = null
+        private set
+
+    fun setScope(projectName: String?) {
+        scopeProjectName = projectName?.takeIf { it.isNotBlank() }
+        toolEngine.scopeProjectName = scopeProjectName
+    }
+
     val modelManager = ModelManager
     val modelRuntime = ModelRuntime
     val cloudRuntime = CloudModelRuntime
@@ -75,23 +88,28 @@ class AiAgentManager private constructor() {
     }
 
     fun sendMessage(text: String) {
-        if (!isEnabled() || !cloudRuntime.isReady()) {
-            if (!cloudRuntime.isReady()) {
-                val errMsg = ChatMessage(
-                    role = ChatMessage.Role.ASSISTANT,
-                    content = "No Gemini API key set. Open the menu (top-right) → Set API key to enter your Google AI Studio key first.",
-                    timestamp = System.currentTimeMillis()
-                )
-                _messages.update { it + errMsg }
-            }
-            return
-        }
+        // Always show the user's message first, regardless of readiness.
         val userMsg = ChatMessage(
             role = ChatMessage.Role.USER,
             content = text,
             timestamp = System.currentTimeMillis()
         )
         _messages.update { it + userMsg }
+
+        if (!isEnabled() || !cloudRuntime.isReady()) {
+            val reason = if (!isEnabled()) {
+                "AI Agent is disabled. Enable it in Settings → AI Agent."
+            } else {
+                "No Gemini API key set. Open Settings → AI Agent (or the chat menu) and enter your Google AI Studio key first."
+            }
+            val errMsg = ChatMessage(
+                role = ChatMessage.Role.ASSISTANT,
+                content = reason,
+                timestamp = System.currentTimeMillis()
+            )
+            _messages.update { it + errMsg }
+            return
+        }
         processMessage(text)
     }
 
@@ -99,10 +117,12 @@ class AiAgentManager private constructor() {
         scope.launch {
             try {
                 _state.value = AiAgentState.THINKING
+                _activity.value = "Reading your request…"
                 kotlinx.coroutines.delay(300)
 
                 val project = ProjectManager.getInstance().currentProject
                 val analysis = if (project != null && AiPreferences.isAutoReadEnabled()) {
+                    _activity.value = "Analyzing project '${project.name}'…"
                     projectAnalyzer.analyzeProject(project)
                 } else null
 
@@ -128,6 +148,7 @@ class AiAgentManager private constructor() {
                 val maxTokens = AiPreferences.getMaxContext()
 
                 while (iteration < maxRounds) {
+                    _activity.value = "Thinking… (round ${iteration + 1}/$maxRounds)"
                     val response = cloudRuntime.generate(
                         modelInput.toString(),
                         temperature = temperature,
@@ -143,14 +164,19 @@ class AiAgentManager private constructor() {
                         break
                     }
                     for (toolCall in toolCalls) {
+                        val argsPreview = toolCall.args.entries.joinToString(", ") { "${it.key}=${it.value}" }
+                        _activity.value = "Calling ${toolCall.name}($argsPreview)…"
                         val result = toolEngine.executeTool(toolCall)
+                        _activity.value = "${toolCall.name} → ${result.take(160)}"
                         modelInput.append("\nTool result: $result\n")
                         contextManager.addToolCall(toolCall.name, toolCall.args, result)
                     }
                     val pending = toolEngine.getPendingChanges()
                     if (pending.isNotEmpty()) {
+                        _activity.value = "Applying ${pending.size} change(s) to the project…"
                         val outcomes = projectModifier.applyChanges(pending)
                         toolEngine.clearPendingChanges()
+                        emitChangeCards(outcomes)
                         val summary = outcomes.joinToString("\n") { r ->
                             when (r) {
                                 is org.catrobat.catroid.ai.modify.ProjectModifier.ModificationResult.Success -> "OK: ${r.message}"
@@ -182,12 +208,15 @@ class AiAgentManager private constructor() {
 
                 val leftover = toolEngine.getPendingChanges()
                 if (leftover.isNotEmpty()) {
-                    projectModifier.applyChanges(leftover)
+                    val outcomes = projectModifier.applyChanges(leftover)
                     toolEngine.clearPendingChanges()
+                    emitChangeCards(outcomes)
                 }
 
+                _activity.value = ""
                 _state.value = AiAgentState.IDLE
             } catch (e: Exception) {
+                _activity.value = ""
                 _state.value = AiAgentState.ERROR
                 val errMsg = ChatMessage(
                     role = ChatMessage.Role.ASSISTANT,
@@ -197,6 +226,22 @@ class AiAgentManager private constructor() {
                 _messages.update { it + errMsg }
             }
         }
+    }
+
+    private fun emitChangeCards(outcomes: List<ProjectModifier.ModificationResult>) {
+        val cards = outcomes.mapNotNull { outcome ->
+            (outcome as? ProjectModifier.ModificationResult.Success)?.card
+        }
+        if (cards.isEmpty()) return
+        val newMessages = cards.map { card ->
+            ChatMessage(
+                role = ChatMessage.Role.CHANGE,
+                content = card.label,
+                timestamp = System.currentTimeMillis(),
+                changeCard = card
+            )
+        }
+        _messages.update { it + newMessages }
     }
 
     fun clearHistory() {

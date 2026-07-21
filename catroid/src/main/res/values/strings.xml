@@ -2653,6 +2653,7 @@
 <string formatted="false" name="brick_wait">Wait</string>
 <string formatted="false" name="brick_wait_until">Wait until</string>
 <string formatted="false" name="brick_wait_until_second_part">is true</string>
+<string formatted="false" name="brick_while_second_part">is false</string>
 <string formatted="false" name="brick_when_gamepad_button">When gamepad button</string>
 <string formatted="false" name="brick_when_gamepad_button_tapped">tapped</string>
 <string formatted="false" name="brick_when_nfc">When NFC</string>
@@ -4737,4 +4738,17 @@ needs read and write access to it. You can always change permissions through you
     <string name="hitbox_mode_info_full_text">The whole shape is used for collision detection. Best for precise \"touches\" checks, but heavier for many objects.</string>
     <string name="hitbox_mode_info_physics_title">Physics collision</string>
     <string name="hitbox_mode_info_physics_text">A simplified shape is used by the physics engine. Faster and recommended when objects collide and bounce off each other.</string>
+
+    <!-- Custom themes (.neotema) -->
+    <string name="settings_themes_title">Themes</string>
+    <string name="settings_themes_summary">Import and apply custom .neotema themes</string>
+    <string name="theme_default_name">Default theme</string>
+    <string name="theme_import_button">Import theme</string>
+    <string name="theme_applied">Applied</string>
+    <string name="theme_applying">Applying theme…</string>
+    <string name="theme_by_author">By %1$s</string>
+    <string name="theme_import_success">Theme imported</string>
+    <string name="theme_import_error">Could not import theme: %1$s</string>
+    <string name="theme_delete_confirm">Remove this theme?</string>
+    <string name="theme_delete">Remove</string>
 </resources>

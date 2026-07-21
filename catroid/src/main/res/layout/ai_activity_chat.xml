@@ -18,44 +18,6 @@
         android:paddingBottom="6dp"
         android:scrollbars="none" />
 
-    <FrameLayout
-        android:id="@+id/chat_thinking_container"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:visibility="gone"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
-        android:paddingTop="4dp"
-        android:paddingBottom="8dp">
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:background="@drawable/ai_thinking_pill_bg"
-            android:paddingStart="10dp"
-            android:paddingEnd="16dp"
-            android:paddingTop="8dp"
-            android:paddingBottom="8dp">
-
-            <View
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:layout_marginEnd="10dp"
-                android:background="@drawable/ai_avatar_bg" />
-
-            <TextView
-                android:id="@+id/chat_thinking_text"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/ai_agent_thinking"
-                android:textColor="@color/ai_accent"
-                android:textSize="14sp"
-                android:textStyle="italic" />
-        </LinearLayout>
-    </FrameLayout>
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

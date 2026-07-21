@@ -300,6 +300,12 @@
     <PreferenceCategory android:title="@string/additions">
 
         <PreferenceScreen
+            android:key="setting_themes_screen"
+            android:title="@string/settings_themes_title"
+            android:summary="@string/settings_themes_summary"
+            android:icon="@android:drawable/ic_menu_gallery" />
+
+        <PreferenceScreen
             android:key="setting_plugins_screen"
             android:title="@string/plugins"
             android:summary="@string/plugins_desc"

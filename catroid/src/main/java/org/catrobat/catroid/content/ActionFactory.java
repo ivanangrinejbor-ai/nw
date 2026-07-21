@@ -2751,6 +2751,25 @@ public class ActionFactory extends Actions {
 		return action;
 	}
 
+	public Action createWaitWhileAction(Sprite sprite, SequenceAction sequence, Formula condition) {
+		WaitWhileAction action = Actions.action(WaitWhileAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setCondition(condition);
+		return action;
+	}
+
+	public Action createRepeatWhileAction(Sprite sprite, SequenceAction sequence, Formula condition, Action repeatedAction,
+			boolean isLoopDelay) {
+		RepeatWhileAction action = action(RepeatWhileAction.class);
+		action.setRepeatCondition(condition);
+		action.setAction(repeatedAction);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setLoopDelay(isLoopDelay);
+		return action;
+	}
+
 	public Action createDelayAction(Sprite sprite, SequenceAction sequence, Formula delay) {
 		WaitAction action = Actions.action(WaitAction.class);
 		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);

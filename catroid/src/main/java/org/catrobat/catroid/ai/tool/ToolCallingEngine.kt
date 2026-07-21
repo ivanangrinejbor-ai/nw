@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
 import org.catrobat.catroid.ProjectManager
+import org.catrobat.catroid.common.FlavoredConstants
 import org.catrobat.catroid.content.Project
 import org.catrobat.catroid.content.Scene
 import org.catrobat.catroid.content.Sprite
@@ -21,6 +22,13 @@ import java.util.concurrent.atomic.AtomicInteger
 object ToolCallingEngine {
 
     private var context: Context? = null
+
+    /** null = global scope (all projects). When set, project-browsing tools are hidden/denied. */
+    @Volatile
+    var scopeProjectName: String? = null
+
+    /** Tools that only make sense in global scope; hidden and denied when scoped to one project. */
+    private val globalOnlyTools = setOf("listProjects", "openProject")
 
     private val registeredTools = Collections.synchronizedMap(mutableMapOf<String, Tool>())
     private val _toolHistory = MutableStateFlow<List<ToolCallHistory>>(emptyList())
@@ -68,6 +76,8 @@ object ToolCallingEngine {
         registerTool(ListBroadcastsTool())
         registerTool(CodeAnalysisTool())
         registerTool(BuildScriptTool())
+        registerTool(ListProjectsTool())
+        registerTool(OpenProjectTool())
     }
 
     fun registerTool(tool: Tool) {
@@ -99,6 +109,11 @@ object ToolCallingEngine {
     }
 
     suspend fun executeTool(toolCall: ToolCall): String {
+        if (scopeProjectName != null && toolCall.name in globalOnlyTools) {
+            val result = ToolResult(false, "Denied: agent is limited to project '$scopeProjectName'", toolCall.id)
+            _toolHistory.update { it + ToolCallHistory(toolCall, result, System.currentTimeMillis()) }
+            return "DENIED: '${toolCall.name}' is unavailable because the agent is limited to project '$scopeProjectName'."
+        }
         val tool = registeredTools[toolCall.name]
         if (tool == null) {
             val result = ToolResult(false, "Unknown tool: ${toolCall.name}", toolCall.id)
@@ -117,12 +132,14 @@ object ToolCallingEngine {
     }
 
     fun getToolsDescription(): String {
-        return registeredTools.values.joinToString("\n") { tool ->
-            val params = tool.parameters.joinToString(", ") { p ->
-                "${p.name}: ${p.type.name}${if (p.required) "" else "?"}"
+        return registeredTools.values
+            .filter { scopeProjectName == null || it.name !in globalOnlyTools }
+            .joinToString("\n") { tool ->
+                val params = tool.parameters.joinToString(", ") { p ->
+                    "${p.name}: ${p.type.name}${if (p.required) "" else "?"}"
+                }
+                "${tool.name}($params) - ${tool.description}"
             }
-            "${tool.name}($params) - ${tool.description}"
-        }
     }
 
     fun getPendingChanges(): List<ProjectChange> = synchronized(pendingChanges) { pendingChanges.toList() }
@@ -855,6 +872,46 @@ object ToolCallingEngine {
         private fun specToString(spec: BrickFactory.BrickSpec): String = when (spec) {
             is BrickFactory.BrickSpec.Simple -> "${spec.className}(${spec.args.joinToString(",")})"
             is BrickFactory.BrickSpec.Container -> "${spec.className}(${spec.args.joinToString(",")}){...}"
+        }
+    }
+
+    class ListProjectsTool : Tool {
+        override val name = "listProjects"
+        override val description = "List all projects saved on the device (available only when the agent is not limited to a single project). Use open_project to switch to one of them."
+        override val parameters = emptyList<ToolParameter>()
+
+        override suspend fun execute(args: Map<String, String>): ToolResult {
+            val names = withContext(Dispatchers.IO) {
+                org.catrobat.catroid.utils.FileMetaDataExtractor
+                    .getProjectNames(FlavoredConstants.DEFAULT_ROOT_DIRECTORY)
+            }
+            if (names.isEmpty()) return ToolResult(true, "No projects found on the device", "")
+            val current = ProjectManager.getInstance().currentProject?.name
+            val out = names.joinToString("\n") { n ->
+                if (n == current) "  - $n (currently open)" else "  - $n"
+            }
+            return ToolResult(true, "Projects on device:\n$out", "")
+        }
+    }
+
+    class OpenProjectTool : Tool {
+        override val name = "openProject"
+        override val description = "Load a project by name so it becomes the current project (available only when the agent is not limited to a single project). Use list_projects first to see valid names."
+        override val parameters = listOf(ToolParameter("name", ParameterType.STRING, "Project name"))
+
+        override suspend fun execute(args: Map<String, String>): ToolResult {
+            val ctx = context ?: return ToolResult(false, "No context available", "")
+            val name = args["name"] ?: return ToolResult(false, "Missing 'name' argument", "")
+            val projectDir = File(FlavoredConstants.DEFAULT_ROOT_DIRECTORY, name)
+            if (!projectDir.exists()) return ToolResult(false, "Project '$name' not found on device", "")
+            val loaded = withContext(Dispatchers.IO) {
+                org.catrobat.catroid.io.asynctask.loadProject(projectDir, ctx)
+            }
+            return if (loaded) {
+                ToolResult(true, "Opened project '$name'. It is now the current project.", "")
+            } else {
+                ToolResult(false, "Failed to load project '$name'", "")
+            }
         }
     }
 }

@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity
 import org.catrobat.catroid.R
 import org.catrobat.catroid.ai.AiAgentManager
 import org.catrobat.catroid.ai.chat.ChatActivity
+import org.catrobat.catroid.ai.model.CloudModelRuntime
 import org.catrobat.catroid.ai.settings.AiPreferences
 
 class AiAgentSettingsFragment : PreferenceFragment() {
@@ -26,6 +27,7 @@ class AiAgentSettingsFragment : PreferenceFragment() {
         addPreferencesFromResource(R.xml.ai_agent_preferences)
 
         setupChatPreference()
+        setupApiKey()
         setupClearHistory()
         setupClearMemory()
         setupToolHistory()
@@ -60,6 +62,23 @@ class AiAgentSettingsFragment : PreferenceFragment() {
             } else {
                 chatPref?.summary = getString(R.string.ai_agent_enable_first)
                 chatPref?.onPreferenceClickListener = null
+            }
+            true
+        }
+    }
+
+    private fun setupApiKey() {
+        val pref = findPreference("ai_agent_api_key") as? EditTextPreference ?: return
+        AiAgentManager.instance.init(activity.applicationContext)
+        val current = CloudModelRuntime.getApiKey()
+        if (!current.isNullOrBlank()) {
+            pref.text = current
+        }
+        pref.onPreferenceChangeListener = Preference.OnPreferenceChangeListener { _, newValue ->
+            val key = (newValue as? String)?.trim().orEmpty()
+            CloudModelRuntime.setApiKey(key)
+            if (key.isNotEmpty()) {
+                Toast.makeText(activity, R.string.ai_agent_api_key_saved, Toast.LENGTH_SHORT).show()
             }
             true
         }

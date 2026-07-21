@@ -240,6 +240,12 @@
             android:label="Plugins" />
 
         <activity
+            android:name=".ui.ThemesActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:theme="@style/Theme.NeoCatroid.LibraryEditor"
+            android:parentActivityName=".ui.SettingsActivity" />
+
+        <activity
             android:name=".ide.IdeActivity"
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:label="IDE" />

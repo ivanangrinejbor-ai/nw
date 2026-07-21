@@ -75,6 +75,8 @@
     <!-- Notifications -->
     <string formatted="false" name="ai_agent_avatar_label">AI</string>
     <string formatted="false" name="ai_agent_thinking">AI Agent is thinking…</string>
+    <string formatted="false" name="ai_agent_thinking_short">Thinking</string>
+    <string formatted="false" name="ai_agent_change_icon_desc">Change</string>
     <string formatted="false" name="ai_agent_using_tools">AI Agent is using tools…</string>
     <string formatted="false" name="ai_agent_error">AI Agent encountered an error</string>
 
@@ -97,4 +99,7 @@
     <string formatted="false" name="ai_agent_loading_models">Loading models…</string>
     <string formatted="false" name="ai_agent_model_selected">Model set: %s</string>
     <string formatted="false" name="ai_agent_no_api_key">Set your Gemini API key first (menu → Set API key)</string>
+    <string formatted="false" name="ai_agent_api_key_title">Gemini API key</string>
+    <string formatted="false" name="ai_agent_api_key_summary">Enter your Google AI Studio key to enable the cloud agent</string>
+    <string formatted="false" name="ai_agent_scope_all">All projects</string>
 </resources>

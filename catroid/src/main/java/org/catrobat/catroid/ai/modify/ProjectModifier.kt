@@ -13,7 +13,7 @@ import org.catrobat.catroid.formulaeditor.UserVariable
 object ProjectModifier {
 
     sealed class ModificationResult {
-        data class Success(val message: String) : ModificationResult()
+        data class Success(val message: String, val card: ChangeCard? = null) : ModificationResult()
         data class Failure(val error: String) : ModificationResult()
     }
 
@@ -64,7 +64,10 @@ object ProjectModifier {
         }
         val sprite = Sprite(name)
         scene.addSprite(sprite)
-        return ModificationResult.Success("Created object '$name' in scene '${scene.name}'")
+        return ModificationResult.Success(
+            "Created object '$name' in scene '${scene.name}'",
+            ChangeCard("Created object '$name'", objectName = name, sceneName = scene.name, added = 1)
+        )
     }
 
     private fun deleteObject(project: Project, change: ProjectChange): ModificationResult {
@@ -73,7 +76,10 @@ object ProjectModifier {
         val sprite = scene.spriteList.find { it.name == name }
             ?: return ModificationResult.Failure("Object '$name' not found")
         scene.removeSprite(sprite)
-        return ModificationResult.Success("Deleted object '$name' from scene '${scene.name}'")
+        return ModificationResult.Success(
+            "Deleted object '$name' from scene '${scene.name}'",
+            ChangeCard("Deleted object '$name'", objectName = name, sceneName = scene.name, removed = 1)
+        )
     }
 
     private fun createScene(project: Project, change: ProjectChange): ModificationResult {
@@ -85,7 +91,10 @@ object ProjectModifier {
         scene.name = name
         scene.setProject(project)
         project.sceneList.add(scene)
-        return ModificationResult.Success("Created scene '$name'")
+        return ModificationResult.Success(
+            "Created scene '$name'",
+            ChangeCard("Created scene '$name'", sceneName = name, added = 1)
+        )
     }
 
     private fun deleteScene(project: Project, change: ProjectChange): ModificationResult {
@@ -94,7 +103,10 @@ object ProjectModifier {
         val scene = project.sceneList.find { it.name == name }
             ?: return ModificationResult.Failure("Scene '$name' not found")
         project.sceneList.remove(scene)
-        return ModificationResult.Success("Deleted scene '$name'")
+        return ModificationResult.Success(
+            "Deleted scene '$name'",
+            ChangeCard("Deleted scene '$name'", sceneName = name, removed = 1)
+        )
     }
 
     private fun replaceScript(project: Project, change: ProjectChange): ModificationResult {
@@ -115,13 +127,22 @@ object ProjectModifier {
                 "No bricks were created:\n" + buildResult.errors.joinToString("\n") { "  - $it" }
             )
         }
+        val oldBrickCount = sprite.scriptList[index].getBrickList().size
         for (b in buildResult.bricks) newScript.addBrick(b)
         sprite.scriptList[index] = newScript
         val msg = "Replaced script $index of '${sprite.name}' with ${newScript::class.java.simpleName} " +
             "(${buildResult.bricks.size} top-level brick(s))"
+        val card = ChangeCard(
+            "Replaced script $index in '${sprite.name}'",
+            objectName = sprite.name,
+            sceneName = change.data["scene"] as? String,
+            added = buildResult.bricks.size,
+            removed = oldBrickCount
+        )
         return ModificationResult.Success(
-            if (buildResult.errors.isEmpty()) msg
-            else "$msg\nWarnings:\n" + buildResult.errors.joinToString("\n") { "  - $it" }
+            (if (buildResult.errors.isEmpty()) msg
+            else "$msg\nWarnings:\n" + buildResult.errors.joinToString("\n") { "  - $it" }),
+            card
         )
     }
 
@@ -142,9 +163,16 @@ object ProjectModifier {
         sprite.addScript(newScript)
         val msg = "Appended ${newScript::class.java.simpleName} to '${sprite.name}' " +
             "(${buildResult.bricks.size} top-level brick(s))"
+        val card = ChangeCard(
+            "Added ${newScript::class.java.simpleName} to '${sprite.name}'",
+            objectName = sprite.name,
+            sceneName = change.data["scene"] as? String,
+            added = buildResult.bricks.size
+        )
         return ModificationResult.Success(
-            if (buildResult.errors.isEmpty()) msg
-            else "$msg\nWarnings:\n" + buildResult.errors.joinToString("\n") { "  - $it" }
+            (if (buildResult.errors.isEmpty()) msg
+            else "$msg\nWarnings:\n" + buildResult.errors.joinToString("\n") { "  - $it" }),
+            card
         )
     }
 
@@ -155,9 +183,16 @@ object ProjectModifier {
         if (index < 0 || index >= sprite.scriptList.size) {
             return ModificationResult.Failure("Script index $index out of range")
         }
+        val removedBrickCount = sprite.scriptList[index].getBrickList().size
         val removed = sprite.scriptList.removeAt(index)
         return ModificationResult.Success(
-            "Deleted ${removed::class.java.simpleName} (index $index) from '${sprite.name}'"
+            "Deleted ${removed::class.java.simpleName} (index $index) from '${sprite.name}'",
+            ChangeCard(
+                "Deleted ${removed::class.java.simpleName} from '${sprite.name}'",
+                objectName = sprite.name,
+                sceneName = change.data["scene"] as? String,
+                removed = removedBrickCount
+            )
         )
     }
 
@@ -171,14 +206,20 @@ object ProjectModifier {
                     return ModificationResult.Failure("Global variable '$name' already exists")
                 }
                 project.addUserVariable(UserVariable(name, initialValue))
-                ModificationResult.Success("Created global variable '$name' (value=$initialValue)")
+                ModificationResult.Success(
+                    "Created global variable '$name' (value=$initialValue)",
+                    ChangeCard("Created global variable '$name'", added = 1)
+                )
             }
             "multiplayer" -> {
                 if (project.multiplayerVariables.any { it.name == name }) {
                     return ModificationResult.Failure("Multiplayer variable '$name' already exists")
                 }
                 project.addMultiplayerVariable(UserVariable(name, initialValue))
-                ModificationResult.Success("Created multiplayer variable '$name' (value=$initialValue)")
+                ModificationResult.Success(
+                    "Created multiplayer variable '$name' (value=$initialValue)",
+                    ChangeCard("Created multiplayer variable '$name'", added = 1)
+                )
             }
             "object", "local" -> {
                 val sprite = getSprite(project, change)
@@ -188,7 +229,13 @@ object ProjectModifier {
                 }
                 sprite.addUserVariable(UserVariable(name, initialValue))
                 ModificationResult.Success(
-                    "Created local variable '$name' on object '${sprite.name}' (value=$initialValue)"
+                    "Created local variable '$name' on object '${sprite.name}' (value=$initialValue)",
+                    ChangeCard(
+                        "Created local variable '$name'",
+                        objectName = sprite.name,
+                        sceneName = change.data["scene"] as? String,
+                        added = 1
+                    )
                 )
             }
             else -> ModificationResult.Failure("Unknown scope '$scope'; use project|multiplayer|object")
@@ -201,13 +248,19 @@ object ProjectModifier {
         return when (scope.lowercase()) {
             "project", "global" -> {
                 if (project.removeUserVariable(name)) {
-                    ModificationResult.Success("Deleted global variable '$name'")
+                    ModificationResult.Success(
+                        "Deleted global variable '$name'",
+                        ChangeCard("Deleted global variable '$name'", removed = 1)
+                    )
                 } else ModificationResult.Failure("Global variable '$name' not found")
             }
             "multiplayer" -> {
                 val mp = project.multiplayerVariables.find { it.name == name }
                 if (mp != null && project.multiplayerVariables.remove(mp)) {
-                    ModificationResult.Success("Deleted multiplayer variable '$name'")
+                    ModificationResult.Success(
+                        "Deleted multiplayer variable '$name'",
+                        ChangeCard("Deleted multiplayer variable '$name'", removed = 1)
+                    )
                 } else ModificationResult.Failure("Multiplayer variable '$name' not found")
             }
             "object", "local" -> {
@@ -215,7 +268,15 @@ object ProjectModifier {
                     ?: return ModificationResult.Failure("Object required for local variable")
                 val v = sprite.userVariables.find { it.name == name }
                 if (v != null && sprite.userVariables.remove(v)) {
-                    ModificationResult.Success("Deleted local variable '$name' from '${sprite.name}'")
+                    ModificationResult.Success(
+                        "Deleted local variable '$name' from '${sprite.name}'",
+                        ChangeCard(
+                            "Deleted local variable '$name'",
+                            objectName = sprite.name,
+                            sceneName = change.data["scene"] as? String,
+                            removed = 1
+                        )
+                    )
                 } else ModificationResult.Failure("Local variable '$name' not found on '${sprite.name}'")
             }
             else -> ModificationResult.Failure("Unknown scope '$scope'")
@@ -227,7 +288,10 @@ object ProjectModifier {
         val container = project.broadcastMessageContainer
         if (container == null) return ModificationResult.Failure("No broadcast container on project")
         val added = container.addBroadcastMessage(name)
-        return if (added) ModificationResult.Success("Created broadcast message '$name'")
+        return if (added) ModificationResult.Success(
+            "Created broadcast message '$name'",
+            ChangeCard("Created broadcast '$name'", added = 1)
+        )
         else ModificationResult.Success("Broadcast message '$name' already exists")
     }
 
@@ -258,7 +322,14 @@ object ProjectModifier {
             ?: return ModificationResult.Failure("Failed to build brick '$newType'")
         bricks[brickIndex] = newBrick
         return ModificationResult.Success(
-            "Replaced brick $brickIndex in script $scriptIndex of '${sprite.name}' with $newType"
+            "Replaced brick $brickIndex in script $scriptIndex of '${sprite.name}' with $newType",
+            ChangeCard(
+                "Swapped brick to $newType in '${sprite.name}'",
+                objectName = sprite.name,
+                sceneName = change.data["scene"] as? String,
+                added = 1,
+                removed = 1
+            )
         )
     }
 

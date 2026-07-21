@@ -133,6 +133,7 @@ public class SettingsFragment extends PreferenceFragment {
 	public static final String RASPBERRY_SCREEN_KEY = "settings_raspberry_screen";
 	public static final String PLUGINS_SCREEN_KEY = "setting_plugins_screen";
     public static final String IDE_SCREEN_KEY = "setting_ide_screen";
+    public static final String THEMES_SCREEN_KEY = "setting_themes_screen";
 
 	public static final String NXT_SETTINGS_CATEGORY = "setting_nxt_category";
 	public static final String[] NXT_SENSORS = {"setting_mindstorms_nxt_sensor_1", "setting_mindstorms_nxt_sensor_2",
@@ -506,6 +507,9 @@ public class SettingsFragment extends PreferenceFragment {
             case IDE_SCREEN_KEY:
                 Intent intent2 = new Intent(getActivity(), IdeDashboardActivity.class);
                 startActivity(intent2);
+                break;
+            case THEMES_SCREEN_KEY:
+                startActivity(new Intent(getActivity(), org.catrobat.catroid.ui.ThemesActivity.class));
                 break;
 		}
 		return super.onPreferenceTreeClick(preferenceScreen, preference);

@@ -16,9 +16,13 @@ import org.catrobat.catroid.R
 class ChatAdapter(
     private var messages: List<ChatMessage>,
     private val onRegenerate: ((Int) -> Unit)?
-) : RecyclerView.Adapter<ChatAdapter.MessageViewHolder>() {
+) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     private var markwon: Markwon? = null
+
+    private var thinkingActive = false
+    private var thinkingDetail = ""
+    private var thinkingExpanded = false
 
     fun updateMessages(newMessages: List<ChatMessage>) {
         val diffResult = DiffUtil.calculateDiff(object : DiffUtil.Callback() {
@@ -35,32 +39,64 @@ class ChatAdapter(
         diffResult.dispatchUpdatesTo(this)
     }
 
+    /** Show/update or hide the trailing "Thinking" row with its live activity detail. */
+    fun setThinking(active: Boolean, detail: String) {
+        val wasActive = thinkingActive
+        thinkingDetail = detail
+        when {
+            active && !wasActive -> {
+                thinkingActive = true
+                notifyItemInserted(messages.size)
+            }
+            !active && wasActive -> {
+                thinkingActive = false
+                thinkingExpanded = false
+                notifyItemRemoved(messages.size)
+            }
+            active && wasActive -> {
+                notifyItemChanged(messages.size)
+            }
+        }
+    }
+
     override fun getItemViewType(position: Int): Int {
+        if (thinkingActive && position == messages.size) return TYPE_THINKING
         return when (messages[position].role) {
             ChatMessage.Role.USER -> TYPE_USER
             ChatMessage.Role.ASSISTANT -> TYPE_ASSISTANT
+            ChatMessage.Role.CHANGE -> TYPE_CHANGE
             ChatMessage.Role.SYSTEM, ChatMessage.Role.TOOL -> TYPE_SYSTEM
         }
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MessageViewHolder {
-        val layout = when (viewType) {
-            TYPE_USER -> R.layout.ai_item_chat_message_user
-            TYPE_SYSTEM -> R.layout.ai_item_chat_message_system
-            else -> R.layout.ai_item_chat_message_assistant
-        }
-        val view = LayoutInflater.from(parent.context).inflate(layout, parent, false)
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+        val inflater = LayoutInflater.from(parent.context)
         if (markwon == null) {
             markwon = Markwon.create(parent.context)
         }
-        return MessageViewHolder(view)
+        return when (viewType) {
+            TYPE_THINKING ->
+                ThinkingViewHolder(inflater.inflate(R.layout.ai_item_chat_message_thinking, parent, false))
+            TYPE_CHANGE ->
+                ChangeViewHolder(inflater.inflate(R.layout.ai_item_change_card, parent, false))
+            TYPE_USER ->
+                MessageViewHolder(inflater.inflate(R.layout.ai_item_chat_message_user, parent, false))
+            TYPE_SYSTEM ->
+                MessageViewHolder(inflater.inflate(R.layout.ai_item_chat_message_system, parent, false))
+            else ->
+                MessageViewHolder(inflater.inflate(R.layout.ai_item_chat_message_assistant, parent, false))
+        }
     }
 
-    override fun onBindViewHolder(holder: MessageViewHolder, position: Int) {
-        holder.bind(messages[position], markwon)
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+        when (holder) {
+            is ThinkingViewHolder -> holder.bind(thinkingDetail, thinkingExpanded)
+            is ChangeViewHolder -> holder.bind(messages[position])
+            is MessageViewHolder -> holder.bind(messages[position], markwon)
+        }
     }
 
-    override fun getItemCount(): Int = messages.size
+    override fun getItemCount(): Int = messages.size + if (thinkingActive) 1 else 0
 
     inner class MessageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val contentText: TextView = itemView.findViewById(R.id.message_content)
@@ -92,9 +128,65 @@ class ChatAdapter(
         }
     }
 
+    inner class ChangeViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val label: TextView = itemView.findViewById(R.id.change_label)
+        private val location: TextView = itemView.findViewById(R.id.change_location)
+        private val added: TextView = itemView.findViewById(R.id.change_added)
+        private val removed: TextView = itemView.findViewById(R.id.change_removed)
+
+        fun bind(msg: ChatMessage) {
+            val card = msg.changeCard
+            label.text = card?.label ?: msg.content
+            val loc = when {
+                card?.objectName != null && card.sceneName != null -> "${card.objectName} · ${card.sceneName}"
+                card?.objectName != null -> card.objectName
+                card?.sceneName != null -> card.sceneName
+                else -> null
+            }
+            if (loc != null) {
+                location.visibility = View.VISIBLE
+                location.text = loc
+            } else {
+                location.visibility = View.GONE
+            }
+            val addedCount = card?.added ?: 0
+            val removedCount = card?.removed ?: 0
+            if (addedCount > 0) {
+                added.visibility = View.VISIBLE
+                added.text = "+$addedCount"
+            } else {
+                added.visibility = View.GONE
+            }
+            if (removedCount > 0) {
+                removed.visibility = View.VISIBLE
+                removed.text = "-$removedCount"
+            } else {
+                removed.visibility = View.GONE
+            }
+        }
+    }
+
+    inner class ThinkingViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val root: View = itemView.findViewById(R.id.thinking_root)
+        private val label: ShimmerTextView = itemView.findViewById(R.id.thinking_label)
+        private val detail: TextView = itemView.findViewById(R.id.thinking_detail)
+
+        fun bind(detailText: String, expanded: Boolean) {
+            label.startShimmer()
+            detail.text = detailText
+            detail.visibility = if (expanded && detailText.isNotBlank()) View.VISIBLE else View.GONE
+            root.setOnClickListener {
+                thinkingExpanded = !thinkingExpanded
+                notifyItemChanged(messages.size)
+            }
+        }
+    }
+
     companion object {
         const val TYPE_USER = 0
         const val TYPE_ASSISTANT = 1
         const val TYPE_SYSTEM = 2
+        const val TYPE_THINKING = 3
+        const val TYPE_CHANGE = 4
     }
 }

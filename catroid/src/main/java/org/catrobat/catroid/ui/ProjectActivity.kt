@@ -263,6 +263,8 @@ class ProjectActivity : BaseCastActivity() {
         menu.findItem(R.id.from_library).isVisible = false
         menu.findItem(R.id.from_local).isVisible = false
         menu.findItem(R.id.edit).isVisible = false
+        menu.findItem(R.id.menu_ai_chat).isVisible =
+            org.catrobat.catroid.ai.AiAgentManager.instance.isEnabled()
         return super.onCreateOptionsMenu(menu)
     }
 
@@ -271,6 +273,19 @@ class ProjectActivity : BaseCastActivity() {
         val isWorkspaceMode = workspace != null && workspace.visibility == View.VISIBLE
 
         when (item.itemId) {
+            R.id.menu_ai_chat -> {
+                if (org.catrobat.catroid.ai.AiAgentManager.instance.isEnabled()) {
+                    val projectName = ProjectManager.getInstance().currentProject?.name
+                    val intent = Intent(this, org.catrobat.catroid.ai.chat.ChatActivity::class.java)
+                    intent.putExtra(
+                        org.catrobat.catroid.ai.chat.ChatActivity.EXTRA_SCOPE_PROJECT,
+                        projectName
+                    )
+                    startActivity(intent)
+                } else {
+                    ToastUtil.showError(this, R.string.ai_agent_enable_first)
+                }
+            }
             R.id.new_scene -> handleAddSceneButton()
             R.id.project_options ->
                 if (isWorkspaceMode) {

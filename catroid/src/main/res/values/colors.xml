@@ -49,6 +49,9 @@
     <color name="ai_text_secondary">#9A9AB2</color>
     <color name="ai_input_bg">#22222E</color>
     <color name="ai_input_border">#34344A</color>
+    <color name="ai_change_card_bg">#1E2440</color>
+    <color name="ai_change_added">#3FB950</color>
+    <color name="ai_change_removed">#F85149</color>
 
     <!-- Formula Editor Colors -->
     <color name="formula_editor_icon">#FFF</color>

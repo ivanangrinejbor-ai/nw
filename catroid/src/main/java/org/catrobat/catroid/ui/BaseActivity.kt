@@ -28,6 +28,7 @@ import android.app.ActivityManager
 import android.app.ActivityManager.RunningAppProcessInfo
 import android.content.Context
 import android.content.res.Configuration
+import android.content.res.Resources
 import android.os.Build
 import android.os.Bundle
 import android.os.PowerManager
@@ -48,6 +49,8 @@ import org.catrobat.catroid.ui.runtimepermissions.PermissionRequestActivityExten
 import org.catrobat.catroid.ui.runtimepermissions.RequiresPermissionTask
 import org.catrobat.catroid.ui.settingsfragments.AccessibilityProfile
 import org.catrobat.catroid.ui.settingsfragments.SettingsFragment
+import org.catrobat.catroid.ui.theme.ThemeManager
+import org.catrobat.catroid.ui.theme.ThemedResources
 import kotlin.math.abs
 
 internal const val RECOVERED_FROM_CRASH = "RECOVERED_FROM_CRASH"
@@ -60,6 +63,17 @@ abstract class BaseActivity : AppCompatActivity(), PermissionHandlingActivity {
 
     private var touchDownX = 0f
     private var touchDownY = 0f
+
+    private var themedResources: ThemedResources? = null
+
+    override fun getResources(): Resources {
+        val base = super.getResources()
+        if (ThemeManager.isDefaultSelected) {
+            themedResources = null
+            return base
+        }
+        return themedResources ?: ThemedResources(base).also { themedResources = it }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -156,6 +170,7 @@ abstract class BaseActivity : AppCompatActivity(), PermissionHandlingActivity {
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
+        themedResources = null
 
         Log.d("BaseActivity", "Configuration changed! New orientation: ${newConfig.orientation}")
     }

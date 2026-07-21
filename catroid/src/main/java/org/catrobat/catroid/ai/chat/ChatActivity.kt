@@ -1,20 +1,13 @@
 package org.catrobat.catroid.ai.chat
 
-import android.animation.ValueAnimator
-import android.graphics.Color
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
-import android.view.animation.LinearInterpolator
 import android.widget.EditText
-import android.widget.FrameLayout
 import android.widget.ImageButton
-import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -33,25 +26,23 @@ class ChatActivity : AppCompatActivity() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var inputField: EditText
     private lateinit var sendButton: ImageButton
-    private lateinit var thinkingContainer: FrameLayout
-    private lateinit var thinkingText: TextView
     private lateinit var adapter: ChatAdapter
-    private var thinkingAnimator: ValueAnimator? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.ai_activity_chat)
 
+        val agent = AiAgentManager.instance
+        val scopeProject = intent.getStringExtra(EXTRA_SCOPE_PROJECT)
+        agent.setScope(scopeProject)
+
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = getString(R.string.ai_agent_chat_title)
+        supportActionBar?.subtitle = scopeProject ?: getString(R.string.ai_agent_scope_all)
 
         recyclerView = findViewById(R.id.chat_recycler)
         inputField = findViewById(R.id.chat_input)
         sendButton = findViewById(R.id.btn_send)
-        thinkingContainer = findViewById(R.id.chat_thinking_container)
-        thinkingText = findViewById(R.id.chat_thinking_text)
-
-        val agent = AiAgentManager.instance
 
         adapter = ChatAdapter(emptyList()) { position ->
             agent.messages.value.getOrNull(position)?.let { msg ->
@@ -74,47 +65,34 @@ class ChatActivity : AppCompatActivity() {
         lifecycleScope.launch {
             agent.messages.collectLatest { messages ->
                 adapter.updateMessages(messages)
-                if (messages.isNotEmpty() && recyclerView.isAttachedToWindow) {
-                    recyclerView.smoothScrollToPosition(messages.size - 1)
-                }
+                scrollToBottom()
             }
         }
 
         lifecycleScope.launch {
             agent.state.collectLatest { state ->
                 val isThinking = state != AiAgentState.IDLE && state != AiAgentState.ERROR
-                thinkingContainer.visibility = if (isThinking) View.VISIBLE else View.GONE
                 sendButton.isEnabled = !isThinking
-                if (isThinking) startThinkingAnimation() else stopThinkingAnimation()
+                adapter.setThinking(isThinking, agent.activity.value)
+                if (isThinking) scrollToBottom()
+            }
+        }
+
+        lifecycleScope.launch {
+            agent.activity.collectLatest { detail ->
+                val state = agent.state.value
+                val isThinking = state != AiAgentState.IDLE && state != AiAgentState.ERROR
+                adapter.setThinking(isThinking, detail)
+                if (isThinking) scrollToBottom()
             }
         }
     }
 
-    private fun startThinkingAnimation() {
-        if (thinkingAnimator?.isRunning == true) return
-        val blue = ContextCompat.getColor(this, R.color.progress_blue)
-        val white = Color.WHITE
-        thinkingAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
-            duration = 1500
-            repeatCount = ValueAnimator.INFINITE
-            repeatMode = ValueAnimator.RESTART
-            interpolator = LinearInterpolator()
-            addUpdateListener { animator ->
-                val fraction = animator.animatedFraction
-                val alpha = (127 + (128 * Math.sin(fraction * 2 * Math.PI)).toInt()).coerceIn(0, 255)
-                val r = (Color.red(blue) * (1 - fraction) + Color.red(white) * fraction).toInt()
-                val g = (Color.green(blue) * (1 - fraction) + Color.green(white) * fraction).toInt()
-                val b = (Color.blue(blue) * (1 - fraction) + Color.blue(white) * fraction).toInt()
-                thinkingText.setTextColor(Color.argb(alpha, r, g, b))
-            }
-            start()
+    private fun scrollToBottom() {
+        val count = adapter.itemCount
+        if (count > 0 && recyclerView.isAttachedToWindow) {
+            recyclerView.smoothScrollToPosition(count - 1)
         }
-    }
-
-    private fun stopThinkingAnimation() {
-        thinkingAnimator?.cancel()
-        thinkingAnimator = null
-        thinkingText.setTextColor(ContextCompat.getColor(this, R.color.progress_blue))
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -199,15 +177,15 @@ class ChatActivity : AppCompatActivity() {
         }
     }
 
-    override fun onDestroy() {
-        stopThinkingAnimation()
-        super.onDestroy()
-    }
-
     override fun onPause() {
         super.onPause()
         if (isFinishing) {
             ModelManager.unloadModel()
         }
+    }
+
+    companion object {
+        /** Optional String extra: when set, the agent is limited to this single project. */
+        const val EXTRA_SCOPE_PROJECT = "extra_scope_project"
     }
 }

@@ -13,6 +13,16 @@ object PromptBuilder {
             appendLine("You are NeoCatroid AI Agent — an expert autonomous assistant for the NeoCatroid visual programming system (a Scratch-like block language for making games and apps).")
             appendLine("You are powered by Google Gemini in the cloud and you operate as a real-time tool-calling agent.")
             appendLine()
+            val scope = ToolCallingEngine.scopeProjectName
+            if (scope != null) {
+                appendLine("## Scope")
+                appendLine("You are limited to the single project '$scope'. You CANNOT list or open other projects; those tools are disabled.")
+                appendLine()
+            } else {
+                appendLine("## Scope")
+                appendLine("You have global access to ALL projects on the device. Use listProjects to see them and openProject to switch the current project before inspecting or editing it.")
+                appendLine()
+            }
             appendLine("## What You Can Do")
             appendLine("- Open and inspect the whole project: its scenes, objects (sprites), their scripts and every brick inside them.")
             appendLine("- List every look (costume/image) and sound, and see exactly which object and scene each one belongs to.")

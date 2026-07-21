@@ -58,9 +58,11 @@ public final class BrickInfo {
         add(AsyncRepeatBrick.class, "Повторяет блоки без задержек. ВАЖНО: плохо работает. игнорирует блоки \"Ждать\"");
         add(IntervalRepeatBrick.class, "Повторяет блоки с определенным интервалом");
         add(WaitUntilBrick.class, "Приостанавливает выполнение, пока условие не станет истинным");
+        add(WaitWhileBrick.class, "Приостанавливает выполнение, пока условие истинно (продолжает, когда становится ложным)");
         add(RepeatBrick.class, "Повторяет блоки несколько раз");
         add(RunAsSpriteBrick.class, "Запускает блоки внутри от имени определенного спрайта");
         add(RepeatUntilBrick.class, "Повторяет блоки, пока условие ложно");
+        add(RepeatWhileBrick.class, "Повторяет блоки, пока условие истинно (останавливается, когда становится ложным)");
         add(ForItemInUserListBrick.class, "Повторяет блоки для каждого элемента в списке. в переменную записывается значение текущего элемента");
         add(ForVariableFromToBrick.class, "Повторяет блоки для каждого значения в диапозоне. в переменную записывается текущее значение.");
         add(SceneTransitionBrick.class, "Продолжает сцену с того момента, на котором она закончилась. ВАЖНО: не работает, если сохранение сцен выключено");
@@ -1037,9 +1039,11 @@ public final class BrickInfo {
         addEn(AsyncRepeatBrick.class, "Repeats blocks without delays. IMPORTANT: works poorly. Ignores \"Wait\" blocks.");
         addEn(IntervalRepeatBrick.class, "Repeats blocks at a specified interval");
         addEn(WaitUntilBrick.class, "Pauses execution until the condition becomes true");
+        addEn(WaitWhileBrick.class, "Pauses execution while the condition is true (continues once it becomes false)");
         addEn(RepeatBrick.class, "Repeats blocks several times");
         addEn(RunAsSpriteBrick.class, "Runs the inner blocks on behalf of a specified sprite");
         addEn(RepeatUntilBrick.class, "Repeats blocks while the condition is false");
+        addEn(RepeatWhileBrick.class, "Repeats blocks while the condition is true (stops once it becomes false)");
         addEn(ForItemInUserListBrick.class, "Repeats blocks for each item in the list. The current item's value is written into the variable.");
         addEn(ForVariableFromToBrick.class, "Repeats blocks for each value in the range. The current value is written into the variable.");
         addEn(SceneTransitionBrick.class, "Continues the scene from where it left off. IMPORTANT: does not work if scene saving is disabled.");

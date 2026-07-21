@@ -57,6 +57,8 @@
     <string formatted="false" name="ai_model_qwen_7b">Qwen 2.5 7B (Максимум)</string>
     <string formatted="false" name="ai_agent_avatar_label">AI</string>
     <string formatted="false" name="ai_agent_thinking">AI Агент думает…</string>
+    <string formatted="false" name="ai_agent_thinking_short">Думаю</string>
+    <string formatted="false" name="ai_agent_change_icon_desc">Изменение</string>
     <string formatted="false" name="ai_agent_using_tools">AI Агент использует инструменты…</string>
     <string formatted="false" name="ai_agent_error">AI Агент получил ошибку</string>
     <string formatted="false" name="ai_agent_enable_first">Сначала включите AI Агента в настройках</string>
@@ -79,4 +81,7 @@
     <string formatted="false" name="ai_agent_loading_models">Загрузка моделей…</string>
     <string formatted="false" name="ai_agent_model_selected">Выбрана модель: %s</string>
     <string formatted="false" name="ai_agent_no_api_key">Сначала укажите ключ Gemini API (меню → Указать ключ)</string>
+    <string formatted="false" name="ai_agent_api_key_title">Ключ Gemini API</string>
+    <string formatted="false" name="ai_agent_api_key_summary">Введите ключ Google AI Studio, чтобы включить облачного агента</string>
+    <string formatted="false" name="ai_agent_scope_all">Все проекты</string>
 </resources>

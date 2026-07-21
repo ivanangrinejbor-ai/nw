@@ -376,6 +376,7 @@ import org.catrobat.catroid.content.bricks.RemoveParentBrick
 import org.catrobat.catroid.content.bricks.RemovePbrLightBrick
 import org.catrobat.catroid.content.bricks.RepeatBrick
 import org.catrobat.catroid.content.bricks.RepeatUntilBrick
+import org.catrobat.catroid.content.bricks.RepeatWhileBrick
 import org.catrobat.catroid.content.bricks.ReplaceItemInUserListBrick
 import org.catrobat.catroid.content.bricks.ReportBrick
 import org.catrobat.catroid.content.bricks.Replace3DModelBrick
@@ -636,6 +637,7 @@ import org.catrobat.catroid.content.bricks.VoxelSetTransparentBrick
 import org.catrobat.catroid.content.bricks.WaitBrick
 import org.catrobat.catroid.content.bricks.WaitTillIdleBrick
 import org.catrobat.catroid.content.bricks.WaitUntilBrick
+import org.catrobat.catroid.content.bricks.WaitWhileBrick
 import org.catrobat.catroid.content.bricks.WaitThreadBrick
 import org.catrobat.catroid.content.bricks.WhenAfterUpdateBrick
 import org.catrobat.catroid.content.bricks.WhenBeforeUpdateBrick
@@ -1063,8 +1065,10 @@ open class CategoryBricksFactory {
                 controlBrickList.add(AsyncRepeatBrick(Formula(3)))
                 controlBrickList.add(IntervalRepeatBrick(Formula(3), Formula(1)))
                 controlBrickList.add(WaitUntilBrick(ifConditionFormula))
+                controlBrickList.add(WaitWhileBrick(ifConditionFormula))
                 controlBrickList.add(RepeatBrick(Formula(BrickValues.REPEAT)))
                 controlBrickList.add(RepeatUntilBrick(ifConditionFormula))
+                controlBrickList.add(RepeatWhileBrick(ifConditionFormula))
                 controlBrickList.add(ForVariableFromToBrick(Formula(BrickValues.FOR_LOOP_FROM), Formula(BrickValues.FOR_LOOP_TO)))
                 controlBrickList.add(ForItemInUserListBrick())
                 controlBrickList.add(RunAsSpriteBrick(Formula("Sprite")))
@@ -1132,6 +1136,7 @@ open class CategoryBricksFactory {
         controlBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_control_waiting), template))
         controlBrickList.add(WaitBrick(BrickValues.WAIT))
         controlBrickList.add(WaitUntilBrick(ifConditionFormula))
+        controlBrickList.add(WaitWhileBrick(ifConditionFormula))
         controlBrickList.add(WaitTillIdleBrick())
         controlBrickList.add(NoteBrick(context.getString(R.string.brick_note_default_value)))
 
@@ -1139,6 +1144,7 @@ open class CategoryBricksFactory {
         controlBrickList.add(ForeverBrick())
         controlBrickList.add(RepeatBrick(Formula(BrickValues.REPEAT)))
         controlBrickList.add(RepeatUntilBrick(ifConditionFormula))
+        controlBrickList.add(RepeatWhileBrick(ifConditionFormula))
         controlBrickList.add(AsyncRepeatBrick(Formula(3)))
         controlBrickList.add(IntervalRepeatBrick(Formula(3), Formula(1)))
         controlBrickList.add(ForVariableFromToBrick(Formula(BrickValues.FOR_LOOP_FROM), Formula(BrickValues.FOR_LOOP_TO)))

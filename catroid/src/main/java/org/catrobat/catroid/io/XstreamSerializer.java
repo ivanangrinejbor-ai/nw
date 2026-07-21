@@ -614,6 +614,7 @@ public final class XstreamSerializer {
 		xstream.alias("brick", PreviousLookBrick.class);
 		xstream.alias("brick", RepeatBrick.class);
 		xstream.alias("brick", RepeatUntilBrick.class);
+		xstream.alias("brick", RepeatWhileBrick.class);
 		xstream.alias("brick", ForVariableFromToBrick.class);
 		xstream.alias("brick", ForItemInUserListBrick.class);
 		xstream.alias("brick", ReplaceItemInUserListBrick.class);
@@ -665,6 +666,7 @@ public final class XstreamSerializer {
 		xstream.alias("brick", VibrationBrick.class);
 		xstream.alias("brick", WaitBrick.class);
 		xstream.alias("brick", WaitUntilBrick.class);
+		xstream.alias("brick", WaitWhileBrick.class);
 		xstream.alias("brick", WhenBrick.class);
 		xstream.alias("brick", WhenConditionBrick.class);
 		xstream.alias("brick", WhenBackgroundChangesBrick.class);

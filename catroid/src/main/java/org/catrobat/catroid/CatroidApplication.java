@@ -97,6 +97,8 @@ public class CatroidApplication extends Application {
 
 		super.onCreate();
 
+		org.catrobat.catroid.ui.theme.ThemeManager.INSTANCE.init(this);
+
         try {
             ClassLoader originalClassLoader = getClassLoader();
             globalPluginClassLoader = new PluginCompositeClassLoader(originalClassLoader);

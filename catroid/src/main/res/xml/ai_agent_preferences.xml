@@ -10,6 +10,12 @@
         android:summary="@string/ai_agent_enabled_summary"
         android:title="@string/ai_agent_enabled_title" />
 
+    <EditTextPreference
+        android:key="ai_agent_api_key"
+        android:summary="@string/ai_agent_api_key_summary"
+        android:title="@string/ai_agent_api_key_title"
+        android:inputType="textPassword" />
+
     <Preference
         android:key="ai_agent_chat"
         android:summary="@string/ai_agent_chat_summary"

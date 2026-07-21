@@ -33,6 +33,12 @@
         android:visible="true"
         app:showAsAction="ifRoom" />
     <item
+        android:id="@+id/menu_ai_chat"
+        android:title="@string/ai_agent_chat"
+        android:icon="@drawable/ic_smart_toy"
+        android:visible="false"
+        app:showAsAction="ifRoom" />
+    <item
         android:id="@+id/backpack"
         android:title="@string/backpack"
         app:showAsAction="never"

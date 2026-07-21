@@ -3384,6 +3384,7 @@
     <string formatted="false" name="brick_wait">Ждать</string>
     <string formatted="false" name="brick_wait_until">Ждать, пока</string>
     <string formatted="false" name="brick_wait_until_second_part">ложь</string>
+    <string formatted="false" name="brick_while_second_part">истина</string>
     <string formatted="false" name="brick_when_gamepad_button">Когда кнопка джойстика</string>
     <string formatted="false" name="brick_when_gamepad_button_tapped">нажата</string>
     <string formatted="false" name="brick_when_nfc">Когда NFC метка обнаружена</string>
@@ -5543,4 +5544,16 @@ Catrobat — это визуальный язык программировани
     <string name="hitbox_mode_info_full_text">Для проверки столкновений используется вся фигура. Лучше всего подходит для точной проверки касаний, но тяжелее при большом количестве объектов.</string>
     <string name="hitbox_mode_info_physics_title">Физическое столкновение</string>
     <string name="hitbox_mode_info_physics_text">Движок физики использует упрощённую фигуру. Быстрее и рекомендуется, когда объекты сталкиваются и отскакивают друг от друга.</string>
+    <!-- Кастомные темы (.neotema) -->
+    <string name="settings_themes_title">Темы</string>
+    <string name="settings_themes_summary">Импорт и применение кастомных тем .neotema</string>
+    <string name="theme_default_name">Обычная тема</string>
+    <string name="theme_import_button">Импортировать тему</string>
+    <string name="theme_applied">Применено</string>
+    <string name="theme_applying">Применение темы…</string>
+    <string name="theme_by_author">Автор: %1$s</string>
+    <string name="theme_import_success">Тема импортирована</string>
+    <string name="theme_import_error">Не удалось импортировать тему: %1$s</string>
+    <string name="theme_delete_confirm">Удалить эту тему?</string>
+    <string name="theme_delete">Удалить</string>
 </resources>
