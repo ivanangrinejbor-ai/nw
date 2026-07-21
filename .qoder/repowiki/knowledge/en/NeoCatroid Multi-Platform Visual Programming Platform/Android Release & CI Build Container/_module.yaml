@@ -1,9 +1,0 @@
-schema_version: 1
-module_path: ci_and_release_assets
-title: Android Release & CI Build Container
-scope:
-    - fastlane/
-    - docker/
-source_files: []
-depends_on: []
-related_to: []

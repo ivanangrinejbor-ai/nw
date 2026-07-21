@@ -518,7 +518,7 @@
     <string name="subcategory_looks_dialogs">Текст и диалоги</string>
     <string name="subcategory_looks_camera2d">Камера 2D</string>
     <string name="subcategory_looks_camera_device">Камера устройства и медиа</string>
-    <string name="subcategory_looks_buffers">Буферы (Buffers)</string>
+    <string name="subcategory_looks_buffers">Буферы</string>
     <string name="subcategory_looks_primitives">Примитивы</string>
 
     <string name="subcategory_data_variables">Переменные</string>
@@ -699,7 +699,6 @@
     <string name="brick_voxel_atlas">Атлас текстур</string>
     <string name="brick_voxel_div">Деление</string>
     <string name="brick_buffer_mode">Режим буфера</string>
-    <string name="brick_buffer_cam_3d">3D Камера буфера</string>
     <string name="brick_buffer_only">Рисовать только в буфере (1/0)</string>
     <string formatted="false" name="buffer_create">Создать буфер</string>
     <string formatted="false" name="buffer_add">Добавить в буфер</string>
@@ -951,20 +950,12 @@
     </string-array>
     <string formatted="false" name="brick_threed_create_cylinder">Создать цилиндр с ID</string>
 
-    <string formatted="false" name="brick_threed_attach_obj_1">Привязать объект</string>
-    <string formatted="false" name="brick_threed_attach_obj_2">к модели</string>
     <string formatted="false" name="brick_threed_attach_obj_3">к кости</string>
     <string formatted="false" name="brick_threed_attach_obj_4">отступ X</string>
     <string formatted="false" name="brick_threed_attach_obj_5">Y</string>
     <string formatted="false" name="brick_threed_attach_obj_6">Z</string>
 
-    <string formatted="false" name="brick_threed_bind_bone_1">Привязать кость</string>
-    <string formatted="false" name="brick_threed_bind_bone_2">модели</string>
     <string formatted="false" name="brick_threed_bind_bone_3">к объекту</string>
-    <string formatted="false" name="brick_align_normal_1">Повернуть объект</string>
-    <string formatted="false" name="brick_align_normal_2">по нормали X</string>
-    <string formatted="false" name="brick_align_normal_3">Y</string>
-    <string formatted="false" name="brick_align_normal_4">Z</string>
     <string formatted="false" name="brick_del_apk_title">Удалить из APK</string>
     <string formatted="false" name="brick_del_apk_path">Путь к APK</string>
     <string formatted="false" name="brick_del_apk_pattern">Путь внутри APK</string>
@@ -1024,6 +1015,12 @@
     <string name="pt_backward">Backward (ошибка)</string>
     <string name="pt_step">Шаг обучения (Step)</string>
     <string name="pt_lr">Скорость (LR):</string>
+    <string name="pt_linear">Линейный слой</string>
+    <string name="pt_layer_name">Имя слоя</string>
+    <string name="pt_input">Входной тензор</string>
+    <string name="pt_output">Выходной тензор</string>
+    <string name="pt_in_features">Входов</string>
+    <string name="pt_out_features">Выходов</string>
 
     <string-array name="pt_ops_array">
         <item>add</item>
@@ -1036,6 +1033,9 @@
         <item>softmax</item>
         <item>mse_loss</item>
         <item>sum</item>
+        <item>gelu</item>
+        <item>transpose</item>
+        <item>layernorm</item>
     </string-array>
     <string formatted="false" name="brick_shadows_label">Включить тени</string>
     <string formatted="false" name="recovery_desc">Сканировать память на наличие проектов, не отображаемых в меню</string>
@@ -1852,6 +1852,9 @@
     <string name="brick_set_ambient_light" formatted="false">Задать фоновый свет (цвет 0-1)</string>
     <string name="brick_set_3d_position_of" formatted="false">Задать 3D позицию объекта</string>
     <string name="brick_set_3d_position_to" formatted="false">на координаты</string>
+    <string name="brick_glide_3d" formatted="false">Скользить 3D-объектом</string>
+    <string name="brick_glide_3d_to" formatted="false">в</string>
+    <string name="brick_glide_3d_in_seconds" formatted="false">за (сек)</string>
     <string name="brick_object_look_at_object" formatted="false">Повернуть объект</string>
     <string name="brick_object_look_at_to" formatted="false">в точку</string>
     <string name="brick_set_3d_scale_of" formatted="false">Задать 3D размер объекта</string>
@@ -1952,6 +1955,9 @@
     <string formatted="false" name="hitbox_hint_default">Коснитесь хитбокса • Тяните углы для размера • Долгое нажатие — перемещение • Двойное касание — поворот</string>
     <string formatted="false" name="hitbox_hint_modified">Изменено — нажмите «Сохранить»</string>
     <string formatted="false" name="hitbox_hint_added">Хитбокс добавлен</string>
+    <string name="hitbox_info_button_desc">Инфо</string>
+    <string name="hitbox_mode_full">Полный</string>
+    <string name="hitbox_mode_physics">Физика</string>
     <string formatted="false" name="hitbox_hint_deleted">Хитбокс удалён</string>
     <string formatted="false" name="hitbox_editor_menu">Редактор хитбоксов</string>
     <string formatted="false" name="only_numbers">Здесь разрешены только дробные и обычные числа</string>
@@ -3200,6 +3206,10 @@
     <string formatted="false" name="brick_option_place_visually">Поместить визуально</string>
     <string formatted="false" name="x_label">"X: "</string>
     <string formatted="false" name="y_label">"Y: "</string>
+    <string formatted="false" name="brick_coord_x_label">X:</string>
+    <string formatted="false" name="brick_coord_y_label"> Y:</string>
+    <string formatted="false" name="brick_coord_w_label">W:</string>
+    <string formatted="false" name="brick_coord_h_label"> H:</string>
     <string formatted="false" name="brick_set_x">"Установить X в "</string>
     <string formatted="false" name="brick_set_y">"Установить Y в "</string>
     <string formatted="false" name="brick_change_x_by">"Изменить X на"</string>
@@ -4739,9 +4749,6 @@
     <string name="button_clip">Обрезка</string>
     <string name="gallery">Галерея</string>
     <string name="stickers">Стикеры</string>
-    <string name="dialog_import_image_title">Импорт изображения</string>
-    <string name="text_tool_dialog_project_font">Шрифт из проекта</string>
-    <string name="text_tool_dialog_select_font">Выберите TTF-шрифт из проекта</string>
     <string name="text_tool_dialog_no_fonts">В проекте нет TTF-файлов</string>
     <string name="text_tool_dialog_font_load_error">Не удалось загрузить шрифт</string>
     <string name="add_font">Добавить шрифт</string>
@@ -4902,4 +4909,638 @@
     <string formatted="false" name="unknown_blocks_continue">Продолжить</string>
     <string formatted="false" name="unknown_blocks_cancel">Отмена</string>
     <string formatted="false" name="block_not_supported">Этот блок не поддерживается</string>
+
+    <!-- Text Buffer -->
+    <string name="brick_add_text_buffer_title">Добавить текст в буфер</string>
+    <string name="brick_add_text_buffer_to">в</string>
+    <string name="brick_set_text_buffer_only_title">Установить текстовый буфер</string>
+    <string name="brick_set_text_buffer_only_name_label">имя</string>
+    <string name="brick_set_text_buffer_only_state_label">состояние</string>
+    <!-- Base64 -->
+    <string name="brick_base64_to_file_title">Base64 в файл</string>
+    <string name="brick_base64_to_file_string">строка</string>
+    <string name="brick_base64_to_file_dest">путь</string>
+    <!-- Broadcast with params -->
+    <string name="brick_broadcast_with_params">Отправить с параметрами</string>
+    <string name="brick_broadcast_with_params_signal">сигнал</string>
+    <string name="brick_broadcast_with_params_data">данные</string>
+    <string name="brick_broadcast_with_params_save">сохранить</string>
+    <string name="brick_broadcast_with_params_receive">получить</string>
+    <!-- Buffer/Shader -->
+    <string name="brick_buf_uniform_title">Uniform буфера</string>
+    <string name="brick_buf_uniform_in_buf">в</string>
+    <string name="brick_buffer_shader_title">Шейдер буфера</string>
+    <string name="brick_buffer_fx_title">FX буфера</string>
+    <string name="brick_buffer_mask_title">Маска буфера</string>
+    <string name="brick_buffer_mask_mode">режим</string>
+    <string name="brick_buffer_cam_3d">Буфер камеры 3D</string>
+    <string name="brick_buffer_cam_3d_name">имя</string>
+    <string name="brick_buffer_cam_3d_x">x</string>
+    <string name="brick_buffer_cam_3d_y">y</string>
+    <string name="brick_buffer_cam_3d_z">z</string>
+    <string name="brick_buffer_cam_3d_yaw">рыскание</string>
+    <string name="brick_buffer_cam_3d_pitch">тангаж</string>
+    <string name="brick_buffer_cam_3d_roll">крен</string>
+    <string name="brick_buffer_cam_3d_fov">поле зрения</string>
+    <!-- Buffer recording -->
+    <string name="brick_start_buffer_recording_title">Начать запись буфера</string>
+    <string name="brick_start_buffer_recording_buf">буфер</string>
+    <string name="brick_start_buffer_recording_file">файл</string>
+    <string name="brick_start_buffer_recording_fps">FPS</string>
+    <string name="brick_start_buffer_recording_bitrate">битрейт</string>
+    <string name="brick_stop_buffer_recording_title">Остановить запись буфера</string>
+    <!-- Native Views: Button -->
+    <string name="brick_create_button_title">Создать кнопку</string>
+    <string name="brick_create_button_id">ID</string>
+    <string name="brick_create_button_text">текст</string>
+    <string name="brick_create_button_color">цвет</string>
+    <string name="brick_create_button_bg">фон</string>
+    <string name="brick_create_button_size">размер</string>
+    <string name="brick_create_button_radius">радиус</string>
+    <!-- Native Views: ImageView -->
+    <string name="brick_create_image_view_title">Создать изображение</string>
+    <string name="brick_create_image_view_id">ID</string>
+    <string name="brick_create_image_view_src">источник</string>
+    <string name="brick_create_image_view_scale">масштаб</string>
+    <string name="brick_create_image_view_radius">радиус</string>
+    <!-- Native Views: ScrollView -->
+    <string name="brick_create_scroll_view_title">Создать прокрутку</string>
+    <string name="brick_create_scroll_view_id">ID</string>
+    <string name="brick_create_scroll_view_bg">фон</string>
+    <string name="brick_create_scroll_view_padding">отступ</string>
+    <string name="brick_create_scroll_view_bars">полосы прокрутки</string>
+    <string name="brick_create_scroll_view_mode">режим</string>
+    <string name="brick_create_scroll_view_overscroll">перепрокрутка</string>
+    <!-- Native Views: Slider -->
+    <string name="brick_create_slider_title">Создать слайдер</string>
+    <string name="brick_create_slider_id">ID</string>
+    <string name="brick_create_slider_min">мин</string>
+    <string name="brick_create_slider_max">макс</string>
+    <string name="brick_create_slider_val">значение</string>
+    <!-- Native Views: Switch -->
+    <string name="brick_create_switch_title">Создать переключатель</string>
+    <string name="brick_create_switch_id">ID</string>
+    <string name="brick_create_switch_text">текст</string>
+    <string name="brick_create_switch_state">состояние</string>
+    <!-- Native Views: TextLabel -->
+    <string name="brick_create_text_label_title">Создать текстовую метку</string>
+    <string name="brick_create_text_label_id">ID</string>
+    <string name="brick_create_text_label_text">текст</string>
+    <string name="brick_create_text_label_color">цвет</string>
+    <string name="brick_create_text_label_size">размер</string>
+    <string name="brick_create_text_label_font">шрифт</string>
+    <string name="brick_create_text_label_align">выравнивание</string>
+    <string name="brick_create_text_label_bg">фон</string>
+    <string name="brick_create_text_label_radius">радиус</string>
+    <string name="brick_create_text_label_spacing">интервал</string>
+    <string name="brick_create_text_label_format">формат</string>
+    <string name="brick_create_text_label_scroll">прокрутка</string>
+    <!-- Native Views: Bind/Animate/Config/Control/Listener -->
+    <string name="brick_native_view_bind_title">Привязать вид к спрайту</string>
+    <string name="brick_native_view_bind_id">ID</string>
+    <string name="brick_native_view_bind_sprite">спрайт</string>
+    <string name="brick_native_view_bind_offset">смещение</string>
+    <string name="brick_native_view_bind_align">выравнивание</string>
+    <string name="brick_native_view_animate_title">Анимировать вид</string>
+    <string name="brick_native_view_animate_id">ID</string>
+    <string name="brick_native_view_animate_prop">свойство</string>
+    <string name="brick_native_view_animate_val">значение</string>
+    <string name="brick_native_view_animate_duration">длительность</string>
+    <string name="brick_native_view_animate_easing">плавность</string>
+    <string name="brick_native_view_config_title">Настроить вид</string>
+    <string name="brick_native_view_config_id">ID</string>
+    <string name="brick_native_view_config_prop">свойство</string>
+    <string name="brick_native_view_config_val">значение</string>
+    <string name="brick_native_view_control_title">Управлять видом</string>
+    <string name="brick_native_view_control_id">ID</string>
+    <string name="brick_native_view_control_cmd">команда</string>
+    <string name="brick_native_view_control_param">параметр</string>
+    <string name="brick_native_view_listener_title">Событие вида</string>
+    <string name="brick_native_view_listener_id">ID</string>
+    <string name="brick_native_view_listener_evt">событие</string>
+    <string name="brick_native_view_listener_var">переменная</string>
+    <string name="brick_set_native_parent_title">Установить родителя вида</string>
+    <string name="brick_set_native_parent_id">ID</string>
+    <string name="brick_set_native_parent_target">родитель</string>
+    <!-- 3D -->
+    <string name="brick_threed_attach_obj_1">Прикрепить</string>
+    <string name="brick_threed_attach_obj_2">к</string>
+    <string name="brick_threed_bind_bone_1">Привязать кость</string>
+    <string name="brick_threed_bind_bone_2">объекта</string>
+    <string name="brick_export_3d_glb_title">Экспорт 3D GLB</string>
+    <string name="brick_export_3d_glb_id">ID</string>
+    <string name="brick_export_3d_glb_file">файл</string>
+    <string name="brick_replace_3d_model_title">Заменить 3D модель</string>
+    <string name="brick_replace_3d_model_object">объект</string>
+    <string name="brick_replace_3d_model_model">модель</string>
+    <string name="brick_ease_3d_title">Плавная 3D анимация</string>
+    <string name="brick_ease_3d_object">объект</string>
+    <string name="brick_ease_3d_start_label">начало</string>
+    <string name="brick_ease_3d_end_label">конец</string>
+    <string name="brick_ease_3d_duration_label">длительность</string>
+    <!-- 2D Ease animation -->
+    <string name="brick_ease_title">Плавная анимация</string>
+    <string name="brick_ease_start_label">начало</string>
+    <string name="brick_ease_end_label">конец</string>
+    <string name="brick_ease_duration_label">длительность</string>
+    <!-- HTTP -->
+    <string name="brick_http_create_title">HTTP запрос</string>
+    <string name="brick_http_create_id">ID</string>
+    <string name="brick_http_create_method">метод</string>
+    <string name="brick_http_create_url">URL</string>
+    <string name="brick_http_send_title">Отправить HTTP</string>
+    <string name="brick_http_send_id">ID</string>
+    <string name="brick_http_body_title">Тело HTTP</string>
+    <string name="brick_http_body_id">ID</string>
+    <string name="brick_http_body_text">тело</string>
+    <string name="brick_http_body_content_type">тип контента</string>
+    <string name="brick_http_config_title">Конфиг HTTP</string>
+    <string name="brick_http_config_id">ID</string>
+    <string name="brick_http_config_type">тип</string>
+    <string name="brick_http_config_key">ключ</string>
+    <string name="brick_http_config_value">значение</string>
+    <string name="brick_http_attach_file_title">Прикрепить файл HTTP</string>
+    <string name="brick_http_attach_file_id">ID</string>
+    <string name="brick_http_attach_file_name">имя</string>
+    <string name="brick_http_attach_file_parameter">параметр</string>
+    <string name="brick_http_attach_file_mime">MIME</string>
+    <string name="brick_http_save_file_title">Сохранить файл HTTP</string>
+    <string name="brick_http_save_file_id">ID</string>
+    <string name="brick_http_save_file_dest">путь</string>
+    <string name="brick_http_configure_light_title">Настроить свет</string>
+    <string name="brick_http_configure_light_id">ID</string>
+    <string name="brick_http_configure_light_property">свойство</string>
+    <string name="brick_http_configure_light_value">значение</string>
+    <string name="brick_http_configure_material_title">Настроить материал</string>
+    <string name="brick_http_configure_material_id">ID</string>
+    <string name="brick_http_configure_material_property">свойство</string>
+    <string name="brick_http_configure_material_value">значение</string>
+    <string name="brick_http_configure_particles_title">Настроить частицы</string>
+    <string name="brick_http_configure_particles_id">ID</string>
+    <string name="brick_http_configure_particles_property">свойство</string>
+    <string name="brick_http_configure_particles_value">значение</string>
+    <!-- MQTT -->
+    <string name="brick_mqtt_connect_title">MQTT подключение</string>
+    <string name="brick_mqtt_connect_id">ID</string>
+    <string name="brick_mqtt_connect_host">хост</string>
+    <string name="brick_mqtt_connect_port">порт</string>
+    <string name="brick_mqtt_disconnect_title">MQTT отключение</string>
+    <string name="brick_mqtt_publish_title">MQTT публикация</string>
+    <string name="brick_mqtt_publish_client_id">ID клиента</string>
+    <string name="brick_mqtt_publish_room_id">комната</string>
+    <string name="brick_mqtt_publish_salt">соль</string>
+    <string name="brick_mqtt_publish_message">сообщение</string>
+    <string name="brick_mqtt_join_room_title">MQTT войти в комнату</string>
+    <string name="brick_mqtt_join_room_client_id">ID клиента</string>
+    <string name="brick_mqtt_join_room_id">комната</string>
+    <string name="brick_mqtt_join_room_salt">соль</string>
+    <!-- Notification -->
+    <string name="brick_notification_create_title">Создать уведомление</string>
+    <string name="brick_notification_id">ID</string>
+    <string name="brick_notification_channel">канал</string>
+    <string name="brick_notification_header">заголовок</string>
+    <string name="brick_notification_text">текст</string>
+    <string name="brick_notification_large_icon">большая иконка</string>
+    <string name="brick_notification_importance">важность</string>
+    <string name="brick_notification_ongoing">постоянное</string>
+    <string name="brick_notification_show_title">Показать уведомление</string>
+    <string name="brick_show_notification_title">Показать уведомление</string>
+    <string name="brick_show_notification_id">ID</string>
+    <string name="brick_show_notification_channel">канал</string>
+    <string name="brick_show_notification_header">заголовок</string>
+    <string name="brick_show_notification_text">текст</string>
+    <string name="brick_show_notification_large_icon">большая иконка</string>
+    <string name="brick_show_notification_importance">важность</string>
+    <string name="brick_show_notification_ongoing">постоянное</string>
+    <string name="brick_show_notification_delay">задержка</string>
+    <string name="brick_notification_show_delay">задержка</string>
+    <string name="brick_notification_cancel_title">Отменить уведомление</string>
+    <string name="brick_notification_cancel_id">ID</string>
+    <string name="brick_notif_btn_title">Кнопка уведомления</string>
+    <string name="brick_notif_btn_id">ID</string>
+    <string name="brick_notif_btn_text">текст</string>
+    <string name="brick_notif_btn_icon">иконка</string>
+    <string name="brick_notif_btn_action">действие</string>
+    <string name="brick_notif_btn_behavior">поведение</string>
+    <string name="brick_notif_btn_has_input">с вводом</string>
+    <string name="brick_notif_btn_hint">подсказка</string>
+    <string name="brick_notif_btn_auto_close">автозакрытие</string>
+    <!-- Misc bricks -->
+    <string name="brick_open_app_title">Открыть приложение</string>
+    <string name="brick_open_app_pkg">пакет</string>
+    <string name="brick_share_title">Поделиться</string>
+    <string name="brick_play_gif_title">Воспроизвести GIF</string>
+    <string name="brick_stop_gif_title">Остановить GIF</string>
+    <string name="brick_play_spritesheet_title">Воспроизвести спрайт-лист</string>
+    <string name="brick_play_spritesheet_frames">кадры</string>
+    <string name="brick_play_spritesheet_grid">сетка</string>
+    <string name="brick_play_spritesheet_row">строка</string>
+    <string name="brick_play_spritesheet_speed">скорость</string>
+    <string name="brick_stop_spritesheet_title">Остановить спрайт-лист</string>
+    <string name="brick_render_loops_title">Циклы рендера</string>
+    <string name="brick_shake_screen">Тряска экрана</string>
+    <string name="brick_shake_screen_intensity">интенсивность</string>
+    <string name="brick_shake_screen_duration">длительность</string>
+    <string name="brick_set_corner_offsets_title">Угловые смещения</string>
+    <string name="brick_set_corner_offsets_top_left">верх-лево</string>
+    <string name="brick_set_corner_offsets_top_right">верх-право</string>
+    <string name="brick_set_corner_offsets_bottom_left">низ-лево</string>
+    <string name="brick_set_corner_offsets_bottom_right">низ-право</string>
+    <string name="brick_object_look_at_correct_object">Смотреть на</string>
+    <string name="brick_object_look_at_correct_to">цель</string>
+    <string name="brick_set_shader_uniform_vec">Установить uniform шейдера</string>
+    <!-- Threading -->
+    <string name="brick_spawn_thread_title">Запустить поток</string>
+    <string name="brick_stop_thread_title">Остановить поток</string>
+    <string name="brick_wait_thread_title">Ждать поток</string>
+    <string name="brick_instant">Мгновенно</string>
+    <!-- System -->
+    <string name="brick_system_enable_background_title">Включить фон</string>
+    <string name="brick_system_enable_background_header">заголовок</string>
+    <string name="brick_system_enable_background_text">текст</string>
+    <string name="brick_system_disable_background">Отключить фон</string>
+    <!-- Zip/Unzip -->
+    <string name="brick_zip_project_files_title">Заархивировать файлы</string>
+    <string name="brick_zip_project_files_archive_name">имя архива</string>
+    <string name="brick_zip_project_files_list">список файлов</string>
+    <string name="brick_unzip_project_files_title">Разархивировать файлы</string>
+    <string name="brick_unzip_project_files_archive_name">имя архива</string>
+    <!-- Java -->
+    <string name="brick_java_compile_title">Компиляция Java</string>
+    <string name="brick_java_compile_src">исходник</string>
+    <string name="brick_java_compile_dest">путь</string>
+    <string name="brick_java_compile_log">лог</string>
+    <string name="brick_java_download_title">Загрузка Java</string>
+    <string name="brick_java_download_id">ID</string>
+    <string name="brick_java_download_repos">репо</string>
+    <string name="brick_java_download_recursive">рекурсивно</string>
+    <string name="brick_java_download_log">лог</string>
+    <string name="brick_java_load_title">Загрузка Java класса</string>
+    <string name="brick_java_load_path">путь</string>
+    <string name="brick_java_load_class">класс</string>
+    <string name="brick_java_load_method">метод</string>
+    <string name="brick_java_load_arg">аргумент</string>
+    <!-- Events -->
+    <string name="brick_when_after_update">После обновления</string>
+    <string name="brick_when_before_update">Перед обновлением</string>
+    <string name="brick_when_cloned_with_name_title">При клонировании по имени</string>
+    <string name="brick_when_finger_moved_on_screen">При движении пальца по экрану</string>
+    <string name="brick_when_finger_moved_over_sprite">При движении пальца над спрайтом</string>
+    <string name="brick_when_mqtt_message_title">При MQTT сообщении</string>
+    <string name="brick_when_notification_action_triggered">При действии уведомления</string>
+    <string name="brick_when_notification_clicked">При нажатии на уведомление</string>
+    <string name="brick_when_sprite_released">При отпускании спрайта</string>
+    <string name="brick_when_window_resized">При изменении размера окна</string>
+    <!-- Drone -->
+    <string name="brick_drone_with">Дрон с</string>
+    <!-- Play/Stop sound -->
+    <string name="brick_play_sound_1">Воспроизвести звук</string>
+    <string name="brick_play_sound_2"> </string>
+    <string name="brick_stop_sound_1">Остановить звук</string>
+    <string name="brick_stop_sound_2"> </string>
+    <!-- Create/Remove/Replace/Set -->
+    <string name="brick_create_1">Создать</string>
+    <string name="brick_create_2"> </string>
+    <string name="brick_remove_1">Удалить</string>
+    <string name="brick_remove_2"> </string>
+    <string name="brick_replace_1">Заменить</string>
+    <string name="brick_replace_2"> </string>
+    <string name="brick_set_1">Установить</string>
+    <string name="brick_set_2"> </string>
+    <string name="brick_apply_1">Применить</string>
+    <string name="brick_apply_2"> </string>
+    <string name="brick_base64">Base64</string>
+    <string name="brick_align_normal_1">Выровнять по нормали</string>
+    <string name="brick_align_normal_2"> </string>
+    <string name="brick_align_normal_3"> </string>
+    <string name="brick_align_normal_4"> </string>
+    <!-- Fast2D -->
+    <string name="fast2d_set_gravity">Установить гравитацию</string>
+    <string name="fast2d_gravity_x_param">x</string>
+    <string name="fast2d_gravity_y_param">y</string>
+    <!-- Misc -->
+    <string name="degree_symbol">\u00B0</string>
+    <string name="punctuation_mark">.</string>
+
+    <string name="app_name">NeoCatroid</string>
+    <string name="app_name_test">CatroidTest</string>
+    <string formatted="false" name="back">Назад</string>
+    <string formatted="false" name="upload_button">Загрузить</string>
+    <string formatted="false" name="disagree">Не согласен</string>
+    <string formatted="false" name="delete_account">Удалить аккаунт</string>
+    <string formatted="false" name="deletion_alert_yes">Да, всё равно удалить!</string>
+    <string formatted="false" name="password_forgotten">Забыли пароль?</string>
+    <string formatted="false" name="button_scan">Поиск Bluetooth-устройств</string>
+    <string formatted="false" name="select_device">Выберите устройство:</string>
+    <string formatted="false" name="searching_devices">Поиск устройств…</string>
+    <string formatted="false" name="none_paired">Сопряжённые устройства не найдены</string>
+    <string formatted="false" name="pairing_message">После сопряжения подключитесь.</string>
+    <string formatted="false" name="project_reload_status">Перезагрузка проекта…</string>
+    <string formatted="false" name="dialog_new_broadcast_message_name">сообщение:</string>
+    <string formatted="false" name="closing_security_question_title">Выход</string>
+    <string formatted="false" name="closing_security_question">Сохранить изменения?</string>
+    <string formatted="false" name="cursor_draw_inactive">Переместите в нужную позицию, затем нажмите, чтобы начать рисование.</string>
+    <string formatted="false" name="cursor_draw_active">Перемещайте для рисования, затем нажмите снова, чтобы остановить.</string>
+    <string formatted="false" name="set_center_info_text">Нажмите на экран, чтобы задать новую позицию центра.</string>
+    <string formatted="false" name="transform_info_text">Перетащите края в новую позицию, нажмите галочку, чтобы увеличить или обрезать область изображения.</string>
+    <string formatted="false" name="permission_info_external_storage_text">Этому приложению нужно запрошенное разрешение для корректной работы. Чтобы сохранять изображения в локальную память, приложению требуется доступ на чтение и запись.</string>
+    <string formatted="false" name="permission_info_permanent_denial_text">Этому приложению нужно запрошенное разрешение для корректной работы. Чтобы сохранять изображения в локальную память, приложению требуется доступ на чтение и запись. Поскольку вы отказали в разрешении с опцией «не спрашивать снова», перейдите в настройки телефона и предоставьте необходимые разрешения, если хотите пользоваться связанными функциями.</string>
+    <string formatted="false" name="formula_editor_object_general">Общие свойства</string>
+    <string formatted="false" name="formula_editor_device_visual_detection">Визуальные датчики</string>
+    <string formatted="false" name="formula_editor_changes_saved">Изменения сохранены.</string>
+    <string formatted="false" name="formula_editor_dialog_wiki_button">Подробнее</string>
+    <string formatted="false" name="pathfinder_dynamic_replan">Динамическое перепланирование</string>
+    <string formatted="false" name="pathfinder_dynamic_replan_enabled">Включено (1/0)</string>
+    <string formatted="false" name="notification_low_battery_with_value">Внимание. Батарея разряжена. Текущий уровень: %d</string>
+    <string formatted="false" name="export_exe_2d_only_warning">Внимание: этот EXE для ПК работает только в 2D. 3D-блоки, 3D-камера и функции 3D-рендеринга не поддерживаются.</string>
+    <string formatted="false" name="brick_user_defined_script_as">как</string>
+    <string formatted="false" name="brick_look_request_default_value">https://catrob.at/penguin</string>
+    <string formatted="false" name="brick_background_request_default_value_landscape">https://catrob.at/HalloweenLandscape</string>
+    <string formatted="false" name="brick_background_request_default_value_portrait">https://catrob.at/HalloweenPortrait</string>
+    <string formatted="false" name="drone_alert_battery_low">Батарея слишком разряжена для повторного взлёта.</string>
+    <string formatted="false" name="drone_alert_ultrasound">Ультразвуковой датчик не может определить высоту AR.Drone 2.0.</string>
+    <string formatted="false" name="drone_alert_vision">Нет оценки скорости с нижней камеры.</string>
+    <string formatted="false" name="drone_emergency_title">Аварийная ситуация</string>
+    <string formatted="false" name="drone_emergency_angle">Углы Эйлера AR.Drone 2.0 слишком велики. Двигатели отключены для предотвращения опасного поведения.</string>
+    <string formatted="false" name="drone_emergency_battery_low">Батарея разряжена (автоматическая посадка).</string>
+    <string formatted="false" name="drone_emergency_camera">Одна или несколько камер не отвечают.</string>
+    <string formatted="false" name="drone_emergency_cutout">Один или несколько двигателей остановлены средой.</string>
+    <string formatted="false" name="drone_emergency_ultrasound">Ультразвуковой датчик не отвечает.</string>
+    <string formatted="false" name="error_drone_low_battery">Вставьте заряженную батарею и попробуйте снова.</string>
+    <string formatted="false" name="error_drone_low_battery_title">Низкий заряд батареи AR.Drone 2.0: %d%%</string>
+    <string formatted="false" name="error_drone_wrong_platform">Мы не можем запустить проект AR.Drone 2.0 на вашем устройстве.</string>
+    <string formatted="false" name="error_drone_wrong_platform_title">Нет поддержки AR.Drone 2.0.</string>
+    <string formatted="false" name="error_no_drone_connected">Подключите Wi-Fi к AR.Drone 2.0 и попробуйте снова.</string>
+    <string formatted="false" name="error_no_drone_connected_title">Не удаётся найти AR.Drone 2.0.</string>
+    <string formatted="false" name="error_jumpingsumo_battery">Вставьте заряженную батарею и попробуйте снова.</string>
+    <string formatted="false" name="error_jumpingsumo_battery_title">Низкий заряд батареи Jumping Sumo</string>
+    <string formatted="false" name="error_jumpingsumo_wrong_platform">Мы не можем запустить проект Jumping Sumo на вашем устройстве.</string>
+    <string formatted="false" name="error_jumpingsumo_wrong_platform_title">Нет поддержки Jumping Sumo</string>
+    <string formatted="false" name="error_no_jumpingsumo_connected">Подключите Wi-Fi к Jumping Sumo и попробуйте снова.</string>
+    <string formatted="false" name="error_no_jumpingsumo_connected_title">Не удаётся найти Jumping Sumo</string>
+    <string formatted="false" name="prestage_no_jumping_sumo_available">\u2022 Jumping Sumo\n</string>
+    <string formatted="false" name="prestage_resource_in_use_text">К Jumping Sumo подключено другое устройство. Убедитесь, что подключены именно вы.</string>
+    <string formatted="false" name="dialog_terms_of_use_jumpingsumo_reminder_text">Вы собираетесь использовать это приложение вместе с Jumping Sumo от Parrot. Мы настоятельно напоминаем соблюдать Условия использования и обслуживания как Parrot, так и Catrobat.</string>
+    <string formatted="false" name="dialog_terms_of_use_parrot_reminder_text">Вы собираетесь использовать это приложение вместе с AR.Drone 2.0 от Parrot. Мы настоятельно напоминаем соблюдать Условия использования и обслуживания как Parrot, так и Catrobat.</string>
+    <string formatted="false" name="dialog_terms_of_use_link_text_parrot_reminder">Условия использования и обслуживания</string>
+    <string formatted="false" name="dialog_terms_of_use_parrot_reminder_do_not_remind_again">Не напоминать снова.</string>
+    <string formatted="false" name="dialog_privacy_policy_title">Политика конфиденциальности</string>
+    <string formatted="false" name="dialog_privacy_policy_declined_text">Необходимо согласиться с Политикой конфиденциальности, чтобы зарегистрироваться или продолжить использовать вашу учётную запись. Если вы не хотите, чтобы мы собирали эти данные, вы можете удалить учётную запись через страницу профиля на нашем сайте https://share.catrob.at/.</string>
+    <string formatted="false" name="dialog_privacy_policy_text">Чтобы предоставить вам все преимущества наших сервисов и связанной с ними учётной записи, необходимо собирать определённые данные о вас. Подробная политика конфиденциальности Catrobat (версия 2.2, 17 октября 2019) доступна по адресу https://catrob.at/privacypolicy. Если вам меньше 14 лет, эту политику должен принять законный представитель (обычно родитель). Чтобы связаться с нами, напишите на contact@catrobat.org.</string>
+
+    <!-- Misc missing strings -->
+    <string name="admob_application_id">ca-app-pub-3940256099942544~3347511713</string>
+    <string name="cancel_button_text">Отмена</string>
+    <string name="category_global">Глобальные</string>
+    <string name="discard_button_text">Отменить</string>
+    <string name="error_unsupported_newtrobat_version">Этот проект создан в новой версии NewCatroid и не поддерживается.</string>
+    <string name="import_cancelled">Импорт отменён</string>
+    <string formatted="false" name="import_step_prepare">Подготовка импорта…</string>
+    <string name="no_connection_sticker">Стикеры недоступны, проверьте подключение к интернету.</string>
+    <string name="overwrite_button_text">Перезаписать</string>
+    <string name="save_button_text">Сохранить</string>
+    <string name="unsupported_version_cancel">Отменить импорт</string>
+    <string formatted="false" name="unsupported_version_dialog_message">Этот проект содержит блоки, которых нет в текущей версии конструктора. Пропустить неподдерживаемые блоки?</string>
+    <string name="unsupported_version_dialog_title">Обнаружены неподдерживаемые блоки</string>
+    <string name="unsupported_version_skip">Пропустить неподдерживаемые</string>
+
+    <string-array name="project_reload_facts">
+        <item>Модули .neoscript можно использовать в разных проектах!</item>
+        <item>Удерживайте блок для доступа к копированию, вставке и вырезанию.</item>
+        <item>Переменные могут быть локальными (спрайт) или глобальными (все спрайты).</item>
+        <item>Используйте «Когда я начинаю как клон» для кода только у клонов.</item>
+        <item>LunoScript позволяет писать скрипты на настоящем языке программирования.</item>
+        <item>3D-объекты и 2D-спрайты могут共存 в одной сцене.</item>
+        <item>Вы можете создавать и назначать скрипты во время выполнения с помощью NeoScript.</item>
+        <item>Редактор формул поддерживает if-else, abs, round и многие функции.</item>
+    </string-array>
+
+    <!-- NeoPaint / PocketPaint -->
+    <string name="pocketpaint_app_name">NeoPaint</string>
+    <string name="pocketpaint_about_title">О программе</string>
+    <string name="pocketpaint_about_version" translatable="false">Версия %s</string>
+    <string name="pocketpaint_about_license" translatable="false">GNU Affero General Public License, v3</string>
+    <string formatted="false" name="pocketpaint_about_content">NeoPaint — библиотека редактирования изображений, являющаяся частью проекта Catrobat.
+
+Catrobat — это визуальный язык программирования и набор инструментов для творчества на смартфонах.
+
+Исходный код NeoPaint в основном лицензирован под %s.
+Подробности лицензии смотрите по ссылке ниже.</string>
+    <string name="pocketpaint_about_url_license_description">Лицензия исходного кода NeoPaint</string>
+    <string name="pocketpaint_about_url_catrobat_description">О Catrobat</string>
+    <string name="pocketpaint_about_url_license" translatable="false">&lt;a href=\"https://catrob.at/licenses\"&gt;%s&lt;/a&gt;</string>
+    <string name="pocketpaint_about_url_catrobat" translatable="false">&lt;a href=\"https://catrobat.org/\"&gt;%s&lt;/a&gt;</string>
+    <string name="pocketpaint_intro">Обучение</string>
+    <string name="pocketpaint_intro_split_screen_not_supported">Обучение не поддерживает разделённый экран.</string>
+    <string name="pocketpaint_overwrite_title">Перезаписать файл?</string>
+    <string formatted="false" name="pocketpaint_overwrite">Вы собираетесь перезаписать существующее изображение (подсказка: чтобы сохранить как новое, используйте опцию «%s»). Всё равно сохранить?</string>
+    <string name="pocketpaint_like_us">Вам нравится NeoPaint?</string>
+    <string name="pocketpaint_rate_us">Хотите оценить NeoPaint?</string>
+    <string formatted="false" name="pocketpaint_feedback">Нам жаль это слышать. Если хотите поделиться опытом, напишите на contact@catrobat.org</string>
+    <string name="pocketpaint_yes">Да</string>
+    <string name="pocketpaint_no">Нет</string>
+    <string name="pocketpaint_cancel">Отмена</string>
+    <string name="pocketpaint_not_now">Не сейчас</string>
+    <string name="pocketpaint_rate_us_title">Оценить NeoPaint</string>
+    <string name="pocketpaint_menu_about">О программе</string>
+    <string name="pocketpaint_ok">OK</string>
+    <string name="pocketpaint_jpg_title_dialog" translatable="false">jpg</string>
+    <string formatted="false" name="pocketpaint_jpg_message_dialog">Занимает <b>минимум места</b>. <b>Прозрачность не сохраняется</b>.</string>
+    <string name="pocketpaint_png_title_dialog" translatable="false">png</string>
+    <string name="pocketpaint_png_message_dialog">Сжатие без потерь. Прозрачность сохраняется.</string>
+    <string name="pocketpaint_ora_title_dialog" translatable="false">Ora</string>
+    <string formatted="false" name="pocketpaint_ora_message_dialog">Этот формат сохраняет <b>слои</b>. <b>Может быть открыт приложениями, поддерживающими Openraster.</b></string>
+    <string name="pocketpaint_catrobat_title_dialog" translatable="false">catrobat-image</string>
+    <string formatted="false" name="pocketpaint_catrobat_message_dialog">Родной формат NeoPaint. Сохраняет команды и слои.</string>
+    <string name="pocketpaint_tool_icon_description">Иконка текущего инструмента</string>
+
+    <!-- Color picker -->
+    <string name="color_picker_title">Палитра</string>
+    <string name="color_picker_tab_icon">Иконка вкладки палитры</string>
+    <string name="color_alpha">Альфа</string>
+    <string name="color_hex">HEX</string>
+    <string name="color_picker_apply">Применить</string>
+    <string name="color_picker_cancel">Отмена</string>
+    <string name="color_picker_current_color">текущий</string>
+    <string name="color_picker_new_color">новый</string>
+    <string name="color_picker_pipette">Пипетка</string>
+    <string name="color_picker_save_dialog_title">Сохранить изменения?</string>
+    <string name="color_picker_save_dialog_msg">Сохранить изменения?</string>
+    <string name="color_picker_no">нет</string>
+    <string name="color_picker_yes">да</string>
+    <string name="color_picker_history_recently_used">недавние</string>
+
+    <!-- Brush -->
+    <string name="brush_cap_round">Круглая</string>
+    <string name="brush_cap_square">Квадратная</string>
+
+    <!-- Bottom navigation -->
+    <string name="bottom_navigation_tools">Инструменты</string>
+    <string name="bottom_navigation_current">Текущий</string>
+    <string name="bottom_navigation_color">Цвет</string>
+    <string name="bottom_navigation_layers">Слои</string>
+    <string name="bottom_navigation_item">Элемент нижней навигации</string>
+    <string name="intro_bottom_navigation_tools_description">Переключайтесь на нужный инструмент.</string>
+    <string name="intro_bottom_navigation_current_description">Показывает текущий инструмент и открывает его настройки.</string>
+    <string name="intro_bottom_navigation_color_description">Показывает текущий цвет и открывает палитру.</string>
+    <string name="intro_bottom_navigation_layers_description">Открывает меню слоёв и позволяет управлять ими.</string>
+
+    <!-- Buttons -->
+    <string name="button_apply">Применить</string>
+    <string name="button_checkmark">Галочка</string>
+    <string name="button_info">Информация</string>
+    <string name="button_undo">Отменить</string>
+    <string name="button_redo">Повторить</string>
+
+    <!-- Clipboard -->
+    <string name="clipboard_tool_copy">Копировать</string>
+    <string name="clipboard_tool_copy_hint">Нажмите «Копировать», чтобы скопировать содержимое</string>
+    <string name="clipboard_tool_cut">Вырезать</string>
+    <string name="clipboard_tool_paste">Вставить</string>
+    <string name="copy_to">Копия сохранена в\n</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_tools_title">Инструменты</string>
+    <string name="dialog_error_save_title">Ошибка загрузки/сохранения файла</string>
+    <string name="dialog_error_sdcard_text">Проверьте изображение или SD-карту!</string>
+    <string name="dialog_brush_width_text">Толщина штриха</string>
+    <string name="dialog_warning_new_image">Сохранить изменения?</string>
+    <string name="dialog_loading_image_failed_title">Ошибка загрузки изображения</string>
+    <string name="dialog_loading_image_failed_text">Некорректное изображение</string>
+    <string name="dialog_settings">Настройки</string>
+    <string name="dialog_save_image_name">Имя изображения</string>
+    <string name="dialog_save_image_format">Формат изображения</string>
+    <string name="dialog_antialiasing">Сглаживание</string>
+    <string name="dialog_smoothing">Сглаживание</string>
+    <string name="dialog_zoom_window_enabled">Включено</string>
+    <string name="dialog_zoom_window_from_size" translatable="false">100</string>
+    <string name="dialog_zoom_window_to_size" translatable="false">300</string>
+    <string name="dialog_zoom_window_initial_value" translatable="false">100</string>
+    <string name="dialog_save_jpg_option_quality">Качество:</string>
+    <string name="dialog_scale_title">Изображение слишком большое</string>
+    <string formatted="false" name="dialog_scale_message">Изображение слишком большое для загрузки. Нажмите OK, чтобы автоматически уменьшить его.</string>
+    <string name="dialog_import_image_title">Импорт изображения</string>
+    <string name="dialog_save_image_title">Сохранить изображение</string>
+
+    <!-- Fill tool -->
+    <string name="fill_tool_dialog_color_tolerance_title">Допуск цвета</string>
+
+    <!-- Help -->
+    <string name="help_title">Помощь</string>
+    <string name="help_content_eraser">Удаляйте части изображения как ластиком.</string>
+    <string formatted="false" name="help_content_brush">Нажимайте на иконки на нижней панели, чтобы изменить цвет или размер кисти.</string>
+    <string formatted="false" name="help_content_watercolor">Аналогично кисти с эффектом акварели. Вы также можете менять интенсивность кисти ползунком в меню цвета.</string>
+    <string name="help_content_eyedropper">Нажмите на изображение, чтобы выбрать цвет.</string>
+    <string name="help_content_undo">Нажмите, чтобы отменить последнее действие.</string>
+    <string name="help_content_redo">Нажмите, чтобы повторить отменённое действие.</string>
+    <string formatted="false" name="help_content_fill">Нажмите на изображение, чтобы залить область выбранным цветом.</string>
+    <string formatted="false" name="help_content_cursor">Установите курсор в нужное место. Нажмите, чтобы активировать курсор. Двигайте пальцем для рисования. Нажмите снова, чтобы деактивировать.</string>
+    <string name="help_content_transform">Используйте для трансформации изображения.</string>
+    <string formatted="false" name="help_content_clipboard">Перемещайте и изменяйте размер прямоугольника, чтобы покрыть область для штампа. Нажмите «Копировать» или «Вырезать», чтобы выделить область. Переместите её, затем нажмите «Вставить».</string>
+    <string name="help_content_import_png">Импортируйте изображение из галереи в буфер обмена.</string>
+    <string name="help_content_line">Рисуйте прямую линию.</string>
+    <string formatted="false" name="help_content_text">Напишите текст и отформатируйте его. Затем измените размер текстового поля. Нажмите галочку, чтобы вставить текст на изображение.</string>
+    <string formatted="false" name="help_content_shape">Выберите фигуру и нажмите на галочку, чтобы вставить её.</string>
+    <string name="help_content_layer">Создавайте новые слои или изменяйте существующие.</string>
+    <string name="help_content_color_chooser">Выберите или настройте цвет.</string>
+    <string name="help_content_hand">Двигайте пальцем, чтобы перемещать холст.</string>
+    <string formatted="false" name="help_content_spray_can">Двигайте пальцем по изображению, чтобы создать эффект аэрографа.</string>
+    <string formatted="false" name="help_content_smudge">Двигайте пальцем по разным рисункам, чтобы смешивать их.</string>
+    <string name="help_content_clip">Отметьте область, которая не должна стираться.</string>
+
+    <!-- Intro / Welcome -->
+    <string name="welcome_to_pocket_paint">Добро пожаловать в NeoPaint</string>
+    <string formatted="false" name="intro_welcome_text">С NeoPaint нет границ вашему творчеству. Если вы новичок, начните обучение или пропустите его, если уже знакомы с NeoPaint.</string>
+    <string name="intro_tool_more_information">Нажмите на инструмент для получения дополнительной информации</string>
+    <string name="more_possibilities">Больше возможностей</string>
+    <string name="intro_possibilities_text">Используйте верхнюю панель для открытия меню и отмены/повтора изменений</string>
+    <string name="intro_landscape_text">NeoPaint также поддерживает рисование в альбомном режиме для лучшего опыта.</string>
+    <string name="enjoy_pocket_paint">Всё готово. Приятного рисования в NeoPaint.</string>
+    <string name="intro_get_started">Начните и создайте новый шедевр.</string>
+    <string name="lets_go">Поехали</string>
+
+    <!-- Layers -->
+    <string name="layers_title">Слои</string>
+    <string name="layer_new">Новый слой</string>
+    <string name="layer_delete">Удалить слой</string>
+    <string name="layer_too_many_layers">Слишком много слоёв</string>
+    <string name="layer_merged">Слои объединены</string>
+    <string name="layer_background">Фоновый слой</string>
+    <string name="layer_preview">Предпросмотр слоя</string>
+    <string name="no_longclick_on_hidden_layer">Вы можете объединять или изменять порядок только если все слои видимы</string>
+    <string name="no_tools_on_hidden_layer">Инструменты недоступны на скрытом слое</string>
+
+    <!-- Menu -->
+    <string name="menu_new_image">Новое изображение</string>
+    <string name="menu_discard_image">Отменить изображение</string>
+    <string name="menu_load_image">Загрузить изображение</string>
+    <string name="menu_replace_image">Заменить изображение</string>
+    <string name="menu_add_to_current_layer">Добавить на текущий слой</string>
+    <string name="menu_save_image">Сохранить изображение</string>
+    <string name="menu_save_copy">Сохранить копию</string>
+    <string name="menu_hide_menu">Скрыть кнопки</string>
+    <string name="menu_export">Экспорт</string>
+    <string name="menu_feedback">Обратная связь</string>
+    <string name="menu_advanced">Расширенные настройки</string>
+    <string name="menu_zoom_settings">Настройки окна зума</string>
+    <string name="menu_quit">Выйти</string>
+
+    <!-- Resize -->
+    <string name="resize_nothing_to_resize">нечего изменять</string>
+    <string name="resize_cannot_resize_to_this_size">невозможно изменить до этого размера</string>
+    <string name="resize_max_image_resolution_reached">достигнуто максимальное разрешение</string>
+
+    <!-- Save / Share -->
+    <string name="saved">Изображение сохранено</string>
+    <string name="saved_to">Изображение сохранено в\n</string>
+    <string name="share_image_menu">Поделиться</string>
+    <string name="share_image_via_text">Отправить через</string>
+
+    <!-- Shape tool -->
+    <string name="shape_tool_dialog_rect_title">Прямоугольник</string>
+    <string name="shape_tool_dialog_ellipse_title">Эллипс</string>
+    <string name="shape_tool_dialog_star_title">Звезда</string>
+    <string name="shape_tool_dialog_heart_title">Сердце</string>
+    <string name="shape_tool_dialog_pixel_title">Пиксели</string>
+    <string name="shape_tool_dialog_fill_title">Заливка</string>
+    <string name="shape_tool_dialog_outline_title">Контур</string>
+
+    <!-- Smudge tool -->
+    <string name="smudge_tool_dialog_pressure_title">Нажим</string>
+    <string name="smudge_tool_dialog_drag_title">Перетаскивание</string>
+
+    <!-- Text tool -->
+    <string name="text_tool_dialog_underline_shortcut">U</string>
+    <string name="text_tool_dialog_italic_shortcut">I</string>
+    <string name="text_tool_dialog_bold_shortcut">B</string>
+    <string name="text_tool_dialog_input_hint">Нажмите, чтобы писать</string>
+    <string name="text_tool_dialog_font_monospace">Monospace</string>
+    <string name="text_tool_dialog_font_serif">Serif</string>
+    <string name="text_tool_dialog_font_sans_serif">Sans Serif</string>
+    <string name="text_tool_dialog_font_dubai">Dubai</string>
+    <string name="text_tool_dialog_font_arabic_stc">STC</string>
+    <string name="text_tool_dialog_project_font">Использовать шрифт проекта</string>
+    <string name="text_tool_dialog_select_font">Выбрать файл шрифта</string>
+
+    <!-- Transform tool -->
+    <string name="transform_tool_rotate_left">повернуть влево</string>
+    <string name="transform_tool_rotate_right">повернуть вправо</string>
+    <string name="transform_tool_flip_vertical">отразить по вертикали</string>
+    <string name="transform_tool_flip_horizontal">отразить по горизонтали</string>
+    <string name="transform_tool_resize_text">изменить размер</string>
+    <string name="transform_tool_auto_crop_text">обрезать/увеличить</string>
+    <string name="transform_width_text">Ширина</string>
+    <string name="transform_height_text">Высота</string>
+    <string name="transform_auto_crop_text">Авто</string>
+    <string name="transform_set_center_text">Задать центр</string>
+
+    <!-- Misc -->
+    <string name="pixel">px</string>
+    <string name="zoom_window_description">Используется для отображения увеличенной части поверхности рисования</string>
+    <!-- Hitbox editor -->
+    <string name="hitbox_mode_dialog_title">Режим столкновений</string>
+    <string name="hitbox_mode_info_full_title">Полное столкновение</string>
+    <string name="hitbox_mode_info_full_text">Для проверки столкновений используется вся фигура. Лучше всего подходит для точной проверки касаний, но тяжелее при большом количестве объектов.</string>
+    <string name="hitbox_mode_info_physics_title">Физическое столкновение</string>
+    <string name="hitbox_mode_info_physics_text">Движок физики использует упрощённую фигуру. Быстрее и рекомендуется, когда объекты сталкиваются и отскакивают друг от друга.</string>
 </resources>

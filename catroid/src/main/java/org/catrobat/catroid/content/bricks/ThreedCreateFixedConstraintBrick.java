@@ -15,7 +15,7 @@ import org.catrobat.catroid.formulaeditor.Formula;
 public class ThreedCreateFixedConstraintBrick extends FormulaBrick {
     private static final long serialVersionUID = 1L;
 
-    private int modeSelection = 0; // 0 = Auto, 1 = Manual
+    private int modeSelection = 0;
 
     public ThreedCreateFixedConstraintBrick() {
         addAllowedBrickField(BrickField.VALUE_1, R.id.brick_fixed_joint_id);
@@ -73,9 +73,9 @@ public class ThreedCreateFixedConstraintBrick extends FormulaBrick {
     public void addActionToSequence(Sprite sprite, ScriptSequenceAction sequence) {
         var action = sprite.getActionFactory().createThreedCreateFixedConstraintAction(
                 sprite, sequence,
-                getFormulaWithBrickField(BrickField.VALUE_1), // ID
-                getFormulaWithBrickField(BrickField.VALUE_2), // A
-                getFormulaWithBrickField(BrickField.VALUE_3)  // B
+                getFormulaWithBrickField(BrickField.VALUE_1),
+                getFormulaWithBrickField(BrickField.VALUE_2),
+                getFormulaWithBrickField(BrickField.VALUE_3)
         );
 
         action.mode = this.modeSelection;

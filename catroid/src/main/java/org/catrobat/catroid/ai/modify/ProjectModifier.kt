@@ -1,11 +1,14 @@
 package org.catrobat.catroid.ai.modify
 
 import org.catrobat.catroid.ProjectManager
+import org.catrobat.catroid.ai.tool.BrickFactory
 import org.catrobat.catroid.ai.tool.ChangeType
 import org.catrobat.catroid.ai.tool.ProjectChange
 import org.catrobat.catroid.content.Project
 import org.catrobat.catroid.content.Scene
 import org.catrobat.catroid.content.Sprite
+import org.catrobat.catroid.formulaeditor.UserList
+import org.catrobat.catroid.formulaeditor.UserVariable
 
 object ProjectModifier {
 
@@ -61,7 +64,7 @@ object ProjectModifier {
         }
         val sprite = Sprite(name)
         scene.addSprite(sprite)
-        return ModificationResult.Success("Created object '$name'")
+        return ModificationResult.Success("Created object '$name' in scene '${scene.name}'")
     }
 
     private fun deleteObject(project: Project, change: ProjectChange): ModificationResult {
@@ -69,8 +72,8 @@ object ProjectModifier {
         val name = change.data["name"] as? String ?: return ModificationResult.Failure("Name required")
         val sprite = scene.spriteList.find { it.name == name }
             ?: return ModificationResult.Failure("Object '$name' not found")
-        scene.spriteList.remove(sprite)
-        return ModificationResult.Success("Deleted object '$name'")
+        scene.removeSprite(sprite)
+        return ModificationResult.Success("Deleted object '$name' from scene '${scene.name}'")
     }
 
     private fun createScene(project: Project, change: ProjectChange): ModificationResult {
@@ -101,12 +104,48 @@ object ProjectModifier {
         if (index < 0 || index >= sprite.scriptList.size) {
             return ModificationResult.Failure("Script index $index out of range")
         }
-        return ModificationResult.Success("Script $index marked for replacement - needs brick construction")
+        val scriptType = change.data["scriptType"] as? String ?: "StartScript"
+        val bricksText = change.data["bricks"] as? String ?: ""
+        val newScript = BrickFactory.createScript(scriptType)
+        val specs = BrickFactory.parseBrickSpecs(bricksText)
+            ?: return ModificationResult.Failure("Syntax error in brick spec")
+        val buildResult = BrickFactory.buildBricks(specs)
+        if (buildResult.bricks.isEmpty()) {
+            return ModificationResult.Failure(
+                "No bricks were created:\n" + buildResult.errors.joinToString("\n") { "  - $it" }
+            )
+        }
+        for (b in buildResult.bricks) newScript.addBrick(b)
+        sprite.scriptList[index] = newScript
+        val msg = "Replaced script $index of '${sprite.name}' with ${newScript::class.java.simpleName} " +
+            "(${buildResult.bricks.size} top-level brick(s))"
+        return ModificationResult.Success(
+            if (buildResult.errors.isEmpty()) msg
+            else "$msg\nWarnings:\n" + buildResult.errors.joinToString("\n") { "  - $it" }
+        )
     }
 
     private fun appendScript(project: Project, change: ProjectChange): ModificationResult {
         val sprite = getSprite(project, change) ?: return ModificationResult.Failure("Object not found")
-        return ModificationResult.Success("Script append requested - needs brick construction")
+        val scriptType = change.data["scriptType"] as? String ?: "StartScript"
+        val bricksText = change.data["bricks"] as? String ?: ""
+        val newScript = BrickFactory.createScript(scriptType)
+        val specs = BrickFactory.parseBrickSpecs(bricksText)
+            ?: return ModificationResult.Failure("Syntax error in brick spec")
+        val buildResult = BrickFactory.buildBricks(specs)
+        if (buildResult.bricks.isEmpty()) {
+            return ModificationResult.Failure(
+                "No bricks were created:\n" + buildResult.errors.joinToString("\n") { "  - $it" }
+            )
+        }
+        for (b in buildResult.bricks) newScript.addBrick(b)
+        sprite.addScript(newScript)
+        val msg = "Appended ${newScript::class.java.simpleName} to '${sprite.name}' " +
+            "(${buildResult.bricks.size} top-level brick(s))"
+        return ModificationResult.Success(
+            if (buildResult.errors.isEmpty()) msg
+            else "$msg\nWarnings:\n" + buildResult.errors.joinToString("\n") { "  - $it" }
+        )
     }
 
     private fun deleteScript(project: Project, change: ProjectChange): ModificationResult {
@@ -116,23 +155,149 @@ object ProjectModifier {
         if (index < 0 || index >= sprite.scriptList.size) {
             return ModificationResult.Failure("Script index $index out of range")
         }
-        sprite.scriptList.removeAt(index)
-        return ModificationResult.Success("Deleted script $index")
+        val removed = sprite.scriptList.removeAt(index)
+        return ModificationResult.Success(
+            "Deleted ${removed::class.java.simpleName} (index $index) from '${sprite.name}'"
+        )
     }
 
     private fun createVariable(project: Project, change: ProjectChange): ModificationResult {
-        return ModificationResult.Success("Variable creation - needs integration with project variable system")
+        val name = change.data["name"] as? String ?: return ModificationResult.Failure("Variable name required")
+        val scope = change.data["scope"] as? String ?: "project"
+        val initialValue: Any = parseInitialValue(change.data["value"] as? String)
+        return when (scope.lowercase()) {
+            "project", "global" -> {
+                if (project.userVariables.any { it.name == name }) {
+                    return ModificationResult.Failure("Global variable '$name' already exists")
+                }
+                project.addUserVariable(UserVariable(name, initialValue))
+                ModificationResult.Success("Created global variable '$name' (value=$initialValue)")
+            }
+            "multiplayer" -> {
+                if (project.multiplayerVariables.any { it.name == name }) {
+                    return ModificationResult.Failure("Multiplayer variable '$name' already exists")
+                }
+                project.addMultiplayerVariable(UserVariable(name, initialValue))
+                ModificationResult.Success("Created multiplayer variable '$name' (value=$initialValue)")
+            }
+            "object", "local" -> {
+                val sprite = getSprite(project, change)
+                    ?: return ModificationResult.Failure("Object required for local variable")
+                if (sprite.userVariables.any { it.name == name }) {
+                    return ModificationResult.Failure("Local variable '$name' already exists on '${sprite.name}'")
+                }
+                sprite.addUserVariable(UserVariable(name, initialValue))
+                ModificationResult.Success(
+                    "Created local variable '$name' on object '${sprite.name}' (value=$initialValue)"
+                )
+            }
+            else -> ModificationResult.Failure("Unknown scope '$scope'; use project|multiplayer|object")
+        }
     }
 
     private fun deleteVariable(project: Project, change: ProjectChange): ModificationResult {
-        return ModificationResult.Success("Variable deletion - needs integration with project variable system")
+        val name = change.data["name"] as? String ?: return ModificationResult.Failure("Variable name required")
+        val scope = change.data["scope"] as? String ?: "project"
+        return when (scope.lowercase()) {
+            "project", "global" -> {
+                if (project.removeUserVariable(name)) {
+                    ModificationResult.Success("Deleted global variable '$name'")
+                } else ModificationResult.Failure("Global variable '$name' not found")
+            }
+            "multiplayer" -> {
+                val mp = project.multiplayerVariables.find { it.name == name }
+                if (mp != null && project.multiplayerVariables.remove(mp)) {
+                    ModificationResult.Success("Deleted multiplayer variable '$name'")
+                } else ModificationResult.Failure("Multiplayer variable '$name' not found")
+            }
+            "object", "local" -> {
+                val sprite = getSprite(project, change)
+                    ?: return ModificationResult.Failure("Object required for local variable")
+                val v = sprite.userVariables.find { it.name == name }
+                if (v != null && sprite.userVariables.remove(v)) {
+                    ModificationResult.Success("Deleted local variable '$name' from '${sprite.name}'")
+                } else ModificationResult.Failure("Local variable '$name' not found on '${sprite.name}'")
+            }
+            else -> ModificationResult.Failure("Unknown scope '$scope'")
+        }
     }
 
     private fun createBroadcast(project: Project, change: ProjectChange): ModificationResult {
-        return ModificationResult.Success("Broadcast creation - needs integration")
+        val name = change.data["name"] as? String ?: return ModificationResult.Failure("Broadcast name required")
+        val container = project.broadcastMessageContainer
+        if (container == null) return ModificationResult.Failure("No broadcast container on project")
+        val added = container.addBroadcastMessage(name)
+        return if (added) ModificationResult.Success("Created broadcast message '$name'")
+        else ModificationResult.Success("Broadcast message '$name' already exists")
     }
 
     private fun modifyBrick(project: Project, change: ProjectChange): ModificationResult {
-        return ModificationResult.Success("Brick modification - needs brick construction")
+        val sprite = getSprite(project, change) ?: return ModificationResult.Failure("Object not found")
+        val scriptIndex = (change.data["scriptIndex"] as? Number)?.toInt()
+            ?: return ModificationResult.Failure("scriptIndex required")
+        val brickIndex = (change.data["brickIndex"] as? Number)?.toInt()
+            ?: return ModificationResult.Failure("brickIndex required")
+        if (scriptIndex < 0 || scriptIndex >= sprite.scriptList.size) {
+            return ModificationResult.Failure("Script index $scriptIndex out of range")
+        }
+        val script = sprite.scriptList[scriptIndex]
+        val bricks = script.getBrickList()
+        if (brickIndex < 0 || brickIndex >= bricks.size) {
+            return ModificationResult.Failure("Brick index $brickIndex out of range")
+        }
+        val newType = change.data["newType"] as? String
+            ?: return ModificationResult.Failure("newType (brick class name) required")
+        val fields = change.data["fields"] as? String ?: ""
+        val spec = "$newType($fields)"
+        val parsed = BrickFactory.parseBrickSpecs(spec)
+            ?: return ModificationResult.Failure("Syntax error in brick spec")
+        val first = parsed.firstOrNull() ?: return ModificationResult.Failure("Empty spec")
+        val validationError = BrickFactory.validateBrickSpec(first)
+        if (validationError != null) return ModificationResult.Failure(validationError)
+        val newBrick = BrickFactory.buildBrick(first)
+            ?: return ModificationResult.Failure("Failed to build brick '$newType'")
+        bricks[brickIndex] = newBrick
+        return ModificationResult.Success(
+            "Replaced brick $brickIndex in script $scriptIndex of '${sprite.name}' with $newType"
+        )
+    }
+
+    /** Parse "BrickName(a, b)" -> ("BrickName", ["a", "b"]). */
+    private fun parseBrickSpec(spec: String): Pair<String, List<String>> {
+        val open = spec.indexOf('(')
+        if (open < 0 || !spec.endsWith(")")) return spec.trim() to emptyList()
+        val className = spec.substring(0, open).trim()
+        val inner = spec.substring(open + 1, spec.length - 1)
+        if (inner.isBlank()) return className to emptyList()
+        return className to parseBrickArgs(inner)
+    }
+
+    private fun parseBrickArgs(inner: String): List<String> {
+        val args = mutableListOf<String>()
+        val current = StringBuilder()
+        var depth = 0
+        for (c in inner) {
+            when (c) {
+                '(' -> { depth++; current.append(c) }
+                ')' -> { depth--; current.append(c) }
+                ',' -> if (depth == 0) {
+                    args.add(current.toString().trim()); current.setLength(0)
+                } else current.append(c)
+                else -> current.append(c)
+            }
+        }
+        if (current.isNotBlank()) args.add(current.toString().trim())
+        return args
+    }
+
+    private fun parseInitialValue(raw: String?): Any {
+        if (raw == null) return 0.0
+        val trimmed = raw.trim()
+        if (trimmed.isEmpty()) return 0.0
+        trimmed.toDoubleOrNull()?.let { return it }
+        trimmed.toLongOrNull()?.let { return it.toDouble() }
+        if (trimmed.equals("true", true)) return 1.0
+        if (trimmed.equals("false", true)) return 0.0
+        return trimmed
     }
 }

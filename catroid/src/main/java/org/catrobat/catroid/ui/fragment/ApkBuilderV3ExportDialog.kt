@@ -43,18 +43,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-/**
- * Export settings dialog for APK Builder V3.
- *
- * Provides a full-featured UI for configuring the APK build:
- * - App name, package name, version, version code
- * - Min/Target SDK
- * - Template type (Light / Full)
- * - Permissions selection
- * - Icon selection
- *
- * Opens as a dialog fragment integrated into the ProjectOptionsFragment flow.
- */
 class ApkBuilderV3ExportDialog {
     private val tag = "ApkBuilderV3ExportDialog"
     private var config: ApkBuilderV3Config? = null
@@ -64,16 +52,12 @@ class ApkBuilderV3ExportDialog {
     private var hostContext: android.content.Context? = null
     private var lastView: android.view.View? = null
 
-    // The OpenDocument launcher must be registered by the host Fragment in its
-    // onCreate (Android forbids registering after creation), so it is passed in.
     private var firebaseLauncher: ActivityResultLauncher<Array<String>>? = null
 
-    // Single active instance so the fragment-level launcher can route results.
     companion object {
         @Volatile
         var activeInstance: ApkBuilderV3ExportDialog? = null
 
-        // Entry point invoked from ProjectOptionsFragment's pre-registered launcher.
         fun onFirebaseUriResult(uri: Uri?) {
             activeInstance?.onFirebaseUriResult(uri)
         }
@@ -89,7 +73,6 @@ class ApkBuilderV3ExportDialog {
         dialog.show()
     }
 
-    // Called by ProjectOptionsFragment when the OpenDocument launcher returns.
     fun onFirebaseUriResult(uri: Uri?) {
         if (uri != null) {
             firebaseUri = uri
@@ -127,7 +110,6 @@ class ApkBuilderV3ExportDialog {
 
         val view = LayoutInflater.from(ctx).inflate(R.layout.dialog_apk_builder_v3_export, null)
 
-        // Pre-fill fields
         view.findViewById<TextInputEditText>(R.id.v3_app_name_input)?.setText(project.name)
         view.findViewById<TextInputEditText>(R.id.v3_package_input)?.setText("org.neocatroid.runtime.v3")
         view.findViewById<TextInputEditText>(R.id.v3_version_input)?.setText("1.0")
@@ -135,7 +117,6 @@ class ApkBuilderV3ExportDialog {
         view.findViewById<TextInputEditText>(R.id.v3_min_sdk_input)?.setText("21")
         view.findViewById<TextInputEditText>(R.id.v3_target_sdk_input)?.setText("35")
 
-        // Populate permissions
         val permContainer = view.findViewById<LinearLayout>(R.id.v3_permissions_container)
         val permChecks = ApkBuilderV3Config.ALL_PERMISSIONS.map { perm ->
             val cb = CheckBox(ctx).apply {
@@ -146,22 +127,17 @@ class ApkBuilderV3ExportDialog {
             perm to cb
         }
 
-        // Icon state
         val hasProjectIcon = File(project.directory, "manual_screenshot.png").exists() ||
                 File(project.directory, "automatic_screenshot.png").exists()
         view.findViewById<RadioButton>(R.id.v3_icon_project)?.isChecked = hasProjectIcon
         view.findViewById<RadioButton>(R.id.v3_icon_default)?.isChecked = !hasProjectIcon
 
-        // Template type — Full is the default (complete, proven path; Light is experimental)
         view.findViewById<RadioButton>(R.id.v3_template_full)?.isChecked = true
 
-        // ── Firebase Configuration ──
         val firebaseAddButton = view.findViewById<Button>(R.id.v3_firebase_add_button)
         val firebaseStatus = view.findViewById<TextView>(R.id.v3_firebase_status)
         val firebaseRemoveButton = view.findViewById<Button>(R.id.v3_firebase_remove_button)
 
-        // The launcher is registered by the host Fragment (ProjectOptionsFragment)
-        // in its onCreate and passed via show(); we only trigger it here.
         lastView = view
 
         firebaseAddButton.setOnClickListener {
@@ -186,7 +162,6 @@ class ApkBuilderV3ExportDialog {
                     .ifBlank { "org.neocatroid.runtime.v3" }
                 val pkg = pkgRaw.lowercase()
 
-                // Validate package name
                 if (!pkg.matches(Regex("^[a-z][a-z0-9_]*(\\.[a-z0-9_]+)+$"))) {
                     ToastUtil.showError(ctx, "Invalid package name format")
                     return@setPositiveButton
@@ -234,7 +209,6 @@ class ApkBuilderV3ExportDialog {
                     firebaseConfig = firebaseConfig
                 )
 
-                // Start build
                 startBuild(host)
             }
             .setNegativeButton("Cancel", null)
@@ -247,7 +221,6 @@ class ApkBuilderV3ExportDialog {
         val cfg = config ?: return
         val projDir = projectDir ?: return
 
-        // Show progress dialog
         val progressView = LayoutInflater.from(ctx).inflate(R.layout.activity_apk_builder_v3_progress, null)
         val progressBar = progressView.findViewById<ProgressBar>(R.id.v3_build_progress_bar)
         val percentText = progressView.findViewById<TextView>(R.id.v3_progress_percent)
@@ -262,14 +235,11 @@ class ApkBuilderV3ExportDialog {
 
         val mainHandler = Handler(Looper.getMainLooper())
 
-        // Инициализация фактов: берутся из списка при старте сборки и меняются
-        // по мере продвижения этапов (по индексу, а не случайно).
         var factIndex = 0
         factIndex = showV3Fact(factText, factIndex)
 
         host.lifecycleScope.launch(Dispatchers.IO) {
             try {
-                // Save project first
                 ProjectManager.getInstance().currentProject?.let {
                     saveProjectSerial(it, ctx)
                 }
@@ -283,7 +253,6 @@ class ApkBuilderV3ExportDialog {
                             progressBar.progress = progress.toInt()
                             percentText.text = "${progress.toInt()}%"
                             stageText.text = stage
-                            // Факт меняется на каждом этапе сборки (по инициализированному списку)
                             factIndex = showV3Fact(factText, factIndex)
                         }
                     }
@@ -313,8 +282,6 @@ class ApkBuilderV3ExportDialog {
         }
     }
 
-    // Список фактов инициализируется один раз при создании диалога и используется
-    // для последовательной смены текста во время сборки (по индексу, а не случайно).
     private val v3Facts = listOf(
         "The first Android phone was released in 2008.",
         "Catrobat was inspired by Scratch from MIT.",

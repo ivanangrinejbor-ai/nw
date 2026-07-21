@@ -1,5 +1,6 @@
 package org.catrobat.catroid.content.actions
 
+import android.util.Log
 import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction
 import org.catrobat.catroid.ProjectManager
 import org.catrobat.catroid.content.Scope
@@ -10,7 +11,13 @@ class ApplyTorqueAction : TemporalAction() {
     private var torque: Formula? = null
 
     override fun update(percent: Float) {
-        val torqueValue = torque?.interpretFloat(scope) ?: 0f
+        val torqueValue: Float
+        try {
+            torqueValue = torque?.interpretFloat(scope) ?: 0f
+        } catch (e: Exception) {
+            Log.w(javaClass.simpleName, "Formula interpretation failed", e)
+            return
+        }
 
         val scene = ProjectManager.getInstance().currentlyPlayingScene ?: return
         val sprite = scope?.sprite ?: return

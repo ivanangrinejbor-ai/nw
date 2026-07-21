@@ -12,7 +12,7 @@ import org.catrobat.catroid.formulaeditor.Formula;
 
 public class PlaySoundAtPositionBrick extends FormulaBrick {
     private static final long serialVersionUID = 1L;
-    private int loopSelection = 0; // 0 = No, 1 = Yes
+    private int loopSelection = 0;
 
     public PlaySoundAtPositionBrick() {
         addAllowedBrickField(BrickField.SOUND_NAME, R.id.brick_play_sound_3d_name_edit);

@@ -30,12 +30,12 @@ public final class JsonRegexExtractor {
 	}
 
 	public static String getJsonParserRegex(String keyword) {
-		return "\"" + keyword + "\"\\s*:\\s*" // find keyword
-				+ "\"?((?<=\")(\\\\\"|[^\"])*(?=\")" // string
-				+ "|(?<!\")([+-]?(0|[1-9]\\d*)(\\.\\d+)?([eE][+-]?\\d+)?" // number
-				+ "|(true|false|null)" // boolean
-				+ "|\\{[^{]*?\\}" // un-nested object
-				+ "|\\[[^\\[]*?\\])" // un-nested array
-				+ "(?!\"))\"?(?=\\s*[,\\]}])"; // correct json expression format
+		return "\"" + keyword + "\"\\s*:\\s*"
+				+ "\"?((?<=\")(\\\\\"|[^\"])*(?=\")"
+				+ "|(?<!\")([+-]?(0|[1-9]\\d*)(\\.\\d+)?([eE][+-]?\\d+)?"
+				+ "|(true|false|null)"
+				+ "|\\{[^{]*?\\}"
+				+ "|\\[[^\\[]*?\\])"
+				+ "(?!\"))\"?(?=\\s*[,\\]}])";
 	}
 }

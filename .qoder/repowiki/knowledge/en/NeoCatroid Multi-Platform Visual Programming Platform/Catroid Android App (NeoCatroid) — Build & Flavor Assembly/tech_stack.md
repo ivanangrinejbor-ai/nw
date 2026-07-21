@@ -1,1 +1,0 @@
-Android Gradle plugin with Kotlin 1.9 / Java 11, libGDX 1.13.1 (Box2D + Bullet), Room 2.6.1 (KSP), Retrofit + Moshi/Gson, Coil, WorkManager, Koin DI, TensorFlow Lite 2.14.0, ONNX Runtime C++ via CMake 3.22.1, QuickJS, Markwon, Sora editor, EMF/ECJ, R8/D8, Firebase Crashlytics/Analytics, Huawei ML Kit, and a bundled Python 3.12 interpreter in `assets/python3.12/`.

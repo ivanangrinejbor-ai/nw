@@ -93,10 +93,7 @@ object ApkToolboxManager {
                 debugAttr.setValueAsBoolean(config.debuggable)
             }
 
-            // The template is a debug build of the editor and carries
-            // android:testOnly="true". The stock package installer refuses to install
-            // test-only APKs (only `adb install` works), so clear it. Otherwise the baked
-            // APK fails to install when tapped from Downloads with "App not installed".
+
             fun clearTestOnly(element: com.reandroid.arsc.chunk.xml.ResXmlElement?) {
                 if (element == null) return
                 try {
@@ -342,15 +339,6 @@ object ApkToolboxManager {
         }
     }
 
-    /**
-     * Hybrid APK builder:
-     * 1. Uses reandroid ONLY to produce a modified AndroidManifest.xml (bytes).
-     *    Reandroid never touches resources.arsc or binary XML files in res/.
-     * 2. Builds the final APK via raw ZipInputStream→ZipOutputStream streaming,
-     *    preserving each entry's original compression method (STORED stays STORED,
-     *    DEFLATED stays DEFLATED). This guarantees binary XML files are copied
-     *    byte-for-byte from the template without corruption.
-     */
     fun configureApk(
         apkPath: String,
         manifestConfig: ManifestConfig,
@@ -362,7 +350,7 @@ object ApkToolboxManager {
         val originalFile = File(apkPath)
         if (!originalFile.exists()) return false
 
-        // ── Phase A: produce manifest bytes via reandroid ────────────────
+
         val manifestBytes: ByteArray
         var reandroidModule: ApkModule? = null
         try {
@@ -438,11 +426,7 @@ object ApkToolboxManager {
             return false
         }
 
-        // ── Phase B: build final APK via raw ZIP streaming ───────────────
-        // Re-preserving alignment:
-        //   Android requires resources.arsc to be STORED and aligned on a 4-byte
-        //   boundary. We track the current write offset and pad the extra field
-        //   of each STORED entry to guarantee 4-byte alignment of its data.
+
         val tempFile = File(workDir ?: originalFile.parentFile, "apk_zip_build_${System.currentTimeMillis()}.apk")
         try {
             Log.d(TAG, "Phase B: tempFile = ${tempFile.absolutePath}")
@@ -452,7 +436,7 @@ object ApkToolboxManager {
             Log.d(TAG, "Phase B: iconFile = ${iconFile?.absolutePath} (exists=${iconFile?.exists()})")
             Log.d(TAG, "Phase B: filesToAdd = ${filesToAdd.map { it.second }}")
 
-            // Collect icon targets from the template BEFORE streaming
+
             val iconTargetNames = mutableSetOf<String>()
             if (iconFile != null && iconFile.exists()) {
                 ZipInputStream(BufferedInputStream(FileInputStream(originalFile))).use { zis ->
@@ -468,10 +452,7 @@ object ApkToolboxManager {
                 Log.d(TAG, "Phase B: icon targets = $iconTargetNames")
             }
 
-            // CountingOutputStream tracks the EXACT byte position in the output file,
-            // unlike manual nextDataOffset calculation which accumulates errors from
-            // DEFLATED entries (copyTo returns uncompressed size, not compressed).
-            // Without this, resources.arsc alignment drifts after ~4000 entries.
+
             class CountingOutputStream(delegate: java.io.OutputStream) : java.io.FilterOutputStream(delegate) {
                 var count: Long = 0
                     private set
@@ -486,26 +467,25 @@ object ApkToolboxManager {
                     var entryCount = 0
 
                     fun alignDataOffset(name: String): Int {
-                        // The ZipEntry local header before the data: 30 bytes + filename + extra
                         val rawOffset = countingOut.count + 30L + name.toByteArray().size
                         return ((4 - (rawOffset % 4)) % 4).toInt()
                     }
 
-                    // ── 2a. Copy all template entries (with modifications) ──
+
                     val writtenNames = mutableSetOf<String>()
                     var entry = zis.nextEntry
                     while (entry != null) {
                         val name = entry.name
                         entryCount++
 
-                        // Skip duplicates (ZIP entries with the same name)
+
                         if (!writtenNames.add(name)) {
                             Log.d(TAG, "  skip (duplicate): $name")
                             entry = zis.nextEntry
                             continue
                         }
 
-                        // Should this entry be deleted?
+
                         val shouldDelete = toDeleteNormalized.any { pattern ->
                             name == pattern || name.startsWith("$pattern/")
                         }
@@ -516,7 +496,7 @@ object ApkToolboxManager {
                             continue
                         }
 
-                        // Should this entry be replaced by the icon?
+
                         if (iconTargetNames.contains(name)) {
                             Log.d(TAG, "  skip (icon replace): $name")
                             entry = zis.nextEntry
@@ -525,7 +505,7 @@ object ApkToolboxManager {
 
                         if (name == "AndroidManifest.xml") {
                             Log.d(TAG, "  write manifest (${manifestBytes.size} bytes)")
-                            // Write the modified manifest — always STORED
+
                             val align = alignDataOffset("AndroidManifest.xml")
                             val extra = ByteArray(align)
                             val newEntry = ZipEntry("AndroidManifest.xml")
@@ -540,7 +520,7 @@ object ApkToolboxManager {
                             zos.write(manifestBytes)
                             zos.closeEntry()
                         } else {
-                            // Copy entry verbatim preserving compression
+
                             val align = alignDataOffset(name)
                             val extra = ByteArray(align)
                             val newEntry = ZipEntry(name)
@@ -561,7 +541,7 @@ object ApkToolboxManager {
                     }
                     Log.d(TAG, "Phase B: processed $entryCount entries from template, filePos=${countingOut.count / (1024*1024)} MB")
 
-                    // ── 2b. Add icon files ──────────────────────────────────
+
                     if (iconFile != null && iconFile.exists()) {
                         val iconBytes = iconFile.readBytes()
                         Log.d(TAG, "  adding icon: ${iconTargetNames.size} targets, ${iconBytes.size} bytes each")
@@ -582,7 +562,7 @@ object ApkToolboxManager {
                         }
                     }
 
-                    // ── 2c. Add payload files ───────────────────────────────
+
                     for ((sourceFile, pathInApk) in filesToAdd) {
                         if (sourceFile.exists() && !sourceFile.isDirectory) {
                             val apkPath = pathInApk.replace("\\", "/")
@@ -609,7 +589,7 @@ object ApkToolboxManager {
                 }
             }
 
-            // Swap
+
             Log.d(TAG, "Phase B: swapping temp -> original...")
             val swapped = if (originalFile.delete()) {
                 tempFile.renameTo(originalFile)
@@ -646,10 +626,7 @@ object ApkToolboxManager {
     private fun fixClassNameReferences(element: ResXmlElement, oldPkg: String, newPkg: String) {
         element.attributes.forEach { attr ->
             val value = attr.valueAsString
-            // Relative class name (e.g. ".MainActivity") must be resolved against the ORIGINAL
-            // (old) package, because the compiled .dex code still lives in the old package.
-            // If we prepended newPkg, Android would look for the class in a package that
-            // doesn't exist and crash on startup with ClassNotFoundException.
+
             if (value != null && value.startsWith(".")) {
                 attr.valueAsString = "$oldPkg$value"
             }

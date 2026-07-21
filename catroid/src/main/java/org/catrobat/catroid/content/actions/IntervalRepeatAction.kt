@@ -8,6 +8,7 @@ import android.util.Log
 class IntervalRepeatAction : Action() {
     companion object {
         private const val MAX_ITERATIONS = 100_000
+        private const val MAX_CONCURRENT_CLONES = 10 // Limit concurrent clones to prevent OOM
     }
 
     var scope: Scope? = null
@@ -20,16 +21,19 @@ class IntervalRepeatAction : Action() {
     private var repeatCountValue = 0
     private var intervalValue = 0f
     private var timer = 0f
+    private var activeClones = mutableListOf<Action>()
 
     override fun act(delta: Float): Boolean {
         if (!isInitialized) {
             initialize()
         }
         if (repeatCountValue > 0 && executedCount >= repeatCountValue) {
+            cleanupClones()
             return true
         }
         if (executedCount >= MAX_ITERATIONS) {
             Log.w(javaClass.simpleName, "Interval repeat exceeded max iterations ($MAX_ITERATIONS), stopping")
+            cleanupClones()
             return true
         }
 
@@ -43,14 +47,35 @@ class IntervalRepeatAction : Action() {
 
             timer -= intervalValue
 
+            // Cleanup completed clones before adding new one
+            cleanupClones()
+            
+            // Limit concurrent clones to prevent OOM
+            if (activeClones.size >= MAX_CONCURRENT_CLONES) {
+                Log.w(javaClass.simpleName, "Too many concurrent clones ($MAX_CONCURRENT_CLONES), waiting for cleanup")
+                return false
+            }
+
             val actionClone = (loopBodyAction as? ScriptSequenceAction)?.clone()
             if (actionClone != null) {
                 actionClone.restart()
                 actor.addAction(actionClone)
+                activeClones.add(actionClone)
             }
         }
 
         return repeatCountValue > 0 && executedCount >= repeatCountValue
+    }
+    
+    private fun cleanupClones() {
+        // Remove completed clones from actor and active list
+        val iterator = activeClones.iterator()
+        while (iterator.hasNext()) {
+            val clone = iterator.next()
+            if (clone.actor == null || !actor.actions.contains(clone)) {
+                iterator.remove()
+            }
+        }
     }
 
     private fun initialize() {
@@ -77,6 +102,8 @@ class IntervalRepeatAction : Action() {
         isInitialized = false
         executedCount = 0
         timer = 0f
+        cleanupClones()
+        activeClones.clear()
         loopBodyAction?.restart()
         super.restart()
     }

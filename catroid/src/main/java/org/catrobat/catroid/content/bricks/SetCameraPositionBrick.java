@@ -9,7 +9,6 @@ public class SetCameraPositionBrick extends FormulaBrick {
     private static final long serialVersionUID = 1L;
 
     public SetCameraPositionBrick() {
-        // Убедитесь, что BrickField поддерживает эти поля, или используйте стандартные
         addAllowedBrickField(BrickField.VALUE, R.id.brick_set_camera_position_x);
         addAllowedBrickField(BrickField.VALUE_2, R.id.brick_set_camera_position_y);
         addAllowedBrickField(BrickField.VALUE_3, R.id.brick_set_camera_position_z);

@@ -34,7 +34,7 @@ class TryCatchFinallyAction : Action() {
                             state = State.FINALLY
                             continue
                         }
-                    } catch (e: Exception) {
+                    } catch (e: Throwable) {
                         Log.w("TryCatchFinallyAction", "Exception caught in TRY block: ${e.message}")
                         errorVariable?.value = e.message ?: "An unknown error occurred"
                         state = State.CATCHING
@@ -60,7 +60,7 @@ class TryCatchFinallyAction : Action() {
                             state = State.FINALLY
                             continue
                         }
-                    } catch (e: Exception) {
+                    } catch (e: Throwable) {
                         Log.w("TryCatchFinallyAction", "Exception caught in CATCH block: ${e.message}")
                         errorVariable?.value = e.message ?: "An unknown error occurred"
                         state = State.FINALLY
@@ -80,7 +80,7 @@ class TryCatchFinallyAction : Action() {
                             state = State.DONE
                             return true
                         }
-                    } catch (e: Exception) {
+                    } catch (e: Throwable) {
                         Log.w("TryCatchFinallyAction", "Exception caught in FINALLY block: ${e.message}")
                         errorVariable?.value = e.message ?: "An unknown error occurred"
                         state = State.DONE

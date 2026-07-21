@@ -42,12 +42,6 @@ import java.security.SecureRandom
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
-/**
- * Local APK builder for Catroid visual projects.
- * Builds minimal runtime APK (без редактора) with encrypted project payload.
- * Template APK is loaded from assets/template_runtime.apk.
- * Debug keystore is auto-generated on first run.
- */
 object BakedApkBuilder {
     private const val TAG = "BakedApkBuilder"
     private const val TEMPLATE_RUNTIME_APK = "template_runtime.apk"
@@ -123,8 +117,6 @@ object BakedApkBuilder {
             tempDir = File(context.cacheDir, "apk_build_${System.currentTimeMillis()}")
             tempDir.mkdirs()
 
-            // Pre-flight: ensure enough temp space (~3x project size + 200 MB headroom for
-            // baked zip / encrypted payload / final APK). Avoids a mid-build disk-full crash.
             val needed = projectDir.sizeRecursively() * 3 + 200L * 1024 * 1024
             runCatching {
                 val stat = StatFs(tempDir.absolutePath)
@@ -137,7 +129,6 @@ object BakedApkBuilder {
                 }
             }
 
-            // Step 1: Load template APK (small, project-independent)
             onProgress("Loading template APK...")
             val templateApk = File(tempDir, "template_temp.apk")
 
@@ -165,11 +156,7 @@ object BakedApkBuilder {
                 }
             }
 
-            // Step 2: Build encrypted baked project payload (streaming crypto -> memory-flat)
             onProgress("Protecting project payload...")
-            // In the editor process this is the live, possibly edited project. When the build
-            // runs in the isolated :apkbuild process, ProjectManager is empty, so reload the
-            // project from disk (the caller persists edits before launching the service).
             val currentProject = ProjectManager.getInstance()?.currentProject
                 ?: try {
                     XstreamSerializer.getInstance().loadProject(projectDir, context)
@@ -182,7 +169,6 @@ object BakedApkBuilder {
                 return@withContext BuildResult.Error("Проект пустой: нет ни одной сцены для сборки.")
             }
 
-            // DIAGNOSTIC: project size breakdown
             Log.d(TAG, "=== DIAG: Project directory size breakdown ===")
             Log.d(TAG, "DIAG: projectDir = ${projectDir.absolutePath}")
             Log.d(TAG, "DIAG: projectDir total size = ${projectDir.sizeRecursively() / (1024*1024)} MB")
@@ -225,17 +211,9 @@ object BakedApkBuilder {
             )
             Log.d(TAG, "DIAG: encrypted payload size = ${encryptedProject.length() / (1024*1024)} MB")
 
-            // Password key file — embedded alongside the encrypted payload so RuntimeLoaderActivity
-            // can decrypt it. If the user set a custom password, that same password is used for
-            // encryption and then stored in the key file (it's still inside the APK, not secret
-            // from a determined attacker — real protection comes from the user-chosen password).
             val keyFile = File(tempDir, ProtectedProjectPayload.KEY_ASSET_NAME)
             keyFile.writeText(payloadPassword)
 
-            // Step 3: Apply ALL changes to the template in a SINGLE reandroid
-            // load-write cycle. This avoids corrupting binary XML files in res/
-            // which happens when tableBlock.refresh() is called multiple times
-            // (each individual modifyApk call does styleArray.clear() + refresh()).
             onProgress("Configuring application...")
             val manifestConfig = ApkToolboxManager.ManifestConfig(
                 appName = config.appName,
@@ -272,7 +250,6 @@ object BakedApkBuilder {
             val unsignedApk = templateApk
             Log.d(TAG, "DIAG: unsigned APK (template + payload embedded) = ${unsignedApk.length() / (1024*1024)} MB")
 
-            // Step 5: Sign APK
             onProgress("Signing APK...")
             val rawName = config.appName.replace(" ", "_")
                 .replace(Regex("""[\\/:*?"<>|]"""), "_").trim('_', '.')
@@ -290,7 +267,6 @@ object BakedApkBuilder {
             }
             Log.d(TAG, "DIAG: signed APK = ${signedApk.length() / (1024*1024)} MB")
 
-            // Step 6: Cleanup
             onProgress("Cleaning up...")
             templateApk.delete()
             encryptedProject.delete()
@@ -302,8 +278,6 @@ object BakedApkBuilder {
 
             BuildResult.Success(resultFile)
         } catch (e: Throwable) {
-            // Catch Throwable (not just Exception) so an OutOfMemoryError is reported as a
-            // friendly message instead of silently killing the process (black screen + restart).
             Log.e(TAG, "Build failed", e)
             tempDir?.deleteRecursively()
             val message = if (e is OutOfMemoryError) {
@@ -335,10 +309,6 @@ object BakedApkBuilder {
         payloadZip.delete()
         stagingDir.mkdirs()
 
-        // Save the project in standard Catroid format (code.xml) — StageActivity reads this.
-        // The encryption (AES-256-GCM) provides real protection; the format inside is
-        // a regular Catroid project that the runtime loader can hand off to StageActivity
-        // without any conversion.
         val xmlHeader = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\" ?>\n"
         val projectXml = xmlHeader + XstreamSerializer.getInstance().getXmlAsStringFromProject(currentProject)
         File(stagingDir, Constants.CODE_XML_FILE_NAME).writeText(projectXml)
@@ -417,13 +387,6 @@ object BakedApkBuilder {
     private fun getOrCreateDebugKeystore(context: Context, tempDir: File): File {
         val debugDir = File(context.filesDir, "apk_signing")
         debugDir.mkdirs()
-        // Fixed, bundled keystore so builds are reproducible across editor reinstalls.
-        // The old behaviour generated a random key on first run; because filesDir is wiped
-        // when the editor is reinstalled, every reinstall produced a different key, so a
-        // previously installed runtime APK (signed by the old key) could no longer be
-        // replaced -> "signed by a different certificate" install failure.
-        // NOTE: this is a debug signing key with a known password, fine for local sideload
-        // builds; swap in a real release keystore before any public distribution.
         val keystore = File(debugDir, "debug_fixed.jks")
         if (!keystore.exists()) {
             try {

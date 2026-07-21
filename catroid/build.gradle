@@ -288,6 +288,7 @@ android {
             excludes += ["kotlin/script/script.properties"]
             pickFirsts += ["kotlin/**"]
             pickFirsts += ["META-INF/*.kotlin_module"]
+            pickFirsts += ["META-INF/io.netty.versions.properties"]
         }
     }
 
@@ -450,16 +451,12 @@ android {
             }
         }
     }
-    // Only copy google-services-template to the default danvex flavor;
-    // other flavors must provide their own google-services.json if needed.
+
     def danvexGoogleServices = file("src/danvex/google-services.json")
     if (!danvexGoogleServices.exists()) {
         copyGoogleServicesFile('danvex', defaultConfig.applicationId)
     }
-    // The runtime template APK (template_runtime.apk) reuses the same Firebase
-    // project as the danvex flavor, so copy the template config into its source
-    // set too. Without this, Firebase resources are never generated for the
-    // runtime flavor and Firebase is a silent no-op in the built template.
+
     def runtimeGoogleServices = file("src/runtime/google-services.json")
     if (!runtimeGoogleServices.exists()) {
         copyGoogleServicesFile('runtime', 'org.DanVexTeam.NewCatroidRuntime')
@@ -470,9 +467,6 @@ tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
 }
 
-// Disable processGoogleServices for flavors without valid config.
-// These flavors don't have their own google-services.json and the
-// default template doesn't contain entries for their package names.
 afterEvaluate {
     def flavorsWithoutGoogleServices = [
         'createAtSchool', 'embroideryDesigner', 'lunaAndCat',
@@ -548,11 +542,8 @@ configurations {
 dependencies {
     def markwon_version = "4.6.2"
     implementation fileTree(dir: 'libs', include: ['*.jar'], exclude: ['zipsigner.jar'])
-    // zipsigner.jar has both .class and classes.dex (breaks R8); use proper Maven deps for BouncyCastle
     implementation 'org.bouncycastle:bcpkix-jdk15to18:1.76'
     implementation 'org.bouncycastle:bcprov-jdk15to18:1.76'
-
-    // Paintroid replaced by in-app NeoPaint editor (no AAR dependency)
 
     implementation 'org.eclipse.jgit:org.eclipse.jgit:5.13.1.202206130422-r'
 
@@ -771,6 +762,9 @@ dependencies {
     testImplementation 'org.powermock:powermock-api-mockito2:2.0.0'
 
     implementation 'com.squareup.okhttp3:logging-interceptor:4.12.0'
+
+    // MQTT
+    implementation 'com.hivemq:hivemq-mqtt-client:1.3.0'
 
     testImplementation 'org.robolectric:robolectric:4.14.1'
 

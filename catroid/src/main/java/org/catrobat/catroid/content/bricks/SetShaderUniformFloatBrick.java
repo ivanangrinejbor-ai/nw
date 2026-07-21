@@ -35,8 +35,8 @@ public class SetShaderUniformFloatBrick extends FormulaBrick {
                 sequence,
                 getFormulaWithBrickField(BrickField.THREED_UNIFORM_NAME),
                 getFormulaWithBrickField(BrickField.VALUE_X),
-                null, // Y
-                null  // Z
+                null,
+                null
         ));
     }
 }

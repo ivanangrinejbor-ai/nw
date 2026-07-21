@@ -41,11 +41,6 @@ import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
-/**
- * Helper for the cryptography formula functions. All methods return either a
- * String (text result) or a double (numeric / boolean result). Errors are
- * handled gracefully by returning an empty string or 0.0 / 1.0.
- */
 public final class CryptoFormulaHelper {
     private static final String TAG = CryptoFormulaHelper.class.getSimpleName();
     private static final String HEX = "0123456789abcdef";
@@ -53,10 +48,6 @@ public final class CryptoFormulaHelper {
 
     private CryptoFormulaHelper() {
     }
-
-    // ------------------------------------------------------------------
-    // Hashing
-    // ------------------------------------------------------------------
 
     public static String sha(String algorithm, String text) {
         try {
@@ -101,10 +92,6 @@ public final class CryptoFormulaHelper {
         }
     }
 
-    // ------------------------------------------------------------------
-    // AES (GCM)
-    // ------------------------------------------------------------------
-
     public static String aesEncrypt(String text, String password) {
         try {
             byte[] key = deriveAesKey(password);
@@ -140,10 +127,6 @@ public final class CryptoFormulaHelper {
         }
     }
 
-    // ------------------------------------------------------------------
-    // ChaCha20 (API 28+)
-    // ------------------------------------------------------------------
-
     public static String chaCha20Encrypt(String text, String key, String nonce) {
         try {
             byte[] keyBytes = normalizeKey(key, 32);
@@ -174,10 +157,6 @@ public final class CryptoFormulaHelper {
         }
     }
 
-    // ------------------------------------------------------------------
-    // Key derivation
-    // ------------------------------------------------------------------
-
     public static String pbkdf2(String password, String salt, int iterations) {
         try {
             byte[] saltBytes = decodeBytes(salt);
@@ -204,10 +183,6 @@ public final class CryptoFormulaHelper {
         String key = pbkdf2(password, salt, 10000);
         return (key.isEmpty()) ? "" : (salt + ":" + key);
     }
-
-    // ------------------------------------------------------------------
-    // Key / data generation
-    // ------------------------------------------------------------------
 
     public static String generateAesKey(int bits) {
         int keyBits = (bits == 128 || bits == 192) ? bits : 256;
@@ -240,10 +215,6 @@ public final class CryptoFormulaHelper {
     public static String generateUuid() {
         return java.util.UUID.randomUUID().toString();
     }
-
-    // ------------------------------------------------------------------
-    // Random
-    // ------------------------------------------------------------------
 
     public static String randomHex(int length) {
         if (length <= 0) {
@@ -287,10 +258,6 @@ public final class CryptoFormulaHelper {
         return sb.toString();
     }
 
-    // ------------------------------------------------------------------
-    // Encoding
-    // ------------------------------------------------------------------
-
     public static String base64Encode(String text) {
         try {
             return Base64.encodeToString(getUtf8Bytes(text), Base64.NO_WRAP);
@@ -326,10 +293,6 @@ public final class CryptoFormulaHelper {
             return "";
         }
     }
-
-    // ------------------------------------------------------------------
-    // Verification
-    // ------------------------------------------------------------------
 
     public static double compareHash(String text, String hash) {
         if (text == null || hash == null) {
@@ -372,10 +335,6 @@ public final class CryptoFormulaHelper {
         return 1.0;
     }
 
-    // ------------------------------------------------------------------
-    // HMAC
-    // ------------------------------------------------------------------
-
     public static String hmacSha256(String text, String key) {
         return hmac("HmacSHA256", text, key);
     }
@@ -394,10 +353,6 @@ public final class CryptoFormulaHelper {
             return "";
         }
     }
-
-    // ------------------------------------------------------------------
-    // RSA
-    // ------------------------------------------------------------------
 
     public static String rsaGenerateKeyPair() {
         try {
@@ -467,10 +422,6 @@ public final class CryptoFormulaHelper {
         }
     }
 
-    // ------------------------------------------------------------------
-    // Internals
-    // ------------------------------------------------------------------
-
     private static byte[] deriveAesKey(String password) throws Exception {
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
         return digest.digest(getUtf8Bytes(password));
@@ -513,21 +464,16 @@ public final class CryptoFormulaHelper {
             return new byte[0];
         }
         String trimmed = input.trim();
-        // Try hex
         if ((trimmed.length() % 2) == 0 && isHexString(trimmed)) {
             try {
                 return fromHex(trimmed);
             } catch (Exception ignored) {
-                // fall through
             }
         }
-        // Try base64
         try {
             return Base64.decode(trimmed, Base64.NO_WRAP);
         } catch (Exception ignored) {
-            // fall through
         }
-        // Fall back to utf-8
         return getUtf8Bytes(trimmed);
     }
 

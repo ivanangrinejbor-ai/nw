@@ -1,26 +1,14 @@
-// Файл: org/catrobat/catroid/utils/PolygonDecomposer.java
 package org.catrobat.catroid.utils;
 
 import com.badlogic.gdx.math.Polygon;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
 
-/**
- * Утилита для разложения вогнутого полигона на массив выпуклых полигонов.
- * Использует алгоритм декомпозиции Bayazit.
- * Адаптировано из различных open-source реализаций для libGDX.
- */
 public final class PolygonDecomposer {
 
     private PolygonDecomposer() {
-        // Статический класс-утилита, конструктор не нужен
     }
 
-    /**
-     * Основной метод. Принимает один (возможно вогнутый) полигон и возвращает массив выпуклых частей.
-     * @param concavePolygon Полигон для декомпозиции.
-     * @return Array из выпуклых полигонов.
-     */
     public static Array<Polygon> decompose(Polygon concavePolygon) {
         float[] vertices = concavePolygon.getVertices();
         Array<Vector2> polygonVertices = new Array<>(vertices.length / 2);

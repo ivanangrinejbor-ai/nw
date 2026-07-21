@@ -1,9 +1,12 @@
 package org.catrobat.catroid.ui.hitbox;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.ImageButton;
+import android.widget.RadioButton;
 import android.widget.TextView;
 
 import org.catrobat.catroid.ProjectManager;
@@ -25,6 +28,7 @@ public class HitboxEditorActivity extends Activity {
 
     private HitboxEditorView editorView;
     private TextView hintView;
+    private ImageButton btnSave;
     private LookData currentLook;
 
     @Override
@@ -37,7 +41,7 @@ public class HitboxEditorActivity extends Activity {
         ImageButton btnBack = findViewById(R.id.hitbox_btn_back);
         ImageButton btnAdd = findViewById(R.id.hitbox_btn_add);
         ImageButton btnDelete = findViewById(R.id.hitbox_btn_delete);
-        ImageButton btnSave = findViewById(R.id.hitbox_btn_save);
+        btnSave = findViewById(R.id.hitbox_btn_save);
         TextView title = findViewById(R.id.hitbox_title);
 
         // Resolve the LookData from intent extras
@@ -76,24 +80,69 @@ public class HitboxEditorActivity extends Activity {
             hintView.setText(R.string.hitbox_hint_deleted);
         });
 
-        btnSave.setOnClickListener(v -> saveAndExit());
+        btnSave.setOnClickListener(v -> showHitboxModeDialog());
+    }
+
+    private void showHitboxModeDialog() {
+        View content = getLayoutInflater().inflate(R.layout.dialog_hitbox_mode, null);
+        RadioButton fullOption = content.findViewById(R.id.hitbox_mode_full);
+        RadioButton physicsOption = content.findViewById(R.id.hitbox_mode_physics);
+        ImageButton infoFull = content.findViewById(R.id.hitbox_info_full);
+        ImageButton infoPhysics = content.findViewById(R.id.hitbox_info_physics);
+
+        if (currentLook.getHitboxMode() == LookData.HITBOX_MODE_FULL) {
+            fullOption.setChecked(true);
+        } else {
+            physicsOption.setChecked(true);
+        }
+
+        infoFull.setOnClickListener(b -> showInfoDialog(
+                R.string.hitbox_mode_info_full_title, R.string.hitbox_mode_info_full_text));
+        infoPhysics.setOnClickListener(b -> showInfoDialog(
+                R.string.hitbox_mode_info_physics_title, R.string.hitbox_mode_info_physics_text));
+
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.hitbox_mode_dialog_title)
+                .setView(content)
+                .setPositiveButton(R.string.hitbox_save, (dialog, which) -> {
+                    currentLook.setHitboxMode(fullOption.isChecked()
+                            ? LookData.HITBOX_MODE_FULL : LookData.HITBOX_MODE_PHYSICS);
+                    saveAndExit();
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
+    }
+
+    private void showInfoDialog(int titleRes, int textRes) {
+        new AlertDialog.Builder(this)
+                .setTitle(titleRes)
+                .setMessage(textRes)
+                .setPositiveButton(android.R.string.ok, null)
+                .show();
     }
 
     private void saveAndExit() {
-        List<HitboxData> hitboxes = editorView.getHitboxes();
+        // Update the in-memory model synchronously so the change is never lost,
+        // even if the disk write below fails or the app is killed.
+        final List<HitboxData> hitboxes = editorView.getHitboxes();
         currentLook.setHitboxes(hitboxes);
 
-        // Save project to persist hitbox data
-        try {
-            XstreamSerializer.getInstance().saveProject(
-                ProjectManager.getInstance().getCurrentProject()
-            );
-        } catch (Exception e) {
-            // Best effort — hitboxes are in memory regardless
-        }
-
-        setResult(RESULT_OK);
-        finish();
+        // Persist OFF the UI thread. saveProject() serialises the ENTIRE project
+        // to XML (hundreds of MB for large projects) and would ANR the UI otherwise.
+        btnSave.setEnabled(false);
+        hintView.setText(R.string.hitbox_hint_modified);
+        new Thread(() -> {
+            try {
+                XstreamSerializer.getInstance().saveProject(
+                    ProjectManager.getInstance().getCurrentProject());
+            } catch (Exception ignored) {
+                // Best effort — hitboxes are already in memory.
+            }
+            runOnUiThread(() -> {
+                setResult(RESULT_OK);
+                finish();
+            });
+        }, "hitbox-save").start();
     }
 
     @Override

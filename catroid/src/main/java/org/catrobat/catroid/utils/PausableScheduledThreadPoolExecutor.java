@@ -21,8 +21,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// Code adapted from: http://docs.oracle.com/javase/7/docs/api/java/util/concurrent/ThreadPoolExecutor.html
-
 package org.catrobat.catroid.utils;
 
 import java.util.concurrent.ScheduledThreadPoolExecutor;

@@ -155,12 +155,8 @@ public final class XstreamSerializer {
             xstream.setClassLoader(org.catrobat.catroid.CatroidApplication.globalPluginClassLoader);
         }
 
-		//xstream.registerConverter(new FormulaListConverter());
-
-		// Enable XStream security framework (setupDefaultSecurity denies types not explicitly registered)
 		XStream.setupDefaultSecurity(xstream);
 
-		// Deny-by-default: запрещаем опасные системные пакеты для предотвращения RCE
 		xstream.denyTypesByWildcard(new String[] {
 			"java.lang.reflect.**",
 			"java.beans.**",
@@ -198,6 +194,13 @@ public final class XstreamSerializer {
 		xstream.processAnnotations(UserDefinedBrickData.class);
 		xstream.processAnnotations(UserDefinedBrickInput.class);
 		xstream.processAnnotations(UserDefinedBrickLabel.class);
+
+		// Tolerate XML elements/fields the current engine does not know about instead of
+		// aborting the whole load. This lets projects from newer versions and projects
+		// containing unknown bricks import: unknown brick types are replaced with an
+		// UnknownBrick placeholder (see XStreamBrickConverter) and any extra fields they
+		// (or newer known bricks) carry are simply skipped.
+		xstream.ignoreUnknownElements();
 
 		xstream.registerConverter(new XStreamConcurrentFormulaHashMapConverter());
 		xstream.registerConverter(new XStreamUserDataHashMapConverter());
@@ -436,6 +439,7 @@ public final class XstreamSerializer {
         xstream.alias("brick", RotateCameraByBrick.class);
         xstream.alias("brick", CameraTouchControlBrick.class);
         xstream.alias("brick", CameraSettingsBrick.class);
+        xstream.alias("brick", ShakeScreenBrick.class);
 		xstream.alias("brick", ToggleDisplayBrick.class);
 		xstream.alias("brick", StopVMBrick.class);
 		xstream.alias("brick", MouseEventBrick.class);
@@ -777,6 +781,7 @@ public final class XstreamSerializer {
         xstream.alias("brick", PtBackwardBrick.class);
         xstream.alias("brick", PtStepBrick.class);
         xstream.alias("brick", PtOpBrick.class);
+        xstream.alias("brick", PtLinearBrick.class);
 		xstream.alias("brick", WriteToFilesBrick.class);
 		xstream.alias("brick", ReadFromFilesBrick.class);
 		xstream.alias("brick", DeleteFilesBrick.class);
@@ -912,13 +917,11 @@ public final class XstreamSerializer {
         xstream.alias("script", AdmobAppOpenShownScript.class);
         xstream.alias("script", AdmobAppOpenClosedScript.class);
 
-        // Event: app lifecycle bricks (reported missing by full block-category audit)
         xstream.alias("brick", WhenAppMinimizedBrick.class);
         xstream.alias("brick", WhenAppRestoredBrick.class);
         xstream.alias("script", org.catrobat.catroid.content.WhenAppMinimizedScript.class);
         xstream.alias("script", org.catrobat.catroid.content.WhenAppRestoredScript.class);
 
-        // Looks: border/radius/filter bricks
         xstream.alias("brick", SetBorderColorBrick.class);
         xstream.alias("brick", SetBorderWidthBrick.class);
         xstream.alias("brick", SetCornerRadiusBrick.class);
@@ -926,10 +929,8 @@ public final class XstreamSerializer {
         xstream.alias("brick", SetFilterSepiaBrick.class);
         xstream.alias("brick", SetFilterPixelateBrick.class);
 
-        // File: prepare sound
         xstream.alias("brick", PrepareSoundBrick.class);
 
-        // Control: scene/save/switch bricks
         xstream.alias("brick", ClearSceneBrick.class);
         xstream.alias("brick", SetSaveScenesBrick.class);
         xstream.alias("brick", SetStopSoundsBrick.class);
@@ -939,14 +940,12 @@ public final class XstreamSerializer {
         xstream.alias("brick", SwitchBeginBrick.class);
         xstream.alias("brick", SwitchCaseBrick.class);
 
-        // Pathfinder: grid/movement bricks
         xstream.alias("brick", GridBrick.class);
         xstream.alias("brick", MoveToObjectBrick.class);
         xstream.alias("brick", StopMovementBrick.class);
         xstream.alias("brick", ContinueMovementBrick.class);
         xstream.alias("brick", HasPathBrick.class);
 
-        // Firebase Storage bricks
         xstream.alias("brick", UploadFileToFirebaseBrick.class);
         xstream.alias("brick", DownloadFileFromFirebaseBrick.class);
         xstream.alias("brick", ListFirebaseFilesBrick.class);
@@ -996,7 +995,6 @@ public final class XstreamSerializer {
 				for (Scene scene : project.getSceneList()) {
 					scene.setProject(project);
 				}
-				// Migrate old globalScene → global sprites in default scene
 				Scene oldGlobal = project.getGlobalSceneForMigration();
 				if (oldGlobal != null && !oldGlobal.getSpriteList().isEmpty()) {
 					Scene defaultScene = project.getDefaultScene();

@@ -1,5 +1,6 @@
 package org.catrobat.catroid.content.actions
 
+import android.util.Log
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction
 import org.catrobat.catroid.ProjectManager
@@ -12,8 +13,15 @@ class ApplyForceAction : TemporalAction() {
     private var forceY: Formula? = null
 
     override fun update(percent: Float) {
-        val x = forceX?.interpretFloat(scope) ?: 0f
-        val y = forceY?.interpretFloat(scope) ?: 0f
+        val x: Float
+        val y: Float
+        try {
+            x = forceX?.interpretFloat(scope) ?: 0f
+            y = forceY?.interpretFloat(scope) ?: 0f
+        } catch (e: Exception) {
+            Log.w(javaClass.simpleName, "Formula interpretation failed", e)
+            return
+        }
 
         val scene = ProjectManager.getInstance().currentlyPlayingScene ?: return
         val sprite = scope?.sprite ?: return

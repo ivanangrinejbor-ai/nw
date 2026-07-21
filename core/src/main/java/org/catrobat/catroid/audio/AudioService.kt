@@ -1,12 +1,5 @@
 package org.catrobat.catroid.audio
 
-/**
- * Platform-independent audio surface used by sound bricks.
- *
- * Mirrors the Sprite-free primitives of the Android [org.catrobat.catroid.io.SoundManager]
- * so the desktop player can supply an alternative implementation (e.g. OpenAL)
- * without touching the action classes.
- */
 interface AudioService {
     fun setVolume(volume: Float)
     fun getVolume(): Float

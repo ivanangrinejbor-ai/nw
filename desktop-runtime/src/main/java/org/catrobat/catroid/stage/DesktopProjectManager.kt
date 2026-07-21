@@ -7,17 +7,6 @@ import org.w3c.dom.Node
 import java.io.File
 import javax.xml.parsers.DocumentBuilderFactory
 
-/**
- * Десктопный менеджер проектов. Загружает проект NeoCatroid/Catrobat из
- * директории (формат: code.xml + images/).
- *
- * Поддерживает:
- *  - имя проекта (из code.xml <program> <name>)
- *  - спрайты (каждый <object>), их позицию (<x>, <y>), размер (<size>)
- *  - список look'ов (<looks> <look> <fileName>)
- *
- * Использует стандартный JDK DOM-парсер (javax.xml) — без Android-зависимостей.
- */
 object DesktopProjectManager {
 
     private var currentProject: DesktopProject? = null
@@ -32,9 +21,7 @@ object DesktopProjectManager {
         }
 
         val project = DesktopProject(name = projectDir.name, projectDir = projectDir)
-        // Catrobat projects may nest media under a project-name folder
-        // (e.g. <project>/images, <project>/sounds), so resolve recursively.
-        val imagesDir = findDir(projectDir, "images") ?: File(projectDir, "images")
+            val imagesDir = findDir(projectDir, "images") ?: File(projectDir, "images")
         val soundsDir = findDir(projectDir, "sounds") ?: File(projectDir, "sounds")
         project.imagesDir = imagesDir
         project.soundsDir = soundsDir
@@ -49,13 +36,11 @@ object DesktopProjectManager {
             val doc = builder.parse(codeXml)
             doc.documentElement.normalize()
 
-            // Имя проекта
             val nameNodes = doc.getElementsByTagName("name")
             if (nameNodes.length > 0) {
                 project.name = nameNodes.item(0).textContent.trim()
             }
 
-            // Спрайты — <object>
             val objects = doc.getElementsByTagName("object")
             for (i in 0 until objects.length) {
                 val objNode = objects.item(i)
@@ -65,13 +50,11 @@ object DesktopProjectManager {
                 val spriteName = attrOrText(objEl, "name")?.trim() ?: "sprite$i"
                 val sprite = DesktopSprite(name = spriteName)
 
-                // Позиция, размер и направление
                 textOf(objEl, "x")?.toFloatOrNull()?.let { sprite.x = it }
                 textOf(objEl, "y")?.toFloatOrNull()?.let { sprite.y = it }
                 textOf(objEl, "size")?.toFloatOrNull()?.let { sprite.size = it }
                 textOf(objEl, "direction")?.toFloatOrNull()?.let { sprite.direction = it }
 
-                // Look'и (lazy — textures loaded on first access)
                 val looks = objEl.getElementsByTagName("look")
                 for (j in 0 until looks.length) {
                     val lookNode = looks.item(j)
@@ -83,7 +66,25 @@ object DesktopProjectManager {
                             name = attrOrText(lookEl, "name")?.trim() ?: fileName,
                             fileName = fileName
                         )
-                        // Texture will be loaded lazily on first render access
+                        val hitboxNodes = lookEl.getElementsByTagName("hitbox")
+                        for (k in 0 until hitboxNodes.length) {
+                            val hbNode = hitboxNodes.item(k)
+                            if (hbNode.nodeType != Node.ELEMENT_NODE) continue
+                            val hbEl = hbNode as Element
+                            val hw = attrOrText(hbEl, "width")?.toFloatOrNull() ?: 0f
+                            val hh = attrOrText(hbEl, "height")?.toFloatOrNull() ?: 0f
+                            if (hw > 0f && hh > 0f) {
+                                look.hitboxes.add(
+                                    DesktopHitbox(
+                                        x = attrOrText(hbEl, "x")?.toFloatOrNull() ?: 0f,
+                                        y = attrOrText(hbEl, "y")?.toFloatOrNull() ?: 0f,
+                                        width = hw,
+                                        height = hh,
+                                        rotation = attrOrText(hbEl, "rotation")?.toFloatOrNull() ?: 0f
+                                    )
+                                )
+                            }
+                        }
                         sprite.looks.add(look)
                     }
                 }
@@ -106,22 +107,12 @@ object DesktopProjectManager {
         return nodes.item(0).textContent
     }
 
-    /**
-     * Catrobat's code.xml stores many fields BOTH as XML attributes and/or as
-     * child elements depending on the exporter/version. Read the attribute first,
-     * then fall back to the child-element text, so look/sprite metadata
-     * (e.g. <look fileName="...">, <object name="...">) resolves either way.
-     */
     private fun attrOrText(el: Element, tag: String): String? {
         val a = el.getAttribute(tag)
         if (!a.isNullOrBlank()) return a
         return textOf(el, tag)?.trim()
     }
 
-    /**
-     * Lazily load a texture by fileName from the current project's images directory.
-     * Called by [DesktopLook.texture] getter on first access.
-     */
     fun loadTextureLazy(fileName: String): Texture? {
         val dir = currentProject?.projectDir ?: return null
         val imagesDir = File(dir, "images")
@@ -142,11 +133,6 @@ object DesktopProjectManager {
         }
     }
 
-    /**
-     * Depth-limited recursive search for a subdirectory by [name] under [root].
-     * Catrobat zips can place media under a project-name folder, so a flat
-     * `File(root, "images")` lookup misses it.
-     */
     private fun findDir(root: File, name: String, maxDepth: Int = 6): File? {
         if (!root.isDirectory || maxDepth < 0) return null
         root.listFiles()?.forEach { f ->

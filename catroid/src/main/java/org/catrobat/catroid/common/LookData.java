@@ -85,8 +85,16 @@ public class LookData implements Cloneable, Nameable, Serializable {
 
 	private boolean isWebRequest = false;
 
+	/** Hitbox is used by the physics engine only (default, backward compatible). */
+	public static final int HITBOX_MODE_PHYSICS = 0;
+	/** Hitbox is used everywhere: taps, sprite collisions, edge, finger AND physics. */
+	public static final int HITBOX_MODE_FULL = 1;
+
 	/** Custom hitboxes defined by the user in the Hitbox Editor. Null/empty = use auto collision. */
 	private List<HitboxData> hitboxes = null;
+
+	/** Which subsystems respect the custom hitboxes. Missing on load -> 0 (physics only). */
+	private int hitboxMode = HITBOX_MODE_PHYSICS;
 
 	public LookData() {
 	}
@@ -186,6 +194,7 @@ public class LookData implements Cloneable, Nameable, Serializable {
 				}
 				copy.hitboxes = copiedBoxes;
 			}
+			copy.hitboxMode = hitboxMode;
 			return copy;
 		} catch (IOException e) {
 			throw new RuntimeException(TAG + ": Could not copy file: " + file.getAbsolutePath());
@@ -289,5 +298,17 @@ public class LookData implements Cloneable, Nameable, Serializable {
 
 	public boolean hasCustomHitboxes() {
 		return hitboxes != null && !hitboxes.isEmpty();
+	}
+
+	public int getHitboxMode() {
+		return hitboxMode;
+	}
+
+	public void setHitboxMode(int hitboxMode) {
+		this.hitboxMode = hitboxMode;
+	}
+
+	public boolean isFullHitboxMode() {
+		return hitboxMode == HITBOX_MODE_FULL;
 	}
 }

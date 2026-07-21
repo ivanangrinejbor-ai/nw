@@ -151,23 +151,31 @@ void kernel_softmax_backward(OpNode& node) {
     auto S = node.output; auto A = node.input_a; if (!A->trainable) return;
     int rows = A->shape.size() > 1 ? A->shape[0] : 1; int cols = A->shape.back();
 
-
-
-    for(int i=0; i < S->total_size; ++i) A->grad[i] += S->grad[i];
+    // Correct softmax Jacobian: dL/dx_i = S_i * (dL/dS_i - sum_j(dL/dS_j * S_j))
+    for (int r = 0; r < rows; ++r) {
+        int offset = r * cols;
+        float dot = 0.0f;
+        for (int j = 0; j < cols; ++j) dot += S->grad[offset + j] * S->data[offset + j];
+        for (int j = 0; j < cols; ++j) {
+            A->grad[offset + j] += S->data[offset + j] * (S->grad[offset + j] - dot);
+        }
+    }
 }
 
 
 
 void kernel_mse_loss_forward(const std::shared_ptr<CatroidTensor>& Pred, const std::shared_ptr<CatroidTensor>& Target, std::shared_ptr<CatroidTensor>& Loss) {
     float total_loss = 0.0f;
-    for(int i=0; i<Pred->total_size; i++) { float diff = Pred->data[i] - Target->data[i]; total_loss += diff * diff; }
-    Loss->data[0] = total_loss / Pred->total_size;
+    int n = std::min(Pred->total_size, Target->total_size);
+    for(int i=0; i<n; i++) { float diff = Pred->data[i] - Target->data[i]; total_loss += diff * diff; }
+    Loss->data[0] = (Pred->total_size > 0) ? total_loss / Pred->total_size : 0.0f;
 }
 void kernel_mse_loss_backward(OpNode& node) {
     auto Pred = node.input_a; auto Target = node.input_b;
-    if (!Pred->trainable) return;
+    if (!Pred->trainable || Pred->total_size == 0) return;
+    int n = std::min(Pred->total_size, Target->total_size);
     float scale = 2.0f / Pred->total_size;
-    for(int i=0; i < Pred->total_size; i++) Pred->grad[i] += scale * (Pred->data[i] - Target->data[i]);
+    for(int i=0; i < n; i++) Pred->grad[i] += scale * (Pred->data[i] - Target->data[i]);
 }
 
 
@@ -178,6 +186,92 @@ void kernel_sum_backward(OpNode& node) {
     if (!node.input_a->trainable) return;
     float grad_val = node.output->grad[0];
     for(int i=0; i < node.input_a->total_size; i++) node.input_a->grad[i] += grad_val;
+}
+
+
+// ---- Transformer building blocks (forward + backward) ----
+
+// GELU using the numerically stable sigmoid approximation: gelu(x) = x * sigmoid(1.702 * x)
+void kernel_gelu_forward(const std::shared_ptr<CatroidTensor>& A, std::shared_ptr<CatroidTensor>& C) {
+    for (int i = 0; i < A->total_size; ++i) {
+        float x = A->data[i];
+        float s = 1.0f / (1.0f + std::exp(-1.702f * x));
+        C->data[i] = x * s;
+    }
+}
+void kernel_gelu_backward(OpNode& node) {
+    if (!node.input_a->trainable) return;
+    auto A = node.input_a; auto C = node.output;
+    for (int i = 0; i < A->total_size; ++i) {
+        float x = A->data[i];
+        float s = 1.0f / (1.0f + std::exp(-1.702f * x));
+        float d = s + x * 1.702f * s * (1.0f - s);
+        A->grad[i] += C->grad[i] * d;
+    }
+}
+
+// 2D transpose: [rows, cols] -> [cols, rows]
+void kernel_transpose_forward(const std::shared_ptr<CatroidTensor>& A, std::shared_ptr<CatroidTensor>& C) {
+    int rows = A->shape[0], cols = A->shape[1];
+    for (int i = 0; i < rows; ++i)
+        for (int j = 0; j < cols; ++j)
+            C->data[j * rows + i] = A->data[i * cols + j];
+}
+void kernel_transpose_backward(OpNode& node) {
+    if (!node.input_a->trainable) return;
+    auto A = node.input_a; auto C = node.output;
+    int rows = A->shape[0], cols = A->shape[1];
+    for (int i = 0; i < rows; ++i)
+        for (int j = 0; j < cols; ++j)
+            A->grad[i * cols + j] += C->grad[j * rows + i];
+}
+
+// Layer normalization over the last dimension (no affine params).
+void kernel_layernorm_forward(const std::shared_ptr<CatroidTensor>& A, std::shared_ptr<CatroidTensor>& C) {
+    const float eps = 1e-5f;
+    int cols = A->shape.back();
+    if (cols <= 0) return;
+    int rows = A->total_size / cols;
+    for (int r = 0; r < rows; ++r) {
+        int offset = r * cols;
+        float mean = 0.0f;
+        for (int j = 0; j < cols; ++j) mean += A->data[offset + j];
+        mean /= cols;
+        float var = 0.0f;
+        for (int j = 0; j < cols; ++j) { float d = A->data[offset + j] - mean; var += d * d; }
+        var /= cols;
+        float istd = 1.0f / std::sqrt(var + eps);
+        for (int j = 0; j < cols; ++j) C->data[offset + j] = (A->data[offset + j] - mean) * istd;
+    }
+}
+void kernel_layernorm_backward(OpNode& node) {
+    if (!node.input_a->trainable) return;
+    auto A = node.input_a; auto C = node.output;
+    const float eps = 1e-5f;
+    int cols = A->shape.back();
+    if (cols <= 0) return;
+    int rows = A->total_size / cols;
+    for (int r = 0; r < rows; ++r) {
+        int offset = r * cols;
+        float mean = 0.0f;
+        for (int j = 0; j < cols; ++j) mean += A->data[offset + j];
+        mean /= cols;
+        float var = 0.0f;
+        for (int j = 0; j < cols; ++j) { float d = A->data[offset + j] - mean; var += d * d; }
+        var /= cols;
+        float istd = 1.0f / std::sqrt(var + eps);
+        float sum_g = 0.0f, sum_gx = 0.0f;
+        for (int j = 0; j < cols; ++j) {
+            float xhat = (A->data[offset + j] - mean) * istd;
+            float g = C->grad[offset + j];
+            sum_g += g; sum_gx += g * xhat;
+        }
+        for (int j = 0; j < cols; ++j) {
+            float xhat = (A->data[offset + j] - mean) * istd;
+            float g = C->grad[offset + j];
+            A->grad[offset + j] += (istd / cols) * (cols * g - sum_g - xhat * sum_gx);
+        }
+    }
 }
 
 
@@ -1532,18 +1626,26 @@ JNI_ML(nativeCreateRandomTensor)(JNIEnv *env,  jclass clazz, jstring name_j, jin
     int dim = env->GetArrayLength(shape_j);
     std::vector<int> shape;
     int total_size = 1;
-    for(int i=0; i<dim; i++) { shape.push_back(s_ptr[i]); total_size *= s_ptr[i]; }
+    bool valid = (dim > 0);
+    for(int i=0; i<dim; i++) {
+        if (s_ptr[i] <= 0) { valid = false; break; }
+        shape.push_back(s_ptr[i]);
+        total_size *= s_ptr[i];
+    }
 
-    auto t = std::make_shared<CatroidTensor>(shape, 0.0f, (bool)trainable);
+    if (valid) {
+        auto t = std::make_shared<CatroidTensor>(shape, 0.0f, (bool)trainable);
 
+        std::default_random_engine generator(std::random_device{}());
+        float limit = sqrt(6.0f / total_size);
+        std::uniform_real_distribution<float> distribution(-limit, limit);
+        for(int i=0; i<total_size; i++) t->data[i] = distribution(generator);
 
-    std::default_random_engine generator(std::random_device{}());
-    float limit = sqrt(6.0f / total_size);
-    std::uniform_real_distribution<float> distribution(-limit, limit);
-    for(int i=0; i<total_size; i++) t->data[i] = distribution(generator);
-
-    std::lock_guard<std::mutex> lock(g_MnnMutex);
-    g_Tensors[name] = t;
+        std::lock_guard<std::mutex> lock(g_MnnMutex);
+        g_Tensors[name] = t;
+    } else {
+        __android_log_print(ANDROID_LOG_ERROR, "Pocketensor", "createRandomTensor: invalid shape for '%s'", name);
+    }
     env->ReleaseIntArrayElements(shape_j, s_ptr, 0);
     env->ReleaseStringUTFChars(name_j, name);
 }
@@ -1555,10 +1657,18 @@ JNI_ML(nativeCreateTensor)(JNIEnv *env, jclass clazz, jstring name_j, jintArray 
     int dim_count = env->GetArrayLength(shape_j);
 
     std::vector<int> shape;
-    for(int i=0; i<dim_count; i++) shape.push_back((int)s_ptr[i]);
+    bool valid = (dim_count > 0);
+    for(int i=0; i<dim_count; i++) {
+        if (s_ptr[i] <= 0) { valid = false; break; }
+        shape.push_back((int)s_ptr[i]);
+    }
 
-    std::lock_guard<std::mutex> lock(g_MnnMutex);
-    g_Tensors[name] = std::make_shared<CatroidTensor>(shape, val, (bool)trainable);
+    if (valid) {
+        std::lock_guard<std::mutex> lock(g_MnnMutex);
+        g_Tensors[name] = std::make_shared<CatroidTensor>(shape, val, (bool)trainable);
+    } else {
+        __android_log_print(ANDROID_LOG_ERROR, "Pocketensor", "createTensor: invalid shape for '%s'", name);
+    }
 
     env->ReleaseIntArrayElements(shape_j, s_ptr, 0);
     env->ReleaseStringUTFChars(name_j, name);
@@ -1641,33 +1751,71 @@ JNIEXPORT void JNICALL JNI_ML(nativeOp)(JNIEnv *env, jclass, jstring res_j, jstr
     const char* op_type_c = env->GetStringUTFChars(op_j, nullptr);
     std::string op_type(op_type_c);
 
-    std::lock_guard<std::mutex> lock(g_MnnMutex);
+    {
+        std::lock_guard<std::mutex> lock(g_MnnMutex);
 
-    if (!g_Tensors.count(a_n)) return;
-    auto A = g_Tensors[a_n];
-    auto B = (b_n && g_Tensors.count(b_n)) ? g_Tensors[b_n] : nullptr;
+        auto itA = g_Tensors.find(a_n);
+        if (itA != g_Tensors.end() && itA->second && itA->second->total_size > 0) {
+            auto A = itA->second;
+            std::shared_ptr<CatroidTensor> B = nullptr;
+            if (b_n) {
+                auto itB = g_Tensors.find(b_n);
+                if (itB != g_Tensors.end()) B = itB->second;
+            }
 
-    std::shared_ptr<CatroidTensor> R;
-    bool is_trainable = g_IsTraining && (A->trainable || (B && B->trainable));
+            // Ops that require a valid, non-empty second operand.
+            bool needsB = (op_type == "add" || op_type == "sub" || op_type == "mul"
+                    || op_type == "matmul" || op_type == "mse_loss");
+            bool binaryOk = !needsB || (B != nullptr && B->total_size > 0);
 
-    if (op_type == "add") { R = std::make_shared<CatroidTensor>(A->shape, 0.0f, is_trainable, res_n); kernel_add_forward(A, B, R); }
-    else if (op_type == "sub") { R = std::make_shared<CatroidTensor>(A->shape, 0.0f, is_trainable, res_n); kernel_sub_forward(A, B, R); }
-    else if (op_type == "mul") { R = std::make_shared<CatroidTensor>(A->shape, 0.0f, is_trainable, res_n); kernel_mul_forward(A, B, R); }
-    else if (op_type == "matmul") { std::vector<int> res_shape = {A->shape[0], B->shape[1]}; R = std::make_shared<CatroidTensor>(res_shape, 0.0f, is_trainable, res_n); kernel_matmul_forward(A, B, R); }
-    else if (op_type == "relu") { R = std::make_shared<CatroidTensor>(A->shape, 0.0f, is_trainable, res_n); kernel_relu_forward(A, R); }
-    else if (op_type == "sigmoid") { R = std::make_shared<CatroidTensor>(A->shape, 0.0f, is_trainable, res_n); kernel_sigmoid_forward(A, R); }
-    else if (op_type == "tanh") { R = std::make_shared<CatroidTensor>(A->shape, 0.0f, is_trainable, res_n); kernel_tanh_forward(A, R); }
-    else if (op_type == "softmax") { R = std::make_shared<CatroidTensor>(A->shape, 0.0f, is_trainable, res_n); kernel_softmax_forward(A, R); }
-    else if (op_type == "mse_loss") { R = std::make_shared<CatroidTensor>(std::vector<int>{1}, 0.0f, is_trainable, res_n); kernel_mse_loss_forward(A, B, R); }
-    else if (op_type == "sum") { R = std::make_shared<CatroidTensor>(std::vector<int>{1}, 0.0f, is_trainable, res_n); kernel_sum_forward(A, R); }
+            std::shared_ptr<CatroidTensor> R;
+            bool is_trainable = g_IsTraining && (A->trainable || (B && B->trainable));
 
-    if (R) {
-        g_Tensors[res_n] = R;
-        if (g_IsTraining) g_Tape.push_back({op_type, A, B, R});
+            if (binaryOk) {
+                if (op_type == "add") { R = std::make_shared<CatroidTensor>(A->shape, 0.0f, is_trainable, res_n); kernel_add_forward(A, B, R); }
+                else if (op_type == "sub") { R = std::make_shared<CatroidTensor>(A->shape, 0.0f, is_trainable, res_n); kernel_sub_forward(A, B, R); }
+                else if (op_type == "mul") { R = std::make_shared<CatroidTensor>(A->shape, 0.0f, is_trainable, res_n); kernel_mul_forward(A, B, R); }
+                else if (op_type == "matmul") {
+                    if (A->shape.size() >= 2 && B->shape.size() >= 2 && A->shape[1] == B->shape[0]) {
+                        std::vector<int> res_shape = {A->shape[0], B->shape[1]};
+                        R = std::make_shared<CatroidTensor>(res_shape, 0.0f, is_trainable, res_n);
+                        kernel_matmul_forward(A, B, R);
+                    } else {
+                        __android_log_print(ANDROID_LOG_ERROR, "Pocketensor", "matmul: incompatible shapes for '%s'", res_n);
+                    }
+                }
+                else if (op_type == "relu") { R = std::make_shared<CatroidTensor>(A->shape, 0.0f, is_trainable, res_n); kernel_relu_forward(A, R); }
+                else if (op_type == "sigmoid") { R = std::make_shared<CatroidTensor>(A->shape, 0.0f, is_trainable, res_n); kernel_sigmoid_forward(A, R); }
+                else if (op_type == "tanh") { R = std::make_shared<CatroidTensor>(A->shape, 0.0f, is_trainable, res_n); kernel_tanh_forward(A, R); }
+                else if (op_type == "softmax") { R = std::make_shared<CatroidTensor>(A->shape, 0.0f, is_trainable, res_n); kernel_softmax_forward(A, R); }
+                else if (op_type == "gelu") { R = std::make_shared<CatroidTensor>(A->shape, 0.0f, is_trainable, res_n); kernel_gelu_forward(A, R); }
+                else if (op_type == "layernorm") { R = std::make_shared<CatroidTensor>(A->shape, 0.0f, is_trainable, res_n); kernel_layernorm_forward(A, R); }
+                else if (op_type == "transpose") {
+                    if (A->shape.size() >= 2) {
+                        std::vector<int> res_shape = {A->shape[1], A->shape[0]};
+                        R = std::make_shared<CatroidTensor>(res_shape, 0.0f, is_trainable, res_n);
+                        kernel_transpose_forward(A, R);
+                    } else {
+                        __android_log_print(ANDROID_LOG_ERROR, "Pocketensor", "transpose: tensor '%s' is not 2D", a_n);
+                    }
+                }
+                else if (op_type == "mse_loss") { R = std::make_shared<CatroidTensor>(std::vector<int>{1}, 0.0f, is_trainable, res_n); kernel_mse_loss_forward(A, B, R); }
+                else if (op_type == "sum") { R = std::make_shared<CatroidTensor>(std::vector<int>{1}, 0.0f, is_trainable, res_n); kernel_sum_forward(A, R); }
+            } else {
+                __android_log_print(ANDROID_LOG_ERROR, "Pocketensor", "op '%s' needs a valid second tensor", op_type.c_str());
+            }
+
+            if (R) {
+                g_Tensors[res_n] = R;
+                if (g_IsTraining) g_Tape.push_back({op_type, A, B, R});
+            }
+        }
     }
 
-    env->ReleaseStringUTFChars(res_j, res_n); env->ReleaseStringUTFChars(a_j, a_n);
-    if (b_j) env->ReleaseStringUTFChars(b_j, b_n); env->ReleaseStringUTFChars(op_j, op_type_c);
+    env->ReleaseStringUTFChars(res_j, res_n);
+    env->ReleaseStringUTFChars(a_j, a_n);
+    if (b_j) env->ReleaseStringUTFChars(b_j, b_n);
+    env->ReleaseStringUTFChars(op_j, op_type_c);
 }
 
 
@@ -1692,6 +1840,9 @@ JNIEXPORT void JNICALL JNI_ML(nativeBackward)(JNIEnv *env, jclass, jstring loss_
         else if (node.op_type == "sigmoid") kernel_sigmoid_backward(node);
         else if (node.op_type == "tanh") kernel_tanh_backward(node);
         else if (node.op_type == "softmax") kernel_softmax_backward(node);
+        else if (node.op_type == "gelu") kernel_gelu_backward(node);
+        else if (node.op_type == "layernorm") kernel_layernorm_backward(node);
+        else if (node.op_type == "transpose") kernel_transpose_backward(node);
         else if (node.op_type == "mse_loss") kernel_mse_loss_backward(node);
         else if (node.op_type == "sum") kernel_sum_backward(node);
         else if (node.op_type == "reshape") {
@@ -1754,7 +1905,10 @@ JNIEXPORT jfloatArray JNICALL
 JNI_ML(nativeGetTensor)(JNIEnv *env, jclass clazz, jstring name_j) {
     const char* name = env->GetStringUTFChars(name_j, nullptr);
     std::lock_guard<std::mutex> lock(g_MnnMutex);
-    if (!g_Tensors.count(name)) return nullptr;
+    if (!g_Tensors.count(name)) {
+        env->ReleaseStringUTFChars(name_j, name);
+        return nullptr;
+    }
 
     auto t = g_Tensors[name];
     jfloatArray result = env->NewFloatArray(t->total_size);
@@ -1768,11 +1922,15 @@ JNIEXPORT jstring JNICALL
 JNI_ML(nativeGetTensorAsString)(JNIEnv *env, jclass clazz, jstring name_j) {
     const char* name = env->GetStringUTFChars(name_j, nullptr);
     std::lock_guard<std::mutex> lock(g_MnnMutex);
-    if (!g_Tensors.count(name)) return env->NewStringUTF("");
+    if (!g_Tensors.count(name)) {
+        env->ReleaseStringUTFChars(name_j, name);
+        return env->NewStringUTF("");
+    }
 
     auto t = g_Tensors[name];
     std::stringstream ss;
-    int last_dim = t->shape.back();
+    int last_dim = (!t->shape.empty() && t->shape.back() > 0) ? t->shape.back() : t->total_size;
+    if (last_dim <= 0) last_dim = 1;
 
     for (int i = 0; i < t->total_size; i++) {
         ss << t->data[i];
@@ -1791,11 +1949,15 @@ JNI_ML(nativeGetTensorFormatted)(JNIEnv *env, jobject, jstring name_j) {
     const char* name = env->GetStringUTFChars(name_j, nullptr);
     std::lock_guard<std::mutex> lock(g_MnnMutex);
 
-    if (!g_Tensors.count(name)) return env->NewStringUTF("");
+    if (!g_Tensors.count(name)) {
+        env->ReleaseStringUTFChars(name_j, name);
+        return env->NewStringUTF("");
+    }
     auto t = g_Tensors[name];
 
     std::stringstream ss;
-    int last_dim = t->shape.back();
+    int last_dim = (!t->shape.empty() && t->shape.back() > 0) ? t->shape.back() : t->total_size;
+    if (last_dim <= 0) last_dim = 1;
 
     for (int i = 0; i < t->total_size; i++) {
         ss << t->data[i];
@@ -1815,7 +1977,10 @@ JNI_ML(nativeGetShape)(JNIEnv *env, jclass clazz, jstring name_j) {
     const char* name = env->GetStringUTFChars(name_j, nullptr);
     std::lock_guard<std::mutex> lock(g_MnnMutex);
 
-    if (!g_Tensors.count(name)) return env->NewStringUTF("none");
+    if (!g_Tensors.count(name)) {
+        env->ReleaseStringUTFChars(name_j, name);
+        return env->NewStringUTF("none");
+    }
 
     auto t = g_Tensors[name];
     std::string res = "";
@@ -1834,19 +1999,32 @@ JNI_ML(nativeGetValueND)(JNIEnv *env, jclass clazz, jstring name_j, jstring indi
     const char* idx_str = env->GetStringUTFChars(indices_j, nullptr);
 
     std::lock_guard<std::mutex> lock(g_MnnMutex);
-    if (!g_Tensors.count(name)) return 0.0f;
+    if (!g_Tensors.count(name)) {
+        env->ReleaseStringUTFChars(name_j, name);
+        env->ReleaseStringUTFChars(indices_j, idx_str);
+        return 0.0f;
+    }
 
     auto t = g_Tensors[name];
-    std::stringstream ss(idx_str);
+    std::stringstream ss(idx_str ? idx_str : "");
     std::string item;
     std::vector<int> coords;
-    while (std::getline(ss, item, ',')) coords.push_back(std::stoi(item));
-
+    while (std::getline(ss, item, ',')) {
+        // Trim whitespace and parse safely (avoid std::stoi throwing across JNI).
+        size_t start = item.find_first_not_of(" \t\r\n");
+        if (start == std::string::npos) continue;
+        size_t end = item.find_last_not_of(" \t\r\n");
+        item = item.substr(start, end - start + 1);
+        char* parse_end = nullptr;
+        long v = std::strtol(item.c_str(), &parse_end, 10);
+        if (parse_end == item.c_str()) continue; // not a number, skip
+        coords.push_back((int)v);
+    }
 
     int flat_idx = 0;
     int multiplier = 1;
     for (int i = (int)t->shape.size() - 1; i >= 0; i--) {
-        if (i < coords.size()) flat_idx += coords[i] * multiplier;
+        if (i < (int)coords.size()) flat_idx += coords[i] * multiplier;
         multiplier *= t->shape[i];
     }
 
@@ -1977,39 +2155,65 @@ Java_org_catrobat_catroid_ml_MLBridge_nativeLoadModel(JNIEnv *env, jclass, jstri
         return JNI_FALSE;
     }
 
-    int tensor_count;
+    int tensor_count = 0;
     fs.read((char*)&tensor_count, sizeof(int));
+    if (!fs.good() || tensor_count < 0 || tensor_count > 100000) {
+        __android_log_print(ANDROID_LOG_ERROR, "Pocketensor", "LOAD: Некорректный заголовок файла (count=%d)", tensor_count);
+        env->ReleaseStringUTFChars(path_j, path);
+        return JNI_FALSE;
+    }
     __android_log_print(ANDROID_LOG_DEBUG, "Pocketensor", "LOAD: В файле найдено тензоров: %d", tensor_count);
 
     std::lock_guard<std::mutex> lock(g_MnnMutex);
 
     for (int i = 0; i < tensor_count; i++) {
-        int name_len;
+        int name_len = 0;
         fs.read((char*)&name_len, sizeof(int));
+        if (!fs.good() || name_len < 0 || name_len > 1000000) {
+            __android_log_print(ANDROID_LOG_ERROR, "Pocketensor", "LOAD: Повреждённая длина имени (%d), прерывание", name_len);
+            break;
+        }
         std::vector<char> name_buf(name_len);
         fs.read(name_buf.data(), name_len);
+        if (!fs.good()) { __android_log_print(ANDROID_LOG_ERROR, "Pocketensor", "LOAD: Ошибка чтения имени, прерывание"); break; }
         std::string name(name_buf.begin(), name_buf.end());
 
-        int dims_count;
+        int dims_count = 0;
         fs.read((char*)&dims_count, sizeof(int));
+        if (!fs.good() || dims_count < 0 || dims_count > 32) {
+            __android_log_print(ANDROID_LOG_ERROR, "Pocketensor", "LOAD: Повреждённое число измерений (%d), прерывание", dims_count);
+            break;
+        }
         std::vector<int> shape(dims_count);
         fs.read((char*)shape.data(), sizeof(int) * dims_count);
+        if (!fs.good()) { __android_log_print(ANDROID_LOG_ERROR, "Pocketensor", "LOAD: Ошибка чтения формы, прерывание"); break; }
 
-
-        int size = 1;
-        for (int d : shape) size *= d;
-        std::vector<float> data(size);
-        fs.read((char*)data.data(), sizeof(float) * size);
-
+        long long size = 1;
+        bool shape_ok = true;
+        for (int d : shape) {
+            if (d <= 0) { shape_ok = false; break; }
+            size *= d;
+            if (size > 100000000LL) { shape_ok = false; break; } // >100M floats, reject
+        }
+        if (!shape_ok) {
+            __android_log_print(ANDROID_LOG_ERROR, "Pocketensor", "LOAD: Недопустимая форма тензора '%s', прерывание", name.c_str());
+            break;
+        }
+        std::vector<float> data((size_t)size);
+        fs.read((char*)data.data(), sizeof(float) * (size_t)size);
+        if (!fs.good() && !fs.eof()) {
+            __android_log_print(ANDROID_LOG_ERROR, "Pocketensor", "LOAD: Ошибка чтения данных '%s', прерывание", name.c_str());
+            break;
+        }
 
         if (g_Tensors.count(name)) {
             auto& target = g_Tensors[name];
 
-            if (target->total_size == size) {
+            if (target->total_size == (int)size) {
                 target->data = data;
                 __android_log_print(ANDROID_LOG_INFO, "Pocketensor", "LOAD: Успешно загружен тензор: %s", name.c_str());
             } else {
-                __android_log_print(ANDROID_LOG_ERROR, "Pocketensor", "LOAD: Ошибка размера для %s! В файле: %d, В проекте: %d", name.c_str(), size, target->total_size);
+                __android_log_print(ANDROID_LOG_ERROR, "Pocketensor", "LOAD: Ошибка размера для %s! В файле: %lld, В проекте: %d", name.c_str(), size, target->total_size);
             };
         } else {
 

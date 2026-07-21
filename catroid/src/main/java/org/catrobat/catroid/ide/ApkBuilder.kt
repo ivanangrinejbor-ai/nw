@@ -21,7 +21,6 @@ import java.util.zip.ZipFile
 object ApkBuilder {
 
     private const val TAG = "ApkBuilder"
-    // keyboard|orientation|screenSize|smallestScreenSize|screenLayout|density
     private const val CONFIG_CHANGES_FLAGS = 0x04A0
 
     data class BuildConfig(
@@ -71,7 +70,7 @@ object ApkBuilder {
                 }
                 templateLoaded = true
             } catch (e: Exception) {
-                // template_runtime.apk not in assets, try self-APK
+
             }
             if (!templateLoaded) {
                 val selfApkPath = context.applicationInfo.sourceDir
@@ -106,7 +105,7 @@ object ApkBuilder {
             var nextIndex = maxDexNumber + 1
 
             for (dexFile in dexFiles) {
-                if (dexFile.name.contains("..")) continue // path traversal protection
+                if (dexFile.name.contains("..")) continue
                 val dexName = if (nextIndex == 1) "classes.dex" else "classes$nextIndex.dex"
                 apk.add(FileInputSource(dexFile, dexName))
                 nextIndex++
@@ -163,7 +162,6 @@ object ApkBuilder {
             }
 
             val appElem = manifest.applicationElement
-            // 0x01010001 = android:label
             val labelAttr = appElem.getOrCreateAndroidAttribute("label", 0x01010001)
             labelAttr.valueAsString = config.appName
 
@@ -176,7 +174,6 @@ object ApkBuilder {
             var extractAttr = appElem.searchAttributeByName("extractNativeLibs")
             if (extractAttr == null) {
 
-                // 0x010104ea = android:extractNativeLibs
                 extractAttr = appElem.getOrCreateAndroidAttribute("extractNativeLibs", 0x010104ea)
             }
             extractAttr.setValueAsBoolean(true)
@@ -187,7 +184,6 @@ object ApkBuilder {
             val declaredPermissions = manifestRoot.listElements("permission")
 
             for (permElement in declaredPermissions) {
-                // 0x01010003 - android:name
                 val nameAttr = permElement.searchAttributeByResourceId(0x01010003)
                 val oldName = nameAttr?.valueAsString ?: ""
 
@@ -328,7 +324,7 @@ object ApkBuilder {
                 }
             }
 
-            // --- ASSETS ---
+
             onProgress("Упаковка ресурсов...")
 
             if (extraAssets.isNotEmpty()) {
@@ -342,7 +338,7 @@ object ApkBuilder {
                 addAssets(apk, assetsDir, "assets")
             }
 
-            // --- NATIVE LIBS (.so) ---
+
             onProgress("Упаковка библиотек (Native)...")
             val libsDir = File(projectPath, "libs")
 
@@ -413,12 +409,12 @@ object ApkBuilder {
                 }
             }
 
-            // --- BUILD ---
+
             onProgress("Сборка APK...")
             apk.writeApk(unsignedApk)
             apk.close()
 
-            // --- SIGN ---
+
             onProgress("Подпись...")
 
             try {
@@ -435,7 +431,7 @@ object ApkBuilder {
                     val cert = ks.getCertificate(signing.keyAlias) as X509Certificate
                     Pair(key, cert)
                 } else {
-                    // Auto-generate debug keystore
+
                     Log.i(TAG, "No signing config provided, generating debug keystore")
                     val debugDir = File(context.cacheDir, "debug_signing")
                     debugDir.mkdirs()

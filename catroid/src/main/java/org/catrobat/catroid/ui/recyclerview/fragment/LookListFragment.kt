@@ -33,12 +33,15 @@ import androidx.annotation.PluralsRes
 import org.catrobat.catroid.ProjectManager
 import org.catrobat.catroid.R
 import org.catrobat.catroid.common.Constants
+import org.catrobat.catroid.common.HitboxData
 import org.catrobat.catroid.common.LookData
 import org.catrobat.catroid.common.SharedPreferenceKeys.SHOW_DETAILS_LOOKS_PREFERENCE_KEY
 import org.catrobat.catroid.io.StorageOperations
+import org.catrobat.catroid.io.XstreamSerializer
 import org.catrobat.catroid.ui.SpriteActivity
 import org.catrobat.catroid.ui.UiUtils
 import org.catrobat.catroid.ui.controller.BackpackListManager
+import org.catrobat.catroid.ui.hitbox.HitboxEditorActivity
 import org.catrobat.catroid.ui.recyclerview.adapter.LookAdapter
 import org.catrobat.catroid.ui.recyclerview.adapter.multiselection.MultiSelectionManager
 import org.catrobat.catroid.ui.recyclerview.backpack.BackpackActivity
@@ -55,10 +58,16 @@ class LookListFragment : RecyclerViewFragment<LookData?>() {
 
     private val projectManager: ProjectManager by inject()
 
+    // Hitbox-editor undo snapshot: the look that was edited + its pre-edit hitboxes and mode.
+    private var hitboxUndoLook: LookData? = null
+    private var hitboxUndoSnapshot: List<HitboxData>? = null
+    private var hitboxUndoMode: Int = LookData.HITBOX_MODE_PHYSICS
+
     companion object {
         @JvmField
         val TAG = LookListFragment::class.java.simpleName
         private const val HITBOX_EDITOR_MENU_ID = 9001
+        private const val REQUEST_HITBOX_EDITOR = 9002
     }
 
     public override fun initializeAdapter() {
@@ -196,9 +205,33 @@ class LookListFragment : RecyclerViewFragment<LookData?>() {
                 activity.setUndoMenuItemVisibility(true)
             }
         }
+        if (requestCode == REQUEST_HITBOX_EDITOR) {
+            if (resultCode == Activity.RESULT_OK) {
+                // Hitboxes were edited and saved — offer undo and refresh the list.
+                (requireActivity() as? SpriteActivity)?.setUndoMenuItemVisibility(true)
+                adapter.notifyDataSetChanged()
+            } else {
+                // Canceled — nothing changed; drop the snapshot so it cannot
+                // swallow a later, unrelated undo (e.g. an image edit).
+                hitboxUndoLook = null
+                hitboxUndoSnapshot = null
+            }
+        }
     }
 
     fun undo(): Boolean {
+        // Hitbox-editor undo: restore the pre-edit hitboxes (image file untouched).
+        val undoLook = hitboxUndoLook
+        val undoBoxes = hitboxUndoSnapshot
+        if (undoLook != null && undoBoxes != null) {
+            undoLook.hitboxes = undoBoxes.map { it.copy() }
+            undoLook.hitboxMode = hitboxUndoMode
+            hitboxUndoLook = null
+            hitboxUndoSnapshot = null
+            saveProjectAfterHitboxUndo()
+            adapter.notifyDataSetChanged()
+            return true
+        }
         currentItem?.let {
             try {
                 StorageOperations.copyFile(Constants.TMP_LOOK_FILE, it.file)
@@ -211,6 +244,17 @@ class LookListFragment : RecyclerViewFragment<LookData?>() {
             return true
         }
         return false
+    }
+
+    private fun saveProjectAfterHitboxUndo() {
+        // Persist off the UI thread — saveProject() serialises the whole project.
+        Thread({
+            try {
+                XstreamSerializer.getInstance().saveProject(projectManager.currentProject)
+            } catch (e: Exception) {
+                Log.e(TAG, "Save after hitbox undo failed", e)
+            }
+        }, "hitbox-undo-save").start()
     }
 
     fun deleteItem(lookData: LookData?) {
@@ -286,9 +330,12 @@ class LookListFragment : RecyclerViewFragment<LookData?>() {
         val sprite = projectManager.currentSprite ?: return
         val lookIndex = sprite.lookList.indexOf(item)
         if (lookIndex < 0) return
-        val intent = android.content.Intent(requireContext(),
-            org.catrobat.catroid.ui.hitbox.HitboxEditorActivity::class.java)
-        intent.putExtra(org.catrobat.catroid.ui.hitbox.HitboxEditorActivity.EXTRA_LOOK_INDEX, lookIndex)
-        startActivity(intent)
+        // Snapshot current hitboxes so the change can be undone from the Look tab.
+        hitboxUndoLook = item
+        hitboxUndoSnapshot = item.hitboxes.map { it.copy() }
+        hitboxUndoMode = item.hitboxMode
+        val intent = Intent(requireContext(), HitboxEditorActivity::class.java)
+        intent.putExtra(HitboxEditorActivity.EXTRA_LOOK_INDEX, lookIndex)
+        startActivityForResult(intent, REQUEST_HITBOX_EDITOR)
     }
 }

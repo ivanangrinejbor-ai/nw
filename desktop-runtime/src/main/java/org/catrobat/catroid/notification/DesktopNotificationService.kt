@@ -9,11 +9,6 @@ import java.awt.TrayIcon
 import java.awt.image.BufferedImage
 import javax.swing.JOptionPane
 
-/**
- * Desktop (Windows) implementation of [NotificationService] using the system tray
- * (`java.awt.SystemTray`) with a Swing fallback. Notification data is read from the
- * shared [NotificationStorage] (now in :core), mirroring the Android flow.
- */
 class DesktopNotificationService : NotificationService {
     override fun show(id: Int) {
         val data = NotificationStorage.get(id) ?: return
@@ -30,7 +25,6 @@ class DesktopNotificationService : NotificationService {
             try {
                 Thread.sleep(delayMs)
             } catch (_: InterruptedException) {
-                // interrupted
             }
             show(id)
             NotificationStorage.removeNotification(id)
@@ -42,7 +36,6 @@ class DesktopNotificationService : NotificationService {
     }
 
     override fun ensureChannel(name: String, importance: Int) {
-        // No channel concept on desktop; intentionally a no-op.
     }
 
     private fun showTray(data: NotificationData) {
@@ -61,16 +54,13 @@ class DesktopNotificationService : NotificationService {
                 try {
                     Thread.sleep(5000)
                 } catch (_: InterruptedException) {
-                    // ignore
                 }
                 try {
                     tray.remove(trayIcon)
                 } catch (_: Exception) {
-                    // ignore
                 }
             }.start()
         } catch (_: Exception) {
-            // Notification display unavailable on this desktop.
         }
     }
 }

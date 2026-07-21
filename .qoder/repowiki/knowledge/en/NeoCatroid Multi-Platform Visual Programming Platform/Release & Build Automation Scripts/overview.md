@@ -1,1 +1,0 @@
-Ad-hoc shell and Python helpers that automate Catroid release tasks: bumping version codes, building beta APKs with modified Gradle/Manifest, polling artifact URLs, and parsing build logs for instrumentation failures.

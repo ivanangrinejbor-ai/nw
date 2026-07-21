@@ -19,15 +19,6 @@ import kotlinx.coroutines.launch
 import org.catrobat.catroid.R
 import java.io.File
 
-/**
- * Runs the (memory-heavy) APK bake in an isolated `:apkbuild` process so its heap is
- * independent of the editor. The editor holds the opened project (with cached look
- * bitmaps); reandroid then loads the ~160 MB template into RAM during manifest
- * patching. Doing both in one process overflows the per-app heap on large projects.
- *
- * This service gets its own heap, reloads the project from disk (the caller persisted
- * edits first), and reports progress/result back to the editor via a [ResultReceiver].
- */
 class ApkBuildService : Service() {
 
     private val job = Job()
@@ -129,7 +120,6 @@ class ApkBuildService : Service() {
     }
 }
 
-@Suppress("DEPRECATION", "UNCHECKED_CAST")
 private inline fun <reified T> Intent.getParcelableExtraCompat(name: String): T? =
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         getParcelableExtra(name, T::class.java)

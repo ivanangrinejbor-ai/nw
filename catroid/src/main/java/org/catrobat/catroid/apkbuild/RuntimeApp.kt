@@ -11,11 +11,6 @@ import org.koin.core.context.startKoin
 import org.koin.core.logger.Level
 import org.koin.core.module.Module
 
-/**
- * Минимальный Application для рантайм-APK (baked project).
- * Не запускает редактор, плагины, Firebase и т.д.
- * Только инициализирует NativeLibraryManager, контекст и Koin для LunoScript.
- */
 class RuntimeApp : Application() {
 
     override fun onCreate() {

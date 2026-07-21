@@ -98,7 +98,6 @@ public class SensorLoudness {
 					try {
 						recorder.stop();
 					} catch (IOException ioException) {
-						// ignored, nothing we can do
 						Log.d(TAG, "Could not stop recorder", ioException);
 					}
 					recorder = new SoundRecorder("/dev/null");

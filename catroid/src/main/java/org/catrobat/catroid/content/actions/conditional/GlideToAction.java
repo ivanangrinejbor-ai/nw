@@ -26,6 +26,7 @@ import android.util.Log;
 
 import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction;
 
+import org.catrobat.catroid.content.EasingFunctions;
 import org.catrobat.catroid.content.Scope;
 import org.catrobat.catroid.formulaeditor.Formula;
 import org.catrobat.catroid.formulaeditor.InterpretationException;
@@ -46,6 +47,11 @@ public class GlideToAction extends TemporalAction {
 
 	private float velocityXValue = 0;
 	private float velocityYValue = 0;
+
+	// Spinner index into R.array.brick_easing_types ("None" = 0, "Linear" = 1, ...).
+	// 0 keeps the classic linear glide, so projects saved before this parameter
+	// existed (field defaults to 0) behave exactly as they always did.
+	private int easingType = 0;
 
 	private boolean restart = false;
 
@@ -115,8 +121,19 @@ public class GlideToAction extends TemporalAction {
 			setDuration(getDuration() - getTime());
 			restart();
 		} else {
-			currentXValue = startXValue + (endXValue - startXValue) * percent;
-			currentYValue = startYValue + (endYValue - startYValue) * percent;
+			if (easingType <= 0) {
+				currentXValue = startXValue + (endXValue - startXValue) * percent;
+				currentYValue = startYValue + (endYValue - startYValue) * percent;
+			} else {
+				EasingFunctions.EasingType[] types = EasingFunctions.EasingType.values();
+				int enumIndex = easingType - 1;
+				if (enumIndex >= types.length) {
+					enumIndex = types.length - 1;
+				}
+				EasingFunctions.EasingType type = types[enumIndex];
+				currentXValue = EasingFunctions.calculate(type, percent, 1f, startXValue, endXValue);
+				currentYValue = EasingFunctions.calculate(type, percent, 1f, startYValue, endYValue);
+			}
 			scope.getSprite().look.setPositionInUserInterfaceDimensionUnit(currentXValue, currentYValue);
 		}
 	}
@@ -140,5 +157,9 @@ public class GlideToAction extends TemporalAction {
 
 	public void setScope(Scope scope) {
 		this.scope = scope;
+	}
+
+	public void setEasingType(int easingType) {
+		this.easingType = easingType;
 	}
 }

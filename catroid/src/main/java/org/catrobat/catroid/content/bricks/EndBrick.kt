@@ -40,8 +40,6 @@ class EndBrick @JvmOverloads constructor(
     override fun getViewResource(): Int = viewResource
 
     override fun addActionToSequence(sprite: Sprite?, sequence: ScriptSequenceAction?) {
-        // not needed for EndBricks, in case you need it for one, please be aware that changes
-        // here will affect multiple composite bricks
     }
 
     override fun isCommentedOut(): Boolean = parent.isCommentedOut

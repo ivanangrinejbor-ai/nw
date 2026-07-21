@@ -88,22 +88,16 @@ public final class ShowTextUtils {
 
 	private static String convertToEnglishDigits(String value) {
 		return value
-				// Eastern-Arabic ٠
 				.replace("١", "1").replace("٢", "2").replace("٣", "3").replace("٤", "4").replace("٥", "5")
 				.replace("٦", "6").replace("٧", "7").replace("٨", "8").replace("٩", "9").replace("٠", "0")
-				// Farsi
 				.replace("۱", "1").replace("۲", "2").replace("۳", "3").replace("۴", "4").replace("۵", "5")
 				.replace("۶", "6").replace("۷", "7").replace("۸", "8").replace("۹", "9").replace("۰", "0")
-				// Hindi
 				.replace("१", "1").replace("२", "2").replace("३", "3").replace("४", "4").replace("५", "5")
 				.replace("६", "6").replace("७", "7").replace("८", "8").replace("९", "9").replace("०", "0")
-				// Assamese and Bengali
 				.replace("১", "1").replace("২", "2").replace("৩", "3").replace("৪", "4").replace("৫", "5")
 				.replace("৬", "6").replace("৭", "7").replace("৮", "8").replace("৯", "9").replace("০", "0")
-				// Tamil
 				.replace("௧", "1").replace("௦", "0").replace("௨", "2").replace("௩", "3").replace("௪", "4")
 				.replace("௫", "5").replace("௬", "6").replace("௭", "7").replace("௮", "8").replace("௯", "9")
-				// Gujarati
 				.replace("૧", "1").replace("૨", "2").replace("૩", "3").replace("૪", "4").replace("૫", "5")
 				.replace("૬", "6").replace("૭", "7").replace("૮", "8").replace("૯", "9").replace("૦", "0");
 	}

@@ -12,6 +12,7 @@ import org.catrobat.catroid.content.Project
 import org.catrobat.catroid.content.Scene
 import org.catrobat.catroid.content.Sprite
 import org.catrobat.catroid.content.Script
+import org.catrobat.catroid.content.BrickInfo
 import org.catrobat.catroid.content.bricks.Brick
 import java.io.File
 import java.util.Collections
@@ -60,7 +61,13 @@ object ToolCallingEngine {
         registerTool(ReadFileTool())
         registerTool(WriteFileTool())
         registerTool(ProjectInfoTool())
+        registerTool(ProjectInventoryTool())
+        registerTool(ListLooksTool())
+        registerTool(ListSoundsTool())
+        registerTool(ListVariablesTool())
+        registerTool(ListBroadcastsTool())
         registerTool(CodeAnalysisTool())
+        registerTool(BuildScriptTool())
     }
 
     fun registerTool(tool: Tool) {
@@ -142,7 +149,29 @@ object ToolCallingEngine {
         } else null
     }
 
-    // ---- Default Tool Implementations ----
+    fun describeBrick(brick: Brick): String {
+        val type = brick::class.java.simpleName
+        val fields = mutableListOf<String>()
+        try {
+            for (field in brick.javaClass.declaredFields) {
+                field.isAccessible = true
+                val fname = field.name
+                if (fname.contains("serialVersionUID") || fname.contains("$") ||
+                    fname == "commentedOut" || fname == "parent" || fname == "drag") continue
+                val value = try { field.get(brick)?.toString() ?: "null" } catch (_: Exception) { continue }
+                if (value == "null" || value.length > 60) continue
+                fields.add("$fname=$value")
+            }
+        } catch (_: Exception) {}
+        val desc = try { BrickInfo.getDescription(brick) } catch (_: Exception) { "" }
+        return buildString {
+            append(type)
+            if (!desc.isNullOrBlank()) append(" \u2014 $desc")
+            if (fields.isNotEmpty()) append(" [${fields.joinToString(", ")}]")
+        }
+    }
+
+
 
     class SceneListTool : Tool {
         override val name = "listScenes"
@@ -209,14 +238,30 @@ object ToolCallingEngine {
             val sprite = scene.spriteList.find { it.name == objectName }
                 ?: return ToolResult(false, "Object '$objectName' not found", "")
             val info = buildString {
-                appendLine("Object: ${sprite.name}")
-                appendLine("Looks: ${sprite.lookList.size}")
-                appendLine("Sounds: ${sprite.soundList.size}")
-                appendLine("Scripts: ${sprite.scriptList.size}")
+                appendLine("Object: ${sprite.name}  (scene '$sceneName')")
+                appendLine("Looks (${sprite.lookList.size}):")
+                if (sprite.lookList.isEmpty()) appendLine("  (none)")
+                for (look in sprite.lookList) {
+                    appendLine("  - '${look.name}' [file: ${look.fileName ?: "?"}]")
+                }
+                appendLine("Sounds (${sprite.soundList.size}):")
+                if (sprite.soundList.isEmpty()) appendLine("  (none)")
+                for (sound in sprite.soundList) {
+                    appendLine("  - '${sound.name}' [file: ${sound.fileName ?: "?"}]")
+                }
+                if (sprite.userVariables.isNotEmpty()) {
+                    appendLine("Local variables (${sprite.userVariables.size}): " +
+                        sprite.userVariables.joinToString(", ") { it.name ?: "?" })
+                }
+                if (sprite.userLists.isNotEmpty()) {
+                    appendLine("Local lists (${sprite.userLists.size}): " +
+                        sprite.userLists.joinToString(", ") { it.name ?: "?" })
+                }
+                appendLine("Scripts (${sprite.scriptList.size}):")
                 for ((i, script) in sprite.scriptList.withIndex()) {
                     appendLine("  Script $i: ${script::class.java.simpleName}")
                     for ((j, brick) in script.getBrickList().withIndex()) {
-                        appendLine("    Brick $j: ${brick::class.java.simpleName}")
+                        appendLine("    Brick $j: ${describeBrick(brick)}")
                     }
                 }
             }
@@ -247,7 +292,7 @@ object ToolCallingEngine {
             val info = buildString {
                 appendLine("Script $index: ${script::class.java.simpleName}")
                 for ((j, brick) in script.getBrickList().withIndex()) {
-                    appendLine("  Brick $j: ${brick::class.java.simpleName}")
+                    appendLine("  Brick $j: ${describeBrick(brick)}")
                 }
             }
             return ToolResult(true, info, "")
@@ -256,15 +301,29 @@ object ToolCallingEngine {
 
     class SearchVariableTool : Tool {
         override val name = "searchVariable"
-        override val description = "Search for a variable by name across project"
+        override val description = "Search for a variable by name across the whole project (global, multiplayer and object-local), reporting which object owns each local variable"
         override val parameters = listOf(ToolParameter("name", ParameterType.STRING, "Variable name pattern"))
 
         override suspend fun execute(args: Map<String, String>): ToolResult {
             val project = ProjectManager.getInstance().currentProject ?: return ToolResult(false, "No project open", "")
             val pattern = (args["name"] ?: "").lowercase()
-            val vars = project.getUserVariables().filter { it.name?.lowercase()?.contains(pattern) == true }
-            val result = if (vars.isEmpty()) "No variables matching '$pattern' found"
-                else vars.joinToString("\n") { "  - ${it.name}" }
+            val matches = mutableListOf<String>()
+            for (v in project.userVariables) {
+                if (v.name?.lowercase()?.contains(pattern) == true) matches.add("  - ${v.name} (global)")
+            }
+            for (v in project.multiplayerVariables) {
+                if (v.name?.lowercase()?.contains(pattern) == true) matches.add("  - ${v.name} (multiplayer)")
+            }
+            for (scene in project.sceneList) {
+                for (sprite in scene.spriteList) {
+                    for (v in sprite.userVariables) {
+                        if (v.name?.lowercase()?.contains(pattern) == true) {
+                            matches.add("  - ${v.name} (local to object '${sprite.name}' in scene '${scene.name}')")
+                        }
+                    }
+                }
+            }
+            val result = if (matches.isEmpty()) "No variables matching '$pattern' found" else matches.joinToString("\n")
             return ToolResult(true, "Variables matching '$pattern':\n$result", "")
         }
     }
@@ -307,11 +366,27 @@ object ToolCallingEngine {
 
     class SearchListTool : Tool {
         override val name = "searchList"
-        override val description = "Search user lists by name"
+        override val description = "Search user lists by name across the whole project (global and object-local), reporting which object owns each local list"
         override val parameters = listOf(ToolParameter("name", ParameterType.STRING, "List name pattern"))
 
         override suspend fun execute(args: Map<String, String>): ToolResult {
-            return ToolResult(true, "Search lists: feature not fully implemented", "")
+            val project = ProjectManager.getInstance().currentProject ?: return ToolResult(false, "No project open", "")
+            val pattern = (args["name"] ?: "").lowercase()
+            val matches = mutableListOf<String>()
+            for (list in project.userLists) {
+                if (list.name?.lowercase()?.contains(pattern) == true) matches.add("  - ${list.name} (global)")
+            }
+            for (scene in project.sceneList) {
+                for (sprite in scene.spriteList) {
+                    for (list in sprite.userLists) {
+                        if (list.name?.lowercase()?.contains(pattern) == true) {
+                            matches.add("  - ${list.name} (local to object '${sprite.name}' in scene '${scene.name}')")
+                        }
+                    }
+                }
+            }
+            val result = if (matches.isEmpty()) "No lists matching '$pattern' found" else matches.joinToString("\n")
+            return ToolResult(true, "Lists matching '$pattern':\n$result", "")
         }
     }
 
@@ -501,7 +576,7 @@ object ToolCallingEngine {
 
     class ProjectInfoTool : Tool {
         override val name = "projectInfo"
-        override val description = "Get comprehensive project information"
+        override val description = "Get comprehensive project information: scenes, objects (with script/look/sound counts), global variables, lists and broadcast messages"
         override val parameters = emptyList<ToolParameter>()
 
         override suspend fun execute(args: Map<String, String>): ToolResult {
@@ -510,13 +585,194 @@ object ToolCallingEngine {
                 appendLine("Project: ${project.name}")
                 appendLine("Scenes: ${project.sceneList.size}")
                 for (scene in project.sceneList) {
-                    appendLine("  ${scene.name}: ${scene.spriteList.size} objects")
+                    appendLine("  Scene '${scene.name}': ${scene.spriteList.size} objects")
                     for (sprite in scene.spriteList) {
-                        appendLine("    ${sprite.name}: ${sprite.scriptList.size} scripts")
+                        appendLine("    ${sprite.name}: ${sprite.scriptList.size} scripts, " +
+                            "${sprite.lookList.size} looks, ${sprite.soundList.size} sounds")
+                    }
+                }
+                val globalVars = project.userVariables
+                appendLine("Global variables (${globalVars.size}): " +
+                    globalVars.joinToString(", ") { it.name ?: "?" })
+                val globalLists = project.userLists
+                appendLine("Global lists (${globalLists.size}): " +
+                    globalLists.joinToString(", ") { it.name ?: "?" })
+                val broadcasts = collectBroadcasts(project)
+                appendLine("Broadcast messages (${broadcasts.size}): " + broadcasts.joinToString(", "))
+            }
+            return ToolResult(true, info, "")
+        }
+    }
+
+    private fun collectBroadcasts(project: Project): List<String> {
+        val messages = linkedSetOf<String>()
+        try {
+            project.broadcastMessageContainer?.broadcastMessages?.let { messages.addAll(it) }
+        } catch (_: Exception) {}
+        for (scene in project.sceneList) {
+            for (sprite in scene.spriteList) {
+                for (script in sprite.scriptList) {
+                    for (brick in script.getBrickList()) {
+                        extractBroadcast(brick)?.let { messages.add(it) }
+                    }
+                }
+            }
+        }
+        return messages.toList()
+    }
+
+    private fun extractBroadcast(brick: Brick): String? {
+        return try {
+            val f = brick.javaClass.getDeclaredField("broadcastMessage")
+            f.isAccessible = true
+            val obj = f.get(brick) ?: return null
+            val nameField = obj.javaClass.getDeclaredField("name")
+            nameField.isAccessible = true
+            nameField.get(obj) as? String
+        } catch (_: Exception) { null }
+    }
+
+    class ProjectInventoryTool : Tool {
+        override val name = "projectInventory"
+        override val description = "Get a COMPLETE inventory of the whole project in one call: every scene, every object with its looks, sounds, local variables/lists and scripts (types + brick counts), plus global variables, lists and broadcast messages. Call this FIRST to understand everything, then readScript for brick-level detail."
+        override val parameters = emptyList<ToolParameter>()
+
+        override suspend fun execute(args: Map<String, String>): ToolResult {
+            val project = ProjectManager.getInstance().currentProject ?: return ToolResult(false, "No project open", "")
+            val info = buildString {
+                appendLine("PROJECT: ${project.name}")
+                appendLine("Scenes: ${project.sceneList.size}")
+                appendLine()
+                for (scene in project.sceneList) {
+                    appendLine("SCENE: ${scene.name} (${scene.spriteList.size} objects)")
+                    for (sprite in scene.spriteList) {
+                        appendLine("  OBJECT: ${sprite.name}")
+                        appendLine("    Looks: " + if (sprite.lookList.isEmpty()) "(none)"
+                            else sprite.lookList.joinToString(", ") { it.name ?: "?" })
+                        appendLine("    Sounds: " + if (sprite.soundList.isEmpty()) "(none)"
+                            else sprite.soundList.joinToString(", ") { it.name ?: "?" })
+                        if (sprite.userVariables.isNotEmpty()) appendLine("    Local variables: " +
+                            sprite.userVariables.joinToString(", ") { it.name ?: "?" })
+                        if (sprite.userLists.isNotEmpty()) appendLine("    Local lists: " +
+                            sprite.userLists.joinToString(", ") { it.name ?: "?" })
+                        appendLine("    Scripts: ${sprite.scriptList.size}")
+                        for ((i, script) in sprite.scriptList.withIndex()) {
+                            appendLine("      [$i] ${script::class.java.simpleName} (${script.getBrickList().size} bricks)")
+                        }
+                    }
+                    appendLine()
+                }
+                val globalVars = project.userVariables
+                appendLine("GLOBAL variables (${globalVars.size}): " + globalVars.joinToString(", ") { it.name ?: "?" })
+                val mpVars = project.multiplayerVariables
+                if (mpVars.isNotEmpty()) appendLine("MULTIPLAYER variables (${mpVars.size}): " +
+                    mpVars.joinToString(", ") { it.name ?: "?" })
+                val globalLists = project.userLists
+                appendLine("GLOBAL lists (${globalLists.size}): " + globalLists.joinToString(", ") { it.name ?: "?" })
+                val broadcasts = collectBroadcasts(project)
+                appendLine("BROADCAST messages (${broadcasts.size}): " + broadcasts.joinToString(", "))
+            }
+            return ToolResult(true, info, "")
+        }
+    }
+
+    class ListLooksTool : Tool {
+        override val name = "listLooks"
+        override val description = "List looks (costumes/images). Without arguments lists ALL looks in the project with their owning object and scene. With scene+object lists that object's looks."
+        override val parameters = listOf(
+            ToolParameter("scene", ParameterType.STRING, "Scene name", required = false),
+            ToolParameter("object", ParameterType.STRING, "Object name", required = false)
+        )
+
+        override suspend fun execute(args: Map<String, String>): ToolResult {
+            val project = ProjectManager.getInstance().currentProject ?: return ToolResult(false, "No project open", "")
+            val sceneFilter = args["scene"]
+            val objectFilter = args["object"]
+            val out = buildString {
+                for (scene in project.sceneList) {
+                    if (sceneFilter != null && scene.name != sceneFilter) continue
+                    for (sprite in scene.spriteList) {
+                        if (objectFilter != null && sprite.name != objectFilter) continue
+                        for (look in sprite.lookList) {
+                            appendLine("  - '${look.name}' [file: ${look.fileName ?: "?"}] in object '${sprite.name}' (scene '${scene.name}')")
+                        }
+                    }
+                }
+            }.ifBlank { "  (no looks found)" }
+            return ToolResult(true, "Looks:\n$out", "")
+        }
+    }
+
+    class ListSoundsTool : Tool {
+        override val name = "listSounds"
+        override val description = "List sounds. Without arguments lists ALL sounds in the project with their owning object and scene. With scene+object lists that object's sounds."
+        override val parameters = listOf(
+            ToolParameter("scene", ParameterType.STRING, "Scene name", required = false),
+            ToolParameter("object", ParameterType.STRING, "Object name", required = false)
+        )
+
+        override suspend fun execute(args: Map<String, String>): ToolResult {
+            val project = ProjectManager.getInstance().currentProject ?: return ToolResult(false, "No project open", "")
+            val sceneFilter = args["scene"]
+            val objectFilter = args["object"]
+            val out = buildString {
+                for (scene in project.sceneList) {
+                    if (sceneFilter != null && scene.name != sceneFilter) continue
+                    for (sprite in scene.spriteList) {
+                        if (objectFilter != null && sprite.name != objectFilter) continue
+                        for (sound in sprite.soundList) {
+                            appendLine("  - '${sound.name}' [file: ${sound.fileName ?: "?"}] in object '${sprite.name}' (scene '${scene.name}')")
+                        }
+                    }
+                }
+            }.ifBlank { "  (no sounds found)" }
+            return ToolResult(true, "Sounds:\n$out", "")
+        }
+    }
+
+    class ListVariablesTool : Tool {
+        override val name = "listVariables"
+        override val description = "List ALL variables and lists in the project: global, multiplayer and object-local, each with its owning object and scene"
+        override val parameters = emptyList<ToolParameter>()
+
+        override suspend fun execute(args: Map<String, String>): ToolResult {
+            val project = ProjectManager.getInstance().currentProject ?: return ToolResult(false, "No project open", "")
+            val info = buildString {
+                appendLine("Global variables:")
+                if (project.userVariables.isEmpty()) appendLine("  (none)")
+                for (v in project.userVariables) appendLine("  - ${v.name}")
+                if (project.multiplayerVariables.isNotEmpty()) {
+                    appendLine("Multiplayer variables:")
+                    for (v in project.multiplayerVariables) appendLine("  - ${v.name}")
+                }
+                appendLine("Global lists:")
+                if (project.userLists.isEmpty()) appendLine("  (none)")
+                for (l in project.userLists) appendLine("  - ${l.name}")
+                for (scene in project.sceneList) {
+                    for (sprite in scene.spriteList) {
+                        for (v in sprite.userVariables) {
+                            appendLine("  - ${v.name} (local variable of object '${sprite.name}' in scene '${scene.name}')")
+                        }
+                        for (l in sprite.userLists) {
+                            appendLine("  - ${l.name} (local list of object '${sprite.name}' in scene '${scene.name}')")
+                        }
                     }
                 }
             }
             return ToolResult(true, info, "")
+        }
+    }
+
+    class ListBroadcastsTool : Tool {
+        override val name = "listBroadcasts"
+        override val description = "List every broadcast message defined or used anywhere in the project"
+        override val parameters = emptyList<ToolParameter>()
+
+        override suspend fun execute(args: Map<String, String>): ToolResult {
+            val project = ProjectManager.getInstance().currentProject ?: return ToolResult(false, "No project open", "")
+            val broadcasts = collectBroadcasts(project)
+            val out = if (broadcasts.isEmpty()) "  (none)" else broadcasts.joinToString("\n") { "  - $it" }
+            return ToolResult(true, "Broadcast messages:\n$out", "")
         }
     }
 
@@ -527,6 +783,78 @@ object ToolCallingEngine {
 
         override suspend fun execute(args: Map<String, String>): ToolResult {
             return ToolResult(true, "Full code analysis requires loading all scripts. Basic check complete.", "")
+        }
+    }
+
+    class BuildScriptTool : Tool {
+        override val name = "buildScript"
+        override val description = "Create a real script on an object and append it. " +
+            "scriptType: StartScript|WhenScript|WhenClonedScript|WhenConditionScript:<formula>|BroadcastScript:<message>. " +
+            "bricks: one brick per line. Use exact brick class names from the catalog. " +
+            "Container bricks use `{ }` for children and `else { }` for the else-branch, e.g.: " +
+            "`ForeverBrick { MoveNStepsBrick(10) }` or `IfLogicBeginBrick(x > 5) { SetYBrick(10) } else { SetYBrick(-10) }`."
+        override val parameters = listOf(
+            ToolParameter("scene", ParameterType.STRING, "Scene name"),
+            ToolParameter("object", ParameterType.STRING, "Object name"),
+            ToolParameter("scriptType", ParameterType.STRING, "Script trigger type"),
+            ToolParameter("bricks", ParameterType.STRING, "Brick specifications (supports nested `{ }` and `else { }`)")
+        )
+
+        override suspend fun execute(args: Map<String, String>): ToolResult {
+            val project = ProjectManager.getInstance().currentProject ?: return ToolResult(false, "No project open", "")
+            val sceneName = args["scene"] ?: return ToolResult(false, "Missing 'scene' argument", "")
+            val objectName = args["object"] ?: return ToolResult(false, "Missing 'object' argument", "")
+            val scene = project.sceneList.find { it.name == sceneName }
+                ?: return ToolResult(false, "Scene '$sceneName' not found", "")
+            val sprite = scene.spriteList.find { it.name == objectName }
+                ?: return ToolResult(false, "Object '$objectName' not found", "")
+
+            val script = BrickFactory.createScript(args["scriptType"])
+            val bricksText = args["bricks"].orEmpty()
+            val specs = BrickFactory.parseBrickSpecs(bricksText)
+            val created = mutableListOf<String>()
+            val skipped = mutableListOf<String>()
+            if (specs == null) {
+                return ToolResult(false, "Syntax error in brick spec (unmatched '{' or '}' or 'else').", "")
+            }
+            for (spec in specs) {
+                val validationError = BrickFactory.validateBrickSpec(spec)
+                if (validationError != null) {
+                    skipped.add("${specToString(spec)} — $validationError")
+                    continue
+                }
+                val brick = BrickFactory.buildBrick(spec)
+                if (brick != null) {
+                    script.addBrick(brick)
+                    created.add(specClassName(spec))
+                } else {
+                    skipped.add("${specToString(spec)} — construction failed")
+                }
+            }
+            if (created.isEmpty()) {
+                return ToolResult(false,
+                    "No bricks were created.\n" + skipped.joinToString("\n") {
+                        "  - $it"
+                    }, "")
+            }
+            sprite.addScript(script)
+
+            val summary = buildString {
+                append("Created ${script::class.java.simpleName} on '$objectName' with ${created.size} top-level brick(s)")
+                if (created.isNotEmpty()) append(": ${created.joinToString(", ")}")
+                if (skipped.isNotEmpty()) append("\nSkipped:\n" + skipped.joinToString("\n") { "  - $it" })
+            }
+            return ToolResult(true, summary, "")
+        }
+
+        private fun specClassName(spec: BrickFactory.BrickSpec): String = when (spec) {
+            is BrickFactory.BrickSpec.Simple -> spec.className
+            is BrickFactory.BrickSpec.Container -> spec.className
+        }
+
+        private fun specToString(spec: BrickFactory.BrickSpec): String = when (spec) {
+            is BrickFactory.BrickSpec.Simple -> "${spec.className}(${spec.args.joinToString(",")})"
+            is BrickFactory.BrickSpec.Container -> "${spec.className}(${spec.args.joinToString(",")}){...}"
         }
     }
 }

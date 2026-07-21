@@ -36,6 +36,11 @@ class RepeatAction : LoopAction() {
     var scope: Scope? = null
     var isForeverRepeat = false
     var repeatCount: Formula? = null
+    
+    companion object {
+        // Reasonable limit to prevent infinite loops from freezing the app
+        private const val MAX_REPEAT_COUNT = 10_000_000
+    }
 
     public override fun delegate(delta: Float): Boolean {
         if (!isRepeatActionInitialized) {
@@ -49,6 +54,11 @@ class RepeatAction : LoopAction() {
         currentTime += delta
         if (repeatCountValue < 0) {
             repeatCountValue = 0
+        }
+        // Apply safety limit
+        if (repeatCountValue > MAX_REPEAT_COUNT) {
+            Log.w(javaClass.simpleName, "Repeat count $repeatCountValue exceeds maximum ($MAX_REPEAT_COUNT), limiting")
+            repeatCountValue = MAX_REPEAT_COUNT
         }
         if (executedCount >= repeatCountValue && !isForeverRepeat) {
             return true

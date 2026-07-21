@@ -35,6 +35,7 @@ import com.badlogic.gdx.utils.ShortArray;
 import com.danvexteam.lunoscript_annotations.LunoClass;
 
 import org.catrobat.catroid.common.Constants;
+import org.catrobat.catroid.common.HitboxData;
 import org.catrobat.catroid.common.LookData;
 import org.catrobat.catroid.utils.ImageEditing;
 import org.catrobat.catroid.utils.PolygonDecomposer;
@@ -620,6 +621,51 @@ public class CollisionInformation {
 		Polygon[] polygons = new Polygon[1];
 		polygons[0] = finalPolygon;
 		return polygons;
+	}
+
+	/**
+	 * Builds collision polygons from user-authored custom hitboxes, in the same
+	 * coordinate frame as the automatic image-outline polygons: [0..imgW, 0..imgH],
+	 * Y up. HitboxData lives in image-center-relative space with Y down (matching
+	 * the Hitbox Editor and PhysicsShapeBuilder), so each corner is offset by the
+	 * image center and its Y is flipped.
+	 *
+	 * Returns one convex quad per hitbox, or null if there is nothing usable
+	 * (so callers can fall back to the image-outline polygon).
+	 */
+	public static Polygon[] buildPolygonsFromHitboxes(List<HitboxData> boxes, float imgW, float imgH) {
+		if (boxes == null || boxes.isEmpty()) {
+			return null;
+		}
+		ArrayList<Polygon> polygons = new ArrayList<>();
+		for (HitboxData hb : boxes) {
+			if (hb == null || hb.width <= 0 || hb.height <= 0) {
+				continue;
+			}
+			float hw = hb.width / 2f;
+			float hh = hb.height / 2f;
+			double theta = Math.toRadians(hb.rotation);
+			float cos = (float) Math.cos(theta);
+			float sin = (float) Math.sin(theta);
+
+			// Local corners of the axis-aligned rectangle (image space, Y down).
+			float[] localX = {-hw, hw, hw, -hw};
+			float[] localY = {-hh, -hh, hh, hh};
+			float[] vertices = new float[8];
+			for (int i = 0; i < 4; i++) {
+				// Rotate clockwise-on-screen == standard rotation matrix in Y-down space.
+				float rx = localX[i] * cos - localY[i] * sin;
+				float ry = localX[i] * sin + localY[i] * cos;
+				// Image-center-relative (Y down) -> polygon frame [0..imgW, 0..imgH] (Y up).
+				vertices[i * 2] = imgW / 2f + (hb.x + rx);
+				vertices[i * 2 + 1] = imgH / 2f - (hb.y + ry);
+			}
+			polygons.add(new Polygon(vertices));
+		}
+		if (polygons.isEmpty()) {
+			return null;
+		}
+		return polygons.toArray(new Polygon[0]);
 	}
 
 	public void printDebugCollisionPolygons() {

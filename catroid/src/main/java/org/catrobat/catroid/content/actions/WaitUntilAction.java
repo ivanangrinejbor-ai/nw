@@ -36,7 +36,10 @@ public class WaitUntilAction extends Action {
 	private Formula condition;
 	private Scope scope;
 	private static final float LOOP_DELAY = 0.02f;
+	private static final float TIMEOUT = 10.0f; // 10 seconds timeout
 	private float currentTime = 0f;
+	private float totalTime = 0f;
+	private boolean hasError = false;
 
 	public WaitUntilAction() {
 	}
@@ -52,13 +55,21 @@ public class WaitUntilAction extends Action {
 	@Override
 	public boolean act(float delta) {
 		if (scope == null) {
-			return false;
+			return true; // Fail fast if no scope
 		}
-		if (completed) {
+		if (completed || hasError) {
 			return true;
 		}
 
 		currentTime += delta;
+		totalTime += delta;
+		
+		// Timeout protection: stop waiting after 10 seconds
+		if (totalTime >= TIMEOUT) {
+			Log.w(getClass().getSimpleName(), "WaitUntil timeout exceeded (" + TIMEOUT + "s), stopping");
+			return true;
+		}
+		
 		if (currentTime < LOOP_DELAY) {
 			return false;
 		} else {
@@ -67,16 +78,21 @@ public class WaitUntilAction extends Action {
 
 		try {
 			completed = condition.interpretBoolean(scope);
+			hasError = false; // Clear error on success
 		} catch (InterpretationException e) {
-			completed = false;
-			Log.d(getClass().getSimpleName(), "Formula interpretation for this specific Brick failed.", e);
+			// On error, complete the wait (don't hang forever)
+			hasError = true;
+			Log.w(getClass().getSimpleName(), "Formula interpretation failed, completing wait", e);
 		}
 
-		return completed;
+		return completed || hasError;
 	}
 
 	@Override
 	public void restart() {
 		completed = false;
+		hasError = false;
+		currentTime = 0f;
+		totalTime = 0f;
 	}
 }

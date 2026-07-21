@@ -68,11 +68,7 @@ internal class XStreamFormulaElementConverter(
     ): Any? {
         val formulaElement = super.doUnmarshal(result, reader, context)
         if (formulaElement !is FormulaElement) return formulaElement
-        // ReflectionConverter bypasses the FormulaElement no-arg constructor, so the
-        // transient function maps stay null after load. Re-initialize them so they are
-        // never null for any future code touching formulaElement.formulaFunctions.
         reinitializeTransientFields(formulaElement)
-        // XStream may leave additionalChildren null when the XML has no such element
         if (formulaElement.additionalChildren == null) {
             formulaElement.additionalChildren = java.util.ArrayList()
         }

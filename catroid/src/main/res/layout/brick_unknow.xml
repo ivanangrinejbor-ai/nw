@@ -38,12 +38,14 @@
 
     <org.catrobat.catroid.ui.BrickLayout
         android:id="@+id/brick_show_variable_layout"
-        style="@style/BrickContainer.Control.NoteBrick">
+        style="@style/BrickContainer.Control.NoteBrick"
+        android:background="#FF000000">
 
         <include layout="@layout/icon_brick_category_libs" />
 
         <TextView
             style="@style/BrickText.SingleLine"
+            android:textColor="#FFFFFFFF"
             android:text="@string/unknown_brick_text" />
 
     </org.catrobat.catroid.ui.BrickLayout>

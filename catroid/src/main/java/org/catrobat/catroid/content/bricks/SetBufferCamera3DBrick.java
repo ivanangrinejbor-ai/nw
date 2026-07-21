@@ -9,7 +9,6 @@ public class SetBufferCamera3DBrick extends FormulaBrick {
     private static final long serialVersionUID = 1L;
 
     public SetBufferCamera3DBrick() {
-        // Регистрируем все 8 полей
         addAllowedBrickField(BrickField.NAME, R.id.brick_buffer_cam_3d_name);
         addAllowedBrickField(BrickField.X_POSITION, R.id.brick_buffer_cam_3d_x);
         addAllowedBrickField(BrickField.Y_POSITION, R.id.brick_buffer_cam_3d_y);

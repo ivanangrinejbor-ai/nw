@@ -23,7 +23,10 @@ import kotlinx.coroutines.launch
 import org.catrobat.catroid.R
 import org.catrobat.catroid.ai.AiAgentManager
 import org.catrobat.catroid.ai.AiAgentState
+import org.catrobat.catroid.ai.model.CloudModelProvider
+import org.catrobat.catroid.ai.model.CloudModelRuntime
 import org.catrobat.catroid.ai.model.ModelManager
+import org.catrobat.catroid.ai.settings.AiPreferences
 
 class ChatActivity : AppCompatActivity() {
 
@@ -125,6 +128,14 @@ class ChatActivity : AppCompatActivity() {
                 onBackPressedDispatcher.onBackPressed()
                 return true
             }
+            R.id.action_set_api_key -> {
+                showApiKeyDialog()
+                return true
+            }
+            R.id.action_select_model -> {
+                showModelSelector()
+                return true
+            }
             R.id.action_clear_chat -> {
                 AlertDialog.Builder(this)
                     .setTitle(R.string.ai_agent_clear_history_title)
@@ -138,6 +149,54 @@ class ChatActivity : AppCompatActivity() {
             }
         }
         return super.onOptionsItemSelected(item)
+    }
+
+    private fun showApiKeyDialog() {
+        val input = EditText(this).apply {
+            hint = getString(R.string.ai_agent_set_api_key_hint)
+            setText(CloudModelRuntime.getApiKey() ?: "")
+        }
+        AlertDialog.Builder(this)
+            .setTitle(R.string.ai_agent_set_api_key_title)
+            .setView(input)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                val key = input.text.toString().trim()
+                if (key.isNotEmpty()) {
+                    CloudModelRuntime.setApiKey(key)
+                    Toast.makeText(this, R.string.ai_agent_api_key_saved, Toast.LENGTH_SHORT).show()
+                }
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun showModelSelector() {
+        val apiKey = CloudModelRuntime.getApiKey()
+        if (apiKey.isNullOrBlank()) {
+            Toast.makeText(this, R.string.ai_agent_no_api_key, Toast.LENGTH_LONG).show()
+            return
+        }
+        val loading = Toast.makeText(this, R.string.ai_agent_loading_models, Toast.LENGTH_SHORT)
+        loading.show()
+        lifecycleScope.launch {
+            val models = CloudModelProvider.fetchModels(apiKey)
+            loading.cancel()
+            if (isFinishing || isDestroyed) return@launch
+            val current = AiPreferences.getCloudModelId()
+            val checked = models.indexOf(current).let { if (it >= 0) it else 0 }
+            AlertDialog.Builder(this@ChatActivity)
+                .setTitle(R.string.ai_agent_select_model_title)
+                .setSingleChoiceItems(models.toTypedArray(), checked) { dialog, which ->
+                    val selected = models[which]
+                    AiPreferences.setCloudModelId(selected)
+                    Toast.makeText(this@ChatActivity,
+                        getString(R.string.ai_agent_model_selected, selected),
+                        Toast.LENGTH_SHORT).show()
+                    dialog.dismiss()
+                }
+                .setNegativeButton(android.R.string.cancel, null)
+                .show()
+        }
     }
 
     override fun onDestroy() {

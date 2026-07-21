@@ -9,26 +9,6 @@ import javax.crypto.Cipher
 import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.spec.SecretKeySpec
 
-/**
- * Streaming encryptor/decryptor for APK Builder V3.
- *
- * Format (V3 payload):
- *   [magic: 4 bytes = "NCV3"]
- *   [version: 2 bytes, unsigned short = 1]
- *   [flags: 2 bytes]
- *   [reserved: 4 bytes]
- *   [totalChunks: 4 bytes (big-endian int)]
- *   [integrityHash: 32 bytes = SHA-256 of plaintext]
- *   [chunkCount map: totalChunks * (chunkIndex:4 + offset:8 + encryptedLen:4)]
- *   [...chunks...]
- *
- * Each chunk:
- *   [iv: 12 bytes]
- *   [encrypted data: N bytes (incl. 16-byte GCM tag)]
- *
- * This format supports random-access decryption (needed for Light Template)
- * because each chunk can be decrypted independently.
- */
 object ProjectEncryptorV3 {
     private const val TAG = "ProjectEncryptorV3"
     private val MAGIC = byteArrayOf('N'.code.toByte(), 'C'.code.toByte(), 'V'.code.toByte(), '3'.code.toByte())
@@ -39,18 +19,8 @@ object ProjectEncryptorV3 {
     private const val ALGORITHM = "AES/GCM/NoPadding"
     private const val SHA256 = "SHA-256"
 
-    /** Header size before chunk data (fixed). */
     const val HEADER_SIZE = 4 + 2 + 2 + 4 + 4 + 32
 
-    /**
-     * Encrypts a source file into the V3 encrypted format.
-     * Uses streaming to keep memory usage low.
-     *
-     * @param sourceFile  Plaintext file to encrypt
-     * @param destFile    Output encrypted file
-     * @param key         AES-256 key bytes
-     * @param onProgress  Optional progress callback (0.0 - 1.0)
-     */
     fun encrypt(
         sourceFile: File,
         destFile: File,
@@ -65,20 +35,14 @@ object ProjectEncryptorV3 {
 
         destFile.parentFile?.mkdirs()
 
-        // Use a single RandomAccessFile for BOTH writing and seeking so the file
-        // pointer stays consistent (mixing FileOutputStream.write() with
-        // out.channel.position() desyncs the stream buffer and corrupts the layout).
         java.io.RandomAccessFile(destFile, "rw").use { raf ->
             raf.setLength(0)
-
-            // ── Header ──
             raf.write(MAGIC)
             writeShort(raf, FORMAT_VERSION.toInt())
             writeShort(raf, 0) // flags
             writeInt(raf, 0)   // reserved
             writeInt(raf, totalChunks) // total chunks (final value)
 
-            // ── Integrity hash (SHA-256 of plaintext) ──
             val digest = java.security.MessageDigest.getInstance(SHA256)
             FileInputStream(sourceFile).use { hashIn ->
                 val hashBuf = ByteArray(64 * 1024)
@@ -89,7 +53,6 @@ object ProjectEncryptorV3 {
             }
             raf.write(digest.digest())
 
-            // ── Chunk index table placeholder ──
             val chunkTablePos = raf.filePointer
             for (i in 0 until totalChunks) {
                 writeInt(raf, 0)    // chunk index
@@ -97,7 +60,6 @@ object ProjectEncryptorV3 {
                 writeInt(raf, 0)    // encrypted length
             }
 
-            // ── Chunk data ──
             val dataStartPos = raf.filePointer
             FileInputStream(sourceFile).use { sourceIn ->
                 val buffer = ByteArray(CHUNK_SIZE)
@@ -124,7 +86,6 @@ object ProjectEncryptorV3 {
                 }
             }
 
-            // ── Rewrite the actual chunk table ──
             val finalDataEnd = raf.filePointer
             raf.seek(chunkTablePos)
             for (i in 0 until totalChunks) {
@@ -139,15 +100,6 @@ object ProjectEncryptorV3 {
                 "($totalChunks chunks, ${destFile.length() / (1024 * 1024)} MB)")
     }
 
-    /**
-     * Decrypts a specific chunk from the encrypted file.
-     * Used by Light Template for on-demand scene loading.
-     *
-     * @param encryptedFile  The V3 encrypted file
-     * @param key            AES-256 key bytes
-     * @param chunkIndex     Which chunk to decrypt (0-based)
-     * @return  Decrypted chunk bytes
-     */
     fun decryptChunk(encryptedFile: File, key: ByteArray, chunkIndex: Int): ByteArray {
         val aesKey = SecretKeySpec(key, "AES")
         val totalChunks = readTotalChunks(encryptedFile)
@@ -170,7 +122,6 @@ object ProjectEncryptorV3 {
             val dataStartPos = chunkTableOffset + totalChunks * chunkEntrySize
             val chunkStart = dataStartPos + offset
 
-            // Read chunk: [iv:12][ciphertext:N]
             fileIn.channel.position(chunkStart)
             val iv = ByteArray(GCM_IV_SIZE).also { fileIn.read(it) }
             val ciphertext = ByteArray(encLen - GCM_IV_SIZE).also { fileIn.read(it) }
@@ -181,9 +132,6 @@ object ProjectEncryptorV3 {
         }
     }
 
-    /**
-     * Decrypts the entire file (used by Full Template).
-     */
     fun decryptAll(encryptedFile: File, key: ByteArray, destFile: File): Boolean {
         return try {
             val totalChunks = readTotalChunks(encryptedFile)
@@ -203,16 +151,12 @@ object ProjectEncryptorV3 {
         }
     }
 
-    /**
-     * Reads the integrity hash from the encrypted file header.
-     */
     fun readIntegrityHash(encryptedFile: File): ByteArray {
         return FileInputStream(encryptedFile).use { fileIn ->
             val magic = ByteArray(4)
             fileIn.read(magic)
             require(magic.contentEquals(MAGIC)) { "Not a V3 encrypted file" }
 
-            // Skip version(2) + flags(2) + reserved(4) + totalChunks(4)
             fileIn.skip(12)
             val hash = ByteArray(32)
             fileIn.read(hash)
@@ -226,7 +170,6 @@ object ProjectEncryptorV3 {
             fileIn.read(magic)
             require(magic.contentEquals(MAGIC)) { "Not a V3 encrypted file" }
 
-            // Skip version(2) + flags(2) + reserved(4)
             fileIn.skip(8)
             readInt(fileIn)
         }

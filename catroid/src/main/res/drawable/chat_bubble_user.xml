@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <shape xmlns:android="http://schemas.android.com/apk/res/android">
-    <solid android:color="#FF2B7BBA" />
-    <corners android:topLeftRadius="16dp" android:topRightRadius="16dp" android:bottomLeftRadius="16dp" android:bottomRightRadius="4dp" />
-    <padding android:left="12dp" android:right="12dp" android:top="8dp" android:bottom="8dp" />
+    <gradient
+        android:angle="315"
+        android:startColor="@color/ai_bubble_user_start"
+        android:endColor="@color/ai_bubble_user_end" />
+    <corners android:topLeftRadius="18dp" android:topRightRadius="18dp" android:bottomLeftRadius="18dp" android:bottomRightRadius="4dp" />
+    <padding android:left="14dp" android:right="14dp" android:top="10dp" android:bottom="10dp" />
 </shape>

@@ -15,6 +15,7 @@ import org.catrobat.catroid.ai.analysis.ProjectAnalyzer
 import org.catrobat.catroid.ai.chat.ChatMessage
 import org.catrobat.catroid.ai.context.ContextManager
 import org.catrobat.catroid.ai.context.MemoryManager
+import org.catrobat.catroid.ai.model.CloudModelRuntime
 import org.catrobat.catroid.ai.model.ModelManager
 import org.catrobat.catroid.ai.model.ModelRuntime
 import org.catrobat.catroid.ai.modify.ProjectModifier
@@ -45,6 +46,7 @@ class AiAgentManager private constructor() {
 
     val modelManager = ModelManager
     val modelRuntime = ModelRuntime
+    val cloudRuntime = CloudModelRuntime
     val toolEngine = ToolCallingEngine
     val contextManager = ContextManager
     val memoryManager = MemoryManager
@@ -59,6 +61,7 @@ class AiAgentManager private constructor() {
         if (initialized) return
         context = appContext
         AiPreferences.init(appContext)
+        cloudRuntime.init(appContext)
         modelManager.init(appContext)
         toolEngine.init(appContext)
         memoryManager.init(appContext)
@@ -72,11 +75,11 @@ class AiAgentManager private constructor() {
     }
 
     fun sendMessage(text: String) {
-        if (!isEnabled() || !modelRuntime.isModelLoaded()) {
-            if (!modelRuntime.isModelLoaded()) {
+        if (!isEnabled() || !cloudRuntime.isReady()) {
+            if (!cloudRuntime.isReady()) {
                 val errMsg = ChatMessage(
                     role = ChatMessage.Role.ASSISTANT,
-                    content = "AI Agent model not loaded. Go to Settings → AI Agent to download and load a model first.",
+                    content = "No Gemini API key set. Open the menu (top-right) → Set API key to enter your Google AI Studio key first.",
                     timestamp = System.currentTimeMillis()
                 )
                 _messages.update { it + errMsg }
@@ -96,7 +99,6 @@ class AiAgentManager private constructor() {
         scope.launch {
             try {
                 _state.value = AiAgentState.THINKING
-                // Minimum thinking delay so the UI can show the animation
                 kotlinx.coroutines.delay(300)
 
                 val project = ProjectManager.getInstance().currentProject
@@ -126,13 +128,12 @@ class AiAgentManager private constructor() {
                 val maxTokens = AiPreferences.getMaxContext()
 
                 while (iteration < maxRounds) {
-                    val response = modelRuntime.generate(
+                    val response = cloudRuntime.generate(
                         modelInput.toString(),
                         temperature = temperature,
-                        maxTokens = maxTokens.coerceAtMost(512)
+                        maxTokens = maxTokens.coerceIn(256, 8192)
                     )
-                    // If response is an error message, break immediately
-                    if (response.startsWith("Error:")) {
+                    if (response.startsWith("Error")) {
                         toolResult = response
                         break
                     }
@@ -146,16 +147,27 @@ class AiAgentManager private constructor() {
                         modelInput.append("\nTool result: $result\n")
                         contextManager.addToolCall(toolCall.name, toolCall.args, result)
                     }
+                    val pending = toolEngine.getPendingChanges()
+                    if (pending.isNotEmpty()) {
+                        val outcomes = projectModifier.applyChanges(pending)
+                        toolEngine.clearPendingChanges()
+                        val summary = outcomes.joinToString("\n") { r ->
+                            when (r) {
+                                is org.catrobat.catroid.ai.modify.ProjectModifier.ModificationResult.Success -> "OK: ${r.message}"
+                                is org.catrobat.catroid.ai.modify.ProjectModifier.ModificationResult.Failure -> "FAIL: ${r.error}"
+                            }
+                        }
+                        modelInput.append("\n## Applied project changes:\n$summary\n")
+                    }
                     iteration++
                 }
 
-                val finalResponse = toolResult ?: modelRuntime.generate(
+                val finalResponse = toolResult ?: cloudRuntime.generate(
                     modelInput.toString(),
                     temperature = temperature,
-                    maxTokens = maxTokens.coerceAtMost(512)
+                    maxTokens = maxTokens.coerceIn(256, 8192)
                 )
 
-                // Minimum delay before showing response so UI can animate
                 kotlinx.coroutines.delay(200)
 
                 _state.value = AiAgentState.RESPONDING
@@ -168,13 +180,10 @@ class AiAgentManager private constructor() {
                 _messages.update { it + aiMsg }
                 contextManager.addMessage(userInput, finalResponse)
 
-                if (AiPreferences.isAutoModifyEnabled()) {
-                    val changes = toolEngine.getPendingChanges()
-                    if (changes.isNotEmpty() && AiPreferences.isConfirmEnabled()) {
-                        toolEngine.storePendingChanges(changes)
-                    } else if (changes.isNotEmpty()) {
-                        projectModifier.applyChanges(changes)
-                    }
+                val leftover = toolEngine.getPendingChanges()
+                if (leftover.isNotEmpty()) {
+                    projectModifier.applyChanges(leftover)
+                    toolEngine.clearPendingChanges()
                 }
 
                 _state.value = AiAgentState.IDLE
@@ -186,7 +195,6 @@ class AiAgentManager private constructor() {
                     timestamp = System.currentTimeMillis()
                 )
                 _messages.update { it + errMsg }
-                modelManager.unloadModel()
             }
         }
     }

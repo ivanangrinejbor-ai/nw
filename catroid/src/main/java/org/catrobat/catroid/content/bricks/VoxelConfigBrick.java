@@ -31,7 +31,6 @@ import org.catrobat.catroid.formulaeditor.Formula;
 public class VoxelConfigBrick extends FormulaBrick {
     private static final long serialVersionUID = 1L;
 
-    // Empty constructor for XStream (serialization)
     public VoxelConfigBrick() {
         super();
         addAllowedBrickField(BrickField.NAME, R.id.brick_voxel_config_edit_id);

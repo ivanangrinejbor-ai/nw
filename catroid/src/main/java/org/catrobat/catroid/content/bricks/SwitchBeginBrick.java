@@ -151,9 +151,9 @@ public class SwitchBeginBrick extends FormulaBrick implements CompositeBrick {
 		for (Brick brick : caseBricks) {
 			if (brick instanceof SwitchCaseBrick) {
 				if (currentCaseSequence != null) {
-					caseValues.add(((SwitchCaseBrick) brick).getFormulaWithBrickField(BrickField.TEXT));
 					caseSequences.add(currentCaseSequence);
 				}
+				caseValues.add(((SwitchCaseBrick) brick).getFormulaWithBrickField(BrickField.TEXT));
 				currentCaseSequence = (ScriptSequenceAction) ActionFactory.createScriptSequenceAction(sequence.getScript());
 			} else if (currentCaseSequence != null && !brick.isCommentedOut()) {
 				brick.addActionToSequence(sprite, currentCaseSequence);

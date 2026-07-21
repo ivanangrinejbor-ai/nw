@@ -13,8 +13,8 @@ import org.catrobat.catroid.formulaeditor.Formula;
 
 public class SetPhysicsStateBrick extends FormulaBrick {
     private static final long serialVersionUID = 1L;
-    private int stateSelection = 0; // 0: None, 1: Static, 2: Dynamic
-    private int shapeSelection = 0; // 0: Box, 1: Sphere, 2: Capsule
+    private int stateSelection = 0;
+    private int shapeSelection = 0;
 
     public SetPhysicsStateBrick() {
 

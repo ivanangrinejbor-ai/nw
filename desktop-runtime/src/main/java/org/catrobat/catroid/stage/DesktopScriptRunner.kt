@@ -5,15 +5,6 @@ import com.badlogic.gdx.Input
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.utils.Array
 
-/**
- * Десктопный раннер скриптов.
- *
- * На Android используется LunoScript + ActionFactory + ScriptSequenceAction.
- * На десктопе пока что это минимальная заглушка, которая:
- *  - эмулирует тач/сенсоры через мышь/клавиатуру
- *  - выполняет простые встроенные команды движения/поворота
- *  -可作为 точка подключения полного интерпретатора LunoScript в будущем.
- */
 class DesktopScriptRunner(private val project: DesktopProject,
                           private val input: DesktopInput) {
 
@@ -26,18 +17,12 @@ class DesktopScriptRunner(private val project: DesktopProject,
         val stageY = VIRTUAL_HEIGHT / 2f - mouseScreen.y
         touchState.updateMouse(stageX, stageY, Gdx.input.isButtonPressed(Input.Buttons.LEFT))
 
-        // Эмулируем сенсор наклона по стрелкам
         keyState.left = Gdx.input.isKeyPressed(Input.Keys.LEFT)
         keyState.right = Gdx.input.isKeyPressed(Input.Keys.RIGHT)
         keyState.up = Gdx.input.isKeyPressed(Input.Keys.UP)
         keyState.down = Gdx.input.isKeyPressed(Input.Keys.DOWN)
         keyState.space = Gdx.input.isKeyPressed(Input.Keys.SPACE)
 
-        // NOTE: sprite movement is driven exclusively by DesktopScriptEngine (direct
-        // position writes from motion/glide/etc. bricks). This runner previously
-        // also mutated sprite[0].x/y every frame, which conflicted with the engine
-        // and caused drift. That redundant write has been removed — the engine is
-        // now the single source of truth for sprite positions.
     }
 
     fun getTouchState(): TouchState = touchState

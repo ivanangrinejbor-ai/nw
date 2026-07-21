@@ -20,16 +20,6 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 import java.util.zip.ZipOutputStream
 
-/**
- * Second-generation APK builder with guaranteed 4-byte alignment.
- *
- * Key improvement over BakedApkBuilder:
- * - Writes AndroidManifest.xml then resources.arsc as the FIRST two entries
- *   (both STORED), so alignment is trivial — no DEFLATED entries between them.
- * - Uses manual ZIP writing (raw local file headers) instead of ZipOutputStream,
- *   to have 100% control over extra-field padding.
- * - BakedApkBuilder is kept untouched for backward compatibility.
- */
 object AlignedApkBuilder {
     private const val TAG = "AlignedApkBuilder"
     private const val TEMPLATE_RUNTIME_APK = "template_runtime.apk"
@@ -98,7 +88,6 @@ object AlignedApkBuilder {
         withContext(Dispatchers.IO) {
             var tempDir: File? = null
             try {
-                // ── Phase 0: Pre-flight ────────────────────────────────────────
                 onProgress("Preparing...")
                 tempDir = File(context.cacheDir, "apk_v2_${System.currentTimeMillis()}")
                 tempDir.mkdirs()
@@ -115,7 +104,6 @@ object AlignedApkBuilder {
                     }
                 }
 
-                // ── Phase 1: Load template ─────────────────────────────────────
                 onProgress("Loading template APK...")
                 val templateFile = File(tempDir, "template.apk")
                 var templateLoaded = false
@@ -136,7 +124,6 @@ object AlignedApkBuilder {
                     }
                 }
 
-                // ── Phase 2: Load project ──────────────────────────────────────
                 onProgress("Loading project...")
                 val currentProject = ProjectManager.getInstance()?.currentProject
                     ?: try {
@@ -150,7 +137,6 @@ object AlignedApkBuilder {
                     return@withContext BuildResult.Error("Проект пуст")
                 }
 
-                // ── Phase 3: Encrypt project payload ──────────────────────────
                 onProgress("Protecting project payload...")
                 val encodedProject = File(tempDir, ProtectedProjectPayload.ENCRYPTED_ASSET_NAME)
                 val payloadPassword = config.payloadPassword ?: generateRandomPassword()
@@ -159,11 +145,9 @@ object AlignedApkBuilder {
                 val keyFile = File(tempDir, ProtectedProjectPayload.KEY_ASSET_NAME)
                 keyFile.writeText(payloadPassword)
 
-                // ── Phase 4: Generate manifest via reandroid ────────────────────
                 onProgress("Configuring manifest...")
                 val manifestBytes = generatePatchedManifest(templateFile, config)
 
-                // ── Phase 5: Build aligned APK ─────────────────────────────────
                 onProgress("Building APK...")
                 val unsignedApk = File(tempDir, "unsigned.apk")
                 buildAlignedApk(
@@ -178,7 +162,6 @@ object AlignedApkBuilder {
                     workDir = tempDir
                 )
 
-                // ── Phase 6: Sign ──────────────────────────────────────────────
                 onProgress("Signing APK...")
                 val safeName = config.appName.replace(" ", "_")
                     .replace(Regex("""[\\/:*?"<>|]"""), "_").trim('_', '.')
@@ -195,7 +178,6 @@ object AlignedApkBuilder {
                     return@withContext BuildResult.Error("APK signing failed")
                 }
 
-                // ── Phase 7: Copy result ──────────────────────────────────────
                 onProgress("Done")
                 val resultFile = File(context.cacheDir, signedApk.name)
                 resultFile.delete()
@@ -209,10 +191,6 @@ object AlignedApkBuilder {
                 BuildResult.Error(e.message ?: "Unknown error")
             }
         }
-
-    // ══════════════════════════════════════════════════════════════════
-    //  Manifest patching (reandroid)
-    // ══════════════════════════════════════════════════════════════════
 
     private fun generatePatchedManifest(templateApk: File, config: ApkConfig): ByteArray {
         val module = ApkModule.loadApkFile(templateApk)
@@ -238,7 +216,6 @@ object AlignedApkBuilder {
                     .valueAsString = config.appName
             }
 
-            // debuggable=false, testOnly=false — critical for installability
             val appElem = manifest.applicationElement
             appElem.getOrCreateAndroidAttribute("debuggable", 0x0101000f).setValueAsBoolean(false)
             setTestOnlyFalse(manifest.manifestElement)
@@ -280,13 +257,7 @@ object AlignedApkBuilder {
         element.listElements().forEach { fixClassNames(it, oldPkg) }
     }
 
-    // ══════════════════════════════════════════════════════════════════
-    //  APK builder — manual ZIP writing for guaranteed alignment
-    // ══════════════════════════════════════════════════════════════════
 
-    /**
-     * Writes little-endian integers/bytes and tracks current file position.
-     */
     private class LittleEndianWriter(private val out: OutputStream) : Closeable {
         var position: Long = 0; private set
         fun writeShort(v: Int) {
@@ -309,10 +280,7 @@ object AlignedApkBuilder {
         fun flush() { (out as? Flushable)?.flush() }
     }
 
-    /**
-     * Writes one ZIP local file header + entry data.
-     * The local header extra field is padded so the data starts on a 4-byte boundary.
-     */
+
     private fun writeLocalEntry(
         w: LittleEndianWriter,
         name: String,
@@ -324,27 +292,24 @@ object AlignedApkBuilder {
         val size = data.size
         val crc32 = crc.toInt()
 
-        // Alignment padding: data start = position + 30 + name.length + extra.length
-        val headerBase = 30 + nameBytes.size
+            val headerBase = 30 + nameBytes.size
         val misalign = (w.position + headerBase) % 4
         val padding = if (misalign == 0L) 0 else (4 - misalign).toInt()
 
-        // Local file header (30 bytes)
-        w.writeInt(0x04034b50)                  // signature
-        w.writeShort(20)                         // version needed (2.0)
-        w.writeShort(0)                          // general purpose bit flag (0 = sizes in header)
-        w.writeShort(method)                     // compression method
-        w.writeShort(0)                          // last mod file time
-        w.writeShort(0)                          // last mod file date
-        w.writeInt(crc32)                        // crc-32
-        w.writeInt(size)                         // compressed size (= size for STORED)
-        w.writeInt(size)                         // uncompressed size
-        w.writeShort(nameBytes.size)             // file name length
-        w.writeShort(padding)                    // extra field length = alignment padding
-        w.writeBytes(nameBytes)                  // file name
-        if (padding > 0) w.writeBytes(ByteArray(padding)) // alignment padding
+        w.writeInt(0x04034b50)
+        w.writeShort(20)
+        w.writeShort(0)
+        w.writeShort(method)
+        w.writeShort(0)
+        w.writeShort(0)
+        w.writeInt(crc32)
+        w.writeInt(size)
+        w.writeInt(size)
+        w.writeShort(nameBytes.size)
+        w.writeShort(padding)
+        w.writeBytes(nameBytes)
+        if (padding > 0) w.writeBytes(ByteArray(padding))
 
-        // Entry data
         w.writeBytes(data)
     }
 
@@ -356,8 +321,7 @@ object AlignedApkBuilder {
         filesToAdd: List<Pair<File, String>>,
         workDir: File?
     ) {
-        // Step 1: Read ALL template entry bytes into memory via ZipFile.
-        // Memory peak: template APK ~180 MB; this adds ~180 MB temporarily.
+
         data class EntryData(val name: String, val method: Int, val data: ByteArray, val crc: Long)
         val templateEntries = mutableListOf<EntryData>()
         var arscData: ByteArray? = null
@@ -390,7 +354,7 @@ object AlignedApkBuilder {
             Log.d(TAG, "Template entries loaded: ${templateEntries.size}")
         }
 
-        // Step 2: Write output APK with manual ZIP local headers + central directory
+
         val tempFile = File(workDir ?: outputFile.parentFile, "apk_build_${System.currentTimeMillis()}.apk")
 
         data class CdEntry(
@@ -408,25 +372,21 @@ object AlignedApkBuilder {
                     return CdEntry(name, ZipEntry.STORED, crc.toInt(), data.size, offset)
                 }
 
-                // ── 1. AndroidManifest.xml (STORED, aligned) ────────────
                 val crc32m = java.util.zip.CRC32().apply { update(manifestBytes) }
                 cdEntries.add(writeStored("AndroidManifest.xml", manifestBytes, crc32m.value))
                 Log.d(TAG, "Written manifest @ pos=${w.position}")
 
-                // ── 2. resources.arsc (STORED, aligned — right after manifest) ──
                 if (arscData != null) {
                     cdEntries.add(writeStored("resources.arsc", arscData, arscCrc))
                     Log.d(TAG, "Written resources.arsc @ pos=${w.position}")
                 }
 
-                // ── 3. Template entries ─────────────────────────────────
                 for (e in templateEntries) {
                     val offset = w.position.toInt()
                     writeLocalEntry(w, e.name, e.data, e.method, e.crc)
                     cdEntries.add(CdEntry(e.name, e.method, e.crc.toInt(), e.data.size, offset))
                 }
 
-                // ── 4. Icon files ──────────────────────────────────────
                 if (iconFile != null && iconFile.exists()) {
                     val iconBytes = iconFile.readBytes()
                     val crc32i = java.util.zip.CRC32().apply { update(iconBytes) }
@@ -435,7 +395,6 @@ object AlignedApkBuilder {
                     }
                 }
 
-                // ── 5. Payload files ───────────────────────────────────
                 for ((src, dst) in filesToAdd) {
                     if (src.exists()) {
                         val data = src.readBytes()
@@ -444,44 +403,41 @@ object AlignedApkBuilder {
                     }
                 }
 
-                // ── 6. Central Directory ───────────────────────────────
                 val cdOffset = w.position.toInt()
                 for (ce in cdEntries) {
                     val nb = ce.name.toByteArray(Charsets.UTF_8)
-                    w.writeInt(0x02014b50)         // central directory signature
-                    w.writeShort(20)                // version made by
-                    w.writeShort(20)                // version needed
-                    w.writeShort(0)                 // general purpose bit flag
-                    w.writeShort(ce.method)         // compression method
-                    w.writeShort(0)                 // last mod file time
-                    w.writeShort(0)                 // last mod file date
-                    w.writeInt(ce.crc)              // crc-32
-                    w.writeInt(ce.size)             // compressed size
-                    w.writeInt(ce.size)             // uncompressed size
-                    w.writeShort(nb.size)           // file name length
-                    w.writeShort(0)                 // extra field length
-                    w.writeShort(0)                 // file comment length
-                    w.writeShort(0)                 // disk number start
-                    w.writeShort(0)                 // internal file attributes
-                    w.writeInt(0)                   // external file attributes
-                    w.writeInt(ce.localHeaderOffset)// local header offset
-                    w.writeBytes(nb)                // file name
+                    w.writeInt(0x02014b50)
+                    w.writeShort(20)
+                    w.writeShort(20)
+                    w.writeShort(0)
+                    w.writeShort(ce.method)
+                    w.writeShort(0)
+                    w.writeShort(0)
+                    w.writeInt(ce.crc)
+                    w.writeInt(ce.size)
+                    w.writeInt(ce.size)
+                    w.writeShort(nb.size)
+                    w.writeShort(0)
+                    w.writeShort(0)
+                    w.writeShort(0)
+                    w.writeShort(0)
+                    w.writeInt(0)
+                    w.writeInt(ce.localHeaderOffset)
+                    w.writeBytes(nb)
                 }
                 val cdSize = w.position.toInt() - cdOffset
 
-                // ── 7. End of Central Directory ────────────────────────
-                w.writeInt(0x06054b50)             // EOCD signature
-                w.writeShort(0)                    // disk number
-                w.writeShort(0)                    // disk with central directory
-                w.writeShort(cdEntries.size)       // entries on this disk
-                w.writeShort(cdEntries.size)       // total entries
-                w.writeInt(cdSize)                 // size of central directory
-                w.writeInt(cdOffset)               // offset of central directory
-                w.writeShort(0)                    // comment length
+                w.writeInt(0x06054b50)
+                w.writeShort(0)
+                w.writeShort(0)
+                w.writeShort(cdEntries.size)
+                w.writeShort(cdEntries.size)
+                w.writeInt(cdSize)
+                w.writeInt(cdOffset)
+                w.writeShort(0)
             }
         }
 
-        // Verify resources.arsc — must be STORED
         try {
             ZipFile(tempFile).use { zf ->
                 val ae = zf.getEntry("resources.arsc")
@@ -497,10 +453,6 @@ object AlignedApkBuilder {
         tempFile.renameTo(outputFile)
         Log.d(TAG, "Aligned APK: ${outputFile.length() / (1024 * 1024)} MB")
     }
-
-    // ══════════════════════════════════════════════════════════════════
-    //  Encrypted payload builder
-    // ══════════════════════════════════════════════════════════════════
 
     private fun writeEncryptedPayload(
         context: Context,
@@ -546,10 +498,6 @@ object AlignedApkBuilder {
         payloadZip.delete()
         stagingDir.deleteRecursively()
     }
-
-    // ══════════════════════════════════════════════════════════════════
-    //  Helpers
-    // ══════════════════════════════════════════════════════════════════
 
     private fun generateRandomPassword(): String {
         val bytes = ByteArray(16)

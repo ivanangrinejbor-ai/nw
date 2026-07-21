@@ -12,23 +12,7 @@ import java.io.File
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicBoolean
 
-/**
- * Decrypts a baked-project payload (neocatroid.dat).
- *
- * First attempt uses the built-in static key (backward compatible with payloads baked
- * without a passphrase). If that fails, the user is prompted for the passphrase that was
- * set when the APK was built — this is what makes the payload actually confidential
- * (the static key alone gives zero secrecy since it ships in the open-source app).
- *
- * Must be called from a background thread: it blocks (via a latch) while an AlertDialog
- * is shown on the main thread.
- */
 object PayloadDecryptor {
-    /**
-     * Decrypt with a known password (e.g. from neocatroid.key).
-     * If it fails, falls back to the static [ProtectedProjectPayload.PASSWORD]
-     * for backward compatibility, then prompts the user.
-     */
     fun decrypt(context: Context, encryptedFile: File, decryptedZip: File, password: String = ProtectedProjectPayload.PASSWORD): Boolean {
         if (ProjectCrypto.decrypt(encryptedFile, decryptedZip, password)) {
             return true

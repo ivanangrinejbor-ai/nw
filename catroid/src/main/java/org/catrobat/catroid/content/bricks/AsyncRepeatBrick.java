@@ -45,8 +45,6 @@ public class AsyncRepeatBrick extends FormulaBrick implements CompositeBrick {
         return R.layout.brick_async_repeat;
     }
 
-    // --- Дальше идет стандартная реализация CompositeBrick, скопированная из RepeatBrick ---
-
     @Override public boolean hasSecondaryList() { return false; }
     @Override public List<Brick> getNestedBricks() { return loopBricks; }
     @Override public List<Brick> getSecondaryNestedBricks() { return null; }

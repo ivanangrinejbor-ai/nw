@@ -26,27 +26,15 @@ import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.spec.PBEKeySpec
 import javax.crypto.spec.SecretKeySpec
 
-/**
- * Desktop (Windows) entry point for the NeoCatroid player.
- *
- * Регистрирует десктопные реализации сервисов (аудио, MIDI, текст, уведомления,
- * рантайм-сервисы), загружает проект (из аргумента командной строки, встроенного
- * payload или текущей директории) и запускает полноценный libGDX цикл с
- * [DesktopStageListener] в качестве ApplicationListener — так же, как это делает
- * [StageActivity] на Android, но без Android-зависимостей.
- */
 object DesktopStage {
     private const val EMBEDDED_PAYLOAD_FLAG = "--embedded-payload"
     private const val PAYLOAD_MAGIC = "NEOCAT01"
 
-    // Project encryption — same scheme as the Android Baked APK (org.catrobat.catroid.io.ProjectCrypto).
-    // Format: [magic "NCPP":4][salt:32][iv:12][ciphertext]. Password is the shared payload password.
     private const val CRYPTO_MAGIC = "NCPP"
-    private const val PAYLOAD_PASSWORD = "NeoCatroid:BakedProject:Payload:v1"
+    private const val PAYLOAD_PASSWORD = "SA?D3Ft?ZZHufE9Ma#NA#A9HdQDAWbJ8WHfDPKfD4!G3ST+!=x;Z!wPD=7;B=9JTHRHsT@zZH@kFUu8tgQ8FLH%RPpZpLwJC2A*e"
 
     @JvmStatic
     fun main(args: Array<String>) {
-        // 1. Регистрируем все десктопные сервисы
         RuntimeServicesHolder.services = DesktopRuntimeServices()
         AudioServiceHolder.audioService = DesktopAudioService()
         MidiServiceHolder.midiService = DesktopMidiService()
@@ -54,16 +42,12 @@ object DesktopStage {
         NotificationServiceHolder.service = DesktopNotificationService()
         NetworkServiceHolder.service = DesktopNetworkService()
 
-        // 2. Определяем источник проекта.
-        // Приоритет: явно переданный путь > встроенный payload (NEOCAT01, если exe/jar
-        // собран с проектом) > пустая сцена. Флаг --embedded-payload больше не нужен.
         val projectInput = args.firstOrNull { !it.startsWith("--") && it != EMBEDDED_PAYLOAD_FLAG }
         val loadedProject: File? = when {
             projectInput != null -> resolveProjectInput(File(projectInput))
             else -> loadEmbeddedPayload()?.let { extractPayload(it) }
         }
 
-        // 3. Настраиваем LWJGL3 окно
         val config = Lwjgl3ApplicationConfiguration().apply {
             setTitle("NeoCatroid Desktop Player")
             setWindowedMode(1280, 720)
@@ -72,9 +56,6 @@ object DesktopStage {
             setBackBufferConfig(8, 8, 8, 8, 16, 0, 4)
         }
 
-        // 4. Запускаем DesktopStageListener. Сам проект загружается внутри его
-        //    create() — после старта приложения, когда доступны Gdx.app и GL-контекст
-        //    (loadProject создаёт Texture для look'ов и логирует через Gdx.app).
         Lwjgl3Application(DesktopStageListener(loadedProject), config)
     }
 
@@ -135,9 +116,6 @@ object DesktopStage {
         val data = maybeDecrypt(payload)
         return try {
             val tempDir = Files.createTempDirectory("neocatroid-player").toFile()
-            // Real recursive cleanup on exit. deleteOnExit() only marks files that
-            // are visited before their parent dirs are emptied, so it silently
-            // leaves the payload behind; use a full deleteRecursively() hook instead.
             Runtime.getRuntime().addShutdownHook(Thread {
                 tempDir.deleteRecursively()
             })
@@ -145,8 +123,6 @@ object DesktopStage {
             val zis = java.util.zip.ZipInputStream(java.io.ByteArrayInputStream(data))
             var entry = zis.nextEntry
             while (entry != null) {
-                // Zip-slip guard: resolve the entry against the target directory and
-                // reject anything that escapes it (e.g. names containing "../").
                 val resolved = destPath.resolve(entry.name).normalize()
                 if (resolved != destPath && !resolved.startsWith(destPath)) {
                     zis.closeEntry()
@@ -169,14 +145,6 @@ object DesktopStage {
         }
     }
 
-    /**
-     * If [payload] is an NCPP-encrypted project (same scheme as the Android
-     * [org.catrobat.catroid.io.ProjectCrypto] used by the Baked APK), decrypt it
-     * with the shared payload password. Otherwise return it unchanged so plain
-     * (legacy) projects still load.
-     *
-     * Format: [magic "NCPP":4][salt:32][iv:12][ciphertext]
-     */
     private fun maybeDecrypt(payload: ByteArray): ByteArray {
         val magic = CRYPTO_MAGIC.toByteArray(StandardCharsets.US_ASCII)
         if (payload.size >= magic.size && payload.copyOfRange(0, magic.size).contentEquals(magic)) {

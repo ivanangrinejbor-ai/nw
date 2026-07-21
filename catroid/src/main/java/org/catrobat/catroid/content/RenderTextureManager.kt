@@ -177,6 +177,35 @@ object RenderTextureManager {
         isRenderingToBuffer = false
     }
 
+    // --- Stubs for Phase 4 blocks ---
+    var isMain2DRenderEnabled: Boolean = true
+    var isMainFast2DRenderEnabled: Boolean = true
+    var isMain3DRenderEnabled: Boolean = true
+
+    fun addVariableTextToTarget(bufferName: String, text: String) {
+        // TODO: implement variable text overlay on render target
+    }
+
+    fun setBufferPostProcessing(bufferName: String, enabled: Boolean) {
+        // TODO: implement buffer post-processing toggle
+    }
+
+    fun setBufferMipmapping(bufferName: String, enabled: Boolean) {
+        // TODO: implement buffer mipmapping toggle
+    }
+
+    fun setBufferShader(bufferName: String, vsh: String?, fsh: String?) {
+        // TODO: implement custom shader assignment on buffer
+    }
+
+    fun setBufferShaderUniform(bufferName: String, uniformName: String, value: Any) {
+        // TODO: implement shader uniform setter
+    }
+
+    fun setTextBufferOnly(textName: String, only: Boolean) {
+        // TODO: implement text-only buffer rendering
+    }
+
     fun clearAll() {
         renderTextures.values.forEach { it.dispose() }
         renderTextures.clear()

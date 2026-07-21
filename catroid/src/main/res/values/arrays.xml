@@ -526,6 +526,9 @@
         <item>softmax</item>
         <item>mse_loss</item>
         <item>sum</item>
+        <item>gelu</item>
+        <item>transpose</item>
+        <item>layernorm</item>
     </string-array>
 
     <string-array name="pp_effect_types">
@@ -613,6 +616,234 @@
         <item>Amount</item>
         <item>Softness</item>
         <item>Vignette</item>
+    </string-array>
+
+    <string-array name="brick_buffer_mask_modes">
+        <item>Stretch</item>
+        <item>Screen</item>
+    </string-array>
+
+    <string-array name="brick_notification_priorities">
+        <item>Low</item>
+        <item>Default</item>
+        <item>High</item>
+    </string-array>
+
+    <string-array name="brick_notification_behaviors">
+        <item>Run in background</item>
+        <item>Open app</item>
+    </string-array>
+
+    <string-array name="brick_http_config_types">
+        <item>Header</item>
+        <item>Query parameter</item>
+        <item>Connect timeout</item>
+        <item>Read timeout</item>
+        <item>Write timeout</item>
+        <item>Follow redirects</item>
+        <item>Trust all certificates</item>
+        <item>Use cookies</item>
+        <item>Proxy host</item>
+        <item>Proxy port</item>
+    </string-array>
+
+    <string-array name="brick_http_configure_light_types">
+        <item>Intensity</item>
+        <item>Range</item>
+        <item>Color (R,G,B)</item>
+        <item>Position (X,Y,Z)</item>
+        <item>Direction (X,Y,Z)</item>
+        <item>Cone angle</item>
+        <item>Softness</item>
+    </string-array>
+
+    <string-array name="brick_http_configure_material_types">
+        <item>Base color (R,G,B,A)</item>
+        <item>Metallic</item>
+        <item>Roughness</item>
+        <item>Texture scale (U,V)</item>
+        <item>Emissive color (R,G,B)</item>
+        <item>Emissive intensity</item>
+    </string-array>
+
+    <string-array name="brick_http_configure_particles_types">
+        <item>Emission rate</item>
+        <item>Lifetime</item>
+        <item>Speed</item>
+        <item>Size</item>
+        <item>Color (R,G,B)</item>
+        <item>Gravity</item>
+    </string-array>
+
+    <string-array name="brick_ease_properties">
+        <item>X position</item>
+        <item>Y position</item>
+        <item>Size</item>
+        <item>Transparency</item>
+        <item>Color</item>
+        <item>Width</item>
+        <item>Height</item>
+        <item>Brightness</item>
+    </string-array>
+
+    <string-array name="brick_ease_3d_properties">
+        <item>Position X</item>
+        <item>Position Y</item>
+        <item>Position Z</item>
+        <item>Rotation X</item>
+        <item>Rotation Y</item>
+        <item>Rotation Z</item>
+        <item>Scale X</item>
+        <item>Scale Y</item>
+        <item>Scale Z</item>
+    </string-array>
+
+    <string-array name="scale_modes_array">
+        <item>Fit center</item>
+        <item>Center crop</item>
+        <item>Stretch</item>
+        <item>Center</item>
+    </string-array>
+
+    <string-array name="scroll_modes_array">
+        <item>None</item>
+        <item>Vertical</item>
+        <item>Horizontal</item>
+        <item>Both</item>
+    </string-array>
+
+    <string-array name="overscroll_modes_array">
+        <item>Always</item>
+        <item>When needed</item>
+        <item>Never</item>
+    </string-array>
+
+    <string-array name="text_formats_array">
+        <item>Plain text</item>
+        <item>HTML</item>
+    </string-array>
+
+    <string-array name="align_modes_array">
+        <item>Left</item>
+        <item>Center</item>
+        <item>Right</item>
+    </string-array>
+
+    <string-array name="align_anchor_array">
+        <item>Top-left</item>
+        <item>Center</item>
+    </string-array>
+
+    <string-array name="native_view_animate_properties_array">
+        <item>Opacity</item>
+        <item>Rotation</item>
+        <item>Scale X</item>
+        <item>Scale Y</item>
+        <item>Translation X</item>
+        <item>Translation Y</item>
+        <item>Position X</item>
+        <item>Position Y</item>
+    </string-array>
+
+    <string-array name="native_view_commands_array">
+        <item>Go back (WebView)</item>
+        <item>Go forward (WebView)</item>
+        <item>Reload (WebView)</item>
+        <item>Stop loading (WebView)</item>
+        <item>Clear cache and cookies (WebView)</item>
+        <item>Load URL (WebView)</item>
+        <item>Load HTML (WebView)</item>
+        <item>Play (Video)</item>
+        <item>Pause (Video)</item>
+        <item>Stop (Video)</item>
+        <item>Seek to (Video)</item>
+        <item>Set text</item>
+        <item>Append text</item>
+        <item>Clear text</item>
+        <item>Select all</item>
+        <item>Set cursor position</item>
+        <item>Scroll to (x,y)</item>
+        <item>Scroll by (dx,dy)</item>
+        <item>Scroll to top</item>
+        <item>Scroll to bottom</item>
+        <item>Show keyboard</item>
+        <item>Hide keyboard</item>
+    </string-array>
+
+    <string-array name="native_view_events_array">
+        <item>JS message received</item>
+        <item>Page started (URL)</item>
+        <item>Page finished (URL)</item>
+        <item>Page error</item>
+        <item>Loading progress</item>
+        <item>Page title</item>
+        <item>Text changed</item>
+        <item>Got focus</item>
+        <item>Lost focus</item>
+        <item>Editor action</item>
+        <item>Video completed</item>
+        <item>Video prepared</item>
+        <item>Video error</item>
+        <item>Scroll Y</item>
+        <item>Scroll X</item>
+        <item>Scrolled to bottom</item>
+        <item>Clicked</item>
+        <item>SeekBar value changed</item>
+        <item>Switch toggled</item>
+        <item>Cursor position</item>
+    </string-array>
+
+    <string-array name="native_view_properties_array">
+        <item>Visibility</item>
+        <item>Opacity</item>
+        <item>Interactive (enabled)</item>
+        <item>Elevation</item>
+        <item>Rotation</item>
+        <item>Scale X</item>
+        <item>Scale Y</item>
+        <item>WebView: accept cookies</item>
+        <item>WebView: zoom controls</item>
+        <item>WebView: DOM storage</item>
+        <item>WebView: user agent</item>
+        <item>WebView: background color</item>
+        <item>Video: volume</item>
+        <item>Video: loop</item>
+        <item>Text color</item>
+        <item>Text size</item>
+        <item>Text background color</item>
+        <item>Corner radius</item>
+        <item>Shadow elevation</item>
+        <item>Text alignment</item>
+        <item>Font</item>
+        <item>Line spacing</item>
+        <item>Max length</item>
+        <item>Hint text</item>
+        <item>Hint color</item>
+        <item>Switch text</item>
+        <item>Switch checked</item>
+        <item>Button all caps</item>
+        <item>Image scale type</item>
+        <item>Image source</item>
+        <item>SeekBar min</item>
+        <item>SeekBar max</item>
+        <item>SeekBar value</item>
+        <item>Scroll bars visible</item>
+        <item>Over-scroll mode</item>
+        <item>Scroll padding</item>
+        <item>Border (width,color)</item>
+        <item>Padding</item>
+        <item>Blur</item>
+        <item>Pivot point (x,y)</item>
+        <item>Layer (background/foreground)</item>
+        <item>Default visibility for new views</item>
+        <item>WebView: initial scale</item>
+        <item>Text color range</item>
+        <item>Highlight word (text color)</item>
+        <item>Text highlight range</item>
+        <item>Highlight word (background)</item>
+        <item>Overlay mode</item>
+        <item>Draggable</item>
+        <item>Drag handle</item>
     </string-array>
 
 </resources>

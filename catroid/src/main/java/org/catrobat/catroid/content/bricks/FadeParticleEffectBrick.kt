@@ -82,7 +82,6 @@ class FadeParticleEffectBrick(fadeType: Int = FADE_IN) : BrickBaseType() {
             }
 
             override fun onNothingSelected(adapterView: AdapterView<*>?) {
-                // Do nothing
             }
         }
     }

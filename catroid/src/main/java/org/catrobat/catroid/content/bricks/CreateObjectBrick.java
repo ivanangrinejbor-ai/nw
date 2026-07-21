@@ -17,8 +17,8 @@ public class CreateObjectBrick extends FormulaBrick {
 
 	private static final long serialVersionUID = 1L;
 
-	private int useSceneSelection = 0; // 0 = current scene, 1 = use typed scene name
-	private int persistentSelection = 0; // 0 = runtime only, 1 = persist to project
+	private int useSceneSelection = 0;
+	private int persistentSelection = 0;
 
 	public CreateObjectBrick() {
 		addAllowedBrickField(BrickField.CREATE_OBJECT_NAME, R.id.brick_create_object_name_edit);
@@ -65,7 +65,6 @@ public class CreateObjectBrick extends FormulaBrick {
 			sceneLabel.setVisibility(isChecked ? View.VISIBLE : View.GONE);
 		});
 
-		// Persist to project spinner (No = runtime only, Yes = persist)
 		Spinner persistentSpinner = view.findViewById(R.id.brick_create_object_persistent_spinner);
 		ArrayAdapter<String> persistentAdapter = new ArrayAdapter<>(context,
 				R.layout.simple_spinner_item_white_text,

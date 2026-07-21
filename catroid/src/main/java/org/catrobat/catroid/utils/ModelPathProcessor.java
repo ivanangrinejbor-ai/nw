@@ -18,23 +18,16 @@ import java.util.List;
 @LunoClass
 public class ModelPathProcessor {
 
-    // Ключевые слова в .mtl, после которых может идти путь к файлу
     private static final String TAG = "3DModelPathProcessor";
     private static final List<String> PATH_KEYWORDS = Arrays.asList(
-            "map_Kd",   // Основная текстура
-            "map_Bump", // Карта нормалей (рельеф)
-            "map_Ks",   // Карта бликов
-            "map_Ka",   // Карта фонового освещения
-            "map_d",    // Карта прозрачности
-            "refl"      // Карта отражений
+            "map_Kd",
+            "map_Bump",
+            "map_Ks",
+            "map_Ka",
+            "map_d",
+            "refl"
     );
 
-    /**
-     * Принимает handle на .obj файл, исправляет пути в связанном .mtl,
-     * создает временные исправленные копии и возвращает handle на новый .obj.
-     * @param originalObjHandle Handle на оригинальный .obj файл из assets.
-     * @return Handle на исправленный .obj файл в локальном хранилище.
-     */
     public static FileHandle process(FileHandle originalObjHandle) throws IOException {
         Gdx.app.log(TAG, "--- Starting processing for: " + originalObjHandle.path());
 
@@ -51,13 +44,12 @@ public class ModelPathProcessor {
             return originalObjHandle;
         }
 
-        // --- Копирование текстур с подробным логированием ---
         List<String> textureFiles = findTextureFileNames(originalMtlHandle);
         Gdx.app.log(TAG, "Found " + textureFiles.size() + " texture references in .mtl: " + textureFiles);
 
         for (String textureFileName : textureFiles) {
             FileHandle sourceTexture = originalObjHandle.parent().child(textureFileName);
-            FileHandle destTexture = Gdx.files.local(textureFileName); // Копируем в корень локального хранилища
+            FileHandle destTexture = Gdx.files.local(textureFileName);
 
             Gdx.app.log(TAG, "Attempting to copy from: " + sourceTexture.path() + " (Exists: " + sourceTexture.exists() + ")");
             Gdx.app.log(TAG, "Attempting to copy to:   " + destTexture.path());
@@ -75,7 +67,6 @@ public class ModelPathProcessor {
         }
         Gdx.app.log(TAG, "Finished copying all textures.");
 
-        // --- Создание исправленных файлов ---
         String patchedMtlContent = patchMtlFile(originalMtlHandle);
         FileHandle patchedMtlHandle = Gdx.files.local("patched_" + originalMtlHandle.name());
         patchedMtlHandle.writeString(patchedMtlContent, false);
@@ -140,18 +131,14 @@ public class ModelPathProcessor {
             if (trimmedLine.startsWith(keyword)) {
                 String[] parts = trimmedLine.split("\\s+");
                 if (parts.length > 1) {
-                    // Путь к файлу - это всегда последний элемент
                     String filePath = parts[parts.length - 1];
-                    // Используем java.io.File для надежного извлечения имени файла из пути
                     String fileName = new java.io.File(filePath).getName();
 
-                    // Собираем строку обратно
                     parts[parts.length - 1] = fileName;
                     return String.join(" ", parts);
                 }
             }
         }
-        // Если строка не содержит известный нам путь, возвращаем ее без изменений
         return line;
     }
 

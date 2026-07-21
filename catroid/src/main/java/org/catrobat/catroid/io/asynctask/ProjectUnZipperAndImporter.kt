@@ -475,16 +475,11 @@ private fun readApplicationVersion(codeXml: File): String? {
 
 private const val MAX_SUPPORTED_VERSION = "2.1.2"
 
+// Version gating for ".newtrobat" projects is disabled: any application version
+// is allowed to import. Kept as a function (always false) so the call site and
+// MAX_SUPPORTED_VERSION constant stay intact for possible future re-enabling.
+@Suppress("UNUSED_PARAMETER")
 private fun isUnsupportedVersion(versionStr: String): Boolean {
-    val parts = versionStr.split(".").mapNotNull { it.toIntOrNull() }
-    val maxParts = MAX_SUPPORTED_VERSION.split(".").map { it.toInt() }
-    val maxLen = maxOf(parts.size, maxParts.size)
-    for (i in 0 until maxLen) {
-        val v = parts.getOrElse(i) { 0 }
-        val m = maxParts.getOrElse(i) { 0 }
-        if (v > m) return true
-        if (v < m) return false
-    }
     return false
 }
 

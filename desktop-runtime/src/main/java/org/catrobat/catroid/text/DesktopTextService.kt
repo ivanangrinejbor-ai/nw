@@ -5,12 +5,6 @@ import java.awt.Font
 import java.awt.Graphics2D
 import java.awt.image.BufferedImage
 
-/**
- * Desktop (Windows) implementation of [TextService] rasterizing text via the JDK
- * (`java.awt` BufferedImage / Graphics2D / Font), producing the same RGBA8888
- * byte layout as [org.catrobat.catroid.text.AndroidTextService] so the stage actor
- * can build a libGDX Texture identically on every platform.
- */
 class DesktopTextService : TextService {
     override fun rasterizeText(
         text: String,

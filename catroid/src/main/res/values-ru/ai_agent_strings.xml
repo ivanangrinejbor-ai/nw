@@ -55,6 +55,7 @@
     <string formatted="false" name="ai_model_qwen_1b">Qwen 2.5 1B (Сбалансированный)</string>
     <string formatted="false" name="ai_model_qwen_3b">Qwen 2.5 3B (Мощный)</string>
     <string formatted="false" name="ai_model_qwen_7b">Qwen 2.5 7B (Максимум)</string>
+    <string formatted="false" name="ai_agent_avatar_label">AI</string>
     <string formatted="false" name="ai_agent_thinking">AI Агент думает…</string>
     <string formatted="false" name="ai_agent_using_tools">AI Агент использует инструменты…</string>
     <string formatted="false" name="ai_agent_error">AI Агент получил ошибку</string>
@@ -71,4 +72,11 @@
     <string formatted="false" name="ai_agent_download_progress_text">Скачивание…</string>
     <string formatted="false" name="ai_agent_download_complete_text">Скачивание завершено</string>
     <string formatted="false" name="ai_agent_chat_menu_title">AI Чат</string>
+    <string formatted="false" name="ai_agent_set_api_key_title">Указать ключ Gemini API</string>
+    <string formatted="false" name="ai_agent_set_api_key_hint">Ключ API</string>
+    <string formatted="false" name="ai_agent_api_key_saved">Ключ API сохранён</string>
+    <string formatted="false" name="ai_agent_select_model_title">Выбрать модель</string>
+    <string formatted="false" name="ai_agent_loading_models">Загрузка моделей…</string>
+    <string formatted="false" name="ai_agent_model_selected">Выбрана модель: %s</string>
+    <string formatted="false" name="ai_agent_no_api_key">Сначала укажите ключ Gemini API (меню → Указать ключ)</string>
 </resources>

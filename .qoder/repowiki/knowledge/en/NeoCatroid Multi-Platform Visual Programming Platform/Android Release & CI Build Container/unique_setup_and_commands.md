@@ -1,1 +1,0 @@
-Requires `ENV['googlePlayJsonKey']` set to a Google Service Account JSON key before any `fastlane <lane>` runs. The Docker image is intended to be built with `--build-arg USER_ID/--build-arg GROUP_ID` so the container user matches the host Jenkins user (needed for ssh-agent).

@@ -1,5 +1,3 @@
-// В файле org/catrobat/catroid/utils/ProjectSecurityChecker.java
-
 package org.catrobat.catroid.utils;
 
 import org.catrobat.catroid.content.Project;
@@ -51,9 +49,7 @@ public class ProjectSecurityChecker {
             return true;
         }
 
-        // Recurse into composite bricks (IfBrick, RepeatBrick, ForeverBrick, ...) so that
-        // dangerous bricks nested inside them are also validated.
-        if (brick instanceof CompositeBrick) {
+		if (brick instanceof CompositeBrick) {
             for (Brick nestedBrick : ((CompositeBrick) brick).getNestedBricks()) {
                 if (checkBrickRecursively(nestedBrick)) {
                     return true;

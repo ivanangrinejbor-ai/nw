@@ -172,8 +172,7 @@ public class StageListener implements ApplicationListener {
 	public boolean firstFrameDrawn = false;
 	private SystemLoadingActor systemLoadingActor = null;
 
-	// ── Progressive initialization (avoids multi-second freeze on large scenes) ──
-	private static final int INIT_BATCH_SIZE = 50; // sprites initialized per frame
+	private static final int INIT_BATCH_SIZE = 50;
 	private int progressiveInitIndex = 0;
 	private boolean progressiveInitActive = false;
 	private List<Sprite> progressiveInitSprites = null;
@@ -233,9 +232,12 @@ public class StageListener implements ApplicationListener {
 
 	private float cameraRotation = 0f;
 
+	private final ScreenShakeController screenShake = new ScreenShakeController();
+
     public FastTwoDManager fastTwoDManager;
     public PathfindingManager pathfindingManager;
     public TransitionManager transitionManager;
+    public boolean isBackgroundModeEnabled = false;
 
 	public void setMaxViewPort(Resolution maxViewPort) {
 		this.maxViewPort = maxViewPort;
@@ -303,8 +305,6 @@ public class StageListener implements ApplicationListener {
 
 	public StageListener() {
 		webConnectionHolder = new WebConnectionHolder();
-		// Wire the shared holder so PenActor (and other stage actors) can reach this
-		// listener. Previously nothing set it, so pen drawing/stamping was dead on Android.
 		StageListenerHolder.INSTANCE.setListener(this);
 	}
 
@@ -473,6 +473,10 @@ public class StageListener implements ApplicationListener {
 			camera.rotate(cameraRotation - degrees);
 			cameraRotation = degrees;
 		}
+	}
+
+	public void startScreenShake(float intensity, float duration) {
+		screenShake.start(intensity, duration);
 	}
 
 	public void pinSpriteToCamera(Sprite sprite) {
@@ -1347,26 +1351,18 @@ public class StageListener implements ApplicationListener {
 			shapeRenderer.setProjectionMatrix(camera.combined);
 
 			if (scene.firstStart) {
-				// ── Progressive initialization: batch N sprites per frame ──
-				// Phase 1 (progressive): Load textures + set up looks (expensive I/O).
-				// Phase 2 (single frame): Start ALL scripts simultaneously once everything
-				// is ready — preserves timing dependencies between sprites (broadcasts,
-				// wait-until conditions, etc.).
 				if (!progressiveInitActive) {
 					progressiveInitActive = true;
 					progressiveInitIndex = 0;
 					progressiveInitSprites = new java.util.ArrayList<>(sprites);
 					progressiveGlobalSprites = project.getAllGlobalSprites();
-					// Pre-load pixmaps on background threads (file I/O + decode)
 					startPixmapPreload(progressiveInitSprites);
 				}
 
-				// Phase 1: progressive texture/look setup (no script execution yet)
 				int endIndex = Math.min(progressiveInitIndex + INIT_BATCH_SIZE, progressiveInitSprites.size());
 				for (int si = progressiveInitIndex; si < endIndex; si++) {
 					Sprite sprite = progressiveInitSprites.get(si);
 					boolean isGlobal = progressiveGlobalSprites.contains(sprite);
-					// Only set up the look (texture) — do NOT start scripts yet
 					if (!isGlobal && !sprite.getLookList().isEmpty()) {
 						sprite.look.setLookData(sprite.getLookList().get(0));
 					}
@@ -1374,10 +1370,6 @@ public class StageListener implements ApplicationListener {
 				progressiveInitIndex = endIndex;
 
 				if (progressiveInitIndex >= progressiveInitSprites.size()) {
-					// Phase 2: ALL textures ready — start ALL scripts simultaneously
-					// This ensures timing-dependent games work correctly:
-					// broadcasts, wait-until, and inter-sprite dependencies all see
-					// every sprite as initialized from the very first execution frame.
 					for (Sprite sprite : progressiveInitSprites) {
 						boolean isGlobal = progressiveGlobalSprites.contains(sprite);
 						if (!isGlobal || !globalScriptsStarted) {
@@ -1395,7 +1387,6 @@ public class StageListener implements ApplicationListener {
 					if (!globalScriptsStarted && project.getAllGlobalSprites().size() > 0) {
 						globalScriptsStarted = true;
 					}
-					// Shutdown preloader
 					if (pixmapPreloader != null) {
 						pixmapPreloader.shutdown();
 						pixmapPreloader = null;
@@ -1475,11 +1466,29 @@ public class StageListener implements ApplicationListener {
                         transitionManager.update(Gdx.graphics.getDeltaTime());
                     }
 
+                    // 2D screen shake: temporarily offset the main camera around the
+                    // 2D draw pass, then restore it so the real camera position is unchanged.
+                    float shakeOffsetX = 0f;
+                    float shakeOffsetY = 0f;
+                    boolean screenShaking = screenShake.update(Gdx.graphics.getDeltaTime());
+                    if (screenShaking && camera != null) {
+                        shakeOffsetX = screenShake.getOffsetX();
+                        shakeOffsetY = screenShake.getOffsetY();
+                        camera.position.x += shakeOffsetX;
+                        camera.position.y += shakeOffsetY;
+                        camera.update();
+                    }
+
                     stage.draw();
                     if (transitionManager != null) {
                         transitionManager.renderOverlay((SpriteBatch) batch);
                     }
 
+                    if (screenShaking && camera != null) {
+                        camera.position.x -= shakeOffsetX;
+                        camera.position.y -= shakeOffsetY;
+                        camera.update();
+                    }
 
                     uiStage.draw();
                 } catch (Exception e) {
@@ -1740,14 +1749,12 @@ public class StageListener implements ApplicationListener {
 	}
 
 	/**
-	 * Pre-load pixmaps (file I/O + image decode) on background threads.
 	 * This moves the expensive disk-read + decode off the GL thread.
 	 * The actual GPU texture upload (getTextureRegion) still happens on GL thread
 	 * when setLookData/refreshTextures is called, but by then the pixmap is already
 	 * in memory so it's instant.
 	 *
 	 * If GlobalManager.preloadProject is true, preloads ALL scenes (not just current)
-	 * so scene transitions are instant.
 	 */
 	private void startPixmapPreload(List<Sprite> spritesToPreload) {
 		if (pixmapPreloader != null) {
@@ -1757,14 +1764,12 @@ public class StageListener implements ApplicationListener {
 		pixmapPreloader = java.util.concurrent.Executors.newFixedThreadPool(threads);
 
 		if (org.catrobat.catroid.content.GlobalManager.Companion.getPreloadProject()) {
-			// Preload ALL scenes — scene transitions will be instant
 			for (Scene s : project.getSceneList()) {
 				for (Sprite sprite : s.getSpriteList()) {
 					submitPixmapPreload(sprite);
 				}
 			}
 		} else {
-			// Only preload current scene
 			for (Sprite sprite : spritesToPreload) {
 				submitPixmapPreload(sprite);
 			}
@@ -1775,9 +1780,8 @@ public class StageListener implements ApplicationListener {
 		for (org.catrobat.catroid.common.LookData lookData : sprite.getLookList()) {
 			pixmapPreloader.submit(() -> {
 				try {
-					lookData.getPixmap(); // pre-decode on background thread
+					lookData.getPixmap();
 				} catch (Exception e) {
-					// ignore — will be retried on GL thread if needed
 				}
 			});
 		}
@@ -1786,15 +1790,12 @@ public class StageListener implements ApplicationListener {
 	@Override
 	public void dispose() {
 		try {
-		// Shutdown pixmap preloader if still running
 		if (pixmapPreloader != null) {
 			pixmapPreloader.shutdownNow();
 			pixmapPreloader = null;
 		}
 		executeExitScriptsSynchronously();
 
-		// Dispose the native Box2D world. Previously never released, leaking the
-		// world (and all bodies) in native memory on every stage exit.
 		if (physicsWorld != null) {
 			physicsWorld.dispose();
 			physicsWorld = null;
@@ -1911,13 +1912,10 @@ public class StageListener implements ApplicationListener {
 			vmTexture = null;
 		}
 
-		// Detach the shared holder to avoid leaking this StageListener after teardown.
 		if (StageListenerHolder.INSTANCE.getListener() == this) {
 			StageListenerHolder.INSTANCE.setListener(null);
 		}
 		} catch (Throwable t) {
-			// Тайм-аут/safe-teardown: падение при очистке не должно ронять приложение
-			// (иначе Android пересоздаёт сцену — чёрный экран и «реинициализация»).
 			Log.e("StageListener", "Error during stage teardown; ignored to prevent app crash on exit", t);
 		}
 	}
@@ -2093,6 +2091,19 @@ public class StageListener implements ApplicationListener {
 		Sprite spriteToRemove = null;
 		for (Sprite sprite : sprites) {
 			if (sprite.isClone && sprite.cloneIndex == index) {
+				spriteToRemove = sprite;
+				break;
+			}
+		}
+		if (spriteToRemove != null) {
+			removeClonedSpriteFromStage(spriteToRemove);
+		}
+	}
+
+	public void removeCloneByIndexAndSprite(Sprite targetSprite, int index) {
+		Sprite spriteToRemove = null;
+		for (Sprite sprite : sprites) {
+			if (sprite.isClone && sprite.cloneIndex == index && sprite == targetSprite) {
 				spriteToRemove = sprite;
 				break;
 			}

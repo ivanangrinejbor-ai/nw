@@ -30,19 +30,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-/**
- * Merges the scripts of a {@link NeoScriptFile} into a target sprite.
- *
- * Responsibilities:
- * <ul>
- *   <li>Generate fresh internal ids (script id + every brick id) via {@link Script#clone()}.</li>
- *   <li>Re-link variable / list references to the host project / sprite (by name).</li>
- *   <li>Detect duplicate scripts using a stable signature (type + trigger) instead of
- *       memory reference.</li>
- *   <li>Honour the chosen {@link ImportStrategy} with explicit REPLACE_ALL (mode 1)
- *       and APPEND_ALL (mode 0) semantics for the AssignScriptsBrick surface.</li>
- * </ul>
- */
 public final class NeoScriptImporter {
 
 	private NeoScriptImporter() {
@@ -76,9 +63,6 @@ public final class NeoScriptImporter {
 		ImportResult result = new ImportResult();
 
 		if (strategy == ImportStrategy.REPLACE_ALL) {
-			// Atomic: clone + relink every imported script first. Only if ALL clones
-			// succeed do we remove the existing scripts and add the new ones. Any
-			// failure (CloneNotSupportedException) leaves the target sprite untouched.
 			List<Script> imported = new ArrayList<>();
 			try {
 				for (Script original : file.getScripts()) {
@@ -98,10 +82,6 @@ public final class NeoScriptImporter {
 			return result;
 		}
 
-		// Only scripts with a *parameterized* trigger (e.g. BroadcastScript+message)
-		// can be meaningfully deduplicated. Scripts whose signature is null
-		// (StartScript, WhenClonedScript, WhenTouchDownScript, WhenConditionScript, …)
-		// are always unique — a sprite can have many of them doing different things.
 		Set<String> targetSignatures = new HashSet<>();
 		for (Script script : targetSprite.getScriptList()) {
 			String sig = scriptSignature(script);
@@ -111,8 +91,6 @@ public final class NeoScriptImporter {
 		}
 
 		if (strategy == ImportStrategy.REPLACE_DUPLICATES) {
-			// Only collect parameterized-trigger scripts as candidates for removal.
-			// Non-parameterized scripts in the incoming file are always added as-is.
 			Set<String> importedParameterizedSigs = new HashSet<>();
 			for (Script s : file.getScripts()) {
 				String sig = scriptSignature(s);
@@ -120,7 +98,6 @@ public final class NeoScriptImporter {
 					importedParameterizedSigs.add(sig);
 				}
 			}
-			// BUG-NS-06/07/08 fix: atomic approach — clone all first, only then mutate.
 			List<Script> toRemove = new ArrayList<>();
 			for (Script script : targetSprite.getScriptList()) {
 				String sig = scriptSignature(script);
@@ -128,7 +105,6 @@ public final class NeoScriptImporter {
 					toRemove.add(script);
 				}
 			}
-			// Clone + relink every incoming script atomically
 			List<Script> cloned = new ArrayList<>();
 			try {
 				for (Script original : file.getScripts()) {
@@ -140,7 +116,6 @@ public final class NeoScriptImporter {
 			} catch (CloneNotSupportedException e) {
 				throw new NeoScriptException("Failed to clone script: " + e.getMessage(), e);
 			}
-			// All clones succeeded — atomically swap parameterized duplicates, add the rest
 			targetSprite.getScriptList().removeAll(toRemove);
 			for (Script s : cloned) {
 				targetSprite.addScript(s);
@@ -161,11 +136,9 @@ public final class NeoScriptImporter {
 				String signature = scriptSignature(clone);
 
 				if (strategy == ImportStrategy.APPEND_ALL) {
-					// Always add, regardless of signature
 					targetSprite.addScript(clone);
 					result.added.add(clone);
 				} else if (strategy == ImportStrategy.SKIP_DUPLICATES) {
-					// null signature = non-parameterized = always unique, always add
 					boolean duplicate = signature != null && targetSignatures.contains(signature);
 					if (duplicate) {
 						result.skipped.add(clone);
@@ -191,18 +164,6 @@ public final class NeoScriptImporter {
 		sprite.getScriptList().removeAll(toRemove);
 	}
 
-	/**
-	 * Builds a stable, reference-free signature used for duplicate detection.
-	 *
-	 * <p>Returns a non-null string <em>only</em> for scripts whose trigger is parameterized
-	 * (i.e. two scripts of the same type with the same parameter are genuinely duplicates).
-	 * For non-parameterized scripts (StartScript, WhenClonedScript, WhenConditionScript,
-	 * WhenTouchDownScript, WhenScript, etc.) returns {@code null}, meaning "always unique —
-	 * never treat as a duplicate".
-	 *
-	 * <p>This prevents BUG-NS-07/08: losing multiple StartScript blocks that perform
-	 * different actions just because they share the same class name.
-	 */
 	public static String scriptSignature(Script script) {
 		if (script instanceof BroadcastScript) {
 			return "BroadcastScript#" + ((BroadcastScript) script).getBroadcastMessage();
@@ -216,7 +177,6 @@ public final class NeoScriptImporter {
 		}
 		if (script instanceof WhenFirebaseChangedScript) {
 			WhenFirebaseChangedScript fb = (WhenFirebaseChangedScript) script;
-			// Use the formula map's bucket+path as a stable key
 			String bucket = fb.getFormulaMap().containsKey(org.catrobat.catroid.content.bricks.Brick.BrickField.FIREBASE_TRIGGER_BUCKET)
 					? fb.getFormulaMap().get(org.catrobat.catroid.content.bricks.Brick.BrickField.FIREBASE_TRIGGER_BUCKET).getTrimmedFormulaString(null)
 					: "";
@@ -233,9 +193,6 @@ public final class NeoScriptImporter {
 			UserDefinedScript uds = (UserDefinedScript) script;
 			return "UserDefinedScript#" + uds.getUserDefinedBrickID();
 		}
-		// All other script types (StartScript, WhenClonedScript, WhenConditionScript,
-		// WhenTouchDownScript, WhenScript, WhenNfcScript, WhenMouseButton*, etc.)
-		// have no unique trigger parameter → cannot be deduplicated → return null.
 		return null;
 	}
 }

@@ -32,8 +32,18 @@ import org.catrobat.catroid.stage.StageListener;
 
 public class WaitTillIdleAction extends Action {
 
+	private static final float TIMEOUT = 5.0f; // 5 seconds timeout
+	private float totalTime = 0f;
+
 	@Override
 	public boolean act(float delta) {
+		totalTime += delta;
+		
+		// Timeout protection: stop waiting after 5 seconds
+		if (totalTime >= TIMEOUT) {
+			return true;
+		}
+		
 		return allActorsIdle();
 	}
 
@@ -42,26 +52,52 @@ public class WaitTillIdleAction extends Action {
 		if (stageListener == null || stageListener.getStage() == null) {
 			return false;
 		}
-		int numberOfActors = stageListener.getStage().getActors().size;
-		if (numberOfActors == 0) {
-			return false;
+		
+		com.badlogic.gdx.scenes.scene2d.Stage stage = stageListener.getStage();
+		int totalActors = stage.getActors().size;
+		if (totalActors == 0) {
+			return true; // No actors = idle
 		}
 
-		int actorsWithNoEventThreads = 0;
-		int actorWithOnlyThisEventThread = 0;
+		int idleActors = 0;
+		int actorsWithOnlyThisScript = 0;
 
-		for (Actor actor : StageActivity.getActiveStageListener().getStage().getActors()) {
+		for (Actor actor : stage.getActors()) {
 			Array<Action> actions = actor.getActions();
+			
+			// Actor is idle if it has no actions
 			if (actions.size == 0) {
-				actorsWithNoEventThreads++;
+				idleActors++;
+				continue;
 			}
-			if (actions.size == 1 && actions.get(0) instanceof ScriptSequenceAction) {
-				ScriptSequenceAction sequenceAction = (ScriptSequenceAction) actions.get(0);
-				if (sequenceAction.getActions().contains(this, true)) {
-					actorWithOnlyThisEventThread++;
+			
+			// Check if actor has only ScriptSequenceAction containing this WaitTillIdleAction
+			boolean hasOnlyThisScript = false;
+			for (Action action : actions) {
+				if (action instanceof ScriptSequenceAction) {
+					ScriptSequenceAction sequenceAction = (ScriptSequenceAction) action;
+					if (sequenceAction.getActions().contains(this, true)) {
+						// This actor is running the script that contains this WaitTillIdleAction
+						// Check if it has no OTHER actions besides this sequence
+						if (actions.size == 1) {
+							hasOnlyThisScript = true;
+						}
+					}
 				}
 			}
+			
+			if (hasOnlyThisScript) {
+				actorsWithOnlyThisScript++;
+			}
 		}
-		return numberOfActors == actorsWithNoEventThreads + actorWithOnlyThisEventThread;
+		
+		// All actors are idle if: all have 0 actions, OR only the current script is running
+		return (idleActors + actorsWithOnlyThisScript) >= totalActors;
+	}
+	
+	@Override
+	public void restart() {
+		totalTime = 0f;
+		super.restart();
 	}
 }

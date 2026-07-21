@@ -13,7 +13,7 @@ import org.catrobat.catroid.formulaeditor.Formula;
 
 public class KeyframeAnimationBrick extends FormulaBrick {
     private static final long serialVersionUID = 1L;
-    private int actionSelection = 0; // 0: Play, 1: Stop, 2: Set Time
+    private int actionSelection = 0;
 
     public KeyframeAnimationBrick() {
         addAllowedBrickField(BrickField.VALUE_1, R.id.brick_keyframe_anim_id);
@@ -40,7 +40,6 @@ public class KeyframeAnimationBrick extends FormulaBrick {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 actionSelection = position;
-                // Показываем поле ввода времени только для "Jump to Time" (индекс 2)
                 timeLayout.setVisibility(position == 2 ? View.VISIBLE : View.GONE);
             }
             @Override public void onNothingSelected(AdapterView<?> parent) {}

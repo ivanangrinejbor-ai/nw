@@ -25,12 +25,18 @@ package org.catrobat.catroid.physics.shapebuilder;
 import android.util.Log;
 
 import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.Shape;
 
+import org.catrobat.catroid.common.HitboxData;
 import org.catrobat.catroid.common.LookData;
+import org.catrobat.catroid.physics.PhysicsWorldConverter;
 import org.catrobat.catroid.utils.Utils;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public final class PhysicsShapeBuilder {
@@ -65,6 +71,13 @@ public final class PhysicsShapeBuilder {
 			throw new RuntimeException("get shape for null lookData not possible");
 		}
 
+		// Custom hitboxes authored in the Hitbox Editor override the automatic
+		// image-outline shape. They are cheap (plain rectangles), so build them
+		// fresh on every call instead of going through the pixmap cache.
+		if (lookData.hasCustomHitboxes()) {
+			return buildShapesFromHitboxes(lookData.getHitboxes(), scaleFactor);
+		}
+
 		Pixmap pixmap = lookData.getPixmap();
 		if (pixmap == null) {
 			Log.e(TAG, "pixmap should not be null");
@@ -88,6 +101,57 @@ public final class PhysicsShapeBuilder {
 		// Deep copy to prevent cache corruption when scaleShapes disposes old shapes
 		Shape[] shapesCopy = PhysicsShapeScaleUtils.copyShapes(shapes);
 		return PhysicsShapeScaleUtils.scaleShapes(shapesCopy, scaleFactor);
+	}
+
+	/**
+	 * Builds one Box2D polygon per custom hitbox.
+	 *
+	 * Hitbox coordinates live in original image space: center of the image is the
+	 * origin, X points right, Y points DOWN, units are pixels, rotation is degrees
+	 * clockwise on screen. This matches how the Hitbox Editor draws them.
+	 *
+	 * The pixmap-based path produces shapes centered on the image origin in Box2D
+	 * space (Y up, meters), so we convert each rotated corner the same way:
+	 * box2d = (imageX / RATIO, -imageY / RATIO). A full-image hitbox therefore
+	 * reproduces the image's bounding box exactly.
+	 */
+	private Shape[] buildShapesFromHitboxes(List<HitboxData> hitboxes, float scaleFactor) {
+		List<Shape> shapes = new ArrayList<>();
+		for (HitboxData hb : hitboxes) {
+			if (hb == null || hb.width <= 0 || hb.height <= 0) {
+				continue;
+			}
+			float hw = hb.width * scaleFactor / 2f;
+			float hh = hb.height * scaleFactor / 2f;
+			float cx = hb.x * scaleFactor;
+			float cy = hb.y * scaleFactor;
+			double theta = Math.toRadians(hb.rotation);
+			float cos = (float) Math.cos(theta);
+			float sin = (float) Math.sin(theta);
+
+			// Local corners of the axis-aligned rectangle (image space, Y down).
+			float[] localX = {-hw, hw, hw, -hw};
+			float[] localY = {-hh, -hh, hh, hh};
+			Vector2[] vertices = new Vector2[4];
+			for (int i = 0; i < 4; i++) {
+				// Rotate clockwise-on-screen == standard rotation matrix in Y-down space.
+				float rx = localX[i] * cos - localY[i] * sin;
+				float ry = localX[i] * sin + localY[i] * cos;
+				float imageX = cx + rx;
+				float imageY = cy + ry;
+				// Image space (Y down, pixels) -> Box2D (Y up, meters).
+				vertices[i] = new Vector2(
+						PhysicsWorldConverter.convertNormalToBox2dCoordinate(imageX),
+						PhysicsWorldConverter.convertNormalToBox2dCoordinate(-imageY));
+			}
+			PolygonShape polygon = new PolygonShape();
+			polygon.set(vertices);
+			shapes.add(polygon);
+		}
+		if (shapes.isEmpty()) {
+			return null;
+		}
+		return shapes.toArray(new Shape[0]);
 	}
 
 	private static float getAccuracyLevel(float scaleFactor) {

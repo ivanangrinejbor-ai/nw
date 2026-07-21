@@ -48,8 +48,6 @@ public class XStreamBrickConverter extends ReflectionConverter {
 
 	private static final String TYPE = "type";
 
-	// Cache resolved brick type -> Class so loading a project does not repeat
-	// Class.forName() across every brick package for every brick instance.
 	private static final Map<String, Class<?>> BRICK_CLASS_CACHE = new ConcurrentHashMap<>();
 
 	public XStreamBrickConverter(Mapper mapper, ReflectionProvider reflectionProvider) {

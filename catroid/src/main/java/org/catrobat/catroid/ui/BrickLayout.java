@@ -39,20 +39,6 @@ import org.catrobat.catroid.R;
 
 import java.util.LinkedList;
 
-/**
- * Author: Romain Guy
- * <p/>
- * Using example: <?xml version="4.0" encoding="utf-8"?> <com.example.android.layout.FlowLayout
- * xmlns:f="http://schemas.android.com/apk/res/org.apmem.android"
- * xmlns:android="http://schemas.android.com/apk/res/android" f:horizontalSpacing="6dip" f:verticalSpacing="12dip"
- * android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingLeft="6dip"
- * android:paddingTop="6dip" android:paddingRight="12dip"> <Button android:layout_width="wrap_content"
- * android:layout_height="wrap_content" f:layout_horizontalSpacing="32dip" f:layout_breakLine="true"
- * android:text="Cancel" />
- * <p/>
- * </com.example.android.layout.FlowLayout>
- */
-
 public class BrickLayout extends ViewGroup {
 	public static final int HORIZONTAL = 0;
 	public static final int VERTICAL = 1;
@@ -155,11 +141,6 @@ public class BrickLayout extends ViewGroup {
 
 		LineData currentLine = lines.getFirst();
 
-		// ************************ BEGIN PRE-LAYOUT (decide on a maximum width for text fields) ************************
-		// 1. adding text to a text field never causes a line break
-		// 2. text fields use as much space as possible
-		// 3. on wider screens, line breaks are removed entirely and the layout is one line
-
 		final int count = getChildCount();
 		int elementInLineIndex = 0;
 
@@ -252,7 +233,6 @@ public class BrickLayout extends ViewGroup {
 			}
 		}
 
-		// ************************ BEGIN LAYOUT ************************
 		lineLengthWithHorizontalSpacing = 0;
 
 		currentLine = lines.getFirst();
@@ -357,8 +337,6 @@ public class BrickLayout extends ViewGroup {
 	}
 
 	private void applyLayoutDirection() {
-		// Deal with RTL languages, mirror whole view group, and then mirror its separate elements back to have text
-		// the right way round. RTL layoutDirection = -1, LTR layoutDirection = 1
 		this.setScaleX(layoutDirection);
 		for (LineData line : lines) {
 			for (ElementData element : line.elements) {

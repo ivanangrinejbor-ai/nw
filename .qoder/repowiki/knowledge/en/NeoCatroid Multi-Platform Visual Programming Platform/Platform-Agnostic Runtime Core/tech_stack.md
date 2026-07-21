@@ -1,1 +1,0 @@
-Kotlin/JVM only (no `android.*`); libGDX 1.13.1 for cross-platform types, XStream 1.4.20 for XML project I/O, OkHttp 4.12.0 + Retrofit 2.9.0 for networking.

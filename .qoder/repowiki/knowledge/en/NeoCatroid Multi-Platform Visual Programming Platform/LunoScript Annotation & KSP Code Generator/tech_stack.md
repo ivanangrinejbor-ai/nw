@@ -1,1 +1,0 @@
-KSP 2.0.21-1.0.28 (`symbol-processing-api`) with KotlinPoet 1.16.0 and `kotlinpoet-ksp` for AST-driven source generation; annotations use `AnnotationRetention.SOURCE` so they are stripped after processing.

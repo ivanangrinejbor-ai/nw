@@ -1,5 +1,4 @@
-package org.catrobat.catroid.stage
-
+﻿package org.catrobat.catroid.stage
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.physics.box2d.Body
@@ -15,40 +14,12 @@ import org.w3c.dom.NodeList
 import java.io.File
 import javax.xml.parsers.DocumentBuilderFactory
 import kotlin.math.*
-
-/**
- * Полноценный движок скриптов для десктопного раннера NeoCatroid.
- *
- * Исполняет Catrobat-скрипты с поддержкой:
- *  - **Control**: Forever, Repeat N, RepeatUntil, If/Then/Else, ForVariableFromTo,
- *    ForItemInUserList, Wait, WaitUntil, Schedule, Broadcast, Clone, StopScript
- *  - **Motion**: move N steps, turn, goto, glide, set direction, set x/y, change x/y,
- *    go N steps back, come to front, point to, set rotation style, bounce
- *  - **Looks**: show, hide, switch look, set size, change size, set transparency,
- *    change transparency, set brightness, change brightness, set color, change color,
- *    clear graphic effects, set width/height, change width/height, ask, speak
- *  - **Sound**: play sound, play note, set volume, change volume, stop all sounds
- *  - **Music**: set instrument, set tempo, change tempo, pause for beats
- *  - **Variables**: set variable, change variable, show/hide text
- *  - **Pen**: pen down, pen up, set pen size, set pen color, stamp, clear
- *  - **Web**: HTTP GET/POST (через NetworkService)
- *  - **Events**: green flag, when clicked, broadcast, clone
- *  - **Sensing**: mouse position, touch, object position/size/direction,
- *    stage dimensions, timer, keyboard
- *  - **Data**: write/read variable to/from device
- *
- * Движок — стековая машина: каждый скрипт имеет стек фреймов.
- * Фрейм = {блоки, instruction pointer, счётчик повторений, таймер ожидания}.
- * Формулы вычисляются рекурсивно с поддержкой операторов, функций и сенсоров.
- */
 class DesktopScriptEngine(
     private val project: DesktopProject,
     private val physicsWorld: DesktopPhysicsWorld?,
     private val input: DesktopInput,
     val cameraState: DesktopCameraState = DesktopCameraState()
 ) {
-    // ──────────────────────────── константы ────────────────────────────
-
     companion object {
         private val DRUM_PROGRAM_MAP = mapOf(
             "SNARE_DRUM" to 38, "BASS_DRUM" to 35, "SIDE_STICK" to 37,
@@ -58,7 +29,6 @@ class DesktopScriptEngine(
             "BONGO" to 60, "CONGA" to 63, "CABASA" to 69, "GUIRO" to 73,
             "VIBRASLAP" to 58, "OPEN_CUICA" to 79
         )
-
         private val INSTRUMENT_PROGRAM_MAP = mapOf(
             "PIANO" to 1, "ELECTRONIC_PIANO" to 5, "ORGAN" to 17,
             "GUITAR" to 26, "ELECTRIC_GUITAR" to 28, "BASS" to 34,
@@ -67,7 +37,6 @@ class DesktopScriptEngine(
             "TRUMPET" to 57, "HARP" to 47, "XYLOPHONE" to 14,
             "SYNTH_LEAD" to 81, "SYNTH_PAD" to 89
         )
-
         private val CONTAINER_BRICK_TYPES = setOf(
             "ForeverBrick",
             "RepeatBrick",
@@ -85,7 +54,6 @@ class DesktopScriptEngine(
             "IfLogicBeginBrick",
             "IfThenLogicBeginBrick"
         )
-
         private val CONTAINER_BOUNDARY_TYPES = setOf(
             "LoopEndBrick",
             "IfLogicElseBrick",
@@ -96,15 +64,9 @@ class DesktopScriptEngine(
             "CatchBrick",
             "FinallyBrick"
         )
-
-        /** Max blocks a single script can execute per frame before yielding. */
         private const val MAX_BLOCKS_PER_FRAME = 500
-        /** Time budget in nanoseconds for a single script's execution per frame (2ms). */
         private const val SCRIPT_TIME_BUDGET_NS = 2_000_000L
     }
-
-    // ──────────────────────────── data classes ────────────────────────────
-
     data class Block(
         val type: Type,
         val args: List<Any> = emptyList(),
@@ -112,19 +74,11 @@ class DesktopScriptEngine(
     ) {
         enum class Type { MOTION, LOOKS, SOUND, MUSIC, PEN, CONTROL, EVENT, SENSING, VARIABLE, WEB, DATA, FILE, PHYSICS, CAMERA, VIDEO }
     }
-
-    /** Невычисленная формула — вычисляется в рантайме. */
     private data class RuntimeFormula(
         val brickFieldName: String,
         val formulaElement: Element,
         val compiled: CompiledFormula = CompiledFormula.compile(formulaElement)
     )
-
-    /**
-     * Compiled formula tree — replaces XML DOM traversal at evaluation time.
-     * Built once at parse time from the XML Element tree, then evaluated
-     * via simple recursive dispatch (no getElementsByTagName calls).
-     */
     private sealed class CompiledFormula {
         data class Num(val value: Double) : CompiledFormula()
         data class Str(val value: String) : CompiledFormula()
@@ -137,7 +91,6 @@ class DesktopScriptEngine(
         data class UserDefinedInput(val name: String) : CompiledFormula()
         data class CollisionFormula(val value: Double?) : CompiledFormula()
         object Null : CompiledFormula()
-
         companion object {
             fun compile(node: Element?): CompiledFormula {
                 if (node == null) return Null
@@ -166,7 +119,6 @@ class DesktopScriptEngine(
                     else -> Null
                 }
             }
-
             private fun compileAdditionalChildren(node: Element): List<CompiledFormula> {
                 val acEl = getChild(node, "additionalChildren") ?: return emptyList()
                 val result = mutableListOf<CompiledFormula>()
@@ -179,7 +131,6 @@ class DesktopScriptEngine(
                 }
                 return result
             }
-
             private fun getChild(node: Element, tag: String): Element? {
                 val list = node.childNodes
                 for (i in 0 until list.length) {
@@ -188,14 +139,11 @@ class DesktopScriptEngine(
                 }
                 return null
             }
-
             private fun getChildText(node: Element, tag: String): String? {
                 return getChild(node, tag)?.textContent
             }
         }
     }
-
-    /** Состояние анимации GlideTo. */
     private data class GlideState(
         var startX: Float,
         var startY: Float,
@@ -203,53 +151,35 @@ class DesktopScriptEngine(
         var targetY: Float,
         var duration: Float,
         var elapsed: Float = 0f,
-        /** Позиция спрайта на предыдущем кадре — для детекции внешнего перемещения. */
         var previousX: Float = startX,
         var previousY: Float = startY
     )
-
-    /** Один фрейм исполнения — стек таких фреймов на скрипт. */
     private data class Frame(
         val blocks: List<Block>,
         var ip: Int = 0,
-        /** -1 = forever, 0 = run once (normal/if), >0 = repeat remaining */
         var repeatRemaining: Int = 0
     ) {
-        /** Таймер ожидания wait-блока. Пока > 0 — фрейм заблокирован. */
         var waitTimer: Float = 0f
-        /** Активная анимация GlideTo. Пока не null — фрейм занят анимацией. */
         var glideState: GlideState? = null
-        /** Локальные параметры процедуры (user-defined brick). Доступны только в этом фрейме. */
         var procVars: MutableMap<String, Any>? = null
-        /** for_item_list: имя переменной и списка для привязки текущего элемента. */
         var loopVarName: String? = null
         var loopListName: String? = null
-        /** for_item_list: номер текущей итерации (0-based) для привязки элемента. */
         var loopCounter: Int = 0
-        /** try_catch: помечает фрейм как try-контекст и хранит ветки catch/finally. */
         var isTryFrame: Boolean = false
         var catchVar: String? = null
         var catchBlocks: List<Block>? = null
         var finallyBlocks: List<Block>? = null
     }
-
-    /** Определение пользовательской процедуры (UserDefinedBrick). */
     private data class ProcedureDef(val paramNames: List<String>, val body: List<Block>)
-
-    /** Одна ветка switch/case: значение для сравнения + тело блоков. */
     private data class SwitchCase(val value: String, val body: List<Block>)
-
-    /** Состояние видеопроигрывателя (видео-блоки). Воспроизведение best-effort. */
     private data class VideoState(
         var fileName: String = "",
         var x: Float = 0f, var y: Float = 0f,
         var width: Float = 0f, var height: Float = 0f,
         var looped: Boolean = false,
         var playing: Boolean = false,
-        var position: Float = 0f   // текущая позиция (сек)
+        var position: Float = 0f
     )
-
-    /** Best-effort 2D buffer state. Desktop does not render off-screen buffers yet, but we keep them alive. */
     private data class BufferState(
         var width: Int = 0,
         var height: Int = 0,
@@ -258,96 +188,56 @@ class DesktopScriptEngine(
         var mode2d: Boolean = true,
         val entries: MutableList<String> = mutableListOf()
     )
-
-    /** Состояние исполнения одного скрипта. */
     private inner class ScriptState(
         var spriteIndex: Int,
-        /** Сохраняем оригинальные блоки для reset(). */
         private val originalBlocks: List<Block>,
-        /** Runtime-формулы, вычисляемые при каждом проходе блока. */
         val runtimeFormulas: List<RuntimeFormula> = emptyList(),
-        /** Тип события, запускающего этот скрипт (null = обычный скрипт). */
         var eventType: String? = null,
-        /** Имя спрайта, по которому фильтруется событие. */
         var spriteName: String? = null,
-        /** Дополнительный параметр события (имя спрайта для BounceOff, сообщение для BroadcastReceiver). */
         var eventParam: String? = null,
-        /** Формула условия для WhenConditionBrick. */
         var conditionFormula: Element? = null
     ) {
-        /** Стек фреймов. Всегда как минимум один (корневой). */
         val frames = mutableListOf(Frame(originalBlocks, repeatRemaining = 0))
-
         val isDone: Boolean get() = frames.isEmpty()
-
-        /** Флаг — событие произошло, скрипт готов к выполнению. */
         var eventFired: Boolean = false
-
-        /** Фрейм, в котором сейчас выполняется код (верхушка стека). */
         val currentFrame: Frame? get() = frames.lastOrNull()
-
-        /** Пока фрейм ждёт (waitTimer) — не запускать executeState. */
         val isWaiting: Boolean get() = frames.any { it.waitTimer > 0f }
-
-        /** Только glide-анимация активна (без waitTimer). */
         val hasGlide: Boolean get() = frames.any { it.glideState != null && it.waitTimer <= 0f }
-
-        /** Обновить таймеры ожидания. */
         fun tick(delta: Float) {
             for (f in frames) {
                 if (f.waitTimer > 0f) f.waitTimer -= delta
             }
         }
-
-        /** Удалить фреймы, в которых ip вышел за границы и не стоит на loop/repeat. */
         fun cleanFinishedFrames(): Boolean {
             while (frames.size > 1) {
                 val top = frames.last()
-                if (top.ip < top.blocks.size) return true // ещё есть работа
-                // Фрейм завершён — обработать loop/repeat или вытолкнуть
+                if (top.ip < top.blocks.size) return true
                 if (top.repeatRemaining == -1) {
-                    // forever: сброс IP на начало
                     top.ip = 0
                     return true
                 }
                 if (top.repeatRemaining > 1) {
-                    // repeat: декремент, сброс IP
                     top.repeatRemaining--
                     top.ip = 0
-                    // for_item_list: привязать переменную к следующему элементу списка
                     top.loopCounter++
                     bindLoopVar(top)
                     return true
                 }
                 if (top.repeatRemaining == -2) {
-                    // repeat_until: вытолкнуть без продвижения IP родителя
-                    // Родитель перезапустит repeat_until блок заново
                     frames.removeAt(frames.lastIndex)
                     return true
                 }
-                // Вытолкнуть фрейм:
-                // repeatRemaining == 1 → декремент до 0 и вытолкнуть
-                // repeatRemaining == 0 (обычный / if-then) → вытолкнуть
                 val removed = frames.removeAt(frames.lastIndex)
                 if (removed.isTryFrame) {
-                    // try/catch occupies ONE slot in its parent: the parent must
-                    // advance exactly once when the whole construct is done. If a
-                    // finally exists, queue it now — its own completion advances the
-                    // parent. If there is no finally, advance the parent immediately.
-                    // (Do NOT advance the freshly pushed finally frame, or its first
-                    // block would be skipped and the parent never advanced.)
                     if (!removed.finallyBlocks.isNullOrEmpty()) {
                         frames.add(Frame(removed.finallyBlocks!!, repeatRemaining = 0))
                     } else {
                         frames.lastOrNull()?.let { it.ip++ }
                     }
                 } else {
-                    // Обычный фрейм: продвинуть IP родителя на один блок
-                    // (минуя блок-родитель), чтобы исполнение продолжилось дальше.
                     frames.lastOrNull()?.let { it.ip++ }
                 }
             }
-            // Root frame: если blocks закончились — скрипт завершён
             val root = frames.firstOrNull() ?: return false
             if (root.ip >= root.blocks.size) {
                 frames.clear()
@@ -355,64 +245,42 @@ class DesktopScriptEngine(
             }
             return true
         }
-
         fun reset() {
             frames.clear()
             frames.add(Frame(originalBlocks, repeatRemaining = 0))
             eventFired = false
         }
     }
-
-    // ──────────────────────────── поля ────────────────────────────
-
     private val scriptStates = mutableListOf<ScriptState>()
-    private val variables = mutableMapOf<String, Any>()   // глобальные переменные (Float или String)
-    private val userLists = mutableMapOf<String, MutableList<Any>>() // пользовательские списки
-    /** Определения пользовательских процедур, ключ — userDefinedBrickID (строка). */
+    private val variables = mutableMapOf<String, Any>()
+    private val userLists = mutableMapOf<String, MutableList<Any>>()
     private val procedures = mutableMapOf<String, ProcedureDef>()
-    /** Текущий исполняемый скрипт (для доступа к procVars из вычислителя формул). */
     private var activeState: ScriptState? = null
-    /** Text overlays rendered each frame (think/say bubbles, show text, etc.) */
     val textOverlays = mutableMapOf<String, TextOverlay>()
     private var running = true
-    private var timerSeconds = 0f                       // таймер сенсора TIMER
-    private var timerRunning = true                     // TimerStart/TimerStop управляют инкрементом
-    private var cloneCounter = java.util.concurrent.atomic.AtomicInteger(0) // счётчик номеров клонов (cloneIndex)
-    /** Локальная «база данных» таблиц (2D), ключ — имя таблицы. */
+    private var timerSeconds = 0f
+    private var timerRunning = true
+    private var cloneCounter = java.util.concurrent.atomic.AtomicInteger(0)
     private val localDb = mutableMapOf<String, MutableList<MutableList<Double>>>()
-    /** Локальное облачное хранилище (Firebase-like), ключ — "id:key". */
     private val baseStore = mutableMapOf<String, String>()
-    /** 2D buffers by name. */
     private val buffers = mutableMapOf<String, BufferState>()
-    /** Проигрыватели видео (имя → состояние). Воспроизведение best-effort. */
     private val videos = mutableMapOf<String, VideoState>()
-    private var runAsSpriteDepth = 0                    // глубина RunAsSpriteBrick (защита от рекурсии)
+    private var runAsSpriteDepth = 0
     private var scriptIndexForSprite: (Int) -> Int = { 0 }
-    /** Флаг: был ли вызван ExitStage/FinishStage. */
     private var hasProjectExited = false
-    /** Локальный HTTP-сервер (для Server-блоков). */
     private var localHttpServer: com.sun.net.httpserver.HttpServer? = null
-    /** Broadcast-wait: сообщения, ожидающие завершения получателей.
-     *  Ключ = сообщение, значение = список индексов sender-скриптов (ScriptState). */
     private val pendingBroadcastWaits = mutableMapOf<String, MutableList<ScriptState>>()
-    /** Screen shader placeholder (2D best-effort). */
     private var screenShaderVertexCode: String = ""
     private var screenShaderFragmentCode: String = ""
-    /** Stack for ReturnToPreviousProjectBrick / LaunchProjectBrick. */
     private val projectHistory = java.util.ArrayDeque<java.io.File>()
-    /** Best-effort FPS cap requested by SetFpsBrick. */
     private var targetFps = 0
-
     init {
         parseProject()
     }
-
     fun getTargetFps(): Int = targetFps
-
     fun start() { running = true }
     fun stop() { running = false }
     fun isRunning(): Boolean = running
-
     @Suppress("UNCHECKED_CAST")
     fun setVariable(name: String, value: Any) { variables[name] = value }
     fun getVariable(name: String): Any = variables[name] ?: 0f
@@ -424,87 +292,53 @@ class DesktopScriptEngine(
             else -> 0f
         }
     }
-
     fun resetTimer() { timerSeconds = 0f }
-
-    // ──────────────────────────── update loop ────────────────────────────
-
     fun update(deltaSeconds: Float) {
         if (!running) return
-
         if (timerRunning) timerSeconds += deltaSeconds
-
-        // update text overlays (bubble timers)
         updateTextOverlays(deltaSeconds)
-
-        // update variable display overlays with latest values
         updateVariableOverlays()
-
-        // Audio fade processing
         processAudioFades(deltaSeconds)
-
-        // ── Фаза 1: проверка событий для event-скриптов ──
-        rebuildSpatialHash() // rebuild spatial hash for collision detection
+        rebuildSpatialHash()
         checkEvents()
-
-        // ── Проверка broadcast_wait: если все получатели завершились, разблокировать sender'ов ──
         checkBroadcastWaits()
-
-        // ── Фаза 2: выполнение (multi-block per frame with time budget) ──
         for (state in scriptStates) {
             if (state.isDone) {
-                // Event-скрипты: если завершились, сбрасываем в ожидание следующего события
                 if (state.eventType != null) {
                     state.reset()
                 }
                 continue
             }
             state.tick(deltaSeconds)
-
-            // Glide-анимацию обрабатываем даже если waitTimer активен
             if (state.hasGlide) {
                 processGlideForState(state, deltaSeconds)
                 continue
             }
-
             if (state.isWaiting) continue
-
-            // Event-скрипты не выполняются, пока событие не произойдёт
             if (state.eventType != null && !state.eventFired) continue
-
             executeStateMultiBlock(state, deltaSeconds)
         }
     }
-
-    /** Проверить условия для event-скриптов и установить eventFired. */
     private fun checkEvents() {
-        // Собираем, какие broadcst сообщения были отправлены в этом кадре
         val activeBroadcasts = mutableSetOf<String>()
         val keyJustPressed = Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE) || Gdx.input.isKeyJustPressed(Input.Keys.BACK)
         val mouseJustClicked = Gdx.input.justTouched()
         val scrollAmount = input.mouseScroll
-
         for (state in scriptStates) {
             if (state.eventType == null) continue
             if (state.eventFired) continue
-
             val sprite = project.sprites.getOrNull(state.spriteIndex)
             if (sprite == null) { state.eventFired = true; continue }
-
             when (state.eventType) {
                 "touch_down" -> {
-                    // Касание/клик на сцене
                     if (input.isTouched && input.fingerY != 0f) {
                         state.eventFired = true
                     }
                 }
                 "cloned" -> {
-                    // WhenClonedScript: всегда запускается один раз при старте
-                    // Чтобы не запускать бесконечно, разрешаем только если скрипт не запускался
                     state.eventFired = (state.currentFrame?.ip ?: 0) == 0
                 }
                 "condition" -> {
-                    // WhenConditionScript: проверяем формулу условия IF_CONDITION
                     val condEl = state.conditionFormula
                     if (condEl != null) {
                         val result = evaluateFormulaNode(condEl, state.spriteIndex)
@@ -523,7 +357,6 @@ class DesktopScriptEngine(
                 }
                 "mouse_clicked" -> {
                     if (mouseJustClicked) {
-                        // Если есть eventParam (buttonCode), проверяем совпадение
                         val btnCode = state.eventParam?.toIntOrNull()
                         if (btnCode == null || btnCode == 0) {
                             state.eventFired = true
@@ -553,7 +386,6 @@ class DesktopScriptEngine(
                     }
                 }
                 "bounce_off" -> {
-                    // Проверяем коллизию с другим спрайтом
                     if (physicsWorld != null && physicsWorld.hasBody(sprite)) {
                         val targetName = state.eventParam
                         val touching = checkSpriteCollision(sprite, targetName)
@@ -563,31 +395,22 @@ class DesktopScriptEngine(
                     }
                 }
                 "background_changes" -> {
-                    // Запускается при смене фона — по умолчанию один раз
                     state.eventFired = (state.currentFrame?.ip ?: 0) == 0
                 }
                 "broadcast_receiver" -> {
-                    // Доставка broadcast теперь выполняется напрямую в executeControl
-                    // (см. deliverBroadcast), поэтому здесь ничего проверять не нужно.
                 }
                 "scene_start", "scene_preloaded" -> {
-                    // Запускается при старте сцены
                     state.eventFired = (state.currentFrame?.ip ?: 0) == 0
                 }
                 "project_exits" -> {
-                    // При завершении — триггерим все
                     state.eventFired = !hasProjectExited
                 }
                 "app_minimized", "app_restored" -> {
-                    // На десктопе не поддерживается — пропускаем
                 }
             }
         }
     }
-
-    /** Проверить коллизию спрайта с другим спрайтом (bounding box, spatial hash optimized). */
     private fun checkSpriteCollision(sprite: DesktopSprite, targetName: String?): Boolean {
-        // If targeting a specific sprite by name, direct lookup is faster
         if (targetName != null && targetName.isNotEmpty()) {
             val target = project.sprites.find { it.name == targetName && it !== sprite }
             if (target == null) return false
@@ -597,11 +420,9 @@ class DesktopScriptEngine(
             val halfH = (sprite.lookHeight + target.lookHeight) / 2f
             return dx < halfW && dy < halfH
         }
-        // No target name: use spatial hash for O(1) neighbor lookup
         val cellSize = 256f
         val cx = (sprite.x / cellSize).toInt()
         val cy = (sprite.y / cellSize).toInt()
-        // Check 3x3 neighborhood
         for (dx in -1..1) {
             for (dy in -1..1) {
                 val key = ((cx + dx).toLong() shl 32) or ((cy + dy).toLong() and 0xFFFFFFFFL)
@@ -618,11 +439,7 @@ class DesktopScriptEngine(
         }
         return false
     }
-
-    /** Spatial hash grid — rebuilt once per frame for O(1) collision neighbor queries. */
     private val spatialHash = mutableMapOf<Long, MutableList<DesktopSprite>>()
-
-    /** Rebuild the spatial hash grid. Called once per frame before collision checks. */
     private fun rebuildSpatialHash() {
         spatialHash.clear()
         val cellSize = 256f
@@ -633,17 +450,10 @@ class DesktopScriptEngine(
             spatialHash.getOrPut(key) { mutableListOf() }.add(sprite)
         }
     }
-
-    /**
-     * Запустить WhenCloned скрипты для нового клона.
-     * @param cloneIdx индекс клона в project.sprites
-     * @param srcIdx индекс исходного спрайта
-     */
     private fun triggerWhenClonedForClone(cloneIdx: Int, srcIdx: Int) {
         val clone = project.sprites.getOrNull(cloneIdx) ?: return
         for (origState in scriptStates) {
             if (origState.eventType == "cloned" && origState.spriteIndex == srcIdx) {
-                // Копируем блоки из оригинального WhenCloned скрипта
                 val blocks = origState.frames.firstOrNull()?.blocks ?: continue
                 val cloneState = ScriptState(
                     spriteIndex = cloneIdx,
@@ -656,12 +466,6 @@ class DesktopScriptEngine(
             }
         }
     }
-
-    /**
-     * Доставить broadcast-сообщение всем BroadcastScript-получателям.
-     * Активирует (eventFired = true) каждый скрипт-получатель с совпадающим
-     * сообщением, независимо от их количества (все получатели запускаются).
-     */
     private fun deliverBroadcast(msg: String) {
         if (msg.isEmpty()) return
         for (state in scriptStates) {
@@ -670,26 +474,18 @@ class DesktopScriptEngine(
             }
         }
     }
-
-    /**
-     * Проверить, завершились ли все получатели для каждого broadcast_wait.
-     * Если да — разблокировать sender'ов (продвинуть их IP).
-     */
     private fun checkBroadcastWaits() {
         val completed = mutableListOf<String>()
         for ((msg, senders) in pendingBroadcastWaits) {
-            // Проверяем, есть ли ещё активные receiver-скрипты для этого сообщения
             val anyReceiverStillRunning = scriptStates.any { state ->
                 state.eventType == "broadcast_receiver" &&
                 state.eventParam == msg &&
                 !state.isDone
             }
             if (!anyReceiverStillRunning) {
-                // Все получатели завершились — разблокируем sender'ов
                 for (sender in senders) {
                     val rootFrame = sender.frames.firstOrNull()
                     if (rootFrame != null) {
-                        // Продвигаем IP sender'а за broadcast_wait блок
                         rootFrame.ip++
                     }
                 }
@@ -698,11 +494,6 @@ class DesktopScriptEngine(
         }
         completed.forEach { pendingBroadcastWaits.remove(it) }
     }
-
-    /**
-     * Привязать переменную цикла for_item_list к текущему элементу списка.
-     * Вызывается перед первой итерацией и в начале каждой следующей итерации.
-     */
     private fun bindLoopVar(frame: Frame) {
         val varName = frame.loopVarName ?: return
         val listName = frame.loopListName ?: return
@@ -710,16 +501,10 @@ class DesktopScriptEngine(
         val idx = frame.loopCounter
         if (idx in list.indices) variables[varName] = list[idx]
     }
-
-    /** Обработать glide-анимацию на любом фрейме в стеке. */
     private fun processGlideForState(state: ScriptState, delta: Float) {
         for (frame in state.frames) {
             val g = frame.glideState ?: continue
             val sprite = project.sprites.getOrNull(state.spriteIndex) ?: return
-
-            // Детекция внешнего перемещения: если спрайт сдвинулся с предыдущей
-            // позиции (другим блоком, физикой или drag-ом), перезапускаем glide
-            // из новой позиции с оставшимся временем.
             val movedExternally = abs(sprite.x - g.previousX) > 0.001f || abs(sprite.y - g.previousY) > 0.001f
             if (movedExternally && g.elapsed > 0f) {
                 val remaining = maxOf(g.duration - g.elapsed, 0.01f)
@@ -731,7 +516,6 @@ class DesktopScriptEngine(
                 g.previousY = sprite.y
                 break
             }
-
             g.elapsed += delta
             val dur = if (g.duration > 0f) g.duration else 1f
             val t = (g.elapsed / dur).coerceIn(0f, 1f)
@@ -745,13 +529,10 @@ class DesktopScriptEngine(
                 frame.glideState = null
                 frame.ip++
             }
-            break // только один glide за раз
+            break
         }
     }
-
-    /** Process audio fade in/out over multiple frames. */
     private fun processAudioFades(delta: Float) {
-        // Fade in
         val fadeInDur = variables["__fade_in_dur"] as? Float ?: return
         val el = (variables["__fade_in_elapsed"] as? Float ?: 0f) + delta
         variables["__fade_in_elapsed"] = el
@@ -765,7 +546,6 @@ class DesktopScriptEngine(
             variables.remove("__fade_in_elapsed")
             variables.remove("__fade_in_vol")
         }
-        // Fade out
         val fadeOutDur = variables["__fade_out_dur"] as? Float ?: return
         val elOut = (variables["__fade_out_elapsed"] as? Float ?: 0f) + delta
         variables["__fade_out_elapsed"] = elOut
@@ -780,21 +560,13 @@ class DesktopScriptEngine(
             variables.remove("__fade_out_vol")
         }
     }
-
-    /** Исполнить один шаг state-машины (один блок или управление фреймом). */
     private fun executeState(state: ScriptState, delta: Float) {
         activeState = state
         if (!state.cleanFinishedFrames()) return
         val frame = state.currentFrame ?: return
         val sprite = project.sprites.getOrNull(state.spriteIndex) ?: return
-
         if (frame.ip >= frame.blocks.size) return
-
         val block = frame.blocks[frame.ip]
-
-        // A single block executes per frame. If it throws, route the error to the
-        // nearest enclosing try-frame (catch + finally) implemented by TryCatchFinallyBrick.
-        // Without a handler the script is stopped to avoid an infinite error loop.
         try {
             when (block.type) {
                 Block.Type.CONTROL -> executeControl(block, sprite, frame, state)
@@ -817,37 +589,21 @@ class DesktopScriptEngine(
             handleExecutionException(state, e)
         }
     }
-
-    /**
-     * Multi-block execution: executes up to [MAX_BLOCKS_PER_FRAME] blocks within
-     * [SCRIPT_TIME_BUDGET_NS] nanoseconds. Yields immediately when a block sets
-     * a wait timer, starts a glide animation, or the script finishes. This makes
-     * non-waiting scripts (e.g. repeat(1000){move 1}) complete in a single frame
-     * instead of taking 1000 frames.
-     */
     private fun executeStateMultiBlock(state: ScriptState, delta: Float) {
         activeState = state
         val startTime = System.nanoTime()
         var blocksExecuted = 0
-
         while (blocksExecuted < MAX_BLOCKS_PER_FRAME) {
-            // Time budget check (every 16 blocks to reduce nanoTime overhead)
             if (blocksExecuted and 15 == 0 && blocksExecuted > 0) {
                 if (System.nanoTime() - startTime > SCRIPT_TIME_BUDGET_NS) break
             }
-
             if (!state.cleanFinishedFrames()) break
             val frame = state.currentFrame ?: break
             val sprite = project.sprites.getOrNull(state.spriteIndex) ?: break
-
             if (frame.ip >= frame.blocks.size) break
-
-            // Yield if this frame is now waiting or gliding
             if (frame.waitTimer > 0f || frame.glideState != null) break
-
             val block = frame.blocks[frame.ip]
             val ipBefore = frame.ip
-
             try {
                 when (block.type) {
                     Block.Type.CONTROL -> executeControl(block, sprite, frame, state)
@@ -868,31 +624,16 @@ class DesktopScriptEngine(
                 }
             } catch (e: Exception) {
                 handleExecutionException(state, e)
-                break // yield after exception to avoid infinite error loops
+                break
             }
-
             blocksExecuted++
-
-            // Safety: if IP didn't advance and no frame was pushed/popped, break
-            // to avoid infinite loops on unhandled blocks.
             val currentFrame = state.currentFrame
             if (currentFrame === frame && frame.ip == ipBefore && frame.waitTimer <= 0f && frame.glideState == null) {
                 break
             }
-
-            // Yield after wait/glide was set by the block we just executed
             if (frame.waitTimer > 0f || frame.glideState != null) break
         }
     }
-
-    /**
-     * Routes an exception thrown while executing a block to the innermost
-     * enclosing try-frame (set up by [executeControl] "try_catch"). Binds the
-     * optional catch variable to the error message, then queues the catch body
-     * (runs first) followed by the finally body (always runs). If no try-frame
-     * is active, the script is stopped (its frames cleared) so a broken block
-     * does not crash or stall the whole engine.
-     */
     private fun handleExecutionException(state: ScriptState, e: Exception) {
         val tryIdx = state.frames.indexOfLast { it.isTryFrame }
         if (tryIdx < 0) {
@@ -905,11 +646,7 @@ class DesktopScriptEngine(
         if (!catchVar.isNullOrEmpty()) {
             variables[catchVar] = e.message ?: "error"
         }
-        // Drop the try-frame and anything pushed on top of it (abort the body).
         while (state.frames.size > tryIdx) state.frames.removeAt(state.frames.lastIndex)
-        // Run the catch body (if any) followed by the finally body (if any) as a
-        // single frame, so the parent advances exactly once when the whole
-        // try/catch construct completes.
         val onError = mutableListOf<Block>()
         if (!tryFrame.catchBlocks.isNullOrEmpty()) onError.addAll(tryFrame.catchBlocks!!)
         if (!tryFrame.finallyBlocks.isNullOrEmpty()) onError.addAll(tryFrame.finallyBlocks!!)
@@ -917,21 +654,11 @@ class DesktopScriptEngine(
             state.frames.add(Frame(onError, repeatRemaining = 0))
         }
     }
-
-    /**
-     * After a sprite at [removedIndex] is removed from [DesktopProject.sprites],
-     * decrement the stored [ScriptState.spriteIndex] of every script that pointed
-     * at a sprite after it, so scripts keep acting on the correct sprite instead
-     * of a stale (shifted) index.
-     */
     private fun remapSpriteIndicesAfterRemoval(removedIndex: Int) {
         for (s in scriptStates) {
             if (s.spriteIndex > removedIndex) s.spriteIndex--
         }
     }
-
-    // ──────────────────────────── CONTROL ────────────────────────────
-
     private fun executeControl(block: Block, sprite: DesktopSprite, frame: Frame, state: ScriptState) {
         when (block.args.getOrNull(0) as? String) {
             "wait" -> {
@@ -942,7 +669,6 @@ class DesktopScriptEngine(
             "wait_until" -> {
                 val cond = evalBlockArgFloat(block, 1, sprite, state) ?: 0f
                 if (cond == 0f) {
-                    // условие не выполнено — ждём следующий кадр
                 } else {
                     frame.ip++
                 }
@@ -952,14 +678,11 @@ class DesktopScriptEngine(
                 if (condRf != null) {
                     val cond = evaluateBrickFieldFormula(sprite, state, condRf) ?: 0f
                     if (cond != 0f) {
-                        // condition met — advance to next block
                         frame.ip++
                     } else {
-                        // condition not met — push children, re-evaluate on next cycle
                         state.frames.add(Frame(block.children, repeatRemaining = -2))
                     }
                 } else {
-                    // fallback: static condition value
                     val cond = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
                     if (cond != 0f) {
                         frame.ip++
@@ -995,24 +718,17 @@ class DesktopScriptEngine(
                 }
             }
             "broadcast" -> {
-                // broadcast — доставляем сообщение всем получателям (BroadcastScript)
                 val msg = block.args.getOrNull(1) as? String ?: ""
                 deliverBroadcast(msg)
                 frame.ip++
             }
             "broadcast_wait" -> {
-                // broadcast and wait — доставляем сообщение и ждём завершения
-                // всех скриптов-получателей.
                 val msg = block.args.getOrNull(1) as? String ?: ""
                 deliverBroadcast(msg)
-                // Регистрируем sender в pendingBroadcastWaits — executeState
-                // не будет продвигать IP, пока все получатели не завершатся.
                 val list = pendingBroadcastWaits.getOrPut(msg) { mutableListOf() }
                 if (!list.contains(state)) list.add(state)
-                // frame.ip НЕ продвигаем — wait снимается после завершения получателей
             }
             "clone" -> {
-                // клонировать спрайт и запустить WhenCloned скрипты
                 val srcSprite = project.sprites.getOrNull(state.spriteIndex)
                 if (srcSprite != null) {
                     val clone = srcSprite.copy()
@@ -1037,13 +753,11 @@ class DesktopScriptEngine(
                 frame.ip = frame.blocks.size
             }
             "stop_script" -> {
-                // остановить текущий скрипт
-                frame.ip = frame.blocks.size // выход
+                frame.ip = frame.blocks.size
             }
             "run_as_start" -> {
                 runAsSpriteDepth++
                 if (runAsSpriteDepth > 10) {
-                    // Превышена глубина рекурсии — пропускаем детей
                     frame.ip = frame.blocks.size
                 } else {
                     frame.ip++
@@ -1053,7 +767,6 @@ class DesktopScriptEngine(
                 runAsSpriteDepth--
                 frame.ip++
             }
-            // ── New Control bricks ──
             "set_fps" -> {
                 targetFps = (block.args.getOrNull(1) as? Number)?.toInt()?.coerceAtLeast(0) ?: 0
                 frame.ip++
@@ -1100,8 +813,6 @@ class DesktopScriptEngine(
                 val varName = block.args.getOrNull(2) as? String ?: ""
                 val list = userLists[listName]
                 val items = (list?.size ?: 0)
-                // Iterate: for each item, execute children. Loop variable is bound to
-                // the current item at the start of every iteration (see bindLoopVar).
                 if (items > 0) {
                     val loopFrame = Frame(block.children, repeatRemaining = items)
                     loopFrame.loopVarName = varName
@@ -1130,27 +841,17 @@ class DesktopScriptEngine(
                 val catchBlocks = (block.args.getOrNull(3) as? List<*>)?.filterIsInstance<Block>() ?: emptyList()
                 @Suppress("UNCHECKED_CAST")
                 val finallyBlocks = (block.args.getOrNull(4) as? List<*>)?.filterIsInstance<Block>() ?: emptyList()
-                // Execute try blocks inside a try-frame that carries catch/finally
-                // context so errors can be routed and finally always runs.
                 val tryFrame = Frame(tryBlocks, repeatRemaining = 0)
                 tryFrame.isTryFrame = true
                 tryFrame.catchVar = catchVar
                 tryFrame.catchBlocks = catchBlocks
                 tryFrame.finallyBlocks = finallyBlocks
                 state.frames.add(tryFrame)
-                    // Do NOT frame.ip++ here: when the try-frame completes,
-                    // cleanFinishedFrames advances the parent frame past this block.
-                    // Advancing here too would skip the block after the try/catch.
                 }
                 "switch_begin" -> {
                     val switchVal = block.args.getOrNull(1) as? String ?: ""
                     @Suppress("UNCHECKED_CAST")
                     val cases = (block.args.getOrNull(2) as? List<*>)?.filterIsInstance<SwitchCase>() ?: emptyList()
-                    // Execute only the first matching case body. Advancing past the
-                    // switch block is handled when this nested frame completes
-                    // (cleanFinishedFrames advances the parent frame), so do NOT ip++
-                    // here when a body was pushed — otherwise the block right after
-                    // the switch would be skipped (double advance).
                     val matched = cases.firstOrNull { it.value == switchVal }
                     if (matched != null) {
                         state.frames.add(Frame(matched.body, repeatRemaining = 0))
@@ -1166,7 +867,6 @@ class DesktopScriptEngine(
                     frame.ip++
                     return
                 }
-                // Вычисляем аргументы и связываем с именами параметров
                 val procVars = mutableMapOf<String, Any>()
                 for (i in proc.paramNames.indices) {
                     val rf = argFormulas.getOrNull(i) as? RuntimeFormula
@@ -1175,7 +875,6 @@ class DesktopScriptEngine(
                     } else null
                     procVars[proc.paramNames[i]] = v ?: 0f
                 }
-                // Запускаем тело процедуры в новом фрейме с локальной областью параметров
                 val procFrame = Frame(proc.body, repeatRemaining = 0)
                 procFrame.procVars = procVars
                 state.frames.add(procFrame)
@@ -1184,7 +883,6 @@ class DesktopScriptEngine(
             "load_scene" -> {
                 val sceneName = block.args.getOrNull(1) as? String ?: ""
                 if (sceneName.isNotEmpty()) {
-                    // Reload project from scene file
                     val projectDir = project.projectDir?.resolve(sceneName) ?: java.io.File(sceneName)
                     if (projectDir.isDirectory || projectDir.exists()) {
                         project.projectDir = projectDir
@@ -1258,14 +956,11 @@ class DesktopScriptEngine(
                 }
             }
             "wait_till_idle" -> {
-                // Wait until all frames in the state are completed
                 if (!state.isDone) {
-                    // Stay on this block; will re-evaluate next frame
                 } else {
                     frame.ip++
                 }
             }
-            // ── Key/Mouse event bricks ──
             "key_event" -> {
                 val keyChar = block.args.getOrNull(1) as? String ?: ""
                 val keyDown = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
@@ -1286,7 +981,6 @@ class DesktopScriptEngine(
                 val state = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 0f
                 frame.ip++
             }
-            // ── Notification bricks (delegated to NotificationService) ──
             "send_notification" -> {
                 val notifId = (block.args.getOrNull(1) as? Number)?.toInt() ?: 0
                 try {
@@ -1356,10 +1050,8 @@ class DesktopScriptEngine(
                 frame.ip++
             }
             "enable_background" -> {
-                // На Desktop фоновое выполнение не применимо — no-op
                 frame.ip++
             }
-            // ── Clone bricks ──
             "clone_object" -> {
                 val srcName = block.args.getOrNull(1) as? String ?: ""
                 val newName = block.args.getOrNull(2) as? String ?: ""
@@ -1375,7 +1067,6 @@ class DesktopScriptEngine(
                 }
                 frame.ip++
             }
-            // ── Clone-by-number ──
             "delete_clone_by_number" -> {
                 val n = (block.args.getOrNull(1) as? Number)?.toInt() ?: 0
                 if (n > 0) {
@@ -1414,7 +1105,6 @@ class DesktopScriptEngine(
                 frame.ip++
             }
             "stop_background" -> {
-                // Desktop: no background processing — no-op
                 frame.ip++
             }
             "load_scene_additive" -> {
@@ -1429,7 +1119,6 @@ class DesktopScriptEngine(
                 frame.ip++
             }
             "preload_scene" -> {
-                // Desktop: scenes preloaded on demand — no-op
                 frame.ip++
             }
             "cast_ray" -> {
@@ -1467,14 +1156,12 @@ class DesktopScriptEngine(
                 frame.waitTimer = maxOf(frame.waitTimer, t)
                 frame.ip++
             }
-            // ── NeoScript runtime stubs ──
             "assign_scripts" -> {
                 val filePath = block.args.getOrNull(1) as? String ?: ""
                 val objName = block.args.getOrNull(2) as? String ?: ""
                 val sceneName = block.args.getOrNull(3) as? String ?: ""
                 val replaceSel = block.args.getOrNull(4) as? String ?: "0"
                 val saveSel = block.args.getOrNull(5) as? String ?: "0"
-                // На Desktop .neoscript импорт — заглушка (загрузка file-path не поддерживается в runtime)
                 if (filePath.isNotEmpty()) variables["__assign_script_$objName"] = filePath
                 frame.ip++
             }
@@ -1496,7 +1183,6 @@ class DesktopScriptEngine(
                 }
                 frame.ip++
             }
-            // ── Dialog/misc stubs ──
             "create_dialog" -> {
                 val name = block.args.getOrNull(1) as? String ?: ""
                 val text = block.args.getOrNull(2) as? String ?: ""
@@ -1508,7 +1194,6 @@ class DesktopScriptEngine(
                 frame.ip++
             }
             "hide_status_bar" -> {
-                // Desktop: нет status bar — no-op
                 frame.ip++
             }
             "toggle_display" -> {
@@ -1529,7 +1214,6 @@ class DesktopScriptEngine(
             "add_edit" -> {
                 val name = block.args.getOrNull(1) as? String ?: ""
                 val text = block.args.getOrNull(2) as? String ?: ""
-                // Add/edit UI element — no-op on desktop
                 frame.ip++
             }
             "add_radio" -> {
@@ -1598,17 +1282,12 @@ class DesktopScriptEngine(
             }
         }
     }
-
-    // ──────────────────────────── EVENT ────────────────────────────
-
     private fun executeEvent(block: Block, frame: Frame) {
         when (block.args.getOrNull(0) as? String) {
             "broadcast_msg" -> {
-                // broadcast_msg внутри скрипта
                 frame.ip++
             }
             "green_flag" -> {
-                // Event-маркер — просто продвигаем IP
                 frame.ip++
             }
             else -> {
@@ -1616,9 +1295,13 @@ class DesktopScriptEngine(
             }
         }
     }
-
-    // ──────────────────────────── LOOKS ────────────────────────────
-
+    private fun refreshLookHitboxes(sprite: DesktopSprite) {
+        physicsWorld?.let { world ->
+            if (world.hasBody(sprite)) {
+                world.applyCustomHitboxes(sprite)
+            }
+        }
+    }
     private fun executeLooks(block: Block, sprite: DesktopSprite, frame: Frame) {
         when (block.args.getOrNull(0) as? String) {
             "show" -> sprite.visible = true
@@ -1628,6 +1311,7 @@ class DesktopScriptEngine(
                 if (sprite.looks.isNotEmpty()) {
                     sprite.currentLookIndex = idx.coerceIn(0, sprite.looks.lastIndex)
                     sprite.resetSprite()
+                    refreshLookHitboxes(sprite)
                 }
             }
             "switch_look_by_name" -> {
@@ -1637,6 +1321,7 @@ class DesktopScriptEngine(
                     if (idx >= 0) {
                         sprite.currentLookIndex = idx
                         sprite.resetSprite()
+                        refreshLookHitboxes(sprite)
                     }
                 }
             }
@@ -1644,12 +1329,14 @@ class DesktopScriptEngine(
                 if (sprite.looks.isNotEmpty()) {
                     sprite.currentLookIndex = (sprite.currentLookIndex + 1) % sprite.looks.size
                     sprite.resetSprite()
+                    refreshLookHitboxes(sprite)
                 }
             }
             "previous_look" -> {
                 if (sprite.looks.isNotEmpty()) {
                     sprite.currentLookIndex = (sprite.currentLookIndex - 1 + sprite.looks.size) % sprite.looks.size
                     sprite.resetSprite()
+                    refreshLookHitboxes(sprite)
                 }
             }
             "set_size" -> sprite.size = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 100f
@@ -1703,7 +1390,7 @@ class DesktopScriptEngine(
                             target.looks.add(DesktopLook(lookName, file.name, tex))
                             target.currentLookIndex = 0
                             target.resetSprite()
-                        } catch (_: Exception) { /* ignore */ }
+                        } catch (_: Exception) {  }
                     }
                 }
             }
@@ -1739,7 +1426,6 @@ class DesktopScriptEngine(
                 AudioServiceHolder.audioService?.setVolume(vol)
                 MidiServiceHolder.midiService?.setVolume(vol)
             }
-            // ── Text/bubble overlays ──
             "think_bubble" -> {
                 val text = block.args.getOrNull(1) as? String ?: ""
                 val name = "think_${sprite.name}"
@@ -1811,12 +1497,9 @@ class DesktopScriptEngine(
                 val text = block.args.getOrNull(2) as? String ?: ""
                 textOverlays[name]?.text = text
             }
-
-            // ── New Looks bricks ──
             "set_background" -> {
                 val lookName = block.args.getOrNull(1) as? String ?: ""
                 val waitFlag = block.args.getOrNull(2) as? String ?: "0"
-                // Find background look in the project's first sprite (background)
                 val bgSprite = project.sprites.firstOrNull()
                 if (bgSprite != null && lookName.isNotEmpty()) {
                     val idx = bgSprite.looks.indexOfFirst { it.name == lookName }
@@ -1850,8 +1533,6 @@ class DesktopScriptEngine(
                 }
             }
             "cut_look" -> {
-                // Cut/transform look is not easily doable on desktop without OpenGL framebuffer manipulation
-                // For now, log a message
             }
             "resize_img" -> {
                 val file = block.args.getOrNull(1) as? String ?: ""
@@ -1865,7 +1546,7 @@ class DesktopScriptEngine(
                         g2d.drawImage(img, 0, 0, w, h, null)
                         g2d.dispose()
                         javax.imageio.ImageIO.write(resized, "png", java.io.File(file))
-                    } catch (_: Exception) { /* ignore */ }
+                    } catch (_: Exception) {  }
                 }
             }
             "grayscale_img" -> {
@@ -1878,7 +1559,7 @@ class DesktopScriptEngine(
                         g2d.drawImage(img, 0, 0, null)
                         g2d.dispose()
                         javax.imageio.ImageIO.write(gray, "png", java.io.File(file))
-                    } catch (_: Exception) { /* ignore */ }
+                    } catch (_: Exception) {  }
                 }
             }
             "normalize_img" -> {
@@ -1887,17 +1568,14 @@ class DesktopScriptEngine(
                     try {
                         val img = javax.imageio.ImageIO.read(java.io.File(file))
                         javax.imageio.ImageIO.write(img, "png", java.io.File(file))
-                    } catch (_: Exception) { /* ignore */ }
+                    } catch (_: Exception) {  }
                 }
             }
             "set_anim_speed" -> {
-                // Placeholder — animation system not implemented on desktop
             }
             "play_anim" -> {
-                // Placeholder — animation system not implemented on desktop
             }
             "stop_anim" -> {
-                // Placeholder
             }
             "set_active" -> {
                 val objName = block.args.getOrNull(1) as? String ?: ""
@@ -1924,8 +1602,6 @@ class DesktopScriptEngine(
                     sprite.canvasName = name
                 }
             }
-
-            // ── Text/Bubble: Ask, Speak, Clipboard, Toast, AI ──
             "ask" -> {
                 val question = block.args.getOrNull(1) as? String ?: ""
                 val varName = block.args.getOrNull(2) as? String ?: ""
@@ -1940,7 +1616,7 @@ class DesktopScriptEngine(
                     val clipboard = java.awt.Toolkit.getDefaultToolkit().systemClipboard
                     val selection = java.awt.datatransfer.StringSelection(text)
                     clipboard.setContents(selection, null)
-                } catch (_: Exception) { /* ignore */ }
+                } catch (_: Exception) {  }
             }
             "show_toast" -> {
                 val msg = block.args.getOrNull(1) as? String ?: ""
@@ -1955,14 +1631,14 @@ class DesktopScriptEngine(
                         try {
                             val proc = Runtime.getRuntime().exec(arrayOf("cmd", "/c", "echo", text))
                             proc.waitFor()
-                        } catch (_: Exception) { /* ignore */ }
+                        } catch (_: Exception) {  }
                     }.start()
                 }
             }
             "speak_wait" -> {
                 val text = block.args.getOrNull(1) as? String ?: ""
                 if (text.isNotEmpty()) {
-                    frame.waitTimer = 1f // approximate wait
+                    frame.waitTimer = 1f
                 }
             }
             "set_gemini_key" -> {
@@ -1994,8 +1670,6 @@ class DesktopScriptEngine(
                     variables[varName] = answer ?: ""
                 }
             }
-
-            // ═══════ 3D lighting/rendering stubs ═══════
             "set_ambient_light" -> {
                 val r = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
                 val g = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
@@ -2182,8 +1856,6 @@ class DesktopScriptEngine(
         }
         frame.ip++
     }
-
-    // ── Gemini API call helper ──
     private fun askGeminiApi(question: String, apiKey: String, model: String): String {
         if (apiKey.isEmpty()) return "Error: No API key set"
         return try {
@@ -2198,7 +1870,6 @@ class DesktopScriptEngine(
             val jsonBody = """{"contents":[{"parts":[{"text":"$escaped"}]}]}"""
             conn.outputStream.write(jsonBody.toByteArray())
             val response = conn.inputStream.bufferedReader().readText()
-            // Simple JSON parse: extract "text" field after "parts"
             val textPattern = """"text"\s*:\s*"(?:[^"\\]|\\.)*"""".toRegex()
             val textMatch = textPattern.find(response)
             if (textMatch != null) {
@@ -2210,10 +1881,6 @@ class DesktopScriptEngine(
             } else "No response"
         } catch (e: Exception) { "Error: ${e.message}" }
     }
-
-    // ──────────────────────────── update text overlays ────────────────────────────
-
-    /** Decrement bubble timers and remove expired overlays. */
     private fun updateTextOverlays(deltaSeconds: Float) {
         val expired = mutableListOf<String>()
         for ((key, overlay) in textOverlays) {
@@ -2226,13 +1893,10 @@ class DesktopScriptEngine(
         }
         expired.forEach { textOverlays.remove(it) }
     }
-
-    /** Обновить текст переменных в overlay каждый кадр (для ShowTextBrick). */
     private fun updateVariableOverlays() {
         val toRemove = mutableListOf<String>()
         for ((key, overlay) in textOverlays) {
             if (!overlay.isVariable) continue
-            // key format: "var_${spriteName}_$varName"
             val parts = key.split("_", limit = 3)
             if (parts.size < 3) continue
             val varName = parts[2]
@@ -2247,14 +1911,11 @@ class DesktopScriptEngine(
         }
         toRemove.forEach { textOverlays.remove(it) }
     }
-
     private fun executeMotion(block: Block, sprite: DesktopSprite, frame: Frame) {
         val body = physicsWorld?.getBody(sprite)
         when (block.args.getOrNull(0) as? String) {
             "move_steps" -> {
                 val steps = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
-                // Catrobat uses Scratch-style angles: 0 = up, 90 = right.
-                // Convert to the stage basis where +Y is up and +X is right.
                 val angleRad = Math.toRadians((90f - sprite.direction).toDouble()).toFloat()
                 sprite.x += (cos(angleRad.toDouble())).toFloat() * steps
                 sprite.y += (sin(angleRad.toDouble())).toFloat() * steps
@@ -2324,7 +1985,6 @@ class DesktopScriptEngine(
                 )
             }
             "bounce" -> {
-                // Edge bounce with direction mirroring
                 val halfW = sprite.lookWidth / 2f * sprite.size / 100f
                 val halfH = sprite.lookHeight / 2f * sprite.size / 100f
                 val sw = (project.stageWidth ?: 480) / 2f
@@ -2341,25 +2001,20 @@ class DesktopScriptEngine(
                 }
             }
             "come_to_front" -> {
-                // переместить на передний план
             }
             "go_back_layers" -> {
                 val n = (block.args.getOrNull(1) as? Number)?.toInt() ?: 1
-                // переместить назад на n слоёв
             }
             "set_rotation_style" -> {
-                // 0 = свободно, 1 = зеркально, 2 = не поворачивать
                 sprite.rotationStyle = (block.args.getOrNull(1) as? Number)?.toInt() ?: 0
             }
             "touch_direction" -> {
-                // Вычислить угол от спрайта к точке касания
                 val touchX = input.fingerX
                 val touchY = input.fingerY
                 val dx = touchX - sprite.x
                 val dy = touchY - sprite.y
                 sprite.direction = (90f - Math.toDegrees(atan2(dy.toDouble(), dx.toDouble())).toFloat() + 360f) % 360f
             }
-            // ── New Motion bricks ──
             "turn_left_speed" -> {
                 val speed = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
                 sprite.direction = (sprite.direction - speed * 0.02f + 360f) % 360f
@@ -2427,8 +2082,6 @@ class DesktopScriptEngine(
                 target.rotationLockZ = lockZ != 0f
                 physicsWorld?.getBody(target)?.isFixedRotation = target.rotationLockX || target.rotationLockY || target.rotationLockZ
             }
-
-            // ── Core game logic (remaining portable) ──
             "clone_and_name" -> {
                 val name = block.args.getOrNull(1) as? String ?: ""
                 if (name.isNotEmpty()) {
@@ -2446,9 +2099,7 @@ class DesktopScriptEngine(
                     if (idx >= 0) {
                         val removed = project.sprites[idx]
                         project.sprites.removeAt(idx)
-                        // Item 7: drop the physics body so it is not leaked in the world.
                         physicsWorld?.removeBody(removed)
-                        // Item 2: indices of later sprites shift down — keep scripts aligned.
                         remapSpriteIndicesAfterRemoval(idx)
                     }
                 }
@@ -2467,8 +2118,8 @@ class DesktopScriptEngine(
                 AudioServiceHolder.audioService?.stopAllSounds()
                 MidiServiceHolder.midiService?.stopAllSounds()
             }
-            "load_scene_additive" -> { /* Desktop: единая сцена — no-op */ }
-            "preload_scene" -> { /* Desktop: no-op */ }
+            "load_scene_additive" -> {  }
+            "preload_scene" -> {  }
             "cast_ray" -> {
                 val x1 = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
                 val y1 = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
@@ -2484,9 +2135,9 @@ class DesktopScriptEngine(
                 } ?: ""
                 variables["__cast_ray_hit"] = hit
             }
-            "add_edit" -> { /* редактор-блок: no-op в рантайме */ }
-            "add_radio" -> { /* редактор-блок: no-op в рантайме */ }
-            "set_ai" -> { /* AI-блок: no-op в рантайме (best-effort) */ }
+            "add_edit" -> {  }
+            "add_radio" -> {  }
+            "set_ai" -> {  }
             "create_buffer" -> {
                 val name = block.args.getOrNull(1) as? String ?: ""
                 val width = (block.args.getOrNull(2) as? Number)?.toInt() ?: 0
@@ -2517,7 +2168,7 @@ class DesktopScriptEngine(
                         val out = java.io.File(fileName)
                         out.parentFile?.mkdirs()
                         out.writeText(state.entries.joinToString("\n"))
-                    } catch (_: Exception) { /* ignore */ }
+                    } catch (_: Exception) {  }
                 }
             }
             "apply_buffer_look" -> {
@@ -2560,10 +2211,6 @@ class DesktopScriptEngine(
         }
         frame.ip++
     }
-
-    // ──────────────────────────── PHYSICS ────────────────────────────
-
-    /** Выполнить физический блок (Box2D). */
     private fun executePhysics(block: Block, sprite: DesktopSprite, frame: Frame) {
         when (block.args.getOrNull(0) as? String) {
             "set_gravity" -> {
@@ -2602,7 +2249,6 @@ class DesktopScriptEngine(
                 physicsWorld?.setDamping(sprite, linear, angular)
             }
             "set_physics_type" -> {
-                // 0 = Static, 1 = Dynamic, 2 = Kinematic
                 val type = (block.args.getOrNull(1) as? Number)?.toInt() ?: 0
                 val bodyType = when (type) {
                     1 -> BodyDef.BodyType.DynamicBody
@@ -2617,7 +2263,6 @@ class DesktopScriptEngine(
                 val mass = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 1f
                 val stateSelection = (block.args.getOrNull(3) as? Number)?.toInt() ?: 0
                 val shapeSelection = (block.args.getOrNull(4) as? Number)?.toInt() ?: 0
-                // stateSelection: 1=static, 2=dynamic
                 val isStatic = stateSelection != 2
                 physicsWorld?.ensureBody(sprite, isStatic)
                 physicsWorld?.setMass(sprite, mass)
@@ -2647,7 +2292,6 @@ class DesktopScriptEngine(
                 val ex = (block.args.getOrNull(4) as? Number)?.toFloat() ?: 0f
                 val ey = (block.args.getOrNull(5) as? Number)?.toFloat() ?: 0f
                 val results = physicsWorld?.rayCast(sx, sy, ex, ey) ?: emptyList()
-                // Сохраняем результат луча в переменную raycast_result_X
                 variables["raycast_count_${rayId.toInt()}"] = results.size.toFloat()
                 results.forEachIndexed { idx, r ->
                     val prefix = "raycast_${rayId.toInt()}_$idx"
@@ -2741,8 +2385,6 @@ class DesktopScriptEngine(
                 val name = (block.args.getOrNull(1) as? String) ?: ""
                 if (name.isNotEmpty()) physicsWorld?.destroyJoint(name)
             }
-
-            // ── Gear joint (Box2D) ──
             "create_joint_gear" -> {
                 val name = block.args.getOrNull(1) as? String ?: ""
                 val jointAName = block.args.getOrNull(2) as? String ?: ""
@@ -2761,7 +2403,6 @@ class DesktopScriptEngine(
                     }
                 }
             }
-            // ── Pulley joint (Box2D) ──
             "create_joint_pulley" -> {
                 val name = block.args.getOrNull(1) as? String ?: ""
                 val spriteAName = block.args.getOrNull(2) as? String ?: ""
@@ -2789,7 +2430,6 @@ class DesktopScriptEngine(
                     if (joint != null && name.isNotEmpty()) physicsWorld?.addJoint(name, joint)
                 }
             }
-            // ── Point joint (Box2D: approximated as WeldJoint at anchor) ──
             "create_joint_point" -> {
                 val name = block.args.getOrNull(1) as? String ?: ""
                 val objAName = block.args.getOrNull(2) as? String ?: ""
@@ -2810,7 +2450,6 @@ class DesktopScriptEngine(
                     if (joint != null && name.isNotEmpty()) physicsWorld?.addJoint(name, joint)
                 }
             }
-            // ── Hinge and motor (3D stubs) ──
             "add_hinge" -> {
                 val name = block.args.getOrNull(1) as? String ?: ""
                 val objA = block.args.getOrNull(2) as? String ?: ""
@@ -2823,22 +2462,22 @@ class DesktopScriptEngine(
                 val maxForce = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 0f
                 if (id.isNotEmpty()) variables["__hinge_motor_$id"] = "$target|$maxForce"
             }
-            // ── Hitbox: set polygon fixture matching look/sprite dimensions ──
             "set_hitbox" -> {
                 val lookName = block.args.getOrNull(1) as? String ?: ""
                 if (lookName.isNotEmpty()) {
-                    // Try to find a look by name and use its texture dimensions
                     val look = sprite.looks.find { it.name == lookName }
-                    val tex = look?.texture
-                    val w = if (tex != null) tex.width.toFloat()
-                        else sprite.width.takeIf { it > 0f } ?: sprite.size
-                    val h = if (tex != null) tex.height.toFloat()
-                        else sprite.height.takeIf { it > 0f } ?: sprite.size
                     physicsWorld?.ensureBody(sprite)
-                    physicsWorld?.setHitbox(sprite, w, h)
+                    val applied = look != null && physicsWorld?.applyCustomHitboxes(sprite, look) == true
+                    if (!applied) {
+                        val tex = look?.texture
+                        val w = if (tex != null) tex.width.toFloat()
+                            else sprite.width.takeIf { it > 0f } ?: sprite.size
+                        val h = if (tex != null) tex.height.toFloat()
+                            else sprite.height.takeIf { it > 0f } ?: sprite.size
+                        physicsWorld?.setHitbox(sprite, w, h)
+                    }
                 }
             }
-            // ── 3D object stubs (no 3D renderer on desktop) ──
             "create_3d_object" -> {
                 val name = block.args.getOrNull(1) as? String ?: ""
                 val file = block.args.getOrNull(2) as? String ?: ""
@@ -2895,8 +2534,6 @@ class DesktopScriptEngine(
                 val fz = (block.args.getOrNull(4) as? Number)?.toFloat() ?: 0f
                 if (name.isNotEmpty()) variables["__3dforce_$name"] = "$fx,$fy,$fz"
             }
-
-            // ── Fast2D bricks (best-effort на Desktop: 2D-спрайты + Box2D) ──
             "fast2d_create" -> {
                 val name = block.args.getOrNull(1) as? String ?: ""
                 if (name.isNotEmpty() && project.sprites.none { it.name == name }) {
@@ -2911,9 +2548,7 @@ class DesktopScriptEngine(
                     if (idx >= 0) {
                         val removed = project.sprites[idx]
                         project.sprites.removeAt(idx)
-                        // Item 7: drop the physics body so it is not leaked in the world.
                         physicsWorld?.removeBody(removed)
-                        // Item 2: indices of later sprites shift down — keep scripts aligned.
                         remapSpriteIndicesAfterRemoval(idx)
                     }
                 }
@@ -2958,7 +2593,6 @@ class DesktopScriptEngine(
             "fast2d_set_texture" -> {
                 val name = block.args.getOrNull(1) as? String ?: ""
                 val tex = block.args.getOrNull(2) as? String ?: ""
-                // Меняем look по имени файла (best-effort)
                 project.sprites.find { it.name == name }?.let { sp ->
                     if (tex.isNotEmpty()) {
                         val idx = sp.looks.indexOfFirst { it.name == tex }
@@ -3005,7 +2639,6 @@ class DesktopScriptEngine(
                 val name = block.args.getOrNull(1) as? String ?: ""
                 val cat = (block.args.getOrNull(2) as? Number)?.toInt() ?: 1
                 val mask = (block.args.getOrNull(3) as? Number)?.toInt() ?: -1
-                // Категория/маска коллизий: best-effort (храним в переменной)
                 if (name.isNotEmpty()) variables["__collision_${name}"] = "$cat:$mask"
             }
             "fast2d_set_zindex" -> {
@@ -3016,13 +2649,6 @@ class DesktopScriptEngine(
         }
         frame.ip++
     }
-
-    // ──────────────────────────── CAMERA (3D → 2D emulation) ────────────────────────────
-
-    /**
-     * Camera 3D bricks mapped onto the orthographic view (pan / zoom / rotate).
-     * Z / pitch / roll are accepted but have no visual effect in the 2D renderer.
-     */
     private fun executeCamera(block: Block, sprite: DesktopSprite, frame: Frame) {
         when (block.args.getOrNull(0) as? String) {
             "set_camera_position" -> {
@@ -3062,8 +2688,6 @@ class DesktopScriptEngine(
                 cameraState.rotation += yaw
             }
             "pin_to_camera" -> {
-                // Keep sprite fixed on screen: store its screen offset relative to the camera
-                // (so pan + zoom are compensated each frame in the renderer).
                 val sx = (sprite.x - cameraState.x) * cameraState.zoom
                 val sy = (sprite.y + cameraState.y) * cameraState.zoom
                 cameraState.cameraPinned[sprite.name] = sx to sy
@@ -3134,62 +2758,40 @@ class DesktopScriptEngine(
                 cameraState.rangeNear = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
                 cameraState.rangeFar = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
             }
-            // SetBufferCamera / SetBufferCamera3D: off-screen buffers have no 2D equivalent.
             "set_buffer_camera", "set_buffer_camera_3d" -> {
-                // No-op: buffer cameras are not rendered in the desktop player.
             }
-
-            // ── Camera HW stubs (no-op on desktop — no camera hardware) ──
             "camera_preview" -> {
-                // CameraBrick: enable/disable camera preview — no-op on desktop
             }
             "camera_choose" -> {
-                // ChooseCameraBrick: front/back camera — no-op on desktop
             }
             "camera_flash" -> {
-                // FlashBrick: flash on/off — no-op on desktop
             }
             "camera_photo" -> {
-                // PhotoBrick: take picture — no-op on desktop
             }
             "camera_tracking" -> {
-                // CameraTrackingBrick: 3D tracking — no-op on desktop
             }
             "camera_focus" -> {
-                // SetCameraFocusPointBrick: 3D focus point — no-op on desktop
             }
-
-            // ── New Camera stubs (no 3D scene on desktop) ──
             "object_look_at" -> {
-                // ObjectLookAtBrick: makes 3D object look at a point — no-op
             }
             "visual_placement" -> {
-                // VisualPlacementBrick: placement mode — no-op
             }
             "keyframe_animation" -> {
-                // KeyframeAnimationBrick: animate 3D object along keyframes — no-op
             }
             "create_gl_view" -> {
-                // CreateGLViewBrick: separate GLSurfaceView — no-op
             }
             "attach_so" -> {
-                // AttachSOB: attach sub-object — no-op
             }
             "load_native_module" -> {
-                // LoadNativeModuleBrick: load native library — no-op (security)
             }
         }
         frame.ip++
     }
-
-    // ──────────────────────────── SOUND ────────────────────────────
-
     private fun resolveSoundPath(name: String): String {
         if (name.isEmpty()) return name
         val base = DesktopProjectManager.getInstance().getCurrentProject()?.soundsDir
         return if (base != null) File(base, name).absolutePath else name
     }
-
     private fun executeSound(block: Block, sprite: DesktopSprite, frame: Frame) {
         when (block.args.getOrNull(0) as? String) {
             "play_sound" -> {
@@ -3202,7 +2804,6 @@ class DesktopScriptEngine(
                 val path = resolveSoundPath(block.args.getOrNull(1) as? String ?: "")
                 if (path.isNotEmpty()) {
                     AudioServiceHolder.audioService?.playSoundFile(path, sprite.name)
-                    // простейшая реализация: ждём 1 секунду
                     frame.waitTimer = 1f
                 }
             }
@@ -3213,8 +2814,8 @@ class DesktopScriptEngine(
             "stop_all_sounds" -> {
                 AudioServiceHolder.audioService?.stopAllSounds()
             }
-            "sound_file" -> { /* выбор звукового файла: no-op в рантайме */ }
-            "sound_files" -> { /* выбор списка звуков: no-op в рантайме */ }
+            "sound_file" -> { }
+            "sound_files" -> { }
             "set_volume" -> {
                 val vol = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 1f
                 AudioServiceHolder.audioService?.setVolume(vol)
@@ -3249,13 +2850,9 @@ class DesktopScriptEngine(
                 AudioServiceHolder.audioService?.setPitch(pitch)
             }
             "prepare_3d_sound" -> {
-                // 3D-подготовка звука не поддерживается на Desktop — no-op
             }
             "set_3d_pos" -> {
-                // 3D-позиция звука не поддерживается на Desktop — no-op
             }
-
-            // ── New Sound bricks ──
             "stop_sound_v2" -> {
                 val instName = resolveSoundPath(block.args.getOrNull(1) as? String ?: "")
                 if (instName.isNotEmpty()) {
@@ -3276,13 +2873,11 @@ class DesktopScriptEngine(
             }
             "set_pan" -> {
                 val pan = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
-                // Pan not directly supported by basic audio service, store as variable
                 variables["__audio_pan"] = pan.coerceIn(-1f, 1f)
             }
             "play_tone" -> {
                 val freq = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 440f
                 val dur = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 1f
-                // Play tone via Midi service or fallback
                 val midiNote = (69 + 12 * (Math.log((freq / 440.0).toDouble()) / Math.log(2.0))).toInt()
                 MidiServiceHolder.midiService?.playNoteForBeats(midiNote.coerceIn(0, 127), dur)
             }
@@ -3305,7 +2900,6 @@ class DesktopScriptEngine(
             "eq_set_band" -> {
                 val band = (block.args.getOrNull(1) as? Number)?.toInt() ?: 0
                 val gain = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
-                // Equalizer not supported on desktop — store as placeholder
                 variables["__eq_band_$band"] = gain
             }
             "set_stop_sounds" -> {
@@ -3318,7 +2912,6 @@ class DesktopScriptEngine(
                 val dur = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 2f
                 val currentVol = AudioServiceHolder.audioService?.getVolume() ?: 0f
                 frame.waitTimer = maxOf(frame.waitTimer, dur)
-                // Simple fade: set volume on each frame via update loop
                 variables["__fade_in_dur"] = dur
                 variables["__fade_in_elapsed"] = 0f
                 variables["__fade_in_vol"] = currentVol
@@ -3334,9 +2927,6 @@ class DesktopScriptEngine(
         }
         frame.ip++
     }
-
-    // ──────────────────────────── MUSIC ────────────────────────────
-
     private fun executeMusic(block: Block, frame: Frame) {
         when (block.args.getOrNull(0) as? String) {
             "play_note" -> {
@@ -3357,7 +2947,6 @@ class DesktopScriptEngine(
             }
             "set_tempo" -> {
                 val tempo = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 60f
-                // сохраняем темп
                 variables["__tempo"] = tempo
             }
             "change_tempo" -> {
@@ -3374,15 +2963,11 @@ class DesktopScriptEngine(
         }
         frame.ip++
     }
-
-    // ──────────────────────────── PEN ────────────────────────────
-
     private fun executePen(block: Block, sprite: DesktopSprite, frame: Frame) {
         val VIRTUAL_WIDTH = (project.stageWidth ?: 480).toFloat()
         val VIRTUAL_HEIGHT = (project.stageHeight ?: 720).toFloat()
         fun toScreenX(x: Float) = VIRTUAL_WIDTH / 2f + x
         fun toScreenY(y: Float) = VIRTUAL_HEIGHT / 2f - y
-
         when (block.args.getOrNull(0) as? String) {
             "pen_down" -> sprite.penDown = true
             "pen_up" -> sprite.penDown = false
@@ -3396,7 +2981,6 @@ class DesktopScriptEngine(
                 sprite.penColorBlue = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 0f
             }
             "stamp" -> {
-                // stamp the current look at current position
                 sprite.penDrawCommands.add(PenDrawCommand.StampSprite(
                     sprite.currentLook()?.texture,
                     toScreenX(sprite.x), toScreenY(sprite.y),
@@ -3407,7 +2991,6 @@ class DesktopScriptEngine(
             "clear_background" -> {
                 sprite.penDrawCommands.clear()
             }
-            // ── Shape drawing bricks ──
             "draw_line" -> {
                 val x1 = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
                 val y1 = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
@@ -3477,7 +3060,6 @@ class DesktopScriptEngine(
                 val pairs = pointsStr.split(",").mapNotNull { token ->
                     val trimmed = token.trim()
                     if (trimmed.isEmpty()) return@mapNotNull null
-                    // format: "(x,y)" or "x,y"
                     val coords = trimmed.replace("(", "").replace(")", "").split(";")
                     if (coords.size >= 2) {
                         val px = coords[0].trim().toFloatOrNull() ?: return@mapNotNull null
@@ -3506,9 +3088,6 @@ class DesktopScriptEngine(
         }
         frame.ip++
     }
-
-    // ──────────────────────────── VARIABLE ────────────────────────────
-
     private fun executeVariable(block: Block, sprite: DesktopSprite, frame: Frame, state: ScriptState) {
         when (block.args.getOrNull(0) as? String) {
             "set" -> {
@@ -3585,8 +3164,6 @@ class DesktopScriptEngine(
                 val end = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
                 if (name.isNotEmpty()) variables[name] = end
             }
-
-            // ── User List operations ──
             "list_add" -> {
                 val name = block.args.getOrNull(1) as? String ?: ""
                 val value = block.args.getOrNull(2) as? String ?: ""
@@ -3669,8 +3246,6 @@ class DesktopScriptEngine(
                     }
                 }
             }
-
-            // ── Data Structures (Map, Queue, Stack) ──
             "map_create" -> {
                 val varName = block.args.getOrNull(1) as? String ?: ""
                 if (varName.isNotEmpty()) {
@@ -3694,7 +3269,6 @@ class DesktopScriptEngine(
                     @Suppress("UNCHECKED_CAST")
                     val map = variables[varName] as? Map<String, Any>
                     if (map != null) {
-                        // Store result back as a special var
                         variables["__map_get_result"] = map[key] ?: ""
                     }
                 }
@@ -3756,7 +3330,6 @@ class DesktopScriptEngine(
                     }
                 }
             }
-            // ── Variable management ──
             "create_var" -> {
                 val varName = block.args.getOrNull(1) as? String ?: ""
                 val value = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
@@ -3773,7 +3346,6 @@ class DesktopScriptEngine(
             "delete_all_vars" -> {
                 variables.clear()
             }
-            // ── Text field bricks ──
             "set_text" -> {
                 val name = block.args.getOrNull(1) as? String ?: ""
                 val text = block.args.getOrNull(2) as? String ?: ""
@@ -3796,8 +3368,6 @@ class DesktopScriptEngine(
                     textOverlays[name] = TextOverlay(name = name, text = text, x = x, y = y)
                 }
             }
-
-            // ── Show text with rotation / font (UserVariableBrickWithVisualPlacement) ──
             "show_text_rotation" -> {
                 val name = block.args.getOrNull(1) as? String ?: ""
                 val x = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
@@ -3818,8 +3388,6 @@ class DesktopScriptEngine(
                     textOverlays[name] = TextOverlay(name = name, text = value, x = x, y = y, size = size)
                 }
             }
-
-            // ── Database tables (local, in-memory) ──
             "db_create" -> {
                 val tname = block.args.getOrNull(1) as? String ?: ""
                 val sx = (block.args.getOrNull(2) as? Number)?.toInt() ?: 1
@@ -3838,7 +3406,7 @@ class DesktopScriptEngine(
                 val id = block.args.getOrNull(1) as? String ?: ""
                 val key = block.args.getOrNull(2) as? String ?: ""
                 val resp = firebaseRequest("DELETE", firebaseUrl(id, key))
-                if (resp == null) baseStore.remove("$id:$key")   // фолбэк при ошибке сети
+                if (resp == null) baseStore.remove("$id:$key")
             }
             "db_insert" -> {
                 val tname = block.args.getOrNull(1) as? String ?: ""
@@ -3850,7 +3418,6 @@ class DesktopScriptEngine(
                 }
             }
             "db_look_from" -> {
-                // Читает значение из первой таблицы в цветовые переменные (best-effort)
                 val red = (block.args.getOrNull(1) as? Number)?.toInt() ?: 0
                 val green = (block.args.getOrNull(2) as? Number)?.toInt() ?: 0
                 val blue = (block.args.getOrNull(3) as? Number)?.toInt() ?: 0
@@ -3902,10 +3469,8 @@ class DesktopScriptEngine(
                 val key = block.args.getOrNull(2) as? String ?: ""
                 val value = block.args.getOrNull(3) as? String ?: ""
                 val resp = firebaseRequest("PUT", firebaseUrl(id, key), jsonString(value))
-                if (resp == null) baseStore["$id:$key"] = value   // фолбэк при ошибке сети
+                if (resp == null) baseStore["$id:$key"] = value
             }
-
-            // ── Firebase Storage (REST API — firebasestorage.googleapis.com) ──
             "firebase_upload" -> {
                 val bucket = block.args.getOrNull(1) as? String ?: ""
                 val path = block.args.getOrNull(2) as? String ?: ""
@@ -3930,11 +3495,10 @@ class DesktopScriptEngine(
                             }
                             val code = conn.responseCode
                             if (code in 200..299) {
-                                // success
                             }
                             conn.disconnect()
                         }
-                    } catch (_: Exception) { /* ignore */ }
+                    } catch (_: Exception) {  }
                 }
             }
             "firebase_download" -> {
@@ -3984,7 +3548,7 @@ class DesktopScriptEngine(
                         conn.connectTimeout = 15000
                         conn.readTimeout = 15000
                         conn.disconnect()
-                    } catch (_: Exception) { /* ignore */ }
+                    } catch (_: Exception) {  }
                 }
             }
             "firebase_list" -> {
@@ -4001,7 +3565,6 @@ class DesktopScriptEngine(
                         conn.readTimeout = 15000
                         if (conn.responseCode in 200..299) {
                             val body = conn.inputStream.bufferedReader().readText()
-                            // Manual parse: walk "name":" occurrences
                             val names = mutableListOf<String>()
                             var searchFrom = 0
                             while (true) {
@@ -4023,20 +3586,15 @@ class DesktopScriptEngine(
                     }
                 }
             }
-
-            // ── Secure read / secure save (stubs — no hardware-backed keystore on desktop) ──
             "secure_read" -> {
                 val varName = block.args.getOrNull(1) as? String ?: ""
-                // key is arg[2], unused — desktop stub returns 0
                 if (varName.isNotEmpty()) {
-                    // No encrypted storage on desktop; return current value or 0
                     variables[varName] = getVariableDouble(varName)
                 }
             }
             "secure_save" -> {
                 val varName = block.args.getOrNull(1) as? String ?: ""
                 val value = block.args.getOrNull(2)
-                // key is arg[3], unused
                 if (varName.isNotEmpty()) {
                     val v = when (value) {
                         is Number -> value.toDouble()
@@ -4049,10 +3607,6 @@ class DesktopScriptEngine(
         }
         frame.ip++
     }
-
-    // ──────────────────────────── WEB ────────────────────────────
-
-    /** Запускает локальный HTTP-сервер. storeVar (опционально) получает тело запроса. */
     private fun startLocalServer(port: Int, storeVar: String?) {
         try {
             localHttpServer?.stop(0)
@@ -4069,9 +3623,8 @@ class DesktopScriptEngine(
             server.start()
             localHttpServer = server
             variables["__server_port"] = port.toDouble()
-        } catch (_: Exception) { /* ignore */ }
+        } catch (_: Exception) {  }
     }
-
     private fun executeWeb(block: Block, frame: Frame) {
         when (block.args.getOrNull(0) as? String) {
             "http_get" -> {
@@ -4132,7 +3685,6 @@ class DesktopScriptEngine(
                     }
                 }
             }
-            // ── Additional Web bricks ──
             "http_head" -> {
                 val url = block.args.getOrNull(1) as? String ?: ""
                 val header = block.args.getOrNull(2) as? String ?: ""
@@ -4224,14 +3776,13 @@ class DesktopScriptEngine(
                         conn.readTimeout = 15_000
                         conn.connect()
                         dest.outputStream().use { out -> conn.inputStream.copyTo(out) }
-                    } catch (_: Exception) { /* ignore */ }
+                    } catch (_: Exception) {  }
                 }
             }
             "set_dns" -> {
-                // DNS-сервер не настраивается на Desktop — no-op
             }
             "stop_server" -> {
-                try { localHttpServer?.stop(0) } catch (_: Exception) { /* ignore */ }
+                try { localHttpServer?.stop(0) } catch (_: Exception) {  }
                 localHttpServer = null
             }
             "connect_server" -> {
@@ -4257,7 +3808,7 @@ class DesktopScriptEngine(
                         val conn = java.net.URI(url).toURL().openConnection()
                         conn.connect()
                         dest.outputStream().use { out -> conn.inputStream.copyTo(out) }
-                    } catch (_: Exception) { /* ignore */ }
+                    } catch (_: Exception) {  }
                 }
             }
             "upload_file" -> {
@@ -4272,9 +3823,9 @@ class DesktopScriptEngine(
                         conn.setRequestProperty("Content-Type", mime)
                         conn.doOutput = true
                         f.inputStream().use { fis -> conn.outputStream.use { it.write(fis.readBytes()) } }
-                        conn.responseCode // trigger send
+                        conn.responseCode
                         conn.disconnect()
-                    } catch (_: Exception) { /* ignore */ }
+                    } catch (_: Exception) {  }
                 }
             }
             "ping" -> {
@@ -4290,7 +3841,6 @@ class DesktopScriptEngine(
                     } catch (e: Exception) { variables[varName] = "Error: ${e.message}" }
                 }
             }
-            // ── Web extras ──
             "http_set" -> {
                 val url = block.args.getOrNull(1) as? String ?: ""
                 val body = block.args.getOrNull(2) as? String ?: ""
@@ -4313,7 +3863,6 @@ class DesktopScriptEngine(
                 val resultVar = block.args.getOrNull(2) as? String ?: ""
                 if (script.isNotEmpty() && resultVar.isNotEmpty()) {
                     try {
-                        // Eval-style: POST script as text/plain to a server endpoint
                         val conn = java.net.URI("http://localhost:8080/eval").toURL().openConnection() as java.net.HttpURLConnection
                         conn.requestMethod = "POST"
                         conn.setRequestProperty("Content-Type", "text/plain")
@@ -4329,14 +3878,14 @@ class DesktopScriptEngine(
                 val port = (block.args.getOrNull(1) as? Number)?.toInt() ?: 8080
                 startLocalServer(port, null)
             }
-            "cancel_download" -> { /* активные загрузки не трекаются на Desktop — no-op */ }
+            "cancel_download" -> { }
             "send_server" -> {
                 val value = block.args.getOrNull(1) as? String ?: ""
                 val url = (variables["__server_url"] as? String)
                     ?: (variables["__ws_url"] as? String) ?: ""
                 if (url.isNotEmpty()) {
                     NetworkServiceHolder.service?.let { svc ->
-                        try { svc.httpPost(url, value) } catch (_: Exception) { /* ignore */ }
+                        try { svc.httpPost(url, value) } catch (_: Exception) {  }
                     }
                 }
             }
@@ -4353,16 +3902,13 @@ class DesktopScriptEngine(
         }
         frame.ip++
     }
-
-    // ──────────────────────────── SENSING ────────────────────────────
-
     private fun executeSensing(block: Block, frame: Frame) {
         when (block.args.getOrNull(0) as? String) {
             "lock_mouse" -> {
-                try { com.badlogic.gdx.Gdx.input.setCursorCatched(true) } catch (_: Exception) { /* ignore */ }
+                try { com.badlogic.gdx.Gdx.input.setCursorCatched(true) } catch (_: Exception) {  }
             }
             "unlock_mouse" -> {
-                try { com.badlogic.gdx.Gdx.input.setCursorCatched(false) } catch (_: Exception) { /* ignore */ }
+                try { com.badlogic.gdx.Gdx.input.setCursorCatched(false) } catch (_: Exception) {  }
             }
             "screenshot" -> {
                 try {
@@ -4371,7 +3917,7 @@ class DesktopScriptEngine(
                     val fileName = "screenshot_${System.currentTimeMillis()}.png"
                     com.badlogic.gdx.graphics.PixmapIO.writePNG(com.badlogic.gdx.Gdx.files.absolute(fileName), pixmap)
                     pixmap.dispose()
-                } catch (_: Exception) { /* ignore */ }
+                } catch (_: Exception) {  }
             }
             "tap_at" -> {
                 val x = (block.args.getOrNull(1) as? Number)?.toInt() ?: 0
@@ -4379,28 +3925,19 @@ class DesktopScriptEngine(
                 input.simulateTap(x.toFloat(), y.toFloat())
             }
             "reset_timer" -> timerSeconds = 0f
-
-            // Device bricks (ported with stubs where needed)
             "vibrate" -> {
                 val ms = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0.5f
-                // Desktop vibration not supported — stub
             }
             "keep_screen_on" -> {
-                // Desktop — no-op (screen always on)
             }
             "keep_screen_off" -> {
-                // Desktop — no-op
             }
             "screen_brightness" -> {
                 val brightness = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 1f
-                // Desktop brightness not adjustable — stub
             }
         }
         frame.ip++
     }
-
-    // ──────────────────────────── DATA (file I/O) ────────────────────────────
-
     private fun executeData(block: Block, frame: Frame) {
         when (block.args.getOrNull(0) as? String) {
             "write_variable" -> {
@@ -4412,7 +3949,7 @@ class DesktopScriptEngine(
                         val file = java.io.File(projectDir ?: java.io.File("."), "${name}.txt")
                         file.parentFile?.mkdirs()
                         file.writeText(value)
-                    } catch (_: Exception) { /* ignore */ }
+                    } catch (_: Exception) {  }
                 }
             }
             "read_variable" -> {
@@ -4425,7 +3962,7 @@ class DesktopScriptEngine(
                             val content = file.readText().trim()
                             variables[name] = content.toDoubleOrNull() ?: content
                         }
-                    } catch (_: Exception) { /* ignore */ }
+                    } catch (_: Exception) {  }
                 }
             }
             "read_list_device" -> {
@@ -4438,7 +3975,7 @@ class DesktopScriptEngine(
                             val lines = file.readLines().map { it.trim() }.filter { it.isNotEmpty() }
                             userLists[name] = lines.map { it.toDoubleOrNull() ?: it as Any }.toMutableList()
                         }
-                    } catch (_: Exception) { /* ignore */ }
+                    } catch (_: Exception) {  }
                 }
             }
             "write_list_device" -> {
@@ -4450,15 +3987,12 @@ class DesktopScriptEngine(
                         val file = java.io.File(projectDir ?: java.io.File("."), "${name}.list.txt")
                         file.parentFile?.mkdirs()
                         file.writeText(list.joinToString("\n") { it.toString() })
-                    } catch (_: Exception) { /* ignore */ }
+                    } catch (_: Exception) {  }
                 }
             }
         }
         frame.ip++
     }
-
-    // ──────────────────────────── FILE ────────────────────────────
-
     private fun executeFile(block: Block, frame: Frame) {
         val cmd = block.args.getOrNull(0) as? String ?: ""
         try {
@@ -4534,7 +4068,6 @@ class DesktopScriptEngine(
                     if (projectDir != null) {
                         val src = java.io.File(projectDir, fileName)
                         if (src.exists()) {
-                            // copy to desktop downloads dir
                             val dest = java.io.File(System.getProperty("user.home") ?: ".", "Downloads")
                                 .resolve(fileName)
                             dest.parentFile?.mkdirs()
@@ -4558,7 +4091,7 @@ class DesktopScriptEngine(
                             } else {
                                 rt.exec(arrayOf("xdg-open", f.absolutePath))
                             }
-                        } catch (_: Exception) { /* ignore */ }
+                        } catch (_: Exception) {  }
                     }
                 }
                 "read_from_files" -> {
@@ -4590,7 +4123,7 @@ class DesktopScriptEngine(
                             val content = f.readText().trim()
                             val num = content.toDoubleOrNull()
                             variables[varName] = num ?: content
-                        } catch (_: Exception) { /* ignore */ }
+                        } catch (_: Exception) {  }
                         if (deleteAfter) f.delete()
                     }
                 }
@@ -4630,7 +4163,6 @@ class DesktopScriptEngine(
                     val apkPath = block.args.getOrNull(1) as? String ?: ""
                     val innerPath = block.args.getOrNull(2) as? String ?: ""
                     val destPath = block.args.getOrNull(3) as? String ?: ""
-                    // extract innerPath from apk (zip) to destPath
                     if (apkPath.isNotEmpty() && innerPath.isNotEmpty() && destPath.isNotEmpty()) {
                         java.util.zip.ZipInputStream(java.io.FileInputStream(apkPath)).use { zis ->
                             var entry = zis.nextEntry
@@ -4660,8 +4192,6 @@ class DesktopScriptEngine(
                         variables[varName] = names.joinToString(",")
                     }
                 }
-
-                // ── Remaining File operations ──
                 "create_folder" -> {
                     val folder = block.args.getOrNull(1) as? String ?: ""
                     if (folder.isNotEmpty()) {
@@ -4770,7 +4300,7 @@ class DesktopScriptEngine(
                             if (dir.isDirectory) {
                                 java.awt.Desktop.getDesktop().open(dir)
                             }
-                        } catch (_: Exception) { /* ignore */ }
+                        } catch (_: Exception) {  }
                     }
                 }
                 "has_path" -> {
@@ -4793,17 +4323,9 @@ class DesktopScriptEngine(
                 }
             }
         } catch (_: Exception) {
-            // SILENT FAIL — same as Android: file ops don't crash the script
         }
         frame.ip++
     }
-
-    // ──────────────────────────── VIDEO (best-effort) ────────────────────────────
-
-    /**
-     * Видео-блоки. На Desktop нет аппаратного воспроизведения видео в рантайме —
-     * состояние проигрывателя хранится, но кадры не отрисовываются (best-effort).
-     */
     private fun executeVideo(block: Block, frame: Frame) {
         when (block.args.getOrNull(0) as? String) {
             "create_video" -> {
@@ -4834,12 +4356,7 @@ class DesktopScriptEngine(
         }
         frame.ip++
     }
-
-    // ──────────────────── Runtime formula evaluation ────────────────────
-
-    /** Вычислить аргумент блока как Float с поддержкой runtime-формул. */
     private fun evalBlockArgFloat(block: Block, argIndex: Int, sprite: DesktopSprite, state: ScriptState): Float? {
-        // Аргумент может быть простым числом (Number) или RuntimeFormula
         val arg = block.args.getOrNull(argIndex)
         return when (arg) {
             is Number -> arg.toFloat()
@@ -4847,12 +4364,10 @@ class DesktopScriptEngine(
             else -> null
         }
     }
-
-    /** Вычислить runtime-формулу для указанного BrickField (uses compiled tree with XML fallback). */
     private fun evaluateBrickFieldFormula(sprite: DesktopSprite, state: ScriptState, rf: RuntimeFormula): Float? {
         val spriteIndex = state.spriteIndex
         val result = evalCompiledFormula(rf.compiled, spriteIndex)
-            ?: evaluateFormulaNode(rf.formulaElement, spriteIndex) // fallback for uncompiled functions
+            ?: evaluateFormulaNode(rf.formulaElement, spriteIndex)
         return result?.let { v ->
             when (v) {
                 is Double -> v.toFloat()
@@ -4862,16 +4377,12 @@ class DesktopScriptEngine(
             }
         }
     }
-
-    /** Вычислить runtime-формулу как строку (uses compiled tree with XML fallback). */
     private fun evaluateBrickFieldFormulaString(sprite: DesktopSprite, state: ScriptState, rf: RuntimeFormula): String? {
         val spriteIndex = state.spriteIndex
         val result = evalCompiledFormula(rf.compiled, spriteIndex)
             ?: evaluateFormulaNode(rf.formulaElement, spriteIndex)
         return result?.toString()
     }
-
-    /** Вычислить runtime-формулу с сохранением оригинального типа (uses compiled tree with XML fallback). */
     private fun evaluateBrickFieldFormulaAsObject(sprite: DesktopSprite, state: ScriptState, rf: RuntimeFormula): Any {
         val spriteIndex = state.spriteIndex
         val result = evalCompiledFormula(rf.compiled, spriteIndex)
@@ -4883,12 +4394,6 @@ class DesktopScriptEngine(
             else -> result ?: 0.0
         }
     }
-
-
-    /**
-     * Evaluate a compiled formula tree — fast path with zero XML DOM access.
-     * Mirrors the logic of [evaluateFormulaNode] but operates on pre-compiled objects.
-     */
     private fun evalCompiledFormula(f: CompiledFormula, spriteIndex: Int): Any? {
         return when (f) {
             is CompiledFormula.Num -> f.value
@@ -4938,8 +4443,6 @@ class DesktopScriptEngine(
                 }
             }
             is CompiledFormula.Function -> {
-                // Delegate to existing evaluateFunction with a synthetic approach:
-                // evaluate children via compiled tree, then call the same function logic
                 val leftVal = f.left?.let { evalCompiledFormula(it, spriteIndex) }
                 val rightVal = f.right?.let { evalCompiledFormula(it, spriteIndex) }
                 val additionalVals = f.additional.map { evalCompiledFormula(it, spriteIndex) }
@@ -4947,21 +4450,13 @@ class DesktopScriptEngine(
             }
         }
     }
-
-    /**
-     * Evaluate a compiled function node. Mirrors [evaluateFunction] logic but
-     * receives pre-evaluated child values instead of XML Elements.
-     */
     private fun evalCompiledFunction(func: String, leftVal: Any?, rightVal: Any?, additionalVals: List<Any?>, spriteIndex: Int): Any? {
         val a = (leftVal as? Double) ?: 0.0
         val b = (rightVal as? Double) ?: 0.0
         val aStr = leftVal?.toString() ?: ""
         val bStr = rightVal?.toString() ?: ""
-
         fun findSprite(name: String) = project.sprites.find { it.name == name }
-
         return when (func) {
-            // Basic math
             "SIN" -> sin(Math.toRadians(a))
             "COS" -> cos(Math.toRadians(a))
             "TAN" -> tan(Math.toRadians(a))
@@ -4984,7 +4479,6 @@ class DesktopScriptEngine(
             "ARCCOS" -> Math.toDegrees(acos(a.coerceIn(-1.0, 1.0)))
             "ARCTAN" -> Math.toDegrees(atan(a))
             "EXP" -> exp(a)
-            // String functions
             "JOIN" -> aStr + bStr
             "JOIN3" -> {
                 val parts = additionalVals.map { it?.toString() ?: "" }
@@ -5014,7 +4508,6 @@ class DesktopScriptEngine(
                 val idx = a.toInt() - 1
                 if (idx in bStr.indices) bStr[idx].toString() else ""
             }
-            // List functions
             "LIST_ITEM" -> {
                 val listName = bStr
                 val idx = a.toInt() - 1
@@ -5029,7 +4522,6 @@ class DesktopScriptEngine(
                 val list = userLists[aStr]
                 if (list != null && list.contains(bStr)) 1.0 else 0.0
             }
-            // Sensor-based functions
             "X_POSITION" -> {
                 val sprite = project.sprites.getOrNull(spriteIndex)
                 (sprite?.x ?: 0f).toDouble()
@@ -5076,16 +4568,11 @@ class DesktopScriptEngine(
             }
             "BRIGHTNESS" -> 0.0
             "COLOR" -> 0.0
-            // Fallback: delegate to the original XML-based evaluateFunction
             else -> {
-                // For functions not handled here, fall back to XML evaluation
-                // This ensures no function is broken by the compilation
                 null
             }
         }
     }
-
-    /** Получить числовое значение переменной как Double. */
     private fun getVariableDouble(name: String): Double {
         val v = variables[name]
         return when (v) {
@@ -5094,13 +4581,9 @@ class DesktopScriptEngine(
             else -> 0.0
         }
     }
-
-    // ════════════════════════ ПАРСИНГ code.xml ════════════════════════
-
     private fun parseProject() {
         val dir = project.projectDir
         if (dir != null && parseXmlScripts(dir)) return
-        // Fallback: демо-скрипт с forever
         for (i in project.sprites.indices) {
             scriptStates.add(ScriptState(i, listOf(
                 Block(Block.Type.EVENT, listOf("green_flag")),
@@ -5112,11 +4595,9 @@ class DesktopScriptEngine(
             )))
         }
     }
-
-    /** Отобразить тип скрипта на eventType для движка. */
     private fun mapScriptTypeToEvent(scriptType: String): String? {
         return when (scriptType) {
-            "StartScript", "StartedScript" -> null // green flag = обычный скрипт
+            "StartScript", "StartedScript" -> null
             "WhenTouchDownScript" -> "touch_down"
             "WhenClonedScript" -> "cloned"
             "WhenConditionScript" -> "condition"
@@ -5137,34 +4618,21 @@ class DesktopScriptEngine(
             else -> null
         }
     }
-
-    /**
-     * Регистрирует определение пользовательской процедуры (UserDefinedScript).
-     * Первый брик в brickList — UserDefinedBrick (имя процедуры + параметры),
-     * остальные брики — тело процедуры.
-     */
     private fun parseUserDefinedScriptDefinition(scriptEl: Element, spriteIndex: Int) {
         val brickListEl = scriptEl.getElementsByTagName("brickList")?.item(0) as? Element ?: return
         val nodes = brickListEl.childNodes
         if (nodes.length == 0) return
-
-        // Первый брик — определение UserDefinedBrick
         var firstDef: Element? = null
         for (i in 0 until nodes.length) {
             val n = nodes.item(i)
             if (n.nodeType == Node.ELEMENT_NODE) { firstDef = n as Element; break }
         }
         firstDef ?: return
-
         val procId = getTagText(firstDef, "userDefinedBrickID") ?: return
         val paramNames = extractUserDefinedInputNames(firstDef)
-
-        // Тело: все брики после определения
         val (body, _) = parseBrickListRecursive(nodes, 1, spriteIndex)
         procedures[procId] = ProcedureDef(paramNames, body)
     }
-
-    /** Извлекает имена параметров из <userDefinedBrickDataList>/<userDefinedBrickInput>/<input>. */
     private fun extractUserDefinedInputNames(el: Element): List<String> {
         val dataList = el.getElementsByTagName("userDefinedBrickDataList")?.item(0) as? Element ?: return emptyList()
         val inputs = dataList.getElementsByTagName("userDefinedBrickInput")
@@ -5176,8 +4644,6 @@ class DesktopScriptEngine(
         }
         return names
     }
-
-    /** Парсит code.xml: каждый <script> создаёт свой ScriptState (не склеиваются!). */
     private fun parseXmlScripts(projectDir: File): Boolean {
         val codeXml = File(projectDir, "code.xml")
         if (!codeXml.exists()) return false
@@ -5190,44 +4656,30 @@ class DesktopScriptEngine(
             val builder = factory.newDocumentBuilder()
             val doc = builder.parse(codeXml)
             doc.documentElement.normalize()
-
             val objects = doc.getElementsByTagName("object")
             for (i in 0 until objects.length) {
                 val objNode = objects.item(i)
                 if (objNode.nodeType != Node.ELEMENT_NODE) continue
                 val objEl = objNode as Element
-
                 val scriptsNode = objEl.getElementsByTagName("scriptList")?.item(0) as? Element
                 if (scriptsNode == null) continue
-
                 val scriptNodes = scriptsNode.childNodes
                 for (s in 0 until scriptNodes.length) {
                     val scriptNode = scriptNodes.item(s)
                     if (scriptNode.nodeType != Node.ELEMENT_NODE) continue
                     val scriptEl = scriptNode as Element
-
-                    // Определяем тип события из типа скрипта
                     val scriptType = scriptEl.getAttribute("type")
                     val eventType = mapScriptTypeToEvent(scriptType)
-
-                    // UserDefinedScript — это определение процедуры, а не исполняемый скрипт.
-                    // Регистрируем процедуру и пропускаем создание ScriptState.
                     if (eventType == "user_defined") {
                         parseUserDefinedScriptDefinition(scriptEl, i)
                         continue
                     }
-
                     val brickListEl = scriptEl
                         .getElementsByTagName("brickList")?.item(0) as? Element
                     if (brickListEl == null) continue
-
-                    // Проверяем, есть ли firstBrick с Внешней ссылкой на формулу
-                    // (некоторые события хранят условие/параметр в скрипте, а не в блоках)
                     var conditionElement: Element? = null
                     var eventParam2: String? = null
-
                     if (eventType == "condition") {
-                        // WhenConditionBrick – достаём IF_CONDITION из первого брика в списке
                         val firstBrick = brickListEl.firstChild
                         if (firstBrick != null && firstBrick.nodeType == Node.ELEMENT_NODE) {
                             val fb = firstBrick as Element
@@ -5236,7 +4688,6 @@ class DesktopScriptEngine(
                             }
                         }
                     } else if (eventType == "firebase_changed") {
-                        // WhenFirebaseChangedBrick — buckets + path как для WhenCondition
                         val firstBrick = brickListEl.firstChild
                         if (firstBrick != null && firstBrick.nodeType == Node.ELEMENT_NODE) {
                             val fb = firstBrick as Element
@@ -5245,7 +4696,6 @@ class DesktopScriptEngine(
                             }
                         }
                     } else if (eventType == "bounce_off") {
-                        // WhenBounceOffScript – имя спрайта в <spriteToBounceOffName>
                         eventParam2 = extractTextContent(scriptEl, "spriteToBounceOffName")
                     } else if (eventType == "gamepad_button") {
                         eventParam2 = extractTextContent(scriptEl, "action")
@@ -5256,20 +4706,16 @@ class DesktopScriptEngine(
                     } else if (eventType == "scene_start") {
                         eventParam2 = extractTextContent(scriptEl, "sceneToStart")
                     }
-
                     val (bricks, runtimeFormulas) = try {
                         parseBrickListRecursive(brickListEl.childNodes, 0, i)
                     } catch (e: Exception) {
                         Gdx.app.error("ScriptEngine", "Skipping broken script type=$scriptType spriteIndex=$i", e)
                         continue
                     }
-
-                    // Для обычных скриптов (green flag) не добавляем show — они уже есть
                     val sprite = project.sprites.getOrNull(i)
                     val allBricks = if (sprite?.looks?.isNotEmpty() == true && eventType == null) {
                         mutableListOf(Block(Block.Type.LOOKS, listOf("show"))).apply { addAll(bricks) }
                     } else bricks
-
                     scriptStates.add(ScriptState(
                         spriteIndex = i,
                         originalBlocks = allBricks,
@@ -5286,48 +4732,23 @@ class DesktopScriptEngine(
             false
         }
     }
-
-    /**
-     * Рекурсивный парсинг нод бриков.
-     * Возвращает пару (список блоков, список runtime-формул).
-     *
-     * Поддерживает:
-     *  ForeverBrick … LoopEndBrick
-     *  RepeatBrick … LoopEndBrick
-     *  RepeatUntilBrick … LoopEndBrick
-     *  IfLogicBeginBrick … [IfLogicElseBrick …] IfLogicEndBrick
-     *  ForVariableFromToBrick … LoopEndBrick
-     *  ForItemInUserListBrick … LoopEndBrick
-     *  ScheduleBrick … LoopEndBrick
-     *  ExecuteForCloneNumberBrick … LoopEndBrick
-     *  RunAsSpriteBrick … LoopEndBrick
-     *  TryCatchFinallyBrick … (catch/finally) … EndBrick
-     *
-     * LoopEndBrick / IfLogicElseBrick / IfLogicEndBrick — возврат к родителю.
-     */
     private fun parseBrickListRecursive(nodes: NodeList, startIdx: Int, spriteIndex: Int = 0, endIndex: Int = nodes.length): Pair<List<Block>, List<RuntimeFormula>> {
-        // Локальные обёртки, чтобы передавать spriteIndex во все вызовы extractFormulaValue/String
         fun extractFormulaValue(el: Element, field: String) =
             this@DesktopScriptEngine.extractFormulaValue(el, field, spriteIndex)
         fun extractFormulaString(el: Element, field: String) =
             this@DesktopScriptEngine.extractFormulaString(el, field, spriteIndex)
-
         val result = mutableListOf<Block>()
         val allRuntimeFormulas = mutableListOf<RuntimeFormula>()
         var idx = startIdx
         while (idx < nodes.length) {
-            // Ограничение сверху: тело должно заканчиваться ровно на endIndex
-            // (используется для case/switch и try/catch/finally, где граница — не LoopEndBrick).
             if (idx >= endIndex) return Pair(result, allRuntimeFormulas)
             val node = nodes.item(idx)
             if (node.nodeType != Node.ELEMENT_NODE) { idx++; continue }
             val el = node as Element
             val brickType = el.getAttribute("type")
             if (brickType.isBlank()) { idx++; continue }
-
             try {
                 when (brickType) {
-                // ── Loop containers ──
                 "LoopEndlessBrick" -> {
                     val (children, rf) = parseBrickListRecursive(nodes, idx + 1, spriteIndex)
                     allRuntimeFormulas.addAll(rf)
@@ -5382,11 +4803,9 @@ class DesktopScriptEngine(
                     val fromArg: Any = fromRf ?: fromVal
                     val toArg: Any = toRf ?: toVal
                     if (varName != null && fromRf == null) variables[varName] = fromVal
-                    // repeat count: use static values only if both are non-RuntimeFormula
                     val count = if (fromRf == null && toRf == null) {
                         maxOf(1, (toVal - fromVal + 1f).toInt())
-                    } else 1 // dynamic: assume at least 1, runtime re-evaluates via inc_var
-                    // Добавляем синтетический блок для инкремента переменной в конце каждой итерации
+                    } else 1
                     val loopChildren = if (varName != null) {
                         children + Block(Block.Type.VARIABLE, listOf("inc_var", varName))
                     } else children
@@ -5413,7 +4832,6 @@ class DesktopScriptEngine(
                 "RunAsSpriteBrick" -> {
                     val (children, rf) = parseBrickListRecursive(nodes, idx + 1, spriteIndex)
                     allRuntimeFormulas.addAll(rf)
-                    // Оборачиваем детей в маркеры для защиты от рекурсии
                     result.add(Block(Block.Type.CONTROL, listOf("run_as_start")))
                     result.addAll(children)
                     result.add(Block(Block.Type.CONTROL, listOf("run_as_end")))
@@ -5426,7 +4844,6 @@ class DesktopScriptEngine(
                     idx = findLoopEnd(nodes, idx + 1)
                 }
                 "UserDefinedReceiverBrick" -> {
-                    // Вызов пользовательской процедуры.
                     val procId = getTagText(el, "userDefinedBrickID") ?: ""
                     val argFormulas = extractUserDefinedArgFormulas(el)
                     argFormulas.filterNotNull().forEach { allRuntimeFormulas.add(it) }
@@ -5454,13 +4871,10 @@ class DesktopScriptEngine(
                     idx = findLoopEnd(nodes, idx + 1)
                 }
                 "TryCatchFinallyBrick" -> {
-                    // try section — ограничиваем тело первым Catch/Finally/End на глубине 0,
-                    // иначе parseBrickListRecursive захватит и тела catch/finally (они не LoopEndBrick).
                     val trySectionEnd = findTrySectionEnd(nodes, idx + 1)
                     val (tryChildren, rf1) = parseBrickListRecursive(nodes, idx + 1, spriteIndex, endIndex = trySectionEnd)
                     allRuntimeFormulas.addAll(rf1)
                     var nextIdx = trySectionEnd
-                    // catch section (after CatchBrick marker)
                     var catchBricks = emptyList<Block>()
                     var catchVar = ""
                     val catchNode = if (nextIdx < nodes.length) nodes.item(nextIdx) else null
@@ -5475,7 +4889,6 @@ class DesktopScriptEngine(
                             nextIdx = catchSectionEnd
                         }
                     }
-                    // finally section (after FinallyBrick marker)
                     var finallyBricks = emptyList<Block>()
                     val finallyNode = if (nextIdx < nodes.length) nodes.item(nextIdx) else null
                     if (finallyNode != null && finallyNode.nodeType == Node.ELEMENT_NODE) {
@@ -5489,11 +4902,10 @@ class DesktopScriptEngine(
                         }
                     }
                     result.add(Block(Block.Type.CONTROL, listOf("try_catch", catchVar, tryChildren, catchBricks, finallyBricks), tryChildren))
-                    idx = nextIdx  // EndBrick
+                    idx = nextIdx
                 }
                 "SwitchBeginBrick" -> {
                     val switchVal = extractFormulaString(el, "TEXT") ?: ""
-                    // Parse cases until SwitchEndBrick or LoopEndBrick
                     val caseBlocks = mutableListOf<Pair<String, List<Block>>>()
                     var si = idx + 1
                     while (si < nodes.length) {
@@ -5504,9 +4916,6 @@ class DesktopScriptEngine(
                         if (stype == "LoopEndBrick" || stype == "SwitchEndBrick") break
                         if (stype == "SwitchCaseBrick") {
                             val caseVal = extractFormulaString(se, "TEXT") ?: ""
-                            // Тело case ограничиваем следующим SwitchCaseBrick/SwitchEndBrick
-                            // (с учётом вложенных контейнеров), иначе parseBrickListRecursive
-                            // «сливает» тела всех case в одно.
                             val caseEnd = findSwitchCaseEnd(nodes, si + 1)
                             val (caseChildren, rf) = parseBrickListRecursive(nodes, si + 1, spriteIndex, endIndex = caseEnd)
                             allRuntimeFormulas.addAll(rf)
@@ -5516,35 +4925,26 @@ class DesktopScriptEngine(
                         }
                         si++
                     }
-                    // Keep the case bodies: each SwitchCase carries its comparison
-                    // value and the parsed block list so the matching branch can run.
                     val cases = caseBlocks.map { SwitchCase(it.first, it.second) }
                     result.add(Block(Block.Type.CONTROL, listOf("switch_begin", switchVal, cases)))
                     idx = findLoopEnd(nodes, si)
                 }
                 "LoopEndBrick" -> return Pair(result, allRuntimeFormulas)
-
-                // ── If container ──
                 "IfLogicBeginBrick" -> {
                     val condRf = getRuntimeFormula(el, "IF_CONDITION")
                     val condVal = extractFormulaValue(el, "IF_CONDITION") ?: 0f
                     val (thenChildren, rf) = parseBrickListRecursive(nodes, idx + 1, spriteIndex)
                     allRuntimeFormulas.addAll(rf)
-
                     var elseChildren = emptyList<Block>()
                     var afterIfIdx = findIfEnd(nodes, idx + 1)
-
-                    // Проверяем, остановилась ли рекурсия на IfLogicElseBrick
                     val stopNode = if (afterIfIdx < nodes.length) nodes.item(afterIfIdx) else null
                     if (stopNode != null && stopNode.nodeType == Node.ELEMENT_NODE &&
                         (stopNode as Element).getAttribute("type") == "IfLogicElseBrick") {
-                        // Откатываемся и парсим else
                         val (elseB, rf2) = parseBrickListRecursive(nodes, afterIfIdx + 1)
                         allRuntimeFormulas.addAll(rf2)
                         elseChildren = elseB
                         afterIfIdx = findIfEnd(nodes, afterIfIdx + 1)
                     }
-
                     val condArg: Any = condRf ?: condVal
                     result.add(Block(Block.Type.CONTROL, listOf("if", condArg, thenChildren, elseChildren), thenChildren))
                     idx = afterIfIdx
@@ -5567,8 +4967,6 @@ class DesktopScriptEngine(
                 "IfThenLogicEndBrick" -> {
                     return Pair(result, allRuntimeFormulas)
                 }
-
-                // ── Variables ──
                 "SetVariableBrick" -> {
                     val varName = extractVariableName(el)
                     val value = extractFormulaValue(el, "VARIABLE")
@@ -5603,8 +5001,6 @@ class DesktopScriptEngine(
                     result.add(Block(Block.Type.VARIABLE, listOf("hide_variable", varName)))
                     idx++
                 }
-
-                // ── Variable extras (float / easing / device list) ──
                 "CreateFloatBrick" -> {
                     val name = extractFormulaString(el, "FLOAT_ARRAY") ?: ""
                     result.add(Block(Block.Type.VARIABLE, listOf("create_float", name)))
@@ -5632,8 +5028,6 @@ class DesktopScriptEngine(
                     result.add(Block(Block.Type.DATA, listOf("write_list_device", name)))
                     idx++
                 }
-
-                // ── Web ──
                 "WebRequestBrick" -> {
                     val url = extractFormulaString(el, "WEB_REQUEST") ?: ""
                     val varName = extractVariableName(el) ?: ""
@@ -5660,8 +5054,6 @@ class DesktopScriptEngine(
                     result.add(Block(Block.Type.WEB, listOf("http_delete", url, varName)))
                     idx++
                 }
-
-                // ── Control (non-container) ──
                 "BroadcastBrick" -> {
                     val msg = extractMessageText(el, "broadcastMessage")
                     result.add(Block(Block.Type.CONTROL, listOf("broadcast", msg)))
@@ -5684,8 +5076,6 @@ class DesktopScriptEngine(
                     result.add(Block(Block.Type.CONTROL, listOf("stop_script")))
                     idx++
                 }
-
-                // ── Data (file) ──
                 "WriteVariableOnDeviceBrick" -> {
                     val varName = extractVariableName(el)
                     result.add(Block(Block.Type.DATA, listOf("write_variable", varName ?: "")))
@@ -5696,8 +5086,6 @@ class DesktopScriptEngine(
                     result.add(Block(Block.Type.DATA, listOf("read_variable", varName ?: "")))
                     idx++
                 }
-
-                // ── User List bricks ──
                 "AddItemToUserListBrick" -> {
                     val listName = extractUserListName(el) ?: ""
                     val value = extractFormulaString(el, "LIST_ADD_ITEM") ?: ""
@@ -5750,8 +5138,6 @@ class DesktopScriptEngine(
                     result.add(Block(Block.Type.VARIABLE, listOf("list_regex", listName, text, regex)))
                     idx++
                 }
-
-                // ── Camera 3D (emulated on the orthographic 2D view) ──
                 "SetCameraPositionBrick" -> {
                     val x = extractFormulaValue(el, "VALUE") ?: 0f
                     val y = extractFormulaValue(el, "VALUE_2") ?: 0f
@@ -5830,8 +5216,6 @@ class DesktopScriptEngine(
                     result.add(Block(Block.Type.CAMERA, listOf("set_buffer_camera_3d", name)))
                     idx++
                 }
-
-                // ── Individual bricks (leaf nodes) ──
                 else -> {
                     if (brickType in CONTAINER_BRICK_TYPES || hasNestedBrickList(el)) {
                         idx = skipUnsupportedContainer(nodes, idx)
@@ -5857,8 +5241,6 @@ class DesktopScriptEngine(
         }
         return Pair(result, allRuntimeFormulas)
     }
-
-    /** Найти позицию LoopEndBrick, начиная со startIdx. */
     private fun findLoopEnd(nodes: NodeList, startIdx: Int): Int {
         var depth = 0
         for (i in startIdx until nodes.length) {
@@ -5878,14 +5260,6 @@ class DesktopScriptEngine(
         }
         return nodes.length
     }
-
-    /** Найти позицию EndBrick для TryCatchFinally (игнорируя вложенные контейнеры). */
-    /**
-     * Найти позицию следующего SwitchCaseBrick / SwitchEndBrick / LoopEndBrick на
-     * глубине 0 — это конец тела текущего case внутри switch. Вложенные контейнеры
-     * (loop/if/try/switch) учитываются по depth, чтобы их собственные границы не
-     * обрывали тело case преждевременно.
-     */
     private fun findSwitchCaseEnd(nodes: NodeList, startIdx: Int): Int {
         var depth = 0
         for (i in startIdx until nodes.length) {
@@ -5901,12 +5275,6 @@ class DesktopScriptEngine(
         }
         return nodes.length
     }
-
-    /**
-     * Найти позицию первого CatchBrick / FinallyBrick / EndBrick на глубине 0 —
-     * это граница очередной секции try/catch/finally. Вложенные контейнеры
-     * учитываются по depth.
-     */
     private fun findTrySectionEnd(nodes: NodeList, startIdx: Int): Int {
         var depth = 0
         for (i in startIdx until nodes.length) {
@@ -5921,8 +5289,6 @@ class DesktopScriptEngine(
         }
         return nodes.length
     }
-
-    /** Найти позицию IfLogicEndBrick / IfThenLogicEndBrick. */
     private fun findIfEnd(nodes: NodeList, startIdx: Int): Int {
         var depth = 0
         for (i in startIdx until nodes.length) {
@@ -5939,9 +5305,6 @@ class DesktopScriptEngine(
         }
         return nodes.length
     }
-
-    /** Парсит отдельный (не-контейнерный) брик, используя атрибут type. */
-    /** Пропустить неподдерживаемый контейнерный брик вместе с его телом. */
     private fun skipUnsupportedContainer(nodes: NodeList, startIdx: Int): Int {
         var depth = 0
         for (i in startIdx + 1 until nodes.length) {
@@ -5959,14 +5322,11 @@ class DesktopScriptEngine(
         }
         return nodes.length
     }
-
     private fun hasNestedBrickList(el: Element): Boolean {
         return (el.getElementsByTagName("brickList")?.length ?: 0) > 0
     }
-
     private fun parseBrickLeaf(el: Element, typeName: String): Block? {
         return when (typeName) {
-            // ═══════ MOTION ═══════
             "MoveNStepsBrick" -> {
                 val steps = extractFormulaValue(el, "STEPS") ?: 10f
                 Block(Block.Type.MOTION, listOf("move_steps", steps))
@@ -6035,8 +5395,6 @@ class DesktopScriptEngine(
                 Block(Block.Type.MOTION, listOf("set_rotation_style", selText.toIntOrNull() ?: 0))
             }
             "TouchDirectionBrick" -> Block(Block.Type.MOTION, listOf("touch_direction"))
-
-            // ═══════ LOOKS ═══════
             "ShowBrick" -> Block(Block.Type.LOOKS, listOf("show"))
             "HideBrick" -> Block(Block.Type.LOOKS, listOf("hide"))
             "NextLookBrick" -> Block(Block.Type.LOOKS, listOf("next_look"))
@@ -6111,8 +5469,6 @@ class DesktopScriptEngine(
                 val v = extractFormulaValue(el, "SIZE") ?: 0f
                 Block(Block.Type.LOOKS, listOf("change_height", v))
             }
-
-            // ── Text/bubble ──
             "ThinkBubbleBrick" -> {
                 val text = extractFormulaString(el, "STRING") ?: ""
                 Block(Block.Type.LOOKS, listOf("think_bubble", text))
@@ -6193,8 +5549,6 @@ class DesktopScriptEngine(
                 val fragment = extractFormulaString(el, "FRAGMENT") ?: ""
                 Block(Block.Type.LOOKS, listOf("set_screen_shader", vertex, fragment))
             }
-
-            // ═══════ SOUND ═══════
             "PlaySoundBrick" -> {
                 val sound = extractSoundName(el)
                 Block(Block.Type.SOUND, listOf("play_sound", sound ?: ""))
@@ -6220,7 +5574,6 @@ class DesktopScriptEngine(
                 val vol = extractFormulaValue(el, "VOLUME") ?: 100f
                 Block(Block.Type.SOUND, listOf("set_volume", vol / 100f))
             }
-            // ── Sound 3D / instance (best-effort на Desktop) ──
             "PlaySoundAtPositionBrick" -> {
                 val sound = extractFormulaString(el, "SOUND_NAME") ?: ""
                 val vol = extractFormulaValue(el, "VOLUME") ?: 100f
@@ -6249,8 +5602,6 @@ class DesktopScriptEngine(
                 val z = extractFormulaValue(el, "VALUE_Z") ?: 0f
                 Block(Block.Type.SOUND, listOf("set_3d_pos", name, x, y, z))
             }
-
-            // ═══════ MUSIC ═══════
             "PlayNoteForBeatsBrick" -> {
                 val note = extractFormulaValue(el, "NOTE_TO_PLAY") ?: 60f
                 val beats = extractFormulaValue(el, "BEATS_TO_PLAY_NOTE") ?: 1f
@@ -6279,8 +5630,6 @@ class DesktopScriptEngine(
                 val beats = extractFormulaValue(el, "BEATS_TO_PAUSE") ?: 1f
                 Block(Block.Type.MUSIC, listOf("pause_beats", beats))
             }
-
-            // ═══════ PEN ═══════
             "PenDownBrick" -> Block(Block.Type.PEN, listOf("pen_down"))
             "PenUpBrick" -> Block(Block.Type.PEN, listOf("pen_up"))
             "SetPenSizeBrick" -> {
@@ -6295,8 +5644,6 @@ class DesktopScriptEngine(
             }
             "StampBrick" -> Block(Block.Type.PEN, listOf("stamp"))
             "ClearBackgroundBrick" -> Block(Block.Type.PEN, listOf("clear_background"))
-
-            // ── Pen drawing (shapes) ──
             "DrawLineBrick" -> {
                 val x1 = extractFormulaValue(el, "X1") ?: 0f
                 val y1 = extractFormulaValue(el, "Y1") ?: 0f
@@ -6352,8 +5699,6 @@ class DesktopScriptEngine(
                 val bc = extractFormulaValue(el, "COLOR") ?: 0f
                 Block(Block.Type.PEN, listOf("set_border_color", bc))
             }
-
-            // ═══════ CONTROL (leaf) ═══════
             "WaitBrick" -> {
                 val secs = extractFormulaValue(el, "TIME_TO_WAIT_IN_SECONDS")
                 val rf = getRuntimeFormula(el, "TIME_TO_WAIT_IN_SECONDS")
@@ -6365,12 +5710,8 @@ class DesktopScriptEngine(
                 val condRf = if (condFe != null) RuntimeFormula("IF_CONDITION", condFe) else null
                 Block(Block.Type.CONTROL, listOf("wait_until", condRf ?: 0f))
             }
-            "NoteBrick" -> null // комментарий
-
-            // ═══════ SENSING ═══════
+            "NoteBrick" -> null
             "ResetTimerBrick" -> Block(Block.Type.SENSING, listOf("reset_timer"))
-
-            // ═══════ FILE ═══════
             "MoveFilesBrick" -> {
                 val path = extractFormulaString(el, "FILE") ?: ""
                 Block(Block.Type.FILE, listOf("move", path))
@@ -6443,8 +5784,6 @@ class DesktopScriptEngine(
                 val varName = extractVariableName(el) ?: ""
                 Block(Block.Type.FILE, listOf("get_zip_names", zipPath, varName))
             }
-
-            // ═══════ OTHER ═══════
             "FinishStageBrick" -> {
                 stop()
                 null
@@ -6453,8 +5792,6 @@ class DesktopScriptEngine(
                 stop()
                 null
             }
-
-            // ═══════ MOTION (remaining portable) ═══════
             "TurnLeftSpeedBrick" -> {
                 val speed = extractFormulaValue(el, "PHYSICS_TURN_LEFT_SPEED") ?: 0f
                 Block(Block.Type.MOTION, listOf("turn_left_speed", speed))
@@ -6482,8 +5819,6 @@ class DesktopScriptEngine(
                 val bounce = extractFormulaValue(el, "PHYSICS_BOUNCE_FACTOR") ?: 0.5f
                 Block(Block.Type.MOTION, listOf("set_bounce", bounce))
             }
-
-            // ═══════ LOOKS (remaining portable) ═══════
             "SetRestitutionBrick" -> {
                 val objectId = extractFormulaString(el, "VALUE_1") ?: ""
                 val restitution = extractFormulaValue(el, "VALUE_2") ?: 0.5f
@@ -6560,7 +5895,6 @@ class DesktopScriptEngine(
                 val activeStr = extractTextContent(el, "activeStateSelection") ?: "1"
                 Block(Block.Type.LOOKS, listOf("set_active", objName, activeStr))
             }
-            // ── Slide/Fade transitions ──
             "SlideDownBrick" -> {
                 val sceneName = extractFormulaString(el, "TEXT_1") ?: ""
                 Block(Block.Type.CONTROL, listOf("slide_scene", "down", sceneName))
@@ -6589,8 +5923,6 @@ class DesktopScriptEngine(
                 val sceneName = extractFormulaString(el, "TEXT_1") ?: ""
                 Block(Block.Type.CONTROL, listOf("crossfade_scene", sceneName))
             }
-
-            // ═══════ SOUND (remaining portable) ═══════
             "StopSoundBrick2" -> {
                 val instName = extractFormulaString(el, "INSTANCE_NAME") ?: ""
                 Block(Block.Type.SOUND, listOf("stop_sound_v2", instName))
@@ -6639,8 +5971,6 @@ class DesktopScriptEngine(
                 val dur = extractFormulaValue(el, "DURATION") ?: 2f
                 Block(Block.Type.SOUND, listOf("audio_fade_out", dur))
             }
-
-            // ═══════ TEXT/BUBBLE (remaining portable) ═══════
             "ShowTextColorSizeAlignmentBrick" -> {
                 val name = extractVariableName(el) ?: ""
                 val x = extractFormulaValue(el, "X_POSITION") ?: 0f
@@ -6701,8 +6031,6 @@ class DesktopScriptEngine(
                 val varName = extractVariableName(el) ?: ""
                 Block(Block.Type.LOOKS, listOf("ask_speech", prompt, varName))
             }
-
-            // ═══════ WEB (remaining portable) ═══════
             "HeadWebRequestBrick" -> {
                 val url = extractFormulaString(el, "URL") ?: ""
                 val header = extractFormulaString(el, "HEADER") ?: ""
@@ -6753,7 +6081,6 @@ class DesktopScriptEngine(
                 val port = extractFormulaValue(el, "PORT") ?: 8080f
                 Block(Block.Type.WEB, listOf("start_server", port.toInt()))
             }
-            // ── Web extras (server / websocket / create / download-to-path) ──
             "CreateWebUrlBrick" -> {
                 val name = extractFormulaString(el, "NAME") ?: ""
                 val url = extractFormulaString(el, "URL") ?: ""
@@ -6787,8 +6114,6 @@ class DesktopScriptEngine(
                 val name = extractVariableName(el) ?: ""
                 Block(Block.Type.WEB, listOf("ws_receive", name))
             }
-
-            // ═══════ SENSING (remaining portable) ═══════
             "LockMouseBrick" -> Block(Block.Type.SENSING, listOf("lock_mouse"))
             "UnlockMouseBrick" -> Block(Block.Type.SENSING, listOf("unlock_mouse"))
             "ScreenShotBrick" -> Block(Block.Type.SENSING, listOf("screenshot"))
@@ -6797,16 +6122,12 @@ class DesktopScriptEngine(
                 val y = extractFormulaValue(el, "Y_POSITION") ?: 0f
                 Block(Block.Type.SENSING, listOf("tap_at", x, y))
             }
-
-            // ═══════ CONTROL leaf (remaining portable) ═══════
             "WaitTillIdleBrick" -> Block(Block.Type.CONTROL, listOf("wait_till_idle"))
             "CloneObjectBrick" -> {
                 val src = extractFormulaString(el, "VALUE_1") ?: ""
                 val name = extractFormulaString(el, "VALUE_2") ?: ""
                 Block(Block.Type.CONTROL, listOf("clone_object", src, name))
             }
-
-            // ═══════ FILE (remaining portable) ═══════
             "CreateFolderBrick" -> {
                 val folder = extractFormulaString(el, "TEXT") ?: ""
                 Block(Block.Type.FILE, listOf("create_folder", folder))
@@ -6853,8 +6174,6 @@ class DesktopScriptEngine(
                 val file = extractFormulaString(el, "FILE") ?: ""
                 Block(Block.Type.FILE, listOf("open_files", file))
             }
-
-            // ═══════ DATA STRUCTURES ═══════
             "MapCreateBrick" -> {
                 val varName = extractVariableName(el) ?: ""
                 Block(Block.Type.VARIABLE, listOf("map_create", varName))
@@ -6893,8 +6212,6 @@ class DesktopScriptEngine(
                 val varName = extractVariableName(el) ?: ""
                 Block(Block.Type.VARIABLE, listOf("stack_pop", varName))
             }
-
-            // ═══════ SCENE ═══════
             "LoadSceneBrick" -> {
                 val sceneName = extractFormulaString(el, "VALUE") ?: ""
                 Block(Block.Type.CONTROL, listOf("load_scene", sceneName))
@@ -6907,15 +6224,11 @@ class DesktopScriptEngine(
                 val sceneName = extractTextContent(el, "sceneForTransition") ?: ""
                 Block(Block.Type.CONTROL, listOf("scene_transition", sceneName))
             }
-
-            // ═══════ AI/SCRIPT ═══════
             "RunShellBrick" -> {
                 val code = extractFormulaString(el, "CODE") ?: ""
                 val varName = extractVariableName(el) ?: ""
                 Block(Block.Type.CONTROL, listOf("run_shell", code, varName))
             }
-
-            // ═══════ EVENT trigger bricks (stored as scripts, only parsed as leaf for When* bricks used inline) ═══════
             "BroadcastMessageBrick" -> {
                 val msg = extractTextContent(el, "broadcastMessage") ?: ""
                 Block(Block.Type.EVENT, listOf("broadcast_msg", msg))
@@ -6924,8 +6237,6 @@ class DesktopScriptEngine(
                 val sceneName = extractTextContent(el, "sceneToStart") ?: ""
                 Block(Block.Type.EVENT, listOf("scene_start", sceneName))
             }
-
-            // ═══════ PHYSICS bricks (Box2D) ═══════
             "SetGravityBrick" -> {
                 val gx = extractFormulaValue(el, "PHYSICS_GRAVITY_X") ?: 0f
                 val gy = extractFormulaValue(el, "PHYSICS_GRAVITY_Y") ?: -9.8f
@@ -7022,8 +6333,6 @@ class DesktopScriptEngine(
                 val name = extractFormulaString(el, "JOINT_NAME") ?: ""
                 Block(Block.Type.PHYSICS, listOf("destroy_joint", name))
             }
-
-            // ═══════ KEY / MOUSE event bricks ═══════
             "KeyEventBrick" -> {
                 val keyChar = extractFormulaString(el, "VALUE") ?: ""
                 val keyDown = extractFormulaValue(el, "VM_KEY_DOWN") ?: 0f
@@ -7035,8 +6344,6 @@ class DesktopScriptEngine(
                 val state = extractFormulaValue(el, "VALUE") ?: 0f
                 Block(Block.Type.CONTROL, listOf("mouse_event", mx, my, state))
             }
-
-            // ═══════ VARIABLE management bricks ═══════
             "CreateVarBrick" -> {
                 val varName = extractVariableName(el) ?: ""
                 val value = extractFormulaValue(el, "VARIABLE") ?: 0f
@@ -7047,8 +6354,6 @@ class DesktopScriptEngine(
                 Block(Block.Type.VARIABLE, listOf("delete_var", varName))
             }
             "DeleteVarsBrick" -> Block(Block.Type.VARIABLE, listOf("delete_all_vars"))
-
-            // ═══════ TEXT bricks ═══════
             "SetTextBrick" -> {
                 val overlayName = extractFormulaString(el, "NAME") ?: ""
                 val text = extractFormulaString(el, "TEXT") ?: ""
@@ -7061,8 +6366,6 @@ class DesktopScriptEngine(
                 val y = extractFormulaValue(el, "Y_POSITION") ?: 0f
                 Block(Block.Type.LOOKS, listOf("create_text_field", name, text, x, y))
             }
-
-            // ═══════ DEVICE bricks (stubs or portable) ═══════
             "VibrationBrick" -> {
                 val ms = extractFormulaValue(el, "VIBRATE_DURATION_IN_SECONDS") ?: 0.5f
                 Block(Block.Type.SENSING, listOf("vibrate", ms))
@@ -7073,7 +6376,6 @@ class DesktopScriptEngine(
                 val brightness = extractFormulaValue(el, "VALUE") ?: 1f
                 Block(Block.Type.SENSING, listOf("screen_brightness", brightness))
             }
-            // ═══════ NOTIFICATION bricks ═══════
             "SendNotificationBrick" -> {
                 val notifId = extractFormulaValue(el, "NOTIFICATION_ID") ?: 1f
                 Block(Block.Type.CONTROL, listOf("send_notification", notifId.toInt()))
@@ -7111,8 +6413,6 @@ class DesktopScriptEngine(
                 val icon = extractFormulaString(el, "NOTIFICATION_ICON") ?: ""
                 Block(Block.Type.CONTROL, listOf("enable_background", id, channel, title, text, icon))
             }
-
-            // ═══════ Core game logic (remaining portable) ═══════
             "CloneAndNameBrick" -> {
                 val name = extractFormulaString(el, "CLONE_NAME") ?: ""
                 Block(Block.Type.CONTROL, listOf("clone_and_name", name))
@@ -7163,8 +6463,6 @@ class DesktopScriptEngine(
                 val size = extractFormulaValue(el, "SIZE") ?: 14f
                 Block(Block.Type.VARIABLE, listOf("show_var_font", name, x, y, size))
             }
-
-            // ═══════ Network / File (remaining portable) ═══════
             "CancelDownloadBrick" -> Block(Block.Type.WEB, listOf("cancel_download"))
             "SendServerBrick" -> {
                 val value = extractFormulaString(el, "VALUE") ?: ""
@@ -7190,8 +6488,6 @@ class DesktopScriptEngine(
                 val value = extractFormulaValue(el, "VALUE") ?: 0f
                 Block(Block.Type.FILE, listOf("put_float", name, idx.toInt(), value))
             }
-
-            // ═══════ Database tables (remaining portable) ═══════
             "CreateTableBrick" -> {
                 val sx = extractFormulaValue(el, "SIZE_X") ?: 1f
                 val sy = extractFormulaValue(el, "SIZE_Y") ?: 1f
@@ -7253,8 +6549,6 @@ class DesktopScriptEngine(
                 val value = extractFormulaString(el, "FIREBASE_VALUE") ?: ""
                 Block(Block.Type.VARIABLE, listOf("db_write_base", id, key, value))
             }
-
-            // ═══════ Fast2D (remaining portable) ═══════
             "Fast2DCreateBrick" -> {
                 val name = extractFormulaString(el, "NAME") ?: ""
                 Block(Block.Type.PHYSICS, listOf("fast2d_create", name))
@@ -7342,8 +6636,6 @@ class DesktopScriptEngine(
                 val z = extractFormulaValue(el, "VIBRATE_DURATION") ?: 0f
                 Block(Block.Type.PHYSICS, listOf("fast2d_set_zindex", name, z.toInt()))
             }
-
-            // ═══════ Video (remaining portable) ═══════
             "CreateVideoBrick" -> {
                 val name = extractFormulaString(el, "NAME") ?: ""
                 val file = extractFormulaString(el, "FILE") ?: ""
@@ -7367,9 +6659,6 @@ class DesktopScriptEngine(
                 val t = extractFormulaValue(el, "TIME") ?: 0f
                 Block(Block.Type.VIDEO, listOf("seek_video", name, t))
             }
-
-            // ═══════ Editor / AI / UI (remaining portable) ═══════
-            // ── Portable camera / project / utility bricks ──
             "SetViewPositionBrick" -> {
                 val viewId = extractFormulaString(el, "VIEW_ID") ?: ""
                 val x = extractFormulaValue(el, "X_POSITION") ?: 0f
@@ -7506,8 +6795,6 @@ class DesktopScriptEngine(
                 val t = extractFormulaValue(el, "TIME_TO_WAIT_IN_SECONDS") ?: 0f
                 Block(Block.Type.CONTROL, listOf("delay", t))
             }
-
-            // ═══════ CLONE bricks ═══════
             "WhenStartedBrick" -> Block(Block.Type.EVENT, listOf("green_flag"))
             "WhenTouchDownBrick" -> Block(Block.Type.EVENT, listOf("touch_down"))
             "WhenMouseButtonClickedBrick" -> Block(Block.Type.EVENT, listOf("mouse_clicked"))
@@ -7518,11 +6805,7 @@ class DesktopScriptEngine(
                 Block(Block.Type.EVENT, listOf("broadcast_receiver", msg))
             }
             "WhenClonedBrick" -> Block(Block.Type.EVENT, listOf("cloned"))
-
-            // ═══════ Firebase event brick ═══════
             "WhenFirebaseChangedBrick" -> Block(Block.Type.EVENT, listOf("firebase_changed"))
-
-            // ═══════ Camera HW bricks (no-op on desktop) ═══════
             "CameraBrick" -> {
                 val onText = getTagText(el, "spinnerSelectionON")
                 val on = onText != null && (onText.equals("true", ignoreCase = true) || onText == "1")
@@ -7538,8 +6821,6 @@ class DesktopScriptEngine(
                 Block(Block.Type.CAMERA, listOf("camera_flash", id))
             }
             "PhotoBrick" -> Block(Block.Type.CAMERA, listOf("camera_photo"))
-
-            // ═══════ Firebase Storage bricks ═══════
             "UploadFileToFirebaseBrick" -> {
                 val bucket = extractFormulaString(el, "FIREBASE_BUCKET") ?: ""
                 val path = extractFormulaString(el, "FIREBASE_STORAGE_PATH") ?: ""
@@ -7564,8 +6845,6 @@ class DesktopScriptEngine(
                 val varName = extractVariableName(el) ?: ""
                 Block(Block.Type.DATA, listOf("firebase_list", bucket, prefix, varName))
             }
-
-            // ═══════ Physics (new joints) ═══════
             "CreateGearJointBrick" -> {
                 val name = extractFormulaString(el, "JOINT_ID") ?: ""
                 val jointA = extractFormulaString(el, "JOINT_A_ID") ?: ""
@@ -7613,8 +6892,6 @@ class DesktopScriptEngine(
                 val lookName = lookEl?.getAttribute("lookName") ?: ""
                 Block(Block.Type.PHYSICS, listOf("set_hitbox", lookName))
             }
-
-            // ═══════ Web extra ═══════
             "DeleteWebBrick" -> {
                 val url = extractFormulaString(el, "URL") ?: ""
                 val varName = extractVariableName(el) ?: ""
@@ -7631,8 +6908,6 @@ class DesktopScriptEngine(
                 val varName = extractVariableName(el) ?: ""
                 Block(Block.Type.WEB, listOf("http_eval", script, varName))
             }
-
-            // ═══════ NeoScript bricks (runtime stubs) ═══════
             "AssignScriptsBrick" -> {
                 val filePath = extractFormulaString(el, "TEXT") ?: ""
                 val objName = extractFormulaString(el, "NAME") ?: ""
@@ -7653,8 +6928,6 @@ class DesktopScriptEngine(
                 val persistSel = extractTextContent(el, "spinnerSelection_2") ?: "0"
                 Block(Block.Type.CONTROL, listOf("create_object", objName, sceneSel, persistSel))
             }
-
-            // ═══════ Security bricks ═══════
             "SecureReadVariableBrick" -> {
                 val varName = extractVariableName(el) ?: ""
                 val key = extractFormulaString(el, "VALUE") ?: ""
@@ -7666,8 +6939,6 @@ class DesktopScriptEngine(
                 val key = extractFormulaString(el, "VALUE") ?: ""
                 Block(Block.Type.VARIABLE, listOf("secure_save", varName, value, key))
             }
-
-            // ═══════ 3D lighting/rendering stubs ═══════
             "SetAmbientLightBrick" -> {
                 val r = extractFormulaValue(el, "RED") ?: 0f
                 val g = extractFormulaValue(el, "GREEN") ?: 0f
@@ -7901,8 +7172,6 @@ class DesktopScriptEngine(
                 val gz = extractFormulaValue(el, "VALUE_3") ?: 0f
                 Block(Block.Type.PHYSICS, listOf("set_3d_gravity", name, gx, gy, gz))
             }
-
-            // ═══════ 3D Camera/View stubs ═══════
             "ObjectLookAtBrick" -> {
                 val objectId = extractFormulaString(el, "NAME") ?: ""
                 val x = extractFormulaValue(el, "X") ?: 0f
@@ -7932,8 +7201,6 @@ class DesktopScriptEngine(
                 val path = extractFormulaString(el, "VALUE") ?: ""
                 Block(Block.Type.CAMERA, listOf("load_native_module", path))
             }
-
-            // ═══════ Misc stubs ═══════
             "CreateDialogBrick" -> {
                 val name = extractFormulaString(el, "NAME") ?: ""
                 val text = extractFormulaString(el, "TEXT") ?: ""
@@ -7966,15 +7233,9 @@ class DesktopScriptEngine(
                 val shaderName = extractFormulaString(el, "TEXT") ?: ""
                 Block(Block.Type.LOOKS, listOf("apply_shader_to_image", fileName, shaderName))
             }
-
-            // Неизвестный тип — вернём null, будет пропущен
             else -> null
         }
     }
-
-    // ════════════════════════ XML helpers ════════════════════════
-
-    /** Найти формулу по BrickField и получить element formulaElement для вычисления. */
     private fun getFormulaElement(el: Element, brickFieldEnumName: String): Element? {
         val formulaList = el.getElementsByTagName("formulaList")?.item(0) as? Element ?: return null
         val formulas = formulaList.getElementsByTagName("formula")
@@ -7982,28 +7243,18 @@ class DesktopScriptEngine(
             val formula = formulas.item(i) as? Element ?: continue
             val category = formula.getAttribute("category")
             if (category == brickFieldEnumName) {
-                // Ищем formulaElement (может быть внутри formulaTree)
                 val ft = formula.getElementsByTagName("formulaTree")?.item(0) as? Element
                 val fe = ft?.getElementsByTagName("formulaElement")?.item(0) as? Element
                 if (fe != null) return fe
-                // Старый формат без formulaElement: type/value прямо в formulaTree
                 return ft
             }
         }
         return null
     }
-
-    /** Создать RuntimeFormula для отложенного вычисления. */
     private fun getRuntimeFormula(el: Element, brickFieldEnumName: String): RuntimeFormula? {
         val formulaElement = getFormulaElement(el, brickFieldEnumName) ?: return null
         return RuntimeFormula(brickFieldEnumName, formulaElement)
     }
-
-    /**
-     * Извлекает формулы аргументов вызова процедуры (UserDefinedReceiverBrick).
-     * Для каждого <userDefinedBrickInput> берёт <value> → первый <formulaElement>.
-     * Возвращает список (по порядку входов); null — если аргумент не задан.
-     */
     private fun extractUserDefinedArgFormulas(el: Element): List<RuntimeFormula?> {
         val dataList = el.getElementsByTagName("userDefinedBrickDataList")?.item(0) as? Element
             ?: return emptyList()
@@ -8017,8 +7268,6 @@ class DesktopScriptEngine(
         }
         return result
     }
-
-    /** Рекурсивно ищет первый <formulaElement> внутри parent. */
     private fun findFirstFormulaElement(parent: Element): Element? {
         val nodes = parent.childNodes
         for (i in 0 until nodes.length) {
@@ -8030,12 +7279,6 @@ class DesktopScriptEngine(
         }
         return null
     }
-
-    /**
-     * Извлекает числовое значение формулы из code.xml (парсинг).
-     * Для простых константных формул — вычисляет сразу.
-     * Для формул с сенсорами/переменными — вычисляет начальное значение.
-     */
     private fun extractFormulaValue(el: Element, brickFieldEnumName: String, spriteIndex: Int = 0): Float? {
         val fe = getFormulaElement(el, brickFieldEnumName) ?: return null
         return evaluateFormulaNode(fe, spriteIndex)?.let { v ->
@@ -8047,49 +7290,19 @@ class DesktopScriptEngine(
             }
         }
     }
-
-    /** Извлекает строковое значение формулы. */
     private fun extractFormulaString(el: Element, brickFieldEnumName: String, spriteIndex: Int = 0): String? {
         val fe = getFormulaElement(el, brickFieldEnumName) ?: return null
         return evaluateFormulaNode(fe, spriteIndex)?.toString()
     }
-
-    // ════════════════════════ RECURSIVE FORMULA EVALUATOR ════════════════════════
-
-    /**
-     * Рекурсивно вычисляет формулу, представленную DOM-элементом.
-     *
-     * Поддерживаемые типы:
-     *  - NUMBER: числовая константа
-     *  - STRING: строковая константа
-     *  - OPERATOR: бинарные/унарные операторы (PLUS, MINUS, MULT, DIVIDE, MOD, POW,
-     *    EQUAL, NOT_EQUAL, SMALLER_THAN, GREATER_THAN, SMALLER_OR_EQUAL, GREATER_OR_EQUAL,
-     *    LOGICAL_AND, LOGICAL_OR, LOGICAL_NOT)
-     *  - FUNCTION: математические/строковые функции (SIN, COS, SQRT, RAND, JOIN, ...)
-     *  - SENSOR: сенсоры (OBJECT_X, MOUSE_X, STAGE_WIDTH, ...)
-     *  - USER_VARIABLE: переменная пользователя
-     *  - USER_LIST: список пользователя
-     *  - BRACKET: скобки (вычисляют rightChild)
-     *
-     * @param node DOM-элемент formulaElement
-     * @param spriteIndex индекс текущего спрайта
-     * @return вычисленное значение (Double или String)
-     */
     private fun evaluateFormulaNode(node: Element, spriteIndex: Int): Any? {
         val type = getTagText(node, "type") ?: return null
         val value = getTagText(node, "value") ?: ""
-
         return when (type) {
             "NUMBER" -> value.toDoubleOrNull()
-
             "STRING" -> value
-
             "OPERATOR" -> evaluateOperator(value, node, spriteIndex)
-
             "FUNCTION" -> evaluateFunction(value, node, spriteIndex)
-
             "SENSOR" -> evaluateSensor(value, spriteIndex)
-
             "USER_VARIABLE" -> {
                 val v = variables[value]
                 when (v) {
@@ -8098,44 +7311,31 @@ class DesktopScriptEngine(
                     else -> 0.0
                 }
             }
-
             "USER_LIST" -> {
-                // список — возвращаем первую строку
                 ""
             }
-
             "BRACKET" -> {
                 val rightChild = getChildElement(node, "rightChild")
                 rightChild?.let { evaluateFormulaNode(it, spriteIndex) }
             }
-
             "COLLISION_FORMULA" -> value.toDoubleOrNull()
-
             "USER_DEFINED_BRICK_INPUT" -> {
-                // Пользовательский ввод процедуры — ищем в локальной области параметров,
-                // затем в глобальных переменных, иначе возвращаем имя как строку.
                 val local = activeState?.currentFrame?.procVars?.get(value)
                 if (local != null) return local
                 val gv = variables[value]
                 if (gv != null) return gv
                 value.toDoubleOrNull() ?: value
             }
-
             else -> null
         }
     }
-
-    /** Вычисление операторов. */
     private fun evaluateOperator(op: String, node: Element, spriteIndex: Int): Double? {
         val leftChild = getChildElement(node, "leftChild")
         val rightChild = getChildElement(node, "rightChild")
-
         val leftVal = leftChild?.let { evaluateFormulaNode(it, spriteIndex) }
         val rightVal = rightChild?.let { evaluateFormulaNode(it, spriteIndex) }
-
         val left = (leftVal as? Double) ?: 0.0
         val right = (rightVal as? Double) ?: 0.0
-
         return when (op) {
             "PLUS" -> left + right
             "MINUS" -> if (leftChild == null) -right else left - right
@@ -8155,26 +7355,18 @@ class DesktopScriptEngine(
             else -> null
         }
     }
-
-    /** Вычисление функций. */
     private fun evaluateFunction(func: String, node: Element, spriteIndex: Int): Any? {
         val leftChild = getChildElement(node, "leftChild")
         val rightChild = getChildElement(node, "rightChild")
         val additional = getAdditionalChildren(node)
-
         val leftVal = leftChild?.let { evaluateFormulaNode(it, spriteIndex) }
         val rightVal = rightChild?.let { evaluateFormulaNode(it, spriteIndex) }
-
         val a = (leftVal as? Double) ?: 0.0
         val b = (rightVal as? Double) ?: 0.0
         val aStr = leftVal?.toString() ?: ""
         val bStr = rightVal?.toString() ?: ""
-
-        // Helper: find sprite by name from leftChild
         fun findSprite(name: String) = project.sprites.find { it.name == name }
-
         return when (func) {
-            // ═══════════════ Базовые математические (23) ═══════════════
             "SIN" -> sin(Math.toRadians(a))
             "COS" -> cos(Math.toRadians(a))
             "TAN" -> tan(Math.toRadians(a))
@@ -8207,8 +7399,6 @@ class DesktopScriptEngine(
                 val c = additional.getOrNull(0)?.let { evaluateFormulaNode(it, spriteIndex) as? Double } ?: 1.0
                 a.coerceIn(b, c)
             }
-
-            // ═══════════════ Строковые функции (18) ═══════════════
             "LENGTH" -> (leftVal?.toString()?.length ?: 0).toDouble()
             "LETTER" -> {
                 val idx = b.toInt() - 1
@@ -8259,7 +7449,6 @@ class DesktopScriptEngine(
                 when (it) { is Number -> it.toDouble() else -> it.toString() }
             } ?: 0.0
             "DISTAN" -> {
-                // Levenshtein distance
                 if (aStr.isEmpty()) bStr.length.toDouble()
                 else if (bStr.isEmpty()) aStr.length.toDouble()
                 else {
@@ -8279,8 +7468,6 @@ class DesktopScriptEngine(
                 val s3 = additional.getOrNull(0)?.let { evaluateFormulaNode(it, spriteIndex)?.toString() } ?: ""
                 aStr + bStr + s3
             }
-
-            // ═══════════════ Списковые функции (6) ═══════════════
             "NUMBER_OF_ITEMS" -> {
                 val list = userLists[aStr]
                 (list?.size ?: 0).toDouble()
@@ -8302,8 +7489,6 @@ class DesktopScriptEngine(
             "FIND" -> {
                 userLists[aStr]?.filter { it.toString().contains(bStr, ignoreCase = true) }?.joinToString(", ") ?: ""
             }
-
-            // ═══════════════ Файловые функции (13) ═══════════════
             "FILE_EXISTS" -> {
                 val path = aStr
                 if (path.isNotEmpty()) { if (java.io.File(path).exists()) 1.0 else 0.0 } else 0.0
@@ -8351,8 +7536,6 @@ class DesktopScriptEngine(
                     if (aStr.isNotEmpty()) java.io.File(aStr).readText() else ""
                 } catch (_: Exception) { "" }
             }
-
-            // ═══════════════ Системная информация (18+) ═══════════════
             "SCREEN_WIDTH" -> project.stageWidth?.toDouble() ?: 480.0
             "SCREEN_HEIGHT" -> project.stageHeight?.toDouble() ?: 720.0
             "DEVICE_NAME" -> "Desktop PC"
@@ -8389,10 +7572,10 @@ class DesktopScriptEngine(
                     device.displayMode.refreshRate.toDouble()
                 } catch (_: Exception) { 60.0 }
             }
-            "ANDROID_VERSION" -> 0.0 // Not applicable on desktop
+            "ANDROID_VERSION" -> 0.0
             "API_LEVEL" -> 0.0
-            "SCREEN_ORIENTATION" -> 0.0 // landscape=0 on desktop
-            "IS_IN_FOREGROUND" -> 1.0 // always in foreground on desktop
+            "SCREEN_ORIENTATION" -> 0.0
+            "IS_IN_FOREGROUND" -> 1.0
             "OPENGL_VERSION" -> {
                 try { com.badlogic.gdx.Gdx.gl.glGetString(com.badlogic.gdx.graphics.GL20.GL_VERSION) ?: "unknown" }
                 catch (_: Exception) { "unknown" }
@@ -8404,8 +7587,6 @@ class DesktopScriptEngine(
                 catch (_: Exception) { "unknown" }
             }
             "VULKAN_SUPPORTED" -> 0.0
-
-            // ═══════════════ SPRITE_* функции (22) ═══════════════
             "SPRITE_EXISTS" -> {
                 val sprite = findSprite(aStr)
                 if (sprite != null) 1.0 else 0.0
@@ -8451,7 +7632,7 @@ class DesktopScriptEngine(
             "SPRITE_LOOK_COUNT" -> {
                 findSprite(aStr)?.looks?.size?.toDouble() ?: 0.0
             }
-            "SPRITE_SOUND_COUNT" -> 0.0 // Not tracked on desktop
+            "SPRITE_SOUND_COUNT" -> 0.0
             "SPRITE_VARIABLE_COUNT" -> variables.size.toDouble()
             "SPRITE_LIST_COUNT" -> userLists.size.toDouble()
             "SPRITE_DISTANCE" -> {
@@ -8468,7 +7649,6 @@ class DesktopScriptEngine(
                 val name2 = bStr
                 val s1 = findSprite(aStr)
                 val s2 = findSprite(name2)
-                // Simple bounding-box collision check
                 if (s1 != null && s2 != null) {
                     val dx = abs(s1.x - s2.x)
                     val dy = abs(s1.y - s2.y)
@@ -8486,34 +7666,21 @@ class DesktopScriptEngine(
                 } else 0.0
             }
             "SPRITE_UUID" -> aStr
-
-            // ═══════════════ Цветовые функции ═══════════════
             "IF_THEN_ELSE" -> {
                 val c = additional.getOrNull(0)?.let { evaluateFormulaNode(it, spriteIndex) }
                 if (a != 0.0) bStr else c?.toString() ?: ""
             }
-
-            // ═══════════════ Функции-заглушки (Android-only / 3D) ═══════════════
             "COLLIDES_WITH_COLOR", "COLOR_TOUCHES_COLOR", "COLOR_AT_XY",
             "COLOR_EQUALS_COLOR", "TOUCHES_OBJECT_BY_NAME" -> 0.0
-
             "MULTI_FINGER_X", "MULTI_FINGER_Y", "MULTI_FINGER_TOUCHED" -> 0.0
-
             "TEXT_BLOCK_X", "TEXT_BLOCK_SIZE" -> 0.0
             "TEXT_BLOCK_Y" -> 0.0
             "TEXT_BLOCK_FROM_CAMERA", "TEXT_BLOCK_LANGUAGE_FROM_CAMERA" -> ""
-
             "VIDEO_PLAYING", "VIDEO_TIME" -> 0.0
-
             "JSON_GET", "JSON_SET", "JSON_IS_VALID" -> 0.0
-
             "ARDUINOANALOG", "ARDUINODIGITAL", "RASPIDIGITAL" -> 0.0
-
             "LUA" -> 0.0
-
             "DELTA" -> com.badlogic.gdx.Gdx.graphics.deltaTime.toDouble()
-
-            // 3D заглушки (35)
             "GET_3D_POSITION_X", "GET_3D_POSITION_Y", "GET_3D_POSITION_Z",
             "GET_3D_ROTATION_YAW", "GET_3D_ROTATION_PITCH", "GET_3D_ROTATION_ROLL",
             "GET_3D_SCALE_X", "GET_3D_SCALE_Y", "GET_3D_SCALE_Z",
@@ -8521,38 +7688,26 @@ class DesktopScriptEngine(
             "GET_ANGLE", "OBJECT_TOUCHES_OBJECT", "OBJECT_INTERSECTS_OBJECT",
             "ID_OF_DETECTED_OBJECT", "OBJECT_WITH_ID_VISIBLE",
             "IS_MOUSE_BUTTON_DOWN" -> 0.0
-
-            // 3D Ray заглушки (12)
             "GET_RAY_DISTANCE", "GET_RAY_HIT_OBJECT",
             "GET_RAY_HIT_X", "GET_RAY_HIT_Y", "GET_RAY_HIT_Z",
             "GET_RAY_HIT_NORMAL_X", "GET_RAY_HIT_NORMAL_Y", "GET_RAY_HIT_NORMAL_Z",
             "RAY_DID_HIT", "RAY_DID_HIT2", "RAY_HIT_SPRITE_NAME",
             "RAY_HIT_X", "RAY_HIT_Y", "RAY_HIT_DISTANCE" -> 0.0
-
-            // Камера 3D (9)
             "GET_CAMERA_POS_X", "GET_CAMERA_POS_Y", "GET_CAMERA_POS_Z",
             "GET_CAMERA_DIR_X", "GET_CAMERA_DIR_Y", "GET_CAMERA_DIR_Z",
             "GET_CAMERA_ROTATION_YAW", "GET_CAMERA_ROTATION_PITCH",
             "GET_CAMERA_ROTATION_ROLL" -> 0.0
-
-            // 2D заглушки (14)
             "F2D_X", "F2D_Y", "F2D_ROTATION",
             "F2D_SCALE_X", "F2D_SCALE_Y",
             "F2D_COLOR_R", "F2D_COLOR_G", "F2D_COLOR_B", "F2D_COLOR_ALPHA",
             "F2D_TEXTURE",
             "F2D_CAM_X", "F2D_CAM_Y", "F2D_CAM_ZOOM",
             "F2D_IS_TOUCHED", "F2D_IS_TOUCHED_INDEX" -> 0.0
-
-            // Voxel (2)
             "VOXEL_GET_ID", "VOXEL_GET_DATA" -> 0.0
-
-            // AdMob (9)
             "ADMOB_IS_INITIALIZED", "ADMOB_IS_TEST_MODE", "ADMOB_IS_BANNER_LOADED",
             "ADMOB_IS_INTERSTITIAL_LOADED", "ADMOB_IS_REWARDED_LOADED",
             "ADMOB_IS_APP_OPEN_LOADED", "ADMOB_LAST_ERROR_CODE",
             "ADMOB_LAST_ERROR_MESSAGE", "ADMOB_IS_GOOGLE_PLAY_SERVICES_AVAILABLE" -> 0.0
-
-            // Crypto (27) — заглушки, реализация позже
             "SHA_224", "SHA_256", "SHA_384", "SHA_512",
             "HASH_BYTES", "HASH_FILE",
             "AES_ENCRYPT", "AES_DECRYPT",
@@ -8568,17 +7723,11 @@ class DesktopScriptEngine(
             "HMAC_SHA_256", "HMAC_SHA_512",
             "RSA_GENERATE_KEY_PAIR", "RSA_ENCRYPT", "RSA_DECRYPT",
             "RSA_SIGN", "RSA_VERIFY" -> 0.0
-
-            // Physical simulation (заглушки)
             "FLOATARRAY", "VIEW_X", "VIEW_Y", "VIEW_WIDTH", "VIEW_HEIGHT" -> 0.0
             "COLLISION_LIST", "INTERSECT_LIST" -> ""
             "PT_ARGMAX", "PT_VALUE", "PT_VALUEND",
             "PT_SHAPE", "PT_DUMP", "PT_TOTALSIZE" -> 0.0
-
-            // Voxel/Vision
             "GET_3D_VELOCITY_X", "GET_3D_VELOCITY_Y", "GET_3D_VELOCITY_Z" -> 0.0
-
-            // Velocity
             "USED_RAM", "USED_STORAGE", "VOLUME_LEVEL", "SCREEN_BRIGHTNESS" -> 0.0
             "BATTERY_PERCENT", "BATTERY_CHARGING", "BATTERY_TEMP",
             "BATTERY_VOLTAGE", "BATTERY_STATE" -> 0.0
@@ -8590,16 +7739,12 @@ class DesktopScriptEngine(
             "THEME" -> "light"
             "IS_PC" -> 1.0
             "IS_MOBILE" -> 0.0
-
             else -> null
         }
     }
-
-    /** Вычисление сенсоров. Возвращает Any? — Double для чисел, String для строк. */
     private fun evaluateSensor(sensor: String, spriteIndex: Int): Any? {
         val sprite = project.sprites.getOrNull(spriteIndex)
         return when (sensor) {
-            // ═══════════════ Объектные сенсоры ═══════════════
             "OBJECT_X" -> sprite?.x?.toDouble() ?: 0.0
             "OBJECT_Y" -> sprite?.y?.toDouble() ?: 0.0
             "OBJECT_SIZE" -> sprite?.size?.toDouble() ?: 100.0
@@ -8619,8 +7764,6 @@ class DesktopScriptEngine(
             "OBJECT_BACKGROUND_NUMBER" -> sprite?.currentLookIndex?.plus(1)?.toDouble() ?: 1.0
             "OBJECT_BACKGROUND_NAME" -> sprite?.currentLook()?.name ?: ""
             "OBJECT_NUMBER_OF_LOOKS" -> (sprite?.looks?.size)?.toDouble() ?: 1.0
-
-            // Physics velocity (настоящие, из Box2D)
             "OBJECT_X_VELOCITY" -> {
                 val body = if (sprite != null) physicsWorld?.getBody(sprite) else null
                 body?.linearVelocity?.x?.toDouble() ?: 0.0
@@ -8633,8 +7776,6 @@ class DesktopScriptEngine(
                 val body = if (sprite != null) physicsWorld?.getBody(sprite) else null
                 body?.angularVelocity?.toDouble() ?: 0.0
             }
-
-            // Collision detection
             "COLLIDES_WITH_EDGE" -> {
                 if (sprite == null) 0.0 else {
                     val halfW = sprite.lookWidth / 2f * sprite.size / 100f
@@ -8655,30 +7796,20 @@ class DesktopScriptEngine(
                         fy >= sprite.y - halfH && fy <= sprite.y + halfH) 1.0 else 0.0
                 }
             }
-
-            // ═══════════════ Сцена ═══════════════
             "STAGE_WIDTH" -> project.stageWidth?.toDouble() ?: 480.0
             "STAGE_HEIGHT" -> project.stageHeight?.toDouble() ?: 720.0
-
-            // ═══════════════ Мышь ═══════════════
             "MOUSE_X" -> input.mouseWorldX.toDouble()
             "MOUSE_Y" -> input.mouseWorldY.toDouble()
             "MOUSE_DELTA_X" -> input.mouseDeltaX.toDouble()
             "MOUSE_DELTA_Y" -> input.mouseDeltaY.toDouble()
             "MOUSE_SCROLL" -> input.mouseScroll.toDouble()
-
-            // ═══════════════ Касание ═══════════════
             "FINGER_X" -> input.fingerX.toDouble()
             "FINGER_Y" -> input.fingerY.toDouble()
             "FINGER_TOUCHED" -> if (input.isTouched) 1.0 else 0.0
             "LAST_FINGER_INDEX" -> if (input.isTouched) 0.0 else -1.0
             "NUMBER_CURRENT_TOUCHES" -> if (input.isTouched) 1.0 else 0.0
             "INDEX_CURRENT_TOUCH" -> if (input.isTouched) 0.0 else -1.0
-
-            // ═══════════════ Таймер ═══════════════
             "TIMER" -> timerSeconds.toDouble()
-
-            // ═══════════════ Акселерометр / GPS (заглушки) ═══════════════
             "X_ACCELERATION" -> 0.0
             "Y_ACCELERATION" -> 0.0
             "Z_ACCELERATION" -> 0.0
@@ -8689,8 +7820,6 @@ class DesktopScriptEngine(
             "LONGITUDE" -> 0.0
             "ALTITUDE" -> 0.0
             "LOCATION_ACCURACY" -> 0.0
-
-            // ═══════════════ Дата / Время ═══════════════
             "DATE_YEAR" -> java.util.Calendar.getInstance().get(java.util.Calendar.YEAR).toDouble()
             "DATE_MONTH" -> (java.util.Calendar.getInstance().get(java.util.Calendar.MONTH) + 1).toDouble()
             "DATE_DAY" -> java.util.Calendar.getInstance().get(java.util.Calendar.DAY_OF_MONTH).toDouble()
@@ -8698,12 +7827,8 @@ class DesktopScriptEngine(
             "TIME_HOUR" -> java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY).toDouble()
             "TIME_MINUTE" -> java.util.Calendar.getInstance().get(java.util.Calendar.MINUTE).toDouble()
             "TIME_SECOND" -> java.util.Calendar.getInstance().get(java.util.Calendar.SECOND).toDouble()
-
-            // ═══════════════ Язык ═══════════════
             "USER_LANGUAGE" -> (System.getProperty("user.language") ?: "en") as Any?
             "SYSTEM_LANGUAGE" -> (System.getProperty("user.language") ?: "en") as Any?
-
-            // ═══════════════ Дополнительные сенсоры (работающие на ПК) ═══════════════
             "FPS" -> com.badlogic.gdx.Gdx.graphics.framesPerSecond.toDouble()
             "IP" -> {
                 try { java.net.InetAddress.getLocalHost().hostAddress ?: "0.0.0.0" }
@@ -8720,27 +7845,20 @@ class DesktopScriptEngine(
             }
             "ARCH" -> System.getProperty("os.arch") ?: "unknown"
             "FREQ" -> 0.0
-            "BATTARY" -> 100.0 // Desktop is always "fully charged"
+            "BATTARY" -> 100.0
             "LOUDNESS" -> 0.0
-
-            // ═══════════════ ML Kit стubs (face / text) ═══════════════
             "FACE_DETECTED", "FACE_SIZE", "FACE_X", "FACE_Y" -> 0.0
             "SECOND_FACE_DETECTED", "SECOND_FACE_SIZE", "SECOND_FACE_X", "SECOND_FACE_Y" -> 0.0
             "TEXT_FROM_CAMERA" -> ""
             "TEXT_BLOCKS_NUMBER" -> 0.0
-
-            // ═══════════════ Все остальное — 0.0 ═══════════════
             else -> 0.0
         }
     }
-
-    /** Получить дочерний элемент по имени тега (первое вхождение). */
     private fun getChildElement(parent: Element, tagName: String): Element? {
         val children = parent.childNodes
         for (i in 0 until children.length) {
             val child = children.item(i)
             if (child.nodeType == Node.ELEMENT_NODE && child.nodeName == tagName) {
-                // Внутри leftChild/rightChild может быть formulaElement
                 val subChildren = child.childNodes
                 for (j in 0 until subChildren.length) {
                     val sub = subChildren.item(j)
@@ -8753,8 +7871,6 @@ class DesktopScriptEngine(
         }
         return null
     }
-
-    /** Получить список additionalChildren (элементов formulaElement). */
     private fun getAdditionalChildren(parent: Element): List<Element> {
         val result = mutableListOf<Element>()
         val children = parent.childNodes
@@ -8772,41 +7888,26 @@ class DesktopScriptEngine(
         }
         return result
     }
-
-    /** Достаёт текст из первого вхождения тега внутри parent (рекурсивно). */
     private fun getTagText(parent: Element, tag: String): String? {
         val nodes = parent.getElementsByTagName(tag)
         return if (nodes.length > 0) nodes.item(0).textContent?.trim() else null
     }
-
     private fun extractSoundName(el: Element): String? {
         val sound = el.getElementsByTagName("sound")?.item(0) as? Element
         return sound?.let { getTagText(it, "fileName") }
     }
-
     private fun extractVariableName(el: Element): String? {
         val userVar = el.getElementsByTagName("userVariable")?.item(0) as? Element
         return userVar?.let { getTagText(it, "name") }
     }
-
     private fun extractUserListName(el: Element): String? {
         val userList = el.getElementsByTagName("userList")?.item(0) as? Element
         return userList?.let { getTagText(it, "name") }
     }
-
     private fun extractTextContent(el: Element, tagName: String): String? {
         val field = el.getElementsByTagName(tagName)?.item(0) as? Element
         return field?.textContent?.trim()
     }
-
-    /**
-     * Извлечь строковое сообщение бродкаста (broadcastMessage / receivedMessage).
-     * Поддерживает оба формата сериализации Catrobat:
-     *  - plain text: <broadcastMessage>msg</broadcastMessage>
-     *  - formula:     <broadcastMessage><formulaTree><type>STRING</type><value>msg</value>...
-     * Используется и на стороне отправителя, и на стороне получателя, чтобы они
-     * всегда совпадали.
-     */
     private fun extractMessageText(parent: Element, tag: String): String {
         val field = parent.getElementsByTagName(tag)?.item(0) as? Element ?: return ""
         val ft = field.getElementsByTagName("formulaTree")?.item(0) as? Element
@@ -8816,10 +7917,6 @@ class DesktopScriptEngine(
         }
         return field.textContent?.trim() ?: ""
     }
-
-    // ════════════════════════ FIREBASE REST (Realtime Database) ════════════════════════
-
-    /** Построить REST-URL Firebase Realtime Database: <base>/<key>.json */
     private fun firebaseUrl(base: String, key: String): String {
         var url = base.trim()
         if (!url.startsWith("http://") && !url.startsWith("https://")) url = "https://$url"
@@ -8827,8 +7924,6 @@ class DesktopScriptEngine(
         val k = key.trim().trimStart('/').trimEnd('/')
         return "$url/$k.json"
     }
-
-    /** Экранировать строку как JSON-строку (тело PUT). */
     private fun jsonString(s: String): String {
         val sb = StringBuilder("\"")
         for (c in s) {
@@ -8844,8 +7939,6 @@ class DesktopScriptEngine(
         sb.append("\"")
         return sb.toString()
     }
-
-    /** Убрать обёртку JSON-строки из ответа Firebase. */
     private fun stripJsonString(s: String?): String {
         if (s == null) return ""
         val t = s.trim()
@@ -8857,8 +7950,6 @@ class DesktopScriptEngine(
         }
         return t
     }
-
-    /** Синхронный REST-запрос к Firebase. Возвращает тело ответа или null при ошибке. */
     private fun firebaseRequest(method: String, url: String, body: String? = null): String? {
         return try {
             val conn = java.net.URL(url).openConnection() as java.net.HttpURLConnection

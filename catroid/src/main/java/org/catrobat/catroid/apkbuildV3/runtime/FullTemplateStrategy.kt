@@ -9,31 +9,9 @@ import org.catrobat.catroid.content.Sprite
 import org.catrobat.catroid.io.XstreamSerializer
 import java.io.File
 
-/**
- * Full Template loading strategy.
- *
- * On startup:
- * 1. Decrypt the entire project payload.
- * 2. Extract all files.
- * 3. Load ALL scenes and ALL sprites into memory.
- * 4. Set up all data structures.
- *
- * Scene transitions are instantaneous because everything is already in RAM.
- *
- * Memory usage: HIGH (entire project in memory).
- * Suitable for: powerful devices with sufficient RAM.
- */
 class FullTemplateStrategy(private val context: Context) {
     private val tag = "FullTemplateStrategy"
 
-    /**
-     * Loads the complete project into memory.
-     * After this call, all scenes are fully accessible.
-     *
-     * @param cacheDir  Working directory for extraction
-     * @param onProgress  Progress callback (0.0 - 1.0)
-     * @return  true if loading succeeded
-     */
     fun load(cacheDir: File, onProgress: ((Float) -> Unit)? = null): Boolean {
         return try {
             onProgress?.invoke(0f)
@@ -48,17 +26,13 @@ class FullTemplateStrategy(private val context: Context) {
 
             onProgress?.invoke(0.6f)
 
-            // Pre-warm: iterate through all scenes and sprites to
-            // force resource loading into caches
             preloadProject(project, onProgress)
 
-            // Register with ProjectManager
             ProjectManager.getInstance().currentProject = project
 
             onProgress?.invoke(1f)
             Log.i(tag, "Full template loaded successfully: ${project.name}")
 
-            // Сохраняем путь к распакованному проекту для StageActivity
             project.setDirectory(projectDir)
 
             true
@@ -68,10 +42,6 @@ class FullTemplateStrategy(private val context: Context) {
         }
     }
 
-    /**
-     * Preloads all project resources into memory.
-     * Touches every scene and sprite to ensure textures etc. are cached.
-     */
     private fun preloadProject(project: Project, onProgress: ((Float) -> Unit)?) {
         val totalScenes = project.sceneList.size
         if (totalScenes == 0) return
@@ -79,20 +49,13 @@ class FullTemplateStrategy(private val context: Context) {
         val sceneProgressWeight = 0.4f // remaining 40% of loading
 
         project.sceneList.forEachIndexed { index, scene ->
-            // Initialize scene structures
             scene.firstStart = true
 
-            // Force sprite loading
             for (sprite in scene.spriteList) {
-                // Access look data to force texture references
                 @Suppress("UNUSED_EXPRESSION")
                 sprite.lookList.size
-
-                // Access sound info
                 @Suppress("UNUSED_EXPRESSION")
                 sprite.soundList.size
-
-                // Access scripts
                 @Suppress("UNUSED_EXPRESSION")
                 sprite.scriptList.size
             }

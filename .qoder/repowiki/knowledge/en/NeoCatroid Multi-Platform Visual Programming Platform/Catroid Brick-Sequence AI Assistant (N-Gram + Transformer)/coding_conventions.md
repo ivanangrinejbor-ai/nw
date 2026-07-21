@@ -1,4 +1,0 @@
-- Each top-level script is self-contained with a `if __name__ == '__main__':` CLI block that reads arguments from `sys.argv` and prints usage on missing args.
-- Shared runtime dependencies are injected at module top via `sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))` so sibling modules like `code_xml_parser` and `tokenizer` can be imported without installing the package.
-- Data exchange between stages uses plain JSON dicts produced by `project_to_dict()` / `PatternDatabase.to_dict()` rather than pickled objects, keeping artifacts portable across Python versions.
-- Structural boundaries are encoded as explicit sentinel tokens (`<project_start>`, `<scene_end>`, …) defined once in `tokenizer.py` constants and reused by both the n-gram miner and the Transformer dataset builder.

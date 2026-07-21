@@ -387,17 +387,14 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
 
     }
 
-    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+	override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         if (event.action == KeyEvent.ACTION_UP) {
-
-            // Ctrl + N : Create new project
             if (event.isCtrlPressed && event.keyCode == KeyEvent.KEYCODE_N) {
                 val dialog = NewProjectDialogFragment()
                 dialog.show(supportFragmentManager, NewProjectDialogFragment.TAG)
                 return true
             }
 
-            // F5 : Run project
             if (event.keyCode == KeyEvent.KEYCODE_F5) {
                 val currentProject = projectManager.currentProject
                 if (currentProject != null) {
@@ -408,7 +405,6 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
                 return true
             }
 
-            // Ctrl + O : Open Project Menu
             if (event.isCtrlPressed && event.keyCode == KeyEvent.KEYCODE_O) {
                 startActivity(Intent(this, ProjectListActivity::class.java))
                 return true
@@ -466,8 +462,6 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
     }
 
     public override fun onPause() {
-        //PluginEventBus.getInstance().dispatch("MainMenu.onHide");
-
         super.onPause()
         if (SettingsFragment.isCastSharedPreferenceEnabled(this)) {
             CastManager.getInstance().removeCallback();
@@ -481,27 +475,11 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu_main_menu, menu)
-        //val scratchConverter = getString(R.string.main_menu_scratch_converter)
-        //val scratchConverterBeta = SpannableString(
-        //    scratchConverter + " " + getString(R.string.beta)
-        //)
-
-        //scratchConverterBeta.setSpan(
-       //     ForegroundColorSpan(resources.getColor(R.color.beta_label_color, theme)),
-        //    scratchConverter.length, scratchConverterBeta.length,
-        //    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-        //)
-        //menu.findItem(R.id.menu_scratch_converter).title = scratchConverterBeta
         return super.onCreateOptionsMenu(menu)
     }
 
     override fun onPrepareOptionsMenu(menu: Menu): Boolean {
-        //menu.findItem(R.id.menu_login).isVisible =
-        //    !Utils.isUserLoggedIn(this)
-        //menu.findItem(R.id.menu_logout).isVisible =
-        //    Utils.isUserLoggedIn(this)
         if (!BuildConfig.FEATURE_SCRATCH_CONVERTER_ENABLED) {
-            //menu.removeItem(R.id.menu_scratch_converter)
         }
         return true
     }
@@ -555,6 +533,13 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
+            R.id.menu_ai_chat -> {
+                if (org.catrobat.catroid.ai.AiAgentManager.instance.isEnabled()) {
+                    startActivity(Intent(this, org.catrobat.catroid.ai.chat.ChatActivity::class.java))
+                } else {
+                    Toast.makeText(this, R.string.ai_agent_enable_first, Toast.LENGTH_LONG).show()
+                }
+            }
             R.id.menu_rate_app -> if (Utils.checkIsNetworkAvailableAndShowErrorMessage(this)) {
                 try {
                     startActivity(
@@ -568,62 +553,18 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
                     ToastUtil.showError(this, R.string.main_menu_play_store_not_installed)
                 }
             }
-            /*R.id.menu_terms_of_use -> TermsOfUseDialogFragment().show(
-                supportFragmentManager,
-                TermsOfUseDialogFragment.TAG
-            )*/
             R.id.menu_privacy_policy -> {
                 val browserIntent = Intent(
                     Intent.ACTION_VIEW,
                     Uri.parse(FlavoredConstants.PRIVACY_POLICY_URL)
                 )
                 startActivity(browserIntent)
-                /*Toast.makeText(this, "Starting Python script...", Toast.LENGTH_SHORT).show()
-                Thread {
-
-
-                    try {
-
-                        val projectDir = File(applicationContext.filesDir, "projects/MyNumpyProject")
-                        projectDir.mkdirs()
-
-
-                        copyAssets("numpy_test_pylibs", File(projectDir, "pylibs"))
-                        copyAssets("numpy_test_pylibs_native", File(projectDir, "pylibs_native"))
-
-
-                        pythonEngine.initialize(projectDir)
-
-
-                        val output = testPython()
-                        Log.d("PythonThread", "--- NUMPY OUTPUT ---")
-                        Log.d("PythonThread", output)
-                        Log.d("PythonThread", "--------------------")
-
-                    } catch (e: Exception) {
-                        Log.e("PythonThread", "Error in python thread", e)
-                    }
-                }.start()*/
             }
             R.id.menu_about -> AboutDialogFragment().show(
                 supportFragmentManager,
                 AboutDialogFragment.TAG
             )
-            //R.id.menu_scratch_converter -> if (Utils.checkIsNetworkAvailableAndShowErrorMessage(this)) {
-            //    startActivity(Intent(this, ScratchConverterActivity::class.java))
-            //}
             R.id.settings -> startActivity(Intent(this, SettingsActivity::class.java))
-            //R.id.menu_login -> startActivity(Intent(this, SignInActivity::class.java))
-            //R.id.menu_logout -> {
-            //    Utils.logoutUser(this)
-             //   ToastUtil.showSuccess(this, R.string.logout_successful)
-            //}
-            //R.id.menu_help -> startActivity(
-            //    Intent(
-            //        Intent.ACTION_VIEW,
-            //        Uri.parse(CATROBAT_HELP_URL)
-            //    )
-            //)
             else -> return super.onOptionsItemSelected(item)
         }
         return true

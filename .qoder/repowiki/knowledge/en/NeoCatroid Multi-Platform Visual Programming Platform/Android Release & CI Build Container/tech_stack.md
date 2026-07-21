@@ -1,1 +1,0 @@
-Fastlane (Ruby gem) with the `supply` plugin against Google Play Console; Docker image based on `debian:bullseye`, bundling OpenJDK 17, Ruby, adb, and Android SDK cmdline-tools targeting API level 35 / build-tools 35.0.0 / NDK r25.2.9519653.

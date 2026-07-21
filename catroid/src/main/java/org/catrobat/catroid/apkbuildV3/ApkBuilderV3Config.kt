@@ -4,11 +4,6 @@ import android.os.Parcel
 import android.os.Parcelable
 import java.io.File
 
-/**
- * Configuration for the APK Builder V3 export.
- * All fields have sensible defaults for a quick build.
- * UI overlays let the user override every value.
- */
 data class ApkBuilderV3Config(
     val appName: String,
     val packageName: String = "org.neocatroid.runtime.v3",
@@ -62,7 +57,6 @@ data class ApkBuilderV3Config(
             "android.permission.VIBRATE"
         )
 
-        /** All permissions the user can optionally enable */
         val ALL_PERMISSIONS = listOf(
             "android.permission.INTERNET",
             "android.permission.ACCESS_NETWORK_STATE",

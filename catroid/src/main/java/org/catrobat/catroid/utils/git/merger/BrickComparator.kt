@@ -63,7 +63,3 @@ class MoveNStepsBrickComparator : BrickComparator {
         }
     }
 }
-
-
-//Ov23liKoq3h0cTgAbVYA
-//936da4332f8a31ebed1bc97aa5d2f89a989a56d2

@@ -413,6 +413,13 @@ public class FastTwoDManager implements Disposable {
         entities.clear();
     }
 
+    // --- Phase 4 stub ---
+    public void setGravity(final float gx, final float gy) {
+        Gdx.app.postRunnable(() -> {
+            physicsWorld.setGravity(new com.badlogic.gdx.math.Vector2(gx, gy));
+        });
+    }
+
     @Override
     public void dispose() {
         clearScene();

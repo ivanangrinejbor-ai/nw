@@ -29,6 +29,11 @@
     <group android:layout_gravity="end">
 
     <item
+        android:id="@+id/menu_ai_chat"
+        android:title="@string/ai_agent_chat"
+        app:showAsAction="never"
+        android:icon="@drawable/ic_smart_toy" />
+    <item
         android:id="@+id/menu_rate_app"
         android:title="@string/main_menu_rate_app"
         app:showAsAction="never"

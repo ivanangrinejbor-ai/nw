@@ -7,10 +7,6 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.nio.charset.StandardCharsets
 
-/**
- * Desktop implementation of [NetworkService] using the standard JDK
- * [java.net.HttpURLConnection] — no Android or OkHttp dependency.
- */
 class DesktopNetworkService : NetworkService {
 
     companion object {

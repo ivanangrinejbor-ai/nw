@@ -33,7 +33,6 @@ class NoneBrick() : FormulaBrick() {
     override fun getViewResource(): Int = R.layout.brick_none
 
     override fun addActionToSequence(sprite: Sprite, sequence: ScriptSequenceAction) {
-        //brick is an error. Nothing to do
     }
 
     companion object {

@@ -14,12 +14,6 @@ import org.catrobat.catroid.apkbuildV3.TemplateType
 import org.catrobat.catroid.stage.StageActivity
 import java.io.File
 
-/**
- * Loading screen Activity for V3 baked APK.
- *
- * Detects the template type (FULL or LIGHT) and loads accordingly.
- * Shows progress bar with stage descriptions and random facts.
- */
 class RuntimeLoaderActivityV3 : Activity() {
     private lateinit var progressBar: ProgressBar
     private lateinit var statusText: TextView
@@ -52,11 +46,9 @@ class RuntimeLoaderActivityV3 : Activity() {
         statusText = findViewById(R.id.v3_status_text)
         factText = findViewById(R.id.v3_fact_text)
 
-        // Detect template type from asset presence
         templateType = detectTemplateType(assets)
         statusText.text = getString(R.string.v3_loading)
 
-        // Show first fact
         showRandomFact()
 
         Thread {
@@ -83,7 +75,6 @@ class RuntimeLoaderActivityV3 : Activity() {
     }
 
     private fun detectTemplateType(assets: AssetManager): TemplateType {
-        // Check for V3 payload
         try {
             val files = assets.list("") ?: return TemplateType.LIGHT
             val hasFullMarker = files.any { it == "template_v3_full.marker" }
@@ -111,7 +102,6 @@ class RuntimeLoaderActivityV3 : Activity() {
         }
 
         if (success) {
-            // Путь к распакованному проекту: cacheDir/v3_project_full/project_extracted
             projectPath = File(cacheDir, "project_extracted").absolutePath
         }
         return success
@@ -135,7 +125,6 @@ class RuntimeLoaderActivityV3 : Activity() {
         }
 
         if (success) {
-            // Light-стратегия распаковывает метаданные в cacheDir/v3_project_light/project_light
             projectPath = File(cacheDir, "project_light").absolutePath
         }
         return success
@@ -145,8 +134,7 @@ class RuntimeLoaderActivityV3 : Activity() {
         handler.post {
             progressBar.progress = (progress * 100).toInt()
             statusText.text = stage
-            // Randomly show a fun fact
-            if (Math.random() < 0.3) {
+                    if (Math.random() < 0.3) {
                 showRandomFact()
             }
         }

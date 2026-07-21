@@ -9,7 +9,6 @@ public class Create3dObjectBrick extends FormulaBrick {
     private static final long serialVersionUID = 1L;
 
     public Create3dObjectBrick() {
-        // У вас могут быть другие имена в BrickField, я использую стандартные
         addAllowedBrickField(BrickField.VALUE, R.id.brick_create_3d_object_id);
         addAllowedBrickField(BrickField.VALUE_2, R.id.brick_create_3d_object_model_path);
     }

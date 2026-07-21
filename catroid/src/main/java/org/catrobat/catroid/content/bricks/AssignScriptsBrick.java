@@ -17,9 +17,9 @@ public class AssignScriptsBrick extends FormulaBrick {
 
 	private static final long serialVersionUID = 1L;
 
-	private int useSceneSelection = 0; // 0 = current scene, 1 = use typed scene name
-	private int replaceExistingSelection = 0; // 0 = keep existing + add imported; 1 = replace all existing scripts
-	private int savePersistentSelection = 0; // 0 = runtime only, 1 = persist to project
+	private int useSceneSelection = 0;
+	private int replaceExistingSelection = 0;
+	private int savePersistentSelection = 0;
 
 	public AssignScriptsBrick() {
 		addAllowedBrickField(BrickField.ASSIGN_SCRIPTS_FILE, R.id.brick_assign_scripts_file_edit);
@@ -57,7 +57,6 @@ public class AssignScriptsBrick extends FormulaBrick {
 	public View getView(Context context) {
 		super.getView(context);
 
-		// Scene checkbox + text field
 		CheckBox sceneCheckbox = view.findViewById(R.id.brick_assign_scripts_scene_checkbox);
 		TextView sceneEdit = view.findViewById(R.id.brick_assign_scripts_scene_edit);
 		TextView sceneLabel = view.findViewById(R.id.brick_assign_scripts_scene_label);
@@ -72,7 +71,6 @@ public class AssignScriptsBrick extends FormulaBrick {
 			sceneLabel.setVisibility(isChecked ? View.VISIBLE : View.GONE);
 		});
 
-		// Replace existing scripts spinner
 		Spinner replaceSpinner = view.findViewById(R.id.brick_assign_scripts_replace_spinner);
 		ArrayAdapter<String> adapter = new ArrayAdapter<>(context,
 				R.layout.simple_spinner_item_white_text,
@@ -90,7 +88,6 @@ public class AssignScriptsBrick extends FormulaBrick {
 			}
 		});
 
-		// Save after exiting project spinner (No = runtime only, Yes = persist)
 		Spinner savePersistentSpinner = view.findViewById(R.id.brick_assign_scripts_save_spinner);
 		ArrayAdapter<String> saveAdapter = new ArrayAdapter<>(context,
 				R.layout.simple_spinner_item_white_text,

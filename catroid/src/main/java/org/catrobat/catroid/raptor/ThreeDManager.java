@@ -6253,6 +6253,15 @@ public class ThreeDManager implements Disposable {
             }
         });
     }
+
+    // --- Phase 4 stubs ---
+    public Map<String, ParticleEffect> getActiveParticleEffects() {
+        return activeParticleEffects;
+    }
+
+    public void replaceModel(String objectId, String modelPath) {
+        // TODO: implement 3D model replacement
+    }
 }
 
 class DepthShader implements com.badlogic.gdx.graphics.g3d.Shader {

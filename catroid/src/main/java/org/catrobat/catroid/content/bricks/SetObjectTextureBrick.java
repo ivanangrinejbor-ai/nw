@@ -9,7 +9,6 @@ public class SetObjectTextureBrick extends FormulaBrick {
     private static final long serialVersionUID = 1L;
 
     public SetObjectTextureBrick() {
-        // У вас могут быть другие имена в BrickField, я использую стандартные
         addAllowedBrickField(BrickField.VALUE, R.id.brick_object_texture_id);
         addAllowedBrickField(BrickField.VALUE_2, R.id.brick_object_texture_file);
     }

@@ -28,15 +28,6 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * Walks the brick graph of a script and either collects the user variables /
- * lists that are referenced, or re-links those references to the canonical
- * instances of the host project / sprite (creating them when missing).
- *
- * Variable identity at runtime is resolved by NAME (see {@code UserDataWrapper}),
- * so the only thing we need to guarantee after import is that every brick points
- * at the host's canonical {@link UserVariable}/{@link UserList} object.
- */
 public final class NeoScriptUserData {
 
 	private NeoScriptUserData() {
@@ -183,9 +174,6 @@ public final class NeoScriptUserData {
 						}
 					}
 				} catch (IllegalAccessException e) {
-					// BUG-NS-04 fix: log at WARN so silent failures (e.g. restricted module
-					// access on API 30+) surface during debugging instead of quietly leaving
-					// brick fields pointing at detached, ghost UserVariable/UserList objects.
 					android.util.Log.w("NeoScriptUserData",
 							"Cannot relink field " + field.getName() + " in " + obj.getClass().getSimpleName(), e);
 				}

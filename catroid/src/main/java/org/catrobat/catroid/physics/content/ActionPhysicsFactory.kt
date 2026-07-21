@@ -69,6 +69,16 @@ class ActionPhysicsFactory : ActionFactory() {
         return action
     }
 
+    override fun createGlideToAction(sprite: Sprite, sequence: SequenceAction, x: Formula?, y: Formula?, duration: Formula?, easingType: Int): Action {
+        // "None" (0) keeps the classic physics glide untouched (backward compatible).
+        // A chosen easing curve falls back to the non-physics eased glide.
+        return if (easingType <= 0) {
+            createGlideToAction(sprite, sequence, x, y, duration)
+        } else {
+            super.createGlideToAction(sprite, sequence, x, y, duration, easingType)
+        }
+    }
+
     override fun createSetBounceFactorAction(sprite: Sprite, sequence: SequenceAction, bounceFactor: Formula?): Action {
         val action = Actions.action(SetBounceFactorAction::class.java)
         val scope = Scope(ProjectManager.getInstance().currentProject, sprite, sequence)

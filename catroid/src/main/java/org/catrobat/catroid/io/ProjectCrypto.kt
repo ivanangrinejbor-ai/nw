@@ -41,18 +41,6 @@ import javax.crypto.spec.SecretKeySpec
 
 private const val STREAM_BUFFER = 64 * 1024
 
-/**
- * Project encryption/decryption using AES-256-GCM + PBKDF2 key derivation.
- *
- * Format of encrypted file:
- *   [magic: 4 bytes = "NCPP"]
- *   [salt: 32 bytes]
- *   [IV: 12 bytes]
- *   [ciphertext: N bytes]
- *
- * Password is NEVER stored. Only salt and IV are stored.
- * PBKDF2 iterations: 100_000 (OWASP 2023 recommendation)
- */
 object ProjectCrypto {
     private const val TAG = "ProjectCrypto"
     private const val ALGORITHM = "AES/GCM/NoPadding"
@@ -140,14 +128,6 @@ object ProjectCrypto {
         }
     }
 
-    /**
-     * Single-pass zip + encrypt: reads files from [sourceDir], zips them,
-     * and encrypts the zip stream directly into [destFile] (NCPP format).
-     * No intermediate files are created — constant memory usage regardless
-     * of project size (even 758MB+ projects).
-     *
-     * @param filter optional predicate: return true to include the file, false to skip.
-     */
     fun encryptDirectory(
         sourceDir: File,
         destFile: File,
@@ -163,20 +143,17 @@ object ProjectCrypto {
 
         destFile.parentFile?.mkdirs()
         FileOutputStream(destFile).use { fos ->
-            // Write NCPP header
             fos.write(MAGIC)
             fos.write(salt)
             fos.write(iv)
 
-            // Wrap in CipherOutputStream — all zip data flows through encryption
             CipherOutputStream(fos, cipher).use { cos ->
                 ZipOutputStream(cos).use { zos ->
-                    zos.setLevel(1) // fastest compression, minimal memory
+                    zos.setLevel(1)
                     val buffer = ByteArray(STREAM_BUFFER)
 
                     sourceDir.walk().filter { it != sourceDir }.forEach { file ->
                         val entryPath = file.relativeTo(sourceDir).path.replace('\\', '/')
-                        // Apply filter
                         if (filter != null && !filter(file.name)) return@forEach
 
                         if (file.isDirectory) {

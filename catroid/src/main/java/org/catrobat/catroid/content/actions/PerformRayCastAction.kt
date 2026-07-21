@@ -1,5 +1,6 @@
 package org.catrobat.catroid.content.actions
 
+import android.util.Log
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction
 import org.catrobat.catroid.ProjectManager
@@ -16,13 +17,28 @@ class PerformRayCastAction : TemporalAction() {
 
     override fun update(percent: Float) {
         if (scope == null) return
-        val id = rayId?.interpretString(scope) ?: return
-        if (id.isEmpty()) return
+        val id: String
+        val sX: Float
+        val sY: Float
+        val eX: Float
+        val eY: Float
+        try {
+            id = rayId?.interpretString(scope) ?: return
+            if (id.isEmpty()) return
+            sX = startX?.interpretFloat(scope) ?: 0f
+            sY = startY?.interpretFloat(scope) ?: 0f
+            eX = endX?.interpretFloat(scope) ?: 0f
+            eY = endY?.interpretFloat(scope) ?: 0f
+        } catch (e: Exception) {
+            Log.w(javaClass.simpleName, "Formula interpretation failed", e)
+            return
+        }
 
-        val sX = startX?.interpretFloat(scope) ?: 0f
-        val sY = startY?.interpretFloat(scope) ?: 0f
-        val eX = endX?.interpretFloat(scope) ?: 0f
-        val eY = endY?.interpretFloat(scope) ?: 0f
+        // Validate ray — Box2D requires non-zero length ray
+        if (sX == eX && sY == eY) {
+            Log.w(javaClass.simpleName, "Zero-length ray (start==end), skipping")
+            return
+        }
 
         val scene = ProjectManager.getInstance().currentlyPlayingScene ?: return
 

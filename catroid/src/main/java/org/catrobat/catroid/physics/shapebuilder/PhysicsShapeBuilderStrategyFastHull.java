@@ -47,32 +47,21 @@ public final class PhysicsShapeBuilderStrategyFastHull implements PhysicsShapeBu
 		int width = pixmap.getWidth();
 		int height = pixmap.getHeight();
 
-		// Step 1: Collect boundary pixels (first and last non-transparent per row)
 		List<Vector2> boundaryPoints = collectBoundaryPoints(pixmap, width, height);
 
 		if (boundaryPoints.isEmpty()) {
 			return null;
 		}
 
-		// Step 2: Compute the convex hull using Andrew's monotone chain
 		List<Vector2> hull = computeMonotoneChainConvexHull(boundaryPoints);
 
-		// Step 3: Handle degenerate hull (0, 1, or 2 vertices — cannot form a valid polygon)
 		if (hull.size() < 3) {
 			hull = createMinimalTriangle(hull, width, height);
 		}
 
-		// Step 4 (already handled inside monotone chain): collinear points removed via epsilon
-
-		// Step 5: Convert to Box2D coordinates and divide into sub-polygons (max 8 vertices each)
 		return divideShape(hull.toArray(new Vector2[hull.size()]), width, height);
 	}
 
-	/**
-	 * Collects boundary-representative points by scanning each row for
-	 * the first and last non-transparent pixel. This set is sufficient
-	 * to compute the exact convex hull of the full pixmap.
-	 */
 	private static List<Vector2> collectBoundaryPoints(Pixmap pixmap, int width, int height) {
 		List<Vector2> points = new ArrayList<>();
 		Pixmap.Format format = pixmap.getFormat();
@@ -99,36 +88,25 @@ public final class PhysicsShapeBuilderStrategyFastHull implements PhysicsShapeBu
 		return points;
 	}
 
-	/**
-	 * Returns true if the pixel at (x, y) has enough alpha to be considered opaque.
-	 * For formats without an alpha channel (RGB888, RGB565) all pixels are opaque.
-	 * For RGBA8888 the alpha byte is in bits 24-31 of the pixel int.
-	 * For RGBA4444 the alpha is in bits 12-15 (4-bit), scaled up for comparison.
-	 */
 	private static boolean isOpaque(Pixmap pixmap, int x, int y, Pixmap.Format format, boolean hasAlpha) {
 		if (!hasAlpha) {
-			return true; // No alpha channel — every pixel is fully opaque
+			return true;
 		}
 		int pixel = pixmap.getPixel(x, y);
 		int alpha;
 		if (format == Pixmap.Format.RGBA8888) {
 			alpha = (pixel >>> 24) & 0xFF;
-		} else { // RGBA4444
-			alpha = ((pixel >>> 12) & 0x0F) * 17; // Scale 4-bit (0-15) to 8-bit (0-255)
+		} else {
+			alpha = ((pixel >>> 12) & 0x0F) * 17;
 		}
 		return alpha >= MINIMUM_PIXEL_ALPHA_VALUE;
 	}
 
-	/**
-	 * Andrew's monotone chain convex hull algorithm (O(n log n)).
-	 * Removes collinear points using a small epsilon.
-	 */
 	private static List<Vector2> computeMonotoneChainConvexHull(List<Vector2> points) {
 		if (points.size() < 2) {
 			return new ArrayList<>(points);
 		}
 
-		// Sort by x, then by y
 		Collections.sort(points, (a, b) -> {
 			int cmp = Float.compare(a.x, b.x);
 			if (cmp != 0) {
@@ -137,7 +115,6 @@ public final class PhysicsShapeBuilderStrategyFastHull implements PhysicsShapeBu
 			return Float.compare(a.y, b.y);
 		});
 
-		// Remove duplicate points (consecutive after sorting)
 		List<Vector2> unique = new ArrayList<>(points.size());
 		for (Vector2 p : points) {
 			if (unique.isEmpty() || !unique.get(unique.size() - 1).equals(p)) {
@@ -146,21 +123,20 @@ public final class PhysicsShapeBuilderStrategyFastHull implements PhysicsShapeBu
 		}
 
 		if (unique.size() < 3) {
-			return unique; // Degenerate hull — caller will create a minimal triangle
+			return unique;
 		}
 
 		List<Vector2> hull = new ArrayList<>();
 
-		// Build lower hull
 		for (Vector2 p : unique) {
 			while (hull.size() >= 2) {
 				Vector2 a = hull.get(hull.size() - 2);
 				Vector2 b = hull.get(hull.size() - 1);
 				float cross = (b.x - a.x) * (p.y - a.y) - (b.y - a.y) * (p.x - a.x);
 				if (cross > COLLINEAR_EPSILON) {
-					break; // Strictly counter-clockwise — keep b
+					break;
 				}
-				hull.remove(hull.size() - 1); // Clockwise or collinear — pop b
+				hull.remove(hull.size() - 1);
 			}
 			hull.add(p);
 		}

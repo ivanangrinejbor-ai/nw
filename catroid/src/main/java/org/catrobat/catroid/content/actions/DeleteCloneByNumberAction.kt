@@ -22,6 +22,9 @@ class DeleteCloneByNumberAction : TemporalAction() {
         val number = cloneNumber?.interpretInteger(s) ?: return
         started = true
         val stageListener = StageActivity.getActiveStageListener() ?: return
-        stageListener.removeCloneByIndex(number)
+        
+        // Only delete clones of the SAME sprite that is executing this brick
+        val executingSprite = s.sprite
+        stageListener.removeCloneByIndexAndSprite(executingSprite, number)
     }
 }

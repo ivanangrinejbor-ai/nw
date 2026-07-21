@@ -31,6 +31,25 @@
     <color name="separator">#48484A</color>
     <color name="action_button">#FFAB08</color>
 
+    <!-- AI Agent Chat Colors -->
+    <color name="ai_chat_bg_top">#14141C</color>
+    <color name="ai_chat_bg_bottom">#0B0B11</color>
+    <color name="ai_surface">#1B1B26</color>
+    <color name="ai_surface_border">#2C2C3C</color>
+    <color name="ai_bubble_ai">#1E1E2B</color>
+    <color name="ai_bubble_ai_border">#33334A</color>
+    <color name="ai_bubble_user_start">#3D8BFF</color>
+    <color name="ai_bubble_user_end">#1F6BE0</color>
+    <color name="ai_accent">#6C8CFF</color>
+    <color name="ai_accent_soft">#2A3358</color>
+    <color name="ai_send_start">#5B8CFF</color>
+    <color name="ai_send_end">#7A5CFF</color>
+    <color name="ai_send_disabled">#3A3A48</color>
+    <color name="ai_text_primary">#ECECF3</color>
+    <color name="ai_text_secondary">#9A9AB2</color>
+    <color name="ai_input_bg">#22222E</color>
+    <color name="ai_input_border">#34344A</color>
+
     <!-- Formula Editor Colors -->
     <color name="formula_editor_icon">#FFF</color>
     <color name="formula_editor_text">#FFF</color>

@@ -10,17 +10,6 @@ import java.awt.RenderingHints
 import java.awt.image.BufferedImage
 import java.io.File
 
-/**
- * Offline-safe Cyrillic text rasterizer.
- *
- * libGDX's default [com.badlogic.gdx.graphics.g2d.BitmapFont] only ships
- * Latin glyphs, so any Cyrillic project name / say-think text renders as
- * missing-glyph boxes. We rasterize text with a system TrueType font
- * (Arial on Windows, which includes Cyrillic) into a libGDX [Texture]
- * that can be drawn with the SpriteBatch.
- *
- * AWT is part of the standard JRE, so no extra desktop dependency is needed.
- */
 object CyrillicText {
 
     private val baseFont: Font = try {
@@ -37,7 +26,6 @@ object CyrillicText {
     fun render(text: String, color: Color = Color.WHITE, size: Int = 18): Texture {
         val font = baseFont.deriveFont(Font.PLAIN, size.toFloat())
 
-        // First pass: measure with a 1x1 scratch image.
         val scratch = BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB)
         val sg = scratch.createGraphics()
         sg.font = font
@@ -46,7 +34,6 @@ object CyrillicText {
         val h = kotlin.math.max(1, fm.height)
         sg.dispose()
 
-        // Second pass: real raster.
         val img = BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB)
         val g = img.createGraphics()
         g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON)
@@ -66,10 +53,10 @@ object CyrillicText {
         val buf = pixmap.pixels
         buf.position(0)
         for (p in data) {
-            buf.put(((p shr 16) and 0xFF).toByte()) // R
-            buf.put(((p shr 8) and 0xFF).toByte())  // G
-            buf.put((p and 0xFF).toByte())           // B
-            buf.put(((p shr 24) and 0xFF).toByte()) // A
+            buf.put(((p shr 16) and 0xFF).toByte())
+            buf.put(((p shr 8) and 0xFF).toByte())
+            buf.put((p and 0xFF).toByte())
+            buf.put(((p shr 24) and 0xFF).toByte())
         }
         buf.position(0)
         val tex = Texture(pixmap)

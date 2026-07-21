@@ -2,6 +2,14 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
+        android:id="@+id/action_set_api_key"
+        android:title="@string/ai_agent_set_api_key_title"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_select_model"
+        android:title="@string/ai_agent_select_model_title"
+        app:showAsAction="never" />
+    <item
         android:id="@+id/action_clear_chat"
         android:title="@string/ai_agent_clear_history_title"
         android:icon="@android:drawable/ic_menu_delete"

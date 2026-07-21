@@ -4,32 +4,15 @@ import android.content.Context
 import android.util.Log
 import java.io.File
 
-/**
- * Локатор базового шаблона APK для сборщика V3.
- *
- * Не использует существующий модуль apkbuild. Просто находит подходящий
- * базовый APK (готовый runtime-шаблон из assets либо собственный установленный APK)
- * и копирует его в рабочую директорию. Вся дальнейшая сборка выполняется
- * классом [V3ApkAssembler].
- */
 object TemplateManagerV3 {
     private const val TAG = "TemplateManagerV3"
     private const val TEMPLATE_RUNTIME_ASSET = "template_runtime.apk"
 
-    /**
-     * Возвращает копию базового APK в рабочей директории.
-     * Приоритет: template_runtime.apk из assets → собственный APK.
-     *
-     * Бросает [IllegalStateException] с описанием обеих причин отказа, чтобы
-     * пользователь видел реальную проблему (нет файла в assets, нет места на
-     * диске, недоступен собственный APK), а не обобщённое сообщение.
-     */
     fun prepareBaseApk(context: Context, workDir: File): File {
         workDir.mkdirs()
         val target = File(workDir, "v3_base.apk")
         val reasons = mutableListOf<String>()
 
-        // 0) Сначала проверяем свободное место в рабочей директории.
         val templateSize = runCatching {
             context.assets.open(TEMPLATE_RUNTIME_ASSET).use { it.available().toLong() }
         }.getOrElse { 0L }
@@ -38,7 +21,6 @@ object TemplateManagerV3 {
             reasons += "недостаточно места в ${workDir.absolutePath} (нужно ~${needed / (1024 * 1024)} МБ)"
         }
 
-        // 1) Готовый runtime-шаблон
         if (reasons.isEmpty()) {
             try {
                 context.assets.open(TEMPLATE_RUNTIME_ASSET).use { input ->
@@ -56,7 +38,6 @@ object TemplateManagerV3 {
             }
         }
 
-        // 2) Собственный установленный APK
         val selfPath = context.applicationInfo.sourceDir
         if (selfPath != null && File(selfPath).exists()) {
             try {
@@ -79,9 +60,6 @@ object TemplateManagerV3 {
         )
     }
 
-    /**
-     * Проверяет, что в [dir] доступно не менее [neededBytes] свободного места.
-     */
     private fun hasEnoughSpace(dir: File, neededBytes: Long): Boolean {
         return runCatching {
             val stat = android.os.StatFs(dir.absolutePath)
@@ -90,9 +68,6 @@ object TemplateManagerV3 {
         }.getOrDefault(true)
     }
 
-    /**
-     * Минимальная проверка, что файл — это ZIP/APK (магия "PK").
-     */
     private fun isZip(file: File): Boolean {
         if (!file.exists() || file.length() < 4) return false
         return runCatching {

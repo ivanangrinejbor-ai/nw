@@ -14,7 +14,6 @@ import org.catrobat.catroid.formulaeditor.Formula;
 public class SetActiveBrick extends FormulaBrick {
     private static final long serialVersionUID = 1L;
 
-    // 0 = true, 1 = false.
     private int activeStateSelection = 0;
 
     public SetActiveBrick() {
@@ -39,7 +38,7 @@ public class SetActiveBrick extends FormulaBrick {
         Spinner stateSpinner = view.findViewById(R.id.brick_set_active_state_spinner);
 
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(context,
-                R.array.brick_set_active_states, R.layout.simple_spinner_item_white_text); // Используем стиль для белого текста
+                R.array.brick_set_active_states, R.layout.simple_spinner_item_white_text);
         adapter.setDropDownViewResource(R.layout.simple_spinner_dropdown_item_white_text);
         stateSpinner.setAdapter(adapter);
 

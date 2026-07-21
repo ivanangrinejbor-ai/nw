@@ -30,10 +30,9 @@ class SystemLoadingActor(
     private var font: BitmapFont = BitmapFont()
     private var loaded = false
 
-    // Progressive look loading state
     private var looksToLoad: List<org.catrobat.catroid.common.LookData>? = null
     private var lookLoadIndex = 0
-    private val LOOKS_PER_FRAME = 20 // load N textures per frame to avoid freeze
+    private val LOOKS_PER_FRAME = 20
 
     init {
         val header = project.xmlHeader
@@ -44,12 +43,9 @@ class SystemLoadingActor(
     override fun draw(batch: Batch, parentAlpha: Float) {
         if (loaded) return
 
-        // Black background
         Gdx.gl.glClearColor(0f, 0f, 0f, 1f)
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
 
-        // End the batch only if it is currently active (e.g. when drawn via a Stage) so the
-        // ShapeRenderer can take over. The batch must be started before it is ended.
         val wasDrawing = batch.isDrawing
         if (wasDrawing) {
             batch.end()
@@ -62,11 +58,9 @@ class SystemLoadingActor(
         val barX = (width - barW) / 2f + x
         val barY = height * 0.3f + y
 
-        // Background bar
         shapeRenderer.color = Color(0.2f, 0.2f, 0.2f, 1f)
         shapeRenderer.rect(barX, barY, barW, barH)
 
-        // Progress bar
         shapeRenderer.color = Color(0f, 0.8f, 0f, 1f)
         shapeRenderer.rect(barX, barY, barW * progress, barH)
         shapeRenderer.end()
@@ -96,7 +90,6 @@ class SystemLoadingActor(
             0 -> { preloadRuntime(); currentStep++; progress = 0.1f }
             1 -> { preloadScenes(); currentStep++; progress = 0.2f }
             2 -> {
-                // Progressive look loading — load N textures per frame instead of all at once
                 if (looksToLoad == null) {
                     val allLooks = mutableListOf<org.catrobat.catroid.common.LookData>()
                     for (scene in project.sceneList) {
@@ -113,7 +106,6 @@ class SystemLoadingActor(
                     try { looks[i].pixmap } catch (_: Exception) {}
                 }
                 lookLoadIndex = end
-                // Progress: 0.2 → 0.8 based on looks loaded
                 progress = 0.2f + 0.6f * (lookLoadIndex.toFloat() / maxOf(looks.size, 1))
                 if (lookLoadIndex >= looks.size) {
                     currentStep++

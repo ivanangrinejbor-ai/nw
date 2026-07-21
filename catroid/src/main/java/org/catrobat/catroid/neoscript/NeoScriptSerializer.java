@@ -24,12 +24,6 @@ import org.catrobat.catroid.io.XstreamSerializer;
 import java.io.File;
 import java.nio.charset.Charset;
 
-/**
- * Serializes and deserializes {@link NeoScriptFile} objects reusing the existing
- * Catroid XStream configuration (so bricks, formulas, scripts and user data are
- * handled by the same converters that the project serializer uses). Adds file
- * format versioning and validation on top.
- */
 public final class NeoScriptSerializer {
 
 	private static final String XML_HEADER = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\" ?>\n";
@@ -37,17 +31,10 @@ public final class NeoScriptSerializer {
 	private NeoScriptSerializer() {
 	}
 
-	// BUG-NS-03 fix: guard the alias/processAnnotations calls so they are applied
-	// exactly once to the shared singleton XStream instance. Without this guard,
-	// concurrent calls (e.g. project save + neoscript parse at the same time)
-	// could mutate the XStream instance mid-use, causing corrupt object-id tables
-	// or duplicate alias registrations.
 	private static volatile boolean xstreamConfigured = false;
 	private static final Object XSTREAM_LOCK = new Object();
 
 	private static XStream configuredXStream() {
-		// Ensure the shared XStream is fully configured (project + scene aliases,
-		// converters, security allow-list) before we add our own alias.
 		XstreamSerializer.getInstance();
 		XStream xstream = XstreamSerializer.getInstance().getXstream();
 		if (!xstreamConfigured) {

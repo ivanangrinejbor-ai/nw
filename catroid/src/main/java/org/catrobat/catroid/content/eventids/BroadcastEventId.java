@@ -22,6 +22,8 @@
  */
 package org.catrobat.catroid.content.eventids;
 
+import java.util.Objects;
+
 public class BroadcastEventId extends EventId {
 	public final String message;
 
@@ -40,7 +42,7 @@ public class BroadcastEventId extends EventId {
 
 		BroadcastEventId that = (BroadcastEventId) o;
 
-		return message.equals(that.message);
+		return Objects.equals(message, that.message);
 	}
 
 	public int hashCode() {

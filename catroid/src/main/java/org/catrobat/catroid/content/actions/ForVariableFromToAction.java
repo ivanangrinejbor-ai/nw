@@ -32,6 +32,8 @@ import org.catrobat.catroid.formulaeditor.UserVariable;
 
 public class ForVariableFromToAction extends LoopAction {
 
+	private static final int MAX_ITERATIONS = 10_000_000; // Safety limit
+	
 	private UserVariable controlVariable;
 	private Formula from;
 	private Formula to;
@@ -41,6 +43,7 @@ public class ForVariableFromToAction extends LoopAction {
 	private int fromValue;
 	private int toValue;
 	private int step = 1;
+	private int iterationCount = 0;
 
 	@Override
 	public boolean delegate(float delta) {
@@ -55,8 +58,15 @@ public class ForVariableFromToAction extends LoopAction {
 		}
 
 		setCurrentTime(getCurrentTime() + delta);
+		
+		// Safety limit to prevent freezing
+		if (iterationCount >= MAX_ITERATIONS) {
+			Log.w(getClass().getSimpleName(), "For loop exceeded maximum iterations (" + MAX_ITERATIONS + "), stopping");
+			return true;
+		}
 
 		if (action != null && action.act(delta) && !isLoopDelayNeeded()) {
+			iterationCount++;
 			if (!(controlVariable.getValue() instanceof Double)
 					|| (step > 0 && (double) controlVariable.getValue() >= toValue)
 					|| (step < 0 && (double) controlVariable.getValue() <= toValue)) {
@@ -73,6 +83,7 @@ public class ForVariableFromToAction extends LoopAction {
 	public void restart() {
 		isCurrentLoopInitialized = false;
 		isRepeatActionInitialized = false;
+		iterationCount = 0;
 		super.restart();
 	}
 
@@ -94,8 +105,17 @@ public class ForVariableFromToAction extends LoopAction {
 		try {
 			Double fromInterpretation = from == null ? Double.valueOf(0d)
 					: from.interpretDouble(scope);
-			fromValue = fromInterpretation.intValue();
 			Double toInterpretation = to == null ? Double.valueOf(0d) : to.interpretDouble(scope);
+			
+			// Sanitize NaN/Infinity
+			if (fromInterpretation == null || fromInterpretation.isNaN() || fromInterpretation.isInfinite()) {
+				fromInterpretation = 0d;
+			}
+			if (toInterpretation == null || toInterpretation.isNaN() || toInterpretation.isInfinite()) {
+				toInterpretation = 0d;
+			}
+			
+			fromValue = fromInterpretation.intValue();
 			toValue = toInterpretation.intValue();
 			setStepValue();
 			setControlVariable(fromValue);

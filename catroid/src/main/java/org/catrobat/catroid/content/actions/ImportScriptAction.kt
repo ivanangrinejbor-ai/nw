@@ -46,7 +46,6 @@ class ImportScriptAction : TemporalAction() {
             return
         }
 
-        // Resolve scene
         val sceneStr = sceneName?.interpretString(scope)
         val targetScene = resolveScene(project, sceneStr)
 

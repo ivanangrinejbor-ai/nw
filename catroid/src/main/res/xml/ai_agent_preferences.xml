@@ -15,33 +15,6 @@
         android:summary="@string/ai_agent_chat_summary"
         android:title="@string/ai_agent_chat_title" />
 
-    <PreferenceCategory android:title="@string/ai_agent_model_category">
-
-        <ListPreference
-            android:defaultValue=""
-            android:entries="@array/ai_model_entries"
-            android:entryValues="@array/ai_model_values"
-            android:key="ai_agent_model_id"
-            android:summary="@string/ai_agent_model_summary"
-            android:title="@string/ai_agent_model_title" />
-
-        <Preference
-            android:key="ai_agent_download_model"
-            android:summary="@string/ai_agent_download_summary"
-            android:title="@string/ai_agent_download_title" />
-
-        <Preference
-            android:key="ai_agent_delete_model"
-            android:summary="@string/ai_agent_delete_summary"
-            android:title="@string/ai_agent_delete_title" />
-
-        <Preference
-            android:key="ai_agent_load_custom_model"
-            android:summary="@string/ai_agent_load_custom_summary"
-            android:title="@string/ai_agent_load_custom_title" />
-
-    </PreferenceCategory>
-
     <PreferenceCategory android:title="@string/ai_agent_behavior_category">
 
         <CheckBoxPreference

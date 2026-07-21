@@ -47,8 +47,8 @@ import android.annotation.SuppressLint;
 
 import com.danvexteam.lunoscript_annotations.LunoClass;
 
-import org.catrobat.catroid.formulaeditor.CustomFormula; // Добавьте этот импорт
-import org.catrobat.catroid.formulaeditor.CustomFormulaManager; // Добавьте этот импорт
+import org.catrobat.catroid.formulaeditor.CustomFormula;
+import org.catrobat.catroid.formulaeditor.CustomFormulaManager;
 
 @LunoClass
 public class InternFormulaKeyboardAdapter {

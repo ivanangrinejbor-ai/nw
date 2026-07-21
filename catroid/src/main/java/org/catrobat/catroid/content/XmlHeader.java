@@ -71,13 +71,9 @@ public class XmlHeader implements Serializable {
 	public boolean scenesEnabled = true;
 	private String listeningLanguageTag = "";
 
-	// NeoCatroid: preloader / precompile
 	private boolean preloaderEnabled = false;
 	private boolean precompileEnabled = false;
 
-	//==============================================================================================
-	// mutable fields only used by Catroweb (share.catrob.at website) so far
-	//==============================================================================================
 	private String applicationBuildName = "";
 	private int applicationBuildNumber = 0;
 	private String applicationName = "";
@@ -90,32 +86,6 @@ public class XmlHeader implements Serializable {
 
 	@XStreamAlias("gitRemoteUrl")
 	private String gitRemoteUrl = "";
-	//----------------------------------------------------------------------------------------------
-
-	//==============================================================================================
-	// immutable (i.e. read-only) fields only used and updated by Catroweb during upload
-	//==============================================================================================
-	//
-	// ***  CATROBAT REMIX SPECIFICATION REQUIREMENT ***
-	//
-	//  Keep in mind that the remixGrandparentsUrlString-field (respectively remixOf-XML-field)
-	//  (see below) is used by Catroweb's web application "share.catrob.at" only.
-	//  Once new Catrobat programs get uploaded, Catroweb automatically updates this XML-field
-	//  and sets the program as being remixed!
-	//  In order to do so, Catroweb takes the value from the url-XML-field (see above) and assigns
-	//  it to this XML-field.
-	//
-	//  With that said, the only correct way to set a new remix-URL (e.g. when two programs get
-	//  merged locally) is to assign it to the remixParentsUrlString-field.
-	//
-	//  How to deal with re-merged programs?
-	//    If you plan to merge a program A with another (already) merged program B, you have to put
-	//    the url of A's parent and all urls of B's parents together into one single string
-	//    and assign it to the remixParentsUrlString-field.
-	//    The same process is repeated for successive re-merges...
-	//    For more details, please have a look at the generateRemixUrlsStringForMergedProgram()
-	//    method in Utils.java
-	//
 	@SuppressWarnings("unused")
 	@XStreamAlias("remixOf")
 	private String remixGrandparentsUrlString = "";
@@ -129,7 +99,6 @@ public class XmlHeader implements Serializable {
 	private String mediaLicense = "";
 	@SuppressWarnings("unused")
 	private String programLicense = "";
-	//----------------------------------------------------------------------------------------------
 
 	public XmlHeader() {
 	}

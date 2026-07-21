@@ -102,8 +102,6 @@ public final class Utils {
 	}
 
 	public static final int TRANSLATION_PLURAL_OTHER_INTEGER = 767676;
-	// IETF representation like "en-US".
-	// if you need it in ISO representation, just replace '-' with '_'
 	public static final ArrayList<String> SPEECH_RECOGNITION_SUPPORTED_LANGUAGES = new ArrayList<>();
 
 	private Utils() {
@@ -175,7 +173,6 @@ public final class Utils {
 		return remixUrlString.toString();
 	}
 
-	// based on: http://stackoverflow.com/a/27295688
 	public static List<String> extractRemixUrlsFromString(String text) {
 		RemixUrlParsingState state = RemixUrlParsingState.STARTING;
 		ArrayList<String> extractedUrls = new ArrayList<>();
@@ -247,8 +244,6 @@ public final class Utils {
 	}
 
 	public static boolean isDeprecatedScratchProgram(final ScratchProgramData programData) {
-		// NOTE: ignoring old Scratch 1.x programs -> converter only supports version 2.x and later
-		//       Scratch 1.x programs are created before May 9, 2013 (see: https://wiki.scratch.mit.edu/wiki/Scratch_2.0)
 		final Date releasePublishedDate = getScratchSecondReleasePublishedDate();
 		if (programData.getModifiedDate() != null && programData.getModifiedDate().before(releasePublishedDate)) {
 			return true;
@@ -273,8 +268,6 @@ public final class Utils {
 	}
 
 	public static String changeSizeOfScratchImageURL(final String url, int newHeight) {
-		// example: https://cdn2.scratch.mit.edu/get_image/project/10205819_480x360.png
-		//    ->    https://cdn2.scratch.mit.edu/get_image/project/10205819_240x180.png
 		final int width = Constants.SCRATCH_IMAGE_DEFAULT_WIDTH;
 		final int height = Constants.SCRATCH_IMAGE_DEFAULT_HEIGHT;
 		final int newWidth = Math.round(((float) width) / ((float) height) * newHeight);

@@ -39,12 +39,6 @@ public final class PhysicsShapeScaleUtils {
 	private PhysicsShapeScaleUtils() {
 	}
 
-	/**
-	 * Creates a deep copy of an array of Shapes. For PolygonShape instances,
-	 * a new PolygonShape with identical vertices is created. Non-PolygonShape
-	 * entries are passed through by reference (no general-purpose clone exists).
-	 * This prevents cache corruption when scaleShapes disposes old shapes.
-	 */
 	public static Shape[] copyShapes(Shape[] shapes) {
 		Shape[] copies = new Shape[shapes.length];
 		for (int i = 0; i < shapes.length; i++) {
@@ -59,7 +53,7 @@ public final class PhysicsShapeScaleUtils {
 				copy.set(vertices);
 				copies[i] = copy;
 			} else {
-				copies[i] = shapes[i]; // Pass through non-PolygonShape types
+				copies[i] = shapes[i];
 			}
 		}
 		return copies;
@@ -81,7 +75,6 @@ public final class PhysicsShapeScaleUtils {
 		if (shapes != null) {
 			for (Shape shape : shapes) {
 				if (!(shape instanceof PolygonShape)) {
-					// Non-polygon shapes are passed through unchanged
 					scaledShapes.add(shape);
 					continue;
 				}
@@ -98,8 +91,6 @@ public final class PhysicsShapeScaleUtils {
 				polygonShape.set(vertices.toArray(new Vector2[vertices.size()]));
 				scaledShapes.add(polygonShape);
 
-				// Dispose the old shape after creating the replacement to prevent
-				// native memory leaks (Box2D shapes hold native peer objects).
 				shape.dispose();
 			}
 		}

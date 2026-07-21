@@ -64,7 +64,6 @@ class NativeLayerBrick(private var spinnerSelectionON: Int = 0) : BrickBaseType(
     override fun getViewResource(): Int = R.layout.brick_native_layer
 
     override fun addRequiredResources(requiredResourcesSet: ResourcesSet) {
-        //requiredResourcesSet.add(VIDEO)
     }
 
     override fun addActionToSequence(sprite: Sprite, sequence: ScriptSequenceAction) {

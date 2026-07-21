@@ -6,11 +6,6 @@ import javax.sound.midi.MidiSystem
 import javax.sound.midi.MidiChannel
 import javax.sound.midi.Synthesizer
 
-/**
- * Desktop (Windows) implementation of [MidiService] using the JDK MIDI synthesizer
- * (`javax.sound.midi`). Approximate but functional: notes/drums play through the
- * default software synthesizer; instruments map to General MIDI programs.
- */
 class DesktopMidiService : MidiService {
     private var synth: Synthesizer? = null
     private var channel: MidiChannel? = null
@@ -29,8 +24,6 @@ class DesktopMidiService : MidiService {
                 synth = MidiSystem.getSynthesizer().also {
                     it.open()
                     channel = it.channels.firstOrNull()
-                    // GM percussion lives on channel 10 (0-indexed 9). Route drums there
-                    // with the standard kit so they don't play on the melodic channel.
                     drumChannel = it.channels.getOrNull(9)
                     drumChannel?.programChange(0)
                 }
@@ -65,13 +58,11 @@ class DesktopMidiService : MidiService {
     private fun playNote(ch: MidiChannel, note: Int, beats: Float) {
         val velocity = (volume * 100).toInt().coerceIn(0, 127)
         ch.noteOn(note, velocity)
-        // Не блокируем render-поток — пускаем noteOff через таймер
         val durationMs = (beats * 60000f / tempo.coerceAtLeast(1f)).toLong()
         Thread {
             try {
                 Thread.sleep(durationMs)
             } catch (_: InterruptedException) {
-                // interrupted — note останется звучать
             }
             ch.noteOff(note)
         }.apply { isDaemon = true }.start()

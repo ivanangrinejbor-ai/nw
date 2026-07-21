@@ -895,6 +895,17 @@ public class ActionFactory extends Actions {
 		return action;
 	}
 
+	public Action createGlideToAction(Sprite sprite, SequenceAction sequence, Formula x, Formula y,
+			Formula duration, int easingType) {
+		GlideToAction action = Actions.action(GlideToAction.class);
+		action.setPosition(x, y);
+		action.setDuration(duration);
+		action.setEasingType(easingType);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		return action;
+	}
+
 	public Action createPlaceAtAction(Sprite sprite, SequenceAction sequence, Formula x, Formula y) {
 		GlideToAction action = Actions.action(GlideToAction.class);
 		action.setPosition(x, y);
@@ -3884,6 +3895,17 @@ public class ActionFactory extends Actions {
         return action;
     }
 
+    public Action createPtLinearAction(Sprite sprite, ScriptSequenceAction sequence, Formula layerName, Formula input, Formula output, Formula inFeatures, Formula outFeatures) {
+        PtLinearAction action = action(PtLinearAction.class);
+        action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        action.setLayerNameFormula(layerName);
+        action.setInputFormula(input);
+        action.setOutputFormula(output);
+        action.setInFeaturesFormula(inFeatures);
+        action.setOutFeaturesFormula(outFeatures);
+        return action;
+    }
+
     public Action createMLStepAdamAction(Sprite sprite, SequenceAction sequence, Formula lr) {
         MLStepAdamAction action = action(MLStepAdamAction.class);
         action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
@@ -4122,6 +4144,15 @@ public class ActionFactory extends Actions {
         action.setFov(fov);
         action.setShakeIntensity(intensity);
         action.setShakeDuration(duration);
+        return action;
+    }
+
+    public Action createShakeScreenAction(Sprite sprite, ScriptSequenceAction sequence,
+                                          Formula intensity, Formula duration) {
+        ShakeScreenAction action = action(ShakeScreenAction.class);
+        action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        action.setIntensity(intensity);
+        action.setDuration(duration);
         return action;
     }
 
@@ -5338,6 +5369,61 @@ public class ActionFactory extends Actions {
         return action;
     }
 
+    public Action createNotificationCreateAction(Sprite sprite, ScriptSequenceAction sequence, Formula notifId, Formula channelName, Formula title, Formula text, Formula largeIconFile, int importanceSelection, boolean isOngoing) {
+        NotificationCreateAction action = Actions.action(NotificationCreateAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setNotifId(notifId);
+        action.setChannelName(channelName);
+        action.setTitle(title);
+        action.setText(text);
+        action.setLargeIconFile(largeIconFile);
+        action.setImportanceSelection(importanceSelection);
+        action.setOngoing(isOngoing);
+        return action;
+    }
+
+    public Action createNotificationShowAction(Sprite sprite, ScriptSequenceAction sequence, Formula notifId, Formula delaySeconds) {
+        NotificationShowAction action = Actions.action(NotificationShowAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setNotifId(notifId);
+        action.setDelaySeconds(delaySeconds);
+        return action;
+    }
+
+    public Action createNotificationAddButtonAction(Sprite sprite, ScriptSequenceAction sequence, Formula notifId, Formula actionId, Formula text, Formula iconPath, Formula hint, int behavior, boolean hasInput, boolean autoClose) {
+        NotificationAddButtonAction action = Actions.action(NotificationAddButtonAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setNotifId(notifId);
+        action.setActionId(actionId);
+        action.setText(text);
+        action.setIconFile(iconPath);
+        action.setHint(hint);
+        action.setBehavior(behavior);
+        action.setHasInput(hasInput);
+        action.setAutoClose(autoClose);
+        return action;
+    }
+
+    public Action createNotificationCancelAction(Sprite sprite, ScriptSequenceAction sequence, Formula notifId) {
+        NotificationCancelAction action = Actions.action(NotificationCancelAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setNotifId(notifId);
+        return action;
+    }
+
+    public Action createZipProjectFilesAction(Sprite sprite, ScriptSequenceAction sequence, Formula filesToZip, Formula zipFileName) {
+        ZipProjectFilesAction action = Actions.action(ZipProjectFilesAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setFilesToZip(filesToZip);
+        action.setZipFileName(zipFileName);
+        return action;
+    }
+
     public Action createPlayToneAction(Sprite sprite, ScriptSequenceAction sequence, Formula frequency, Formula duration) {
         PlayToneAction action = Actions.action(PlayToneAction.class);
         Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
@@ -5915,5 +6001,473 @@ public class ActionFactory extends Actions {
         action.setBucket(bucket);
         action.setPath(path);
         return action;
+    }
+
+    public Action createUnzipProjectFilesAction(Sprite sprite, SequenceAction sequence,
+                                                Formula zipFileName) {
+        UnzipProjectFilesAction action = action(UnzipProjectFilesAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setZipFileName(zipFileName);
+        return action;
+    }
+
+    public Action createBase64ToFileAction(Sprite sprite, SequenceAction sequence,
+                                           Formula base64String, Formula destinationFileName) {
+        Base64ToFileAction action = action(Base64ToFileAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setBase64String(base64String);
+        action.setDestinationFileName(destinationFileName);
+        return action;
+    }
+
+    public Action createOpenAppAction(Sprite sprite, SequenceAction sequence,
+                                      Formula packageName) {
+        OpenAppAction action = action(OpenAppAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setPackageName(packageName);
+        return action;
+    }
+
+    public Action createShareAction(Sprite sprite, SequenceAction sequence,
+                                    Formula contentFormula) {
+        ShareAction action = action(ShareAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setContentFormula(contentFormula);
+        return action;
+    }
+
+    public Action createBroadcastWithParamsAction(Sprite sprite, SequenceAction sequence,
+                                                  Formula signalName, Formula params) {
+        BroadcastWithParamsAction action = action(BroadcastWithParamsAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setSignalName(signalName);
+        action.setParams(params);
+        return action;
+    }
+
+    public Action createSaveBroadcastParamsAction(Sprite sprite, SequenceAction sequence,
+                                                  String signalName, UserVariable userVariable) {
+        SaveBroadcastParamsAction action = action(SaveBroadcastParamsAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setSignalName(signalName);
+        action.setUserVariable(userVariable);
+        return action;
+    }
+
+    public Action createSpawnThreadAction(Sprite sprite, SequenceAction sequence, Formula id, java.util.List<Brick> threadBricks, Script script) {
+        SpawnThreadAction action = action(SpawnThreadAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setThreadIdFormula(id);
+        action.setThreadBricks(threadBricks);
+        action.setScript(script);
+        return action;
+    }
+
+    public Action createStopThreadAction(Sprite sprite, SequenceAction sequence, Formula id) {
+        StopThreadAction action = action(StopThreadAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setThreadIdFormula(id);
+        return action;
+    }
+
+    public Action createWaitThreadAction(Sprite sprite, SequenceAction sequence, Formula id) {
+        WaitThreadAction action = action(WaitThreadAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setThreadIdFormula(id);
+        return action;
+    }
+
+    public Action createInstantAction(Sprite sprite, SequenceAction sequence, Action instantSequence) {
+        InstantAction action = action(InstantAction.class);
+        action.setAction(instantSequence);
+        return action;
+    }
+
+    public Action createHttpCreateAction(Sprite sprite, SequenceAction sequence, Formula requestId, Formula method, Formula url) {
+        HttpCreateAction action = action(HttpCreateAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setRequestId(requestId);
+        action.setMethod(method);
+        action.setUrl(url);
+        return action;
+    }
+
+    public Action createHttpSendAction(Sprite sprite, SequenceAction sequence, Formula requestId) {
+        HttpSendAction action = action(HttpSendAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setRequestId(requestId);
+        return action;
+    }
+
+    public Action createHttpConfigAction(Sprite sprite, SequenceAction sequence, Formula requestId, int configType, Formula key, Formula value) {
+        HttpConfigAction action = action(HttpConfigAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setRequestId(requestId);
+        action.setConfigTypeSelection(configType);
+        action.setKey(key);
+        action.setValue(value);
+        return action;
+    }
+
+    public Action createHttpBodyAction(Sprite sprite, SequenceAction sequence, Formula requestId, Formula bodyText, Formula contentType) {
+        HttpBodyAction action = action(HttpBodyAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setRequestId(requestId);
+        action.setBodyText(bodyText);
+        action.setContentType(contentType);
+        return action;
+    }
+
+    public Action createHttpAttachFileAction(Sprite sprite, SequenceAction sequence, Formula requestId, Formula fileName, Formula parameterName, Formula mimeType) {
+        HttpAttachFileAction action = action(HttpAttachFileAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setRequestId(requestId);
+        action.setFileName(fileName);
+        action.setParameterName(parameterName);
+        action.setMimeType(mimeType);
+        return action;
+    }
+
+    public Action createHttpSaveFileAction(Sprite sprite, SequenceAction sequence, Formula requestId, Formula destinationFileName) {
+        HttpSaveFileAction action = action(HttpSaveFileAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setRequestId(requestId);
+        action.setDestinationFileName(destinationFileName);
+        return action;
+    }
+
+    public Action createAddTextToBufferAction(Sprite sprite, SequenceAction sequence, Formula buffer, Formula text) {
+        AddTextToBufferAction action = action(AddTextToBufferAction.class);
+        action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        action.setBufferName(buffer);
+        action.setTextName(text);
+        return action;
+    }
+
+    public Action createEasePropertyAction(Sprite sprite, SequenceAction sequence,
+                                           int propertyIndex, int typeIndex, Formula duration, Formula start, Formula end) {
+        EasePropertyAction action = action(EasePropertyAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setPropertyIndex(propertyIndex);
+        action.setTypeIndex(typeIndex);
+        action.setDurationFormula(duration);
+        action.setStartFormula(start);
+        action.setEndFormula(end);
+        return action;
+    }
+
+    public Action createEase3DPropertyAction(Sprite sprite, SequenceAction sequence,
+                                             Formula objectId, int propertyIndex, int typeIndex, Formula duration, Formula start, Formula end) {
+        Ease3DPropertyAction action = action(Ease3DPropertyAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setObjectId(objectId);
+        action.setPropertyIndex(propertyIndex);
+        action.setTypeIndex(typeIndex);
+        action.setDurationFormula(duration);
+        action.setStartFormula(start);
+        action.setEndFormula(end);
+        return action;
+    }
+
+    public Action createGlideTo3DAction(Sprite sprite, SequenceAction sequence,
+                                        Formula objectId, Formula x, Formula y, Formula z, Formula duration, int typeIndex) {
+        GlideTo3DAction action = action(GlideTo3DAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setObjectId(objectId);
+        action.setXFormula(x);
+        action.setYFormula(y);
+        action.setZFormula(z);
+        action.setDurationFormula(duration);
+        action.setTypeIndex(typeIndex);
+        return action;
+    }
+
+    public Action createSetBufferShaderAction(Sprite sprite, SequenceAction sequence, Formula name, Formula vsh, Formula fsh) {
+        SetBufferShaderAction action = action(SetBufferShaderAction.class);
+        action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        action.setBufferName(name);
+        action.setVertexCode(vsh);
+        action.setFragmentCode(fsh);
+        return action;
+    }
+
+    public Action createSetBufferShaderUniformAction(Sprite sprite, SequenceAction sequence, Formula bufName, Formula uniName, Formula v1, Formula v2, Formula v3, int count) {
+        SetBufferShaderUniformAction action = action(SetBufferShaderUniformAction.class);
+        action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        action.setBufferName(bufName);
+        action.setUniformName(uniName);
+        action.setVal1(v1);
+        action.setVal2(v2);
+        action.setVal3(v3);
+        action.setParamCount(count);
+        return action;
+    }
+
+    public Action createSetMainRenderLoopsAction(Sprite sprite, SequenceAction sequence, Formula r2d, Formula rf2d, Formula r3d) {
+        SetMainRenderLoopsAction action = action(SetMainRenderLoopsAction.class);
+        action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        action.setRender2D(r2d);
+        action.setRenderFast2D(rf2d);
+        action.setRender3D(r3d);
+        return action;
+    }
+
+    public Action createSetBufferEffectsAction(Sprite sprite, SequenceAction sequence, Formula name, Formula vfx, Formula mip) {
+        SetBufferEffectsAction action = action(SetBufferEffectsAction.class);
+        action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        action.setBufferName(name);
+        action.setUseVfx(vfx);
+        action.setUseMipmapping(mip);
+        return action;
+    }
+
+    public Action createStopGifAction(Sprite sprite, SequenceAction sequence) {
+        StopGifAction action = action(StopGifAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        return action;
+    }
+
+    public Action createStopSpritesheetAction(Sprite sprite, SequenceAction sequence) {
+        StopSpritesheetAction action = action(StopSpritesheetAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        return action;
+    }
+
+    // ========== Phase 4 — missing factory methods ==========
+
+    public Action createBufferMaskAction(Sprite sprite, ScriptSequenceAction sequence, Formula bufferName, int mode) {
+        BufferMaskAction a = action(BufferMaskAction.class);
+        a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        a.setBufferName(bufferName); a.setModeSelection(mode); return a;
+    }
+
+    public Action createConfigureLightAction(Sprite sprite, ScriptSequenceAction sequence, Formula objectId, int configType, Formula value) {
+        ConfigureLightAction a = action(ConfigureLightAction.class);
+        a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        a.setLightId(objectId); a.setConfigTypeSelection(configType); a.setValue(value); return a;
+    }
+
+    public Action createConfigureMaterialAction(Sprite sprite, ScriptSequenceAction sequence, Formula objectId, int configType, Formula value) {
+        ConfigureMaterialAction a = action(ConfigureMaterialAction.class);
+        a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        a.setObjectId(objectId); a.setConfigTypeSelection(configType); a.setValue(value); return a;
+    }
+
+    public Action createConfigureParticlesAction(Sprite sprite, ScriptSequenceAction sequence, Formula particleId, int configType, Formula value) {
+        ConfigureParticlesAction a = action(ConfigureParticlesAction.class);
+        a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        a.setParticleId(particleId); a.setConfigTypeSelection(configType); a.setValue(value); return a;
+    }
+
+    public Action createCreateButtonAction(Sprite sprite, ScriptSequenceAction sequence, Formula v1, Formula v2, Formula v3, Formula v4, Formula v5, Formula v6, Formula x, Formula y, Formula w, Formula h) {
+        CreateButtonAction a = action(CreateButtonAction.class);
+        a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        return a;
+    }
+
+    public Action createCreateImageViewAction(Sprite sprite, ScriptSequenceAction sequence, int scale, Formula v1, Formula v2, Formula v3, Formula x, Formula y, Formula w, Formula h) {
+        CreateImageViewAction a = action(CreateImageViewAction.class);
+        a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        return a;
+    }
+
+    public Action createCreateScrollViewAction(Sprite sprite, ScriptSequenceAction sequence, int scrollMode, int overScrollMode, Formula v1, Formula v2, Formula v3, Formula v4, Formula x, Formula y, Formula w, Formula h) {
+        CreateScrollViewAction a = action(CreateScrollViewAction.class);
+        a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        return a;
+    }
+
+    public Action createCreateSliderAction(Sprite sprite, ScriptSequenceAction sequence, Formula v1, Formula v2, Formula v3, Formula v4, Formula x, Formula y, Formula w, Formula h) {
+        CreateSliderAction a = action(CreateSliderAction.class);
+        a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        return a;
+    }
+
+    public Action createCreateSwitchAction(Sprite sprite, ScriptSequenceAction sequence, Formula v1, Formula v2, Formula v3, Formula x, Formula y, Formula w, Formula h) {
+        CreateSwitchAction a = action(CreateSwitchAction.class);
+        a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        return a;
+    }
+
+    public Action createCreateTextLabelAction(Sprite sprite, ScriptSequenceAction sequence, int formatMode, int alignMode, int scrollMode, Formula v1, Formula v2, Formula v3, Formula v4, Formula v5, Formula v6, Formula v7, Formula v8, Formula x, Formula y, Formula w, Formula h) {
+        CreateTextLabelAction a = action(CreateTextLabelAction.class);
+        a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        return a;
+    }
+
+    public Action createDisableBackgroundModeAction(Sprite sprite, ScriptSequenceAction sequence) {
+        DisableBackgroundModeAction a = action(DisableBackgroundModeAction.class);
+        a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        return a;
+    }
+
+    public Action createEnableBackgroundModeAction(Sprite sprite, ScriptSequenceAction sequence, Formula title, Formula text) {
+        EnableBackgroundModeAction a = action(EnableBackgroundModeAction.class);
+        a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        a.setTitle(title); a.setText(text); return a;
+    }
+
+    public Action createExport3dObjectToGlbAction(Sprite sprite, ScriptSequenceAction sequence, Formula v1, Formula v2) {
+        Export3dObjectToGlbAction a = action(Export3dObjectToGlbAction.class);
+        a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        return a;
+    }
+
+    public Action createFast2DSetGravityAction(Sprite sprite, ScriptSequenceAction sequence, Formula gx, Formula gy) {
+        Fast2DSetGravityAction a = action(Fast2DSetGravityAction.class);
+        a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        a.setGravityX(gx); a.setGravityY(gy); return a;
+    }
+
+    public Action createCompileJavaToDexAction(Sprite sprite, ScriptSequenceAction sequence, Formula v1, Formula v2, Object userVariable) {
+        CompileJavaToDexAction a = action(CompileJavaToDexAction.class);
+        a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        return a;
+    }
+
+    public Action createDownloadDependencyAction(Sprite sprite, ScriptSequenceAction sequence, Formula v1, Formula v2, Object userVariable, boolean recursive) {
+        DownloadDependencyAction a = action(DownloadDependencyAction.class);
+        a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        return a;
+    }
+
+    public Action createLoadAndRunDexAction(Sprite sprite, ScriptSequenceAction sequence, Formula v1, Formula v2, Formula v3, Formula v4) {
+        LoadAndRunDexAction a = action(LoadAndRunDexAction.class);
+        a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        return a;
+    }
+
+    public Action createMqttConnectAction(Sprite sprite, ScriptSequenceAction sequence, Formula v1, Formula v2, Formula v3) {
+        MqttConnectAction a = action(MqttConnectAction.class);
+        a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        return a;
+    }
+
+    public Action createMqttDisconnectAction(Sprite sprite, ScriptSequenceAction sequence, Formula v1) {
+        MqttDisconnectAction a = action(MqttDisconnectAction.class);
+        a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        return a;
+    }
+
+    public Action createMqttJoinRoomAction(Sprite sprite, ScriptSequenceAction sequence, Formula v1, Formula v2, Formula v3) {
+        MqttJoinRoomAction a = action(MqttJoinRoomAction.class);
+        a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        return a;
+    }
+
+    public Action createMqttPublishAction(Sprite sprite, ScriptSequenceAction sequence, Formula v1, Formula v2, Formula v3, Formula v4) {
+        MqttPublishAction a = action(MqttPublishAction.class);
+        a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        return a;
+    }
+
+    public Action createNativeViewAnimateAction(Sprite sprite, ScriptSequenceAction sequence, int property, int easing, Formula v1, Formula v2, Formula v3) {
+        NativeViewAnimateAction a = action(NativeViewAnimateAction.class);
+        a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        return a;
+    }
+
+    public Action createNativeViewBindSpriteAction(Sprite sprite, ScriptSequenceAction sequence, int align, Formula v1, Formula v2, Formula x, Formula y) {
+        NativeViewBindSpriteAction a = action(NativeViewBindSpriteAction.class);
+        a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        return a;
+    }
+
+    public Action createNativeViewConfigAction(Sprite sprite, ScriptSequenceAction sequence, int property, Formula v1, Formula v2) {
+        NativeViewConfigAction a = action(NativeViewConfigAction.class);
+        a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        return a;
+    }
+
+    public Action createNativeViewControlAction(Sprite sprite, ScriptSequenceAction sequence, int command, Formula v1, Formula v2) {
+        NativeViewControlAction a = action(NativeViewControlAction.class);
+        a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        return a;
+    }
+
+    public Action createNativeViewListenerAction(Sprite sprite, ScriptSequenceAction sequence, int event, Formula v1, Object userVariable) {
+        NativeViewListenerAction a = action(NativeViewListenerAction.class);
+        a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        return a;
+    }
+
+    public Action createObjectLookAtCorrectAction(Sprite sprite, ScriptSequenceAction sequence, Formula v1, Formula v2, Formula v3, Formula v4) {
+        ObjectLookAtCorrectAction a = action(ObjectLookAtCorrectAction.class);
+        a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        return a;
+    }
+
+    public Action createPlayGifAction(Sprite sprite, ScriptSequenceAction sequence, Formula fileName) {
+        PlayGifAction a = action(PlayGifAction.class);
+        a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        a.setGifFileName(fileName); return a;
+    }
+
+    public Action createPlaySpritesheetAction(Sprite sprite, ScriptSequenceAction sequence, Formula rows, Formula cols, Formula row, Formula frames, Formula speed) {
+        PlaySpritesheetAction a = action(PlaySpritesheetAction.class);
+        a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        a.setRows(rows); a.setCols(cols); a.setSelectedRow(row); a.setFramesCount(frames); a.setSpeed(speed); return a;
+    }
+
+    public Action createReplace3DModelAction(Sprite sprite, ScriptSequenceAction sequence, Formula objectId, Formula modelPath) {
+        Replace3DModelAction a = action(Replace3DModelAction.class);
+        a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        a.setObjectId(objectId); a.setModelPath(modelPath); return a;
+    }
+
+    public Action createSetCornerOffsetsAction(Sprite sprite, ScriptSequenceAction sequence, Formula tlx, Formula tly, Formula trx, Formula tryF, Formula brx, Formula bry, Formula blx, Formula bly) {
+        SetCornerOffsetsAction a = action(SetCornerOffsetsAction.class);
+        a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        a.setTlx(tlx); a.setTly(tly); a.setTrx(trx); a.setTryFormula(tryF); a.setBrx(brx); a.setBry(bry); a.setBlx(blx); a.setBly(bly); return a;
+    }
+
+    public Action createSetNativeParentAction(Sprite sprite, ScriptSequenceAction sequence, Formula v1, Formula v2) {
+        SetNativeParentAction a = action(SetNativeParentAction.class);
+        a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        return a;
+    }
+
+    public Action createSetTextBufferOnlyAction(Sprite sprite, ScriptSequenceAction sequence, Formula textName, Formula state) {
+        SetTextBufferOnlyAction a = action(SetTextBufferOnlyAction.class);
+        a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        a.setTextName(textName); a.setStateFormula(state); return a;
+    }
+
+    public Action createShowNotificationAction(Sprite sprite, ScriptSequenceAction sequence, Formula v1, Formula v2, Formula v3, Formula v4, int importance, Formula v5, boolean ongoing) {
+        ShowNotificationAction a = action(ShowNotificationAction.class);
+        a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        return a;
+    }
+
+    public Action createStartBufferRecordingAction(Sprite sprite, ScriptSequenceAction sequence, Formula buf, Formula file, Formula fps, Formula bitrate) {
+        StartBufferRecordingAction a = action(StartBufferRecordingAction.class);
+        a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        a.setBufferName(buf); a.setFileName(file); a.setFpsFormula(fps); a.setBitrateFormula(bitrate); return a;
+    }
+
+    public Action createStopBufferRecordingAction(Sprite sprite, ScriptSequenceAction sequence) {
+        StopBufferRecordingAction a = action(StopBufferRecordingAction.class);
+        a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        return a;
     }
 }

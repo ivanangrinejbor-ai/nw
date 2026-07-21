@@ -1,1 +1,0 @@
-Android NDK + CMake (minSdk 24, compileSdk 34, Java/Kotlin 11). Bundled statically: libvncserver (RFB protocol), wolfssl (TLS/X509 verification), libjpeg-turbo (JPEG decoding for TurboJPEG encodings). Rendering uses OpenGL ES 2 (`GLESv2`).

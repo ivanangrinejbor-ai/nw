@@ -80,7 +80,6 @@ public final class StageLifeCycleController {
 			return;
 		}
 
-		// Reset mutation tracking flags for the new session
 		RuntimeMutationTracker.INSTANCE.reset();
 
 		StageActivity.resetNumberOfClonedSprites();
@@ -100,7 +99,6 @@ public final class StageLifeCycleController {
 		stageActivity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
 		stageActivity.stageListener = new StageListener();
-		// DIAGNOSTIC: detect silently-dropped assets (black stage root cause)
 		int dScenes = ProjectManager.getInstance().getCurrentProject().getSceneList().size();
 		int dSprites = 0, dLooks = 0, dSounds = 0;
 		for (Scene s : ProjectManager.getInstance().getCurrentProject().getSceneList()) {
@@ -128,11 +126,9 @@ public final class StageLifeCycleController {
 			stageActivity.initializeForView(stageActivity.stageListener, stageActivity.configuration);
 		}
 
-		//CATROID-105 - TODO: does this make any difference? probably necessary for cast:
 		if (stageActivity.getGdxGraphics().getView() instanceof SurfaceView) {
 			SurfaceView glView = (SurfaceView) stageActivity.getGdxGraphics().getView();
 			glView.getHolder().setFormat(PixelFormat.TRANSLUCENT);
-			//glView.setZOrderMediaOverlay(true);
 		}
 		stageActivity.stageAudioFocus = new StageAudioFocus(stageActivity);
 		stageActivity.stageResourceHolder = new StageResourceHolder(stageActivity);
@@ -255,12 +251,9 @@ public final class StageLifeCycleController {
 			}
 
 			if (resourcesSet.contains(Brick.NFC_ADAPTER)) {
-				// 1. Получаем адаптер. Он может быть null, если NFC не поддерживается.
 				stageActivity.nfcAdapter = NfcAdapter.getDefaultAdapter(stageActivity);
 
 				if (stageActivity.nfcAdapter != null) {
-					// 2. Создаем PendingIntent ТОЛЬКО если адаптер существует.
-					// Этот Intent будет перезапускать нашу же StageActivity, когда будет обнаружена метка.
 					int pendingIntentFlags;
 					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
 						pendingIntentFlags = PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_MUTABLE;
@@ -271,7 +264,6 @@ public final class StageLifeCycleController {
 					Intent intent = new Intent(stageActivity, stageActivity.getClass()).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
 					stageActivity.pendingIntent = PendingIntent.getActivity(stageActivity, 0, intent, pendingIntentFlags);
 
-					// 3. Вызываем enableForegroundDispatch только если и адаптер, и intent существуют.
 					stageActivity.nfcAdapter.enableForegroundDispatch(stageActivity, stageActivity.pendingIntent, null, null);
 					Log.d(TAG, "NFC foreground dispatch enabled.");
 				} else {
@@ -316,12 +308,9 @@ public final class StageLifeCycleController {
 			}
 			StageActivity.getActiveStageListener().finish();
 			stageActivity.manageLoadAndFinish();
-			//StageActivity.activeStageActivity.get().stageListener = null;
-		}
-		ProjectManager.getInstance().setCurrentlyPlayingScene(ProjectManager.getInstance().getCurrentlyEditedScene());
+	}
+	ProjectManager.getInstance().setCurrentlyPlayingScene(ProjectManager.getInstance().getCurrentlyEditedScene());
 		} catch (Throwable t) {
-			// Тайм-аут/safe-teardown: падение при выходе не должно убивать процесс
-			// (иначе Android пересоздаёт активность — чёрный экран и «реинициализация»).
 			Log.e(TAG, "Error during stage destroy; ignored to prevent app crash on exit", t);
 		}
 	}

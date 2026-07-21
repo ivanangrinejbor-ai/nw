@@ -4,30 +4,23 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
 
 class DesktopInput {
-    /** Mouse state on the previous frame (for justPressed/justReleased). */
     var wasMouseDown = false
-    /** Internal flag for two-frame tracking. */
     private var previousMouseDown = false
-    /** Mouse position on the previous frame, in stage coordinates. */
     private var prevMouseWorldX = 0f
     private var prevMouseWorldY = 0f
-    /** Touch state for sensing bricks. */
     var isTouched: Boolean = false
         private set
-    /** Finger/mouse position in stage coordinates. */
     var fingerX: Float = 0f
         private set
     var fingerY: Float = 0f
         private set
 
-    /** Simulate a tap at the given stage position (used by TapAtBrick). */
     fun simulateTap(x: Float, y: Float) {
         fingerX = x
         fingerY = y
         isTouched = true
     }
 
-    /** Mouse delta per frame in stage coordinates. */
     val mouseDeltaX: Float
         get() = mouseWorldX - prevMouseWorldX
     val mouseDeltaY: Float
@@ -38,7 +31,6 @@ class DesktopInput {
     val mouseY: Float
         get() = Gdx.input.y.toFloat()
 
-    /** Mouse position in stage coordinates, centered at (0, 0). */
     val mouseWorldX: Float
         get() = mouseX - Gdx.graphics.width / 2f
     val mouseWorldY: Float
@@ -60,7 +52,6 @@ class DesktopInput {
     var mouseScroll: Float = 0f
         private set
 
-    /** Called once per frame before sensing checks. */
     fun update() {
         wasMouseDown = previousMouseDown
         previousMouseDown = isMouseDown

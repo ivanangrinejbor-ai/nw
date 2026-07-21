@@ -9,23 +9,11 @@ import java.nio.channels.FileChannel
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
-/**
- * Memory-aware streaming pipeline for processing large files.
- *
- * Designed to prevent OutOfMemoryError by:
- * - Processing files in bounded chunks (never loading entire files into RAM).
- * - Using NIO FileChannel with direct buffers for zero-copy where possible.
- * - Providing a configurable memory budget (default 64 MB).
- */
 object MemoryAwarePipeline {
     private const val TAG = "MemoryAwarePipeline"
     private const val DEFAULT_CHUNK_SIZE = 4 * 1024 * 1024 // 4 MB chunks
     private const val STREAM_BUFFER_SIZE = 64 * 1024
 
-    /**
-     * Copies a file using NIO channels for zero-copy efficiency.
-     * Falls back to stream copy if NIO is unavailable.
-     */
     fun copyFile(source: File, dest: File): Long {
         dest.parentFile?.mkdirs()
         return try {
@@ -44,14 +32,9 @@ object MemoryAwarePipeline {
         }
     }
 
-    /**
-     * Zips a directory in streaming fashion (never loads entire directory into memory).
-     * Processes files one at a time with bounded I/O.
-     */
     fun zipDirectoryStreaming(sourceDir: File, destFile: File, onProgress: ((Float) -> Unit)? = null) {
         val allFiles = sourceDir.walkTopDown().filter { it.isFile }.toList()
         if (allFiles.isEmpty()) {
-            // Write empty zip
             ZipOutputStream(FileOutputStream(destFile)).use { }
             return
         }

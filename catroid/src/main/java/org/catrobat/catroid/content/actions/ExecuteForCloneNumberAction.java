@@ -37,6 +37,7 @@ public class ExecuteForCloneNumberAction extends Action {
             try {
                 int number = cloneNumberFormula.interpretInteger(scope);
                 if (scope.getSprite().cloneIndex != number) {
+                    // This clone doesn't match the target number, skip execution
                     return true;
                 }
             } catch (InterpretationException e) {
@@ -44,8 +45,15 @@ public class ExecuteForCloneNumberAction extends Action {
                 return true;
             }
         }
-        if (cloneAction != null) {
-            return cloneAction.act(delta);
+        // Only execute cloneAction if this clone matches the target number
+        if (cloneAction != null && scope != null) {
+            try {
+                if (scope.getSprite().cloneIndex == cloneNumberFormula.interpretInteger(scope)) {
+                    return cloneAction.act(delta);
+                }
+            } catch (InterpretationException e) {
+                Log.d(getClass().getSimpleName(), "Formula interpretation failed", e);
+            }
         }
         return true;
     }

@@ -8,26 +8,40 @@ import java.io.File
 object ModelRuntime {
 
     private const val TAG = "ModelRuntime"
+
+    // Kill-switch: local on-device GGUF inference is disabled (the JNI path is
+    // non-functional). The agent uses the cloud (Gemini) backend exclusively.
+    private const val LOCAL_MODELS_ENABLED = false
+
     private var nativeLoaded = false
     private var nativeContext: Long = 0
     private var loadedPath: String? = null
     private val generateMutex = Mutex()
 
     init {
-        try {
-            System.loadLibrary("ai_agent_jni")
-            nativeLoaded = true
-            Log.i(TAG, "Native library 'ai_agent_jni' loaded successfully")
-        } catch (e: UnsatisfiedLinkError) {
-            Log.e(TAG, "Native library not available: ${e.message}")
+        if (!LOCAL_MODELS_ENABLED) {
+            Log.i(TAG, "Local model support is disabled; skipping native library load")
             nativeLoaded = false
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to load native library: ${e.message}")
-            nativeLoaded = false
+        } else {
+            try {
+                System.loadLibrary("ai_agent_jni")
+                nativeLoaded = true
+                Log.i(TAG, "Native library 'ai_agent_jni' loaded successfully")
+            } catch (e: UnsatisfiedLinkError) {
+                Log.e(TAG, "Native library not available: ${e.message}")
+                nativeLoaded = false
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to load native library: ${e.message}")
+                nativeLoaded = false
+            }
         }
     }
 
     fun loadModel(modelFile: File, nCtx: Int = 512): Boolean {
+        if (!LOCAL_MODELS_ENABLED) {
+            Log.w(TAG, "Local models are disabled; refusing to load ${modelFile.name}")
+            return false
+        }
         if (!nativeLoaded) {
             Log.e(TAG, "Native library not loaded")
             return false

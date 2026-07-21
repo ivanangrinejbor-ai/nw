@@ -84,13 +84,12 @@ class RuntimeLoaderActivity : Activity() {
                 }
             }
 
-            // Try to read the per-build dynamic key first
+
             val password = try {
                 assets.open(ProtectedProjectPayload.KEY_ASSET_NAME).use { keyInput ->
                     keyInput.bufferedReader().readText().trim()
                 }
             } catch (e: Exception) {
-                // No key file — fall back to static password (backward compat)
                 ProtectedProjectPayload.PASSWORD
             }
 

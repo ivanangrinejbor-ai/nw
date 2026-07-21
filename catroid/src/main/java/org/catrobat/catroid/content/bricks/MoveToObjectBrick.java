@@ -55,8 +55,8 @@ public class MoveToObjectBrick extends FormulaBrick implements BrickSpinner.OnIt
     private static final long serialVersionUID = 1L;
     private String targetObject;
     private int moveMode = 0;
-    private int sizeCheckMode = 0; // 0 = ignore size, 1 = check fit
-    private int blockedPathAction = 0; // 0 = don't go, 1 = stop where blocked
+    private int sizeCheckMode = 0;
+    private int blockedPathAction = 0;
     private transient BrickSpinner<Sprite> spinner;
     private Set<String> avoidSet = new HashSet<>();
 

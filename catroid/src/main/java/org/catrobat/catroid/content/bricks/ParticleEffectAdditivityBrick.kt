@@ -84,7 +84,6 @@ class ParticleEffectAdditivityBrick(fadeType: Int = ON) : BrickBaseType() {
             }
 
             override fun onNothingSelected(adapterView: AdapterView<*>?) {
-                // Do nothing
             }
         }
     }

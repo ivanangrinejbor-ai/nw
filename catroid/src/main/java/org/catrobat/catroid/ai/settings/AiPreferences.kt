@@ -14,10 +14,12 @@ object AiPreferences {
     private const val KEY_TEMPERATURE = "ai_agent_temperature"
     private const val KEY_MAX_CONTEXT = "ai_agent_max_context"
     private const val KEY_MAX_TOOL_CALLS = "ai_agent_max_tool_calls"
+    private const val KEY_CLOUD_MODEL = "ai_agent_cloud_model"
 
     private const val DEFAULT_TEMPERATURE = 0.7f
     private const val DEFAULT_MAX_CONTEXT = 4096
     private const val DEFAULT_MAX_TOOL_CALLS = 10
+    private const val DEFAULT_CLOUD_MODEL = "models/gemini-2.5-flash"
 
     private var prefs: SharedPreferences? = null
 
@@ -90,5 +92,13 @@ object AiPreferences {
 
     fun setMaxToolCalls(max: Int) {
         prefs?.edit()?.putString(KEY_MAX_TOOL_CALLS, max.coerceIn(1, 50).toString())?.apply()
+    }
+
+    fun getCloudModelId(): String {
+        return prefs?.getString(KEY_CLOUD_MODEL, DEFAULT_CLOUD_MODEL) ?: DEFAULT_CLOUD_MODEL
+    }
+
+    fun setCloudModelId(id: String) {
+        prefs?.edit()?.putString(KEY_CLOUD_MODEL, id)?.apply()
     }
 }

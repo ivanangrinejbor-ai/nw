@@ -1,29 +1,6 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
-<!--
-  ~ Catroid: An on-device visual programming system for Android devices
-  ~ Copyright (C) 2010-2023 The Catrobat Team
-  ~ (<http://developer.catrobat.org/credits>)
-  ~
-  ~ This program is free software: you can redistribute it and/or modify
-  ~ it under the terms of the GNU Affero General Public License as
-  ~ published by the Free Software Foundation, either version 3 of the
-  ~ License, or (at your option) any later version.
-  ~
-  ~ An additional term exception under section 7 of the GNU Affero
-  ~ General Public License, version 3, is available at
-  ~ http://developer.catrobat.org/license_additional_term
-  ~
-  ~ This program is distributed in the hope that it will be useful,
-  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
-  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-  ~ GNU Affero General Public License for more details.
-  ~
-  ~ You should have received a copy of the GNU Affero General Public License
-  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
-  -->
 <resources  xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Project Reload Overlay -->
     <string name="project_reload_status">Reloading project…</string>
     <string-array name="project_reload_facts">
         <item>You can share .neoscript modules between projects!</item>
@@ -36,7 +13,6 @@
         <item>The Formula Editor supports if-else, abs, round, and many functions.</item>
     </string-array>
 
-    <!-- Physics warning -->
     <string name="physics_warning_title">Compatibility Update</string>
     <string name="physics_warning_message">This project was created in an older version. It is highly recommended to update the physics cache now to prevent crashes and freezes. P.S. recommend to update it in Project Options</string>
     <string name="physics_warning_update_now">Update Now</string>
@@ -45,7 +21,6 @@
     <string name="physics_warning_success">Physics cache updated successfully!</string>
     <string name="physics_warning_error">Error updating physics cache.</string>
 
-    <!-- Project Trash Bin -->
     <string name="delete_project_multiple_message">Are you sure you want to delete these %1$d projects?</string>
     <string name="delete_permanently">Delete permanently</string>
     <string name="delete_project_title">Delete %1$s</string>
@@ -200,26 +175,22 @@
     <string name="particle_spawn_shape">Spawn Shape</string>
     <string name="particle_spawn_on_surface">Spawn on Surface Only</string>
 
-    <!-- Menu Actions -->
     <string name="action_save_scene">Save Scene</string>
     <string name="action_load_scene">Load Scene</string>
     <string name="action_scene_settings">Scene Settings</string>
     <string name="action_clear_scene">Clear Scene</string>
     <string name="action_exit">Exit</string>
 
-    <!-- Physics States & Colliders -->
     <string-array name="editor_3d_physics_states">
         <item>Static</item>
         <item>Kinematic</item>
         <item>Dynamic</item>
     </string-array>
 
-    <!-- Light Types -->
     <string name="light_type_directional">Directional</string>
     <string name="light_type_point">Point</string>
     <string name="light_type_spot">Spot</string>
 
-    <!-- Keyframe Easing Types -->
     <string-array name="editor_3d_easing_types">
         <item>Linear</item>
         <item>Ease In</item>
@@ -230,7 +201,6 @@
         <item>Bounce Out</item>
     </string-array>
 
-    <!-- Post Processing Effects -->
     <string name="pp_effect_bloom">Bloom</string>
     <string name="pp_effect_vignette">Vignette</string>
     <string name="pp_effect_levels">Levels (Color)</string>
@@ -256,7 +226,6 @@
     <string name="pp_effect_volumetric_fog">Volumetric Fog</string>
     <string name="pp_effect_fsr">FSR Upscaler (CAS)</string>
 
-    <!-- Particle Systems (Both 2D & 3D Modules) -->
     <string name="particle_main">Main Settings</string>
     <string name="particle_looping">Looping</string>
     <string name="particle_prewarm">Prewarm</string>
@@ -288,12 +257,10 @@
     <string name="particle_mesh_shape">Mesh Shape</string>
     <string name="particle_additive_blend">Additive Blending (Glow)</string>
 
-    <!-- Prefabs -->
     <string name="prefab_file_path">Prefab File Path</string>
     <string name="prefab_select_btn">Select Prefab</string>
     <string name="prefab_select_title">Select Prefab File</string>
 
-    <!-- Scene Settings Dialog -->
     <string name="settings_scene_title">Scene Settings</string>
     <string name="settings_sky_color">Sky Color</string>
     <string name="settings_ambient_light">Ambient Light Intensity</string>
@@ -315,7 +282,6 @@
     <string name="editor_3d_axis_z">Axis Z</string>
     <string name="editor_3d_axis_cam_forward">Camera Forward</string>
 
-    <!-- 3D Editor Toolbar & General -->
     <string name="editor_3d_title">3D Editor</string>
     <string name="editor_3d_hierarchy">Hierarchy</string>
     <string name="editor_3d_search_hint">Search...</string>
@@ -324,7 +290,6 @@
     <string name="editor_3d_add_sphere">Add Sphere</string>
     <string name="editor_3d_inspector">Inspector</string>
 
-    <!-- Dialogs & Popups -->
     <string name="editor_3d_mass_delete_title">Mass Delete</string>
     <string name="editor_3d_mass_delete_msg">Delete ALL objects containing \'%1$s\'?</string>
     <string name="editor_3d_delete_all">Delete All</string>
@@ -368,7 +333,6 @@
     <string name="editor_3d_recovered_success">Scene recovered successfully!</string>
     <string name="editor_3d_recovered_failed">Failed to recover scene.</string>
 
-    <!-- Inspector Component Names -->
     <string name="component_transform">Transform</string>
     <string name="component_render">Render Component</string>
     <string name="component_physics">Physics Component</string>
@@ -712,7 +676,6 @@
     <string name="brick_voxel_atlas">Atlas texture</string>
     <string name="brick_voxel_div">Divisions</string>
     <string name="brick_buffer_mode">Buffer mode</string>
-    <string name="brick_buffer_cam_3d">3D Buffer Camera</string>
     <string name="brick_buffer_only">Draw only in buffer (1/0)</string>
     <string formatted="false" name="buffer_create">Create Buffer</string>
     <string formatted="false" name="buffer_add">Add to Buffer</string>
@@ -966,20 +929,12 @@
     </string-array>
     <string formatted="false" name="brick_threed_create_cylinder">Create cylinder with ID</string>
 
-    <string formatted="false" name="brick_threed_attach_obj_1">Attach object</string>
-    <string formatted="false" name="brick_threed_attach_obj_2">to model</string>
     <string formatted="false" name="brick_threed_attach_obj_3">to bone</string>
     <string formatted="false" name="brick_threed_attach_obj_4">offset X</string>
     <string formatted="false" name="brick_threed_attach_obj_5">Y</string>
     <string formatted="false" name="brick_threed_attach_obj_6">Z</string>
 
-    <string formatted="false" name="brick_threed_bind_bone_1">Bind bone</string>
-    <string formatted="false" name="brick_threed_bind_bone_2">of model</string>
     <string formatted="false" name="brick_threed_bind_bone_3">to object</string>
-    <string formatted="false" name="brick_align_normal_1">Align object</string>
-    <string formatted="false" name="brick_align_normal_2">to surface normal X</string>
-    <string formatted="false" name="brick_align_normal_3">Y</string>
-    <string formatted="false" name="brick_align_normal_4">Z</string>
     <string formatted="false" name="brick_del_apk_title">Delete from APK</string>
     <string formatted="false" name="brick_del_apk_path">APK Path</string>
     <string formatted="false" name="brick_del_apk_pattern">Path inside APK</string>
@@ -1041,6 +996,12 @@
 <string name="pt_backward">Backward (error)</string>
 <string name="pt_step">Learning step</string>
 <string name="pt_lr">Learning rate</string>
+<string name="pt_linear">Linear layer</string>
+<string name="pt_layer_name">Layer name</string>
+<string name="pt_input">Input tensor</string>
+<string name="pt_output">Output tensor</string>
+<string name="pt_in_features">In features</string>
+<string name="pt_out_features">Out features</string>
 <string formatted="false" name="recovery_desc">Scan memory for projects not displayed in the menu</string>
 <string formatted="false" name="recovery_btn">Recover lost projects</string>
 <string formatted="false" name="recovery">Recovery</string>
@@ -1665,6 +1626,9 @@
 <string name="brick_set_ambient_light" formatted="false">Set ambient light (color 0-1)</string>
 <string name="brick_set_3d_position_of" formatted="false">Set 3D position of object</string>
 <string name="brick_set_3d_position_to" formatted="false">to coordinates</string>
+<string name="brick_glide_3d" formatted="false">Glide 3D object</string>
+<string name="brick_glide_3d_to" formatted="false">to</string>
+<string name="brick_glide_3d_in_seconds" formatted="false">in seconds</string>
 <string name="brick_object_look_at_object" formatted="false">Point object</string>
 <string name="brick_object_look_at_to" formatted="false">towards point</string>
 <string name="brick_set_3d_scale_of" formatted="false">Set 3D scale of object</string>
@@ -1768,6 +1732,9 @@
     <string formatted="false" name="hitbox_hint_added">Hitbox added</string>
     <string formatted="false" name="hitbox_hint_deleted">Hitbox deleted</string>
     <string formatted="false" name="hitbox_editor_menu">Hitbox editor</string>
+    <string name="hitbox_info_button_desc">Info</string>
+    <string name="hitbox_mode_full">Full</string>
+    <string name="hitbox_mode_physics">Physics</string>
 <string formatted="false" name="ogurec">�� T�T� ��TΦ-��T�T� �-��T�T�T�T�?</string>
 <string formatted="false" name="only_numbers">Only numbers and fractional numbers allowed here</string>
 <string formatted="false" name="project_physics_height">Physics height area</string>
@@ -2529,6 +2496,10 @@
 <string formatted="false" name="brick_option_place_visually">Place visually</string>
 <string formatted="false" name="x_label">"x:"</string>
 <string formatted="false" name="y_label">"y:"</string>
+<string formatted="false" name="brick_coord_x_label">X:</string>
+<string formatted="false" name="brick_coord_y_label"> Y:</string>
+<string formatted="false" name="brick_coord_w_label">W:</string>
+<string formatted="false" name="brick_coord_h_label"> H:</string>
 <string formatted="false" name="brick_set_x">"Set x to"</string>
 <string formatted="false" name="brick_set_y">"Set y to"</string>
 <string formatted="false" name="brick_change_x_by">"Change x by"</string>
@@ -3907,7 +3878,12 @@
 <string name="pocketpaint_about_title">About</string>
 <string name="pocketpaint_about_version" translatable="false">Version %s</string>
 <string name="pocketpaint_about_license" translatable="false">GNU Affero General Public License, v3</string>
-<string name="pocketpaint_about_content">NeoPaint is a picture editing library that is part of the Catrobat project.\n\nCatrobat is a visual programming language and set of creativity tools for smartphones.\n\nThe source code of NeoPaint is mainly licensed under the %s.\nFor precise details of the license see the link below.</string>
+<string name="pocketpaint_about_content">NeoPaint is a picture editing library that is part of the Catrobat project.
+
+Catrobat is a visual programming language and set of creativity tools for smartphones.
+
+The source code of NeoPaint is mainly licensed under the %s.
+For precise details of the license see the link below.</string>
 <string name="pocketpaint_about_url_license_description">NeoPaint source code license</string>
 <string name="pocketpaint_about_url_catrobat_description">About Catrobat</string>
 <string name="pocketpaint_about_url_license" translatable="false">&lt;a href=\"https://catrob.at/licenses\"&gt;%s&lt;/a&gt;</string>
@@ -4446,4 +4422,319 @@ needs read and write access to it. You can always change permissions through you
     <string name="v3_firebase_error_copy_failed">Failed to copy google-services.json</string>
     <string name="v3_firebase_error_processing">Error processing Firebase configuration</string>
 
+
+    <!-- Text Buffer -->
+    <string name="brick_add_text_buffer_title">Add text to buffer</string>
+    <string name="brick_add_text_buffer_to">to</string>
+    <string name="brick_set_text_buffer_only_title">Set text buffer</string>
+    <string name="brick_set_text_buffer_only_name_label">name</string>
+    <string name="brick_set_text_buffer_only_state_label">state</string>
+    <!-- Base64 -->
+    <string name="brick_base64_to_file_title">Base64 to file</string>
+    <string name="brick_base64_to_file_string">string</string>
+    <string name="brick_base64_to_file_dest">destination</string>
+    <!-- Broadcast with params -->
+    <string name="brick_broadcast_with_params">Broadcast with params</string>
+    <string name="brick_broadcast_with_params_signal">signal</string>
+    <string name="brick_broadcast_with_params_data">data</string>
+    <string name="brick_broadcast_with_params_save">save</string>
+    <string name="brick_broadcast_with_params_receive">receive</string>
+    <!-- Buffer/Shader -->
+    <string name="brick_buf_uniform_title">Buffer uniform</string>
+    <string name="brick_buf_uniform_in_buf">in</string>
+    <string name="brick_buffer_shader_title">Buffer shader</string>
+    <string name="brick_buffer_fx_title">Buffer FX</string>
+    <string name="brick_buffer_mask_title">Buffer mask</string>
+    <string name="brick_buffer_mask_mode">mode</string>
+    <string name="brick_buffer_cam_3d">Camera 3D buffer</string>
+    <string name="brick_buffer_cam_3d_name">name</string>
+    <string name="brick_buffer_cam_3d_x">x</string>
+    <string name="brick_buffer_cam_3d_y">y</string>
+    <string name="brick_buffer_cam_3d_z">z</string>
+    <string name="brick_buffer_cam_3d_yaw">yaw</string>
+    <string name="brick_buffer_cam_3d_pitch">pitch</string>
+    <string name="brick_buffer_cam_3d_roll">roll</string>
+    <string name="brick_buffer_cam_3d_fov">FOV</string>
+    <!-- Buffer recording -->
+    <string name="brick_start_buffer_recording_title">Start buffer recording</string>
+    <string name="brick_start_buffer_recording_buf">buffer</string>
+    <string name="brick_start_buffer_recording_file">file</string>
+    <string name="brick_start_buffer_recording_fps">FPS</string>
+    <string name="brick_start_buffer_recording_bitrate">bitrate</string>
+    <string name="brick_stop_buffer_recording_title">Stop buffer recording</string>
+    <!-- Native Views: Button -->
+    <string name="brick_create_button_title">Create button</string>
+    <string name="brick_create_button_id">ID</string>
+    <string name="brick_create_button_text">text</string>
+    <string name="brick_create_button_color">color</string>
+    <string name="brick_create_button_bg">background</string>
+    <string name="brick_create_button_size">size</string>
+    <string name="brick_create_button_radius">radius</string>
+    <!-- Native Views: ImageView -->
+    <string name="brick_create_image_view_title">Create image view</string>
+    <string name="brick_create_image_view_id">ID</string>
+    <string name="brick_create_image_view_src">source</string>
+    <string name="brick_create_image_view_scale">scale</string>
+    <string name="brick_create_image_view_radius">radius</string>
+    <!-- Native Views: ScrollView -->
+    <string name="brick_create_scroll_view_title">Create scroll view</string>
+    <string name="brick_create_scroll_view_id">ID</string>
+    <string name="brick_create_scroll_view_bg">background</string>
+    <string name="brick_create_scroll_view_padding">padding</string>
+    <string name="brick_create_scroll_view_bars">scrollbars</string>
+    <string name="brick_create_scroll_view_mode">mode</string>
+    <string name="brick_create_scroll_view_overscroll">overscroll</string>
+    <!-- Native Views: Slider -->
+    <string name="brick_create_slider_title">Create slider</string>
+    <string name="brick_create_slider_id">ID</string>
+    <string name="brick_create_slider_min">min</string>
+    <string name="brick_create_slider_max">max</string>
+    <string name="brick_create_slider_val">value</string>
+    <!-- Native Views: Switch -->
+    <string name="brick_create_switch_title">Create switch</string>
+    <string name="brick_create_switch_id">ID</string>
+    <string name="brick_create_switch_text">text</string>
+    <string name="brick_create_switch_state">state</string>
+    <!-- Native Views: TextLabel -->
+    <string name="brick_create_text_label_title">Create text label</string>
+    <string name="brick_create_text_label_id">ID</string>
+    <string name="brick_create_text_label_text">text</string>
+    <string name="brick_create_text_label_color">color</string>
+    <string name="brick_create_text_label_size">size</string>
+    <string name="brick_create_text_label_font">font</string>
+    <string name="brick_create_text_label_align">align</string>
+    <string name="brick_create_text_label_bg">background</string>
+    <string name="brick_create_text_label_radius">radius</string>
+    <string name="brick_create_text_label_spacing">spacing</string>
+    <string name="brick_create_text_label_format">format</string>
+    <string name="brick_create_text_label_scroll">scrollable</string>
+    <!-- Native Views: Bind/Animate/Config/Control/Listener -->
+    <string name="brick_native_view_bind_title">Bind view to sprite</string>
+    <string name="brick_native_view_bind_id">ID</string>
+    <string name="brick_native_view_bind_sprite">sprite</string>
+    <string name="brick_native_view_bind_offset">offset</string>
+    <string name="brick_native_view_bind_align">align</string>
+    <string name="brick_native_view_animate_title">Animate view</string>
+    <string name="brick_native_view_animate_id">ID</string>
+    <string name="brick_native_view_animate_prop">property</string>
+    <string name="brick_native_view_animate_val">value</string>
+    <string name="brick_native_view_animate_duration">duration</string>
+    <string name="brick_native_view_animate_easing">easing</string>
+    <string name="brick_native_view_config_title">Configure view</string>
+    <string name="brick_native_view_config_id">ID</string>
+    <string name="brick_native_view_config_prop">property</string>
+    <string name="brick_native_view_config_val">value</string>
+    <string name="brick_native_view_control_title">Control view</string>
+    <string name="brick_native_view_control_id">ID</string>
+    <string name="brick_native_view_control_cmd">command</string>
+    <string name="brick_native_view_control_param">param</string>
+    <string name="brick_native_view_listener_title">On view event</string>
+    <string name="brick_native_view_listener_id">ID</string>
+    <string name="brick_native_view_listener_evt">event</string>
+    <string name="brick_native_view_listener_var">variable</string>
+    <string name="brick_set_native_parent_title">Set view parent</string>
+    <string name="brick_set_native_parent_id">ID</string>
+    <string name="brick_set_native_parent_target">parent</string>
+    <!-- 3D -->
+    <string name="brick_threed_attach_obj_1">Attach</string>
+    <string name="brick_threed_attach_obj_2">to</string>
+    <string name="brick_threed_bind_bone_1">Bind bone</string>
+    <string name="brick_threed_bind_bone_2">of</string>
+    <string name="brick_export_3d_glb_title">Export 3D GLB</string>
+    <string name="brick_export_3d_glb_id">ID</string>
+    <string name="brick_export_3d_glb_file">file</string>
+    <string name="brick_replace_3d_model_title">Replace 3D model</string>
+    <string name="brick_replace_3d_model_object">object</string>
+    <string name="brick_replace_3d_model_model">model</string>
+    <string name="brick_ease_3d_title">Ease 3D animation</string>
+    <string name="brick_ease_3d_object">object</string>
+    <string name="brick_ease_3d_start_label">start</string>
+    <string name="brick_ease_3d_end_label">end</string>
+    <string name="brick_ease_3d_duration_label">duration</string>
+    <!-- 2D Ease animation -->
+    <string name="brick_ease_title">Ease animation</string>
+    <string name="brick_ease_start_label">start</string>
+    <string name="brick_ease_end_label">end</string>
+    <string name="brick_ease_duration_label">duration</string>
+    <!-- HTTP -->
+    <string name="brick_http_create_title">HTTP request</string>
+    <string name="brick_http_create_id">ID</string>
+    <string name="brick_http_create_method">method</string>
+    <string name="brick_http_create_url">URL</string>
+    <string name="brick_http_send_title">Send HTTP</string>
+    <string name="brick_http_send_id">ID</string>
+    <string name="brick_http_body_title">HTTP body</string>
+    <string name="brick_http_body_id">ID</string>
+    <string name="brick_http_body_text">body</string>
+    <string name="brick_http_body_content_type">content type</string>
+    <string name="brick_http_config_title">HTTP config</string>
+    <string name="brick_http_config_id">ID</string>
+    <string name="brick_http_config_type">type</string>
+    <string name="brick_http_config_key">key</string>
+    <string name="brick_http_config_value">value</string>
+    <string name="brick_http_attach_file_title">HTTP attach file</string>
+    <string name="brick_http_attach_file_id">ID</string>
+    <string name="brick_http_attach_file_name">name</string>
+    <string name="brick_http_attach_file_parameter">parameter</string>
+    <string name="brick_http_attach_file_mime">MIME</string>
+    <string name="brick_http_save_file_title">HTTP save file</string>
+    <string name="brick_http_save_file_id">ID</string>
+    <string name="brick_http_save_file_dest">destination</string>
+    <string name="brick_http_configure_light_title">Configure light</string>
+    <string name="brick_http_configure_light_id">ID</string>
+    <string name="brick_http_configure_light_property">property</string>
+    <string name="brick_http_configure_light_value">value</string>
+    <string name="brick_http_configure_material_title">Configure material</string>
+    <string name="brick_http_configure_material_id">ID</string>
+    <string name="brick_http_configure_material_property">property</string>
+    <string name="brick_http_configure_material_value">value</string>
+    <string name="brick_http_configure_particles_title">Configure particles</string>
+    <string name="brick_http_configure_particles_id">ID</string>
+    <string name="brick_http_configure_particles_property">property</string>
+    <string name="brick_http_configure_particles_value">value</string>
+    <!-- MQTT -->
+    <string name="brick_mqtt_connect_title">MQTT connect</string>
+    <string name="brick_mqtt_connect_id">ID</string>
+    <string name="brick_mqtt_connect_host">host</string>
+    <string name="brick_mqtt_connect_port">port</string>
+    <string name="brick_mqtt_disconnect_title">MQTT disconnect</string>
+    <string name="brick_mqtt_publish_title">MQTT publish</string>
+    <string name="brick_mqtt_publish_client_id">client ID</string>
+    <string name="brick_mqtt_publish_room_id">room</string>
+    <string name="brick_mqtt_publish_salt">salt</string>
+    <string name="brick_mqtt_publish_message">message</string>
+    <string name="brick_mqtt_join_room_title">MQTT join room</string>
+    <string name="brick_mqtt_join_room_client_id">client ID</string>
+    <string name="brick_mqtt_join_room_id">room</string>
+    <string name="brick_mqtt_join_room_salt">salt</string>
+    <!-- Notification -->
+    <string name="brick_notification_create_title">Create notification</string>
+    <string name="brick_notification_id">ID</string>
+    <string name="brick_notification_channel">channel</string>
+    <string name="brick_notification_header">header</string>
+    <string name="brick_notification_text">text</string>
+    <string name="brick_notification_large_icon">large icon</string>
+    <string name="brick_notification_importance">importance</string>
+    <string name="brick_notification_ongoing">ongoing</string>
+    <string name="brick_notification_show_title">Show notification</string>
+    <string name="brick_notification_show_delay">delay</string>
+    <string name="brick_show_notification_title">Show notification</string>
+    <string name="brick_show_notification_id">ID</string>
+    <string name="brick_show_notification_channel">channel</string>
+    <string name="brick_show_notification_header">header</string>
+    <string name="brick_show_notification_text">text</string>
+    <string name="brick_show_notification_large_icon">large icon</string>
+    <string name="brick_show_notification_importance">importance</string>
+    <string name="brick_show_notification_ongoing">ongoing</string>
+    <string name="brick_show_notification_delay">delay</string>
+    <string name="brick_notification_cancel_title">Cancel notification</string>
+    <string name="brick_notification_cancel_id">ID</string>
+    <string name="brick_notif_btn_title">Notification button</string>
+    <string name="brick_notif_btn_id">ID</string>
+    <string name="brick_notif_btn_text">text</string>
+    <string name="brick_notif_btn_icon">icon</string>
+    <string name="brick_notif_btn_action">action</string>
+    <string name="brick_notif_btn_behavior">behavior</string>
+    <string name="brick_notif_btn_has_input">has input</string>
+    <string name="brick_notif_btn_hint">hint</string>
+    <string name="brick_notif_btn_auto_close">auto close</string>
+    <!-- Misc bricks -->
+    <string name="brick_open_app_title">Open app</string>
+    <string name="brick_open_app_pkg">package</string>
+    <string name="brick_share_title">Share</string>
+    <string name="brick_play_gif_title">Play GIF</string>
+    <string name="brick_stop_gif_title">Stop GIF</string>
+    <string name="brick_play_spritesheet_title">Play spritesheet</string>
+    <string name="brick_play_spritesheet_frames">frames</string>
+    <string name="brick_play_spritesheet_grid">grid</string>
+    <string name="brick_play_spritesheet_row">row</string>
+    <string name="brick_play_spritesheet_speed">speed</string>
+    <string name="brick_stop_spritesheet_title">Stop spritesheet</string>
+    <string name="brick_render_loops_title">Render loops</string>
+    <string name="brick_shake_screen">Shake screen</string>
+    <string name="brick_shake_screen_intensity">intensity</string>
+    <string name="brick_shake_screen_duration">duration</string>
+    <string name="brick_set_corner_offsets_title">Set corner offsets</string>
+    <string name="brick_set_corner_offsets_top_left">top-left</string>
+    <string name="brick_set_corner_offsets_top_right">top-right</string>
+    <string name="brick_set_corner_offsets_bottom_left">bottom-left</string>
+    <string name="brick_set_corner_offsets_bottom_right">bottom-right</string>
+    <string name="brick_object_look_at_correct_object">Look at</string>
+    <string name="brick_object_look_at_correct_to">target</string>
+    <string name="brick_set_shader_uniform_vec">Set shader uniform vec</string>
+    <!-- Threading -->
+    <string name="brick_spawn_thread_title">Spawn thread</string>
+    <string name="brick_stop_thread_title">Stop thread</string>
+    <string name="brick_wait_thread_title">Wait for thread</string>
+    <string name="brick_instant">Instant</string>
+    <!-- System -->
+    <string name="brick_system_enable_background_title">Enable background</string>
+    <string name="brick_system_enable_background_header">header</string>
+    <string name="brick_system_enable_background_text">text</string>
+    <string name="brick_system_disable_background">Disable background</string>
+    <!-- Zip/Unzip -->
+    <string name="brick_zip_project_files_title">Zip project files</string>
+    <string name="brick_zip_project_files_archive_name">archive name</string>
+    <string name="brick_zip_project_files_list">file list</string>
+    <string name="brick_unzip_project_files_title">Unzip project files</string>
+    <string name="brick_unzip_project_files_archive_name">archive name</string>
+    <!-- Java -->
+    <string name="brick_java_compile_title">Java compile</string>
+    <string name="brick_java_compile_src">source</string>
+    <string name="brick_java_compile_dest">destination</string>
+    <string name="brick_java_compile_log">log</string>
+    <string name="brick_java_download_title">Java download</string>
+    <string name="brick_java_download_id">ID</string>
+    <string name="brick_java_download_repos">repos</string>
+    <string name="brick_java_download_recursive">recursive</string>
+    <string name="brick_java_download_log">log</string>
+    <string name="brick_java_load_title">Java load</string>
+    <string name="brick_java_load_path">path</string>
+    <string name="brick_java_load_class">class</string>
+    <string name="brick_java_load_method">method</string>
+    <string name="brick_java_load_arg">arg</string>
+    <!-- Events -->
+    <string name="brick_when_after_update">After update</string>
+    <string name="brick_when_before_update">Before update</string>
+    <string name="brick_when_cloned_with_name_title">When cloned with name</string>
+    <string name="brick_when_finger_moved_on_screen">When finger moved on screen</string>
+    <string name="brick_when_finger_moved_over_sprite">When finger moved over sprite</string>
+    <string name="brick_when_mqtt_message_title">When MQTT message</string>
+    <string name="brick_when_notification_action_triggered">When notification action</string>
+    <string name="brick_when_notification_clicked">When notification clicked</string>
+    <string name="brick_when_sprite_released">When sprite released</string>
+    <string name="brick_when_window_resized">When window resized</string>
+    <!-- Drone -->
+    <string name="brick_drone_with">Drone with</string>
+    <!-- Play/Stop sound -->
+    <string name="brick_play_sound_1">Play sound</string>
+    <string name="brick_play_sound_2"> </string>
+    <string name="brick_stop_sound_1">Stop sound</string>
+    <string name="brick_stop_sound_2"> </string>
+    <!-- Create/Remove/Replace/Set -->
+    <string name="brick_create_1">Create</string>
+    <string name="brick_create_2"> </string>
+    <string name="brick_remove_1">Remove</string>
+    <string name="brick_remove_2"> </string>
+    <string name="brick_replace_1">Replace</string>
+    <string name="brick_replace_2"> </string>
+    <string name="brick_set_1">Set</string>
+    <string name="brick_set_2"> </string>
+    <string name="brick_apply_1">Apply</string>
+    <string name="brick_apply_2"> </string>
+    <string name="brick_base64">Base64</string>
+    <string name="brick_align_normal_1">Align normal</string>
+    <string name="brick_align_normal_2"> </string>
+    <string name="brick_align_normal_3"> </string>
+    <string name="brick_align_normal_4"> </string>
+    <!-- Fast2D -->
+    <string name="fast2d_set_gravity">Set gravity</string>
+    <string name="fast2d_gravity_x_param">x</string>
+    <string name="fast2d_gravity_y_param">y</string>
+    <!-- Hitbox editor -->
+    <string name="hitbox_mode_dialog_title">Collision mode</string>
+    <string name="hitbox_mode_info_full_title">Full collision</string>
+    <string name="hitbox_mode_info_full_text">The whole shape is used for collision detection. Best for precise \"touches\" checks, but heavier for many objects.</string>
+    <string name="hitbox_mode_info_physics_title">Physics collision</string>
+    <string name="hitbox_mode_info_physics_text">A simplified shape is used by the physics engine. Faster and recommended when objects collide and bounce off each other.</string>
 </resources>

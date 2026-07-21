@@ -31,6 +31,7 @@ public class HitboxEditorView extends View {
     private static final float HANDLE_RADIUS = 24f;
     private static final float RING_PADDING = 40f;
     private static final float DRAG_SLOP = 12f;
+    private static final int MAX_BITMAP_DIM = 2048;
     private static final long LONG_PRESS_MS = 400;
 
     // Interaction modes
@@ -43,6 +44,11 @@ public class HitboxEditorView extends View {
     private static final int MODE_ROTATE = 6;
 
     private Bitmap spriteBitmap;
+    /** Reusable destination rect for drawing the (possibly downsampled) bitmap. */
+    private final RectF dstRect = new RectF();
+    /** Original (full-resolution) image dimensions — hitbox coordinates live in this space. */
+    private int origW = 0;
+    private int origH = 0;
     private float imageScale = 1f;
     private float imageOffsetX = 0f;
     private float imageOffsetY = 0f;
@@ -57,6 +63,8 @@ public class HitboxEditorView extends View {
     private boolean longPressTriggered = false;
     private boolean hasDragged = false;
     private float downX, downY;
+    /** The single pointer we track. A second finger cancels the active gesture. */
+    private int activePointerId = MotionEvent.INVALID_POINTER_ID;
 
     // Paints
     private final Paint imagePaint = new Paint(Paint.FILTER_BITMAP_FLAG);
@@ -114,9 +122,33 @@ public class HitboxEditorView extends View {
     }
 
     public void setSpriteImage(String path) {
+        spriteBitmap = null;
+        origW = 0;
+        origH = 0;
         if (path != null) {
-            spriteBitmap = BitmapFactory.decodeFile(path);
+            // Read real dimensions first, then decode downsampled to avoid OOM
+            // on large looks. Hitbox coordinates stay in ORIGINAL image space so
+            // they match what the runtime collision system uses.
+            BitmapFactory.Options bounds = new BitmapFactory.Options();
+            bounds.inJustDecodeBounds = true;
+            BitmapFactory.decodeFile(path, bounds);
+            origW = bounds.outWidth;
+            origH = bounds.outHeight;
+            int sample = 1;
+            if (origW > 0 && origH > 0) {
+                while (Math.max(origW, origH) / sample > MAX_BITMAP_DIM) {
+                    sample *= 2;
+                }
+            }
+            BitmapFactory.Options opts = new BitmapFactory.Options();
+            opts.inSampleSize = sample;
+            spriteBitmap = BitmapFactory.decodeFile(path, opts);
+            if (spriteBitmap != null && (origW <= 0 || origH <= 0)) {
+                origW = spriteBitmap.getWidth();
+                origH = spriteBitmap.getHeight();
+            }
         }
+        computeImageTransform();
         requestLayout();
         invalidate();
     }
@@ -137,9 +169,9 @@ public class HitboxEditorView extends View {
     }
 
     public void addHitbox() {
-        // Add a default hitbox at center, 25% of image size
-        float w = spriteBitmap != null ? spriteBitmap.getWidth() * 0.25f : 100f;
-        float h = spriteBitmap != null ? spriteBitmap.getHeight() * 0.25f : 100f;
+        // Add a default hitbox at center, 25% of the ORIGINAL image size
+        float w = origW > 0 ? origW * 0.25f : 100f;
+        float h = origH > 0 ? origH * 0.25f : 100f;
         hitboxes.add(new HitboxData(0, 0, w, h, 0));
         selectedIndex = hitboxes.size() - 1;
         rotationMode = false;
@@ -168,14 +200,13 @@ public class HitboxEditorView extends View {
     }
 
     private void computeImageTransform() {
-        if (spriteBitmap == null) return;
+        if (origW <= 0 || origH <= 0) return;
         float viewW = getWidth();
         float viewH = getHeight();
-        float imgW = spriteBitmap.getWidth();
-        float imgH = spriteBitmap.getHeight();
-        imageScale = Math.min(viewW * 0.8f / imgW, viewH * 0.8f / imgH);
-        imageOffsetX = (viewW - imgW * imageScale) / 2f;
-        imageOffsetY = (viewH - imgH * imageScale) / 2f;
+        if (viewW <= 0 || viewH <= 0) return;
+        imageScale = Math.min(viewW * 0.8f / origW, viewH * 0.8f / origH);
+        imageOffsetX = (viewW - origW * imageScale) / 2f;
+        imageOffsetY = (viewH - origH * imageScale) / 2f;
     }
 
     @Override
@@ -188,13 +219,14 @@ public class HitboxEditorView extends View {
         canvas.drawLine(cx, 0, cx, getHeight(), gridPaint);
         canvas.drawLine(0, cy, getWidth(), cy, gridPaint);
 
-        // Draw sprite image
-        if (spriteBitmap != null) {
-            canvas.save();
-            canvas.translate(imageOffsetX, imageOffsetY);
-            canvas.scale(imageScale, imageScale);
-            canvas.drawBitmap(spriteBitmap, 0, 0, imagePaint);
-            canvas.restore();
+        // Draw sprite image. The bitmap may be downsampled, so stretch it to the
+        // ORIGINAL image size (origW/origH * imageScale) — keeps it aligned with
+        // hitbox coordinates, which live in original image space.
+        if (spriteBitmap != null && origW > 0 && origH > 0) {
+            dstRect.set(imageOffsetX, imageOffsetY,
+                imageOffsetX + origW * imageScale,
+                imageOffsetY + origH * imageScale);
+            canvas.drawBitmap(spriteBitmap, null, dstRect, imagePaint);
         }
 
         // Draw hitboxes
@@ -240,11 +272,11 @@ public class HitboxEditorView extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        float x = event.getX();
-        float y = event.getY();
-
         switch (event.getActionMasked()) {
-            case MotionEvent.ACTION_DOWN:
+            case MotionEvent.ACTION_DOWN: {
+                activePointerId = event.getPointerId(0);
+                float x = event.getX();
+                float y = event.getY();
                 downX = x;
                 downY = y;
                 lastTouchX = x;
@@ -254,8 +286,26 @@ public class HitboxEditorView extends View {
                 longPressHandler.postDelayed(this::onLongPress, LONG_PRESS_MS);
                 handleDown(x, y);
                 return true;
+            }
 
-            case MotionEvent.ACTION_MOVE:
+            case MotionEvent.ACTION_POINTER_DOWN: {
+                // A second finger landed — cancel the in-flight gesture so a resize/
+                // rotate/move never jumps to the other finger's coordinates.
+                longPressHandler.removeCallbacksAndMessages(null);
+                interactionMode = MODE_NONE;
+                longPressTriggered = false;
+                hasDragged = true; // suppress tap/double-tap for this gesture
+                invalidate();
+                return true;
+            }
+
+            case MotionEvent.ACTION_MOVE: {
+                int pointerIndex = event.findPointerIndex(activePointerId);
+                if (pointerIndex < 0) {
+                    return true; // tracked finger is gone; ignore stray moves
+                }
+                float x = event.getX(pointerIndex);
+                float y = event.getY(pointerIndex);
                 if (!hasDragged && Math.hypot(x - downX, y - downY) > DRAG_SLOP) {
                     hasDragged = true;
                     longPressHandler.removeCallbacksAndMessages(null);
@@ -266,19 +316,22 @@ public class HitboxEditorView extends View {
                 lastTouchX = x;
                 lastTouchY = y;
                 return true;
+            }
 
             case MotionEvent.ACTION_UP:
-            case MotionEvent.ACTION_CANCEL:
+            case MotionEvent.ACTION_CANCEL: {
                 longPressHandler.removeCallbacksAndMessages(null);
                 if (!longPressTriggered && !hasDragged) {
                     // Stationary release — treat as tap / double-tap
-                    handleTap(x, y);
+                    handleTap(event.getX(), event.getY());
                 }
                 interactionMode = MODE_NONE;
                 longPressTriggered = false;
                 hasDragged = false;
+                activePointerId = MotionEvent.INVALID_POINTER_ID;
                 invalidate();
                 return true;
+            }
         }
         return super.onTouchEvent(event);
     }

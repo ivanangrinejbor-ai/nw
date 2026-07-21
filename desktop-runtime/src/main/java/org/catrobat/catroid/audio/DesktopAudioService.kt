@@ -7,12 +7,6 @@ import javax.sound.sampled.Clip
 import javax.sound.sampled.FloatControl
 import javax.sound.sampled.SourceDataLine
 
-/**
- * Desktop (Windows) implementation of [AudioService] using the JDK sound API
- * (`javax.sound.sampled`). Mirrors the Android [org.catrobat.catroid.io.SoundManager]
- * surface closely enough for the brick runtime; sprite coupling is ignored (desktop
- * plays by file path).
- */
 class DesktopAudioService : AudioService {
     private val clips = LinkedHashMap<String, Clip>()
     private var volume = 1.0f
@@ -39,7 +33,7 @@ class DesktopAudioService : AudioService {
     override fun getPitch(): Float = pitch
 
     override fun stopAllSounds() {
-        clips.values.forEach { try { it.stop(); it.close() } catch (_: Exception) { /* ignore */ } }
+        clips.values.forEach { try { it.stop(); it.close() } catch (_: Exception) { } }
         clips.clear()
     }
 
@@ -48,7 +42,7 @@ class DesktopAudioService : AudioService {
     }
 
     override fun pause() {
-        clips.values.forEach { try { it.stop() } catch (_: Exception) { /* ignore */ } }
+        clips.values.forEach { try { it.stop() } catch (_: Exception) { } }
     }
 
     override fun resume() {}
@@ -60,7 +54,7 @@ class DesktopAudioService : AudioService {
 
     override fun stopSoundInSprite(filePath: String, spriteName: String) {
         clips[filePath]?.let {
-            try { it.stop() } catch (_: Exception) { /* ignore */ }
+            try { it.stop() } catch (_: Exception) { }
             clips.remove(filePath)
         }
     }
@@ -71,9 +65,8 @@ class DesktopAudioService : AudioService {
 
     private fun playFile(filePath: String, startTime: Int = 0) {
         try {
-            // Закрыть старый clip для того же файла, если есть
             clips[filePath]?.let { old ->
-                try { old.stop(); old.close() } catch (_: Exception) { /* ignore */ }
+                try { old.stop(); old.close() } catch (_: Exception) { }
             }
             val clip = AudioSystem.getClip()
             clip.open(AudioSystem.getAudioInputStream(File(filePath)))
@@ -84,7 +77,6 @@ class DesktopAudioService : AudioService {
             clip.start()
             clips[filePath] = clip
         } catch (_: Exception) {
-            // Unplayable file on desktop — skip silently.
         }
     }
 
@@ -96,7 +88,6 @@ class DesktopAudioService : AudioService {
                 control.value = gain.coerceIn(control.minimum, control.maximum)
             }
         } catch (_: Exception) {
-            // Gain not adjustable on this clip.
         }
     }
 
@@ -115,14 +106,12 @@ class DesktopAudioService : AudioService {
             line.drain()
             line.close()
         } catch (_: Exception) {
-            // Tone output unavailable.
         }
     }
 
     override fun stopTone() {}
 
     override fun setEqualizerBand(band: Int, gain: Short) {
-        // No system equalizer on desktop; intentionally a no-op.
     }
 
     override fun isSoundPlaying(soundFilePath: String, spriteName: String): Boolean =

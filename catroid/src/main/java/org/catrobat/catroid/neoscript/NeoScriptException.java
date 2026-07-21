@@ -15,9 +15,6 @@
 
 package org.catrobat.catroid.neoscript;
 
-/**
- * Thrown when a .neoscript file cannot be read, parsed or validated.
- */
 public class NeoScriptException extends Exception {
 
 	private static final long serialVersionUID = 1L;

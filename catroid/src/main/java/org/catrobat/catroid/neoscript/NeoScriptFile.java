@@ -23,13 +23,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Root model of a reusable script module (.neoscript file).
- *
- * Contains ONLY the exported scripts plus the user variables / lists that are
- * referenced by those scripts. It deliberately does NOT contain scenes, other
- * objects, unrelated scripts, assets or project settings.
- */
 public class NeoScriptFile implements Serializable {
 
 	public static final int FORMAT_VERSION = 1;

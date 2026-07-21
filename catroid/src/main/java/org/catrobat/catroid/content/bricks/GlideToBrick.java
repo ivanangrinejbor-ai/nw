@@ -24,6 +24,9 @@ package org.catrobat.catroid.content.bricks;
 
 import android.content.Context;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Spinner;
 
 import org.catrobat.catroid.R;
 import org.catrobat.catroid.content.Sprite;
@@ -33,6 +36,11 @@ import org.catrobat.catroid.formulaeditor.Formula;
 public class GlideToBrick extends VisualPlacementBrick {
 
 	private static final long serialVersionUID = 1L;
+
+	// Spinner index into R.array.brick_easing_types ("None" = 0, "Linear" = 1, ...).
+	// Defaults to 0 so projects created before this parameter existed load fine and
+	// simply glide the classic (linear) way.
+	private int typeSelectionIndex = 0;
 
 	public GlideToBrick() {
 		addAllowedBrickField(BrickField.X_DESTINATION, R.id.brick_glide_to_edit_text_x);
@@ -62,6 +70,28 @@ public class GlideToBrick extends VisualPlacementBrick {
 	public View getView(Context context) {
 		super.getView(context);
 		setSecondsLabel(view, BrickField.DURATION_IN_SECONDS);
+
+		Spinner typeSpinner = view.findViewById(R.id.brick_glide_to_type_spinner);
+		if (typeSpinner != null) {
+			ArrayAdapter<CharSequence> typeAdapter = ArrayAdapter.createFromResource(
+					context,
+					R.array.brick_easing_types,
+					android.R.layout.simple_spinner_item);
+			typeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+			typeSpinner.setAdapter(typeAdapter);
+			typeSpinner.setSelection(typeSelectionIndex);
+			typeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+				@Override
+				public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+					typeSelectionIndex = position;
+				}
+
+				@Override
+				public void onNothingSelected(AdapterView<?> parent) {
+				}
+			});
+		}
+
 		return view;
 	}
 
@@ -75,7 +105,8 @@ public class GlideToBrick extends VisualPlacementBrick {
 		sequence.addAction(sprite.getActionFactory().createGlideToAction(sprite, sequence,
 				getFormulaWithBrickField(BrickField.X_DESTINATION),
 				getFormulaWithBrickField(BrickField.Y_DESTINATION),
-				getFormulaWithBrickField(BrickField.DURATION_IN_SECONDS)));
+				getFormulaWithBrickField(BrickField.DURATION_IN_SECONDS),
+				typeSelectionIndex));
 	}
 
 	@Override

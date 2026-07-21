@@ -33,7 +33,7 @@ import org.catrobat.catroid.stage.StageActivity
 
 class TapAtAction : TemporalAction() {
 
-    private lateinit var stage: Stage
+    private var stage: Stage? = null
     private var touchCoords: Vector2 = Vector2(0f, 0f)
     private var dragCoords: Vector2? = null
     private var errorDetected: Boolean = false
@@ -50,11 +50,29 @@ class TapAtAction : TemporalAction() {
         super.begin()
         try {
             touchCoords = Vector2(startX.interpretFloat(scope), startY.interpretFloat(scope))
+            
+            // Validate coordinates (no NaN or Infinity)
+            if (touchCoords.x.isNaN() || touchCoords.x.isInfinite() ||
+                touchCoords.y.isNaN() || touchCoords.y.isInfinite()) {
+                Log.w(TAG, "Invalid coordinates: NaN or Infinity detected")
+                errorDetected = true
+                return
+            }
+            
             if (changeX != null && changeY != null) {
                 dragCoords = Vector2(
                     changeX?.interpretFloat(scope) ?: 0f,
                     changeY?.interpretFloat(scope) ?: 0f
                 )
+                
+                // Validate drag coordinates
+                if (dragCoords!!.x.isNaN() || dragCoords!!.x.isInfinite() ||
+                    dragCoords!!.y.isNaN() || dragCoords!!.y.isInfinite()) {
+                    Log.w(TAG, "Invalid drag coordinates: NaN or Infinity detected")
+                    errorDetected = true
+                    return
+                }
+                
                 skipUpdate = false
             }
 
@@ -62,37 +80,48 @@ class TapAtAction : TemporalAction() {
         } catch (e: InterpretationException) {
             Log.d(TAG, "Position not valid", e)
             errorDetected = true
+            return
         }
 
         if (!errorDetected) {
-            pointer = scope.sprite.unusedPointer
-            stage = StageActivity.activeStageActivity.get()?.stageListener?.stage ?: return
-            if (!skipUpdate) {
-                stage.stageToScreenCoordinates(dragCoords)
+            val currentStage = StageActivity.activeStageActivity.get()?.stageListener?.stage
+            if (currentStage == null) {
+                Log.w(TAG, "Stage not available, skipping tap action")
+                errorDetected = true
+                return
             }
-            stage.stageToScreenCoordinates(touchCoords)
-            stage.touchDown(touchCoords.x.toInt(), touchCoords.y.toInt(), pointer, 0)
+            stage = currentStage
+            
+            pointer = scope.sprite.unusedPointer
+            
+            if (!skipUpdate) {
+                stage!!.stageToScreenCoordinates(dragCoords)
+            }
+            stage!!.stageToScreenCoordinates(touchCoords)
+            stage!!.touchDown(touchCoords.x.toInt(), touchCoords.y.toInt(), pointer, 0)
         } else {
             duration = 0f
         }
     }
 
     override fun update(percent: Float) {
-        if (!skipUpdate) {
+        val currentStage = stage ?: return
+        if (!skipUpdate && !errorDetected) {
             val x: Int =
                 (touchCoords.x * (1 - percent) + (dragCoords?.x?.times(percent) ?: 0f)).toInt()
             val y: Int =
                 (touchCoords.y * (1 - percent) + (dragCoords?.y?.times(percent) ?: 0f)).toInt()
-            stage.touchDragged(x, y, pointer)
+            currentStage.touchDragged(x, y, pointer)
         }
     }
 
     override fun end() {
-        if (!errorDetected) {
+        val currentStage = stage
+        if (!errorDetected && currentStage != null && pointer != -1) {
             if (skipUpdate) {
-                stage.touchUp(touchCoords.x.toInt(), touchCoords.y.toInt(), pointer, 0)
+                currentStage.touchUp(touchCoords.x.toInt(), touchCoords.y.toInt(), pointer, 0)
             } else {
-                stage.touchUp(
+                currentStage.touchUp(
                     dragCoords?.x?.toInt() ?: touchCoords.x.toInt(),
                     dragCoords?.y?.toInt() ?: touchCoords.y.toInt(), pointer, 0
                 )
@@ -104,10 +133,12 @@ class TapAtAction : TemporalAction() {
 
     override fun restart() {
         if (pointer != -1) {
-            stage.touchUp(touchCoords.x.toInt(), touchCoords.y.toInt(), pointer, 0)
+            stage?.touchUp(touchCoords.x.toInt(), touchCoords.y.toInt(), pointer, 0)
             scope?.sprite?.releaseUsedPointer(pointer)
             pointer = -1
         }
+        errorDetected = false
+        stage = null
         super.restart()
     }
 

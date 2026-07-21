@@ -3,14 +3,6 @@ package org.catrobat.catroid.audio
 import org.catrobat.catroid.pocketmusic.note.Drum
 import org.catrobat.catroid.pocketmusic.note.MusicalInstrument
 
-/**
- * Platform-independent MIDI surface used by note/drum/instrument/tempo bricks.
- *
- * Mirrors the primitives of the Android
- * [org.catrobat.catroid.pocketmusic.mididriver.MidiSoundManager] so the desktop
- * player can supply an alternative implementation (e.g. a software synth) without
- * touching the action classes.
- */
 interface MidiService {
     fun playSoundFile(filePath: String, spriteName: String)
     fun playSoundFileWithStartTime(filePath: String, spriteName: String, startTime: Int)

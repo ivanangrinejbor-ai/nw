@@ -7,6 +7,7 @@
     <string formatted="false" name="ai_agent_enabled_summary">Enable the AI Agent to help with project development</string>
 
     <!-- Chat -->
+    <string formatted="false" name="ai_agent_chat">AI Chat</string>
     <string formatted="false" name="ai_agent_chat_title">Open AI Chat</string>
     <string formatted="false" name="ai_agent_chat_summary">Start a conversation with the AI Agent</string>
     <string formatted="false" name="ai_agent_chat_title_short">AI Chat</string>
@@ -72,6 +73,7 @@
     <string formatted="false" name="ai_model_qwen_7b">Qwen 2.5 7B (Max)</string>
 
     <!-- Notifications -->
+    <string formatted="false" name="ai_agent_avatar_label">AI</string>
     <string formatted="false" name="ai_agent_thinking">AI Agent is thinking…</string>
     <string formatted="false" name="ai_agent_using_tools">AI Agent is using tools…</string>
     <string formatted="false" name="ai_agent_error">AI Agent encountered an error</string>
@@ -86,4 +88,13 @@
 
     <!-- Chat -->
     <string formatted="false" name="ai_agent_chat_menu_title">AI Chat</string>
+
+    <!-- Cloud (Gemini) -->
+    <string formatted="false" name="ai_agent_set_api_key_title">Set Gemini API key</string>
+    <string formatted="false" name="ai_agent_set_api_key_hint">API key</string>
+    <string formatted="false" name="ai_agent_api_key_saved">API key saved</string>
+    <string formatted="false" name="ai_agent_select_model_title">Select model</string>
+    <string formatted="false" name="ai_agent_loading_models">Loading models…</string>
+    <string formatted="false" name="ai_agent_model_selected">Model set: %s</string>
+    <string formatted="false" name="ai_agent_no_api_key">Set your Gemini API key first (menu → Set API key)</string>
 </resources>

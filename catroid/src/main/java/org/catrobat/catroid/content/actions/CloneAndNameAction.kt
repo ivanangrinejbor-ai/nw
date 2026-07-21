@@ -15,7 +15,14 @@ class CloneAndNameAction : TemporalAction() {
         val spriteToClone = sprite ?: return
         val stageActivity = StageActivity.activeStageActivity.get() ?: return
         val name = cloneName?.interpretString(scope)
+        
+        // Fallback: if name is null or empty, generate a default name
+        val safeName = if (name.isNullOrBlank()) {
+            "${spriteToClone.name}-clone-${System.currentTimeMillis() % 10000}"
+        } else {
+            name
+        }
 
-        stageActivity.stageListener?.cloneSpriteAndAddToStage(spriteToClone, name)
+        stageActivity.stageListener?.cloneSpriteAndAddToStage(spriteToClone, safeName)
     }
 }

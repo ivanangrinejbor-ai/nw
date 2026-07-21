@@ -267,7 +267,7 @@ test/neoscript/
 
 ## 🔴 Критические проблемы безопасности
 - **Keystore удалён из VCS**: `catroid/keystore` → `git rm --cached`, добавлен в `.gitignore` (настоятельно рекомендуется отозвать ключ)
-- **GitHub OAuth Client ID**: `SettingsFragment.java` — hardcoded `"Ov23liKoq3h0cTgAbVYA"` заменён на `BuildConfig.GITHUB_CLIENT_ID` с fallback
+- **GitHub OAuth Client ID**: `SettingsFragment.java` — захардкоженный client ID заменён на `BuildConfig.GITHUB_CLIENT_ID` с fallback (сам литерал в документации не приводится)
 - **Gemini API key**: `GeminiManager.kt` — `@Deprecated api_key` синхронизирован с `EncryptedSharedPreferences`; `SetGeminiKeyAction.kt` пишет в оба места
 - **WebView URL validation**: `StageActivity.createWebViewWithUrl()` — только HTTPS/file/shell схемы, остальные отклоняются
 - **Path traversal prevention**: PutFileIntoFolderAction, PutFileIntoPathAction, UnzipAction, DeleteFolderByPathAction, CreateFolderByPathAction, CopyProjectFileToPathAction — canonical path validation
@@ -348,8 +348,8 @@ Bug B (инверсия X при drag): в коде desktop-рантайма и�
 - `desktop-runtime/project.zip` — зашифрованный бандл проекта, который кладётся рядом с
   `NeoCatroid.exe` (71 КБ launch4j-лаунчер + внешний `player.jar`).
 - Формат: magic `NCPP` (4E 43 50 50) = AES-256-GCM + PBKDF2. Layout: `NCPP`(4) + salt(32) +
-  IV(12) + ciphertext. Пароль: `PAYLOAD_PASSWORD = "NeoCatroid:BakedProject:Payload:v1"`
-  (тот же, что в Android `ProtectedProjectPayload.PASSWORD`).
+  IV(12) + ciphertext. Пароль хранится в константе `DesktopStage.PAYLOAD_PASSWORD`
+  (тот же, что в Android `ProtectedProjectPayload.PASSWORD`; сам литерал в документации не приводится).
 - `DesktopStage.extractPayload()` проверяет магию `NCPP` и расшифровывает; нет магии →
   грузит как обычный zip (backward-compat).
 - **Важно для сборки EXE**: `build_exe.bat` на шаге staging удаляет ВСЕ папки в корне
@@ -815,10 +815,12 @@ StageListenerHolder: `object StageListenerHolder { var listener: StageListener? 
 V3 собирает автономный APK из 	emplate_runtime.apk с переименованием пакета на выбранный пользователем.
 
 - **Реализация**: catroid/.../apkbuildV3/V3ApkAssembler.kt
-  - pplyPackageRename(manifest, newPackage): manifest.packageName = newPackage + manifest.ensureFullClassNames() (квалифицирует относительные имена компонентов против СТАРОГО пакета ДО смены) + eplacePackageInAuthority (authority provider через searchAttributeByResourceId(0x01010018)).
+  - pplyPackageRename(manifest, newPackage): manifest.packageName = newPackage + manifest.ensureFullClassNames() (квалифицирует относительные имена компонентов против СТАРОГО пакета ДО смены) + 
+eplacePackageInAuthority (authority provider через searchAttributeByResourceId(0x01010018)).
   - makeRuntimeLoaderLauncher(manifest) (internal) — делает RuntimeLoaderActivityV3 единственным launcher.
   - doSign(input, output, keystore, alias, password) (internal) — подпись apksig v1+v2+v3.
-- **Runtime пакет-независим**: FileProvider authority, content URI, PendingIntent, getPackageInfo/getPackageName, reflection (BRICKS_PACKAGE_NAMES — FQN) — всё строится динамически из getPackageName(); хардкод-строк org.catrobat.catroid в манифест-зависимом коде НЕТ. ProjectFilesFragment/ProjectLibsFragment: BuildConfig.APPLICATION_ID → equireContext().packageName.
+- **Runtime пакет-независим**: FileProvider authority, content URI, PendingIntent, getPackageInfo/getPackageName, reflection (BRICKS_PACKAGE_NAMES — FQN) — всё строится динамически из getPackageName(); хардкод-строк org.catrobat.catroid в манифест-зависимом коде НЕТ. ProjectFilesFragment/ProjectLibsFragment: BuildConfig.APPLICATION_ID → 
+equireContext().packageName.
 - **Верификация**: catroid/src/test/java/org/catrobat/catroid/apkbuildV3/V3PackageRenameTest.kt (5 тестов, все зелёные), в т.ч. exportTwoGames_coexistAndVerify — реальный репак 	emplate_runtime.apk (188 МБ) ×2 → org.test.game1/org.test.game2, reandroid-репарс + apksig verify (package, <pkg>.fileProvider authority, RuntimeLoaderActivityV3 launcher, payload project.ncv3, отсутствие ${...} плейсхолдеров и старого пакета вне 
 ame). test heap -Xmx4g в catroid/build.gradle.
 - **Ограничение среды**: нет устройства/SDK ⇒ реальный db install не проверялся; сосуществование доказано логически (разные applicationId + authorities) и тестом.

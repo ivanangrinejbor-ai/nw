@@ -27,11 +27,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-/**
- * Builds a {@link NeoScriptFile} from a set of selected scripts, collecting the
- * user variables / lists that those scripts reference so the module is
- * self-describing.
- */
 public final class NeoScriptExporter {
 
 	private NeoScriptExporter() {

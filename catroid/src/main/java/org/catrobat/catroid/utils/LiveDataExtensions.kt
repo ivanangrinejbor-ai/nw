@@ -30,9 +30,6 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 
-/**
- * Combine 3 LiveData into a Triple, emitting only when all three sources are non-null
- */
 fun <A, B, C> combine(a: LiveData<A>, b: LiveData<B>, c: LiveData<C>): LiveData<Triple<A, B, C>> {
     return MediatorLiveData<Triple<A, B, C>>().apply {
         fun combine() {
@@ -52,15 +49,10 @@ fun <A, B, C> combine(a: LiveData<A>, b: LiveData<B>, c: LiveData<C>): LiveData<
     }
 }
 
-/**
- * Extension on LiveData to combine it with another LiveData. See #combine
- */
 fun <A, B, C> LiveData<A>.combineWith(other: LiveData<B>, secondOther: LiveData<C>):
     LiveData<Triple<A, B, C>> =
     combine(this, other, secondOther)
 
-/* Copyright 2019 Google LLC.
-   SPDX-License-Identifier: Apache-2.0 */
 fun <T> LiveData<T>.getOrAwaitValue(
     time: Long = 2,
     timeUnit: TimeUnit = TimeUnit.SECONDS

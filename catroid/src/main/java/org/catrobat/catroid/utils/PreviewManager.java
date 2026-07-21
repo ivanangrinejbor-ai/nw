@@ -6,6 +6,5 @@ import java.io.File;
 
 public class PreviewManager {
     public void setPreview(String fileName, Project project) {
-        //empty
     }
 }

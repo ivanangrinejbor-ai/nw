@@ -15,22 +15,22 @@ class PtCreateTensorAction() : TemporalAction() {
     override fun update(percent: Float) {
         val name = nameFormula?.interpretString(scope) ?: "t1"
         val shapeRaw = shapeFormula?.interpretString(scope) ?: "1"
+
+        val shape = shapeRaw.split(",")
+            .mapNotNull { it.trim().toIntOrNull() }
+            .filter { it > 0 }
+            .toIntArray()
+
+        if (shape.isEmpty()) {
+            return
+        }
+
         if (valueFormula?.interpretString(scope) == "RANDOM") {
             val isTrainable = (trainableFormula?.interpretFloat(scope) ?: 0.0f) > 0.5f
-
-            val shape = shapeRaw.split(",")
-                .map { it.trim().toInt() }
-                .toIntArray()
-
             MLBridge.nativeCreateRandomTensor(name, shape, isTrainable)
         } else {
             val value = valueFormula?.interpretFloat(scope) ?: 0.0f
             val isTrainable = (trainableFormula?.interpretFloat(scope) ?: 0.0f) > 0.5f
-
-            val shape = shapeRaw.split(",")
-                .map { it.trim().toInt() }
-                .toIntArray()
-
             MLBridge.nativeCreateTensor(name, shape, value, isTrainable)
         }
     }

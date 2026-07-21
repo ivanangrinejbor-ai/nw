@@ -2,9 +2,6 @@ package org.catrobat.catroid.apkbuildV3
 
 import java.io.File
 
-/**
- * Result of an APK V3 assembly operation.
- */
 sealed class AssemblyResult {
     data class Success(
         val apkFile: File,
@@ -19,13 +16,7 @@ sealed class AssemblyResult {
     ) : AssemblyResult()
 }
 
-/**
- * Template type for the baked runtime APK.
- */
 enum class TemplateType {
-    /** Preloads the entire project into RAM on startup — fastest scene transitions. */
     FULL,
-
-    /** Lazy-loads scenes on demand with LRU eviction — lower memory footprint. */
     LIGHT
 }

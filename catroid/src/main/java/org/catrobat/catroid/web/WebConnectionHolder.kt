@@ -30,7 +30,6 @@ import okhttp3.ConnectionSpec.Companion.MODERN_TLS
 import okhttp3.Dispatcher
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
-//import okhttp3.logging.HttpLoggingInterceptor
 import java.util.ArrayList
 import java.util.concurrent.TimeUnit
 
@@ -44,23 +43,13 @@ class WebConnectionHolder {
     }
 
     init {
-        /*val loggingInterceptor = HttpLoggingInterceptor(object : HttpLoggingInterceptor.Logger {
-            override fun log(message: String) {
-                Log.d("OkHttp", message) // Направляем логи OkHttp в Logcat
-            }
-        }).apply {
-            level = HttpLoggingInterceptor.Level.BODY // Логировать заголовки и тело запроса/ответа
-        }*/
-
         val clientBuilder = OkHttpClient.Builder()
             .connectTimeout(TIMEOUT_DURATION, TimeUnit.SECONDS)
             .readTimeout(TIMEOUT_DURATION, TimeUnit.SECONDS)
             .writeTimeout(TIMEOUT_DURATION, TimeUnit.SECONDS)
-            // Force HTTPS/TLS only; never allow cleartext (http) connections.
             .connectionSpecs(listOf(MODERN_TLS, COMPATIBLE_TLS))
             .dispatcher(Dispatcher())
 
-        // Log request/response bodies only in debug builds to avoid leaking data in release.
         if (BuildConfig.DEBUG) {
             val logging = HttpLoggingInterceptor()
             logging.setLevel(HttpLoggingInterceptor.Level.BODY)

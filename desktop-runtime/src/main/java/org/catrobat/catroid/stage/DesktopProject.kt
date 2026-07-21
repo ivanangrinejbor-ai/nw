@@ -3,20 +3,12 @@ package org.catrobat.catroid.stage
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.Sprite
 
-/**
- * Десктопные data-классы для представления проекта NeoCatroid.
- *
- * Минимальная, но функциональная модель: проект содержит спрайты,
- * каждый спрайт имеет позицию, размер, направление и набор "луков"
- * (текстур). Загрузка выполняется [DesktopProjectManager]'ом из
- * директории проекта (формат Catrobat: code.xml + images/).
- */
 class DesktopLook(
     val name: String,
     val fileName: String,
-    texture: Texture? = null
+    texture: Texture? = null,
+    val hitboxes: MutableList<DesktopHitbox> = mutableListOf()
 ) {
-    /** Lazy-loaded texture — only created on first access to save VRAM and startup time. */
     var texture: Texture? = texture
         get() {
             if (field == null && fileName.isNotEmpty()) {
@@ -26,31 +18,30 @@ class DesktopLook(
         }
 }
 
-/** Text overlay on the stage — rendered each frame. */
+data class DesktopHitbox(
+    val x: Float,
+    val y: Float,
+    val width: Float,
+    val height: Float,
+    val rotation: Float = 0f
+)
+
 data class TextOverlay(
     val name: String,
     var text: String,
-    var x: Float,    // Catrobat coordinate (centre of screen = 0,0)
+    var x: Float,
     var y: Float,
     var size: Float = 14f,
     var colorRed: Float = 0f,
     var colorGreen: Float = 0f,
     var colorBlue: Float = 0f,
     var visible: Boolean = true,
-    /** For think/say bubbles: remaining visible time in seconds, -1 = permanent */
     var remainingSeconds: Float = -1f,
-    /** true = "Think" (thought bubble prefix), false = "Say" (speech bubble prefix) */
     val isThink: Boolean = false,
-    /** true = this overlay displays a variable value that should update each frame */
     val isVariable: Boolean = false,
-    /** Rotation of the overlay text in degrees (ShowTextRotationBrick). */
     var rotation: Float = 0f
 )
 
-/**
- * Команда рисования пера — хранится в [DesktopSprite.penDrawCommands]
- * и рендерится каждый кадр до очистки.
- */
 sealed interface PenDrawCommand {
     data class DrawLine(
         val x1: Float, val y1: Float,
@@ -102,10 +93,9 @@ class DesktopSprite(
     val looks: MutableList<DesktopLook> = mutableListOf(),
     var currentLookIndex: Int = 0,
     var visible: Boolean = true,
-    // ── Graphic effects ──
-    var transparency: Float = 0f,       // 0..100
-    var brightness: Float = 100f,       // 0..200
-    var color: Float = 0f,              // 0..200
+    var transparency: Float = 0f,
+    var brightness: Float = 100f,
+    var color: Float = 0f,
     var filterBlur: Float = 0f,
     var filterPixelate: Float = 0f,
     var filterSepia: Float = 0f,
@@ -122,28 +112,22 @@ class DesktopSprite(
     var rotationLockY: Boolean = false,
     var rotationLockZ: Boolean = false,
     var canvasName: String = "",
-    // ── Dimensions (override) ──
-    var width: Float = -1f,             // -1 = use look native
+    var width: Float = -1f,
     var height: Float = -1f,
-    // ── Pen ──
     var penDown: Boolean = false,
     var penSize: Float = 1f,
     var penColorRed: Float = 0f,
     var penColorGreen: Float = 0f,
     var penColorBlue: Float = 0f,
-    // ── Pen drawing commands (shapes) ──
     val penDrawCommands: MutableList<PenDrawCommand> = mutableListOf(),
     var penCornerRadius: Float = 0f,
     var penBorderWidth: Float = 1f,
     var penBorderColorRed: Float = 0f,
     var penBorderColorGreen: Float = 0f,
     var penBorderColorBlue: Float = 0f,
-    // ── Rotation ──
-    var rotationStyle: Int = 0,         // 0=free, 1=mirror, 2=no_rotation
-    // ── Clone / parenting ──
-    var cloneIndex: Int = 0,            // 0 = original, 1+ = clone number
-    var parentName: String? = null,     // имя родительского спрайта (SetParent)
-    // ── Fast2D scale / z-order ──
+    var rotationStyle: Int = 0,
+    var cloneIndex: Int = 0,
+    var parentName: String? = null,
     var scaleX: Float = 1f,
     var scaleY: Float = 1f,
     var zIndex: Int = 0
@@ -157,7 +141,6 @@ class DesktopSprite(
 
     fun currentLook(): DesktopLook? = looks.getOrNull(currentLookIndex)
 
-    /** Creates a shallow copy of this sprite for cloning. */
     fun copy(): DesktopSprite {
         val clone = DesktopSprite(
             name = name + "_clone",
@@ -189,7 +172,6 @@ class DesktopSprite(
     val lookWidth: Float get() = currentLook()?.texture?.width?.toFloat() ?: 0f
     val lookHeight: Float get() = currentLook()?.texture?.height?.toFloat() ?: 0f
 
-    /** Строит libGDX Sprite из текущего look (текстуры). */
     fun buildSprite() {
         val tex = currentLook()?.texture ?: return
         if (sprite == null) {
@@ -214,9 +196,7 @@ class DesktopProject(
     var name: String,
     val sprites: MutableList<DesktopSprite> = mutableListOf(),
     var projectDir: java.io.File? = null,
-    /** Resolved directory holding look images (may be nested under a project-name folder). */
     var imagesDir: java.io.File? = null,
-    /** Resolved directory holding sound files (may be nested under a project-name folder). */
     var soundsDir: java.io.File? = null,
     var stageWidth: Int = 480,
     var stageHeight: Int = 720

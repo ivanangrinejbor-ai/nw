@@ -1,1 +1,0 @@
-PyTorch ≥ 2.0 with `torch.amp` mixed precision and optional `torch.compile`; ONNX export (opset 14) targeting Android's bundled ONNX Runtime; lxml for XML parsing; pure-Python n-gram counting with `collections.Counter`.

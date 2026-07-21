@@ -14,9 +14,6 @@ public class SetSkyColorBrick extends FormulaBrick {
         addAllowedBrickField(BrickField.VALUE_3, R.id.brick_set_sky_color_b);
     }
 
-    /**
-     * Конструктор для удобного создания блока с уже заданными значениями.
-     */
     public SetSkyColorBrick(double r, double g, double b) {
         this();
         setFormulaWithBrickField(BrickField.VALUE_1, new Formula(r));

@@ -91,8 +91,6 @@ public class PhysicsShapeBuilderStrategyRectangle implements PhysicsShapeBuilder
 		float box2dWidth = PhysicsWorldConverter.convertNormalToBox2dCoordinate(width) / 2.0f;
 		float box2dHeight = PhysicsWorldConverter.convertNormalToBox2dCoordinate(height) / 2.0f;
 
-		// Correct center: compute the bounding box center in pixel space,
-		// offset from the pixmap origin, flip Y for Box2D, then convert units.
 		float pixelCenterX = start.x + width / 2.0f;
 		float pixelCenterY = start.y + height / 2.0f;
 		Vector2 center = new Vector2(
@@ -105,22 +103,16 @@ public class PhysicsShapeBuilderStrategyRectangle implements PhysicsShapeBuilder
 		return new Shape[] {polygonShape};
 	}
 
-	/**
-	 * Returns true if the pixel at (x, y) has enough alpha to be considered opaque.
-	 * For formats without an alpha channel (RGB888, RGB565) all pixels are opaque.
-	 * For RGBA8888 the alpha byte is in bits 24-31 of the pixel int.
-	 * For RGBA4444 the alpha is in bits 12-15 (4-bit), scaled up for comparison.
-	 */
 	private static boolean isOpaque(Pixmap pixmap, int x, int y, Pixmap.Format format, boolean hasAlpha) {
 		if (!hasAlpha) {
-			return true; // No alpha channel — every pixel is fully opaque
+			return true;
 		}
 		int pixel = pixmap.getPixel(x, y);
 		int alpha;
 		if (format == Pixmap.Format.RGBA8888) {
 			alpha = (pixel >>> 24) & 0xFF;
-		} else { // RGBA4444
-			alpha = ((pixel >>> 12) & 0x0F) * 17; // Scale 4-bit (0-15) to 8-bit (0-255)
+		} else {
+			alpha = ((pixel >>> 12) & 0x0F) * 17;
 		}
 		return alpha >= MINIMUM_PIXEL_ALPHA_VALUE;
 	}

@@ -24,8 +24,14 @@ class CreatePrismaticJointAction : TemporalAction() {
 
         val ax = anchorX?.interpretFloat(scope) ?: 0f
         val ay = anchorY?.interpretFloat(scope) ?: 0f
-        val axisXVal = axisX?.interpretFloat(scope) ?: 1f
-        val axisYVal = axisY?.interpretFloat(scope) ?: 0f
+        var axisXVal = axisX?.interpretFloat(scope) ?: 1f
+        var axisYVal = axisY?.interpretFloat(scope) ?: 0f
+
+        // Validate axis vector — Box2D requires non-zero axis for PrismaticJoint
+        if (axisXVal == 0f && axisYVal == 0f) {
+            axisXVal = 1f
+            axisYVal = 0f
+        }
 
         val scene = ProjectManager.getInstance().currentlyPlayingScene ?: return
         val spriteA = scope?.sprite ?: return

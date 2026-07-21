@@ -40,8 +40,7 @@ class WebConnection(private val okHttpClient: OkHttpClient?, listener: WebReques
 
     constructor(listener: WebRequestListener, url: String) :
             this(StageActivity.activeStageActivity.get()?.stageListener?.webConnectionHolder?.okHttpClient, listener, url) {
-            //this(OkHttpClient(), listener, url) { // Временно используем новый OkHttpClient() с дефолтными настройками
-        Log.d("WebConnection", "[${System.identityHashCode(this)}] Constructor called. URL: '$url', Listener: ${System.identityHashCode(listener)}") // ++ Лог конструктора
+        Log.d("WebConnection", "[${System.identityHashCode(this)}] Constructor called. URL: '$url', Listener: ${System.identityHashCode(listener)}")
     }
 
     companion object {
@@ -58,35 +57,30 @@ class WebConnection(private val okHttpClient: OkHttpClient?, listener: WebReques
 
     @Synchronized
     fun sendWebRequest() {
-        Log.d("WebConnection", "[${System.identityHashCode(this)}] sendWebRequest CALLED. URL: '$url'") // ++ Лог вызова
+        Log.d("WebConnection", "[${System.identityHashCode(this)}] sendWebRequest CALLED. URL: '$url'")
         try {
             val request = Request.Builder()
-                .url(url) // Убедитесь, что url здесь не null и корректен
+                .url(url)
                 .header("User-Agent", "Mozilla/5.0 (Android 10; Mobile; rv:91.0) Gecko/91.0 Firefox/91.0")
                 .build()
-            Log.d("WebConnection", "[${System.identityHashCode(this)}] Request object created. Starting enqueue...") // ++ Лог перед enqueue
+            Log.d("WebConnection", "[${System.identityHashCode(this)}] Request object created. Starting enqueue...")
             call = okHttpClient?.newCall(request)
             call?.enqueue(createCallback())
-            Log.d("WebConnection", "[${System.identityHashCode(this)}] Enqueue called.") // ++ Лог после enqueue
+            Log.d("WebConnection", "[${System.identityHashCode(this)}] Enqueue called.")
         } catch (exception: IllegalArgumentException) {
-            Log.e("WebConnection", "[${System.identityHashCode(this)}] IllegalArgumentException in sendWebRequest for URL: '$url'", exception) // ++ Лог ошибки
-            // Важно: если здесь ошибка, popListener может не быть вызван, а должен бы.
-            // И статус в Action не изменится.
+            Log.e("WebConnection", "[${System.identityHashCode(this)}] IllegalArgumentException in sendWebRequest for URL: '$url'", exception)
             popListener()?.onRequestError(Constants.ERROR_BAD_REQUEST.toString())
-            // requestStatus в Action останется WAITING, что может привести к зависанию, если не обрабатывается.
-            // Однако, если sendRequest в Action устанавливает WAITING только после успешного addConnection,
-            // то при IllegalArgumentException здесь, статус в Action еще будет NOT_SENT, что лучше.
-        } catch (e: Exception) { // Перехватываем другие возможные исключения
+        } catch (e: Exception) {
             ErrorLog.log(e.message?: "**message not provided :(**")
             Log.e("WebConnection", "[${System.identityHashCode(this)}] Generic Exception in sendWebRequest for URL: '$url'", e)
-            popListener()?.onRequestError(Constants.ERROR_SERVER_ERROR.toString()) // или более специфическая ошибка
+            popListener()?.onRequestError(Constants.ERROR_SERVER_ERROR.toString())
         }
     }
 
     private fun createCallback(): Callback {
         return object : Callback {
             override fun onFailure(call: Call, e: IOException) {
-                Log.d("WebConnectionCallback", "[${System.identityHashCode(this@WebConnection)}] onFailure ENTERED. URL: $url. Listener ref: ${weakListenerReference?.get()}") // ++ Лог
+                Log.d("WebConnectionCallback", "[${System.identityHashCode(this@WebConnection)}] onFailure ENTERED. URL: $url. Listener ref: ${weakListenerReference?.get()}")
                 popListener()?.apply {
                     when (e.message) {
                         EXCEPTION_MESSAGE_TIMEOUT -> onRequestError(Constants.ERROR_TIMEOUT.toString())
@@ -97,25 +91,20 @@ class WebConnection(private val okHttpClient: OkHttpClient?, listener: WebReques
             }
 
             override fun onResponse(call: Call, response: Response) {
-                // Добавим логирование для отладки
-                Log.d("WebConnectionCallback", "[${System.identityHashCode(this@WebConnection)}] onResponse ENTERED. URL: $url. Code: ${response.code}. Listener ref: ${weakListenerReference?.get()}") // ++ Лог
+                Log.d("WebConnectionCallback", "[${System.identityHashCode(this@WebConnection)}] onResponse ENTERED. URL: $url. Code: ${response.code}. Listener ref: ${weakListenerReference?.get()}")
                 val listener = popListener()
                 if (listener == null) {
                     Log.w("WebConnectionCallback", "onResponse: Listener was null for URL: $url. Closing response body.")
-                    response.close() // Важно закрыть тело, если слушателя нет
+                    response.close()
                     return
                 }
 
                 if (response.isSuccessful) {
-                    // В onRequestSuccess (в WebRequestAction/AskGPTAction) вызывается body().string(),
-                    // который считывает и ЗАКРЫВАЕТ тело ответа.
                     listener.onRequestSuccess(response)
                 } else {
                     listener.onRequestError(response.code.toString())
-                    // Для НЕУСПЕШНЫХ ответов тело ответа НЕ было считано и закрыто слушателем.
-                    // Закрываем его здесь, чтобы освободить ресурсы.
                     Log.d("WebConnectionCallback", "Closing response body for unsuccessful request. URL: $url, Code: ${response.code}")
-                    response.close() // <--- ВАЖНОЕ ИСПРАВЛЕНИЕ
+                    response.close()
                 }
             }
         }

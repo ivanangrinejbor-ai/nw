@@ -96,7 +96,6 @@ public class Formula implements Serializable {
 
 	public void setFormulaTree(FormulaElement tree) {
 		formulaTree = tree;
-		// Invalidate caches: tree has changed, cached values are stale
 		cachedNumberValue = null;
 		cachedStringValue = null;
 	}
@@ -238,7 +237,6 @@ public class Formula implements Serializable {
 	public void setRoot(FormulaElement formula) {
 		formulaTree = formula;
 		internFormula = new InternFormula(formula.getInternTokenList());
-		// Invalidate caches: root has changed, cached values are stale
 		cachedNumberValue = null;
 		cachedStringValue = null;
 	}

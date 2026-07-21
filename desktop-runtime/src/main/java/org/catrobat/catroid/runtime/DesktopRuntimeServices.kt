@@ -4,10 +4,6 @@ import com.badlogic.gdx.Gdx
 import java.io.File
 import java.lang.Runnable
 
-/**
- * Desktop (Windows) implementation of [RuntimeServices] using the standard JDK.
- * Storage roots map to the user home / Downloads folder; scheduling uses plain threads.
- */
 class DesktopRuntimeServices : RuntimeServices {
     override fun getExternalStorageDir(): String =
         System.getProperty("user.home") ?: "."
@@ -29,7 +25,6 @@ class DesktopRuntimeServices : RuntimeServices {
             try {
                 Thread.sleep(delayMs)
             } catch (_: InterruptedException) {
-                // cancelled
             }
             val app = Gdx.app
             if (app != null) {
@@ -45,6 +40,5 @@ class DesktopRuntimeServices : RuntimeServices {
     override fun hasVibrator(): Boolean = false
 
     override fun vibrate(durationMs: Long) {
-        // No vibrator on desktop; intentionally a no-op.
     }
 }

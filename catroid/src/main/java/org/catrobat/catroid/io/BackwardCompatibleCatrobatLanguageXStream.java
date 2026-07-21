@@ -26,7 +26,6 @@ import android.util.Log;
 import android.util.Pair;
 
 import com.thoughtworks.xstream.XStream;
-import com.thoughtworks.xstream.converters.ConversionException;
 import com.thoughtworks.xstream.converters.reflection.PureJavaReflectionProvider;
 
 import org.catrobat.catroid.content.BroadcastScript;
@@ -217,15 +216,74 @@ public class BackwardCompatibleCatrobatLanguageXStream extends XStream {
 	}
 
 	public Object getProjectFromXML(File file) {
-		Object parsedObject;
 		try {
-			parsedObject = super.fromXML(file);
-		} catch (ConversionException exception) {
+			return super.fromXML(file);
+		} catch (Exception exception) {
 			Log.d(TAG, "Conversion error " + exception.getLocalizedMessage());
-			modifyXMLToSupportUnknownFields(file);
-			parsedObject = super.fromXML(file);
+			try {
+				modifyXMLToSupportUnknownFields(file);
+				return super.fromXML(file);
+			} catch (Exception secondException) {
+				Log.e(TAG, "Still failing after backward-compat modification; "
+						+ "replacing unresolved bricks with UnknownBrick placeholder", secondException);
+				replaceUnresolvedBricksWithUnknown(file);
+				return super.fromXML(file);
+			}
 		}
-		return parsedObject;
+	}
+
+	// Last-resort load recovery: rewrites every "<brick type=\"X\">" whose class cannot be
+	// resolved into an UnknownBrick placeholder so the project still opens instead of failing
+	// with "something went wrong". Nested children of an unresolvable brick are dropped because
+	// its structure is unknown (mirrors XStream.ignoreUnknownElements() behaviour).
+	private void replaceUnresolvedBricksWithUnknown(File file) {
+		Document doc = getDocument(file);
+		if (doc == null) {
+			return;
+		}
+		NodeList brickNodes = doc.getElementsByTagName("brick");
+		List<Element> unresolvedBricks = new ArrayList<>();
+		for (int i = 0; i < brickNodes.getLength(); i++) {
+			Node node = brickNodes.item(i);
+			if (!(node instanceof Element)) {
+				continue;
+			}
+			Element brick = (Element) node;
+			String type = brick.getAttribute("type");
+			if (type == null || type.isEmpty() || type.equals("UnknownBrick")) {
+				continue;
+			}
+			if (!brickClassExists(type)) {
+				unresolvedBricks.add(brick);
+			}
+		}
+		for (Element brick : unresolvedBricks) {
+			String originalType = brick.getAttribute("type");
+			while (brick.hasChildNodes()) {
+				brick.removeChild(brick.getFirstChild());
+			}
+			brick.setAttribute("type", "UnknownBrick");
+			Element unknownNameNode = doc.createElement("unknownClassName");
+			unknownNameNode.setTextContent(originalType);
+			brick.appendChild(unknownNameNode);
+		}
+		saveDocument(doc, file);
+	}
+
+	private boolean brickClassExists(String simpleClassName) {
+		final String[] brickPackages = {
+				"org.catrobat.catroid.content.bricks",
+				"org.catrobat.catroid.physics.content.bricks"
+		};
+		for (String brickPackage : brickPackages) {
+			try {
+				Class.forName(brickPackage + "." + simpleClassName);
+				return true;
+			} catch (ClassNotFoundException ignored) {
+				// try next package
+			}
+		}
+		return false;
 	}
 
 	private void initializeBrickInfoMap() {
@@ -414,9 +472,6 @@ public class BackwardCompatibleCatrobatLanguageXStream extends XStream {
 
 		brickInfo = new BrickInfo(UserDefinedBrick.class.getSimpleName());
 		brickInfoMap.put("userDefinedBrick", brickInfo);
-
-		//brickInfo = new BrickInfo(ReportBrick.class.getSimpleName());
-		//brickInfoMap.put("reportBrick", brickInfo);
 
 		brickInfo = new BrickInfo(LoopEndBrick.class.getSimpleName());
 		brickInfoMap.put("loopEndBrick", brickInfo);
@@ -919,7 +974,6 @@ public class BackwardCompatibleCatrobatLanguageXStream extends XStream {
 			serializer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
 
 			DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
-			// Prevent XXE (XML External Entity) injection
 			docFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
 			docFactory.setFeature("http://xml.org/sax/features/external-general-entities", false);
 			docFactory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);

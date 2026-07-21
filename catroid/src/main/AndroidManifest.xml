@@ -416,6 +416,7 @@
         <activity
             android:name="org.catrobat.catroid.ui.hitbox.HitboxEditorActivity"
             android:exported="false"
+            android:configChanges="orientation|screenSize|keyboardHidden"
             android:screenOrientation="unspecified"
             android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />
 
@@ -458,6 +459,13 @@
         <receiver
             android:name=".content.notification.NotificationEventReceiver"
             android:exported="false" />
+
+        <receiver android:name="org.catrobat.catroid.utils.NotificationPublisherReceiver" android:exported="false" />
+
+        <receiver
+            android:name="org.catrobat.catroid.utils.NotificationActionReceiver"
+            android:exported="true">
+        </receiver>
 
         <provider
             android:authorities="${applicationId}.fileProvider"

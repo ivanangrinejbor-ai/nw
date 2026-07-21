@@ -40,19 +40,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-/**
- * Helpers for the per-brick password protection ("lock") feature.
- *
- * NOTE: this is client-side obfuscation, not real security — the hash lives in the
- * project file and can be removed by editing it. It protects against accidental
- * deletion / tampering by a casual user, not a determined attacker.
- */
 public final class LockUtils {
 
 	private LockUtils() {
 	}
 
-	/** All locked bricks of a sprite (every script, including nested composite bricks). */
 	public static List<Brick> getLockedBricks(Sprite sprite) {
 		List<Brick> result = new ArrayList<>();
 		if (sprite == null) {
@@ -64,7 +56,6 @@ public final class LockUtils {
 		return result;
 	}
 
-	/** All locked bricks of a scene (every sprite, every script). */
 	public static List<Brick> getLockedBricks(Scene scene) {
 		List<Brick> result = new ArrayList<>();
 		if (scene == null) {
@@ -97,7 +88,6 @@ public final class LockUtils {
 		}
 	}
 
-	/** True only if the password verifies every locked brick in the list. */
 	public static boolean verify(List<Brick> lockedBricks, String password) {
 		if (lockedBricks == null) {
 			return true;
@@ -110,7 +100,6 @@ public final class LockUtils {
 		return true;
 	}
 
-	/** Shows a password prompt; on a non-empty OK it passes the entered password to {@code onOk}. */
 	public static void requestPassword(Context context, int titleRes, Consumer<String> onOk) {
 		AlertDialog.Builder builder = new AlertDialog.Builder(context);
 		builder.setTitle(titleRes);

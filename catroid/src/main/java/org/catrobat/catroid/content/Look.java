@@ -134,6 +134,10 @@ public class Look extends Image {
 
     public boolean drawOnlyInBuffer = false;
 
+    // --- Phase 4 stubs ---
+    public String maskBufferName = null;
+    public int maskMode = 0;
+
     private final transient float[] hitboxVertices = new float[8];
     private final transient Polygon hitboxPolygon = new Polygon(hitboxVertices);
 
@@ -666,7 +670,6 @@ public class Look extends Image {
 	}
 
 	public float getAngularVelocityInUserInterfaceDimensionUnit() {
-		// only available in physicsLook
 		return 0;
 	}
 
@@ -1081,11 +1084,21 @@ public class Look extends Image {
         if (getLookData2() == null) {
             originalPolygons = new Polygon[0];
         } else {
-            CollisionInformation collisionInformation = getLookData2().getCollisionInformation();
-            if (collisionInformation.collisionPolygons == null) {
-                collisionInformation.loadCollisionPolygon();
+            LookData ld = getLookData2();
+            Polygon[] fromBoxes = null;
+            if (ld.isFullHitboxMode() && ld.hasCustomHitboxes()) {
+                fromBoxes = CollisionInformation.buildPolygonsFromHitboxes(
+                        ld.getHitboxes(), getWidth(), getHeight());
             }
-            originalPolygons = collisionInformation.collisionPolygons;
+            if (fromBoxes != null) {
+                originalPolygons = fromBoxes;
+            } else {
+                CollisionInformation collisionInformation = ld.getCollisionInformation();
+                if (collisionInformation.collisionPolygons == null) {
+                    collisionInformation.loadCollisionPolygon();
+                }
+                originalPolygons = collisionInformation.collisionPolygons;
+            }
         }
 
         if (cachedCollisionPolygons == null || cachedCollisionPolygons.length != originalPolygons.length) {
@@ -1123,5 +1136,26 @@ public class Look extends Image {
 	@VisibleForTesting
 	public float getBrightness() {
 		return brightness;
+	}
+
+	// --- Phase 4 stubs ---
+	public void playGif(String fileName) {
+		// TODO: implement GIF playback on Look
+	}
+
+	public void stopGif() {
+		// TODO: implement GIF stop
+	}
+
+	public void playSpritesheet(int rows, int cols, int selectedRow, int framesCount, float speed) {
+		// TODO: implement spritesheet playback
+	}
+
+	public void stopSpritesheet() {
+		// TODO: implement spritesheet stop
+	}
+
+	public void setCornerOffsets(float tlx, float tly, float trx, float tryVal, float brx, float bry, float blx, float bly) {
+		// TODO: implement corner offset distortion
 	}
 }

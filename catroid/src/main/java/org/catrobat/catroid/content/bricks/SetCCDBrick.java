@@ -13,7 +13,7 @@ import org.catrobat.catroid.formulaeditor.Formula;
 public class SetCCDBrick extends FormulaBrick {
     private static final long serialVersionUID = 1L;
 
-    private int ccdSelection = 0; // 0 = enable, 1 = disable
+    private int ccdSelection = 0;
 
     public SetCCDBrick() {
         addAllowedBrickField(BrickField.THREED_OBJECT_ID, R.id.brick_set_ccd_object_id);

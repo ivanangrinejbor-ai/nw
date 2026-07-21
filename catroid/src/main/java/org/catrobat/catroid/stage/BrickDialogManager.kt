@@ -121,7 +121,7 @@ class BrickDialogManager(val stageActivity: StageActivity) :
         return askDialog
     }
 
-    private fun createAskDialog(askAction: AskAction, question: String): Dialog {//, message:
+    private fun createAskDialog(askAction: AskAction, question: String): Dialog {
         val editText = EditText(stageActivity)
         val askDialog = AlertDialog.Builder(
             ContextThemeWrapper(stageActivity, R.style.Theme_NeoCatroid_Dialog)

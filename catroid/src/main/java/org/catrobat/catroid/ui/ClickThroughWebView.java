@@ -1,4 +1,3 @@
-// Файл: org/catrobat/catroid/ui/ClickThroughWebView.java
 package org.catrobat.catroid.ui;
 
 import android.content.Context;
@@ -6,10 +5,6 @@ import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.webkit.WebView;
 
-/**
- * Кастомный WebView, который по умолчанию "пропускает" все касания сквозь себя,
- * позволяя нажимать на элементы управления, находящиеся за ним.
- */
 public class ClickThroughWebView extends WebView {
 
     private boolean isClickThrough = true;
@@ -27,11 +22,6 @@ public class ClickThroughWebView extends WebView {
         super(context, attrs, defStyleAttr);
     }
 
-    /**
-     * Позволяет плагину программно включать или отключать режим "пропускания" касаний.
-     * @param isClickThrough true, если касания должны проходить насквозь (по умолчанию).
-     *                       false, если WebView должен обрабатывать касания как обычно.
-     */
     public void setClickThrough(boolean isClickThrough) {
         this.isClickThrough = isClickThrough;
     }

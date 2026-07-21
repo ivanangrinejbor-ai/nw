@@ -1,1 +1,0 @@
-Aggregates the NeoCatroid Android app, a platform-agnostic runtime core, a Windows desktop player, LunoScript tooling, VNC client, AI assistant, and CI/release scripts into one Gradle workspace.

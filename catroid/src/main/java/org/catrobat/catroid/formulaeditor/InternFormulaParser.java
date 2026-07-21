@@ -31,7 +31,7 @@ import org.catrobat.catroid.content.Scope;
 import java.util.ArrayList;
 import java.util.EmptyStackException;
 import java.util.List;
-import org.catrobat.catroid.formulaeditor.CustomFormulaManager; // Добавьте этот импорт
+import org.catrobat.catroid.formulaeditor.CustomFormulaManager;
 
 @LunoClass
 public class InternFormulaParser {

@@ -11,6 +11,7 @@ import org.catrobat.catroid.content.bricks.*;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.TreeMap;
 
 public final class BrickInfo {
     private static final String DESC_NOT_FOUND = "Описание для этого блока еще не добавлено.";
@@ -254,6 +255,7 @@ public final class BrickInfo {
         add(SetMaxPointLightsBrick.class, "Задает сколько максимум может быть динамических точечных светов на сцене. Работают только N ближайших к камере");
         add(CameraTouchControlBrick.class, "Включает вращение камеры пальцем. X, Y, W (ширина), H (высота) ЗАДАЮТСЯ В ПРОЦЕНТАХ ОТ ВСЕГО ЭКРАНА!");
         add(CameraSettingsBrick.class, "Настраивает поле зрения и тряску камеры");
+        add(ShakeScreenBrick.class, "Трясет 2D экран (камеру сцены). Параметры: интенсивность (максимальное смещение в мировых единицах) и длительность в секундах. Тряска затухает со временем.");
         add(MoveFilesBrick.class, "Копирует файл проекта в \"Загрузки\"");
         add(MoveDownloadsBrick.class, "Копирует файл из \"Загрузок\" в файлы проекта");
         add(OrientationBrick.class, "Меняет ориентацию проекта ВАЖНО: блок тут вообще по приколу и работает плохо");
@@ -744,6 +746,8 @@ public final class BrickInfo {
         addEn(PtReshapeBrick.class, "Changes the shape (dimensions) of an existing PyTorch tensor to a new one given as comma-separated values. IMPORTANT: requires the machine learning backend (MLBridge).");
         add(PtOpBrick.class, "Выполняет выбранную операцию над двумя тензорами PyTorch (A и B) и сохраняет результат в тензор с указанным именем. ВАЖНО: требуется поддержка машинного обучения (MLBridge).");
         addEn(PtOpBrick.class, "Performs the selected operation on two PyTorch tensors (A and B) and stores the result in the tensor with the given name. IMPORTANT: requires the machine learning backend (MLBridge).");
+        add(PtLinearBrick.class, "Применяет полносвязный (линейный) слой: создаёт/использует веса и смещение с заданным именем слоя, берёт входной тензор и записывает результат в выходной тензор. Число входов и выходов задаёт размерности. Основной блок для нейросетей и трансформеров. ВАЖНО: требуется поддержка машинного обучения (MLBridge).");
+        addEn(PtLinearBrick.class, "Applies a fully-connected (linear) layer: creates/uses weights and bias under the given layer name, takes the input tensor and writes the result to the output tensor. In/out features set the dimensions. Core building block for neural networks and transformers. IMPORTANT: requires the machine learning backend (MLBridge).");
         add(PtBackwardBrick.class, "Выполняет обратное распространение ошибки (backward) для указанного тензора потерь, вычисляя градиенты для обучаемых тензоров. ВАЖНО: требуется поддержка машинного обучения (MLBridge).");
         addEn(PtBackwardBrick.class, "Runs backpropagation (backward) on the given loss tensor, computing gradients for the trainable tensors. IMPORTANT: requires the machine learning backend (MLBridge).");
         add(PtStepBrick.class, "Делает один шаг обучения (обновляет веса через оптимизатор) с заданной скоростью обучения (learning rate). Обычно вызывается после блока обратного распространения. ВАЖНО: требуется поддержка машинного обучения (MLBridge).");
@@ -1220,6 +1224,7 @@ public final class BrickInfo {
         addEn(SetMaxPointLightsBrick.class, "Sets the maximum number of dynamic point lights that can be on the scene. Only the N closest to the camera work");
         addEn(CameraTouchControlBrick.class, "Enables camera rotation with a finger. X, Y, W (width), H (height) ARE SET AS PERCENTAGES OF THE ENTIRE SCREEN!");
         addEn(CameraSettingsBrick.class, "Configures the field of view and camera shake");
+        addEn(ShakeScreenBrick.class, "Shakes the 2D screen (the scene camera). Parameters: intensity (maximum offset in world units) and duration in seconds. The shake decays over time.");
         addEn(MoveFilesBrick.class, "Copies a project file to \"Downloads\"");
         addEn(MoveDownloadsBrick.class, "Copies a file from \"Downloads\" into project files");
         addEn(OrientationBrick.class, "Changes the project orientation. IMPORTANT: this block is just for fun and works poorly.");
@@ -1372,5 +1377,76 @@ public final class BrickInfo {
         }
 
         return (description != null) ? description : notFound;
+    }
+
+    /**
+     * Builds a full catalog of every known brick, one per line, in the form
+     * "BrickClassName: description". Used to give the cloud AI agent a complete
+     * list of every available block and its capabilities so it can write valid
+     * scripts. The description language follows the current locale (RU or EN),
+     * falling back to the other language when a translation is missing.
+     */
+    public static String getFullCatalog() {
+        boolean isRu = Locale.getDefault().getLanguage().equals("ru");
+        Map<Class<? extends Brick>, String> primary = isRu ? brickDescriptions : brickDescriptionsEn;
+        Map<Class<? extends Brick>, String> fallback = isRu ? brickDescriptionsEn : brickDescriptions;
+
+        Map<String, String> sorted = new TreeMap<>();
+        for (Map.Entry<Class<? extends Brick>, String> entry : primary.entrySet()) {
+            sorted.put(entry.getKey().getSimpleName(), annotateContainer(entry.getKey(), entry.getValue()));
+        }
+        for (Map.Entry<Class<? extends Brick>, String> entry : fallback.entrySet()) {
+            sorted.putIfAbsent(entry.getKey().getSimpleName(), annotateContainer(entry.getKey(), entry.getValue()));
+        }
+
+        StringBuilder sb = new StringBuilder();
+        for (Map.Entry<String, String> entry : sorted.entrySet()) {
+            sb.append("- ").append(entry.getKey()).append(": ").append(entry.getValue()).append('\n');
+        }
+        return sb.toString();
+    }
+
+    /**
+     * Appends a machine-readable tag to the description so the cloud AI agent knows
+     * which bricks are containers (require `{ }` syntax) and which support an else-branch.
+     * Examples:
+     *   "Бесконечный цикл. [container]"
+     *   "If/then/else. [container, if-else]"
+     *   "If/then (no else). [container, no-else]"
+     */
+    private static String annotateContainer(Class<? extends Brick> clazz, String description) {
+        if (!org.catrobat.catroid.ai.tool.BrickFactory.INSTANCE.isContainerBrick(clazz)) {
+            return description;
+        }
+        boolean hasElse = false;
+        try {
+            clazz.getDeclaredMethod("addBrickToElseBranch", Brick.class);
+            hasElse = true;
+        } catch (NoSuchMethodException ignored) {
+            // try superclass
+            Class<?> sup = clazz.getSuperclass();
+            while (sup != null && sup != Object.class) {
+                try {
+                    sup.getDeclaredMethod("addBrickToElseBranch", Brick.class);
+                    hasElse = true;
+                    break;
+                } catch (NoSuchMethodException ignored2) {
+                    sup = sup.getSuperclass();
+                }
+            }
+        }
+        return description + (hasElse ? " [container, if-else]" : " [container, no-else]");
+    }
+
+    /** @return the number of bricks with a registered description. */
+    public static int getCatalogSize() {
+        java.util.Set<String> names = new java.util.HashSet<>();
+        for (Class<? extends Brick> c : brickDescriptions.keySet()) {
+            names.add(c.getSimpleName());
+        }
+        for (Class<? extends Brick> c : brickDescriptionsEn.keySet()) {
+            names.add(c.getSimpleName());
+        }
+        return names.size();
     }
 }

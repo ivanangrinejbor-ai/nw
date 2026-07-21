@@ -28,8 +28,6 @@ public class MatryoshkaManager {
     private static final String DUMMY_PATH = "Scene/sounds/dummy.mp3";
 
     public static File packForUpload(Context context, Project realProject) throws Exception {
-        /* DELETED */
-
         return null;
     }
 

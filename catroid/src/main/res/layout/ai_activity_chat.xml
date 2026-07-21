@@ -4,25 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@android:color/background_dark">
-
-    <FrameLayout
-        android:id="@+id/chat_thinking_container"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:visibility="gone"
-        android:padding="12dp">
-
-        <TextView
-            android:id="@+id/chat_thinking_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:text="@string/ai_agent_thinking"
-            android:textColor="@color/progress_blue"
-            android:textSize="16sp"
-            android:textStyle="italic" />
-    </FrameLayout>
+    android:background="@drawable/ai_chat_background">
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/chat_recycler"
@@ -30,38 +12,92 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:clipToPadding="false"
-        android:padding="8dp"
-        android:scrollbars="vertical" />
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="6dp"
+        android:scrollbars="none" />
+
+    <FrameLayout
+        android:id="@+id/chat_thinking_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="4dp"
+        android:paddingBottom="8dp">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="@drawable/ai_thinking_pill_bg"
+            android:paddingStart="10dp"
+            android:paddingEnd="16dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp">
+
+            <View
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_marginEnd="10dp"
+                android:background="@drawable/ai_avatar_bg" />
+
+            <TextView
+                android:id="@+id/chat_thinking_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/ai_agent_thinking"
+                android:textColor="@color/ai_accent"
+                android:textSize="14sp"
+                android:textStyle="italic" />
+        </LinearLayout>
+    </FrameLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="8dp"
-        android:background="@android:color/background_dark"
-        android:elevation="4dp">
+        android:gravity="bottom"
+        android:background="@drawable/ai_input_bar_bg"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp"
+        android:elevation="12dp">
 
         <EditText
             android:id="@+id/chat_input"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:layout_gravity="center_vertical"
             android:hint="@string/ai_agent_chat_hint"
-            android:inputType="textMultiLine"
-            android:maxLines="4"
-            android:padding="12dp"
+            android:inputType="textMultiLine|textCapSentences"
+            android:maxLines="5"
+            android:minHeight="46dp"
+            android:paddingStart="18dp"
+            android:paddingEnd="18dp"
+            android:paddingTop="11dp"
+            android:paddingBottom="11dp"
             android:background="@drawable/chat_input_background"
-            android:textColor="@android:color/white"
-            android:textColorHint="@android:color/darker_gray"
-            android:gravity="top|start" />
+            android:textColor="@color/ai_text_primary"
+            android:textColorHint="@color/ai_text_secondary"
+            android:textSize="15sp"
+            android:gravity="center_vertical|start" />
 
         <ImageButton
             android:id="@+id/btn_send"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_marginStart="8dp"
+            android:layout_width="46dp"
+            android:layout_height="46dp"
+            android:layout_marginStart="10dp"
+            android:layout_gravity="bottom"
+            android:padding="11dp"
+            android:scaleType="fitCenter"
             android:src="@drawable/ic_send"
-            android:background="?attr/selectableItemBackgroundBorderless"
+            android:background="@drawable/ai_send_button_bg"
             android:contentDescription="@string/ai_agent_send" />
 
     </LinearLayout>

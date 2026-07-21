@@ -17,7 +17,7 @@ import org.catrobat.catroid.content.actions.ScriptSequenceAction;
 
 public class EnablePbrRenderBrick extends FormulaBrick {
     private static final long serialVersionUID = 1L;
-    private int renderState = 1; // 0: Off, 1: On. По умолчанию "On"
+    private int renderState = 1;
 
     public EnablePbrRenderBrick() {
     }

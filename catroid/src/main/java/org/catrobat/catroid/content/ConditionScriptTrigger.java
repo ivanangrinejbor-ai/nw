@@ -65,13 +65,6 @@ public class ConditionScriptTrigger {
 	}
 
 	void evaluateAndTriggerActions(Sprite sprite) {
-		/*if (!sceneFirstStart && !sceneRestarted) {
-			if (frameSkipCounter > 0) {
-				frameSkipCounter--;
-				return;
-			}
-			frameSkipCounter = FRAMES_TO_SKIP + (new java.util.Random().nextInt(2));
-		}*/
 
 		try {
 			Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, null);

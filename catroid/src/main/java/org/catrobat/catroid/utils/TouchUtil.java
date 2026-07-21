@@ -39,7 +39,6 @@ public final class TouchUtil {
 	private static ArrayList<Boolean> isTouching = new ArrayList<>();
 
 	private TouchUtil() {
-		// static class, nothing to do
 	}
 
 	public static void reset() {

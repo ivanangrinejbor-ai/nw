@@ -31,7 +31,6 @@ public class StopVMBrick extends FormulaBrick {
     private static final long serialVersionUID = 1L;
 
     public StopVMBrick() {
-        // No fields
     }
 
     @Override

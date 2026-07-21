@@ -125,6 +125,7 @@ public class SettingsFragment extends PreferenceFragment {
 	public static final String SETTINGS_CODE_ANALIZE = "pref_code_analysis_enabled";
 	PreferenceScreen screen = null;
 	public static final String AI_SENSORS_SCREEN_KEY = "setting_ai_screen";
+	public static final String AI_AGENT_SCREEN_KEY = "setting_ai_agent_entry";
 	public static final String ACCESSIBILITY_SCREEN_KEY = "setting_accessibility_screen";
 	public static final String NXT_SCREEN_KEY = "setting_nxt_screen";
 	public static final String EV3_SCREEN_KEY = "setting_ev3_screen";
@@ -458,6 +459,13 @@ public class SettingsFragment extends PreferenceFragment {
 						.replace(R.id.content_frame, new AISettingsFragment(),
 								AISettingsFragment.Companion.getTAG())
 						.addToBackStack(AISettingsFragment.Companion.getTAG())
+						.commit();
+				break;
+			case AI_AGENT_SCREEN_KEY:
+				getFragmentManager().beginTransaction()
+						.replace(R.id.content_frame, new AiAgentSettingsFragment(),
+								AiAgentSettingsFragment.TAG)
+						.addToBackStack(AiAgentSettingsFragment.TAG)
 						.commit();
 				break;
 			case ACCESSIBILITY_SCREEN_KEY:

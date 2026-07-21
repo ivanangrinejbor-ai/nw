@@ -94,7 +94,6 @@ public class ScenePreloadedBrick extends BrickBaseType implements BrickSpinner.O
 
 		Sprite sprite = ProjectManager.getInstance().getCurrentSprite();
 
-		// Scene spinner
 		List<Nameable> sceneItems = new ArrayList<>();
 		sceneItems.add(new NewOption(context.getString(R.string.new_option)));
 		sceneItems.addAll(ProjectManager.getInstance().getCurrentProject().getSceneList());
@@ -102,7 +101,6 @@ public class ScenePreloadedBrick extends BrickBaseType implements BrickSpinner.O
 		sceneSpinner.setOnItemSelectedListener(this);
 		sceneSpinner.setSelection(sceneToCheck);
 
-		// Variable spinner
 		List<Nameable> variableItems = new ArrayList<>();
 		variableItems.add(new NewOption(context.getString(R.string.new_option)));
 		if (sprite != null) {

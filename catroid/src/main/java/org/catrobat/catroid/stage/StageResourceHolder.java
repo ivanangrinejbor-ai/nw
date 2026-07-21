@@ -373,7 +373,6 @@ public class StageResourceHolder implements GatherCollisionInformationTask.OnPol
 	@SuppressLint("WrongConstant")
     public void initFinishedRunStage() {
 		Log.i(TAG, "initFinishedRunStage after " + (System.currentTimeMillis() - initStart) + "ms; failed=" + failedResources.size());
-		// Hide precompile overlay when stage is ready
 		stageActivity.hidePrecompileOverlay();
 
 		try {
@@ -441,7 +440,6 @@ public class StageResourceHolder implements GatherCollisionInformationTask.OnPol
 	}
 
 	private void showResourceFailedErrorDialog() {
-		// Hide precompile overlay so error dialog is visible
 		stageActivity.hidePrecompileOverlay();
 
 		StringBuilder failedResourcesMessage = new StringBuilder(stageActivity.getString(R.string.prestage_resource_not_available_text));
@@ -580,12 +578,11 @@ public class StageResourceHolder implements GatherCollisionInformationTask.OnPol
 			stageActivity.startActivity(intent);
 		} else if (adapter == null) {
 			ToastUtil.showError(stageActivity, R.string.no_nfc_available);
-			// TODO: resourceFailed() & startActivityForResult(), if behaviour needed
+
 		}
 		resourceInitialized();
 	}
 
-	// for GatherCollisionInformationTask.OnPolygonLoadedListener, this is NOT any Activity or Lifecycle event
 	@Override
 	public void onFinished() {
 		resourceInitialized();

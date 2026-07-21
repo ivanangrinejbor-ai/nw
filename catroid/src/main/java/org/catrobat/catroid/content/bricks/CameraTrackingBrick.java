@@ -13,7 +13,7 @@ import org.catrobat.catroid.formulaeditor.Formula;
 
 public class CameraTrackingBrick extends FormulaBrick {
     private static final long serialVersionUID = 1L;
-    private int trackMode = 0; // 0: Detach, 1: Pos, 2: Rot, 3: Both
+    private int trackMode = 0;
 
     public CameraTrackingBrick() {
         addAllowedBrickField(BrickField.NAME, R.id.brick_camera_track_id);

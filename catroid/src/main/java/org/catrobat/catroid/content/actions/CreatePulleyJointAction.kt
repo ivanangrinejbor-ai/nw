@@ -1,5 +1,6 @@
 package org.catrobat.catroid.content.actions
 
+import android.util.Log
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction
 import org.catrobat.catroid.ProjectManager
@@ -19,21 +20,40 @@ class CreatePulleyJointAction : TemporalAction() {
     private var ratio: Formula? = null
 
     override fun update(percent: Float) {
-        val id = jointId?.interpretString(scope) ?: return
-        val nameA = spriteAName?.interpretString(scope) ?: return
-        val nameB = spriteBName?.interpretString(scope) ?: return
-        if (id.isEmpty() || nameA.isEmpty() || nameB.isEmpty()) return
+        val id: String
+        val nameA: String
+        val nameB: String
+        val gAx: Float
+        val gAy: Float
+        val gBx: Float
+        val gBy: Float
+        var r: Float
+        try {
+            id = jointId?.interpretString(scope) ?: return
+            nameA = spriteAName?.interpretString(scope) ?: return
+            nameB = spriteBName?.interpretString(scope) ?: return
+            if (id.isEmpty() || nameA.isEmpty() || nameB.isEmpty()) return
 
-        val gAx = groundAnchorAx?.interpretFloat(scope) ?: 0f
-        val gAy = groundAnchorAy?.interpretFloat(scope) ?: 0f
-        val gBx = groundAnchorBx?.interpretFloat(scope) ?: 0f
-        val gBy = groundAnchorBy?.interpretFloat(scope) ?: 0f
-        val r = ratio?.interpretFloat(scope) ?: 1f
+            gAx = groundAnchorAx?.interpretFloat(scope) ?: 0f
+            gAy = groundAnchorAy?.interpretFloat(scope) ?: 0f
+            gBx = groundAnchorBx?.interpretFloat(scope) ?: 0f
+            gBy = groundAnchorBy?.interpretFloat(scope) ?: 0f
+            r = ratio?.interpretFloat(scope) ?: 1f
+        } catch (e: Exception) {
+            Log.w(javaClass.simpleName, "Formula interpretation failed", e)
+            return
+        }
+
+        // Validate ratio — Box2D requires positive ratio for PulleyJoint
+        if (r <= 0f) {
+            Log.w(javaClass.simpleName, "Invalid ratio ($r), must be positive, using default 1.0")
+            r = 1f
+        }
 
         val scene = ProjectManager.getInstance().currentlyPlayingScene ?: return
 
-        val spriteA: Sprite = scene.getSpriteAll(nameA)
-        val spriteB: Sprite = scene.getSpriteAll(nameB)
+        val spriteA: Sprite = scene.getSpriteAll(nameA) ?: return
+        val spriteB: Sprite = scene.getSpriteAll(nameB) ?: return
 
         scene.physicsWorld.createPulleyJoint(
             id,

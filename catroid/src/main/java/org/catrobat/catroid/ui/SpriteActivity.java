@@ -515,14 +515,12 @@ public class SpriteActivity extends BaseActivity {
 			return;
 		}
 
-		// Шаг 1: Получаем все данные из VisualPlacementActivity
 		int xCoordinate = extras.getInt(X_COORDINATE_BUNDLE_ARGUMENT);
 		int yCoordinate = extras.getInt(Y_COORDINATE_BUNDLE_ARGUMENT);
 		float rotation = extras.getFloat(ROTATION_ANGLE_BUNDLE_ARGUMENT);
 		float size = extras.getFloat(SIZE_PERCENT_BUNDLE_ARGUMENT);
 		int brickHash = extras.getInt(EXTRA_BRICK_HASH);
 
-		// Шаг 2: Находим кирпичик, который вызвал редактирование
 		Fragment fragment = getCurrentFragment();
 		Brick brick = null;
 
@@ -532,50 +530,39 @@ public class SpriteActivity extends BaseActivity {
 			brick = ((FormulaEditorFragment) fragment).getFormulaBrick();
 		}
 
-		// Шаг 3: Убеждаемся, что кирпичик найден и имеет правильный тип
 		if (brick instanceof VisualPlacementBrick) {
 			VisualPlacementBrick visualBrick = (VisualPlacementBrick) brick;
 			Script parentScript = visualBrick.getScript();
 
-			// Всегда обновляем координаты в текущем кирпичике
 			visualBrick.setCoordinates(xCoordinate, yCoordinate);
 
-			// Шаг 4: Проверяем, нужно ли добавлять новые кирпичики
 			Sprite currentSprite = ProjectManager.getInstance().getCurrentSprite();
 			boolean isNotBackground = !currentSprite.equals(currentScene.getBackgroundSprite());
 
-			// Добавляем блоки только для объектов (не для фона)
 			if (isNotBackground) {
 				boolean hasDirectionBrick = false;
 				boolean hasSizeBrick = false;
 
-				// Ищем, есть ли уже такие блоки в скрипте
 				for (Brick b : parentScript.getBrickList()) {
 					if (b instanceof PointInDirectionBrick) {
 						hasDirectionBrick = true;
 					}
-					// --- ВНИМАНИЕ: Проверьте точное имя класса для размера! ---
 					if (b instanceof SetSizeToBrick) {
 						hasSizeBrick = true;
 					}
 				}
 
-				// Находим, куда вставлять новые блоки.
-				// Script не имеет getBrickIndex, но его brickList - это обычный List!
 				int insertionPoint = parentScript.getBrickList().indexOf(visualBrick) + 1;
 
-				// Если блока вращения нет, добавляем его
 				if (!hasDirectionBrick) {
 					parentScript.addBrick(insertionPoint++, new PointInDirectionBrick(rotation + 90));
 				}
 
-				// Если блока размера нет, добавляем его
 				if (!hasSizeBrick) {
 					parentScript.addBrick(insertionPoint, new SetSizeToBrick(size));
 				}
 			}
 
-			// Шаг 5: Обновляем интерфейс, чтобы показать изменения
 			if (fragment instanceof ScriptFragment) {
 				((ScriptFragment) fragment).notifyDataSetChanged();
 			} else if (fragment instanceof FormulaEditorFragment) {
@@ -641,7 +628,6 @@ public class SpriteActivity extends BaseActivity {
 
 	private void addSpriteFromUri(final Uri uri, String imageExtension) {
 		final Bundle placementData = visualPlacementResult;
-		// И сразу же очищаем ее, чтобы она не использовалась повторно
 		visualPlacementResult = null;
 		String resolvedName;
 		String resolvedFileName = StorageOperations.resolveFileName(getContentResolver(), uri);
@@ -668,31 +654,24 @@ public class SpriteActivity extends BaseActivity {
 				.setText(lookDataName)
 				.setTextWatcher(new DuplicateInputTextWatcher<>(currentScene.getSpriteList()))
 				.setPositiveButton(getString(R.string.ok), (TextInputDialog.OnClickListener) (dialog, textInput) -> {
-					// --- НАЧАЛО НОВЫХ ИЗМЕНЕНИЙ ---
 					Sprite sprite = new Sprite(textInput);
 					currentScene.addSprite(sprite);
 
-					// Создаем скрипт по умолчанию (StartScript)
 					StartScript startScript = new StartScript();
 					sprite.addScript(startScript);
 
-					// Если у нас есть данные от VisualPlacement, используем их
 					if (placementData != null) {
 						int x = placementData.getInt(X_COORDINATE_BUNDLE_ARGUMENT);
 						int y = placementData.getInt(Y_COORDINATE_BUNDLE_ARGUMENT);
 						float rotation = placementData.getFloat(ROTATION_ANGLE_BUNDLE_ARGUMENT);
 						float size = placementData.getFloat(SIZE_PERCENT_BUNDLE_ARGUMENT);
 
-						// Добавляем наши три кирпичика в новый скрипт
 						startScript.addBrick(new PointInDirectionBrick(rotation + 90));
 						startScript.addBrick(new SetSizeToBrick(size));
-						startScript.addBrick(new PlaceAtBrick(x, y)); // Создаем новый PlaceAtBrick
+						startScript.addBrick(new PlaceAtBrick(x, y));
 					} else {
-						// Если данных нет (старый способ добавления), добавляем PlaceAt по умолчанию
 						startScript.addBrick(new PlaceAtBrick(0, 0));
 					}
-
-					// --- КОНЕЦ НОВЫХ ИЗМЕНЕНИЙ ---
 
 					try {
 						File imageDirectory = new File(currentScene.getDirectory(), IMAGE_DIRECTORY_NAME);
