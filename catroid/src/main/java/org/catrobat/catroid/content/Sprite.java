@@ -47,6 +47,8 @@ import org.catrobat.catroid.content.bricks.IfLogicBeginBrick;
 import org.catrobat.catroid.content.bricks.IfThenLogicBeginBrick;
 import org.catrobat.catroid.content.bricks.PlaySoundBrick;
 import org.catrobat.catroid.content.bricks.UserDefinedBrick;
+import org.catrobat.catroid.content.bricks.UserDefinedBrickV2;
+import org.catrobat.catroid.content.bricks.UserDefinedReceiverBrickV2;
 import org.catrobat.catroid.content.bricks.WhenConditionBrick;
 import org.catrobat.catroid.content.bricks.WhenFirebaseChangedBrick;
 import org.catrobat.catroid.content.eventids.EventId;
@@ -188,17 +190,25 @@ public class Sprite implements Nameable, Serializable {
 			return null;
 		}
 		for (Brick brick : userDefinedBrickList) {
-			if (((UserDefinedBrick) brick).isUserDefinedBrickDataEqual(userDefinedBrick)) {
-				return (UserDefinedBrick) brick;
+			if (brick instanceof UserDefinedBrick) {
+				if (((UserDefinedBrick) brick).isUserDefinedBrickDataEqual(userDefinedBrick)) {
+					return (UserDefinedBrick) brick;
+				}
 			}
 		}
 		return null;
 	}
 
-	public UserDefinedBrick getUserDefinedBrickByID(UUID userDefinedBrickID) {
+	public Brick getUserDefinedBrickByID(UUID userDefinedBrickID) {
 		for (Brick brick : userDefinedBrickList) {
-			if (((UserDefinedBrick) brick).getUserDefinedBrickID().equals(userDefinedBrickID)) {
-				return (UserDefinedBrick) brick;
+			if (brick instanceof UserDefinedBrick) {
+				if (((UserDefinedBrick) brick).getUserDefinedBrickID().equals(userDefinedBrickID)) {
+					return brick;
+				}
+			} else if (brick instanceof UserDefinedBrickV2) {
+				if (((UserDefinedBrickV2) brick).getUserDefinedBrickID().equals(userDefinedBrickID)) {
+					return brick;
+				}
 			}
 		}
 		return null;
@@ -208,22 +218,30 @@ public class Sprite implements Nameable, Serializable {
 		return getUserDefinedBrickWithSameUserData(userDefinedBrick) != null;
 	}
 
-	public void addUserDefinedBrick(UserDefinedBrick userDefinedBrick) {
+	public void addUserDefinedBrick(Brick userDefinedBrick) {
 		userDefinedBrickList.add(userDefinedBrick);
 	}
 
-	public void removeUserDefinedBrick(UserDefinedBrick userDefinedBrick) {
+	public void removeUserDefinedBrick(Brick userDefinedBrick) {
 		for (Script script : scriptList) {
 			script.removeAllOccurrencesOfUserDefinedBrick(script.brickList, userDefinedBrick);
 		}
 		userDefinedBrickList.remove(userDefinedBrick);
 	}
 
-	public void addClonesOfUserDefinedBrickList(List<UserDefinedBrick> userDefinedBricks) {
-		for (UserDefinedBrick userDefinedBrick : userDefinedBricks) {
-			if (!containsUserDefinedBrickWithSameUserData(userDefinedBrick)) {
+	public void addClonesOfUserDefinedBrickList(List<? extends Brick> userDefinedBricks) {
+		for (Brick userDefinedBrick : userDefinedBricks) {
+			if (userDefinedBrick instanceof UserDefinedBrick) {
+				if (!containsUserDefinedBrickWithSameUserData((UserDefinedBrick) userDefinedBrick)) {
+					try {
+						addUserDefinedBrick(userDefinedBrick.clone());
+					} catch (CloneNotSupportedException e) {
+						Log.e(TAG, Log.getStackTraceString(e));
+					}
+				}
+			} else {
 				try {
-					addUserDefinedBrick((UserDefinedBrick) userDefinedBrick.clone());
+					addUserDefinedBrick(userDefinedBrick.clone());
 				} catch (CloneNotSupportedException e) {
 					Log.e(TAG, Log.getStackTraceString(e));
 				}

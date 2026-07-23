@@ -36,12 +36,14 @@ import org.catrobat.catroid.common.Constants
 import org.catrobat.catroid.common.HitboxData
 import org.catrobat.catroid.common.LookData
 import org.catrobat.catroid.common.SharedPreferenceKeys.SHOW_DETAILS_LOOKS_PREFERENCE_KEY
+import org.catrobat.catroid.common.TilemapLookData
 import org.catrobat.catroid.io.StorageOperations
 import org.catrobat.catroid.io.XstreamSerializer
 import org.catrobat.catroid.ui.SpriteActivity
 import org.catrobat.catroid.ui.UiUtils
 import org.catrobat.catroid.ui.controller.BackpackListManager
 import org.catrobat.catroid.ui.hitbox.HitboxEditorActivity
+import org.catrobat.catroid.ui.tilemap.TilemapEditorActivity
 import org.catrobat.catroid.ui.recyclerview.adapter.LookAdapter
 import org.catrobat.catroid.ui.recyclerview.adapter.multiselection.MultiSelectionManager
 import org.catrobat.catroid.ui.recyclerview.backpack.BackpackActivity
@@ -66,8 +68,13 @@ class LookListFragment : RecyclerViewFragment<LookData?>() {
     companion object {
         @JvmField
         val TAG = LookListFragment::class.java.simpleName
+        // TODO: HITBOX_EDITOR_MENU_ID should use a generated resource ID instead of
+        //  hardcoded 9001, which collides with NOTIF_ID in ApkBuildService and
+        //  NewCatroidBackgroundService.
         private const val HITBOX_EDITOR_MENU_ID = 9001
         private const val REQUEST_HITBOX_EDITOR = 9002
+        private const val TILEMAP_EDITOR_MENU_ID = 9003
+        private const val REQUEST_TILEMAP_EDITOR = 9004
     }
 
     public override fun initializeAdapter() {
@@ -217,6 +224,10 @@ class LookListFragment : RecyclerViewFragment<LookData?>() {
                 hitboxUndoSnapshot = null
             }
         }
+        if (requestCode == REQUEST_TILEMAP_EDITOR && resultCode == Activity.RESULT_OK) {
+            (requireActivity() as? SpriteActivity)?.setUndoMenuItemVisibility(true)
+            adapter.notifyDataSetChanged()
+        }
     }
 
     fun undo(): Boolean {
@@ -308,6 +319,11 @@ class LookListFragment : RecyclerViewFragment<LookData?>() {
 
         // Add "Hitbox editor" option dynamically
         val hitboxMenuItem = popupMenu.menu.add(0, HITBOX_EDITOR_MENU_ID, 0, R.string.hitbox_editor_menu)
+        // Add "Edit Tilemap" for tilemap costumes (hides hitbox option for them).
+        if (item is TilemapLookData) {
+            hitboxMenuItem.isVisible = false
+            popupMenu.menu.add(0, TILEMAP_EDITOR_MENU_ID, 0, R.string.look_edit_tilemap)
+        }
 
         popupMenu.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
@@ -316,6 +332,7 @@ class LookListFragment : RecyclerViewFragment<LookData?>() {
                 R.id.rename -> showRenameDialog(item)
                 R.id.delete -> showDeleteAlert(itemList)
                 HITBOX_EDITOR_MENU_ID -> launchHitboxEditor(item)
+                TILEMAP_EDITOR_MENU_ID -> launchTilemapEditor(item)
                 else -> {
                 }
             }
@@ -337,5 +354,15 @@ class LookListFragment : RecyclerViewFragment<LookData?>() {
         val intent = Intent(requireContext(), HitboxEditorActivity::class.java)
         intent.putExtra(HitboxEditorActivity.EXTRA_LOOK_INDEX, lookIndex)
         startActivityForResult(intent, REQUEST_HITBOX_EDITOR)
+    }
+
+    private fun launchTilemapEditor(item: LookData?) {
+        item ?: return
+        val sprite = projectManager.currentSprite ?: return
+        val lookIndex = sprite.lookList.indexOf(item)
+        if (lookIndex < 0) return
+        val intent = Intent(requireContext(), TilemapEditorActivity::class.java)
+        intent.putExtra(TilemapEditorActivity.EXTRA_LOOK_INDEX, lookIndex)
+        startActivityForResult(intent, REQUEST_TILEMAP_EDITOR)
     }
 }

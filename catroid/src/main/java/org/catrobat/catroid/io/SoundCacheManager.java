@@ -40,6 +40,8 @@ public class SoundCacheManager {
         if (soundIdMap.containsKey(cacheName)) {
             soundPool.unload(soundIdMap.get(cacheName));
         }
+        // Priority: higher = more likely to keep playing when maxStreams is reached.
+        // 1 is the default; all cached sounds compete equally.
         int soundId = soundPool.load(filePath, 1);
         soundIdMap.put(cacheName, soundId);
         Log.i(TAG, "Sound loaded into cache: '" + cacheName + "' from " + filePath);

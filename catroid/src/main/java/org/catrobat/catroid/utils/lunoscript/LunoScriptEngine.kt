@@ -14,10 +14,16 @@ import java.util.Locale
 
 class LunoScriptEngine(
     private val androidContext: Context?, // Nullable if context is not always needed
-    private val scope: Scope? = null
-    // customNativeFunctions: Map<String, CallableNativeLunoFunction> - можно добавить позже
+    private val scope: Scope? = null,
+    private val customNativeFunctions: Map<String, CallableNativeLunoFunction>? = null
 ) {
     private val interpreter = Interpreter(androidContext, scope)
+
+    init {
+        customNativeFunctions?.forEach { (name, func) ->
+            interpreter.globals.define(name, LunoValue.NativeCallable(func))
+        }
+    }
 
     // Если нужно регистрировать доп. нативные функции извне:
     fun registerNativeFunction(name: String, arity: IntRange, func: RawNativeLunoFunction) {

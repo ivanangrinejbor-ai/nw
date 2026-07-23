@@ -71,6 +71,7 @@ class GeminiManager {
                 return field
             }
 
+        @Deprecated("Dormant field — broken CustomDns implementation. Use OkHttp's standard Dns.SYSTEM instead. Will be removed in a future release.")
         var dns_server: String? = null
     }
 }

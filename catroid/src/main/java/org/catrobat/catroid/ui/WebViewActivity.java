@@ -23,8 +23,8 @@
 package org.catrobat.catroid.ui;
 
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.app.DownloadManager;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -36,7 +36,9 @@ import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.ViewGroup;
 import android.webkit.CookieManager;
+import android.widget.ProgressBar;
 import android.webkit.URLUtil;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -84,8 +86,9 @@ public class WebViewActivity extends AppCompatActivity {
 	private WebView webView;
 	private boolean allowGoBack = false;
 	private boolean forceOpenInApp = false;
+	@SuppressWarnings("deprecation")
 	private ProgressDialog progressDialog;
-	private ProgressDialog webViewLoadingDialog;
+	private AlertDialog webViewLoadingDialog;
 	private Intent resultIntent = new Intent();
 
 	@Override
@@ -164,10 +167,14 @@ public class WebViewActivity extends AppCompatActivity {
 		@Override
 		public void onPageStarted(WebView view, String urlClient, Bitmap favicon) {
 			if (webViewLoadingDialog == null && !allowGoBack) {
-				webViewLoadingDialog = new ProgressDialog(view.getContext(), R.style.WebViewLoadingCircle);
-				webViewLoadingDialog.setCancelable(true);
+				ProgressBar progressBar = new ProgressBar(view.getContext(), null, android.R.attr.progressBarStyleSmall);
+				progressBar.setLayoutParams(new ViewGroup.LayoutParams(
+						ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+				webViewLoadingDialog = new AlertDialog.Builder(view.getContext(), R.style.WebViewLoadingCircle)
+						.setView(progressBar)
+						.setCancelable(true)
+						.create();
 				webViewLoadingDialog.setCanceledOnTouchOutside(false);
-				webViewLoadingDialog.setProgressStyle(android.R.style.Widget_ProgressBar_Small);
 				webViewLoadingDialog.show();
 			} else if (allowGoBack && (urlClient.equals(FlavoredConstants.BASE_URL_HTTPS)
 					|| urlClient.equals(Constants.BASE_APP_URL_HTTPS))) {
@@ -247,6 +254,7 @@ public class WebViewActivity extends AppCompatActivity {
 		}
 	}
 
+	@SuppressWarnings("deprecation")
 	public void createProgressDialog(String mediaName) {
 		progressDialog = new ProgressDialog(this);
 
@@ -261,6 +269,7 @@ public class WebViewActivity extends AppCompatActivity {
 		}
 	}
 
+	@SuppressWarnings("deprecation")
 	public void updateProgressDialog(long progress) {
 		if (progress == 100) {
 			if (progressDialog.isShowing() && !isFinishing()) {

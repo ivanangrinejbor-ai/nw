@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="no"?>
+﻿<?xml version="1.0" encoding="utf-8" standalone="no"?>
 <!--
   ~ Catroid: An on-device visual programming system for Android devices
   ~ Copyright (C) 2010-2023 The Catrobat Team
@@ -542,6 +542,11 @@
     <string name="subcategory_control_scenes">Сцены и проекты</string>
     <string name="subcategory_control_stopping">Остановка и ошибки</string>
     <string name="subcategory_control_cloning">Клонирование</string>
+    <string name="subcategory_control_state_machine">Машина состояний</string>
+    <string name="brick_set_state">Задать состояние</string>
+    <string name="brick_set_state_to">значением</string>
+    <string name="brick_if_in_state">Если состояние</string>
+    <string name="brick_if_in_state_is">равно</string>
     <string name="subcategory_control_messages">События и сообщения</string>
     <string name="subcategory_control_touches">Эмуляция касаний</string>
 
@@ -2207,6 +2212,22 @@
         world\')</string>
     <string formatted="false" name="formula_editor_function_clamp">ограничить</string>
     <string formatted="false" name="formula_editor_function_clamp_parameter">(-2,2,10)</string>
+    <string formatted="false" name="formula_editor_function_sign">знак</string>
+    <string formatted="false" name="formula_editor_function_sign_parameter">(-5)</string>
+    <string formatted="false" name="formula_editor_function_lerp">интерполяция</string>
+    <string formatted="false" name="formula_editor_function_lerp_parameter">(0, 100, 0.5)</string>
+    <string formatted="false" name="formula_editor_function_map_range">диапазон</string>
+    <string formatted="false" name="formula_editor_function_map_range_parameter">(5, 0, 10, 0, 100)</string>
+    <string formatted="false" name="formula_editor_function_rgb">цвет rgb</string>
+    <string formatted="false" name="formula_editor_function_rgb_parameter">(255, 128, 0)</string>
+    <string formatted="false" name="formula_editor_function_hsv">цвет hsv</string>
+    <string formatted="false" name="formula_editor_function_hsv_parameter">(200, 100, 100)</string>
+    <string formatted="false" name="formula_editor_function_mix_color">смешать цвета</string>
+    <string formatted="false" name="formula_editor_function_mix_color_parameter">(\'#ff0000\', \'#0000ff\', 0.5)</string>
+    <string formatted="false" name="formula_editor_function_current_state">текущее состояние</string>
+    <string formatted="false" name="formula_editor_function_current_state_parameter">(\'ai\')</string>
+    <string formatted="false" name="formula_editor_function_state_time">время состояния</string>
+    <string formatted="false" name="formula_editor_function_state_time_parameter">(\'ai\')</string>
     <string formatted="false" name="formula_editor_function_joinnumber">соединить_цифры</string>
     <string formatted="false" name="formula_editor_function_joinnumber_parameter">(1,1)</string>
     <string formatted="false" name="formula_editor_function_upper">верхний_регистр</string>
@@ -3424,6 +3445,7 @@
     <string formatted="false" name="brick_loop_to">до</string>
     <string formatted="false" name="brick_repeat">Повторять</string>
     <string formatted="false" name="brick_repeat_until">Повторять, пока</string>
+    <string formatted="false" name="brick_when_shake">При встряхивании телефона</string>
     <string formatted="false" name="brick_when_touched">При нажатии на экран</string>
     <string formatted="false" name="brick_clone">Клонировать</string>
     <string formatted="false" name="brick_clone_this">себя</string>
@@ -4730,6 +4752,28 @@
     <string name="neopaint_save_changes_message">Хотите сохранить изменения перед выходом?</string>
     <string name="neopaint_save_exit">Сохранить и выйти</string>
     <string name="neopaint_discard">Отменить</string>
+    <string name="neopaint_tools">Инструменты</string>
+    <string name="neopaint_close">Закрыть</string>
+    <string name="neopaint_canvas_size">Размер холста</string>
+    <string name="neopaint_resize">Изменить</string>
+    <string name="neopaint_current_size">Текущий: %dx%d</string>
+    <string name="neopaint_width">Ширина:</string>
+    <string name="neopaint_height">Высота:</string>
+    <string name="neopaint_drawing_category">Рисование</string>
+    <string name="neopaint_shapes_category">Фигуры</string>
+    <string name="neopaint_tools_category">Инструменты</string>
+    <string name="neopaint_tool_spray">Распылитель</string>
+    <string name="neopaint_tool_star">Звезда</string>
+    <string name="neopaint_tool_heart">Сердце</string>
+    <string name="neopaint_clipboard">Буфер обмена</string>
+    <string name="neopaint_resize_canvas">Изменить размер холста</string>
+    <string name="neopaint_alpha">Прозрачность</string>
+    <string name="neopaint_clipboard_copy">Копировать слой</string>
+    <string name="neopaint_clipboard_paste">Вставить слой</string>
+    <string name="neopaint_clipboard_clear">Очистить буфер</string>
+    <string name="neopaint_shape_fill">Заливка</string>
+    <string name="neopaint_shape_line">Линия</string>
+    <string name="neopaint_shape_fill_format">Заливка %d%%</string>
 
     <!-- Paintroid tool labels -->
     <string name="button_brush">Кисть</string>
@@ -5556,4 +5600,53 @@ Catrobat — это визуальный язык программировани
     <string name="theme_import_error">Не удалось импортировать тему: %1$s</string>
     <string name="theme_delete_confirm">Удалить эту тему?</string>
     <string name="theme_delete">Удалить</string>
+
+    <!-- Tilemap editor -->
+    <string name="tilemap_editor_title">Редактор тайлмапа</string>
+    <string name="tilemap_undo">Отменить</string>
+    <string name="tilemap_redo">Повторить</string>
+    <string name="tilemap_save">Сохранить</string>
+    <string name="tilemap_solid_tile">Твёрдый тайл</string>
+    <string name="tilemap_map_size">Размер карты</string>
+    <string name="tilemap_tile_size">Размер тайла</string>
+    <string name="tilemap_select_tileset">Тайлсет</string>
+    <string name="tilemap_import_image">Импортировать изображение…</string>
+    <string name="tilemap_columns">Столбцы</string>
+    <string name="tilemap_rows">Строки</string>
+    <string name="tilemap_tile_width">Ширина тайла (px)</string>
+    <string name="tilemap_tile_height">Высота тайла (px)</string>
+    <string name="tilemap_hint_default">Коснитесь, чтобы рисовать; щипок — масштаб</string>
+    <string name="tilemap_hint_modified">Изменено</string>
+    <string name="tilemap_saving">Сохранение…</string>
+    <string name="tilemap_unsaved_title">Несохранённые изменения</string>
+    <string name="tilemap_unsaved_message">Сохранить изменения тайлмапа перед выходом?</string>
+    <string name="tilemap_discard">Не сохранять</string>
+    <string name="tilemap_error_tileset">Не удалось загрузить тайлсет</string>
+
+    <!-- Tilemap bricks -->
+    <string name="brick_set_tile">установить тайл в столбце</string>
+    <string name="brick_set_tile_row">строке</string>
+    <string name="brick_set_tile_index">в индекс тайла</string>
+    <string name="brick_clear_tile">очистить тайл в столбце</string>
+    <string name="brick_clear_tile_row">строке</string>
+    <string name="brick_set_tilemap_solid">сделать тайл с индексом</string>
+    <string name="brick_set_tilemap_solid_state"></string>
+    <string name="brick_set_tilemap_solid_on">твёрдым</string>
+    <string name="brick_set_tilemap_solid_off">не твёрдым</string>
+    <string name="subcategory_tilemap">Тайлмап</string>
+
+    <!-- Tilemap formulas -->
+    <string name="formula_tile_at_position">тайл в</string>
+    <string name="formula_is_solid_tile_at">твёрдый в</string>
+    <string name="formula_tilemap_width">ширина тайлмапа</string>
+    <string name="formula_tilemap_height">высота тайлмапа</string>
+    <string name="formula_tile_size">размер тайла</string>
+    <string name="formula_param_column">столбец</string>
+    <string name="formula_param_row">строка</string>
+<string name="formula_tile_at_position_param" formatted="false">(СЃС‚РѕР»Р±РµС†, СЃС‚СЂРѕРєР°)</string>
+<string name="formula_is_solid_tile_at_param" formatted="false">(СЃС‚РѕР»Р±РµС†, СЃС‚СЂРѕРєР°)</string>
+
+    <!-- Look list entries -->
+    <string name="look_new_tilemap">Новый тайлмап</string>
+    <string name="look_edit_tilemap">Редактировать тайлмап</string>
 </resources>

@@ -105,14 +105,17 @@ object ProjectAnalyzer {
     }
 
     fun findUnusedVariables(project: Project): List<String> {
+        // TODO: implement actual unused variable analysis
         return emptyList()
     }
 
     fun findUnusedBroadcasts(project: Project): List<String> {
+        // TODO: implement actual unused broadcast analysis
         return emptyList()
     }
 
     fun findDuplicatedScripts(project: Project): List<String> {
+        // TODO: implement actual duplicate script detection
         return emptyList()
     }
 }

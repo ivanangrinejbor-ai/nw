@@ -152,14 +152,14 @@ public class PhysicsLook extends Look {
 	@Override
 	public float getX() {
 		float x = applyCenterOffset(physicsObject.getX(), true, false);
-		super.setX(x);
+		super.setX(x); // PERF: getter writes to super every call — triggers invalidation cascade; consider cache or dirty flag if called per frame
 		return x;
 	}
 
 	@Override
 	public float getY() {
 		float y = applyCenterOffset(physicsObject.getY(), false, false);
-		super.setY(y);
+		super.setY(y); // PERF: getter writes to super every call — triggers invalidation cascade; consider cache or dirty flag if called per frame
 		return y;
 	}
 

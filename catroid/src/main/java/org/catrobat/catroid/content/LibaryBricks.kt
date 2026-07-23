@@ -1,6 +1,7 @@
 import android.util.Log
 import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction
 import org.catrobat.catroid.content.bricks.FormulaBrick
+import org.catrobat.catroid.io.XstreamSerializer
 import java.io.File
 
 class LibaryBricks {
@@ -31,7 +32,12 @@ class LibaryBricks {
                 Log.w(TAG, "Actions file not found: $filePath")
                 return
             }
-            Log.i(TAG, "Loading actions from $filePath (deserialization not implemented)")
+            val xstream = XstreamSerializer.getInstance().getXstream()
+            @Suppress("UNCHECKED_CAST")
+            val loaded = xstream.fromXML(file) as List<TemporalAction>
+            actions.clear()
+            actions.addAll(loaded)
+            Log.i(TAG, "Loaded ${loaded.size} actions from $filePath")
         }
 
         fun loadBricksFromFile(filePath: String) {
@@ -40,7 +46,12 @@ class LibaryBricks {
                 Log.w(TAG, "Bricks file not found: $filePath")
                 return
             }
-            Log.i(TAG, "Loading bricks from $filePath (deserialization not implemented)")
+            val xstream = XstreamSerializer.getInstance().getXstream()
+            @Suppress("UNCHECKED_CAST")
+            val loaded = xstream.fromXML(file) as List<FormulaBrick>
+            bricks.clear()
+            bricks.addAll(loaded)
+            Log.i(TAG, "Loaded ${loaded.size} bricks from $filePath")
         }
     }
 }

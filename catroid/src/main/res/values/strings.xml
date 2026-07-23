@@ -510,6 +510,11 @@
     <string name="subcategory_control_scenes">Scenes &amp; Projects</string>
     <string name="subcategory_control_stopping">Stopping &amp; Safety</string>
     <string name="subcategory_control_cloning">Cloning</string>
+    <string name="subcategory_control_state_machine">State Machine</string>
+    <string name="brick_set_state">Set state of</string>
+    <string name="brick_set_state_to">to</string>
+    <string name="brick_if_in_state">If state of</string>
+    <string name="brick_if_in_state_is">is</string>
     <string name="subcategory_control_messages">Events &amp; Messages</string>
     <string name="subcategory_control_touches">Touch Emulation</string>
 
@@ -2687,7 +2692,8 @@
 <string formatted="false" name="brick_loop_to">to</string>
 <string formatted="false" name="brick_repeat">Repeat</string>
 <string formatted="false" name="brick_repeat_until">Repeat until</string>
-<string formatted="false" name="brick_when_touched">When stage is tapped</string>
+<string formatted="false" name="brick_when_shake">When phone shaken</string>
+    <string formatted="false" name="brick_when_touched">When stage is tapped</string>
 <string formatted="false" name="brick_clone">Create clone of</string>
 <string formatted="false" name="brick_clone_this">yourself</string>
 <string formatted="false" name="brick_when_cloned">When you start as a clone</string>
@@ -3180,6 +3186,22 @@
 <string formatted="false" name="formula_editor_function_subtext_parameter">(3,5,\'hello world\')</string>
 <string formatted="false" name="formula_editor_function_clamp">clamp</string>
 <string formatted="false" name="formula_editor_function_clamp_parameter">(-2,2,10)</string>
+<string formatted="false" name="formula_editor_function_sign">sign</string>
+<string formatted="false" name="formula_editor_function_sign_parameter">(-5)</string>
+<string formatted="false" name="formula_editor_function_lerp">lerp</string>
+<string formatted="false" name="formula_editor_function_lerp_parameter">(0, 100, 0.5)</string>
+<string formatted="false" name="formula_editor_function_map_range">map range</string>
+<string formatted="false" name="formula_editor_function_map_range_parameter">(5, 0, 10, 0, 100)</string>
+<string formatted="false" name="formula_editor_function_rgb">rgb color</string>
+<string formatted="false" name="formula_editor_function_rgb_parameter">(255, 128, 0)</string>
+<string formatted="false" name="formula_editor_function_hsv">hsv color</string>
+<string formatted="false" name="formula_editor_function_hsv_parameter">(200, 100, 100)</string>
+<string formatted="false" name="formula_editor_function_mix_color">mix color</string>
+<string formatted="false" name="formula_editor_function_mix_color_parameter">(\'#ff0000\', \'#0000ff\', 0.5)</string>
+<string formatted="false" name="formula_editor_function_current_state">current state</string>
+<string formatted="false" name="formula_editor_function_current_state_parameter">(\'ai\')</string>
+<string formatted="false" name="formula_editor_function_state_time">state time</string>
+<string formatted="false" name="formula_editor_function_state_time_parameter">(\'ai\')</string>
 <string formatted="false" name="formula_editor_function_joinnumber">join numbers</string>
 <string formatted="false" name="formula_editor_function_joinnumber_parameter">(1,1)</string>
 <string formatted="false" name="formula_editor_function_upper">upper case</string>
@@ -3705,6 +3727,28 @@
 <string name="neopaint_save_changes_message">Do you want to save your changes before exiting?</string>
 <string name="neopaint_save_exit">Save &amp; Exit</string>
 <string name="neopaint_discard">Discard</string>
+<string name="neopaint_tools">Tools</string>
+<string name="neopaint_close">Close</string>
+<string name="neopaint_canvas_size">Canvas Size</string>
+<string name="neopaint_resize">Resize</string>
+<string name="neopaint_current_size">Current: %dx%d</string>
+<string name="neopaint_width">Width:</string>
+<string name="neopaint_height">Height:</string>
+<string name="neopaint_drawing_category">Drawing</string>
+<string name="neopaint_shapes_category">Shapes</string>
+<string name="neopaint_tools_category">Tools</string>
+<string name="neopaint_tool_spray">Spray can</string>
+<string name="neopaint_tool_star">Star</string>
+<string name="neopaint_tool_heart">Heart</string>
+<string name="neopaint_clipboard">Clipboard</string>
+<string name="neopaint_resize_canvas">Resize canvas</string>
+<string name="neopaint_alpha">Alpha</string>
+<string name="neopaint_clipboard_copy">Copy layer</string>
+<string name="neopaint_clipboard_paste">Paste layer</string>
+<string name="neopaint_clipboard_clear">Clear clipboard</string>
+<string name="neopaint_shape_fill">Fill</string>
+<string name="neopaint_shape_line">Line</string>
+<string name="neopaint_shape_fill_format">Fill %d%%</string>
 <string name="category_global">Global</string>
 <string name="pocketpaint_app_name">NeoPaint</string>
 <string name="color_picker_title">Color Picker</string>
@@ -4741,6 +4785,57 @@ needs read and write access to it. You can always change permissions through you
 
     <!-- Custom themes (.neotema) -->
     <string name="settings_themes_title">Themes</string>
+
+    <!-- Tilemap editor -->
+    <string name="tilemap_editor_title">Tilemap Editor</string>
+    <string name="tilemap_undo">Undo</string>
+    <string name="tilemap_redo">Redo</string>
+    <string name="tilemap_save">Save</string>
+    <string name="tilemap_solid_tile">Solid tile</string>
+    <string name="tilemap_map_size">Map size</string>
+    <string name="tilemap_tile_size">Tile size</string>
+    <string name="tilemap_select_tileset">Tileset</string>
+    <string name="tilemap_import_image">Import image…</string>
+    <string name="tilemap_columns">Columns</string>
+    <string name="tilemap_rows">Rows</string>
+    <string name="tilemap_tile_width">Tile width (px)</string>
+    <string name="tilemap_tile_height">Tile height (px)</string>
+    <string name="tilemap_hint_default">Tap to draw; pinch to zoom</string>
+    <string name="tilemap_hint_modified">Modified</string>
+    <string name="tilemap_saving">Saving…</string>
+    <string name="tilemap_unsaved_title">Unsaved changes</string>
+    <string name="tilemap_unsaved_message">Save changes to the tilemap before leaving?</string>
+    <string name="tilemap_discard">Discard</string>
+    <string name="tilemap_error_tileset">Could not load tileset</string>
+
+    <!-- Tilemap bricks -->
+    <string name="brick_set_tile">set tile at column</string>
+    <string name="brick_set_tile_row">row</string>
+    <string name="brick_set_tile_index">to tile index</string>
+    <string name="brick_clear_tile">clear tile at column</string>
+    <string name="brick_clear_tile_row">row</string>
+    <string name="brick_set_tilemap_solid">set tile index</string>
+    <string name="brick_set_tilemap_solid_state">as</string>
+    <string name="brick_set_tilemap_solid_on">solid</string>
+    <string name="brick_set_tilemap_solid_off">not solid</string>
+    <string name="subcategory_tilemap">Tilemap</string>
+
+    <!-- Tilemap formulas -->
+    <string name="formula_tile_at_position">tile at</string>
+    <string name="formula_is_solid_tile_at">solid at</string>
+    <string name="formula_tilemap_width">tilemap width</string>
+    <string name="formula_tilemap_height">tilemap height</string>
+    <string name="formula_tile_size">tile size</string>
+    <string name="formula_param_column">column</string>
+    <string name="formula_param_row">row</string>
+    <string name="formula_tile_at_position_param" formatted="false">(column, row)</string>
+    <string name="formula_is_solid_tile_at_param" formatted="false">(column, row)</string>
+
+    <!-- Look list entries -->
+    <string name="look_new_tilemap">New Tilemap</string>
+    <string name="look_edit_tilemap">Edit Tilemap</string>
+
+    <!-- Custom themes (.neotema) continued -->
     <string name="settings_themes_summary">Import and apply custom .neotema themes</string>
     <string name="theme_default_name">Default theme</string>
     <string name="theme_import_button">Import theme</string>

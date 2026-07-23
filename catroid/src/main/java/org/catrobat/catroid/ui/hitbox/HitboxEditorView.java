@@ -28,9 +28,10 @@ import java.util.List;
  */
 public class HitboxEditorView extends View {
 
-    private static final float HANDLE_RADIUS = 24f;
-    private static final float RING_PADDING = 40f;
-    private static final float DRAG_SLOP = 12f;
+    private float density = 1f;
+    private static final float HANDLE_RADIUS_DP = 12f;
+    private static final float RING_PADDING_DP = 20f;
+    private static final float DRAG_SLOP_DP = 8f;
     private static final int MAX_BITMAP_DIM = 2048;
     private static final long LONG_PRESS_MS = 400;
 
@@ -67,12 +68,18 @@ public class HitboxEditorView extends View {
     private int activePointerId = MotionEvent.INVALID_POINTER_ID;
 
     // Paints
-    private final Paint imagePaint = new Paint(Paint.FILTER_BITMAP_FLAG);
+    private final Paint imagePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint hitboxPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint selectedPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint handlePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint ringPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint gridPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint fillPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint selectedFillPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint handleBorderPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint hudBgPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint hudTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint hudValPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
     private OnHitboxChangeListener changeListener;
 
@@ -96,25 +103,52 @@ public class HitboxEditorView extends View {
     }
 
     private void init() {
+        density = getResources().getDisplayMetrics().density;
         hitboxPaint.setStyle(Paint.Style.STROKE);
-        hitboxPaint.setStrokeWidth(3f);
-        hitboxPaint.setColor(0xFF00E676); // green
+        hitboxPaint.setStrokeWidth(3.5f);
+        hitboxPaint.setColor(0xFF00E676); // emerald green
+
+        fillPaint.setStyle(Paint.Style.FILL);
+        fillPaint.setColor(0x2500E676);
 
         selectedPaint.setStyle(Paint.Style.STROKE);
-        selectedPaint.setStrokeWidth(4f);
-        selectedPaint.setColor(0xFFFFD600); // yellow
+        selectedPaint.setStrokeWidth(4.5f);
+        selectedPaint.setColor(0xFFFFD600); // glowing amber/gold
+
+        selectedFillPaint.setStyle(Paint.Style.FILL);
+        selectedFillPaint.setColor(0x35FFD600);
 
         handlePaint.setStyle(Paint.Style.FILL);
         handlePaint.setColor(0xFFFFD600);
 
+        handleBorderPaint.setStyle(Paint.Style.STROKE);
+        handleBorderPaint.setStrokeWidth(3f);
+        handleBorderPaint.setColor(0xFFFFFFFF);
+
         ringPaint.setStyle(Paint.Style.STROKE);
-        ringPaint.setStrokeWidth(3f);
-        ringPaint.setColor(0xFF42A5F5); // blue
-        ringPaint.setPathEffect(new DashPathEffect(new float[]{12, 8}, 0));
+        ringPaint.setStrokeWidth(3.5f);
+        ringPaint.setColor(0xFF00E5FF); // electric cyan
 
         gridPaint.setStyle(Paint.Style.STROKE);
-        gridPaint.setStrokeWidth(1f);
-        gridPaint.setColor(0x33FFFFFF);
+        gridPaint.setStrokeWidth(1.5f);
+        gridPaint.setColor(0x2294A3B8);
+
+        hudBgPaint.setStyle(Paint.Style.FILL);
+        hudBgPaint.setColor(0xD90F172A); // dark slate glassmorphism
+
+        hudTextPaint.setColor(0xFF94A3B8);
+        hudTextPaint.setTextSize(32f);
+        hudTextPaint.setFakeBoldText(true);
+
+        hudValPaint.setColor(0xFFF8FAFC);
+        hudValPaint.setTextSize(32f);
+        hudValPaint.setFakeBoldText(true);
+
+        imagePaint.setFilterBitmap(true);
+    }
+
+    private float dp(float dpValue) {
+        return dpValue * density;
     }
 
     public void setOnHitboxChangeListener(OnHitboxChangeListener listener) {
@@ -126,9 +160,6 @@ public class HitboxEditorView extends View {
         origW = 0;
         origH = 0;
         if (path != null) {
-            // Read real dimensions first, then decode downsampled to avoid OOM
-            // on large looks. Hitbox coordinates stay in ORIGINAL image space so
-            // they match what the runtime collision system uses.
             BitmapFactory.Options bounds = new BitmapFactory.Options();
             bounds.inJustDecodeBounds = true;
             BitmapFactory.decodeFile(path, bounds);
@@ -169,7 +200,6 @@ public class HitboxEditorView extends View {
     }
 
     public void addHitbox() {
-        // Add a default hitbox at center, 25% of the ORIGINAL image size
         float w = origW > 0 ? origW * 0.25f : 100f;
         float h = origH > 0 ? origH * 0.25f : 100f;
         hitboxes.add(new HitboxData(0, 0, w, h, 0));
@@ -219,9 +249,7 @@ public class HitboxEditorView extends View {
         canvas.drawLine(cx, 0, cx, getHeight(), gridPaint);
         canvas.drawLine(0, cy, getWidth(), cy, gridPaint);
 
-        // Draw sprite image. The bitmap may be downsampled, so stretch it to the
-        // ORIGINAL image size (origW/origH * imageScale) — keeps it aligned with
-        // hitbox coordinates, which live in original image space.
+        // Draw sprite image
         if (spriteBitmap != null && origW > 0 && origH > 0) {
             dstRect.set(imageOffsetX, imageOffsetY,
                 imageOffsetX + origW * imageScale,
@@ -235,11 +263,13 @@ public class HitboxEditorView extends View {
             boolean selected = (i == selectedIndex);
             drawHitbox(canvas, hb, selected, cx, cy);
         }
+
+        // Draw HUD overlay badge
+        drawHudOverlay(canvas);
     }
 
     private void drawHitbox(Canvas canvas, HitboxData hb, boolean selected, float cx, float cy) {
         canvas.save();
-        // Transform: image center is at (cx, cy) on screen
         canvas.translate(cx + hb.x * imageScale, cy + hb.y * imageScale);
         canvas.rotate(hb.rotation);
 
@@ -247,27 +277,58 @@ public class HitboxEditorView extends View {
         float hh = hb.height * imageScale / 2f;
         RectF rect = new RectF(-hw, -hh, hw, hh);
 
+        // Fill background translucently
+        canvas.drawRect(rect, selected ? selectedFillPaint : fillPaint);
+        // Draw stroke outline
         canvas.drawRect(rect, selected ? selectedPaint : hitboxPaint);
 
         if (selected) {
             if (rotationMode) {
-                // Draw rotation ring
-                float ringRadius = Math.max(hw, hh) + RING_PADDING;
+                float ringRadius = Math.max(hw, hh) + dp(RING_PADDING_DP);
+                ringPaint.setPathEffect(new DashPathEffect(new float[]{14, 8}, 0));
                 canvas.drawCircle(0, 0, ringRadius, ringPaint);
-                // Draw a small handle on the ring at top
-                handlePaint.setColor(0xFF42A5F5);
-                canvas.drawCircle(0, -ringRadius, HANDLE_RADIUS * 0.8f, handlePaint);
+                ringPaint.setPathEffect(null);
+
+                // Handle at top of ring
+                handlePaint.setColor(0xFF00E5FF);
+                canvas.drawCircle(0, -ringRadius, dp(HANDLE_RADIUS_DP * 0.9f), handlePaint);
+                canvas.drawCircle(0, -ringRadius, dp(HANDLE_RADIUS_DP * 0.9f), handleBorderPaint);
                 handlePaint.setColor(0xFFFFD600);
             } else {
-                // Draw 4 resize handles (circles at midpoints of sides)
-                canvas.drawCircle(0, -hh, HANDLE_RADIUS, handlePaint); // top
-                canvas.drawCircle(0, hh, HANDLE_RADIUS, handlePaint);  // bottom
-                canvas.drawCircle(-hw, 0, HANDLE_RADIUS, handlePaint); // left
-                canvas.drawCircle(hw, 0, HANDLE_RADIUS, handlePaint);  // right
+                drawHandle(canvas, 0, -hh); // top
+                drawHandle(canvas, 0, hh);  // bottom
+                drawHandle(canvas, -hw, 0); // left
+                drawHandle(canvas, hw, 0);  // right
             }
         }
 
         canvas.restore();
+    }
+
+    private void drawHandle(Canvas canvas, float x, float y) {
+        canvas.drawCircle(x, y, dp(HANDLE_RADIUS_DP), handlePaint);
+        canvas.drawCircle(x, y, dp(HANDLE_RADIUS_DP), handleBorderPaint);
+    }
+
+    private void drawHudOverlay(Canvas canvas) {
+        if (selectedIndex < 0 || selectedIndex >= hitboxes.size()) {
+            return;
+        }
+        HitboxData hb = hitboxes.get(selectedIndex);
+        String info = String.format("Box #%d  │  %dx%d px  │  X: %+d  Y: %+d  │  %.0f°",
+                selectedIndex + 1, (int) hb.width, (int) hb.height, (int) hb.x, (int) hb.y, hb.rotation);
+
+        float textWidth = hudValPaint.measureText(info);
+        float padX = 24f;
+        float padY = 16f;
+        float left = 24f;
+        float top = 24f;
+        float right = left + textWidth + padX * 2f;
+        float bottom = top + 44f + padY;
+
+        RectF bg = new RectF(left, top, right, bottom);
+        canvas.drawRoundRect(bg, 16f, 16f, hudBgPaint);
+        canvas.drawText(info, left + padX, top + 36f, hudValPaint);
     }
 
     @Override
@@ -306,7 +367,7 @@ public class HitboxEditorView extends View {
                 }
                 float x = event.getX(pointerIndex);
                 float y = event.getY(pointerIndex);
-                if (!hasDragged && Math.hypot(x - downX, y - downY) > DRAG_SLOP) {
+                if (!hasDragged && Math.hypot(x - downX, y - downY) > dp(DRAG_SLOP_DP)) {
                     hasDragged = true;
                     longPressHandler.removeCallbacksAndMessages(null);
                 }
@@ -464,7 +525,7 @@ public class HitboxEditorView extends View {
 
         float hw = hb.width * imageScale / 2f;
         float hh = hb.height * imageScale / 2f;
-        float threshold = HANDLE_RADIUS * 1.5f;
+        float threshold = dp(HANDLE_RADIUS_DP * 1.5f);
 
         if (Math.hypot(localX, localY + hh) < threshold) return MODE_RESIZE_TOP;
         if (Math.hypot(localX, localY - hh) < threshold) return MODE_RESIZE_BOTTOM;

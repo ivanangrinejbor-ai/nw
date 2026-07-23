@@ -110,7 +110,7 @@ public class NeoScriptPersistenceTest extends TestCase {
 		CreateObjectAction action = new CreateObjectAction();
 		action.setScope(new Scope(project, hero1, null));
 		action.setObjectName(new Formula(name));
-		action.setTargetSceneName(scene);
+		action.setSceneName(new Formula(scene));
 		action.setPersist(persist);
 		action.act(1.0f);
 	}
@@ -120,7 +120,7 @@ public class NeoScriptPersistenceTest extends TestCase {
 		action.setScope(new Scope(project, hero1, null));
 		action.setFilePath(new Formula(path));
 		action.setObjectName(new Formula(objectName));
-		action.setTargetSceneName(scene);
+		action.setSceneName(new Formula(scene));
 		action.setReplaceExistingScripts(replace);
 		action.setSavePersistent(save);
 		action.act(1.0f);

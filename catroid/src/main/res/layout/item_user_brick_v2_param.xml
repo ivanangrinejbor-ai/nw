@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:paddingTop="4dp"
+    android:paddingBottom="4dp">
+
+    <TextView
+        android:id="@+id/text_param_index"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="$1:"
+        android:textSize="16sp"
+        android:textColor="@color/solid_white"
+        android:layout_marginEnd="8dp" />
+
+    <EditText
+        android:id="@+id/edit_param_name"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:hint="paramName"
+        android:singleLine="true"
+        android:textColor="@color/solid_white"
+        android:textColorHint="@android:color/darker_gray" />
+
+    <ImageButton
+        android:id="@+id/btn_delete_param"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@android:drawable/ic_menu_close_clear_cancel"
+        android:background="?android:attr/selectableItemBackground"
+        android:contentDescription="Delete parameter"
+        android:layout_marginStart="8dp" />
+
+</LinearLayout>

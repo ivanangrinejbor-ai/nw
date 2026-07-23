@@ -142,7 +142,7 @@ public final class UiUtils {
 			case R.string.menu_rate_us:
 				return R.drawable.ic_star_rate;
 			default:
-				return R.drawable.ic_placeholder;
+				return R.drawable.ic_info;
 		}
 	}
 

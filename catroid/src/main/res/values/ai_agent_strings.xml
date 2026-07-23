@@ -102,4 +102,17 @@
     <string formatted="false" name="ai_agent_api_key_title">Gemini API key</string>
     <string formatted="false" name="ai_agent_api_key_summary">Enter your Google AI Studio key to enable the cloud agent</string>
     <string formatted="false" name="ai_agent_scope_all">All projects</string>
+
+    <!-- Local models (llama.cpp) -->
+    <string formatted="false" name="ai_agent_more_models">More models</string>
+    <string formatted="false" name="ai_agent_local_models_title">Local models</string>
+    <string formatted="false" name="ai_agent_download_confirm">Download %1$s?</string>
+    <string formatted="false" name="ai_agent_download">Download</string>
+    <string formatted="false" name="ai_agent_back">Back</string>
+    <string formatted="false" name="ai_agent_downloading">Downloading %1$s…</string>
+    <string formatted="false" name="ai_agent_use_model">Use</string>
+    <string formatted="false" name="ai_agent_delete_model">Delete</string>
+    <string formatted="false" name="ai_agent_local_ready">Using local model %1$s</string>
+    <string formatted="false" name="ai_agent_need_local_model">Download and select a local model first</string>
+    <string formatted="false" name="ai_model_download_channel">Model downloads</string>
 </resources>

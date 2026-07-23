@@ -252,7 +252,8 @@ public class CatroidApplication extends Application {
                 for (ClassLoader cl : pluginLoaders) {
                     try {
                         return cl.loadClass(name);
-                    } catch (ClassNotFoundException ignored) {}
+                    } catch (ClassNotFoundException ignored) { // ignored
+			}
                 }
             } finally {
                 loading.remove(name);

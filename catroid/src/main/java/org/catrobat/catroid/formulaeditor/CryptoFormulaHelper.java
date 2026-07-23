@@ -467,12 +467,12 @@ public final class CryptoFormulaHelper {
         if ((trimmed.length() % 2) == 0 && isHexString(trimmed)) {
             try {
                 return fromHex(trimmed);
-            } catch (Exception ignored) {
+            } catch (Exception ignored) { // ignored
             }
         }
         try {
             return Base64.decode(trimmed, Base64.NO_WRAP);
-        } catch (Exception ignored) {
+        } catch (Exception ignored) { // ignored
         }
         return getUtf8Bytes(trimmed);
     }

@@ -84,4 +84,17 @@
     <string formatted="false" name="ai_agent_api_key_title">Ключ Gemini API</string>
     <string formatted="false" name="ai_agent_api_key_summary">Введите ключ Google AI Studio, чтобы включить облачного агента</string>
     <string formatted="false" name="ai_agent_scope_all">Все проекты</string>
+
+    <!-- Local models (llama.cpp) -->
+    <string formatted="false" name="ai_agent_more_models">Больше моделей</string>
+    <string formatted="false" name="ai_agent_local_models_title">Локальные модели</string>
+    <string formatted="false" name="ai_agent_download_confirm">Скачать %1$s?</string>
+    <string formatted="false" name="ai_agent_download">Скачать</string>
+    <string formatted="false" name="ai_agent_back">Назад</string>
+    <string formatted="false" name="ai_agent_downloading">Загрузка %1$s…</string>
+    <string formatted="false" name="ai_agent_use_model">Использовать</string>
+    <string formatted="false" name="ai_agent_delete_model">Удалить</string>
+    <string formatted="false" name="ai_agent_local_ready">Локальная модель %1$s</string>
+    <string formatted="false" name="ai_agent_need_local_model">Сначала скачайте и выберите локальную модель</string>
+    <string formatted="false" name="ai_model_download_channel">Загрузка моделей</string>
 </resources>

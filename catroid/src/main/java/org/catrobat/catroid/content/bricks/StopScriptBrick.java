@@ -68,6 +68,9 @@ public class StopScriptBrick extends BrickBaseType {
 	}
 
 	private ArrayAdapter<String> createArrayAdapter(Context context) {
+		// WARNING: BrickValues.STOP_* constants are used as array indices below AND as the
+		// persisted spinnerSelection value. If these constants are reordered, existing projects
+		// will load wrong selections. Keep values[0]=STOP_THIS_SCRIPT, [1]=STOP_ALL_SCRIPTS, [2]=STOP_OTHER_SCRIPTS.
 		String[] values = new String[3];
 		values[BrickValues.STOP_THIS_SCRIPT] = context.getString(R.string.brick_stop_this_script);
 		values[BrickValues.STOP_ALL_SCRIPTS] = context.getString(R.string.brick_stop_all_scripts);

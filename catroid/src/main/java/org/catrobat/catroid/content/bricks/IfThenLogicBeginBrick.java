@@ -162,6 +162,7 @@ public class IfThenLogicBeginBrick extends FormulaBrick implements CompositeBric
 			}
 		}
 
+		// IfThenLogicBeginBrick has no else branch; null elseSequence is intentional
 		Action action = sprite.getActionFactory()
 				.createIfLogicAction(sprite, sequence,
 						getFormulaWithBrickField(Brick.BrickField.IF_CONDITION), ifSequence, null);

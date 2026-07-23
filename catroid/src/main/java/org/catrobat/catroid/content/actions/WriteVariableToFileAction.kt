@@ -86,6 +86,7 @@ class WriteVariableToFileAction : TemporalAction(), IntentListener {
     @VisibleForTesting
     fun writeToFile(file: File, content: String): Boolean {
         return try {
+            // Overwrites existing file content completely (not append-only)
             file.writeText(content)
             true
         } catch (e: IOException) {

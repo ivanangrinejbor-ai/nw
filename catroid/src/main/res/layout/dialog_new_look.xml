@@ -79,5 +79,20 @@
                 app:drawableTopCompat="@drawable/ic_camera" />
 
         </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:id="@+id/dialog_new_look_tilemap"
+                android:layout_span="2"
+                android:background="@drawable/new_object_dialog_selector"
+                android:gravity="center"
+                android:text="@string/look_new_tilemap"
+                android:textSize="?attr/medium"
+                app:drawableTopCompat="@android:drawable/ic_menu_gallery" />
+
+        </TableRow>
     </TableLayout>
 </ScrollView>

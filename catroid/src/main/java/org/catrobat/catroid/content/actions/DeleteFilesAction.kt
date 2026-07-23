@@ -26,8 +26,16 @@ class DeleteFilesAction() : TemporalAction() {
         val name = project.checkExtension(fileNameStr, "txt")
         if (name.isEmpty()) return
 
+        // Prevent path traversal: resolve to canonical path and verify it's under project dir
+        val projectDir = project.filesDir.canonicalFile
+        val targetFile = java.io.File(projectDir, name).canonicalFile
+        if (!targetFile.path.startsWith(projectDir.path + java.io.File.separator) && targetFile != projectDir) {
+            Log.e("DeleteFilesAction", "Path traversal blocked: $name resolves outside project dir")
+            return
+        }
+
         try {
-            project.deleteFile(name)
+            project.deleteFile(targetFile)
         } catch (e: SecurityException) {
             Log.e("DeleteFilesAction", "Security error deleting file", e)
         }

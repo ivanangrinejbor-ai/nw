@@ -881,7 +881,9 @@ public class ScriptFragment extends ListFragment implements
 
 	public void addBrick(Brick brick) {
 		try {
-			if (!brick.getClass().equals(UserDefinedReceiverBrick.class) && !brick.getClass().equals(UserDefinedBrick.class)) {
+			if (!brick.getClass().equals(UserDefinedReceiverBrick.class) && !brick.getClass().equals(UserDefinedBrick.class)
+					&& !brick.getClass().equals(org.catrobat.catroid.content.bricks.UserDefinedReceiverBrickV2.class)
+					&& !brick.getClass().equals(org.catrobat.catroid.content.bricks.UserDefinedBrickV2.class)) {
 				RecentBrickListManager.getInstance().addBrick(brick.clone());
 			}
 		} catch (CloneNotSupportedException e) {
@@ -993,7 +995,7 @@ public class ScriptFragment extends ListFragment implements
             }
         }
 
-		if (brick instanceof UserDefinedReceiverBrick) {
+		if (brick instanceof UserDefinedReceiverBrick || brick instanceof org.catrobat.catroid.content.bricks.UserDefinedReceiverBrickV2) {
 			items.add(R.string.backpack_add);
 			items.add(R.string.brick_context_dialog_delete_definition);
 			items.add(R.string.brick_context_dialog_move_definition);
@@ -1315,8 +1317,8 @@ public class ScriptFragment extends ListFragment implements
 			scriptController.pack(name, selectedBricks);
 			ToastUtil.showSuccess(getActivity(), getString(R.string.packed_script_group));
 			switchToBackpack();
-		} catch (CloneNotSupportedException e) {
-			Log.e(TAG, Log.getStackTraceString(e));
+		} catch (Exception e) {
+			Log.e(TAG, "Packing scripts failed", e);
 		}
 
 		finishActionMode();
@@ -2010,7 +2012,7 @@ public class ScriptFragment extends ListFragment implements
                         sb.append("  * ").append(nameStr).append(" (").append(type).append(") = ")
                                 .append(value != null ? value.toString() : "null").append("\n");
                     }
-                } catch (Exception ignored) {
+                } catch (Exception ignored) { // ignored
                 }
             }
         } else {
@@ -2199,7 +2201,7 @@ public class ScriptFragment extends ListFragment implements
                             }
                         }
                     }
-                } catch (Exception ignored) {
+                } catch (Exception ignored) { // ignored
                 }
             }
             clazz = clazz.getSuperclass();
@@ -2241,5 +2243,13 @@ public class ScriptFragment extends ListFragment implements
             listView.setFastScrollEnabled(true);
             listView.setFastScrollAlwaysVisible(true);
         }
+    }
+
+    public BrickAdapter getAdapter() {
+        return adapter;
+    }
+
+    public BrickListView getListView() {
+        return listView;
     }
 }

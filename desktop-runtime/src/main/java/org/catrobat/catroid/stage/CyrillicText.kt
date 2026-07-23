@@ -36,7 +36,12 @@ object CyrillicText {
 
         val img = BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB)
         val g = img.createGraphics()
-        g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON)
+        val aaHint = if (!java.awt.GraphicsEnvironment.isHeadless()) {
+            RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB
+        } else {
+            RenderingHints.VALUE_TEXT_ANTIALIAS_ON
+        }
+        g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, aaHint)
         g.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON)
         g.font = font
         g.color = AwtColor(

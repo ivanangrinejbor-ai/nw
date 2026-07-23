@@ -101,7 +101,7 @@ class ColorPickerDialog(
             setPadding(0, (4 * dp).toInt(), 0, 0)
         }
         currentAlphaRow.addView(TextView(context).apply {
-            text = "Alpha"
+            text = context.getString(R.string.neopaint_alpha)
             textSize = 12f
             setPadding(0, 0, (8 * dp).toInt(), 0)
         })
@@ -198,7 +198,7 @@ class ColorPickerDialog(
             setPadding(0, (12 * dp).toInt(), 0, 0)
         }
         btnRow.addView(Button(context).apply {
-            text = "Cancel"
+            text = context.getString(R.string.neopaint_cancel)
             setOnClickListener {
                 // Reset to initial color
                 hue = initialHsv[0]; sat = initialHsv[1]; value = initialHsv[2]; currentAlpha = initialAlpha

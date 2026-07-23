@@ -36,6 +36,23 @@ object BrickFactory {
     )
 
     /**
+     * Whitelist of allowed fully-qualified class name prefixes for Class.forName().
+     * Only classes under these packages may be loaded. This prevents prompt injection
+     * from loading arbitrary JVM classes (e.g. java.lang.Runtime).
+     */
+    private val ALLOWED_CLASS_PREFIXES = listOf(
+        "org.catrobat.catroid.content.bricks.",
+        "org.catrobat.catroid.physics.content.bricks."
+    )
+
+    /**
+     * Regex that matches valid simple class names: alphanumeric + underscore only.
+     * Fully-qualified names (containing dots) are NOT allowed — they must be resolved
+     * through BRICK_PACKAGES to prevent arbitrary class loading.
+     */
+    private val VALID_CLASS_NAME_REGEX = Regex("^[A-Za-z0-9_]+$")
+
+    /**
      * Short-name aliases for bricks that live in the physics package but are commonly
      * needed by the agent. The key is the alias the model uses; the value is the
      * fully-qualified class name. This avoids the "physics version shadowed by
@@ -55,6 +72,9 @@ object BrickFactory {
      * Cache of "is this brick class a container?" — true if the class exposes any of
      * `addBrick`, `addBrickToIfBranch`, `addBrickToElseBranch`. Computed lazily and
      * reused by both [buildBrick] and [BrickInfo.getFullCatalog] (via [isContainerBrick]).
+     *
+     * TODO: clear this cache when the project is closed (e.g. via ProjectManager's project closed listener)
+     * to avoid stale entries across project switches.
      */
     private val containerCache = java.util.concurrent.ConcurrentHashMap<String, Boolean>()
 
@@ -450,12 +470,15 @@ object BrickFactory {
                 if (Brick::class.java.isAssignableFrom(clazz)) clazz else null
             } catch (_: Exception) { null }
         }
-        val candidates = if (trimmed.contains('.')) {
-            listOf(trimmed)
-        } else {
-            BRICK_PACKAGES.map { it + trimmed }
+        // SECURITY: Do NOT allow fully-qualified class names (containing dots).
+        // Only simple class names resolved through BRICK_PACKAGES are permitted.
+        // This prevents prompt injection from loading arbitrary JVM classes.
+        if (!trimmed.matches(VALID_CLASS_NAME_REGEX)) {
+            Log.w(TAG, "Rejected invalid class name '$trimmed' — only alphanumeric class names allowed")
+            return null
         }
-        for (candidate in candidates) {
+        for (pkg in BRICK_PACKAGES) {
+            val candidate = pkg + trimmed
             try {
                 val clazz = Class.forName(candidate)
                 if (Brick::class.java.isAssignableFrom(clazz)) return clazz

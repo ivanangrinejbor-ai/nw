@@ -6,6 +6,8 @@ import java.io.OutputStreamWriter
 import java.net.HttpURLConnection
 import java.net.URL
 import java.nio.charset.StandardCharsets
+// TODO: support HTTP_PROXY/HTTPS_PROXY env vars via ProxySelector or system properties
+// for corporate users behind forward proxies
 
 class DesktopNetworkService : NetworkService {
 

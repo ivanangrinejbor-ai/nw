@@ -14,6 +14,7 @@ object DesktopProjectManager {
     fun getInstance(): DesktopProjectManager = this
 
     fun loadProject(projectDir: File): DesktopProject? {
+        // TODO: also search for code.xml in subdirectories (e.g. projectName/code.xml)
         val codeXml = File(projectDir, "code.xml")
         if (!codeXml.exists()) {
             Gdx.app.log(TAG, "code.xml not found in ${projectDir.absolutePath}")
@@ -39,6 +40,13 @@ object DesktopProjectManager {
             val nameNodes = doc.getElementsByTagName("name")
             if (nameNodes.length > 0) {
                 project.name = nameNodes.item(0).textContent.trim()
+            }
+
+            val headerNodes = doc.getElementsByTagName("header")
+            if (headerNodes.length > 0) {
+                val headerEl = headerNodes.item(0) as Element
+                headerEl.getAttribute("screenWidth").toIntOrNull()?.let { project.stageWidth = it }
+                headerEl.getAttribute("screenHeight").toIntOrNull()?.let { project.stageHeight = it }
             }
 
             val objects = doc.getElementsByTagName("object")
@@ -133,6 +141,7 @@ object DesktopProjectManager {
         }
     }
 
+    // TODO: limit search depth to prevent unbounded recursion on deeply-nested trees
     private fun findDir(root: File, name: String, maxDepth: Int = 6): File? {
         if (!root.isDirectory || maxDepth < 0) return null
         root.listFiles()?.forEach { f ->

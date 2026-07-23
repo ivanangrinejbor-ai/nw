@@ -87,6 +87,11 @@ class DesktopStageListener(private val projectDir: File? = null) : ApplicationAd
 
         camera.direction.set(0f, 0f, -1f)
         camera.up.set(0f, 1f, 0f)
+        // NOTE: cameraState.y is negated here (screen Y up), but followOffsetY is also
+        // subtracted in follow-target mode (line below). This double-negation means
+        // followOffsetY effectively moves in screen-space Y, not sprite-space Y —
+        // visually correct but conceptually inconsistent with cameraState.x which is
+        // additive on both paths. Low priority — candidate for Y-axis unification.
         camera.position.set(VIRTUAL_WIDTH / 2f + cameraState.x, VIRTUAL_HEIGHT / 2f - cameraState.y, 0f)
         val projectForCamera = DesktopProjectManager.getInstance().getCurrentProject()
         cameraState.followTargetName?.let { targetName ->

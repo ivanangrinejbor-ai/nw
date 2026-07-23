@@ -22,19 +22,29 @@
  */
 package org.catrobat.catroid.content;
 
+import android.graphics.Bitmap;
 import android.graphics.Camera;
+import android.graphics.Canvas;
+import android.graphics.Movie;
+import android.graphics.Paint;
 import android.graphics.PointF;
+import android.graphics.PorterDuff;
 import android.util.Log;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.Mesh;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.VertexAttribute;
+import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.ParticleEffect;
 import com.badlogic.gdx.graphics.g2d.ParticleEmitter;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
+import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Polygon;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
@@ -51,14 +61,21 @@ import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.Viewport;
+
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
 import com.danvexteam.lunoscript_annotations.LunoClass;
 
 import org.catrobat.catroid.ProjectManager;
 import org.catrobat.catroid.common.LookData;
 import org.catrobat.catroid.common.ThreadScheduler;
+import org.catrobat.catroid.common.TilemapLookData;
 import org.catrobat.catroid.content.actions.ScriptSequenceAction;
 import org.catrobat.catroid.content.actions.ScriptSequenceActionWithWaiter;
 import org.catrobat.catroid.content.eventids.EventId;
+import org.catrobat.catroid.content.tilemap.TilemapRuntime;
+import org.catrobat.catroid.content.tilemap.TilemapRuntimeManager;
 import org.catrobat.catroid.physics.ParticleConstants;
 import org.catrobat.catroid.sensing.CollisionInformation;
 import org.catrobat.catroid.utils.TouchUtil;
@@ -134,12 +151,53 @@ public class Look extends Image {
 
     public boolean drawOnlyInBuffer = false;
 
-    // --- Phase 4 stubs ---
     public String maskBufferName = null;
     public int maskMode = 0;
 
-    private final transient float[] hitboxVertices = new float[8];
-    private final transient Polygon hitboxPolygon = new Polygon(hitboxVertices);
+    // GIF playback
+    private transient List<GifFrameData> gifFrames;
+    private transient int gifCurrentFrame;
+    private transient float gifFrameTimer;
+    private transient boolean gifPlaying;
+
+    // Spritesheet playback
+    private transient List<TextureRegion> spritesheetFrames;
+    private transient int spritesheetCurrentFrame;
+    private transient float spritesheetFrameTimer;
+    private transient float spritesheetSpeed;
+    private transient boolean spritesheetPlaying;
+    private transient TextureRegion savedSpritesheetRegion;
+
+    // Corner offset mesh
+    private transient float cornerTLX, cornerTLY, cornerTRX, cornerTRY, cornerBRX, cornerBRY, cornerBLX, cornerBLY;
+    private transient boolean hasCornerOffsets;
+    private static final String CORNER_VERTEX_SHADER = "attribute vec2 a_position;\n"
+            + "attribute vec2 a_texCoord0;\n"
+            + "uniform mat4 u_projTrans;\n"
+            + "varying vec2 v_texCoords;\n"
+            + "void main() {\n"
+            + "  v_texCoords = a_texCoord0;\n"
+            + "  gl_Position = u_projTrans * vec4(a_position, 0.0, 1.0);\n"
+            + "}";
+    private static final String CORNER_FRAGMENT_SHADER = "#ifdef GL_ES\nprecision mediump float;\n#endif\n"
+            + "varying vec2 v_texCoords;\n"
+            + "uniform sampler2D u_texture;\n"
+            + "uniform float u_alpha;\n"
+            + "void main() {\n"
+            + "  gl_FragColor = texture2D(u_texture, v_texCoords) * u_alpha;\n"
+            + "}";
+
+    private static class GifFrameData {
+        TextureRegion textureRegion;
+        float duration; // in seconds
+
+        GifFrameData(TextureRegion region, float dur) {
+            this.textureRegion = region;
+            this.duration = dur;
+        }
+    }
+
+    private final transient Polygon hitboxPolygon = new Polygon(new float[0]);
 
 	public Look(final Sprite sprite) {
 		this.sprite = sprite;
@@ -248,6 +306,8 @@ public class Look extends Image {
             shader = null;
         }
         clearParticleEffect();
+        stopGif();
+        stopSpritesheet();
 
         super.remove();
     }
@@ -418,6 +478,19 @@ public class Look extends Image {
 			batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
 		}
 
+		// A tilemap costume has no single drawable; it paints its own tiles from the tileset.
+		if (lookData instanceof TilemapLookData) {
+			if (isLookVisible() && alpha != 0.0f) {
+				drawTilemap(batch, (TilemapLookData) lookData);
+			}
+			return;
+		}
+
+		if (hasCornerOffsets) {
+			drawCornerMesh(batch);
+			return;
+		}
+
 		if (!isLookVisible() || getDrawable() == null) {
 			if (shouldLog) {
 				Log.w("ShaderDebug", "    [Draw] Look is NOT drawn. isLookVisible: " + isLookVisible() + ", getDrawable() is null: " + (getDrawable() == null));
@@ -461,6 +534,70 @@ public class Look extends Image {
 
 	}
 
+	/**
+	 * Paints a tilemap costume tile-by-tile from its runtime-sliced tileset regions. Layers are
+	 * drawn bottom-to-top; empty cells ({@link TilemapLookData#EMPTY}) are skipped. Position, scale
+	 * and rotation follow the actor: each tile is rotated/scaled about the map centre so the whole
+	 * map transforms as one.
+	 */
+	private void drawTilemap(Batch batch, TilemapLookData tilemap) {
+		TilemapRuntime runtime = TilemapRuntimeManager.getOrCreate(tilemap);
+		TextureRegion[] regions = runtime.getRegions();
+		if (regions == null || regions.length == 0) {
+			return;
+		}
+		int columns = tilemap.getMapColumns();
+		int rows = tilemap.getMapRows();
+		if (columns <= 0 || rows <= 0) {
+			return;
+		}
+		float tileW = tilemap.getTileWidth();
+		float tileH = tilemap.getTileHeight();
+		float baseX = getX();
+		float baseY = getY();
+		float pivotX = baseX + getWidth() / 2f;
+		float pivotY = baseY + getHeight() / 2f;
+		float scaleX = getScaleX();
+		float scaleY = getScaleY();
+		float rotationDegrees = getRotation();
+
+		float oldR = batch.getColor().r;
+		float oldG = batch.getColor().g;
+		float oldB = batch.getColor().b;
+		float oldA = batch.getColor().a;
+		batch.setShader(shader);
+		batch.setColor(oldR, oldG, oldB, alpha);
+
+		for (short[] layer : tilemap.getLayers()) {
+			if (layer == null) {
+				continue;
+			}
+			for (int row = 0; row < rows; row++) {
+				for (int col = 0; col < columns; col++) {
+					int cell = row * columns + col;
+					if (cell >= layer.length) {
+						continue;
+					}
+					short tile = layer[cell];
+					if (tile == TilemapLookData.EMPTY || tile < 0 || tile >= regions.length) {
+						continue;
+					}
+					TextureRegion region = regions[tile];
+					if (region == null) {
+						continue;
+					}
+					float tileX = baseX + col * tileW;
+					float tileY = baseY + row * tileH;
+					batch.draw(region, tileX, tileY, pivotX - tileX, pivotY - tileY,
+							tileW, tileH, scaleX, scaleY, rotationDegrees);
+				}
+			}
+		}
+
+		batch.setColor(oldR, oldG, oldB, oldA);
+		batch.setShader(null);
+	}
+
 	public static void tickGlobalFrame() {
 		globalFrameTicker++;
 	}
@@ -475,6 +612,8 @@ public class Look extends Image {
 				sprite.evaluateFirebaseChangedTriggers();
 			}
 		}
+		updateGifAnimation(delta);
+		updateSpritesheetAnimation(delta);
 	}
 
 	@Override
@@ -534,6 +673,22 @@ public class Look extends Image {
 		if (lookData == null) {
 			setBounds(getX() + getWidth() / 2f, getY() + getHeight() / 2f, 0f, 0f);
 			setDrawable(null);
+			return;
+		}
+		// A tilemap costume is sized to the map (in pixels), not the tileset image, and has no
+		// single drawable — it paints itself in draw(). Regions are (re)sliced by the runtime.
+		if (lookData instanceof TilemapLookData) {
+			TilemapLookData tilemap = (TilemapLookData) lookData;
+			float mapWidth = tilemap.getMapPixelWidth();
+			float mapHeight = tilemap.getMapPixelHeight();
+			float newX = getX() - (mapWidth - getWidth()) / 2f;
+			float newY = getY() - (mapHeight - getHeight()) / 2f;
+			setSize(mapWidth, mapHeight);
+			setPosition(newX, newY);
+			setOrigin(getWidth() / 2f, getHeight() / 2f);
+			setDrawable(null);
+			pixmap = null;
+			TilemapRuntimeManager.getOrCreate(tilemap).invalidateRegions();
 			return;
 		}
 		pixmap = lookData.getPixmap();
@@ -818,12 +973,7 @@ public class Look extends Image {
         float w = getWidthInUserInterfaceDimensionUnit();
         float h = getHeightInUserInterfaceDimensionUnit();
 
-        hitboxVertices[0] = x;     hitboxVertices[1] = y;
-        hitboxVertices[2] = x;     hitboxVertices[3] = y + h;
-        hitboxVertices[4] = x + w; hitboxVertices[5] = y + h;
-        hitboxVertices[6] = x + w; hitboxVertices[7] = y;
-
-        hitboxPolygon.setVertices(hitboxVertices);
+        hitboxPolygon.setVertices(new float[]{x, y, x, y + h, x + w, y + h, x + w, y});
         hitboxPolygon.setPosition(0, 0);
         hitboxPolygon.setOrigin(x + w / 2f, y + h / 2f);
         hitboxPolygon.setRotation(getRotation());
@@ -1083,6 +1233,13 @@ public class Look extends Image {
         Polygon[] originalPolygons;
         if (getLookData2() == null) {
             originalPolygons = new Polygon[0];
+        } else if (getLookData2() instanceof TilemapLookData) {
+            // Tilemaps have no pixel hitbox: use a single rectangle covering the map bounds.
+            float w = getWidth();
+            float h = getHeight();
+            originalPolygons = new Polygon[] {
+                    new Polygon(new float[] {0f, 0f, w, 0f, w, h, 0f, h})
+            };
         } else {
             LookData ld = getLookData2();
             Polygon[] fromBoxes = null;
@@ -1138,24 +1295,226 @@ public class Look extends Image {
 		return brightness;
 	}
 
-	// --- Phase 4 stubs ---
 	public void playGif(String fileName) {
-		// TODO: implement GIF playback on Look
+		try {
+			stopGif();
+			byte[] data = Gdx.files.internal(fileName).readBytes();
+			if (data == null || data.length == 0) {
+				Log.w("Look", "GIF file is empty: " + fileName);
+				return;
+			}
+			Movie movie = Movie.decodeByteArray(data, 0, data.length);
+			if (movie == null || movie.width() <= 0 || movie.height() <= 0) {
+				Log.w("Look", "Failed to decode GIF: " + fileName);
+				return;
+			}
+			int gifWidth = movie.width();
+			int gifHeight = movie.height();
+			int movieDuration = movie.duration();
+			if (movieDuration <= 0) movieDuration = 1000;
+
+			int frameCount = Math.max(1, movieDuration / 100);
+			gifFrames = new ArrayList<>(frameCount);
+			Bitmap bitmap = Bitmap.createBitmap(gifWidth, gifHeight, Bitmap.Config.ARGB_8888);
+			Canvas canvas = new Canvas(bitmap);
+			Paint paint = new Paint(Paint.FILTER_BITMAP_FLAG);
+
+			for (int i = 0; i < frameCount; i++) {
+				int timeMs = (i * movieDuration) / frameCount;
+				movie.setTime(timeMs);
+				canvas.drawColor(0, android.graphics.PorterDuff.Mode.CLEAR);
+				movie.draw(canvas, 0, 0, paint);
+
+				int[] pixels = new int[gifWidth * gifHeight];
+				bitmap.getPixels(pixels, 0, gifWidth, 0, 0, gifWidth, gifHeight);
+
+				Pixmap pixmap = new Pixmap(gifWidth, gifHeight, Pixmap.Format.RGBA8888);
+				ByteBuffer buf = pixmap.getPixels();
+				buf.clear();
+				for (int pixel : pixels) {
+					int a = (pixel >> 24) & 0xFF;
+					int r = (pixel >> 16) & 0xFF;
+					int g = (pixel >> 8) & 0xFF;
+					int b = pixel & 0xFF;
+					buf.put((byte) r);
+					buf.put((byte) g);
+					buf.put((byte) b);
+					buf.put((byte) a);
+				}
+				buf.position(0);
+
+				Texture texture = new Texture(pixmap);
+				pixmap.dispose();
+				float frameDuration = movieDuration / (float) frameCount / 1000f;
+				gifFrames.add(new GifFrameData(new TextureRegion(texture), frameDuration));
+			}
+			bitmap.recycle();
+
+			gifCurrentFrame = 0;
+			gifFrameTimer = 0f;
+			gifPlaying = true;
+			applyGifFrame(0);
+		} catch (Exception e) {
+			Log.e("Look", "Failed to play GIF: " + fileName, e);
+		}
 	}
 
 	public void stopGif() {
-		// TODO: implement GIF stop
+		gifPlaying = false;
+		if (gifFrames != null) {
+			for (GifFrameData frame : gifFrames) {
+				if (frame.textureRegion != null && frame.textureRegion.getTexture() != null) {
+					frame.textureRegion.getTexture().dispose();
+				}
+			}
+			gifFrames.clear();
+			gifFrames = null;
+		}
+		gifCurrentFrame = 0;
+		gifFrameTimer = 0f;
 	}
 
 	public void playSpritesheet(int rows, int cols, int selectedRow, int framesCount, float speed) {
-		// TODO: implement spritesheet playback
+		stopSpritesheet();
+		if (lookData == null) return;
+		TextureRegion region = lookData.getTextureRegion();
+		if (region == null) return;
+
+		savedSpritesheetRegion = new TextureRegion(region);
+		int frameW = region.getRegionWidth() / cols;
+		int frameH = region.getRegionHeight() / rows;
+		if (frameW <= 0 || frameH <= 0) return;
+		int startX = region.getRegionX();
+		int startY = region.getRegionY() + selectedRow * frameH;
+
+		spritesheetFrames = new ArrayList<>(framesCount);
+		for (int i = 0; i < framesCount; i++) {
+			TextureRegion frame = new TextureRegion(region.getTexture(),
+					startX + i * frameW, startY, frameW, frameH);
+			spritesheetFrames.add(frame);
+		}
+
+		spritesheetCurrentFrame = 0;
+		spritesheetFrameTimer = 0f;
+		spritesheetSpeed = speed;
+		spritesheetPlaying = true;
+		applySpritesheetFrame(0);
 	}
 
 	public void stopSpritesheet() {
-		// TODO: implement spritesheet stop
+		spritesheetPlaying = false;
+		spritesheetFrames = null;
+		spritesheetCurrentFrame = 0;
+		spritesheetFrameTimer = 0f;
+		if (savedSpritesheetRegion != null && getDrawable() instanceof TextureRegionDrawable) {
+			((TextureRegionDrawable) getDrawable()).setRegion(savedSpritesheetRegion);
+		}
+		savedSpritesheetRegion = null;
 	}
 
 	public void setCornerOffsets(float tlx, float tly, float trx, float tryVal, float brx, float bry, float blx, float bly) {
-		// TODO: implement corner offset distortion
+		cornerTLX = tlx;
+		cornerTLY = tly;
+		cornerTRX = trx;
+		cornerTRY = tryVal;
+		cornerBRX = brx;
+		cornerBRY = bry;
+		cornerBLX = blx;
+		cornerBLY = bly;
+
+		hasCornerOffsets = (tlx != 0f || tly != 0f || trx != 0f || tryVal != 0f
+				|| brx != 0f || bry != 0f || blx != 0f || bly != 0f);
+	}
+
+	private void updateGifAnimation(float delta) {
+		if (!gifPlaying || gifFrames == null || gifFrames.isEmpty()) return;
+		gifFrameTimer += delta;
+		GifFrameData frame = gifFrames.get(gifCurrentFrame);
+		if (gifFrameTimer >= frame.duration) {
+			gifFrameTimer -= frame.duration;
+			gifCurrentFrame = (gifCurrentFrame + 1) % gifFrames.size();
+			applyGifFrame(gifCurrentFrame);
+		}
+	}
+
+	private void applyGifFrame(int index) {
+		if (gifFrames == null || index < 0 || index >= gifFrames.size()) return;
+		GifFrameData frame = gifFrames.get(index);
+		if (getDrawable() instanceof TextureRegionDrawable) {
+			((TextureRegionDrawable) getDrawable()).setRegion(frame.textureRegion);
+		}
+	}
+
+	private void updateSpritesheetAnimation(float delta) {
+		if (!spritesheetPlaying || spritesheetFrames == null || spritesheetFrames.isEmpty()) return;
+		spritesheetFrameTimer += delta;
+		if (spritesheetFrameTimer >= spritesheetSpeed) {
+			spritesheetFrameTimer -= spritesheetSpeed;
+			spritesheetCurrentFrame = (spritesheetCurrentFrame + 1) % spritesheetFrames.size();
+			applySpritesheetFrame(spritesheetCurrentFrame);
+		}
+	}
+
+	private void applySpritesheetFrame(int index) {
+		if (spritesheetFrames == null || index < 0 || index >= spritesheetFrames.size()) return;
+		if (getDrawable() instanceof TextureRegionDrawable) {
+			((TextureRegionDrawable) getDrawable()).setRegion(spritesheetFrames.get(index));
+		}
+	}
+
+	private void drawCornerMesh(Batch batch) {
+		Drawable drawable = getDrawable();
+		if (drawable == null || !(drawable instanceof TextureRegionDrawable)) return;
+		TextureRegion region = ((TextureRegionDrawable) drawable).getRegion();
+		if (region == null || region.getTexture() == null) return;
+
+		float w = getWidth();
+		float h = getHeight();
+
+		Vector2 tl = localToStageCoordinates(new Vector2(cornerTLX, cornerTLY));
+		Vector2 tr = localToStageCoordinates(new Vector2(w + cornerTRX, cornerTRY));
+		Vector2 br = localToStageCoordinates(new Vector2(w + cornerBRX, cornerBRY));
+		Vector2 bl = localToStageCoordinates(new Vector2(cornerBLX, cornerBLY));
+
+		float u = region.getU();
+		float v = region.getV();
+		float u2 = region.getU2();
+		float v2 = region.getV2();
+
+		boolean wasDrawing = batch.isDrawing();
+		if (wasDrawing) batch.end();
+
+		Matrix4 proj = batch.getProjectionMatrix().cpy();
+		ShaderProgram shader = new ShaderProgram(CORNER_VERTEX_SHADER, CORNER_FRAGMENT_SHADER);
+		if (!shader.isCompiled()) {
+			Log.w("Look", "Corner mesh shader failed: " + shader.getLog());
+			shader.dispose();
+			if (wasDrawing) batch.begin();
+			return;
+		}
+
+		short[] indices = {0, 1, 2, 2, 3, 0};
+		Mesh mesh = new Mesh(true, 4, indices.length,
+				new VertexAttribute(VertexAttributes.Usage.Position, 2, "a_position"),
+				new VertexAttribute(VertexAttributes.Usage.TextureCoordinates, 2, "a_texCoord0"));
+		float[] verts = {
+				tl.x, tl.y, u, v,
+				tr.x, tr.y, u2, v,
+				br.x, br.y, u2, v2,
+				bl.x, bl.y, u, v2
+		};
+		mesh.setVertices(verts);
+		mesh.setIndices(indices);
+
+		region.getTexture().bind();
+		shader.bind();
+		shader.setUniformMatrix("u_projTrans", proj);
+		shader.setUniformf("u_alpha", alpha);
+		shader.setUniformi("u_texture", 0);
+		mesh.render(shader, GL20.GL_TRIANGLES);
+
+		mesh.dispose();
+		shader.dispose();
+		if (wasDrawing) batch.begin();
 	}
 }

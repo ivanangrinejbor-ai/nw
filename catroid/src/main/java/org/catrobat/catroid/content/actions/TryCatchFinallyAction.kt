@@ -6,6 +6,7 @@ import android.util.Log
 
 class TryCatchFinallyAction : Action() {
     companion object {
+        // Limits catch block retries to prevent infinite recursion or execution loops if catch throws exceptions
         private const val MAX_CATCH_ITERATIONS = 10
     }
 

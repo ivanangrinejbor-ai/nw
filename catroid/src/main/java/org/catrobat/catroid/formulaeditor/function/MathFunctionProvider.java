@@ -51,6 +51,7 @@ public class MathFunctionProvider implements FunctionProvider {
 		formulaFunctions.put(Functions.POWER, new BinaryFunction(Math::pow));
 		formulaFunctions.put(Functions.FLOOR, new UnaryFunction(Math::floor));
 		formulaFunctions.put(Functions.CEIL, new UnaryFunction(Math::ceil));
+		formulaFunctions.put(Functions.SIGN, new UnaryFunction(Math::signum));
 		formulaFunctions.put(Functions.MAX, new BinaryFunction(Math::max));
 		formulaFunctions.put(Functions.MIN, new BinaryFunction(Math::min));
 		formulaFunctions.put(Functions.TRUE, args -> TRUE);

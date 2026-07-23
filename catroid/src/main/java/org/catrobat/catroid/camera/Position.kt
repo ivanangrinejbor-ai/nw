@@ -23,4 +23,5 @@
 
 package org.catrobat.catroid.camera
 
+@Suppress("unused")
 data class Position(val x: Double, val y: Double)

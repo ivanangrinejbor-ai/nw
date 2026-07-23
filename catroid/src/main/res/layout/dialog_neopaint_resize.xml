@@ -7,11 +7,11 @@
 
     <TextView android:id="@+id/resize_lbl_info"
         android:layout_width="wrap_content" android:layout_height="wrap_content"
-        android:text="Current: 512x512" android:textColor="#AAA"
+        android:text="@string/neopaint_current_size" android:textColor="#AAA"
         android:textSize="14sp" android:layout_marginBottom="12dp" />
 
     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-        android:text="Width:" android:textColor="#FFF"
+        android:text="@string/neopaint_width" android:textColor="#FFF"
         android:textSize="13sp" />
     <EditText android:id="@+id/resize_edit_w"
         android:layout_width="match_parent" android:layout_height="wrap_content"
@@ -25,7 +25,7 @@
         android:text="512" android:textColor="#AAA" android:textSize="12sp" />
 
     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-        android:text="Height:" android:textColor="#FFF"
+        android:text="@string/neopaint_height" android:textColor="#FFF"
         android:textSize="13sp" android:layout_marginTop="8dp" />
     <EditText android:id="@+id/resize_edit_h"
         android:layout_width="match_parent" android:layout_height="wrap_content"

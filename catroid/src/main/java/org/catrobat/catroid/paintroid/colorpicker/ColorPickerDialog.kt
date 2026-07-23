@@ -92,11 +92,8 @@ class ColorPickerDialog : AppCompatDialogFragment(), OnColorChangedListener, OnC
             openedFromFormulaEditorInCatroidFlag: Boolean = false
         ): ColorPickerDialog {
             val dialog = ColorPickerDialog()
-            val alpha = if (openedFromFormulaEditorInCatroidFlag) MAX_ALPHA_VALUE else {
-                Color.alpha(initialColor)
-            }
             val color = Color.argb(
-                alpha,
+                Color.alpha(initialColor),
                 Color.red(initialColor),
                 Color.green(initialColor),
                 Color.blue(initialColor)
@@ -123,11 +120,8 @@ class ColorPickerDialog : AppCompatDialogFragment(), OnColorChangedListener, OnC
             colorHistory: ColorHistory
         ): ColorPickerDialog {
             val dialog = ColorPickerDialog()
-            val alpha = if (openedFromFormulaEditorInCatroidFlag) MAX_ALPHA_VALUE else {
-                Color.alpha(initialColor)
-            }
             val color = Color.argb(
-                alpha,
+                Color.alpha(initialColor),
                 Color.red(initialColor),
                 Color.green(initialColor),
                 Color.blue(initialColor)
@@ -282,8 +276,7 @@ class ColorPickerDialog : AppCompatDialogFragment(), OnColorChangedListener, OnC
         openedFromFormulaEditorInCatroidFlag: Boolean
     ) {
         setViewColor(currentColorView, color)
-        alphaSliderView.visibility =
-            if (catroidFlag && openedFromFormulaEditorInCatroidFlag) GONE else VISIBLE
+        alphaSliderView.visibility = VISIBLE
         colorPickerView.initialColor = color
     }
 

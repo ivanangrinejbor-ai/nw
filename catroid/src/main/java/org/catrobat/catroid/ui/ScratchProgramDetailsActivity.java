@@ -23,7 +23,7 @@
 
 package org.catrobat.catroid.ui;
 
-import android.app.ProgressDialog;
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -31,9 +31,13 @@ import android.os.Parcelable;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
+import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -84,7 +88,7 @@ public class ScratchProgramDetailsActivity extends BaseActivity implements
 	private ScratchProgramAdapter adapter;
 	private FetchScratchProgramDetailsTask fetchRemixesTask = new FetchScratchProgramDetailsTask();
 
-	private ProgressDialog progressDialog;
+	private AlertDialog progressDialog;
 	private Button convertButton;
 
 	public static void setConversionManager(final ConversionManager manager) {
@@ -232,9 +236,27 @@ public class ScratchProgramDetailsActivity extends BaseActivity implements
 
 	@Override
 	public void onPreExecute() {
-		progressDialog = new ProgressDialog(this);
-		progressDialog.setCancelable(false);
-		progressDialog.setMessage(getString(R.string.loading));
+		LinearLayout layout = new LinearLayout(this);
+		layout.setOrientation(LinearLayout.VERTICAL);
+		layout.setGravity(Gravity.CENTER);
+		int padding = (int) (16 * getResources().getDisplayMetrics().density + 0.5f);
+		layout.setPadding(padding, padding, padding, padding);
+
+		ProgressBar spinner = new ProgressBar(this);
+		spinner.setLayoutParams(new LinearLayout.LayoutParams(
+				ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+		layout.addView(spinner);
+
+		TextView message = new TextView(this);
+		message.setText(getString(R.string.loading));
+		message.setGravity(Gravity.CENTER);
+		message.setPadding(0, padding, 0, 0);
+		layout.addView(message);
+
+		progressDialog = new AlertDialog.Builder(this)
+				.setView(layout)
+				.setCancelable(false)
+				.create();
 		progressDialog.show();
 	}
 

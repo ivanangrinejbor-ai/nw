@@ -43,14 +43,14 @@ public class SettingsActivity extends BaseActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.preference);
 
-		getFragmentManager().beginTransaction()
+		getSupportFragmentManager().beginTransaction()
 				.replace(R.id.content_frame, new SettingsFragment())
 				.commit();
 
 		if (getIntent().getExtras() != null && getIntent()
 				.getBooleanExtra(SETTINGS_FRAGMENT_INTENT_KEY, false)) {
 
-			getFragmentManager().beginTransaction()
+			getSupportFragmentManager().beginTransaction()
 					.replace(R.id.content_frame, new AccessibilitySettingsFragment())
 					.addToBackStack(AccessibilitySettingsFragment.TAG)
 					.commit();

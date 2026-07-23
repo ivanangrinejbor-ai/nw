@@ -1,5 +1,6 @@
 package org.catrobat.catroid.ai.model
 
+import android.app.ActivityManager
 import android.content.Context
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,6 +17,24 @@ object ModelManager {
 
     private const val MODELS_DIR = "ai_models"
     private lateinit var modelsDir: File
+    private var appContext: Context? = null
+
+    // On-device memory budgeting for llama.cpp. A native OOM cannot be caught in the
+    // JVM (the kernel kills the whole process → black screen), so we must refuse loads
+    // that will not fit and keep the KV cache small.
+    private const val MAX_LOCAL_CTX = 2048
+    private const val MIN_LOCAL_CTX = 256
+    // Resident overhead for compute buffers, scratch and the runtime itself.
+    private const val COMPUTE_OVERHEAD_BYTES = 320L * 1024 * 1024
+    // Rough per-token KV-cache cost (f16, ~1.5-2B class models). Conservative upper bound.
+    private const val KV_BYTES_PER_TOKEN = 200L * 1024
+    // Weights are counted with headroom (dequant/scratch), even though llama.cpp mmaps them.
+    private const val WEIGHTS_HEADROOM = 1.2
+
+    /** Human-readable reason the last [loadModel] call failed (e.g. not enough RAM). */
+    @Volatile
+    var lastLoadError: String? = null
+        private set
 
     private val _availableModels = MutableStateFlow<List<ModelInfo>>(emptyList())
     val availableModels: StateFlow<List<ModelInfo>> = _availableModels.asStateFlow()
@@ -83,8 +102,37 @@ object ModelManager {
     )
 
     fun init(appContext: Context) {
+        this.appContext = appContext.applicationContext
         modelsDir = File(appContext.filesDir, MODELS_DIR).also { it.mkdirs() }
         refreshModels()
+    }
+
+    /** System-wide memory currently available to the app, in bytes (0 if unknown). */
+    fun availableMemoryBytes(): Long {
+        val ctx = appContext ?: return 0
+        val am = ctx.getSystemService(Context.ACTIVITY_SERVICE) as? ActivityManager ?: return 0
+        val info = ActivityManager.MemoryInfo()
+        am.getMemoryInfo(info)
+        return info.availMem
+    }
+
+    /**
+     * Picks a context size that fits into available RAM, or -1 if even the weights plus a
+     * minimal KV cache would not fit. Keeps the KV cache small to avoid a native OOM.
+     */
+    fun computeSafeContext(fileSizeBytes: Long): Int {
+        val avail = availableMemoryBytes()
+        if (avail <= 0) {
+            // Can't measure memory → stay conservative but still allow a small context.
+            return MIN_LOCAL_CTX
+        }
+        val weights = (fileSizeBytes * WEIGHTS_HEADROOM).toLong()
+        val budgetForKv = avail - weights - COMPUTE_OVERHEAD_BYTES
+        if (budgetForKv <= 0) return -1
+        val ctxByMem = (budgetForKv / KV_BYTES_PER_TOKEN).toInt()
+        if (ctxByMem < MIN_LOCAL_CTX) return -1
+        val desired = AiPreferences.getMaxContext().coerceAtMost(MAX_LOCAL_CTX)
+        return ctxByMem.coerceAtMost(desired).coerceAtLeast(MIN_LOCAL_CTX)
     }
 
     fun refreshModels() {
@@ -230,7 +278,12 @@ object ModelManager {
         _availableModels.value = _availableModels.value.filter { it.id != customId } + customModel
         _currentModelId.value = customId
         AiPreferences.setSelectedModelId(customId)
-        val nCtx = AiPreferences.getMaxContext()
+        val nCtx = computeSafeContext(file.length())
+        if (nCtx < 0) {
+            lastLoadError = notEnoughMemoryMessage(file.length())
+            return@withContext false
+        }
+        lastLoadError = null
         ModelRuntime.loadModel(file, nCtx)
     }
 
@@ -250,10 +303,29 @@ object ModelManager {
 
     suspend fun loadModel(modelId: String): Boolean = withContext(Dispatchers.IO) {
         val model = _availableModels.value.find { it.id == modelId && it.isDownloaded } ?: return@withContext false
+        val file = getModelFile(model.filename)
+        val fileSize = if (file.exists()) file.length() else model.fileSizeBytes
+        val nCtx = computeSafeContext(fileSize)
+        if (nCtx < 0) {
+            lastLoadError = notEnoughMemoryMessage(fileSize)
+            return@withContext false
+        }
+        lastLoadError = null
         _currentModelId.value = modelId
         AiPreferences.setSelectedModelId(modelId)
-        val nCtx = AiPreferences.getMaxContext()
-        ModelRuntime.loadModel(getModelFile(model.filename), nCtx)
+        val ok = ModelRuntime.loadModel(file, nCtx)
+        if (!ok && lastLoadError == null) {
+            lastLoadError = "Failed to load the model. It may be corrupted or too large for this device."
+        }
+        ok
+    }
+
+    private fun notEnoughMemoryMessage(fileSizeBytes: Long): String {
+        val availMb = availableMemoryBytes() / (1024 * 1024)
+        val needMb = fileSizeBytes / (1024 * 1024)
+        return "Not enough free memory to run this model on-device " +
+            "(needs ~${needMb} MB of weights, only ${availMb} MB free). " +
+            "Try a smaller model or close other apps."
     }
 
     fun unloadModel() {

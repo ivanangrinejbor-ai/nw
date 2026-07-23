@@ -10,6 +10,8 @@ import java.awt.image.BufferedImage
 import javax.swing.JOptionPane
 
 class DesktopNotificationService : NotificationService {
+    private val isHeadless = GraphicsEnvironment.isHeadless()
+
     override fun show(id: Int) {
         val data = NotificationStorage.get(id) ?: return
         showTray(data)
@@ -18,6 +20,7 @@ class DesktopNotificationService : NotificationService {
     override fun showScheduled(id: Int, delayMs: Long) {
         if (delayMs <= 0) {
             show(id)
+            // Removes notification from storage after show attempt (even if tray display failed/was skipped)
             NotificationStorage.removeNotification(id)
             return
         }
@@ -27,6 +30,7 @@ class DesktopNotificationService : NotificationService {
             } catch (_: InterruptedException) {
             }
             show(id)
+            // Removes notification from storage after scheduled execution attempt
             NotificationStorage.removeNotification(id)
         }.start()
     }
@@ -39,8 +43,9 @@ class DesktopNotificationService : NotificationService {
     }
 
     private fun showTray(data: NotificationData) {
+        if (isHeadless) return
         try {
-            if (GraphicsEnvironment.isHeadless() || !SystemTray.isSupported()) {
+            if (!SystemTray.isSupported()) {
                 JOptionPane.showMessageDialog(null, data.text, data.title, JOptionPane.INFORMATION_MESSAGE)
                 return
             }

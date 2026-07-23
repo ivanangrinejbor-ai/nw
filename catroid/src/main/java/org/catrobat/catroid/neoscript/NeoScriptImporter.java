@@ -193,6 +193,6 @@ public final class NeoScriptImporter {
 			UserDefinedScript uds = (UserDefinedScript) script;
 			return "UserDefinedScript#" + uds.getUserDefinedBrickID();
 		}
-		return null;
+		return null; // NOTE: non-broadcast scripts (StartScript, WhenScript, etc.) return null signature → always imported as new (never deduplicated). Consider adding type+trigger-based signature for those too.
 	}
 }

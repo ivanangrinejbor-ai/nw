@@ -31,16 +31,13 @@ import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.World;
 import com.danvexteam.lunoscript_annotations.LunoClass;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @LunoClass
 public class PhysicsBoundaryBox {
 
 	public static final int FRAME_SIZE = 5;
 
 	private final World world;
-	private final List<Body> createdBodies = new ArrayList<>();
+	private Body boundaryBody;
 	private boolean created = false;
 
 	public enum BoundaryBoxIdentifier {BBI_HORIZONTAL, BBI_VERTICAL}
@@ -50,7 +47,8 @@ public class PhysicsBoundaryBox {
 	}
 
 	/**
-	 * TODO[physics]: Create only one body with four shapes (sides). Refactor test after that.
+	 * Creates a single static body with four polygon fixtures (top, bottom, left, right).
+	 * Each fixture carries its BoundaryBoxIdentifier in fixture user data.
 	 *
 	 * @param height
 	 * @param width
@@ -62,21 +60,24 @@ public class PhysicsBoundaryBox {
 		float boxElementSize = PhysicsWorldConverter.convertNormalToBox2dCoordinate(PhysicsBoundaryBox.FRAME_SIZE);
 		float halfBoxElementSize = boxElementSize / 2.0f;
 
-		// Top
-		createSide(new Vector2(0.0f, (boxHeight / 2.0f) + halfBoxElementSize), boxWidth, boxElementSize, BoundaryBoxIdentifier.BBI_HORIZONTAL);
-		// Bottom
-		createSide(new Vector2(0.0f, -(boxHeight / 2.0f) - halfBoxElementSize), boxWidth, boxElementSize, BoundaryBoxIdentifier.BBI_HORIZONTAL);
-		// Left
-		createSide(new Vector2(-(boxWidth / 2.0f) - halfBoxElementSize, 0.0f), boxElementSize, boxHeight, BoundaryBoxIdentifier.BBI_VERTICAL);
-		// Right
-		createSide(new Vector2((boxWidth / 2.0f) + halfBoxElementSize, 0.0f), boxElementSize, boxHeight, BoundaryBoxIdentifier.BBI_VERTICAL);
-	}
-
-	private void createSide(Vector2 center, float width, float height, BoundaryBoxIdentifier identifier) {
 		BodyDef bodyDef = new BodyDef();
 		bodyDef.type = BodyType.StaticBody;
 		bodyDef.allowSleep = false;
+		boundaryBody = world.createBody(bodyDef);
 
+		addSideFixture(new Vector2(0.0f, (boxHeight / 2.0f) + halfBoxElementSize),
+				boxWidth, boxElementSize, BoundaryBoxIdentifier.BBI_HORIZONTAL);
+		addSideFixture(new Vector2(0.0f, -(boxHeight / 2.0f) - halfBoxElementSize),
+				boxWidth, boxElementSize, BoundaryBoxIdentifier.BBI_HORIZONTAL);
+		addSideFixture(new Vector2(-(boxWidth / 2.0f) - halfBoxElementSize, 0.0f),
+				boxElementSize, boxHeight, BoundaryBoxIdentifier.BBI_VERTICAL);
+		addSideFixture(new Vector2((boxWidth / 2.0f) + halfBoxElementSize, 0.0f),
+				boxElementSize, boxHeight, BoundaryBoxIdentifier.BBI_VERTICAL);
+
+		created = true;
+	}
+
+	private void addSideFixture(Vector2 center, float width, float height, BoundaryBoxIdentifier identifier) {
 		PolygonShape shape = new PolygonShape();
 		shape.setAsBox(width / 2.0f, height / 2f, center, 0.0f);
 
@@ -85,19 +86,15 @@ public class PhysicsBoundaryBox {
 		fixtureDef.filter.maskBits = PhysicsWorld.MASK_BOUNDARYBOX;
 		fixtureDef.filter.categoryBits = PhysicsWorld.CATEGORY_BOUNDARYBOX;
 
-		Body body = world.createBody(bodyDef);
-		body.createFixture(fixtureDef);
-		body.setUserData(identifier);
+		boundaryBody.createFixture(fixtureDef).setUserData(identifier);
 		shape.dispose(); // Box2D copies shape data into fixture — native peer must be freed
-		createdBodies.add(body);
 	}
 
 	public void destroy() {
-		for (Body body : createdBodies) {
-			if (body.getWorld() != null) {
-				world.destroyBody(body);
-			}
+		if (boundaryBody != null && boundaryBody.getWorld() != null) {
+			world.destroyBody(boundaryBody);
+			boundaryBody = null;
 		}
-		createdBodies.clear();
+		created = false;
 	}
 }

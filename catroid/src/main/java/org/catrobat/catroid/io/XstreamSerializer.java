@@ -253,6 +253,7 @@ public final class XstreamSerializer {
 		xstream.omitField(NoneBrick.class, "formulaList");
 
 		xstream.alias("look", LookData.class);
+		xstream.alias("tilemap", org.catrobat.catroid.common.TilemapLookData.class);
 		xstream.alias("hitbox", HitboxData.class);
 		xstream.alias("sound", SoundInfo.class);
 		xstream.alias("nfcTag", NfcTagData.class);

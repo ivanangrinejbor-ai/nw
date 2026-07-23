@@ -135,7 +135,7 @@ object DesktopStage {
                     outFile.parentFile?.mkdirs()
                     outFile.outputStream().use { fos -> zis.copyTo(fos) }
                 }
-                zis.closeEntry()
+                zis.closeEntry() // Redundant for directories (nextEntry skips them), but harmless
                 entry = zis.nextEntry
             }
             zis.close()

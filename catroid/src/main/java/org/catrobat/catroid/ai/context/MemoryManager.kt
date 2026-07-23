@@ -9,6 +9,7 @@ import java.io.File
 object MemoryManager {
 
     private const val MEMORY_FILE = "ai_agent_memory.json"
+    private const val MAX_SUMMARY_ENTRIES = 30
     private var memoryFile: File? = null
 
     private val memories = mutableListOf<MemoryEntry>()
@@ -43,6 +44,14 @@ object MemoryManager {
         return memories.find { it.key == key }?.content
     }
 
+    fun forget(key: String): Boolean {
+        val removed = memories.removeAll { it.key == key }
+        if (removed) save()
+        return removed
+    }
+
+    fun isEmpty(): Boolean = memories.isEmpty()
+
     fun recallByCategory(category: MemoryCategory): List<MemoryEntry> {
         return memories.filter { it.category == category }
     }
@@ -53,8 +62,12 @@ object MemoryManager {
     }
 
     fun getSummary(): String {
-        if (memories.isEmpty()) return "No stored memories."
-        return memories.joinToString("\n") { "[${it.category.name}] ${it.key}: ${it.content.take(100)}" }
+        if (memories.isEmpty()) return ""
+        // Cap what we inject into the prompt: newest first, bounded count and length.
+        return memories
+            .sortedByDescending { it.timestamp }
+            .take(MAX_SUMMARY_ENTRIES)
+            .joinToString("\n") { "[${it.category.name}] ${it.key}: ${it.content.take(200)}" }
     }
 
     fun clear() {

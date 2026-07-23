@@ -53,7 +53,7 @@ data class IfStatement(val condition: Expression, val thenBranch: Statement, val
 data class WhileStatement(val condition: Expression, val body: Statement, val whileToken: Token, override val line: Int) : Statement
 data class ForInStatement(val variable: Token, val iterable: Expression, val body: Statement, val forToken: Token, override val line: Int) : Statement
 
-data class FunctionParameter(val name: Token /*, val type: TypeAnnotation? = null */)
+data class FunctionParameter(val name: Token, val typeExpr: Expression? = null)
 data class FunDeclarationStatement(val name: Token, val params: List<Token>, val body: BlockStatement, override val line: Int) : Statement
 data class ReturnStatement(val keyword: Token, val value: Expression?, override val line: Int) : Statement
 data class BreakStatement(val keyword: Token, override val line: Int) : Statement

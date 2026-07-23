@@ -163,7 +163,7 @@ public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.
 
 		boolean isRestoringPreviouslyDestroyedActivity = savedInstanceState != null;
 		if (isRestoringPreviouslyDestroyedActivity) {
-			getFragmentManager().popBackStack(FORMULA_EDITOR_FRAGMENT_TAG, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+			getParentFragmentManager().popBackStack(FORMULA_EDITOR_FRAGMENT_TAG, FragmentManager.POP_BACK_STACK_INCLUSIVE);
 			return;
 		}
 
@@ -313,7 +313,7 @@ public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.
         View workspaceLayout = getActivity().findViewById(R.id.workspace_layout);
         if (workspaceLayout != null && workspaceLayout.getVisibility() == View.VISIBLE) {
         } else {
-            getFragmentManager().popBackStack();
+            getParentFragmentManager().popBackStack();
         }
         if (getActivity() != null) {
             if (!(getActivity() instanceof org.catrobat.catroid.ui.dialogs.RuntimeConsoleActivity)) {
@@ -624,7 +624,7 @@ public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.
 
 			@Override
 			public void setValue(int value) {
-				addString(String.format("#%06X", (0xFFFFFF & value)));
+				addString(String.format("#%08X", (0xFFFFFFFFL & value)));
 			}
 
 			@Override
@@ -1164,8 +1164,8 @@ public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.
 		fragment.setArguments(bundle);
 		fragment.onPrepareOptionsMenu(currentMenu);
 
-		getFragmentManager().beginTransaction()
-				.hide(getFragmentManager().findFragmentByTag(FORMULA_EDITOR_FRAGMENT_TAG))
+		getParentFragmentManager().beginTransaction()
+				.hide(getParentFragmentManager().findFragmentByTag(FORMULA_EDITOR_FRAGMENT_TAG))
 				.add(R.id.fragment_container, fragment, tag)
 				.addToBackStack(tag)
 				.commit();
@@ -1188,8 +1188,8 @@ public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.
 				formulaBrick.getScript().getScriptBrick());
 		fragment.setArguments(bundle);
 
-		getFragmentManager().beginTransaction()
-				.hide(getFragmentManager().findFragmentByTag(FORMULA_EDITOR_FRAGMENT_TAG))
+		getParentFragmentManager().beginTransaction()
+				.hide(getParentFragmentManager().findFragmentByTag(FORMULA_EDITOR_FRAGMENT_TAG))
 				.add(R.id.fragment_container, fragment, DataListFragment.TAG)
 				.addToBackStack(DataListFragment.TAG)
 				.commit();

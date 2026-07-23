@@ -4,6 +4,8 @@ import android.content.Context
 import android.content.res.Resources
 import android.os.Handler
 import android.os.Looper
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.delay
 import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -170,11 +172,7 @@ class Interpreter(
             val delayMs = (args[0] as? LunoValue.Number)?.value?.toLong()
                 ?: throw LunoRuntimeError("delay expects a number (milliseconds).", -1)
 
-            try {
-                Thread.sleep(delayMs) 
-            } catch (e: InterruptedException) {
-                
-            }
+            runBlocking { delay(delayMs) }
 
             LunoValue.Null
         }
@@ -540,6 +538,9 @@ class Interpreter(
         }
 
         defineNative("Formula", 1..1) { _, args ->
+            // SECURITY: LunoScript Formula(...) accepts arbitrary user input as a raw Catroid formula string.
+            // Malicious input (e.g. injected sensor access, file operations) may be evaluated at runtime.
+            // Validate / sanitize the argument if the LunoScript source is untrusted.
             LunoValue.NativeObject(Formula(args[0].toString()))
         }
 
@@ -3809,8 +3810,7 @@ class Interpreter(
         return when (typeName.toUpperCase()) { 
             "STRING" -> InternTokenType.STRING
             "NUMBER" -> InternTokenType.NUMBER
-            "BOOLEAN" -> InternTokenType.STRING
-            
+            "BOOLEAN" -> InternTokenType.STRING // InternTokenType.BOOLEAN не существует — формульная система Catroid использует STRING для булевых значений
             else -> {
                 println("Warning: Unknown parameter type name '$typeName', defaulting to UNKNOWN.")
                 InternTokenType.STRING 

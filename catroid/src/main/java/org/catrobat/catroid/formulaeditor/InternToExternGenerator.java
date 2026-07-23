@@ -74,6 +74,14 @@ public class InternToExternGenerator {
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.MAX.name(), R.string.formula_editor_function_max);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.MIN.name(), R.string.formula_editor_function_min);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.CLAMP.name(), R.string.formula_editor_function_clamp);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.SIGN.name(), R.string.formula_editor_function_sign);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.LERP.name(), R.string.formula_editor_function_lerp);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.MAP_RANGE.name(), R.string.formula_editor_function_map_range);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.RGB.name(), R.string.formula_editor_function_rgb);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.HSV.name(), R.string.formula_editor_function_hsv);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.MIX_COLOR.name(), R.string.formula_editor_function_mix_color);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.CURRENT_STATE.name(), R.string.formula_editor_function_current_state);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.STATE_TIME.name(), R.string.formula_editor_function_state_time);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.DISTAN.name(), R.string.formula_editor_function_distan);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.IF_THEN_ELSE.name(), R.string.formula_editor_function_if_then_else);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.TRUE.name(), R.string.formula_editor_function_true);
@@ -583,6 +591,13 @@ public class InternToExternGenerator {
 		// NeoCatroid: Device info (display only — evaluation is constant)
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.IS_PC.name(), R.string.formula_is_pc);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.IS_MOBILE.name(), R.string.formula_is_mobile);
+
+		// NeoCatroid: Tilemap formulas
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.TILE_AT_POSITION.name(), R.string.formula_tile_at_position);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.IS_SOLID_TILE_AT.name(), R.string.formula_is_solid_tile_at);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.TILEMAP_WIDTH.name(), R.string.formula_tilemap_width);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.TILEMAP_HEIGHT.name(), R.string.formula_tilemap_height);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.TILE_SIZE.name(), R.string.formula_tile_size);
 	}
 	public InternToExternGenerator(Context context) {
 		this.context = context;

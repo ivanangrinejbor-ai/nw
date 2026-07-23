@@ -7,9 +7,12 @@ import org.catrobat.catroid.runtime.RuntimeServicesHolder;
 import org.catrobat.catroid.ProjectManager;
 import org.catrobat.catroid.CatroidApplication;
 import org.catrobat.catroid.content.FloatArrayManager;
+import org.catrobat.catroid.common.TilemapLookData;
+import org.catrobat.catroid.common.LookData;
 import org.catrobat.catroid.content.Project;
 import org.catrobat.catroid.content.Scene;
 import org.catrobat.catroid.content.Sprite;
+import org.catrobat.catroid.content.StateMachineManager;
 import org.catrobat.catroid.content.Scope;
 import org.catrobat.catroid.content.TableManager;
 import org.catrobat.catroid.content.UserVarsManager;
@@ -564,6 +567,22 @@ public class FormulaElement implements Serializable {
                 return interpretFunctionClamp(arg0, arg1, arg2);
             case DISTAN:
                 return interpretFunctionDistan(arg0, arg1, arg2, arg3);
+            case LERP:
+                return interpretFunctionLerp(arg0, arg1, arg2);
+            case MAP_RANGE: {
+                Object arg4 = additionalChildren.size() > 2 ? tryInterpretRecursive(additionalChildren.get(2), scope) : null;
+                return interpretFunctionMapRange(arg0, arg1, arg2, arg3, arg4);
+            }
+            case RGB:
+                return interpretFunctionRgb(arg0, arg1, arg2);
+            case HSV:
+                return interpretFunctionHsv(arg0, arg1, arg2);
+            case MIX_COLOR:
+                return interpretFunctionMixColor(arg0, arg1, arg2);
+            case CURRENT_STATE:
+                return StateMachineManager.getState(scope.getSprite(), String.valueOf(arg0));
+            case STATE_TIME:
+                return StateMachineManager.getStateTimeSeconds(scope.getSprite(), String.valueOf(arg0));
             case LETTER:
                 return interpretFunctionLetter(arg0, arg1);
             case SUBTEXT:
@@ -1699,6 +1718,64 @@ public class FormulaElement implements Serializable {
             case RSA_VERIFY:
                 return CryptoFormulaHelper.rsaVerify(String.valueOf(arg0), String.valueOf(arg1), String.valueOf(arg2));
 
+            case TILE_AT_POSITION: {
+                Sprite tileSprite = scope.getSprite();
+                if (tileSprite != null && tileSprite.look != null) {
+                    LookData ld = tileSprite.look.getLookData();
+                    if (ld instanceof TilemapLookData) {
+                        TilemapLookData tmd = (TilemapLookData) ld;
+                        int col = (int) Math.round(Double.parseDouble(String.valueOf(arg0)));
+                        int row = (int) Math.round(Double.parseDouble(String.valueOf(arg1)));
+                        return (double) tmd.getTile(col, row);
+                    }
+                }
+                return 0.0;
+            }
+            case IS_SOLID_TILE_AT: {
+                Sprite tileSprite2 = scope.getSprite();
+                if (tileSprite2 != null && tileSprite2.look != null) {
+                    LookData ld2 = tileSprite2.look.getLookData();
+                    if (ld2 instanceof TilemapLookData) {
+                        TilemapLookData tmd2 = (TilemapLookData) ld2;
+                        int col2 = (int) Math.round(Double.parseDouble(String.valueOf(arg0)));
+                        int row2 = (int) Math.round(Double.parseDouble(String.valueOf(arg1)));
+                        short tile = tmd2.getTile(col2, row2);
+                        return booleanToDouble(tmd2.getSolidTiles().contains((int) tile));
+                    }
+                }
+                return 0.0;
+            }
+            case TILEMAP_WIDTH: {
+                Sprite tileSprite3 = scope.getSprite();
+                if (tileSprite3 != null && tileSprite3.look != null) {
+                    LookData ld3 = tileSprite3.look.getLookData();
+                    if (ld3 instanceof TilemapLookData) {
+                        return (double) ((TilemapLookData) ld3).getMapColumns();
+                    }
+                }
+                return 0.0;
+            }
+            case TILEMAP_HEIGHT: {
+                Sprite tileSprite4 = scope.getSprite();
+                if (tileSprite4 != null && tileSprite4.look != null) {
+                    LookData ld4 = tileSprite4.look.getLookData();
+                    if (ld4 instanceof TilemapLookData) {
+                        return (double) ((TilemapLookData) ld4).getMapRows();
+                    }
+                }
+                return 0.0;
+            }
+            case TILE_SIZE: {
+                Sprite tileSprite5 = scope.getSprite();
+                if (tileSprite5 != null && tileSprite5.look != null) {
+                    LookData ld5 = tileSprite5.look.getLookData();
+                    if (ld5 instanceof TilemapLookData) {
+                        return (double) ((TilemapLookData) ld5).getTileWidth();
+                    }
+                }
+                return 0.0;
+            }
+
             default:
                 return interpretFormulaFunction(function, arg0, arg1, arg2);
         }
@@ -2235,6 +2312,121 @@ public class FormulaElement implements Serializable {
         if (value > end) return end;
 
         return value;
+    }
+
+    private Object interpretFunctionLerp(Object fromArg, Object toArg, Object tArg) {
+        if (fromArg == null || toArg == null || tArg == null) return 0.0;
+        double from = tryInterpretDoubleValue(fromArg);
+        double to = tryInterpretDoubleValue(toArg);
+        double t = tryInterpretDoubleValue(tArg);
+        return from + (to - from) * t;
+    }
+
+    private Object interpretFunctionMapRange(Object valueArg, Object inMinArg, Object inMaxArg,
+            Object outMinArg, Object outMaxArg) {
+        if (valueArg == null || inMinArg == null || inMaxArg == null
+                || outMinArg == null || outMaxArg == null) {
+            return 0.0;
+        }
+        double value = tryInterpretDoubleValue(valueArg);
+        double inMin = tryInterpretDoubleValue(inMinArg);
+        double inMax = tryInterpretDoubleValue(inMaxArg);
+        double outMin = tryInterpretDoubleValue(outMinArg);
+        double outMax = tryInterpretDoubleValue(outMaxArg);
+
+        if (inMax == inMin) {
+            return outMin;
+        }
+        return outMin + (value - inMin) * (outMax - outMin) / (inMax - inMin);
+    }
+
+    private static int clampColorComponent(double component) {
+        if (component < 0) return 0;
+        if (component > 255) return 255;
+        return (int) Math.round(component);
+    }
+
+    private Object interpretFunctionRgb(Object rArg, Object gArg, Object bArg) {
+        int r = clampColorComponent(tryInterpretDoubleValue(rArg));
+        int g = clampColorComponent(tryInterpretDoubleValue(gArg));
+        int b = clampColorComponent(tryInterpretDoubleValue(bArg));
+        return String.format(java.util.Locale.US, "#%02X%02X%02X", r, g, b);
+    }
+
+    private Object interpretFunctionHsv(Object hArg, Object sArg, Object vArg) {
+        double h = tryInterpretDoubleValue(hArg);
+        double s = tryInterpretDoubleValue(sArg) / 100.0;
+        double v = tryInterpretDoubleValue(vArg) / 100.0;
+
+        h = ((h % 360) + 360) % 360;
+        s = Math.max(0, Math.min(1, s));
+        v = Math.max(0, Math.min(1, v));
+
+        double c = v * s;
+        double x = c * (1 - Math.abs((h / 60.0) % 2 - 1));
+        double m = v - c;
+
+        double rp;
+        double gp;
+        double bp;
+        if (h < 60) {
+            rp = c; gp = x; bp = 0;
+        } else if (h < 120) {
+            rp = x; gp = c; bp = 0;
+        } else if (h < 180) {
+            rp = 0; gp = c; bp = x;
+        } else if (h < 240) {
+            rp = 0; gp = x; bp = c;
+        } else if (h < 300) {
+            rp = x; gp = 0; bp = c;
+        } else {
+            rp = c; gp = 0; bp = x;
+        }
+
+        int r = clampColorComponent((rp + m) * 255);
+        int g = clampColorComponent((gp + m) * 255);
+        int b = clampColorComponent((bp + m) * 255);
+        return String.format(java.util.Locale.US, "#%02X%02X%02X", r, g, b);
+    }
+
+    private static int[] parseHexColor(String hex) {
+        if (hex == null) return null;
+        String value = hex.trim();
+        if (value.startsWith("#")) {
+            value = value.substring(1);
+        }
+        if (value.length() == 3) {
+            StringBuilder expanded = new StringBuilder();
+            for (int i = 0; i < 3; i++) {
+                char digit = value.charAt(i);
+                expanded.append(digit).append(digit);
+            }
+            value = expanded.toString();
+        }
+        if (value.length() != 6) return null;
+        try {
+            int r = Integer.parseInt(value.substring(0, 2), 16);
+            int g = Integer.parseInt(value.substring(2, 4), 16);
+            int b = Integer.parseInt(value.substring(4, 6), 16);
+            return new int[] {r, g, b};
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    private Object interpretFunctionMixColor(Object color1Arg, Object color2Arg, Object tArg) {
+        int[] c1 = parseHexColor(color1Arg == null ? null : String.valueOf(color1Arg));
+        int[] c2 = parseHexColor(color2Arg == null ? null : String.valueOf(color2Arg));
+        if (c1 == null || c2 == null) {
+            return "#000000";
+        }
+        double t = tArg == null ? 0.5 : tryInterpretDoubleValue(tArg);
+        t = Math.max(0, Math.min(1, t));
+
+        int r = clampColorComponent(c1[0] + (c2[0] - c1[0]) * t);
+        int g = clampColorComponent(c1[1] + (c2[1] - c1[1]) * t);
+        int b = clampColorComponent(c1[2] + (c2[2] - c1[2]) * t);
+        return String.format(java.util.Locale.US, "#%02X%02X%02X", r, g, b);
     }
 
     private double interpretFunctionRand(double from, double to) {

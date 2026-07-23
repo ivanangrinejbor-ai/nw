@@ -102,6 +102,7 @@ import org.catrobat.catroid.content.bricks.ClearBackgroundBrick
 import org.catrobat.catroid.content.bricks.ClearGraphicEffectBrick
 import org.catrobat.catroid.content.bricks.ClearPythonEnvironmentBrick
 import org.catrobat.catroid.content.bricks.ClearSceneBrick
+import org.catrobat.catroid.content.bricks.ClearTileBrick
 import org.catrobat.catroid.content.bricks.ClearUserListBrick
 import org.catrobat.catroid.content.bricks.CloneAndNameBrick
 import org.catrobat.catroid.content.bricks.CloneBrick
@@ -181,6 +182,8 @@ import org.catrobat.catroid.content.bricks.EnableBackgroundBrick
 import org.catrobat.catroid.content.bricks.EnablePbrRenderBrick
 import org.catrobat.catroid.content.bricks.EvalWebBrick
 import org.catrobat.catroid.content.bricks.ExecuteForCloneNumberBrick
+import org.catrobat.catroid.content.bricks.SetStateBrick
+import org.catrobat.catroid.content.bricks.IfInStateBrick
 import org.catrobat.catroid.content.bricks.Ease3DPropertyBrick
 import org.catrobat.catroid.content.bricks.EasePropertyBrick
 import org.catrobat.catroid.content.bricks.EnableBackgroundModeBrick
@@ -757,6 +760,8 @@ import org.catrobat.catroid.content.bricks.SetNativeParentBrick
 import org.catrobat.catroid.content.bricks.SetPanBrick
 import org.catrobat.catroid.content.bricks.SetPitchOnlyBrick
 import org.catrobat.catroid.content.bricks.SetRemoveBrick
+import org.catrobat.catroid.content.bricks.SetTileBrick
+import org.catrobat.catroid.content.bricks.SetTilemapSolidBrick
 import org.catrobat.catroid.content.bricks.Sound_StopAllBrick
 import org.catrobat.catroid.content.bricks.StackPopBrick
 import org.catrobat.catroid.content.bricks.StackPushBrick
@@ -797,7 +802,7 @@ open class CategoryBricksFactory {
             context.getString(R.string.category_motion) -> setupMotionCategoryList(context, isBackgroundSprite)
             context.getString(R.string.category_sound) -> setupSoundCategoryList(context)
             context.getString(R.string.category_looks) -> setupLooksCategoryList(context, isBackgroundSprite)
-            context.getString(R.string.category_user_bricks) -> setupUserBricksCategoryList()
+            context.getString(R.string.category_user_bricks) -> setupUserBricksCategoryList(context)
             context.getString(R.string.category_data) -> setupDataCategoryList(context, isBackgroundSprite)
             context.getString(R.string.category_device) -> setupDeviceCategoryList(context, isBackgroundSprite)
             context.getString(R.string.category_lego_nxt) -> setupLegoNxtCategoryList()
@@ -1094,6 +1099,8 @@ open class CategoryBricksFactory {
                 controlBrickList.add(DeleteThisCloneBrick())
                 controlBrickList.add(DeleteCloneByNumberBrick(1))
                 controlBrickList.add(ExecuteForCloneNumberBrick(1))
+                controlBrickList.add(SetStateBrick("ai", "idle"))
+                controlBrickList.add(IfInStateBrick("ai", "idle"))
                 if (SettingsFragment.isNfcSharedPreferenceEnabled(context)) {
                     controlBrickList.add(SetNfcTagBrick(context.getString(R.string.brick_set_nfc_tag_default_value)))
                 }
@@ -1182,6 +1189,10 @@ open class CategoryBricksFactory {
         controlBrickList.add(ExecuteForCloneNumberBrick(1))
         controlBrickList.add(RunAsSpriteBrick(Formula("Sprite")))
 
+        controlBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_control_state_machine), template))
+        controlBrickList.add(SetStateBrick("ai", "idle"))
+        controlBrickList.add(IfInStateBrick("ai", "idle"))
+
         controlBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_control_messages), template))
         val broadcastMessages =
             ProjectManager.getInstance().currentProject?.broadcastMessageContainer?.broadcastMessages
@@ -1224,13 +1235,45 @@ open class CategoryBricksFactory {
         return controlBrickList
     }
 
-    private fun setupUserBricksCategoryList(): List<Brick> {
+    private fun setupUserBricksCategoryList(context: Context): List<Brick> {
         val currentSprite = ProjectManager.getInstance().currentSprite
         var userDefinedBricks: MutableList<Brick> = ArrayList()
-        if (currentSprite != null) userDefinedBricks = currentSprite.userDefinedBrickList
-        userDefinedBricks = ArrayList(userDefinedBricks)
-        //if (BuildConfig.FEATURE_USER_REPORTERS_ENABLED) userDefinedBricks.add(ReportBrick())
+        if (currentSprite != null) {
+            for (brick in currentSprite.userDefinedBrickList) {
+                userDefinedBricks.add(brick)
+            }
+        }
+
+        // Detect if active script context is UserDefinedScriptV2
+        val activeScript = getActiveScript(context)
+        if (activeScript is org.catrobat.catroid.content.UserDefinedScriptV2) {
+            userDefinedBricks.add(org.catrobat.catroid.content.bricks.GetCustomParamBrick())
+            userDefinedBricks.add(org.catrobat.catroid.content.bricks.IfCustomParamEqualsBrick())
+            userDefinedBricks.add(org.catrobat.catroid.content.bricks.SetCustomParamValueBrick())
+        }
+
         return userDefinedBricks
+    }
+
+    private fun getActiveScript(context: Context): org.catrobat.catroid.content.Script? {
+        val activity = context as? androidx.fragment.app.FragmentActivity ?: return null
+        val scriptFragment = activity.supportFragmentManager.findFragmentByTag(org.catrobat.catroid.ui.recyclerview.fragment.ScriptFragment.TAG)
+                as? org.catrobat.catroid.ui.recyclerview.fragment.ScriptFragment ?: return null
+        val listView = scriptFragment.listView ?: return null
+        val adapter = scriptFragment.adapter ?: return null
+        val firstVisible = listView.firstVisiblePosition
+        val lastVisible = listView.lastVisiblePosition
+        var pos = firstVisible + (lastVisible - firstVisible) / 2
+        if (pos < 0 || pos >= adapter.count) {
+            pos = 0
+        }
+        for (i in pos downTo 0) {
+            val brick = adapter.getItem(i) as? Brick
+            if (brick is org.catrobat.catroid.content.bricks.ScriptBrick) {
+                return brick.script
+            }
+        }
+        return null
     }
 
     private fun setupChromecastCategoryList(context: Context): List<Brick> {
@@ -1615,6 +1658,9 @@ open class CategoryBricksFactory {
                 looksBrickList.add(StopBufferRecordingBrick())
                 looksBrickList.add(SetMainRenderLoopsBrick(1f, 1f, 1f))
                 looksBrickList.add(SetBufferEffectsBrick("Map", 1f, 1f))
+                looksBrickList.add(SetTileBrick(0, 0, 0))
+                looksBrickList.add(ClearTileBrick(0, 0))
+                looksBrickList.add(SetTilemapSolidBrick(0, true))
                 return looksBrickList
             }
         }
@@ -1751,6 +1797,11 @@ open class CategoryBricksFactory {
         looksBrickList.add(StopBufferRecordingBrick())
         looksBrickList.add(SetMainRenderLoopsBrick(1f, 1f, 1f))
         looksBrickList.add(SetBufferEffectsBrick("Map", 1f, 1f))
+
+        looksBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_tilemap), template))
+        looksBrickList.add(SetTileBrick(0, 0, 0))
+        looksBrickList.add(ClearTileBrick(0, 0))
+        looksBrickList.add(SetTilemapSolidBrick(0, true))
 
         return looksBrickList
     }

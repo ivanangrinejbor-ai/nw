@@ -81,7 +81,7 @@ public class PhysicsWorld {
 	public static final float DEFAULT_ACTIVE_AREA_WIDTH_FACTOR = 3.0f;
 	public static final float DEFAULT_ACTIVE_AREA_HEIGHT_FACTOR = 2.0f;
 
-	public static final float RATIO = 10.0f;
+	public static final float RATIO = 10.0f; // NOTE: hardcoded conversion factor between Box2D (metres) and Catroid (pixels). May need adjustment for different screen densities.
 	public static final int VELOCITY_ITERATIONS = 3;
 	public static final int POSITION_ITERATIONS = 3;
 
@@ -166,17 +166,22 @@ public class PhysicsWorld {
 		}
 	}
 
+	private float accumulator = 0.0f;
+	private static final float FIXED_TIMESTEP = 1.0f / 60.0f;
+	private static final float MAX_FRAME_TIME = 1.0f / 30.0f;
+
 	public void step(float deltaTime) {
-		if (stabilizingSteCounter < STABILIZING_STEPS) {
-			stabilizingSteCounter++;
-		} else {
-			// Clamp delta to prevent Box2D divergence after large frametime jumps (e.g. app resume)
-			float clampedDelta = Math.min(deltaTime, 1.0f / 30.0f);
+		accumulator += Math.min(deltaTime, MAX_FRAME_TIME);
+		if (accumulator > MAX_FRAME_TIME * 5) {
+			accumulator = MAX_FRAME_TIME * 5;
+		}
+		while (accumulator >= FIXED_TIMESTEP) {
 			try {
-				world.step(clampedDelta, PhysicsWorld.VELOCITY_ITERATIONS, PhysicsWorld.POSITION_ITERATIONS);
+				world.step(FIXED_TIMESTEP, PhysicsWorld.VELOCITY_ITERATIONS, PhysicsWorld.POSITION_ITERATIONS);
 			} catch (Exception exception) {
 				Log.e(TAG, "Box2D step exception: " + Log.getStackTraceString(exception));
 			}
+			accumulator -= FIXED_TIMESTEP;
 		}
 		// Flush deferred collision events OUTSIDE the Box2D callback context,
 		// so bounce events and script firings don't modify Box2D state during step.
@@ -190,7 +195,8 @@ public class PhysicsWorld {
 		for (Map.Entry<String, Joint> entry : joints.entrySet()) {
 			try {
 				world.destroyJoint(entry.getValue());
-			} catch (Exception ignored) { }
+			} catch (Exception ignored) { // ignored
+			}
 		}
 		joints.clear();
 		// Snapshot iteration to avoid ConcurrentModificationException
@@ -467,6 +473,15 @@ public class PhysicsWorld {
 	public PhysicsObject getPhysicsObject(Sprite sprite) {
 		Objects.requireNonNull(sprite, "sprite must not be null");
 		return physicsObjects.computeIfAbsent(sprite, this::createPhysicsObject);
+	}
+
+	/**
+	 * Direct access to the Box2D world, used by {@link TilemapPhysicsBuilder} to create static
+	 * tile-collision bodies. Kept package-private so the tilemap builder can reuse it without
+	 * exposing the raw world to the whole app.
+	 */
+	World getWorld() {
+		return world;
 	}
 
 	private PhysicsObject createPhysicsObject(Sprite sprite) {

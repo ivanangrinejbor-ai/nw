@@ -64,6 +64,7 @@ public final class Constants {
 	public static final String POCKET_CODE_EXTERNAL_EXPORT_STORAGE_FOLDER_NAME = "Catrobat";
 	public static final File EXTERNAL_STORAGE_ROOT_EXPORT_DIRECTORY = new File(
 			Environment.getExternalStorageDirectory(), POCKET_CODE_EXTERNAL_EXPORT_STORAGE_FOLDER_NAME);
+	// Initialized at class load time; consider lazy initialization via a getter if used before environment is ready
 	public static final File DOWNLOAD_DIRECTORY =
 			Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
 	public static final String CATROBAT_EXTENSION = ".neotrobat";

@@ -207,6 +207,7 @@ public class ZipArchiver {
 				futures.add(executor.submit(() -> {
 					File zipEntryFile = new File(dstDir, entry.getName());
 					try {
+						// TOCTOU check on canonical path before extraction to prevent Zip Slip
 						if (!zipEntryFile.getCanonicalPath().startsWith(dstCanonical + File.separator)) {
 							return;
 						}

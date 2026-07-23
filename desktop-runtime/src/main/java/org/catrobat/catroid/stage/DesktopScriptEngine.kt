@@ -12,6 +12,8 @@ import org.w3c.dom.Element
 import org.w3c.dom.Node
 import org.w3c.dom.NodeList
 import java.io.File
+import java.net.http.WebSocket
+import java.util.concurrent.TimeUnit
 import javax.xml.parsers.DocumentBuilderFactory
 import kotlin.math.*
 class DesktopScriptEngine(
@@ -64,6 +66,9 @@ class DesktopScriptEngine(
             "CatchBrick",
             "FinallyBrick"
         )
+        // Hard cap on blocks executed per frame to prevent freezes from infinite loops.
+        // Together with SCRIPT_TIME_BUDGET_NS (~2ms) this ensures the engine yields
+        // the render thread every frame, even in tight Forever loops.
         private const val MAX_BLOCKS_PER_FRAME = 500
         private const val SCRIPT_TIME_BUDGET_NS = 2_000_000L
     }
@@ -274,6 +279,9 @@ class DesktopScriptEngine(
     private var screenShaderFragmentCode: String = ""
     private val projectHistory = java.util.ArrayDeque<java.io.File>()
     private var targetFps = 0
+    private val desktopWebSockets = mutableMapOf<String, WebSocket>()
+    private val desktopWebSocketMessages = mutableMapOf<String, MutableList<String>>()
+    private val desktopWebSocketClient = java.net.http.HttpClient.newHttpClient()
     init {
         parseProject()
     }
@@ -293,6 +301,8 @@ class DesktopScriptEngine(
         }
     }
     fun resetTimer() { timerSeconds = 0f }
+    fun startTimer() { timerRunning = true }
+    fun stopTimer() { timerRunning = false }
     fun update(deltaSeconds: Float) {
         if (!running) return
         if (timerRunning) timerSeconds += deltaSeconds
@@ -317,6 +327,9 @@ class DesktopScriptEngine(
             if (state.isWaiting) continue
             if (state.eventType != null && !state.eventFired) continue
             executeStateMultiBlock(state, deltaSeconds)
+            if (state.eventType == "condition") {
+                state.eventFired = false
+            }
         }
     }
     private fun checkEvents() {
@@ -331,7 +344,7 @@ class DesktopScriptEngine(
             if (sprite == null) { state.eventFired = true; continue }
             when (state.eventType) {
                 "touch_down" -> {
-                    if (input.isTouched && input.fingerY != 0f) {
+                    if (input.isMouseJustPressed && input.fingerY != 0f) {
                         state.eventFired = true
                     }
                 }
@@ -467,6 +480,7 @@ class DesktopScriptEngine(
         }
     }
     private fun deliverBroadcast(msg: String) {
+        // TODO: broadcasts should be queued and processed at end of frame instead of immediately.
         if (msg.isEmpty()) return
         for (state in scriptStates) {
             if (state.eventType == "broadcast_receiver" && state.eventParam == msg) {
@@ -702,6 +716,14 @@ class DesktopScriptEngine(
                     frame.ip++
                 }
             }
+            "execute_for_clone_number" -> {
+                val targetNum = evalBlockArgFloat(block, 1, sprite, state)?.toInt() ?: 0
+                if (sprite?.cloneIndex == targetNum) {
+                    state.frames.add(Frame(block.children, repeatRemaining = 1))
+                } else {
+                    frame.ip++
+                }
+            }
             "if" -> {
                 val conditionValue = evalBlockArgFloat(block, 1, sprite, state) ?: 0f
                 if (conditionValue != 0f) {
@@ -772,6 +794,8 @@ class DesktopScriptEngine(
                 frame.ip++
             }
             "set_render_resolution" -> {
+                // TODO: apply __render_scale to viewport scaling and __render_aspect_mode to switch
+                // between FitViewport (letterbox) and FillViewport (stretch/crop)
                 variables["__render_scale"] = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 1f
                 variables["__render_aspect_mode"] = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
                 frame.ip++
@@ -784,7 +808,10 @@ class DesktopScriptEngine(
                         currentDir == null -> java.io.File(projectName)
                         else -> currentDir.resolve(projectName)
                     }
-                    if (candidate.exists()) {
+                    // Canonical path check: prevent directory traversal outside project root
+                    val rootPath = currentDir?.canonicalPath ?: candidate.parentFile?.canonicalPath ?: ""
+                    val candPath = try { candidate.canonicalPath } catch (_: Exception) { "" }
+                    if (candidate.exists() && candPath.startsWith(rootPath)) {
                         if (currentDir != null) projectHistory.addLast(currentDir)
                         project.projectDir = candidate
                         parseProject()
@@ -852,6 +879,7 @@ class DesktopScriptEngine(
                     val switchVal = block.args.getOrNull(1) as? String ?: ""
                     @Suppress("UNCHECKED_CAST")
                     val cases = (block.args.getOrNull(2) as? List<*>)?.filterIsInstance<SwitchCase>() ?: emptyList()
+                    // TODO: try numeric comparison as fallback (e.g. "5" == 5) for switch values.
                     val matched = cases.firstOrNull { it.value == switchVal }
                     if (matched != null) {
                         state.frames.add(Frame(matched.body, repeatRemaining = 0))
@@ -946,12 +974,24 @@ class DesktopScriptEngine(
                 val code = block.args.getOrNull(1) as? String ?: ""
                 val varName = block.args.getOrNull(2) as? String ?: ""
                 if (code.isNotEmpty()) {
-                    try {
-                        val proc = Runtime.getRuntime().exec(code)
-                        val output = proc.inputStream.bufferedReader().readText()
-                        if (varName.isNotEmpty()) variables[varName] = output
-                    } catch (e: Exception) {
-                        if (varName.isNotEmpty()) variables[varName] = "Error: ${e.message}"
+                    val dangerous = listOf("rm ", "del ", "rd ", "format ", "shutdown", "reboot", "sudo ", "> ", "| ", "; ", "`")
+                    if (dangerous.any { code.lowercase().contains(it) }) {
+                        if (varName.isNotEmpty()) variables[varName] = "Error: Command rejected (security)"
+                        com.badlogic.gdx.Gdx.app.error("DesktopScriptEngine", "Blocked dangerous shell command: $code")
+                    } else {
+                        try {
+                            val proc = Runtime.getRuntime().exec(code)
+                            val finished = proc.waitFor(10, TimeUnit.SECONDS)
+                            val output = proc.inputStream.bufferedReader().readText()
+                            val errOutput = proc.errorStream.bufferedReader().readText()
+                            if (varName.isNotEmpty()) {
+                                variables[varName] = if (!finished) "Error: Timeout (10s)" else
+                                    if (errOutput.isNotEmpty()) "Stderr: $errOutput" else output
+                            }
+                            if (!finished) proc.destroyForcibly()
+                        } catch (e: Exception) {
+                            if (varName.isNotEmpty()) variables[varName] = "Error: ${e.message}"
+                        }
                     }
                 }
             }
@@ -1096,12 +1136,11 @@ class DesktopScriptEngine(
                 frame.ip++
             }
             "timer_start" -> {
-                variables["__timer_running"] = 1f
-                variables["__timer_start"] = System.nanoTime().toDouble()
+                timerRunning = true
                 frame.ip++
             }
             "timer_stop" -> {
-                variables["__timer_running"] = 0f
+                timerRunning = false
                 frame.ip++
             }
             "stop_background" -> {
@@ -1162,14 +1201,108 @@ class DesktopScriptEngine(
                 val sceneName = block.args.getOrNull(3) as? String ?: ""
                 val replaceSel = block.args.getOrNull(4) as? String ?: "0"
                 val saveSel = block.args.getOrNull(5) as? String ?: "0"
-                if (filePath.isNotEmpty()) variables["__assign_script_$objName"] = filePath
+                if (filePath.isNotEmpty() && objName.isNotEmpty()) {
+                    try {
+                        val neofile = java.io.File(filePath)
+                        if (neofile.exists()) {
+                            val factory = DocumentBuilderFactory.newInstance()
+                            val builder = factory.newDocumentBuilder()
+                            val doc = builder.parse(neofile)
+                            val root = doc.documentElement
+                            if (root.nodeName != "neoscript") {
+                                variables["__assign_script_$objName"] = "Error: not a .neoscript file"
+                            } else {
+                                val scriptsEl = root.getElementsByTagName("scripts")?.item(0) as? Element
+                                val scriptNodes = scriptsEl?.childNodes
+                                val targetSprite = project.sprites.find { it.name == objName }
+                                if (targetSprite != null && scriptNodes != null) {
+                                    val imported: MutableList<List<Block>> = mutableListOf()
+                                    for (s in 0 until scriptNodes.length) {
+                                        val sn = scriptNodes.item(s)
+                                        if (sn.nodeType == Node.ELEMENT_NODE) {
+                                            val scriptEl = sn as Element
+                                            val brickListEl = scriptEl.getElementsByTagName("brickList")?.item(0) as? Element
+                                            val bricks = brickListEl?.childNodes
+                                            if (bricks != null) {
+                                                val spriteIdx = project.sprites.indexOf(targetSprite)
+                                                val (parsed, _) = parseBrickListRecursive(bricks, 0, spriteIdx.coerceAtLeast(0))
+                                                imported.add(parsed)
+                                            }
+                                        }
+                                    }
+                                    if (replaceSel == "1") {
+                                        scriptStates.removeAll { it.spriteIndex == project.sprites.indexOf(targetSprite) && it.eventType == null }
+                                    }
+                                    if (imported.isNotEmpty()) {
+                                        val spriteIdx = project.sprites.indexOf(targetSprite)
+                                        scriptStates.add(ScriptState(spriteIdx.coerceAtLeast(0), imported.first()))
+                                    }
+                                    variables["__assign_script_$objName"] = "OK: ${imported.size} scripts"
+                                } else if (targetSprite == null) {
+                                    variables["__assign_script_$objName"] = "Error: sprite not found"
+                                }
+                            }
+                        } else {
+                            variables["__assign_script_$objName"] = "Error: file not found"
+                        }
+                    } catch (e: Exception) {
+                        variables["__assign_script_$objName"] = "Error: ${e.message}"
+                    }
+                }
                 frame.ip++
             }
             "import_script" -> {
                 val objName = block.args.getOrNull(1) as? String ?: ""
                 val filePath = block.args.getOrNull(2) as? String ?: ""
                 val overwriteSel = block.args.getOrNull(3) as? String ?: "0"
-                if (filePath.isNotEmpty()) variables["__import_script_$objName"] = filePath
+                if (filePath.isNotEmpty() && objName.isNotEmpty()) {
+                    try {
+                        val neofile = java.io.File(filePath)
+                        if (neofile.exists()) {
+                            val factory = DocumentBuilderFactory.newInstance()
+                            val builder = factory.newDocumentBuilder()
+                            val doc = builder.parse(neofile)
+                            val root = doc.documentElement
+                            if (root.nodeName == "neoscript") {
+                                val scriptsEl = root.getElementsByTagName("scripts")?.item(0) as? Element
+                                val scriptNodes = scriptsEl?.childNodes
+                                val targetSprite = project.sprites.find { it.name == objName }
+                                if (targetSprite != null && scriptNodes != null) {
+                                    val imported = mutableListOf<Pair<List<Block>, String?>>()
+                                    for (s in 0 until scriptNodes.length) {
+                                        val sn = scriptNodes.item(s)
+                                        if (sn.nodeType == Node.ELEMENT_NODE) {
+                                            val scriptEl = sn as Element
+                                            val brickListEl = scriptEl.getElementsByTagName("brickList")?.item(0) as? Element
+                                            val bricks = brickListEl?.childNodes
+                                            if (bricks != null) {
+                                                val spriteIdx = project.sprites.indexOf(targetSprite)
+                                                val (parsed, _) = parseBrickListRecursive(bricks, 0, spriteIdx.coerceAtLeast(0))
+                                                val msg = extractMessageText(scriptEl, "receivedMessage")
+                                                imported.add(parsed to msg)
+                                            }
+                                        }
+                                    }
+                                    if (imported.isNotEmpty()) {
+                                        val spriteIdx = project.sprites.indexOf(targetSprite)
+                                        val mergedBlocks = mutableListOf<Block>()
+                                        for ((blocks, _) in imported) mergedBlocks.addAll(blocks)
+                                        scriptStates.add(ScriptState(spriteIdx.coerceAtLeast(0), mergedBlocks))
+                                    }
+                                    variables["__import_script_$objName"] = "OK: ${imported.size} scripts"
+                                } else if (targetSprite == null) {
+                                    variables["__import_script_$objName"] = "Error: sprite not found"
+                                }
+                            } else {
+                                variables["__import_script_$objName"] = "Error: not a .neoscript file"
+                            }
+                        } else {
+                            variables["__import_script_$objName"] = "Error: file not found"
+                        }
+                    } catch (e: Exception) {
+                        variables["__import_script_$objName"] = "Error: ${e.message}"
+                    }
+                }
                 frame.ip++
             }
             "create_object" -> {
@@ -1180,6 +1313,11 @@ class DesktopScriptEngine(
                     val newSprite = DesktopSprite(name = objName)
                     newSprite.cloneIndex = cloneCounter.incrementAndGet()
                     project.sprites.add(newSprite)
+                    val spriteIdx = project.sprites.size - 1
+                    scriptStates.add(ScriptState(spriteIdx, listOf(
+                        Block(Block.Type.EVENT, listOf("green_flag")),
+                        Block(Block.Type.LOOKS, listOf("show"))
+                    )))
                 }
                 frame.ip++
             }
@@ -1194,6 +1332,7 @@ class DesktopScriptEngine(
                 frame.ip++
             }
             "hide_status_bar" -> {
+                // No-op on desktop: no system status bar to hide
                 frame.ip++
             }
             "toggle_display" -> {
@@ -1279,6 +1418,10 @@ class DesktopScriptEngine(
                 val target = block.args.getOrNull(8) as? String ?: ""
                 if (objId.isNotEmpty()) variables["__ai_$objId"] = "$mode,$speed,$dist,$range,$avoid,$step,$target"
                 frame.ip++
+            }
+            "finish_stage", "exit_stage" -> {
+                // TODO: call Gdx.app.exit() to close the Desktop window when this block is reached
+                frame.ip = frame.blocks.size
             }
         }
     }
@@ -1386,6 +1529,7 @@ class DesktopScriptEngine(
                         try {
                             val tex = com.badlogic.gdx.graphics.Texture(com.badlogic.gdx.Gdx.files.absolute(file.absolutePath))
                             val lookName = file.nameWithoutExtension.ifEmpty { textureName }
+                            // TODO: should add a look instead of clearing all existing looks
                             target.looks.clear()
                             target.looks.add(DesktopLook(lookName, file.name, tex))
                             target.currentLookIndex = 0
@@ -2492,6 +2636,7 @@ class DesktopScriptEngine(
                 val x = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
                 val y = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 0f
                 val z = (block.args.getOrNull(4) as? Number)?.toFloat() ?: 0f
+                // Desktop stub: 3D rendering not ported, values stored for variable read-back
                 if (name.isNotEmpty()) variables["__3dpos_$name"] = "$x,$y,$z"
             }
             "set_3d_rotation" -> {
@@ -2499,6 +2644,7 @@ class DesktopScriptEngine(
                 val rx = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
                 val ry = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 0f
                 val rz = (block.args.getOrNull(4) as? Number)?.toFloat() ?: 0f
+                // Desktop stub: 3D rendering not ported, values stored for variable read-back
                 if (name.isNotEmpty()) variables["__3drot_$name"] = "$rx,$ry,$rz"
             }
             "set_3d_scale" -> {
@@ -2506,6 +2652,7 @@ class DesktopScriptEngine(
                 val sx = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 1f
                 val sy = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 1f
                 val sz = (block.args.getOrNull(4) as? Number)?.toFloat() ?: 1f
+                // Desktop stub: 3D rendering not ported, values stored for variable read-back
                 if (name.isNotEmpty()) variables["__3dscale_$name"] = "$sx,$sy,$sz"
             }
             "set_3d_velocity" -> {
@@ -2513,11 +2660,13 @@ class DesktopScriptEngine(
                 val vx = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
                 val vy = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 0f
                 val vz = (block.args.getOrNull(4) as? Number)?.toFloat() ?: 0f
+                // Desktop stub: 3D rendering not ported, values stored for variable read-back
                 if (name.isNotEmpty()) variables["__3dvel_$name"] = "$vx,$vy,$vz"
             }
             "set_3d_friction" -> {
                 val name = block.args.getOrNull(1) as? String ?: ""
                 val friction = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
+                // Desktop stub: 3D physics not ported, value stored for variable read-back
                 if (name.isNotEmpty()) variables["__3dfric_$name"] = friction
             }
             "set_3d_gravity" -> {
@@ -2525,6 +2674,7 @@ class DesktopScriptEngine(
                 val gx = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
                 val gy = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 0f
                 val gz = (block.args.getOrNull(4) as? Number)?.toFloat() ?: 0f
+                // Desktop stub: 3D physics not ported, values stored for variable read-back
                 if (name.isNotEmpty()) variables["__3dgrav_$name"] = "$gx,$gy,$gz"
             }
             "apply_3d_force" -> {
@@ -2532,6 +2682,7 @@ class DesktopScriptEngine(
                 val fx = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
                 val fy = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 0f
                 val fz = (block.args.getOrNull(4) as? Number)?.toFloat() ?: 0f
+                // Desktop stub: 3D physics not ported, values stored for variable read-back
                 if (name.isNotEmpty()) variables["__3dforce_$name"] = "$fx,$fy,$fz"
             }
             "fast2d_create" -> {
@@ -2850,8 +3001,10 @@ class DesktopScriptEngine(
                 AudioServiceHolder.audioService?.setPitch(pitch)
             }
             "prepare_3d_sound" -> {
+                // Desktop stub: 3D audio positioning not ported
             }
             "set_3d_pos" -> {
+                // Desktop stub: 3D audio spatialization not ported
             }
             "stop_sound_v2" -> {
                 val instName = resolveSoundPath(block.args.getOrNull(1) as? String ?: "")
@@ -3739,19 +3892,55 @@ class DesktopScriptEngine(
                 val wsUrl = block.args.getOrNull(1) as? String ?: ""
                 if (wsUrl.isNotEmpty()) {
                     try {
-                        val httpUrl = wsUrl.replace("ws://", "http://").replace("wss://", "https://")
-                        variables["__ws_connected"] = "1"
-                        variables["__ws_url"] = wsUrl
+                        val uri = java.net.URI(wsUrl)
+                        if (wsUrl.startsWith("ws://") || wsUrl.startsWith("wss://")) {
+                            desktopWebSocketMessages[wsUrl] = mutableListOf()
+                            val listener = object : WebSocket.Listener {
+                                private var messageBuffer = StringBuilder()
+                                override fun onText(webSocket: WebSocket, data: CharSequence, last: Boolean): java.util.concurrent.CompletionStage<*> {
+                                    messageBuffer.append(data)
+                                    if (last) {
+                                        desktopWebSocketMessages[wsUrl]?.add(messageBuffer.toString())
+                                        messageBuffer = StringBuilder()
+                                    }
+                                    webSocket.request(1)
+                                    return java.util.concurrent.CompletableFuture.completedFuture(null)
+                                }
+                                override fun onError(webSocket: WebSocket, error: Throwable) {
+                                    desktopWebSocketMessages[wsUrl]?.add("Error: ${error.message}")
+                                }
+                            }
+                            desktopWebSocketClient.newWebSocketBuilder()
+                                .buildAsync(uri, listener)
+                                .thenAccept { ws ->
+                                    desktopWebSockets[wsUrl] = ws
+                                }
+                                .get(10, TimeUnit.SECONDS)
+                            variables["__ws_connected"] = "1"
+                            variables["__ws_url"] = wsUrl
+                        } else {
+                            variables["__ws_connected"] = "0"
+                        }
                     } catch (_: Exception) { variables["__ws_connected"] = "0" }
                 }
             }
             "ws_send" -> {
                 val msg = block.args.getOrNull(1) as? String ?: ""
-                if (msg.isNotEmpty() && variables["__ws_connected"] == "1") {
-                    variables["__ws_last_sent"] = msg
+                val currentUrl = variables["__ws_url"] as? String ?: ""
+                if (msg.isNotEmpty() && currentUrl.isNotEmpty()) {
+                    val ws = desktopWebSockets[currentUrl]
+                    if (ws != null) {
+                        try { ws.sendText(msg, true).get(10, TimeUnit.SECONDS) } catch (_: Exception) { }
+                    }
                 }
             }
             "ws_close" -> {
+                val currentUrl = variables["__ws_url"] as? String ?: ""
+                if (currentUrl.isNotEmpty()) {
+                    val ws = desktopWebSockets.remove(currentUrl)
+                    try { ws?.sendClose(1000, "Client closing")?.get(5, TimeUnit.SECONDS) } catch (_: Exception) { }
+                    desktopWebSocketMessages.remove(currentUrl)
+                }
                 variables["__ws_connected"] = "0"
             }
             "create_web_url" -> {
@@ -3780,6 +3969,12 @@ class DesktopScriptEngine(
                 }
             }
             "set_dns" -> {
+                val value = block.args.getOrNull(1) as? String ?: ""
+                if (value.isNotEmpty()) {
+                    // On desktop, set system-level DNS properties (hosts file override)
+                    System.setProperty("sun.net.spi.nameservice.nameservers", value)
+                    System.setProperty("sun.net.spi.nameservice.provider.1", "dns,sun")
+                }
             }
             "stop_server" -> {
                 try { localHttpServer?.stop(0) } catch (_: Exception) {  }
@@ -3796,7 +3991,15 @@ class DesktopScriptEngine(
             }
             "ws_receive" -> {
                 val name = block.args.getOrNull(1) as? String ?: ""
-                if (name.isNotEmpty()) variables[name] = variables["__ws_last_received"] ?: ""
+                val currentUrl = variables["__ws_url"] as? String ?: ""
+                if (name.isNotEmpty() && currentUrl.isNotEmpty()) {
+                    val msgs = desktopWebSocketMessages[currentUrl]
+                    if (msgs != null && msgs.isNotEmpty()) {
+                        variables[name] = msgs.removeFirst()
+                    } else {
+                        variables[name] = ""
+                    }
+                }
             }
             "download_file" -> {
                 val url = block.args.getOrNull(1) as? String ?: ""
@@ -4421,26 +4624,7 @@ class DesktopScriptEngine(
             is CompiledFormula.Operator -> {
                 val leftVal = f.left?.let { evalCompiledFormula(it, spriteIndex) }
                 val rightVal = f.right?.let { evalCompiledFormula(it, spriteIndex) }
-                val left = (leftVal as? Double) ?: 0.0
-                val right = (rightVal as? Double) ?: 0.0
-                when (f.op) {
-                    "PLUS" -> left + right
-                    "MINUS" -> if (f.left == null) -right else left - right
-                    "MULT" -> left * right
-                    "DIVIDE" -> if (right != 0.0) left / right else 0.0
-                    "MOD" -> left % right
-                    "POW" -> left.pow(right)
-                    "EQUAL" -> if (left == right) 1.0 else 0.0
-                    "NOT_EQUAL" -> if (left != right) 1.0 else 0.0
-                    "SMALLER_THAN" -> if (left < right) 1.0 else 0.0
-                    "GREATER_THAN" -> if (left > right) 1.0 else 0.0
-                    "SMALLER_OR_EQUAL" -> if (left <= right) 1.0 else 0.0
-                    "GREATER_OR_EQUAL" -> if (left >= right) 1.0 else 0.0
-                    "LOGICAL_AND" -> if (left != 0.0 && right != 0.0) 1.0 else 0.0
-                    "LOGICAL_OR" -> if (left != 0.0 || right != 0.0) 1.0 else 0.0
-                    "LOGICAL_NOT" -> if (right == 0.0) 1.0 else 0.0
-                    else -> null
-                }
+                evalOperatorCore(f.op, (leftVal as? Double) ?: 0.0, (rightVal as? Double) ?: 0.0, f.left != null)
             }
             is CompiledFormula.Function -> {
                 val leftVal = f.left?.let { evalCompiledFormula(it, spriteIndex) }
@@ -4826,7 +5010,7 @@ class DesktopScriptEngine(
                     val cloneNum = extractFormulaValue(el, "NUMBER") ?: 0f
                     val (children, rf) = parseBrickListRecursive(nodes, idx + 1, spriteIndex)
                     allRuntimeFormulas.addAll(rf)
-                    result.add(Block(Block.Type.CONTROL, listOf("repeat", 1), children))
+                    result.add(Block(Block.Type.CONTROL, listOf("execute_for_clone_number", cloneNum.toInt()), children))
                     idx = findLoopEnd(nodes, idx + 1)
                 }
                 "RunAsSpriteBrick" -> {
@@ -7329,16 +7513,10 @@ class DesktopScriptEngine(
             else -> null
         }
     }
-    private fun evaluateOperator(op: String, node: Element, spriteIndex: Int): Double? {
-        val leftChild = getChildElement(node, "leftChild")
-        val rightChild = getChildElement(node, "rightChild")
-        val leftVal = leftChild?.let { evaluateFormulaNode(it, spriteIndex) }
-        val rightVal = rightChild?.let { evaluateFormulaNode(it, spriteIndex) }
-        val left = (leftVal as? Double) ?: 0.0
-        val right = (rightVal as? Double) ?: 0.0
+    private fun evalOperatorCore(op: String, left: Double, right: Double, hasLeft: Boolean): Double? {
         return when (op) {
             "PLUS" -> left + right
-            "MINUS" -> if (leftChild == null) -right else left - right
+            "MINUS" -> if (!hasLeft) -right else left - right
             "MULT" -> left * right
             "DIVIDE" -> if (right != 0.0) left / right else 0.0
             "MOD" -> left % right
@@ -7354,6 +7532,13 @@ class DesktopScriptEngine(
             "LOGICAL_NOT" -> if (right == 0.0) 1.0 else 0.0
             else -> null
         }
+    }
+    private fun evaluateOperator(op: String, node: Element, spriteIndex: Int): Double? {
+        val leftChild = getChildElement(node, "leftChild")
+        val rightChild = getChildElement(node, "rightChild")
+        val leftVal = leftChild?.let { evaluateFormulaNode(it, spriteIndex) }
+        val rightVal = rightChild?.let { evaluateFormulaNode(it, spriteIndex) }
+        return evalOperatorCore(op, (leftVal as? Double) ?: 0.0, (rightVal as? Double) ?: 0.0, leftChild != null)
     }
     private fun evaluateFunction(func: String, node: Element, spriteIndex: Int): Any? {
         val leftChild = getChildElement(node, "leftChild")
@@ -7810,16 +7995,17 @@ class DesktopScriptEngine(
             "NUMBER_CURRENT_TOUCHES" -> if (input.isTouched) 1.0 else 0.0
             "INDEX_CURRENT_TOUCH" -> if (input.isTouched) 0.0 else -1.0
             "TIMER" -> timerSeconds.toDouble()
-            "X_ACCELERATION" -> 0.0
-            "Y_ACCELERATION" -> 0.0
-            "Z_ACCELERATION" -> 0.0
-            "X_INCLINATION" -> 0.0
-            "Y_INCLINATION" -> 0.0
-            "COMPASS_DIRECTION" -> 0.0
-            "LATITUDE" -> 0.0
-            "LONGITUDE" -> 0.0
-            "ALTITUDE" -> 0.0
-            "LOCATION_ACCURACY" -> 0.0
+            "PHONE_ORIENTATION" -> if (com.badlogic.gdx.Gdx.graphics.width > com.badlogic.gdx.Gdx.graphics.height) 1.0 else 0.0
+            "X_ACCELERATION" -> 0.0 // Desktop stub: no accelerometer hardware
+            "Y_ACCELERATION" -> 0.0 // Desktop stub: no accelerometer hardware
+            "Z_ACCELERATION" -> 0.0 // Desktop stub: no accelerometer hardware
+            "X_INCLINATION" -> 0.0  // Desktop stub: no accelerometer hardware
+            "Y_INCLINATION" -> 0.0  // Desktop stub: no accelerometer hardware
+            "COMPASS_DIRECTION" -> 0.0 // Desktop stub: no compass hardware
+            "LATITUDE" -> 0.0      // Desktop stub: no GPS hardware
+            "LONGITUDE" -> 0.0     // Desktop stub: no GPS hardware
+            "ALTITUDE" -> 0.0      // Desktop stub: no GPS hardware
+            "LOCATION_ACCURACY" -> 0.0 // Desktop stub: no GPS hardware
             "DATE_YEAR" -> java.util.Calendar.getInstance().get(java.util.Calendar.YEAR).toDouble()
             "DATE_MONTH" -> (java.util.Calendar.getInstance().get(java.util.Calendar.MONTH) + 1).toDouble()
             "DATE_DAY" -> java.util.Calendar.getInstance().get(java.util.Calendar.DAY_OF_MONTH).toDouble()
@@ -7843,6 +8029,8 @@ class DesktopScriptEngine(
                     1.0
                 } catch (_: Exception) { 0.0 }
             }
+            "ANDROID_APP_VERSION_NAME" -> "1.0"
+            "ANDROID_APP_VERSION_CODE" -> 1
             "ARCH" -> System.getProperty("os.arch") ?: "unknown"
             "FREQ" -> 0.0
             "BATTARY" -> 100.0

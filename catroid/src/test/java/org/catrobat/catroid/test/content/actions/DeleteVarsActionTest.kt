@@ -5,7 +5,7 @@ import org.catrobat.catroid.content.Project
 import org.catrobat.catroid.content.Sprite
 import org.catrobat.catroid.content.UserVarsManager
 import org.catrobat.catroid.formulaeditor.Formula
-import org.catrobat.catroid.test.StaticSingletonInitializer.initializeStaticSingletonMethods
+import org.catrobat.catroid.test.StaticSingletonInitializer
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -18,7 +18,7 @@ class DeleteVarsActionTest {
 
 	@Before
 	fun setUp() {
-		initializeStaticSingletonMethods()
+		StaticSingletonInitializer.initializeStaticSingletonMethods()
 		sprite = Sprite("testSprite")
 	}
 

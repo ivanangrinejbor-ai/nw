@@ -28,6 +28,7 @@ import org.catrobat.catroid.formulaeditor.Formula
 import org.catrobat.catroid.formulaeditor.InterpretationException
 
 class RepeatUntilAction : LoopAction() {
+    // Public getter with private setter allows external inspection of loop iterations while preserving encapsulation
     var executedCount = 0
         private set
     var scope: Scope? = null

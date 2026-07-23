@@ -17,12 +17,7 @@ import java.io.FileOutputStream
 import java.net.HttpURLConnection
 import java.net.URL
 
-/**
- * Foreground service that downloads a GGUF model file to the app-private models
- * directory. Progress is published through [ModelManager] state flows so the UI
- * can observe it, and mirrored into an ongoing notification. Because it runs as a
- * foreground service, the download continues if the user leaves the app.
- */
+
 class ModelDownloadService : Service() {
 
     private val job = Job()
@@ -158,7 +153,8 @@ class ModelDownloadService : Service() {
     private fun showResultNotification(name: String, success: Boolean) {
         val mgr = getSystemService(NotificationManager::class.java) ?: return
         val text = getString(
-            if (success) R.string.ai_agent_download_complete else R.string.ai_agent_download_failed
+            if (success) R.string.ai_agent_download_complete else R.string.ai_agent_download_failed,
+            name
         )
         val notification = NotificationCompat.Builder(this, channel())
             .setContentTitle(name)

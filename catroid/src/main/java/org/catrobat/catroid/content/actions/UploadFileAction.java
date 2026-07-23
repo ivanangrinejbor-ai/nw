@@ -71,19 +71,15 @@ public class UploadFileAction extends TemporalAction {
                     String storageTypeHeader = (storageTypeSelection == 0) ? "permanent" : "temporary";
                     connection.setRequestProperty("X-Storage-Type", storageTypeHeader);
 
-                    DataOutputStream requestStream = new DataOutputStream(connection.getOutputStream());
-
-                    // Читаем файл и пишем его в тело запроса
-                    InputStream fileInputStream = file.read();
-                    byte[] buffer = new byte[4096];
-                    int bytesRead;
-                    while ((bytesRead = fileInputStream.read(buffer)) != -1) {
-                        requestStream.write(buffer, 0, bytesRead);
+                    try (DataOutputStream requestStream = new DataOutputStream(connection.getOutputStream());
+                         InputStream fileInputStream = file.read()) {
+                        byte[] buffer = new byte[4096];
+                        int bytesRead;
+                        while ((bytesRead = fileInputStream.read(buffer)) != -1) {
+                            requestStream.write(buffer, 0, bytesRead);
+                        }
+                        requestStream.flush();
                     }
-
-                    fileInputStream.close();
-                    requestStream.flush();
-                    requestStream.close();
 
                     // Получаем ответ от сервера (важно для завершения запроса)
                     int responseCode = connection.getResponseCode();

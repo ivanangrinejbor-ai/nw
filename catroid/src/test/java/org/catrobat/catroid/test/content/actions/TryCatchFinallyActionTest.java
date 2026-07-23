@@ -26,8 +26,9 @@ import com.badlogic.gdx.scenes.scene2d.Action;
 
 import org.catrobat.catroid.ProjectManager;
 import org.catrobat.catroid.content.Project;
+import org.catrobat.catroid.content.Script;
 import org.catrobat.catroid.content.Sprite;
-import org.catrobat.catroid.content.UserVariable;
+import org.catrobat.catroid.formulaeditor.UserVariable;
 import org.catrobat.catroid.content.actions.ScriptSequenceAction;
 import org.catrobat.catroid.content.actions.TryCatchFinallyAction;
 import org.catrobat.catroid.test.MockUtil;
@@ -35,6 +36,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+import org.mockito.Mockito;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -62,11 +64,11 @@ public class TryCatchFinallyActionTest {
 
 	@Test
 	public void testExceptionInCatchAndFinallyIsHandled() {
-		ScriptSequenceAction trySeq = new ScriptSequenceAction();
+		ScriptSequenceAction trySeq = new ScriptSequenceAction(Mockito.mock(Script.class));
 		trySeq.addAction(new ThrowingAction());
-		ScriptSequenceAction catchSeq = new ScriptSequenceAction();
+		ScriptSequenceAction catchSeq = new ScriptSequenceAction(Mockito.mock(Script.class));
 		catchSeq.addAction(new ThrowingAction());
-		ScriptSequenceAction finallySeq = new ScriptSequenceAction();
+		ScriptSequenceAction finallySeq = new ScriptSequenceAction(Mockito.mock(Script.class));
 
 		UserVariable errorVariable = new UserVariable("err");
 		TryCatchFinallyAction action = (TryCatchFinallyAction) testSprite.getActionFactory()

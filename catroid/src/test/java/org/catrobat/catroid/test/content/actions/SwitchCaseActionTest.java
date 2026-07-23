@@ -26,8 +26,9 @@ import com.badlogic.gdx.scenes.scene2d.Action;
 
 import org.catrobat.catroid.ProjectManager;
 import org.catrobat.catroid.content.Project;
+import org.catrobat.catroid.content.Script;
 import org.catrobat.catroid.content.Sprite;
-import org.catrobat.catroid.content.UserVariable;
+import org.catrobat.catroid.formulaeditor.UserVariable;
 import org.catrobat.catroid.content.actions.ScriptSequenceAction;
 import org.catrobat.catroid.content.actions.SwitchCaseAction;
 import org.catrobat.catroid.formulaeditor.Formula;
@@ -37,6 +38,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+
+import org.mockito.Mockito;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -63,10 +66,10 @@ public class SwitchCaseActionTest {
 	private SwitchCaseAction buildSwitch(Formula expression, List<Formula> cases) {
 		List<ScriptSequenceAction> bodies = new ArrayList<>();
 		for (int i = 0; i < cases.size(); i++) {
-			bodies.add(new ScriptSequenceAction());
+			bodies.add(new ScriptSequenceAction(Mockito.mock(Script.class)));
 		}
 		return (SwitchCaseAction) testSprite.getActionFactory()
-				.createSwitchCaseAction(testSprite, new ScriptSequenceAction(), expression, cases, bodies);
+				.createSwitchCaseAction(testSprite, new ScriptSequenceAction(Mockito.mock(Script.class)), expression, cases, bodies);
 	}
 
 	@Test

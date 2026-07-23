@@ -12,6 +12,8 @@ class DesktopPhysicsWorld(
     private val bodiesBySprite = mutableMapOf<DesktopSprite, Body>()
     private val customHitboxSprites = mutableSetOf<DesktopSprite>()
     private var accumulator = 0f
+    // Accumulator approach: remaining time should be accumulated, not discarded.
+    // maxSteps caps iterations to avoid spiral-of-death.
     private val timeStep = 1 / 60f
     private val maxSteps = 5
 

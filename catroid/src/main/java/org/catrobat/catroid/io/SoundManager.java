@@ -36,6 +36,7 @@ import org.catrobat.catroid.content.Sprite;
 import org.catrobat.catroid.stage.StageActivity;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -95,6 +96,7 @@ public class SoundManager {
 
 	public synchronized void playSoundFileWithStartTime(String soundFilePath,
 			Sprite sprite, int startTimeInMilSeconds) {
+		isValidAudioFormat(soundFilePath);
 		stopSameSoundInSprite(soundFilePath, sprite);
 		MediaPlayerWithSoundDetails mediaPlayer = getAvailableMediaPlayer();
 		if (mediaPlayer != null) {
@@ -234,12 +236,26 @@ public class SoundManager {
 			return;
 		}
 		try {
+			// getPlaybackParams() creates a new PlaybackParams object each call (per API design).
+			// TODO: cache PlaybackParams per MediaPlayer if this becomes a hotspot.
 			PlaybackParams params = mediaPlayer.getPlaybackParams();
 			if (params != null) {
 				mediaPlayer.setPlaybackParams(params.setPitch(pitch));
 			}
 		} catch (Exception exception) {
 			Log.d(TAG, "Couldn't set playback pitch", exception);
+		}
+	}
+
+	private static final java.util.Set<String> VALID_AUDIO_EXTENSIONS = new HashSet<>(
+			Arrays.asList(".mp3", ".wav", ".ogg", ".m4a", ".flac", ".aac", ".wma", ".mid", ".midi", ".xmf", ".mxmf"));
+
+	private void isValidAudioFormat(String path) {
+		if (path == null) return;
+		String lower = path.toLowerCase();
+		boolean valid = VALID_AUDIO_EXTENSIONS.stream().anyMatch(ext -> lower.endsWith(ext));
+		if (!valid) {
+			Log.w(TAG, "Unrecognized audio format: " + path);
 		}
 	}
 
@@ -295,6 +311,7 @@ public class SoundManager {
 
 
 	public synchronized boolean prepareSound(String cacheName, String soundFilePath, Sprite sprite) {
+		isValidAudioFormat(soundFilePath);
 		if (preparedSounds.containsKey(cacheName)) {
 			// If a sound with this name is already prepared, release it first
 			MediaPlayerWithSoundDetails oldPlayer = preparedSounds.get(cacheName);

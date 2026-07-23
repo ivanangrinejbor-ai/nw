@@ -386,6 +386,9 @@ public final class ServerCalls implements ScratchDataFetcher {
 
 			if (url.startsWith("http://")) {
 				httpClient = new OkHttpClient.Builder()
+						.connectTimeout(10, java.util.concurrent.TimeUnit.SECONDS)
+						.readTimeout(10, java.util.concurrent.TimeUnit.SECONDS)
+						.writeTimeout(10, java.util.concurrent.TimeUnit.SECONDS)
 						.connectionSpecs(Arrays.asList(ConnectionSpec.CLEARTEXT))
 						.build();
 			}

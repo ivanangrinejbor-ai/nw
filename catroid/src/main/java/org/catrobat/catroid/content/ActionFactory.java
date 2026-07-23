@@ -1447,6 +1447,37 @@ public class ActionFactory extends Actions {
 		return action;
 	}
 
+	public Action createSetTileAction(Sprite sprite, SequenceAction sequence,
+			Formula column, Formula row, Formula tileIndex) {
+		SetTileAction action = Actions.action(SetTileAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setColumn(column);
+		action.setRow(row);
+		action.setTileIndex(tileIndex);
+		return action;
+	}
+
+	public Action createClearTileAction(Sprite sprite, SequenceAction sequence,
+			Formula column, Formula row) {
+		ClearTileAction action = Actions.action(ClearTileAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setColumn(column);
+		action.setRow(row);
+		return action;
+	}
+
+	public Action createSetTilemapSolidAction(Sprite sprite, SequenceAction sequence,
+			Formula tileIndex, Formula solid) {
+		SetTilemapSolidAction action = Actions.action(SetTilemapSolidAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setTileIndex(tileIndex);
+		action.setSolid(solid);
+		return action;
+	}
+
 	public Action createShowAction(Sprite sprite) {
 		SetVisibleAction action = Actions.action(SetVisibleAction.class);
 		action.setSprite(sprite);
@@ -4884,6 +4915,24 @@ public class ActionFactory extends Actions {
         return action;
     }
 
+    public Action createSetStateAction(Sprite sprite, SequenceAction sequence, Formula machine, Formula state) {
+        SetStateAction action = action(SetStateAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setMachineFormula(machine);
+        action.setStateFormula(state);
+        return action;
+    }
+
+    public Action createIfInStateAction(Sprite sprite, SequenceAction sequence, Formula machine, Formula state) {
+        IfInStateAction action = action(IfInStateAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setMachine(machine);
+        action.setState(state);
+        return action;
+    }
+
     public Action createTouchDirectionAction(Sprite sprite, SequenceAction sequence) {
         TouchDirectionAction action = action(TouchDirectionAction.class);
         Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
@@ -6487,6 +6536,39 @@ public class ActionFactory extends Actions {
     public Action createStopBufferRecordingAction(Sprite sprite, ScriptSequenceAction sequence) {
         StopBufferRecordingAction a = action(StopBufferRecordingAction.class);
         a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        return a;
+    }
+
+    public Action createUserBrickV2Action(Sprite sprite, ScriptSequenceAction sequence, java.util.UUID id, String blockName, java.util.Map<String, Formula> paramFormulas) {
+        org.catrobat.catroid.content.actions.UserDefinedBrickV2Action a = action(org.catrobat.catroid.content.actions.UserDefinedBrickV2Action.class);
+        a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        a.setUserDefinedBrickID(id);
+        a.setBlockName(blockName);
+        a.setParamFormulas(paramFormulas);
+        return a;
+    }
+
+    public Action createGetCustomParamAction(Sprite sprite, ScriptSequenceAction sequence, Formula paramName, org.catrobat.catroid.formulaeditor.UserVariable targetVar) {
+        org.catrobat.catroid.content.actions.GetCustomParamAction a = action(org.catrobat.catroid.content.actions.GetCustomParamAction.class);
+        a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        a.setParamNameFormula(paramName);
+        a.setTargetVar(targetVar);
+        return a;
+    }
+
+    public Action createIfCustomParamEqualsAction(Sprite sprite, ScriptSequenceAction sequence, Formula paramName, Formula expectedVal) {
+        org.catrobat.catroid.content.actions.IfCustomParamEqualsAction a = action(org.catrobat.catroid.content.actions.IfCustomParamEqualsAction.class);
+        a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        a.setParamNameFormula(paramName);
+        a.setExpectedValFormula(expectedVal);
+        return a;
+    }
+
+    public Action createSetCustomParamValueAction(Sprite sprite, ScriptSequenceAction sequence, Formula paramName, Formula value) {
+        org.catrobat.catroid.content.actions.SetCustomParamValueAction a = action(org.catrobat.catroid.content.actions.SetCustomParamValueAction.class);
+        a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        a.setParamNameFormula(paramName);
+        a.setValueFormula(value);
         return a;
     }
 }

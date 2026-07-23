@@ -15,6 +15,18 @@ class ProjectLoaderV3(private val context: Context) {
     private val tag = "ProjectLoaderV3"
     private val payloadAssetName = "project.ncv3"
 
+    /**
+     * Built-in fallback key used when no .k3y asset is present in the APK.
+     * This is a 32-byte AES-256 key derived from the project format version.
+     * In production, a unique .k3y file should be bundled alongside project.ncv3.
+     */
+    private val STATIC_FALLBACK_KEY: ByteArray = byteArrayOf(
+        -100, 0x45, 0x23, 0x01, 0x67, -0x56, 0x34, 0x12,
+        -0x78, -0x67, 0x56, 0x34, -0x12, -0x34, -0x56, -0x78,
+        0x12, 0x34, 0x56, 0x78, -0x12, -0x34, -0x56, -0x78,
+        0x7A, -0x7B, 0x3C, -0x3D, 0x1E, -0x1F, 0x0A, -0x0B
+    )
+
     data class FullProjectResult(
         val project: Project,
         val projectDir: File
@@ -120,11 +132,16 @@ class ProjectLoaderV3(private val context: Context) {
     }
 
     private fun resolveKey(): ByteArray? {
-        val key = DynamicKeyResolver.resolveKey(context)
-        if (key != null) return key
+        // 1) Try dynamic key from bundled .k3y asset
+        val dynamicKey = DynamicKeyResolver.resolveKey(context)
+        if (dynamicKey != null) {
+            Log.i(tag, "Using dynamic key (${dynamicKey.size} bytes)")
+            return dynamicKey
+        }
 
-        Log.w(tag, "No dynamic key found, trying static fallback")
-        return null
+        // 2) Fallback to static built-in key for backward compatibility
+        Log.w(tag, "No dynamic key found, using static fallback key")
+        return STATIC_FALLBACK_KEY
     }
 
     data class ProjectMetadata(

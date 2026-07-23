@@ -175,7 +175,7 @@ public abstract class Script implements Serializable, Cloneable {
 		return false;
 	}
 
-	public void removeAllOccurrencesOfUserDefinedBrick(List<Brick> brickList, UserDefinedBrick userDefinedBrick) {
+	public void removeAllOccurrencesOfUserDefinedBrick(List<Brick> brickList, Brick userDefinedBrick) {
 		for (int brickIndex = 0; brickIndex < brickList.size(); brickIndex++) {
 			Brick currentBrick = brickList.get(brickIndex);
 			if (currentBrick instanceof CompositeBrick) {
@@ -185,8 +185,14 @@ public abstract class Script implements Serializable, Cloneable {
 					removeAllOccurrencesOfUserDefinedBrick(currentCompositeBrick.getSecondaryNestedBricks(), userDefinedBrick);
 				}
 			}
-			if (currentBrick instanceof UserDefinedBrick && userDefinedBrick.isUserDefinedBrickDataEqual(currentBrick)) {
-				brickList.remove(brickIndex--);
+			if (currentBrick instanceof UserDefinedBrick && userDefinedBrick instanceof UserDefinedBrick) {
+				if (((UserDefinedBrick) userDefinedBrick).isUserDefinedBrickDataEqual(currentBrick)) {
+					brickList.remove(brickIndex--);
+				}
+			} else if (currentBrick instanceof org.catrobat.catroid.content.bricks.UserDefinedBrickV2 && userDefinedBrick instanceof org.catrobat.catroid.content.bricks.UserDefinedBrickV2) {
+				if (((org.catrobat.catroid.content.bricks.UserDefinedBrickV2) currentBrick).getUserDefinedBrickID().equals(((org.catrobat.catroid.content.bricks.UserDefinedBrickV2) userDefinedBrick).getUserDefinedBrickID())) {
+					brickList.remove(brickIndex--);
+				}
 			}
 		}
 	}

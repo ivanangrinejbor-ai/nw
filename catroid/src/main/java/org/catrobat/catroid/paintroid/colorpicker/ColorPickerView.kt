@@ -82,10 +82,7 @@ class ColorPickerView : LinearLayoutCompat {
                     alphaSliderView.visibility = GONE
                     showKeyboard()
                 } else {
-                    alphaSliderView.apply {
-                        visibility =
-                            if (isCatroid && openedFromFormulaEditorInCatroidFlag) GONE else VISIBLE
-                    }
+                    alphaSliderView.visibility = VISIBLE
                     hideKeyboard()
                 }
             }

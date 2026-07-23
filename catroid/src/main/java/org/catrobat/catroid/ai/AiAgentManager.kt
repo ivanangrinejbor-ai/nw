@@ -22,6 +22,7 @@ import org.catrobat.catroid.ai.modify.ProjectModifier
 import org.catrobat.catroid.ai.modify.ValidationEngine
 import org.catrobat.catroid.ai.prompt.PromptBuilder
 import org.catrobat.catroid.ai.settings.AiPreferences
+import org.catrobat.catroid.ai.tool.ToolCall
 import org.catrobat.catroid.ai.tool.ToolCallingEngine
 
 enum class AiAgentState {
@@ -123,7 +124,9 @@ class AiAgentManager private constructor() {
     /** Routes generation to the local llama.cpp runtime or the cloud Gemini runtime. */
     private suspend fun generate(input: String, temperature: Float, maxTokens: Int): String =
         if (AiPreferences.isLocalBackend() && ModelRuntime.isModelLoaded()) {
-            modelRuntime.generate(input, temperature, maxTokens)
+            // On-device: cap generated tokens so we never exceed the (small) local context
+            // and keep latency/memory bounded. maxTokens here is the full context budget.
+            modelRuntime.generate(input, temperature, maxTokens = LOCAL_MAX_GEN_TOKENS)
         } else {
             cloudRuntime.generate(input, temperature, maxTokens = maxTokens.coerceIn(256, 8192))
         }
@@ -179,17 +182,17 @@ class AiAgentManager private constructor() {
                         break
                     }
                     for (toolCall in toolCalls) {
-                        val argsPreview = toolCall.args.entries.joinToString(", ") { "${it.key}=${it.value}" }
-                        _activity.value = "Calling ${toolCall.name}($argsPreview)…"
+                        _activity.value = describeToolActivity(toolCall)
                         val result = toolEngine.executeTool(toolCall)
-                        _activity.value = "${toolCall.name} → ${result.take(160)}"
+                        _activity.value = describeToolActivityDone(toolCall)
                         modelInput.append("\nTool result: $result\n")
                         contextManager.addToolCall(toolCall.name, toolCall.args, result)
                     }
                     val pending = toolEngine.getPendingChanges()
                     if (pending.isNotEmpty()) {
-                        _activity.value = "Applying ${pending.size} change(s) to the project…"
+                        _activity.value = describePendingChanges(pending)
                         val outcomes = projectModifier.applyChanges(pending)
+                        _activity.value = describeAppliedChanges(pending, outcomes)
                         toolEngine.clearPendingChanges()
                         emitChangeCards(outcomes)
                         val summary = outcomes.joinToString("\n") { r ->
@@ -243,6 +246,152 @@ class AiAgentManager private constructor() {
         }
     }
 
+    /**
+     * Human-friendly description of what the agent is currently doing with a tool,
+     * e.g. "Reading object Scene1/Object1" instead of the raw tool-call syntax.
+     * Shown in the expandable "Thinking" row.
+     */
+    private fun describeToolActivity(toolCall: ToolCall): String {
+        val a = toolCall.args
+        val scene = a["scene"]?.takeIf { it.isNotBlank() }
+        val obj = a["object"]?.takeIf { it.isNotBlank() }
+        val path = when {
+            scene != null && obj != null -> "$scene/$obj"
+            obj != null -> obj
+            scene != null -> scene
+            else -> ""
+        }
+        return when (toolCall.name) {
+            "readObject" -> "Reading object $path"
+            "readScene" -> "Reading scene ${scene ?: ""}"
+            "readScript" -> "Reading script #${a["index"] ?: "?"} of $path"
+            "listObjects" -> "Reading objects in ${scene ?: ""}"
+            "listScenes" -> "Reading scene list"
+            "projectInfo", "projectInventory" -> "Reading project structure"
+            "listLooks" -> if (path.isNotEmpty()) "Reading looks of $path" else "Reading all looks"
+            "listSounds" -> if (path.isNotEmpty()) "Reading sounds of $path" else "Reading all sounds"
+            "listVariables" -> "Reading variables"
+            "listBroadcasts" -> "Reading broadcast messages"
+            "codeAnalysis" -> "Analyzing code"
+            "searchVariable" -> "Searching variable '${a["name"] ?: ""}'"
+            "searchList" -> "Searching list '${a["name"] ?: ""}'"
+            "searchBroadcast" -> "Searching broadcast '${a["name"] ?: ""}'"
+            "searchFiles" -> "Searching files '${a["pattern"] ?: ""}'"
+            "readFile" -> "Reading file ${a["path"] ?: ""}"
+            "writeFile" -> "Writing file ${a["path"] ?: ""}"
+            "createObject" -> "Creating object '${a["name"] ?: ""}' in ${scene ?: ""}"
+            "deleteObject" -> "Deleting object '${a["name"] ?: ""}'"
+            "createScene" -> "Creating scene '${a["name"] ?: ""}'"
+            "deleteScene" -> "Deleting scene '${a["name"] ?: ""}'"
+            "createVariable" -> "Creating variable '${a["name"] ?: ""}'"
+            "deleteVariable" -> "Deleting variable '${a["name"] ?: ""}'"
+            "buildScript" -> "Writing a script on $path"
+            "replaceScript" -> "Replacing script #${a["index"] ?: "?"} of $path"
+            "appendScript" -> "Adding a script to $path"
+            "deleteScript" -> "Deleting script #${a["index"] ?: "?"} of $path"
+            "listProjects" -> "Reading project list"
+            "openProject" -> "Opening project '${a["name"] ?: ""}'"
+            "remember" -> "Saving to memory '${a["key"] ?: ""}'"
+            "recall" -> "Recalling memory '${a["query"] ?: ""}'"
+            "forget" -> "Forgetting memory '${a["key"] ?: ""}'"
+            else -> "Running ${toolCall.name}"
+        }
+    }
+
+    /** Past-tense variant shown briefly after a tool finishes. */
+    private fun describeToolActivityDone(toolCall: ToolCall): String =
+        describeToolActivity(toolCall).let { desc ->
+            when {
+                desc.startsWith("Reading") -> desc.replaceFirst("Reading", "Read")
+                desc.startsWith("Writing") -> desc.replaceFirst("Writing", "Wrote")
+                desc.startsWith("Searching") -> desc.replaceFirst("Searching", "Searched")
+                desc.startsWith("Analyzing") -> desc.replaceFirst("Analyzing", "Analyzed")
+                desc.startsWith("Creating") -> desc.replaceFirst("Creating", "Created")
+                desc.startsWith("Deleting") -> desc.replaceFirst("Deleting", "Deleted")
+                desc.startsWith("Replacing") -> desc.replaceFirst("Replacing", "Replaced")
+                desc.startsWith("Adding") -> desc.replaceFirst("Adding", "Added")
+                desc.startsWith("Opening") -> desc.replaceFirst("Opening", "Opened")
+                desc.startsWith("Saving") -> desc.replaceFirst("Saving", "Saved")
+                desc.startsWith("Recalling") -> desc.replaceFirst("Recalling", "Recalled")
+                desc.startsWith("Forgetting") -> desc.replaceFirst("Forgetting", "Forgot")
+                else -> "$desc — done"
+            }
+        }
+
+    /**
+     * Human-friendly description of the concrete project changes about to be applied,
+     * e.g. "Creating object 'Bird' in 'Scene1'" or "Writing a script on Scene1/Bird".
+     * Shown (and tap-expandable) in the "Thinking" row so writes/creates are visible,
+     * not just a "N change(s)" count.
+     */
+    private fun describePendingChanges(changes: List<org.catrobat.catroid.ai.tool.ProjectChange>): String {
+        val lines = changes.map { describeChange(it) }
+        return if (lines.size == 1) lines.first() else lines.joinToString("\n") { "• $it" }
+    }
+
+    private fun describeChange(change: org.catrobat.catroid.ai.tool.ProjectChange): String {
+        val d = change.data
+        val scene = (d["scene"] as? String)?.takeIf { it.isNotBlank() }
+        val obj = (d["object"] as? String)?.takeIf { it.isNotBlank() }
+        val name = (d["name"] as? String)?.takeIf { it.isNotBlank() } ?: ""
+        val index = d["index"]?.toString() ?: "?"
+        val path = when {
+            scene != null && obj != null -> "$scene/$obj"
+            obj != null -> obj
+            scene != null -> scene
+            else -> ""
+        }
+        return when (change.type) {
+            org.catrobat.catroid.ai.tool.ChangeType.CREATE_OBJECT ->
+                "Creating object '$name'${if (scene != null) " in '$scene'" else ""}"
+            org.catrobat.catroid.ai.tool.ChangeType.DELETE_OBJECT ->
+                "Deleting object '$name'${if (scene != null) " from '$scene'" else ""}"
+            org.catrobat.catroid.ai.tool.ChangeType.CREATE_SCENE -> "Creating scene '$name'"
+            org.catrobat.catroid.ai.tool.ChangeType.DELETE_SCENE -> "Deleting scene '$name'"
+            org.catrobat.catroid.ai.tool.ChangeType.REPLACE_SCRIPT -> "Replacing script #$index of $path"
+            org.catrobat.catroid.ai.tool.ChangeType.APPEND_SCRIPT -> "Writing a script on $path"
+            org.catrobat.catroid.ai.tool.ChangeType.DELETE_SCRIPT -> "Deleting script #$index of $path"
+            org.catrobat.catroid.ai.tool.ChangeType.CREATE_VARIABLE -> "Creating variable '$name'"
+            org.catrobat.catroid.ai.tool.ChangeType.DELETE_VARIABLE -> "Deleting variable '$name'"
+            org.catrobat.catroid.ai.tool.ChangeType.CREATE_BROADCAST -> "Creating broadcast '$name'"
+            org.catrobat.catroid.ai.tool.ChangeType.MODIFY_BRICK ->
+                if (path.isNotEmpty()) "Editing a brick on $path" else "Editing a brick"
+        }
+    }
+
+    /**
+     * Same present-tense description as [describePendingChanges] but with the concrete
+     * brick diff appended once the change has been applied, e.g.
+     * "Replacing script #1 of Scene1/Bird  +1 -1" (1 brick added, 1 removed in place).
+     * [outcomes] is 1:1 with [changes] (see ProjectModifier.applyChanges).
+     */
+    private fun describeAppliedChanges(
+        changes: List<org.catrobat.catroid.ai.tool.ProjectChange>,
+        outcomes: List<ProjectModifier.ModificationResult>
+    ): String {
+        val lines = changes.mapIndexed { i, change ->
+            val base = describeChange(change)
+            when (val outcome = outcomes.getOrNull(i)) {
+                is ProjectModifier.ModificationResult.Success -> {
+                    val diff = brickDiff(outcome.card?.added ?: 0, outcome.card?.removed ?: 0)
+                    if (diff.isNotEmpty()) "$base  $diff" else base
+                }
+                is ProjectModifier.ModificationResult.Failure -> "$base — failed"
+                null -> base
+            }
+        }
+        return if (lines.size == 1) lines.first() else lines.joinToString("\n") { "• $it" }
+    }
+
+    /** Compact "+added -removed" brick counter, empty when nothing changed. */
+    private fun brickDiff(added: Int, removed: Int): String = buildString {
+        if (added > 0) append("+$added")
+        if (removed > 0) {
+            if (isNotEmpty()) append(" ")
+            append("-$removed")
+        }
+    }
+
     private fun emitChangeCards(outcomes: List<ProjectModifier.ModificationResult>) {
         val cards = outcomes.mapNotNull { outcome ->
             (outcome as? ProjectModifier.ModificationResult.Success)?.card
@@ -270,6 +419,9 @@ class AiAgentManager private constructor() {
     }
 
     companion object {
+        /** Max tokens generated per round on the local (on-device) backend. */
+        private const val LOCAL_MAX_GEN_TOKENS = 512
+
         @JvmStatic
         val instance: AiAgentManager by lazy { AiAgentManager() }
     }

@@ -206,6 +206,27 @@ public class InternFormulaKeyboardAdapter {
 			case R.string.formula_editor_function_clamp:
 				return buildTripleParameterFunction(Functions.CLAMP, NUMBER, "-2", NUMBER, "2",
 						NUMBER, "10");
+case R.string.formula_editor_function_sign:
+				return buildSingleParameterFunction(Functions.SIGN, NUMBER, "-5");
+case R.string.formula_editor_function_lerp:
+				return buildTripleParameterFunction(Functions.LERP, NUMBER, "0", NUMBER, "100",
+						NUMBER, "0.5");
+case R.string.formula_editor_function_map_range:
+				return buildFiveParameterFunction(Functions.MAP_RANGE, NUMBER, "5", NUMBER, "0",
+						NUMBER, "10", NUMBER, "0", NUMBER, "100");
+case R.string.formula_editor_function_rgb:
+				return buildTripleParameterFunction(Functions.RGB, NUMBER, "255", NUMBER, "128",
+						NUMBER, "0");
+case R.string.formula_editor_function_hsv:
+				return buildTripleParameterFunction(Functions.HSV, NUMBER, "200", NUMBER, "100",
+						NUMBER, "100");
+case R.string.formula_editor_function_mix_color:
+				return buildTripleParameterFunction(Functions.MIX_COLOR, STRING, "#ff0000", STRING,
+						"#0000ff", NUMBER, "0.5");
+case R.string.formula_editor_function_current_state:
+				return buildSingleParameterFunction(Functions.CURRENT_STATE, STRING, "ai");
+case R.string.formula_editor_function_state_time:
+				return buildSingleParameterFunction(Functions.STATE_TIME, STRING, "ai");
 			case R.string.formula_editor_function_upper:
 				return buildSingleParameterFunction(Functions.UPPER, STRING, "aboudna");
 			case R.string.formula_editor_function_lower:
@@ -1223,6 +1244,26 @@ public class InternFormulaKeyboardAdapter {
 		returnList.add(new InternToken(thirdParameter, thirdParameterNumberValue));
 		returnList.add(new InternToken(FUNCTION_PARAMETER_DELIMITER));
 		returnList.add(new InternToken(fourParameter, fourParameterNumberValue));
+		returnList.add(new InternToken(FUNCTION_PARAMETERS_BRACKET_CLOSE));
+		return returnList;
+	}
+
+	private List<InternToken> buildFiveParameterFunction(Functions function, InternTokenType firstParameter,
+			String firstParameterNumberValue, InternTokenType secondParameter, String secondParameterNumberValue,
+			InternTokenType thirdParameter, String thirdParameterNumberValue, InternTokenType fourParameter,
+			String fourParameterNumberValue, InternTokenType fifthParameter, String fifthParameterNumberValue) {
+		List<InternToken> returnList = new LinkedList<InternToken>();
+		returnList.add(new InternToken(FUNCTION_NAME, function.name()));
+		returnList.add(new InternToken(FUNCTION_PARAMETERS_BRACKET_OPEN));
+		returnList.add(new InternToken(firstParameter, firstParameterNumberValue));
+		returnList.add(new InternToken(FUNCTION_PARAMETER_DELIMITER));
+		returnList.add(new InternToken(secondParameter, secondParameterNumberValue));
+		returnList.add(new InternToken(FUNCTION_PARAMETER_DELIMITER));
+		returnList.add(new InternToken(thirdParameter, thirdParameterNumberValue));
+		returnList.add(new InternToken(FUNCTION_PARAMETER_DELIMITER));
+		returnList.add(new InternToken(fourParameter, fourParameterNumberValue));
+		returnList.add(new InternToken(FUNCTION_PARAMETER_DELIMITER));
+		returnList.add(new InternToken(fifthParameter, fifthParameterNumberValue));
 		returnList.add(new InternToken(FUNCTION_PARAMETERS_BRACKET_CLOSE));
 		return returnList;
 	}

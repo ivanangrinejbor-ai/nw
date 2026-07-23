@@ -32,7 +32,7 @@ public class NeoScriptFile implements Serializable {
 	public static final String APPLICATION_NAME = "NeoCatroid";
 	public static final String EXTENSION = ".neoscript";
 
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L; // NOTE: update when adding/removing fields that break serialization compatibility; use `serialver` to generate a hash
 
 	private int formatVersion = FORMAT_VERSION;
 	private String applicationName = APPLICATION_NAME;

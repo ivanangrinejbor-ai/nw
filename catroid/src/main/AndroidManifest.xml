@@ -45,7 +45,6 @@
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
-    <!--uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" /-->
 
     <uses-feature
         android:name="android.hardware.camera2"
@@ -427,6 +426,13 @@
             android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />
 
         <activity
+            android:name="org.catrobat.catroid.ui.tilemap.TilemapEditorActivity"
+            android:exported="false"
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:screenOrientation="unspecified"
+            android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />
+
+        <activity
             android:name=".utils.git.AuthCallbackActivity"
             android:exported="true"
             android:launchMode="singleTask">
@@ -462,6 +468,11 @@
         <service android:name=".content.service.ForegroundService"
             android:foregroundServiceType="dataSync" />
 
+        <service
+            android:name=".ai.model.ModelDownloadService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
+
         <receiver
             android:name=".content.notification.NotificationEventReceiver"
             android:exported="false" />
@@ -470,7 +481,7 @@
 
         <receiver
             android:name="org.catrobat.catroid.utils.NotificationActionReceiver"
-            android:exported="true">
+            android:exported="false">
         </receiver>
 
         <provider

@@ -5,7 +5,6 @@ import android.util.Log
 import com.reandroid.apk.ApkModule
 import com.reandroid.archive.FileInputSource
 import com.reandroid.arsc.chunk.xml.AndroidManifestBlock
-import com.reandroid.arsc.chunk.xml.ResXmlElement
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder
 import org.bouncycastle.asn1.x500.X500Name
@@ -17,7 +16,6 @@ import java.security.KeyPairGenerator
 import java.security.KeyStore
 import java.security.PrivateKey
 import java.security.Security
-import java.security.cert.X509Certificate
 import java.util.Date
 import com.android.apksig.ApkSigner
 import com.android.apksig.ApkSigner.SignerConfig

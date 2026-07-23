@@ -105,6 +105,7 @@ class ShowNotificationAction : TemporalAction() {
             val projectFile = scope?.project?.getFile(iconFileName)
             if (projectFile != null && projectFile.exists()) {
                 try {
+                    // Note: Bitmap is decoded from file path on execution; consider caching if called repeatedly
                     val bitmap = BitmapFactory.decodeFile(projectFile.absolutePath)
                     if (bitmap != null) {
                         builder.setLargeIcon(bitmap)

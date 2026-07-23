@@ -68,7 +68,7 @@ public abstract class FormulaBrick extends BrickBaseType implements View.OnClick
 	@XStreamAlias("formulaList")
 	ConcurrentFormulaHashMap formulaMap = new ConcurrentFormulaHashMap();
 
-	public transient BiMap<FormulaField, Integer> brickFieldToTextViewIdMap = HashBiMap.create(2);
+	public BiMap<FormulaField, Integer> brickFieldToTextViewIdMap = HashBiMap.create(2);
 
 	public Formula getFormulaWithBrickField(FormulaField formulaField) throws IllegalArgumentException {
 		if (formulaMap.containsKey(formulaField)) {

@@ -47,10 +47,10 @@ public final class ShowTextUtils {
 
 	public static int[] calculateColorRGBs(String color) {
 		int[] rgb = new int[3];
-		int colorValue = Integer.parseInt(color.substring(1), 16);
-		rgb[0] = (colorValue & 0xFF0000) >> 16;
-		rgb[1] = (colorValue & 0xFF00) >> 8;
-		rgb[2] = (colorValue & 0xFF);
+		long colorValue = Long.parseLong(color.substring(1), 16);
+		rgb[0] = (int) ((colorValue & 0xFF0000) >> 16);
+		rgb[1] = (int) ((colorValue & 0xFF00) >> 8);
+		rgb[2] = (int) (colorValue & 0xFF);
 		return rgb;
 	}
 
@@ -119,14 +119,14 @@ public final class ShowTextUtils {
 	}
 
 	public static String convertColorToString(int color) {
-		return String.format("#%02X%02X%02X", Color.red(color), Color.green(color), Color.blue(color));
+		return String.format("#%02X%02X%02X%02X", Color.alpha(color), Color.red(color), Color.green(color), Color.blue(color));
 	}
 
 	public static String convertStringToMetricRepresentation(String value) {
 		String result = value;
 		try {
 			result = toMetricUnitRepresentation(Integer.parseInt(value));
-		} catch (NumberFormatException ignored) {
+		} catch (NumberFormatException ignored) { // ignored
 		}
 		return result;
 	}

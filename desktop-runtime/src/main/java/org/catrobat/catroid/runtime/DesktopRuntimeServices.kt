@@ -6,7 +6,7 @@ import java.lang.Runnable
 
 class DesktopRuntimeServices : RuntimeServices {
     override fun getExternalStorageDir(): String =
-        System.getProperty("user.home") ?: "."
+        (System.getProperty("user.home") ?: ".") + "/NeoCatroid"
 
     override fun getDownloadsDir(): String =
         File(System.getProperty("user.home"), "Downloads").absolutePath

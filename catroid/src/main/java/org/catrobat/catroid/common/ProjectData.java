@@ -51,7 +51,8 @@ public class ProjectData implements Nameable, Serializable, Comparable<ProjectDa
 	}
 
 	public void setName(String name) {
-		throw new RuntimeException("Do not set the project name through this. TODO: refactor nameable interface.");
+		this.name = name;
+		// TODO: refactor nameable interface.
 	}
 
 	public double getLanguageVersion() {

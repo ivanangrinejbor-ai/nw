@@ -24,7 +24,8 @@ public class BlockClipboard {
         for (Brick b : bricks) {
             try {
                 clonedList.add(b.clone());
-            } catch (CloneNotSupportedException ignored) {}
+            } catch (CloneNotSupportedException ignored) { // ignored
+            }
         }
         if (!clonedList.isEmpty()) {
             addToHistory(clonedList);

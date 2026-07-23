@@ -19,6 +19,8 @@ rem ============================================================
 
 rem === TOP setup: runs for BOTH the main run and the detached :post child ===
 rem Kill any launch4j/java orphaned by a previous crashed run.
+rem WARNING: taskkill /im java.exe kills ALL java processes blindly, including unrelated IDEs/servers.
+rem Only safe because this script is run in a controlled build environment.
 taskkill /f /im launch4j.exe >nul 2>nul
 taskkill /f /im java.exe >nul 2>nul
 taskkill /f /im javaw.exe >nul 2>nul

@@ -295,7 +295,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 			if (initTxt.exists() || initBin.exists()) {
 				try {
 					org.catrobat.catroid.utils.lunoscript.LunoScriptEngine engine =
-							new org.catrobat.catroid.utils.lunoscript.LunoScriptEngine(this, null);
+							new org.catrobat.catroid.utils.lunoscript.LunoScriptEngine(this, null, null);
 
 					engine.getInterpreter().getGlobals().define(
 							"ROOT_PATH",
@@ -376,6 +376,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 
         boolean isFreeStageEnabled = this instanceof StageWorkspaceActivity;
 
+        // GLSurfaceView extends SurfaceView, so this check also covers GLSurfaceView
         if (gameView instanceof android.view.SurfaceView) {
             android.view.SurfaceView glView = (android.view.SurfaceView) gameView;
 
@@ -2048,7 +2049,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 		boolean isDangerous = ProjectSecurityChecker.projectContainsDangerousBricks(project);
 
 
-		SharedPreferences prefs = activity.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+		SharedPreferences prefs = activity.getApplicationContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
 		boolean shouldSuppressWarning = prefs.getBoolean(PREFS_KEY_SUPPRESS_WARNING, false);
 
 
@@ -2061,6 +2062,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 	}
 
 	private static void showSecurityWarningDialog(ProjectManager projectManager, Activity activity) {
+		// TODO: move hardcoded Russian strings to string resources (values-ru/strings.xml)
 		new AlertDialog.Builder(activity)
 				.setTitle("Проект может содержать вредоносный код")
 				.setMessage("В проекте используется LunoScript, Python или Библиотеки, это может быть опасно. Запускайте его только если проверили код или доверяете источнику.")
@@ -2081,7 +2083,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 
 				.setNeutralButton("Больше не напоминать", (dialog, which) -> {
 
-					SharedPreferences prefs = activity.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+					SharedPreferences prefs = activity.getApplicationContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
 					SharedPreferences.Editor editor = prefs.edit();
 					editor.putBoolean(PREFS_KEY_SUPPRESS_WARNING, true);
 					editor.apply();
@@ -2273,6 +2275,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 	}
 
     public void updateStageSize(int width, int height) {
+        // GLSurfaceView extends SurfaceView, so this check also covers GLSurfaceView
         if (gameView instanceof android.view.SurfaceView) {
             android.view.SurfaceView glView = (android.view.SurfaceView) gameView;
             //glView.getHolder().setFixedSize(width, height);

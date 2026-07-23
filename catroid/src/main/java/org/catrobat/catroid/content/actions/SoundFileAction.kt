@@ -119,7 +119,7 @@ class SoundFileAction : TemporalAction() {
             var name = inname.interpretString(scope)
             val lastDotIndex = name.lastIndexOf('.')
             if(lastDotIndex <= 0 && lastDotIndex >= name.length - 1) {
-                name += ".png"
+                name += ".mp3"
             }
             return name
         }

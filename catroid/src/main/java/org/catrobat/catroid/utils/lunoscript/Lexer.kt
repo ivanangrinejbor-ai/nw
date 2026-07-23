@@ -11,7 +11,7 @@ class Lexer(private val source: String) {
         "var" to TokenType.VAR, "if" to TokenType.IF, "else" to TokenType.ELSE,
         "true" to TokenType.TRUE, "false" to TokenType.FALSE, "null" to TokenType.NULL,
         "fun" to TokenType.FUN, "return" to TokenType.RETURN, "class" to TokenType.CLASS,
-        "this" to TokenType.THIS, "super" to TokenType.SUPER, // 'super' пока не используется
+        "this" to TokenType.THIS, "super" to TokenType.SUPER,
         "while" to TokenType.WHILE, "for" to TokenType.FOR, "in" to TokenType.IN,
         "break" to TokenType.BREAK, "continue" to TokenType.CONTINUE,
         "switch" to TokenType.SWITCH, "case" to TokenType.CASE, "default" to TokenType.DEFAULT,

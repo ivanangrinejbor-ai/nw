@@ -30,7 +30,7 @@ import java.util.regex.Pattern
 object Conversions {
     const val TRUE = 1.0
     const val FALSE = 0.0
-    private val colorPattern = Pattern.compile("#\\p{XDigit}{6}")
+    private val colorPattern = Pattern.compile("#\\p{XDigit}{6,8}")
 
     private fun tryParseDouble(argument: String): Double? {
         if (StringUtils.containsAny(argument, "fFdD")) {

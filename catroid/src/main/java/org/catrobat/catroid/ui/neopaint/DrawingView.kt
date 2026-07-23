@@ -801,7 +801,6 @@ class DrawingView @JvmOverloads constructor(
                 invalidate()
             }
             MotionEvent.ACTION_UP -> {
-                if (!erase) { } // placeholder
                 onChangeListener?.invoke()
             }
         }

@@ -9,11 +9,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Random;
 
 
 public class ParticleSystem3DComponent implements Component {
 
-
+    private static final Random RANDOM = new Random();
 
     public static class SubEmitterEntry {
         public SubEmitterTrigger trigger = SubEmitterTrigger.DEATH;
@@ -424,7 +425,7 @@ public class ParticleSystem3DComponent implements Component {
 
 
         public float evaluate(float t) {
-            return evaluate(t, (float) Math.random());
+            return evaluate(t, RANDOM.nextFloat());
         }
 
         public float evaluate(float t, float randomFactor) {
@@ -500,7 +501,7 @@ public class ParticleSystem3DComponent implements Component {
         }
 
         public Color evaluate(float t) {
-            return evaluate(t, (float) Math.random());
+            return evaluate(t, RANDOM.nextFloat());
         }
 
         public Color evaluate(float t, float randomFactor) {

@@ -257,8 +257,13 @@ class ChatActivity : AppCompatActivity() {
                     getString(R.string.ai_agent_local_ready, model.name),
                     Toast.LENGTH_SHORT).show()
             } else {
-                Toast.makeText(this@ChatActivity,
-                    R.string.ai_agent_download_failed, Toast.LENGTH_SHORT).show()
+                val reason = ModelManager.lastLoadError
+                    ?: getString(R.string.ai_agent_download_failed, model.name)
+                AlertDialog.Builder(this@ChatActivity)
+                    .setTitle(model.name)
+                    .setMessage(reason)
+                    .setPositiveButton(android.R.string.ok, null)
+                    .show()
             }
         }
     }
@@ -322,7 +327,8 @@ class ChatActivity : AppCompatActivity() {
                         showDownloadedModelActions(refreshed)
                     } else {
                         Toast.makeText(this@ChatActivity,
-                            R.string.ai_agent_download_failed, Toast.LENGTH_LONG).show()
+                            getString(R.string.ai_agent_download_failed, model.name),
+                            Toast.LENGTH_LONG).show()
                     }
                     return@collectLatest
                 }

@@ -247,7 +247,11 @@ class NeoPaintActivity : AppCompatActivity() {
     }
 
     private fun updateShapeFillLabel() {
-        txtShapeFill.text = if (shapeFillAmount >= 100) "Fill" else if (shapeFillAmount <= 0) "Line" else "Fill $shapeFillAmount%"
+        txtShapeFill.text = when {
+            shapeFillAmount >= 100 -> getString(R.string.neopaint_shape_fill)
+            shapeFillAmount <= 0 -> getString(R.string.neopaint_shape_line)
+            else -> getString(R.string.neopaint_shape_fill_format, shapeFillAmount)
+        }
     }
 
     private fun showTransformControls() {
@@ -306,9 +310,9 @@ class NeoPaintActivity : AppCompatActivity() {
         }
 
         moreToolsDialog = AlertDialog.Builder(this)
-            .setTitle("Tools")
+            .setTitle(getString(R.string.neopaint_tools))
             .setView(view)
-            .setNegativeButton("Close", null)
+            .setNegativeButton(getString(R.string.neopaint_close), null)
             .create()
             .also { it.show() }
     }
@@ -322,17 +326,17 @@ class NeoPaintActivity : AppCompatActivity() {
         val view = inflater.inflate(R.layout.dialog_neopaint_resize, null) ?: run {
             // Fallback if layout not yet created — use inline
             val ll = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(32, 16, 32, 16) }
-            val lbl = TextView(this).apply { text = "Current: ${w}x${h}" }
+            val lbl = TextView(this).apply { text = getString(R.string.neopaint_current_size, w, h) }
             ll.addView(lbl)
             AlertDialog.Builder(this)
-                .setTitle("Canvas Size")
+                .setTitle(getString(R.string.neopaint_canvas_size))
                 .setView(ll)
-                .setPositiveButton("OK", null)
+                .setPositiveButton(getString(R.string.neopaint_text_ok), null)
                 .show()
             return
         }
         val lblInfo = view.findViewById<TextView>(R.id.resize_lbl_info)
-        lblInfo?.text = "Current: ${w}x${h}"
+        lblInfo?.text = getString(R.string.neopaint_current_size, w, h)
 
         val seekW = view.findViewById<SeekBar>(R.id.seek_resize_w)
         val seekH = view.findViewById<SeekBar>(R.id.seek_resize_h)
@@ -366,24 +370,28 @@ class NeoPaintActivity : AppCompatActivity() {
         editH?.setText("$h")
 
         AlertDialog.Builder(this)
-            .setTitle("Canvas Size")
+            .setTitle(getString(R.string.neopaint_canvas_size))
             .setView(view)
-            .setPositiveButton("Resize") { _, _ ->
+            .setPositiveButton(getString(R.string.neopaint_resize)) { _, _ ->
                 val finalW = editW?.text?.toString()?.toIntOrNull()?.coerceIn(64, 4096) ?: newW
                 val finalH = editH?.text?.toString()?.toIntOrNull()?.coerceIn(64, 4096) ?: newH
                 drawingView.resizeCanvas(finalW, finalH)
                 selectTool(ToolType.BRUSH)
             }
-            .setNegativeButton("Cancel", null)
+            .setNegativeButton(android.R.string.cancel, null)
             .show()
     }
 
     // ── Clipboard Menu ─────────────────────────────────────────
 
     private fun showClipboardMenu() {
-        val items = arrayOf("Copy layer", "Paste layer", "Clear clipboard")
+        val items = arrayOf(
+            getString(R.string.neopaint_clipboard_copy),
+            getString(R.string.neopaint_clipboard_paste),
+            getString(R.string.neopaint_clipboard_clear)
+        )
         AlertDialog.Builder(this)
-            .setTitle("Clipboard")
+            .setTitle(getString(R.string.neopaint_clipboard))
             .setItems(items) { _, which ->
                 when (which) {
                     0 -> { // Copy

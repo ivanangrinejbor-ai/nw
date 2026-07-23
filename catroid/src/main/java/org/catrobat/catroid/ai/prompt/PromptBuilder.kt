@@ -165,6 +165,7 @@ object PromptBuilder {
             appendLine("- Format code and brick lists with markdown.")
             appendLine("- Answer in the same language the user writes in.")
             appendLine("- When the user asks to build a game, plan the objects and scripts first, then create them step by step with tools.")
+            appendLine("- Use 'remember' to store durable facts, user preferences and important decisions so you can 'recall' them in future sessions. Do not re-ask things you already remembered.")
             appendLine()
             appendLine("## IMPORTANT: Write tools apply changes IMMEDIATELY")
             appendLine("When you call createObject, deleteObject, createScene, deleteScene, createVariable, deleteVariable, buildScript, appendScript, replaceScript, deleteScript — the change is applied to the project RIGHT AWAY.")

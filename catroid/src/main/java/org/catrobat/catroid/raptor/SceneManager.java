@@ -117,7 +117,7 @@ public class SceneManager {
 
     public SceneManager(ThreeDManager lowLevelEngine) {
         this.engine = lowLevelEngine;
-        this.engine.setSceneManager(this);
+        this.engine.setSceneManager(this); // NOTE: `this` escapes the constructor — ensure setSceneManager does not use SceneManager before its fields are initialized
 
         json.setIgnoreUnknownFields(true);
         json.setUsePrototypes(false);
@@ -843,7 +843,7 @@ public class SceneManager {
         sceneData.skyR = skyR;
         sceneData.skyG = skyG;
         sceneData.skyB = skyB;
-        sceneData.skyboxPath = skyboxPath;
+        sceneData.skyboxPath = skyboxPath; // NOTE: skyboxPath can be null here — callers should handle null to avoid NPE
         sceneData.ambientIntensity = ambientIntensity;
         sceneData.shadowSize = engine.getShadowSize();
         sceneData.shadowResolution = engine.getShadowResolution();

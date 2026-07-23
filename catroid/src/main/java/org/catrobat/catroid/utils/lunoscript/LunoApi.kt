@@ -17,9 +17,4 @@ object LunoApi {
     fun printGreeting(name: String) {
         println("Hello, $name!")
     }
-
-
-    fun thisIsAPrivateFunction() {
-
-    }
 }

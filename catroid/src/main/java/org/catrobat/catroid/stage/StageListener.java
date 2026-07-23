@@ -82,6 +82,7 @@ import org.catrobat.catroid.common.LookData;
 import org.catrobat.catroid.common.ScreenModes;
 import org.catrobat.catroid.common.ScreenValues;
 import org.catrobat.catroid.common.ThreadScheduler;
+import org.catrobat.catroid.common.TilemapLookData;
 import org.catrobat.catroid.content.EventWrapper;
 import org.catrobat.catroid.content.ExitProjectScript;
 import org.catrobat.catroid.content.GlobalManager;
@@ -95,6 +96,7 @@ import org.catrobat.catroid.content.VmMonitorActor;
 import org.catrobat.catroid.content.XmlHeader;
 import org.catrobat.catroid.content.actions.ScriptSequenceAction;
 import org.catrobat.catroid.content.eventids.EventId;
+import org.catrobat.catroid.content.tilemap.TilemapRuntimeManager;
 import org.catrobat.catroid.content.eventids.GamepadEventId;
 import org.catrobat.catroid.content.eventids.MouseButtonEventId;
 import org.catrobat.catroid.embroidery.DSTPatternManager;
@@ -360,7 +362,7 @@ public class StageListener implements ApplicationListener {
 
 			if (sprite.getLookList() != null) {
 				for (LookData lookData : sprite.getLookList()) {
-					if (lookData != null) {
+					if (lookData != null && !(lookData instanceof TilemapLookData)) {
 
 						lookData.getCollisionInformation().loadCollisionPolygon();
 					}
@@ -383,10 +385,6 @@ public class StageListener implements ApplicationListener {
 		axes = new Texture(Gdx.files.internal("stage/red_pixel.bmp"));
 
 		if (fullscreenQuad == null) {
-			fullscreenQuad = new Mesh(true, 4, 6,
-					new VertexAttribute(VertexAttributes.Usage.Position, 2, "a_position"),
-					new VertexAttribute(VertexAttributes.Usage.TextureCoordinates, 2, "a_texCoord0"));
-
 			float[] vertices = {
 					-1.0f, -1.0f,
 					0.0f,  0.0f,
@@ -399,6 +397,9 @@ public class StageListener implements ApplicationListener {
 			};
 
 			short[] indices = { 0, 1, 2, 2, 3, 0 };
+			fullscreenQuad = new Mesh(true, 4, indices.length,
+					new VertexAttribute(VertexAttributes.Usage.Position, 2, "a_position"),
+					new VertexAttribute(VertexAttributes.Usage.TextureCoordinates, 2, "a_texCoord0"));
 
 			fullscreenQuad.setVertices(vertices);
 			fullscreenQuad.setIndices(indices);
@@ -549,9 +550,8 @@ public class StageListener implements ApplicationListener {
 		};
 		short[] indices = { 0, 1, 2, 2, 3, 0 };
 
-
 		if (vmScreenMesh == null) {
-			vmScreenMesh = new Mesh(true, 4, 6,
+			vmScreenMesh = new Mesh(true, 4, indices.length,
 					new VertexAttribute(VertexAttributes.Usage.Position, 3, "a_position"),
 					new VertexAttribute(VertexAttributes.Usage.TextureCoordinates, 2, "a_texCoord0"));
 		}
@@ -574,12 +574,16 @@ public class StageListener implements ApplicationListener {
 
 	}
 
+	private BitmapFont labelFont;
+
 	private BitmapFont getLabelFont(Project project) {
-		BitmapFont font = new BitmapFont();
-		font.setColor(AXIS_COLOR);
-		font.getData().setScale(
-				getFontScaleFactor(project, font, new GlyphLayout()));
-		return font;
+		if (labelFont == null) {
+			labelFont = new BitmapFont();
+			labelFont.setColor(AXIS_COLOR);
+			labelFont.getData().setScale(
+					getFontScaleFactor(project, labelFont, new GlyphLayout()));
+		}
+		return labelFont;
 	}
 
 	@VisibleForTesting
@@ -678,6 +682,85 @@ public class StageListener implements ApplicationListener {
         inputMultiplexer.addProcessor(cameraInputProcessor);
 		inputMultiplexer.addProcessor(uiStage);
 		inputMultiplexer.addProcessor(stage);
+		inputMultiplexer.addProcessor(new com.badlogic.gdx.InputAdapter() {
+			private float startX, startY;
+			private boolean edgeTouchDown = false;
+			private int swipeDirection = -1; // -1 = none, 0 = left, 1 = right, 2 = top, 3 = bottom
+
+			@Override
+			public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+				if (pointer == 0) {
+					startX = screenX;
+					startY = screenY;
+					edgeTouchDown = false;
+					swipeDirection = -1;
+
+					float width = com.badlogic.gdx.Gdx.graphics.getWidth();
+					float height = com.badlogic.gdx.Gdx.graphics.getHeight();
+
+					if (screenX < width * 0.08f) {
+						edgeTouchDown = true;
+						swipeDirection = 0; // Left edge
+					} else if (screenX > width * 0.92f) {
+						edgeTouchDown = true;
+						swipeDirection = 1; // Right edge
+					} else if (screenY < height * 0.08f) {
+						edgeTouchDown = true;
+						swipeDirection = 2; // Top edge
+					} else if (screenY > height * 0.92f) {
+						edgeTouchDown = true;
+						swipeDirection = 3; // Bottom edge
+					}
+				}
+				return false;
+			}
+
+			@Override
+			public boolean touchDragged(int screenX, int screenY, int pointer) {
+				if (pointer == 0 && edgeTouchDown && swipeDirection != -1) {
+					float dx = screenX - startX;
+					float dy = screenY - startY;
+					float distanceThreshold = com.badlogic.gdx.Gdx.graphics.getWidth() * 0.15f; // 15% of screen width
+
+					boolean triggered = false;
+					if (swipeDirection == 0 && dx > distanceThreshold) {
+						triggered = true; // Left edge swiped (dragged to right)
+					} else if (swipeDirection == 1 && -dx > distanceThreshold) {
+						triggered = true; // Right edge swiped (dragged to left)
+					} else if (swipeDirection == 2 && dy > distanceThreshold) {
+						triggered = true; // Top edge swiped (dragged to bottom)
+					} else if (swipeDirection == 3 && -dy > distanceThreshold) {
+						triggered = true; // Bottom edge swiped (dragged to top)
+					}
+
+					if (triggered) {
+						edgeTouchDown = false; // Reset to avoid double triggering
+						int dir = swipeDirection;
+						swipeDirection = -1;
+						org.catrobat.catroid.stage.StageActivity activeActivity = org.catrobat.catroid.stage.StageActivity.activeStageActivity.get();
+						if (activeActivity != null) {
+							com.badlogic.gdx.Gdx.app.postRunnable(() -> {
+								activeActivity.broadcastEventToAllSprites(new org.catrobat.catroid.content.eventids.EventId(org.catrobat.catroid.content.eventids.EventId.EDGE_SWIPED));
+								activeActivity.broadcastEventToAllSprites(new org.catrobat.catroid.content.eventids.EdgeSwipedEventId(dir));
+							});
+						}
+					}
+				}
+				return false;
+			}
+
+			@Override
+			public boolean keyDown(int keycode) {
+				org.catrobat.catroid.stage.StageActivity activeActivity = org.catrobat.catroid.stage.StageActivity.activeStageActivity.get();
+				if (activeActivity != null) {
+					com.badlogic.gdx.Gdx.app.postRunnable(() -> {
+						activeActivity.broadcastEventToAllSprites(new org.catrobat.catroid.content.eventids.EventId(org.catrobat.catroid.content.eventids.EventId.KEY_PRESSED));
+						activeActivity.broadcastEventToAllSprites(new org.catrobat.catroid.content.eventids.KeyPressedEventId(keycode));
+					});
+				}
+				return false;
+			}
+		});
 
 		initMouseInputAdapter();
 
@@ -804,7 +887,12 @@ public class StageListener implements ApplicationListener {
 
 		copy.look.setRenderingContext(this.camera, this.viewPort, this.uiStage);
 		addCloneActorToStage(stage, stage.getRoot(), cloneMe.look, copy.look);
-		copy.cloneIndex = cloneCounter.getAndIncrement();
+		int next = cloneCounter.getAndIncrement();
+		if (next < 0) {
+			cloneCounter.set(1);
+			next = 1;
+		}
+		copy.cloneIndex = next;
 		sprites.add(copy);
 		if (!copy.getLookList().isEmpty()) {
 			int currentLookDataIndex = cloneMe.getLookList().indexOf(cloneMe.look.getLookData());
@@ -825,7 +913,12 @@ public class StageListener implements ApplicationListener {
 
 		copy.look.setRenderingContext(this.camera, this.viewPort, this.uiStage);
 		addCloneActorToStage(stage, stage.getRoot(), cloneMe.look, copy.look);
-		copy.cloneIndex = cloneCounter.getAndIncrement();
+		int next = cloneCounter.getAndIncrement();
+		if (next < 0) {
+			cloneCounter.set(1);
+			next = 1;
+		}
+		copy.cloneIndex = next;
 		sprites.add(copy);
 		if (!copy.getLookList().isEmpty()) {
 			int currentLookDataIndex = cloneMe.getLookList().indexOf(cloneMe.look.getLookData());
@@ -863,6 +956,8 @@ public class StageListener implements ApplicationListener {
 			}
 		}
 		StageActivity.resetNumberOfClonedSprites();
+		// Reset counter after all clones removed; if any active scripts still reference
+		// old cloneIndex values, they will see stale indices but no matching sprite.
 		cloneCounter.set(1);
 	}
 
@@ -1159,6 +1254,7 @@ public class StageListener implements ApplicationListener {
 			vibrationManager.reset();
 		}
 		TouchUtil.reset();
+		org.catrobat.catroid.content.StateMachineManager.reset();
 		MidiSoundManager.getInstance().reset();
 		removeAllClonedSpritesFromStage();
 
@@ -1325,6 +1421,9 @@ public class StageListener implements ApplicationListener {
 
 				SoundManager.getInstance().clear();
 
+				// Old tilemap bodies belong to the old world; free them before replacing it.
+				TilemapRuntimeManager.disposeAll(physicsWorld);
+
 				physicsWorld = scene.resetPhysicsWorld();
 
 				initActors(sprites);
@@ -1403,8 +1502,10 @@ public class StageListener implements ApplicationListener {
                     sceneManager.update(deltaTime);
                 }
 
-                int steps = (int) Math.max(1f, deltaActionTimeDivisor);
+                int steps = Math.max(1, Math.round(deltaActionTimeDivisor));
                 float optimizedDeltaTime = deltaTime / steps;
+
+                rebuildDirtyTilemapPhysics();
 
                 for (int i = 0; i < steps; i++) {
                     long pStart = System.nanoTime();
@@ -1782,8 +1883,30 @@ public class StageListener implements ApplicationListener {
 				try {
 					lookData.getPixmap();
 				} catch (Exception e) {
+					// pixmap preloading is best-effort; ignore failures
 				}
 			});
+		}
+	}
+
+	/**
+	 * Rebuilds Box2D static collision bodies for every sprite whose active costume is a tilemap and
+	 * whose runtime is flagged dirty (initial build, or after tiles/solidity changed via a brick).
+	 * The dirty flag keeps this near-free when nothing changed.
+	 */
+	private void rebuildDirtyTilemapPhysics() {
+		if (physicsWorld == null || sprites == null) {
+			return;
+		}
+		for (Sprite sprite : sprites) {
+			if (sprite == null || sprite.look == null) {
+				continue;
+			}
+			LookData lookData = sprite.look.getLookData();
+			if (lookData instanceof TilemapLookData) {
+				TilemapRuntimeManager.getOrCreate((TilemapLookData) lookData)
+						.rebuildIfDirty(physicsWorld, sprite);
+			}
 		}
 	}
 
@@ -1795,6 +1918,9 @@ public class StageListener implements ApplicationListener {
 			pixmapPreloader = null;
 		}
 		executeExitScriptsSynchronously();
+
+		// Free tilemap GL textures + Box2D bodies while the world is still alive.
+		TilemapRuntimeManager.disposeAll(physicsWorld);
 
 		if (physicsWorld != null) {
 			physicsWorld.dispose();

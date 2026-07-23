@@ -291,12 +291,6 @@ class BrickListView : ListView {
     private fun scrollWhileDragging() {
         val scrollSpeed: Int
 
-        dragMode = if(SettingsFragment.isOldDragEnabled(CatroidApplication.getAppContext())) {
-            DragMode.NEW
-        } else {
-            DragMode.LEGACY
-        }
-
         when (dragMode) {
             DragMode.NEW -> {
                 val scrollZoneSize = height / 5

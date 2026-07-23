@@ -134,6 +134,8 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 			R.string.formula_editor_function_floor, R.string.formula_editor_function_ceil,
 			R.string.formula_editor_function_to_hex, R.string.formula_editor_function_to_dec,
 			R.string.formula_editor_function_max, R.string.formula_editor_function_min, R.string.formula_editor_function_clamp,
+			R.string.formula_editor_function_sign, R.string.formula_editor_function_lerp, R.string.formula_editor_function_map_range,
+			R.string.formula_editor_function_rgb, R.string.formula_editor_function_hsv, R.string.formula_editor_function_mix_color,
 			R.string.formula_editor_function_distan,
 			R.string.formula_editor_function_if_then_else);
 	private static final List<Integer> MATH_PARAMS = asList(R.string.formula_editor_function_sin_parameter,
@@ -148,7 +150,10 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 			R.string.formula_editor_function_exp_parameter, R.string.formula_editor_function_power_parameter,
 			R.string.formula_editor_function_floor_parameter, R.string.formula_editor_function_ceil_parameter,
 			R.string.formula_editor_function_to_hex_parameter, R.string.formula_editor_function_to_dec_parameter,
-			R.string.formula_editor_function_max_parameter, R.string.formula_editor_function_min_parameter, R.string.formula_editor_function_clamp_parameter, R.string.formula_editor_function_distan_parameter,
+			R.string.formula_editor_function_max_parameter, R.string.formula_editor_function_min_parameter, R.string.formula_editor_function_clamp_parameter,
+			R.string.formula_editor_function_sign_parameter, R.string.formula_editor_function_lerp_parameter, R.string.formula_editor_function_map_range_parameter,
+			R.string.formula_editor_function_rgb_parameter, R.string.formula_editor_function_hsv_parameter, R.string.formula_editor_function_mix_color_parameter,
+			R.string.formula_editor_function_distan_parameter,
 			R.string.formula_editor_function_if_then_else_parameter);
 	private static final List<Integer> STRING_FUNCTIONS = asList(R.string.formula_editor_function_length,
 			R.string.formula_editor_function_letter,
@@ -243,6 +248,18 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
             R.string.formula_f2d_is_touched_param, R.string.formula_f2d_is_touched_index_param
     );
 
+    private static final List<Integer> TILEMAP_FUNCTIONS = asList(
+            R.string.formula_tile_at_position, R.string.formula_is_solid_tile_at,
+            R.string.formula_tilemap_width, R.string.formula_tilemap_height,
+            R.string.formula_tile_size
+    );
+
+    private static final List<Integer> TILEMAP_PARAMS = asList(
+            R.string.formula_tile_at_position_param, R.string.formula_is_solid_tile_at_param,
+            R.string.formula_no_param, R.string.formula_no_param,
+            R.string.formula_no_param
+    );
+
     private static final List<Integer> DEVICE_FUNCTIONS = asList(
             R.string.formula_file_exists,
             R.string.formula_file_project_exists,
@@ -275,7 +292,9 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
             R.string.formula_opengl_version,
             R.string.formula_vulkan_supported,
             R.string.formula_is_pc,
-            R.string.formula_is_mobile
+            R.string.formula_is_mobile,
+            R.string.formula_editor_function_current_state,
+            R.string.formula_editor_function_state_time
     );
 
     private static final List<Integer> OBJECTS_FUNCTIONS = asList(
@@ -428,7 +447,9 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
             R.string.formula_no_param,
             R.string.formula_no_param,
             R.string.formula_no_param, R.string.formula_no_param,
-            R.string.formula_no_param, R.string.formula_no_param
+            R.string.formula_no_param, R.string.formula_no_param,
+            R.string.formula_editor_function_current_state_parameter,
+            R.string.formula_editor_function_state_time_parameter
     );
 
 	private static final List<Integer> THREED_FUNCTIONS = asList(
@@ -914,7 +935,7 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 	public void onItemClick(CategoryListItem item) {
 		if (item.isCustomFunction && item.customFunctionName != null) {
 			FormulaEditorFragment formulaEditorFragment =
-					((FormulaEditorFragment) getFragmentManager().findFragmentByTag(FORMULA_EDITOR_FRAGMENT_TAG));
+					((FormulaEditorFragment) getParentFragmentManager().findFragmentByTag(FORMULA_EDITOR_FRAGMENT_TAG));
 			if (formulaEditorFragment != null) {
 				formulaEditorFragment.addCustomFunctionToActiveFormula(item.customFunctionName);
 			}
@@ -938,7 +959,7 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 					regularExpressionAssistantActivityOnButtonClick();
 				} else {
 					FormulaEditorFragment formulaEditorFragment =
-							((FormulaEditorFragment) getFragmentManager().findFragmentByTag(FORMULA_EDITOR_FRAGMENT_TAG));
+							((FormulaEditorFragment) getParentFragmentManager().findFragmentByTag(FORMULA_EDITOR_FRAGMENT_TAG));
 					if (formulaEditorFragment != null) {
 						formulaEditorFragment.setChosenCategoryItem(item);
 					}
@@ -1015,8 +1036,8 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 
 	private FormulaEditorFragment addResourceToActiveFormulaInFormulaEditor(CategoryListItem categoryListItem) {
 		FormulaEditorFragment formulaEditorFragment = null;
-		if (getFragmentManager() != null) {
-			formulaEditorFragment = ((FormulaEditorFragment) getFragmentManager()
+		if (getParentFragmentManager() != null) {
+			formulaEditorFragment = ((FormulaEditorFragment) getParentFragmentManager()
 					.findFragmentByTag(FORMULA_EDITOR_FRAGMENT_TAG));
 			if (formulaEditorFragment != null) {
 				formulaEditorFragment.addResourceToActiveFormula(categoryListItem.nameResId);
@@ -1092,8 +1113,8 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 	}
 
 	private FormulaEditorFragment getFormulaEditorFragment() {
-		if (getFragmentManager() != null) {
-			return ((FormulaEditorFragment) getFragmentManager()
+		if (getParentFragmentManager() != null) {
+			return ((FormulaEditorFragment) getParentFragmentManager()
 					.findFragmentByTag(FORMULA_EDITOR_FRAGMENT_TAG));
 		}
 		return null;
@@ -1134,7 +1155,7 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 								(EV3Sensor.Sensor) selectedSensor, SettingsFragment.EV3_SENSORS[selectedPort]);
 					}
 
-					FormulaEditorFragment formulaEditor = (FormulaEditorFragment) getFragmentManager()
+					FormulaEditorFragment formulaEditor = (FormulaEditorFragment) getParentFragmentManager()
 							.findFragmentByTag(FORMULA_EDITOR_FRAGMENT_TAG);
 
 					int sensorPortsId = type == Constants.NXT
@@ -1177,7 +1198,7 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 					currentSprite.createCollisionPolygons();
 					selectedSprite.createCollisionPolygons();
 
-					((FormulaEditorFragment) getFragmentManager()
+					((FormulaEditorFragment) getParentFragmentManager()
 							.findFragmentByTag(FORMULA_EDITOR_FRAGMENT_TAG))
 							.addCollideFormulaToActiveFormula(selectedSprite.getName());
 					getActivity().onBackPressed();
@@ -1271,6 +1292,8 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
                 getString(R.string.formula_editor_functions_crypto)));
         result.addAll(addHeader(toCategoryListItems(OBJECTS_FUNCTIONS, OBJECTS_PARAMS),
                 "Sprite info"));
+        result.addAll(addHeader(toCategoryListItems(TILEMAP_FUNCTIONS, TILEMAP_PARAMS),
+                "Tilemap"));
 
 		List<CustomFormula> customFormulas = CustomFormulaManager.INSTANCE.getFormulas();
 		if (!customFormulas.isEmpty()) {
@@ -1534,6 +1557,7 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
         if (ADMOB_FUNCTIONS.contains(id)) return "AdMob";
         if (CRYPTO_FUNCTIONS.contains(id)) return getString(R.string.formula_editor_functions_crypto);
         if (OBJECTS_FUNCTIONS.contains(id)) return "Sprite info";
+        if (TILEMAP_FUNCTIONS.contains(id)) return "Tilemap";
         if (LOGIC_BOOL.contains(id)) return getString(R.string.formula_editor_logic_boolean);
         if (LOGIC_COMPARISION.contains(id)) return getString(R.string.formula_editor_logic_comparison);
 

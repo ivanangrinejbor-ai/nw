@@ -2851,7 +2851,9 @@ public class InspectorManager {
                         break;
                 }
                 sceneManager.setPhysicsComponent(go, physics);
-            } catch (NumberFormatException e) {}
+            } catch (NumberFormatException e) {
+                // ignored
+            }
         };
 
         TextWatcher watcher = new DelayedTextWatcher(updateAction);
@@ -3149,7 +3151,9 @@ public class InspectorManager {
                         Float.parseFloat(z.getText().toString())
                 );
                 updater.update(go, v);
-            } catch (NumberFormatException e) {}
+            } catch (NumberFormatException e) {
+                // ignored
+            }
         });
         x.addTextChangedListener(watcher);
         y.addTextChangedListener(watcher);
@@ -3169,7 +3173,9 @@ public class InspectorManager {
                         Float.parseFloat(r.getText().toString())
                 );
                 updater.update(go, q);
-            } catch (NumberFormatException e) {}
+            } catch (NumberFormatException e) {
+                // ignored
+            }
         });
         p.addTextChangedListener(watcher);
         y.addTextChangedListener(watcher);

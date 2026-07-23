@@ -105,21 +105,39 @@ class UserDefinedBrickListFragment : ListFragment(), View.OnClickListener {
     }
 
     override fun onClick(v: View) {
-        val addUserDefinedBrickFragment = AddUserDefinedBrickFragment.newInstance(addBrickListener!!)
-        val userDefinedBrick = UserDefinedBrick()
+        val options = arrayOf("Custom Block V1 (Legacy)", "Custom Block V2")
+        androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setTitle("Create Custom Block")
+            .setItems(options) { dialog, which ->
+                if (which == 0) {
+                    val addUserDefinedBrickFragment = AddUserDefinedBrickFragment.newInstance(addBrickListener!!)
+                    val userDefinedBrick = UserDefinedBrick()
+                    val bundle = Bundle()
+                    bundle.putSerializable(UserDefinedBrick.USER_BRICK_BUNDLE_ARGUMENT, userDefinedBrick)
+                    addUserDefinedBrickFragment.arguments = bundle
 
-        val bundle = Bundle()
-        bundle.putSerializable(UserDefinedBrick.USER_BRICK_BUNDLE_ARGUMENT, userDefinedBrick)
-        addUserDefinedBrickFragment.arguments = bundle
-
-        val fragmentManager = parentFragmentManager
-        fragmentManager.beginTransaction()
-            .add(
-                R.id.fragment_container,
-                addUserDefinedBrickFragment,
-                AddUserDefinedBrickFragment.TAG
-            )
-            .addToBackStack(AddUserDefinedBrickFragment.TAG).commit()
+                    val fragmentManager = parentFragmentManager
+                    fragmentManager.beginTransaction()
+                        .add(
+                            R.id.fragment_container,
+                            addUserDefinedBrickFragment,
+                            AddUserDefinedBrickFragment.TAG
+                        )
+                        .addToBackStack(AddUserDefinedBrickFragment.TAG).commit()
+                } else {
+                    val addV2Fragment = AddUserDefinedBrickV2Fragment.newInstance(addBrickListener!!)
+                    val fragmentManager = parentFragmentManager
+                    fragmentManager.beginTransaction()
+                        .add(
+                            R.id.fragment_container,
+                            addV2Fragment,
+                            AddUserDefinedBrickV2Fragment.TAG
+                        )
+                        .addToBackStack(AddUserDefinedBrickV2Fragment.TAG).commit()
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 
     private fun addUserDefinedBrickToScript(userDefinedBrickToAdd: Brick) {
@@ -127,6 +145,8 @@ class UserDefinedBrickListFragment : ListFragment(), View.OnClickListener {
             val clonedBrick = userDefinedBrickToAdd.clone()
             if (userDefinedBrickToAdd is UserDefinedBrick) {
                 (clonedBrick as UserDefinedBrick).setCallingBrick(true)
+            } else if (userDefinedBrickToAdd is org.catrobat.catroid.content.bricks.UserDefinedBrickV2) {
+                (clonedBrick as org.catrobat.catroid.content.bricks.UserDefinedBrickV2).setCallingBrick(true)
             }
             addBrickListener?.addBrick(clonedBrick)
 

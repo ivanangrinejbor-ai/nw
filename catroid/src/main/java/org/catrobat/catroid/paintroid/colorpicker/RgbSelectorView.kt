@@ -70,11 +70,7 @@ class RgbSelectorView : LinearLayoutCompat {
             seekBarBlue.progress = colorBlue
             var currentCursorPosition = editTextHex.selectionStart
             editTextHex.tag = "changed programmatically"
-            val colorRGB = if (alphaRow.visibility == VISIBLE) {
-                String.format("#%02X%02X%02X%02X", colorAlpha, colorRed, colorGreen, colorBlue)
-            } else {
-                String.format("#%02X%02X%02X", colorRed, colorGreen, colorBlue)
-            }
+            val colorRGB = String.format("#%02X%02X%02X%02X", colorAlpha, colorRed, colorGreen, colorBlue)
             editTextHex.setText(colorRGB)
             editTextHex.tag = null
             val editTextHexLength = editTextHex.text.toString().length
@@ -108,8 +104,7 @@ class RgbSelectorView : LinearLayoutCompat {
 
     @SuppressWarnings("SwallowedException")
     private fun parseInputToCheckIfHEX(newText: String): Int =
-        if (newText.length !=
-            (if (alphaRow.visibility == VISIBLE) HEX_COLOR_CODE_LENGTH else HEX_COLOR_CODE_WITHOUT_ALPHA_LENGTH) ||
+        if (newText.length != HEX_COLOR_CODE_LENGTH ||
             newText.substring(0, 1) != "#"
         ) {
             NOT_A_HEX_VALUE
@@ -150,11 +145,7 @@ class RgbSelectorView : LinearLayoutCompat {
         seekBarBlue.progress = colorBlue
         var currentCursorPosition = editTextHex.selectionStart
         editTextHex.tag = "changed programmatically"
-        val colorRGB = if (!isOpenedFromFormulaEditorInCatroid) {
-            String.format("#%02X%02X%02X%02X", colorAlpha, colorRed, colorGreen, colorBlue)
-        } else {
-            String.format("#%02X%02X%02X", colorRed, colorGreen, colorBlue)
-        }
+        val colorRGB = String.format("#%02X%02X%02X%02X", colorAlpha, colorRed, colorGreen, colorBlue)
         editTextHex.setText(colorRGB)
         editTextHex.tag = null
         val editTextHexLength = editTextHex.text.toString().length
@@ -236,7 +227,6 @@ class RgbSelectorView : LinearLayoutCompat {
     }
 
     fun setAlphaRow(catroidFlag: Boolean, openedFromFormulaEditorInCatroidFlag: Boolean) {
-        alphaRow.visibility =
-            if (catroidFlag && openedFromFormulaEditorInCatroidFlag) GONE else VISIBLE
+        alphaRow.visibility = VISIBLE
     }
 }

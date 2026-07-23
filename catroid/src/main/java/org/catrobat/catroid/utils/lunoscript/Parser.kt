@@ -571,8 +571,7 @@ class Parser(private val tokens: List<Token>) {
 
     private var expressionDepth = 0
     private fun isExpressionContext(): Boolean {
-        // TODO: use expressionDepth > 0 instead of hardcoded true
-        return true
+        return expressionDepth > 0
     }
 
 
@@ -607,7 +606,14 @@ class Parser(private val tokens: List<Token>) {
         }
     }
 
-    private fun expression(): Expression = logicalOr()
+    private fun expression(): Expression {
+        expressionDepth++
+        try {
+            return logicalOr()
+        } finally {
+            expressionDepth--
+        }
+    }
 
 
     private fun TokenType.isAssignmentOperator(): Boolean {

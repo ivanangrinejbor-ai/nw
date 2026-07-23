@@ -92,6 +92,8 @@ public final class SensorHandler implements SensorEventListener, SensorCustomEve
 	private final float[] rotationVector = new float[3];
 	private float[] accelerationXYZ = new float[3];
 	private float signAccelerationZ;
+	private long lastShakeTime = 0;
+	private static final float SHAKE_THRESHOLD = 13.0f;
 	private final float[] gravity = {0f, 0f, 0f};
 	private boolean useLinearAccelerationFallback;
 	private boolean useRotationVectorFallback;
@@ -689,6 +691,23 @@ public final class SensorHandler implements SensorEventListener, SensorCustomEve
 				accelerationXYZ[1] = (float) (accelerationXYZ[1] / normOfG);
 				accelerationXYZ[2] = (float) (accelerationXYZ[2] / normOfG);
 				signAccelerationZ = Math.signum(event.values[2]);
+
+				float ax = event.values[0];
+				float ay = event.values[1];
+				float az = event.values[2];
+				double gForce = Math.sqrt(ax * ax + ay * ay + az * az) - android.hardware.SensorManager.GRAVITY_EARTH;
+				if (gForce > SHAKE_THRESHOLD) {
+					long now = System.currentTimeMillis();
+					if (now - lastShakeTime > 800) {
+						lastShakeTime = now;
+						org.catrobat.catroid.stage.StageActivity activeActivity = org.catrobat.catroid.stage.StageActivity.activeStageActivity.get();
+						if (activeActivity != null) {
+							com.badlogic.gdx.Gdx.app.postRunnable(() -> {
+								activeActivity.broadcastEventToAllSprites(new org.catrobat.catroid.content.eventids.EventId(org.catrobat.catroid.content.eventids.EventId.SHAKE));
+							});
+						}
+					}
+				}
 				break;
 			case Sensor.TYPE_LINEAR_ACCELERATION:
 				linearAccelerationX = event.values[0];

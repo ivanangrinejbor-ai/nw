@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
 import org.catrobat.catroid.ProjectManager
+import org.catrobat.catroid.ai.context.MemoryManager
 import org.catrobat.catroid.common.FlavoredConstants
 import org.catrobat.catroid.content.Project
 import org.catrobat.catroid.content.Scene
@@ -78,6 +79,9 @@ object ToolCallingEngine {
         registerTool(BuildScriptTool())
         registerTool(ListProjectsTool())
         registerTool(OpenProjectTool())
+        registerTool(RememberTool())
+        registerTool(RecallTool())
+        registerTool(ForgetTool())
     }
 
     fun registerTool(tool: Tool) {
@@ -912,6 +916,65 @@ object ToolCallingEngine {
             } else {
                 ToolResult(false, "Failed to load project '$name'", "")
             }
+        }
+    }
+
+    class RememberTool : Tool {
+        override val name = "remember"
+        override val description = "Store a durable fact, user preference or decision that should be recalled in FUTURE sessions " +
+            "(persists across app restarts). Use for things like the user's preferred language/style, project conventions, " +
+            "or important decisions. Keep the key short and stable so it can be overwritten later."
+        override val parameters = listOf(
+            ToolParameter("key", ParameterType.STRING, "Short stable identifier for this memory"),
+            ToolParameter("content", ParameterType.STRING, "The information to remember"),
+            ToolParameter("category", ParameterType.STRING,
+                "One of: PROJECT_FACT, USER_PREFERENCE, CODE_PATTERN, TASK_CONTEXT, ERROR_PATTERN", required = false)
+        )
+
+        override suspend fun execute(args: Map<String, String>): ToolResult {
+            val key = args["key"]?.takeIf { it.isNotBlank() }
+                ?: return ToolResult(false, "Missing 'key'", "")
+            val content = args["content"]?.takeIf { it.isNotBlank() }
+                ?: return ToolResult(false, "Missing 'content'", "")
+            val category = parseCategory(args["category"])
+            MemoryManager.remember(key, content, category)
+            return ToolResult(true, "Remembered '$key' (${category.name})", "")
+        }
+
+        private fun parseCategory(raw: String?): MemoryManager.MemoryCategory =
+            try {
+                if (raw.isNullOrBlank()) MemoryManager.MemoryCategory.PROJECT_FACT
+                else MemoryManager.MemoryCategory.valueOf(raw.trim().uppercase())
+            } catch (_: Exception) {
+                MemoryManager.MemoryCategory.PROJECT_FACT
+            }
+    }
+
+    class RecallTool : Tool {
+        override val name = "recall"
+        override val description = "Search long-term memory (facts, preferences and decisions saved with 'remember' in this or previous sessions) by keyword."
+        override val parameters = listOf(ToolParameter("query", ParameterType.STRING, "Keyword to search stored memories"))
+
+        override suspend fun execute(args: Map<String, String>): ToolResult {
+            val query = args["query"].orEmpty()
+            val matches = if (query.isBlank()) emptyList() else MemoryManager.search(query)
+            if (matches.isEmpty()) return ToolResult(true, "No stored memories matching '$query'", "")
+            val out = matches.joinToString("\n") { "  - [${it.category.name}] ${it.key}: ${it.content}" }
+            return ToolResult(true, "Memories matching '$query':\n$out", "")
+        }
+    }
+
+    class ForgetTool : Tool {
+        override val name = "forget"
+        override val description = "Delete a stored long-term memory by its key."
+        override val parameters = listOf(ToolParameter("key", ParameterType.STRING, "Key of the memory to delete"))
+
+        override suspend fun execute(args: Map<String, String>): ToolResult {
+            val key = args["key"]?.takeIf { it.isNotBlank() }
+                ?: return ToolResult(false, "Missing 'key'", "")
+            val removed = MemoryManager.forget(key)
+            return ToolResult(true,
+                if (removed) "Forgot '$key'" else "No memory with key '$key'", "")
         }
     }
 }

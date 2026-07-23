@@ -209,7 +209,7 @@ public class ThreeDManager implements Disposable {
         lastScreenWidth = width;
         lastScreenHeight = height;
         camera.viewportWidth = width;
-        camera.viewportHeight = height;
+        camera.viewportHeight = height; // NOTE: resize may be called without a current GL context — ensure caller (e.g. postRunnable in setRenderResolution) schedules on GL thread
         camera.update();
 
         if (renderScale < 1.0f || aspectMode != 0) {
@@ -610,7 +610,7 @@ public class ThreeDManager implements Disposable {
                 "#ifdef boneWeight1Flag\nattribute vec2 a_boneWeight1;\n#endif\n" +
                 "#ifdef boneWeight2Flag\nattribute vec2 a_boneWeight2;\n#endif\n" +
                 "#ifdef boneWeight3Flag\nattribute vec2 a_boneWeight3;\n#endif\n" +
-                "#ifdef numBones\nuniform mat4 u_bones[numBones];\n#endif\n" +
+                "#ifdef numBones\nuniform mat4 u_bones[numBones];\n#endif\n" + // NOTE: depth shader uses hardcoded 110 bones — must stay in sync with config.numBones / settings.numBones
                 "uniform mat4 u_projViewTrans;\n" +
                 "uniform mat4 u_worldTrans;\n" +
                 "uniform mat4 u_viewTrans;\n" +
@@ -1405,7 +1405,7 @@ public class ThreeDManager implements Disposable {
 
     private Vector3 calculateRayAvoidance(String ownerId, Vector3 origin, Vector3 rayDir, String targetId, float weight) {
         Vector3 force = new Vector3();
-        String rayKey = "ai_ray_" + ownerId + rayDir.hashCode();
+        String rayKey = "ai_ray_" + ownerId + rayDir.hashCode(); // NOTE: generated key pollutes rayCastResults map — key collisions possible if ownerId+hashCode overlaps with user-defined ray names
 
         castRay(rayKey, origin, rayDir);
 
@@ -3264,7 +3264,7 @@ public class ThreeDManager implements Disposable {
             modelBatch.begin(camera);
 
             for (Map.Entry<String, ModelInstance> entry : sceneObjects.entrySet()) {
-                if (!inactiveRenderObjects.contains(entry.getKey())) {
+                if (!inactiveRenderObjects.contains(entry.getKey())) { // PERF: HashSet.contains() per object per frame — O(n) lookup; consider Set lookup or skip-list if sceneObjects grows large
                     modelBatch.render(entry.getValue(), environment);
                 }
             }
@@ -4608,7 +4608,7 @@ public class ThreeDManager implements Disposable {
                 for (Disposable d : resources) {
                     try {
                         d.dispose();
-                    } catch (Exception ignored) {
+                    } catch (Exception ignored) { // ignored
                     }
                 }
             }
@@ -5001,7 +5001,7 @@ public class ThreeDManager implements Disposable {
     }
 
     public void setAmbientLight(float r, float g, float b) {
-        environment.set(new ColorAttribute(ColorAttribute.AmbientLight, r, g, b, 1f));
+        environment.set(new ColorAttribute(ColorAttribute.AmbientLight, r, g, b, 1f)); // NOTE: sets on legacy `environment` (g3d Environment) — PBR rendering uses sceneManager.environment, consider syncing both
     }
 
     public void setDirectionalLight(String lightId, float r, float g, float b, float dirX, float dirY, float dirZ) {
@@ -6260,7 +6260,115 @@ public class ThreeDManager implements Disposable {
     }
 
     public void replaceModel(String objectId, String modelPath) {
-        // TODO: implement 3D model replacement
+        ModelInstance oldInstance = sceneObjects.get(objectId);
+        if (oldInstance == null) return;
+
+        try {
+            FileHandle fileHandle;
+            if (modelPath.startsWith("/")) {
+                fileHandle = Gdx.files.absolute(modelPath);
+            } else {
+                fileHandle = Gdx.files.internal("models/" + modelPath);
+            }
+            if (!fileHandle.exists()) {
+                Gdx.app.error("ThreeDManager", "Model file not found for replacement: " + fileHandle.path());
+                return;
+            }
+
+            String lowerCasePath = modelPath.toLowerCase();
+            Model newModel;
+
+            if (lowerCasePath.endsWith(".glb") || lowerCasePath.endsWith(".gltf")) {
+                net.mgsx.gltf.scene3d.scene.SceneAsset sceneAsset;
+                if (lowerCasePath.endsWith(".glb")) {
+                    sceneAsset = new net.mgsx.gltf.loaders.glb.GLBLoader().load(fileHandle, true);
+                } else {
+                    sceneAsset = new net.mgsx.gltf.loaders.gltf.GLTFLoader().load(fileHandle, true);
+                }
+                if (sceneAsset == null) return;
+
+                net.mgsx.gltf.scene3d.scene.Scene scene = new net.mgsx.gltf.scene3d.scene.Scene(sceneAsset.scene);
+                ModelInstance newInstance = scene.modelInstance;
+                newInstance.transform.set(oldInstance.transform);
+
+                if (realisticMode && sceneManager != null) {
+                    for (RenderableProvider p : sceneManager.getRenderableProviders()) {
+                        if (p instanceof net.mgsx.gltf.scene3d.scene.Scene) {
+                            if (((net.mgsx.gltf.scene3d.scene.Scene)p).modelInstance == oldInstance) {
+                                sceneManager.removeScene((net.mgsx.gltf.scene3d.scene.Scene)p);
+                                break;
+                            }
+                        }
+                    }
+                    sceneManager.addScene(scene);
+                }
+
+                newInstance.calculateTransforms();
+                newInstance.calculateBoundingBox(new BoundingBox());
+                sceneObjects.put(objectId, newInstance);
+
+                if (!gltfObjectIds.contains(objectId)) gltfObjectIds.add(objectId);
+                if (scene.modelInstance.animations.size > 0) {
+                    AnimationController controller = new AnimationController(scene.modelInstance);
+                    animationControllers.put(objectId, controller);
+                }
+
+                Model oldModel = oldInstance.model;
+                if (oldModel != null) {
+                    loadedModels.values().remove(oldModel);
+                    oldModel.dispose();
+                }
+            } else {
+                newModel = loadedModels.get(modelPath);
+                if (newModel == null) {
+                    FileHandle modelFileHandle = modelPath.startsWith("/")
+                        ? Gdx.files.absolute(modelPath)
+                        : Gdx.files.internal("models/" + modelPath);
+                    if (!modelFileHandle.exists()) return;
+
+                    FileHandle patchedModelHandle = ModelPathProcessor.process(modelFileHandle);
+                    FileHandleResolver resolver = fileName -> patchedModelHandle.parent().child(fileName);
+                    newModel = new ObjLoader(resolver).loadModel(patchedModelHandle, true);
+                    loadedModels.put(modelPath, newModel);
+                }
+
+                ModelInstance newInstance = new ModelInstance(newModel);
+                newInstance.transform.set(oldInstance.transform);
+
+                if (realisticMode) {
+                    PBRColorAttribute baseColor = PBRColorAttribute.createBaseColorFactor(Color.WHITE);
+                    for (Material mat : newInstance.materials) {
+                        mat.set(baseColor);
+                        mat.set(PBRFloatAttribute.createMetallic(0.0f));
+                        mat.set(PBRFloatAttribute.createRoughness(1.0f));
+                    }
+                    net.mgsx.gltf.scene3d.scene.Scene pbrScene = new net.mgsx.gltf.scene3d.scene.Scene(newInstance);
+                    if (sceneManager != null) {
+                        for (RenderableProvider p : sceneManager.getRenderableProviders()) {
+                            if (p instanceof net.mgsx.gltf.scene3d.scene.Scene) {
+                                if (((net.mgsx.gltf.scene3d.scene.Scene)p).modelInstance == oldInstance) {
+                                    sceneManager.removeScene((net.mgsx.gltf.scene3d.scene.Scene)p);
+                                    break;
+                                }
+                            }
+                        }
+                        sceneManager.addScene(pbrScene);
+                    }
+                }
+
+                newInstance.calculateTransforms();
+                newInstance.calculateBoundingBox(new BoundingBox());
+                sceneObjects.put(objectId, newInstance);
+
+                Model oldModel = oldInstance.model;
+                if (oldModel != null && loadedModels.get(modelPath) != oldModel) {
+                    loadedModels.values().remove(oldModel);
+                    oldModel.dispose();
+                }
+            }
+        } catch (Exception e) {
+            Gdx.app.error("ThreeDManager", "Could not replace model for object: " + objectId, e);
+        }
     }
 }
 

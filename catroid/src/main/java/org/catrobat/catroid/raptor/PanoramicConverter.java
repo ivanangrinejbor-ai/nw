@@ -18,6 +18,8 @@ public class PanoramicConverter implements Disposable {
     private final ShaderProgram shader;
     private final Mesh skyboxMesh;
     private final PerspectiveCamera camera;
+    private FrameBufferCubemap activeFbo = null;
+    private boolean disposed = false;
 
     public PanoramicConverter() {
         String vertexShader = "attribute vec3 a_position;\n" +
@@ -91,9 +93,13 @@ public class PanoramicConverter implements Disposable {
 
         Cubemap result = fbo.getColorBufferTexture();
 
-        // Do NOT dispose the FBO here: its color buffer texture is the returned Cubemap
-        // and is still referenced by the caller. Disposing it would free the cubemap that
-        // is about to be used (use-after-dispose). The caller owns the returned Cubemap.
+        // Dispose previous FBO before creating a new one to prevent GPU memory leak.
+        // The color buffer texture is detached from the FBO before disposal.
+        if (activeFbo != null && activeFbo != fbo) {
+            activeFbo.dispose();
+        }
+        activeFbo = fbo;
+
         Gdx.app.log("PanoramicConverter", "Conversion finished.");
         return result;
     }
@@ -111,15 +117,21 @@ public class PanoramicConverter implements Disposable {
                 0, 1, 2, 0, 2, 3, 4, 5, 6, 4, 6, 7, 8, 9, 10, 8, 10, 11,
                 12, 13, 14, 12, 14, 15, 16, 17, 18, 16, 18, 19, 20, 21, 22, 20, 22, 23
         };
-        Mesh mesh = new Mesh(true, 24, 36, new VertexAttribute(VertexAttributes.Usage.Position, 3, "a_position"));
-        mesh.setVertices(vertices);
-        mesh.setIndices(indices);
+		Mesh mesh = new Mesh(true, 24, indices.length, new VertexAttribute(VertexAttributes.Usage.Position, 3, "a_position"));
+		mesh.setVertices(vertices);
+		mesh.setIndices(indices);
         return mesh;
     }
 
     @Override
     public void dispose() {
+        if (disposed) return;
+        disposed = true;
         shader.dispose();
         skyboxMesh.dispose();
+        if (activeFbo != null) {
+            activeFbo.dispose();
+            activeFbo = null;
+        }
     }
 }

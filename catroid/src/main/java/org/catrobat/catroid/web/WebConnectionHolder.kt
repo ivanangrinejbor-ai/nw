@@ -38,6 +38,8 @@ class WebConnectionHolder {
     var okHttpClient: OkHttpClient
 
     companion object {
+        // Limit of 10 concurrent connections: balances throughput vs device resource usage.
+        // Avoids thread starvation on low-end devices and excessive battery drain.
         private const val MAX_CONNECTIONS = 10
         private const val TIMEOUT_DURATION = 30L
     }
@@ -59,6 +61,8 @@ class WebConnectionHolder {
         okHttpClient = clientBuilder.build()
 
         okHttpClient.dispatcher.maxRequests = MAX_CONNECTIONS
+        // maxRequestsPerHost = MAX_CONNECTIONS allows up to 10 concurrent requests to the same host
+        // for parallel asset downloads while maintaining overall connection bounds.
         okHttpClient.dispatcher.maxRequestsPerHost = MAX_CONNECTIONS
     }
 
