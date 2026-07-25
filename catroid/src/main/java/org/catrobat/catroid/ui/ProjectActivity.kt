@@ -763,6 +763,47 @@ class ProjectActivity : BaseCastActivity() {
 
     fun handleAddSceneButton() {
         val currentProject = projectManager.currentProject
+
+        // Show choice: Regular or Global scene
+        val options = mutableListOf(getString(R.string.create_regular_scene))
+        if (!currentProject.hasGlobalScene()) {
+            options.add(getString(R.string.create_global_scene))
+        }
+
+        AlertDialog.Builder(this)
+            .setTitle(R.string.new_scene_dialog)
+            .setItems(options.toTypedArray()) { _, which ->
+                if (which == 0) {
+                    showNewSceneNameDialog()
+                } else {
+                    createGlobalScene()
+                }
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
+    }
+
+    private fun createGlobalScene() {
+        val currentProject = projectManager.currentProject
+        if (currentProject.hasGlobalScene()) {
+            ToastUtil.showError(this, R.string.global_scene_already_exists)
+            return
+        }
+        val scene = SceneController.newSceneWithBackgroundSprite(
+            getString(R.string.global_scene_name),
+            getString(R.string.background),
+            currentProject
+        )
+        scene.setGlobalScene(true)
+        currentProject.setGlobalScene(scene)
+        if (currentFragment is SceneListFragment) {
+            (currentFragment as RecyclerViewFragment<*>).notifyDataSetChanged()
+        }
+        ToastUtil.showSuccess(this, getString(R.string.global_scene_name) + " created")
+    }
+
+    private fun showNewSceneNameDialog() {
+        val currentProject = projectManager.currentProject
         val defaultSceneName = UniqueNameProvider().getUniqueNameInNameables(
             resources.getString(R.string.default_scene_name),
             currentProject.sceneList

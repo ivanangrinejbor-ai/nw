@@ -18,6 +18,7 @@ import org.catrobat.catroid.content.Sprite;
 import org.catrobat.catroid.utils.NativeLookOptimizer;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @LunoClass
@@ -63,15 +64,32 @@ public final class CollisionDetection {
 		}
 
 		float[][] firstPreparedPolys = new float[firstPolygons.length][];
+		int firstCount = 0;
 		for (int i = 0; i < firstPolygons.length; i++) {
-			firstPreparedPolys[i] = (firstPolygons[i] != null) ? firstPolygons[i].getTransformedVertices() : new float[0];
+			float[] verts = (firstPolygons[i] != null) ? firstPolygons[i].getTransformedVertices() : null;
+			if (verts != null && verts.length >= 6) {
+				firstPreparedPolys[firstCount++] = verts;
+			}
+		}
+		if (firstCount < firstPolygons.length) {
+			firstPreparedPolys = Arrays.copyOf(firstPreparedPolys, firstCount);
 		}
 
 		float[][] secondPreparedPolys = new float[secondPolygons.length][];
+		int secondCount = 0;
 		for (int i = 0; i < secondPolygons.length; i++) {
-			secondPreparedPolys[i] = (secondPolygons[i] != null) ? secondPolygons[i].getTransformedVertices() : new float[0];
+			float[] verts = (secondPolygons[i] != null) ? secondPolygons[i].getTransformedVertices() : null;
+			if (verts != null && verts.length >= 6) {
+				secondPreparedPolys[secondCount++] = verts;
+			}
+		}
+		if (secondCount < secondPolygons.length) {
+			secondPreparedPolys = Arrays.copyOf(secondPreparedPolys, secondCount);
 		}
 
+		if (firstCount == 0 || secondCount == 0) {
+			return false;
+		}
 		return NativeLookOptimizer.checkSingleCollision(firstPreparedPolys, secondPreparedPolys);
 	}
 
@@ -427,18 +445,24 @@ public final class CollisionDetection {
 		float[][][] allPolygons = new float[activeSprites.size()][][];
 		for (int i = 0; i < activeSprites.size(); i++) {
 			Polygon[] lookPolygons = activeSprites.get(i).look.getCurrentCollisionPolygon();
-			if (lookPolygons == null) {
+			if (lookPolygons == null || lookPolygons.length == 0) {
 				allPolygons[i] = new float[0][];
 				continue;
 			}
-			allPolygons[i] = new float[lookPolygons.length][];
+			float[][] spritePolys = new float[lookPolygons.length][];
+			int polyCount = 0;
 			for (int j = 0; j < lookPolygons.length; j++) {
 				if (lookPolygons[j] != null) {
-					allPolygons[i][j] = lookPolygons[j].getTransformedVertices();
-				} else {
-					allPolygons[i][j] = new float[0];
+					float[] verts = lookPolygons[j].getTransformedVertices();
+					if (verts != null && verts.length >= 6) {
+						spritePolys[polyCount++] = verts;
+					}
 				}
 			}
+			if (polyCount < lookPolygons.length) {
+				spritePolys = Arrays.copyOf(spritePolys, polyCount);
+			}
+			allPolygons[i] = spritePolys;
 		}
 
 		int[] collidingPairs = NativeLookOptimizer.checkAllCollisions(allPolygons);

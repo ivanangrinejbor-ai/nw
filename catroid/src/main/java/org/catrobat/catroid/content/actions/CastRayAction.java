@@ -13,9 +13,6 @@ public class CastRayAction extends TemporalAction {
     public Formula fromX, fromY, fromZ;
     public Formula dirX, dirY, dirZ;
 
-    private static final Vector3 tmpFrom = new Vector3();
-    private static final Vector3 tmpDir = new Vector3();
-
     @Override
     protected void update(float percent) {
         if (scope == null) return;
@@ -28,19 +25,20 @@ public class CastRayAction extends TemporalAction {
             String name = rayName.interpretString(scope);
             if (name.isEmpty()) return;
 
-            tmpFrom.set(
+            // Локальные векторы — нет race condition при параллельном выполнении
+            Vector3 from = new Vector3(
                     fromX.interpretFloat(scope),
                     fromY.interpretFloat(scope),
                     fromZ.interpretFloat(scope)
             );
 
-            tmpDir.set(
+            Vector3 dir = new Vector3(
                     dirX.interpretFloat(scope),
                     dirY.interpretFloat(scope),
                     dirZ.interpretFloat(scope)
             ).nor();
 
-            manager.castRay(name, tmpFrom, tmpDir);
+            manager.castRay(name, from, dir);
         } catch (Exception e) {
             e.printStackTrace();
         }

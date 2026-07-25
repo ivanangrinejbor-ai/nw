@@ -466,6 +466,10 @@ public class FormulaElement implements Serializable {
                     return value;
                 }
             case STRING:
+                // Оператор конкатенации внутри строки: "abc..def" → "abcdef"
+                if (value != null && value.contains("..")) {
+                    return value.replace("..", "");
+                }
                 return value;
             case OPERATOR:
                 return tryInterpretOperator(scope, value);
@@ -1058,6 +1062,8 @@ public class FormulaElement implements Serializable {
                 return tryInterpretFunctionRegex(scope, leftChild, rightChild);
             case LIST_ITEM:
                 return interpretFunctionListItem(arg0, scope);
+            case GET_ITEM:
+                return interpretFunctionGetItem(arg0, arg1, scope);
             case CONTAINS:
                 return interpretFunctionContains(arg1, scope);
             case NUMBER_OF_ITEMS:
@@ -1925,6 +1931,26 @@ public class FormulaElement implements Serializable {
         return userList.getValue().get(index);
     }
 
+    /**
+     * GET_ITEM(номер, "имя_списка") — стабильный доступ к элементу списка по имени.
+     * Имя можно вписать вручную или вставить через палитру данных.
+     */
+    private Object interpretFunctionGetItem(Object indexObj, Object listNameObj, Scope scope) {
+        if (indexObj == null || listNameObj == null || scope == null) return "";
+        String listName = String.valueOf(listNameObj);
+        if (listName.isEmpty()) return "";
+
+        // Ищем список по имени в спрайте, потом в проекте
+        UserList userList = UserDataWrapper.getUserList(listName, scope);
+        if (userList == null) return "";
+
+        Integer idxOpt = tryParseIntFromObject(indexObj);
+        if (idxOpt == null) return "";
+        int index = idxOpt - 1; // 1-based → 0-based
+        if (index < 0 || index >= userList.getValue().size()) return "";
+        return userList.getValue().get(index);
+    }
+
     private Object interpretFunctionConnect(Object right, Scope scope) {
         UserList userlist = getUserListOfChild(leftChild, scope);
         if (userlist == null) return "";
@@ -2471,9 +2497,25 @@ public class FormulaElement implements Serializable {
         }
     }
 
+    private static String concatToString(Object obj) {
+        if (obj instanceof Double) {
+            double d = (Double) obj;
+            if (d == Math.floor(d) && !Double.isInfinite(d)) {
+                return String.valueOf((long) d);
+            }
+            return String.valueOf(d);
+        }
+        return String.valueOf(obj);
+    }
+
     private Object interpretBinaryOperator(@NotNull Operators operator, Scope scope) {
         Object leftObject = tryInterpretElementRecursive(leftChild, scope);
         Object rightObject = tryInterpretElementRecursive(rightChild, scope);
+
+        // Оператор конкатенации (..) — всегда соединяет как строки
+        if (operator == Operators.CONCAT) {
+            return concatToString(leftObject) + concatToString(rightObject);
+        }
 
         // Bug #3: string concatenation for '+'. A String operand means a non-numeric value,
         // so concatenate instead of producing a NaN that later throws InterpretationException.

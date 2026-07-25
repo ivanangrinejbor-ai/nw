@@ -121,6 +121,10 @@ class PathfindingManager {
     fun deleteGrid() {
         navGrid = null
         followers.clear()
+        // Also clear obstacles so they don't leak into a future createGrid() call
+        // (e.g., when switching scenes). Use clearScene() explicitly if you also
+        // want to reset follower state; deleteGrid() just removes the navigation grid.
+        obstacles.clear()
     }
 
     fun rebuildGrid() {
@@ -403,9 +407,11 @@ class PathfindingManager {
     }
 
     private fun heuristic(ax: Int, ay: Int, bx: Int, by: Int): Float {
-        val dx = (ax - bx).toFloat()
-        val dy = (ay - by).toFloat()
-        return kotlin.math.sqrt(dx * dx + dy * dy)
+        // Octile distance — optimal admissible heuristic for 8-directional grids.
+        // Euclidean underestimates diagonal cost and leads to more expanded nodes.
+        val dx = kotlin.math.abs(ax - bx).toFloat()
+        val dy = kotlin.math.abs(ay - by).toFloat()
+        return (dx + dy) + (1.414f - 2f) * minOf(dx, dy)
     }
 
     /**
@@ -596,6 +602,9 @@ class PathfindingManager {
     @Synchronized
     fun update(delta: Float) {
         val stageListener = StageActivity.getActiveStageListener() ?: return
+        // Take a snapshot to avoid ConcurrentModificationException if clones are added
+        // on the GL/render thread while we iterate here on the game-logic thread.
+        val stageSprites = stageListener.spritesFromStage.toList()
         for ((name, follower) in followers) {
             if (follower.state != FollowState.FOLLOWING) continue
             if (follower.currentIndex >= follower.waypoints.size) {
@@ -606,7 +615,7 @@ class PathfindingManager {
             val target = follower.waypoints[follower.currentIndex]
 
             var sprite: Sprite? = null
-            for (s in stageListener.spritesFromStage) {
+            for (s in stageSprites) {
                 if (s.name == name) { sprite = s; break }
             }
             val look = sprite?.look ?: continue

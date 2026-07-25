@@ -114,7 +114,10 @@ public enum Functions {
             RSA_GENERATE_KEY_PAIR, RSA_ENCRYPT, RSA_DECRYPT, RSA_SIGN, RSA_VERIFY, IS_PC, IS_MOBILE,
 
     // -- Tilemap ---
-    TILE_AT_POSITION, IS_SOLID_TILE_AT, TILEMAP_WIDTH, TILEMAP_HEIGHT, TILE_SIZE;
+    TILE_AT_POSITION, IS_SOLID_TILE_AT, TILEMAP_WIDTH, TILEMAP_HEIGHT, TILE_SIZE,
+
+    // -- Stable list access by name ---
+    GET_ITEM;
 
 	private static final String TAG = Functions.class.getSimpleName();
 	// NOTE: unused/dead — visibility is driven by CategoryListFragment lists + InternFormulaKeyboardAdapter

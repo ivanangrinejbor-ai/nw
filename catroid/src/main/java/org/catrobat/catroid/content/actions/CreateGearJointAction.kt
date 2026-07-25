@@ -21,8 +21,10 @@ class CreateGearJointAction : TemporalAction() {
         val r = ratio?.interpretFloat(scope) ?: 1f
 
         val scene = ProjectManager.getInstance().currentlyPlayingScene ?: return
+        val pw = scene.physicsWorld ?: return
 
-        scene.physicsWorld.createGearJoint(id, idA, idB, r)
+        // GearJoint требует оба joint'а быть активными
+        pw.createGearJoint(id, idA, idB, r)
     }
 
     fun setScope(scope: Scope?) {

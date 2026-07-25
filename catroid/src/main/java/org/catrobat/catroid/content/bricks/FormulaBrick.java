@@ -222,7 +222,44 @@ public abstract class FormulaBrick extends BrickBaseType implements View.OnClick
 		for (BiMap.Entry<FormulaField, Integer> entry : brickFieldToTextViewIdMap.entrySet()) {
 			TextView formulaFieldView = view.findViewById(entry.getValue());
 			formulaFieldView.setOnClickListener(this);
+			// Long-click: копировать/вставить формулу между блоками
+			final FormulaField field = entry.getKey();
+			formulaFieldView.setOnLongClickListener(v -> {
+				showFormulaCopyPasteMenu(v, field);
+				return true;
+			});
 		}
+	}
+
+	private void showFormulaCopyPasteMenu(View anchor, FormulaField field) {
+		android.content.Context ctx = anchor.getContext();
+		java.util.List<String> options = new java.util.ArrayList<>();
+		options.add(ctx.getString(R.string.copy) + " формулу");
+		if (org.catrobat.catroid.ui.FormulaEditorClipboard.hasCopiedFormula()) {
+			options.add(ctx.getString(R.string.paste) + " формулу");
+		}
+		new androidx.appcompat.app.AlertDialog.Builder(ctx)
+			.setItems(options.toArray(new String[0]), (dialog, which) -> {
+				if (which == 0) {
+					org.catrobat.catroid.ui.FormulaEditorClipboard.copyWholeFormula(
+						getFormulaWithBrickField(field));
+					android.widget.Toast.makeText(ctx, "Формула скопирована", android.widget.Toast.LENGTH_SHORT).show();
+				} else if (which == 1) {
+					Formula pasted = org.catrobat.catroid.ui.FormulaEditorClipboard.pasteWholeFormula();
+					if (pasted != null) {
+						setFormulaWithBrickField(field, pasted);
+						// Обновить UI
+						FragmentActivity activity = (FragmentActivity) org.catrobat.catroid.ui.UiUtils.getActivityFromView(view);
+						if (activity != null) {
+							ScriptFragment frag = (ScriptFragment) activity.getSupportFragmentManager()
+								.findFragmentByTag(ScriptFragment.TAG);
+							if (frag != null) frag.notifyDataSetChanged();
+						}
+						android.widget.Toast.makeText(ctx, "Формула вставлена", android.widget.Toast.LENGTH_SHORT).show();
+					}
+				}
+			})
+			.show();
 	}
 
 	public List<Formula> getFormulas() {

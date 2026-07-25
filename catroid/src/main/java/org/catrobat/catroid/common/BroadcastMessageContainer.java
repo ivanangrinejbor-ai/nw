@@ -32,6 +32,7 @@ import java.util.Set;
 public class BroadcastMessageContainer {
 
 	private final List<String> broadcastMessages;
+	private final java.util.Map<String, BroadcastMessageScope> messageScopes = new java.util.HashMap<>();
 
 	public BroadcastMessageContainer() {
 		this.broadcastMessages = new ArrayList<>();
@@ -62,5 +63,48 @@ public class BroadcastMessageContainer {
 			update();
 		}
 		return broadcastMessages;
+	}
+
+	// === Scoped Broadcasts ===
+
+	public BroadcastMessageScope getScope(String message) {
+		return messageScopes.get(message);
+	}
+
+	public void setScope(String message, List<String> sceneNames) {
+		if (message == null || message.isEmpty()) return;
+		if (sceneNames == null || sceneNames.isEmpty()) {
+			messageScopes.remove(message);
+		} else {
+			messageScopes.put(message, new BroadcastMessageScope(message, sceneNames));
+		}
+	}
+
+	public boolean isMessageVisibleInScene(String message, String sceneName) {
+		BroadcastMessageScope scope = messageScopes.get(message);
+		if (scope == null) return true; // no scope = global
+		return scope.isAllowedInScene(sceneName);
+	}
+
+	public List<String> getMessagesVisibleInScene(String sceneName) {
+		List<String> result = new ArrayList<>();
+		for (String msg : getBroadcastMessages()) {
+			if (isMessageVisibleInScene(msg, sceneName)) {
+				result.add(msg);
+			}
+		}
+		return result;
+	}
+
+	public void onSceneRemoved(String sceneName) {
+		for (BroadcastMessageScope scope : messageScopes.values()) {
+			scope.removeScene(sceneName);
+		}
+	}
+
+	public void onSceneRenamed(String oldName, String newName) {
+		for (BroadcastMessageScope scope : messageScopes.values()) {
+			scope.renameScene(oldName, newName);
+		}
 	}
 }

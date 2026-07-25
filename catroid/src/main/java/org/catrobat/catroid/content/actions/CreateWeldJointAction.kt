@@ -24,14 +24,15 @@ class CreateWeldJointAction : TemporalAction() {
         val y = anchorY?.interpretFloat(scope) ?: 0f
 
         val spriteA = scope?.sprite ?: return
-        val stage = spriteA.look.stage ?: return
 
         val scene = ProjectManager.getInstance().currentlyPlayingScene ?: return
+        val pw = scene.physicsWorld ?: return
 
-        val spriteB: Sprite = scene.getSpriteAll(otherSpriteName)
-            ?: return
+        val spriteB: Sprite = scene.getSpriteAll(otherSpriteName) ?: return
 
-        scene.physicsWorld.createWeldJoint(id, spriteA, spriteB, Vector2(x, y))
+        if (pw.getPhysicsObject(spriteA) == null || pw.getPhysicsObject(spriteB) == null) return
+
+        pw.createWeldJoint(id, spriteA, spriteB, Vector2(x, y))
     }
 
     fun setScope(scope: Scope?) {

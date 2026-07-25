@@ -673,6 +673,7 @@ import org.catrobat.catroid.content.bricks.WhenNotificationClickedBrick
 import org.catrobat.catroid.content.bricks.WhenProjectExitsBrick
 import org.catrobat.catroid.content.bricks.WhenRaspiPinChangedBrick
 import org.catrobat.catroid.content.bricks.WhenStartedBrick
+import org.catrobat.catroid.content.bricks.WhenSceneLaunchedBrick
 import org.catrobat.catroid.content.bricks.WhenTouchDownBrick
 import org.catrobat.catroid.content.bricks.WriteBaseBrick
 import org.catrobat.catroid.content.bricks.WriteEmbroideryToFileBrick
@@ -894,6 +895,11 @@ open class CategoryBricksFactory {
                 defaultIf.setRightChild(FormulaElement(FormulaElement.ElementType.NUMBER, "2", null))
                 val eventBrickList: MutableList<Brick> = ArrayList()
                 eventBrickList.add(WhenStartedBrick())
+                // "When scene starts" — only in the Global Scene
+                val editedSceneUngrouped = ProjectManager.getInstance().currentlyEditedScene
+                if (editedSceneUngrouped != null && editedSceneUngrouped.isGlobalScene) {
+                    eventBrickList.add(WhenSceneLaunchedBrick())
+                }
                 eventBrickList.add(WhenBrick())
                 eventBrickList.add(WhenTouchDownBrick())
                 val broadcastMessages =
@@ -968,6 +974,11 @@ open class CategoryBricksFactory {
 
         eventBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_event_touch), template))
         eventBrickList.add(WhenStartedBrick())
+        // "When scene starts" — only in the Global Scene
+        val editedSceneGrouped = ProjectManager.getInstance().currentlyEditedScene
+        if (editedSceneGrouped != null && editedSceneGrouped.isGlobalScene) {
+            eventBrickList.add(WhenSceneLaunchedBrick())
+        }
         eventBrickList.add(WhenBrick())
         eventBrickList.add(WhenTouchDownBrick())
         eventBrickList.add(WhenBackPressedBrick())

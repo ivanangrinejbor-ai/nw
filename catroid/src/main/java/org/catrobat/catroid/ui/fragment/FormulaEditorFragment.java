@@ -749,6 +749,38 @@ public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.
 				.show();
 	}
 
+	/**
+	 * Показывает диалог со списком файлов проекта. При выборе вставляет имя файла как STRING в формулу.
+	 */
+	private void showProjectFilePicker() {
+		java.io.File filesDir = ProjectManager.getInstance().getCurrentProject().getFilesDir();
+		if (filesDir == null || !filesDir.exists()) {
+			if (getContext() != null) {
+				android.widget.Toast.makeText(getContext(), "No project files found", android.widget.Toast.LENGTH_SHORT).show();
+			}
+			return;
+		}
+		java.io.File[] files = filesDir.listFiles();
+		if (files == null || files.length == 0) {
+			if (getContext() != null) {
+				android.widget.Toast.makeText(getContext(), "No project files found", android.widget.Toast.LENGTH_SHORT).show();
+			}
+			return;
+		}
+		String[] fileNames = new String[files.length];
+		for (int i = 0; i < files.length; i++) {
+			fileNames[i] = files[i].getName();
+		}
+		java.util.Arrays.sort(fileNames);
+		new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+				.setTitle(R.string.formula_editor_file_picker_title)
+				.setItems(fileNames, (dialog, which) -> {
+					addString(fileNames[which]);
+				})
+				.setNegativeButton(R.string.cancel, null)
+				.show();
+	}
+
 	public void addString(String string) {
 		String previousString = getSelectedFormulaText();
 		Project currentProject = ProjectManager.getInstance().getCurrentProject();
@@ -939,6 +971,9 @@ public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.
 			case R.id.menu_redo:
 				formulaEditorEditText.redo();
 				break;
+			case R.id.menu_file_picker:
+				showProjectFilePicker();
+				break;
 		}
 		updateButtonsOnKeyboardAndInvalidateOptionsMenu();
 		return super.onOptionsItemSelected(item);
@@ -1097,13 +1132,30 @@ public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.
         }
 
         if (hasFormulaBeenChanged || formulaEditorEditText.hasChanges()) {
-            if (saveFormulaIfPossible()) {
-                hasFormulaBeenChanged = false;
-            } else {
-                return;
-            }
+            // Показываем диалог подтверждения вместо молчаливого сохранения
+            new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                .setTitle(R.string.formula_editor_unsaved_title)
+                .setMessage(R.string.formula_editor_unsaved_message)
+                .setPositiveButton(R.string.save, (dialog, which) -> {
+                    if (saveFormulaIfPossible()) {
+                        hasFormulaBeenChanged = false;
+                        doExitFormulaEditor();
+                    }
+                })
+                .setNegativeButton(R.string.discard, (dialog, which) -> {
+                    formulaEditorEditText.endEdit();
+                    hasFormulaBeenChanged = false;
+                    doExitFormulaEditor();
+                })
+                .setNeutralButton(R.string.cancel, null)
+                .show();
+            return;
         }
 
+        doExitFormulaEditor();
+    }
+
+    private void doExitFormulaEditor() {
         ScriptFragment scriptFragment = (ScriptFragment) getActivity().getSupportFragmentManager().findFragmentByTag(ScriptFragment.TAG);
         if (scriptFragment != null) {
             scriptFragment.notifyDataSetChanged();

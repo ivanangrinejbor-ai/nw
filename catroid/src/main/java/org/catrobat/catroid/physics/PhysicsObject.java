@@ -280,6 +280,32 @@ public class PhysicsObject {
 		setVelocity(velocity.x, velocity.y);
 	}
 
+	public void setAngularVelocity(float radiansPerSecond) {
+		body.setAngularVelocity(radiansPerSecond);
+	}
+
+	public void setBullet(boolean bullet) {
+		body.setBullet(bullet);
+	}
+
+	public void setFixedRotation(boolean fixed) {
+		body.setFixedRotation(fixed);
+	}
+
+	public void setGravityScale(float scale) {
+		body.setGravityScale(scale);
+	}
+
+	public float getGravityScale() {
+		return body.getGravityScale();
+	}
+
+	public void setSensor(boolean sensor) {
+		for (com.badlogic.gdx.physics.box2d.Fixture fixture : body.getFixtureList()) {
+			fixture.setSensor(sensor);
+		}
+	}
+
 	public float getMass() {
 		return this.mass;
 	}
@@ -346,18 +372,6 @@ public class PhysicsObject {
 		for (Fixture fixture : body.getFixtureList()) {
 			fixture.setRestitution(bounceFactor);
 		}
-	}
-
-	public void setGravityScale(float scale) {
-		body.setGravityScale(scale);
-	}
-
-	public float getGravityScale() {
-		return body.getGravityScale();
-	}
-
-	public void setFixedRotation(boolean flag) {
-		body.setFixedRotation(flag);
 	}
 
 	public void setIfOnEdgeBounce(boolean bounce, Sprite sprite) {

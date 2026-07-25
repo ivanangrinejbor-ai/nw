@@ -186,8 +186,13 @@ public class InternFormulaParser {
 		FormulaElement loopTermTree;
 		String operatorStringValue;
 
-		while (currentToken.isOperator() && !currentToken.getTokenStringValue().equals(Operators.LOGICAL_NOT.name())) {
-			operatorStringValue = currentToken.getTokenStringValue();
+		while ((currentToken.isOperator() && !currentToken.getTokenStringValue().equals(Operators.LOGICAL_NOT.name()))
+				|| (currentToken.isString() && "..".equals(currentToken.getTokenStringValue()))) {
+			if (currentToken.isString() && "..".equals(currentToken.getTokenStringValue())) {
+				operatorStringValue = Operators.CONCAT.name();
+			} else {
+				operatorStringValue = currentToken.getTokenStringValue();
+			}
 			getNextToken();
 			loopTermTree = term(scope);
 			handleOperator(operatorStringValue, currentElement, loopTermTree);

@@ -2194,6 +2194,13 @@
 <string formatted="false" name="global_scene">Global Scene</string>
 <string formatted="false" name="global_scene_desc">Runs once at project start and persists across all scene changes</string>
 <string formatted="false" name="new_scene">New scene</string>
+<string formatted="false" name="global_scene_name">Global</string>
+<string formatted="false" name="global_scene_description">Runs in background across all scenes</string>
+<string formatted="false" name="create_global_scene">Global scene (background)</string>
+<string formatted="false" name="create_regular_scene">Regular scene</string>
+<string formatted="false" name="global_scene_already_exists">Only one global scene allowed</string>
+<string formatted="false" name="make_visible_on_scenes">Show on all scenes</string>
+<string formatted="false" name="make_invisible_on_scenes">Hide from all scenes</string>
 <string formatted="false" name="backpack_empty">Backpack empty. Nothing to unpack.</string>
 <string formatted="false" name="packed_script_group">Backpacked one script group.</string>
 <string formatted="false" name="renamed_project">Renamed project</string>
@@ -2457,6 +2464,11 @@
 <string formatted="false" name="stage_dialog_embroidery">Embroidery</string>
 <string formatted="false" name="dialog_new_broadcast_message_title">New message</string>
 <string formatted="false" name="dialog_broadcast_message_name">message:</string>
+<string formatted="false" name="broadcast_scope_title">Signal scope</string>
+<string formatted="false" name="broadcast_scope_global">All scenes (global)</string>
+<string formatted="false" name="broadcast_scope_specific">Only specific scenes...</string>
+<string formatted="false" name="broadcast_scope_select_scenes">Select receiving scenes</string>
+<string formatted="false" name="brick_when_scene_launched">When scene starts</string>
 <string formatted="false" name="dialog_edit_broadcast_message_title">Edit message</string>
 <string formatted="false" name="brick_when_nfc_edit_list_of_nfc_tags">Edit list of NFC tags</string>
 <string formatted="false" name="brick_when_nfc_default_all">all</string>
@@ -2547,6 +2559,17 @@
 <string formatted="false" name="brick_set_gravity_unit">steps/secondT-</string>
 <string formatted="false" name="brick_set_velocity_to">"Set velocity to"</string>
 <string formatted="false" name="brick_set_velocity_unit">steps/second</string>
+<string formatted="false" name="brick_set_angular_velocity">Set angular velocity to</string>
+<string formatted="false" name="brick_set_angular_velocity_unit">°/sec</string>
+<string formatted="false" name="brick_set_linear_damping">Set linear damping to</string>
+<string formatted="false" name="brick_set_angular_damping">Set angular damping to</string>
+<string formatted="false" name="brick_set_fixed_rotation">Set fixed rotation</string>
+<string formatted="false" name="brick_set_bullet">Set bullet mode</string>
+<string formatted="false" name="brick_set_gravity_scale">Set gravity scale to</string>
+<string formatted="false" name="brick_apply_force_at_point">Apply force</string>
+<string formatted="false" name="brick_apply_force_at_point_x">at x</string>
+<string formatted="false" name="brick_apply_force_at_point_y">y</string>
+<string formatted="false" name="brick_set_physics_sensor">Set as sensor</string>
 <string formatted="false" name="brick_turn_speed_unit">degrees/second</string>
 <string formatted="false" name="brick_set_friction">"Set friction to"</string>
 <string formatted="false" name="brick_set_bounce_factor">"Set bounce factor to"</string>
@@ -2615,6 +2638,17 @@
 <string formatted="false" name="brick_play_sound_and_wait">Start sound and wait</string>
 <string formatted="false" name="brick_stop_sound">Stop sound</string>
 <string formatted="false" name="brick_stop_all_sounds">Stop all sounds</string>
+<string formatted="false" name="brick_pause_sound">Pause sound</string>
+<string formatted="false" name="brick_resume_sound">Resume sound</string>
+<string formatted="false" name="brick_set_sound_loop">Set loop for</string>
+<string formatted="false" name="brick_set_sound_loop_state">loop</string>
+<string formatted="false" name="brick_cross_fade_sound">Cross-fade from</string>
+<string formatted="false" name="brick_cross_fade_sound_to">to</string>
+<string formatted="false" name="brick_cross_fade_sound_duration">duration (sec)</string>
+<string formatted="false" name="brick_play_sound_with_speed">Play sound</string>
+<string formatted="false" name="brick_play_sound_with_speed_param">at speed</string>
+<string formatted="false" name="brick_set_game_volume">Set game volume to</string>
+<string formatted="false" name="brick_set_game_volume_percent">%</string>
 <string formatted="false" name="brick_set_volume_to">Set volume to</string>
 <string formatted="false" name="brick_change_volume_by">Change volume by</string>
 <string formatted="false" name="brick_speak">Speak</string>
@@ -2719,6 +2753,8 @@
 <string formatted="false" name="brick_if_begin">If</string>
 <string formatted="false" name="brick_if_begin_second_part">is true then</string>
 <string formatted="false" name="brick_if_else">Else</string>
+<string formatted="false" name="brick_else_if">Else if</string>
+<string formatted="false" name="brick_add_else_if">+ one more condition</string>
 <string formatted="false" name="brick_if_end">End if</string>
 <string formatted="false" name="brick_set_variable">Set variable</string>
 <string formatted="false" name="brick_change_variable">Change variable</string>
@@ -3233,6 +3269,8 @@
 <string formatted="false" name="formula_editor_function_touch_parameter">(1)</string>
 <string formatted="false" name="formula_editor_function_list_item">item</string>
 <string formatted="false" name="formula_editor_function_list_item_parameter">(1,*list name*)</string>
+<string formatted="false" name="formula_editor_function_get_item">element from list</string>
+<string formatted="false" name="formula_editor_function_get_item_parameter">(index, "list name")</string>
 <string formatted="false" name="formula_editor_function_contains">contains</string>
 <string formatted="false" name="formula_editor_function_contains_parameter">(*list name*,1)</string>
 <string formatted="false" name="formula_editor_function_index_of_item">item\'s index</string>
@@ -3374,6 +3412,10 @@
 <string formatted="false" name="formula_editor_device_nfc">NFC</string>
 <string formatted="false" name="formula_editor_device_cast">Chromecast</string>
 <string formatted="false" name="formula_editor_string">Abc</string>
+<string formatted="false" name="formula_editor_file_picker">Pick file</string>
+<string formatted="false" name="formula_editor_file_picker_title">Project files</string>
+<string formatted="false" name="formula_editor_unsaved_title">Unsaved changes</string>
+<string formatted="false" name="formula_editor_unsaved_message">The formula has been modified. Save changes?</string>
 <string formatted="false" name="formula_editor_logic_notequal">&#x2260;</string>
 <string formatted="false" name="formula_editor_logic_lesserthan">&lt;</string>
 <string formatted="false" name="formula_editor_logic_greaterthan">&gt;</string>
@@ -3388,6 +3430,7 @@
 <string formatted="false" name="formula_editor_operator_minus">-</string>
 <string formatted="false" name="formula_editor_operator_divide">+�</string>
 <string formatted="false" name="formula_editor_operator_power">^</string>
+<string formatted="false" name="formula_editor_operator_concat">..</string>
 <string formatted="false" name="formula_editor_image_button_description_delete">delete</string>
 <string formatted="false" name="formula_editor_image_button_description_color_picker">color picker</string>
 <string formatted="false" name="formula_editor_image_button_description_functions_toggle">toggle functions</string>
@@ -4807,6 +4850,7 @@ needs read and write access to it. You can always change permissions through you
     <string name="tilemap_unsaved_message">Save changes to the tilemap before leaving?</string>
     <string name="tilemap_discard">Discard</string>
     <string name="tilemap_error_tileset">Could not load tileset</string>
+    <string name="tilemap_save_error">Save failed</string>
 
     <!-- Tilemap bricks -->
     <string name="brick_set_tile">set tile at column</string>

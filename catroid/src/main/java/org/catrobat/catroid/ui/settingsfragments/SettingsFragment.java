@@ -456,46 +456,46 @@ public class SettingsFragment extends PreferenceFragment {
 		String key = preference.getKey();
 		switch (key) {
 			case AI_SENSORS_SCREEN_KEY:
-				getParentFragmentManager().beginTransaction()
+				getFragmentManager().beginTransaction()
 						.replace(R.id.content_frame, new AISettingsFragment(),
 								AISettingsFragment.Companion.getTAG())
 						.addToBackStack(AISettingsFragment.Companion.getTAG())
 						.commit();
 				break;
 			case AI_AGENT_SCREEN_KEY:
-				getParentFragmentManager().beginTransaction()
+				getFragmentManager().beginTransaction()
 						.replace(R.id.content_frame, new AiAgentSettingsFragment(),
 								AiAgentSettingsFragment.TAG)
 						.addToBackStack(AiAgentSettingsFragment.TAG)
 						.commit();
 				break;
 			case ACCESSIBILITY_SCREEN_KEY:
-				getParentFragmentManager().beginTransaction()
+				getFragmentManager().beginTransaction()
 						.replace(R.id.content_frame, new AccessibilitySettingsFragment(), AccessibilitySettingsFragment.TAG)
 						.addToBackStack(AccessibilitySettingsFragment.TAG)
 						.commit();
 				break;
 			case NXT_SCREEN_KEY:
-				getParentFragmentManager().beginTransaction()
+				getFragmentManager().beginTransaction()
 						.replace(R.id.content_frame, new NXTSensorsSettingsFragment(), NXTSensorsSettingsFragment.TAG)
 						.addToBackStack(NXTSensorsSettingsFragment.TAG)
 						.commit();
 				break;
 			case EV3_SCREEN_KEY:
-				getParentFragmentManager().beginTransaction()
+				getFragmentManager().beginTransaction()
 						.replace(R.id.content_frame, new Ev3SensorsSettingsFragment(), Ev3SensorsSettingsFragment.TAG)
 						.addToBackStack(Ev3SensorsSettingsFragment.TAG)
 						.commit();
 				break;
 			case DRONE_SCREEN_KEY:
-				getParentFragmentManager().beginTransaction()
+				getFragmentManager().beginTransaction()
 						.replace(R.id.content_frame, new ParrotARDroneSettingsFragment(),
 								ParrotARDroneSettingsFragment.TAG)
 						.addToBackStack(ParrotARDroneSettingsFragment.TAG)
 						.commit();
 				break;
 			case RASPBERRY_SCREEN_KEY:
-				getParentFragmentManager().beginTransaction()
+				getFragmentManager().beginTransaction()
 						.replace(R.id.content_frame, new RaspberryPiSettingsFragment(), RaspberryPiSettingsFragment.TAG)
 						.addToBackStack(RaspberryPiSettingsFragment.TAG)
 						.commit();

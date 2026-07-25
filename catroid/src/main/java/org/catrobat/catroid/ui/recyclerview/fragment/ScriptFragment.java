@@ -755,6 +755,7 @@ public class ScriptFragment extends ListFragment implements
 	}
 
 	private void showCategoryFragment() {
+		stopAiAnalysisTimer();
 		BrickCategoryFragment brickCategoryFragment = new BrickCategoryFragment();
 		brickCategoryFragment.setOnCategorySelectedListener(this);
 
@@ -766,6 +767,7 @@ public class ScriptFragment extends ListFragment implements
 
 	@Override
 	public void onCategorySelected(String category) {
+		stopAiAnalysisTimer();
 		ListFragment fragment = null;
 		String tag = "";
 		Fragment currentFragment = getParentFragmentManager().findFragmentById(R.id.fragment_container);
@@ -866,6 +868,7 @@ public class ScriptFragment extends ListFragment implements
 	}
 
 	public void handleAddButton() {
+		stopAiAnalysisTimer();
 		if (listView.isCurrentlyHighlighted()) {
 			listView.cancelHighlighting();
 		}

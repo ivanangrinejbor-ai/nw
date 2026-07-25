@@ -54,6 +54,16 @@ public class IfThenLogicBeginBrick extends FormulaBrick implements CompositeBric
 		setFormulaWithBrickField(Brick.BrickField.IF_CONDITION, formula);
 	}
 
+	private Object readResolve() {
+		if (endBrick == null) {
+			endBrick = new EndBrick(this, R.layout.brick_if_end_if);
+		}
+		if (ifBranchBricks == null) {
+			ifBranchBricks = new ArrayList<>();
+		}
+		return this;
+	}
+
 	@Override
 	public boolean hasSecondaryList() {
 		return false;

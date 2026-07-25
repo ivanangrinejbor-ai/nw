@@ -57,10 +57,14 @@ public class ClearTileAction extends TemporalAction {
 		try {
 			int col = column == null ? 0 : column.interpretFloat(scope).intValue();
 			int r = row == null ? 0 : row.interpretFloat(scope).intValue();
+			// Bounds check
+			if (col < 0 || r < 0 || col >= tilemap.getMapColumns() || r >= tilemap.getMapRows()) return;
 			if (tilemap.setTile(col, r, TilemapLookData.EMPTY)) {
 				TilemapRuntime runtime = TilemapRuntimeManager.peek(tilemap);
 				if (runtime != null) {
 					runtime.invalidatePhysics();
+					// Invalidate visual regions so the cleared tile is redrawn as empty
+					runtime.invalidateRegions();
 				}
 			}
 		} catch (InterpretationException e) {

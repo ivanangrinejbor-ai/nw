@@ -27,6 +27,6 @@ import org.catrobat.catroid.ProjectManager
 import org.catrobat.catroid.content.Sprite
 
 abstract class MultiSpriteEventAction : EventAction() {
-    override val receivingSprites: List<Sprite> =
-        ProjectManager.getInstance().currentProject.spriteListWithClones
+    override val receivingSprites: List<Sprite>
+        get() = ProjectManager.getInstance().currentProject?.spriteListWithClones ?: emptyList()
 }

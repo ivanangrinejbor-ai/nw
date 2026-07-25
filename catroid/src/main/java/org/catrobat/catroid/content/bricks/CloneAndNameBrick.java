@@ -6,6 +6,7 @@ import android.view.View;
 import org.catrobat.catroid.ProjectManager;
 import org.catrobat.catroid.R;
 import org.catrobat.catroid.common.Nameable;
+import org.catrobat.catroid.content.Project;
 import org.catrobat.catroid.content.Scope;
 import org.catrobat.catroid.content.Sprite;
 import org.catrobat.catroid.content.actions.ScriptSequenceAction;
@@ -62,6 +63,16 @@ public class CloneAndNameBrick extends FormulaBrick implements BrickSpinner.OnIt
         items.addAll(ProjectManager.getInstance().getCurrentlyEditedScene().getSpriteList());
         items.remove(ProjectManager.getInstance().getCurrentlyEditedScene().getBackgroundSprite());
         items.remove(ProjectManager.getInstance().getCurrentSprite());
+
+        // Also include global scene sprites so they can be cloned from any scene
+        Project project = ProjectManager.getInstance().getCurrentProject();
+        if (project != null && project.hasGlobalScene()) {
+            for (Sprite globalSprite : project.getGlobalScene().getSpriteList()) {
+                if (!items.contains(globalSprite)) {
+                    items.add(globalSprite);
+                }
+            }
+        }
 
         spinner = new BrickSpinner<>(R.id.brick_clone_spinner, view, items);
         spinner.setOnItemSelectedListener(this);

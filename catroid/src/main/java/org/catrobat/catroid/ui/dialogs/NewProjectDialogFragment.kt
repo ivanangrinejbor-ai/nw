@@ -2,6 +2,7 @@ package org.catrobat.catroid.ui.dialogs
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.preference.PreferenceManager
 import android.text.Editable
 import android.util.TypedValue
@@ -167,6 +168,9 @@ class NewProjectDialogFragment : DialogFragment() {
             }
             activity?.startActivity(Intent(activity, ProjectActivity::class.java))
         } catch (_: IOException) {
+            ToastUtil.showError(activity, R.string.error_new_project)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to create project", e)
             ToastUtil.showError(activity, R.string.error_new_project)
         }
     }

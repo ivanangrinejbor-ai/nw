@@ -1,9 +1,12 @@
 package org.catrobat.catroid.ai.model
 
 import android.util.Log
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import java.io.File
+
 
 object ModelRuntime {
 
@@ -95,7 +98,11 @@ object ModelRuntime {
         return generateMutex.withLock {
             if (nativeLoaded && nativeContext != 0L) {
                 try {
-                    val raw = nativeGenerate(nativeContext, input, temperature, maxTokens)
+                    // Run blocking native inference on IO dispatcher so Default
+                    // threads remain responsive and the UI doesn't freeze.
+                    val raw = withContext(Dispatchers.IO) {
+                        nativeGenerate(nativeContext, input, temperature, maxTokens)
+                    }
                     val trimmed = raw.trim()
                     when {
                         trimmed.isEmpty() -> "Error: model generated empty response. The model may be incompatible or corrupted."

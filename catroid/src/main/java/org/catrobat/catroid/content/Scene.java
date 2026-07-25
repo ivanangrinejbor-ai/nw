@@ -55,6 +55,7 @@ import androidx.annotation.NonNull;
 		"sceneId",
 		"name",
 		"objectList",
+		"isGlobalScene",
 		"transitionType",
 		"transitionDuration",
 		"startTransitionType",
@@ -93,6 +94,7 @@ public class Scene implements Nameable, Serializable {
 
 	private transient PhysicsWorld physicsWorld;
 	private transient Project project;
+	private boolean isGlobalScene = false;
 
 	public transient boolean firstStart = true;
 
@@ -135,6 +137,14 @@ public class Scene implements Nameable, Serializable {
 
 	public synchronized void setName(String name) {
 		this.name = name;
+	}
+
+	public boolean isGlobalScene() {
+		return isGlobalScene;
+	}
+
+	public void setGlobalScene(boolean globalScene) {
+		this.isGlobalScene = globalScene;
 	}
 
 	public int getTransitionType() {

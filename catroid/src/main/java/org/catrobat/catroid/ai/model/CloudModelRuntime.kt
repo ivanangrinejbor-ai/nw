@@ -11,7 +11,6 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.catrobat.catroid.ai.settings.AiPreferences
-import org.catrobat.catroid.content.CustomDns
 import org.catrobat.catroid.content.GeminiManager
 import org.json.JSONArray
 import org.json.JSONObject
@@ -36,7 +35,7 @@ object CloudModelRuntime {
 
     private val okHttpClient by lazy {
         OkHttpClient.Builder()
-            .dns(CustomDns())
+            // Use OkHttp's standard DNS — CustomDns is deprecated and broken.
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(60, TimeUnit.SECONDS)
             .writeTimeout(30, TimeUnit.SECONDS)

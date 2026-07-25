@@ -39,6 +39,7 @@ public class ChangeVolumeByNAction extends TemporalAction {
 	@Override
 	protected void update(float percent) {
 		if (scope == null) return;
+		if (org.catrobat.catroid.content.GlobalManager.Companion.getGameVolume() != null) return;
 		try {
 			Float newVolume = volume == null ? Float.valueOf(0f) : volume.interpretFloat(scope);
 			AudioServiceHolder.audioService.setVolume(AudioServiceHolder.audioService.getVolume() + newVolume);

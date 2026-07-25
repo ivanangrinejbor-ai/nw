@@ -773,7 +773,12 @@ public class InternFormula {
 		if (cursorPositionInternToken.isNumber() && InternFormulaUtils.isPeriodToken(internTokensToInsert)) {
 			String numberString = cursorPositionInternToken.getTokenStringValue();
 			if (numberString.contains(".")) {
-				return CursorTokenPropertiesAfterModification.DO_NOT_MODIFY;
+				// Second dot = insert CONCAT operator ".." as STRING token
+				internTokenFormulaList.add(cursorPositionInternTokenIndex + 1,
+						new InternToken(InternTokenType.STRING, ".."));
+				cursorPositionInternToken = null;
+				cursorPositionInternTokenIndex = cursorPositionInternTokenIndex + 1;
+				return CursorTokenPropertiesAfterModification.RIGHT;
 			}
 
 			InternFormulaUtils.insertIntoNumberToken(cursorPositionInternToken, 0, "0.");
@@ -795,7 +800,11 @@ public class InternFormula {
 
 			String numberString = firstLeftInternToken.getTokenStringValue();
 			if (numberString.contains(".")) {
-				return CursorTokenPropertiesAfterModification.DO_NOT_MODIFY;
+				// Second dot = insert CONCAT operator
+				internTokenFormulaList.add(cursorPositionInternTokenIndex,
+						new InternToken(InternTokenType.STRING, ".."));
+				cursorPositionInternToken = null;
+				return CursorTokenPropertiesAfterModification.RIGHT;
 			}
 
 			firstLeftInternToken.appendToTokenStringValue(".");
@@ -837,7 +846,12 @@ public class InternFormula {
 		if (cursorPositionInternToken.isNumber() && InternFormulaUtils.isPeriodToken(internTokensToInsert)) {
 			String numberString = cursorPositionInternToken.getTokenStringValue();
 			if (numberString.contains(".")) {
-				return CursorTokenPropertiesAfterModification.DO_NOT_MODIFY;
+				// Second dot = insert CONCAT operator ".." as STRING token
+				internTokenFormulaList.add(cursorPositionInternTokenIndex + 1,
+						new InternToken(InternTokenType.STRING, ".."));
+				cursorPositionInternToken = null;
+				cursorPositionInternTokenIndex = cursorPositionInternTokenIndex + 1;
+				return CursorTokenPropertiesAfterModification.RIGHT;
 			}
 			cursorPositionInternToken.appendToTokenStringValue(".");
 
@@ -944,7 +958,12 @@ public class InternFormula {
 
 			String numberString = cursorPositionInternToken.getTokenStringValue();
 			if (numberString.contains(".")) {
-				return CursorTokenPropertiesAfterModification.DO_NOT_MODIFY;
+				// Second dot = insert CONCAT operator
+				internTokenFormulaList.add(cursorPositionInternTokenIndex + 1,
+						new InternToken(InternTokenType.STRING, ".."));
+				cursorPositionInternToken = null;
+				cursorPositionInternTokenIndex = cursorPositionInternTokenIndex + 1;
+				return CursorTokenPropertiesAfterModification.RIGHT;
 			}
 
 			int externNumberOffset = externInternRepresentationMapping.getExternTokenStartOffset(externCursorPosition,

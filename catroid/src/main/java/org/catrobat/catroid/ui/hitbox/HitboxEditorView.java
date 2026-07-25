@@ -462,6 +462,7 @@ public class HitboxEditorView extends View {
 
     private void handleMove(float x, float y) {
         if (selectedIndex < 0 || selectedIndex >= hitboxes.size()) return;
+        if (Math.abs(imageScale) < 0.0001f) return;
         HitboxData hb = hitboxes.get(selectedIndex);
         float dx = (x - lastTouchX) / imageScale;
         float dy = (y - lastTouchY) / imageScale;
@@ -473,27 +474,31 @@ public class HitboxEditorView extends View {
                 break;
             case MODE_RESIZE_TOP:
                 // Drag top edge: bottom edge stays fixed, center shifts by half
-                hb.height -= dy;
+                float newHeightT = hb.height - dy;
+                if (newHeightT < 10) { dy = hb.height - 10; newHeightT = 10; }
+                hb.height = newHeightT;
                 hb.y += dy / 2f;
-                if (hb.height < 10) hb.height = 10;
                 break;
             case MODE_RESIZE_BOTTOM:
                 // Drag bottom edge: top edge stays fixed
-                hb.height += dy;
+                float newHeightB = hb.height + dy;
+                if (newHeightB < 10) { dy = 10 - hb.height; newHeightB = 10; }
+                hb.height = newHeightB;
                 hb.y += dy / 2f;
-                if (hb.height < 10) hb.height = 10;
                 break;
             case MODE_RESIZE_LEFT:
                 // Drag left edge: right edge stays fixed
-                hb.width -= dx;
+                float newWidthL = hb.width - dx;
+                if (newWidthL < 10) { dx = hb.width - 10; newWidthL = 10; }
+                hb.width = newWidthL;
                 hb.x += dx / 2f;
-                if (hb.width < 10) hb.width = 10;
                 break;
             case MODE_RESIZE_RIGHT:
                 // Drag right edge: left edge stays fixed
-                hb.width += dx;
+                float newWidthR = hb.width + dx;
+                if (newWidthR < 10) { dx = 10 - hb.width; newWidthR = 10; }
+                hb.width = newWidthR;
                 hb.x += dx / 2f;
-                if (hb.width < 10) hb.width = 10;
                 break;
             case MODE_ROTATE:
                 float cx = getWidth() / 2f + hb.x * imageScale;

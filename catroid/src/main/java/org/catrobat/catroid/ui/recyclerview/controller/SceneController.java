@@ -41,6 +41,7 @@ import org.catrobat.catroid.utils.FileMetaDataExtractor;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import static org.catrobat.catroid.common.Constants.IMAGE_DIRECTORY_NAME;
 import static org.catrobat.catroid.common.Constants.SCREENSHOT_AUTOMATIC_FILE_NAME;
@@ -76,7 +77,14 @@ public class SceneController {
 
 		if (renamed) {
 			sceneToRename.setName(name);
-			for (Scene scene : ProjectManager.getInstance().getCurrentProject().getSceneList()) {
+			Project currentProject = ProjectManager.getInstance().getCurrentProject();
+
+			// Build full list: regular scenes + globalScene
+			List<Scene> allScenes = new java.util.ArrayList<>(currentProject.getSceneList());
+			if (currentProject.hasGlobalScene()) {
+				allScenes.add(currentProject.getGlobalScene());
+			}
+			for (Scene scene : allScenes) {
 				for (Sprite sprite : scene.getSpriteList()) {
 					for (Brick brick : sprite.getAllBricks()) {
 						if (brick instanceof SceneStartBrick
@@ -139,6 +147,17 @@ public class SceneController {
 
 	public void delete(Scene sceneToDelete) throws IOException {
 		Project currentProject = ProjectManager.getInstance().getCurrentProject();
+
+		// Check if this is the dedicated globalScene (new system)
+		if (sceneToDelete.isGlobalScene() || sceneToDelete.equals(currentProject.getGlobalScene())) {
+			// Nullify the project.globalScene field — removeScene() won't help since it's not in sceneList
+			currentProject.setGlobalScene(null);
+			StorageOperations.deleteDir(sceneToDelete.getDirectory());
+			XstreamSerializer.getInstance().saveProject(currentProject);
+			return;
+		}
+
+		// Legacy: sprites with isGlobal=true flag — migrate them to first scene
 		for (Sprite sprite : sceneToDelete.getSpriteList()) {
 			if (sprite.isGlobal()) {
 				if (!currentProject.getSceneList().isEmpty()) {

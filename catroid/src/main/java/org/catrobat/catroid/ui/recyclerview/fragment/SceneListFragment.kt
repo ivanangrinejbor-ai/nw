@@ -57,7 +57,8 @@ class SceneListFragment : RecyclerViewFragment<Scene?>(),
     override fun onResume() {
         super.onResume()
         val currentProject = projectManager.currentProject
-        if (currentProject.sceneList.size < 2) {
+        val hasMultipleScenes = currentProject.sceneList.size > 1 || currentProject.hasGlobalScene()
+        if (!hasMultipleScenes) {
             projectManager.currentlyEditedScene = currentProject.defaultScene
             switchToSpriteListFragment()
         }
@@ -79,7 +80,14 @@ class SceneListFragment : RecyclerViewFragment<Scene?>(),
 
     override fun initializeAdapter() {
         sharedPreferenceDetailsKey = SharedPreferenceKeys.SHOW_DETAILS_SCENES_PREFERENCE_KEY
-        adapter = SceneAdapter(ArrayList(projectManager.currentProject.sceneList))
+        val scenes = ArrayList<Scene?>()
+        // Global scene first (if exists)
+        val project = projectManager.currentProject
+        if (project.hasGlobalScene()) {
+            scenes.add(project.globalScene)
+        }
+        scenes.addAll(project.sceneList)
+        adapter = SceneAdapter(scenes)
         onAdapterReady()
     }
 
@@ -182,10 +190,11 @@ class SceneListFragment : RecyclerViewFragment<Scene?>(),
             )
         )
         finishActionMode()
-        if (adapter.items.isEmpty()) {
+        val currentProject = projectManager.currentProject
+        // Only regular scenes matter for the "empty" check — globalScene is separate
+        if (currentProject.sceneList.isEmpty()) {
             createEmptySceneWithDefaultName()
         }
-        val currentProject = projectManager.currentProject
         if (currentProject.sceneList.size < 2) {
             projectManager.currentlyEditedScene = currentProject.defaultScene
             switchToSpriteListFragment()
@@ -195,15 +204,21 @@ class SceneListFragment : RecyclerViewFragment<Scene?>(),
     private fun createEmptySceneWithDefaultName() {
         setShowProgressBar(true)
         val currentProject = projectManager.currentProject
-        val globalSprites = currentProject.allGlobalSprites.toList()
-        for (sprite in globalSprites) {
+        // Create a fresh default scene with just a background sprite.
+        // Legacy "isGlobal" sprites are migrated to this new scene;
+        // the dedicated globalScene (project.globalScene) is left untouched.
+        val legacyGlobalSprites = currentProject.sceneList
+            .flatMap { it.getSpriteList() }
+            .filter { it.isGlobal() }
+            .toList()
+        for (sprite in legacyGlobalSprites) {
             currentProject.sceneList.forEach { it.removeSprite(sprite) }
         }
         val scene = Scene(getString(R.string.default_scene_name), currentProject)
         val backgroundSprite = Sprite(getString(R.string.background))
         backgroundSprite.look.zIndex = Constants.Z_INDEX_BACKGROUND
         scene.addSprite(backgroundSprite)
-        for (sprite in globalSprites) {
+        for (sprite in legacyGlobalSprites) {
             scene.addSprite(sprite)
         }
         adapter.add(scene)
@@ -396,7 +411,13 @@ class SceneListFragment : RecyclerViewFragment<Scene?>(),
             ToastUtil.showError(activity, R.string.error_load_project)
             return
         }
-        adapter.items = projectManager.currentProject.sceneList
+        val scenes = ArrayList<Scene?>()
+        val project = projectManager.currentProject
+        if (project.hasGlobalScene()) {
+            scenes.add(project.globalScene)
+        }
+        scenes.addAll(project.sceneList)
+        adapter.items = scenes
     }
 
     companion object {

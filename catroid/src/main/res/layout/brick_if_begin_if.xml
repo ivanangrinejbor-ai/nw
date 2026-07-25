@@ -38,7 +38,9 @@
 
     <org.catrobat.catroid.ui.BrickLayout
         android:id="@+id/brick_if_begin_layout"
-        style="@style/BrickContainer.Control.Small">
+        style="@style/BrickContainer.Control.Small"
+        android:layout_width="0dp"
+        android:layout_weight="1">
 
         <include layout="@layout/icon_brick_category_control" />
 
@@ -75,5 +77,20 @@
            android:text="@string/punctuation_mark"
            android:visibility="gone" />
     </org.catrobat.catroid.ui.BrickLayout>
+
+    <TextView
+        android:id="@+id/brick_if_add_else_if"
+        android:layout_width="wrap_content"
+        android:layout_height="26dp"
+        android:layout_marginStart="6dp"
+        android:layout_gravity="center_vertical"
+        android:gravity="center"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:background="@drawable/brick_add_condition_bg"
+        android:text="@string/brick_add_else_if"
+        android:textColor="#FFFFFFFF"
+        android:textSize="11sp"
+        android:textStyle="bold" />
 
 </LinearLayout>

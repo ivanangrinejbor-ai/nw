@@ -20,9 +20,13 @@ class CreateRevoluteJointAction : TemporalAction() {
         val y = anchorY?.interpretFloat(scope) ?: 0f
 
         val scene = ProjectManager.getInstance().currentlyPlayingScene ?: return
+        val pw = scene.physicsWorld ?: return
         val spriteA = scope?.sprite ?: return
         val spriteB = scene.getSpriteAll(otherSpriteName) ?: return
 
-        scene.physicsWorld.createRevoluteJoint(id, spriteA, spriteB, Vector2(x, y))
+        // Проверка: оба спрайта должны иметь PhysicsObject
+        if (pw.getPhysicsObject(spriteA) == null || pw.getPhysicsObject(spriteB) == null) return
+
+        pw.createRevoluteJoint(id, spriteA, spriteB, Vector2(x, y))
     }
 }

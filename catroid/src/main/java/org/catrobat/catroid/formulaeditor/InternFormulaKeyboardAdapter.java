@@ -551,6 +551,10 @@ case R.string.formula_editor_function_state_time:
 				return buildDoubleParameterFunction(Functions.INDEX_OF_ITEM,
 						NUMBER, "1",
 						USER_LIST, "list_name");
+			case R.string.formula_editor_function_get_item:
+				return buildDoubleParameterFunction(Functions.GET_ITEM,
+						NUMBER, "1",
+						STRING, "list name");
 			case R.string.formula_editor_function_json_get:
 				return buildDoubleParameterFunction(Functions.JSON_GET, STRING, "{\"id\": 1, \"data\": {\"value\": \"text\"}}", STRING, "data.value");
 			case R.string.formula_editor_function_json_set:
@@ -1119,6 +1123,22 @@ case R.string.formula_editor_function_state_time:
 				return buildDoubleParameterFunction(Functions.RSA_SIGN, STRING, "text", STRING, "privateKey");
 			case R.string.formula_crypto_rsa_verify:
 				return buildTripleParameterFunction(Functions.RSA_VERIFY, STRING, "text", STRING, "signature", STRING, "publicKey");
+
+			// NeoCatroid: Tilemap
+			case R.string.formula_tile_at_position:
+				return buildDoubleParameterFunction(Functions.TILE_AT_POSITION,
+						NUMBER, "1",
+						NUMBER, "1");
+			case R.string.formula_is_solid_tile_at:
+				return buildDoubleParameterFunction(Functions.IS_SOLID_TILE_AT,
+						NUMBER, "1",
+						NUMBER, "1");
+			case R.string.formula_tilemap_width:
+				return buildFunctionWithoutParametersAndBrackets(Functions.TILEMAP_WIDTH);
+			case R.string.formula_tilemap_height:
+				return buildFunctionWithoutParametersAndBrackets(Functions.TILEMAP_HEIGHT);
+			case R.string.formula_tile_size:
+				return buildFunctionWithoutParametersAndBrackets(Functions.TILE_SIZE);
 
 		}
 		return null;

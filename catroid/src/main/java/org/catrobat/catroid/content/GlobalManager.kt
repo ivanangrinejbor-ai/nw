@@ -10,6 +10,17 @@ class GlobalManager {
         private val _saveScenes = AtomicBoolean(true)
         private val _preloadProject = AtomicBoolean(false)
 
+        /**
+         * Мастер-громкость игры (0..100). null = не активна.
+         * Когда задана, все остальные блоки громкости игнорируются.
+         */
+        @Volatile
+        @JvmStatic
+        var gameVolume: Int? = null
+
+        @JvmStatic
+        fun getInstance(): GlobalManager = GlobalManager()
+
         var stopSounds: Boolean
             get() = _stopSounds.get()
             set(value) = _stopSounds.set(value)

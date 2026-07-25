@@ -136,7 +136,6 @@ class AiAgentManager private constructor() {
             try {
                 _state.value = AiAgentState.THINKING
                 _activity.value = "Reading your request…"
-                kotlinx.coroutines.delay(300)
 
                 val project = ProjectManager.getInstance().currentProject
                 val analysis = if (project != null && AiPreferences.isAutoReadEnabled()) {
@@ -168,7 +167,7 @@ class AiAgentManager private constructor() {
                 while (iteration < maxRounds) {
                     _activity.value = "Thinking… (round ${iteration + 1}/$maxRounds)"
                     val response = generate(
-                        modelInput.toString(),
+                        truncateForLocalBackend(modelInput.toString()),
                         temperature = temperature,
                         maxTokens = maxTokens
                     )
@@ -207,12 +206,12 @@ class AiAgentManager private constructor() {
                 }
 
                 val finalResponse = toolResult ?: generate(
-                    modelInput.toString(),
+                    truncateForLocalBackend(modelInput.toString()),
                     temperature = temperature,
                     maxTokens = maxTokens
                 )
 
-                kotlinx.coroutines.delay(200)
+                kotlinx.coroutines.delay(50)
 
                 _state.value = AiAgentState.RESPONDING
 
@@ -421,6 +420,27 @@ class AiAgentManager private constructor() {
     companion object {
         /** Max tokens generated per round on the local (on-device) backend. */
         private const val LOCAL_MAX_GEN_TOKENS = 512
+
+        /**
+         * Hard character limit for prompts sent to the local (llama.cpp) backend.
+         * Qwen 0.5B Q5 with n_ctx=2048 is roughly 2048 * ~3.5 chars/token ≈ 7168 chars.
+         * We leave generous room for generated tokens.
+         */
+        private const val LOCAL_PROMPT_CHAR_LIMIT = 4000
+
+        /**
+         * If the local backend is active and [input] exceeds [LOCAL_PROMPT_CHAR_LIMIT],
+         * keep only the TAIL of the string so the most recent context is preserved and
+         * the JNI tokenizer doesn't overflow n_ctx (which causes a native crash).
+         */
+        private fun truncateForLocalBackend(input: String): String {
+            if (!AiPreferences.isLocalBackend()) return input
+            if (input.length <= LOCAL_PROMPT_CHAR_LIMIT) return input
+            val truncated = input.takeLast(LOCAL_PROMPT_CHAR_LIMIT)
+            // Try to start at a newline boundary so we don't cut mid-sentence.
+            val nlIdx = truncated.indexOf('\n')
+            return if (nlIdx > 0) truncated.substring(nlIdx + 1) else truncated
+        }
 
         @JvmStatic
         val instance: AiAgentManager by lazy { AiAgentManager() }

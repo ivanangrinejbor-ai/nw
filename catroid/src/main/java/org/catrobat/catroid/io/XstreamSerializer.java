@@ -181,6 +181,8 @@ public final class XstreamSerializer {
 		});
 
 		xstream.allowTypesByWildcard(new String[] {"org.catrobat.catroid.**"});
+		// Allow primitive array types used by TilemapLookData layers.
+		xstream.allowTypes(new Class[] {short[].class});
 
 		xstream.processAnnotations(projectClass);
 		xstream.processAnnotations(sceneClass);
@@ -212,6 +214,8 @@ public final class XstreamSerializer {
 		xstream.registerConverter(new XStreamScriptConverter(xstream.getMapper(), xstream.getReflectionProvider()));
 		xstream.registerConverter(new XStreamSpriteConverter(xstream.getMapper(), xstream.getReflectionProvider()));
 		xstream.registerConverter(new XStreamSettingConverter(xstream.getMapper(), xstream.getReflectionProvider()));
+		// Tilemap layer data: short[] encoded as Base64 to avoid XStream short-array issues.
+		xstream.registerConverter(new XStreamShortArrayConverter());
 
 		xstream.omitField(sceneClass, "originalWidth");
 		xstream.omitField(sceneClass, "originalHeight");
@@ -267,6 +271,7 @@ public final class XstreamSerializer {
 
 		xstream.alias("script", StartScript.class);
 		xstream.alias("script", WhenClonedScript.class);
+		xstream.alias("script", org.catrobat.catroid.content.WhenSceneLaunchedScript.class);
 		xstream.alias("script", WhenScript.class);
 		xstream.alias("script", WhenConditionScript.class);
 		xstream.alias("whenFirebaseChangedScript", WhenFirebaseChangedScript.class);

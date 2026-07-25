@@ -211,10 +211,11 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 			R.string.formula_ray_hit_y_parameter,
 			R.string.formula_ray_hit_distance_parameter);
 	private static final List<Integer> LIST_FUNCTIONS = asList(R.string.formula_editor_function_number_of_items,
-			R.string.formula_editor_function_list_item, R.string.formula_editor_function_contains,
+			R.string.formula_editor_function_list_item, R.string.formula_editor_function_get_item, R.string.formula_editor_function_contains,
 			R.string.formula_editor_function_index_of_item, R.string.formula_editor_function_flatten, R.string.formula_editor_function_connect, R.string.formula_editor_function_find);
 	private static final List<Integer> LIST_PARAMS = asList(R.string.formula_editor_function_number_of_items_parameter,
 			R.string.formula_editor_function_list_item_parameter,
+			R.string.formula_editor_function_get_item_parameter,
 			R.string.formula_editor_function_contains_parameter,
 			R.string.formula_editor_function_index_of_item_parameter,
 			R.string.formula_editor_function_flatten_parameter,

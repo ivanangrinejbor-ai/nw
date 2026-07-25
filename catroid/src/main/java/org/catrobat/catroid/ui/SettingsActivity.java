@@ -29,11 +29,11 @@ import org.catrobat.catroid.R;
 import org.catrobat.catroid.ui.settingsfragments.AccessibilitySettingsFragment;
 import org.catrobat.catroid.ui.settingsfragments.SettingsFragment;
 
+import com.danvexteam.lunoscript_annotations.LunoClass;
+
 import androidx.appcompat.widget.Toolbar;
 
 import static org.catrobat.catroid.ui.settingsfragments.AccessibilityProfilesFragment.SETTINGS_FRAGMENT_INTENT_KEY;
-
-import com.danvexteam.lunoscript_annotations.LunoClass;
 
 @LunoClass
 public class SettingsActivity extends BaseActivity {
@@ -43,23 +43,23 @@ public class SettingsActivity extends BaseActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.preference);
 
-		getSupportFragmentManager().beginTransaction()
+		getFragmentManager().beginTransaction()
 				.replace(R.id.content_frame, new SettingsFragment())
 				.commit();
-
-		if (getIntent().getExtras() != null && getIntent()
-				.getBooleanExtra(SETTINGS_FRAGMENT_INTENT_KEY, false)) {
-
-			getSupportFragmentManager().beginTransaction()
-					.replace(R.id.content_frame, new AccessibilitySettingsFragment())
-					.addToBackStack(AccessibilitySettingsFragment.TAG)
-					.commit();
-		}
 
 		setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
 		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 		getSupportActionBar().setHomeButtonEnabled(true);
 		getSupportActionBar().setTitle(R.string.preference_title);
+
+		if (getIntent().getExtras() != null && getIntent()
+				.getBooleanExtra(SETTINGS_FRAGMENT_INTENT_KEY, false)) {
+
+			getFragmentManager().beginTransaction()
+					.replace(R.id.content_frame, new AccessibilitySettingsFragment())
+					.addToBackStack(AccessibilitySettingsFragment.TAG)
+					.commit();
+		}
 	}
 
 	@Override

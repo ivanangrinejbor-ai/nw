@@ -516,8 +516,20 @@ class NeoPaintActivity : AppCompatActivity() {
     }
 
     private fun saveBitmapToFile(file: File) {
-        java.io.FileOutputStream(file).use { out ->
-            drawingView.getCompositeBitmap().compress(Bitmap.CompressFormat.PNG, 100, out)
+        try {
+            val bitmap = drawingView.getCompositeBitmap()
+            java.io.FileOutputStream(file).use { out ->
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+            }
+            bitmap.recycle()
+        } catch (e: OutOfMemoryError) {
+            // OOM при сохранении — попытка сохранить хотя бы текущий слой
+            val layer = drawingView.getCurrentLayer()
+            if (layer != null) {
+                java.io.FileOutputStream(file).use { out ->
+                    layer.bitmap.compress(Bitmap.CompressFormat.PNG, 80, out)
+                }
+            }
         }
     }
 

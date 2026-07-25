@@ -225,7 +225,13 @@ class BrickAdapter(val sprite: Sprite) :
         // the full brick UI on every scroll. ListView only passes a recycled view
         // for the identical Brick instance, so there is no stale-data risk.
         val itemView: View =
-            if (convertView != null && convertView.tag === item) convertView else item.getView(parent.context)
+            if (convertView != null && convertView.tag === item) {
+                if (convertView is IndentedBrickLayout && convertView.childCount > 0) {
+                    convertView.getChildAt(0)
+                } else {
+                    convertView
+                }
+            } else item.getView(parent.context)
 
         clearHighlights(itemView as ViewGroup)
 

@@ -131,7 +131,7 @@
         <Button
             android:id="@+id/formula_editor_keyboard_string"
             style="@style/FormulaEditorSymbolButton"
-            android:layout_span="1"
+            android:layout_span="2"
             android:text="@string/formula_editor_string" />
 
         <Button

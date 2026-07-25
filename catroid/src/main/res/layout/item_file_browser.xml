@@ -12,7 +12,7 @@
         android:id="@+id/file_icon"
         android:layout_width="24dp"
         android:layout_height="24dp"
-        android:src="@android:drawable/ic_menu_gallery"
+        android:src="@drawable/ic_media_library_look"
         android:contentDescription="icon"/>
 
     <TextView

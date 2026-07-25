@@ -44,8 +44,9 @@ class IfOnEdgeBouncePhysicsAction : TemporalAction() {
         private const val OPPOSITE_DIRECTION = 180.0f
     }
 
-    private val virtualScreenWidth = ProjectManager.getInstance().currentProject.xmlHeader.virtualScreenWidth
-    private val vsHeight = ProjectManager.getInstance().currentProject.xmlHeader.getVirtualScreenHeight()
+    // Deferred: не инициализируем в поле класса — ProjectManager может быть не готов
+    private val virtualScreenWidth: Int get() = ProjectManager.getInstance().currentProject?.xmlHeader?.virtualScreenWidth ?: 480
+    private val vsHeight: Int get() = ProjectManager.getInstance().currentProject?.xmlHeader?.getVirtualScreenHeight() ?: 800
 
     lateinit var sprite: Sprite
     lateinit var physicsWorld: PhysicsWorld

@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
 <!--
   ~ Catroid: An on-device visual programming system for Android devices
   ~ Copyright (C) 2010-2023 The Catrobat Team
@@ -2688,6 +2688,13 @@
     <string formatted="false" name="global_scene">Глобальная сцена</string>
     <string formatted="false" name="global_scene_desc">Запускается один раз при старте проекта и не уничтожается при смене сцен</string>
     <string formatted="false" name="new_scene">Новая сцена</string>
+    <string formatted="false" name="global_scene_name">Глобальная</string>
+    <string formatted="false" name="global_scene_description">Работает в фоне на всех сценах</string>
+    <string formatted="false" name="create_global_scene">Глобальная сцена (фон)</string>
+    <string formatted="false" name="create_regular_scene">Обычная сцена</string>
+    <string formatted="false" name="global_scene_already_exists">Глобальная сцена уже существует</string>
+    <string formatted="false" name="make_visible_on_scenes">Показать на всех сценах</string>
+    <string formatted="false" name="make_invisible_on_scenes">Скрыть со всех сцен</string>
     <!-- Action Toasts -->
     <!-- Backpack -->
     <string formatted="false" name="backpack_empty">Портфель пуст. Нечего распаковывать.</string>
@@ -3176,6 +3183,11 @@
     <!-- Broadcast spinner -->
     <string formatted="false" name="dialog_new_broadcast_message_title">Новое сообщение</string>
     <string formatted="false" name="dialog_broadcast_message_name">сообщение:</string>
+<string formatted="false" name="broadcast_scope_title">Область сигнала</string>
+<string formatted="false" name="broadcast_scope_global">Все сцены (глобально)</string>
+<string formatted="false" name="broadcast_scope_specific">Только конкретные сцены...</string>
+<string formatted="false" name="broadcast_scope_select_scenes">Выберите сцены-получатели</string>
+<string formatted="false" name="brick_when_scene_launched">При запуске сцены</string>
     <string formatted="false" name="dialog_edit_broadcast_message_title">Изменить сообщение</string>
     <!--  -->
     <!-- NFC spinner -->
@@ -3286,6 +3298,17 @@
     <string formatted="false" name="brick_set_gravity_unit">шагов в секунду²</string>
     <string formatted="false" name="brick_set_velocity_to">"Задать скорость "</string>
     <string formatted="false" name="brick_set_velocity_unit">шагов в секунду</string>
+<string formatted="false" name="brick_set_angular_velocity">Задать угл. скорость</string>
+<string formatted="false" name="brick_set_angular_velocity_unit">°/сек</string>
+<string formatted="false" name="brick_set_linear_damping">Задать лин. торможение</string>
+<string formatted="false" name="brick_set_angular_damping">Задать угл. торможение</string>
+<string formatted="false" name="brick_set_fixed_rotation">Зафиксировать вращение</string>
+<string formatted="false" name="brick_set_bullet">Режим пули</string>
+<string formatted="false" name="brick_set_gravity_scale">Задать масштаб гравитации</string>
+<string formatted="false" name="brick_apply_force_at_point">Приложить силу</string>
+<string formatted="false" name="brick_apply_force_at_point_x">в точке x</string>
+<string formatted="false" name="brick_apply_force_at_point_y">y</string>
+<string formatted="false" name="brick_set_physics_sensor">Сделать сенсором</string>
     <string formatted="false" name="brick_turn_speed_unit">градусов в секунду</string>
     <string formatted="false" name="brick_set_friction">"Задать трение "</string>
     <string formatted="false" name="brick_set_bounce_factor">"Задать упругость "</string>
@@ -3359,6 +3382,17 @@
     <string formatted="false" name="brick_play_sound_and_wait">Воспроизвести звук и ждать</string>
     <string formatted="false" name="brick_stop_sound">Остановить звук</string>
     <string formatted="false" name="brick_stop_all_sounds">Остановить все звуки</string>
+<string formatted="false" name="brick_pause_sound">Пауза звука</string>
+<string formatted="false" name="brick_resume_sound">Продолжить звук</string>
+<string formatted="false" name="brick_set_sound_loop">Зациклить</string>
+<string formatted="false" name="brick_set_sound_loop_state">цикл</string>
+<string formatted="false" name="brick_cross_fade_sound">Кросс-фейд из</string>
+<string formatted="false" name="brick_cross_fade_sound_to">в</string>
+<string formatted="false" name="brick_cross_fade_sound_duration">длительность (сек)</string>
+<string formatted="false" name="brick_play_sound_with_speed">Играть звук</string>
+<string formatted="false" name="brick_play_sound_with_speed_param">со скоростью</string>
+<string formatted="false" name="brick_set_game_volume">Задать громкость игры</string>
+<string formatted="false" name="brick_set_game_volume_percent">%</string>
     <string formatted="false" name="brick_set_volume_to">Задать громкость</string>
     <string formatted="false" name="brick_change_volume_by">Изменить громкость на</string>
     <string formatted="false" name="brick_speak">Сказать</string>
@@ -3497,6 +3531,8 @@
     <string formatted="false" name="brick_if_begin">Если</string>
     <string formatted="false" name="brick_if_begin_second_part">истина, то</string>
     <string formatted="false" name="brick_if_else">Инaче</string>
+<string formatted="false" name="brick_else_if">Иначе если</string>
+<string formatted="false" name="brick_add_else_if">+ ещё условие</string>
     <string formatted="false" name="brick_if_end">Конец (если)</string>
     <string formatted="false" name="brick_set_variable">Задать значение переменной</string>
     <string formatted="false" name="brick_change_variable">Изменить значение переменной</string>
@@ -4084,6 +4120,8 @@
     <string formatted="false" name="formula_editor_function_touch_parameter">(1)</string>
     <string formatted="false" name="formula_editor_function_list_item">элемент</string>
     <string formatted="false" name="formula_editor_function_list_item_parameter">(1,*название списка*)</string>
+<string formatted="false" name="formula_editor_function_get_item">элемент из списка</string>
+<string formatted="false" name="formula_editor_function_get_item_parameter">(номер, "имя списка")</string>
     <string formatted="false" name="formula_editor_function_contains">содержит</string>
     <string formatted="false" name="formula_editor_function_contains_parameter">(*название списка*,1)</string>
     <string formatted="false" name="formula_editor_function_index_of_item">индекс_элемента</string>
@@ -5622,6 +5660,7 @@ Catrobat — это визуальный язык программировани
     <string name="tilemap_unsaved_message">Сохранить изменения тайлмапа перед выходом?</string>
     <string name="tilemap_discard">Не сохранять</string>
     <string name="tilemap_error_tileset">Не удалось загрузить тайлсет</string>
+    <string name="tilemap_save_error">Ошибка сохранения</string>
 
     <!-- Tilemap bricks -->
     <string name="brick_set_tile">установить тайл в столбце</string>

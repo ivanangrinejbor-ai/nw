@@ -20,9 +20,11 @@ class ApplyTorqueAction : TemporalAction() {
         }
 
         val scene = ProjectManager.getInstance().currentlyPlayingScene ?: return
+        val pw = scene.physicsWorld ?: return
         val sprite = scope?.sprite ?: return
+        if (pw.getPhysicsObject(sprite) == null) return
 
-        scene.physicsWorld.applyTorque(sprite, torqueValue)
+        pw.applyTorque(sprite, torqueValue)
     }
 
     fun setScope(scope: Scope?) {

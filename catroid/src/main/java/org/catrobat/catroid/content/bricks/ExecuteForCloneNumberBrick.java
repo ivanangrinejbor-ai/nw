@@ -32,6 +32,16 @@ public class ExecuteForCloneNumberBrick extends FormulaBrick implements Composit
         setFormulaWithBrickField(BrickField.NUMBER, cloneNumber);
     }
 
+    private Object readResolve() {
+        if (endBrick == null) {
+            endBrick = new EndBrick(this);
+        }
+        if (cloneBranchBricks == null) {
+            cloneBranchBricks = new ArrayList<>();
+        }
+        return this;
+    }
+
     public void addBrickToCloneBranch(Brick brick) {
         cloneBranchBricks.add(brick);
     }
@@ -51,7 +61,9 @@ public class ExecuteForCloneNumberBrick extends FormulaBrick implements Composit
 
         ScriptSequenceAction cloneSequence = (ScriptSequenceAction) ActionFactory.createScriptSequenceAction(sequence.getScript());
         for (Brick brick : cloneBranchBricks) {
-            brick.addActionToSequence(sprite, cloneSequence);
+            if (!brick.isCommentedOut()) {
+                brick.addActionToSequence(sprite, cloneSequence);
+            }
         }
 
         Action action = factory.createExecuteForCloneNumberAction(sprite, sequence,

@@ -81,4 +81,24 @@ object FormulaEditorClipboard {
             .setNegativeButton(R.string.cancel, null)
             .show()
     }
+
+    // === Копирование формулы между блоками ===
+
+    /** Хранит скопированную формулу для вставки в другой блок */
+    @JvmStatic
+    var copiedFormula: org.catrobat.catroid.formulaeditor.Formula? = null
+        private set
+
+    @JvmStatic
+    fun copyWholeFormula(formula: org.catrobat.catroid.formulaeditor.Formula?) {
+        copiedFormula = formula?.clone()
+    }
+
+    @JvmStatic
+    fun hasCopiedFormula(): Boolean = copiedFormula != null
+
+    @JvmStatic
+    fun pasteWholeFormula(): org.catrobat.catroid.formulaeditor.Formula? {
+        return copiedFormula?.clone()
+    }
 }

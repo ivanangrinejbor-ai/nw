@@ -10,6 +10,7 @@ class SetGlobalSoundVolumeAction : TemporalAction() {
     var volume: Formula? = null
 
     override fun update(percent: Float) {
+        if (org.catrobat.catroid.content.GlobalManager.gameVolume != null) return
         val vol = volume?.interpretFloat(scope) ?: return
         StageActivity.getActiveStageListener()?.threeDManager?.setGlobalSoundVolume(vol / 100f)
     }

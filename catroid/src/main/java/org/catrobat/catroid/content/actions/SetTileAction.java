@@ -60,10 +60,14 @@ public class SetTileAction extends TemporalAction {
 			int col = column == null ? 0 : column.interpretFloat(scope).intValue();
 			int r = row == null ? 0 : row.interpretFloat(scope).intValue();
 			int idx = tileIndex == null ? 0 : tileIndex.interpretFloat(scope).intValue();
+			// Bounds check: предотвращаем ArrayIndexOutOfBounds
+			if (col < 0 || r < 0 || col >= tilemap.getMapColumns() || r >= tilemap.getMapRows()) return;
 			if (tilemap.setTile(col, r, (short) idx)) {
 				TilemapRuntime runtime = TilemapRuntimeManager.peek(tilemap);
 				if (runtime != null) {
 					runtime.invalidatePhysics();
+					// Invalidate visual regions so the new tile index is redrawn
+					runtime.invalidateRegions();
 				}
 			}
 		} catch (InterpretationException e) {

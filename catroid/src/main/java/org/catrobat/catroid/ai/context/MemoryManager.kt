@@ -5,6 +5,7 @@ import org.catrobat.catroid.ai.settings.AiPreferences
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
+import java.util.Collections
 
 object MemoryManager {
 
@@ -12,7 +13,10 @@ object MemoryManager {
     private const val MAX_SUMMARY_ENTRIES = 30
     private var memoryFile: File? = null
 
-    private val memories = mutableListOf<MemoryEntry>()
+    // Synchronised list: remember/forget/search/getSummary are called from
+    // Dispatchers.Default coroutines concurrently → plain mutableListOf crashes.
+    private val memories: MutableList<MemoryEntry> =
+        Collections.synchronizedList(mutableListOf())
 
     data class MemoryEntry(
         val key: String,

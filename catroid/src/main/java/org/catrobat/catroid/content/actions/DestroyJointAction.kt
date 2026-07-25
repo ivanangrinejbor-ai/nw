@@ -11,6 +11,8 @@ class DestroyJointAction : TemporalAction() {
 
     override fun update(percent: Float) {
         val id = jointId?.interpretString(scope) ?: return
-        ProjectManager.getInstance().currentlyPlayingScene?.physicsWorld?.destroyJoint(id)
+        if (id.isEmpty()) return
+        val pw = ProjectManager.getInstance().currentlyPlayingScene?.physicsWorld ?: return
+        pw.destroyJoint(id)
     }
 }

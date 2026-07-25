@@ -532,6 +532,7 @@ public class InternToExternGenerator {
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Operators.SMALLER_THAN.name(),
 				R.string.formula_editor_logic_lesserthan);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Operators.POW.name(), R.string.formula_editor_operator_power);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Operators.CONCAT.name(), R.string.formula_editor_operator_concat);
 
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.SPEECH_RECOGNITION_LANGUAGE.name(),
 				R.string.formula_editor_listening_language_sensor);

@@ -60,31 +60,10 @@ class ColorCollisionDetection(
         }
     }
 
-    companion object {
-        private var sharedBatch1: SpriteBatch? = null
-        private var sharedBatch2: SpriteBatch? = null
-
-        @Synchronized
-        private fun getSharedBatch1(): SpriteBatch {
-            if (sharedBatch1 == null) {
-                sharedBatch1 = SpriteBatch()
-            }
-            return sharedBatch1!!
-        }
-
-        @Synchronized
-        private fun getSharedBatch2(): SpriteBatch {
-            if (sharedBatch2 == null) {
-                sharedBatch2 = SpriteBatch()
-            }
-            return sharedBatch2!!
-        }
-    }
-
     private fun interpretMatcherOnStage(matcher: ConditionMatcher): Boolean {
         val lookList: MutableList<Look> = getLooksOfRelevantSprites() ?: return false
-        val batch = getSharedBatch1()
-        val spriteBatch = getSharedBatch2()
+        val batch = SpriteBatch()
+        val spriteBatch = SpriteBatch()
         val projectionMatrix = scope.project?.let { createProjectionMatrix(it) }
         matcher.stagePixmap = projectionMatrix?.let { createPicture(lookList, it, batch) }
         val wasLookVisible = look.isLookVisible
@@ -93,6 +72,8 @@ class ColorCollisionDetection(
             createPicture(listOf(look), it, spriteBatch)
         }
         look.isLookVisible = wasLookVisible
+        batch.dispose()
+        spriteBatch.dispose()
 
         return tryConditionMatcherRunnerMatch(matcher)
     }

@@ -86,6 +86,11 @@ public class TilemapEditorView extends View {
 	private final Paint gridPaint = new Paint();
 	private final Paint selectionPaint = new Paint();
 	private final Paint emptyPaint = new Paint();
+	private final Paint fallbackTilePaint = new Paint();
+	private final Paint gridLinePaint = new Paint();
+	private final Paint textPaint = new Paint();
+	private final Paint separatorPaint = new Paint();
+	private final Paint paletteSelectionPaint = new Paint();
 
 	private OnChangeListener changeListener;
 	private OnPaletteTileListener paletteListener;
@@ -111,6 +116,14 @@ public class TilemapEditorView extends View {
 
 		emptyPaint.setColor(Color.argb(40, 128, 128, 128));
 		emptyPaint.setStyle(Paint.Style.FILL);
+
+		fallbackTilePaint.setStyle(Paint.Style.FILL);
+		gridLinePaint.setStyle(Paint.Style.FILL);
+		textPaint.setTextAlign(Paint.Align.CENTER);
+		separatorPaint.setColor(Color.argb(60, 255, 255, 255));
+		paletteSelectionPaint.setStyle(Paint.Style.STROKE);
+		paletteSelectionPaint.setColor(Color.YELLOW);
+		paletteSelectionPaint.setStrokeWidth(4f);
 	}
 
 	public void setData(TilemapLookData data) {
@@ -242,30 +255,27 @@ public class TilemapEditorView extends View {
 						canvas.drawBitmap(tilesetBitmap, src, dst, null);
 					} else {
 						// Fallback: solid colour block when no tileset is loaded.
-						Paint p = new Paint();
-						p.setColor(Color.argb(200, 80 + (tile * 37) % 175,
+						fallbackTilePaint.setColor(Color.argb(200, 80 + (tile * 37) % 175,
 								80 + (tile * 53) % 175, 80 + (tile * 71) % 175));
-						p.setStyle(Paint.Style.FILL);
 						canvas.drawRect(
 								panOffsetX + col * scaledTileW,
 								panOffsetY + row * scaledTileH,
 								panOffsetX + (col + 1) * scaledTileW,
-								panOffsetY + (row + 1) * scaledTileH, p);
+								panOffsetY + (row + 1) * scaledTileH, fallbackTilePaint);
 					}
 				}
 			}
 		}
 
 		// Grid lines.
-		Paint gp = new Paint(gridPaint);
-		gp.setColor(Color.argb(80, 200, 200, 200));
+		gridLinePaint.setColor(Color.argb(80, 200, 200, 200));
 		for (int c = 0; c <= columns; c++) {
 			float x = panOffsetX + c * scaledTileW;
-			canvas.drawLine(x, panOffsetY, x, panOffsetY + rows * scaledTileH, gp);
+			canvas.drawLine(x, panOffsetY, x, panOffsetY + rows * scaledTileH, gridLinePaint);
 		}
 		for (int r = 0; r <= rows; r++) {
 			float y = panOffsetY + r * scaledTileH;
-			canvas.drawLine(panOffsetX, y, panOffsetX + columns * scaledTileW, y, gp);
+			canvas.drawLine(panOffsetX, y, panOffsetX + columns * scaledTileW, y, gridLinePaint);
 		}
 
 		// Highlight the currently selected palette tile on the grid.
@@ -456,15 +466,14 @@ public class TilemapEditorView extends View {
 		@Override
 		protected void onDraw(Canvas canvas) {
 			super.onDraw(canvas);
-			if (editor == null || editor.tilesetBitmap == null
-					|| editor.tilesetColumns <= 0 || editor.tilesetRows <= 0) {
-				canvas.drawColor(Color.argb(60, 128, 128, 128));
-				Paint textPaint = new Paint();
-				textPaint.setColor(Color.WHITE);
-				textPaint.setTextSize(28f);
-				textPaint.setTextAlign(Paint.Align.CENTER);
-				canvas.drawText("Tap 'Select tileset' to choose an image",
-						getWidth() / 2f, getHeight() / 2f, textPaint);
+		if (editor == null || editor.tilesetBitmap == null
+				|| editor.tilesetColumns <= 0 || editor.tilesetRows <= 0) {
+			canvas.drawColor(Color.argb(60, 128, 128, 128));
+			editor.textPaint.setColor(Color.WHITE);
+			editor.textPaint.setTextSize(28f);
+			editor.textPaint.setTextAlign(Paint.Align.CENTER);
+			canvas.drawText("Tap 'Select tileset' to choose an image",
+					getWidth() / 2f, getHeight() / 2f, editor.textPaint);
 				return;
 			}
 			float cellSize = getHeight();
@@ -481,19 +490,13 @@ public class TilemapEditorView extends View {
 				canvas.drawBitmap(editor.tilesetBitmap, src, dst, null);
 
 				if (i == editor.currentTile) {
-					Paint sel = new Paint();
-					sel.setColor(Color.YELLOW);
-					sel.setStyle(Paint.Style.STROKE);
-					sel.setStrokeWidth(4f);
-					canvas.drawRect(dst, sel);
+					canvas.drawRect(dst, editor.paletteSelectionPaint);
 				}
 			}
 			// Subtle separator lines between cells.
-			Paint linePaint = new Paint();
-			linePaint.setColor(Color.argb(60, 255, 255, 255));
 			for (int i = 1; i < totalTiles; i++) {
 				float x = i * cellSize;
-				canvas.drawLine(x, 0, x, cellSize, linePaint);
+				canvas.drawLine(x, 0, x, cellSize, editor.separatorPaint);
 			}
 		}
 

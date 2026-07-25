@@ -141,14 +141,12 @@ class DrawingView @JvmOverloads constructor(
     private val idleHandler = Handler(Looper.getMainLooper())
     private var idlePending = false
 
-    // ─── Undo / Redo ───────────────────────────────────
+    
 
     private val undoStack = ArrayDeque<Pair<Int, Bitmap>>()
     private val redoStack = ArrayDeque<Pair<Int, Bitmap>>()
 
-    // ═══════════════════════════════════════════════════════
-    //  INIT
-    // ═══════════════════════════════════════════════════════
+    
 
     fun initializeWithBitmap(bitmap: Bitmap) {
         val mutable = ensureMutable(bitmap)
@@ -183,9 +181,9 @@ class DrawingView @JvmOverloads constructor(
         redoStack.clear()
     }
 
-    // ═══════════════════════════════════════════════════════
+    
     //  PUBLIC API
-    // ═══════════════════════════════════════════════════════
+    
 
     fun getCurrentLayer(): PaintLayer? = if (layers.isEmpty()) null else layers[currentLayerIndex]
     fun getLayer(index: Int): PaintLayer? = if (index in layers.indices) layers[index] else null
@@ -276,10 +274,10 @@ class DrawingView @JvmOverloads constructor(
     fun undo() {
         if (undoStack.isEmpty()) return
         val (index, snapshot) = undoStack.removeLast()
-        val layer = layers.getOrNull(index) ?: return
+        val layer = layers.getOrNull(index) ?: run { snapshot.recycle(); return }
         val currentBmp = ensureMutable(layer.bitmap)
         redoStack.add(Pair(index, currentBmp))
-        if (redoStack.size > 30) {
+        while (redoStack.size > MAX_UNDO_STEPS) {
             val removed = redoStack.removeFirst()
             removed.second.recycle()
         }
@@ -290,10 +288,10 @@ class DrawingView @JvmOverloads constructor(
     fun redo() {
         if (redoStack.isEmpty()) return
         val (index, snapshot) = redoStack.removeLast()
-        val layer = layers.getOrNull(index) ?: return
+        val layer = layers.getOrNull(index) ?: run { snapshot.recycle(); return }
         val currentBmp = ensureMutable(layer.bitmap)
         undoStack.add(Pair(index, currentBmp))
-        if (undoStack.size > 30) {
+        while (undoStack.size > MAX_UNDO_STEPS) {
             val removed = undoStack.removeFirst()
             removed.second.recycle()
         }
@@ -504,14 +502,23 @@ class DrawingView @JvmOverloads constructor(
     override fun onTouchEvent(event: MotionEvent): Boolean {
         if (layers.isEmpty()) return false
 
-        // Pinch zoom check
+        // Multi-touch: cancel active single-touch gesture, then handle pinch
         if (event.pointerCount >= 2) {
+            cancelActiveTouchGesture()
             handlePinch(event)
             return true
         }
 
         val bx = toBitmapX(event.x)
         val by = toBitmapY(event.y)
+
+        // ACTION_CANCEL: system stole the gesture (dialog, phone call, etc.)
+        if (event.action == MotionEvent.ACTION_CANCEL) {
+            cancelActiveTouchGesture()
+            showPreview = false
+            invalidate()
+            return true
+        }
 
         // Update brush preview position
         if (toolType == ToolType.BRUSH || toolType == ToolType.ERASER || toolType == ToolType.SMUDGE) {
@@ -554,6 +561,20 @@ class DrawingView @JvmOverloads constructor(
             ToolType.CLIPBOARD, ToolType.ZOOM -> {}
         }
         return true
+    }
+
+    /**
+     * Сбрасывает активное состояние рисования: освобождает снапшоты,
+     * отменяет smudge-источник, скрывает превью. Вызывается при
+     * ACTION_CANCEL и при появлении второго пальца (pinch).
+     */
+    private fun cancelActiveTouchGesture() {
+        shapeSnapshot?.recycle()
+        shapeSnapshot = null
+        smudgeSrc = null  // не recycle — это ссылка на layer.bitmap
+        showPreview = false
+        overlayTouchMode = OverlayTouchMode.NONE
+        activeHandle = ResizeHandle.NONE
     }
 
     // ═══════════════════════════════════════════════════════
@@ -777,10 +798,18 @@ class DrawingView @JvmOverloads constructor(
     // ═══════════════════════════════════════════════════════
 
     private fun pushUndo(layer: PaintLayer) {
-        undoStack.add(Pair(currentLayerIndex, layer.bitmap.copy(Bitmap.Config.ARGB_8888, true)))
-        if (undoStack.size > 30) {
-            val removed = undoStack.removeFirst()
-            removed.second.recycle()
+        val copy = try {
+            layer.bitmap.copy(Bitmap.Config.ARGB_8888, true)
+        } catch (e: OutOfMemoryError) {
+            // OOM — не можем сохранить undo, но рисование продолжается
+            null
+        }
+        if (copy != null) {
+            undoStack.add(Pair(currentLayerIndex, copy))
+            while (undoStack.size > MAX_UNDO_STEPS) {
+                val removed = undoStack.removeFirst()
+                removed.second.recycle()
+            }
         }
         clearRedoStack()
     }
@@ -1066,9 +1095,15 @@ class DrawingView @JvmOverloads constructor(
     private fun floodFill(bmp: Bitmap, x: Int, y: Int, newColor: Int) {
         val w = bmp.width; val h = bmp.height
         if (x < 0 || y < 0 || x >= w || y >= h) return
+        // Защита от OOM: для очень больших битмапов отказываемся от fill
+        if (w.toLong() * h > MAX_FLOOD_FILL_DIM.toLong() * MAX_FLOOD_FILL_DIM) return
         val oldColor = bmp.getPixel(x, y)
         if (oldColor == newColor) return
-        val pixels = IntArray(w * h)
+        val pixels = try {
+            IntArray(w * h)
+        } catch (e: OutOfMemoryError) {
+            return // не хватило памяти — молча отменяем
+        }
         bmp.getPixels(pixels, 0, w, 0, 0, w, h)
         val stack = ArrayDeque<Int>(); stack.add(y * w + x)
         val t = 40
@@ -1146,6 +1181,10 @@ class DrawingView @JvmOverloads constructor(
         private val SHAPE_TOOLS = setOf(
             ToolType.RECTANGLE, ToolType.OVAL, ToolType.STAR, ToolType.HEART
         )
+        /** Max number of undo snapshots. Prevents OOM on large canvases. */
+        private const val MAX_UNDO_STEPS = 15
+        /** Max bitmap dimension for flood fill to avoid OOM (pixels per side). */
+        private const val MAX_FLOOD_FILL_DIM = 2048
     }
 
     override fun onDetachedFromWindow() {

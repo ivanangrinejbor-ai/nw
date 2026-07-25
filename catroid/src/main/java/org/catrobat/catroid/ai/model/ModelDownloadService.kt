@@ -71,44 +71,54 @@ class ModelDownloadService : Service() {
         val totalSize = connection.contentLengthLong
         val outputFile = ModelManager.getModelFile(filename)
 
-        connection.inputStream.use { input ->
-            FileOutputStream(outputFile).use { output ->
-                val buffer = ByteArray(8192)
-                var read: Int
-                var totalRead = 0L
-                val startTime = System.currentTimeMillis()
-                var lastUpdate = 0L
-                var lastBytes = 0L
-                var lastNotifiedPct = -1
+        try {
+            connection.inputStream.use { input ->
+                FileOutputStream(outputFile).use { output ->
+                    val buffer = ByteArray(8192)
+                    var read: Int
+                    var totalRead = 0L
+                    val startTime = System.currentTimeMillis()
+                    // lastUpdate stores the absolute timestamp of the last speed sample
+                    var lastUpdate = startTime
+                    var lastBytes = 0L
+                    var lastNotifiedPct = -1
 
-                while (input.read(buffer).also { read = it } != -1) {
-                    output.write(buffer, 0, read)
-                    totalRead += read
-                    val progress = if (totalSize > 0) ((totalRead * 100) / totalSize).toInt() else -1
+                    while (input.read(buffer).also { read = it } != -1) {
+                        output.write(buffer, 0, read)
+                        totalRead += read
+                        val progress = if (totalSize > 0) ((totalRead * 100) / totalSize).toInt() else -1
 
-                    val now = System.currentTimeMillis()
-                    if (now - lastUpdate > 400) {
-                        val windowMs = (now - startTime - lastUpdate).coerceAtLeast(1)
-                        val speedBps = ((totalRead - lastBytes) * 1000 / windowMs).coerceAtLeast(0)
-                        lastUpdate = now - startTime
-                        lastBytes = totalRead
+                        val now = System.currentTimeMillis()
+                        if (now - lastUpdate > 400) {
+                            // windowMs = time since last speed sample (absolute timestamps)
+                            val windowMs = (now - lastUpdate).coerceAtLeast(1)
+                            val speedBps = ((totalRead - lastBytes) * 1000 / windowMs).coerceAtLeast(0)
+                            lastUpdate = now
+                            lastBytes = totalRead
 
-                        ModelManager.publishProgress(
-                            ModelManager.DownloadState(
-                                modelId = modelId,
-                                progress = progress,
-                                speedBytesPerSec = speedBps,
-                                downloadedBytes = totalRead,
-                                totalBytes = totalSize
+                            ModelManager.publishProgress(
+                                ModelManager.DownloadState(
+                                    modelId = modelId,
+                                    progress = progress,
+                                    speedBytesPerSec = speedBps,
+                                    downloadedBytes = totalRead,
+                                    totalBytes = totalSize
+                                )
                             )
-                        )
-                        if (progress >= 0 && progress != lastNotifiedPct) {
-                            lastNotifiedPct = progress
-                            updateNotification(displayName, progress)
+                            if (progress >= 0 && progress != lastNotifiedPct) {
+                                lastNotifiedPct = progress
+                                updateNotification(displayName, progress)
+                            }
                         }
                     }
                 }
             }
+        } catch (e: Exception) {
+            // Clean up a partial file so it isn't shown as downloaded
+            if (outputFile.exists() && (totalSize <= 0 || outputFile.length() < totalSize)) {
+                outputFile.delete()
+            }
+            throw e
         }
         return outputFile.exists() && outputFile.length() > 0
     }

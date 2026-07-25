@@ -95,7 +95,7 @@ public class AccessibilitySettingsFragment extends PreferenceFragment implements
 		String key = preference.getKey();
 		switch (key) {
 			case ACCESSIBILITY_PROFILES_SCREEN_KEY:
-				getParentFragmentManager().beginTransaction()
+			getFragmentManager().beginTransaction()
 						.replace(R.id.content_frame, new AccessibilityProfilesFragment(),
 								AccessibilityProfilesFragment.TAG)
 						.addToBackStack(AccessibilityProfilesFragment.TAG)

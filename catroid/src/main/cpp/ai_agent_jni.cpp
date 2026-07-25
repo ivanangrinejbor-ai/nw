@@ -4,6 +4,8 @@
 #include <vector>
 #include <android/log.h>
 #include <mutex>
+#include <ctime>
+
 
 #define TAG "AiAgentJNI"
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, TAG, __VA_ARGS__)
@@ -31,6 +33,8 @@ Java_org_catrobat_catroid_ai_model_ModelRuntime_nativeLoadModel(
     if (!g_backend_initialized) {
         llama_backend_init();
         g_backend_initialized = true;
+        // Seed the C PRNG once so temperature sampling is non-deterministic.
+        srand((unsigned int)time(nullptr));
     }
 
     llama_model_params model_params = llama_model_default_params();
@@ -95,7 +99,10 @@ Java_org_catrobat_catroid_ai_model_ModelRuntime_nativeGenerate(
     jfloat temperature,
     jint max_tokens) {
 
-    if (context_ptr == 0) {
+    // Lock so concurrent unloadModel() cannot free g_model/g_ctx while we generate.
+    std::lock_guard<std::mutex> lock(g_mutex);
+
+    if (context_ptr == 0 || g_ctx == nullptr || g_model == nullptr) {
         return env->NewStringUTF("ERROR: null context");
     }
 
@@ -108,6 +115,9 @@ Java_org_catrobat_catroid_ai_model_ModelRuntime_nativeGenerate(
     if (!vocab) {
         return env->NewStringUTF("ERROR: null vocab");
     }
+
+    // Get n_ctx from the context so we can enforce the hard limit.
+    uint32_t n_ctx = llama_n_ctx(ctx);
 
     int n_tokens = prompt.length() + 256;
     std::vector<llama_token> tokens(n_tokens);
@@ -138,9 +148,25 @@ Java_org_catrobat_catroid_ai_model_ModelRuntime_nativeGenerate(
         }
     }
 
+    // Guard: if the prompt alone exceeds the context window, truncate it from
+    // the FRONT (keep the most recent tokens) to leave room for at least 32
+    // generated tokens. This prevents llama_decode from crashing.
+    int32_t max_gen = max_tokens > 0 ? max_tokens : 256;
+    if (token_count >= (int32_t)n_ctx) {
+        int keep = (int32_t)n_ctx - 32;
+        if (keep <= 0) {
+            return env->NewStringUTF("ERROR: context too small for this prompt");
+        }
+        // Keep the LAST `keep` tokens (tail of the prompt)
+        int drop = token_count - keep;
+        tokens.erase(tokens.begin(), tokens.begin() + drop);
+        token_count = keep;
+        LOGI("Prompt truncated: dropped first %d token(s) to fit n_ctx=%u", drop, n_ctx);
+    }
+
     tokens.resize(token_count);
 
-    int32_t max_gen = max_tokens > 0 ? max_tokens : 256;
+    // max_gen already calculated above before truncation guard.
     std::string result;
     result.reserve(max_gen * 8);
 
@@ -194,7 +220,8 @@ Java_org_catrobat_catroid_ai_model_ModelRuntime_nativeGenerate(
             break;
         }
 
-        char piece[16];
+        // 64 bytes is large enough for any UTF-8 sequence (emoji, CJK, etc.)
+        char piece[64];
         int32_t piece_len = llama_token_to_piece(
             vocab,
             tokens[0],

@@ -49,7 +49,7 @@ public class TilemapRuntime {
 	private Texture tilesetTexture;
 	private TextureRegion[] tileRegions;
 	private static Texture dummyTexture;
-	private static TextureRegion dummyRegion;
+	private static volatile TextureRegion dummyRegion;
 	private volatile boolean regionsDirty = true;
 
 	private Body body;
@@ -63,23 +63,27 @@ public class TilemapRuntime {
 		return data;
 	}
 
-	private static synchronized TextureRegion getDummyRegion() {
-		if (dummyRegion == null) {
-			Pixmap p = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
-			p.setColor(0, 0, 0, 0);
-			p.fill();
-			dummyTexture = new Texture(p);
-			p.dispose();
-			dummyRegion = new TextureRegion(dummyTexture);
-		}
+	private static TextureRegion getDummyRegion() {
+		// Fast path: already initialized
+		TextureRegion cached = dummyRegion;
+		if (cached != null) return cached;
+		// Must be on GL thread; create synchronously
+		Pixmap p = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
+		p.setColor(0, 0, 0, 0);
+		p.fill();
+		dummyTexture = new Texture(p);
+		p.dispose();
+		dummyRegion = new TextureRegion(dummyTexture);
 		return dummyRegion;
 	}
 
 	/** Returns the sliced tileset regions, reslicing lazily on the render thread if needed. */
 	public TextureRegion[] getRegions() {
 		if (regionsDirty || tileRegions == null) {
-			sliceRegions();
+			// Reset dirty flag BEFORE slicing so a concurrent invalidateRegions() call
+			// during slicing is not swallowed — it will trigger another reslice next frame.
 			regionsDirty = false;
+			sliceRegions();
 		}
 		return tileRegions;
 	}
@@ -98,13 +102,15 @@ public class TilemapRuntime {
 
 	private void sliceRegions() {
 		disposeTexture();
-		Pixmap pixmap = data.getPixmap();
-		if (pixmap == null) {
+		Pixmap srcPixmap = data.getPixmap();
+		if (srcPixmap == null) {
 			tileRegions = new TextureRegion[0];
 			return;
 		}
+		// Copy the pixmap so disposing it doesn't invalidate LookData's cached pixmap
+		Pixmap pixmap = new Pixmap(srcPixmap.getWidth(), srcPixmap.getHeight(), srcPixmap.getFormat());
+		pixmap.drawPixmap(srcPixmap, 0, 0);
 		tilesetTexture = new Texture(pixmap);
-		// Free native Pixmap memory to prevent memory leaks
 		pixmap.dispose();
 
 		int columns = data.getTilesetColumns(tilesetTexture.getWidth());

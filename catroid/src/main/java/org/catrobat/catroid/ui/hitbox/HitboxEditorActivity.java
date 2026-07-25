@@ -30,6 +30,7 @@ public class HitboxEditorActivity extends Activity {
     private TextView hintView;
     private ImageButton btnSave;
     private LookData currentLook;
+    private volatile boolean isFinishing = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -131,6 +132,7 @@ public class HitboxEditorActivity extends Activity {
         // to XML (hundreds of MB for large projects) and would ANR the UI otherwise.
         btnSave.setEnabled(false);
         hintView.setText(R.string.hitbox_hint_modified);
+        isFinishing = true;
         new Thread(() -> {
             try {
                 XstreamSerializer.getInstance().saveProject(
@@ -138,11 +140,17 @@ public class HitboxEditorActivity extends Activity {
             } catch (Exception ignored) {
                 // Best effort — hitboxes are already in memory.
             }
-            runOnUiThread(() -> {
-                setResult(RESULT_OK);
-                finish();
-            });
+            if (!isDestroyed() && !isFinishing()) {
+                runOnUiThread(() -> {
+                    setResult(RESULT_OK);
+                    finish();
+                });
+            } else {
+                // Activity уже уничтожена — результат уже был установлен
+            }
         }, "hitbox-save").start();
+        // Устанавливаем результат заранее, чтобы он не потерялся при уничтожении
+        setResult(RESULT_OK);
     }
 
     @Override

@@ -143,13 +143,13 @@ open class DrawingSurfaceListener(
         }
     }
 
-    private fun handleZoomWindowOnMove(currentTool: Tool, event: MotionEvent) {
-        if (sharedPreferences.preferenceZoomWindowEnabled) {
-            if (!callback.getCurrentTool()?.toolType?.name.equals(ToolType.CURSOR.name)) {
-                zoomController.onMove(canvasTouchPoint, PointF(event.x, event.y))
-            } else {
-                zoomController.onMove(currentTool.toolPositionCoordinates(canvasTouchPoint), PointF(event.x, event.y))
-            }
+    private fun handleZoomWindowOnMove(currentTool: Tool?, event: MotionEvent) {
+        if (!this::sharedPreferences.isInitialized || !sharedPreferences.preferenceZoomWindowEnabled) return
+        if (currentTool == null) return
+        if (!currentTool.toolType.name.equals(ToolType.CURSOR.name)) {
+            zoomController.onMove(canvasTouchPoint, PointF(event.x, event.y))
+        } else {
+            zoomController.onMove(currentTool.toolPositionCoordinates(canvasTouchPoint), PointF(event.x, event.y))
         }
     }
 

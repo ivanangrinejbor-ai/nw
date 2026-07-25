@@ -173,6 +173,7 @@ public class StageListener implements ApplicationListener {
 	private boolean preloading = false;
 	public boolean firstFrameDrawn = false;
 	private SystemLoadingActor systemLoadingActor = null;
+	private List<Sprite> globalSceneSprites = new java.util.ArrayList<>();
 
 	private static final int INIT_BATCH_SIZE = 50;
 	private int progressiveInitIndex = 0;
@@ -845,10 +846,8 @@ public class StageListener implements ApplicationListener {
 		stage.addActor(vmMonitorActor);
 		vmMonitorActor.setZIndex(0);
 
-		List<Sprite> globalSprites = project.getAllGlobalSprites();
-
 		for (Sprite sprite : sprites) {
-			boolean isGlobal = globalSprites.contains(sprite);
+			boolean isGlobal = globalSceneSprites.contains(sprite);
 			if (!isGlobal) {
 				sprite.resetSprite();
 			}
@@ -871,9 +870,26 @@ public class StageListener implements ApplicationListener {
 	}
 
 	private void loadGlobalSprites() {
-		List<Sprite> globalSprites = project.getAllGlobalSprites();
-		if (!globalSprites.isEmpty()) {
-			sprites.addAll(globalSprites);
+		globalSceneSprites.clear();
+		// New system: dedicated global scene
+		if (project.hasGlobalScene()) {
+			for (Sprite sprite : project.getGlobalScene().getSpriteList()) {
+				globalSceneSprites.add(sprite);
+				sprites.add(sprite);
+			}
+		}
+		// Legacy: sprites with global=true in regular scenes
+		List<Sprite> legacyGlobal = new java.util.ArrayList<>();
+		for (Scene scene : project.getSceneList()) {
+			for (Sprite sprite : scene.getSpriteList()) {
+				if (sprite.isGlobal() && !globalSceneSprites.contains(sprite)) {
+					legacyGlobal.add(sprite);
+				}
+			}
+		}
+		if (!legacyGlobal.isEmpty()) {
+			globalSceneSprites.addAll(legacyGlobal);
+			sprites.addAll(legacyGlobal);
 		}
 	}
 
@@ -981,8 +997,14 @@ public class StageListener implements ApplicationListener {
 	}
 
 	private void disposeClonedSprites() {
-		for (Scene scene : ProjectManager.getInstance().getCurrentProject().getSceneList()) {
+		Project currentProject = ProjectManager.getInstance().getCurrentProject();
+		// Remove cloned sprites from all regular scenes
+		for (Scene scene : currentProject.getSceneList()) {
 			scene.removeClonedSprites();
+		}
+		// Also remove cloned sprites from globalScene
+		if (currentProject.hasGlobalScene()) {
+			currentProject.getGlobalScene().removeClonedSprites();
 		}
 	}
 
@@ -1086,6 +1108,17 @@ public class StageListener implements ApplicationListener {
 			resume();
 		}
 		Gdx.input.setInputProcessor(stage);
+		fireSceneStartedEvent(scene.getName());
+	}
+
+	/** Fires the SceneStartedEventId so "When scene starts" scripts in the Global Scene trigger. */
+	private void fireSceneStartedEvent(String sceneName) {
+		if (project == null || sceneName == null) {
+			return;
+		}
+		EventWrapper event = new EventWrapper(
+				new org.catrobat.catroid.content.eventids.SceneStartedEventId(sceneName), false);
+		project.fireToAllSprites(event);
 	}
 
 	public void transitionToScene(String sceneName, Boolean stopSounds) {
@@ -1115,6 +1148,7 @@ public class StageListener implements ApplicationListener {
 			resume();
 		}
 		Gdx.input.setInputProcessor(stage);
+		fireSceneStartedEvent(scene.getName());
 	}
 
 	public void transitionToScene(String sceneName, Boolean stopSounds, Boolean save) {
@@ -1144,6 +1178,7 @@ public class StageListener implements ApplicationListener {
 			resume();
 		}
 		Gdx.input.setInputProcessor(stage);
+		fireSceneStartedEvent(scene.getName());
 	}
 
 	public void clearScene(String name) {
@@ -1194,6 +1229,7 @@ public class StageListener implements ApplicationListener {
 		scene.firstStart = true;
 		create();
 		resume();
+		fireSceneStartedEvent(scene.getName());
 	}
 
 	public void startScene(String sceneName) {
@@ -1454,7 +1490,7 @@ public class StageListener implements ApplicationListener {
 					progressiveInitActive = true;
 					progressiveInitIndex = 0;
 					progressiveInitSprites = new java.util.ArrayList<>(sprites);
-					progressiveGlobalSprites = project.getAllGlobalSprites();
+					progressiveGlobalSprites = new java.util.ArrayList<>(globalSceneSprites);
 					startPixmapPreload(progressiveInitSprites);
 				}
 
@@ -1486,6 +1522,8 @@ public class StageListener implements ApplicationListener {
 					if (!globalScriptsStarted && project.getAllGlobalSprites().size() > 0) {
 						globalScriptsStarted = true;
 					}
+					// Notify "When scene starts" scripts in the Global Scene
+					fireSceneStartedEvent(scene.getName());
 					if (pixmapPreloader != null) {
 						pixmapPreloader.shutdown();
 						pixmapPreloader = null;
@@ -2229,7 +2267,8 @@ public class StageListener implements ApplicationListener {
 	public void removeCloneByIndexAndSprite(Sprite targetSprite, int index) {
 		Sprite spriteToRemove = null;
 		for (Sprite sprite : sprites) {
-			if (sprite.isClone && sprite.cloneIndex == index && sprite == targetSprite) {
+			// Compare via myOriginal: clones are copies, not the same object as the original
+			if (sprite.isClone && sprite.cloneIndex == index && sprite.myOriginal == targetSprite) {
 				spriteToRemove = sprite;
 				break;
 			}
@@ -2241,6 +2280,11 @@ public class StageListener implements ApplicationListener {
 
 	public List<Sprite> getSpritesFromStage() {
 		return sprites;
+	}
+
+	/** Returns the next clone counter value without incrementing — used for naming fallback. */
+	public int nextCloneIndex() {
+		return cloneCounter.get();
 	}
 
 	@VisibleForTesting
@@ -2279,7 +2323,7 @@ public class StageListener implements ApplicationListener {
 		VibrationManager vibrationManager = StageActivity.getActiveVibrationManager();
 
 		backup.sprites = new ArrayList<>(sprites);
-		backup.sprites.removeAll(project.getAllGlobalSprites());
+		backup.sprites.removeAll(globalSceneSprites);
 		backup.actors = new Array<>(stage.getActors());
 		backup.penActor = penActor;
 		backup.plotActor = plotActor;

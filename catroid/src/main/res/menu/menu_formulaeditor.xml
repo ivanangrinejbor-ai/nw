@@ -35,4 +35,10 @@
         android:title="@string/redo"
         app:showAsAction="ifRoom"
         android:icon="@drawable/icon_redo" />
+
+    <item
+        android:id="@+id/menu_file_picker"
+        android:title="@string/formula_editor_file_picker"
+        app:showAsAction="ifRoom"
+        android:icon="@drawable/folder_copy_24px" />
 </menu>

@@ -197,7 +197,7 @@ public class Look extends Image {
         }
     }
 
-    private final transient Polygon hitboxPolygon = new Polygon(new float[0]);
+    private final transient Polygon hitboxPolygon = new Polygon(new float[8]);
 
 	public Look(final Sprite sprite) {
 		this.sprite = sprite;

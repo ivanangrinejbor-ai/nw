@@ -369,17 +369,40 @@ public class TilemapEditorActivity extends Activity {
 		btnSave.setEnabled(false);
 		hintView.setText(R.string.tilemap_saving);
 		new Thread(() -> {
+			Exception saveError = null;
 			try {
 				XstreamSerializer.getInstance().saveProject(
 						ProjectManager.getInstance().getCurrentProject());
-			} catch (Exception ignored) {
-				// Best effort — edits are already in memory.
+			} catch (Exception e) {
+				saveError = e;
 			}
+			final Exception finalError = saveError;
 			runOnUiThread(() -> {
-				setResult(RESULT_OK);
-				finish();
+				if (finalError != null) {
+					// Show the error — do NOT finish() on failure so the user can retry
+					// and the project is not left in a partially-written corrupt state.
+					String msg = finalError.getMessage();
+					if (msg == null) {
+						msg = finalError.getClass().getSimpleName();
+					}
+					hintView.setText(getString(R.string.tilemap_save_error) + ": " + msg);
+					btnSave.setEnabled(true);
+				} else {
+					setResult(RESULT_OK);
+					finish();
+				}
 			});
 		}, "tilemap-save").start();
+	}
+
+	/** Rolls back a new tilemap that was added to the sprite's look list but never saved. */
+	private void cancelNewTilemap() {
+		if (isNewTilemap && tilemapData != null) {
+			Sprite sprite = ProjectManager.getInstance().getCurrentSprite();
+			if (sprite != null) {
+				sprite.getLookList().remove(tilemapData);
+			}
+		}
 	}
 
 	private void confirmDiscardAndFinish() {
@@ -389,12 +412,15 @@ public class TilemapEditorActivity extends Activity {
 					.setMessage(R.string.tilemap_unsaved_message)
 					.setPositiveButton(R.string.tilemap_save, (d, w) -> saveAndExit())
 					.setNegativeButton(R.string.tilemap_discard, (d, w) -> {
+						cancelNewTilemap();
 						setResult(RESULT_CANCELED);
 						finish();
 					})
 					.setNeutralButton(android.R.string.cancel, null)
 					.show();
 		} else {
+			// No changes made — still need to remove an unsaved new tilemap
+			cancelNewTilemap();
 			setResult(RESULT_CANCELED);
 			finish();
 		}

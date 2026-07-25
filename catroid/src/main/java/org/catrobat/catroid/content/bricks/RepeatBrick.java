@@ -60,6 +60,16 @@ public class RepeatBrick extends FormulaBrick implements CompositeBrick {
 		setFormulaWithBrickField(Brick.BrickField.TIMES_TO_REPEAT, condition);
 	}
 
+	private Object readResolve() {
+		if (endBrick == null) {
+			endBrick = new EndBrick(this);
+		}
+		if (loopBricks == null) {
+			loopBricks = new ArrayList<>();
+		}
+		return this;
+	}
+
 	@Override
 	public boolean hasSecondaryList() {
 		return false;

@@ -14,6 +14,7 @@ public class ExecuteForCloneNumberAction extends Action {
     private Formula cloneNumberFormula;
     private Action cloneAction;
     private boolean initialized;
+    private int targetCloneIndex = -1;  // cached on first act(), avoids re-interpreting each frame
 
     public void setScope(Scope scope) {
         this.scope = scope;
@@ -35,9 +36,10 @@ public class ExecuteForCloneNumberAction extends Action {
                 return true;
             }
             try {
-                int number = cloneNumberFormula.interpretInteger(scope);
-                if (scope.getSprite().cloneIndex != number) {
-                    // This clone doesn't match the target number, skip execution
+                targetCloneIndex = cloneNumberFormula.interpretInteger(scope);
+                if (scope.getSprite().cloneIndex != targetCloneIndex) {
+                    // This clone doesn't match the target number, skip execution permanently
+                    targetCloneIndex = -1;
                     return true;
                 }
             } catch (InterpretationException e) {
@@ -45,15 +47,9 @@ public class ExecuteForCloneNumberAction extends Action {
                 return true;
             }
         }
-        // Only execute cloneAction if this clone matches the target number
-        if (cloneAction != null && scope != null) {
-            try {
-                if (scope.getSprite().cloneIndex == cloneNumberFormula.interpretInteger(scope)) {
-                    return cloneAction.act(delta);
-                }
-            } catch (InterpretationException e) {
-                Log.d(getClass().getSimpleName(), "Formula interpretation failed", e);
-            }
+        // Run the inner action only if this clone matched — no re-interpretation
+        if (cloneAction != null && targetCloneIndex >= 0) {
+            return cloneAction.act(delta);
         }
         return true;
     }
@@ -62,6 +58,7 @@ public class ExecuteForCloneNumberAction extends Action {
     public void restart() {
         super.restart();
         initialized = false;
+        targetCloneIndex = -1;
         if (cloneAction != null) {
             cloneAction.restart();
         }

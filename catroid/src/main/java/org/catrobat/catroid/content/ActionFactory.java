@@ -243,6 +243,65 @@ public class ActionFactory extends Actions {
 		return action;
 	}
 
+	public Action createSetAngularVelocityAction(Sprite sprite, SequenceAction sequence, Formula angularVelocity) {
+		SetAngularVelocityAction action = action(SetAngularVelocityAction.class);
+		action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+		action.setAngularVelocity(angularVelocity);
+		return action;
+	}
+
+	public Action createSetLinearDampingAction(Sprite sprite, SequenceAction sequence, Formula damping) {
+		SetLinearDampingAction action = action(SetLinearDampingAction.class);
+		action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+		action.setDamping(damping);
+		return action;
+	}
+
+	public Action createSetAngularDampingAction(Sprite sprite, SequenceAction sequence, Formula damping) {
+		SetAngularDampingAction action = action(SetAngularDampingAction.class);
+		action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+		action.setDamping(damping);
+		return action;
+	}
+
+	public Action createSetFixedRotationAction(Sprite sprite, SequenceAction sequence, Formula fixed) {
+		SetFixedRotationAction action = action(SetFixedRotationAction.class);
+		action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+		action.setFixed(fixed);
+		return action;
+	}
+
+	public Action createSetBulletAction(Sprite sprite, SequenceAction sequence, Formula bullet) {
+		SetBulletAction action = action(SetBulletAction.class);
+		action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+		action.setBullet(bullet);
+		return action;
+	}
+
+	public Action createSetGravityScaleAction(Sprite sprite, SequenceAction sequence, Formula scale) {
+		SetGravityScaleAction action = action(SetGravityScaleAction.class);
+		action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+		action.setGravityScale(scale);
+		return action;
+	}
+
+	public Action createApplyForceAtPointAction(Sprite sprite, SequenceAction sequence, Formula fx, Formula fy, Formula px, Formula py) {
+		ApplyForceAtPointAction action = action(ApplyForceAtPointAction.class);
+		action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+		action.setForceX(fx);
+		action.setForceY(fy);
+		action.setPointX(px);
+		action.setPointY(py);
+		return action;
+	}
+
+	public Action createSetPhysicsSensorAction(Sprite sprite, SequenceAction sequence, Formula sensor) {
+		SetPhysicsSensorAction action = action(SetPhysicsSensorAction.class);
+		action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+		action.setSensor(sensor);
+		return action;
+	}
+
 	public Action createPerformRayCastaction(Sprite sprite, SequenceAction sequence, Formula rayId, Formula startX, Formula startY, Formula endX, Formula endY) {
 		PerformRayCastAction action = action(PerformRayCastAction.class);
 		action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
@@ -1506,6 +1565,57 @@ public class ActionFactory extends Actions {
 
 	public Action createStopAllSoundsAction() {
 		return Actions.action(StopAllSoundsAction.class);
+	}
+
+	public Action createPauseSoundAction(Sprite sprite, SoundInfo sound) {
+		PauseSoundAction action = Actions.action(PauseSoundAction.class);
+		action.setSprite(sprite);
+		action.setSound(sound);
+		return action;
+	}
+
+	public Action createResumeSoundAction(Sprite sprite, SoundInfo sound) {
+		ResumeSoundAction action = Actions.action(ResumeSoundAction.class);
+		action.setSprite(sprite);
+		action.setSound(sound);
+		return action;
+	}
+
+	public Action createSetSoundLoopAction(Sprite sprite, SoundInfo sound, boolean loop) {
+		SetSoundLoopAction action = Actions.action(SetSoundLoopAction.class);
+		action.setSprite(sprite);
+		action.setSound(sound);
+		action.setLoop(loop);
+		return action;
+	}
+
+	public Action createPlaySoundWithSpeedAction(Sprite sprite, SequenceAction sequence, SoundInfo sound, Formula speed) {
+		PlaySoundWithSpeedAction action = Actions.action(PlaySoundWithSpeedAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setSprite(sprite);
+		action.setScope(scope);
+		action.setSound(sound);
+		action.setSpeed(speed);
+		return action;
+	}
+
+	public Action createCrossFadeSoundAction(Sprite sprite, SequenceAction sequence, SoundInfo soundFrom, SoundInfo soundTo, Formula duration) {
+		CrossFadeSoundAction action = Actions.action(CrossFadeSoundAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setSprite(sprite);
+		action.setScope(scope);
+		action.setSoundFrom(soundFrom);
+		action.setSoundTo(soundTo);
+		action.setDurationFormula(duration);
+		return action;
+	}
+
+	public Action createSetGameVolumeAction(Sprite sprite, SequenceAction sequence, Formula volume) {
+		SetGameVolumeAction action = Actions.action(SetGameVolumeAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setVolume(volume);
+		return action;
 	}
 
 	public Action createPauseForBeatsAction(Sprite sprite, SequenceAction sequence, Formula beats) {
