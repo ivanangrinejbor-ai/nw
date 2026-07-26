@@ -978,9 +978,28 @@ public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.
 			case R.id.menu_file_picker:
 				showProjectFilePicker();
 				break;
+			case R.id.menu_check_formula:
+				checkFormula();
+				break;
 		}
 		updateButtonsOnKeyboardAndInvalidateOptionsMenu();
 		return super.onOptionsItemSelected(item);
+	}
+
+	private void checkFormula() {
+		if (formulaEditorEditText == null) return;
+		InternFormulaParser parser = formulaEditorEditText.getFormulaParser();
+		FormulaElement element = parser.parseFormula(generateScope());
+		if (element == null) {
+			int index = parser.getErrorTokenIndex();
+			if (index >= 0) formulaEditorEditText.setParseErrorCursorAndSelection();
+			new AlertDialog.Builder(requireContext()).setTitle(R.string.formula_editor_check)
+					.setMessage(getString(R.string.formula_editor_invalid, Math.max(1, index + 1)))
+					.setPositiveButton(R.string.ok, null).show();
+			return;
+		}
+		new AlertDialog.Builder(requireContext()).setTitle(R.string.formula_editor_check)
+				.setMessage(R.string.formula_editor_valid).setPositiveButton(R.string.ok, null).show();
 	}
 
 	public void setInputFormula(Brick.FormulaField formulaField, int mode) {

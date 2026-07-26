@@ -41,6 +41,8 @@ import android.text.Html;
 import android.util.DisplayMetrics;
 import android.util.Log;
 
+import com.google.android.material.color.DynamicColors;
+
 import org.catrobat.catroid.BuildConfig;
 import org.catrobat.catroid.ProjectManager;
 import org.catrobat.catroid.R;
@@ -181,6 +183,23 @@ public class SettingsFragment extends PreferenceFragment {
 		setToChosenLanguage(getActivity());
 
 		addPreferencesFromResource(R.xml.preferences);
+		CheckBoxPreference materialYou = (CheckBoxPreference) findPreference("setting_material_you");
+		if (materialYou != null) {
+			if (!DynamicColors.isDynamicColorAvailable()) {
+				materialYou.setChecked(false);
+				materialYou.setEnabled(false);
+			} else {
+				materialYou.setOnPreferenceChangeListener((preference, value) -> {
+					if (Boolean.TRUE.equals(value) && getActivity() != null) {
+						DynamicColors.applyToActivityIfAvailable(getActivity());
+						getActivity().recreate();
+					} else if (getActivity() != null) {
+						getActivity().recreate();
+					}
+					return true;
+				});
+			}
+		}
 		setHintPreferences();
 		setLanguage();
 

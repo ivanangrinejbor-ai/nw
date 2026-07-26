@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
 <resources  xmlns:tools="http://schemas.android.com/tools">
+    <string name="settings_material_you_title">Material You</string>
+    <string name="settings_material_you_summary">Use system dynamic colors when available</string>
+    <string name="settings_material_you_unavailable">Material You is not available on this device</string>
+    <string name="formula_editor_check">Check formula</string>
+    <string name="formula_editor_valid">Formula is valid</string>
+    <string name="formula_editor_invalid">Formula error at position %1$d</string>
 
     <string name="project_reload_status">Reloading project…</string>
     <string-array name="project_reload_facts">

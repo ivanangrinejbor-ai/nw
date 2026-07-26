@@ -305,6 +305,12 @@
             android:summary="@string/settings_themes_summary"
             android:icon="@android:drawable/ic_menu_gallery" />
 
+        <CheckBoxPreference
+            android:key="setting_material_you"
+            android:title="@string/settings_material_you_title"
+            android:summary="@string/settings_material_you_summary"
+            android:defaultValue="false" />
+
         <PreferenceScreen
             android:key="setting_plugins_screen"
             android:title="@string/plugins"

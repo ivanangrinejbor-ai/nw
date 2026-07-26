@@ -96,6 +96,10 @@ public class CatroidApplication extends Application {
 		}
 
 		super.onCreate();
+		if (prefs.getBoolean("setting_material_you", false)
+				&& DynamicColors.isDynamicColorAvailable()) {
+			DynamicColors.applyToActivitiesIfAvailable(this);
+		}
 
 		org.catrobat.catroid.ui.theme.ThemeManager.INSTANCE.init(this);
 
@@ -128,9 +132,7 @@ public class CatroidApplication extends Application {
 
 		CatroidKoinHelperKt.start(this, CatroidKoinHelperKt.getMyModules());
  
- 		DynamicColors.applyToActivitiesIfAvailable(this);
- 
- 		Utils.fetchSpeechRecognitionSupportedLanguages(this);
+		Utils.fetchSpeechRecognitionSupportedLanguages(this);
 
 		defaultSystemLanguage = Locale.getDefault().toLanguageTag();
 

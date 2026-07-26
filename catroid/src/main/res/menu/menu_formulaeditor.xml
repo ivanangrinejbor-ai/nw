@@ -41,4 +41,5 @@
         android:title="@string/formula_editor_file_picker"
         app:showAsAction="ifRoom"
         android:icon="@drawable/folder_copy_24px" />
+    <item android:id="@+id/menu_check_formula" android:title="@string/formula_editor_check" app:showAsAction="ifRoom" android:icon="@drawable/ic_done" />
 </menu>

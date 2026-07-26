@@ -22,6 +22,12 @@
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
 <resources xmlns:tools="http://schemas.android.com/tools">
+    <string name="settings_material_you_title">Material You</string>
+    <string name="settings_material_you_summary">Использовать системные динамические цвета, если они доступны</string>
+    <string name="settings_material_you_unavailable">Material You недоступен на этом устройстве</string>
+    <string name="formula_editor_check">Проверить формулу</string>
+    <string name="formula_editor_valid">Формула корректна</string>
+    <string name="formula_editor_invalid">Ошибка формулы в позиции %1$d</string>
 
     <!-- Physics warning -->
     <string name="physics_warning_title">Обновление совместимости</string>
