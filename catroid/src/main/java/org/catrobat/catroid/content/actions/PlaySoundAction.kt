@@ -33,12 +33,14 @@ class PlaySoundAction : TemporalAction() {
     var sound: SoundInfo? = null
 
     override fun update(percent: Float) {
+        if (!::sprite.isInitialized) return
         if (sprite.soundList.contains(sound)) {
             sound?.let {
+                val soundFile = it.file ?: return
                 if (it.isMidiFile) {
-                    MidiServiceHolder.midiService.playSoundFile(it.file.absolutePath, sprite.name)
+                    MidiServiceHolder.midiService.playSoundFile(soundFile.absolutePath, sprite.name)
                 } else {
-                    AudioServiceHolder.audioService.playSoundFile(it.file.absolutePath, sprite.name)
+                    AudioServiceHolder.audioService.playSoundFile(soundFile.absolutePath, sprite.name)
                 }
             }
         }

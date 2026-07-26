@@ -1064,6 +1064,12 @@ public class FormulaElement implements Serializable {
                 return interpretFunctionListItem(arg0, scope);
             case GET_ITEM:
                 return interpretFunctionGetItem(arg0, arg1, scope);
+            case SCENE_LAUNCH_COUNT: {
+                String sceneName = (arg0 != null) ? String.valueOf(arg0)
+                        : org.catrobat.catroid.content.GlobalManager.getCurrentSceneName();
+                Integer count = org.catrobat.catroid.content.GlobalManager.getSceneLaunchCounts().get(sceneName);
+                return count != null ? (double) count : 0.0;
+            }
             case CONTAINS:
                 return interpretFunctionContains(arg1, scope);
             case NUMBER_OF_ITEMS:

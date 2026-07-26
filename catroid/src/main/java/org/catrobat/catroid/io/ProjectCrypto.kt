@@ -51,17 +51,30 @@ object ProjectCrypto {
     private const val GCM_TAG_LENGTH = 128
     private const val PBKDF2_ITERATIONS = 100_000
     private val MAGIC = byteArrayOf('N'.code.toByte(), 'C'.code.toByte(), 'P'.code.toByte(), 'P'.code.toByte())
+    // Магия "запечённого" (locked) пейлоада внутри APK/EXE: такой проект редактор
+    // отказывается импортировать. Лейаут после магии идентичен NCPP (salt+iv+ct).
+    private val LOCKED_MAGIC = byteArrayOf('N'.code.toByte(), 'C'.code.toByte(), 'P'.code.toByte(), 'X'.code.toByte())
 
     fun isEncrypted(file: File): Boolean {
         if (!file.exists() || file.length() < 4) return false
         return FileInputStream(file).use { input ->
             val header = ByteArray(4)
             input.read(header)
-            header.contentEquals(MAGIC)
+            header.contentEquals(MAGIC) || header.contentEquals(LOCKED_MAGIC)
         }
     }
 
-    fun encrypt(sourceFile: File, destFile: File, password: String) {
+    /** true, если файл — запечённый пейлоад (NCPX). Такие нельзя импортировать в редактор. */
+    fun isLocked(file: File): Boolean {
+        if (!file.exists() || file.length() < 4) return false
+        return FileInputStream(file).use { input ->
+            val header = ByteArray(4)
+            input.read(header)
+            header.contentEquals(LOCKED_MAGIC)
+        }
+    }
+
+    fun encrypt(sourceFile: File, destFile: File, password: String, locked: Boolean = false) {
         val salt = ByteArray(SALT_SIZE).also { SecureRandom().nextBytes(it) }
         val iv = ByteArray(IV_SIZE).also { SecureRandom().nextBytes(it) }
 
@@ -72,7 +85,7 @@ object ProjectCrypto {
         destFile.parentFile?.mkdirs()
         FileInputStream(sourceFile).use { input ->
             FileOutputStream(destFile).use { out ->
-                out.write(MAGIC)
+                out.write(if (locked) LOCKED_MAGIC else MAGIC)
                 out.write(salt)
                 out.write(iv)
                 val buffer = ByteArray(STREAM_BUFFER)
@@ -94,7 +107,8 @@ object ProjectCrypto {
         return try {
             FileInputStream(sourceFile).use { input ->
                 val header = ByteArray(4)
-                if (input.read(header) < 4 || !header.contentEquals(MAGIC)) {
+                if (input.read(header) < 4 ||
+                    !(header.contentEquals(MAGIC) || header.contentEquals(LOCKED_MAGIC))) {
                     Log.e(TAG, "Not an encrypted project file")
                     return false
                 }

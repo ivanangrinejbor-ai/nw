@@ -951,6 +951,10 @@ public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.
 
 		menu.findItem(R.id.menu_undo).setVisible(true);
 		menu.findItem(R.id.menu_redo).setVisible(true);
+		MenuItem filePicker = menu.findItem(R.id.menu_file_picker);
+		if (filePicker != null) {
+			filePicker.setVisible(true);
+		}
 
 		super.onPrepareOptionsMenu(menu);
 		updateButtonsOnKeyboard();

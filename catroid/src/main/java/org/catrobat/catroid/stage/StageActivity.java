@@ -269,6 +269,12 @@ public class StageActivity extends AndroidApplication implements ContextProvider
  	public void onCreate(Bundle savedInstanceState) {
  		super.onCreate(savedInstanceState);
 
+		// Свежий запуск игры: сброс трекинга сцен (счётчики, back stack, имя/время сцены)
+		org.catrobat.catroid.content.GlobalManager.resetSceneTracking();
+		// Сброс флагов предзагрузки сцен — иначе состояние прошлого запуска/проекта
+		// протекает в новый (ScenePreloaded возвращает устаревшее значение).
+		org.catrobat.catroid.content.actions.PreloadSceneAction.Companion.getPreloadedScenes().clear();
+
 		org.catrobat.catroid.runtime.RuntimeServicesHolder.services =
 				new org.catrobat.catroid.runtime.AndroidRuntimeServices(this);
 
@@ -1617,6 +1623,14 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 
 
 
+	/** Безопасно достаёт строковый параметр: отсутствующий индекс → пустая строка. */
+	private static String paramAt(List<Object> params, int index) {
+		if (params == null || index >= params.size() || params.get(index) == null) {
+			return "";
+		}
+		return String.valueOf(params.get(index));
+	}
+
 	void setupAskHandler() {
 		final WeakReference<StageActivity> weakRef = new WeakReference<>(this);
 		messageHandler = new Handler(Looper.getMainLooper()) {
@@ -1635,7 +1649,9 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 						break;
 					case SHOW_DIALOG:
 						currentStage.brickDialogManager.showDialog((BrickDialogManager.DialogType) params.get(0),
-								(Action) params.get(1), (String) params.get(2), (String) params.get(3), (String) params.get(4), (String) params.get(5), (String) params.get(6));
+								(Action) params.get(1),
+								paramAt(params, 2), paramAt(params, 3), paramAt(params, 4),
+								paramAt(params, 5), paramAt(params, 6));
 						break;
 					case SHOW_TOAST:
 						currentStage.showToastMessage((String) params.get(0));

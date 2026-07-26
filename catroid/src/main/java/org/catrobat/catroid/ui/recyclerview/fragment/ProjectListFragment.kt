@@ -155,6 +155,11 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
                 ToastUtil.showError(requireContext(), R.string.wrong_password)
             }
 
+            is org.catrobat.catroid.io.asynctask.ImportResult.LockedProject -> {
+
+                ToastUtil.showError(requireContext(), R.string.import_locked_project)
+            }
+
             is org.catrobat.catroid.io.asynctask.ImportResult.BakedProject -> {
 
                 ToastUtil.showSuccess(requireContext(), "Запуск запеченного проекта...")

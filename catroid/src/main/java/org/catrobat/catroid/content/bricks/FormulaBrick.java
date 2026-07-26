@@ -173,6 +173,10 @@ public abstract class FormulaBrick extends BrickBaseType implements View.OnClick
 		super.getView(context);
 		for (BiMap.Entry<FormulaField, Integer> entry : brickFieldToTextViewIdMap.entrySet()) {
 			TextView formulaFieldView = view.findViewById(entry.getValue());
+			if (formulaFieldView == null) {
+				// Layout does not contain this formula field — skip instead of crashing
+				continue;
+			}
 			if (!formulaMap.containsKey(entry.getKey())) {
 				formulaMap.put(entry.getKey(), new Formula(0));
 			}
@@ -221,6 +225,9 @@ public abstract class FormulaBrick extends BrickBaseType implements View.OnClick
 	public void setClickListeners() {
 		for (BiMap.Entry<FormulaField, Integer> entry : brickFieldToTextViewIdMap.entrySet()) {
 			TextView formulaFieldView = view.findViewById(entry.getValue());
+			if (formulaFieldView == null) {
+				continue;
+			}
 			formulaFieldView.setOnClickListener(this);
 			// Long-click: копировать/вставить формулу между блоками
 			final FormulaField field = entry.getKey();
@@ -390,12 +397,23 @@ public abstract class FormulaBrick extends BrickBaseType implements View.OnClick
 
 	private void saveCodeFile(View view) {
 		ScriptFragment scriptFragment = getScriptFragment(view);
-		if (scriptFragment != null && scriptFragment.copyProjectForUndoOption()) {
-            if (scriptFragment.getActivity() instanceof SpriteActivity) {
-                ((SpriteActivity) scriptFragment.getActivity()).setUndoMenuItemVisibility(true);
-            }
-			scriptFragment.setUndoBrickPosition(this);
+		if (scriptFragment == null) {
+			return;
 		}
+		// Полная сериализация проекта (undo-снапшот) на большом проекте занимает
+		// десятки секунд — выполняем в фоне, чтобы редактор формул открывался мгновенно.
+		final FormulaBrick self = this;
+		new Thread(() -> {
+			if (scriptFragment.copyProjectForUndoOption()) {
+				androidx.fragment.app.FragmentActivity activity = scriptFragment.getActivity();
+				if (activity instanceof SpriteActivity) {
+					activity.runOnUiThread(() -> {
+						((SpriteActivity) activity).setUndoMenuItemVisibility(true);
+						scriptFragment.setUndoBrickPosition(self);
+					});
+				}
+			}
+		}, "UndoSnapshot").start();
 	}
 
 	private ScriptFragment getScriptFragment(View view) {

@@ -42,6 +42,17 @@ public class ScheduleBrick extends FormulaBrick implements CompositeBrick {
 	private transient EndBrick endBrick = new EndBrick(this);
 	private List<Brick> scheduledBricks = new ArrayList<>();
 
+	// XStream не вызывает конструкторы — transient endBrick будет null после десериализации.
+	private Object readResolve() {
+		if (endBrick == null) {
+			endBrick = new EndBrick(this);
+		}
+		if (scheduledBricks == null) {
+			scheduledBricks = new ArrayList<>();
+		}
+		return this;
+	}
+
 	public ScheduleBrick() {
 		addAllowedBrickField(BrickField.TIME_TO_WAIT_IN_SECONDS, R.id.brick_schedule_edit_text_delay);
 	}

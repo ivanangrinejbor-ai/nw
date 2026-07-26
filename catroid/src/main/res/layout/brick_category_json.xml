@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" style="@style/BrickCategory.Data">
+    <include layout="@layout/icon_brick_category_data" />
+    <TextView style="@style/BrickCategoryText" android:text="@string/category_json" />
+</LinearLayout>

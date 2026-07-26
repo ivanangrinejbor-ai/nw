@@ -65,7 +65,7 @@ public class TilemapEditorActivity extends Activity {
 	private ImageButton btnUndo;
 	private ImageButton btnRedo;
 	private ImageButton btnSave;
-	private CheckBox solidToggle;
+	private android.widget.CompoundButton solidToggle;
 
 	private TilemapLookData tilemapData;
 	private int lookIndex = -1;
@@ -86,9 +86,9 @@ public class TilemapEditorActivity extends Activity {
 		solidToggle = findViewById(R.id.tilemap_solid_toggle);
 		ImageButton btnBack = findViewById(R.id.tilemap_btn_back);
 		TextView title = findViewById(R.id.tilemap_title);
-		Button btnMapSize = findViewById(R.id.tilemap_btn_map_size);
-		Button btnTileSize = findViewById(R.id.tilemap_btn_tile_size);
-		Button btnTileset = findViewById(R.id.tilemap_btn_tileset);
+		TextView btnMapSize = findViewById(R.id.tilemap_btn_map_size);
+		TextView btnTileSize = findViewById(R.id.tilemap_btn_tile_size);
+		TextView btnTileset = findViewById(R.id.tilemap_btn_tileset);
 
 		// Resolve or create the TilemapLookData.
 		lookIndex = getIntent().getIntExtra(EXTRA_LOOK_INDEX, -1);
@@ -352,13 +352,18 @@ public class TilemapEditorActivity extends Activity {
 	 * tileset image). Returns the same instance for convenience.
 	 */
 	private TilemapLookData replaceTilemapFile(TilemapLookData data, File newFile) {
+		// setFile() обновляет И file, И fileName — раньше reflection менял только file,
+		// из-за чего ссылка на тайлсет терялась при сохранении/загрузке проекта.
+		data.setFile(newFile);
+		// Сбрасываем закешированный Pixmap, чтобы новая картинка перечиталась
+		// (Pixmap.dispose() — CPU-память, безопасно вне GL-потока).
 		try {
-			java.lang.reflect.Field fileField = LookData.class.getDeclaredField("file");
-			fileField.setAccessible(true);
-			fileField.set(data, newFile);
-			// Clear cached pixmap so the new image is reloaded.
 			java.lang.reflect.Field pixmapField = LookData.class.getDeclaredField("pixmap");
 			pixmapField.setAccessible(true);
+			Object oldPixmap = pixmapField.get(data);
+			if (oldPixmap instanceof com.badlogic.gdx.graphics.Pixmap) {
+				((com.badlogic.gdx.graphics.Pixmap) oldPixmap).dispose();
+			}
 			pixmapField.set(data, null);
 		} catch (Exception ignored) { // ignored
 		}

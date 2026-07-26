@@ -65,9 +65,14 @@ class ListenServerAction() : Action() {
         val v = variable ?: return true
 
         val scheduler = getScheduler()
-        scheduledTask = scheduler.scheduleAtFixedRate({
-            v.value = LocalServer.getValue()
-        }, 0, 30, TimeUnit.MILLISECONDS)
+        synchronized(ListenServerAction) {
+            // Отменяем предыдущую задачу — иначе каждый вызов брика плодит новый
+            // scheduleAtFixedRate и планировщик накапливает задачи бесконечно.
+            scheduledTask?.cancel(false)
+            scheduledTask = scheduler.scheduleAtFixedRate({
+                v.value = LocalServer.getValue()
+            }, 0, 30, TimeUnit.MILLISECONDS)
+        }
 
         return true
     }

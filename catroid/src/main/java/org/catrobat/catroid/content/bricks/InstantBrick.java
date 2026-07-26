@@ -14,7 +14,15 @@ public class InstantBrick extends BrickBaseType implements CompositeBrick {
     private transient EndBrick endBrick = new EndBrick(this);
     private List<Brick> nestedBricks = new ArrayList<>();
 
-    public InstantBrick() {
+    // XStream не вызывает конструкторы — transient endBrick будет null после десериализации.
+    private Object readResolve() {
+        if (endBrick == null) {
+            endBrick = new EndBrick(this);
+        }
+        if (nestedBricks == null) {
+            nestedBricks = new ArrayList<>();
+        }
+        return this;
     }
 
     @Override

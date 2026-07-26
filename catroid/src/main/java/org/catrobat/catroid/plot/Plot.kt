@@ -32,6 +32,13 @@ import org.catrobat.catroid.stage.StageActivity
 
 class Plot
 {
+    companion object {
+        // Защита от OOM: бесконечный цикл Start/StopPlot или очень долгое рисование
+        // не должны накапливать точки без ограничения.
+        private const val MAX_LINES = 500
+        private const val MAX_POINTS_PER_LINE = 50_000
+    }
+
     private var isPlotting = false
     private var dataPointLists = ArrayList<ArrayList<PointF>>()
     private var drawQueue = Queue<Queue<PointF>>()
@@ -53,16 +60,26 @@ class Plot
     }
 
     fun startNewPlotLine(){
+        trimOldLinesIfNeeded()
         dataPointLists.add(ArrayList())
         drawQueue.addLast(Queue())
     }
     fun startNewPlotLine(point : PointF){
+        trimOldLinesIfNeeded()
         dataPointLists.add(arrayListOf(point))
         drawQueue.addLast(Queue())
         drawQueue.last().addLast(point)
     }
 
+    private fun trimOldLinesIfNeeded() {
+        while (dataPointLists.size >= MAX_LINES) {
+            dataPointLists.removeAt(0)
+        }
+    }
+
     fun addPoint(point : PointF){
+        if (dataPointLists.isEmpty() || drawQueue.isEmpty) return
+        if (dataPointLists.last().size >= MAX_POINTS_PER_LINE) return
         dataPointLists.last().add(point)
         drawQueue.last().addLast(point)
     }

@@ -56,6 +56,9 @@ public class TilemapEditorView extends View {
 	private TilemapLookData data;
 	private final TilemapEditHistory history;
 
+	/** Тайлсет увеличивается в памяти в TILESET_SCALE раз — src-координаты должны это учитывать. */
+	private static final int TILESET_SCALE = 3;
+
 	private Bitmap tilesetBitmap;
 	private int tileW = 16;
 	private int tileH = 16;
@@ -175,28 +178,33 @@ public class TilemapEditorView extends View {
 	}
 
 	private void loadTilesetBitmap() {
+		// Освобождаем предыдущий битмап, чтобы смена тайлсета не текла памятью.
+		if (tilesetBitmap != null && !tilesetBitmap.isRecycled()) {
+			tilesetBitmap.recycle();
+		}
+		tilesetBitmap = null;
 		if (data == null || data.getFile() == null || !data.getFile().exists()) {
-			tilesetBitmap = null;
 			tilesetColumns = 0;
 			tilesetRows = 0;
 			return;
 		}
 		Bitmap raw = BitmapFactory.decodeFile(data.getFile().getAbsolutePath());
 		if (raw == null) {
-			tilesetBitmap = null;
 			tilesetColumns = 0;
 			tilesetRows = 0;
 			return;
 		}
 		// Scale up 3× so small pixel-art tilesets are visible on modern screens.
-		int scaledW = raw.getWidth() * 3;
-		int scaledH = raw.getHeight() * 3;
+		int rawW = raw.getWidth();
+		int rawH = raw.getHeight();
+		int scaledW = rawW * TILESET_SCALE;
+		int scaledH = rawH * TILESET_SCALE;
 		tilesetBitmap = Bitmap.createScaledBitmap(raw, scaledW, scaledH, true);
 		if (tilesetBitmap != raw) {
 			raw.recycle();
 		}
-		tilesetColumns = data.getTilesetColumns();
-		tilesetRows = data.getTilesetRows();
+		tilesetColumns = data.getTilesetColumns(rawW);
+		tilesetRows = data.getTilesetRows(rawH);
 	}
 
 	/** Called by the activity after the user picks a new tileset image. */
@@ -244,9 +252,11 @@ public class TilemapEditorView extends View {
 							&& tile < tilesetColumns * tilesetRows) {
 						int srcCol = tile % tilesetColumns;
 						int srcRow = tile / tilesetColumns;
+						// Битмап в памяти увеличен в TILESET_SCALE раз — src тоже масштабируем,
+						// иначе рисуется только верхняя-левая часть нужного тайла.
 						Rect src = new Rect(
-								srcCol * tileW, srcRow * tileH,
-								(srcCol + 1) * tileW, (srcRow + 1) * tileH);
+								srcCol * tileW * TILESET_SCALE, srcRow * tileH * TILESET_SCALE,
+								(srcCol + 1) * tileW * TILESET_SCALE, (srcRow + 1) * tileH * TILESET_SCALE);
 						Rect dst = new Rect(
 								(int) (panOffsetX + col * scaledTileW),
 								(int) (panOffsetY + row * scaledTileH),
@@ -390,6 +400,10 @@ public class TilemapEditorView extends View {
 	private int[] screenToCell(float screenX, float screenY) {
 		float scaledTileW = tileW * zoom;
 		float scaledTileH = tileH * zoom;
+		// zoom зажат в [MIN_ZOOM, MAX_ZOOM], но tileW/tileH теоретически могут быть 0 — защита от деления на ноль.
+		if (scaledTileW < 0.0001f || scaledTileH < 0.0001f) {
+			return new int[]{-1, -1};
+		}
 		int col = (int) Math.floor((screenX - panOffsetX) / scaledTileW);
 		int row = (int) Math.floor((screenY - panOffsetY) / scaledTileH);
 		return new int[]{col, row};
@@ -466,7 +480,11 @@ public class TilemapEditorView extends View {
 		@Override
 		protected void onDraw(Canvas canvas) {
 			super.onDraw(canvas);
-		if (editor == null || editor.tilesetBitmap == null
+		if (editor == null) {
+			canvas.drawColor(Color.argb(60, 128, 128, 128));
+			return;
+		}
+		if (editor.tilesetBitmap == null
 				|| editor.tilesetColumns <= 0 || editor.tilesetRows <= 0) {
 			canvas.drawColor(Color.argb(60, 128, 128, 128));
 			editor.textPaint.setColor(Color.WHITE);
@@ -477,13 +495,16 @@ public class TilemapEditorView extends View {
 				return;
 			}
 			float cellSize = getHeight();
+			if (cellSize <= 0) {
+				return;
+			}
 			int totalTiles = Math.min(editor.tilesetColumns * editor.tilesetRows, 128);
 			for (int i = 0; i < totalTiles; i++) {
 				int srcCol = i % editor.tilesetColumns;
 				int srcRow = i / editor.tilesetColumns;
 				Rect src = new Rect(
-						srcCol * editor.tileW, srcRow * editor.tileH,
-						(srcCol + 1) * editor.tileW, (srcRow + 1) * editor.tileH);
+						srcCol * editor.tileW * TILESET_SCALE, srcRow * editor.tileH * TILESET_SCALE,
+						(srcCol + 1) * editor.tileW * TILESET_SCALE, (srcRow + 1) * editor.tileH * TILESET_SCALE);
 				Rect dst = new Rect(
 						(int) (i * cellSize), 0,
 						(int) ((i + 1) * cellSize), (int) cellSize);
@@ -507,6 +528,9 @@ public class TilemapEditorView extends View {
 			}
 			if (event.getAction() == MotionEvent.ACTION_UP) {
 				float cellSize = getHeight();
+				if (cellSize <= 0) {
+					return true;
+				}
 				int index = (int) (event.getX() / cellSize);
 				int total = Math.min(editor.tilesetColumns * editor.tilesetRows, 128);
 				if (index >= 0 && index < total) {

@@ -95,6 +95,16 @@ public class ActionFactory extends Actions {
 		return action;
 	}
 
+	public Action createJsonParseAction(Sprite sprite, ScriptSequenceAction sequence,
+			Formula nameFormula, Formula textFormula) {
+		JsonParseAction action = Actions.action(JsonParseAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setNameFormula(nameFormula);
+		action.setTextFormula(textFormula);
+		return action;
+	}
+
 	public Action createRevoluteJointAction(Sprite sprite, SequenceAction sequence, Formula jointId, Formula spriteB, Formula anchorX, Formula anchorY) {
 		CreateRevoluteJointAction action = action(CreateRevoluteJointAction.class);
 		action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
@@ -2769,6 +2779,12 @@ public class ActionFactory extends Actions {
 	public Action createSceneStartAction(String sceneName, Sprite sprite) {
 		SceneStartAction action = action(SceneStartAction.class);
 		action.setScene(sceneName);
+		action.setSprite(sprite);
+		return action;
+	}
+
+	public Action createSceneBackAction(Sprite sprite) {
+		SceneBackAction action = action(SceneBackAction.class);
 		action.setSprite(sprite);
 		return action;
 	}

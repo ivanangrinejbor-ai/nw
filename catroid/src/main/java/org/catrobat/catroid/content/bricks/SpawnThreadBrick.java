@@ -14,6 +14,17 @@ public class SpawnThreadBrick extends FormulaBrick implements CompositeBrick {
     private transient EndBrick endBrick = new EndBrick(this);
     private List<Brick> threadBricks = new ArrayList<>();
 
+    // XStream не вызывает конструкторы — transient endBrick будет null после десериализации.
+    private Object readResolve() {
+        if (endBrick == null) {
+            endBrick = new EndBrick(this);
+        }
+        if (threadBricks == null) {
+            threadBricks = new ArrayList<>();
+        }
+        return this;
+    }
+
     public SpawnThreadBrick() {
         super();
         addAllowedBrickField(BrickField.IF_CONDITION, R.id.brick_spawn_thread_id_edit);

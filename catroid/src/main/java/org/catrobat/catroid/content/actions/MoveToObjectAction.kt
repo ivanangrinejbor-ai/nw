@@ -39,37 +39,57 @@ class MoveToObjectAction : Action() {
     var blockedPathAction: Int = 0
 
     private var pathSet = false
+    private var requestInFlight = false
+    private var noPathFound = false
+    // Защита от «протухшего» результата: если restart() случился пока A* считался
+    // в фоне, старый коллбек игнорируется по номеру поколения.
+    private var requestGeneration = 0
 
     override fun act(delta: Float): Boolean {
         val pf = StageActivity.activeStageActivity.get()?.stageListener?.pathfindingManager ?: return true
         val spriteName = scope?.sprite?.name ?: return true
 
         if (!pathSet) {
-            pathSet = true
-            val spd = speed?.interpretFloat(scope) ?: 100f
-            val avoidStr = avoidObjects?.interpretString(scope) ?: ""
-            for (name in avoidStr.split(",")) {
-                val trimmed = name.trim()
-                if (trimmed.isNotEmpty()) {
-                    pf.addObstacle(trimmed)
-                }
-            }
-            if (pf.navGrid == null) return true
-            pf.setFollowerTarget(spriteName, targetObject)
-            pf.setFollowerStopOnTouch(spriteName, moveMode == 1)
-            pf.setFollowerSizeCheckMode(spriteName, sizeCheckMode)
-            pf.setFollowerBlockedPathAction(spriteName, blockedPathAction)
-            val result = pf.findPathToObject(spriteName, targetObject, sizeCheckMode, blockedPathAction)
-            if (result.found || (blockedPathAction == 1 && result.points.isNotEmpty())) {
-                if (moveMode == 1) {
-                    pf.setPathForFollower(spriteName, result.points)
-                } else {
-                    pf.setPathForFollowerWithTarget(spriteName, result.points, targetObject)
-                }
-                pf.startFollowing(spriteName, spd)
-            } else {
+            if (noPathFound) {
+                noPathFound = false
                 return true
             }
+            if (!requestInFlight) {
+                val spd = speed?.interpretFloat(scope) ?: 100f
+                val avoidStr = avoidObjects?.interpretString(scope) ?: ""
+                for (name in avoidStr.split(",")) {
+                    val trimmed = name.trim()
+                    if (trimmed.isNotEmpty()) {
+                        pf.addObstacle(trimmed)
+                    }
+                }
+                if (pf.navGrid == null) return true
+                pf.setFollowerTarget(spriteName, targetObject)
+                pf.setFollowerStopOnTouch(spriteName, moveMode == 1)
+                pf.setFollowerSizeCheckMode(spriteName, sizeCheckMode)
+                pf.setFollowerBlockedPathAction(spriteName, blockedPathAction)
+                requestInFlight = true
+                val generation = requestGeneration
+                // A* считается в фоне — на большой сетке синхронный поиск фризил кадр.
+                pf.findPathToObjectAsync(spriteName, targetObject, sizeCheckMode, blockedPathAction) { result ->
+                    if (generation != requestGeneration) return@findPathToObjectAsync
+                    requestInFlight = false
+                    if (result.found || (blockedPathAction == 1 && result.points.isNotEmpty())) {
+                        if (moveMode == 1) {
+                            pf.setPathForFollower(spriteName, result.points)
+                        } else {
+                            pf.setPathForFollowerWithTarget(spriteName, result.points, targetObject)
+                        }
+                        pf.startFollowing(spriteName, spd)
+                        pathSet = true
+                    } else {
+                        noPathFound = true
+                    }
+                }
+            }
+            // Ждём результат фонового поиска — брик, как и раньше, завершается только
+            // после построения пути (или его отсутствия).
+            return false
         }
 
         if (pf.isEndReached(spriteName)) {
@@ -86,6 +106,9 @@ class MoveToObjectAction : Action() {
 
     override fun restart() {
         pathSet = false
+        requestInFlight = false
+        noPathFound = false
+        requestGeneration++
         super.restart()
     }
 }

@@ -64,7 +64,10 @@ data class PathFollower(
     var stopOnTouch: Boolean = false,
     var sizeCheckMode: Int = 0,
     var blockedPathAction: Int = 0
-)
+) {
+    /** true пока A* для этого фолловера считается в фоне — фолловер ждёт на месте. */
+    @Volatile var replanInFlight: Boolean = false
+}
 
 class PathfindingManager {
 
@@ -104,6 +107,55 @@ class PathfindingManager {
     private val followers = mutableMapOf<String, PathFollower>()
     private val pathNodePool = mutableListOf<PathNode>()
     private val maxPoolSize = 5000
+
+    // A* на большой сетке (2000×2000) может считаться секунды — выносим в фоновый
+    // поток-одиночку, результат применяем на render-потоке через postRunnable.
+    private val pathExecutor = java.util.concurrent.Executors.newSingleThreadExecutor { r ->
+        Thread(r, "pathfinder").apply { isDaemon = true }
+    }
+
+    private fun runOnRenderThread(block: () -> Unit) {
+        val app = com.badlogic.gdx.Gdx.app
+        if (app != null) {
+            app.postRunnable(block)
+        } else {
+            block()
+        }
+    }
+
+    /**
+     * Асинхронный поиск пути до объекта: координаты фиксируются сразу (на потоке
+     * вызова), A* считается в фоне, onResult вызывается на render-потоке.
+     */
+    fun findPathToObjectAsync(
+        fromSprite: String,
+        targetSprite: String,
+        sizeCheckMode: Int = 0,
+        blockedPathAction: Int = 0,
+        onResult: (PathResult) -> Unit
+    ) {
+        val from = findSpriteByName(fromSprite)?.look
+        val to = findSpriteByName(targetSprite)?.look
+        if (from == null || to == null) {
+            onResult(PathResult(emptyList(), false))
+            return
+        }
+        val sx = from.xInUserInterfaceDimensionUnit
+        val sy = from.yInUserInterfaceDimensionUnit
+        val ex = to.xInUserInterfaceDimensionUnit
+        val ey = to.yInUserInterfaceDimensionUnit
+        val sw = from.widthInUserInterfaceDimensionUnit
+        val sh = from.heightInUserInterfaceDimensionUnit
+        pathExecutor.execute {
+            val result = try {
+                findPath(sx, sy, ex, ey, sizeCheckMode, sw, sh, blockedPathAction)
+            } catch (e: Exception) {
+                Log.e(TAG, "Async pathfinding failed", e)
+                PathResult(emptyList(), false)
+            }
+            runOnRenderThread { onResult(result) }
+        }
+    }
 
     @Synchronized
     fun createGrid(width: Int, height: Int, cellSize: Float, defaultWalkable: Boolean = true,
@@ -282,12 +334,15 @@ class PathfindingManager {
         return true
     }
 
+    // Пул нод теперь доступен и с render-потока (HasPath), и с pathExecutor — синхронизируем.
+    @Synchronized
     private fun obtainNode(x: Int, y: Int, g: Float = 0f, h: Float = 0f, parent: PathNode? = null): PathNode {
         val node = if (pathNodePool.isNotEmpty()) pathNodePool.removeAt(pathNodePool.lastIndex) else PathNode(0, 0)
         node.set(x, y, g, h, parent)
         return node
     }
 
+    @Synchronized
     private fun freeNode(node: PathNode) {
         if (pathNodePool.size < maxPoolSize) {
             node.reset()
@@ -647,31 +702,50 @@ class PathfindingManager {
             val targetCell = worldToCell(target.x, target.y)
 
             if (targetCell == null || !isCellWalkableForSize(targetCell.first, targetCell.second, grid, follower.sizeCheckMode, look.widthInUserInterfaceDimensionUnit, look.heightInUserInterfaceDimensionUnit)) {
-                val finalTarget = if (follower.targetName != null) {
-                    val tSprite = findSpriteByName(follower.targetName!!)
-                    val tLook = tSprite?.look
-                    if (tLook != null) Vector2(tLook.xInUserInterfaceDimensionUnit, tLook.yInUserInterfaceDimensionUnit) else follower.waypoints.lastOrNull()
-                } else follower.waypoints.lastOrNull()
-                val endX = finalTarget?.x ?: target.x
-                val endY = finalTarget?.y ?: target.y
-                val replanResult = findPath(
-                    currentX, currentY, endX, endY,
-                    follower.sizeCheckMode,
-                    look.widthInUserInterfaceDimensionUnit,
-                    look.heightInUserInterfaceDimensionUnit,
-                    follower.blockedPathAction
-                )
-                if (replanResult.found || (follower.blockedPathAction == 1 && replanResult.points.isNotEmpty())) {
-                    follower.waypoints = smoothPath(replanResult.points, follower.sizeCheckMode, look.widthInUserInterfaceDimensionUnit, look.heightInUserInterfaceDimensionUnit)
-                    if (finalTarget != null && follower.waypoints.isNotEmpty() && follower.waypoints.last().dst(finalTarget) > 1f) {
-                        follower.waypoints = follower.waypoints.toMutableList().also { it.add(finalTarget) }
+                if (!follower.replanInFlight) {
+                    follower.replanInFlight = true
+                    val finalTarget = if (follower.targetName != null) {
+                        val tSprite = findSpriteByName(follower.targetName!!)
+                        val tLook = tSprite?.look
+                        if (tLook != null) Vector2(tLook.xInUserInterfaceDimensionUnit, tLook.yInUserInterfaceDimensionUnit) else follower.waypoints.lastOrNull()
+                    } else follower.waypoints.lastOrNull()
+                    val endX = finalTarget?.x ?: target.x
+                    val endY = finalTarget?.y ?: target.y
+                    val scm = follower.sizeCheckMode
+                    val bpa = follower.blockedPathAction
+                    val sw = look.widthInUserInterfaceDimensionUnit
+                    val sh = look.heightInUserInterfaceDimensionUnit
+                    // A* уходит в фон — на большой сетке синхронный пересчёт фризил кадр.
+                    pathExecutor.execute {
+                        val replanResult = try {
+                            findPath(currentX, currentY, endX, endY, scm, sw, sh, bpa)
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Async replan failed", e)
+                            PathResult(emptyList(), false)
+                        }
+                        val newWaypoints = if (replanResult.found || (bpa == 1 && replanResult.points.isNotEmpty())) {
+                            var wp = smoothPath(replanResult.points, scm, sw, sh)
+                            if (finalTarget != null && wp.isNotEmpty() && wp.last().dst(finalTarget) > 1f) {
+                                wp = wp.toMutableList().also { it.add(finalTarget) }
+                            }
+                            wp
+                        } else {
+                            null
+                        }
+                        runOnRenderThread {
+                            follower.replanInFlight = false
+                            if (newWaypoints != null) {
+                                follower.waypoints = newWaypoints
+                                follower.currentIndex = 0
+                            } else {
+                                follower.callback?.onPathBlocked(name, "Path blocked, no alternative found")
+                                follower.state = FollowState.IDLE
+                            }
+                        }
                     }
-                    follower.currentIndex = 0
-                } else {
-                    follower.callback?.onPathBlocked(name, "Path blocked, no alternative found")
-                    follower.state = FollowState.IDLE
-                    continue
                 }
+                // Ждём результат фонового пересчёта — этот кадр фолловер стоит на месте.
+                continue
             }
 
             val dx = target.x - currentX
@@ -686,20 +760,38 @@ class PathfindingManager {
                     val nextTarget = follower.waypoints[follower.currentIndex]
                     val nextCell = worldToCell(nextTarget.x, nextTarget.y)
                     if (nextCell == null || !isCellWalkableForSize(nextCell.first, nextCell.second, grid, follower.sizeCheckMode, look.widthInUserInterfaceDimensionUnit, look.heightInUserInterfaceDimensionUnit)) {
-                        val replanResult = findPath(
-                            currentX, currentY, 
-                            follower.waypoints.last().x, follower.waypoints.last().y,
-                            follower.sizeCheckMode,
-                            look.widthInUserInterfaceDimensionUnit,
-                            look.heightInUserInterfaceDimensionUnit,
-                            follower.blockedPathAction
-                        )
-                        if (replanResult.found || (follower.blockedPathAction == 1 && replanResult.points.isNotEmpty())) {
-                            follower.waypoints = smoothPath(replanResult.points, follower.sizeCheckMode, look.widthInUserInterfaceDimensionUnit, look.heightInUserInterfaceDimensionUnit)
-                            follower.currentIndex = 0
-                        } else {
-                            follower.callback?.onPathBlocked(name, "Path blocked, no alternative found")
-                            follower.state = FollowState.IDLE
+                        if (!follower.replanInFlight) {
+                            follower.replanInFlight = true
+                            val endX = follower.waypoints.last().x
+                            val endY = follower.waypoints.last().y
+                            val scm = follower.sizeCheckMode
+                            val bpa = follower.blockedPathAction
+                            val sw = look.widthInUserInterfaceDimensionUnit
+                            val sh = look.heightInUserInterfaceDimensionUnit
+                            // Фоновый пересчёт — не фризим кадр на большой сетке.
+                            pathExecutor.execute {
+                                val replanResult = try {
+                                    findPath(currentX, currentY, endX, endY, scm, sw, sh, bpa)
+                                } catch (e: Exception) {
+                                    Log.e(TAG, "Async dynamic replan failed", e)
+                                    PathResult(emptyList(), false)
+                                }
+                                val newWaypoints = if (replanResult.found || (bpa == 1 && replanResult.points.isNotEmpty())) {
+                                    smoothPath(replanResult.points, scm, sw, sh)
+                                } else {
+                                    null
+                                }
+                                runOnRenderThread {
+                                    follower.replanInFlight = false
+                                    if (newWaypoints != null) {
+                                        follower.waypoints = newWaypoints
+                                        follower.currentIndex = 0
+                                    } else {
+                                        follower.callback?.onPathBlocked(name, "Path blocked, no alternative found")
+                                        follower.state = FollowState.IDLE
+                                    }
+                                }
+                            }
                         }
                     }
                 }

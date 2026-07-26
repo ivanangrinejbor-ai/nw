@@ -404,6 +404,7 @@ import org.catrobat.catroid.content.bricks.SaveToInternalStorageBrick
 import org.catrobat.catroid.content.bricks.SayBubbleBrick
 import org.catrobat.catroid.content.bricks.SayForBubbleBrick
 import org.catrobat.catroid.content.bricks.SceneIdBrick
+import org.catrobat.catroid.content.bricks.SceneBackBrick
 import org.catrobat.catroid.content.bricks.SceneStartBrick
 import org.catrobat.catroid.content.bricks.SceneTransitionBrick
 import org.catrobat.catroid.content.bricks.ScreenShotBrick
@@ -674,6 +675,7 @@ import org.catrobat.catroid.content.bricks.WhenProjectExitsBrick
 import org.catrobat.catroid.content.bricks.WhenRaspiPinChangedBrick
 import org.catrobat.catroid.content.bricks.WhenStartedBrick
 import org.catrobat.catroid.content.bricks.WhenSceneLaunchedBrick
+import org.catrobat.catroid.content.bricks.WhenSceneExitedBrick
 import org.catrobat.catroid.content.bricks.WhenTouchDownBrick
 import org.catrobat.catroid.content.bricks.WriteBaseBrick
 import org.catrobat.catroid.content.bricks.WriteEmbroideryToFileBrick
@@ -739,6 +741,7 @@ import org.catrobat.catroid.content.bricks.MapCreateBrick
 import org.catrobat.catroid.content.bricks.MapDeleteBrick
 import org.catrobat.catroid.content.bricks.MapGetBrick
 import org.catrobat.catroid.content.bricks.MapSetBrick
+import org.catrobat.catroid.content.bricks.JsonParseBrick
 import org.catrobat.catroid.content.bricks.PlayToneBrick
 import org.catrobat.catroid.content.bricks.QueueDequeueBrick
 import org.catrobat.catroid.content.bricks.QueueEnqueueBrick
@@ -821,6 +824,7 @@ open class CategoryBricksFactory {
             context.getString(R.string.fast2d) -> setupFast2dCategoryList(context)
             context.getString(R.string.category_pathfinder) -> setupPathfinderCategoryList(context)
             context.getString(R.string.category_file) -> setupFileCategoryList(context)
+            context.getString(R.string.category_json) -> setupJsonCategoryList(context)
             context.getString(R.string.category_neoscript) -> setupNeoScriptCategoryList(context)
             context.getString(R.string.category_threed) -> setupThreedCategoryList(context)
             context.getString(R.string.category_preload) -> setupPreloadCategoryList(context)
@@ -899,6 +903,7 @@ open class CategoryBricksFactory {
                 val editedSceneUngrouped = ProjectManager.getInstance().currentlyEditedScene
                 if (editedSceneUngrouped != null && editedSceneUngrouped.isGlobalScene) {
                     eventBrickList.add(WhenSceneLaunchedBrick())
+                    eventBrickList.add(WhenSceneExitedBrick())
                 }
                 eventBrickList.add(WhenBrick())
                 eventBrickList.add(WhenTouchDownBrick())
@@ -978,6 +983,7 @@ open class CategoryBricksFactory {
         val editedSceneGrouped = ProjectManager.getInstance().currentlyEditedScene
         if (editedSceneGrouped != null && editedSceneGrouped.isGlobalScene) {
             eventBrickList.add(WhenSceneLaunchedBrick())
+            eventBrickList.add(WhenSceneExitedBrick())
         }
         eventBrickList.add(WhenBrick())
         eventBrickList.add(WhenTouchDownBrick())
@@ -1090,6 +1096,7 @@ open class CategoryBricksFactory {
                 controlBrickList.add(RunAsSpriteBrick(Formula("Sprite")))
                 controlBrickList.add(SceneTransitionBrick(null))
                 controlBrickList.add(SceneStartBrick(null))
+                controlBrickList.add(SceneBackBrick())
                 controlBrickList.add(SceneIdBrick("1"))
                 controlBrickList.add(ClearSceneBrick(null))
                 controlBrickList.add(SetSaveScenesBrick(1))
@@ -1180,6 +1187,7 @@ open class CategoryBricksFactory {
         controlBrickList.add(SceneStartBrick(null))
         controlBrickList.add(SceneIdBrick("1"))
         controlBrickList.add(SceneTransitionBrick(null))
+        controlBrickList.add(SceneBackBrick())
         controlBrickList.add(ClearSceneBrick(null))
         controlBrickList.add(SetSaveScenesBrick(1))
         controlBrickList.add(SetStopSoundsBrick(1))
@@ -2767,6 +2775,10 @@ void main() {
         fileBrickList.add(Base64ToFileBrick("SGVsbG8=", "hello.txt"))
 
         return fileBrickList
+    }
+
+    private fun setupJsonCategoryList(context: Context): List<Brick> {
+        return arrayListOf(JsonParseBrick("data", "{}"))
     }
 
     private fun setupNeoScriptCategoryList(context: Context): List<Brick> {

@@ -117,7 +117,10 @@ public enum Functions {
     TILE_AT_POSITION, IS_SOLID_TILE_AT, TILEMAP_WIDTH, TILEMAP_HEIGHT, TILE_SIZE,
 
     // -- Stable list access by name ---
-    GET_ITEM;
+    GET_ITEM,
+
+    // -- Global scene helpers ---
+    SCENE_LAUNCH_COUNT;
 
 	private static final String TAG = Functions.class.getSimpleName();
 	// NOTE: unused/dead — visibility is driven by CategoryListFragment lists + InternFormulaKeyboardAdapter
@@ -138,6 +141,7 @@ public enum Functions {
             SPRITE_NAME_GET, SPRITE_UUID,
             CURRENT_STATE,
             FILE_PROJECT_SIZE, FILE_SIZE_IN_DIR, FILE_SIZE_AT_PATH, FILE_READ_STRING,
+            SCENE_LAUNCH_COUNT,
             USED_RAM, USED_STORAGE, VOLUME_LEVEL, SCREEN_BRIGHTNESS, IS_IN_FOREGROUND,
             CPU_FREQUENCY_MIN, CPU_USAGE, GPU_NAME, OPENGL_VERSION, VULKAN_SUPPORTED,
             IS_PC, IS_MOBILE,

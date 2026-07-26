@@ -262,6 +262,7 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
     );
 
     private static final List<Integer> DEVICE_FUNCTIONS = asList(
+            R.string.formula_editor_function_scene_launch_count,
             R.string.formula_file_exists,
             R.string.formula_file_project_exists,
             R.string.formula_file_exists_in_dir,
@@ -418,6 +419,7 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 
 
     private static final List<Integer> DEVICE_PARAMS = asList(
+            R.string.formula_editor_function_scene_launch_count_parameter,
             R.string.formula_file_exists_param,
             R.string.formula_file_project_exists_param,
             R.string.formula_file_exists_in_dir_param,
@@ -757,6 +759,8 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 			R.string.formula_editor_function_object_with_id_visible
 	);
 	private static final List<Integer> SENSORS_DATE_TIME = asList(R.string.formula_editor_sensor_timer,
+			R.string.formula_editor_sensor_current_scene_name,
+			R.string.formula_editor_sensor_scene_time,
 			R.string.formula_editor_sensor_date_year, R.string.formula_editor_sensor_date_month,
 			R.string.formula_editor_sensor_date_day, R.string.formula_editor_sensor_date_weekday,
 			R.string.formula_editor_sensor_time_hour, R.string.formula_editor_sensor_time_minute,

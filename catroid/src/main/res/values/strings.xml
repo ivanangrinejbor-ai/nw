@@ -1317,6 +1317,9 @@
 <string name="brick_particle_rot_roll" formatted="false">Rotation Roll (Z)</string>
 <string name="category_file">Files</string>
 <string name="category_neoscript">NeoScript</string>
+<string name="category_json">JSON</string>
+<string name="brick_json_parse">Parse JSON into</string>
+<string name="brick_json_value">JSON text</string>
 <string name="category_favorites">Favorites</string>
 <string name="loading_fact_placeholder">Loading...</string>
 <string name="rebuild_cache_button">Update physics cache</string>
@@ -2254,6 +2257,8 @@
 <string formatted="false" name="import_protected_name">Project name: %1$s</string>
 <string formatted="false" name="import_password_hint">Enter password</string>
 <string formatted="false" name="wrong_password">Wrong password</string>
+<string formatted="false" name="import_locked_project">This project is locked inside an app and cannot be imported. Get the original project from its creator.</string>
+<string formatted="false" name="baked_project_tampered">Tampered project. Reinstall the original app from its creator.</string>
 <string formatted="false" name="import_encrypted_action">Import</string>
 <string formatted="false" name="error_import_project">Something went wrong while importing projects.</string>
 <string formatted="false" name="error_unsupported_newtrobat_version">This project was made in a newer version of NewCatroid and is not supported.</string>
@@ -2469,6 +2474,14 @@
 <string formatted="false" name="broadcast_scope_specific">Only specific scenes...</string>
 <string formatted="false" name="broadcast_scope_select_scenes">Select receiving scenes</string>
 <string formatted="false" name="brick_when_scene_launched">When scene starts</string>
+<string formatted="false" name="brick_when_scene_exited">When leaving scene</string>
+<string formatted="false" name="brick_scene_back">Go to previous scene</string>
+<string formatted="false" name="formula_editor_sensor_current_scene_name">current scene</string>
+<string formatted="false" name="formula_editor_sensor_scene_time">time in scene</string>
+<string formatted="false" name="formula_editor_function_scene_launch_count">scene launches</string>
+<string formatted="false" name="formula_editor_function_scene_launch_count_parameter">(scene name)</string>
+<string formatted="false" name="global_scene_badge">Global scene</string>
+<string formatted="false" name="delete_global_scene_confirm">Delete the global scene and all its objects?</string>
 <string formatted="false" name="dialog_edit_broadcast_message_title">Edit message</string>
 <string formatted="false" name="brick_when_nfc_edit_list_of_nfc_tags">Edit list of NFC tags</string>
 <string formatted="false" name="brick_when_nfc_default_all">all</string>
@@ -2754,6 +2767,9 @@
 <string formatted="false" name="brick_if_begin_second_part">is true then</string>
 <string formatted="false" name="brick_if_else">Else</string>
 <string formatted="false" name="brick_else_if">Else if</string>
+<string formatted="false" name="brick_else_if_end">End else if</string>
+<string formatted="false" name="brick_context_dialog_move_branch_up">Move branch up</string>
+<string formatted="false" name="brick_context_dialog_move_branch_down">Move branch down</string>
 <string formatted="false" name="brick_add_else_if">+ one more condition</string>
 <string formatted="false" name="brick_if_end">End if</string>
 <string formatted="false" name="brick_set_variable">Set variable</string>

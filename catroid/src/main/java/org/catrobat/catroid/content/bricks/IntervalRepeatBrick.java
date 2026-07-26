@@ -14,6 +14,17 @@ public class IntervalRepeatBrick extends FormulaBrick implements CompositeBrick 
     private transient EndBrick endBrick = new EndBrick(this);
     private List<Brick> loopBricks = new ArrayList<>();
 
+    // XStream не вызывает конструкторы — transient endBrick будет null после десериализации.
+    private Object readResolve() {
+        if (endBrick == null) {
+            endBrick = new EndBrick(this);
+        }
+        if (loopBricks == null) {
+            loopBricks = new ArrayList<>();
+        }
+        return this;
+    }
+
     public IntervalRepeatBrick() {
         addAllowedBrickField(BrickField.TIMES_TO_REPEAT, R.id.brick_interval_repeat_edit_text_count);
         addAllowedBrickField(BrickField.INTERVAL, R.id.brick_interval_repeat_edit_text_interval);

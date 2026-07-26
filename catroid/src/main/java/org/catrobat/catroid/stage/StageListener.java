@@ -155,6 +155,9 @@ import static org.koin.java.KoinJavaComponent.get;
 @LunoClass
 public class StageListener implements ApplicationListener {
 
+	private static final String TAG = StageListener.class.getSimpleName();
+	private int actExceptionLogCounter = 0;
+
 	private final double MAX_ACCUMULATOR = 0.25;
 
 	private static final int AXIS_WIDTH = 4;
@@ -855,6 +858,13 @@ public class StageListener implements ApplicationListener {
 			stage.addActor(sprite.look);
 		}
 
+		// Глобальные объекты рисуются поверх объектов сцены (HUD-слой)
+		for (Sprite globalSprite : globalSceneSprites) {
+			if (globalSprite.look != null) {
+				globalSprite.look.toFront();
+			}
+		}
+
 		penActor = new PenActor();
 		stage.addActor(penActor);
 		penActor.setZIndex(Z_LAYER_PEN_ACTOR);
@@ -1104,11 +1114,12 @@ public class StageListener implements ApplicationListener {
 		if (scene.firstStart) {
 			create();
 			resume();
+			// fire произойдёт из progressive init после загрузки спрайтов
 		} else {
 			resume();
+			fireSceneStartedEvent(scene.getName());
 		}
 		Gdx.input.setInputProcessor(stage);
-		fireSceneStartedEvent(scene.getName());
 	}
 
 	/** Fires the SceneStartedEventId so "When scene starts" scripts in the Global Scene trigger. */
@@ -1116,6 +1127,21 @@ public class StageListener implements ApplicationListener {
 		if (project == null || sceneName == null) {
 			return;
 		}
+		// Scene tracking: сенсоры CURRENT_SCENE_NAME/SCENE_TIME + счётчик запусков + back stack
+		String previous = GlobalManager.getCurrentSceneName();
+		if (previous != null && !previous.isEmpty() && !previous.equals(sceneName)) {
+			if (GlobalManager.getSuppressNextBackStackPush()) {
+				GlobalManager.setSuppressNextBackStackPush(false);
+			} else {
+				GlobalManager.getSceneBackStack().push(previous);
+			}
+			// "When leaving scene" event for the Global Scene
+			EventWrapper exitEvent = new EventWrapper(
+					new org.catrobat.catroid.content.eventids.SceneExitedEventId(previous), false);
+			project.fireToAllSprites(exitEvent);
+		}
+		GlobalManager.onSceneStarted(sceneName);
+
 		EventWrapper event = new EventWrapper(
 				new org.catrobat.catroid.content.eventids.SceneStartedEventId(sceneName), false);
 		project.fireToAllSprites(event);
@@ -1144,11 +1170,12 @@ public class StageListener implements ApplicationListener {
 		if (scene.firstStart) {
 			create();
 			resume();
+			// fire произойдёт из progressive init после загрузки спрайтов
 		} else {
 			resume();
+			fireSceneStartedEvent(scene.getName());
 		}
 		Gdx.input.setInputProcessor(stage);
-		fireSceneStartedEvent(scene.getName());
 	}
 
 	public void transitionToScene(String sceneName, Boolean stopSounds, Boolean save) {
@@ -1174,11 +1201,12 @@ public class StageListener implements ApplicationListener {
 		if (scene.firstStart) {
 			create();
 			resume();
+			// fire произойдёт из progressive init после загрузки спрайтов
 		} else {
 			resume();
+			fireSceneStartedEvent(scene.getName());
 		}
 		Gdx.input.setInputProcessor(stage);
-		fireSceneStartedEvent(scene.getName());
 	}
 
 	public void clearScene(String name) {
@@ -1229,7 +1257,7 @@ public class StageListener implements ApplicationListener {
 		scene.firstStart = true;
 		create();
 		resume();
-		fireSceneStartedEvent(scene.getName());
+		// fire произойдёт из progressive init (scene.firstStart = true)
 	}
 
 	public void startScene(String sceneName) {
@@ -1550,8 +1578,17 @@ public class StageListener implements ApplicationListener {
                     physicsWorld.step(optimizedDeltaTime);
                     framePhysicsTime += (System.nanoTime() - pStart);
 
-                    stage.act(optimizedDeltaTime);
-                    uiStage.act(optimizedDeltaTime);
+                    // Глобальный предохранитель: одна сломанная формула/брик (InterpretationException,
+                    // NPE в action и т.п.) не должна ронять весь GL-поток и приложение.
+                    try {
+                        stage.act(optimizedDeltaTime);
+                        uiStage.act(optimizedDeltaTime);
+                    } catch (Exception actException) {
+                        if (actExceptionLogCounter < 10 || actExceptionLogCounter % 300 == 0) {
+                            Log.e(TAG, "Exception during stage.act() — skipped this step", actException);
+                        }
+                        actExceptionLogCounter++;
+                    }
                 }
 
                 endLogic = System.nanoTime();

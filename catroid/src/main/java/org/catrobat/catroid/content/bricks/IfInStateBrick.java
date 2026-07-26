@@ -19,6 +19,17 @@ public class IfInStateBrick extends FormulaBrick implements CompositeBrick {
 
     protected List<Brick> stateBranchBricks = new ArrayList<>();
 
+    // XStream не вызывает конструкторы — transient endBrick будет null после десериализации.
+    private Object readResolve() {
+        if (endBrick == null) {
+            endBrick = new EndBrick(this);
+        }
+        if (stateBranchBricks == null) {
+            stateBranchBricks = new ArrayList<>();
+        }
+        return this;
+    }
+
     public IfInStateBrick() {
         addAllowedBrickField(BrickField.NAME, R.id.brick_if_in_state_machine_edit);
         addAllowedBrickField(BrickField.STRING, R.id.brick_if_in_state_value_edit);

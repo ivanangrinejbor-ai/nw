@@ -34,7 +34,20 @@ object DesktopProjectManager {
             factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false)
             factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false)
             val builder = factory.newDocumentBuilder()
-            val doc = builder.parse(codeXml)
+            // code.xml declares UTF-8 but may actually be CP1251 (legacy editor exports).
+            // Decode with a strict UTF-8 decoder (REPORT) and fall back to CP1251,
+            // instead of the platform-default charset (CP1251 on Windows would corrupt UTF-8 files).
+            val rawBytes = codeXml.readBytes()
+            val xmlText = try {
+                Charsets.UTF_8.newDecoder()
+                    .onMalformedInput(java.nio.charset.CodingErrorAction.REPORT)
+                    .onUnmappableCharacter(java.nio.charset.CodingErrorAction.REPORT)
+                    .decode(java.nio.ByteBuffer.wrap(rawBytes)).toString()
+            } catch (e: Exception) {
+                Gdx.app.log(TAG, "code.xml is not valid UTF-8, decoding as CP1251")
+                String(rawBytes, charset("windows-1251"))
+            }
+            val doc = builder.parse(org.xml.sax.InputSource(java.io.StringReader(xmlText)))
             doc.documentElement.normalize()
 
             val nameNodes = doc.getElementsByTagName("name")

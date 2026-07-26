@@ -358,6 +358,10 @@ public final class SensorHandler implements SensorEventListener, SensorCustomEve
 
 			case TIMER:
 				return (SystemClock.uptimeMillis() - timerReferenceValue) / 1000d;
+			case CURRENT_SCENE_NAME:
+				return org.catrobat.catroid.content.GlobalManager.getCurrentSceneName();
+			case SCENE_TIME:
+				return org.catrobat.catroid.content.GlobalManager.sceneTimeSeconds();
 			case DATE_YEAR:
 				return (double) Calendar.getInstance().get(Calendar.YEAR);
 			case DATE_MONTH:

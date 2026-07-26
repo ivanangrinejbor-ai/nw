@@ -50,20 +50,27 @@ public class SceneAdapter extends ExtendedRVAdapter<Scene> {
 		Scene item = items.get(position);
 
 		File projectDir = ProjectManager.getInstance().getCurrentProject().getDirectory();
-		holder.title.setText(item.getName());
+		if (item.isGlobalScene()) {
+			holder.title.setText("\uD83C\uDF10 " + item.getName());
+			holder.details.setText(holder.itemView.getContext().getString(R.string.global_scene_badge));
+			holder.details.setVisibility(View.VISIBLE);
+		} else {
+			holder.title.setText(item.getName());
+		}
 
 		loader.loadAndShowScreenshot(projectDir.getName(), item.getDirectory().getName(), false, holder.image);
 
-		if (showDetails) {
+		if (showDetails && !item.isGlobalScene()) {
 			holder.details.setText(String.format(Locale.getDefault(),
 					holder.itemView.getContext().getString(R.string.scene_details),
 					item.getSpriteList().size(),
 					getLookCount(item),
 					getSoundCount(item)));
 			holder.details.setVisibility(View.VISIBLE);
-		} else {
+		} else if (!item.isGlobalScene()) {
 			holder.details.setVisibility(View.GONE);
 		}
+		// Для глобальной сцены details уже установлен выше (бейдж) — не трогаем
 	}
 
 	@Override

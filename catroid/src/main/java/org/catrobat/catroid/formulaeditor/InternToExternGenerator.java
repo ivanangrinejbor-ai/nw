@@ -397,6 +397,9 @@ public class InternToExternGenerator {
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.JSON_SET.name(), R.string.formula_editor_function_json_set);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.JSON_IS_VALID.name(), R.string.formula_editor_function_json_is_valid);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.TIMER.name(), R.string.formula_editor_sensor_timer);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.CURRENT_SCENE_NAME.name(), R.string.formula_editor_sensor_current_scene_name);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.SCENE_TIME.name(), R.string.formula_editor_sensor_scene_time);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.SCENE_LAUNCH_COUNT.name(), R.string.formula_editor_function_scene_launch_count);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.DATE_YEAR.name(), R.string.formula_editor_sensor_date_year);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.DATE_MONTH.name(), R.string.formula_editor_sensor_date_month);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.DATE_DAY.name(), R.string.formula_editor_sensor_date_day);

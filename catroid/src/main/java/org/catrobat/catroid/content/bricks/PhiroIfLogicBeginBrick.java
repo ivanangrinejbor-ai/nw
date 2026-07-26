@@ -54,6 +54,23 @@ public class PhiroIfLogicBeginBrick extends BrickBaseType implements CompositeBr
 	private List<Brick> ifBranchBricks = new ArrayList<>();
 	private List<Brick> elseBranchBricks = new ArrayList<>();
 
+	// XStream не вызывает конструкторы — transient-части будут null после десериализации.
+	private Object readResolve() {
+		if (elseBrick == null) {
+			elseBrick = new ElseBrick(this);
+		}
+		if (endBrick == null) {
+			endBrick = new EndBrick(this, R.layout.brick_if_end_if);
+		}
+		if (ifBranchBricks == null) {
+			ifBranchBricks = new ArrayList<>();
+		}
+		if (elseBranchBricks == null) {
+			elseBranchBricks = new ArrayList<>();
+		}
+		return this;
+	}
+
 	@Override
 	public boolean hasSecondaryList() {
 		return true;

@@ -23,12 +23,19 @@
 
 package org.catrobat.catroid.content.bricks;
 
+import android.content.Intent;
+
+import org.catrobat.catroid.ProjectManager;
 import org.catrobat.catroid.R;
+import org.catrobat.catroid.content.Scope;
 import org.catrobat.catroid.content.Sprite;
 import org.catrobat.catroid.content.actions.ScriptSequenceAction;
 import org.catrobat.catroid.formulaeditor.Formula;
+import org.catrobat.catroid.formulaeditor.InterpretationException;
+import org.catrobat.catroid.ui.SpriteActivity;
+import org.catrobat.catroid.visualplacement.VisualPlacementActivity;
 
-public class GridBrick extends FormulaBrick {
+public class GridBrick extends VisualPlacementBrick {
     private static final long serialVersionUID = 1L;
 
     public GridBrick() {
@@ -53,6 +60,50 @@ public class GridBrick extends FormulaBrick {
     @Override
     public int getViewResource() {
         return R.layout.brick_grid;
+    }
+
+    @Override
+    public BrickField getXBrickField() {
+        return BrickField.POSX;
+    }
+
+    @Override
+    public BrickField getYBrickField() {
+        return BrickField.POSY;
+    }
+
+    @Override
+    public int getXEditTextId() {
+        return R.id.brick_grid_edit_x;
+    }
+
+    @Override
+    public int getYEditTextId() {
+        return R.id.brick_grid_edit_y;
+    }
+
+    @Override
+    public Intent generateIntentForVisualPlacement(BrickField brickFieldX, BrickField brickFieldY) {
+        Intent intent = super.generateIntentForVisualPlacement(brickFieldX, brickFieldY);
+        // Вместо спрайта в редакторе таскается миниатюрная сетка-превью реального размера.
+        int columns = 32;
+        int rows = 32;
+        try {
+            ProjectManager projectManager = ProjectManager.getInstance();
+            Scope scope = new Scope(projectManager.getCurrentProject(),
+                    projectManager.getCurrentSprite(), null);
+            columns = getFormulaWithBrickField(BrickField.SIZE_X).interpretInteger(scope);
+            rows = getFormulaWithBrickField(BrickField.SIZE_Y).interpretInteger(scope);
+        } catch (InterpretationException interpretationException) {
+            // Формулы размера не числовые — показываем дефолтную сетку 32×32.
+        }
+        columns = Math.max(1, Math.min(columns, 2000));
+        rows = Math.max(1, Math.min(rows, 2000));
+        intent.putExtra(VisualPlacementActivity.EXTRA_GRID_COLUMNS, columns);
+        intent.putExtra(VisualPlacementActivity.EXTRA_GRID_ROWS, rows);
+        // Сетка не вращается — угол спрайта не нужен.
+        intent.putExtra(SpriteActivity.EXTRA_ROTATION, 0f);
+        return intent;
     }
 
     @Override

@@ -47,8 +47,10 @@ class LoadNNAction() : TemporalAction() {
         if (!OnnxSessionManager.isWorking) return
         val model_file: File? = scope?.project?.getFile(file?.interpretString(scope))
 
-        model_file?.let {
-            OnnxSessionManager.loadModel(model_file.absolutePath)
+        if (model_file == null || !model_file.exists() || model_file.isDirectory) {
+            Log.e("LoadNNAction", "Model file not found: " + (model_file?.absolutePath ?: "null"))
+            return
         }
+        OnnxSessionManager.loadModel(model_file.absolutePath)
     }
 }

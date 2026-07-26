@@ -145,6 +145,21 @@ object AlignedApkBuilder {
                 val keyFile = File(tempDir, ProtectedProjectPayload.KEY_ASSET_NAME)
                 keyFile.writeText(payloadPassword)
 
+                // Пломба целостности, привязанная к сертификату подписи (тот же keystore).
+                val keystoreFile = config.customKeystore ?: getOrCreateDebugKeystore(context, tempDir)
+                val sigFile: File? = try {
+                    val certHash = PayloadIntegrity.certHashFromKeystore(
+                        keystoreFile, config.keyPass, config.keyAlias
+                    )
+                    if (certHash != null) {
+                        val f = File(tempDir, ProtectedProjectPayload.SIG_ASSET_NAME)
+                        f.writeText(PayloadIntegrity.buildSigContent(encodedProject.readBytes(), certHash))
+                        f
+                    } else null
+                } catch (e: Exception) {
+                    null
+                }
+
                 onProgress("Configuring manifest...")
                 val manifestBytes = generatePatchedManifest(templateFile, config)
 
@@ -155,10 +170,13 @@ object AlignedApkBuilder {
                     outputFile = unsignedApk,
                     manifestBytes = manifestBytes,
                     iconFile = config.iconFile,
-                    filesToAdd = listOf(
-                        encodedProject to "assets/${ProtectedProjectPayload.ENCRYPTED_ASSET_NAME}",
-                        keyFile to "assets/${ProtectedProjectPayload.KEY_ASSET_NAME}"
-                    ),
+                    filesToAdd = buildList {
+                        add(encodedProject to "assets/${ProtectedProjectPayload.ENCRYPTED_ASSET_NAME}")
+                        add(keyFile to "assets/${ProtectedProjectPayload.KEY_ASSET_NAME}")
+                        if (sigFile != null) {
+                            add(sigFile to "assets/${ProtectedProjectPayload.SIG_ASSET_NAME}")
+                        }
+                    },
                     workDir = tempDir
                 )
 
@@ -167,7 +185,6 @@ object AlignedApkBuilder {
                     .replace(Regex("""[\\/:*?"<>|]"""), "_").trim('_', '.')
                     .ifBlank { "app" }
                 val signedApk = File(tempDir, "$safeName.apk")
-                val keystoreFile = config.customKeystore ?: getOrCreateDebugKeystore(context, tempDir)
 
                 if (!ApkToolboxManager.signApk(
                         context,
@@ -494,7 +511,8 @@ object AlignedApkBuilder {
         }
 
         zipDirectory(stagingDir, payloadZip)
-        ProjectCrypto.encrypt(payloadZip, encryptedFile, password)
+        // locked=true → NCPX: запечённый проект нельзя импортировать в редактор.
+        ProjectCrypto.encrypt(payloadZip, encryptedFile, password, locked = true)
         payloadZip.delete()
         stagingDir.deleteRecursively()
     }

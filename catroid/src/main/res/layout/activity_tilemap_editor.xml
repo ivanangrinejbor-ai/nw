@@ -2,28 +2,40 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FF1A1A2E">
+    android:background="#FF10101C">
 
-    <!-- Top toolbar -->
+    <!-- Canvas fills the whole screen (edge to edge, under floating bars) -->
+    <org.catrobat.catroid.ui.tilemap.TilemapEditorView
+        android:id="@+id/tilemap_canvas"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/tilemap_bottom_bar" />
+
+    <!-- Floating top toolbar (rounded pill) -->
     <LinearLayout
         android:id="@+id/tilemap_toolbar"
         android:layout_width="match_parent"
-        android:layout_height="48dp"
+        android:layout_height="52dp"
         android:layout_alignParentTop="true"
-        android:background="#FF16213E"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="12dp"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/tilemap_toolbar_bg"
+        android:elevation="8dp"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingStart="8dp"
-        android:paddingEnd="8dp">
+        android:paddingStart="6dp"
+        android:paddingEnd="6dp">
 
         <ImageButton
             android:id="@+id/tilemap_btn_back"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:background="@drawable/tilemap_icon_btn_bg"
             android:contentDescription="@string/cancel"
-            android:src="@android:drawable/ic_menu_close_clear_cancel"
-            android:scaleType="centerInside" />
+            android:src="@drawable/ic_close"
+            android:scaleType="centerInside"
+            android:padding="10dp" />
 
         <TextView
             android:id="@+id/tilemap_title"
@@ -31,6 +43,8 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_marginStart="12dp"
+            android:ellipsize="end"
+            android:maxLines="1"
             android:text="@string/tilemap_editor_title"
             android:textColor="#FFFFFF"
             android:textSize="16sp"
@@ -40,51 +54,53 @@
             android:id="@+id/tilemap_btn_undo"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:background="@drawable/tilemap_icon_btn_bg"
             android:contentDescription="@string/tilemap_undo"
-            android:src="@android:drawable/ic_menu_revert"
-            android:scaleType="centerInside" />
+            android:src="@drawable/icon_undo"
+            android:scaleType="centerInside"
+            android:padding="9dp" />
 
         <ImageButton
             android:id="@+id/tilemap_btn_redo"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:layout_marginStart="6dp"
+            android:background="@drawable/tilemap_icon_btn_bg"
             android:contentDescription="@string/tilemap_redo"
-            android:src="@android:drawable/ic_menu_rotate"
-            android:scaleType="centerInside" />
+            android:src="@drawable/icon_redo"
+            android:scaleType="centerInside"
+            android:padding="9dp" />
 
         <ImageButton
             android:id="@+id/tilemap_btn_save"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/tilemap_save_btn_bg"
             android:contentDescription="@string/tilemap_save"
-            android:src="@android:drawable/ic_menu_save"
-            android:scaleType="centerInside" />
+            android:src="@drawable/ic_done"
+            android:scaleType="centerInside"
+            android:padding="9dp" />
     </LinearLayout>
 
-    <!-- Canvas where the tilemap grid is drawn/edited -->
-    <org.catrobat.catroid.ui.tilemap.TilemapEditorView
-        android:id="@+id/tilemap_canvas"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_below="@id/tilemap_toolbar"
-        android:layout_above="@+id/tilemap_bottom_bar" />
-
-    <!-- Bottom bar: palette + controls + hint -->
+    <!-- Bottom sheet panel: palette + chips + hint -->
     <LinearLayout
         android:id="@+id/tilemap_bottom_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:background="#FF16213E"
+        android:background="@drawable/tilemap_bottom_panel_bg"
+        android:elevation="12dp"
         android:orientation="vertical"
-        android:padding="8dp">
+        android:paddingStart="14dp"
+        android:paddingEnd="14dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="8dp">
 
+        <!-- Palette strip -->
         <HorizontalScrollView
             android:layout_width="match_parent"
-            android:layout_height="72dp"
+            android:layout_height="68dp"
             android:scrollbars="none">
 
             <view
@@ -94,58 +110,109 @@
                 android:layout_height="match_parent" />
         </HorizontalScrollView>
 
-        <LinearLayout
+        <!-- Controls row: solid switch + chips -->
+        <HorizontalScrollView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:layout_marginTop="10dp"
+            android:scrollbars="none">
 
-            <CheckBox
-                android:id="@+id/tilemap_solid_toggle"
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/tilemap_solid_tile"
-                android:textColor="#FFFFFF" />
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
 
-            <View
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:layout_weight="1" />
+                <!-- Solid toggle as pill chip -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:background="@drawable/tilemap_chip_bg"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="6dp">
 
-            <Button
-                android:id="@+id/tilemap_btn_map_size"
-                android:layout_width="wrap_content"
-                android:layout_height="36dp"
-                android:text="@string/tilemap_map_size"
-                android:textSize="12sp" />
+                    <ImageView
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:importantForAccessibility="no"
+                        android:src="@drawable/ic_tilemap_solid" />
 
-            <Button
-                android:id="@+id/tilemap_btn_tile_size"
-                android:layout_width="wrap_content"
-                android:layout_height="36dp"
-                android:layout_marginStart="4dp"
-                android:text="@string/tilemap_tile_size"
-                android:textSize="12sp" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:text="@string/tilemap_solid_tile"
+                        android:textColor="#FFFFFF"
+                        android:textSize="13sp" />
 
-            <Button
-                android:id="@+id/tilemap_btn_tileset"
-                android:layout_width="wrap_content"
-                android:layout_height="36dp"
-                android:layout_marginStart="4dp"
-                android:text="@string/tilemap_select_tileset"
-                android:textSize="12sp" />
-        </LinearLayout>
+                    <Switch
+                        android:id="@+id/tilemap_solid_toggle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp" />
+                </LinearLayout>
+
+                <!-- Map size chip -->
+                <TextView
+                    android:id="@+id/tilemap_btn_map_size"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/tilemap_chip_bg"
+                    android:drawableStart="@drawable/ic_tilemap_grid"
+                    android:drawablePadding="8dp"
+                    android:gravity="center"
+                    android:paddingStart="14dp"
+                    android:paddingEnd="14dp"
+                    android:text="@string/tilemap_map_size"
+                    android:textColor="#FFFFFF"
+                    android:textSize="13sp" />
+
+                <!-- Tile size chip -->
+                <TextView
+                    android:id="@+id/tilemap_btn_tile_size"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/tilemap_chip_bg"
+                    android:drawableStart="@drawable/ic_tilemap_tile_size"
+                    android:drawablePadding="8dp"
+                    android:gravity="center"
+                    android:paddingStart="14dp"
+                    android:paddingEnd="14dp"
+                    android:text="@string/tilemap_tile_size"
+                    android:textColor="#FFFFFF"
+                    android:textSize="13sp" />
+
+                <!-- Tileset chip -->
+                <TextView
+                    android:id="@+id/tilemap_btn_tileset"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/tilemap_chip_bg"
+                    android:drawableStart="@drawable/ic_tilemap_image"
+                    android:drawablePadding="8dp"
+                    android:gravity="center"
+                    android:paddingStart="14dp"
+                    android:paddingEnd="14dp"
+                    android:text="@string/tilemap_select_tileset"
+                    android:textColor="#FFFFFF"
+                    android:textSize="13sp" />
+            </LinearLayout>
+        </HorizontalScrollView>
 
         <TextView
             android:id="@+id/tilemap_hint"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="6dp"
             android:gravity="center"
             android:text="@string/tilemap_hint_default"
-            android:textColor="#AAFFFFFF"
-            android:textSize="12sp" />
+            android:textColor="#66FFFFFF"
+            android:textSize="11sp" />
     </LinearLayout>
 
 </RelativeLayout>

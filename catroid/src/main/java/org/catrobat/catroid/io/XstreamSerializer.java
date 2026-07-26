@@ -272,6 +272,7 @@ public final class XstreamSerializer {
 		xstream.alias("script", StartScript.class);
 		xstream.alias("script", WhenClonedScript.class);
 		xstream.alias("script", org.catrobat.catroid.content.WhenSceneLaunchedScript.class);
+		xstream.alias("script", org.catrobat.catroid.content.WhenSceneExitedScript.class);
 		xstream.alias("script", WhenScript.class);
 		xstream.alias("script", WhenConditionScript.class);
 		xstream.alias("whenFirebaseChangedScript", WhenFirebaseChangedScript.class);
@@ -1004,15 +1005,21 @@ public final class XstreamSerializer {
 					scene.setProject(project);
 				}
 				Scene oldGlobal = project.getGlobalSceneForMigration();
-				if (oldGlobal != null && !oldGlobal.getSpriteList().isEmpty()) {
-					Scene defaultScene = project.getDefaultScene();
-					if (defaultScene != null) {
-						for (Sprite sprite : oldGlobal.getSpriteList()) {
-							sprite.setGlobal(true);
-							defaultScene.addSprite(sprite);
+				if (oldGlobal != null) {
+					if (oldGlobal.isGlobalScene()) {
+						// New Global Scene system: keep it, just wire the project reference
+						oldGlobal.setProject(project);
+					} else if (!oldGlobal.getSpriteList().isEmpty()) {
+						// Legacy container (pre-GlobalScene): migrate sprites to default scene
+						Scene defaultScene = project.getDefaultScene();
+						if (defaultScene != null) {
+							for (Sprite sprite : oldGlobal.getSpriteList()) {
+								sprite.setGlobal(true);
+								defaultScene.addSprite(sprite);
+							}
 						}
+						oldGlobal.getSpriteList().clear();
 					}
-					oldGlobal.getSpriteList().clear();
 				}
 			}
 			project.checkForInvisibleSprites();
@@ -1070,7 +1077,11 @@ public final class XstreamSerializer {
 
 	private static void setFileReferences(Project project) {
 		int removedTotal = 0;
-		for (Scene scene : project.getSceneList()) {
+		java.util.List<Scene> allScenes = new java.util.ArrayList<>(project.getSceneList());
+		if (project.hasGlobalScene()) {
+			allScenes.add(project.getGlobalScene());
+		}
+		for (Scene scene : allScenes) {
 			File imageDir = new File(scene.getDirectory(), IMAGE_DIRECTORY_NAME);
 			File soundDir = new File(scene.getDirectory(), SOUND_DIRECTORY_NAME);
 			int sceneRemoved = 0;
@@ -1078,10 +1089,27 @@ public final class XstreamSerializer {
 			for (Sprite sprite : scene.getSpriteList()) {
 				for (Iterator<LookData> iterator = sprite.getLookList().iterator(); iterator.hasNext(); ) {
 					LookData lookData = iterator.next();
-					File lookFile = new File(imageDir, lookData.getXstreamFileName());
+					String xstreamFileName = lookData.getXstreamFileName();
+
+					if (xstreamFileName == null || xstreamFileName.isEmpty()) {
+						// Тайлмап без тайлсета — валидное состояние (файла нет вообще).
+						// Раньше new File(dir, null) кидал NPE и проект переставал открываться.
+						if (!(lookData instanceof org.catrobat.catroid.common.TilemapLookData)) {
+							iterator.remove();
+							sceneRemoved++;
+						}
+						continue;
+					}
+
+					File lookFile = new File(imageDir, xstreamFileName);
 
 					if (lookFile.exists()) {
 						lookData.setFile(lookFile);
+					} else if (lookData instanceof org.catrobat.catroid.common.TilemapLookData) {
+						// У тайлмапа карта (слои/solid) ценнее картинки тайлсета —
+						// при пропавшем файле сохраняем модель, а не удаляем весь образ.
+						Log.w(TAG, "setFileReferences: tileset image missing for tilemap '"
+								+ lookData.getName() + "' — keeping map data");
 					} else {
 						iterator.remove();
 						sceneRemoved++;
@@ -1175,6 +1203,9 @@ public final class XstreamSerializer {
 
 			for (Scene scene : project.getSceneList()) {
 				StorageOperations.createSceneDirectory(scene.getDirectory());
+			}
+			if (project.hasGlobalScene()) {
+				StorageOperations.createSceneDirectory(project.getGlobalScene().getDirectory());
 			}
 			StorageOperations.writeToFile(tmpCodeFile, currentXml);
 

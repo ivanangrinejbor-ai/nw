@@ -214,6 +214,27 @@ object BakedApkBuilder {
             val keyFile = File(tempDir, ProtectedProjectPayload.KEY_ASSET_NAME)
             keyFile.writeText(payloadPassword)
 
+            // Кейстор решаем ДО сборки: нужен сертификат для пломбы целостности
+            // (привязка к подписи). Тот же keystore потом используется для подписи APK.
+            val keystoreFile = config.customKeystore ?: getOrCreateDebugKeystore(context, tempDir)
+            val sigFile: File? = try {
+                val certHash = PayloadIntegrity.certHashFromKeystore(
+                    keystoreFile, config.keyPass, config.keyAlias
+                )
+                if (certHash != null) {
+                    val f = File(tempDir, ProtectedProjectPayload.SIG_ASSET_NAME)
+                    f.writeText(PayloadIntegrity.buildSigContent(encryptedProject.readBytes(), certHash))
+                    Log.d(TAG, "Integrity signature written (bound to signing certificate)")
+                    f
+                } else {
+                    Log.w(TAG, "Signing certificate unavailable — building without integrity seal")
+                    null
+                }
+            } catch (e: Exception) {
+                Log.w(TAG, "Failed to build integrity signature", e)
+                null
+            }
+
             onProgress("Configuring application...")
             val manifestConfig = ApkToolboxManager.ManifestConfig(
                 appName = config.appName,
@@ -230,10 +251,13 @@ object BakedApkBuilder {
                 "assets/project.zip",
                 "META-INF/"
             )
-            val filesToAdd = listOf(
-                encryptedProject to "assets/${ProtectedProjectPayload.ENCRYPTED_ASSET_NAME}",
-                keyFile to "assets/${ProtectedProjectPayload.KEY_ASSET_NAME}"
-            )
+            val filesToAdd = buildList {
+                add(encryptedProject to "assets/${ProtectedProjectPayload.ENCRYPTED_ASSET_NAME}")
+                add(keyFile to "assets/${ProtectedProjectPayload.KEY_ASSET_NAME}")
+                if (sigFile != null) {
+                    add(sigFile to "assets/${ProtectedProjectPayload.SIG_ASSET_NAME}")
+                }
+            }
             if (!ApkToolboxManager.configureApk(
                     templateApk.absolutePath,
                     manifestConfig,
@@ -255,7 +279,6 @@ object BakedApkBuilder {
                 .replace(Regex("""[\\/:*?"<>|]"""), "_").trim('_', '.')
             val safeName = if (rawName.isBlank()) "app" else rawName
             val signedApk = File(tempDir, "$safeName.apk")
-            val keystoreFile = config.customKeystore ?: getOrCreateDebugKeystore(context, tempDir)
 
             if (!ApkToolboxManager.signApk(
                 context,
@@ -330,7 +353,13 @@ object BakedApkBuilder {
         var soundsCopied = 0
         var looksSize = 0L
         var soundsSize = 0L
-        currentProject.sceneList.forEach { scene ->
+        // Include the global scene: its sprites' looks/sounds must land in the payload too,
+        // otherwise exported APKs render the global scene without assets.
+        val allScenes = ArrayList(currentProject.sceneList)
+        if (currentProject.hasGlobalScene()) {
+            allScenes.add(currentProject.globalScene)
+        }
+        allScenes.forEach { scene ->
             scene.spriteList.forEach { sprite ->
                 sprite.lookList.forEach { look ->
                     look.file?.takeIf { it.exists() }?.let { file ->
@@ -355,7 +384,8 @@ object BakedApkBuilder {
 
         zipDirectory(stagingDir, payloadZip)
         Log.d(TAG, "DIAG: payload zip = ${payloadZip.length()/(1024*1024)} MB (before encryption)")
-        ProjectCrypto.encrypt(payloadZip, encryptedProject, password)
+        // locked=true → магия NCPX: такой пейлоад редактор отказывается импортировать.
+        ProjectCrypto.encrypt(payloadZip, encryptedProject, password, locked = true)
         Log.d(TAG, "DIAG: encrypted payload = ${encryptedProject.length()/(1024*1024)} MB")
         payloadZip.delete()
         stagingDir.deleteRecursively()

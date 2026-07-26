@@ -711,11 +711,15 @@ public final class ProjectManager {
 	}
 
 	public Sprite getCurrentSprite() {
-        if (currentSprite != null){
+        if (currentSprite != null) {
             return currentSprite;
-        } else {
-            return project.getDefaultScene().getBackgroundSprite();
         }
+        // Защита от NPE: проект/сцена могут быть ещё не загружены (ранние UI-вызовы, восстановление после краша)
+        if (project == null) {
+            return null;
+        }
+        Scene defaultScene = project.getDefaultScene();
+        return defaultScene != null ? defaultScene.getBackgroundSprite() : null;
 	}
 
 	public void setCurrentSprite(Sprite sprite) {
@@ -740,6 +744,10 @@ public final class ProjectManager {
 	public void setCurrentlyEditedScene(Scene scene) {
 		currentlyEditedScene = scene;
 		currentlyPlayingScene = scene;
+		// Обновляем список сигналов под новую сцену (глобальная видит сигналы всех сцен)
+		if (project != null && project.getBroadcastMessageContainer() != null) {
+			project.getBroadcastMessageContainer().update();
+		}
 	}
 
 	public void addNewDownloadedProject(String projectName) {

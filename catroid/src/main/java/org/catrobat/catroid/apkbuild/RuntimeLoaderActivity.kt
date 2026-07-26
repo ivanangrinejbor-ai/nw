@@ -20,6 +20,8 @@ class RuntimeLoaderActivity : Activity() {
     private val handler = Handler(Looper.getMainLooper())
     private var progress = 0
     private var bakedProjectDir: File? = null
+    // Пломба целостности не сошлась — проект подменён/APK перепакован.
+    private var tampered = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,7 +35,11 @@ class RuntimeLoaderActivity : Activity() {
             val projectDir = prepareBakedProject()
             handler.post {
                 if (projectDir == null) {
-                    statusText.text = "Не удалось загрузить проект"
+                    statusText.text = if (tampered) {
+                        getString(R.string.baked_project_tampered)
+                    } else {
+                        "Не удалось загрузить проект"
+                    }
                     return@post
                 }
                 bakedProjectDir = projectDir
@@ -91,6 +97,24 @@ class RuntimeLoaderActivity : Activity() {
                 }
             } catch (e: Exception) {
                 ProtectedProjectPayload.PASSWORD
+            }
+
+            // Пломба целостности: если подпись присутствует — требуем совпадения
+            // сертификата подписи И HMAC проекта. Отсутствие sig = старый
+            // билд (legacy) — пропускаем для обратной совместимости.
+            val sigContent = try {
+                assets.open(ProtectedProjectPayload.SIG_ASSET_NAME).use { it.bufferedReader().readText() }
+            } catch (e: Exception) {
+                null
+            }
+            if (sigContent != null) {
+                val ownCert = PayloadIntegrity.ownCertHash(this)
+                val datBytes = encryptedFile.readBytes()
+                if (ownCert == null || !PayloadIntegrity.verify(sigContent, datBytes, ownCert)) {
+                    Log.e("RuntimeLoader", "Integrity check failed — tampered or repacked APK")
+                    tampered = true
+                    return null
+                }
             }
 
             if (!PayloadDecryptor.decrypt(this, encryptedFile, decryptedZip, password)) {

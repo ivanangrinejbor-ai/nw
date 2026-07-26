@@ -35,8 +35,9 @@ public class PointToAction extends TemporalAction {
 
 	@Override
 	protected void update(float percent) {
-		if (pointedSprite == null
-				|| !ProjectManager.getInstance().getCurrentlyPlayingScene().getSpriteList().contains(pointedSprite)) {
+		org.catrobat.catroid.content.Scene playingScene = ProjectManager.getInstance().getCurrentlyPlayingScene();
+		if (sprite == null || sprite.look == null || pointedSprite == null || pointedSprite.look == null
+				|| playingScene == null || !playingScene.getSpriteList().contains(pointedSprite)) {
 			return;
 		}
 

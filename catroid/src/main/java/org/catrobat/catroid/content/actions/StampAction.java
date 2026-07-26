@@ -33,8 +33,15 @@ public class StampAction extends TemporalAction {
 
 	@Override
 	protected void update(float delta) {
+		if (sprite == null || sprite.penConfiguration == null) {
+			return;
+		}
 		this.sprite.penConfiguration.setStamp(true);
-		StageActivity.getActiveStageListener().getPenActor().stampToFrameBuffer();
+		org.catrobat.catroid.stage.StageListener stageListener = StageActivity.getActiveStageListener();
+		if (stageListener == null || stageListener.getPenActor() == null) {
+			return;
+		}
+		stageListener.getPenActor().stampToFrameBuffer();
 	}
 
 	public void setSprite(Sprite sprite) {

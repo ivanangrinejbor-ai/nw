@@ -68,6 +68,22 @@ public class SceneController {
 	public boolean rename(Scene sceneToRename, String name) {
 		boolean renamed = true;
 		String previousName = sceneToRename.getName();
+
+		// Запрет коллизий имён: сцены (и глобальная сцена) ссылаются друг на друга по имени
+		// в SceneStart/SceneTransition-бриках и в stageBackupMap — дубликат ломает переходы.
+		Project projectOfScene = ProjectManager.getInstance().getCurrentProject();
+		if (projectOfScene != null) {
+			for (Scene existing : projectOfScene.getSceneList()) {
+				if (existing != sceneToRename && existing.getName().equals(name)) {
+					return false;
+				}
+			}
+			Scene globalScene = projectOfScene.getGlobalScene();
+			if (globalScene != null && globalScene != sceneToRename && globalScene.getName().equals(name)) {
+				return false;
+			}
+		}
+
 		String encodedName = FileMetaDataExtractor.encodeSpecialCharsForFileSystem(name);
 		File newDir = new File(sceneToRename.getProject().getDirectory(), encodedName);
 		File oldDir = sceneToRename.getDirectory();

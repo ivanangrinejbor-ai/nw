@@ -1377,6 +1377,9 @@
 
     <string name="category_file">Файлы</string>
 <string name="category_neoscript">NeoScript</string>
+<string name="category_json">JSON</string>
+<string name="brick_json_parse">Разобрать JSON в</string>
+<string name="brick_json_value">Текст JSON</string>
 
     <string name="category_favorites">Избранные</string>
 
@@ -2904,6 +2907,8 @@
     <string formatted="false" name="import_protected_name">Название проекта: %1$s</string>
     <string formatted="false" name="import_password_hint">Введите пароль</string>
     <string formatted="false" name="wrong_password">Неверный пароль</string>
+    <string formatted="false" name="import_locked_project">Этот проект запечён в приложение и не может быть импортирован. Возьмите оригинальный проект у создателя.</string>
+    <string formatted="false" name="baked_project_tampered">Подменённый проект. Переустановите оригинальное приложение у создателя.</string>
     <string formatted="false" name="import_encrypted_action">Импорт</string>
     <string formatted="false" name="error_import_project">Что-то пошло не так при импорте проектов.</string>
     <string formatted="false" name="no_projects_selected">Проекты для импорта не выбраны</string>
@@ -3188,6 +3193,14 @@
 <string formatted="false" name="broadcast_scope_specific">Только конкретные сцены...</string>
 <string formatted="false" name="broadcast_scope_select_scenes">Выберите сцены-получатели</string>
 <string formatted="false" name="brick_when_scene_launched">При запуске сцены</string>
+<string formatted="false" name="brick_when_scene_exited">При выходе из сцены</string>
+<string formatted="false" name="brick_scene_back">Вернуться к предыдущей сцене</string>
+<string formatted="false" name="formula_editor_sensor_current_scene_name">текущая сцена</string>
+<string formatted="false" name="formula_editor_sensor_scene_time">время в сцене</string>
+<string formatted="false" name="formula_editor_function_scene_launch_count">запусков сцены</string>
+<string formatted="false" name="formula_editor_function_scene_launch_count_parameter">(имя сцены)</string>
+<string formatted="false" name="global_scene_badge">Глобальная сцена</string>
+<string formatted="false" name="delete_global_scene_confirm">Удалить глобальную сцену и все её объекты?</string>
     <string formatted="false" name="dialog_edit_broadcast_message_title">Изменить сообщение</string>
     <!--  -->
     <!-- NFC spinner -->
@@ -3532,6 +3545,9 @@
     <string formatted="false" name="brick_if_begin_second_part">истина, то</string>
     <string formatted="false" name="brick_if_else">Инaче</string>
 <string formatted="false" name="brick_else_if">Иначе если</string>
+<string formatted="false" name="brick_else_if_end">Конец иначе если</string>
+<string formatted="false" name="brick_context_dialog_move_branch_up">Сдвинуть ветку вверх</string>
+<string formatted="false" name="brick_context_dialog_move_branch_down">Сдвинуть ветку вниз</string>
 <string formatted="false" name="brick_add_else_if">+ ещё условие</string>
     <string formatted="false" name="brick_if_end">Конец (если)</string>
     <string formatted="false" name="brick_set_variable">Задать значение переменной</string>

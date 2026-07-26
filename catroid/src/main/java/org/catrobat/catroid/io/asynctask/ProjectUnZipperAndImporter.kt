@@ -57,6 +57,8 @@ sealed class ImportResult {
     object Success : ImportResult()
     object Failure : ImportResult()
     object WrongPassword : ImportResult()
+    // Запечённый (locked, NCPX) проект из APK/EXE — импорт запрещён.
+    object LockedProject : ImportResult()
     data class BakedProject(val projectDir: File) : ImportResult()
     data class UnsupportedVersion(val version: Double, val projectDir: File?) : ImportResult()
 }
@@ -218,6 +220,11 @@ private fun ProjectUnZipperAndImporter.unzipAndImportProject(projectZipFile: Fil
         cachedProjectDir.mkdirs()
 
         var fileToUnzip = projectZipFile
+        if (ProjectCrypto.isLocked(projectZipFile)) {
+            // NCPX = пейлоад, запечённый в чужой APK/EXE. Исходники не отдаём.
+            Log.e(TAG, "Refusing to import a locked (baked) payload")
+            return@unzipAndImportProject ImportResult.LockedProject
+        }
         if (ProjectCrypto.isEncrypted(projectZipFile)) {
             reportProgress(5, "import_step_decrypt")
             // Сначала пробуем статический ключ запечённых проектов (bake/EXE),

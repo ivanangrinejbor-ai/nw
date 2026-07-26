@@ -22,6 +22,17 @@ public class RunAsSpriteBrick extends FormulaBrick implements CompositeBrick {
     private transient EndBrick endBrick = new EndBrick(this);
     private List<Brick> nestedBricks = new ArrayList<>();
 
+    // XStream не вызывает конструкторы — transient endBrick будет null после десериализации.
+    private Object readResolve() {
+        if (endBrick == null) {
+            endBrick = new EndBrick(this);
+        }
+        if (nestedBricks == null) {
+            nestedBricks = new ArrayList<>();
+        }
+        return this;
+    }
+
     public RunAsSpriteBrick() {
         addAllowedBrickField(BrickField.NAME, R.id.brick_run_as_sprite_name);
     }

@@ -39,9 +39,26 @@ public class BroadcastMessageContainer {
 	}
 
 	public void update() {
-		Set<String> usedMessages = ProjectManager.getInstance().getCurrentlyEditedScene().getBroadcastMessagesInUse();
+		org.catrobat.catroid.content.Scene editedScene =
+				ProjectManager.getInstance().getCurrentlyEditedScene();
 		broadcastMessages.clear();
-		broadcastMessages.addAll(usedMessages);
+		if (editedScene == null) {
+			return;
+		}
+		if (editedScene.isGlobalScene()) {
+			// Глобальная сцена получает сигналы из ВСЕХ сцен проекта —
+			// показываем в спиннере объединённый список.
+			java.util.Set<String> all = new java.util.LinkedHashSet<>(editedScene.getBroadcastMessagesInUse());
+			org.catrobat.catroid.content.Project project = ProjectManager.getInstance().getCurrentProject();
+			if (project != null) {
+				for (org.catrobat.catroid.content.Scene scene : project.getSceneList()) {
+					all.addAll(scene.getBroadcastMessagesInUse());
+				}
+			}
+			broadcastMessages.addAll(all);
+		} else {
+			broadcastMessages.addAll(editedScene.getBroadcastMessagesInUse());
+		}
 	}
 
 	public boolean addBroadcastMessage(String messageToAdd) {

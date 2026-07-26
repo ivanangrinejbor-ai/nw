@@ -133,6 +133,10 @@ class SceneListFragment : RecyclerViewFragment<Scene?>(),
         setShowProgressBar(true)
         var copiedItemCnt = 0
         for (item in selectedItems) {
+            if (item != null && item.isGlobalScene) {
+                // Глобальная сцена не копируется (единственная на проект)
+                continue
+            }
             try {
                 adapter.add(sceneController.copy(item, projectManager.currentProject))
                 copiedItemCnt++
@@ -175,7 +179,15 @@ class SceneListFragment : RecyclerViewFragment<Scene?>(),
         var deletedItemsCount = 0
         for (item in selectedItems) {
             try {
-                sceneController.delete(item)
+                if (item != null && item.isGlobalScene) {
+                    // Глобальная сцена вне sceneList — удаляем через project ссылку
+                    projectManager.currentProject.setGlobalScene(null)
+                    if (item.directory != null && item.directory.exists()) {
+                        org.catrobat.catroid.io.StorageOperations.deleteDir(item.directory)
+                    }
+                } else {
+                    sceneController.delete(item)
+                }
             } catch (e: IOException) {
                 Log.e(TAG, Log.getStackTraceString(e))
             }
@@ -298,7 +310,11 @@ class SceneListFragment : RecyclerViewFragment<Scene?>(),
                 R.id.copy -> copyItems(itemList)
                 R.id.rename -> showRenameDialog(item)
                 R.id.delete -> {
-                    deleteItems(itemList)
+                    if (item != null && item.isGlobalScene) {
+                        showDeleteGlobalSceneDialog(item)
+                    } else {
+                        deleteItems(itemList)
+                    }
                 }
                 R.id.scene_transition -> showTransitionDialog(item)
                 else -> {
@@ -306,8 +322,35 @@ class SceneListFragment : RecyclerViewFragment<Scene?>(),
             }
             true
         }
+        // Глобальная сцена: копирование/рюкзак не поддерживаются (она вне sceneList)
+        if (item != null && item.isGlobalScene) {
+            popupMenu.menu.findItem(R.id.backpack)?.isVisible = false
+            popupMenu.menu.findItem(R.id.copy)?.isVisible = false
+            popupMenu.menu.findItem(R.id.scene_transition)?.isVisible = false
+        }
         popupMenu.menu.findItem(R.id.backpack).setTitle(R.string.pack)
         popupMenu.show()
+    }
+
+    private fun showDeleteGlobalSceneDialog(scene: Scene) {
+        androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setTitle(scene.name)
+            .setMessage(R.string.delete_global_scene_confirm)
+            .setPositiveButton(R.string.delete) { _, _ ->
+                val project = projectManager.currentProject
+                project.setGlobalScene(null)
+                try {
+                    if (scene.directory != null && scene.directory.exists()) {
+                        org.catrobat.catroid.io.StorageOperations.deleteDir(scene.directory)
+                    }
+                } catch (e: IOException) {
+                    Log.e(TAG, "Cannot delete global scene directory", e)
+                }
+                XstreamSerializer.getInstance().saveProject(project)
+                initializeAdapter()
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
     }
 
     private fun showTransitionDialog(scene: Scene?) {

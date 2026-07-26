@@ -31,6 +31,8 @@ object DesktopStage {
     private const val PAYLOAD_MAGIC = "NEOCAT01"
 
     private const val CRYPTO_MAGIC = "NCPP"
+    // Запечённый (locked) пейлоад — тот же формат, другая магия (редактор такой не импортирует).
+    private const val CRYPTO_MAGIC_LOCKED = "NCPX"
     private const val PAYLOAD_PASSWORD = "SA?D3Ft?ZZHufE9Ma#NA#A9HdQDAWbJ8WHfDPKfD4!G3ST+!=x;Z!wPD=7;B=9JTHRHsT@zZH@kFUu8tgQ8FLH%RPpZpLwJC2A*e"
 
     @JvmStatic
@@ -147,8 +149,12 @@ object DesktopStage {
 
     private fun maybeDecrypt(payload: ByteArray): ByteArray {
         val magic = CRYPTO_MAGIC.toByteArray(StandardCharsets.US_ASCII)
-        if (payload.size >= magic.size && payload.copyOfRange(0, magic.size).contentEquals(magic)) {
-            return decryptPayload(payload)
+        val lockedMagic = CRYPTO_MAGIC_LOCKED.toByteArray(StandardCharsets.US_ASCII)
+        if (payload.size >= magic.size) {
+            val head = payload.copyOfRange(0, magic.size)
+            if (head.contentEquals(magic) || head.contentEquals(lockedMagic)) {
+                return decryptPayload(payload)
+            }
         }
         return payload
     }
@@ -156,8 +162,10 @@ object DesktopStage {
     private fun decryptPayload(data: ByteArray): ByteArray {
         val input = java.io.ByteArrayInputStream(data)
         val header = ByteArray(4)
+        val magic = CRYPTO_MAGIC.toByteArray(StandardCharsets.US_ASCII)
+        val lockedMagic = CRYPTO_MAGIC_LOCKED.toByteArray(StandardCharsets.US_ASCII)
         if (input.read(header) < 4 ||
-            !header.contentEquals(CRYPTO_MAGIC.toByteArray(StandardCharsets.US_ASCII))
+            !(header.contentEquals(magic) || header.contentEquals(lockedMagic))
         ) {
             throw IllegalArgumentException("Encrypted payload has wrong magic")
         }

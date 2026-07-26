@@ -111,6 +111,16 @@ public class VisualPlacementActivity extends BaseCastActivity implements View.On
 
 	public static final String SIZE_PERCENT_BUNDLE_ARGUMENT = "sizePercentage";
 
+	// Режим превью сетки Pathfinder (GridBrick): вместо спрайта таскается миниатюрная сетка.
+	public static final String EXTRA_GRID_COLUMNS = "gridColumns";
+	public static final String EXTRA_GRID_ROWS = "gridRows";
+	// Должен совпадать с cellSize в GridAction.
+	private static final float GRID_CELL_SIZE = 20f;
+
+	private boolean isGridPreview;
+	private int gridColumns;
+	private int gridRows;
+
 	private ProjectManager projectManager;
 	private FrameLayout frameLayout;
 	private BitmapFactory.Options bitmapOptions;
@@ -188,6 +198,11 @@ public class VisualPlacementActivity extends BaseCastActivity implements View.On
 		translateX = extras.getInt(EXTRA_X_TRANSFORM);
 		translateY = extras.getInt(EXTRA_Y_TRANSFORM);
 		rotationAngle = extras.getFloat(EXTRA_ROTATION);
+		if (extras.containsKey(EXTRA_GRID_COLUMNS)) {
+			isGridPreview = true;
+			gridColumns = Math.max(1, extras.getInt(EXTRA_GRID_COLUMNS, 32));
+			gridRows = Math.max(1, extras.getInt(EXTRA_GRID_ROWS, 32));
+		}
 		if (extras.containsKey(EXTRA_TEXT)) {
 			isText = true;
 			text = extras.getString(EXTRA_TEXT);
@@ -269,6 +284,10 @@ public class VisualPlacementActivity extends BaseCastActivity implements View.On
 	}
 
 	public void showMovableImageView() {
+		if (isGridPreview) {
+			showGridPreviewImageView();
+			return;
+		}
 		Bitmap visualPlacementBitmap;
 		String objectLookPath;
 		Sprite currentSprite = projectManager.getCurrentSprite();
@@ -366,8 +385,11 @@ public class VisualPlacementActivity extends BaseCastActivity implements View.On
 			imageView.setTranslationY(finalY);
 		}
 
-		xCoord = translateX; // Сохраняем "чистые" координаты без смещения
-		yCoord = translateY;
+		// Инициализируем в ТОЙ ЖЕ системе, что пишет VisualPlacementTouchListener
+		// (пиксельный центр, Y инвертирован) — иначе подтверждение без перетаскивания
+		// прогоняло сценные координаты через пиксельную конверсию и портило их.
+		xCoord = sceneCenterX;
+		yCoord = -sceneCenterY;
 
 		// Устанавливаем начальный масштаб и вращение
 		imageView.setScaleX(scaleX);
@@ -375,7 +397,95 @@ public class VisualPlacementActivity extends BaseCastActivity implements View.On
 		imageView.setRotation(initialRotation);
 		initialScale = scaleX; // Сохраняем начальный масштаб для проверки изменений
 
-		frameLayout.addView(imageView);
+		// ВАЖНО: WRAP_CONTENT, а не дефолтный MATCH_PARENT — иначе view растягивается
+		// на весь экран и центр битмапа съезжает вниз-вправо на (экран−битмап)/2
+		// относительно точки, куда его поставили.
+		frameLayout.addView(imageView, new FrameLayout.LayoutParams(
+				ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+	}
+
+	/**
+	 * Режим GridBrick: вместо спрайта по сцене таскается миниатюрная сетка
+	 * реального размера (клетка = {@link #GRID_CELL_SIZE} пикселей сцены).
+	 * Жёлтое перекрестие — точка (x, y) брика, центр будущей сетки.
+	 */
+	private void showGridPreviewImageView() {
+		imageView = new ImageView(this);
+		scaleX = 1;
+		scaleY = 1;
+		rotation = 0;
+		rotationMode = ROTATION_STYLE_NONE;
+
+		Bitmap gridBitmap = createGridPreviewBitmap();
+		imageView.setImageBitmap(gridBitmap);
+		imageView.setScaleType(ImageView.ScaleType.CENTER);
+
+		float sceneCenterX = layoutResolution.getWidth() / 2f + translateX * layoutWidthRatio;
+		float sceneCenterY = layoutResolution.getHeight() / 2f - translateY * layoutHeightRatio;
+
+		imageView.setTranslationX(sceneCenterX - gridBitmap.getWidth() / 2f);
+		imageView.setTranslationY(sceneCenterY - gridBitmap.getHeight() / 2f);
+
+		// Та же система координат, что и у тач-листенера (пиксельный центр, Y инвертирован).
+		xCoord = sceneCenterX;
+		yCoord = -sceneCenterY;
+		initialScale = 1f;
+		initialRotation = 0f;
+
+		// WRAP_CONTENT — та же причина, что и у спрайта: view должен быть размером с битмап.
+		frameLayout.addView(imageView, new FrameLayout.LayoutParams(
+				ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+	}
+
+	private Bitmap createGridPreviewBitmap() {
+		int bmpW = Math.max(2, Math.round(gridColumns * GRID_CELL_SIZE * layoutWidthRatio));
+		int bmpH = Math.max(2, Math.round(gridRows * GRID_CELL_SIZE * layoutHeightRatio));
+		// Огромная сетка (2000×2000 клеток) не должна рождать гигантский битмап —
+		// клампим, позиция центра от этого не страдает (важна точка, не масштаб краёв).
+		int maxDim = 2048;
+		float shrink = Math.min(1f, Math.min((float) maxDim / bmpW, (float) maxDim / bmpH));
+		bmpW = Math.max(2, Math.round(bmpW * shrink));
+		bmpH = Math.max(2, Math.round(bmpH * shrink));
+
+		Bitmap bitmap = Bitmap.createBitmap(bmpW, bmpH, Bitmap.Config.ARGB_8888);
+		Canvas canvas = new Canvas(bitmap);
+
+		Paint fill = new Paint();
+		fill.setColor(0x2200E5FF);
+		canvas.drawRect(0, 0, bmpW, bmpH, fill);
+
+		// Прореживаем линии: даже на гигантской сетке рисуем не больше ~100 линий на ось.
+		Paint line = new Paint(Paint.ANTI_ALIAS_FLAG);
+		line.setColor(0x8000E5FF);
+		line.setStrokeWidth(1f);
+		int stepCols = Math.max(1, (int) Math.ceil(gridColumns / 100f));
+		int stepRows = Math.max(1, (int) Math.ceil(gridRows / 100f));
+		for (int c = 0; c <= gridColumns; c += stepCols) {
+			float x = bmpW * (c / (float) gridColumns);
+			canvas.drawLine(x, 0, x, bmpH, line);
+		}
+		for (int r = 0; r <= gridRows; r += stepRows) {
+			float y = bmpH * (r / (float) gridRows);
+			canvas.drawLine(0, y, bmpW, y, line);
+		}
+
+		Paint border = new Paint(Paint.ANTI_ALIAS_FLAG);
+		border.setStyle(Paint.Style.STROKE);
+		border.setStrokeWidth(3f);
+		border.setColor(0xFF00E5FF);
+		canvas.drawRect(1.5f, 1.5f, bmpW - 1.5f, bmpH - 1.5f, border);
+
+		// Перекрестие центра — именно эта точка запишется в x/y брика.
+		Paint cross = new Paint(Paint.ANTI_ALIAS_FLAG);
+		cross.setColor(0xFFFFD600);
+		cross.setStrokeWidth(3f);
+		float cx = bmpW / 2f;
+		float cy = bmpH / 2f;
+		float arm = Math.min(bmpW, bmpH) * 0.05f + 8f;
+		canvas.drawLine(cx - arm, cy, cx + arm, cy, cross);
+		canvas.drawLine(cx, cy - arm, cx, cy + arm, cross);
+
+		return bitmap;
 	}
 
 	private Bitmap convertTextToBitmap() {
@@ -422,14 +532,74 @@ public class VisualPlacementActivity extends BaseCastActivity implements View.On
 
 	@Override
 	public boolean onTouch(View view, MotionEvent event) {
-		// Сначала отдаем событие детектору масштабирования/вращения
-		scaleGestureDetector.onTouchEvent(event);
+		// В режиме сетки масштаб/вращение бессмысленны — только перетаскивание центра.
+		if (!isGridPreview) {
+			// Сначала отдаем событие детектору масштабирования
+			scaleGestureDetector.onTouchEvent(event);
+			// Вращение считаем сами по реальным координатам двух пальцев:
+			// у ScaleGestureDetector есть только беззнаковые spanX/spanY (0..90°),
+			// из-за чего крутило не туда и пинч вызывал фантомное вращение.
+			handleTwoFingerRotation(event);
+		}
 
 		// Затем нашему старому обработчику для перетаскивания (только если не идет масштабирование)
-		if (!scaleGestureDetector.isInProgress()) {
+		if (isGridPreview || !scaleGestureDetector.isInProgress()) {
 			visualPlacementTouchListener.onTouch(imageView, event, this);
 		}
 		return true; // Всегда возвращаем true, чтобы получать все события
+	}
+
+	private float lastTwoFingerAngle;
+	private boolean twoFingerRotationActive;
+
+	/**
+	 * Поворот двумя пальцами: следим за ЗНАКОВЫМ углом линии между пальцами
+	 * (полные 360°). При чистом пинче угол не меняется — фантомного вращения нет.
+	 */
+	private void handleTwoFingerRotation(MotionEvent event) {
+		switch (event.getActionMasked()) {
+			case MotionEvent.ACTION_POINTER_DOWN:
+				if (event.getPointerCount() == 2) {
+					lastTwoFingerAngle = angleBetweenPointers(event);
+					twoFingerRotationActive = true;
+				} else {
+					// 3+ пальцев — жест неоднозначен, вращение отключаем.
+					twoFingerRotationActive = false;
+				}
+				break;
+			case MotionEvent.ACTION_MOVE:
+				if (twoFingerRotationActive && event.getPointerCount() == 2 && imageView != null) {
+					float angle = angleBetweenPointers(event);
+					float delta = normalizeDegrees(angle - lastTwoFingerAngle);
+					// Защита от скачка при смене/потере указателя.
+					if (Math.abs(delta) < 45) {
+						imageView.setRotation(imageView.getRotation() + delta);
+					}
+					lastTwoFingerAngle = angle;
+				}
+				break;
+			case MotionEvent.ACTION_POINTER_UP:
+			case MotionEvent.ACTION_UP:
+			case MotionEvent.ACTION_CANCEL:
+				twoFingerRotationActive = false;
+				break;
+		}
+	}
+
+	private static float angleBetweenPointers(MotionEvent event) {
+		float dx = event.getX(1) - event.getX(0);
+		float dy = event.getY(1) - event.getY(0);
+		return (float) Math.toDegrees(Math.atan2(dy, dx));
+	}
+
+	private static float normalizeDegrees(float degrees) {
+		while (degrees > 180) {
+			degrees -= 360;
+		}
+		while (degrees < -180) {
+			degrees += 360;
+		}
+		return degrees;
 	}
 
 	@Override
@@ -538,37 +708,15 @@ public class VisualPlacementActivity extends BaseCastActivity implements View.On
 	}
 
 	private class MyScaleGestureListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
-		private float lastAngle;
-
-		@Override
-		public boolean onScaleBegin(ScaleGestureDetector detector) {
-			lastAngle = getAngle(detector.getCurrentSpanX(), detector.getCurrentSpanY());
-			return true;
-		}
 
 		@Override
 		public boolean onScale(ScaleGestureDetector detector) {
-			// Масштабирование
+			// Только масштабирование. Вращение считается отдельно в handleTwoFingerRotation():
+			// раньше угол брался из беззнаковых spanX/spanY и пинч крутил спрайт.
 			float scaleFactor = detector.getScaleFactor();
 			imageView.setScaleX(imageView.getScaleX() * scaleFactor);
 			imageView.setScaleY(imageView.getScaleY() * scaleFactor);
-
-			// Вращение (только если есть два пальца)
-			if (detector.getCurrentSpan() > 0) {
-				float angle = getAngle(detector.getCurrentSpanX(), detector.getCurrentSpanY());
-				float deltaAngle = angle - lastAngle;
-
-				// Сглаживание, чтобы избежать резких скачков
-				if (Math.abs(deltaAngle) < 10) {
-					imageView.setRotation(imageView.getRotation() + deltaAngle);
-				}
-				lastAngle = angle;
-			}
 			return true;
-		}
-
-		private float getAngle(float dx, float dy) {
-			return (float) Math.toDegrees(Math.atan2(dy, dx));
 		}
 	}
 }

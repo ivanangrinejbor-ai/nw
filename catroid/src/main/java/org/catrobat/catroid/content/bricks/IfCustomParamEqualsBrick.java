@@ -18,6 +18,17 @@ public class IfCustomParamEqualsBrick extends FormulaBrick implements CompositeB
     private transient EndBrick endBrick = new EndBrick(this);
     protected List<Brick> ifBranchBricks = new ArrayList<>();
 
+    // XStream не вызывает конструкторы — transient endBrick будет null после десериализации.
+    private Object readResolve() {
+        if (endBrick == null) {
+            endBrick = new EndBrick(this);
+        }
+        if (ifBranchBricks == null) {
+            ifBranchBricks = new ArrayList<>();
+        }
+        return this;
+    }
+
     public IfCustomParamEqualsBrick() {
         addAllowedBrickField(BrickField.NAME, R.id.brick_if_param_name);
         addAllowedBrickField(BrickField.VALUE_1, R.id.brick_if_param_val);

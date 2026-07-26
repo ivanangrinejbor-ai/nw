@@ -20,6 +20,29 @@ public class TryCatchFinallyBrick extends BrickBaseType implements CompositeBric
     protected List<Brick> catchBricks = new ArrayList<>();
     protected List<Brick> finallyBricks = new ArrayList<>();
 
+    // XStream не вызывает конструкторы — все transient-части будут null после десериализации.
+    private Object readResolve() {
+        if (catchBrickPart == null) {
+            catchBrickPart = new CatchBrick(this);
+        }
+        if (finallyBrickPart == null) {
+            finallyBrickPart = new FinallyBrick(this);
+        }
+        if (endBrick == null) {
+            endBrick = new EndBrick(this);
+        }
+        if (tryBricks == null) {
+            tryBricks = new ArrayList<>();
+        }
+        if (catchBricks == null) {
+            catchBricks = new ArrayList<>();
+        }
+        if (finallyBricks == null) {
+            finallyBricks = new ArrayList<>();
+        }
+        return this;
+    }
+
     public TryCatchFinallyBrick() {
     }
 

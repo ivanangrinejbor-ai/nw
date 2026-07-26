@@ -18,12 +18,22 @@ class PredictNNAction() : TemporalAction() {
 
     private var hasStarted = false
     private var isFinished = false
+    private var startedAtMs = 0L
 
     override fun act(delta: Float): Boolean {
         if (!OnnxSessionManager.isWorking) return true
         if (isFinished) return true
-        if (hasStarted) return false
+        if (hasStarted) {
+            // Защита от вечного ожидания: если JNI-инференс завис, не блокируем скрипт навсегда
+            if (System.currentTimeMillis() - startedAtMs > INFERENCE_TIMEOUT_MS) {
+                variable?.value = "TIMEOUT_ERROR"
+                isFinished = true
+                return true
+            }
+            return false
+        }
         hasStarted = true
+        startedAtMs = System.currentTimeMillis()
 
         val arrayName = input?.interpretString(scope)
         val safeVariable = variable
@@ -61,5 +71,11 @@ class PredictNNAction() : TemporalAction() {
     override fun restart() {
         super.restart()
         hasStarted = false
+        isFinished = false
+        startedAtMs = 0L
+    }
+
+    companion object {
+        private const val INFERENCE_TIMEOUT_MS = 15_000L
     }
 }

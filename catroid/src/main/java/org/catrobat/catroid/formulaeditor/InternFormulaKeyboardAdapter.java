@@ -810,6 +810,12 @@ case R.string.formula_editor_function_state_time:
 				return buildSensor(Sensors.PHIRO_BOTTOM_RIGHT);
 			case R.string.formula_editor_sensor_timer:
 				return buildSensor(Sensors.TIMER);
+			case R.string.formula_editor_sensor_current_scene_name:
+				return buildSensor(Sensors.CURRENT_SCENE_NAME);
+			case R.string.formula_editor_sensor_scene_time:
+				return buildSensor(Sensors.SCENE_TIME);
+			case R.string.formula_editor_function_scene_launch_count:
+				return buildSingleParameterFunction(Functions.SCENE_LAUNCH_COUNT, STRING, "Scene 1");
 			case R.string.formula_editor_sensor_date_year:
 				return buildSensor(Sensors.DATE_YEAR);
 			case R.string.formula_editor_sensor_date_month:

@@ -550,8 +550,12 @@ public class SpriteActivity extends BaseActivity {
 
 			Sprite currentSprite = ProjectManager.getInstance().getCurrentSprite();
 			boolean isNotBackground = !currentSprite.equals(currentScene.getBackgroundSprite());
+			// GridBrick позиционирует сетку Pathfinder, а не спрайт —
+			// авто-брики направления/размера здесь не нужны.
+			boolean insertHelperBricks = isNotBackground
+					&& !(visualBrick instanceof org.catrobat.catroid.content.bricks.GridBrick);
 
-			if (isNotBackground) {
+			if (insertHelperBricks) {
 				boolean hasDirectionBrick = false;
 				boolean hasSizeBrick = false;
 

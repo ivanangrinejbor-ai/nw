@@ -1008,6 +1008,21 @@ public class ScriptFragment extends ListFragment implements
 
         items.add(R.string.brick_context_dialog_cut);
 
+        if (brick instanceof org.catrobat.catroid.content.bricks.ElseIfBrick) {
+            org.catrobat.catroid.content.bricks.ElseIfBrick elseIfMarker =
+                    (org.catrobat.catroid.content.bricks.ElseIfBrick) brick;
+            org.catrobat.catroid.content.bricks.IfLogicBeginBrick ownerIf =
+                    (org.catrobat.catroid.content.bricks.IfLogicBeginBrick) elseIfMarker.getParent();
+            if (ownerIf != null) {
+                if (elseIfMarker.getBranchIndex() > 0) {
+                    items.add(R.string.brick_context_dialog_move_branch_up);
+                }
+                if (elseIfMarker.getBranchIndex() < ownerIf.getElseIfCount() - 1) {
+                    items.add(R.string.brick_context_dialog_move_branch_down);
+                }
+            }
+        }
+
         if (org.catrobat.catroid.utils.BlockClipboard.getInstance().getLatest() != null) {
             items.add(R.string.brick_context_dialog_paste_below);
             items.add(R.string.brick_context_dialog_clipboard_history);
@@ -1151,6 +1166,26 @@ public class ScriptFragment extends ListFragment implements
             case R.string.brick_context_dialog_system_info:
                 showDetailedSystemInfoDialog(brick);
                 break;
+            case R.string.brick_context_dialog_move_branch_up: {
+                org.catrobat.catroid.content.bricks.ElseIfBrick marker =
+                        (org.catrobat.catroid.content.bricks.ElseIfBrick) brick;
+                org.catrobat.catroid.content.bricks.IfLogicBeginBrick ownerIf =
+                        (org.catrobat.catroid.content.bricks.IfLogicBeginBrick) marker.getParent();
+                if (ownerIf != null && ownerIf.moveElseIfBranchUp(marker.getBranchIndex())) {
+                    adapter.updateItems(ProjectManager.getInstance().getCurrentSprite());
+                }
+                break;
+            }
+            case R.string.brick_context_dialog_move_branch_down: {
+                org.catrobat.catroid.content.bricks.ElseIfBrick marker =
+                        (org.catrobat.catroid.content.bricks.ElseIfBrick) brick;
+                org.catrobat.catroid.content.bricks.IfLogicBeginBrick ownerIf =
+                        (org.catrobat.catroid.content.bricks.IfLogicBeginBrick) marker.getParent();
+                if (ownerIf != null && ownerIf.moveElseIfBranchDown(marker.getBranchIndex())) {
+                    adapter.updateItems(ProjectManager.getInstance().getCurrentSprite());
+                }
+                break;
+            }
             case R.string.brick_context_dialog_cut:
                 if (copyProjectForUndoOption()) {
                     showUndo(true);
@@ -1265,6 +1300,12 @@ public class ScriptFragment extends ListFragment implements
 	@Override
 	public boolean onBrickLongClick(Brick brick, int position) {
 		showUndo(false);
+		// Маркеры веток else-if не перетаскиваются как обычные брики —
+		// порядок веток меняется через тап-меню (Сдвинуть ветку вверх/вниз)
+		if (brick instanceof org.catrobat.catroid.content.bricks.ElseIfBrick
+				|| brick instanceof org.catrobat.catroid.content.bricks.ElseIfEndBrick) {
+			return true;
+		}
 		List<Brick> group = getLockGroup(brick);
 		if (isGroupLocked(group)) {
 			showPasswordDialog(R.string.brick_context_dialog_move_brick, password -> {

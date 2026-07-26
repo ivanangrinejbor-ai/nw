@@ -47,6 +47,7 @@ public class IfLogicBeginBrick extends FormulaBrick implements CompositeBrick {
 	private transient ElseBrick elseBrick = new ElseBrick(this);
 	private transient EndBrick endBrick = new EndBrick(this, R.layout.brick_if_end_if);
 	private transient List<ElseIfBrick> elseIfMarkers = new ArrayList<>();
+	private transient List<ElseIfEndBrick> elseIfEndMarkers = new ArrayList<>();
 
 	protected List<Brick> ifBranchBricks = new ArrayList<>();
 	protected List<Brick> elseBranchBricks = new ArrayList<>();
@@ -89,8 +90,10 @@ public class IfLogicBeginBrick extends FormulaBrick implements CompositeBrick {
 
 	private void rebuildElseIfMarkers() {
 		elseIfMarkers = new ArrayList<>();
+		elseIfEndMarkers = new ArrayList<>();
 		for (int i = 0; i < elseIfConditions.size(); i++) {
 			elseIfMarkers.add(new ElseIfBrick(this, i));
+			elseIfEndMarkers.add(new ElseIfEndBrick(this, i));
 		}
 	}
 
@@ -99,6 +102,7 @@ public class IfLogicBeginBrick extends FormulaBrick implements CompositeBrick {
 		elseIfConditions.add(new Formula(0));
 		elseIfBranchBricks.add(new ArrayList<>());
 		elseIfMarkers.add(new ElseIfBrick(this, elseIfConditions.size() - 1));
+		elseIfEndMarkers.add(new ElseIfEndBrick(this, elseIfConditions.size() - 1));
 	}
 
 	public int getElseIfCount() {
@@ -109,8 +113,55 @@ public class IfLogicBeginBrick extends FormulaBrick implements CompositeBrick {
 		return elseIfConditions.get(index);
 	}
 
+	/** Части ОДНОЙ ветки else-if: маркер начала + маркер конца (для выделения/удаления). */
+	public List<Brick> getElseIfBranchParts(int index) {
+		List<Brick> parts = new ArrayList<>();
+		if (index >= 0 && index < elseIfMarkers.size()) {
+			parts.add(elseIfMarkers.get(index));
+		}
+		if (index >= 0 && index < elseIfEndMarkers.size()) {
+			parts.add(elseIfEndMarkers.get(index));
+		}
+		return parts;
+	}
+
+	/** Удаляет ветку else-if целиком (условие + блоки + маркеры). */
+	public boolean removeElseIfBranch(int index) {
+		if (index < 0 || index >= elseIfConditions.size()) {
+			return false;
+		}
+		elseIfConditions.remove(index);
+		elseIfBranchBricks.remove(index);
+		rebuildElseIfMarkers();
+		return true;
+	}
+
+	/** Меняет местами ветку index и index-1 (сдвиг вверх). */
+	public boolean moveElseIfBranchUp(int index) {
+		if (index <= 0 || index >= elseIfConditions.size()) {
+			return false;
+		}
+		java.util.Collections.swap(elseIfConditions, index, index - 1);
+		java.util.Collections.swap(elseIfBranchBricks, index, index - 1);
+		rebuildElseIfMarkers();
+		return true;
+	}
+
+	/** Меняет местами ветку index и index+1 (сдвиг вниз). */
+	public boolean moveElseIfBranchDown(int index) {
+		if (index < 0 || index >= elseIfConditions.size() - 1) {
+			return false;
+		}
+		java.util.Collections.swap(elseIfConditions, index, index + 1);
+		java.util.Collections.swap(elseIfBranchBricks, index, index + 1);
+		rebuildElseIfMarkers();
+		return true;
+	}
+
 	public void setElseIfCondition(int index, Formula formula) {
-		elseIfConditions.set(index, formula);
+		if (index >= 0 && index < elseIfConditions.size()) {
+			elseIfConditions.set(index, formula);
+		}
 	}
 
 	public List<Brick> getElseIfBranch(int index) {
@@ -193,8 +244,11 @@ public class IfLogicBeginBrick extends FormulaBrick implements CompositeBrick {
 	public List<Brick> getAllParts() {
 		List<Brick> bricks = new ArrayList<>();
 		bricks.add(this);
-		for (ElseIfBrick marker : elseIfMarkers) {
-			bricks.add(marker);
+		for (int i = 0; i < elseIfMarkers.size(); i++) {
+			bricks.add(elseIfMarkers.get(i));
+			if (i < elseIfEndMarkers.size()) {
+				bricks.add(elseIfEndMarkers.get(i));
+			}
 		}
 		bricks.add(elseBrick);
 		bricks.add(endBrick);
@@ -211,6 +265,9 @@ public class IfLogicBeginBrick extends FormulaBrick implements CompositeBrick {
 			bricks.add(elseIfMarkers.get(i));
 			for (Brick brick : elseIfBranchBricks.get(i)) {
 				brick.addToFlatList(bricks);
+			}
+			if (i < elseIfEndMarkers.size()) {
+				bricks.add(elseIfEndMarkers.get(i));
 			}
 		}
 		bricks.add(elseBrick);
@@ -238,6 +295,21 @@ public class IfLogicBeginBrick extends FormulaBrick implements CompositeBrick {
 
 	@Override
 	public boolean removeChild(Brick brick) {
+		// Удаление маркера ветки else-if = удаление всей этой ветки
+		if (brick instanceof ElseIfBrick) {
+			ElseIfBrick marker = (ElseIfBrick) brick;
+			if (elseIfMarkers.contains(marker)) {
+				return removeElseIfBranch(marker.getBranchIndex());
+			}
+			return true; // маркер устарел — ветка уже удалена
+		}
+		if (brick instanceof ElseIfEndBrick) {
+			ElseIfEndBrick marker = (ElseIfEndBrick) brick;
+			if (elseIfEndMarkers.contains(marker)) {
+				return removeElseIfBranch(marker.getBranchIndex());
+			}
+			return true; // маркер устарел — ветка уже удалена
+		}
 		if (ifBranchBricks.remove(brick)) {
 			return true;
 		}
@@ -307,6 +379,11 @@ public class IfLogicBeginBrick extends FormulaBrick implements CompositeBrick {
 		view.findViewById(R.id.if_else_prototype_punctuation).setVisibility(View.VISIBLE);
 		view.findViewById(R.id.if_prototype_else).setVisibility(View.VISIBLE);
 		view.findViewById(R.id.if_else_prototype_punctuation2).setVisibility(View.VISIBLE);
+		// Кнопка "+ условие" не должна отображаться в выборе блоков
+		View addBtn = view.findViewById(R.id.brick_if_add_else_if);
+		if (addBtn != null) {
+			addBtn.setVisibility(View.GONE);
+		}
 		return view;
 	}
 

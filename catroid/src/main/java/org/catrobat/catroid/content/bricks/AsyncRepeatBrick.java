@@ -15,6 +15,17 @@ public class AsyncRepeatBrick extends FormulaBrick implements CompositeBrick {
     private transient EndBrick endBrick = new EndBrick(this);
     private List<Brick> loopBricks = new ArrayList<>();
 
+    // XStream не вызывает конструкторы — transient endBrick будет null после десериализации.
+    private Object readResolve() {
+        if (endBrick == null) {
+            endBrick = new EndBrick(this);
+        }
+        if (loopBricks == null) {
+            loopBricks = new ArrayList<>();
+        }
+        return this;
+    }
+
     public AsyncRepeatBrick() {
         addAllowedBrickField(BrickField.TIMES_TO_REPEAT, R.id.brick_async_repeat_edit_text);
     }

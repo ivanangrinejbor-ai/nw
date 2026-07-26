@@ -42,6 +42,17 @@ public class ForItemInUserListBrick extends UserDataBrick implements CompositeBr
 	private transient EndBrick endBrick = new EndBrick(this);
 	private List<Brick> loopBricks = new ArrayList<>();
 
+	// XStream не вызывает конструкторы — transient endBrick будет null после десериализации.
+	private Object readResolve() {
+		if (endBrick == null) {
+			endBrick = new EndBrick(this);
+		}
+		if (loopBricks == null) {
+			loopBricks = new ArrayList<>();
+		}
+		return this;
+	}
+
 	public ForItemInUserListBrick() {
 		addAllowedBrickData(BrickData.FOR_ITEM_IN_USERLIST_LIST, R.id.for_item_in_userlist_list_spinner);
 		addAllowedBrickData(BrickData.FOR_ITEM_IN_USERLIST_VARIABLE, R.id.for_item_in_userlist_variable_spinner);
