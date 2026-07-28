@@ -40,6 +40,7 @@ class CreateVideoAction() : TemporalAction() {
     var height: Formula? = null
     var loop: Formula? = null
     var controls: Formula? = null
+    var layer: Formula? = null
 
     override fun update(percent: Float) {
         if (scope == null) {
@@ -56,6 +57,7 @@ class CreateVideoAction() : TemporalAction() {
         val fileT = file?.interpretString(scope) ?: ""
         val loopT = loop?.interpretBoolean(scope) ?: false
         val controlsT = controls?.interpretBoolean(scope) ?: false
+        val layerT = layer?.interpretInteger(scope) ?: 2
         val posXT = posX?.interpretInteger(scope) ?: 0
         val posYT = posY?.interpretInteger(scope) ?: 0
         val widthT = width?.interpretInteger(scope) ?: 0
@@ -72,7 +74,7 @@ class CreateVideoAction() : TemporalAction() {
                 nameT,
                 projFile.absolutePath,
                 posXT, posYT, widthT, heightT,
-                controlsT, loopT, true
+                controlsT, loopT, true, layerT
             )
         }
         Log.d("VideoPlayerAction", "showed")

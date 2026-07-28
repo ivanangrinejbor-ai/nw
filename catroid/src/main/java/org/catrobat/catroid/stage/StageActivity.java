@@ -1387,7 +1387,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 	}
 
 
-	public void createVideoPlayer(String viewId, String videoPath, int x, int y, int width, int height, boolean showControls, final boolean loopVideo, boolean isTransparent) {
+	public void createVideoPlayer(String viewId, String videoPath, int x, int y, int width, int height, boolean showControls, final boolean loopVideo, boolean isTransparent, int layer) {
 		final VideoView videoView = new VideoView(this);
 
 
@@ -1423,7 +1423,12 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 		params.leftMargin = x;
 		params.topMargin = y;
 
+		FrameLayout targetLayer = (layer >= 2) ? foregroundLayout : backgroundLayout;
+		if (layer <= 1) {
+			activeNativeLayer = backgroundLayout;
+		}
 		addViewToStage(viewId, videoView, params);
+		activeNativeLayer = foregroundLayout;
 		videoView.requestFocus();
 	}
 

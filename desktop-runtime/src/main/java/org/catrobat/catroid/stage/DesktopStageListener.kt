@@ -25,7 +25,6 @@ class DesktopStageListener(private val projectDir: File? = null) : ApplicationAd
     private lateinit var batch: SpriteBatch
     private lateinit var shapeRenderer: ShapeRenderer
     private lateinit var font: BitmapFont
-    private var hudProjectTex: Texture? = null
     private lateinit var physicsWorld: DesktopPhysicsWorld
     private lateinit var scriptEngine: DesktopScriptEngine
     private lateinit var scriptRunner: DesktopScriptRunner
@@ -83,7 +82,9 @@ class DesktopStageListener(private val projectDir: File? = null) : ApplicationAd
     override fun render() {
         input.update()
 
-        ScreenUtils.clear(0.95f, 0.95f, 0.95f, 1f)
+        // Stage background: black when no background look covers the stage (matches the
+        // editor's default and fills the letterbox area outside the FitViewport).
+        ScreenUtils.clear(0f, 0f, 0f, 1f)
 
         camera.direction.set(0f, 0f, -1f)
         camera.up.set(0f, 1f, 0f)
@@ -203,12 +204,8 @@ class DesktopStageListener(private val projectDir: File? = null) : ApplicationAd
                 font.draw(batch, "$prefix${overlay.text}", sx, sy)
             }
 
-            if (hudProjectTex == null) {
-                hudProjectTex = CyrillicText.render(
-                    "Project: ${project.name} | Sprites: ${project.sprites.size}")
-            }
-            hudProjectTex?.let { batch.draw(it, 20f, (VIRTUAL_HEIGHT - 24f) - it.height) }
-            font.draw(batch, "FPS: ${Gdx.graphics.framesPerSecond}", 20f, 32f)
+            // FPS counter in the top-left corner (project/sprites HUD label removed).
+            font.draw(batch, "FPS: ${Gdx.graphics.framesPerSecond}", 20f, VIRTUAL_HEIGHT - 10f)
             batch.end()
         } else {
             batch.begin()
@@ -235,8 +232,6 @@ class DesktopStageListener(private val projectDir: File? = null) : ApplicationAd
         batch.dispose()
         shapeRenderer.dispose()
         font.dispose()
-        hudProjectTex?.dispose()
-        hudProjectTex = null
         penFbo?.dispose()
         penFbo = null
         physicsWorld.dispose()

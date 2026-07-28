@@ -1383,6 +1383,7 @@
 
     <string name="category_file">Файлы</string>
 <string name="category_neoscript">NeoScript</string>
+<string name="category_dialogue">Диалоги</string>
 <string name="category_json">JSON</string>
 <string name="brick_json_parse">Разобрать JSON в</string>
 <string name="brick_json_value">Текст JSON</string>
@@ -1916,6 +1917,7 @@
     <string formatted="false" name="save_to_variable">сохранять в переменную</string>
     <string formatted="false" name="brick_create_textfield">Создать TextField</string>
     <string formatted="false" name="project_file">файл проекта</string>
+<string name="video_layer">слой (2=над всем, 1=посередине, 0=сзади)</string>
     <string formatted="false" name="control_enabled">показать управление</string>
     <string formatted="false" name="loop_enabled">зациклить</string>
     <string formatted="false" name="position">позиция (x, y)</string>
@@ -5007,6 +5009,31 @@
     <string formatted="false" name="brick_assign_scripts_replace_existing">Заменить существующие скрипты?</string>
     <string formatted="false" name="brick_create_object_persistent">Создать объект навсегда?</string>
     <string formatted="false" name="brick_assign_scripts_save">Сохранить скрипты после выхода из проекта?</string>
+<string name="brick_start_dialogue">Запустить диалог</string>
+<string name="brick_dialogue_file">из файла</string>
+<string name="brick_dialogue_file_hint">выберите .json файл</string>
+<string name="brick_close_dialogue">Закрыть диалог</string>
+<string name="brick_jump_to_node">Перейти к узлу</string>
+<string name="brick_dialogue_node_id">ID узла</string>
+<string name="brick_dialogue_node_id_hint">введите ID узла</string>
+<string name="brick_dialogue_running">Диалог запущен?</string>
+<string name="brick_selected_choice">Выбранный ответ</string>
+<string name="brick_current_speaker">Текущий говорящий</string>
+<string name="brick_current_dialogue_text">Текущий текст диалога</string>
+<string name="brick_current_node_id">Текущий ID узла</string>
+<string name="brick_dialogue_variable">в переменную</string>
+<string name="dialogue_editor_title">Редактор диалогов</string>
+<string name="dialogue_editor_back">Назад</string>
+<string name="dialogue_editor_undo">Отменить</string>
+<string name="dialogue_editor_redo">Повторить</string>
+<string name="dialogue_editor_add_node">Добавить узел</string>
+<string name="dialogue_editor_save">Сохранить</string>
+<string name="brick_localize_sprites">Локализовать спрайты на</string>
+<string name="brick_localize_language">язык</string>
+<string name="localize_progress_title">Локализация спрайтов...</string>
+<string name="localize_complete">Локализация завершена. %1$d/%2$d спрайтов обработано.</string>
+<string name="localize_failures">%1$d спрайтов не удалось обработать.</string>
+<string name="localize_no_sprites">Спрайты с текстом не найдены.</string>
     <string formatted="false" name="current_scene">Текущая сцена</string>
     <string formatted="false" name="scene_not_found">Сцена не найдена: %1$s</string>
     <string formatted="false" name="unknown_blocks_detected_title">Обнаружены неизвестные блоки</string>

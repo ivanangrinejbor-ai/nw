@@ -433,6 +433,13 @@
             android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />
 
         <activity
+            android:name="org.catrobat.catroid.ui.dialogue.DialogueEditorActivity"
+            android:exported="false"
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:screenOrientation="unspecified"
+            android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />
+
+        <activity
             android:name=".utils.git.AuthCallbackActivity"
             android:exported="true"
             android:launchMode="singleTask">

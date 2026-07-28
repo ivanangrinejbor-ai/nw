@@ -301,17 +301,19 @@ object AlignedApkBuilder {
     private fun writeLocalEntry(
         w: LittleEndianWriter,
         name: String,
-        data: ByteArray,
+        payload: ByteArray,
+        uncompressedSize: Int,
         method: Int,
         crc: Long
     ) {
         val nameBytes = name.toByteArray(Charsets.UTF_8)
-        val size = data.size
         val crc32 = crc.toInt()
 
-            val headerBase = 30 + nameBytes.size
+        // Выравниваем начало данных на 4 байта только для STORED (нужно для mmap
+        // resources.arsc и т.п.); для DEFLATED выравнивание бессмысленно.
+        val headerBase = 30 + nameBytes.size
         val misalign = (w.position + headerBase) % 4
-        val padding = if (misalign == 0L) 0 else (4 - misalign).toInt()
+        val padding = if (method == ZipEntry.STORED && misalign != 0L) (4 - misalign).toInt() else 0
 
         w.writeInt(0x04034b50)
         w.writeShort(20)
@@ -320,14 +322,14 @@ object AlignedApkBuilder {
         w.writeShort(0)
         w.writeShort(0)
         w.writeInt(crc32)
-        w.writeInt(size)
-        w.writeInt(size)
+        w.writeInt(payload.size)        // compressed size = размер записанных байт
+        w.writeInt(uncompressedSize)    // uncompressed size
         w.writeShort(nameBytes.size)
         w.writeShort(padding)
         w.writeBytes(nameBytes)
         if (padding > 0) w.writeBytes(ByteArray(padding))
 
-        w.writeBytes(data)
+        w.writeBytes(payload)
     }
 
     private fun buildAlignedApk(
@@ -376,7 +378,7 @@ object AlignedApkBuilder {
 
         data class CdEntry(
             val name: String, val method: Int, val crc: Int,
-            val size: Int, val localHeaderOffset: Int
+            val compressedSize: Int, val uncompressedSize: Int, val localHeaderOffset: Int
         )
         val cdEntries = mutableListOf<CdEntry>()
 
@@ -385,8 +387,31 @@ object AlignedApkBuilder {
 
                 fun writeStored(name: String, data: ByteArray, crc: Long): CdEntry {
                     val offset = w.position.toInt()
-                    writeLocalEntry(w, name, data, ZipEntry.STORED, crc)
-                    return CdEntry(name, ZipEntry.STORED, crc.toInt(), data.size, offset)
+                    writeLocalEntry(w, name, data, data.size, ZipEntry.STORED, crc)
+                    return CdEntry(name, ZipEntry.STORED, crc.toInt(), data.size, data.size, offset)
+                }
+
+                // Запись с сохранением исходного метода. Для DEFLATED — ПЕРЕСЖИМАЕМ
+                // распакованные данные (ZipFile.getInputStream отдаёт их уже распакованными),
+                // иначе получится «сжатая» запись с сырыми байтами → битый APK.
+                fun writeEntry(name: String, uncompressed: ByteArray, method: Int, crc: Long): CdEntry {
+                    if (method != ZipEntry.DEFLATED) {
+                        return writeStored(name, uncompressed, crc)
+                    }
+                    val deflater = java.util.zip.Deflater(java.util.zip.Deflater.DEFAULT_COMPRESSION, true)
+                    deflater.setInput(uncompressed)
+                    deflater.finish()
+                    val buf = ByteArrayOutputStream(maxOf(64, uncompressed.size / 2))
+                    val tmp = ByteArray(8192)
+                    while (!deflater.finished()) {
+                        val n = deflater.deflate(tmp)
+                        if (n > 0) buf.write(tmp, 0, n)
+                    }
+                    deflater.end()
+                    val comp = buf.toByteArray()
+                    val offset = w.position.toInt()
+                    writeLocalEntry(w, name, comp, uncompressed.size, ZipEntry.DEFLATED, crc)
+                    return CdEntry(name, ZipEntry.DEFLATED, crc.toInt(), comp.size, uncompressed.size, offset)
                 }
 
                 val crc32m = java.util.zip.CRC32().apply { update(manifestBytes) }
@@ -399,9 +424,7 @@ object AlignedApkBuilder {
                 }
 
                 for (e in templateEntries) {
-                    val offset = w.position.toInt()
-                    writeLocalEntry(w, e.name, e.data, e.method, e.crc)
-                    cdEntries.add(CdEntry(e.name, e.method, e.crc.toInt(), e.data.size, offset))
+                    cdEntries.add(writeEntry(e.name, e.data, e.method, e.crc))
                 }
 
                 if (iconFile != null && iconFile.exists()) {
@@ -431,8 +454,8 @@ object AlignedApkBuilder {
                     w.writeShort(0)
                     w.writeShort(0)
                     w.writeInt(ce.crc)
-                    w.writeInt(ce.size)
-                    w.writeInt(ce.size)
+                    w.writeInt(ce.compressedSize)
+                    w.writeInt(ce.uncompressedSize)
                     w.writeShort(nb.size)
                     w.writeShort(0)
                     w.writeShort(0)

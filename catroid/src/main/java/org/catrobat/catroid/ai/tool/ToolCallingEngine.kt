@@ -82,6 +82,8 @@ object ToolCallingEngine {
         registerTool(RememberTool())
         registerTool(RecallTool())
         registerTool(ForgetTool())
+        registerTool(LocalizeSpritesTool())
+        registerTool(WireLocalizationSwitchTool())
     }
 
     fun registerTool(tool: Tool) {
@@ -975,6 +977,82 @@ object ToolCallingEngine {
             val removed = MemoryManager.forget(key)
             return ToolResult(true,
                 if (removed) "Forgot '$key'" else "No memory with key '$key'", "")
+        }
+    }
+
+    class LocalizeSpritesTool : Tool {
+        override val name = "localizeSprites"
+        override val description = "Localize all sprite text to a target language. Extracts text from sprites, translates via Gemini, renders translated text preserving style."
+        override val parameters = listOf(
+            ToolParameter("targetLanguage", ParameterType.STRING, "Target language code (e.g. ru, en, de, fr, es, ja)"),
+            ToolParameter("sourceLanguage", ParameterType.STRING, "Source language code or 'auto' for auto-detect", false)
+        )
+
+        override suspend fun execute(args: Map<String, String>): ToolResult {
+            val context = this@ToolCallingEngine.context ?: return ToolResult(false, "No context available", "")
+            val targetLang = args["targetLanguage"] ?: return ToolResult(false, "Missing targetLanguage", "")
+            val sourceLang = args["sourceLanguage"] ?: "auto"
+
+            val localizer = org.catrobat.catroid.ai.localization.SpriteLocalizer(
+                context, targetLang, sourceLang
+            )
+
+            var report: org.catrobat.catroid.ai.localization.LocalizationReport? = null
+            val deferred = kotlinx.coroutines.CompletableDeferred<org.catrobat.catroid.ai.localization.LocalizationReport>()
+
+            localizer.onComplete = { r ->
+                deferred.complete(r)
+            }
+
+            localizer.localizeProject()
+
+            // Корутинное ожидание вместо Object.wait(): не блокирует поток-пула
+            // и не зависит от диспетчера, на который SpriteLocalizer шлёт onComplete.
+            report = kotlinx.coroutines.withTimeoutOrNull(180_000) { deferred.await() }
+
+            return report?.let { r ->
+                val msg = buildString {
+                    append("Localization to '$targetLang' complete.\n")
+                    append("Processed: ${r.processedSprites}/${r.totalSprites} sprites\n")
+                    if (r.hasFailures()) {
+                        append("Failures (${r.failedSprites}):\n")
+                        append(r.failureSummary())
+                    }
+                    if (r.processedSprites > 0) {
+                        append("\n\nNEXT: Ask the user whether they want automatic language switching ")
+                        append("wired up (a 'When scene starts' script per sprite that switches costume ")
+                        append("based on the 'language' variable). ONLY if the user agrees, call the ")
+                        append("wireLocalizationSwitch tool with targetLanguage='$targetLang'.")
+                    }
+                    append("\nDuration: ${r.durationMs / 1000}s")
+                }
+                ToolResult(r.successRate > 0f, msg, "")
+            } ?: ToolResult(false, "Localization timed out", "")
+        }
+    }
+
+    class WireLocalizationSwitchTool : Tool {
+        override val name = "wireLocalizationSwitch"
+        override val description = "Wire automatic language switching for costumes created by localizeSprites. " +
+            "For each sprite that has a '<name> (<lang>)' costume, adds a 'When scene starts' script that " +
+            "switches to the localized costume when the global 'language' variable equals '<lang>', otherwise " +
+            "keeps the original. Creates the 'language' variable if missing. Call ONLY after localizeSprites " +
+            "AND after the user explicitly agrees."
+        override val parameters = listOf(
+            ToolParameter("targetLanguage", ParameterType.STRING, "Language code used for localization, e.g. ru")
+        )
+
+        override suspend fun execute(args: Map<String, String>): ToolResult {
+            val lang = args["targetLanguage"]?.takeIf { it.isNotBlank() }
+                ?: return ToolResult(false, "Missing targetLanguage", "")
+            addChange(ProjectChange(
+                ChangeType.WIRE_LOCALIZATION_SWITCH,
+                "Wire language switch for '$lang'",
+                mapOf("language" to lang)
+            ))
+            return ToolResult(true,
+                "Queued automatic language switching for '$lang'. A 'When scene starts' costume-switch script " +
+                    "will be added to each localized sprite (driven by the 'language' variable).", "")
         }
     }
 }

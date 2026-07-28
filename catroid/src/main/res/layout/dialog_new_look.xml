@@ -84,6 +84,8 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
+            <!-- Редактор тайлмапа скрыт из интерфейса (visibility=gone). ID сохранён,
+                 чтобы findViewById в SpriteActivity/ProjectActivity не вернул null. -->
             <TextView
                 android:id="@+id/dialog_new_look_tilemap"
                 android:layout_span="2"
@@ -91,6 +93,7 @@
                 android:gravity="center"
                 android:text="@string/look_new_tilemap"
                 android:textSize="?attr/medium"
+                android:visibility="gone"
                 app:drawableTopCompat="@drawable/ic_media_library_look" />
 
         </TableRow>

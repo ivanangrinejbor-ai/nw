@@ -27,6 +27,30 @@ object DesktopProjectManager {
         project.imagesDir = imagesDir
         project.soundsDir = soundsDir
 
+        // Diagnostic: dump the ACTUAL image filenames on disk so we can compare them to the
+        // look <fileName> values in code.xml (which currently resolve to "not found").
+        run {
+            val sample = mutableListOf<String>()
+            val imageDirs = mutableListOf<String>()
+            fun walk(d: File, depth: Int) {
+                if (depth > 4 || sample.size >= 40) return
+                val entries = d.listFiles() ?: return
+                for (f in entries) {
+                    if (sample.size >= 40) break
+                    if (f.isDirectory) {
+                        if (f.name.equals("images", true)) imageDirs.add(f.absolutePath)
+                        walk(f, depth + 1)
+                    } else if (f.name.endsWith(".png", true) || f.name.endsWith(".jpg", true)) {
+                        sample.add(f.name)
+                    }
+                }
+            }
+            walk(projectDir, 0)
+            Gdx.app.log(TAG, "imagesDir resolved to: ${imagesDir.absolutePath} exists=${imagesDir.isDirectory}")
+            Gdx.app.log(TAG, "images/ dirs found (first ${imageDirs.size}): $imageDirs")
+            Gdx.app.log(TAG, "actual image files (sample ${sample.size}): $sample")
+        }
+
         try {
             val factory = DocumentBuilderFactory.newInstance()
             factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true)
@@ -63,6 +87,23 @@ object DesktopProjectManager {
             }
 
             val objects = doc.getElementsByTagName("object")
+            // Diagnostic: dump the scene structure so we can see how many scenes exist,
+            // their names, and object counts (multi-scene projects are currently flattened).
+            run {
+                val sceneNodes = doc.getElementsByTagName("scene")
+                Gdx.app.log(TAG, "scenes found: ${sceneNodes.length}; total <object> in doc: ${objects.length}")
+                for (si in 0 until sceneNodes.length) {
+                    val sEl = sceneNodes.item(si) as? Element ?: continue
+                    val sName = sEl.getElementsByTagName("name").let { if (it.length > 0) it.item(0).textContent.trim() else "?" }
+                    val olEl = sEl.getElementsByTagName("objectList").let { if (it.length > 0) it.item(0) as? Element else null }
+                    var objCnt = 0
+                    if (olEl != null) {
+                        val ch = olEl.childNodes
+                        for (k in 0 until ch.length) if (ch.item(k).nodeName == "object") objCnt++
+                    }
+                    Gdx.app.log(TAG, "  scene[$si] '$sName' directObjects=$objCnt")
+                }
+            }
             for (i in 0 until objects.length) {
                 val objNode = objects.item(i)
                 if (objNode.nodeType != Node.ELEMENT_NODE) continue
@@ -135,23 +176,53 @@ object DesktopProjectManager {
     }
 
     fun loadTextureLazy(fileName: String): Texture? {
-        val dir = currentProject?.projectDir ?: return null
-        val imagesDir = File(dir, "images")
-        return loadTexture(imagesDir, fileName)
+        val project = currentProject ?: return null
+        // Look files live in the scene's images dir (projectDir/<scene>/images), which
+        // findDir() located at load time. The old code hard-coded projectDir/images and
+        // therefore never found scene-nested images -> white screen + endless "not found".
+        project.imagesDir?.takeIf { it.isDirectory }?.let { dir ->
+            loadTextureFrom(dir, fileName)?.let { return it }
+        }
+        project.projectDir?.let { root ->
+            loadTextureFrom(File(root, "images"), fileName)?.let { return it }
+            // Last resort: multi-scene / unexpected nesting - find the file anywhere.
+            findFileRecursive(root, fileName, 6)?.let { f -> loadTextureFile(f)?.let { return it } }
+            // Fuzzy fallback: a look <fileName> in code.xml often carries a project-global
+            // "_#N" index that does NOT match the per-scene file on disk (which uses a local
+            // index or no suffix). Retry by the base name (strip the trailing _#digits).
+            val base = fileName.replace(Regex("_#\\d+(?=\\.[^.]+$)"), "")
+            if (base != fileName) {
+                findFileRecursive(root, base, 6)?.let { f -> loadTextureFile(f)?.let { return it } }
+            }
+        }
+        if (loggedMissing.add(fileName)) {
+            Gdx.app.log(TAG, "Image not found (after base-name fallback): $fileName")
+        }
+        return null
     }
 
-    private fun loadTexture(imagesDir: File, fileName: String): Texture? {
+    private fun loadTextureFrom(imagesDir: File, fileName: String): Texture? {
         val file = File(imagesDir, fileName)
-        if (!file.exists()) {
-            Gdx.app.log(TAG, "Image not found: ${file.absolutePath}")
-            return null
-        }
+        if (!file.exists()) return null
+        return loadTextureFile(file)
+    }
+
+    private fun loadTextureFile(file: File): Texture? {
         return try {
             Texture(Gdx.files.absolute(file.absolutePath))
         } catch (e: Exception) {
-            Gdx.app.error(TAG, "Failed to load texture $fileName", e)
+            Gdx.app.error(TAG, "Failed to load texture ${file.name}", e)
             null
         }
+    }
+
+    private fun findFileRecursive(root: File, name: String, maxDepth: Int): File? {
+        if (!root.isDirectory || maxDepth < 0) return null
+        root.listFiles()?.forEach { f -> if (f.isFile && f.name == name) return f }
+        root.listFiles()?.forEach { f ->
+            if (f.isDirectory) findFileRecursive(f, name, maxDepth - 1)?.let { return it }
+        }
+        return null
     }
 
     // TODO: limit search depth to prevent unbounded recursion on deeply-nested trees
@@ -179,4 +250,5 @@ object DesktopProjectManager {
     }
 
     private const val TAG = "DesktopProjectManager"
+    private val loggedMissing = HashSet<String>()
 }

@@ -7,6 +7,11 @@ import org.catrobat.catroid.ai.tool.ProjectChange
 import org.catrobat.catroid.content.Project
 import org.catrobat.catroid.content.Scene
 import org.catrobat.catroid.content.Sprite
+import org.catrobat.catroid.content.StartScript
+import org.catrobat.catroid.content.bricks.IfLogicBeginBrick
+import org.catrobat.catroid.content.bricks.SetLookBrick
+import org.catrobat.catroid.formulaeditor.Formula
+import org.catrobat.catroid.formulaeditor.FormulaElement
 import org.catrobat.catroid.formulaeditor.UserList
 import org.catrobat.catroid.formulaeditor.UserVariable
 
@@ -38,6 +43,7 @@ object ProjectModifier {
                 ChangeType.DELETE_VARIABLE -> deleteVariable(project, change)
                 ChangeType.CREATE_BROADCAST -> createBroadcast(project, change)
                 ChangeType.MODIFY_BRICK -> modifyBrick(project, change)
+                ChangeType.WIRE_LOCALIZATION_SWITCH -> wireLocalizationSwitch(project, change)
             }
         } catch (e: Exception) {
             ModificationResult.Failure("Error applying ${change.type}: ${e.message}")
@@ -331,6 +337,87 @@ object ProjectModifier {
                 removed = 1
             )
         )
+    }
+
+    /**
+     * Wire automatic language switching for the localized costumes created by
+     * `localizeSprites`. For every sprite that has a costume named "<orig> (<lang>)",
+     * adds a `When scene starts` script: If (language = '<lang>') switch to the localized
+     * costume, else the original. Creates the global `language` variable if missing.
+     * Idempotent: a sprite already carrying such a switch for the same language is skipped.
+     */
+    private fun wireLocalizationSwitch(project: Project, change: ProjectChange): ModificationResult {
+        val langCode = (change.data["language"] as? String)?.take(2)?.lowercase()
+            ?: return ModificationResult.Failure("language required")
+
+        var createdVar = false
+        if (project.userVariables.none { it.name == "language" } &&
+            project.multiplayerVariables.none { it.name == "language" }) {
+            project.addUserVariable(UserVariable("language", langCode))
+            createdVar = true
+        }
+
+        val suffix = " ($langCode)"
+        var wired = 0
+        for (scene in project.sceneList) {
+            for (sprite in scene.spriteList) {
+                if (spriteHasLanguageSwitch(sprite, langCode)) continue
+                val looks = sprite.lookList.toList()
+                for (localized in looks) {
+                    if (!localized.name.endsWith(suffix)) continue
+                    val original = looks.firstOrNull { it.name == localized.name.removeSuffix(suffix) }
+                        ?: continue
+
+                    val condition = Formula(
+                        FormulaElement(
+                            FormulaElement.ElementType.OPERATOR,
+                            org.catrobat.catroid.formulaeditor.Operators.EQUAL.name, null,
+                            FormulaElement(FormulaElement.ElementType.USER_VARIABLE, "language", null),
+                            FormulaElement(FormulaElement.ElementType.STRING, langCode, null)
+                        )
+                    )
+                    val ifBrick = IfLogicBeginBrick(condition)
+                    ifBrick.addBrickToIfBranch(SetLookBrick().apply { setLook(localized) })
+                    ifBrick.addBrickToElseBranch(SetLookBrick().apply { setLook(original) })
+
+                    val script = StartScript()
+                    script.addBrick(ifBrick)
+                    sprite.addScript(script)
+                    wired++
+                }
+            }
+        }
+
+        if (wired == 0) {
+            return ModificationResult.Failure(
+                "No localized costumes '… ($langCode)' found to wire (or already wired). Run localizeSprites first."
+            )
+        }
+        val varNote = if (createdVar) " Created global variable 'language' (= '$langCode')." else ""
+        return ModificationResult.Success(
+            "Wired language switching for $wired sprite(s): When scene starts → " +
+                "If (language = '$langCode') use localized costume, else original.$varNote",
+            ChangeCard("Wired language switch ($langCode)", added = wired)
+        )
+    }
+
+    /** True if [sprite] already has an If-brick condition of the form `language = '<langCode>'`. */
+    private fun spriteHasLanguageSwitch(sprite: Sprite, langCode: String): Boolean {
+        for (s in sprite.scriptList) {
+            for (b in s.brickList) {
+                if (b !is IfLogicBeginBrick) continue
+                val root = b.getFormulaWithBrickField(
+                    org.catrobat.catroid.content.bricks.Brick.BrickField.IF_CONDITION
+                )?.root ?: continue
+                if (root.elementType == FormulaElement.ElementType.OPERATOR &&
+                    root.value == org.catrobat.catroid.formulaeditor.Operators.EQUAL.name &&
+                    root.leftChild?.elementType == FormulaElement.ElementType.USER_VARIABLE &&
+                    root.leftChild?.value == "language" &&
+                    root.rightChild?.value == langCode
+                ) return true
+            }
+        }
+        return false
     }
 
     /** Parse "BrickName(a, b)" -> ("BrickName", ["a", "b"]). */

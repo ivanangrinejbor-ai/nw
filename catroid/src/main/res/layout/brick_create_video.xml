@@ -103,6 +103,15 @@
             android:id="@+id/create_video_control"
             style="@style/BrickEditText" />
 
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/video_layer"
+            app:layout_newLine="true"/>
+
+        <TextView
+            android:id="@+id/create_video_layer"
+            style="@style/BrickEditText" />
+
     </org.catrobat.catroid.ui.BrickLayout>
 
 </LinearLayout>

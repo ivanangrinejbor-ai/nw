@@ -20,6 +20,8 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+@file:Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")
+
 package org.catrobat.catroid.ui.fragment
 
 import android.Manifest.permission
@@ -1227,7 +1229,7 @@ class ProjectOptionsFragment : Fragment() {
                 if (entry!!.isDirectory) {
                     file.mkdirs()
                 } else {
-                    file.parentFile.mkdirs()
+                    file.parentFile?.mkdirs()
                     FileOutputStream(file).use { fos ->
                         zis.copyTo(fos)
                     }
@@ -1426,18 +1428,110 @@ class ProjectOptionsFragment : Fragment() {
             try {
                 val proj = project!!
                 val projectName = proj.name
+                val ctx = requireContext()
+                val cache = ctx.cacheDir
 
-                // Single-pass: zip + encrypt directly into output file.
-                // No intermediate files — avoids OOM on large projects (758MB+).
-                // Output: NCPP header + AES-256-GCM encrypted zip stream.
-                val outputFile = File(requireContext().cacheDir, "${projectName}_win.ncpp")
-                org.catrobat.catroid.io.ProjectCrypto.encryptDirectory(
-                    proj.directory,
-                    outputFile,
-                    org.catrobat.catroid.apkbuild.ProtectedProjectPayload.PASSWORD
-                ) { fileName ->
-                    // Skip undo files
-                    fileName != "undo_code.xml"
+                // 1) Pre-flight: ensure enough free cache space. We stream the encrypted
+                //    project straight into the bundle zip (no full-size intermediate file),
+                //    so peak usage is ~project size + the runtime template, not double.
+                val projectBytes = proj.directory.walkTopDown().filter { it.isFile }.sumOf { it.length() }
+                val neededBytes = projectBytes + 250L * 1024 * 1024
+                val freeBytes = cache.usableSpace
+                if (freeBytes < neededBytes) {
+                    throw java.io.IOException(
+                        "Недостаточно места для сборки: нужно ~${neededBytes / (1024 * 1024)} МБ, " +
+                            "свободно ${freeBytes / (1024 * 1024)} МБ. Освободите место и повторите."
+                    )
+                }
+                System.gc()
+
+                // 2) Optional launcher icon from the project screenshot.
+                val iconPng: File? = run {
+                    val manual = File(proj.directory, "manual_screenshot.png")
+                    val auto = File(proj.directory, "automatic_screenshot.png")
+                    when { manual.exists() -> manual; auto.exists() -> auto; else -> null }
+                }
+
+                // 3) Assemble the Windows build bundle. Contents (all consumed by build_exe.bat):
+                //    template_win.zip = desktop runtime (player.jar + jre + launch4j + icon.ico),
+                //    build_exe.bat + its PowerShell helpers, the project payload (project.zip),
+                //    and the icon. The user extracts this ZIP and runs build_exe.bat, which wraps
+                //    everything into a single self-contained NeoCatroid.exe.
+                val bundledAssets = listOf(
+                    "build_exe.bat",
+                    "write_launch4j_xml.ps1",
+                    "embed_payload.ps1",
+                    "inject_project.ps1",
+                    "stage_root.ps1",
+                    "build_template.ps1",
+                    "template_win.zip"
+                )
+                val outputFile = File(cache, "${projectName}_win.zip")
+                if (outputFile.exists()) outputFile.delete()
+                java.util.zip.ZipOutputStream(
+                    java.io.BufferedOutputStream(java.io.FileOutputStream(outputFile))
+                ).use { zos ->
+                    // Everything here is already-compressed / incompressible; store fast
+                    // (level 0) instead of re-deflating the ~100 MB runtime.
+                    zos.setLevel(java.util.zip.Deflater.NO_COMPRESSION)
+                    val buf = ByteArray(65536)
+                    fun addStream(name: String, input: java.io.InputStream) {
+                        zos.putNextEntry(java.util.zip.ZipEntry(name))
+                        input.use {
+                            var n = it.read(buf)
+                            while (n >= 0) { zos.write(buf, 0, n); n = it.read(buf) }
+                        }
+                        zos.closeEntry()
+                    }
+                    // Discoverability: a plain-language guide + an obviously-named launcher so
+                    // the recipient knows to run build_exe.bat (which produces the final exe).
+                    // Generated inline (not assets) to avoid non-ASCII AssetManager names.
+                    val readme = listOf(
+                        "NeoCatroid — сборка Windows-приложения (.exe)",
+                        "==============================================",
+                        "",
+                        "В этом архиве — рантайм и ваш проект. Чтобы получить один",
+                        "запускаемый NeoCatroid.exe, нужно один раз собрать его на Windows.",
+                        "",
+                        "Как собрать:",
+                        "  1. Распакуйте ВЕСЬ архив в отдельную папку (не запускайте из архива).",
+                        "  2. Дважды кликните «СОБРАТЬ EXE.bat».",
+                        "  3. Подождите ~1–2 минуты (готовится рантайм, launch4j оборачивает exe,",
+                        "     проект вшивается внутрь). Нужен только Windows, JDK не требуется.",
+                        "  4. В этой папке появится NeoCatroid.exe — самодостаточный,",
+                        "     с уже вшитыми рантаймом и проектом.",
+                        "  5. Запускайте и раздавайте NeoCatroid.exe.",
+                        "",
+                        "Если что-то пошло не так — откройте post_log.txt рядом со скриптом."
+                    ).joinToString("\r\n")
+                    val runner = listOf(
+                        "@echo off",
+                        "chcp 65001 >nul",
+                        "call \"%~dp0build_exe.bat\"",
+                        "echo.",
+                        "echo Готово! Запускайте NeoCatroid.exe в этой папке.",
+                        "pause"
+                    ).joinToString("\r\n")
+                    addStream("КАК ЗАПУСТИТЬ.txt", readme.byteInputStream(Charsets.UTF_8))
+                    addStream("СОБРАТЬ EXE.bat", runner.toByteArray(Charsets.UTF_8).inputStream())
+                    for (asset in bundledAssets) {
+                        addStream(asset, ctx.assets.open(asset))
+                    }
+                    // Stream the encrypted project DIRECTLY into the bundle entry using
+                    // SEGMENTED AES-GCM (encryptDirectoryToStreamChunked): each ~4 MB segment
+                    // is encrypted independently, so memory stays constant. A single-GCM
+                    // stream would buffer the whole project in RAM (Conscrypt) and OOM.
+                    zos.putNextEntry(java.util.zip.ZipEntry("project.zip"))
+                    org.catrobat.catroid.io.ProjectCrypto.encryptDirectoryToStreamChunked(
+                        proj.directory,
+                        zos,
+                        org.catrobat.catroid.apkbuild.ProtectedProjectPayload.PASSWORD,
+                        filter = { fileName -> fileName != "undo_code.xml" }
+                    )
+                    zos.closeEntry()
+                    if (iconPng != null && iconPng.exists()) {
+                        addStream("icon.png", iconPng.inputStream())
+                    }
                 }
                 System.gc()
 
@@ -1446,7 +1540,9 @@ class ProjectOptionsFragment : Fragment() {
                     shareFile(outputFile)
                 }
 
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
+                // Throwable (not just Exception) so an OutOfMemoryError on a very large
+                // project surfaces as a message instead of crashing the whole app.
                 withContext(Dispatchers.Main) {
                     hideProgressDialog()
                     ToastUtil.showError(requireContext(), "Ошибка: ${e.message}")

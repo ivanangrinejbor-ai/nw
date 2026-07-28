@@ -1,4 +1,4 @@
-﻿package org.catrobat.catroid.stage
+package org.catrobat.catroid.stage
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.physics.box2d.Body
@@ -312,7 +312,10 @@ class DesktopScriptEngine(
         rebuildSpatialHash()
         checkEvents()
         checkBroadcastWaits()
-        for (state in scriptStates) {
+        // Snapshot: executeStateMultiBlock can add clones/scripts to scriptStates mid-frame
+        // (create-clone, broadcast). Iterate a copy so new states are picked up next frame
+        // instead of throwing ConcurrentModificationException.
+        for (state in scriptStates.toList()) {
             if (state.isDone) {
                 if (state.eventType != null) {
                     state.reset()
@@ -465,7 +468,8 @@ class DesktopScriptEngine(
     }
     private fun triggerWhenClonedForClone(cloneIdx: Int, srcIdx: Int) {
         val clone = project.sprites.getOrNull(cloneIdx) ?: return
-        for (origState in scriptStates) {
+        // Snapshot: this loop calls scriptStates.add(cloneState) inside itself, so iterate a copy.
+        for (origState in scriptStates.toList()) {
             if (origState.eventType == "cloned" && origState.spriteIndex == srcIdx) {
                 val blocks = origState.frames.firstOrNull()?.blocks ?: continue
                 val cloneState = ScriptState(

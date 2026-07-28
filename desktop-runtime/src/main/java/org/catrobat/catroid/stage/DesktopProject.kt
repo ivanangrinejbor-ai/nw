@@ -9,9 +9,13 @@ class DesktopLook(
     texture: Texture? = null,
     val hitboxes: MutableList<DesktopHitbox> = mutableListOf()
 ) {
+    private var triedLoad = false
     var texture: Texture? = texture
         get() {
-            if (field == null && fileName.isNotEmpty()) {
+            // Attempt the (potentially failing) lazy load ONCE, not every frame -
+            // a missing look otherwise spams the log and re-hits disk every render.
+            if (field == null && !triedLoad && fileName.isNotEmpty()) {
+                triedLoad = true
                 field = DesktopProjectManager.getInstance().loadTextureLazy(fileName)
             }
             return field

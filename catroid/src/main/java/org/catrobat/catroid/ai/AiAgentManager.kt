@@ -355,6 +355,8 @@ class AiAgentManager private constructor() {
             org.catrobat.catroid.ai.tool.ChangeType.CREATE_BROADCAST -> "Creating broadcast '$name'"
             org.catrobat.catroid.ai.tool.ChangeType.MODIFY_BRICK ->
                 if (path.isNotEmpty()) "Editing a brick on $path" else "Editing a brick"
+            org.catrobat.catroid.ai.tool.ChangeType.WIRE_LOCALIZATION_SWITCH ->
+                "Wiring automatic language switching"
         }
     }
 

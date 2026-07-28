@@ -146,7 +146,7 @@ public class TilemapActionTest {
 
     @Test
     public void testClearTileAlreadyEmpty() {
-        // Tile is already EMPTY → setTile returns false, no crash
+        
         ClearTileAction action = new ClearTileAction();
         action.setScope(makeScope());
         action.setColumn(new Formula(0));
@@ -155,7 +155,7 @@ public class TilemapActionTest {
         assertEquals(TilemapLookData.EMPTY, tilemap.getTile(0, 0));
     }
 
-    // ======================= SetTilemapSolidAction =======================
+    
 
     @Test
     public void testSetSolidTrue() {

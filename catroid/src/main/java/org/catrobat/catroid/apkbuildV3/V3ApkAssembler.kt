@@ -89,6 +89,21 @@ object V3ApkAssembler {
         return TemplateManagerV3.prepareBaseApk(context, workDir)
     }
 
+    /**
+     * Force resources.arsc to be STORED (uncompressed). Android 11+ (API 30+) rejects
+     * installation of an APK whose resources.arsc is compressed or not 4-byte aligned
+     * ("возникла проблема с файлом приложения"). ARSCLib re-derives entry
+     * compression on every writeApk, so this must run before EACH write that precedes signing.
+     * ARSCLib stores + 4-byte-aligns uncompressed entries; apksig aligns again on signing.
+     */
+    private fun forceArscUncompressed(module: ApkModule) {
+        try {
+            module.zipEntryMap.getInputSource("resources.arsc")?.isUncompressed = true
+        } catch (e: Exception) {
+            Log.w(TAG, "Could not force resources.arsc uncompressed", e)
+        }
+    }
+
     private fun injectAssets(
         baseApk: File,
         outApk: File,
@@ -116,6 +131,7 @@ object V3ApkAssembler {
                 module.add(FileInputSource(marker, "assets/$FULL_MARKER"))
             }
 
+            forceArscUncompressed(module)
             module.writeApk(outApk)
         }
     }
@@ -151,6 +167,7 @@ object V3ApkAssembler {
 
             makeRuntimeLoaderLauncher(manifest)
 
+            forceArscUncompressed(module)
             module.writeApk(outApk)
         }
     }
@@ -266,6 +283,7 @@ object V3ApkAssembler {
             }
 
             Log.i(TAG, "Firebase config injected: $updatedCount resources updated")
+            forceArscUncompressed(module)
             module.writeApk(outputApk)
         }
     }

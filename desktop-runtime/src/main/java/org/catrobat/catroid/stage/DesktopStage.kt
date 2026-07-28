@@ -15,6 +15,7 @@ import org.catrobat.catroid.runtime.RuntimeServicesHolder
 import org.catrobat.catroid.text.DesktopTextService
 import org.catrobat.catroid.text.TextServiceHolder
 import java.io.File
+import java.io.InputStream
 import java.io.RandomAccessFile
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -29,10 +30,14 @@ import javax.crypto.spec.SecretKeySpec
 object DesktopStage {
     private const val EMBEDDED_PAYLOAD_FLAG = "--embedded-payload"
     private const val PAYLOAD_MAGIC = "NEOCAT01"
+    // Project injected as a zip entry inside the jar/exe (wrap-mode compatible).
+    private const val EMBEDDED_RESOURCE = "embedded_project.ncpp"
 
     private const val CRYPTO_MAGIC = "NCPP"
     // Запечённый (locked) пейлоад — тот же формат, другая магия (редактор такой не импортирует).
     private const val CRYPTO_MAGIC_LOCKED = "NCPX"
+    // Segmented/streaming AES-GCM payload (constant memory, for huge projects).
+    private const val CRYPTO_MAGIC_STREAM = "NCPS"
     private const val PAYLOAD_PASSWORD = "SA?D3Ft?ZZHufE9Ma#NA#A9HdQDAWbJ8WHfDPKfD4!G3ST+!=x;Z!wPD=7;B=9JTHRHsT@zZH@kFUu8tgQ8FLH%RPpZpLwJC2A*e"
 
     @JvmStatic
@@ -45,10 +50,10 @@ object DesktopStage {
         NetworkServiceHolder.service = DesktopNetworkService()
 
         val projectInput = args.firstOrNull { !it.startsWith("--") && it != EMBEDDED_PAYLOAD_FLAG }
-        val loadedProject: File? = when {
-            projectInput != null -> resolveProjectInput(File(projectInput))
-            else -> loadEmbeddedPayload()?.let { extractPayload(it) }
-        }
+        // Prefer an explicit project path / sibling file; if it isn't there, fall back to a
+        // project embedded inside this jar/exe (resource entry, or legacy NEOCAT01 footer).
+        val loadedProject: File? = (projectInput?.let { resolveProjectInput(File(it)) })
+            ?: loadEmbeddedProject()
 
         val config = Lwjgl3ApplicationConfiguration().apply {
             setTitle("NeoCatroid Desktop Player")
@@ -64,12 +69,26 @@ object DesktopStage {
     private fun resolveProjectInput(input: File): File? {
         return when {
             input.isDirectory -> input
-            input.isFile -> extractPayload(input.readBytes())
+            input.isFile -> java.io.FileInputStream(input).use { extractProjectFromStream(it) }
             else -> null
         }
     }
 
-    private fun loadEmbeddedPayload(): ByteArray? {
+    private fun loadEmbeddedProject(): File? {
+        // Primary: project injected INTO the jar/exe as a classpath resource, decrypted and
+        // unzipped by streaming (constant memory) so a huge project never has to fit in RAM.
+        try {
+            DesktopStage::class.java.getResourceAsStream("/$EMBEDDED_RESOURCE")?.use { stream ->
+                extractProjectFromStream(stream)?.let { return it }
+            }
+        } catch (_: Exception) {
+        }
+        // Fallback: legacy NEOCAT01 footer appended to the jar/exe (dontWrapJar=true builds).
+        val footer = loadFooterPayload() ?: return null
+        return java.io.ByteArrayInputStream(footer).use { extractProjectFromStream(it) }
+    }
+
+    private fun loadFooterPayload(): ByteArray? {
         val classPath = System.getProperty("java.class.path") ?: return null
         val source = classPath
             .split(File.pathSeparatorChar)
@@ -114,21 +133,107 @@ object DesktopStage {
         }
     }
 
-    private fun extractPayload(payload: ByteArray): File? {
-        val data = maybeDecrypt(payload)
+    // Streams a payload (from a resource / file / footer) into a temp project dir with
+    // constant memory. Detects the leading magic: NCPS = segmented AES-GCM (streamed),
+    // NCPP/NCPX = legacy single-GCM (small, buffered), otherwise a plain zip.
+    private fun extractProjectFromStream(rawInput: InputStream): File? {
         return try {
+            val input = java.io.BufferedInputStream(rawInput, 1 shl 16)
+            val magic = ByteArray(4)
+            if (!readFully(input, magic)) return null
+            val magicStr = String(magic, StandardCharsets.US_ASCII)
+            System.out.println("[NeoCatroid] payload magic = '$magicStr'")
             val tempDir = Files.createTempDirectory("neocatroid-player").toFile()
-            Runtime.getRuntime().addShutdownHook(Thread {
-                tempDir.deleteRecursively()
-            })
-            val destPath = tempDir.toPath().normalize()
-            val zis = java.util.zip.ZipInputStream(java.io.ByteArrayInputStream(data))
+            Runtime.getRuntime().addShutdownHook(Thread { tempDir.deleteRecursively() })
+            when (magicStr) {
+                CRYPTO_MAGIC_STREAM -> {
+                    val tempZip = File(tempDir, "_payload.zip")
+                    decryptNcpsStreamToFile(input, tempZip)
+                    System.out.println("[NeoCatroid] NCPS decrypted -> ${tempZip.length()} bytes; extracting zip...")
+                    java.io.FileInputStream(tempZip).use { extractZipStream(it, tempDir) }
+                    tempZip.delete()
+                }
+                CRYPTO_MAGIC, CRYPTO_MAGIC_LOCKED -> {
+                    val full = magic + input.readBytes()
+                    extractZipStream(java.io.ByteArrayInputStream(decryptPayload(full)), tempDir)
+                }
+                else -> extractZipStream(
+                    java.io.SequenceInputStream(java.io.ByteArrayInputStream(magic), input), tempDir)
+            }
+            System.out.println("[NeoCatroid] project extracted to ${tempDir.absolutePath}")
+            tempDir
+        } catch (e: Exception) {
+            System.err.println("[NeoCatroid] project load FAILED: $e")
+            e.printStackTrace()
+            null
+        }
+    }
+
+    // Decrypts a segmented NCPS stream (magic already consumed) to [dest] in constant memory.
+    // Layout after magic = salt(32) + ivPrefix(8) + repeated [len(4 BE)][ciphertext(len)].
+    // Segment i uses IV = ivPrefix(8) || counter i (4 BE).
+    private fun decryptNcpsStreamToFile(input: InputStream, dest: File) {
+        val salt = ByteArray(32)
+        if (!readFully(input, salt)) throw java.io.IOException("NCPS: truncated salt")
+        val ivPrefix = ByteArray(8)
+        if (!readFully(input, ivPrefix)) throw java.io.IOException("NCPS: truncated iv prefix")
+        val key = deriveKey(PAYLOAD_PASSWORD, salt)
+        val lenBytes = ByteArray(4)
+        var segmentIndex = 0
+        dest.outputStream().buffered().use { out ->
+            while (readFully(input, lenBytes)) {
+                val len = ((lenBytes[0].toInt() and 0xFF) shl 24) or
+                    ((lenBytes[1].toInt() and 0xFF) shl 16) or
+                    ((lenBytes[2].toInt() and 0xFF) shl 8) or
+                    (lenBytes[3].toInt() and 0xFF)
+                if (len <= 0 || len > 128 * 1024 * 1024) throw java.io.IOException("NCPS: bad segment length $len")
+                val ct = ByteArray(len)
+                if (!readFully(input, ct)) throw java.io.IOException("NCPS: truncated segment")
+                val iv = ByteArray(12)
+                System.arraycopy(ivPrefix, 0, iv, 0, 8)
+                iv[8] = (segmentIndex ushr 24).toByte()
+                iv[9] = (segmentIndex ushr 16).toByte()
+                iv[10] = (segmentIndex ushr 8).toByte()
+                iv[11] = segmentIndex.toByte()
+                val cipher = Cipher.getInstance("AES/GCM/NoPadding")
+                cipher.init(Cipher.DECRYPT_MODE, key, GCMParameterSpec(128, iv))
+                out.write(cipher.doFinal(ct))
+                segmentIndex++
+            }
+        }
+    }
+
+    // Extracts a zip [input] into [tempDir] with zip-slip protection, streaming per entry.
+    private fun extractZipStream(input: InputStream, tempDir: File) {
+        val destPath = tempDir.toPath().normalize()
+        java.util.zip.ZipInputStream(input).use { zis ->
             var entry = zis.nextEntry
             while (entry != null) {
-                val resolved = destPath.resolve(entry.name).normalize()
+                // Android allows scene/sprite names with characters Windows forbids in a
+                // path component: control chars (newline, CR, tab), the reserved set
+                // < > : " | ? * \, and trailing spaces/dots. Sanitize EACH path segment so
+                // Path.resolve never throws InvalidPathException and aborts the extract.
+                val safeName = entry.name.split('/').joinToString("/") { seg ->
+                    if (seg.isEmpty()) seg else {
+                        val cleaned = buildString(seg.length) {
+                            for (c in seg) append(
+                                if (c.code < 0x20 || c == '<' || c == '>' || c == ':' ||
+                                    c == '"' || c == '|' || c == '?' || c == '*' || c == '\\'
+                                ) '_' else c
+                            )
+                        }.trimEnd(' ', '.')
+                        // A non-empty segment that sanitized to "" (e.g. "...", "..", "   ")
+                        // would make resolve() yield "/" (drive root) or a parent; keep it in-bounds.
+                        if (cleaned.isEmpty()) "_" else cleaned
+                    }
+                }
+                val resolved = destPath.resolve(safeName).normalize()
                 if (resolved != destPath && !resolved.startsWith(destPath)) {
+                    // Skip (not abort): one odd/hostile entry must not fail the whole project load.
+                    System.err.println("[NeoCatroid] skipping unsafe zip entry: ${entry.name}")
                     zis.closeEntry()
-                    throw SecurityException("Zip entry '${entry.name}' escapes the target directory")
+                    entry = zis.nextEntry
+                    continue
                 }
                 val outFile = resolved.toFile()
                 if (entry.isDirectory) {
@@ -137,26 +242,26 @@ object DesktopStage {
                     outFile.parentFile?.mkdirs()
                     outFile.outputStream().use { fos -> zis.copyTo(fos) }
                 }
-                zis.closeEntry() // Redundant for directories (nextEntry skips them), but harmless
+                zis.closeEntry()
                 entry = zis.nextEntry
             }
-            zis.close()
-            tempDir
-        } catch (_: Exception) {
-            null
         }
     }
 
-    private fun maybeDecrypt(payload: ByteArray): ByteArray {
-        val magic = CRYPTO_MAGIC.toByteArray(StandardCharsets.US_ASCII)
-        val lockedMagic = CRYPTO_MAGIC_LOCKED.toByteArray(StandardCharsets.US_ASCII)
-        if (payload.size >= magic.size) {
-            val head = payload.copyOfRange(0, magic.size)
-            if (head.contentEquals(magic) || head.contentEquals(lockedMagic)) {
-                return decryptPayload(payload)
-            }
+    // Reads exactly buf.size bytes. true = filled; false = clean EOF before any byte;
+    // throws on a partial (truncated) read.
+    private fun readFully(input: InputStream, buf: ByteArray): Boolean {
+        var off = 0
+        while (off < buf.size) {
+            val n = input.read(buf, off, buf.size - off)
+            if (n < 0) break
+            off += n
         }
-        return payload
+        return when (off) {
+            buf.size -> true
+            0 -> false
+            else -> throw java.io.IOException("Truncated stream (expected ${buf.size}, got $off)")
+        }
     }
 
     private fun decryptPayload(data: ByteArray): ByteArray {

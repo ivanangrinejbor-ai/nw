@@ -1091,7 +1091,32 @@
 <string formatted="false" name="brick_assign_scripts_scene">in scene</string>
   <string formatted="false" name="brick_assign_scripts_replace_existing">Replace existing scripts?</string>
 <string formatted="false" name="brick_assign_scripts_save">Save scripts after exiting project?</string>
-<string formatted="false" name="current_scene">Current scene</string>
+<string name="brick_start_dialogue">Start dialogue</string>
+<string name="brick_dialogue_file">from file</string>
+<string name="brick_dialogue_file_hint">tap to choose .json file</string>
+<string name="brick_close_dialogue">Close dialogue</string>
+<string name="brick_jump_to_node">Jump to node</string>
+<string name="brick_dialogue_node_id">node ID</string>
+<string name="brick_dialogue_node_id_hint">enter node ID</string>
+<string name="brick_dialogue_running">Dialogue running?</string>
+<string name="brick_selected_choice">Selected choice</string>
+<string name="brick_current_speaker">Current speaker</string>
+<string name="brick_current_dialogue_text">Current dialogue text</string>
+<string name="brick_current_node_id">Current node ID</string>
+<string name="brick_dialogue_variable">to variable</string>
+<string name="dialogue_editor_title">Dialogue Editor</string>
+<string name="dialogue_editor_back">Back</string>
+<string name="dialogue_editor_undo">Undo</string>
+<string name="dialogue_editor_redo">Redo</string>
+<string name="dialogue_editor_add_node">Add node</string>
+<string name="dialogue_editor_save">Save</string>
+<string name="brick_localize_sprites">Localize sprites to</string>
+<string name="brick_localize_language">language</string>
+<string name="localize_progress_title">Localizing sprites...</string>
+<string name="localize_complete">Localization complete. %1$d/%2$d sprites processed.</string>
+<string name="localize_failures">%1$d sprite(s) failed.</string>
+<string name="localize_no_sprites">No sprites with text found.</string>
+<string name="current_scene">Current scene</string>
 <string formatted="false" name="scene_not_found">Scene not found: %1$s</string>
 <string formatted="false" name="unknown_blocks_detected_title">Unknown blocks detected</string>
 <string formatted="false" name="unknown_blocks_detected_message">Some blocks in this script are not supported by your version of Neocatroid.</string>
@@ -1323,6 +1348,7 @@
 <string name="brick_particle_rot_roll" formatted="false">Rotation Roll (Z)</string>
 <string name="category_file">Files</string>
 <string name="category_neoscript">NeoScript</string>
+<string name="category_dialogue">Dialogue</string>
 <string name="category_json">JSON</string>
 <string name="brick_json_parse">Parse JSON into</string>
 <string name="brick_json_value">JSON text</string>
@@ -1690,6 +1716,7 @@
 <string formatted="false" name="save_to_variable">store to variable</string>
 <string formatted="false" name="brick_create_textfield">Create TextField</string>
 <string formatted="false" name="project_file">project file</string>
+<string name="video_layer">layer (2=above all, 1=middle, 0=behind)</string>
 <string formatted="false" name="control_enabled">show controls</string>
 <string formatted="false" name="loop_enabled">loop video</string>
 <string formatted="false" name="position">position (x, y)</string>

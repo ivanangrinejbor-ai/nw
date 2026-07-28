@@ -2631,7 +2631,7 @@ public class ActionFactory extends Actions {
 
 	public Action videoAction(Sprite sprite, SequenceAction sequence,
 									  Formula name, Formula url, Formula x, Formula y, Formula width, Formula height,
-									  Formula loop, Formula control) {
+									  Formula loop, Formula control, Formula layer) {
 		CreateVideoAction action = action(CreateVideoAction.class);
 		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
 		action.setScope(scope);
@@ -2643,6 +2643,7 @@ public class ActionFactory extends Actions {
 		action.setHeight(height);
 		action.setLoop(loop);
 		action.setControls(control);
+		action.setLayer(layer);
 		return action;
 	}
 
@@ -5170,6 +5171,78 @@ public class ActionFactory extends Actions {
         action.setSceneName(sceneName);
         action.setReplaceExistingScripts(replaceExistingScripts);
         action.setSavePersistent(savePersistent);
+        return action;
+    }
+
+    public Action createStartDialogueAction(Sprite sprite, SequenceAction sequence, Formula filePath) {
+        StartDialogueAction action = action(StartDialogueAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setFilePath(filePath);
+        return action;
+    }
+
+    public Action createCloseDialogueAction(Sprite sprite, SequenceAction sequence) {
+        CloseDialogueAction action = action(CloseDialogueAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        return action;
+    }
+
+    public Action createJumpToNodeAction(Sprite sprite, SequenceAction sequence, Formula nodeId) {
+        JumpToNodeAction action = action(JumpToNodeAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setNodeId(nodeId);
+        return action;
+    }
+
+    public Action createDialogueRunningAction(Sprite sprite, SequenceAction sequence, Formula variableName) {
+        DialogueRunningAction action = action(DialogueRunningAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setVariableName(variableName);
+        return action;
+    }
+
+    public Action createSelectedChoiceAction(Sprite sprite, SequenceAction sequence, Formula variableName) {
+        SelectedChoiceAction action = action(SelectedChoiceAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setVariableName(variableName);
+        return action;
+    }
+
+    public Action createCurrentSpeakerAction(Sprite sprite, SequenceAction sequence, Formula variableName) {
+        CurrentSpeakerAction action = action(CurrentSpeakerAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setVariableName(variableName);
+        return action;
+    }
+
+    public Action createCurrentDialogueTextAction(Sprite sprite, SequenceAction sequence, Formula variableName) {
+        CurrentDialogueTextAction action = action(CurrentDialogueTextAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setVariableName(variableName);
+        return action;
+    }
+
+    public Action createCurrentNodeIDAction(Sprite sprite, SequenceAction sequence, Formula variableName) {
+        CurrentNodeIDAction action = action(CurrentNodeIDAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setVariableName(variableName);
+        return action;
+    }
+
+    public Action createLocalizeSpritesAction(Sprite sprite, SequenceAction sequence, Formula targetLanguage, Formula resultVariableName) {
+        LocalizeSpritesAction action = action(LocalizeSpritesAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setTargetLanguage(targetLanguage);
+        action.setResultVariableName(resultVariableName);
         return action;
     }
 
