@@ -1086,6 +1086,13 @@ public class ScriptFragment extends ListFragment implements
 	}
 
 	private void handleContextMenuItemClick(int itemId, Brick brick, int position) {
+		boolean isProtected = ProjectManager.getInstance().getCurrentProject().isProtectedProject();
+		if (isProtected && itemId != R.string.brick_context_dialog_help
+				&& itemId != R.string.brick_context_dialog_system_info
+				&& itemId != R.string.brick_context_dialog_highlight_brick_parts) {
+			ToastUtil.showError(getContext(), R.string.protected_project_cannot_edit);
+			return;
+		}
 		showUndo(false);
 		switch (itemId) {
 			case R.string.backpack_add:
@@ -1301,6 +1308,10 @@ public class ScriptFragment extends ListFragment implements
 
 	@Override
 	public boolean onBrickLongClick(Brick brick, int position) {
+		if (ProjectManager.getInstance().getCurrentProject().isProtectedProject()) {
+			ToastUtil.showError(getContext(), R.string.protected_project_cannot_edit);
+			return true;
+		}
 		showUndo(false);
 		// Маркеры веток else-if не перетаскиваются как обычные брики —
 		// порядок веток меняется через тап-меню (Сдвинуть ветку вверх/вниз)
@@ -1524,6 +1535,10 @@ public class ScriptFragment extends ListFragment implements
 	}
 
 	private void showDeleteAlert(List<Brick> selectedBricks) {
+		if (ProjectManager.getInstance().getCurrentProject().isProtectedProject()) {
+			ToastUtil.showError(getContext(), R.string.protected_project_cannot_edit);
+			return;
+		}
 		List<Brick> group = collectLockGroups(selectedBricks);
 		List<UserVariable> lockedVars = collectLockedVariables(selectedBricks);
 		if (isGroupLocked(group) || !lockedVars.isEmpty()) {

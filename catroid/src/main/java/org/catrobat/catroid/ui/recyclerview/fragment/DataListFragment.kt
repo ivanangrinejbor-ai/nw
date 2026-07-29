@@ -586,6 +586,10 @@ class DataListFragment : Fragment(),
     }
 
     private fun showDeleteAlert(selectedItems: List<UserData<*>>) {
+        if (ProjectManager.getInstance().currentProject.isProtectedProject) {
+            ToastUtil.showError(requireContext(), R.string.protected_project_cannot_edit)
+            return
+        }
         val lockedVars = selectedItems.filterIsInstance<UserVariable>().filter { it.isLocked }
         if (lockedVars.isNotEmpty()) {
             LockUtils.requestPassword(requireContext(), R.string.variable_locked_enter_password) { pw ->
@@ -660,6 +664,10 @@ class DataListFragment : Fragment(),
     }
 
     private fun showRenameDialog(selectedItems: List<UserData<*>>) {
+        if (ProjectManager.getInstance().currentProject.isProtectedProject) {
+            ToastUtil.showError(requireContext(), R.string.protected_project_cannot_edit)
+            return
+        }
         val item = selectedItems[0]
 
         fun doRename() {
@@ -690,6 +698,10 @@ class DataListFragment : Fragment(),
     }
 
     private fun showEditDialog(selectedItems: List<UserData<*>>) {
+        if (ProjectManager.getInstance().currentProject.isProtectedProject) {
+            ToastUtil.showError(requireContext(), R.string.protected_project_cannot_edit)
+            return
+        }
         val item = selectedItems[0]
 
         fun doEdit() {

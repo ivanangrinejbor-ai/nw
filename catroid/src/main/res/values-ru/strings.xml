@@ -760,7 +760,17 @@
     <string name="scene_transition_start">При запуске</string>
     <string name="scene_transition_exit">При выходе</string>
     <string name="export_with_password">Экспорт с паролем</string>
+    <string name="export_protected_project">Экспорт как защищённый проект</string>
+    <string name="export_compressed_light">Экспорт с лёгким сжатием</string>
+    <string name="export_compressed_hard">Экспорт с жёстким сжатием</string>
+    <string name="export_compressed_light_progress">Очистка проекта…</string>
+    <string name="export_compressed_hard_progress">Конвертация ассетов…</string>
+    <string name="export_image_format">Формат изображений</string>
+    <string name="export_audio_format">Формат звуков</string>
+    <string name="export_keep_original">Оставить оригинал</string>
     <string name="export_bake">Запечь проект</string>
+    <string name="protected_project_imported">Этот проект защищён. Редактирование отключено.</string>
+    <string name="protected_project_cannot_edit">Нельзя редактировать защищённый проект</string>
     <string name="export_as_apk">Экспортировать как APK</string>
     <string name="export_as_exe">Экспортировать как EXE</string>
     <string name="export_as_apk_v2">Экспортировать как APK v2</string>
@@ -3353,6 +3363,15 @@
     <string formatted="false" name="brick_change_size_by">Изменить размер на</string>
     <string formatted="false" name="brick_hide">Скрыть</string>
     <string formatted="false" name="brick_show">Показать</string>
+    <string formatted="false" name="brick_set_size_for_all">Задать всем размер</string>
+    <string formatted="false" name="brick_set_transparency_for_all">Задать всем прозрачность</string>
+    <string formatted="false" name="brick_set_brightness_for_all">Задать всем яркость</string>
+    <string formatted="false" name="brick_set_color_for_all">Задать всем цвет</string>
+    <string formatted="false" name="brick_set_x_for_all">Задать всем X</string>
+    <string formatted="false" name="brick_set_y_for_all">Задать всем Y</string>
+    <string formatted="false" name="brick_point_in_direction_for_all">Направить всех в</string>
+    <string formatted="false" name="brick_show_all">Показать все объекты</string>
+    <string formatted="false" name="brick_hide_all">Скрыть все объекты</string>
     <string formatted="false" name="brick_set_transparency">"Задать прозрачность "</string>
     <string formatted="false" name="brick_change_ghost_effect">"Изменить прозрачность "</string>
     <string formatted="false" name="brick_set_brightness">"Задать яркость "</string>

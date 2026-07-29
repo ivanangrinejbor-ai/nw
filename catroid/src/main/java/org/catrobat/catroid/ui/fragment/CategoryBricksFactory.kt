@@ -514,6 +514,15 @@ import org.catrobat.catroid.content.bricks.SetShaderUniformVec3Brick
 import org.catrobat.catroid.content.bricks.SetShadowQualityBrick
 import org.catrobat.catroid.content.bricks.SetShadowsBrick
 import org.catrobat.catroid.content.bricks.SetSizeToBrick
+import org.catrobat.catroid.content.bricks.SetSizeForAllBrick
+import org.catrobat.catroid.content.bricks.SetTransparencyForAllBrick
+import org.catrobat.catroid.content.bricks.SetBrightnessForAllBrick
+import org.catrobat.catroid.content.bricks.SetColorForAllBrick
+import org.catrobat.catroid.content.bricks.SetXForAllBrick
+import org.catrobat.catroid.content.bricks.SetYForAllBrick
+import org.catrobat.catroid.content.bricks.PointInDirectionForAllBrick
+import org.catrobat.catroid.content.bricks.ShowAllBrick
+import org.catrobat.catroid.content.bricks.HideAllBrick
 import org.catrobat.catroid.content.bricks.SetSkyColorBrick
 import org.catrobat.catroid.content.bricks.SetSkyboxBrick
 import org.catrobat.catroid.content.bricks.SetSoundInstancePitchBrick
@@ -1585,6 +1594,15 @@ open class CategoryBricksFactory {
                 looksBrickList.add(ChangeSizeByNBrick(BrickValues.CHANGE_SIZE_BY))
                 looksBrickList.add(HideBrick())
                 looksBrickList.add(ShowBrick())
+                looksBrickList.add(SetSizeForAllBrick(BrickValues.SET_SIZE_TO))
+                looksBrickList.add(SetTransparencyForAllBrick(BrickValues.SET_TRANSPARENCY))
+                looksBrickList.add(SetBrightnessForAllBrick(BrickValues.SET_BRIGHTNESS_TO))
+                looksBrickList.add(SetColorForAllBrick(BrickValues.SET_COLOR_TO))
+                looksBrickList.add(SetXForAllBrick(Formula(BrickValues.X_POSITION)))
+                looksBrickList.add(SetYForAllBrick(Formula(BrickValues.Y_POSITION)))
+                looksBrickList.add(PointInDirectionForAllBrick(BrickValues.POINT_IN_DIRECTION))
+                looksBrickList.add(ShowAllBrick())
+                looksBrickList.add(HideAllBrick())
                 looksBrickList.add(AskBrick(context.getString(R.string.brick_ask_default_question)))
                 looksBrickList.add(BigAskBrick(context.getString(R.string.brick_ask_default_question), "Введите ответ:", "OK", "Отмена", "Ваш ответ"))
                 if (!isBackgroundSprite) {
@@ -1717,6 +1735,15 @@ open class CategoryBricksFactory {
         looksBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_looks_visibility), template))
         looksBrickList.add(ShowBrick())
         looksBrickList.add(HideBrick())
+        looksBrickList.add(SetSizeForAllBrick(BrickValues.SET_SIZE_TO))
+        looksBrickList.add(SetTransparencyForAllBrick(BrickValues.SET_TRANSPARENCY))
+        looksBrickList.add(SetBrightnessForAllBrick(BrickValues.SET_BRIGHTNESS_TO))
+        looksBrickList.add(SetColorForAllBrick(BrickValues.SET_COLOR_TO))
+        looksBrickList.add(SetXForAllBrick(Formula(BrickValues.X_POSITION)))
+        looksBrickList.add(SetYForAllBrick(Formula(BrickValues.Y_POSITION)))
+        looksBrickList.add(PointInDirectionForAllBrick(BrickValues.POINT_IN_DIRECTION))
+        looksBrickList.add(ShowAllBrick())
+        looksBrickList.add(HideAllBrick())
         looksBrickList.add(SetSizeToBrick(BrickValues.SET_SIZE_TO))
         looksBrickList.add(ChangeSizeByNBrick(BrickValues.CHANGE_SIZE_BY))
         looksBrickList.add(SetWidthBrick(BrickValues.SET_SIZE_TO))

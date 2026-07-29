@@ -31,6 +31,7 @@ class DesktopStageListener(private val projectDir: File? = null) : ApplicationAd
     private lateinit var input: DesktopInput
     private lateinit var cameraState: DesktopCameraState
     private var lastFrameNanos: Long = 0L
+    private var lastAppliedFps: Int = 60
 
     private var penFbo: FrameBuffer? = null
     private var penFboSprite: com.badlogic.gdx.graphics.g2d.Sprite? = null
@@ -39,6 +40,60 @@ class DesktopStageListener(private val projectDir: File? = null) : ApplicationAd
     private var VIRTUAL_WIDTH: Float = 1280f
     private var VIRTUAL_HEIGHT: Float = 720f
     private var frameCount: Int = 0
+
+    // Cyrillic-capable text: the default libGDX BitmapFont only has ASCII glyphs, so Russian text
+    // (variable overlays, say/think bubbles, HUD) rendered as boxes. We rasterise strings with an
+    // AWT system font (SansSerif -> Segoe UI/Arial on Windows has full Cyrillic) into cached GL
+    // textures and draw those instead. Cache is bounded + LRU-evicted.
+    private val awtFont = java.awt.Font(java.awt.Font.SANS_SERIF, java.awt.Font.PLAIN, 22)
+    private val textTextureCache = LinkedHashMap<String, Texture>()
+
+    private fun renderTextToTexture(text: String): Texture {
+        val probe = java.awt.image.BufferedImage(1, 1, java.awt.image.BufferedImage.TYPE_INT_ARGB)
+        val g0 = probe.createGraphics()
+        g0.font = awtFont
+        val fm = g0.fontMetrics
+        val w = maxOf(1, fm.stringWidth(text))
+        val h = maxOf(1, fm.height)
+        val ascent = fm.ascent
+        g0.dispose()
+        val img = java.awt.image.BufferedImage(w, h, java.awt.image.BufferedImage.TYPE_INT_ARGB)
+        val g = img.createGraphics()
+        g.setRenderingHint(java.awt.RenderingHints.KEY_TEXT_ANTIALIASING, java.awt.RenderingHints.VALUE_TEXT_ANTIALIAS_ON)
+        g.font = awtFont
+        g.color = java.awt.Color.WHITE
+        g.drawString(text, 0, ascent)
+        g.dispose()
+        val pixmap = Pixmap(w, h, Pixmap.Format.RGBA8888)
+        for (py in 0 until h) {
+            for (px in 0 until w) {
+                val argb = img.getRGB(px, py)
+                val a = ((argb ushr 24) and 0xff) / 255f
+                val r = ((argb ushr 16) and 0xff) / 255f
+                val gg = ((argb ushr 8) and 0xff) / 255f
+                val b = (argb and 0xff) / 255f
+                pixmap.setColor(r, gg, b, a)
+                pixmap.drawPixel(px, py)
+            }
+        }
+        val tex = Texture(pixmap)
+        pixmap.dispose()
+        return tex
+    }
+
+    private fun drawText(batch: SpriteBatch, text: String, x: Float, y: Float) {
+        if (text.isEmpty()) return
+        val tex = textTextureCache.getOrPut(text) { renderTextToTexture(text) }
+        if (textTextureCache.size > 256) {
+            val it = textTextureCache.entries.iterator()
+            if (it.hasNext()) { val e = it.next(); e.value.dispose(); it.remove() }
+        }
+        val prev = batch.color.cpy()
+        batch.setColor(1f, 1f, 1f, 1f)
+        // libGDX font.draw is top-anchored at y; our texture is drawn from its bottom-left, so shift down.
+        batch.draw(tex, x, y - tex.height, tex.width.toFloat(), tex.height.toFloat())
+        batch.color = prev
+    }
 
     override fun create() {
         Gdx.app.log(TAG, "DesktopStageListener created")
@@ -120,6 +175,21 @@ class DesktopStageListener(private val projectDir: File? = null) : ApplicationAd
         if (cameraState.rotation != 0f) {
             camera.rotate(com.badlogic.gdx.math.Vector3(0f, 0f, 1f), cameraState.rotation)
         }
+        // Screen shake (ShakeScreenBrick): jitter the camera within [-intensity, intensity] while
+        // the timer runs, then reset. Intensity is in stage units.
+        if (cameraState.shakeDuration > 0f) {
+            val i = cameraState.shakeIntensity
+            camera.position.add(
+                (Math.random().toFloat() - 0.5f) * 2f * i,
+                (Math.random().toFloat() - 0.5f) * 2f * i,
+                0f
+            )
+            cameraState.shakeDuration -= Gdx.graphics.deltaTime
+            if (cameraState.shakeDuration <= 0f) {
+                cameraState.shakeDuration = 0f
+                cameraState.shakeIntensity = 0f
+            }
+        }
         camera.update()
         viewport.apply()
         batch.projectionMatrix = camera.combined
@@ -196,9 +266,13 @@ class DesktopStageListener(private val projectDir: File? = null) : ApplicationAd
                                 }
                             }
                             is PenDrawCommand.DrawText -> {
-                                font.draw(batch, cmd.text, cmd.x, cmd.y)
+                                drawText(batch, cmd.text, cmd.x, cmd.y)
                             }
-                            else -> { }
+                            else -> {
+                                batch.end()
+                                drawPenCommand(cmd)
+                                batch.begin()
+                            }
                         }
                     }
                 }
@@ -210,11 +284,11 @@ class DesktopStageListener(private val projectDir: File? = null) : ApplicationAd
                     val sx = VIRTUAL_WIDTH_F / 2f + overlay.x
                     val sy = VIRTUAL_HEIGHT_F / 2f + overlay.y
                     val prefix = if (overlay.isThink) "🤔 " else "💬 "
-                    font.draw(batch, "$prefix${overlay.text}", sx, sy)
+                    drawText(batch, "$prefix${overlay.text}", sx, sy)
                 }
 
                 // FPS counter in the top-left corner (project/sprites HUD label removed).
-                font.draw(batch, "FPS: ${Gdx.graphics.framesPerSecond}", 20f, VIRTUAL_HEIGHT - 10f)
+                drawText(batch, "FPS: ${Gdx.graphics.framesPerSecond}", 20f, VIRTUAL_HEIGHT - 10f)
                 batch.end()
             } catch (e: Exception) {
                 Gdx.app.error("Render", "Exception during render", e)
@@ -223,14 +297,16 @@ class DesktopStageListener(private val projectDir: File? = null) : ApplicationAd
             }
         } else {
             batch.begin()
-            font.draw(batch, "NeoCatroid Desktop Player (LWJGL3)", 32f, VIRTUAL_HEIGHT - 48f)
-            font.draw(batch, "No project loaded. Pass project path as argument.", 32f, VIRTUAL_HEIGHT - 84f)
-            font.draw(batch, "FPS: ${Gdx.graphics.framesPerSecond}", 20f, 32f)
+            drawText(batch, "NeoCatroid Desktop Player (LWJGL3)", 32f, VIRTUAL_HEIGHT - 48f)
+            drawText(batch, "No project loaded. Pass project path as argument.", 32f, VIRTUAL_HEIGHT - 84f)
+            drawText(batch, "FPS: ${Gdx.graphics.framesPerSecond}", 20f, 32f)
             batch.end()
         }
 
         val requestedFps = scriptEngine.getTargetFps()
-        if (requestedFps > 0 && requestedFps != 60) {
+        if (requestedFps > 0 && requestedFps != lastAppliedFps) {
+            Gdx.graphics.setForegroundFPS(requestedFps)
+            lastAppliedFps = requestedFps
         }
         lastFrameNanos = System.nanoTime()
     }

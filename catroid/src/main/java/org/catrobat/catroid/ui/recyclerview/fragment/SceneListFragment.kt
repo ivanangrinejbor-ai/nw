@@ -160,6 +160,10 @@ class SceneListFragment : RecyclerViewFragment<Scene?>(),
     override fun getDeleteAlertTitleId() = R.plurals.delete_scenes
 
     override fun deleteItems(selectedItems: List<Scene?>) {
+        if (org.catrobat.catroid.ProjectManager.getInstance().currentProject.isProtectedProject) {
+            ToastUtil.showError(requireContext(), R.string.protected_project_cannot_edit)
+            return
+        }
         val locked = selectedItems.filterNotNull().flatMap { LockUtils.getLockedBricks(it) }
         val lockedVars = selectedItems.filterNotNull().flatMap { LockUtils.getLockedVariables(it) }
         val globalLockedVars = LockUtils.getLockedGlobalVariables(

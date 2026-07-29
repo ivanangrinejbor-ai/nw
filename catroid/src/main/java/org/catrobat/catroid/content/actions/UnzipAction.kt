@@ -17,7 +17,16 @@ open class UnzipAction : TemporalAction() {
     var scope: Scope? = null
     var name: Formula? = null
 
+    private var started = false
+
+    override fun restart() {
+        super.restart()
+        started = false
+    }
+
     override fun update(percent: Float) {
+        if (started) return
+        started = true
         val fileName: String
         try {
             fileName = name?.interpretString(scope) ?: ""
@@ -29,13 +38,16 @@ open class UnzipAction : TemporalAction() {
         val zipName = sanitizeZipName(fileName)
         if (zipName.isEmpty()) return
 
-        val dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-        val file = File(dir, zipName)
-        if (file.exists()) {
-            unzip(file.absolutePath, dir.absolutePath)
-        } else {
-            Log.e("UnzipAction", "File does not exist: $zipName")
-        }
+        // Offload blocking disk I/O off the render thread to avoid frame freeze / ANR.
+        Thread({
+            val dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+            val file = File(dir, zipName)
+            if (file.exists()) {
+                unzip(file.absolutePath, dir.absolutePath)
+            } else {
+                Log.e("UnzipAction", "File does not exist: $zipName")
+            }
+        }, "UnzipAction-io").start()
     }
 
     private fun sanitizeZipName(input: String): String {

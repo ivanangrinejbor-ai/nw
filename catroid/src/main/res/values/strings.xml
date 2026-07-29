@@ -737,7 +737,17 @@
     <string name="scene_transition_start">On start</string>
     <string name="scene_transition_exit">On leave</string>
     <string name="export_with_password">Export with password</string>
+    <string name="export_protected_project">Export as protected project</string>
+    <string name="export_compressed_light">Export with light compression</string>
+    <string name="export_compressed_hard">Export with hard compression</string>
+    <string name="export_compressed_light_progress">Cleaning up project…</string>
+    <string name="export_compressed_hard_progress">Converting assets…</string>
+    <string name="export_image_format">Image format</string>
+    <string name="export_audio_format">Audio format</string>
+    <string name="export_keep_original">Keep original</string>
     <string name="export_bake">Bake project</string>
+    <string name="protected_project_imported">This project is protected. Editing is disabled.</string>
+    <string name="protected_project_cannot_edit">Cannot edit protected project</string>
     <string name="export_as_apk">Export as APK</string>
     <string name="export_as_exe">Export as EXE (2D only)</string>
     <string name="export_as_apk_v2">Export as APK v2</string>
@@ -2638,6 +2648,15 @@
 <string formatted="false" name="brick_change_size_by">Change size by</string>
 <string formatted="false" name="brick_hide">Hide</string>
 <string formatted="false" name="brick_show">Show</string>
+<string formatted="false" name="brick_set_size_for_all">Set size for all to</string>
+<string formatted="false" name="brick_set_transparency_for_all">Set transparency for all to</string>
+<string formatted="false" name="brick_set_brightness_for_all">Set brightness for all to</string>
+<string formatted="false" name="brick_set_color_for_all">Set color for all to</string>
+<string formatted="false" name="brick_set_x_for_all">Set X for all to</string>
+<string formatted="false" name="brick_set_y_for_all">Set Y for all to</string>
+<string formatted="false" name="brick_point_in_direction_for_all">Point all in direction</string>
+<string formatted="false" name="brick_show_all">Show all objects</string>
+<string formatted="false" name="brick_hide_all">Hide all objects</string>
 <string formatted="false" name="brick_set_transparency">"Set transparency"</string>
 <string formatted="false" name="brick_change_ghost_effect">"Change transparency"</string>
 <string formatted="false" name="brick_set_brightness">"Set brightness"</string>

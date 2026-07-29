@@ -37,7 +37,7 @@ public class ExecuteForCloneNumberAction extends Action {
             }
             try {
                 targetCloneIndex = cloneNumberFormula.interpretInteger(scope);
-                if (scope.getSprite().cloneIndex != targetCloneIndex) {
+                if (scope.getSprite() == null || scope.getSprite().cloneIndex != targetCloneIndex) {
                     // This clone doesn't match the target number, skip execution permanently
                     targetCloneIndex = -1;
                     return true;

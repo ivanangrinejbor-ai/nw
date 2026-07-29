@@ -210,8 +210,10 @@ class ProjectOptionsFragment : Fragment() {
                 getString(R.string.export_bake),
                 getString(R.string.export_project),
                 getString(R.string.export_with_password),
-                getString(R.string.export_as_exe),
-                getString(R.string.export_as_apk_v3)
+                getString(R.string.export_as_apk_v3),
+                getString(R.string.export_protected_project),
+                getString(R.string.export_compressed_light),
+                getString(R.string.export_compressed_hard)
             )
             androidx.appcompat.app.AlertDialog.Builder(requireContext())
                 .setTitle(R.string.export_project)
@@ -220,15 +222,10 @@ class ProjectOptionsFragment : Fragment() {
                         0 -> runExportWalkthrough { exportBakedProject() }
                         1 -> runExportWalkthrough { exportProject() }
                         2 -> runExportWalkthrough { exportWithPassword() }
-                        3 -> {
-                            android.widget.Toast.makeText(
-                                requireContext(),
-                                getString(R.string.export_exe_2d_only_warning),
-                                android.widget.Toast.LENGTH_LONG
-                            ).show()
-                            runExportWalkthrough { buildExe() }
-                        }
-                        4 -> buildApkV3()
+                        3 -> buildApkV3()
+                        4 -> runExportWalkthrough { exportProtectedProject() }
+                        5 -> runExportWalkthrough { exportCompressedLight() }
+                        6 -> showHardCompressionDialog()
                     }
                 }
                 .show()
@@ -1266,12 +1263,185 @@ class ProjectOptionsFragment : Fragment() {
         }
     }
 
+    private var isProtectedExport = false
+
     private fun exportProject() {
         saveProject()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             exportUsingSystemFilePicker()
         } else {
             exportToExternalMemory()
+        }
+    }
+
+    private fun exportProtectedProject() {
+        isProtectedExport = true
+        saveProject()
+        project?.xmlHeader?.setProtectedProject(true)
+        project?.let { ProjectSaver(it, requireContext()).saveProjectAsync({}) }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            exportUsingSystemFilePicker()
+        } else {
+            exportToExternalMemory()
+        }
+    }
+
+    private fun resetProtectedFlag() {
+        if (isProtectedExport) {
+            project?.xmlHeader?.setProtectedProject(false)
+            project?.let { ProjectSaver(it, requireContext()).saveProjectAsync({}) }
+            isProtectedExport = false
+        }
+    }
+
+    private fun exportCompressedLight() {
+        saveProject()
+        project ?: return
+        showProgressDialog(getString(R.string.export_compressed_light_progress))
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val proj = project!!
+                val tempDir = File(requireContext().cacheDir, "compress_light_temp")
+                tempDir.deleteRecursively()
+                tempDir.mkdirs()
+
+                val projectDir = proj.directory
+                org.catrobat.catroid.io.AssetConverter.cleanupProjectDir(projectDir)
+
+                val zipFile = File(requireContext().cacheDir, proj.name + Constants.CATROBAT_EXTENSION)
+                org.catrobat.catroid.io.ZipArchiver().zip(zipFile, projectDir.listFiles() ?: emptyArray())
+
+                val destFile = File(Constants.DOWNLOAD_DIRECTORY, proj.name + Constants.CATROBAT_EXTENSION)
+                Constants.DOWNLOAD_DIRECTORY.mkdirs()
+                zipFile.copyTo(destFile, overwrite = true)
+                zipFile.delete()
+                tempDir.deleteRecursively()
+
+                activity?.runOnUiThread {
+                    hideProgressDialog()
+                    showToast(getString(R.string.export_project) + " ✓")
+                }
+            } catch (e: Exception) {
+                activity?.runOnUiThread {
+                    hideProgressDialog()
+                    ToastUtil.showError(context, "Export failed: ${e.message}")
+                }
+            }
+        }
+    }
+
+    private fun showHardCompressionDialog() {
+        val layout = android.widget.LinearLayout(requireContext()).apply {
+            orientation = android.widget.LinearLayout.VERTICAL
+            setPadding(60, 20, 60, 0)
+        }
+
+        val imageLabel = android.widget.TextView(requireContext()).apply {
+            text = getString(R.string.export_image_format)
+            textSize = 16f
+            setPadding(0, 16, 0, 8)
+        }
+        val imageGroup = android.widget.RadioGroup(requireContext())
+        val imageKeep = android.widget.RadioButton(requireContext()).apply { text = getString(R.string.export_keep_original); id = 0 }
+        val imageWebpLossy = android.widget.RadioButton(requireContext()).apply { text = "WebP (80%)"; id = 1 }
+        val imageWebpLossless = android.widget.RadioButton(requireContext()).apply { text = "WebP (100%)"; id = 2 }
+        imageGroup.addView(imageKeep)
+        imageGroup.addView(imageWebpLossy)
+        imageGroup.addView(imageWebpLossless)
+        imageGroup.check(1)
+
+        val audioLabel = android.widget.TextView(requireContext()).apply {
+            text = getString(R.string.export_audio_format)
+            textSize = 16f
+            setPadding(0, 24, 0, 8)
+        }
+        val audioGroup = android.widget.RadioGroup(requireContext())
+        val audioKeep = android.widget.RadioButton(requireContext()).apply { text = getString(R.string.export_keep_original); id = 0 }
+        val audio96 = android.widget.RadioButton(requireContext()).apply { text = "M4A 96kbps"; id = 1 }
+        val audio128 = android.widget.RadioButton(requireContext()).apply { text = "M4A 128kbps"; id = 2 }
+        val audio192 = android.widget.RadioButton(requireContext()).apply { text = "M4A 192kbps"; id = 3 }
+        val audio256 = android.widget.RadioButton(requireContext()).apply { text = "M4A 256kbps"; id = 4 }
+        audioGroup.addView(audioKeep)
+        audioGroup.addView(audio96)
+        audioGroup.addView(audio128)
+        audioGroup.addView(audio192)
+        audioGroup.addView(audio256)
+        audioGroup.check(2)
+
+        layout.addView(imageLabel)
+        layout.addView(imageGroup)
+        layout.addView(audioLabel)
+        layout.addView(audioGroup)
+
+        androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setTitle(R.string.export_compressed_hard)
+            .setView(layout)
+            .setPositiveButton(R.string.ok) { _, _ ->
+                val imageFormat = when (imageGroup.checkedRadioButtonId) {
+                    1 -> org.catrobat.catroid.io.AssetConverter.ImageFormat.WEBP_LOSSY
+                    2 -> org.catrobat.catroid.io.AssetConverter.ImageFormat.WEBP_LOSSLESS
+                    else -> org.catrobat.catroid.io.AssetConverter.ImageFormat.KEEP
+                }
+                val audioFormat = when (audioGroup.checkedRadioButtonId) {
+                    1 -> org.catrobat.catroid.io.AssetConverter.AudioFormat.M4A_96
+                    2 -> org.catrobat.catroid.io.AssetConverter.AudioFormat.M4A_128
+                    3 -> org.catrobat.catroid.io.AssetConverter.AudioFormat.M4A_192
+                    4 -> org.catrobat.catroid.io.AssetConverter.AudioFormat.M4A_256
+                    else -> org.catrobat.catroid.io.AssetConverter.AudioFormat.KEEP
+                }
+                exportCompressedHard(imageFormat, audioFormat)
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
+    }
+
+    private fun exportCompressedHard(
+        imageFormat: org.catrobat.catroid.io.AssetConverter.ImageFormat,
+        audioFormat: org.catrobat.catroid.io.AssetConverter.AudioFormat
+    ) {
+        saveProject()
+        project ?: return
+        showProgressDialog(getString(R.string.export_compressed_hard_progress))
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val proj = project!!
+                val tempDir = File(requireContext().cacheDir, "compress_hard_temp")
+                tempDir.deleteRecursively()
+                tempDir.mkdirs()
+
+                val projectDir = proj.directory
+                org.catrobat.catroid.io.AssetConverter.cleanupProjectDir(projectDir)
+
+                val result = org.catrobat.catroid.io.AssetConverter.convertProjectAssets(
+                    projectDir, imageFormat, audioFormat
+                )
+
+                org.catrobat.catroid.io.AssetConverter.updateCodeXmlReferences(
+                    projectDir, imageFormat, audioFormat
+                )
+
+                val zipFile = File(requireContext().cacheDir, proj.name + Constants.CATROBAT_EXTENSION)
+                org.catrobat.catroid.io.ZipArchiver().zip(zipFile, projectDir.listFiles() ?: emptyArray())
+
+                val destFile = File(Constants.DOWNLOAD_DIRECTORY, proj.name + Constants.CATROBAT_EXTENSION)
+                Constants.DOWNLOAD_DIRECTORY.mkdirs()
+                zipFile.copyTo(destFile, overwrite = true)
+                zipFile.delete()
+                tempDir.deleteRecursively()
+
+                val savedMB = result.savedBytes / (1024 * 1024)
+                val msg = "✓ ${result.convertedImages} images, ${result.convertedSounds} sounds converted. Saved ${savedMB}MB"
+
+                activity?.runOnUiThread {
+                    hideProgressDialog()
+                    showToast(msg)
+                }
+            } catch (e: Exception) {
+                activity?.runOnUiThread {
+                    hideProgressDialog()
+                    ToastUtil.showError(context, "Export failed: ${e.message}")
+                }
+            }
         }
     }
 
@@ -2027,11 +2197,16 @@ class ProjectOptionsFragment : Fragment() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        data ?: return
-        if (requestCode == REQUEST_EXPORT_PROJECT && resultCode == Activity.RESULT_OK) {
-            val projectDestination = data.data ?: return
-            startAsyncProjectExport(projectDestination)
+        if (requestCode == REQUEST_EXPORT_PROJECT) {
+            if (resultCode == Activity.RESULT_OK) {
+                val projectDestination = data?.data ?: run { resetProtectedFlag(); return }
+                startAsyncProjectExport(projectDestination)
+            } else {
+                resetProtectedFlag()
+            }
+            return
         }
+        data ?: return
         if (requestCode == REQUEST_EXPORT_ENCRYPTED && resultCode == Activity.RESULT_OK) {
             val uri = data.data ?: return
             encFileToSave?.let { saveEncryptedFileToUri(it, uri) }
@@ -2102,8 +2277,15 @@ class ProjectOptionsFragment : Fragment() {
                     projectDestination,
                     it.name
                 )
-            ProjectExportTask(it.directory, projectDestination, notificationData, requireContext())
-                .execute()
+            val task = ProjectExportTask(it.directory, projectDestination, notificationData, requireContext())
+            if (isProtectedExport) {
+                task.registerCallback(object : ProjectExportTask.ProjectExportCallback {
+                    override fun onProjectExportFinished() {
+                        activity?.runOnUiThread { resetProtectedFlag() }
+                    }
+                })
+            }
+            task.execute()
         }
     }
 

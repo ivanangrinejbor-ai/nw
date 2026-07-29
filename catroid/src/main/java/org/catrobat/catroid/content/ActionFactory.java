@@ -1397,9 +1397,14 @@ public class ActionFactory extends Actions {
 		return action;
 	}
 
+	private Sprite currentBackgroundSpriteOrNull() {
+		Scene scene = ProjectManager.getInstance().getCurrentlyPlayingScene();
+		return scene != null ? scene.getBackgroundSprite() : null;
+	}
+
 	public Action createSetBackgroundAction(LookData lookData, boolean wait) {
 		SetLookAction action = Actions.action(SetLookAction.class);
-		action.setSprite(ProjectManager.getInstance().getCurrentlyPlayingScene().getBackgroundSprite());
+		action.setSprite(currentBackgroundSpriteOrNull());
 		action.setLookData(lookData);
 		action.setWait(wait);
 		return action;
@@ -1408,7 +1413,7 @@ public class ActionFactory extends Actions {
 	public Action createSetBackgroundByIndexAction(Sprite sprite, SequenceAction sequence,
 			Formula formula, boolean wait) {
 		SetLookByIndexAction action = Actions.action(SetLookByIndexAction.class);
-		action.setSprite(ProjectManager.getInstance().getCurrentlyPlayingScene().getBackgroundSprite());
+		action.setSprite(currentBackgroundSpriteOrNull());
 		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
 		action.setScope(scope);
 		action.setFormula(formula);
@@ -1444,6 +1449,53 @@ public class ActionFactory extends Actions {
 		action.setScope(scope);
 		action.setSize(size);
 		return action;
+	}
+
+	// --- "For all objects" bricks: apply one property to EVERY sprite (incl. clones). ---
+	private Action forAllObjects(Sprite sprite, SequenceAction sequence,
+			ForAllObjectsAction.Property property, Formula value) {
+		ForAllObjectsAction action = Actions.action(ForAllObjectsAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setProperty(property);
+		action.setValue(value);
+		return action;
+	}
+
+	public Action createSetSizeForAllAction(Sprite sprite, SequenceAction sequence, Formula value) {
+		return forAllObjects(sprite, sequence, ForAllObjectsAction.Property.SIZE, value);
+	}
+
+	public Action createSetTransparencyForAllAction(Sprite sprite, SequenceAction sequence, Formula value) {
+		return forAllObjects(sprite, sequence, ForAllObjectsAction.Property.TRANSPARENCY, value);
+	}
+
+	public Action createSetBrightnessForAllAction(Sprite sprite, SequenceAction sequence, Formula value) {
+		return forAllObjects(sprite, sequence, ForAllObjectsAction.Property.BRIGHTNESS, value);
+	}
+
+	public Action createSetColorForAllAction(Sprite sprite, SequenceAction sequence, Formula value) {
+		return forAllObjects(sprite, sequence, ForAllObjectsAction.Property.COLOR, value);
+	}
+
+	public Action createSetXForAllAction(Sprite sprite, SequenceAction sequence, Formula value) {
+		return forAllObjects(sprite, sequence, ForAllObjectsAction.Property.X, value);
+	}
+
+	public Action createSetYForAllAction(Sprite sprite, SequenceAction sequence, Formula value) {
+		return forAllObjects(sprite, sequence, ForAllObjectsAction.Property.Y, value);
+	}
+
+	public Action createPointInDirectionForAllAction(Sprite sprite, SequenceAction sequence, Formula value) {
+		return forAllObjects(sprite, sequence, ForAllObjectsAction.Property.DIRECTION, value);
+	}
+
+	public Action createShowAllAction(Sprite sprite, SequenceAction sequence) {
+		return forAllObjects(sprite, sequence, ForAllObjectsAction.Property.SHOW, null);
+	}
+
+	public Action createHideAllAction(Sprite sprite, SequenceAction sequence) {
+		return forAllObjects(sprite, sequence, ForAllObjectsAction.Property.HIDE, null);
 	}
 
 	public Action createSetWidthAction(Sprite sprite, SequenceAction sequence, Formula size) {
@@ -1559,7 +1611,7 @@ public class ActionFactory extends Actions {
 		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
 		action.setSpeechSynthesizer(new SpeechSynthesizer(scope, text));
 		action.setMobileServiceAvailability(get(MobileServiceAvailability.class));
-		action.setContext(StageActivity.activeStageActivity.get());
+		action.setContext(StageActivity.activeStageActivity != null ? StageActivity.activeStageActivity.get() : null);
 
 		return action;
 	}
@@ -1569,7 +1621,7 @@ public class ActionFactory extends Actions {
 		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
 		action.setSpeechSynthesizer(new SpeechSynthesizer(scope, text));
 		action.setMobileServiceAvailability(get(MobileServiceAvailability.class));
-		action.setContext(StageActivity.activeStageActivity.get());
+		action.setContext(StageActivity.activeStageActivity != null ? StageActivity.activeStageActivity.get() : null);
 		return action;
 	}
 
@@ -3245,7 +3297,7 @@ public class ActionFactory extends Actions {
 		FadeParticleEffectAction action = action(FadeParticleEffectAction.class);
 		action.setFadeIn(turnOn);
 		action.setSprite(sprite);
-		action.setBackgroundSprite(ProjectManager.getInstance().getCurrentlyPlayingScene().getBackgroundSprite());
+		action.setBackgroundSprite(currentBackgroundSpriteOrNull());
 		return action;
 	}
 

@@ -854,8 +854,10 @@ public class StageListener implements ApplicationListener {
 			if (!isGlobal) {
 				sprite.resetSprite();
 			}
-			sprite.look.setRenderingContext(this.camera, this.viewPort, this.uiStage);
-			stage.addActor(sprite.look);
+			if (sprite.look != null) {
+				sprite.look.setRenderingContext(this.camera, this.viewPort, this.uiStage);
+				stage.addActor(sprite.look);
+			}
 		}
 
 		// Глобальные объекты рисуются поверх объектов сцены (HUD-слой)

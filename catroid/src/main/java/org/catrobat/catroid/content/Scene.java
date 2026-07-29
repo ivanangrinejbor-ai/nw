@@ -301,9 +301,9 @@ public class Scene implements Nameable, Serializable {
 	}
 
 	public void removeSpriteFromCloneBricks(Sprite spriteToDelete) {
-		for (Sprite currentSprite : spriteList) {
+		for (Sprite currentSprite : new ArrayList<>(spriteList)) {
 			if (!currentSprite.equals(spriteToDelete)) {
-				for (Script currentScript : currentSprite.getScriptList()) {
+				for (Script currentScript : new ArrayList<>(currentSprite.getScriptList())) {
 					List<Brick> flatList = new ArrayList();
 					currentScript.addToFlatList(flatList);
 					for (Brick currentBrick : flatList) {
@@ -328,8 +328,8 @@ public class Scene implements Nameable, Serializable {
 
 	public Set<String> getBroadcastMessagesInUse() {
 		Set<String> messagesInUse = new LinkedHashSet<>();
-		for (Sprite currentSprite : spriteList) {
-			for (Script currentScript : currentSprite.getScriptList()) {
+		for (Sprite currentSprite : new ArrayList<>(spriteList)) {
+			for (Script currentScript : new ArrayList<>(currentSprite.getScriptList())) {
 				if (currentScript instanceof BroadcastScript) {
 					messagesInUse.add(((BroadcastScript) currentScript).getBroadcastMessage());
 				}
@@ -346,8 +346,8 @@ public class Scene implements Nameable, Serializable {
 	}
 
 	public void editBroadcastMessagesInUse(String oldMessage, String newMessage) {
-		for (Sprite currentSprite : spriteList) {
-			for (Script currentScript : currentSprite.getScriptList()) {
+		for (Sprite currentSprite : new ArrayList<>(spriteList)) {
+			for (Script currentScript : new ArrayList<>(currentSprite.getScriptList())) {
 				if (currentScript instanceof BroadcastScript) {
 					BroadcastScript broadcastScript = (BroadcastScript) currentScript;
 					if (broadcastScript.getBroadcastMessage().equals(oldMessage)) {

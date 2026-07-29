@@ -653,6 +653,10 @@ public class Project implements Serializable {
 		return xmlHeader.isCastProject();
 	}
 
+	public boolean isProtectedProject() {
+		return xmlHeader.isProtectedProject();
+	}
+
 	public BroadcastMessageContainer getBroadcastMessageContainer() {
 		return broadcastMessageContainer;
 	}

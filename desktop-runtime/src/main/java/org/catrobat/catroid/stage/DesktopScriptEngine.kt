@@ -44,6 +44,7 @@ class DesktopScriptEngine(
             "RepeatBrick",
             "CountLoopBrick",
             "RepeatUntilBrick",
+            "RepeatWhileBrick",
             "ForVariableFromToBrick",
             "ScheduleBrick",
             "ExecuteForCloneNumberBrick",
@@ -205,6 +206,10 @@ class DesktopScriptEngine(
         val frames = mutableListOf(Frame(originalBlocks, repeatRemaining = 0))
         val isDone: Boolean get() = frames.isEmpty()
         var eventFired: Boolean = false
+        // Set by cleanFinishedFrames when a repeat/forever loop wraps back to its start. The runner
+        // then yields ONE frame per loop iteration (Catroid "loop with screen refresh"), so visual
+        // loops such as a transparency fade play gradually instead of finishing in a single frame.
+        var yieldedOnLoop: Boolean = false
         val currentFrame: Frame? get() = frames.lastOrNull()
         val isWaiting: Boolean get() = frames.any { it.waitTimer > 0f }
         val hasGlide: Boolean get() = frames.any { it.glideState != null && it.waitTimer <= 0f }
@@ -219,6 +224,7 @@ class DesktopScriptEngine(
                 if (top.ip < top.blocks.size) return true
                 if (top.repeatRemaining == -1) {
                     top.ip = 0
+                    yieldedOnLoop = true
                     return true
                 }
                 if (top.repeatRemaining > 1) {
@@ -226,6 +232,7 @@ class DesktopScriptEngine(
                     top.ip = 0
                     top.loopCounter++
                     bindLoopVar(top)
+                    yieldedOnLoop = true
                     return true
                 }
                 if (top.repeatRemaining == -2) {
@@ -254,13 +261,17 @@ class DesktopScriptEngine(
             frames.clear()
             frames.add(Frame(originalBlocks, repeatRemaining = 0))
             eventFired = false
+            yieldedOnLoop = false
         }
     }
     private val scriptStates = mutableListOf<ScriptState>()
-    private var buttonTranspDeltaLogged = false
     private var dbgBrickLog = 0
     private var dbgScriptLog = 0
     private var transpFormulaDumped = false
+    private var firebaseIdDumped = false
+    private var varNameDumped = 0
+    private val varLastLogged = HashMap<String, String>()
+    private val setExecSeen = HashSet<String>()
     private val variables = mutableMapOf<String, Any>()
     private val userLists = mutableMapOf<String, MutableList<Any>>()
     private val procedures = mutableMapOf<String, ProcedureDef>()
@@ -360,6 +371,17 @@ class DesktopScriptEngine(
                             abs(input.fingerX - sprite.x) <= hw && abs(input.fingerY - sprite.y) <= hh
                         Gdx.app.log("ClickDiag", "click finger=(${input.fingerX},${input.fingerY}) '${sprite.name}'=(${sprite.x},${sprite.y}) hw=$hw hh=$hh lookW=${sprite.lookWidth} lookH=${sprite.lookHeight} -> hit=$hit")
                         if (hit) {
+                            state.eventFired = true
+                        }
+                    }
+                }
+                "sprite_released" -> {
+                    // "When [sprite] is released": fire when the mouse button is released over this sprite.
+                    if (input.isMouseJustReleased) {
+                        val hw = (sprite.lookWidth * sprite.size / 100f) / 2f
+                        val hh = (sprite.lookHeight * sprite.size / 100f) / 2f
+                        if (hw > 0f && hh > 0f &&
+                            abs(input.fingerX - sprite.x) <= hw && abs(input.fingerY - sprite.y) <= hh) {
                             state.eventFired = true
                         }
                     }
@@ -511,14 +533,16 @@ class DesktopScriptEngine(
             val anyReceiverStillRunning = scriptStates.any { state ->
                 state.eventType == "broadcast_receiver" &&
                 state.eventParam == msg &&
+                state.eventFired &&
                 !state.isDone
             }
             if (!anyReceiverStillRunning) {
                 for (sender in senders) {
-                    val rootFrame = sender.frames.firstOrNull()
-                    if (rootFrame != null) {
-                        rootFrame.ip++
-                    }
+                    // Advance the frame parked on the broadcast_wait block — the sender's CURRENT
+                    // (innermost) frame. Incrementing the ROOT frame was wrong: a wait inside an
+                    // If/loop branch never advanced, so the blocks after it (e.g. Start Scene)
+                    // never ran and the script hung forever.
+                    sender.frames.lastOrNull()?.let { it.ip++ }
                 }
                 completed.add(msg)
             }
@@ -586,6 +610,10 @@ class DesktopScriptEngine(
             MidiServiceHolder.midiService?.setVolume(vol)
         }
         if (elOut >= fadeOutDur) {
+            // Fade-out finished: restore master volume, otherwise it stays at 0 and every
+            // subsequent sound (incl. the next scene's audio) is permanently silenced.
+            AudioServiceHolder.audioService?.setVolume(1f)
+            MidiServiceHolder.midiService?.setVolume(1f)
             variables.remove("__fade_out_dur")
             variables.remove("__fade_out_elapsed")
             variables.remove("__fade_out_vol")
@@ -622,6 +650,7 @@ class DesktopScriptEngine(
     }
     private fun executeStateMultiBlock(state: ScriptState, delta: Float) {
         activeState = state
+        state.yieldedOnLoop = false
         val startTime = System.nanoTime()
         var blocksExecuted = 0
         while (blocksExecuted < MAX_BLOCKS_PER_FRAME) {
@@ -629,6 +658,9 @@ class DesktopScriptEngine(
                 if (System.nanoTime() - startTime > SCRIPT_TIME_BUDGET_NS) break
             }
             if (!state.cleanFinishedFrames()) break
+            // One loop iteration per frame: when a repeat/forever just wrapped, stop here so the
+            // body runs once per rendered frame (gradual fades), matching Android's loop refresh.
+            if (state.yieldedOnLoop) { state.yieldedOnLoop = false; break }
             val frame = state.currentFrame ?: break
             val sprite = project.sprites.getOrNull(state.spriteIndex) ?: break
             if (frame.ip >= frame.blocks.size) break
@@ -733,6 +765,23 @@ class DesktopScriptEngine(
                     frame.ip++
                 }
             }
+            "repeat_while" -> {
+                // Loop while condition is truthy (re-checked each iteration via the -2 frame).
+                val condRf = block.args.getOrNull(1) as? RuntimeFormula
+                val cond = if (condRf != null) evaluateBrickFieldFormula(sprite, state, condRf) ?: 0f
+                    else (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
+                if (cond == 0f) {
+                    frame.ip++
+                } else {
+                    state.frames.add(Frame(block.children, repeatRemaining = -2))
+                }
+            }
+            "wait_while" -> {
+                val cond = evalBlockArgFloat(block, 1, sprite, state) ?: 0f
+                if (cond == 0f) {
+                    frame.ip++
+                }
+            }
             "execute_for_clone_number" -> {
                 val targetNum = evalBlockArgFloat(block, 1, sprite, state)?.toInt() ?: 0
                 if (sprite?.cloneIndex == targetNum) {
@@ -763,9 +812,25 @@ class DesktopScriptEngine(
             }
             "broadcast_wait" -> {
                 val msg = block.args.getOrNull(1) as? String ?: ""
-                deliverBroadcast(msg)
                 val list = pendingBroadcastWaits.getOrPut(msg) { mutableListOf() }
-                if (!list.contains(state)) list.add(state)
+                if (!list.contains(state)) {
+                    // Deliver only on the FIRST execution. While the sender is parked on this block
+                    // waiting for receivers, re-executing must not re-fire the broadcast (that kept
+                    // re-triggering the receiver's fade forever).
+                    deliverBroadcast(msg)
+                    list.add(state)
+                }
+            }
+            "broadcast_params" -> {
+                val msg = block.args.getOrNull(1) as? String ?: ""
+                val data = block.args.getOrNull(2) as? String ?: ""
+                if (msg.isNotEmpty()) {
+                    // Expose the param so receivers can read it, then fire the broadcast.
+                    variables["__broadcast_param_$msg"] = data
+                    variables["__broadcast_param"] = data
+                    deliverBroadcast(msg)
+                }
+                frame.ip++
             }
             "clone" -> {
                 val srcSprite = project.sprites.getOrNull(state.spriteIndex)
@@ -930,13 +995,24 @@ class DesktopScriptEngine(
                 // code treated the name as a projectDir subfolder + reparse, which was broken:
                 // there is ONE code.xml with nested <scene> elements, not a code.xml per scene.
                 val sceneName = block.args.getOrNull(1) as? String ?: ""
+                Gdx.app.log("TapDiag", "scene block '${block.args.getOrNull(0)}' target='$sceneName' (sprite '${sprite.name}')")
                 if (sceneName.isNotEmpty()) switchToScene(sceneName)
             }
             "slide_scene", "fade_scene" -> {
                 // arg1 = direction/mode (transition style; not animated in the desktop runtime),
                 // arg2 = target scene name.
                 val sceneName = block.args.getOrNull(2) as? String ?: ""
+                Gdx.app.log("TapDiag", "slide/fade scene target='$sceneName' (sprite '${sprite.name}')")
                 if (sceneName.isNotEmpty()) switchToScene(sceneName)
+            }
+            "scene_back" -> {
+                // Return to the previous scene on the back-stack (SceneBackBrick).
+                val prev = sceneHistory.removeLastOrNull()
+                frame.ip++
+                if (prev != null && prev.isNotEmpty()) {
+                    switchToScene(prev, pushHistory = false)
+                    activeState?.frames?.clear()
+                }
             }
             "run_shell" -> {
                 val code = block.args.getOrNull(1) as? String ?: ""
@@ -1388,7 +1464,7 @@ class DesktopScriptEngine(
                 frame.ip++
             }
             "finish_stage", "exit_stage" -> {
-                // TODO: call Gdx.app.exit() to close the Desktop window when this block is reached
+                com.badlogic.gdx.Gdx.app.exit()
                 frame.ip = frame.blocks.size
             }
         }
@@ -1396,7 +1472,20 @@ class DesktopScriptEngine(
     private fun executeEvent(block: Block, frame: Frame) {
         when (block.args.getOrNull(0) as? String) {
             "broadcast_msg" -> {
+                val msg = block.args.getOrNull(1) as? String ?: ""
+                if (msg.isNotEmpty()) deliverBroadcast(msg)
                 frame.ip++
+            }
+            "scene_start" -> {
+                // SceneStartBrick: switch to the named scene (mirrors Android startScene). This was
+                // missing here (fell through to a no-op), so a tap handler that ended in Start Scene
+                // faded out but never advanced. Stop the current (old-scene) script after switching.
+                val sceneName = block.args.getOrNull(1) as? String ?: ""
+                frame.ip++
+                if (sceneName.isNotEmpty()) {
+                    switchToScene(sceneName)
+                    activeState?.frames?.clear()
+                }
             }
             "green_flag" -> {
                 frame.ip++
@@ -1455,10 +1544,6 @@ class DesktopScriptEngine(
             "set_transparency" -> sprite.transparency = ((block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f).coerceIn(0f, 100f)
             "change_transparency" -> {
                 val d = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
-                if (!buttonTranspDeltaLogged && sprite.name.contains("продол", true)) {
-                    buttonTranspDeltaLogged = true
-                    Gdx.app.log("FadeDiag", "change_transparency '${sprite.name}' by=$d (before=${sprite.transparency})")
-                }
                 sprite.transparency = (sprite.transparency + d).coerceIn(0f, 100f)
             }
             "set_brightness" -> sprite.brightness = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 100f
@@ -1540,11 +1625,6 @@ class DesktopScriptEngine(
             "change_width" -> sprite.width += (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
             "set_height" -> sprite.height = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 100f
             "change_height" -> sprite.height += (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
-            "set_volume" -> {
-                val vol = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 1f
-                AudioServiceHolder.audioService?.setVolume(vol)
-                MidiServiceHolder.midiService?.setVolume(vol)
-            }
             "think_bubble" -> {
                 val text = block.args.getOrNull(1) as? String ?: ""
                 val name = "think_${sprite.name}"
@@ -1724,8 +1804,8 @@ class DesktopScriptEngine(
             "ask" -> {
                 val question = block.args.getOrNull(1) as? String ?: ""
                 val varName = block.args.getOrNull(2) as? String ?: ""
-                if (question.isNotEmpty() && varName.isNotEmpty()) {
-                    val answer = javax.swing.JOptionPane.showInputDialog(null, question, "Catroid Ask", javax.swing.JOptionPane.QUESTION_MESSAGE)
+                if (varName.isNotEmpty()) {
+                    val answer = showInputOnTop(question.ifEmpty { "?" }, "Catroid Ask")
                     variables[varName] = answer ?: ""
                 }
             }
@@ -1784,8 +1864,8 @@ class DesktopScriptEngine(
             "ask_speech" -> {
                 val prompt = block.args.getOrNull(1) as? String ?: ""
                 val varName = block.args.getOrNull(2) as? String ?: ""
-                if (prompt.isNotEmpty() && varName.isNotEmpty()) {
-                    val answer = javax.swing.JOptionPane.showInputDialog(null, prompt, "Speech Input", javax.swing.JOptionPane.QUESTION_MESSAGE)
+                if (varName.isNotEmpty()) {
+                    val answer = showInputOnTop(prompt.ifEmpty { "?" }, "Speech Input")
                     variables[varName] = answer ?: ""
                 }
             }
@@ -2090,7 +2170,16 @@ class DesktopScriptEngine(
                 sprite.y += (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
                 body?.setTransform(sprite.x, sprite.y, body.angle)
             }
-            "set_direction" -> sprite.direction = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 90f
+            "set_direction" -> {
+                sprite.direction = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 90f
+                val angleRad = Math.toRadians((90.0 - sprite.direction).toDouble()).toFloat()
+                body?.setTransform(body?.position?.x ?: sprite.x, body?.position?.y ?: sprite.y, angleRad)
+            }
+            "stop_movement" -> {
+                body?.setLinearVelocity(0f, 0f)
+                body?.angularVelocity = 0f
+            }
+            "continue_movement" -> { }
             "glide" -> {
                 val targetX = (block.args.getOrNull(1) as? Number)?.toFloat() ?: sprite.x
                 val targetY = (block.args.getOrNull(2) as? Number)?.toFloat() ?: sprite.y
@@ -2366,6 +2455,35 @@ class DesktopScriptEngine(
                 val linear = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
                 val angular = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
                 physicsWorld?.setDamping(sprite, linear, angular)
+            }
+            "apply_force_at_point" -> {
+                val fx = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
+                val fy = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
+                val px = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 0f
+                val py = (block.args.getOrNull(4) as? Number)?.toFloat() ?: 0f
+                physicsWorld?.getBody(sprite)?.applyForce(fx, fy, px, py, true)
+            }
+            "set_angular_velocity" -> {
+                physicsWorld?.getBody(sprite)?.angularVelocity = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
+            }
+            "set_gravity_scale" -> {
+                physicsWorld?.getBody(sprite)?.gravityScale = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 1f
+            }
+            "set_linear_damping" -> {
+                physicsWorld?.getBody(sprite)?.linearDamping = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
+            }
+            "set_angular_damping" -> {
+                physicsWorld?.getBody(sprite)?.angularDamping = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
+            }
+            "set_fixed_rotation" -> {
+                physicsWorld?.getBody(sprite)?.isFixedRotation = ((block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f) != 0f
+            }
+            "set_bullet_flag" -> {
+                physicsWorld?.getBody(sprite)?.isBullet = ((block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f) != 0f
+            }
+            "set_physics_sensor" -> {
+                val on = ((block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f) != 0f
+                physicsWorld?.getBody(sprite)?.fixtureList?.forEach { it.isSensor = on }
             }
             "set_physics_type" -> {
                 val type = (block.args.getOrNull(1) as? Number)?.toInt() ?: 0
@@ -2877,6 +2995,10 @@ class DesktopScriptEngine(
                 cameraState.shakeIntensity = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
                 cameraState.shakeDuration = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 0f
             }
+            "shake_screen" -> {
+                cameraState.shakeIntensity = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
+                cameraState.shakeDuration = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
+            }
             "camera_touch_control" -> {
                 cameraState.touchControlEnabled = ((block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f) != 0f
             }
@@ -2940,6 +3062,20 @@ class DesktopScriptEngine(
             "stop_all_sounds" -> {
                 AudioServiceHolder.audioService?.stopAllSounds()
             }
+            "resume_sound" -> {
+                AudioServiceHolder.audioService?.resume()
+            }
+            "pause_sound" -> {
+                AudioServiceHolder.audioService?.pause()
+            }
+            "play_sound_speed" -> {
+                val path = resolveSoundPath(block.args.getOrNull(1) as? String ?: "")
+                val speed = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 1f
+                if (path.isNotEmpty()) {
+                    AudioServiceHolder.audioService?.setPitch(speed)
+                    AudioServiceHolder.audioService?.playSoundFile(path, sprite.name)
+                }
+            }
             "sound_file" -> { }
             "sound_files" -> { }
             "set_volume" -> {
@@ -2949,8 +3085,8 @@ class DesktopScriptEngine(
             }
             "change_volume" -> {
                 val delta = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
-                val current = AudioServiceHolder.audioService?.getVolume() ?: 1f
-                val newVol = (current + delta).coerceIn(0f, 1f)
+                val current = AudioServiceHolder.audioService?.getVolume() ?: 100f
+                val newVol = (current + delta).coerceIn(0f, 100f)
                 AudioServiceHolder.audioService?.setVolume(newVol)
                 MidiServiceHolder.midiService?.setVolume(newVol)
             }
@@ -2995,9 +3131,9 @@ class DesktopScriptEngine(
                 }
             }
             "set_global_volume" -> {
-                val vol = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 1f
-                AudioServiceHolder.audioService?.setVolume(vol.coerceIn(0f, 1f))
-                MidiServiceHolder.midiService?.setVolume(vol.coerceIn(0f, 1f))
+                val vol = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 100f
+                AudioServiceHolder.audioService?.setVolume(vol.coerceIn(0f, 100f))
+                MidiServiceHolder.midiService?.setVolume(vol.coerceIn(0f, 100f))
             }
             "set_pan" -> {
                 val pan = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
@@ -3221,6 +3357,7 @@ class DesktopScriptEngine(
             "set" -> {
                 val name = block.args.getOrNull(1) as? String ?: ""
                 val arg = block.args.getOrNull(2)
+                if (setExecSeen.add(name)) Gdx.app.log("VarDiag", "SET-EXEC name='$name' argType=${arg?.javaClass?.simpleName} sprite='${sprite.name}'")
                 if (name.isNotEmpty()) {
                     val value = when (arg) {
                         is RuntimeFormula -> evaluateBrickFieldFormulaAsObject(sprite, state, arg)
@@ -3228,6 +3365,8 @@ class DesktopScriptEngine(
                         else -> 0.0
                     }
                     variables[name] = value
+                    val vs = value.toString()
+                    if (varLastLogged[name] != vs) { varLastLogged[name] = vs; Gdx.app.log("VarDiag", "SET '$name' = '${vs.take(80)}'") }
                 }
             }
             "change" -> {
@@ -3531,8 +3670,8 @@ class DesktopScriptEngine(
                 localDb.remove(tname)
             }
             "db_delete_base" -> {
-                val id = block.args.getOrNull(1) as? String ?: ""
-                val key = block.args.getOrNull(2) as? String ?: ""
+                val id = resolveDbArg(block.args.getOrNull(1), sprite, state)
+                val key = resolveDbArg(block.args.getOrNull(2), sprite, state)
                 val resp = firebaseRequest("DELETE", firebaseUrl(id, key))
                 if (resp == null) baseStore.remove("$id:$key")
             }
@@ -3566,10 +3705,20 @@ class DesktopScriptEngine(
                 variables["__table_alpha"] = alpha.toDouble()
             }
             "db_read_base" -> {
-                val id = block.args.getOrNull(1) as? String ?: ""
-                val key = block.args.getOrNull(2) as? String ?: ""
+                val idArg = block.args.getOrNull(1)
+                val keyArg = block.args.getOrNull(2)
+                if (!firebaseIdDumped) {
+                    firebaseIdDumped = true
+                    val idTree = (idArg as? RuntimeFormula)?.let { dumpFormulaNode(it.formulaElement, 0) } ?: "const='$idArg'"
+                    val keyTree = (keyArg as? RuntimeFormula)?.let { dumpFormulaNode(it.formulaElement, 0) } ?: "const='$keyArg'"
+                    Gdx.app.log("FirebaseDiag", "ID formula=$idTree  KEY formula=$keyTree")
+                }
+                val id = resolveDbArg(idArg, sprite, state)
+                val key = resolveDbArg(keyArg, sprite, state)
                 val name = block.args.getOrNull(3) as? String ?: ""
-                val resp = firebaseRequest("GET", firebaseUrl(id, key))
+                val url = firebaseUrl(id, key)
+                val resp = firebaseRequest("GET", url)
+                Gdx.app.log("FirebaseDiag", "READ id='$id' key='$key' url='$url' -> resp=${resp?.take(160)} (var='$name')")
                 if (name.isNotEmpty()) {
                     variables[name] = if (resp != null) stripJsonString(resp) else (baseStore["$id:$key"] ?: "")
                 }
@@ -3593,10 +3742,12 @@ class DesktopScriptEngine(
                 if (name.isNotEmpty()) variables[name] = v
             }
             "db_write_base" -> {
-                val id = block.args.getOrNull(1) as? String ?: ""
-                val key = block.args.getOrNull(2) as? String ?: ""
-                val value = block.args.getOrNull(3) as? String ?: ""
-                val resp = firebaseRequest("PUT", firebaseUrl(id, key), jsonString(value))
+                val id = resolveDbArg(block.args.getOrNull(1), sprite, state)
+                val key = resolveDbArg(block.args.getOrNull(2), sprite, state)
+                val value = resolveDbArg(block.args.getOrNull(3), sprite, state)
+                val url = firebaseUrl(id, key)
+                val resp = firebaseRequest("PUT", url, jsonString(value))
+                Gdx.app.log("FirebaseDiag", "WRITE id='$id' key='$key' url='$url' value='${value.take(80)}' -> resp=${resp?.take(120)}")
                 if (resp == null) baseStore["$id:$key"] = value
             }
             "firebase_upload" -> {
@@ -3755,6 +3906,22 @@ class DesktopScriptEngine(
     }
     private fun executeWeb(block: Block, frame: Frame) {
         when (block.args.getOrNull(0) as? String) {
+            "open_url" -> {
+                val url = block.args.getOrNull(1) as? String ?: ""
+                if (url.isNotEmpty()) {
+                    try {
+                        val u = if (url.startsWith("http")) url else "https://$url"
+                        java.awt.Desktop.getDesktop().browse(java.net.URI(u))
+                    } catch (_: Exception) { }
+                }
+            }
+            "share" -> {
+                val text = block.args.getOrNull(1) as? String ?: ""
+                try {
+                    val sel = java.awt.datatransfer.StringSelection(text)
+                    java.awt.Toolkit.getDefaultToolkit().systemClipboard.setContents(sel, sel)
+                } catch (_: Exception) { }
+            }
             "http_get" -> {
                 val url = block.args.getOrNull(1) as? String ?: ""
                 val resultVar = block.args.getOrNull(2) as? String ?: ""
@@ -4118,6 +4285,11 @@ class DesktopScriptEngine(
     }
     private fun executeData(block: Block, frame: Frame) {
         when (block.args.getOrNull(0) as? String) {
+            "json_parse" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                val json = block.args.getOrNull(2) as? String ?: ""
+                if (name.isNotEmpty()) variables[name] = json
+            }
             "write_variable" -> {
                 val name = block.args.getOrNull(1) as? String ?: ""
                 if (name.isNotEmpty()) {
@@ -4273,9 +4445,11 @@ class DesktopScriptEngine(
                     }
                 }
                 "read_from_files" -> {
-                    val path = resolveSoundPath(block.args.getOrNull(1) as? String ?: "")
+                    val rawPath = block.args.getOrNull(1) as? String ?: ""
+                    val path = resolveSoundPath(rawPath)
                     val varName = block.args.getOrNull(2) as? String ?: ""
                     val f = java.io.File(path)
+                    Gdx.app.log("FileDiag", "read_from_files raw='$rawPath' resolved='$path' exists=${f.exists()} var='$varName'")
                     if (f.exists() && varName.isNotEmpty()) {
                         val content = f.readText()
                         variables[varName] = content
@@ -4555,11 +4729,24 @@ class DesktopScriptEngine(
             }
         }
     }
+    // Format a formula result the way Catroid does: whole-number doubles WITHOUT a trailing ".0"
+    // (so join("users/", 5) becomes "users/5", not "users/5.0" — critical for Firebase keys/URLs).
+    private fun formulaToString(v: Any?): String = when (v) {
+        null -> ""
+        is Double -> if (v.isFinite() && v == Math.floor(v) && Math.abs(v) < 1e15) v.toLong().toString() else v.toString()
+        is Float -> formulaToString(v.toDouble())
+        else -> v.toString()
+    }
+    private fun resolveDbArg(arg: Any?, sprite: DesktopSprite, state: ScriptState): String = when (arg) {
+        is RuntimeFormula -> evaluateBrickFieldFormulaString(sprite, state, arg) ?: ""
+        is String -> arg
+        else -> arg?.toString() ?: ""
+    }
     private fun evaluateBrickFieldFormulaString(sprite: DesktopSprite, state: ScriptState, rf: RuntimeFormula): String? {
         val spriteIndex = state.spriteIndex
         val result = evalCompiledFormula(rf.compiled, spriteIndex)
             ?: evaluateFormulaNode(rf.formulaElement, spriteIndex)
-        return result?.toString()
+        return result?.let { formulaToString(it) }
     }
     private fun evaluateBrickFieldFormulaAsObject(sprite: DesktopSprite, state: ScriptState, rf: RuntimeFormula): Any {
         val spriteIndex = state.spriteIndex
@@ -4612,8 +4799,8 @@ class DesktopScriptEngine(
     private fun evalCompiledFunction(func: String, leftVal: Any?, rightVal: Any?, additionalVals: List<Any?>, spriteIndex: Int): Any? {
         val a = (leftVal as? Double) ?: 0.0
         val b = (rightVal as? Double) ?: 0.0
-        val aStr = leftVal?.toString() ?: ""
-        val bStr = rightVal?.toString() ?: ""
+        val aStr = formulaToString(leftVal)
+        val bStr = formulaToString(rightVal)
         fun findSprite(name: String) = project.sprites.find { it.name == name }
         return when (func) {
             "SIN" -> sin(Math.toRadians(a))
@@ -4640,7 +4827,7 @@ class DesktopScriptEngine(
             "EXP" -> exp(a)
             "JOIN" -> aStr + bStr
             "JOIN3" -> {
-                val parts = additionalVals.map { it?.toString() ?: "" }
+                val parts = additionalVals.map { formulaToString(it) }
                 aStr + bStr + parts.joinToString("")
             }
             "LENGTH" -> aStr.length.toDouble()
@@ -4768,9 +4955,11 @@ class DesktopScriptEngine(
      * StartScript / "when scene starts" scripts fire. Project-global variables persist (shared
      * [variables] map is untouched).
      */
-    private fun switchToScene(sceneName: String) {
+    private val sceneHistory = mutableListOf<String>()
+    private fun switchToScene(sceneName: String, pushHistory: Boolean = true) {
         val target = sceneName.trim()
         if (target.isEmpty() || target == project.activeSceneName) return
+        val previousScene = project.activeSceneName
         // Unknown scene name -> no-op (matches Android getSceneByName == null). Without this,
         // SceneSelector would fall back to the first scene and wrongly "transition" there.
         if (project.sceneNames.isNotEmpty() && !project.sceneNames.contains(target)) {
@@ -4781,6 +4970,7 @@ class DesktopScriptEngine(
             Gdx.app.error("DesktopScriptEngine", "switchToScene: scene '$target' not found")
             return
         }
+        if (pushHistory && !previousScene.isNullOrEmpty()) sceneHistory.add(previousScene)
         // Android startScene stops the leaving scene's sounds (GlobalManager.stopSounds).
         AudioServiceHolder.audioService?.stopAllSounds()
         MidiServiceHolder.midiService?.stopAllSounds()
@@ -4809,7 +4999,8 @@ class DesktopScriptEngine(
             "WhenMouseButtonClickedScript" -> "mouse_clicked"
             "WhenMouseWheelScrolledScript" -> "mouse_wheel"
             "WhenGamepadButtonScript" -> "gamepad_button"
-            "BroadcastScript" -> "broadcast_receiver"
+            "BroadcastScript", "BroadcastWithParamsReceiverScript" -> "broadcast_receiver"
+            "WhenSpriteReleasedScript" -> "sprite_released"
             "SceneStartScript" -> "scene_start"
             "ScenePreloadedScript" -> "scene_preloaded"
             "WhenProjectExitsScript" -> "project_exits"
@@ -4901,6 +5092,7 @@ class DesktopScriptEngine(
                         eventParam2 = extractTextContent(scriptEl, "buttonCode")
                     } else if (eventType == "broadcast_receiver") {
                         eventParam2 = extractMessageText(scriptEl, "receivedMessage")
+                            ?: extractFormulaString(scriptEl, "VALUE_1")
                     } else if (eventType == "scene_start") {
                         eventParam2 = extractTextContent(scriptEl, "sceneToStart")
                     }
@@ -5008,6 +5200,15 @@ class DesktopScriptEngine(
                     allRuntimeFormulas.addAll(rf)
                     val condRf = if (condFe != null) RuntimeFormula("REPEAT_UNTIL_CONDITION", condFe) else null
                     result.add(Block(Block.Type.CONTROL, listOf("repeat_until", condRf ?: 0f), children))
+                    idx = containerEnd(el, idx + 1)
+                }
+                "RepeatWhileBrick" -> {
+                    // Loop WHILE the condition holds (inverse of repeat_until). Uses REPEAT_UNTIL_CONDITION field.
+                    val condFe = getFormulaElement(el, "REPEAT_UNTIL_CONDITION")
+                    val (children, rf) = parseContainerChildren(el, idx + 1)
+                    allRuntimeFormulas.addAll(rf)
+                    val condRf = if (condFe != null) RuntimeFormula("REPEAT_UNTIL_CONDITION", condFe) else null
+                    result.add(Block(Block.Type.CONTROL, listOf("repeat_while", condRf ?: 0f), children))
                     idx = containerEnd(el, idx + 1)
                 }
                 "ForVariableFromToBrick" -> {
@@ -5151,21 +5352,37 @@ class DesktopScriptEngine(
                 "IfLogicBeginBrick" -> {
                     val condRf = getRuntimeFormula(el, "IF_CONDITION")
                     val condVal = extractFormulaValue(el, "IF_CONDITION") ?: 0f
-                    val (thenChildren, rf) = parseBrickListRecursive(nodes, idx + 1, spriteIndex)
-                    allRuntimeFormulas.addAll(rf)
-                    var elseChildren = emptyList<Block>()
-                    var afterIfIdx = findIfEnd(nodes, idx + 1)
-                    val stopNode = if (afterIfIdx < nodes.length) nodes.item(afterIfIdx) else null
-                    if (stopNode != null && stopNode.nodeType == Node.ELEMENT_NODE &&
-                        (stopNode as Element).getAttribute("type") == "IfLogicElseBrick") {
-                        val (elseB, rf2) = parseBrickListRecursive(nodes, afterIfIdx + 1)
-                        allRuntimeFormulas.addAll(rf2)
-                        elseChildren = elseB
-                        afterIfIdx = findIfEnd(nodes, afterIfIdx + 1)
-                    }
                     val condArg: Any = condRf ?: condVal
-                    result.add(Block(Block.Type.CONTROL, listOf("if", condArg, thenChildren, elseChildren), thenChildren))
-                    idx = afterIfIdx
+                    val ifBranch = getChildElement(el, "ifBranchBricks")
+                    val elseBranch = getChildElement(el, "elseBranchBricks")
+                    if (ifBranch != null || elseBranch != null) {
+                        // Modern nested format: Catrobat serialises the branches INSIDE the
+                        // IfLogicBeginBrick element as <ifBranchBricks>/<elseBranchBricks>, not as
+                        // flat sibling bricks terminated by IfLogicElse/IfLogicEndBrick.
+                        val (thenChildren, rfA) = ifBranch?.let { parseBrickListRecursive(it.childNodes, 0, spriteIndex) }
+                            ?: Pair(emptyList<Block>(), emptyList<RuntimeFormula>())
+                        allRuntimeFormulas.addAll(rfA)
+                        val (elseChildren, rfB) = elseBranch?.let { parseBrickListRecursive(it.childNodes, 0, spriteIndex) }
+                            ?: Pair(emptyList<Block>(), emptyList<RuntimeFormula>())
+                        allRuntimeFormulas.addAll(rfB)
+                        result.add(Block(Block.Type.CONTROL, listOf("if", condArg, thenChildren, elseChildren), thenChildren))
+                        idx++
+                    } else {
+                        val (thenChildren, rf) = parseBrickListRecursive(nodes, idx + 1, spriteIndex)
+                        allRuntimeFormulas.addAll(rf)
+                        var elseChildren = emptyList<Block>()
+                        var afterIfIdx = findIfEnd(nodes, idx + 1)
+                        val stopNode = if (afterIfIdx < nodes.length) nodes.item(afterIfIdx) else null
+                        if (stopNode != null && stopNode.nodeType == Node.ELEMENT_NODE &&
+                            (stopNode as Element).getAttribute("type") == "IfLogicElseBrick") {
+                            val (elseB, rf2) = parseBrickListRecursive(nodes, afterIfIdx + 1)
+                            allRuntimeFormulas.addAll(rf2)
+                            elseChildren = elseB
+                            afterIfIdx = findIfEnd(nodes, afterIfIdx + 1)
+                        }
+                        result.add(Block(Block.Type.CONTROL, listOf("if", condArg, thenChildren, elseChildren), thenChildren))
+                        idx = afterIfIdx
+                    }
                 }
                 "IfLogicElseBrick" -> {
                     return Pair(result, allRuntimeFormulas)
@@ -5176,11 +5393,19 @@ class DesktopScriptEngine(
                 "IfThenLogicBeginBrick" -> {
                     val condRf = getRuntimeFormula(el, "IF_CONDITION")
                     val condVal = extractFormulaValue(el, "IF_CONDITION") ?: 0f
-                    val (thenChildren, rf) = parseBrickListRecursive(nodes, idx + 1, spriteIndex)
-                    allRuntimeFormulas.addAll(rf)
                     val condArg: Any = condRf ?: condVal
-                    result.add(Block(Block.Type.CONTROL, listOf("if", condArg, thenChildren, emptyList<Block>()), thenChildren))
-                    idx = findIfEnd(nodes, idx + 1)
+                    val ifBranch = getChildElement(el, "ifBranchBricks")
+                    if (ifBranch != null) {
+                        val (thenChildren, rf) = parseBrickListRecursive(ifBranch.childNodes, 0, spriteIndex)
+                        allRuntimeFormulas.addAll(rf)
+                        result.add(Block(Block.Type.CONTROL, listOf("if", condArg, thenChildren, emptyList<Block>()), thenChildren))
+                        idx++
+                    } else {
+                        val (thenChildren, rf) = parseBrickListRecursive(nodes, idx + 1, spriteIndex)
+                        allRuntimeFormulas.addAll(rf)
+                        result.add(Block(Block.Type.CONTROL, listOf("if", condArg, thenChildren, emptyList<Block>()), thenChildren))
+                        idx = findIfEnd(nodes, idx + 1)
+                    }
                 }
                 "IfThenLogicEndBrick" -> {
                     return Pair(result, allRuntimeFormulas)
@@ -5467,7 +5692,7 @@ class DesktopScriptEngine(
             val el = node as Element
             val type = el.getAttribute("type")
             when (type) {
-                "ForeverBrick", "RepeatBrick", "RepeatUntilBrick",
+                "ForeverBrick", "RepeatBrick", "RepeatUntilBrick", "RepeatWhileBrick",
                 "ForVariableFromToBrick", "ForItemInUserListBrick",
                 "ScheduleBrick", "ExecuteForCloneNumberBrick",
                 "IntervalRepeatBrick", "TryCatchFinallyBrick", "SwitchBeginBrick",
@@ -5516,7 +5741,7 @@ class DesktopScriptEngine(
             val type = el.getAttribute("type")
             when (type) {
                 "IfLogicBeginBrick", "IfThenLogicBeginBrick",
-                "ForeverBrick", "RepeatBrick" -> depth++
+                "ForeverBrick", "RepeatBrick", "RepeatWhileBrick" -> depth++
                 "IfLogicEndBrick", "IfThenLogicEndBrick" -> if (depth == 0) return i + 1 else depth--
                 "LoopEndBrick" -> if (depth == 0) return i + 1 else depth--
             }
@@ -5782,7 +6007,7 @@ class DesktopScriptEngine(
             "StopAllSoundsBrick" -> Block(Block.Type.SOUND, listOf("stop_all_sounds"))
             "SetVolumeToBrick" -> {
                 val vol = extractFormulaValue(el, "VOLUME") ?: 100f
-                Block(Block.Type.SOUND, listOf("set_volume", vol / 100f))
+                Block(Block.Type.SOUND, listOf("set_volume", vol.coerceIn(0f, 100f)))
             }
             "ChangeVolumeByNBrick" -> {
                 val delta = extractFormulaValue(el, "VOLUME_CHANGE") ?: 0f
@@ -5790,18 +6015,18 @@ class DesktopScriptEngine(
             }
             "SetSoundVolumeBrick" -> {
                 val vol = extractFormulaValue(el, "VOLUME") ?: 100f
-                Block(Block.Type.SOUND, listOf("set_volume", vol / 100f))
+                Block(Block.Type.SOUND, listOf("set_volume", vol.coerceIn(0f, 100f)))
             }
             "PlaySoundAtPositionBrick" -> {
                 val sound = extractFormulaString(el, "SOUND_NAME") ?: ""
                 val vol = extractFormulaValue(el, "VOLUME") ?: 100f
                 val pitch = extractFormulaValue(el, "PITCH") ?: 100f
-                Block(Block.Type.SOUND, listOf("play_sound_3d", sound, vol / 100f, pitch / 100f))
+                Block(Block.Type.SOUND, listOf("play_sound_3d", sound, vol.coerceIn(0f, 100f), pitch.coerceIn(0f, 100f)))
             }
             "SetSoundInstanceVolumeBrick" -> {
                 val name = extractFormulaString(el, "NAME") ?: ""
                 val vol = extractFormulaValue(el, "VOLUME") ?: 100f
-                Block(Block.Type.SOUND, listOf("set_sound_inst_vol", name, vol / 100f))
+                Block(Block.Type.SOUND, listOf("set_sound_inst_vol", name, vol.coerceIn(0f, 100f)))
             }
             "SetSoundInstancePitchBrick" -> {
                 val name = extractFormulaString(el, "NAME") ?: ""
@@ -5927,6 +6152,63 @@ class DesktopScriptEngine(
                 val condFe = getFormulaElement(el, "IF_CONDITION")
                 val condRf = if (condFe != null) RuntimeFormula("IF_CONDITION", condFe) else null
                 Block(Block.Type.CONTROL, listOf("wait_until", condRf ?: 0f))
+            }
+            "WaitWhileBrick" -> {
+                val condFe = getFormulaElement(el, "IF_CONDITION")
+                val condRf = if (condFe != null) RuntimeFormula("IF_CONDITION", condFe) else null
+                Block(Block.Type.CONTROL, listOf("wait_while", condRf ?: 0f))
+            }
+            "BroadcastWithParamsBrick" -> {
+                val signal = extractFormulaString(el, "VALUE_1") ?: ""
+                val data = extractFormulaString(el, "VALUE_2") ?: ""
+                Block(Block.Type.CONTROL, listOf("broadcast_params", signal, data))
+            }
+            "SceneBackBrick" -> Block(Block.Type.CONTROL, listOf("scene_back"))
+            "StopMovementBrick" -> Block(Block.Type.MOTION, listOf("stop_movement"))
+            "ContinueMovementBrick" -> Block(Block.Type.MOTION, listOf("continue_movement"))
+            "TweenPositionBrick" -> {
+                val x = extractFormulaValue(el, "X_DESTINATION") ?: 0f
+                val y = extractFormulaValue(el, "Y_DESTINATION") ?: 0f
+                val dur = extractFormulaValue(el, "DURATION_IN_SECONDS") ?: 1f
+                Block(Block.Type.MOTION, listOf("glide", x, y, dur))
+            }
+            "ApplyForceAtPointBrick" -> {
+                val fx = extractFormulaValue(el, "PHYSICS_FORCE_X") ?: 0f
+                val fy = extractFormulaValue(el, "PHYSICS_FORCE_Y") ?: 0f
+                val px = extractFormulaValue(el, "PHYSICS_POINT_X") ?: 0f
+                val py = extractFormulaValue(el, "PHYSICS_POINT_Y") ?: 0f
+                Block(Block.Type.PHYSICS, listOf("apply_force_at_point", fx, fy, px, py))
+            }
+            "SetAngularVelocityBrick" -> Block(Block.Type.PHYSICS, listOf("set_angular_velocity", extractFormulaValue(el, "PHYSICS_ANGULAR_VELOCITY") ?: 0f))
+            "SetGravityScaleBrick" -> Block(Block.Type.PHYSICS, listOf("set_gravity_scale", extractFormulaValue(el, "PHYSICS_GRAVITY_SCALE") ?: 1f))
+            "SetLinearDampingBrick" -> Block(Block.Type.PHYSICS, listOf("set_linear_damping", extractFormulaValue(el, "PHYSICS_DAMPING") ?: 0f))
+            "SetAngularDampingBrick" -> Block(Block.Type.PHYSICS, listOf("set_angular_damping", extractFormulaValue(el, "PHYSICS_DAMPING") ?: 0f))
+            "SetPhysicsFixedRotationBrick" -> Block(Block.Type.PHYSICS, listOf("set_fixed_rotation", extractFormulaValue(el, "PHYSICS_TOGGLE") ?: 0f))
+            "SetPhysicsBulletBrick" -> Block(Block.Type.PHYSICS, listOf("set_bullet_flag", extractFormulaValue(el, "PHYSICS_TOGGLE") ?: 0f))
+            "SetPhysicsSensorBrick" -> Block(Block.Type.PHYSICS, listOf("set_physics_sensor", extractFormulaValue(el, "PHYSICS_TOGGLE") ?: 0f))
+            "ShakeScreenBrick" -> {
+                val intensity = extractFormulaValue(el, "INTENSITY") ?: 0f
+                val dur = extractFormulaValue(el, "DURATION") ?: 0f
+                Block(Block.Type.CAMERA, listOf("shake_screen", intensity, dur))
+            }
+            "ResumeSoundBrick" -> Block(Block.Type.SOUND, listOf("resume_sound"))
+            "PauseSoundBrick" -> Block(Block.Type.SOUND, listOf("pause_sound"))
+            "SetGameVolumeBrick" -> Block(Block.Type.SOUND, listOf("set_volume", (extractFormulaValue(el, "VOLUME") ?: 100f).coerceIn(0f, 100f)))
+            "PlaySoundWithSpeedBrick" -> {
+                val sound = extractSoundName(el) ?: ""
+                val speed = extractFormulaValue(el, "PLAYBACK_SPEED") ?: 1f
+                Block(Block.Type.SOUND, listOf("play_sound_speed", sound, speed))
+            }
+            "OpenUrlBrick" -> Block(Block.Type.WEB, listOf("open_url", extractFormulaString(el, "OPEN_URL") ?: ""))
+            "ShareBrick" -> Block(Block.Type.WEB, listOf("share", extractFormulaString(el, "VALUE_1") ?: ""))
+            "JsonParseBrick" -> {
+                val varName = extractFormulaString(el, "TEXT") ?: ""
+                val json = extractFormulaString(el, "VALUE") ?: ""
+                Block(Block.Type.DATA, listOf("json_parse", varName, json))
+            }
+            "SetBackgroundByIndexAndWaitBrick" -> {
+                val idx = extractFormulaValue(el, "BACKGROUND_WAIT_INDEX") ?: 0f
+                Block(Block.Type.LOOKS, listOf("switch_look", idx.toInt()))
             }
             "NoteBrick" -> null
             "ResetTimerBrick" -> Block(Block.Type.SENSING, listOf("reset_timer"))
@@ -6152,7 +6434,7 @@ class DesktopScriptEngine(
             }
             "SetGlobalSoundVolumeBrick" -> {
                 val vol = extractFormulaValue(el, "VOLUME") ?: 100f
-                Block(Block.Type.SOUND, listOf("set_global_volume", vol / 100f))
+                Block(Block.Type.SOUND, listOf("set_global_volume", vol.coerceIn(0f, 100f)))
             }
             "SetPanBrick" -> {
                 val pan = extractFormulaValue(el, "CUSTOM_PARAM_1") ?: 0f
@@ -6714,9 +6996,9 @@ class DesktopScriptEngine(
             }
             "DeleteAllTablesBrick" -> Block(Block.Type.VARIABLE, listOf("db_delete_all"))
             "DeleteBaseBrick" -> {
-                val id = extractFormulaString(el, "FIREBASE_ID") ?: ""
-                val key = extractFormulaString(el, "FIREBASE_KEY") ?: ""
-                Block(Block.Type.VARIABLE, listOf("db_delete_base", id, key))
+                val idRf = getRuntimeFormula(el, "FIREBASE_ID")
+                val keyRf = getRuntimeFormula(el, "FIREBASE_KEY")
+                Block(Block.Type.VARIABLE, listOf("db_delete_base", idRf ?: "", keyRf ?: ""))
             }
             "DeleteTableBrick" -> {
                 val tname = extractFormulaString(el, "TABLE_NAME") ?: ""
@@ -6744,10 +7026,10 @@ class DesktopScriptEngine(
                 Block(Block.Type.VARIABLE, listOf("db_look_to", red.toInt(), green.toInt(), blue.toInt(), alpha.toInt()))
             }
             "ReadBaseBrick" -> {
-                val id = extractFormulaString(el, "FIREBASE_ID") ?: ""
-                val key = extractFormulaString(el, "FIREBASE_KEY") ?: ""
+                val idRf = getRuntimeFormula(el, "FIREBASE_ID")
+                val keyRf = getRuntimeFormula(el, "FIREBASE_KEY")
                 val name = extractVariableName(el) ?: ""
-                Block(Block.Type.VARIABLE, listOf("db_read_base", id, key, name))
+                Block(Block.Type.VARIABLE, listOf("db_read_base", idRf ?: "", keyRf ?: "", name))
             }
             "StringToTableBrick" -> {
                 val str = extractFormulaString(el, "STRING") ?: ""
@@ -6762,10 +7044,10 @@ class DesktopScriptEngine(
                 Block(Block.Type.VARIABLE, listOf("db_table_to_float", tname, name))
             }
             "WriteBaseBrick" -> {
-                val id = extractFormulaString(el, "FIREBASE_ID") ?: ""
-                val key = extractFormulaString(el, "FIREBASE_KEY") ?: ""
-                val value = extractFormulaString(el, "FIREBASE_VALUE") ?: ""
-                Block(Block.Type.VARIABLE, listOf("db_write_base", id, key, value))
+                val idRf = getRuntimeFormula(el, "FIREBASE_ID")
+                val keyRf = getRuntimeFormula(el, "FIREBASE_KEY")
+                val valueRf = getRuntimeFormula(el, "FIREBASE_VALUE")
+                Block(Block.Type.VARIABLE, listOf("db_write_base", idRf ?: "", keyRf ?: "", valueRf ?: ""))
             }
             "Fast2DCreateBrick" -> {
                 val name = extractFormulaString(el, "NAME") ?: ""
@@ -7602,8 +7884,8 @@ class DesktopScriptEngine(
         val rightVal = rightChild?.let { evaluateFormulaNode(it, spriteIndex) }
         val a = (leftVal as? Double) ?: 0.0
         val b = (rightVal as? Double) ?: 0.0
-        val aStr = leftVal?.toString() ?: ""
-        val bStr = rightVal?.toString() ?: ""
+        val aStr = formulaToString(leftVal)
+        val bStr = formulaToString(rightVal)
         fun findSprite(name: String) = project.sprites.find { it.name == name }
         return when (func) {
             "SIN" -> sin(Math.toRadians(a))
@@ -7652,7 +7934,7 @@ class DesktopScriptEngine(
             "LOWER" -> aStr.lowercase()
             "JOIN" -> aStr + bStr
             "JOIN3" -> {
-                val s3 = additional.getOrNull(0)?.let { evaluateFormulaNode(it, spriteIndex)?.toString() } ?: ""
+                val s3 = additional.getOrNull(0)?.let { formulaToString(evaluateFormulaNode(it, spriteIndex)) } ?: ""
                 aStr + bStr + s3
             }
             "REVERSE" -> aStr.reversed()
@@ -7704,7 +7986,7 @@ class DesktopScriptEngine(
                 }
             }
             "JOINNUMBER" -> {
-                val s3 = additional.getOrNull(0)?.let { evaluateFormulaNode(it, spriteIndex)?.toString() } ?: ""
+                val s3 = additional.getOrNull(0)?.let { formulaToString(evaluateFormulaNode(it, spriteIndex)) } ?: ""
                 aStr + bStr + s3
             }
             "NUMBER_OF_ITEMS" -> {
@@ -8148,13 +8430,42 @@ class DesktopScriptEngine(
         return sound?.let { getTagText(it, "fileName") }
     }
     private fun extractVariableName(el: Element): String? {
-        val userVar = el.getElementsByTagName("userVariable")?.item(0) as? Element
-        return userVar?.let { getTagText(it, "name") }
+        val userVar = getChildElement(el, "userVariable")
+            ?: (el.getElementsByTagName("userVariable").item(0) as? Element)
+            ?: return null
+        val name = resolveUserDataName(userVar, 0)
+        if (name.isNullOrEmpty() && varNameDumped < 4) {
+            varNameDumped++
+            val ref = userVar.getAttribute("reference")
+            val kids = StringBuilder()
+            val ch = userVar.childNodes
+            for (i in 0 until ch.length) { val c = ch.item(i); if (c.nodeType == Node.ELEMENT_NODE) kids.append(c.nodeName).append("='").append(c.textContent?.trim()?.take(50)).append("' ") }
+            val resolved = if (ref.isNotEmpty()) resolveXStreamReference(userVar, ref) else null
+            Gdx.app.log("VarNameDiag", "brick='${el.getAttribute("type")}' tag='${userVar.nodeName}' ref='$ref' kids=[$kids] resolvedTag=${resolved?.nodeName} resolvedName='${resolved?.let { getTagText(it, "name") }}'")
+        }
+        return name
     }
     private fun extractUserListName(el: Element): String? {
-        val userList = el.getElementsByTagName("userList")?.item(0) as? Element
-        return userList?.let { getTagText(it, "name") }
+        val userList = getChildElement(el, "userList")
+            ?: (el.getElementsByTagName("userList").item(0) as? Element)
+            ?: return null
+        return resolveUserDataName(userList, 0)
     }
+    // Follows XStream reference="xpath" attributes to the element that actually holds <name>.
+    private fun resolveUserDataName(node: Element, depth: Int): String? {
+        if (depth > 8) return null
+        getTagText(node, "name")?.takeIf { it.isNotEmpty() }?.let { return it }
+        val ref = node.getAttribute("reference")
+        if (ref.isNotEmpty()) {
+            resolveXStreamReference(node, ref)?.let { return resolveUserDataName(it, depth + 1) }
+        }
+        return null
+    }
+    private fun resolveXStreamReference(context: Element, xpath: String): Element? = try {
+        val xp = javax.xml.xpath.XPathFactory.newInstance().newXPath()
+        (xp.evaluate(xpath, context, javax.xml.xpath.XPathConstants.NODE) as? Element)
+            ?: (xp.evaluate(xpath, context.parentNode, javax.xml.xpath.XPathConstants.NODE) as? Element)
+    } catch (_: Exception) { null }
     private fun extractTextContent(el: Element, tagName: String): String? {
         val field = el.getElementsByTagName(tagName)?.item(0) as? Element
         return field?.textContent?.trim()
@@ -8167,6 +8478,18 @@ class DesktopScriptEngine(
             if (v != null) return v.toString()
         }
         return field.textContent?.trim() ?: ""
+    }
+    private fun showInputOnTop(message: String, title: String): String? = try {
+        val pane = javax.swing.JOptionPane(message, javax.swing.JOptionPane.QUESTION_MESSAGE, javax.swing.JOptionPane.OK_CANCEL_OPTION)
+        pane.setWantsInput(true)
+        val dialog = pane.createDialog(title)
+        dialog.isAlwaysOnTop = true
+        dialog.isVisible = true // modal: blocks the render thread until answered (Android's ask also blocks)
+        dialog.dispose()
+        val value = pane.inputValue
+        if (value == null || value == javax.swing.JOptionPane.UNINITIALIZED_VALUE) null else value.toString()
+    } catch (_: Exception) {
+        try { javax.swing.JOptionPane.showInputDialog(null, message, title, javax.swing.JOptionPane.QUESTION_MESSAGE) } catch (_: Exception) { null }
     }
     private fun firebaseUrl(base: String, key: String): String {
         var url = base.trim()

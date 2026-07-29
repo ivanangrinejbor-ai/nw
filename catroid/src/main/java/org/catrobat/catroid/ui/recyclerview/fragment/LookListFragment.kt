@@ -179,6 +179,10 @@ class LookListFragment : RecyclerViewFragment<LookData?>() {
     override fun getDeleteAlertTitleId(): Int = R.plurals.delete_looks
 
     override fun deleteItems(selectedItems: List<LookData?>) {
+        if (ProjectManager.getInstance().currentProject.isProtectedProject) {
+            ToastUtil.showError(requireContext(), R.string.protected_project_cannot_edit)
+            return
+        }
         setShowProgressBar(true)
         var deletedItemCount = 0
         for (item in selectedItems) {

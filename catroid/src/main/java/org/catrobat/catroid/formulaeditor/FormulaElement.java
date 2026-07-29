@@ -1736,8 +1736,11 @@ public class FormulaElement implements Serializable {
                     LookData ld = tileSprite.look.getLookData();
                     if (ld instanceof TilemapLookData) {
                         TilemapLookData tmd = (TilemapLookData) ld;
-                        int col = (int) Math.round(Double.parseDouble(String.valueOf(arg0)));
-                        int row = (int) Math.round(Double.parseDouble(String.valueOf(arg1)));
+                        Double colD = convertArgumentToDouble(arg0);
+                        Double rowD = convertArgumentToDouble(arg1);
+                        if (colD == null || rowD == null) return 0.0;
+                        int col = (int) Math.round(colD);
+                        int row = (int) Math.round(rowD);
                         return (double) tmd.getTile(col, row);
                     }
                 }
@@ -1749,8 +1752,11 @@ public class FormulaElement implements Serializable {
                     LookData ld2 = tileSprite2.look.getLookData();
                     if (ld2 instanceof TilemapLookData) {
                         TilemapLookData tmd2 = (TilemapLookData) ld2;
-                        int col2 = (int) Math.round(Double.parseDouble(String.valueOf(arg0)));
-                        int row2 = (int) Math.round(Double.parseDouble(String.valueOf(arg1)));
+                        Double colD2 = convertArgumentToDouble(arg0);
+                        Double rowD2 = convertArgumentToDouble(arg1);
+                        if (colD2 == null || rowD2 == null) return 0.0;
+                        int col2 = (int) Math.round(colD2);
+                        int row2 = (int) Math.round(rowD2);
                         short tile = tmd2.getTile(col2, row2);
                         return booleanToDouble(tmd2.getSolidTiles().contains((int) tile));
                     }

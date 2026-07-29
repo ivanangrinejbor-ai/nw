@@ -316,12 +316,13 @@ public class TilemapEditorActivity extends Activity {
 				imagesDir.mkdirs();
 			}
 			String newName = "tileset_" + UUID.randomUUID().toString() + ".png";
-			InputStream in = getContentResolver().openInputStream(uri);
-			if (in == null) {
-				return;
+			File dest;
+			try (InputStream in = getContentResolver().openInputStream(uri)) {
+				if (in == null) {
+					return;
+				}
+				dest = StorageOperations.copyStreamToDir(in, imagesDir, newName);
 			}
-			File dest = StorageOperations.copyStreamToDir(in, imagesDir, newName);
-			in.close();
 
 			LookData newLook = new LookData("tileset", dest);
 			applyTilesetFromLook(newLook);

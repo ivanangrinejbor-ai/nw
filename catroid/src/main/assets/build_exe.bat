@@ -81,21 +81,12 @@ if exist "%TEMPLATE_JAR%" del /f /q "%TEMPLATE_JAR%"
 if exist "%ROOT%template_win.zip" (
     echo   extracting player jar + jre from template_win.zip...
     if exist "%DIST%\bundle" rmdir /s /q "%DIST%\bundle"
-    mkdir "%DIST%\bundle"
-    rem Prefer bsdtar (built into Windows 10 1803+): reliable and fast. Expand-Archive
-    rem is very slow and can SILENTLY fail on a ~100 MB / 600+ file archive, leaving
-    rem player.jar unextracted (then the script wrongly falls back to gradle).
-    tar -xf "%ROOT%template_win.zip" -C "%DIST%\bundle" 2>nul
-    if not exist "%DIST%\bundle\player.jar" powershell -NoProfile -ExecutionPolicy Bypass -Command "Expand-Archive -Force '%ROOT%template_win.zip' '%DIST%\bundle'"
+    powershell -NoProfile -ExecutionPolicy Bypass -Command "Expand-Archive -Force '%ROOT%template_win.zip' '%DIST%\bundle'"
 )
-rem template_win.zip already provides player.jar (extracted above) - standalone bundle.
-rem Only build via gradle when the jar is genuinely missing (dev/repo checkout).
-if not exist "%TEMPLATE_JAR%" (
-    echo   building fresh player jar via gradle...
-    call "%GRADLEW%" :desktop-runtime:jar --offline
-    if errorlevel 1 goto :fail
-    copy /y "%PLAYER_JAR%" "%TEMPLATE_JAR%" >nul
-)
+echo   building fresh player jar via gradle...
+call "%GRADLEW%" :desktop-runtime:jar --offline
+if errorlevel 1 goto :fail
+copy /y "%PLAYER_JAR%" "%TEMPLATE_JAR%" >nul
 if not exist "%TEMPLATE_JAR%" (
     echo Player jar not found: %TEMPLATE_JAR%
     goto :fail
@@ -120,12 +111,6 @@ copy /y "%TEMPLATE_JAR%" "%APP_DIR%\player.jar" >nul
 if exist "%PROJ_ZIP%" (
     echo   placing %PROJ_ZIP% as sibling project.zip next to player.jar...
     copy /y "%PROJ_ZIP%" "%APP_DIR%\project.zip" >nul
-    rem Try to inject the project INTO player.jar (single-file exe). inject_project.ps1
-    rem itself SKIPS injection for large projects (>=200 MB): launch4j cannot wrap a
-    rem ~700 MB jar (it produces a corrupt exe), so those ship project.zip as a SIBLING
-    rem next to the exe (DesktopStage loads it via the cmdLine "project.zip" argument).
-    echo   injecting project into player.jar (auto-skipped if too large)...
-    powershell -NoProfile -ExecutionPolicy Bypass -File "%ROOT%inject_project.ps1" -Jar "%APP_DIR%\player.jar" -Payload "%PROJ_ZIP%"
 ) else (
     echo   project.zip not found in this folder - building player without a project.
 )
@@ -134,16 +119,18 @@ echo [4/6] Assembling app folder (player + bundled jre)...
 powershell -NoProfile -ExecutionPolicy Bypass -Command "if (Test-Path '%APP_DIR%\jre') { Remove-Item -Recurse -Force '%APP_DIR%\jre' }; Copy-Item -Recurse '%DIST%\bundle\jre' '%APP_DIR%\jre'" 2>nul
 
 echo [4.5/6] Preparing icon (icon\icon.ico)...
-rem Always regenerate: a stale/bad .ico makes windres fail. Do NOT use System.Drawing -
-rem its .ico is rejected by windres. Prefer ImageMagick, else the known-good bundled icon.
-if exist "%ICON_ICO%" del /f /q "%ICON_ICO%"
-if exist "%ICON_L4J%" del /f /q "%ICON_L4J%"
-if exist "%ICON_SRC_PNG%" (
-    where magick >nul 2>nul
-    if not errorlevel 1 magick "%ICON_SRC_PNG%" -background none -define icon:auto-resize=256,64,48,32,16 "%ICON_ICO%" >nul 2>nul
+if not exist "%ICON_ICO%" (
+    if exist "%ICON_SRC_PNG%" (
+        where magick >nul 2>nul
+        if not errorlevel 1 (
+            magick "%ICON_SRC_PNG%" -background none -resize 256x256 "%ICON_ICO%" >nul 2>nul
+        ) else (
+            powershell -NoProfile -ExecutionPolicy Bypass -Command "Add-Type -AssemblyName System.Drawing; $img=[System.Drawing.Image]::FromFile('%ICON_SRC_PNG%'); $ico=[System.Drawing.Icon]::FromHandle($img.GetHicon()); $fs=[System.IO.File]::Create('%ICON_ICO%'); $ico.Save($fs); $fs.Close(); $img.Dispose()" >nul 2>nul
+        )
+    )
+    if not exist "%ICON_ICO%" if exist "%DIST%\bundle\icon.ico" copy /y "%DIST%\bundle\icon.ico" "%ICON_ICO%" >nul
 )
-if not exist "%ICON_ICO%" if exist "%DIST%\bundle\icon.ico" copy /y "%DIST%\bundle\icon.ico" "%ICON_ICO%" >nul
-if exist "%ICON_ICO%" copy /y "%ICON_ICO%" "%ICON_L4J%" >nul
+if not exist "%ICON_L4J%" if exist "%ICON_ICO%" copy /y "%ICON_ICO%" "%ICON_L4J%" >nul
 
 rem === Launch the crash-prone wrap + template-zip in a DETACHED child console ===
 rem Its java crash is isolated; this script stages the deliverable itself and
@@ -208,15 +195,10 @@ if exist "%ROOT%launch4j\launch4j.exe" (
 echo   wrapping with launch4j (bundled JRE)...
 if exist "%APP_DIR%\NeoCatroid.bat" del /f /q "%APP_DIR%\NeoCatroid.bat"
 set "L4J_XML=%DIST%\launch4j.xml"
-powershell -NoProfile -ExecutionPolicy Bypass -File "%ROOT%\write_launch4j_xml.ps1" -OutFile "%EXE_OUT%" -Icon "%ICON_L4J%" -XmlPath "%L4J_XML%" -Jar "%APP_DIR%\player.jar"
-rem Run launch4j's builder with the BUNDLED jre so no system Java is required
-rem (launch4j.exe relies on JAVA_HOME/PATH; the bundled jre does not). Headless:
-rem `java -jar launch4j.jar <config>` produces the exe and exits.
-if exist "%DIST%\bundle\jre\bin\java.exe" (
-    "%DIST%\bundle\jre\bin\java.exe" -jar "%DIST%\bundle\launch4j\launch4j.jar" "%L4J_XML%"
-) else (
-    start "" /min "%LAUNCH4J_EXE%" "%L4J_XML%"
-)
+powershell -NoProfile -ExecutionPolicy Bypass -File "%ROOT%\write_launch4j_xml.ps1" -OutFile "%EXE_OUT%" -Icon "%ICON_L4J%" -XmlPath "%L4J_XML%"
+rem Run launch4j in this (already detached) child console. Poll for the built
+rem exe, then reap any lingering java/javaw so it cannot crash this console.
+start "" /min "%LAUNCH4J_EXE%" "%L4J_XML%"
 set "WAITED=0"
 :wait_exe
 if exist "%EXE_OUT%" goto :exe_ready
@@ -225,9 +207,14 @@ set /a WAITED+=2
 if %WAITED% LSS 90 goto :wait_exe
 echo   WARNING: launcher exe not produced within 90s
 :exe_ready
-rem Project is already injected INTO player.jar (embedded_project.ncpp, step 3/6) and
-rem player.jar is WRAPPED into the exe (dontWrapJar=false). NO footer is appended - a
-rem footer would push the zip EOCD past the 64 KB tail and break `java -jar <exe>`.
+rem Embed the project into the EXE as a NEOCAT01 footer so the app is fully
+rem self-contained (copying only NeoCatroid.exe still loads the project).
+rem Footer layout consumed by DesktopStage.loadEmbeddedPayload:
+rem   [payload bytes][size:int64 LE][magic "NEOCAT01":8]
+if exist "%PROJ_ZIP%" if exist "%EXE_OUT%" (
+    echo   embedding project into exe (NEOCAT01 footer)...
+    powershell -NoProfile -ExecutionPolicy Bypass -File "%ROOT%\embed_payload.ps1" -Exe "%EXE_OUT%" -Payload "%PROJ_ZIP%"
+)
 rem Reap any lingering java/javaw (launch4j's builder child) so it cannot
 rem crash this console after we return.
 ping -n 2 127.0.0.1 >nul

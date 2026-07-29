@@ -145,6 +145,10 @@ class SoundListFragment : RecyclerViewFragment<SoundInfo?>() {
     override fun getDeleteAlertTitleId(): Int = R.plurals.delete_sounds
 
     override fun deleteItems(selectedItems: List<SoundInfo?>) {
+        if (ProjectManager.getInstance().currentProject.isProtectedProject) {
+            ToastUtil.showError(requireContext(), R.string.protected_project_cannot_edit)
+            return
+        }
         setShowProgressBar(true)
         var deletedItemsCount = 0
         for (item in selectedItems) {

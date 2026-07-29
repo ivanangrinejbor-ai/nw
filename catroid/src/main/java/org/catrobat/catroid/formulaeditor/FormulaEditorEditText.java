@@ -673,6 +673,9 @@ public class FormulaEditorEditText extends EditText implements OnTouchListener {
     @Override
     protected void onDetachedFromWindow() {
         hideFoldPopup();
+        // Stop the self-reposting cursor blink Runnable, otherwise it keeps this EditText
+        // (and the whole FormulaEditorFragment -> Activity) alive forever after detach.
+        removeCallbacks(cursorAnimation);
         super.onDetachedFromWindow();
     }
 

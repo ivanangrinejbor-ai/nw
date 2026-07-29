@@ -21,6 +21,7 @@ class DesktopPhysicsWorld(
         val def = BodyDef().apply {
             type = if (isStatic) BodyDef.BodyType.StaticBody else BodyDef.BodyType.DynamicBody
             position.set(sprite.x, sprite.y)
+            angle = Math.toRadians((90.0 - sprite.direction).toDouble()).toFloat()
             linearDamping = 0.5f
         }
         val body = world.createBody(def)
@@ -228,6 +229,7 @@ class DesktopPhysicsWorld(
         for ((sprite, body) in bodiesBySprite) {
             sprite.x = body.position.x
             sprite.y = body.position.y
+            sprite.direction = (90.0 - Math.toDegrees(body.angle.toDouble())).toFloat()
         }
     }
 

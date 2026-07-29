@@ -144,8 +144,8 @@ public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.
 
 	private FormulaBrick formulaBrick;
 
-	private static Brick.FormulaField currentFormulaField;
-	private static Formula currentFormula;
+	private Brick.FormulaField currentFormulaField;
+	private Formula currentFormula;
 	private Menu currentMenu;
 
 	private long[] confirmSwitchEditTextTimeStamp = {0, 0};
@@ -255,6 +255,9 @@ public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.
 	@Override
 	public void onResume() {
 		super.onResume();
+		if (getActivity() == null) {
+			return;
+		}
 		if (SnackbarUtil.areHintsEnabled(this.getActivity())) {
 			SnackbarUtil.dismissAllHints();
 			if (!wasHintAlreadyShown(getActivity(), getActivity().getResources()
