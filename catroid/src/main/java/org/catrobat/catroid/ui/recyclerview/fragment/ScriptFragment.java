@@ -68,6 +68,7 @@ import org.catrobat.catroid.content.bricks.ScriptBrick;
 import org.catrobat.catroid.content.bricks.UserDefinedBrick;
 import org.catrobat.catroid.content.bricks.UserDefinedReceiverBrick;
 import org.catrobat.catroid.content.bricks.CompositeBrick;
+import org.catrobat.catroid.content.bricks.UserVariableBrickInterface;
 import org.catrobat.catroid.content.bricks.VisualPlacementBrick;
 import java.util.function.Consumer;
 import org.catrobat.catroid.formulaeditor.Formula;
@@ -111,6 +112,7 @@ import org.catrobat.catroid.ui.recyclerview.util.UniqueNameProvider;
 import org.catrobat.catroid.ui.settingsfragments.SettingsFragment;
 import org.catrobat.catroid.utils.SnackbarUtil;
 import org.catrobat.catroid.utils.ToastUtil;
+import org.catrobat.catroid.utils.LockUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -1523,9 +1525,10 @@ public class ScriptFragment extends ListFragment implements
 
 	private void showDeleteAlert(List<Brick> selectedBricks) {
 		List<Brick> group = collectLockGroups(selectedBricks);
-		if (isGroupLocked(group)) {
+		List<UserVariable> lockedVars = collectLockedVariables(selectedBricks);
+		if (isGroupLocked(group) || !lockedVars.isEmpty()) {
 			showPasswordDialog(R.string.brick_context_dialog_delete_brick, password -> {
-				if (verifyGroup(group, password)) {
+				if (verifyGroup(group, password) && LockUtils.verifyVariables(lockedVars, password)) {
 					proceedDelete(selectedBricks);
 				} else {
 					ToastUtil.showError(getContext(), R.string.brick_wrong_password);
@@ -1534,6 +1537,19 @@ public class ScriptFragment extends ListFragment implements
 			return;
 		}
 		proceedDelete(selectedBricks);
+	}
+
+	private List<UserVariable> collectLockedVariables(List<Brick> bricks) {
+		List<UserVariable> result = new ArrayList<>();
+		for (Brick brick : bricks) {
+			if (brick instanceof UserVariableBrickInterface) {
+				UserVariable var = ((UserVariableBrickInterface) brick).getUserVariable();
+				if (var != null && var.isLocked() && !result.contains(var)) {
+					result.add(var);
+				}
+			}
+		}
+		return result;
 	}
 
 	private void proceedDelete(List<Brick> selectedBricks) {

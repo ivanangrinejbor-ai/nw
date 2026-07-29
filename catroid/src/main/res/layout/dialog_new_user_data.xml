@@ -80,5 +80,29 @@
             android:text="@string/formula_editor_data_dialog_is_list"
             android:visibility="gone"/>
 
+        <CheckBox
+            android:id="@+id/protected_var"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/variable_protected"
+            android:layout_marginTop="8dp"/>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/password_input"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:errorEnabled="true"
+            app:hintEnabled="true"
+            android:visibility="gone">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/password_edit_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textPassword"
+                android:hint="@string/variable_lock_password" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
     </LinearLayout>
 </ScrollView>

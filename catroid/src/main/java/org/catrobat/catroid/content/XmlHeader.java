@@ -73,6 +73,7 @@ public class XmlHeader implements Serializable {
 
 	private boolean preloaderEnabled = false;
 	private boolean precompileEnabled = false;
+	private boolean protectedProject = false;
 
 	private String applicationBuildName = "";
 	private int applicationBuildNumber = 0;
@@ -316,5 +317,13 @@ public class XmlHeader implements Serializable {
 
 	public void setPrecompileEnabled(boolean precompileEnabled) {
 		this.precompileEnabled = precompileEnabled;
+	}
+
+	public boolean isProtectedProject() {
+		return protectedProject;
+	}
+
+	public void setProtectedProject(boolean protectedProject) {
+		this.protectedProject = protectedProject;
 	}
 }

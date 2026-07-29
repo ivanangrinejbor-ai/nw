@@ -3100,6 +3100,12 @@
     <string formatted="false" name="brick_wrong_password">Неверный пароль</string>
     <string formatted="false" name="brick_password_empty">Пароль не может быть пустым</string>
     <string formatted="false" name="brick_lock_warning">Если забудете пароль, блок нельзя будет разблокировать или удалить.</string>
+    <string formatted="false" name="variable_protected">Защищённая</string>
+    <string formatted="false" name="variable_lock_password">Пароль</string>
+    <string formatted="false" name="variable_locked">Переменная защищена</string>
+    <string formatted="false" name="variable_locked_enter_password">Введите пароль переменной</string>
+    <string formatted="false" name="variable_lock_warning">Если забудете пароль, переменную нельзя будет изменить или удалить.</string>
+    <string formatted="false" name="variable_unlock">Разблокировать переменную</string>
     <string formatted="false" name="comment_in_out">Отключить/включить</string>
     <string formatted="false" name="catblocks">Переключить в 2D</string>
     <string formatted="false" name="catblocks_reorder">Перегрупировать скрипты</string>

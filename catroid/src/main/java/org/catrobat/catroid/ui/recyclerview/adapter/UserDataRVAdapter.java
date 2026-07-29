@@ -27,9 +27,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 
 import org.catrobat.catroid.R;
 import org.catrobat.catroid.formulaeditor.UserData;
+import org.catrobat.catroid.formulaeditor.UserVariable;
 import org.catrobat.catroid.ui.recyclerview.viewholder.CheckableViewHolder;
 import org.catrobat.catroid.ui.recyclerview.viewholder.VariableViewHolder;
 
@@ -64,6 +66,14 @@ public class UserDataRVAdapter<T extends UserData> extends RVAdapter<T> {
 			settings.setVisibility(View.VISIBLE);
 		} else if (settings != null && !showSettings) {
 			settings.setVisibility(View.GONE);
+		}
+		ImageView lockIcon = holder.itemView.findViewById(R.id.lock_icon);
+		if (lockIcon != null) {
+			if (item instanceof UserVariable && ((UserVariable) item).isLocked()) {
+				lockIcon.setVisibility(View.VISIBLE);
+			} else {
+				lockIcon.setVisibility(View.GONE);
+			}
 		}
 	}
 }

@@ -25,6 +25,9 @@ package org.catrobat.catroid.content.bricks.brickspinner;
 
 import android.app.Dialog;
 import android.view.View;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.EditText;
 import android.widget.RadioButton;
 
 import org.catrobat.catroid.R;
@@ -36,6 +39,7 @@ import org.catrobat.catroid.ui.recyclerview.dialog.textwatcher.DuplicateInputTex
 import org.catrobat.catroid.ui.recyclerview.fragment.ScriptFragment;
 import org.catrobat.catroid.ui.recyclerview.util.UniqueNameProvider;
 import org.catrobat.catroid.ui.settingsfragments.SettingsFragment;
+import org.catrobat.catroid.utils.ToastUtil;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -49,6 +53,13 @@ public class UserVariableBrickTextInputDialogBuilder extends TextInputDialog.Bui
 		if (SettingsFragment.isMultiplayerVariablesPreferenceEnabled(activity.getApplicationContext())) {
 			multiplayerRadioButton.setVisibility(View.VISIBLE);
 		}
+
+		CheckBox protectedCheckBox = dialogView.findViewById(R.id.protected_var);
+		View passwordInput = dialogView.findViewById(R.id.password_input);
+		protectedCheckBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
+			passwordInput.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+		});
+
 		setView(dialogView);
 
 		setHint(activity.getString(R.string.data_label))
@@ -67,6 +78,19 @@ public class UserVariableBrickTextInputDialogBuilder extends TextInputDialog.Bui
 					} else {
 						sprite.addUserVariable(userVariable);
 					}
+
+					if (protectedCheckBox.isChecked()) {
+						EditText passwordEditText = ((Dialog) dialog).findViewById(R.id.password_edit_text);
+						String password = passwordEditText.getText().toString();
+						if (password.isEmpty()) {
+							ToastUtil.showError(activity, R.string.brick_password_empty);
+						} else {
+							userVariable.setLock(password);
+							ToastUtil.showSuccess(activity, R.string.variable_locked);
+							ToastUtil.showError(activity, R.string.variable_lock_warning);
+						}
+					}
+
 					spinner.add(userVariable);
 					spinner.setSelection(userVariable);
 

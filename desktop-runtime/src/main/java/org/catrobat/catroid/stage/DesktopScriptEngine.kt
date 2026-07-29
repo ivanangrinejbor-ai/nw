@@ -257,6 +257,10 @@ class DesktopScriptEngine(
         }
     }
     private val scriptStates = mutableListOf<ScriptState>()
+    private var buttonTranspDeltaLogged = false
+    private var dbgBrickLog = 0
+    private var dbgScriptLog = 0
+    private var transpFormulaDumped = false
     private val variables = mutableMapOf<String, Any>()
     private val userLists = mutableMapOf<String, MutableList<Any>>()
     private val procedures = mutableMapOf<String, ProcedureDef>()
@@ -347,8 +351,17 @@ class DesktopScriptEngine(
             if (sprite == null) { state.eventFired = true; continue }
             when (state.eventType) {
                 "touch_down" -> {
-                    if (input.isMouseJustPressed && input.fingerY != 0f) {
-                        state.eventFired = true
+                    // "When [sprite] is tapped": fire only if the click landed ON this sprite
+                    // (hit-test in stage coords). fingerX/Y are provided by the viewport unproject.
+                    if (input.isMouseJustPressed) {
+                        val hw = (sprite.lookWidth * sprite.size / 100f) / 2f
+                        val hh = (sprite.lookHeight * sprite.size / 100f) / 2f
+                        val hit = hw > 0f && hh > 0f &&
+                            abs(input.fingerX - sprite.x) <= hw && abs(input.fingerY - sprite.y) <= hh
+                        Gdx.app.log("ClickDiag", "click finger=(${input.fingerX},${input.fingerY}) '${sprite.name}'=(${sprite.x},${sprite.y}) hw=$hw hh=$hh lookW=${sprite.lookWidth} lookH=${sprite.lookHeight} -> hit=$hit")
+                        if (hit) {
+                            state.eventFired = true
+                        }
                     }
                 }
                 "cloned" -> {
@@ -912,67 +925,18 @@ class DesktopScriptEngine(
                 state.frames.add(procFrame)
                 frame.ip++
             }
-            "load_scene" -> {
+            "load_scene", "clear_scene", "scene_transition", "crossfade_scene" -> {
+                // Switch the active regular scene by NAME (mirrors Android startScene). The old
+                // code treated the name as a projectDir subfolder + reparse, which was broken:
+                // there is ONE code.xml with nested <scene> elements, not a code.xml per scene.
                 val sceneName = block.args.getOrNull(1) as? String ?: ""
-                if (sceneName.isNotEmpty()) {
-                    val projectDir = project.projectDir?.resolve(sceneName) ?: java.io.File(sceneName)
-                    if (projectDir.isDirectory || projectDir.exists()) {
-                        project.projectDir = projectDir
-                        parseProject()
-                    }
-                }
+                if (sceneName.isNotEmpty()) switchToScene(sceneName)
             }
-            "clear_scene" -> {
-                val sceneName = block.args.getOrNull(1) as? String ?: ""
-                if (sceneName.isNotEmpty()) {
-                    val targetDir = project.projectDir?.resolve(sceneName)
-                    if (targetDir?.exists() == true) {
-                        project.projectDir = targetDir
-                        parseProject()
-                    }
-                }
-            }
-            "scene_transition" -> {
-                val sceneName = block.args.getOrNull(1) as? String ?: ""
-                if (sceneName.isNotEmpty()) {
-                    val targetDir = project.projectDir?.resolve(sceneName)
-                    if (targetDir?.exists() == true) {
-                        project.projectDir = targetDir
-                        parseProject()
-                    }
-                }
-            }
-            "slide_scene" -> {
-                val direction = block.args.getOrNull(1) as? String ?: ""
+            "slide_scene", "fade_scene" -> {
+                // arg1 = direction/mode (transition style; not animated in the desktop runtime),
+                // arg2 = target scene name.
                 val sceneName = block.args.getOrNull(2) as? String ?: ""
-                if (sceneName.isNotEmpty()) {
-                    val targetDir = project.projectDir?.resolve(sceneName)
-                    if (targetDir?.exists() == true) {
-                        project.projectDir = targetDir
-                        parseProject()
-                    }
-                }
-            }
-            "fade_scene" -> {
-                val mode = block.args.getOrNull(1) as? String ?: ""
-                val sceneName = block.args.getOrNull(2) as? String ?: ""
-                if (sceneName.isNotEmpty()) {
-                    val targetDir = project.projectDir?.resolve(sceneName)
-                    if (targetDir?.exists() == true) {
-                        project.projectDir = targetDir
-                        parseProject()
-                    }
-                }
-            }
-            "crossfade_scene" -> {
-                val sceneName = block.args.getOrNull(1) as? String ?: ""
-                if (sceneName.isNotEmpty()) {
-                    val targetDir = project.projectDir?.resolve(sceneName)
-                    if (targetDir?.exists() == true) {
-                        project.projectDir = targetDir
-                        parseProject()
-                    }
-                }
+                if (sceneName.isNotEmpty()) switchToScene(sceneName)
             }
             "run_shell" -> {
                 val code = block.args.getOrNull(1) as? String ?: ""
@@ -1488,8 +1452,15 @@ class DesktopScriptEngine(
             }
             "set_size" -> sprite.size = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 100f
             "change_size" -> sprite.size += (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
-            "set_transparency" -> sprite.transparency = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
-            "change_transparency" -> sprite.transparency += (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
+            "set_transparency" -> sprite.transparency = ((block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f).coerceIn(0f, 100f)
+            "change_transparency" -> {
+                val d = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
+                if (!buttonTranspDeltaLogged && sprite.name.contains("продол", true)) {
+                    buttonTranspDeltaLogged = true
+                    Gdx.app.log("FadeDiag", "change_transparency '${sprite.name}' by=$d (before=${sprite.transparency})")
+                }
+                sprite.transparency = (sprite.transparency + d).coerceIn(0f, 100f)
+            }
             "set_brightness" -> sprite.brightness = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 100f
             "change_brightness" -> sprite.brightness += (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
             "set_color" -> sprite.color = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
@@ -4628,7 +4599,7 @@ class DesktopScriptEngine(
             is CompiledFormula.Operator -> {
                 val leftVal = f.left?.let { evalCompiledFormula(it, spriteIndex) }
                 val rightVal = f.right?.let { evalCompiledFormula(it, spriteIndex) }
-                evalOperatorCore(f.op, (leftVal as? Double) ?: 0.0, (rightVal as? Double) ?: 0.0, f.left != null)
+                evalOperatorCore(f.op, (leftVal as? Double) ?: 0.0, (rightVal as? Double) ?: 0.0, f.left != null, f.right != null)
             }
             is CompiledFormula.Function -> {
                 val leftVal = f.left?.let { evalCompiledFormula(it, spriteIndex) }
@@ -4771,7 +4742,14 @@ class DesktopScriptEngine(
     }
     private fun parseProject() {
         val dir = project.projectDir
-        if (dir != null && parseXmlScripts(dir)) return
+        if (dir != null && parseXmlScripts(dir)) {
+            Gdx.app.log("DesktopScriptEngine", "active scene '${project.activeSceneName}': ${project.sprites.size} sprites, ${scriptStates.size} scripts (globalPrefix=${project.globalSpriteCount})")
+            project.sprites.forEachIndexed { i, s ->
+                Gdx.app.log("DesktopScriptEngine", "  sprite[$i] '${s.name}' x=${s.x} y=${s.y} size=${s.size} looks=${s.looks.size} look0='${s.looks.firstOrNull()?.fileName ?: ""}'")
+            }
+            Gdx.app.log("DesktopScriptEngine", "  scripts by event: ${scriptStates.groupingBy { it.eventType ?: "start" }.eachCount()}")
+            return
+        }
         for (i in project.sprites.indices) {
             scriptStates.add(ScriptState(i, listOf(
                 Block(Block.Type.EVENT, listOf("green_flag")),
@@ -4783,10 +4761,45 @@ class DesktopScriptEngine(
             )))
         }
     }
+    /**
+     * Switches the active regular scene at runtime (mirrors Android StageListener.startScene):
+     * keeps the global-scene sprites AND their running scripts (stable index prefix), replaces
+     * the scene-local sprites + their scripts with the target scene's, and lets the new scene's
+     * StartScript / "when scene starts" scripts fire. Project-global variables persist (shared
+     * [variables] map is untouched).
+     */
+    private fun switchToScene(sceneName: String) {
+        val target = sceneName.trim()
+        if (target.isEmpty() || target == project.activeSceneName) return
+        // Unknown scene name -> no-op (matches Android getSceneByName == null). Without this,
+        // SceneSelector would fall back to the first scene and wrongly "transition" there.
+        if (project.sceneNames.isNotEmpty() && !project.sceneNames.contains(target)) {
+            Gdx.app.log("DesktopScriptEngine", "switchToScene: unknown scene '$target' (ignored)")
+            return
+        }
+        if (DesktopProjectManager.getInstance().activateScene(project, target) == null) {
+            Gdx.app.error("DesktopScriptEngine", "switchToScene: scene '$target' not found")
+            return
+        }
+        // Android startScene stops the leaving scene's sounds (GlobalManager.stopSounds).
+        AudioServiceHolder.audioService?.stopAllSounds()
+        MidiServiceHolder.midiService?.stopAllSounds()
+        val globalCount = project.globalSpriteCount
+        // Drop scene-local script states; keep global-scene scripts (index < globalCount) running.
+        scriptStates.removeAll { it.spriteIndex >= globalCount }
+        // Rebuild ONLY the scene-local scripts for the newly active scene (indices >= globalCount).
+        project.projectDir?.let { parseXmlScripts(it, onlySceneLocal = true) }
+        rebuildSpatialHash()
+        Gdx.app.log("DesktopScriptEngine", "switched to scene '$target' (sprites=${project.sprites.size}, scripts=${scriptStates.size})")
+    }
     private fun mapScriptTypeToEvent(scriptType: String): String? {
         return when (scriptType) {
             "StartScript", "StartedScript" -> null
             "WhenTouchDownScript" -> "touch_down"
+            // Classic Catrobat "When [sprite] is tapped" is serialized as WhenScript (action=Tapped).
+            // It was missing here, so it fell through to null and ran as a start script (fired at
+            // launch instead of on tap) — the tap never registered and its PlaceAt ran too early.
+            "WhenScript", "WhenTappedScript" -> "touch_down"
             "WhenClonedScript" -> "cloned"
             "WhenConditionScript" -> "condition"
             "WhenFirebaseChangedScript" -> "firebase_changed"
@@ -4832,23 +4845,16 @@ class DesktopScriptEngine(
         }
         return names
     }
-    private fun parseXmlScripts(projectDir: File): Boolean {
-        val codeXml = File(projectDir, "code.xml")
-        if (!codeXml.exists()) return false
+    private fun parseXmlScripts(projectDir: File, onlySceneLocal: Boolean = false): Boolean {
+        val doc = DesktopProjectManager.parseCodeXml(projectDir) ?: return false
         return try {
-            val factory = DocumentBuilderFactory.newInstance()
-            factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true)
-            factory.setFeature("http://xml.org/sax/features/external-general-entities", false)
-            factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false)
-            factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false)
-            val builder = factory.newDocumentBuilder()
-            val doc = builder.parse(codeXml)
-            doc.documentElement.normalize()
-            val objects = doc.getElementsByTagName("object")
-            for (i in 0 until objects.length) {
-                val objNode = objects.item(i)
-                if (objNode.nodeType != Node.ELEMENT_NODE) continue
-                val objEl = objNode as Element
+            // Same scene-aware object ordering as DesktopProjectManager (global scene first, then
+            // the active scene) so each scriptState.spriteIndex matches project.sprites exactly.
+            // onlySceneLocal=true skips the stable global prefix (used on scene switch to rebuild
+            // only the scene-local scripts while global-scene scripts keep running).
+            val objectEls = SceneSelector.selectScene(doc, project.activeSceneName).objectEls
+            for ((i, objEl) in objectEls.withIndex()) {
+                if (onlySceneLocal && i < project.globalSpriteCount) continue
                 val scriptsNode = objEl.getElementsByTagName("scriptList")?.item(0) as? Element
                 if (scriptsNode == null) continue
                 val scriptNodes = scriptsNode.childNodes
@@ -4858,6 +4864,10 @@ class DesktopScriptEngine(
                     val scriptEl = scriptNode as Element
                     val scriptType = scriptEl.getAttribute("type")
                     val eventType = mapScriptTypeToEvent(scriptType)
+                    if (dbgScriptLog < 30) {
+                        dbgScriptLog++
+                        Gdx.app.log("ScriptDiag", "sprite[$i] '${project.sprites.getOrNull(i)?.name}' scriptType='$scriptType' -> event='$eventType'")
+                    }
                     if (eventType == "user_defined") {
                         parseUserDefinedScriptDefinition(scriptEl, i)
                         continue
@@ -4914,7 +4924,7 @@ class DesktopScriptEngine(
                     ))
                 }
             }
-            objects.length > 0
+            objectEls.isNotEmpty()
         } catch (e: Exception) {
             Gdx.app.error("ScriptEngine", "XML parse failed", e)
             false
@@ -4925,6 +4935,18 @@ class DesktopScriptEngine(
             this@DesktopScriptEngine.extractFormulaValue(el, field, spriteIndex)
         fun extractFormulaString(el: Element, field: String) =
             this@DesktopScriptEngine.extractFormulaString(el, field, spriteIndex)
+        // Recent Catrobat code.xml stores a container's body inside <loopBricks>.
+        // Older files keep child bricks as siblings followed by an end brick. Handle both.
+        fun parseContainerChildren(container: Element, legacyStart: Int): Pair<List<Block>, List<RuntimeFormula>> {
+            val loopBricks = getChildElement(container, "loopBricks")
+            return if (loopBricks != null) {
+                parseBrickListRecursive(loopBricks.childNodes, 0, spriteIndex)
+            } else {
+                parseBrickListRecursive(nodes, legacyStart, spriteIndex)
+            }
+        }
+        fun containerEnd(container: Element, legacyStart: Int): Int =
+            if (getChildElement(container, "loopBricks") != null) legacyStart else findLoopEnd(nodes, legacyStart)
         val result = mutableListOf<Block>()
         val allRuntimeFormulas = mutableListOf<RuntimeFormula>()
         var idx = startIdx
@@ -4935,50 +4957,58 @@ class DesktopScriptEngine(
             val el = node as Element
             val brickType = el.getAttribute("type")
             if (brickType.isBlank()) { idx++; continue }
+            // Skip disabled (commented-out) bricks. Catrobat marks them with a direct child
+            // <commentedOut>true</commentedOut>; the desktop engine previously ran them anyway,
+            // e.g. a disabled "place at" brick moved a sprite to the wrong spot. For the modern
+            // <loopBricks> format a container element also contains its children, so skipping the
+            // single element skips them too.
+            val commentedOutRaw = getTagText(el, "commentedOut") ?: el.getAttribute("commentedOut").takeIf { it.isNotBlank() }
+            if (dbgBrickLog < 40) { dbgBrickLog++; Gdx.app.log("BrickDiag", "brick='$brickType' commentedOut='$commentedOutRaw'") }
+            if (commentedOutRaw?.equals("true", ignoreCase = true) == true) { idx++; continue }
             try {
                 when (brickType) {
                 "LoopEndlessBrick" -> {
-                    val (children, rf) = parseBrickListRecursive(nodes, idx + 1, spriteIndex)
+                    val (children, rf) = parseContainerChildren(el, idx + 1)
                     allRuntimeFormulas.addAll(rf)
                     result.add(Block(Block.Type.CONTROL, listOf("forever"), children))
-                    idx = findLoopEnd(nodes, idx + 1)
+                    idx = containerEnd(el, idx + 1)
                 }
                 "AsyncRepeatBrick" -> {
                     val times = extractFormulaValue(el, "TIMES_TO_REPEAT")
-                    val (children, rf) = parseBrickListRecursive(nodes, idx + 1, spriteIndex)
+                    val (children, rf) = parseContainerChildren(el, idx + 1)
                     allRuntimeFormulas.addAll(rf)
                     result.add(Block(Block.Type.CONTROL, listOf("async_repeat", (times ?: 1f).toInt()), children))
-                    idx = findLoopEnd(nodes, idx + 1)
+                    idx = containerEnd(el, idx + 1)
                 }
                 "ForeverBrick" -> {
-                    val (children, rf) = parseBrickListRecursive(nodes, idx + 1, spriteIndex)
+                    val (children, rf) = parseContainerChildren(el, idx + 1)
                     allRuntimeFormulas.addAll(rf)
                     result.add(Block(Block.Type.CONTROL, listOf("forever"), children))
-                    idx = findLoopEnd(nodes, idx + 1)
+                    idx = containerEnd(el, idx + 1)
                 }
                 "RepeatBrick" -> {
                     val timesRf = getRuntimeFormula(el, "TIMES_TO_REPEAT")
                     val times = extractFormulaValue(el, "TIMES_TO_REPEAT") ?: 1f
-                    val (children, rf) = parseBrickListRecursive(nodes, idx + 1, spriteIndex)
+                    val (children, rf) = parseContainerChildren(el, idx + 1)
                     allRuntimeFormulas.addAll(rf)
                     val arg: Any = timesRf ?: times
                     result.add(Block(Block.Type.CONTROL, listOf("repeat", arg), children))
-                    idx = findLoopEnd(nodes, idx + 1)
+                    idx = containerEnd(el, idx + 1)
                 }
                 "CountLoopBrick" -> {
                     val times = extractFormulaValue(el, "TIMES_TO_REPEAT") ?: 1f
-                    val (children, rf) = parseBrickListRecursive(nodes, idx + 1, spriteIndex)
+                    val (children, rf) = parseContainerChildren(el, idx + 1)
                     allRuntimeFormulas.addAll(rf)
                     result.add(Block(Block.Type.CONTROL, listOf("repeat", times.toInt().coerceAtLeast(1)), children))
-                    idx = findLoopEnd(nodes, idx + 1)
+                    idx = containerEnd(el, idx + 1)
                 }
                 "RepeatUntilBrick" -> {
                     val condFe = getFormulaElement(el, "REPEAT_UNTIL_CONDITION")
-                    val (children, rf) = parseBrickListRecursive(nodes, idx + 1, spriteIndex)
+                    val (children, rf) = parseContainerChildren(el, idx + 1)
                     allRuntimeFormulas.addAll(rf)
                     val condRf = if (condFe != null) RuntimeFormula("REPEAT_UNTIL_CONDITION", condFe) else null
                     result.add(Block(Block.Type.CONTROL, listOf("repeat_until", condRf ?: 0f), children))
-                    idx = findLoopEnd(nodes, idx + 1)
+                    idx = containerEnd(el, idx + 1)
                 }
                 "ForVariableFromToBrick" -> {
                     val varName = extractVariableName(el)
@@ -7434,7 +7464,8 @@ class DesktopScriptEngine(
                 val ft = formula.getElementsByTagName("formulaTree")?.item(0) as? Element
                 val fe = ft?.getElementsByTagName("formulaElement")?.item(0) as? Element
                 if (fe != null) return fe
-                return ft
+                // Legacy flat <formula> has <type>/<value> (and leftChild/rightChild) directly.
+                return ft ?: formula
             }
         }
         return null
@@ -7467,8 +7498,20 @@ class DesktopScriptEngine(
         }
         return null
     }
+    private fun dumpFormulaNode(n: Element, depth: Int): String {
+        if (depth > 6) return "..."
+        val t = getTagText(n, "type") ?: "?"
+        val v = getTagText(n, "value") ?: ""
+        val l = getChildElement(n, "leftChild")?.let { dumpFormulaNode(it, depth + 1) }
+        val r = getChildElement(n, "rightChild")?.let { dumpFormulaNode(it, depth + 1) }
+        return "[$t='$v'" + (if (l != null) " L=$l" else "") + (if (r != null) " R=$r" else "") + "]"
+    }
     private fun extractFormulaValue(el: Element, brickFieldEnumName: String, spriteIndex: Int = 0): Float? {
         val fe = getFormulaElement(el, brickFieldEnumName) ?: return null
+        if (brickFieldEnumName == "TRANSPARENCY_CHANGE" && !transpFormulaDumped) {
+            transpFormulaDumped = true
+            Gdx.app.log("FadeDiag", "TRANSPARENCY_CHANGE formula tree = ${dumpFormulaNode(fe, 0)}")
+        }
         return evaluateFormulaNode(fe, spriteIndex)?.let { v ->
             when (v) {
                 is Double -> v.toFloat()
@@ -7517,10 +7560,17 @@ class DesktopScriptEngine(
             else -> null
         }
     }
-    private fun evalOperatorCore(op: String, left: Double, right: Double, hasLeft: Boolean): Double? {
+    private fun evalOperatorCore(op: String, left: Double, right: Double, hasLeft: Boolean, hasRight: Boolean = true): Double? {
         return when (op) {
             "PLUS" -> left + right
-            "MINUS" -> if (!hasLeft) -right else left - right
+            // Unary minus: Catrobat stores "-x" as MINUS with the operand in ONE child and the
+            // other absent. Negate the present operand instead of treating the missing side as 0
+            // (otherwise "-1" whose operand sits in leftChild wrongly evaluated to +1).
+            "MINUS" -> when {
+                !hasLeft && hasRight -> -right
+                hasLeft && !hasRight -> -left
+                else -> left - right
+            }
             "MULT" -> left * right
             "DIVIDE" -> if (right != 0.0) left / right else 0.0
             "MOD" -> left % right
@@ -7542,7 +7592,7 @@ class DesktopScriptEngine(
         val rightChild = getChildElement(node, "rightChild")
         val leftVal = leftChild?.let { evaluateFormulaNode(it, spriteIndex) }
         val rightVal = rightChild?.let { evaluateFormulaNode(it, spriteIndex) }
-        return evalOperatorCore(op, (leftVal as? Double) ?: 0.0, (rightVal as? Double) ?: 0.0, leftChild != null)
+        return evalOperatorCore(op, (leftVal as? Double) ?: 0.0, (rightVal as? Double) ?: 0.0, leftChild != null, rightChild != null)
     }
     private fun evaluateFunction(func: String, node: Element, spriteIndex: Int): Any? {
         val leftChild = getChildElement(node, "leftChild")
@@ -8081,8 +8131,17 @@ class DesktopScriptEngine(
         return result
     }
     private fun getTagText(parent: Element, tag: String): String? {
-        val nodes = parent.getElementsByTagName(tag)
-        return if (nodes.length > 0) nodes.item(0).textContent?.trim() else null
+        // DIRECT child only. A recursive getElementsByTagName(tag).item(0) wrongly grabbed a
+        // nested child's <type>/<value> when the legacy <formula> stores <rightChild> BEFORE the
+        // node's own <type>/<value> (e.g. unary MINUS read as its inner NUMBER -> "-1" became +1).
+        val children = parent.childNodes
+        for (i in 0 until children.length) {
+            val child = children.item(i)
+            if (child.nodeType == Node.ELEMENT_NODE && child.nodeName == tag) {
+                return child.textContent?.trim()
+            }
+        }
+        return null
     }
     private fun extractSoundName(el: Element): String? {
         val sound = el.getElementsByTagName("sound")?.item(0) as? Element

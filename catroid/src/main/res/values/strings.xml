@@ -2430,6 +2430,12 @@
     <string formatted="false" name="brick_wrong_password">Wrong password</string>
     <string formatted="false" name="brick_password_empty">Password cannot be empty</string>
     <string formatted="false" name="brick_lock_warning">If you forget the password, the brick cannot be unlocked or deleted.</string>
+    <string formatted="false" name="variable_protected">Protected</string>
+    <string formatted="false" name="variable_lock_password">Password</string>
+    <string formatted="false" name="variable_locked">Variable is locked</string>
+    <string formatted="false" name="variable_locked_enter_password">Enter variable password</string>
+    <string formatted="false" name="variable_lock_warning">If you forget the password, the variable cannot be changed or deleted.</string>
+    <string formatted="false" name="variable_unlock">Unlock variable</string>
 <string formatted="false" name="comment_in_out">Disable/enable</string>
 <string formatted="false" name="catblocks">Toggle 2D</string>
 <string formatted="false" name="catblocks_reorder">Clean up scripts</string>

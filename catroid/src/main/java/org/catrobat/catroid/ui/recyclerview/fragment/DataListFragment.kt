@@ -67,6 +67,7 @@ import org.catrobat.catroid.ui.recyclerview.viewholder.CheckableViewHolder
 import org.catrobat.catroid.userbrick.UserDefinedBrickInput
 import org.catrobat.catroid.utils.ToastUtil
 import org.catrobat.catroid.utils.UserDataUtil.renameUserData
+import org.catrobat.catroid.utils.LockUtils
 import java.util.Collections
 
 class DataListFragment : Fragment(),
@@ -585,15 +586,34 @@ class DataListFragment : Fragment(),
     }
 
     private fun showDeleteAlert(selectedItems: List<UserData<*>>) {
-        AlertDialog.Builder(requireContext())
-            .setTitle(R.string.deletion_alert_title)
-            .setMessage(R.string.deletion_alert_text)
-            .setPositiveButton(R.string.delete) { _: DialogInterface?, _: Int ->
-                deleteItems(selectedItems)
+        val lockedVars = selectedItems.filterIsInstance<UserVariable>().filter { it.isLocked }
+        if (lockedVars.isNotEmpty()) {
+            LockUtils.requestPassword(requireContext(), R.string.variable_locked_enter_password) { pw ->
+                if (LockUtils.verifyVariables(lockedVars, pw)) {
+                    AlertDialog.Builder(requireContext())
+                        .setTitle(R.string.deletion_alert_title)
+                        .setMessage(R.string.deletion_alert_text)
+                        .setPositiveButton(R.string.delete) { _: DialogInterface?, _: Int ->
+                            deleteItems(selectedItems)
+                        }
+                        .setNegativeButton(R.string.cancel, null)
+                        .setCancelable(false)
+                        .show()
+                } else {
+                    ToastUtil.showError(requireContext(), R.string.brick_wrong_password)
+                }
             }
-            .setNegativeButton(R.string.cancel, null)
-            .setCancelable(false)
-            .show()
+        } else {
+            AlertDialog.Builder(requireContext())
+                .setTitle(R.string.deletion_alert_title)
+                .setMessage(R.string.deletion_alert_text)
+                .setPositiveButton(R.string.delete) { _: DialogInterface?, _: Int ->
+                    deleteItems(selectedItems)
+                }
+                .setNegativeButton(R.string.cancel, null)
+                .setCancelable(false)
+                .show()
+        }
     }
 
     private fun deleteItems(selectedItems: List<UserData<*>>) {
@@ -641,32 +661,60 @@ class DataListFragment : Fragment(),
 
     private fun showRenameDialog(selectedItems: List<UserData<*>>) {
         val item = selectedItems[0]
-        val builder = TextInputDialog.Builder(requireContext())
-        val items = adapter!!.items
 
-        builder.setHint(getString(R.string.data_label))
-            .setText(item.name)
-            .setTextWatcher(DuplicateInputTextWatcher(items))
-            .setPositiveButton(getString(R.string.ok)) { _: DialogInterface?, textInput: String? ->
-                renameItem(item, textInput)
+        fun doRename() {
+            val builder = TextInputDialog.Builder(requireContext())
+            val items = adapter!!.items
+            builder.setHint(getString(R.string.data_label))
+                .setText(item.name)
+                .setTextWatcher(DuplicateInputTextWatcher(items))
+                .setPositiveButton(getString(R.string.ok)) { _: DialogInterface?, textInput: String? ->
+                    renameItem(item, textInput)
+                }
+            builder.setTitle(R.string.rename_data_dialog)
+                .setNegativeButton(R.string.cancel, null)
+                .show()
+        }
+
+        if (item is UserVariable && item.isLocked) {
+            LockUtils.requestPassword(requireContext(), R.string.variable_locked_enter_password) { pw ->
+                if (item.verifyLock(pw)) {
+                    doRename()
+                } else {
+                    ToastUtil.showError(requireContext(), R.string.brick_wrong_password)
+                }
             }
-        builder.setTitle(R.string.rename_data_dialog)
-            .setNegativeButton(R.string.cancel, null)
-            .show()
+        } else {
+            doRename()
+        }
     }
 
     private fun showEditDialog(selectedItems: List<UserData<*>>) {
         val item = selectedItems[0]
-        val builder = TextInputDialog.Builder(requireContext())
 
-        builder.setHint(getString(R.string.data_value))
-            .setText(item.value.toString())
-            .setPositiveButton(getString(R.string.save)) { _: DialogInterface?, textInput: String? ->
-                editItem(item, textInput)
+        fun doEdit() {
+            val builder = TextInputDialog.Builder(requireContext())
+            builder.setHint(getString(R.string.data_value))
+                .setText(item.value.toString())
+                .setPositiveButton(getString(R.string.save)) { _: DialogInterface?, textInput: String? ->
+                    editItem(item, textInput)
+                }
+            builder.setTitle(getString(R.string.edit) + " '" + item.name + "'")
+                .setNegativeButton(R.string.cancel, null)
+                .show()
+        }
+
+        if (item is UserVariable && item.isLocked) {
+            LockUtils.requestPassword(requireContext(), R.string.variable_locked_enter_password) { pw ->
+                if (item.verifyLock(pw)) {
+                    doEdit()
+                } else {
+                    ToastUtil.showError(requireContext(), R.string.brick_wrong_password)
+                }
             }
-        builder.setTitle(getString(R.string.edit) + " '" + item.name + "'")
-            .setNegativeButton(R.string.cancel, null)
-            .show()
+        } else {
+            doEdit()
+        }
     }
 
     override fun onSelectionChanged(selectedItemCnt: Int) {
@@ -724,6 +772,7 @@ class DataListFragment : Fragment(),
             R.id.new_scene, R.id.cast_button, R.id.backpack, R.id.project_options, R.id.project_files, R.id.project_libs
         )
         if (item is UserVariable) {
+            val isLocked = item.isLocked
             val popupMenu = UiUtils.createSettingsPopUpMenu(view, requireContext(),
                                                             R.menu.menu_project_activity,
                                                             hiddenOptionsMenu.toIntArray())
@@ -734,6 +783,18 @@ class DataListFragment : Fragment(),
                     R.id.edit -> showEditDialog(ArrayList(listOf(item)))
                 }
                 true
+            }
+            if (isLocked) {
+                popupMenu.menu.add(0, R.id.unlock_variable, 0, R.string.variable_unlock)
+                popupMenu.setOnMenuItemClickListener { menuItem ->
+                    when (menuItem.itemId) {
+                        R.id.unlock_variable -> showUnlockVariableDialog(item)
+                        R.id.rename -> showRenameDialog(ArrayList(listOf(item)))
+                        R.id.delete -> showDeleteAlert(ArrayList(listOf(item)))
+                        R.id.edit -> showEditDialog(ArrayList(listOf(item)))
+                    }
+                    true
+                }
             }
             popupMenu.show()
         } else {
@@ -749,6 +810,18 @@ class DataListFragment : Fragment(),
                 true
             }
             popupMenu.show()
+        }
+    }
+
+    private fun showUnlockVariableDialog(variable: UserVariable) {
+        LockUtils.requestPassword(requireContext(), R.string.variable_unlock) { pw ->
+            if (variable.verifyLock(pw)) {
+                variable.clearLock()
+                adapter?.notifyDataSetChanged()
+                ToastUtil.showSuccess(requireContext(), R.string.brick_unlocked)
+            } else {
+                ToastUtil.showError(requireContext(), R.string.brick_wrong_password)
+            }
         }
     }
 }

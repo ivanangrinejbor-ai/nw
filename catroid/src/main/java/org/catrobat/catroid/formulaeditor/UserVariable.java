@@ -24,6 +24,8 @@ package org.catrobat.catroid.formulaeditor;
 
 import com.danvexteam.lunoscript_annotations.LunoClass;
 
+import org.catrobat.catroid.utils.PasswordHash;
+
 import java.io.Serializable;
 import java.util.UUID;
 
@@ -38,6 +40,8 @@ public class UserVariable implements Serializable, UserData<Object> {
 	private transient Object value;
 	private transient boolean visible = true;
 	private transient boolean dummy = false;
+	private String lockHash;
+	private String lockSalt;
 
 	public UserVariable() {
 		this.value = 0d;
@@ -59,6 +63,8 @@ public class UserVariable implements Serializable, UserData<Object> {
 		this.name = variable.name;
 		this.value = variable.value;
 		this.deviceValueKey = UUID.randomUUID();
+		this.lockHash = variable.lockHash;
+		this.lockSalt = variable.lockSalt;
 	}
 
 	public int getInitialIndex() {
@@ -139,5 +145,26 @@ public class UserVariable implements Serializable, UserData<Object> {
 
 	public void setDeviceValueKey(UUID deviceValueFileName) {
 		this.deviceValueKey = deviceValueFileName;
+	}
+
+	public boolean isLocked() {
+		return lockHash != null && lockSalt != null;
+	}
+
+	public void setLock(String password) {
+		this.lockSalt = PasswordHash.generateSalt();
+		this.lockHash = PasswordHash.hash(password, this.lockSalt);
+	}
+
+	public void clearLock() {
+		this.lockHash = null;
+		this.lockSalt = null;
+	}
+
+	public boolean verifyLock(String password) {
+		if (!isLocked()) {
+			return true;
+		}
+		return PasswordHash.verify(password, lockSalt, lockHash);
 	}
 }

@@ -35,6 +35,7 @@ import org.catrobat.catroid.content.Script;
 import org.catrobat.catroid.content.Sprite;
 import org.catrobat.catroid.content.bricks.Brick;
 import org.catrobat.catroid.content.bricks.CompositeBrick;
+import org.catrobat.catroid.formulaeditor.UserVariable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -116,5 +117,59 @@ public final class LockUtils {
 		});
 		builder.setNegativeButton(R.string.cancel, null);
 		builder.show();
+	}
+
+	public static List<UserVariable> getLockedVariables(Sprite sprite) {
+		List<UserVariable> result = new ArrayList<>();
+		if (sprite == null) {
+			return result;
+		}
+		for (UserVariable var : sprite.getUserVariables()) {
+			if (var.isLocked()) {
+				result.add(var);
+			}
+		}
+		return result;
+	}
+
+	public static List<UserVariable> getLockedVariables(Scene scene) {
+		List<UserVariable> result = new ArrayList<>();
+		if (scene == null) {
+			return result;
+		}
+		for (Sprite sprite : scene.getSpriteList()) {
+			result.addAll(getLockedVariables(sprite));
+		}
+		return result;
+	}
+
+	public static List<UserVariable> getLockedGlobalVariables(org.catrobat.catroid.content.Project project) {
+		List<UserVariable> result = new ArrayList<>();
+		if (project == null) {
+			return result;
+		}
+		for (UserVariable var : project.getUserVariables()) {
+			if (var.isLocked()) {
+				result.add(var);
+			}
+		}
+		for (UserVariable var : project.getMultiplayerVariables()) {
+			if (var.isLocked()) {
+				result.add(var);
+			}
+		}
+		return result;
+	}
+
+	public static boolean verifyVariables(List<UserVariable> lockedVars, String password) {
+		if (lockedVars == null) {
+			return true;
+		}
+		for (UserVariable var : lockedVars) {
+			if (var.isLocked() && !var.verifyLock(password)) {
+				return false;
+			}
+		}
+		return true;
 	}
 }

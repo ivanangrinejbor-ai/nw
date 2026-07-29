@@ -36,6 +36,8 @@ import org.catrobat.catroid.content.bricks.brickspinner.NewOption;
 import org.catrobat.catroid.content.bricks.brickspinner.UserVariableBrickTextInputDialogBuilder;
 import org.catrobat.catroid.formulaeditor.UserVariable;
 import org.catrobat.catroid.ui.UiUtils;
+import org.catrobat.catroid.utils.LockUtils;
+import org.catrobat.catroid.utils.ToastUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -118,6 +120,21 @@ public abstract class UserVariableBrick extends BrickBaseType implements UserVar
 
 	@Override
 	public void onItemSelected(Integer spinnerId, @Nullable UserVariable item) {
+		if (userVariable != null && userVariable.isLocked()) {
+			UserVariable previousVariable = userVariable;
+			AppCompatActivity activity = UiUtils.getActivityFromView(view);
+			if (activity != null) {
+				LockUtils.requestPassword(activity, R.string.variable_locked_enter_password, password -> {
+					if (previousVariable.verifyLock(password)) {
+						userVariable = item;
+					} else {
+						ToastUtil.showError(activity, R.string.brick_wrong_password);
+						spinner.setSelection(previousVariable);
+					}
+				});
+			}
+			return;
+		}
 		userVariable = item;
 	}
 }

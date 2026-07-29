@@ -144,7 +144,15 @@ object DesktopStage {
             val magicStr = String(magic, StandardCharsets.US_ASCII)
             System.out.println("[NeoCatroid] payload magic = '$magicStr'")
             val tempDir = Files.createTempDirectory("neocatroid-player").toFile()
-            Runtime.getRuntime().addShutdownHook(Thread { tempDir.deleteRecursively() })
+            Runtime.getRuntime().addShutdownHook(Thread {
+                // Java-only deletion avoids loading Kotlin stdlib classes during JVM shutdown,
+                // which can throw NoClassDefFoundError when the classloader is already tearing down.
+                try {
+                    java.nio.file.Files.walk(tempDir.toPath())
+                        .sorted(java.util.Comparator.reverseOrder())
+                        .forEach { java.nio.file.Files.deleteIfExists(it) }
+                } catch (_: Exception) { }
+            })
             when (magicStr) {
                 CRYPTO_MAGIC_STREAM -> {
                     val tempZip = File(tempDir, "_payload.zip")

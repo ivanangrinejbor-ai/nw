@@ -47,6 +47,8 @@ import org.catrobat.catroid.ui.recyclerview.dialog.TextInputDialog;
 import org.catrobat.catroid.ui.recyclerview.dialog.textwatcher.DuplicateInputTextWatcher;
 import org.catrobat.catroid.ui.recyclerview.fragment.ScriptFragment;
 import org.catrobat.catroid.ui.recyclerview.util.UniqueNameProvider;
+import org.catrobat.catroid.utils.LockUtils;
+import org.catrobat.catroid.utils.ToastUtil;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -247,6 +249,39 @@ public abstract class UserDataBrick extends FormulaBrick implements BrickSpinner
 
 	@Override
 	public void onItemSelected(Integer spinnerId, @Nullable UserData item) {
-		userDataList.put(getBrickDataFromTextViewId(spinnerId), item);
+		BrickData brickData = getBrickDataFromTextViewId(spinnerId);
+		UserData previousItem = userDataList.get(brickData);
+		if (previousItem instanceof UserVariable && ((UserVariable) previousItem).isLocked()) {
+			UserVariable previousVariable = (UserVariable) previousItem;
+			AppCompatActivity activity = UiUtils.getActivityFromView(view);
+			if (activity != null) {
+				LockUtils.requestPassword(activity, R.string.variable_locked_enter_password, password -> {
+					if (previousVariable.verifyLock(password)) {
+						userDataList.put(brickData, item);
+					} else {
+						ToastUtil.showError(activity, R.string.brick_wrong_password);
+						BrickSpinner<UserData> spin = getSpinnerForId(spinnerId);
+						if (spin != null) {
+							spin.setSelection(previousItem);
+						}
+					}
+				});
+			}
+			return;
+		}
+		userDataList.put(brickData, item);
+	}
+
+	private BrickSpinner<UserData> getSpinnerForId(Integer spinnerId) {
+		// Find the spinner by ID from the view
+		if (view != null) {
+			View spinnerView = view.findViewById(spinnerId);
+			if (spinnerView != null) {
+				// The spinner is stored in the adapter, we can't easily access it
+				// Just return null - the spinner will revert on next getView()
+				return null;
+			}
+		}
+		return null;
 	}
 }

@@ -161,11 +161,16 @@ class SceneListFragment : RecyclerViewFragment<Scene?>(),
 
     override fun deleteItems(selectedItems: List<Scene?>) {
         val locked = selectedItems.filterNotNull().flatMap { LockUtils.getLockedBricks(it) }
-        if (locked.isEmpty()) {
+        val lockedVars = selectedItems.filterNotNull().flatMap { LockUtils.getLockedVariables(it) }
+        val globalLockedVars = LockUtils.getLockedGlobalVariables(
+            org.catrobat.catroid.ProjectManager.getInstance().currentProject
+        )
+        val allLockedVars = (lockedVars + globalLockedVars).distinct()
+        if (locked.isEmpty() && allLockedVars.isEmpty()) {
             performDelete(selectedItems)
         } else {
             LockUtils.requestPassword(requireContext(), R.string.brick_context_dialog_delete_brick) { pw ->
-                if (LockUtils.verify(locked, pw)) {
+                if (LockUtils.verify(locked, pw) && LockUtils.verifyVariables(allLockedVars, pw)) {
                     performDelete(selectedItems)
                 } else {
                     ToastUtil.showError(requireContext(), R.string.brick_wrong_password)
