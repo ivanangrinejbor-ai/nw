@@ -2489,11 +2489,15 @@ class DesktopScriptEngine(
                 val type = (block.args.getOrNull(1) as? Number)?.toInt() ?: 0
                 val bodyType = when (type) {
                     1 -> BodyDef.BodyType.DynamicBody
-                    2 -> BodyDef.BodyType.KinematicBody
+                    2 -> BodyDef.BodyType.StaticBody
                     else -> BodyDef.BodyType.StaticBody
                 }
                 physicsWorld?.ensureBody(sprite, type == 0)
                 physicsWorld?.setBodyType(sprite, bodyType)
+                if (type == 0) {
+                    physicsWorld?.getBody(sprite)?.gravityScale = 0f
+                    physicsWorld?.getBody(sprite)?.fixtureList?.forEach { it.isSensor = true }
+                }
             }
             "set_physics_state" -> {
                 val objectId = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
@@ -6756,8 +6760,12 @@ class DesktopScriptEngine(
                 Block(Block.Type.PHYSICS, listOf("set_damping", linear, angular))
             }
             "SetPhysicsObjectTypeBrick" -> {
-                val typeStr = extractTextContent(el, "type") ?: "0"
-                val typeVal = typeStr.toIntOrNull() ?: 0
+                val typeStr = extractTextContent(el, "type") ?: "NONE"
+                val typeVal = when (typeStr.uppercase()) {
+                    "DYNAMIC" -> 1
+                    "FIXED" -> 2
+                    else -> 0
+                }
                 Block(Block.Type.PHYSICS, listOf("set_physics_type", typeVal))
             }
             "SetPhysicsStateBrick" -> {

@@ -5738,6 +5738,21 @@ Catrobat — это визуальный язык программировани
             <string name="swipe_editor_hint_default">Перетаскивай прикреплённые объекты. Включи «Свайпаемый» и сохрани.</string>
             <string name="swipe_editor_hint_modified">Несохранённые изменения</string>
             <string name="swipe_editor_hint_saving">Сохранение</string>
+            <string name="preference_title_scene_editor_2">Редактор сцены (UI 2.0)</string>
+            <string name="preference_summary_scene_editor_2">Планшетный визуальный редактор сцены. Перезапускает приложение.</string>
+            <string name="scene_editor_title">Редактор сцены</string>
+            <string name="scene_editor_open">Редактор сцены 2.0</string>
+            <string name="scene_editor_play">Играть</string>
+            <string name="scene_editor_stop">Стоп</string>
+            <string name="scene_editor_hint_default">Перетаскивай объекты для расстановки. Щипок — зум. Тап по объекту — редактировать.</string>
+            <string name="scene_editor_hint_stop">Нажми «Играть», чтобы запустить сцену</string>
+            <string name="scene_editor_hint_saving">Сохранение</string>
+            <string name="scene_editor_hint_moved">%1$s X:%2$d Y:%3$d</string>
+            <string name="scene_editor_window_add_blocks">+ Блоки</string>
+            <string name="scene_editor_window_info">Скриптов: %1$d</string>
+            <string name="scene_editor_window_minimize">Свернуть</string>
+            <string name="scene_editor_window_close">Закрыть</string>
+            <string name="scene_editor_window_resize">Размер</string>
             <string-array name="swipe_directions">
                 <item>Вверх</item>
                 <item>Вниз</item>

@@ -109,6 +109,7 @@ public class SettingsFragment extends PreferenceFragment {
 	public static final String SETTINGS_SHOW_INTERNET_BRICKS = "setting_internet_bricks";
 
 	public static final String SETTINGS_SHOW_NFC_BRICKS = "setting_nfc_bricks";
+	public static final String SETTINGS_UI_SCENE_EDITOR_2 = "setting_ui_scene_editor_2";
 	public static final String SETTINGS_PARROT_AR_DRONE_CATROBAT_TERMS_OF_SERVICE_ACCEPTED_PERMANENTLY = "setting_parrot_ar_drone_catrobat_terms_of_service_accepted_permanently";
 	public static final String SETTINGS_CAST_GLOBALLY_ENABLED = "setting_cast_globally_enabled";
 	public static final String SETTINGS_SHOW_AI_SPEECH_RECOGNITION_SENSORS = "setting_ai_speech_recognition";
@@ -198,6 +199,13 @@ public class SettingsFragment extends PreferenceFragment {
 					return true;
 				});
 			}
+		}
+		CheckBoxPreference sceneEditorMode = (CheckBoxPreference) findPreference(SETTINGS_UI_SCENE_EDITOR_2);
+		if (sceneEditorMode != null) {
+			sceneEditorMode.setOnPreferenceChangeListener((preference, value) -> {
+				restartApp();
+				return true;
+			});
 		}
 		setHintPreferences();
 		setLanguage();
@@ -724,6 +732,10 @@ public class SettingsFragment extends PreferenceFragment {
 
 	public static boolean isNfcSharedPreferenceEnabled(Context context) {
 		return getBooleanSharedPreference(false, SETTINGS_SHOW_NFC_BRICKS, context);
+	}
+
+	public static boolean isSceneEditorModeEnabled(Context context) {
+		return getBooleanSharedPreference(false, SETTINGS_UI_SCENE_EDITOR_2, context);
 	}
 
 	public static boolean isTestSharedPreferenceEnabled(Context context) {

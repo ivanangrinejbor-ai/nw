@@ -70,6 +70,12 @@
         android:summary="@string/preference_title_pcmode"
         android:defaultValue="false" />
 
+    <CheckBoxPreference
+        android:key="setting_ui_scene_editor_2"
+        android:title="@string/preference_title_scene_editor_2"
+        android:summary="@string/preference_summary_scene_editor_2"
+        android:defaultValue="false" />
+
     <PreferenceScreen
         android:key="setting_workspace_screen"
         android:title="@string/free_window_mode"

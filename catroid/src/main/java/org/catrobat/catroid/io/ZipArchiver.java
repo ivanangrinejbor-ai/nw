@@ -52,7 +52,7 @@ public class ZipArchiver {
 
 	// Zip bomb protection limits
 	private static final long MAX_UNCOMPRESSED_SIZE = 3072L * 1024 * 1024; // 3 GB
-	private static final long MAX_ENTRY_SIZE = 50L * 1024 * 1024; // 50 MB per entry
+	private static final long MAX_ENTRY_SIZE = 200L * 1024 * 1024; // 200 MB per entry (was 50 MB, bumped for large .glb 3D models)
 	private static final int MAX_COMPRESSION_RATIO = 100; // 100:1
 	private static final int MAX_ENTRY_COUNT = 10000;
 

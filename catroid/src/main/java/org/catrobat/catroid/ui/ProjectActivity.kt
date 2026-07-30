@@ -123,6 +123,7 @@ class ProjectActivity : BaseCastActivity() {
         const val SPRITE_CAMERA = 3
         const val SPRITE_OBJECT = 4
         const val SPRITE_FROM_LOCAL = 5
+        private const val SCENE_EDITOR_MENU_ID = 990201
     }
 
     private lateinit var binding: ActivityRecyclerBinding
@@ -265,6 +266,9 @@ class ProjectActivity : BaseCastActivity() {
         menu.findItem(R.id.edit).isVisible = false
         menu.findItem(R.id.menu_ai_chat).isVisible =
             org.catrobat.catroid.ai.AiAgentManager.instance.isEnabled()
+        if (SettingsFragment.isSceneEditorModeEnabled(this)) {
+            menu.add(Menu.NONE, SCENE_EDITOR_MENU_ID, Menu.NONE, R.string.scene_editor_open)
+        }
         return super.onCreateOptionsMenu(menu)
     }
 
@@ -287,6 +291,10 @@ class ProjectActivity : BaseCastActivity() {
                 }
             }
             R.id.new_scene -> handleAddSceneButton()
+            SCENE_EDITOR_MENU_ID -> {
+                val intent = Intent(this, org.catrobat.catroid.ui.sceneeditor.SceneEditorActivity::class.java)
+                startActivity(intent)
+            }
             R.id.project_options ->
                 if (isWorkspaceMode) {
                     workspace?.openWindow(ProjectOptionsFragment.TAG, "Опции проекта") { ProjectOptionsFragment() }

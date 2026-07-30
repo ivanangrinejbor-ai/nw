@@ -4990,6 +4990,21 @@ needs read and write access to it. You can always change permissions through you
     <string name="swipe_editor_hint_default">Drag attached objects to position them. Toggle Swipeable, then save.</string>
     <string name="swipe_editor_hint_modified">Unsaved changes</string>
     <string name="swipe_editor_hint_saving">Saving</string>
+    <string name="preference_title_scene_editor_2">Scene editor (UI 2.0)</string>
+    <string name="preference_summary_scene_editor_2">Tablet-style visual scene editor. Restarts the app.</string>
+    <string name="scene_editor_title">Scene editor</string>
+    <string name="scene_editor_open">Scene editor 2.0</string>
+    <string name="scene_editor_play">Play</string>
+    <string name="scene_editor_stop">Stop</string>
+    <string name="scene_editor_hint_default">Drag objects to place them. Pinch to zoom. Tap an object to edit.</string>
+    <string name="scene_editor_hint_stop">Press Play to run the scene</string>
+    <string name="scene_editor_hint_saving">Saving</string>
+    <string name="scene_editor_hint_moved">%1$s X:%2$d Y:%3$d</string>
+    <string name="scene_editor_window_add_blocks">+ Blocks</string>
+    <string name="scene_editor_window_info">Scripts: %1$d</string>
+    <string name="scene_editor_window_minimize">Minimize</string>
+    <string name="scene_editor_window_close">Close</string>
+    <string name="scene_editor_window_resize">Resize</string>
     <string-array name="swipe_directions">
         <item>Up</item>
         <item>Down</item>
