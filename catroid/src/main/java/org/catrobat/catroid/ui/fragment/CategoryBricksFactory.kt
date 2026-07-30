@@ -30,6 +30,7 @@ import org.catrobat.catroid.common.BrickValues
 import org.catrobat.catroid.content.BroadcastScript
 import org.catrobat.catroid.content.RaspiInterruptScript
 import org.catrobat.catroid.content.WhenBounceOffScript
+import org.catrobat.catroid.content.WhenSwipedScript
 import org.catrobat.catroid.content.WhenConditionScript
 import org.catrobat.catroid.content.WhenGamepadButtonScript
 import org.catrobat.catroid.content.WhenClonedWithNameScript
@@ -672,6 +673,7 @@ import org.catrobat.catroid.content.bricks.WebRequestBrick
 import org.catrobat.catroid.content.bricks.WhenBackPressedBrick
 import org.catrobat.catroid.content.bricks.WhenBackgroundChangesBrick
 import org.catrobat.catroid.content.bricks.WhenBounceOffBrick
+import org.catrobat.catroid.content.bricks.WhenSwipedBrick
 import org.catrobat.catroid.content.bricks.WhenBrick
 import org.catrobat.catroid.content.bricks.WhenClonedBrick
 import org.catrobat.catroid.content.bricks.WhenConditionBrick
@@ -760,6 +762,12 @@ import org.catrobat.catroid.content.bricks.MapDeleteBrick
 import org.catrobat.catroid.content.bricks.MapGetBrick
 import org.catrobat.catroid.content.bricks.MapSetBrick
 import org.catrobat.catroid.content.bricks.JsonParseBrick
+import org.catrobat.catroid.content.bricks.FadeInBrick
+import org.catrobat.catroid.content.bricks.FadeOutBrick
+import org.catrobat.catroid.content.bricks.ZoomInBrick
+import org.catrobat.catroid.content.bricks.ZoomOutBrick
+import org.catrobat.catroid.content.bricks.SlideInBrick
+import org.catrobat.catroid.content.bricks.SlideOutBrick
 import org.catrobat.catroid.content.bricks.PlayToneBrick
 import org.catrobat.catroid.content.bricks.QueueDequeueBrick
 import org.catrobat.catroid.content.bricks.QueueEnqueueBrick
@@ -845,6 +853,7 @@ open class CategoryBricksFactory {
             context.getString(R.string.category_json) -> setupJsonCategoryList(context)
             context.getString(R.string.category_neoscript) -> setupNeoScriptCategoryList(context)
             context.getString(R.string.category_dialogue) -> setupDialogueCategoryList(context)
+            context.getString(R.string.category_transitions) -> setupTransitionsCategoryList(context)
             context.getString(R.string.category_threed) -> setupThreedCategoryList(context)
             context.getString(R.string.category_preload) -> setupPreloadCategoryList(context)
             context.getString(R.string.category_internet) -> setupInternetCategoryList(context)
@@ -926,6 +935,7 @@ open class CategoryBricksFactory {
                 }
                 eventBrickList.add(WhenBrick())
                 eventBrickList.add(WhenTouchDownBrick())
+                eventBrickList.add(WhenSwipedBrick(WhenSwipedScript(0)))
                 val broadcastMessages =
                     ProjectManager.getInstance().currentProject?.broadcastMessageContainer?.broadcastMessages
                 var broadcastMessage: String? = context.getString(R.string.brick_broadcast_default_value)
@@ -1006,6 +1016,7 @@ open class CategoryBricksFactory {
         }
         eventBrickList.add(WhenBrick())
         eventBrickList.add(WhenTouchDownBrick())
+        eventBrickList.add(WhenSwipedBrick(WhenSwipedScript(0)))
         eventBrickList.add(WhenBackPressedBrick())
 
         eventBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_event_messages), template))
@@ -2838,6 +2849,17 @@ void main() {
         dialogueBrickList.add(CurrentNodeIDBrick())
         dialogueBrickList.add(LocalizeSpritesBrick())
         return dialogueBrickList
+    }
+
+    private fun setupTransitionsCategoryList(context: Context): List<Brick> {
+        val transitionsBrickList: MutableList<Brick> = ArrayList()
+        transitionsBrickList.add(FadeInBrick(1.0))
+        transitionsBrickList.add(FadeOutBrick(1.0))
+        transitionsBrickList.add(ZoomInBrick(1.0))
+        transitionsBrickList.add(ZoomOutBrick(1.0))
+        transitionsBrickList.add(SlideInBrick(1.0))
+        transitionsBrickList.add(SlideOutBrick(1.0))
+        return transitionsBrickList
     }
 
     private fun setupThreedCategoryList(context: Context): List<Brick> {

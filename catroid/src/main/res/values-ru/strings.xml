@@ -5712,6 +5712,39 @@ Catrobat — это визуальный язык программировани
     <string name="theme_import_error">Не удалось импортировать тему: %1$s</string>
     <string name="theme_delete_confirm">Удалить эту тему?</string>
     <string name="theme_delete">Удалить</string>
+        <string name="theme_export_template">Скачать шаблон</string>
+        <string name="theme_export_success">Шаблон сохранён</string>
+        <string name="theme_export_error">Не удалось сохранить шаблон: %1$s</string>
+            <string name="brick_fade_in">Появление, скорость</string>
+            <string name="brick_fade_out">Затемнение, скорость</string>
+            <string name="brick_zoom_in">Зум-появление, скорость</string>
+            <string name="brick_zoom_out">Зум-исчезание, скорость</string>
+            <string name="brick_slide_in">Выезд из-за края</string>
+            <string name="brick_slide_out">Уезд за край</string>
+            <string name="brick_transition_over">скорость</string>
+            <string-array name="transition_edges">
+                <item>Слева</item>
+                <item>Справа</item>
+                <item>Сверху</item>
+                <item>Снизу</item>
+            </string-array>
+            <string name="brick_when_swiped">Когда свайп</string>
+            <string name="swipe_editor_menu">Редактор свайпов</string>
+            <string name="swipe_editor_title">Редактор свайпов</string>
+            <string name="swipe_editor_swipeable">Свайпаемый</string>
+            <string name="swipe_editor_add_object">Добавить объект</string>
+            <string name="swipe_editor_delete">Убрать объект</string>
+            <string name="swipe_editor_no_objects">Нет других объектов для прикрепления</string>
+            <string name="swipe_editor_hint_default">Перетаскивай прикреплённые объекты. Включи «Свайпаемый» и сохрани.</string>
+            <string name="swipe_editor_hint_modified">Несохранённые изменения</string>
+            <string name="swipe_editor_hint_saving">Сохранение</string>
+            <string-array name="swipe_directions">
+                <item>Вверх</item>
+                <item>Вниз</item>
+                <item>Влево</item>
+                <item>Вправо</item>
+                <item>Любой</item>
+            </string-array>
 
     <!-- Tilemap editor -->
     <string name="tilemap_editor_title">Редактор тайлмапа</string>

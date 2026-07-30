@@ -190,10 +190,9 @@ public class SettingsFragment extends PreferenceFragment {
 				materialYou.setEnabled(false);
 			} else {
 				materialYou.setOnPreferenceChangeListener((preference, value) -> {
-					if (Boolean.TRUE.equals(value) && getActivity() != null) {
-						DynamicColors.applyToActivityIfAvailable(getActivity());
-						getActivity().recreate();
-					} else if (getActivity() != null) {
+					if (getActivity() != null) {
+						org.catrobat.catroid.ui.theme.ThemeManager.INSTANCE.setMaterialYou(
+								getActivity(), Boolean.TRUE.equals(value));
 						getActivity().recreate();
 					}
 					return true;

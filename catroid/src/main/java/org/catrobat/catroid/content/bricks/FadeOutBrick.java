@@ -1,6 +1,6 @@
 /*
  * Catroid: An on-device visual programming system for Android devices
- * Copyright (C) 2010-2022 The Catrobat Team
+ * Copyright (C) 2010-2024 The Catrobat Team
  * (<http://developer.catrobat.org/credits>)
  *
  * This program is free software: you can redistribute it and/or modify
@@ -20,34 +20,38 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.catrobat.catroid.content.actions;
+package org.catrobat.catroid.content.bricks;
 
-import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction;
-
+import org.catrobat.catroid.R;
 import org.catrobat.catroid.content.Sprite;
-import org.catrobat.catroid.embroidery.DSTStitchCommand;
-import org.catrobat.catroid.stage.StageActivity;
+import org.catrobat.catroid.content.actions.ScriptSequenceAction;
+import org.catrobat.catroid.formulaeditor.Formula;
 
-public class StitchAction extends TemporalAction {
+public class FadeOutBrick extends FormulaBrick {
 
-	private Sprite sprite;
+	private static final long serialVersionUID = 1L;
 
-	@Override
-	protected void update(float delta) {
-		org.catrobat.catroid.stage.StageListener stageListener = StageActivity.getActiveStageListener();
-		if (sprite == null || sprite.look == null || stageListener == null) {
-			return;
-		}
-		sprite.runningStitch.pause();
-		float x = sprite.look.getXInUserInterfaceDimensionUnit();
-		float y = sprite.look.getYInUserInterfaceDimensionUnit();
-		stageListener.embroideryPatternManager.addStitchCommand(new DSTStitchCommand(x, y,
-				sprite.look.getZIndex(), sprite, sprite.getEmbroideryThreadColor()));
-		sprite.runningStitch.setStartCoordinates(x, y);
-		sprite.runningStitch.resume();
+	public FadeOutBrick() {
+		addAllowedBrickField(BrickField.SPEED, R.id.brick_fade_out_edit_text);
 	}
 
-	public void setSprite(Sprite sprite) {
-		this.sprite = sprite;
+	public FadeOutBrick(double speed) {
+		this(new Formula(speed));
+	}
+
+	public FadeOutBrick(Formula formula) {
+		this();
+		setFormulaWithBrickField(BrickField.SPEED, formula);
+	}
+
+	@Override
+	public int getViewResource() {
+		return R.layout.brick_fade_out;
+	}
+
+	@Override
+	public void addActionToSequence(Sprite sprite, ScriptSequenceAction sequence) {
+		sequence.addAction(sprite.getActionFactory().createFadeOutAction(sprite, sequence,
+				getFormulaWithBrickField(BrickField.SPEED)));
 	}
 }

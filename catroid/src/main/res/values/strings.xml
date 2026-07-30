@@ -4964,4 +4964,37 @@ needs read and write access to it. You can always change permissions through you
     <string name="theme_import_error">Could not import theme: %1$s</string>
     <string name="theme_delete_confirm">Remove this theme?</string>
     <string name="theme_delete">Remove</string>
+    <string name="theme_export_template">Download template</string>
+    <string name="theme_export_success">Template saved</string>
+    <string name="theme_export_error">Could not save template: %1$s</string>
+    <string name="brick_fade_in">Fade in at speed</string>
+    <string name="brick_fade_out">Fade out at speed</string>
+    <string name="brick_zoom_in">Zoom in at speed</string>
+    <string name="brick_zoom_out">Zoom out at speed</string>
+    <string name="brick_slide_in">Slide in from</string>
+    <string name="brick_slide_out">Slide out to</string>
+    <string name="brick_transition_over">at speed</string>
+    <string-array name="transition_edges">
+        <item>Left</item>
+        <item>Right</item>
+        <item>Top</item>
+        <item>Bottom</item>
+    </string-array>
+    <string name="brick_when_swiped">When swiped</string>
+    <string name="swipe_editor_menu">Swipe editor</string>
+    <string name="swipe_editor_title">Swipe editor</string>
+    <string name="swipe_editor_swipeable">Swipeable</string>
+    <string name="swipe_editor_add_object">Add object</string>
+    <string name="swipe_editor_delete">Remove object</string>
+    <string name="swipe_editor_no_objects">No other objects to attach</string>
+    <string name="swipe_editor_hint_default">Drag attached objects to position them. Toggle Swipeable, then save.</string>
+    <string name="swipe_editor_hint_modified">Unsaved changes</string>
+    <string name="swipe_editor_hint_saving">Saving</string>
+    <string-array name="swipe_directions">
+        <item>Up</item>
+        <item>Down</item>
+        <item>Left</item>
+        <item>Right</item>
+        <item>Any</item>
+    </string-array>
 </resources>

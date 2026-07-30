@@ -61,6 +61,8 @@ import org.catrobat.catroid.content.WhenGamepadButtonScript;
 import org.catrobat.catroid.content.WhenNfcScript;
 import org.catrobat.catroid.content.WhenScript;
 import org.catrobat.catroid.content.WhenTouchDownScript;
+import org.catrobat.catroid.content.WhenSwipedScript;
+import org.catrobat.catroid.content.SwipeAttachment;
 import org.catrobat.catroid.content.WhenNotificationActionClickedScript;
 import org.catrobat.catroid.content.WhenNotificationDismissedScript;
 import org.catrobat.catroid.content.WhenNotificationReplyScript;
@@ -280,6 +282,8 @@ public final class XstreamSerializer {
 		xstream.alias("script", BroadcastScript.class);
 		xstream.alias("script", RaspiInterruptScript.class);
 		xstream.alias("script", WhenTouchDownScript.class);
+		xstream.alias("script", WhenSwipedScript.class);
+		xstream.alias("swipeAttachment", SwipeAttachment.class);
 		xstream.alias("script", WhenBackgroundChangesScript.class);
 		xstream.alias("script", UserDefinedScript.class);
 		xstream.alias("script", EmptyScript.class);

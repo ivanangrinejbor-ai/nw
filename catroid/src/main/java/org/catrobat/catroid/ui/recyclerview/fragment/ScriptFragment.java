@@ -2195,6 +2195,7 @@ public class ScriptFragment extends ListFragment implements
             case "StartScript": return "При запуске сцены:";
             case "WhenScript": return "При нажатии на спрайт:";
             case "WhenTouchDownScript": return "При касании экрана:";
+            case "WhenSwipedScript": return "Когда свайп по объекту:";
             case "BroadcastScript": return "Когда я получу вещание:";
             case "WhenConditionScript": return "Когда условие становится истинным:";
             case "WhenClonedScript": return "Когда я начинаю как клон:";

@@ -68,6 +68,7 @@ class ThemesActivity : BaseActivity() {
         recycler.adapter = adapter
 
         findViewById<Button>(R.id.theme_import_button).setOnClickListener { launchImportPicker() }
+        findViewById<Button>(R.id.theme_export_button).setOnClickListener { launchExportPicker() }
     }
 
     private fun refresh() {
@@ -106,6 +107,15 @@ class ThemesActivity : BaseActivity() {
         startActivityForResult(intent, REQUEST_IMPORT_THEME)
     }
 
+    private fun launchExportPicker() {
+        val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = "*/*"
+            putExtra(Intent.EXTRA_TITLE, "neocatroid_theme.neotema")
+        }
+        startActivityForResult(intent, REQUEST_EXPORT_TEMPLATE)
+    }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == REQUEST_IMPORT_THEME && resultCode == RESULT_OK) {
@@ -118,6 +128,21 @@ class ThemesActivity : BaseActivity() {
                 showImportError(e.message)
             } catch (e: Exception) {
                 showImportError(e.message)
+            }
+        }
+        if (requestCode == REQUEST_EXPORT_TEMPLATE && resultCode == RESULT_OK) {
+            val uri = data?.data ?: return
+            try {
+                contentResolver.openOutputStream(uri)?.use {
+                    it.write(ThemeManager.defaultTemplateText().toByteArray(Charsets.UTF_8))
+                } ?: throw NeoThemeException("Cannot open file")
+                Toast.makeText(this, R.string.theme_export_success, Toast.LENGTH_SHORT).show()
+            } catch (e: Exception) {
+                Toast.makeText(
+                    this,
+                    getString(R.string.theme_export_error, e.message ?: ""),
+                    Toast.LENGTH_LONG
+                ).show()
             }
         }
     }
@@ -137,6 +162,7 @@ class ThemesActivity : BaseActivity() {
 
     companion object {
         private const val REQUEST_IMPORT_THEME = 4711
+        private const val REQUEST_EXPORT_TEMPLATE = 4712
         private const val THEME_APPLY_DELAY_MS = 450L
     }
 }

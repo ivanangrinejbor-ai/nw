@@ -1498,6 +1498,54 @@ public class ActionFactory extends Actions {
 		return forAllObjects(sprite, sequence, ForAllObjectsAction.Property.HIDE, null);
 	}
 
+	private Action transition(Sprite sprite, SequenceAction sequence,
+			TransitionAction.Type type, Formula duration, int edge) {
+		TransitionAction action = Actions.action(TransitionAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setType(type);
+		action.setSpeedFormula(duration);
+		action.setEdge(edgeFromSelection(edge));
+		return action;
+	}
+
+	private TransitionAction.Edge edgeFromSelection(int selection) {
+		switch (selection) {
+			case 1:
+				return TransitionAction.Edge.RIGHT;
+			case 2:
+				return TransitionAction.Edge.TOP;
+			case 3:
+				return TransitionAction.Edge.BOTTOM;
+			default:
+				return TransitionAction.Edge.LEFT;
+		}
+	}
+
+	public Action createFadeInAction(Sprite sprite, SequenceAction sequence, Formula duration) {
+		return transition(sprite, sequence, TransitionAction.Type.FADE_IN, duration, 0);
+	}
+
+	public Action createFadeOutAction(Sprite sprite, SequenceAction sequence, Formula duration) {
+		return transition(sprite, sequence, TransitionAction.Type.FADE_OUT, duration, 0);
+	}
+
+	public Action createZoomInAction(Sprite sprite, SequenceAction sequence, Formula duration) {
+		return transition(sprite, sequence, TransitionAction.Type.ZOOM_IN, duration, 0);
+	}
+
+	public Action createZoomOutAction(Sprite sprite, SequenceAction sequence, Formula duration) {
+		return transition(sprite, sequence, TransitionAction.Type.ZOOM_OUT, duration, 0);
+	}
+
+	public Action createSlideInAction(Sprite sprite, SequenceAction sequence, Formula duration, int edge) {
+		return transition(sprite, sequence, TransitionAction.Type.SLIDE_IN, duration, edge);
+	}
+
+	public Action createSlideOutAction(Sprite sprite, SequenceAction sequence, Formula duration, int edge) {
+		return transition(sprite, sequence, TransitionAction.Type.SLIDE_OUT, duration, edge);
+	}
+
 	public Action createSetWidthAction(Sprite sprite, SequenceAction sequence, Formula size) {
 		SetWidthAction action = Actions.action(SetWidthAction.class);
 		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);

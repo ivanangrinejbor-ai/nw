@@ -89,7 +89,9 @@ import androidx.annotation.NonNull;
 		"nfcTagList",
 		"userVariables",
 		"userLists",
-		"userDefinedBrickList"
+		"userDefinedBrickList",
+		"swipeable",
+		"swipeAttachments"
 })
 @LunoClass
 public class Sprite implements Nameable, Serializable {
@@ -125,6 +127,28 @@ public class Sprite implements Nameable, Serializable {
 	private List<UserVariable> userVariables = new ArrayList<>();
 	private List<UserList> userLists = new ArrayList<>();
 	private List<Brick> userDefinedBrickList = new ArrayList<>();
+
+	private boolean swipeable = false;
+	private List<SwipeAttachment> swipeAttachments = new ArrayList<>();
+
+	public boolean isSwipeable() {
+		return swipeable;
+	}
+
+	public void setSwipeable(boolean swipeable) {
+		this.swipeable = swipeable;
+	}
+
+	public List<SwipeAttachment> getSwipeAttachments() {
+		if (swipeAttachments == null) {
+			swipeAttachments = new ArrayList<>();
+		}
+		return swipeAttachments;
+	}
+
+	public void setSwipeAttachments(List<SwipeAttachment> swipeAttachments) {
+		this.swipeAttachments = swipeAttachments;
+	}
 
 	private transient ActionFactory actionFactory = new ActionFactory();
 

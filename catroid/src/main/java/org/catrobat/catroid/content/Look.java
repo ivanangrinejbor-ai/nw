@@ -213,6 +213,15 @@ public class Look extends Image {
 		addListeners();
 	}
 
+	private transient SwipeController swipeController;
+
+	private SwipeController getSwipeController() {
+		if (swipeController == null) {
+			swipeController = new SwipeController(sprite);
+		}
+		return swipeController;
+	}
+
 	protected void addListeners() {
 		this.addListener(new InputListener() {
 			@Override
@@ -230,6 +239,9 @@ public class Look extends Image {
 				Polygon[] collisionPolygons = getCurrentCollisionPolygon();
 				for (Polygon poly : collisionPolygons) {
 					if (poly.contains(stageX, stageY)) {
+						if (sprite != null && sprite.isSwipeable() && pointer == 0) {
+							return getSwipeController().onTouchDown(stageX, stageY);
+						}
 						EventWrapper e = new EventWrapper(new EventId(EventId.TAP), false);
 						sprite.look.fire(e);
 						return true;
@@ -245,6 +257,20 @@ public class Look extends Image {
 				setTouchable(Touchable.enabled);
 
 				return false;
+			}
+
+			@Override
+			public void touchDragged(InputEvent event, float x, float y, int pointer) {
+				if (pointer == 0 && swipeController != null) {
+					swipeController.onTouchDragged(event.getStageX(), event.getStageY());
+				}
+			}
+
+			@Override
+			public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
+				if (pointer == 0 && swipeController != null) {
+					swipeController.onTouchUp(event.getStageX(), event.getStageY());
+				}
 			}
 		});
 		this.addListener(new EventWrapperListener(this));
@@ -605,6 +631,9 @@ public class Look extends Image {
 	@Override
 	public void act(float delta) {
 		scheduler.tick(delta);
+		if (swipeController != null) {
+			swipeController.update(delta);
+		}
 		if (sprite != null) {
 			if (myUpdateBucket == globalFrameTicker % UPDATE_BUCKETS) {
 				sprite.runningStitch.update();

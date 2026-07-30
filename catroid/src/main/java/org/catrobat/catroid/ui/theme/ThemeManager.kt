@@ -25,9 +25,12 @@ package org.catrobat.catroid.ui.theme
 import android.content.Context
 import android.content.SharedPreferences
 import android.net.Uri
+import android.os.Build
 import android.preference.PreferenceManager
 import android.provider.OpenableColumns
 import android.util.Log
+import androidx.core.content.ContextCompat
+import com.google.android.material.color.DynamicColors
 import java.io.File
 
 /**
@@ -41,6 +44,7 @@ object ThemeManager {
     private const val TAG = "ThemeManager"
 
     const val PREF_KEY_SELECTED = "pref_neo_theme_selected"
+    const val PREF_MATERIAL_YOU = "setting_material_you"
     const val DEFAULT_ID = "__default__"
     private const val THEMES_DIR = "neothemes"
     private const val EXTENSION = ".neotema"
@@ -65,18 +69,79 @@ object ThemeManager {
     /** Loads the persisted selection into memory. Call once from Application.onCreate. */
     fun init(context: Context) {
         currentPalette = try {
-            val selected = prefs(context).getString(PREF_KEY_SELECTED, DEFAULT_ID) ?: DEFAULT_ID
-            if (selected == DEFAULT_ID) {
-                ThemePalette.DEFAULT
+            if (isMaterialYouEnabled(context)) {
+                dynamicPalette(context) ?: loadSelectedPalette(context)
             } else {
-                val file = File(themesDir(context), selected)
-                if (file.exists()) NeoThemeParser.parse(file.readText()) else ThemePalette.DEFAULT
+                loadSelectedPalette(context)
             }
         } catch (e: Exception) {
             Log.e(TAG, "Failed to load selected theme, falling back to default", e)
             ThemePalette.DEFAULT
         }
     }
+
+    private fun loadSelectedPalette(context: Context): ThemePalette {
+        val selected = prefs(context).getString(PREF_KEY_SELECTED, DEFAULT_ID) ?: DEFAULT_ID
+        return if (selected == DEFAULT_ID) {
+            ThemePalette.DEFAULT
+        } else {
+            val file = File(themesDir(context), selected)
+            if (file.exists()) NeoThemeParser.parse(file.readText()) else ThemePalette.DEFAULT
+        }
+    }
+
+    /** True when the user enabled Material You AND the device provides dynamic colours. */
+    fun isMaterialYouEnabled(context: Context): Boolean =
+        prefs(context).getBoolean(PREF_MATERIAL_YOU, false) && DynamicColors.isDynamicColorAvailable()
+
+    /**
+     * Toggles Material You. When enabled the app chrome is recoloured from the system
+     * dynamic palette (Android 12+); when disabled it reverts to the selected `.neotema`.
+     * The caller must recreate() the activity so [overrideMap] is re-read.
+     */
+    fun setMaterialYou(context: Context, enabled: Boolean) {
+        prefs(context).edit().putBoolean(PREF_MATERIAL_YOU, enabled).apply()
+        currentPalette = if (enabled && DynamicColors.isDynamicColorAvailable()) {
+            dynamicPalette(context) ?: loadSelectedPalette(context)
+        } else {
+            loadSelectedPalette(context)
+        }
+    }
+
+    /** Builds a palette from the Android 12+ system dynamic colours; null below API 31. */
+    private fun dynamicPalette(context: Context): ThemePalette? {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+            return null
+        }
+        return try {
+            ThemePalette(
+                name = "Material You",
+                author = null,
+                toolbar = ContextCompat.getColor(context, android.R.color.system_neutral1_800),
+                background = ContextCompat.getColor(context, android.R.color.system_neutral1_900),
+                button = ContextCompat.getColor(context, android.R.color.system_accent2_700),
+                accent = ContextCompat.getColor(context, android.R.color.system_accent1_200)
+            )
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to read system dynamic colours", e)
+            null
+        }
+    }
+
+    /** A ready-to-edit `.neotema` template mirroring the built-in default palette. */
+    fun defaultTemplateText(): String = buildString {
+        append("# NeoCatroid theme template (.neotema)\n")
+        append("# Edit the colours below, then import this file in Settings > Themes.\n")
+        append("# Colours are #RRGGBB or #AARRGGBB. Keys: toolbar, background, button, accent.\n")
+        append("name=My theme\n")
+        append("author=\n")
+        append("toolbar=").append(templateHex(ThemePalette.DEFAULT_TOOLBAR)).append('\n')
+        append("background=").append(templateHex(ThemePalette.DEFAULT_BACKGROUND)).append('\n')
+        append("button=").append(templateHex(ThemePalette.DEFAULT_BUTTON)).append('\n')
+        append("accent=").append(templateHex(ThemePalette.DEFAULT_ACCENT)).append('\n')
+    }
+
+    private fun templateHex(color: Int): String = String.format("#%08X", color)
 
     fun themesDir(context: Context): File {
         val dir = File(context.filesDir, THEMES_DIR)

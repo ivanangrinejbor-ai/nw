@@ -15,7 +15,9 @@ public class Set3dScaleAction extends TemporalAction {
     @Override
     protected void update(float percent) {
         if (scope == null) return;
-        var threeDManager = StageActivity.getActiveStageListener().getThreeDManager();
+        var stageListener = StageActivity.getActiveStageListener();
+        if (stageListener == null) return;
+        var threeDManager = stageListener.getThreeDManager();
         if (threeDManager == null) return;
 
         try {

@@ -49,6 +49,7 @@ import com.huawei.agconnect.config.AGConnectServicesConfig;
 import com.huawei.hms.mlsdk.common.MLApplication;
 
 import com.google.android.material.color.DynamicColors;
+import com.google.android.material.color.DynamicColorsOptions;
  
  import org.catrobat.catroid.ai.AiAgentManager;
 import org.catrobat.catroid.formulaeditor.CustomFormulaManager;
@@ -96,10 +97,14 @@ public class CatroidApplication extends Application {
 		}
 
 		super.onCreate();
-		if (prefs.getBoolean("setting_material_you", false)
-				&& DynamicColors.isDynamicColorAvailable()) {
-			DynamicColors.applyToActivitiesIfAvailable(this);
-		}
+		// Register the dynamic-colour callback unconditionally with a per-activity precondition
+		// that reads the live preference. This way toggling Material You takes effect on the next
+		// activity recreate() without needing a full app restart.
+		DynamicColors.applyToActivitiesIfAvailable(this,
+				new DynamicColorsOptions.Builder()
+						.setPrecondition((activity, theme) ->
+								prefs.getBoolean("setting_material_you", false))
+						.build());
 
 		org.catrobat.catroid.ui.theme.ThemeManager.INSTANCE.init(this);
 
