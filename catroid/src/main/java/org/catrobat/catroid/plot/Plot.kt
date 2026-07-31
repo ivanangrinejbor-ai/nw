@@ -33,8 +33,6 @@ import org.catrobat.catroid.stage.StageActivity
 class Plot
 {
     companion object {
-        // Защита от OOM: бесконечный цикл Start/StopPlot или очень долгое рисование
-        // не должны накапливать точки без ограничения.
         private const val MAX_LINES = 500
         private const val MAX_POINTS_PER_LINE = 50_000
     }
@@ -124,14 +122,12 @@ class Plot
             return
 
         renderer.color = Color(0.0F, 0.0F, 0.0F, 255.0F)
-        //renderer.begin(ShapeRenderer.ShapeType.Filled)
 
         while (canDraw()) {
             drawLine(screenRatio, renderer, camera)
             updateQueue()
         }
 
-        //renderer.end()
         width = camera.viewportWidth
         height = camera.viewportHeight
     }

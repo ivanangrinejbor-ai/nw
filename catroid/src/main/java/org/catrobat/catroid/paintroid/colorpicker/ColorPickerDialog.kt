@@ -204,7 +204,6 @@ class ColorPickerDialog : AppCompatDialogFragment(), OnColorChangedListener, OnC
         colorToApply = colorPickerView.initialColor
         val materialDialog = MaterialAlertDialogBuilder(requireContext(), R.style.AlertDialogTheme)
             .setNegativeButton(R.string.color_picker_cancel) { dialogInterface: DialogInterface, _: Int ->
-                // updateColorChange(colorToApply)
                 dialogInterface.dismiss()
             }
             .setPositiveButton(R.string.color_picker_apply) { _: DialogInterface, _: Int ->

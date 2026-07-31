@@ -149,9 +149,6 @@ public class ScratchConversionManager implements ConversionManager {
 		}
 	}
 
-	// -----------------------------------------------------------------------------------------------------------------
-	// ConnectAuthCallback
-	// -----------------------------------------------------------------------------------------------------------------
 	@Override
 	public void onSuccess(long clientID) {
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(currentActivity.getApplicationContext());
@@ -207,9 +204,6 @@ public class ScratchConversionManager implements ConversionManager {
 		});
 	}
 
-	// -----------------------------------------------------------------------------------------------------------------
-	// ConversionManager interface
-	// -----------------------------------------------------------------------------------------------------------------
 	@Override
 	public void addBaseInfoViewListener(BaseInfoViewListener baseInfoViewListener) {
 		baseInfoViewListeners.add(baseInfoViewListener);
@@ -257,9 +251,6 @@ public class ScratchConversionManager implements ConversionManager {
 		return mergedListenersList.toArray(new JobViewListener[mergedListenersList.size()]);
 	}
 
-	// -----------------------------------------------------------------------------------------------------------------
-	// ConvertCallback
-	// -----------------------------------------------------------------------------------------------------------------
 	@Override
 	public void onInfo(final double supportedCatrobatLanguageVersion, final Job[] jobs) {
 		for (Job job : jobs) {
@@ -314,7 +305,6 @@ public class ScratchConversionManager implements ConversionManager {
 
 	@Override
 	public void onConversionStart(final Job job) {
-		// Note: this callback-method is not called on UI-thread
 		Log.i(TAG, "Conversion started!");
 		currentActivity.runOnUiThread(new Runnable() {
 			@Override
@@ -522,15 +512,11 @@ public class ScratchConversionManager implements ConversionManager {
 		return Job.DownloadState.NOT_READY;
 	}
 
-	// -----------------------------------------------------------------------------------------------------------------
-	// ProjectDownloadCallback
-	// -----------------------------------------------------------------------------------------------------------------
 	@Override
 	public void onDownloadStarted(final String url) {
 		final long jobID = Utils.extractScratchJobIDFromURL(url);
 		updateDownloadStateOnDisk(jobID, Job.DownloadState.DOWNLOADING);
 
-		// Note: this callback-method may not be called on UI-thread
 		currentActivity.runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
@@ -548,7 +534,6 @@ public class ScratchConversionManager implements ConversionManager {
 
 	@Override
 	public void onDownloadProgress(final int progress, final String url) {
-		// Note: this callback-method is not called on UI-thread
 		currentActivity.runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
@@ -569,7 +554,6 @@ public class ScratchConversionManager implements ConversionManager {
 		final long jobID = Utils.extractScratchJobIDFromURL(url);
 		updateDownloadStateOnDisk(jobID, Job.DownloadState.DOWNLOADED);
 
-		// Note: this callback-method is not called on UI-thread
 		currentActivity.runOnUiThread(new Runnable() {
 			@Override
 			public void run() {

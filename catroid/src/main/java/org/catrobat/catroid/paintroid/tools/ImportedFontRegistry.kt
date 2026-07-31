@@ -21,11 +21,6 @@ import android.content.Context
 import android.graphics.Typeface
 import java.io.File
 
-/**
- * A selectable font in the text tool's font list.
- * BuiltIn entries map to the static [FontType] enum; Imported entries are
- * fonts the user copied from another project and stored locally on the device.
- */
 sealed class FontEntry {
     abstract fun displayName(context: Context): String
 
@@ -40,11 +35,6 @@ sealed class FontEntry {
 
 data class ImportedFont(val name: String, val fileName: String)
 
-/**
- * Persists fonts the user imported from other projects so they survive app
- * restarts. Font files are copied into the app-private "fonts" directory and
- * the name->file mapping is kept in SharedPreferences.
- */
 object ImportedFontRegistry {
     private const val PREFS_NAME = "imported_fonts"
     private const val KEY_FONTS = "fonts"
@@ -68,12 +58,6 @@ object ImportedFontRegistry {
         return createTypefaceWithFallback(file)
     }
 
-    /**
-     * Build a Typeface from a font file that falls back to the default sans-serif
-     * for any glyph the file does not actually provide (e.g. a Cyrillic-only font
-     * used for Latin text). Without this, missing glyphs render blank or as stray
-     * system letters instead of a proper fallback.
-     */
     private fun createTypefaceWithFallback(file: File): Typeface {
         val fallback = Typeface.SANS_SERIF
         return try {

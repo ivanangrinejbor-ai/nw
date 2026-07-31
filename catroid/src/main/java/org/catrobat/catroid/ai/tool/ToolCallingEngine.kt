@@ -24,11 +24,9 @@ object ToolCallingEngine {
 
     private var context: Context? = null
 
-    /** null = global scope (all projects). When set, project-browsing tools are hidden/denied. */
     @Volatile
     var scopeProjectName: String? = null
 
-    /** Tools that only make sense in global scope; hidden and denied when scoped to one project. */
     private val globalOnlyTools = setOf("listProjects", "openProject")
 
     private val registeredTools = Collections.synchronizedMap(mutableMapOf<String, Tool>())
@@ -1006,8 +1004,6 @@ object ToolCallingEngine {
 
             localizer.localizeProject()
 
-            // Корутинное ожидание вместо Object.wait(): не блокирует поток-пула
-            // и не зависит от диспетчера, на который SpriteLocalizer шлёт onComplete.
             report = kotlinx.coroutines.withTimeoutOrNull(180_000) { deferred.await() }
 
             return report?.let { r ->

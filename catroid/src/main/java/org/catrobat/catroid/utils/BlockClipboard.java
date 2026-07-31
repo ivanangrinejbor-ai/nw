@@ -24,7 +24,7 @@ public class BlockClipboard {
         for (Brick b : bricks) {
             try {
                 clonedList.add(b.clone());
-            } catch (CloneNotSupportedException ignored) { // ignored
+            } catch (CloneNotSupportedException ignored) {
             }
         }
         if (!clonedList.isEmpty()) {

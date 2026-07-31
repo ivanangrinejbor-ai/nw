@@ -98,7 +98,6 @@ public class ArduinoListener implements IFirmata.Listener {
 
 	@Override
 	public void onUnknownByteReceived(int byteValue) {
-		//Log.d(TAG, "Unkown Byte received. Byte value: " + byteValue);
 	}
 
 	public int getAnalogPinValue(int pin) {

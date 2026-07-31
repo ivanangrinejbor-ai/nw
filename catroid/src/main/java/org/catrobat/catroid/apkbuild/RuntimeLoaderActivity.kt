@@ -20,7 +20,6 @@ class RuntimeLoaderActivity : Activity() {
     private val handler = Handler(Looper.getMainLooper())
     private var progress = 0
     private var bakedProjectDir: File? = null
-    // Пломба целостности не сошлась — проект подменён/APK перепакован.
     private var tampered = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -99,9 +98,6 @@ class RuntimeLoaderActivity : Activity() {
                 ProtectedProjectPayload.PASSWORD
             }
 
-            // Пломба целостности: если подпись присутствует — требуем совпадения
-            // сертификата подписи И HMAC проекта. Отсутствие sig = старый
-            // билд (legacy) — пропускаем для обратной совместимости.
             val sigContent = try {
                 assets.open(ProtectedProjectPayload.SIG_ASSET_NAME).use { it.bufferedReader().readText() }
             } catch (e: Exception) {

@@ -644,8 +644,6 @@ class MainActivity : AppCompatActivity(), MainView, CommandListener {
         }
         val currentTool = toolReference.tool
         if (currentTool is TextTool) {
-            // Imported/project fonts are now chosen via the "+" button in the
-            // text tool options view (ProjectPickerDialog).
         }
 
         topBar.plusButton.setOnClickListener {

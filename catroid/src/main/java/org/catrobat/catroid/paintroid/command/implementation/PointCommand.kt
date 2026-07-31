@@ -34,6 +34,5 @@ class PointCommand(var paint: Paint, point: PointF) : Command {
     }
 
     override fun freeResources() {
-        // No resources to free
     }
 }

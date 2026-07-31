@@ -53,7 +53,6 @@ class FlipCommand(flipDirection: FlipDirection) : Command {
     }
 
     override fun freeResources() {
-        // No resources to free
     }
 
     enum class FlipDirection {

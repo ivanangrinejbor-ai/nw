@@ -26,7 +26,6 @@ import org.catrobat.catroid.paintroid.common.CommonFactory
 
 class AddLayerCommandSerializer(version: Int) : VersionSerializer<AddEmptyLayerCommand>(version) {
     override fun write(kryo: Kryo, output: Output, command: AddEmptyLayerCommand) {
-        // Has no member variables to save
     }
 
     override fun read(kryo: Kryo, input: Input, type: Class<out AddEmptyLayerCommand>): AddEmptyLayerCommand =

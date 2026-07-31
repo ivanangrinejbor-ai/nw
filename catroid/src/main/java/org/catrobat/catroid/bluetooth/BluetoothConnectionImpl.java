@@ -113,7 +113,6 @@ public class BluetoothConnectionImpl implements BluetoothConnection {
 			try {
 				Log.e(TAG, Log.getStackTraceString(ioException));
 				Log.d(TAG, "Try connecting again");
-				// try another method for connection, this should work on the HTC desire, credits to Michael Biermann
 				Method mMethod = bluetoothDevice.getClass()
 						.getMethod(REFLECTION_METHOD_NAME, new Class[] {int.class});
 				this.bluetoothSocket = (BluetoothSocket) mMethod.invoke(bluetoothDevice, Integer.valueOf(1));

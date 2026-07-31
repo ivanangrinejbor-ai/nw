@@ -125,7 +125,7 @@ public class BufferVideoRecorder {
                 int r = rgba[offset++] & 0xFF;
                 int g = rgba[offset++] & 0xFF;
                 int b = rgba[offset++] & 0xFF;
-                offset++; // skip A
+                offset++;
 
                 int y = ((66 * r + 129 * g + 25 * b + 128) >> 8) + 16;
                 yuv[yIndex++] = (byte) clamp(y, 0, 255);

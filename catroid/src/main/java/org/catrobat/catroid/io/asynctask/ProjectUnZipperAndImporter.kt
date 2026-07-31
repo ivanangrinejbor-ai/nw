@@ -51,7 +51,7 @@ import java.io.IOException
 private val TAG = ProjectUnZipperAndImporter::class.java.simpleName
 
 private const val IMPORT_SPACE_MARGIN = 1.25
-private const val IMPORT_SPACE_OVERHEAD = 1024L * 1024L // 1 MB filesystem overhead
+private const val IMPORT_SPACE_OVERHEAD = 1024L * 1024L
 
 sealed class ImportResult {
     object Success : ImportResult()
@@ -227,9 +227,6 @@ private fun ProjectUnZipperAndImporter.unzipAndImportProject(projectZipFile: Fil
 
         if (codeXml.exists()) {
             val appVersion = readApplicationVersion(codeXml)
-            // Only the legacy ".newtrobat" format is version-gated. Other formats
-            // (.catrobat, .neotrobat, .zip, ...) import as-is, regardless of
-            // the application version written in code.xml.
             if (appVersion != null &&
                 projectZipFile.name.endsWith(Constants.OLD_CATROBAT_EXTENSION, true) &&
                 isUnsupportedVersion(appVersion)

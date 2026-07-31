@@ -242,7 +242,6 @@ public final class CastManager {
 	private synchronized void handleGamepadTouch(ImageButton button, MotionEvent event) {
 
 		if (event.getAction() != MotionEvent.ACTION_DOWN && event.getAction() != MotionEvent.ACTION_UP) {
-			// We only care about the event when a gamepad button is pressed and when a gamepad button is unpressed
 			return;
 		}
 
@@ -324,7 +323,6 @@ public final class CastManager {
 
 	public synchronized void setCastButton(MenuItem castButton) {
 		this.castButton = castButton;
-		//castButton.setVisible(mediaRouter.isRouteAvailable(mediaRouteSelector, MediaRouter.AVAILABILITY_FLAG_REQUIRE_MATCH));
 		setIsConnected(isConnected);
 	}
 
@@ -386,7 +384,6 @@ public final class CastManager {
 
 		@Override
 		public void onRouteAdded(MediaRouter router, MediaRouter.RouteInfo info) {
-			// Add route to list of discovered routes
 			synchronized (this) {
 				for (int i = 0; i < routeInfos.size(); i++) {
 					MediaRouter.RouteInfo routeInfo = routeInfos.get(i);
@@ -403,7 +400,6 @@ public final class CastManager {
 
 		@Override
 		public void onRouteRemoved(MediaRouter router, MediaRouter.RouteInfo info) {
-			// Remove route from list of routes
 			synchronized (this) {
 				for (int i = 0; i < routeInfos.size(); i++) {
 					MediaRouter.RouteInfo routeInfo = routeInfos.get(i);
@@ -425,8 +421,6 @@ public final class CastManager {
 				selectedDevice = CastDevice.getFromBundle(info.getExtras());
 				startCastService(initializingActivity);
 				lastConnectionTry = System.currentTimeMillis();
-				// Show a msg if still connecting after CAST_CONNECTION_TIMEOUT milliseconds
-				// and abort connection.
 				isCastDeviceAvailable = (CastRemoteDisplayLocalService.getInstance() != null)
 						&& (System.currentTimeMillis() - lastConnectionTry >= Constants.CAST_CONNECTION_TIMEOUT);
 				(new Handler()).postDelayed(new Runnable() {
@@ -452,7 +446,6 @@ public final class CastManager {
 		public synchronized void onCastStop() {
 
 			if (stageViewDisplayedOnCast != null) {
-				// Meaning that there is currently a stage being displayed on the remote screen
 				gamepadActivity.onBackPressed();
 			}
 			stageViewDisplayedOnCast = null;

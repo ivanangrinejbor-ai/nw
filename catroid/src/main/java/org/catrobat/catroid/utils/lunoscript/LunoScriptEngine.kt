@@ -13,7 +13,7 @@ import java.util.Date
 import java.util.Locale
 
 class LunoScriptEngine(
-    private val androidContext: Context?, // Nullable if context is not always needed
+    private val androidContext: Context?,
     private val scope: Scope? = null,
     private val customNativeFunctions: Map<String, CallableNativeLunoFunction>? = null
 ) {

@@ -6,12 +6,6 @@ import android.graphics.Paint
 import android.graphics.Typeface
 import org.catrobat.catroid.utils.ShowTextUtils
 
-/**
- * Android implementation of [TextService] rasterizing text via
- * android.graphics (Paint + Canvas + Bitmap), then returning raw RGBA8888 pixels.
- *
- * `typefaceName` is treated as a font file path (Typeface.createFromFile).
- */
 class AndroidTextService : TextService {
 
     override fun rasterizeText(
@@ -27,7 +21,7 @@ class AndroidTextService : TextService {
         if (typefaceName != null) {
             try {
                 paint.typeface = Typeface.createFromFile(typefaceName)
-            } catch (ignored: Exception) { /* fall back to default */ }
+            } catch (ignored: Exception) { }
         }
         paint.isAntiAlias = true
 

@@ -87,6 +87,5 @@ class TextToolCommand(
     }
 
     override fun freeResources() {
-        // No resources to free
     }
 }

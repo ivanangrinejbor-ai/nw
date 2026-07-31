@@ -269,7 +269,6 @@ class ChatActivity : AppCompatActivity() {
     }
 
     companion object {
-        /** Optional String extra: when set, the agent is limited to this single project. */
         const val EXTRA_SCOPE_PROJECT = "extra_scope_project"
     }
 }

@@ -25,7 +25,6 @@ package org.catrobat.catroid.scratchconverter.protocol;
 
 public enum JsonKeys {
 
-	// main JSON-keys for messages received by server
 	CATEGORY("category"),
 	DATA("data"),
 	TYPE("type");
@@ -41,7 +40,6 @@ public enum JsonKeys {
 		return rawValue;
 	}
 
-	// JSON-keys of arguments contained in data
 	public enum JsonDataKeys {
 		MSG("msg"),
 		JOB_ID("jobID"),
@@ -67,7 +65,6 @@ public enum JsonKeys {
 		}
 	}
 
-	// JSON-keys of job-arguments in InfoMessage
 	public enum JsonJobDataKeys {
 		STATE("state"),
 		JOB_ID("jobID"),

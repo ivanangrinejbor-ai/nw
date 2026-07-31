@@ -12,9 +12,6 @@ object ModelRuntime {
 
     private const val TAG = "ModelRuntime"
 
-    // Local on-device GGUF inference via llama.cpp (JNI). When the native library
-    // is present it is used for models selected under the "local" backend; the
-    // cloud (Gemini) backend remains available independently.
     private const val LOCAL_MODELS_ENABLED = true
 
     private var nativeLoaded = false
@@ -98,8 +95,6 @@ object ModelRuntime {
         return generateMutex.withLock {
             if (nativeLoaded && nativeContext != 0L) {
                 try {
-                    // Run blocking native inference on IO dispatcher so Default
-                    // threads remain responsive and the UI doesn't freeze.
                     val raw = withContext(Dispatchers.IO) {
                         nativeGenerate(nativeContext, input, temperature, maxTokens)
                     }

@@ -50,7 +50,6 @@ public interface Client {
 	void onUserCanceledConversion(long jobID);
 	void close();
 
-	// callbacks
 	interface ConnectAuthCallback {
 		void onSuccess(long clientID);
 		void onConnectionClosed(ClientException ex);

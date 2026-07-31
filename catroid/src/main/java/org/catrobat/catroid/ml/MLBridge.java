@@ -30,17 +30,15 @@ public class MLBridge {
 
     public static native void nativeReshape(String name, int[] shape);
 
-    //public static native float nativeGetTensorValueByIndex(String name, int index);
-
     public static void test() {
         nativeCreateTensor("x", new int[]{1, 1}, 2.0f, false);
         nativeCreateTensor("w", new int[]{1, 1}, 0.5f, true);
         nativeCreateTensor("target", new int[]{1, 1}, 10.0f, false);
 
         for (int i = 0; i < 50; i++) {
-            nativeOp("y", "x", "w", "mul");            // y = 2 * w
-            nativeOp("diff", "target", "y", "sub");     // diff = 10 - y
-            nativeOp("loss", "diff", "diff", "mul");    // loss = (10 - y)^2 (MSE)
+            nativeOp("y", "x", "w", "mul");
+            nativeOp("diff", "target", "y", "sub");
+            nativeOp("loss", "diff", "diff", "mul");
 
             nativeBackward("loss");
             nativeStep(0.01f);

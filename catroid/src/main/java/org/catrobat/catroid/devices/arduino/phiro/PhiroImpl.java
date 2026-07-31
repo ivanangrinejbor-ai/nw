@@ -321,7 +321,6 @@ public class PhiroImpl implements Phiro {
 		isReportingSensorData = report;
 
 		for (int pin = MIN_SENSOR_PIN; pin <= MAX_SENSOR_PIN; ++pin) {
-			// sendFirmataMessage(new SetPinModeMessage(? maybe 54 ?, SetPinModeMessage.PIN_MODE.ANALOG.getMode())); // --> not needed
 			sendFirmataMessage(new ReportAnalogPinMessage(pin, report));
 		}
 	}

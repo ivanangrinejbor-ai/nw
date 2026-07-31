@@ -30,6 +30,5 @@ class ResetCommand : Command {
     }
 
     override fun freeResources() {
-        // No resources to free
     }
 }

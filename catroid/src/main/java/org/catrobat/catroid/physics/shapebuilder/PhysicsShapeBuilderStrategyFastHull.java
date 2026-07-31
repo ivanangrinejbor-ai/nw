@@ -141,7 +141,6 @@ public final class PhysicsShapeBuilderStrategyFastHull implements PhysicsShapeBu
 			hull.add(p);
 		}
 
-		// Build upper hull
 		int lowerSize = hull.size();
 		for (int i = unique.size() - 2; i >= 0; i--) {
 			Vector2 p = unique.get(i);
@@ -157,7 +156,6 @@ public final class PhysicsShapeBuilderStrategyFastHull implements PhysicsShapeBu
 			hull.add(p);
 		}
 
-		// Remove the last point (duplicate of the first point, closing the chain)
 		if (hull.size() > 1) {
 			hull.remove(hull.size() - 1);
 		}
@@ -165,25 +163,18 @@ public final class PhysicsShapeBuilderStrategyFastHull implements PhysicsShapeBu
 		return hull;
 	}
 
-	/**
-	 * Creates a minimal valid triangle (1x1 pixel box centered at the available point(s)).
-	 * Called when the convex hull has fewer than 3 unique vertices.
-	 */
 	private static List<Vector2> createMinimalTriangle(List<Vector2> hullPoints, int width, int height) {
 		float cx;
 		float cy;
 
 		if (hullPoints.isEmpty()) {
-			// No opaque pixels at all — center of pixmap
 			cx = width / 2.0f;
 			cy = height / 2.0f;
 		} else if (hullPoints.size() == 1) {
-			// Single opaque pixel
 			Vector2 p = hullPoints.get(0);
 			cx = p.x;
 			cy = p.y;
 		} else {
-			// Two or more collinear points — use their average
 			float sumX = 0;
 			float sumY = 0;
 			for (Vector2 p : hullPoints) {
@@ -201,13 +192,7 @@ public final class PhysicsShapeBuilderStrategyFastHull implements PhysicsShapeBu
 		return triangle;
 	}
 
-	/**
-	 * Converts convex hull vertices from pixel coordinates to Box2D coordinates
-	 * and splits the hull into sub-polygons of at most 8 vertices
-	 * (Box2D PolygonShape vertex limit).
-	 */
 	private Shape[] divideShape(Vector2[] convexPoints, int width, int height) {
-		// Convert pixel coordinates to Box2D coordinates (center-origin, Y-up)
 		for (int i = 0; i < convexPoints.length; i++) {
 			Vector2 point = convexPoints[i];
 			float x = point.x - width / 2.0f;
@@ -216,7 +201,6 @@ public final class PhysicsShapeBuilderStrategyFastHull implements PhysicsShapeBu
 		}
 
 		if (convexPoints.length < 3) {
-			// Should not happen (caller ensures 3+ hull points), but safeguard
 			return null;
 		}
 

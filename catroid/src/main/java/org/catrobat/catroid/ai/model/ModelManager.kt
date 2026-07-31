@@ -19,19 +19,12 @@ object ModelManager {
     private lateinit var modelsDir: File
     private var appContext: Context? = null
 
-    // On-device memory budgeting for llama.cpp. A native OOM cannot be caught in the
-    // JVM (the kernel kills the whole process → black screen), so we must refuse loads
-    // that will not fit and keep the KV cache small.
     private const val MAX_LOCAL_CTX = 2048
     private const val MIN_LOCAL_CTX = 256
-    // Resident overhead for compute buffers, scratch and the runtime itself.
     private const val COMPUTE_OVERHEAD_BYTES = 320L * 1024 * 1024
-    // Rough per-token KV-cache cost (f16, ~1.5-2B class models). Conservative upper bound.
     private const val KV_BYTES_PER_TOKEN = 200L * 1024
-    // Weights are counted with headroom (dequant/scratch), even though llama.cpp mmaps them.
     private const val WEIGHTS_HEADROOM = 1.2
 
-    /** Human-readable reason the last [loadModel] call failed (e.g. not enough RAM). */
     @Volatile
     var lastLoadError: String? = null
         private set
@@ -107,7 +100,6 @@ object ModelManager {
         refreshModels()
     }
 
-    /** System-wide memory currently available to the app, in bytes (0 if unknown). */
     fun availableMemoryBytes(): Long {
         val ctx = appContext ?: return 0
         val am = ctx.getSystemService(Context.ACTIVITY_SERVICE) as? ActivityManager ?: return 0
@@ -116,14 +108,9 @@ object ModelManager {
         return info.availMem
     }
 
-    /**
-     * Picks a context size that fits into available RAM, or -1 if even the weights plus a
-     * minimal KV cache would not fit. Keeps the KV cache small to avoid a native OOM.
-     */
     fun computeSafeContext(fileSizeBytes: Long): Int {
         val avail = availableMemoryBytes()
         if (avail <= 0) {
-            // Can't measure memory → stay conservative but still allow a small context.
             return MIN_LOCAL_CTX
         }
         val weights = (fileSizeBytes * WEIGHTS_HEADROOM).toLong()
@@ -163,22 +150,18 @@ object ModelManager {
     fun getModelById(modelId: String): ModelInfo? =
         _availableModels.value.find { it.id == modelId }
 
-    /** True while a download (foreground or service) is running. */
     fun isDownloadRunning(): Boolean = _isLoading.value
 
-    /** Called by [ModelDownloadService] when a download starts. */
     fun onDownloadStarted() {
         _isLoading.value = true
     }
 
-    /** Called by [ModelDownloadService] to publish streaming progress. */
     fun publishProgress(state: DownloadState) {
         _downloadProgress.value = Pair(state.modelId, state.progress)
         _downloadSpeed.value = formatSpeed(state.speedBytesPerSec)
         _detailedProgress.value = state
     }
 
-    /** Called by [ModelDownloadService] when a download finishes (success or failure). */
     fun onDownloadFinished() {
         _isLoading.value = false
         _downloadProgress.value = null

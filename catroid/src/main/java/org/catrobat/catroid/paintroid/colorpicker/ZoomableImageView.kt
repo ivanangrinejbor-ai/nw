@@ -117,7 +117,6 @@ class ZoomableImageView :
         val shader = BitmapShader(checkerboard, Shader.TileMode.REPEAT, Shader.TileMode.REPEAT)
         checkeredPattern.shader = shader
         checkeredPattern.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC)
-        // delay displaying till the drawing being done
         postDelayed({ visibility = VISIBLE }, DELAY_MILLIS)
     }
 
@@ -175,7 +174,6 @@ class ZoomableImageView :
         val scale = scaleX.coerceAtMost(scaleY)
         mMatrix.setScale(scale, scale)
 
-        // Center the image
         var redundantYSpace = viewHeight - scale * imageHeight
         var redundantXSpace = viewWidth - scale * imageWidth
         redundantYSpace /= 2.toFloat()
@@ -344,7 +342,6 @@ class ZoomableImageView :
         val xPixel = touchPoint[0].toInt()
         val yPixel = touchPoint[1].toInt()
         if (xPixel !in 0 until bitmap.width || yPixel !in 0 until bitmap.height) {
-            // clicked outside of the image frame
             return
         }
 

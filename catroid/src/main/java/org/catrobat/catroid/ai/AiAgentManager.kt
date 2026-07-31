@@ -48,7 +48,6 @@ class AiAgentManager private constructor() {
     private val _activity = MutableStateFlow("")
     val activity: StateFlow<String> = _activity.asStateFlow()
 
-    /** null = global scope (all projects); otherwise the agent is confined to this project. */
     @Volatile
     var scopeProjectName: String? = null
         private set
@@ -89,7 +88,6 @@ class AiAgentManager private constructor() {
     }
 
     fun sendMessage(text: String) {
-        // Always show the user's message first, regardless of readiness.
         val userMsg = ChatMessage(
             role = ChatMessage.Role.USER,
             content = text,
@@ -117,15 +115,11 @@ class AiAgentManager private constructor() {
         processMessage(text)
     }
 
-    /** Whether the currently selected backend can serve a request. */
     private fun isBackendReady(): Boolean =
         if (AiPreferences.isLocalBackend()) ModelRuntime.isModelLoaded() else cloudRuntime.isReady()
 
-    /** Routes generation to the local llama.cpp runtime or the cloud Gemini runtime. */
     private suspend fun generate(input: String, temperature: Float, maxTokens: Int): String =
         if (AiPreferences.isLocalBackend() && ModelRuntime.isModelLoaded()) {
-            // On-device: cap generated tokens so we never exceed the (small) local context
-            // and keep latency/memory bounded. maxTokens here is the full context budget.
             modelRuntime.generate(input, temperature, maxTokens = LOCAL_MAX_GEN_TOKENS)
         } else {
             cloudRuntime.generate(input, temperature, maxTokens = maxTokens.coerceIn(256, 8192))
@@ -245,11 +239,6 @@ class AiAgentManager private constructor() {
         }
     }
 
-    /**
-     * Human-friendly description of what the agent is currently doing with a tool,
-     * e.g. "Reading object Scene1/Object1" instead of the raw tool-call syntax.
-     * Shown in the expandable "Thinking" row.
-     */
     private fun describeToolActivity(toolCall: ToolCall): String {
         val a = toolCall.args
         val scene = a["scene"]?.takeIf { it.isNotBlank() }
@@ -297,7 +286,6 @@ class AiAgentManager private constructor() {
         }
     }
 
-    /** Past-tense variant shown briefly after a tool finishes. */
     private fun describeToolActivityDone(toolCall: ToolCall): String =
         describeToolActivity(toolCall).let { desc ->
             when {
@@ -317,12 +305,6 @@ class AiAgentManager private constructor() {
             }
         }
 
-    /**
-     * Human-friendly description of the concrete project changes about to be applied,
-     * e.g. "Creating object 'Bird' in 'Scene1'" or "Writing a script on Scene1/Bird".
-     * Shown (and tap-expandable) in the "Thinking" row so writes/creates are visible,
-     * not just a "N change(s)" count.
-     */
     private fun describePendingChanges(changes: List<org.catrobat.catroid.ai.tool.ProjectChange>): String {
         val lines = changes.map { describeChange(it) }
         return if (lines.size == 1) lines.first() else lines.joinToString("\n") { "• $it" }
@@ -360,12 +342,6 @@ class AiAgentManager private constructor() {
         }
     }
 
-    /**
-     * Same present-tense description as [describePendingChanges] but with the concrete
-     * brick diff appended once the change has been applied, e.g.
-     * "Replacing script #1 of Scene1/Bird  +1 -1" (1 brick added, 1 removed in place).
-     * [outcomes] is 1:1 with [changes] (see ProjectModifier.applyChanges).
-     */
     private fun describeAppliedChanges(
         changes: List<org.catrobat.catroid.ai.tool.ProjectChange>,
         outcomes: List<ProjectModifier.ModificationResult>
@@ -384,7 +360,6 @@ class AiAgentManager private constructor() {
         return if (lines.size == 1) lines.first() else lines.joinToString("\n") { "• $it" }
     }
 
-    /** Compact "+added -removed" brick counter, empty when nothing changed. */
     private fun brickDiff(added: Int, removed: Int): String = buildString {
         if (added > 0) append("+$added")
         if (removed > 0) {
@@ -420,26 +395,14 @@ class AiAgentManager private constructor() {
     }
 
     companion object {
-        /** Max tokens generated per round on the local (on-device) backend. */
         private const val LOCAL_MAX_GEN_TOKENS = 512
 
-        /**
-         * Hard character limit for prompts sent to the local (llama.cpp) backend.
-         * Qwen 0.5B Q5 with n_ctx=2048 is roughly 2048 * ~3.5 chars/token ≈ 7168 chars.
-         * We leave generous room for generated tokens.
-         */
         private const val LOCAL_PROMPT_CHAR_LIMIT = 4000
 
-        /**
-         * If the local backend is active and [input] exceeds [LOCAL_PROMPT_CHAR_LIMIT],
-         * keep only the TAIL of the string so the most recent context is preserved and
-         * the JNI tokenizer doesn't overflow n_ctx (which causes a native crash).
-         */
         private fun truncateForLocalBackend(input: String): String {
             if (!AiPreferences.isLocalBackend()) return input
             if (input.length <= LOCAL_PROMPT_CHAR_LIMIT) return input
             val truncated = input.takeLast(LOCAL_PROMPT_CHAR_LIMIT)
-            // Try to start at a newline boundary so we don't cut mid-sentence.
             val nlIdx = truncated.indexOf('\n')
             return if (nlIdx > 0) truncated.substring(nlIdx + 1) else truncated
         }

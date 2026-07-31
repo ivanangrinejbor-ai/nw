@@ -90,8 +90,6 @@ open class Perspective(private var bitmapWidth: Int, private var bitmapHeight: I
             return ratioDependentScale
         }
 
-    // counts to 2 at the start of the app. makes it so that the reset method will
-    // be called at the start of the app in Drawingsurface.kt surfaceChanged.
     var callResetScaleAndTransformationOnStartUp = 0
     private var initialTranslationX = 0f
     var oldHeight = 0f

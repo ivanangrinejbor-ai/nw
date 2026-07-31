@@ -36,6 +36,5 @@ class LoadCommand(loadedBitmap: Bitmap) : Command {
     }
 
     override fun freeResources() {
-        // No resources to free
     }
 }

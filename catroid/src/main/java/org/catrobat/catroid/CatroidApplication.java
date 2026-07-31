@@ -97,9 +97,6 @@ public class CatroidApplication extends Application {
 		}
 
 		super.onCreate();
-		// Register the dynamic-colour callback unconditionally with a per-activity precondition
-		// that reads the live preference. This way toggling Material You takes effect on the next
-		// activity recreate() without needing a full app restart.
 		DynamicColors.applyToActivitiesIfAvailable(this,
 				new DynamicColorsOptions.Builder()
 						.setPrecondition((activity, theme) ->
@@ -233,7 +230,6 @@ public class CatroidApplication extends Application {
     public static class PluginCompositeClassLoader extends ClassLoader {
         private final java.util.List<ClassLoader> pluginLoaders = new java.util.concurrent.CopyOnWriteArrayList<>();
 
-        // Потокобезопасный маркер для отслеживания текущих загружаемых классов
         private final ThreadLocal<java.util.Set<String>> loadingClasses = ThreadLocal.withInitial(java.util.HashSet::new);
 
         public PluginCompositeClassLoader(ClassLoader parent) {
@@ -259,7 +255,7 @@ public class CatroidApplication extends Application {
                 for (ClassLoader cl : pluginLoaders) {
                     try {
                         return cl.loadClass(name);
-                    } catch (ClassNotFoundException ignored) { // ignored
+                    } catch (ClassNotFoundException ignored) {
 			}
                 }
             } finally {

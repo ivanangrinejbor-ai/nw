@@ -214,8 +214,6 @@ object BakedApkBuilder {
             val keyFile = File(tempDir, ProtectedProjectPayload.KEY_ASSET_NAME)
             keyFile.writeText(payloadPassword)
 
-            // Кейстор решаем ДО сборки: нужен сертификат для пломбы целостности
-            // (привязка к подписи). Тот же keystore потом используется для подписи APK.
             val keystoreFile = config.customKeystore ?: getOrCreateDebugKeystore(context, tempDir)
             val sigFile: File? = try {
                 val certHash = PayloadIntegrity.certHashFromKeystore(
@@ -353,8 +351,6 @@ object BakedApkBuilder {
         var soundsCopied = 0
         var looksSize = 0L
         var soundsSize = 0L
-        // Include the global scene: its sprites' looks/sounds must land in the payload too,
-        // otherwise exported APKs render the global scene without assets.
         val allScenes = ArrayList(currentProject.sceneList)
         if (currentProject.hasGlobalScene()) {
             allScenes.add(currentProject.globalScene)
@@ -384,7 +380,6 @@ object BakedApkBuilder {
 
         zipDirectory(stagingDir, payloadZip)
         Log.d(TAG, "DIAG: payload zip = ${payloadZip.length()/(1024*1024)} MB (before encryption)")
-        // locked=true → магия NCPX: такой пейлоад редактор отказывается импортировать.
         ProjectCrypto.encrypt(payloadZip, encryptedProject, password, locked = true)
         Log.d(TAG, "DIAG: encrypted payload = ${encryptedProject.length()/(1024*1024)} MB")
         payloadZip.delete()

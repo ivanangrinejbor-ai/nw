@@ -39,7 +39,6 @@ class ChatAdapter(
         diffResult.dispatchUpdatesTo(this)
     }
 
-    /** Show/update or hide the trailing "Thinking" row with its live activity detail. */
     fun setThinking(active: Boolean, detail: String) {
         val wasActive = thinkingActive
         thinkingDetail = detail

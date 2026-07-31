@@ -86,7 +86,6 @@ public final class NfcHandler {
 			return 0;
 		}
 		try {
-			// Пытаемся получить технологию MifareClassic
 			MifareClassic mifare = MifareClassic.get(lastTag);
 			if (mifare != null) {
 				mifare.connect();
@@ -94,7 +93,6 @@ public final class NfcHandler {
 				mifare.close();
 				return size;
 			}
-			// Если не Mifare, пробуем NDEF
 			Ndef ndef = Ndef.get(lastTag);
 			if (ndef != null) {
 				ndef.connect();
@@ -120,7 +118,6 @@ public final class NfcHandler {
 				ndef.close();
 				return isWritable;
 			}
-			// Если NDEF не поддерживается, проверяем, можно ли его отформатировать под NDEF
 			NdefFormatable formatable = NdefFormatable.get(lastTag);
 			return formatable != null;
 		} catch (IOException e) {
@@ -151,7 +148,6 @@ public final class NfcHandler {
 		} catch (Exception e) {
 			Log.e(TAG, "Failed to get tag type", e);
 		}
-		// Если ничего не подошло, возвращаем первую технологию из списка
 		String[] techs = lastTag.getTechList();
 		if (techs != null && techs.length > 0) {
 			String tech = techs[0];

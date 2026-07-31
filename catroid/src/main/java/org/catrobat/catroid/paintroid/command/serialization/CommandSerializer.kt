@@ -98,8 +98,6 @@ open class CommandSerializer(private val activityContext: Context, private val c
     }
 
     private fun setRegisterMapVersion(version: Int) {
-        // Only add new classes at the end
-        // because Kryo assigns an ID to each class
         with(registerMap) {
             put(Command::class.java, null)
             put(CompositeCommand::class.java, CompositeCommandSerializer(version))

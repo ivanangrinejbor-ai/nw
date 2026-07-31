@@ -71,9 +71,6 @@ public final class PhysicsShapeBuilder {
 			throw new RuntimeException("get shape for null lookData not possible");
 		}
 
-		// Custom hitboxes authored in the Hitbox Editor override the automatic
-		// image-outline shape. They are cheap (plain rectangles), so build them
-		// fresh on every call instead of going through the pixmap cache.
 		if (lookData.hasCustomHitboxes()) {
 			return buildShapesFromHitboxes(lookData.getHitboxes(), scaleFactor);
 		}
@@ -98,23 +95,10 @@ public final class PhysicsShapeBuilder {
 			return null;
 		}
 
-		// Deep copy to prevent cache corruption when scaleShapes disposes old shapes
 		Shape[] shapesCopy = PhysicsShapeScaleUtils.copyShapes(shapes);
 		return PhysicsShapeScaleUtils.scaleShapes(shapesCopy, scaleFactor);
 	}
 
-	/**
-	 * Builds one Box2D polygon per custom hitbox.
-	 *
-	 * Hitbox coordinates live in original image space: center of the image is the
-	 * origin, X points right, Y points DOWN, units are pixels, rotation is degrees
-	 * clockwise on screen. This matches how the Hitbox Editor draws them.
-	 *
-	 * The pixmap-based path produces shapes centered on the image origin in Box2D
-	 * space (Y up, meters), so we convert each rotated corner the same way:
-	 * box2d = (imageX / RATIO, -imageY / RATIO). A full-image hitbox therefore
-	 * reproduces the image's bounding box exactly.
-	 */
 	private Shape[] buildShapesFromHitboxes(List<HitboxData> hitboxes, float scaleFactor) {
 		List<Shape> shapes = new ArrayList<>();
 		for (HitboxData hb : hitboxes) {
@@ -129,17 +113,14 @@ public final class PhysicsShapeBuilder {
 			float cos = (float) Math.cos(theta);
 			float sin = (float) Math.sin(theta);
 
-			// Local corners of the axis-aligned rectangle (image space, Y down).
 			float[] localX = {-hw, hw, hw, -hw};
 			float[] localY = {-hh, -hh, hh, hh};
 			Vector2[] vertices = new Vector2[4];
 			for (int i = 0; i < 4; i++) {
-				// Rotate clockwise-on-screen == standard rotation matrix in Y-down space.
 				float rx = localX[i] * cos - localY[i] * sin;
 				float ry = localX[i] * sin + localY[i] * cos;
 				float imageX = cx + rx;
 				float imageY = cy + ry;
-				// Image space (Y down, pixels) -> Box2D (Y up, meters).
 				vertices[i] = new Vector2(
 						PhysicsWorldConverter.convertNormalToBox2dCoordinate(imageX),
 						PhysicsWorldConverter.convertNormalToBox2dCoordinate(-imageY));
@@ -172,9 +153,6 @@ public final class PhysicsShapeBuilder {
 		return ACCURACY_LEVELS[ACCURACY_LEVELS.length - 1];
 	}
 
-	/**
-	 * Saves computed shapes in different accuracies for one image. (All in baseline -> 100%)
-	 */
 	private class ImageShapes {
 
 		private static final int MAX_ORIGINAL_PIXMAP_SIZE = 512;

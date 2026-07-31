@@ -63,7 +63,6 @@ class GeometricFillCommandSerializer(version: Int) : VersionSerializer<Geometric
 
     class HeartDrawableSerializer(version: Int) : VersionSerializer<HeartDrawable>(version) {
         override fun write(kryo: Kryo, output: Output, command: HeartDrawable) {
-            // Has no member variables to save
         }
 
         override fun read(kryo: Kryo, input: Input, type: Class<out HeartDrawable>): HeartDrawable =
@@ -75,7 +74,6 @@ class GeometricFillCommandSerializer(version: Int) : VersionSerializer<Geometric
 
     class OvalDrawableSerializer(version: Int) : VersionSerializer<OvalDrawable>(version) {
         override fun write(kryo: Kryo, output: Output, command: OvalDrawable) {
-            // Has no member variables to save
         }
 
         override fun read(kryo: Kryo, input: Input, type: Class<out OvalDrawable>): OvalDrawable =
@@ -87,7 +85,6 @@ class GeometricFillCommandSerializer(version: Int) : VersionSerializer<Geometric
 
     class RectangleDrawableSerializer(version: Int) : VersionSerializer<RectangleDrawable>(version) {
         override fun write(kryo: Kryo, output: Output, command: RectangleDrawable) {
-            // Has no member variables to save
         }
 
         override fun read(kryo: Kryo, input: Input, type: Class<out RectangleDrawable>): RectangleDrawable =
@@ -99,7 +96,6 @@ class GeometricFillCommandSerializer(version: Int) : VersionSerializer<Geometric
 
     class StarDrawableSerializer(version: Int) : VersionSerializer<StarDrawable>(version) {
         override fun write(kryo: Kryo, output: Output, command: StarDrawable) {
-            // Has no member variables to save
         }
 
         override fun read(kryo: Kryo, input: Input, type: Class<out StarDrawable>): StarDrawable =

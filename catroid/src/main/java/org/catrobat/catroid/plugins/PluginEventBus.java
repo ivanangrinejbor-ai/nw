@@ -45,12 +45,6 @@ public class PluginEventBus {
         return instance;
     }
 
-    /**
-     * Регистрирует слушателя (Luno-функцию) для определенного события.
-     * @param eventName Имя события (например, "MainMenu.onShow").
-     * @param engine Движок плагина, к которому принадлежит слушатель.
-     * @param callable Luno-функция, которая будет вызвана.
-     */
     public void register(String eventName, LunoScriptEngine engine, LunoValue.Callable callable) {
         synchronized (listeners) {
             List<Listener> eventListeners = listeners.get(eventName);
@@ -62,11 +56,6 @@ public class PluginEventBus {
         }
     }
 
-    /**
-     * Отправляет событие всем подписчикам.
-     * @param eventName Имя события.
-     * @param args Аргументы, которые будут переданы в Luno-функцию.
-     */
     public void dispatch(String eventName, Object... args) {
         List<Listener> eventListeners;
         synchronized (listeners) {

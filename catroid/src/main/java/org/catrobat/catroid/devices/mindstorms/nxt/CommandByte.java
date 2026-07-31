@@ -58,20 +58,4 @@ public enum CommandByte {
 	public static CommandByte getTypeByValue(byte value) {
 		return LOOKUP.get(value & 0xFF);
 	}
-
-	/* This are all commands lego supports, at the moment only some of them are implemented.
-
-	OpenRead = 0x80, OpenWrite = 0x81,Read = 0x82, Write = 0x83,
-	Close = 0x84, Delete = 0x85, FindFirst = 0x86, FindNext = 0x87,
-	GetFirmware = 0x88, OpenWriteLinear = 0x89, OpenReadLinear = 0x8a,
-	OpenWriteData = 0x8b, OpenAppendData = 0x8c, Boot = 0x97, SetBrickName = 0x98,
-	GetDeviceInfo = 0x9b, DeleteUserFlash = 0xA0,
-
-	StartProgram = 0x00, StopProgram = 0x01,
-	PlaySoundFile = 0x02, PlayTone = 0x03, SetOutputState = 0x04,
-	SetInputMode = 0x05, GetOutputState = 0x06, GetInputValues = 0x07,
-	ResetInputScaledValue = 0x08, MessageWrite = 0x09, ResetMotorPosition = 0x0a,
-	GetBatteryLevel = 0x0b, StopSoundPlayback = 0x0c, KeepAlive = 0x0d,
-	LsGetStatus = 0x0e, LsWrite = 0x0f, LsRead = 0x10,GetCurrentProgramName = 0x11,
-	MessageRead = 0x13*/
 }

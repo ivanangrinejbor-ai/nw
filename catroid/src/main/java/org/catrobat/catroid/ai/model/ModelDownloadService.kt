@@ -78,7 +78,6 @@ class ModelDownloadService : Service() {
                     var read: Int
                     var totalRead = 0L
                     val startTime = System.currentTimeMillis()
-                    // lastUpdate stores the absolute timestamp of the last speed sample
                     var lastUpdate = startTime
                     var lastBytes = 0L
                     var lastNotifiedPct = -1
@@ -90,7 +89,6 @@ class ModelDownloadService : Service() {
 
                         val now = System.currentTimeMillis()
                         if (now - lastUpdate > 400) {
-                            // windowMs = time since last speed sample (absolute timestamps)
                             val windowMs = (now - lastUpdate).coerceAtLeast(1)
                             val speedBps = ((totalRead - lastBytes) * 1000 / windowMs).coerceAtLeast(0)
                             lastUpdate = now
@@ -114,7 +112,6 @@ class ModelDownloadService : Service() {
                 }
             }
         } catch (e: Exception) {
-            // Clean up a partial file so it isn't shown as downloaded
             if (outputFile.exists() && (totalSize <= 0 || outputFile.length() < totalSize)) {
                 outputFile.delete()
             }

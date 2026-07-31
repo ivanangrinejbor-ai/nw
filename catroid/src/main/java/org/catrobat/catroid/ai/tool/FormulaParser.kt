@@ -8,7 +8,6 @@ import org.catrobat.catroid.formulaeditor.Operators
 
 object FormulaParser {
 
-    /** Parse [input] and return a [Formula] wrapping the built [FormulaElement] tree. */
     fun parse(input: String): Formula {
         val trimmed = input.trim()
         if (trimmed.isEmpty()) return Formula("0")
@@ -22,8 +21,6 @@ object FormulaParser {
         }
         return Formula(tree)
     }
-
-    // ------------------------------------------------------------- tokens
 
     private enum class TType { NUM, STR, IDENT, OP, LPAREN, RPAREN, COMMA, EOF }
     private data class Tok(val type: TType, val text: String)
@@ -46,14 +43,13 @@ object FormulaParser {
                 c == ')' -> { out.add(Tok(TType.RPAREN, ")")); i++ }
                 c == ',' -> { out.add(Tok(TType.COMMA, ",")); i++ }
                 c == '"' -> {
-                    // string literal
                     val sb = StringBuilder()
-                    i++ // skip opening quote
+                    i++
                     while (i < n && input[i] != '"') {
                         if (input[i] == '\\' && i + 1 < n) { sb.append(input[i + 1]); i += 2 }
                         else { sb.append(input[i]); i++ }
                     }
-                    if (i < n) i++ // skip closing quote
+                    if (i < n) i++
                     out.add(Tok(TType.STR, sb.toString()))
                 }
                 c.isDigit() || (c == '.' && i + 1 < n && input[i + 1].isDigit()) -> {
@@ -70,11 +66,9 @@ object FormulaParser {
                     }
                     val word = sb.toString()
                     val lower = word.lowercase()
-                    // Two-char operators spelled as words: "and", "or", "not", "mod"
                     if (lower in OPERATORS) out.add(Tok(TType.OP, lower))
                     else out.add(Tok(TType.IDENT, word))
                 }
-                // Multi-char operators
                 c == '!' && i + 1 < n && input[i + 1] == '=' -> {
                     out.add(Tok(TType.OP, "!=")); i += 2
                 }
@@ -97,8 +91,6 @@ object FormulaParser {
         return out
     }
 
-    // ------------------------------------------------------------- parser
-
     private class ParseContext(val tokens: List<Tok>) {
         var pos = 0
         fun peek(): Tok = tokens[pos]
@@ -112,16 +104,6 @@ object FormulaParser {
             return false
         }
     }
-
-    // Precedence levels (lowest to highest):
-    //  or
-    //  and
-    //  =, !=, <>, <, <=, >, >=
-    //  +, -
-    //  *, /, mod
-    //  ^ (right-assoc)
-    //  unary -, not
-    //  primary
 
     private fun parseOr(ctx: ParseContext): FormulaElement {
         var left = parseAnd(ctx)
@@ -187,7 +169,7 @@ object FormulaParser {
         val base = parseUnary(ctx)
         if (ctx.match(TType.OP, "^")) {
             ctx.eat()
-            val exp = parsePow(ctx) // right-associative
+            val exp = parsePow(ctx)
             return binaryOp(Operators.POW, base, exp)
         }
         return base
@@ -209,7 +191,6 @@ object FormulaParser {
 
     private fun parsePrimary(ctx: ParseContext): FormulaElement {
         val t = ctx.peek()
-        // Parenthesised sub-expression
         if (t.type == TType.LPAREN) {
             ctx.eat()
             val inner = parseOr(ctx)
@@ -218,21 +199,17 @@ object FormulaParser {
             }
             return inner
         }
-        // Number literal
         if (t.type == TType.NUM) {
             ctx.eat()
             return FormulaElement(ElementType.NUMBER, t.text, null)
         }
-        // String literal
         if (t.type == TType.STR) {
             ctx.eat()
             return FormulaElement(ElementType.STRING, t.text, null)
         }
-        // Identifier: function call or variable
         if (t.type == TType.IDENT) {
             ctx.eat()
             val identName = t.text
-            // Function call?
             if (ctx.match(TType.LPAREN)) {
                 ctx.eat()
                 val args = mutableListOf<FormulaElement>()
@@ -247,18 +224,14 @@ object FormulaParser {
                 }
                 return buildFunction(identName.uppercase(), args)
             }
-            // Constants
             val upper = identName.uppercase()
             if (upper == "TRUE") return FormulaElement(ElementType.FUNCTION, Functions.TRUE.name, null)
             if (upper == "FALSE") return FormulaElement(ElementType.FUNCTION, Functions.FALSE.name, null)
             if (upper == "PI") return FormulaElement(ElementType.FUNCTION, Functions.PI.name, null)
-            // Otherwise: user variable
             return FormulaElement(ElementType.USER_VARIABLE, identName, null)
         }
         throw IllegalArgumentException("Unexpected token: '${t.text}'")
     }
-
-    // ------------------------------------------------------------- helpers
 
     private fun binaryOp(op: Operators, left: FormulaElement, right: FormulaElement): FormulaElement =
         FormulaElement(ElementType.OPERATOR, op.name, null, left, right)
@@ -267,8 +240,6 @@ object FormulaParser {
         FormulaElement(ElementType.OPERATOR, opName, null, left, right)
 
     private fun buildFunction(name: String, args: List<FormulaElement>): FormulaElement {
-        // Resolve the function name against the Functions enum. If the user wrote
-        // "length", we map it to LENGTH; "random" -> RAND, etc.
         val resolved = resolveFunctionName(name)
             ?: throw IllegalArgumentException("Unknown function: '$name'")
         return when (args.size) {
@@ -294,11 +265,8 @@ object FormulaParser {
         }
     }
 
-    /** Map common aliases (e.g. "RANDOM" -> "RAND", "LENGTH" -> "LENGTH") to the enum name. */
     private fun resolveFunctionName(name: String): String? {
-        // Direct match
         if (Functions.values().any { it.name == name }) return name
-        // Common aliases the model might use
         val aliases = mapOf(
             "RANDOM" to Functions.RAND.name,
             "LEN" to Functions.LENGTH.name,

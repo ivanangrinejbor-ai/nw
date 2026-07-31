@@ -33,6 +33,5 @@ class SprayCommand(
     }
 
     override fun freeResources() {
-        // nothing to free
     }
 }

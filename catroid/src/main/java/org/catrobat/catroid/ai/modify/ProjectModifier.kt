@@ -339,13 +339,6 @@ object ProjectModifier {
         )
     }
 
-    /**
-     * Wire automatic language switching for the localized costumes created by
-     * `localizeSprites`. For every sprite that has a costume named "<orig> (<lang>)",
-     * adds a `When scene starts` script: If (language = '<lang>') switch to the localized
-     * costume, else the original. Creates the global `language` variable if missing.
-     * Idempotent: a sprite already carrying such a switch for the same language is skipped.
-     */
     private fun wireLocalizationSwitch(project: Project, change: ProjectChange): ModificationResult {
         val langCode = (change.data["language"] as? String)?.take(2)?.lowercase()
             ?: return ModificationResult.Failure("language required")
@@ -401,7 +394,6 @@ object ProjectModifier {
         )
     }
 
-    /** True if [sprite] already has an If-brick condition of the form `language = '<langCode>'`. */
     private fun spriteHasLanguageSwitch(sprite: Sprite, langCode: String): Boolean {
         for (s in sprite.scriptList) {
             for (b in s.brickList) {
@@ -420,7 +412,6 @@ object ProjectModifier {
         return false
     }
 
-    /** Parse "BrickName(a, b)" -> ("BrickName", ["a", "b"]). */
     private fun parseBrickSpec(spec: String): Pair<String, List<String>> {
         val open = spec.indexOf('(')
         if (open < 0 || !spec.endsWith(")")) return spec.trim() to emptyList()

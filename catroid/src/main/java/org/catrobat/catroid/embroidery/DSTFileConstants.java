@@ -23,18 +23,9 @@
 
 package org.catrobat.catroid.embroidery;
 
-public final class DSTFileConstants {
+	public final class DSTFileConstants {
 	private DSTFileConstants() {
 	}
-	/* https://edutechwiki.unige.ch/en/Embroidery_format_DST
-	/* http://www.achatina.de/sewing/main/TECHNICL.HTM
-	DST Encoding
-	BYTE  |  7  |  6  |  5  |  4  ||  3  |  2  |  1  |  0
-	------|------------------------------------------------
-	  1   | y+1 | y-1 | y+9 | y-9 || x-9 | x+9 | x-1 | x+1
-	  2   | y+3 | y-3 | y+27| y-27|| x-27| x+27| x-3 | x+3
-	  3   | c2  | c1  | y+81| y-81|| x-81| x+81| set | set
-	*/
 	public static final int[] CONVERSION_TABLE = {0x0, 0x1, 0x6, 0x4, 0x5, 0x1a, 0x18, 0x19, 0x12,
 			0x10, 0x11, 0x16,
 			0x14, 0x15, 0x6a, 0x68, 0x69, 0x62, 0x60, 0x61, 0x66, 0x64, 0x65, 0x4a, 0x48, 0x49, 0x42, 0x40, 0x41,

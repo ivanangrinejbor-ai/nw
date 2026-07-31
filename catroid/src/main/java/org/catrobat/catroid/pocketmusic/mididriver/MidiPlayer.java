@@ -122,8 +122,6 @@ public class MidiPlayer {
 			return false;
 		}
 
-		// Use the actual piece tempo (parsed from the MIDI file) instead of the
-		// possibly-stale manager tempo, so note scheduling depends on the current tempo.
 		tempo = project.getBeatsPerMinute();
 
 		stopPlaying();

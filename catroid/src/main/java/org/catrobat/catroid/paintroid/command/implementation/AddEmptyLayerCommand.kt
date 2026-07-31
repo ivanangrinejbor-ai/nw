@@ -39,6 +39,5 @@ class AddEmptyLayerCommand(private val commonFactory: CommonFactory) : Command {
     }
 
     override fun freeResources() {
-        // No resources to free
     }
 }

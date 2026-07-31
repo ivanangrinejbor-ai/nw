@@ -171,17 +171,6 @@ public class CollisionInformation {
 
 		final int MIN_SIZE_FOR_COMPLEX_COLLISION = 100;
 
-		/*if (bitmap.getWidth() < MIN_SIZE_FOR_COMPLEX_COLLISION || bitmap.getHeight() < MIN_SIZE_FOR_COMPLEX_COLLISION) {
-			Log.i(TAG, "Sprite is too small (" + bitmap.getWidth() + "x" + bitmap.getHeight() + "). Using simple hitbox instead of complex polygon.");
-			collisionPolygons = createCollisionPolygonByHitbox(bitmap);
-
-			if (!isCalculationThreadCancelled && lookData.isValid()) {
-				writeCollisionVerticesToPNGMeta(collisionPolygons, path);
-			}
-
-			return;
-		}*/
-
 		ArrayList<ArrayList<CollisionPolygonVertex>> boundingPolygon = createBoundingPolygonVertices(path, lookData);
 		if (boundingPolygon.size() == 0) {
 			if (bitmap != null) {
@@ -196,7 +185,6 @@ public class CollisionInformation {
 		}
 		Log.d("CollisionDebug", "Look: " + lookData.getName() + " - Initial vertex count: " + initialVertices + " / Limit: " + Constants.COLLISION_VERTEX_LIMIT);
 
-		//float minDimension = Math.min(bitmap.getWidth(), bitmap.getHeight());
 		android.graphics.Rect spriteBounds = ImageEditing.findVisibleBounds(bitmap);
 
 		if (spriteBounds == null) {
@@ -283,7 +271,6 @@ public class CollisionInformation {
 		}
 
 		writeCollisionVerticesToPNGMeta(collisionPolygons, path);
-		// Теперь лог должен показать гораздо большее количество "shapes"
 		Log.i(TAG_COLLISION_POLYGON, "Polygon size of look " + lookData.getName() + ": " + getNumberOfVertices() + " vertices in " + collisionPolygons.length + " convex shapes (triangles).");
 		} finally {
 			if (bitmap != null) bitmap.recycle();
@@ -623,16 +610,6 @@ public class CollisionInformation {
 		return polygons;
 	}
 
-	/**
-	 * Builds collision polygons from user-authored custom hitboxes, in the same
-	 * coordinate frame as the automatic image-outline polygons: [0..imgW, 0..imgH],
-	 * Y up. HitboxData lives in image-center-relative space with Y down (matching
-	 * the Hitbox Editor and PhysicsShapeBuilder), so each corner is offset by the
-	 * image center and its Y is flipped.
-	 *
-	 * Returns one convex quad per hitbox, or null if there is nothing usable
-	 * (so callers can fall back to the image-outline polygon).
-	 */
 	public static Polygon[] buildPolygonsFromHitboxes(List<HitboxData> boxes, float imgW, float imgH) {
 		if (boxes == null || boxes.isEmpty()) {
 			return null;
@@ -648,15 +625,12 @@ public class CollisionInformation {
 			float cos = (float) Math.cos(theta);
 			float sin = (float) Math.sin(theta);
 
-			// Local corners of the axis-aligned rectangle (image space, Y down).
 			float[] localX = {-hw, hw, hw, -hw};
 			float[] localY = {-hh, -hh, hh, hh};
 			float[] vertices = new float[8];
 			for (int i = 0; i < 4; i++) {
-				// Rotate clockwise-on-screen == standard rotation matrix in Y-down space.
 				float rx = localX[i] * cos - localY[i] * sin;
 				float ry = localX[i] * sin + localY[i] * cos;
-				// Image-center-relative (Y down) -> polygon frame [0..imgW, 0..imgH] (Y up).
 				vertices[i * 2] = imgW / 2f + (hb.x + rx);
 				vertices[i * 2 + 1] = imgH / 2f - (hb.y + ry);
 			}

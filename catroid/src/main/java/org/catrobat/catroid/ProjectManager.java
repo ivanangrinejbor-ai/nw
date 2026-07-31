@@ -109,11 +109,6 @@ public final class ProjectManager {
 		}
 	}
 
-	/**
-	 * Replaced with dependency injection
-	 *
-	 * @deprecated use dependency injection with koin instead.
-	 */
 	@Deprecated
 	public static ProjectManager getInstance() {
 		return instance;
@@ -123,9 +118,6 @@ public final class ProjectManager {
 		loadProject(projectDir, applicationContext);
 	}
 
-	/**
-	 * @deprecated use {@link #loadProject(File projectDir)} without Context instead.
-	 */
 	@Deprecated
 	public void loadProject(File projectDir, Context context) throws ProjectException {
 		Project previousProject = project;
@@ -609,9 +601,6 @@ public final class ProjectManager {
 		return initializeDefaultProject(applicationContext);
 	}
 
-	/**
-	 * @deprecated use {@link #initializeDefaultProject()} without Context instead.
-	 */
 	@Deprecated
 	public boolean initializeDefaultProject(Context context) {
 		try {
@@ -631,9 +620,6 @@ public final class ProjectManager {
 		createNewEmptyProject(name, applicationContext, landscapeMode, castEnabled);
 	}
 
-	/**
-	 * @deprecated use {@link #createNewEmptyProject(String, boolean, boolean)} ()} without Context instead.
-	 */
 	@Deprecated
 	public void createNewEmptyProject(String name, Context context, boolean landscapeMode, boolean castEnabled) throws IOException {
 		project = DefaultProjectHandler.createAndSaveEmptyProject(name, context, landscapeMode, castEnabled);
@@ -647,9 +633,6 @@ public final class ProjectManager {
 		createNewExampleProject(name, applicationContext, projectCreatorType, landscapeMode);
 	}
 
-	/**
-	 * @deprecated use {@link #createNewExampleProject(String, DefaultProjectHandler.ProjectCreatorType, boolean)} ()} without Context instead.
-	 */
 	@Deprecated
 	public void createNewExampleProject(String name, Context context, DefaultProjectHandler.ProjectCreatorType projectCreatorType, boolean landscapeMode) throws IOException {
 		DefaultProjectHandler.getInstance().setDefaultProjectCreator(projectCreatorType);
@@ -714,7 +697,6 @@ public final class ProjectManager {
         if (currentSprite != null) {
             return currentSprite;
         }
-        // Защита от NPE: проект/сцена могут быть ещё не загружены (ранние UI-вызовы, восстановление после краша)
         if (project == null) {
             return null;
         }
@@ -744,7 +726,6 @@ public final class ProjectManager {
 	public void setCurrentlyEditedScene(Scene scene) {
 		currentlyEditedScene = scene;
 		currentlyPlayingScene = scene;
-		// Обновляем список сигналов под новую сцену (глобальная видит сигналы всех сцен)
 		if (project != null && project.getBroadcastMessageContainer() != null) {
 			project.getBroadcastMessageContainer().update();
 		}
@@ -826,8 +807,6 @@ public final class ProjectManager {
 		currentlyEditedScene = null;
 		currentlyPlayingScene = null;
 		currentSprite = null;
-		// Release the retained project reference so a closed project's sprites/bitmaps
-		// can be garbage-collected. The singleton instance is intentionally kept.
 		project = null;
 	}
 

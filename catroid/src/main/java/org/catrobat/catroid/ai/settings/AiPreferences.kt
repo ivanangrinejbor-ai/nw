@@ -134,7 +134,6 @@ object AiPreferences {
         prefs?.edit()?.putString(KEY_CLOUD_MODEL, id)?.apply()
     }
 
-    /** Active inference backend: [BACKEND_CLOUD] (Gemini) or [BACKEND_LOCAL] (llama.cpp). */
     fun getBackend(): String {
         return prefs?.getString(KEY_BACKEND, BACKEND_CLOUD) ?: BACKEND_CLOUD
     }

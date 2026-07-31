@@ -10,10 +10,6 @@ import android.util.AttributeSet
 import android.view.animation.LinearInterpolator
 import androidx.appcompat.widget.AppCompatTextView
 
-/**
- * A TextView that paints a moving highlight band across its text, creating a shimmer that
- * sweeps left -> right -> left continuously. Used for the "Thinking" indicator.
- */
 class ShimmerTextView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,

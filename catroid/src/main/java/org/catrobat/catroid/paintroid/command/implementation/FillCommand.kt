@@ -50,6 +50,5 @@ class FillCommand(private val fillAlgorithmFactory: FillAlgorithmFactory, clicke
     }
 
     override fun freeResources() {
-        // No resources to free
     }
 }

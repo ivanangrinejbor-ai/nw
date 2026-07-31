@@ -17,11 +17,6 @@ import androidx.core.content.ContextCompat
 import org.catrobat.catroid.content.notification.NotificationEventReceiver
 import org.catrobat.catroid.content.notification.NotificationStorage
 
-/**
- * Android implementation of [NotificationService] delegating to the system
- * NotificationManager / AlarmManager and routing action/lifecycle intents through
- * [NotificationEventReceiver].
- */
 class AndroidNotificationService(private val context: Context) : NotificationService {
 
     private val createdChannels = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()

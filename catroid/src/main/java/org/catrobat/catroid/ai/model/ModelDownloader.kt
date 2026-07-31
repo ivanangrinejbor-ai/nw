@@ -23,7 +23,6 @@ object ModelDownloader {
     private val _downloads = MutableStateFlow<Map<String, DownloadState>>(emptyMap())
     val downloads: StateFlow<Map<String, DownloadState>> = _downloads.asStateFlow()
 
-    /** Per-model Job so cancel() actually stops the download coroutine. */
     private val activeJobs = mutableMapOf<String, Job>()
 
     data class DownloadState(
@@ -39,7 +38,6 @@ object ModelDownloader {
     }
 
     fun download(modelId: String, url: String, destination: File) {
-        // Do not start a second download for the same model
         synchronized(activeJobs) {
             if (activeJobs[modelId]?.isActive == true) return
         }
@@ -71,7 +69,6 @@ object ModelDownloader {
                 input.close()
                 updateState(modelId) { it.copy(isRunning = false, isComplete = true, progress = 100) }
             } catch (e: Exception) {
-                // Clean up partial/corrupt file so refreshModels() won't show it as downloaded
                 if (destination.exists() && (totalSize <= 0 || destination.length() < totalSize)) {
                     destination.delete()
                 }
@@ -90,7 +87,6 @@ object ModelDownloader {
         synchronized(activeJobs) { activeJobs[modelId] = job }
     }
 
-    /** Cancels the running download coroutine (not just the state). */
     fun cancel(modelId: String) {
         synchronized(activeJobs) { activeJobs.remove(modelId) }?.cancel()
         updateState(modelId) { it.copy(isRunning = false, isComplete = false, progress = 0, error = null) }

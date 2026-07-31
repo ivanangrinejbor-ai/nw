@@ -34,6 +34,5 @@ class RemoveLayerCommand(position: Int) : Command {
     }
 
     override fun freeResources() {
-        // No resources to free
     }
 }

@@ -117,10 +117,8 @@ public final class WebSocketClient<T extends MessageListener & StringCallback>
 						state = State.CONNECTED;
 						webSocket = newWebSocket;
 
-						// onMessage callback
 						webSocket.setStringCallback(messageListener);
 
-						// onClose callback
 						webSocket.setClosedCallback(client);
 						connectCallback.onSuccess();
 					}
@@ -129,8 +127,6 @@ public final class WebSocketClient<T extends MessageListener & StringCallback>
 
 	@Override
 	public void onCompleted(Exception ex) {
-		// Note: this is the central connection-closed callback-method
-		// (called when the server or client closes the connection):
 		state = State.NOT_CONNECTED;
 		connectAuthCallback.onConnectionClosed(new ClientException(ex));
 	}

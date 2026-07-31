@@ -358,7 +358,6 @@ public class LegoEV3Impl implements LegoEV3, LegoSensorService.OnSensorChangedLi
 	public void disconnect() {
 		if (mindstormsConnection.isConnected()) {
 			this.stopAllMovements();
-			//sensorService.destroy();
 			mindstormsConnection.disconnect();
 		}
 	}

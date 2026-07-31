@@ -115,7 +115,6 @@ class DefaultTextToolOptionsView(rootView: ViewGroup) : TextToolOptionsView {
         fontList.adapter = fontListAdapter
 
         addFontButton.setOnClickListener {
-            // Scan the CURRENT project's "files" folder for fonts first.
             val project = ProjectManager.getInstance().getCurrentProject()
             val filesDir = project?.getFilesDir()
             if (project != null && filesDir != null && filesDir.isDirectory) {
@@ -125,7 +124,6 @@ class DefaultTextToolOptionsView(rootView: ViewGroup) : TextToolOptionsView {
                     return@setOnClickListener
                 }
             }
-            // No usable fonts in the current project -> fall back to other projects.
             val fm = (context as? FragmentActivity)?.supportFragmentManager ?: return@setOnClickListener
             ProjectPickerDialog.newInstance { rebuildFontList() }.show(fm, "ProjectPickerDialog")
         }
@@ -219,8 +217,6 @@ class DefaultTextToolOptionsView(rootView: ViewGroup) : TextToolOptionsView {
         if (index >= 0) {
             fontListAdapter?.setSelectedFontIndex(index)
         }
-        // Push the selection to the tool so an imported font's typeface resolves
-        // (e.g. after a rotation/restore, when projectFontTypeface is not yet set).
         notifyFontChanged(fontEntry)
         fontSizeText.setText(DEFAULT_TEXTSIZE)
     }

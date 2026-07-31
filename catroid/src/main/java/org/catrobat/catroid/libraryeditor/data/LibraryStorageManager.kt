@@ -18,10 +18,6 @@ object LibraryStorageManager {
         return File(draftsDir, LAST_SESSION_FILENAME)
     }
 
-    /**
-     * Загружает последнюю сессию. Если файл не найден или поврежден,
-     * возвращает новый, пустой черновик.
-     */
     fun loadLastSession(context: Context): LibraryDraft {
         val file = getSessionFile(context)
         if (!file.exists()) {
@@ -30,22 +26,15 @@ object LibraryStorageManager {
         return try {
             gson.fromJson(file.readText(), LibraryDraft::class.java)
         } catch (e: Exception) {
-            // В случае ошибки парсинга, возвращаем чистый проект
             LibraryDraft(id = "last_session")
         }
     }
 
-    /**
-     * Сохраняет текущую сессию.
-     */
     fun saveSession(context: Context, draft: LibraryDraft) {
         val file = getSessionFile(context)
         file.writeText(gson.toJson(draft))
     }
 
-    /**
-     * Очищает последнюю сессию, удаляя файл.
-     */
     fun clearSession(context: Context) {
         val file = getSessionFile(context)
         if (file.exists()) {

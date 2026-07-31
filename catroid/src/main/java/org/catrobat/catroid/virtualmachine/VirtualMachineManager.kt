@@ -17,12 +17,6 @@ object VirtualMachineManager {
     private val outputVariables = ConcurrentHashMap<String, UserVariable>()
 
     init {
-        /*try {
-            VncClient.loadLibrary()
-        } catch (e: Exception) {
-            Log.e("VMManager", "Failed to load VNC client library", e)
-            isWorking = false
-        }*/
     }
 
 
@@ -30,11 +24,6 @@ object VirtualMachineManager {
 
     private val outputBuffers = ConcurrentHashMap<String, StringBuilder>()
 
-    /**
-     * Готовит исполняемый файл QEMU и его библиотеки к запуску.
-     * Копирует всю папку qemu_x86_64 из assets в приватную директорию приложения.
-     * @return Путь к исполняемому файлу QEMU или null в случае ошибки.
-     */
     private fun copyAssetFolder(context: Context, srcAssetPath: String, dstPath: String) {
         val assetManager = context.assets
         val files = assetManager.list(srcAssetPath) ?: return
@@ -213,9 +202,6 @@ object VirtualMachineManager {
         createVM(context, vmName, args, "", "")
     }
 
-    /**
-     * Останавливает виртуальную машину.
-     */
     fun stopVM(vmName: String) {
         if (!isWorking) return
         if (!NativeLibraryManager.isLoaded(NativeLibraryManager.Feature.CORE)) {

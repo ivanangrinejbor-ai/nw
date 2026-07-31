@@ -83,10 +83,6 @@ val componentsModules = module(createdAtStart = true, override = false) {
     }
 }
 
-/**
- * examples for inject view models in java & kotlin
- * https://github.com/InsertKoinIO/koin/blob/master/koin-projects/docs/reference/koin-android/viewmodel.md
- */
 val viewModelModules = module {
     viewModel { MainFragmentViewModel(get(), get(), get(), get()) }
 }
@@ -139,7 +135,5 @@ fun start(application: Application, modules: List<Module>) {
             modules(modules)
         }
     } catch (e: IllegalStateException) {
-        // Koin already started (e.g. Robolectric recreates the Application between test methods
-        // while the global Koin context persists in the JVM). Safe to ignore.
     }
 }

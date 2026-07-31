@@ -32,18 +32,6 @@ import java.security.MessageDigest
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 
-/**
- * Пломба целостности запечённого проекта, привязанная к подписи APK.
- *
- * Формат файла [ProtectedProjectPayload.SIG_ASSET_NAME] (две строки hex):
- *   line 1: SHA-256(DER сертификата подписи) — «ожидаемый» отпечаток создателя
- *   line 2: HMAC-SHA256(байты neocatroid.dat, ключ = отпечаток сертификата)
- *
- * При загрузке плеер требует, чтобы:
- *   1. его СОБСТВЕННЫЙ сертификат совпадал с line 1 (иначе APK перепакован/переподписан);
- *   2. HMAC от фактического neocatroid.dat совпадал с line 2 (иначе проект подменён).
- * Оба условия обходятся только владельцем ключа подписи создателя — это и есть цель.
- */
 object PayloadIntegrity {
     private const val TAG = "PayloadIntegrity"
     private const val HMAC_ALGORITHM = "HmacSHA256"
@@ -58,7 +46,6 @@ object PayloadIntegrity {
         return toHex(mac.doFinal(data))
     }
 
-    /** Сертификат из keystore (сторона сборки). PKCS12 грузится тем же паролем, что и подпись. */
     fun certHashFromKeystore(keystore: File, storePassword: String, alias: String): ByteArray? {
         return try {
             val ks = KeyStore.getInstance("PKCS12")
@@ -72,7 +59,6 @@ object PayloadIntegrity {
         }
     }
 
-    /** Собственный сертификат подписи установленного APK (сторона рантайма). */
     fun ownCertHash(context: Context): ByteArray? {
         return try {
             val pm = context.packageManager
@@ -80,8 +66,6 @@ object PayloadIntegrity {
             val signatures = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 val info = pm.getPackageInfo(pkgName, PackageManager.GET_SIGNING_CERTIFICATES)
                 val signingInfo = info.signingInfo ?: return null
-                // Всегда берём сертификаты, которыми подписан ИМЕННО этот APK
-                // (apkContentsSigners) — при ротации ключа history[0] может быть старым cert.
                 signingInfo.apkContentsSigners
             } else {
                 @Suppress("DEPRECATION")
@@ -95,17 +79,12 @@ object PayloadIntegrity {
         }
     }
 
-    /** Содержимое neocatroid.sig для записи на сборке. */
     fun buildSigContent(datBytes: ByteArray, certHash: ByteArray): String {
         val certHex = toHex(certHash)
         val hmac = hmacHex(datBytes, certHash)
         return "$certHex\n$hmac\n"
     }
 
-    /**
-     * Проверяет пломбу. Возвращает true только если сертификат совпадает с ожидаемым
-     * И HMAC от фактических байтов проекта совпадает.
-     */
     fun verify(sigContent: String, datBytes: ByteArray, ownCertHash: ByteArray): Boolean {
         val lines = sigContent.trim().lines()
         if (lines.size < 2) {

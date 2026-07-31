@@ -151,8 +151,6 @@ public class PluginExecutor {
                             context.getClassLoader()
                     );
 
-                    // SECURITY/INTEGRATION: register the plugin classloader with the global
-                    // composite classloader so XStream can resolve plugin brick classes.
                     if (org.catrobat.catroid.CatroidApplication.globalPluginClassLoader != null) {
                         org.catrobat.catroid.CatroidApplication.globalPluginClassLoader.addPluginLoader(classLoader);
                     }

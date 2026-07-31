@@ -25,7 +25,6 @@ import org.catrobat.catroid.paintroid.command.implementation.ResetCommand
 
 class ResetCommandSerializer(version: Int) : VersionSerializer<ResetCommand>(version) {
     override fun write(kryo: Kryo, output: Output, command: ResetCommand) {
-        // Has no member variables to save
     }
 
     override fun read(kryo: Kryo, input: Input, type: Class<out ResetCommand>): ResetCommand =

@@ -67,21 +67,19 @@ public class PhysicsWorld {
 
 	private static final String TAG = PhysicsWorld.class.getSimpleName();
 
-	// CATEGORY
 	public static final short CATEGORY_NO_COLLISION = 0x0000;
 	public static final short CATEGORY_BOUNDARYBOX = 0x0002;
 	public static final short CATEGORY_PHYSICSOBJECT = 0x0004;
 
-	// COLLISION_MODE
-	public static final short MASK_BOUNDARYBOX = CATEGORY_PHYSICSOBJECT; // collides with physics_objects
-	public static final short MASK_PHYSICSOBJECT = ~CATEGORY_BOUNDARYBOX; // collides with everything but not with the boundarybox
-	public static final short MASK_TO_BOUNCE = -1; // collides with everything
-	public static final short MASK_NO_COLLISION = 0; // collides with NOBODY
+	public static final short MASK_BOUNDARYBOX = CATEGORY_PHYSICSOBJECT;
+	public static final short MASK_PHYSICSOBJECT = ~CATEGORY_BOUNDARYBOX;
+	public static final short MASK_TO_BOUNCE = -1;
+	public static final short MASK_NO_COLLISION = 0;
 
 	public static final float DEFAULT_ACTIVE_AREA_WIDTH_FACTOR = 3.0f;
 	public static final float DEFAULT_ACTIVE_AREA_HEIGHT_FACTOR = 2.0f;
 
-	public static final float RATIO = 10.0f; // NOTE: hardcoded conversion factor between Box2D (metres) and Catroid (pixels). May need adjustment for different screen densities.
+	public static final float RATIO = 10.0f;
 	public static final int VELOCITY_ITERATIONS = 3;
 	public static final int POSITION_ITERATIONS = 3;
 
@@ -183,8 +181,6 @@ public class PhysicsWorld {
 			}
 			accumulator -= FIXED_TIMESTEP;
 		}
-		// Flush deferred collision events OUTSIDE the Box2D callback context,
-		// so bounce events and script firings don't modify Box2D state during step.
 		collisionListener.flushDeferredEvents();
 	}
 
@@ -195,11 +191,10 @@ public class PhysicsWorld {
 		for (Map.Entry<String, Joint> entry : joints.entrySet()) {
 			try {
 				world.destroyJoint(entry.getValue());
-			} catch (Exception ignored) { // ignored
+			} catch (Exception ignored) {
 			}
 		}
 		joints.clear();
-		// Snapshot iteration to avoid ConcurrentModificationException
 		for (PhysicsObject obj : new ArrayList<>(physicsObjects.values())) {
 			obj.dispose();
 		}
@@ -342,8 +337,6 @@ public class PhysicsWorld {
 		jointDef.joint1 = jointA;
 		jointDef.joint2 = jointB;
 
-		// GearJoint requires identifying the common body between the two child joints.
-		// bodyA and bodyB must be the two NON-common bodies.
 		Body a1 = jointA.getBodyA(), a2 = jointA.getBodyB();
 		Body b1 = jointB.getBodyA(), b2 = jointB.getBodyB();
 		Body common, uniqueA, uniqueB;
@@ -384,7 +377,7 @@ public class PhysicsWorld {
 			Log.w(TAG, "Cannot apply force to static body");
 			return;
 		}
-		if (obj.body.getWorld() == null) return; // body was destroyed
+		if (obj.body.getWorld() == null) return;
 		obj.body.applyForce(force, obj.body.getWorldPoint(PhysicsWorldConverter.convertCatroidToBox2dVector(point)), true);
 	}
 
@@ -475,11 +468,6 @@ public class PhysicsWorld {
 		return physicsObjects.computeIfAbsent(sprite, this::createPhysicsObject);
 	}
 
-	/**
-	 * Direct access to the Box2D world, used by {@link TilemapPhysicsBuilder} to create static
-	 * tile-collision bodies. Kept package-private so the tilemap builder can reuse it without
-	 * exposing the raw world to the whole app.
-	 */
 	World getWorld() {
 		return world;
 	}

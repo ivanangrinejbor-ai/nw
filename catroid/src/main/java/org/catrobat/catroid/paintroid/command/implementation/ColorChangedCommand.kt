@@ -79,6 +79,5 @@ class ColorChangedCommand(tool: Tool?, context: Context, color: Int) : Command {
     }
 
     override fun freeResources() {
-        // No resources to free
     }
 }

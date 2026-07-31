@@ -85,10 +85,6 @@ object NeuralSuggestionEngine {
         } catch (e: Exception) { null }
     }
 
-    /**
-     * Async prediction using the new AipContextManager.
-     * Runs TFLite inference on Dispatchers.Default to avoid UI freezes.
-     */
     suspend fun predictNextAsync(script: Script, topN: Int = 3, parentBrick: Brick? = null): List<Suggestion> =
         withContext(Dispatchers.Default) {
             predictNext(script, topN, parentBrick)

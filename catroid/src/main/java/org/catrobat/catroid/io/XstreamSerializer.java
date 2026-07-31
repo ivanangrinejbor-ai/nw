@@ -1007,7 +1007,6 @@ public final class XstreamSerializer {
 				if (oldGlobal.isGlobalScene()) {
 					oldGlobal.setProject(project);
 					} else if (!oldGlobal.getSpriteList().isEmpty()) {
-						// Legacy container (pre-GlobalScene): migrate sprites to default scene
 						Scene defaultScene = project.getDefaultScene();
 						if (defaultScene != null) {
 							for (Sprite sprite : oldGlobal.getSpriteList()) {

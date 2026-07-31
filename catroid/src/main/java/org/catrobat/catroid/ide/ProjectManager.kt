@@ -168,16 +168,13 @@ object ProjectManager {
 
                 "libgdx" -> {
                     val libs = listOf(
-                        // LibGDX
                         "com.badlogicgames.gdx:gdx:1.12.1",
                         "com.badlogicgames.gdx:gdx-jnigen-loader:2.3.1",
                         "com.badlogicgames.gdx:gdx-backend-android:1.12.1",
                         "com.badlogicgames.gdx:gdx-platform:1.12.1:natives-arm64-v8a",
 
-                        // AndroidX Essentials
                         "androidx.fragment:fragment:1.3.6",
 
-                        // Fragment
                         "androidx.activity:activity:1.2.3",
                         "androidx.loader:loader:1.0.0",
                         "androidx.viewpager:viewpager:1.0.0",
@@ -186,7 +183,6 @@ object ProjectManager {
                         "androidx.core:core:1.6.0",
                         "androidx.versionedparcelable:versionedparcelable:1.1.1",
 
-                        // Lifecycle
                         "androidx.lifecycle:lifecycle-common:2.3.1",
                         "androidx.lifecycle:lifecycle-viewmodel:2.3.1",
                         "androidx.lifecycle:lifecycle-livedata-core:2.3.1",

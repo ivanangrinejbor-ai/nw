@@ -31,7 +31,6 @@ object AiProjectAssistant {
         if (loaded) return
         AiConfig.init(context)
 
-        // 1) Transformer ONNX (modelVersion = 4)
         try {
             TransformerSuggestionEngine.init(context)
             if (TransformerSuggestionEngine.isLoaded()) {
@@ -42,7 +41,6 @@ object AiProjectAssistant {
         } catch (_: Exception) {
         }
 
-        // 2) TFLite neural (modelVersion = 3)
         try {
             NeuralSuggestionEngine.init(context)
             if (NeuralSuggestionEngine.isLoaded()) {
@@ -53,7 +51,6 @@ object AiProjectAssistant {
         } catch (_: Exception) {
         }
 
-        // 3) N-gram patterns (modelVersion = 1/2)
         try {
             val inputStream = context.assets.open("patterns.json")
             val reader = BufferedReader(InputStreamReader(inputStream))
@@ -335,11 +332,6 @@ object AiProjectAssistant {
         }
     }
 
-    /**
-     * Async version of getSuggestionsForAllScripts.
-     * Builds full context via AipContextManager, runs inference on Dispatchers.Default.
-     * Checks RAM before running high-token-count inference.
-     */
     suspend fun getSuggestionsForAllScriptsAsync(): List<Pair<Script, List<Suggestion>>> =
         withContext(Dispatchers.Default) {
             if (!loaded) return@withContext emptyList()

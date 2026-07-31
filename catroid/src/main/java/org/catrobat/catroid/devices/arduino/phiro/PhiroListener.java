@@ -50,8 +50,6 @@ class PhiroListener implements IFirmata.Listener {
 			return;
 		}
 
-//		Log.d(TAG, String.format("Pin: %d | Value: %d", message.getPin() ,message.getValue()));
-
 		switch (message.getPin()) {
 			case PhiroImpl.PIN_SENSOR_SIDE_RIGHT:
 				sideRightSensor = message.getValue();
@@ -109,7 +107,6 @@ class PhiroListener implements IFirmata.Listener {
 
 	@Override
 	public void onUnknownByteReceived(int byteValue) {
-		//Log.d(TAG, "Unkown Byte received. Byte value: " + byteValue);
 	}
 
 	public int getFrontLeftSensor() {

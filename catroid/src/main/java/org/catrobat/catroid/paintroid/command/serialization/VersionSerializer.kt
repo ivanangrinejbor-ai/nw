@@ -33,12 +33,9 @@ abstract class VersionSerializer<T>(val version: Int) : Serializer<T>() {
 
     protected fun handleVersions(serializer: VersionSerializer<T>, kryo: Kryo, input: Input, type: Class<out T>): T {
         return when (version) {
-            // Currently just here to see the intended pattern
             V1 -> serializer.readV1(serializer, kryo, input, type)
             V2 -> serializer.readV2(serializer, kryo, input, type)
             V3 -> serializer.readV3(serializer, kryo, input, type)
-            // Enable when CURRENT_IMAGE_VERSION reached 4
-            // CommandSerializationUtilities.CURRENT_IMAGE_VERSION -> serializer.readCurrentVersion(kryo, input, type)
             else -> throw KryoException()
         }
     }

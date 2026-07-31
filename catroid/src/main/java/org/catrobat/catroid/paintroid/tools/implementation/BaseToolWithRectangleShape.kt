@@ -124,7 +124,7 @@ abstract class BaseToolWithRectangleShape(
 
     @VisibleForTesting(otherwise = VisibleForTesting.PROTECTED)
     @JvmField
-    var boxRotation = 0f // in degree
+    var boxRotation = 0f
 
     @VisibleForTesting(otherwise = VisibleForTesting.PROTECTED)
     @JvmField
@@ -552,11 +552,9 @@ abstract class BaseToolWithRectangleShape(
             toolPosition.y + sin(-rotationRadiant) * (clickCoordinatesX - toolPosition.x) + cos(-rotationRadiant) * (clickCoordinatesY - toolPosition.y)
 
         val margin = boxResizeMargin ?: 0f
-        // Move (within box)
         if (clickCoordinatesRotatedX < toolPosition.x + boxWidth / 2 - margin && clickCoordinatesRotatedX > toolPosition.x - boxWidth / 2 + margin && clickCoordinatesRotatedY < toolPosition.y + boxHeight / 2 - margin && clickCoordinatesRotatedY > toolPosition.y - boxHeight / 2 + margin) {
             return FloatingBoxAction.MOVE
         }
-        // Resize (on frame)
         if (clickCoordinatesRotatedX < toolPosition.x + boxWidth / 2 + margin && clickCoordinatesRotatedX > toolPosition.x - boxWidth / 2 - margin && clickCoordinatesRotatedY < toolPosition.y + boxHeight / 2 + margin && clickCoordinatesRotatedY > toolPosition.y - boxHeight / 2 - margin) {
             resizeOnFrame(clickCoordinatesRotatedX, clickCoordinatesRotatedY, margin)
             return FloatingBoxAction.RESIZE
@@ -697,7 +695,6 @@ abstract class BaseToolWithRectangleShape(
         resizeHeight(deltaYCorrected.toFloat(), rotationRadian)
         resizeWidth(deltaXCorrected.toFloat(), rotationRadian)
 
-        // prevent that box gets too small
         if (boxWidth < MINIMAL_BOX_SIZE) {
             boxWidth = MINIMAL_BOX_SIZE.toFloat()
             toolPosition.x = oldPosX

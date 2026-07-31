@@ -123,7 +123,6 @@ public class ConnectBluetoothDeviceActivity extends AppCompatActivity {
 		return btConnectionFactory;
 	}
 
-	// hooks for testing
 	public static void setDeviceFactory(BluetoothDeviceFactory deviceFactory) {
 		btDeviceFactory = deviceFactory;
 	}
@@ -160,20 +159,14 @@ public class ConnectBluetoothDeviceActivity extends AppCompatActivity {
 		public void onReceive(Context context, Intent intent) {
 			String action = intent.getAction();
 			if (android.bluetooth.BluetoothDevice.ACTION_FOUND.equals(action)) {
-				// ИЗМЕНЕНО: Используем новый безопасный метод getParcelableExtra
-				// СТАЛО
 				android.bluetooth.BluetoothDevice device;
-				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) { // TIRAMISU это API 33
-					// Новый, безопасный способ для Android 13 и выше
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
 					device = intent.getParcelableExtra(android.bluetooth.BluetoothDevice.EXTRA_DEVICE, android.bluetooth.BluetoothDevice.class);
 				} else {
-					// Старый, устаревший способ для версий ниже
-					//@SuppressWarnings("deprecation")
 							device = intent.getParcelableExtra(android.bluetooth.BluetoothDevice.EXTRA_DEVICE);
 				}
 				if (device == null) return;
 
-				// ИЗМЕНЕНО: Добавляем проверку разрешений перед доступом к свойствам устройства
 				if (checkAndRequestBluetoothPermissions()) {
 					try {
 						if (device.getBondState() != android.bluetooth.BluetoothDevice.BOND_BONDED) {
@@ -199,8 +192,8 @@ public class ConnectBluetoothDeviceActivity extends AppCompatActivity {
 					}
 				}
 			} else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
-				isDiscovering = false; // Устанавливаем false, так как поиск ЗАВЕРШЕН
-				scanButton.setImageResource(R.drawable.ic_search); // Возвращаем иконку поиска
+				isDiscovering = false;
+				scanButton.setImageResource(R.drawable.ic_search);
 				findViewById(R.id.device_list_progress_bar).setVisibility(View.GONE);
 
 				if (newDevicesArrayAdapter.isEmpty()) {

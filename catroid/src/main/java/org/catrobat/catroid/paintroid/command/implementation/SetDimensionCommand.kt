@@ -34,6 +34,5 @@ class SetDimensionCommand(width: Int, height: Int) : Command {
     }
 
     override fun freeResources() {
-        // No resources to free
     }
 }

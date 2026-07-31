@@ -55,8 +55,6 @@ import org.catrobat.catroid.paintroid.common.SPECIFIC_FILETYPE_SHARED_PREFERENCE
 import java.util.*
 import kotlin.collections.ArrayList
 
-// Source:	https://www.openraster.org/baseline/file-layout-spec.html
-
 class OpenRasterFileFormatConversion private constructor() {
     init {
         throw AssertionError()

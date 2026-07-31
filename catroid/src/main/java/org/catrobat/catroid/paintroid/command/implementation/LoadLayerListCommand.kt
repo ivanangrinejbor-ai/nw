@@ -39,6 +39,5 @@ class LoadLayerListCommand(loadedLayers: List<LayerContracts.Layer>) : Command {
     }
 
     override fun freeResources() {
-        // No resources to free
     }
 }

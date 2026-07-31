@@ -92,7 +92,6 @@ public class FetchScratchProgramDetailsTask extends AsyncTask<Long, Void, Scratc
 	}
 
 	public ScratchProgramData fetchProjectData(final long projectID) throws InterruptedIOException {
-		// exponential backoff
 		final int minTimeout = Constants.SCRATCH_HTTP_REQUEST_MIN_TIMEOUT;
 		final int maxNumRetries = Constants.SCRATCH_HTTP_REQUEST_MAX_NUMBER_OF_RETRIES;
 

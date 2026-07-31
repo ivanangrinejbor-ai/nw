@@ -6,13 +6,6 @@ import org.catrobat.catroid.pocketmusic.mididriver.MidiSoundManager
 import org.catrobat.catroid.pocketmusic.note.Drum
 import org.catrobat.catroid.pocketmusic.note.MusicalInstrument
 
-/**
- * Android implementation of [MidiService] delegating to the singleton
- * [MidiSoundManager].
- *
- * Sprite-coupled methods carry the sprite name (portable) and resolve it back
- * to the live [Sprite] via the currently playing scene.
- */
 class AndroidMidiService : MidiService {
 
     private val midiSoundManager = MidiSoundManager.getInstance()

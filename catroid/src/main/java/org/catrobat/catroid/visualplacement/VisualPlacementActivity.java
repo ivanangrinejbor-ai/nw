@@ -111,10 +111,8 @@ public class VisualPlacementActivity extends BaseCastActivity implements View.On
 
 	public static final String SIZE_PERCENT_BUNDLE_ARGUMENT = "sizePercentage";
 
-	// Режим превью сетки Pathfinder (GridBrick): вместо спрайта таскается миниатюрная сетка.
 	public static final String EXTRA_GRID_COLUMNS = "gridColumns";
 	public static final String EXTRA_GRID_ROWS = "gridRows";
-	// Должен совпадать с cellSize в GridAction.
 	private static final float GRID_CELL_SIZE = 20f;
 
 	private boolean isGridPreview;
@@ -150,8 +148,8 @@ public class VisualPlacementActivity extends BaseCastActivity implements View.On
 	private VisualPlacementTouchListener visualPlacementTouchListener;
 
 	private ScaleGestureDetector scaleGestureDetector;
-	private float currentScale = 1.0f; // Текущий общий масштаб
-	private float currentRotation = 0.0f; // Текущий угол поворота
+	private float currentScale = 1.0f;
+	private float currentRotation = 0.0f;
 
 	public static final String WIDTH_BUNDLE_ARGUMENT = "widthPercentage";
 	public static final String HEIGHT_BUNDLE_ARGUMENT = "heightPercentage";
@@ -369,8 +367,6 @@ public class VisualPlacementActivity extends BaseCastActivity implements View.On
 		imageView.setImageBitmap(scaledBitmap);
 		imageView.setScaleType(ImageView.ScaleType.CENTER);
 
-		// Центр сцены Catroid находится в центре frameLayout, а не в углу.
-		// Переводим координаты спрайта (origin в центре) в пиксели frameLayout.
 		float sceneCenterX = layoutResolution.getWidth() / 2f + translateX * layoutWidthRatio;
 		float sceneCenterY = layoutResolution.getHeight() / 2f - translateY * layoutHeightRatio;
 
@@ -385,30 +381,18 @@ public class VisualPlacementActivity extends BaseCastActivity implements View.On
 			imageView.setTranslationY(finalY);
 		}
 
-		// Инициализируем в ТОЙ ЖЕ системе, что пишет VisualPlacementTouchListener
-		// (пиксельный центр, Y инвертирован) — иначе подтверждение без перетаскивания
-		// прогоняло сценные координаты через пиксельную конверсию и портило их.
 		xCoord = sceneCenterX;
 		yCoord = -sceneCenterY;
 
-		// Устанавливаем начальный масштаб и вращение
 		imageView.setScaleX(scaleX);
 		imageView.setScaleY(scaleY);
 		imageView.setRotation(initialRotation);
-		initialScale = scaleX; // Сохраняем начальный масштаб для проверки изменений
+		initialScale = scaleX;
 
-		// ВАЖНО: WRAP_CONTENT, а не дефолтный MATCH_PARENT — иначе view растягивается
-		// на весь экран и центр битмапа съезжает вниз-вправо на (экран−битмап)/2
-		// относительно точки, куда его поставили.
 		frameLayout.addView(imageView, new FrameLayout.LayoutParams(
 				ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 	}
 
-	/**
-	 * Режим GridBrick: вместо спрайта по сцене таскается миниатюрная сетка
-	 * реального размера (клетка = {@link #GRID_CELL_SIZE} пикселей сцены).
-	 * Жёлтое перекрестие — точка (x, y) брика, центр будущей сетки.
-	 */
 	private void showGridPreviewImageView() {
 		imageView = new ImageView(this);
 		scaleX = 1;
@@ -426,13 +410,11 @@ public class VisualPlacementActivity extends BaseCastActivity implements View.On
 		imageView.setTranslationX(sceneCenterX - gridBitmap.getWidth() / 2f);
 		imageView.setTranslationY(sceneCenterY - gridBitmap.getHeight() / 2f);
 
-		// Та же система координат, что и у тач-листенера (пиксельный центр, Y инвертирован).
 		xCoord = sceneCenterX;
 		yCoord = -sceneCenterY;
 		initialScale = 1f;
 		initialRotation = 0f;
 
-		// WRAP_CONTENT — та же причина, что и у спрайта: view должен быть размером с битмап.
 		frameLayout.addView(imageView, new FrameLayout.LayoutParams(
 				ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 	}
@@ -440,8 +422,6 @@ public class VisualPlacementActivity extends BaseCastActivity implements View.On
 	private Bitmap createGridPreviewBitmap() {
 		int bmpW = Math.max(2, Math.round(gridColumns * GRID_CELL_SIZE * layoutWidthRatio));
 		int bmpH = Math.max(2, Math.round(gridRows * GRID_CELL_SIZE * layoutHeightRatio));
-		// Огромная сетка (2000×2000 клеток) не должна рождать гигантский битмап —
-		// клампим, позиция центра от этого не страдает (важна точка, не масштаб краёв).
 		int maxDim = 2048;
 		float shrink = Math.min(1f, Math.min((float) maxDim / bmpW, (float) maxDim / bmpH));
 		bmpW = Math.max(2, Math.round(bmpW * shrink));
@@ -454,7 +434,6 @@ public class VisualPlacementActivity extends BaseCastActivity implements View.On
 		fill.setColor(0x2200E5FF);
 		canvas.drawRect(0, 0, bmpW, bmpH, fill);
 
-		// Прореживаем линии: даже на гигантской сетке рисуем не больше ~100 линий на ось.
 		Paint line = new Paint(Paint.ANTI_ALIAS_FLAG);
 		line.setColor(0x8000E5FF);
 		line.setStrokeWidth(1f);
@@ -475,7 +454,6 @@ public class VisualPlacementActivity extends BaseCastActivity implements View.On
 		border.setColor(0xFF00E5FF);
 		canvas.drawRect(1.5f, 1.5f, bmpW - 1.5f, bmpH - 1.5f, border);
 
-		// Перекрестие центра — именно эта точка запишется в x/y брика.
 		Paint cross = new Paint(Paint.ANTI_ALIAS_FLAG);
 		cross.setColor(0xFFFFD600);
 		cross.setStrokeWidth(3f);
@@ -532,30 +510,20 @@ public class VisualPlacementActivity extends BaseCastActivity implements View.On
 
 	@Override
 	public boolean onTouch(View view, MotionEvent event) {
-		// В режиме сетки масштаб/вращение бессмысленны — только перетаскивание центра.
 		if (!isGridPreview) {
-			// Сначала отдаем событие детектору масштабирования
 			scaleGestureDetector.onTouchEvent(event);
-			// Вращение считаем сами по реальным координатам двух пальцев:
-			// у ScaleGestureDetector есть только беззнаковые spanX/spanY (0..90°),
-			// из-за чего крутило не туда и пинч вызывал фантомное вращение.
 			handleTwoFingerRotation(event);
 		}
 
-		// Затем нашему старому обработчику для перетаскивания (только если не идет масштабирование)
 		if (isGridPreview || !scaleGestureDetector.isInProgress()) {
 			visualPlacementTouchListener.onTouch(imageView, event, this);
 		}
-		return true; // Всегда возвращаем true, чтобы получать все события
+		return true;
 	}
 
 	private float lastTwoFingerAngle;
 	private boolean twoFingerRotationActive;
 
-	/**
-	 * Поворот двумя пальцами: следим за ЗНАКОВЫМ углом линии между пальцами
-	 * (полные 360°). При чистом пинче угол не меняется — фантомного вращения нет.
-	 */
 	private void handleTwoFingerRotation(MotionEvent event) {
 		switch (event.getActionMasked()) {
 			case MotionEvent.ACTION_POINTER_DOWN:
@@ -563,7 +531,6 @@ public class VisualPlacementActivity extends BaseCastActivity implements View.On
 					lastTwoFingerAngle = angleBetweenPointers(event);
 					twoFingerRotationActive = true;
 				} else {
-					// 3+ пальцев — жест неоднозначен, вращение отключаем.
 					twoFingerRotationActive = false;
 				}
 				break;
@@ -571,7 +538,6 @@ public class VisualPlacementActivity extends BaseCastActivity implements View.On
 				if (twoFingerRotationActive && event.getPointerCount() == 2 && imageView != null) {
 					float angle = angleBetweenPointers(event);
 					float delta = normalizeDegrees(angle - lastTwoFingerAngle);
-					// Защита от скачка при смене/потере указателя.
 					if (Math.abs(delta) < 45) {
 						imageView.setRotation(imageView.getRotation() + delta);
 					}
@@ -642,12 +608,8 @@ public class VisualPlacementActivity extends BaseCastActivity implements View.On
 		int xCoordinate = pixelToStageX(xCoord, layoutWidthRatio, projectResolution.getWidth());
 		int yCoordinate = pixelToStageY(yCoord, layoutHeightRatio, projectResolution.getHeight());
 
-		// Вычисляем размер в процентах от исходного.
-		// imageView.getScaleX() вернет ОБЩИЙ масштаб.
-		// Делим его на исходный масштаб спрайта.
 		float sizePercentage = (imageView.getScaleX() / scaleX) * 100f;
 
-		// Проверяем, изменилось ли что-нибудь
 		boolean hasChanges = (initialX != xCoordinate || initialY != yCoordinate
 				|| Math.abs(initialRotation - imageView.getRotation()) > 0.1
 				|| Math.abs(initialScale - imageView.getScaleX()) > 0.01);
@@ -655,8 +617,8 @@ public class VisualPlacementActivity extends BaseCastActivity implements View.On
 		extras.putInt(X_COORDINATE_BUNDLE_ARGUMENT, xCoordinate);
 		extras.putInt(Y_COORDINATE_BUNDLE_ARGUMENT, yCoordinate);
 		extras.putFloat(ROTATION_ANGLE_BUNDLE_ARGUMENT, imageView.getRotation());
-		extras.putFloat(SIZE_PERCENT_BUNDLE_ARGUMENT, sizePercentage); // Используем новую константу
-		extras.putBoolean(CHANGED_COORDINATES, hasChanges); // Реализованная проверка
+		extras.putFloat(SIZE_PERCENT_BUNDLE_ARGUMENT, sizePercentage);
+		extras.putBoolean(CHANGED_COORDINATES, hasChanges);
 
 		returnIntent.putExtras(extras);
 		setResult(Activity.RESULT_OK, returnIntent);
@@ -693,12 +655,6 @@ public class VisualPlacementActivity extends BaseCastActivity implements View.On
 		}
 	}
 
-	/**
-	 * Переводит пиксельную координату центра объекта внутри frameLayout
-	 * (origin в левом верхнем углу, ось Y вниз) в координату сцены Catroid
-	 * (origin в центре, ось Y вверх). Без учёта смещения центра тап в середине
-	 * экрана превращался в край/за пределы сцены.
-	 */
 	static int pixelToStageX(float xCoord, float layoutWidthRatio, int projectWidth) {
 		return Math.round(xCoord / layoutWidthRatio - projectWidth / 2f);
 	}
@@ -711,8 +667,6 @@ public class VisualPlacementActivity extends BaseCastActivity implements View.On
 
 		@Override
 		public boolean onScale(ScaleGestureDetector detector) {
-			// Только масштабирование. Вращение считается отдельно в handleTwoFingerRotation():
-			// раньше угол брался из беззнаковых spanX/spanY и пинч крутил спрайт.
 			float scaleFactor = detector.getScaleFactor();
 			imageView.setScaleX(imageView.getScaleX() * scaleFactor);
 			imageView.setScaleY(imageView.getScaleY() * scaleFactor);

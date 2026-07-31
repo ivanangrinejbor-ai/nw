@@ -135,7 +135,6 @@ class LineTool(
     }
 
     override fun drawShape(canvas: Canvas) {
-        // This should never be invoked
     }
 
     fun onClickOnPlus() {

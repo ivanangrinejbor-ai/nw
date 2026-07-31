@@ -124,9 +124,6 @@ class SpriteLocalizer(
             }
 
             val langCode = targetLanguage.take(2).lowercase()
-            // Пишем локализованную картинку прямо в images-каталог сцены (не в скрытую
-            // подпапку): XStream резолвит файлы образов как new File(imageDir, fileName)
-            // только из корня images.
             val imagesDir = lookFile.parentFile
             val outputName = lookFile.nameWithoutExtension + "_" + langCode + "_" +
                 java.util.UUID.randomUUID().toString().substring(0, 8) + "." + lookFile.extension
@@ -136,8 +133,6 @@ class SpriteLocalizer(
                 resultBitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, out)
             }
 
-            // Регистрируем локализованную картинку как НОВЫЙ образ спрайта, чтобы результат
-            // реально появился в проекте (раньше он писался в скрытую папку и терялся).
             val originalName = sprite.lookList.firstOrNull { it.file == lookFile }?.name
                 ?: lookFile.nameWithoutExtension
             withContext(Dispatchers.Main) {

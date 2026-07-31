@@ -32,10 +32,6 @@ public class EV3ColorSensor extends EV3Sensor {
 	private static final int SENSOR_VALUE_READ_LENGTH = 1;
 
 	public EV3ColorSensor(int port, MindstormsConnection connection, EV3SensorMode mode) {
-		// Mode0: Reflected light
-		// Mode1: Ambient light
-		// Mode2: Color
-
 		super(port, EV3SensorType.EV3_COLOR, mode, connection);
 		lastValidValue = DEFAULT_VALUE;
 	}

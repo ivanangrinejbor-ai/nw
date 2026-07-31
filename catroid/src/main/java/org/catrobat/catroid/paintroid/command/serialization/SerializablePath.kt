@@ -198,7 +198,6 @@ open class SerializablePath : Path {
 
     class PathActionRewindSerializer(version: Int) : VersionSerializer<Rewind>(version) {
         override fun write(kryo: Kryo, output: Output, action: Rewind) {
-            // Has no member variables to save
         }
 
         override fun read(kryo: Kryo, input: Input, type: Class<out Rewind>): Rewind =

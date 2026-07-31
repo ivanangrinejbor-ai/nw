@@ -95,7 +95,6 @@ public class GetSurveyTask extends AsyncTask<String, Void, String> {
 	}
 
 	private boolean isUrlStatusCodeOk(String surveyUrl) throws IOException {
-		// SECURITY (SSRF): only allow https URLs on the known Catrobat host.
 		URL url;
 		try {
 			url = new URL(surveyUrl);

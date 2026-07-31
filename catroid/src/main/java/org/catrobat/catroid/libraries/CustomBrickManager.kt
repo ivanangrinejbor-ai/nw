@@ -1,4 +1,3 @@
-// org/catrobat/catroid/libraries/CustomBrickManager.kt
 package org.catrobat.catroid.libraries
 
 import android.util.Log

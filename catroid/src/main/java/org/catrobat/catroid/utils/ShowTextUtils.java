@@ -126,7 +126,7 @@ public final class ShowTextUtils {
 		String result = value;
 		try {
 			result = toMetricUnitRepresentation(Integer.parseInt(value));
-		} catch (NumberFormatException ignored) { // ignored
+		} catch (NumberFormatException ignored) {
 		}
 		return result;
 	}

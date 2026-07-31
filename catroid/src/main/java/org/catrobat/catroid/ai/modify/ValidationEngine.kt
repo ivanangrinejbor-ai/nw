@@ -33,7 +33,6 @@ object ValidationEngine {
         val errors = mutableListOf<String>()
         val warnings = mutableListOf<String>()
 
-        // TODO: implement actual validation logic for each ProjectChange type
         return ValidationResult(true, warnings, errors)
     }
 

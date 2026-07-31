@@ -48,6 +48,5 @@ class CutCommand(
     }
 
     override fun freeResources() {
-        // No resources to free
     }
 }

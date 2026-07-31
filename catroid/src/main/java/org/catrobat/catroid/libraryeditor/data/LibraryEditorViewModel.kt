@@ -29,7 +29,6 @@ class LibraryEditorViewModel : ViewModel() {
     private val _toastMessage = MutableLiveData<Event<String>>()
     val toastMessage: LiveData<Event<String>> = _toastMessage
 
-    // --- Session Management ---
     fun loadLastSession(context: Context) {
         viewModelScope.launch(Dispatchers.IO) {
             val draft = LibraryStorageManager.loadLastSession(context)
@@ -49,7 +48,6 @@ class LibraryEditorViewModel : ViewModel() {
     fun clearCurrentLibrary(context: Context) {
         viewModelScope.launch(Dispatchers.IO) {
             LibraryStorageManager.clearSession(context)
-            // Загружаем новый пустой проект
             loadLastSession(context)
             _toastMessage.postValue(Event(CatroidApplication.getAppContext().getString(R.string.libs_cleaned)))
         }
@@ -59,9 +57,9 @@ class LibraryEditorViewModel : ViewModel() {
         viewModelScope.launch(Dispatchers.IO) {
             val importedDraft = NewlibImporter.import(context, uri)
             if (importedDraft != null) {
-                _libraryDraft.postValue(importedDraft!!) // Post new draft to UI
-                saveCurrentSession(context) // Save it as the new session
-                analyzeCode(importedDraft.code) // Analyze new code
+                _libraryDraft.postValue(importedDraft!!)
+                saveCurrentSession(context)
+                analyzeCode(importedDraft.code)
                 _toastMessage.postValue(Event(CatroidApplication.getAppContext().getString(R.string.libs_imported)))
             } else {
                 _toastMessage.postValue(Event(CatroidApplication.getAppContext().getString(R.string.libs_importede)))
@@ -69,7 +67,6 @@ class LibraryEditorViewModel : ViewModel() {
         }
     }
 
-    // --- Code Editing ---
     fun updateCode(newCode: String) {
         _libraryDraft.value?.let {
             if (it.code != newCode) {
@@ -97,7 +94,6 @@ class LibraryEditorViewModel : ViewModel() {
         return code.contains("fun $functionName")
     }
 
-    // --- Formula & Brick Management ---
     private fun <T> updateList(list: MutableList<T>, item: T, findPredicate: (T) -> Boolean) {
         val index = list.indexOfFirst(findPredicate)
         if (index != -1) list[index] = item else list.add(item)
@@ -122,7 +118,6 @@ class LibraryEditorViewModel : ViewModel() {
         _libraryDraft.postValue(_libraryDraft.value)
     }
 
-    // --- Export ---
     fun exportToUri(context: Context, destinationUri: Uri) {
         val draft = _libraryDraft.value ?: return
         viewModelScope.launch(Dispatchers.IO) {

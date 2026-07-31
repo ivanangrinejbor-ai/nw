@@ -55,7 +55,6 @@ class RotateCommand(rotateDirection: RotateDirection) : Command {
     }
 
     override fun freeResources() {
-        // No resources to free
     }
 
     enum class RotateDirection {

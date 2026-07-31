@@ -13,8 +13,6 @@ object MemoryManager {
     private const val MAX_SUMMARY_ENTRIES = 30
     private var memoryFile: File? = null
 
-    // Synchronised list: remember/forget/search/getSummary are called from
-    // Dispatchers.Default coroutines concurrently → plain mutableListOf crashes.
     private val memories: MutableList<MemoryEntry> =
         Collections.synchronizedList(mutableListOf())
 
@@ -67,7 +65,6 @@ object MemoryManager {
 
     fun getSummary(): String {
         if (memories.isEmpty()) return ""
-        // Cap what we inject into the prompt: newest first, bounded count and length.
         return memories
             .sortedByDescending { it.timestamp }
             .take(MAX_SUMMARY_ENTRIES)

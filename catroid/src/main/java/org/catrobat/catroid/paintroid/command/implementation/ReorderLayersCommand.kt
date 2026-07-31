@@ -49,6 +49,5 @@ class ReorderLayersCommand(position: Int, destination: Int) : Command {
     }
 
     override fun freeResources() {
-        // No resources to free
     }
 }

@@ -9,14 +9,6 @@ import org.catrobat.catroid.content.Sprite
 import org.catrobat.catroid.io.SoundManager
 import org.catrobat.catroid.pocketmusic.mididriver.MidiSoundManager
 
-/**
- * Android implementation of [AudioService] delegating to the singleton
- * [SoundManager] (android.media.MediaPlayer based) and [MidiSoundManager].
- *
- * Sprite-coupled methods carry the sprite name (portable) and resolve it back
- * to the live [Sprite] via the currently playing scene. Tone/equalizer use the
- * android.media audio APIs and are no-ops on platforms without them.
- */
 class AndroidAudioService : AudioService {
 
     private val soundManager = SoundManager.getInstance()

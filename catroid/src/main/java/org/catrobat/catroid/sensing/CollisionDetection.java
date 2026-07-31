@@ -171,11 +171,6 @@ public final class CollisionDetection {
 		return boundingBoxes;
 	}
 
-	/**
-	 * Checks if any edge of the first polygon intersects with the second polygon.
-	 * Note: This checks intersection of first's edges against second polygon area.
-	 * LibGDX's intersectSegmentPolygon is generally robust enough.
-	 */
 	public static boolean intersectPolygons(Polygon first, Polygon second) {
 		if (first == null || second == null) return false;
 
@@ -207,14 +202,6 @@ public final class CollisionDetection {
 	}
 
 
-	/**
-	 * Checks if any polygon from the 'inner' set is contained within any polygon
-	 * from the 'outer' set. Uses bounding box checks for a quick exit.
-	 * Checks containment by testing if the *first vertex* of an inner polygon
-	 * lies within an outer polygon. This is a heuristic, more robust than the original,
-	 * but still not perfectly accurate for all complex containment scenarios involving multiple polygons.
-	 * It assumes that if containment exists, at least one vertex will be inside.
-	 */
 	private static boolean checkVertexContainment(Polygon[] inner, Polygon[] outer, Rectangle[] innerBoxes, Rectangle[] outerBoxes) {
 		for (int i = 0; i < inner.length; i++) {
 			Polygon innerPolygon = inner[i];
@@ -261,10 +248,6 @@ public final class CollisionDetection {
 		return false;
 	}
 
-	/**
-	 * New containment check function replacing the old checkCollisionForPolygonsInPolygons.
-	 * Checks both directions: first inside second, and second inside first.
-	 */
 	private static boolean checkContainment(Polygon[] first, Polygon[] second, Rectangle[] firstBoxes, Rectangle[] secondBoxes) {
 
 		if (checkVertexContainment(first, second, firstBoxes, secondBoxes)) {

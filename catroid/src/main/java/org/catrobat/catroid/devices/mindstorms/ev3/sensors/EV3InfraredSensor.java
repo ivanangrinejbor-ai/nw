@@ -31,7 +31,6 @@ public class EV3InfraredSensor extends EV3Sensor {
 	private static final int DEFAULT_VALUE = 50;
 
 	public EV3InfraredSensor(int port, MindstormsConnection connection) {
-		// IR MODE0 is the proximity-mode
 		super(port, EV3SensorType.EV3_INFRARED, EV3SensorMode.MODE0, connection);
 		lastValidValue = DEFAULT_VALUE;
 	}

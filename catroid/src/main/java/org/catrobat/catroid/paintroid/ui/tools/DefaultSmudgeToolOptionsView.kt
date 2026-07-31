@@ -204,7 +204,6 @@ class DefaultSmudgeToolOptionsView(rootView: ViewGroup) : SmudgeToolOptionsView 
     }
 
     override fun hideCaps() {
-        // Should never be reached
     }
 
     private fun updateStrokeWidthChange(strokeWidth: Int) {

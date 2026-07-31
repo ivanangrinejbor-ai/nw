@@ -67,6 +67,5 @@ class CropCommand(
     }
 
     override fun freeResources() {
-        // No resources to free
     }
 }

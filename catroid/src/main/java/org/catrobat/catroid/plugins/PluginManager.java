@@ -105,8 +105,6 @@ public class PluginManager {
             JSONObject manifest = new JSONObject(json);
             String packageName = manifest.getString("packageName");
 
-            // SECURITY: reject package names that could escape the plugins directory
-            // (absolute paths, path separators, or ".." traversal).
             if (packageName == null || packageName.isEmpty()
                     || new File(packageName).isAbsolute()
                     || packageName.contains("..")

@@ -53,6 +53,5 @@ class GeometricFillCommand(
     }
 
     override fun freeResources() {
-        // No resources to free
     }
 }

@@ -59,6 +59,5 @@ class MergeLayersCommand(position: Int, mergeWith: Int) : Command {
     }
 
     override fun freeResources() {
-        // No resources to free
     }
 }

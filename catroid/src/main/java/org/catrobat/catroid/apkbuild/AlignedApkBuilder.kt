@@ -145,7 +145,6 @@ object AlignedApkBuilder {
                 val keyFile = File(tempDir, ProtectedProjectPayload.KEY_ASSET_NAME)
                 keyFile.writeText(payloadPassword)
 
-                // Пломба целостности, привязанная к сертификату подписи (тот же keystore).
                 val keystoreFile = config.customKeystore ?: getOrCreateDebugKeystore(context, tempDir)
                 val sigFile: File? = try {
                     val certHash = PayloadIntegrity.certHashFromKeystore(
@@ -309,8 +308,6 @@ object AlignedApkBuilder {
         val nameBytes = name.toByteArray(Charsets.UTF_8)
         val crc32 = crc.toInt()
 
-        // Выравниваем начало данных на 4 байта только для STORED (нужно для mmap
-        // resources.arsc и т.п.); для DEFLATED выравнивание бессмысленно.
         val headerBase = 30 + nameBytes.size
         val misalign = (w.position + headerBase) % 4
         val padding = if (method == ZipEntry.STORED && misalign != 0L) (4 - misalign).toInt() else 0
@@ -322,8 +319,8 @@ object AlignedApkBuilder {
         w.writeShort(0)
         w.writeShort(0)
         w.writeInt(crc32)
-        w.writeInt(payload.size)        // compressed size = размер записанных байт
-        w.writeInt(uncompressedSize)    // uncompressed size
+        w.writeInt(payload.size)
+        w.writeInt(uncompressedSize)
         w.writeShort(nameBytes.size)
         w.writeShort(padding)
         w.writeBytes(nameBytes)
@@ -391,9 +388,6 @@ object AlignedApkBuilder {
                     return CdEntry(name, ZipEntry.STORED, crc.toInt(), data.size, data.size, offset)
                 }
 
-                // Запись с сохранением исходного метода. Для DEFLATED — ПЕРЕСЖИМАЕМ
-                // распакованные данные (ZipFile.getInputStream отдаёт их уже распакованными),
-                // иначе получится «сжатая» запись с сырыми байтами → битый APK.
                 fun writeEntry(name: String, uncompressed: ByteArray, method: Int, crc: Long): CdEntry {
                     if (method != ZipEntry.DEFLATED) {
                         return writeStored(name, uncompressed, crc)
@@ -534,7 +528,6 @@ object AlignedApkBuilder {
         }
 
         zipDirectory(stagingDir, payloadZip)
-        // locked=true → NCPX: запечённый проект нельзя импортировать в редактор.
         ProjectCrypto.encrypt(payloadZip, encryptedFile, password, locked = true)
         payloadZip.delete()
         stagingDir.deleteRecursively()

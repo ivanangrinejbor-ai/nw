@@ -80,17 +80,14 @@ class IdeActivity : AppCompatActivity() {
         setupEditor()
         setupButtons()
         setupFileBrowser()
-        setupTabs() // Настройка вкладок
+        setupTabs()
 
-        // ЗАГРУЖАЕМ СОХРАНЕННУЮ СЕССИЮ!
         loadWorkspace()
         loadDirectory(currentDir)
 
-        // Request POST_NOTIFICATIONS permission on Android 13+
         checkNotificationPermission()
     }
 
-    // --- 1. ВКЛАДКИ (TABS) ---
     private fun setupTabs() {
         tabAdapter = EditorTabAdapter()
         tabsRecycler.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
@@ -109,9 +106,8 @@ class IdeActivity : AppCompatActivity() {
             Toast.makeText(this, "Доступ к файлам вне проекта запрещён", Toast.LENGTH_SHORT).show()
             return
         }
-        saveCurrentFile() // Сохраняем предыдущий
+        saveCurrentFile()
 
-        // Если файла нет во вкладках - добавляем
         if (!openFiles.contains(file)) {
             openFiles.add(file)
         }
@@ -119,11 +115,9 @@ class IdeActivity : AppCompatActivity() {
         currentOpenedFile = file
         tabAdapter.notifyDataSetChanged()
 
-        // Скроллим к нужной вкладке
         val index = openFiles.indexOf(file)
         if (index != -1) tabsRecycler.smoothScrollToPosition(index)
 
-        // Загружаем контент
         editor.setText(file.readText())
         val lang: Language = when (file.extension.lowercase()) {
             "java" -> JavaLanguage()
@@ -132,7 +126,7 @@ class IdeActivity : AppCompatActivity() {
         editor.setEditorLanguage(lang)
 
         drawerLayout.closeDrawer(GravityCompat.START)
-        saveWorkspace() // Сохраняем состояние при открытии новой вкладки
+        saveWorkspace()
     }
 
     private fun closeFileTab(file: File) {
@@ -143,14 +137,12 @@ class IdeActivity : AppCompatActivity() {
             currentOpenedFile = null
             editor.setText("// Выберите файл слева в меню для редактирования")
         } else {
-            // Если закрыли текущий, открываем последний в списке
             if (currentOpenedFile == file) openFileInEditor(openFiles.last())
         }
         tabAdapter.notifyDataSetChanged()
         saveWorkspace()
     }
 
-    // --- 2. СОХРАНЕНИЕ СЕССИИ (PERSISTENCE) ---
     private fun saveCurrentFile() {
         currentOpenedFile?.let { file ->
             val newContent = editor.text.toString()
@@ -158,7 +150,7 @@ class IdeActivity : AppCompatActivity() {
                 file.writeText(newContent)
                 modifiedFiles.add(file)
                 android.util.Log.d("IDE_DEBUG", "Файл изменен: ${file.name}")
-                saveWorkspace() // Сохраняем список измененных файлов на диск
+                saveWorkspace()
             }
         }
     }
@@ -166,11 +158,8 @@ class IdeActivity : AppCompatActivity() {
     private fun saveWorkspace() {
         val prefs = getSharedPreferences("IDE_STATE_${projectDir.name}", Context.MODE_PRIVATE)
         prefs.edit().apply {
-            // Сохраняем измененные файлы
             putStringSet("modified_files", modifiedFiles.map { it.absolutePath }.toSet())
-            // Сохраняем вкладки (соединяем через символ "|")
             putString("open_files", openFiles.joinToString("|") { it.absolutePath })
-            // Сохраняем текущую активную вкладку
             putString("current_file", currentOpenedFile?.absolutePath)
         }.apply()
     }
@@ -178,7 +167,6 @@ class IdeActivity : AppCompatActivity() {
     private fun loadWorkspace() {
         val prefs = getSharedPreferences("IDE_STATE_${projectDir.name}", Context.MODE_PRIVATE)
 
-        // Восстанавливаем измененные файлы (для пуша)
         val modifiedPaths = prefs.getStringSet("modified_files", emptySet()) ?: emptySet()
         modifiedFiles.clear()
         modifiedPaths.forEach { path ->
@@ -186,7 +174,6 @@ class IdeActivity : AppCompatActivity() {
             if (f.exists()) modifiedFiles.add(f)
         }
 
-        // Восстанавливаем вкладки
         openFiles.clear()
         val openPaths = prefs.getString("open_files", "") ?: ""
         if (openPaths.isNotEmpty()) {
@@ -196,12 +183,11 @@ class IdeActivity : AppCompatActivity() {
             }
         }
 
-        // Восстанавливаем активный файл
         val currentPath = prefs.getString("current_file", null)
         if (currentPath != null) {
             val f = File(currentPath)
             if (f.exists()) {
-                openFileInEditor(f) // Загрузит текст и вкладку
+                openFileInEditor(f)
             }
         }
     }
@@ -495,21 +481,18 @@ class IdeActivity : AppCompatActivity() {
         override fun onBindViewHolder(holder: TabViewHolder, position: Int) {
             val file = openFiles[position]
 
-            // Звездочка (*), если файл изменен и еще не отправлен!
             val isModified = modifiedFiles.contains(file)
             holder.name.text = if (isModified) "${file.name} *" else file.name
 
-            // Подсвечиваем активную вкладку
             val isActive = (file == currentOpenedFile)
             if (isActive) {
-                holder.container.setBackgroundColor(Color.parseColor("#1E1E1E")) // Цвет как у редактора
+                holder.container.setBackgroundColor(Color.parseColor("#1E1E1E"))
                 holder.name.setTextColor(Color.WHITE)
             } else {
-                holder.container.setBackgroundColor(Color.parseColor("#2D2D30")) // Темный фон
+                holder.container.setBackgroundColor(Color.parseColor("#2D2D30"))
                 holder.name.setTextColor(Color.parseColor("#AAAAAA"))
             }
 
-            // Клики
             holder.container.setOnClickListener { openFileInEditor(file) }
             holder.closeBtn.setOnClickListener { closeFileTab(file) }
         }
