@@ -5868,4 +5868,6 @@ Catrobat — это визуальный язык программировани
     <string formatted="false" name="brick_apply_3d_torque_z">Z</string>
     <string formatted="false" name="brick_create_3d_object_name">для объекта</string>
     <string formatted="false" name="v3_debuggable">Отладка приложения (debuggable)</string>
+    <string formatted="false" name="v3_section_app">Приложение</string>
+    <string formatted="false" name="v3_section_build">Параметры сборки</string>
 </resources>

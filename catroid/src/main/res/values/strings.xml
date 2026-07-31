@@ -5069,4 +5069,6 @@ needs read and write access to it. You can always change permissions through you
     <string formatted="false" name="brick_apply_3d_torque_z">Z</string>
     <string formatted="false" name="brick_create_3d_object_name">for object</string>
     <string formatted="false" name="v3_debuggable">Debuggable app (allow debugging)</string>
+    <string formatted="false" name="v3_section_app">Application</string>
+    <string formatted="false" name="v3_section_build">Build options</string>
 </resources>
