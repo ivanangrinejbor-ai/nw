@@ -124,11 +124,9 @@ class SwitchCaseAction : Action() {
                 }
                 evaluated = true
             }
-            // Numeric comparison when both switch and case parse as numbers ("1" == "1.0")
             if (caseString.toDoubleOrNull() != null && switchString.toDoubleOrNull() != null) {
                 return caseValue == switchValue
             }
-            // Otherwise compare as trimmed strings
             return caseString.trim() == switchString.trim()
         }
 

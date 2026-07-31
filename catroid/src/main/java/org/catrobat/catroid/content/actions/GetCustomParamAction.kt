@@ -16,7 +16,6 @@ class GetCustomParamAction : TemporalAction() {
         val pName = paramNameFormula?.interpretString(sc) ?: return
         val target = targetVar ?: return
 
-        // Search active script sequence for UserDefinedScriptV2
         val sequence = sc.sequence as? ScriptSequenceAction
         val script = sequence?.script
         if (script is UserDefinedScriptV2) {

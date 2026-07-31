@@ -28,8 +28,6 @@ import org.catrobat.catroid.stage.StageActivity
 class FlashAction : TemporalAction() {
     var flashOn = false
 
-    // Track previous state to avoid redundant camera API calls every frame.
-    // enableFlash()/disableFlash() should only be called on state *transitions*.
     private var lastFlashOn: Boolean? = null
 
     override fun restart() {
@@ -38,7 +36,7 @@ class FlashAction : TemporalAction() {
     }
 
     override fun update(percent: Float) {
-        if (flashOn == lastFlashOn) return // no state change — skip
+        if (flashOn == lastFlashOn) return
         lastFlashOn = flashOn
         if (flashOn) {
             StageActivity.getActiveCameraManager()?.enableFlash()

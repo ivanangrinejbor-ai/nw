@@ -8,7 +8,7 @@ import android.util.Log
 class IntervalRepeatAction : Action() {
     companion object {
         private const val MAX_ITERATIONS = 100_000
-        private const val MAX_CONCURRENT_CLONES = 10 // Limit concurrent clones to prevent OOM
+        private const val MAX_CONCURRENT_CLONES = 10
     }
 
     var scope: Scope? = null
@@ -47,10 +47,8 @@ class IntervalRepeatAction : Action() {
 
             timer -= intervalValue
 
-            // Cleanup completed clones before adding new one
             cleanupClones()
-            
-            // Limit concurrent clones to prevent OOM
+
             if (activeClones.size >= MAX_CONCURRENT_CLONES) {
                 Log.w(javaClass.simpleName, "Too many concurrent clones ($MAX_CONCURRENT_CLONES), waiting for cleanup")
                 return false
@@ -68,7 +66,6 @@ class IntervalRepeatAction : Action() {
     }
     
     private fun cleanupClones() {
-        // Remove completed clones from actor and active list
         val iterator = activeClones.iterator()
         while (iterator.hasNext()) {
             val clone = iterator.next()

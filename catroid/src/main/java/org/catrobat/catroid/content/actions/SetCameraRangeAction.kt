@@ -20,7 +20,6 @@ class SetCameraRangeAction : TemporalAction() {
             if (camera != null) {
                 camera.near = n
                 camera.far = f
-                // camera.update() вызывается в ThreeDManager.render()
             }
         } catch (e: Exception) {
             e.printStackTrace()

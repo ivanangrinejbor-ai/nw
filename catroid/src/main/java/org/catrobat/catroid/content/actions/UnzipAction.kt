@@ -38,7 +38,6 @@ open class UnzipAction : TemporalAction() {
         val zipName = sanitizeZipName(fileName)
         if (zipName.isEmpty()) return
 
-        // Offload blocking disk I/O off the render thread to avoid frame freeze / ANR.
         Thread({
             val dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
             val file = File(dir, zipName)

@@ -27,7 +27,6 @@ public class SetCameraPositionAction extends TemporalAction {
             float z = zValue.interpretFloat(scope);
 
             threeDManager.setCameraPosition(x, y, z);
-            // Note: Camera position update is handled internally by threeDManager.setCameraPosition; explicit update() call may be deferred to next render frame
         } catch (InterpretationException e) {
             e.printStackTrace();
         }

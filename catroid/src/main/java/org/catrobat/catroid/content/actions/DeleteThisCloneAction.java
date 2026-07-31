@@ -41,7 +41,6 @@ public class DeleteThisCloneAction extends TemporalAction {
 		if (sprite == null) {
 			return;
 		}
-		// Guard: only clones can delete themselves; silently ignore if run on the original
 		if (!sprite.isClone) {
 			return;
 		}

@@ -29,7 +29,6 @@ import org.catrobat.catroid.formulaeditor.Formula
 import org.catrobat.catroid.formulaeditor.InterpretationException
 import org.catrobat.catroid.runtime.RuntimeServicesHolder
 
-// Maximum vibration duration in seconds. Capped at 60s to prevent runaway vibration.
 const val MAX_TIME_TO_VIBRATE: Long = 60
 const val UNIT_CONVERSION: Long = 1000
 

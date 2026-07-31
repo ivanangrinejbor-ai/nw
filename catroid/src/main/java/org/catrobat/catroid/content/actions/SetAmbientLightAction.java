@@ -19,7 +19,6 @@ public class SetAmbientLightAction extends TemporalAction {
 
         try {
 
-            // Значения цвета в LibGDX обычно находятся в диапазоне 0.0f - 1.0f
             float r = red.interpretFloat(scope);
             float g = green.interpretFloat(scope);
             float b = blue.interpretFloat(scope);

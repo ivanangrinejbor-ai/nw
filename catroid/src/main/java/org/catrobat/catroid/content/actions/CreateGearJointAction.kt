@@ -23,7 +23,6 @@ class CreateGearJointAction : TemporalAction() {
         val scene = ProjectManager.getInstance().currentlyPlayingScene ?: return
         val pw = scene.physicsWorld ?: return
 
-        // GearJoint требует оба joint'а быть активными
         pw.createGearJoint(id, idA, idB, r)
     }
 

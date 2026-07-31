@@ -50,7 +50,6 @@ class ZipProjectFilesAction : Action() {
         ZipOutputStream(FileOutputStream(zipFile)).use { zos ->
             for (fileName in fileNames) {
                 val fileToZip = File(projectDir, fileName)
-                // Validate path traversal (Zip Slip prevention)
                 val fileCanonical = fileToZip.canonicalPath
                 if (!fileCanonical.startsWith(projectCanonical + File.separator) && fileCanonical != projectCanonical) {
                     continue

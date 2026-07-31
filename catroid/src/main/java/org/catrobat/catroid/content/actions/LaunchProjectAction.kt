@@ -57,7 +57,6 @@ class LaunchProjectAction : TemporalAction() {
 
             if (!unpackedProjectDir.exists()) {
                 Log.i("LaunchProjectAction", "Unpacking '$projectFileName' to cache...")
-                // ProgressDialog and Thread must be started from the UI thread
                 stage.runOnUiThread {
                     val progressDialog = android.app.ProgressDialog(stage).apply {
                         setMessage("Unpacking sub-project...")

@@ -47,7 +47,6 @@ class RepeatWhileAction : LoopAction() {
         return true
     }
 
-    // Loop WHILE the condition is true; stop as soon as it becomes false.
     private fun isConditionFalse(): Boolean = try {
         repeatCondition?.interpretDouble(scope) == 0.0
     } catch (interpretationException: InterpretationException) {

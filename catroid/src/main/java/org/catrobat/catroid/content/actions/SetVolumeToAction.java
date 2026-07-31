@@ -39,7 +39,6 @@ public class SetVolumeToAction extends TemporalAction {
 	@Override
 	protected void update(float percent) {
 		if (scope == null) return;
-		// Если задана мастер-громкость игры — игнорировать этот блок
 		if (org.catrobat.catroid.content.GlobalManager.Companion.getGameVolume() != null) return;
 		try {
 			Float newVolume = volume == null ? Float.valueOf(0f) : volume.interpretFloat(scope);

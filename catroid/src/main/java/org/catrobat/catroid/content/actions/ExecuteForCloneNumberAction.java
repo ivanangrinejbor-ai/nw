@@ -14,7 +14,7 @@ public class ExecuteForCloneNumberAction extends Action {
     private Formula cloneNumberFormula;
     private Action cloneAction;
     private boolean initialized;
-    private int targetCloneIndex = -1;  // cached on first act(), avoids re-interpreting each frame
+    private int targetCloneIndex = -1;
 
     public void setScope(Scope scope) {
         this.scope = scope;
@@ -38,7 +38,6 @@ public class ExecuteForCloneNumberAction extends Action {
             try {
                 targetCloneIndex = cloneNumberFormula.interpretInteger(scope);
                 if (scope.getSprite() == null || scope.getSprite().cloneIndex != targetCloneIndex) {
-                    // This clone doesn't match the target number, skip execution permanently
                     targetCloneIndex = -1;
                     return true;
                 }
@@ -47,7 +46,6 @@ public class ExecuteForCloneNumberAction extends Action {
                 return true;
             }
         }
-        // Run the inner action only if this clone matched — no re-interpretation
         if (cloneAction != null && targetCloneIndex >= 0) {
             return cloneAction.act(delta);
         }

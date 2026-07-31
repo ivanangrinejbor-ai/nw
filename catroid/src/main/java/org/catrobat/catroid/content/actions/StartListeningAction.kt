@@ -71,7 +71,6 @@ class StartListeningAction : Action(), OnSpeechRecognitionResultCallback {
     }
 
     override fun onResult(spokenWords: String) {
-        //Log.d(TAG, "received: $spokenWords")
         toast("recived")
         userVariable?.value = spokenWords
         spokenWordsReceived = true

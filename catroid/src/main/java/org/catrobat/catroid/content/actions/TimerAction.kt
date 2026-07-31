@@ -71,7 +71,7 @@ class TimerAction : TemporalAction() {
         val project = ProjectManager.getInstance().currentProject ?: return
         val userVariable = project.getUserVariable(variableName) ?: return
 
-        // Cancel existing timer with same name
+
         activeTimers[name]?.handler?.removeCallbacksAndMessages(null)
         activeTimers.remove(name)
 
@@ -82,7 +82,7 @@ class TimerAction : TemporalAction() {
         val timerData = TimerData(handler, userVariable, startTime, durationMs)
         activeTimers[name] = timerData
 
-        // Update variable with remaining time
+
         val updateRunnable = object : Runnable {
             override fun run() {
                 val elapsed = System.currentTimeMillis() - startTime
@@ -90,7 +90,7 @@ class TimerAction : TemporalAction() {
 
                 if (remaining > 0) {
                     userVariable.value = remaining
-                    handler.postDelayed(this, 100) // Update every 100ms
+                    handler.postDelayed(this, 100)
                 } else {
                     userVariable.value = 0.0
                     activeTimers.remove(name)

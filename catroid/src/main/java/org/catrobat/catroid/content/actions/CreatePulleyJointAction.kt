@@ -44,7 +44,6 @@ class CreatePulleyJointAction : TemporalAction() {
             return
         }
 
-        // Validate ratio — Box2D requires positive ratio for PulleyJoint
         if (r <= 0f) {
             Log.w(javaClass.simpleName, "Invalid ratio ($r), must be positive, using default 1.0")
             r = 1f

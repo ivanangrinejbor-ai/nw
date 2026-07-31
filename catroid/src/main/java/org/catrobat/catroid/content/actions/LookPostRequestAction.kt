@@ -63,14 +63,12 @@ class LookPostRequestAction : WebAction() {
         val bodyJson = requestBodyJson ?: return false
         val requestBody = RequestBody.create("${header}; charset=utf-8".toMediaType(), bodyJson)
 
-        // Создание запроса с заголовками
         val requestBuilder = Request.Builder()
             .url(requestUrl)
             .post(requestBody)
 
         val request = requestBuilder.build()
 
-        // Отправка запроса и обработка результата
         client.newCall(request).enqueue(object : Callback {
             override fun onResponse(call: Call, response: Response) {
                 this@LookPostRequestAction.response = response
@@ -83,7 +81,7 @@ class LookPostRequestAction : WebAction() {
             }
         })
 
-        return true // запрос отправлен
+        return true
     }
 
     fun getLookFromResponse(response: InputStream): LookData? {
@@ -111,7 +109,6 @@ class LookPostRequestAction : WebAction() {
             if (it.isSuccessful) {
                 val responseBody = it.body?.string()
                 Log.d(javaClass.simpleName, "Response: $responseBody")
-                // Здесь можно обработать ответ, если это необходимо
             } else {
                 handleError(it.code.toString())
             }
@@ -134,7 +131,7 @@ class LookPostRequestAction : WebAction() {
         response = null
         errorCode = null
         requestBodyJson = null
-        header = null // очищаем заголовки
+        header = null
         super.restart()
     }
 
@@ -142,7 +139,7 @@ class LookPostRequestAction : WebAction() {
         response = null
         errorCode = null
         requestBodyJson = null
-        header = null // очищаем заголовки
+        header = null
         super.onCancelledCall()
     }
 }

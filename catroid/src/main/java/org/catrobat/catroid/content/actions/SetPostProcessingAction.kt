@@ -30,13 +30,11 @@ class SetPostProcessingAction : TemporalAction() {
         val boolVal = floatVal > 0.5f
 
         if (effectIndex == 0) {
-            // --- GLOBAL ---
             when (paramIndex) {
                 0 -> config.isActive = boolVal
                 5 -> config.qualityScale = floatVal.coerceIn(0.1f, 1.0f)
             }
         } else {
-            // --- EFFECTS ---
             val targetEffect = findOrCreateEffect(config, effectIndex)
             if (targetEffect != null) {
                 applyParam(targetEffect, paramIndex, floatVal, boolVal)
@@ -102,43 +100,43 @@ class SetPostProcessingAction : TemporalAction() {
             }
             is PostProcessingData.Bloom -> {
                 when (paramIdx) {
-                    1 -> data.intensity = valFloat        // Intensity
-                    2 -> data.threshold = valFloat        // Threshold
-                    3 -> data.blurAmount = valFloat       // Blur Amount
-                    4 -> data.blurPasses = max(1, valFloat.toInt()) // Blur Passes
+                    1 -> data.intensity = valFloat
+                    2 -> data.threshold = valFloat
+                    3 -> data.blurAmount = valFloat
+                    4 -> data.blurPasses = max(1, valFloat.toInt())
                 }
             }
             is PostProcessingData.Levels -> {
                 when (paramIdx) {
-                    6 -> data.contrast = valFloat         // Contrast
-                    7 -> data.saturation = valFloat       // Saturation
-                    8 -> data.gamma = valFloat            // Gamma
+                    6 -> data.contrast = valFloat
+                    7 -> data.saturation = valFloat
+                    8 -> data.gamma = valFloat
                 }
             }
             is PostProcessingData.Vignette -> {
                 when (paramIdx) {
-                    1 -> data.intensity = valFloat        // Intensity
-                    7 -> data.saturation = valFloat       // Saturation
+                    1 -> data.intensity = valFloat
+                    7 -> data.saturation = valFloat
                 }
             }
             is PostProcessingData.Grain -> {
-                if (paramIdx == 1) data.amount = valFloat // Amount
+                if (paramIdx == 1) data.amount = valFloat
             }
             is PostProcessingData.Chromatic -> {
                 when (paramIdx) {
-                    1 -> data.strength = valFloat         // Strength
-                    10 -> data.maxDistortion = valFloat   // Max Distort
+                    1 -> data.strength = valFloat
+                    10 -> data.maxDistortion = valFloat
                 }
             }
             is PostProcessingData.RadialBlur -> {
                 when (paramIdx) {
-                    1 -> data.strength = valFloat         // Strength
-                    4 -> data.blurPasses = max(1, valFloat.toInt()) // Blur Passes
+                    1 -> data.strength = valFloat
+                    4 -> data.blurPasses = max(1, valFloat.toInt())
                     3 -> data.size = valFloat
                 }
             }
             is PostProcessingData.OldTv -> {
-                if (paramIdx == 13 || paramIdx == 1) data.strength = valFloat // Noise (using Noise Idx 13 or Strength 1)
+                if (paramIdx == 13 || paramIdx == 1) data.strength = valFloat
             }
             is PostProcessingData.Crt -> {
             }
@@ -146,8 +144,8 @@ class SetPostProcessingAction : TemporalAction() {
             }
             is PostProcessingData.Water -> {
                 when (paramIdx) {
-                    1 -> data.amount = valFloat           // Amount
-                    9 -> data.speed = valFloat            // Speed
+                    1 -> data.amount = valFloat
+                    9 -> data.speed = valFloat
                 }
             }
             is PostProcessingData.MotionBlur -> {
@@ -155,22 +153,22 @@ class SetPostProcessingAction : TemporalAction() {
             }
             is PostProcessingData.LensFlare -> {
                 when (paramIdx) {
-                    1 -> data.intensity = valFloat        // Intensity
-                    2 -> data.threshold = valFloat        // Threshold
+                    1 -> data.intensity = valFloat
+                    2 -> data.threshold = valFloat
                 }
             }
             is PostProcessingData.Gaussian -> {
                 when (paramIdx) {
-                    1 -> data.amount = valFloat           // Amount
-                    4 -> data.passes = max(1, valFloat.toInt()) // Blur Passes
+                    1 -> data.amount = valFloat
+                    4 -> data.passes = max(1, valFloat.toInt())
                     3 -> data.size = valFloat
                 }
             }
             is PostProcessingData.Zoom -> {
                 when (paramIdx) {
-                    1 -> data.zoom = valFloat             // Strength (Zoom)
-                    11 -> data.originX = valFloat         // Origin X
-                    12 -> data.originY = valFloat         // Origin Y
+                    1 -> data.zoom = valFloat
+                    11 -> data.originX = valFloat
+                    12 -> data.originY = valFloat
                 }
             }
             is PostProcessingData.ACES -> {

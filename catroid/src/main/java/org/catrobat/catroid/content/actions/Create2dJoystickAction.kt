@@ -60,7 +60,6 @@ class Create2dJoystickAction : Action() {
 
                 val projectDir = scope?.project?.directory
 
-                // 1. Background image or default fallback
                 val bgFile = if (!bgFileStr.isBlank() && projectDir != null) File(projectDir, bgFileStr) else null
                 if (bgFile != null && bgFile.exists()) {
                     val bmp = BitmapFactory.decodeFile(bgFile.absolutePath)
@@ -69,7 +68,6 @@ class Create2dJoystickAction : Action() {
                     setDefaultBg(bgView)
                 }
 
-                // 2. Thumb image or default fallback
                 val thumbFile = if (!thumbFileStr.isBlank() && projectDir != null) File(projectDir, thumbFileStr) else null
                 if (thumbFile != null && thumbFile.exists()) {
                     val bmp = BitmapFactory.decodeFile(thumbFile.absolutePath)

@@ -16,7 +16,6 @@ class GlideTo3DAction : TemporalAction() {
     private var zFormula: Formula? = null
     private var durationFormula: Formula? = null
 
-    // Spinner index into R.array.brick_easing_types ("None" = 0, "Linear" = 1, ...).
     private var typeIndex = 0
 
     private var startX = 0f
@@ -74,8 +73,6 @@ class GlideTo3DAction : TemporalAction() {
 
         val currentTime = time.coerceAtMost(duration)
 
-        // Spinner index is offset by 1 because entry 0 is "None"; map both "None" and
-        // "Linear" to EasingType.LINEAR (index 0), everything else to typeIndex - 1.
         val enumIndex = (typeIndex - 1).coerceIn(0, easingTypes.size - 1)
         val easingType = easingTypes[enumIndex]
 

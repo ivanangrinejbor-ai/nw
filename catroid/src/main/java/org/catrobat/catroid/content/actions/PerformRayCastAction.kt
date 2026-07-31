@@ -34,7 +34,6 @@ class PerformRayCastAction : TemporalAction() {
             return
         }
 
-        // Validate ray — Box2D requires non-zero length ray
         if (sX == eX && sY == eY) {
             Log.w(javaClass.simpleName, "Zero-length ray (start==end), skipping")
             return

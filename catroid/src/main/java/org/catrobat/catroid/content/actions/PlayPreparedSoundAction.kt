@@ -15,7 +15,6 @@ class PlayPreparedSoundAction : TemporalAction() {
         if (cacheName.isNullOrEmpty()) {
             return
         }
-        // Вызываем новый менеджер
         SoundCacheManager.getInstance().playSound(cacheName)
     }
 }

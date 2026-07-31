@@ -34,11 +34,6 @@ import org.catrobat.catroid.content.tilemap.TilemapRuntimeManager;
 import org.catrobat.catroid.formulaeditor.Formula;
 import org.catrobat.catroid.formulaeditor.InterpretationException;
 
-/**
- * Marks (or unmarks) a tileset index as solid on the sprite's active tilemap costume. When solid,
- * tiles with that index generate Box2D static collision fixtures. No-op if the active costume is
- * not a tilemap.
- */
 public class SetTilemapSolidAction extends TemporalAction {
 
 	private Scope scope;

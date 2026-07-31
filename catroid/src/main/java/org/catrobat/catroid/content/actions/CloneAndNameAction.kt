@@ -17,7 +17,6 @@ class CloneAndNameAction : TemporalAction() {
         val stageListener = stageActivity.stageListener ?: return
         val rawName = cloneName?.interpretString(scope)
 
-        // Fallback: if name is null or empty, derive a name from the sprite + clone counter
         val safeName = if (rawName.isNullOrBlank()) {
             "${spriteToClone.name}-c${stageListener.nextCloneIndex()}"
         } else {

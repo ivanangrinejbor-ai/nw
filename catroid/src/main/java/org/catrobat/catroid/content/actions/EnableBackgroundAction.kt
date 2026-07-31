@@ -32,10 +32,8 @@ class EnableBackgroundAction : TemporalAction() {
             val notifText = text?.interpretString(scope) ?: "App is running in background"
             val icon = iconPath?.interpretString(scope) ?: ""
 
-            // Create notification channel for API 26+ (via notification service seam)
             NotificationServiceHolder.service.ensureChannel(channel, NotificationService.IMPORTANCE_LOW)
 
-            // Check POST_NOTIFICATIONS permission on API 33+
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 if (ContextCompat.checkSelfPermission(activity, android.Manifest.permission.POST_NOTIFICATIONS)
                     != PackageManager.PERMISSION_GRANTED) {

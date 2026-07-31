@@ -57,7 +57,6 @@ class DownloadToPathAction() : TemporalAction() {
                     return@thread
                 }
                 connection = urlObj.openConnection() as HttpURLConnection
-                // Без таймаутов поток виснет на ОС-таймауте (минуты) при недоступном сервере.
                 connection.connectTimeout = 15_000
                 connection.readTimeout = 15_000
                 connection.connect()
@@ -79,7 +78,6 @@ class DownloadToPathAction() : TemporalAction() {
                         var bytesRead: Int
                         var totalRead = 0L
                         while (inputStream.read(buffer).also { bytesRead = it } != -1) {
-                            // CancelDownloadBrick ставит progress = -2 — прерываем загрузку.
                             if (DownloadState.progress == -2) {
                                 Log.d("DownloadToPath", "Download cancelled by user")
                                 file.delete()

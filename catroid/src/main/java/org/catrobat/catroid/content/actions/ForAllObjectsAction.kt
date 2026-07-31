@@ -28,12 +28,6 @@ import org.catrobat.catroid.content.Scope
 import org.catrobat.catroid.formulaeditor.Formula
 import org.catrobat.catroid.formulaeditor.InterpretationException
 
-/**
- * Applies a single visual/motion property to EVERY sprite in the current scene (incl. clones).
- * The value formula is interpreted ONCE using the running sprite's scope, then applied to all
- * objects — matching the "set size/color/… for all objects" request. Value-less variants
- * (SHOW/HIDE) ignore the formula.
- */
 class ForAllObjectsAction : TemporalAction() {
 
     enum class Property { SIZE, TRANSPARENCY, BRIGHTNESS, COLOR, X, Y, DIRECTION, SHOW, HIDE }
@@ -51,7 +45,6 @@ class ForAllObjectsAction : TemporalAction() {
             0f
         }
 
-        // Snapshot to avoid ConcurrentModificationException if clones spawn/despawn mid-loop.
         for (sprite in ArrayList(project.spriteListWithClones)) {
             val look = sprite.look ?: continue
             when (property) {

@@ -23,7 +23,6 @@ class PrepareSoundAction : TemporalAction() {
         try {
             val soundFile = project.getFile(fileName)
             if (soundFile != null && soundFile.exists()) {
-                // Вызываем новый менеджер
                 SoundCacheManager.getInstance().loadSound(cacheName, soundFile.absolutePath)
             } else {
                 Log.e("PrepareSoundAction", "Sound file not found: $fileName")

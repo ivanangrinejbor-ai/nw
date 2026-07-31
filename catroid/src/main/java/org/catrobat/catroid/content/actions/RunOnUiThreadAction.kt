@@ -12,7 +12,6 @@ class RunOnUiThreadAction : Action() {
         if (!posted) {
             posted = true
             val action = nestedAction ?: return true
-            // Posts action execution asynchronously to the UI thread without blocking the script runner
             RuntimeServicesHolder.services.postToMainThread {
                 action.act(delta)
             }

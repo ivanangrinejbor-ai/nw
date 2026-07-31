@@ -19,7 +19,7 @@ import java.io.InputStream
 
 class NativeLayerAction : TemporalAction() {
     var scope: Scope? = null
-    var layer: Int = 1 // По умолчанию - все файлы
+    var layer: Int = 1
 
     override fun update(percent: Float) {
         val activity: StageActivity = StageActivity.activeStageActivity.get() ?: return
@@ -29,7 +29,6 @@ class NativeLayerAction : TemporalAction() {
             1 -> {
                 activity.setNativesBackground()
                 activity.debugLayoutHierarchy()
-                //activity.createDebugView("test", Color.MAGENTA, 50, 50, 200, 300)
             }
         }
     }

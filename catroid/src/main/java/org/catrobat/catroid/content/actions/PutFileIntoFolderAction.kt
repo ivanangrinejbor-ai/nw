@@ -27,7 +27,6 @@ class PutFileIntoFolderAction : TemporalAction() {
         val folder = folderName?.interpretString(scope) ?: return
         if (sourceName.isBlank() || folder.isBlank()) return
 
-        // Offload blocking disk I/O off the render thread to avoid frame freeze / ANR.
         Thread({
             try {
                 val sourceFile = project.getFile(sourceName)

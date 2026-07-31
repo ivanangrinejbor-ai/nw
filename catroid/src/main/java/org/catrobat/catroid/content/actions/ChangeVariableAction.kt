@@ -39,7 +39,6 @@ class ChangeVariableAction : Action() {
 
     override fun act(delta: Float): Boolean {
         val variable = userVariable ?: return true
-        // UserVariable.value can be Double, String, or Boolean
         val originalValue: Double = when (val v = variable.value) {
             is Double -> v
             is Boolean -> if (v) 1.0 else 0.0

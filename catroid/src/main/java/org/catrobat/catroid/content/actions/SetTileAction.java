@@ -34,13 +34,7 @@ import org.catrobat.catroid.content.tilemap.TilemapRuntimeManager;
 import org.catrobat.catroid.formulaeditor.Formula;
 import org.catrobat.catroid.formulaeditor.InterpretationException;
 
-/**
- * Sets a tile on the sprite's active tilemap costume at (column, row) to the given tile index.
- * No-op if the active costume is not a tilemap. Marks the runtime's physics dirty so collisions
- * are rebuilt on the next frame.
- */
 public class SetTileAction extends TemporalAction {
-
 	private Scope scope;
 	private Formula column;
 	private Formula row;
@@ -60,13 +54,11 @@ public class SetTileAction extends TemporalAction {
 			int col = column == null ? 0 : column.interpretFloat(scope).intValue();
 			int r = row == null ? 0 : row.interpretFloat(scope).intValue();
 			int idx = tileIndex == null ? 0 : tileIndex.interpretFloat(scope).intValue();
-			// Bounds check: предотвращаем ArrayIndexOutOfBounds
 			if (col < 0 || r < 0 || col >= tilemap.getMapColumns() || r >= tilemap.getMapRows()) return;
 			if (tilemap.setTile(col, r, (short) idx)) {
 				TilemapRuntime runtime = TilemapRuntimeManager.peek(tilemap);
 				if (runtime != null) {
 					runtime.invalidatePhysics();
-					// Invalidate visual regions so the new tile index is redrawn
 					runtime.invalidateRegions();
 				}
 			}

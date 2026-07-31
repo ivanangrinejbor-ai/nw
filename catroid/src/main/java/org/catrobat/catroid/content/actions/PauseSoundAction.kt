@@ -15,7 +15,6 @@ class PauseSoundAction : TemporalAction() {
         val mediaPlayers = SoundManager.getInstance().mediaPlayers
         for (mp in mediaPlayers) {
             if (mp.isPlaying) {
-                // SoundManager maps sounds by file path
                 try { mp.pause() } catch (_: Exception) {}
             }
         }

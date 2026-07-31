@@ -26,8 +26,6 @@ class LookFromTableAction : TemporalAction() {
 
         val currentScope = scope ?: return
 
-        // --- НАЧАЛО БЛОКА ОПТИМИЗАЦИИ (все так же, как и раньше) ---
-
         val r_name = r_table?.interpretString(currentScope) ?: "rTable"
         val g_name = g_table?.interpretString(currentScope) ?: "gTable"
         val b_name = b_table?.interpretString(currentScope) ?: "bTable"
@@ -60,15 +58,10 @@ class LookFromTableAction : TemporalAction() {
         val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
         bitmap.setPixels(pixelArray, 0, width, 0, 0, width, height)
 
-        // --- КОНЕЦ БЛОКА ОПТИМИЗАЦИИ ---
-
-        // 7. Сохраняем наш быстро сгенерированный Bitmap во временный файл
         val tempFile = saveBitmapToTempFile(bitmap)
 
-        // 8. Создаем и устанавливаем Look из этого файла
         setLookFromFile(tempFile)
 
-        // 9. (Важно!) Освобождаем память, занятую созданным Bitmap, т.к. LookData его уже скопировал
         bitmap.recycle()
     }
 

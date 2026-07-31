@@ -16,7 +16,7 @@ import android.util.Log
 class CreateObjectAction : TemporalAction() {
     var scope: Scope? = null
     var objectName: Formula? = null
-    var sceneName: Formula? = null  // null = Current scene
+    var sceneName: Formula? = null
     var persist: Boolean = false
 
     private var executed = false
@@ -29,7 +29,6 @@ class CreateObjectAction : TemporalAction() {
         val name = objectName?.interpretString(scope) ?: return
         if (name.isBlank()) return
 
-        // Resolve scene
         val sceneStr = sceneName?.interpretString(scope)
         val scene = resolveScene(project, sceneStr)
         if (scene == null) {
@@ -37,7 +36,6 @@ class CreateObjectAction : TemporalAction() {
             return
         }
 
-        // Check for duplicate name in this scene
         for (existing in scene.spriteList) {
             if (existing.name == name) {
                 Log.w(TAG, "Object with name '$name' already exists in scene '${scene.name}'")
@@ -45,11 +43,9 @@ class CreateObjectAction : TemporalAction() {
             }
         }
 
-        // Create the new blank sprite and add to the scene model
         val newSprite = Sprite(name)
         scene.spriteList.add(newSprite)
 
-        // Track mutation so the editor can reload on Stage exit
         if (persist) {
             RuntimeMutationTracker.hasPersistentMutations = true
             try {
@@ -63,7 +59,6 @@ class CreateObjectAction : TemporalAction() {
             RuntimeMutationTracker.hasTemporaryMutations = true
         }
 
-        // If this scene is currently active on stage, initialize the sprite
         val stageListener = StageActivity.getActiveStageListener()
         if (stageListener != null) {
             val activeScene = ProjectManager.getInstance().getCurrentlyPlayingScene()

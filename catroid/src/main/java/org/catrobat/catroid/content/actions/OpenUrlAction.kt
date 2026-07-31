@@ -49,6 +49,5 @@ class OpenUrlAction : WebAction() {
     }
 
     override fun handleError(error: String) {
-        // empty function required to handle HTTP error
     }
 }

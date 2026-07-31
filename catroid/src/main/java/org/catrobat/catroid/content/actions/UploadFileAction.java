@@ -25,9 +25,9 @@ public class UploadFileAction extends TemporalAction {
     public Scope scope;
     public Formula url;
     public Formula filePath;
-    public int fileTypeSelection;    // 0: Standard, 1: Binary
+    public int fileTypeSelection;   
     public Formula mimeType;
-    public int storageTypeSelection; // 0: Permanent, 1: Temporary
+    public int storageTypeSelection;
 
     @Override
     protected void update(float percent) {
@@ -48,12 +48,9 @@ public class UploadFileAction extends TemporalAction {
                 return;
             }
 
-            // Сетевые операции НЕЛЬЗЯ выполнять в основном потоке.
-            // Запускаем их в новом потоке.
             new Thread(() -> {
                 HttpURLConnection connection = null;
                 try {
-                    // Получаем файл. Предполагаем, что путь абсолютный.
                     FileHandle file = Gdx.files.absolute(pathStr);
                     if (!file.exists()) {
                         Log.e(TAG, "File not found: " + pathStr);
@@ -66,7 +63,6 @@ public class UploadFileAction extends TemporalAction {
                     connection.setDoOutput(true);
                     connection.setUseCaches(false);
 
-                    // Устанавливаем заголовки
                     connection.setRequestProperty("Content-Type", mimeStr);
                     String storageTypeHeader = (storageTypeSelection == 0) ? "permanent" : "temporary";
                     connection.setRequestProperty("X-Storage-Type", storageTypeHeader);
@@ -81,7 +77,6 @@ public class UploadFileAction extends TemporalAction {
                         requestStream.flush();
                     }
 
-                    // Получаем ответ от сервера (важно для завершения запроса)
                     int responseCode = connection.getResponseCode();
                     Log.i(TAG, "Server responded with code: " + responseCode);
 

@@ -54,6 +54,5 @@ public class WaitForSoundAction extends WaitAction {
 
 	@Override
 	protected void end() {
-		// Platform-specific restart/seek is handled inside the audio service.
 	}
 }

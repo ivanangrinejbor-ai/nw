@@ -21,7 +21,6 @@ class ShowScheduledNotificationAction : TemporalAction() {
     override fun update(percent: Float) {
         if (started) return
         val s = scope ?: return
-        // Interpret notification ID as integer and schedule delay as double seconds
         val id = notificationId?.interpretInteger(s) ?: return
         val rawDelay = delay?.interpretDouble(s) ?: 0.0
         val delayMs = if (rawDelay > Long.MAX_VALUE / 1000) 0L else (rawDelay * 1000).toLong()

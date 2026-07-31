@@ -26,7 +26,6 @@ class DeleteFilesAction() : TemporalAction() {
         val name = project.checkExtension(fileNameStr, "txt")
         if (name.isEmpty()) return
 
-        // Prevent path traversal: resolve to canonical path and verify it's under project dir
         val projectDir = project.filesDir.canonicalFile
         val targetFile = java.io.File(projectDir, name).canonicalFile
         if (!targetFile.path.startsWith(projectDir.path + java.io.File.separator) && targetFile != projectDir) {

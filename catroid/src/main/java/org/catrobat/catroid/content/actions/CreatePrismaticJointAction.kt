@@ -27,7 +27,6 @@ class CreatePrismaticJointAction : TemporalAction() {
         var axisXVal = axisX?.interpretFloat(scope) ?: 1f
         var axisYVal = axisY?.interpretFloat(scope) ?: 0f
 
-        // Validate axis vector — Box2D requires non-zero axis for PrismaticJoint
         if (axisXVal == 0f && axisYVal == 0f) {
             axisXVal = 1f
             axisYVal = 0f

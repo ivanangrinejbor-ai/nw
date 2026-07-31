@@ -41,7 +41,6 @@ public class WaitAction extends TemporalAction {
 			Float newDuration = duration == null ? Float.valueOf(0f)
 					: duration.interpretFloat(scope);
 			
-			// Sanitize duration: negative or NaN → 0
 			if (newDuration == null || newDuration < 0f || Float.isNaN(newDuration) || Float.isInfinite(newDuration)) {
 				newDuration = 0f;
 			}
@@ -49,7 +48,6 @@ public class WaitAction extends TemporalAction {
 			super.setDuration(newDuration);
 		} catch (InterpretationException interpretationException) {
 			Log.d(getClass().getSimpleName(), "Formula interpretation for this specific Brick failed.", interpretationException);
-			// On error, set duration to 0 to avoid hanging
 			super.setDuration(0f);
 		}
 	}

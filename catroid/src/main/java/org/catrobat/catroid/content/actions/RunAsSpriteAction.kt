@@ -19,7 +19,6 @@ class RunAsSpriteAction(
     private var executed = false
     
     companion object {
-        // Recursion depth limit to prevent StackOverflowError
         private val recursionDepth = ThreadLocal.withInitial { 0 }
         private const val MAX_RECURSION_DEPTH = 10
     }
@@ -37,7 +36,6 @@ class RunAsSpriteAction(
             sprite.name == targetName
         }
         
-        // Check recursion depth
         val currentDepth = recursionDepth.get()
         if (currentDepth >= MAX_RECURSION_DEPTH) {
             android.util.Log.w("RunAsSpriteAction", "Max recursion depth ($MAX_RECURSION_DEPTH) exceeded, stopping")

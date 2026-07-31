@@ -32,14 +32,13 @@ import org.catrobat.catroid.stage.StageListener;
 
 public class WaitTillIdleAction extends Action {
 
-	private static final float TIMEOUT = 5.0f; // 5 seconds timeout
+	private static final float TIMEOUT = 5.0f;
 	private float totalTime = 0f;
 
 	@Override
 	public boolean act(float delta) {
 		totalTime += delta;
 		
-		// Timeout protection: stop waiting after 5 seconds
 		if (totalTime >= TIMEOUT) {
 			return true;
 		}
@@ -56,7 +55,7 @@ public class WaitTillIdleAction extends Action {
 		com.badlogic.gdx.scenes.scene2d.Stage stage = stageListener.getStage();
 		int totalActors = stage.getActors().size;
 		if (totalActors == 0) {
-			return true; // No actors = idle
+			return true;
 		}
 
 		int idleActors = 0;
@@ -65,20 +64,16 @@ public class WaitTillIdleAction extends Action {
 		for (Actor actor : stage.getActors()) {
 			Array<Action> actions = actor.getActions();
 			
-			// Actor is idle if it has no actions
 			if (actions.size == 0) {
 				idleActors++;
 				continue;
 			}
 			
-			// Check if actor has only ScriptSequenceAction containing this WaitTillIdleAction
 			boolean hasOnlyThisScript = false;
 			for (Action action : actions) {
 				if (action instanceof ScriptSequenceAction) {
 					ScriptSequenceAction sequenceAction = (ScriptSequenceAction) action;
 					if (sequenceAction.getActions().contains(this, true)) {
-						// This actor is running the script that contains this WaitTillIdleAction
-						// Check if it has no OTHER actions besides this sequence
 						if (actions.size == 1) {
 							hasOnlyThisScript = true;
 						}
@@ -91,7 +86,6 @@ public class WaitTillIdleAction extends Action {
 			}
 		}
 		
-		// All actors are idle if: all have 0 actions, OR only the current script is running
 		return (idleActors + actorsWithOnlyThisScript) >= totalActors;
 	}
 	

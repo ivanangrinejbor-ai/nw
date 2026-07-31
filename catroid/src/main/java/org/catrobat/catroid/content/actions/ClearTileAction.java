@@ -34,10 +34,6 @@ import org.catrobat.catroid.content.tilemap.TilemapRuntimeManager;
 import org.catrobat.catroid.formulaeditor.Formula;
 import org.catrobat.catroid.formulaeditor.InterpretationException;
 
-/**
- * Clears a tile on the sprite's active tilemap costume at (column, row), setting it to
- * {@link TilemapLookData#EMPTY}. No-op if the active costume is not a tilemap.
- */
 public class ClearTileAction extends TemporalAction {
 
 	private Scope scope;
@@ -57,13 +53,11 @@ public class ClearTileAction extends TemporalAction {
 		try {
 			int col = column == null ? 0 : column.interpretFloat(scope).intValue();
 			int r = row == null ? 0 : row.interpretFloat(scope).intValue();
-			// Bounds check
 			if (col < 0 || r < 0 || col >= tilemap.getMapColumns() || r >= tilemap.getMapRows()) return;
 			if (tilemap.setTile(col, r, TilemapLookData.EMPTY)) {
 				TilemapRuntime runtime = TilemapRuntimeManager.peek(tilemap);
 				if (runtime != null) {
 					runtime.invalidatePhysics();
-					// Invalidate visual regions so the cleared tile is redrawn as empty
 					runtime.invalidateRegions();
 				}
 			}

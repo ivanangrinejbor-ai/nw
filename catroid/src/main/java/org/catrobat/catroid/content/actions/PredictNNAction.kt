@@ -24,7 +24,6 @@ class PredictNNAction() : TemporalAction() {
         if (!OnnxSessionManager.isWorking) return true
         if (isFinished) return true
         if (hasStarted) {
-            // Защита от вечного ожидания: если JNI-инференс завис, не блокируем скрипт навсегда
             if (System.currentTimeMillis() - startedAtMs > INFERENCE_TIMEOUT_MS) {
                 variable?.value = "TIMEOUT_ERROR"
                 isFinished = true
@@ -65,7 +64,6 @@ class PredictNNAction() : TemporalAction() {
     }
 
     override fun update(percent: Float) {
-        // NN prediction runs asynchronously in act() — no per-frame update needed
     }
 
     override fun restart() {

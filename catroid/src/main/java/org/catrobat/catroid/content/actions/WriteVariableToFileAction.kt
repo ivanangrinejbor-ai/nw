@@ -35,9 +35,7 @@ class WriteVariableToFileAction : TemporalAction(), IntentListener {
     var formula: Formula? = null
     var userVariable: UserVariable? = null
 
-    // Prevent re-execution on every libGDX frame during TemporalAction lifetime
     private var started = false
-    // Cancellable scope — cancelled on restart() to prevent coroutine leaks
     private var job: Job = SupervisorJob()
 
     override fun update(percent: Float) {
@@ -86,7 +84,6 @@ class WriteVariableToFileAction : TemporalAction(), IntentListener {
     @VisibleForTesting
     fun writeToFile(file: File, content: String): Boolean {
         return try {
-            // Overwrites existing file content completely (not append-only)
             file.writeText(content)
             true
         } catch (e: IOException) {

@@ -29,17 +29,6 @@ import org.catrobat.catroid.content.Scope
 import org.catrobat.catroid.formulaeditor.Formula
 import org.catrobat.catroid.formulaeditor.InterpretationException
 
-/**
- * "Transitions" category: animates the running object at a given speed.
- * FADE_IN/OUT tween transparency, ZOOM_IN/OUT tween size, SLIDE_IN/OUT tween position
- * to/from a screen edge. Modelled on AudioFadeInAction/AudioFadeOutAction: begin()
- * interprets the speed formula and captures start/end values, update(percent)
- * interpolates linearly. Value-based start states (fully transparent / zero size /
- * off-screen) are applied in begin() so there is no first-frame flash.
- *
- * Speed is the fraction of the transition completed per second: speed 1 => 1s,
- * 0.005 (minimum) => very slow, high => near-instant. duration = 1 / speed.
- */
 class TransitionAction : TemporalAction() {
 
     enum class Type { FADE_IN, FADE_OUT, ZOOM_IN, ZOOM_OUT, SLIDE_IN, SLIDE_OUT }

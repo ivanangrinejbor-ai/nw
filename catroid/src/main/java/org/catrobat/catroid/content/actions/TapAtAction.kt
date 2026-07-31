@@ -51,7 +51,7 @@ class TapAtAction : TemporalAction() {
         try {
             touchCoords = Vector2(startX.interpretFloat(scope), startY.interpretFloat(scope))
             
-            // Validate coordinates (no NaN or Infinity)
+
             if (touchCoords.x.isNaN() || touchCoords.x.isInfinite() ||
                 touchCoords.y.isNaN() || touchCoords.y.isInfinite()) {
                 Log.w(TAG, "Invalid coordinates: NaN or Infinity detected")
@@ -65,7 +65,7 @@ class TapAtAction : TemporalAction() {
                     changeY?.interpretFloat(scope) ?: 0f
                 )
                 
-                // Validate drag coordinates
+
                 if (dragCoords!!.x.isNaN() || dragCoords!!.x.isInfinite() ||
                     dragCoords!!.y.isNaN() || dragCoords!!.y.isInfinite()) {
                     Log.w(TAG, "Invalid drag coordinates: NaN or Infinity detected")

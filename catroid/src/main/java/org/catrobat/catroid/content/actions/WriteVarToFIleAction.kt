@@ -63,7 +63,6 @@ class WriteVarToFileAction : TemporalAction(), IntentListener {
     var formula: Formula? = null
     var userVariable: UserVariable? = null
 
-    // Prevent execution on every libGDX frame
     private var started = false
 
     override fun restart() {
@@ -72,8 +71,6 @@ class WriteVarToFileAction : TemporalAction(), IntentListener {
     }
 
     private fun requestWritePermissionIfNeeded() {
-        // WRITE_EXTERNAL_STORAGE is not needed on Android 10+ (Q+) when using MediaStore.
-        // On older devices, request only once, not every frame.
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
             val context = CatroidApplication.getAppContext()
             if (ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
@@ -170,7 +167,7 @@ class WriteVarToFileAction : TemporalAction(), IntentListener {
         var fileName = Utils.sanitizeFileName(formula?.interpretString(scope))
 
         if (!fileName.contains(".")) {
-            fileName += Constants.TEXT_FILE_EXTENSION // ".txt"
+            fileName += Constants.TEXT_FILE_EXTENSION
         }
 
         return fileName

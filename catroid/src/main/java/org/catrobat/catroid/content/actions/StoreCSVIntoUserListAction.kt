@@ -45,7 +45,6 @@ class StoreCSVIntoUserListAction : TemporalAction() {
 
     var userList: UserList? = null
 
-    // Guard: parse CSV once per block invocation, not on every frame.
     private var started = false
 
     override fun restart() {
@@ -69,7 +68,6 @@ class StoreCSVIntoUserListAction : TemporalAction() {
         val separator = extractOrReplaceSeperator(csvData)
 
         val csvParser = CSVParserBuilder().withSeparator(separator).build()
-        // Use use{} to guarantee CSVReader is closed even on exception — prevents file descriptor leak
         val allRows = CSVReaderBuilder(StringReader(csvData)).withCSVParser(csvParser)
             .build().use { csvReader -> readCSVIntoList(csvReader) } ?: return
 

@@ -5,10 +5,6 @@ import org.catrobat.catroid.content.Scope
 import org.catrobat.catroid.formulaeditor.Formula
 import org.catrobat.catroid.stage.StageActivity
 
-/**
- * Triggers a decaying 2D screen shake on the active stage. The shake is a
- * purely visual camera offset handled by the StageListener render loop.
- */
 class ShakeScreenAction : TemporalAction() {
     var scope: Scope? = null
     var intensity: Formula? = null
@@ -17,8 +13,6 @@ class ShakeScreenAction : TemporalAction() {
     private var started = false
 
     override fun update(percent: Float) {
-        // Fire once per run; without this guard a looping script would restart
-        // the shake every frame and the offset would never decay.
         if (started) return
         started = true
 

@@ -41,8 +41,6 @@ class MoveToObjectAction : Action() {
     private var pathSet = false
     private var requestInFlight = false
     private var noPathFound = false
-    // Защита от «протухшего» результата: если restart() случился пока A* считался
-    // в фоне, старый коллбек игнорируется по номеру поколения.
     private var requestGeneration = 0
 
     override fun act(delta: Float): Boolean {
@@ -70,7 +68,6 @@ class MoveToObjectAction : Action() {
                 pf.setFollowerBlockedPathAction(spriteName, blockedPathAction)
                 requestInFlight = true
                 val generation = requestGeneration
-                // A* считается в фоне — на большой сетке синхронный поиск фризил кадр.
                 pf.findPathToObjectAsync(spriteName, targetObject, sizeCheckMode, blockedPathAction) { result ->
                     if (generation != requestGeneration) return@findPathToObjectAsync
                     requestInFlight = false
@@ -87,8 +84,6 @@ class MoveToObjectAction : Action() {
                     }
                 }
             }
-            // Ждём результат фонового поиска — брик, как и раньше, завершается только
-            // после построения пути (или его отсутствия).
             return false
         }
 

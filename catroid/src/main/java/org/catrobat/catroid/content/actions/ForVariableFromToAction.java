@@ -32,7 +32,7 @@ import org.catrobat.catroid.formulaeditor.UserVariable;
 
 public class ForVariableFromToAction extends LoopAction {
 
-	private static final int MAX_ITERATIONS = 10_000_000; // Safety limit
+	private static final int MAX_ITERATIONS = 10_000_000;
 	
 	private UserVariable controlVariable;
 	private Formula from;
@@ -59,7 +59,6 @@ public class ForVariableFromToAction extends LoopAction {
 
 		setCurrentTime(getCurrentTime() + delta);
 		
-		// Safety limit to prevent freezing
 		if (iterationCount >= MAX_ITERATIONS) {
 			Log.w(getClass().getSimpleName(), "For loop exceeded maximum iterations (" + MAX_ITERATIONS + "), stopping");
 			return true;
@@ -107,7 +106,6 @@ public class ForVariableFromToAction extends LoopAction {
 					: from.interpretDouble(scope);
 			Double toInterpretation = to == null ? Double.valueOf(0d) : to.interpretDouble(scope);
 			
-			// Sanitize NaN/Infinity
 			if (fromInterpretation == null || fromInterpretation.isNaN() || fromInterpretation.isInfinite()) {
 				fromInterpretation = 0d;
 			}
