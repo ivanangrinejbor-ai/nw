@@ -71,6 +71,7 @@ public class SwipeEditorActivity extends Activity {
 		ImageButton btnAdd = findViewById(R.id.swipe_btn_add);
 		ImageButton btnDelete = findViewById(R.id.swipe_btn_delete);
 		btnSave = findViewById(R.id.swipe_btn_save);
+		btnSave.setVisibility(View.GONE);
 		TextView title = findViewById(R.id.swipe_title);
 
 		String spriteName = getIntent().getStringExtra(EXTRA_SPRITE_NAME);
@@ -87,6 +88,11 @@ public class SwipeEditorActivity extends Activity {
 
 		title.setText(getString(R.string.swipe_editor_title) + ": " + sprite.getName());
 		swipeToggle.setChecked(sprite.isSwipeable());
+
+		swipeToggle.setOnCheckedChangeListener((btn, isChecked) -> {
+			sprite.setSwipeable(isChecked);
+			autoSaveState();
+		});
 
 		Project project = ProjectManager.getInstance().getCurrentProject();
 		if (project != null && project.getXmlHeader() != null) {
@@ -105,15 +111,18 @@ public class SwipeEditorActivity extends Activity {
 					attachment.getOffsetX(), attachment.getOffsetY());
 		}
 
-		canvas.setOnChangeListener(() -> hintView.setText(R.string.swipe_editor_hint_modified));
+		canvas.setOnChangeListener(() -> {
+			hintView.setText(R.string.swipe_editor_hint_modified);
+			autoSaveState();
+		});
 
 		btnBack.setOnClickListener(v -> finish());
 		btnAdd.setOnClickListener(v -> showAddDialog());
 		btnDelete.setOnClickListener(v -> {
 			canvas.deleteSelected();
 			hintView.setText(R.string.swipe_editor_hint_modified);
+			autoSaveState();
 		});
-		btnSave.setOnClickListener(v -> saveAndExit());
 	}
 
 	private String firstLookPath(Sprite candidate) {
@@ -143,12 +152,14 @@ public class SwipeEditorActivity extends Activity {
 					String name = items[which];
 					canvas.addAttachment(name, firstLookPath(scene.getSprite(name)));
 					hintView.setText(R.string.swipe_editor_hint_modified);
+					autoSaveState();
 				})
 				.setNegativeButton(android.R.string.cancel, null)
 				.show();
 	}
 
-	private void saveAndExit() {
+	private void autoSaveState() {
+		if (sprite == null) return;
 		sprite.setSwipeable(swipeToggle.isChecked());
 		List<SwipeAttachment> attachments = new ArrayList<>();
 		for (SwipeEditorView.Attachment attachment : canvas.getAttachments()) {
@@ -156,29 +167,25 @@ public class SwipeEditorActivity extends Activity {
 		}
 		sprite.setSwipeAttachments(attachments);
 
-		btnSave.setEnabled(false);
-		hintView.setText(R.string.swipe_editor_hint_saving);
-		finishingFlag = true;
 		new Thread(() -> {
 			try {
 				XstreamSerializer.getInstance().saveProject(
 						ProjectManager.getInstance().getCurrentProject());
 			} catch (Exception ignored) {
-				// Best effort — the swipe configuration is already in memory.
 			}
-			if (!isDestroyed() && !isFinishing()) {
-				runOnUiThread(() -> {
-					setResult(RESULT_OK);
-					finish();
-				});
-			}
-		}, "swipe-save").start();
-		setResult(RESULT_OK);
+		}, "swipe-autosave").start();
+	}
+
+	@Override
+	protected void onPause() {
+		super.onPause();
+		autoSaveState();
 	}
 
 	@Override
 	public void onBackPressed() {
-		setResult(RESULT_CANCELED);
+		autoSaveState();
+		setResult(RESULT_OK);
 		super.onBackPressed();
 	}
 }

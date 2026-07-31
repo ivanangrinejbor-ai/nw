@@ -124,6 +124,8 @@ class ProjectActivity : BaseCastActivity() {
         const val SPRITE_OBJECT = 4
         const val SPRITE_FROM_LOCAL = 5
         private const val SCENE_EDITOR_MENU_ID = 990201
+        const val EXTRA_OPEN_PANEL = "extra_open_panel"
+        const val SCENE_EDITOR_PROMO_KEY = "scene_editor_2_promo_shown"
     }
 
     private lateinit var binding: ActivityRecyclerBinding
@@ -217,6 +219,82 @@ class ProjectActivity : BaseCastActivity() {
         } else {
             Log.w(ProjectListFragment.TAG, "Проект успешно загружен, но projectManager.currentProject равен null. Синхронизация пропущена.")
         }
+
+        if (SettingsFragment.isSceneEditorModeEnabled(this)) {
+            if (projectManager.currentlyEditedScene == null) {
+                projectManager.currentlyEditedScene = projectManager.currentProject?.defaultScene
+            }
+            val openPanel = intent.getStringExtra(EXTRA_OPEN_PANEL)
+            if (openPanel != null) {
+                val panelIntent = Intent(this, org.catrobat.catroid.ui.sceneeditor.Ui2PanelActivity::class.java).apply {
+                    putExtra(org.catrobat.catroid.ui.sceneeditor.Ui2PanelActivity.EXTRA_PANEL, openPanel)
+                }
+                startActivity(panelIntent)
+            } else if (projectManager.currentProject != null) {
+                startActivity(Intent(this, org.catrobat.catroid.ui.sceneeditor.SceneEditorActivity::class.java))
+            }
+            finish()
+            return
+        }
+
+        maybeShowSceneEditorPromo(savedInstanceState)
+
+        val openPanel = intent.getStringExtra(EXTRA_OPEN_PANEL)
+        if (openPanel != null && !isFinishing) {
+            val panelWorkspace = workspaceLayout
+            val isPanelWorkspaceMode = panelWorkspace != null && panelWorkspace.visibility == View.VISIBLE
+            when (openPanel) {
+                "project_options" ->
+                    if (isPanelWorkspaceMode) {
+                        panelWorkspace?.openWindow(ProjectOptionsFragment.TAG, "Опции проекта") { ProjectOptionsFragment() }
+                    } else {
+                        supportFragmentManager.beginTransaction()
+                            .replace(R.id.fragment_container, ProjectOptionsFragment(), ProjectOptionsFragment.TAG)
+                            .addToBackStack(ProjectOptionsFragment.TAG).commit()
+                    }
+                "project_files" ->
+                    if (isPanelWorkspaceMode) {
+                        panelWorkspace?.openWindow(ProjectFilesFragment.TAG, "Файлы проекта") { ProjectFilesFragment() }
+                    } else {
+                        supportFragmentManager.beginTransaction()
+                            .replace(R.id.fragment_container, ProjectFilesFragment(), ProjectFilesFragment.TAG)
+                            .addToBackStack(ProjectFilesFragment.TAG).commit()
+                    }
+            }
+        }
+    }
+
+    private fun maybeShowSceneEditorPromo(savedInstanceState: Bundle?) {
+        if (savedInstanceState != null || isFinishing) {
+            return
+        }
+        if (intent.getStringExtra(EXTRA_OPEN_PANEL) != null) {
+            return
+        }
+        if (SettingsFragment.isSceneEditorModeEnabled(this)) {
+            return
+        }
+        if (projectManager.currentProject == null) {
+            return
+        }
+        val prefs = PreferenceManager.getDefaultSharedPreferences(this)
+        if (prefs.getBoolean(SCENE_EDITOR_PROMO_KEY, false)) {
+            return
+        }
+        prefs.edit().putBoolean(SCENE_EDITOR_PROMO_KEY, true).apply()
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle(R.string.scene_editor_promo_title)
+            .setMessage(R.string.scene_editor_promo_message)
+            .setPositiveButton(R.string.scene_editor_promo_try) { _, _ ->
+                startActivity(Intent(this, org.catrobat.catroid.ui.sceneeditor.SceneEditorActivity::class.java))
+            }
+            .setNeutralButton(R.string.scene_editor_promo_enable) { _, _ ->
+                PreferenceManager.getDefaultSharedPreferences(this).edit()
+                    .putBoolean(SettingsFragment.SETTINGS_UI_SCENE_EDITOR_2, true).apply()
+                startActivity(Intent(this, org.catrobat.catroid.ui.sceneeditor.SceneEditorActivity::class.java))
+            }
+            .setNegativeButton(R.string.scene_editor_promo_later, null)
+            .show()
     }
 
     private fun loadFragment(fragmentPosition: Int) {
@@ -267,6 +345,8 @@ class ProjectActivity : BaseCastActivity() {
         menu.findItem(R.id.menu_ai_chat).isVisible =
             org.catrobat.catroid.ai.AiAgentManager.instance.isEnabled()
         if (SettingsFragment.isSceneEditorModeEnabled(this)) {
+            menu.add(Menu.NONE, SCENE_EDITOR_MENU_ID, Menu.NONE, R.string.scene_editor_open)
+        } else {
             menu.add(Menu.NONE, SCENE_EDITOR_MENU_ID, Menu.NONE, R.string.scene_editor_open)
         }
         return super.onCreateOptionsMenu(menu)

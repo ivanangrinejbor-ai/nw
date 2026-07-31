@@ -1840,6 +1840,13 @@ public class SceneManager {
             for (GameObject go : newObjects) {
                 rebuildGameObject_internal(go);
             }
+
+            // A scene loaded at runtime via the block needs realistic mode enabled so that
+            // Bullet physics transforms are synced back to the objects (mirrors the 3D editor,
+            // which enables it on load). Without it, physics steps but nothing moves/collides,
+            // so a 3D player passes through objects and floats. Resources are always created in
+            // ThreeDManager.init(), so flipping the flag here is safe.
+            engine.enableRealisticRendering(true);
         });
     }
 

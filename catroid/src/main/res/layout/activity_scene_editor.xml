@@ -47,7 +47,27 @@
             android:background="?android:attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/cancel"
             android:scaleType="centerInside"
-            android:src="@android:drawable/ic_menu_close_clear_cancel" />
+            android:src="@drawable/ic_se_back" />
+
+        <ImageButton
+            android:id="@+id/scene_editor_btn_scenes"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:layout_marginStart="4dp"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/scene_editor_switch_scene"
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_se_scenes" />
+
+        <ImageButton
+            android:id="@+id/scene_editor_btn_objects"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:layout_marginStart="4dp"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/scene_editor_objects"
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_se_objects" />
 
         <TextView
             android:id="@+id/scene_editor_title"
@@ -63,6 +83,16 @@
             android:textStyle="bold" />
 
         <ImageButton
+            android:id="@+id/scene_editor_btn_add"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:layout_marginEnd="6dp"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/scene_editor_add_object"
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_se_add" />
+
+        <ImageButton
             android:id="@+id/scene_editor_btn_play"
             android:layout_width="42dp"
             android:layout_height="42dp"
@@ -70,7 +100,7 @@
             android:background="?android:attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/scene_editor_play"
             android:scaleType="centerInside"
-            android:src="@android:drawable/ic_media_play" />
+            android:src="@drawable/ic_se_play" />
 
         <ImageButton
             android:id="@+id/scene_editor_btn_stop"
@@ -80,7 +110,7 @@
             android:background="?android:attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/scene_editor_stop"
             android:scaleType="centerInside"
-            android:src="@android:drawable/ic_menu_close_clear_cancel" />
+            android:src="@drawable/ic_se_stop" />
 
         <ImageButton
             android:id="@+id/scene_editor_btn_save"
@@ -89,7 +119,17 @@
             android:background="?android:attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/save"
             android:scaleType="centerInside"
-            android:src="@android:drawable/ic_menu_save" />
+            android:src="@drawable/ic_se_save" />
+
+        <ImageButton
+            android:id="@+id/scene_editor_btn_more"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:layout_marginStart="6dp"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/scene_editor_more"
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_se_more" />
     </LinearLayout>
 
     <org.catrobat.catroid.ui.sceneeditor.SceneEditorView
@@ -126,6 +166,39 @@
             android:text="@string/scene_editor_hint_default"
             android:textColor="#94A3B8"
             android:textSize="13sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/scene_editor_object_dock"
+        android:layout_width="210dp"
+        android:layout_height="match_parent"
+        android:layout_below="@id/scene_editor_toolbar"
+        android:layout_alignParentEnd="true"
+        android:background="#F20B1220"
+        android:elevation="10dp"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#152036"
+            android:padding="12dp"
+            android:text="@string/scene_editor_objects"
+            android:textColor="#F8FAFC"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <LinearLayout
+                android:id="@+id/scene_editor_object_dock_list"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+        </ScrollView>
     </LinearLayout>
 
 </RelativeLayout>

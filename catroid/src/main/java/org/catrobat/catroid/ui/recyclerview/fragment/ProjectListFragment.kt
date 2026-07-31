@@ -699,12 +699,20 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
     override fun onLoadFinished(success: Boolean) {
         try {
             if (success) {
-                val intent = Intent(requireContext(), ProjectActivity::class.java)
-                intent.putExtra(
-                    ProjectActivity.EXTRA_FRAGMENT_POSITION,
-                    ProjectActivity.FRAGMENT_SCENES
-                )
-                startActivity(intent)
+                if (org.catrobat.catroid.ui.settingsfragments.SettingsFragment.isSceneEditorModeEnabled(requireContext())) {
+                    if (projectManager.currentlyEditedScene == null) {
+                        projectManager.currentlyEditedScene = projectManager.currentProject?.defaultScene
+                    }
+                    val intent = Intent(requireContext(), org.catrobat.catroid.ui.sceneeditor.SceneEditorActivity::class.java)
+                    startActivity(intent)
+                } else {
+                    val intent = Intent(requireContext(), ProjectActivity::class.java)
+                    intent.putExtra(
+                        ProjectActivity.EXTRA_FRAGMENT_POSITION,
+                        ProjectActivity.FRAGMENT_SCENES
+                    )
+                    startActivity(intent)
+                }
             } else {
                 setShowProgressBar(false)
                 ToastUtil.showError(requireContext(), R.string.error_load_project)

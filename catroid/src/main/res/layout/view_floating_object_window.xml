@@ -60,7 +60,7 @@
                 android:background="?android:attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/scene_editor_window_minimize"
                 android:scaleType="centerInside"
-                android:src="@android:drawable/ic_menu_revert" />
+                android:src="@drawable/ic_se_minimize" />
 
             <ImageButton
                 android:id="@+id/floating_window_close"
@@ -69,7 +69,7 @@
                 android:background="?android:attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/scene_editor_window_close"
                 android:scaleType="centerInside"
-                android:src="@android:drawable/ic_menu_close_clear_cancel" />
+                android:src="@drawable/ic_se_close" />
         </LinearLayout>
 
         <LinearLayout
@@ -90,10 +90,67 @@
 
             <Button
                 android:id="@+id/floating_window_add_blocks"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:background="@drawable/scene_editor_add_blocks_bg"
+                android:elevation="3dp"
+                android:paddingStart="12dp"
+                android:paddingTop="7dp"
+                android:paddingEnd="12dp"
+                android:paddingBottom="7dp"
+                android:stateListAnimator="@null"
                 android:text="@string/scene_editor_window_add_blocks"
-                android:textColor="#F8FAFC" />
+                android:textAllCaps="false"
+                android:textColor="#FFFFFFFF" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/floating_window_looks"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="4dp"
+                    android:background="@drawable/scene_editor_add_blocks_bg"
+                    android:paddingTop="7dp"
+                    android:paddingBottom="7dp"
+                    android:stateListAnimator="@null"
+                    android:text="🖼️ Образы"
+                    android:textAllCaps="false"
+                    android:textColor="#FFFFFFFF" />
+
+                <Button
+                    android:id="@+id/floating_window_sounds"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@drawable/scene_editor_add_blocks_bg"
+                    android:paddingTop="7dp"
+                    android:paddingBottom="7dp"
+                    android:stateListAnimator="@null"
+                    android:text="🎵 Звуки"
+                    android:textAllCaps="false"
+                    android:textColor="#FFFFFFFF" />
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/floating_window_swipe"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:background="@drawable/scene_editor_add_blocks_bg"
+                android:paddingStart="12dp"
+                android:paddingTop="7dp"
+                android:paddingEnd="12dp"
+                android:paddingBottom="7dp"
+                android:stateListAnimator="@null"
+                android:text="@string/scene_editor_swipe"
+                android:textAllCaps="false"
+                android:textColor="#FFFFFFFF" />
         </LinearLayout>
     </LinearLayout>
 
@@ -104,6 +161,6 @@
         android:layout_gravity="bottom|end"
         android:contentDescription="@string/scene_editor_window_resize"
         android:padding="4dp"
-        android:src="@android:drawable/ic_menu_crop" />
+        android:src="@drawable/ic_se_resize" />
 
 </FrameLayout>

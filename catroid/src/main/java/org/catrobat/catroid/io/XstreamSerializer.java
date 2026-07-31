@@ -190,6 +190,7 @@ public final class XstreamSerializer {
 		xstream.processAnnotations(sceneClass);
 
 		xstream.processAnnotations(Sprite.class);
+		xstream.processAnnotations(org.catrobat.catroid.content.ScriptNote.class);
 		xstream.processAnnotations(XmlHeader.class);
 		xstream.processAnnotations(Setting.class);
 		xstream.processAnnotations(UserVariableBrickWithFormula.class);

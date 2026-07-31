@@ -204,6 +204,18 @@ public class SpriteActivity extends BaseActivity {
 		currentSprite = projectManager.getCurrentSprite();
 		currentScene = projectManager.getCurrentlyEditedScene();
 
+		if (org.catrobat.catroid.ui.settingsfragments.SettingsFragment.isSceneEditorModeEnabled(this)) {
+			if (currentSprite != null) {
+				Intent intent = new Intent(this, org.catrobat.catroid.ui.sceneeditor.ScriptCanvasActivity.class);
+				intent.putExtra(org.catrobat.catroid.ui.sceneeditor.ScriptCanvasActivity.EXTRA_SPRITE_NAME, currentSprite.getName());
+				startActivity(intent);
+			} else {
+				startActivity(new Intent(this, org.catrobat.catroid.ui.sceneeditor.SceneEditorActivity.class));
+			}
+			finish();
+			return;
+		}
+
 		setContentView(R.layout.activity_sprite);
 
         workspaceLayout = findViewById(R.id.workspace_layout);

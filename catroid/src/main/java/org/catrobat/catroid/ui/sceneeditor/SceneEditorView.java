@@ -27,6 +27,8 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.RectF;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
@@ -39,23 +41,24 @@ import java.util.List;
 
 /**
  * Canvas for the UI 2.0 scene editor. Draws the whole scene (grid + every sprite at its scene
- * position) with infinite pan/zoom, and lets the user drag objects to reposition them. Scene
- * coordinates are Catroid user-interface units (origin centre, Y up). Screen mapping:
- * screenX = width/2 + panX + sceneX * scale, screenY = height/2 + panY - sceneY * scale.
+ * position) with infinite pan/zoom, drag-to-place, and a long-press "eye" action that requests
+ * opening the paint editor for an object. Scene coordinates are Catroid user-interface units
+ * (origin centre, Y up): screenX = width/2 + panX + sceneX*scale, screenY = height/2 + panY - sceneY*scale.
+ * Object dimensions are ORIGINAL look pixel size (independent of the downsampled preview bitmap);
+ * an object without a look is drawn as a black placeholder cube. Bitmaps load asynchronously.
  */
 public class SceneEditorView extends View {
 
 	public static class SceneObject {
 		public final Sprite sprite;
-		public final Bitmap bitmap;
+		public volatile Bitmap bitmap;
 		public float x;
 		public float y;
 		public final float widthUnits;
 		public final float heightUnits;
 
-		public SceneObject(Sprite sprite, Bitmap bitmap, float x, float y, float widthUnits, float heightUnits) {
+		public SceneObject(Sprite sprite, float x, float y, float widthUnits, float heightUnits) {
 			this.sprite = sprite;
-			this.bitmap = bitmap;
 			this.x = x;
 			this.y = y;
 			this.widthUnits = widthUnits;
@@ -67,6 +70,8 @@ public class SceneEditorView extends View {
 		void onObjectMoved(Sprite sprite, int x, int y);
 
 		void onObjectTapped(Sprite sprite);
+
+		void onObjectPaintRequested(Sprite sprite);
 	}
 
 	private static final float MIN_SCALE = 0.05f;
@@ -74,6 +79,7 @@ public class SceneEditorView extends View {
 	private static final float GRID_STEP_UNITS = 50f;
 	private static final float TAP_SLOP_PX = 12f;
 	private static final float PLACEHOLDER_HALF_PX = 40f;
+	private static final long LONG_PRESS_MS = 400;
 
 	private final List<SceneObject> objects = new ArrayList<>();
 	private float virtualWidth = 480f;
@@ -82,6 +88,7 @@ public class SceneEditorView extends View {
 	private float scale = 1f;
 	private float panX = 0f;
 	private float panY = 0f;
+	private float density = 1f;
 
 	private int selectedIndex = -1;
 	private int draggingIndex = -1;
@@ -90,6 +97,11 @@ public class SceneEditorView extends View {
 	private float lastY;
 	private float downX;
 	private float downY;
+
+	private int eyeObjectIndex = -1;
+	private boolean longPressFired = false;
+	private final Handler longPressHandler = new Handler(Looper.getMainLooper());
+	private final RectF eyeRect = new RectF();
 
 	private final ScaleGestureDetector scaleDetector;
 
@@ -100,9 +112,26 @@ public class SceneEditorView extends View {
 	private final Paint selectedPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 	private final Paint placeholderPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 	private final Paint imagePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+	private final Paint eyeBgPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+	private final Paint eyeGlyphPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+	private final Paint eyePupilPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 	private final RectF rect = new RectF();
 
+	private volatile Bitmap backgroundBitmap;
+
 	private Listener listener;
+	private boolean isPlayingMode = false;
+
+	public void setPlayingMode(boolean playing) {
+		this.isPlayingMode = playing;
+		this.selectedIndex = -1;
+		this.draggingIndex = -1;
+		invalidate();
+	}
+
+	public boolean isPlayingMode() {
+		return isPlayingMode;
+	}
 
 	public SceneEditorView(Context context) {
 		super(context);
@@ -123,6 +152,7 @@ public class SceneEditorView extends View {
 	}
 
 	private void init() {
+		density = getResources().getDisplayMetrics().density;
 		imagePaint.setFilterBitmap(true);
 
 		gridPaint.setStyle(Paint.Style.STROKE);
@@ -146,7 +176,21 @@ public class SceneEditorView extends View {
 		selectedPaint.setColor(0xFFFFD600);
 
 		placeholderPaint.setStyle(Paint.Style.FILL);
-		placeholderPaint.setColor(0x552563EB);
+		placeholderPaint.setColor(0xFF15151A);
+
+		eyeBgPaint.setStyle(Paint.Style.FILL);
+		eyeBgPaint.setColor(0xF20F172A);
+
+		eyeGlyphPaint.setStyle(Paint.Style.STROKE);
+		eyeGlyphPaint.setStrokeWidth(3f);
+		eyeGlyphPaint.setColor(0xFFF8FAFC);
+
+		eyePupilPaint.setStyle(Paint.Style.FILL);
+		eyePupilPaint.setColor(0xFFF8FAFC);
+	}
+
+	private float dp(float value) {
+		return value * density;
 	}
 
 	public void setListener(Listener listener) {
@@ -164,13 +208,23 @@ public class SceneEditorView extends View {
 	}
 
 	public void setObjects(List<SceneObject> newObjects) {
+		replaceObjects(newObjects);
+		fitToScreen();
+		invalidate();
+	}
+
+	public void updateObjects(List<SceneObject> newObjects) {
+		replaceObjects(newObjects);
+		invalidate();
+	}
+
+	private void replaceObjects(List<SceneObject> newObjects) {
 		objects.clear();
 		if (newObjects != null) {
 			objects.addAll(newObjects);
 		}
 		selectedIndex = -1;
-		fitToScreen();
-		invalidate();
+		eyeObjectIndex = -1;
 	}
 
 	private void fitToScreen() {
@@ -201,13 +255,25 @@ public class SceneEditorView extends View {
 		return getHeight() / 2f + panY - sceneY * scale;
 	}
 
+	private float halfWidthPx(SceneObject object) {
+		return object.widthUnits > 0f ? object.widthUnits * scale / 2f : PLACEHOLDER_HALF_PX;
+	}
+
+	private float halfHeightPx(SceneObject object) {
+		return object.heightUnits > 0f ? object.heightUnits * scale / 2f : PLACEHOLDER_HALF_PX;
+	}
+
 	@Override
 	protected void onDraw(Canvas canvas) {
 		super.onDraw(canvas);
 		drawGrid(canvas);
+		drawBackground(canvas);
 		drawSceneBounds(canvas);
 		for (int i = 0; i < objects.size(); i++) {
 			drawObject(canvas, objects.get(i), i == selectedIndex);
+		}
+		if (eyeObjectIndex >= 0 && eyeObjectIndex < objects.size()) {
+			drawEye(canvas, objects.get(eyeObjectIndex));
 		}
 	}
 
@@ -230,6 +296,23 @@ public class SceneEditorView extends View {
 		canvas.drawLine(0, originY, getWidth(), originY, axisPaint);
 	}
 
+	public void setBackgroundBitmap(Bitmap bitmap) {
+		this.backgroundBitmap = bitmap;
+	}
+
+	private void drawBackground(Canvas canvas) {
+		Bitmap bg = backgroundBitmap;
+		if (bg == null || bg.isRecycled()) {
+			return;
+		}
+		float halfW = virtualWidth / 2f * scale;
+		float halfH = virtualHeight / 2f * scale;
+		float cx = sceneToScreenX(0f);
+		float cy = sceneToScreenY(0f);
+		rect.set(cx - halfW, cy - halfH, cx + halfW, cy + halfH);
+		canvas.drawBitmap(bg, null, rect, imagePaint);
+	}
+
 	private void drawSceneBounds(Canvas canvas) {
 		float halfW = virtualWidth / 2f * scale;
 		float halfH = virtualHeight / 2f * scale;
@@ -242,20 +325,26 @@ public class SceneEditorView extends View {
 	private void drawObject(Canvas canvas, SceneObject object, boolean selected) {
 		float cx = sceneToScreenX(object.x);
 		float cy = sceneToScreenY(object.y);
-		float halfW;
-		float halfH;
-		if (object.bitmap != null) {
-			halfW = object.widthUnits * scale / 2f;
-			halfH = object.heightUnits * scale / 2f;
-			rect.set(cx - halfW, cy - halfH, cx + halfW, cy + halfH);
-			canvas.drawBitmap(object.bitmap, null, rect, imagePaint);
+		float halfW = halfWidthPx(object);
+		float halfH = halfHeightPx(object);
+		rect.set(cx - halfW, cy - halfH, cx + halfW, cy + halfH);
+		Bitmap bitmap = object.bitmap;
+		if (bitmap != null && !bitmap.isRecycled()) {
+			canvas.drawBitmap(bitmap, null, rect, imagePaint);
 		} else {
-			halfW = PLACEHOLDER_HALF_PX;
-			halfH = PLACEHOLDER_HALF_PX;
-			rect.set(cx - halfW, cy - halfH, cx + halfW, cy + halfH);
 			canvas.drawRect(rect, placeholderPaint);
 		}
 		canvas.drawRect(rect, selected ? selectedPaint : borderPaint);
+	}
+
+	private void drawEye(Canvas canvas, SceneObject object) {
+		float cx = sceneToScreenX(object.x);
+		float cy = sceneToScreenY(object.y) - Math.max(halfHeightPx(object), PLACEHOLDER_HALF_PX) - dp(26);
+		float r = dp(22);
+		eyeRect.set(cx - r, cy - r, cx + r, cy + r);
+		canvas.drawRoundRect(eyeRect, dp(8), dp(8), eyeBgPaint);
+		canvas.drawOval(cx - r * 0.62f, cy - r * 0.38f, cx + r * 0.62f, cy + r * 0.38f, eyeGlyphPaint);
+		canvas.drawCircle(cx, cy, r * 0.18f, eyePupilPaint);
 	}
 
 	private int objectAt(float screenX, float screenY) {
@@ -263,10 +352,8 @@ public class SceneEditorView extends View {
 			SceneObject object = objects.get(i);
 			float cx = sceneToScreenX(object.x);
 			float cy = sceneToScreenY(object.y);
-			float halfW = object.bitmap != null ? object.widthUnits * scale / 2f : PLACEHOLDER_HALF_PX;
-			float halfH = object.bitmap != null ? object.heightUnits * scale / 2f : PLACEHOLDER_HALF_PX;
-			halfW = Math.max(halfW, PLACEHOLDER_HALF_PX);
-			halfH = Math.max(halfH, PLACEHOLDER_HALF_PX);
+			float halfW = Math.max(halfWidthPx(object), PLACEHOLDER_HALF_PX);
+			float halfH = Math.max(halfHeightPx(object), PLACEHOLDER_HALF_PX);
 			if (Math.abs(screenX - cx) <= halfW && Math.abs(screenY - cy) <= halfH) {
 				return i;
 			}
@@ -274,31 +361,82 @@ public class SceneEditorView extends View {
 		return -1;
 	}
 
+	private void cancelLongPressTimer() {
+		longPressHandler.removeCallbacksAndMessages(null);
+	}
+
+	private void clearEye() {
+		if (eyeObjectIndex != -1) {
+			eyeObjectIndex = -1;
+			invalidate();
+		}
+	}
+
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
+		if (isPlayingMode) {
+			return super.onTouchEvent(event);
+		}
 		scaleDetector.onTouchEvent(event);
 		float x = event.getX();
 		float y = event.getY();
 		switch (event.getActionMasked()) {
 			case MotionEvent.ACTION_DOWN:
+				if (eyeObjectIndex >= 0 && eyeObjectIndex < objects.size() && eyeRect.contains(x, y)) {
+					Sprite target = objects.get(eyeObjectIndex).sprite;
+					clearEye();
+					if (listener != null) {
+						listener.onObjectPaintRequested(target);
+					}
+					return true;
+				}
+				clearEye();
 				downX = x;
 				downY = y;
 				lastX = x;
 				lastY = y;
+				longPressFired = false;
 				draggingIndex = objectAt(x, y);
 				panning = draggingIndex < 0;
 				if (draggingIndex >= 0) {
 					selectedIndex = draggingIndex;
+					final int idx = draggingIndex;
+					longPressHandler.postDelayed(() -> {
+						eyeObjectIndex = idx;
+						longPressFired = true;
+						invalidate();
+					}, LONG_PRESS_MS);
 					invalidate();
 				}
+				return true;
+			case MotionEvent.ACTION_POINTER_DOWN:
+				cancelLongPressTimer();
+				clearEye();
+				draggingIndex = -1;
+				panning = false;
+				lastX = x;
+				lastY = y;
+				return true;
+			case MotionEvent.ACTION_POINTER_UP:
+				int upIndex = event.getActionIndex();
+				int remainingIndex = upIndex == 0 ? 1 : 0;
+				if (remainingIndex < event.getPointerCount()) {
+					lastX = event.getX(remainingIndex);
+					lastY = event.getY(remainingIndex);
+				}
+				draggingIndex = -1;
+				panning = true;
 				return true;
 			case MotionEvent.ACTION_MOVE:
 				if (scaleDetector.isInProgress()) {
 					return true;
 				}
+				if (!longPressFired && Math.hypot(x - downX, y - downY) > TAP_SLOP_PX) {
+					cancelLongPressTimer();
+				}
 				float dx = x - lastX;
 				float dy = y - lastY;
-				if (draggingIndex >= 0 && draggingIndex < objects.size()) {
+				if (!longPressFired && draggingIndex >= 0 && draggingIndex < objects.size()) {
 					SceneObject object = objects.get(draggingIndex);
 					object.x += dx / scale;
 					object.y -= dy / scale;
@@ -313,6 +451,14 @@ public class SceneEditorView extends View {
 				return true;
 			case MotionEvent.ACTION_UP:
 			case MotionEvent.ACTION_CANCEL:
+				cancelLongPressTimer();
+				if (longPressFired) {
+					// Long-press already revealed the eye action; do not treat lift as a tap.
+					longPressFired = false;
+					draggingIndex = -1;
+					panning = false;
+					return true;
+				}
 				boolean isTap = Math.hypot(x - downX, y - downY) < TAP_SLOP_PX;
 				if (draggingIndex >= 0 && draggingIndex < objects.size()) {
 					SceneObject object = objects.get(draggingIndex);
@@ -335,6 +481,7 @@ public class SceneEditorView extends View {
 	private class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
 		@Override
 		public boolean onScale(ScaleGestureDetector detector) {
+			cancelLongPressTimer();
 			float focusX = detector.getFocusX();
 			float focusY = detector.getFocusY();
 			float previousScale = scale;

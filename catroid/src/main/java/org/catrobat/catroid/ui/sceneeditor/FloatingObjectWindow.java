@@ -48,6 +48,12 @@ public class FloatingObjectWindow extends FrameLayout {
 	public interface Callback {
 		void onOpenBlocks(Sprite sprite);
 
+		void onOpenLooks(Sprite sprite);
+
+		void onOpenSounds(Sprite sprite);
+
+		void onOpenSwipeEditor(Sprite sprite);
+
 		void onClosed(FloatingObjectWindow window);
 	}
 
@@ -66,6 +72,10 @@ public class FloatingObjectWindow extends FrameLayout {
 		this.callback = callback;
 		LayoutInflater.from(context).inflate(R.layout.view_floating_object_window, this, true);
 
+		// Light card shadow (rectangular; corners intentionally kept sharp).
+		setElevation(dp(8));
+		setOutlineProvider(android.view.ViewOutlineProvider.BOUNDS);
+
 		TextView title = findViewById(R.id.floating_window_title);
 		TextView info = findViewById(R.id.floating_window_info);
 		View header = findViewById(R.id.floating_window_header);
@@ -74,6 +84,9 @@ public class FloatingObjectWindow extends FrameLayout {
 		ImageButton close = findViewById(R.id.floating_window_close);
 		View resize = findViewById(R.id.floating_window_resize);
 		Button addBlocks = findViewById(R.id.floating_window_add_blocks);
+		Button btnLooks = findViewById(R.id.floating_window_looks);
+		Button btnSounds = findViewById(R.id.floating_window_sounds);
+		Button swipe = findViewById(R.id.floating_window_swipe);
 
 		title.setText(sprite.getName());
 		info.setText(context.getString(R.string.scene_editor_window_info, sprite.getScriptList().size()));
@@ -94,6 +107,25 @@ public class FloatingObjectWindow extends FrameLayout {
 				callback.onOpenBlocks(sprite);
 			}
 		});
+		if (btnLooks != null) {
+			btnLooks.setOnClickListener(v -> {
+				if (callback != null) {
+					callback.onOpenLooks(sprite);
+				}
+			});
+		}
+		if (btnSounds != null) {
+			btnSounds.setOnClickListener(v -> {
+				if (callback != null) {
+					callback.onOpenSounds(sprite);
+				}
+			});
+		}
+		swipe.setOnClickListener(v -> {
+			if (callback != null) {
+				callback.onOpenSwipeEditor(sprite);
+			}
+		});
 	}
 
 	public Sprite getSprite() {
@@ -107,11 +139,11 @@ public class FloatingObjectWindow extends FrameLayout {
 			expandedHeightPx = params.height;
 			body.setVisibility(GONE);
 			params.height = dp(40);
-			minimizeButton.setImageResource(android.R.drawable.ic_menu_add);
+			minimizeButton.setImageResource(R.drawable.ic_se_add);
 		} else {
 			body.setVisibility(VISIBLE);
 			params.height = expandedHeightPx > 0 ? expandedHeightPx : dp(220);
-			minimizeButton.setImageResource(android.R.drawable.ic_menu_revert);
+			minimizeButton.setImageResource(R.drawable.ic_se_minimize);
 		}
 		setLayoutParams(params);
 	}

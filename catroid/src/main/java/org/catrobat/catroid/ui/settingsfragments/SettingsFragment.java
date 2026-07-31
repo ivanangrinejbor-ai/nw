@@ -200,13 +200,6 @@ public class SettingsFragment extends PreferenceFragment {
 				});
 			}
 		}
-		CheckBoxPreference sceneEditorMode = (CheckBoxPreference) findPreference(SETTINGS_UI_SCENE_EDITOR_2);
-		if (sceneEditorMode != null) {
-			sceneEditorMode.setOnPreferenceChangeListener((preference, value) -> {
-				restartApp();
-				return true;
-			});
-		}
 		setHintPreferences();
 		setLanguage();
 
