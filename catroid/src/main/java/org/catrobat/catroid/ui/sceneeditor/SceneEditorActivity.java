@@ -22,7 +22,8 @@
  */
 package org.catrobat.catroid.ui.sceneeditor;
 
-import android.app.Activity;
+import androidx.appcompat.app.AppCompatActivity;
+
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -59,6 +60,8 @@ import org.catrobat.catroid.io.StorageOperations;
 import org.catrobat.catroid.io.XstreamSerializer;
 import org.catrobat.catroid.stage.StageActivity;
 import org.catrobat.catroid.ui.ImportFromPocketPaintLauncher;
+import org.catrobat.catroid.ui.ImportFromCameraLauncher;
+import org.catrobat.catroid.ui.ImportFormMediaLibraryLauncher;
 import org.catrobat.catroid.editor.EditorActivity;
 import org.catrobat.catroid.ui.ProjectActivity;
 import org.catrobat.catroid.ui.recyclerview.controller.SceneController;
@@ -66,6 +69,9 @@ import org.catrobat.catroid.ui.recyclerview.controller.SpriteController;
 import org.catrobat.catroid.ui.SpriteActivity;
 import org.catrobat.catroid.ui.recyclerview.util.UniqueNameProvider;
 import org.catrobat.catroid.ui.SettingsActivity;
+import org.catrobat.catroid.soundrecorder.SoundRecorderActivity;
+import org.catrobat.catroid.common.SoundInfo;
+import org.catrobat.catroid.ui.controller.BackpackListManager;
 
 import java.io.File;
 import java.io.IOException;
@@ -75,13 +81,24 @@ import java.util.List;
 import java.util.Map;
 
 
-public class SceneEditorActivity extends Activity implements SceneEditorView.Listener,
+public class SceneEditorActivity extends AppCompatActivity implements SceneEditorView.Listener,
 		FloatingObjectWindow.Callback {
 
 	public static final String EXTRA_SCENE_NAME = "extra_scene_name";
+	public static final String EXTRA_OPEN_OBJECT_NAME = "extra_open_object_name";
+	public static final String EXTRA_OPEN_OBJECT_TAB = "extra_open_object_tab";
+	public static final int TAB_SPRITES = 0;
+	public static final int TAB_LOOKS = 1;
+	public static final int TAB_SOUNDS = 2;
 
 	private static final int MAX_BITMAP_DIM = 1024;
 	private static final int REQUEST_POCKET_PAINT_LOOK = 8021;
+	private static final int REQUEST_LOOK_FILE = 8022;
+	private static final int REQUEST_LOOK_CAMERA = 8023;
+	private static final int REQUEST_SOUND_FILE = 8024;
+	private static final int REQUEST_SOUND_RECORD = 8025;
+	private static final int REQUEST_OBJECT_LIBRARY = 8026;
+	private static final int REQUEST_OBJECT_TILEMAP = 8027;
 
 	private SceneEditorView canvas;
 	private TextView hintView;
@@ -96,6 +113,8 @@ public class SceneEditorActivity extends Activity implements SceneEditorView.Lis
 	private Scene scene;
 	private Project project;
 	private Sprite paintTargetSprite;
+	private Sprite pendingLookSprite;
+	private Sprite pendingSoundSprite;
 	private boolean initialResumeConsumed = false;
 
 	@Override
@@ -139,7 +158,7 @@ public class SceneEditorActivity extends Activity implements SceneEditorView.Lis
 		});
 		btnAdd.setOnClickListener(v -> {
 			if (isPlayingInWindow) return;
-			showCreateObjectDialog();
+			showCreateObjectSourceDialog();
 		});
 		ImageButton btnPause = findViewById(R.id.scene_editor_btn_pause);
 		ImageButton btnDebug = findViewById(R.id.scene_editor_btn_debug);
@@ -160,6 +179,29 @@ public class SceneEditorActivity extends Activity implements SceneEditorView.Lis
 			if (isPlayingInWindow) return;
 			showMoreMenu();
 		});
+
+		if (getIntent().hasExtra(EXTRA_OPEN_OBJECT_TAB)) {
+			canvas.post(this::openRequestedObjectTab);
+		}
+	}
+
+	private void openRequestedObjectTab() {
+		String objectName = getIntent().getStringExtra(EXTRA_OPEN_OBJECT_NAME);
+		Sprite target = null;
+		for (Sprite candidate : scene.getSpriteList()) {
+			if (candidate.getName().equals(objectName)) {
+				target = candidate;
+				break;
+			}
+		}
+		if (target == null) return;
+		toggleObjectDock();
+		int tab = getIntent().getIntExtra(EXTRA_OPEN_OBJECT_TAB, TAB_SPRITES);
+		if (tab == TAB_LOOKS) {
+			showLooksDialog(target);
+		} else if (tab == TAB_SOUNDS) {
+			showSoundsDialog(target);
+		}
 	}
 
 	private boolean isPlayingInWindow = false;
@@ -500,7 +542,7 @@ public class SceneEditorActivity extends Activity implements SceneEditorView.Lis
 				.create();
 
 		TextView addPaintBtn = new TextView(this);
-		addPaintBtn.setText("🎨 Нарисовать в Pocket Paint");
+		addPaintBtn.setText("➕ Добавить образ");
 		addPaintBtn.setTextColor(0xFF38BDF8);
 		addPaintBtn.setTextSize(14f);
 		addPaintBtn.setTypeface(null, android.graphics.Typeface.BOLD);
@@ -511,7 +553,7 @@ public class SceneEditorActivity extends Activity implements SceneEditorView.Lis
 		addPaintBtn.setLayoutParams(p1);
 		addPaintBtn.setOnClickListener(v -> {
 			dialog.dismiss();
-			onObjectPaintRequested(targetSprite);
+			showLookSourceDialog(targetSprite);
 		});
 		container.addView(addPaintBtn);
 
@@ -592,6 +634,16 @@ public class SceneEditorActivity extends Activity implements SceneEditorView.Lis
 				.setNegativeButton(android.R.string.cancel, null)
 				.create();
 
+		TextView addSoundBtn = new TextView(this);
+		addSoundBtn.setText("➕ Добавить звук");
+		addSoundBtn.setTextColor(0xFF38BDF8);
+		addSoundBtn.setTextSize(14f);
+		addSoundBtn.setTypeface(null, android.graphics.Typeface.BOLD);
+		addSoundBtn.setPadding(dp10, dp10, dp10, dp10);
+		addSoundBtn.setBackgroundResource(R.drawable.bg_object_card_cube);
+		addSoundBtn.setOnClickListener(v -> showSoundSourceDialog(targetSprite));
+		container.addView(addSoundBtn, 0);
+
 		if (targetSprite.getSoundList().isEmpty()) {
 			TextView emptyTv = new TextView(this);
 			emptyTv.setText("У объекта пока нет звуков");
@@ -639,6 +691,54 @@ public class SceneEditorActivity extends Activity implements SceneEditorView.Lis
 			}
 		}
 		dialog.show();
+	}
+
+	private void showLookSourceDialog(Sprite targetSprite) {
+		new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
+				.setTitle("Добавить образ")
+				.setItems(new String[] {"Pocket Paint", "Галерея", "Камера"}, (dialog, which) -> {
+					pendingLookSprite = targetSprite;
+					try {
+						if (which == 0) {
+							onObjectPaintRequested(targetSprite);
+						} else if (which == 1) {
+							Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT)
+									.setType("image/*")
+									.addCategory(Intent.CATEGORY_OPENABLE);
+							startActivityForResult(intent, REQUEST_LOOK_FILE);
+						} else {
+							new ImportFromCameraLauncher(this).startActivityForResult(REQUEST_LOOK_CAMERA);
+						}
+					} catch (Exception e) {
+						pendingLookSprite = null;
+						Toast.makeText(this, "Источник изображения недоступен", Toast.LENGTH_SHORT).show();
+					}
+				})
+				.setNegativeButton(android.R.string.cancel, null)
+				.show();
+	}
+
+	private void showSoundSourceDialog(Sprite targetSprite) {
+		new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
+				.setTitle("Добавить звук")
+				.setItems(new String[] {"Файл", "Диктофон"}, (dialog, which) -> {
+					pendingSoundSprite = targetSprite;
+					try {
+						if (which == 0) {
+							Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT)
+									.setType("audio/*")
+									.addCategory(Intent.CATEGORY_OPENABLE);
+							startActivityForResult(intent, REQUEST_SOUND_FILE);
+						} else {
+							startActivityForResult(new Intent(this, SoundRecorderActivity.class), REQUEST_SOUND_RECORD);
+						}
+					} catch (Exception e) {
+						pendingSoundSprite = null;
+						Toast.makeText(this, "Источник звука недоступен", Toast.LENGTH_SHORT).show();
+					}
+				})
+				.setNegativeButton(android.R.string.cancel, null)
+				.show();
 	}
 
 	private void populateObjectDock() {
@@ -803,7 +903,15 @@ public class SceneEditorActivity extends Activity implements SceneEditorView.Lis
 		actions.add(() -> showInspectorDialog(sprite));
 
 		items.add("🎒 Положить объект в Рюкзак");
-		actions.add(() -> Toast.makeText(this, "Объект " + sprite.getName() + " добавлен в Рюкзак!", Toast.LENGTH_SHORT).show());
+		actions.add(() -> {
+			try {
+				BackpackListManager.getInstance().getSprites().add(new SpriteController().pack(sprite));
+				BackpackListManager.getInstance().saveBackpack();
+				Toast.makeText(this, "Объект добавлен в Рюкзак!", Toast.LENGTH_SHORT).show();
+			} catch (Exception e) {
+				Toast.makeText(this, "Не удалось добавить объект в Рюкзак", Toast.LENGTH_SHORT).show();
+			}
+		});
 
 		items.add(getString(R.string.scene_editor_rename));
 		actions.add(() -> renameObject(sprite));
@@ -1050,6 +1158,48 @@ public class SceneEditorActivity extends Activity implements SceneEditorView.Lis
 		}
 	}
 
+	private void showCreateObjectSourceDialog() {
+		new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
+				.setTitle("New object")
+				.setItems(new String[] {"Empty sprite", "From library", "Tilemap"}, (dialog, which) -> {
+					if (which == 1) {
+						new ImportFormMediaLibraryLauncher(this,
+								org.catrobat.catroid.common.FlavoredConstants.LIBRARY_LOOKS_URL)
+								.startActivityForResult(REQUEST_OBJECT_LIBRARY);
+					} else if (which == 2) {
+						createTilemapObject();
+					} else {
+						showCreateObjectDialog();
+					}
+				})
+				.setNegativeButton(android.R.string.cancel, null)
+				.show();
+	}
+
+	private void createTilemapObject() {
+		EditText input = new EditText(this);
+		int p = Math.round(16 * getResources().getDisplayMetrics().density);
+		input.setPadding(p, p, p, p);
+		input.setHint("Object name");
+		new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
+				.setTitle("New tilemap sprite")
+				.setView(input)
+				.setPositiveButton(android.R.string.ok, (dialog, which) -> {
+					String typed = input.getText().toString().trim();
+					if (typed.isEmpty()) return;
+					Sprite tilemapSprite = new Sprite(new UniqueNameProvider()
+							.getUniqueNameInNameables(typed, scene.getSpriteList()));
+					scene.addSprite(tilemapSprite);
+					ProjectManager.getInstance().setCurrentSprite(tilemapSprite);
+					Intent intent = new Intent(this,
+							org.catrobat.catroid.ui.tilemap.TilemapEditorActivity.class);
+					intent.putExtra(org.catrobat.catroid.ui.tilemap.TilemapEditorActivity.EXTRA_NEW_TILEMAP, true);
+					startActivityForResult(intent, REQUEST_OBJECT_TILEMAP);
+				})
+				.setNegativeButton(android.R.string.cancel, null)
+				.show();
+	}
+
 	private void showCreateObjectDialog() {
 		EditText input = new EditText(this);
 		int p = Math.round(16 * getResources().getDisplayMetrics().density);
@@ -1175,6 +1325,40 @@ public class SceneEditorActivity extends Activity implements SceneEditorView.Lis
 			hintView.setText(R.string.scene_editor_hint_stop);
 			return;
 		}
+		if (resultCode == RESULT_OK && requestCode == REQUEST_OBJECT_TILEMAP) {
+			refreshAfterModelChange();
+			return;
+		}
+		if (resultCode == RESULT_OK && requestCode == REQUEST_OBJECT_LIBRARY && data != null) {
+			addObjectFromLibrary(data);
+			return;
+		}
+		if (resultCode == RESULT_OK && pendingLookSprite != null
+				&& (requestCode == REQUEST_LOOK_FILE || requestCode == REQUEST_LOOK_CAMERA)) {
+			try {
+				Uri uri = requestCode == REQUEST_LOOK_CAMERA
+						? new ImportFromCameraLauncher(this).getCacheCameraUri() : (data != null ? data.getData() : null);
+				addLookFromUri(pendingLookSprite, uri);
+				Toast.makeText(this, "Образ добавлен!", Toast.LENGTH_SHORT).show();
+			} catch (Exception e) {
+				Toast.makeText(this, "Не удалось добавить образ", Toast.LENGTH_SHORT).show();
+			} finally {
+				pendingLookSprite = null;
+			}
+			return;
+		}
+		if (resultCode == RESULT_OK && pendingSoundSprite != null
+				&& (requestCode == REQUEST_SOUND_FILE || requestCode == REQUEST_SOUND_RECORD)) {
+			try {
+				addSoundFromUri(pendingSoundSprite, data != null ? data.getData() : null);
+				Toast.makeText(this, "Звук добавлен!", Toast.LENGTH_SHORT).show();
+			} catch (Exception e) {
+				Toast.makeText(this, "Не удалось добавить звук", Toast.LENGTH_SHORT).show();
+			} finally {
+				pendingSoundSprite = null;
+			}
+			return;
+		}
 		if (requestCode == REQUEST_POCKET_PAINT_LOOK && resultCode == RESULT_OK && paintTargetSprite != null) {
 			try {
 				Uri uri = new ImportFromPocketPaintLauncher(this).getPocketPaintCacheUri();
@@ -1198,5 +1382,58 @@ public class SceneEditorActivity extends Activity implements SceneEditorView.Lis
 			}
 			paintTargetSprite = null;
 		}
+	}
+
+	private void addObjectFromLibrary(Intent data) {
+		try {
+			String path = data.getStringExtra(org.catrobat.catroid.ui.WebViewActivity.MEDIA_FILE_PATH);
+			if (path == null) throw new IOException("Library file is missing");
+			File source = new File(path);
+			String baseName = source.getName();
+			int dot = baseName.lastIndexOf('.');
+			if (dot > 0) baseName = baseName.substring(0, dot);
+			String name = new UniqueNameProvider().getUniqueNameInNameables(baseName, scene.getSpriteList());
+			Sprite imported = new Sprite(name);
+			scene.addSprite(imported);
+			File imageDirectory = new File(scene.getDirectory(), Constants.IMAGE_DIRECTORY_NAME);
+			if (!imageDirectory.exists() && !imageDirectory.mkdirs()) throw new IOException("Image directory unavailable");
+			File file = StorageOperations.copyUriToDir(getContentResolver(), Uri.fromFile(source), imageDirectory, name + ".png");
+			if (file == null || !file.exists()) throw new IOException("Library image copy failed");
+			LookData look = new LookData(name, file);
+			imported.getLookList().add(look);
+			look.getCollisionInformation().calculate();
+			refreshAfterModelChange();
+			Toast.makeText(this, "Object imported", Toast.LENGTH_SHORT).show();
+		} catch (Exception e) {
+			Toast.makeText(this, "Could not import object", Toast.LENGTH_SHORT).show();
+		}
+	}
+
+	private void addLookFromUri(Sprite targetSprite, Uri uri) throws IOException {
+		if (uri == null) throw new IOException("URI изображения отсутствует");
+		String name = new UniqueNameProvider().getUniqueNameInNameables(
+				targetSprite.getName() + "_look", targetSprite.getLookList());
+		File imageDirectory = new File(scene.getDirectory(), Constants.IMAGE_DIRECTORY_NAME);
+		if (!imageDirectory.exists() && !imageDirectory.mkdirs()) throw new IOException("Нет папки образов");
+		File file = StorageOperations.copyUriToDir(getContentResolver(), uri, imageDirectory, name + ".png");
+		if (file == null || !file.exists()) throw new IOException("Образ не скопирован");
+		LookData look = new LookData(name, file);
+		targetSprite.getLookList().add(look);
+		look.getCollisionInformation().calculate();
+		refreshAfterModelChange();
+		persistProjectAsync();
+	}
+
+	private void addSoundFromUri(Sprite targetSprite, Uri uri) throws IOException {
+		if (uri == null) throw new IOException("URI звука отсутствует");
+		String name = new UniqueNameProvider().getUniqueNameInNameables(
+				targetSprite.getName() + "_sound", targetSprite.getSoundList());
+		File soundDirectory = new File(scene.getDirectory(), Constants.SOUND_DIRECTORY_NAME);
+		if (!soundDirectory.exists() && !soundDirectory.mkdirs()) throw new IOException("Нет папки звуков");
+		File file = StorageOperations.copyUriToDir(getContentResolver(), uri, soundDirectory, name + ".mp3");
+		if (file == null || !file.exists()) throw new IOException("Звук не скопирован");
+		targetSprite.getSoundList().add(new SoundInfo(name, file));
+		refreshAfterModelChange();
+		persistProjectAsync();
 	}
 }

@@ -14,6 +14,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import org.catrobat.catroid.ProjectManager
@@ -22,6 +24,7 @@ import org.catrobat.catroid.content.Project
 import org.catrobat.catroid.io.XstreamSerializer
 import org.catrobat.catroid.io.asynctask.ProjectExportTask
 import org.catrobat.catroid.ui.sceneeditor.Ui2PanelActivity
+import org.catrobat.catroid.ui.fragment.ApkBuilderV3ExportDialog
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -33,6 +36,14 @@ class ProjectOptions2Fragment : Fragment() {
 
     private var project: Project? = null
     private lateinit var containerLayout: LinearLayout
+    private lateinit var firebaseLauncher: ActivityResultLauncher<Array<String>>
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        firebaseLauncher = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+            ApkBuilderV3ExportDialog.onFirebaseUriResult(uri)
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -391,6 +402,15 @@ class ProjectOptions2Fragment : Fragment() {
     }
 
     private fun showApkBuilderDialog() {
+        val proj = project ?: return
+        saveProjectAsync()
+        try {
+            ApkBuilderV3ExportDialog().show(this, proj.directory, firebaseLauncher)
+        } catch (e: Exception) {
+            Toast.makeText(requireContext(), "APK: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+        }
+        return
+
         AlertDialog.Builder(requireContext(), android.R.style.Theme_DeviceDefault_Dialog_Alert)
             .setTitle("Сборщик APK V3")
             .setMessage("Функция сборки готового APK приложения для размещения или тестирования на устройстве.")

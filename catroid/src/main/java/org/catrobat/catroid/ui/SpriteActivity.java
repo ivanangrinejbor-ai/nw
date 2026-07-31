@@ -166,6 +166,7 @@ public class SpriteActivity extends BaseActivity {
 	public static final int REQUEST_NEO_SCRIPT_IMPORT = 2031;
 
 	public static final String EXTRA_FRAGMENT_POSITION = "fragmentPosition";
+	public static final String EXTRA_FORCE_LEGACY_EDITOR = "force_legacy_editor";
 	public static final String EXTRA_BRICK_HASH = "BRICK_HASH";
 
 	public static final String EXTRA_X_TRANSFORM = "X";
@@ -204,7 +205,8 @@ public class SpriteActivity extends BaseActivity {
 		currentSprite = projectManager.getCurrentSprite();
 		currentScene = projectManager.getCurrentlyEditedScene();
 
-		if (org.catrobat.catroid.ui.settingsfragments.SettingsFragment.isSceneEditorModeEnabled(this)) {
+		if (org.catrobat.catroid.ui.settingsfragments.SettingsFragment.isSceneEditorModeEnabled(this)
+				&& !getIntent().getBooleanExtra(EXTRA_FORCE_LEGACY_EDITOR, false)) {
 			if (currentSprite != null) {
 				Intent intent = new Intent(this, org.catrobat.catroid.ui.sceneeditor.ScriptCanvasActivity.class);
 				intent.putExtra(org.catrobat.catroid.ui.sceneeditor.ScriptCanvasActivity.EXTRA_SPRITE_NAME, currentSprite.getName());

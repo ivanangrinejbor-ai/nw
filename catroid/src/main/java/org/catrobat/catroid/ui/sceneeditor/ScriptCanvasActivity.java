@@ -56,6 +56,7 @@ import java.util.List;
 public class ScriptCanvasActivity extends AppCompatActivity {
 
 	public static final String EXTRA_SPRITE_NAME = "extra_sprite_name";
+	private static final int TAB_SCRIPTS = 0;
 
 	private Project project;
 	private Scene scene;
@@ -101,6 +102,7 @@ public class ScriptCanvasActivity extends AppCompatActivity {
 
 		TextView title = findViewById(R.id.script_canvas_title);
 		title.setText(sprite.getName());
+		setupObjectTabs();
 
 		ImageButton close = findViewById(R.id.script_canvas_btn_close);
 		close.setOnClickListener(v -> finish());
@@ -166,6 +168,31 @@ public class ScriptCanvasActivity extends AppCompatActivity {
 				}
 			});
 		}
+	}
+
+	private void setupObjectTabs() {
+		TextView scripts = findViewById(R.id.script_canvas_tab_scripts);
+		TextView looks = findViewById(R.id.script_canvas_tab_looks);
+		TextView sounds = findViewById(R.id.script_canvas_tab_sounds);
+		if (scripts == null || looks == null || sounds == null) return;
+		selectObjectTab(scripts, looks, sounds);
+		scripts.setOnClickListener(v -> selectObjectTab(scripts, looks, sounds));
+		looks.setOnClickListener(v -> openLegacyObjectTab(1));
+		sounds.setOnClickListener(v -> openLegacyObjectTab(2));
+	}
+
+	private void selectObjectTab(TextView scripts, TextView looks, TextView sounds) {
+		scripts.setTextColor(0xFFFFFFFF);
+		looks.setTextColor(0xFF94A3B8);
+		sounds.setTextColor(0xFF94A3B8);
+	}
+
+	private void openLegacyObjectTab(int fragmentPosition) {
+		ProjectManager.getInstance().setCurrentSprite(sprite);
+		Intent intent = new Intent(this, org.catrobat.catroid.ui.SpriteActivity.class);
+		intent.putExtra(org.catrobat.catroid.ui.SpriteActivity.EXTRA_FRAGMENT_POSITION, fragmentPosition);
+		intent.putExtra(org.catrobat.catroid.ui.SpriteActivity.EXTRA_FORCE_LEGACY_EDITOR, true);
+		startActivity(intent);
 	}
 
 	private static final int[] PALETTE_CATEGORIES = {
@@ -432,6 +459,7 @@ public class ScriptCanvasActivity extends AppCompatActivity {
 					LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
 			params.bottomMargin = dp(8);
 			paletteBricks.addView(itemView, params);
+			} catch (Exception ignored) {}
 		}
 	}
 

@@ -120,6 +120,48 @@
                 android:src="@drawable/ic_se_add" />
         </LinearLayout>
 
+        <LinearLayout
+            android:id="@+id/script_canvas_tabs"
+            android:layout_width="match_parent"
+            android:layout_height="46dp"
+            android:background="#111A2B"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp">
+
+            <TextView
+                android:id="@+id/script_canvas_tab_scripts"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="Скрипты"
+                android:textColor="#FFFFFF"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/script_canvas_tab_looks"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="Образы"
+                android:textColor="#94A3B8"
+                android:textSize="13sp" />
+
+            <TextView
+                android:id="@+id/script_canvas_tab_sounds"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="Звуки"
+                android:textColor="#94A3B8"
+                android:textSize="13sp" />
+        </LinearLayout>
+
         <FrameLayout
             android:id="@+id/script_canvas_container"
             android:layout_width="match_parent"
