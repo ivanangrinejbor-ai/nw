@@ -183,7 +183,6 @@ public final class XstreamSerializer {
 		});
 
 		xstream.allowTypesByWildcard(new String[] {"org.catrobat.catroid.**"});
-		// Allow primitive array types used by TilemapLookData layers.
 		xstream.allowTypes(new Class[] {short[].class});
 
 		xstream.processAnnotations(projectClass);
@@ -200,11 +199,6 @@ public final class XstreamSerializer {
 		xstream.processAnnotations(UserDefinedBrickInput.class);
 		xstream.processAnnotations(UserDefinedBrickLabel.class);
 
-		// Tolerate XML elements/fields the current engine does not know about instead of
-		// aborting the whole load. This lets projects from newer versions and projects
-		// containing unknown bricks import: unknown brick types are replaced with an
-		// UnknownBrick placeholder (see XStreamBrickConverter) and any extra fields they
-		// (or newer known bricks) carry are simply skipped.
 		xstream.ignoreUnknownElements();
 
 		xstream.registerConverter(new XStreamConcurrentFormulaHashMapConverter());
@@ -217,7 +211,6 @@ public final class XstreamSerializer {
 		xstream.registerConverter(new XStreamScriptConverter(xstream.getMapper(), xstream.getReflectionProvider()));
 		xstream.registerConverter(new XStreamSpriteConverter(xstream.getMapper(), xstream.getReflectionProvider()));
 		xstream.registerConverter(new XStreamSettingConverter(xstream.getMapper(), xstream.getReflectionProvider()));
-		// Tilemap layer data: short[] encoded as Base64 to avoid XStream short-array issues.
 		xstream.registerConverter(new XStreamShortArrayConverter());
 
 		xstream.omitField(sceneClass, "originalWidth");
@@ -1011,9 +1004,8 @@ public final class XstreamSerializer {
 				}
 				Scene oldGlobal = project.getGlobalSceneForMigration();
 				if (oldGlobal != null) {
-					if (oldGlobal.isGlobalScene()) {
-						// New Global Scene system: keep it, just wire the project reference
-						oldGlobal.setProject(project);
+				if (oldGlobal.isGlobalScene()) {
+					oldGlobal.setProject(project);
 					} else if (!oldGlobal.getSpriteList().isEmpty()) {
 						// Legacy container (pre-GlobalScene): migrate sprites to default scene
 						Scene defaultScene = project.getDefaultScene();
@@ -1096,24 +1088,20 @@ public final class XstreamSerializer {
 					LookData lookData = iterator.next();
 					String xstreamFileName = lookData.getXstreamFileName();
 
-					if (xstreamFileName == null || xstreamFileName.isEmpty()) {
-						// Тайлмап без тайлсета — валидное состояние (файла нет вообще).
-						// Раньше new File(dir, null) кидал NPE и проект переставал открываться.
-						if (!(lookData instanceof org.catrobat.catroid.common.TilemapLookData)) {
-							iterator.remove();
-							sceneRemoved++;
-						}
-						continue;
+				if (xstreamFileName == null || xstreamFileName.isEmpty()) {
+					if (!(lookData instanceof org.catrobat.catroid.common.TilemapLookData)) {
+						iterator.remove();
+						sceneRemoved++;
 					}
+					continue;
+				}
 
 					File lookFile = new File(imageDir, xstreamFileName);
 
 					if (lookFile.exists()) {
 						lookData.setFile(lookFile);
-					} else if (lookData instanceof org.catrobat.catroid.common.TilemapLookData) {
-						// У тайлмапа карта (слои/solid) ценнее картинки тайлсета —
-						// при пропавшем файле сохраняем модель, а не удаляем весь образ.
-						Log.w(TAG, "setFileReferences: tileset image missing for tilemap '"
+				} else if (lookData instanceof org.catrobat.catroid.common.TilemapLookData) {
+					Log.w(TAG, "setFileReferences: tileset image missing for tilemap '"
 								+ lookData.getName() + "' — keeping map data");
 					} else {
 						iterator.remove();

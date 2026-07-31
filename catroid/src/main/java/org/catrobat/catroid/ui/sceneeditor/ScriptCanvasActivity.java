@@ -46,13 +46,6 @@ import org.catrobat.catroid.ui.fragment.CategoryBricksFactory;
 
 import java.util.List;
 
-/**
- * Full-screen Scratch-like 2D script canvas for a single object (UI 2.0). Opened from the object
- * dock in {@link SceneEditorActivity}. It reads the current project/scene/sprite from
- * {@link ProjectManager} (set by the launcher). This is an AppCompatActivity (not the plain
- * SceneEditorActivity) so it can host FormulaEditorFragment and the brick palette fragments.
- * Phase 1 provides the shell (toolbar + close); later phases attach the canvas view and palette.
- */
 public class ScriptCanvasActivity extends AppCompatActivity {
 
 	private Project project;

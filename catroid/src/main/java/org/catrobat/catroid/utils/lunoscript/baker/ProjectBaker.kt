@@ -65,14 +65,6 @@ class ProjectBaker(private val context: Context) {
         return imports.sorted()
     }
 
-    /**
-     * Bakes [project] into a minified LunoScript file at [initFile].
-     *
-     * The (potentially huge) script is streamed straight to disk, so it is never held
-     * as a single String in the heap -- this is what lets very large projects be baked
-     * without an OutOfMemoryError. Imports are collected during traversal and written at
-     * the top of the file (as required by LunoScript).
-     */
     fun bakeToFile(project: Project, initFile: File) {
         val bodyFile = File(initFile.parent ?: ".", "${initFile.nameWithoutExtension}.body.tmp")
         val imports = try {
@@ -176,7 +168,6 @@ class ProjectBaker(private val context: Context) {
 
         for (item in list) {
             if (item != null) {
-                // Игнорируем закомментированные элементы
                 if (item is Brick && item.isCommentedOut) continue
                 if (item is Script && item.isCommentedOut) continue
 
@@ -350,16 +341,9 @@ class ProjectBaker(private val context: Context) {
     }
 
     companion object {
-        // (Minification is now done on the fly by MinifyingWriter during streaming bake.)
     }
 }
 
-/**
- * A [Writer] that minifies LunoScript on the fly: it drops `//` and `/* */` comments and
- * collapses runs of whitespace to a single space (outside of string literals), while
- * preserving string contents verbatim. Because it writes straight to the wrapped writer,
- * the (potentially huge) script is never buffered as a whole in memory.
- */
 private class MinifyingWriter(private val out: Writer) : Writer() {
     private var inString = false
     private var inLineComment = false
@@ -379,8 +363,6 @@ private class MinifyingWriter(private val out: Writer) : Writer() {
         var i = off
         val end = off + len
 
-        // Carry over a char buffered at the end of the previous write() because it needed
-        // the following char to decide (a potential comment start, or an escape in a string).
         if (pending != -1) {
             val p = pending.toChar()
             pending = -1
@@ -403,7 +385,7 @@ private class MinifyingWriter(private val out: Writer) : Writer() {
                     out.write(c.code); wroteAny = true; prevSpace = false
                     when {
                         c == '\\' && i + 1 < end -> { out.write(next.code); i += 2 }
-                        c == '\\' -> { pending = c.code; i++ }   // escape; need next buffer
+                        c == '\\' -> { pending = c.code; i++ }
                         c == '"' -> { inString = false; i++ }
                         else -> i++
                     }
@@ -411,7 +393,7 @@ private class MinifyingWriter(private val out: Writer) : Writer() {
                 c == '"' -> { out.write(c.code); inString = true; wroteAny = true; prevSpace = false; i++ }
                 c == '/' && next == '/' -> { inLineComment = true; i += 2 }
                 c == '/' && next == '*' -> { inBlockComment = true; i += 2 }
-                c == '/' && i + 1 >= end -> { pending = c.code; i++ }  // hold, decide next buffer
+                c == '/' && i + 1 >= end -> { pending = c.code; i++ }
                 c.isWhitespace() -> {
                     if (!prevSpace && wroteAny) { out.write(' '.code); prevSpace = true }
                     i++

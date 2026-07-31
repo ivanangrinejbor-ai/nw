@@ -221,9 +221,6 @@ class BrickAdapter(val sprite: Sprite) :
             val colorFormula = item.getFormulaWithBrickField(BrickField.COLOR, true)
                 ?: return createUnknownView("NoneBrick", parent).also { it.tag = item }
         }
-        // Reuse the already-built view for the same brick instead of re-inflating
-        // the full brick UI on every scroll. ListView only passes a recycled view
-        // for the identical Brick instance, so there is no stale-data risk.
         val itemView: View =
             if (convertView != null && convertView.tag === item) {
                 if (convertView is IndentedBrickLayout && convertView.childCount > 0) {
@@ -259,7 +256,6 @@ class BrickAdapter(val sprite: Sprite) :
             if (item.isCommentedOut || item is EmptyEventBrick) {
                 colorAsCommentedOut(background)
             } else if (item.isLocked) {
-                // locked bricks (and their whole script) render gray, like a disabled script
                 colorAsCommentedOut(background)
             } else {
                 background.clearColorFilter()
@@ -435,11 +431,6 @@ class BrickAdapter(val sprite: Sprite) :
     private fun createUnknownView(className: String, container: ViewGroup): View {
         val brickView = LayoutInflater.from(container.context).inflate(R.layout.brick_none, container, false)
 
-        //val brickLayout = brickView as? BrickLayout
-
-        //val textView: TextView? = brickLayout?.findViewById(R.id.brick_none_text)
-
-        //textView?.text = "Xz"
         return brickView
     }
 
@@ -640,7 +631,6 @@ class BrickAdapter(val sprite: Sprite) :
 
     fun addItem(position: Int, item: Brick?) {
         item?.let {
-            // never drop a brick inside a locked group (right after a locked brick)
             if (position > 0 && items.getOrNull(position - 1)?.isLocked == true) {
                 return
             }
@@ -690,7 +680,6 @@ class BrickAdapter(val sprite: Sprite) :
         val source = items[sourcePosition]
         val target = items[targetPosition]
         if (source is GhostSuggestionBrick || target is GhostSuggestionBrick) return false
-        // locked bricks can neither be moved nor receive a dropped neighbour
         if (source.isLocked || target.isLocked) return false
         if (source !is ScriptBrick && targetPosition == 0) {
             return false
@@ -806,7 +795,6 @@ class BrickAdapter(val sprite: Sprite) :
         val brickAboveTargetPosition = getBrickAbovePosition(position)
 
         if (itemToMove?.isLocked == true) return
-        // do not drop into a locked group (right after a locked brick)
         if (position > 0 && brickAboveTargetPosition.isLocked) return
 
         if (itemToMove is ScriptBrick) {

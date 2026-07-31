@@ -106,20 +106,15 @@ class SpeechRecognitionHolder : SpeechRecognitionHolderInterface {
                         startListening()
                     }
                     SpeechRecognizer.ERROR_NETWORK -> {
-                        // this error happens only in offline mode
-                        // in case the chosen language is not downloaded or outdated
                         showDialog(stageActivity, stageResourceHolder)
                     }
                     else -> {
-                        // every other case
                     }
                 }
                 Log.d(TAG, "SpeechRecognizer restarted!")
             }
 
             override fun onResults(results: Bundle) {
-                // the possible recognition results, where the first element
-                // is the most likely candidate.
                 val candidates = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                 Log.d(TAG, "SpeechRecognizer: onResults:$candidates")
 
@@ -141,8 +136,6 @@ class SpeechRecognitionHolder : SpeechRecognitionHolderInterface {
     private var speechJob: Job? = null
 
     override fun startListening() {
-        //  needed only for some smart phones like:
-        //  Note 8 with ANDROID 9, Xiaomi MI A2 Android 10
         SensorHandler.stopSensorListeners()
         speechJob?.cancel()
         speechJob = CoroutineScope(Dispatchers.Main.immediate + SupervisorJob()).launch {
@@ -210,7 +203,6 @@ class SpeechRecognitionHolder : SpeechRecognitionHolderInterface {
                 activity.startActivity(intent)
                 break
             } catch (e: ActivityNotFoundException) {
-                // PS: this won't ever never happen!!
                 Log.e(TAG, "Speech Recognition Engine isn't installed" + e.message)
             }
         }

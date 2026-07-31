@@ -2,15 +2,6 @@ package org.catrobat.catroid.stage;
 
 import java.util.Random;
 
-/**
- * Drives a decaying 2D screen-shake effect.
- *
- * The shake produces a random per-frame offset (in world/camera units) whose
- * magnitude decays linearly from {@code intensity} to 0 over {@code duration}
- * seconds. The owning {@link StageListener} applies the offset to the main
- * camera around the 2D draw pass and restores it afterwards, so the shake is
- * purely visual and never accumulates into the camera's real position.
- */
 public class ScreenShakeController {
 	private final Random random = new Random();
 
@@ -24,10 +15,6 @@ public class ScreenShakeController {
 		return elapsed < duration && intensity > 0f;
 	}
 
-	/**
-	 * Start (or restart) a shake. A weaker shake does not interrupt a stronger
-	 * one that is still running.
-	 */
 	public void start(float intensity, float duration) {
 		if (intensity <= 0f || duration <= 0f) {
 			return;
@@ -48,11 +35,6 @@ public class ScreenShakeController {
 		offsetY = 0f;
 	}
 
-	/**
-	 * Advance the shake by {@code delta} seconds and recompute the offset.
-	 *
-	 * @return true if a non-zero shake offset is active this frame.
-	 */
 	public boolean update(float delta) {
 		if (!isActive()) {
 			if (offsetX != 0f || offsetY != 0f) {

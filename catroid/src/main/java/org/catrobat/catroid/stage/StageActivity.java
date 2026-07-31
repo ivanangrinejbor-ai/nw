@@ -269,10 +269,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
  	public void onCreate(Bundle savedInstanceState) {
  		super.onCreate(savedInstanceState);
 
-		// Свежий запуск игры: сброс трекинга сцен (счётчики, back stack, имя/время сцены)
 		org.catrobat.catroid.content.GlobalManager.resetSceneTracking();
-		// Сброс флагов предзагрузки сцен — иначе состояние прошлого запуска/проекта
-		// протекает в новый (ScenePreloaded возвращает устаревшее значение).
 		org.catrobat.catroid.content.actions.PreloadSceneAction.Companion.getPreloadedScenes().clear();
 
 		org.catrobat.catroid.runtime.RuntimeServicesHolder.services =
@@ -341,10 +338,6 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 				}
 			}
 
-			// Fallback: a baked/decrypted project may carry an init script
-			// (init.luno.txt / init.bin) that runs but does not register the
-			// project with ProjectManager. Load it the standard Android way
-			// so the stage can actually run.
 			if (ProjectManager.getInstance().getCurrentProject() == null
 					&& projectDir.exists() && projectDir.isDirectory()) {
 				try {
@@ -360,7 +353,6 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 		backgroundLayout = new FrameLayout(this);
 		foregroundLayout = new FrameLayout(this);
 
-		// Precompile overlay — show BEFORE stageCreate so it's visible during init
 		if (shouldShowPrecompileOverlay()) {
 			showPrecompileOverlay(rootLayout);
 		}
@@ -382,7 +374,6 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 
         boolean isFreeStageEnabled = this instanceof StageWorkspaceActivity;
 
-        // GLSurfaceView extends SurfaceView, so this check also covers GLSurfaceView
         if (gameView instanceof android.view.SurfaceView) {
             android.view.SurfaceView glView = (android.view.SurfaceView) gameView;
 
@@ -699,7 +690,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 				public boolean onVerifyCertificate(X509Certificate certificate) { return true; }
 
 				@Override
-				public void onGotXCutText(String text) { /* None */ }
+				public void onGotXCutText(String text) { }
 
 				@Override
 				public void onFramebufferUpdated() {
@@ -820,7 +811,6 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 
 
 	public void createWebViewWithUrl(String viewId, String url, int x, int y, int width, int height, float zIndex) {
-		// Security: only allow HTTPS URLs for WebView to prevent XSS and data leaks
 		if (url == null || !url.startsWith("https://")) {
 			Log.w(TAG, "Blocked WebView load: URL must start with https://: " + url);
 			return;
@@ -1061,7 +1051,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 				try {
 					float radius = Float.parseFloat(styleOptions.get(STYLE_CORNER_RADIUS));
 					backgroundShape.setCornerRadius(radius);
-				} catch (NumberFormatException e) { /* Ignore */ }
+				} catch (NumberFormatException e) { }
 			}
 
 
@@ -1069,7 +1059,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 			if (styleOptions.containsKey(STYLE_BACKGROUND_COLOR)) {
 				try {
 					backgroundShape.setColor(Color.parseColor(styleOptions.get(STYLE_BACKGROUND_COLOR)));
-				} catch (IllegalArgumentException e) { /* Ignore */ }
+				} catch (IllegalArgumentException e) { }
 			} else {
 
 				backgroundShape.setColor(Color.TRANSPARENT);
@@ -1082,12 +1072,12 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 				try {
 					float size = Float.parseFloat(styleOptions.get(STYLE_TEXT_SIZE));
 					editText.setTextSize(TypedValue.COMPLEX_UNIT_SP, size);
-				} catch (NumberFormatException e) { /* Ignore */ }
+				} catch (NumberFormatException e) { }
 			}
 			if (styleOptions.containsKey(STYLE_TEXT_COLOR)) {
 				try {
 					editText.setTextColor(Color.parseColor(styleOptions.get(STYLE_TEXT_COLOR)));
-				} catch (IllegalArgumentException e) { /* Ignore */ }
+				} catch (IllegalArgumentException e) { }
 			}
 			if (styleOptions.containsKey(STYLE_HINT_TEXT)) {
 				editText.setHint(styleOptions.get(STYLE_HINT_TEXT));
@@ -1095,7 +1085,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 			if (styleOptions.containsKey(STYLE_HINT_TEXT_COLOR)) {
 				try {
 					editText.setHintTextColor(Color.parseColor(styleOptions.get(STYLE_HINT_TEXT_COLOR)));
-				} catch (IllegalArgumentException e) { /* Ignore */ }
+				} catch (IllegalArgumentException e) { }
 			}
 			if (styleOptions.containsKey(STYLE_TEXT_ALIGNMENT)) {
 				String alignment = styleOptions.get(STYLE_TEXT_ALIGNMENT);
@@ -1115,7 +1105,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 					if (maxLength > 0) {
 						editText.setFilters(new InputFilter[] { new InputFilter.LengthFilter(maxLength) });
 					}
-				} catch (NumberFormatException e) { /* Игнорируем */ }
+				} catch (NumberFormatException e) { }
 			}
 
 
@@ -1614,8 +1604,6 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 			messageHandler = null;
 			MyActivityManager.Companion.clearActivity(this);
 		} catch (Throwable t) {
-			// Тайм-аут/safe-teardown: любое падение при выходе не должно убивать процесс
-			// (иначе Android пересоздаёт активность — чёрный экран и «реинициализация»).
 			Log.e(TAG, "Error during StageActivity destroy; ignored to prevent app crash on exit", t);
 		}
 
@@ -1628,7 +1616,6 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 
 
 
-	/** Безопасно достаёт строковый параметр: отсутствующий индекс → пустая строка. */
 	private static String paramAt(List<Object> params, int index) {
 		if (params == null || index >= params.size() || params.get(index) == null) {
 			return "";
@@ -1782,7 +1769,6 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 
 	private void handleBack() {
 		if (BuildConfig.FEATURE_APK_GENERATOR_ENABLED) {
-			// В собранном APK (runtime/standalone) — просто выходим
 			StageLifeCycleController.stagePause(this);
 			stageListener.pause();
 			stageListener.finish();
@@ -1815,8 +1801,6 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 
 			RaspberryPiService.getInstance().disconnect();
 		} catch (Throwable t) {
-			// Тайм-аут/safe-teardown: падение при выходе не должно ронять приложение
-			// (иначе Android пересоздаёт активность — чёрный экран и «реинициализация»).
 			Log.e(TAG, "Error during stage teardown; ignored to prevent app crash on exit", t);
 		}
 	}
@@ -1891,7 +1875,6 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 		return 0;
 	}
 
-	//for running Asynchronous Tasks from the stage
 	public void post(Runnable r) {
 		handler.post(r);
 	}
@@ -2083,7 +2066,6 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 	}
 
 	private static void showSecurityWarningDialog(ProjectManager projectManager, Activity activity) {
-		// TODO: move hardcoded Russian strings to string resources (values-ru/strings.xml)
 		new AlertDialog.Builder(activity)
 				.setTitle("Проект может содержать вредоносный код")
 				.setMessage("В проекте используется LunoScript, Python или Библиотеки, это может быть опасно. Запускайте его только если проверили код или доверяете источнику.")
@@ -2161,12 +2143,10 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 	private static void startStageActivity(Activity activity) {
 		if (isLaunching) return;
 		isLaunching = true;
-		// Reset after next dispatch cycle so repeated taps are blocked during activity transition
 		new Handler(activity.getMainLooper()).post(() -> isLaunching = false);
 
-        Project project = ProjectManager.getInstance().getCurrentProject();
+        Project project = projectManager.getCurrentProject();
 
-        // Preloader screen
         if (project != null && project.getXmlHeader() != null && project.getXmlHeader().isPreloaderEnabled()) {
             Intent preloaderIntent = new Intent(activity, PreloaderActivity.class);
             activity.startActivityForResult(preloaderIntent, REQUEST_START_STAGE);
@@ -2185,8 +2165,6 @@ public class StageActivity extends AndroidApplication implements ContextProvider
         activity.startActivityForResult(intent, StageActivity.REQUEST_START_STAGE);
 	}
 
-	// ── Precompile overlay ─────────────────────────────────────
-
 	private boolean shouldShowPrecompileOverlay() {
 		Project project = ProjectManager.getInstance().getCurrentProject();
 		return project != null && project.getXmlHeader() != null && project.getXmlHeader().isPrecompileEnabled();
@@ -2194,7 +2172,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 
 	private void showPrecompileOverlay(FrameLayout parent) {
 		FrameLayout overlay = new FrameLayout(this);
-		overlay.setBackgroundColor(0x88000000); // semi-transparent black
+		overlay.setBackgroundColor(0x88000000);
 		overlay.setLayoutParams(new FrameLayout.LayoutParams(
 				ViewGroup.LayoutParams.MATCH_PARENT,
 				ViewGroup.LayoutParams.MATCH_PARENT));
@@ -2204,14 +2182,12 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 		content.setGravity(Gravity.CENTER);
 		content.setPadding(48, 48, 48, 48);
 
-		// Logo
 		ImageView logo = new ImageView(this);
 		logo.setImageResource(R.mipmap.ic_launcher);
 		LinearLayout.LayoutParams logoParams = new LinearLayout.LayoutParams(80, 80);
 		logo.setLayoutParams(logoParams);
 		content.addView(logo);
 
-		// App name
 		TextView appName = new TextView(this);
 		appName.setText(R.string.app_name);
 		appName.setTextColor(Color.WHITE);
@@ -2221,7 +2197,6 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 		appName.setPadding(0, 8, 0, 0);
 		content.addView(appName);
 
-		// Compiling text
 		String sceneName = ProjectManager.getInstance().getCurrentlyPlayingScene() != null
 				? ProjectManager.getInstance().getCurrentlyPlayingScene().getName()
 				: "...";
@@ -2233,7 +2208,6 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 		compilingText.setPadding(0, 24, 0, 0);
 		content.addView(compilingText);
 
-		// Fact
 		precompileFactText = new TextView(this);
 		precompileFactText.setTextColor(0x99FFFFFF);
 		precompileFactText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
@@ -2247,7 +2221,6 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 		this.precompileOverlay = overlay;
 		this.precompileOverlay.bringToFront();
 
-		// Start cycling facts
 		startPrecompileFacts();
 	}
 
@@ -2276,8 +2249,6 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 		}
 	}
 
-	// ──
-
 	public static void finishStage() {
 		StageActivity stageActivity = StageActivity.activeStageActivity.get();
 		if (stageActivity != null && !stageActivity.isFinishing()) {
@@ -2296,10 +2267,8 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 	}
 
     public void updateStageSize(int width, int height) {
-        // GLSurfaceView extends SurfaceView, so this check also covers GLSurfaceView
         if (gameView instanceof android.view.SurfaceView) {
             android.view.SurfaceView glView = (android.view.SurfaceView) gameView;
-            //glView.getHolder().setFixedSize(width, height);
         }
     }
 }

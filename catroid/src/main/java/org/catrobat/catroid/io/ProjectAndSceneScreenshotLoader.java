@@ -72,7 +72,7 @@ public class ProjectAndSceneScreenshotLoader {
 	private static final int POOL_SIZE = 5;
 	private static final int CACHE_MAX_SIZE = 25;
 	private static final float LOAD_FACTOR = .75f;
-	private static final int INITIAL_VALUE = 13; // (N / LOAD_FACTOR) + 1
+	private static final int INITIAL_VALUE = 13;
 
 	private Map<ImageView, String> imageViews = Collections.synchronizedMap(new WeakHashMap<ImageView, String>());
 	private ExecutorService executorService;
@@ -115,9 +115,7 @@ public class ProjectAndSceneScreenshotLoader {
 		if (bitmap != null) {
 			imageView.setImageBitmap(bitmap);
 		} else {
-			//set a dummy or null in the meantime
 			imageView.setImageBitmap(null);
-			//queue the loading and showing process
 			ScreenshotData screenshotData = new ScreenshotData(projectName, sceneName, isBackpackScene, imageView);
 			executorService.submit(new ScreenshotLoader(screenshotData));
 		}

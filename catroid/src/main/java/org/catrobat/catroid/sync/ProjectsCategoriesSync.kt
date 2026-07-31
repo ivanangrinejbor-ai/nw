@@ -33,7 +33,6 @@ import org.catrobat.catroid.utils.toProjectCategoryWithResponsesList
 
 interface ProjectsCategoriesSync {
 
-    // after language change from settings call it with force = true
     fun sync(force: Boolean = false)
 }
 

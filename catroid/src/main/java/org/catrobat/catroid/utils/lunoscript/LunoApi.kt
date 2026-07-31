@@ -1,6 +1,3 @@
-// В модуле :catroid
-// Путь: catroid/src/main/java/org/catrobat/catroid/utils/lunoscript/LunoApi.kt
-
 package org.catrobat.catroid.utils.lunoscript
 
 import com.danvexteam.lunoscript_annotations.LunoFunction

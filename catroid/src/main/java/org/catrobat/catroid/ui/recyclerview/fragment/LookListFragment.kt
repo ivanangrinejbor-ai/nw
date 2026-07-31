@@ -60,7 +60,6 @@ class LookListFragment : RecyclerViewFragment<LookData?>() {
 
     private val projectManager: ProjectManager by inject()
 
-    // Hitbox-editor undo snapshot: the look that was edited + its pre-edit hitboxes and mode.
     private var hitboxUndoLook: LookData? = null
     private var hitboxUndoSnapshot: List<HitboxData>? = null
     private var hitboxUndoMode: Int = LookData.HITBOX_MODE_PHYSICS
@@ -68,9 +67,6 @@ class LookListFragment : RecyclerViewFragment<LookData?>() {
     companion object {
         @JvmField
         val TAG = LookListFragment::class.java.simpleName
-        // TODO: HITBOX_EDITOR_MENU_ID should use a generated resource ID instead of
-        //  hardcoded 9001, which collides with NOTIF_ID in ApkBuildService and
-        //  NewCatroidBackgroundService.
         private const val HITBOX_EDITOR_MENU_ID = 9001
         private const val REQUEST_HITBOX_EDITOR = 9002
         private const val TILEMAP_EDITOR_MENU_ID = 9003
@@ -88,7 +84,6 @@ class LookListFragment : RecyclerViewFragment<LookData?>() {
     override fun onPrepareOptionsMenu(menu: Menu) {
         super.onPrepareOptionsMenu(menu)
         menu.findItem(R.id.catblocks_reorder_scripts).isVisible = false
-        //menu.findItem(R.id.catblocks).isVisible = false
         menu.findItem(R.id.find).isVisible = false
     }
 
@@ -218,12 +213,9 @@ class LookListFragment : RecyclerViewFragment<LookData?>() {
         }
         if (requestCode == REQUEST_HITBOX_EDITOR) {
             if (resultCode == Activity.RESULT_OK) {
-                // Hitboxes were edited and saved — offer undo and refresh the list.
                 (requireActivity() as? SpriteActivity)?.setUndoMenuItemVisibility(true)
                 adapter.notifyDataSetChanged()
             } else {
-                // Canceled — nothing changed; drop the snapshot so it cannot
-                // swallow a later, unrelated undo (e.g. an image edit).
                 hitboxUndoLook = null
                 hitboxUndoSnapshot = null
             }
@@ -235,7 +227,6 @@ class LookListFragment : RecyclerViewFragment<LookData?>() {
     }
 
     fun undo(): Boolean {
-        // Hitbox-editor undo: restore the pre-edit hitboxes (image file untouched).
         val undoLook = hitboxUndoLook
         val undoBoxes = hitboxUndoSnapshot
         if (undoLook != null && undoBoxes != null) {
@@ -262,7 +253,6 @@ class LookListFragment : RecyclerViewFragment<LookData?>() {
     }
 
     private fun saveProjectAfterHitboxUndo() {
-        // Persist off the UI thread — saveProject() serialises the whole project.
         Thread({
             try {
                 XstreamSerializer.getInstance().saveProject(projectManager.currentProject)
@@ -321,9 +311,7 @@ class LookListFragment : RecyclerViewFragment<LookData?>() {
         val popupMenu = UiUtils.createSettingsPopUpMenu(view, requireContext(), R.menu
             .menu_project_activity, hiddenOptionMenuIds)
 
-        // Add "Hitbox editor" option dynamically
         val hitboxMenuItem = popupMenu.menu.add(0, HITBOX_EDITOR_MENU_ID, 0, R.string.hitbox_editor_menu)
-        // Add "Edit Tilemap" for tilemap costumes (hides hitbox option for them).
         if (item is TilemapLookData) {
             hitboxMenuItem.isVisible = false
             popupMenu.menu.add(0, TILEMAP_EDITOR_MENU_ID, 0, R.string.look_edit_tilemap)
@@ -351,7 +339,6 @@ class LookListFragment : RecyclerViewFragment<LookData?>() {
         val sprite = projectManager.currentSprite ?: return
         val lookIndex = sprite.lookList.indexOf(item)
         if (lookIndex < 0) return
-        // Snapshot current hitboxes so the change can be undone from the Look tab.
         hitboxUndoLook = item
         hitboxUndoSnapshot = item.hitboxes.map { it.copy() }
         hitboxUndoMode = item.hitboxMode

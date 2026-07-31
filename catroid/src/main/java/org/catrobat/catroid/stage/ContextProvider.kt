@@ -25,7 +25,6 @@ package org.catrobat.catroid.stage
 
 import android.content.Context
 
-// В файле ContextProvider.kt
 interface ContextProvider {
     fun getContext(): Context
 }

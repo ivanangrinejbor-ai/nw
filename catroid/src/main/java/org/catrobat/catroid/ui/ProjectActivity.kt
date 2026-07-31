@@ -200,9 +200,6 @@ class ProjectActivity : BaseCastActivity() {
             buttonPlay.setOnClickListener {
                 handlePlayButton()
             }
-            //buttonAiAssist.setOnClickListener {
-            //    handleAiButton()
-            //}
         }
         projectManager.currentProject.checkIfSpriteNameEqualBackground(this)
         MyActivityManager.project_activity = this
@@ -852,7 +849,6 @@ class ProjectActivity : BaseCastActivity() {
     fun handleAddSceneButton() {
         val currentProject = projectManager.currentProject
 
-        // Show choice: Regular or Global scene
         val options = mutableListOf(getString(R.string.create_regular_scene))
         if (!currentProject.hasGlobalScene()) {
             options.add(getString(R.string.create_global_scene))

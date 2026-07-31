@@ -9,13 +9,12 @@ sealed interface Statement : AstNode
 
 data class ProgramNode(val statements: List<Statement>, override val line: Int = 1) : AstNode
 
-// --- Expressions ---
 data class LiteralExpr(val value: LunoValue, override val line: Int) : Expression
 data class VariableExpr(val name: Token, override val line: Int) : Expression
-data class ThisExpr(val keyword: Token, override val line: Int) : Expression // `this`
+data class ThisExpr(val keyword: Token, override val line: Int) : Expression
 
 data class BinaryExpr(val left: Expression, val operator: Token, val right: Expression, override val line: Int) : Expression
-data class LogicalExpr(val left: Expression, val operator: Token, val right: Expression, override val line: Int) : Expression // Для && и || (с short-circuit)
+data class LogicalExpr(val left: Expression, val operator: Token, val right: Expression, override val line: Int) : Expression
 data class UnaryExpr(val operator: Token, val right: Expression, override val line: Int) : Expression
 data class InterpolatedStringExpr(val parts: List<Expression>, override val line: Int) : Expression
 
@@ -32,13 +31,12 @@ data class LambdaExpr(
     override val line: Int
 ) : Expression
 
-data class GetExpr(val obj: Expression, val name: Token, override val line: Int) : Expression // obj.property или obj[index]
-data class SetExpr(val obj: Expression, val name: Token, val value: Expression, override val line: Int) : Expression // obj.property = value или obj[index] = value
-data class IndexAccessExpr(val callee: Expression, val bracket: Token, val index: Expression, override val line: Int) : Expression // list[index]
-data class ListLiteralExpr(val elements: List<Expression>, val bracket: Token, override val line: Int) : Expression // [1, "a"]
-data class MapLiteralExpr(val entries: Map<Token, Expression>, val brace: Token, override val line: Int) : Expression // {"key": val} (ключи могут быть IDENTIFIER или STRING_LITERAL)
+data class GetExpr(val obj: Expression, val name: Token, override val line: Int) : Expression
+data class SetExpr(val obj: Expression, val name: Token, val value: Expression, override val line: Int) : Expression
+data class IndexAccessExpr(val callee: Expression, val bracket: Token, val index: Expression, override val line: Int) : Expression
+data class ListLiteralExpr(val elements: List<Expression>, val bracket: Token, override val line: Int) : Expression
+data class MapLiteralExpr(val entries: Map<Token, Expression>, val brace: Token, override val line: Int) : Expression
 
-// --- Statements ---
 data class ExpressionStatement(val expression: Expression, override val line: Int) : Statement
 data class VarDeclarationStatement(
     val name: Token,
@@ -48,7 +46,7 @@ data class VarDeclarationStatement(
 ) : Statement
 data class AssignmentStatement(val target: Expression, val value: Expression, val operatorToken: Token, override val line: Int) : Statement
 
-data class BlockStatement(val statements: List<Statement>, override val line: Int) : Statement // line - это строка {
+data class BlockStatement(val statements: List<Statement>, override val line: Int) : Statement
 data class IfStatement(val condition: Expression, val thenBranch: Statement, val elseBranch: Statement?, val ifToken: Token, override val line: Int) : Statement
 data class WhileStatement(val condition: Expression, val body: Statement, val whileToken: Token, override val line: Int) : Statement
 data class ForInStatement(val variable: Token, val iterable: Expression, val body: Statement, val forToken: Token, override val line: Int) : Statement
@@ -70,16 +68,14 @@ data class SwitchStatement(
 ) : Statement
 
 data class ImportStatement(
-    val path: List<Token>, // Путь к классу, например ["com", "badlogic", "gdx", "graphics", "Pixmap"]
+    val path: List<Token>,
     override val line: Int
 ) : Statement
 
 data class TryCatchStatement(
     val tryBlock: Statement,
-    // catchVariable может быть null, если блока catch нет
     val catchVariable: Token?,
     val catchBlock: Statement?,
-    // finallyBlock может быть null
     val finallyBlock: Statement?,
     override val line: Int
 ) : Statement

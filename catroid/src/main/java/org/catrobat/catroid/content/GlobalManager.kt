@@ -10,10 +10,6 @@ class GlobalManager {
         private val _saveScenes = AtomicBoolean(true)
         private val _preloadProject = AtomicBoolean(false)
 
-        /**
-         * Мастер-громкость игры (0..100). null = не активна.
-         * Когда задана, все остальные блоки громкости игнорируются.
-         */
         @Volatile
         @JvmStatic
         var gameVolume: Int? = null
@@ -21,33 +17,25 @@ class GlobalManager {
         @JvmStatic
         fun getInstance(): GlobalManager = GlobalManager()
 
-        // === Scene tracking (для сенсоров глобальной сцены) ===
-
-        /** Имя текущей активной сцены (для сенсора CURRENT_SCENE_NAME). */
         @Volatile
         @JvmStatic
         var currentSceneName: String = ""
 
-        /** uptimeMillis момента запуска текущей сцены (для сенсора SCENE_TIME). */
         @Volatile
         @JvmStatic
         var currentSceneStartUptimeMs: Long = 0L
 
-        /** Счётчики запусков каждой сцены по имени (для формулы SCENE_LAUNCH_COUNT). */
         @JvmStatic
         val sceneLaunchCounts: java.util.concurrent.ConcurrentHashMap<String, Int> =
             java.util.concurrent.ConcurrentHashMap()
 
-        /** Стек предыдущих сцен для блока "вернуться назад". */
         @JvmStatic
         val sceneBackStack: java.util.ArrayDeque<String> = java.util.ArrayDeque()
 
-        /** true = следующий переход сцены НЕ пушит текущую в back stack (для "назад"). */
         @Volatile
         @JvmStatic
         var suppressNextBackStackPush: Boolean = false
 
-        /** Вызывается при старте сцены: обновляет имя, время, счётчик. */
         @JvmStatic
         fun onSceneStarted(sceneName: String?) {
             val name = sceneName ?: return
@@ -56,14 +44,12 @@ class GlobalManager {
             sceneLaunchCounts[name] = (sceneLaunchCounts[name] ?: 0) + 1
         }
 
-        /** Секунды с момента запуска текущей сцены. */
         @JvmStatic
         fun sceneTimeSeconds(): Double {
             if (currentSceneStartUptimeMs == 0L) return 0.0
             return (android.os.SystemClock.uptimeMillis() - currentSceneStartUptimeMs) / 1000.0
         }
 
-        /** Сброс всего трекинга сцен (при перезапуске проекта). */
         @JvmStatic
         fun resetSceneTracking() {
             currentSceneName = ""

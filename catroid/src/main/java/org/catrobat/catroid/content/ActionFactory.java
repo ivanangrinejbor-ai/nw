@@ -1451,7 +1451,6 @@ public class ActionFactory extends Actions {
 		return action;
 	}
 
-	// --- "For all objects" bricks: apply one property to EVERY sprite (incl. clones). ---
 	private Action forAllObjects(Sprite sprite, SequenceAction sequence,
 			ForAllObjectsAction.Property property, Formula value) {
 		ForAllObjectsAction action = Actions.action(ForAllObjectsAction.class);
@@ -4949,8 +4948,6 @@ public class ActionFactory extends Actions {
         return action;
     }
 
-    // --- Pathfinder 2.0 ---
-
     public Action createGridAction(Sprite sprite, SequenceAction sequence, Formula gridX, Formula gridY, Formula gridW, Formula gridH) {
         GridAction action = action(GridAction.class);
         Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
@@ -6128,7 +6125,6 @@ public class ActionFactory extends Actions {
         return action;
     }
 
-    // Drone bricks (wired: no drone hardware SDK present, actions log intent)
     public Action createDroneMoveForwardAction(Sprite sprite, ScriptSequenceAction sequence, Formula duration, Formula power) {
         DroneMoveForwardAction action = action(DroneMoveForwardAction.class);
         Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
@@ -6237,7 +6233,6 @@ public class ActionFactory extends Actions {
         return action;
     }
 
-    // Jumping Sumo bricks (wired: no hardware SDK present, actions log intent)
     public Action createJumpingSumoMoveForwardAction(Sprite sprite, ScriptSequenceAction sequence, Formula duration, Formula speed) {
         JumpingSumoMoveForwardAction action = action(JumpingSumoMoveForwardAction.class);
         Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
@@ -6619,8 +6614,6 @@ public class ActionFactory extends Actions {
         action.setScope(scope);
         return action;
     }
-
-    // ========== Phase 4 — missing factory methods ==========
 
     public Action createBufferMaskAction(Sprite sprite, ScriptSequenceAction sequence, Formula bufferName, int mode) {
         BufferMaskAction a = action(BufferMaskAction.class);

@@ -172,8 +172,6 @@ public class PhysicsObjectStateHandler {
 	}
 
 	public void updateRotation() {
-		// Needs to be set for all styles except ALL_AROUND, since the rotation would be
-		// off otherwise
 		boolean rotationCondition =
 				!(physicsLook.getRotationMode() == PhysicsLook.ROTATION_STYLE_ALL_AROUND);
 		physicsObject.setFixedRotation(rotationCondition);

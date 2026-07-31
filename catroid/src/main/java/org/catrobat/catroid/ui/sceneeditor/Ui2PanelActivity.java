@@ -32,12 +32,6 @@ import org.catrobat.catroid.R;
 import org.catrobat.catroid.ui.fragment.ProjectFiles2Fragment;
 import org.catrobat.catroid.ui.fragment.ProjectOptionsFragment;
 
-/**
- * Lightweight AppCompat host that shows a single project-management fragment (project options or
- * project files 2.0) inside the UI 2.0 shell, so those screens open from the Scene Editor without
- * dumping the user back into the classic ProjectActivity scene list. The concrete fragment is
- * selected via the {@link #EXTRA_PANEL} intent extra.
- */
 public class Ui2PanelActivity extends AppCompatActivity {
 
 	public static final String EXTRA_PANEL = "extra_panel";

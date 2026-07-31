@@ -57,8 +57,6 @@ public class BroadcastScript extends Script {
 
 	@Override
 	public EventId createEventId(Sprite sprite) {
-		// Guard: null/empty receivedMessage would cause all unset BroadcastScripts to
-		// share the same EventId and fire together — return a no-match sentinel instead.
 		if (receivedMessage == null || receivedMessage.isEmpty()) {
 			return new BroadcastEventId("");
 		}

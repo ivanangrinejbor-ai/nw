@@ -28,7 +28,7 @@ public class SoundCacheManager {
                 .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
                 .build();
         soundPool = new SoundPool.Builder()
-                .setMaxStreams(16) // Можно проигрывать до 16 звуков одновременно
+                .setMaxStreams(16)
                 .setAudioAttributes(audioAttributes)
                 .build();
         isInitialized = true;
@@ -40,8 +40,6 @@ public class SoundCacheManager {
         if (soundIdMap.containsKey(cacheName)) {
             soundPool.unload(soundIdMap.get(cacheName));
         }
-        // Priority: higher = more likely to keep playing when maxStreams is reached.
-        // 1 is the default; all cached sounds compete equally.
         int soundId = soundPool.load(filePath, 1);
         soundIdMap.put(cacheName, soundId);
         Log.i(TAG, "Sound loaded into cache: '" + cacheName + "' from " + filePath);
@@ -54,7 +52,6 @@ public class SoundCacheManager {
         }
         Integer soundId = soundIdMap.get(cacheName);
         if (soundId != null) {
-            // play(soundID, leftVolume, rightVolume, priority, loop, rate)
             soundPool.play(soundId, 1.0f, 1.0f, 1, 0, 1.0f);
         } else {
             Log.e(TAG, "Sound not found in cache: " + cacheName);

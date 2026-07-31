@@ -32,7 +32,6 @@ object FormatNumberUtil {
             var decimal = BigDecimal(number.trim { it <= ' ' })
             decimal = decimal.stripTrailingZeros()
 
-            // compare with Zero because of faulty implementation of stripTrailingZeros in the library
             if (decimal.compareTo(BigDecimal.ZERO) == 0) {
                 decimal = BigDecimal.ZERO
             }

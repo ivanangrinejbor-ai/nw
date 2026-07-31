@@ -164,7 +164,7 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 			R.string.formula_editor_function_table_x, R.string.formula_editor_function_table_y, R.string.formula_editor_function_table_element,
 			R.string.formula_editor_function_table_join, R.string.formula_editor_function_floatarray,
 			R.string.formula_editor_function_lua,
-			R.string.view_x, R.string.view_y, R.string.view_width, R.string.view_height, R.string.is_video_playing, //R.string.video_time,
+			R.string.view_x, R.string.view_y, R.string.view_width, R.string.view_height, R.string.is_video_playing,
 			R.string.formula_editor_function_file, R.string.formula_editor_function_files_path, R.string.formula_editor_function_all_files, R.string.formula_editor_function_file_size, R.string.formula_file_project_size, R.string.formula_file_size_in_dir, R.string.formula_file_size_at_path, R.string.formula_file_read_string, R.string.formula_editor_function_json_get, R.string.formula_editor_function_json_set, R.string.formula_editor_function_json_is_valid,
 			R.string.formula_ray_did_hit2,
 			R.string.formula_ray_hit_sprite_name,
@@ -203,7 +203,6 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 			R.string.view_params,
 			R.string.view_params,
 			R.string.videoplayer_params,
-			//R.string.videoplayer_params,
 			R.string.formula_editor_function_file_parameter, R.string.formula_no_param, R.string.formula_no_param, R.string.formula_editor_function_file_parameter, R.string.formula_file_project_size_param, R.string.formula_file_size_in_dir_param, R.string.formula_file_size_at_path_param, R.string.formula_file_read_string_param, R.string.formula_editor_function_json_get_parameter, R.string.formula_editor_function_json_set_parameter, R.string.formula_editor_function_json_is_valid_parameter,
 			R.string.formula_ray_did_hit_parameter,
 			R.string.formula_ray_hit_sprite_name_parameter,
@@ -794,7 +793,7 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 	private static final List<Integer> SENSORS_NFC = asList(R.string.formula_editor_nfc_tag_id, R.string.formula_editor_nfc_tag_message,
 			R.string.formula_editor_sensor_nfc_techs,
 			R.string.formula_editor_sensor_nfc_size, R.string.formula_editor_sensor_nfc_writable,
-			R.string.formula_editor_sensor_nfc_type); //R.string.formula_editor_nfc_tag_id, R.string.formula_editor_nfc_tag_message
+			R.string.formula_editor_sensor_nfc_type);
 	private static final List<Integer> SENSORS_CAST_GAMEPAD = asList(R.string.formula_editor_sensor_gamepad_a_pressed,
 			R.string.formula_editor_sensor_gamepad_b_pressed,
 			R.string.formula_editor_sensor_gamepad_up_pressed,

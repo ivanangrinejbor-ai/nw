@@ -24,11 +24,6 @@ package org.catrobat.catroid.content;
 
 import java.io.Serializable;
 
-/**
- * A child sprite attached to a swipeable parent sprite. The offset is measured in Catroid
- * user-interface dimension units relative to the parent's centre; attached children follow the
- * parent while it is dragged and fly off together with it.
- */
 public class SwipeAttachment implements Serializable {
 
 	private static final long serialVersionUID = 1L;

@@ -250,7 +250,6 @@ public class Gizmo {
                 case ROTATE:
                     break;
             }
-            // sceneManager.setPhysicsComponent(selectedObject, physics);
 
         } else if (selectedKeyframe != null) {
             switch (currentTool) {

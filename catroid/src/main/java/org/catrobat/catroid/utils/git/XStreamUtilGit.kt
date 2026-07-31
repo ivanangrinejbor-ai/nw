@@ -21,10 +21,6 @@ object XStreamUtilGit {
         return xstream.toXML(obj)
     }
 
-    /**
-     * УНИВЕРСАЛЬНАЯ ГЛУБОКАЯ КОПИЯ
-     * Теперь может копировать любой объект, который XStream умеет сериализовать.
-     */
     @Suppress("UNCHECKED_CAST")
     fun <T> deepCopy(obj: T): T {
         return xstream.fromXML(xstream.toXML(obj)) as T

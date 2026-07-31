@@ -33,15 +33,15 @@ class NeoPaintActivity : AppCompatActivity() {
     private var currentTool = ToolType.BRUSH
     private var currentBrushSize = 8f
     private var currentOpacityValue = 1f
-    private var shapeFillAmount = 100 // 0 = outline, 100 = solid fill
+    private var shapeFillAmount = 100
 
-    // Clipboard: stores a bitmap copy of a layer
+
     private var clipboardBitmap: Bitmap? = null
 
-    // More-tools dialog hold reference to dismiss it after tool selection
+
     private var moreToolsDialog: AlertDialog? = null
 
-    // Transform controls (shown when overlay active)
+
     private lateinit var transformGroup: List<View>
     private lateinit var normalControls: List<View>
     private lateinit var seekRotation: SeekBar
@@ -106,18 +106,18 @@ class NeoPaintActivity : AppCompatActivity() {
     }
 
     private fun setupToolbars() {
-        // Brush — always on main palette
+
         brushButton = findViewById(R.id.tool_brush)
         brushButton.setOnClickListener {
             selectTool(ToolType.BRUSH)
         }
 
-        // More tools button
+
         findViewById<TextView>(R.id.btn_more_tools).setOnClickListener {
             showMoreToolsDialog()
         }
 
-        // Action bar buttons
+
         findViewById<ImageButton>(R.id.btn_undo).setOnClickListener { drawingView.undo() }
         findViewById<ImageButton>(R.id.btn_redo).setOnClickListener { drawingView.redo() }
         findViewById<ImageButton>(R.id.btn_clear).setOnClickListener { drawingView.clearCurrentLayer() }
@@ -135,7 +135,7 @@ class NeoPaintActivity : AppCompatActivity() {
         }
         drawingView.onRequestTextListener = { x, y -> showTextDialog(x, y) }
 
-        // Transform controls
+
         seekRotation = findViewById(R.id.seek_rotation)
         lblRotation = findViewById(R.id.lbl_rotation)
         btnFlipX = findViewById(R.id.btn_flip_x)
@@ -195,11 +195,11 @@ class NeoPaintActivity : AppCompatActivity() {
     private fun updateToolSelection(active: ToolType) {
         val brushBtn = findViewById<ImageButton>(R.id.tool_brush)
         brushBtn.isSelected = (active == ToolType.BRUSH)
-        // Remaining tools are in the dialog — no selection highlight needed there
+
     }
 
     private fun updatePropertyBarForTool(tool: ToolType) {
-        // Show/hide shape fill slider based on tool
+
         txtShapeFill.visibility = if (tool in SHAPE_TOOLS) View.VISIBLE else View.GONE
     }
 
@@ -234,7 +234,7 @@ class NeoPaintActivity : AppCompatActivity() {
                 lblOpacity.text = "$progress%"
             })
 
-        // Shape fill slider (initially hidden)
+
         txtShapeFill.visibility = View.GONE
         val seekFill = findViewById<SeekBar>(R.id.seek_shape_fill)
         seekFill.progress = shapeFillAmount
@@ -271,7 +271,7 @@ class NeoPaintActivity : AppCompatActivity() {
     private fun hideTransformControls() {
         for (v in transformGroup) v.visibility = View.GONE
         for (v in normalControls) v.visibility = View.VISIBLE
-        // Shape fill visibility is managed by updatePropertyBarForTool
+
         updatePropertyBarForTool(currentTool)
     }
 
@@ -279,25 +279,25 @@ class NeoPaintActivity : AppCompatActivity() {
         brushButton.drawable?.setTint(currentColor)
     }
 
-    // ── More Tools Dialog ──────────────────────────────────────
+
 
     private fun showMoreToolsDialog() {
         val view = LayoutInflater.from(this).inflate(R.layout.dialog_neopaint_more_tools, null)
 
-        // Drawing tools
+
         view.findViewById<ImageButton>(R.id.dlg_tool_eraser).setOnClickListener { selectTool(ToolType.ERASER) }
         view.findViewById<ImageButton>(R.id.dlg_tool_fill).setOnClickListener { selectTool(ToolType.FILL) }
         view.findViewById<ImageButton>(R.id.dlg_tool_line).setOnClickListener { selectTool(ToolType.LINE) }
         view.findViewById<ImageButton>(R.id.dlg_tool_smudge).setOnClickListener { selectTool(ToolType.SMUDGE) }
         view.findViewById<ImageButton>(R.id.dlg_tool_spray).setOnClickListener { selectTool(ToolType.SPRAY_CAN) }
 
-        // Shapes
+
         view.findViewById<ImageButton>(R.id.dlg_tool_rect).setOnClickListener { selectTool(ToolType.RECTANGLE) }
         view.findViewById<ImageButton>(R.id.dlg_tool_oval).setOnClickListener { selectTool(ToolType.OVAL) }
         view.findViewById<ImageButton>(R.id.dlg_tool_star).setOnClickListener { selectTool(ToolType.STAR) }
         view.findViewById<ImageButton>(R.id.dlg_tool_heart).setOnClickListener { selectTool(ToolType.HEART) }
 
-        // Tools
+
         view.findViewById<ImageButton>(R.id.dlg_tool_text).setOnClickListener { selectTool(ToolType.TEXT) }
         view.findViewById<ImageButton>(R.id.dlg_tool_picker).setOnClickListener { selectTool(ToolType.EYEDROPPER) }
         view.findViewById<ImageButton>(R.id.dlg_tool_zoom).setOnClickListener {
@@ -317,14 +317,14 @@ class NeoPaintActivity : AppCompatActivity() {
             .also { it.show() }
     }
 
-    // ── Resolution Dialog ──────────────────────────────────────
+
 
     private fun showResolutionDialog() {
         val w = drawingView.bitmapWidth
         val h = drawingView.bitmapHeight
         val inflater = LayoutInflater.from(this)
         val view = inflater.inflate(R.layout.dialog_neopaint_resize, null) ?: run {
-            // Fallback if layout not yet created — use inline
+
             val ll = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(32, 16, 32, 16) }
             val lbl = TextView(this).apply { text = getString(R.string.neopaint_current_size, w, h) }
             ll.addView(lbl)
@@ -382,7 +382,7 @@ class NeoPaintActivity : AppCompatActivity() {
             .show()
     }
 
-    // ── Clipboard Menu ─────────────────────────────────────────
+
 
     private fun showClipboardMenu() {
         val items = arrayOf(
@@ -394,17 +394,17 @@ class NeoPaintActivity : AppCompatActivity() {
             .setTitle(getString(R.string.neopaint_clipboard))
             .setItems(items) { _, which ->
                 when (which) {
-                    0 -> { // Copy
+                    0 -> {
                         clipboardBitmap?.recycle()
                         clipboardBitmap = drawingView.copyCurrentLayerBitmap()
                     }
-                    1 -> { // Paste
+                    1 -> {
                         val bmp = clipboardBitmap
                         if (bmp != null) {
                             drawingView.pasteBitmapAsNewLayer(bmp)
                         }
                     }
-                    2 -> { // Clear
+                    2 -> {
                         clipboardBitmap?.recycle()
                         clipboardBitmap = null
                     }
@@ -413,7 +413,7 @@ class NeoPaintActivity : AppCompatActivity() {
             .show()
     }
 
-    // ── Text Dialog ────────────────────────────────────────────
+
 
     private fun showTextDialog(x: Float, y: Float) {
         val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_neopaint_text, null)
@@ -434,7 +434,7 @@ class NeoPaintActivity : AppCompatActivity() {
         var gradStart = Color.RED
         var gradEnd = Color.BLUE
 
-        // Toggle visibility
+
         chkGlow.setOnCheckedChangeListener { _, checked ->
             glowRadiusRow.visibility = if (checked) View.VISIBLE else View.GONE
         }
@@ -444,7 +444,7 @@ class NeoPaintActivity : AppCompatActivity() {
             btnGradStart.visibility = v; lblGradTo.visibility = v; btnGradEnd.visibility = v
         }
 
-        // Color pickers
+
         btnOutlineColor.setOnClickListener {
             ColorPickerDialog(this, outlineColor) { c -> outlineColor = c; btnOutlineColor.setBackgroundColor(c) }.show()
         }
@@ -488,7 +488,7 @@ class NeoPaintActivity : AppCompatActivity() {
         dialog.show()
     }
 
-    // ── Helpers ────────────────────────────────────────────────
+
 
     private fun simpleSeek(onChange: (Int, Boolean) -> Unit): SeekBar.OnSeekBarChangeListener {
         return object : SeekBar.OnSeekBarChangeListener {
@@ -523,7 +523,7 @@ class NeoPaintActivity : AppCompatActivity() {
             }
             bitmap.recycle()
         } catch (e: OutOfMemoryError) {
-            // OOM при сохранении — попытка сохранить хотя бы текущий слой
+
             val layer = drawingView.getCurrentLayer()
             if (layer != null) {
                 java.io.FileOutputStream(file).use { out ->

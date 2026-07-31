@@ -154,13 +154,11 @@ public class Look extends Image {
     public String maskBufferName = null;
     public int maskMode = 0;
 
-    // GIF playback
     private transient List<GifFrameData> gifFrames;
     private transient int gifCurrentFrame;
     private transient float gifFrameTimer;
     private transient boolean gifPlaying;
 
-    // Spritesheet playback
     private transient List<TextureRegion> spritesheetFrames;
     private transient int spritesheetCurrentFrame;
     private transient float spritesheetFrameTimer;
@@ -168,7 +166,6 @@ public class Look extends Image {
     private transient boolean spritesheetPlaying;
     private transient TextureRegion savedSpritesheetRegion;
 
-    // Corner offset mesh
     private transient float cornerTLX, cornerTLY, cornerTRX, cornerTRY, cornerBRX, cornerBRY, cornerBLX, cornerBLY;
     private transient boolean hasCornerOffsets;
     private static final String CORNER_VERTEX_SHADER = "attribute vec2 a_position;\n"
@@ -189,7 +186,7 @@ public class Look extends Image {
 
     private static class GifFrameData {
         TextureRegion textureRegion;
-        float duration; // in seconds
+        float duration;
 
         GifFrameData(TextureRegion region, float dur) {
             this.textureRegion = region;
@@ -504,7 +501,6 @@ public class Look extends Image {
 			batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
 		}
 
-		// A tilemap costume has no single drawable; it paints its own tiles from the tileset.
 		if (lookData instanceof TilemapLookData) {
 			if (isLookVisible() && alpha != 0.0f) {
 				drawTilemap(batch, (TilemapLookData) lookData);
@@ -560,12 +556,6 @@ public class Look extends Image {
 
 	}
 
-	/**
-	 * Paints a tilemap costume tile-by-tile from its runtime-sliced tileset regions. Layers are
-	 * drawn bottom-to-top; empty cells ({@link TilemapLookData#EMPTY}) are skipped. Position, scale
-	 * and rotation follow the actor: each tile is rotated/scaled about the map centre so the whole
-	 * map transforms as one.
-	 */
 	private void drawTilemap(Batch batch, TilemapLookData tilemap) {
 		TilemapRuntime runtime = TilemapRuntimeManager.getOrCreate(tilemap);
 		TextureRegion[] regions = runtime.getRegions();
@@ -704,8 +694,6 @@ public class Look extends Image {
 			setDrawable(null);
 			return;
 		}
-		// A tilemap costume is sized to the map (in pixels), not the tileset image, and has no
-		// single drawable — it paints itself in draw(). Regions are (re)sliced by the runtime.
 		if (lookData instanceof TilemapLookData) {
 			TilemapLookData tilemap = (TilemapLookData) lookData;
 			float mapWidth = tilemap.getMapPixelWidth();
@@ -1263,7 +1251,6 @@ public class Look extends Image {
         if (getLookData2() == null) {
             originalPolygons = new Polygon[0];
         } else if (getLookData2() instanceof TilemapLookData) {
-            // Tilemaps have no pixel hitbox: use a single rectangle covering the map bounds.
             float w = getWidth();
             float h = getHeight();
             originalPolygons = new Polygon[] {

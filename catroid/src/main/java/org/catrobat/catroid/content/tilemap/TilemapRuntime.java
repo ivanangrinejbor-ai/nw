@@ -33,15 +33,6 @@ import org.catrobat.catroid.content.Sprite;
 import org.catrobat.catroid.physics.PhysicsWorld;
 import org.catrobat.catroid.physics.TilemapPhysicsBuilder;
 
-/**
- * Per-costume runtime state for a {@link TilemapLookData}: the sliced tileset regions and the
- * Box2D static collision body. Deliberately separate from the (pure-data) model so the model can
- * be reused by other runtimes (e.g. a future desktop player) without dragging in libGDX/Box2D.
- *
- * <p>Region (de)allocation touches GL and therefore only happens on the render thread (inside
- * {@link #getRegions()}); {@link #invalidateRegions()} merely flags a reslice. Physics rebuilds are
- * gated by a dirty flag so they run once per change, not every frame.</p>
- */
 public class TilemapRuntime {
 
 	private final TilemapLookData data;
@@ -64,10 +55,8 @@ public class TilemapRuntime {
 	}
 
 	private static TextureRegion getDummyRegion() {
-		// Fast path: already initialized
 		TextureRegion cached = dummyRegion;
 		if (cached != null) return cached;
-		// Must be on GL thread; create synchronously
 		Pixmap p = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
 		p.setColor(0, 0, 0, 0);
 		p.fill();
@@ -77,18 +66,14 @@ public class TilemapRuntime {
 		return dummyRegion;
 	}
 
-	/** Returns the sliced tileset regions, reslicing lazily on the render thread if needed. */
 	public TextureRegion[] getRegions() {
 		if (regionsDirty || tileRegions == null) {
-			// Reset dirty flag BEFORE slicing so a concurrent invalidateRegions() call
-			// during slicing is not swallowed — it will trigger another reslice next frame.
 			regionsDirty = false;
 			sliceRegions();
 		}
 		return tileRegions;
 	}
 
-	/** @return the region for a tile index, or a dummy transparent region if out of range / empty (never null). */
 	public TextureRegion getRegion(int tileIndex) {
 		if (tileIndex < 0) {
 			return getDummyRegion();
@@ -107,7 +92,6 @@ public class TilemapRuntime {
 			tileRegions = new TextureRegion[0];
 			return;
 		}
-		// Copy the pixmap so disposing it doesn't invalidate LookData's cached pixmap
 		Pixmap pixmap = new Pixmap(srcPixmap.getWidth(), srcPixmap.getHeight(), srcPixmap.getFormat());
 		pixmap.drawPixmap(srcPixmap, 0, 0);
 		tilesetTexture = new Texture(pixmap);
@@ -130,12 +114,10 @@ public class TilemapRuntime {
 		}
 	}
 
-	/** Tileset/tile-size changed: reslice regions on next draw. Does NOT touch physics. */
 	public void invalidateRegions() {
 		regionsDirty = true;
 	}
 
-	/** Tiles/solidity changed: rebuild collision bodies on next {@link #rebuildIfDirty}. */
 	public void invalidatePhysics() {
 		physicsDirty = true;
 	}
@@ -144,7 +126,6 @@ public class TilemapRuntime {
 		return physicsDirty;
 	}
 
-	/** Rebuilds the static collision body if flagged dirty. No-op otherwise. */
 	public void rebuildIfDirty(PhysicsWorld physicsWorld, Sprite sprite) {
 		if (!physicsDirty || physicsWorld == null || sprite == null) {
 			return;
@@ -153,7 +134,6 @@ public class TilemapRuntime {
 		body = null;
 		Look look = sprite.look;
 		if (look != null) {
-			// Pass sprite to attach userData and compute scale/rotation transform
 			body = TilemapPhysicsBuilder.build(physicsWorld, look.getX(), look.getY(), data, sprite);
 		}
 		physicsDirty = false;
@@ -167,7 +147,6 @@ public class TilemapRuntime {
 		tileRegions = null;
 	}
 
-	/** Frees GL textures and the Box2D body. Call on scene teardown (render thread for GL). */
 	public void dispose(PhysicsWorld physicsWorld) {
 		if (physicsWorld != null) {
 			TilemapPhysicsBuilder.destroy(physicsWorld, body);

@@ -52,7 +52,6 @@ public class ProjectData implements Nameable, Serializable, Comparable<ProjectDa
 
 	public void setName(String name) {
 		this.name = name;
-		// TODO: refactor nameable interface.
 	}
 
 	public double getLanguageVersion() {

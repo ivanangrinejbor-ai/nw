@@ -27,7 +27,6 @@ class PreloaderActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // If recreated after process death, just finish — stage already running
         if (savedInstanceState != null) {
             finish()
             return
@@ -39,7 +38,6 @@ class PreloaderActivity : Activity() {
         percentText = findViewById(R.id.preloader_percent)
         factText = findViewById(R.id.preloader_fact)
 
-        // Load facts from resources
         val facts = resources.getStringArray(R.array.loading_facts)
         if (facts.isEmpty()) {
             factText?.text = getString(R.string.preloader_loading)
@@ -48,7 +46,6 @@ class PreloaderActivity : Activity() {
             scheduleFact(facts)
         }
 
-        // Start progress simulation
         handler.post(progressRunnable)
     }
 
@@ -63,7 +60,7 @@ class PreloaderActivity : Activity() {
             }
             progressBar?.progress = currentProgress
             percentText?.text = "${currentProgress}%"
-            handler.postDelayed(this, 30L) // ~3 seconds total
+            handler.postDelayed(this, 30L)
         }
     }
 
@@ -79,7 +76,6 @@ class PreloaderActivity : Activity() {
         isFinished = true
         handler.removeCallbacksAndMessages(null)
 
-        // Check free stage preference (same logic as StageActivity.startStageActivity)
         val prefs: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
         val isFreeStageEnabled = prefs.getBoolean("pref_workspace_stage", false)
 

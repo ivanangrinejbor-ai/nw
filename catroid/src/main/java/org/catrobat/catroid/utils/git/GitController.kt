@@ -131,37 +131,6 @@ class GitController(private val projectDir: File) {
     }
 
 
-    /*fun commitAndPush(commitMessage: String, authorName: String, authorEmail: String, authToken: String): GitResult<Unit> = runCatching {
-        Git.open(projectDir).use { git ->
-            git.add().addFilepattern(".").call()
-
-            val status = git.status().call()
-            if (status.isClean && status.untracked.isEmpty()) {
-                Log.d("GitController", "Nothing to commit, working tree clean.")
-                return GitResult.Success(Unit)
-            }
-
-            val revCommit = git.commit()
-                .setMessage(commitMessage)
-                .setAuthor(authorName, authorEmail)
-                .call()
-            Log.d("GitController", "Created commit: ${revCommit.shortMessage}")
-
-            Log.d("GitController", "Pushing to remote...")
-            git.push()
-                .setCredentialsProvider(UsernamePasswordCredentialsProvider(authToken, ""))
-                .call()
-            Log.d("GitController", "Push successful.")
-        }
-        GitResult.Success(Unit)
-    }.getOrElse {
-        it.printStackTrace()
-        if (it.message?.contains("non-fast-forward") == true) {
-            return GitResult.Error("Push rejected. Please pull the latest changes first.", it)
-        }
-        GitResult.Error("Failed to commit and push: ${it.message}", it)
-    }*/
-
     fun commitAndPush(commitMessage: String, authorName: String, authorEmail: String, authToken: String): GitResult<Unit> {
         try {
             Git.open(projectDir).use { git ->

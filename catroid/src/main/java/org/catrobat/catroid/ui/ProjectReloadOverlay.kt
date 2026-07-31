@@ -43,7 +43,6 @@ class ProjectReloadOverlay private constructor(private val activity: Activity) {
     private fun setupViews() {
         val context = activity
         
-        // Root container
         overlayView = FrameLayout(context).apply {
             setBackgroundColor(0xDD000000.toInt())
             isClickable = true
@@ -51,7 +50,6 @@ class ProjectReloadOverlay private constructor(private val activity: Activity) {
             id = View.generateViewId()
         }
 
-        // Centered linear layout
         val contentLayout = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER
@@ -59,7 +57,6 @@ class ProjectReloadOverlay private constructor(private val activity: Activity) {
             setPadding(padding, padding, padding, padding)
         }
 
-        // Circular ProgressBar
         val progressBar = ProgressBar(context, null, android.R.attr.progressBarStyleLarge).apply {
             isIndeterminate = true
         }
@@ -71,7 +68,6 @@ class ProjectReloadOverlay private constructor(private val activity: Activity) {
         }
         contentLayout.addView(progressBar, progressParams)
 
-        // Status TextView
         val statusTextView = TextView(context).apply {
             text = context.getString(R.string.project_reload_status)
             setTextColor(0xFFFFFFFF.toInt())
@@ -86,7 +82,6 @@ class ProjectReloadOverlay private constructor(private val activity: Activity) {
         }
         contentLayout.addView(statusTextView, statusParams)
 
-        // Fact TextView
         factTextView = TextView(context).apply {
             setTextColor(0xFFCCCCCC.toInt())
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
@@ -155,7 +150,6 @@ class ProjectReloadOverlay private constructor(private val activity: Activity) {
                     currentOverlay = overlay
                     overlay.show()
                 } catch (e: Exception) {
-                    // Fail-safe
                 }
             }
         }
@@ -167,7 +161,6 @@ class ProjectReloadOverlay private constructor(private val activity: Activity) {
                     try {
                         it.hideInternal()
                     } catch (e: Exception) {
-                        // Fail-safe
                     }
                 }
                 currentOverlay = null

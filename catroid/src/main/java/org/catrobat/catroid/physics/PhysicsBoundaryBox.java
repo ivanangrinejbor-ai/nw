@@ -46,15 +46,8 @@ public class PhysicsBoundaryBox {
 		this.world = world;
 	}
 
-	/**
-	 * Creates a single static body with four polygon fixtures (top, bottom, left, right).
-	 * Each fixture carries its BoundaryBoxIdentifier in fixture user data.
-	 *
-	 * @param height
-	 * @param width
-	 */
 	public void create(int width, int height) {
-		destroy(); // prevent double-create body leak
+		destroy();
 		float boxWidth = PhysicsWorldConverter.convertNormalToBox2dCoordinate(width);
 		float boxHeight = PhysicsWorldConverter.convertNormalToBox2dCoordinate(height);
 		float boxElementSize = PhysicsWorldConverter.convertNormalToBox2dCoordinate(PhysicsBoundaryBox.FRAME_SIZE);
@@ -87,7 +80,7 @@ public class PhysicsBoundaryBox {
 		fixtureDef.filter.categoryBits = PhysicsWorld.CATEGORY_BOUNDARYBOX;
 
 		boundaryBody.createFixture(fixtureDef).setUserData(identifier);
-		shape.dispose(); // Box2D copies shape data into fixture — native peer must be freed
+		shape.dispose();
 	}
 
 	public void destroy() {

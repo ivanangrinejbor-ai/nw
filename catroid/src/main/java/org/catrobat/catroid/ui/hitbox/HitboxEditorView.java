@@ -18,14 +18,6 @@ import org.catrobat.catroid.common.HitboxData;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Custom view for the Hitbox Editor.
- * Displays the sprite image and allows manipulating hitboxes via touch:
- * - Tap: select hitbox (shows 4 resize handles)
- * - Drag handle: resize from that side
- * - Long press + drag: move entire hitbox
- * - Double tap: enter rotation mode (ring appears, drag to rotate)
- */
 public class HitboxEditorView extends View {
 
     private float density = 1f;
@@ -35,7 +27,6 @@ public class HitboxEditorView extends View {
     private static final int MAX_BITMAP_DIM = 2048;
     private static final long LONG_PRESS_MS = 400;
 
-    // Interaction modes
     private static final int MODE_NONE = 0;
     private static final int MODE_MOVE = 1;
     private static final int MODE_RESIZE_TOP = 2;
@@ -45,9 +36,7 @@ public class HitboxEditorView extends View {
     private static final int MODE_ROTATE = 6;
 
     private Bitmap spriteBitmap;
-    /** Reusable destination rect for drawing the (possibly downsampled) bitmap. */
     private final RectF dstRect = new RectF();
-    /** Original (full-resolution) image dimensions — hitbox coordinates live in this space. */
     private int origW = 0;
     private int origH = 0;
     private float imageScale = 1f;
@@ -64,10 +53,8 @@ public class HitboxEditorView extends View {
     private boolean longPressTriggered = false;
     private boolean hasDragged = false;
     private float downX, downY;
-    /** The single pointer we track. A second finger cancels the active gesture. */
     private int activePointerId = MotionEvent.INVALID_POINTER_ID;
 
-    // Paints
     private final Paint imagePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint hitboxPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint selectedPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -106,14 +93,14 @@ public class HitboxEditorView extends View {
         density = getResources().getDisplayMetrics().density;
         hitboxPaint.setStyle(Paint.Style.STROKE);
         hitboxPaint.setStrokeWidth(3.5f);
-        hitboxPaint.setColor(0xFF00E676); // emerald green
+        hitboxPaint.setColor(0xFF00E676);
 
         fillPaint.setStyle(Paint.Style.FILL);
         fillPaint.setColor(0x2500E676);
 
         selectedPaint.setStyle(Paint.Style.STROKE);
         selectedPaint.setStrokeWidth(4.5f);
-        selectedPaint.setColor(0xFFFFD600); // glowing amber/gold
+        selectedPaint.setColor(0xFFFFD600);
 
         selectedFillPaint.setStyle(Paint.Style.FILL);
         selectedFillPaint.setColor(0x35FFD600);
@@ -127,14 +114,14 @@ public class HitboxEditorView extends View {
 
         ringPaint.setStyle(Paint.Style.STROKE);
         ringPaint.setStrokeWidth(3.5f);
-        ringPaint.setColor(0xFF00E5FF); // electric cyan
+        ringPaint.setColor(0xFF00E5FF);
 
         gridPaint.setStyle(Paint.Style.STROKE);
         gridPaint.setStrokeWidth(1.5f);
         gridPaint.setColor(0x2294A3B8);
 
         hudBgPaint.setStyle(Paint.Style.FILL);
-        hudBgPaint.setColor(0xD90F172A); // dark slate glassmorphism
+        hudBgPaint.setColor(0xD90F172A);
 
         hudTextPaint.setColor(0xFF94A3B8);
         hudTextPaint.setTextSize(32f);
@@ -245,11 +232,9 @@ public class HitboxEditorView extends View {
         float cx = getWidth() / 2f;
         float cy = getHeight() / 2f;
 
-        // Draw grid crosshair at center
         canvas.drawLine(cx, 0, cx, getHeight(), gridPaint);
         canvas.drawLine(0, cy, getWidth(), cy, gridPaint);
 
-        // Draw sprite image
         if (spriteBitmap != null && origW > 0 && origH > 0) {
             dstRect.set(imageOffsetX, imageOffsetY,
                 imageOffsetX + origW * imageScale,
@@ -257,14 +242,12 @@ public class HitboxEditorView extends View {
             canvas.drawBitmap(spriteBitmap, null, dstRect, imagePaint);
         }
 
-        // Draw hitboxes
         for (int i = 0; i < hitboxes.size(); i++) {
             HitboxData hb = hitboxes.get(i);
             boolean selected = (i == selectedIndex);
             drawHitbox(canvas, hb, selected, cx, cy);
         }
 
-        // Draw HUD overlay badge
         drawHudOverlay(canvas);
     }
 
@@ -277,9 +260,7 @@ public class HitboxEditorView extends View {
         float hh = hb.height * imageScale / 2f;
         RectF rect = new RectF(-hw, -hh, hw, hh);
 
-        // Fill background translucently
         canvas.drawRect(rect, selected ? selectedFillPaint : fillPaint);
-        // Draw stroke outline
         canvas.drawRect(rect, selected ? selectedPaint : hitboxPaint);
 
         if (selected) {
@@ -289,16 +270,15 @@ public class HitboxEditorView extends View {
                 canvas.drawCircle(0, 0, ringRadius, ringPaint);
                 ringPaint.setPathEffect(null);
 
-                // Handle at top of ring
                 handlePaint.setColor(0xFF00E5FF);
                 canvas.drawCircle(0, -ringRadius, dp(HANDLE_RADIUS_DP * 0.9f), handlePaint);
                 canvas.drawCircle(0, -ringRadius, dp(HANDLE_RADIUS_DP * 0.9f), handleBorderPaint);
                 handlePaint.setColor(0xFFFFD600);
             } else {
-                drawHandle(canvas, 0, -hh); // top
-                drawHandle(canvas, 0, hh);  // bottom
-                drawHandle(canvas, -hw, 0); // left
-                drawHandle(canvas, hw, 0);  // right
+                drawHandle(canvas, 0, -hh);
+                drawHandle(canvas, 0, hh);
+                drawHandle(canvas, -hw, 0);
+                drawHandle(canvas, hw, 0);
             }
         }
 
@@ -350,12 +330,10 @@ public class HitboxEditorView extends View {
             }
 
             case MotionEvent.ACTION_POINTER_DOWN: {
-                // A second finger landed — cancel the in-flight gesture so a resize/
-                // rotate/move never jumps to the other finger's coordinates.
                 longPressHandler.removeCallbacksAndMessages(null);
                 interactionMode = MODE_NONE;
                 longPressTriggered = false;
-                hasDragged = true; // suppress tap/double-tap for this gesture
+                hasDragged = true;
                 invalidate();
                 return true;
             }
@@ -363,7 +341,7 @@ public class HitboxEditorView extends View {
             case MotionEvent.ACTION_MOVE: {
                 int pointerIndex = event.findPointerIndex(activePointerId);
                 if (pointerIndex < 0) {
-                    return true; // tracked finger is gone; ignore stray moves
+                    return true;
                 }
                 float x = event.getX(pointerIndex);
                 float y = event.getY(pointerIndex);
@@ -383,7 +361,6 @@ public class HitboxEditorView extends View {
             case MotionEvent.ACTION_CANCEL: {
                 longPressHandler.removeCallbacksAndMessages(null);
                 if (!longPressTriggered && !hasDragged) {
-                    // Stationary release — treat as tap / double-tap
                     handleTap(event.getX(), event.getY());
                 }
                 interactionMode = MODE_NONE;
@@ -405,7 +382,6 @@ public class HitboxEditorView extends View {
         float dist = (float) Math.hypot(x - lastTapX, y - lastTapY);
 
         if (now - lastTapTime < 300 && dist < 40f) {
-            // Double tap → toggle rotation mode
             if (selectedIndex >= 0) {
                 rotationMode = !rotationMode;
                 invalidate();
@@ -418,7 +394,6 @@ public class HitboxEditorView extends View {
         lastTapX = x;
         lastTapY = y;
 
-        // Single tap: select hitbox or handle
         if (selectedIndex >= 0 && !rotationMode) {
             int handle = getHandleAt(x, y);
             if (handle != MODE_NONE) {
@@ -427,7 +402,6 @@ public class HitboxEditorView extends View {
             }
         }
 
-        // Select hitbox under touch
         int idx = getHitboxAt(x, y);
         if (idx >= 0) {
             selectedIndex = idx;
@@ -473,28 +447,24 @@ public class HitboxEditorView extends View {
                 hb.y += dy;
                 break;
             case MODE_RESIZE_TOP:
-                // Drag top edge: bottom edge stays fixed, center shifts by half
                 float newHeightT = hb.height - dy;
                 if (newHeightT < 10) { dy = hb.height - 10; newHeightT = 10; }
                 hb.height = newHeightT;
                 hb.y += dy / 2f;
                 break;
             case MODE_RESIZE_BOTTOM:
-                // Drag bottom edge: top edge stays fixed
                 float newHeightB = hb.height + dy;
                 if (newHeightB < 10) { dy = 10 - hb.height; newHeightB = 10; }
                 hb.height = newHeightB;
                 hb.y += dy / 2f;
                 break;
             case MODE_RESIZE_LEFT:
-                // Drag left edge: right edge stays fixed
                 float newWidthL = hb.width - dx;
                 if (newWidthL < 10) { dx = hb.width - 10; newWidthL = 10; }
                 hb.width = newWidthL;
                 hb.x += dx / 2f;
                 break;
             case MODE_RESIZE_RIGHT:
-                // Drag right edge: left edge stays fixed
                 float newWidthR = hb.width + dx;
                 if (newWidthR < 10) { dx = 10 - hb.width; newWidthR = 10; }
                 hb.width = newWidthR;
@@ -504,7 +474,7 @@ public class HitboxEditorView extends View {
                 float cx = getWidth() / 2f + hb.x * imageScale;
                 float cy = getHeight() / 2f + hb.y * imageScale;
                 float angle = (float) Math.toDegrees(Math.atan2(y - cy, x - cx));
-                hb.rotation = angle + 90; // offset so top = 0
+                hb.rotation = angle + 90;
                 break;
         }
 
@@ -514,16 +484,12 @@ public class HitboxEditorView extends View {
         }
     }
 
-    /**
-     * Check if touch is on a resize handle of the selected hitbox.
-     */
     private int getHandleAt(float x, float y) {
         if (selectedIndex < 0 || selectedIndex >= hitboxes.size()) return MODE_NONE;
         HitboxData hb = hitboxes.get(selectedIndex);
         float cx = getWidth() / 2f + hb.x * imageScale;
         float cy = getHeight() / 2f + hb.y * imageScale;
 
-        // Transform touch into hitbox local space (accounting for rotation)
         float rad = (float) Math.toRadians(-hb.rotation);
         float localX = (x - cx) * (float) Math.cos(rad) - (y - cy) * (float) Math.sin(rad);
         float localY = (x - cx) * (float) Math.sin(rad) + (y - cy) * (float) Math.cos(rad);
@@ -540,11 +506,7 @@ public class HitboxEditorView extends View {
         return MODE_NONE;
     }
 
-    /**
-     * Find which hitbox contains the touch point.
-     */
     private int getHitboxAt(float x, float y) {
-        // Iterate in reverse (top-most first)
         for (int i = hitboxes.size() - 1; i >= 0; i--) {
             HitboxData hb = hitboxes.get(i);
             float cx = getWidth() / 2f + hb.x * imageScale;

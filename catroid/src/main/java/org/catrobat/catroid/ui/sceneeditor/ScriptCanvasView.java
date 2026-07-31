@@ -54,14 +54,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Scratch-like 2D script canvas (UI 2.0, Phase 2). Renders every script of a sprite as a vertical
- * stack of REAL brick views ({@link Brick#getView}) positioned at the script's canvas coordinates
- * ({@link Script#getPosX}/{@code getPosY}). Supports infinite pan and pinch-zoom (applied to a
- * single scaled/translated "world" layer), dragging a whole stack by its header handle (writes back
- * posX/posY), and tapping a formula field to open {@link FormulaEditorFragment}. Existing bricks are
- * reused as-is; no brick UI is re-implemented.
- */
 public class ScriptCanvasView extends FrameLayout {
 
 	private static final float MIN_SCALE = 0.2f;

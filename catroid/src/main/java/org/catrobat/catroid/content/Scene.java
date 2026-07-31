@@ -121,13 +121,11 @@ public class Scene implements Nameable, Serializable {
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
 		Scene scene = (Scene) o;
-		// Две сцены считаются ОДНОЙ И ТОЙ ЖЕ, только если у них одинаковый ID. Имена могут совпадать.
 		return Objects.equals(sceneId, scene.sceneId);
 	}
 
 	@Override
 	public int hashCode() {
-		// Хеш-код всегда должен быть основан на тех же полях, что и equals.
 		return Objects.hash(sceneId);
 	}
 

@@ -26,16 +26,6 @@ package org.catrobat.catroid.content
 import java.util.Collections
 import java.util.IdentityHashMap
 
-/**
- * Runtime store for per-sprite finite state machines.
- *
- * Each sprite (including every clone, keyed by instance identity) can hold any number of named
- * state machines. A machine remembers its current state name and the moment it was entered, so
- * [getStateTimeSeconds] can report how long the sprite has been in the current state — handy for
- * enemy-AI timeouts.
- *
- * The store is purely runtime: it is cleared on every stage (re)start via [reset].
- */
 object StateMachineManager {
 
     private class StateEntry(var state: String, var enterTimeMillis: Long)

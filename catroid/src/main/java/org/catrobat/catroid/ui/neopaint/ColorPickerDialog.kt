@@ -35,7 +35,6 @@ class ColorPickerDialog(
     private lateinit var lblAlpha: TextView
     private lateinit var seekAlpha: SeekBar
 
-    // Store initial to reset on cancel
     private val initialHsv = FloatArray(3)
     private var initialAlpha: Int = 255
 
@@ -80,7 +79,6 @@ class ColorPickerDialog(
         svPicker.setColor(hue, sat, value)
         root.addView(svPicker)
 
-        // Hue slider
         root.addView(SeekBar(context).apply {
             max = 360
             progress = hue.toInt()
@@ -94,7 +92,6 @@ class ColorPickerDialog(
             })
         })
 
-        // Alpha slider
         val currentAlphaRow = LinearLayout(context).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
@@ -129,7 +126,6 @@ class ColorPickerDialog(
         currentAlphaRow.addView(lblAlpha)
         root.addView(currentAlphaRow)
 
-        // Presets row
         val presetRow = LinearLayout(context).apply {
             orientation = LinearLayout.HORIZONTAL
             setPadding(0, (8 * dp).toInt(), 0, (4 * dp).toInt())
@@ -156,7 +152,6 @@ class ColorPickerDialog(
         val scroll = HorizontalScrollView(context).apply { addView(presetRow) }
         root.addView(scroll)
 
-        // Preview with checkerboard
         preview = object : View(context) {
             private val checkerPaint = Paint()
             private val checkerBmp: Bitmap
@@ -173,9 +168,7 @@ class ColorPickerDialog(
             override fun onDraw(c: Canvas) {
                 super.onDraw(c)
                 if (width <= 0 || height <= 0) return
-                // Draw checkerboard
                 c.drawRect(0f, 0f, width.toFloat(), height.toFloat(), checkerPaint)
-                // Draw color
                 c.drawColor(currentColor())
             }
             override fun onDetachedFromWindow() {
@@ -191,7 +184,6 @@ class ColorPickerDialog(
         }
         root.addView(preview)
 
-        // Buttons row
         val btnRow = LinearLayout(context).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER
@@ -200,7 +192,6 @@ class ColorPickerDialog(
         btnRow.addView(Button(context).apply {
             text = context.getString(R.string.neopaint_cancel)
             setOnClickListener {
-                // Reset to initial color
                 hue = initialHsv[0]; sat = initialHsv[1]; value = initialHsv[2]; currentAlpha = initialAlpha
                 dismiss()
             }
@@ -225,8 +216,6 @@ class ColorPickerDialog(
     private fun updatePreview() {
         preview.invalidate()
     }
-
-    // ── SV Picker ────────────────────────────────────────
 
     private class SVPicker(
         context: Context,

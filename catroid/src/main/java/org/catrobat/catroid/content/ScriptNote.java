@@ -27,11 +27,6 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 
 import java.io.Serializable;
 
-/**
- * A free-floating, scalable text note on the UI 2.0 script canvas (Scratch-like comment). Stored
- * per sprite in {@link Sprite#getScriptNotes()} and serialized with the project. Position is in
- * canvas (world) coordinates; scale is a positive multiplier applied to the rendered card.
- */
 @XStreamAlias("scriptNote")
 public class ScriptNote implements Serializable {
 

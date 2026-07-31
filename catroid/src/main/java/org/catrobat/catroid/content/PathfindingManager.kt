@@ -65,7 +65,6 @@ data class PathFollower(
     var sizeCheckMode: Int = 0,
     var blockedPathAction: Int = 0
 ) {
-    /** true пока A* для этого фолловера считается в фоне — фолловер ждёт на месте. */
     @Volatile var replanInFlight: Boolean = false
 }
 
@@ -108,8 +107,6 @@ class PathfindingManager {
     private val pathNodePool = mutableListOf<PathNode>()
     private val maxPoolSize = 5000
 
-    // A* на большой сетке (2000×2000) может считаться секунды — выносим в фоновый
-    // поток-одиночку, результат применяем на render-потоке через postRunnable.
     private val pathExecutor = java.util.concurrent.Executors.newSingleThreadExecutor { r ->
         Thread(r, "pathfinder").apply { isDaemon = true }
     }
@@ -123,10 +120,6 @@ class PathfindingManager {
         }
     }
 
-    /**
-     * Асинхронный поиск пути до объекта: координаты фиксируются сразу (на потоке
-     * вызова), A* считается в фоне, onResult вызывается на render-потоке.
-     */
     fun findPathToObjectAsync(
         fromSprite: String,
         targetSprite: String,
@@ -173,9 +166,6 @@ class PathfindingManager {
     fun deleteGrid() {
         navGrid = null
         followers.clear()
-        // Also clear obstacles so they don't leak into a future createGrid() call
-        // (e.g., when switching scenes). Use clearScene() explicitly if you also
-        // want to reset follower state; deleteGrid() just removes the navigation grid.
         obstacles.clear()
     }
 
@@ -232,10 +222,8 @@ class PathfindingManager {
         val w = (look.widthInUserInterfaceDimensionUnit / 2f).coerceAtLeast(1f)
         val h = (look.heightInUserInterfaceDimensionUnit / 2f).coerceAtLeast(1f)
         val points = mutableListOf<Vector2>()
-        // Use cellSize as step to avoid excessive point creation
         val step = navGrid?.cellSize ?: 1f
 
-        // Try to get pixmap for alpha checking
         val pixmap: Pixmap? = try {
             look.lookData?.getPixmap()
         } catch (e: Exception) {
@@ -256,15 +244,12 @@ class PathfindingManager {
                 var isOpaque = true
 
                 if (pixmap != null && pixW > 1 && pixH > 1) {
-                    // Map world coord to pixmap pixel coord
                     val relX = (wx - (x - w)) / (spriteW)
                     val relY = (wy - (y - h)) / (spriteH)
                     val px = (relX * pixW).toInt().coerceIn(0, pixW - 1)
-                    // Pixmap Y is flipped (top=0)
                     val py = ((1f - relY) * pixH).toInt().coerceIn(0, pixH - 1)
                     val pixel = pixmap.getPixel(px, py)
                     val alpha = pixel and 0xFF
-                    // Treat as transparent if alpha is very low
                     isOpaque = alpha > 10
                 }
 
@@ -334,7 +319,6 @@ class PathfindingManager {
         return true
     }
 
-    // Пул нод теперь доступен и с render-потока (HasPath), и с pathExecutor — синхронизируем.
     @Synchronized
     private fun obtainNode(x: Int, y: Int, g: Float = 0f, h: Float = 0f, parent: PathNode? = null): PathNode {
         val node = if (pathNodePool.isNotEmpty()) pathNodePool.removeAt(pathNodePool.lastIndex) else PathNode(0, 0)
@@ -362,7 +346,6 @@ class PathfindingManager {
         var ex = kotlin.math.floor((endX - grid.offsetX) / cs).toInt().coerceIn(0, grid.width - 1)
         var ey = kotlin.math.floor((endY - grid.offsetY) / cs).toInt().coerceIn(0, grid.height - 1)
 
-        // If start is blocked, find nearest walkable cell
         if (!isCellWalkableForSize(sx, sy, grid, sizeCheckMode, spriteWidth, spriteHeight)) {
             val altStart = findNearestWalkableCell(sx, sy, grid, sizeCheckMode = sizeCheckMode, spriteWidth = spriteWidth, spriteHeight = spriteHeight)
             if (altStart != null) {
@@ -372,7 +355,6 @@ class PathfindingManager {
                 return PathResult(emptyList(), false)
             }
         }
-        // If end is blocked (target inside an obstacle), find nearest walkable cell
         if (!isCellWalkableForSize(ex, ey, grid, sizeCheckMode, spriteWidth, spriteHeight)) {
             val altEnd = findNearestWalkableCell(ex, ey, grid, sizeCheckMode = sizeCheckMode, spriteWidth = spriteWidth, spriteHeight = spriteHeight)
             if (altEnd != null) {
@@ -429,8 +411,6 @@ class PathfindingManager {
                 if (!isCellWalkableForSize(nx, ny, grid, sizeCheckMode, spriteWidth, spriteHeight)) continue
                 if (nx to ny in closedSet) continue
 
-                // Corner cutting prevention: for diagonal moves, check that both
-                // adjacent cardinal cells are walkable to avoid passing through wall corners
                 if (dx != 0 && dy != 0) {
                     if (!isCellWalkableForSize(current.x + dx, current.y, grid, sizeCheckMode, spriteWidth, spriteHeight) ||
                         !isCellWalkableForSize(current.x, current.y + dy, grid, sizeCheckMode, spriteWidth, spriteHeight)) {
@@ -450,7 +430,6 @@ class PathfindingManager {
             }
         }
 
-        // Path not found to target — return partial path to closest point
         if ((blockedPathAction == 1 || iterations > MAX_ITERATIONS) && closestNode != null && closestNode != startNode) {
             val result = PathResult(retracePath(closestNode).map { Vector2(it.x * cs + cs / 2 + grid.offsetX, it.y * cs + cs / 2 + grid.offsetY) }, false)
             while (openSet.isNotEmpty()) { freeNode(openSet.poll()) }
@@ -462,17 +441,11 @@ class PathfindingManager {
     }
 
     private fun heuristic(ax: Int, ay: Int, bx: Int, by: Int): Float {
-        // Octile distance — optimal admissible heuristic for 8-directional grids.
-        // Euclidean underestimates diagonal cost and leads to more expanded nodes.
         val dx = kotlin.math.abs(ax - bx).toFloat()
         val dy = kotlin.math.abs(ay - by).toFloat()
         return (dx + dy) + (1.414f - 2f) * minOf(dx, dy)
     }
 
-    /**
-     * Finds the nearest walkable cell on the grid using spiral search.
-     * Used when start/end cell is blocked (e.g., target is inside an obstacle).
-     */
     private fun findNearestWalkableCell(
         cx: Int, cy: Int, grid: NavGrid,
         maxRadius: Int = kotlin.math.max(grid.width, grid.height) / 4,
@@ -657,8 +630,6 @@ class PathfindingManager {
     @Synchronized
     fun update(delta: Float) {
         val stageListener = StageActivity.getActiveStageListener() ?: return
-        // Take a snapshot to avoid ConcurrentModificationException if clones are added
-        // on the GL/render thread while we iterate here on the game-logic thread.
         val stageSprites = stageListener.spritesFromStage.toList()
         for ((name, follower) in followers) {
             if (follower.state != FollowState.FOLLOWING) continue
@@ -715,7 +686,6 @@ class PathfindingManager {
                     val bpa = follower.blockedPathAction
                     val sw = look.widthInUserInterfaceDimensionUnit
                     val sh = look.heightInUserInterfaceDimensionUnit
-                    // A* уходит в фон — на большой сетке синхронный пересчёт фризил кадр.
                     pathExecutor.execute {
                         val replanResult = try {
                             findPath(currentX, currentY, endX, endY, scm, sw, sh, bpa)
@@ -744,7 +714,6 @@ class PathfindingManager {
                         }
                     }
                 }
-                // Ждём результат фонового пересчёта — этот кадр фолловер стоит на месте.
                 continue
             }
 
@@ -768,7 +737,6 @@ class PathfindingManager {
                             val bpa = follower.blockedPathAction
                             val sw = look.widthInUserInterfaceDimensionUnit
                             val sh = look.heightInUserInterfaceDimensionUnit
-                            // Фоновый пересчёт — не фризим кадр на большой сетке.
                             pathExecutor.execute {
                                 val replanResult = try {
                                     findPath(currentX, currentY, endX, endY, scm, sw, sh, bpa)

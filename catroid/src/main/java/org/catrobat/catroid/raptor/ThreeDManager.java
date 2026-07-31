@@ -209,7 +209,7 @@ public class ThreeDManager implements Disposable {
         lastScreenWidth = width;
         lastScreenHeight = height;
         camera.viewportWidth = width;
-        camera.viewportHeight = height; // NOTE: resize may be called without a current GL context — ensure caller (e.g. postRunnable in setRenderResolution) schedules on GL thread
+        camera.viewportHeight = height;
         camera.update();
 
         if (renderScale < 1.0f || aspectMode != 0) {
@@ -494,12 +494,12 @@ public class ThreeDManager implements Disposable {
     private final List<net.mgsx.gltf.scene3d.lights.PointLightEx> sortedPointLights = new ArrayList<>();
 
     public String cameraTrackTargetId = null;
-    public int cameraTrackMode = 0; // 0: Off, 1: Pos, 2: Rot, 3: Both
+    public int cameraTrackMode = 0;
     public final Vector3 cameraTrackPosOffset = new Vector3();
     public final Quaternion cameraTrackRotOffset = new Quaternion();
 
     private float renderScale = 0.75f;
-    private int aspectMode = 0; // 0: Auto, 1: 4:3, 2: 16:9, 3: 1:1
+    private int aspectMode = 0;
     private int lastScreenWidth;
     private int lastScreenHeight;
     private int renderWidth;
@@ -610,7 +610,7 @@ public class ThreeDManager implements Disposable {
                 "#ifdef boneWeight1Flag\nattribute vec2 a_boneWeight1;\n#endif\n" +
                 "#ifdef boneWeight2Flag\nattribute vec2 a_boneWeight2;\n#endif\n" +
                 "#ifdef boneWeight3Flag\nattribute vec2 a_boneWeight3;\n#endif\n" +
-                "#ifdef numBones\nuniform mat4 u_bones[numBones];\n#endif\n" + // NOTE: depth shader uses hardcoded 110 bones — must stay in sync with config.numBones / settings.numBones
+                "#ifdef numBones\nuniform mat4 u_bones[numBones];\n#endif\n" +
                 "uniform mat4 u_projViewTrans;\n" +
                 "uniform mat4 u_worldTrans;\n" +
                 "uniform mat4 u_viewTrans;\n" +
@@ -1405,7 +1405,7 @@ public class ThreeDManager implements Disposable {
 
     private Vector3 calculateRayAvoidance(String ownerId, Vector3 origin, Vector3 rayDir, String targetId, float weight) {
         Vector3 force = new Vector3();
-        String rayKey = "ai_ray_" + ownerId + rayDir.hashCode(); // NOTE: generated key pollutes rayCastResults map — key collisions possible if ownerId+hashCode overlaps with user-defined ray names
+        String rayKey = "ai_ray_" + ownerId + rayDir.hashCode();
 
         castRay(rayKey, origin, rayDir);
 
@@ -4616,7 +4616,7 @@ public class ThreeDManager implements Disposable {
                 for (Disposable d : resources) {
                     try {
                         d.dispose();
-                    } catch (Exception ignored) { // ignored
+                    } catch (Exception ignored) {
                     }
                 }
             }
@@ -4627,7 +4627,6 @@ public class ThreeDManager implements Disposable {
                     try {
                         d.dispose();
                     } catch (Exception e) {
-                        // None
                     }
                 }
             }
@@ -5009,7 +5008,7 @@ public class ThreeDManager implements Disposable {
     }
 
     public void setAmbientLight(float r, float g, float b) {
-        environment.set(new ColorAttribute(ColorAttribute.AmbientLight, r, g, b, 1f)); // NOTE: sets on legacy `environment` (g3d Environment) — PBR rendering uses sceneManager.environment, consider syncing both
+        environment.set(new ColorAttribute(ColorAttribute.AmbientLight, r, g, b, 1f));
     }
 
     public void setDirectionalLight(String lightId, float r, float g, float b, float dirX, float dirY, float dirZ) {
@@ -6052,7 +6051,7 @@ public class ThreeDManager implements Disposable {
 
         } catch (Exception e) {
             Log.e("ThreeDManager", "Critical error in buffer rendering", e);
-            try { targetFbo.end(); } catch (Exception ignored) { /* cleanup on error */ }
+            try { targetFbo.end(); } catch (Exception ignored) { }
         } finally {
             this.camera = (PerspectiveCamera) originalCamera;
             if (realisticMode && sceneManager != null) {
@@ -6262,7 +6261,6 @@ public class ThreeDManager implements Disposable {
         });
     }
 
-    // --- Phase 4 stubs ---
     public Map<String, ParticleEffect> getActiveParticleEffects() {
         return activeParticleEffects;
     }

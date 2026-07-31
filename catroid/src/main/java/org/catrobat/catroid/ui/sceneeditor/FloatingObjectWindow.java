@@ -37,12 +37,6 @@ import android.widget.TextView;
 import org.catrobat.catroid.R;
 import org.catrobat.catroid.content.Sprite;
 
-/**
- * A movable, resizable, minimizable floating window for one scene object in the UI 2.0 scene
- * editor. The header drags the window, the corner handle resizes it, "-" collapses it to just the
- * header (toggling to "+"), "X" closes it. The body hosts a button that opens the object's block
- * editor. Windows are ephemeral (not persisted).
- */
 public class FloatingObjectWindow extends FrameLayout {
 
 	public interface Callback {

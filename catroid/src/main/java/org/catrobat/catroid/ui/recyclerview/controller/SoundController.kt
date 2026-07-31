@@ -112,10 +112,6 @@ class SoundController {
     private fun getSoundDir(scene: Scene?): File = File(scene?.directory, Constants.SOUND_DIRECTORY_NAME)
 
     private fun compareByChecksum(file1: File?, file2: File?): Boolean {
-        // The backpack uses this method and because the backpack does not correctly
-        // de-serialize SoundInfo references we can end up with a new SoundInfo that has a null file reference
-        // although we actually need one that already exists. so the workaround here (prevents a lot of crashes) is
-        // to just hope that copying bricks with references to files always happens after the SoundInfos are copied.
         if (file1 == null || file2 == null) {
             return true
         }

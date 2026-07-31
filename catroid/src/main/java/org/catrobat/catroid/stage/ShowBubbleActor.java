@@ -176,7 +176,6 @@ public class ShowBubbleActor extends Actor {
 		ArrayList<Float> xPositions = new ArrayList<>();
 		Rect temp = new Rect();
 
-		//Calculate height and width of textbox plus lineheight
 		for (String line : lines) {
 			height += Constants.LINE_SPACING_BUBBLES;
 			paint.getTextBounds(line, 0, line.length(), temp);
@@ -192,27 +191,23 @@ public class ShowBubbleActor extends Actor {
 		}
 		float lineHeight = (height - 30) / lines.size();
 
-		//Setup Bitmap and textbox
 		Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
 		try {
 			Canvas canvas = new Canvas(bitmap);
 			RectF rect = new RectF(0f, 0f, width, height);
 
-			//Draw rounded textbox
 			canvas.drawRoundRect(rect, 20, 20, paint);
 			rect = new RectF(rect.left + border, rect.top + border, rect.right - border, rect.bottom - border);
 			paint.setColor(android.graphics.Color.WHITE);
 			canvas.drawRoundRect(rect, 15, 15, paint);
 			paint.setColor(Color.BLACK);
 
-			//Calculate x position for every line
 			int xPositionsSize = xPositions.size();
 			for (int i = 0; i < xPositionsSize; i++) {
 				float x = ((float) width - xPositions.get(i)) / 2f;
 				xPositions.set(i, x);
 			}
 
-			//Draw text in textbox
 			int ii = 0;
 			int linesSize = lines.size();
 			for (String line : lines) {
@@ -221,7 +216,6 @@ public class ShowBubbleActor extends Actor {
 				ii++;
 			}
 
-			//Draw think bubbles or say triangle and convert to pixmap
 			return getFinalBubble(width, height, bitmap, right);
 		} finally {
 			bitmap.recycle();

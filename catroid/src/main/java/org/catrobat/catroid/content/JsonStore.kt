@@ -3,7 +3,6 @@ package org.catrobat.catroid.content
 import org.json.JSONArray
 import org.json.JSONObject
 
-/** Shared JSON values used by JSON bricks during one stage run. */
 object JsonStore {
     private val values = HashMap<String, Any>()
 

@@ -69,8 +69,6 @@ public class SceneController {
 		boolean renamed = true;
 		String previousName = sceneToRename.getName();
 
-		// Запрет коллизий имён: сцены (и глобальная сцена) ссылаются друг на друга по имени
-		// в SceneStart/SceneTransition-бриках и в stageBackupMap — дубликат ломает переходы.
 		Project projectOfScene = ProjectManager.getInstance().getCurrentProject();
 		if (projectOfScene != null) {
 			for (Scene existing : projectOfScene.getSceneList()) {
@@ -95,7 +93,6 @@ public class SceneController {
 			sceneToRename.setName(name);
 			Project currentProject = ProjectManager.getInstance().getCurrentProject();
 
-			// Build full list: regular scenes + globalScene
 			List<Scene> allScenes = new java.util.ArrayList<>(currentProject.getSceneList());
 			if (currentProject.hasGlobalScene()) {
 				allScenes.add(currentProject.getGlobalScene());
@@ -164,16 +161,13 @@ public class SceneController {
 	public void delete(Scene sceneToDelete) throws IOException {
 		Project currentProject = ProjectManager.getInstance().getCurrentProject();
 
-		// Check if this is the dedicated globalScene (new system)
 		if (sceneToDelete.isGlobalScene() || sceneToDelete.equals(currentProject.getGlobalScene())) {
-			// Nullify the project.globalScene field — removeScene() won't help since it's not in sceneList
 			currentProject.setGlobalScene(null);
 			StorageOperations.deleteDir(sceneToDelete.getDirectory());
 			XstreamSerializer.getInstance().saveProject(currentProject);
 			return;
 		}
 
-		// Legacy: sprites with isGlobal=true flag — migrate them to first scene
 		for (Sprite sprite : sceneToDelete.getSpriteList()) {
 			if (sprite.isGlobal()) {
 				if (!currentProject.getSceneList().isEmpty()) {

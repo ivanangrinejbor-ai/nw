@@ -152,14 +152,14 @@ public class PhysicsLook extends Look {
 	@Override
 	public float getX() {
 		float x = applyCenterOffset(physicsObject.getX(), true, false);
-		super.setX(x); // PERF: getter writes to super every call — triggers invalidation cascade; consider cache or dirty flag if called per frame
+		super.setX(x);
 		return x;
 	}
 
 	@Override
 	public float getY() {
 		float y = applyCenterOffset(physicsObject.getY(), false, false);
-		super.setY(y); // PERF: getter writes to super every call — triggers invalidation cascade; consider cache or dirty flag if called per frame
+		super.setY(y);
 		return y;
 	}
 
@@ -206,10 +206,6 @@ public class PhysicsLook extends Look {
 	@Override
 	public void setScale(float scaleX, float scaleY) {
 		Vector2 oldScales = new Vector2(getScaleX(), getScaleY());
-		//if (scaleX < 0.0f || scaleY < 0.0f) {
-		//	scaleX = 0.0f;
-		//	scaleY = 0.0f;
-		//}
 
 		int scaleXComp = Math.round(scaleX * SCALE_FACTOR_ACCURACY);
 		int scaleYComp = Math.round(scaleY * SCALE_FACTOR_ACCURACY);

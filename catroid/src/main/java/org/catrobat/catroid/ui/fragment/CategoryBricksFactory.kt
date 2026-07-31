@@ -933,7 +933,6 @@ open class CategoryBricksFactory {
                 defaultIf.setRightChild(FormulaElement(FormulaElement.ElementType.NUMBER, "2", null))
                 val eventBrickList: MutableList<Brick> = ArrayList()
                 eventBrickList.add(WhenStartedBrick())
-                // "When scene starts" — only in the Global Scene
                 val editedSceneUngrouped = ProjectManager.getInstance().currentlyEditedScene
                 if (editedSceneUngrouped != null && editedSceneUngrouped.isGlobalScene) {
                     eventBrickList.add(WhenSceneLaunchedBrick())
@@ -1014,7 +1013,6 @@ open class CategoryBricksFactory {
 
         eventBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_event_touch), template))
         eventBrickList.add(WhenStartedBrick())
-        // "When scene starts" — only in the Global Scene
         val editedSceneGrouped = ProjectManager.getInstance().currentlyEditedScene
         if (editedSceneGrouped != null && editedSceneGrouped.isGlobalScene) {
             eventBrickList.add(WhenSceneLaunchedBrick())
@@ -1114,7 +1112,6 @@ open class CategoryBricksFactory {
                 ifConditionFormulaElement.setRightChild(FormulaElement(FormulaElement.ElementType.NUMBER, "2", null))
                 val ifConditionFormula = Formula(ifConditionFormulaElement)
                 val controlBrickList: MutableList<Brick> = ArrayList()
-                //controlBrickList.add(TestBrick("Ababuy!"))
                 controlBrickList.add(WaitBrick(BrickValues.WAIT))
                 controlBrickList.add(NoteBrick(context.getString(R.string.brick_note_default_value)))
                 controlBrickList.add(ForeverBrick())
@@ -1299,7 +1296,6 @@ open class CategoryBricksFactory {
             }
         }
 
-        // Detect if active script context is UserDefinedScriptV2
         val activeScript = getActiveScript(context)
         if (activeScript is org.catrobat.catroid.content.UserDefinedScriptV2) {
             userDefinedBricks.add(org.catrobat.catroid.content.bricks.GetCustomParamBrick())
@@ -1923,7 +1919,6 @@ open class CategoryBricksFactory {
                 dataBrickList.add(ShowVarFontBrick(BrickValues.X_POSITION, BrickValues.Y_POSITION, BrickValues.RELATIVE_SIZE_IN_PERCENT, BrickValues.SHOW_VARIABLE_COLOR, "font.ttf"))
                 dataBrickList.add(ShowText3Brick("myText", "Hello!", BrickValues.X_POSITION, BrickValues.Y_POSITION, BrickValues.RELATIVE_SIZE_IN_PERCENT, BrickValues.SHOW_VARIABLE_COLOR))
                 dataBrickList.add(ShowTextFontBrick("myText", "Ababuy!", "font.ttf", BrickValues.X_POSITION, BrickValues.Y_POSITION, BrickValues.RELATIVE_SIZE_IN_PERCENT, BrickValues.SHOW_VARIABLE_COLOR))
-                //dataBrickList.add(ShowTextRotationBrick("myText", "Ababuy!", 90f, "font.ttf", BrickValues.X_POSITION, BrickValues.Y_POSITION, BrickValues.RELATIVE_SIZE_IN_PERCENT, BrickValues.SHOW_VARIABLE_COLOR))
                 dataBrickList.add(WriteVariableOnDeviceBrick())
                 dataBrickList.add(SecureSaveVariableBrick())
                 dataBrickList.add(ReadVariableFromDeviceBrick())
@@ -1935,7 +1930,6 @@ open class CategoryBricksFactory {
                 dataBrickList.add(WriteToFilesBrick("variable.txt"))
                 dataBrickList.add(ReadFromFilesBrick("variable.txt"))
                 dataBrickList.add(DeleteFilesBrick("variable.txt"))
-                //dataBrickList.add(SaveLookBrick("my_actor.png"))
                 dataBrickList.add(FileUrlBrick("https://example.com/file.jpg", "fileFromUrl.jpg"))
                 dataBrickList.add(FilesUrlBrick("https://example.com/file.jpg", "fileFromUrl.jpg"))
                 dataBrickList.add(ZipBrick("myZip.zip", "my_actor.png,fileFromUrl.jpg"))
@@ -2154,7 +2148,6 @@ print("Bot has stopped.")""", "myVar"))
                 deviceBrickList.add(MoveDownloadsBrick("variable.txt"))
                 deviceBrickList.add(CopyProjectFileBrick("variable.txt", "copy_variable.txt"))
                 deviceBrickList.add(ZipProjectFilesBrick("file1.txt,file2.txt", "archive.zip"))
-                //deviceBrickList.add(OpenFilesBrick("my_actor.png"))
                 deviceBrickList.add(PrepareNotificationBrick())
                 deviceBrickList.add(SendNotificationBrick(0))
                 deviceBrickList.add(RemoveNotificationBrick(0))
@@ -2182,7 +2175,6 @@ print("Bot has stopped.")""", "myVar"))
                 deviceBrickList.add(PauseVideoBrick("myVideoPlayer"))
                 deviceBrickList.add(SeekVideoBrick("myVideoPlayer", 30))
                 deviceBrickList.add(CreateTextFieldBrick("myTextField", "", 300, 500, 300, 200, 22, "#FFFFFF", "#88000000", "Напишите значение...", "#CCCCCC", "left", 0, 5, -1, "text", "если файла не существует - по умолчанию"))
-                //deviceBrickList.add(NativeLayerBrick(0))
                 deviceBrickList.add(AttachSOBrick("glView", "mylib.so"))
                 deviceBrickList.add(CreateGLViewBrick("glView", 100, 200, 500, 300))
                 deviceBrickList.add(SetViewPositionBrick("myVideoPlayer", 100, 200))
@@ -2205,7 +2197,6 @@ print("Bot has stopped.")""", "myVar"))
                 deviceBrickList.add(RunChip8Brick("tetris.ch8"))
                 deviceBrickList.add(ScreenShotBrick())
                 deviceBrickList.add(ResetTimerBrick())
-                //deviceBrickList.add(TestBrick())
                 deviceBrickList.add(HideStatusBarBrick())
                 deviceBrickList.add(ChooseFileBrick())
                 deviceBrickList.add(ExportProjectFileBrick("file.txt"))
@@ -2595,7 +2586,6 @@ void main() {
 
             if (!isGroupingEnabled) {
                 val neuralBrickList: MutableList<Brick> = ArrayList()
-                //neuralBrickList.add(SetDnsBrick("dns.comss.one"))
                 neuralBrickList.add(SetGeminiKeyBrick("api_key"))
                 neuralBrickList.add(AskGeminiBrick("Hello!"))
                 neuralBrickList.add(AskGemini2Brick("Hello! How are you?", "models/gemini-2.5-flash"))
@@ -2877,7 +2867,6 @@ void main() {
 
         val template = CreateCubeBrick()
 
-        // Objects & Meshes
         threedBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_3d_objects), template))
         threedBrickList.add(Create3dObjectBrick("myObject", "model.obj"))
         threedBrickList.add(CreateCubeBrick("myObject"))
@@ -2893,7 +2882,6 @@ void main() {
         threedBrickList.add(SetObjectTextureBrick("myObject", "texture.png"))
         threedBrickList.add(BakeByPrefixBrick("wall_", "bakedObject"))
 
-        // Motion & Hierarchy
         threedBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_3d_transform), template))
         threedBrickList.add(Set3dPositionBrick("myObject", 10.0, -5.0, 0.0))
         threedBrickList.add(GlideTo3DBrick("myObject", 10.0, -5.0, 0.0, 2.0))
@@ -2906,7 +2894,6 @@ void main() {
         threedBrickList.add(AttachToCameraBrick("myObject"))
         threedBrickList.add(DetachFromCameraBrick("myObject"))
 
-        // Camera
         threedBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_3d_camera), template))
         threedBrickList.add(SetCameraPositionBrick(200.0, 200.0, 200.0))
         threedBrickList.add(CameraLookAtBrick(0.0, 0.0, 0.0))
@@ -2919,7 +2906,6 @@ void main() {
         threedBrickList.add(SetFreeCameraBrick())
         threedBrickList.add(CameraTouchControlBrick(1, 1f, 0f, 0f, 50f, 50f))
 
-        // Physics
         threedBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_3d_physics), template))
         threedBrickList.add(SetPhysicsStateBrick("myObject", 2, 0, 1.0))
         threedBrickList.add(SetRotationLockBrick("myObject", true, false, true))
@@ -2938,7 +2924,6 @@ void main() {
         threedBrickList.add(SetHingeMotorBrick("joint", 45.0, 10.0))
         threedBrickList.add(RemoveJointBrick("joint"))
 
-        // Environment
         threedBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_3d_render), template))
         threedBrickList.add(SetAmbientLightBrick(0.8, 0.8, 0.8))
         threedBrickList.add(SetDirectionalLightBrick("sun", 0.8, 0.8, 0.8, -1.0, -0.8, -0.2))
@@ -2955,7 +2940,6 @@ void main() {
         threedBrickList.add(SetMaxPointLightsBrick(5))
         threedBrickList.add(SetShadowQualityBrick(Formula(100), Formula(2048)))
 
-        // Materials
         threedBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_3d_shaders), template))
         threedBrickList.add(SetShaderCodeBrick("""attribute vec3 a_position;
 attribute vec3 a_normal;
@@ -3123,7 +3107,6 @@ void main() {
         threedBrickList.add(SetEmissiveBrick("myObject", 1f, 1f, 1f, 1f, 10f, "emissive_texture.png"))
         threedBrickList.add(SetAnisotropicFilterBrick("myObject", 2.0))
 
-        // Animations
         threedBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_3d_animation), template))
         threedBrickList.add(PlayAnimationBrick("myObject", "idle", -1, 1.0, 0.2))
         threedBrickList.add(SetAnimationSpeedBrick("myObject", 10f))
@@ -3132,7 +3115,6 @@ void main() {
         threedBrickList.add(ThreedAttachObjectToBoneBrick("attachedObject", "hand", "Hand_R", 0.0, 0.0, 0.0))
         threedBrickList.add(ThreedBindBoneToObjectBrick("Hand_R", "hand", "myObject"))
 
-        // Voxels
         threedBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_3d_voxels), template))
         threedBrickList.add(VoxelCreateWorldBrick(Formula("chunk1"), Formula(16), Formula(16), Formula(16), Formula(16), Formula(0), Formula(0)))
         threedBrickList.add(VoxelConfigBrick("1", 0, 0, 0))
@@ -3142,7 +3124,6 @@ void main() {
         threedBrickList.add(VoxelBuildBrick(Formula("chunk1"), Formula("atlas.png"), Formula(16), Formula(16)))
         threedBrickList.add(VoxelDeleteBrick(Formula("chunk1")))
 
-        // Sound
         threedBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_3d_sound), template))
         threedBrickList.add(PrepareSoundBrick2("sound.mp3", "sound"))
         threedBrickList.add(PrepareMusicAs3DSoundBrick("sound.mp3", "sound"))
@@ -3154,7 +3135,6 @@ void main() {
         threedBrickList.add(StopSoundBrick2("soundInstance"))
         threedBrickList.add(SetGlobalSoundVolumeBrick(60.0))
 
-        // Scenes, Effects & AI
         threedBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_3d_effects), template))
         threedBrickList.add(SetAIBrick("myObject", 1, "followingObject", 2f, 1f, 10f, 1f, 1))
         threedBrickList.add(LoadSceneBrick("my_level.rscene"))
@@ -3210,7 +3190,6 @@ void main() {
         internetBrickList.add(DownloadToPathBrick("https://example.com/file.zip", "/storage/emulated/0/Download/file.zip"))
         internetBrickList.add(CancelDownloadBrick())
         internetBrickList.add(PingBrick("8.8.8.8"))
-        //internetBrickList.add(SetDnsBrick("dns.comss.one"))
         internetBrickList.add(HttpCreateBrick("my_request", "GET", "https://api.example.com/data"))
         internetBrickList.add(HttpConfigBrick("my_request", 0, "User-Agent", "NewCatroidClient"))
         internetBrickList.add(HttpBodyBrick("my_request", "{\"text\": \"hello\"}", "application/json"))

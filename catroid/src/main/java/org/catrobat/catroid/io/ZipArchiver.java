@@ -50,15 +50,13 @@ public class ZipArchiver {
 	private static final int ZIP_SLIP_BUFFER = 8192;
 	private static final int COMPRESSION_LEVEL = 9;
 
-	// Zip bomb protection limits
-	private static final long MAX_UNCOMPRESSED_SIZE = 3072L * 1024 * 1024; // 3 GB
-	private static final long MAX_ENTRY_SIZE = 200L * 1024 * 1024; // 200 MB per entry (was 50 MB, bumped for large .glb 3D models)
-	private static final int MAX_COMPRESSION_RATIO = 100; // 100:1
+	private static final long MAX_UNCOMPRESSED_SIZE = 3072L * 1024 * 1024;
+	private static final long MAX_ENTRY_SIZE = 200L * 1024 * 1024;
+	private static final int MAX_COMPRESSION_RATIO = 100;
 	private static final int MAX_ENTRY_COUNT = 10000;
 
-	// Timeout for unzip operation
-	private static final long UNZIP_TIMEOUT_SECONDS = 600; // 10 minutes total
-	private static final long ENTRY_TIMEOUT_SECONDS = 120; // 2 minutes per entry
+	private static final long UNZIP_TIMEOUT_SECONDS = 600;
+	private static final long ENTRY_TIMEOUT_SECONDS = 120;
 
 	public void zip(File archive, File[] files) throws IOException {
 		archive.createNewFile();
@@ -149,7 +147,6 @@ public class ZipArchiver {
 							+ MAX_UNCOMPRESSED_SIZE + " bytes");
 				}
 
-				// Check compression ratio: if compressed size is known and very small but output is large
 				long compressedSize = zipEntry.getCompressedSize();
 				if (compressedSize > 0 && entrySize > compressedSize * MAX_COMPRESSION_RATIO) {
 					throw new IOException("Zip bomb detected: compression ratio " + (entrySize / compressedSize)
@@ -207,7 +204,6 @@ public class ZipArchiver {
 				futures.add(executor.submit(() -> {
 					File zipEntryFile = new File(dstDir, entry.getName());
 					try {
-						// TOCTOU check on canonical path before extraction to prevent Zip Slip
 						if (!zipEntryFile.getCanonicalPath().startsWith(dstCanonical + File.separator)) {
 							return;
 						}
@@ -237,7 +233,6 @@ public class ZipArchiver {
 						throw new RuntimeException("Failed to extract: " + entry.getName(), ioEx);
 					}
 
-					// Compression ratio check
 					long compressedSize = entry.getCompressedSize();
 					if (compressedSize > 0 && entrySize > compressedSize * MAX_COMPRESSION_RATIO) {
 						throw new RuntimeException("Zip bomb detected: compression ratio "

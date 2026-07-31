@@ -34,8 +34,6 @@ class PrototypeBrickAdapter(private var brickList: List<Brick>) : BaseAdapter() 
         } else {
             val cachedParent = cachedView.parent
             if (cachedParent is android.widget.AdapterView<*>) {
-                // View is still attached to the ListView (hash collision / reuse race).
-                // AdapterView forbids removeView — inflate a fresh view instead.
                 cachedView = brick.getPrototypeView(parent?.context)
                 if (cachedView != null) {
                     viewCache[cacheKey] = cachedView

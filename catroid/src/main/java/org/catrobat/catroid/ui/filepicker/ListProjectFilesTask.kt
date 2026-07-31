@@ -57,7 +57,6 @@ class ListProjectFilesTask(listener: OnListProjectFilesListener) :
         }
 
         private fun findProjectFiles(dir: File, projectFiles: MutableList<File>) {
-            // this check will prevent a future crash on android 11
             if (dir.canRead() && dir.listFiles() != null) {
                 dir.listFiles()?.forEach { file ->
                     if (file.isDirectory) {

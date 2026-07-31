@@ -121,7 +121,6 @@ class MainMenuFragment : Fragment(),
         setupViewVisibility()
 
         binding.editProject.setOnClickListener(this)
-        //binding.uploadProject.setOnClickListener(this)
         binding.newProjectFloatingActionButton.setOnClickListener(this)
         binding.myProjectsTextView.setOnClickListener(this)
         binding.projectImageView.setOnClickListener(this)
@@ -136,12 +135,10 @@ class MainMenuFragment : Fragment(),
     }
 
     private fun setupCategoriesRV() {
-        //binding.categoriesRecyclerView.setHasFixedSize(true)
         categoriesAdapter.apply {
             setOnProjectClickCallback(this@MainMenuFragment)
             setOnCategoryTitleClickCallback(this@MainMenuFragment)
         }.let {
-            //binding.categoriesRecyclerView.adapter = it
         }
     }
 
@@ -154,15 +151,11 @@ class MainMenuFragment : Fragment(),
 
                 val showNoInternetLayout = !isConnectionActive &&
                     (featuredProjectsList.isNullOrEmpty() || projectsCategoriesList.isNullOrEmpty())
-                //binding.noInternetLayout.setVisibleOrGone(showNoInternetLayout)
                 if (showNoInternetLayout) {
                     return@Observer
                 }
 
-                //binding.categoriesRecyclerView.setVisibleOrGone(!showNoInternetLayout)
-
                 featuredProjectsAdapter.setItems(featuredProjectsList)
-                //binding.featuredProjectsRecyclerView.itemsCount = featuredProjectsList.size
 
                 categoriesAdapter.setItems(projectsCategoriesList)
             })
@@ -184,17 +177,6 @@ class MainMenuFragment : Fragment(),
 
     private fun setupFeaturedProjectsRV() {
         featuredProjectsAdapter.setCallback(this@MainMenuFragment)
-        /*binding.featuredProjectsRecyclerView.apply {
-            setHasFixedSize(true)
-            if (itemDecorationCount == 0) {
-                addItemDecoration(IndicatorDecoration(requireContext()))
-            }
-            adapter = featuredProjectsAdapter
-            onFlingListener = null
-        }.run {
-            PagerSnapHelper().attachToRecyclerView(binding.featuredProjectsRecyclerView)
-            resumeAutoScroll()
-        }*/
     }
 
     override fun onResume() {
@@ -226,9 +208,6 @@ class MainMenuFragment : Fragment(),
             FileMetaDataExtractor.encodeSpecialCharsForFileSystem(currentProject)
         )
         CoroutineScope(Dispatchers.IO).launch {
-            // CATROID-1434 Caution
-            // running loadProject on main thread may cause ANR due to locking in
-            // XstreamSerializer
             loadProject(projectDir, requireContext())
         }
         loadProjectImage()
@@ -314,28 +293,6 @@ class MainMenuFragment : Fragment(),
                 val dialog = NewProjectDialogFragment()
                 dialog.show(parentFragmentManager, NewProjectDialogFragment.TAG)
             }
-
-            /*R.id.uploadProject -> {
-                if (Utils.isDefaultProject(projectManager.currentProject, activity)) {
-                    binding.root.apply {
-                        Snackbar.make(binding.root, R.string.error_upload_default_project, Snackbar.LENGTH_LONG).show()
-                    }
-                    return
-                }
-
-                viewModel.setIsLoading(true)
-                val intent = Intent(activity, ProjectUploadActivity::class.java)
-                    .putExtra(
-                        PROJECT_DIR,
-                        File(
-                            DEFAULT_ROOT_DIRECTORY,
-                            FileMetaDataExtractor.encodeSpecialCharsForFileSystem(
-                                Utils.getCurrentProjectName(activity)
-                            )
-                        )
-                    )
-                startActivity(intent)
-            }*/
 
             R.id.playProject -> {
                 viewModel.setIsLoading(true)

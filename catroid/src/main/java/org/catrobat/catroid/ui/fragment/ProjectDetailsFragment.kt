@@ -143,18 +143,10 @@ class ProjectDetailsFragment : Fragment() {
             descriptionValue.apply {
                 val descriptionText = header.description ?: ""
                 markwon.setMarkdown(this, resolveImagePaths(descriptionText))
-
-                /*setOnClickListener {
-                    handleDescriptionPressed()
-                }*/
             }
             notesAndCreditsValue.apply {
                 val notesText = header.notesAndCredits ?: ""
                 markwon.setMarkdown(this, resolveImagePaths(notesText))
-
-                /*setOnClickListener {
-                    handleNotesAndCreditsPressed()
-                }*/
             }
             blocksCountValue.text = getString(R.string.details_counting)
             spritesCountValue.text = getString(R.string.details_counting)
@@ -190,9 +182,6 @@ class ProjectDetailsFragment : Fragment() {
         }
     }
 
-    /**
-     * ![...](my_image.png) -> ![...](file:///.../image.png)
-     */
     private fun resolveImagePaths(markdown: String): String {
         val projectDir = project.filesDir
         val imageRegex = Regex("!\\[(.*?)]\\((?!file://)(.*?)\\)")

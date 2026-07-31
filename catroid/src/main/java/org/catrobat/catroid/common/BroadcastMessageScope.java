@@ -4,11 +4,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Defines the scope (visibility) of a broadcast message.
- * - allowedSceneNames empty/null = global (all scenes receive)
- * - allowedSceneNames non-empty = only listed scenes + global scene receive
- */
 public class BroadcastMessageScope implements Serializable {
     private static final long serialVersionUID = 1L;
 

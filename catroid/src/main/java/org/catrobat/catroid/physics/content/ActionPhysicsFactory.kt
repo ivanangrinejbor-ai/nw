@@ -70,8 +70,6 @@ class ActionPhysicsFactory : ActionFactory() {
     }
 
     override fun createGlideToAction(sprite: Sprite, sequence: SequenceAction, x: Formula?, y: Formula?, duration: Formula?, easingType: Int): Action {
-        // "None" (0) keeps the classic physics glide untouched (backward compatible).
-        // A chosen easing curve falls back to the non-physics eased glide.
         return if (easingType <= 0) {
             createGlideToAction(sprite, sequence, x, y, duration)
         } else {

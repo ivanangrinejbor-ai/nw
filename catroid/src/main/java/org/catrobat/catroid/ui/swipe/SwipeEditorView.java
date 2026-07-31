@@ -35,12 +35,6 @@ import android.view.View;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Preview canvas for the Swipe Editor. The parent sprite is drawn at the centre; each attached
- * child sprite is drawn at its offset (in Catroid user-interface dimension units) and can be
- * dragged to reposition it. Offsets are what the runtime {@code SwipeController} applies, so the
- * preview assumes 100% sprite scale (1 image pixel maps to 1 UI unit).
- */
 public class SwipeEditorView extends View {
 
 	public static class Attachment {

@@ -31,17 +31,17 @@ public class PanoramicConverter implements Disposable {
                 "}";
 
         String fragmentShader = "#ifdef GL_ES\n" +
-                "precision highp float;\n" + // Используем highp для точности
+                "precision highp float;\n" +
                 "#endif\n" +
                 "varying vec3 v_position;\n" +
                 "uniform sampler2D u_equirectangularMap;\n" +
                 "const vec2 invPI = vec2(0.15915494309189533576, 0.31830988618379067153);\n" +
                 "void main() {\n" +
                 "  vec3 dir = normalize(v_position);\n" +
-                "  vec2 uv = vec2(atan(dir.x, dir.z), asin(dir.y));\n" + // atan(x,z) более стабилен
+                "  vec2 uv = vec2(atan(dir.x, dir.z), asin(dir.y));\n" +
                 "  uv *= invPI;\n" +
-                "  uv.x = 0.5 - uv.x;\n" + // Коррекция направления U
-                "  uv.y = 0.5 -  uv.y;\n" + // Коррекция направления V
+                "  uv.x = 0.5 - uv.x;\n" +
+                "  uv.y = 0.5 -  uv.y;\n" +
                 "  gl_FragColor = texture2D(u_equirectangularMap, uv);\n" +
                 "}";
 
@@ -62,9 +62,6 @@ public class PanoramicConverter implements Disposable {
     public Cubemap convert(Texture equirectangularTexture, int cubemapSize) {
         Gdx.app.log("PanoramicConverter", "Starting conversion to " + cubemapSize + "x" + cubemapSize + " Cubemap.");
 
-        // ИЗМЕНЕНИЕ: Заменяем старую логику создания FBO на новую, более надежную.
-        // Мы принудительно используем формат RGBA8888 и, что самое главное,
-        // отключаем создание ненужного буфера глубины (depth buffer = false).
         FrameBufferCubemap fbo = new FrameBufferCubemap(Pixmap.Format.RGBA8888, cubemapSize, cubemapSize, false);
 
 
@@ -81,7 +78,6 @@ public class PanoramicConverter implements Disposable {
             camera.up.set(fbo.getSide().up);
             camera.update();
 
-            // Очищаем только цвет, так как буфера глубины больше нет
             Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
             shader.setUniformMatrix("u_projViewTrans", camera.combined);
             skyboxMesh.render(shader, GL20.GL_TRIANGLES);
@@ -93,8 +89,6 @@ public class PanoramicConverter implements Disposable {
 
         Cubemap result = fbo.getColorBufferTexture();
 
-        // Dispose previous FBO before creating a new one to prevent GPU memory leak.
-        // The color buffer texture is detached from the FBO before disposal.
         if (activeFbo != null && activeFbo != fbo) {
             activeFbo.dispose();
         }

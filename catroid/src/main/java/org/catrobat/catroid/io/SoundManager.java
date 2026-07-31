@@ -45,10 +45,6 @@ import androidx.annotation.VisibleForTesting;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-/**
- * As long as both OpenGL render() and StageDialog access the SoundManager, the public methods have to stay
- * synchronized.
- */
 public class SoundManager {
 	public static final int MAX_MEDIA_PLAYERS = 7;
 
@@ -236,8 +232,6 @@ public class SoundManager {
 			return;
 		}
 		try {
-			// getPlaybackParams() creates a new PlaybackParams object each call (per API design).
-			// TODO: cache PlaybackParams per MediaPlayer if this becomes a hotspot.
 			PlaybackParams params = mediaPlayer.getPlaybackParams();
 			if (params != null) {
 				mediaPlayer.setPlaybackParams(params.setPitch(pitch));
@@ -313,7 +307,6 @@ public class SoundManager {
 	public synchronized boolean prepareSound(String cacheName, String soundFilePath, Sprite sprite) {
 		isValidAudioFormat(soundFilePath);
 		if (preparedSounds.containsKey(cacheName)) {
-			// If a sound with this name is already prepared, release it first
 			MediaPlayerWithSoundDetails oldPlayer = preparedSounds.get(cacheName);
 			if (oldPlayer != null) {
 				oldPlayer.release();
@@ -325,7 +318,7 @@ public class SoundManager {
 			mediaPlayer.setStartedBySprite(sprite);
 			mediaPlayer.setPathToSoundFile(soundFilePath);
 			mediaPlayer.setDataSource(soundFilePath);
-			mediaPlayer.prepare(); // This is the slow part we do in advance
+			mediaPlayer.prepare();
 
 			applyVolumeTo(mediaPlayer);
 
@@ -347,7 +340,6 @@ public class SoundManager {
 		if (mediaPlayer.isPlaying()) {
 			mediaPlayer.stop();
 			try {
-				// Must re-prepare after stop()
 				mediaPlayer.prepare();
 			} catch (Exception e) {
 				Log.e(TAG, "Could not re-prepare sound from cache", e);

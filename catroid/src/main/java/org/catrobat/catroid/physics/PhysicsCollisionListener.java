@@ -51,10 +51,6 @@ public class PhysicsCollisionListener implements ContactListener {
 
 	private Map<CollidingSprites, PhysicalCollision> collidingSpritesToCollisionMap = new HashMap<>();
 
-	/**
-	 * Deferred event queue for collision events that must not fire during Box2D's world step.
-	 * Events are queued in beginContact/endContact and flushed after world.step() completes.
-	 */
 	private final Queue<Runnable> deferredEvents = new ConcurrentLinkedQueue<>();
 
 	private void registerContact(Sprite sprite1, Sprite sprite2) {
@@ -118,7 +114,6 @@ public class PhysicsCollisionListener implements ContactListener {
 	public void postSolve(Contact contact, ContactImpulse impulse) {
 	}
 
-	/** Processes all deferred collision events accumulated during the last world.step(). */
 	public void flushDeferredEvents() {
 		Runnable event;
 		while ((event = deferredEvents.poll()) != null) {

@@ -46,11 +46,6 @@ class TransitionManager {
     private var overlay: Image? = null
     private var overlayStage: Stage? = null
 
-    /**
-     * Plays the leaving (exit) transition of the old scene, performs the actual scene
-     * switch via [switchAction] at the midpoint, then plays the entering (start) transition
-     * of the new scene. If both transitions are NONE the switch happens immediately.
-     */
     fun startSceneTransition(
         exit: TransitionType,
         exitDur: Float,
@@ -89,7 +84,6 @@ class TransitionManager {
         }
     }
 
-    // --- Backward-compatible API used by the transition blocks (Crossfade/Fade/Slide) ---
     fun startTransition(transitionType: TransitionType, sceneName: String) {
         startTransition(transitionType, sceneName, 0.5f)
     }

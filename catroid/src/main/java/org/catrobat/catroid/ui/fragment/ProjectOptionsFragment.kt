@@ -293,9 +293,6 @@ class ProjectOptionsFragment : Fragment() {
                     zipDirectory3(tempDir, zos)
                 }
 
-                // Зашифровать запечённый проект тем же статическим ключом, что и EXE
-                // (AES-256-GCM, магия NCPP). Обычный unzip не даст содержимого;
-                // импорт расшифрует по той же константе.
                 val encFile = File(requireContext().cacheDir, "${project!!.name}_baked.enc")
                 org.catrobat.catroid.io.ProjectCrypto.encrypt(
                     zipFile,
@@ -320,18 +317,12 @@ class ProjectOptionsFragment : Fragment() {
         }
     }
 
-    /**
-     * Release all cached pixmaps and texture regions from memory.
-     * For large projects (1000+ sprites) this frees hundreds of MB of RAM.
-     * The caches are lazily re-loaded when needed (getPixmap/getTextureRegion).
-     */
     private fun releaseAllLookCaches() {
         val proj = project ?: return
         for (scene in proj.sceneList) {
             for (sprite in scene.spriteList) {
                 for (look in sprite.lookList) {
                     look.invalidateThumbnailBitmap()
-                    // dispose() releases pixmap + textureRegion native memory
                     look.dispose()
                 }
             }
@@ -868,11 +859,6 @@ class ProjectOptionsFragment : Fragment() {
 
 
 
-    /**
-     * Mini progress menu shown while an export begins: walks the project's
-     * scenes, their objects and sounds, showing the current item, then starts
-     * the real export (save to device). No upfront "what will be exported" list.
-     */
     private fun runExportWalkthrough(onExport: () -> Unit) {
         saveProject()
         val proj = project ?: return
@@ -1019,7 +1005,6 @@ class ProjectOptionsFragment : Fragment() {
         setupDescriptionInputLayout()
         setupNotesAndCreditsInputLayout()
 
-        // Sync switch states from project
         setupPreloader()
 
         addTags()
@@ -1052,7 +1037,6 @@ class ProjectOptionsFragment : Fragment() {
             xml.setPhysicsWidthArea(width)
             xml.setPhysicsHeightArea(height)
         } catch (e: NumberFormatException) {
-            // Empty or invalid physics fields — leave defaults
         }
     }
 
@@ -1204,7 +1188,6 @@ class ProjectOptionsFragment : Fragment() {
                 .build()
                 .sign()
         } catch (e: Exception) {
-            //ErrorLog.log(e.message?: "**message not provided :(**")
             throw RuntimeException("Ошибка при подписании APK: ${e.message}", e)
         }
     }
@@ -1582,13 +1565,8 @@ class ProjectOptionsFragment : Fragment() {
 
 
     private fun buildExe() {
-        // saveProject() already called by runExportWalkthrough — don't repeat
         project ?: return
 
-        // Release ALL cached pixmaps/textures from memory before export.
-        // For 1000 sprites × 5 looks = 5000 decoded images in RAM (hundreds of MB).
-        // encryptDirectory() reads files from DISK — doesn't need in-memory caches.
-        // They will be re-loaded lazily when the user returns to the editor/stage.
         releaseAllLookCaches()
         System.gc()
 
@@ -1601,9 +1579,6 @@ class ProjectOptionsFragment : Fragment() {
                 val ctx = requireContext()
                 val cache = ctx.cacheDir
 
-                // 1) Pre-flight: ensure enough free cache space. We stream the encrypted
-                //    project straight into the bundle zip (no full-size intermediate file),
-                //    so peak usage is ~project size + the runtime template, not double.
                 val projectBytes = proj.directory.walkTopDown().filter { it.isFile }.sumOf { it.length() }
                 val neededBytes = projectBytes + 250L * 1024 * 1024
                 val freeBytes = cache.usableSpace
@@ -1615,18 +1590,12 @@ class ProjectOptionsFragment : Fragment() {
                 }
                 System.gc()
 
-                // 2) Optional launcher icon from the project screenshot.
                 val iconPng: File? = run {
                     val manual = File(proj.directory, "manual_screenshot.png")
                     val auto = File(proj.directory, "automatic_screenshot.png")
                     when { manual.exists() -> manual; auto.exists() -> auto; else -> null }
                 }
 
-                // 3) Assemble the Windows build bundle. Contents (all consumed by build_exe.bat):
-                //    template_win.zip = desktop runtime (player.jar + jre + launch4j + icon.ico),
-                //    build_exe.bat + its PowerShell helpers, the project payload (project.zip),
-                //    and the icon. The user extracts this ZIP and runs build_exe.bat, which wraps
-                //    everything into a single self-contained NeoCatroid.exe.
                 val bundledAssets = listOf(
                     "build_exe.bat",
                     "write_launch4j_xml.ps1",
@@ -1641,8 +1610,6 @@ class ProjectOptionsFragment : Fragment() {
                 java.util.zip.ZipOutputStream(
                     java.io.BufferedOutputStream(java.io.FileOutputStream(outputFile))
                 ).use { zos ->
-                    // Everything here is already-compressed / incompressible; store fast
-                    // (level 0) instead of re-deflating the ~100 MB runtime.
                     zos.setLevel(java.util.zip.Deflater.NO_COMPRESSION)
                     val buf = ByteArray(65536)
                     fun addStream(name: String, input: java.io.InputStream) {
@@ -1653,9 +1620,6 @@ class ProjectOptionsFragment : Fragment() {
                         }
                         zos.closeEntry()
                     }
-                    // Discoverability: a plain-language guide + an obviously-named launcher so
-                    // the recipient knows to run build_exe.bat (which produces the final exe).
-                    // Generated inline (not assets) to avoid non-ASCII AssetManager names.
                     val readme = listOf(
                         "NeoCatroid — сборка Windows-приложения (.exe)",
                         "==============================================",
@@ -1687,10 +1651,6 @@ class ProjectOptionsFragment : Fragment() {
                     for (asset in bundledAssets) {
                         addStream(asset, ctx.assets.open(asset))
                     }
-                    // Stream the encrypted project DIRECTLY into the bundle entry using
-                    // SEGMENTED AES-GCM (encryptDirectoryToStreamChunked): each ~4 MB segment
-                    // is encrypted independently, so memory stays constant. A single-GCM
-                    // stream would buffer the whole project in RAM (Conscrypt) and OOM.
                     zos.putNextEntry(java.util.zip.ZipEntry("project.zip"))
                     org.catrobat.catroid.io.ProjectCrypto.encryptDirectoryToStreamChunked(
                         proj.directory,
@@ -1711,8 +1671,6 @@ class ProjectOptionsFragment : Fragment() {
                 }
 
             } catch (e: Throwable) {
-                // Throwable (not just Exception) so an OutOfMemoryError on a very large
-                // project surfaces as a message instead of crashing the whole app.
                 withContext(Dispatchers.Main) {
                     hideProgressDialog()
                     ToastUtil.showError(requireContext(), "Ошибка: ${e.message}")
@@ -1743,7 +1701,6 @@ class ProjectOptionsFragment : Fragment() {
         val ctx = context ?: return
         saveProject()
 
-        // Simple progress dialog — v2 uses defaults (no tabs, just builds)
         val progressText = android.widget.TextView(ctx).apply {
             text = getString(R.string.build_apk_progress)
             setPadding(60, 30, 60, 10)
@@ -1827,7 +1784,6 @@ class ProjectOptionsFragment : Fragment() {
         val container = FrameLayout(ctx).apply { setPadding(0, 12, 0, 0) }
         root.addView(container)
 
-        // ---- Basic panel ----
         val basicPanel = LinearLayout(ctx).apply { orientation = LinearLayout.VERTICAL }
         val nameInput = EditText(ctx).apply { setText(project.name); hint = getString(R.string.build_apk_name) }
         val pkgInput = EditText(ctx).apply { setText("org.danvexteam.newcatroidruntime"); hint = getString(R.string.build_apk_package) }
@@ -1846,7 +1802,6 @@ class ProjectOptionsFragment : Fragment() {
         basicPanel.addView(codeInput)
         basicPanel.addView(passInput)
 
-        // ---- Permissions panel ----
         val permPanel = LinearLayout(ctx).apply { orientation = LinearLayout.VERTICAL }
         permPanel.addView(TextView(ctx).apply {
             text = getString(R.string.build_apk_permissions_hint)
@@ -1861,7 +1816,6 @@ class ProjectOptionsFragment : Fragment() {
             perm to cb
         }
 
-        // ---- SDK panel ----
         val sdkPanel = LinearLayout(ctx).apply { orientation = LinearLayout.VERTICAL }
         val minSdkInput = EditText(ctx).apply {
             setText("21"); hint = getString(R.string.build_apk_min_sdk)
@@ -1874,7 +1828,6 @@ class ProjectOptionsFragment : Fragment() {
         sdkPanel.addView(minSdkInput)
         sdkPanel.addView(targetSdkInput)
 
-        // ---- Icon panel ----
         val iconPanel = LinearLayout(ctx).apply { orientation = LinearLayout.VERTICAL }
         val projectHasIcon = File(project.directory, "manual_screenshot.png").exists()
             || File(project.directory, "automatic_screenshot.png").exists()
@@ -1973,7 +1926,6 @@ class ProjectOptionsFragment : Fragment() {
             .create()
         buildDialog.show()
 
-        // Results arrive from the isolated :apkbuild process via this receiver (runs on main thread).
         val receiver = object : ResultReceiver(Handler(Looper.getMainLooper())) {
             override fun onReceiveResult(resultCode: Int, resultData: Bundle?) {
                 when (resultCode) {
@@ -1997,8 +1949,6 @@ class ProjectOptionsFragment : Fragment() {
             }
         }
 
-        // Persist the (possibly edited) project so the build process reloads the latest
-        // version from disk, then launch the isolated build service.
         lifecycleScope.launch(Dispatchers.IO) {
             projectManager.currentProject?.let { saveProjectSerial(it, ctx) }
             withContext(Dispatchers.Main) {
@@ -2148,7 +2098,7 @@ class ProjectOptionsFragment : Fragment() {
 
     fun zipDirectory(sourceDir: File, zipFile: File): File {
         ZipOutputStream(FileOutputStream(zipFile)).use { zipOut ->
-            zipOut.setLevel(1) // fastest compression to reduce CPU/memory
+            zipOut.setLevel(1)
             sourceDir.walk().filter { it != sourceDir }.forEach { file ->
                 if(file.name != "undo_code.xml") {
                     val entryPath = file.relativeTo(sourceDir).path
@@ -2161,7 +2111,7 @@ class ProjectOptionsFragment : Fragment() {
 
                     if (file.isFile) {
                         FileInputStream(file).use { fis ->
-                            fis.copyTo(zipOut, 8192) // explicit small buffer
+                            fis.copyTo(zipOut, 8192)
                         }
                     }
 

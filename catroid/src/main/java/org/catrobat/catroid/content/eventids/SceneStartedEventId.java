@@ -2,10 +2,6 @@ package org.catrobat.catroid.content.eventids;
 
 import java.util.Objects;
 
-/**
- * Event fired when a scene is started/switched to.
- * Used by "When scene starts" scripts in the Global Scene.
- */
 public class SceneStartedEventId extends EventId {
 
 	public final String sceneName;

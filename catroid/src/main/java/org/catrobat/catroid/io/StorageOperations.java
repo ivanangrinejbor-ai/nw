@@ -223,7 +223,6 @@ public final class StorageOperations {
 		FileOutputStream fileOutputStream = new FileOutputStream(destinationFile);
 
 		try {
-			// Read full stream into byte array so we can decode multiple times
 			ByteArrayOutputStream byteBuffer = new ByteArrayOutputStream();
 			byte[] buf = new byte[BUFFER_8K];
 			int len;
@@ -232,12 +231,10 @@ public final class StorageOperations {
 			}
 			byte[] imageBytes = byteBuffer.toByteArray();
 
-			// First decode with inJustDecodeBounds to get dimensions (no allocation)
 			BitmapFactory.Options options = new BitmapFactory.Options();
 			options.inJustDecodeBounds = true;
 			BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length, options);
 
-			// Calculate inSampleSize to limit max dimension to 2048px
 			int maxDimension = 2048;
 			int inSampleSize = 1;
 			if (options.outHeight > maxDimension || options.outWidth > maxDimension) {
@@ -249,7 +246,6 @@ public final class StorageOperations {
 				}
 			}
 
-			// Decode with sampling
 			options.inJustDecodeBounds = false;
 			options.inSampleSize = inSampleSize;
 			Bitmap bitmap = null;
@@ -265,7 +261,6 @@ public final class StorageOperations {
 				bitmap.compress(Bitmap.CompressFormat.PNG, 100, fileOutputStream);
 				bitmap.recycle();
 			} else {
-				// Fallback: write raw bytes if decode fails
 				fileOutputStream.write(imageBytes);
 			}
 		} finally {

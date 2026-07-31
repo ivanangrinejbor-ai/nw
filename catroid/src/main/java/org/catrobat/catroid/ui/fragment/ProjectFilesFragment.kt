@@ -420,6 +420,5 @@ class ProjectFilesFragment : Fragment() {
         val TAG: String = ProjectFilesFragment::class.java.simpleName
 
         private const val ADD_FILE_REQUEST = 15
-        //private const val PERMISSIONS_REQUEST_EXPORT_TO_EXTERNAL_STORAGE = 802
     }
 }

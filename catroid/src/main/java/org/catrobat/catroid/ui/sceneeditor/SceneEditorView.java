@@ -39,14 +39,6 @@ import org.catrobat.catroid.content.Sprite;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Canvas for the UI 2.0 scene editor. Draws the whole scene (grid + every sprite at its scene
- * position) with infinite pan/zoom, drag-to-place, and a long-press "eye" action that requests
- * opening the paint editor for an object. Scene coordinates are Catroid user-interface units
- * (origin centre, Y up): screenX = width/2 + panX + sceneX*scale, screenY = height/2 + panY - sceneY*scale.
- * Object dimensions are ORIGINAL look pixel size (independent of the downsampled preview bitmap);
- * an object without a look is drawn as a black placeholder cube. Bitmaps load asynchronously.
- */
 public class SceneEditorView extends View {
 
 	public static class SceneObject {
@@ -453,7 +445,6 @@ public class SceneEditorView extends View {
 			case MotionEvent.ACTION_CANCEL:
 				cancelLongPressTimer();
 				if (longPressFired) {
-					// Long-press already revealed the eye action; do not treat lift as a tap.
 					longPressFired = false;
 					draggingIndex = -1;
 					panning = false;

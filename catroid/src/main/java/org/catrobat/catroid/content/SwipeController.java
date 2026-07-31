@@ -29,13 +29,6 @@ import org.catrobat.catroid.content.eventids.SwipedEventId;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Runtime gesture handling for a swipeable sprite. The parent sprite together with its attached
- * children follows the finger; on release past a threshold the whole group flies off screen in the
- * dominant direction and a {@link SwipedEventId} is fired, otherwise the group springs back. All
- * positions are handled in Catroid user-interface dimension units so the delta of the finger in
- * stage coordinates maps 1:1 to sprite positions.
- */
 public class SwipeController {
 
 	private enum State { IDLE, DRAGGING, FLYING, SPRINGING }

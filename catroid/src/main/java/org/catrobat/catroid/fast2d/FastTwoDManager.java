@@ -211,10 +211,6 @@ public class FastTwoDManager implements Disposable {
                 TextureComponent old = mTexture.get(e);
                 if (old.region != null && old.region.getTexture() != null) {
                     Texture oldTexture = old.region.getTexture();
-                    // Only dispose textures uniquely owned by this entity. Textures loaded
-                    // through getOrLoadTexture() are shared via textureCache and are disposed
-                    // together with the cache in dispose(); freeing them here would dispose a
-                    // texture still in use by other entities (use-after-dispose / double free).
                     if (!textureCache.containsValue(oldTexture)) {
                         oldTexture.dispose();
                     }
@@ -413,7 +409,6 @@ public class FastTwoDManager implements Disposable {
         entities.clear();
     }
 
-    // --- Phase 4 stub ---
     public void setGravity(final float gx, final float gy) {
         Gdx.app.postRunnable(() -> {
             physicsWorld.setGravity(new com.badlogic.gdx.math.Vector2(gx, gy));

@@ -26,7 +26,6 @@ import com.google.common.base.Objects;
 
 public class SwipedEventId extends EventId {
 
-	// 0 = Up, 1 = Down, 2 = Left, 3 = Right, 4 = Any
 	public static final int UP = 0;
 	public static final int DOWN = 1;
 	public static final int LEFT = 2;

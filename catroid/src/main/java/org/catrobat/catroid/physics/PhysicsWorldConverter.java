@@ -71,7 +71,6 @@ public final class PhysicsWorldConverter {
 				convertNormalToBox2dCoordinate(catroidVector.y));
 	}
 
-	/** Computes the area of a Box2D Shape. Returns 0 for unsupported shape types. */
 	public static float computeShapeArea(Shape shape) {
 		switch (shape.getType()) {
 			case Circle: {

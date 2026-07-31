@@ -30,15 +30,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
 
-/**
- * Registry of live {@link TilemapRuntime}s, keyed by the tilemap costume ({@link TilemapLookData}).
- *
- * <p>A {@link WeakHashMap} is used so a runtime is not kept alive after its costume is gone (e.g.
- * a discarded clone) even if {@link #disposeAll} is somehow missed; {@link #disposeAll} is still
- * called explicitly on scene teardown to free GL textures and Box2D bodies deterministically.</p>
- *
- * <p>Keying by the costume (not the sprite) avoids stale state when a sprite switches costumes.</p>
- */
 public final class TilemapRuntimeManager {
 
 	private static final Map<TilemapLookData, TilemapRuntime> RUNTIMES = new WeakHashMap<>();
@@ -55,12 +46,10 @@ public final class TilemapRuntimeManager {
 		return runtime;
 	}
 
-	/** @return the existing runtime for a costume, or {@code null} if none was created yet. */
 	public static synchronized TilemapRuntime peek(TilemapLookData data) {
 		return RUNTIMES.get(data);
 	}
 
-	/** Disposes every runtime (GL textures + Box2D bodies) and clears the registry. */
 	public static synchronized void disposeAll(PhysicsWorld physicsWorld) {
 		List<TilemapRuntime> snapshot = new ArrayList<>(RUNTIMES.values());
 		for (TilemapRuntime runtime : snapshot) {

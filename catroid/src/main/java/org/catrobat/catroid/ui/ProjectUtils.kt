@@ -23,12 +23,6 @@
 
 @file:JvmName("ProjectUtils")
 
-/**
- * suspicious bricks as defined in CATROID-681
- *
- * StartListeningBrick and WebRequestBrick or BackgroundRequestBrick or LookRequestBrick
- * */
-
 package org.catrobat.catroid.ui
 
 import android.content.Context
@@ -56,10 +50,6 @@ import org.catrobat.catroid.content.bricks.RunAsSpriteBrick
 import org.catrobat.catroid.content.bricks.StartListeningBrick
 import org.catrobat.catroid.content.bricks.WebRequestBrick
 
-/**
- * extension boolean function for List<Brick> data type.
- * check if the list contains suspicious bricks
- * */
 private fun List<Brick>.containsSuspiciousBricks(): Boolean {
     val startListeningBrickExists = any { brick ->
         brick is StartListeningBrick
@@ -70,10 +60,6 @@ private fun List<Brick>.containsSuspiciousBricks(): Boolean {
     return startListeningBrickExists and backgroundRequestOrWebRequestBrickExists
 }
 
-/**
- * extension function for Sprite data type.
- * get list of all bricks and its nested bricks if exists
- * */
 public fun Sprite.getListAllBricks(): List<Brick> {
     val bricks = arrayListOf<Brick>()
     allBricks.forEach { brick ->
@@ -122,10 +108,6 @@ public fun Sprite.getListAllBricks(): List<Brick> {
     return bricks
 }
 
-/**
- * extension boolean function for Project data type.
- * check if the project contains suspicious bricks
- * */
 private fun Project.shouldDisplaySuspiciousBricksWarning(): Boolean {
     val brickList = arrayListOf<Brick>()
     sceneList.forEach { scene ->
@@ -139,17 +121,13 @@ private fun Project.shouldDisplaySuspiciousBricksWarning(): Boolean {
 }
 
 fun showWarningForSuspiciousBricksOnce(context: Context) {
-    // used for not showing the dialog again
     val sharedPreferences = context.getSharedPreferences(
         context.getString(R.string.preference_approved_list_file_key),
         MODE_PRIVATE
     )
     val currentProject = ProjectManager.getInstance().currentProject
     val projectUrl = currentProject?.xmlHeader?.remixParentsUrlString ?: return
-    // if project has an url => is a downloaded project
     val isDownloadedProject = projectUrl.isNotBlank()
-    // since the projectUrl is kinda unique, ues it as key for the shared preference, if it's null
-    // that means the dialog hasn't been displayed yet
     val showForFirstTime = sharedPreferences.getString(projectUrl, null).isNullOrBlank()
 
     if (isDownloadedProject && currentProject.shouldDisplaySuspiciousBricksWarning() && showForFirstTime) {
@@ -168,8 +146,6 @@ fun showWarningForSuspiciousBricksOnce(context: Context) {
             }
             .show()
     } else if (isDownloadedProject) {
-        // add it anyway to avoid showing this dialog for downloaded projects, but have
-        // suspicious bricks added by the user afterwards..
         sharedPreferences
             .edit()
             .putString(projectUrl, projectUrl)

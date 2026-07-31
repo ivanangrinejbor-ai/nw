@@ -27,16 +27,8 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 
-/**
- * Undo/redo stack for the tilemap editor. Each entry is a batch of cell changes (one stroke =
- * one batch), so undoing reverts an entire drag in a single step.
- *
- * <p>Only the active layer (layer 0 in v2.3) is tracked. Solid-tile toggles are stored as a
- * separate batch type so they can be undone independently.</p>
- */
 public final class TilemapEditHistory {
 
-	/** A single cell change: layer/column/row went from {@code oldTile} to {@code newTile}. */
 	public static final class CellChange {
 		public final int layerIndex;
 		public final int column;
@@ -53,7 +45,6 @@ public final class TilemapEditHistory {
 		}
 	}
 
-	/** A single solid-tile toggle: tileIndex went from {@code oldSolid} to {@code newSolid}. */
 	public static final class SolidChange {
 		public final int tileIndex;
 		public final boolean oldSolid;
@@ -73,12 +64,10 @@ public final class TilemapEditHistory {
 
 	private List<Object> currentBatch;
 
-	/** Begin collecting changes for a new batch (e.g. at the start of a drag stroke). */
 	public void beginBatch() {
 		currentBatch = new ArrayList<>();
 	}
 
-	/** Record a cell change into the current batch. No-op if no batch is open. */
 	public void recordCellChange(int layerIndex, int column, int row, short oldTile, short newTile) {
 		if (currentBatch == null || oldTile == newTile) {
 			return;
@@ -86,7 +75,6 @@ public final class TilemapEditHistory {
 		currentBatch.add(new CellChange(layerIndex, column, row, oldTile, newTile));
 	}
 
-	/** Record a solid-tile toggle into the current batch. */
 	public void recordSolidChange(int tileIndex, boolean oldSolid, boolean newSolid) {
 		if (currentBatch == null || oldSolid == newSolid) {
 			return;
@@ -94,10 +82,6 @@ public final class TilemapEditHistory {
 		currentBatch.add(new SolidChange(tileIndex, oldSolid, newSolid));
 	}
 
-	/**
-	 * Commit the current batch to the undo stack. Empty batches are discarded; any pending redo
-	 * history is cleared (a new action invalidates the redo timeline).
-	 */
 	public void commitBatch() {
 		if (currentBatch == null || currentBatch.isEmpty()) {
 			currentBatch = null;
@@ -105,7 +89,6 @@ public final class TilemapEditHistory {
 		}
 		undoStack.push(currentBatch);
 		if (undoStack.size() > MAX_DEPTH) {
-			// Drop the oldest entry (bottom of the deque).
 			((ArrayDeque<List<Object>>) undoStack).removeLast();
 		}
 		redoStack.clear();
@@ -120,7 +103,6 @@ public final class TilemapEditHistory {
 		return !redoStack.isEmpty();
 	}
 
-	/** Pop the most recent batch from the undo stack and push it onto the redo stack. */
 	public List<Object> undo() {
 		if (undoStack.isEmpty()) {
 			return null;
@@ -130,7 +112,6 @@ public final class TilemapEditHistory {
 		return batch;
 	}
 
-	/** Pop the most recent batch from the redo stack and push it back onto the undo stack. */
 	public List<Object> redo() {
 		if (redoStack.isEmpty()) {
 			return null;
@@ -140,7 +121,6 @@ public final class TilemapEditHistory {
 		return batch;
 	}
 
-	/** Drop all history. */
 	public void clear() {
 		undoStack.clear();
 		redoStack.clear();

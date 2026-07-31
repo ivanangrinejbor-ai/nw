@@ -117,7 +117,7 @@ public class SceneManager {
 
     public SceneManager(ThreeDManager lowLevelEngine) {
         this.engine = lowLevelEngine;
-        this.engine.setSceneManager(this); // NOTE: `this` escapes the constructor — ensure setSceneManager does not use SceneManager before its fields are initialized
+        this.engine.setSceneManager(this);
 
         json.setIgnoreUnknownFields(true);
         json.setUsePrototypes(false);
@@ -158,12 +158,10 @@ public class SceneManager {
                     tmpMat1.set(parent.transform.worldTransform).inv();
                     tmpMat2.set(tmpPos, tmpRot, go.transform.scale);
 
-                    // tmpMat3 = parentInverse * childWorld
                     tmpMat3.set(tmpMat1).mul(tmpMat2);
 
                     tmpMat3.getTranslation(go.transform.position);
                     tmpMat3.getRotation(go.transform.rotation, true);
-                    // tmpMat3.getScale(go.transform.scale);
                 }
             }
         }
@@ -843,7 +841,7 @@ public class SceneManager {
         sceneData.skyR = skyR;
         sceneData.skyG = skyG;
         sceneData.skyB = skyB;
-        sceneData.skyboxPath = skyboxPath; // NOTE: skyboxPath can be null here — callers should handle null to avoid NPE
+        sceneData.skyboxPath = skyboxPath;
         sceneData.ambientIntensity = ambientIntensity;
         sceneData.shadowSize = engine.getShadowSize();
         sceneData.shadowResolution = engine.getShadowResolution();
@@ -1841,11 +1839,6 @@ public class SceneManager {
                 rebuildGameObject_internal(go);
             }
 
-            // A scene loaded at runtime via the block needs realistic mode enabled so that
-            // Bullet physics transforms are synced back to the objects (mirrors the 3D editor,
-            // which enables it on load). Without it, physics steps but nothing moves/collides,
-            // so a 3D player passes through objects and floats. Resources are always created in
-            // ThreeDManager.init(), so flipping the flag here is safe.
             engine.enableRealisticRendering(true);
         });
     }

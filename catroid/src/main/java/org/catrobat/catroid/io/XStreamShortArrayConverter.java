@@ -29,24 +29,6 @@ import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-/**
- * XStream converter for {@code short[]} (tilemap layer data).
- *
- * <p>Stores the array as a Base64-encoded, big-endian byte blob:
- * <pre>{@code <layer enc="b64">AAACAAD/...==</layer>}</pre>
- * This avoids XStream's default {@code <short-array>} behaviour which writes
- * thousands of {@code <short>} child elements for a 16×12 map (2304 elements)
- * and causes {@link com.thoughtworks.xstream.converters.ConversionException} on
- * deserialization of primitive arrays registered under a security-restricted
- * XStream instance (the situation in Catroid's {@link XstreamSerializer}).
- *
- * <p><b>Format:</b> 2 bytes per cell, big-endian (network order), Base64
- * {@link Base64#NO_WRAP}. Empty array ({@code short[0]}) is encoded as {@code ""}.
- *
- * <p>Backward compat: if the element has no {@code enc="b64"} attribute the
- * converter falls back to reading space-separated decimal shorts, so any
- * hand-authored XML or older format still loads.
- */
 public class XStreamShortArrayConverter implements Converter {
 
     @Override
@@ -62,7 +44,6 @@ public class XStreamShortArrayConverter implements Converter {
             writer.setValue("");
             return;
         }
-        // 2 bytes per short, big-endian
         ByteBuffer buf = ByteBuffer.allocate(arr.length * 2).order(ByteOrder.BIG_ENDIAN);
         for (short s : arr) {
             buf.putShort(s);
@@ -79,10 +60,8 @@ public class XStreamShortArrayConverter implements Converter {
             return new short[0];
         }
         if ("b64".equals(enc)) {
-            // Modern format: Base64-encoded big-endian bytes
             byte[] bytes = Base64.decode(value, Base64.NO_WRAP);
             if (bytes.length % 2 != 0) {
-                // Corrupted — return empty rather than crash
                 return new short[0];
             }
             ByteBuffer buf = ByteBuffer.wrap(bytes).order(ByteOrder.BIG_ENDIAN);
@@ -92,14 +71,13 @@ public class XStreamShortArrayConverter implements Converter {
             }
             return arr;
         } else {
-            // Legacy fallback: space-separated decimal integers
             String[] tokens = value.trim().split("\\s+");
             short[] arr = new short[tokens.length];
             for (int i = 0; i < tokens.length; i++) {
                 try {
                     arr[i] = Short.parseShort(tokens[i]);
                 } catch (NumberFormatException ignored) {
-                    arr[i] = -1; // EMPTY
+                    arr[i] = -1;
                 }
             }
             return arr;

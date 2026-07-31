@@ -51,7 +51,6 @@ class GeminiManager {
         var api_key: String? = null
             set(value) {
                 field = value
-                // Sync to secure storage if app context is available
                 try {
                     val ctx = org.catrobat.catroid.CatroidApplication.current
                     if (ctx != null && value != null && value.isNotEmpty()) {

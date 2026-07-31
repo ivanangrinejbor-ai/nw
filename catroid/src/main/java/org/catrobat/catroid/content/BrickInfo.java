@@ -1383,13 +1383,6 @@ public final class BrickInfo {
         return (description != null) ? description : notFound;
     }
 
-    /**
-     * Builds a full catalog of every known brick, one per line, in the form
-     * "BrickClassName: description". Used to give the cloud AI agent a complete
-     * list of every available block and its capabilities so it can write valid
-     * scripts. The description language follows the current locale (RU or EN),
-     * falling back to the other language when a translation is missing.
-     */
     public static String getFullCatalog() {
         boolean isRu = Locale.getDefault().getLanguage().equals("ru");
         Map<Class<? extends Brick>, String> primary = isRu ? brickDescriptions : brickDescriptionsEn;
@@ -1410,14 +1403,6 @@ public final class BrickInfo {
         return sb.toString();
     }
 
-    /**
-     * Appends a machine-readable tag to the description so the cloud AI agent knows
-     * which bricks are containers (require `{ }` syntax) and which support an else-branch.
-     * Examples:
-     *   "Бесконечный цикл. [container]"
-     *   "If/then/else. [container, if-else]"
-     *   "If/then (no else). [container, no-else]"
-     */
     private static String annotateContainer(Class<? extends Brick> clazz, String description) {
         if (!org.catrobat.catroid.ai.tool.BrickFactory.INSTANCE.isContainerBrick(clazz)) {
             return description;
@@ -1427,7 +1412,6 @@ public final class BrickInfo {
             clazz.getDeclaredMethod("addBrickToElseBranch", Brick.class);
             hasElse = true;
         } catch (NoSuchMethodException ignored) {
-            // try superclass
             Class<?> sup = clazz.getSuperclass();
             while (sup != null && sup != Object.class) {
                 try {
@@ -1442,7 +1426,6 @@ public final class BrickInfo {
         return description + (hasElse ? " [container, if-else]" : " [container, no-else]");
     }
 
-    /** @return the number of bricks with a registered description. */
     public static int getCatalogSize() {
         java.util.Set<String> names = new java.util.HashSet<>();
         for (Class<? extends Brick> c : brickDescriptions.keySet()) {

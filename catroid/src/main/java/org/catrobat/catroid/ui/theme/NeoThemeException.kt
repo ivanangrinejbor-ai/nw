@@ -22,5 +22,4 @@
  */
 package org.catrobat.catroid.ui.theme
 
-/** Thrown when a `.neotema` file cannot be parsed or contains an invalid value. */
 class NeoThemeException(message: String) : Exception(message)

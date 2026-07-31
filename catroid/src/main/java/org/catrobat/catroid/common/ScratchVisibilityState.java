@@ -28,7 +28,6 @@ import android.os.Parcelable;
 import android.util.SparseArray;
 
 public enum ScratchVisibilityState implements Parcelable {
-	// NOTE: do not change values!
 	UNKNOWN(0),
 	PRIVATE(1),
 	PUBLIC(2);

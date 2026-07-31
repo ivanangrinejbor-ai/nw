@@ -45,13 +45,11 @@ object CatdroidImageAnalyzer : ImageAnalysis.Analyzer {
     override fun analyze(imageProxy: ImageProxy) {
         val mediaImage = imageProxy.image
         if (mediaImage == null) {
-            // No image to analyze: must still close the proxy to avoid a leak.
             imageProxy.close()
             return
         }
 
         if (activeDetectors.isEmpty()) {
-            // Nothing registered to process the image: close the proxy immediately.
             imageProxy.close()
             return
         }

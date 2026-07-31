@@ -546,7 +546,6 @@ public class StageListener implements ApplicationListener {
 		float y2 = vmY + vmHeight;
 
 		float[] vertices = {
-				// X,  Y,  Z,  U, V
 				vmX, vmY,  0,  0, 1,
 				x2,  vmY,  0,  1, 1,
 				x2,  y2,  0,  1, 0,
@@ -689,7 +688,7 @@ public class StageListener implements ApplicationListener {
 		inputMultiplexer.addProcessor(new com.badlogic.gdx.InputAdapter() {
 			private float startX, startY;
 			private boolean edgeTouchDown = false;
-			private int swipeDirection = -1; // -1 = none, 0 = left, 1 = right, 2 = top, 3 = bottom
+			private int swipeDirection = -1;
 
 			@Override
 			public boolean touchDown(int screenX, int screenY, int pointer, int button) {
@@ -704,16 +703,16 @@ public class StageListener implements ApplicationListener {
 
 					if (screenX < width * 0.08f) {
 						edgeTouchDown = true;
-						swipeDirection = 0; // Left edge
+						swipeDirection = 0;
 					} else if (screenX > width * 0.92f) {
 						edgeTouchDown = true;
-						swipeDirection = 1; // Right edge
+						swipeDirection = 1;
 					} else if (screenY < height * 0.08f) {
 						edgeTouchDown = true;
-						swipeDirection = 2; // Top edge
+						swipeDirection = 2;
 					} else if (screenY > height * 0.92f) {
 						edgeTouchDown = true;
-						swipeDirection = 3; // Bottom edge
+						swipeDirection = 3;
 					}
 				}
 				return false;
@@ -724,21 +723,21 @@ public class StageListener implements ApplicationListener {
 				if (pointer == 0 && edgeTouchDown && swipeDirection != -1) {
 					float dx = screenX - startX;
 					float dy = screenY - startY;
-					float distanceThreshold = com.badlogic.gdx.Gdx.graphics.getWidth() * 0.15f; // 15% of screen width
+					float distanceThreshold = com.badlogic.gdx.Gdx.graphics.getWidth() * 0.15f;
 
 					boolean triggered = false;
 					if (swipeDirection == 0 && dx > distanceThreshold) {
-						triggered = true; // Left edge swiped (dragged to right)
+						triggered = true;
 					} else if (swipeDirection == 1 && -dx > distanceThreshold) {
-						triggered = true; // Right edge swiped (dragged to left)
+						triggered = true;
 					} else if (swipeDirection == 2 && dy > distanceThreshold) {
-						triggered = true; // Top edge swiped (dragged to bottom)
+						triggered = true;
 					} else if (swipeDirection == 3 && -dy > distanceThreshold) {
-						triggered = true; // Bottom edge swiped (dragged to top)
+						triggered = true;
 					}
 
 					if (triggered) {
-						edgeTouchDown = false; // Reset to avoid double triggering
+						edgeTouchDown = false;
 						int dir = swipeDirection;
 						swipeDirection = -1;
 						org.catrobat.catroid.stage.StageActivity activeActivity = org.catrobat.catroid.stage.StageActivity.activeStageActivity.get();
@@ -860,7 +859,6 @@ public class StageListener implements ApplicationListener {
 			}
 		}
 
-		// Глобальные объекты рисуются поверх объектов сцены (HUD-слой)
 		for (Sprite globalSprite : globalSceneSprites) {
 			if (globalSprite.look != null) {
 				globalSprite.look.toFront();
@@ -883,14 +881,12 @@ public class StageListener implements ApplicationListener {
 
 	private void loadGlobalSprites() {
 		globalSceneSprites.clear();
-		// New system: dedicated global scene
 		if (project.hasGlobalScene()) {
 			for (Sprite sprite : project.getGlobalScene().getSpriteList()) {
 				globalSceneSprites.add(sprite);
 				sprites.add(sprite);
 			}
 		}
-		// Legacy: sprites with global=true in regular scenes
 		List<Sprite> legacyGlobal = new java.util.ArrayList<>();
 		for (Scene scene : project.getSceneList()) {
 			for (Sprite sprite : scene.getSpriteList()) {
@@ -984,8 +980,6 @@ public class StageListener implements ApplicationListener {
 			}
 		}
 		StageActivity.resetNumberOfClonedSprites();
-		// Reset counter after all clones removed; if any active scripts still reference
-		// old cloneIndex values, they will see stale indices but no matching sprite.
 		cloneCounter.set(1);
 	}
 
@@ -1010,11 +1004,9 @@ public class StageListener implements ApplicationListener {
 
 	private void disposeClonedSprites() {
 		Project currentProject = ProjectManager.getInstance().getCurrentProject();
-		// Remove cloned sprites from all regular scenes
 		for (Scene scene : currentProject.getSceneList()) {
 			scene.removeClonedSprites();
 		}
-		// Also remove cloned sprites from globalScene
 		if (currentProject.hasGlobalScene()) {
 			currentProject.getGlobalScene().removeClonedSprites();
 		}
@@ -1116,7 +1108,6 @@ public class StageListener implements ApplicationListener {
 		if (scene.firstStart) {
 			create();
 			resume();
-			// fire произойдёт из progressive init после загрузки спрайтов
 		} else {
 			resume();
 			fireSceneStartedEvent(scene.getName());
@@ -1124,12 +1115,10 @@ public class StageListener implements ApplicationListener {
 		Gdx.input.setInputProcessor(stage);
 	}
 
-	/** Fires the SceneStartedEventId so "When scene starts" scripts in the Global Scene trigger. */
 	private void fireSceneStartedEvent(String sceneName) {
 		if (project == null || sceneName == null) {
 			return;
 		}
-		// Scene tracking: сенсоры CURRENT_SCENE_NAME/SCENE_TIME + счётчик запусков + back stack
 		String previous = GlobalManager.getCurrentSceneName();
 		if (previous != null && !previous.isEmpty() && !previous.equals(sceneName)) {
 			if (GlobalManager.getSuppressNextBackStackPush()) {
@@ -1137,7 +1126,6 @@ public class StageListener implements ApplicationListener {
 			} else {
 				GlobalManager.getSceneBackStack().push(previous);
 			}
-			// "When leaving scene" event for the Global Scene
 			EventWrapper exitEvent = new EventWrapper(
 					new org.catrobat.catroid.content.eventids.SceneExitedEventId(previous), false);
 			project.fireToAllSprites(exitEvent);
@@ -1172,7 +1160,6 @@ public class StageListener implements ApplicationListener {
 		if (scene.firstStart) {
 			create();
 			resume();
-			// fire произойдёт из progressive init после загрузки спрайтов
 		} else {
 			resume();
 			fireSceneStartedEvent(scene.getName());
@@ -1203,7 +1190,6 @@ public class StageListener implements ApplicationListener {
 		if (scene.firstStart) {
 			create();
 			resume();
-			// fire произойдёт из progressive init после загрузки спрайтов
 		} else {
 			resume();
 			fireSceneStartedEvent(scene.getName());
@@ -1259,7 +1245,6 @@ public class StageListener implements ApplicationListener {
 		scene.firstStart = true;
 		create();
 		resume();
-		// fire произойдёт из progressive init (scene.firstStart = true)
 	}
 
 	public void startScene(String sceneName) {
@@ -1487,13 +1472,11 @@ public class StageListener implements ApplicationListener {
 
 				SoundManager.getInstance().clear();
 
-				// Old tilemap bodies belong to the old world; free them before replacing it.
 				TilemapRuntimeManager.disposeAll(physicsWorld);
 
 				physicsWorld = scene.resetPhysicsWorld();
 
 				initActors(sprites);
-				//stage.addActor(passepartout);
 
 				initStageInputListener();
 
@@ -1552,7 +1535,6 @@ public class StageListener implements ApplicationListener {
 					if (!globalScriptsStarted && project.getAllGlobalSprites().size() > 0) {
 						globalScriptsStarted = true;
 					}
-					// Notify "When scene starts" scripts in the Global Scene
 					fireSceneStartedEvent(scene.getName());
 					if (pixmapPreloader != null) {
 						pixmapPreloader.shutdown();
@@ -1580,8 +1562,6 @@ public class StageListener implements ApplicationListener {
                     physicsWorld.step(optimizedDeltaTime);
                     framePhysicsTime += (System.nanoTime() - pStart);
 
-                    // Глобальный предохранитель: одна сломанная формула/брик (InterpretationException,
-                    // NPE в action и т.п.) не должна ронять весь GL-поток и приложение.
                     try {
                         stage.act(optimizedDeltaTime);
                         uiStage.act(optimizedDeltaTime);
@@ -1644,8 +1624,6 @@ public class StageListener implements ApplicationListener {
                         transitionManager.update(Gdx.graphics.getDeltaTime());
                     }
 
-                    // 2D screen shake: temporarily offset the main camera around the
-                    // 2D draw pass, then restore it so the real camera position is unchanged.
                     float shakeOffsetX = 0f;
                     float shakeOffsetY = 0f;
                     boolean screenShaking = screenShake.update(Gdx.graphics.getDeltaTime());
@@ -1926,14 +1904,6 @@ public class StageListener implements ApplicationListener {
 		}
 	}
 
-	/**
-	 * This moves the expensive disk-read + decode off the GL thread.
-	 * The actual GPU texture upload (getTextureRegion) still happens on GL thread
-	 * when setLookData/refreshTextures is called, but by then the pixmap is already
-	 * in memory so it's instant.
-	 *
-	 * If GlobalManager.preloadProject is true, preloads ALL scenes (not just current)
-	 */
 	private void startPixmapPreload(List<Sprite> spritesToPreload) {
 		if (pixmapPreloader != null) {
 			pixmapPreloader.shutdownNow();
@@ -1960,17 +1930,11 @@ public class StageListener implements ApplicationListener {
 				try {
 					lookData.getPixmap();
 				} catch (Exception e) {
-					// pixmap preloading is best-effort; ignore failures
 				}
 			});
 		}
 	}
 
-	/**
-	 * Rebuilds Box2D static collision bodies for every sprite whose active costume is a tilemap and
-	 * whose runtime is flagged dirty (initial build, or after tiles/solidity changed via a brick).
-	 * The dirty flag keeps this near-free when nothing changed.
-	 */
 	private void rebuildDirtyTilemapPhysics() {
 		if (physicsWorld == null || sprites == null) {
 			return;
@@ -1996,7 +1960,6 @@ public class StageListener implements ApplicationListener {
 		}
 		executeExitScriptsSynchronously();
 
-		// Free tilemap GL textures + Box2D bodies while the world is still alive.
 		TilemapRuntimeManager.disposeAll(physicsWorld);
 
 		if (physicsWorld != null) {
@@ -2306,7 +2269,6 @@ public class StageListener implements ApplicationListener {
 	public void removeCloneByIndexAndSprite(Sprite targetSprite, int index) {
 		Sprite spriteToRemove = null;
 		for (Sprite sprite : sprites) {
-			// Compare via myOriginal: clones are copies, not the same object as the original
 			if (sprite.isClone && sprite.cloneIndex == index && sprite.myOriginal == targetSprite) {
 				spriteToRemove = sprite;
 				break;
@@ -2321,7 +2283,6 @@ public class StageListener implements ApplicationListener {
 		return sprites;
 	}
 
-	/** Returns the next clone counter value without incrementing — used for naming fallback. */
 	public int nextCloneIndex() {
 		return cloneCounter.get();
 	}

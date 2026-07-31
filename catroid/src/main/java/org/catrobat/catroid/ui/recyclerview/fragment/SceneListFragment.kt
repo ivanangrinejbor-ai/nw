@@ -81,7 +81,6 @@ class SceneListFragment : RecyclerViewFragment<Scene?>(),
     override fun initializeAdapter() {
         sharedPreferenceDetailsKey = SharedPreferenceKeys.SHOW_DETAILS_SCENES_PREFERENCE_KEY
         val scenes = ArrayList<Scene?>()
-        // Global scene first (if exists)
         val project = projectManager.currentProject
         if (project.hasGlobalScene()) {
             scenes.add(project.globalScene)
@@ -134,7 +133,6 @@ class SceneListFragment : RecyclerViewFragment<Scene?>(),
         var copiedItemCnt = 0
         for (item in selectedItems) {
             if (item != null && item.isGlobalScene) {
-                // Глобальная сцена не копируется (единственная на проект)
                 continue
             }
             try {
@@ -189,7 +187,6 @@ class SceneListFragment : RecyclerViewFragment<Scene?>(),
         for (item in selectedItems) {
             try {
                 if (item != null && item.isGlobalScene) {
-                    // Глобальная сцена вне sceneList — удаляем через project ссылку
                     projectManager.currentProject.setGlobalScene(null)
                     if (item.directory != null && item.directory.exists()) {
                         org.catrobat.catroid.io.StorageOperations.deleteDir(item.directory)
@@ -212,7 +209,6 @@ class SceneListFragment : RecyclerViewFragment<Scene?>(),
         )
         finishActionMode()
         val currentProject = projectManager.currentProject
-        // Only regular scenes matter for the "empty" check — globalScene is separate
         if (currentProject.sceneList.isEmpty()) {
             createEmptySceneWithDefaultName()
         }
@@ -225,9 +221,6 @@ class SceneListFragment : RecyclerViewFragment<Scene?>(),
     private fun createEmptySceneWithDefaultName() {
         setShowProgressBar(true)
         val currentProject = projectManager.currentProject
-        // Create a fresh default scene with just a background sprite.
-        // Legacy "isGlobal" sprites are migrated to this new scene;
-        // the dedicated globalScene (project.globalScene) is left untouched.
         val legacyGlobalSprites = currentProject.sceneList
             .flatMap { it.getSpriteList() }
             .filter { it.isGlobal() }
@@ -331,7 +324,6 @@ class SceneListFragment : RecyclerViewFragment<Scene?>(),
             }
             true
         }
-        // Глобальная сцена: копирование/рюкзак не поддерживаются (она вне sceneList)
         if (item != null && item.isGlobalScene) {
             popupMenu.menu.findItem(R.id.backpack)?.isVisible = false
             popupMenu.menu.findItem(R.id.copy)?.isVisible = false

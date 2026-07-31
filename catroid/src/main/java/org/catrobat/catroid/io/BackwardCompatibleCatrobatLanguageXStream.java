@@ -232,10 +232,6 @@ public class BackwardCompatibleCatrobatLanguageXStream extends XStream {
 		}
 	}
 
-	// Last-resort load recovery: rewrites every "<brick type=\"X\">" whose class cannot be
-	// resolved into an UnknownBrick placeholder so the project still opens instead of failing
-	// with "something went wrong". Nested children of an unresolvable brick are dropped because
-	// its structure is unknown (mirrors XStream.ignoreUnknownElements() behaviour).
 	private void replaceUnresolvedBricksWithUnknown(File file) {
 		Document doc = getDocument(file);
 		if (doc == null) {
@@ -280,7 +276,6 @@ public class BackwardCompatibleCatrobatLanguageXStream extends XStream {
 				Class.forName(brickPackage + "." + simpleClassName);
 				return true;
 			} catch (ClassNotFoundException ignored) {
-				// try next package
 			}
 		}
 		return false;

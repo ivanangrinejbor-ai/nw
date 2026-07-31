@@ -53,12 +53,7 @@ object ProjectCrypto {
     private const val GCM_TAG_LENGTH = 128
     private const val PBKDF2_ITERATIONS = 100_000
     private val MAGIC = byteArrayOf('N'.code.toByte(), 'C'.code.toByte(), 'P'.code.toByte(), 'P'.code.toByte())
-    // Магия "запечённого" (locked) пейлоада внутри APK/EXE: такой проект редактор
-    // отказывается импортировать. Лейаут после магии идентичен NCPP (salt+iv+ct).
     private val LOCKED_MAGIC = byteArrayOf('N'.code.toByte(), 'C'.code.toByte(), 'P'.code.toByte(), 'X'.code.toByte())
-    // Сегментный (streaming) пейлоад: NCPS. Формат: MAGIC + salt(32) + ivPrefix(8) +
-    // повторяющиеся [len(4 BE)][ciphertext]. Каждый сегмент шифруется отдельным GCM с
-    // IV = ivPrefix(8) || индекс сегмента(4 BE) — постоянная память на шифр/дешифр.
     private val STREAMING_MAGIC = byteArrayOf('N'.code.toByte(), 'C'.code.toByte(), 'P'.code.toByte(), 'S'.code.toByte())
     private const val SEGMENT_SIZE = 4 * 1024 * 1024
 
@@ -71,7 +66,6 @@ object ProjectCrypto {
         }
     }
 
-    /** true, если файл — запечённый пейлоад (NCPX). Такие нельзя импортировать в редактор. */
     fun isLocked(file: File): Boolean {
         if (!file.exists() || file.length() < 4) return false
         return FileInputStream(file).use { input ->
@@ -162,12 +156,6 @@ object ProjectCrypto {
         Log.d(TAG, "Encrypted directory: ${sourceDir.name} -> ${destFile.name}")
     }
 
-    /**
-     * Streams the encrypted NCPP payload of [sourceDir] directly into [out] WITHOUT closing
-     * [out] (the caller owns it). Lets callers pipe the payload straight into another sink
-     * (e.g. a bundle zip entry), so huge projects never need a full-size intermediate file
-     * on disk - halving peak storage and avoiding a second full-size write.
-     */
     fun encryptDirectoryToStream(
         sourceDir: File,
         out: OutputStream,
@@ -185,9 +173,6 @@ object ProjectCrypto {
         out.write(salt)
         out.write(iv)
 
-        // Guard: CipherOutputStream.close() must finalize the GCM tag (doFinal) but MUST NOT
-        // close `out` (the caller keeps writing to it, e.g. zos.closeEntry()). Also override
-        // the block write so FilterOutputStream does not fall back to slow per-byte writes.
         val guarded = object : FilterOutputStream(out) {
             override fun write(b: ByteArray, off: Int, len: Int) { out.write(b, off, len) }
             override fun close() { flush() }
@@ -220,14 +205,6 @@ object ProjectCrypto {
         out.flush()
     }
 
-    /**
-     * Segmented streaming encryption for LARGE payloads (huge projects). Android's AES-GCM
-     * (Conscrypt OpenSSLAeadCipher) buffers the ENTIRE plaintext in memory until doFinal, so a
-     * single-GCM stream OOMs on big projects. Here the zip is split into fixed-size segments,
-     * each GCM-encrypted independently, so memory stays ~[segmentSize] on both encrypt (this)
-     * and decrypt (DesktopStage.decryptNcpsStreamToFile). [out] is NOT closed by this method.
-     * Format: MAGIC "NCPS" + salt(32) + ivPrefix(8) + repeated [len(4 BE)][ciphertext(len)].
-     */
     fun encryptDirectoryToStreamChunked(
         sourceDir: File,
         out: OutputStream,
@@ -269,11 +246,6 @@ object ProjectCrypto {
         Log.d(TAG, "Chunked-encrypted directory: ${sourceDir.name}")
     }
 
-    /**
-     * Buffers up to [segmentSize] bytes, then GCM-encrypts each segment independently with
-     * IV = [ivPrefix](8) || segmentIndex(4 BE) and writes [len(4 BE)][ciphertext]. close()
-     * flushes the final partial segment but does NOT close the underlying [out].
-     */
     private class ChunkedGcmOutputStream(
         private val out: OutputStream,
         private val key: SecretKey,
@@ -327,7 +299,6 @@ object ProjectCrypto {
         override fun close() {
             flushSegment()
             out.flush()
-            // Intentionally does NOT close `out` - the caller owns it.
         }
     }
 

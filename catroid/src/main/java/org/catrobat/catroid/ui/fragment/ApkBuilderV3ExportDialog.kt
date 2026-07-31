@@ -206,7 +206,8 @@ class ApkBuilderV3ExportDialog {
                     iconFile = iconFile,
                     permissions = permissions,
                     templateType = templateType,
-                    firebaseConfig = firebaseConfig
+                    firebaseConfig = firebaseConfig,
+                    debuggable = view.findViewById<CheckBox>(R.id.v3_debuggable_checkbox)?.isChecked ?: true
                 )
 
                 startBuild(host)

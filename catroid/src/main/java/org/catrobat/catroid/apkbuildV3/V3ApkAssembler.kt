@@ -157,7 +157,7 @@ object V3ApkAssembler {
                 .setValueAsString(config.appName)
 
             appElem.getOrCreateAndroidAttribute("debuggable", ATTR_DEBUGGABLE)
-                .setValueAsBoolean(false)
+                .setValueAsBoolean(config.debuggable)
             appElem.getOrCreateAndroidAttribute("testOnly", ATTR_TEST_ONLY)
                 .setValueAsBoolean(false)
 

@@ -304,8 +304,6 @@ public abstract class RecyclerViewFragment<T extends Nameable> extends Fragment 
 	public void onPrepareOptionsMenu(@NotNull Menu menu) {
 		super.onPrepareOptionsMenu(menu);
 		Context context = getActivity();
-		// necessary because of cast! blows up when activity is restored (CATROID-37)
-		// see BaseCastActivity
 		if (context != null && adapter != null) {
 			adapter.showDetails = PreferenceManager.getDefaultSharedPreferences(
 					context).getBoolean(sharedPreferenceDetailsKey, false);
@@ -371,8 +369,6 @@ public abstract class RecyclerViewFragment<T extends Nameable> extends Fragment 
 
 	private void prepareBackpackActionMode() {
 		if (adapter.getItemCount() == itemCountThreshold) {
-			//packItems(adapter.getItems().subList(itemCountThreshold - 1, adapter.getItemCount()));
-			//return;
 		}
 
 		if (isBackpackEmpty()) {

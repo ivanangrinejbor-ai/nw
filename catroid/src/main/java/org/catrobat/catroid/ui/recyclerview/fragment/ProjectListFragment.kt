@@ -112,28 +112,6 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
         }
     }
 
-    /*private fun onImportProjectFinished(success: Boolean) {
-        setAdapterItems(adapter.projectsSorted)
-        if (success && filesForUnzipAndImportTask?.size == 1) {
-            val importedFile = filesForUnzipAndImportTask!!.first()
-            val projectName = importedFile.nameWithoutExtension
-            showReadmeForProject(projectName)
-        } else if (success) {
-            ToastUtil.showSuccess(
-                requireContext(),
-                resources.getQuantityString(
-                    R.plurals.imported_projects,
-                    filesForUnzipAndImportTask?.size ?: 0,
-                    filesForUnzipAndImportTask?.size ?: 0
-                )
-            )
-        } else {
-            ToastUtil.showError(requireContext(), R.string.error_import_project)
-        }
-        filesForUnzipAndImportTask?.clear()
-        setShowProgressBar(false)
-    }*/
-
     private fun onImportProjectFinished(result: org.catrobat.catroid.io.asynctask.ImportResult) {
 
         filesForUnzipAndImportTask?.clear()
@@ -450,8 +428,6 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
             || fileName.endsWith(".ncp", ignoreCase = true)) {
             showEncryptedImportDialog(firstUri, uris)
         } else {
-            // .enc (Baked/EXE payload) is encrypted with the static protected-project
-            // key, so import it directly without prompting for a password.
             doImportWithUris(uris, null)
         }
     }

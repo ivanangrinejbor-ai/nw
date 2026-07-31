@@ -85,15 +85,11 @@ public class LookData implements Cloneable, Nameable, Serializable {
 
 	private boolean isWebRequest = false;
 
-	/** Hitbox is used by the physics engine only (default, backward compatible). */
 	public static final int HITBOX_MODE_PHYSICS = 0;
-	/** Hitbox is used everywhere: taps, sprite collisions, edge, finger AND physics. */
 	public static final int HITBOX_MODE_FULL = 1;
 
-	/** Custom hitboxes defined by the user in the Hitbox Editor. Null/empty = use auto collision. */
 	private List<HitboxData> hitboxes = null;
 
-	/** Which subsystems respect the custom hitboxes. Missing on load -> 0 (physics only). */
 	private int hitboxMode = HITBOX_MODE_PHYSICS;
 
 	public LookData() {

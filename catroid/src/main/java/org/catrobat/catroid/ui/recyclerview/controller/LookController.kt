@@ -36,7 +36,6 @@ import java.io.IOException
 class LookController {
     private val uniqueNameProvider = UniqueNameProvider()
 
-    /** Preserve custom hitboxes when a look is duplicated. */
     private fun carryHitboxes(source: LookData?, target: LookData) {
         if (source?.hasCustomHitboxes() == true) {
             target.hitboxes = source.hitboxes.map { it.copy() }
@@ -122,10 +121,6 @@ class LookController {
         File(scene?.directory, Constants.IMAGE_DIRECTORY_NAME)
 
     private fun File.checksumEquals(file: File?): Boolean {
-        // The backpack uses this method and because the backpack does not correctly
-        // de-serialize LookData references we can end up with a new LookData that has a null file reference
-        // although we actually need one that already exists. so the workaround here (prevents a lot of crashes) is
-        // to just hope that copying bricks with references to files always happens after the LookDatas are copied.
         if (file == null) {
             return true
         }

@@ -33,13 +33,6 @@ import androidx.core.content.ContextCompat
 import com.google.android.material.color.DynamicColors
 import java.io.File
 
-/**
- * Central store for the active [ThemePalette] and for the imported `.neotema` files.
- *
- * The selected theme id is persisted in the default SharedPreferences; imported themes are
- * copied into the app-private `neothemes/` directory. The active palette is exposed as an
- * [overrideMap] consumed by [ThemedResources].
- */
 object ThemeManager {
     private const val TAG = "ThemeManager"
 
@@ -53,7 +46,6 @@ object ThemeManager {
     var currentPalette: ThemePalette = ThemePalette.DEFAULT
         private set
 
-    /** Empty when the default theme is selected (full delegation to compiled colours). */
     val overrideMap: Map<Int, Int>
         get() = if (currentPalette.isDefault) emptyMap() else currentPalette.toResourceOverrideMap()
 
@@ -66,7 +58,6 @@ object ThemeManager {
         val isDefault: Boolean
     )
 
-    /** Loads the persisted selection into memory. Call once from Application.onCreate. */
     fun init(context: Context) {
         currentPalette = try {
             if (isMaterialYouEnabled(context)) {
@@ -90,15 +81,9 @@ object ThemeManager {
         }
     }
 
-    /** True when the user enabled Material You AND the device provides dynamic colours. */
     fun isMaterialYouEnabled(context: Context): Boolean =
         prefs(context).getBoolean(PREF_MATERIAL_YOU, false) && DynamicColors.isDynamicColorAvailable()
 
-    /**
-     * Toggles Material You. When enabled the app chrome is recoloured from the system
-     * dynamic palette (Android 12+); when disabled it reverts to the selected `.neotema`.
-     * The caller must recreate() the activity so [overrideMap] is re-read.
-     */
     fun setMaterialYou(context: Context, enabled: Boolean) {
         prefs(context).edit().putBoolean(PREF_MATERIAL_YOU, enabled).apply()
         currentPalette = if (enabled && DynamicColors.isDynamicColorAvailable()) {
@@ -108,7 +93,6 @@ object ThemeManager {
         }
     }
 
-    /** Builds a palette from the Android 12+ system dynamic colours; null below API 31. */
     private fun dynamicPalette(context: Context): ThemePalette? {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
             return null
@@ -128,7 +112,6 @@ object ThemeManager {
         }
     }
 
-    /** A ready-to-edit `.neotema` template mirroring the built-in default palette. */
     fun defaultTemplateText(): String = buildString {
         append("# NeoCatroid theme template (.neotema)\n")
         append("# Edit the colours below, then import this file in Settings > Themes.\n")
@@ -151,7 +134,6 @@ object ThemeManager {
         return dir
     }
 
-    /** Reads, validates and copies a `.neotema` file into app storage. */
     fun importFromUri(context: Context, uri: Uri): ThemeEntry {
         val text = context.contentResolver.openInputStream(uri)?.use {
             it.readBytes().toString(Charsets.UTF_8)
@@ -164,7 +146,6 @@ object ThemeManager {
         return ThemeEntry(file.name, palette, isDefault = false)
     }
 
-    /** Default entry first, then every parseable `.neotema` in storage (bad files skipped). */
     fun listThemes(context: Context): List<ThemeEntry> {
         val result = ArrayList<ThemeEntry>()
         result.add(ThemeEntry(DEFAULT_ID, ThemePalette.DEFAULT, isDefault = true))

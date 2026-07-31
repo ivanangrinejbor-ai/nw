@@ -41,12 +41,6 @@ import org.catrobat.catroid.io.XstreamSerializer;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Visual editor for swipeable sprites. Marks a sprite as swipeable, lets the user attach other
- * sprites from the same scene and position them relative to the parent in a live preview. Launched
- * per-sprite from the sprite list overflow menu. Saving persists the whole project off the UI
- * thread, mirroring {@link org.catrobat.catroid.ui.hitbox.HitboxEditorActivity}.
- */
 public class SwipeEditorActivity extends Activity {
 
 	public static final String EXTRA_SPRITE_NAME = "extra_sprite_name";

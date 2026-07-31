@@ -752,9 +752,6 @@ public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.
 				.show();
 	}
 
-	/**
-	 * Показывает диалог со списком файлов проекта. При выборе вставляет имя файла как STRING в формулу.
-	 */
 	private void showProjectFilePicker() {
 		java.io.File filesDir = ProjectManager.getInstance().getCurrentProject().getFilesDir();
 		if (filesDir == null || !filesDir.exists()) {
@@ -1012,7 +1009,6 @@ public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.
 				formulaEditorEditText.enterNewFormula(new UndoState(currentFormula.getInternFormulaState(),
 						formulaField));
 				refreshFormulaPreviewString(formulaEditorEditText.getStringFromInternFormula());
-                //formulaEditorEditText.getInternFormula().setCursorAndSelection(0, false);
 				break;
 			case SET_FORMULA_ON_RETURN_FROM_VISUAL_PLACEMENT:
 			case SET_FORMULA_ON_RETURN_FROM_COLOR_PICKER:
@@ -1046,7 +1042,6 @@ public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.
 				formulaEditorEditText.enterNewFormula(new UndoState(currentFormula.getInternFormulaState(),
 						currentFormulaField));
 				refreshFormulaPreviewString(formulaEditorEditText.getStringFromInternFormula());
-                //formulaEditorEditText.getInternFormula().setCursorAndSelection(0, false);
 				break;
 			default:
 				break;
@@ -1092,7 +1087,6 @@ public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.
 				return saveValidFormula(formulaParseTree);
 		case InternFormulaParser.PARSER_STACK_OVERFLOW:
 			return checkReturnWithoutSaving(InternFormulaParser.PARSER_STACK_OVERFLOW);
-			// break; unreachable after return
 
 		case InternFormulaParser.PARSER_NO_INPUT:
 			if (currentFormulaField instanceof Brick.BrickField && Brick.BrickField.isExpectingStringValue((Brick.BrickField) currentFormulaField)) {
@@ -1158,7 +1152,6 @@ public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.
         }
 
         if (hasFormulaBeenChanged || formulaEditorEditText.hasChanges()) {
-            // Показываем диалог подтверждения вместо молчаливого сохранения
             new androidx.appcompat.app.AlertDialog.Builder(requireContext())
                 .setTitle(R.string.formula_editor_unsaved_title)
                 .setMessage(R.string.formula_editor_unsaved_message)

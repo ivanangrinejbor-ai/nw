@@ -17,10 +17,6 @@ import org.catrobat.catroid.io.XstreamSerializer;
 
 import java.util.List;
 
-/**
- * Activity for editing hitboxes of a specific LookData.
- * Launched from the Look list's 3-dot menu → "Hitbox Editor".
- */
 public class HitboxEditorActivity extends Activity {
 
     public static final String EXTRA_LOOK_INDEX = "extra_look_index";
@@ -45,7 +41,6 @@ public class HitboxEditorActivity extends Activity {
         btnSave = findViewById(R.id.hitbox_btn_save);
         TextView title = findViewById(R.id.hitbox_title);
 
-        // Resolve the LookData from intent extras
         int lookIndex = getIntent().getIntExtra(EXTRA_LOOK_INDEX, -1);
         var sprite = ProjectManager.getInstance().getCurrentSprite();
         if (sprite == null || lookIndex < 0 || lookIndex >= sprite.getLookList().size()) {
@@ -55,20 +50,16 @@ public class HitboxEditorActivity extends Activity {
         currentLook = sprite.getLookList().get(lookIndex);
         title.setText(getString(R.string.hitbox_editor_title) + ": " + currentLook.getName());
 
-        // Load sprite image
         if (currentLook.getFile() != null) {
             editorView.setSpriteImage(currentLook.getFile().getAbsolutePath());
         }
 
-        // Load existing hitboxes
         editorView.setHitboxes(currentLook.getHitboxes());
 
-        // Hint updates
         editorView.setOnHitboxChangeListener(() ->
             hintView.setText(R.string.hitbox_hint_modified)
         );
 
-        // Toolbar actions
         btnBack.setOnClickListener(v -> finish());
 
         btnAdd.setOnClickListener(v -> {
@@ -123,13 +114,9 @@ public class HitboxEditorActivity extends Activity {
     }
 
     private void saveAndExit() {
-        // Update the in-memory model synchronously so the change is never lost,
-        // even if the disk write below fails or the app is killed.
         final List<HitboxData> hitboxes = editorView.getHitboxes();
         currentLook.setHitboxes(hitboxes);
 
-        // Persist OFF the UI thread. saveProject() serialises the ENTIRE project
-        // to XML (hundreds of MB for large projects) and would ANR the UI otherwise.
         btnSave.setEnabled(false);
         hintView.setText(R.string.hitbox_hint_modified);
         isFinishing = true;
@@ -138,24 +125,19 @@ public class HitboxEditorActivity extends Activity {
                 XstreamSerializer.getInstance().saveProject(
                     ProjectManager.getInstance().getCurrentProject());
             } catch (Exception ignored) {
-                // Best effort — hitboxes are already in memory.
             }
             if (!isDestroyed() && !isFinishing()) {
                 runOnUiThread(() -> {
                     setResult(RESULT_OK);
                     finish();
                 });
-            } else {
-                // Activity уже уничтожена — результат уже был установлен
             }
         }, "hitbox-save").start();
-        // Устанавливаем результат заранее, чтобы он не потерялся при уничтожении
         setResult(RESULT_OK);
     }
 
     @Override
     public void onBackPressed() {
-        // Don't save on back — user must explicitly press save
         setResult(RESULT_CANCELED);
         super.onBackPressed();
     }

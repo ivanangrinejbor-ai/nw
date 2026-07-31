@@ -108,7 +108,6 @@ class ProjectLibsFragment : Fragment() {
 
     private fun setupAdd() {
         binding.projectFilesAdd.setOnClickListener {
-            //handleText()
             handleAdd()
         }
     }
@@ -204,9 +203,6 @@ class ProjectLibsFragment : Fragment() {
         }
 
         Log.d("ProjectFile", "Files: $filesList")
-
-
-        // filesAdapter.notifyDataSetChanged()
     }
 
 
@@ -344,10 +340,6 @@ class ProjectLibsFragment : Fragment() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         data ?: return
-        /*if (requestCode == REQUEST_EXPORT_PROJECT && resultCode == Activity.RESULT_OK) {
-            val projectDestination = data.data ?: return
-            startAsyncProjectExport(projectDestination)
-        }*/
         if (requestCode == ADD_FILE_REQUEST && resultCode == Activity.RESULT_OK) {
             data?.data?.let { uri ->
 
@@ -403,6 +395,5 @@ class ProjectLibsFragment : Fragment() {
         val TAG: String = ProjectLibsFragment::class.java.simpleName
 
         private const val ADD_FILE_REQUEST = 15
-        //private const val PERMISSIONS_REQUEST_EXPORT_TO_EXTERNAL_STORAGE = 802
     }
 }

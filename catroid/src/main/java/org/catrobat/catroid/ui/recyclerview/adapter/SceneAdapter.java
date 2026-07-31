@@ -70,7 +70,6 @@ public class SceneAdapter extends ExtendedRVAdapter<Scene> {
 		} else if (!item.isGlobalScene()) {
 			holder.details.setVisibility(View.GONE);
 		}
-		// Для глобальной сцены details уже установлен выше (бейдж) — не трогаем
 	}
 
 	@Override

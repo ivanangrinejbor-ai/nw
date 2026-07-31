@@ -32,8 +32,6 @@ class DrawingView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : View(context, attrs, defStyleAttr) {
 
-    // ─── Public properties ────────────────────────────
-
     var bitmapWidth = 1
         private set
     var bitmapHeight = 1
@@ -44,12 +42,8 @@ class DrawingView @JvmOverloads constructor(
     var onChangeListener: (() -> Unit)? = null
     var onShowConfirmButtons: ((show: Boolean) -> Unit)? = null
 
-    // ─── Layers ───────────────────────────────────────
-
     private val layers = ArrayList<PaintLayer>()
     private var currentLayerIndex = 0
-
-    // ─── Drawing state ─────────────────────────────────
 
     private var toolType = ToolType.BRUSH
     private var paintColor = Color.BLACK
@@ -86,8 +80,6 @@ class DrawingView @JvmOverloads constructor(
     private val starPath = Path()
     private val heartPath = Path()
 
-    // ─── Touch / drawing state ─────────────────────────
-
     private var lastX = 0f
     private var lastY = 0f
     private var startX = 0f
@@ -96,8 +88,6 @@ class DrawingView @JvmOverloads constructor(
     private var smudgeSrc: Bitmap? = null
     private var smudgeScratchBitmap: Bitmap? = null
     private var smudgeScratchCanvas: Canvas? = null
-
-    // ─── Zoom / Pan ────────────────────────────────────
 
     private var fitScale = 1f
     private var fitOffsetX = 0f
@@ -114,7 +104,6 @@ class DrawingView @JvmOverloads constructor(
     private var pinchCenterSx = 0f
     private var pinchCenterSy = 0f
 
-    // Brush preview circle
     private var previewX = -1f
     private var previewY = -1f
     private var showPreview = false
@@ -122,8 +111,6 @@ class DrawingView @JvmOverloads constructor(
         style = Paint.Style.STROKE
         strokeWidth = 2f
     }
-
-    // ─── Shape overlay ─────────────────────────────────
 
     private var overlay: OverlayShape? = null
     private var overlayStartX = 0f
@@ -182,7 +169,7 @@ class DrawingView @JvmOverloads constructor(
     }
 
     
-    //  PUBLIC API
+
     
 
     fun getCurrentLayer(): PaintLayer? = if (layers.isEmpty()) null else layers[currentLayerIndex]
@@ -348,8 +335,6 @@ class DrawingView @JvmOverloads constructor(
         computeFitTransform(); invalidate(); onChangeListener?.invoke()
     }
 
-    // ─── Overlay confirm/cancel ────────────────────────
-
     fun commitOverlay() {
         val o = overlay ?: return
         val layer = getCurrentLayer() ?: return
@@ -384,10 +369,6 @@ class DrawingView @JvmOverloads constructor(
         invalidate()
     }
 
-    // ═══════════════════════════════════════════════════════
-    //  COORDINATE TRANSFORMS
-    // ═══════════════════════════════════════════════════════
-
     private fun computeFitTransform() {
         if (bitmapWidth <= 0 || bitmapHeight <= 0 || width == 0 || height == 0) return
         fitScale = min(width.toFloat() / bitmapWidth, height.toFloat() / bitmapHeight)
@@ -407,10 +388,6 @@ class DrawingView @JvmOverloads constructor(
         computeFitTransform()
     }
 
-    // ═══════════════════════════════════════════════════════
-    //  DRAW
-    // ═══════════════════════════════════════════════════════
-
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         if (width <= 0 || height <= 0 || bitmapWidth <= 0 || bitmapHeight <= 0) return
@@ -419,14 +396,12 @@ class DrawingView @JvmOverloads constructor(
         canvas.translate(fitOffsetX + userPanX, fitOffsetY + userPanY)
         canvas.scale(fitScale * userZoom, fitScale * userZoom)
 
-        // Draw layers
         for (layer in layers) {
             if (!layer.visible) continue
             layerPaint.alpha = (layer.opacity * 255).toInt().coerceIn(0, 255)
             canvas.drawBitmap(layer.bitmap, 0f, 0f, layerPaint)
         }
 
-        // Draw overlay
         val o = overlay
         if (o != null) {
             val hw = o.w / 2f
@@ -442,11 +417,9 @@ class DrawingView @JvmOverloads constructor(
             if (o.flipX) canvas.scale(-1f, 1f)
             if (o.flipY) canvas.scale(1f, -1f)
 
-            // Semi-transparent background centered
             canvas.drawRect(-hw, -hh, hw, hh, overlayFill)
             canvas.drawRect(-hw, -hh, hw, hh, overlayStroke)
 
-            // Draw shape outline
             applyPaint(false)
             when (o.type) {
                 ToolType.RECTANGLE -> canvas.drawRect(-hw, -hh, hw, hh, if (shapeFillAmount > 0) fillPaint else drawPaint)
@@ -457,17 +430,17 @@ class DrawingView @JvmOverloads constructor(
                 else -> {}
             }
 
-            // Draw resize handles (in local space — inherits rotation/flip)
+
             val handleR = 8f / (fitScale * userZoom)
             val handlePositions = listOf(
-                0f to -hh,   // TOP
-                0f to hh,     // BOTTOM
-                -hw to 0f,    // LEFT
-                hw to 0f,     // RIGHT
-                -hw to -hh,   // TOP_LEFT
-                hw to -hh,    // TOP_RIGHT
-                -hw to hh,    // BOTTOM_LEFT
-                hw to hh      // BOTTOM_RIGHT
+                0f to -hh,
+                0f to hh,
+                -hw to 0f,
+                hw to 0f,
+                -hw to -hh,
+                hw to -hh,
+                -hw to hh,
+                hw to hh
             )
             for ((hx, hy) in handlePositions) {
                 handlePaint.style = Paint.Style.FILL
@@ -484,7 +457,7 @@ class DrawingView @JvmOverloads constructor(
 
         canvas.restore()
 
-        // Brush preview circle (screen coordinates, after restore)
+
         if (showPreview && previewX >= 0 && previewY >= 0 &&
             (toolType == ToolType.BRUSH || toolType == ToolType.ERASER || toolType == ToolType.SMUDGE)) {
             val sx = toScreenX(previewX)
@@ -495,14 +468,14 @@ class DrawingView @JvmOverloads constructor(
         }
     }
 
-    // ═══════════════════════════════════════════════════════
-    //  TOUCH
-    // ═══════════════════════════════════════════════════════
+
+
+
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
         if (layers.isEmpty()) return false
 
-        // Multi-touch: cancel active single-touch gesture, then handle pinch
+
         if (event.pointerCount >= 2) {
             cancelActiveTouchGesture()
             handlePinch(event)
@@ -512,7 +485,7 @@ class DrawingView @JvmOverloads constructor(
         val bx = toBitmapX(event.x)
         val by = toBitmapY(event.y)
 
-        // ACTION_CANCEL: system stole the gesture (dialog, phone call, etc.)
+
         if (event.action == MotionEvent.ACTION_CANCEL) {
             cancelActiveTouchGesture()
             showPreview = false
@@ -520,7 +493,7 @@ class DrawingView @JvmOverloads constructor(
             return true
         }
 
-        // Update brush preview position
+
         if (toolType == ToolType.BRUSH || toolType == ToolType.ERASER || toolType == ToolType.SMUDGE) {
             when (event.action) {
                 MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE -> {
@@ -530,7 +503,7 @@ class DrawingView @JvmOverloads constructor(
             }
         }
 
-        // If we have an active overlay, intercept touch for move/scale
+
         if (overlay != null && (toolType in SHAPE_TOOLS || toolType == ToolType.TEXT)) {
             handleOverlayTouch(event, bx, by)
             return true
@@ -563,23 +536,23 @@ class DrawingView @JvmOverloads constructor(
         return true
     }
 
-    /**
-     * Сбрасывает активное состояние рисования: освобождает снапшоты,
-     * отменяет smudge-источник, скрывает превью. Вызывается при
-     * ACTION_CANCEL и при появлении второго пальца (pinch).
-     */
+
+
+
+
+
     private fun cancelActiveTouchGesture() {
         shapeSnapshot?.recycle()
         shapeSnapshot = null
-        smudgeSrc = null  // не recycle — это ссылка на layer.bitmap
+        smudgeSrc = null
         showPreview = false
         overlayTouchMode = OverlayTouchMode.NONE
         activeHandle = ResizeHandle.NONE
     }
 
-    // ═══════════════════════════════════════════════════════
-    //  PINCH ZOOM
-    // ═══════════════════════════════════════════════════════
+
+
+
 
     private fun handlePinch(event: MotionEvent) {
         when (event.actionMasked) {
@@ -606,7 +579,7 @@ class DrawingView @JvmOverloads constructor(
                     } else {
                         val oldZoom = userZoom
                         userZoom = (userZoom * factor).coerceIn(0.3f, 20f)
-                        // Adjust pan to keep pinch center stable
+
                         userPanX = pinchCenterSx - fitOffsetX - pinchCenterBx * fitScale * userZoom
                         userPanY = pinchCenterSy - fitOffsetY - pinchCenterBy * fitScale * userZoom
                     }
@@ -627,9 +600,9 @@ class DrawingView @JvmOverloads constructor(
         return sqrt(dx * dx + dy * dy)
     }
 
-    // ═══════════════════════════════════════════════════════
-    //  SHAPE OVERLAY
-    // ═══════════════════════════════════════════════════════
+
+
+
 
     private fun startShapeOverlay(type: ToolType, bx: Float, by: Float) {
         val initW = 100f / (fitScale * userZoom).coerceAtLeast(0.1f)
@@ -660,17 +633,17 @@ class DrawingView @JvmOverloads constructor(
         scheduleIdle()
     }
 
-    /** Convert bitmap-space (bx,by) to overlay-local coordinates (post-flip, pre-rotation). */
+
     private fun toLocalCoords(bx: Float, by: Float, o: OverlayShape): Pair<Float, Float> {
         val dx = bx - o.cx
         val dy = by - o.cy
         val rotRad = Math.toRadians(o.rotation.toDouble())
         val cosR = cos(rotRad).toFloat()
         val sinR = sin(rotRad).toFloat()
-        // Inverse rotation
+
         var lx = cosR * dx + sinR * dy
         var ly = -sinR * dx + cosR * dy
-        // Inverse flip
+
         if (o.flipX) lx = -lx
         if (o.flipY) ly = -ly
         return lx to ly
@@ -679,7 +652,7 @@ class DrawingView @JvmOverloads constructor(
     private fun detectHandle(o: OverlayShape, lx: Float, ly: Float): ResizeHandle {
         val hw = o.w / 2f
         val hh = o.h / 2f
-        val hitR = 18f / (fitScale * userZoom) // screen-pixel hit radius
+        val hitR = 18f / (fitScale * userZoom)
         val handles = listOf(
             ResizeHandle.TOP to Pair(0f, -hh),
             ResizeHandle.BOTTOM to Pair(0f, hh),
@@ -707,7 +680,7 @@ class DrawingView @JvmOverloads constructor(
         val o = overlay ?: return
         when (event.action) {
             MotionEvent.ACTION_DOWN -> {
-                // Check for handle hit first
+
                 val (lx, ly) = toLocalCoords(bx, by, o)
                 val hit = detectHandle(o, lx, ly)
                 if (hit != ResizeHandle.NONE) {
@@ -727,7 +700,7 @@ class DrawingView @JvmOverloads constructor(
             MotionEvent.ACTION_MOVE -> {
                 val dbx = bx - overlayStartX
                 val dby = by - overlayStartY
-                // Convert drag delta to local coords (same as toLocalCoords but on delta)
+
                 val rotRad = Math.toRadians(o.rotation.toDouble())
                 val cosR = cos(rotRad).toFloat()
                 val sinR = sin(rotRad).toFloat()
@@ -753,13 +726,13 @@ class DrawingView @JvmOverloads constructor(
                     o.w = newW
                     o.h = newH
 
-                    // Center shift in local coords: always (ldx/2, ldy/2)
+
                     val clx = ldx / 2f
                     val cly = ldy / 2f
                     o.cx = overlayInitCenterX + cosR * clx - sinR * cly
                     o.cy = overlayInitCenterY + sinR * clx + cosR * cly
                 } else {
-                    // MOVE
+
                     var newCx = overlayInitCenterX + dbx
                     var newCy = overlayInitCenterY + dby
                     newCx = newCx.coerceIn(o.w / 2f, bitmapWidth - o.w / 2f)
@@ -793,15 +766,15 @@ class DrawingView @JvmOverloads constructor(
         idleHandler.removeCallbacksAndMessages(null)
     }
 
-    // ═══════════════════════════════════════════════════════
-    //  DRAW HELPERS
-    // ═══════════════════════════════════════════════════════
+
+
+
 
     private fun pushUndo(layer: PaintLayer) {
         val copy = try {
             layer.bitmap.copy(Bitmap.Config.ARGB_8888, true)
         } catch (e: OutOfMemoryError) {
-            // OOM — не можем сохранить undo, но рисование продолжается
+
             null
         }
         if (copy != null) {
@@ -926,9 +899,9 @@ class DrawingView @JvmOverloads constructor(
         }
     }
 
-    // ═══════════════════════════════════════════════════════
-    //  SHAPE DRAWING (committed to bitmap)
-    // ═══════════════════════════════════════════════════════
+
+
+
 
     private fun drawRectOrFill(c: Canvas, l: Float, t: Float, r: Float, b: Float) {
         if (shapeFillAmount > 0) {
@@ -1005,7 +978,7 @@ class DrawingView @JvmOverloads constructor(
         textPaint.textSize = size
         if (textFont != null) textPaint.typeface = textFont
 
-        // Gradient fill
+
         if (textGradientStart != Color.TRANSPARENT && textGradientEnd != Color.TRANSPARENT) {
             textPaint.shader = android.graphics.LinearGradient(
                 0f, 0f, (overlay?.w ?: size * text.length).coerceAtLeast(1f), 0f,
@@ -1015,7 +988,7 @@ class DrawingView @JvmOverloads constructor(
             textPaint.shader = null
         }
 
-        // Glow (shadow layer)
+
         if (textGlowRadius > 0f) {
             textPaint.setShadowLayer(textGlowRadius, 0f, 0f, textGlowColor)
         } else {
@@ -1024,7 +997,7 @@ class DrawingView @JvmOverloads constructor(
 
         val tw = textPaint.measureText(text)
 
-        // Outline pass (stroke only)
+
         if (textOutlineWidth > 0f) {
             textOutlinePaint.set(textPaint)
             textOutlinePaint.style = Paint.Style.STROKE
@@ -1035,10 +1008,10 @@ class DrawingView @JvmOverloads constructor(
             c.drawText(text, cx - tw / 2f, cy + size / 3f, textOutlinePaint)
         }
 
-        // Fill pass
+
         c.drawText(text, cx - tw / 2f, cy + size / 3f, textPaint)
 
-        // Cleanup glow for next draw
+
         textPaint.clearShadowLayer()
     }
 
@@ -1046,9 +1019,9 @@ class DrawingView @JvmOverloads constructor(
         setShadowLayer(0f, 0f, 0f, 0)
     }
 
-    // ═══════════════════════════════════════════════════════
-    //  PAINT SETUP
-    // ═══════════════════════════════════════════════════════
+
+
+
 
     private fun applyPaint(erase: Boolean) {
         drawPaint.strokeWidth = strokeWidth
@@ -1074,9 +1047,9 @@ class DrawingView @JvmOverloads constructor(
         }
     }
 
-    // ═══════════════════════════════════════════════════════
-    //  PICK COLOR
-    // ═══════════════════════════════════════════════════════
+
+
+
 
     private fun pickColor(x: Int, y: Int): Int {
         val px = x.coerceIn(0, bitmapWidth - 1); val py = y.coerceIn(0, bitmapHeight - 1)
@@ -1088,21 +1061,21 @@ class DrawingView @JvmOverloads constructor(
         return Color.TRANSPARENT
     }
 
-    // ═══════════════════════════════════════════════════════
-    //  FLOOD FILL
-    // ═══════════════════════════════════════════════════════
+
+
+
 
     private fun floodFill(bmp: Bitmap, x: Int, y: Int, newColor: Int) {
         val w = bmp.width; val h = bmp.height
         if (x < 0 || y < 0 || x >= w || y >= h) return
-        // Защита от OOM: для очень больших битмапов отказываемся от fill
+
         if (w.toLong() * h > MAX_FLOOD_FILL_DIM.toLong() * MAX_FLOOD_FILL_DIM) return
         val oldColor = bmp.getPixel(x, y)
         if (oldColor == newColor) return
         val pixels = try {
             IntArray(w * h)
         } catch (e: OutOfMemoryError) {
-            return // не хватило памяти — молча отменяем
+            return
         }
         bmp.getPixels(pixels, 0, w, 0, 0, w, h)
         val stack = ArrayDeque<Int>(); stack.add(y * w + x)
@@ -1114,7 +1087,7 @@ class DrawingView @JvmOverloads constructor(
             abs(((c shr 24) and 0xff) - oA) <= t && abs(((c shr 16) and 0xff) - oR) <= t &&
             abs(((c shr 8) and 0xff) - oG) <= t && abs((c and 0xff) - oB) <= t
         
-        // Mark seed at push time
+
         pixels[y * w + x] = newColor
         
         while (stack.isNotEmpty()) {
@@ -1132,9 +1105,9 @@ class DrawingView @JvmOverloads constructor(
         bmp.setPixels(pixels, 0, w, 0, 0, w, h)
     }
 
-    // ═══════════════════════════════════════════════════════
-    //  BITMAP HELPERS
-    // ═══════════════════════════════════════════════════════
+
+
+
 
     private fun ensureMutable(bitmap: Bitmap): Bitmap {
         if (bitmap.isMutable) return bitmap
@@ -1156,9 +1129,9 @@ class DrawingView @JvmOverloads constructor(
         return Bitmap.createBitmap(this, 0, 0, width, height, m, true)
     }
 
-    // ═══════════════════════════════════════════════════════
-    //  INNER TYPES
-    // ═══════════════════════════════════════════════════════
+
+
+
 
     data class OverlayShape(
         val type: ToolType,
@@ -1181,9 +1154,9 @@ class DrawingView @JvmOverloads constructor(
         private val SHAPE_TOOLS = setOf(
             ToolType.RECTANGLE, ToolType.OVAL, ToolType.STAR, ToolType.HEART
         )
-        /** Max number of undo snapshots. Prevents OOM on large canvases. */
+
         private const val MAX_UNDO_STEPS = 15
-        /** Max bitmap dimension for flood fill to avoid OOM (pixels per side). */
+
         private const val MAX_FLOOD_FILL_DIM = 2048
     }
 

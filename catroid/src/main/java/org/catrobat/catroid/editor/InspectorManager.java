@@ -102,7 +102,6 @@ public class InspectorManager {
 
     public void populateInspector(GameObject go) {
         this.selectedObject = go;
-        //if (container == null) return;
         container.removeAllViews();
 
         if (go == null) {
@@ -1051,7 +1050,7 @@ public class InspectorManager {
         }
         else if (data instanceof PostProcessingData.EyeAdaptation) {
             PostProcessingData.EyeAdaptation ea = (PostProcessingData.EyeAdaptation) data;
-            addFloatParam(paramsContainer, "Target Luminance", ea.targetLuminance, v -> { ea.targetLuminance = v; /* No need to call update here */ });
+            addFloatParam(paramsContainer, "Target Luminance", ea.targetLuminance, v -> { ea.targetLuminance = v; });
             addFloatParam(paramsContainer, "Speed", ea.speed, v -> { ea.speed = v; });
             addFloatParam(paramsContainer, "Min Exposure", ea.minExposure, v -> { ea.minExposure = v; });
             addFloatParam(paramsContainer, "Max Exposure", ea.maxExposure, v -> { ea.maxExposure = v; });
@@ -2852,7 +2851,6 @@ public class InspectorManager {
                 }
                 sceneManager.setPhysicsComponent(go, physics);
             } catch (NumberFormatException e) {
-                // ignored
             }
         };
 
@@ -3152,7 +3150,6 @@ public class InspectorManager {
                 );
                 updater.update(go, v);
             } catch (NumberFormatException e) {
-                // ignored
             }
         });
         x.addTextChangedListener(watcher);
@@ -3174,7 +3171,6 @@ public class InspectorManager {
                 );
                 updater.update(go, q);
             } catch (NumberFormatException e) {
-                // ignored
             }
         });
         p.addTextChangedListener(watcher);

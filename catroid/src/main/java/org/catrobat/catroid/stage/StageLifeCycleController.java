@@ -281,7 +281,6 @@ public final class StageLifeCycleController {
 				try {
 					StageActivity.getActiveStageListener().menuResume();
 				} catch(Exception e) {
-					//anything
 				}
 			}
 		}

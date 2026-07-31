@@ -5,10 +5,6 @@ import org.catrobat.catroid.content.bricks.WhenSceneExitedBrick;
 import org.catrobat.catroid.content.eventids.EventId;
 import org.catrobat.catroid.content.eventids.SceneExitedEventId;
 
-/**
- * Script triggered when leaving a specific scene.
- * Only available in the Global Scene.
- */
 public class WhenSceneExitedScript extends Script {
 
 	private static final long serialVersionUID = 1L;

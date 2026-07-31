@@ -46,13 +46,6 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * Activity for editing a {@link TilemapLookData}. Launched from the Look list's 3-dot menu
- * ("Edit Tilemap") or from "New Tilemap".
- *
- * <p>Edits happen on the in-memory model; pressing Save persists the whole project off the UI
- * thread (same pattern as {@code HitboxEditorActivity}).</p>
- */
 public class TilemapEditorActivity extends Activity {
 
 	public static final String EXTRA_LOOK_INDEX = "extra_look_index";
@@ -90,7 +83,6 @@ public class TilemapEditorActivity extends Activity {
 		TextView btnTileSize = findViewById(R.id.tilemap_btn_tile_size);
 		TextView btnTileset = findViewById(R.id.tilemap_btn_tileset);
 
-		// Resolve or create the TilemapLookData.
 		lookIndex = getIntent().getIntExtra(EXTRA_LOOK_INDEX, -1);
 		isNewTilemap = getIntent().getBooleanExtra(EXTRA_NEW_TILEMAP, false);
 		Sprite sprite = ProjectManager.getInstance().getCurrentSprite();
@@ -102,7 +94,6 @@ public class TilemapEditorActivity extends Activity {
 		if (isNewTilemap) {
 			tilemapData = new TilemapLookData("tilemap_" + UUID.randomUUID().toString().substring(0, 6));
 			tilemapData.setMapSize(16, 12);
-			// Append to the sprite's look list so it becomes a costume.
 			sprite.getLookList().add(tilemapData);
 			lookIndex = sprite.getLookList().size() - 1;
 		} else if (lookIndex >= 0 && lookIndex < sprite.getLookList().size()) {
@@ -212,7 +203,7 @@ public class TilemapEditorActivity extends Activity {
 							editorView.setData(tilemapData);
 							hasUnsavedChanges = true;
 						}
-					} catch (NumberFormatException ignored) { // ignored
+					} catch (NumberFormatException ignored) {
 					}
 				})
 				.setNegativeButton(android.R.string.cancel, null)
@@ -252,7 +243,7 @@ public class TilemapEditorActivity extends Activity {
 							editorView.setData(tilemapData);
 							hasUnsavedChanges = true;
 						}
-					} catch (NumberFormatException ignored) { // ignored
+					} catch (NumberFormatException ignored) {
 					}
 				})
 				.setNegativeButton(android.R.string.cancel, null)
@@ -336,7 +327,6 @@ public class TilemapEditorActivity extends Activity {
 			return;
 		}
 		tilemapData.setName(look.getName());
-		// Reuse the look's image file as the tileset.
 		try {
 			File copy = StorageOperations.duplicateFile(look.getFile());
 			tilemapData = replaceTilemapFile(tilemapData, copy);
@@ -348,16 +338,8 @@ public class TilemapEditorActivity extends Activity {
 		}
 	}
 
-	/**
-	 * Replaces the backing file of a {@link TilemapLookData} (used when the user picks a new
-	 * tileset image). Returns the same instance for convenience.
-	 */
 	private TilemapLookData replaceTilemapFile(TilemapLookData data, File newFile) {
-		// setFile() обновляет И file, И fileName — раньше reflection менял только file,
-		// из-за чего ссылка на тайлсет терялась при сохранении/загрузке проекта.
 		data.setFile(newFile);
-		// Сбрасываем закешированный Pixmap, чтобы новая картинка перечиталась
-		// (Pixmap.dispose() — CPU-память, безопасно вне GL-потока).
 		try {
 			java.lang.reflect.Field pixmapField = LookData.class.getDeclaredField("pixmap");
 			pixmapField.setAccessible(true);
@@ -366,7 +348,7 @@ public class TilemapEditorActivity extends Activity {
 				((com.badlogic.gdx.graphics.Pixmap) oldPixmap).dispose();
 			}
 			pixmapField.set(data, null);
-		} catch (Exception ignored) { // ignored
+		} catch (Exception ignored) {
 		}
 		return data;
 	}
@@ -385,8 +367,6 @@ public class TilemapEditorActivity extends Activity {
 			final Exception finalError = saveError;
 			runOnUiThread(() -> {
 				if (finalError != null) {
-					// Show the error — do NOT finish() on failure so the user can retry
-					// and the project is not left in a partially-written corrupt state.
 					String msg = finalError.getMessage();
 					if (msg == null) {
 						msg = finalError.getClass().getSimpleName();
@@ -401,7 +381,6 @@ public class TilemapEditorActivity extends Activity {
 		}, "tilemap-save").start();
 	}
 
-	/** Rolls back a new tilemap that was added to the sprite's look list but never saved. */
 	private void cancelNewTilemap() {
 		if (isNewTilemap && tilemapData != null) {
 			Sprite sprite = ProjectManager.getInstance().getCurrentSprite();
@@ -425,7 +404,6 @@ public class TilemapEditorActivity extends Activity {
 					.setNeutralButton(android.R.string.cancel, null)
 					.show();
 		} else {
-			// No changes made — still need to remove an unsaved new tilemap
 			cancelNewTilemap();
 			setResult(RESULT_CANCELED);
 			finish();

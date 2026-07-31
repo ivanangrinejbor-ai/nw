@@ -5,10 +5,6 @@ import org.catrobat.catroid.content.bricks.WhenSceneLaunchedBrick;
 import org.catrobat.catroid.content.eventids.EventId;
 import org.catrobat.catroid.content.eventids.SceneStartedEventId;
 
-/**
- * Script triggered when a specific scene starts.
- * Only available in the Global Scene.
- */
 public class WhenSceneLaunchedScript extends Script {
 
 	private static final long serialVersionUID = 1L;

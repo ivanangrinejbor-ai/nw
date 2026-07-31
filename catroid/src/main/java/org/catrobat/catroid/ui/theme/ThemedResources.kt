@@ -25,11 +25,6 @@ package org.catrobat.catroid.ui.theme
 import android.content.res.ColorStateList
 import android.content.res.Resources
 
-/**
- * A [Resources] wrapper that returns palette colours for the themeable `@color` ids while
- * delegating everything else to the base resources. It reads the live [ThemeManager.overrideMap]
- * so applying a theme + recreating the activity is enough to recolour inflated views.
- */
 class ThemedResources(base: Resources) :
     Resources(base.assets, base.displayMetrics, base.configuration) {
 

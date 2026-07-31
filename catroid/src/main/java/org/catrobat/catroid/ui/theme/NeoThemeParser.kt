@@ -22,14 +22,6 @@
  */
 package org.catrobat.catroid.ui.theme
 
-/**
- * Parser/serializer for the plain-text `.neotema` theme format.
- *
- * Format: one `key=value` pair per line. Lines starting with `#` (without an `=`) are
- * comments. Unknown keys are ignored; missing colour keys fall back to the default palette.
- * Colours are `#RRGGBB` or `#AARRGGBB`. Parsing is pure-JVM (no android dependency) so it can
- * be unit-tested without Robolectric.
- */
 object NeoThemeParser {
     private const val MAX_META_LENGTH = 40
 
@@ -82,7 +74,6 @@ object NeoThemeParser {
         append("accent=").append(toHex(palette.accent)).append('\n')
     }
 
-    /** Parses `#RRGGBB` or `#AARRGGBB` into an ARGB int. Throws [NeoThemeException] on error. */
     fun parseHexColor(raw: String): Int {
         var s = raw.trim()
         if (s.startsWith("#")) {

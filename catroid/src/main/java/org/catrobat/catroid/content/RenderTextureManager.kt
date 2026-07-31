@@ -39,21 +39,18 @@ class RenderTexture(val width: Int, val height: Int) {
     var render2D: Boolean = true
     var render3D: Boolean = false
 
-    // Post-processing and shader
     var postProcessingEnabled: Boolean = false
     var mipmappingEnabled: Boolean = false
     var customShader: ShaderProgram? = null
     val uniforms: MutableMap<String, Any> = mutableMapOf()
 
-    // Text overlays: name -> text content
     val textOverlays: MutableMap<String, String> = mutableMapOf()
     var textBufferOnly: Boolean = false
 
-    // Cached font for text rendering
     val font: BitmapFont = BitmapFont().apply { data.setScale(0.5f) }
     val glyphLayout: GlyphLayout = GlyphLayout()
-    var textX: Float = -1f // -1 = center
-    var textY: Float = -1f // -1 = center
+    var textX: Float = -1f
+    var textY: Float = -1f
 
     init {
         textureRegion = TextureRegion(fbo.colorBufferTexture).apply { flip(false, true) }
@@ -216,7 +213,6 @@ object RenderTextureManager {
                     batch.shader = prevShader
                 }
 
-                // Draw text overlays
                 if (target.textOverlays.isNotEmpty()) {
                     for ((_, textContent) in target.textOverlays) {
                         if (textContent.isNotEmpty()) {
@@ -233,12 +229,10 @@ object RenderTextureManager {
                 batch.end()
                 target.fbo.end()
 
-                // Post-processing pass
                 if (target.postProcessingEnabled && target.customShader != null && target.customShader!!.isCompiled) {
                     runPostProcess(target)
                 }
 
-                // Mipmapping generation (one-time)
                 if (target.mipmappingEnabled) {
                     target.fbo.colorBufferTexture.bind()
                     Gdx.gl.glGenerateMipmap(GL20.GL_TEXTURE_2D)
@@ -301,7 +295,6 @@ object RenderTextureManager {
 
     fun addVariableTextToTarget(bufferName: String, text: String) {
         val target = renderTextures[bufferName] ?: return
-        // Store text under a default key; subsequent calls with same bufferName update the text
         target.textOverlays["_text"] = text
     }
 

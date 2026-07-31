@@ -34,21 +34,11 @@ import org.catrobat.catroid.common.TilemapLookData;
 
 import org.catrobat.catroid.content.Sprite;
 
-/**
- * Stateless helper that turns the solid tiles of a {@link TilemapLookData} into Box2D static
- * bodies. It holds NO state — the caller ({@code TilemapRuntime}) owns the returned body and is
- * responsible for destroying it. Solidity is the union across all layers.
- *
- * <p>Adjacent solid tiles are merged into larger rectangles (greedy meshing) to keep the fixture
- * count low. All fixtures are attached to a single static body at the world origin; each fixture's
- * box is offset to the tile's world position (same approach as {@link PhysicsBoundaryBox}).</p>
- */
 public final class TilemapPhysicsBuilder {
 
 	private TilemapPhysicsBuilder() {
 	}
 
-	/** Destroys a body previously returned by {@link #build}. Safe to call with {@code null}. */
 	public static void destroy(PhysicsWorld physicsWorld, Body body) {
 		if (body == null) {
 			return;
@@ -64,16 +54,6 @@ public final class TilemapPhysicsBuilder {
 		return build(physicsWorld, bottomLeftX, bottomLeftY, data, null);
 	}
 
-	/**
-	 * Builds a static body for the map's solid tiles.
-	 *
-	 * @param physicsWorld    target world
-	 * @param bottomLeftX     catroid X of the map's bottom-left corner (sprite center - mapWidth/2)
-	 * @param bottomLeftY     catroid Y of the map's bottom-left corner (sprite center - mapHeight/2)
-	 * @param data            the tilemap
-	 * @param sprite          the owner sprite (attached to body userData for collision callbacks)
-	 * @return the created static body, or {@code null} if there are no solid tiles
-	 */
 	public static Body build(PhysicsWorld physicsWorld, float bottomLeftX, float bottomLeftY,
 			TilemapLookData data, Sprite sprite) {
 		int columns = data.getMapColumns();
@@ -100,7 +80,6 @@ public final class TilemapPhysicsBuilder {
 		bodyDef.allowSleep = true;
 		Body body = world.createBody(bodyDef);
 
-		// Attach sprite so contact listeners don't throw NPE on body.getUserData()
 		if (sprite != null) {
 			body.setUserData(sprite);
 		}
@@ -119,7 +98,6 @@ public final class TilemapPhysicsBuilder {
 				if (!solid[index] || used[index]) {
 					continue;
 				}
-				// Greedy: extend width, then height while the full width stays solid.
 				int width = 1;
 				while (col + width < columns && solid[index + width] && !used[index + width]) {
 					width++;

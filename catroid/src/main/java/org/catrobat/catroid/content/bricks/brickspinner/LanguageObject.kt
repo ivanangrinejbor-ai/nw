@@ -27,9 +27,6 @@ import org.catrobat.catroid.common.Nameable
 import org.catrobat.catroid.io.XStreamFieldKeyOrder
 import java.io.Serializable
 
-/**
- * note that the @property languageTag has IETF representation
- * */
 @XStreamAlias("languageObject")
 @XStreamFieldKeyOrder(
     "languageName",

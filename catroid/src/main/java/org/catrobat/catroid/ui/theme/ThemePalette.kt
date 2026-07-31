@@ -24,10 +24,6 @@ package org.catrobat.catroid.ui.theme
 
 import org.catrobat.catroid.R
 
-/**
- * A curated palette parsed from a `.neotema` file. Colours are stored as ARGB ints.
- * The [name]/[author] are optional metadata; the default theme has both null.
- */
 data class ThemePalette(
     val name: String?,
     val author: String?,
@@ -36,7 +32,6 @@ data class ThemePalette(
     val button: Int,
     val accent: Int
 ) {
-    /** True when this palette matches the built-in default (no custom overrides). */
     val isDefault: Boolean
         get() = name == null && author == null &&
             toolbar == DEFAULT_TOOLBAR &&
@@ -44,10 +39,6 @@ data class ThemePalette(
             button == DEFAULT_BUTTON &&
             accent == DEFAULT_ACCENT
 
-    /**
-     * Maps the curated palette keys onto the concrete `@color` resource ids that are
-     * overridden at runtime by [ThemedResources].
-     */
     fun toResourceOverrideMap(): Map<Int, Int> = linkedMapOf(
         R.color.toolbar_background to toolbar,
         R.color.app_background to background,
@@ -58,7 +49,6 @@ data class ThemePalette(
     )
 
     companion object {
-        // Defaults mirror res/values/colors.xml.
         const val DEFAULT_TOOLBAR = 0xFF1C1C1E.toInt()
         const val DEFAULT_BACKGROUND = 0xFF2C2C2E.toInt()
         const val DEFAULT_BUTTON = 0xFF48484A.toInt()

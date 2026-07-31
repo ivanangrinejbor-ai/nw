@@ -701,7 +701,6 @@ class Parser(private val tokens: List<Token>) {
                     return
                 }
                 else -> {
-                    // Ничего не делаем, просто пропускаем токен
                 }
             }
             advance()

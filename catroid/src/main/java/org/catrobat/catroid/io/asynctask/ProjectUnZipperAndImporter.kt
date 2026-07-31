@@ -57,7 +57,6 @@ sealed class ImportResult {
     object Success : ImportResult()
     object Failure : ImportResult()
     object WrongPassword : ImportResult()
-    // Запечённый (locked, NCPX) проект из APK/EXE — импорт запрещён.
     object LockedProject : ImportResult()
     data class BakedProject(val projectDir: File) : ImportResult()
     data class UnsupportedVersion(val version: Double, val projectDir: File?) : ImportResult()
@@ -152,9 +151,6 @@ class ProjectUnZipperAndImporter @JvmOverloads constructor(
             val fileName = StorageOperations.resolveFileName(resolver, uri)
             if (!isValidImportExtension(fileName)) continue
             reportProgress(0, "import_step_prepare")
-            // Delegate to StorageOperations which handles WebP and unique filenames
-            // Progress detail between 0-14% is approximate since fine-grained progress
-            // during the copy would require StorageOperations API changes
             reportProgress(7, "import_step_prepare")
             val cachedFile = StorageOperations.copyUriToDir(resolver, uri, CACHE_DIRECTORY, fileName)
             reportProgress(14, "import_step_prepare")
@@ -175,30 +171,6 @@ class ProjectUnZipperAndImporter @JvmOverloads constructor(
         }
     }
 }
-
-/*fun unzipAndImportProjects(files: Array<File>): Boolean {
-    var success = true
-    files.forEach { projectDir ->
-        success = success && unzipAndImportProject(projectDir)
-    }
-    return success
-}*/
-
-/*private fun unzipAndImportProject(projectDir: File): Boolean = try {
-    val cachedProjectDir = File(CACHE_DIRECTORY, StorageOperations.getSanitizedFileName(projectDir.name))
-    if (cachedProjectDir.isDirectory) {
-        try {
-            StorageOperations.deleteDir(cachedProjectDir)
-        } catch (e: Exception) {
-            Log.e("ZIP_TASK", "ERROR: " + e.message)
-        }
-    }
-    ZipArchiver().unzip(projectDir, cachedProjectDir)
-    importProject(cachedProjectDir)
-} catch (e: IOException) {
-    Log.e(TAG, "Cannot unzip project " + projectDir.name, e)
-    false
-}*/
 
 private fun ProjectUnZipperAndImporter.unzipAndImportProject(projectZipFile: File): ImportResult {
     val tempDirName = StorageOperations.getSanitizedFileName(projectZipFile.name) + "_temp_import"
@@ -221,14 +193,11 @@ private fun ProjectUnZipperAndImporter.unzipAndImportProject(projectZipFile: Fil
 
         var fileToUnzip = projectZipFile
         if (ProjectCrypto.isLocked(projectZipFile)) {
-            // NCPX = пейлоад, запечённый в чужой APK/EXE. Исходники не отдаём.
             Log.e(TAG, "Refusing to import a locked (baked) payload")
             return@unzipAndImportProject ImportResult.LockedProject
         }
         if (ProjectCrypto.isEncrypted(projectZipFile)) {
             reportProgress(5, "import_step_decrypt")
-            // Сначала пробуем статический ключ запечённых проектов (bake/EXE),
-            // если пароль не задан явно. Иначе — предоставленный пароль.
             val key = if (!password.isNullOrEmpty()) password!! else ProtectedProjectPayload.PASSWORD
             val decryptedFile = File(CACHE_DIRECTORY, tempDirName + "_decrypted.zip")
             if (!ProjectCrypto.decrypt(projectZipFile, decryptedFile, key)) {
@@ -307,13 +276,6 @@ private fun ProjectUnZipperAndImporter.unzipAndImportProject(projectZipFile: Fil
     }
 }
 
-/**
- * Realistic estimate of the space the import needs in the cache directory:
- * the archive itself, the unzipped contents, and (for encrypted projects) the
- * temporary decrypted copy. Uses the actual sum of uncompressed entry sizes
- * instead of a flat multiple of the archive size, which previously over-
- * estimated by 5x and wrongly rejected projects on storage-limited devices.
- */
 private fun estimateRequiredCacheSpace(zipFile: File): Long {
     val zipLen = zipFile.length()
     val encrypted = ProjectCrypto.isEncrypted(zipFile)
@@ -425,13 +387,6 @@ private fun ProjectUnZipperAndImporter.importStandardProject(cachedProjectDir: F
     }
 }
 
-/**
- * Best-effort: load the freshly imported project and re-save it so any
- * legacy / unknown bricks are converted to UnknownBrick and the on-disk project
- * is in a clean, current, loadable state. If loading or saving fails for any
- * reason we keep the copied project as-is (still a valid project on disk), so
- * this can never leave the project in a worse state than the plain copy.
- */
 private fun ProjectUnZipperAndImporter.normalizeProject(projectDir: File) {
     val ctx = importContext ?: return
     try {
@@ -482,9 +437,6 @@ private fun readApplicationVersion(codeXml: File): String? {
 
 private const val MAX_SUPPORTED_VERSION = "2.1.2"
 
-// Version gating for ".newtrobat" projects is disabled: any application version
-// is allowed to import. Kept as a function (always false) so the call site and
-// MAX_SUPPORTED_VERSION constant stay intact for possible future re-enabling.
 @Suppress("UNUSED_PARAMETER")
 private fun isUnsupportedVersion(versionStr: String): Boolean {
     return false

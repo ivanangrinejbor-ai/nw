@@ -27,15 +27,12 @@ class ProjectMerger {
         conflicts.clear()
         Log.d(TAG, "Starting V8 (conflict resolution merge)...")
 
-        // Начинаем с глубокой копии локального проекта, чтобы сохранить все локальные изменения и ID
         val mergedProject = XStreamUtilGit.deepCopy(localProject)
 
-        // Рекурсивно сливаем все объекты, изменяя mergedProject
         mergeObject("project", mergedProject, baseProject, remoteProject)
 
         Log.d(TAG, "Semantic merge finished. Found ${conflicts.size} conflicts to resolve.")
 
-        // После основного слияния, применяем нашу новую логику разрешения конфликтов
         if (conflicts.isNotEmpty()) {
             applyConflictResolutions(mergedProject, conflicts, localProject)
         }
@@ -49,32 +46,21 @@ class ProjectMerger {
                 Log.d(TAG, "Attempting to resolve conflict at: ${conflict.path}")
                 if (tryResolveBrickConflict(mergedProject, localProject, conflict)) continue
                 if (tryResolveScriptConflict(mergedProject, localProject, conflict)) continue
-                // Сюда можно будет добавить другие резолверы для других типов объектов
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to programmatically resolve conflict at ${conflict.path}", e)
             }
         }
     }
 
-    /**
-     * Разрешает конфликт в конкретном блоке.
-     * Стратегия: в слитом проекте уже находится remote-версия блока. Мы находим
-     * локальную версию в исходном локальном проекте, клонируем, комментируем
-     * и вставляем рядом с remote-версией, обрамляя комментариями.
-     */
     private fun tryResolveBrickConflict(mergedProject: Project, localProject: Project, conflict: Conflict): Boolean {
-        // Убеждаемся, что это конфликт изменения блока
         if (conflict.localValue !is Brick || conflict.remoteValue !is Brick) return false
 
-        // Находим родительский скрипт в УЖЕ СЛИТОМ проекте
         val parentScript = findObjectByPath(mergedProject, conflict.path.substringBeforeLast(".")) as? Script ?: return false
         val brickList = parentScript.brickList
 
-        // Находим remote-версию блока (которая сейчас в списке)
         val remoteBrickInList = brickList.find { findId(it) == findId(conflict.remoteValue) } ?: return false
         val index = brickList.indexOf(remoteBrickInList)
 
-        // Находим оригинальную локальную версию блока
         val originalLocalBrick = findObjectByPath(localProject, conflict.path) as? Brick ?: return false
 
         if (index != -1) {
@@ -85,7 +71,6 @@ class ProjectMerger {
             val startComment = NoteBrick("--- КОНФЛИКТ: ВАША ВЕРСИЯ НИЖЕ ---")
             val endComment = NoteBrick("--- КОНЕЦ КОНФЛИКТА ---")
 
-            // Вставляем все в список после remote-версии
             brickList.add(index + 1, startComment)
             brickList.add(index + 2, localCopy)
             brickList.add(index + 3, endComment)
@@ -94,9 +79,6 @@ class ProjectMerger {
         return false
     }
 
-    /**
-     * Разрешает конфликт на уровне всего скрипта (например, разный набор блоков).
-     */
     private fun tryResolveScriptConflict(mergedProject: Project, localProject: Project, conflict: Conflict): Boolean {
         if (conflict.localValue !is Script || conflict.remoteValue !is Script) return false
 
@@ -111,16 +93,13 @@ class ProjectMerger {
         if (index != -1) {
             Log.i(TAG, "Resolving SCRIPT conflict for script ${findId(originalLocalScript)}. Duplicating local version.")
             val localCopy = XStreamUtilGit.deepCopy(originalLocalScript)
-            localCopy.isCommentedOut = true // Комментируем весь скрипт-дубликат
-            scriptList.add(index + 1, localCopy) // Вставляем его после оригинала
+            localCopy.isCommentedOut = true
+            scriptList.add(index + 1, localCopy)
             return true
         }
         return false
     }
 
-    /**
-     * Находит объект в дереве проекта по его пути (например, "project.sceneList[...].spriteList[...]").
-     */
     private val pathPattern: Pattern = Pattern.compile("(.*)\\[(.*)]")
 
     private fun findObjectByPath(root: Any, path: String): Any? {
@@ -150,22 +129,6 @@ class ProjectMerger {
         }
         return currentObject
     }
-
-    /*fun merge(baseProject: Project, localProject: Project, remoteProject: Project): MergeResultData {
-        conflicts.clear()
-        Log.d(TAG, "Starting V7 (deep list comparison) semantic merge...")
-        val mergedProject = XStreamUtilGit.deepCopy(localProject)
-        mergeObject("project", mergedProject, baseProject, remoteProject)
-        Log.d(TAG, "Semantic merge finished. Conflicts found: ${conflicts.size}")
-        /*if (conflicts.isNotEmpty()) {
-            throw MergeConflictException(conflicts)
-        }*/
-        if (conflicts.isNotEmpty()) {
-            applyConflictResolutions(mergedProject, conflicts, baseProject, localProject, remoteProject)
-        }
-
-        return MergeResultData(mergedProject, conflicts)
-    }*/
 
     @Suppress("UNCHECKED_CAST")
     private fun mergeObject(path: String, merged: Any, base: Any, remote: Any) {
@@ -240,13 +203,12 @@ class ProjectMerger {
             val inRemote = remoteItem != null
 
             when {
-                // Кейс 1: Модификация существующего элемента
                 inBase && inLocal && inRemote -> {
                     val remoteChanged = !areObjectsEqual(baseItem, remoteItem)
                     val localChanged = !areObjectsEqual(baseItem, localItem)
 
-                    if (localChanged && !remoteChanged) resultList.add(localItem) // Только локальные изменения
-                    else if (!localChanged && remoteChanged) resultList.add(remoteItem) // Только удаленные изменения
+                    if (localChanged && !remoteChanged) resultList.add(localItem)
+                    else if (!localChanged && remoteChanged) resultList.add(remoteItem)
                     else if (localChanged && remoteChanged) {
                         if (areObjectsEqual(localItem, remoteItem)) {
                             resultList.add(localItem)
@@ -256,31 +218,27 @@ class ProjectMerger {
                             resultList.add(mergedItem)
                         }
                     } else {
-                        resultList.add(localItem) // Без изменений
+                        resultList.add(localItem)
                     }
                 }
 
-                // Кейс 2: Добавление
-                !inBase && inLocal && !inRemote -> resultList.add(localItem) // Добавлено локально
-                !inBase && !inRemote && inLocal -> resultList.add(remoteItem) // Добавлено удаленно
-                !inBase && inLocal && inRemote -> { // Конфликт add/add
+                !inBase && inLocal && !inRemote -> resultList.add(localItem)
+                !inBase && !inRemote && inLocal -> resultList.add(remoteItem)
+                !inBase && inLocal && inRemote -> {
                     conflicts.add(Conflict(path, "add/add on item $id", null, localItem, remoteItem))
                     resultList.add(localItem)
                     if (!areObjectsEqual(localItem, remoteItem)) resultList.add(remoteItem)
                 }
 
-                // Кейс 3: Удаление
-                inBase && !inLocal && inRemote -> { // Удалено локально
-                    if (areObjectsEqual(baseItem, remoteItem)) { /* не добавляем в список */ }
-                    else {
+                inBase && !inLocal && inRemote -> {
+                    if (!areObjectsEqual(baseItem, remoteItem)) {
                         conflicts.add(Conflict(path, "delete/modify on item $id", baseItem, localItem, null))
                     }
                 }
-                inBase && inLocal && !inRemote -> { // Удалено удаленно
-                    if (areObjectsEqual(baseItem, localItem)) { /* не добавляем в список */ }
-                    else {
+                inBase && inLocal && !inRemote -> {
+                    if (!areObjectsEqual(baseItem, localItem)) {
                         conflicts.add(Conflict(path, "modify/delete on item $id", baseItem, localItem, null))
-                        resultList.add(localItem) // Сохраняем локальные изменения
+                        resultList.add(localItem)
                     }
                 }
             }
@@ -305,7 +263,6 @@ class ProjectMerger {
     private fun tryResolveScriptConflict(project: Project, conflict: Conflict): Boolean {
         val localScript = conflict.localValue as? Script ?: return false
 
-        // Находим родительский спрайт и его scriptList в УЖЕ СЛИТОМ проекте
         val parentSprite = findObjectByPath(project, conflict.path.substringBeforeLast(".")) as? Sprite ?: return false
         val scriptList = parentSprite.getScriptList()
         val remoteScript = scriptList.find { findId(it) == findId(localScript) } ?: return false
@@ -322,15 +279,12 @@ class ProjectMerger {
     }
 
     private fun tryResolveBrickConflict(project: Project, conflict: Conflict): Boolean {
-        // Проверяем, что конфликт - это модификация блока
         val localBrick = conflict.localValue as? Brick ?: return false
         val remoteBrick = conflict.remoteValue as? Brick ?: return false
 
-        // Находим родительский скрипт в слитом проекте
         val parentScript = findObjectByPath(project, conflict.path.substringBeforeLast(".")) as? Script ?: return false
         val brickList = parentScript.getBrickList()
 
-        // Находим remote-версию блока в списке
         val remoteBrickInList = brickList.find { findId(it) == findId(localBrick) } ?: return false
         val index = brickList.indexOf(remoteBrickInList)
 
@@ -344,45 +298,13 @@ class ProjectMerger {
             val endComment = NoteBrick("--- КОНЕЦ КОНФЛИКТА ---")
 
             brickList.add(index, startComment)
-            brickList.add(index + 2, midComment) // После remoteBrick
+            brickList.add(index + 2, midComment)
             brickList.add(index + 3, localCopy)
             brickList.add(index + 4, endComment)
             return true
         }
         return false
     }
-
-    /*private val pathPattern = Pattern.compile("(.*)\\[(.*)]")
-
-    private fun findObjectByPath(root: Any, path: String): Any? {
-        if (path == "project") return root
-
-        var currentObject: Any? = root
-        val segments = path.split(".").drop(1)
-
-        for (segment in segments) {
-            if (currentObject == null) return null
-
-            val matcher = pathPattern.matcher(segment)
-            if (matcher.matches()) {
-                val listName = matcher.group(1)
-                val itemId = matcher.group(2)
-
-                val listField = getAllFields(currentObject.javaClass).find { it.name == listName } ?: return null
-                listField.isAccessible = true
-                val list = listField.get(currentObject) as? List<*> ?: return null
-
-                currentObject = list.find { findId(it) == itemId }
-            } else {
-                val field = getAllFields(currentObject.javaClass).find { it.name == segment } ?: return null
-                field.isAccessible = true
-                currentObject = field.get(currentObject)
-            }
-        }
-        return currentObject
-    }*/
-
-
 
     private fun areObjectsEqual(o1: Any?, o2: Any?): Boolean {
         if (o1 === o2) return true
@@ -421,9 +343,6 @@ class ProjectMerger {
         return true
     }
 
-    /**
-     * Общий метод для сравнения двух объектов по значениям их полей.
-     */
     private fun areFieldsEqual(o1: Any, o2: Any): Boolean {
         for (field in getAllFields(o1.javaClass)) {
             if (Modifier.isStatic(field.modifiers) || Modifier.isTransient(field.modifiers)) continue

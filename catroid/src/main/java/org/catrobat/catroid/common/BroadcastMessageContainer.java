@@ -46,8 +46,6 @@ public class BroadcastMessageContainer {
 			return;
 		}
 		if (editedScene.isGlobalScene()) {
-			// Глобальная сцена получает сигналы из ВСЕХ сцен проекта —
-			// показываем в спиннере объединённый список.
 			java.util.Set<String> all = new java.util.LinkedHashSet<>(editedScene.getBroadcastMessagesInUse());
 			org.catrobat.catroid.content.Project project = ProjectManager.getInstance().getCurrentProject();
 			if (project != null) {
@@ -82,8 +80,6 @@ public class BroadcastMessageContainer {
 		return broadcastMessages;
 	}
 
-	// === Scoped Broadcasts ===
-
 	public BroadcastMessageScope getScope(String message) {
 		return messageScopes.get(message);
 	}
@@ -99,7 +95,7 @@ public class BroadcastMessageContainer {
 
 	public boolean isMessageVisibleInScene(String message, String sceneName) {
 		BroadcastMessageScope scope = messageScopes.get(message);
-		if (scope == null) return true; // no scope = global
+		if (scope == null) return true;
 		return scope.isAllowedInScene(sceneName);
 	}
 

@@ -31,7 +31,6 @@ import org.catrobat.catroid.physics.PhysicsWorld;
 
 public final class BrickValues {
 
-	//constants Motions
 	public static final int X_POSITION = 100;
 	public static final int Y_POSITION = 200;
 	public static final int CHANGE_X_BY = 10;
@@ -45,7 +44,6 @@ public final class BrickValues {
 
 	public static final float ROTATION = 0.0f;
 
-	//constants Physics
 	public static final PhysicsObject.Type PHYSIC_TYPE = Type.DYNAMIC;
 	public static final double PHYSIC_MASS = 1.0;
 	public static final double PHYSIC_BOUNCE_FACTOR = 0.8;
@@ -55,9 +53,7 @@ public final class BrickValues {
 	public static final Vector2 PHYSIC_VELOCITY = new Vector2();
 	public static final double PHYSIC_TURN_DEGREES = TURN_DEGREES;
 
-	//constants Looks
-	public static final double SET_SIZE_TO = 60;
-	public static final double RELATIVE_SIZE_IN_PERCENT = 120.0f;
+	public static final double SET_SIZE_TO = 60;	public static final double RELATIVE_SIZE_IN_PERCENT = 120.0f;
 	public static final double CHANGE_SIZE_BY = 10;
 	public static final double SET_TRANSPARENCY = 50;
 	public static final double CHANGE_TRANSPARENCY_EFFECT = 25;
@@ -72,19 +68,15 @@ public final class BrickValues {
 	public static final int SET_LOOK_BY_INDEX = 1;
 	public static final String PARTICLE_COLOR = "#ff0000";
 
-	//constants Pen
-	public static final double PEN_SIZE = 3.15;
-	public static final int PEN_COLOR_R = 0;
+	public static final double PEN_SIZE = 3.15;	public static final int PEN_COLOR_R = 0;
 	public static final int PEN_COLOR_G = 0;
 	public static final int PEN_COLOR_B = 255;
 	public static final PenColor PEN_COLOR = new PenColor(0, 0, 1, 1);
 
-	//constants Sounds
 	public static final double SET_VOLUME_TO = 60;
 	public static final double CHANGE_VOLUME_BY = -10;
 	public static final double PLAY_AT_DEFAULT_OFFSET = 0.5;
 
-	//Constants Control
 	public static final int WAIT = 1000;
 	public static final int REPEAT = 10;
 	public static final String IF_CONDITION = "1 < 2";
@@ -97,7 +89,6 @@ public final class BrickValues {
 	public static final int USER_DEFINED_BRICK_WITHOUT_SCREEN_REFRESH = 1;
 	public static final int USER_DEFINED_BRICK_WITH_SCREEN_REFRESH = 0;
 
-	//Constants Lego
 	public static final String LEGO_MOTOR = "A";
 	public static final int LEGO_ANGLE = 180;
 	public static final int LEGO_SPEED = 100;
@@ -105,7 +96,6 @@ public final class BrickValues {
 	public static final double LEGO_FREQUENCY = 2.0;
 	public static final double LEGO_VOLUME = 100.0;
 
-	//Constants Drone
 	public static final int DRONE_MOVE_BRICK_DEFAULT_TIME_MILLISECONDS = 1000;
 	public static final int DRONE_MOVE_BRICK_DEFAULT_POWER_PERCENT = 20;
 	public static final String STRING_VALUE = "default";
@@ -130,18 +120,15 @@ public final class BrickValues {
 	public static final int DRONE_TILT_OUTDOOR = 20;
 	public static final int DRONE_TILT_MAX = 30;
 
-	//Constants Jumping Sumo
 	public static final int JUMPING_SUMO_MOVE_BRICK_DEFAULT_TIME_MILLISECONDS = 1000;
 	public static final int JUMPING_SUMO_MOVE_BRICK_DEFAULT_MOVE_POWER_PERCENT = 80;
 	public static final int JUMPING_SUMO_SOUND_BRICK_DEFAULT_VOLUME_PERCENT = 50;
 	public static final double JUMPING_SUMO_ROTATE_DEFAULT_DEGREE = 90;
 
-	//Constants Variables
 	public static final double SET_VARIABLE = 1d;
 	public static final String SHOW_VARIABLE_COLOR = "#FF0000";
 	public static final double CHANGE_VARIABLE = 1d;
 
-	//Constants Lists
 	public static final double ADD_ITEM_TO_USERLIST = 1;
 	public static final int DELETE_ITEM_OF_USERLIST = 1;
 	public static final int INSERT_ITEM_INTO_USERLIST_INDEX = 1;
@@ -150,7 +137,6 @@ public final class BrickValues {
 	public static final double REPLACE_ITEM_IN_USERLIST_VALUE = 1;
 	public static final int STORE_CSV_INTO_USERLIST_COLUMN = 1;
 
-	//Constants Phiro
 	public static final int PHIRO_SPEED = 100;
 	public static final int PHIRO_DURATION = 1;
 	public static final int PHIRO_VALUE_RED = 0;
@@ -158,20 +144,17 @@ public final class BrickValues {
 	public static final int PHIRO_VALUE_BLUE = 255;
 	public static final String PHIRO_IF_SENSOR_DEFAULT_VALUE = "Front Left Sensor";
 
-	//Constants Arduino
 	public static final int ARDUINO_PWM_INITIAL_PIN_VALUE = 255;
 	public static final int ARDUINO_PWM_INITIAL_PIN_NUMBER = 3;
 	public static final int ARDUINO_DIGITAL_INITIAL_PIN_VALUE = 1;
 	public static final int ARDUINO_DIGITAL_INITIAL_PIN_NUMBER = 13;
 
-	//Constants Raspi
 	public static final int RASPI_DIGITAL_INITIAL_PIN_VALUE = 1;
 	public static final int RASPI_DIGITAL_INITIAL_PIN_NUMBER = 3;
 	public static final String[] RASPI_EVENTS = {"pressed", "released"};
 	public static final double RASPI_PWM_INITIAL_PERCENTAGE = 50.0;
 	public static final double RASPI_PWM_INITIAL_FREQUENCY = 100.0;
 
-	//Constants NFC
 	public static final short TNF_MIME_MEDIA = 0;
 	public static final short TNF_WELL_KNOWN_HTTP = 1;
 	public static final short TNF_WELL_KNOWN_HTTPS = 2;
@@ -185,33 +168,28 @@ public final class BrickValues {
 	public static final byte NDEF_PREFIX_TEL = 0x05;
 	public static final byte NDEF_PREFIX_MAILTO = 0x06;
 
-	//Constants Embroidery
 	public static final float STITCH_SIZE = 3.15f;
 	public static final int STITCH_LENGTH = 10;
 	public static final int ZIGZAG_STITCH_LENGTH = 2;
 	public static final int ZIGZAG_STITCH_WIDTH = 10;
 	public static final String THREAD_COLOR = "#ff0000";
 
-	//Constants Device
 	public static final double TOUCH_DURATION = 0.3;
 	public static final int TOUCH_X_START = -100;
 	public static final int TOUCH_Y_START = -200;
 	public static final int TOUCH_X_GOAL = 100;
 	public static final int TOUCH_Y_GOAL = 200;
 
-	//Constants Web
 	public static final String OPEN_IN_BROWSER = "https://catrobat.org/";
 	public static final String LOOK_REQUEST = "https://catrob.at/penguin";
 	public static final String BACKGROUND_REQUEST = "https://catrob.at/HalloweenPortrait";
 	public static final String BACKGROUND_REQUEST_LANDSCAPE = "https://catrob.at/HalloweenLandscape";
 
-	//Constant Instruments
 	public static final int DEFAULT_NOTE = 70;
 	public static final int PAUSED_BEATS_INT = 1;
 	public static final float PAUSED_BEATS_FLOAT = 1F;
 	public static final int DEFAULT_TEMPO = 60;
 	public static final int CHANGE_TEMPO = 10;
-	// Note: No constant default value for the "Send web request" brick, as it is localized in strings.xml
 
 	private BrickValues() {
 		throw new AssertionError("No.");

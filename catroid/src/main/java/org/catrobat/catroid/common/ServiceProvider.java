@@ -73,11 +73,6 @@ public final class ServiceProvider {
 			service = new BluetoothDeviceServiceImpl();
 		}
 
-//		example for further common services
-//		if (serviceType == CatrobatService.STORAGE_HANDLER) {
-//			service = new StorageHandler();
-//		}
-
 		if (service != null) {
 			registerService(serviceType, service);
 		}

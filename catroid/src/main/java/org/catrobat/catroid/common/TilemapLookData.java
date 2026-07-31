@@ -38,52 +38,25 @@ import java.util.UUID;
 
 import androidx.annotation.NonNull;
 
-/**
- * A special sprite costume ({@link LookData}) that stores a tile map instead of a single image.
- *
- * <p><b>Model only.</b> This class holds pure data: tile size, map size, tile indices per layer
- * and which tile indices are solid (for collisions). Rendering, texture slicing and Box2D bodies
- * live in the runtime ({@code content.tilemap.TilemapRuntime}) — never here — so a future desktop
- * runtime or custom physics can reuse this same model.</p>
- *
- * <p>The tileset spritesheet is the costume's own image file (see {@link #getFile()} /
- * {@link #getPixmap()}); tiles are the cells of that sheet cut into a grid by
- * {@link #tileWidth}/{@link #tileHeight} (plus optional {@link #margin}/{@link #spacing}).
- * The number of tileset columns/rows is NOT stored — it is derived lazily from the image size so
- * replacing the image can never desync it.</p>
- */
 public class TilemapLookData extends LookData {
 
 	private static final long serialVersionUID = 1L;
 
-	/** Empty cell marker. */
 	public static final short EMPTY = -1;
 
 	private int tileWidth = 16;
 	private int tileHeight = 16;
 
-	/** Reserved for future Tiled import; always 0 in v2.3. */
 	private int margin = 0;
 	private int spacing = 0;
 
 	private int mapColumns = 0;
 	private int mapRows = 0;
 
-	/**
-	 * Layers, bottom-most first. Each layer is a flat {@code short[]} of length
-	 * {@code mapColumns * mapRows}, row-major, with {@link #EMPTY} for empty cells.
-	 * A {@link List} (not {@code short[][]}) so layers can be added/removed later without
-	 * recreating the outer array. v2.3 UI edits only {@code layers.get(0)}.
-	 */
 	private List<short[]> layers = new ArrayList<>();
 
-	/** Tileset indices that are solid (generate collision bodies). */
 	private Set<Integer> solidTiles = new HashSet<>();
 
-	/**
-	 * Forward-compat hook (empty in v2.3): tileIndex → property bitmask/value.
-	 * Reserved for future autotiles and tile animation so the format need not change.
-	 */
 	private Map<Integer, Integer> tileProperties = new HashMap<>();
 
 	public TilemapLookData() {
@@ -98,7 +71,6 @@ public class TilemapLookData extends LookData {
 		super(name, file);
 	}
 
-	/** Allocates (or reallocates) layer storage for the current map size, keeping at least one layer. */
 	public void initLayers(int layerCount) {
 		layers = new ArrayList<>();
 		int count = Math.max(1, layerCount);
@@ -148,7 +120,6 @@ public class TilemapLookData extends LookData {
 		return row * mapColumns + column;
 	}
 
-	/** @return tile index at layer/column/row, or {@link #EMPTY} if out of range. */
 	public short getTile(int layerIndex, int column, int row) {
 		short[] layer = getLayer(layerIndex);
 		if (layer == null || !inBounds(column, row)) {
@@ -157,15 +128,10 @@ public class TilemapLookData extends LookData {
 		return layer[cellIndex(column, row)];
 	}
 
-	/** @return tile index on layer 0. */
 	public short getTile(int column, int row) {
 		return getTile(0, column, row);
 	}
 
-	/**
-	 * Sets a tile on the given layer.
-	 * @return true if the cell actually changed (useful for undo diffing).
-	 */
 	public boolean setTile(int layerIndex, int column, int row, short tileIndex) {
 		short[] layer = getLayer(layerIndex);
 		if (layer == null || !inBounds(column, row)) {
@@ -243,7 +209,6 @@ public class TilemapLookData extends LookData {
 		return mapRows;
 	}
 
-	/** Resizes the map, preserving overlapping tiles. Reallocates every layer. */
 	public void setMapSize(int columns, int rows) {
 		int newColumns = Math.max(0, columns);
 		int newRows = Math.max(0, rows);
@@ -272,7 +237,6 @@ public class TilemapLookData extends LookData {
 		return mapRows * tileHeight;
 	}
 
-	/** Tileset columns, derived from image width (never stored, so it can't desync). */
 	public int getTilesetColumns(int imageWidth) {
 		int denom = tileWidth + spacing;
 		if (denom <= 0) {
@@ -299,7 +263,6 @@ public class TilemapLookData extends LookData {
 		return pixmap != null ? getTilesetRows(pixmap.getHeight()) : 0;
 	}
 
-	/** Backward-compat: some legacy/streamed maps may lack layer allocation; normalise on load. */
 	private Object readResolve() {
 		if (solidTiles == null) {
 			solidTiles = new HashSet<>();

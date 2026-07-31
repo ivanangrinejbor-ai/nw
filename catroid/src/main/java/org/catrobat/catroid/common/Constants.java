@@ -44,15 +44,15 @@ public final class Constants {
 
 	public static final double CURRENT_CATROBAT_LANGUAGE_VERSION = 1.17;
 	public static final String REMOTE_DISPLAY_APP_ID = "CEBB9229";
-	public static final int CAST_CONNECTION_TIMEOUT = 5000; //in milliseconds
-	public static final int CAST_NOT_SEEING_DEVICE_TIMEOUT = 3000; //in
+	public static final int CAST_CONNECTION_TIMEOUT = 5000;
+	public static final int CAST_NOT_SEEING_DEVICE_TIMEOUT = 3000;
 	public static final long PROGESSIVE_INPUT_DELAY = 400;
 	public static final long PROGESSIVE_INPUT_COUNTDOWN_INTERVALL = 500;
 	public static final long RETROFIT_WRITE_TIMEOUT = 15;
 
 	public static final String PLATFORM_NAME = "Android";
-	public static final int APPLICATION_BUILD_NUMBER = 0; // updated from jenkins nightly/release build
-	public static final String APPLICATION_BUILD_NAME = ""; // updated from jenkins nightly/release build
+	public static final int APPLICATION_BUILD_NUMBER = 0;
+	public static final String APPLICATION_BUILD_NAME = "";
 	public static final String CODE_XML_FILE_NAME = "code.xml";
 	public static final String PERMISSIONS_FILE_NAME = "permissions.txt";
 	public static final String TMP_CODE_XML_FILE_NAME = "tmp_" + CODE_XML_FILE_NAME;
@@ -64,7 +64,6 @@ public final class Constants {
 	public static final String POCKET_CODE_EXTERNAL_EXPORT_STORAGE_FOLDER_NAME = "Catrobat";
 	public static final File EXTERNAL_STORAGE_ROOT_EXPORT_DIRECTORY = new File(
 			Environment.getExternalStorageDirectory(), POCKET_CODE_EXTERNAL_EXPORT_STORAGE_FOLDER_NAME);
-	// Initialized at class load time; consider lazy initialization via a getter if used before environment is ready
 	public static final File DOWNLOAD_DIRECTORY =
 			Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
 	public static final String CATROBAT_EXTENSION = ".neotrobat";
@@ -87,7 +86,6 @@ public final class Constants {
 	public static final char REMIX_URL_SUFIX_REPLACE_INDICATOR = ')';
 	public static final char REMIX_URL_REPLACE_SEPARATOR = ';';
 
-	// Files and Directories:
 	public static final String NO_MEDIA_FILE = ".nomedia";
 
 	public static final String IMAGE_DIRECTORY_NAME = "images";
@@ -97,25 +95,21 @@ public final class Constants {
 	public static final File TMP_LOOK_FILE =
 			new File(DEFAULT_ROOT_DIRECTORY, "temporary_look_file" + DEFAULT_IMAGE_EXTENSION);
 
-	// Recent Bricks Directory
 	public static final String RECENT_BRICKS_DIRECTORY = "recent_bricks";
 	public static final String RECENT_BRICKS_FILE = "recent_bricks.json";
 
-	// Backpack Directories
 	public static final String BACKPACK_DIRECTORY_NAME = "backpack";
 	public static final String BACKPACK_JSON_FILE_NAME = "backpack.json";
 	public static final String BACKBACK_SCENES_DIRECTORY_NAME = "scenes";
 	public static final String BACKPACK_SOUND_DIRECTORY_NAME = "backpack_sound";
 	public static final String BACKPACK_IMAGE_DIRECTORY_NAME = "backpack_image";
 
-	// Trusted domains for Web access bricks
 	public static final String TRUSTED_DOMAINS_FILE_NAME = "trustedDomains.json";
 	public static final String TRUSTED_USER_DOMAINS_FILE_NAME = "trustedUserDomains.json";
 	public static final String TRUST_LIST_JSON_ARRAY_NAME = "domains";
 	public static final File TRUSTED_USER_DOMAINS_FILE = new File(DEFAULT_ROOT_DIRECTORY, TRUSTED_USER_DOMAINS_FILE_NAME);
 	public static final int JSON_INDENTATION = 4;
 
-	// Temporary Files and Directories:
 	public static final File CACHE_DIRECTORY = CatroidApplication.getAppContext().getCacheDir();
 
 	public static final String CACHED_PROJECT_ZIP_FILE_NAME = "projectImportCache.zip";
@@ -131,13 +125,11 @@ public final class Constants {
 	public static final String TMP_PATH = CACHE_DIRECTORY.getAbsolutePath() + "/" + TMP_DIRECTORY_NAME;
 	public static final String TEXT_TO_SPEECH_TMP_PATH = TMP_PATH + "/textToSpeech";
 
-	// Web:
 	private static final String MAIN_URL_PRODUCTION = "https://api.neo-catroid.org";
 	public static final String UPLOAD_URL = "https://upload.catrob.at";
 	private static final String WEB_TEST_URL = BuildConfig.WEB_TEST_URL;
 	public static final String MAIN_URL_HTTPS = BuildConfig.WEB_TEST_FLAG ? WEB_TEST_URL : MAIN_URL_PRODUCTION;
 
-	// Default "flavor" in the web which equals "pocketcode"
 	public static final String BASE_APP_URL_HTTPS = MAIN_URL_HTTPS + "/app/";
 
 	public static final String SHARE_PROJECT_URL = BASE_URL_HTTPS + "/project/";
@@ -165,21 +157,17 @@ public final class Constants {
 
 	public static final String USER_AGENT = "Mozilla/5.0 (compatible; Catrobatbot/1.0; +https://catrob.at/bot)";
 
-	// HTTP status codes:
 	public static final int ERROR_BAD_REQUEST = 400;
 	public static final int ERROR_TOO_MANY_REQUESTS = 429;
 	public static final int ERROR_SERVER_ERROR = 500;
 	public static final int ERROR_TIMEOUT = 504;
 	public static final int ERROR_AUTHENTICATION_REQUIRED = 511;
 
-	// XStream:
 	public static final String BLUETOOTH_LEGO_NXT = "BLUETOOTH_LEGO_NXT";
 	public static final String NFC = "NFC";
 
-	//Broadcast system:
 	public static final String RASPI_BROADCAST_PREFIX = "#RASPI#";
 
-	// Login:
 	public static final String CATROBAT_TOKEN_LOGIN_AMP_TOKEN = "&token=";
 	public static final String TOKEN = "token";
 	public static final String NO_TOKEN = "no_token";
@@ -215,7 +203,6 @@ public final class Constants {
 
 	public static final String WHATSAPP_URI = "whatsapp://";
 
-	// Scratch Converter
 	public static final long INVALID_SCRATCH_PROGRAM_ID = 0;
 
 	public static final String SCRATCH_CONVERTER_HOST = "scratch2.catrob.at";
@@ -228,7 +215,7 @@ public final class Constants {
 	public static final int SCRATCH_SECOND_RELEASE_PUBLISHED_DATE_YEAR = 2013;
 	public static final int SCRATCH_SECOND_RELEASE_PUBLISHED_DATE_MONTH = Calendar.MAY;
 	public static final int SCRATCH_SECOND_RELEASE_PUBLISHED_DATE_DAY = 9;
-	public static final int SCRATCH_HTTP_REQUEST_MIN_TIMEOUT = 1_000; // in ms
+	public static final int SCRATCH_HTTP_REQUEST_MIN_TIMEOUT = 1_000;
 	public static final int SCRATCH_HTTP_REQUEST_MAX_NUMBER_OF_RETRIES = 2;
 	public static final int SCRATCH_IMAGE_DEFAULT_WIDTH = 480;
 	public static final int SCRATCH_IMAGE_DEFAULT_HEIGHT = 360;
@@ -238,7 +225,6 @@ public final class Constants {
 	public static final String INTENT_SCRATCH_PROGRAM_DATA = "scratchProgramData";
 	public static final int INTENT_REQUEST_CODE_CONVERT = 1;
 
-	// Lego
 	@Retention(RetentionPolicy.SOURCE)
 	@IntDef({NXT, EV3})
 	public @interface LegoSensorType {
@@ -257,11 +243,9 @@ public final class Constants {
 	public static final int PORT_3 = 2;
 	public static final int PORT_4 = 3;
 
-	// Pocket Paint
 	public static final String EXTRA_PICTURE_PATH_POCKET_PAINT = "org.catrobat.extra.PAINTROID_PICTURE_PATH";
 	public static final String POCKET_PAINT_INTENT_ACTIVITY_NAME = "org.catrobat.catroid.paintroid.MainActivity";
 
-	// Intent Extra / Bundle Keys
 	public static final String EXTRA_PROJECT_NAME = "projectName";
 	public static final String EXTRA_PROJECT_DESCRIPTION = "projectDescription";
 	public static final String EXTRA_PROJECT_PATH = "projectPath";
@@ -275,7 +259,6 @@ public final class Constants {
 
 	public static final int UPLOAD_RESULT_RECEIVER_RESULT_CODE = 1;
 
-	//Various:
 	public static final int BUFFER_8K = 8 * 1024;
 
 	public static final String ANY_EXTENSION_REGEX = "\\.\\w+$";
@@ -312,12 +295,10 @@ public final class Constants {
 
 	public static final int MAX_NUMBER_OF_CHECKED_TAGS = 3;
 
-	//Services + Notifications
 	public static final int UPDATE_DOWNLOAD_PROGRESS = 101;
 	public static final int UPDATE_DOWNLOAD_ERROR = 105;
 	public static final int MAX_PERCENT = 100;
 
-	//Up-/Download Status Codes
 	public static final int STATUS_CODE_INTERNAL_SERVER_ERROR = 500;
 	public static final int STATUS_CODE_UPLOAD_MISSING_DATA = 501;
 	public static final int STATUS_CODE_UPLOAD_MISSING_CHECKSUM = 503;
@@ -330,7 +311,6 @@ public final class Constants {
 	public static final int STATUS_CODE_UPLOAD_OLD_CATROBAT_LANGUAGE = 518;
 	public static final int STATUS_CODE_UPLOAD_OLD_CATROBAT_VERSION = 519;
 
-	//ExifTags for Exifremover
 	public static final ArrayList<String> EXIFTAGS_FOR_EXIFREMOVER =
 			new ArrayList<String>(Arrays.asList(
 			ExifInterface.TAG_ARTIST,

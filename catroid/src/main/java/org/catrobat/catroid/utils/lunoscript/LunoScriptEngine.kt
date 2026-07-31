@@ -25,7 +25,6 @@ class LunoScriptEngine(
         }
     }
 
-    // Если нужно регистрировать доп. нативные функции извне:
     fun registerNativeFunction(name: String, arity: IntRange, func: RawNativeLunoFunction) {
         interpreter.globals.define(name, LunoValue.NativeCallable(CallableNativeLunoFunction(name, arity, func)))
     }

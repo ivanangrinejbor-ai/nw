@@ -76,15 +76,11 @@ public class SelectCastDialog extends DialogFragment {
 
 		final AlertDialog alertDialog = builder.create();
 
-		// В методе onCreateDialog, найдите этот код:
 		listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 				synchronized (this) {
 					MediaRouter.RouteInfo routeInfo = CastManager.getInstance().getRouteInfos().get(position);
-
-					// УДАЛИТЕ ЭТУ СТРОКУ:
-					// CastManager.getInstance().setCallback();
 
 					CastManager.getInstance().startCastButtonAnimation();
 					CastManager.getInstance().selectRoute(routeInfo);

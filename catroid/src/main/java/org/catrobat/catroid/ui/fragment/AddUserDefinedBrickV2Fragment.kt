@@ -85,7 +85,6 @@ class AddUserDefinedBrickV2Fragment : Fragment() {
             textIndex.text = "$${i + 1}:"
             editName.setText(parameterNamesList[i])
 
-            // Update list when text changes
             editName.setOnFocusChangeListener { _, hasFocus ->
                 if (!hasFocus) {
                     parameterNamesList[i] = editName.text.toString().trim()
@@ -93,7 +92,6 @@ class AddUserDefinedBrickV2Fragment : Fragment() {
             }
 
             btnDelete.setOnClickListener {
-                // save values first
                 saveCurrentParamTexts()
                 parameterNamesList.removeAt(i)
                 renderParameters()
@@ -137,7 +135,6 @@ class AddUserDefinedBrickV2Fragment : Fragment() {
                 return true
             }
 
-            // Remove any empty param names
             val cleanedParams = ArrayList<String>()
             for (p in parameterNamesList) {
                 if (p.isNotEmpty()) {
@@ -148,7 +145,6 @@ class AddUserDefinedBrickV2Fragment : Fragment() {
             val userBrick = UserDefinedBrickV2(blockName, cleanedParams)
             val currentSprite = projectManager.currentSprite
 
-            // Avoid double name duplication
             currentSprite.addUserDefinedBrick(userBrick)
             addUserDefinedScriptToScript(userBrick)
         }

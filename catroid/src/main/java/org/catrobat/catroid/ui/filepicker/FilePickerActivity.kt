@@ -84,7 +84,6 @@ class FilePickerActivity : BaseCastActivity(), OnListProjectFilesListener, Actio
             }.execute(this)
         }
 
-    // needed for APIs 21 & 22
     private val storageRoots: List<File>
         get() {
             val rootDirs: MutableList<File> = ArrayList()

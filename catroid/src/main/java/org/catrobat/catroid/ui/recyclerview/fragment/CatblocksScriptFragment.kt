@@ -84,11 +84,7 @@ class CatblocksScriptFragment(
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        /*if (item.itemId == R.id.catblocks) {
-            webview!!.evaluateJavascript("javascript:CatBlocks.getBrickAtTopOfScreen();",
-                SwitchTo1DHelper())
-            return true
-        } else */ if (item.itemId == R.id.catblocks_reorder_scripts) {
+        if (item.itemId == R.id.catblocks_reorder_scripts) {
             webview!!.evaluateJavascript("javascript:CatBlocks.reorderCurrentScripts();", null)
         }
         return super.onOptionsItemSelected(item)

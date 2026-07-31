@@ -89,11 +89,6 @@ public class Project implements Serializable {
 	private List<UserList> userLists = new ArrayList<>();
 	@XStreamAlias("scenes")
 	private List<Scene> sceneList = new ArrayList<>();
-	/**
-	 * Global scene: optional, max 1 per project. Its sprites run scripts
-	 * continuously across all scene switches. Renders on top of the current scene
-	 * (only visible sprites). null = no global scene.
-	 */
 	@XStreamAlias("globalScene")
 	private Scene globalScene = null;
 
@@ -209,7 +204,6 @@ public class Project implements Serializable {
 		return globalScene != null;
 	}
 
-	/** @deprecated Only for migration of old projects in XstreamSerializer */
 	@Deprecated
 	public Scene getGlobalSceneForMigration() {
 		return globalScene;
@@ -217,11 +211,9 @@ public class Project implements Serializable {
 
 	public List<Sprite> getAllGlobalSprites() {
 		List<Sprite> result = new ArrayList<>();
-		// From dedicated global scene
 		if (globalScene != null) {
 			result.addAll(globalScene.getSpriteList());
 		}
-		// Legacy: sprites with global=true in regular scenes
 		for (Scene scene : sceneList) {
 			for (Sprite sprite : scene.getSpriteList()) {
 				if (sprite.isGlobal()) {
@@ -426,7 +418,6 @@ public class Project implements Serializable {
 			}
 		}
 
-		// Fallback (editor / tests): combine default scene + globalScene sprites
 		List<Sprite> result = new ArrayList<>();
 		Scene defaultScene = getDefaultScene();
 		if (defaultScene != null && defaultScene.getSpriteList() != null) {
@@ -570,7 +561,6 @@ public class Project implements Serializable {
 		ActionFactory physicsActionFactory = new ActionPhysicsFactory();
 		ActionFactory actionFactory = new ActionFactory();
 
-		// Build combined list: regular scenes + globalScene
 		List<Scene> allScenes = new ArrayList<>(sceneList);
 		if (globalScene != null) {
 			allScenes.add(globalScene);
@@ -669,7 +659,6 @@ public class Project implements Serializable {
 		for (Scene scene : sceneList) {
 			scene.updateUserDataReferences(oldName, newName, item);
 		}
-		// Also update references in globalScene
 		if (globalScene != null) {
 			globalScene.updateUserDataReferences(oldName, newName, item);
 		}
@@ -679,7 +668,6 @@ public class Project implements Serializable {
 		for (Scene scene : sceneList) {
 			scene.deselectElements(elements);
 		}
-		// Also deselect in globalScene
 		if (globalScene != null) {
 			globalScene.deselectElements(elements);
 		}
@@ -688,7 +676,6 @@ public class Project implements Serializable {
 	public void setListeningLanguageTag() {
 		if (xmlHeader.getListeningLanguageTag().isEmpty()
 				&& !SPEECH_RECOGNITION_SUPPORTED_LANGUAGES.isEmpty()) {
-			// first item represents the default speech recognition language
 			xmlHeader.setListeningLanguageTag(SPEECH_RECOGNITION_SUPPORTED_LANGUAGES.get(0));
 		}
 	}
@@ -702,7 +689,6 @@ public class Project implements Serializable {
 		for (Scene scene : sceneList) {
 			scene.checkForInvisibleSprites();
 		}
-		// Also check globalScene
 		if (globalScene != null) {
 			globalScene.checkForInvisibleSprites();
 		}

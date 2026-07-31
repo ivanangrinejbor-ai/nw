@@ -221,7 +221,6 @@ public class ScriptFragment extends ListFragment implements
 	}
 
 	public ScriptFragment() {
-		// required empty constructor
 	}
 
 	@Override
@@ -706,9 +705,6 @@ public class ScriptFragment extends ListFragment implements
 			case R.id.comment_in_out:
 				startActionMode(COMMENT);
 				break;
-			/*case R.id.catblocks:
-				switchToCatblocks();
-				break;*/
 			case R.id.find:
 				scriptFinder.open();
 				break;
@@ -1074,8 +1070,6 @@ public class ScriptFragment extends ListFragment implements
 			}
 		}
 
-		// password protection can only be removed via a delete flow (which asks for
-		// the password), so the normal menu shows "protect" only when unlocked
 		if (!brick.isLocked()) {
 			items.add(R.string.brick_context_dialog_lock);
 		}
@@ -1144,8 +1138,6 @@ public class ScriptFragment extends ListFragment implements
 				break;
 			case R.string.brick_context_dialog_formula_edit_brick:
 				if (brick.isLocked()) {
-					// password is only asked on delete, so a locked brick cannot be
-					// edited from the menu — it must be deleted (with the password)
 					ToastUtil.showError(getContext(), R.string.brick_locked);
 				} else {
 					((FormulaBrick) brick).onClick(listView);
@@ -1313,8 +1305,6 @@ public class ScriptFragment extends ListFragment implements
 			return true;
 		}
 		showUndo(false);
-		// Маркеры веток else-if не перетаскиваются как обычные брики —
-		// порядок веток меняется через тап-меню (Сдвинуть ветку вверх/вниз)
 		if (brick instanceof org.catrobat.catroid.content.bricks.ElseIfBrick
 				|| brick instanceof org.catrobat.catroid.content.bricks.ElseIfEndBrick) {
 			return true;
@@ -1590,8 +1580,6 @@ public class ScriptFragment extends ListFragment implements
 	private List<Brick> getLockGroup(Brick root) {
 		List<Brick> group = new ArrayList<>();
 		if (root instanceof ScriptBrick) {
-			// also lock the script header itself, otherwise its context menu still
-			// offers "protect" and re-locking would silently overwrite the children
 			addToLockGroup(group, root);
 			Script script = root.getScript();
 			if (script != null) {
@@ -1659,8 +1647,6 @@ public class ScriptFragment extends ListFragment implements
 				}
 			});
 		} else {
-			// Lock is only offered when the group is NOT already locked, so this path
-			// can never overwrite an existing protection.
 			showPasswordDialog(R.string.brick_context_dialog_lock, password -> applyLock(group, password));
 		}
 	}
@@ -2087,7 +2073,7 @@ public class ScriptFragment extends ListFragment implements
                         sb.append("  * ").append(nameStr).append(" (").append(type).append(") = ")
                                 .append(value != null ? value.toString() : "null").append("\n");
                     }
-                } catch (Exception ignored) { // ignored
+                } catch (Exception ignored) {
                 }
             }
         } else {
@@ -2277,7 +2263,7 @@ public class ScriptFragment extends ListFragment implements
                             }
                         }
                     }
-                } catch (Exception ignored) { // ignored
+                } catch (Exception ignored) {
                 }
             }
             clazz = clazz.getSuperclass();

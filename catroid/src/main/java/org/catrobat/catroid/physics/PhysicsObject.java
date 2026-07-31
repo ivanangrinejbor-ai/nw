@@ -123,13 +123,11 @@ public class PhysicsObject {
 		destination.setVelocity(this.getVelocity());
 		destination.setGravityScale(this.getGravityScale());
 		if (this.shapes != null) {
-			// Shapes are cloned by PhysicsShapeBuilder on demand; copy reference
 			destination.setShape(this.shapes);
 		}
 	}
 
 	public void setShape(Shape[] shapes) {
-		// Dispose old shapes before replacing to prevent native memory leak
 		disposeShapes();
 
 		if (shapes != null) {
@@ -166,7 +164,6 @@ public class PhysicsObject {
 
 	private void calculateCircumference() {
 		if (body.getFixtureList().size == 0) {
-			//Log.d(TAG, "No fixtures, so reset circumference to zero");
 			circumference = 0;
 			return;
 		}
@@ -183,7 +180,6 @@ public class PhysicsObject {
 		}
 		this.type = type;
 
-		// Disable CCD when leaving DYNAMIC — bullet is only needed for fast-moving dynamic bodies
 		if (body.isBullet()) {
 			body.setBullet(false);
 		}
@@ -317,18 +313,16 @@ public class PhysicsObject {
 	public void setMass(float mass) {
 		this.mass = Math.max(mass, PhysicsObject.MIN_MASS);
 
-		// Check logical type, not body mass — StaticBody always reports mass=0 from Box2D
 		if (type == Type.FIXED || type == Type.NONE) {
 			return;
 		}
 
-		// Compute area from fixture shapes, not from mass/density
 		float area = 0f;
 		for (Fixture fixture : body.getFixtureList()) {
 			area += PhysicsWorldConverter.computeShapeArea(fixture.getShape());
 		}
 		if (area <= 0) {
-			return; // no fixtures or zero-area shapes — cannot set mass
+			return;
 		}
 		float density = this.mass / area;
 		setDensity(density);

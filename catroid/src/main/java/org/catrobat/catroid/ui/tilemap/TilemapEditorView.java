@@ -35,20 +35,12 @@ import android.view.View;
 
 import org.catrobat.catroid.common.TilemapLookData;
 
-/**
- * Custom view that renders the tilemap grid and handles single-finger draw/erase plus
- * two-finger pan/zoom. A sibling {@link PaletteView} shows the tileset palette.
- *
- * <p>One drag stroke = one undo batch (see {@link TilemapEditHistory}).</p>
- */
 public class TilemapEditorView extends View {
 
-	/** Listener notified on every edit, so the activity can update the hint and button states. */
 	public interface OnChangeListener {
 		void onChanged();
 	}
 
-	/** Listener for palette tile taps. */
 	public interface OnPaletteTileListener {
 		void onPaletteTilePicked(int tileIndex);
 	}
@@ -56,7 +48,6 @@ public class TilemapEditorView extends View {
 	private TilemapLookData data;
 	private final TilemapEditHistory history;
 
-	/** Тайлсет увеличивается в памяти в TILESET_SCALE раз — src-координаты должны это учитывать. */
 	private static final int TILESET_SCALE = 3;
 
 	private Bitmap tilesetBitmap;
@@ -178,7 +169,6 @@ public class TilemapEditorView extends View {
 	}
 
 	private void loadTilesetBitmap() {
-		// Освобождаем предыдущий битмап, чтобы смена тайлсета не текла памятью.
 		if (tilesetBitmap != null && !tilesetBitmap.isRecycled()) {
 			tilesetBitmap.recycle();
 		}
@@ -194,7 +184,6 @@ public class TilemapEditorView extends View {
 			tilesetRows = 0;
 			return;
 		}
-		// Scale up 3× so small pixel-art tilesets are visible on modern screens.
 		int rawW = raw.getWidth();
 		int rawH = raw.getHeight();
 		int scaledW = rawW * TILESET_SCALE;
@@ -207,7 +196,6 @@ public class TilemapEditorView extends View {
 		tilesetRows = data.getTilesetRows(rawH);
 	}
 
-	/** Called by the activity after the user picks a new tileset image. */
 	public void reloadTileset() {
 		loadTilesetBitmap();
 		invalidate();
@@ -231,12 +219,10 @@ public class TilemapEditorView extends View {
 
 		short[] layer = data.getLayer(0);
 
-		// Empty-cell background.
 		canvas.drawRect(panOffsetX, panOffsetY,
 				panOffsetX + columns * scaledTileW,
 				panOffsetY + rows * scaledTileH, emptyPaint);
 
-		// Tile content.
 		if (layer != null) {
 			for (int row = 0; row < rows; row++) {
 				for (int col = 0; col < columns; col++) {
@@ -252,8 +238,6 @@ public class TilemapEditorView extends View {
 							&& tile < tilesetColumns * tilesetRows) {
 						int srcCol = tile % tilesetColumns;
 						int srcRow = tile / tilesetColumns;
-						// Битмап в памяти увеличен в TILESET_SCALE раз — src тоже масштабируем,
-						// иначе рисуется только верхняя-левая часть нужного тайла.
 						Rect src = new Rect(
 								srcCol * tileW * TILESET_SCALE, srcRow * tileH * TILESET_SCALE,
 								(srcCol + 1) * tileW * TILESET_SCALE, (srcRow + 1) * tileH * TILESET_SCALE);
@@ -264,7 +248,6 @@ public class TilemapEditorView extends View {
 								(int) (panOffsetY + (row + 1) * scaledTileH));
 						canvas.drawBitmap(tilesetBitmap, src, dst, null);
 					} else {
-						// Fallback: solid colour block when no tileset is loaded.
 						fallbackTilePaint.setColor(Color.argb(200, 80 + (tile * 37) % 175,
 								80 + (tile * 53) % 175, 80 + (tile * 71) % 175));
 						canvas.drawRect(
@@ -277,7 +260,6 @@ public class TilemapEditorView extends View {
 			}
 		}
 
-		// Grid lines.
 		gridLinePaint.setColor(Color.argb(80, 200, 200, 200));
 		for (int c = 0; c <= columns; c++) {
 			float x = panOffsetX + c * scaledTileW;
@@ -288,7 +270,6 @@ public class TilemapEditorView extends View {
 			canvas.drawLine(panOffsetX, y, panOffsetX + columns * scaledTileW, y, gridLinePaint);
 		}
 
-		// Highlight the currently selected palette tile on the grid.
 		if (!eraserMode && currentTile >= 0 && layer != null) {
 			for (int row = 0; row < rows; row++) {
 				for (int col = 0; col < columns; col++) {
@@ -319,10 +300,8 @@ public class TilemapEditorView extends View {
 					int[] cell = screenToCell(event.getX(), event.getY());
 					applyTool(cell[0], cell[1]);
 				} else {
-					// Switching to pinch: cancel the in-progress stroke.
 					if (isDrawing) {
 						isDrawing = false;
-						// Drop the half-built batch so undo doesn't see a partial stroke.
 						history.beginBatch();
 					}
 					pinchStartDistance = fingerDistance(event);
@@ -400,7 +379,6 @@ public class TilemapEditorView extends View {
 	private int[] screenToCell(float screenX, float screenY) {
 		float scaledTileW = tileW * zoom;
 		float scaledTileH = tileH * zoom;
-		// zoom зажат в [MIN_ZOOM, MAX_ZOOM], но tileW/tileH теоретически могут быть 0 — защита от деления на ноль.
 		if (scaledTileW < 0.0001f || scaledTileH < 0.0001f) {
 			return new int[]{-1, -1};
 		}
@@ -418,7 +396,6 @@ public class TilemapEditorView extends View {
 		return (float) Math.sqrt(dx * dx + dy * dy);
 	}
 
-	/** Apply a batch of changes (from undo/redo) to the model. */
 	public void applyBatch(java.util.List<Object> batch, boolean forward) {
 		if (batch == null || data == null) {
 			return;
@@ -438,10 +415,6 @@ public class TilemapEditorView extends View {
 		}
 	}
 
-	/**
-	 * Horizontal palette of tileset cells. Tap to pick the active tile; the currently selected
-	 * tile is drawn with a yellow highlight.
-	 */
 	public static class PaletteView extends View {
 
 		private TilemapEditorView editor;
@@ -514,7 +487,6 @@ public class TilemapEditorView extends View {
 					canvas.drawRect(dst, editor.paletteSelectionPaint);
 				}
 			}
-			// Subtle separator lines between cells.
 			for (int i = 1; i < totalTiles; i++) {
 				float x = i * cellSize;
 				canvas.drawLine(x, 0, x, cellSize, editor.separatorPaint);

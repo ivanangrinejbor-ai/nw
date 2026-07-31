@@ -457,7 +457,6 @@ public class SpriteActivity extends BaseActivity {
 				addSpriteFromUri(uri, JPEG_IMAGE_EXTENSION);
 				break;
 			case SPRITE_TILEMAP:
-				// Tilemap editor closed with RESULT_OK — sprite and TilemapLookData already in model.
 				if (onNewSpriteListener != null) {
 					onNewSpriteListener.addItem(currentSprite);
 				}
@@ -562,8 +561,6 @@ public class SpriteActivity extends BaseActivity {
 
 			Sprite currentSprite = ProjectManager.getInstance().getCurrentSprite();
 			boolean isNotBackground = !currentSprite.equals(currentScene.getBackgroundSprite());
-			// GridBrick позиционирует сетку Pathfinder, а не спрайт —
-			// авто-брики направления/размера здесь не нужны.
 			boolean insertHelperBricks = isNotBackground
 					&& !(visualBrick instanceof org.catrobat.catroid.content.bricks.GridBrick);
 
@@ -928,10 +925,6 @@ public class SpriteActivity extends BaseActivity {
 		alertDialog.show();
 	}
 
-	/**
-	 * Shows a name-input dialog, creates a blank sprite, attaches a TilemapLookData, and
-	 * immediately opens TilemapEditorActivity so the user can design the tilemap.
-	 */
 	private void addSpriteAsTilemap() {
 		String defaultName = new UniqueNameProvider().getUniqueNameInNameables(
 				getString(R.string.default_sprite_name), currentScene.getSpriteList());
