@@ -103,6 +103,17 @@
             android:src="@drawable/ic_se_play" />
 
         <ImageButton
+            android:id="@+id/scene_editor_btn_pause"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:layout_marginEnd="6dp"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Пауза"
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_se_minimize"
+            android:visibility="gone" />
+
+        <ImageButton
             android:id="@+id/scene_editor_btn_stop"
             android:layout_width="42dp"
             android:layout_height="42dp"
@@ -111,6 +122,16 @@
             android:contentDescription="@string/scene_editor_stop"
             android:scaleType="centerInside"
             android:src="@drawable/ic_se_stop" />
+
+        <ImageButton
+            android:id="@+id/scene_editor_btn_debug"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:layout_marginEnd="6dp"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Отладчик 2.0"
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_se_scene_switcher" />
 
         <ImageButton
             android:id="@+id/scene_editor_btn_save"

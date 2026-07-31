@@ -117,6 +117,10 @@ import org.catrobat.catroid.content.bricks.ZipProjectFilesBrick
 import org.catrobat.catroid.content.bricks.CopyProjectFileToFolderBrick
 import org.catrobat.catroid.content.bricks.CopyProjectFileToPathBrick
 import org.catrobat.catroid.content.bricks.CopyTextBrick
+import org.catrobat.catroid.content.bricks.Create2dJoystickBrick
+import org.catrobat.catroid.content.bricks.Create2dJumpButtonBrick
+import org.catrobat.catroid.content.bricks.Create3dJoystickBrick
+import org.catrobat.catroid.content.bricks.Create3dJumpButtonBrick
 import org.catrobat.catroid.content.bricks.Create3dObjectBrick
 import org.catrobat.catroid.content.bricks.CreateBufferBrick
 import org.catrobat.catroid.content.bricks.CreateCubeBrick
@@ -2185,6 +2189,10 @@ print("Bot has stopped.")""", "myVar"))
                 deviceBrickList.add(RunVm2Brick("-kernel \"%PROJECT_FILES%/bzImage\" -initrd \"%PROJECT_FILES%/core.gz\" -append \"console=ttyS0 quiet\""))
                 deviceBrickList.add(RunVMBrick("1024", "2", "myDisk.qcow2", "flash.iso"))
                 deviceBrickList.add(CreateDiskBrick("myDisk.qcow2", "10G"))
+                deviceBrickList.add(Create2dJoystickBrick(100.0, 100.0, "joystick_bg.png", "joystick_thumb.png", 5.0))
+                deviceBrickList.add(Create2dJumpButtonBrick(300.0, 100.0, "jump_active.png", "jump_inactive.png", 25.0))
+                deviceBrickList.add(Create3dJoystickBrick(100.0, 100.0, "joystick_bg.png", "joystick_thumb.png", 0.5))
+                deviceBrickList.add(Create3dJumpButtonBrick(300.0, 100.0, "jump_active.png", "jump_inactive.png", 2.0))
                 deviceBrickList.add(ToggleDisplayBrick(1))
                 deviceBrickList.add(VmSetMonitorSizeBrick(1000, 800))
                 deviceBrickList.add(MouseEventBrick("0", "100", 1))

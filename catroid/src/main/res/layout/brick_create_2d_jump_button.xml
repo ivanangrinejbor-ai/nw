@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <CheckBox
+        android:id="@+id/brick_checkbox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone" />
+
+    <org.catrobat.catroid.content.bricks.BrickLayout
+        style="@style/BrickContainer.Device.Big"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <include layout="@layout/icon_brick_category_device" />
+
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_create_2d_jump_label" />
+
+        <TextView
+            android:id="@+id/brick_create_2d_jump_x"
+            style="@style/BrickEditText" />
+
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_joystick_pos_y" />
+
+        <TextView
+            android:id="@+id/brick_create_2d_jump_y"
+            style="@style/BrickEditText" />
+
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_jump_active_file" />
+
+        <TextView
+            android:id="@+id/brick_create_2d_jump_active"
+            style="@style/BrickEditText" />
+
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_jump_inactive_file" />
+
+        <TextView
+            android:id="@+id/brick_create_2d_jump_inactive"
+            style="@style/BrickEditText" />
+
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_jump_power" />
+
+        <TextView
+            android:id="@+id/brick_create_2d_jump_power"
+            style="@style/BrickEditText" />
+
+    </org.catrobat.catroid.content.bricks.BrickLayout>
+
+</LinearLayout>

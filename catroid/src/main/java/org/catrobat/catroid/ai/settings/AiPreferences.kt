@@ -16,6 +16,8 @@ object AiPreferences {
     private const val KEY_MAX_TOOL_CALLS = "ai_agent_max_tool_calls"
     private const val KEY_CLOUD_MODEL = "ai_agent_cloud_model"
     private const val KEY_BACKEND = "ai_agent_backend"
+    private const val KEY_PROVIDER = "ai_agent_provider"
+    private const val KEY_PROVIDER_KEY_PREFIX = "ai_agent_key_provider_"
 
     const val BACKEND_CLOUD = "cloud"
     const val BACKEND_LOCAL = "local"
@@ -23,12 +25,38 @@ object AiPreferences {
     private const val DEFAULT_TEMPERATURE = 0.7f
     private const val DEFAULT_MAX_CONTEXT = 4096
     private const val DEFAULT_MAX_TOOL_CALLS = 10
-    private const val DEFAULT_CLOUD_MODEL = "models/gemini-2.5-flash"
+    private const val DEFAULT_CLOUD_MODEL = "gemini-2.5-flash"
 
     private var prefs: SharedPreferences? = null
 
     fun init(context: Context) {
         prefs = PreferenceManager.getDefaultSharedPreferences(context)
+    }
+
+    fun getProvider(): String {
+        return prefs?.getString(KEY_PROVIDER, "gemini") ?: "gemini"
+    }
+
+    fun setProvider(providerId: String) {
+        prefs?.edit()?.putString(KEY_PROVIDER, providerId)?.apply()
+    }
+
+    fun getApiKeyForProvider(providerId: String): String? {
+        val stored = prefs?.getString(KEY_PROVIDER_KEY_PREFIX + providerId, null)
+        if (!stored.isNullOrBlank()) return stored
+        if (providerId.equals("gemini", ignoreCase = true)) {
+            val ctx = prefs?.let { null }
+            return org.catrobat.catroid.content.GeminiManager.api_key
+        }
+        return null
+    }
+
+    fun setApiKeyForProvider(providerId: String, key: String) {
+        prefs?.edit()?.putString(KEY_PROVIDER_KEY_PREFIX + providerId, key)?.apply()
+        if (providerId.equals("gemini", ignoreCase = true)) {
+            @Suppress("DEPRECATION")
+            org.catrobat.catroid.content.GeminiManager.api_key = key
+        }
     }
 
     fun isEnabled(): Boolean {

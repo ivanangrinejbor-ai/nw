@@ -139,18 +139,38 @@ class ChatActivity : AppCompatActivity() {
     }
 
     private fun showApiKeyDialog() {
+        val providers = org.catrobat.catroid.ai.model.AiProvider.values()
+        val providerNames = providers.map { it.displayName }.toTypedArray()
+        val currentProvider = CloudModelRuntime.getActiveProvider()
+        val checkedIndex = providers.indexOf(currentProvider).let { if (it >= 0) it else 0 }
+
+        AlertDialog.Builder(this)
+            .setTitle("Выберите Провайдера ИИ")
+            .setSingleChoiceItems(providerNames, checkedIndex) { dialog, which ->
+                val selectedProvider = providers[which]
+                AiPreferences.setProvider(selectedProvider.id)
+                dialog.dismiss()
+                promptApiKeyForProvider(selectedProvider)
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun promptApiKeyForProvider(provider: org.catrobat.catroid.ai.model.AiProvider) {
+        val currentKey = AiPreferences.getApiKeyForProvider(provider.id) ?: ""
         val input = EditText(this).apply {
-            hint = getString(R.string.ai_agent_set_api_key_hint)
-            setText(CloudModelRuntime.getApiKey() ?: "")
+            hint = "Введите API Key для ${provider.displayName}..."
+            setText(currentKey)
         }
         AlertDialog.Builder(this)
-            .setTitle(R.string.ai_agent_set_api_key_title)
+            .setTitle("API Key для ${provider.displayName}")
             .setView(input)
             .setPositiveButton(android.R.string.ok) { _, _ ->
                 val key = input.text.toString().trim()
                 if (key.isNotEmpty()) {
-                    CloudModelRuntime.setApiKey(key)
-                    Toast.makeText(this, R.string.ai_agent_api_key_saved, Toast.LENGTH_SHORT).show()
+                    AiPreferences.setApiKeyForProvider(provider.id, key)
+                    Toast.makeText(this, "API Key сохранен для ${provider.displayName}!", Toast.LENGTH_SHORT).show()
+                    showModelSelectorForProvider(provider, key)
                 }
             }
             .setNegativeButton(android.R.string.cancel, null)
@@ -158,40 +178,82 @@ class ChatActivity : AppCompatActivity() {
     }
 
     private fun showModelSelector() {
+        val provider = CloudModelRuntime.getActiveProvider()
         val apiKey = CloudModelRuntime.getApiKey()
         if (apiKey.isNullOrBlank()) {
-            Toast.makeText(this, R.string.ai_agent_no_api_key, Toast.LENGTH_LONG).show()
+            promptApiKeyForProvider(provider)
             return
         }
-        val loading = Toast.makeText(this, R.string.ai_agent_loading_models, Toast.LENGTH_SHORT)
+        showModelSelectorForProvider(provider, apiKey)
+    }
+
+    private fun showModelSelectorForProvider(provider: org.catrobat.catroid.ai.model.AiProvider, apiKey: String) {
+        val loading = Toast.makeText(this, "Запрос списка моделей из API ключа ${provider.displayName}...", Toast.LENGTH_SHORT)
         loading.show()
         lifecycleScope.launch {
-            val models = CloudModelProvider.fetchModels(apiKey)
+            val fetchedModels = org.catrobat.catroid.ai.model.CloudModelProvider.fetchModelsForProvider(provider, apiKey).toMutableList()
             loading.cancel()
             if (isFinishing || isDestroyed) return@launch
+
+            val optionCustom = "Ввести имя модели вручную..."
+            val displayList = ArrayList(fetchedModels)
+            displayList.add(0, optionCustom)
+
             val current = AiPreferences.getCloudModelId()
-            val checked = models.indexOf(current).let { if (it >= 0) it else 0 }
+            val checked = displayList.indexOf(current).let { if (it >= 0) it else 1 }
+
             AlertDialog.Builder(this@ChatActivity)
-                .setTitle(R.string.ai_agent_select_model_title)
-                .setSingleChoiceItems(models.toTypedArray(), checked) { dialog, which ->
-                    val selected = models[which]
-                    AiPreferences.setCloudModelId(selected)
-                    AiPreferences.setBackend(AiPreferences.BACKEND_CLOUD)
-                    ModelManager.unloadModel()
-                    updateModelButtonLabel()
-                    Toast.makeText(this@ChatActivity,
-                        getString(R.string.ai_agent_model_selected, selected),
-                        Toast.LENGTH_SHORT).show()
-                    dialog.dismiss()
+                .setTitle("Модели из API-ключа (${provider.displayName})")
+                .setSingleChoiceItems(displayList.toTypedArray(), checked) { dialog, which ->
+                    val selected = displayList[which]
+                    if (selected == optionCustom) {
+                        dialog.dismiss()
+                        promptCustomModel(provider)
+                    } else {
+                        AiPreferences.setProvider(provider.id)
+                        AiPreferences.setCloudModelId(selected)
+                        AiPreferences.setBackend(AiPreferences.BACKEND_CLOUD)
+                        ModelManager.unloadModel()
+                        updateModelButtonLabel()
+                        Toast.makeText(this@ChatActivity, "Выбрана модель: $selected", Toast.LENGTH_SHORT).show()
+                        dialog.dismiss()
+                    }
+                }
+                .setNeutralButton("Сменить Провайдер") { _, _ ->
+                    showApiKeyDialog()
                 }
                 .setNegativeButton(android.R.string.cancel, null)
                 .show()
         }
     }
 
+    private fun promptCustomModel(provider: org.catrobat.catroid.ai.model.AiProvider) {
+        val input = EditText(this).apply {
+            hint = "Имя модели (например, gpt-4o, deepseek-chat, claude-3-5-sonnet)..."
+            setText(AiPreferences.getCloudModelId())
+        }
+        AlertDialog.Builder(this)
+            .setTitle("Ручной ввод модели (${provider.displayName})")
+            .setView(input)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                val modelName = input.text.toString().trim()
+                if (modelName.isNotEmpty()) {
+                    AiPreferences.setProvider(provider.id)
+                    AiPreferences.setCloudModelId(modelName)
+                    AiPreferences.setBackend(AiPreferences.BACKEND_CLOUD)
+                    ModelManager.unloadModel()
+                    updateModelButtonLabel()
+                    Toast.makeText(this, "Установлена кастомная модель: $modelName", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
 
     private fun updateModelButtonLabel() {
-        modelButton.text = AiPreferences.getCloudModelId().substringAfterLast('/')
+        val provider = CloudModelRuntime.getActiveProvider()
+        val model = AiPreferences.getCloudModelId().substringAfterLast('/')
+        modelButton.text = "[${provider.displayName}] $model"
     }
 
     override fun onResume() {

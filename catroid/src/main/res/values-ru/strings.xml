@@ -1029,6 +1029,18 @@
     <string name="pt_shape">Форма:</string>
     <string name="pt_trainable">Обучаемый</string>
 
+    <string formatted="false" name="brick_create_2d_joystick_label">Создать 2D Джойстик в X:</string>
+    <string formatted="false" name="brick_create_3d_joystick_label">Создать 3D Джойстик в X:</string>
+    <string formatted="false" name="brick_create_2d_jump_label">Создать 2D Кнопку Прыжка в X:</string>
+    <string formatted="false" name="brick_create_3d_jump_label">Создать 3D Кнопку Прыжка в X:</string>
+    <string formatted="false" name="brick_joystick_pos_y">Y:</string>
+    <string formatted="false" name="brick_joystick_bg_file">Файл оболочки:</string>
+    <string formatted="false" name="brick_joystick_thumb_file">Файл стика:</string>
+    <string formatted="false" name="brick_joystick_speed">Скорость:</string>
+    <string formatted="false" name="brick_jump_active_file">Файл активной:</string>
+    <string formatted="false" name="brick_jump_inactive_file">Файл неактивной:</string>
+    <string formatted="false" name="brick_jump_power">Сила прыжка:</string>
+
     <string name="pt_operation">Операция</string>
     <string name="pt_res">Результат:</string>
     <string name="pt_op_type">Тип:</string>

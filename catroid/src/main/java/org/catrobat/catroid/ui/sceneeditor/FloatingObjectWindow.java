@@ -52,6 +52,10 @@ public class FloatingObjectWindow extends FrameLayout {
 
 		void onOpenSounds(Sprite sprite);
 
+		void onOpenLayering(Sprite sprite);
+
+		void onOpenInspector(Sprite sprite);
+
 		void onOpenSwipeEditor(Sprite sprite);
 
 		void onClosed(FloatingObjectWindow window);
@@ -72,7 +76,6 @@ public class FloatingObjectWindow extends FrameLayout {
 		this.callback = callback;
 		LayoutInflater.from(context).inflate(R.layout.view_floating_object_window, this, true);
 
-		// Light card shadow (rectangular; corners intentionally kept sharp).
 		setElevation(dp(8));
 		setOutlineProvider(android.view.ViewOutlineProvider.BOUNDS);
 
@@ -86,6 +89,8 @@ public class FloatingObjectWindow extends FrameLayout {
 		Button addBlocks = findViewById(R.id.floating_window_add_blocks);
 		Button btnLooks = findViewById(R.id.floating_window_looks);
 		Button btnSounds = findViewById(R.id.floating_window_sounds);
+		Button btnLayers = findViewById(R.id.floating_window_layers);
+		Button btnInspector = findViewById(R.id.floating_window_inspector);
 		Button swipe = findViewById(R.id.floating_window_swipe);
 
 		title.setText(sprite.getName());
@@ -118,6 +123,20 @@ public class FloatingObjectWindow extends FrameLayout {
 			btnSounds.setOnClickListener(v -> {
 				if (callback != null) {
 					callback.onOpenSounds(sprite);
+				}
+			});
+		}
+		if (btnLayers != null) {
+			btnLayers.setOnClickListener(v -> {
+				if (callback != null) {
+					callback.onOpenLayering(sprite);
+				}
+			});
+		}
+		if (btnInspector != null) {
+			btnInspector.setOnClickListener(v -> {
+				if (callback != null) {
+					callback.onOpenInspector(sprite);
 				}
 			});
 		}

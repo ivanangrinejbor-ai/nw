@@ -332,10 +332,25 @@ public class ScriptCanvasActivity extends AppCompatActivity {
 		startActivityForResult(Intent.createChooser(intent, "Выберите модуль .neoscript"), REQUEST_NEO_SCRIPT);
 	}
 
+	private FormulaBrick activeFormulaBrick = null;
+	private Brick.FormulaField activeFormulaField = null;
+
+	public void setActiveEditFormula(FormulaBrick brick, Brick.FormulaField field) {
+		this.activeFormulaBrick = brick;
+		this.activeFormulaField = field;
+	}
+
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
-		if (requestCode == REQUEST_NEO_SCRIPT && resultCode == RESULT_OK && data != null && data.getData() != null) {
+		if (requestCode == 8899 && resultCode == RESULT_OK && data != null) {
+			String res = data.getStringExtra(org.catrobat.catroid.ui.formulaeditor.FormulaEditor2Activity.EXTRA_RESULT_FORMULA_STRING);
+			if (res != null && activeFormulaBrick != null && activeFormulaField != null) {
+				activeFormulaBrick.setFormulaWithBrickField(activeFormulaField, new org.catrobat.catroid.formulaeditor.Formula(res));
+				canvas.rebuild();
+				Toast.makeText(this, "Формула обновлена!", Toast.LENGTH_SHORT).show();
+			}
+		} else if (requestCode == REQUEST_NEO_SCRIPT && resultCode == RESULT_OK && data != null && data.getData() != null) {
 			try {
 				java.io.InputStream is = getContentResolver().openInputStream(data.getData());
 				org.catrobat.catroid.neoscript.NeoScriptFile file = org.catrobat.catroid.neoscript.NeoScriptSerializer.deserialize(is);
@@ -500,7 +515,6 @@ public class ScriptCanvasActivity extends AppCompatActivity {
 				try {
 					XstreamSerializer.getInstance().saveProject(project);
 				} catch (Exception ignored) {
-					// Best effort; script positions and formulas stay in memory.
 				}
 			}, "script-canvas-save").start();
 		}

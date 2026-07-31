@@ -6870,4 +6870,48 @@ public class ActionFactory extends Actions {
         a.setValueFormula(value);
         return a;
     }
+
+    public Action createCreate2dJoystickAction(Sprite sprite, SequenceAction sequence, Formula posX, Formula posY, Formula bgFile, Formula thumbFile, Formula speed) {
+        org.catrobat.catroid.content.actions.Create2dJoystickAction a = action(org.catrobat.catroid.content.actions.Create2dJoystickAction.class);
+        a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        a.setPosX(posX);
+        a.setPosY(posY);
+        a.setBackgroundFileName(bgFile);
+        a.setThumbFileName(thumbFile);
+        a.setSpeed(speed);
+        return a;
+    }
+
+    public Action createCreate2dJumpButtonAction(Sprite sprite, SequenceAction sequence, Formula posX, Formula posY, Formula activeFile, Formula inactiveFile, Formula jumpPower) {
+        org.catrobat.catroid.content.actions.Create2dJumpButtonAction a = action(org.catrobat.catroid.content.actions.Create2dJumpButtonAction.class);
+        a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        a.setPosX(posX);
+        a.setPosY(posY);
+        a.setActiveFileName(activeFile);
+        a.setInactiveFileName(inactiveFile);
+        a.setJumpPower(jumpPower);
+        return a;
+    }
+
+    public Action createCreate3dJoystickAction(Sprite sprite, SequenceAction sequence, Formula posX, Formula posY, Formula bgFile, Formula thumbFile, Formula speed) {
+        org.catrobat.catroid.content.actions.Create3dJoystickAction a = action(org.catrobat.catroid.content.actions.Create3dJoystickAction.class);
+        a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        a.setPosX(posX);
+        a.setPosY(posY);
+        a.setBackgroundFileName(bgFile);
+        a.setThumbFileName(thumbFile);
+        a.setSpeed(speed);
+        return a;
+    }
+
+    public Action createCreate3dJumpButtonAction(Sprite sprite, SequenceAction sequence, Formula posX, Formula posY, Formula activeFile, Formula inactiveFile, Formula jumpPower) {
+        org.catrobat.catroid.content.actions.Create3dJumpButtonAction a = action(org.catrobat.catroid.content.actions.Create3dJumpButtonAction.class);
+        a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        a.setPosX(posX);
+        a.setPosY(posY);
+        a.setActiveFileName(activeFile);
+        a.setInactiveFileName(inactiveFile);
+        a.setJumpPower(jumpPower);
+        return a;
+    }
 }

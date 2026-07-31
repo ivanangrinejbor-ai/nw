@@ -1202,19 +1202,17 @@
 <string formatted="false" name="firebase_store">and store in</string>
 <string formatted="false" name="firebase_upload">Upload to Firebase Storage</string>
 <string formatted="false" name="firebase_download">Download from Firebase Storage</string>
-<string formatted="false" name="firebase_list">List Firebase Storage files</string>
-<string formatted="false" name="firebase_delete_storage">Delete from Firebase Storage</string>
-<string formatted="false" name="firebase_bucket">Bucket URL</string>
-    <string formatted="false" name="firebase_storage_path">Remote path</string>
-    <string formatted="false" name="brick_when_firebase_changed">When Firebase value changes at</string>
-    <string formatted="false" name="brick_when_firebase_changed_path">path</string>
-<string formatted="false" name="firebase_storage_prefix">Prefix</string>
-<string formatted="false" name="firebase_local_file">Local file</string>
-<string name="brick_set_3d_sound_position">Set 3D sound position</string>
-<string name="brick_load_scene_additive">Load scene additively</string>
-<string name="brick_load_scene_additive_path">from file</string>
-<string name="brick_prepare_sound2">Prepare audio (for 3D)</string>
-<string name="brick_prepare_music">Prepare music file (for 3D)</string>
+<string formatted="false" name="brick_create_2d_joystick_label">Create 2D Joystick at X:</string>
+<string formatted="false" name="brick_create_3d_joystick_label">Create 3D Joystick at X:</string>
+<string formatted="false" name="brick_create_2d_jump_label">Create 2D Jump Button at X:</string>
+<string formatted="false" name="brick_create_3d_jump_label">Create 3D Jump Button at X:</string>
+<string formatted="false" name="brick_joystick_pos_y">Y:</string>
+<string formatted="false" name="brick_joystick_bg_file">Background File:</string>
+<string formatted="false" name="brick_joystick_thumb_file">Stick File:</string>
+<string formatted="false" name="brick_joystick_speed">Speed:</string>
+<string formatted="false" name="brick_jump_active_file">Active File:</string>
+<string formatted="false" name="brick_jump_inactive_file">Inactive File:</string>
+<string formatted="false" name="brick_jump_power">Jump Power:</string>
 <string name="brick_prepare_music_as">as sound name</string>
 <string name="brick_prepare_sound_as">as sound name</string>
 <string name="brick_play_sound_3d">Play 3D sound</string>

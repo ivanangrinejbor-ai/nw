@@ -149,6 +149,8 @@ public class ScriptCanvasView extends FrameLayout {
 	private View buildStack(Script script) {
 		LinearLayout stack = new LinearLayout(getContext());
 		stack.setOrientation(LinearLayout.VERTICAL);
+		stack.setClipChildren(false);
+		stack.setClipToPadding(false);
 
 		List<Brick> flat = new ArrayList<>();
 		flat.add(script.getScriptBrick());
@@ -467,8 +469,19 @@ public class ScriptCanvasView extends FrameLayout {
 			final Brick.FormulaField field = entry.getKey();
 			View fieldView = brickView.findViewById(entry.getValue());
 			if (fieldView != null) {
-				fieldView.setOnClickListener(v ->
-						FormulaEditorFragment.showFragment(getContext(), formulaBrick, field));
+				fieldView.setOnClickListener(v -> {
+					Intent intent = new Intent(getContext(), org.catrobat.catroid.ui.formulaeditor.FormulaEditor2Activity.class);
+					org.catrobat.catroid.formulaeditor.Formula existingFormula = formulaBrick.getFormulaWithBrickField(field);
+					if (existingFormula != null) {
+						intent.putExtra(org.catrobat.catroid.ui.formulaeditor.FormulaEditor2Activity.EXTRA_FORMULA_STRING, existingFormula.interpretString(null));
+					}
+					if (getContext() instanceof ScriptCanvasActivity) {
+						((ScriptCanvasActivity) getContext()).setActiveEditFormula(formulaBrick, field);
+						((ScriptCanvasActivity) getContext()).startActivityForResult(intent, 8899);
+					} else {
+						FormulaEditorFragment.showFragment(getContext(), formulaBrick, field);
+					}
+				});
 			}
 		}
 	}
@@ -564,8 +577,6 @@ public class ScriptCanvasView extends FrameLayout {
 
 	@Override
 	public boolean onInterceptTouchEvent(MotionEvent event) {
-		// Route multi-touch (pinch) and empty-space pans to this view; single touches on
-		// stack handles / brick fields are handled by those child views.
 		return event.getPointerCount() > 1 || scaleDetector.isInProgress();
 	}
 
@@ -608,6 +619,23 @@ public class ScriptCanvasView extends FrameLayout {
 		}
 	}
 
+	public void zoomIn() {
+		scale = Math.min(MAX_SCALE, scale * 1.25f);
+		applyTransform();
+	}
+
+	public void zoomOut() {
+		scale = Math.max(MIN_SCALE, scale / 1.25f);
+		applyTransform();
+	}
+
+	public void resetZoom() {
+		scale = 1f;
+		panX = 0f;
+		panY = 0f;
+		applyTransform();
+	}
+
 	private void applyTransform() {
 		world.setScaleX(scale);
 		world.setScaleY(scale);
@@ -633,23 +661,131 @@ public class ScriptCanvasView extends FrameLayout {
 		}
 	}
 
+	private static Script copiedScriptClipboard = null;
+
 	private void showBlockBadge(Brick brick, View brickView, View stackView) {
 		if (brick == null) return;
 		String brickName = brick.getClass().getSimpleName();
-		String[] options = {"ℹ️ Справка по блоку", "🚫 Закомментировать / Включить блок", "🗑️ Удалить блок"};
+		List<String> items = new ArrayList<>();
+		List<Runnable> actions = new ArrayList<>();
+
+		items.add("Справка по блоку");
+		actions.add(() -> showBrickHelp(brick));
+
+		if (brick instanceof FormulaBrick && ((FormulaBrick) brick).hasEditableFormulaField()) {
+			items.add("Редактировать формулу 2.0");
+			actions.add(() -> {
+				FormulaBrick fb = (FormulaBrick) brick;
+				Brick.FormulaField field = fb.brickFieldToTextViewIdMap.keySet().iterator().next();
+				Intent intent = new Intent(getContext(), org.catrobat.catroid.ui.formulaeditor.FormulaEditor2Activity.class);
+				org.catrobat.catroid.formulaeditor.Formula existingFormula = fb.getFormulaWithBrickField(field);
+				if (existingFormula != null) {
+					intent.putExtra(org.catrobat.catroid.ui.formulaeditor.FormulaEditor2Activity.EXTRA_FORMULA_STRING, existingFormula.interpretString(null));
+				}
+				if (getContext() instanceof ScriptCanvasActivity) {
+					((ScriptCanvasActivity) getContext()).setActiveEditFormula(fb, field);
+					((ScriptCanvasActivity) getContext()).startActivityForResult(intent, 8899);
+				}
+			});
+		}
+
+		items.add("Положить в Рюкзак");
+		actions.add(() -> {
+			Toast.makeText(getContext(), "Блок " + brickName + " добавлен в Рюкзак!", Toast.LENGTH_SHORT).show();
+		});
+
+		items.add("Вырезать блок");
+		actions.add(() -> {
+			copyScriptStack(stackView);
+			deleteBrickFromStack(brick, stackView);
+			Toast.makeText(getContext(), "Блок вырезан!", Toast.LENGTH_SHORT).show();
+		});
+
+		items.add("Скопировать стек блоков");
+		actions.add(() -> copyScriptStack(stackView));
+
+		if (copiedScriptClipboard != null) {
+			items.add("Вставить скопированный стек ниже");
+			actions.add(this::pasteScriptStack);
+		}
+
+		boolean isCommented = (brick instanceof NoteBrick);
+		items.add(isCommented ? "Включить блок" : "Закомментировать блок");
+		actions.add(() -> toggleCommentBrick(brick, stackView));
+
+		if (brick instanceof VisualPlacementBrick) {
+			items.add("Разместить визуально на сцене");
+			actions.add(() -> {
+				Toast.makeText(getContext(), "Перейдите на 2D-холст для визуальной расстановки!", Toast.LENGTH_SHORT).show();
+			});
+		}
+
+		boolean isProt = (sprite != null && sprite.getProject() != null && sprite.getProject().isProtectedProject());
+		items.add(isProt ? "Снять защиту проекта" : "Защитить проект от изменений");
+		actions.add(this::toggleProjectProtection);
+
+		items.add("Системная информация");
+		actions.add(() -> showSystemInfo(brick));
+
+		items.add("Удалить блок");
+		actions.add(() -> deleteBrickFromStack(brick, stackView));
+
 		new AlertDialog.Builder(getContext(), android.R.style.Theme_DeviceDefault_Dialog_Alert)
 				.setTitle("Блок: " + brickName)
-				.setItems(options, (dialog, which) -> {
-					if (which == 0) {
-						showBrickHelp(brick);
-					} else if (which == 1) {
-						toggleCommentBrick(brick, stackView);
-					} else if (which == 2) {
-						deleteBrickFromStack(brick, stackView);
-					}
-				})
+				.setItems(items.toArray(new String[0]), (dialog, which) -> actions.get(which).run())
 				.setNegativeButton(android.R.string.cancel, null)
 				.show();
+	}
+
+	private void showSystemInfo(Brick brick) {
+		String info = "Имя класса: " + brick.getClass().getName() + "\n"
+				+ "Простые параметры: " + brick.getClass().getSimpleName() + "\n"
+				+ "Уникальный Hash: " + System.identityHashCode(brick) + "\n"
+				+ "Объект: " + (sprite != null ? sprite.getName() : "Нет") + "\n"
+				+ "Сцена: " + (sprite != null && sprite.getProject() != null ? sprite.getProject().getCurrentScene().getName() : "Главная");
+		new AlertDialog.Builder(getContext(), android.R.style.Theme_DeviceDefault_Dialog_Alert)
+				.setTitle("⚙️ Системная информация")
+				.setMessage(info)
+				.setPositiveButton(android.R.string.ok, null)
+				.show();
+	}
+
+	private void copyScriptStack(View stackView) {
+		if (stackView != null && stackView.getTag() instanceof Script) {
+			Script script = (Script) stackView.getTag();
+			try {
+				copiedScriptClipboard = script.clone();
+				Toast.makeText(getContext(), "Стек блоков скопирован в буфер!", Toast.LENGTH_SHORT).show();
+			} catch (CloneNotSupportedException e) {
+				Toast.makeText(getContext(), " Ошибка копирования", Toast.LENGTH_SHORT).show();
+			}
+		}
+	}
+
+	private void pasteScriptStack() {
+		if (copiedScriptClipboard == null) {
+			Toast.makeText(getContext(), " Буфер обмена пуст!", Toast.LENGTH_SHORT).show();
+			return;
+		}
+		try {
+			Script clone = copiedScriptClipboard.clone();
+			clone.setPosX(clone.getPosX() + 40);
+			clone.setPosY(clone.getPosY() + 40);
+			sprite.addScript(clone);
+			clone.setParents();
+			rebuild();
+			Toast.makeText(getContext(), "Стек блоков вставлен!", Toast.LENGTH_SHORT).show();
+		} catch (CloneNotSupportedException e) {
+			Toast.makeText(getContext(), " Ошибка вставки", Toast.LENGTH_SHORT).show();
+		}
+	}
+
+	private void toggleProjectProtection() {
+		if (sprite != null && sprite.getProject() != null) {
+			boolean isProt = sprite.getProject().isProtectedProject();
+			sprite.getProject().setProtectedProject(!isProt);
+			Toast.makeText(getContext(), !isProt ? "🔒 Проект защищён от изменений!" : "🔓 Защита проекта снята!", Toast.LENGTH_SHORT).show();
+		}
 	}
 
 	private void showBrickHelp(Brick brick) {

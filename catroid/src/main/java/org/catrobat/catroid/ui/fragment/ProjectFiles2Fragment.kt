@@ -67,7 +67,6 @@ class ProjectFiles2Fragment : Fragment() {
         val dp10 = (10 * density).toInt()
         val dp12 = (12 * density).toInt()
 
-        // Header buttons: Create File, Import File, Terminal
         val actionsRow = LinearLayout(requireContext()).apply {
             orientation = LinearLayout.HORIZONTAL
             layoutParams = LinearLayout.LayoutParams(
@@ -77,7 +76,7 @@ class ProjectFiles2Fragment : Fragment() {
         }
 
         val createBtn = TextView(requireContext()).apply {
-            text = "➕ Создать"
+            text = "Создать"
             setTextColor(0xFF38BDF8.toInt())
             textSize = 14f
             setTypeface(null, Typeface.BOLD)
@@ -91,7 +90,7 @@ class ProjectFiles2Fragment : Fragment() {
         actionsRow.addView(createBtn)
 
         val importBtn = TextView(requireContext()).apply {
-            text = "📥 Импорт"
+            text = "Импорт"
             setTextColor(0xFF38BDF8.toInt())
             textSize = 14f
             setTypeface(null, Typeface.BOLD)
@@ -105,7 +104,7 @@ class ProjectFiles2Fragment : Fragment() {
         actionsRow.addView(importBtn)
 
         val cmdBtn = TextView(requireContext()).apply {
-            text = "💻 Терминал"
+            text = "Терминал"
             setTextColor(0xFF38BDF8.toInt())
             textSize = 14f
             setTypeface(null, Typeface.BOLD)
@@ -268,10 +267,14 @@ class ProjectFiles2Fragment : Fragment() {
             FileOutputStream(destinationFile).use { outputStream ->
                 inputStream.use { input -> input.copyTo(outputStream) }
             }
-            refreshFiles()
-            Toast.makeText(requireContext(), "Файл импортирован!", Toast.LENGTH_SHORT).show()
+            if (isAdded && context != null) {
+                refreshFiles()
+                Toast.makeText(requireContext(), "Файл импортирован!", Toast.LENGTH_SHORT).show()
+            }
         } catch (e: Exception) {
-            Toast.makeText(requireContext(), "Ошибка импорта: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+            if (isAdded && context != null) {
+                Toast.makeText(requireContext(), "Ошибка импорта: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 

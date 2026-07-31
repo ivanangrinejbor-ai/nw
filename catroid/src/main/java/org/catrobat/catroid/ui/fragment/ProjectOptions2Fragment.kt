@@ -91,9 +91,8 @@ class ProjectOptions2Fragment : Fragment() {
             }
         }
 
-        // Card 1: Main Info & Name
         val cardName = createCardLayout()
-        val title1 = createCardTitle("📌 Имя и Описание проекта")
+        val title1 = createCardTitle("Имя и Описание проекта")
         cardName.addView(title1)
 
         val nameLabel = TextView(requireContext()).apply {
@@ -133,7 +132,7 @@ class ProjectOptions2Fragment : Fragment() {
         }
         cardName.addView(descInput)
 
-        val saveInfoBtn = createActionButton("💾 Сохранить имя и описание") {
+        val saveInfoBtn = createActionButton("Сохранить имя и описание") {
             val newName = nameInput.text.toString().trim()
             if (newName.isNotEmpty()) {
                 proj.name = newName
@@ -146,9 +145,8 @@ class ProjectOptions2Fragment : Fragment() {
 
         col1.addView(cardName)
 
-        // Card 2: Orientation & Virtual Resolution
         val cardDisplay = createCardLayout()
-        val title2 = createCardTitle("📐 Экран и Разрешение")
+        val title2 = createCardTitle("Экран и Разрешение")
         cardDisplay.addView(title2)
 
         val header = proj.xmlHeader
@@ -199,7 +197,7 @@ class ProjectOptions2Fragment : Fragment() {
 
         cardDisplay.addView(resRow)
 
-        val saveResBtn = createActionButton("⚙️ Применить разрешение") {
+        val saveResBtn = createActionButton("Применить разрешение") {
             try {
                 val w = inputW.text.toString().toInt()
                 val h = inputH.text.toString().toInt()
@@ -217,26 +215,24 @@ class ProjectOptions2Fragment : Fragment() {
 
         col1.addView(cardDisplay)
 
-        // Card 3: Export & Build APK
         val cardExport = createCardLayout()
-        val title3 = createCardTitle("📦 Экспорт и Резервные копии")
+        val title3 = createCardTitle("Экспорт и Резервные копии")
         cardExport.addView(title3)
 
-        val exportZipBtn = createActionButton("📤 Экспортировать проект (.catrobat / .zip)") {
+        val exportZipBtn = createActionButton("Экспортировать проект (.catrobat / .zip)") {
             exportProject()
         }
         cardExport.addView(exportZipBtn)
 
-        val apkBuildBtn = createActionButton("🤖 Собрать в APK (APK Builder V3)") {
+        val apkBuildBtn = createActionButton("Собрать в APK (APK Builder V3)") {
             showApkBuilderDialog()
         }
         cardExport.addView(apkBuildBtn)
 
         col2.addView(cardExport)
 
-        // Card 4: Navigation to Project Files
         val cardNav = createCardLayout()
-        val title4 = createCardTitle("📁 Файлы проекта 2.0")
+        val title4 = createCardTitle("Файлы проекта 2.0")
         cardNav.addView(title4)
 
         val infoFiles = TextView(requireContext()).apply {
@@ -247,7 +243,7 @@ class ProjectOptions2Fragment : Fragment() {
         }
         cardNav.addView(infoFiles)
 
-        val openFilesBtn = createActionButton("📁 Открыть Файлы проекта 2.0") {
+        val openFilesBtn = createActionButton("Открыть Файлы проекта 2.0") {
             (activity as? Ui2PanelActivity)?.let {
                 parentFragmentManager.beginTransaction()
                     .replace(R.id.fragment_container, ProjectFiles2Fragment(), "ui2_panel_fragment")
@@ -333,11 +329,15 @@ class ProjectOptions2Fragment : Fragment() {
                 val targetZip = File(exportDir, "${proj.name}_export.catrobat")
                 StorageOperations.zipDir(proj.directory, targetZip)
                 activity?.runOnUiThread {
-                    Toast.makeText(requireContext(), "Проект экспортирован в Download/NeoCatroidExports!", Toast.LENGTH_LONG).show()
+                    if (isAdded && context != null) {
+                        Toast.makeText(requireContext(), "Проект экспортирован в Download/NeoCatroidExports!", Toast.LENGTH_LONG).show()
+                    }
                 }
             } catch (e: Exception) {
                 activity?.runOnUiThread {
-                    Toast.makeText(requireContext(), "Ошибка экспорта: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+                    if (isAdded && context != null) {
+                        Toast.makeText(requireContext(), "Ошибка экспорта: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+                    }
                 }
             }
         }.start()

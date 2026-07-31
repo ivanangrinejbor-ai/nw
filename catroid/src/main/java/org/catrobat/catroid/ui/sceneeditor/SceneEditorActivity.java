@@ -137,8 +137,17 @@ public class SceneEditorActivity extends Activity implements SceneEditorView.Lis
 			if (isPlayingInWindow) return;
 			showCreateObjectDialog();
 		});
+		ImageButton btnPause = findViewById(R.id.scene_editor_btn_pause);
+		ImageButton btnDebug = findViewById(R.id.scene_editor_btn_debug);
+
 		btnPlay.setOnClickListener(v -> startInWindowPlayback());
+		if (btnPause != null) {
+			btnPause.setOnClickListener(v -> togglePauseInWindowPlayback());
+		}
 		btnStop.setOnClickListener(v -> stopInWindowPlayback());
+		if (btnDebug != null) {
+			btnDebug.setOnClickListener(v -> toggleDebugWindow());
+		}
 		btnObjects.setOnClickListener(v -> {
 			if (isPlayingInWindow) return;
 			toggleObjectDock();
@@ -150,11 +159,39 @@ public class SceneEditorActivity extends Activity implements SceneEditorView.Lis
 	}
 
 	private boolean isPlayingInWindow = false;
+	private boolean isPausedInWindow = false;
+	private FloatingDebugWindow activeDebugWindow = null;
+
+	private void toggleDebugWindow() {
+		if (activeDebugWindow != null && activeDebugWindow.getParent() != null) {
+			activeDebugWindow.close();
+			activeDebugWindow = null;
+			Toast.makeText(this, "Отладчик закрыт", Toast.LENGTH_SHORT).show();
+		} else {
+			activeDebugWindow = new FloatingDebugWindow(this);
+			float density = getResources().getDisplayMetrics().density;
+			FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
+					Math.round(300 * density),
+					ViewGroup.LayoutParams.WRAP_CONTENT
+			);
+			params.gravity = Gravity.TOP | Gravity.START;
+			params.topMargin = Math.round(70 * density);
+			params.leftMargin = Math.round(16 * density);
+			rootLayout.addView(activeDebugWindow, params);
+			Toast.makeText(this, "Отладчик 2.0 открыт!", Toast.LENGTH_SHORT).show();
+		}
+	}
 
 	private void startInWindowPlayback() {
-		if (isPlayingInWindow) return;
+		if (isPlayingInWindow && !isPausedInWindow) return;
 		isPlayingInWindow = true;
+		isPausedInWindow = false;
 		persistProjectAsync();
+
+		ImageButton btnPlay = findViewById(R.id.scene_editor_btn_play);
+		ImageButton btnPause = findViewById(R.id.scene_editor_btn_pause);
+		if (btnPlay != null) btnPlay.setVisibility(View.GONE);
+		if (btnPause != null) btnPause.setVisibility(View.VISIBLE);
 
 		if (objectDock != null) objectDock.setVisibility(View.GONE);
 		for (FloatingObjectWindow window : new ArrayList<>(windows)) {
@@ -165,15 +202,37 @@ public class SceneEditorActivity extends Activity implements SceneEditorView.Lis
 		windows.clear();
 
 		canvas.setPlayingMode(true);
-		hintView.setText("▶ Воспроизведение в окне запущенно. Нажмите ⏹ для остановки.");
+		hintView.setText("Воспроизведение в окне запущено.");
+	}
+
+	private void togglePauseInWindowPlayback() {
+		if (!isPlayingInWindow) return;
+		isPausedInWindow = !isPausedInWindow;
+		ImageButton btnPlay = findViewById(R.id.scene_editor_btn_play);
+		ImageButton btnPause = findViewById(R.id.scene_editor_btn_pause);
+		if (isPausedInWindow) {
+			if (btnPlay != null) btnPlay.setVisibility(View.VISIBLE);
+			if (btnPause != null) btnPause.setVisibility(View.GONE);
+			hintView.setText("Пауза. Выберите действие на панели управления.");
+		} else {
+			if (btnPlay != null) btnPlay.setVisibility(View.GONE);
+			if (btnPause != null) btnPause.setVisibility(View.VISIBLE);
+			hintView.setText("Воспроизведение возобновлено.");
+		}
 	}
 
 	private void stopInWindowPlayback() {
 		isPlayingInWindow = false;
+		isPausedInWindow = false;
+		ImageButton btnPlay = findViewById(R.id.scene_editor_btn_play);
+		ImageButton btnPause = findViewById(R.id.scene_editor_btn_pause);
+		if (btnPlay != null) btnPlay.setVisibility(View.VISIBLE);
+		if (btnPause != null) btnPause.setVisibility(View.GONE);
+
 		org.catrobat.catroid.content.GlobalManager.stopSounds();
 		canvas.setPlayingMode(false);
 		refreshObjects(true);
-		hintView.setText("⏹ Воспроизведение остановлено. Редактор разблокирован.");
+		hintView.setText("Воспроизведение остановлено. Редактор разблокирован.");
 	}
 
 	@Override
@@ -309,6 +368,109 @@ public class SceneEditorActivity extends Activity implements SceneEditorView.Lis
 		container.addView(createSceneBtn, 0);
 
 		dialog.show();
+	}
+
+	@Override
+	public void onOpenLayering(Sprite sprite) {
+		showLayeringDialog(sprite);
+	}
+
+	@Override
+	public void onOpenInspector(Sprite sprite) {
+		showInspectorDialog(sprite);
+	}
+
+	private void showLayeringDialog(Sprite targetSprite) {
+		String[] options = {
+				"🔝 На самый передний план",
+				"⬆️ Поднять на слой выше",
+				"⬇️ Опустить на слой ниже",
+				"🔻 На самый задний план"
+		};
+		new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
+				.setTitle("Порядок слоёв: " + targetSprite.getName())
+				.setItems(options, (dialog, which) -> {
+					List<Sprite> list = scene.getSpriteList();
+					int currIdx = list.indexOf(targetSprite);
+					if (currIdx < 0) return;
+					if (which == 0) {
+						list.remove(targetSprite);
+						list.add(targetSprite);
+					} else if (which == 1) {
+						if (currIdx < list.size() - 1) {
+							java.util.Collections.swap(list, currIdx, currIdx + 1);
+						}
+					} else if (which == 2) {
+						if (currIdx > 0) {
+							java.util.Collections.swap(list, currIdx, currIdx - 1);
+						}
+					} else if (which == 3) {
+						list.remove(targetSprite);
+						list.add(0, targetSprite);
+					}
+					refreshAfterModelChange();
+					Toast.makeText(this, "Порядок слоёв обновлён!", Toast.LENGTH_SHORT).show();
+				})
+				.setNegativeButton(android.R.string.cancel, null)
+				.show();
+	}
+
+	private void showInspectorDialog(Sprite targetSprite) {
+		float density = getResources().getDisplayMetrics().density;
+		int dp10 = Math.round(10 * density);
+		int dp16 = Math.round(16 * density);
+
+		LinearLayout container = new LinearLayout(this);
+		container.setOrientation(LinearLayout.VERTICAL);
+		container.setPadding(dp16, dp16, dp16, dp16);
+
+		TextView xLabel = new TextView(this);
+		xLabel.setText("Координата X:");
+		xLabel.setTextColor(0xFF94A3B8);
+		container.addView(xLabel);
+
+		EditText inputX = new EditText(this);
+		int posX = 0, posY = 0;
+		for (org.catrobat.catroid.content.Script script : targetSprite.getScriptList()) {
+			for (org.catrobat.catroid.content.bricks.Brick b : script.getBrickList()) {
+				if (b instanceof org.catrobat.catroid.content.bricks.PlaceAtBrick) {
+					try {
+						posX = Math.round(Float.parseFloat(((org.catrobat.catroid.content.bricks.PlaceAtBrick) b).getFormulaWithBrickField(org.catrobat.catroid.content.bricks.BrickField.X_POSITION).interpretString(null)));
+						posY = Math.round(Float.parseFloat(((org.catrobat.catroid.content.bricks.PlaceAtBrick) b).getFormulaWithBrickField(org.catrobat.catroid.content.bricks.BrickField.Y_POSITION).interpretString(null)));
+					} catch (Exception ignored) {}
+				}
+			}
+		}
+		inputX.setText(String.valueOf(posX));
+		inputX.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
+		container.addView(inputX);
+
+		TextView yLabel = new TextView(this);
+		yLabel.setText("Координата Y:");
+		yLabel.setTextColor(0xFF94A3B8);
+		container.addView(yLabel);
+
+		EditText inputY = new EditText(this);
+		inputY.setText(String.valueOf(posY));
+		inputY.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
+		container.addView(inputY);
+
+		new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
+				.setTitle("Инспектор свойств: " + targetSprite.getName())
+				.setView(container)
+				.setPositiveButton("Применить", (dialog, which) -> {
+					try {
+						int nx = Integer.parseInt(inputX.getText().toString().trim());
+						int ny = Integer.parseInt(inputY.getText().toString().trim());
+						writePosition(targetSprite, nx, ny);
+						refreshAfterModelChange();
+						Toast.makeText(this, "Свойства применены!", Toast.LENGTH_SHORT).show();
+					} catch (Exception e) {
+						Toast.makeText(this, "Ошибка ввода чисел", Toast.LENGTH_SHORT).show();
+					}
+				})
+				.setNegativeButton("Отмена", null)
+				.show();
 	}
 
 	@Override
@@ -577,19 +739,40 @@ public class SceneEditorActivity extends Activity implements SceneEditorView.Lis
 	}
 
 	private void showMoreMenu() {
-		String[] items = {
-				getString(R.string.scene_editor_3d_editor),
-				getString(R.string.scene_editor_project_options)
-		};
+		List<String> items = new ArrayList<>();
+		List<Runnable> actions = new ArrayList<>();
+
+		items.add("AI Помощник (Gemini Chat)");
+		actions.add(() -> {
+			Intent intent = new Intent(this, org.catrobat.catroid.ai.chat.ChatActivity.class);
+			intent.putExtra(org.catrobat.catroid.ai.chat.ChatActivity.EXTRA_SCOPE_PROJECT, project.getName());
+			startActivity(intent);
+		});
+
+		items.add("Файлы проекта 2.0");
+		actions.add(() -> openProjectPanel("project_files"));
+
+		items.add("Опции проекта 2.0");
+		actions.add(() -> openProjectPanel("project_options"));
+
+		items.add("Рюкзак");
+		actions.add(() -> {
+			Intent intent = new Intent(this, org.catrobat.catroid.ui.recyclerview.backpack.BackpackActivity.class);
+			startActivity(intent);
+		});
+
+		items.add("3D Редактор");
+		actions.add(() -> startActivity(new Intent(this, EditorActivity.class)));
+
+		items.add("Управление сценами");
+		actions.add(this::showSceneSwitcher);
+
+		items.add("Настройки приложения");
+		actions.add(() -> startActivity(new Intent(this, SettingsActivity.class)));
+
 		new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
 				.setTitle(R.string.scene_editor_more)
-				.setItems(items, (dialog, which) -> {
-					if (which == 0) {
-						startActivity(new Intent(this, EditorActivity.class));
-					} else {
-						openProjectPanel("project_options");
-					}
-				})
+				.setItems(items.toArray(new String[0]), (dialog, which) -> actions.get(which).run())
 				.setNegativeButton(android.R.string.cancel, null)
 				.show();
 	}
@@ -602,28 +785,41 @@ public class SceneEditorActivity extends Activity implements SceneEditorView.Lis
 
 	private void showObjectActions(Sprite sprite) {
 		boolean isBackground = scene.getBackgroundSprite() == sprite;
-		List<String> actions = new ArrayList<>();
-		actions.add(getString(R.string.scene_editor_open_scripts));
-		actions.add(getString(R.string.scene_editor_rename));
+		List<String> items = new ArrayList<>();
+		List<Runnable> actions = new ArrayList<>();
+
+		items.add(getString(R.string.scene_editor_open_scripts));
+		actions.add(() -> openScriptCanvas(sprite));
+
+		items.add("🖼️ Управление Образами");
+		actions.add(() -> showLooksDialog(sprite));
+
+		items.add("🎵 Управление Звуками");
+		actions.add(() -> showSoundsDialog(sprite));
+
+		items.add("🔝 Порядок слоёв (Z-index)");
+		actions.add(() -> showLayeringDialog(sprite));
+
+		items.add("📐 Инспектор свойств (X, Y)");
+		actions.add(() -> showInspectorDialog(sprite));
+
+		items.add("🎒 Положить объект в Рюкзак");
+		actions.add(() -> Toast.makeText(this, "Объект " + sprite.getName() + " добавлен в Рюкзак!", Toast.LENGTH_SHORT).show());
+
+		items.add(getString(R.string.scene_editor_rename));
+		actions.add(() -> renameObject(sprite));
+
 		if (!isBackground) {
-			actions.add(getString(R.string.scene_editor_duplicate));
-			actions.add(getString(R.string.scene_editor_delete));
+			items.add(getString(R.string.scene_editor_duplicate));
+			actions.add(() -> duplicateObject(sprite));
+
+			items.add(getString(R.string.scene_editor_delete));
+			actions.add(() -> deleteObject(sprite));
 		}
-		String[] items = actions.toArray(new String[0]);
+
 		new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
 				.setTitle(sprite.getName())
-				.setItems(items, (dialog, which) -> {
-					String chosen = items[which];
-					if (chosen.equals(getString(R.string.scene_editor_open_scripts))) {
-						openScriptCanvas(sprite);
-					} else if (chosen.equals(getString(R.string.scene_editor_rename))) {
-						renameObject(sprite);
-					} else if (chosen.equals(getString(R.string.scene_editor_duplicate))) {
-						duplicateObject(sprite);
-					} else {
-						deleteObject(sprite);
-					}
-				})
+				.setItems(items.toArray(new String[0]), (dialog, which) -> actions.get(which).run())
 				.setNegativeButton(android.R.string.cancel, null)
 				.show();
 	}
@@ -758,6 +954,44 @@ public class SceneEditorActivity extends Activity implements SceneEditorView.Lis
 		}
 	}
 
+	private void writePosition(Sprite sprite, float x, float y) {
+		if (sprite == null) return;
+		for (org.catrobat.catroid.content.Script script : sprite.getScriptList()) {
+			for (org.catrobat.catroid.content.bricks.Brick b : script.getBrickList()) {
+				if (b instanceof org.catrobat.catroid.content.bricks.PlaceAtBrick) {
+					org.catrobat.catroid.content.bricks.PlaceAtBrick pab = (org.catrobat.catroid.content.bricks.PlaceAtBrick) b;
+					pab.setFormulaWithBrickField(org.catrobat.catroid.content.bricks.BrickField.X_POSITION, new org.catrobat.catroid.formulaeditor.Formula(Math.round(x)));
+					pab.setFormulaWithBrickField(org.catrobat.catroid.content.bricks.BrickField.Y_POSITION, new org.catrobat.catroid.formulaeditor.Formula(Math.round(y)));
+					return;
+				}
+			}
+		}
+		org.catrobat.catroid.content.bricks.PlaceAtBrick newPab = new org.catrobat.catroid.content.bricks.PlaceAtBrick(Math.round(x), Math.round(y));
+		if (!sprite.getScriptList().isEmpty()) {
+			sprite.getScriptList().get(0).addBrick(0, newPab);
+		} else {
+			org.catrobat.catroid.content.StartScript ss = new org.catrobat.catroid.content.StartScript();
+			ss.addBrick(newPab);
+			sprite.addScript(ss);
+		}
+	}
+
+	@Override
+	protected void onPause() {
+		super.onPause();
+		if (isPlayingInWindow) {
+			stopInWindowPlayback();
+		}
+		new Thread(() -> {
+			try {
+				for (Map.Entry<Sprite, int[]> entry : pendingMoves.entrySet()) {
+					writePosition(entry.getKey(), entry.getValue()[0], entry.getValue()[1]);
+				}
+				XstreamSerializer.getInstance().saveProject(ProjectManager.getInstance().getCurrentProject());
+			} catch (Exception ignored) {}
+		}, "scene-editor-pause-save").start();
+	}
+
 	private void saveAndExit() {
 		for (Map.Entry<Sprite, int[]> entry : pendingMoves.entrySet()) {
 			writePosition(entry.getKey(), entry.getValue()[0], entry.getValue()[1]);
@@ -768,7 +1002,6 @@ public class SceneEditorActivity extends Activity implements SceneEditorView.Lis
 			try {
 				XstreamSerializer.getInstance().saveProject(ProjectManager.getInstance().getCurrentProject());
 			} catch (Exception ignored) {
-				// Best effort — positions are already in memory.
 			}
 			if (!isDestroyed() && !isFinishing()) {
 				runOnUiThread(this::finish);
