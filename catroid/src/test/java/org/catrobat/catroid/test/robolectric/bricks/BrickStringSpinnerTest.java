@@ -99,7 +99,6 @@ public class BrickStringSpinnerTest {
 				{ChooseCameraBrick.class.getSimpleName(), new ChooseCameraBrick(), R.id.brick_choose_camera_spinner, "front", Arrays.asList("rear", "front")},
 				{FlashBrick.class.getSimpleName(), new FlashBrick(), R.id.brick_flash_spinner, "on", Arrays.asList("off", "on")},
 
-				//Lego bricks
 				{LegoNxtMotorTurnAngleBrick.class.getSimpleName(), new LegoNxtMotorTurnAngleBrick(), R.id.lego_motor_turn_angle_spinner, "A", Arrays.asList("A", "B", "C", "B+C")},
 				{LegoNxtMotorStopBrick.class.getSimpleName(), new LegoNxtMotorStopBrick(), R.id.stop_motor_spinner, "A", Arrays.asList("A", "B", "C", "B+C", "All")},
 				{LegoNxtMotorMoveBrick.class.getSimpleName(), new LegoNxtMotorMoveBrick(), R.id.lego_motor_action_spinner, "A", Arrays.asList("A", "B", "C", "B+C")},
@@ -108,12 +107,10 @@ public class BrickStringSpinnerTest {
 				{LegoEv3MotorStopBrick.class.getSimpleName(), new LegoEv3MotorStopBrick(), R.id.ev3_stop_motor_spinner, "A", Arrays.asList("A", "B", "C", "D", "B+C", "All")},
 				{LegoEv3SetLedBrick.class.getSimpleName(), new LegoEv3SetLedBrick(), R.id.brick_ev3_set_led_spinner, "Green", Arrays.asList("Off", "Green", "Red", "Orange", "Green flashing", "Red flashing", "Orange flashing", "Green pulse", "Red pulse", "Orange pulse")},
 
-				//Drone bricks
 				{DronePlayLedAnimationBrick.class.getSimpleName(), new DronePlayLedAnimationBrick(), R.id.brick_drone_play_led_animation_spinner, "Blink green", Arrays.asList("Blink green red", "Blink green", "Blink red", "Blink orange", "Snake green red", "Fire", "Standard", "Red", "Green", "Red snake", "Blank", "Right missile", "Left missile", "Double missile", "Front left green others red", "Front right green others red", "Rear right green others red", "Rear left green others red", "Left green right red", "Left red right green", "Blink standard")},
 				{JumpingSumoAnimationsBrick.class.getSimpleName(), new JumpingSumoAnimationsBrick(), R.id.brick_jumping_sumo_animation_spinner, "Spin", Arrays.asList("Spin", "Tab", "Slowshake", "Metronome", "Ondulation", "Spinjump", "Spiral", "Slalom")},
 				{JumpingSumoSoundBrick.class.getSimpleName(), new JumpingSumoSoundBrick(), R.id.brick_jumping_sumo_sound_spinner, "Normal", Arrays.asList("Normal", "Robot", "Insect", "Monster")},
 
-				//Phiro bricks
 				{PhiroMotorMoveForwardBrick.class.getSimpleName(), new PhiroMotorMoveForwardBrick(), R.id.brick_phiro_motor_forward_action_spinner, "Left", Arrays.asList("Left", "Right", "Both")},
 				{PhiroMotorMoveBackwardBrick.class.getSimpleName(), new PhiroMotorMoveBackwardBrick(), R.id.brick_phiro_motor_backward_action_spinner, "Left", Arrays.asList("Left", "Right", "Both")},
 				{PhiroMotorStopBrick.class.getSimpleName(), new PhiroMotorStopBrick(), R.id.brick_phiro_stop_motor_spinner, "Both", Arrays.asList("Left", "Right", "Both")},

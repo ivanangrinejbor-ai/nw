@@ -43,13 +43,9 @@ public class InternFormulaRegexAssistantTest {
 
 	private InternFormula internFormula;
 
-	//doubleClickIndex set to specific index related to the extern string representation
-	// described inside the second comment of each test
 	@Test
 	public void testRegexFunctionIsSelected() {
 		ArrayList<InternToken> internTokens = new ArrayList<>();
-		//regular expression ('Hello', 'World')
-		//null( 'Hello' , 'World' )
 		internTokens.add(new InternToken(InternTokenType.FUNCTION_NAME, Functions.REGEX.name()));
 		internTokens.add(new InternToken(InternTokenType.FUNCTION_PARAMETERS_BRACKET_OPEN));
 		internTokens.add(new InternToken(InternTokenType.STRING, "Hello"));
@@ -70,8 +66,6 @@ public class InternFormulaRegexAssistantTest {
 	@Test
 	public void testRegexFunctionFirstParamIsSelected() {
 		ArrayList<InternToken> internTokens = new ArrayList<>();
-		//regular expression('Hello', 'World')
-		//null( 'Hello' , 'World' )
 		internTokens.add(new InternToken(InternTokenType.FUNCTION_NAME, Functions.REGEX.name()));
 		internTokens.add(new InternToken(InternTokenType.FUNCTION_PARAMETERS_BRACKET_OPEN));
 		internTokens.add(new InternToken(InternTokenType.STRING, "Hello"));
@@ -92,8 +86,6 @@ public class InternFormulaRegexAssistantTest {
 	@Test
 	public void testRegexFunctionSecondParamIsSelected() {
 		ArrayList<InternToken> internTokens = new ArrayList<>();
-		//regular expression('Hello', 'World')
-		//null( 'Hello' , 'World' )
 		internTokens.add(new InternToken(InternTokenType.FUNCTION_NAME, Functions.REGEX.name()));
 		internTokens.add(new InternToken(InternTokenType.FUNCTION_PARAMETERS_BRACKET_OPEN));
 		internTokens.add(new InternToken(InternTokenType.STRING, "Hello"));
@@ -114,8 +106,6 @@ public class InternFormulaRegexAssistantTest {
 	@Test
 	public void testJoinFunctionIsSelectedWithNoOutsideRegexFunction() {
 		ArrayList<InternToken> internTokens = new ArrayList<>();
-		//join('Hello', 'World')
-		//null( 'Hello' , 'World' )
 		internTokens.add(new InternToken(InternTokenType.FUNCTION_NAME, Functions.JOIN.name()));
 		internTokens.add(new InternToken(InternTokenType.FUNCTION_PARAMETERS_BRACKET_OPEN));
 		internTokens.add(new InternToken(InternTokenType.STRING, "Hello"));
@@ -136,8 +126,6 @@ public class InternFormulaRegexAssistantTest {
 	@Test
 	public void testJoinFunctionIsSelectedWithOutsideRegexFunction() {
 		ArrayList<InternToken> internTokens = new ArrayList<>();
-		//regular expression(join('Hello','World'), 'Foobar')
-		//null ( null( 'Hello', , 'World' ) , 'Foobar' )
 		internTokens.add(new InternToken(InternTokenType.FUNCTION_NAME, Functions.REGEX.name()));
 		internTokens.add(new InternToken(InternTokenType.FUNCTION_PARAMETERS_BRACKET_OPEN));
 		internTokens.add(new InternToken(InternTokenType.FUNCTION_NAME, Functions.JOIN.name()));
@@ -163,8 +151,6 @@ public class InternFormulaRegexAssistantTest {
 	@Test
 	public void testJoinFunctionFirstParamIsSelectedAndIsNoRegexFunction() {
 		ArrayList<InternToken> internTokens = new ArrayList<>();
-		//join('Hello', 'World')
-		//null( 'Hello' , 'World' )
 		internTokens.add(new InternToken(InternTokenType.FUNCTION_NAME, Functions.JOIN.name()));
 		internTokens.add(new InternToken(InternTokenType.FUNCTION_PARAMETERS_BRACKET_OPEN));
 		internTokens.add(new InternToken(InternTokenType.STRING, "Hello"));
@@ -185,8 +171,6 @@ public class InternFormulaRegexAssistantTest {
 	@Test
 	public void testJoinFunctionSecondParamIsSelectedAndIsNoRegexFunction() {
 		ArrayList<InternToken> internTokens = new ArrayList<>();
-		//join('Hello', 'World')
-		//null( 'Hello' , 'World' )
 		internTokens.add(new InternToken(InternTokenType.FUNCTION_NAME, Functions.JOIN.name()));
 		internTokens.add(new InternToken(InternTokenType.FUNCTION_PARAMETERS_BRACKET_OPEN));
 		internTokens.add(new InternToken(InternTokenType.STRING, "Hello"));
@@ -207,8 +191,6 @@ public class InternFormulaRegexAssistantTest {
 	@Test
 	public void testJoinFunctionFirstParamIsSelectedAndIsRegexFunction() {
 		ArrayList<InternToken> internTokens = new ArrayList<>();
-		//join(regular expression('Hello', 'World'), 'Foobar')
-		//null( null( 'Hello' , 'World' ) , 'Foobar' )
 		internTokens.add(new InternToken(InternTokenType.FUNCTION_NAME, Functions.JOIN.name()));
 		internTokens.add(new InternToken(InternTokenType.FUNCTION_PARAMETERS_BRACKET_OPEN));
 		internTokens.add(new InternToken(InternTokenType.FUNCTION_NAME, Functions.REGEX.name()));
@@ -235,8 +217,6 @@ public class InternFormulaRegexAssistantTest {
 	@Test
 	public void testJoinFunctionSecondParamIsSelectedAndIsRegexFunction() {
 		ArrayList<InternToken> internTokens = new ArrayList<>();
-		//join('Foobar', regular expression('Hello', 'World'))
-		//null( 'Foobar' , null( 'Hello' , 'World' ) )
 		internTokens.add(new InternToken(InternTokenType.FUNCTION_NAME, Functions.JOIN.name()));
 		internTokens.add(new InternToken(InternTokenType.FUNCTION_PARAMETERS_BRACKET_OPEN));
 		internTokens.add(new InternToken(InternTokenType.STRING, "Foobar"));
@@ -262,8 +242,6 @@ public class InternFormulaRegexAssistantTest {
 	@Test
 	public void testRegexFunctionIsSelectedAndFirstParamGetsSelected() {
 		ArrayList<InternToken> internTokens = new ArrayList<>();
-		//regular expression ('Hello', 'World')
-		//null( 'Hello' , 'World' )
 		internTokens.add(new InternToken(InternTokenType.FUNCTION_NAME, Functions.REGEX.name()));
 		internTokens.add(new InternToken(InternTokenType.FUNCTION_PARAMETERS_BRACKET_OPEN));
 		internTokens.add(new InternToken(InternTokenType.STRING, "Hello"));
@@ -284,8 +262,6 @@ public class InternFormulaRegexAssistantTest {
 	@Test
 	public void testRegexFunctionFirstParamIsSelectedAndFirstParamGetsSelected() {
 		ArrayList<InternToken> internTokens = new ArrayList<>();
-		//regular expression ('Hello', 'World')
-		//null( 'Hello' , 'World' )
 		internTokens.add(new InternToken(InternTokenType.FUNCTION_NAME, Functions.REGEX.name()));
 		internTokens.add(new InternToken(InternTokenType.FUNCTION_PARAMETERS_BRACKET_OPEN));
 		internTokens.add(new InternToken(InternTokenType.STRING, "Hello"));
@@ -306,8 +282,6 @@ public class InternFormulaRegexAssistantTest {
 	@Test
 	public void testRegexFunctionSecondParamIsSelectedAndFirstParamGetsSelected() {
 		ArrayList<InternToken> internTokens = new ArrayList<>();
-		//regular expression ('Hello', 'World')
-		//null( 'Hello' , 'World' )
 		internTokens.add(new InternToken(InternTokenType.FUNCTION_NAME, Functions.REGEX.name()));
 		internTokens.add(new InternToken(InternTokenType.FUNCTION_PARAMETERS_BRACKET_OPEN));
 		internTokens.add(new InternToken(InternTokenType.STRING, "Hello"));
@@ -328,8 +302,6 @@ public class InternFormulaRegexAssistantTest {
 	@Test
 	public void testSecondRegexFunctionSecondParamIsSelected() {
 		ArrayList<InternToken> internTokens = new ArrayList<>();
-		//join (regular expression( 'regex1', 'text1'), regular expression ('regex2', 'text2'))
-		//null( null( 'regex1' , 'text1' ) , null( 'regex2' , 'text2' ))
 		internTokens.add(new InternToken(InternTokenType.FUNCTION_NAME, Functions.JOIN.name()));
 		internTokens.add(new InternToken(InternTokenType.FUNCTION_PARAMETERS_BRACKET_OPEN));
 

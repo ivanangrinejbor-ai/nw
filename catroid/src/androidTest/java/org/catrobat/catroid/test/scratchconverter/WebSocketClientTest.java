@@ -96,9 +96,6 @@ public class WebSocketClientTest {
 		webSocketClient = new WebSocketClient(VALID_CLIENT_ID, messageListenerMock);
 	}
 
-	//------------------------------------------------------------------------------------------------------------------
-	// Connect, Disconnect & Authenticate tests
-	//------------------------------------------------------------------------------------------------------------------
 	@Test
 	public void testAsyncConnectAndAuthenticateWhetherWebSocketObjectSettersAreCalledCorrectly() {
 		final WebSocket webSocketMock = Mockito.mock(WebSocket.class);
@@ -130,7 +127,6 @@ public class WebSocketClientTest {
 				assertNotNull(invocation.getArguments()[2]);
 				assertEquals(Constants.SCRATCH_CONVERTER_WEB_SOCKET, invocation.getArguments()[0]);
 
-				// call connectCallback.onCompleted(...)
 				((WebSocketConnectCallback) invocation.getArguments()[2]).onCompleted(null, webSocketMock);
 				verify(webSocketMock, times(1)).setStringCallback(any(WebSocket.StringCallback.class));
 				verify(webSocketMock, times(1)).setClosedCallback(any(CompletedCallback.class));
@@ -142,7 +138,6 @@ public class WebSocketClientTest {
 		}).when(asyncHttpClientMock).websocket(anyString(), nullable(String.class), any(WebSocketConnectCallback
 				.class));
 
-		// run the test
 		webSocketClient.setAsyncHttpClient(asyncHttpClientMock);
 		webSocketClient.connectAndAuthenticate(connectAuthCallbackMock);
 		verify(asyncHttpClientMock, times(1)).websocket(anyString(), nullable(String.class), any(WebSocketConnectCallback.class));
@@ -179,7 +174,6 @@ public class WebSocketClientTest {
 				final String jsonCommand = (String) invocation.getArguments()[0];
 				assertEquals(expectedAuthenticateCommand.toJson().toString(), jsonCommand);
 
-				// simulate authentication response message from server:
 				assertTrue(webSocketClient.isConnected());
 				webSocketClient.onBaseMessage(new ClientIDMessage(expectedClientID));
 				verify(connectAuthCallbackMock, times(1)).onSuccess(any(Long.class));
@@ -196,7 +190,6 @@ public class WebSocketClientTest {
 				assertNotNull(invocation.getArguments()[2]);
 				assertEquals(Constants.SCRATCH_CONVERTER_WEB_SOCKET, invocation.getArguments()[0]);
 
-				// call connectCallback.onCompleted(...)
 				WebSocketConnectCallback connectCallback = (WebSocketConnectCallback) invocation.getArguments()[2];
 				connectCallback.onCompleted(null, webSocketMock);
 				verify(webSocketMock, times(1)).setStringCallback(any(WebSocket.StringCallback.class));
@@ -208,7 +201,6 @@ public class WebSocketClientTest {
 			}
 		}).when(asyncHttpClientMock).websocket(anyString(), anyString(), any(WebSocketConnectCallback.class));
 
-		// run the test
 		webSocketClient.setAsyncHttpClient(asyncHttpClientMock);
 		webSocketClient.connectAndAuthenticate(connectAuthCallbackMock);
 	}
@@ -244,7 +236,6 @@ public class WebSocketClientTest {
 				final String jsonCommand = (String) invocation.getArguments()[0];
 				assertEquals(expectedAuthenticateCommand.toJson().toString(), jsonCommand);
 
-				// simulate authentication response message from server:
 				assertTrue(webSocketClient.isConnected());
 				webSocketClient.onBaseMessage(new ClientIDMessage(VALID_CLIENT_ID));
 				verify(connectAuthCallbackMock, times(1)).onSuccess(anyLong());
@@ -261,7 +252,6 @@ public class WebSocketClientTest {
 				assertNotNull(invocation.getArguments()[2]);
 				assertEquals(Constants.SCRATCH_CONVERTER_WEB_SOCKET, invocation.getArguments()[0]);
 
-				// call connectCallback.onCompleted(...)
 				WebSocketConnectCallback connectCallback = (WebSocketConnectCallback) invocation.getArguments()[2];
 				connectCallback.onCompleted(null, webSocketMock);
 				verify(webSocketMock, times(1)).setStringCallback(any(WebSocket.StringCallback.class));
@@ -273,7 +263,6 @@ public class WebSocketClientTest {
 			}
 		}).when(asyncHttpClientMock).websocket(anyString(), anyString(), any(WebSocketConnectCallback.class));
 
-		// run the test
 		webSocketClient.setAsyncHttpClient(asyncHttpClientMock);
 		webSocketClient.connectAndAuthenticate(connectAuthCallbackMock);
 	}
@@ -293,7 +282,6 @@ public class WebSocketClientTest {
 			}
 		}).when(connectAuthCallbackMock).onConnectionFailure(any(ClientException.class));
 
-		// mocking asyncHttpClient.websocket(...)
 		doAnswer(new Answer<Future<WebSocket>>() {
 			@Override
 			public Future<WebSocket> answer(InvocationOnMock invocation) throws Throwable {
@@ -302,10 +290,8 @@ public class WebSocketClientTest {
 				assertNotNull(invocation.getArguments()[2]);
 				assertEquals(Constants.SCRATCH_CONVERTER_WEB_SOCKET, invocation.getArguments()[0]);
 
-				// call connectCallback.onCompleted(...)
 				WebSocketConnectCallback connectCallback = (WebSocketConnectCallback) invocation.getArguments()[2];
 
-				// simulate that the connection failed!
 				final WebSocket webSocketMock = Mockito.mock(WebSocket.class);
 				connectCallback.onCompleted(new Exception(expectedCancelExceptionMessage), webSocketMock);
 				verify(connectAuthCallbackMock, times(1)).onConnectionFailure(any(ClientException.class));
@@ -315,7 +301,6 @@ public class WebSocketClientTest {
 			}
 		}).when(asyncHttpClientMock).websocket(anyString(), anyString(), any(WebSocketConnectCallback.class));
 
-		// run the test
 		webSocketClient.setAsyncHttpClient(asyncHttpClientMock);
 		webSocketClient.connectAndAuthenticate(connectAuthCallbackMock);
 	}
@@ -345,7 +330,6 @@ public class WebSocketClientTest {
 		doAnswer(new Answer<Void>() {
 			@Override
 			public Void answer(InvocationOnMock invocation) throws Throwable {
-				// simulate authentication failed response message from server:
 				webSocketClient.onBaseMessage(new ErrorMessage(expectedErrorMessage));
 				verify(connectAuthCallbackMock, times(1)).onAuthenticationFailure(any(ClientException.class));
 				verifyNoMoreInteractions(connectAuthCallbackMock);
@@ -361,7 +345,6 @@ public class WebSocketClientTest {
 				assertNotNull(invocation.getArguments()[2]);
 				assertEquals(Constants.SCRATCH_CONVERTER_WEB_SOCKET, invocation.getArguments()[0]);
 
-				// call connectCallback.onCompleted(...)
 				WebSocketConnectCallback connectCallback = (WebSocketConnectCallback) invocation.getArguments()[2];
 				connectCallback.onCompleted(null, webSocketMock);
 				verify(webSocketMock, times(1)).setStringCallback(any(WebSocket.StringCallback.class));
@@ -373,7 +356,6 @@ public class WebSocketClientTest {
 			}
 		}).when(asyncHttpClientMock).websocket(anyString(), anyString(), any(WebSocketConnectCallback.class));
 
-		// run the test
 		webSocketClient.setAsyncHttpClient(asyncHttpClientMock);
 		webSocketClient.connectAndAuthenticate(connectAuthCallbackMock);
 	}
@@ -401,7 +383,6 @@ public class WebSocketClientTest {
 		connectAuthCallbackField.setAccessible(true);
 		connectAuthCallbackField.set(webSocketClient, connectAuthCallbackMock);
 
-		// now simulate that server closes the connection:
 		webSocketClient.onCompleted(new Exception(expectedClosedExceptionMessage));
 		verify(connectAuthCallbackMock, times(1)).onConnectionClosed(any(ClientException.class));
 		verifyNoMoreInteractions(connectAuthCallbackMock);
@@ -450,9 +431,6 @@ public class WebSocketClientTest {
 		verify(webSocketMock, times(1)).close();
 	}
 
-	//------------------------------------------------------------------------------------------------------------------
-	// Command tests
-	//------------------------------------------------------------------------------------------------------------------
 	@Test
 	public void testSendRetrieveInfoCommand() throws Exception {
 		final RetrieveInfoCommand expectedRetrieveInfoCommand = new RetrieveInfoCommand();
@@ -534,9 +512,6 @@ public class WebSocketClientTest {
 		verifyNoMoreInteractions(webSocketMock);
 	}
 
-	//------------------------------------------------------------------------------------------------------------------
-	// Event tests
-	//------------------------------------------------------------------------------------------------------------------
 	@Test
 	public void testReceivedOnBaseMessageEventWithInfoMessage() throws Exception {
 		final Job expectedUnscheduledJob = new Job(1, "Test program",
@@ -768,9 +743,6 @@ public class WebSocketClientTest {
 		verifyNoMoreInteractions(messageListenerMock);
 	}
 
-	//------------------------------------------------------------------------------------------------------------------
-	// Wrapper method tests
-	//------------------------------------------------------------------------------------------------------------------
 	@Test
 	public void testIsJobInProgressWrapperCalled() {
 		final long expectedJobID1 = 1;

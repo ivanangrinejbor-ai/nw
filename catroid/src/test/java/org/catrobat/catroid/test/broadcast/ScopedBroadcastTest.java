@@ -10,9 +10,6 @@ import java.util.List;
 
 import static org.junit.Assert.*;
 
-/**
- * 12 tests for scoped broadcast signals.
- */
 public class ScopedBroadcastTest {
 
     private BroadcastMessageContainer container;
@@ -26,7 +23,6 @@ public class ScopedBroadcastTest {
     public void testDefaultScopeIsGlobal() {
         container.addBroadcastMessage("test_signal");
         BroadcastMessageScope scope = container.getScope("test_signal");
-        // No scope set = null = treated as global
         assertNull(scope);
         assertTrue(container.isMessageVisibleInScene("test_signal", "AnyScene"));
     }
@@ -62,18 +58,14 @@ public class ScopedBroadcastTest {
 
     @Test
     public void testGlobalSceneAlwaysReceives() {
-        // Global scene is handled at runtime level (BroadcastAction),
-        // but scope check should still work for explicit scene names
         BroadcastMessageScope scope = new BroadcastMessageScope("signal", Arrays.asList("Level 1"));
         assertTrue(scope.isAllowedInScene("Level 1"));
         assertFalse(scope.isAllowedInScene("Level 2"));
-        // Note: Global scene bypasses this at dispatch level
     }
 
     @Test
     public void testBackwardCompatNoScopes() {
         container.addBroadcastMessage("old_signal");
-        // No scope set = visible everywhere
         assertTrue(container.isMessageVisibleInScene("old_signal", "Scene 1"));
         assertTrue(container.isMessageVisibleInScene("old_signal", "Scene 2"));
         assertTrue(container.isMessageVisibleInScene("old_signal", "Global"));

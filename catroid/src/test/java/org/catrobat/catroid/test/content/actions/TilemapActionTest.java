@@ -47,8 +47,6 @@ public class TilemapActionTest {
         return new Scope(null, sprite, new ScriptSequenceAction(Mockito.mock(Script.class)));
     }
 
-    // ======================= SetTileAction =======================
-
     @Test
     public void testSetTileSetsTile() {
         SetTileAction action = new SetTileAction();
@@ -63,7 +61,6 @@ public class TilemapActionTest {
 
     @Test
     public void testSetTileMultipleCells() {
-        // First tile
         SetTileAction action1 = new SetTileAction();
         action1.setScope(makeScope());
         action1.setColumn(new Formula(0));
@@ -71,7 +68,6 @@ public class TilemapActionTest {
         action1.setTileIndex(new Formula(1));
         action1.act(1.0f);
 
-        // Second tile (new action instance — TemporalAction is one-shot)
         SetTileAction action2 = new SetTileAction();
         action2.setScope(makeScope());
         action2.setColumn(new Formula(5));
@@ -93,18 +89,15 @@ public class TilemapActionTest {
         action.setRow(new Formula(0));
         action.setTileIndex(new Formula(1));
         action.act(1.0f);
-        // Should not throw — just no-op
     }
 
     @Test
     public void testSetTileNoOpWhenScopeNull() {
         SetTileAction action = new SetTileAction();
-        // scope is null by default
         action.setColumn(new Formula(0));
         action.setRow(new Formula(0));
         action.setTileIndex(new Formula(1));
         action.act(1.0f);
-        // Should not throw
     }
 
     @Test
@@ -115,10 +108,7 @@ public class TilemapActionTest {
         action.setRow(new Formula(999));
         action.setTileIndex(new Formula(1));
         action.act(1.0f);
-        // Out of bounds → setTile returns false, no crash
     }
-
-    // ======================= ClearTileAction =======================
 
     @Test
     public void testClearTileSetsToEmpty() {
@@ -187,7 +177,7 @@ public class TilemapActionTest {
         SetTilemapSolidAction action = new SetTilemapSolidAction();
         action.setScope(makeScope());
         action.setTileIndex(new Formula(5));
-        action.setSolid(new Formula(42)); // any non-zero = true
+        action.setSolid(new Formula(42));
         action.act(1.0f);
 
         assertTrue(tilemap.isSolidTile(5));
@@ -205,15 +195,14 @@ public class TilemapActionTest {
 
     @Test
     public void testSetSolidNoChangeDoesNotInvalidate() {
-        // Already solid → setting solid again should be a no-op
         tilemap.setTileSolid(2, true);
 
         SetTilemapSolidAction action = new SetTilemapSolidAction();
         action.setScope(makeScope());
         action.setTileIndex(new Formula(2));
-        action.setSolid(new Formula(1)); // already solid
+        action.setSolid(new Formula(1));
         action.act(1.0f);
 
-        assertTrue(tilemap.isSolidTile(2)); // still solid
+        assertTrue(tilemap.isSolidTile(2));
     }
 }

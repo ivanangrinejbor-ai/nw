@@ -2,7 +2,9 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/app_background"
+    android:fillViewport="true">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -10,242 +12,367 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <!-- App Name -->
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/v3_app_name_layout"
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="@string/v3_app_name"
-            android:layout_marginBottom="8dp"
-            app:hintEnabled="true">
+            android:layout_marginBottom="14dp"
+            app:cardCornerRadius="18dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="1dp"
+            app:strokeColor="#1F000000">
 
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/v3_app_name_input"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="text" />
-        </com.google.android.material.textfield.TextInputLayout>
+                android:orientation="vertical"
+                android:padding="16dp">
 
-        <!-- Package Name -->
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/v3_package_layout"
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="14dp">
+
+                    <View
+                        android:layout_width="4dp"
+                        android:layout_height="18dp"
+                        android:layout_marginEnd="10dp"
+                        android:background="@color/progress_blue" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/v3_section_app"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/dialog_title_and_text_view" />
+                </LinearLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/v3_app_name_layout"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/v3_app_name"
+                    android:layout_marginBottom="10dp">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/v3_app_name_input"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="text" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/v3_package_layout"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/v3_package_name"
+                    android:layout_marginBottom="10dp">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/v3_package_input"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="text" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="10dp">
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/v3_version_layout"
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginEnd="5dp"
+                        android:hint="@string/v3_version_name">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/v3_version_input"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="text" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/v3_version_code_layout"
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="5dp"
+                        android:hint="@string/v3_version_code">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/v3_version_code_input"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="number" />
+                    </com.google.android.material.textfield.TextInputLayout>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/v3_min_sdk_layout"
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginEnd="5dp"
+                        android:hint="@string/v3_min_sdk">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/v3_min_sdk_input"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="number" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/v3_target_sdk_layout"
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="5dp"
+                        android:hint="@string/v3_target_sdk">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/v3_target_sdk_input"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="number" />
+                    </com.google.android.material.textfield.TextInputLayout>
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="@string/v3_package_name"
-            android:layout_marginBottom="8dp"
-            app:hintEnabled="true">
+            android:layout_marginBottom="14dp"
+            app:cardCornerRadius="18dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="1dp"
+            app:strokeColor="#1F000000">
 
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/v3_package_input"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="text" />
-        </com.google.android.material.textfield.TextInputLayout>
+                android:orientation="vertical"
+                android:padding="16dp">
 
-        <!-- Version -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="8dp">
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/v3_version_layout"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginEnd="4dp"
-                android:hint="@string/v3_version_name"
-                app:hintEnabled="true">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/v3_version_input"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="text" />
-            </com.google.android.material.textfield.TextInputLayout>
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="14dp">
 
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/v3_version_code_layout"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginStart="4dp"
-                android:hint="@string/v3_version_code"
-                app:hintEnabled="true">
+                    <View
+                        android:layout_width="4dp"
+                        android:layout_height="18dp"
+                        android:layout_marginEnd="10dp"
+                        android:background="@color/progress_blue" />
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/v3_version_code_input"
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/v3_section_build"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/dialog_title_and_text_view" />
+                </LinearLayout>
+
+                <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="number" />
-            </com.google.android.material.textfield.TextInputLayout>
-        </LinearLayout>
+                    android:text="@string/v3_template_type"
+                    android:textSize="13sp"
+                    android:textColor="@color/checkbox_and_radio_button_description"
+                    android:layout_marginBottom="4dp" />
 
-        <!-- SDK Versions -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="8dp">
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/v3_min_sdk_layout"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginEnd="4dp"
-                android:hint="@string/v3_min_sdk"
-                app:hintEnabled="true">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/v3_min_sdk_input"
+                <RadioGroup
+                    android:id="@+id/v3_template_radio_group"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="number" />
-            </com.google.android.material.textfield.TextInputLayout>
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="10dp">
 
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/v3_target_sdk_layout"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginStart="4dp"
-                android:hint="@string/v3_target_sdk"
-                app:hintEnabled="true">
+                    <RadioButton
+                        android:id="@+id/v3_template_light"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/v3_template_light"
+                        android:checked="true" />
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/v3_target_sdk_input"
+                    <RadioButton
+                        android:id="@+id/v3_template_full"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/v3_template_full" />
+                </RadioGroup>
+
+                <CheckBox
+                    android:id="@+id/v3_debuggable_checkbox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="number" />
-            </com.google.android.material.textfield.TextInputLayout>
-        </LinearLayout>
+                    android:text="@string/v3_debuggable"
+                    android:checked="true"
+                    android:layout_marginBottom="12dp" />
 
-        <!-- Template Type -->
-        <TextView
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/v3_icon"
+                    android:textSize="13sp"
+                    android:textColor="@color/checkbox_and_radio_button_description"
+                    android:layout_marginBottom="4dp" />
+
+                <RadioGroup
+                    android:id="@+id/v3_icon_radio_group"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <RadioButton
+                        android:id="@+id/v3_icon_project"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/v3_icon_project" />
+
+                    <RadioButton
+                        android:id="@+id/v3_icon_default"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/v3_icon_default" />
+                </RadioGroup>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/v3_template_type"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="4dp"
-            android:paddingStart="4dp" />
+            android:layout_marginBottom="14dp"
+            app:cardCornerRadius="18dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="1dp"
+            app:strokeColor="#1F000000">
 
-        <RadioGroup
-            android:id="@+id/v3_template_radio_group"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="12dp">
-
-            <RadioButton
-                android:id="@+id/v3_template_light"
-                android:layout_width="0dp"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/v3_template_light"
-                android:checked="true" />
+                android:orientation="vertical"
+                android:padding="16dp">
 
-            <RadioButton
-                android:id="@+id/v3_template_full"
-                android:layout_width="0dp"
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="10dp">
+
+                    <View
+                        android:layout_width="4dp"
+                        android:layout_height="18dp"
+                        android:layout_marginEnd="10dp"
+                        android:background="@color/progress_blue" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/v3_permissions"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/dialog_title_and_text_view" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/v3_permissions_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="18dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="1dp"
+            app:strokeColor="#1F000000">
+
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/v3_template_full" />
-        </RadioGroup>
+                android:orientation="vertical"
+                android:padding="16dp">
 
-        <CheckBox
-            android:id="@+id/v3_debuggable_checkbox"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/v3_debuggable"
-            android:checked="true"
-            android:layout_marginBottom="12dp" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="10dp">
 
-        <!-- Permissions -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/v3_permissions"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="4dp"
-            android:paddingStart="4dp" />
+                    <View
+                        android:layout_width="4dp"
+                        android:layout_height="18dp"
+                        android:layout_marginEnd="10dp"
+                        android:background="@color/progress_blue" />
 
-        <LinearLayout
-            android:id="@+id/v3_permissions_container"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginBottom="12dp" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/v3_firebase_section"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/dialog_title_and_text_view" />
+                </LinearLayout>
 
-        <!-- Icon -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/v3_icon"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="4dp"
-            android:paddingStart="4dp" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/v3_firebase_add_button"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/v3_firebase_add_button"
+                    app:cornerRadius="12dp" />
 
-        <RadioGroup
-            android:id="@+id/v3_icon_radio_group"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="12dp">
+                <TextView
+                    android:id="@+id/v3_firebase_status"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone"
+                    android:paddingVertical="8dp"
+                    android:textSize="13sp"
+                    android:textColor="@color/checkbox_and_radio_button_description" />
 
-            <RadioButton
-                android:id="@+id/v3_icon_project"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/v3_icon_project" />
-
-            <RadioButton
-                android:id="@+id/v3_icon_default"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/v3_icon_default" />
-        </RadioGroup>
-
-        <!-- Firebase Configuration -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/v3_firebase_section"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:layout_marginTop="16dp"
-            android:layout_marginBottom="4dp"
-            android:paddingStart="4dp" />
-
-        <Button
-            android:id="@+id/v3_firebase_add_button"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/v3_firebase_add_button"
-            android:layout_marginBottom="4dp" />
-
-        <TextView
-            android:id="@+id/v3_firebase_status"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:visibility="gone"
-            android:padding="8dp"
-            android:textSize="13sp"
-            android:background="@android:color/transparent" />
-
-        <Button
-            android:id="@+id/v3_firebase_remove_button"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:visibility="gone"
-            android:text="@string/v3_firebase_remove_button"
-            android:layout_marginBottom="4dp" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/v3_firebase_remove_button"
+                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone"
+                    android:text="@string/v3_firebase_remove_button"
+                    app:cornerRadius="12dp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
     </LinearLayout>
 </ScrollView>

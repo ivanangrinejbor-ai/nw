@@ -83,7 +83,6 @@ public class ArduinoImplTest {
 		arduino.initialise();
 		doTestFirmataInitialization();
 
-		// test set and clear of each individual pin
 		for (int i = 0; i < ArduinoImpl.NUMBER_OF_DIGITAL_PINS; i++) {
 			arduino.setDigitalArduinoPin(i, 1);
 			testDigital(1 << ArduinoImpl.getIndexOfPinOnPort(i), i);
@@ -97,7 +96,6 @@ public class ArduinoImplTest {
 		arduino.initialise();
 		doTestFirmataInitialization();
 
-		// test interleaved set and clear of pins of a port
 		int pin;
 		for (int i = 0; i < ArduinoImpl.NUMBER_OF_DIGITAL_PORTS; i++) {
 			int offset = i * ArduinoImpl.PINS_IN_A_PORT;
@@ -159,7 +157,6 @@ public class ArduinoImplTest {
 		arduino.initialise();
 		doTestFirmataInitialization();
 
-		// test interleaved set and clear of pins of different ports
 		arduino.setDigitalArduinoPin(7, 1);
 		testDigital(0x80, 7);
 		arduino.setDigitalArduinoPin(13, 1);
@@ -198,7 +195,6 @@ public class ArduinoImplTest {
 		arduino.initialise();
 		doTestFirmataInitialization();
 
-		//TODO
 	}
 
 	@Test
@@ -206,7 +202,6 @@ public class ArduinoImplTest {
 		arduino.initialise();
 		doTestFirmataInitialization();
 
-		//TODO
 	}
 
 	private void doTestFirmataInitialization() {

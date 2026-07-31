@@ -65,18 +65,15 @@ public class PutFileIntoFolderActionTest {
 
     @Test
     public void testCopyFileToFolder() throws Exception {
-        // Create source file in project
         File projectDir = project.getDirectory();
         File sourceFile = new File(projectDir, "test.txt");
         assertTrue(sourceFile.createNewFile());
 
-        // Execute action
         sprite.getActionFactory()
                 .createPutFileIntoFolderAction(sprite, new SequenceAction(),
                         new Formula("test.txt"), new Formula("myFolder"))
                 .act(1.0f);
 
-        // Verify file was copied
         File destFile = new File(new File(downloadsDir, "myFolder"), "test.txt");
         assertTrue("File should exist in destination folder", destFile.exists());
     }
@@ -98,13 +95,11 @@ public class PutFileIntoFolderActionTest {
         File sourceFile = new File(projectDir, "test.txt");
         assertTrue(sourceFile.createNewFile());
 
-        // Attempt path traversal
         sprite.getActionFactory()
                 .createPutFileIntoFolderAction(sprite, new SequenceAction(),
                         new Formula("test.txt"), new Formula("../outside"))
                 .act(1.0f);
 
-        // File should NOT be copied outside downloads dir
         File outsideFile = new File(downloadsDir.getParentFile(), "outside/test.txt");
         assertFalse("Path traversal should be prevented", outsideFile.exists());
     }
@@ -115,7 +110,6 @@ public class PutFileIntoFolderActionTest {
                 .createPutFileIntoFolderAction(sprite, new SequenceAction(),
                         null, new Formula("folder"))
                 .act(1.0f);
-        // Should not throw
     }
 
     @Test

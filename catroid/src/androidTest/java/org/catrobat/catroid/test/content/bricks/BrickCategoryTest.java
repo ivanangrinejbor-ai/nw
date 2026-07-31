@@ -358,8 +358,6 @@ public class BrickCategoryTest {
 				.getDefaultSharedPreferences(ApplicationProvider.getApplicationContext()).edit();
 
 		sharedPreferencesEditor.clear();
-		// The speech AI settings have to be activated here, because these bricks have no own
-		// brick category.
 		for (String setting : speechAISettings) {
 			sharedPreferencesEditor.putBoolean(setting, true);
 		}

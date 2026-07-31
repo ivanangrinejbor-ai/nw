@@ -59,7 +59,6 @@ class BackpackTest {
 
     @Test
     fun shouldPackAndUnpackScriptWithVariableAndList() {
-        // given
         val script = UiTestUtils.createProjectAndGetStartScript(projectName)
         val scriptController = ScriptController()
         val scriptGroupName = "scriptGroup"
@@ -67,13 +66,11 @@ class BackpackTest {
         addListAndAddItemToListBrick("listName", script)
         packScript(scriptController, scriptGroupName, script)
 
-        // when
         scriptController.unpack(
             scriptGroupName, backpackManager
                 .backpackedScripts[scriptGroupName]!![0], projectManager.currentSprite
         )
 
-        // then
         assertEquals(1, projectManager.currentSprite.userVariables.size)
         assertEquals(1, projectManager.currentSprite.userLists.size)
         assertEquals(2, projectManager.currentSprite.scriptList.size)
@@ -82,7 +79,6 @@ class BackpackTest {
 
     @Test
     fun shouldPackAndUnpackScriptWithVariableAndListInOtherSprite() {
-        // given
         val script = UiTestUtils.createProjectAndGetStartScript(projectName)
         val scriptController = ScriptController()
         val scriptGroupName = "scriptGroup"
@@ -97,13 +93,11 @@ class BackpackTest {
         projectManager.currentProject.addScene(scene)
         projectManager.setCurrentSceneAndSprite("newScene", "newSprite")
 
-        // when
         scriptController.unpack(
             scriptGroupName, backpackManager
                 .backpackedScripts[scriptGroupName]!![0], projectManager.currentSprite
         )
 
-        // then
         val unpackedSetVarBrick = projectManager.currentSprite.scriptList[0].brickList[0] as
             SetVariableBrick
         val unpackedAddItemToListBrick = projectManager.currentSprite.scriptList[0].brickList[1]
@@ -131,7 +125,6 @@ class BackpackTest {
 
     @Test
     fun shouldPackAndUnpackScriptWithVariableAndListInOtherProject() {
-        // given
         val script = UiTestUtils.createProjectAndGetStartScript(projectName + "_1")
         val scriptController = ScriptController()
         val scriptGroupName = "scriptGroup"
@@ -142,13 +135,11 @@ class BackpackTest {
         packScript(scriptController, scriptGroupName, script)
         UiTestUtils.createDefaultTestProject(projectName + "_2")
 
-        // when
         scriptController.unpack(
             scriptGroupName, backpackManager
                 .backpackedScripts[scriptGroupName]!![0], projectManager.currentSprite
         )
 
-        // then
         val unpackedSetVarBrick = projectManager.currentSprite.scriptList[1].brickList[0] as
             SetVariableBrick
         val unpackedAddItemToListBrick = projectManager.currentSprite.scriptList[1].brickList[1]
@@ -168,7 +159,6 @@ class BackpackTest {
 
     @Test
     fun shouldPackAndUnpackScriptWithLocalVariableAndListIntoProjectWithConflictingPublics() {
-        // given
         val script = UiTestUtils.createProjectAndGetStartScript(projectName + "_1")
         val scriptController = ScriptController()
         val scriptGroupName = "scriptGroup"
@@ -181,13 +171,11 @@ class BackpackTest {
         addVarAndSetVarBrick(varName, scriptInOtherProject, true)
         addListAndAddItemToListBrick(listName, scriptInOtherProject, true)
 
-        // when
         scriptController.unpack(
             scriptGroupName, backpackManager
                 .backpackedScripts[scriptGroupName]!![0], projectManager.currentSprite
         )
 
-        // then
         val unpackedSetVarBrick = projectManager.currentSprite.scriptList[1].brickList[0] as
             SetVariableBrick
         val unpackedAddItemToListBrick = projectManager.currentSprite.scriptList[1].brickList[1]
@@ -209,7 +197,6 @@ class BackpackTest {
 
     @Test
     fun shouldPackAndUnpackScriptWithPublicVariableAndListIntoProjectWithConflictingLocals() {
-        // given
         val script = UiTestUtils.createProjectAndGetStartScript(projectName + "_1")
         val scriptController = ScriptController()
         val scriptGroupName = "scriptGroup"
@@ -222,13 +209,11 @@ class BackpackTest {
         addVarAndSetVarBrick(varName, scriptInOtherProject)
         addListAndAddItemToListBrick(listName, scriptInOtherProject)
 
-        // when
         scriptController.unpack(
             scriptGroupName, backpackManager
                 .backpackedScripts[scriptGroupName]!![0], projectManager.currentSprite
         )
 
-        // then
         val unpackedSetVarBrick = projectManager.currentSprite.scriptList[1].brickList[0] as
             SetVariableBrick
         val unpackedAddItemToListBrick = projectManager.currentSprite.scriptList[1].brickList[1]
@@ -253,7 +238,6 @@ class BackpackTest {
 
     @Test
     fun shouldPackAndUnpackSprite() {
-        // given
         backpackManager.sprites.clear()
         val script = UiTestUtils.createProjectAndGetStartScript(projectName + "_1")
         val spriteController = SpriteController()
@@ -266,14 +250,12 @@ class BackpackTest {
         addVarAndSetVarBrick(varName, scriptInOtherProject)
         addListAndAddItemToListBrick(listName, scriptInOtherProject)
 
-        // when
         spriteController.unpack(
             packedSprite,
             projectManager.currentProject,
             projectManager.currentlyEditedScene
         )
 
-        // then
         val newSprite = projectManager.currentlyEditedScene.spriteList[1]
         projectManager.currentSprite = newSprite
         val unpackedSetVarBrick =

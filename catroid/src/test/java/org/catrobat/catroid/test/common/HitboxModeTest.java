@@ -56,8 +56,6 @@ public class HitboxModeTest {
 	@Rule
 	public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
-	// --- LookData model ---------------------------------------------------
-
 	@Test
 	public void testDefaultHitboxModeIsPhysics() {
 		LookData lookData = new LookData();
@@ -89,8 +87,6 @@ public class HitboxModeTest {
 		assertTrue(copy.isFullHitboxMode());
 		assertEquals(1, copy.getHitboxes().size());
 	}
-
-	// --- XStream round-trip / backward compatibility ----------------------
 
 	@Test
 	public void testHitboxModeSurvivesXStreamRoundTrip() {
@@ -125,8 +121,6 @@ public class HitboxModeTest {
 		return xstream;
 	}
 
-	// --- buildPolygonsFromHitboxes geometry --------------------------------
-
 	@Test
 	public void testFullImageBoxCoversWholeImage() {
 		List<HitboxData> boxes = new ArrayList<>();
@@ -135,7 +129,6 @@ public class HitboxModeTest {
 		Polygon[] polygons = CollisionInformation.buildPolygonsFromHitboxes(boxes, IMG_W, IMG_H);
 
 		assertEquals(1, polygons.length);
-		// A full-image, unrotated box maps to the image rectangle [0..w] x [0..h].
 		float[] expected = {0f, IMG_H, IMG_W, IMG_H, IMG_W, 0f, 0f, 0f};
 		assertArrayEquals(expected, polygons[0].getVertices(), DELTA);
 	}
@@ -172,7 +165,6 @@ public class HitboxModeTest {
 
 		assertEquals(1, polygons.length);
 		float[] v = polygons[0].getVertices();
-		// After a 90 degree rotation the bounding extents are swapped.
 		assertEquals(h, max(v, 0) - min(v, 0), DELTA);
 		assertEquals(w, max(v, 1) - min(v, 1), DELTA);
 		assertEquals(IMG_W / 2f, (min(v, 0) + max(v, 0)) / 2f, DELTA);

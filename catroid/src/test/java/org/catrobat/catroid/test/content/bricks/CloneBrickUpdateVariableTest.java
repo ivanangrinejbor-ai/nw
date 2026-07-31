@@ -81,9 +81,6 @@ public class CloneBrickUpdateVariableTest {
 
 	@Parameterized.Parameters(name = "{0}")
 	public static Iterable<Object[]> data() {
-		// Only bricks implementing UserVariableBrickInterface belong here: the test asserts
-		// that the cloned brick shares the same UserVariable instance. Server/web/screenshot/
-		// look/sound/scene bricks do not implement that interface and break field injection.
 		return Arrays.asList(new Object[][] {
 				{"SetVariableBrick", new SetVariableBrick()},
 				{"ChangeVariableBrick", new ChangeVariableBrick()},

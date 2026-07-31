@@ -106,15 +106,11 @@ public class WebSocketMessageListenerTest {
 
 		jobHandlerMock = Mockito.mock(JobHandler.class);
 
-		// add job handler to map
 		Map<Long, JobHandler> jobHandlers = (Map<Long, JobHandler>) Reflection.getPrivateField(
 				WebSocketMessageListener.class, webSocketMessageListener, "jobHandlers");
 		jobHandlers.put(JOB_ID_OF_JOB_HANDLER, jobHandlerMock);
 	}
 
-	//------------------------------------------------------------------------------------------------------------------
-	// WebSocket.StringCallback interface tests
-	//------------------------------------------------------------------------------------------------------------------
 	@Test
 	public void testReceivingInvalidStringMessageShouldRaiseNoException() {
 		webSocketMessageListener.onStringAvailable(null);
@@ -197,7 +193,6 @@ public class WebSocketMessageListenerTest {
 				Job[] jobs = infoMessage.getJobList();
 				assertEquals(2, jobs.length);
 
-				// first job
 				assertEquals(expectedFirstJob.getState(), jobs[0].getState());
 				assertEquals(expectedFirstJob.getJobID(), jobs[0].getJobID());
 				assertEquals(expectedFirstJob.getTitle(), jobs[0].getTitle());
@@ -205,7 +200,6 @@ public class WebSocketMessageListenerTest {
 				assertEquals(expectedFirstJob.getProgress(), jobs[0].getProgress());
 				assertEquals(expectedFirstJob.getDownloadURL(), jobs[0].getDownloadURL());
 
-				// second job
 				assertEquals(expectedSecondJob.getState(), jobs[1].getState());
 				assertEquals(expectedSecondJob.getJobID(), jobs[1].getJobID());
 				assertEquals(expectedSecondJob.getTitle(), jobs[1].getTitle());
@@ -445,10 +439,6 @@ public class WebSocketMessageListenerTest {
 		verifyNoMoreInteractions(jobHandlerMock);
 	}
 
-	//------------------------------------------------------------------------------------------------------------------
-	// MessageListener interface tests
-	//------------------------------------------------------------------------------------------------------------------
-
 	@Test
 	public void testScheduleJobNotInProgress() {
 		final String expectedJobTitle = "My program";
@@ -585,9 +575,6 @@ public class WebSocketMessageListenerTest {
 		verifyNoMoreInteractions(jobHandlerMock);
 	}
 
-	//------------------------------------------------------------------------------------------------------------------
-	// helpers for tests
-	//------------------------------------------------------------------------------------------------------------------
 	private String createJsonBaseMessage(final BaseMessage.Type type, final Map<String, Object> data) {
 		final Map<String, Object> payloadMap = new HashMap<>();
 		payloadMap.put(JsonKeys.CATEGORY.toString(), CategoryType.BASE.getCategoryID());

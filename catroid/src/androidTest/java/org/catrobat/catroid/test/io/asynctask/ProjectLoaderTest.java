@@ -179,36 +179,29 @@ public class ProjectLoaderTest {
 
 	@Test
 	public void projectLoadTaskTest() throws IOException {
-		// Delete User Variables
 		project.getUserVariables().clear();
 		sprite1.getUserVariables().clear();
 		project.removeScene(scene2);
 		project.getMultiplayerVariables().clear();
-		//Delete User Lists
 		project.getUserLists().clear();
 		sprite1.getUserLists().clear();
-		// Check Look Count (2 used, 2 unused, 1 nomediaOffset)
 		File imageDirectoryPre = new File(scene1.getDirectory(), Constants.IMAGE_DIRECTORY_NAME);
 		assertEquals(2 + 2 + 1, Objects.requireNonNull(imageDirectoryPre.listFiles()).length);
 
-		//save changes of project
 		assertTrue(XstreamSerializer.getInstance().saveProject(project));
 
 		assertNotNull(directory);
 		assertTrue(loadProject(directory, ApplicationProvider.getApplicationContext()));
 
-		// Check if User Variables are removed
 		Map<UUID, Object> variableMap = variableAccessor.readMapFromJson();
 		assertFalse(variableMap.containsKey(globalUserVariable.getDeviceKey()));
 		assertFalse(variableMap.containsKey(multiplayerUserVariable.getDeviceKey()));
 		assertFalse(variableMap.containsKey(sprite1UserVariable.getDeviceKey()));
 		assertFalse(variableMap.containsKey(sprite2UserVariable.getDeviceKey()));
-		// Check if User Lists are removed
 		Map<UUID, Object> listMap = userDataAccessor.readMapFromJson();
 		assertFalse(listMap.containsKey(globalUserList.getDeviceKey()));
 		assertFalse(listMap.containsKey(sprite1UserList.getDeviceKey()));
 		assertFalse(listMap.containsKey(sprite2UserList.getDeviceKey()));
-		// Check if Looks are removed and only correct ones remain
 		File imageDirectoryPost = new File(scene1.getDirectory(), Constants.IMAGE_DIRECTORY_NAME);
 		assertArrayEquals(correctLooks, imageDirectoryPost.listFiles());
 	}

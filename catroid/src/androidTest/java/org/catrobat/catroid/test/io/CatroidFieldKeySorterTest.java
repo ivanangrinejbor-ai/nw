@@ -84,7 +84,6 @@ public class CatroidFieldKeySorterTest {
 
 	private XStream xstream;
 	private FieldKeySorterDecorator fieldKeySorter;
-	// CHECKSTYLE DISABLE MemberName FOR 1000 LINES
 
 	@Before
 	public void setUp() {
@@ -162,8 +161,6 @@ public class CatroidFieldKeySorterTest {
 				fieldKeySorter.getFieldNames(SortByAnnotation.class));
 	}
 
-	// Remove checkstyle disable when https://github.com/checkstyle/checkstyle/issues/1349 is fixed
-	// CHECKSTYLE DISABLE IndentationCheck FOR 6 LINES
 	@XStreamFieldKeyOrder({
 			"c",
 			"a",
@@ -186,8 +183,6 @@ public class CatroidFieldKeySorterTest {
 				fieldKeySorter.getFieldNames(SortByAnnotationWithAliases.class));
 	}
 
-	// Remove checkstyle disable when https://github.com/checkstyle/checkstyle/issues/1349 is fixed
-	// CHECKSTYLE DISABLE IndentationCheck FOR 4 LINES
 	@XStreamFieldKeyOrder({
 			"x",
 			"b"
@@ -205,8 +200,6 @@ public class CatroidFieldKeySorterTest {
 		xstream.toXML(new MissingFieldInAnnotation());
 	}
 
-	// Remove checkstyle disable when https://github.com/checkstyle/checkstyle/issues/1349 is fixed
-	// CHECKSTYLE DISABLE IndentationCheck FOR 3 LINES
 	@XStreamFieldKeyOrder({
 			"a"
 	})
@@ -230,8 +223,6 @@ public class CatroidFieldKeySorterTest {
 		xstream.toXML(new SubClassWithNewMemberButWithoutAnnotation());
 	}
 
-	// Remove checkstyle disable when https://github.com/checkstyle/checkstyle/issues/1349 is fixed
-	// CHECKSTYLE DISABLE IndentationCheck FOR 4 LINES
 	@XStreamFieldKeyOrder({
 			"b",
 			"a"

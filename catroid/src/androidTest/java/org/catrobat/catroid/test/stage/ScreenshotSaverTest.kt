@@ -74,8 +74,7 @@ class ScreenshotSaverTest(private val name: String, private val fileName: String
         dummyData = ByteArray(NUMBER_OF_COLORS * width * height)
         val stageActivity = activityTestRule.activity
         val folder = stageActivity.cacheDir.absolutePath + "/"
-        //gdxFileHandler = AndroidFiles(stageActivity.assets, stageActivity.filesDir.absolutePath)
-        gdxFileHandler = Gdx.files //AndroidFiles()
+        gdxFileHandler = Gdx.files
         screenshotSaver = ScreenshotSaver(gdxFileHandler as AndroidFiles, folder, width, height)
     }
 

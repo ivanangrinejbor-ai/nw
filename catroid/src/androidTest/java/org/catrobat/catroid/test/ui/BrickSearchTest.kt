@@ -185,8 +185,7 @@ class BrickSearchTest {
         Espresso.onView(withId(R.id.search_src_text)).perform(
             replaceText("When")
         ).perform(pressKey(KeyEvent.KEYCODE_ENTER))
-        InstrumentationRegistry.getInstrumentation().waitForIdleSync() // previous action takes
-        // long to execute
+        InstrumentationRegistry.getInstrumentation().waitForIdleSync()
         Espresso.onView(
             Matchers.allOf(
                 ViewMatchers.withText("When scene starts"),

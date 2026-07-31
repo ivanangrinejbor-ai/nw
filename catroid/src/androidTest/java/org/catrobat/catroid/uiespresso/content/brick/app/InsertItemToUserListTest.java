@@ -108,7 +108,6 @@ public class InsertItemToUserListTest {
 				.onFormulaTextField(R.id.brick_insert_item_into_userlist_at_index_edit_text)
 				.checkShowsNumber(indexToInsert);
 
-		//insert manually the values
 		onBrickAtPosition(brickPosition)
 				.onFormulaTextField(R.id.brick_insert_item_into_userlist_value_edit_text)
 				.performEnterNumber(valueToInsert1);

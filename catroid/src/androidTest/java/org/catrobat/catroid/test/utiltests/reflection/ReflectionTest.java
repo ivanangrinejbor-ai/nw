@@ -203,13 +203,11 @@ public class ReflectionTest {
 	}
 
 	private class SuperClass {
-		// CHECKSTYLE DISABLE MemberNameCheck FOR 2 LINES
 		private final float SECRET_FLOAT = 3.1415f;
 		protected byte secretByte = 32;
 	}
 
 	private class SubClass extends SuperClass {
-		// CHECKSTYLE DISABLE MemberNameCheck FOR 3 LINES
 		private static final char SECRET_STATIC_CHAR = 'c';
 		private final int SECRET_INTEGER = 42;
 		private String secretString = "This is a secret string!";

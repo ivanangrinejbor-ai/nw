@@ -80,7 +80,6 @@ public class AttachToCameraWithOffsetActionTest {
     public void testNullScopeDoesNothing() {
         AttachToCameraWithOffsetAction action = new AttachToCameraWithOffsetAction();
         action.act(1.0f);
-        // Should not throw NPE
     }
 
     @Test

@@ -32,10 +32,6 @@ import static junit.framework.Assert.assertFalse;
 @RunWith(JUnit4.class)
 public class PhysicsDebugSettingsTest {
 
-	/*
-	 * Tests if all physics debug settings are configured correctly for the release.
-	 * Therefore there is no problem if it fails during programming or debugging.
-	 */
 	@Test
 	public void testDefaultSettingsForRelease() {
 		assertFalse(PhysicsDebugSettings.Render.RENDER_COLLISION_FRAMES);

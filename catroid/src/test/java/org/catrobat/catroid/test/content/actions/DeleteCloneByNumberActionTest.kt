@@ -75,6 +75,5 @@ class DeleteCloneByNumberActionTest {
         action.cloneNumber = Formula(1)
 
         action.act(1.0f)
-        // Should not throw NPE
     }
 }

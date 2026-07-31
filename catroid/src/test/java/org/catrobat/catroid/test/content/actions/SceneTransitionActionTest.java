@@ -51,8 +51,6 @@ public class SceneTransitionActionTest {
 
 	@Test
 	public void testNullActiveStageListenerNoException() {
-		// No active StageActivity in unit tests -> getActiveStageListener() returns null.
-		// With the fix, update() must guard against a null listener instead of NPE.
 		SceneTransitionAction action = (SceneTransitionAction)
 				testSprite.getActionFactory().createSceneTransitionAction("NonExistentScene", testSprite);
 		boolean finished = false;

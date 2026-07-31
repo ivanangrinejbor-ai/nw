@@ -43,7 +43,6 @@ public class BrickLockTest {
 		brick.setLock("secret");
 		brick.clearLock();
 		assertFalse(brick.isLocked());
-		// unlocked -> verify always passes
 		assertTrue(brick.verifyLock("anything"));
 	}
 

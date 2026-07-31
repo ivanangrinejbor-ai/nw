@@ -102,7 +102,6 @@ public class ThreadSchedulerTest {
 
 		scheduler.tick(1);
 
-		// thread1 is thrown out when another thread with the same script is started
 		verify(action1, times(0)).act(anyFloat());
 		verify(action2, times(1)).act(anyFloat());
 	}

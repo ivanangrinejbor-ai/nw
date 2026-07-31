@@ -16,11 +16,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-/**
- * Тесты видимости сигналов (вещаний) в глобальной сцене:
- * сигнал, созданный в обычной сцене, должен появляться в спиннере
- * блока "Когда получено" при редактировании глобальной сцены.
- */
 public class GlobalSceneBroadcastVisibilityTest {
 
     private Project project;
@@ -31,8 +26,6 @@ public class GlobalSceneBroadcastVisibilityTest {
 
     @Before
     public void setUp() {
-        // Конструктор устанавливает singleton только если он ещё null —
-        // поэтому всегда работаем через getInstance()
         new ProjectManager(null);
         projectManager = ProjectManager.getInstance();
 
@@ -51,14 +44,12 @@ public class GlobalSceneBroadcastVisibilityTest {
         projectManager.setCurrentProject(project);
     }
 
-    /** Добавляет спрайт со скриптом "Когда получено <signal>" в сцену. */
     private void addReceiverTo(Scene scene, String spriteName, String signal) {
         Sprite sprite = new Sprite(spriteName);
         sprite.addScript(new BroadcastScript(signal));
         scene.addSprite(sprite);
     }
 
-    /** Добавляет спрайт с отправляющим блоком "Передать <signal>" в сцену. */
     private void addSenderTo(Scene scene, String spriteName, String signal) {
         Sprite sprite = new Sprite(spriteName);
         StartScript script = new StartScript();
@@ -73,14 +64,10 @@ public class GlobalSceneBroadcastVisibilityTest {
         return project.getBroadcastMessageContainer().getBroadcastMessages();
     }
 
-    // ═══ КЛЮЧЕВОЙ СЦЕНАРИЙ ═══
-
     @Test
     public void testSignalFromRegularSceneVisibleInGlobalScene() {
-        // Сигнал создан в ОБЫЧНОЙ сцене (receiver-скрипт)
         addReceiverTo(sceneA, "Player", "jump_signal");
 
-        // Редактируем ГЛОБАЛЬНУЮ сцену — сигнал должен быть в списке
         List<String> messages = messagesWhileEditing(globalScene);
         assertTrue("Сигнал из Scene A должен быть виден в глобальной сцене",
                 messages.contains("jump_signal"));
@@ -88,7 +75,6 @@ public class GlobalSceneBroadcastVisibilityTest {
 
     @Test
     public void testSenderSignalFromRegularSceneVisibleInGlobalScene() {
-        // Сигнал используется в БЛОКЕ ОТПРАВКИ (Передать) в обычной сцене
         addSenderTo(sceneA, "Enemy", "attack_signal");
 
         List<String> messages = messagesWhileEditing(globalScene);
@@ -116,8 +102,6 @@ public class GlobalSceneBroadcastVisibilityTest {
         assertTrue(messages.contains("scene_signal"));
     }
 
-    // ═══ Изоляция обычных сцен ═══
-
     @Test
     public void testRegularSceneSeesOnlyOwnSignals() {
         addReceiverTo(sceneA, "A1", "signal_a");
@@ -136,8 +120,6 @@ public class GlobalSceneBroadcastVisibilityTest {
         List<String> messages = messagesWhileEditing(sceneA);
         assertFalse(messages.contains("global_only"));
     }
-
-    // ═══ Edge cases ═══
 
     @Test
     public void testDuplicateSignalAppearsOnce() {
@@ -183,17 +165,14 @@ public class GlobalSceneBroadcastVisibilityTest {
         addReceiverTo(sceneA, "A1", "signal_a");
         addReceiverTo(sceneB, "B1", "signal_b");
 
-        // Сначала сцена A
         List<String> inA = messagesWhileEditing(sceneA);
         assertTrue(inA.contains("signal_a"));
         assertFalse(inA.contains("signal_b"));
 
-        // Переключение на B — список обновился
         List<String> inB = messagesWhileEditing(sceneB);
         assertTrue(inB.contains("signal_b"));
         assertFalse(inB.contains("signal_a"));
 
-        // Переключение на глобальную — видит всё
         List<String> inGlobal = messagesWhileEditing(globalScene);
         assertTrue(inGlobal.contains("signal_a"));
         assertTrue(inGlobal.contains("signal_b"));

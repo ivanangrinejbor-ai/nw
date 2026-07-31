@@ -58,7 +58,6 @@ class ShowScheduledNotificationActionTest {
             sprite, scriptSequence, Formula(1), Formula(5)
         )
         action.act(1.0f)
-        // Should return early - no data in storage
     }
 
     @Test
@@ -67,7 +66,6 @@ class ShowScheduledNotificationActionTest {
             sprite, scriptSequence, null, Formula(5)
         )
         action.act(1.0f)
-        // Should not throw NPE
     }
 
     @Test
@@ -83,7 +81,6 @@ class ShowScheduledNotificationActionTest {
             sprite, scriptSequence, Formula(1), Formula(0)
         )
         action.act(1.0f)
-        // Should return early because activity is null
     }
 
     @Test
@@ -104,8 +101,6 @@ class ShowScheduledNotificationActionTest {
         )
         action.act(1.0f)
 
-        // Should proceed to show notification (0 delay = immediate)
-        // After immediate show, notification is removed from storage
         Mockito.verify(mockNotificationManager).createNotificationChannel(Mockito.any())
     }
 
@@ -121,11 +116,8 @@ class ShowScheduledNotificationActionTest {
         )
         action.act(1.0f)
 
-        // act() was called, started = true now
-        // Calling act again without restart should do nothing
         action.act(1.0f)
 
         action.restart()
-        // After restart, should be able to execute again
     }
 }

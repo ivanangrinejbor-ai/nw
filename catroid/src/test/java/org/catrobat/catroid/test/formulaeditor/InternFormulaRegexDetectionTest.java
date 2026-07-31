@@ -175,10 +175,7 @@ public class InternFormulaRegexDetectionTest {
 		internFormula = new InternFormula(internTokens);
 		internFormula.generateExternFormulaStringAndInternExternMapping(Mockito.mock(Context.class));
 
-		int doubleClickIndex = 7; // since te extern string is "null( null( 'FirstParam',
-		// 'SecondParam' ), 'World' ) we want to click the join function, which is the second
-		// null, that is at index 6-9, so we click on index 7 because there is no option for us
-		// to find the correct index otherwise.
+		int doubleClickIndex = 7;
 
 		internFormula.setCursorAndSelection(doubleClickIndex, true);
 

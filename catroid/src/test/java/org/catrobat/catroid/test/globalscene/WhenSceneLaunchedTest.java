@@ -24,11 +24,6 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
-/**
- * 40 tests for the "When scene starts" event brick (Global Scene only).
- * Covers: SceneStartedEventId, WhenSceneLaunchedScript, WhenSceneLaunchedBrick,
- * event matching (scene A vs B), serialization contracts and edge cases.
- */
 public class WhenSceneLaunchedTest {
 
     private Project project;
@@ -50,10 +45,6 @@ public class WhenSceneLaunchedTest {
         globalScene.setGlobalScene(true);
         project.setGlobalScene(globalScene);
     }
-
-    // ═══════════════════════════════════════
-    // 1-8: SceneStartedEventId
-    // ═══════════════════════════════════════
 
     @Test
     public void test01_EventIdCreation() {
@@ -99,10 +90,6 @@ public class WhenSceneLaunchedTest {
     public void test08_EventIdNotEqualsNull() {
         assertNotEquals(new SceneStartedEventId("Scene A"), null);
     }
-
-    // ═══════════════════════════════════════
-    // 9-16: WhenSceneLaunchedScript
-    // ═══════════════════════════════════════
 
     @Test
     public void test09_ScriptDefaultConstructor() {
@@ -163,10 +150,6 @@ public class WhenSceneLaunchedTest {
         assertEquals(2, clone.getBrickList().size());
     }
 
-    // ═══════════════════════════════════════
-    // 17-24: WhenSceneLaunchedBrick
-    // ═══════════════════════════════════════
-
     @Test
     public void test17_BrickDefaultConstructor() {
         WhenSceneLaunchedBrick brick = new WhenSceneLaunchedBrick();
@@ -222,32 +205,24 @@ public class WhenSceneLaunchedTest {
     @Test
     public void test24_BrickAddActionToSequenceIsNoOp() {
         WhenSceneLaunchedBrick brick = new WhenSceneLaunchedBrick();
-        // Event bricks don't add actions; must not throw
         brick.addActionToSequence(new Sprite("S"), null);
     }
 
-    // ═══════════════════════════════════════
-    // 25-32: Event matching — scene A vs B (КЛЮЧЕВЫЕ)
-    // ═══════════════════════════════════════
-
     @Test
     public void test25_ScriptForSceneBMatchesSceneBEvent() {
-        // Глобальная сцена: блок настроен на сцену Б
         WhenSceneLaunchedScript script = new WhenSceneLaunchedScript("Scene B");
         Sprite manager = new Sprite("Manager");
         globalScene.addSprite(manager);
         manager.addScript(script);
 
-        // Запускается сцена Б → событие
         SceneStartedEventId fired = new SceneStartedEventId("Scene B");
         EventId scriptEventId = script.createEventId(manager);
 
-        assertEquals(fired, scriptEventId); // Триггерится!
+        assertEquals(fired, scriptEventId);
     }
 
     @Test
     public void test26_ScriptForSceneBDoesNotMatchSceneAEvent() {
-        // Блок на сцену Б НЕ должен сработать при запуске сцены А
         WhenSceneLaunchedScript script = new WhenSceneLaunchedScript("Scene B");
         Sprite manager = new Sprite("Manager");
         globalScene.addSprite(manager);
@@ -256,12 +231,11 @@ public class WhenSceneLaunchedTest {
         SceneStartedEventId firedA = new SceneStartedEventId("Scene A");
         EventId scriptEventId = script.createEventId(manager);
 
-        assertNotEquals(firedA, scriptEventId); // НЕ триггерится
+        assertNotEquals(firedA, scriptEventId);
     }
 
     @Test
     public void test27_TwoScriptsDifferentScenes() {
-        // Менеджер с двумя скриптами: один на А, другой на Б
         Sprite manager = new Sprite("Manager");
         globalScene.addSprite(manager);
         WhenSceneLaunchedScript scriptA = new WhenSceneLaunchedScript("Scene A");
@@ -270,13 +244,12 @@ public class WhenSceneLaunchedTest {
         manager.addScript(scriptB);
 
         SceneStartedEventId firedB = new SceneStartedEventId("Scene B");
-        assertNotEquals(firedB, scriptA.createEventId(manager)); // A не сработал
-        assertEquals(firedB, scriptB.createEventId(manager));    // B сработал
+        assertNotEquals(firedB, scriptA.createEventId(manager));
+        assertEquals(firedB, scriptB.createEventId(manager));
     }
 
     @Test
     public void test28_MultipleManagersSameScene() {
-        // Два глобальных объекта слушают одну сцену — оба должны получить событие
         Sprite m1 = new Sprite("MusicManager");
         Sprite m2 = new Sprite("HudManager");
         globalScene.addSprite(m1);
@@ -300,7 +273,6 @@ public class WhenSceneLaunchedTest {
 
     @Test
     public void test30_EventWithRenamedScene() {
-        // После переименования сцены скрипт со старым именем не триггерится
         WhenSceneLaunchedScript script = new WhenSceneLaunchedScript("Scene B");
         sceneB.setName("Level 2");
         SceneStartedEventId fired = new SceneStartedEventId(sceneB.getName());
@@ -316,15 +288,10 @@ public class WhenSceneLaunchedTest {
 
     @Test
     public void test32_EventForGlobalSceneNameItself() {
-        // Скрипт слушающий "Global" — сработает только если событие с "Global"
         WhenSceneLaunchedScript script = new WhenSceneLaunchedScript("Global");
         assertEquals(new SceneStartedEventId("Global"), script.createEventId(new Sprite("M")));
         assertNotEquals(new SceneStartedEventId("Scene A"), script.createEventId(new Sprite("M")));
     }
-
-    // ═══════════════════════════════════════
-    // 33-40: Модель проекта + структура
-    // ═══════════════════════════════════════
 
     @Test
     public void test33_GlobalSceneHoldsBrickScript() {
@@ -388,29 +355,22 @@ public class WhenSceneLaunchedTest {
 
     @Test
     public void test40_FullScenario_GlobalManagerTriggersOnlyOnSceneB() {
-        // ПОЛНЫЙ СЦЕНАРИЙ: глобальная сцена + сцены А и Б.
-        // Менеджер в глобальной сцене слушает "Scene B".
         Sprite manager = new Sprite("SceneWatcher");
         WhenSceneLaunchedScript watchB = new WhenSceneLaunchedScript("Scene B");
         watchB.addBrick(new SetXBrick());
         manager.addScript(watchB);
         globalScene.addSprite(manager);
 
-        // Также обычный StartScript — не должен конфликтовать
         manager.addScript(new StartScript());
 
-        // 1) Запуск сцены А → событие А
         SceneStartedEventId eventA = new SceneStartedEventId("Scene A");
-        // 2) Запуск сцены Б → событие Б
         SceneStartedEventId eventB = new SceneStartedEventId("Scene B");
 
         EventId watcherEventId = watchB.createEventId(manager);
 
-        // Скрипт должен сработать ТОЛЬКО на сцену Б
         assertNotEquals("Не должен триггериться на сцену А", eventA, watcherEventId);
         assertEquals("Должен триггериться на сцену Б", eventB, watcherEventId);
 
-        // Модель целостна
         assertEquals(2, manager.getScriptList().size());
         assertTrue(project.getAllGlobalSprites().contains(manager));
         assertEquals(1, watchB.getBrickList().size());

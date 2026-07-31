@@ -48,13 +48,6 @@ import org.junit.runners.JUnit4;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Tests for NeoScript scene-aware features:
- * - Scene resolution in CreateObjectBrick / AssignScriptsBrick
- * - UnknownBrick detection and safe replacement
- * - Cross-scene object isolation
- * - Backward compatibility (missing scene field)
- */
 @RunWith(JUnit4.class)
 public class NeoScriptSceneTest {
 
@@ -69,24 +62,19 @@ public class NeoScriptSceneTest {
 		project = new Project(MockUtil.mockContextForProject(), "SceneTestProject");
 		scene1 = project.getDefaultScene();
 
-		// Create a second scene
 		scene2 = new Scene();
 		scene2.setName("Scene2");
 		project.addScene(scene2);
 
-		// Add sprites to each scene
 		spriteInScene1 = new Sprite("Hero");
 		scene1.addSprite(spriteInScene1);
 
-		spriteInScene2 = new Sprite("Hero");  // Same name, different scene
+		spriteInScene2 = new Sprite("Hero");
 		scene2.addSprite(spriteInScene2);
 
-		// Set currently edited scene to scene1
 		ProjectManager.getInstance().setCurrentProject(project);
 		ProjectManager.getInstance().setCurrentlyEditedScene(scene1);
 	}
-
-	// ============ SCENE RESOLUTION TESTS ============
 
 	@Test
 	public void testScene1ContainsHero() {
@@ -104,7 +92,6 @@ public class NeoScriptSceneTest {
 		Sprite hero2 = scene2.getSprite("Hero");
 		assertNotSame(hero1, hero2);
 
-		// Modify scene1's sprite — should not affect scene2's sprite
 		hero1.setName("HeroModified");
 		assertEquals("Hero", scene2.getSprite("Hero").getName());
 	}
@@ -128,14 +115,9 @@ public class NeoScriptSceneTest {
 		assertEquals(scene1.getName(), defaultScene.getName());
 	}
 
-	// ============ BACKWARD COMPATIBILITY TESTS ============
-
 	@Test
 	public void testSceneFieldNullDefaultsToCurrentScene() {
-		// Simulate a NeoScriptFile with no scene metadata
-		// The brick should default to Current Scene (currently edited scene)
-		// This test verifies the fallback logic, not the brick itself
-		String sceneName = null;  // null = Current scene
+		String sceneName = null;
 		Scene resolved = resolveScene(sceneName);
 		assertNotNull("Resolved scene must not be null", resolved);
 		assertEquals("Default scene should be scene1", scene1.getName(), resolved.getName());
@@ -154,8 +136,6 @@ public class NeoScriptSceneTest {
 		assertNotNull(resolved);
 		assertEquals("Scene2", resolved.getName());
 	}
-
-	// ============ UNKNOWN BRICK DETECTION TESTS ============
 
 	@Test
 	public void testCheckForUnknownBricksPositive() {
@@ -177,7 +157,6 @@ public class NeoScriptSceneTest {
 		replaceUnknownBricks(file);
 		assertFalse("After replacement, must not have UnknownBrick", containsUnknownBricks(file));
 
-		// Verify NoteBricks were inserted
 		Script script = file.getScripts().get(0);
 		boolean hasNoteBrick = false;
 		for (Brick brick : script.getBrickList()) {
@@ -204,11 +183,8 @@ public class NeoScriptSceneTest {
 		assertTrue("Normal bricks should still be present", normalBrickCount > 0);
 	}
 
-	// ============ CROSS-SCENE OBJECT LOOKUP TESTS ============
-
 	@Test
 	public void testObjectLookupScopedToScene1() {
-		// Scene 1 has "Hero" — should find it
 		Sprite found = scene1.getSprite("Hero");
 		assertNotNull(found);
 		assertEquals(spriteInScene1.getName(), found.getName());
@@ -216,7 +192,6 @@ public class NeoScriptSceneTest {
 
 	@Test
 	public void testObjectLookupScopedToScene2() {
-		// Scene 2 also has "Hero" — should find the scene2 version
 		Sprite found = scene2.getSprite("Hero");
 		assertNotNull(found);
 		assertEquals(spriteInScene2.getName(), found.getName());
@@ -224,27 +199,19 @@ public class NeoScriptSceneTest {
 
 	@Test
 	public void testObjectLookupScopedToSceneDoesNotCrossBoundary() {
-		// Scene 1 does NOT have "Villain"
 		assertNull(scene1.getSprite("Villain"));
-		// Adding to scene1 should NOT affect scene2
 		scene1.addSprite(new Sprite("Villain"));
 		assertNotNull(scene1.getSprite("Villain"));
 		assertNull("Scene2 must not be contaminated", scene2.getSprite("Villain"));
 	}
 
-	// ============ DUPLICATE OBJECT NAME TESTS ============
-
 	@Test
 	public void testDuplicateNameInSameScene() {
-		// Adding a sprite with the same name should succeed in the model
 		Sprite duplicate = new Sprite("Hero");
 		scene1.addSprite(duplicate);
-		// scene1.getSprite("Hero") returns the FIRST match
 		Sprite first = scene1.getSprite("Hero");
 		assertNotNull(first);
 	}
-
-	// ============ NEOSCRIPT IMPORT CROSS-SCENE TESTS ============
 
 	@Test
 	public void testImportIntoScene1SpriteDoesNotAffectScene2() throws Exception {
@@ -262,12 +229,8 @@ public class NeoScriptSceneTest {
 		assertEquals("scene2's Hero must not be affected", 0, otherHero.getScriptList().size());
 	}
 
-	// ============ CORNER CASE TESTS ============
-
 	@Test
 	public void testSceneNotFoundLogsError() {
-		// If an action tries to resolve a scene that doesn't exist,
-		// it should return null rather than crashing
 		Scene notFound = project.getSceneByName("ImaginaryScene");
 		assertNull("Non-existent scene must return null", notFound);
 	}
@@ -286,8 +249,6 @@ public class NeoScriptSceneTest {
 		assertNull("Empty scene without setup has no background", emptyScene.getBackgroundSprite());
 	}
 
-	// ============ ASSIGN-SCRIPTS REPLACE MODE TESTS ============
-
 	@Test
 	public void testAppendAllKeepsExistingAndAddsImported() throws Exception {
 		Sprite target = scene1.getSprite("Hero");
@@ -305,7 +266,7 @@ public class NeoScriptSceneTest {
 	@Test
 	public void testReplaceAllRemovesExistingScripts() throws Exception {
 		Sprite target = scene1.getSprite("Hero");
-		target.addScript(new StartScript()); // pre-existing, different signature
+		target.addScript(new StartScript());
 
 		NeoScriptFile file = buildSampleFile("replaceVar");
 		NeoScriptImporter.ImportResult result = NeoScriptImporter.importScripts(
@@ -339,7 +300,6 @@ public class NeoScriptSceneTest {
 
 	@Test
 	public void testBooleanOverwriteStillMapsToDuplicateStrategy() throws Exception {
-		// Backward compat: the boolean API (used by ImportScriptBrick) must still work.
 		NeoScriptFile file = buildSampleFile("compatVar");
 		Sprite target = scene1.getSprite("Hero");
 
@@ -375,8 +335,6 @@ public class NeoScriptSceneTest {
 		assertEquals("Mode 1 removes all existing, only imported remains",
 				1, target.getScriptList().size());
 	}
-
-	// ============ HELPER METHODS ============
 
 	private Scene resolveScene(String sceneName) {
 		if (sceneName == null || sceneName.isEmpty()) {

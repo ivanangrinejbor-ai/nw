@@ -231,8 +231,6 @@ public class XstreamSerializerTest {
 		assertTrue(currentCodeFile.exists());
 		assertThat(currentCodeFile.length(), is(greaterThan(0L)));
 
-		// simulate 1st Option: tmp_code.xml exists but code.xml doesn't exist
-		// --> saveProject process will restore from tmp_code.xml
 		assertTrue(tmpCodeFile.createNewFile());
 
 		StorageOperations.transferData(currentCodeFile, tmpCodeFile);
@@ -246,8 +244,6 @@ public class XstreamSerializerTest {
 		assertThat(currentCodeFile.length(), is(greaterThan(0L)));
 		assertEquals(currentCodeFileXml, Files.toString(currentCodeFile, Charsets.UTF_8));
 
-		// simulate 2nd Option: tmp_code.xml and code.xml exist
-		// --> saveProject process will discard tmp_code.xml and use code.xml
 		assertTrue(tmpCodeFile.createNewFile());
 
 		storageHandler.saveProject(project);

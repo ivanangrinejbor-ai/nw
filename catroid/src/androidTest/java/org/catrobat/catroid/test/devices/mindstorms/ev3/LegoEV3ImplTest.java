@@ -72,7 +72,7 @@ public class LegoEV3ImplTest {
 
 		byte[] setOutputState = logger.getNextSentMessage(0, 2);
 
-		int offset = BASIC_MESSAGE_BYTE_OFFSET + 3; // 1 byte command, 1 bytes volume, 1 byte datatype
+		int offset = BASIC_MESSAGE_BYTE_OFFSET + 3;
 
 		assertEquals((byte) expectedHz, setOutputState[offset]);
 		assertEquals((byte) (expectedHz >> 8), setOutputState[offset + 1]);
@@ -81,7 +81,6 @@ public class LegoEV3ImplTest {
 	@Test
 	public void testPlayToneHzOverMaxValue() throws MindstormsException {
 
-		// MaxHz = 10000;
 		int inputHz = 16000;
 		int expectedHz = 10000;
 		int durationInMs = 5000;
@@ -92,7 +91,7 @@ public class LegoEV3ImplTest {
 
 		byte[] setOutputState = logger.getNextSentMessage(0, 2);
 
-		int offset = BASIC_MESSAGE_BYTE_OFFSET + 3; // 1 byte command, 1 bytes volume, 1 byte datatype
+		int offset = BASIC_MESSAGE_BYTE_OFFSET + 3;
 
 		assertEquals((byte) expectedHz, setOutputState[offset]);
 		assertEquals((byte) (expectedHz >> 8), setOutputState[offset + 1]);
@@ -111,7 +110,7 @@ public class LegoEV3ImplTest {
 
 		byte[] setOutputState = logger.getNextSentMessage(0, 2);
 
-		int offset = BASIC_MESSAGE_BYTE_OFFSET + 6; // 1 byte command, 1 bytes volume, 3 bytes freq, 1 byte datatype
+		int offset = BASIC_MESSAGE_BYTE_OFFSET + 6;
 
 		assertEquals((byte) expectedDurationInMs, setOutputState[offset]);
 		assertEquals((byte) (expectedDurationInMs >> 8), setOutputState[offset + 1]);
@@ -130,7 +129,7 @@ public class LegoEV3ImplTest {
 
 		byte[] setOutputState = logger.getNextSentMessage(0, 2);
 
-		int offset = BASIC_MESSAGE_BYTE_OFFSET + 1; // 1 byte command
+		int offset = BASIC_MESSAGE_BYTE_OFFSET + 1;
 
 		assertEquals((byte) expectedVolumeLevel1, setOutputState[offset]);
 
@@ -184,7 +183,7 @@ public class LegoEV3ImplTest {
 
 		byte[] setOutputState = logger.getNextSentMessage(0, 2);
 
-		int offset = BASIC_MESSAGE_BYTE_OFFSET + 2; // 1 byte command, 1 byte datatype
+		int offset = BASIC_MESSAGE_BYTE_OFFSET + 2;
 
 		assertEquals((byte) expectedLedStatus, setOutputState[offset]);
 	}

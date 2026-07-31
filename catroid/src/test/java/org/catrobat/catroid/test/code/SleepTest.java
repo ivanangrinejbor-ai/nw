@@ -35,8 +35,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class SleepTest extends TestCase {
-	// PERF: scans 1500+ source files at test time via Utils.getFilesFromDirectoryByExtension — slow (I/O-heavy).
-	// Consider using a cached file list or narrowing DIRECTORIES to relevant packages.
 	private static final String[] DIRECTORIES = Utils.SLEEP_TEST_DIRECTORIES;
 	private static final String REGEX_PATTERN = "^.*Thread\\.sleep\\(\\w+\\).*$";
 	private static final String PATTERN_DID_NOT_MATCH_MESSAGE = "Pattern didn't match!";

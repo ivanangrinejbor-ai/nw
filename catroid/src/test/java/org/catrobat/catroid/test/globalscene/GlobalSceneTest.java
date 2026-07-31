@@ -20,10 +20,6 @@ import java.util.List;
 
 import static org.junit.Assert.*;
 
-/**
- * 40 tests for Global Scene system.
- * Covers: model, runtime behavior, UI contracts, and edge cases.
- */
 public class GlobalSceneTest {
 
     private Project project;
@@ -35,10 +31,6 @@ public class GlobalSceneTest {
         Scene defaultScene = new Scene("Scene 1", project);
         project.addScene(defaultScene);
     }
-
-    // ═══════════════════════════════════════
-    // MODEL TESTS (1-8)
-    // ═══════════════════════════════════════
 
     @Test
     public void testProjectWithoutGlobalScene() {
@@ -113,10 +105,6 @@ public class GlobalSceneTest {
         assertEquals(3, project.getGlobalScene().getSpriteList().size());
     }
 
-    // ═══════════════════════════════════════
-    // RUNTIME TESTS (9-24)
-    // ═══════════════════════════════════════
-
     @Test
     public void testGlobalSpritesNotResetOnSceneSwitch() {
         Scene globalScene = new Scene("Global", project);
@@ -125,7 +113,6 @@ public class GlobalSceneTest {
         project.setGlobalScene(globalScene);
 
         List<Sprite> allGlobal = project.getAllGlobalSprites();
-        // Global sprites should not be reset — check they exist in global list
         assertTrue(allGlobal.contains(gSprite));
     }
 
@@ -153,13 +140,11 @@ public class GlobalSceneTest {
 
     @Test
     public void testBothSystemsCombine() {
-        // Global scene
         Scene gs = new Scene("Global", project);
         Sprite gsSprite = new Sprite("FromGlobalScene");
         gs.addSprite(gsSprite);
         project.setGlobalScene(gs);
 
-        // Legacy flag
         Sprite legacySprite = new Sprite("LegacyGlobal");
         legacySprite.setGlobal(true);
         project.getDefaultScene().addSprite(legacySprite);
@@ -177,7 +162,6 @@ public class GlobalSceneTest {
         gs.addSprite(sprite);
         project.setGlobalScene(gs);
 
-        // Should appear only once
         long count = project.getAllGlobalSprites().stream()
                 .filter(s -> s.getName().equals("NoDupe")).count();
         assertEquals(1, count);
@@ -187,7 +171,6 @@ public class GlobalSceneTest {
     public void testGlobalSceneHasProject() {
         Scene gs = new Scene("Global", project);
         project.setGlobalScene(gs);
-        // setGlobalScene should call setProject
         assertTrue(gs.isGlobalScene());
     }
 
@@ -269,10 +252,6 @@ public class GlobalSceneTest {
         assertTrue(sprite.getSoundList().isEmpty());
     }
 
-    // ═══════════════════════════════════════
-    // UI CONTRACT TESTS (25-32)
-    // ═══════════════════════════════════════
-
     @Test
     public void testGlobalSceneCreationSetsFlag() {
         Scene gs = new Scene("Global", project);
@@ -300,8 +279,8 @@ public class GlobalSceneTest {
         Scene gs = new Scene("Global", project);
         project.setGlobalScene(gs);
 
-        assertEquals(3, project.getSceneList().size()); // Regular scenes
-        assertTrue(project.hasGlobalScene()); // Plus global
+        assertEquals(3, project.getSceneList().size());
+        assertTrue(project.hasGlobalScene());
     }
 
     @Test
@@ -341,15 +320,10 @@ public class GlobalSceneTest {
         assertEquals(10, project.getGlobalScene().getSpriteList().size());
     }
 
-    // ═══════════════════════════════════════
-    // EDGE CASE TESTS (33-40)
-    // ═══════════════════════════════════════
-
     @Test
     public void testEmptyGlobalSceneNoCrash() {
         Scene gs = new Scene("Global", project);
         project.setGlobalScene(gs);
-        // Should not crash
         List<Sprite> allGlobal = project.getAllGlobalSprites();
         assertTrue(allGlobal.isEmpty());
     }
@@ -359,7 +333,6 @@ public class GlobalSceneTest {
         Scene gs = new Scene("Global", project);
         project.setGlobalScene(gs);
         project.getUserVariables().add(new UserVariable("globalScore", 0));
-        // No sprites, no crash
         assertNotNull(project.getGlobalScene());
     }
 
@@ -370,9 +343,7 @@ public class GlobalSceneTest {
         project.setGlobalScene(gs);
         project.getDefaultScene().addSprite(new Sprite("Player"));
 
-        // Both exist, no collision — different scenes
         assertEquals(1, project.getGlobalScene().getSpriteList().size());
-        // Default scene has background + Player
         assertTrue(project.getDefaultScene().getSpriteList().size() >= 1);
     }
 
@@ -434,13 +405,8 @@ public class GlobalSceneTest {
         assertEquals("Third", sprites.get(2).getName());
     }
 
-    // ═══════════════════════════════════════
-    // LAUNCH ORDER TESTS (41-44)
-    // ═══════════════════════════════════════
-
     @Test
     public void testGlobalSceneExistsBeforeRegularScenes() {
-        // При запуске: глобальная сцена должна быть доступна отдельно от списка сцен
         Scene gs = new Scene("Global", project);
         gs.addSprite(new Sprite("Manager"));
         project.setGlobalScene(gs);
@@ -449,36 +415,28 @@ public class GlobalSceneTest {
         scene1.addSprite(new Sprite("Player"));
         project.addScene(scene1);
 
-        // Глобальная НЕ в sceneList
         assertFalse(project.getSceneList().contains(gs));
-        // Но доступна через getGlobalScene
         assertNotNull(project.getGlobalScene());
-        // Первая обычная сцена = defaultScene (Scene 1) или Level 1
         assertTrue(project.getSceneList().size() >= 1);
     }
 
     @Test
     public void testGlobalSpritesLoadedWithRegularScene() {
-        // При запуске проекта getAllGlobalSprites должны содержать объекты глобальной сцены
         Scene gs = new Scene("Global", project);
         Sprite hudSprite = new Sprite("HUD");
         gs.addSprite(hudSprite);
         project.setGlobalScene(gs);
 
-        // Обычная сцена
         Sprite player = new Sprite("Player");
         project.getDefaultScene().addSprite(player);
 
-        // Глобальные спрайты доступны
         List<Sprite> globalSprites = project.getAllGlobalSprites();
         assertTrue(globalSprites.contains(hudSprite));
-        // Обычные НЕ в глобальных
         assertFalse(globalSprites.contains(player));
     }
 
     @Test
     public void testTwoScenesWithGlobalSceneStructure() {
-        // 2 обычных + 1 глобальная: при запуске глобал запускается параллельно с первой обычной
         Scene gs = new Scene("Global", project);
         gs.addSprite(new Sprite("ScoreManager"));
         gs.addSprite(new Sprite("MusicController"));
@@ -486,17 +444,14 @@ public class GlobalSceneTest {
 
         project.addScene(new Scene("Level 2", project));
 
-        // Структура: 2 обычных сцены + 1 глобальная
-        assertEquals(2, project.getSceneList().size()); // Scene 1 + Level 2
+        assertEquals(2, project.getSceneList().size());
         assertTrue(project.hasGlobalScene());
         assertEquals(2, project.getGlobalScene().getSpriteList().size());
-        // Глобальные спрайты должны быть доступны при любой текущей сцене
         assertEquals(2, project.getAllGlobalSprites().size());
     }
 
     @Test
     public void testGlobalSceneDefaultSceneLaunchOrder() {
-        // При запуске: глобальная сцена и первая обычная запускаются одновременно
         Scene gs = new Scene("Global", project);
         Sprite gm = new Sprite("GameManager");
         StartScript gmScript = new StartScript();
@@ -504,17 +459,13 @@ public class GlobalSceneTest {
         gs.addSprite(gm);
         project.setGlobalScene(gs);
 
-        // Первая обычная сцена = defaultScene
         Scene defaultScene = project.getDefaultScene();
         assertNotNull(defaultScene);
         assertFalse(defaultScene.isGlobalScene());
 
-        // Глобальная сцена существует и имеет скрипты
         assertTrue(project.hasGlobalScene());
         assertEquals(1, project.getGlobalScene().getSpriteList().get(0).getScriptList().size());
 
-        // Порядок: глобал + defaultScene запускаются вместе
-        // Глобальные спрайты + спрайты первой сцены все должны быть в getAllGlobalSprites + sceneList
         List<Sprite> allGlobal = project.getAllGlobalSprites();
         assertTrue(allGlobal.contains(gm));
     }

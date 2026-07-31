@@ -44,14 +44,12 @@ class NotificationActionActionTest {
 
     @Test
     fun testNotificationActionStoresActionData() {
-        // First prepare a notification
         val prepareAction = sprite.actionFactory.createPrepareNotificationAction(
             sprite, scriptSequence,
             Formula(1), Formula("ch"), Formula("T"), Formula("X"), Formula(""), 2, false
         )
         prepareAction.act(1.0f)
 
-        // Now add an action
         val action = sprite.actionFactory.createNotificationActionAction(
             sprite, scriptSequence,
             Formula(1), Formula("action_1"), Formula("Tap here"),
@@ -128,7 +126,6 @@ class NotificationActionActionTest {
             Formula(4), Formula("unique"), Formula("Only once"),
             Formula(""), Formula(""), 0, false
         )
-        // Call act twice - should only add one action
         action.act(1.0f)
         action.act(1.0f)
 

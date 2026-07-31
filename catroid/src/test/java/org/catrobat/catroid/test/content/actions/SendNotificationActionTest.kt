@@ -58,7 +58,6 @@ class SendNotificationActionTest {
             sprite, scriptSequence, Formula(1)
         )
         action.act(1.0f)
-        // No data in storage -> should return early without NPE
     }
 
     @Test
@@ -67,7 +66,6 @@ class SendNotificationActionTest {
             sprite, scriptSequence, null
         )
         action.act(1.0f)
-        // Should not throw NPE
     }
 
     @Test
@@ -88,7 +86,6 @@ class SendNotificationActionTest {
             sprite, scriptSequence, Formula(1)
         )
         action.act(1.0f)
-        // Should return early because activity is null
     }
 
     @Test
@@ -103,16 +100,13 @@ class SendNotificationActionTest {
         )
         action.act(1.0f)
 
-        // Mock activity to avoid NPE from getSystemService
         val mockActivity = Mockito.mock(StageActivity::class.java)
         val mockNotificationManager = Mockito.mock(NotificationManager::class.java)
         Mockito.`when`(mockActivity.getSystemService(Context.NOTIFICATION_SERVICE))
             .thenReturn(mockNotificationManager)
         Whitebox.setInternalState(StageActivity::class.java, "activeStageActivity", java.lang.ref.WeakReference(mockActivity))
 
-        // After restart should re-execute
         action.restart()
         action.act(1.0f)
-        // Should reach notification code path without exception
     }
 }

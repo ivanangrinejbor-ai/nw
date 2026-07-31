@@ -71,7 +71,6 @@ public class BrickSingleFormulaFieldTest {
 	@ParameterizedRobolectricTestRunner.Parameters(name = "{0}")
 	public static Collection<Object[]> data() {
 		return Arrays.asList(new Object[][] {
-				//Bricks with single formula fields
 				{WhenConditionBrick.class.getSimpleName(), new WhenConditionBrick(), R.id.brick_when_condition_edit_text},
 				{SetXBrick.class.getSimpleName(), new SetXBrick(), R.id.brick_set_x_edit_text},
 				{SetYBrick.class.getSimpleName(), new SetYBrick(), R.id.brick_set_y_edit_text},
@@ -156,7 +155,6 @@ public class BrickSingleFormulaFieldTest {
 				{IfLogicBeginBrick.class.getSimpleName(), new IfLogicBeginBrick(), R.id.brick_if_begin_edit_text},
 				{IfThenLogicBeginBrick.class.getSimpleName(), new IfThenLogicBeginBrick(), R.id.brick_if_begin_edit_text},
 
-				//Bricks with multiple formula fields:
 				{GlideToBrick.class.getSimpleName() + " duration", new GlideToBrick(), R.id.brick_glide_to_edit_text_duration},
 				{SetVelocityBrick.class.getSimpleName() + " x", new SetVelocityBrick(), R.id.brick_set_velocity_edit_text_x},
 				{SetVelocityBrick.class.getSimpleName() + " y", new SetVelocityBrick(), R.id.brick_set_velocity_edit_text_y},
@@ -174,10 +172,8 @@ public class BrickSingleFormulaFieldTest {
 				{ReplaceItemInUserListBrick.class.getSimpleName() + " index", new ReplaceItemInUserListBrick(), R.id.brick_replace_item_in_userlist_at_index_edit_text},
 				{ReplaceItemInUserListBrick.class.getSimpleName() + " index", new ReplaceItemInUserListBrick(), R.id.brick_replace_item_in_userlist_at_index_edit_text},
 
-				//NFC bricks:
 				{SetNfcTagBrick.class.getSimpleName(), new SetNfcTagBrick(), R.id.brick_set_nfc_tag_edit_text},
 
-				//Lego bricks:
 				{LegoNxtMotorTurnAngleBrick.class.getSimpleName(), new LegoNxtMotorTurnAngleBrick(), R.id.motor_turn_angle_edit_text},
 				{LegoNxtMotorMoveBrick.class.getSimpleName(), new LegoNxtMotorMoveBrick(), R.id.motor_action_speed_edit_text},
 				{LegoNxtPlayToneBrick.class.getSimpleName() + " freq", new LegoNxtPlayToneBrick(), R.id.nxt_tone_freq_edit_text},
@@ -188,7 +184,6 @@ public class BrickSingleFormulaFieldTest {
 				{LegoEv3PlayToneBrick.class.getSimpleName() + " duration", new LegoEv3PlayToneBrick(), R.id.brick_ev3_tone_duration_edit_text},
 				{LegoEv3PlayToneBrick.class.getSimpleName() + " volume", new LegoEv3PlayToneBrick(), R.id.brick_ev3_tone_volume_edit_text},
 
-				//Drone Bricks
 				{DroneMoveRightBrick.class.getSimpleName() + " duration", new DroneMoveRightBrick(), R.id.brick_drone_move_right_edit_text_second},
 				{DroneMoveRightBrick.class.getSimpleName() + " power", new DroneMoveRightBrick(), R.id.brick_drone_move_right_edit_text_power},
 				{DroneMoveLeftBrick.class.getSimpleName() + " duration", new DroneMoveLeftBrick(), R.id.brick_drone_move_left_edit_text_second},
@@ -214,18 +209,15 @@ public class BrickSingleFormulaFieldTest {
 				{JumpingSumoRotateLeftBrick.class.getSimpleName(), new JumpingSumoRotateLeftBrick(), R.id.brick_jumping_sumo_change_left_variable_edit_text},
 				{JumpingSumoRotateRightBrick.class.getSimpleName(), new JumpingSumoRotateRightBrick(), R.id.brick_jumping_sumo_change_right_variable_edit_text},
 
-				//Phiro bricks
 				{PhiroMotorMoveBackwardBrick.class.getSimpleName(), new PhiroMotorMoveBackwardBrick(), R.id.brick_phiro_motor_backward_action_speed_edit_text},
 				{PhiroMotorMoveForwardBrick.class.getSimpleName(), new PhiroMotorMoveForwardBrick(), R.id.brick_phiro_motor_forward_action_speed_edit_text},
 				{PhiroPlayToneBrick.class.getSimpleName(), new PhiroPlayToneBrick(), R.id.brick_phiro_play_tone_duration_edit_text},
 
-				//Arduino bricks
 				{ArduinoSendDigitalValueBrick.class.getSimpleName() + " pin", new ArduinoSendDigitalValueBrick(), R.id.brick_arduino_set_digital_pin_edit_text},
 				{ArduinoSendDigitalValueBrick.class.getSimpleName() + " value", new ArduinoSendDigitalValueBrick(), R.id.brick_arduino_set_digital_value_edit_text},
 				{ArduinoSendPWMValueBrick.class.getSimpleName() + " pin", new ArduinoSendPWMValueBrick(), R.id.brick_arduino_set_analog_pin_edit_text},
 				{ArduinoSendPWMValueBrick.class.getSimpleName() + " value", new ArduinoSendPWMValueBrick(), R.id.brick_arduino_set_analog_value_edit_text},
 
-				//Raspberry bricks
 				{RaspiSendDigitalValueBrick.class.getSimpleName() + " pin", new RaspiSendDigitalValueBrick(), R.id.brick_raspi_set_digital_pin_edit_text},
 				{RaspiSendDigitalValueBrick.class.getSimpleName() + " value", new RaspiSendDigitalValueBrick(), R.id.brick_raspi_set_digital_value_edit_text},
 				{RaspiPwmBrick.class.getSimpleName() + " pin", new RaspiPwmBrick(), R.id.brick_raspi_pwm_pin_edit_text},
@@ -233,7 +225,6 @@ public class BrickSingleFormulaFieldTest {
 				{RaspiPwmBrick.class.getSimpleName() + " percentage", new RaspiPwmBrick(), R.id.brick_raspi_pwm_percentage_edit_text},
 				{RaspiIfLogicBeginBrick.class.getSimpleName(), new RaspiIfLogicBeginBrick(), R.id.brick_if_begin_edit_text},
 
-				//Testing bricks
 				{AssertEqualsBrick.class.getSimpleName() + " actual", new AssertEqualsBrick(), R.id.brick_assert_actual},
 				{AssertEqualsBrick.class.getSimpleName() + " expected", new AssertEqualsBrick(), R.id.brick_assert_expected},
 		});

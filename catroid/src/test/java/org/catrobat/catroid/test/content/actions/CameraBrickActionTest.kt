@@ -51,7 +51,6 @@ class CameraBrickActionTest {
         mockStatic(GdxNativesLoader::class.java)
         mockStatic(StageActivity::class.java)
         given(StageActivity.getActiveCameraManager()).willReturn(cameraManager)
-        // PowerMockito.doNothing().`when`(cameraManager).setFlashMode(anyBoolean())
     }
 
     @Test

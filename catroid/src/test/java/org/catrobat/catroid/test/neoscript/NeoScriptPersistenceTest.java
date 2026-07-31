@@ -29,24 +29,6 @@ import java.nio.file.Files;
 
 import junit.framework.TestCase;
 
-/**
- * Persistence tests for the NeoScript object/script bricks.
- *
- * Two axes are verified:
- *   1. Behavioural (runtime side of persistence): the action mutates the canonical
- *      {@link Project} (the model that Catroid later serialises to disk). Whether the
- *      flag is on or off, the object/script is added to the live project model.
- *   2. Flag serialisation: the user's "persist" choice round-trips through the very
- *      same XStream configuration used by {@code ProjectSaver}/{@code XstreamSerializer}
- *      when the project is written to disk. A missing field (older .neoscript / project
- *      files) deserialises to the safe runtime-only default.
- *
- * NOTE: A full Project save+reload (code.xml) cannot run in this offline unit harness
- * because Catroid's Project serialisation touches Android/device-only classes. The on-disk
- * write path itself is Catroid's standard, on-device {@code ProjectSaver.saveProjectAsync}
- * (exercised by the editor's normal save flow); the tests below verify the two pieces that
- * ARE observable offline: the canonical model mutation and the persistence flag serialisation.
- */
 public class NeoScriptPersistenceTest extends TestCase {
 
 	private File workDir;
@@ -80,8 +62,6 @@ public class NeoScriptPersistenceTest extends TestCase {
 		super.tearDown();
 	}
 
-	// ======================= module builders =======================
-
 	private File helperMakeModuleFile() throws Exception {
 		NeoScriptFile file = new NeoScriptFile();
 		StartScript s = new StartScript();
@@ -104,8 +84,6 @@ public class NeoScriptPersistenceTest extends TestCase {
 		return f;
 	}
 
-	// ======================= action runners =======================
-
 	private void runCreateObject(String name, String scene, boolean persist) {
 		CreateObjectAction action = new CreateObjectAction();
 		action.setScope(new Scope(project, hero1, null));
@@ -125,8 +103,6 @@ public class NeoScriptPersistenceTest extends TestCase {
 		action.setSavePersistent(save);
 		action.act(1.0f);
 	}
-
-	// ======================= helpers =======================
 
 	private XStream xstream() {
 		return XstreamSerializer.getInstance().getXstream();
@@ -174,15 +150,12 @@ public class NeoScriptPersistenceTest extends TestCase {
 		dir.delete();
 	}
 
-	// ======================= behavioural: canonical model mutation =======================
-
 	public void testCreateObjectAddsSpriteToCanonicalProject() {
 		runCreateObject("Enemy", null, false);
 		assertNotNull(project.getDefaultScene().getSprite("Enemy"));
 	}
 
 	public void testCreateObjectPersistTrueStillMutatesCanonicalProject() {
-		// The persist flag must not change runtime behaviour: the object is still added.
 		runCreateObject("Enemy", null, true);
 		assertNotNull(project.getDefaultScene().getSprite("Enemy"));
 	}
@@ -227,7 +200,6 @@ public class NeoScriptPersistenceTest extends TestCase {
 
 		assertEquals(beforeS2 + 1, s2hero.getScriptList().size());
 		assertTrue(containsSetVariableBrick(s2hero));
-		// Hero1 in Scene1 is untouched by the Scene2 assignment.
 		assertEquals(1, hero1.getScriptList().size());
 	}
 
@@ -250,8 +222,6 @@ public class NeoScriptPersistenceTest extends TestCase {
 		runAssignScripts(large.getAbsolutePath(), "Hero1", null, false, false);
 		assertEquals(before + 50, hero1.getScriptList().size());
 	}
-
-	// ======================= persistence flag serialisation =======================
 
 	public void testCreateObjectBrickDefaultNotPersistent() {
 		assertFalse(new CreateObjectBrick().isPersistent());

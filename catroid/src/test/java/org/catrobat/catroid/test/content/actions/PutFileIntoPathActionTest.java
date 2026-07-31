@@ -131,7 +131,6 @@ public class PutFileIntoPathActionTest {
                 .createPutFileIntoPathAction(sprite, new SequenceAction(),
                         null, new Formula("/some/path"))
                 .act(1.0f);
-        // Should not throw
     }
 
     @Test

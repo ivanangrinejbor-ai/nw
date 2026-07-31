@@ -98,9 +98,6 @@ public class SetRotationStyleActionTest {
 		assertEquals(-90f, sprite.look.getMotionDirectionInUserInterfaceDimensionUnit());
 	}
 
-	//Directions here get funky because in physics there is no UI Degree Offset as in the normal looks
-	//Right is Left, Left is Right, Up is Up and Down is Down
-
 	@Test
 	public void testNormalModeInPhysics() {
 		PhysicsObject physicsObject = physicsWorld.getPhysicsObject(sprite);

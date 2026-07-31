@@ -38,10 +38,6 @@ import org.robolectric.annotation.Config
 @Config(sdk = [28])
 class ColorPickerAlphaTest {
 
-    // ========================
-    // Conversions.isValidHexColor
-    // ========================
-
     @Test
     fun test01_validHexColor6Digits() {
         assertTrue("#FF0000".isValidHexColor())
@@ -92,10 +88,6 @@ class ColorPickerAlphaTest {
         val nullStr: String? = null
         assertFalse(nullStr.isValidHexColor())
     }
-
-    // ========================
-    // Conversions.tryParseColor
-    // ========================
 
     @Test
     fun test11_tryParseColor6DigitsRed() {
@@ -153,10 +145,6 @@ class ColorPickerAlphaTest {
         assertEquals(0x02, Color.blue(color))
     }
 
-    // ========================
-    // ShowTextUtils.isValidColorString
-    // ========================
-
     @Test
     fun test19_isValidColorString6Digits() {
         assertTrue(ShowTextUtils.isValidColorString("#FF0000"))
@@ -181,10 +169,6 @@ class ColorPickerAlphaTest {
     fun test23_isValidColorStringNoHash() {
         assertFalse(ShowTextUtils.isValidColorString("FF0000"))
     }
-
-    // ========================
-    // ShowTextUtils.convertColorToString
-    // ========================
 
     @Test
     fun test24_convertColorToStringOpaqueRed() {
@@ -225,10 +209,6 @@ class ColorPickerAlphaTest {
         assertEquals("#FFFFFFFF", result)
     }
 
-    // ========================
-    // ShowTextUtils.calculateColorRGBs (backward compat)
-    // ========================
-
     @Test
     fun test30_calculateColorRGBs6Digits() {
         val rgb = ShowTextUtils.calculateColorRGBs("#FF8040")
@@ -244,10 +224,6 @@ class ColorPickerAlphaTest {
         assertEquals(128, rgb[1])
         assertEquals(64, rgb[2])
     }
-
-    // ========================
-    // VisualizeColorString (Robolectric)
-    // ========================
 
     @Test
     fun test32_visualizeColorStringOpaqueColor() {
@@ -305,10 +281,6 @@ class ColorPickerAlphaTest {
         assertNotNull(viz.drawable)
     }
 
-    // ========================
-    // Round-trip: convertColorToString -> tryParseColor
-    // ========================
-
     @Test
     fun test39_roundTripOpaqueColor() {
         val original = Color.argb(255, 100, 200, 50)
@@ -342,10 +314,6 @@ class ColorPickerAlphaTest {
         assertEquals(original, parsed)
     }
 
-    // ========================
-    // Backward compatibility: 6-digit input still works
-    // ========================
-
     @Test
     fun test43_backwardCompat6DigitColorStillValid() {
         assertTrue("#FF0000".isValidHexColor())
@@ -361,10 +329,6 @@ class ColorPickerAlphaTest {
         assertEquals(255, Color.alpha(color))
         assertEquals(255, Color.green(color))
     }
-
-    // ========================
-    // Edge cases
-    // ========================
 
     @Test
     fun test45_edgeCaseAllZeros8Digit() {

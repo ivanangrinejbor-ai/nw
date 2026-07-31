@@ -39,7 +39,6 @@ public class NeoScriptStressTest {
 
 	@Test
 	public void testSixtyStartScriptsStress() throws Exception {
-		// 1. Create a NeoScriptFile with 60 StartScripts, each containing 10 SetVariableBricks
 		NeoScriptFile file = new NeoScriptFile();
 		for (int s = 0; s < 60; s++) {
 			StartScript startScript = new StartScript();
@@ -50,14 +49,12 @@ public class NeoScriptStressTest {
 			file.getScripts().add(startScript);
 		}
 
-		// 2. Serialize and Deserialize to verify XStream handling of large sets
 		String xml = NeoScriptSerializer.serializeToString(file);
 		assertNotNull(xml);
 		
 		NeoScriptFile restored = NeoScriptSerializer.deserializeFromString(xml);
 		assertEquals(60, restored.getScripts().size());
 
-		// Verify structure pre-import
 		for (int s = 0; s < 60; s++) {
 			Script script = restored.getScripts().get(s);
 			assertEquals(10, script.getBrickList().size());
@@ -69,13 +66,11 @@ public class NeoScriptStressTest {
 			}
 		}
 
-		// 3. Import using ImportStrategy.APPEND_ALL
 		NeoScriptImporter.ImportResult appendResult =
 				NeoScriptImporter.importScripts(restored, project, sprite, NeoScriptImporter.ImportStrategy.APPEND_ALL);
 		assertEquals(60, appendResult.added.size());
 		assertEquals(60, sprite.getScriptList().size());
 
-		// Verify order and block content in the sprite
 		for (int s = 0; s < 60; s++) {
 			Script script = sprite.getScriptList().get(s);
 			assertEquals(10, script.getBrickList().size());
@@ -99,7 +94,6 @@ public class NeoScriptStressTest {
 			file.getScripts().add(startScript);
 		}
 
-		// Import with SKIP_DUPLICATES into empty sprite
 		NeoScriptImporter.ImportResult skipResult =
 				NeoScriptImporter.importScripts(file, project, sprite, NeoScriptImporter.ImportStrategy.SKIP_DUPLICATES);
 		

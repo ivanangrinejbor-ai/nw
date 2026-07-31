@@ -146,15 +146,12 @@ public class ProjectManagerTest {
 		File directory = new File(DEFAULT_ROOT_DIRECTORY, PROJECT_NAME);
 		assertTrue(String.format("Directory %s does not exist", directory.getPath()), directory.exists());
 
-		// simulate multiple saving trigger asynchronous (occurs in black box testing)
 		for (int i = 0; i < 3; i++) {
 			currentProject.setDescription(currentProject.getDescription() + i);
 			new ProjectSaver(currentProject, ApplicationProvider.getApplicationContext())
 					.saveProjectAsync();
 		}
 
-		// simulate deletion, saveProject asyncTask will be "automatically" cancelled (Please remark: there is still a chance
-		// of a race condition, because we rely on a "project" reference which gets used in a multithreaded environment)
 		projectManager.setCurrentProject(null);
 		StorageOperations.deleteDir(directory);
 

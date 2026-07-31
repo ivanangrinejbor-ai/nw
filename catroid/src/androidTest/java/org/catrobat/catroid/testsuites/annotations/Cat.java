@@ -24,49 +24,36 @@
 package org.catrobat.catroid.testsuites.annotations;
 
 public interface Cat {
-	//AppUi for all  tests focusing on the pocket code application, so the menus, fragments, lists, and their functionality
 	interface AppUi {
 	}
 
-	//CatrobatLanguage for all  tests focusing on catrobat language correctness (eg. tests verify in stage correctness
-	//of some catrobat program
 	interface CatrobatLanguage {
 	}
 
-	//Device for all tests that are required to run / are only runnable on a physical android device
 	interface Device {
 	}
 
-	//Gadgets for all  tests focusing on peripheral hardware and gadgets (eg. RasPi, Drone, LegoNXT, etc.)
 	interface Gadgets {
 	}
 
-	//SettingsAndPermissions for all tests probably require some settings change or permission confirmation.
-	//(eg. NFC, Bluetooth, Camera, etc)
 	interface SettingsAndPermissions {
 	}
 
-	//Network for all tests that do require an internet connection and or any network services, etc.
 	interface OutgoingNetworkTests {
 	}
 
-	//SensorBox include all tests utilizing the Sensor testing box
 	interface SensorBox {
 	}
 
-	//Tests for pocketmusic
 	interface PocketMusicUiTests {
 	}
 
-	//Educational tests that are in place to demonstrate how to test something
 	interface Educational {
 	}
 
-	//Tests that change the device / app language to test RTL layout changes
 	interface RTLTests {
 	}
 
-	//Tests that have side effects that can break other tests, therefore should be excluded from bulk test runs
 	interface Quarantine {
 	}
 

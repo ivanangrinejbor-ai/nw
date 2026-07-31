@@ -121,7 +121,6 @@ public class TouchDirectionActionTest {
     public void testNullScopeDoesNothing() {
         TouchDirectionAction action = new TouchDirectionAction();
         action.act(1.0f);
-        // Should not throw NPE
     }
 
     @Test

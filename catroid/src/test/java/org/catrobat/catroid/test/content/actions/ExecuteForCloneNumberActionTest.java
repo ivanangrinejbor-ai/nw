@@ -84,7 +84,6 @@ public class ExecuteForCloneNumberActionTest {
         action = new ExecuteForCloneNumberAction();
         action.setCloneNumber(new Formula(1));
         action.setCloneAction(mockInnerAction);
-        // scope is null
 
         boolean result = action.act(1.0f);
 
@@ -97,7 +96,6 @@ public class ExecuteForCloneNumberActionTest {
         action = new ExecuteForCloneNumberAction();
         Scope scope = new Scope(null, sprite, new ScriptSequenceAction(Mockito.mock(Script.class)));
         action.setScope(scope);
-        // cloneNumber is null
         action.setCloneAction(mockInnerAction);
 
         boolean result = action.act(1.0f);
@@ -116,7 +114,6 @@ public class ExecuteForCloneNumberActionTest {
 
         action.restart();
         action.act(1.0f);
-        // Should call act again after restart
         Mockito.verify(mockInnerAction, Mockito.times(2)).act(1.0f);
     }
 
@@ -131,11 +128,9 @@ public class ExecuteForCloneNumberActionTest {
 
         action.setCloneAction(delayedInner);
 
-        // First call initializes and acts
         boolean first = action.act(1.0f);
         assertFalse(first);
 
-        // Verify inner was called
         Mockito.verify(delayedInner).act(1.0f);
     }
 }

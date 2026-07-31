@@ -144,7 +144,6 @@ public class NeoScriptModuleTest {
 				NeoScriptImporter.importScripts(file, project, sprite, false);
 
 		Script imported = result.added.get(0);
-		// original script ids must differ from imported (clone regenerates ids)
 		assertNotSame(file.getScripts().get(0).getScriptId(), imported.getScriptId());
 	}
 
@@ -253,18 +252,14 @@ public class NeoScriptModuleTest {
 
 	@Test
 	public void testUndoRedoStateModel() throws Exception {
-		// The editor import uses copyProjectForUndoOption(); here we verify the
-		// importer's added/skipped/replaced accounting which drives undo/redo.
 		NeoScriptFile file = buildSampleFile("undoVar");
 
 		NeoScriptImporter.ImportResult first =
 				NeoScriptImporter.importScripts(file, project, sprite, false);
 		assertEquals(1, first.added.size());
 
-		// undo -> remove imported scripts (simulated)
 		sprite.getScriptList().removeAll(first.added);
 
-		// redo -> re-import
 		NeoScriptImporter.ImportResult redo =
 				NeoScriptImporter.importScripts(file, project, sprite, false);
 		assertEquals(1, redo.added.size());
@@ -272,18 +267,9 @@ public class NeoScriptModuleTest {
 		assertNull(sprite.getUserVariable("neverCreated"));
 	}
 
-	// -----------------------------------------------------------------------
-	// BUG-NS-07/08 Regression: multiple StartScript blocks must never be dropped
-	// -----------------------------------------------------------------------
-
-	/**
-	 * NS-07a: Importing 3 StartScript blocks into an empty sprite must add all 3,
-	 * even though they share the class name "StartScript".
-	 */
 	@Test
 	public void ns07a_multipleStartScripts_importedIntoEmptySprite_allAdded()
 			throws NeoScriptException {
-		// Build a NeoScriptFile with 3 distinct StartScripts
 		NeoScriptFile file = new NeoScriptFile();
 		for (int i = 0; i < 3; i++) {
 			StartScript s = new StartScript();
@@ -300,20 +286,13 @@ public class NeoScriptModuleTest {
 		assertEquals("Nothing should be skipped", 0, result.skipped.size());
 	}
 
-	/**
-	 * NS-07b: Importing 3 StartScript blocks when the sprite ALREADY has one StartScript
-	 * must still add all 3 new ones (SKIP_DUPLICATES must not treat non-parameterized
-	 * scripts as duplicates of each other).
-	 */
 	@Test
 	public void ns07b_multipleStartScripts_importedIntoSpriteWithExisting_allAdded()
 			throws NeoScriptException {
-		// Sprite already has 1 StartScript
 		StartScript existing = new StartScript();
 		existing.addBrick(new org.catrobat.catroid.content.bricks.NoteBrick("Existing"));
 		sprite.addScript(existing);
 
-		// NeoScriptFile has 3 more StartScripts doing different things
 		NeoScriptFile file = new NeoScriptFile();
 		for (int i = 0; i < 3; i++) {
 			StartScript s = new StartScript();
@@ -325,27 +304,19 @@ public class NeoScriptModuleTest {
 				NeoScriptImporter.importScripts(file, project, sprite,
 						NeoScriptImporter.ImportStrategy.SKIP_DUPLICATES);
 
-		// All 3 imported scripts must be added (not skipped)
 		assertEquals("All 3 imported StartScripts must be added", 3, result.added.size());
 		assertEquals("Sprite must have 4 scripts total (1 existing + 3 new)", 4,
 				sprite.getScriptList().size());
 		assertEquals("Nothing should be skipped", 0, result.skipped.size());
 	}
 
-	/**
-	 * NS-08: REPLACE_DUPLICATES with multiple StartScripts in the file must add all of them
-	 * and must NOT remove the existing StartScript from the sprite (since StartScript
-	 * has no unique trigger parameter, so it cannot be deduplicated).
-	 */
 	@Test
 	public void ns08_replaceDuplicates_multipleStartScripts_existingPreserved()
 			throws NeoScriptException {
-		// Sprite already has 1 StartScript
 		StartScript existing = new StartScript();
 		existing.addBrick(new org.catrobat.catroid.content.bricks.NoteBrick("Existing"));
 		sprite.addScript(existing);
 
-		// NeoScriptFile has 2 StartScripts
 		NeoScriptFile file = new NeoScriptFile();
 		for (int i = 0; i < 2; i++) {
 			StartScript s = new StartScript();
@@ -357,18 +328,12 @@ public class NeoScriptModuleTest {
 				NeoScriptImporter.importScripts(file, project, sprite,
 						NeoScriptImporter.ImportStrategy.REPLACE_DUPLICATES);
 
-		// Existing StartScript must NOT be removed (no parameterized signature to match)
 		assertTrue("Existing StartScript must be preserved",
 				sprite.getScriptList().contains(existing));
-		// 2 new ones must be added
 		assertEquals("2 new StartScripts added", 2, result.added.size());
 		assertEquals("Sprite has 3 scripts total", 3, sprite.getScriptList().size());
 	}
 
-	/**
-	 * Sanity check: BroadcastScript WITH THE SAME MESSAGE should still be deduplicated
-	 * under SKIP_DUPLICATES (parameterized trigger = genuine duplicate).
-	 */
 	@Test
 	public void ns07_sanity_broadcastScriptWithSameMessage_skippedCorrectly()
 			throws NeoScriptException {

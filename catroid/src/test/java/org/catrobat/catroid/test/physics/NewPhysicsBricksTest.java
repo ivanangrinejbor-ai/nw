@@ -10,12 +10,6 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
-/**
- * Tests for 8 new physics bricks:
- * SetAngularVelocity, SetLinearDamping, SetAngularDamping,
- * SetPhysicsFixedRotation, SetPhysicsBullet, SetGravityScale,
- * ApplyForceAtPoint, SetPhysicsSensor
- */
 public class NewPhysicsBricksTest {
 
     private Sprite sprite;
@@ -24,8 +18,6 @@ public class NewPhysicsBricksTest {
     public void setUp() {
         sprite = new Sprite("PhysicsSprite");
     }
-
-    // --- SetAngularVelocityBrick ---
 
     @Test
     public void testSetAngularVelocityBrickCreation() {
@@ -48,8 +40,6 @@ public class NewPhysicsBricksTest {
         assertNotSame(brick, clone);
     }
 
-    // --- SetLinearDampingBrick ---
-
     @Test
     public void testSetLinearDampingBrickCreation() {
         SetLinearDampingBrick brick = new SetLinearDampingBrick(0.5);
@@ -62,8 +52,6 @@ public class NewPhysicsBricksTest {
         SetLinearDampingBrick brick = new SetLinearDampingBrick(new Formula(3));
         assertNotNull(brick.getFormulaWithBrickField(Brick.BrickField.PHYSICS_DAMPING));
     }
-
-    // --- SetAngularDampingBrick ---
 
     @Test
     public void testSetAngularDampingBrickCreation() {
@@ -78,8 +66,6 @@ public class NewPhysicsBricksTest {
         assertNotNull(brick.getFormulaWithBrickField(Brick.BrickField.PHYSICS_DAMPING));
     }
 
-    // --- SetPhysicsFixedRotationBrick ---
-
     @Test
     public void testSetFixedRotationBrickCreation() {
         SetPhysicsFixedRotationBrick brick = new SetPhysicsFixedRotationBrick(1.0);
@@ -93,8 +79,6 @@ public class NewPhysicsBricksTest {
         assertNotNull(brick.getFormulaWithBrickField(Brick.BrickField.PHYSICS_TOGGLE));
     }
 
-    // --- SetPhysicsBulletBrick ---
-
     @Test
     public void testSetBulletBrickCreation() {
         SetPhysicsBulletBrick brick = new SetPhysicsBulletBrick(1.0);
@@ -107,8 +91,6 @@ public class NewPhysicsBricksTest {
         SetPhysicsBulletBrick brick = new SetPhysicsBulletBrick(new Formula(0));
         assertNotNull(brick.getFormulaWithBrickField(Brick.BrickField.PHYSICS_TOGGLE));
     }
-
-    // --- SetGravityScaleBrick ---
 
     @Test
     public void testSetGravityScaleBrickCreation() {
@@ -128,8 +110,6 @@ public class NewPhysicsBricksTest {
         SetGravityScaleBrick brick = new SetGravityScaleBrick(0.0);
         assertNotNull(brick);
     }
-
-    // --- ApplyForceAtPointBrick ---
 
     @Test
     public void testApplyForceAtPointBrickCreation() {
@@ -156,8 +136,6 @@ public class NewPhysicsBricksTest {
         assertTrue(clone instanceof ApplyForceAtPointBrick);
     }
 
-    // --- SetPhysicsSensorBrick ---
-
     @Test
     public void testSetPhysicsSensorBrickCreation() {
         SetPhysicsSensorBrick brick = new SetPhysicsSensorBrick(1.0);
@@ -178,11 +156,8 @@ public class NewPhysicsBricksTest {
         assertNotNull(clone);
     }
 
-    // --- Cross-brick validation ---
-
     @Test
     public void testAllNewPhysicsBricksHaveSerialVersionUID() {
-        // Each brick must have serialVersionUID = 1L (validated by class structure)
         assertNotNull(new SetAngularVelocityBrick());
         assertNotNull(new SetLinearDampingBrick());
         assertNotNull(new SetAngularDampingBrick());
@@ -195,7 +170,6 @@ public class NewPhysicsBricksTest {
 
     @Test
     public void testAllNewPhysicsBricksNoArgConstructor() {
-        // XStream needs no-arg constructor
         assertNotNull(new SetAngularVelocityBrick());
         assertNotNull(new SetLinearDampingBrick());
         assertNotNull(new SetAngularDampingBrick());
