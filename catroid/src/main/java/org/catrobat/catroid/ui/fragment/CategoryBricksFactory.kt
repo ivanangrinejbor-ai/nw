@@ -366,15 +366,6 @@ import org.catrobat.catroid.content.bricks.PutFileIntoFolderBrick
 import org.catrobat.catroid.content.bricks.ImportScriptBrick
 import org.catrobat.catroid.content.bricks.CreateObjectBrick
 import org.catrobat.catroid.content.bricks.AssignScriptsBrick
-import org.catrobat.catroid.content.bricks.StartDialogueBrick
-import org.catrobat.catroid.content.bricks.CloseDialogueBrick
-import org.catrobat.catroid.content.bricks.JumpToNodeBrick
-import org.catrobat.catroid.content.bricks.DialogueRunningBrick
-import org.catrobat.catroid.content.bricks.SelectedChoiceBrick
-import org.catrobat.catroid.content.bricks.CurrentSpeakerBrick
-import org.catrobat.catroid.content.bricks.CurrentDialogueTextBrick
-import org.catrobat.catroid.content.bricks.CurrentNodeIDBrick
-import org.catrobat.catroid.content.bricks.LocalizeSpritesBrick
 import org.catrobat.catroid.content.bricks.PutFileIntoPathBrick
 import org.catrobat.catroid.content.bricks.PutWebRequestBrick
 import org.catrobat.catroid.content.bricks.PutFloatBrick
@@ -858,7 +849,6 @@ open class CategoryBricksFactory {
             context.getString(R.string.category_file) -> setupFileCategoryList(context)
             context.getString(R.string.category_json) -> setupJsonCategoryList(context)
             context.getString(R.string.category_neoscript) -> setupNeoScriptCategoryList(context)
-            context.getString(R.string.category_dialogue) -> setupDialogueCategoryList(context)
             context.getString(R.string.category_transitions) -> setupTransitionsCategoryList(context)
             context.getString(R.string.category_threed) -> setupThreedCategoryList(context)
             context.getString(R.string.category_preload) -> setupPreloadCategoryList(context)
@@ -2835,20 +2825,6 @@ void main() {
         neoBrickList.add(ImportScriptBrick("", "", false))
         neoBrickList.add(AssignScriptsBrick("", "", false))
         return neoBrickList
-    }
-
-    private fun setupDialogueCategoryList(context: Context): List<Brick> {
-        val dialogueBrickList: MutableList<Brick> = ArrayList()
-        dialogueBrickList.add(StartDialogueBrick(""))
-        dialogueBrickList.add(CloseDialogueBrick())
-        dialogueBrickList.add(JumpToNodeBrick(""))
-        dialogueBrickList.add(DialogueRunningBrick())
-        dialogueBrickList.add(SelectedChoiceBrick())
-        dialogueBrickList.add(CurrentSpeakerBrick())
-        dialogueBrickList.add(CurrentDialogueTextBrick())
-        dialogueBrickList.add(CurrentNodeIDBrick())
-        dialogueBrickList.add(LocalizeSpritesBrick())
-        return dialogueBrickList
     }
 
     private fun setupTransitionsCategoryList(context: Context): List<Brick> {

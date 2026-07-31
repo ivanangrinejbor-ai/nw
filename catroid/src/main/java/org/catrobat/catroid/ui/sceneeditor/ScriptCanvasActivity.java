@@ -147,7 +147,7 @@ public class ScriptCanvasActivity extends AppCompatActivity {
 			R.string.category_looks, R.string.category_sound, R.string.category_pen,
 			R.string.category_data, R.string.category_device, R.string.category_file,
 			R.string.category_neoscript, R.string.category_pathfinder, R.string.category_preload,
-			R.string.category_admob, R.string.category_dialogue, R.string.category_transitions,
+			R.string.category_admob, R.string.category_transitions,
 			R.string.category_threed, R.string.category_json, R.string.category_internet,
 			R.string.category_user_bricks, R.string.category_lego_nxt, R.string.category_lego_ev3,
 			R.string.category_arduino, R.string.category_drone, R.string.category_jumping_sumo,

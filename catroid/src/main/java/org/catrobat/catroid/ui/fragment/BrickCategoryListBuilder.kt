@@ -114,7 +114,6 @@ class BrickCategoryListBuilder(private val activity: FragmentActivity) {
         categories.add(inflater.inflate(R.layout.brick_category_file, null))
         categories.add(inflater.inflate(R.layout.brick_category_json, null))
         categories.add(inflater.inflate(R.layout.brick_category_neoscript, null))
-        categories.add(inflater.inflate(R.layout.brick_category_dialogue, null))
         categories.add(inflater.inflate(R.layout.brick_category_preload, null))
         categories.add(inflater.inflate(R.layout.brick_category_admob, null))
 
