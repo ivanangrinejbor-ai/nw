@@ -201,7 +201,9 @@ public class SceneEditorView extends View {
 
 	public void setObjects(List<SceneObject> newObjects) {
 		replaceObjects(newObjects);
-		fitToScreen();
+		if (draggingIndex < 0) {
+			fitToScreen();
+		}
 		invalidate();
 	}
 
@@ -211,12 +213,33 @@ public class SceneEditorView extends View {
 	}
 
 	private void replaceObjects(List<SceneObject> newObjects) {
+		Sprite draggedSprite = null;
+		float dragX = 0f;
+		float dragY = 0f;
+		if (draggingIndex >= 0 && draggingIndex < objects.size()) {
+			SceneObject dragged = objects.get(draggingIndex);
+			draggedSprite = dragged.sprite;
+			dragX = dragged.x;
+			dragY = dragged.y;
+		}
 		objects.clear();
 		if (newObjects != null) {
 			objects.addAll(newObjects);
 		}
 		selectedIndex = -1;
 		eyeObjectIndex = -1;
+		if (draggedSprite != null) {
+			for (int i = 0; i < objects.size(); i++) {
+				SceneObject candidate = objects.get(i);
+				if (candidate.sprite == draggedSprite) {
+					candidate.x = dragX;
+					candidate.y = dragY;
+					selectedIndex = i;
+					draggingIndex = i;
+					break;
+				}
+			}
+		}
 	}
 
 	private void fitToScreen() {
@@ -423,12 +446,16 @@ public class SceneEditorView extends View {
 				if (scaleDetector.isInProgress()) {
 					return true;
 				}
-				if (!longPressFired && Math.hypot(x - downX, y - downY) > TAP_SLOP_PX) {
+				if (Math.hypot(x - downX, y - downY) > TAP_SLOP_PX) {
 					cancelLongPressTimer();
+					if (longPressFired) {
+						longPressFired = false;
+						clearEye();
+					}
 				}
 				float dx = x - lastX;
 				float dy = y - lastY;
-				if (!longPressFired && draggingIndex >= 0 && draggingIndex < objects.size()) {
+				if (draggingIndex >= 0 && draggingIndex < objects.size()) {
 					SceneObject object = objects.get(draggingIndex);
 					object.x += dx / scale;
 					object.y -= dy / scale;

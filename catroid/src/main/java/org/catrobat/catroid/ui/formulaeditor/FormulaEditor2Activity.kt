@@ -92,7 +92,8 @@ class FormulaEditor2Activity : AppCompatActivity() {
         root.addView(inputCard)
 
         val categoryScroll = HorizontalScrollView(this).apply {
-            scrollbars = View.SCROLLBARS_NONE
+            isHorizontalScrollBarEnabled = false
+            isVerticalScrollBarEnabled = false
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
@@ -213,7 +214,7 @@ class FormulaEditor2Activity : AppCompatActivity() {
                 layoutParams = params
                 setOnClickListener {
                     if (k != "Нет переменных" && k != "Нет списков") {
-                        val insertText = if (category == "🧠 Функции") "$k(" else k
+                        val insertText = if (category == "Функции") "$k(" else k
                         val cursor = formulaInput.selectionStart
                         formulaInput.text.insert(cursor, insertText)
                     }

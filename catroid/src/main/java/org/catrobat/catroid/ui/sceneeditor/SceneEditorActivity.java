@@ -36,8 +36,11 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.catrobat.catroid.ProjectManager;
 import org.catrobat.catroid.R;
@@ -62,6 +65,7 @@ import org.catrobat.catroid.ui.recyclerview.controller.SceneController;
 import org.catrobat.catroid.ui.recyclerview.controller.SpriteController;
 import org.catrobat.catroid.ui.SpriteActivity;
 import org.catrobat.catroid.ui.recyclerview.util.UniqueNameProvider;
+import org.catrobat.catroid.ui.SettingsActivity;
 
 import java.io.File;
 import java.io.IOException;
@@ -177,32 +181,26 @@ public class SceneEditorActivity extends Activity implements SceneEditorView.Lis
 			params.gravity = Gravity.TOP | Gravity.START;
 			params.topMargin = Math.round(70 * density);
 			params.leftMargin = Math.round(16 * density);
-			rootLayout.addView(activeDebugWindow, params);
+			windowContainer.addView(activeDebugWindow, params);
 			Toast.makeText(this, "Отладчик 2.0 открыт!", Toast.LENGTH_SHORT).show();
 		}
 	}
 
 	private void startInWindowPlayback() {
-		if (isPlayingInWindow && !isPausedInWindow) return;
-		isPlayingInWindow = true;
-		isPausedInWindow = false;
-		persistProjectAsync();
-
-		ImageButton btnPlay = findViewById(R.id.scene_editor_btn_play);
-		ImageButton btnPause = findViewById(R.id.scene_editor_btn_pause);
-		if (btnPlay != null) btnPlay.setVisibility(View.GONE);
-		if (btnPause != null) btnPause.setVisibility(View.VISIBLE);
-
-		if (objectDock != null) objectDock.setVisibility(View.GONE);
-		for (FloatingObjectWindow window : new ArrayList<>(windows)) {
-			if (window.getParent() instanceof ViewGroup) {
-				((ViewGroup) window.getParent()).removeView(window);
+		if (project == null || isFinishing()) return;
+		org.catrobat.catroid.content.GlobalManager.setStopSounds(false);
+		new Thread(() -> {
+			try {
+				XstreamSerializer.getInstance().saveProject(project);
+				runOnUiThread(() -> {
+					Intent intent = new Intent(this, StageActivity.class);
+					startActivityForResult(intent, StageActivity.REQUEST_START_STAGE);
+				});
+			} catch (Exception e) {
+				runOnUiThread(() -> Toast.makeText(this,
+						"Не удалось сохранить проект перед запуском", Toast.LENGTH_LONG).show());
 			}
-		}
-		windows.clear();
-
-		canvas.setPlayingMode(true);
-		hintView.setText("Воспроизведение в окне запущено.");
+		}, "scene-editor-launch-save").start();
 	}
 
 	private void togglePauseInWindowPlayback() {
@@ -229,7 +227,7 @@ public class SceneEditorActivity extends Activity implements SceneEditorView.Lis
 		if (btnPlay != null) btnPlay.setVisibility(View.VISIBLE);
 		if (btnPause != null) btnPause.setVisibility(View.GONE);
 
-		org.catrobat.catroid.content.GlobalManager.stopSounds();
+		org.catrobat.catroid.content.GlobalManager.setStopSounds(true);
 		canvas.setPlayingMode(false);
 		refreshObjects(true);
 		hintView.setText("Воспроизведение остановлено. Редактор разблокирован.");
@@ -262,6 +260,7 @@ public class SceneEditorActivity extends Activity implements SceneEditorView.Lis
 		container.setOrientation(LinearLayout.VERTICAL);
 		int dp16 = Math.round(16 * getResources().getDisplayMetrics().density);
 		int dp10 = Math.round(10 * getResources().getDisplayMetrics().density);
+		int dp12 = Math.round(12 * getResources().getDisplayMetrics().density);
 		container.setPadding(dp16, dp16, dp16, dp16);
 
 		android.widget.ScrollView scrollView = new android.widget.ScrollView(this);
@@ -435,8 +434,8 @@ public class SceneEditorActivity extends Activity implements SceneEditorView.Lis
 			for (org.catrobat.catroid.content.bricks.Brick b : script.getBrickList()) {
 				if (b instanceof org.catrobat.catroid.content.bricks.PlaceAtBrick) {
 					try {
-						posX = Math.round(Float.parseFloat(((org.catrobat.catroid.content.bricks.PlaceAtBrick) b).getFormulaWithBrickField(org.catrobat.catroid.content.bricks.BrickField.X_POSITION).interpretString(null)));
-						posY = Math.round(Float.parseFloat(((org.catrobat.catroid.content.bricks.PlaceAtBrick) b).getFormulaWithBrickField(org.catrobat.catroid.content.bricks.BrickField.Y_POSITION).interpretString(null)));
+						posX = Math.round(Float.parseFloat(((org.catrobat.catroid.content.bricks.PlaceAtBrick) b).getFormulaWithBrickField(Brick.BrickField.X_POSITION).interpretString(null)));
+						posY = Math.round(Float.parseFloat(((org.catrobat.catroid.content.bricks.PlaceAtBrick) b).getFormulaWithBrickField(Brick.BrickField.Y_POSITION).interpretString(null)));
 					} catch (Exception ignored) {}
 				}
 			}
@@ -550,7 +549,7 @@ public class SceneEditorActivity extends Activity implements SceneEditorView.Lis
 				LinearLayout textL = new LinearLayout(this);
 				textL.setOrientation(LinearLayout.VERTICAL);
 				TextView nameTv = new TextView(this);
-				nameTv.setText(look.getLookName());
+				nameTv.setText(look.getName());
 				nameTv.setTextColor(0xFFF8FAFC);
 				nameTv.setTextSize(14f);
 				nameTv.setTypeface(null, android.graphics.Typeface.BOLD);
@@ -560,7 +559,7 @@ public class SceneEditorActivity extends Activity implements SceneEditorView.Lis
 				card.setOnLongClickListener(v -> {
 					String[] options = {"🗑️ Удалить образ"};
 					new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
-							.setTitle(look.getLookName())
+							.setTitle(look.getName())
 							.setItems(options, (d, w) -> {
 								targetSprite.getLookList().remove(look);
 								refreshAfterModelChange();
@@ -617,7 +616,7 @@ public class SceneEditorActivity extends Activity implements SceneEditorView.Lis
 				card.addView(iconTv);
 
 				TextView nameTv = new TextView(this);
-				nameTv.setText(sound.getTitle());
+				nameTv.setText(sound.getName());
 				nameTv.setTextColor(0xFFF8FAFC);
 				nameTv.setTextSize(14f);
 				nameTv.setTypeface(null, android.graphics.Typeface.BOLD);
@@ -626,7 +625,7 @@ public class SceneEditorActivity extends Activity implements SceneEditorView.Lis
 				card.setOnLongClickListener(v -> {
 					String[] options = {"🗑️ Удалить звук"};
 					new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
-							.setTitle(sound.getTitle())
+							.setTitle(sound.getName())
 							.setItems(options, (d, w) -> {
 								targetSprite.getSoundList().remove(sound);
 								refreshAfterModelChange();
@@ -916,7 +915,12 @@ public class SceneEditorActivity extends Activity implements SceneEditorView.Lis
 					if (typed.isEmpty()) {
 						return;
 					}
-					new SceneController().rename(targetScene, typed);
+					boolean renamed = new SceneController().rename(targetScene, typed);
+					if (!renamed) {
+						Toast.makeText(this, "Сцена с таким именем уже существует", Toast.LENGTH_SHORT).show();
+						return;
+					}
+					persistProjectAsync();
 					if (targetScene == scene) {
 						title.setText(getString(R.string.scene_editor_title) + ": " + scene.getName());
 					}
@@ -936,9 +940,10 @@ public class SceneEditorActivity extends Activity implements SceneEditorView.Lis
 				.setPositiveButton(android.R.string.ok, (dialog, which) -> {
 					try {
 						new SceneController().delete(targetScene);
-					} catch (Exception ignored) {
+					} catch (Exception e) {
+						Toast.makeText(this, "Не удалось удалить сцену", Toast.LENGTH_SHORT).show();
+						return;
 					}
-					project.removeScene(targetScene);
 					if (targetScene == scene) {
 						switchScene(project.getDefaultScene());
 					}
@@ -960,8 +965,8 @@ public class SceneEditorActivity extends Activity implements SceneEditorView.Lis
 			for (org.catrobat.catroid.content.bricks.Brick b : script.getBrickList()) {
 				if (b instanceof org.catrobat.catroid.content.bricks.PlaceAtBrick) {
 					org.catrobat.catroid.content.bricks.PlaceAtBrick pab = (org.catrobat.catroid.content.bricks.PlaceAtBrick) b;
-					pab.setFormulaWithBrickField(org.catrobat.catroid.content.bricks.BrickField.X_POSITION, new org.catrobat.catroid.formulaeditor.Formula(Math.round(x)));
-					pab.setFormulaWithBrickField(org.catrobat.catroid.content.bricks.BrickField.Y_POSITION, new org.catrobat.catroid.formulaeditor.Formula(Math.round(y)));
+					pab.setFormulaWithBrickField(Brick.BrickField.X_POSITION, new org.catrobat.catroid.formulaeditor.Formula(Math.round(x)));
+					pab.setFormulaWithBrickField(Brick.BrickField.Y_POSITION, new org.catrobat.catroid.formulaeditor.Formula(Math.round(y)));
 					return;
 				}
 			}
@@ -1008,5 +1013,190 @@ public class SceneEditorActivity extends Activity implements SceneEditorView.Lis
 			}
 		}, "scene-editor-save").start();
 		setResult(RESULT_OK);
+	}
+
+	private void refreshObjects(boolean full) {
+		sceneObjects.clear();
+		Bitmap background = null;
+		for (Sprite sprite : scene.getSpriteList()) {
+			int posX = 0, posY = 0;
+			for (Script script : sprite.getScriptList()) {
+				for (Brick b : script.getBrickList()) {
+					if (b instanceof PlaceAtBrick) {
+						try {
+							posX = Math.round(Float.parseFloat(((PlaceAtBrick) b)
+									.getFormulaWithBrickField(Brick.BrickField.X_POSITION).interpretString(null)));
+							posY = Math.round(Float.parseFloat(((PlaceAtBrick) b)
+									.getFormulaWithBrickField(Brick.BrickField.Y_POSITION).interpretString(null)));
+						} catch (Exception ignored) {}
+					}
+				}
+			}
+			String lookPath = firstLookPath(sprite);
+			Bitmap bitmap = lookPath != null ? loadBitmap(lookPath) : null;
+			int[] bounds = lookPath != null ? readImageBounds(lookPath) : new int[] {80, 80};
+			SceneEditorView.SceneObject object = new SceneEditorView.SceneObject(
+					sprite, posX, posY, Math.max(1, bounds[0]), Math.max(1, bounds[1]));
+			object.bitmap = bitmap;
+			sceneObjects.add(object);
+			if (sprite == scene.getBackgroundSprite()) {
+				background = bitmap;
+			}
+		}
+		canvas.setBackgroundBitmap(background);
+		canvas.setObjects(sceneObjects);
+		if (full) {
+			populateObjectDock();
+		}
+	}
+
+	private void showCreateObjectDialog() {
+		EditText input = new EditText(this);
+		int p = Math.round(16 * getResources().getDisplayMetrics().density);
+		input.setPadding(p, p, p, p);
+		input.setHint("Имя объекта");
+		new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
+				.setTitle(R.string.scene_editor_new_object)
+				.setView(input)
+				.setPositiveButton(android.R.string.ok, (dialog, which) -> {
+					String typed = input.getText().toString().trim();
+					if (typed.isEmpty()) {
+						return;
+					}
+					String name = new UniqueNameProvider().getUniqueNameInNameables(typed, scene.getSpriteList());
+					Sprite sprite = new Sprite(name);
+					scene.addSprite(sprite);
+					refreshAfterModelChange();
+				})
+				.setNegativeButton(android.R.string.cancel, null)
+				.show();
+	}
+
+	private void toggleObjectDock() {
+		if (objectDock == null) {
+			return;
+		}
+		if (objectDock.getVisibility() == View.VISIBLE) {
+			objectDock.setVisibility(View.GONE);
+		} else {
+			populateObjectDock();
+			objectDock.setVisibility(View.VISIBLE);
+		}
+	}
+
+	private void persistProjectAsync() {
+		new Thread(() -> {
+			try {
+				XstreamSerializer.getInstance().saveProject(ProjectManager.getInstance().getCurrentProject());
+			} catch (Exception ignored) {}
+		}, "scene-editor-persist").start();
+	}
+
+	private void switchScene(Scene targetScene) {
+		scene = targetScene;
+		ProjectManager.getInstance().setCurrentlyEditedScene(targetScene);
+		title.setText(getString(R.string.scene_editor_title) + ": " + scene.getName());
+		refreshObjects(true);
+	}
+
+	private Bitmap loadBitmap(String path) {
+		try {
+			BitmapFactory.Options options = new BitmapFactory.Options();
+			options.inJustDecodeBounds = true;
+			BitmapFactory.decodeFile(path, options);
+			int sample = 1;
+			while (Math.max(options.outWidth, options.outHeight) / sample > MAX_BITMAP_DIM) {
+				sample *= 2;
+			}
+			options.inJustDecodeBounds = false;
+			options.inSampleSize = sample;
+			return BitmapFactory.decodeFile(path, options);
+		} catch (Exception e) {
+			return null;
+		}
+	}
+
+	private int[] readImageBounds(String path) {
+		BitmapFactory.Options options = new BitmapFactory.Options();
+		options.inJustDecodeBounds = true;
+		BitmapFactory.decodeFile(path, options);
+		return new int[] {options.outWidth, options.outHeight};
+	}
+
+	private String firstLookPath(Sprite sprite) {
+		if (sprite.getLookList().isEmpty()) {
+			return null;
+		}
+		LookData look = sprite.getLookList().get(0);
+		if (look.getFile() != null && look.getFile().exists()) {
+			return look.getFile().getAbsolutePath();
+		}
+		return null;
+	}
+
+	@Override
+	public void onObjectTapped(Sprite sprite) {
+		showInspectorDialog(sprite);
+	}
+
+	@Override
+	public void onObjectPaintRequested(Sprite sprite) {
+		paintTargetSprite = sprite;
+		try {
+			new ImportFromPocketPaintLauncher(this).startActivityForResult(REQUEST_POCKET_PAINT_LOOK);
+		} catch (Exception e) {
+			paintTargetSprite = null;
+			Toast.makeText(this, "Pocket Paint недоступен на этом устройстве", Toast.LENGTH_LONG).show();
+		}
+	}
+
+	@Override
+	public void onOpenBlocks(Sprite sprite) {
+		openScriptCanvas(sprite);
+	}
+
+	@Override
+	public void onOpenSwipeEditor(Sprite sprite) {
+		Toast.makeText(this, "Swipe-редактор: " + sprite.getName(), Toast.LENGTH_SHORT).show();
+	}
+
+	@Override
+	public void onClosed(FloatingObjectWindow window) {
+		windows.remove(window);
+	}
+
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		super.onActivityResult(requestCode, resultCode, data);
+		if (requestCode == StageActivity.REQUEST_START_STAGE) {
+			org.catrobat.catroid.content.GlobalManager.setStopSounds(true);
+			canvas.setPlayingMode(false);
+			refreshObjects(true);
+			hintView.setText(R.string.scene_editor_hint_stop);
+			return;
+		}
+		if (requestCode == REQUEST_POCKET_PAINT_LOOK && resultCode == RESULT_OK && paintTargetSprite != null) {
+			try {
+				Uri uri = new ImportFromPocketPaintLauncher(this).getPocketPaintCacheUri();
+				if (uri == null) throw new IOException("Изображение Pocket Paint не найдено");
+				String name = new UniqueNameProvider().getUniqueNameInNameables(
+						paintTargetSprite.getName() + "_paint", paintTargetSprite.getLookList());
+				File imageDirectory = new File(scene.getDirectory(), Constants.IMAGE_DIRECTORY_NAME);
+				if (!imageDirectory.exists() && !imageDirectory.mkdirs()) {
+					throw new IOException("Не удалось создать папку образов");
+				}
+				File file = StorageOperations.copyUriToDir(getContentResolver(), uri, imageDirectory, name + ".png");
+				if (file == null || !file.exists()) throw new IOException("Файл образа не скопирован");
+				LookData look = new LookData(name, file);
+				paintTargetSprite.getLookList().add(look);
+				look.getCollisionInformation().calculate();
+				refreshAfterModelChange();
+				persistProjectAsync();
+				Toast.makeText(this, "Образ добавлен!", Toast.LENGTH_SHORT).show();
+			} catch (Exception e) {
+				Toast.makeText(this, "Не удалось добавить образ", Toast.LENGTH_SHORT).show();
+			}
+			paintTargetSprite = null;
+		}
 	}
 }

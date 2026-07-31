@@ -2,9 +2,13 @@ package org.catrobat.catroid.ui.fragment
 
 import android.app.AlertDialog
 import android.content.Context
+import android.content.ContentValues
 import android.graphics.Color
 import android.graphics.Typeface
 import android.os.Bundle
+import android.os.Build
+import android.os.Environment
+import android.provider.MediaStore
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -15,11 +19,15 @@ import androidx.fragment.app.Fragment
 import org.catrobat.catroid.ProjectManager
 import org.catrobat.catroid.R
 import org.catrobat.catroid.content.Project
-import org.catrobat.catroid.io.StorageOperations
 import org.catrobat.catroid.io.XstreamSerializer
 import org.catrobat.catroid.io.asynctask.ProjectExportTask
 import org.catrobat.catroid.ui.sceneeditor.Ui2PanelActivity
 import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
+import java.io.OutputStream
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
 
 class ProjectOptions2Fragment : Fragment() {
 
@@ -322,18 +330,57 @@ class ProjectOptions2Fragment : Fragment() {
 
     private fun exportProject() {
         val proj = project ?: return
+        val appContext = requireContext().applicationContext
         Thread {
+            var mediaStoreUri: android.net.Uri? = null
             try {
-                val exportDir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "NeoCatroidExports")
-                if (!exportDir.exists()) exportDir.mkdirs()
-                val targetZip = File(exportDir, "${proj.name}_export.catrobat")
-                StorageOperations.zipDir(proj.directory, targetZip)
+                XstreamSerializer.getInstance().saveProject(proj)
+                val safeName = proj.name.replace(Regex("[\\\\/:*?\"<>|]"), "_")
+                val fileName = "${safeName}_export.catrobat"
+                val output: OutputStream
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    val values = ContentValues().apply {
+                        put(MediaStore.Downloads.DISPLAY_NAME, fileName)
+                        put(MediaStore.Downloads.MIME_TYPE, "application/zip")
+                        put(MediaStore.Downloads.RELATIVE_PATH, "${Environment.DIRECTORY_DOWNLOADS}/NeoCatroidExports")
+                        put(MediaStore.Downloads.IS_PENDING, 1)
+                    }
+                    mediaStoreUri = appContext.contentResolver.insert(
+                        MediaStore.Downloads.EXTERNAL_CONTENT_URI, values
+                    ) ?: error("Не удалось создать файл экспорта")
+                    output = appContext.contentResolver.openOutputStream(mediaStoreUri!!)
+                        ?: error("Не удалось открыть файл экспорта")
+                } else {
+                    val exportDir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "NeoCatroidExports")
+                    if (!exportDir.exists() && !exportDir.mkdirs()) error("Не удалось создать папку экспорта")
+                    output = FileOutputStream(File(exportDir, fileName))
+                }
+                ZipOutputStream(output).use { zos ->
+                    proj.directory.walk().filter { it != proj.directory }.forEach { file ->
+                        val entryPath = file.relativeTo(proj.directory).path
+                        val zipEntry = if (file.isDirectory) ZipEntry("$entryPath/") else ZipEntry(entryPath)
+                        zos.putNextEntry(zipEntry)
+                        if (file.isFile) {
+                            FileInputStream(file).use { fis -> fis.copyTo(zos, 8192) }
+                        }
+                        zos.closeEntry()
+                    }
+                }
+                if (mediaStoreUri != null) {
+                    appContext.contentResolver.update(
+                        mediaStoreUri!!,
+                        ContentValues().apply { put(MediaStore.Downloads.IS_PENDING, 0) },
+                        null,
+                        null
+                    )
+                }
                 activity?.runOnUiThread {
                     if (isAdded && context != null) {
                         Toast.makeText(requireContext(), "Проект экспортирован в Download/NeoCatroidExports!", Toast.LENGTH_LONG).show()
                     }
                 }
             } catch (e: Exception) {
+                mediaStoreUri?.let { appContext.contentResolver.delete(it, null, null) }
                 activity?.runOnUiThread {
                     if (isAdded && context != null) {
                         Toast.makeText(requireContext(), "Ошибка экспорта: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()

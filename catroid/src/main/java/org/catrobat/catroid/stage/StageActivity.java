@@ -2145,7 +2145,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 		isLaunching = true;
 		new Handler(activity.getMainLooper()).post(() -> isLaunching = false);
 
-        Project project = projectManager.getCurrentProject();
+        Project project = ProjectManager.getInstance().getCurrentProject();
 
         if (project != null && project.getXmlHeader() != null && project.getXmlHeader().isPreloaderEnabled()) {
             Intent preloaderIntent = new Intent(activity, PreloaderActivity.class);

@@ -142,7 +142,7 @@
     <LinearLayout
         android:id="@+id/script_palette"
         android:layout_width="match_parent"
-        android:layout_height="320dp"
+        android:layout_height="420dp"
         android:layout_gravity="bottom"
         android:background="#F2101826"
         android:elevation="12dp"
@@ -177,9 +177,11 @@
         </HorizontalScrollView>
 
         <ScrollView
+            android:id="@+id/script_palette_scroll"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:scrollbars="none">
+            android:scrollbars="vertical"
+            android:scrollbarStyle="outsideOverlay">
 
             <LinearLayout
                 android:id="@+id/script_palette_bricks"

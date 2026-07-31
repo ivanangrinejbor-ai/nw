@@ -24,6 +24,7 @@ package org.catrobat.catroid.ui.sceneeditor;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.os.Handler;
@@ -38,8 +39,11 @@ import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import org.catrobat.catroid.ProjectManager;
 import org.catrobat.catroid.R;
+import org.catrobat.catroid.content.Project;
 import org.catrobat.catroid.content.Script;
 import org.catrobat.catroid.content.ScriptNote;
 import org.catrobat.catroid.content.Sprite;
@@ -47,10 +51,14 @@ import org.catrobat.catroid.content.StartScript;
 import org.catrobat.catroid.content.bricks.Brick;
 import org.catrobat.catroid.content.bricks.CompositeBrick;
 import org.catrobat.catroid.content.bricks.FormulaBrick;
+import org.catrobat.catroid.content.bricks.NoteBrick;
 import org.catrobat.catroid.content.bricks.ScriptBrick;
+import org.catrobat.catroid.content.bricks.VisualPlacementBrick;
 import org.catrobat.catroid.ui.fragment.FormulaEditorFragment;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.List;
 import java.util.Map;
 
@@ -81,6 +89,15 @@ public class ScriptCanvasView extends FrameLayout {
 	private LinearLayout blockBadge;
 	private View blockGhost;
 	private Brick draggingBrick;
+
+	// ─── Undo / Redo ──────────────────────────────────────────────────────────
+	private static final int MAX_UNDO_STEPS = 30;
+	private final Deque<List<Script>> undoStack = new ArrayDeque<>();
+	private final Deque<List<Script>> redoStack = new ArrayDeque<>();
+	public interface UndoRedoListener { void onUndoRedoChanged(); }
+	private UndoRedoListener undoRedoListener;
+	public void setUndoRedoListener(UndoRedoListener l) { this.undoRedoListener = l; }
+	private void notifyUndoRedo() { if (undoRedoListener != null) undoRedoListener.onUndoRedoChanged(); }
 
 	public ScriptCanvasView(Context context) {
 		super(context);
@@ -143,6 +160,11 @@ public class ScriptCanvasView extends FrameLayout {
 		stack.setOrientation(LinearLayout.VERTICAL);
 		stack.setClipChildren(false);
 		stack.setClipToPadding(false);
+		// BrickLayout calculates formula-field widths from the width supplied by
+		// its parent. WRAP_CONTENT here gives it an almost zero/ambiguous width,
+		// which clips the brick and makes its fields impossible to use.
+		final int stackWidth = Math.max(dp(420), getResources().getDisplayMetrics().widthPixels - dp(32));
+		stack.setMinimumWidth(stackWidth);
 
 		List<Brick> flat = new ArrayList<>();
 		flat.add(script.getScriptBrick());
@@ -150,7 +172,17 @@ public class ScriptCanvasView extends FrameLayout {
 			brick.addToFlatList(flat);
 		}
 		for (Brick brick : flat) {
-			View brickView = brick.getView(getContext());
+			View brickView;
+			try {
+				brickView = brick.getView(getContext());
+			} catch (Exception e) {
+				TextView fallback = new TextView(getContext());
+				fallback.setText("? " + brick.getClass().getSimpleName());
+				fallback.setTextColor(0xFFF8FAFC);
+				fallback.setPadding(dp(8), dp(6), dp(8), dp(6));
+				fallback.setBackgroundColor(0xFF334155);
+				brickView = fallback;
+			}
 			brickView.setTag(brick);
 			wireFormulaFields(brick, brickView);
 			final Brick targetBrick = brick;
@@ -158,11 +190,12 @@ public class ScriptCanvasView extends FrameLayout {
 			final View targetStackView = stack;
 
 			brickView.setOnTouchListener(new BrickTouchDragListener(targetScript, targetBrick, brickView, targetStackView));
-			stack.addView(brickView, new LinearLayout.LayoutParams(
-					LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+			LinearLayout.LayoutParams brickParams = new LinearLayout.LayoutParams(
+					LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+			stack.addView(brickView, brickParams);
 		}
 
-		LayoutParams params = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+		LayoutParams params = new LayoutParams(stackWidth, LayoutParams.WRAP_CONTENT);
 		params.leftMargin = Math.round(script.getPosX());
 		params.topMargin = Math.round(script.getPosY());
 		stack.setLayoutParams(params);
@@ -189,6 +222,68 @@ public class ScriptCanvasView extends FrameLayout {
 		}, "script-canvas-autosave").start();
 	}
 
+	// ─── Undo / Redo implementation ───────────────────────────────────────────
+
+	private List<Script> snapshotScripts() {
+		List<Script> snap = new ArrayList<>();
+		if (sprite == null) return snap;
+		for (Script s : sprite.getScriptList()) {
+			try { snap.add(s.clone()); } catch (CloneNotSupportedException ignored) {}
+		}
+		return snap;
+	}
+
+	public void snapshot() {
+		List<Script> snap = snapshotScripts();
+		undoStack.push(snap);
+		if (undoStack.size() > MAX_UNDO_STEPS) undoStack.pollLast();
+		redoStack.clear();
+		notifyUndoRedo();
+	}
+
+	private void restoreFromSnapshot(List<Script> scripts) {
+		if (sprite == null) return;
+		sprite.getScriptList().clear();
+		for (Script s : scripts) {
+			sprite.addScript(s);
+			s.setParents();
+		}
+	}
+
+	public void undo() {
+		if (undoStack.isEmpty()) return;
+		List<Script> current = snapshotScripts();
+		redoStack.push(current);
+		restoreFromSnapshot(undoStack.pop());
+		rebuild();
+		autoSave();
+		notifyUndoRedo();
+	}
+
+	public void redo() {
+		if (redoStack.isEmpty()) return;
+		List<Script> current = snapshotScripts();
+		undoStack.push(current);
+		restoreFromSnapshot(redoStack.pop());
+		rebuild();
+		autoSave();
+		notifyUndoRedo();
+	}
+
+	public boolean canUndo() { return !undoStack.isEmpty(); }
+	public boolean canRedo() { return !redoStack.isEmpty(); }
+
+	public float getPanX() { return panX; }
+	public float getPanY() { return panY; }
+	public float getScale() { return scale; }
+
+	public void restorePanAndScale(float px, float py, float sc) {
+		panX = px;
+		panY = py;
+		scale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, sc));
+		applyTransform();
+	}
+
 	public boolean dropPrototypeAtScreen(Brick prototype, float rawX, float rawY) {
 		if (sprite == null) {
 			return false;
@@ -208,6 +303,7 @@ public class ScriptCanvasView extends FrameLayout {
 		} catch (CloneNotSupportedException e) {
 			return false;
 		}
+		snapshot();
 		if (clone instanceof ScriptBrick) {
 			Script newScript = ((ScriptBrick) clone).getScript();
 			newScript.setPosX(worldX);
@@ -239,13 +335,53 @@ public class ScriptCanvasView extends FrameLayout {
 			script.addBrick(0, clone);
 			return;
 		}
-		List<Brick> list = targetBrick.getDragAndDropTargetList();
+		List<Brick> list = findListContainingBrick(script, targetBrick);
 		if (list == null) {
 			script.addBrick(clone);
 			return;
 		}
 		int index = list.indexOf(targetBrick);
 		list.add(index < 0 ? list.size() : index + 1, clone);
+	}
+
+	private List<Brick> findListContainingBrick(Script script, Brick target) {
+		if (script.getBrickList().contains(target)) {
+			return script.getBrickList();
+		}
+		for (Brick brick : script.getBrickList()) {
+			List<Brick> found = findListContainingBrickRecursive(brick, target);
+			if (found != null) {
+				return found;
+			}
+		}
+		return null;
+	}
+
+	private List<Brick> findListContainingBrickRecursive(Brick brick, Brick target) {
+		if (brick instanceof CompositeBrick) {
+			CompositeBrick composite = (CompositeBrick) brick;
+			if (composite.getNestedBricks().contains(target)) {
+				return composite.getNestedBricks();
+			}
+			for (Brick child : composite.getNestedBricks()) {
+				List<Brick> found = findListContainingBrickRecursive(child, target);
+				if (found != null) {
+					return found;
+				}
+			}
+			if (composite.hasSecondaryList()) {
+				if (composite.getSecondaryNestedBricks().contains(target)) {
+					return composite.getSecondaryNestedBricks();
+				}
+				for (Brick child : composite.getSecondaryNestedBricks()) {
+					List<Brick> found = findListContainingBrickRecursive(child, target);
+					if (found != null) {
+						return found;
+					}
+				}
+			}
+		}
+		return null;
 	}
 
 	private View findStackViewAtWorld(float worldX, float worldY) {
@@ -281,6 +417,7 @@ public class ScriptCanvasView extends FrameLayout {
 
 	private void deleteBrick(Brick brick) {
 		removeBlockBadge();
+		snapshot();
 		if (brick instanceof ScriptBrick) {
 			sprite.getScriptList().remove(((ScriptBrick) brick).getScript());
 		} else {
@@ -310,6 +447,13 @@ public class ScriptCanvasView extends FrameLayout {
 			move.setOnTouchListener(new BlockDragListener(brick));
 			badge.addView(move);
 		}
+		ImageButton menu = new ImageButton(getContext());
+		menu.setImageResource(android.R.drawable.ic_menu_more);
+		menu.setContentDescription("Меню блока");
+		menu.setBackgroundColor(0x00000000);
+		menu.setPadding(dp(8), dp(8), dp(8), dp(8));
+		menu.setOnClickListener(v -> showBlockContextMenu(brick, brickView, stackView));
+		badge.addView(menu);
 		ImageButton trash = new ImageButton(getContext());
 		trash.setImageResource(R.drawable.ic_se_trash);
 		trash.setBackgroundColor(0x00000000);
@@ -412,22 +556,27 @@ public class ScriptCanvasView extends FrameLayout {
 		float worldX = (localX - panX) / scale;
 		float worldY = (localY - panY) / scale;
 		View stackView = findStackViewAtWorld(worldX, worldY);
+		Script script = stackView != null && stackView.getTag() instanceof Script
+				? (Script) stackView.getTag() : null;
 		Brick targetBrick = stackView != null ? findBrickInStack(stackView, worldY) : null;
-		for (Script script : sprite.getScriptList()) {
-			if (removeBrickRecursive(script.getBrickList(), moving)) {
+		if (targetBrick == moving) {
+			return;
+		}
+		snapshot();
+		for (Script s : sprite.getScriptList()) {
+			if (removeBrickRecursive(s.getBrickList(), moving)) {
 				break;
 			}
 		}
-		if (stackView != null && stackView.getTag() instanceof Script) {
-			Script script = (Script) stackView.getTag();
-			insertBrickIntoScript(script, targetBrick == moving ? null : targetBrick, moving);
-			script.setParents();
+		if (script == null) {
+			StartScript newScript = new StartScript();
+			newScript.setPosX(worldX);
+			newScript.setPosY(worldY);
+			newScript.addBrick(moving);
+			sprite.addScript(newScript);
+			newScript.setParents();
 		} else {
-			StartScript script = new StartScript();
-			script.setPosX(worldX);
-			script.setPosY(worldY);
-			script.addBrick(moving);
-			sprite.addScript(script);
+			insertBrickIntoScript(script, targetBrick, moving);
 			script.setParents();
 		}
 		rebuild();
@@ -465,7 +614,11 @@ public class ScriptCanvasView extends FrameLayout {
 					Intent intent = new Intent(getContext(), org.catrobat.catroid.ui.formulaeditor.FormulaEditor2Activity.class);
 					org.catrobat.catroid.formulaeditor.Formula existingFormula = formulaBrick.getFormulaWithBrickField(field);
 					if (existingFormula != null) {
-						intent.putExtra(org.catrobat.catroid.ui.formulaeditor.FormulaEditor2Activity.EXTRA_FORMULA_STRING, existingFormula.interpretString(null));
+						try {
+							intent.putExtra(org.catrobat.catroid.ui.formulaeditor.FormulaEditor2Activity.EXTRA_FORMULA_STRING, existingFormula.interpretString(null));
+						} catch (org.catrobat.catroid.formulaeditor.InterpretationException e) {
+							intent.putExtra(org.catrobat.catroid.ui.formulaeditor.FormulaEditor2Activity.EXTRA_FORMULA_STRING, existingFormula.getTrimmedFormulaString(getContext()));
+						}
 					}
 					if (getContext() instanceof ScriptCanvasActivity) {
 						((ScriptCanvasActivity) getContext()).setActiveEditFormula(formulaBrick, field);
@@ -495,6 +648,7 @@ public class ScriptCanvasView extends FrameLayout {
 				isLongPressed = true;
 				if (brick instanceof ScriptBrick) {
 					isEventHeader = true;
+					snapshot();
 					brickView.performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS);
 				} else {
 					isEventHeader = false;
@@ -530,16 +684,19 @@ public class ScriptCanvasView extends FrameLayout {
 						handler.removeCallbacks(longPressRunnable);
 					}
 					if (isLongPressed) {
-						if (isEventHeader) {
-							float newX = startPosX + dx / scale;
-							float newY = startPosY + dy / scale;
-							script.setPosX(newX);
-							script.setPosY(newY);
-							LayoutParams params = (LayoutParams) stackView.getLayoutParams();
+					if (isEventHeader) {
+						float newX = startPosX + dx / scale;
+						float newY = startPosY + dy / scale;
+						script.setPosX(newX);
+						script.setPosY(newY);
+						android.widget.FrameLayout.LayoutParams params =
+								(android.widget.FrameLayout.LayoutParams) stackView.getLayoutParams();
+						if (params != null) {
 							params.leftMargin = Math.round(newX);
 							params.topMargin = Math.round(newY);
 							stackView.setLayoutParams(params);
-						} else {
+						}
+					} else {
 							moveBlockGhost(event.getRawX(), event.getRawY());
 						}
 					}
@@ -555,7 +712,7 @@ public class ScriptCanvasView extends FrameLayout {
 							dropBlockGhost(event.getRawX(), event.getRawY());
 						}
 					} else if (event.getActionMasked() == MotionEvent.ACTION_UP) {
-						if (dragGhost == null) {
+						if (blockGhost == null) {
 							showBlockBadge(brick, brickView, stackView);
 						}
 					}
@@ -654,8 +811,9 @@ public class ScriptCanvasView extends FrameLayout {
 	}
 
 	private static Script copiedScriptClipboard = null;
+	private static Brick copiedBrickClipboard = null;
 
-	private void showBlockBadge(Brick brick, View brickView, View stackView) {
+	private void showBlockContextMenu(Brick brick, View brickView, View stackView) {
 		if (brick == null) return;
 		String brickName = brick.getClass().getSimpleName();
 		List<String> items = new ArrayList<>();
@@ -672,7 +830,11 @@ public class ScriptCanvasView extends FrameLayout {
 				Intent intent = new Intent(getContext(), org.catrobat.catroid.ui.formulaeditor.FormulaEditor2Activity.class);
 				org.catrobat.catroid.formulaeditor.Formula existingFormula = fb.getFormulaWithBrickField(field);
 				if (existingFormula != null) {
-					intent.putExtra(org.catrobat.catroid.ui.formulaeditor.FormulaEditor2Activity.EXTRA_FORMULA_STRING, existingFormula.interpretString(null));
+					try {
+						intent.putExtra(org.catrobat.catroid.ui.formulaeditor.FormulaEditor2Activity.EXTRA_FORMULA_STRING, existingFormula.interpretString(null));
+					} catch (org.catrobat.catroid.formulaeditor.InterpretationException e) {
+						intent.putExtra(org.catrobat.catroid.ui.formulaeditor.FormulaEditor2Activity.EXTRA_FORMULA_STRING, existingFormula.getTrimmedFormulaString(getContext()));
+					}
 				}
 				if (getContext() instanceof ScriptCanvasActivity) {
 					((ScriptCanvasActivity) getContext()).setActiveEditFormula(fb, field);
@@ -688,7 +850,11 @@ public class ScriptCanvasView extends FrameLayout {
 
 		items.add("Вырезать блок");
 		actions.add(() -> {
-			copyScriptStack(stackView);
+			if (brick instanceof ScriptBrick) {
+				copyScriptStack(stackView);
+			} else {
+				copyBrick(brick);
+			}
 			deleteBrickFromStack(brick, stackView);
 			Toast.makeText(getContext(), "Блок вырезан!", Toast.LENGTH_SHORT).show();
 		});
@@ -696,9 +862,9 @@ public class ScriptCanvasView extends FrameLayout {
 		items.add("Скопировать стек блоков");
 		actions.add(() -> copyScriptStack(stackView));
 
-		if (copiedScriptClipboard != null) {
-			items.add("Вставить скопированный стек ниже");
-			actions.add(this::pasteScriptStack);
+		if (copiedBrickClipboard != null) {
+			items.add("Вставить скопированный блок ниже");
+			actions.add(() -> pasteBrickAfter(brick, stackView));
 		}
 
 		boolean isCommented = (brick instanceof NoteBrick);
@@ -712,7 +878,8 @@ public class ScriptCanvasView extends FrameLayout {
 			});
 		}
 
-		boolean isProt = (sprite != null && sprite.getProject() != null && sprite.getProject().isProtectedProject());
+		boolean isProt = ProjectManager.getInstance().getCurrentProject() != null
+				&& ProjectManager.getInstance().getCurrentProject().isProtectedProject();
 		items.add(isProt ? "Снять защиту проекта" : "Защитить проект от изменений");
 		actions.add(this::toggleProjectProtection);
 
@@ -734,7 +901,8 @@ public class ScriptCanvasView extends FrameLayout {
 				+ "Простые параметры: " + brick.getClass().getSimpleName() + "\n"
 				+ "Уникальный Hash: " + System.identityHashCode(brick) + "\n"
 				+ "Объект: " + (sprite != null ? sprite.getName() : "Нет") + "\n"
-				+ "Сцена: " + (sprite != null && sprite.getProject() != null ? sprite.getProject().getCurrentScene().getName() : "Главная");
+				+ "Сцена: " + (ProjectManager.getInstance().getCurrentlyEditedScene() != null
+					? ProjectManager.getInstance().getCurrentlyEditedScene().getName() : "Главная");
 		new AlertDialog.Builder(getContext(), android.R.style.Theme_DeviceDefault_Dialog_Alert)
 				.setTitle("⚙️ Системная информация")
 				.setMessage(info)
@@ -763,6 +931,7 @@ public class ScriptCanvasView extends FrameLayout {
 			Script clone = copiedScriptClipboard.clone();
 			clone.setPosX(clone.getPosX() + 40);
 			clone.setPosY(clone.getPosY() + 40);
+			snapshot();
 			sprite.addScript(clone);
 			clone.setParents();
 			rebuild();
@@ -773,9 +942,10 @@ public class ScriptCanvasView extends FrameLayout {
 	}
 
 	private void toggleProjectProtection() {
-		if (sprite != null && sprite.getProject() != null) {
-			boolean isProt = sprite.getProject().isProtectedProject();
-			sprite.getProject().setProtectedProject(!isProt);
+		Project project = ProjectManager.getInstance().getCurrentProject();
+		if (project != null && project.getXmlHeader() != null) {
+			boolean isProt = project.isProtectedProject();
+			project.getXmlHeader().setProtectedProject(!isProt);
 			Toast.makeText(getContext(), !isProt ? "🔒 Проект защищён от изменений!" : "🔓 Защита проекта снята!", Toast.LENGTH_SHORT).show();
 		}
 	}
@@ -795,21 +965,20 @@ public class ScriptCanvasView extends FrameLayout {
 	private void toggleCommentBrick(Brick brick, View stackView) {
 		if (stackView != null && stackView.getTag() instanceof Script) {
 			Script script = (Script) stackView.getTag();
-			if (brick instanceof NoteBrick) {
-				NoteBrick noteBrick = (NoteBrick) brick;
-				Brick original = noteBrick.getOrignalBrick();
-				if (original != null) {
-					int idx = script.getBrickList().indexOf(noteBrick);
-					if (idx >= 0) {
-						script.getBrickList().set(idx, original);
-					}
-				}
-			} else if (!(brick instanceof ScriptBrick)) {
-				int idx = script.getBrickList().indexOf(brick);
+			snapshot();
+			List<Brick> parentList = findListContainingBrick(script, brick);
+			if (parentList != null && brick instanceof NoteBrick) {
+				int idx = parentList.indexOf(brick);
 				if (idx >= 0) {
-					NoteBrick note = new NoteBrick();
-					note.setOrignalBrick(brick);
-					script.getBrickList().set(idx, note);
+					parentList.remove(idx);
+					Toast.makeText(getContext(), "Комментарий удалён", Toast.LENGTH_SHORT).show();
+				}
+			} else if (parentList != null && !(brick instanceof ScriptBrick)) {
+				int idx = parentList.indexOf(brick);
+				if (idx >= 0) {
+					NoteBrick note = new NoteBrick("Закомментировано: " + brick.getClass().getSimpleName());
+					parentList.set(idx, note);
+					Toast.makeText(getContext(), "Блок закомментирован", Toast.LENGTH_SHORT).show();
 				}
 			}
 			script.setParents();
@@ -820,13 +989,45 @@ public class ScriptCanvasView extends FrameLayout {
 	private void deleteBrickFromStack(Brick brick, View stackView) {
 		if (stackView != null && stackView.getTag() instanceof Script) {
 			Script script = (Script) stackView.getTag();
+			snapshot();
 			if (brick instanceof ScriptBrick) {
 				sprite.getScriptList().remove(script);
 			} else {
-				script.getBrickList().remove(brick);
+				removeBrickRecursive(script.getBrickList(), brick);
 			}
 			script.setParents();
 			rebuild();
+		}
+	}
+
+	private void copyBrick(Brick brick) {
+		try {
+			copiedBrickClipboard = brick.clone();
+			Toast.makeText(getContext(), "Блок скопирован в буфер!", Toast.LENGTH_SHORT).show();
+		} catch (CloneNotSupportedException e) {
+			Toast.makeText(getContext(), "Ошибка копирования блока", Toast.LENGTH_SHORT).show();
+		}
+	}
+
+	private void pasteBrickAfter(Brick target, View stackView) {
+		if (copiedBrickClipboard == null || stackView == null || !(stackView.getTag() instanceof Script)) {
+			return;
+		}
+		Script script = (Script) stackView.getTag();
+		try {
+			Brick clone = copiedBrickClipboard.clone();
+			List<Brick> parentList = findListContainingBrick(script, target);
+			snapshot();
+			if (parentList == null || target instanceof ScriptBrick) {
+				script.addBrick(clone);
+			} else {
+				int index = parentList.indexOf(target);
+				parentList.add(index < 0 ? parentList.size() : index + 1, clone);
+			}
+			script.setParents();
+			rebuild();
+		} catch (CloneNotSupportedException e) {
+			Toast.makeText(getContext(), "Ошибка вставки блока", Toast.LENGTH_SHORT).show();
 		}
 	}
 

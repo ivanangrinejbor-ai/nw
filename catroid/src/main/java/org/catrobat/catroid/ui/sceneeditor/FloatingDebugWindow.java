@@ -90,7 +90,6 @@ public class FloatingDebugWindow extends FrameLayout {
 		rootLayout.addView(header);
 
 		ScrollView scrollView = new ScrollView(context);
-		scrollView.setScrollbarsInsideDrawable(false);
 		debugContainer = new LinearLayout(context);
 		debugContainer.setOrientation(LinearLayout.VERTICAL);
 		debugContainer.setPadding(0, dp10, 0, 0);
@@ -156,7 +155,7 @@ public class FloatingDebugWindow extends FrameLayout {
 		} else {
 			for (UserList ul : lists) {
 				TextView tv = new TextView(getContext());
-				List<?> items = ul.getList();
+				List<?> items = ul.getValue();
 				tv.setText("  • " + ul.getName() + " [" + (items != null ? items.size() : 0) + " элементов]");
 				tv.setTextColor(0xFFA7F3D0);
 				tv.setTextSize(13f);

@@ -96,6 +96,7 @@ class ImportFromPocketPaintLauncher(private val activity: Activity) : ImportLaun
         intent.putExtras(bundle)
 
         intent.addCategory("android.intent.category.LAUNCHER")
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
         activity.startActivityForResult(intent, requestCode)
     }
 }

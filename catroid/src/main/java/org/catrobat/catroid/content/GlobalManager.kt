@@ -58,6 +58,7 @@ class GlobalManager {
             sceneBackStack.clear()
         }
 
+        @JvmStatic
         var stopSounds: Boolean
             get() = _stopSounds.get()
             set(value) = _stopSounds.set(value)

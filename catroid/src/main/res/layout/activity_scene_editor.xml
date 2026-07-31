@@ -121,7 +121,8 @@
             android:background="?android:attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/scene_editor_stop"
             android:scaleType="centerInside"
-            android:src="@drawable/ic_se_stop" />
+            android:src="@drawable/ic_se_stop"
+            android:visibility="gone" />
 
         <ImageButton
             android:id="@+id/scene_editor_btn_debug"
@@ -131,7 +132,8 @@
             android:background="?android:attr/selectableItemBackgroundBorderless"
             android:contentDescription="Отладчик 2.0"
             android:scaleType="centerInside"
-            android:src="@drawable/ic_se_scene_switcher" />
+            android:src="@drawable/ic_se_scene_switcher"
+            android:visibility="gone" />
 
         <ImageButton
             android:id="@+id/scene_editor_btn_save"

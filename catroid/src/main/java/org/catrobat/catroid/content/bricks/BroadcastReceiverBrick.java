@@ -38,6 +38,7 @@ public class BroadcastReceiverBrick extends BroadcastMessageBrick implements Scr
 
 	public BroadcastReceiverBrick() {
 		broadcastScript = new BroadcastScript();
+		broadcastScript.setScriptBrick(this);
 	}
 
 	public BroadcastReceiverBrick(BroadcastScript broadcastScript) {
