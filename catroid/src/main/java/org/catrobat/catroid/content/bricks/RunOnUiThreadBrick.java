@@ -39,7 +39,6 @@ public class RunOnUiThreadBrick extends BrickBaseType implements CompositeBrick 
 	private transient EndBrick endBrick = new EndBrick(this);
 	protected List<Brick> uiThreadBricks = new ArrayList<>();
 
-	// XStream не вызывает конструкторы — transient endBrick будет null после десериализации.
 	private Object readResolve() {
 		if (endBrick == null) {
 			endBrick = new EndBrick(this);

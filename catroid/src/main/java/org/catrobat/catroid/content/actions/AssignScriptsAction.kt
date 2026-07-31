@@ -33,7 +33,7 @@ class AssignScriptsAction : TemporalAction() {
     var scope: Scope? = null
     var filePath: Formula? = null
     var objectName: Formula? = null
-    var sceneName: Formula? = null  // null = Current scene
+    var sceneName: Formula? = null
     var replaceExistingScripts: Boolean = false
     var savePersistent: Boolean = false
 
@@ -48,7 +48,6 @@ class AssignScriptsAction : TemporalAction() {
         val targetName = objectName?.interpretString(scope) ?: return
         if (path.isBlank() || targetName.isBlank()) return
 
-        // Resolve scene
         val sceneStr = sceneName?.interpretString(scope)
         val scene = resolveScene(project, sceneStr)
         if (scene == null) {
@@ -56,30 +55,25 @@ class AssignScriptsAction : TemporalAction() {
             return
         }
 
-        // Find target object — scoped to the resolved scene
         val targetSprite = scene.getSprite(targetName)
         if (targetSprite == null) {
             Log.e(TAG, "Object '$targetName' not found in scene '${scene.name}'")
             return
         }
 
-        // BUG-NS-02 fix: offload all blocking I/O and XStream work to Dispatchers.IO
         ioScope.launch {
             try {
                 val neoScriptFile = loadNeoScriptFile(path)
 
-                // Phase 6: UnknownBrick detection — check before import
                 val hasUnknownBricks = checkForUnknownBricks(neoScriptFile)
                 if (hasUnknownBricks) {
                     Log.w(TAG, "Unknown blocks detected in .neoscript file. Continuing with replacement.")
                     replaceUnknownBricks(neoScriptFile)
                 }
 
-                // Mode 0 = keep existing + add imported (APPEND_ALL); Mode 1 = replace all (REPLACE_ALL)
                 val strategy = if (replaceExistingScripts) ImportStrategy.REPLACE_ALL else ImportStrategy.APPEND_ALL
                 val result = NeoScriptImporter.importScripts(neoScriptFile, project, targetSprite, strategy)
 
-                // Optionally persist the assigned scripts to the canonical project on disk
                 if (savePersistent) {
                     RuntimeMutationTracker.hasPersistentMutations = true
                     try {
@@ -93,7 +87,6 @@ class AssignScriptsAction : TemporalAction() {
                     RuntimeMutationTracker.hasTemporaryMutations = true
                 }
 
-                // Execute added scripts — only if the scene is currently active.
                 withContext(Dispatchers.Main) {
                     val stageListener = StageActivity.getActiveStageListener()
                     if (stageListener != null) {

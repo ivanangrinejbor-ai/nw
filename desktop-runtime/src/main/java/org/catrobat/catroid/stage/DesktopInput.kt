@@ -3,8 +3,6 @@ package org.catrobat.catroid.stage
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
 
-// TODO: multi-touch (up to N fingers) should be tracked for proper sensor support.
-// Multi-touch support is required for correct multi-finger touch tracking.
 class DesktopInput {
     var wasMouseDown = false
     private var previousMouseDown = false
@@ -23,16 +21,12 @@ class DesktopInput {
         isTouched = true
     }
 
-    // Set finger position in STAGE coords (from the viewport unproject in the listener), so a
-    // click maps to the same coordinate space as sprite.x/y regardless of window size/letterbox.
     fun setStageFinger(x: Float, y: Float) {
         fingerX = x
         fingerY = y
     }
 
     val mouseDeltaX: Float
-        // NOTE: scroll events can pollute the delta values (scroll-pan / middle-button drag updates mouseX/Y).
-        // Isolating scroll deltas would require tracking Gdx.input.deltaX/deltaY separately.
         get() = mouseWorldX - prevMouseWorldX
     val mouseDeltaY: Float
         get() = mouseWorldY - prevMouseWorldY
@@ -71,7 +65,7 @@ class DesktopInput {
         fingerY = mouseWorldY
         prevMouseWorldX = mouseWorldX
         prevMouseWorldY = mouseWorldY
-        mouseScroll = -Gdx.input.deltaY.toFloat() // Invert: screen Y increases downward, stage Y increases upward
+        mouseScroll = -Gdx.input.deltaY.toFloat()
     }
 
     val isLeftPressed: Boolean

@@ -42,7 +42,6 @@ public class CountLoopBrick extends FormulaBrick implements CompositeBrick {
 	private List<Brick> loopBricks = new ArrayList<>();
 	private UserVariable loopVariable;
 
-	// XStream не вызывает конструкторы — transient endBrick будет null после десериализации.
 	private Object readResolve() {
 		if (endBrick == null) {
 			endBrick = new EndBrick(this);

@@ -27,10 +27,6 @@ import org.catrobat.catroid.content.Sprite;
 import org.catrobat.catroid.content.actions.ScriptSequenceAction;
 import org.catrobat.catroid.formulaeditor.Formula;
 
-/**
- * Marks (or unmarks) a tileset index as solid on the sprite's active tilemap costume.
- * The {@code solid} formula is interpreted as a boolean: 0 = not solid, non-zero = solid.
- */
 public class SetTilemapSolidBrick extends FormulaBrick {
 
 	private static final long serialVersionUID = 1L;

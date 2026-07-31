@@ -169,7 +169,6 @@ public final class SensorHandler implements SensorEventListener, SensorCustomEve
 	private float mouseDeltaY = 0;
 	private float lastScrollAmount = 0;
 
-	// --- НОВЫЕ МЕТОДЫ ДЛЯ ОБНОВЛЕНИЯ СОСТОЯНИЯ ---
 	public void updateMousePosition(float x, float y) {
 		this.mouseDeltaX = x - this.mouseX;
 		this.mouseDeltaY = y - this.mouseY;
@@ -186,7 +185,6 @@ public final class SensorHandler implements SensorEventListener, SensorCustomEve
 		if (instance == null || instance.locationManager == null) {
 			return false;
 		}
-		// Use || (logical OR) for short-circuit: if gpsSensor is available, skip network check
 		return gpsSensorAvailable() || networkGpsAvailable();
 	}
 
@@ -325,14 +323,12 @@ public final class SensorHandler implements SensorEventListener, SensorCustomEve
 	}
 
 
-	// И новый метод для обновления этого поля из StageListener
 	public void setLastScrollAmount(float amount) {
 		this.lastScrollAmount = amount;
 	}
 
 	@NonNull
 	public static Object getSensorValue(Sensors sensor) {
-		// Guard: instance may be null if startSensorListener() was never called
 		if (instance == null || instance.sensorManager == null) {
 			return 0d;
 		}
@@ -443,11 +439,10 @@ public final class SensorHandler implements SensorEventListener, SensorCustomEve
 			case MOUSE_DELTA_X:
 				return (double) Gdx.input.getDeltaX();
 			case MOUSE_DELTA_Y:
-				// LibGDX инвертирует Y для дельты, возвращаем в привычном виде
 				return (double) -Gdx.input.getDeltaY();
 			case MOUSE_SCROLL: {
 				float amount = instance.lastScrollAmount;
-				instance.lastScrollAmount = 0; // Сбрасываем после прочтения
+				instance.lastScrollAmount = 0;
 				return (double) amount;
 			}
 			case NUMBER_CURRENT_TOUCHES:
@@ -467,7 +462,6 @@ public final class SensorHandler implements SensorEventListener, SensorCustomEve
 			case BATTARY:
 				IntentFilter intentFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
 				Intent batteryStatus = CatroidApplication.getAppContext().registerReceiver(null, intentFilter);
-				// registerReceiver() can return null if no sticky broadcast is available (documented)
 				if (batteryStatus == null) return 0;
 				int level = batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
 				int scale = batteryStatus.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
@@ -488,8 +482,6 @@ public final class SensorHandler implements SensorEventListener, SensorCustomEve
 			case ARCH:
 				return MainMenuActivity.Companion.getCpuArchitecture();
 		default:
-			// DRONE_* sensors intentionally fall through here and return 0/false:
-			// they require drone hardware, which is not present in this project.
 			return Objects.requireNonNull(instance.sensorValueMap.getOrDefault(sensor, 0.0d));
 		}
 		return 0.0d;
@@ -681,7 +673,7 @@ public final class SensorHandler implements SensorEventListener, SensorCustomEve
 				float[] tempMagneticFieldXYZ = event.values.clone();
 				float[] tempInclinationMatrix = new float[9];
 				android.hardware.SensorManager.getRotationMatrix(rotationMatrix, tempInclinationMatrix, accelerationXYZ,
-						tempMagneticFieldXYZ);    //http://goo.gl/wo6QK5
+						tempMagneticFieldXYZ);
 				break;
 			case Sensor.TYPE_ACCELEROMETER:
 				accelerationXYZ = event.values.clone();

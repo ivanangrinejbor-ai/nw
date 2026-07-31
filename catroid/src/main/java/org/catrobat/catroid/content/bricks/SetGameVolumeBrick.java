@@ -5,12 +5,6 @@ import org.catrobat.catroid.content.Sprite;
 import org.catrobat.catroid.content.actions.ScriptSequenceAction;
 import org.catrobat.catroid.formulaeditor.Formula;
 
-/**
- * Sets the master game volume (0-100%).
- * When active, ALL other volume blocks (SetVolumeTo, ChangeVolumeBy,
- * SetSoundVolume, SetGlobalSoundVolume) are IGNORED.
- * Appears in both Sound and Control categories.
- */
 public class SetGameVolumeBrick extends FormulaBrick {
     private static final long serialVersionUID = 1L;
 

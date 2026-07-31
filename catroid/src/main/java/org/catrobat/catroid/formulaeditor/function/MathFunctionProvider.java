@@ -60,13 +60,8 @@ public class MathFunctionProvider implements FunctionProvider {
 	}
 
 	public static double roundTo(double value, double places) {
-		// 1. Создаем множитель. Например, для 2 знаков это 100, для -1 это 0.1
 		double multiplier = Math.pow(10.0, places);
 
-		// 2. Умножаем число, округляем до ближайшего целого (long)
-		//    и делим обратно на множитель.
-		//    (123.456 * 100.0) -> 12345.6 -> round -> 12346L
-		//    12346L / 100.0 -> 123.46
 		return Math.round(value * multiplier) / multiplier;
 	}
 

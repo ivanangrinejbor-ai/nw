@@ -26,6 +26,7 @@ public class CastRayAction extends TemporalAction {
             if (name.isEmpty()) return;
 
             // Локальные векторы — нет race condition при параллельном выполнении
+            // Локальные векторы — нет race condition при параллельном выполнении
             Vector3 from = new Vector3(
                     fromX.interpretFloat(scope),
                     fromY.interpretFloat(scope),

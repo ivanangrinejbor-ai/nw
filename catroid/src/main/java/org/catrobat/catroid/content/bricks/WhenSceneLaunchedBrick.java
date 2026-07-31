@@ -19,10 +19,6 @@ import java.util.List;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-/**
- * Event brick "When scene [scene] starts".
- * Only shown in the brick picker when editing the Global Scene.
- */
 public class WhenSceneLaunchedBrick extends ScriptBrickBaseType implements
 		BrickSpinner.OnItemSelectedListener<Scene> {
 
@@ -74,7 +70,6 @@ public class WhenSceneLaunchedBrick extends ScriptBrickBaseType implements
 		super.getView(context);
 
 		List<Nameable> items = new ArrayList<>();
-		// Only regular scenes can be selected (the global scene itself never "starts")
 		items.addAll(ProjectManager.getInstance().getCurrentProject().getSceneList());
 		spinner = new BrickSpinner<>(R.id.brick_when_scene_launched_spinner, view, items);
 		spinner.setOnItemSelectedListener(this);

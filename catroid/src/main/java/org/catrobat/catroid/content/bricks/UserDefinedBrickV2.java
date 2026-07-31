@@ -112,7 +112,6 @@ public class UserDefinedBrickV2 extends FormulaBrick {
         BrickLayout layout = view.findViewById(R.id.brick_user_brick);
         int spacing = context.getResources().getDimensionPixelOffset(R.dimen.material_design_spacing_small);
 
-        // Block Title
         TextView titleView = new TextView(new ContextThemeWrapper(context, R.style.BrickText));
         titleView.setText("✦ " + blockName);
         layout.addView(titleView);
@@ -123,7 +122,6 @@ public class UserDefinedBrickV2 extends FormulaBrick {
         }
         formulaFieldToTextViewMap.clear();
 
-        // Parameters
         for (int i = 0; i < parameterNames.size(); i++) {
             String paramName = parameterNames.get(i);
 

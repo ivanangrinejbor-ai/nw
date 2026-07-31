@@ -49,11 +49,6 @@ class ReadFromFilesAction() : TemporalAction() {
         scope?.let {
             val fileNameStr = fileName?.interpretString(it) ?: "variable.txt"
             val project = it.project
-            // Читаем файл по точному имени (любое расширение: .txt, .img, .json,
-            // либо вообще без расширения). Файл с текстовым содержимым, переименованный
-            // во что угодно (например .img), читается как есть.
-            // Обратная совместимость: если файл с точным именем не найден и в имени нет
-            // точки — пробуем <имя>.txt (так раньше дописывалось при записи).
             val file = resolveFile(project, fileNameStr)
             variable?.value = 0
             file?.let { fil ->

@@ -22,6 +22,14 @@
             android:text="@string/brick_create_3d_joystick_label" />
 
         <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_create_3d_object_name" />
+
+        <TextView
+            android:id="@+id/brick_create_3d_joystick_object"
+            style="@style/BrickEditText" />
+
+        <TextView
             android:id="@+id/brick_create_3d_joystick_x"
             style="@style/BrickEditText" />
 

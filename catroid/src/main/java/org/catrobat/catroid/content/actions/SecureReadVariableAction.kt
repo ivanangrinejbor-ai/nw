@@ -42,7 +42,6 @@ class SecureReadVariableAction : AsynchronousAction() {
             try {
                 val context = CatroidApplication.getAppContext()
                 val key = variable.deviceKey.toString()
-                // Default value is null, so if not found we do not change current in-memory value
                 val rawValue = EncryptionUtils.readSecureValue(context, key, null)
                 if (rawValue != null) {
                     val doubleValue = rawValue.toDoubleOrNull()

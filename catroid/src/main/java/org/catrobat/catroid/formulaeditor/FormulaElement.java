@@ -466,7 +466,6 @@ public class FormulaElement implements Serializable {
                     return value;
                 }
             case STRING:
-                // Оператор конкатенации внутри строки: "abc..def" → "abcdef"
                 if (value != null && value.contains("..")) {
                     return value.replace("..", "");
                 }
@@ -614,12 +613,8 @@ public class FormulaElement implements Serializable {
                 return currentProject2 != null ? currentProject2.getFilesDir().getAbsolutePath() : "";
             }
             case LUA: {
-                // SECURITY: use standardGlobals() — unlike debugGlobals() it does NOT install
-                // the debug library, so the sandbox cannot be escaped via
-                // debug.getupvalue/setmetatable even after io/os are stripped.
                 if (luaGlobals == null) {
                     luaGlobals = org.luaj.vm2.lib.jse.JsePlatform.standardGlobals();
-                    // Sandbox: remove dangerous libraries
                     luaGlobals.set("io", org.luaj.vm2.LuaValue.NIL);
                     luaGlobals.set("os", org.luaj.vm2.LuaValue.NIL);
                     luaGlobals.set("require", org.luaj.vm2.LuaValue.NIL);
@@ -640,13 +635,11 @@ public class FormulaElement implements Serializable {
             case FILE_SIZE: {
                 Project currentProject3 = ProjectManager.getInstance().getCurrentProject();
                 if (currentProject3 == null) return 0.0;
-                // Use double (long-safe): (int) cast would overflow for files > 2 GB
                 return (double) getFileSize(currentProject3.getFile(String.valueOf(arg0)));
             }
             case FILE_PROJECT_SIZE: {
                 Project currentProject4 = ProjectManager.getInstance().getCurrentProject();
                 if (currentProject4 == null) return 0.0;
-                // Use double (long-safe): (int) cast would overflow for files > 2 GB
                 return (double) getFileSize(currentProject4.getFile(String.valueOf(arg0)));
             }
             case FILE_SIZE_IN_DIR: {
@@ -787,8 +780,6 @@ public class FormulaElement implements Serializable {
                 return manager != null ? Conversions.booleanToDouble(manager.checkIntersection(String.valueOf(arg0), String.valueOf(arg1))) : Conversions.FALSE;
             }
             case ID_OF_DETECTED_OBJECT: {
-                // Wired to the real object-detection source (ObjectDetectorResults, populated by
-                // ObjectDetectorFunctionProvider) so this is intentional, not a silent default fall-through.
                 return interpretFormulaFunction(function, arg0, arg1, arg2);
             }
             case OBJECT_WITH_ID_VISIBLE: {
@@ -1169,7 +1160,6 @@ public class FormulaElement implements Serializable {
                 } catch (Exception e) { return "Unknown"; }
             }
             case CPU_NAME: {
-                // Use try-with-resources to guarantee RandomAccessFile is always closed
                 try (java.io.BufferedReader reader = new java.io.BufferedReader(
                         new java.io.FileReader("/proc/cpuinfo"))) {
                     String line;
@@ -1204,8 +1194,6 @@ public class FormulaElement implements Serializable {
                 } catch (Exception e) { return 0.0; }
             }
             case CPU_USAGE: {
-                // /proc/stat values are cumulative (since boot), not instantaneous.
-                // Correct CPU% requires delta between two snapshots: (deltaWork / deltaTotal) * 100.
                 try (java.io.BufferedReader reader = new java.io.BufferedReader(
                         new java.io.FileReader("/proc/stat"))) {
                     String line = reader.readLine();
@@ -1219,7 +1207,6 @@ public class FormulaElement implements Serializable {
                     long deltaIdle = idle - cpuPrevIdle;
                     cpuPrevTotal = total;
                     cpuPrevIdle = idle;
-                    // First call: no delta available yet, return 0
                     if (deltaTotal <= 0) return 0.0;
                     return (double) (deltaTotal - deltaIdle) * 100.0 / deltaTotal;
                 } catch (Exception e) { return 0.0; }
@@ -1379,7 +1366,7 @@ public class FormulaElement implements Serializable {
                         android.net.NetworkCapabilities nc = cm.getNetworkCapabilities(activeNetwork);
                         if (nc != null) {
                             int down = nc.getLinkDownstreamBandwidthKbps();
-                            return (double) (down / 1000); // Mbps
+                            return (double) (down / 1000);
                         }
                     }
                 } catch (Exception e) {
@@ -1481,10 +1468,10 @@ public class FormulaElement implements Serializable {
                 } catch (Exception e) { return FALSE; }
             }
             case IS_PC: {
-                return 0.0; // On Android, this is always false
+                return 0.0;
             }
             case IS_MOBILE: {
-                return 1.0; // On Android, this is always true
+                return 1.0;
             }
             case GPU_NAME: {
                 try {
@@ -1642,7 +1629,6 @@ public class FormulaElement implements Serializable {
                 return false;
             }
 
-            // -- Cryptography ---
             case SHA_224:
                 return CryptoFormulaHelper.sha("SHA-224", String.valueOf(arg0));
             case SHA_256:
@@ -1943,22 +1929,17 @@ public class FormulaElement implements Serializable {
         return userList.getValue().get(index);
     }
 
-    /**
-     * GET_ITEM(номер, "имя_списка") — стабильный доступ к элементу списка по имени.
-     * Имя можно вписать вручную или вставить через палитру данных.
-     */
     private Object interpretFunctionGetItem(Object indexObj, Object listNameObj, Scope scope) {
         if (indexObj == null || listNameObj == null || scope == null) return "";
         String listName = String.valueOf(listNameObj);
         if (listName.isEmpty()) return "";
 
-        // Ищем список по имени в спрайте, потом в проекте
         UserList userList = UserDataWrapper.getUserList(listName, scope);
         if (userList == null) return "";
 
         Integer idxOpt = tryParseIntFromObject(indexObj);
         if (idxOpt == null) return "";
-        int index = idxOpt - 1; // 1-based → 0-based
+        int index = idxOpt - 1;
         if (index < 0 || index >= userList.getValue().size()) return "";
         return userList.getValue().get(index);
     }
@@ -2076,7 +2057,6 @@ public class FormulaElement implements Serializable {
             }
             return trimTrailingCharacters(formattedNumberString);
         } catch (NumberFormatException e) {
-            // Corrupt/malformed NUMBER token: return the raw string instead of throwing.
             return trimTrailingCharacters(numberString);
         }
     }
@@ -2524,13 +2504,10 @@ public class FormulaElement implements Serializable {
         Object leftObject = tryInterpretElementRecursive(leftChild, scope);
         Object rightObject = tryInterpretElementRecursive(rightChild, scope);
 
-        // Оператор конкатенации (..) — всегда соединяет как строки
         if (operator == Operators.CONCAT) {
             return concatToString(leftObject) + concatToString(rightObject);
         }
 
-        // Bug #3: string concatenation for '+'. A String operand means a non-numeric value,
-        // so concatenate instead of producing a NaN that later throws InterpretationException.
         if (operator == Operators.PLUS
                 && (leftObject instanceof String || rightObject instanceof String)) {
             return String.valueOf(leftObject) + String.valueOf(rightObject);
@@ -2539,8 +2516,6 @@ public class FormulaElement implements Serializable {
         Double leftDouble = tryInterpretDoubleValue(leftObject);
         Double rightDouble = tryInterpretDoubleValue(rightObject);
 
-        // Bug #3/#4: coerce an unparseable-string (NaN) operand to 0.0 so it can never become
-        // a NaN result (which would abort the action) nor count as "true" in logical ops.
         double left = (leftDouble != null && !Double.isNaN(leftDouble)) ? leftDouble : 0.0;
         double right = (rightDouble != null && !Double.isNaN(rightDouble)) ? rightDouble : 0.0;
 
@@ -2570,7 +2545,6 @@ public class FormulaElement implements Serializable {
             case SMALLER_OR_EQUAL:
                 return booleanToDouble(left <= right);
             case LOGICAL_AND:
-                // Bug #4: a NaN operand is coerced to 0.0 above, so it is treated as false here.
                 return booleanToDouble(left != FALSE && right != FALSE);
             case LOGICAL_OR:
                 return booleanToDouble(left != FALSE || right != FALSE);

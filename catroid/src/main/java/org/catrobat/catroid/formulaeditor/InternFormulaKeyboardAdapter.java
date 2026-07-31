@@ -800,7 +800,6 @@ case R.string.formula_editor_function_state_time:
 			case R.string.formula_editor_sensor_mouse_delta_y: return buildSensor(Sensors.MOUSE_DELTA_Y);
 			case R.string.formula_editor_sensor_mouse_scroll: return buildSensor(Sensors.MOUSE_SCROLL);
 			case R.string.formula_editor_function_is_mouse_button_down:
-				// По умолчанию проверяем левую кнопку (код 0)
 				return buildSingleParameterFunction(Functions.IS_MOUSE_BUTTON_DOWN, InternTokenType.NUMBER, "0");
 			case R.string.formula_editor_phiro_sensor_side_right:
 				return buildSensor(Sensors.PHIRO_SIDE_RIGHT);
@@ -1032,13 +1031,11 @@ case R.string.formula_editor_function_state_time:
 			case CUSTOM_JS_FUNCTION_RESOURCE_ID:
 				return buildCustomJsFunction(name);
 
-			// NeoCatroid: Device info
 			case R.string.formula_is_pc:
 				return buildFunctionWithoutParametersAndBrackets(Functions.IS_PC);
 			case R.string.formula_is_mobile:
 				return buildFunctionWithoutParametersAndBrackets(Functions.IS_MOBILE);
 
-			// NeoCatroid: AdMob
 			case R.string.formula_admob_is_initialized:
 				return buildFunctionWithoutParametersAndBrackets(Functions.ADMOB_IS_INITIALIZED);
 			case R.string.formula_admob_is_test_mode:
@@ -1058,7 +1055,6 @@ case R.string.formula_editor_function_state_time:
 			case R.string.formula_admob_is_google_play_services_available:
 				return buildFunctionWithoutParametersAndBrackets(Functions.ADMOB_IS_GOOGLE_PLAY_SERVICES_AVAILABLE);
 
-			// NeoCatroid: Cryptography
 			case R.string.formula_crypto_sha_224:
 				return buildSingleParameterFunction(Functions.SHA_224, STRING, "text");
 			case R.string.formula_crypto_sha_256:
@@ -1130,7 +1126,6 @@ case R.string.formula_editor_function_state_time:
 			case R.string.formula_crypto_rsa_verify:
 				return buildTripleParameterFunction(Functions.RSA_VERIFY, STRING, "text", STRING, "signature", STRING, "publicKey");
 
-			// NeoCatroid: Tilemap
 			case R.string.formula_tile_at_position:
 				return buildDoubleParameterFunction(Functions.TILE_AT_POSITION,
 						NUMBER, "1",
@@ -1220,7 +1215,7 @@ case R.string.formula_editor_function_state_time:
 	public List<InternToken> buildCustomJsFunction(String customFunctionName) {
 		CustomFormula customFormula = CustomFormulaManager.INSTANCE.getFormulaByUniqueName(customFunctionName);
 		if (customFormula == null) {
-			return null; // или бросить исключение
+			return null;
 		}
 
 		List<InternToken> returnList = new LinkedList<InternToken>();
@@ -1232,7 +1227,6 @@ case R.string.formula_editor_function_state_time:
 				if (i > 0) {
 					returnList.add(new InternToken(FUNCTION_PARAMETER_DELIMITER));
 				}
-				// Используем тип и значение по умолчанию из CustomFormula
 				InternTokenType paramType = customFormula.getDefaultParamTypes().get(i);
 				String paramValue = customFormula.getDefaultParamValues().get(i);
 				returnList.add(new InternToken(paramType, paramValue));

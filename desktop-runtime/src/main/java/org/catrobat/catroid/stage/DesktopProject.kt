@@ -12,8 +12,6 @@ class DesktopLook(
     private var triedLoad = false
     var texture: Texture? = texture
         get() {
-            // Attempt the (potentially failing) lazy load ONCE, not every frame -
-            // a missing look otherwise spams the log and re-hits disk every render.
             if (field == null && !triedLoad && fileName.isNotEmpty()) {
                 triedLoad = true
                 field = DesktopProjectManager.getInstance().loadTextureLazy(fileName)
@@ -204,15 +202,8 @@ class DesktopProject(
     var soundsDir: java.io.File? = null,
     var stageWidth: Int = 480,
     var stageHeight: Int = 720,
-    // === Scene model (mirrors Android: sceneList[0] starts first; optional global scene) ===
-    // Name of the currently active regular scene. null before the first scene is loaded.
     var activeSceneName: String? = null,
-    // Regular scene names in document order (sceneList). First one is the start scene.
     val sceneNames: MutableList<String> = mutableListOf(),
-    // Whether the project has a <globalScene> whose sprites persist across scene switches.
     var hasGlobalScene: Boolean = false,
-    // Number of global-scene sprites stored at the FRONT of [sprites]; their indices are
-    // stable across scene switches so their running scripts stay valid. Scene-local sprites
-    // occupy indices >= globalSpriteCount and are replaced on every scene transition.
     var globalSpriteCount: Int = 0
 )

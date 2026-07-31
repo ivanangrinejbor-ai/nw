@@ -166,11 +166,6 @@ public class FormulaEditorEditText extends EditText implements OnTouchListener {
 		gestureDetector = createGestureDetector();
 	}
 
-	/**
-	 * Добавляет список токенов в текущую позицию (или выделение) формулы.
-	 * Этот метод вызывается из FormulaEditorFragment при добавлении кастомных функций.
-	 * @param tokensToAdd Список токенов для добавления.
-	 */
 	public void addTokensToActiveFormula(List<InternToken> tokensToAdd) {
 		if (internFormula == null || tokensToAdd == null || tokensToAdd.isEmpty()) {
 			Log.w(TAG, "addTokensToActiveFormula: internFormula is null or tokensToAdd is null/empty");
@@ -673,8 +668,6 @@ public class FormulaEditorEditText extends EditText implements OnTouchListener {
     @Override
     protected void onDetachedFromWindow() {
         hideFoldPopup();
-        // Stop the self-reposting cursor blink Runnable, otherwise it keeps this EditText
-        // (and the whole FormulaEditorFragment -> Activity) alive forever after detach.
         removeCallbacks(cursorAnimation);
         super.onDetachedFromWindow();
     }

@@ -10,7 +10,6 @@ import android.widget.ImageView
 import com.badlogic.gdx.scenes.scene2d.Action
 import org.catrobat.catroid.content.Scope
 import org.catrobat.catroid.formulaeditor.Formula
-import org.catrobat.catroid.raptor.SceneManager
 import org.catrobat.catroid.stage.StageActivity
 import java.io.File
 
@@ -21,6 +20,7 @@ class Create3dJoystickAction : Action() {
     var backgroundFileName: Formula? = null
     var thumbFileName: Formula? = null
     var speed: Formula? = null
+    var objectName: Formula? = null
 
     private var started = false
     @Volatile private var finished = false
@@ -105,12 +105,13 @@ class Create3dJoystickAction : Action() {
 
                             if (dist > 0) {
                                 val normX = clampX / maxRadius
-                                val normZ = clampY / maxRadius // Y on screen maps to Z in 3D world
-                                val curX = sprite.x + normX * spd
-                                val curZ = sprite.z + normZ * spd
-                                sprite.x = curX
-                                sprite.z = curZ
-                                SceneManager.getInstance().setObjectPosition(sprite.name, curX, sprite.y, curZ)
+                                val normZ = clampY / maxRadius
+                                val targetId = objectName?.interpretString(scope)?.takeIf { it.isNotBlank() } ?: sprite.name
+                                val engine = StageActivity.getActiveStageListener()?.threeDManager
+                                val cur = engine?.getPosition(targetId)
+                                if (engine != null && cur != null) {
+                                    engine.setPosition(targetId, cur.x + normX * spd, cur.y, cur.z + normZ * spd)
+                                }
                             }
                             true
                         }

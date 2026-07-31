@@ -31,7 +31,6 @@ import org.catrobat.catroid.ProjectManager
 import org.catrobat.catroid.formulaeditor.UserVariable
 import org.catrobat.catroid.io.DeviceVariableAccessor
 
-// Replaces deprecated AsyncTask (removed in Android API 33).
 class ReadVariableFromDeviceAction : AsynchronousAction() {
     private var userVariable: UserVariable? = null
 

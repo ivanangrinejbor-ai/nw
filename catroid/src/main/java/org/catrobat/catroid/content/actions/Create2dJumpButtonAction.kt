@@ -95,7 +95,7 @@ class Create2dJumpButtonAction : Action() {
                     when (event.actionMasked) {
                         MotionEvent.ACTION_DOWN -> {
                             setActiveState()
-                            sprite.y += pwr
+                            sprite.look.yInUserInterfaceDimensionUnit += pwr
                             true
                         }
                         MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {

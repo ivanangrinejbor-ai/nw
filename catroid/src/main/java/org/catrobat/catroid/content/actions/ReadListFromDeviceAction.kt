@@ -31,7 +31,6 @@ import org.catrobat.catroid.ProjectManager
 import org.catrobat.catroid.formulaeditor.UserList
 import org.catrobat.catroid.io.DeviceListAccessor
 
-// Replaces deprecated AsyncTask (removed in Android API 33).
 class ReadListFromDeviceAction : AsynchronousAction() {
     private var userList: UserList? = null
 

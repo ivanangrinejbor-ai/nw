@@ -10,7 +10,6 @@ import android.widget.ImageView
 import com.badlogic.gdx.scenes.scene2d.Action
 import org.catrobat.catroid.content.Scope
 import org.catrobat.catroid.formulaeditor.Formula
-import org.catrobat.catroid.raptor.SceneManager
 import org.catrobat.catroid.stage.StageActivity
 import java.io.File
 
@@ -21,6 +20,7 @@ class Create3dJumpButtonAction : Action() {
     var activeFileName: Formula? = null
     var inactiveFileName: Formula? = null
     var jumpPower: Formula? = null
+    var objectName: Formula? = null
 
     private var started = false
     @Volatile private var finished = false
@@ -96,9 +96,12 @@ class Create3dJumpButtonAction : Action() {
                     when (event.actionMasked) {
                         MotionEvent.ACTION_DOWN -> {
                             setActiveState()
-                            val newY = sprite.y + pwr
-                            sprite.y = newY
-                            SceneManager.getInstance().setObjectPosition(sprite.name, sprite.x, newY, sprite.z)
+                            val targetId = objectName?.interpretString(scope)?.takeIf { it.isNotBlank() } ?: sprite.name
+                            val engine = StageActivity.getActiveStageListener()?.threeDManager
+                            val cur = engine?.getPosition(targetId)
+                            if (engine != null && cur != null) {
+                                engine.setPosition(targetId, cur.x, cur.y + pwr, cur.z)
+                            }
                             true
                         }
                         MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {

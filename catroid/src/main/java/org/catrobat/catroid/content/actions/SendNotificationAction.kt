@@ -10,7 +10,6 @@ class SendNotificationAction : TemporalAction() {
     var scope: Scope? = null
     var notificationId: Formula? = null
 
-    // Execute only once per block invocation
     private var started = false
 
     override fun restart() {

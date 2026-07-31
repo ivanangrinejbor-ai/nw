@@ -5856,4 +5856,15 @@ Catrobat — это визуальный язык программировани
     <!-- Look list entries -->
     <string name="look_new_tilemap">Новый тайлмап</string>
     <string name="look_edit_tilemap">Редактировать тайлмап</string>
+    <string formatted="false" name="brick_create_spring_constraint_title">Создать пружинную связь</string>
+    <string formatted="false" name="brick_create_spring_constraint_id">ID связи</string>
+    <string formatted="false" name="brick_create_spring_constraint_a">Объект A</string>
+    <string formatted="false" name="brick_create_spring_constraint_b">Объект B</string>
+    <string formatted="false" name="brick_create_spring_constraint_pivot_a">Точка A (X,Y,Z)</string>
+    <string formatted="false" name="brick_create_spring_constraint_pivot_b">Точка B (X,Y,Z)</string>
+    <string formatted="false" name="brick_apply_3d_torque_1">Крутить объект</string>
+    <string formatted="false" name="brick_apply_3d_torque_x">X</string>
+    <string formatted="false" name="brick_apply_3d_torque_y">Y</string>
+    <string formatted="false" name="brick_apply_3d_torque_z">Z</string>
+    <string formatted="false" name="brick_create_3d_object_name">для объекта</string>
 </resources>

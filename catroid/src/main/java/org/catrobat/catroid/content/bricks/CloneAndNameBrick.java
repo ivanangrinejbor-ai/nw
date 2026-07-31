@@ -64,7 +64,6 @@ public class CloneAndNameBrick extends FormulaBrick implements BrickSpinner.OnIt
         items.remove(ProjectManager.getInstance().getCurrentlyEditedScene().getBackgroundSprite());
         items.remove(ProjectManager.getInstance().getCurrentSprite());
 
-        // Also include global scene sprites so they can be cloned from any scene
         Project project = ProjectManager.getInstance().getCurrentProject();
         if (project != null && project.hasGlobalScene()) {
             for (Sprite globalSprite : project.getGlobalScene().getSpriteList()) {

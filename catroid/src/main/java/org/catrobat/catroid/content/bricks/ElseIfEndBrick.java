@@ -7,10 +7,6 @@ import org.catrobat.catroid.content.actions.ScriptSequenceAction;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * Маркер-брик "Конец иначе если" — закрывает ветку Else If в плоском списке.
- * Не сериализуется отдельно (transient в IfLogicBeginBrick).
- */
 public class ElseIfEndBrick extends BrickBaseType {
 
 	private static final long serialVersionUID = 1L;
@@ -40,7 +36,6 @@ public class ElseIfEndBrick extends BrickBaseType {
 
 	@Override
 	public List<Brick> getAllParts() {
-		// Только ЭТА ветка (маркер + её конец)
 		return ifBrick.getElseIfBranchParts(branchIndex);
 	}
 
@@ -66,7 +61,6 @@ public class ElseIfEndBrick extends BrickBaseType {
 
 	@Override
 	public void addActionToSequence(Sprite sprite, ScriptSequenceAction sequence) {
-		// Маркер — не добавляет action самостоятельно
 	}
 
 	@Override

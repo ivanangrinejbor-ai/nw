@@ -41,7 +41,6 @@ public class SwitchBeginBrick extends FormulaBrick implements CompositeBrick {
 
 	private List<Brick> caseBricks = new ArrayList<>();
 
-	// XStream не вызывает конструкторы — transient endBrick будет null после десериализации.
 	private Object readResolve() {
 		if (endBrick == null) {
 			endBrick = new EndBrick(this, R.layout.brick_switch_end);

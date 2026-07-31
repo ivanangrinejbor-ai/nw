@@ -107,9 +107,9 @@ class Create2dJoystickAction : Action() {
 
                             if (dist > 0) {
                                 val normX = clampX / maxRadius
-                                val normY = -clampY / maxRadius // Y flipped in 2D stage
-                                sprite.x += normX * spd
-                                sprite.y += normY * spd
+                                val normY = -clampY / maxRadius
+                                sprite.look.xInUserInterfaceDimensionUnit += normX * spd
+                                sprite.look.yInUserInterfaceDimensionUnit += normY * spd
                             }
                             true
                         }

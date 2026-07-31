@@ -341,7 +341,6 @@ public class InternFormulaParser {
 		boolean isCustomJsFunction = CustomFormulaManager.INSTANCE.getFormulaByUniqueName(functionName) != null;
 
 		if (!isStandardFunction && !isCustomJsFunction) {
-			// Если имя функции не является ни стандартным, ни кастомным, это ошибка
 			Log.e(TAG, "Parse Error: Unknown function name '" + functionName + "' at token index " + currentTokenParseIndex);
 			throw new InternFormulaParserException("Parse Error: Unknown function name '" + functionName + "'");
 		}

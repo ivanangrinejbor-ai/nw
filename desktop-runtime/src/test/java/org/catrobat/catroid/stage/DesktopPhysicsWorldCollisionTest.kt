@@ -7,14 +7,6 @@ import com.badlogic.gdx.physics.box2d.PolygonShape
 import org.junit.*
 import org.junit.Assert.*
 
-/**
- * Тесты DesktopPhysicsWorld — проверка исправления бага коллизии.
- *
- * Box2D native library нестабилен при dispose() в тестовом JVM без GL-контекста,
- * поэтому используется ОДИН экземпляр мира на весь класс, и dispose()
- * обёрнут в try/catch (память освободит ОС при завершении процесса).
- * Имена спрайтов уникальны глобально, чтобы избежать конфликтов.
- */
 class DesktopPhysicsWorldCollisionTest {
 
     companion object {
@@ -28,8 +20,6 @@ class DesktopPhysicsWorldCollisionTest {
 
         @AfterClass @JvmStatic
         fun destroyWorld() {
-            // Box2D world.dispose() требует GL-контекста, которого нет в тестовом JVM.
-            // Пропускаем — ОС освободит память при завершении процесса.
         }
     }
 
@@ -42,10 +32,6 @@ class DesktopPhysicsWorldCollisionTest {
         return DesktopSprite(name = "${prefix}_$counter", x = x, y = y,
             size = size, width = w, height = h)
     }
-
-    // ════════════════════════════════════════════════════════════════════
-    // 1. Static → PolygonShape
-    // ════════════════════════════════════════════════════════════════════
 
     @Test
     fun testStaticBodyUsesPolygon() {
@@ -80,10 +66,6 @@ class DesktopPhysicsWorldCollisionTest {
         assertTrue(sh is PolygonShape)
     }
 
-    // ════════════════════════════════════════════════════════════════════
-    // 2. Dynamic → Circle + Bullet
-    // ════════════════════════════════════════════════════════════════════
-
     @Test
     fun testDynamicBodyCircleAndBullet() {
         val b = pw.createBodyForSprite(s("ball"), isStatic = false)
@@ -114,10 +96,6 @@ class DesktopPhysicsWorldCollisionTest {
         val b2 = pw.ensureBody(sp, isStatic = true)
         assertSame(b1, b2)
     }
-
-    // ════════════════════════════════════════════════════════════════════
-    // 3. setBodyType switching
-    // ════════════════════════════════════════════════════════════════════
 
     @Test
     fun testSwitchDynToStatic() {
@@ -153,10 +131,6 @@ class DesktopPhysicsWorldCollisionTest {
         assertTrue(pw.getBody(sp)!!.fixtureList.first().shape is CircleShape)
     }
 
-    // ════════════════════════════════════════════════════════════════════
-    // 4. setHitbox
-    // ════════════════════════════════════════════════════════════════════
-
     @Test
     fun testSetHitboxPolygon() {
         val sp = s("h1"); pw.createBodyForSprite(sp, isStatic = false)
@@ -189,10 +163,6 @@ class DesktopPhysicsWorldCollisionTest {
         assertTrue(pw.getBody(sp)!!.fixtureList.first().shape is PolygonShape)
     }
 
-    // ════════════════════════════════════════════════════════════════════
-    // 5. removeBody
-    // ════════════════════════════════════════════════════════════════════
-
     @Test
     fun testRemoveBody() {
         val sp = s("rm"); pw.createBodyForSprite(sp, isStatic = false)
@@ -200,10 +170,6 @@ class DesktopPhysicsWorldCollisionTest {
         pw.removeBody(sp)
         assertFalse(pw.hasBody(sp))
     }
-
-    // ════════════════════════════════════════════════════════════════════
-    // 6. Property setters
-    // ════════════════════════════════════════════════════════════════════
 
     @Test
     fun testSetFriction() {
@@ -261,10 +227,6 @@ class DesktopPhysicsWorldCollisionTest {
         pw.applyForce(s("fake"), 10f, 0f) // should not throw
     }
 
-    // ════════════════════════════════════════════════════════════════════
-    // 7. Shape dimensions
-    // ════════════════════════════════════════════════════════════════════
-
     @Test
     fun testPolygonSizeBasedOnSize() {
         val v = Vector2()
@@ -290,10 +252,6 @@ class DesktopPhysicsWorldCollisionTest {
         assertTrue(kotlin.math.abs(99f - p.y) < 1f)
     }
 
-    // ════════════════════════════════════════════════════════════════════
-    // 8. Stress: many bodies
-    // ════════════════════════════════════════════════════════════════════
-
     @Test
     fun testManyStaticBodiesAllPolygon() {
         for (i in 0 until 50) {
@@ -313,10 +271,6 @@ class DesktopPhysicsWorldCollisionTest {
             assertTrue(b.isBullet)
         }
     }
-
-    // ════════════════════════════════════════════════════════════════════
-    // 9. Edge cases
-    // ════════════════════════════════════════════════════════════════════
 
     @Test
     fun testEnsureBodyCreatesCorrectFixtureByType() {

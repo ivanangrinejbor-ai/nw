@@ -9,11 +9,6 @@ import org.w3c.dom.Element
 import java.io.StringReader
 import javax.xml.parsers.DocumentBuilderFactory
 
-/**
- * Tests for [SceneSelector] — the scene-aware object selection that mirrors Android's scene
- * model (sceneList[0] starts first; an optional <globalScene> whose sprites go FIRST so their
- * indices stay stable across scene switches). Pure DOM logic, so no libGDX/Gdx is required.
- */
 class SceneSelectorTest {
 
     private fun parse(xml: String): Document {
@@ -47,7 +42,6 @@ class SceneSelectorTest {
         assertEquals("SceneA", sel.activeSceneName)
         assertTrue(sel.hasGlobal)
         assertEquals(1, sel.globalCount)
-        // global sprite FIRST, then the active (first) scene's sprites
         assertEquals(listOf("g1", "a1", "a2"), names(sel.objectEls))
     }
 
@@ -67,7 +61,6 @@ class SceneSelectorTest {
 
     @Test
     fun unknownSceneFallsBackToFirst() {
-        // SceneSelector itself falls back to the first scene; switchToScene guards the no-op case.
         val sel = SceneSelector.selectScene(parse(twoScenesWithGlobal), "DoesNotExist")
         assertEquals("SceneA", sel.activeSceneName)
         assertEquals(listOf("g1", "a1", "a2"), names(sel.objectEls))
@@ -91,7 +84,6 @@ class SceneSelectorTest {
 
     @Test
     fun onlyActiveSceneObjectsAreSelectedNotAllScenes() {
-        // The whole point of scene isolation: selecting SceneA must NOT include SceneB's objects.
         val sel = SceneSelector.selectScene(parse(twoScenesWithGlobal), "SceneA")
         val allNames = names(sel.objectEls)
         assertFalse("SceneB object must not be loaded when SceneA is active", allNames.contains("b1"))

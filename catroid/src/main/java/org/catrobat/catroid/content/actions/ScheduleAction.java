@@ -60,7 +60,6 @@ public class ScheduleAction extends Action {
 			try {
 				float delaySeconds = delay.interpretFloat(scope);
 				long delayMillis = (long) (delaySeconds * 1000);
-				// Posts delayed task; scheduled flag is set when timer fires, and action runs on subsequent act() calls
 				RuntimeServicesHolder.services.postDelayed(new Runnable() {
 					@Override
 					public void run() {

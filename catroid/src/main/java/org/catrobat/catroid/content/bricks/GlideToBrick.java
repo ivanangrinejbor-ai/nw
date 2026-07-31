@@ -37,9 +37,6 @@ public class GlideToBrick extends VisualPlacementBrick {
 
 	private static final long serialVersionUID = 1L;
 
-	// Spinner index into R.array.brick_easing_types ("None" = 0, "Linear" = 1, ...).
-	// Defaults to 0 so projects created before this parameter existed load fine and
-	// simply glide the classic (linear) way.
 	private int typeSelectionIndex = 0;
 
 	public GlideToBrick() {

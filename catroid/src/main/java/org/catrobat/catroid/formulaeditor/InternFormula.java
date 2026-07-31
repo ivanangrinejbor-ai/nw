@@ -773,7 +773,6 @@ public class InternFormula {
 		if (cursorPositionInternToken.isNumber() && InternFormulaUtils.isPeriodToken(internTokensToInsert)) {
 			String numberString = cursorPositionInternToken.getTokenStringValue();
 			if (numberString.contains(".")) {
-				// Second dot = insert CONCAT operator ".." as STRING token
 				internTokenFormulaList.add(cursorPositionInternTokenIndex + 1,
 						new InternToken(InternTokenType.STRING, ".."));
 				cursorPositionInternToken = null;
@@ -800,7 +799,6 @@ public class InternFormula {
 
 			String numberString = firstLeftInternToken.getTokenStringValue();
 			if (numberString.contains(".")) {
-				// Second dot = insert CONCAT operator
 				internTokenFormulaList.add(cursorPositionInternTokenIndex,
 						new InternToken(InternTokenType.STRING, ".."));
 				cursorPositionInternToken = null;
@@ -846,7 +844,6 @@ public class InternFormula {
 		if (cursorPositionInternToken.isNumber() && InternFormulaUtils.isPeriodToken(internTokensToInsert)) {
 			String numberString = cursorPositionInternToken.getTokenStringValue();
 			if (numberString.contains(".")) {
-				// Second dot = insert CONCAT operator ".." as STRING token
 				internTokenFormulaList.add(cursorPositionInternTokenIndex + 1,
 						new InternToken(InternTokenType.STRING, ".."));
 				cursorPositionInternToken = null;
@@ -958,7 +955,6 @@ public class InternFormula {
 
 			String numberString = cursorPositionInternToken.getTokenStringValue();
 			if (numberString.contains(".")) {
-				// Second dot = insert CONCAT operator
 				internTokenFormulaList.add(cursorPositionInternTokenIndex + 1,
 						new InternToken(InternTokenType.STRING, ".."));
 				cursorPositionInternToken = null;

@@ -1,6 +1,6 @@
 /*
  * Catroid: An on-device visual programming system for Android devices
- * Copyright (C) 2010-2022 The Catrobat Team
+ * Copyright (C) 2010-2024 The Catrobat Team
  * (<http://developer.catrobat.org/credits>)
  *
  * This program is free software: you can redistribute it and/or modify
@@ -27,38 +27,40 @@ import org.catrobat.catroid.content.Sprite;
 import org.catrobat.catroid.content.actions.ScriptSequenceAction;
 import org.catrobat.catroid.formulaeditor.Formula;
 
-public class SetTileBrick extends FormulaBrick {
-
+public class Apply3dTorqueBrick extends FormulaBrick {
 	private static final long serialVersionUID = 1L;
 
-	public SetTileBrick() {
-		addAllowedBrickField(BrickField.TILEMAP_COLUMN, R.id.brick_set_tile_column);
-		addAllowedBrickField(BrickField.TILEMAP_ROW, R.id.brick_set_tile_row);
-		addAllowedBrickField(BrickField.TILEMAP_TILE_INDEX, R.id.brick_set_tile_index);
+	public Apply3dTorqueBrick() {
+		addAllowedBrickField(BrickField.VALUE_1, R.id.brick_apply_3d_torque_edit_id);
+		addAllowedBrickField(BrickField.VALUE_2, R.id.brick_apply_3d_torque_edit_x);
+		addAllowedBrickField(BrickField.VALUE_3, R.id.brick_apply_3d_torque_edit_y);
+		addAllowedBrickField(BrickField.VALUE_4, R.id.brick_apply_3d_torque_edit_z);
 	}
 
-	public SetTileBrick(int column, int row, int tileIndex) {
-		this(new Formula(column), new Formula(row), new Formula(tileIndex));
+	public Apply3dTorqueBrick(String objectId, double x, double y, double z) {
+		this(new Formula(objectId), new Formula(x), new Formula(y), new Formula(z));
 	}
 
-	public SetTileBrick(Formula column, Formula row, Formula tileIndex) {
+	public Apply3dTorqueBrick(Formula objectId, Formula x, Formula y, Formula z) {
 		this();
-		setFormulaWithBrickField(BrickField.TILEMAP_COLUMN, column);
-		setFormulaWithBrickField(BrickField.TILEMAP_ROW, row);
-		setFormulaWithBrickField(BrickField.TILEMAP_TILE_INDEX, tileIndex);
+		setFormulaWithBrickField(BrickField.VALUE_1, objectId);
+		setFormulaWithBrickField(BrickField.VALUE_2, x);
+		setFormulaWithBrickField(BrickField.VALUE_3, y);
+		setFormulaWithBrickField(BrickField.VALUE_4, z);
 	}
 
 	@Override
 	public int getViewResource() {
-		return R.layout.brick_set_tile;
+		return R.layout.brick_apply_3d_torque;
 	}
 
 	@Override
 	public void addActionToSequence(Sprite sprite, ScriptSequenceAction sequence) {
-		sequence.addAction(sprite.getActionFactory().createSetTileAction(
-				sprite, sequence,
-				getFormulaWithBrickField(BrickField.TILEMAP_COLUMN),
-				getFormulaWithBrickField(BrickField.TILEMAP_ROW),
-				getFormulaWithBrickField(BrickField.TILEMAP_TILE_INDEX)));
+		sequence.addAction(sprite.getActionFactory()
+				.createApply3dTorqueAction(sprite, sequence,
+						getFormulaWithBrickField(BrickField.VALUE_1),
+						getFormulaWithBrickField(BrickField.VALUE_2),
+						getFormulaWithBrickField(BrickField.VALUE_3),
+						getFormulaWithBrickField(BrickField.VALUE_4)));
 	}
 }

@@ -63,11 +63,11 @@ public class PlaySoundAndWaitBrick extends PlaySoundBrick {
 			if (durationStr != null) {
 				return Integer.parseInt(durationStr) / 1000.0f;
 			}
-		} catch (Exception ignored) { // ignored
+		} catch (Exception ignored) {
 		} finally {
 			try {
 				metadataRetriever.release();
-			} catch (Exception ignored) { // ignored
+			} catch (Exception ignored) {
 			}
 		}
 		return 0f;

@@ -4,9 +4,6 @@ import org.catrobat.catroid.R;
 import org.catrobat.catroid.content.Sprite;
 import org.catrobat.catroid.content.actions.ScriptSequenceAction;
 
-/**
- * Блок "Вернуться к предыдущей сцене" — переход по истории сцен (back stack).
- */
 public class SceneBackBrick extends BrickBaseType {
 
 	private static final long serialVersionUID = 1L;

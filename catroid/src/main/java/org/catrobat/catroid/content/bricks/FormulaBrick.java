@@ -174,7 +174,6 @@ public abstract class FormulaBrick extends BrickBaseType implements View.OnClick
 		for (BiMap.Entry<FormulaField, Integer> entry : brickFieldToTextViewIdMap.entrySet()) {
 			TextView formulaFieldView = view.findViewById(entry.getValue());
 			if (formulaFieldView == null) {
-				// Layout does not contain this formula field — skip instead of crashing
 				continue;
 			}
 			if (!formulaMap.containsKey(entry.getKey())) {
@@ -189,39 +188,6 @@ public abstract class FormulaBrick extends BrickBaseType implements View.OnClick
 		return view;
 	}
 
-	/*@Override
-	public View getView(Context context) {
-		super.getView(context);
-		Pattern colorPattern = Pattern.compile("^#([A-Fa-f0-9]{8}|[A-Fa-f0-9]{6})$");
-
-		for (BiMap.Entry<FormulaField, Integer> entry : brickFieldToTextViewIdMap.entrySet()) {
-			TextView formulaFieldView = view.findViewById(entry.getValue());
-			String text = getFormulaWithBrickField(entry.getKey()).clone().getTrimmedFormulaString(context);
-
-
-			if (colorPattern.matcher(text.trim()).matches()) {
-				try {
-					int color = Color.parseColor(text.trim());
-					Drawable checkerboard = UiUtils.createCheckerboardDrawable(context, 20);
-					Drawable colorOverlay = new ColorDrawable(color);
-					LayerDrawable layers = new LayerDrawable(new Drawable[]{checkerboard, colorOverlay});
-					formulaFieldView.setBackground(layers);
-				} catch (Exception e) {
-
-					formulaFieldView.setBackgroundResource(R.drawable.formula_field_selector);
-				}
-			} else {
-
-				formulaFieldView.setBackgroundResource(R.drawable.formula_field_selector);
-			}
-
-			formulaFieldView.setText(
-					FormulaSpannableStringBuilder.buildSpannableFormulaString(view.getContext(), text,
-							formulaFieldView.getTextSize()), TextView.BufferType.SPANNABLE);
-		}
-		return view;
-	}*/
-
 	public void setClickListeners() {
 		for (BiMap.Entry<FormulaField, Integer> entry : brickFieldToTextViewIdMap.entrySet()) {
 			TextView formulaFieldView = view.findViewById(entry.getValue());
@@ -229,7 +195,6 @@ public abstract class FormulaBrick extends BrickBaseType implements View.OnClick
 				continue;
 			}
 			formulaFieldView.setOnClickListener(this);
-			// Long-click: копировать/вставить формулу между блоками
 			final FormulaField field = entry.getKey();
 			formulaFieldView.setOnLongClickListener(v -> {
 				showFormulaCopyPasteMenu(v, field);
@@ -255,7 +220,6 @@ public abstract class FormulaBrick extends BrickBaseType implements View.OnClick
 					Formula pasted = org.catrobat.catroid.ui.FormulaEditorClipboard.pasteWholeFormula();
 					if (pasted != null) {
 						setFormulaWithBrickField(field, pasted);
-						// Обновить UI
 						FragmentActivity activity = (FragmentActivity) org.catrobat.catroid.ui.UiUtils.getActivityFromView(view);
 						if (activity != null) {
 							ScriptFragment frag = (ScriptFragment) activity.getSupportFragmentManager()
@@ -289,41 +253,6 @@ public abstract class FormulaBrick extends BrickBaseType implements View.OnClick
 				.setColorFilter(view.getContext().getResources()
 						.getColor(R.color.brick_field_highlight), PorterDuff.Mode.SRC_ATOP);
 	}
-
-	/*public void highlightTextView(FormulaField formulaField) {
-		TextView formulaTextField = getTextView(formulaField);
-		if (formulaTextField == null) {
-			return;
-		}
-
-		String text = formulaTextField.getText().toString().trim();
-		Pattern colorPattern = Pattern.compile("^#([A-Fa-f0-9]{8}|[A-Fa-f0-9]{6})$");
-
-
-		if (colorPattern.matcher(text).matches()) {
-			try {
-				int color = Color.parseColor(text);
-				Drawable checkerboard = UiUtils.createCheckerboardDrawable(formulaTextField.getContext(), 20);
-				Drawable colorOverlay = new ColorDrawable(color);
-
-				int highlightColor = formulaTextField.getContext().getResources().getColor(R.color.brick_field_highlight);
-				Drawable highlightOverlay = new ColorDrawable(highlightColor);
-
-
-				LayerDrawable layers = new LayerDrawable(new Drawable[]{checkerboard, colorOverlay, highlightOverlay});
-				formulaTextField.setBackground(layers);
-
-			} catch (Exception e) {
-
-				formulaTextField.getBackground().mutate().setColorFilter(view.getContext().getResources()
-						.getColor(R.color.brick_field_highlight), PorterDuff.Mode.SRC_ATOP);
-			}
-		} else {
-
-			formulaTextField.getBackground().mutate().setColorFilter(view.getContext().getResources()
-					.getColor(R.color.brick_field_highlight), PorterDuff.Mode.SRC_ATOP);
-		}
-	}*/
 
 	@Override
 	public void onClick(View view) {
@@ -400,8 +329,6 @@ public abstract class FormulaBrick extends BrickBaseType implements View.OnClick
 		if (scriptFragment == null) {
 			return;
 		}
-		// Полная сериализация проекта (undo-снапшот) на большом проекте занимает
-		// десятки секунд — выполняем в фоне, чтобы редактор формул открывался мгновенно.
 		final FormulaBrick self = this;
 		new Thread(() -> {
 			if (scriptFragment.copyProjectForUndoOption()) {

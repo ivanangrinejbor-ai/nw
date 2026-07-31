@@ -10,28 +10,15 @@ import javax.sound.sampled.SourceDataLine
 
 class DesktopAudioService : AudioService {
     private val clips = Collections.synchronizedMap(LinkedHashMap<String, Clip>())
-    /**
-     * Volume stored as Android-style 0..100 scale.
-     * Android SendVolume/ChangeVolume actions use 0..100 range.
-     * Internally converted to 0..1 for javax.sound.sampled MASTER_GAIN.
-     */
     private var volume = 100f
     private var pan = 0.0f
-    // pitch is stored but not applied to Clip playback (java.sound.sampled doesn't support pitch natively)
     private var pitch = 1.0f
 
-    /**
-     * Accepts volume in Android scale (0..100) and maps to internal 0..1 range.
-     */
     override fun setVolume(v: Float) {
         volume = v.coerceIn(0f, 100f)
         synchronized(clips) { clips.values.forEach { setClipVolume(it) } }
     }
 
-    /**
-     * Returns volume in Android scale (0..100) for compatibility with
-     * ChangeVolumeByNAction and other Android-ported actions.
-     */
     override fun getVolume(): Float = volume
 
     override fun setPan(p: Float) {
@@ -100,14 +87,10 @@ class DesktopAudioService : AudioService {
         }
     }
 
-    /**
-     * Accepts volume in 0..100 Android scale and converts to 0..1 for MASTER_GAIN.
-     */
     private fun setClipVolume(clip: Clip, v: Float = volume) {
         try {
             if (clip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
                 val control = clip.getControl(FloatControl.Type.MASTER_GAIN) as FloatControl
-                // Convert Android 0..100 → 0..1 → dB gain
                 val normalized = (v.coerceIn(0f, 100f) / 100f).coerceIn(0f, 1f)
                 val gain = (kotlin.math.log10(normalized.coerceAtLeast(0.0001f).toDouble()) * 20).toFloat()
                 control.value = gain.coerceIn(control.minimum, control.maximum)

@@ -85,7 +85,6 @@ public class GridBrick extends VisualPlacementBrick {
     @Override
     public Intent generateIntentForVisualPlacement(BrickField brickFieldX, BrickField brickFieldY) {
         Intent intent = super.generateIntentForVisualPlacement(brickFieldX, brickFieldY);
-        // Вместо спрайта в редакторе таскается миниатюрная сетка-превью реального размера.
         int columns = 32;
         int rows = 32;
         try {
@@ -95,13 +94,11 @@ public class GridBrick extends VisualPlacementBrick {
             columns = getFormulaWithBrickField(BrickField.SIZE_X).interpretInteger(scope);
             rows = getFormulaWithBrickField(BrickField.SIZE_Y).interpretInteger(scope);
         } catch (InterpretationException interpretationException) {
-            // Формулы размера не числовые — показываем дефолтную сетку 32×32.
         }
         columns = Math.max(1, Math.min(columns, 2000));
         rows = Math.max(1, Math.min(rows, 2000));
         intent.putExtra(VisualPlacementActivity.EXTRA_GRID_COLUMNS, columns);
         intent.putExtra(VisualPlacementActivity.EXTRA_GRID_ROWS, rows);
-        // Сетка не вращается — угол спрайта не нужен.
         intent.putExtra(SpriteActivity.EXTRA_ROTATION, 0f);
         return intent;
     }

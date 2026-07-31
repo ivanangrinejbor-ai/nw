@@ -20,7 +20,6 @@ class DesktopNotificationService : NotificationService {
     override fun showScheduled(id: Int, delayMs: Long) {
         if (delayMs <= 0) {
             show(id)
-            // Removes notification from storage after show attempt (even if tray display failed/was skipped)
             NotificationStorage.removeNotification(id)
             return
         }
@@ -30,7 +29,6 @@ class DesktopNotificationService : NotificationService {
             } catch (_: InterruptedException) {
             }
             show(id)
-            // Removes notification from storage after scheduled execution attempt
             NotificationStorage.removeNotification(id)
         }.start()
     }

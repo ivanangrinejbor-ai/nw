@@ -273,12 +273,9 @@ public abstract class UserDataBrick extends FormulaBrick implements BrickSpinner
 	}
 
 	private BrickSpinner<UserData> getSpinnerForId(Integer spinnerId) {
-		// Find the spinner by ID from the view
 		if (view != null) {
 			View spinnerView = view.findViewById(spinnerId);
 			if (spinnerView != null) {
-				// The spinner is stored in the adapter, we can't easily access it
-				// Just return null - the spinner will revert on next getView()
 				return null;
 			}
 		}

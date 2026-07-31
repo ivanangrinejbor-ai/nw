@@ -6893,9 +6893,10 @@ public class ActionFactory extends Actions {
         return a;
     }
 
-    public Action createCreate3dJoystickAction(Sprite sprite, SequenceAction sequence, Formula posX, Formula posY, Formula bgFile, Formula thumbFile, Formula speed) {
+    public Action createCreate3dJoystickAction(Sprite sprite, SequenceAction sequence, Formula objectName, Formula posX, Formula posY, Formula bgFile, Formula thumbFile, Formula speed) {
         org.catrobat.catroid.content.actions.Create3dJoystickAction a = action(org.catrobat.catroid.content.actions.Create3dJoystickAction.class);
         a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        a.setObjectName(objectName);
         a.setPosX(posX);
         a.setPosY(posY);
         a.setBackgroundFileName(bgFile);
@@ -6904,9 +6905,10 @@ public class ActionFactory extends Actions {
         return a;
     }
 
-    public Action createCreate3dJumpButtonAction(Sprite sprite, SequenceAction sequence, Formula posX, Formula posY, Formula activeFile, Formula inactiveFile, Formula jumpPower) {
+    public Action createCreate3dJumpButtonAction(Sprite sprite, SequenceAction sequence, Formula objectName, Formula posX, Formula posY, Formula activeFile, Formula inactiveFile, Formula jumpPower) {
         org.catrobat.catroid.content.actions.Create3dJumpButtonAction a = action(org.catrobat.catroid.content.actions.Create3dJumpButtonAction.class);
         a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        a.setObjectName(objectName);
         a.setPosX(posX);
         a.setPosY(posY);
         a.setActiveFileName(activeFile);
@@ -6914,4 +6916,34 @@ public class ActionFactory extends Actions {
         a.setJumpPower(jumpPower);
         return a;
     }
+
+	public Action createSpringConstraintAction(Sprite sprite, SequenceAction sequence,
+			Formula constraintId, Formula objectIdA, Formula objectIdB,
+			Formula pivotAx, Formula pivotAy, Formula pivotAz,
+			Formula pivotBx, Formula pivotBy, Formula pivotBz) {
+		CreateSpringConstraintAction action = action(CreateSpringConstraintAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setConstraintId(constraintId);
+		action.setObjectIdA(objectIdA);
+		action.setObjectIdB(objectIdB);
+		action.setPivotAx(pivotAx);
+		action.setPivotAy(pivotAy);
+		action.setPivotAz(pivotAz);
+		action.setPivotBx(pivotBx);
+		action.setPivotBy(pivotBy);
+		action.setPivotBz(pivotBz);
+		return action;
+	}
+
+	public Action createApply3dTorqueAction(Sprite sprite, SequenceAction sequence,
+			Formula objectId, Formula x, Formula y, Formula z) {
+		Apply3dTorqueAction action = action(Apply3dTorqueAction.class);
+		action.scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.objectId = objectId;
+		action.xValue = x;
+		action.yValue = y;
+		action.zValue = z;
+		return action;
+	}
 }

@@ -43,7 +43,6 @@ public class ForVariableFromToBrick extends UserVariableBrickWithFormula impleme
 
 	private List<Brick> loopBricks = new ArrayList<>();
 
-	// XStream не вызывает конструкторы — transient endBrick будет null после десериализации.
 	private Object readResolve() {
 		if (endBrick == null) {
 			endBrick = new EndBrick(this);

@@ -15,7 +15,6 @@ object DesktopProjectManager {
     fun getInstance(): DesktopProjectManager = this
 
     fun loadProject(projectDir: File): DesktopProject? {
-        // TODO: also search for code.xml in subdirectories (e.g. projectName/code.xml)
         val codeXml = File(projectDir, "code.xml")
         if (!codeXml.exists()) {
             Gdx.app.log(TAG, "code.xml not found in ${projectDir.absolutePath}")
@@ -35,9 +34,6 @@ object DesktopProjectManager {
             factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false)
             factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false)
             val builder = factory.newDocumentBuilder()
-            // code.xml declares UTF-8 but may actually be CP1251 (legacy editor exports).
-            // Decode with a strict UTF-8 decoder (REPORT) and fall back to CP1251,
-            // instead of the platform-default charset (CP1251 on Windows would corrupt UTF-8 files).
             val rawBytes = codeXml.readBytes()
             val xmlText = try {
                 Charsets.UTF_8.newDecoder()
@@ -66,9 +62,6 @@ object DesktopProjectManager {
                 rawH?.toIntOrNull()?.let { project.stageHeight = it }
             }
 
-            // Scene-aware object selection (mirrors Android): start on the FIRST regular scene
-            // (sceneList[0]); a <globalScene>'s sprites go FIRST so their indices stay stable
-            // across scene switches. Only the ACTIVE scene is loaded, not all scenes flattened.
             val sel = SceneSelector.selectScene(doc, project.activeSceneName)
             project.sceneNames.clear()
             project.sceneNames.addAll(sel.sceneNames)
@@ -77,8 +70,6 @@ object DesktopProjectManager {
             project.activeSceneName = sel.activeSceneName
             Gdx.app.log(TAG, "scenes=${sel.sceneNames.size} active='${sel.activeSceneName}'"
                 + " globalSprites=${sel.globalCount} activeObjects=${sel.objectEls.size}")
-            // Point media dirs at the ACTIVE scene's own images/sounds (per-scene folders) so a
-            // look's exact fileName resolves to THIS scene's image, not another scene's.
             resolveSceneMediaDir(projectDir, sel.activeSceneName, "images")?.let { project.imagesDir = it }
             resolveSceneMediaDir(projectDir, sel.activeSceneName, "sounds")?.let { project.soundsDir = it }
             Gdx.app.log(TAG, "active scene imagesDir=${project.imagesDir?.absolutePath}")
@@ -96,7 +87,6 @@ object DesktopProjectManager {
         }
     }
 
-    // Parses one <object> element into a DesktopSprite (shared by initial load + scene switch).
     private fun parseSpriteElement(objEl: Element, index: Int): DesktopSprite {
         val spriteName = attrOrText(objEl, "name")?.trim() ?: "sprite$index"
         val sprite = DesktopSprite(name = spriteName)
@@ -140,13 +130,6 @@ object DesktopProjectManager {
         return sprite
     }
 
-    /**
-     * Switches the project's ACTIVE scene to [sceneName] (mirrors Android startScene): keeps the
-     * global-scene sprite prefix (indices < globalSpriteCount) and their runtime state, and
-     * replaces the scene-local tail with the requested scene's sprites. Returns the FULL ordered
-     * object elements of the newly active scene (global first, then scene-local) so the caller
-     * (script engine) can rebuild scripts with matching indices, or null if it cannot be loaded.
-     */
     fun activateScene(project: DesktopProject, sceneName: String?): List<Element>? {
         val dir = project.projectDir ?: return null
         val doc = parseCodeXml(dir) ?: return null
@@ -168,7 +151,6 @@ object DesktopProjectManager {
         return sel.objectEls
     }
 
-    // Parses code.xml into a DOM (UTF-8 with CP1251 fallback for legacy exports).
     fun parseCodeXml(projectDir: File): Document? {
         val codeXml = File(projectDir, "code.xml")
         if (!codeXml.exists()) return null
@@ -211,19 +193,12 @@ object DesktopProjectManager {
 
     fun loadTextureLazy(fileName: String): Texture? {
         val project = currentProject ?: return null
-        // Look files live in the scene's images dir (projectDir/<scene>/images), which
-        // findDir() located at load time. The old code hard-coded projectDir/images and
-        // therefore never found scene-nested images -> white screen + endless "not found".
         project.imagesDir?.takeIf { it.isDirectory }?.let { dir ->
             loadTextureFrom(dir, fileName)?.let { return it }
         }
         project.projectDir?.let { root ->
             loadTextureFrom(File(root, "images"), fileName)?.let { return it }
-            // Last resort: multi-scene / unexpected nesting - find the file anywhere.
             findFileRecursive(root, fileName, 6)?.let { f -> loadTextureFile(f)?.let { return it } }
-            // Fuzzy fallback: a look <fileName> in code.xml often carries a project-global
-            // "_#N" index that does NOT match the per-scene file on disk (which uses a local
-            // index or no suffix). Retry by the base name (strip the trailing _#digits).
             val base = fileName.replace(Regex("_#\\d+(?=\\.[^.]+$)"), "")
             if (base != fileName) {
                 findFileRecursive(root, base, 6)?.let { f -> loadTextureFile(f)?.let { return it } }
@@ -261,7 +236,6 @@ object DesktopProjectManager {
         return null
     }
 
-    // TODO: limit search depth to prevent unbounded recursion on deeply-nested trees
     private fun findDir(root: File, name: String, maxDepth: Int = 6): File? {
         if (!root.isDirectory || maxDepth < 0) return null
         root.listFiles()?.forEach { f ->
@@ -276,9 +250,6 @@ object DesktopProjectManager {
         return null
     }
 
-    // Resolves a scene's own media dir: projectDir/<sceneFolder>/<media>. The scene folder is the
-    // scene name, possibly sanitized during zip extraction (trailing space/dots + illegal chars ->
-    // '_'). Tries exact + sanitized, then a sanitized-name scan of direct subdirs. null if absent.
     fun resolveSceneMediaDir(projectDir: File, sceneName: String?, media: String): File? {
         if (sceneName.isNullOrEmpty()) return null
         for (c in linkedSetOf(sceneName, sanitizeFolder(sceneName))) {
@@ -294,7 +265,6 @@ object DesktopProjectManager {
         return null
     }
 
-    // Mirrors the zip-extraction sanitizer for a single folder segment (see DesktopStage).
     private fun sanitizeFolder(name: String): String {
         val cleaned = buildString(name.length) {
             for (c in name) append(
@@ -320,14 +290,6 @@ object DesktopProjectManager {
     private val loggedLoaded = HashSet<String>()
 }
 
-/**
- * Selects the objects to load for the ACTIVE scene, mirroring Android's scene model:
- * a project has an ordered list of regular <scene> elements (sceneList) plus an optional
- * <globalScene>. Only ONE regular scene is active at a time; its objects are combined with
- * the global scene's objects (global FIRST, so global sprite indices stay stable across
- * scene switches). Both the sprite loader and the script engine call this so their object
- * ordering — and therefore sprite indices — match exactly.
- */
 object SceneSelector {
     class Selection(
         val objectEls: List<Element>,
@@ -352,7 +314,6 @@ object SceneSelector {
         return Selection(all, globalObjs.size, activeName, sceneNames, globalEl != null)
     }
 
-    // Regular <scene> elements (excludes anything nested under <globalScene>), document order.
     private fun regularSceneEls(doc: Document): List<Element> {
         val out = ArrayList<Element>()
         val nodes = doc.getElementsByTagName("scene")
@@ -387,7 +348,6 @@ object SceneSelector {
         return directChild(sceneEl, "name")?.textContent?.trim() ?: ""
     }
 
-    // Direct <object> children of a scene's (or global scene's) <objectList>.
     private fun directObjects(sceneEl: Element?): List<Element> {
         sceneEl ?: return emptyList()
         val objectList = directChild(sceneEl, "objectList") ?: return emptyList()

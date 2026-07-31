@@ -41,10 +41,6 @@ class DesktopStageListener(private val projectDir: File? = null) : ApplicationAd
     private var VIRTUAL_HEIGHT: Float = 720f
     private var frameCount: Int = 0
 
-    // Cyrillic-capable text: the default libGDX BitmapFont only has ASCII glyphs, so Russian text
-    // (variable overlays, say/think bubbles, HUD) rendered as boxes. We rasterise strings with an
-    // AWT system font (SansSerif -> Segoe UI/Arial on Windows has full Cyrillic) into cached GL
-    // textures and draw those instead. Cache is bounded + LRU-evicted.
     private val awtFont = java.awt.Font(java.awt.Font.SANS_SERIF, java.awt.Font.PLAIN, 22)
     private val textTextureCache = LinkedHashMap<String, Texture>()
 
@@ -90,7 +86,6 @@ class DesktopStageListener(private val projectDir: File? = null) : ApplicationAd
         }
         val prev = batch.color.cpy()
         batch.setColor(1f, 1f, 1f, 1f)
-        // libGDX font.draw is top-anchored at y; our texture is drawn from its bottom-left, so shift down.
         batch.draw(tex, x, y - tex.height, tex.width.toFloat(), tex.height.toFloat())
         batch.color = prev
     }
@@ -100,8 +95,6 @@ class DesktopStageListener(private val projectDir: File? = null) : ApplicationAd
 
         projectDir?.let { DesktopProjectManager.getInstance().loadProject(it) }
         DesktopProjectManager.getInstance().getCurrentProject()?.let { proj ->
-            // Use the project's declared stage size as the world coordinate system. Sprites are
-            // positioned in this space; FitViewport then scales the world to fit the window.
             VIRTUAL_WIDTH = proj.stageWidth.toFloat().coerceAtLeast(1f)
             VIRTUAL_HEIGHT = proj.stageHeight.toFloat().coerceAtLeast(1f)
             Gdx.app.log(TAG, "Using project viewport ${VIRTUAL_WIDTH.toInt()}x${VIRTUAL_HEIGHT.toInt()}")
@@ -151,14 +144,10 @@ class DesktopStageListener(private val projectDir: File? = null) : ApplicationAd
     override fun render() {
         input.update()
 
-        // Stage background: black when no background look covers the stage (matches the
-        // editor's default and fills the letterbox area outside the FitViewport).
         ScreenUtils.clear(0f, 0f, 0f, 1f)
 
         camera.direction.set(0f, 0f, -1f)
         camera.up.set(0f, 1f, 0f)
-        // Catroid Y-up: camera sits at world (VW/2 + camX, VH/2 + camY), matching the sprite
-        // render (screenY = VH/2 + y). A sprite at Catroid y=-N therefore appears BELOW centre.
         camera.position.set(VIRTUAL_WIDTH / 2f + cameraState.x, VIRTUAL_HEIGHT / 2f + cameraState.y, 0f)
         val projectForCamera = DesktopProjectManager.getInstance().getCurrentProject()
         cameraState.followTargetName?.let { targetName ->
@@ -175,8 +164,6 @@ class DesktopStageListener(private val projectDir: File? = null) : ApplicationAd
         if (cameraState.rotation != 0f) {
             camera.rotate(com.badlogic.gdx.math.Vector3(0f, 0f, 1f), cameraState.rotation)
         }
-        // Screen shake (ShakeScreenBrick): jitter the camera within [-intensity, intensity] while
-        // the timer runs, then reset. Intensity is in stage units.
         if (cameraState.shakeDuration > 0f) {
             val i = cameraState.shakeIntensity
             camera.position.add(
@@ -194,9 +181,6 @@ class DesktopStageListener(private val projectDir: File? = null) : ApplicationAd
         viewport.apply()
         batch.projectionMatrix = camera.combined
 
-        // Map the window cursor to STAGE coords via the FitViewport so touch/hit-tests use the
-        // same space as sprite.x/y. Catroid is Y-up (top = +Y); viewport.unproject already returns
-        // world coords, so fingerY = wc.y - VH/2 (matching render screenY = VH/2 + y).
         run {
             val wc = viewport.unproject(com.badlogic.gdx.math.Vector2(Gdx.input.x.toFloat(), Gdx.input.y.toFloat()))
             input.setStageFinger(wc.x - VIRTUAL_WIDTH / 2f, wc.y - VIRTUAL_HEIGHT / 2f)
@@ -250,10 +234,6 @@ class DesktopStageListener(private val projectDir: File? = null) : ApplicationAd
                     }
                 }
 
-                // Diagnostic: skip pen FBO overlay to rule out it covering the scene.
-                // val fbo = penFbo
-                // ...
-
                 batch.begin()
                 for (sprite in project.sprites) {
                     for (cmd in sprite.penDrawCommands) {
@@ -287,7 +267,6 @@ class DesktopStageListener(private val projectDir: File? = null) : ApplicationAd
                     drawText(batch, "$prefix${overlay.text}", sx, sy)
                 }
 
-                // FPS counter in the top-left corner (project/sprites HUD label removed).
                 drawText(batch, "FPS: ${Gdx.graphics.framesPerSecond}", 20f, VIRTUAL_HEIGHT - 10f)
                 batch.end()
             } catch (e: Exception) {

@@ -44,8 +44,6 @@ public class ForeverBrick extends BrickBaseType implements CompositeBrick {
 	public ForeverBrick() {
 	}
 
-	// XStream не вызывает конструкторы — transient endBrick будет null после десериализации.
-	// readResolve() гарантирует пересоздание.
 	private Object readResolve() {
 		if (endBrick == null) {
 			endBrick = new EndBrick(this);

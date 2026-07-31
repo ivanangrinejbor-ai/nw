@@ -30,7 +30,6 @@ import java.util.Stack;
 
 public final class InternFormulaUtils {
 
-	// Suppress default constructor for noninstantiability
 	private InternFormulaUtils() {
 		throw new AssertionError();
 	}
@@ -358,7 +357,6 @@ public final class InternFormulaUtils {
 						currentParameterInternTokenList = new LinkedList<InternToken>();
 						break;
 					}
-					// fallthrough
 				default:
 					currentParameterInternTokenList.add(tempSearchToken);
 					break;

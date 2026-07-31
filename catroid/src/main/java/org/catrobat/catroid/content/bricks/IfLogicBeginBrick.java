@@ -52,7 +52,6 @@ public class IfLogicBeginBrick extends FormulaBrick implements CompositeBrick {
 	protected List<Brick> ifBranchBricks = new ArrayList<>();
 	protected List<Brick> elseBranchBricks = new ArrayList<>();
 
-	// Цепочка "else if" веток: каждая — условие + список блоков
 	protected List<Formula> elseIfConditions = new ArrayList<>();
 	protected List<List<Brick>> elseIfBranchBricks = new ArrayList<>();
 
@@ -97,7 +96,6 @@ public class IfLogicBeginBrick extends FormulaBrick implements CompositeBrick {
 		}
 	}
 
-	/** Добавляет новую ветку "Else If" с пустым условием. */
 	public void addElseIfBranch() {
 		elseIfConditions.add(new Formula(0));
 		elseIfBranchBricks.add(new ArrayList<>());
@@ -113,7 +111,6 @@ public class IfLogicBeginBrick extends FormulaBrick implements CompositeBrick {
 		return elseIfConditions.get(index);
 	}
 
-	/** Части ОДНОЙ ветки else-if: маркер начала + маркер конца (для выделения/удаления). */
 	public List<Brick> getElseIfBranchParts(int index) {
 		List<Brick> parts = new ArrayList<>();
 		if (index >= 0 && index < elseIfMarkers.size()) {
@@ -125,7 +122,6 @@ public class IfLogicBeginBrick extends FormulaBrick implements CompositeBrick {
 		return parts;
 	}
 
-	/** Удаляет ветку else-if целиком (условие + блоки + маркеры). */
 	public boolean removeElseIfBranch(int index) {
 		if (index < 0 || index >= elseIfConditions.size()) {
 			return false;
@@ -136,7 +132,6 @@ public class IfLogicBeginBrick extends FormulaBrick implements CompositeBrick {
 		return true;
 	}
 
-	/** Меняет местами ветку index и index-1 (сдвиг вверх). */
 	public boolean moveElseIfBranchUp(int index) {
 		if (index <= 0 || index >= elseIfConditions.size()) {
 			return false;
@@ -147,7 +142,6 @@ public class IfLogicBeginBrick extends FormulaBrick implements CompositeBrick {
 		return true;
 	}
 
-	/** Меняет местами ветку index и index+1 (сдвиг вниз). */
 	public boolean moveElseIfBranchDown(int index) {
 		if (index < 0 || index >= elseIfConditions.size() - 1) {
 			return false;
@@ -295,20 +289,19 @@ public class IfLogicBeginBrick extends FormulaBrick implements CompositeBrick {
 
 	@Override
 	public boolean removeChild(Brick brick) {
-		// Удаление маркера ветки else-if = удаление всей этой ветки
 		if (brick instanceof ElseIfBrick) {
 			ElseIfBrick marker = (ElseIfBrick) brick;
 			if (elseIfMarkers.contains(marker)) {
 				return removeElseIfBranch(marker.getBranchIndex());
 			}
-			return true; // маркер устарел — ветка уже удалена
+			return true;
 		}
 		if (brick instanceof ElseIfEndBrick) {
 			ElseIfEndBrick marker = (ElseIfEndBrick) brick;
 			if (elseIfEndMarkers.contains(marker)) {
 				return removeElseIfBranch(marker.getBranchIndex());
 			}
-			return true; // маркер устарел — ветка уже удалена
+			return true;
 		}
 		if (ifBranchBricks.remove(brick)) {
 			return true;
@@ -349,12 +342,10 @@ public class IfLogicBeginBrick extends FormulaBrick implements CompositeBrick {
 	@Override
 	public View getView(Context context) {
 		super.getView(context);
-		// Кнопка "+ Else If"
 		View addBtn = view.findViewById(R.id.brick_if_add_else_if);
 		if (addBtn != null) {
 			addBtn.setOnClickListener(v -> {
 				addElseIfBranch();
-				// Полная пересборка списка скриптов (flat list нужно перестроить)
 				var activity = org.catrobat.catroid.ui.UiUtils.getActivityFromView(view);
 				if (activity instanceof org.catrobat.catroid.ui.SpriteActivity) {
 					org.catrobat.catroid.ui.recyclerview.fragment.ScriptFragment frag =
@@ -379,7 +370,6 @@ public class IfLogicBeginBrick extends FormulaBrick implements CompositeBrick {
 		view.findViewById(R.id.if_else_prototype_punctuation).setVisibility(View.VISIBLE);
 		view.findViewById(R.id.if_prototype_else).setVisibility(View.VISIBLE);
 		view.findViewById(R.id.if_else_prototype_punctuation2).setVisibility(View.VISIBLE);
-		// Кнопка "+ условие" не должна отображаться в выборе блоков
 		View addBtn = view.findViewById(R.id.brick_if_add_else_if);
 		if (addBtn != null) {
 			addBtn.setVisibility(View.GONE);
@@ -397,8 +387,6 @@ public class IfLogicBeginBrick extends FormulaBrick implements CompositeBrick {
 			}
 		}
 
-		// Строим цепочку: if → else-if[0] → else-if[1] → ... → else
-		// Каждый "else" следующего уровня — это if-action со следующим условием
 		ScriptSequenceAction finalElseSequence = (ScriptSequenceAction) ActionFactory.createScriptSequenceAction(sequence.getScript());
 		for (Brick brick : elseBranchBricks) {
 			if (!brick.isCommentedOut()) {
@@ -406,7 +394,6 @@ public class IfLogicBeginBrick extends FormulaBrick implements CompositeBrick {
 			}
 		}
 
-		// Строим снизу вверх: последний else-if оборачивает finalElse, предпоследний — тот и т.д.
 		ScriptSequenceAction currentElse = finalElseSequence;
 		for (int i = elseIfConditions.size() - 1; i >= 0; i--) {
 			ScriptSequenceAction branchSeq = (ScriptSequenceAction) ActionFactory.createScriptSequenceAction(sequence.getScript());
@@ -415,7 +402,6 @@ public class IfLogicBeginBrick extends FormulaBrick implements CompositeBrick {
 					brick.addActionToSequence(sprite, branchSeq);
 				}
 			}
-			// Оборачиваем в if-action: если условие[i] — branchSeq, иначе — currentElse
 			ScriptSequenceAction wrapperElse = (ScriptSequenceAction) ActionFactory.createScriptSequenceAction(sequence.getScript());
 			Action elseIfAction = sprite.getActionFactory()
 					.createIfLogicAction(sprite, sequence, elseIfConditions.get(i), branchSeq, currentElse);
@@ -423,7 +409,6 @@ public class IfLogicBeginBrick extends FormulaBrick implements CompositeBrick {
 			currentElse = wrapperElse;
 		}
 
-		// Главный if: условие → ifSequence, else → цепочка else-if (currentElse)
 		Action action = sprite.getActionFactory()
 				.createIfLogicAction(sprite, sequence, getFormulaWithBrickField(BrickField.IF_CONDITION),
 						ifSequence, currentElse);

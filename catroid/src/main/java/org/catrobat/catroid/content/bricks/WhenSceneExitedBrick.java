@@ -19,10 +19,6 @@ import java.util.List;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-/**
- * Event brick "When leaving scene [scene]".
- * Only shown in the brick picker when editing the Global Scene.
- */
 public class WhenSceneExitedBrick extends ScriptBrickBaseType implements
 		BrickSpinner.OnItemSelectedListener<Scene> {
 

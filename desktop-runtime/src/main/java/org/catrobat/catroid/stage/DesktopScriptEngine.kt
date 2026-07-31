@@ -67,9 +67,6 @@ class DesktopScriptEngine(
             "CatchBrick",
             "FinallyBrick"
         )
-        // Hard cap on blocks executed per frame to prevent freezes from infinite loops.
-        // Together with SCRIPT_TIME_BUDGET_NS (~2ms) this ensures the engine yields
-        // the render thread every frame, even in tight Forever loops.
         private const val MAX_BLOCKS_PER_FRAME = 500
         private const val SCRIPT_TIME_BUDGET_NS = 2_000_000L
     }
@@ -206,9 +203,6 @@ class DesktopScriptEngine(
         val frames = mutableListOf(Frame(originalBlocks, repeatRemaining = 0))
         val isDone: Boolean get() = frames.isEmpty()
         var eventFired: Boolean = false
-        // Set by cleanFinishedFrames when a repeat/forever loop wraps back to its start. The runner
-        // then yields ONE frame per loop iteration (Catroid "loop with screen refresh"), so visual
-        // loops such as a transparency fade play gradually instead of finishing in a single frame.
         var yieldedOnLoop: Boolean = false
         val currentFrame: Frame? get() = frames.lastOrNull()
         val isWaiting: Boolean get() = frames.any { it.waitTimer > 0f }
@@ -327,9 +321,6 @@ class DesktopScriptEngine(
         rebuildSpatialHash()
         checkEvents()
         checkBroadcastWaits()
-        // Snapshot: executeStateMultiBlock can add clones/scripts to scriptStates mid-frame
-        // (create-clone, broadcast). Iterate a copy so new states are picked up next frame
-        // instead of throwing ConcurrentModificationException.
         for (state in scriptStates.toList()) {
             if (state.isDone) {
                 if (state.eventType != null) {
@@ -362,21 +353,17 @@ class DesktopScriptEngine(
             if (sprite == null) { state.eventFired = true; continue }
             when (state.eventType) {
                 "touch_down" -> {
-                    // "When [sprite] is tapped": fire only if the click landed ON this sprite
-                    // (hit-test in stage coords). fingerX/Y are provided by the viewport unproject.
                     if (input.isMouseJustPressed) {
                         val hw = (sprite.lookWidth * sprite.size / 100f) / 2f
                         val hh = (sprite.lookHeight * sprite.size / 100f) / 2f
                         val hit = hw > 0f && hh > 0f &&
                             abs(input.fingerX - sprite.x) <= hw && abs(input.fingerY - sprite.y) <= hh
-                        Gdx.app.log("ClickDiag", "click finger=(${input.fingerX},${input.fingerY}) '${sprite.name}'=(${sprite.x},${sprite.y}) hw=$hw hh=$hh lookW=${sprite.lookWidth} lookH=${sprite.lookHeight} -> hit=$hit")
                         if (hit) {
                             state.eventFired = true
                         }
                     }
                 }
                 "sprite_released" -> {
-                    // "When [sprite] is released": fire when the mouse button is released over this sprite.
                     if (input.isMouseJustReleased) {
                         val hw = (sprite.lookWidth * sprite.size / 100f) / 2f
                         val hh = (sprite.lookHeight * sprite.size / 100f) / 2f
@@ -503,7 +490,6 @@ class DesktopScriptEngine(
     }
     private fun triggerWhenClonedForClone(cloneIdx: Int, srcIdx: Int) {
         val clone = project.sprites.getOrNull(cloneIdx) ?: return
-        // Snapshot: this loop calls scriptStates.add(cloneState) inside itself, so iterate a copy.
         for (origState in scriptStates.toList()) {
             if (origState.eventType == "cloned" && origState.spriteIndex == srcIdx) {
                 val blocks = origState.frames.firstOrNull()?.blocks ?: continue
@@ -519,7 +505,6 @@ class DesktopScriptEngine(
         }
     }
     private fun deliverBroadcast(msg: String) {
-        // TODO: broadcasts should be queued and processed at end of frame instead of immediately.
         if (msg.isEmpty()) return
         for (state in scriptStates) {
             if (state.eventType == "broadcast_receiver" && state.eventParam == msg) {
@@ -538,10 +523,6 @@ class DesktopScriptEngine(
             }
             if (!anyReceiverStillRunning) {
                 for (sender in senders) {
-                    // Advance the frame parked on the broadcast_wait block — the sender's CURRENT
-                    // (innermost) frame. Incrementing the ROOT frame was wrong: a wait inside an
-                    // If/loop branch never advanced, so the blocks after it (e.g. Start Scene)
-                    // never ran and the script hung forever.
                     sender.frames.lastOrNull()?.let { it.ip++ }
                 }
                 completed.add(msg)
@@ -610,8 +591,6 @@ class DesktopScriptEngine(
             MidiServiceHolder.midiService?.setVolume(vol)
         }
         if (elOut >= fadeOutDur) {
-            // Fade-out finished: restore master volume, otherwise it stays at 0 and every
-            // subsequent sound (incl. the next scene's audio) is permanently silenced.
             AudioServiceHolder.audioService?.setVolume(1f)
             MidiServiceHolder.midiService?.setVolume(1f)
             variables.remove("__fade_out_dur")
@@ -658,8 +637,6 @@ class DesktopScriptEngine(
                 if (System.nanoTime() - startTime > SCRIPT_TIME_BUDGET_NS) break
             }
             if (!state.cleanFinishedFrames()) break
-            // One loop iteration per frame: when a repeat/forever just wrapped, stop here so the
-            // body runs once per rendered frame (gradual fades), matching Android's loop refresh.
             if (state.yieldedOnLoop) { state.yieldedOnLoop = false; break }
             val frame = state.currentFrame ?: break
             val sprite = project.sprites.getOrNull(state.spriteIndex) ?: break
@@ -766,7 +743,6 @@ class DesktopScriptEngine(
                 }
             }
             "repeat_while" -> {
-                // Loop while condition is truthy (re-checked each iteration via the -2 frame).
                 val condRf = block.args.getOrNull(1) as? RuntimeFormula
                 val cond = if (condRf != null) evaluateBrickFieldFormula(sprite, state, condRf) ?: 0f
                     else (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
@@ -814,9 +790,6 @@ class DesktopScriptEngine(
                 val msg = block.args.getOrNull(1) as? String ?: ""
                 val list = pendingBroadcastWaits.getOrPut(msg) { mutableListOf() }
                 if (!list.contains(state)) {
-                    // Deliver only on the FIRST execution. While the sender is parked on this block
-                    // waiting for receivers, re-executing must not re-fire the broadcast (that kept
-                    // re-triggering the receiver's fade forever).
                     deliverBroadcast(msg)
                     list.add(state)
                 }
@@ -825,7 +798,6 @@ class DesktopScriptEngine(
                 val msg = block.args.getOrNull(1) as? String ?: ""
                 val data = block.args.getOrNull(2) as? String ?: ""
                 if (msg.isNotEmpty()) {
-                    // Expose the param so receivers can read it, then fire the broadcast.
                     variables["__broadcast_param_$msg"] = data
                     variables["__broadcast_param"] = data
                     deliverBroadcast(msg)
@@ -876,8 +848,6 @@ class DesktopScriptEngine(
                 frame.ip++
             }
             "set_render_resolution" -> {
-                // TODO: apply __render_scale to viewport scaling and __render_aspect_mode to switch
-                // between FitViewport (letterbox) and FillViewport (stretch/crop)
                 variables["__render_scale"] = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 1f
                 variables["__render_aspect_mode"] = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
                 frame.ip++
@@ -890,7 +860,6 @@ class DesktopScriptEngine(
                         currentDir == null -> java.io.File(projectName)
                         else -> currentDir.resolve(projectName)
                     }
-                    // Canonical path check: prevent directory traversal outside project root
                     val rootPath = currentDir?.canonicalPath ?: candidate.parentFile?.canonicalPath ?: ""
                     val candPath = try { candidate.canonicalPath } catch (_: Exception) { "" }
                     if (candidate.exists() && candPath.startsWith(rootPath)) {
@@ -961,7 +930,6 @@ class DesktopScriptEngine(
                     val switchVal = block.args.getOrNull(1) as? String ?: ""
                     @Suppress("UNCHECKED_CAST")
                     val cases = (block.args.getOrNull(2) as? List<*>)?.filterIsInstance<SwitchCase>() ?: emptyList()
-                    // TODO: try numeric comparison as fallback (e.g. "5" == 5) for switch values.
                     val matched = cases.firstOrNull { it.value == switchVal }
                     if (matched != null) {
                         state.frames.add(Frame(matched.body, repeatRemaining = 0))
@@ -991,22 +959,16 @@ class DesktopScriptEngine(
                 frame.ip++
             }
             "load_scene", "clear_scene", "scene_transition", "crossfade_scene" -> {
-                // Switch the active regular scene by NAME (mirrors Android startScene). The old
-                // code treated the name as a projectDir subfolder + reparse, which was broken:
-                // there is ONE code.xml with nested <scene> elements, not a code.xml per scene.
                 val sceneName = block.args.getOrNull(1) as? String ?: ""
                 Gdx.app.log("TapDiag", "scene block '${block.args.getOrNull(0)}' target='$sceneName' (sprite '${sprite.name}')")
                 if (sceneName.isNotEmpty()) switchToScene(sceneName)
             }
             "slide_scene", "fade_scene" -> {
-                // arg1 = direction/mode (transition style; not animated in the desktop runtime),
-                // arg2 = target scene name.
                 val sceneName = block.args.getOrNull(2) as? String ?: ""
                 Gdx.app.log("TapDiag", "slide/fade scene target='$sceneName' (sprite '${sprite.name}')")
                 if (sceneName.isNotEmpty()) switchToScene(sceneName)
             }
             "scene_back" -> {
-                // Return to the previous scene on the back-stack (SceneBackBrick).
                 val prev = sceneHistory.removeLastOrNull()
                 frame.ip++
                 if (prev != null && prev.isNotEmpty()) {
@@ -1376,7 +1338,6 @@ class DesktopScriptEngine(
                 frame.ip++
             }
             "hide_status_bar" -> {
-                // No-op on desktop: no system status bar to hide
                 frame.ip++
             }
             "toggle_display" -> {
@@ -1477,9 +1438,6 @@ class DesktopScriptEngine(
                 frame.ip++
             }
             "scene_start" -> {
-                // SceneStartBrick: switch to the named scene (mirrors Android startScene). This was
-                // missing here (fell through to a no-op), so a tap handler that ended in Start Scene
-                // faded out but never advanced. Stop the current (old-scene) script after switching.
                 val sceneName = block.args.getOrNull(1) as? String ?: ""
                 frame.ip++
                 if (sceneName.isNotEmpty()) {
@@ -1589,7 +1547,6 @@ class DesktopScriptEngine(
                         try {
                             val tex = com.badlogic.gdx.graphics.Texture(com.badlogic.gdx.Gdx.files.absolute(file.absolutePath))
                             val lookName = file.nameWithoutExtension.ifEmpty { textureName }
-                            // TODO: should add a look instead of clearing all existing looks
                             target.looks.clear()
                             target.looks.add(DesktopLook(lookName, file.name, tex))
                             target.currentLookIndex = 0
@@ -2733,7 +2690,6 @@ class DesktopScriptEngine(
                 val x = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
                 val y = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 0f
                 val z = (block.args.getOrNull(4) as? Number)?.toFloat() ?: 0f
-                // Desktop stub: 3D rendering not ported, values stored for variable read-back
                 if (name.isNotEmpty()) variables["__3dpos_$name"] = "$x,$y,$z"
             }
             "set_3d_rotation" -> {
@@ -2741,7 +2697,6 @@ class DesktopScriptEngine(
                 val rx = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
                 val ry = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 0f
                 val rz = (block.args.getOrNull(4) as? Number)?.toFloat() ?: 0f
-                // Desktop stub: 3D rendering not ported, values stored for variable read-back
                 if (name.isNotEmpty()) variables["__3drot_$name"] = "$rx,$ry,$rz"
             }
             "set_3d_scale" -> {
@@ -2749,7 +2704,6 @@ class DesktopScriptEngine(
                 val sx = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 1f
                 val sy = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 1f
                 val sz = (block.args.getOrNull(4) as? Number)?.toFloat() ?: 1f
-                // Desktop stub: 3D rendering not ported, values stored for variable read-back
                 if (name.isNotEmpty()) variables["__3dscale_$name"] = "$sx,$sy,$sz"
             }
             "set_3d_velocity" -> {
@@ -2757,13 +2711,11 @@ class DesktopScriptEngine(
                 val vx = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
                 val vy = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 0f
                 val vz = (block.args.getOrNull(4) as? Number)?.toFloat() ?: 0f
-                // Desktop stub: 3D rendering not ported, values stored for variable read-back
                 if (name.isNotEmpty()) variables["__3dvel_$name"] = "$vx,$vy,$vz"
             }
             "set_3d_friction" -> {
                 val name = block.args.getOrNull(1) as? String ?: ""
                 val friction = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
-                // Desktop stub: 3D physics not ported, value stored for variable read-back
                 if (name.isNotEmpty()) variables["__3dfric_$name"] = friction
             }
             "set_3d_gravity" -> {
@@ -2771,7 +2723,6 @@ class DesktopScriptEngine(
                 val gx = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
                 val gy = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 0f
                 val gz = (block.args.getOrNull(4) as? Number)?.toFloat() ?: 0f
-                // Desktop stub: 3D physics not ported, values stored for variable read-back
                 if (name.isNotEmpty()) variables["__3dgrav_$name"] = "$gx,$gy,$gz"
             }
             "apply_3d_force" -> {
@@ -2779,7 +2730,6 @@ class DesktopScriptEngine(
                 val fx = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
                 val fy = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 0f
                 val fz = (block.args.getOrNull(4) as? Number)?.toFloat() ?: 0f
-                // Desktop stub: 3D physics not ported, values stored for variable read-back
                 if (name.isNotEmpty()) variables["__3dforce_$name"] = "$fx,$fy,$fz"
             }
             "fast2d_create" -> {
@@ -3116,10 +3066,8 @@ class DesktopScriptEngine(
                 AudioServiceHolder.audioService?.setPitch(pitch)
             }
             "prepare_3d_sound" -> {
-                // Desktop stub: 3D audio positioning not ported
             }
             "set_3d_pos" -> {
-                // Desktop stub: 3D audio spatialization not ported
             }
             "stop_sound_v2" -> {
                 val instName = resolveSoundPath(block.args.getOrNull(1) as? String ?: "")
@@ -4117,7 +4065,6 @@ class DesktopScriptEngine(
             "set_dns" -> {
                 val value = block.args.getOrNull(1) as? String ?: ""
                 if (value.isNotEmpty()) {
-                    // On desktop, set system-level DNS properties (hosts file override)
                     System.setProperty("sun.net.spi.nameservice.nameservers", value)
                     System.setProperty("sun.net.spi.nameservice.provider.1", "dns,sun")
                 }
@@ -4733,8 +4680,6 @@ class DesktopScriptEngine(
             }
         }
     }
-    // Format a formula result the way Catroid does: whole-number doubles WITHOUT a trailing ".0"
-    // (so join("users/", 5) becomes "users/5", not "users/5.0" — critical for Firebase keys/URLs).
     private fun formulaToString(v: Any?): String = when (v) {
         null -> ""
         is Double -> if (v.isFinite() && v == Math.floor(v) && Math.abs(v) < 1e15) v.toLong().toString() else v.toString()
@@ -4952,20 +4897,11 @@ class DesktopScriptEngine(
             )))
         }
     }
-    /**
-     * Switches the active regular scene at runtime (mirrors Android StageListener.startScene):
-     * keeps the global-scene sprites AND their running scripts (stable index prefix), replaces
-     * the scene-local sprites + their scripts with the target scene's, and lets the new scene's
-     * StartScript / "when scene starts" scripts fire. Project-global variables persist (shared
-     * [variables] map is untouched).
-     */
     private val sceneHistory = mutableListOf<String>()
     private fun switchToScene(sceneName: String, pushHistory: Boolean = true) {
         val target = sceneName.trim()
         if (target.isEmpty() || target == project.activeSceneName) return
         val previousScene = project.activeSceneName
-        // Unknown scene name -> no-op (matches Android getSceneByName == null). Without this,
-        // SceneSelector would fall back to the first scene and wrongly "transition" there.
         if (project.sceneNames.isNotEmpty() && !project.sceneNames.contains(target)) {
             Gdx.app.log("DesktopScriptEngine", "switchToScene: unknown scene '$target' (ignored)")
             return
@@ -4975,13 +4911,10 @@ class DesktopScriptEngine(
             return
         }
         if (pushHistory && !previousScene.isNullOrEmpty()) sceneHistory.add(previousScene)
-        // Android startScene stops the leaving scene's sounds (GlobalManager.stopSounds).
         AudioServiceHolder.audioService?.stopAllSounds()
         MidiServiceHolder.midiService?.stopAllSounds()
         val globalCount = project.globalSpriteCount
-        // Drop scene-local script states; keep global-scene scripts (index < globalCount) running.
         scriptStates.removeAll { it.spriteIndex >= globalCount }
-        // Rebuild ONLY the scene-local scripts for the newly active scene (indices >= globalCount).
         project.projectDir?.let { parseXmlScripts(it, onlySceneLocal = true) }
         rebuildSpatialHash()
         Gdx.app.log("DesktopScriptEngine", "switched to scene '$target' (sprites=${project.sprites.size}, scripts=${scriptStates.size})")
@@ -4990,9 +4923,6 @@ class DesktopScriptEngine(
         return when (scriptType) {
             "StartScript", "StartedScript" -> null
             "WhenTouchDownScript" -> "touch_down"
-            // Classic Catrobat "When [sprite] is tapped" is serialized as WhenScript (action=Tapped).
-            // It was missing here, so it fell through to null and ran as a start script (fired at
-            // launch instead of on tap) — the tap never registered and its PlaceAt ran too early.
             "WhenScript", "WhenTappedScript" -> "touch_down"
             "WhenClonedScript" -> "cloned"
             "WhenConditionScript" -> "condition"
@@ -5043,10 +4973,6 @@ class DesktopScriptEngine(
     private fun parseXmlScripts(projectDir: File, onlySceneLocal: Boolean = false): Boolean {
         val doc = DesktopProjectManager.parseCodeXml(projectDir) ?: return false
         return try {
-            // Same scene-aware object ordering as DesktopProjectManager (global scene first, then
-            // the active scene) so each scriptState.spriteIndex matches project.sprites exactly.
-            // onlySceneLocal=true skips the stable global prefix (used on scene switch to rebuild
-            // only the scene-local scripts while global-scene scripts keep running).
             val objectEls = SceneSelector.selectScene(doc, project.activeSceneName).objectEls
             for ((i, objEl) in objectEls.withIndex()) {
                 if (onlySceneLocal && i < project.globalSpriteCount) continue
@@ -5131,8 +5057,6 @@ class DesktopScriptEngine(
             this@DesktopScriptEngine.extractFormulaValue(el, field, spriteIndex)
         fun extractFormulaString(el: Element, field: String) =
             this@DesktopScriptEngine.extractFormulaString(el, field, spriteIndex)
-        // Recent Catrobat code.xml stores a container's body inside <loopBricks>.
-        // Older files keep child bricks as siblings followed by an end brick. Handle both.
         fun parseContainerChildren(container: Element, legacyStart: Int): Pair<List<Block>, List<RuntimeFormula>> {
             val loopBricks = getChildElement(container, "loopBricks")
             return if (loopBricks != null) {
@@ -5153,11 +5077,6 @@ class DesktopScriptEngine(
             val el = node as Element
             val brickType = el.getAttribute("type")
             if (brickType.isBlank()) { idx++; continue }
-            // Skip disabled (commented-out) bricks. Catrobat marks them with a direct child
-            // <commentedOut>true</commentedOut>; the desktop engine previously ran them anyway,
-            // e.g. a disabled "place at" brick moved a sprite to the wrong spot. For the modern
-            // <loopBricks> format a container element also contains its children, so skipping the
-            // single element skips them too.
             val commentedOutRaw = getTagText(el, "commentedOut") ?: el.getAttribute("commentedOut").takeIf { it.isNotBlank() }
             if (dbgBrickLog < 40) { dbgBrickLog++; Gdx.app.log("BrickDiag", "brick='$brickType' commentedOut='$commentedOutRaw'") }
             if (commentedOutRaw?.equals("true", ignoreCase = true) == true) { idx++; continue }
@@ -5207,7 +5126,6 @@ class DesktopScriptEngine(
                     idx = containerEnd(el, idx + 1)
                 }
                 "RepeatWhileBrick" -> {
-                    // Loop WHILE the condition holds (inverse of repeat_until). Uses REPEAT_UNTIL_CONDITION field.
                     val condFe = getFormulaElement(el, "REPEAT_UNTIL_CONDITION")
                     val (children, rf) = parseContainerChildren(el, idx + 1)
                     allRuntimeFormulas.addAll(rf)
@@ -5360,9 +5278,6 @@ class DesktopScriptEngine(
                     val ifBranch = getChildElement(el, "ifBranchBricks")
                     val elseBranch = getChildElement(el, "elseBranchBricks")
                     if (ifBranch != null || elseBranch != null) {
-                        // Modern nested format: Catrobat serialises the branches INSIDE the
-                        // IfLogicBeginBrick element as <ifBranchBricks>/<elseBranchBricks>, not as
-                        // flat sibling bricks terminated by IfLogicElse/IfLogicEndBrick.
                         val (thenChildren, rfA) = ifBranch?.let { parseBrickListRecursive(it.childNodes, 0, spriteIndex) }
                             ?: Pair(emptyList<Block>(), emptyList<RuntimeFormula>())
                         allRuntimeFormulas.addAll(rfA)
@@ -7754,7 +7669,6 @@ class DesktopScriptEngine(
                 val ft = formula.getElementsByTagName("formulaTree")?.item(0) as? Element
                 val fe = ft?.getElementsByTagName("formulaElement")?.item(0) as? Element
                 if (fe != null) return fe
-                // Legacy flat <formula> has <type>/<value> (and leftChild/rightChild) directly.
                 return ft ?: formula
             }
         }
@@ -7853,9 +7767,6 @@ class DesktopScriptEngine(
     private fun evalOperatorCore(op: String, left: Double, right: Double, hasLeft: Boolean, hasRight: Boolean = true): Double? {
         return when (op) {
             "PLUS" -> left + right
-            // Unary minus: Catrobat stores "-x" as MINUS with the operand in ONE child and the
-            // other absent. Negate the present operand instead of treating the missing side as 0
-            // (otherwise "-1" whose operand sits in leftChild wrongly evaluated to +1).
             "MINUS" -> when {
                 !hasLeft && hasRight -> -right
                 hasLeft && !hasRight -> -left
@@ -8340,16 +8251,16 @@ class DesktopScriptEngine(
             "INDEX_CURRENT_TOUCH" -> if (input.isTouched) 0.0 else -1.0
             "TIMER" -> timerSeconds.toDouble()
             "PHONE_ORIENTATION" -> if (com.badlogic.gdx.Gdx.graphics.width > com.badlogic.gdx.Gdx.graphics.height) 1.0 else 0.0
-            "X_ACCELERATION" -> 0.0 // Desktop stub: no accelerometer hardware
-            "Y_ACCELERATION" -> 0.0 // Desktop stub: no accelerometer hardware
-            "Z_ACCELERATION" -> 0.0 // Desktop stub: no accelerometer hardware
-            "X_INCLINATION" -> 0.0  // Desktop stub: no accelerometer hardware
-            "Y_INCLINATION" -> 0.0  // Desktop stub: no accelerometer hardware
-            "COMPASS_DIRECTION" -> 0.0 // Desktop stub: no compass hardware
-            "LATITUDE" -> 0.0      // Desktop stub: no GPS hardware
-            "LONGITUDE" -> 0.0     // Desktop stub: no GPS hardware
-            "ALTITUDE" -> 0.0      // Desktop stub: no GPS hardware
-            "LOCATION_ACCURACY" -> 0.0 // Desktop stub: no GPS hardware
+            "X_ACCELERATION" -> 0.0
+            "Y_ACCELERATION" -> 0.0
+            "Z_ACCELERATION" -> 0.0
+            "X_INCLINATION" -> 0.0
+            "Y_INCLINATION" -> 0.0
+            "COMPASS_DIRECTION" -> 0.0
+            "LATITUDE" -> 0.0
+            "LONGITUDE" -> 0.0
+            "ALTITUDE" -> 0.0
+            "LOCATION_ACCURACY" -> 0.0
             "DATE_YEAR" -> java.util.Calendar.getInstance().get(java.util.Calendar.YEAR).toDouble()
             "DATE_MONTH" -> (java.util.Calendar.getInstance().get(java.util.Calendar.MONTH) + 1).toDouble()
             "DATE_DAY" -> java.util.Calendar.getInstance().get(java.util.Calendar.DAY_OF_MONTH).toDouble()
@@ -8421,9 +8332,6 @@ class DesktopScriptEngine(
         return result
     }
     private fun getTagText(parent: Element, tag: String): String? {
-        // DIRECT child only. A recursive getElementsByTagName(tag).item(0) wrongly grabbed a
-        // nested child's <type>/<value> when the legacy <formula> stores <rightChild> BEFORE the
-        // node's own <type>/<value> (e.g. unary MINUS read as its inner NUMBER -> "-1" became +1).
         val children = parent.childNodes
         for (i in 0 until children.length) {
             val child = children.item(i)
@@ -8459,7 +8367,6 @@ class DesktopScriptEngine(
             ?: return null
         return resolveUserDataName(userList, 0)
     }
-    // Follows XStream reference="xpath" attributes to the element that actually holds <name>.
     private fun resolveUserDataName(node: Element, depth: Int): String? {
         if (depth > 8) return null
         getTagText(node, "name")?.takeIf { it.isNotEmpty() }?.let { return it }
@@ -8492,7 +8399,7 @@ class DesktopScriptEngine(
         pane.setWantsInput(true)
         val dialog = pane.createDialog(title)
         dialog.isAlwaysOnTop = true
-        dialog.isVisible = true // modal: blocks the render thread until answered (Android's ask also blocks)
+        dialog.isVisible = true
         dialog.dispose()
         val value = pane.inputValue
         if (value == null || value == javax.swing.JOptionPane.UNINITIALIZED_VALUE) null else value.toString()

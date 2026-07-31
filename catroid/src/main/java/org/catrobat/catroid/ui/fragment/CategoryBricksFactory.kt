@@ -47,6 +47,7 @@ import org.catrobat.catroid.content.bricks.AddRadioBrick
 import org.catrobat.catroid.content.bricks.AddTextToBufferBrick
 import org.catrobat.catroid.content.bricks.AddToBufferBrick
 import org.catrobat.catroid.content.bricks.Apply3dForceBrick
+import org.catrobat.catroid.content.bricks.Apply3dTorqueBrick
 import org.catrobat.catroid.content.bricks.ApplyAngularImpulseBrick
 import org.catrobat.catroid.content.bricks.ApplyBufferLookBrick
 import org.catrobat.catroid.content.bricks.ApplyForceBrick
@@ -139,6 +140,7 @@ import org.catrobat.catroid.content.bricks.CreatePulleyJointBrick
 import org.catrobat.catroid.content.bricks.CreateRevoluteJointBrick
 import org.catrobat.catroid.content.bricks.CreateSliderBrick
 import org.catrobat.catroid.content.bricks.CreateSphereBrick
+import org.catrobat.catroid.content.bricks.CreateSpringConstraintBrick
 import org.catrobat.catroid.content.bricks.CreateTableBrick
 import org.catrobat.catroid.content.bricks.CreateTextFieldBrick
 import org.catrobat.catroid.content.bricks.CreateVarBrick
@@ -2191,8 +2193,8 @@ print("Bot has stopped.")""", "myVar"))
                 deviceBrickList.add(CreateDiskBrick("myDisk.qcow2", "10G"))
                 deviceBrickList.add(Create2dJoystickBrick(100.0, 100.0, "joystick_bg.png", "joystick_thumb.png", 5.0))
                 deviceBrickList.add(Create2dJumpButtonBrick(300.0, 100.0, "jump_active.png", "jump_inactive.png", 25.0))
-                deviceBrickList.add(Create3dJoystickBrick(100.0, 100.0, "joystick_bg.png", "joystick_thumb.png", 0.5))
-                deviceBrickList.add(Create3dJumpButtonBrick(300.0, 100.0, "jump_active.png", "jump_inactive.png", 2.0))
+                deviceBrickList.add(Create3dJoystickBrick("myObject", 100.0, 100.0, "joystick_bg.png", "joystick_thumb.png", 0.5))
+                deviceBrickList.add(Create3dJumpButtonBrick("myObject", 300.0, 100.0, "jump_active.png", "jump_inactive.png", 2.0))
                 deviceBrickList.add(ToggleDisplayBrick(1))
                 deviceBrickList.add(VmSetMonitorSizeBrick(1000, 800))
                 deviceBrickList.add(MouseEventBrick("0", "100", 1))
@@ -2882,6 +2884,7 @@ void main() {
         threedBrickList.add(CreateSphereBrick("myObject"))
         threedBrickList.add(ThreedCreateCylinderBrick("myObject"))
         threedBrickList.add(Remove3dObjectBrick("myObject"))
+        threedBrickList.add(CreateSpringConstraintBrick("constraint1", "objectA", "objectB"))
         threedBrickList.add(RemoveObjectsByPrefixBrick("wall_"))
         threedBrickList.add(CloneObjectBrick("myObject", "clonedObject"))
         threedBrickList.add(SetSpawnInvisibleBrick("myObject"))
@@ -2923,6 +2926,7 @@ void main() {
         threedBrickList.add(Set3dGravityBrick(0.0, -9.81, 0.0))
         threedBrickList.add(Set3dVelocityBrick("myObject", 0.0, 25.0, 0.0))
         threedBrickList.add(Apply3dForceBrick("myObject", 5.0, 0.0, 0.0))
+        threedBrickList.add(Apply3dTorqueBrick("myObject", 5.0, 0.0, 0.0))
         threedBrickList.add(Set3dFrictionBrick("myObject", 0.7))
         threedBrickList.add(SetRestitutionBrick("myObject", 0.5))
         threedBrickList.add(SetCCDBrick("myObject", true))

@@ -81,7 +81,6 @@ public class PrepareNotificationBrick extends FormulaBrick {
     @Override
     public Brick clone() throws CloneNotSupportedException {
         PrepareNotificationBrick clone = (PrepareNotificationBrick) super.clone();
-        // Explicitly clone notification configuration fields
         clone.importanceLevel = this.importanceLevel;
         clone.isPinned = this.isPinned;
         return clone;

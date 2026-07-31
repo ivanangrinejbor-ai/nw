@@ -195,7 +195,6 @@ public class InternToExternGenerator {
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.GET_RAY_HIT_NORMAL_Y.name(), R.string.formula_ray_normal_y);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.GET_RAY_HIT_NORMAL_Z.name(), R.string.formula_ray_normal_z);
 
-		//DRONE SENSORS
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.DRONE_BATTERY_STATUS.name(), R.string.formula_editor_sensor_drone_battery_status);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.DRONE_EMERGENCY_STATE.name(), R.string.formula_editor_sensor_drone_emergency_state);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.DRONE_FLYING.name(), R.string.formula_editor_sensor_drone_flying);
@@ -555,7 +554,6 @@ public class InternToExternGenerator {
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.ADMOB_LAST_ERROR_MESSAGE.name(), R.string.formula_admob_last_error_message);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.ADMOB_IS_GOOGLE_PLAY_SERVICES_AVAILABLE.name(), R.string.formula_admob_is_google_play_services_available);
 
-		// Cryptography
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.SHA_224.name(), R.string.formula_crypto_sha_224);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.SHA_256.name(), R.string.formula_crypto_sha_256);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.SHA_384.name(), R.string.formula_crypto_sha_384);
@@ -592,11 +590,9 @@ public class InternToExternGenerator {
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.RSA_SIGN.name(), R.string.formula_crypto_rsa_sign);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.RSA_VERIFY.name(), R.string.formula_crypto_rsa_verify);
 
-		// NeoCatroid: Device info (display only — evaluation is constant)
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.IS_PC.name(), R.string.formula_is_pc);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.IS_MOBILE.name(), R.string.formula_is_mobile);
 
-		// NeoCatroid: Tilemap formulas
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.TILE_AT_POSITION.name(), R.string.formula_tile_at_position);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.IS_SOLID_TILE_AT.name(), R.string.formula_is_solid_tile_at);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.TILEMAP_WIDTH.name(), R.string.formula_tilemap_width);

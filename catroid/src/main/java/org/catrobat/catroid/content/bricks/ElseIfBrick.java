@@ -11,12 +11,6 @@ import org.catrobat.catroid.formulaeditor.Formula;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * Маркер-брик "Иначе если" — отображается в плоском списке скриптов.
- * Не сериализуется отдельно (transient в IfLogicBeginBrick).
- * Является FormulaBrick: клик по полю условия открывает FormulaEditor
- * именно для условия ЭТОЙ ветки (общий объект Formula с родительским списком).
- */
 public class ElseIfBrick extends FormulaBrick {
 
 	private static final long serialVersionUID = 1L;
@@ -31,7 +25,6 @@ public class ElseIfBrick extends FormulaBrick {
 		addAllowedBrickField(BrickField.IF_CONDITION, R.id.brick_else_if_edit_text);
 		Formula condition = ifBrick.getElseIfCondition(branchIndex);
 		if (condition != null) {
-			// ТОТ ЖЕ объект Formula что и в списке родителя — редактирование мутирует его
 			setFormulaWithBrickField(BrickField.IF_CONDITION, condition);
 		}
 	}
@@ -47,7 +40,6 @@ public class ElseIfBrick extends FormulaBrick {
 	@Override
 	public void setFormulaWithBrickField(FormulaField formulaField, Formula formula) {
 		super.setFormulaWithBrickField(formulaField, formula);
-		// Синхронизируем список условий родителя (если редактор заменил объект Formula)
 		if (ifBrick != null && formulaField == BrickField.IF_CONDITION) {
 			ifBrick.setElseIfCondition(branchIndex, formula);
 		}
@@ -65,7 +57,6 @@ public class ElseIfBrick extends FormulaBrick {
 
 	@Override
 	public List<Brick> getAllParts() {
-		// Только ЭТА ветка (маркер + её конец) — выделение/удаление не трогает весь If
 		return ifBrick.getElseIfBranchParts(branchIndex);
 	}
 
@@ -98,7 +89,6 @@ public class ElseIfBrick extends FormulaBrick {
 
 	@Override
 	public void addActionToSequence(Sprite sprite, ScriptSequenceAction sequence) {
-		// Маркер — не добавляет action самостоятельно
 	}
 
 	@Override

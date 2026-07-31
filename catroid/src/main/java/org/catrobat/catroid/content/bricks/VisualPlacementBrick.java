@@ -123,7 +123,6 @@ public abstract class VisualPlacementBrick extends FormulaBrick {
 		intent.putExtra(EXTRA_X_TRANSFORM, xValue);
 		intent.putExtra(EXTRA_Y_TRANSFORM, yValue);
 		intent.putExtra(EXTRA_ROTATION, ProjectManager.getInstance().getCurrentSprite().look.getMotionDirectionInUserInterfaceDimensionUnit());
-		//intent.putExtra(EXTRA_ROTATION, rotationAngle);
 
 		return intent;
 	}

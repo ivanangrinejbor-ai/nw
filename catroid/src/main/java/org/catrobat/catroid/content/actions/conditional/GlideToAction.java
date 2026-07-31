@@ -48,9 +48,6 @@ public class GlideToAction extends TemporalAction {
 	private float velocityXValue = 0;
 	private float velocityYValue = 0;
 
-	// Spinner index into R.array.brick_easing_types ("None" = 0, "Linear" = 1, ...).
-	// 0 keeps the classic linear glide, so projects saved before this parameter
-	// existed (field defaults to 0) behave exactly as they always did.
 	private int easingType = 0;
 
 	private boolean restart = false;

@@ -4186,6 +4186,14 @@ public class ThreeDManager implements Disposable {
         }
     }
 
+    public void applyTorque(String objectId, float torqueX, float torqueY, float torqueZ) {
+        btRigidBody body = physicsBodies.get(objectId);
+        if (body != null) {
+            body.activate();
+            body.applyTorque(new Vector3(torqueX, torqueY, torqueZ));
+        }
+    }
+
 
     public void setPhysicsState(String objectId, PhysicsState state, PhysicsShape shape, float mass) {
         ModelInstance instance = sceneObjects.get(objectId);

@@ -27,9 +27,6 @@ import org.catrobat.catroid.content.Sprite;
 import org.catrobat.catroid.content.actions.ScriptSequenceAction;
 import org.catrobat.catroid.formulaeditor.Formula;
 
-/**
- * Clears the tile at (column, row) on the sprite's active tilemap costume (sets it to EMPTY).
- */
 public class ClearTileBrick extends FormulaBrick {
 
 	private static final long serialVersionUID = 1L;

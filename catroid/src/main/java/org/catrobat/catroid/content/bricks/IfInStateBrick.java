@@ -19,7 +19,6 @@ public class IfInStateBrick extends FormulaBrick implements CompositeBrick {
 
     protected List<Brick> stateBranchBricks = new ArrayList<>();
 
-    // XStream не вызывает конструкторы — transient endBrick будет null после десериализации.
     private Object readResolve() {
         if (endBrick == null) {
             endBrick = new EndBrick(this);

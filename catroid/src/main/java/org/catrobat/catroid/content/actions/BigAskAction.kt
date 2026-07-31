@@ -38,8 +38,6 @@ class BigAskAction : Action() {
     var submit: Formula? = null
     var cancel: Formula? = null
     var standardText: Formula? = null
-    //var messageFormula: Formula? = null
-    //var sumbitFormula: Formula? = null
     var answerVariable: UserVariable? = null
     var questionAsked = false
     private var answerReceived = false
@@ -63,25 +61,6 @@ class BigAskAction : Action() {
                 "formula interpretation in big ask brick failed"
             )
         }
-        /*var message = ""
-        try {
-            message = messageFormula?.interpretString(scope) ?: ""
-        } catch (e: InterpretationException) {
-            Log.e(
-                javaClass.simpleName,
-                "formula interpretation in ask brick failed (message)"
-            )
-        }
-        var sumbit = ""
-        try {
-            sumbit = sumbitFormula?.interpretString(scope) ?: ""
-        } catch (e: InterpretationException) {
-            Log.e(
-                javaClass.simpleName,
-                "formula interpretation in ask brick failed (sumbit)"
-            )
-        }*/
-
         val params = arrayListOf(BrickDialogManager.DialogType.ASK_2_DIALOG, this, question, msgs, sumbs, canels, standard)
         StageActivity.messageHandler.obtainMessage(StageActivity.SHOW_DIALOG, params).sendToTarget()
         questionAsked = true

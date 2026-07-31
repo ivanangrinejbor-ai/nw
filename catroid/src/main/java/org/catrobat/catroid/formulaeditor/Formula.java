@@ -108,7 +108,6 @@ public class Formula implements Serializable {
             try {
                 cachedNumberValue = Double.valueOf(s);
             } catch (Exception ignored) {
-                // ignored
             }
         } else if (number == ElementType.STRING) {
             cachedStringValue = s;
@@ -123,7 +122,6 @@ public class Formula implements Serializable {
         try {
             cachedNumberValue = -Double.valueOf(value);
         } catch (Exception ignored) {
-            // ignored
         }
     }
 
