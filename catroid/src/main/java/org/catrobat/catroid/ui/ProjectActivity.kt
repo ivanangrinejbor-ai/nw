@@ -201,7 +201,7 @@ class ProjectActivity : BaseCastActivity() {
                 handlePlayButton()
             }
         }
-        projectManager.currentProject.checkIfSpriteNameEqualBackground(this)
+        projectManager.currentProject?.checkIfSpriteNameEqualBackground(this)
         MyActivityManager.project_activity = this
 
         val loadedProject = projectManager.currentProject

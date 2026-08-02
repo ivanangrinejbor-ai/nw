@@ -265,7 +265,12 @@ class AddBrickFragment : ListFragment() {
         val context = requireContext()
         val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_brick_context, null)
 
-        val brickView = brick.getView(context)
+        val brickView = try {
+            brick.getView(context)
+        } catch (e: Exception) {
+            Log.e("AddBrickFragment", "Failed to render preview for ${brick.javaClass.name}", e)
+            LayoutInflater.from(context).inflate(R.layout.brick_none, null, false)
+        }
         brick.disableSpinners()
 
         val maxBrickHeight = (200 * context.resources.displayMetrics.density).toInt()

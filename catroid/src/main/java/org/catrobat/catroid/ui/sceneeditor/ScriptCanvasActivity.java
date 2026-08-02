@@ -186,8 +186,8 @@ public class ScriptCanvasActivity extends AppCompatActivity {
 		if (scripts == null || looks == null || sounds == null) return;
 		selectObjectTab(scripts, looks, sounds);
 		scripts.setOnClickListener(v -> selectObjectTab(scripts, looks, sounds));
-		looks.setOnClickListener(v -> openLegacyObjectTab(1));
-		sounds.setOnClickListener(v -> openLegacyObjectTab(2));
+		looks.setOnClickListener(v -> openUi2ObjectTab(SceneEditorActivity.TAB_LOOKS));
+		sounds.setOnClickListener(v -> openUi2ObjectTab(SceneEditorActivity.TAB_SOUNDS));
 	}
 
 	private void selectObjectTab(TextView scripts, TextView looks, TextView sounds) {
@@ -196,12 +196,12 @@ public class ScriptCanvasActivity extends AppCompatActivity {
 		sounds.setTextColor(0xFF94A3B8);
 	}
 
-	private void openLegacyObjectTab(int fragmentPosition) {
+	private void openUi2ObjectTab(int tab) {
 		ProjectManager.getInstance().setCurrentSprite(sprite);
-		Intent intent = new Intent(this, org.catrobat.catroid.ui.SpriteActivity.class);
-		intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-		intent.putExtra(org.catrobat.catroid.ui.SpriteActivity.EXTRA_FRAGMENT_POSITION, fragmentPosition);
-		intent.putExtra(org.catrobat.catroid.ui.SpriteActivity.EXTRA_FORCE_LEGACY_EDITOR, true);
+		Intent intent = new Intent(this, SceneEditorActivity.class);
+		intent.putExtra(SceneEditorActivity.EXTRA_SCENE_NAME, scene.getName());
+		intent.putExtra(SceneEditorActivity.EXTRA_OPEN_OBJECT_NAME, sprite.getName());
+		intent.putExtra(SceneEditorActivity.EXTRA_OPEN_OBJECT_TAB, tab);
 		startActivity(intent);
 	}
 

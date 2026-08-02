@@ -250,6 +250,16 @@ class ProjectOptions2Fragment : Fragment() {
         }
         cardExport.addView(apkBuildBtn)
 
+        val fullExportBtn = createActionButton("Открыть полный набор экспортов и настроек") {
+            (activity as? Ui2PanelActivity)?.let {
+                parentFragmentManager.beginTransaction()
+                    .replace(R.id.fragment_container, ProjectOptionsFragment(), "project_options_legacy")
+                    .addToBackStack("project_options_legacy")
+                    .commit()
+            }
+        }
+        cardExport.addView(fullExportBtn)
+
         col2.addView(cardExport)
 
         val cardNav = createCardLayout()

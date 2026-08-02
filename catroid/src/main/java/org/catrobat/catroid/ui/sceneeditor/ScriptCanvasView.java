@@ -27,6 +27,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
@@ -55,7 +56,6 @@ import org.catrobat.catroid.content.bricks.FormulaBrick;
 import org.catrobat.catroid.content.bricks.NoteBrick;
 import org.catrobat.catroid.content.bricks.ScriptBrick;
 import org.catrobat.catroid.content.bricks.VisualPlacementBrick;
-import org.catrobat.catroid.ui.fragment.FormulaEditorFragment;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -90,6 +90,7 @@ public class ScriptCanvasView extends FrameLayout {
 	private LinearLayout blockBadge;
 	private View blockGhost;
 	private Brick draggingBrick;
+	private View connectionHighlight;
 
 	// ─── Undo / Redo ──────────────────────────────────────────────────────────
 	private static final int MAX_UNDO_STEPS = 30;
@@ -139,6 +140,7 @@ public class ScriptCanvasView extends FrameLayout {
 	}
 
 	private void buildStacks() {
+		clearConnectionHighlight();
 		world.removeAllViews();
 		if (sprite == null) {
 			return;
@@ -191,12 +193,14 @@ public class ScriptCanvasView extends FrameLayout {
 				brickView = fallback;
 			}
 			brickView.setTag(brick);
-			wireFormulaFields(brick, brickView);
 			final Brick targetBrick = brick;
 			final Script targetScript = script;
 			final View targetStackView = stack;
-
-			brickView.setOnTouchListener(new BrickTouchDragListener(targetScript, targetBrick, brickView, targetStackView));
+			BrickTouchDragListener dragListener =
+					new BrickTouchDragListener(targetScript, targetBrick, brickView, targetStackView);
+			wireFormulaFields(brick, brickView);
+			brickView.setOnTouchListener(dragListener);
+			wireDragToChildren(brickView, dragListener);
 			LinearLayout.LayoutParams brickParams = new LinearLayout.LayoutParams(
 					LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
 			stack.addView(brickView, brickParams);
@@ -211,6 +215,7 @@ public class ScriptCanvasView extends FrameLayout {
 	}
 
 	public void rebuild() {
+		clearConnectionHighlight();
 		world.removeAllViews();
 		buildStacks();
 		addNoteViews();
@@ -329,19 +334,15 @@ public class ScriptCanvasView extends FrameLayout {
 			rebuildDeferred();
 			return true;
 		}
-		View stackView = findStackViewAtWorld(worldX, worldY);
-		if (stackView != null && stackView.getTag() instanceof Script) {
-			Script script = (Script) stackView.getTag();
-			insertBrickIntoScript(script, findBrickInStack(stackView, worldY), clone);
-			script.setParents();
-		} else {
-			StartScript script = new StartScript();
-			script.setPosX(worldX);
-			script.setPosY(worldY);
-			script.addBrick(clone);
-			sprite.addScript(script);
-			script.setParents();
-		}
+		// A palette block is initially an independent stack.  It must not be
+		// silently inserted into the nearest stack: the user decides where it
+		// belongs by dragging it afterwards.
+		StartScript script = new StartScript();
+		script.setPosX(worldX);
+		script.setPosY(worldY);
+		script.addBrick(clone);
+		sprite.addScript(script);
+		script.setParents();
 		rebuildDeferred();
 		return true;
 	}
@@ -529,7 +530,14 @@ public class ScriptCanvasView extends FrameLayout {
 
 	private void startBlockDrag(Brick brick) {
 		draggingBrick = brick;
-		View ghost = brick.getPrototypeView(getContext());
+		View ghost;
+		try {
+			ghost = brick.getPrototypeView(getContext());
+		} catch (Exception e) {
+			Log.e("ScriptCanvasView", "Failed to create block drag preview", e);
+			draggingBrick = null;
+			return;
+		}
 		ghost.setAlpha(0.85f);
 		blockGhost = ghost;
 		addView(ghost, new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
@@ -545,10 +553,74 @@ public class ScriptCanvasView extends FrameLayout {
 		params.leftMargin = Math.round(rawX - location[0] - dp(20));
 		params.topMargin = Math.round(rawY - location[1] - dp(12));
 		blockGhost.setLayoutParams(params);
+		updateConnectionHighlight(rawX, rawY);
+	}
+
+	private void updateConnectionHighlight(float rawX, float rawY) {
+		if (draggingBrick == null) {
+			clearConnectionHighlight();
+			return;
+		}
+		int[] location = new int[2];
+		getLocationOnScreen(location);
+		float localX = rawX - location[0];
+		float localY = rawY - location[1];
+		if (localX < 0 || localY < 0 || localX > getWidth() || localY > getHeight()) {
+			clearConnectionHighlight();
+			return;
+		}
+		float worldX = (localX - panX) / scale;
+		float worldY = (localY - panY) / scale;
+		View stackView = findStackViewAtWorld(worldX, worldY);
+		Brick targetBrick = stackView == null ? null : findBrickInStack(stackView, worldY);
+		if (targetBrick == draggingBrick || (targetBrick != null && containsBrick(draggingBrick, targetBrick))) {
+			clearConnectionHighlight();
+			return;
+		}
+		View targetView = findBrickView(stackView, targetBrick);
+		if (targetView == null) targetView = stackView;
+		if (targetView == null) {
+			clearConnectionHighlight();
+			return;
+		}
+		if (connectionHighlight != null && connectionHighlight.getTag() == targetView) return;
+		clearConnectionHighlight();
+		GradientDrawable drawable = new GradientDrawable();
+		drawable.setColor(0x2238BDF8);
+		drawable.setStroke(dp(3), 0xFF38BDF8);
+		View highlight = new View(getContext());
+		highlight.setTag(targetView);
+		highlight.setBackground(drawable);
+		highlight.setClickable(false);
+		int left = targetView == stackView ? stackView.getLeft() : stackView.getLeft() + targetView.getLeft();
+		int top = targetView == stackView ? stackView.getTop() : stackView.getTop() + targetView.getTop();
+		LayoutParams params = new LayoutParams(targetView.getWidth(), targetView.getHeight());
+		params.leftMargin = left;
+		params.topMargin = top;
+		connectionHighlight = highlight;
+		world.addView(highlight, params);
+	}
+
+	private View findBrickView(View stackView, Brick target) {
+		if (!(stackView instanceof android.view.ViewGroup) || target == null) return null;
+		android.view.ViewGroup group = (android.view.ViewGroup) stackView;
+		for (int i = 0; i < group.getChildCount(); i++) {
+			View child = group.getChildAt(i);
+			if (child.getTag() == target) return child;
+		}
+		return null;
+	}
+
+	private void clearConnectionHighlight() {
+		if (connectionHighlight != null) {
+			world.removeView(connectionHighlight);
+			connectionHighlight = null;
+		}
 	}
 
 	private void removeBlockGhost() {
 		removeBlockBadge();
+		clearConnectionHighlight();
 		if (blockGhost != null) {
 			removeView(blockGhost);
 			blockGhost = null;
@@ -575,7 +647,7 @@ public class ScriptCanvasView extends FrameLayout {
 		Script script = stackView != null && stackView.getTag() instanceof Script
 				? (Script) stackView.getTag() : null;
 		Brick targetBrick = stackView != null ? findBrickInStack(stackView, worldY) : null;
-		if (targetBrick == moving) {
+		if (targetBrick == moving || (targetBrick != null && containsBrick(moving, targetBrick))) {
 			return;
 		}
 		snapshot();
@@ -633,7 +705,7 @@ public class ScriptCanvasView extends FrameLayout {
 					textView.setMaxLines(3);
 				}
 				fieldView.setOnClickListener(v -> {
-					FormulaEditorFragment.showFragment(getContext(), formulaBrick, field);
+					openFormulaEditor2(formulaBrick, field);
 				});
 			}
 		}
@@ -671,6 +743,10 @@ public class ScriptCanvasView extends FrameLayout {
 			this.brick = brick;
 			this.brickView = brickView;
 			this.stackView = stackView;
+		}
+
+		boolean isDragActive() {
+			return isLongPressed;
 		}
 
 		@Override
@@ -732,6 +808,8 @@ public class ScriptCanvasView extends FrameLayout {
 							showBlockBadge(brick, brickView, stackView);
 						}
 					}
+					isLongPressed = false;
+					isEventHeader = false;
 					return true;
 
 				default:
@@ -840,12 +918,12 @@ public class ScriptCanvasView extends FrameLayout {
 
 		if (brick instanceof FormulaBrick && ((FormulaBrick) brick).hasEditableFormulaField()) {
 			items.add("Редактировать формулу 2.0");
-			actions.add(() -> {
-				FormulaBrick fb = (FormulaBrick) brick;
-				Brick.FormulaField field = fb.brickFieldToTextViewIdMap.keySet().iterator().next();
-				if (getContext() instanceof ScriptCanvasActivity) {
-					FormulaEditorFragment.showFragment(getContext(), fb, field);
-				}
+				actions.add(() -> {
+					FormulaBrick fb = (FormulaBrick) brick;
+					Brick.FormulaField field = fb.brickFieldToTextViewIdMap.keySet().iterator().next();
+					if (getContext() instanceof ScriptCanvasActivity) {
+						openFormulaEditor2(fb, field);
+					}
 			});
 		}
 
@@ -957,6 +1035,35 @@ public class ScriptCanvasView extends FrameLayout {
 		}
 	}
 
+	private void openFormulaEditor2(FormulaBrick formulaBrick, Brick.FormulaField field) {
+		if (!(getContext() instanceof ScriptCanvasActivity)) return;
+		ScriptCanvasActivity activity = (ScriptCanvasActivity) getContext();
+		activity.setActiveEditFormula(formulaBrick, field);
+		Intent intent = new Intent(getContext(),
+				org.catrobat.catroid.ui.formulaeditor.FormulaEditor2Activity.class);
+		org.catrobat.catroid.formulaeditor.Formula current =
+				formulaBrick.getFormulaWithBrickField(field);
+		intent.putExtra(
+				org.catrobat.catroid.ui.formulaeditor.FormulaEditor2Activity.EXTRA_FORMULA_STRING,
+				current == null ? "" : current.getTrimmedFormulaString(getContext()));
+		activity.startActivityForResult(intent, 8899);
+	}
+
+	private void wireDragToChildren(View parent, BrickTouchDragListener dragListener) {
+		if (!(parent instanceof android.view.ViewGroup)) return;
+		android.view.ViewGroup group = (android.view.ViewGroup) parent;
+		for (int i = 0; i < group.getChildCount(); i++) {
+			View child = group.getChildAt(i);
+			child.setOnTouchListener((v, event) -> {
+				boolean wasDragging = dragListener.isDragActive();
+				dragListener.onTouch(v, event);
+				if (event.getActionMasked() == MotionEvent.ACTION_DOWN) return false;
+				return wasDragging || dragListener.isDragActive();
+			});
+			wireDragToChildren(child, dragListener);
+		}
+	}
+
 	private void moveScript(Script script, int direction) {
 		if (sprite == null || script == null) return;
 		List<Script> scripts = sprite.getScriptList();
@@ -966,6 +1073,20 @@ public class ScriptCanvasView extends FrameLayout {
 		snapshot();
 		java.util.Collections.swap(scripts, index, target);
 		rebuildDeferred();
+	}
+
+	private boolean containsBrick(Brick parent, Brick target) {
+		if (!(parent instanceof CompositeBrick)) return false;
+		CompositeBrick composite = (CompositeBrick) parent;
+		for (Brick child : composite.getNestedBricks()) {
+			if (child == target || containsBrick(child, target)) return true;
+		}
+		if (composite.hasSecondaryList()) {
+			for (Brick child : composite.getSecondaryNestedBricks()) {
+				if (child == target || containsBrick(child, target)) return true;
+			}
+		}
+		return false;
 	}
 
 	private void toggleProjectProtection() {

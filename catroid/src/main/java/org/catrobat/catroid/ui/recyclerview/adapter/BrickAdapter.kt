@@ -228,7 +228,12 @@ class BrickAdapter(val sprite: Sprite) :
                 } else {
                     convertView
                 }
-            } else item.getView(parent.context)
+            } else try {
+                item.getView(parent.context)
+            } catch (e: Exception) {
+                Log.e("BrickAdapter", "Failed to render ${item.javaClass.name}", e)
+                createUnknownView(item.javaClass.name, parent)
+            }
 
         clearHighlights(itemView as ViewGroup)
 

@@ -6,6 +6,7 @@ import android.view.animation.DecelerateInterpolator
 import android.widget.BaseAdapter
 import android.widget.LinearLayout
 import org.catrobat.catroid.content.bricks.Brick
+import org.catrobat.catroid.R
 import org.catrobat.catroid.ui.recyclerview.util.IndentedBrickLayout
 
 class PrototypeBrickAdapter(private var brickList: List<Brick>) : BaseAdapter() {
@@ -27,14 +28,28 @@ class PrototypeBrickAdapter(private var brickList: List<Brick>) : BaseAdapter() 
 
         var cachedView = viewCache[cacheKey]
         if (cachedView == null) {
-            cachedView = brick.getPrototypeView(parent?.context)
+            cachedView = try {
+                brick.getPrototypeView(parent?.context)
+            } catch (e: Exception) {
+                android.util.Log.e("PrototypeBrickAdapter", "Failed to render ${brick.javaClass.name}", e)
+                parent?.let {
+                    android.view.LayoutInflater.from(it.context).inflate(R.layout.brick_none, it, false)
+                }
+            }
             if (cachedView != null) {
                 viewCache[cacheKey] = cachedView
             }
         } else {
             val cachedParent = cachedView.parent
             if (cachedParent is android.widget.AdapterView<*>) {
-                cachedView = brick.getPrototypeView(parent?.context)
+                cachedView = try {
+                    brick.getPrototypeView(parent?.context)
+                } catch (e: Exception) {
+                    android.util.Log.e("PrototypeBrickAdapter", "Failed to render ${brick.javaClass.name}", e)
+                    parent?.let {
+                        android.view.LayoutInflater.from(it.context).inflate(R.layout.brick_none, it, false)
+                    }
+                }
                 if (cachedView != null) {
                     viewCache[cacheKey] = cachedView
                 }
