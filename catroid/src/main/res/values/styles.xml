@@ -22,7 +22,7 @@
   -->
 <resources xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">
 
-    <style name="Catroid" parent="Theme.MaterialComponents.NoActionBar.Bridge">
+    <style name="Catroid" parent="Theme.MaterialComponents.DayNight.NoActionBar">
 
         <item name="alertDialogTheme">@style/Theme.NeoCatroid.Dialog</item>
         <item name="materialAlertDialogTheme">@style/Theme.NeoCatroid.Dialog</item>
@@ -100,12 +100,7 @@
         <item name="android:fastScrollTrackDrawable">@null</item>
     </style>
 
-    <style name="Ui2Activity" parent="Theme.AppCompat.DayNight.NoActionBar">
-        <item name="android:windowBackground">@color/app_background</item>
-        <item name="colorAccent">@color/accent</item>
-        <item name="android:colorAccent">@color/accent</item>
-        <item name="android:fontFamily">@string/sans_serif_font</item>
-    </style>
+    <style name="Ui2Activity" parent="Catroid" />
 
     <!-- Toolbar -->
     <style name="ToolbarTitle" parent="TextAppearance.Widget.AppCompat.Toolbar.Title">

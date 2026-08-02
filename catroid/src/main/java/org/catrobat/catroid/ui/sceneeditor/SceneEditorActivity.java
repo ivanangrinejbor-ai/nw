@@ -114,6 +114,7 @@ public class SceneEditorActivity extends AppCompatActivity implements SceneEdito
 	private Scene scene;
 	private Project project;
 	private Sprite paintTargetSprite;
+	private LookData paintTargetLook;
 	private Sprite pendingLookSprite;
 	private Sprite pendingSoundSprite;
 	private Sprite pendingTilemapSprite;
@@ -608,6 +609,7 @@ public class SceneEditorActivity extends AppCompatActivity implements SceneEdito
 				textL.addView(nameTv);
 
 				card.addView(textL);
+				card.setOnClickListener(v -> startPocketPaintForLook(targetSprite, look));
 				card.setOnLongClickListener(v -> {
 					String[] options = {"🗑️ Удалить образ"};
 					new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
@@ -710,7 +712,7 @@ public class SceneEditorActivity extends AppCompatActivity implements SceneEdito
 					pendingLookSprite = targetSprite;
 					try {
 						if (which == 0) {
-							onObjectPaintRequested(targetSprite);
+							startPocketPaintForNewLook(targetSprite);
 						} else if (which == 1) {
 							Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT)
 									.setType("image/*")
@@ -1199,6 +1201,7 @@ public class SceneEditorActivity extends AppCompatActivity implements SceneEdito
 					Math.max(1, bounds[0] * widthPercent / 100f),
 					Math.max(1, bounds[1] * heightPercent / 100f));
 			object.bitmap = bitmap;
+			object.isBackground = sprite == scene.getBackgroundSprite();
 			sceneObjects.add(object);
 			if (sprite == scene.getBackgroundSprite()) {
 				background = bitmap;
@@ -1359,12 +1362,46 @@ public class SceneEditorActivity extends AppCompatActivity implements SceneEdito
 
 	@Override
 	public void onObjectPaintRequested(Sprite sprite) {
-		paintTargetSprite = sprite;
+		startPocketPaintForLook(sprite, firstLook(sprite));
 		try {
 			new ImportFromPocketPaintLauncher(this).startActivityForResult(REQUEST_POCKET_PAINT_LOOK);
 		} catch (Exception e) {
 			paintTargetSprite = null;
 			Toast.makeText(this, "Pocket Paint недоступен на этом устройстве", Toast.LENGTH_LONG).show();
+		}
+	}
+
+	private LookData firstLook(Sprite sprite) {
+		if (sprite == null || sprite.getLookList().isEmpty()) return null;
+		return sprite.getLookList().get(0);
+	}
+
+	private void startPocketPaintForNewLook(Sprite sprite) {
+		paintTargetSprite = sprite;
+		paintTargetLook = null;
+		try {
+			new ImportFromPocketPaintLauncher(this).startActivityForResult(REQUEST_POCKET_PAINT_LOOK);
+		} catch (Exception e) {
+			paintTargetSprite = null;
+			paintTargetLook = null;
+			Toast.makeText(this, "Не удалось открыть Pocket Paint", Toast.LENGTH_LONG).show();
+		}
+	}
+
+	private void startPocketPaintForLook(Sprite sprite, LookData look) {
+		if (sprite == null || look == null || look.getFile() == null || !look.getFile().isFile()) {
+			Toast.makeText(this, "У объекта нет доступного образа для редактирования", Toast.LENGTH_LONG).show();
+			return;
+		}
+		paintTargetSprite = sprite;
+		paintTargetLook = look;
+		try {
+			new ImportFromPocketPaintLauncher(this).startActivityForExistingImage(
+					look.getFile(), REQUEST_POCKET_PAINT_LOOK);
+		} catch (Exception e) {
+			paintTargetSprite = null;
+			paintTargetLook = null;
+			Toast.makeText(this, "Не удалось открыть образ в Pocket Paint", Toast.LENGTH_LONG).show();
 		}
 	}
 
@@ -1447,6 +1484,18 @@ public class SceneEditorActivity extends AppCompatActivity implements SceneEdito
 		if (requestCode == REQUEST_POCKET_PAINT_LOOK && resultCode == RESULT_OK && paintTargetSprite != null) {
 			try {
 				Uri uri = new ImportFromPocketPaintLauncher(this).getPocketPaintCacheUri();
+				if (paintTargetLook != null && paintTargetLook.getFile() != null) {
+					File editedFile = paintTargetLook.getFile();
+					StorageOperations.copyUriToDir(getContentResolver(), uri,
+							editedFile.getParentFile(), editedFile.getName());
+					paintTargetLook.getCollisionInformation().calculate();
+					refreshAfterModelChange();
+					persistProjectAsync();
+					Toast.makeText(this, "Образ обновлён!", Toast.LENGTH_SHORT).show();
+					paintTargetLook = null;
+					paintTargetSprite = null;
+					return;
+				}
 				if (uri == null) throw new IOException("Изображение Pocket Paint не найдено");
 				String name = new UniqueNameProvider().getUniqueNameInNameables(
 						paintTargetSprite.getName() + "_paint", paintTargetSprite.getLookList());
@@ -1466,6 +1515,7 @@ public class SceneEditorActivity extends AppCompatActivity implements SceneEdito
 				Toast.makeText(this, "Не удалось добавить образ", Toast.LENGTH_SHORT).show();
 			}
 			paintTargetSprite = null;
+			paintTargetLook = null;
 		}
 	}
 

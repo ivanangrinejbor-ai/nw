@@ -270,6 +270,7 @@ public class ScriptCanvasActivity extends AppCompatActivity {
 		try {
 			bricks = new CategoryBricksFactory().getBricks(getString(categoryRes), isBackground, this);
 		} catch (Exception e) {
+			android.util.Log.e("ScriptCanvasActivity", "Failed to load UI 2.0 brick palette", e);
 			return;
 		}
 
@@ -308,7 +309,9 @@ public class ScriptCanvasActivity extends AppCompatActivity {
 								.translationY(0f)
 								.setDuration(180)
 								.start();
-					} catch (Exception ignored) {
+					} catch (Exception e) {
+						android.util.Log.e("ScriptCanvasActivity", "Failed to render palette brick "
+								+ brick.getClass().getName(), e);
 					}
 				}
 				currentIndex = limit;
@@ -328,6 +331,8 @@ public class ScriptCanvasActivity extends AppCompatActivity {
 		try {
 			ghost = prototype.getPrototypeView(this);
 		} catch (Exception e) {
+			android.util.Log.e("ScriptCanvasActivity", "Failed to create drag preview for "
+					+ prototype.getClass().getName(), e);
 			return;
 		}
 		ghost.setAlpha(0.85f);

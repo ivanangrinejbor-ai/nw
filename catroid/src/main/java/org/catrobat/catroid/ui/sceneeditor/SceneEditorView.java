@@ -44,6 +44,7 @@ public class SceneEditorView extends View {
 	public static class SceneObject {
 		public final Sprite sprite;
 		public volatile Bitmap bitmap;
+		public boolean isBackground;
 		public float x;
 		public float y;
 		public float widthUnits;
@@ -350,15 +351,18 @@ public class SceneEditorView extends View {
 	}
 
 	private void drawObject(Canvas canvas, SceneObject object, boolean selected) {
+		if (object.isBackground && !selected) {
+			return;
+		}
 		float cx = sceneToScreenX(object.x);
 		float cy = sceneToScreenY(object.y);
 		float halfW = halfWidthPx(object);
 		float halfH = halfHeightPx(object);
 		rect.set(cx - halfW, cy - halfH, cx + halfW, cy + halfH);
 		Bitmap bitmap = object.bitmap;
-		if (bitmap != null && !bitmap.isRecycled()) {
+		if (!object.isBackground && bitmap != null && !bitmap.isRecycled()) {
 			canvas.drawBitmap(bitmap, null, rect, imagePaint);
-		} else {
+		} else if (!object.isBackground) {
 			canvas.drawRect(rect, placeholderPaint);
 		}
 		canvas.drawRect(rect, selected ? selectedPaint : borderPaint);

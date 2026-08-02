@@ -87,12 +87,26 @@ class ImportFromPocketPaintLauncher(private val activity: Activity) : ImportLaun
     }
 
     override fun startActivityForResult(requestCode: Int) {
+        startActivityWithImage(createEmptyImageFile(), requestCode)
+    }
+
+    fun startActivityForExistingImage(imageFile: File, requestCode: Int) {
+        require(imageFile.isFile) { "Pocket Paint source image does not exist: ${imageFile.absolutePath}" }
+        val cacheFile = File(POCKET_PAINT_CACHE_DIRECTORY, pocketPaintImageFileName)
+        POCKET_PAINT_CACHE_DIRECTORY.mkdirs()
+        if (imageFile.canonicalFile != cacheFile.canonicalFile) {
+            imageFile.copyTo(cacheFile, overwrite = true)
+        }
+        startActivityWithImage(cacheFile, requestCode)
+    }
+
+    private fun startActivityWithImage(imageFile: File, requestCode: Int) {
         val intent = Intent("android.intent.action.MAIN")
             .setComponent(ComponentName(activity, POCKET_PAINT_INTENT_ACTIVITY_NAME))
 
         val bundle = Bundle()
 
-        bundle.putString(EXTRA_PICTURE_PATH_POCKET_PAINT, createEmptyImageFile().absolutePath)
+        bundle.putString(EXTRA_PICTURE_PATH_POCKET_PAINT, imageFile.absolutePath)
         intent.putExtras(bundle)
 
         intent.addCategory("android.intent.category.LAUNCHER")

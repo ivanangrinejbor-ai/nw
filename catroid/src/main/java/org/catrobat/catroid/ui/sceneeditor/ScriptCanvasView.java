@@ -29,6 +29,7 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
@@ -94,6 +95,7 @@ public class ScriptCanvasView extends FrameLayout {
 	private static final int MAX_UNDO_STEPS = 30;
 	private final Deque<List<Script>> undoStack = new ArrayDeque<>();
 	private final Deque<List<Script>> redoStack = new ArrayDeque<>();
+	private boolean rebuildPosted;
 	public interface UndoRedoListener { void onUndoRedoChanged(); }
 	public interface ContentChangedListener { void onContentChanged(); }
 	private UndoRedoListener undoRedoListener;
@@ -180,6 +182,7 @@ public class ScriptCanvasView extends FrameLayout {
 			try {
 				brickView = brick.getView(getContext());
 			} catch (Exception e) {
+				Log.e("ScriptCanvasView", "Failed to render brick " + brick.getClass().getName(), e);
 				TextView fallback = new TextView(getContext());
 				fallback.setText("? " + brick.getClass().getSimpleName());
 				fallback.setTextColor(0xFFF8FAFC);
@@ -214,6 +217,15 @@ public class ScriptCanvasView extends FrameLayout {
 		applyTransform();
 		autoSave();
 		notifyContentChanged();
+	}
+
+	private void rebuildDeferred() {
+		if (rebuildPosted) return;
+		rebuildPosted = true;
+		post(() -> {
+			rebuildPosted = false;
+			if (isAttachedToWindow()) rebuild();
+		});
 	}
 
 	private void autoSave() {
@@ -259,7 +271,7 @@ public class ScriptCanvasView extends FrameLayout {
 		List<Script> current = snapshotScripts();
 		redoStack.push(current);
 		restoreFromSnapshot(undoStack.pop());
-		rebuild();
+		rebuildDeferred();
 		autoSave();
 		notifyUndoRedo();
 	}
@@ -314,7 +326,7 @@ public class ScriptCanvasView extends FrameLayout {
 			newScript.setPosY(worldY);
 			sprite.addScript(newScript);
 			newScript.setParents();
-			rebuild();
+			rebuildDeferred();
 			return true;
 		}
 		View stackView = findStackViewAtWorld(worldX, worldY);
@@ -330,7 +342,7 @@ public class ScriptCanvasView extends FrameLayout {
 			sprite.addScript(script);
 			script.setParents();
 		}
-		rebuild();
+		rebuildDeferred();
 		return true;
 	}
 
@@ -583,7 +595,7 @@ public class ScriptCanvasView extends FrameLayout {
 			insertBrickIntoScript(script, targetBrick, moving);
 			script.setParents();
 		}
-		rebuild();
+		rebuildDeferred();
 	}
 
 	private boolean removeBrickRecursive(List<Brick> list, Brick target) {
@@ -707,7 +719,7 @@ public class ScriptCanvasView extends FrameLayout {
 								script.setPosX(startPosX);
 								script.setPosY(startPosY);
 							}
-							rebuild();
+							rebuildDeferred();
 						} else {
 							if (event.getActionMasked() == MotionEvent.ACTION_UP) {
 								dropBlockGhost(event.getRawX(), event.getRawY());
@@ -953,7 +965,7 @@ public class ScriptCanvasView extends FrameLayout {
 		if (index < 0 || target < 0 || target >= scripts.size()) return;
 		snapshot();
 		java.util.Collections.swap(scripts, index, target);
-		rebuild();
+		rebuildDeferred();
 	}
 
 	private void toggleProjectProtection() {
@@ -984,7 +996,7 @@ public class ScriptCanvasView extends FrameLayout {
 			if (brick != null) {
 				brick.setCommentedOut(!brick.isCommentedOut());
 				script.setParents();
-				rebuild();
+				rebuildDeferred();
 				return;
 			}
 			List<Brick> parentList = findListContainingBrick(script, brick);
