@@ -70,6 +70,16 @@ public class ScriptCanvasActivity extends AppCompatActivity {
 	private boolean paletteBuilt;
 
 	@Override
+	protected void onStop() {
+		// Runtime can be launched immediately after leaving the UI 2.0 editor.
+		// Finish the queued write here so newly attached blocks are not lost.
+		if (project != null) {
+			ProjectSaveCoordinator.saveBlocking(project);
+		}
+		super.onStop();
+	}
+
+	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_script_canvas);

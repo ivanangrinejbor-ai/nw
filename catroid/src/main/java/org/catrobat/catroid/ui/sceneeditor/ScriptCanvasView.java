@@ -35,6 +35,7 @@ import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
@@ -52,7 +53,10 @@ import org.catrobat.catroid.content.Sprite;
 import org.catrobat.catroid.content.StartScript;
 import org.catrobat.catroid.content.bricks.Brick;
 import org.catrobat.catroid.content.bricks.CompositeBrick;
+import org.catrobat.catroid.content.bricks.ElseIfBrick;
+import org.catrobat.catroid.content.bricks.EndBrick;
 import org.catrobat.catroid.content.bricks.FormulaBrick;
+import org.catrobat.catroid.content.bricks.IfLogicBeginBrick;
 import org.catrobat.catroid.content.bricks.NoteBrick;
 import org.catrobat.catroid.content.bricks.ScriptBrick;
 import org.catrobat.catroid.content.bricks.VisualPlacementBrick;
@@ -91,6 +95,22 @@ public class ScriptCanvasView extends FrameLayout {
 	private View blockGhost;
 	private Brick draggingBrick;
 	private View connectionHighlight;
+	private DetachedBrick draggingDetachedBrick;
+	private final List<View> hiddenDragViews = new ArrayList<>();
+	private Brick animateNextBrick;
+	private final List<DetachedBrick> detachedBricks = new ArrayList<>();
+
+	private static final class DetachedBrick {
+		final Brick brick;
+		float x;
+		float y;
+
+		DetachedBrick(Brick brick, float x, float y) {
+			this.brick = brick;
+			this.x = x;
+			this.y = y;
+		}
+	}
 
 	// ─── Undo / Redo ──────────────────────────────────────────────────────────
 	private static final int MAX_UNDO_STEPS = 30;
@@ -135,8 +155,10 @@ public class ScriptCanvasView extends FrameLayout {
 
 	public void setSprite(Sprite sprite) {
 		this.sprite = sprite;
+		detachedBricks.clear();
 		buildStacks();
 		addNoteViews();
+		addDetachedViews();
 	}
 
 	private void buildStacks() {
@@ -204,6 +226,7 @@ public class ScriptCanvasView extends FrameLayout {
 			LinearLayout.LayoutParams brickParams = new LinearLayout.LayoutParams(
 					LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
 			stack.addView(brickView, brickParams);
+			animateInsertedBrick(brickView, brick);
 		}
 
 		LayoutParams params = new LayoutParams(stackWidth, LayoutParams.WRAP_CONTENT);
@@ -214,12 +237,38 @@ public class ScriptCanvasView extends FrameLayout {
 		return stack;
 	}
 
+	private void addDetachedViews() {
+		for (DetachedBrick detached : new ArrayList<>(detachedBricks)) {
+			View brickView;
+			try {
+				brickView = detached.brick.getView(getContext());
+			} catch (Exception e) {
+				Log.e("ScriptCanvasView", "Failed to render detached brick", e);
+				continue;
+			}
+			brickView.setTag(detached.brick);
+			BrickTouchDragListener dragListener =
+					new BrickTouchDragListener(null, detached, detached.brick, brickView, world);
+			wireFormulaFields(detached.brick, brickView);
+			brickView.setOnTouchListener(dragListener);
+			wireDragToChildren(brickView, dragListener);
+			LayoutParams params = new LayoutParams(
+					Math.max(dp(420), LayoutParams.WRAP_CONTENT), LayoutParams.WRAP_CONTENT);
+			params.leftMargin = Math.round(detached.x);
+			params.topMargin = Math.round(detached.y);
+			world.addView(brickView, params);
+			animateInsertedBrick(brickView, detached.brick);
+		}
+	}
+
 	public void rebuild() {
 		clearConnectionHighlight();
 		world.removeAllViews();
 		buildStacks();
 		addNoteViews();
+		addDetachedViews();
 		applyTransform();
+		animateNextBrick = null;
 		autoSave();
 		notifyContentChanged();
 	}
@@ -334,23 +383,83 @@ public class ScriptCanvasView extends FrameLayout {
 			rebuildDeferred();
 			return true;
 		}
-		// A palette block is initially an independent stack.  It must not be
-		// silently inserted into the nearest stack: the user decides where it
-		// belongs by dragging it afterwards.
-		StartScript script = new StartScript();
-		script.setPosX(worldX);
-		script.setPosY(worldY);
-		script.addBrick(clone);
-		sprite.addScript(script);
-		script.setParents();
+		// A normal palette block is a canvas-only object until the user connects
+		// it to a script.  Wrapping it in StartScript would make it executable
+		// immediately and would leave a phantom block on scene start.
+		float[] freePosition = findFreeDetachedPosition(worldX, worldY);
+		detachedBricks.add(new DetachedBrick(clone, freePosition[0], freePosition[1]));
 		rebuildDeferred();
 		return true;
+	}
+
+	private float[] findFreeDetachedPosition(float requestedX, float requestedY) {
+		float width = dp(420);
+		float height = dp(112);
+		float centerX = Math.max(dp(16), (getWidth() / 2f - panX) / scale - width / 2f);
+		float centerY = Math.max(dp(16), (getHeight() / 2f - panY) / scale - height / 2f);
+		float startX = Math.max(dp(16), requestedX - width / 2f);
+		float startY = Math.max(dp(16), requestedY - dp(20));
+		for (int radius = 0; radius < 12; radius++) {
+			for (int dy = -radius; dy <= radius; dy++) {
+				for (int dx = -radius; dx <= radius; dx++) {
+					float x = radius == 0 ? startX : centerX + dx * width * 0.55f;
+					float y = radius == 0 ? startY : centerY + dy * height * 1.25f;
+					if (x >= 0 && y >= 0 && !positionOverlapsContent(x, y, width, height)) {
+						return new float[]{x, y};
+					}
+				}
+			}
+		}
+		return new float[]{startX, startY};
+	}
+
+	private boolean positionOverlapsContent(float x, float y, float width, float height) {
+		for (int i = 0; i < world.getChildCount(); i++) {
+			View child = world.getChildAt(i);
+			if (!(child.getTag() instanceof Script)) continue;
+			float childRight = child.getLeft() + Math.max(child.getWidth(), dp(420));
+			float childBottom = child.getTop() + Math.max(child.getHeight(), dp(112));
+			if (x < childRight && x + width > child.getLeft()
+					&& y < childBottom && y + height > child.getTop()) return true;
+		}
+		for (DetachedBrick detached : detachedBricks) {
+			if (x < detached.x + width && x + width > detached.x
+					&& y < detached.y + height && y + height > detached.y) return true;
+		}
+		return false;
 	}
 
 	private void insertBrickIntoScript(Script script, Brick targetBrick, Brick clone) {
 		if (targetBrick == null || targetBrick instanceof ScriptBrick) {
 			script.addBrick(0, clone);
 			return;
+		}
+		if (targetBrick instanceof CompositeBrick) {
+			List<Brick> nested = ((CompositeBrick) targetBrick).getNestedBricks();
+			if (nested != null) {
+				nested.add(0, clone);
+				return;
+			}
+		}
+		if (targetBrick instanceof EndBrick && targetBrick.getParent() instanceof CompositeBrick) {
+			// The end marker is the drop zone after the whole control structure.
+			// Inserting into its parent container here would make the new block
+			// execute inside Forever/Repeat instead of after the end marker.
+			Brick container = targetBrick.getParent();
+			List<Brick> parentList = findListContainingBrick(script, container);
+			if (parentList != null) {
+				int index = parentList.indexOf(container);
+				parentList.add(index < 0 ? parentList.size() : index + 1, clone);
+				return;
+			}
+		}
+		if (targetBrick instanceof IfLogicBeginBrick.ElseBrick
+				|| targetBrick instanceof ElseIfBrick) {
+			List<Brick> branch = targetBrick.getDragAndDropTargetList();
+			if (branch != null) {
+				branch.add(0, clone);
+				return;
+			}
 		}
 		List<Brick> list = findListContainingBrick(script, targetBrick);
 		if (list == null) {
@@ -435,6 +544,12 @@ public class ScriptCanvasView extends FrameLayout {
 	private void deleteBrick(Brick brick) {
 		removeBlockBadge();
 		snapshot();
+		DetachedBrick detached = findDetachedBrick(brick);
+		if (detached != null) {
+			detachedBricks.remove(detached);
+			rebuild();
+			return;
+		}
 		if (brick instanceof ScriptBrick) {
 			sprite.getScriptList().remove(((ScriptBrick) brick).getScript());
 		} else {
@@ -510,7 +625,7 @@ public class ScriptCanvasView extends FrameLayout {
 				case MotionEvent.ACTION_MOVE:
 					if (!dragging) {
 						dragging = true;
-						startBlockDrag(brick);
+						startBlockDrag(brick, findDetachedBrick(brick));
 					}
 					moveBlockGhost(event.getRawX(), event.getRawY());
 					return true;
@@ -529,18 +644,30 @@ public class ScriptCanvasView extends FrameLayout {
 	}
 
 	private void startBlockDrag(Brick brick) {
+		startBlockDrag(brick, null);
+	}
+
+	private void startBlockDrag(Brick brick, DetachedBrick detached) {
 		draggingBrick = brick;
+		draggingDetachedBrick = detached;
 		View ghost;
 		try {
 			ghost = brick.getPrototypeView(getContext());
 		} catch (Exception e) {
 			Log.e("ScriptCanvasView", "Failed to create block drag preview", e);
 			draggingBrick = null;
+			draggingDetachedBrick = null;
 			return;
 		}
 		ghost.setAlpha(0.85f);
+		ghost.setScaleX(0.92f);
+		ghost.setScaleY(0.92f);
 		blockGhost = ghost;
+		hideMovingViews(brick, detached);
 		addView(ghost, new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+		ghost.animate().scaleX(1.04f).scaleY(1.04f).setDuration(140)
+				.withEndAction(() -> ghost.animate().scaleX(1f).scaleY(1f).setDuration(100).start())
+				.start();
 	}
 
 	private void moveBlockGhost(float rawX, float rawY) {
@@ -553,7 +680,67 @@ public class ScriptCanvasView extends FrameLayout {
 		params.leftMargin = Math.round(rawX - location[0] - dp(20));
 		params.topMargin = Math.round(rawY - location[1] - dp(12));
 		blockGhost.setLayoutParams(params);
+		autoScrollWhileDragging(rawX, rawY);
 		updateConnectionHighlight(rawX, rawY);
+	}
+
+	private void hideMovingViews(Brick moving, DetachedBrick detached) {
+		hiddenDragViews.clear();
+		if (detached != null) {
+			View source = findViewWithTag(world, moving);
+			if (source != null) {
+				source.setAlpha(0.12f);
+				hiddenDragViews.add(source);
+			}
+			return;
+		}
+		collectMovingViews(world, moving);
+	}
+
+	private void collectMovingViews(ViewGroup parent, Brick moving) {
+		for (int i = 0; i < parent.getChildCount(); i++) {
+			View child = parent.getChildAt(i);
+			Object tag = child.getTag();
+			if (tag instanceof Brick && (tag == moving || containsBrick(moving, (Brick) tag))) {
+				child.setAlpha(0.12f);
+				hiddenDragViews.add(child);
+			}
+			if (child instanceof ViewGroup) {
+				collectMovingViews((ViewGroup) child, moving);
+			}
+		}
+	}
+
+	private View findViewWithTag(ViewGroup parent, Object tag) {
+		for (int i = 0; i < parent.getChildCount(); i++) {
+			View child = parent.getChildAt(i);
+			if (child.getTag() == tag) return child;
+			if (child instanceof ViewGroup) {
+				View result = findViewWithTag((ViewGroup) child, tag);
+				if (result != null) return result;
+			}
+		}
+		return null;
+	}
+
+	private void autoScrollWhileDragging(float rawX, float rawY) {
+		int[] location = new int[2];
+		getLocationOnScreen(location);
+		float x = rawX - location[0];
+		float y = rawY - location[1];
+		float edge = dp(72);
+		float step = dp(14);
+		float dx = 0f;
+		float dy = 0f;
+		if (x >= 0f && x < edge) dx = step * (1f - x / edge);
+		else if (x > getWidth() - edge && x <= getWidth()) dx = -step * (1f - (getWidth() - x) / edge);
+		if (y >= 0f && y < edge) dy = step * (1f - y / edge);
+		else if (y > getHeight() - edge && y <= getHeight()) dy = -step * (1f - (getHeight() - y) / edge);
+		if (dx != 0f || dy != 0f) {
+			panX += dx;
+			panY += dy;
+			applyTransform();
+		}
 	}
 
 	private void updateConnectionHighlight(float rawX, float rawY) {
@@ -599,6 +786,13 @@ public class ScriptCanvasView extends FrameLayout {
 		params.topMargin = top;
 		connectionHighlight = highlight;
 		world.addView(highlight, params);
+		highlight.setAlpha(0.45f);
+		highlight.animate().alpha(1f).setDuration(260)
+				.withEndAction(() -> {
+					if (connectionHighlight == highlight) {
+						highlight.animate().alpha(0.5f).setDuration(420).start();
+					}
+				}).start();
 	}
 
 	private View findBrickView(View stackView, Brick target) {
@@ -625,11 +819,24 @@ public class ScriptCanvasView extends FrameLayout {
 			removeView(blockGhost);
 			blockGhost = null;
 		}
+		for (View view : hiddenDragViews) {
+			view.setAlpha(1f);
+		}
+		hiddenDragViews.clear();
 		draggingBrick = null;
+		draggingDetachedBrick = null;
+	}
+
+	private DetachedBrick findDetachedBrick(Brick brick) {
+		for (DetachedBrick detached : detachedBricks) {
+			if (detached.brick == brick) return detached;
+		}
+		return null;
 	}
 
 	private void dropBlockGhost(float rawX, float rawY) {
 		Brick moving = draggingBrick;
+		DetachedBrick sourceDetached = draggingDetachedBrick;
 		removeBlockGhost();
 		if (moving == null || sprite == null) {
 			return;
@@ -651,23 +858,31 @@ public class ScriptCanvasView extends FrameLayout {
 			return;
 		}
 		snapshot();
+		if (sourceDetached != null) {
+			detachedBricks.remove(sourceDetached);
+		}
 		for (Script s : sprite.getScriptList()) {
 			if (removeBrickRecursive(s.getBrickList(), moving)) {
 				break;
 			}
 		}
 		if (script == null) {
-			StartScript newScript = new StartScript();
-			newScript.setPosX(worldX);
-			newScript.setPosY(worldY);
-			newScript.addBrick(moving);
-			sprite.addScript(newScript);
-			newScript.setParents();
+			// Releasing away from a stack keeps the block detached.  It is
+			// visible on the canvas, but it is not part of the project runtime.
+			detachedBricks.add(new DetachedBrick(moving, worldX, worldY));
 		} else {
 			insertBrickIntoScript(script, targetBrick, moving);
 			script.setParents();
 		}
+		animateNextBrick = moving;
 		rebuildDeferred();
+	}
+
+	private void animateInsertedBrick(View view, Brick brick) {
+		if (brick != animateNextBrick) return;
+		view.setAlpha(0f);
+		view.setTranslationY(-dp(14));
+		view.animate().alpha(1f).translationY(0f).setDuration(180).start();
 	}
 
 	private boolean removeBrickRecursive(List<Brick> list, Brick target) {
@@ -713,6 +928,7 @@ public class ScriptCanvasView extends FrameLayout {
 
 	private class BrickTouchDragListener implements OnTouchListener {
 		private final Script script;
+		private final DetachedBrick detached;
 		private final Brick brick;
 		private final View brickView;
 		private final View stackView;
@@ -733,13 +949,18 @@ public class ScriptCanvasView extends FrameLayout {
 				} else {
 					isEventHeader = false;
 					brickView.performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS);
-					startBlockDrag(brick);
+					startBlockDrag(brick, detached);
 				}
 			}
 		};
 
 		BrickTouchDragListener(Script script, Brick brick, View brickView, View stackView) {
+			this(script, null, brick, brickView, stackView);
+		}
+
+		BrickTouchDragListener(Script script, DetachedBrick detached, Brick brick, View brickView, View stackView) {
 			this.script = script;
+			this.detached = detached;
 			this.brick = brick;
 			this.brickView = brickView;
 			this.stackView = stackView;
@@ -755,8 +976,8 @@ public class ScriptCanvasView extends FrameLayout {
 				case MotionEvent.ACTION_DOWN:
 					downRawX = event.getRawX();
 					downRawY = event.getRawY();
-					startPosX = script.getPosX();
-					startPosY = script.getPosY();
+					startPosX = script != null ? script.getPosX() : detached.x;
+					startPosY = script != null ? script.getPosY() : detached.y;
 					isLongPressed = false;
 					handler.postDelayed(longPressRunnable, 350);
 					return true;
@@ -768,7 +989,7 @@ public class ScriptCanvasView extends FrameLayout {
 						handler.removeCallbacks(longPressRunnable);
 					}
 					if (isLongPressed) {
-					if (isEventHeader) {
+					if (isEventHeader && script != null) {
 						float newX = startPosX + dx / scale;
 						float newY = startPosY + dy / scale;
 						script.setPosX(newX);
@@ -790,7 +1011,7 @@ public class ScriptCanvasView extends FrameLayout {
 				case MotionEvent.ACTION_CANCEL:
 					handler.removeCallbacks(longPressRunnable);
 					if (isLongPressed) {
-						if (isEventHeader) {
+						if (isEventHeader && script != null) {
 							if (event.getActionMasked() == MotionEvent.ACTION_CANCEL) {
 								script.setPosX(startPosX);
 								script.setPosY(startPosY);
