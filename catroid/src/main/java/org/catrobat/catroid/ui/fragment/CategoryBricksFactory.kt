@@ -3122,7 +3122,7 @@ void main() {
         threedBrickList.add(CreateParticlesBrick("particles"))
         threedBrickList.add(SetParticleEmissionBrick("particles", 10f))
         threedBrickList.add(DeleteParticlesBrick("particles"))
-        threedBrickList.add(Replace3DModelBrick("myObject", "weapon.glb"))
+        threedBrickList.add(Replace3DModelBrick("myObject", "weapon.obj"))
         threedBrickList.add(ObjectLookAtCorrectBrick("myObject", 0.0, 0.0, 0.0))
         threedBrickList.add(Ease3DPropertyBrick(Formula("myObject"), 0, 0, Formula(0), Formula(10), Formula(0.1)))
         threedBrickList.add(ConfigureLightBrick("sun", 0, "5.0"))

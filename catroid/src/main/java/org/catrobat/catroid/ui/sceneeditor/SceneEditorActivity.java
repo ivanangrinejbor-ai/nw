@@ -55,9 +55,10 @@ import org.catrobat.catroid.content.Sprite;
 import org.catrobat.catroid.content.StartScript;
 import org.catrobat.catroid.content.bricks.Brick;
 import org.catrobat.catroid.content.bricks.PlaceAtBrick;
+import org.catrobat.catroid.content.bricks.SetWidthBrick;
+import org.catrobat.catroid.content.bricks.SetHeightBrick;
 import org.catrobat.catroid.formulaeditor.Formula;
 import org.catrobat.catroid.io.StorageOperations;
-import org.catrobat.catroid.io.XstreamSerializer;
 import org.catrobat.catroid.stage.StageActivity;
 import org.catrobat.catroid.ui.ImportFromPocketPaintLauncher;
 import org.catrobat.catroid.ui.ImportFromCameraLauncher;
@@ -115,6 +116,7 @@ public class SceneEditorActivity extends AppCompatActivity implements SceneEdito
 	private Sprite paintTargetSprite;
 	private Sprite pendingLookSprite;
 	private Sprite pendingSoundSprite;
+	private Sprite pendingTilemapSprite;
 	private boolean initialResumeConsumed = false;
 
 	@Override
@@ -140,14 +142,20 @@ public class SceneEditorActivity extends AppCompatActivity implements SceneEdito
 
 		project = ProjectManager.getInstance().getCurrentProject();
 		scene = ProjectManager.getInstance().getCurrentlyEditedScene();
+		if (scene == null && project != null) {
+			scene = project.getDefaultScene();
+			ProjectManager.getInstance().setCurrentlyEditedScene(scene);
+		}
 		if (project == null || scene == null) {
 			finish();
 			return;
 		}
 
 		title.setText(getString(R.string.scene_editor_title) + ": " + scene.getName());
-		canvas.setVirtualSize(project.getXmlHeader().getVirtualScreenWidth(),
-				project.getXmlHeader().getVirtualScreenHeight());
+		if (project.getXmlHeader() != null) {
+			canvas.setVirtualSize(project.getXmlHeader().getVirtualScreenWidth(),
+					project.getXmlHeader().getVirtualScreenHeight());
+		}
 		canvas.setListener(this);
 		refreshObjects(true);
 
@@ -233,7 +241,9 @@ public class SceneEditorActivity extends AppCompatActivity implements SceneEdito
 		org.catrobat.catroid.content.GlobalManager.setStopSounds(false);
 		new Thread(() -> {
 			try {
-				XstreamSerializer.getInstance().saveProject(project);
+				if (!ProjectSaveCoordinator.saveBlocking(project)) {
+					throw new IllegalStateException("Project save failed");
+				}
 				runOnUiThread(() -> {
 					Intent intent = new Intent(this, StageActivity.class);
 					startActivityForResult(intent, StageActivity.REQUEST_START_STAGE);
@@ -718,6 +728,47 @@ public class SceneEditorActivity extends AppCompatActivity implements SceneEdito
 				.show();
 	}
 
+	@Override
+	public void onObjectResized(Sprite sprite, int width, int height) {
+		if (sprite == null || sprite.getLookList().isEmpty()) return;
+		String lookPath = firstLookPath(sprite);
+		int[] natural = lookPath == null ? new int[] {1, 1} : readImageBounds(lookPath);
+		float widthPercent = Math.max(1f, width * 100f / Math.max(1, natural[0]));
+		float heightPercent = Math.max(1f, height * 100f / Math.max(1, natural[1]));
+		SetWidthBrick widthBrick = null;
+		SetHeightBrick heightBrick = null;
+		for (Script script : sprite.getScriptList()) {
+			for (Brick brick : script.getBrickList()) {
+				if (brick instanceof SetWidthBrick) widthBrick = (SetWidthBrick) brick;
+				if (brick instanceof SetHeightBrick) heightBrick = (SetHeightBrick) brick;
+			}
+		}
+		Script script = null;
+		for (Script candidate : sprite.getScriptList()) {
+			if (candidate instanceof StartScript) {
+				script = candidate;
+				break;
+			}
+		}
+		if (script == null) {
+			script = new StartScript();
+			sprite.addScript(script);
+		}
+		if (widthBrick == null) {
+			widthBrick = new SetWidthBrick(widthPercent);
+			script.addBrick(widthBrick);
+		} else {
+			widthBrick.setFormulaWithBrickField(Brick.BrickField.WIDTH, new Formula(widthPercent));
+		}
+		if (heightBrick == null) {
+			heightBrick = new SetHeightBrick(heightPercent);
+			script.addBrick(heightBrick);
+		} else {
+			heightBrick.setFormulaWithBrickField(Brick.BrickField.HEIGHT, new Formula(heightPercent));
+		}
+		persistProjectAsync();
+	}
+
 	private void showSoundSourceDialog(Sprite targetSprite) {
 		new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
 				.setTitle("Добавить звук")
@@ -1095,14 +1146,10 @@ public class SceneEditorActivity extends AppCompatActivity implements SceneEdito
 		if (isPlayingInWindow) {
 			stopInWindowPlayback();
 		}
-		new Thread(() -> {
-			try {
-				for (Map.Entry<Sprite, int[]> entry : pendingMoves.entrySet()) {
-					writePosition(entry.getKey(), entry.getValue()[0], entry.getValue()[1]);
-				}
-				XstreamSerializer.getInstance().saveProject(ProjectManager.getInstance().getCurrentProject());
-			} catch (Exception ignored) {}
-		}, "scene-editor-pause-save").start();
+		for (Map.Entry<Sprite, int[]> entry : pendingMoves.entrySet()) {
+			writePosition(entry.getKey(), entry.getValue()[0], entry.getValue()[1]);
+		}
+		ProjectSaveCoordinator.saveAsync(ProjectManager.getInstance().getCurrentProject());
 	}
 
 	private void saveAndExit() {
@@ -1113,7 +1160,9 @@ public class SceneEditorActivity extends AppCompatActivity implements SceneEdito
 		hintView.setText(R.string.scene_editor_hint_saving);
 		new Thread(() -> {
 			try {
-				XstreamSerializer.getInstance().saveProject(ProjectManager.getInstance().getCurrentProject());
+				if (!ProjectSaveCoordinator.saveBlocking(ProjectManager.getInstance().getCurrentProject())) {
+					throw new IllegalStateException("Project save failed");
+				}
 			} catch (Exception ignored) {
 			}
 			if (!isDestroyed() && !isFinishing()) {
@@ -1143,8 +1192,12 @@ public class SceneEditorActivity extends AppCompatActivity implements SceneEdito
 			String lookPath = firstLookPath(sprite);
 			Bitmap bitmap = lookPath != null ? loadBitmap(lookPath) : null;
 			int[] bounds = lookPath != null ? readImageBounds(lookPath) : new int[] {80, 80};
+			float widthPercent = readDimensionPercent(sprite, Brick.BrickField.WIDTH);
+			float heightPercent = readDimensionPercent(sprite, Brick.BrickField.HEIGHT);
 			SceneEditorView.SceneObject object = new SceneEditorView.SceneObject(
-					sprite, posX, posY, Math.max(1, bounds[0]), Math.max(1, bounds[1]));
+					sprite, posX, posY,
+					Math.max(1, bounds[0] * widthPercent / 100f),
+					Math.max(1, bounds[1] * heightPercent / 100f));
 			object.bitmap = bitmap;
 			sceneObjects.add(object);
 			if (sprite == scene.getBackgroundSprite()) {
@@ -1176,6 +1229,24 @@ public class SceneEditorActivity extends AppCompatActivity implements SceneEdito
 				.show();
 	}
 
+	private float readDimensionPercent(Sprite sprite, Brick.BrickField field) {
+		for (Script script : sprite.getScriptList()) {
+			for (Brick brick : script.getBrickList()) {
+				try {
+					if (field == Brick.BrickField.WIDTH && brick instanceof SetWidthBrick) {
+						return Float.parseFloat(((SetWidthBrick) brick).getFormulaWithBrickField(field).interpretString(null));
+					}
+					if (field == Brick.BrickField.HEIGHT && brick instanceof SetHeightBrick) {
+						return Float.parseFloat(((SetHeightBrick) brick).getFormulaWithBrickField(field).interpretString(null));
+					}
+				} catch (Exception ignored) {
+					return 100f;
+				}
+			}
+		}
+		return 100f;
+	}
+
 	private void createTilemapObject() {
 		EditText input = new EditText(this);
 		int p = Math.round(16 * getResources().getDisplayMetrics().density);
@@ -1190,6 +1261,7 @@ public class SceneEditorActivity extends AppCompatActivity implements SceneEdito
 					Sprite tilemapSprite = new Sprite(new UniqueNameProvider()
 							.getUniqueNameInNameables(typed, scene.getSpriteList()));
 					scene.addSprite(tilemapSprite);
+					pendingTilemapSprite = tilemapSprite;
 					ProjectManager.getInstance().setCurrentSprite(tilemapSprite);
 					Intent intent = new Intent(this,
 							org.catrobat.catroid.ui.tilemap.TilemapEditorActivity.class);
@@ -1235,11 +1307,7 @@ public class SceneEditorActivity extends AppCompatActivity implements SceneEdito
 	}
 
 	private void persistProjectAsync() {
-		new Thread(() -> {
-			try {
-				XstreamSerializer.getInstance().saveProject(ProjectManager.getInstance().getCurrentProject());
-			} catch (Exception ignored) {}
-		}, "scene-editor-persist").start();
+		ProjectSaveCoordinator.saveAsync(ProjectManager.getInstance().getCurrentProject());
 	}
 
 	private void switchScene(Scene targetScene) {
@@ -1326,7 +1394,24 @@ public class SceneEditorActivity extends AppCompatActivity implements SceneEdito
 			return;
 		}
 		if (resultCode == RESULT_OK && requestCode == REQUEST_OBJECT_TILEMAP) {
+			pendingTilemapSprite = null;
 			refreshAfterModelChange();
+			return;
+		}
+		if (requestCode == REQUEST_OBJECT_TILEMAP && resultCode != RESULT_OK) {
+			if (pendingTilemapSprite != null) scene.getSpriteList().remove(pendingTilemapSprite);
+			pendingTilemapSprite = null;
+			refreshAfterModelChange();
+			return;
+		}
+		if (resultCode != RESULT_OK && (requestCode == REQUEST_LOOK_FILE
+				|| requestCode == REQUEST_LOOK_CAMERA)) {
+			pendingLookSprite = null;
+			return;
+		}
+		if (resultCode != RESULT_OK && (requestCode == REQUEST_SOUND_FILE
+				|| requestCode == REQUEST_SOUND_RECORD)) {
+			pendingSoundSprite = null;
 			return;
 		}
 		if (resultCode == RESULT_OK && requestCode == REQUEST_OBJECT_LIBRARY && data != null) {
@@ -1385,6 +1470,7 @@ public class SceneEditorActivity extends AppCompatActivity implements SceneEdito
 	}
 
 	private void addObjectFromLibrary(Intent data) {
+		Sprite imported = null;
 		try {
 			String path = data.getStringExtra(org.catrobat.catroid.ui.WebViewActivity.MEDIA_FILE_PATH);
 			if (path == null) throw new IOException("Library file is missing");
@@ -1393,7 +1479,7 @@ public class SceneEditorActivity extends AppCompatActivity implements SceneEdito
 			int dot = baseName.lastIndexOf('.');
 			if (dot > 0) baseName = baseName.substring(0, dot);
 			String name = new UniqueNameProvider().getUniqueNameInNameables(baseName, scene.getSpriteList());
-			Sprite imported = new Sprite(name);
+			imported = new Sprite(name);
 			scene.addSprite(imported);
 			File imageDirectory = new File(scene.getDirectory(), Constants.IMAGE_DIRECTORY_NAME);
 			if (!imageDirectory.exists() && !imageDirectory.mkdirs()) throw new IOException("Image directory unavailable");
@@ -1405,6 +1491,7 @@ public class SceneEditorActivity extends AppCompatActivity implements SceneEdito
 			refreshAfterModelChange();
 			Toast.makeText(this, "Object imported", Toast.LENGTH_SHORT).show();
 		} catch (Exception e) {
+			if (imported != null) scene.getSpriteList().remove(imported);
 			Toast.makeText(this, "Could not import object", Toast.LENGTH_SHORT).show();
 		}
 	}

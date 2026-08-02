@@ -153,6 +153,16 @@ class FormulaEditor2Activity : AppCompatActivity() {
             setPadding(p, p, p, p)
             setOnClickListener {
                 val result = formulaInput.text.toString()
+                if (!isFormulaShapeValid(result)) {
+                    Toast.makeText(this@FormulaEditor2Activity, "Проверьте скобки и выражение", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+                try {
+                    Formula(result)
+                } catch (_: RuntimeException) {
+                    Toast.makeText(this@FormulaEditor2Activity, "Некорректная формула", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
                 val returnIntent = Intent().apply {
                     putExtra(EXTRA_RESULT_FORMULA_STRING, result)
                 }
@@ -165,6 +175,22 @@ class FormulaEditor2Activity : AppCompatActivity() {
         setContentView(root)
 
         loadCategoryKeys("Основные")
+    }
+
+    private fun isFormulaShapeValid(value: String): Boolean {
+        val text = value.trim()
+        if (text.isEmpty()) return false
+        var depth = 0
+        for (char in text) {
+            when (char) {
+                '(' -> depth++
+                ')' -> {
+                    depth--
+                    if (depth < 0) return false
+                }
+            }
+        }
+        return depth == 0
     }
 
     private fun loadCategoryKeys(category: String) {

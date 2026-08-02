@@ -256,6 +256,8 @@ public class StageListener implements ApplicationListener {
 	private static final int Z_LAYER_EMBROIDERY_ACTOR = 2;
 
 	private final java.util.concurrent.atomic.AtomicInteger cloneCounter = new java.util.concurrent.atomic.AtomicInteger(1);
+	private final Map<Integer, Sprite> clonesByIndex = new HashMap<>();
+	private final SpriteController spriteController = new SpriteController();
 
 	private ShaderProgram postProcessShader;
 	private String lastFragmentShaderCode = null;
@@ -902,7 +904,7 @@ public class StageListener implements ApplicationListener {
 	}
 
 	public void cloneSpriteAndAddToStage(Sprite cloneMe) {
-		Sprite copy = new SpriteController().copyForCloneBrick(cloneMe);
+		Sprite copy = spriteController.copyForCloneBrick(cloneMe);
 		if (cloneMe.isClone) {
 			copy.myOriginal = cloneMe.myOriginal;
 		} else {
@@ -918,6 +920,7 @@ public class StageListener implements ApplicationListener {
 		}
 		copy.cloneIndex = next;
 		sprites.add(copy);
+		clonesByIndex.put(next, copy);
 		if (!copy.getLookList().isEmpty()) {
 			int currentLookDataIndex = cloneMe.getLookList().indexOf(cloneMe.look.getLookData());
 			copy.look.setLookData(copy.getLookList().get(currentLookDataIndex));
@@ -928,7 +931,7 @@ public class StageListener implements ApplicationListener {
 	}
 
 	public void cloneSpriteAndAddToStage(Sprite cloneMe, String newName) {
-		Sprite copy = new SpriteController().copyForCloneBrick(cloneMe, newName);
+		Sprite copy = spriteController.copyForCloneBrick(cloneMe, newName);
 		if (cloneMe.isClone) {
 			copy.myOriginal = cloneMe.myOriginal;
 		} else {
@@ -944,6 +947,7 @@ public class StageListener implements ApplicationListener {
 		}
 		copy.cloneIndex = next;
 		sprites.add(copy);
+		clonesByIndex.put(next, copy);
 		if (!copy.getLookList().isEmpty()) {
 			int currentLookDataIndex = cloneMe.getLookList().indexOf(cloneMe.look.getLookData());
 			copy.look.setLookData(copy.getLookList().get(currentLookDataIndex));
@@ -966,6 +970,7 @@ public class StageListener implements ApplicationListener {
 		}
 		boolean removedSprite = sprites.remove(sprite);
 		if (removedSprite) {
+			clonesByIndex.remove(sprite.cloneIndex);
 			sprite.look.destroy();
 			sprite.invalidate();
 		}
@@ -981,6 +986,7 @@ public class StageListener implements ApplicationListener {
 		}
 		StageActivity.resetNumberOfClonedSprites();
 		cloneCounter.set(1);
+		clonesByIndex.clear();
 	}
 
 	public List<Sprite> getAllClonesOfSprite(Sprite sprite) {
@@ -1543,10 +1549,10 @@ public class StageListener implements ApplicationListener {
 				}
 			}
 
+            float deltaTime = Math.min(Gdx.graphics.getDeltaTime(), 0.05f);
+
             if (!paused) {
                 long logicStartTime = System.nanoTime();
-
-                float deltaTime = Math.min(Gdx.graphics.getDeltaTime(), 0.05f);
 
                 if (sceneManager != null) {
                     sceneManager.update(deltaTime);
@@ -1603,7 +1609,7 @@ public class StageListener implements ApplicationListener {
                 try {
                     if (!paused) {
                         if (threeDManager != null) {
-                            threeDManager.update(Gdx.graphics.getDeltaTime());
+                            threeDManager.update(deltaTime);
                         }
                     }
                     try {
@@ -1615,18 +1621,18 @@ public class StageListener implements ApplicationListener {
                     }
 
                     if (fastTwoDManager != null && !paused) {
-                        fastTwoDManager.updateAndRender(Gdx.graphics.getDeltaTime());
+                        fastTwoDManager.updateAndRender(deltaTime);
                     }
                     if (pathfindingManager != null && !paused) {
-                        pathfindingManager.update(Gdx.graphics.getDeltaTime());
+                        pathfindingManager.update(deltaTime);
                     }
                     if (transitionManager != null && !paused) {
-                        transitionManager.update(Gdx.graphics.getDeltaTime());
+                        transitionManager.update(deltaTime);
                     }
 
                     float shakeOffsetX = 0f;
                     float shakeOffsetY = 0f;
-                    boolean screenShaking = screenShake.update(Gdx.graphics.getDeltaTime());
+                    boolean screenShaking = screenShake.update(deltaTime);
                     if (screenShaking && camera != null) {
                         shakeOffsetX = screenShake.getOffsetX();
                         shakeOffsetY = screenShake.getOffsetY();
@@ -2254,25 +2260,16 @@ public class StageListener implements ApplicationListener {
 	}
 
 	public void removeCloneByIndex(int index) {
-		Sprite spriteToRemove = null;
-		for (Sprite sprite : sprites) {
-			if (sprite.isClone && sprite.cloneIndex == index) {
-				spriteToRemove = sprite;
-				break;
-			}
-		}
+		Sprite spriteToRemove = clonesByIndex.get(index);
 		if (spriteToRemove != null) {
 			removeClonedSpriteFromStage(spriteToRemove);
 		}
 	}
 
 	public void removeCloneByIndexAndSprite(Sprite targetSprite, int index) {
-		Sprite spriteToRemove = null;
-		for (Sprite sprite : sprites) {
-			if (sprite.isClone && sprite.cloneIndex == index && sprite.myOriginal == targetSprite) {
-				spriteToRemove = sprite;
-				break;
-			}
+		Sprite spriteToRemove = clonesByIndex.get(index);
+		if (spriteToRemove != null && spriteToRemove.myOriginal != targetSprite) {
+			spriteToRemove = null;
 		}
 		if (spriteToRemove != null) {
 			removeClonedSpriteFromStage(spriteToRemove);
@@ -2365,6 +2362,7 @@ public class StageListener implements ApplicationListener {
 	private void restoreFromBackup(StageBackup backup) {
 		sprites.clear();
 		sprites.addAll(backup.sprites);
+		rebuildCloneIndex();
 		loadGlobalSprites();
 		CameraManager cameraManager = StageActivity.getActiveCameraManager();
 		VibrationManager vibrationManager = StageActivity.getActiveVibrationManager();
@@ -2417,6 +2415,15 @@ public class StageListener implements ApplicationListener {
 					soundBackup.getStartedBySprite(), soundBackup.getCurrentPosition());
 		}
 		initStageInputListener();
+	}
+
+	private void rebuildCloneIndex() {
+		clonesByIndex.clear();
+		for (Sprite sprite : sprites) {
+			if (sprite.isClone) {
+				clonesByIndex.put(sprite.cloneIndex, sprite);
+			}
+		}
 	}
 
 	private float calculateScreenRatio() {

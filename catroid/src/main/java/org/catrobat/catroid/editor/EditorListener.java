@@ -313,16 +313,13 @@ public class EditorListener extends ApplicationAdapter {
     public void render() {
         Gdx.gl.glClearColor(0.5f, 0.5f, 0.5f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
+        float delta = Gdx.graphics.getDeltaTime();
 
         if (cameraController != null) {
-            cameraController.update(Gdx.graphics.getDeltaTime());
+            cameraController.update(delta);
         }
 
-        if (sceneManager != null) {
-            sceneManager.update(Gdx.graphics.getDeltaTime());
-        }
-
-        threeDManager.update(Gdx.graphics.getDeltaTime());
+        threeDManager.update(delta);
         threeDManager.render();
 
         renderKeyframeVisuals();

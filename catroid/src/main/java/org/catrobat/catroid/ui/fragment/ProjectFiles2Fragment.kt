@@ -215,11 +215,15 @@ class ProjectFiles2Fragment : Fragment() {
                 val name = input.text.toString().trim()
                 if (name.isNotEmpty()) {
                     val proj = project ?: return@setPositiveButton
-                    val target = File(File(proj.directory, "files"), name)
-                    if (!target.exists()) {
+                    val target = safeProjectFile(name)
+                    if (target == null) {
+                        Toast.makeText(requireContext(), "Недопустимое имя файла", Toast.LENGTH_SHORT).show()
+                    } else if (!target.exists()) {
                         target.createNewFile()
                         refreshFiles()
                         openFile(target)
+                    } else {
+                        Toast.makeText(requireContext(), "Файл уже существует", Toast.LENGTH_SHORT).show()
                     }
                 }
             }
@@ -261,7 +265,11 @@ class ProjectFiles2Fragment : Fragment() {
         val filesDir = File(proj.directory, "files")
         if (!filesDir.exists()) filesDir.mkdirs()
 
-        val destinationFile = File(filesDir, fileName)
+        val destinationFile = safeProjectFile(fileName)
+        if (destinationFile == null) {
+            Toast.makeText(requireContext(), "Недопустимое имя импортируемого файла", Toast.LENGTH_SHORT).show()
+            return
+        }
         try {
             val inputStream = requireContext().contentResolver.openInputStream(uri) ?: return
             FileOutputStream(destinationFile).use { outputStream ->
@@ -292,6 +300,23 @@ class ProjectFiles2Fragment : Fragment() {
             fileName = File(uri.path ?: "").name
         }
         return fileName.ifEmpty { "imported_file_${System.currentTimeMillis()}" }
+    }
+
+    private fun safeProjectFile(rawName: String): File? {
+        val name = rawName.trim()
+        if (name.isEmpty() || name == "." || name == ".." || name.contains('/') || name.contains('\\')) {
+            return null
+        }
+        val proj = project ?: return null
+        val root = File(proj.directory, "files")
+        if (!root.exists()) root.mkdirs()
+        return try {
+            val rootCanonical = root.canonicalFile
+            val candidate = File(rootCanonical, name).canonicalFile
+            if (candidate.parentFile == rootCanonical) candidate else null
+        } catch (_: Exception) {
+            null
+        }
     }
 
     private fun openFile(file: File) {

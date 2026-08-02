@@ -439,8 +439,13 @@ public class Sprite implements Nameable, Serializable {
 		} else {
 			look = new Look(this);
 		}
-		for (LookData lookData : lookList) {
-			lookData.dispose();
+		// Runtime clones share LookData with their original to avoid allocating a
+		// decoded Pixmap/Texture for every clone. The original sprite owns these
+		// resources and disposes them when the project is torn down.
+		if (!isClone) {
+			for (LookData lookData : lookList) {
+				lookData.dispose();
+			}
 		}
 
 		if (!getLookList().isEmpty()) {

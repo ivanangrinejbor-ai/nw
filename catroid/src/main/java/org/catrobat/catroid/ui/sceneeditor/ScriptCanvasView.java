@@ -95,9 +95,13 @@ public class ScriptCanvasView extends FrameLayout {
 	private final Deque<List<Script>> undoStack = new ArrayDeque<>();
 	private final Deque<List<Script>> redoStack = new ArrayDeque<>();
 	public interface UndoRedoListener { void onUndoRedoChanged(); }
+	public interface ContentChangedListener { void onContentChanged(); }
 	private UndoRedoListener undoRedoListener;
+	private ContentChangedListener contentChangedListener;
 	public void setUndoRedoListener(UndoRedoListener l) { this.undoRedoListener = l; }
+	public void setContentChangedListener(ContentChangedListener l) { this.contentChangedListener = l; }
 	private void notifyUndoRedo() { if (undoRedoListener != null) undoRedoListener.onUndoRedoChanged(); }
+	private void notifyContentChanged() { if (contentChangedListener != null) contentChangedListener.onContentChanged(); }
 
 	public ScriptCanvasView(Context context) {
 		super(context);
@@ -209,17 +213,17 @@ public class ScriptCanvasView extends FrameLayout {
 		addNoteViews();
 		applyTransform();
 		autoSave();
+		notifyContentChanged();
 	}
 
 	private void autoSave() {
-		if (sprite == null) return;
-		new Thread(() -> {
-			try {
-				org.catrobat.catroid.io.XstreamSerializer.getInstance()
-						.saveProject(org.catrobat.catroid.ProjectManager.getInstance().getCurrentProject());
-			} catch (Exception ignored) {
-			}
-		}, "script-canvas-autosave").start();
+		Project currentProject = ProjectManager.getInstance().getCurrentProject();
+		if (currentProject == null) return;
+		ProjectSaveCoordinator.saveAsync(currentProject);
+	}
+
+	public static void saveProjectAsync(Project project) {
+		ProjectSaveCoordinator.saveAsync(project);
 	}
 
 	// ─── Undo / Redo implementation ───────────────────────────────────────────
@@ -610,22 +614,14 @@ public class ScriptCanvasView extends FrameLayout {
 			final Brick.FormulaField field = entry.getKey();
 			View fieldView = brickView.findViewById(entry.getValue());
 			if (fieldView != null) {
+				if (fieldView instanceof TextView) {
+					TextView textView = (TextView) fieldView;
+					textView.setEllipsize(null);
+					textView.setSingleLine(false);
+					textView.setMaxLines(3);
+				}
 				fieldView.setOnClickListener(v -> {
-					Intent intent = new Intent(getContext(), org.catrobat.catroid.ui.formulaeditor.FormulaEditor2Activity.class);
-					org.catrobat.catroid.formulaeditor.Formula existingFormula = formulaBrick.getFormulaWithBrickField(field);
-					if (existingFormula != null) {
-						try {
-							intent.putExtra(org.catrobat.catroid.ui.formulaeditor.FormulaEditor2Activity.EXTRA_FORMULA_STRING, existingFormula.interpretString(null));
-						} catch (org.catrobat.catroid.formulaeditor.InterpretationException e) {
-							intent.putExtra(org.catrobat.catroid.ui.formulaeditor.FormulaEditor2Activity.EXTRA_FORMULA_STRING, existingFormula.getTrimmedFormulaString(getContext()));
-						}
-					}
-					if (getContext() instanceof ScriptCanvasActivity) {
-						((ScriptCanvasActivity) getContext()).setActiveEditFormula(formulaBrick, field);
-						((ScriptCanvasActivity) getContext()).startActivityForResult(intent, 8899);
-					} else {
-						FormulaEditorFragment.showFragment(getContext(), formulaBrick, field);
-					}
+					FormulaEditorFragment.showFragment(getContext(), formulaBrick, field);
 				});
 			}
 		}
@@ -707,9 +703,17 @@ public class ScriptCanvasView extends FrameLayout {
 					handler.removeCallbacks(longPressRunnable);
 					if (isLongPressed) {
 						if (isEventHeader) {
+							if (event.getActionMasked() == MotionEvent.ACTION_CANCEL) {
+								script.setPosX(startPosX);
+								script.setPosY(startPosY);
+							}
 							rebuild();
 						} else {
-							dropBlockGhost(event.getRawX(), event.getRawY());
+							if (event.getActionMasked() == MotionEvent.ACTION_UP) {
+								dropBlockGhost(event.getRawX(), event.getRawY());
+							} else {
+								removeBlockGhost();
+							}
 						}
 					} else if (event.getActionMasked() == MotionEvent.ACTION_UP) {
 						if (blockGhost == null) {
@@ -827,26 +831,11 @@ public class ScriptCanvasView extends FrameLayout {
 			actions.add(() -> {
 				FormulaBrick fb = (FormulaBrick) brick;
 				Brick.FormulaField field = fb.brickFieldToTextViewIdMap.keySet().iterator().next();
-				Intent intent = new Intent(getContext(), org.catrobat.catroid.ui.formulaeditor.FormulaEditor2Activity.class);
-				org.catrobat.catroid.formulaeditor.Formula existingFormula = fb.getFormulaWithBrickField(field);
-				if (existingFormula != null) {
-					try {
-						intent.putExtra(org.catrobat.catroid.ui.formulaeditor.FormulaEditor2Activity.EXTRA_FORMULA_STRING, existingFormula.interpretString(null));
-					} catch (org.catrobat.catroid.formulaeditor.InterpretationException e) {
-						intent.putExtra(org.catrobat.catroid.ui.formulaeditor.FormulaEditor2Activity.EXTRA_FORMULA_STRING, existingFormula.getTrimmedFormulaString(getContext()));
-					}
-				}
 				if (getContext() instanceof ScriptCanvasActivity) {
-					((ScriptCanvasActivity) getContext()).setActiveEditFormula(fb, field);
-					((ScriptCanvasActivity) getContext()).startActivityForResult(intent, 8899);
+					FormulaEditorFragment.showFragment(getContext(), fb, field);
 				}
 			});
 		}
-
-		items.add("Положить в Рюкзак");
-		actions.add(() -> {
-			Toast.makeText(getContext(), "Блок " + brickName + " добавлен в Рюкзак!", Toast.LENGTH_SHORT).show();
-		});
 
 		items.add("Вырезать блок");
 		actions.add(() -> {
@@ -867,14 +856,29 @@ public class ScriptCanvasView extends FrameLayout {
 			actions.add(() -> pasteBrickAfter(brick, stackView));
 		}
 
-		boolean isCommented = (brick instanceof NoteBrick);
+		if (copiedScriptClipboard != null && brick instanceof ScriptBrick) {
+			items.add("Paste copied script stack");
+			actions.add(this::pasteScriptStack);
+		}
+
+		if (stackView != null && stackView.getTag() instanceof Script) {
+			Script script = (Script) stackView.getTag();
+			items.add("Move script up");
+			actions.add(() -> moveScript(script, -1));
+			items.add("Move script down");
+			actions.add(() -> moveScript(script, 1));
+		}
+
+		boolean isCommented = brick.isCommentedOut();
 		items.add(isCommented ? "Включить блок" : "Закомментировать блок");
 		actions.add(() -> toggleCommentBrick(brick, stackView));
 
 		if (brick instanceof VisualPlacementBrick) {
 			items.add("Разместить визуально на сцене");
 			actions.add(() -> {
-				Toast.makeText(getContext(), "Перейдите на 2D-холст для визуальной расстановки!", Toast.LENGTH_SHORT).show();
+				if (getContext() instanceof ScriptCanvasActivity) {
+					((ScriptCanvasActivity) getContext()).openVisualPlacement((VisualPlacementBrick) brick);
+				}
 			});
 		}
 
@@ -941,6 +945,17 @@ public class ScriptCanvasView extends FrameLayout {
 		}
 	}
 
+	private void moveScript(Script script, int direction) {
+		if (sprite == null || script == null) return;
+		List<Script> scripts = sprite.getScriptList();
+		int index = scripts.indexOf(script);
+		int target = index + direction;
+		if (index < 0 || target < 0 || target >= scripts.size()) return;
+		snapshot();
+		java.util.Collections.swap(scripts, index, target);
+		rebuild();
+	}
+
 	private void toggleProjectProtection() {
 		Project project = ProjectManager.getInstance().getCurrentProject();
 		if (project != null && project.getXmlHeader() != null) {
@@ -966,6 +981,12 @@ public class ScriptCanvasView extends FrameLayout {
 		if (stackView != null && stackView.getTag() instanceof Script) {
 			Script script = (Script) stackView.getTag();
 			snapshot();
+			if (brick != null) {
+				brick.setCommentedOut(!brick.isCommentedOut());
+				script.setParents();
+				rebuild();
+				return;
+			}
 			List<Brick> parentList = findListContainingBrick(script, brick);
 			if (parentList != null && brick instanceof NoteBrick) {
 				int idx = parentList.indexOf(brick);

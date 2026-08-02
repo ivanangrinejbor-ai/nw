@@ -104,6 +104,8 @@ public class EditorActivity extends AppCompatActivity implements AndroidFragment
                     drawerLayout.closeDrawer(GravityCompat.START);
                 } else if (drawerLayout.isDrawerOpen(GravityCompat.END)) {
                     drawerLayout.closeDrawer(GravityCompat.END);
+                } else {
+                    showExitConfirmationDialog();
                 }
             }
         };
@@ -417,6 +419,9 @@ public class EditorActivity extends AppCompatActivity implements AndroidFragment
                         try {
                             int count = Integer.parseInt(inputAmount.getText().toString());
                             float step = Float.parseFloat(inputDist.getText().toString());
+                            if (count < 1 || count > 1000 || !Float.isFinite(step)) {
+                                throw new IllegalArgumentException("Invalid duplication parameters");
+                            }
                             int axisIdx = spinAxis.getSelectedItemPosition();
                             GameObject source = currentSelectedObject;
 

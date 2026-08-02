@@ -444,35 +444,35 @@
             android:exported="false"
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:screenOrientation="unspecified"
-            android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />
+            android:theme="@style/Ui2Activity" />
 
         <activity
             android:name="org.catrobat.catroid.ui.sceneeditor.ScriptCanvasActivity"
             android:exported="false"
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:screenOrientation="unspecified"
-            android:theme="@style/Catroid" />
+            android:theme="@style/Ui2Activity" />
 
         <activity
             android:name="org.catrobat.catroid.ui.sceneeditor.Ui2PanelActivity"
             android:exported="false"
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:screenOrientation="unspecified"
-            android:theme="@style/Catroid" />
+            android:theme="@style/Ui2Activity" />
 
         <activity
             android:name="org.catrobat.catroid.ui.formulaeditor.FormulaEditor2Activity"
             android:exported="false"
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:screenOrientation="unspecified"
-            android:theme="@style/Catroid" />
+            android:theme="@style/Ui2Activity" />
 
         <activity
             android:name="org.catrobat.catroid.ui.dialogue.DialogueEditorActivity"
             android:exported="false"
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:screenOrientation="unspecified"
-            android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />
+            android:theme="@style/Ui2Activity" />
 
         <activity
             android:name=".utils.git.AuthCallbackActivity"

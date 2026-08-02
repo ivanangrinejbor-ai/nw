@@ -19,6 +19,7 @@ public class Fast2DRenderSystem extends BaseEntitySystem {
     private final SpriteBatch batch;
     private OrthographicCamera camera;
     private boolean needSort = false;
+    private int[] renderIds = new int[0];
 
     private float camX, camY, camHalfW, camHalfH;
 
@@ -49,11 +50,13 @@ public class Fast2DRenderSystem extends BaseEntitySystem {
     protected void processSystem() {
         IntBag activeEntities = getSubscription().getEntities();
         int size = activeEntities.size();
-        int[] ids = new int[size];
-        System.arraycopy(activeEntities.getData(), 0, ids, 0, size);
+        if (renderIds.length < size) {
+            renderIds = new int[Math.max(size, renderIds.length * 2 + 1)];
+        }
+        System.arraycopy(activeEntities.getData(), 0, renderIds, 0, size);
 
         if (needSort && size > 1) {
-            insertionSort(ids, size);
+            insertionSort(renderIds, size);
             needSort = false;
         }
 
@@ -67,7 +70,7 @@ public class Fast2DRenderSystem extends BaseEntitySystem {
 
         batch.begin();
         for (int i = 0; i < size; i++) {
-            renderEntity(ids[i]);
+            renderEntity(renderIds[i]);
         }
         batch.end();
     }

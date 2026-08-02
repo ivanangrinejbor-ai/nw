@@ -206,6 +206,8 @@ public class ThreeDManager implements Disposable {
     public ModelBatch getWireframeBatch() { return wireframeBatch; }
 
     public void resize(int width, int height) {
+        width = Math.max(1, width);
+        height = Math.max(1, height);
         lastScreenWidth = width;
         lastScreenHeight = height;
         camera.viewportWidth = width;
@@ -368,6 +370,7 @@ public class ThreeDManager implements Disposable {
     private ShaderProvider customShaderProvider;
 
     private final Map<String, Object> customUniforms = new HashMap<>();
+    private final Vector2 customResolution = new Vector2();
     private float time = 0f;
 
     private boolean realisticMode = false;
@@ -498,7 +501,9 @@ public class ThreeDManager implements Disposable {
     public final Vector3 cameraTrackPosOffset = new Vector3();
     public final Quaternion cameraTrackRotOffset = new Quaternion();
 
-    private float renderScale = 0.75f;
+    // The editor renders directly to the screen unless post-processing is active.
+    // A sub-1 scale in that path used to draw an unrendered FBO and produced a black screen.
+    private float renderScale = 1.0f;
     private int aspectMode = 0;
     private int lastScreenWidth;
     private int lastScreenHeight;
@@ -554,7 +559,7 @@ public class ThreeDManager implements Disposable {
 
         sceneManager = new net.mgsx.gltf.scene3d.scene.SceneManager(prov, PBRShaderProvider.createDefaultDepth(config.numBones));
         sceneManager.setCamera(camera);
-        net.mgsx.gltf.scene3d.lights.DirectionalShadowLight shadowLight = new net.mgsx.gltf.scene3d.lights.DirectionalShadowLight(2048, 2048);
+        net.mgsx.gltf.scene3d.lights.DirectionalShadowLight shadowLight = new net.mgsx.gltf.scene3d.lights.DirectionalShadowLight(1024, 1024);
         shadowLight.direction.set(1, -1.5f, 1).nor();
         shadowLight.color.set(com.badlogic.gdx.graphics.Color.WHITE);
         shadowLight.intensity = 5.0f;
@@ -563,8 +568,8 @@ public class ThreeDManager implements Disposable {
         pbrLight = shadowLight;
         net.mgsx.gltf.scene3d.utils.IBLBuilder iblBuilder = net.mgsx.gltf.scene3d.utils.IBLBuilder.createOutdoor(pbrLight);
 
-        diffuseCubemap = iblBuilder.buildIrradianceMap(256);
-        specularCubemap = iblBuilder.buildRadianceMap(10);
+        diffuseCubemap = iblBuilder.buildIrradianceMap(128);
+        specularCubemap = iblBuilder.buildRadianceMap(8);
         iblBuilder.dispose();
         brdfLUT = new com.badlogic.gdx.graphics.Texture(Gdx.files.classpath("net/mgsx/gltf/shaders/brdfLUT.png"));
         sceneManager.environment.set(new net.mgsx.gltf.scene3d.attributes.PBRTextureAttribute(PBRTextureAttribute.BRDFLUTTexture, brdfLUT));
@@ -1430,6 +1435,10 @@ public class ThreeDManager implements Disposable {
         com.badlogic.gdx.Gdx.app.postRunnable(new Runnable() {
             @Override
             public void run() {
+                if (!postprocessingEnabled) {
+                    renderScale = 1.0f;
+                    aspectMode = 0;
+                }
                 resize(com.badlogic.gdx.Gdx.graphics.getWidth(), com.badlogic.gdx.Gdx.graphics.getHeight());
             }
         });
@@ -2729,6 +2738,14 @@ public class ThreeDManager implements Disposable {
     }
 
     public void update(float delta) {
+        // A resumed/suspended app can report a very large frame delta. Feeding it
+        // into animations, physics and the glTF scene manager causes visible
+        // jumps and expensive catch-up work in both editors and the runtime.
+        if (Float.isNaN(delta) || Float.isInfinite(delta)) {
+            delta = 0f;
+        } else {
+            delta = Math.min(Math.max(delta, 0f), 0.1f);
+        }
         if (LOG_THREED_MANAGER_DEBUG) Log.d("TDM_DEBUG", "--- ThreeDManager.update() START (Delta: " + delta + ") ---");
         if (cameraTargetId != null) {
             updateThirdPersonCamera();
@@ -2753,7 +2770,8 @@ public class ThreeDManager implements Disposable {
 
         if (customShaderProvider != null) {
             customUniforms.put("u_time", time);
-            customUniforms.put("u_resolution", new Vector2(Gdx.graphics.getWidth(), Gdx.graphics.getHeight()));
+            customResolution.set(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+            customUniforms.put("u_resolution", customResolution);
             customUniforms.put("u_cameraPosition", camera.position);
             customUniforms.put("u_cameraDirection", camera.direction);
             customUniforms.put("u_viewMatrix", camera.view);
@@ -3355,6 +3373,7 @@ public class ThreeDManager implements Disposable {
     private int targetFps = 0;
     private float renderTimeAccumulator = 0f;
     private Texture lastRenderedTexture = null;
+    private long lastRenderErrorLogMs = 0L;
 
     public void setTargetFps(int fps) {
         this.targetFps = fps;
@@ -3365,6 +3384,11 @@ public class ThreeDManager implements Disposable {
     public void render() {
         try {
             float delta = Gdx.graphics.getDeltaTime();
+            if (Float.isNaN(delta) || Float.isInfinite(delta)) {
+                delta = 0f;
+            } else {
+                delta = Math.min(Math.max(delta, 0f), 0.1f);
+            }
 
             updateParticles(delta);
             updateParticles3D(delta);
@@ -3679,24 +3703,36 @@ public class ThreeDManager implements Disposable {
                         debugDrawer.end();
                     }
 
-                    lastRenderedTexture = sceneFbo2.getColorBufferTexture();
+                    lastRenderedTexture = null;
                 }
 
-                if (renderScale < 1.0f || aspectMode != 0) {
+                if (postprocessingEnabled && (renderScale < 1.0f || aspectMode != 0)) {
                     if (lastRenderedTexture != null) {
                         drawFinalTextureToScreen(lastRenderedTexture);
                     }
                 }
             }
         } catch (Exception e) {
-            Log.e("ThreeDManager", "FATAL 3D RENDER ERROR", e);
-            e.printStackTrace();
+            long now = System.currentTimeMillis();
+            if (now - lastRenderErrorLogMs > 1000L) {
+                lastRenderErrorLogMs = now;
+                Log.e("ThreeDManager", "3D render error; using a safe fallback frame", e);
+            }
+            postprocessingEnabled = false;
+            renderScale = 1.0f;
+            aspectMode = 0;
+            lastRenderedTexture = null;
 
             try { depthFbo.end(); } catch (Exception ignored) { /* cleanup on error */ }
             try { depthBatch.end(); } catch (Exception ignored) { /* cleanup on error */ }
             try { modelBatch.end(); } catch (Exception ignored) { /* cleanup on error */ }
             try { particleModelBatch.end(); } catch (Exception ignored) { /* cleanup on error */ }
             try { if (sceneFbo2 != null) sceneFbo2.end(); } catch (Exception ignored) { /* cleanup on error */ }
+            try {
+                Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+                Gdx.gl.glClearColor(skyColor.r, skyColor.g, skyColor.b, 1f);
+                Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
+            } catch (Exception ignored) { /* keep the render loop alive */ }
         }
     }
 
@@ -3734,22 +3770,22 @@ public class ThreeDManager implements Disposable {
                 texture = region.getTexture();
             }
         } else {
-            texture = loadedTextures.get(texturePath);
-            if (texture == null) {
-                try {
-                    FileHandle textureFile = Gdx.files.absolute(texturePath);
-                    if (textureFile.exists()) {
-                        texture = new com.badlogic.gdx.graphics.Texture(textureFile);
-                        texture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
-                        loadedTextures.put(texturePath, texture);
-                    } else {
-                        Gdx.app.error("3DManager", "Texture file not found: " + texturePath);
-                        return;
-                    }
-                } catch (Exception e) {
-                    Gdx.app.error("3DManager", "Could not load texture: " + texturePath, e);
+            try {
+                FileHandle textureFile = Gdx.files.absolute(texturePath);
+                if (!textureFile.exists()) {
+                    Gdx.app.error("3DManager", "Texture file not found: " + texturePath);
                     return;
                 }
+                String textureCacheKey = textureFile.path();
+                texture = loadedTextures.get(textureCacheKey);
+                if (texture == null) {
+                    texture = new com.badlogic.gdx.graphics.Texture(textureFile);
+                    texture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
+                    loadedTextures.put(textureCacheKey, texture);
+                }
+            } catch (Exception e) {
+                Gdx.app.error("3DManager", "Could not load texture: " + texturePath, e);
+                return;
             }
         }
 
@@ -3976,6 +4012,7 @@ public class ThreeDManager implements Disposable {
                 Gdx.app.error("3DManager", "Model file not found: " + fileHandle.path());
                 return false;
             }
+            final String modelCacheKey = fileHandle.path();
 
             String lowerCasePath = modelPath.toLowerCase();
 
@@ -4006,7 +4043,7 @@ public class ThreeDManager implements Disposable {
 
 
             } else {
-                Model model = loadedModels.get(modelPath);
+                Model model = loadedModels.get(modelCacheKey);
 
                 if (model == null) {
                     try {
@@ -4025,18 +4062,12 @@ public class ThreeDManager implements Disposable {
 
                         FileHandle patchedModelHandle = ModelPathProcessor.process(modelFileHandle);
 
-                        Gdx.app.log("3DManager", "--- Verification before loading model ---");
-                        FileHandle textureToVerify = Gdx.files.local("Lowpoly_Laptop_Nor_2.jpg");
-                        Gdx.app.log("3DManager", "Verifying texture path: " + textureToVerify.path());
-                        Gdx.app.log("3DManager", "Does texture exist at path? -> " + textureToVerify.exists());
-                        Gdx.app.log("3DManager", "--- Verification finished ---");
-
                         FileHandleResolver resolver = fileName -> patchedModelHandle.parent().child(fileName);
 
                         ObjLoader loader = new ObjLoader(resolver);
 
                         model = loader.loadModel(patchedModelHandle, true);
-                        loadedModels.put(modelPath, model);
+                        loadedModels.put(modelCacheKey, model);
                     } catch (Exception e) {
                         Gdx.app.error("3DManager", "Could not load model: " + modelPath, e);
                         return false;
@@ -5359,24 +5390,25 @@ public class ThreeDManager implements Disposable {
             return null;
         }
 
-        Texture texture = loadedTextures.get(textureFileName);
-        if (texture == null) {
-            try {
-                File textureFileHandle = org.catrobat.catroid.ProjectManager.getInstance().getCurrentProject().getFile(textureFileName);
-                if (textureFileHandle != null && textureFileHandle.exists()) {
-                    texture = new Texture(Gdx.files.absolute(textureFileHandle.getAbsolutePath()));
-                    texture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
-                    loadedTextures.put(textureFileName, texture);
-                } else {
-                    Gdx.app.error("3DManager", "Texture file not found in project: " + textureFileName);
-                    return null;
-                }
-            } catch (Exception e) {
-                Gdx.app.error("3DManager", "Could not load texture: " + textureFileName, e);
+        try {
+            File textureFileHandle = org.catrobat.catroid.ProjectManager.getInstance().getCurrentProject().getFile(textureFileName);
+            if (textureFileHandle == null || !textureFileHandle.exists()) {
+                Gdx.app.error("3DManager", "Texture file not found in project: " + textureFileName);
                 return null;
             }
+
+            String textureCacheKey = textureFileHandle.getAbsolutePath();
+            Texture texture = loadedTextures.get(textureCacheKey);
+            if (texture == null) {
+                texture = new Texture(Gdx.files.absolute(textureCacheKey));
+                texture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
+                loadedTextures.put(textureCacheKey, texture);
+            }
+            return texture;
+        } catch (Exception e) {
+            Gdx.app.error("3DManager", "Could not load texture: " + textureFileName, e);
+            return null;
         }
-        return texture;
     }
 
     private void disposeManagedBatches() {
@@ -6244,10 +6276,9 @@ public class ThreeDManager implements Disposable {
 
                 Gdx.app.log("ThreeDManager", "Shader successfully applyed to file: " + filename);
 
-                if (loadedTextures.containsKey(filename)) {
-                    Texture cached = loadedTextures.remove(filename);
-                    if (cached != null) cached.dispose();
-                }
+                Texture cached = loadedTextures.remove(file.getAbsolutePath());
+                if (cached == null) cached = loadedTextures.remove(filename);
+                if (cached != null) cached.dispose();
 
             } catch (Exception e) {
                 Gdx.app.error("ThreeDManager", "Error when processing image with shader: " + e.getMessage(), e);
@@ -6325,7 +6356,8 @@ public class ThreeDManager implements Disposable {
                     oldModel.dispose();
                 }
             } else {
-                newModel = loadedModels.get(modelPath);
+                final String modelCacheKey = fileHandle.path();
+                newModel = loadedModels.get(modelCacheKey);
                 if (newModel == null) {
                     FileHandle modelFileHandle = modelPath.startsWith("/")
                         ? Gdx.files.absolute(modelPath)
@@ -6335,7 +6367,7 @@ public class ThreeDManager implements Disposable {
                     FileHandle patchedModelHandle = ModelPathProcessor.process(modelFileHandle);
                     FileHandleResolver resolver = fileName -> patchedModelHandle.parent().child(fileName);
                     newModel = new ObjLoader(resolver).loadModel(patchedModelHandle, true);
-                    loadedModels.put(modelPath, newModel);
+                    loadedModels.put(modelCacheKey, newModel);
                 }
 
                 ModelInstance newInstance = new ModelInstance(newModel);
@@ -6367,7 +6399,7 @@ public class ThreeDManager implements Disposable {
                 sceneObjects.put(objectId, newInstance);
 
                 Model oldModel = oldInstance.model;
-                if (oldModel != null && loadedModels.get(modelPath) != oldModel) {
+                if (oldModel != null && loadedModels.get(modelCacheKey) != oldModel) {
                     loadedModels.values().remove(oldModel);
                     oldModel.dispose();
                 }

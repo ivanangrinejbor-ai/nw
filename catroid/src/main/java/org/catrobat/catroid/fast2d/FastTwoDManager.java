@@ -94,11 +94,15 @@ public class FastTwoDManager implements Disposable {
     }
 
     private Texture getOrLoadTexture(String absolutePath) {
-        if (textureCache.containsKey(absolutePath)) return textureCache.get(absolutePath);
+        String cacheKey = new File(absolutePath).getAbsolutePath();
+        Texture cached = textureCache.get(cacheKey);
+        if (cached != null) return cached;
         try {
-            Texture texture = new Texture(Gdx.files.absolute(absolutePath), true);
-            texture.setFilter(Texture.TextureFilter.MipMapLinearLinear, Texture.TextureFilter.Linear);
-            textureCache.put(absolutePath, texture);
+            // 2D stage sprites are rendered at their native screen size. Mipmaps
+            // add memory and upload cost without helping this orthographic path.
+            Texture texture = new Texture(Gdx.files.absolute(cacheKey), false);
+            texture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+            textureCache.put(cacheKey, texture);
             return texture;
         } catch (Exception e) {
             Gdx.app.error("Fast2D", "Failed to load texture: " + absolutePath, e);
@@ -207,15 +211,6 @@ public class FastTwoDManager implements Disposable {
     public void setTexture(final String id, final String absolutePath) {
         Gdx.app.postRunnable(() -> {
             int e = getOrCreateEntity(id);
-            if (mTexture.has(e)) {
-                TextureComponent old = mTexture.get(e);
-                if (old.region != null && old.region.getTexture() != null) {
-                    Texture oldTexture = old.region.getTexture();
-                    if (!textureCache.containsValue(oldTexture)) {
-                        oldTexture.dispose();
-                    }
-                }
-            }
             Texture texture = getOrLoadTexture(absolutePath);
             if (texture == null) return;
 

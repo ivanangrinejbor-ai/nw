@@ -495,6 +495,13 @@ public class Look extends Image {
             return;
         }
 
+		// Scene2D still calls draw() for every actor, including clones outside the
+		// camera. Reject those actors before particles, shaders and Image.draw() do
+		// any work. The radius keeps rotated looks from being clipped at the edge.
+		if (isOutsideGameCamera()) {
+			return;
+		}
+
 		if (particleEffect != null) {
 			if (shouldLog) Log.d("ShaderDebug", "    [Draw] Drawing particle effect.");
 			particleEffect.draw(batch);
@@ -554,6 +561,25 @@ public class Look extends Image {
 			}
 		}
 
+	}
+
+	private boolean isOutsideGameCamera() {
+		if (sprite == null || !sprite.isClone || gameCamera == null || !isVisible() || !isLookVisible()) {
+			return false;
+		}
+
+		float centerX = getX() + getWidth() * 0.5f;
+		float centerY = getY() + getHeight() * 0.5f;
+		float radius = (float) Math.sqrt(getWidth() * getWidth() + getHeight() * getHeight()) * 0.5f;
+		float halfWidth = gameCamera.viewportWidth * gameCamera.zoom * 0.5f;
+		float halfHeight = gameCamera.viewportHeight * gameCamera.zoom * 0.5f;
+		float cameraLeft = gameCamera.position.x - halfWidth;
+		float cameraRight = gameCamera.position.x + halfWidth;
+		float cameraBottom = gameCamera.position.y - halfHeight;
+		float cameraTop = gameCamera.position.y + halfHeight;
+
+		return centerX + radius < cameraLeft || centerX - radius > cameraRight
+				|| centerY + radius < cameraBottom || centerY - radius > cameraTop;
 	}
 
 	private void drawTilemap(Batch batch, TilemapLookData tilemap) {

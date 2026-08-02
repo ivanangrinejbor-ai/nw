@@ -5,6 +5,7 @@ import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction
 import org.catrobat.catroid.content.Scope
 import org.catrobat.catroid.formulaeditor.Formula
 import org.catrobat.catroid.stage.StageActivity
+import java.io.File
 
 
 class Create3dObjectAction : TemporalAction() {
@@ -23,7 +24,12 @@ class Create3dObjectAction : TemporalAction() {
         }
 
         val project = scope?.project ?: return
-        val modelFile = project.getFile(modelFileName)
+        val projectModelFile = project.getFile(modelFileName)
+        val modelFile = if (projectModelFile != null && projectModelFile.exists()) {
+            projectModelFile
+        } else {
+            File(modelFileName).takeIf { it.isAbsolute && it.exists() }
+        }
 
         if (modelFile == null || !modelFile.exists()) {
             return

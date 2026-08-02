@@ -136,9 +136,11 @@ class DialogueEditorActivity : AppCompatActivity() {
 
     fun redo() {
         if (redoStack.isEmpty()) return
-        pushUndo()
+        undoStack.push(DialogueTree.fromJson(dialogueTree.toJson()))
+        if (undoStack.size > maxUndo) undoStack.removeLast()
         dialogueTree = DialogueTree.fromJson(redoStack.pop().toJson())
         canvas.setDialogueTree(dialogueTree)
+        dirtyFlag = true
     }
 
     fun getDialogueTree(): DialogueTree = dialogueTree

@@ -12,8 +12,9 @@ class Replace3DModelAction() : TemporalAction() {
     var modelPath: Formula? = null
 
     override fun update(percent: Float) {
-        val idStr = objectId?.interpretString(scope) ?: ""
-        val pathStr = modelPath?.interpretString(scope) ?: ""
+        val activeScope = scope ?: return
+        val idStr = objectId?.interpretString(activeScope) ?: ""
+        val pathStr = modelPath?.interpretString(activeScope) ?: ""
 
         if (idStr.isEmpty()) return
 
@@ -23,6 +24,13 @@ class Replace3DModelAction() : TemporalAction() {
             return
         }
 
-        threeDManager.replaceModel(idStr, pathStr)
+        val project = activeScope.project ?: return
+        val projectFile = project.getFile(pathStr)
+        val resolvedPath = if (projectFile != null && projectFile.exists()) {
+            projectFile.absolutePath
+        } else {
+            pathStr
+        }
+        threeDManager.replaceModel(idStr, resolvedPath)
     }
 }

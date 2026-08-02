@@ -47,7 +47,6 @@ import org.catrobat.catroid.content.Sprite;
 import org.catrobat.catroid.content.bricks.Brick;
 import org.catrobat.catroid.content.bricks.FormulaBrick;
 import org.catrobat.catroid.content.bricks.SubCategoryHeaderBrick;
-import org.catrobat.catroid.io.XstreamSerializer;
 import org.catrobat.catroid.ui.fragment.CategoryBricksFactory;
 
 import java.util.ArrayList;
@@ -56,7 +55,6 @@ import java.util.List;
 public class ScriptCanvasActivity extends AppCompatActivity {
 
 	public static final String EXTRA_SPRITE_NAME = "extra_sprite_name";
-	private static final int TAB_SCRIPTS = 0;
 
 	private Project project;
 	private Scene scene;
@@ -82,6 +80,14 @@ public class ScriptCanvasActivity extends AppCompatActivity {
 		project = ProjectManager.getInstance().getCurrentProject();
 		scene = ProjectManager.getInstance().getCurrentlyEditedScene();
 		sprite = ProjectManager.getInstance().getCurrentSprite();
+		if (scene == null && project != null) {
+			scene = project.getDefaultScene();
+			ProjectManager.getInstance().setCurrentlyEditedScene(scene);
+		}
+		if (sprite == null && scene != null) {
+			sprite = scene.getBackgroundSprite();
+			ProjectManager.getInstance().setCurrentSprite(sprite);
+		}
 
 		if (getIntent() != null && getIntent().hasExtra(EXTRA_SPRITE_NAME)) {
 			String spriteName = getIntent().getStringExtra(EXTRA_SPRITE_NAME);
@@ -113,6 +119,7 @@ public class ScriptCanvasActivity extends AppCompatActivity {
 
 		canvas = new ScriptCanvasView(this);
 		canvas.setSprite(sprite);
+		canvas.setContentChangedListener(this::updateEmptyState);
 		canvasContainer.addView(canvas, 0);
 
 		isBackground = scene.getBackgroundSprite() == sprite;
@@ -145,12 +152,14 @@ public class ScriptCanvasActivity extends AppCompatActivity {
 		}
 
 		ImageButton backpackButton = findViewById(R.id.script_canvas_btn_backpack);
-		backpackButton.setOnClickListener(v -> {
-			Intent intent = new Intent(this, org.catrobat.catroid.ui.recyclerview.backpack.BackpackActivity.class);
-			intent.putExtra(org.catrobat.catroid.ui.recyclerview.backpack.BackpackActivity.EXTRA_FRAGMENT_POSITION,
-					org.catrobat.catroid.ui.recyclerview.backpack.BackpackActivity.FRAGMENT_SCRIPTS);
-			startActivity(intent);
-		});
+		if (backpackButton != null) {
+			backpackButton.setOnClickListener(v -> {
+				Intent intent = new Intent(this, org.catrobat.catroid.ui.recyclerview.backpack.BackpackActivity.class);
+				intent.putExtra(org.catrobat.catroid.ui.recyclerview.backpack.BackpackActivity.EXTRA_FRAGMENT_POSITION,
+						org.catrobat.catroid.ui.recyclerview.backpack.BackpackActivity.FRAGMENT_SCRIPTS);
+				startActivity(intent);
+			});
+		}
 
 		ImageButton paletteButton = findViewById(R.id.script_canvas_btn_palette);
 		if (paletteButton != null) {
@@ -190,12 +199,21 @@ public class ScriptCanvasActivity extends AppCompatActivity {
 	private void openLegacyObjectTab(int fragmentPosition) {
 		ProjectManager.getInstance().setCurrentSprite(sprite);
 		Intent intent = new Intent(this, org.catrobat.catroid.ui.SpriteActivity.class);
+		intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
 		intent.putExtra(org.catrobat.catroid.ui.SpriteActivity.EXTRA_FRAGMENT_POSITION, fragmentPosition);
 		intent.putExtra(org.catrobat.catroid.ui.SpriteActivity.EXTRA_FORCE_LEGACY_EDITOR, true);
 		startActivity(intent);
 	}
 
+	private void updateEmptyState() {
+		TextView empty = findViewById(R.id.script_canvas_empty);
+		if (empty != null && sprite != null) {
+			empty.setVisibility(sprite.getScriptList().isEmpty() ? View.VISIBLE : View.GONE);
+		}
+	}
+
 	private static final int[] PALETTE_CATEGORIES = {
+			R.string.category_favorites, R.string.category_recently_used,
 			R.string.category_event, R.string.category_control, R.string.category_motion,
 			R.string.category_looks, R.string.category_sound, R.string.category_pen,
 			R.string.category_data, R.string.category_device, R.string.category_file,
@@ -332,10 +350,10 @@ public class ScriptCanvasActivity extends AppCompatActivity {
 	}
 
 	private void removeGhost() {
-		if (dragGhost != null) {
+		if (dragGhost != null && dragLayer != null) {
 			dragLayer.removeView(dragGhost);
-			dragGhost = null;
 		}
+		dragGhost = null;
 	}
 
 	private int dp(float value) {
@@ -382,6 +400,7 @@ public class ScriptCanvasActivity extends AppCompatActivity {
 		startActivityForResult(Intent.createChooser(intent, "Выберите модуль .neoscript"), REQUEST_NEO_SCRIPT);
 	}
 
+	private org.catrobat.catroid.content.bricks.VisualPlacementBrick activeVisualPlacementBrick;
 	private FormulaBrick activeFormulaBrick = null;
 	private Brick.FormulaField activeFormulaField = null;
 
@@ -396,12 +415,32 @@ public class ScriptCanvasActivity extends AppCompatActivity {
 		if (requestCode == 8899 && resultCode == RESULT_OK && data != null) {
 			String res = data.getStringExtra(org.catrobat.catroid.ui.formulaeditor.FormulaEditor2Activity.EXTRA_RESULT_FORMULA_STRING);
 			if (res != null && activeFormulaBrick != null && activeFormulaField != null) {
-				canvas.snapshot();
-				activeFormulaBrick.setFormulaWithBrickField(activeFormulaField, new org.catrobat.catroid.formulaeditor.Formula(res));
-				canvas.rebuild();
-				Toast.makeText(this, "Формула обновлена!", Toast.LENGTH_SHORT).show();
+				try {
+					org.catrobat.catroid.formulaeditor.Formula formula =
+							new org.catrobat.catroid.formulaeditor.Formula(res);
+					canvas.snapshot();
+					activeFormulaBrick.setFormulaWithBrickField(activeFormulaField, formula);
+					canvas.rebuild();
+					Toast.makeText(this, "Формула обновлена!", Toast.LENGTH_SHORT).show();
+				} catch (RuntimeException e) {
+					Toast.makeText(this, "Некорректная формула", Toast.LENGTH_SHORT).show();
+				}
 			}
+			activeFormulaBrick = null;
+			activeFormulaField = null;
+		} else if (requestCode == org.catrobat.catroid.ui.SpriteActivity.REQUEST_CODE_VISUAL_PLACEMENT) {
+			android.os.Bundle extras = data != null ? data.getExtras() : null;
+			if (resultCode == RESULT_OK && extras != null && activeVisualPlacementBrick != null
+					&& extras.getBoolean(org.catrobat.catroid.visualplacement.VisualPlacementActivity.CHANGED_COORDINATES, false)) {
+				canvas.snapshot();
+				activeVisualPlacementBrick.setCoordinates(
+						extras.getInt(org.catrobat.catroid.visualplacement.VisualPlacementActivity.X_COORDINATE_BUNDLE_ARGUMENT),
+						extras.getInt(org.catrobat.catroid.visualplacement.VisualPlacementActivity.Y_COORDINATE_BUNDLE_ARGUMENT));
+				canvas.rebuild();
+			}
+			activeVisualPlacementBrick = null;
 		} else if (requestCode == REQUEST_NEO_SCRIPT && resultCode == RESULT_OK && data != null && data.getData() != null) {
+			boolean importSnapshotCreated = false;
 			try {
 				java.io.InputStream is = getContentResolver().openInputStream(data.getData());
 				java.io.ByteArrayOutputStream buffer = new java.io.ByteArrayOutputStream();
@@ -413,16 +452,33 @@ public class ScriptCanvasActivity extends AppCompatActivity {
 				is.close();
 				String xml = buffer.toString("UTF-8");
 				org.catrobat.catroid.neoscript.NeoScriptFile file = org.catrobat.catroid.neoscript.NeoScriptSerializer.deserializeFromString(xml);
+				canvas.snapshot();
+				importSnapshotCreated = true;
 				org.catrobat.catroid.neoscript.NeoScriptImporter.importScripts(file, project, sprite, org.catrobat.catroid.neoscript.NeoScriptImporter.ImportStrategy.SKIP_DUPLICATES);
 				canvas.rebuild();
 				Toast.makeText(this, "Модуль NeoScript успешно импортирован!", Toast.LENGTH_SHORT).show();
 			} catch (Exception e) {
+				if (importSnapshotCreated && canvas != null && canvas.canUndo()) {
+					canvas.undo();
+				}
 				Toast.makeText(this, "Ошибка импорта NeoScript: " + e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
 			}
 		}
 	}
 
+	public void openVisualPlacement(org.catrobat.catroid.content.bricks.VisualPlacementBrick brick) {
+		if (brick == null) return;
+		activeVisualPlacementBrick = brick;
+		startActivityForResult(brick.generateIntentForVisualPlacement(
+				brick.getXBrickField(), brick.getYBrickField()),
+				org.catrobat.catroid.ui.SpriteActivity.REQUEST_CODE_VISUAL_PLACEMENT);
+	}
+
 	private void filterBricksBySearch(String query) {
+		if (paletteLoadingRunnable != null) {
+			paletteHandler.removeCallbacks(paletteLoadingRunnable);
+			paletteLoadingRunnable = null;
+		}
 		if (query.isEmpty()) {
 			showCategoryBricks(PALETTE_CATEGORIES[0]);
 			return;
@@ -737,13 +793,13 @@ public class ScriptCanvasActivity extends AppCompatActivity {
 	@Override
 	protected void onPause() {
 		super.onPause();
-		if (project != null) {
-			new Thread(() -> {
-				try {
-					XstreamSerializer.getInstance().saveProject(project);
-				} catch (Exception ignored) {
-				}
-			}, "script-canvas-save").start();
-		}
+		ScriptCanvasView.saveProjectAsync(project);
+	}
+
+	@Override
+	protected void onDestroy() {
+		paletteHandler.removeCallbacksAndMessages(null);
+		removeGhost();
+		super.onDestroy();
 	}
 }

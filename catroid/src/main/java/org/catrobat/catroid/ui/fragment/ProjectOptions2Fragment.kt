@@ -21,9 +21,9 @@ import androidx.fragment.app.Fragment
 import org.catrobat.catroid.ProjectManager
 import org.catrobat.catroid.R
 import org.catrobat.catroid.content.Project
-import org.catrobat.catroid.io.XstreamSerializer
 import org.catrobat.catroid.io.asynctask.ProjectExportTask
 import org.catrobat.catroid.ui.sceneeditor.Ui2PanelActivity
+import org.catrobat.catroid.ui.sceneeditor.ProjectSaveCoordinator
 import org.catrobat.catroid.ui.fragment.ApkBuilderV3ExportDialog
 import java.io.File
 import java.io.FileInputStream
@@ -220,14 +220,16 @@ class ProjectOptions2Fragment : Fragment() {
             try {
                 val w = inputW.text.toString().toInt()
                 val h = inputH.text.toString().toInt()
-                if (w > 0 && h > 0 && header != null) {
+                if (w in 64..8192 && h in 64..8192 && header != null) {
                     header.virtualScreenWidth = w
                     header.virtualScreenHeight = h
                     saveProjectAsync()
                     Toast.makeText(requireContext(), "Разрешение $w x $h установлено!", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(requireContext(), "Разрешение должно быть от 64 до 8192", Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
-                Toast.makeText(requireContext(), "Некорректное число!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Разрешение должно быть от 64 до 8192", Toast.LENGTH_SHORT).show()
             }
         }
         cardDisplay.addView(saveResBtn)
@@ -332,11 +334,7 @@ class ProjectOptions2Fragment : Fragment() {
 
     private fun saveProjectAsync() {
         val proj = project ?: return
-        Thread {
-            try {
-                XstreamSerializer.getInstance().saveProject(proj)
-            } catch (ignored: Exception) {}
-        }.start()
+        ProjectSaveCoordinator.saveAsync(proj)
     }
 
     private fun exportProject() {
@@ -345,7 +343,9 @@ class ProjectOptions2Fragment : Fragment() {
         Thread {
             var mediaStoreUri: android.net.Uri? = null
             try {
-                XstreamSerializer.getInstance().saveProject(proj)
+                if (!ProjectSaveCoordinator.saveBlocking(proj)) {
+                    error("Не удалось сохранить проект перед экспортом")
+                }
                 val safeName = proj.name.replace(Regex("[\\\\/:*?\"<>|]"), "_")
                 val fileName = "${safeName}_export.catrobat"
                 val output: OutputStream
