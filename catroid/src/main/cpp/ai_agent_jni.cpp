@@ -128,7 +128,7 @@ Java_org_catrobat_catroid_ai_model_ModelRuntime_nativeGenerate(
         (int32_t)prompt.length(),
         tokens.data(),
         (int32_t)n_tokens,
-        true,
+        false,
         false);
 
     if (token_count < 0) {
@@ -140,7 +140,7 @@ Java_org_catrobat_catroid_ai_model_ModelRuntime_nativeGenerate(
             (int32_t)prompt.length(),
             tokens.data(),
             (int32_t)n_tokens,
-            true,
+            false,
             false);
         if (token_count < 0) {
             LOGE("Tokenization failed: %d", token_count);

@@ -27,7 +27,7 @@ object ApkBuilderV3Engine {
     ): AssemblyResult = withContext(Dispatchers.IO) {
         var tempDir: File? = null
         try {
-            listener.onProgress(0f, "Initializing build environment...")
+            listener.onProgress(0f, "Initializing build environment...", "")
 
             tempDir = File(context.cacheDir, "apk_v3_${System.currentTimeMillis()}")
             tempDir.mkdirs()
@@ -36,7 +36,7 @@ object ApkBuilderV3Engine {
             val neededSpace = projectSize * 3 + BUILD_HEADROOM_MB * 1024 * 1024
             checkDiskSpace(tempDir, neededSpace)
 
-            listener.onProgress(5f, "Loading and serializing project...")
+            listener.onProgress(5f, "Loading and serializing project...", "")
 
             val project = ProjectManager.getInstance().currentProject
                 ?: XstreamSerializer.getInstance().loadProject(projectDir, context)
@@ -45,20 +45,22 @@ object ApkBuilderV3Engine {
                 return@withContext AssemblyResult.Failure("Project is empty — no scenes to build.")
             }
 
-            listener.onProgress(10f, "Packaging project resources...")
+            listener.onProgress(10f, "Packaging project resources...", Constants.CODE_XML_FILE_NAME)
 
             val stagingDir = File(tempDir, "staging")
             val payloadZip = File(tempDir, "payload_raw.zip")
-            stageProjectPayload(project, projectDir, stagingDir, payloadZip, context)
+            stageProjectPayload(project, projectDir, stagingDir, payloadZip, context) { file ->
+                listener.onProgress(10f, "Packaging project resources...", file)
+            }
 
-            listener.onProgress(30f, "Generating encryption keys...")
+            listener.onProgress(30f, "Generating encryption keys...", "")
 
             val keyResult = DynamicKeyManager.generateKey(project.name)
             if (!DynamicKeyManager.verifyKeyIntegrity(keyResult.storedKeyString)) {
                 return@withContext AssemblyResult.Failure("Key generation integrity check failed.")
             }
 
-            listener.onProgress(35f, "Encrypting project payload (V3 format)...")
+            listener.onProgress(35f, "Encrypting project payload (V3 format)...", payloadZip.name)
 
             val encryptedPayload = File(tempDir, ASSET_PROJECT_PAYLOAD)
             ProjectEncryptorV3.encrypt(
@@ -66,11 +68,11 @@ object ApkBuilderV3Engine {
                 destFile = encryptedPayload,
                 key = keyResult.selectedKey,
                 onProgress = { p ->
-                    listener.onProgress(35f + p * 15f, "Encrypting project payload...")
+                    listener.onProgress(35f + p * 15f, "Encrypting project payload...", payloadZip.name)
                 }
             )
 
-            listener.onProgress(50f, "Verifying payload integrity...")
+            listener.onProgress(50f, "Verifying payload integrity...", encryptedPayload.name)
 
             if (!IntegrityValidator.validate(encryptedPayload, keyResult.selectedKey)) {
                 return@withContext AssemblyResult.Failure("Payload integrity check failed. " +
@@ -80,7 +82,7 @@ object ApkBuilderV3Engine {
             payloadZip.delete()
             stagingDir.deleteRecursively()
 
-            listener.onProgress(55f, "Preparing runtime template...")
+            listener.onProgress(55f, "Preparing runtime template...", TEMPLATE_RUNTIME_APK)
 
             val assembledApk = V3ApkAssembler.assemble(
                 context = context,
@@ -90,11 +92,11 @@ object ApkBuilderV3Engine {
                 keyContent = keyResult.storedKeyString,
                 workDir = tempDir,
                 firebaseConfig = config.firebaseConfig
-            ) { p ->
-                listener.onProgress(55f + p * 43f, "Assembling APK...")
+            ) { p, file ->
+                listener.onProgress(55f + p * 43f, "Assembling APK...", file)
             }
 
-            listener.onProgress(98f, "Finalizing...")
+            listener.onProgress(98f, "Finalizing...", assembledApk.name)
 
             val safeName = config.appName
                 .replace(" ", "_")
@@ -104,11 +106,12 @@ object ApkBuilderV3Engine {
 
             val resultFile = File(context.cacheDir, "${safeName}.apk")
             if (resultFile.exists()) resultFile.delete()
+            listener.onProgress(99f, "Finalizing...", resultFile.name)
             assembledApk.copyTo(resultFile, overwrite = true)
 
             tempDir.deleteRecursively()
 
-            listener.onProgress(100f, "Done!")
+            listener.onProgress(100f, "Done!", resultFile.name)
 
             Log.i(TAG, "Build complete: ${resultFile.absolutePath} " +
                     "(${resultFile.length() / (1024 * 1024)} MB)")
@@ -142,7 +145,8 @@ object ApkBuilderV3Engine {
         projectDir: File,
         stagingDir: File,
         payloadZip: File,
-        context: Context
+        context: Context,
+        onFile: (String) -> Unit
     ) {
         stagingDir.mkdirs()
         Log.d(TAG, "stageProjectPayload: start projectDir=${projectDir.absolutePath}")
@@ -150,25 +154,27 @@ object ApkBuilderV3Engine {
         val xmlHeader = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\" ?>\n"
         val projectXml = xmlHeader + XstreamSerializer.getInstance().getXmlAsStringFromProject(project)
         File(stagingDir, Constants.CODE_XML_FILE_NAME).writeText(projectXml)
+        onFile(Constants.CODE_XML_FILE_NAME)
 
-        copyDir(File(projectDir, "files"), File(stagingDir, "files"))
+        copyDir(File(projectDir, "files"), File(stagingDir, "files"), onFile)
 
         for (scene in project.sceneList) {
             val sceneDirName = scene.getDirectory().name
-            copyDir(File(projectDir, "$sceneDirName/images"), File(stagingDir, "$sceneDirName/images"))
-            copyDir(File(projectDir, "$sceneDirName/sounds"), File(stagingDir, "$sceneDirName/sounds"))
+            copyDir(File(projectDir, "$sceneDirName/images"), File(stagingDir, "$sceneDirName/images"), onFile)
+            copyDir(File(projectDir, "$sceneDirName/sounds"), File(stagingDir, "$sceneDirName/sounds"), onFile)
         }
         Log.d(TAG, "stageProjectPayload: staged ${project.sceneList.size} scenes")
 
-        MemoryAwarePipeline.zipDirectoryStreaming(stagingDir, payloadZip)
+        MemoryAwarePipeline.zipDirectoryStreaming(stagingDir, payloadZip, onFile = onFile)
 
         Log.d(TAG, "Project staged: ${payloadZip.length() / (1024 * 1024)} MB")
     }
 
-    private fun copyDir(src: File, dst: File) {
+    private fun copyDir(src: File, dst: File, onFile: (String) -> Unit) {
         if (!src.exists() || !src.isDirectory) return
         dst.mkdirs()
         src.listFiles()?.forEach { file ->
+            onFile("${src.name}/${file.name}")
             MemoryAwarePipeline.copyFile(file, File(dst, file.name))
         }
     }

@@ -35,7 +35,7 @@ public class PerformanceTracker {
     public static void logHeavyScript(Script script, long durationNs) {
         double ms = durationNs / 1_000_000.0;
         String scriptName = (script != null) ? script.getClass().getSimpleName() : "Unknown Script";
-        Log.w("CAT_PROFILER_HEAVY", "🔥 HEAVY SCRIPT DETECTED: " + scriptName + " took " + String.format("%.2f", ms) + " ms in a single frame!");
+        Log.w("CAT_PROFILER_HEAVY", "HEAVY SCRIPT DETECTED: " + scriptName + " took " + String.format("%.2f", ms) + " ms in a single frame!");
     }
 
     private static void printStats() {

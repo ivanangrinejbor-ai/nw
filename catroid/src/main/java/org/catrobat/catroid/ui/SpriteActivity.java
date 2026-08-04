@@ -144,7 +144,6 @@ public class SpriteActivity extends BaseActivity {
 	public static final int SPRITE_LIBRARY = 1;
 	public static final int SPRITE_FILE = 2;
 	public static final int SPRITE_CAMERA = 3;
-	public static final int SPRITE_TILEMAP = 15;
 
 	public static final int BACKGROUND_POCKET_PAINT = 4;
 	public static final int BACKGROUND_LIBRARY = 5;
@@ -457,11 +456,6 @@ public class SpriteActivity extends BaseActivity {
 			case SPRITE_CAMERA:
 				uri = new ImportFromCameraLauncher(this).getCacheCameraUri();
 				addSpriteFromUri(uri, JPEG_IMAGE_EXTENSION);
-				break;
-			case SPRITE_TILEMAP:
-				if (onNewSpriteListener != null) {
-					onNewSpriteListener.addItem(currentSprite);
-				}
 				break;
 			case BACKGROUND_POCKET_PAINT:
 				uri = new ImportFromPocketPaintLauncher(this).getPocketPaintCacheUri();
@@ -919,35 +913,8 @@ public class SpriteActivity extends BaseActivity {
 					.startActivityForResult(SPRITE_CAMERA);
 			alertDialog.dismiss();
 		});
-		root.findViewById(R.id.dialog_new_look_tilemap).setOnClickListener(view -> {
-			alertDialog.dismiss();
-			addSpriteAsTilemap();
-		});
 
 		alertDialog.show();
-	}
-
-	private void addSpriteAsTilemap() {
-		String defaultName = new UniqueNameProvider().getUniqueNameInNameables(
-				getString(R.string.default_sprite_name), currentScene.getSpriteList());
-		new TextInputDialog.Builder(this)
-				.setHint(getString(R.string.sprite_name_label))
-				.setText(defaultName)
-				.setTextWatcher(new DuplicateInputTextWatcher<>(currentScene.getSpriteList()))
-				.setPositiveButton(getString(R.string.ok), (TextInputDialog.OnClickListener) (dialog, name) -> {
-					Sprite sprite = new Sprite(name);
-					currentScene.addSprite(sprite);
-					ProjectManager.getInstance().setCurrentSprite(sprite);
-
-					Intent intent = new Intent(this,
-							org.catrobat.catroid.ui.tilemap.TilemapEditorActivity.class);
-					intent.putExtra(
-							org.catrobat.catroid.ui.tilemap.TilemapEditorActivity.EXTRA_NEW_TILEMAP,
-							true);
-					startActivityForResult(intent, SPRITE_TILEMAP);
-				})
-				.setNegativeButton(getString(R.string.cancel), null)
-				.show();
 	}
 
 	public void handleAddBackgroundButton() {
@@ -984,12 +951,6 @@ public class SpriteActivity extends BaseActivity {
 		root.findViewById(R.id.dialog_new_look_camera).setOnClickListener(view -> {
 			new ImportFromCameraLauncher(this)
 					.startActivityForResult(BACKGROUND_CAMERA);
-			alertDialog.dismiss();
-		});
-		root.findViewById(R.id.dialog_new_look_tilemap).setOnClickListener(view -> {
-			Intent intent = new Intent(this, org.catrobat.catroid.ui.tilemap.TilemapEditorActivity.class);
-			intent.putExtra(org.catrobat.catroid.ui.tilemap.TilemapEditorActivity.EXTRA_NEW_TILEMAP, true);
-			startActivityForResult(intent, EDIT_LOOK);
 			alertDialog.dismiss();
 		});
 
@@ -1034,12 +995,6 @@ public class SpriteActivity extends BaseActivity {
 		root.findViewById(R.id.dialog_new_look_camera).setOnClickListener(view -> {
 			new ImportFromCameraLauncher(this)
 					.startActivityForResult(LOOK_CAMERA);
-			alertDialog.dismiss();
-		});
-		root.findViewById(R.id.dialog_new_look_tilemap).setOnClickListener(view -> {
-			Intent intent = new Intent(this, org.catrobat.catroid.ui.tilemap.TilemapEditorActivity.class);
-			intent.putExtra(org.catrobat.catroid.ui.tilemap.TilemapEditorActivity.EXTRA_NEW_TILEMAP, true);
-			startActivityForResult(intent, EDIT_LOOK);
 			alertDialog.dismiss();
 		});
 

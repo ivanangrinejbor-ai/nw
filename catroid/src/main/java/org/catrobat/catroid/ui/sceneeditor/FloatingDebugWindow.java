@@ -63,7 +63,7 @@ public class FloatingDebugWindow extends FrameLayout {
 
 		TextView title = new TextView(context);
 		title.setText("Отладчик 2.0 (Переменные)");
-		title.setTextColor(0xFF38BDF8);
+		title.setTextColor(0xFF94A3B8);
 		title.setTextSize(14f);
 		title.setTypeface(null, Typeface.BOLD);
 		LinearLayout.LayoutParams titleLp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
@@ -130,7 +130,7 @@ public class FloatingDebugWindow extends FrameLayout {
 				TextView tv = new TextView(getContext());
 				Object val = uv.getValue();
 				tv.setText("  • " + uv.getName() + " = " + (val != null ? val.toString() : "0"));
-				tv.setTextColor(0xFF38BDF8);
+				tv.setTextColor(0xFF94A3B8);
 				tv.setTextSize(13f);
 				tv.setPadding(0, dp6, 0, dp6);
 				debugContainer.addView(tv);
@@ -177,10 +177,20 @@ public class FloatingDebugWindow extends FrameLayout {
 	}
 
 	public void close() {
-		updateHandler.removeCallbacks(updateRunnable);
+		stopUpdates();
 		if (getParent() instanceof ViewGroup) {
 			((ViewGroup) getParent()).removeView(this);
 		}
+	}
+
+	@Override
+	protected void onDetachedFromWindow() {
+		stopUpdates();
+		super.onDetachedFromWindow();
+	}
+
+	private void stopUpdates() {
+		updateHandler.removeCallbacks(updateRunnable);
 	}
 
 	private class DragListener implements OnTouchListener {

@@ -92,7 +92,8 @@ import androidx.annotation.NonNull;
 		"userDefinedBrickList",
 		"swipeable",
 		"swipeAttachments",
-		"scriptNotes"
+		"scriptNotes",
+		"floatingBricks"
 })
 @LunoClass
 public class Sprite implements Nameable, Serializable {
@@ -132,6 +133,7 @@ public class Sprite implements Nameable, Serializable {
 	private boolean swipeable = false;
 	private List<SwipeAttachment> swipeAttachments = new ArrayList<>();
 	private List<ScriptNote> scriptNotes = new ArrayList<>();
+	private List<FloatingBrick> floatingBricks = new ArrayList<>();
 
 	public boolean isSwipeable() {
 		return swipeable;
@@ -153,6 +155,13 @@ public class Sprite implements Nameable, Serializable {
 			scriptNotes = new ArrayList<>();
 		}
 		return scriptNotes;
+	}
+
+	public List<FloatingBrick> getFloatingBricks() {
+		if (floatingBricks == null) {
+			floatingBricks = new ArrayList<>();
+		}
+		return floatingBricks;
 	}
 
 	public void setSwipeAttachments(List<SwipeAttachment> swipeAttachments) {

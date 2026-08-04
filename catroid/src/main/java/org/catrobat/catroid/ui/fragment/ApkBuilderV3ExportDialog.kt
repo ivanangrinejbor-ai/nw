@@ -226,6 +226,7 @@ class ApkBuilderV3ExportDialog {
         val progressBar = progressView.findViewById<ProgressBar>(R.id.v3_build_progress_bar)
         val percentText = progressView.findViewById<TextView>(R.id.v3_progress_percent)
         val stageText = progressView.findViewById<TextView>(R.id.v3_progress_stage)
+        val fileText = progressView.findViewById<TextView>(R.id.v3_progress_file)
         val factText = progressView.findViewById<TextView>(R.id.v3_build_fact)
 
         val buildDialog = AlertDialog.Builder(ctx)
@@ -249,11 +250,12 @@ class ApkBuilderV3ExportDialog {
                     context = ctx,
                     projectDir = projDir,
                     config = cfg,
-                    listener = BuildProgressListener { progress, stage ->
+                    listener = BuildProgressListener { progress, stage, currentFile ->
                         mainHandler.post {
                             progressBar.progress = progress.toInt()
                             percentText.text = "${progress.toInt()}%"
                             stageText.text = stage
+                            fileText.text = if (currentFile.isNotBlank()) "Файл: $currentFile" else ""
                             factIndex = showV3Fact(factText, factIndex)
                         }
                     }

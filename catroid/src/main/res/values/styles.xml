@@ -110,6 +110,7 @@
         <item name="android:actionMenuTextColor">@color/toolbar_title</item>
     </style>
     <style name="ToolbarTheme" parent="@style/ThemeOverlay.AppCompat.ActionBar">
+        <item name="actionBarSize">48dp</item>
         <item name="colorControlNormal">@color/toolbar_icons</item>
     </style>
 

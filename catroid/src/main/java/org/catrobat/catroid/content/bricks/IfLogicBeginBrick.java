@@ -1,26 +1,3 @@
-/*
- * Catroid: An on-device visual programming system for Android devices
- * Copyright (C) 2010-2023 The Catrobat Team
- * (<http://developer.catrobat.org/credits>)
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * An additional term exception under section 7 of the GNU Affero
- * General Public License, version 3, is available at
- * http://developer.catrobat.org/license_additional_term
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package org.catrobat.catroid.content.bricks;
 
 import android.content.Context;
@@ -33,6 +10,7 @@ import org.catrobat.catroid.content.ActionFactory;
 import org.catrobat.catroid.content.Sprite;
 import org.catrobat.catroid.content.actions.ScriptSequenceAction;
 import org.catrobat.catroid.formulaeditor.Formula;
+import org.catrobat.catroid.formulaeditor.Operators;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,448 +20,328 @@ import androidx.annotation.VisibleForTesting;
 
 public class IfLogicBeginBrick extends FormulaBrick implements CompositeBrick {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private transient ElseBrick elseBrick = new ElseBrick(this);
-	private transient EndBrick endBrick = new EndBrick(this, R.layout.brick_if_end_if);
-	private transient List<ElseIfBrick> elseIfMarkers = new ArrayList<>();
-	private transient List<ElseIfEndBrick> elseIfEndMarkers = new ArrayList<>();
+    private transient ElseBrick elseBrick = new ElseBrick(this);
+    private transient EndBrick endBrick = new EndBrick(this, R.layout.brick_if_end_if);
 
-	protected List<Brick> ifBranchBricks = new ArrayList<>();
-	protected List<Brick> elseBranchBricks = new ArrayList<>();
+    protected List<Brick> ifBranchBricks = new ArrayList<>();
+    protected List<ElseIfBranch> elseIfBranches = new ArrayList<>();
+    protected List<Brick> elseBranchBricks = new ArrayList<>();
 
-	protected List<Formula> elseIfConditions = new ArrayList<>();
-	protected List<List<Brick>> elseIfBranchBricks = new ArrayList<>();
+    public IfLogicBeginBrick() {
+        addAllowedBrickField(BrickField.IF_CONDITION, R.id.brick_if_begin_edit_text);
+    }
 
-	public IfLogicBeginBrick() {
-		addAllowedBrickField(BrickField.IF_CONDITION, R.id.brick_if_begin_edit_text);
-	}
+    public IfLogicBeginBrick(Formula formula) {
+        this();
+        setFormulaWithBrickField(BrickField.IF_CONDITION, formula);
+    }
 
-	public IfLogicBeginBrick(Formula formula) {
-		this();
-		setFormulaWithBrickField(BrickField.IF_CONDITION, formula);
-	}
+    private Object readResolve() {
+        if (elseIfBranches == null) {
+            elseIfBranches = new ArrayList<>();
+        }
+        if (ifBranchBricks == null) {
+            ifBranchBricks = new ArrayList<>();
+        }
+        if (elseBranchBricks == null) {
+            elseBranchBricks = new ArrayList<>();
+        }
+        return this;
+    }
 
-	private Object readResolve() {
-		if (elseBrick == null) {
-			elseBrick = new ElseBrick(this);
-		}
-		if (endBrick == null) {
-			endBrick = new EndBrick(this, R.layout.brick_if_end_if);
-		}
-		if (ifBranchBricks == null) {
-			ifBranchBricks = new ArrayList<>();
-		}
-		if (elseBranchBricks == null) {
-			elseBranchBricks = new ArrayList<>();
-		}
-		if (elseIfConditions == null) {
-			elseIfConditions = new ArrayList<>();
-		}
-		if (elseIfBranchBricks == null) {
-			elseIfBranchBricks = new ArrayList<>();
-		}
-		rebuildElseIfMarkers();
-		return this;
-	}
+    public List<ElseIfBranch> getElseIfBranches() {
+        if (elseIfBranches == null) {
+            elseIfBranches = new ArrayList<>();
+        }
+        return elseIfBranches;
+    }
 
-	private void rebuildElseIfMarkers() {
-		elseIfMarkers = new ArrayList<>();
-		elseIfEndMarkers = new ArrayList<>();
-		for (int i = 0; i < elseIfConditions.size(); i++) {
-			elseIfMarkers.add(new ElseIfBrick(this, i));
-			elseIfEndMarkers.add(new ElseIfEndBrick(this, i));
-		}
-	}
+    public void addElseIfBranch() {
+        getElseIfBranches().add(new ElseIfBranch(new Formula(true)));
+    }
 
-	public void addElseIfBranch() {
-		elseIfConditions.add(new Formula(0));
-		elseIfBranchBricks.add(new ArrayList<>());
-		elseIfMarkers.add(new ElseIfBrick(this, elseIfConditions.size() - 1));
-		elseIfEndMarkers.add(new ElseIfEndBrick(this, elseIfConditions.size() - 1));
-	}
+    public void removeElseIfBranch(ElseIfBranch branch) {
+        getElseIfBranches().remove(branch);
+    }
 
-	public int getElseIfCount() {
-		return elseIfConditions.size();
-	}
+    @Override
+    public View getView(Context context) {
+        View v = super.getView(context);
 
-	public Formula getElseIfCondition(int index) {
-		return elseIfConditions.get(index);
-	}
+        View addBtn = v.findViewById(R.id.brick_if_add_else_if_button);
+        if (addBtn != null) {
+            addBtn.setOnClickListener(click -> {
+                addElseIfBranch();
+                ElseIfSeparatorBrick.refreshScriptList(v);
+            });
+        }
+        return v;
+    }
 
-	public List<Brick> getElseIfBranchParts(int index) {
-		List<Brick> parts = new ArrayList<>();
-		if (index >= 0 && index < elseIfMarkers.size()) {
-			parts.add(elseIfMarkers.get(index));
-		}
-		if (index >= 0 && index < elseIfEndMarkers.size()) {
-			parts.add(elseIfEndMarkers.get(index));
-		}
-		return parts;
-	}
+    @Override
+    public boolean hasSecondaryList() {
+        return true;
+    }
 
-	public boolean removeElseIfBranch(int index) {
-		if (index < 0 || index >= elseIfConditions.size()) {
-			return false;
-		}
-		elseIfConditions.remove(index);
-		elseIfBranchBricks.remove(index);
-		rebuildElseIfMarkers();
-		return true;
-	}
+    @Override
+    public List<Brick> getNestedBricks() {
+        return ifBranchBricks;
+    }
 
-	public boolean moveElseIfBranchUp(int index) {
-		if (index <= 0 || index >= elseIfConditions.size()) {
-			return false;
-		}
-		java.util.Collections.swap(elseIfConditions, index, index - 1);
-		java.util.Collections.swap(elseIfBranchBricks, index, index - 1);
-		rebuildElseIfMarkers();
-		return true;
-	}
+    @Override
+    public List<Brick> getSecondaryNestedBricks() {
+        return elseBranchBricks;
+    }
 
-	public boolean moveElseIfBranchDown(int index) {
-		if (index < 0 || index >= elseIfConditions.size() - 1) {
-			return false;
-		}
-		java.util.Collections.swap(elseIfConditions, index, index + 1);
-		java.util.Collections.swap(elseIfBranchBricks, index, index + 1);
-		rebuildElseIfMarkers();
-		return true;
-	}
+    public boolean addBrickToIfBranch(Brick brick) {
+        return ifBranchBricks.add(brick);
+    }
 
-	public void setElseIfCondition(int index, Formula formula) {
-		if (index >= 0 && index < elseIfConditions.size()) {
-			elseIfConditions.set(index, formula);
-		}
-	}
+    public boolean addBrickToElseBranch(Brick brick) {
+        return elseBranchBricks.add(brick);
+    }
 
-	public List<Brick> getElseIfBranch(int index) {
-		return elseIfBranchBricks.get(index);
-	}
+    @Override
+    public void setCommentedOut(boolean commentedOut) {
+        super.setCommentedOut(commentedOut);
+        for (Brick brick : ifBranchBricks) {
+            brick.setCommentedOut(commentedOut);
+        }
+        for (ElseIfBranch branch : getElseIfBranches()) {
+            for (Brick brick : branch.getBranchBricks()) {
+                brick.setCommentedOut(commentedOut);
+            }
+        }
+        for (Brick brick : elseBranchBricks) {
+            brick.setCommentedOut(commentedOut);
+        }
+    }
 
-	@Override
-	public boolean hasSecondaryList() {
-		return true;
-	}
+    @Override
+    public Brick clone() throws CloneNotSupportedException {
+        IfLogicBeginBrick clone = (IfLogicBeginBrick) super.clone();
+        clone.elseBrick = new ElseBrick(clone);
+        clone.endBrick = new EndBrick(clone, R.layout.brick_if_end_if);
+        clone.ifBranchBricks = new ArrayList<>();
+        clone.elseIfBranches = new ArrayList<>();
+        clone.elseBranchBricks = new ArrayList<>();
 
-	@Override
-	public List<Brick> getNestedBricks() {
-		return ifBranchBricks;
-	}
+        for (Brick brick : ifBranchBricks) {
+            clone.addBrickToIfBranch(brick.clone());
+        }
+        for (ElseIfBranch branch : getElseIfBranches()) {
+            clone.elseIfBranches.add(branch.clone());
+        }
+        for (Brick brick : elseBranchBricks) {
+            clone.addBrickToElseBranch(brick.clone());
+        }
+        return clone;
+    }
 
-	@Override
-	public List<Brick> getSecondaryNestedBricks() {
-		return elseBranchBricks;
-	}
+    @Override
+    public boolean consistsOfMultipleParts() {
+        return true;
+    }
 
-	public boolean addBrickToIfBranch(Brick brick) {
-		return ifBranchBricks.add(brick);
-	}
+    @Override
+    public List<Brick> getAllParts() {
+        List<Brick> bricks = new ArrayList<>();
+        bricks.add(this);
+        for (ElseIfBranch branch : getElseIfBranches()) {
+            ElseIfSeparatorBrick separator = branch.getSeparatorBrick(this);
+            separator.setParentIfBrick(this);
+            bricks.add(separator);
+        }
+        bricks.add(elseBrick);
+        bricks.add(endBrick);
+        return bricks;
+    }
 
-	public boolean addBrickToElseBranch(Brick brick) {
-		return elseBranchBricks.add(brick);
-	}
+    @Override
+    public void addToFlatList(List<Brick> bricks) {
+        super.addToFlatList(bricks);
+        for (Brick brick : ifBranchBricks) {
+            brick.addToFlatList(bricks);
+        }
 
-	@Override
-	public void setCommentedOut(boolean commentedOut) {
-		super.setCommentedOut(commentedOut);
-		for (Brick brick : ifBranchBricks) {
-			brick.setCommentedOut(commentedOut);
-		}
-		for (List<Brick> branch : elseIfBranchBricks) {
-			for (Brick brick : branch) {
-				brick.setCommentedOut(commentedOut);
-			}
-		}
-		for (Brick brick : elseBranchBricks) {
-			brick.setCommentedOut(commentedOut);
-		}
-	}
+        for (ElseIfBranch branch : getElseIfBranches()) {
+            ElseIfSeparatorBrick separator = branch.getSeparatorBrick(this);
+            separator.setParentIfBrick(this);
+            bricks.add(separator);
+            for (Brick brick : branch.getBranchBricks()) {
+                brick.addToFlatList(bricks);
+            }
+        }
 
-	@Override
-	public Brick clone() throws CloneNotSupportedException {
-		IfLogicBeginBrick clone = (IfLogicBeginBrick) super.clone();
-		clone.elseBrick = new ElseBrick(clone);
-		clone.endBrick = new EndBrick(clone, R.layout.brick_if_end_if);
-		clone.ifBranchBricks = new ArrayList<>();
-		clone.elseBranchBricks = new ArrayList<>();
-		clone.elseIfConditions = new ArrayList<>();
-		clone.elseIfBranchBricks = new ArrayList<>();
+        bricks.add(elseBrick);
+        for (Brick brick : elseBranchBricks) {
+            brick.addToFlatList(bricks);
+        }
+        bricks.add(endBrick);
+    }
 
-		for (Brick brick : ifBranchBricks) {
-			clone.addBrickToIfBranch(brick.clone());
-		}
-		for (int i = 0; i < elseIfConditions.size(); i++) {
-			clone.elseIfConditions.add(elseIfConditions.get(i).clone());
-			List<Brick> clonedBranch = new ArrayList<>();
-			for (Brick brick : elseIfBranchBricks.get(i)) {
-				clonedBranch.add(brick.clone());
-			}
-			clone.elseIfBranchBricks.add(clonedBranch);
-		}
-		for (Brick brick : elseBranchBricks) {
-			clone.addBrickToElseBranch(brick.clone());
-		}
-		clone.rebuildElseIfMarkers();
-		return clone;
-	}
+    @Override
+    public void setParent(Brick parent) {
+        super.setParent(parent);
+        for (Brick brick : ifBranchBricks) {
+            brick.setParent(this);
+        }
+        for (ElseIfBranch branch : getElseIfBranches()) {
+            ElseIfSeparatorBrick separator = branch.getSeparatorBrick(this);
+            separator.setParentIfBrick(this);
+            for (Brick brick : branch.getBranchBricks()) {
+                brick.setParent(separator);
+            }
+        }
+        for (Brick brick : elseBranchBricks) {
+            brick.setParent(elseBrick);
+        }
+    }
 
-	@Override
-	public boolean consistsOfMultipleParts() {
-		return true;
-	}
+    @Override
+    public List<Brick> getDragAndDropTargetList() {
+        return ifBranchBricks;
+    }
 
-	@Override
-	public List<Brick> getAllParts() {
-		List<Brick> bricks = new ArrayList<>();
-		bricks.add(this);
-		for (int i = 0; i < elseIfMarkers.size(); i++) {
-			bricks.add(elseIfMarkers.get(i));
-			if (i < elseIfEndMarkers.size()) {
-				bricks.add(elseIfEndMarkers.get(i));
-			}
-		}
-		bricks.add(elseBrick);
-		bricks.add(endBrick);
-		return bricks;
-	}
+    @Override
+    public boolean removeChild(Brick brick) {
+        if (ifBranchBricks.remove(brick)) return true;
+        if (elseBranchBricks.remove(brick)) return true;
 
-	@Override
-	public void addToFlatList(List<Brick> bricks) {
-		super.addToFlatList(bricks);
-		for (Brick brick : ifBranchBricks) {
-			brick.addToFlatList(bricks);
-		}
-		for (int i = 0; i < elseIfMarkers.size(); i++) {
-			bricks.add(elseIfMarkers.get(i));
-			for (Brick brick : elseIfBranchBricks.get(i)) {
-				brick.addToFlatList(bricks);
-			}
-			if (i < elseIfEndMarkers.size()) {
-				bricks.add(elseIfEndMarkers.get(i));
-			}
-		}
-		bricks.add(elseBrick);
-		for (Brick brick : elseBranchBricks) {
-			brick.addToFlatList(bricks);
-		}
-		bricks.add(endBrick);
-	}
+        for (ElseIfBranch branch : getElseIfBranches()) {
+            if (branch.getBranchBricks().remove(brick)) return true;
+        }
 
-	@Override
-	public void setParent(Brick parent) {
-		super.setParent(parent);
-		for (Brick brick : ifBranchBricks) {
-			brick.setParent(this);
-		}
-		for (Brick brick : elseBranchBricks) {
-			brick.setParent(elseBrick);
-		}
-	}
+        for (Brick childBrick : ifBranchBricks) {
+            if (childBrick.removeChild(brick)) return true;
+        }
+        for (ElseIfBranch branch : getElseIfBranches()) {
+            for (Brick childBrick : branch.getBranchBricks()) {
+                if (childBrick.removeChild(brick)) return true;
+            }
+        }
+        for (Brick childBrick : elseBranchBricks) {
+            if (childBrick.removeChild(brick)) return true;
+        }
+        return false;
+    }
 
-	@Override
-	public List<Brick> getDragAndDropTargetList() {
-		return ifBranchBricks;
-	}
+    @Override
+    public int getViewResource() {
+        return R.layout.brick_if_begin_if;
+    }
 
-	@Override
-	public boolean removeChild(Brick brick) {
-		if (brick instanceof ElseIfBrick) {
-			ElseIfBrick marker = (ElseIfBrick) brick;
-			if (elseIfMarkers.contains(marker)) {
-				return removeElseIfBranch(marker.getBranchIndex());
-			}
-			return true;
-		}
-		if (brick instanceof ElseIfEndBrick) {
-			ElseIfEndBrick marker = (ElseIfEndBrick) brick;
-			if (elseIfEndMarkers.contains(marker)) {
-				return removeElseIfBranch(marker.getBranchIndex());
-			}
-			return true;
-		}
-		if (ifBranchBricks.remove(brick)) {
-			return true;
-		}
-		for (List<Brick> branch : elseIfBranchBricks) {
-			if (branch.remove(brick)) {
-				return true;
-			}
-		}
-		if (elseBranchBricks.remove(brick)) {
-			return true;
-		}
-		for (Brick childBrick : ifBranchBricks) {
-			if (childBrick.removeChild(brick)) {
-				return true;
-			}
-		}
-		for (List<Brick> branch : elseIfBranchBricks) {
-			for (Brick childBrick : branch) {
-				if (childBrick.removeChild(brick)) {
-					return true;
-				}
-			}
-		}
-		for (Brick childBrick : elseBranchBricks) {
-			if (childBrick.removeChild(brick)) {
-				return true;
-			}
-		}
-		return false;
-	}
+    @Override
+    public void addActionToSequence(Sprite sprite, ScriptSequenceAction sequence) {
+        ScriptSequenceAction ifSequence = (ScriptSequenceAction) ActionFactory.createScriptSequenceAction(sequence.getScript());
+        for (Brick brick : ifBranchBricks) {
+            if (!brick.isCommentedOut()) {
+                brick.addActionToSequence(sprite, ifSequence);
+            }
+        }
 
-	@Override
-	public int getViewResource() {
-		return R.layout.brick_if_begin_if;
-	}
+        ScriptSequenceAction elseSequence = (ScriptSequenceAction) ActionFactory.createScriptSequenceAction(sequence.getScript());
+        for (Brick brick : elseBranchBricks) {
+            if (!brick.isCommentedOut()) {
+                brick.addActionToSequence(sprite, elseSequence);
+            }
+        }
 
-	@Override
-	public View getView(Context context) {
-		super.getView(context);
-		View addBtn = view.findViewById(R.id.brick_if_add_else_if);
-		if (addBtn != null) {
-			addBtn.setOnClickListener(v -> {
-				addElseIfBranch();
-				var activity = org.catrobat.catroid.ui.UiUtils.getActivityFromView(view);
-				if (activity instanceof org.catrobat.catroid.ui.SpriteActivity) {
-					org.catrobat.catroid.ui.recyclerview.fragment.ScriptFragment frag =
-						(org.catrobat.catroid.ui.recyclerview.fragment.ScriptFragment)
-							((org.catrobat.catroid.ui.SpriteActivity) activity)
-								.getSupportFragmentManager()
-								.findFragmentByTag(org.catrobat.catroid.ui.recyclerview.fragment.ScriptFragment.TAG);
-					if (frag != null) {
-						frag.getAdapter().updateItems(
-							org.catrobat.catroid.ProjectManager.getInstance().getCurrentSprite());
-						frag.notifyDataSetChanged();
-					}
-				}
-			});
-		}
-		return view;
-	}
+        ScriptSequenceAction currentElseChain = elseSequence;
+        List<ElseIfBranch> branches = getElseIfBranches();
 
-	@Override
-	public View getPrototypeView(Context context) {
-		View view = super.getPrototypeView(context);
-		view.findViewById(R.id.if_else_prototype_punctuation).setVisibility(View.VISIBLE);
-		view.findViewById(R.id.if_prototype_else).setVisibility(View.VISIBLE);
-		view.findViewById(R.id.if_else_prototype_punctuation2).setVisibility(View.VISIBLE);
-		View addBtn = view.findViewById(R.id.brick_if_add_else_if);
-		if (addBtn != null) {
-			addBtn.setVisibility(View.GONE);
-		}
-		return view;
-	}
+        for (int i = branches.size() - 1; i >= 0; i--) {
+            ElseIfBranch branch = branches.get(i);
+            ScriptSequenceAction branchSeq = (ScriptSequenceAction) ActionFactory.createScriptSequenceAction(sequence.getScript());
 
-	@Override
-	public void addActionToSequence(Sprite sprite, ScriptSequenceAction sequence) {
-		ScriptSequenceAction ifSequence = (ScriptSequenceAction) ActionFactory.createScriptSequenceAction(sequence.getScript());
+            for (Brick brick : branch.getBranchBricks()) {
+                if (!brick.isCommentedOut()) {
+                    brick.addActionToSequence(sprite, branchSeq);
+                }
+            }
 
-		for (Brick brick : ifBranchBricks) {
-			if (!brick.isCommentedOut()) {
-				brick.addActionToSequence(sprite, ifSequence);
-			}
-		}
+            ScriptSequenceAction wrapperSeq = (ScriptSequenceAction) ActionFactory.createScriptSequenceAction(sequence.getScript());
+            Action elseIfAction = sprite.getActionFactory().createIfLogicAction(
+                    sprite, wrapperSeq, branch.getCondition(), branchSeq, currentElseChain
+            );
+            wrapperSeq.addAction(elseIfAction);
+            currentElseChain = wrapperSeq;
+        }
 
-		ScriptSequenceAction finalElseSequence = (ScriptSequenceAction) ActionFactory.createScriptSequenceAction(sequence.getScript());
-		for (Brick brick : elseBranchBricks) {
-			if (!brick.isCommentedOut()) {
-				brick.addActionToSequence(sprite, finalElseSequence);
-			}
-		}
+        Action action = sprite.getActionFactory().createIfLogicAction(
+                sprite, sequence, getFormulaWithBrickField(BrickField.IF_CONDITION), ifSequence, currentElseChain
+        );
 
-		ScriptSequenceAction currentElse = finalElseSequence;
-		for (int i = elseIfConditions.size() - 1; i >= 0; i--) {
-			ScriptSequenceAction branchSeq = (ScriptSequenceAction) ActionFactory.createScriptSequenceAction(sequence.getScript());
-			for (Brick brick : elseIfBranchBricks.get(i)) {
-				if (!brick.isCommentedOut()) {
-					brick.addActionToSequence(sprite, branchSeq);
-				}
-			}
-			ScriptSequenceAction wrapperElse = (ScriptSequenceAction) ActionFactory.createScriptSequenceAction(sequence.getScript());
-			Action elseIfAction = sprite.getActionFactory()
-					.createIfLogicAction(sprite, sequence, elseIfConditions.get(i), branchSeq, currentElse);
-			wrapperElse.addAction(elseIfAction);
-			currentElse = wrapperElse;
-		}
+        sequence.addAction(action);
+    }
 
-		Action action = sprite.getActionFactory()
-				.createIfLogicAction(sprite, sequence, getFormulaWithBrickField(BrickField.IF_CONDITION),
-						ifSequence, currentElse);
+    @Override
+    public void addRequiredResources(final ResourcesSet requiredResourcesSet) {
+        super.addRequiredResources(requiredResourcesSet);
+        for (Brick brick : ifBranchBricks) {
+            brick.addRequiredResources(requiredResourcesSet);
+        }
+        for (ElseIfBranch branch : getElseIfBranches()) {
+            for (Brick brick : branch.getBranchBricks()) {
+                brick.addRequiredResources(requiredResourcesSet);
+            }
+        }
+        for (Brick brick : elseBranchBricks) {
+            brick.addRequiredResources(requiredResourcesSet);
+        }
+    }
 
-		sequence.addAction(action);
-	}
+    @VisibleForTesting
+    public static class ElseBrick extends BrickBaseType {
 
-	@Override
-	public void addRequiredResources(final ResourcesSet requiredResourcesSet) {
-		super.addRequiredResources(requiredResourcesSet);
-		for (Brick brick : ifBranchBricks) {
-			brick.addRequiredResources(requiredResourcesSet);
-		}
-		for (Formula condition : elseIfConditions) {
-			condition.addRequiredResources(requiredResourcesSet);
-		}
-		for (List<Brick> branch : elseIfBranchBricks) {
-			for (Brick brick : branch) {
-				brick.addRequiredResources(requiredResourcesSet);
-			}
-		}
-		for (Brick brick : elseBranchBricks) {
-			brick.addRequiredResources(requiredResourcesSet);
-		}
-	}
+        ElseBrick(IfLogicBeginBrick ifBrick) {
+            parent = ifBrick;
+        }
 
-	@VisibleForTesting
-	public static class ElseBrick extends BrickBaseType {
+        @Override
+        public boolean isCommentedOut() {
+            return parent.isCommentedOut();
+        }
 
-		ElseBrick(IfLogicBeginBrick ifBrick) {
-			parent = ifBrick;
-		}
+        @Override
+        public boolean consistsOfMultipleParts() {
+            return true;
+        }
 
-		@Override
-		public boolean isCommentedOut() {
-			return parent.isCommentedOut();
-		}
+        @Override
+        public List<Brick> getAllParts() {
+            return parent.getAllParts();
+        }
 
-		@Override
-		public boolean consistsOfMultipleParts() {
-			return true;
-		}
+        @Override
+        public void addToFlatList(List<Brick> bricks) {
+            parent.addToFlatList(bricks);
+        }
 
-		@Override
-		public List<Brick> getAllParts() {
-			return parent.getAllParts();
-		}
+        @Override
+        public List<Brick> getDragAndDropTargetList() {
+            return ((IfLogicBeginBrick) parent).elseBranchBricks;
+        }
 
-		@Override
-		public void addToFlatList(List<Brick> bricks) {
-			parent.addToFlatList(bricks);
-		}
+        @Override
+        public int getPositionInDragAndDropTargetList() {
+            return -1;
+        }
 
-		@Override
-		public List<Brick> getDragAndDropTargetList() {
-			return ((IfLogicBeginBrick) parent).elseBranchBricks;
-		}
+        @Override
+        public int getViewResource() {
+            return R.layout.brick_if_else;
+        }
 
-		@Override
-		public int getPositionInDragAndDropTargetList() {
-			return -1;
-		}
+        @Override
+        public void addActionToSequence(Sprite sprite, ScriptSequenceAction sequence) {
+        }
 
-		@Override
-		public int getViewResource() {
-			return R.layout.brick_if_else;
-		}
-
-		@Override
-		public void addActionToSequence(Sprite sprite, ScriptSequenceAction sequence) {
-		}
-
-		@Override
-		public UUID getBrickID() {
-			return parent.getBrickID();
-		}
-	}
+        @Override
+        public UUID getBrickID() {
+            return parent.getBrickID();
+        }
+    }
 }

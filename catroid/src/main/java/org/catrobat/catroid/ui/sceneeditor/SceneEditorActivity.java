@@ -98,8 +98,7 @@ public class SceneEditorActivity extends AppCompatActivity implements SceneEdito
 	private static final int REQUEST_LOOK_CAMERA = 8023;
 	private static final int REQUEST_SOUND_FILE = 8024;
 	private static final int REQUEST_SOUND_RECORD = 8025;
-	private static final int REQUEST_OBJECT_LIBRARY = 8026;
-	private static final int REQUEST_OBJECT_TILEMAP = 8027;
+private static final int REQUEST_OBJECT_LIBRARY = 8026;
 
 	private SceneEditorView canvas;
 	private TextView hintView;
@@ -115,9 +114,8 @@ public class SceneEditorActivity extends AppCompatActivity implements SceneEdito
 	private Project project;
 	private Sprite paintTargetSprite;
 	private LookData paintTargetLook;
-	private Sprite pendingLookSprite;
+private Sprite pendingLookSprite;
 	private Sprite pendingSoundSprite;
-	private Sprite pendingTilemapSprite;
 	private boolean initialResumeConsumed = false;
 
 	@Override
@@ -403,8 +401,8 @@ public class SceneEditorActivity extends AppCompatActivity implements SceneEdito
 		}
 
 		TextView createSceneBtn = new TextView(this);
-		createSceneBtn.setText("➕ Создать новую сцену");
-		createSceneBtn.setTextColor(0xFF38BDF8);
+		createSceneBtn.setText("Создать новую сцену");
+		createSceneBtn.setTextColor(0xFF94A3B8);
 		createSceneBtn.setTextSize(15f);
 		createSceneBtn.setTypeface(null, android.graphics.Typeface.BOLD);
 		createSceneBtn.setPadding(dp12, dp12, dp12, dp12);
@@ -434,10 +432,10 @@ public class SceneEditorActivity extends AppCompatActivity implements SceneEdito
 
 	private void showLayeringDialog(Sprite targetSprite) {
 		String[] options = {
-				"🔝 На самый передний план",
-				"⬆️ Поднять на слой выше",
-				"⬇️ Опустить на слой ниже",
-				"🔻 На самый задний план"
+				"На самый передний план",
+				"Поднять на слой выше",
+				"Опустить на слой ниже",
+				"На самый задний план"
 		};
 		new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
 				.setTitle("Порядок слоёв: " + targetSprite.getName())
@@ -553,8 +551,8 @@ public class SceneEditorActivity extends AppCompatActivity implements SceneEdito
 				.create();
 
 		TextView addPaintBtn = new TextView(this);
-		addPaintBtn.setText("➕ Добавить образ");
-		addPaintBtn.setTextColor(0xFF38BDF8);
+		addPaintBtn.setText("Добавить образ");
+		addPaintBtn.setTextColor(0xFF94A3B8);
 		addPaintBtn.setTextSize(14f);
 		addPaintBtn.setTypeface(null, android.graphics.Typeface.BOLD);
 		addPaintBtn.setPadding(dp10, dp10, dp10, dp10);
@@ -611,7 +609,7 @@ public class SceneEditorActivity extends AppCompatActivity implements SceneEdito
 				card.addView(textL);
 				card.setOnClickListener(v -> startPocketPaintForLook(targetSprite, look));
 				card.setOnLongClickListener(v -> {
-					String[] options = {"🗑️ Удалить образ"};
+					String[] options = {"Удалить образ"};
 					new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
 							.setTitle(look.getName())
 							.setItems(options, (d, w) -> {
@@ -647,8 +645,8 @@ public class SceneEditorActivity extends AppCompatActivity implements SceneEdito
 				.create();
 
 		TextView addSoundBtn = new TextView(this);
-		addSoundBtn.setText("➕ Добавить звук");
-		addSoundBtn.setTextColor(0xFF38BDF8);
+		addSoundBtn.setText("Добавить звук");
+		addSoundBtn.setTextColor(0xFF94A3B8);
 		addSoundBtn.setTextSize(14f);
 		addSoundBtn.setTypeface(null, android.graphics.Typeface.BOLD);
 		addSoundBtn.setPadding(dp10, dp10, dp10, dp10);
@@ -674,7 +672,7 @@ public class SceneEditorActivity extends AppCompatActivity implements SceneEdito
 				card.setLayoutParams(cp);
 
 				TextView iconTv = new TextView(this);
-				iconTv.setText("🎵");
+				iconTv.setText("");
 				iconTv.setTextSize(20f);
 				iconTv.setPadding(0, 0, dp10, 0);
 				card.addView(iconTv);
@@ -687,7 +685,7 @@ public class SceneEditorActivity extends AppCompatActivity implements SceneEdito
 				card.addView(nameTv);
 
 				card.setOnLongClickListener(v -> {
-					String[] options = {"🗑️ Удалить звук"};
+					String[] options = {"Удалить звук"};
 					new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
 							.setTitle(sound.getName())
 							.setItems(options, (d, w) -> {
@@ -801,8 +799,8 @@ public class SceneEditorActivity extends AppCompatActivity implements SceneEdito
 		int dp12 = Math.round(12 * density);
 
 		TextView filesItem = new TextView(this);
-		filesItem.setText("📁 " + getString(R.string.scene_editor_project_files));
-		filesItem.setTextColor(0xFF38BDF8);
+		filesItem.setText(getString(R.string.scene_editor_project_files));
+		filesItem.setTextColor(0xFF94A3B8);
 		filesItem.setTextSize(15f);
 		filesItem.setTypeface(null, android.graphics.Typeface.BOLD);
 		filesItem.setPadding(dp12, dp12, dp12, dp12);
@@ -943,19 +941,19 @@ public class SceneEditorActivity extends AppCompatActivity implements SceneEdito
 		items.add(getString(R.string.scene_editor_open_scripts));
 		actions.add(() -> openScriptCanvas(sprite));
 
-		items.add("🖼️ Управление Образами");
+		items.add("Управление Образами");
 		actions.add(() -> showLooksDialog(sprite));
 
-		items.add("🎵 Управление Звуками");
+		items.add("Управление Звуками");
 		actions.add(() -> showSoundsDialog(sprite));
 
-		items.add("🔝 Порядок слоёв (Z-index)");
+		items.add("Порядок слоёв (Z-index)");
 		actions.add(() -> showLayeringDialog(sprite));
 
-		items.add("📐 Инспектор свойств (X, Y)");
+		items.add("Инспектор свойств (X, Y)");
 		actions.add(() -> showInspectorDialog(sprite));
 
-		items.add("🎒 Положить объект в Рюкзак");
+		items.add("Положить объект в Рюкзак");
 		actions.add(() -> {
 			try {
 				BackpackListManager.getInstance().getSprites().add(new SpriteController().pack(sprite));
@@ -1174,7 +1172,13 @@ public class SceneEditorActivity extends AppCompatActivity implements SceneEdito
 		setResult(RESULT_OK);
 	}
 
-	private void refreshObjects(boolean full) {
+private void refreshObjects(boolean full) {
+		List<Bitmap> recycledBitmaps = new ArrayList<>();
+		for (SceneEditorView.SceneObject previous : sceneObjects) {
+			if (previous.bitmap != null && !previous.bitmap.isRecycled()) {
+				recycledBitmaps.add(previous.bitmap);
+			}
+		}
 		sceneObjects.clear();
 		Bitmap background = null;
 		for (Sprite sprite : scene.getSpriteList()) {
@@ -1208,22 +1212,29 @@ public class SceneEditorActivity extends AppCompatActivity implements SceneEdito
 			}
 		}
 		canvas.setBackgroundBitmap(background);
-		canvas.setObjects(sceneObjects);
+		if (full) {
+			canvas.setObjects(sceneObjects);
+		} else {
+			canvas.updateObjects(sceneObjects);
+		}
+		for (Bitmap old : recycledBitmaps) {
+			if (!old.isRecycled()) {
+				old.recycle();
+			}
+		}
 		if (full) {
 			populateObjectDock();
 		}
 	}
 
 	private void showCreateObjectSourceDialog() {
-		new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
+new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
 				.setTitle("New object")
-				.setItems(new String[] {"Empty sprite", "From library", "Tilemap"}, (dialog, which) -> {
+				.setItems(new String[] {"Empty sprite", "From library"}, (dialog, which) -> {
 					if (which == 1) {
 						new ImportFormMediaLibraryLauncher(this,
 								org.catrobat.catroid.common.FlavoredConstants.LIBRARY_LOOKS_URL)
 								.startActivityForResult(REQUEST_OBJECT_LIBRARY);
-					} else if (which == 2) {
-						createTilemapObject();
 					} else {
 						showCreateObjectDialog();
 					}
@@ -1250,32 +1261,7 @@ public class SceneEditorActivity extends AppCompatActivity implements SceneEdito
 		return 100f;
 	}
 
-	private void createTilemapObject() {
-		EditText input = new EditText(this);
-		int p = Math.round(16 * getResources().getDisplayMetrics().density);
-		input.setPadding(p, p, p, p);
-		input.setHint("Object name");
-		new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
-				.setTitle("New tilemap sprite")
-				.setView(input)
-				.setPositiveButton(android.R.string.ok, (dialog, which) -> {
-					String typed = input.getText().toString().trim();
-					if (typed.isEmpty()) return;
-					Sprite tilemapSprite = new Sprite(new UniqueNameProvider()
-							.getUniqueNameInNameables(typed, scene.getSpriteList()));
-					scene.addSprite(tilemapSprite);
-					pendingTilemapSprite = tilemapSprite;
-					ProjectManager.getInstance().setCurrentSprite(tilemapSprite);
-					Intent intent = new Intent(this,
-							org.catrobat.catroid.ui.tilemap.TilemapEditorActivity.class);
-					intent.putExtra(org.catrobat.catroid.ui.tilemap.TilemapEditorActivity.EXTRA_NEW_TILEMAP, true);
-					startActivityForResult(intent, REQUEST_OBJECT_TILEMAP);
-				})
-				.setNegativeButton(android.R.string.cancel, null)
-				.show();
-	}
-
-	private void showCreateObjectDialog() {
+private void showCreateObjectDialog() {
 		EditText input = new EditText(this);
 		int p = Math.round(16 * getResources().getDisplayMetrics().density);
 		input.setPadding(p, p, p, p);
@@ -1360,15 +1346,14 @@ public class SceneEditorActivity extends AppCompatActivity implements SceneEdito
 		showInspectorDialog(sprite);
 	}
 
-	@Override
+@Override
 	public void onObjectPaintRequested(Sprite sprite) {
-		startPocketPaintForLook(sprite, firstLook(sprite));
-		try {
-			new ImportFromPocketPaintLauncher(this).startActivityForResult(REQUEST_POCKET_PAINT_LOOK);
-		} catch (Exception e) {
-			paintTargetSprite = null;
-			Toast.makeText(this, "Pocket Paint недоступен на этом устройстве", Toast.LENGTH_LONG).show();
+		LookData existing = firstLook(sprite);
+		if (existing != null) {
+			startPocketPaintForLook(sprite, existing);
+			return;
 		}
+		startPocketPaintForNewLook(sprite);
 	}
 
 	private LookData firstLook(Sprite sprite) {
@@ -1430,18 +1415,7 @@ public class SceneEditorActivity extends AppCompatActivity implements SceneEdito
 			hintView.setText(R.string.scene_editor_hint_stop);
 			return;
 		}
-		if (resultCode == RESULT_OK && requestCode == REQUEST_OBJECT_TILEMAP) {
-			pendingTilemapSprite = null;
-			refreshAfterModelChange();
-			return;
-		}
-		if (requestCode == REQUEST_OBJECT_TILEMAP && resultCode != RESULT_OK) {
-			if (pendingTilemapSprite != null) scene.getSpriteList().remove(pendingTilemapSprite);
-			pendingTilemapSprite = null;
-			refreshAfterModelChange();
-			return;
-		}
-		if (resultCode != RESULT_OK && (requestCode == REQUEST_LOOK_FILE
+if (resultCode != RESULT_OK && (requestCode == REQUEST_LOOK_FILE
 				|| requestCode == REQUEST_LOOK_CAMERA)) {
 			pendingLookSprite = null;
 			return;

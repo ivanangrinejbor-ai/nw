@@ -1,6 +1,5 @@
 package org.catrobat.catroid.ui.fragment
 
-import android.app.AlertDialog
 import android.content.Context
 import android.content.ContentValues
 import android.graphics.Color
@@ -20,7 +19,12 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import org.catrobat.catroid.ProjectManager
 import org.catrobat.catroid.R
+import org.catrobat.catroid.common.Constants
 import org.catrobat.catroid.content.Project
+import org.catrobat.catroid.io.AssetConverter
+import org.catrobat.catroid.io.ProjectCrypto
+import org.catrobat.catroid.apkbuild.ProtectedProjectPayload
+import org.catrobat.catroid.utils.lunoscript.baker.ProjectBaker
 import org.catrobat.catroid.io.asynctask.ProjectExportTask
 import org.catrobat.catroid.ui.sceneeditor.Ui2PanelActivity
 import org.catrobat.catroid.ui.sceneeditor.ProjectSaveCoordinator
@@ -250,6 +254,21 @@ class ProjectOptions2Fragment : Fragment() {
         }
         cardExport.addView(apkBuildBtn)
 
+        val bakedBtn = createActionButton("Запеченный проект (.enc)") {
+            exportBakedProject()
+        }
+        cardExport.addView(bakedBtn)
+
+        val pwdBtn = createActionButton("Экспорт с паролем (.npc)") {
+            exportWithPassword()
+        }
+        cardExport.addView(pwdBtn)
+
+        val protectedBtn = createActionButton("Экспорт защищённого проекта") {
+            exportProtectedProject()
+        }
+        cardExport.addView(protectedBtn)
+
         val fullExportBtn = createActionButton("Открыть полный набор экспортов и настроек") {
             (activity as? Ui2PanelActivity)?.let {
                 parentFragmentManager.beginTransaction()
@@ -315,7 +334,7 @@ class ProjectOptions2Fragment : Fragment() {
         val dp10 = (10 * density).toInt()
         return TextView(requireContext()).apply {
             text = titleText
-            setTextColor(0xFF38BDF8.toInt())
+            setTextColor(0xFF94A3B8.toInt())
             textSize = 15f
             setTypeface(null, Typeface.BOLD)
             setPadding(0, 0, 0, dp10)
@@ -350,6 +369,8 @@ class ProjectOptions2Fragment : Fragment() {
     private fun exportProject() {
         val proj = project ?: return
         val appContext = requireContext().applicationContext
+        val progress = FileProgressDialog("Экспорт проекта")
+        activity?.runOnUiThread { progress.show() }
         Thread {
             var mediaStoreUri: android.net.Uri? = null
             try {
@@ -379,6 +400,7 @@ class ProjectOptions2Fragment : Fragment() {
                 ZipOutputStream(output).use { zos ->
                     proj.directory.walk().filter { it != proj.directory }.forEach { file ->
                         val entryPath = file.relativeTo(proj.directory).path
+                        progress.updateFile(entryPath)
                         val zipEntry = if (file.isDirectory) ZipEntry("$entryPath/") else ZipEntry(entryPath)
                         zos.putNextEntry(zipEntry)
                         if (file.isFile) {
@@ -396,6 +418,7 @@ class ProjectOptions2Fragment : Fragment() {
                     )
                 }
                 activity?.runOnUiThread {
+                    progress.dismiss()
                     if (isAdded && context != null) {
                         Toast.makeText(requireContext(), "Проект экспортирован в Download/NeoCatroidExports!", Toast.LENGTH_LONG).show()
                     }
@@ -403,6 +426,7 @@ class ProjectOptions2Fragment : Fragment() {
             } catch (e: Exception) {
                 mediaStoreUri?.let { appContext.contentResolver.delete(it, null, null) }
                 activity?.runOnUiThread {
+                    progress.dismiss()
                     if (isAdded && context != null) {
                         Toast.makeText(requireContext(), "Ошибка экспорта: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
                     }
@@ -419,15 +443,495 @@ class ProjectOptions2Fragment : Fragment() {
         } catch (e: Exception) {
             Toast.makeText(requireContext(), "APK: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
         }
-        return
+    }
 
-        AlertDialog.Builder(requireContext(), android.R.style.Theme_DeviceDefault_Dialog_Alert)
-            .setTitle("Сборщик APK V3")
-            .setMessage("Функция сборки готового APK приложения для размещения или тестирования на устройстве.")
-            .setPositiveButton("Собрать APK") { _, _ ->
-                Toast.makeText(requireContext(), "Запуск сборки APK...", Toast.LENGTH_SHORT).show()
+    private fun exportBakedProject() {
+        val proj = project ?: return
+        val appContext = requireContext().applicationContext
+        Toast.makeText(requireContext(), "Запекание проекта...", Toast.LENGTH_SHORT).show()
+        val progress = FileProgressDialog("Запекание проекта")
+        activity?.runOnUiThread { progress.show() }
+        Thread {
+            try {
+                if (!ProjectSaveCoordinator.saveBlocking(proj)) {
+                    error("Не удалось сохранить проект перед запеканием")
+                }
+                val tempDir = File(appContext.cacheDir, "bake_temp")
+                tempDir.deleteRecursively()
+                tempDir.mkdirs()
+
+                val initFile = File(tempDir, "init.bin")
+                ProjectBaker(appContext).bakeToFile(proj, initFile)
+
+                val imagesDir = File(tempDir, "images")
+                val soundsDir = File(tempDir, "sounds")
+                imagesDir.mkdirs()
+                soundsDir.mkdirs()
+                val sourceDir = proj.directory
+                val src = File(sourceDir, "files")
+                val dest = File(tempDir, "files")
+                if (src.exists()) {
+                    src.copyRecursively(dest, overwrite = true)
+                } else {
+                    dest.mkdirs()
+                }
+
+                proj.sceneList.forEach { scene ->
+                    scene.spriteList.forEach { sprite ->
+                        sprite.lookList.forEach { look ->
+                            val f = look.file
+                            if (f != null && f.exists()) {
+                                f.copyTo(File(imagesDir, f.name), overwrite = true)
+                            }
+                        }
+                        sprite.soundList.forEach { sound ->
+                            val f = sound.file
+                            if (f != null && f.exists()) {
+                                f.copyTo(File(soundsDir, f.name), overwrite = true)
+                            }
+                        }
+                    }
+                }
+
+                val zipFile = File(appContext.cacheDir, "${proj.name}_baked.zip")
+                zipDirectoryTo(tempDir, zipFile) { progress.updateFile(it) }
+                val encFile = File(appContext.cacheDir, "${proj.name}_baked.enc")
+                ProjectCrypto.encrypt(zipFile, encFile, ProtectedProjectPayload.PASSWORD)
+                zipFile.delete()
+                tempDir.deleteRecursively()
+
+                writeToDownloadsFile(encFile, "${proj.name}_baked.enc")
+                encFile.delete()
+
+                activity?.runOnUiThread {
+                    progress.dismiss()
+                    if (isAdded && context != null) {
+                        Toast.makeText(requireContext(), "Запеченный проект сохранен в Download/NeoCatroidExports!", Toast.LENGTH_LONG).show()
+                    }
+                }
+            } catch (e: Exception) {
+                activity?.runOnUiThread {
+                    progress.dismiss()
+                    if (isAdded && context != null) {
+                        Toast.makeText(requireContext(), "Ошибка запекания: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }.start()
+    }
+
+    private fun exportWithPassword() {
+        val proj = project ?: return
+        val layout = LinearLayout(requireContext()).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(24f).toInt(), dp(8f).toInt(), dp(24f).toInt(), 0)
+        }
+        val pwdEdit = EditText(requireContext()).apply {
+            hint = "Введите пароль"
+            inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
+        }
+        val confirmEdit = EditText(requireContext()).apply {
+            hint = "Повторите пароль"
+            inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
+        }
+        layout.addView(pwdEdit)
+        layout.addView(confirmEdit)
+
+        androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setTitle("Экспорт проекта с паролем")
+            .setView(layout)
+            .setPositiveButton("ОК") { _, _ ->
+                val pwd = pwdEdit.text.toString()
+                val confirm = confirmEdit.text.toString()
+                if (pwd.isEmpty() || pwd != confirm) {
+                    Toast.makeText(requireContext(), "Пароли не совпадают или пусты", Toast.LENGTH_LONG).show()
+                    return@setPositiveButton
+                }
+                val appContext = requireContext().applicationContext
+                val progress = FileProgressDialog("Экспорт с паролем")
+                activity?.runOnUiThread { progress.show() }
+                Thread {
+                    try {
+                        if (!ProjectSaveCoordinator.saveBlocking(proj)) {
+                            error("Не удалось сохранить проект перед экспортом")
+                        }
+                        val zipFile = File(appContext.cacheDir, "${proj.name}_export.zip")
+                        zipDirectoryTo(proj.directory, zipFile) { progress.updateFile(it) }
+                        val encFile = File(appContext.cacheDir, "${proj.name}${Constants.NPC_EXTENSION}")
+                        ProjectCrypto.encrypt(zipFile, encFile, pwd)
+                        zipFile.delete()
+                        writeToDownloadsFile(encFile, "${proj.name}${Constants.NPC_EXTENSION}")
+                        encFile.delete()
+                        activity?.runOnUiThread {
+                            progress.dismiss()
+                            if (isAdded && context != null) {
+                                Toast.makeText(requireContext(), "Экспорт с паролем сохранён в Download/NeoCatroidExports!", Toast.LENGTH_LONG).show()
+                            }
+                        }
+                    } catch (e: Exception) {
+                        activity?.runOnUiThread {
+                            progress.dismiss()
+                            if (isAdded && context != null) {
+                                Toast.makeText(requireContext(), "Ошибка экспорта: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
+                }.start()
             }
             .setNegativeButton("Отмена", null)
             .show()
+    }
+
+    private fun exportProtectedProject() {
+        val proj = project ?: return
+        proj.xmlHeader?.setProtectedProject(true)
+        saveProjectAsync()
+        Toast.makeText(requireContext(), "Экспорт защищённого проекта...", Toast.LENGTH_SHORT).show()
+        val appContext = requireContext().applicationContext
+        val progress = FileProgressDialog("Экспорт защищённого проекта")
+        activity?.runOnUiThread { progress.show() }
+        Thread {
+            try {
+                if (!ProjectSaveCoordinator.saveBlocking(proj)) {
+                    error("Не удалось сохранить проект перед экспортом")
+                }
+                val safeName = proj.name.replace(Regex("[\\\\/:*?\"<>|]"), "_")
+                val fileName = "${safeName}_export.catrobat"
+                val output: OutputStream
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    val values = ContentValues().apply {
+                        put(MediaStore.Downloads.DISPLAY_NAME, fileName)
+                        put(MediaStore.Downloads.MIME_TYPE, "application/zip")
+                        put(MediaStore.Downloads.RELATIVE_PATH, "${Environment.DIRECTORY_DOWNLOADS}/NeoCatroidExports")
+                        put(MediaStore.Downloads.IS_PENDING, 1)
+                    }
+                    val uri = appContext.contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
+                        ?: error("Не удалось создать файл экспорта")
+                    try {
+                        output = appContext.contentResolver.openOutputStream(uri)
+                            ?: error("Не удалось открыть файл экспорта")
+                        ZipOutputStream(output).use { zos ->
+                            proj.directory.walk().filter { it != proj.directory }.forEach { file ->
+                                val entryPath = file.relativeTo(proj.directory).path
+                                progress.updateFile(entryPath)
+                                val zipEntry = if (file.isDirectory) ZipEntry("$entryPath/") else ZipEntry(entryPath)
+                                zos.putNextEntry(zipEntry)
+                                if (file.isFile) {
+                                    FileInputStream(file).use { fis -> fis.copyTo(zos, 8192) }
+                                }
+                                zos.closeEntry()
+                            }
+                        }
+                        appContext.contentResolver.update(
+                            uri,
+                            ContentValues().apply { put(MediaStore.Downloads.IS_PENDING, 0) },
+                            null,
+                            null
+                        )
+                    } catch (e: Exception) {
+                        appContext.contentResolver.delete(uri, null, null)
+                        throw e
+                    }
+                } else {
+                    val exportDir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "NeoCatroidExports")
+                    if (!exportDir.exists() && !exportDir.mkdirs()) error("Не удалось создать папку экспорта")
+                    val outputFile = File(exportDir, fileName)
+                    FileOutputStream(outputFile).use { out ->
+                        ZipOutputStream(out).use { zos ->
+                            proj.directory.walk().filter { it != proj.directory }.forEach { file ->
+                                val entryPath = file.relativeTo(proj.directory).path
+                                progress.updateFile(entryPath)
+                                val zipEntry = if (file.isDirectory) ZipEntry("$entryPath/") else ZipEntry(entryPath)
+                                zos.putNextEntry(zipEntry)
+                                if (file.isFile) {
+                                    FileInputStream(file).use { fis -> fis.copyTo(zos, 8192) }
+                                }
+                                zos.closeEntry()
+                            }
+                        }
+                    }
+                }
+                activity?.runOnUiThread {
+                    progress.dismiss()
+                    if (isAdded && context != null) {
+                        Toast.makeText(requireContext(), "Защищённый проект экспортирован в Download/NeoCatroidExports!", Toast.LENGTH_LONG).show()
+                    }
+                }
+            } catch (e: Exception) {
+                activity?.runOnUiThread {
+                    progress.dismiss()
+                    if (isAdded && context != null) {
+                        Toast.makeText(requireContext(), "Ошибка экспорта: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            } finally {
+                proj.xmlHeader?.setProtectedProject(false)
+                ProjectSaveCoordinator.saveAsync(proj)
+            }
+        }.start()
+    }
+
+    private fun exportCompressedLight() {
+        val proj = project ?: return
+        val appContext = requireContext().applicationContext
+        Toast.makeText(requireContext(), "Лёгкое сжатие...", Toast.LENGTH_SHORT).show()
+        val progress = FileProgressDialog("Лёгкое сжатие")
+        activity?.runOnUiThread { progress.show() }
+        Thread {
+            try {
+                if (!ProjectSaveCoordinator.saveBlocking(proj)) {
+                    error("Не удалось сохранить проект перед экспортом")
+                }
+                val tempDir = File(appContext.cacheDir, "compress_light")
+                tempDir.deleteRecursively()
+                tempDir.mkdirs()
+                proj.directory.copyRecursively(File(tempDir, "project"), overwrite = true)
+                val projectDir = File(tempDir, "project")
+                AssetConverter.cleanupProjectDir(projectDir)
+
+                val safeName = proj.name.replace(Regex("[\\\\/:*?\"<>|]"), "_")
+                val zipFile = File(appContext.cacheDir, "${safeName}_light${Constants.CATROBAT_EXTENSION}")
+                zipDirectoryTo(projectDir, zipFile) { progress.updateFile(it) }
+                tempDir.deleteRecursively()
+
+                writeToDownloadsFile(zipFile, "${safeName}_light${Constants.CATROBAT_EXTENSION}")
+                zipFile.delete()
+                activity?.runOnUiThread {
+                    progress.dismiss()
+                    if (isAdded && context != null) {
+                        Toast.makeText(requireContext(), "Лёгкое сжатие завершено, файл в Download/NeoCatroidExports!", Toast.LENGTH_LONG).show()
+                    }
+                }
+            } catch (e: Exception) {
+                activity?.runOnUiThread {
+                    progress.dismiss()
+                    if (isAdded && context != null) {
+                        Toast.makeText(requireContext(), "Ошибка сжатия: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }.start()
+    }
+
+    private fun showHardCompressionDialog() {
+        val layout = LinearLayout(requireContext()).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(24f).toInt(), dp(8f).toInt(), dp(24f).toInt(), 0)
+        }
+        val imageLabel = TextView(requireContext()).apply {
+            text = "Формат изображений:"
+            textSize = 14f
+            setPadding(0, 0, 0, dp(4f).toInt())
+        }
+        val imageGroup = RadioGroup(requireContext())
+        val imageKeep = RadioButton(requireContext()).apply { text = "Оставить оригинал"; id = 0 }
+        val imageLossy = RadioButton(requireContext()).apply { text = "WebP (80%)"; id = 1 }
+        val imageLossless = RadioButton(requireContext()).apply { text = "WebP (100%)"; id = 2 }
+        imageGroup.addView(imageKeep)
+        imageGroup.addView(imageLossy)
+        imageGroup.addView(imageLossless)
+        imageGroup.check(1)
+
+        val audioLabel = TextView(requireContext()).apply {
+            text = "Формат аудио:"
+            textSize = 14f
+            setPadding(0, dp(8f).toInt(), 0, dp(4f).toInt())
+        }
+        val audioGroup = RadioGroup(requireContext())
+        val audioKeep = RadioButton(requireContext()).apply { text = "Оставить оригинал"; id = 0 }
+        val audio96 = RadioButton(requireContext()).apply { text = "M4A 96kbps"; id = 1 }
+        val audio128 = RadioButton(requireContext()).apply { text = "M4A 128kbps"; id = 2 }
+        val audio192 = RadioButton(requireContext()).apply { text = "M4A 192kbps"; id = 3 }
+        val audio256 = RadioButton(requireContext()).apply { text = "M4A 256kbps"; id = 4 }
+        audioGroup.addView(audioKeep)
+        audioGroup.addView(audio96)
+        audioGroup.addView(audio128)
+        audioGroup.addView(audio192)
+        audioGroup.addView(audio256)
+        audioGroup.check(2)
+
+        layout.addView(imageLabel)
+        layout.addView(imageGroup)
+        layout.addView(audioLabel)
+        layout.addView(audioGroup)
+
+        androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setTitle("Сильное сжатие")
+            .setView(layout)
+            .setPositiveButton("OK") { _, _ ->
+                val imageFormat = when (imageGroup.checkedRadioButtonId) {
+                    1 -> AssetConverter.ImageFormat.WEBP_LOSSY
+                    2 -> AssetConverter.ImageFormat.WEBP_LOSSLESS
+                    else -> AssetConverter.ImageFormat.KEEP
+                }
+                val audioFormat = when (audioGroup.checkedRadioButtonId) {
+                    1 -> AssetConverter.AudioFormat.M4A_96
+                    2 -> AssetConverter.AudioFormat.M4A_128
+                    3 -> AssetConverter.AudioFormat.M4A_192
+                    4 -> AssetConverter.AudioFormat.M4A_256
+                    else -> AssetConverter.AudioFormat.KEEP
+                }
+                exportCompressedHard(imageFormat, audioFormat)
+            }
+            .setNegativeButton("Отмена", null)
+            .show()
+    }
+
+    private fun exportCompressedHard(
+        imageFormat: AssetConverter.ImageFormat,
+        audioFormat: AssetConverter.AudioFormat
+    ) {
+        val proj = project ?: return
+        val appContext = requireContext().applicationContext
+        Toast.makeText(requireContext(), "Сильное сжатие...", Toast.LENGTH_SHORT).show()
+        val progress = FileProgressDialog("Сильное сжатие")
+        activity?.runOnUiThread { progress.show() }
+        Thread {
+            try {
+                if (!ProjectSaveCoordinator.saveBlocking(proj)) {
+                    error("Не удалось сохранить проект перед сжатием")
+                }
+                val tempDir = File(appContext.cacheDir, "compress_hard")
+                tempDir.deleteRecursively()
+                tempDir.mkdirs()
+                val projectDir = File(tempDir, "project")
+                proj.directory.copyRecursively(projectDir, overwrite = true)
+                AssetConverter.cleanupProjectDir(projectDir)
+                val result = AssetConverter.convertProjectAssets(projectDir, imageFormat, audioFormat)
+                AssetConverter.updateCodeXmlReferences(projectDir, result)
+
+                val zipFile = File(appContext.cacheDir, "${proj.name}_hard${Constants.CATROBAT_EXTENSION}")
+                zipDirectoryTo(projectDir, zipFile) { progress.updateFile(it) }
+                tempDir.deleteRecursively()
+
+                writeToDownloadsFile(zipFile, "${proj.name}_hard${Constants.CATROBAT_EXTENSION}")
+                zipFile.delete()
+                val savedMb = result.savedBytes / (1024 * 1024)
+                activity?.runOnUiThread {
+                    progress.dismiss()
+                    if (isAdded && context != null) {
+                        Toast.makeText(
+                            requireContext(),
+                            "Сжато: ${result.convertedImages} изображений, ${result.convertedSounds} звуков, сэкономлено ~${savedMb}MB. Файл в Download/NeoCatroidExports!",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                }
+            } catch (e: Exception) {
+                activity?.runOnUiThread {
+                    progress.dismiss()
+                    if (isAdded && context != null) {
+                        Toast.makeText(requireContext(), "Ошибка сжатия: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }.start()
+    }
+
+    private fun zipDirectoryTo(sourceDir: File, destZip: File, onFile: ((String) -> Unit)? = null) {
+        ZipOutputStream(FileOutputStream(destZip)).use { zos ->
+            zos.setLevel(1)
+            sourceDir.walk().filter { it != sourceDir }.forEach { file ->
+                if (file.name != "undo_code.xml") {
+                    val entryPath = file.relativeTo(sourceDir).path
+                    onFile?.invoke(entryPath)
+                    val zipEntry = if (file.isDirectory) ZipEntry("$entryPath/") else ZipEntry(entryPath)
+                    zos.putNextEntry(zipEntry)
+                    if (file.isFile) {
+                        FileInputStream(file).use { fis -> fis.copyTo(zos, 8192) }
+                    }
+                    zos.closeEntry()
+                }
+            }
+        }
+    }
+
+    private fun writeToDownloadsFile(sourceFile: File, fileName: String) {
+        val appContext = requireContext().applicationContext
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val values = ContentValues().apply {
+                put(MediaStore.Downloads.DISPLAY_NAME, fileName)
+                put(MediaStore.Downloads.MIME_TYPE, "application/octet-stream")
+                put(MediaStore.Downloads.RELATIVE_PATH, "${Environment.DIRECTORY_DOWNLOADS}/NeoCatroidExports")
+                put(MediaStore.Downloads.IS_PENDING, 1)
+            }
+            val uri = appContext.contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
+                ?: error("Не удалось создать файл экспорта")
+            try {
+                appContext.contentResolver.openOutputStream(uri)?.use { out ->
+                    FileInputStream(sourceFile).use { fis -> fis.copyTo(out, 8192) }
+                } ?: error("Не удалось открыть файл экспорта")
+                appContext.contentResolver.update(
+                    uri,
+                    ContentValues().apply { put(MediaStore.Downloads.IS_PENDING, 0) },
+                    null,
+                    null
+                )
+            } catch (e: Exception) {
+                appContext.contentResolver.delete(uri, null, null)
+                throw e
+            }
+        } else {
+            val exportDir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "NeoCatroidExports")
+            if (!exportDir.exists() && !exportDir.mkdirs()) error("Не удалось создать папку экспорта")
+            sourceFile.copyTo(File(exportDir, fileName), overwrite = true)
+        }
+    }
+
+    private fun dp(value: Float): Float = value * resources.displayMetrics.density
+
+    private inner class FileProgressDialog(private val title: String) {
+        private var dialog: androidx.appcompat.app.AlertDialog? = null
+        private var progressBar: android.widget.ProgressBar? = null
+        private var fileNameView: TextView? = null
+        private val handler = android.os.Handler(android.os.Looper.getMainLooper())
+
+        fun show() {
+            val d = resources.displayMetrics.density
+            val layout = LinearLayout(requireContext()).apply {
+                orientation = LinearLayout.VERTICAL
+                setPadding((24 * d).toInt(), (16 * d).toInt(), (24 * d).toInt(), 0)
+            }
+            val nameLabel = TextView(requireContext()).apply {
+                text = "Обрабатывается:"
+                setTextColor(0xFF94A3B8.toInt())
+                textSize = 13f
+            }
+            val nameView = TextView(requireContext()).apply {
+                text = ""
+                setTextColor(0xFF38BDF8.toInt())
+                textSize = 13f
+                setTypeface(null, android.graphics.Typeface.BOLD)
+                maxLines = 2
+                ellipsize = android.text.TextUtils.TruncateAt.MIDDLE
+                setPadding(0, (6 * d).toInt(), 0, (8 * d).toInt())
+            }
+            val bar = android.widget.ProgressBar(requireContext(), null, android.R.attr.progressBarStyleHorizontal).apply {
+                isIndeterminate = true
+            }
+            fileNameView = nameView
+            progressBar = bar
+            layout.addView(nameLabel)
+            layout.addView(nameView)
+            layout.addView(bar)
+            dialog = androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                .setTitle(title)
+                .setView(layout)
+                .setCancelable(false)
+                .create()
+            dialog?.show()
+        }
+
+        fun updateFile(name: String) {
+            handler.post { fileNameView?.text = name }
+        }
+
+        fun dismiss() {
+            handler.post {
+                if (dialog?.isShowing == true) {
+                    dialog?.dismiss()
+                }
+            }
+        }
     }
 }

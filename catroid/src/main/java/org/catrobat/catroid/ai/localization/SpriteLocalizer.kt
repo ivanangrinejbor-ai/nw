@@ -47,6 +47,7 @@ class SpriteLocalizer(
             val results = mutableListOf<SpriteLocalizationResult>()
             var processed = 0
             var failed = 0
+            var skipped = 0
 
             for ((sprite, lookFile) in spritesToProcess) {
                 val status = "extracting text from ${sprite.name}"
@@ -56,11 +57,19 @@ class SpriteLocalizer(
 
                 val result = processSprite(sprite, lookFile, total)
                 results.add(result)
-                if (result.success) processed++ else failed++
+                when {
+                    result.skipped -> skipped++
+                    result.success -> processed++
+                    else -> failed++
+                }
 
                 withContext(Dispatchers.Main) {
-                    onProgress?.invoke(processed + failed, total, sprite.name,
-                        if (result.success) "done" else "failed: ${result.errorMessage}")
+                    onProgress?.invoke(processed + failed + skipped, total, sprite.name,
+                        when {
+                            result.skipped -> "no text found"
+                            result.success -> "done"
+                            else -> "failed: ${result.errorMessage}"
+                        })
                 }
             }
 
@@ -70,7 +79,8 @@ class SpriteLocalizer(
                 avgOcrConfidence = if (ocrConfidences.isNotEmpty()) ocrConfidences.average().toFloat() else 0f,
                 avgTextExpansion = if (textExpansions.isNotEmpty()) textExpansions.average().toFloat() else 0f,
                 geminiRequestCount = geminiCalls,
-                spritesWithText = total
+                spritesWithText = total,
+                noTextSprites = skipped
             )
             withContext(Dispatchers.Main) { onComplete?.invoke(report) }
         }
@@ -87,7 +97,8 @@ class SpriteLocalizer(
             if (regions.isEmpty()) {
                 return@withContext SpriteLocalizationResult(
                     sprite.name, lookFile.name, emptyList(),
-                    success = true, outputPath = null
+                    success = true, outputPath = null,
+                    skipped = true
                 )
             }
 

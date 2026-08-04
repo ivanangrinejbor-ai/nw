@@ -38,6 +38,8 @@ class ChatActivity : AppCompatActivity() {
         setContentView(R.layout.ai_activity_chat)
 
         val agent = AiAgentManager.instance
+        agent.init(applicationContext)
+        agent.attachActivity(this)
         val scopeProject = intent.getStringExtra(EXTRA_SCOPE_PROJECT)
         agent.setScope(scopeProject)
 
@@ -264,6 +266,7 @@ class ChatActivity : AppCompatActivity() {
     override fun onPause() {
         super.onPause()
         if (isFinishing) {
+            AiAgentManager.instance.attachActivity(null)
             ModelManager.unloadModel()
         }
     }

@@ -126,7 +126,7 @@ object ModelManager {
         val models = defaultModels.map { model ->
             val file = getModelFile(model.filename)
             model.copy(
-                isDownloaded = file.exists(),
+                isDownloaded = file.exists() && file.length() > 0,
                 fileSizeBytes = if (file.exists()) file.length() else 0
             )
         }
@@ -174,19 +174,33 @@ object ModelManager {
         if (_isLoading.value) return@withContext false
         val model = _availableModels.value.find { it.id == modelId } ?: return@withContext false
         _isLoading.value = true
+        var success = false
+        var connection: HttpURLConnection? = null
         try {
             val url = URL(model.uri)
-            val connection = (url.openConnection() as HttpURLConnection).apply {
+            connection = (url.openConnection() as HttpURLConnection).apply {
                 connectTimeout = 30000
                 readTimeout = 60000
                 setRequestProperty("User-Agent", "NeoCatroid-AI-Agent")
             }
             connection.connect()
             val totalSize = connection.contentLengthLong
-            val inputStream = connection.inputStream
             val outputFile = getModelFile(model.filename)
+            val partFile = File(outputFile.parentFile, outputFile.name + ".part")
+            partFile.delete()
+
+            if (totalSize > 0) {
+                val usable = outputFile.parentFile?.usableSpace ?: 0L
+                if (totalSize > usable) {
+                    lastLoadError = "Not enough free storage: model needs ~${totalSize / (1024 * 1024)} MB, " +
+                        "only ${usable / (1024 * 1024)} MB free."
+                    return@withContext false
+                }
+            }
+
+            val inputStream = connection.inputStream
             inputStream.use { stream ->
-                FileOutputStream(outputFile).use { output ->
+                FileOutputStream(partFile).use { output ->
                     val buffer = ByteArray(8192)
                     var bytesRead: Int
                     var totalRead = 0L
@@ -221,12 +235,33 @@ object ModelManager {
                     }
                 }
             }
+
+            if (totalSize > 0 && partFile.length() != totalSize) {
+                lastLoadError = "Download incomplete: got ${partFile.length()} of $totalSize bytes."
+                return@withContext false
+            }
+            if (partFile.length() <= 0) {
+                lastLoadError = "Downloaded file is empty."
+                return@withContext false
+            }
+            outputFile.delete()
+            if (!partFile.renameTo(outputFile)) {
+                partFile.copyTo(outputFile, overwrite = true)
+                partFile.delete()
+            }
+            success = true
             refreshModels()
             true
         } catch (e: Exception) {
+            lastLoadError = e.message
             e.printStackTrace()
             false
         } finally {
+            connection?.disconnect()
+            if (!success) {
+                val part = File(getModelFile(model.filename).parentFile, model.filename + ".part")
+                part.delete()
+            }
             _isLoading.value = false
             _downloadProgress.value = null
             _downloadSpeed.value = null

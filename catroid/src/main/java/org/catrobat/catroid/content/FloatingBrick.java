@@ -1,0 +1,54 @@
+/*
+ * Catroid: An on-device visual programming system for Android devices
+ * Copyright (C) 2010-2024 The Catrobat Team
+ * (<http://developer.catrobat.org/credits>)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * An additional term exception under section 7 of the GNU Affero
+ * General Public License, version 3, is available at
+ * http://developer.catrobat.org/license_additional_term
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package org.catrobat.catroid.content;
+
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+
+import org.catrobat.catroid.content.bricks.Brick;
+
+import java.io.Serializable;
+
+/**
+ * A brick that has been dragged out of any script and sits alone on the
+ * editor canvas. It is stored in {@link Sprite#getFloatingBricks()}, so it
+ * survives editor sessions, but it is NOT part of any script and is never
+ * executed by the runtime.
+ */
+@XStreamAlias("floatingBrick")
+public class FloatingBrick implements Serializable {
+
+	private static final long serialVersionUID = 1L;
+
+	public Brick brick;
+	public float x;
+	public float y;
+
+	public FloatingBrick() {
+	}
+
+	public FloatingBrick(Brick brick, float x, float y) {
+		this.brick = brick;
+		this.x = x;
+		this.y = y;
+	}
+}

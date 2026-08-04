@@ -32,7 +32,12 @@ object MemoryAwarePipeline {
         }
     }
 
-    fun zipDirectoryStreaming(sourceDir: File, destFile: File, onProgress: ((Float) -> Unit)? = null) {
+    fun zipDirectoryStreaming(
+        sourceDir: File,
+        destFile: File,
+        onProgress: ((Float) -> Unit)? = null,
+        onFile: ((String) -> Unit)? = null
+    ) {
         val allFiles = sourceDir.walkTopDown().filter { it.isFile }.toList()
         if (allFiles.isEmpty()) {
             ZipOutputStream(FileOutputStream(destFile)).use { }
@@ -45,6 +50,7 @@ object MemoryAwarePipeline {
         ZipOutputStream(FileOutputStream(destFile)).use { zos ->
             for (file in allFiles) {
                 val relativePath = file.relativeTo(sourceDir).path.replace('\\', '/')
+                onFile?.invoke(relativePath)
                 zos.putNextEntry(ZipEntry(relativePath))
 
                 FileInputStream(file).use { fis ->

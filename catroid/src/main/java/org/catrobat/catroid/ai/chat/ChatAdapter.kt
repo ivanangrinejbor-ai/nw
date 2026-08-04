@@ -22,7 +22,6 @@ class ChatAdapter(
 
     private var thinkingActive = false
     private var thinkingDetail = ""
-    private var thinkingExpanded = false
 
     fun updateMessages(newMessages: List<ChatMessage>) {
         val diffResult = DiffUtil.calculateDiff(object : DiffUtil.Callback() {
@@ -49,7 +48,6 @@ class ChatAdapter(
             }
             !active && wasActive -> {
                 thinkingActive = false
-                thinkingExpanded = false
                 notifyItemRemoved(messages.size)
             }
             active && wasActive -> {
@@ -89,7 +87,7 @@ class ChatAdapter(
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         when (holder) {
-            is ThinkingViewHolder -> holder.bind(thinkingDetail, thinkingExpanded)
+            is ThinkingViewHolder -> holder.bind(thinkingDetail)
             is ChangeViewHolder -> holder.bind(messages[position])
             is MessageViewHolder -> holder.bind(messages[position], markwon)
         }
@@ -170,14 +168,11 @@ class ChatAdapter(
         private val label: ShimmerTextView = itemView.findViewById(R.id.thinking_label)
         private val detail: TextView = itemView.findViewById(R.id.thinking_detail)
 
-        fun bind(detailText: String, expanded: Boolean) {
+        fun bind(detailText: String) {
             label.startShimmer()
             detail.text = detailText
-            detail.visibility = if (expanded && detailText.isNotBlank()) View.VISIBLE else View.GONE
-            root.setOnClickListener {
-                thinkingExpanded = !thinkingExpanded
-                notifyItemChanged(messages.size)
-            }
+            detail.visibility = if (detailText.isNotBlank()) View.VISIBLE else View.GONE
+            root.setOnClickListener(null)
         }
     }
 

@@ -1,5 +1,6 @@
 package org.catrobat.catroid.ai
 
+import android.app.Activity
 import android.content.Context
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -24,6 +25,7 @@ import org.catrobat.catroid.ai.prompt.PromptBuilder
 import org.catrobat.catroid.ai.settings.AiPreferences
 import org.catrobat.catroid.ai.tool.ToolCall
 import org.catrobat.catroid.ai.tool.ToolCallingEngine
+import java.lang.ref.WeakReference
 
 enum class AiAgentState {
     IDLE,
@@ -67,6 +69,13 @@ class AiAgentManager private constructor() {
     val projectModifier = ProjectModifier
     val validationEngine = ValidationEngine
     val promptBuilder = PromptBuilder
+
+    @Volatile
+    private var confirmActivity: WeakReference<Activity>? = null
+
+    fun attachActivity(activity: Activity?) {
+        confirmActivity = if (activity != null) WeakReference(activity) else null
+    }
 
     private var context: Context? = null
 
@@ -118,11 +127,16 @@ class AiAgentManager private constructor() {
     private fun isBackendReady(): Boolean =
         if (AiPreferences.isLocalBackend()) ModelRuntime.isModelLoaded() else cloudRuntime.isReady()
 
-    private suspend fun generate(input: String, temperature: Float, maxTokens: Int): String =
+    private suspend fun generate(systemPrompt: String, userContent: String, temperature: Float, maxTokens: Int): String =
         if (AiPreferences.isLocalBackend() && ModelRuntime.isModelLoaded()) {
-            modelRuntime.generate(input, temperature, maxTokens = LOCAL_MAX_GEN_TOKENS)
+            val modelId = AiPreferences.getSelectedModelId()
+            modelRuntime.generate(
+                applyLocalChatTemplate(systemPrompt, truncateForLocalBackend(userContent), modelId),
+                temperature,
+                maxTokens = LOCAL_MAX_GEN_TOKENS
+            )
         } else {
-            cloudRuntime.generate(input, temperature, maxTokens = maxTokens.coerceIn(256, 8192))
+            cloudRuntime.generate(systemPrompt, userContent, temperature, maxTokens = maxTokens.coerceIn(256, 8192))
         }
 
     private fun processMessage(userInput: String) {
@@ -137,31 +151,27 @@ class AiAgentManager private constructor() {
                     projectAnalyzer.analyzeProject(project)
                 } else null
 
-                val systemPrompt = promptBuilder.buildSystemPrompt(analysis)
-                val conversationHistory = contextManager.getRecentHistory()
-                val userPrompt = promptBuilder.buildUserPrompt(userInput, analysis)
-
-                val modelInput = StringBuilder(
-                    promptBuilder.assembleFullPrompt(
-                        systemPrompt = systemPrompt,
-                        conversationHistory = conversationHistory,
-                        userPrompt = userPrompt
-                    )
+                val isLocal = AiPreferences.isLocalBackend() && ModelRuntime.isModelLoaded()
+                val systemPrompt = promptBuilder.buildSystemPrompt(analysis, includeCatalog = !isLocal)
+                var userContent = promptBuilder.buildUserMessage(
+                    userInput, analysis, contextManager.getRecentHistory()
                 )
 
                 _state.value = AiAgentState.USING_TOOLS
 
                 val maxRounds = AiPreferences.getMaxToolCalls()
                 var toolResult: String? = null
+                var malformedStreak = 0
                 var iteration = 0
 
                 val temperature = AiPreferences.getTemperature()
                 val maxTokens = AiPreferences.getMaxContext()
 
                 while (iteration < maxRounds) {
-                    _activity.value = "Thinking… (round ${iteration + 1}/$maxRounds)"
+                    _activity.value = "Thinking…"
                     val response = generate(
-                        truncateForLocalBackend(modelInput.toString()),
+                        systemPrompt,
+                        userContent,
                         temperature = temperature,
                         maxTokens = maxTokens
                     )
@@ -171,22 +181,29 @@ class AiAgentManager private constructor() {
                     }
                     val toolCalls = toolEngine.parseToolCalls(response)
                     if (toolCalls.isEmpty()) {
+                        if (response.contains("tool_call") && malformedStreak < 2) {
+                            malformedStreak++
+                            userContent += "\n## Correction\n" +
+                                "Your previous response contained a malformed tool call. " +
+                                "Output ONLY valid <tool_call> blocks exactly as specified, or a normal reply if you are done."
+                            continue
+                        }
                         toolResult = response
                         break
                     }
-                    for (toolCall in toolCalls) {
+                    malformedStreak = 0
+                    val executionResults = executeToolCallsWithRetry(toolCalls) { toolCall ->
                         _activity.value = describeToolActivity(toolCall)
-                        val result = toolEngine.executeTool(toolCall)
-                        _activity.value = describeToolActivityDone(toolCall)
-                        modelInput.append("\nTool result: $result\n")
+                    }
+                    for ((toolCall, result) in executionResults) {
+                        userContent += "\nTool result: $result\n"
                         contextManager.addToolCall(toolCall.name, toolCall.args, result)
                     }
                     val pending = toolEngine.getPendingChanges()
                     if (pending.isNotEmpty()) {
-                        _activity.value = describePendingChanges(pending)
-                        val outcomes = projectModifier.applyChanges(pending)
-                        _activity.value = describeAppliedChanges(pending, outcomes)
-                        toolEngine.clearPendingChanges()
+                        _activity.value = "Editing: " + describePendingChanges(pending)
+                        val outcomes = applyPendingChangesSafely(project, pending)
+                        _activity.value = "Done: " + describeAppliedChanges(pending, outcomes)
                         emitChangeCards(outcomes)
                         val summary = outcomes.joinToString("\n") { r ->
                             when (r) {
@@ -194,13 +211,14 @@ class AiAgentManager private constructor() {
                                 is org.catrobat.catroid.ai.modify.ProjectModifier.ModificationResult.Failure -> "FAIL: ${r.error}"
                             }
                         }
-                        modelInput.append("\n## Applied project changes:\n$summary\n")
+                        userContent += "\n## Applied project changes:\n$summary\n"
                     }
                     iteration++
                 }
 
                 val finalResponse = toolResult ?: generate(
-                    truncateForLocalBackend(modelInput.toString()),
+                    systemPrompt,
+                    userContent,
                     temperature = temperature,
                     maxTokens = maxTokens
                 )
@@ -219,8 +237,7 @@ class AiAgentManager private constructor() {
 
                 val leftover = toolEngine.getPendingChanges()
                 if (leftover.isNotEmpty()) {
-                    val outcomes = projectModifier.applyChanges(leftover)
-                    toolEngine.clearPendingChanges()
+                    val outcomes = applyPendingChangesSafely(project, leftover)
                     emitChangeCards(outcomes)
                 }
 
@@ -239,71 +256,47 @@ class AiAgentManager private constructor() {
         }
     }
 
-    private fun describeToolActivity(toolCall: ToolCall): String {
-        val a = toolCall.args
-        val scene = a["scene"]?.takeIf { it.isNotBlank() }
-        val obj = a["object"]?.takeIf { it.isNotBlank() }
-        val path = when {
-            scene != null && obj != null -> "$scene/$obj"
-            obj != null -> obj
-            scene != null -> scene
-            else -> ""
+    private suspend fun applyPendingChangesSafely(
+        project: org.catrobat.catroid.content.Project?,
+        changes: List<org.catrobat.catroid.ai.tool.ProjectChange>
+    ): List<ProjectModifier.ModificationResult> {
+        if (project == null) {
+            toolEngine.clearPendingChanges()
+            return changes.map { ProjectModifier.ModificationResult.Failure("No project open") }
         }
-        return when (toolCall.name) {
-            "readObject" -> "Reading object $path"
-            "readScene" -> "Reading scene ${scene ?: ""}"
-            "readScript" -> "Reading script #${a["index"] ?: "?"} of $path"
-            "listObjects" -> "Reading objects in ${scene ?: ""}"
-            "listScenes" -> "Reading scene list"
-            "projectInfo", "projectInventory" -> "Reading project structure"
-            "listLooks" -> if (path.isNotEmpty()) "Reading looks of $path" else "Reading all looks"
-            "listSounds" -> if (path.isNotEmpty()) "Reading sounds of $path" else "Reading all sounds"
-            "listVariables" -> "Reading variables"
-            "listBroadcasts" -> "Reading broadcast messages"
-            "codeAnalysis" -> "Analyzing code"
-            "searchVariable" -> "Searching variable '${a["name"] ?: ""}'"
-            "searchList" -> "Searching list '${a["name"] ?: ""}'"
-            "searchBroadcast" -> "Searching broadcast '${a["name"] ?: ""}'"
-            "searchFiles" -> "Searching files '${a["pattern"] ?: ""}'"
-            "readFile" -> "Reading file ${a["path"] ?: ""}"
-            "writeFile" -> "Writing file ${a["path"] ?: ""}"
-            "createObject" -> "Creating object '${a["name"] ?: ""}' in ${scene ?: ""}"
-            "deleteObject" -> "Deleting object '${a["name"] ?: ""}'"
-            "createScene" -> "Creating scene '${a["name"] ?: ""}'"
-            "deleteScene" -> "Deleting scene '${a["name"] ?: ""}'"
-            "createVariable" -> "Creating variable '${a["name"] ?: ""}'"
-            "deleteVariable" -> "Deleting variable '${a["name"] ?: ""}'"
-            "buildScript" -> "Writing a script on $path"
-            "replaceScript" -> "Replacing script #${a["index"] ?: "?"} of $path"
-            "appendScript" -> "Adding a script to $path"
-            "deleteScript" -> "Deleting script #${a["index"] ?: "?"} of $path"
-            "listProjects" -> "Reading project list"
-            "openProject" -> "Opening project '${a["name"] ?: ""}'"
-            "remember" -> "Saving to memory '${a["key"] ?: ""}'"
-            "recall" -> "Recalling memory '${a["query"] ?: ""}'"
-            "forget" -> "Forgetting memory '${a["key"] ?: ""}'"
-            else -> "Running ${toolCall.name}"
+        val validation = validationEngine.validateChanges(project, changes)
+        if (!validation.isValid) {
+            toolEngine.clearPendingChanges()
+            return validation.errors.map { ProjectModifier.ModificationResult.Failure(it) }
         }
+        if (AiPreferences.isConfirmEnabled() && !awaitUserConfirmation(changes)) {
+            toolEngine.clearPendingChanges()
+            return changes.map { ProjectModifier.ModificationResult.Failure("Declined by user") }
+        }
+        val outcomes = projectModifier.applyChanges(changes)
+        toolEngine.clearPendingChanges()
+        return outcomes
     }
 
-    private fun describeToolActivityDone(toolCall: ToolCall): String =
-        describeToolActivity(toolCall).let { desc ->
-            when {
-                desc.startsWith("Reading") -> desc.replaceFirst("Reading", "Read")
-                desc.startsWith("Writing") -> desc.replaceFirst("Writing", "Wrote")
-                desc.startsWith("Searching") -> desc.replaceFirst("Searching", "Searched")
-                desc.startsWith("Analyzing") -> desc.replaceFirst("Analyzing", "Analyzed")
-                desc.startsWith("Creating") -> desc.replaceFirst("Creating", "Created")
-                desc.startsWith("Deleting") -> desc.replaceFirst("Deleting", "Deleted")
-                desc.startsWith("Replacing") -> desc.replaceFirst("Replacing", "Replaced")
-                desc.startsWith("Adding") -> desc.replaceFirst("Adding", "Added")
-                desc.startsWith("Opening") -> desc.replaceFirst("Opening", "Opened")
-                desc.startsWith("Saving") -> desc.replaceFirst("Saving", "Saved")
-                desc.startsWith("Recalling") -> desc.replaceFirst("Recalling", "Recalled")
-                desc.startsWith("Forgetting") -> desc.replaceFirst("Forgetting", "Forgot")
-                else -> "$desc — done"
+    private suspend fun awaitUserConfirmation(changes: List<org.catrobat.catroid.ai.tool.ProjectChange>): Boolean {
+        val activity = confirmActivity?.get() ?: return true
+        val description = changes.joinToString("\n") { "• ${describeChange(it)}" }
+        return kotlinx.coroutines.suspendCancellableCoroutine { cont ->
+            activity.runOnUiThread {
+                val dialog = android.app.AlertDialog.Builder(activity)
+                    .setTitle(org.catrobat.catroid.R.string.ai_agent_confirm_changes_title)
+                    .setMessage(
+                        activity.getString(org.catrobat.catroid.R.string.ai_agent_confirm_changes_message) +
+                            "\n\n$description"
+                    )
+                    .setPositiveButton(org.catrobat.catroid.R.string.ai_agent_apply) { _, _ -> cont.resumeWith(Result.success(true)) }
+                    .setNegativeButton(org.catrobat.catroid.R.string.ai_agent_cancel) { _, _ -> cont.resumeWith(Result.success(false)) }
+                    .setOnCancelListener { cont.resumeWith(Result.success(false)) }
+                    .show()
+                cont.invokeOnCancellation { dialog.dismiss() }
             }
         }
+    }
 
     private fun describePendingChanges(changes: List<org.catrobat.catroid.ai.tool.ProjectChange>): String {
         val lines = changes.map { describeChange(it) }
@@ -394,17 +387,123 @@ class AiAgentManager private constructor() {
         contextManager.clear()
     }
 
+    private suspend fun executeToolCallsWithRetry(
+        toolCalls: List<ToolCall>,
+        onBeforeCall: (suspend (ToolCall) -> Unit)? = null
+    ): List<Pair<ToolCall, String>> {
+        var results = toolEngine.executeToolCalls(toolCalls, onBeforeCall)
+        var attempt = 0
+        while (attempt < MAX_TOOL_EXEC_RETRIES) {
+            val failedReads = results.filter { (toolCall, result) ->
+                toolCall.name in READ_ONLY_TOOLS && isTransientFailure(result)
+            }
+            if (failedReads.isEmpty()) break
+            attempt++
+            _activity.value = "Retrying ${failedReads.size} read(s)… (attempt $attempt/$MAX_TOOL_EXEC_RETRIES)"
+            val retried = toolEngine.executeToolCalls(failedReads.map { it.first }, onBeforeCall)
+            results = results.map { (tc, r) ->
+                retried.firstOrNull { it.first.id == tc.id } ?: (tc to r)
+            }
+        }
+        return results
+    }
+
+    private fun describeToolActivity(toolCall: ToolCall): String {
+        val a = toolCall.args
+        val scene = a["scene"]?.takeIf { it.isNotBlank() }
+        val obj = a["object"]?.takeIf { it.isNotBlank() }
+        val path = when {
+            scene != null && obj != null -> "$scene/$obj"
+            obj != null -> obj
+            scene != null -> scene
+            else -> ""
+        }
+        val name = a["name"]?.takeIf { it.isNotBlank() } ?: ""
+        return when (toolCall.name) {
+            "readObject" -> "Reading object $path…"
+            "readScene" -> "Reading scene ${scene ?: ""}…"
+            "readScript" -> "Reading script #${a["index"] ?: "?"} of $path…"
+            "listObjects" -> "Reading objects in ${scene ?: ""}…"
+            "listScenes" -> "Reading scene list…"
+            "projectInfo", "projectInventory" -> "Reading project structure…"
+            "listLooks" -> if (path.isNotEmpty()) "Reading looks of $path…" else "Reading all looks…"
+            "listSounds" -> if (path.isNotEmpty()) "Reading sounds of $path…" else "Reading all sounds…"
+            "listVariables" -> "Reading variables…"
+            "listBroadcasts" -> "Reading broadcast messages…"
+            "codeAnalysis" -> "Analyzing code…"
+            "searchVariable" -> "Searching variable '${a["name"] ?: ""}'…"
+            "searchList" -> "Searching list '${a["name"] ?: ""}'…"
+            "searchBroadcast" -> "Searching broadcast '${a["name"] ?: ""}'…"
+            "searchFiles" -> "Searching files '${a["pattern"] ?: ""}'…"
+            "readFile" -> "Reading file ${a["path"] ?: ""}…"
+            "writeFile" -> "Writing file ${a["path"] ?: ""}…"
+            "createObject" -> "Creating object '$name'${if (scene != null) " in $scene" else ""}…"
+            "deleteObject" -> "Deleting object '$name'…"
+            "createScene" -> "Creating scene '$name'…"
+            "deleteScene" -> "Deleting scene '$name'…"
+            "createVariable" -> "Creating variable '$name'…"
+            "deleteVariable" -> "Deleting variable '$name'…"
+            "buildScript" -> "Writing a script on $path…"
+            "replaceScript" -> "Replacing script #${a["index"] ?: "?"} of $path…"
+            "appendScript" -> "Adding a script to $path…"
+            "deleteScript" -> "Deleting script #${a["index"] ?: "?"} of $path…"
+            "listProjects" -> "Reading project list…"
+            "openProject" -> "Opening project '${a["name"] ?: ""}'…"
+            "remember" -> "Saving to memory '${a["key"] ?: ""}'…"
+            "recall" -> "Recalling memory '${a["query"] ?: ""}'…"
+            "forget" -> "Forgetting memory '${a["key"] ?: ""}'…"
+            "localizeSprites" -> "Localizing sprites to '${a["targetLanguage"] ?: ""}'… (this may take a while)"
+            "wireLocalizationSwitch" -> "Wiring language switch for '${a["targetLanguage"] ?: ""}'…"
+            else -> "Running ${toolCall.name}…"
+        }
+    }
+
+    private fun isTransientFailure(result: String): Boolean =
+        (result.startsWith("ERROR") || result.startsWith("Error")) &&
+            !result.contains("Unknown tool", ignoreCase = true)
+
     companion object {
         private const val LOCAL_MAX_GEN_TOKENS = 512
+
+        private const val MAX_TOOL_EXEC_RETRIES = 2
+
+        private val READ_ONLY_TOOLS = setOf(
+            "listScenes", "listObjects", "readScene", "readObject", "readScript",
+            "projectInfo", "projectInventory", "listLooks", "listSounds",
+            "listVariables", "listBroadcasts", "codeAnalysis",
+            "searchVariable", "searchList", "searchBroadcast", "searchFiles",
+            "readFile", "listProjects", "recall"
+        )
 
         private const val LOCAL_PROMPT_CHAR_LIMIT = 4000
 
         private fun truncateForLocalBackend(input: String): String {
-            if (!AiPreferences.isLocalBackend()) return input
             if (input.length <= LOCAL_PROMPT_CHAR_LIMIT) return input
-            val truncated = input.takeLast(LOCAL_PROMPT_CHAR_LIMIT)
-            val nlIdx = truncated.indexOf('\n')
-            return if (nlIdx > 0) truncated.substring(nlIdx + 1) else truncated
+            val userMarker = "## User Request"
+            val userIdx = input.indexOf(userMarker)
+            if (userIdx >= 0) {
+                val tail = input.substring(userIdx)
+                if (tail.length <= LOCAL_PROMPT_CHAR_LIMIT) return tail
+                val last = tail.takeLast(LOCAL_PROMPT_CHAR_LIMIT)
+                val nlIdx = last.indexOf('\n')
+                return if (nlIdx > 0) last.substring(nlIdx + 1) else last
+            }
+            val last = input.takeLast(LOCAL_PROMPT_CHAR_LIMIT)
+            val nlIdx = last.indexOf('\n')
+            return if (nlIdx > 0) last.substring(nlIdx + 1) else last
+        }
+
+        private fun applyLocalChatTemplate(systemPrompt: String, userContent: String, modelId: String?): String {
+            val id = modelId?.lowercase().orEmpty()
+            return if (id.contains("llama")) {
+                "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n" +
+                    "$systemPrompt<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n" +
+                    "$userContent<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n"
+            } else {
+                "<|im_start|>system\n$systemPrompt<|im_end|>\n" +
+                    "<|im_start|>user\n$userContent<|im_end|>\n" +
+                    "<|im_start|>assistant\n"
+            }
         }
 
         @JvmStatic

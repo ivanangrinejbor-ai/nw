@@ -77,7 +77,7 @@ class ProjectFiles2Fragment : Fragment() {
 
         val createBtn = TextView(requireContext()).apply {
             text = "Создать"
-            setTextColor(0xFF38BDF8.toInt())
+            setTextColor(0xFF94A3B8.toInt())
             textSize = 14f
             setTypeface(null, Typeface.BOLD)
             setPadding(dp10, dp10, dp10, dp10)
@@ -91,7 +91,7 @@ class ProjectFiles2Fragment : Fragment() {
 
         val importBtn = TextView(requireContext()).apply {
             text = "Импорт"
-            setTextColor(0xFF38BDF8.toInt())
+            setTextColor(0xFF94A3B8.toInt())
             textSize = 14f
             setTypeface(null, Typeface.BOLD)
             setPadding(dp10, dp10, dp10, dp10)
@@ -105,7 +105,7 @@ class ProjectFiles2Fragment : Fragment() {
 
         val cmdBtn = TextView(requireContext()).apply {
             text = "Терминал"
-            setTextColor(0xFF38BDF8.toInt())
+            setTextColor(0xFF94A3B8.toInt())
             textSize = 14f
             setTypeface(null, Typeface.BOLD)
             setPadding(dp10, dp10, dp10, dp10)
@@ -270,20 +270,26 @@ class ProjectFiles2Fragment : Fragment() {
             Toast.makeText(requireContext(), "Недопустимое имя импортируемого файла", Toast.LENGTH_SHORT).show()
             return
         }
-        try {
-            val inputStream = requireContext().contentResolver.openInputStream(uri) ?: return
-            FileOutputStream(destinationFile).use { outputStream ->
-                inputStream.use { input -> input.copyTo(outputStream) }
+        Thread {
+            try {
+                val inputStream = requireActivity().contentResolver.openInputStream(uri) ?: return@Thread
+                FileOutputStream(destinationFile).use { outputStream ->
+                    inputStream.use { input -> input.copyTo(outputStream) }
+                }
+                activity?.runOnUiThread {
+                    if (isAdded && context != null) {
+                        refreshFiles()
+                        Toast.makeText(requireContext(), "Файл импортирован!", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            } catch (e: Exception) {
+                activity?.runOnUiThread {
+                    if (isAdded && context != null) {
+                        Toast.makeText(requireContext(), "Ошибка импорта: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+                    }
+                }
             }
-            if (isAdded && context != null) {
-                refreshFiles()
-                Toast.makeText(requireContext(), "Файл импортирован!", Toast.LENGTH_SHORT).show()
-            }
-        } catch (e: Exception) {
-            if (isAdded && context != null) {
-                Toast.makeText(requireContext(), "Ошибка импорта: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
-            }
-        }
+        }.start()
     }
 
     private fun getFileName(uri: Uri): String {

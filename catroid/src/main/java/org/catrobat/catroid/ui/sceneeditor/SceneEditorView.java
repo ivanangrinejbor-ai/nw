@@ -169,7 +169,7 @@ public class SceneEditorView extends View {
 
 		borderPaint.setStyle(Paint.Style.STROKE);
 		borderPaint.setStrokeWidth(2.5f);
-		borderPaint.setColor(0xFF38BDF8);
+		borderPaint.setColor(0xFF64748B);
 
 		selectedPaint.setStyle(Paint.Style.STROKE);
 		selectedPaint.setStrokeWidth(4.5f);

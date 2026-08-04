@@ -80,6 +80,10 @@ public class Formula implements Serializable {
 		this(Double.valueOf(value));
 	}
 
+	public Formula(boolean value) {
+		this((value) ? 1 : 0);
+	}
+
 	public Formula(String value) {
 		if (value.equalsIgnoreCase(Functions.ARDUINOANALOG.toString())) {
 			formulaTree = new FormulaElement(ElementType.SENSOR, Functions.ARDUINOANALOG.toString(), null);

@@ -50,7 +50,8 @@ object CloudModelRuntime {
     fun isReady(): Boolean = !getApiKey().isNullOrBlank()
 
     suspend fun generate(
-        input: String,
+        systemPrompt: String,
+        userContent: String,
         temperature: Float = 0.7f,
         maxTokens: Int = 2048
     ): String = generateMutex.withLock {
@@ -63,10 +64,10 @@ object CloudModelRuntime {
         try {
             withContext(Dispatchers.IO) {
                 when (provider) {
-                    AiProvider.GEMINI -> requestGemini(apiKey, model, input, temperature, maxTokens)
-                    AiProvider.OPENAI, AiProvider.DEEPSEEK, AiProvider.OPENROUTER ->
-                        requestOpenAiFormat(provider, apiKey, model, input, temperature, maxTokens)
-                    AiProvider.CLAUDE -> requestClaude(apiKey, model, input, temperature, maxTokens)
+                    AiProvider.GEMINI -> requestGemini(apiKey, model, systemPrompt, userContent, temperature, maxTokens)
+                    AiProvider.OPENAI, AiProvider.DEEPSEEK, AiProvider.OPENROUTER, AiProvider.OPENCODE ->
+                        requestOpenAiFormat(provider, apiKey, model, systemPrompt, userContent, temperature, maxTokens)
+                    AiProvider.CLAUDE -> requestClaude(apiKey, model, systemPrompt, userContent, temperature, maxTokens)
                 }
             }
         } catch (e: Exception) {
@@ -78,14 +79,15 @@ object CloudModelRuntime {
     private fun requestGemini(
         apiKey: String,
         model: String,
-        prompt: String,
+        systemPrompt: String,
+        userContent: String,
         temperature: Float,
         maxTokens: Int
     ): String {
         val normalizedModel = if (model.startsWith("models/")) model else "models/$model"
         val url = "https://generativelanguage.googleapis.com/v1beta/$normalizedModel:generateContent"
 
-        val partObj = JSONObject().put("text", prompt)
+        val partObj = JSONObject().put("text", userContent)
         val partsArray = JSONArray().put(partObj)
         val contentObj = JSONObject().put("parts", partsArray).put("role", "user")
         val generationConfig = JSONObject()
@@ -94,6 +96,9 @@ object CloudModelRuntime {
         val jsonBody = JSONObject()
             .put("contents", JSONArray().put(contentObj))
             .put("generationConfig", generationConfig)
+        if (systemPrompt.isNotBlank()) {
+            jsonBody.put("systemInstruction", JSONObject().put("parts", JSONArray().put(JSONObject().put("text", systemPrompt))))
+        }
 
         val mediaType = "application/json; charset=utf-8".toMediaType()
         val body = jsonBody.toString().toRequestBody(mediaType)
@@ -117,7 +122,8 @@ object CloudModelRuntime {
         provider: AiProvider,
         apiKey: String,
         model: String,
-        prompt: String,
+        systemPrompt: String,
+        userContent: String,
         temperature: Float,
         maxTokens: Int
     ): String {
@@ -125,15 +131,22 @@ object CloudModelRuntime {
             AiProvider.OPENAI -> "https://api.openai.com/v1/chat/completions"
             AiProvider.DEEPSEEK -> "https://api.deepseek.com/v1/chat/completions"
             AiProvider.OPENROUTER -> "https://openrouter.ai/api/v1/chat/completions"
-            else -> "https://api.openai.com/v1/chat/completions"
+            AiProvider.OPENCODE -> "https://opencode.ai/zen/v1/chat/completions"
+            else -> provider.baseUrl + "chat/completions"
         }
 
-        val msgObj = JSONObject().put("role", "user").put("content", prompt)
+        val messages = JSONArray()
+            .put(JSONObject().put("role", "system").put("content", systemPrompt))
+            .put(JSONObject().put("role", "user").put("content", userContent))
         val jsonBody = JSONObject()
             .put("model", model)
-            .put("messages", JSONArray().put(msgObj))
-            .put("temperature", temperature.toDouble())
-            .put("max_tokens", maxTokens)
+            .put("messages", messages)
+
+        val isReasoning = model.contains("reasoner") || model.startsWith("o1") || model.startsWith("o3")
+        if (!isReasoning) {
+            jsonBody.put("temperature", temperature.toDouble())
+        }
+        jsonBody.put(if (model.startsWith("o1") || model.startsWith("o3")) "max_completion_tokens" else "max_tokens", maxTokens)
 
         val mediaType = "application/json; charset=utf-8".toMediaType()
         val body = jsonBody.toString().toRequestBody(mediaType)
@@ -160,18 +173,22 @@ object CloudModelRuntime {
     private fun requestClaude(
         apiKey: String,
         model: String,
-        prompt: String,
+        systemPrompt: String,
+        userContent: String,
         temperature: Float,
         maxTokens: Int
     ): String {
         val url = "https://api.anthropic.com/v1/messages"
 
-        val msgObj = JSONObject().put("role", "user").put("content", prompt)
+        val msgObj = JSONObject().put("role", "user").put("content", userContent)
         val jsonBody = JSONObject()
             .put("model", model)
             .put("messages", JSONArray().put(msgObj))
             .put("max_tokens", maxTokens)
             .put("temperature", temperature.toDouble())
+        if (systemPrompt.isNotBlank()) {
+            jsonBody.put("system", systemPrompt)
+        }
 
         val mediaType = "application/json; charset=utf-8".toMediaType()
         val body = jsonBody.toString().toRequestBody(mediaType)

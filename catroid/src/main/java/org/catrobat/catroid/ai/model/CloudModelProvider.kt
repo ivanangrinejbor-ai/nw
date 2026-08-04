@@ -29,6 +29,7 @@ object CloudModelProvider {
                     AiProvider.DEEPSEEK -> fetchDeepSeekModels(apiKey)
                     AiProvider.OPENROUTER -> fetchOpenRouterModels(apiKey)
                     AiProvider.CLAUDE -> fetchClaudeModels(apiKey)
+                    AiProvider.OPENCODE -> fetchOpenCodeModels(apiKey)
                 }
                 if (fetched.isEmpty()) provider.defaultModels else fetched.distinct().sorted()
             }
@@ -139,6 +140,28 @@ object CloudModelProvider {
             .get()
             .header("x-api-key", apiKey)
             .header("anthropic-version", "2023-06-01")
+            .build()
+
+        okHttpClient.newCall(request).execute().use { response ->
+            if (!response.isSuccessful) return emptyList()
+            val bodyStr = response.body?.string() ?: return emptyList()
+            val root = JSONObject(bodyStr)
+            val data = root.optJSONArray("data") ?: return emptyList()
+            val result = mutableListOf<String>()
+            for (i in 0 until data.length()) {
+                val id = data.optJSONObject(i)?.optString("id", "") ?: ""
+                if (id.isNotBlank()) result.add(id)
+            }
+            return result
+        }
+    }
+
+    private fun fetchOpenCodeModels(apiKey: String): List<String> {
+        val url = "https://opencode.ai/zen/v1/models"
+        val request = Request.Builder()
+            .url(url)
+            .get()
+            .header("Authorization", "Bearer $apiKey")
             .build()
 
         okHttpClient.newCall(request).execute().use { response ->

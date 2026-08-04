@@ -61,6 +61,20 @@ enum class AiProvider(
             "claude-3-5-haiku-20241022",
             "claude-3-opus-20240229"
         )
+    ),
+    OPENCODE(
+        "opencode",
+        "OpenCode",
+        "https://opencode.ai/zen/v1/",
+        listOf(
+            "deepseek-v4-flash-free",
+            "mimo-v2.5-free",
+            "laguna-s-2.1-free",
+            "ling-3.0-flash-free",
+            "north-mini-code-free",
+            "nemotron-3-ultra-free",
+            "big-pickle"
+        )
     );
 
     companion object {

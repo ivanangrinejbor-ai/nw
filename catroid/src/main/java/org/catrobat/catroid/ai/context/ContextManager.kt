@@ -91,6 +91,12 @@ object ContextManager {
         synchronized(cachedObjects) { cachedObjects.clear() }
     }
 
+    fun invalidateProjectCache() {
+        cachedScenes.clear()
+        synchronized(cachedObjects) { cachedObjects.clear() }
+        analyzedProjects.clear()
+    }
+
     fun clearAnalysis() {
         analyzedProjects.clear()
     }

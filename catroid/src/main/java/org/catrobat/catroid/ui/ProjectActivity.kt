@@ -710,12 +710,6 @@ class ProjectActivity : BaseCastActivity() {
             ImportFromCameraLauncher(this).startActivityForResult(LOOK_CAMERA)
             alertDialog.dismiss()
         }
-        root.findViewById<View>(R.id.dialog_new_look_tilemap)?.setOnClickListener {
-            val intent = Intent(this, org.catrobat.catroid.ui.tilemap.TilemapEditorActivity::class.java)
-            intent.putExtra(org.catrobat.catroid.ui.tilemap.TilemapEditorActivity.EXTRA_NEW_TILEMAP, true)
-            startActivityForResult(intent, SpriteActivity.EDIT_LOOK)
-            alertDialog.dismiss()
-        }
         alertDialog.show()
     }
 

@@ -41,8 +41,14 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import org.catrobat.catroid.ProjectManager;
 import org.catrobat.catroid.R;
+import org.catrobat.catroid.codeanalysis.AiProjectAssistant;
+import org.catrobat.catroid.codeanalysis.AiSuggestionDialog;
+import org.catrobat.catroid.codeanalysis.AnalysisResult;
+import org.catrobat.catroid.codeanalysis.AnalysisManager;
+import org.catrobat.catroid.codeanalysis.CodeAnalyzer;
 import org.catrobat.catroid.content.Project;
 import org.catrobat.catroid.content.Scene;
+import org.catrobat.catroid.content.Script;
 import org.catrobat.catroid.content.Sprite;
 import org.catrobat.catroid.content.bricks.Brick;
 import org.catrobat.catroid.content.bricks.FormulaBrick;
@@ -50,7 +56,9 @@ import org.catrobat.catroid.content.bricks.SubCategoryHeaderBrick;
 import org.catrobat.catroid.ui.fragment.CategoryBricksFactory;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ScriptCanvasActivity extends AppCompatActivity {
 
@@ -69,12 +77,12 @@ public class ScriptCanvasActivity extends AppCompatActivity {
 	private boolean isBackground;
 	private boolean paletteBuilt;
 
-	@Override
+@Override
 	protected void onStop() {
-		// Runtime can be launched immediately after leaving the UI 2.0 editor.
-		// Finish the queued write here so newly attached blocks are not lost.
 		if (project != null) {
-			ProjectSaveCoordinator.saveBlocking(project);
+			Thread saveThread = new Thread(
+					() -> ProjectSaveCoordinator.saveBlocking(project), "script-canvas-save");
+			saveThread.start();
 		}
 		super.onStop();
 	}
@@ -127,9 +135,12 @@ public class ScriptCanvasActivity extends AppCompatActivity {
 		TextView empty = findViewById(R.id.script_canvas_empty);
 		empty.setVisibility(sprite.getScriptList().isEmpty() ? TextView.VISIBLE : TextView.GONE);
 
-		canvas = new ScriptCanvasView(this);
+canvas = new ScriptCanvasView(this);
 		canvas.setSprite(sprite);
 		canvas.setContentChangedListener(this::updateEmptyState);
+		boolean indentation = android.preference.PreferenceManager.getDefaultSharedPreferences(this)
+				.getBoolean("pref_enable_brick_indentation", false);
+		canvas.setIndentationEnabled(indentation);
 		canvasContainer.addView(canvas, 0);
 
 		isBackground = scene.getBackgroundSprite() == sprite;
@@ -161,6 +172,11 @@ public class ScriptCanvasActivity extends AppCompatActivity {
 			importNeoButton.setOnClickListener(v -> handleImportNeoScript());
 		}
 
+		ImageButton exportNeoButton = findViewById(R.id.script_canvas_btn_export_neoscript);
+		if (exportNeoButton != null) {
+			exportNeoButton.setOnClickListener(v -> handleExportNeoScript());
+		}
+
 		ImageButton backpackButton = findViewById(R.id.script_canvas_btn_backpack);
 		if (backpackButton != null) {
 			backpackButton.setOnClickListener(v -> {
@@ -174,6 +190,11 @@ public class ScriptCanvasActivity extends AppCompatActivity {
 		ImageButton paletteButton = findViewById(R.id.script_canvas_btn_palette);
 		if (paletteButton != null) {
 			paletteButton.setOnClickListener(v -> togglePalette());
+		}
+
+		ImageButton analysisButton = findViewById(R.id.script_canvas_btn_analysis);
+		if (analysisButton != null) {
+			analysisButton.setOnClickListener(v -> runCodeAnalysis());
 		}
 
 		EditText searchEdit = findViewById(R.id.script_palette_search);
@@ -377,27 +398,50 @@ public class ScriptCanvasActivity extends AppCompatActivity {
 
 	private class PaletteDragListener implements View.OnTouchListener {
 		private final Brick prototype;
+		private final android.os.Handler clickHandler =
+				new android.os.Handler(android.os.Looper.getMainLooper());
+		private final Runnable startGhostRunnable;
+		private float downRawX;
+		private float downRawY;
+		private boolean ghostStarted;
 
 		PaletteDragListener(Brick prototype) {
 			this.prototype = prototype;
+			this.startGhostRunnable = () -> {
+				ghostStarted = true;
+				startGhost(prototype, downRawX, downRawY);
+			};
 		}
 
 		@Override
 		public boolean onTouch(View v, MotionEvent event) {
 			switch (event.getActionMasked()) {
 				case MotionEvent.ACTION_DOWN:
-					startGhost(prototype, event.getRawX(), event.getRawY());
+					downRawX = event.getRawX();
+					downRawY = event.getRawY();
+					ghostStarted = false;
+					clickHandler.postDelayed(startGhostRunnable, 260);
 					return true;
 				case MotionEvent.ACTION_MOVE:
-					moveGhost(event.getRawX(), event.getRawY());
+					if (ghostStarted) {
+						moveGhost(event.getRawX(), event.getRawY());
+						return true;
+					}
+					if (Math.hypot(event.getRawX() - downRawX, event.getRawY() - downRawY) > dp(12)) {
+						clickHandler.removeCallbacks(startGhostRunnable);
+					}
 					return true;
 				case MotionEvent.ACTION_UP:
+					clickHandler.removeCallbacks(startGhostRunnable);
+					ghostStarted = false;
 					removeGhost();
 					if (canvas.dropPrototypeAtScreen(prototype, event.getRawX(), event.getRawY())) {
 						palettePanel.setVisibility(View.GONE);
 					}
 					return true;
 				case MotionEvent.ACTION_CANCEL:
+					clickHandler.removeCallbacks(startGhostRunnable);
+					ghostStarted = false;
 					removeGhost();
 					return true;
 				default:
@@ -413,6 +457,74 @@ public class ScriptCanvasActivity extends AppCompatActivity {
 		intent.setType("*/*");
 		intent.addCategory(Intent.CATEGORY_OPENABLE);
 		startActivityForResult(Intent.createChooser(intent, "Выберите модуль .neoscript"), REQUEST_NEO_SCRIPT);
+	}
+
+	private void handleExportNeoScript() {
+		List<Script> scripts = sprite != null ? sprite.getScriptList() : null;
+		if (scripts == null || scripts.isEmpty()) {
+			Toast.makeText(this, "Нет скриптов для экспорта", Toast.LENGTH_SHORT).show();
+			return;
+		}
+		showSaveScriptDialog(scripts);
+	}
+
+	private void showSaveScriptDialog(List<Script> scripts) {
+		final EditText input = new EditText(this);
+		input.setInputType(android.text.InputType.TYPE_CLASS_TEXT);
+		input.setHint(R.string.script_name);
+
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setTitle(R.string.save_script_title);
+		builder.setView(input);
+		builder.setPositiveButton(R.string.save, (dialog, which) -> {
+			String name = input.getText().toString().trim();
+			if (name.isEmpty() || !name.matches(".*[\\\\/:*?\"<>|].*")) {
+				Toast.makeText(this, R.string.save_script_invalid_name, Toast.LENGTH_SHORT).show();
+				return;
+			}
+			exportScripts(scripts, name);
+		});
+		builder.setNegativeButton(R.string.cancel, null);
+		builder.show();
+	}
+
+	private void exportScripts(List<Script> scripts, String name) {
+		android.app.ProgressDialog progress = android.app.ProgressDialog.show(this, null,
+				getString(R.string.please_wait), true, false);
+
+		new Thread(() -> {
+			try {
+				org.catrobat.catroid.neoscript.NeoScriptFile neoScriptFile =
+						org.catrobat.catroid.neoscript.NeoScriptExporter.buildFromScripts(scripts, project, sprite);
+				java.io.File directory = new java.io.File(
+						org.catrobat.catroid.common.Constants.DOWNLOAD_DIRECTORY,
+						getString(R.string.save_script_folder));
+				if (!directory.exists() && !directory.mkdirs()) {
+					throw new java.io.IOException("Cannot create directory: " + directory.getAbsolutePath());
+				}
+				java.io.File targetFile = new java.io.File(directory,
+						name + org.catrobat.catroid.neoscript.NeoScriptFile.EXTENSION);
+				org.catrobat.catroid.neoscript.NeoScriptSerializer.serializeToFile(neoScriptFile, targetFile);
+
+				String relativePath = "Download/" + getString(R.string.save_script_folder)
+						+ "/" + targetFile.getName();
+				runOnUiThread(() -> {
+					progress.dismiss();
+					Toast.makeText(this, getString(R.string.save_script_success, relativePath),
+							Toast.LENGTH_LONG).show();
+				});
+			} catch (Exception e) {
+				final String message = e.getMessage();
+				runOnUiThread(() -> {
+					progress.dismiss();
+					AlertDialog.Builder failBuilder = new AlertDialog.Builder(this);
+					failBuilder.setTitle(R.string.save_script_failed_title);
+					failBuilder.setMessage(message != null ? message : getString(R.string.error));
+					failBuilder.setPositiveButton(R.string.ok, null);
+					failBuilder.show();
+				});
+			}
+		}).start();
 	}
 
 	private org.catrobat.catroid.content.bricks.VisualPlacementBrick activeVisualPlacementBrick;
@@ -506,12 +618,10 @@ public class ScriptCanvasActivity extends AppCompatActivity {
 				List<Brick> bricks = new CategoryBricksFactory().getBricks(getString(catRes), isBackground, this);
 				for (Brick b : bricks) {
 					if (!(b instanceof SubCategoryHeaderBrick)) {
-						// Fast path: match by class name
 						if (b.getClass().getSimpleName().toLowerCase().contains(lowerQuery)) {
 							allMatched.add(b);
 							continue;
 						}
-						// Slow path: match by localized text from prototype view
 						try {
 							String brickText = extractAllText(b.getPrototypeView(this)).toLowerCase();
 							if (brickText.contains(lowerQuery)) {
@@ -552,16 +662,16 @@ public class ScriptCanvasActivity extends AppCompatActivity {
 				.setNegativeButton(android.R.string.cancel, null)
 				.create();
 
-		addDataBtn(container, "➕ Переменная проекта (глобальная)", 0xFF38BDF8, dp10, dp8,
+		addDataBtn(container, "Переменная проекта (глобальная)", 0xFF38BDF8, dp10, dp8,
 				() -> { dialog.dismiss(); createVariableDialog(); });
-		addDataBtn(container, "➕ Переменная объекта «" + sprite.getName() + "»", 0xFF34D399, dp10, dp8,
+		addDataBtn(container, "Переменная объекта «" + sprite.getName() + "»", 0xFF34D399, dp10, dp8,
 				() -> { dialog.dismiss(); createSpriteVariableDialog(); });
-		addDataBtn(container, "➕ Список проекта (глобальный)", 0xFFFBBF24, dp10, dp8,
+		addDataBtn(container, "Список проекта (глобальный)", 0xFFFBBF24, dp10, dp8,
 				() -> { dialog.dismiss(); createListDialog(); });
-		addDataBtn(container, "➕ Список объекта «" + sprite.getName() + "»", 0xFFF97316, dp10, dp8,
+		addDataBtn(container, "Список объекта «" + sprite.getName() + "»", 0xFFF97316, dp10, dp8,
 				() -> { dialog.dismiss(); createSpriteListDialog(); });
 
-		addSectionTitle(container, "📌 Переменные проекта", 0xFFF8FAFC, dp10);
+		addSectionTitle(container, "Переменные проекта", 0xFFF8FAFC, dp10);
 		List<org.catrobat.catroid.formulaeditor.UserVariable> projectVars = project.getUserVariables();
 		if (projectVars == null || projectVars.isEmpty()) {
 			addSmallLabel(container, "  Нет глобальных переменных", dp8);
@@ -572,7 +682,7 @@ public class ScriptCanvasActivity extends AppCompatActivity {
 			}
 		}
 
-		addSectionTitle(container, "🎮 Переменные: " + sprite.getName(), 0xFF6EE7B7, dp10);
+		addSectionTitle(container, "Переменные: " + sprite.getName(), 0xFF6EE7B7, dp10);
 		List<org.catrobat.catroid.formulaeditor.UserVariable> spriteVars = sprite.getUserVariables();
 		if (spriteVars == null || spriteVars.isEmpty()) {
 			addSmallLabel(container, "  Нет локальных переменных", dp8);
@@ -583,7 +693,7 @@ public class ScriptCanvasActivity extends AppCompatActivity {
 			}
 		}
 
-		addSectionTitle(container, "📋 Списки проекта", 0xFFF8FAFC, dp10);
+		addSectionTitle(container, "Списки проекта", 0xFFF8FAFC, dp10);
 		List<org.catrobat.catroid.formulaeditor.UserList> projectLists = project.getUserLists();
 		if (projectLists == null || projectLists.isEmpty()) {
 			addSmallLabel(container, "  Нет глобальных списков", dp8);
@@ -594,7 +704,7 @@ public class ScriptCanvasActivity extends AppCompatActivity {
 			}
 		}
 
-		addSectionTitle(container, "📋 Списки: " + sprite.getName(), 0xFFFDA4AF, dp10);
+		addSectionTitle(container, "Списки: " + sprite.getName(), 0xFFFDA4AF, dp10);
 		List<org.catrobat.catroid.formulaeditor.UserList> spriteLists = sprite.getUserLists();
 		if (spriteLists == null || spriteLists.isEmpty()) {
 			addSmallLabel(container, "  Нет локальных списков", dp8);
@@ -615,7 +725,7 @@ public class ScriptCanvasActivity extends AppCompatActivity {
 		btn.setTextSize(13f);
 		btn.setTypeface(null, android.graphics.Typeface.BOLD);
 		btn.setPadding(pad, pad, pad, pad);
-		btn.setBackgroundResource(R.drawable.bg_object_card_cube);
+		btn.setBackgroundResource(R.drawable.bg_object_card_cube_neon);
 		LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
 				LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
 		lp.bottomMargin = margin;
@@ -646,7 +756,7 @@ public class ScriptCanvasActivity extends AppCompatActivity {
 	private void addDeletableRow(LinearLayout container, String name, int nameColor, int pad, int margin, Runnable onDelete) {
 		LinearLayout row = new LinearLayout(this);
 		row.setOrientation(LinearLayout.HORIZONTAL);
-		row.setBackgroundResource(R.drawable.bg_object_card_cube);
+		row.setBackgroundResource(R.drawable.bg_object_card_cube_neon);
 		row.setPadding(pad, pad, pad, pad);
 		row.setGravity(android.view.Gravity.CENTER_VERTICAL);
 		LinearLayout.LayoutParams rowLp = new LinearLayout.LayoutParams(
@@ -661,7 +771,7 @@ public class ScriptCanvasActivity extends AppCompatActivity {
 		nameTv.setLayoutParams(nameLp);
 		row.addView(nameTv);
 		TextView delBtn = new TextView(this);
-		delBtn.setText("🗑");
+		delBtn.setText("✕");
 		delBtn.setTextSize(16f);
 		delBtn.setPadding(pad, 0, 0, 0);
 		delBtn.setOnClickListener(v ->
@@ -765,6 +875,41 @@ public class ScriptCanvasActivity extends AppCompatActivity {
 			redoBtn.setEnabled(canvas.canRedo());
 			redoBtn.setAlpha(canvas.canRedo() ? 1f : 0.4f);
 		}
+	}
+
+	private void runCodeAnalysis() {
+		AiProjectAssistant.INSTANCE.init(this);
+		android.content.SharedPreferences prefs =
+				android.preference.PreferenceManager.getDefaultSharedPreferences(this);
+		boolean isAnalysisEnabled = prefs.getBoolean("pref_code_analysis_enabled", true);
+
+		AnalysisManager.INSTANCE.clearResults();
+
+		if (!isAnalysisEnabled) {
+			Toast.makeText(this, "Анализ кода отключён в настройках", Toast.LENGTH_SHORT).show();
+			return;
+		}
+
+		CodeAnalyzer codeAnalyzer = new CodeAnalyzer(this);
+		codeAnalyzer.getAiRule().setEnabled(true);
+		codeAnalyzer.getAiRule().reanalyze();
+
+		android.os.Handler handler = new android.os.Handler(android.os.Looper.getMainLooper());
+		new Thread(() -> {
+			final Map<Brick, AnalysisResult> allResults = new HashMap<>();
+			for (Script sc : sprite.getScriptList()) {
+				try {
+					Map<Brick, AnalysisResult> scriptResults = codeAnalyzer.analyzeScriptWithAi(sc);
+					allResults.putAll(scriptResults);
+				} catch (Exception ignored) {}
+			}
+			AnalysisManager.INSTANCE.updateResults(allResults);
+			handler.post(() -> {
+				AiSuggestionDialog.INSTANCE.show(ScriptCanvasActivity.this);
+				Toast.makeText(ScriptCanvasActivity.this,
+						"Анализ завершён: найдено " + allResults.size() + " замечаний", Toast.LENGTH_SHORT).show();
+			});
+		}).start();
 	}
 
 	private String extractAllText(View view) {

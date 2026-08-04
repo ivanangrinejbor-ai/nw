@@ -22,7 +22,8 @@ data class SpriteLocalizationResult(
     val regions: List<TextRegion>,
     val success: Boolean,
     val errorMessage: String? = null,
-    val outputPath: String? = null
+    val outputPath: String? = null,
+    val skipped: Boolean = false
 )
 
 data class LocalizationReport(
@@ -36,7 +37,8 @@ data class LocalizationReport(
     val avgOcrConfidence: Float = 0f,
     val avgTextExpansion: Float = 0f,
     val geminiRequestCount: Int = 0,
-    val spritesWithText: Int = 0
+    val spritesWithText: Int = 0,
+    val noTextSprites: Int = 0
 ) {
     val successRate: Float get() = if (totalSprites > 0) processedSprites.toFloat() / totalSprites else 0f
     val durationMs: Long get() = endTime - startTime
@@ -54,8 +56,8 @@ data class LocalizationReport(
         appendLine("Sprites found: $totalSprites")
         appendLine("Sprites with text: $spritesWithText")
         appendLine("Successfully processed: $processedSprites")
+        if (noTextSprites > 0) appendLine("Skipped (no text found): $noTextSprites")
         if (failedSprites > 0) appendLine("Failed: $failedSprites")
-        if (totalSprites > spritesWithText) appendLine("No text: ${totalSprites - spritesWithText}")
         appendLine("Success rate: ${"%.0f".format(successRate * 100)}%")
         appendLine()
         if (avgOcrConfidence > 0) appendLine("Avg OCR confidence: ${"%.1f".format(avgOcrConfidence * 100)}%")

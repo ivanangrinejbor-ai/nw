@@ -3,6 +3,8 @@ package org.catrobat.catroid.ai.settings
 import android.content.Context
 import android.content.SharedPreferences
 import android.preference.PreferenceManager
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKey
 
 object AiPreferences {
 
@@ -19,6 +21,8 @@ object AiPreferences {
     private const val KEY_PROVIDER = "ai_agent_provider"
     private const val KEY_PROVIDER_KEY_PREFIX = "ai_agent_key_provider_"
 
+    private const val SECURE_PREFS_NAME = "ai_agent_secure_prefs"
+
     const val BACKEND_CLOUD = "cloud"
     const val BACKEND_LOCAL = "local"
 
@@ -28,9 +32,29 @@ object AiPreferences {
     private const val DEFAULT_CLOUD_MODEL = "gemini-2.5-flash"
 
     private var prefs: SharedPreferences? = null
+    private var appContext: Context? = null
 
     fun init(context: Context) {
+        appContext = context.applicationContext
         prefs = PreferenceManager.getDefaultSharedPreferences(context)
+    }
+
+    private fun securePrefs(): SharedPreferences? {
+        val ctx = appContext ?: return null
+        return try {
+            val masterKey = MasterKey.Builder(ctx)
+                .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+                .build()
+            EncryptedSharedPreferences.create(
+                ctx,
+                SECURE_PREFS_NAME,
+                masterKey,
+                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+            )
+        } catch (e: Exception) {
+            null
+        }
     }
 
     fun getProvider(): String {
@@ -42,17 +66,26 @@ object AiPreferences {
     }
 
     fun getApiKeyForProvider(providerId: String): String? {
-        val stored = prefs?.getString(KEY_PROVIDER_KEY_PREFIX + providerId, null)
-        if (!stored.isNullOrBlank()) return stored
+        val secure = securePrefs()?.getString(KEY_PROVIDER_KEY_PREFIX + providerId, null)
+        if (!secure.isNullOrBlank()) return secure
+        val legacy = prefs?.getString(KEY_PROVIDER_KEY_PREFIX + providerId, null)
+        if (!legacy.isNullOrBlank()) return legacy
         if (providerId.equals("gemini", ignoreCase = true)) {
-            val ctx = prefs?.let { null }
             return org.catrobat.catroid.content.GeminiManager.api_key
         }
         return null
     }
 
     fun setApiKeyForProvider(providerId: String, key: String) {
-        prefs?.edit()?.putString(KEY_PROVIDER_KEY_PREFIX + providerId, key)?.apply()
+        val secure = securePrefs()
+        if (secure != null) {
+            try {
+                secure.edit().putString(KEY_PROVIDER_KEY_PREFIX + providerId, key).apply()
+                prefs?.edit()?.remove(KEY_PROVIDER_KEY_PREFIX + providerId)?.apply()
+            } catch (_: Exception) {}
+        } else {
+            prefs?.edit()?.putString(KEY_PROVIDER_KEY_PREFIX + providerId, key)?.apply()
+        }
         if (providerId.equals("gemini", ignoreCase = true)) {
             @Suppress("DEPRECATION")
             org.catrobat.catroid.content.GeminiManager.api_key = key

@@ -8,7 +8,10 @@ import org.catrobat.catroid.content.BrickInfo
 
 object PromptBuilder {
 
-    fun buildSystemPrompt(analysis: ProjectAnalyzer.AnalysisResult?): String {
+    fun buildSystemPrompt(
+        analysis: ProjectAnalyzer.AnalysisResult?,
+        includeCatalog: Boolean = true
+    ): String {
         return buildString {
             appendLine("You are NeoCatroid AI Agent — an expert autonomous assistant for the NeoCatroid visual programming system (a Scratch-like block language for making games and apps).")
             appendLine("You are powered by Google Gemini in the cloud and you operate as a real-time tool-calling agent.")
@@ -32,6 +35,8 @@ object PromptBuilder {
             appendLine("- Write real scripts: build new scripts from bricks and attach them to objects.")
             appendLine("- Read and write files inside the project directory.")
             appendLine("- Analyze the project and suggest or apply fixes and new game mechanics.")
+            appendLine("- LOCALIZE the project: translate the text drawn inside sprite images to another language " +
+                "(OCR + AI translation + re-render), and optionally wire automatic language switching.")
             appendLine()
             appendLine("## How A Project Is Structured")
             appendLine("Project -> Scenes -> Objects (sprites) -> Scripts -> Bricks.")
@@ -139,9 +144,13 @@ object PromptBuilder {
             appendLine("## Full Brick Catalog (every block and its capability)")
             appendLine("Below is EVERY brick you can reference, by its exact class name, with what it does.")
             appendLine("Use these exact names in readObject/readScript output and in buildScript.")
-            val catalog = BrickInfo.getFullCatalog()
-            if (catalog.isNotBlank()) {
-                append(catalog)
+            if (includeCatalog) {
+                val catalog = BrickInfo.getFullCatalog()
+                if (catalog.isNotBlank()) {
+                    append(catalog)
+                }
+            } else {
+                appendLine("(Full catalog omitted for on-device models. Use readObject/readScript to inspect bricks, and ask for help if you need a brick name.)")
             }
             appendLine()
 
@@ -167,6 +176,21 @@ object PromptBuilder {
             appendLine("- When the user asks to build a game, plan the objects and scripts first, then create them step by step with tools.")
             appendLine("- Use 'remember' to store durable facts, user preferences and important decisions so you can 'recall' them in future sessions. Do not re-ask things you already remembered.")
             appendLine()
+            appendLine("## Localization Workflow")
+            appendLine("When the user asks to translate the project / localize it to another language, you have TWO tools:")
+            appendLine("1. localizeSprites(targetLanguage, sourceLanguage?) — extracts the text drawn INSIDE sprite images " +
+                "(costumes/looks) with OCR, translates it with Gemini, and renders a new localized costume for every sprite " +
+                "that had text. This is a LONG operation (can take minutes) — the tool result reports how many sprites were " +
+                "processed, skipped (no text found) and failed. If it reports 0 processed sprites, tell the user honestly " +
+                "that no translatable text was found in the images — do NOT claim the project was localized.")
+            appendLine("2. wireLocalizationSwitch(targetLanguage) — after localizeSprites succeeds AND the user explicitly agrees, " +
+                "adds a 'When scene starts' script per sprite that picks the localized costume when the global 'language' " +
+                "variable equals the target language. ALWAYS ask the user first; never call it on your own.")
+            appendLine("Steps: call localizeSprites → report the outcome to the user → if they want auto-switching, call " +
+                "wireLocalizationSwitch. Note: text stored in bricks (Say/Think bubbles, ShowText) is NOT part of localization — " +
+                "mention that limitation to the user.")
+            appendLine()
+
             appendLine("## IMPORTANT: Write tools apply changes IMMEDIATELY")
             appendLine("When you call createObject, deleteObject, createScene, deleteScene, createVariable, deleteVariable, buildScript, appendScript, replaceScript, deleteScript — the change is applied to the project RIGHT AWAY.")
             appendLine("You will receive a confirmation like 'OK: Created object ...' or 'FAIL: ...' in the tool result.")
@@ -175,8 +199,20 @@ object PromptBuilder {
         }
     }
 
-    fun buildUserPrompt(userInput: String, analysis: ProjectAnalyzer.AnalysisResult?): String {
+    fun buildUserMessage(
+        userInput: String,
+        analysis: ProjectAnalyzer.AnalysisResult?,
+        conversationHistory: List<ContextManager.ConversationEntry>
+    ): String {
         return buildString {
+            if (conversationHistory.isNotEmpty()) {
+                appendLine("## Conversation History")
+                for (entry in conversationHistory) {
+                    appendLine("User: ${entry.userMessage}")
+                    appendLine("Assistant: ${entry.aiResponse}")
+                    appendLine()
+                }
+            }
             appendLine("## User Request")
             appendLine(userInput)
             appendLine()
@@ -187,32 +223,10 @@ object PromptBuilder {
                 appendLine("Objects: ${analysis.totalObjects}")
                 appendLine("Scripts: ${analysis.totalScripts}")
                 appendLine("Bricks: ${analysis.totalBricks}")
+                appendLine()
             }
+            appendLine("## Assistant Response:")
         }
-    }
-
-    fun assembleFullPrompt(
-        systemPrompt: String,
-        conversationHistory: List<ContextManager.ConversationEntry>,
-        userPrompt: String
-    ): String {
-        val sb = StringBuilder()
-        sb.appendLine(systemPrompt)
-        sb.appendLine()
-
-        if (conversationHistory.isNotEmpty()) {
-            sb.appendLine("## Conversation History")
-            for (entry in conversationHistory) {
-                sb.appendLine("User: ${entry.userMessage}")
-                sb.appendLine("Assistant: ${entry.aiResponse}")
-                sb.appendLine()
-            }
-        }
-
-        sb.appendLine(userPrompt)
-        sb.appendLine()
-        sb.appendLine("## Assistant Response:")
-        return sb.toString()
     }
 
     fun buildToolResultPrompt(toolName: String, result: String): String {

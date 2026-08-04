@@ -412,33 +412,6 @@ object ProjectModifier {
         return false
     }
 
-    private fun parseBrickSpec(spec: String): Pair<String, List<String>> {
-        val open = spec.indexOf('(')
-        if (open < 0 || !spec.endsWith(")")) return spec.trim() to emptyList()
-        val className = spec.substring(0, open).trim()
-        val inner = spec.substring(open + 1, spec.length - 1)
-        if (inner.isBlank()) return className to emptyList()
-        return className to parseBrickArgs(inner)
-    }
-
-    private fun parseBrickArgs(inner: String): List<String> {
-        val args = mutableListOf<String>()
-        val current = StringBuilder()
-        var depth = 0
-        for (c in inner) {
-            when (c) {
-                '(' -> { depth++; current.append(c) }
-                ')' -> { depth--; current.append(c) }
-                ',' -> if (depth == 0) {
-                    args.add(current.toString().trim()); current.setLength(0)
-                } else current.append(c)
-                else -> current.append(c)
-            }
-        }
-        if (current.isNotBlank()) args.add(current.toString().trim())
-        return args
-    }
-
     private fun parseInitialValue(raw: String?): Any {
         if (raw == null) return 0.0
         val trimmed = raw.trim()

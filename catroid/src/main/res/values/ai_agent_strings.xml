@@ -37,6 +37,12 @@
     <string formatted="false" name="ai_agent_confirm_title">Confirm Changes</string>
     <string formatted="false" name="ai_agent_confirm_summary">Ask before applying changes to the project</string>
 
+    <!-- Change confirmation dialog -->
+    <string formatted="false" name="ai_agent_confirm_changes_title">Apply project changes?</string>
+    <string formatted="false" name="ai_agent_confirm_changes_message">The AI Agent wants to modify your project:</string>
+    <string formatted="false" name="ai_agent_apply">Apply</string>
+    <string formatted="false" name="ai_agent_cancel">Cancel</string>
+
     <!-- Parameters -->
     <string formatted="false" name="ai_agent_params_category">Parameters</string>
     <string formatted="false" name="ai_agent_temperature_title">Temperature</string>

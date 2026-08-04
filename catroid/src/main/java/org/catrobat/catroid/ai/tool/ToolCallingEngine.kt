@@ -92,10 +92,32 @@ object ToolCallingEngine {
 
     fun parseToolCalls(response: String): List<ToolCall> {
         val toolCalls = mutableListOf<ToolCall>()
-        val regex = Regex("<tool_call>\\s*<name>(.*?)</name>\\s*(<args>(.*?)</args>)?\\s*</tool_call>", RegexOption.DOT_MATCHES_ALL)
-        for (match in regex.findAll(response)) {
+        val text = stripMarkdownFences(response)
+        parseXmlToolCalls(text, toolCalls)
+        if (toolCalls.isNotEmpty()) return toolCalls
+        parseJsonToolCalls(text, toolCalls)
+        return toolCalls
+    }
+
+    private fun stripMarkdownFences(text: String): String {
+        var t = text.trim()
+        if (t.startsWith("```")) {
+            val nl = t.indexOf('\n')
+            t = if (nl >= 0) t.substring(nl + 1).trim() else t.substring(3).trim()
+        }
+        if (t.endsWith("```")) t = t.substring(0, t.length - 3).trim()
+        return t
+    }
+
+    private fun parseXmlToolCalls(text: String, out: MutableList<ToolCall>) {
+        val regex = Regex(
+            "<tool_call[^>]*>\\s*<name[^>]*>(.*?)</name>\\s*(?:<args[^>]*>(.*?)</args>)?\\s*</tool_call>",
+            RegexOption.DOT_MATCHES_ALL
+        )
+        for (match in regex.findAll(text)) {
             val name = match.groupValues[1].trim()
-            val argsXml = match.groupValues[3]
+            if (name.isBlank()) continue
+            val argsXml = match.groupValues[2]
             val args = mutableMapOf<String, String>()
             if (argsXml.isNotBlank()) {
                 val argRegex = Regex("<(\\w+)>(.*?)</\\1>", RegexOption.DOT_MATCHES_ALL)
@@ -103,14 +125,70 @@ object ToolCallingEngine {
                     args[argMatch.groupValues[1]] = argMatch.groupValues[2].trim()
                 }
             }
-            toolCalls.add(ToolCall(
-                id = "tc_${toolCallCounter.incrementAndGet()}",
-                name = name,
-                args = args
-            ))
+            out.add(newToolCall(name, args))
         }
-        return toolCalls
+        if (out.isEmpty()) {
+            val attrRegex = Regex(
+                "<tool_call[^>]*\\bname=\"([^\"]+)\"([^>]*)/>",
+                RegexOption.DOT_MATCHES_ALL
+            )
+            for (match in attrRegex.findAll(text)) {
+                val name = match.groupValues[1].trim()
+                if (name.isBlank()) continue
+                val args = mutableMapOf<String, String>()
+                val attrBody = match.groupValues[2]
+                val attrRegexInner = Regex("(\\w+)=\"([^\"]*)\"")
+                for (am in attrRegexInner.findAll(attrBody)) {
+                    args[am.groupValues[1]] = am.groupValues[2]
+                }
+                out.add(newToolCall(name, args))
+            }
+        }
     }
+
+    private fun parseJsonToolCalls(text: String, out: MutableList<ToolCall>) {
+        try {
+            val trimmed = text.trim()
+            val arr = when {
+                trimmed.startsWith("[") -> org.json.JSONArray(trimmed)
+                trimmed.startsWith("{") -> org.json.JSONArray("[$trimmed]")
+                else -> return
+            }
+            for (i in 0 until arr.length()) {
+                val obj = arr.optJSONObject(i) ?: continue
+                val name = obj.optString("name", obj.optString("tool", ""))
+                if (name.isBlank()) continue
+                val args = mutableMapOf<String, String>()
+                val argsObj = obj.optJSONObject("args")
+                    ?: obj.optJSONObject("arguments")
+                    ?: obj.optJSONObject("parameters")
+                if (argsObj != null) {
+                    val keys = argsObj.keys()
+                    while (keys.hasNext()) {
+                        val k = keys.next()
+                        args[k] = argsObj.optString(k, "")
+                    }
+                } else if (obj.has("arguments") && obj.opt("arguments") is String) {
+                    try {
+                        val inner = org.json.JSONObject(obj.getString("arguments"))
+                        val keys = inner.keys()
+                        while (keys.hasNext()) {
+                            val k = keys.next()
+                            args[k] = inner.optString(k, "")
+                        }
+                    } catch (_: Exception) {}
+                }
+                out.add(newToolCall(name, args))
+            }
+        } catch (_: Exception) {}
+    }
+
+    private fun newToolCall(name: String, args: Map<String, String>): ToolCall =
+        ToolCall(
+            id = "tc_${toolCallCounter.incrementAndGet()}",
+            name = name,
+            args = args
+        )
 
     suspend fun executeTool(toolCall: ToolCall): String {
         if (scopeProjectName != null && toolCall.name in globalOnlyTools) {
@@ -134,6 +212,15 @@ object ToolCallingEngine {
             "ERROR: ${e.message}"
         }
     }
+
+    suspend fun executeToolCalls(
+        toolCalls: List<ToolCall>,
+        onBeforeCall: (suspend (ToolCall) -> Unit)? = null
+    ): List<Pair<ToolCall, String>> =
+        toolCalls.map { toolCall ->
+            onBeforeCall?.invoke(toolCall)
+            toolCall to executeTool(toolCall)
+        }
 
     fun getToolsDescription(): String {
         return registeredTools.values
@@ -912,6 +999,7 @@ object ToolCallingEngine {
                 org.catrobat.catroid.io.asynctask.loadProject(projectDir, ctx)
             }
             return if (loaded) {
+                org.catrobat.catroid.ai.context.ContextManager.invalidateProjectCache()
                 ToolResult(true, "Opened project '$name'. It is now the current project.", "")
             } else {
                 ToolResult(false, "Failed to load project '$name'", "")
@@ -1007,9 +1095,17 @@ object ToolCallingEngine {
             report = kotlinx.coroutines.withTimeoutOrNull(180_000) { deferred.await() }
 
             return report?.let { r ->
+                val noText = r.noTextSprites
                 val msg = buildString {
                     append("Localization to '$targetLang' complete.\n")
-                    append("Processed: ${r.processedSprites}/${r.totalSprites} sprites\n")
+                    append("Sprites processed: ${r.processedSprites}/${r.totalSprites}\n")
+                    if (noText > 0) {
+                        append("Skipped (no text found by OCR): $noText — nothing was localized in those sprites.\n")
+                    }
+                    if (r.processedSprites == 0) {
+                        append("WARNING: no sprite text was actually localized. Either the images have no " +
+                            "detectable text, or OCR/Gemini failed. Check the failures below.\n")
+                    }
                     if (r.hasFailures()) {
                         append("Failures (${r.failedSprites}):\n")
                         append(r.failureSummary())
@@ -1022,7 +1118,7 @@ object ToolCallingEngine {
                     }
                     append("\nDuration: ${r.durationMs / 1000}s")
                 }
-                ToolResult(r.successRate > 0f, msg, "")
+                ToolResult(r.processedSprites > 0, msg, "")
             } ?: ToolResult(false, "Localization timed out", "")
         }
     }

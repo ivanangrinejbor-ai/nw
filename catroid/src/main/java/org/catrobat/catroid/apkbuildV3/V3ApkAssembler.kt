@@ -51,21 +51,21 @@ object V3ApkAssembler {
         keyContent: String,
         workDir: File,
         firebaseConfig: FirebaseConfig? = null,
-        onProgress: ((Float) -> Unit)? = null
+        onProgress: ((Float, String) -> Unit)? = null
     ): File {
-        onProgress?.invoke(0f)
+        onProgress?.invoke(0f, "")
         workDir.mkdirs()
 
         val baseApk = locateBaseApk(context, workDir)
-        onProgress?.invoke(0.15f)
+        onProgress?.invoke(0.15f, baseApk.name)
 
         val injectedApk = File(workDir, "v3_injected.apk")
         injectAssets(baseApk, injectedApk, encryptedPayload, keyFileName, keyContent, config.templateType)
-        onProgress?.invoke(0.4f)
+        onProgress?.invoke(0.4f, injectedApk.name)
 
         val patchedApk = File(workDir, "v3_patched.apk")
         patchManifest(injectedApk, patchedApk, config)
-        onProgress?.invoke(0.55f)
+        onProgress?.invoke(0.55f, patchedApk.name)
 
         val firebaseApk = if (firebaseConfig != null) {
             val fApk = File(workDir, "v3_firebase.apk")
@@ -74,12 +74,12 @@ object V3ApkAssembler {
         } else {
             patchedApk
         }
-        onProgress?.invoke(0.7f)
+        onProgress?.invoke(0.7f, firebaseApk.name)
 
         val signedApk = File(workDir, "v3_signed.apk")
         val keystore = File(workDir, "v3_keystore.jks")
         signApk(firebaseApk, signedApk, keystore, "neocatroidv3", "keystore")
-        onProgress?.invoke(1f)
+        onProgress?.invoke(1f, signedApk.name)
 
         Log.i(TAG, "APK собран: ${signedApk.absolutePath} (${signedApk.length() / (1024 * 1024)} MB)")
         return signedApk

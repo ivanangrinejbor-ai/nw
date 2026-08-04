@@ -73,7 +73,8 @@ object GeminiTranslator {
             }
 
             val request = Request.Builder()
-                .url("$BASE_URL/models/$MODEL:generateContent?key=$apiKey")
+                .url("$BASE_URL/models/$MODEL:generateContent")
+                .header("x-goog-api-key", apiKey)
                 .header("Content-Type", "application/json")
                 .post(body.toString().toRequestBody(JSON_MEDIA))
                 .build()

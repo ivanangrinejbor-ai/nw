@@ -102,6 +102,15 @@
                 android:src="@drawable/ic_se_scene_switcher" />
 
             <ImageButton
+                android:id="@+id/script_canvas_btn_export_neoscript"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Экспорт NeoScript"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_se_backpack" />
+
+            <ImageButton
                 android:id="@+id/script_canvas_btn_backpack"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
@@ -109,6 +118,15 @@
                 android:contentDescription="@string/script_canvas_backpack"
                 android:scaleType="centerInside"
                 android:src="@drawable/ic_se_backpack" />
+
+            <ImageButton
+                android:id="@+id/script_canvas_btn_analysis"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:contentDescription="AI Анализ кода"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_se_more" />
 
             <ImageButton
                 android:id="@+id/script_canvas_btn_palette"
@@ -197,7 +215,7 @@
             android:layout_height="38dp"
             android:layout_margin="8dp"
             android:background="#2233E0FF"
-            android:hint="🔍 Поиск блоков по имени..."
+            android:hint="Поиск блоков по имени..."
             android:paddingStart="12dp"
             android:paddingEnd="12dp"
             android:textColor="#FFFFFF"

@@ -34,6 +34,7 @@ import android.graphics.Color
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
+import android.widget.AbsListView
 import android.widget.AdapterView
 import android.widget.AdapterView.OnItemLongClickListener
 import android.widget.BaseAdapter
@@ -221,13 +222,24 @@ class BrickAdapter(val sprite: Sprite) :
             val colorFormula = item.getFormulaWithBrickField(BrickField.COLOR, true)
                 ?: return createUnknownView("NoneBrick", parent).also { it.tag = item }
         }
+        val scrapLp = convertView?.layoutParams
+        if (scrapLp != null && scrapLp !is AbsListView.LayoutParams) {
+            Log.e(
+                "BrickAdapter",
+                "BAD SCRAP LP item=${item.javaClass.simpleName} view=${convertView!!.javaClass.simpleName} " +
+                    "lp=${scrapLp.javaClass.simpleName} tagMatch=${convertView.tag === item} " +
+                    "parent=${convertView.parent?.javaClass?.simpleName}"
+            )
+            convertView.layoutParams = null
+            convertView.tag = item
+            return convertView
+        }
+        val useIndentation = getUseIndentation(parent.context)
+        val depth = if (useIndentation) getBrickDepth(item) else 0
+
         val itemView: View =
-            if (convertView != null && convertView.tag === item) {
-                if (convertView is IndentedBrickLayout && convertView.childCount > 0) {
-                    convertView.getChildAt(0)
-                } else {
-                    convertView
-                }
+            if (convertView != null && convertView.tag === item && convertView !is IndentedBrickLayout && depth <= 0) {
+                convertView
             } else try {
                 item.getView(parent.context)
             } catch (e: Exception) {
@@ -335,50 +347,55 @@ class BrickAdapter(val sprite: Sprite) :
         item.checkBox?.isChecked = selectionManager.isPositionSelected(position)
         item.checkBox?.isEnabled = viewStateManager.isEnabled(position)
 
-        val useIndentation = getUseIndentation(parent.context)
+        val depthForWrapper = depth
 
-        if (useIndentation) {
-            val depth = getBrickDepth(item)
-            if (depth > 0) {
-                val existingParent = itemView.parent
-                if (existingParent is IndentedBrickLayout) {
-                    existingParent.setDepth(depth)
-                    return existingParent
-                } else {
-                    (existingParent as? ViewGroup)?.removeView(itemView)
+        if (useIndentation && depthForWrapper > 0) {
+            val existingParent = itemView.parent
+            if (existingParent is IndentedBrickLayout) {
+                existingParent.setDepth(depthForWrapper)
+                Log.d("BrickAdapter", "OUT wrapper-reuse item=${item.javaClass.simpleName} lp=${existingParent.layoutParams?.javaClass?.simpleName}")
+                return sanitizeListViewReturn(existingParent)
+            } else {
+                (existingParent as? ViewGroup)?.removeView(itemView)
 
-                    val indentedLayout = IndentedBrickLayout(parent.context, depth)
-                    indentedLayout.layoutParams = ViewGroup.LayoutParams(
+                val indentedLayout = IndentedBrickLayout(parent.context, depthForWrapper)
+                indentedLayout.addView(
+                    itemView,
+                    LinearLayout.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
                         ViewGroup.LayoutParams.WRAP_CONTENT
                     )
-                    indentedLayout.addView(
-                        itemView,
-                        LinearLayout.LayoutParams(
-                            ViewGroup.LayoutParams.MATCH_PARENT,
-                            ViewGroup.LayoutParams.WRAP_CONTENT
-                        )
-                    )
+                )
 
-                    val parentWidth = if (parent.width > 0) parent.width else parent.resources.displayMetrics.widthPixels
-                    val widthSpec = View.MeasureSpec.makeMeasureSpec(parentWidth, View.MeasureSpec.EXACTLY)
-                    val heightSpec = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
-                    indentedLayout.measure(widthSpec, heightSpec)
-                    indentedLayout.layout(0, 0, indentedLayout.measuredWidth, indentedLayout.measuredHeight)
+                val parentWidth = if (parent.width > 0) parent.width else parent.resources.displayMetrics.widthPixels
+                val widthSpec = View.MeasureSpec.makeMeasureSpec(parentWidth, View.MeasureSpec.EXACTLY)
+                val heightSpec = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+                indentedLayout.measure(widthSpec, heightSpec)
+                indentedLayout.layout(0, 0, indentedLayout.measuredWidth, indentedLayout.measuredHeight)
 
-                    indentedLayout.tag = item
-                    return indentedLayout
-                }
+                indentedLayout.tag = item
+                Log.d("BrickAdapter", "OUT wrapper-new item=${item.javaClass.simpleName} lp=${indentedLayout.layoutParams?.javaClass?.simpleName} innerLp=${itemView.layoutParams?.javaClass?.simpleName}")
+                return sanitizeListViewReturn(indentedLayout)
             }
         }
 
         val existingParent = itemView.parent
         if (existingParent is IndentedBrickLayout) {
             existingParent.removeView(itemView)
+            itemView.layoutParams = null
         }
 
         itemView.tag = item
-        return itemView
+        Log.d("BrickAdapter", "OUT plain item=${item.javaClass.simpleName} lp=${itemView.layoutParams?.javaClass?.simpleName}")
+        return sanitizeListViewReturn(itemView)
+    }
+
+    private fun sanitizeListViewReturn(view: View): View {
+        val lp = view.layoutParams
+        if (lp != null && lp !is AbsListView.LayoutParams) {
+            view.layoutParams = null
+        }
+        return view
     }
 
     private fun findFirstTextView(view: View): TextView? {
@@ -875,15 +892,17 @@ class BrickAdapter(val sprite: Sprite) :
         if (brick is CompositeBrick) return false
         if (brick is EndBrick) return true
         val name = brick.javaClass.simpleName
-        return name.endsWith("EndBrick") || name.endsWith("ElseBrick")
+        return name.endsWith("EndBrick") || name.endsWith("ElseBrick") || name.endsWith("ElseIfSeparatorBrick")
     }
 
     private fun getBrickDepth(brick: Brick): Int {
         var depth = 0
         var currentParent = brick.parent
         while (currentParent != null) {
-            if (!isElseBrick(currentParent)) {
-                depth++
+            if (currentParent !is ScriptBrick) {
+                if (!isElseBrick(currentParent)) {
+                    depth++
+                }
             }
             currentParent = currentParent.parent
         }

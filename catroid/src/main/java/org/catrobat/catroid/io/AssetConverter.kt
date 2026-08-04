@@ -18,7 +18,9 @@ object AssetConverter {
     data class ConvertResult(
         val convertedImages: Int = 0,
         val convertedSounds: Int = 0,
-        val savedBytes: Long = 0
+        val savedBytes: Long = 0,
+        val renamedImages: Map<String, String> = emptyMap(),
+        val renamedSounds: Map<String, String> = emptyMap()
     )
 
     fun convertProjectAssets(
@@ -29,13 +31,28 @@ object AssetConverter {
         var convertedImages = 0
         var convertedSounds = 0
         var savedBytes = 0L
+        val allImageRenames = mutableMapOf<String, String>()
+        val allSoundRenames = mutableMapOf<String, String>()
 
-        val scenesDir = File(projectDir, "scenes")
-        if (!scenesDir.exists()) return ConvertResult()
+        val sceneDirs = mutableListOf<File>()
 
-        for (scene in scenesDir.listFiles() ?: emptyArray()) {
-            if (!scene.isDirectory) continue
+        val scenesWrapper = File(projectDir, "scenes")
+        if (scenesWrapper.exists() && scenesWrapper.isDirectory) {
+            for (scene in scenesWrapper.listFiles() ?: emptyArray()) {
+                if (scene.isDirectory) sceneDirs.add(scene)
+            }
+        } else {
+            for (entry in projectDir.listFiles() ?: emptyArray()) {
+                if (!entry.isDirectory || entry.name == "files") continue
+                val hasMedia = File(entry, "images").exists() || File(entry, "sounds").exists()
+                if (hasMedia) sceneDirs.add(entry)
+            }
+        }
 
+        val rootImages = File(projectDir, "images")
+        val rootSounds = File(projectDir, "sounds")
+
+        for (scene in sceneDirs) {
             val imagesDir = File(scene, "images")
             val soundsDir = File(scene, "sounds")
 
@@ -43,51 +60,80 @@ object AssetConverter {
                 val result = convertImages(imagesDir, imageFormat)
                 convertedImages += result.first
                 savedBytes += result.second
+                allImageRenames.putAll(result.third)
             }
 
             if (audioFormat != AudioFormat.KEEP && soundsDir.exists()) {
                 val result = convertSounds(soundsDir, audioFormat)
                 convertedSounds += result.first
                 savedBytes += result.second
+                allSoundRenames.putAll(result.third)
             }
+        }
+
+        if (imageFormat != ImageFormat.KEEP && rootImages.exists()) {
+            val result = convertImages(rootImages, imageFormat)
+            convertedImages += result.count
+            savedBytes += result.second
+            allImageRenames.putAll(result.third)
+        }
+        if (audioFormat != AudioFormat.KEEP && rootSounds.exists()) {
+            val result = convertSounds(rootSounds, audioFormat)
+            convertedSounds += result.count
+            savedBytes += result.second
+            allSoundRenames.putAll(result.third)
         }
 
         val filesDir = File(projectDir, "files")
         if (imageFormat != ImageFormat.KEEP && filesDir.exists()) {
             val result = convertImages(filesDir, imageFormat)
-            convertedImages += result.first
+            convertedImages += result.count
             savedBytes += result.second
+            allImageRenames.putAll(result.third)
         }
 
-        return ConvertResult(convertedImages, convertedSounds, savedBytes)
+        return ConvertResult(
+            convertedImages = convertedImages,
+            convertedSounds = convertedSounds,
+            savedBytes = savedBytes,
+            renamedImages = allImageRenames,
+            renamedSounds = allSoundRenames
+        )
     }
 
-    private fun convertImages(dir: File, format: ImageFormat): Pair<Int, Long> {
+    private data class ConvertOutcome(
+        val count: Int,
+        val saved: Long,
+        val renames: Map<String, String>
+    ) {
+        val first: Int get() = count
+        val second: Long get() = saved
+        val third: Map<String, String> get() = renames
+    }
+
+    private fun convertImages(dir: File, format: ImageFormat): ConvertOutcome {
         var count = 0
         var saved = 0L
+        val renames = mutableMapOf<String, String>()
 
         for (file in dir.listFiles() ?: emptyArray()) {
             if (file.isDirectory) {
                 val sub = convertImages(file, format)
                 count += sub.first
                 saved += sub.second
+                renames.putAll(sub.third)
                 continue
             }
 
-            val name = file.name.lowercase()
-            if (!name.endsWith(".png") && !name.endsWith(".jpg") && !name.endsWith(".jpeg")) continue
+            val name = file.name
+            val lower = name.lowercase()
+            if (!lower.endsWith(".png") && !lower.endsWith(".jpg") && !lower.endsWith(".jpeg")) continue
 
             try {
                 val originalSize = file.length()
                 val bitmap = BitmapFactory.decodeFile(file.absolutePath) ?: continue
 
-                val ext = when (format) {
-                    ImageFormat.WEBP_LOSSY -> ".webp"
-                    ImageFormat.WEBP_LOSSLESS -> ".webp"
-                    else -> continue
-                }
-
-                val newFile = File(file.parentFile, file.nameWithoutExtension + ext)
+                val newFile = File(file.parentFile, file.nameWithoutExtension + ".webp")
                 val compressFormat = when (format) {
                     ImageFormat.WEBP_LOSSY -> Bitmap.CompressFormat.WEBP_LOSSY
                     ImageFormat.WEBP_LOSSLESS -> Bitmap.CompressFormat.WEBP_LOSSLESS
@@ -104,6 +150,7 @@ object AssetConverter {
                 val newSize = newFile.length()
                 if (newSize < originalSize) {
                     file.delete()
+                    renames[name] = file.nameWithoutExtension + ".webp"
                     count++
                     saved += (originalSize - newSize)
                 } else {
@@ -114,23 +161,26 @@ object AssetConverter {
             }
         }
 
-        return Pair(count, saved)
+        return ConvertOutcome(count, saved, renames)
     }
 
-    private fun convertSounds(dir: File, format: AudioFormat): Pair<Int, Long> {
+    private fun convertSounds(dir: File, format: AudioFormat): ConvertOutcome {
         var count = 0
         var saved = 0L
+        val renames = mutableMapOf<String, String>()
 
         for (file in dir.listFiles() ?: emptyArray()) {
             if (file.isDirectory) {
                 val sub = convertSounds(file, format)
                 count += sub.first
                 saved += sub.second
+                renames.putAll(sub.third)
                 continue
             }
 
-            val name = file.name.lowercase()
-            if (!isAudioFile(name) || name.endsWith(".m4a")) continue
+            val name = file.name
+            val lower = name.lowercase()
+            if (!isAudioFile(lower) || lower.endsWith(".m4a")) continue
 
             try {
                 val originalSize = file.length()
@@ -144,7 +194,7 @@ object AssetConverter {
 
                 val newFile = File(file.parentFile, file.nameWithoutExtension + ".m4a")
 
-                val success = if (name.endsWith(".wav")) {
+                val success = if (lower.endsWith(".wav")) {
                     convertWavToM4a(file, newFile, bitrate)
                 } else {
                     convertAudioToM4a(file, newFile, bitrate)
@@ -154,6 +204,7 @@ object AssetConverter {
                     val newSize = newFile.length()
                     if (newSize < originalSize) {
                         file.delete()
+                        renames[name] = file.nameWithoutExtension + ".m4a"
                         count++
                         saved += (originalSize - newSize)
                     } else {
@@ -165,7 +216,7 @@ object AssetConverter {
             }
         }
 
-        return Pair(count, saved)
+        return ConvertOutcome(count, saved, renames)
     }
 
     private fun isAudioFile(name: String): Boolean {
@@ -716,40 +767,20 @@ object AssetConverter {
         return samples
     }
 
-    fun updateCodeXmlReferences(projectDir: File, imageFormat: ImageFormat, audioFormat: AudioFormat) {
+    fun updateCodeXmlReferences(projectDir: File, result: ConvertResult) {
         val codeXml = File(projectDir, "code.xml")
         if (!codeXml.exists()) return
 
         try {
             var content = codeXml.readText()
 
-            if (imageFormat != ImageFormat.KEEP) {
-                content = content.replace(Regex("\\.png\""), ".webp\"")
-                content = content.replace(Regex("\\.jpg\""), ".webp\"")
-                content = content.replace(Regex("\\.jpeg\""), ".webp\"")
-                content = content.replace(Regex("\\.PNG\""), ".webp\"")
-                content = content.replace(Regex("\\.JPG\""), ".webp\"")
-                content = content.replace(Regex("\\.JPEG\""), ".webp\"")
+            for ((oldName, newName) in result.renamedImages) {
+                content = content.replace(oldName, newName)
             }
 
-        if (audioFormat != AudioFormat.KEEP) {
-            content = content.replace(Regex("\\.wav\""), ".m4a\"")
-            content = content.replace(Regex("\\.WAV\""), ".m4a\"")
-            content = content.replace(Regex("\\.mp3\""), ".m4a\"")
-            content = content.replace(Regex("\\.MP3\""), ".m4a\"")
-            content = content.replace(Regex("\\.ogg\""), ".m4a\"")
-            content = content.replace(Regex("\\.OGG\""), ".m4a\"")
-            content = content.replace(Regex("\\.aac\""), ".m4a\"")
-            content = content.replace(Regex("\\.AAC\""), ".m4a\"")
-            content = content.replace(Regex("\\.flac\""), ".m4a\"")
-            content = content.replace(Regex("\\.FLAC\""), ".m4a\"")
-            content = content.replace(Regex("\\.wma\""), ".m4a\"")
-            content = content.replace(Regex("\\.WMA\""), ".m4a\"")
-            content = content.replace(Regex("\\.opus\""), ".m4a\"")
-            content = content.replace(Regex("\\.OPUS\""), ".m4a\"")
-            content = content.replace(Regex("\\.amr\""), ".m4a\"")
-            content = content.replace(Regex("\\.AMR\""), ".m4a\"")
-        }
+            for ((oldName, newName) in result.renamedSounds) {
+                content = content.replace(oldName, newName)
+            }
 
             codeXml.writeText(content)
         } catch (e: Exception) {

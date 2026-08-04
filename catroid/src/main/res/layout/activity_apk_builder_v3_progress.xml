@@ -50,6 +50,17 @@
         android:layout_marginBottom="20dp" />
 
     <TextView
+        android:id="@+id/v3_progress_file"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text=""
+        android:textSize="12sp"
+        android:textColor="@color/spinner_icon_and_inactive_elements"
+        android:gravity="center"
+        android:maxLines="2"
+        android:layout_marginBottom="20dp" />
+
+    <TextView
         android:id="@+id/v3_build_fact"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

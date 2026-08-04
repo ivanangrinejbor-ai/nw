@@ -107,14 +107,14 @@ public class SwipeEditorView extends View {
 
 		childBorderPaint.setStyle(Paint.Style.STROKE);
 		childBorderPaint.setStrokeWidth(3f);
-		childBorderPaint.setColor(0xFF38BDF8);
+		childBorderPaint.setColor(0xFF64748B);
 
 		selectedBorderPaint.setStyle(Paint.Style.STROKE);
 		selectedBorderPaint.setStrokeWidth(4.5f);
 		selectedBorderPaint.setColor(0xFFFFD600);
 
 		placeholderPaint.setStyle(Paint.Style.FILL);
-		placeholderPaint.setColor(0x552563EB);
+		placeholderPaint.setColor(0x3A64748B);
 	}
 
 	public void setOnChangeListener(OnChangeListener listener) {

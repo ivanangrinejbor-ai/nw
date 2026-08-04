@@ -70,6 +70,7 @@ import org.catrobat.catroid.content.bricks.UserDefinedReceiverBrick;
 import org.catrobat.catroid.content.bricks.CompositeBrick;
 import org.catrobat.catroid.content.bricks.UserVariableBrickInterface;
 import org.catrobat.catroid.content.bricks.VisualPlacementBrick;
+import org.catrobat.catroid.content.bricks.ElseIfSeparatorBrick;
 import java.util.function.Consumer;
 import org.catrobat.catroid.formulaeditor.Formula;
 import org.catrobat.catroid.formulaeditor.InternToExternGenerator;
@@ -1006,21 +1007,6 @@ public class ScriptFragment extends ListFragment implements
 
         items.add(R.string.brick_context_dialog_cut);
 
-        if (brick instanceof org.catrobat.catroid.content.bricks.ElseIfBrick) {
-            org.catrobat.catroid.content.bricks.ElseIfBrick elseIfMarker =
-                    (org.catrobat.catroid.content.bricks.ElseIfBrick) brick;
-            org.catrobat.catroid.content.bricks.IfLogicBeginBrick ownerIf =
-                    (org.catrobat.catroid.content.bricks.IfLogicBeginBrick) elseIfMarker.getParent();
-            if (ownerIf != null) {
-                if (elseIfMarker.getBranchIndex() > 0) {
-                    items.add(R.string.brick_context_dialog_move_branch_up);
-                }
-                if (elseIfMarker.getBranchIndex() < ownerIf.getElseIfCount() - 1) {
-                    items.add(R.string.brick_context_dialog_move_branch_down);
-                }
-            }
-        }
-
         if (org.catrobat.catroid.utils.BlockClipboard.getInstance().getLatest() != null) {
             items.add(R.string.brick_context_dialog_paste_below);
             items.add(R.string.brick_context_dialog_clipboard_history);
@@ -1164,29 +1150,9 @@ public class ScriptFragment extends ListFragment implements
                 org.catrobat.catroid.utils.BrickCollapseManager.INSTANCE.toggleCollapsed(brick);
                 adapter.updateItems(ProjectManager.getInstance().getCurrentSprite());
                 break;
-            case R.string.brick_context_dialog_system_info:
+case R.string.brick_context_dialog_system_info:
                 showDetailedSystemInfoDialog(brick);
                 break;
-            case R.string.brick_context_dialog_move_branch_up: {
-                org.catrobat.catroid.content.bricks.ElseIfBrick marker =
-                        (org.catrobat.catroid.content.bricks.ElseIfBrick) brick;
-                org.catrobat.catroid.content.bricks.IfLogicBeginBrick ownerIf =
-                        (org.catrobat.catroid.content.bricks.IfLogicBeginBrick) marker.getParent();
-                if (ownerIf != null && ownerIf.moveElseIfBranchUp(marker.getBranchIndex())) {
-                    adapter.updateItems(ProjectManager.getInstance().getCurrentSprite());
-                }
-                break;
-            }
-            case R.string.brick_context_dialog_move_branch_down: {
-                org.catrobat.catroid.content.bricks.ElseIfBrick marker =
-                        (org.catrobat.catroid.content.bricks.ElseIfBrick) brick;
-                org.catrobat.catroid.content.bricks.IfLogicBeginBrick ownerIf =
-                        (org.catrobat.catroid.content.bricks.IfLogicBeginBrick) marker.getParent();
-                if (ownerIf != null && ownerIf.moveElseIfBranchDown(marker.getBranchIndex())) {
-                    adapter.updateItems(ProjectManager.getInstance().getCurrentSprite());
-                }
-                break;
-            }
             case R.string.brick_context_dialog_cut:
                 if (copyProjectForUndoOption()) {
                     showUndo(true);
@@ -1305,8 +1271,7 @@ public class ScriptFragment extends ListFragment implements
 			return true;
 		}
 		showUndo(false);
-		if (brick instanceof org.catrobat.catroid.content.bricks.ElseIfBrick
-				|| brick instanceof org.catrobat.catroid.content.bricks.ElseIfEndBrick) {
+		if (brick instanceof ElseIfSeparatorBrick) {
 			return true;
 		}
 		List<Brick> group = getLockGroup(brick);

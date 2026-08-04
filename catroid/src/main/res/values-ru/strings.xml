@@ -3590,10 +3590,12 @@
     <string formatted="false" name="brick_if_begin_second_part">истина, то</string>
     <string formatted="false" name="brick_if_else">Инaче</string>
 <string formatted="false" name="brick_else_if">Иначе если</string>
-<string formatted="false" name="brick_else_if_end">Конец иначе если</string>
 <string formatted="false" name="brick_context_dialog_move_branch_up">Сдвинуть ветку вверх</string>
 <string formatted="false" name="brick_context_dialog_move_branch_down">Сдвинуть ветку вниз</string>
 <string formatted="false" name="brick_add_else_if">+ ещё условие</string>
+    <string formatted="false" name="brick_if_then">то</string>
+    <string formatted="false" name="dialog_delete_else_if_title">Удалить ветку?</string>
+    <string formatted="false" name="dialog_delete_else_if_message">Вы уверены, что хотите удалить ветку \'иначе если\' и её содержимое?</string>
     <string formatted="false" name="brick_if_end">Конец (если)</string>
     <string formatted="false" name="brick_set_variable">Задать значение переменной</string>
     <string formatted="false" name="brick_change_variable">Изменить значение переменной</string>

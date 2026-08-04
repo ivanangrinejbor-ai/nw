@@ -211,9 +211,7 @@ class ProjectOptionsFragment : Fragment() {
                 getString(R.string.export_project),
                 getString(R.string.export_with_password),
                 getString(R.string.export_as_apk_v3),
-                getString(R.string.export_protected_project),
-                getString(R.string.export_compressed_light),
-                getString(R.string.export_compressed_hard)
+                getString(R.string.export_protected_project)
             )
             androidx.appcompat.app.AlertDialog.Builder(requireContext())
                 .setTitle(R.string.export_project)
@@ -224,8 +222,6 @@ class ProjectOptionsFragment : Fragment() {
                         2 -> runExportWalkthrough { exportWithPassword() }
                         3 -> buildApkV3()
                         4 -> runExportWalkthrough { exportProtectedProject() }
-                        5 -> runExportWalkthrough { exportCompressedLight() }
-                        6 -> showHardCompressionDialog()
                     }
                 }
                 .show()
@@ -1400,7 +1396,7 @@ class ProjectOptionsFragment : Fragment() {
                 )
 
                 org.catrobat.catroid.io.AssetConverter.updateCodeXmlReferences(
-                    projectDir, imageFormat, audioFormat
+                    projectDir, result
                 )
 
                 val zipFile = File(requireContext().cacheDir, proj.name + Constants.CATROBAT_EXTENSION)
