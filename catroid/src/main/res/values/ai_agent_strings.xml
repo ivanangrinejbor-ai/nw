@@ -1,5 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string formatted="false" name="ai_agent_no_model">None</string>
+    <string name="ai_agent_choose_provider_title">Choose AI Provider</string>
+    <string name="ai_agent_enter_api_key_hint">Enter API Key for %1$s...</string>
+    <string name="ai_agent_api_key_title">API Key for %1$s</string>
+    <string name="ai_agent_api_key_saved">API Key saved for %1$s!</string>
+    <string name="ai_agent_fetching_models">Fetching model list with %1$s API key...</string>
+    <string name="ai_agent_enter_model_manually">Enter model name manually...</string>
+    <string name="ai_agent_models_title">Models from API key (%1$s)</string>
+    <string name="ai_agent_switch_provider">Switch Provider</string>
+    <string name="ai_agent_custom_model_hint">Model name (e.g. gpt-4o, deepseek-chat, claude-3-5-sonnet)...</string>
+    <string name="ai_agent_custom_model_title">Manual model input (%1$s)</string>
+    <string name="ai_agent_custom_model_set">Custom model set: %1$s</string>
     <!-- AI Agent Main -->
     <string formatted="false" name="ai_agent_pref_title">AI Agent</string>
     <string formatted="false" name="ai_agent_pref_summary">Intelligent project assistant with local AI models</string>

@@ -17,6 +17,7 @@ object AiPreferences {
     private const val KEY_MAX_CONTEXT = "ai_agent_max_context"
     private const val KEY_MAX_TOOL_CALLS = "ai_agent_max_tool_calls"
     private const val KEY_CLOUD_MODEL = "ai_agent_cloud_model"
+    private const val KEY_CLOUD_MODEL_PROVIDER = "ai_agent_cloud_model_provider"
     private const val KEY_BACKEND = "ai_agent_backend"
     private const val KEY_PROVIDER = "ai_agent_provider"
     private const val KEY_PROVIDER_KEY_PREFIX = "ai_agent_key_provider_"
@@ -165,6 +166,18 @@ object AiPreferences {
 
     fun setCloudModelId(id: String) {
         prefs?.edit()?.putString(KEY_CLOUD_MODEL, id)?.apply()
+    }
+
+    fun getCloudModelProviderId(): String? {
+        return prefs?.getString(KEY_CLOUD_MODEL_PROVIDER, null)
+    }
+
+    fun setCloudModelProviderId(providerId: String?) {
+        if (providerId == null) {
+            prefs?.edit()?.remove(KEY_CLOUD_MODEL_PROVIDER)?.apply()
+        } else {
+            prefs?.edit()?.putString(KEY_CLOUD_MODEL_PROVIDER, providerId)?.apply()
+        }
     }
 
     fun getBackend(): String {

@@ -52,7 +52,13 @@ class ChatActivity : AppCompatActivity() {
         sendButton = findViewById(R.id.btn_send)
         modelButton = findViewById(R.id.btn_model)
 
-        modelButton.setOnClickListener { showModelSelector() }
+        modelButton.setOnClickListener {
+            if (CloudModelRuntime.getApiKey().isNullOrBlank()) {
+                showApiKeyDialog()
+            } else {
+                showModelSelector()
+            }
+        }
         updateModelButtonLabel()
 
         adapter = ChatAdapter(emptyList()) { position ->
@@ -147,35 +153,38 @@ class ChatActivity : AppCompatActivity() {
         val checkedIndex = providers.indexOf(currentProvider).let { if (it >= 0) it else 0 }
 
         AlertDialog.Builder(this)
-            .setTitle("Выберите Провайдера ИИ")
+            .setTitle(getString(R.string.ai_agent_choose_provider_title))
             .setSingleChoiceItems(providerNames, checkedIndex) { dialog, which ->
                 val selectedProvider = providers[which]
                 AiPreferences.setProvider(selectedProvider.id)
                 dialog.dismiss()
                 promptApiKeyForProvider(selectedProvider)
             }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(android.R.string.cancel) { _, _ -> updateModelButtonLabel() }
             .show()
     }
 
     private fun promptApiKeyForProvider(provider: org.catrobat.catroid.ai.model.AiProvider) {
         val currentKey = AiPreferences.getApiKeyForProvider(provider.id) ?: ""
         val input = EditText(this).apply {
-            hint = "Введите API Key для ${provider.displayName}..."
+            hint = getString(R.string.ai_agent_enter_api_key_hint, provider.displayName)
             setText(currentKey)
         }
         AlertDialog.Builder(this)
-            .setTitle("API Key для ${provider.displayName}")
+            .setTitle(getString(R.string.ai_agent_api_key_title, provider.displayName))
             .setView(input)
             .setPositiveButton(android.R.string.ok) { _, _ ->
                 val key = input.text.toString().trim()
                 if (key.isNotEmpty()) {
                     AiPreferences.setApiKeyForProvider(provider.id, key)
-                    Toast.makeText(this, "API Key сохранен для ${provider.displayName}!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, getString(R.string.ai_agent_api_key_saved, provider.displayName), Toast.LENGTH_SHORT).show()
                     showModelSelectorForProvider(provider, key)
+                } else {
+                    updateModelButtonLabel()
                 }
             }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(android.R.string.cancel) { _, _ -> updateModelButtonLabel() }
+            .setOnCancelListener { updateModelButtonLabel() }
             .show()
     }
 
@@ -183,21 +192,21 @@ class ChatActivity : AppCompatActivity() {
         val provider = CloudModelRuntime.getActiveProvider()
         val apiKey = CloudModelRuntime.getApiKey()
         if (apiKey.isNullOrBlank()) {
-            promptApiKeyForProvider(provider)
+            showApiKeyDialog()
             return
         }
         showModelSelectorForProvider(provider, apiKey)
     }
 
     private fun showModelSelectorForProvider(provider: org.catrobat.catroid.ai.model.AiProvider, apiKey: String) {
-        val loading = Toast.makeText(this, "Запрос списка моделей из API ключа ${provider.displayName}...", Toast.LENGTH_SHORT)
+        val loading = Toast.makeText(this, getString(R.string.ai_agent_fetching_models, provider.displayName), Toast.LENGTH_SHORT)
         loading.show()
         lifecycleScope.launch {
             val fetchedModels = org.catrobat.catroid.ai.model.CloudModelProvider.fetchModelsForProvider(provider, apiKey).toMutableList()
             loading.cancel()
             if (isFinishing || isDestroyed) return@launch
 
-            val optionCustom = "Ввести имя модели вручную..."
+            val optionCustom = getString(R.string.ai_agent_enter_model_manually)
             val displayList = ArrayList(fetchedModels)
             displayList.add(0, optionCustom)
 
@@ -205,7 +214,7 @@ class ChatActivity : AppCompatActivity() {
             val checked = displayList.indexOf(current).let { if (it >= 0) it else 1 }
 
             AlertDialog.Builder(this@ChatActivity)
-                .setTitle("Модели из API-ключа (${provider.displayName})")
+                .setTitle(getString(R.string.ai_agent_models_title, provider.displayName))
                 .setSingleChoiceItems(displayList.toTypedArray(), checked) { dialog, which ->
                     val selected = displayList[which]
                     if (selected == optionCustom) {
@@ -214,38 +223,40 @@ class ChatActivity : AppCompatActivity() {
                     } else {
                         AiPreferences.setProvider(provider.id)
                         AiPreferences.setCloudModelId(selected)
+                        AiPreferences.setCloudModelProviderId(provider.id)
                         AiPreferences.setBackend(AiPreferences.BACKEND_CLOUD)
                         ModelManager.unloadModel()
                         updateModelButtonLabel()
-                        Toast.makeText(this@ChatActivity, "Выбрана модель: $selected", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@ChatActivity, getString(R.string.ai_agent_model_selected, selected), Toast.LENGTH_SHORT).show()
                         dialog.dismiss()
                     }
                 }
-                .setNeutralButton("Сменить Провайдер") { _, _ ->
+                .setNeutralButton(getString(R.string.ai_agent_switch_provider)) { _, _ ->
                     showApiKeyDialog()
                 }
-                .setNegativeButton(android.R.string.cancel, null)
+                .setNegativeButton(android.R.string.cancel) { _, _ -> updateModelButtonLabel() }
                 .show()
         }
     }
 
     private fun promptCustomModel(provider: org.catrobat.catroid.ai.model.AiProvider) {
         val input = EditText(this).apply {
-            hint = "Имя модели (например, gpt-4o, deepseek-chat, claude-3-5-sonnet)..."
+            hint = getString(R.string.ai_agent_custom_model_hint)
             setText(AiPreferences.getCloudModelId())
         }
         AlertDialog.Builder(this)
-            .setTitle("Ручной ввод модели (${provider.displayName})")
+            .setTitle(getString(R.string.ai_agent_custom_model_title, provider.displayName))
             .setView(input)
             .setPositiveButton(android.R.string.ok) { _, _ ->
                 val modelName = input.text.toString().trim()
                 if (modelName.isNotEmpty()) {
                     AiPreferences.setProvider(provider.id)
                     AiPreferences.setCloudModelId(modelName)
+                    AiPreferences.setCloudModelProviderId(provider.id)
                     AiPreferences.setBackend(AiPreferences.BACKEND_CLOUD)
                     ModelManager.unloadModel()
                     updateModelButtonLabel()
-                    Toast.makeText(this, "Установлена кастомная модель: $modelName", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, getString(R.string.ai_agent_custom_model_set, modelName), Toast.LENGTH_SHORT).show()
                 }
             }
             .setNegativeButton(android.R.string.cancel, null)
@@ -254,8 +265,14 @@ class ChatActivity : AppCompatActivity() {
 
     private fun updateModelButtonLabel() {
         val provider = CloudModelRuntime.getActiveProvider()
-        val model = AiPreferences.getCloudModelId().substringAfterLast('/')
-        modelButton.text = "[${provider.displayName}] $model"
+        val apiKey = CloudModelRuntime.getApiKey()
+        val modelProvider = AiPreferences.getCloudModelProviderId()
+        val label = if (apiKey.isNullOrBlank() || modelProvider != provider.id) {
+            getString(R.string.ai_agent_no_model)
+        } else {
+            AiPreferences.getCloudModelId().substringAfterLast('/')
+        }
+        modelButton.text = "[${provider.displayName}] $label"
     }
 
     override fun onResume() {
