@@ -5007,10 +5007,10 @@ needs read and write access to it. You can always change permissions through you
     <string name="scene_editor_window_resize">Resize</string>
     <string name="scene_editor_switch_scene">Switch scene</string>
     <string name="scene_editor_add_object">Add object</string>
-    <string name="scene_editor_new_object">New object</string>
-    <string name="scene_editor_object_created">Object created: %1$s</string>
+    <string name="scene_editor_new_object">Новый объект</string>
+    <string name="scene_editor_object_created">Объект создан: %1$s</string>
     <string name="scene_editor_scenes">Scenes</string>
-    <string name="scene_editor_paint_error">Could not save the drawing</string>
+    <string name="scene_editor_paint_error">Не удалось сохранить рисунок</string>
     <string name="scene_editor_objects">Objects</string>
     <string name="script_canvas_close">Close</string>
     <string name="script_canvas_palette">Blocks</string>
@@ -5039,6 +5039,10 @@ needs read and write access to it. You can always change permissions through you
     <string name="scene_editor_promo_try">Try now</string>
     <string name="scene_editor_promo_enable">Enable always</string>
     <string name="scene_editor_promo_later">Later</string>
+    <string name="scene_editor_create_empty_sprite">Пустой спрайт</string>
+    <string name="scene_editor_from_library">Из библиотеки</string>
+    <string name="scene_editor_object_imported">Объект импортирован</string>
+    <string name="scene_editor_import_failed">Не удалось импортировать объект</string>
     <string-array name="swipe_directions">
         <item>Up</item>
         <item>Down</item>

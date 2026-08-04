@@ -72,6 +72,7 @@ public class ScriptCanvasActivity extends AppCompatActivity {
 	private View palettePanel;
 	private LinearLayout paletteCategories;
 	private LinearLayout paletteBricks;
+	private android.widget.ScrollView paletteScrollView;
 	private FrameLayout dragLayer;
 	private View dragGhost;
 	private boolean isBackground;
@@ -138,15 +139,13 @@ public class ScriptCanvasActivity extends AppCompatActivity {
 canvas = new ScriptCanvasView(this);
 		canvas.setSprite(sprite);
 		canvas.setContentChangedListener(this::updateEmptyState);
-		boolean indentation = android.preference.PreferenceManager.getDefaultSharedPreferences(this)
-				.getBoolean("pref_enable_brick_indentation", false);
-		canvas.setIndentationEnabled(indentation);
 		canvasContainer.addView(canvas, 0);
 
 		isBackground = scene.getBackgroundSprite() == sprite;
 		palettePanel = findViewById(R.id.script_palette);
 		paletteCategories = findViewById(R.id.script_palette_categories);
 		paletteBricks = findViewById(R.id.script_palette_bricks);
+		paletteScrollView = findViewById(R.id.script_palette_scroll);
 		dragLayer = findViewById(R.id.script_canvas_drag_layer);
 		ImageButton undoButton = findViewById(R.id.script_canvas_btn_undo);
 		if (undoButton != null) {
@@ -409,6 +408,9 @@ canvas = new ScriptCanvasView(this);
 			this.prototype = prototype;
 			this.startGhostRunnable = () -> {
 				ghostStarted = true;
+				if (paletteScrollView != null) {
+					paletteScrollView.requestDisallowInterceptTouchEvent(true);
+				}
 				startGhost(prototype, downRawX, downRawY);
 			};
 		}
@@ -451,6 +453,7 @@ canvas = new ScriptCanvasView(this);
 	}
 
 	private static final int REQUEST_NEO_SCRIPT = 9021;
+	private static final int REQUEST_FORMULA_EDITOR_2 = 8899;
 
 	private void handleImportNeoScript() {
 		Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
@@ -478,7 +481,8 @@ canvas = new ScriptCanvasView(this);
 		builder.setView(input);
 		builder.setPositiveButton(R.string.save, (dialog, which) -> {
 			String name = input.getText().toString().trim();
-			if (name.isEmpty() || !name.matches(".*[\\\\/:*?\"<>|].*")) {
+			// Reject empty names OR names with forbidden filesystem characters
+			if (name.isEmpty() || name.matches(".*[\\\\/:*?\"<>|].*")) {
 				Toast.makeText(this, R.string.save_script_invalid_name, Toast.LENGTH_SHORT).show();
 				return;
 			}
@@ -539,7 +543,7 @@ canvas = new ScriptCanvasView(this);
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
-		if (requestCode == 8899 && resultCode == RESULT_OK && data != null) {
+		if (requestCode == REQUEST_FORMULA_EDITOR_2 && resultCode == RESULT_OK && data != null) {
 			String res = data.getStringExtra(org.catrobat.catroid.ui.formulaeditor.FormulaEditor2Activity.EXTRA_RESULT_FORMULA_STRING);
 			if (res != null && activeFormulaBrick != null && activeFormulaField != null) {
 				try {

@@ -171,13 +171,13 @@ class ChatActivity : AppCompatActivity() {
             setText(currentKey)
         }
         AlertDialog.Builder(this)
-            .setTitle(getString(R.string.ai_agent_api_key_title, provider.displayName))
+            .setTitle(getString(R.string.ai_agent_api_key_dialog_title, provider.displayName))
             .setView(input)
             .setPositiveButton(android.R.string.ok) { _, _ ->
                 val key = input.text.toString().trim()
                 if (key.isNotEmpty()) {
                     AiPreferences.setApiKeyForProvider(provider.id, key)
-                    Toast.makeText(this, getString(R.string.ai_agent_api_key_saved, provider.displayName), Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, getString(R.string.ai_agent_api_key_saved_toast, provider.displayName), Toast.LENGTH_SHORT).show()
                     showModelSelectorForProvider(provider, key)
                 } else {
                     updateModelButtonLabel()

@@ -43,8 +43,8 @@ class FormulaEditor2Activity : AppCompatActivity() {
     }
 
     private fun applyUi2Colors() {
-        val card = getDrawable(R.drawable.bg_object_card_cube)
-        val thumb = getDrawable(R.drawable.bg_object_thumb_cube)
+        val card = runCatching { getDrawable(R.drawable.bg_object_card_cube) }.getOrNull()
+        val thumb = runCatching { getDrawable(R.drawable.bg_object_thumb_cube) }.getOrNull()
         val slate = 0xFF94A3B8.toInt()
         val white = 0xFFFFFFFF.toInt()
 
@@ -73,6 +73,7 @@ class FormulaEditor2Activity : AppCompatActivity() {
             findViewById<View>(id)?.setUi2(background = card, textColor = slate)
         }
 
+        val cardNeon = runCatching { getDrawable(R.drawable.bg_object_card_cube_neon) }.getOrNull()
         findViewById<View>(R.id.formula_editor_keyboard_color_picker)?.apply { background = card }
         findViewById<View>(R.id.formula_editor_keyboard_copy)?.apply { background = card }
         findViewById<View>(R.id.formula_editor_keyboard_paste)?.apply { background = card }
@@ -81,10 +82,10 @@ class FormulaEditor2Activity : AppCompatActivity() {
         )
 
         findViewById<View>(R.id.formula_editor_keyboard_compute)?.setUi2(
-            background = getDrawable(R.drawable.bg_object_card_cube_neon), textColor = white
+            background = cardNeon, textColor = white
         )
 
-        formulaInput.background = getDrawable(R.drawable.bg_object_card_cube)
+        formulaInput.background = runCatching { getDrawable(R.drawable.bg_object_card_cube) }.getOrNull()
         formulaInput.setTextColor(white)
         formulaInput.setHintTextColor(slate)
     }
@@ -185,10 +186,23 @@ class FormulaEditor2Activity : AppCompatActivity() {
         return Functions.values()
             .filter {
                 val n = it.name
+                // Спрайт, экран, цвет, касание
                 n.startsWith("SPRITE_") || n.startsWith("SCREEN_") || n.startsWith("COLOR_") ||
-                        n.startsWith("TOUCH") || n.startsWith("GET_") || n == "DELTA"
+                n.startsWith("TOUCH") || n.startsWith("GET_") || n == "DELTA" ||
+                // Датчики устройства
+                n.startsWith("ACCELEROMETER_") || n.startsWith("GYRO_") ||
+                n.startsWith("COMPASS_") || n.startsWith("GPS_") || n.startsWith("LOCATION_") ||
+                n.startsWith("LOUDNESS") || n.startsWith("FACE_") || n.startsWith("HAND_") ||
+                n.startsWith("POSE_") || n.startsWith("TEXT_") || n.startsWith("OBJECT_") ||
+                // Мышь/клавиатура, время
+                n.startsWith("MOUSE_") || n.startsWith("FINGER_") ||
+                n.startsWith("DATE_") || n.startsWith("TIME_") || n.startsWith("SECOND") ||
+                n.startsWith("MINUTE") || n.startsWith("HOUR") ||
+                // NXT/EV3/дроны
+                n.startsWith("NXT_") || n.startsWith("EV3_") || n.startsWith("DRONE_") ||
+                n.startsWith("PHIRO_") || n.startsWith("RASPI_")
             }
-            .map { it.name.toLowerCase(Locale.US) }
+            .map { it.name.lowercase(Locale.US) }
     }
 
     private fun variableNameTokens(): List<String> {
@@ -285,7 +299,8 @@ class FormulaEditor2Activity : AppCompatActivity() {
     }
 
     private fun functionInsertText(token: String): String = when (token.uppercase(Locale.US)) {
-        "PI", "TRUE", "FALSE" -> token
+        // Константы и булевы значения — без скобок
+        "PI", "TRUE", "FALSE", "E", "NAN", "INFINITY" -> token
         else -> "$token("
     }
 

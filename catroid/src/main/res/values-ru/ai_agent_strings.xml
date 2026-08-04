@@ -3,8 +3,8 @@
     <string formatted="false" name="ai_agent_no_model">Нет</string>
     <string name="ai_agent_choose_provider_title">Выберите Провайдера ИИ</string>
     <string name="ai_agent_enter_api_key_hint">Введите API Key для %1$s...</string>
-    <string name="ai_agent_api_key_title">API Key для %1$s</string>
-    <string name="ai_agent_api_key_saved">API Key сохранен для %1$s!</string>
+    <string name="ai_agent_api_key_dialog_title">API Key для %1$s</string>
+    <string name="ai_agent_api_key_saved_toast">API Key сохранен для %1$s!</string>
     <string name="ai_agent_fetching_models">Запрос списка моделей из API ключа %1$s...</string>
     <string name="ai_agent_enter_model_manually">Ввести имя модели вручную...</string>
     <string name="ai_agent_models_title">Модели из API-ключа (%1$s)</string>

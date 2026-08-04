@@ -480,14 +480,31 @@ private Sprite pendingLookSprite;
 		container.addView(xLabel);
 
 		EditText inputX = new EditText(this);
+		boolean foundInScript = false;
 		int posX = 0, posY = 0;
+		// Сначала ищем PlaceAtBrick в скриптах
+		outer:
 		for (org.catrobat.catroid.content.Script script : targetSprite.getScriptList()) {
 			for (org.catrobat.catroid.content.bricks.Brick b : script.getBrickList()) {
 				if (b instanceof org.catrobat.catroid.content.bricks.PlaceAtBrick) {
 					try {
-						posX = Math.round(Float.parseFloat(((org.catrobat.catroid.content.bricks.PlaceAtBrick) b).getFormulaWithBrickField(Brick.BrickField.X_POSITION).interpretString(null)));
-						posY = Math.round(Float.parseFloat(((org.catrobat.catroid.content.bricks.PlaceAtBrick) b).getFormulaWithBrickField(Brick.BrickField.Y_POSITION).interpretString(null)));
+						posX = Math.round(Float.parseFloat(((org.catrobat.catroid.content.bricks.PlaceAtBrick) b)
+								.getFormulaWithBrickField(Brick.BrickField.X_POSITION).interpretString(null)));
+						posY = Math.round(Float.parseFloat(((org.catrobat.catroid.content.bricks.PlaceAtBrick) b)
+								.getFormulaWithBrickField(Brick.BrickField.Y_POSITION).interpretString(null)));
+						foundInScript = true;
+						break outer;
 					} catch (Exception ignored) {}
+				}
+			}
+		}
+		// Фоллбек: берём координаты из уже распарсенных sceneObjects
+		if (!foundInScript && sceneObjects != null) {
+			for (SceneEditorView.SceneObject obj : sceneObjects) {
+				if (obj.sprite == targetSprite) {
+					posX = Math.round(obj.x);
+					posY = Math.round(obj.y);
+					break;
 				}
 			}
 		}
@@ -522,6 +539,7 @@ private Sprite pendingLookSprite;
 				.setNegativeButton("Отмена", null)
 				.show();
 	}
+
 
 	@Override
 	public void onOpenLooks(Sprite sprite) {
@@ -1228,9 +1246,9 @@ private void refreshObjects(boolean full) {
 	}
 
 	private void showCreateObjectSourceDialog() {
-new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
-				.setTitle("New object")
-				.setItems(new String[] {"Empty sprite", "From library"}, (dialog, which) -> {
+		new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
+				.setTitle(getString(R.string.scene_editor_new_object))
+				.setItems(new String[] {getString(R.string.scene_editor_create_empty_sprite), getString(R.string.scene_editor_from_library)}, (dialog, which) -> {
 					if (which == 1) {
 						new ImportFormMediaLibraryLauncher(this,
 								org.catrobat.catroid.common.FlavoredConstants.LIBRARY_LOOKS_URL)
@@ -1242,6 +1260,7 @@ new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
 				.setNegativeButton(android.R.string.cancel, null)
 				.show();
 	}
+
 
 	private float readDimensionPercent(Sprite sprite, Brick.BrickField field) {
 		for (Script script : sprite.getScriptList()) {
@@ -1513,10 +1532,10 @@ if (resultCode != RESULT_OK && (requestCode == REQUEST_LOOK_FILE
 			imported.getLookList().add(look);
 			look.getCollisionInformation().calculate();
 			refreshAfterModelChange();
-			Toast.makeText(this, "Object imported", Toast.LENGTH_SHORT).show();
+			Toast.makeText(this, getString(R.string.scene_editor_object_imported), Toast.LENGTH_SHORT).show();
 		} catch (Exception e) {
 			if (imported != null) scene.getSpriteList().remove(imported);
-			Toast.makeText(this, "Could not import object", Toast.LENGTH_SHORT).show();
+			Toast.makeText(this, getString(R.string.scene_editor_import_failed), Toast.LENGTH_SHORT).show();
 		}
 	}
 

@@ -40,6 +40,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -49,7 +50,6 @@ import org.catrobat.catroid.R;
 import org.catrobat.catroid.content.FloatingBrick;
 import org.catrobat.catroid.content.Project;
 import org.catrobat.catroid.content.Script;
-import org.catrobat.catroid.content.ScriptNote;
 import org.catrobat.catroid.content.Sprite;
 import org.catrobat.catroid.content.StartScript;
 import org.catrobat.catroid.content.bricks.Brick;
@@ -58,7 +58,6 @@ import org.catrobat.catroid.content.bricks.ElseIfSeparatorBrick;
 import org.catrobat.catroid.content.bricks.EndBrick;
 import org.catrobat.catroid.content.bricks.FormulaBrick;
 import org.catrobat.catroid.content.bricks.IfLogicBeginBrick;
-import org.catrobat.catroid.content.bricks.NoteBrick;
 import org.catrobat.catroid.content.bricks.ScriptBrick;
 import org.catrobat.catroid.content.bricks.VisualPlacementBrick;
 import org.catrobat.catroid.utils.BrickCollapseManager;
@@ -93,8 +92,6 @@ public class ScriptCanvasView extends FrameLayout {
 	private float downY;
 
 private Sprite sprite;
-	private final Handler longPressHandler = new Handler(Looper.getMainLooper());
-	private boolean longPressScheduled;
 	private LinearLayout blockBadge;
 	private View blockGhost;
 	private Brick draggingBrick;
@@ -169,7 +166,6 @@ public void setSprite(Sprite sprite) {
 		this.sprite = sprite;
 		detachedBricks = sprite.getFloatingBricks();
 		buildStacks();
-		addNoteViews();
 		addDetachedViews();
 	}
 
@@ -308,12 +304,16 @@ private View buildStack(Script script) {
 
 	private void lockBadge(View brickView) {
 		if (!(brickView instanceof ViewGroup)) return;
-		TextView lock = new TextView(getContext());
-		lock.setText("Замок");
-		lock.setTextSize(14f);
-		lock.setPadding(dp(4), dp(2), dp(4), dp(2));
+		// Показываем иконку замка вместо текста
+		ImageView lockIcon = new ImageView(getContext());
+		try {
+			android.graphics.drawable.Drawable d = getContext().getDrawable(R.drawable.ic_lock_gray);
+			if (d == null) d = getContext().getDrawable(android.R.drawable.ic_lock_lock);
+			if (d != null) lockIcon.setImageDrawable(d);
+		} catch (Exception ignored) {}
+		lockIcon.setPadding(dp(4), dp(2), dp(4), dp(2));
 		if (brickView instanceof LinearLayout) {
-			((LinearLayout) brickView).addView(lock, 0);
+			((LinearLayout) brickView).addView(lockIcon, 0);
 		}
 	}
 
@@ -376,7 +376,6 @@ private View buildStack(Script script) {
 		clearConnectionHighlight();
 		world.removeAllViews();
 		buildStacks();
-		addNoteViews();
 		addDetachedViews();
 		applyTransform();
 		animateNextBrick = null;
@@ -489,6 +488,15 @@ private View buildStack(Script script) {
 			newScript.setPosY(worldY);
 			sprite.addScript(newScript);
 			newScript.setParents();
+			rebuildDeferred();
+			return true;
+		}
+		View stackView = findStackViewAtWorld(worldX, worldY);
+		if (stackView != null && stackView.getTag() instanceof Script) {
+			Script script = (Script) stackView.getTag();
+			Brick targetBrick = findBrickInStack(stackView, worldY);
+			insertBrickIntoScript(script, targetBrick, clone);
+			script.setParents();
 			rebuildDeferred();
 			return true;
 		}
@@ -1161,15 +1169,10 @@ case MotionEvent.ACTION_DOWN:
 				lastTouchX = event.getX();
 				lastTouchY = event.getY();
 				panning = true;
-				scheduleAddNoteLongPress(event.getX(), event.getY());
 				return true;
 			case MotionEvent.ACTION_MOVE:
 				if (scaleDetector.isInProgress() || event.getPointerCount() > 1) {
-					cancelAddNoteLongPress();
 					return true;
-				}
-				if (Math.hypot(event.getX() - downX, event.getY() - downY) > TOUCH_SLOP_PX) {
-					cancelAddNoteLongPress();
 				}
 				if (panning) {
 					panX += event.getX() - lastTouchX;
@@ -1181,7 +1184,6 @@ case MotionEvent.ACTION_DOWN:
 				return true;
 			case MotionEvent.ACTION_UP:
 			case MotionEvent.ACTION_CANCEL:
-				cancelAddNoteLongPress();
 				panning = false;
 				return true;
 			default:
@@ -1276,14 +1278,14 @@ case MotionEvent.ACTION_DOWN:
 		}
 
 		if (copiedScriptClipboard != null && brick instanceof ScriptBrick) {
-			items.add("Paste copied script stack");
+			items.add("Вставить скопированный стек");
 			actions.add(this::pasteScriptStack);
 		}
 
 if (script != null) {
-			items.add("Move script up");
+			items.add("Переместить стек выше");
 			actions.add(() -> moveScript(script, -1));
-			items.add("Move script down");
+			items.add("Переместить стек ниже");
 			actions.add(() -> moveScript(script, 1));
 		}
 
@@ -1563,32 +1565,13 @@ if (brick instanceof VisualPlacementBrick) {
 	}
 
 	private void toggleCommentBrick(Brick brick, View stackView) {
-		if (stackView != null && stackView.getTag() instanceof Script) {
-			Script script = (Script) stackView.getTag();
+		if (brick != null) {
 			snapshot();
-			if (brick != null) {
-				brick.setCommentedOut(!brick.isCommentedOut());
-				script.setParents();
-				rebuildDeferred();
-				return;
+			brick.setCommentedOut(!brick.isCommentedOut());
+			if (stackView != null && stackView.getTag() instanceof Script) {
+				((Script) stackView.getTag()).setParents();
 			}
-			List<Brick> parentList = findListContainingBrick(script, brick);
-			if (parentList != null && brick instanceof NoteBrick) {
-				int idx = parentList.indexOf(brick);
-				if (idx >= 0) {
-					parentList.remove(idx);
-					Toast.makeText(getContext(), "Комментарий удалён", Toast.LENGTH_SHORT).show();
-				}
-			} else if (parentList != null && !(brick instanceof ScriptBrick)) {
-				int idx = parentList.indexOf(brick);
-				if (idx >= 0) {
-					NoteBrick note = new NoteBrick("Закомментировано: " + brick.getClass().getSimpleName());
-					parentList.set(idx, note);
-					Toast.makeText(getContext(), "Блок закомментирован", Toast.LENGTH_SHORT).show();
-				}
-			}
-			script.setParents();
-			rebuild();
+			rebuildDeferred();
 		}
 	}
 
@@ -1636,171 +1619,6 @@ if (brick instanceof VisualPlacementBrick) {
 			Toast.makeText(getContext(), "Ошибка вставки блока", Toast.LENGTH_SHORT).show();
 		}
 	}
-
-	private void scheduleAddNoteLongPress(float screenX, float screenY) {
-		cancelAddNoteLongPress();
-		longPressScheduled = true;
-		final float worldX = (screenX - panX) / scale;
-		final float worldY = (screenY - panY) / scale;
-		longPressHandler.postDelayed(() -> {
-			if (longPressScheduled) {
-				longPressScheduled = false;
-				showAddNoteDialog(worldX, worldY);
-			}
-		}, 500);
-	}
-
-	private void cancelAddNoteLongPress() {
-		longPressScheduled = false;
-		longPressHandler.removeCallbacksAndMessages(null);
-	}
-
-	private void addNoteViews() {
-		if (sprite == null) {
-			return;
-		}
-		for (ScriptNote note : sprite.getScriptNotes()) {
-			addNoteView(note);
-		}
-	}
-
-	private void addNoteView(ScriptNote note) {
-		final TextView card = new TextView(getContext());
-		card.setText(note.getText());
-		card.setTextColor(0xFF0B1220);
-		card.setTextSize(15f);
-		card.setPadding(dp(12), dp(10), dp(12), dp(10));
-		card.setBackgroundColor(0xFFFDE68A);
-		card.setMaxWidth(dp(240));
-		card.setPivotX(0f);
-		card.setPivotY(0f);
-		card.setScaleX(note.getScale());
-		card.setScaleY(note.getScale());
-		card.setOnTouchListener(new NoteTouchListener(note, card));
-
-		LayoutParams params = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
-		params.leftMargin = Math.round(note.getPosX());
-		params.topMargin = Math.round(note.getPosY());
-		card.setLayoutParams(params);
-		world.addView(card);
-	}
-
-	private void showAddNoteDialog(float worldX, float worldY) {
-		final EditText input = new EditText(getContext());
-		input.setPadding(dp(16), dp(16), dp(16), dp(16));
-		new AlertDialog.Builder(getContext(), android.R.style.Theme_DeviceDefault_Dialog_Alert)
-				.setTitle(R.string.script_canvas_add_note)
-				.setView(input)
-				.setPositiveButton(android.R.string.ok, (dialog, which) -> {
-					if (input.getText().toString().trim().isEmpty()) {
-						return;
-					}
-					ScriptNote note = new ScriptNote(input.getText().toString(), worldX, worldY);
-					sprite.getScriptNotes().add(note);
-					addNoteView(note);
-				})
-				.setNegativeButton(android.R.string.cancel, null)
-				.show();
-	}
-
-	private void showEditNoteDialog(ScriptNote note, TextView card) {
-		LinearLayout box = new LinearLayout(getContext());
-		box.setOrientation(LinearLayout.VERTICAL);
-		box.setPadding(dp(16), dp(12), dp(16), dp(4));
-		final EditText input = new EditText(getContext());
-		input.setText(note.getText());
-		box.addView(input);
-		LinearLayout row = new LinearLayout(getContext());
-		row.setOrientation(LinearLayout.HORIZONTAL);
-		Button smaller = new Button(getContext());
-		smaller.setText("A-");
-		smaller.setOnClickListener(v -> {
-			note.setScale(Math.max(0.4f, note.getScale() - 0.2f));
-			card.setScaleX(note.getScale());
-			card.setScaleY(note.getScale());
-		});
-		Button bigger = new Button(getContext());
-		bigger.setText("A+");
-		bigger.setOnClickListener(v -> {
-			note.setScale(Math.min(4f, note.getScale() + 0.2f));
-			card.setScaleX(note.getScale());
-			card.setScaleY(note.getScale());
-		});
-		row.addView(smaller);
-		row.addView(bigger);
-		box.addView(row);
-		new AlertDialog.Builder(getContext(), android.R.style.Theme_DeviceDefault_Dialog_Alert)
-				.setTitle(R.string.script_canvas_note_hint)
-				.setView(box)
-				.setPositiveButton(android.R.string.ok, (dialog, which) -> {
-					note.setText(input.getText().toString());
-					card.setText(note.getText());
-				})
-				.setNeutralButton(R.string.script_canvas_delete_note, (dialog, which) -> {
-					sprite.getScriptNotes().remove(note);
-					world.removeView(card);
-				})
-				.setNegativeButton(android.R.string.cancel, null)
-				.show();
-	}
-
-	private class NoteTouchListener implements OnTouchListener {
-		private final ScriptNote note;
-		private final TextView card;
-		private float startRawX;
-		private float startRawY;
-		private float startPosX;
-		private float startPosY;
-		private boolean moved;
-
-		NoteTouchListener(ScriptNote note, TextView card) {
-			this.note = note;
-			this.card = card;
-		}
-
-		@Override
-		public boolean onTouch(View v, MotionEvent event) {
-			switch (event.getActionMasked()) {
-				case MotionEvent.ACTION_DOWN:
-					startRawX = event.getRawX();
-					startRawY = event.getRawY();
-					startPosX = note.getPosX();
-					startPosY = note.getPosY();
-					moved = false;
-					return true;
-				case MotionEvent.ACTION_MOVE:
-					float dx = (event.getRawX() - startRawX) / scale;
-					float dy = (event.getRawY() - startRawY) / scale;
-					if (Math.hypot(dx, dy) > TOUCH_SLOP_PX) {
-						moved = true;
-					}
-					note.setPosX(startPosX + dx);
-					note.setPosY(startPosY + dy);
-					LayoutParams params = (LayoutParams) card.getLayoutParams();
-					params.leftMargin = Math.round(note.getPosX());
-					params.topMargin = Math.round(note.getPosY());
-					card.setLayoutParams(params);
-					return true;
-				case MotionEvent.ACTION_UP:
-					if (!moved) {
-						showEditNoteDialog(note, card);
-					}
-					return true;
-				default:
-					return false;
-			}
-		}
-	}
-
-	public void setIndentationEnabled(boolean enabled) {
-		this.indentationEnabled = enabled;
-		rebuildDeferred();
-	}
-
-	public boolean getIndentationEnabled() {
-		return indentationEnabled;
-	}
-
 	private class SelectionBar extends LinearLayout {
 		private final TextView countText;
 
@@ -1985,7 +1803,7 @@ if (brick instanceof VisualPlacementBrick) {
 		}
 		copiedSelectionClipboard = clipboard;
 		rebuild();
-		Toast.makeText(getContext(), "Copied " + toCopy.size() + " block(s)", Toast.LENGTH_SHORT).show();
+		Toast.makeText(getContext(), "Скопировано блоков: " + toCopy.size(), Toast.LENGTH_SHORT).show();
 	}
 
 	private static List<Brick> copiedSelectionClipboard = null;
@@ -2005,7 +1823,7 @@ if (brick instanceof VisualPlacementBrick) {
 			}
 		}
 		rebuild();
-		Toast.makeText(getContext(), "Pasted " + copiedSelectionClipboard.size() + " block(s)", Toast.LENGTH_SHORT).show();
+		Toast.makeText(getContext(), "Вставлено блоков: " + copiedSelectionClipboard.size(), Toast.LENGTH_SHORT).show();
 	}
 
 	private class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {

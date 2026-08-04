@@ -3,8 +3,8 @@
     <string formatted="false" name="ai_agent_no_model">None</string>
     <string name="ai_agent_choose_provider_title">Choose AI Provider</string>
     <string name="ai_agent_enter_api_key_hint">Enter API Key for %1$s...</string>
-    <string name="ai_agent_api_key_title">API Key for %1$s</string>
-    <string name="ai_agent_api_key_saved">API Key saved for %1$s!</string>
+    <string name="ai_agent_api_key_dialog_title">API Key for %1$s</string>
+    <string name="ai_agent_api_key_saved_toast">API Key saved for %1$s!</string>
     <string name="ai_agent_fetching_models">Fetching model list with %1$s API key...</string>
     <string name="ai_agent_enter_model_manually">Enter model name manually...</string>
     <string name="ai_agent_models_title">Models from API key (%1$s)</string>
