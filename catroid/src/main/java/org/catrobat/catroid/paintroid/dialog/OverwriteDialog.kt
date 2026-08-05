@@ -50,7 +50,7 @@ class OverwriteDialog : MainActivityDialogFragment() {
                 val resolver = requireContext().contentResolver
                 val storeImageUri = when (FileIO.fileType) {
                     FileIO.FileType.JPG, FileIO.FileType.PNG -> FileIO.getUriForFilenameInPicturesFolder(FileIO.defaultFileName, resolver)
-                    FileIO.FileType.CATROBAT, FileIO.FileType.ORA -> FileIO.getUriForFilenameInDownloadsFolder(FileIO.defaultFileName, resolver)
+                    FileIO.FileType.CATROBAT, FileIO.FileType.ORA -> FileIO.getUriForFilenameInPicturesFolder(FileIO.defaultFileName, resolver)
                 }
 
                 FileIO.storeImageUri = storeImageUri

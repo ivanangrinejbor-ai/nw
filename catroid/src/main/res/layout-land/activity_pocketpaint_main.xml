@@ -40,7 +40,7 @@
             android:layout_height="@dimen/pocketpaint_main_top_bar_height"
             android:layout_alignParentTop="true" />
 
-        <org.catrobat.paintroid.ui.DrawingSurface
+        <org.catrobat.catroid.paintroid.ui.DrawingSurface
             android:id="@+id/pocketpaint_drawing_surface_view"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"

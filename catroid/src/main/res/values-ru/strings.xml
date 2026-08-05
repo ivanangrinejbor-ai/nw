@@ -5798,7 +5798,7 @@ Catrobat — это визуальный язык программировани
             <string name="scene_editor_action_failed">Не удалось выполнить</string>
             <string name="scene_editor_promo_title">Новое: Редактор сцены 2.0</string>
             <string name="scene_editor_promo_message">Попробуй новый визуальный редактор сцены: расставляй объекты на сцене, редактируй скрипты на бесконечном холсте и не только.</string>
-            <string name="scene_editor_promo_try">Попробовать</string>
+            <string name="scene_editor_promo_try">Попробовать редактор 2.0</string>
             <string name="scene_editor_promo_enable">Включить всегда</string>
             <string name="scene_editor_promo_later">Позже</string>
             <string-array name="swipe_directions">

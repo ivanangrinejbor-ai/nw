@@ -43,7 +43,7 @@ class BottomNavigationViewHolder(
     val bottomNavigationView: BottomNavigationView =
         layout.findViewById(R.id.pocketpaint_bottom_navigation)
     private val bottomNavigation: BottomNavigationAppearance
-    private val colorButton: ImageView
+    private var colorButton: ImageView? = null
     private val colorItemView: BottomNavigationItemView
 
     init {
@@ -51,7 +51,8 @@ class BottomNavigationViewHolder(
         val bottomNavigationMenuView =
             bottomNavigationView.getChildAt(0) as BottomNavigationMenuView
         colorItemView = bottomNavigationMenuView.getChildAt(2) as BottomNavigationItemView
-        colorButton = colorItemView.findViewById(com.google.android.material.R.id.navigation_bar_item_icon_view)
+        colorButton = colorItemView.findViewById<ImageView>(com.google.android.material.R.id.navigation_bar_item_icon_view)
+            ?: findImageViewInChildren(colorItemView)
         initColorButton()
     }
 
@@ -72,11 +73,11 @@ class BottomNavigationViewHolder(
     }
 
     override fun setColorButtonColor(color: Int) {
-        colorButton.setColorFilter(color)
+        colorButton?.setColorFilter(color)
     }
 
     private fun initColorButton() {
-        colorButton.apply {
+        colorButton?.apply {
             scaleType = ImageView.ScaleType.FIT_XY
             setBackgroundColor(Color.WHITE)
             setPadding(2, 2, 2, 2)
@@ -89,4 +90,15 @@ class BottomNavigationViewHolder(
         } else {
             BottomNavigationLandscape(context, bottomNavigationView)
         }
+
+    private fun findImageViewInChildren(view: View): ImageView? {
+        if (view is ImageView) return view
+        if (view is android.view.ViewGroup) {
+            for (i in 0 until view.childCount) {
+                val found = findImageViewInChildren(view.getChildAt(i))
+                if (found != null) return found
+            }
+        }
+        return null
+    }
 }

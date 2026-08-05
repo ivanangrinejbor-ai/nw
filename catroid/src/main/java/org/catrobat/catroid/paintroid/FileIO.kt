@@ -454,8 +454,7 @@ object FileIO {
 
     fun checkFileExists(fileType: FileType, filename: String, resolver: ContentResolver): Boolean {
         return when (fileType) {
-            FileType.JPG, FileType.PNG -> checkFileExistsInPicturesFolder(filename, resolver)
-            FileType.ORA, FileType.CATROBAT -> checkFileExistsInDownloadsFolder(filename, resolver)
+            FileType.JPG, FileType.PNG, FileType.ORA, FileType.CATROBAT -> checkFileExistsInPicturesFolder(filename, resolver)
         }
     }
 

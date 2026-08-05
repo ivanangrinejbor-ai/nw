@@ -165,28 +165,23 @@ open class CommandSerializer(private val activityContext: Context, private val c
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             val contentValues = ContentValues().apply {
                 put(MediaStore.Images.Media.DISPLAY_NAME, fileName)
-                put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
+                put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES)
             }
-            contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)?.let { uri ->
+            contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)?.let { uri ->
                 contentResolver.openOutputStream(uri)?.use { stream ->
                     writeToStream(stream)
                     returnUri = uri
                 }
             }
         } else {
-            if (!(DOWNLOADS_DIRECTORY.exists() || DOWNLOADS_DIRECTORY.mkdirs())) {
+            if (!(PICTURES_DIRECTORY.exists() || PICTURES_DIRECTORY.mkdirs())) {
                 return null
             }
-            val imageFile = File(DOWNLOADS_DIRECTORY, fileName)
+            val imageFile = File(PICTURES_DIRECTORY, fileName)
             FileOutputStream(imageFile).use { fileStream ->
                 writeToStream(fileStream)
                 returnUri = Uri.fromFile(imageFile)
             }
-
-            val downloadManager = OpenRasterFileFormatConversion.mainActivity?.baseContext?.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-            val id = downloadManager.addCompletedDownload(fileName, fileName, true, "application/zip", imageFile.absolutePath, imageFile.length(), true)
-            val sharedPreferences = OpenRasterFileFormatConversion.mainActivity?.getSharedPreferences(SPECIFIC_FILETYPE_SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE)
-            sharedPreferences?.edit()?.putLong(imageFile.absolutePath, id)?.apply()
         }
 
         return returnUri
@@ -199,7 +194,7 @@ open class CommandSerializer(private val activityContext: Context, private val c
             if (c != null) {
                 if (c.moveToFirst()) {
                     val id = c.getLong(c.getColumnIndexOrThrow(MediaStore.Images.Media._ID))
-                    val deleteUri = ContentUris.withAppendedId(MediaStore.Downloads.EXTERNAL_CONTENT_URI, id)
+                    val deleteUri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
                     resolver.delete(deleteUri, null, null)
                 } else {
                     throw IOException("No file to delete was found!")
@@ -209,12 +204,6 @@ open class CommandSerializer(private val activityContext: Context, private val c
         } else {
             val file = File(uri.path.toString())
             val isDeleted = file.delete()
-            val sharedPreferences = OpenRasterFileFormatConversion.mainActivity?.getSharedPreferences(SPECIFIC_FILETYPE_SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE)
-            val id = sharedPreferences?.getLong(uri.path, -1)
-            if (id != null && id > -1) {
-                val downloadManager = OpenRasterFileFormatConversion.mainActivity?.baseContext?.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-                downloadManager.remove(id)
-            }
             if (!isDeleted) {
                 throw IOException("No file to delete was found!")
             }

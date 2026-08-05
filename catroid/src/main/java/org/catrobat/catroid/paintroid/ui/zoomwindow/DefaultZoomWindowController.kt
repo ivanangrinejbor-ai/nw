@@ -58,6 +58,8 @@ class DefaultZoomWindowController
             Bitmap.Config.ARGB_8888
         )
 
+    private var mergedBackgroundCache: Bitmap? = null
+
     init {
         framePaint.color = Color.BLACK
         framePaint.style = Paint.Style.STROKE
@@ -85,6 +87,10 @@ class DefaultZoomWindowController
         canvasBackground.drawBitmap(greyBackgroundBitmap, Matrix(), null)
         canvasBackground.drawBitmap(
             chequeredBackgroundBitmap, zoomWindowDiameter / 2f, zoomWindowDiameter / 2f, null)
+
+        chequeredBackgroundBitmap.recycle()
+        greyBackgroundBitmap.recycle()
+        checkerboard.recycle()
     }
 
     private val zoomWindow: RelativeLayout =
@@ -200,6 +206,14 @@ class DefaultZoomWindowController
 
     private fun mergeBackground(bitmap: Bitmap?): Bitmap? {
 
+        val cached = mergedBackgroundCache
+        if (cached != null && !cached.isRecycled) {
+            val bitmapOverlay = Bitmap.createBitmap(cached)
+            val canvas = Canvas(bitmapOverlay)
+            bitmap?.let { canvas.drawBitmap(it, zoomWindowDiameter / 2f, zoomWindowDiameter / 2f, null) }
+            return bitmapOverlay
+        }
+
         val bitmapOverlay =
             Bitmap.createBitmap(
                 layerModel.width + zoomWindowDiameter,
@@ -213,6 +227,11 @@ class DefaultZoomWindowController
         bitmap?.let { canvas.drawBitmap(it, zoomWindowDiameter / 2f, zoomWindowDiameter / 2f, null) }
 
         return bitmapOverlay
+    }
+
+    fun invalidateBackgroundCache() {
+        mergedBackgroundCache?.recycle()
+        mergedBackgroundCache = null
     }
 
     private fun getSizeOfZoomWindow(): Int {

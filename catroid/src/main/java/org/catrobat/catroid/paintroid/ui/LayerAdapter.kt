@@ -193,6 +193,9 @@ class LayerAdapter(
         }
 
         private fun resizeBitmap(bitmap: Bitmap): Bitmap {
+            if (bitmap.width <= 0 || bitmap.height <= 0) {
+                return bitmap
+            }
             val newWidth: Float
             val newHeight: Float
             if (bitmap.width > bitmap.height) {

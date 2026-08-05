@@ -26,6 +26,7 @@ internal class DrawingSurfaceThread(
     private val threadRunnable: Runnable
 ) {
     private val internalThread: Thread
+    @Volatile
     private var running = false
 
     init {

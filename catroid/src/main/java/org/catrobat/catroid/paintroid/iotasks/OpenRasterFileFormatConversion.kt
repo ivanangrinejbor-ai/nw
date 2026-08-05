@@ -99,33 +99,25 @@ class OpenRasterFileFormatConversion private constructor() {
             bitmapThumb?.recycle()
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 contentValues.put(MediaStore.Files.FileColumns.DISPLAY_NAME, fileName)
-                contentValues.put(MediaStore.Files.FileColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
-                contentValues.put(MediaStore.Files.FileColumns.MIME_TYPE, "application/applefile")
-                imageUri = resolver?.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
+                contentValues.put(MediaStore.Files.FileColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES)
+                contentValues.put(MediaStore.Files.FileColumns.MIME_TYPE, "image/openraster")
+                imageUri = resolver?.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
             } else {
-                val imageRoot = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                val imageRoot = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
                 if (!imageRoot.exists() && !imageRoot.mkdirs()) {
                     imageRoot.mkdirs()
                 }
-                val uri = MediaStore.Files.getContentUri("external")
+                val uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
                 contentValues.put(MediaStore.Files.FileColumns.DATA, imageRoot.absolutePath + "/" + fileName)
                 contentValues.put(MediaStore.Files.FileColumns.DISPLAY_NAME, fileName)
-                contentValues.put(MediaStore.Files.FileColumns.MIME_TYPE, "application/zip")
+                contentValues.put(MediaStore.Files.FileColumns.MIME_TYPE, "image/openraster")
                 contentValues.put(MediaStore.Files.FileColumns.MEDIA_TYPE, MediaStore.Files.FileColumns.MEDIA_TYPE_NONE)
                 val date = System.currentTimeMillis()
                 contentValues.put(MediaStore.MediaColumns.DATE_MODIFIED, date / DATE_DIVIDER)
                 wholeSize = xmlByteArray?.size?.toFloat()?.let { wholeSize?.plus(it) }
                 ?.plus(mimeByteArray.size.toFloat())?.plus(bitmapByteArray.size.toFloat())?.plus(bitmapThumbArray.size.toFloat())
                 contentValues.put(MediaStore.Images.Media.SIZE, wholeSize)
-                val downloadManager = mainActivity?.baseContext?.getSystemService(Context.DOWNLOAD_SERVICE) as? DownloadManager
-                val id = if (downloadManager != null) {
-                    wholeSize?.let { downloadManager.addCompletedDownload(
-                            fileName, fileName, true, "application/zip",
-                            imageRoot.absolutePath + "/" + fileName, it.toLong(), true) }
-                } else null
                 imageUri = resolver?.insert(uri, contentValues)
-                val sharedPreferences = mainActivity?.getSharedPreferences(SPECIFIC_FILETYPE_SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE)
-                id?.let { sharedPreferences?.edit()?.putLong(imageRoot.absolutePath + "/" + fileName, it)?.apply() }
             }
             if (xmlByteArray == null) {
                 return null
@@ -218,23 +210,17 @@ class OpenRasterFileFormatConversion private constructor() {
                 val c = resolver?.query(uri, projection, null, null, null)
                 if (c?.moveToFirst() == true) {
                     val id = c.getLong(c.getColumnIndexOrThrow(MediaStore.Images.Media._ID))
-                    val deleteUri = ContentUris.withAppendedId(MediaStore.Downloads.EXTERNAL_CONTENT_URI, id)
+                    val deleteUri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
                     resolver.delete(deleteUri, null, null)
                 } else {
-                    throw AssertionError("No file to delete was found!")
+                    throw IOException("No file to delete was found!")
                 }
                 c.close()
             } else {
                 val file = File(uri.path.toString())
                 val isDeleted = file.delete()
-                val sharedPreferences = mainActivity?.getSharedPreferences(SPECIFIC_FILETYPE_SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE)
-                val id = sharedPreferences?.getLong(uri.path, -1)
-                if (id != null && id > -1) {
-                    val downloadManager = mainActivity?.baseContext?.getSystemService(Context.DOWNLOAD_SERVICE) as? DownloadManager
-                    downloadManager?.remove(id)
-                }
                 if (!isDeleted) {
-                    throw AssertionError("No file to delete was found!")
+                    throw IOException("No file to delete was found!")
                 }
             }
             return exportToOraFile(layers, fileName, bitmapAllLayers, resolver)

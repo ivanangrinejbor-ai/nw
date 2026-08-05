@@ -91,13 +91,15 @@ class BrickSearchFragment : ListFragment() {
             listView.setSelection(listIndexToFocus)
             listIndexToFocus = -1
         }
-        listView.onItemClickListener = AdapterView.OnItemClickListener { parent: AdapterView<*>?, view: View?, position: Int, id: Long -> adapter?.getItem(position)?.let { addBrickToScript(
-            it,
-            activity as SpriteActivity,
-            addBrickListener,
-            parentFragmentManager,
-            BRICK_SEARCH_FRAGMENT_TAG
-        ) }
+        listView.onItemClickListener = AdapterView.OnItemClickListener { parent: AdapterView<*>?, view: View?, position: Int, id: Long ->
+            val spriteActivity = activity as? SpriteActivity ?: return@OnItemClickListener
+            adapter?.getItem(position)?.let { addBrickToScript(
+                it,
+                spriteActivity,
+                addBrickListener,
+                parentFragmentManager,
+                BRICK_SEARCH_FRAGMENT_TAG
+            ) }
         }
     }
 

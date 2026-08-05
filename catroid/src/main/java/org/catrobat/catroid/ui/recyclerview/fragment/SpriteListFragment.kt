@@ -146,7 +146,12 @@ class SpriteListFragment : RecyclerViewFragment<Sprite?>() {
     }
 
     private fun handleSelectedOptionItem(item: MenuItem) {
-        if (adapter.items.size == 1) {
+        val requiresSprite = item.itemId == R.id.backpack ||
+            item.itemId == R.id.copy ||
+            item.itemId == R.id.delete ||
+            item.itemId == R.id.rename ||
+            item.itemId == R.id.scene_transition
+        if (requiresSprite && adapter.items.size <= 1) {
             ToastUtil.showError(activity, R.string.am_empty_list)
             resetActionModeParameters()
         } else {
@@ -418,7 +423,7 @@ class SpriteListFragment : RecyclerViewFragment<Sprite?>() {
         val itemList = mutableListOf<Sprite?>()
         itemList.add(item)
         val hiddenMenuOptionIds = mutableListOf<Int>(
-            R.id.new_group, R.id.project_options, R.id.project_files, R.id.project_libs, R.id.editor3d, R.id.new_scene, R.id.show_details, R.id.edit
+            R.id.new_group, R.id.project_options, R.id.project_files, R.id.project_libs, R.id.editor3d, R.id.new_scene, R.id.show_details, R.id.edit, R.id.scene_transition
         )
         if (item is GroupSprite) {
             hiddenMenuOptionIds.add(R.id.backpack)

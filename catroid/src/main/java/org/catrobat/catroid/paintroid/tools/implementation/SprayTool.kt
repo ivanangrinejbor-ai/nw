@@ -28,6 +28,7 @@ import androidx.annotation.VisibleForTesting
 import androidx.test.espresso.idling.CountingIdlingResource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -190,7 +191,8 @@ class SprayTool(
     }
 
     private fun createSprayPatternAsync() {
-        sprayToolScope = CoroutineScope(Dispatchers.Default)
+        sprayToolScope.cancel()
+        sprayToolScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
         sprayToolScope.launch {
             while (true) {
                 repeat(sprayRadius / DEFAULT_RADIUS) {

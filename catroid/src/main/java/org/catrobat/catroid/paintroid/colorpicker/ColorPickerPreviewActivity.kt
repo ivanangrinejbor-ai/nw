@@ -124,6 +124,12 @@ class ColorPickerPreviewActivity : AppCompatActivity(), OnImageViewPointClickedL
         }
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        pickableImage?.recycle()
+        pickableImage = null
+    }
+
     private fun showSaveChangesDialog() {
         MaterialAlertDialogBuilder(this)
             .setTitle(R.string.color_picker_save_dialog_title)

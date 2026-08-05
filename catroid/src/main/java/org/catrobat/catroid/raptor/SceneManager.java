@@ -41,6 +41,10 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class SceneManager {
 
+    private static SceneManager instance;
+
+    public static SceneManager getInstance() { return instance; }
+
     private final Queue<GameObject> loadingQueue = new LinkedList<>();
 
     private static final long MAX_LOADING_TIME_PER_FRAME_MS = 8;
