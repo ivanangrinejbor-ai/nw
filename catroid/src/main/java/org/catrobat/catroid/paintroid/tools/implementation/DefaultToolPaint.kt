@@ -45,15 +45,14 @@ class DefaultToolPaint(private val context: Context) : ToolPaint {
         strokeWidth = STROKE_25
     }
 
+    private val cachedCheckeredShader: Shader? by lazy {
+        val checkerboard =
+            BitmapFactory.decodeResource(context.resources, R.drawable.pocketpaint_checkeredbg)
+        checkerboard?.let { BitmapShader(it, Shader.TileMode.REPEAT, Shader.TileMode.REPEAT) }
+    }
+
     override val checkeredShader: Shader?
-        get() {
-            val checkerboard =
-                BitmapFactory.decodeResource(context.resources, R.drawable.pocketpaint_checkeredbg)
-            if (checkerboard != null) {
-                return BitmapShader(checkerboard, Shader.TileMode.REPEAT, Shader.TileMode.REPEAT)
-            }
-            return null
-        }
+        get() = cachedCheckeredShader
 
     override val previewPaint: Paint
         get() = Paint().apply { set(bitmapPaint) }

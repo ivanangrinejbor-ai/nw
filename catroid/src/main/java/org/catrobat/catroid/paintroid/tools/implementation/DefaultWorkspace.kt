@@ -49,7 +49,7 @@ class DefaultWorkspace(
         get() = layerModel.getBitmapListOfAllLayers()
 
     override var bitmapOfCurrentLayer: Bitmap? = null
-        get() = layerModel.currentLayer?.bitmap?.let { Bitmap.createBitmap(it) }
+        get() = layerModel.currentLayer?.bitmap
 
     override val currentLayerIndex: Int
         get() {

@@ -4343,6 +4343,19 @@
     <string formatted="false" name="formula_editor_regex_html_extractor_dialog_title">Экстрактор HTML</string>
     <string formatted="false" name="formula_editor_discard_changes_dialog_message">Хотите ли вы сохранить свои изменения?</string>
     <string formatted="false" name="formula_editor_discard_changes_dialog_title">Сохранить изменения?</string>
+    <string formatted="false" name="formula_editor_discard">Отменить</string>
+    <string formatted="false" name="formula_editor_save">Сохранить</string>
+    <string formatted="false" name="formula_editor_search_hint">Поиск…</string>
+    <string formatted="false" name="formula_editor_sensors">Датчики</string>
+    <string formatted="false" name="formula_editor_sensors_touch">Касание</string>
+    <string formatted="false" name="formula_editor_sensors_device">Устройство</string>
+    <string formatted="false" name="formula_editor_sensors_date">Дата / Время</string>
+    <string formatted="false" name="formula_editor_stage">Сцена</string>
+    <string formatted="false" name="formula_editor_function_category_maths">Математика</string>
+    <string formatted="false" name="formula_editor_function_category_strings">Строки</string>
+    <string formatted="false" name="formula_editor_function_category_lists">Списки</string>
+    <string formatted="false" name="formula_editor_function_category_device">Устройство</string>
+    <string formatted="false" name="formula_editor_function_category_object">Объект</string>
     <string formatted="false" name="formula_editor_new_string_name">Новый текст</string>
     <string formatted="false" name="formula_editor_dialog_change_text">Изменить текст</string>
     <string formatted="false" name="formula_editor_dialog_change_regular_expression">Изменить регулярное
@@ -5872,4 +5885,35 @@ Catrobat — это визуальный язык программировани
     <string formatted="false" name="v3_debuggable">Отладка приложения (debuggable)</string>
     <string formatted="false" name="v3_section_app">Приложение</string>
     <string formatted="false" name="v3_section_build">Параметры сборки</string>
+
+    <!-- Formula Editor 2.0 -->
+    <string name="formula_editor_2_title">Редактор формул</string>
+    <string name="formula_editor_2_copied">Скопировано</string>
+    <string name="formula_editor_2_data_formulas">Формулы данных</string>
+    <string name="formula_editor_2_variables">Переменные</string>
+    <string name="formula_editor_2_lists">Списки</string>
+    <string name="formula_editor_2_no_variables">Нет переменных</string>
+    <string name="formula_editor_2_no_lists">Нет списков</string>
+    <string name="formula_editor_2_no_values">Нет доступных значений</string>
+    <string name="formula_editor_2_color">Цвет</string>
+    <string name="formula_editor_2_check_brackets">Проверить скобки и выражение</string>
+    <string name="formula_editor_2_invalid_formula">Неверная формула</string>
+    <string name="formula_editor_2_string_warning">Внимание: строка содержит синтаксис формул. Используй «Данные → Переменные» для вставки значений.</string>
+    <string name="formula_editor_2_compute">Результат формулы</string>
+    <string name="formula_editor_2_no_formula">Сначала введите формулу</string>
+    <string name="formula_editor_2_clipboard_history">Вставить из истории</string>
+    <string name="formula_editor_2_no_clipboard">Буфер пуст</string>
+    <string name="formula_editor_undo">Отменить</string>
+    <string name="formula_editor_redo">Повторить</string>
+    <string name="formula_editor_2_manage_variables">Управление переменными</string>
+    <string name="formula_editor_2_create_variable">+ Новая переменная спрайта</string>
+    <string name="formula_editor_2_create_global_variable">+ Новая глобальная переменная</string>
+    <string name="formula_editor_2_insert_variable">Вставить</string>
+    <string name="formula_editor_2_rename_variable">Переименовать</string>
+    <string name="formula_editor_2_delete_variable">Удалить</string>
+    <string name="formula_editor_2_variable_name_hint">Имя переменной</string>
+    <string name="formula_editor_2_variable_created">Переменная «%1$s» создана</string>
+    <string name="formula_editor_2_variable_renamed">Переменная переименована в «%1$s»</string>
+    <string name="formula_editor_2_variable_deleted">Переменная «%1$s» удалена</string>
+    <string name="formula_editor_2_delete_variable_confirm">Удалить переменную «%1$s»?</string>
 </resources>

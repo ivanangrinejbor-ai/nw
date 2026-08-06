@@ -193,6 +193,7 @@ class DefaultCommandManager(
     }
 
     override fun isLastColorCommandOnTop(): Boolean {
+        if (undoCommandList.isEmpty()) return false
         var retVal = false
         if (undoCommandList.first is ColorChangedCommand) {
             val commandIterator = undoCommandList.iterator()

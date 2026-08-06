@@ -142,6 +142,7 @@ class SaveImage(
                 when (e) {
                     is IOException -> Log.d(TAG, "Can't save image file", e)
                     is NullPointerException -> Log.e(TAG, "Can't load image file", e)
+                    else -> Log.e(TAG, "Unexpected error saving image", e)
                 }
             }
 

@@ -242,6 +242,7 @@ class HSVColorPickerView : View {
     private fun pointToSatVal(x: Float, y: Float): FloatArray {
         val width = satValRect.width()
         val height = satValRect.height()
+        if (width <= 0f || height <= 0f) return floatArrayOf(0f, 0f)
         val curX = clamp(x - satValRect.left, 0f, width)
         val curY = clamp(y - satValRect.top, 0f, height)
         return floatArrayOf(1f / width * curX, 1f - 1f / height * curY)
@@ -249,6 +250,7 @@ class HSVColorPickerView : View {
 
     private fun pointToHue(y: Float): Float {
         val height = hueRect.height()
+        if (height <= 0f) return 0f
         val curY = clamp(y - hueRect.top, 0f, height)
         return HUE - curY * HUE / height
     }

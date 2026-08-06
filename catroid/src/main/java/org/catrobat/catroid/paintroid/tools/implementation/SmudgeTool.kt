@@ -278,42 +278,36 @@ class SmudgeTool(
             var pressure = maxPressure
             val colorMatrix = ColorMatrix()
             val paint = Paint()
-            var bitmap = currentBitmap?.copy(Bitmap.Config.ARGB_8888, false)
+
+            val baseBitmap = currentBitmap?.copy(Bitmap.Config.ARGB_8888, false) ?: return
+            val reusableBitmap = Bitmap.createBitmap(
+                maxSmudgeSize.toInt(),
+                maxSmudgeSize.toInt(),
+                Bitmap.Config.ARGB_8888
+            )
 
             pointPath.forEach {
                 colorMatrix.setScale(1f, 1f, 1f, pressure)
                 paint.colorFilter = ColorMatrixColorFilter(colorMatrix)
 
-                val newBitmap = Bitmap.createBitmap(
-                    maxSmudgeSize.toInt(),
-                    maxSmudgeSize.toInt(),
-                    Bitmap.Config.ARGB_8888
-                )
-
-                Canvas(newBitmap).apply {
-                    bitmap?.let { currentBitmap ->
-                        drawBitmap(currentBitmap, 0f, 0f, paint)
-                    }
-                }
-
-                bitmap?.recycle()
-                bitmap = newBitmap
+                val canvas2 = Canvas(reusableBitmap)
+                canvas2.drawColor(0, android.graphics.PorterDuff.Mode.CLEAR)
+                canvas2.drawBitmap(baseBitmap, 0f, 0f, paint)
 
                 val rect = RectF(-size / 2f, -size / 2f, size / 2f, size / 2f)
                 with(canvas) {
                     save()
                     clipRect(0, 0, workspace.width, workspace.height)
                     translate(it.x, it.y)
-                    bitmap?.let { currentBitmap ->
-                        drawBitmap(currentBitmap, null, rect, Paint(Paint.DITHER_FLAG))
-                    }
+                    drawBitmap(reusableBitmap, null, rect, Paint(Paint.DITHER_FLAG))
                     restore()
                 }
                 size -= step
                 pressure -= PRESSURE_UPDATE_STEP
             }
 
-            bitmap?.recycle()
+            baseBitmap.recycle()
+            reusableBitmap.recycle()
         }
     }
 }

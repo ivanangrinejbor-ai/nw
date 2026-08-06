@@ -44,7 +44,7 @@ class CreateFile(
         scopeIO.launch {
             try {
                 file = FileIO.createNewEmptyPictureFile(filename, callback?.fileActivity)
-            } catch (e: NullPointerException) {
+            } catch (e: Exception) {
                 Log.e(TAG, "Can't create file", e)
             }
             withContext(Dispatchers.Main) {

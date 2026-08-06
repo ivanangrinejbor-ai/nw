@@ -77,6 +77,7 @@ class LineTool(
     var changeInitialCoordinateForHandleNormalLine = false
 
     companion object {
+        @Volatile
         var topBarViewHolder: TopBarViewHolder? = null
     }
 
@@ -128,9 +129,10 @@ class LineTool(
             }
             undoRecentlyClicked = true
         }
-        val isPlusVisible = topBarViewHolder!!.plusButton.visibility == View.VISIBLE
+        val holder = topBarViewHolder ?: return
+        val isPlusVisible = holder.plusButton.visibility == View.VISIBLE
         if (isPlusVisible && !connectedLines) {
-            topBarViewHolder!!.plusButton.visibility = View.GONE
+            holder.plusButton.visibility = View.GONE
         }
     }
 
@@ -210,7 +212,7 @@ class LineTool(
 
     private fun showToolOptions() {
         if (!toolOptionsViewController.isVisible) {
-            if (brushToolOptionsView.getBottomToolOptions().visibility == View.INVISIBLE) {
+            if (brushToolOptionsView.getTopToolOptions().visibility == View.INVISIBLE) {
                 toolOptionsViewController.slideDown(
                     brushToolOptionsView.getTopToolOptions(),
                     willHide = false,

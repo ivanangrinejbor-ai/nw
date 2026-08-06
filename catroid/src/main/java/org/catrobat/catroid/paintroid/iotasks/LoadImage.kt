@@ -105,6 +105,8 @@ class LoadImage(
                     Log.e(TAG, "Can't load image file", e)
                 } catch (e: NullPointerException) {
                     Log.e(TAG, "Can't load image file", e)
+                } catch (e: Exception) {
+                    Log.e(TAG, "Can't load image file", e)
                 }
             }
 

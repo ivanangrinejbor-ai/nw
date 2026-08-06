@@ -27,6 +27,8 @@ import androidx.annotation.VisibleForTesting
 import androidx.test.espresso.idling.CountingIdlingResource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.catrobat.catroid.R
@@ -109,6 +111,7 @@ class TransformTool(
     private val rangeFilterWidth: NumberRangeFilter
     private val cropAlgorithm: CropAlgorithm
     private val setCenterCropAlgorithm: SetCenterAlgorithm
+    private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
     override val toolType: ToolType
         get() = ToolType.TRANSFORM
@@ -218,10 +221,10 @@ class TransformTool(
             return super.handleDown(coordinate)
         }
 
-        CoroutineScope(Dispatchers.Default).launch {
-            toolPosition.x = coordinate.x
-            toolPosition.y = coordinate.y
+        scope.launch {
             withContext(Dispatchers.Main) {
+                toolPosition.x = coordinate.x
+                toolPosition.y = coordinate.y
                 workspace.invalidate()
             }
         }
@@ -331,20 +334,19 @@ class TransformTool(
     }
 
     private fun executeSetCenterCommand() {
-        CoroutineScope(Dispatchers.Default).launch {
+        scope.launch {
             idlingResource.increment()
             val shapeBounds = setCenterCropAlgorithm.crop(workspace.bitmapOfAllLayers, toolPosition)
-            if (shapeBounds != null) {
-                boxWidth = shapeBounds.width() + 1f
-                boxHeight = shapeBounds.height() + 1f
-                toolPosition.x = shapeBounds.left + (shapeBounds.width() + 1) / 2.0f
-                toolPosition.y = shapeBounds.top + (shapeBounds.height() + 1) / 2.0f
-            } else {
-                toolPosition.x = boxWidth / 2.0f
-                toolPosition.y = boxHeight / 2.0f
-            }
-
             withContext(Dispatchers.Main) {
+                if (shapeBounds != null) {
+                    boxWidth = shapeBounds.width() + 1f
+                    boxHeight = shapeBounds.height() + 1f
+                    toolPosition.x = shapeBounds.left + (shapeBounds.width() + 1) / 2.0f
+                    toolPosition.y = shapeBounds.top + (shapeBounds.height() + 1) / 2.0f
+                } else {
+                    toolPosition.x = boxWidth / 2.0f
+                    toolPosition.y = boxHeight / 2.0f
+                }
                 isSetCenter = false
                 shouldDrawRectangle = true
                 workspace.invalidate()
@@ -418,17 +420,16 @@ class TransformTool(
     }
 
     private fun autoCrop() {
-        CoroutineScope(Dispatchers.Default).launch {
+        scope.launch {
             idlingResource.increment()
             val shapeBounds = cropAlgorithm.crop(workspace.bitmapOfAllLayers)
-            if (shapeBounds != null) {
-                boxWidth = shapeBounds.width() + 1f
-                boxHeight = shapeBounds.height() + 1f
-                toolPosition.x = shapeBounds.left + (shapeBounds.width() + 1) / 2.0f
-                toolPosition.y = shapeBounds.top + (shapeBounds.height() + 1) / 2.0f
-            }
-
             withContext(Dispatchers.Main) {
+                if (shapeBounds != null) {
+                    boxWidth = shapeBounds.width() + 1f
+                    boxHeight = shapeBounds.height() + 1f
+                    toolPosition.x = shapeBounds.left + (shapeBounds.width() + 1) / 2.0f
+                    toolPosition.y = shapeBounds.top + (shapeBounds.height() + 1) / 2.0f
+                }
                 workspace.invalidate()
                 toolOptionsViewController.hide()
             }
@@ -437,7 +438,7 @@ class TransformTool(
     }
 
     private fun setCenter() {
-        CoroutineScope(Dispatchers.Default).launch {
+        scope.launch {
             isSetCenter = true
             shouldDrawRectangle = false
             withContext(Dispatchers.Main) {

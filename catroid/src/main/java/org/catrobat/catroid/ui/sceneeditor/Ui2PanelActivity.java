@@ -54,10 +54,10 @@ public class Ui2PanelActivity extends AppCompatActivity {
 			Fragment fragment;
 			if (PANEL_PROJECT_FILES.equals(panel)) {
 				fragment = new ProjectFiles2Fragment();
-				toolbar.setTitle("Файлы проекта 2.0");
+				toolbar.setTitle(R.string.ui2_panel_project_files);
 			} else {
 				fragment = new org.catrobat.catroid.ui.fragment.ProjectOptions2Fragment();
-				toolbar.setTitle("Опции проекта 2.0");
+				toolbar.setTitle(R.string.ui2_panel_project_options);
 			}
 			getSupportFragmentManager().beginTransaction()
 					.replace(R.id.fragment_container, fragment, "ui2_panel_fragment")

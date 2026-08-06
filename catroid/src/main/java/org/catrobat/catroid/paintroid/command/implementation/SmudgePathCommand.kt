@@ -39,12 +39,13 @@ class SmudgePathCommand(bitmap: Bitmap, pointPath: MutableList<PointF>, maxPress
     var minSize = minSize; private set
 
     override fun run(canvas: Canvas, layerModel: LayerContracts.Model) {
+        if (pointPath.isEmpty()) return
         val step = (maxSize - minSize) / pointPath.size
         var size = maxSize
         var pressure = maxPressure
         val colorMatrix = ColorMatrix()
         val paint = Paint()
-        var bitmap = originalBitmap.copy(Bitmap.Config.ARGB_8888, false)
+        var bitmap = originalBitmap.copy(Bitmap.Config.ARGB_8888, false) ?: return
 
         pointPath.forEach {
             colorMatrix.setScale(1f, 1f, 1f, pressure)

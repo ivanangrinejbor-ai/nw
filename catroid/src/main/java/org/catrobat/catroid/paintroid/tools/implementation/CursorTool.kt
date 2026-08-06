@@ -144,7 +144,7 @@ open class CursorTool(
 
     private fun showToolOptions() {
         if (!toolOptionsViewController.isVisible) {
-            if (brushToolOptionsView.getBottomToolOptions().visibility == View.INVISIBLE) {
+            if (brushToolOptionsView.getTopToolOptions().visibility == View.INVISIBLE) {
                 toolOptionsViewController.slideDown(
                     brushToolOptionsView.getTopToolOptions(),
                     willHide = false,

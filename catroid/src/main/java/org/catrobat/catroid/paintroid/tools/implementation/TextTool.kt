@@ -316,8 +316,8 @@ class TextTool(
 
         canvas.save()
 
-        val widthScaling = (boxWidth - 2 * BOX_OFFSET) / maxTextWidth
-        val heightScaling = (boxHeight - 2 * BOX_OFFSET) / textHeight
+        val widthScaling = if (maxTextWidth > 0) (boxWidth - 2 * BOX_OFFSET) / maxTextWidth else 1f
+        val heightScaling = if (textHeight > 0) (boxHeight - 2 * BOX_OFFSET) / textHeight else 1f
 
         canvas.scale(widthScaling, heightScaling)
 
@@ -429,8 +429,9 @@ class TextTool(
     }
 
     private fun currentFontEntry(): FontEntry =
-        if (font == FontType.PROJECT_FONT && importedFontName != null) {
-            FontEntry.Imported(ImportedFont(importedFontName!!, importedFontName!!))
+        if (font == FontType.PROJECT_FONT) {
+            val name = importedFontName
+            if (name != null) FontEntry.Imported(ImportedFont(name, name)) else FontEntry.BuiltIn(font)
         } else {
             FontEntry.BuiltIn(font)
         }

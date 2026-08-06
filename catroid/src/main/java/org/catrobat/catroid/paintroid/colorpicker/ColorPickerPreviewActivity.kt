@@ -45,6 +45,7 @@ class ColorPickerPreviewActivity : AppCompatActivity(), OnImageViewPointClickedL
 
     private var currentColor = 0
     private var oldChosenColor = 0
+    private var checkerShader: Shader? = null
 
     companion object {
         var pickableImage: Bitmap? = null
@@ -100,9 +101,13 @@ class ColorPickerPreviewActivity : AppCompatActivity(), OnImageViewPointClickedL
 
     private fun setCurrentColor(color: Int) {
         currentColor = color
-        val checkeredBitmap =
-            BitmapFactory.decodeResource(resources, R.drawable.pocketpaint_checkeredbg)
-        val shader = BitmapShader(checkeredBitmap, Shader.TileMode.REPEAT, Shader.TileMode.REPEAT)
+        val shader = checkerShader ?: run {
+            val checkeredBitmap =
+                BitmapFactory.decodeResource(resources, R.drawable.pocketpaint_checkeredbg)
+            BitmapShader(checkeredBitmap, Shader.TileMode.REPEAT, Shader.TileMode.REPEAT).also {
+                checkerShader = it
+            }
+        }
         colorPreview.background =
             ColorPickerDialog.CustomColorDrawable.createDrawable(shader, color)
     }

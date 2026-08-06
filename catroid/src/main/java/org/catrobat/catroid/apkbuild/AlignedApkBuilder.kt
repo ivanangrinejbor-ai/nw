@@ -139,7 +139,7 @@ object AlignedApkBuilder {
 
                 onProgress("Protecting project payload...")
                 val encodedProject = File(tempDir, ProtectedProjectPayload.ENCRYPTED_ASSET_NAME)
-                val payloadPassword = config.payloadPassword ?: generateRandomPassword()
+                val payloadPassword = config.payloadPassword ?: ProjectCrypto.generateRandomPassword()
                 writeEncryptedPayload(context, projectDir, encodedProject, payloadPassword, currentProject, tempDir)
 
                 val keyFile = File(tempDir, ProtectedProjectPayload.KEY_ASSET_NAME)
@@ -531,12 +531,6 @@ object AlignedApkBuilder {
         ProjectCrypto.encrypt(payloadZip, encryptedFile, password, locked = true)
         payloadZip.delete()
         stagingDir.deleteRecursively()
-    }
-
-    private fun generateRandomPassword(): String {
-        val bytes = ByteArray(16)
-        SecureRandom().nextBytes(bytes)
-        return bytes.joinToString("") { "%02x".format(it) }
     }
 
     private fun zipDirectory(sourceDir: File, destFile: File) {

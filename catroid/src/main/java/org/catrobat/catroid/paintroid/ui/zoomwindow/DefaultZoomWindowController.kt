@@ -79,7 +79,7 @@ class DefaultZoomWindowController
 
         val greyBackgroundCanvas = Canvas(greyBackgroundBitmap)
         greyBackgroundCanvas.drawColor(
-            activity.resources.getColor(R.color.pocketpaint_main_drawing_surface_background)
+            androidx.core.content.ContextCompat.getColor(activity, R.color.pocketpaint_main_drawing_surface_background)
         )
 
         val canvasBackground = Canvas(backgroundBitmap)

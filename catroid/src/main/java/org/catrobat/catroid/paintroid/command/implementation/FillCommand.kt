@@ -36,6 +36,9 @@ class FillCommand(private val fillAlgorithmFactory: FillAlgorithmFactory, clicke
         val currentLayer = layerModel.currentLayer
         currentLayer ?: return
         currentLayer.bitmap.let { bitmap ->
+            if (bitmap == null || bitmap.isRecycled) return
+            if (clickedPixel.x < 0 || clickedPixel.x >= bitmap.width ||
+                clickedPixel.y < 0 || clickedPixel.y >= bitmap.height) return
             val colorToBeReplaced = bitmap.getPixel(clickedPixel.x, clickedPixel.y)
             val fillAlgorithm = fillAlgorithmFactory.createFillAlgorithm()
             fillAlgorithm.setParameters(

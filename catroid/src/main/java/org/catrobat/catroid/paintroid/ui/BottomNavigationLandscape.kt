@@ -40,8 +40,8 @@ class BottomNavigationLandscape(context: Context, private val bottomNavigationVi
 
     override fun showCurrentTool(toolType: ToolType) {
         val item = bottomNavigationMenuView.getChildAt(1)
-        val icon = item.findViewById<ImageView>(com.google.android.material.R.id.navigation_bar_item_icon_view)
-        val title = item.findViewById<TextView>(com.google.android.material.R.id.navigation_bar_item_large_label_view)
+        val icon = item.findViewById<ImageView>(R.id.icon)
+        val title = item.findViewById<TextView>(R.id.title)
         icon.setImageResource(toolType.drawableResource)
         title.setText(toolType.nameResource)
     }

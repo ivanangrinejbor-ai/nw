@@ -23,6 +23,7 @@ import android.net.Uri
 import androidx.test.espresso.idling.CountingIdlingResource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import org.catrobat.catroid.paintroid.command.serialization.CommandSerializer
 import org.catrobat.catroid.paintroid.contract.LayerContracts
 import org.catrobat.catroid.paintroid.contract.MainActivityContracts.Interactor
@@ -34,7 +35,7 @@ import org.catrobat.catroid.paintroid.iotasks.SaveImage
 import org.catrobat.catroid.paintroid.iotasks.SaveImage.SaveImageCallback
 
 class MainActivityInteractor(private val idlingResource: CountingIdlingResource) : Interactor {
-    private val scopeIO = CoroutineScope(Dispatchers.IO)
+    private val scopeIO = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     override fun saveCopy(
         callback: SaveImageCallback,

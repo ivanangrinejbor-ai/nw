@@ -199,6 +199,7 @@ class AlphaSlider(
         var x = y
         val rect: RectF = alphaRectangle
         val width = rect.width().toInt()
+        if (width <= 0) return MAX_ALPHA
         x = clamp(x - rect.left, 0f, width.toFloat()).toInt()
         return MAX_ALPHA - x * MAX_ALPHA / width
     }

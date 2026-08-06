@@ -117,12 +117,17 @@ object FileIO {
         var currentBitmap = bitmap
         require(currentBitmap != null && !currentBitmap.isRecycled) { "Bitmap is invalid" }
         if (compressFormat == CompressFormat.JPEG) {
-            val newBitmap =
-                Bitmap.createBitmap(currentBitmap.width, currentBitmap.height, currentBitmap.config ?: Bitmap.Config.ARGB_8888)
-            val canvas = Canvas(newBitmap)
-            canvas.drawColor(Color.WHITE)
-            canvas.drawBitmap(currentBitmap, 0f, 0f, null)
-            currentBitmap = newBitmap
+            if (currentBitmap.config == Bitmap.Config.ARGB_8888 && currentBitmap.isMutable) {
+                val canvas = Canvas(currentBitmap)
+                canvas.drawColor(Color.WHITE, android.graphics.PorterDuff.Mode.SRC_OVER)
+            } else {
+                val newBitmap =
+                    Bitmap.createBitmap(currentBitmap.width, currentBitmap.height, Bitmap.Config.ARGB_8888)
+                val canvas = Canvas(newBitmap)
+                canvas.drawColor(Color.WHITE)
+                canvas.drawBitmap(currentBitmap, 0f, 0f, null)
+                currentBitmap = newBitmap
+            }
         }
         if (outputStream == null || !currentBitmap.compress(
                 compressFormat,
@@ -137,7 +142,9 @@ object FileIO {
     @Throws(IOException::class)
     fun saveBitmapToUri(uri: Uri, bitmap: Bitmap?, context: Context): Uri {
         val uid = UUID.randomUUID()
-        val cachedImageUri = saveBitmapToCache(bitmap, context as MainActivity, uid.toString())
+        val mainActivity = context as? MainActivity
+            ?: throw IOException("Context is not MainActivity")
+        val cachedImageUri = saveBitmapToCache(bitmap, mainActivity, uid.toString())
         var cachedFile: File? = null
         cachedImageUri?.let {
             cachedFile = File(MainActivityPresenter.getPathFromUri(context, it))
@@ -248,17 +255,16 @@ object FileIO {
         try {
             val cachePath = File(mainActivity.cacheDir, cacheChildFolder)
             cachePath.mkdirs()
-            val stream = FileOutputStream("$cachePath/$fileName${fileType.toExtension()}")
-            saveBitmapToStream(stream, bitmap)
-            stream.close()
-            val imagePath = File(mainActivity.cacheDir, cacheChildFolder)
-            val newFile = File(imagePath, fileName + fileType.toExtension())
+            val file = File(cachePath, "$fileName${fileType.toExtension()}")
+            FileOutputStream(file).use { stream ->
+                saveBitmapToStream(stream, bitmap)
+            }
             val fileProviderString =
                 mainActivity.applicationContext.packageName + ".fileProvider"
             uri = FileProvider.getUriForFile(
                 mainActivity.applicationContext,
                 fileProviderString,
-                newFile
+                file
             )
         } catch (e: IOException) {
             Log.e("Can not write", "Can not write png to stream.", e)
@@ -519,7 +525,9 @@ object FileIO {
 
     @Throws(IOException::class)
     private fun getScaleFactor(resolver: ContentResolver, bitmapUri: Uri, context: Context?): Int {
-        val options = BitmapFactory.Options()
+        val options = BitmapFactory.Options().apply {
+            inJustDecodeBounds = true
+        }
         decodeBitmapFromUri(resolver, bitmapUri, options, context)
         if (options.outHeight <= 0 || options.outWidth <= 0) {
             throw IOException("Can't load bitmap from uri")

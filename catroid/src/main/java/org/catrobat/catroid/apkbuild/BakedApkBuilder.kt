@@ -205,7 +205,7 @@ object BakedApkBuilder {
             Log.d(TAG, "DIAG: sounds total=$totalSounds withFile=$soundsWithFile missing=$soundsFileMissing")
 
             val encryptedProject = File(tempDir, ProtectedProjectPayload.ENCRYPTED_ASSET_NAME)
-            val payloadPassword = config.payloadPassword ?: generateRandomPassword()
+            val payloadPassword = config.payloadPassword ?: ProjectCrypto.generateRandomPassword()
             createProtectedProjectPayload(
                 context, projectDir, encryptedProject, payloadPassword, currentProject, tempDir
             )
@@ -384,13 +384,6 @@ object BakedApkBuilder {
         Log.d(TAG, "DIAG: encrypted payload = ${encryptedProject.length()/(1024*1024)} MB")
         payloadZip.delete()
         stagingDir.deleteRecursively()
-    }
-
-    private fun generateRandomPassword(): String {
-        val random = SecureRandom()
-        val bytes = ByteArray(16)
-        random.nextBytes(bytes)
-        return bytes.joinToString("") { "%02x".format(it) }
     }
 
     private fun zipDirectory(sourceDir: File, destFile: File) {

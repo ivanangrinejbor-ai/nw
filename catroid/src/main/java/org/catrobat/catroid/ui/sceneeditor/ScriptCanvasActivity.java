@@ -82,8 +82,17 @@ public class ScriptCanvasActivity extends AppCompatActivity {
 	protected void onStop() {
 		if (project != null) {
 			Thread saveThread = new Thread(
-					() -> ProjectSaveCoordinator.saveBlocking(project), "script-canvas-save");
+					() -> {
+						try {
+							ProjectSaveCoordinator.saveBlocking(project);
+						} catch (Exception ignored) {
+						}
+					}, "script-canvas-save");
 			saveThread.start();
+			try {
+				saveThread.join(3000);
+			} catch (InterruptedException ignored) {
+			}
 		}
 		super.onStop();
 	}
@@ -127,7 +136,6 @@ public class ScriptCanvasActivity extends AppCompatActivity {
 
 		TextView title = findViewById(R.id.script_canvas_title);
 		title.setText(sprite.getName());
-		setupObjectTabs();
 
 		ImageButton close = findViewById(R.id.script_canvas_btn_close);
 		close.setOnClickListener(v -> finish());
@@ -140,6 +148,8 @@ canvas = new ScriptCanvasView(this);
 		canvas.setSprite(sprite);
 		canvas.setContentChangedListener(this::updateEmptyState);
 		canvasContainer.addView(canvas, 0);
+
+		setupObjectTabs();
 
 		isBackground = scene.getBackgroundSprite() == sprite;
 		palettePanel = findViewById(R.id.script_palette);
@@ -459,13 +469,13 @@ canvas = new ScriptCanvasView(this);
 		Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
 		intent.setType("*/*");
 		intent.addCategory(Intent.CATEGORY_OPENABLE);
-		startActivityForResult(Intent.createChooser(intent, "Выберите модуль .neoscript"), REQUEST_NEO_SCRIPT);
+		startActivityForResult(Intent.createChooser(intent, getString(R.string.script_canvas_choose_neoscript)), REQUEST_NEO_SCRIPT);
 	}
 
 	private void handleExportNeoScript() {
 		List<Script> scripts = sprite != null ? sprite.getScriptList() : null;
 		if (scripts == null || scripts.isEmpty()) {
-			Toast.makeText(this, "Нет скриптов для экспорта", Toast.LENGTH_SHORT).show();
+			Toast.makeText(this, R.string.script_canvas_no_scripts_to_export, Toast.LENGTH_SHORT).show();
 			return;
 		}
 		showSaveScriptDialog(scripts);
@@ -552,9 +562,9 @@ canvas = new ScriptCanvasView(this);
 					canvas.snapshot();
 					activeFormulaBrick.setFormulaWithBrickField(activeFormulaField, formula);
 					canvas.rebuild();
-					Toast.makeText(this, "Формула обновлена!", Toast.LENGTH_SHORT).show();
+					Toast.makeText(this, R.string.script_canvas_formula_updated, Toast.LENGTH_SHORT).show();
 				} catch (RuntimeException e) {
-					Toast.makeText(this, "Некорректная формула", Toast.LENGTH_SHORT).show();
+					Toast.makeText(this, R.string.script_canvas_invalid_formula, Toast.LENGTH_SHORT).show();
 				}
 			}
 			activeFormulaBrick = null;
@@ -587,12 +597,12 @@ canvas = new ScriptCanvasView(this);
 				importSnapshotCreated = true;
 				org.catrobat.catroid.neoscript.NeoScriptImporter.importScripts(file, project, sprite, org.catrobat.catroid.neoscript.NeoScriptImporter.ImportStrategy.SKIP_DUPLICATES);
 				canvas.rebuild();
-				Toast.makeText(this, "Модуль NeoScript успешно импортирован!", Toast.LENGTH_SHORT).show();
+				Toast.makeText(this, R.string.script_canvas_neoscript_imported, Toast.LENGTH_SHORT).show();
 			} catch (Exception e) {
 				if (importSnapshotCreated && canvas != null && canvas.canUndo()) {
 					canvas.undo();
 				}
-				Toast.makeText(this, "Ошибка импорта NeoScript: " + e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+				Toast.makeText(this, getString(R.string.script_canvas_neoscript_import_error, e.getLocalizedMessage()), Toast.LENGTH_SHORT).show();
 			}
 		}
 	}
@@ -605,47 +615,55 @@ canvas = new ScriptCanvasView(this);
 				org.catrobat.catroid.ui.SpriteActivity.REQUEST_CODE_VISUAL_PLACEMENT);
 	}
 
+	private Runnable searchDebounceRunnable;
+
 	private void filterBricksBySearch(String query) {
 		if (paletteLoadingRunnable != null) {
 			paletteHandler.removeCallbacks(paletteLoadingRunnable);
 			paletteLoadingRunnable = null;
 		}
+		if (searchDebounceRunnable != null) {
+			paletteHandler.removeCallbacks(searchDebounceRunnable);
+		}
 		if (query.isEmpty()) {
 			showCategoryBricks(PALETTE_CATEGORIES[0]);
 			return;
 		}
-		String lowerQuery = query.toLowerCase();
-		paletteBricks.removeAllViews();
-		List<Brick> allMatched = new ArrayList<>();
-		for (int catRes : PALETTE_CATEGORIES) {
-			try {
-				List<Brick> bricks = new CategoryBricksFactory().getBricks(getString(catRes), isBackground, this);
-				for (Brick b : bricks) {
-					if (!(b instanceof SubCategoryHeaderBrick)) {
-						if (b.getClass().getSimpleName().toLowerCase().contains(lowerQuery)) {
-							allMatched.add(b);
-							continue;
-						}
-						try {
-							String brickText = extractAllText(b.getPrototypeView(this)).toLowerCase();
-							if (brickText.contains(lowerQuery)) {
+		searchDebounceRunnable = () -> {
+			String lowerQuery = query.toLowerCase();
+			paletteBricks.removeAllViews();
+			List<Brick> allMatched = new ArrayList<>();
+			for (int catRes : PALETTE_CATEGORIES) {
+				try {
+					List<Brick> bricks = new CategoryBricksFactory().getBricks(getString(catRes), isBackground, this);
+					for (Brick b : bricks) {
+						if (!(b instanceof SubCategoryHeaderBrick)) {
+							if (b.getClass().getSimpleName().toLowerCase().contains(lowerQuery)) {
 								allMatched.add(b);
+								continue;
 							}
-						} catch (Exception ignored) {}
+							try {
+								String brickText = extractAllText(b.getPrototypeView(this)).toLowerCase();
+								if (brickText.contains(lowerQuery)) {
+									allMatched.add(b);
+								}
+							} catch (Exception ignored) {}
+						}
 					}
-				}
-			} catch (Exception ignored) {}
-		}
-		for (Brick brick : allMatched) {
-			try {
-				View itemView = brick.getPrototypeView(this);
-				itemView.setOnTouchListener(new PaletteDragListener(brick));
-			LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-					LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-			params.bottomMargin = dp(8);
-			paletteBricks.addView(itemView, params);
-			} catch (Exception ignored) {}
-		}
+				} catch (Exception ignored) {}
+			}
+			for (Brick brick : allMatched) {
+				try {
+					View itemView = brick.getPrototypeView(this);
+					itemView.setOnTouchListener(new PaletteDragListener(brick));
+				LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+						LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+				params.bottomMargin = dp(8);
+				paletteBricks.addView(itemView, params);
+				} catch (Exception ignored) {}
+			}
+		};
+		paletteHandler.postDelayed(searchDebounceRunnable, 250);
 	}
 
 	private void showDataManagerDialog() {
@@ -661,24 +679,24 @@ canvas = new ScriptCanvasView(this);
 		scrollView.addView(container);
 
 		AlertDialog dialog = new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
-				.setTitle("Менеджер Данных 2.0")
+				.setTitle(R.string.script_canvas_data_manager)
 				.setView(scrollView)
 				.setNegativeButton(android.R.string.cancel, null)
 				.create();
 
-		addDataBtn(container, "Переменная проекта (глобальная)", 0xFF38BDF8, dp10, dp8,
+		addDataBtn(container, getString(R.string.script_canvas_project_variable), 0xFF38BDF8, dp10, dp8,
 				() -> { dialog.dismiss(); createVariableDialog(); });
-		addDataBtn(container, "Переменная объекта «" + sprite.getName() + "»", 0xFF34D399, dp10, dp8,
+		addDataBtn(container, getString(R.string.script_canvas_object_variable, sprite.getName()), 0xFF34D399, dp10, dp8,
 				() -> { dialog.dismiss(); createSpriteVariableDialog(); });
-		addDataBtn(container, "Список проекта (глобальный)", 0xFFFBBF24, dp10, dp8,
+		addDataBtn(container, getString(R.string.script_canvas_project_list), 0xFFFBBF24, dp10, dp8,
 				() -> { dialog.dismiss(); createListDialog(); });
-		addDataBtn(container, "Список объекта «" + sprite.getName() + "»", 0xFFF97316, dp10, dp8,
+		addDataBtn(container, getString(R.string.script_canvas_object_list, sprite.getName()), 0xFFF97316, dp10, dp8,
 				() -> { dialog.dismiss(); createSpriteListDialog(); });
 
-		addSectionTitle(container, "Переменные проекта", 0xFFF8FAFC, dp10);
+		addSectionTitle(container, getString(R.string.script_canvas_project_variables), 0xFFF8FAFC, dp10);
 		List<org.catrobat.catroid.formulaeditor.UserVariable> projectVars = project.getUserVariables();
 		if (projectVars == null || projectVars.isEmpty()) {
-			addSmallLabel(container, "  Нет глобальных переменных", dp8);
+			addSmallLabel(container, getString(R.string.script_canvas_no_global_variables), dp8);
 		} else {
 			for (org.catrobat.catroid.formulaeditor.UserVariable uv : new ArrayList<>(projectVars)) {
 				addDeletableRow(container, uv.getName(), 0xFF94A3B8, dp10, dp8,
@@ -686,10 +704,10 @@ canvas = new ScriptCanvasView(this);
 			}
 		}
 
-		addSectionTitle(container, "Переменные: " + sprite.getName(), 0xFF6EE7B7, dp10);
+		addSectionTitle(container, getString(R.string.script_canvas_local_variables, sprite.getName()), 0xFF6EE7B7, dp10);
 		List<org.catrobat.catroid.formulaeditor.UserVariable> spriteVars = sprite.getUserVariables();
 		if (spriteVars == null || spriteVars.isEmpty()) {
-			addSmallLabel(container, "  Нет локальных переменных", dp8);
+			addSmallLabel(container, getString(R.string.script_canvas_no_local_variables), dp8);
 		} else {
 			for (org.catrobat.catroid.formulaeditor.UserVariable uv : new ArrayList<>(spriteVars)) {
 				addDeletableRow(container, uv.getName(), 0xFF6EE7B7, dp10, dp8,
@@ -697,10 +715,10 @@ canvas = new ScriptCanvasView(this);
 			}
 		}
 
-		addSectionTitle(container, "Списки проекта", 0xFFF8FAFC, dp10);
+		addSectionTitle(container, getString(R.string.script_canvas_project_lists), 0xFFF8FAFC, dp10);
 		List<org.catrobat.catroid.formulaeditor.UserList> projectLists = project.getUserLists();
 		if (projectLists == null || projectLists.isEmpty()) {
-			addSmallLabel(container, "  Нет глобальных списков", dp8);
+			addSmallLabel(container, getString(R.string.script_canvas_no_global_lists), dp8);
 		} else {
 			for (org.catrobat.catroid.formulaeditor.UserList ul : new ArrayList<>(projectLists)) {
 				addDeletableRow(container, ul.getName(), 0xFFFBBF24, dp10, dp8,
@@ -708,10 +726,10 @@ canvas = new ScriptCanvasView(this);
 			}
 		}
 
-		addSectionTitle(container, "Списки: " + sprite.getName(), 0xFFFDA4AF, dp10);
+		addSectionTitle(container, getString(R.string.script_canvas_local_lists, sprite.getName()), 0xFFFDA4AF, dp10);
 		List<org.catrobat.catroid.formulaeditor.UserList> spriteLists = sprite.getUserLists();
 		if (spriteLists == null || spriteLists.isEmpty()) {
-			addSmallLabel(container, "  Нет локальных списков", dp8);
+			addSmallLabel(container, getString(R.string.script_canvas_no_local_lists), dp8);
 		} else {
 			for (org.catrobat.catroid.formulaeditor.UserList ul : new ArrayList<>(spriteLists)) {
 				addDeletableRow(container, ul.getName(), 0xFFFDA4AF, dp10, dp8,
@@ -780,7 +798,7 @@ canvas = new ScriptCanvasView(this);
 		delBtn.setPadding(pad, 0, 0, 0);
 		delBtn.setOnClickListener(v ->
 				new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
-						.setTitle("Удалить «" + name + "»?")
+						.setTitle(getString(R.string.script_canvas_delete_confirm, name))
 						.setPositiveButton(android.R.string.ok, (d, w) -> onDelete.run())
 						.setNegativeButton(android.R.string.cancel, null)
 						.show());
@@ -790,81 +808,81 @@ canvas = new ScriptCanvasView(this);
 
 	private void createVariableDialog() {
 		EditText input = new EditText(this);
-		input.setHint("Имя переменной");
+		input.setHint(R.string.script_canvas_variable_name_hint);
 		int p = dp(16);
 		input.setPadding(p, p, p, p);
 
 		new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
-				.setTitle("Новая переменная")
+				.setTitle(R.string.script_canvas_new_variable)
 				.setView(input)
-				.setPositiveButton("Создать", (dialog, which) -> {
+				.setPositiveButton(R.string.script_canvas_create, (dialog, which) -> {
 					String name = input.getText().toString().trim();
 					if (!name.isEmpty()) {
 						org.catrobat.catroid.formulaeditor.UserVariable uv = new org.catrobat.catroid.formulaeditor.UserVariable(name);
 						project.getUserVariables().add(uv);
-						Toast.makeText(this, "Переменная " + name + " создана!", Toast.LENGTH_SHORT).show();
+						Toast.makeText(this, getString(R.string.script_canvas_variable_created, name), Toast.LENGTH_SHORT).show();
 					}
 				})
-				.setNegativeButton("Отмена", null)
+				.setNegativeButton(R.string.script_canvas_cancel, null)
 				.show();
 	}
 
 	private void createListDialog() {
 		EditText input = new EditText(this);
-		input.setHint("Имя списка");
+		input.setHint(R.string.script_canvas_list_name_hint);
 		int p = dp(16);
 		input.setPadding(p, p, p, p);
 
 		new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
-				.setTitle("Новый список")
+				.setTitle(R.string.script_canvas_new_list)
 				.setView(input)
-				.setPositiveButton("Создать", (dialog, which) -> {
+				.setPositiveButton(R.string.script_canvas_create, (dialog, which) -> {
 					String name = input.getText().toString().trim();
 					if (!name.isEmpty()) {
 						org.catrobat.catroid.formulaeditor.UserList ul = new org.catrobat.catroid.formulaeditor.UserList(name);
 						project.getUserLists().add(ul);
-						Toast.makeText(this, "Список " + name + " создан!", Toast.LENGTH_SHORT).show();
+						Toast.makeText(this, getString(R.string.script_canvas_list_created, name), Toast.LENGTH_SHORT).show();
 					}
 				})
-				.setNegativeButton("Отмена", null)
+				.setNegativeButton(R.string.script_canvas_cancel, null)
 				.show();
 	}
 
 	private void createSpriteVariableDialog() {
 		EditText input = new EditText(this);
-		input.setHint("Имя переменной объекта");
+		input.setHint(R.string.script_canvas_object_variable_name_hint);
 		int p = dp(16);
 		input.setPadding(p, p, p, p);
 		new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
-				.setTitle("Переменная объекта «" + sprite.getName() + "»")
+				.setTitle(getString(R.string.script_canvas_object_variable_title, sprite.getName()))
 				.setView(input)
-				.setPositiveButton("Создать", (dialog, which) -> {
+				.setPositiveButton(R.string.script_canvas_create, (dialog, which) -> {
 					String name = input.getText().toString().trim();
 					if (!name.isEmpty()) {
 						sprite.getUserVariables().add(new org.catrobat.catroid.formulaeditor.UserVariable(name));
-						Toast.makeText(this, "Переменная " + name + " создана!", Toast.LENGTH_SHORT).show();
+						Toast.makeText(this, getString(R.string.script_canvas_variable_created, name), Toast.LENGTH_SHORT).show();
 					}
 				})
-				.setNegativeButton("Отмена", null)
+				.setNegativeButton(R.string.script_canvas_cancel, null)
 				.show();
 	}
 
 	private void createSpriteListDialog() {
 		EditText input = new EditText(this);
-		input.setHint("Имя списка объекта");
+		input.setHint(R.string.script_canvas_object_list_name_hint);
 		int p = dp(16);
 		input.setPadding(p, p, p, p);
 		new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
-				.setTitle("Список объекта «" + sprite.getName() + "»")
+				.setTitle(getString(R.string.script_canvas_object_list_title, sprite.getName()))
 				.setView(input)
-				.setPositiveButton("Создать", (dialog, which) -> {
+				.setPositiveButton(R.string.script_canvas_create, (dialog, which) -> {
 					String name = input.getText().toString().trim();
 					if (!name.isEmpty()) {
 						sprite.getUserLists().add(new org.catrobat.catroid.formulaeditor.UserList(name));
-						Toast.makeText(this, "Список " + name + " создан!", Toast.LENGTH_SHORT).show();
+						Toast.makeText(this, getString(R.string.script_canvas_list_created, name), Toast.LENGTH_SHORT).show();
 					}
 				})
-				.setNegativeButton("Отмена", null)
+				.setNegativeButton(R.string.script_canvas_cancel, null)
 				.show();
 	}
 
@@ -890,7 +908,7 @@ canvas = new ScriptCanvasView(this);
 		AnalysisManager.INSTANCE.clearResults();
 
 		if (!isAnalysisEnabled) {
-			Toast.makeText(this, "Анализ кода отключён в настройках", Toast.LENGTH_SHORT).show();
+			Toast.makeText(this, R.string.script_canvas_analysis_disabled, Toast.LENGTH_SHORT).show();
 			return;
 		}
 
@@ -911,7 +929,7 @@ canvas = new ScriptCanvasView(this);
 			handler.post(() -> {
 				AiSuggestionDialog.INSTANCE.show(ScriptCanvasActivity.this);
 				Toast.makeText(ScriptCanvasActivity.this,
-						"Анализ завершён: найдено " + allResults.size() + " замечаний", Toast.LENGTH_SHORT).show();
+						getString(R.string.script_canvas_analysis_complete, allResults.size()), Toast.LENGTH_SHORT).show();
 			});
 		}).start();
 	}

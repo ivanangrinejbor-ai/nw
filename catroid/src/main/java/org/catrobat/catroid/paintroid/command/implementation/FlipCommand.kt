@@ -46,6 +46,7 @@ class FlipCommand(flipDirection: FlipDirection) : Command {
         }
         layerModel.currentLayer?.bitmap?.let { bitmap ->
             val bitmapCopy = bitmap.copy(bitmap.config ?: Bitmap.Config.ARGB_8888, bitmap.isMutable)
+            bitmapCopy ?: return
             val flipCanvas = Canvas(bitmap)
             bitmap.eraseColor(Color.TRANSPARENT)
             flipCanvas.drawBitmap(bitmapCopy, flipMatrix, Paint())

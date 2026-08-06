@@ -35,7 +35,8 @@ object DesktopStage {
     private const val CRYPTO_MAGIC = "NCPP"
     private const val CRYPTO_MAGIC_LOCKED = "NCPX"
     private const val CRYPTO_MAGIC_STREAM = "NCPS"
-    private const val PAYLOAD_PASSWORD = "SA?D3Ft?ZZHufE9Ma#NA#A9HdQDAWbJ8WHfDPKfD4!G3ST+!=x;Z!wPD=7;B=9JTHRHsT@zZH@kFUu8tgQ8FLH%RPpZpLwJC2A*e"
+    private const val CRYPTO_MAGIC_PASSWORD_CONTAINER = "NCPW"
+    internal const val PAYLOAD_PASSWORD = "SA?D3Ft?ZZHufE9Ma#NA#A9HdQDAWbJ8WHfDPKfD4!G3ST+!=x;Z!wPD=7;B=9JTHRHsT@zZH@kFUu8tgQ8FLH%RPpZpLwJC2A*e"
 
     @JvmStatic
     fun main(args: Array<String>) {
@@ -125,7 +126,7 @@ object DesktopStage {
         }
     }
 
-    private fun extractProjectFromStream(rawInput: InputStream): File? {
+    internal fun extractProjectFromStream(rawInput: InputStream): File? {
         return try {
             val input = java.io.BufferedInputStream(rawInput, 1 shl 16)
             val magic = ByteArray(4)
@@ -141,6 +142,25 @@ object DesktopStage {
                 } catch (_: Exception) { }
             })
             when (magicStr) {
+                CRYPTO_MAGIC_PASSWORD_CONTAINER -> {
+                    val password = readPasswordContainer(input)
+                    val innerMagic = ByteArray(4)
+                    if (!readFully(input, innerMagic)) throw java.io.IOException("NCPW: truncated inner payload magic")
+                    when (String(innerMagic, StandardCharsets.US_ASCII)) {
+                        CRYPTO_MAGIC_STREAM -> {
+                            val tempZip = File(tempDir, "_payload.zip")
+                            decryptNcpsStreamToFile(input, tempZip, password)
+                            System.out.println("[NeoCatroid] NCPW/NCPS decrypted -> ${tempZip.length()} bytes; extracting zip...")
+                            java.io.FileInputStream(tempZip).use { extractZipStream(it, tempDir) }
+                            tempZip.delete()
+                        }
+                        CRYPTO_MAGIC, CRYPTO_MAGIC_LOCKED -> {
+                            val full = innerMagic + input.readBytes()
+                            extractZipStream(java.io.ByteArrayInputStream(decryptPayload(full, password)), tempDir)
+                        }
+                        else -> throw java.io.IOException("NCPW: unsupported inner payload magic")
+                    }
+                }
                 CRYPTO_MAGIC_STREAM -> {
                     val tempZip = File(tempDir, "_payload.zip")
                     decryptNcpsStreamToFile(input, tempZip)
@@ -164,12 +184,25 @@ object DesktopStage {
         }
     }
 
-    private fun decryptNcpsStreamToFile(input: InputStream, dest: File) {
+    private fun readPasswordContainer(input: InputStream): String {
+        val lenBytes = ByteArray(4)
+        if (!readFully(input, lenBytes)) throw java.io.IOException("NCPW: truncated password length")
+        val len = ((lenBytes[0].toInt() and 0xFF) shl 24) or
+            ((lenBytes[1].toInt() and 0xFF) shl 16) or
+            ((lenBytes[2].toInt() and 0xFF) shl 8) or
+            (lenBytes[3].toInt() and 0xFF)
+        if (len <= 0 || len > 4096) throw java.io.IOException("NCPW: bad password length $len")
+        val pwdBytes = ByteArray(len)
+        if (!readFully(input, pwdBytes)) throw java.io.IOException("NCPW: truncated password")
+        return String(pwdBytes, StandardCharsets.UTF_8)
+    }
+
+    private fun decryptNcpsStreamToFile(input: InputStream, dest: File, password: String = PAYLOAD_PASSWORD) {
         val salt = ByteArray(32)
         if (!readFully(input, salt)) throw java.io.IOException("NCPS: truncated salt")
         val ivPrefix = ByteArray(8)
         if (!readFully(input, ivPrefix)) throw java.io.IOException("NCPS: truncated iv prefix")
-        val key = deriveKey(PAYLOAD_PASSWORD, salt)
+        val key = deriveKey(password, salt)
         val lenBytes = ByteArray(4)
         var segmentIndex = 0
         dest.outputStream().buffered().use { out ->
@@ -246,7 +279,7 @@ object DesktopStage {
         }
     }
 
-    private fun decryptPayload(data: ByteArray): ByteArray {
+    private fun decryptPayload(data: ByteArray, password: String = PAYLOAD_PASSWORD): ByteArray {
         val input = java.io.ByteArrayInputStream(data)
         val header = ByteArray(4)
         val magic = CRYPTO_MAGIC.toByteArray(StandardCharsets.US_ASCII)
@@ -258,7 +291,7 @@ object DesktopStage {
         }
         val salt = ByteArray(32).also { input.read(it) }
         val iv = ByteArray(12).also { input.read(it) }
-        val key = deriveKey(PAYLOAD_PASSWORD, salt)
+        val key = deriveKey(password, salt)
         val cipher = Cipher.getInstance("AES/GCM/NoPadding")
         cipher.init(Cipher.DECRYPT_MODE, key, GCMParameterSpec(128, iv))
         val out = java.io.ByteArrayOutputStream()

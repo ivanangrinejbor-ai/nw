@@ -93,6 +93,7 @@ open class DrawingSurface : SurfaceView, SurfaceHolder.Callback {
         val shader = BitmapShader(checkerboard, Shader.TileMode.REPEAT, Shader.TileMode.REPEAT)
         checkeredPattern.shader = shader
         checkeredPattern.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC)
+        checkerboard.recycle()
         val density = resources.displayMetrics.density
         val callback: DrawingSurfaceListenerCallback = object : DrawingSurfaceListenerCallback {
             override fun getCurrentTool(): Tool? = toolReference.tool
@@ -211,14 +212,12 @@ open class DrawingSurface : SurfaceView, SurfaceHolder.Callback {
         val w = layerModel.width
         val h = layerModel.height
         if (w <= 0 || h <= 0) return null
-        if (cachedDrawingBoardBitmap == null ||
-            cachedDrawingBoardBitmap!!.width != w ||
-            cachedDrawingBoardBitmap!!.height != h
-        ) {
-            cachedDrawingBoardBitmap?.recycle()
+        val cached = cachedDrawingBoardBitmap
+        if (cached == null || cached.width != w || cached.height != h) {
+            cached?.recycle()
             cachedDrawingBoardBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
         } else {
-            cachedDrawingBoardBitmap!!.eraseColor(Color.TRANSPARENT)
+            cached.eraseColor(Color.TRANSPARENT)
         }
         return cachedDrawingBoardBitmap
     }

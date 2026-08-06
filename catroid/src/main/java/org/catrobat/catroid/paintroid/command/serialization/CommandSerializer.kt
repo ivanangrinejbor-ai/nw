@@ -64,6 +64,7 @@ import org.catrobat.catroid.paintroid.command.implementation.ClipboardCommand
 import org.catrobat.catroid.paintroid.command.implementation.TextToolCommand
 import org.catrobat.catroid.paintroid.command.implementation.SmudgePathCommand
 import org.catrobat.catroid.paintroid.common.Constants.DOWNLOADS_DIRECTORY
+import org.catrobat.catroid.paintroid.common.Constants.PICTURES_DIRECTORY
 import org.catrobat.catroid.paintroid.common.SPECIFIC_FILETYPE_SHARED_PREFERENCES_NAME
 import org.catrobat.catroid.paintroid.iotasks.OpenRasterFileFormatConversion
 import org.catrobat.catroid.paintroid.contract.MainActivityContracts
@@ -188,27 +189,25 @@ open class CommandSerializer(private val activityContext: Context, private val c
     }
 
     fun overWriteFile(fileName: String, uri: Uri, resolver: ContentResolver): Uri? {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            val projection = arrayOf(MediaStore.Images.Media._ID)
-            val c = resolver.query(uri, projection, null, null, null)
-            if (c != null) {
-                if (c.moveToFirst()) {
-                    val id = c.getLong(c.getColumnIndexOrThrow(MediaStore.Images.Media._ID))
-                    val deleteUri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
-                    resolver.delete(deleteUri, null, null)
-                } else {
-                    throw IOException("No file to delete was found!")
+        val result = writeToFile(fileName)
+        if (result != null) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                val projection = arrayOf(MediaStore.Images.Media._ID)
+                val c = resolver.query(uri, projection, null, null, null)
+                if (c != null) {
+                    if (c.moveToFirst()) {
+                        val id = c.getLong(c.getColumnIndexOrThrow(MediaStore.Images.Media._ID))
+                        val deleteUri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
+                        resolver.delete(deleteUri, null, null)
+                    }
+                    c.close()
                 }
-                c.close()
-            }
-        } else {
-            val file = File(uri.path.toString())
-            val isDeleted = file.delete()
-            if (!isDeleted) {
-                throw IOException("No file to delete was found!")
+            } else {
+                val file = File(uri.path.toString())
+                file.delete()
             }
         }
-        return writeToFile(fileName)
+        return result
     }
 
     fun writeToInternalMemory(stream: FileOutputStream) {

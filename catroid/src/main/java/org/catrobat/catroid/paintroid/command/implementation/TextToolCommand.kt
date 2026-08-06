@@ -65,8 +65,8 @@ class TextToolCommand(
             translate(toolPosition.x, toolPosition.y)
             rotate(rotationAngle)
 
-            val widthScaling = (boxWidth - 2 * boxOffset) / maxTextWidth
-            val heightScaling = (boxHeight - 2 * boxOffset) / textHeight
+            val widthScaling = if (maxTextWidth > 0) (boxWidth - 2 * boxOffset) / maxTextWidth else 1f
+            val heightScaling = if (textHeight > 0) (boxHeight - 2 * boxOffset) / textHeight else 1f
             canvas.scale(widthScaling, heightScaling)
 
             val scaledHeightOffset = boxOffset / heightScaling

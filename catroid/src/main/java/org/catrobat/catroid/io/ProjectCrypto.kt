@@ -55,7 +55,34 @@ object ProjectCrypto {
     private val MAGIC = byteArrayOf('N'.code.toByte(), 'C'.code.toByte(), 'P'.code.toByte(), 'P'.code.toByte())
     private val LOCKED_MAGIC = byteArrayOf('N'.code.toByte(), 'C'.code.toByte(), 'P'.code.toByte(), 'X'.code.toByte())
     private val STREAMING_MAGIC = byteArrayOf('N'.code.toByte(), 'C'.code.toByte(), 'P'.code.toByte(), 'S'.code.toByte())
+    private val PASSWORD_CONTAINER_MAGIC = byteArrayOf('N'.code.toByte(), 'C'.code.toByte(), 'P'.code.toByte(), 'W'.code.toByte())
     private const val SEGMENT_SIZE = 4 * 1024 * 1024
+
+    /**
+     * NCPW (password container) wraps an NCPS/NCPP payload with a per-build random
+     * password so each baked artifact is encrypted with its own key instead of a
+     * shared public constant.
+     *
+     * Layout: "NCPW"(4) + pwdLen(int32 BE) + password(UTF-8) + inner payload (NCPS/NCPP/NCPX).
+     */
+    fun writePasswordContainerHeader(out: OutputStream, password: String) {
+        out.write(PASSWORD_CONTAINER_MAGIC)
+        val pwdBytes = password.toByteArray(Charsets.UTF_8)
+        out.write(byteArrayOf(
+            (pwdBytes.size ushr 24).toByte(),
+            (pwdBytes.size ushr 16).toByte(),
+            (pwdBytes.size ushr 8).toByte(),
+            pwdBytes.size.toByte()
+        ))
+        out.write(pwdBytes)
+    }
+
+    fun generateRandomPassword(): String {
+        val random = SecureRandom()
+        val bytes = ByteArray(16)
+        random.nextBytes(bytes)
+        return bytes.joinToString("") { "%02x".format(it) }
+    }
 
     fun isEncrypted(file: File): Boolean {
         if (!file.exists() || file.length() < 4) return false

@@ -38,6 +38,17 @@
                 android:textSize="?attr/x_large" />
         </FrameLayout>
 
+        <TextView
+            android:id="@+id/formula_editor_error_field"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_above="@id/formula_editor_field_container"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="4dp"
+            android:textColor="#F87171"
+            android:textSize="12sp"
+            android:visibility="gone" />
+
         <ScrollView
             android:layout_width="match_parent"
             android:layout_height="match_parent"

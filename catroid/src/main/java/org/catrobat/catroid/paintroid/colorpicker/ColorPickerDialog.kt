@@ -47,10 +47,10 @@ import androidx.annotation.VisibleForTesting
 import androidx.appcompat.app.AppCompatDialogFragment
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import androidx.lifecycle.lifecycleScope
 import org.catrobat.catroid.R
 
 private const val FF = 0xff
@@ -153,20 +153,20 @@ class ColorPickerDialog : AppCompatDialogFragment(), OnColorChangedListener, OnC
 
         pipetteBtn.setOnClickListener {
             pipetteBtn.isEnabled = false
-            CoroutineScope(Dispatchers.IO).launch {
-                ColorPickerPreviewActivity.pickableImage = currentBitmap
-                withContext(Dispatchers.Main) {
-                    pipetteBtn.isEnabled = true
-                    val intent = Intent(it.context, ColorPickerPreviewActivity::class.java).apply {
-                        putExtra(COLOR_EXTRA, colorToApply)
-                        putExtra(BITMAP_HEIGHT_EXTRA, currentBitmap.height)
-                        putExtra(BITMAP_WIDTH_EXTRA, currentBitmap.width)
-                    }
-                    try {
-                        startActivityForResult(intent, REQUEST_CODE)
-                    } catch (e: IllegalStateException) {
-                        Log.e(TAG, "onCreateDialog: ${e.message}")
-                    }
+            viewLifecycleOwner.lifecycleScope.launch {
+                withContext(Dispatchers.IO) {
+                    ColorPickerPreviewActivity.pickableImage = currentBitmap
+                }
+                pipetteBtn.isEnabled = true
+                val intent = Intent(it.context, ColorPickerPreviewActivity::class.java).apply {
+                    putExtra(COLOR_EXTRA, colorToApply)
+                    putExtra(BITMAP_HEIGHT_EXTRA, currentBitmap.height)
+                    putExtra(BITMAP_WIDTH_EXTRA, currentBitmap.width)
+                }
+                try {
+                    startActivityForResult(intent, REQUEST_CODE)
+                } catch (e: IllegalStateException) {
+                    Log.e(TAG, "onCreateDialog: ${e.message}")
                 }
             }
         }

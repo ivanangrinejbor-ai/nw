@@ -343,14 +343,27 @@ Bug B (инверсия X при drag): в коде desktop-рантайма и�
 `screenX = VIRTUAL_WIDTH/2 + sprite.x`, `goto_touch`/`touch_direction`/сенсоры `MOUSE_X`/`FINGER_X`.
 Если инверсия повторяется после фикса формул — нужен конкретный проект/блоки пользователя.
 
-## Desktop Runtime — проектный бандл (`project.zip` / NCPP)
+## Desktop Runtime — проектный бандл (`project.zip` / NCPP / NCPW)
 
 - `desktop-runtime/project.zip` — зашифрованный бандл проекта, который кладётся рядом с
   `NeoCatroid.exe` (71 КБ launch4j-лаунчер + внешний `player.jar`).
 - Формат: magic `NCPP` (4E 43 50 50) = AES-256-GCM + PBKDF2. Layout: `NCPP`(4) + salt(32) +
   IV(12) + ciphertext. Пароль хранится в константе `DesktopStage.PAYLOAD_PASSWORD`
   (тот же, что в Android `ProtectedProjectPayload.PASSWORD`; сам литерал в документации не приводится).
-- `DesktopStage.extractPayload()` проверяет магию `NCPP` и расшифровывает; нет магии →
+- **Новые сборки (EXE, ProjectOptionsFragment.buildExe)**: `project.zip` (entry win-бандла)
+  теперь обёрнут в контейнер **NCPW** с РАНДОМНЫМ паролем на каждую сборку:
+  `NCPW`(4) + pwdLen(int32 BE) + password(UTF-8) + NCPS-поток.
+  - Android-сторона: `ProjectCrypto.writePasswordContainerHeader(out, password)` +
+    `ProjectCrypto.generateRandomPassword()` (16 random bytes → hex) затем
+    `encryptDirectoryToStreamChunked(..., password)`.
+  - Desktop-сторона: `DesktopStage.readPasswordContainer()` достаёт пароль из контейнера,
+    расшифровывает им вложенный NCPS/NCPP; без магии `NCPW` — легаси-константа (backward-compat).
+  - `build_exe.bat`/`embed_payload.ps1` менять НЕ надо — пароль уже внутри `project.zip`,
+    футер NEOCAT01 просто переносит его целиком.
+  - Baked APK (`BakedApkBuilder`/`AlignedApkBuilder`) уже давно генерируют случайный пароль
+    на каждую сборку и кладут его в ассет `neocatroid.key`; константа остаётся только
+    legacy-фолбэком (RuntimeLoaderActivity/PayloadDecryptor).
+- `DesktopStage.extractPayload()` проверяет магию `NCPP` (или `NCPW`) и расшифровывает; нет магии →
   грузит как обычный zip (backward-compat).
 - **Важно для сборки EXE**: `build_exe.bat` на шаге staging удаляет ВСЕ папки в корне
   `desktop-runtime`, кроме `icon`/`jre` (в т.ч. `src`!). Запускать повторно только ПОСЛЕ

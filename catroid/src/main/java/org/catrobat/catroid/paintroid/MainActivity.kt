@@ -56,6 +56,8 @@ import com.google.android.material.navigation.NavigationView
 import androidx.activity.result.contract.ActivityResultContracts
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.catrobat.catroid.paintroid.colorpicker.ColorHistory
@@ -164,6 +166,8 @@ class MainActivity : AppCompatActivity(), MainView, CommandListener {
 
     @Volatile
     private var lastInteractionTime = System.currentTimeMillis()
+
+    private val autoSaveScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
     @Volatile
     private var minuteTemporaryCopiesCounter = 0
@@ -697,6 +701,7 @@ class MainActivity : AppCompatActivity(), MainView, CommandListener {
     }
 
     override fun onDestroy() {
+        autoSaveScope.cancel()
         commandManager.removeCommandListener(this)
         presenterMain.saveNewTemporaryImage()
         if (finishing) {
@@ -814,7 +819,7 @@ class MainActivity : AppCompatActivity(), MainView, CommandListener {
     }
 
     private fun startAutoSaveCoroutine() {
-        CoroutineScope(Dispatchers.Default).launch {
+        autoSaveScope.launch {
             while (true) {
                 delay(TEMP_IMAGE_COROUTINE_DELAY_MILLI_SEC.toLong())
                 addToMinuteTemporaryCopiesCounter(TEMP_IMAGE_COROUTINE_DELAY_MILLI_SEC / MILLI_SEC_TO_SEC)

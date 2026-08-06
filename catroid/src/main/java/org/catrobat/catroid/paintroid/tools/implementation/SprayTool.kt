@@ -68,6 +68,7 @@ class SprayTool(
     var sprayedPoints = ConcurrentLinkedQueue<PointF>()
 
     @VisibleForTesting
+    @Volatile
     var sprayActive = false
 
     override var toolType: ToolType = ToolType.SPRAY
@@ -80,6 +81,7 @@ class SprayTool(
         hideToolOptions()
     }
 
+    @Volatile
     private var currentCoordinate: PointF? = null
     private var sprayRadius = DEFAULT_RADIUS
     private var previewBitmap: Bitmap =

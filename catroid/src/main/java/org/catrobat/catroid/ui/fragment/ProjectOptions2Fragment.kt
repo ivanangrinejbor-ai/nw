@@ -66,7 +66,7 @@ class ProjectOptions2Fragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        (requireActivity() as? AppCompatActivity)?.supportActionBar?.title = "Опции проекта 2.0"
+        (requireActivity() as? AppCompatActivity)?.supportActionBar?.title = getString(R.string.project_options_2_title)
         project = ProjectManager.getInstance().currentProject
         buildOptionsUi()
     }
@@ -115,11 +115,11 @@ class ProjectOptions2Fragment : Fragment() {
         }
 
         val cardName = createCardLayout()
-        val title1 = createCardTitle("Имя и Описание проекта")
+        val title1 = createCardTitle(getString(R.string.project_options_2_name_description))
         cardName.addView(title1)
 
         val nameLabel = TextView(requireContext()).apply {
-            text = "Название проекта:"
+            text = getString(R.string.project_options_2_project_name)
             setTextColor(0xFF94A3B8.toInt())
             textSize = 12f
         }
@@ -136,7 +136,7 @@ class ProjectOptions2Fragment : Fragment() {
         cardName.addView(nameInput)
 
         val descLabel = TextView(requireContext()).apply {
-            text = "Описание проекта:"
+            text = getString(R.string.project_options_2_project_description)
             setTextColor(0xFF94A3B8.toInt())
             textSize = 12f
             setPadding(0, dp10, 0, 0)
@@ -145,7 +145,7 @@ class ProjectOptions2Fragment : Fragment() {
 
         val descInput = EditText(requireContext()).apply {
             setText(proj.description ?: "")
-            setHint("Добавьте описание Вашей игры/приложения...")
+            setHint(R.string.project_options_2_description_hint)
             setHintTextColor(0xFF64748B.toInt())
             setTextColor(Color.WHITE)
             textSize = 13f
@@ -155,21 +155,21 @@ class ProjectOptions2Fragment : Fragment() {
         }
         cardName.addView(descInput)
 
-        val saveInfoBtn = createActionButton("Сохранить имя и описание") {
+        val saveInfoBtn = createActionButton(getString(R.string.project_options_2_save_name)) {
             val newName = nameInput.text.toString().trim()
             if (newName.isNotEmpty()) {
                 proj.name = newName
             }
             proj.description = descInput.text.toString().trim()
             saveProjectAsync()
-            Toast.makeText(requireContext(), "Информация сохранена!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), R.string.project_options_2_info_saved, Toast.LENGTH_SHORT).show()
         }
         cardName.addView(saveInfoBtn)
 
         col1.addView(cardName)
 
         val cardDisplay = createCardLayout()
-        val title2 = createCardTitle("Экран и Разрешение")
+        val title2 = createCardTitle(getString(R.string.project_options_2_screen_resolution))
         cardDisplay.addView(title2)
 
         val header = proj.xmlHeader
@@ -177,7 +177,7 @@ class ProjectOptions2Fragment : Fragment() {
         val curH = header?.virtualScreenHeight ?: 800
 
         val resLabel = TextView(requireContext()).apply {
-            text = "Виртуальное разрешение сцены (Ш x В):"
+            text = getString(R.string.project_options_2_virtual_resolution)
             setTextColor(0xFF94A3B8.toInt())
             textSize = 12f
         }
@@ -220,7 +220,7 @@ class ProjectOptions2Fragment : Fragment() {
 
         cardDisplay.addView(resRow)
 
-        val saveResBtn = createActionButton("Применить разрешение") {
+        val saveResBtn = createActionButton(getString(R.string.project_options_2_apply_resolution)) {
             try {
                 val w = inputW.text.toString().toInt()
                 val h = inputH.text.toString().toInt()
@@ -228,12 +228,12 @@ class ProjectOptions2Fragment : Fragment() {
                     header.virtualScreenWidth = w
                     header.virtualScreenHeight = h
                     saveProjectAsync()
-                    Toast.makeText(requireContext(), "Разрешение $w x $h установлено!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), getString(R.string.project_options_2_resolution_set, w, h), Toast.LENGTH_SHORT).show()
                 } else {
-                    Toast.makeText(requireContext(), "Разрешение должно быть от 64 до 8192", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), R.string.project_options_2_resolution_invalid, Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
-                Toast.makeText(requireContext(), "Разрешение должно быть от 64 до 8192", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), R.string.project_options_2_resolution_invalid, Toast.LENGTH_SHORT).show()
             }
         }
         cardDisplay.addView(saveResBtn)
@@ -241,35 +241,35 @@ class ProjectOptions2Fragment : Fragment() {
         col1.addView(cardDisplay)
 
         val cardExport = createCardLayout()
-        val title3 = createCardTitle("Экспорт и Резервные копии")
+        val title3 = createCardTitle(getString(R.string.project_options_2_export_backup))
         cardExport.addView(title3)
 
-        val exportZipBtn = createActionButton("Экспортировать проект (.catrobat / .zip)") {
+        val exportZipBtn = createActionButton(getString(R.string.project_options_2_export_zip)) {
             exportProject()
         }
         cardExport.addView(exportZipBtn)
 
-        val apkBuildBtn = createActionButton("Собрать в APK (APK Builder V3)") {
+        val apkBuildBtn = createActionButton(getString(R.string.project_options_2_build_apk)) {
             showApkBuilderDialog()
         }
         cardExport.addView(apkBuildBtn)
 
-        val bakedBtn = createActionButton("Запеченный проект (.enc)") {
+        val bakedBtn = createActionButton(getString(R.string.project_options_2_export_baked)) {
             exportBakedProject()
         }
         cardExport.addView(bakedBtn)
 
-        val pwdBtn = createActionButton("Экспорт с паролем (.npc)") {
+        val pwdBtn = createActionButton(getString(R.string.project_options_2_export_password)) {
             exportWithPassword()
         }
         cardExport.addView(pwdBtn)
 
-        val protectedBtn = createActionButton("Экспорт защищённого проекта") {
+        val protectedBtn = createActionButton(getString(R.string.project_options_2_export_protected)) {
             exportProtectedProject()
         }
         cardExport.addView(protectedBtn)
 
-        val fullExportBtn = createActionButton("Открыть полный набор экспортов и настроек") {
+        val fullExportBtn = createActionButton(getString(R.string.project_options_2_full_export)) {
             (activity as? Ui2PanelActivity)?.let {
                 parentFragmentManager.beginTransaction()
                     .replace(R.id.fragment_container, ProjectOptionsFragment(), "project_options_legacy")
@@ -282,18 +282,18 @@ class ProjectOptions2Fragment : Fragment() {
         col2.addView(cardExport)
 
         val cardNav = createCardLayout()
-        val title4 = createCardTitle("Файлы проекта 2.0")
+        val title4 = createCardTitle(getString(R.string.project_options_2_files_title))
         cardNav.addView(title4)
 
         val infoFiles = TextView(requireContext()).apply {
-            text = "Просмотр, редактирование и управление скриптовыми и исходными файлами проекта в интерфейсе 2.0."
+            text = getString(R.string.project_options_2_files_description)
             setTextColor(0xFF94A3B8.toInt())
             textSize = 12f
             setPadding(0, 0, 0, dp10)
         }
         cardNav.addView(infoFiles)
 
-        val openFilesBtn = createActionButton("Открыть Файлы проекта 2.0") {
+        val openFilesBtn = createActionButton(getString(R.string.project_options_2_open_files)) {
             (activity as? Ui2PanelActivity)?.let {
                 parentFragmentManager.beginTransaction()
                     .replace(R.id.fragment_container, ProjectFiles2Fragment(), "ui2_panel_fragment")
@@ -667,163 +667,6 @@ class ProjectOptions2Fragment : Fragment() {
             } finally {
                 proj.xmlHeader?.setProtectedProject(false)
                 ProjectSaveCoordinator.saveAsync(proj)
-            }
-        }.start()
-    }
-
-    private fun exportCompressedLight() {
-        val proj = project ?: return
-        val appContext = requireContext().applicationContext
-        Toast.makeText(requireContext(), "Лёгкое сжатие...", Toast.LENGTH_SHORT).show()
-        val progress = FileProgressDialog("Лёгкое сжатие")
-        activity?.runOnUiThread { progress.show() }
-        Thread {
-            try {
-                if (!ProjectSaveCoordinator.saveBlocking(proj)) {
-                    error("Не удалось сохранить проект перед экспортом")
-                }
-                val tempDir = File(appContext.cacheDir, "compress_light")
-                tempDir.deleteRecursively()
-                tempDir.mkdirs()
-                proj.directory.copyRecursively(File(tempDir, "project"), overwrite = true)
-                val projectDir = File(tempDir, "project")
-                AssetConverter.cleanupProjectDir(projectDir)
-
-                val safeName = proj.name.replace(Regex("[\\\\/:*?\"<>|]"), "_")
-                val zipFile = File(appContext.cacheDir, "${safeName}_light${Constants.CATROBAT_EXTENSION}")
-                zipDirectoryTo(projectDir, zipFile) { progress.updateFile(it) }
-                tempDir.deleteRecursively()
-
-                writeToDownloadsFile(zipFile, "${safeName}_light${Constants.CATROBAT_EXTENSION}")
-                zipFile.delete()
-                activity?.runOnUiThread {
-                    progress.dismiss()
-                    if (isAdded && context != null) {
-                        Toast.makeText(requireContext(), "Лёгкое сжатие завершено, файл в Download/NeoCatroidExports!", Toast.LENGTH_LONG).show()
-                    }
-                }
-            } catch (e: Exception) {
-                activity?.runOnUiThread {
-                    progress.dismiss()
-                    if (isAdded && context != null) {
-                        Toast.makeText(requireContext(), "Ошибка сжатия: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
-                    }
-                }
-            }
-        }.start()
-    }
-
-    private fun showHardCompressionDialog() {
-        val layout = LinearLayout(requireContext()).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(dp(24f).toInt(), dp(8f).toInt(), dp(24f).toInt(), 0)
-        }
-        val imageLabel = TextView(requireContext()).apply {
-            text = "Формат изображений:"
-            textSize = 14f
-            setPadding(0, 0, 0, dp(4f).toInt())
-        }
-        val imageGroup = RadioGroup(requireContext())
-        val imageKeep = RadioButton(requireContext()).apply { text = "Оставить оригинал"; id = 0 }
-        val imageLossy = RadioButton(requireContext()).apply { text = "WebP (80%)"; id = 1 }
-        val imageLossless = RadioButton(requireContext()).apply { text = "WebP (100%)"; id = 2 }
-        imageGroup.addView(imageKeep)
-        imageGroup.addView(imageLossy)
-        imageGroup.addView(imageLossless)
-        imageGroup.check(1)
-
-        val audioLabel = TextView(requireContext()).apply {
-            text = "Формат аудио:"
-            textSize = 14f
-            setPadding(0, dp(8f).toInt(), 0, dp(4f).toInt())
-        }
-        val audioGroup = RadioGroup(requireContext())
-        val audioKeep = RadioButton(requireContext()).apply { text = "Оставить оригинал"; id = 0 }
-        val audio96 = RadioButton(requireContext()).apply { text = "M4A 96kbps"; id = 1 }
-        val audio128 = RadioButton(requireContext()).apply { text = "M4A 128kbps"; id = 2 }
-        val audio192 = RadioButton(requireContext()).apply { text = "M4A 192kbps"; id = 3 }
-        val audio256 = RadioButton(requireContext()).apply { text = "M4A 256kbps"; id = 4 }
-        audioGroup.addView(audioKeep)
-        audioGroup.addView(audio96)
-        audioGroup.addView(audio128)
-        audioGroup.addView(audio192)
-        audioGroup.addView(audio256)
-        audioGroup.check(2)
-
-        layout.addView(imageLabel)
-        layout.addView(imageGroup)
-        layout.addView(audioLabel)
-        layout.addView(audioGroup)
-
-        androidx.appcompat.app.AlertDialog.Builder(requireContext())
-            .setTitle("Сильное сжатие")
-            .setView(layout)
-            .setPositiveButton("OK") { _, _ ->
-                val imageFormat = when (imageGroup.checkedRadioButtonId) {
-                    1 -> AssetConverter.ImageFormat.WEBP_LOSSY
-                    2 -> AssetConverter.ImageFormat.WEBP_LOSSLESS
-                    else -> AssetConverter.ImageFormat.KEEP
-                }
-                val audioFormat = when (audioGroup.checkedRadioButtonId) {
-                    1 -> AssetConverter.AudioFormat.M4A_96
-                    2 -> AssetConverter.AudioFormat.M4A_128
-                    3 -> AssetConverter.AudioFormat.M4A_192
-                    4 -> AssetConverter.AudioFormat.M4A_256
-                    else -> AssetConverter.AudioFormat.KEEP
-                }
-                exportCompressedHard(imageFormat, audioFormat)
-            }
-            .setNegativeButton("Отмена", null)
-            .show()
-    }
-
-    private fun exportCompressedHard(
-        imageFormat: AssetConverter.ImageFormat,
-        audioFormat: AssetConverter.AudioFormat
-    ) {
-        val proj = project ?: return
-        val appContext = requireContext().applicationContext
-        Toast.makeText(requireContext(), "Сильное сжатие...", Toast.LENGTH_SHORT).show()
-        val progress = FileProgressDialog("Сильное сжатие")
-        activity?.runOnUiThread { progress.show() }
-        Thread {
-            try {
-                if (!ProjectSaveCoordinator.saveBlocking(proj)) {
-                    error("Не удалось сохранить проект перед сжатием")
-                }
-                val tempDir = File(appContext.cacheDir, "compress_hard")
-                tempDir.deleteRecursively()
-                tempDir.mkdirs()
-                val projectDir = File(tempDir, "project")
-                proj.directory.copyRecursively(projectDir, overwrite = true)
-                AssetConverter.cleanupProjectDir(projectDir)
-                val result = AssetConverter.convertProjectAssets(projectDir, imageFormat, audioFormat)
-                AssetConverter.updateCodeXmlReferences(projectDir, result)
-
-                val zipFile = File(appContext.cacheDir, "${proj.name}_hard${Constants.CATROBAT_EXTENSION}")
-                zipDirectoryTo(projectDir, zipFile) { progress.updateFile(it) }
-                tempDir.deleteRecursively()
-
-                writeToDownloadsFile(zipFile, "${proj.name}_hard${Constants.CATROBAT_EXTENSION}")
-                zipFile.delete()
-                val savedMb = result.savedBytes / (1024 * 1024)
-                activity?.runOnUiThread {
-                    progress.dismiss()
-                    if (isAdded && context != null) {
-                        Toast.makeText(
-                            requireContext(),
-                            "Сжато: ${result.convertedImages} изображений, ${result.convertedSounds} звуков, сэкономлено ~${savedMb}MB. Файл в Download/NeoCatroidExports!",
-                            Toast.LENGTH_LONG
-                        ).show()
-                    }
-                }
-            } catch (e: Exception) {
-                activity?.runOnUiThread {
-                    progress.dismiss()
-                    if (isAdded && context != null) {
-                        Toast.makeText(requireContext(), "Ошибка сжатия: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
-                    }
-                }
             }
         }.start()
     }

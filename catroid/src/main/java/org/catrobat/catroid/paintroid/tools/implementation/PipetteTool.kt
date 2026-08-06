@@ -41,7 +41,6 @@ class PipetteTool(
     private val listener: OnColorPickedListener,
     private val mainActivity: MainActivity
 ) : BaseTool(contextCallback, toolOptionsViewController, toolPaint, workspace, idlingResource, commandManager) {
-    private var surfaceBitmap: Bitmap? = null
 
     override val toolType: ToolType
         get() = ToolType.PIPETTE
@@ -55,10 +54,6 @@ class PipetteTool(
         super.handleDown(coordinate)
     }
 
-    init {
-        updateSurfaceBitmap()
-    }
-
     override fun draw(canvas: Canvas) = Unit
 
     override fun handleDown(coordinate: PointF?): Boolean = setColor(coordinate)
@@ -69,16 +64,17 @@ class PipetteTool(
 
     override fun toolPositionCoordinates(coordinate: PointF): PointF = coordinate
 
-    override fun resetInternalState() {
-        updateSurfaceBitmap()
-    }
+    override fun resetInternalState() = Unit
 
     private fun setColor(coordinate: PointF?, saveCommand: Boolean = false): Boolean {
         if (coordinate == null || !workspace.contains(coordinate)) {
             return false
         }
-        val color =
-            surfaceBitmap?.getPixel(coordinate.x.toInt(), coordinate.y.toInt()) ?: return false
+        val bitmap = workspace.bitmapOfAllLayers ?: return false
+        if (bitmap.isRecycled) return false
+        val x = coordinate.x.toInt().coerceIn(0, bitmap.width - 1)
+        val y = coordinate.y.toInt().coerceIn(0, bitmap.height - 1)
+        val color = bitmap.getPixel(x, y)
         listener.colorChanged(color)
         changePaintColor(color)
         if (saveCommand) {
@@ -87,9 +83,5 @@ class PipetteTool(
             mainActivity.commandManager.addCommand(command)
         }
         return true
-    }
-
-    private fun updateSurfaceBitmap() {
-        surfaceBitmap = workspace.bitmapOfAllLayers
     }
 }

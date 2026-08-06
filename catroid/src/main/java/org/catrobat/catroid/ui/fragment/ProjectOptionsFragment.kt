@@ -1648,10 +1648,12 @@ class ProjectOptionsFragment : Fragment() {
                         addStream(asset, ctx.assets.open(asset))
                     }
                     zos.putNextEntry(java.util.zip.ZipEntry("project.zip"))
+                    val payloadPassword = org.catrobat.catroid.io.ProjectCrypto.generateRandomPassword()
+                    org.catrobat.catroid.io.ProjectCrypto.writePasswordContainerHeader(zos, payloadPassword)
                     org.catrobat.catroid.io.ProjectCrypto.encryptDirectoryToStreamChunked(
                         proj.directory,
                         zos,
-                        org.catrobat.catroid.apkbuild.ProtectedProjectPayload.PASSWORD,
+                        payloadPassword,
                         filter = { fileName -> fileName != "undo_code.xml" }
                     )
                     zos.closeEntry()
