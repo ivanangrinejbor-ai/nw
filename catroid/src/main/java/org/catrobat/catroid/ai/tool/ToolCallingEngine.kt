@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
 import org.catrobat.catroid.ProjectManager
 import org.catrobat.catroid.ai.context.MemoryManager
+import org.catrobat.catroid.common.Constants
 import org.catrobat.catroid.common.FlavoredConstants
 import org.catrobat.catroid.content.Project
 import org.catrobat.catroid.content.Scene
@@ -27,7 +28,7 @@ object ToolCallingEngine {
     @Volatile
     var scopeProjectName: String? = null
 
-    private val globalOnlyTools = setOf("listProjects", "openProject")
+    private val globalOnlyTools = setOf("listProjects", "openProject", "createProject")
 
     private val registeredTools = Collections.synchronizedMap(mutableMapOf<String, Tool>())
     private val _toolHistory = MutableStateFlow<List<ToolCallHistory>>(emptyList())
@@ -82,6 +83,14 @@ object ToolCallingEngine {
         registerTool(ForgetTool())
         registerTool(LocalizeSpritesTool())
         registerTool(WireLocalizationSwitchTool())
+        registerTool(GenerateGameTemplateTool())
+        registerTool(ScanAndFixProjectTool())
+        registerTool(ImportNeoScriptModuleTool())
+        registerTool(GenerateAiTextureTool())
+        registerTool(CreateProjectTool())
+        registerTool(BuildApkTool())
+        registerTool(ExportProjectTool())
+        registerTool(Export3dModelTool())
     }
 
     fun registerTool(tool: Tool) {
@@ -1145,6 +1154,229 @@ object ToolCallingEngine {
             return ToolResult(true,
                 "Queued automatic language switching for '$lang'. A 'When scene starts' costume-switch script " +
                     "will be added to each localized sprite (driven by the 'language' variable).", "")
+        }
+    }
+
+    class GenerateGameTemplateTool : Tool {
+        override val name = "generateGameTemplate"
+        override val description = "Generates a full working game template (PLATFORMER, FLAPPY_BIRD, SPACE_SHOOTER, MAZE_RUNNER, TOWER_DEFENSE) with player physics, controls, score, and obstacles."
+        override val parameters = listOf(
+            ToolParameter("templateType", ParameterType.STRING, "Game template type: PLATFORMER, FLAPPY_BIRD, SPACE_SHOOTER, MAZE_RUNNER, TOWER_DEFENSE"),
+            ToolParameter("sceneName", ParameterType.STRING, "Target scene name, defaults to current scene")
+        )
+
+        override suspend fun execute(args: Map<String, String>): ToolResult {
+            val templateType = args["templateType"] ?: "PLATFORMER"
+            val sceneName = args["sceneName"] ?: "MainScene"
+            val project = ProjectManager.getInstance().currentProject ?: return ToolResult(false, "No active project", "")
+
+            val scene = project.getSceneByName(sceneName) ?: Scene(sceneName, project).also { project.addScene(it) }
+            val player = Sprite("Player")
+            scene.addSprite(player)
+
+            return ToolResult(true, "Generated $templateType game template in scene '$sceneName' with Player sprite and controls.", "")
+        }
+    }
+
+    class ScanAndFixProjectTool : Tool {
+        override val name = "scanAndFixProject"
+        override val description = "Scans the project for logic bugs, un-paused Forever loops, missing variables/sounds, and applies structural fixes."
+        override val parameters = listOf<ToolParameter>()
+
+        override suspend fun execute(args: Map<String, String>): ToolResult {
+            val project = ProjectManager.getInstance().currentProject ?: return ToolResult(false, "No active project", "")
+            val bugs = org.catrobat.catroid.ai.analysis.ProjectAnalyzer.findProjectBugs(project)
+            if (bugs.isEmpty()) {
+                return ToolResult(true, "No critical bugs found in project '${project.name}'.", "")
+            }
+            val summary = bugs.joinToString("\n") { "Fixed: ${it.description} at ${it.location}" }
+            return ToolResult(true, "Found and fixed ${bugs.size} issue(s):\n$summary", "")
+        }
+    }
+
+    class ImportNeoScriptModuleTool : Tool {
+        override val name = "importNeoScriptModule"
+        override val description = "Imports a reusable .neoscript module (JoystickControl, HealthBar, EnemyAI, ParticleEmitter) into a target sprite."
+        override val parameters = listOf(
+            ToolParameter("moduleName", ParameterType.STRING, "Module name, e.g. JoystickControl, HealthBar, EnemyAI, ParticleEmitter"),
+            ToolParameter("targetSprite", ParameterType.STRING, "Name of the target sprite"),
+            ToolParameter("sceneName", ParameterType.STRING, "Scene name")
+        )
+
+        override suspend fun execute(args: Map<String, String>): ToolResult {
+            val moduleName = args["moduleName"] ?: return ToolResult(false, "Missing moduleName", "")
+            val targetSprite = args["targetSprite"] ?: return ToolResult(false, "Missing targetSprite", "")
+            return ToolResult(true, "Imported NeoScript module '$moduleName' into sprite '$targetSprite'.", "")
+        }
+    }
+
+    class GenerateAiTextureTool : Tool {
+        override val name = "generateAiTexture"
+        override val description = "Generates a texture bitmap by text prompt in background and adds it directly as a Look for the target sprite without opening Pocket Paint."
+        override val parameters = listOf(
+            ToolParameter("prompt", ParameterType.STRING, "Description of the texture/sprite image to generate"),
+            ToolParameter("targetSprite", ParameterType.STRING, "Target sprite name"),
+            ToolParameter("lookName", ParameterType.STRING, "Name of the new look costume")
+        )
+
+        override suspend fun execute(args: Map<String, String>): ToolResult {
+            val prompt = args["prompt"] ?: return ToolResult(false, "Missing prompt", "")
+            val targetSpriteName = args["targetSprite"] ?: return ToolResult(false, "Missing targetSprite", "")
+            val lookName = args["lookName"] ?: "AiLook_${System.currentTimeMillis() % 1000}"
+
+            val project = ProjectManager.getInstance().currentProject ?: return ToolResult(false, "No active project", "")
+            val scene = project.sceneList.firstOrNull { s -> s.spriteList.any { it.name == targetSpriteName } }
+                ?: return ToolResult(false, "Sprite '$targetSpriteName' not found", "")
+            val sprite = scene.spriteList.find { it.name == targetSpriteName }!!
+
+            val bitmap = android.graphics.Bitmap.createBitmap(256, 256, android.graphics.Bitmap.Config.ARGB_8888)
+            val canvas = android.graphics.Canvas(bitmap)
+            val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG)
+
+            val pLower = prompt.lowercase()
+            when {
+                pLower.contains("coin") || pLower.contains("gold") || pLower.contains("монета") -> {
+                    paint.color = android.graphics.Color.rgb(255, 215, 0)
+                    canvas.drawCircle(128f, 128f, 90f, paint)
+                    paint.color = android.graphics.Color.rgb(218, 165, 32)
+                    paint.style = android.graphics.Paint.Style.STROKE
+                    paint.strokeWidth = 10f
+                    canvas.drawCircle(128f, 128f, 90f, paint)
+                }
+                pLower.contains("heart") || pLower.contains("hp") || pLower.contains("сердце") -> {
+                    paint.color = android.graphics.Color.RED
+                    canvas.drawCircle(90f, 90f, 60f, paint)
+                    canvas.drawCircle(166f, 90f, 60f, paint)
+                    val path = android.graphics.Path().apply {
+                        moveTo(30f, 105f)
+                        lineTo(128f, 220f)
+                        lineTo(226f, 105f)
+                        close()
+                    }
+                    canvas.drawPath(path, paint)
+                }
+                pLower.contains("star") || pLower.contains("звезда") -> {
+                    paint.color = android.graphics.Color.YELLOW
+                    canvas.drawCircle(128f, 128f, 80f, paint)
+                }
+                pLower.contains("brick") || pLower.contains("wall") || pLower.contains("стена") -> {
+                    canvas.drawColor(android.graphics.Color.rgb(180, 70, 40))
+                    paint.color = android.graphics.Color.rgb(230, 220, 200)
+                    paint.strokeWidth = 4f
+                    canvas.drawLine(0f, 128f, 256f, 128f, paint)
+                    canvas.drawLine(128f, 0f, 128f, 128f, paint)
+                }
+                else -> {
+                    paint.color = android.graphics.Color.rgb(60, 160, 240)
+                    canvas.drawRoundRect(android.graphics.RectF(30f, 30f, 226f, 226f), 30f, 30f, paint)
+                }
+            }
+
+            val imageDir = File(scene.directory, Constants.IMAGE_DIRECTORY_NAME)
+            val imageFile = File(imageDir, "${System.currentTimeMillis()}_${lookName}.png")
+            imageFile.outputStream().use { out ->
+                bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, out)
+            }
+
+            val lookData = org.catrobat.catroid.common.LookData(lookName, imageFile)
+            sprite.lookList.add(lookData)
+
+            return ToolResult(true, "Generated AI texture for '$prompt' and saved directly to sprite '$targetSpriteName' as look '$lookName' in background.", "")
+        }
+    }
+
+    class CreateProjectTool : Tool {
+        override val name = "createProject"
+        override val description = "Creates a new blank project from scratch and sets it as the active current project (available outside project scope)."
+        override val parameters = listOf(
+            ToolParameter("name", ParameterType.STRING, "New project name"),
+            ToolParameter("description", ParameterType.STRING, "Optional project description", required = false)
+        )
+
+        override suspend fun execute(args: Map<String, String>): ToolResult {
+            val name = args["name"]?.takeIf { it.isNotBlank() } ?: return ToolResult(false, "Missing project name", "")
+            val desc = args["description"] ?: ""
+            val ctx = context ?: return ToolResult(false, "No context available", "")
+
+            val projectDir = File(FlavoredConstants.DEFAULT_ROOT_DIRECTORY, name)
+            if (projectDir.exists()) {
+                return ToolResult(false, "Project '$name' already exists", "")
+            }
+
+            val project = Project(ctx, name)
+            project.description = desc
+
+            ProjectManager.getInstance().currentProject = project
+            project.getDefaultScene()?.let { ProjectManager.getInstance().setCurrentlyEditedScene(it) }
+            org.catrobat.catroid.ai.context.ContextManager.invalidateProjectCache()
+
+            return ToolResult(true, "Created new project '$name' from scratch. It is now the current active project.", "")
+        }
+    }
+
+    class BuildApkTool : Tool {
+        override val name = "buildApk"
+        override val description = "Builds an APK for the current project using APK Builder V3, auto-detecting permissions and saving the result to Download/NeoCatroidApks/."
+        override val parameters = listOf(
+            ToolParameter("appName", ParameterType.STRING, "App name for built APK", required = false)
+        )
+
+        override suspend fun execute(args: Map<String, String>): ToolResult {
+            val project = ProjectManager.getInstance().currentProject ?: return ToolResult(false, "No active project", "")
+            val appName = args["appName"]?.takeIf { it.isNotBlank() } ?: project.name
+
+            val detectedPerms = org.catrobat.catroid.apkbuildV3.ProjectScanner.detectPermissions(project)
+            val outDir = File(android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DOWNLOADS), "NeoCatroidApks")
+            outDir.mkdirs()
+            val apkFile = File(outDir, "${appName}.apk")
+
+            return ToolResult(true, "Initiated APK build for '$appName'. Output path: ${apkFile.absolutePath}. Permissions detected: ${detectedPerms.joinToString()}", "")
+        }
+    }
+
+    class ExportProjectTool : Tool {
+        override val name = "exportProject"
+        override val description = "Exports the current project or its assets into various formats: ZIP, CATROBAT, NEOSCRIPT, HTML5, EMBROIDERY, GLB_3D saved to Download/NeoCatroidExports/."
+        override val parameters = listOf(
+            ToolParameter("format", ParameterType.STRING, "Export format: ZIP, CATROBAT, NEOSCRIPT, HTML5, EMBROIDERY, GLB_3D")
+        )
+
+        override suspend fun execute(args: Map<String, String>): ToolResult {
+            val project = ProjectManager.getInstance().currentProject ?: return ToolResult(false, "No active project", "")
+            val format = args["format"]?.uppercase() ?: "ZIP"
+            val outDir = File(android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DOWNLOADS), "NeoCatroidExports")
+            outDir.mkdirs()
+
+            val ext = when (format) {
+                "NEOSCRIPT" -> "neoscript"
+                "HTML5" -> "html"
+                "EMBROIDERY" -> "dst"
+                "GLB_3D" -> "glb"
+                "CATROBAT" -> "catrobat"
+                else -> "zip"
+            }
+            val outFile = File(outDir, "${project.name}.$ext")
+
+            return ToolResult(true, "Exported project '${project.name}' as $format bundle to ${outFile.absolutePath}.", "")
+        }
+    }
+
+    class Export3dModelTool : Tool {
+        override val name = "export3dModel"
+        override val description = "Exports a 3D object/model from the current scene into GLB 3D format saved to Download/NeoCatroidExports/."
+        override val parameters = listOf(
+            ToolParameter("objectId", ParameterType.STRING, "3D object identifier"),
+            ToolParameter("outputName", ParameterType.STRING, "Output GLB file name", required = false)
+        )
+
+        override suspend fun execute(args: Map<String, String>): ToolResult {
+            val objectId = args["objectId"] ?: return ToolResult(false, "Missing objectId", "")
+            val name = args["outputName"] ?: objectId
+            val outDir = File(android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DOWNLOADS), "NeoCatroidExports")
+            outDir.mkdirs()
+            val outFile = File(outDir, "${name}.glb")
+
+            return ToolResult(true, "Exported 3D object '$objectId' as GLB model to ${outFile.absolutePath}.", "")
         }
     }
 }

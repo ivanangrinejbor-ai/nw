@@ -93,7 +93,6 @@ open class DrawingSurface : SurfaceView, SurfaceHolder.Callback {
         val shader = BitmapShader(checkerboard, Shader.TileMode.REPEAT, Shader.TileMode.REPEAT)
         checkeredPattern.shader = shader
         checkeredPattern.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC)
-        checkerboard.recycle()
         val density = resources.displayMetrics.density
         val callback: DrawingSurfaceListenerCallback = object : DrawingSurfaceListenerCallback {
             override fun getCurrentTool(): Tool? = toolReference.tool

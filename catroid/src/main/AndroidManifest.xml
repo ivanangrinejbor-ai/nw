@@ -426,6 +426,13 @@
             android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />
 
         <activity
+            android:name="org.catrobat.catroid.editor.ParticleEditorActivity"
+            android:exported="false"
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:theme="@style/Catroid"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
             android:name="org.catrobat.catroid.ui.tilemap.TilemapEditorActivity"
             android:exported="false"
             android:configChanges="orientation|screenSize|keyboardHidden"

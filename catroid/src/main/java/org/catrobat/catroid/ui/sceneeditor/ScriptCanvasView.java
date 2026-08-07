@@ -53,6 +53,7 @@ import org.catrobat.catroid.content.Script;
 import org.catrobat.catroid.content.Sprite;
 import org.catrobat.catroid.content.StartScript;
 import org.catrobat.catroid.content.bricks.Brick;
+import org.catrobat.catroid.content.bricks.BrickBaseType;
 import org.catrobat.catroid.content.bricks.CompositeBrick;
 import org.catrobat.catroid.content.bricks.ElseIfSeparatorBrick;
 import org.catrobat.catroid.content.bricks.EndBrick;
@@ -65,9 +66,11 @@ import org.catrobat.catroid.utils.BrickCollapseManager;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 
 public class ScriptCanvasView extends FrameLayout {
@@ -162,7 +165,98 @@ private void notifySelection() {
 		return Math.round(value * density);
 	}
 
-public void setSprite(Sprite sprite) {
+	private final Map<Integer, Queue<View>> brickViewPool = new HashMap<>();
+	private final List<StackBound> cachedStackBounds = new ArrayList<>();
+
+	private static class StackBound {
+		final View stackView;
+		final Script script;
+		final float left, top, right, bottom;
+
+		StackBound(View stackView, Script script, float left, float top, float right, float bottom) {
+			this.stackView = stackView;
+			this.script = script;
+			this.left = left;
+			this.top = top;
+			this.right = right;
+			this.bottom = bottom;
+		}
+	}
+
+	private void recycleBrickViews(ViewGroup parent) {
+		if (parent == null) return;
+		for (int i = 0; i < parent.getChildCount(); i++) {
+			View child = parent.getChildAt(i);
+			Object tag = child.getTag();
+			if (tag instanceof Brick) {
+				Brick brick = (Brick) tag;
+				child.clearAnimation();
+				child.setOnTouchListener(null);
+				if (brick instanceof BrickBaseType) {
+					brickViewPool.computeIfAbsent(((BrickBaseType) brick).getViewResource(), k -> new ArrayDeque<>()).offer(child);
+				}
+			}
+			if (child instanceof ViewGroup && !(child.getTag() instanceof Script)) {
+				recycleBrickViews((ViewGroup) child);
+			}
+		}
+	}
+
+	private View obtainBrickView(Brick brick) {
+		if (brick instanceof BrickBaseType) {
+			int layoutId = ((BrickBaseType) brick).getViewResource();
+			Queue<View> pool = brickViewPool.get(layoutId);
+			if (pool != null && !pool.isEmpty()) {
+				View reused = pool.poll();
+				if (reused != null) {
+					reused.setVisibility(View.VISIBLE);
+					reused.setAlpha(1f);
+					reused.setScaleX(1f);
+					reused.setScaleY(1f);
+					reused.setSelected(false);
+					return reused;
+				}
+			}
+		}
+		return brick.getView(getContext());
+	}
+
+	private void updateViewportCulling() {
+		if (getWidth() <= 0 || getHeight() <= 0 || world == null) return;
+		float viewportLeft = -panX / scale - dp(120);
+		float viewportTop = -panY / scale - dp(120);
+		float viewportRight = (getWidth() - panX) / scale + dp(120);
+		float viewportBottom = (getHeight() - panY) / scale + dp(120);
+
+		for (int i = 0; i < world.getChildCount(); i++) {
+			View child = world.getChildAt(i);
+			float childLeft = child.getLeft();
+			float childTop = child.getTop();
+			float childRight = childLeft + Math.max(child.getWidth(), dp(420));
+			float childBottom = childTop + Math.max(child.getHeight(), dp(100));
+
+			boolean isVisible = childRight >= viewportLeft && childLeft <= viewportRight
+					&& childBottom >= viewportTop && childTop <= viewportBottom;
+			child.setVisibility(isVisible ? View.VISIBLE : View.GONE);
+		}
+	}
+
+	private void cacheStackBounds() {
+		cachedStackBounds.clear();
+		for (int i = 0; i < world.getChildCount(); i++) {
+			View child = world.getChildAt(i);
+			if (child.getTag() instanceof Script) {
+				Script script = (Script) child.getTag();
+				float left = child.getLeft();
+				float top = child.getTop();
+				float right = left + Math.max(child.getWidth(), dp(420));
+				float bottom = top + Math.max(child.getHeight(), dp(100));
+				cachedStackBounds.add(new StackBound(child, script, left, top, right, bottom));
+			}
+		}
+	}
+
+	public void setSprite(Sprite sprite) {
 		this.sprite = sprite;
 		detachedBricks = sprite.getFloatingBricks();
 		buildStacks();
@@ -171,6 +265,7 @@ public void setSprite(Sprite sprite) {
 
 	private void buildStacks() {
 		clearConnectionHighlight();
+		recycleBrickViews(world);
 		world.removeAllViews();
 		if (sprite == null) {
 			return;
@@ -191,9 +286,10 @@ public void setSprite(Sprite sprite) {
 			}
 			world.addView(buildStack(script));
 		}
+		updateViewportCulling();
 	}
 
-private View buildStack(Script script) {
+	private View buildStack(Script script) {
 		LinearLayout stack = new LinearLayout(getContext());
 		stack.setOrientation(LinearLayout.VERTICAL);
 		stack.setClipChildren(false);
@@ -212,7 +308,7 @@ private View buildStack(Script script) {
 			}
 			View brickView;
 			try {
-				brickView = brick.getView(getContext());
+				brickView = obtainBrickView(brick);
 			} catch (Exception e) {
 				Log.e("ScriptCanvasView", "Failed to render brick " + brick.getClass().getName(), e);
 				TextView fallback = new TextView(getContext());
@@ -352,7 +448,7 @@ private View buildStack(Script script) {
 		for (FloatingBrick detached : new ArrayList<>(detachedBricks)) {
 			View brickView;
 			try {
-				brickView = detached.brick.getView(getContext());
+				brickView = obtainBrickView(detached.brick);
 			} catch (Exception e) {
 				Log.e("ScriptCanvasView", "Failed to render detached brick", e);
 				continue;
@@ -622,13 +718,22 @@ if (targetBrick instanceof IfLogicBeginBrick.ElseBrick
 	}
 
 	private View findStackViewAtWorld(float worldX, float worldY) {
+		if (!cachedStackBounds.isEmpty()) {
+			for (int i = cachedStackBounds.size() - 1; i >= 0; i--) {
+				StackBound bound = cachedStackBounds.get(i);
+				if (worldX >= bound.left && worldX <= bound.right
+						&& worldY >= bound.top && worldY <= bound.bottom) {
+					return bound.stackView;
+				}
+			}
+		}
 		for (int i = world.getChildCount() - 1; i >= 0; i--) {
 			View child = world.getChildAt(i);
 			if (child.getTag() instanceof Script) {
 				float left = child.getLeft();
 				float top = child.getTop();
-				if (worldX >= left && worldX <= left + child.getWidth()
-						&& worldY >= top && worldY <= top + child.getHeight()) {
+				if (worldX >= left && worldX <= left + Math.max(child.getWidth(), dp(420))
+						&& worldY >= top && worldY <= top + Math.max(child.getHeight(), dp(100))) {
 					return child;
 				}
 			}
@@ -761,6 +866,7 @@ if (targetBrick instanceof IfLogicBeginBrick.ElseBrick
 	private void startBlockDrag(Brick brick, FloatingBrick detached) {
 		draggingBrick = brick;
 		draggingDetachedBrick = detached;
+		cacheStackBounds();
 		View ghost;
 		try {
 			ghost = brick.getPrototypeView(getContext());
@@ -1213,6 +1319,7 @@ case MotionEvent.ACTION_DOWN:
 		world.setScaleY(scale);
 		world.setTranslationX(panX);
 		world.setTranslationY(panY);
+		updateViewportCulling();
 		invalidate();
 	}
 

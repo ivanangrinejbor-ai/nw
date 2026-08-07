@@ -127,6 +127,28 @@ class ApkBuilderV3ExportDialog {
             perm to cb
         }
 
+        val permModeGroup = view.findViewById<android.widget.RadioGroup>(R.id.v3_permissions_mode_group)
+        val permAutoRadio = view.findViewById<RadioButton>(R.id.v3_perm_mode_auto)
+        val autoPermissions = org.catrobat.catroid.apkbuildV3.ProjectScanner.detectPermissions(project)
+
+        fun updatePermissionsUI(isAuto: Boolean) {
+            permChecks.forEach { (perm, cb) ->
+                if (isAuto) {
+                    cb.isChecked = perm in autoPermissions
+                    cb.isEnabled = false
+                } else {
+                    cb.isEnabled = true
+                }
+            }
+        }
+
+        permAutoRadio?.isChecked = true
+        updatePermissionsUI(true)
+
+        permModeGroup?.setOnCheckedChangeListener { _, checkedId ->
+            updatePermissionsUI(checkedId == R.id.v3_perm_mode_auto)
+        }
+
         val hasProjectIcon = File(project.directory, "manual_screenshot.png").exists() ||
                 File(project.directory, "automatic_screenshot.png").exists()
         view.findViewById<RadioButton>(R.id.v3_icon_project)?.isChecked = hasProjectIcon

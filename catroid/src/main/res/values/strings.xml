@@ -713,6 +713,8 @@
     <string formatted="false" name="pathfinder_smooth">Smooth path</string>
     <string formatted="false" name="pathfinder_dynamic_replan">Dynamic replan</string>
     <string formatted="false" name="pathfinder_dynamic_replan_enabled">Enabled (1/0)</string>
+    <string formatted="false" name="pathfinder_rotate_object">Rotate object (1/0)</string>
+    <string formatted="false" name="pathfinder_replan_param">Dynamic replan (1/0)</string>
     <string formatted="false" name="pathfinder_size_check">Size</string>
     <string formatted="false" name="pathfinder_size_ignore">ignore</string>
     <string formatted="false" name="pathfinder_size_check_fit">check fit</string>
@@ -3903,6 +3905,20 @@
 <string name="button_spray_can">Spray can</string>
 <string name="button_smudge">Smudge</string>
 <string name="button_clip">Clip area</string>
+<string name="button_pixelart">Pixel Art</string>
+<string name="button_magic_wand">Magic Wand</string>
+<string name="button_lasso">Lasso</string>
+<string name="button_auto_remove_bg">Remove BG</string>
+<string name="help_content_pixelart">Draw precise 1px retro pixel art with automatic pixel grid snap and crisp strokes.</string>
+<string name="help_content_magic_wand">Select connected regions by color tolerance to delete or fill.</string>
+<string name="help_content_lasso">Draw a freehand boundary to select, copy, cut, or move an area.</string>
+<string name="help_content_auto_remove_bg">Automatically detect and remove canvas background colors with transparency.</string>
+<string name="button_symmetry">Symmetry</string>
+<string name="button_color_replace">Replace Color</string>
+<string name="button_pattern">Pattern Stamp</string>
+<string name="help_content_symmetry">Draw with automatic horizontal and vertical mirror symmetry.</string>
+<string name="help_content_color_replace">Replace a targeted color with your current color across the layer.</string>
+<string name="help_content_pattern">Paint with repeating seamless textures like brick, grass, or stone.</string>
 <string name="button_apply">Apply</string>
 <string name="button_checkmark">Checkmark</string>
 <string name="gallery">Gallery</string>
@@ -5077,6 +5093,8 @@ needs read and write access to it. You can always change permissions through you
     <string formatted="false" name="v3_debuggable">Debuggable app (allow debugging)</string>
     <string formatted="false" name="v3_section_app">Application</string>
     <string formatted="false" name="v3_section_build">Build options</string>
+    <string formatted="false" name="v3_perm_mode_auto">Automatic (from project blocks)</string>
+    <string formatted="false" name="v3_perm_mode_manual">Manual selection</string>
 
     <!-- UI 2.0 - Formula Editor 2 -->
     <string name="formula_editor_2_title">Formula Editor</string>

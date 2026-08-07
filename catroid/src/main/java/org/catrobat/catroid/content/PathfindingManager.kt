@@ -63,7 +63,8 @@ data class PathFollower(
     var targetName: String? = null,
     var stopOnTouch: Boolean = false,
     var sizeCheckMode: Int = 0,
-    var blockedPathAction: Int = 0
+    var blockedPathAction: Int = 0,
+    var rotateObject: Boolean = true
 ) {
     @Volatile var replanInFlight: Boolean = false
 }
@@ -527,6 +528,14 @@ class PathfindingManager {
         followers.getOrPut(spriteName) { PathFollower(spriteName) }.blockedPathAction = action
     }
 
+    fun setFollowerRotateObject(spriteName: String, enabled: Boolean) {
+        followers.getOrPut(spriteName) { PathFollower(spriteName) }.rotateObject = enabled
+    }
+
+    fun setFollowerDynamicReplanning(spriteName: String, enabled: Boolean) {
+        followers.getOrPut(spriteName) { PathFollower(spriteName) }.enableDynamicReplanning = enabled
+    }
+
     fun smoothPath(
         path: List<Vector2>,
         sizeCheckMode: Int = 0,
@@ -773,12 +782,14 @@ class PathfindingManager {
 
             look.setPositionInUserInterfaceDimensionUnit(newX, newY)
             
-            val targetAngle = Math.toDegrees(kotlin.math.atan2(dy.toDouble(), dx.toDouble())).toFloat()
-            val currentAngle = look.getMotionDirectionInUserInterfaceDimensionUnit()
-            val angleDiff = ((targetAngle - currentAngle + 540f) % 360f) - 180f
-            val maxRotation = follower.rotationSpeed * delta
-            val rotation = angleDiff.coerceIn(-maxRotation, maxRotation)
-            look.setMotionDirectionInUserInterfaceDimensionUnit(currentAngle + rotation)
+            if (follower.rotateObject) {
+                val targetAngle = Math.toDegrees(kotlin.math.atan2(dy.toDouble(), dx.toDouble())).toFloat()
+                val currentAngle = look.getMotionDirectionInUserInterfaceDimensionUnit()
+                val angleDiff = ((targetAngle - currentAngle + 540f) % 360f) - 180f
+                val maxRotation = follower.rotationSpeed * delta
+                val rotation = angleDiff.coerceIn(-maxRotation, maxRotation)
+                look.setMotionDirectionInUserInterfaceDimensionUnit(currentAngle + rotation)
+            }
         }
     }
 

@@ -205,6 +205,74 @@ class DefaultToolFactory(var mainActivity: MainActivity) : ToolFactory {
                 DRAW_TIME_INIT,
                 mainActivity
             )
+            ToolType.PIXELART -> PixelArtTool(
+                DefaultBrushToolOptionsView(toolLayout),
+                contextCallback,
+                toolOptionsViewController,
+                toolPaint,
+                workspace,
+                idlingResource,
+                commandManager,
+                DRAW_TIME_INIT
+            )
+            ToolType.MAGIC_WAND -> MagicWandTool(
+                DefaultFillToolOptionsView(toolLayout),
+                contextCallback,
+                toolOptionsViewController,
+                toolPaint,
+                workspace,
+                idlingResource,
+                commandManager,
+                DRAW_TIME_INIT
+            )
+            ToolType.LASSO -> LassoTool(
+                DefaultBrushToolOptionsView(toolLayout),
+                contextCallback,
+                toolOptionsViewController,
+                toolPaint,
+                workspace,
+                idlingResource,
+                commandManager,
+                DRAW_TIME_INIT
+            )
+            ToolType.AUTO_REMOVE_BG -> AutoRemoveBgTool(
+                contextCallback,
+                toolOptionsViewController,
+                toolPaint,
+                workspace,
+                idlingResource,
+                commandManager
+            )
+            ToolType.SYMMETRY -> SymmetryTool(
+                DefaultBrushToolOptionsView(toolLayout),
+                contextCallback,
+                toolOptionsViewController,
+                toolPaint,
+                workspace,
+                idlingResource,
+                commandManager,
+                DRAW_TIME_INIT
+            )
+            ToolType.COLOR_REPLACE -> ColorReplaceTool(
+                DefaultFillToolOptionsView(toolLayout),
+                contextCallback,
+                toolOptionsViewController,
+                toolPaint,
+                workspace,
+                idlingResource,
+                commandManager,
+                DRAW_TIME_INIT
+            )
+            ToolType.PATTERN -> PatternTool(
+                DefaultBrushToolOptionsView(toolLayout),
+                contextCallback,
+                toolOptionsViewController,
+                toolPaint,
+                workspace,
+                idlingResource,
+                commandManager,
+                DRAW_TIME_INIT
+            )
             else -> BrushTool(
                 DefaultBrushToolOptionsView(toolLayout),
                 contextCallback,

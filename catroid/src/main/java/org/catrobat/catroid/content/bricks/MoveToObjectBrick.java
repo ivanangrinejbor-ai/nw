@@ -63,6 +63,10 @@ public class MoveToObjectBrick extends FormulaBrick implements BrickSpinner.OnIt
     public MoveToObjectBrick() {
         addAllowedBrickField(BrickField.SPRITE, R.id.brick_move_to_avoid_edit);
         addAllowedBrickField(BrickField.SPEED, R.id.brick_move_to_speed_edit);
+        addAllowedBrickField(BrickField.ROTATE_OBJECT, R.id.brick_move_to_rotate_edit);
+        addAllowedBrickField(BrickField.DYNAMIC_REPLANNING, R.id.brick_move_to_replan_edit);
+        setFormulaWithBrickField(BrickField.ROTATE_OBJECT, new Formula(1));
+        setFormulaWithBrickField(BrickField.DYNAMIC_REPLANNING, new Formula(0));
     }
 
     public MoveToObjectBrick(String targetObject, String avoidObjects, double speed) {
@@ -70,6 +74,8 @@ public class MoveToObjectBrick extends FormulaBrick implements BrickSpinner.OnIt
         this.targetObject = targetObject;
         setFormulaWithBrickField(BrickField.SPRITE, new Formula(avoidObjects));
         setFormulaWithBrickField(BrickField.SPEED, new Formula(speed));
+        setFormulaWithBrickField(BrickField.ROTATE_OBJECT, new Formula(1));
+        setFormulaWithBrickField(BrickField.DYNAMIC_REPLANNING, new Formula(0));
     }
 
     public MoveToObjectBrick(String targetObject, String avoidObjects, double speed, int moveMode, int sizeCheckMode, int blockedPathAction) {
@@ -77,6 +83,12 @@ public class MoveToObjectBrick extends FormulaBrick implements BrickSpinner.OnIt
         this.moveMode = moveMode;
         this.sizeCheckMode = sizeCheckMode;
         this.blockedPathAction = blockedPathAction;
+    }
+
+    public MoveToObjectBrick(String targetObject, String avoidObjects, double speed, int moveMode, int sizeCheckMode, int blockedPathAction, double rotateObject, double dynamicReplanning) {
+        this(targetObject, avoidObjects, speed, moveMode, sizeCheckMode, blockedPathAction);
+        setFormulaWithBrickField(BrickField.ROTATE_OBJECT, new Formula(rotateObject));
+        setFormulaWithBrickField(BrickField.DYNAMIC_REPLANNING, new Formula(dynamicReplanning));
     }
 
     @Override
@@ -243,6 +255,8 @@ public class MoveToObjectBrick extends FormulaBrick implements BrickSpinner.OnIt
                         getFormulaWithBrickField(BrickField.SPEED),
                         moveMode,
                         sizeCheckMode,
-                        blockedPathAction));
+                        blockedPathAction,
+                        getFormulaWithBrickField(BrickField.ROTATE_OBJECT),
+                        getFormulaWithBrickField(BrickField.DYNAMIC_REPLANNING)));
     }
 }

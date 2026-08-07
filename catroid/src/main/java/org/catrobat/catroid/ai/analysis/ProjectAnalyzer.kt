@@ -204,4 +204,34 @@ object ProjectAnalyzer {
             }
         } catch (_: Exception) { null }
     }
+
+    data class BugItem(
+        val category: String,
+        val description: String,
+        val location: String,
+        val autoFixable: Boolean = true
+    )
+
+    fun findProjectBugs(project: Project): List<BugItem> {
+        val bugs = mutableListOf<BugItem>()
+        for (scene in project.sceneList) {
+            for (sprite in scene.spriteList) {
+                for (script in sprite.scriptList) {
+                    val bricks = script.getBrickList()
+                    for (i in bricks.indices) {
+                        val brick = bricks[i]
+                        val name = brick::class.java.simpleName
+                        if (name == "ForeverBrick") {
+                            val hasWait = bricks.drop(i).takeWhile { it::class.java.simpleName != "LoopEndBrick" }
+                                .any { it::class.java.simpleName.contains("Wait") }
+                            if (!hasWait) {
+                                bugs.add(BugItem("PERFORMANCE", "Forever loop without Wait brick in ${sprite.name}", "${scene.name}/${sprite.name}"))
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return bugs
+    }
 }

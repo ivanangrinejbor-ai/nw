@@ -736,6 +736,8 @@
     <string formatted="false" name="pathfinder_smooth">Сгладить путь</string>
     <string formatted="false" name="pathfinder_replan">Дин. перестроение</string>
     <string formatted="false" name="pathfinder_replan_enabled">Включено (1/0)</string>
+    <string formatted="false" name="pathfinder_rotate_object">Поворачивать объект (1/0)</string>
+    <string formatted="false" name="pathfinder_replan_param">Перестраивать путь (1/0)</string>
     <string formatted="false" name="pathfinder_size_check">Размер</string>
     <string formatted="false" name="pathfinder_size_ignore">игнорировать</string>
     <string formatted="false" name="pathfinder_size_check_fit">по размеру</string>
@@ -4906,6 +4908,20 @@
     <string name="button_watercolor">Акварель</string>
     <string name="button_smudge">Палец</string>
     <string name="button_clip">Обрезка</string>
+    <string name="button_pixelart">Пиксель-арт</string>
+    <string name="button_magic_wand">Волшебная палочка</string>
+    <string name="button_lasso">Лассо</string>
+    <string name="button_auto_remove_bg">Удалить фон</string>
+    <string name="help_content_pixelart">Точное рисование пиксель-арта с авто-сеткой и чистыми линиями.</string>
+    <string name="help_content_magic_wand">Выделение связанных областей по цвету для удаления или заливки.</string>
+    <string name="help_content_lasso">Выделение произвольной области пальцем для переноса или вырезания.</string>
+    <string name="help_content_auto_remove_bg">Автоматическое определение и очистка фона с созданием прозрачности.</string>
+    <string name="button_symmetry">Симметрия</string>
+    <string name="button_color_replace">Замена цвета</string>
+    <string name="button_pattern">Паттерн-штамп</string>
+    <string name="help_content_symmetry">Рисование с авто-зеркалированием штрихов по осям X и Y.</string>
+    <string name="help_content_color_replace">Замена одного цвета на другой по всему слою с учетом допуска.</string>
+    <string name="help_content_pattern">Рисование бесшовными текстурами (кирпич, трава, земля, камень).</string>
     <string name="gallery">Галерея</string>
     <string name="stickers">Стикеры</string>
     <string name="text_tool_dialog_no_fonts">В проекте нет TTF-файлов</string>
@@ -5885,6 +5901,8 @@ Catrobat — это визуальный язык программировани
     <string formatted="false" name="v3_debuggable">Отладка приложения (debuggable)</string>
     <string formatted="false" name="v3_section_app">Приложение</string>
     <string formatted="false" name="v3_section_build">Параметры сборки</string>
+    <string formatted="false" name="v3_perm_mode_auto">Автоматически (из блоков проекта)</string>
+    <string formatted="false" name="v3_perm_mode_manual">Вручную</string>
 
     <!-- Formula Editor 2.0 -->
     <string name="formula_editor_2_title">Редактор формул</string>

@@ -114,6 +114,24 @@
         <TextView
             android:id="@+id/brick_move_to_speed_edit"
             style="@style/BrickEditText" />
+
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/pathfinder_rotate_object"
+            app:layout_newLine="true" />
+
+        <TextView
+            android:id="@+id/brick_move_to_rotate_edit"
+            style="@style/BrickEditText" />
+
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/pathfinder_replan_param"
+            app:layout_newLine="true" />
+
+        <TextView
+            android:id="@+id/brick_move_to_replan_edit"
+            style="@style/BrickEditText" />
     </org.catrobat.catroid.ui.BrickLayout>
 
 </LinearLayout>

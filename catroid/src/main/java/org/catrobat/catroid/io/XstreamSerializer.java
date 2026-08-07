@@ -360,6 +360,12 @@ public final class XstreamSerializer {
 		xstream.alias("brick", SetBackgroundLightBrick.class);
 		xstream.alias("brick", SetCCDBrick.class);
 		xstream.alias("brick", CreateParticlesBrick.class);
+		xstream.alias("brick", CreateParticleSystemBrick.class);
+		xstream.alias("brick", ConfigureParticlesBrick.class);
+		xstream.alias("brick", SetParticleColorBrick.class);
+		xstream.alias("brick", SetParticleEmissionBrick.class);
+		xstream.alias("brick", FadeParticleEffectBrick.class);
+		xstream.alias("brick", ParticleEffectAdditivityBrick.class);
 		xstream.alias("brick", DeleteParticlesBrick.class);
 		xstream.alias("brick", SetPostProcessingBrick.class);
         xstream.alias("brick", SetPostProcessingNewBrick.class);

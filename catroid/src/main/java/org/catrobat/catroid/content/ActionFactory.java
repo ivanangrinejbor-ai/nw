@@ -6939,4 +6939,21 @@ public class ActionFactory extends Actions {
 		action.zValue = z;
 		return action;
 	}
+
+	public Action createMoveToObjectAction(Sprite sprite, SequenceAction sequence,
+			String targetObject, Formula avoidObjects, Formula speed, int moveMode,
+			int sizeCheckMode, int blockedPathAction, Formula rotateObject, Formula dynamicReplanning) {
+		MoveToObjectAction action = Actions.action(MoveToObjectAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setTargetObject(targetObject);
+		action.setAvoidObjects(avoidObjects);
+		action.setSpeed(speed);
+		action.setMoveMode(moveMode);
+		action.setSizeCheckMode(sizeCheckMode);
+		action.setBlockedPathAction(blockedPathAction);
+		action.setRotateObject(rotateObject);
+		action.setDynamicReplanning(dynamicReplanning);
+		return action;
+	}
 }

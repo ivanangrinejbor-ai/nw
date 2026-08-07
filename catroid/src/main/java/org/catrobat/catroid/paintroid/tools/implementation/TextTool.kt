@@ -111,6 +111,20 @@ class TextTool(
     @JvmField
     var bold = false
 
+    var strokeWidth = 0f
+    var strokeColor = android.graphics.Color.BLACK
+    var shadowRadius = 0f
+    var shadowDx = 4f
+    var shadowDy = 4f
+    var shadowColor = android.graphics.Color.BLACK
+    var isPixelCrisp = false
+    var useGradient = false
+    var gradientTopColor = android.graphics.Color.YELLOW
+    var gradientBottomColor = android.graphics.Color.RED
+    var glowIntensity = 0
+    var glowColor = android.graphics.Color.CYAN
+    var autoDimBackground = false
+
     private var textSize = DEFAULT_TEXT_SIZE
     private val stc: Typeface?
     private val dubai: Typeface?
@@ -302,6 +316,33 @@ class TextTool(
     }
 
     override fun drawBitmap(canvas: Canvas, boxWidth: Float, boxHeight: Float) {
+        if (autoDimBackground) {
+            val dimPaint = Paint().apply {
+                color = android.graphics.Color.argb(80, 0, 0, 0)
+                style = Paint.Style.FILL
+            }
+            val rect = android.graphics.RectF(-boxWidth / 2f - 10f, -boxHeight / 2f - 10f, boxWidth / 2f + 10f, boxHeight / 2f + 10f)
+            canvas.drawRoundRect(rect, 16f, 16f, dimPaint)
+        }
+
+        textPaint.isAntiAlias = !isPixelCrisp
+
+        if (useGradient) {
+            textPaint.shader = android.graphics.LinearGradient(
+                0f, -boxHeight / 2f, 0f, boxHeight / 2f,
+                gradientTopColor, gradientBottomColor,
+                android.graphics.Shader.TileMode.CLAMP
+            )
+        } else {
+            textPaint.shader = null
+        }
+
+        if (shadowRadius > 0f) {
+            textPaint.setShadowLayer(shadowRadius, shadowDx, shadowDy, shadowColor)
+        } else {
+            textPaint.clearShadowLayer()
+        }
+
         val textAscent = textPaint.ascent()
         val textDescent = textPaint.descent()
         val textHeight = (textDescent - textAscent) * multilineText.size
@@ -325,6 +366,41 @@ class TextTool(
         val scaledWidthOffset = BOX_OFFSET / widthScaling
         val scaledBoxWidth = boxWidth / widthScaling
         val scaledBoxHeight = boxHeight / heightScaling
+
+        if (glowIntensity > 0) {
+            val glowPaint = Paint(textPaint).apply {
+                style = Paint.Style.STROKE
+                strokeWidth = glowIntensity * 4f
+                color = glowColor
+                shader = null
+                maskFilter = android.graphics.BlurMaskFilter(glowIntensity * 3f, android.graphics.BlurMaskFilter.Blur.NORMAL)
+            }
+            multilineText.forEachIndexed { index, textLine ->
+                canvas.drawText(
+                    textLine,
+                    scaledWidthOffset - scaledBoxWidth / 2 / if (italic) ITALIC_FONT_BOX_ADJUSTMENT else 1f,
+                    -(scaledBoxHeight / 2) + scaledHeightOffset - textAscent + lineHeight * index,
+                    glowPaint
+                )
+            }
+        }
+
+        if (strokeWidth > 0f) {
+            val strokePaint = Paint(textPaint).apply {
+                style = Paint.Style.STROKE
+                strokeWidth = this@TextTool.strokeWidth
+                color = strokeColor
+                shader = null
+            }
+            multilineText.forEachIndexed { index, textLine ->
+                canvas.drawText(
+                    textLine,
+                    scaledWidthOffset - scaledBoxWidth / 2 / if (italic) ITALIC_FONT_BOX_ADJUSTMENT else 1f,
+                    -(scaledBoxHeight / 2) + scaledHeightOffset - textAscent + lineHeight * index,
+                    strokePaint
+                )
+            }
+        }
 
         multilineText.forEachIndexed { index, textLine ->
             canvas.drawText(

@@ -215,6 +215,69 @@ enum class ToolType(
         R.id.pocketpaint_tools_clipping,
         INVALID_RESOURCE_ID,
         true
+    ),
+    PIXELART(
+        R.string.button_pixelart,
+        R.string.help_content_pixelart,
+        R.drawable.ic_pocketpaint_tool_brush,
+        EnumSet.of(StateChange.ALL),
+        R.id.pocketpaint_tools_brush,
+        INVALID_RESOURCE_ID,
+        true
+    ),
+    MAGIC_WAND(
+        R.string.button_magic_wand,
+        R.string.help_content_magic_wand,
+        R.drawable.ic_pocketpaint_tool_fill,
+        EnumSet.of(StateChange.ALL),
+        R.id.pocketpaint_tools_fill,
+        INVALID_RESOURCE_ID,
+        true
+    ),
+    LASSO(
+        R.string.button_lasso,
+        R.string.help_content_lasso,
+        R.drawable.ic_pocketpaint_tool_clipboard,
+        EnumSet.of(StateChange.ALL),
+        R.id.pocketpaint_tools_stamp,
+        INVALID_RESOURCE_ID,
+        true
+    ),
+    AUTO_REMOVE_BG(
+        R.string.button_auto_remove_bg,
+        R.string.help_content_auto_remove_bg,
+        R.drawable.ic_pocketpaint_tool_eraser,
+        EnumSet.of(StateChange.ALL),
+        R.id.pocketpaint_tools_eraser,
+        INVALID_RESOURCE_ID,
+        false
+    ),
+    SYMMETRY(
+        R.string.button_symmetry,
+        R.string.help_content_symmetry,
+        R.drawable.ic_pocketpaint_tool_brush,
+        EnumSet.of(StateChange.ALL),
+        R.id.pocketpaint_tools_brush,
+        INVALID_RESOURCE_ID,
+        true
+    ),
+    COLOR_REPLACE(
+        R.string.button_color_replace,
+        R.string.help_content_color_replace,
+        R.drawable.ic_pocketpaint_tool_fill,
+        EnumSet.of(StateChange.ALL),
+        R.id.pocketpaint_tools_fill,
+        INVALID_RESOURCE_ID,
+        true
+    ),
+    PATTERN(
+        R.string.button_pattern,
+        R.string.help_content_pattern,
+        R.drawable.ic_pocketpaint_tool_brush,
+        EnumSet.of(StateChange.ALL),
+        R.id.pocketpaint_tools_brush,
+        INVALID_RESOURCE_ID,
+        true
     );
 
     fun shouldReactToStateChange(stateChange: StateChange): Boolean =

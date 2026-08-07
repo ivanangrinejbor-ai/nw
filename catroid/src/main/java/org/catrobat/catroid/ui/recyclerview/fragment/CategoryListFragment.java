@@ -337,7 +337,7 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
     private static final List<Integer> ADMOB_PARAMS = asList(
             R.string.formula_no_param, R.string.formula_no_param, R.string.formula_no_param,
             R.string.formula_no_param, R.string.formula_no_param, R.string.formula_no_param,
-            R.string.formula_no_param, R.string.formula_no_param
+            R.string.formula_no_param, R.string.formula_no_param, R.string.formula_no_param
     );
 
     private static final List<Integer> CRYPTO_FUNCTIONS = asList(

@@ -134,6 +134,10 @@ import org.catrobat.catroid.content.bricks.CreateFolderByPathBrick
 import org.catrobat.catroid.content.bricks.CreateGLViewBrick
 import org.catrobat.catroid.content.bricks.CreateGearJointBrick
 import org.catrobat.catroid.content.bricks.CreateParticlesBrick
+import org.catrobat.catroid.content.bricks.CreateParticleSystemBrick
+import org.catrobat.catroid.content.bricks.SetParticleColorBrick
+import org.catrobat.catroid.content.bricks.FadeParticleEffectBrick
+import org.catrobat.catroid.content.bricks.ParticleEffectAdditivityBrick
 import org.catrobat.catroid.content.bricks.CreatePointJointBrick
 import org.catrobat.catroid.content.bricks.CreatePrismaticJointBrick
 import org.catrobat.catroid.content.bricks.CreatePulleyJointBrick
@@ -197,7 +201,6 @@ import org.catrobat.catroid.content.bricks.EnableBackgroundModeBrick
 import org.catrobat.catroid.content.bricks.ExitStageBrick
 import org.catrobat.catroid.content.bricks.ExportProjectFileBrick
 import org.catrobat.catroid.content.bricks.ExtractFileBrick
-import org.catrobat.catroid.content.bricks.FadeParticleEffectBrick
 import org.catrobat.catroid.content.bricks.Fast2DApplyForceBrick
 import org.catrobat.catroid.content.bricks.Fast2DApplyImpulseBrick
 import org.catrobat.catroid.content.bricks.Fast2DCreateBrick
@@ -318,7 +321,6 @@ import org.catrobat.catroid.content.bricks.OrientationBrick
 import org.catrobat.catroid.content.bricks.PaintNewLookBrick
 import org.catrobat.catroid.content.bricks.ParameterizedBrick
 import org.catrobat.catroid.content.bricks.ParameterizedEndBrick
-import org.catrobat.catroid.content.bricks.ParticleEffectAdditivityBrick
 import org.catrobat.catroid.content.bricks.PauseForBeatsBrick
 import org.catrobat.catroid.content.bricks.PauseVideoBrick
 import org.catrobat.catroid.content.bricks.PatchWebRequestBrick
@@ -487,7 +489,6 @@ import org.catrobat.catroid.content.bricks.SetObjectShaderBrick
 import org.catrobat.catroid.content.bricks.SetObjectShaderUniformBrick
 import org.catrobat.catroid.content.bricks.SetObjectTextureBrick
 import org.catrobat.catroid.content.bricks.SetParentBrick
-import org.catrobat.catroid.content.bricks.SetParticleColorBrick
 import org.catrobat.catroid.content.bricks.SetParticleEmissionBrick
 import org.catrobat.catroid.content.bricks.SetPenColorBrick
 import org.catrobat.catroid.content.bricks.SetPenSizeBrick
@@ -2724,7 +2725,6 @@ void main() {
         pathfinderBrickList.add(ContinueMovementBrick())
         pathfinderBrickList.add(HasPathBrick())
         pathfinderBrickList.add(SmoothPathBrick())
-        pathfinderBrickList.add(EnableDynamicReplanningBrick())
 
         return pathfinderBrickList
     }
@@ -3120,14 +3120,13 @@ void main() {
         threedBrickList.add(SetRenderResolutionBrick(0.5f, 1))
         threedBrickList.add(SetFpsBrick(24))
         threedBrickList.add(CreateParticlesBrick("particles"))
+        threedBrickList.add(CreateParticleSystemBrick("particles", 500.0, 2.0, 5.0))
         threedBrickList.add(SetParticleEmissionBrick("particles", 10f))
-        threedBrickList.add(DeleteParticlesBrick("particles"))
-        threedBrickList.add(Replace3DModelBrick("myObject", "weapon.obj"))
-        threedBrickList.add(ObjectLookAtCorrectBrick("myObject", 0.0, 0.0, 0.0))
-        threedBrickList.add(Ease3DPropertyBrick(Formula("myObject"), 0, 0, Formula(0), Formula(10), Formula(0.1)))
-        threedBrickList.add(ConfigureLightBrick("sun", 0, "5.0"))
-        threedBrickList.add(ConfigureMaterialBrick("myObject", 1, "0.8"))
+        threedBrickList.add(SetParticleColorBrick("#FFFF8800"))
+        threedBrickList.add(FadeParticleEffectBrick())
+        threedBrickList.add(ParticleEffectAdditivityBrick())
         threedBrickList.add(ConfigureParticlesBrick("particles", 0, "15.0"))
+        threedBrickList.add(DeleteParticlesBrick("particles"))
 
         return threedBrickList
     }

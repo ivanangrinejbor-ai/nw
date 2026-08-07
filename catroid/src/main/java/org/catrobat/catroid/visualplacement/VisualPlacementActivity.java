@@ -161,6 +161,11 @@ public class VisualPlacementActivity extends BaseCastActivity implements View.On
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		getMenuInflater().inflate(R.menu.menu_confirm, menu);
+		MenuItem confirmItem = menu.findItem(R.id.confirm);
+		if (confirmItem != null) {
+			confirmItem.setEnabled(true);
+			confirmItem.setVisible(true);
+		}
 		return true;
 	}
 
@@ -508,8 +513,18 @@ public class VisualPlacementActivity extends BaseCastActivity implements View.On
 		return visualPlacementBitmap;
 	}
 
+	private boolean isTouchOnToolbar = false;
+
 	@Override
 	public boolean onTouch(View view, MotionEvent event) {
+		Toolbar toolbar = findViewById(R.id.transparent_toolbar);
+		if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
+			isTouchOnToolbar = (toolbar != null && event.getY() <= toolbar.getBottom());
+		}
+		if (isTouchOnToolbar) {
+			return false;
+		}
+
 		if (!isGridPreview) {
 			scaleGestureDetector.onTouchEvent(event);
 			handleTwoFingerRotation(event);
@@ -577,7 +592,6 @@ public class VisualPlacementActivity extends BaseCastActivity implements View.On
 
 	@Override
 	public void onBackPressed() {
-        super.onBackPressed();
 		int xCoordinate = pixelToStageX(xCoord, layoutWidthRatio, projectResolution.getWidth());
 		int yCoordinate = pixelToStageY(yCoord, layoutHeightRatio, projectResolution.getHeight());
 

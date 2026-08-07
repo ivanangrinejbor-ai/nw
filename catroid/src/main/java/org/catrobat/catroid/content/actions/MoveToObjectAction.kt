@@ -37,6 +37,8 @@ class MoveToObjectAction : Action() {
     var moveMode: Int = 0
     var sizeCheckMode: Int = 0
     var blockedPathAction: Int = 0
+    var rotateObject: Formula? = null
+    var dynamicReplanning: Formula? = null
 
     private var pathSet = false
     private var requestInFlight = false
@@ -54,6 +56,8 @@ class MoveToObjectAction : Action() {
             }
             if (!requestInFlight) {
                 val spd = speed?.interpretFloat(scope) ?: 100f
+                val rotVal = rotateObject?.interpretInteger(scope) ?: 1
+                val replanVal = dynamicReplanning?.interpretInteger(scope) ?: 0
                 val avoidStr = avoidObjects?.interpretString(scope) ?: ""
                 for (name in avoidStr.split(",")) {
                     val trimmed = name.trim()
@@ -66,6 +70,8 @@ class MoveToObjectAction : Action() {
                 pf.setFollowerStopOnTouch(spriteName, moveMode == 1)
                 pf.setFollowerSizeCheckMode(spriteName, sizeCheckMode)
                 pf.setFollowerBlockedPathAction(spriteName, blockedPathAction)
+                pf.setFollowerRotateObject(spriteName, rotVal != 0)
+                pf.setFollowerDynamicReplanning(spriteName, replanVal != 0)
                 requestInFlight = true
                 val generation = requestGeneration
                 pf.findPathToObjectAsync(spriteName, targetObject, sizeCheckMode, blockedPathAction) { result ->

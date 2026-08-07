@@ -302,6 +302,27 @@
                         android:textColor="@color/dialog_title_and_text_view" />
                 </LinearLayout>
 
+                <RadioGroup
+                    android:id="@+id/v3_permissions_mode_group"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginBottom="10dp">
+
+                    <RadioButton
+                        android:id="@+id/v3_perm_mode_auto"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/v3_perm_mode_auto"
+                        android:checked="true" />
+
+                    <RadioButton
+                        android:id="@+id/v3_perm_mode_manual"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/v3_perm_mode_manual" />
+                </RadioGroup>
+
                 <LinearLayout
                     android:id="@+id/v3_permissions_container"
                     android:layout_width="match_parent"

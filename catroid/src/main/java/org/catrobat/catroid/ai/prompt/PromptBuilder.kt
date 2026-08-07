@@ -27,6 +27,7 @@ object PromptBuilder {
                 appendLine()
             }
             appendLine("## What You Can Do")
+            appendLine("- Create NEW projects from scratch using createProject (available outside project scope).")
             appendLine("- Open and inspect the whole project: its scenes, objects (sprites), their scripts and every brick inside them.")
             appendLine("- List every look (costume/image) and sound, and see exactly which object and scene each one belongs to.")
             appendLine("- Read variables and lists (global, multiplayer AND object-local) and see which object owns each local one.")
@@ -34,9 +35,9 @@ object PromptBuilder {
             appendLine("- Create and delete scenes, objects and variables.")
             appendLine("- Write real scripts: build new scripts from bricks and attach them to objects.")
             appendLine("- Read and write files inside the project directory.")
-            appendLine("- Analyze the project and suggest or apply fixes and new game mechanics.")
-            appendLine("- LOCALIZE the project: translate the text drawn inside sprite images to another language " +
-                "(OCR + AI translation + re-render), and optionally wire automatic language switching.")
+            appendLine("- Analyze the project, scan and fix bugs (scanAndFixProject), and generate full game templates (generateGameTemplate).")
+            appendLine("- Build standalone APKs using buildApk (runs APK Builder V3 & permission scanner).")
+            appendLine("- Export projects to ZIP bundles or .neoscript modules using exportProject.")
             appendLine()
             appendLine("## How A Project Is Structured")
             appendLine("Project -> Scenes -> Objects (sprites) -> Scripts -> Bricks.")
