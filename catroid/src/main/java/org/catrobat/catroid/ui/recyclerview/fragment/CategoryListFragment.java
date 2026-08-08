@@ -803,6 +803,67 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 
 	private static final List<Integer> SENSORS_SPEECH_RECOGNITION = Collections.singletonList(R.string.formula_editor_listening_language_sensor);
 
+	public static class CategoryGroup {
+		public final String header;
+		public final List<Integer> nameResIds;
+		public final List<Integer> paramResIds;
+
+		public CategoryGroup(String header, List<Integer> nameResIds, List<Integer> paramResIds) {
+			this.header = header;
+			this.nameResIds = nameResIds;
+			this.paramResIds = paramResIds;
+		}
+	}
+
+	public static List<CategoryGroup> getCategoryGroups(Context context, String tag) {
+		List<CategoryGroup> groups = new ArrayList<>();
+		if (FUNCTION_TAG.equals(tag)) {
+			groups.add(new CategoryGroup(context.getString(R.string.formula_editor_functions_maths), MATH_FUNCTIONS, MATH_PARAMS));
+			groups.add(new CategoryGroup(context.getString(R.string.formula_editor_functions_strings), STRING_FUNCTIONS, STRING_PARAMS));
+			groups.add(new CategoryGroup(context.getString(R.string.formula_editor_functions_lists), LIST_FUNCTIONS, LIST_PARAMS));
+			groups.add(new CategoryGroup("Fast 2D", F2D_FUNCTIONS, F2D_PARAMS));
+			groups.add(new CategoryGroup("3D", THREED_FUNCTIONS, THREED_PARAMS));
+			groups.add(new CategoryGroup("PockeTensor", PT_FUNCTIONS, PT_PARAMS));
+			groups.add(new CategoryGroup("Device info", DEVICE_FUNCTIONS, DEVICE_PARAMS));
+			groups.add(new CategoryGroup("AdMob", ADMOB_FUNCTIONS, ADMOB_PARAMS));
+			groups.add(new CategoryGroup(context.getString(R.string.formula_editor_functions_crypto), CRYPTO_FUNCTIONS, CRYPTO_PARAMS));
+			groups.add(new CategoryGroup("Sprite info", OBJECTS_FUNCTIONS, OBJECTS_PARAMS));
+			groups.add(new CategoryGroup("Tilemap", TILEMAP_FUNCTIONS, TILEMAP_PARAMS));
+		} else if (LOGIC_TAG.equals(tag)) {
+			groups.add(new CategoryGroup(context.getString(R.string.formula_editor_logic_boolean), LOGIC_BOOL, null));
+			groups.add(new CategoryGroup(context.getString(R.string.formula_editor_logic_comparison), LOGIC_COMPARISION, null));
+		} else if (OBJECT_TAG.equals(tag)) {
+			List<Integer> look = new ArrayList<>(OBJECT_GENERAL_PROPERTIES);
+			Sprite currentSprite = ProjectManager.getInstance().getCurrentSprite();
+			Scene currentScene = ProjectManager.getInstance().getCurrentlyEditedScene();
+			if (currentSprite != null && currentScene != null && currentSprite.equals(currentScene.getBackgroundSprite())) {
+				look.addAll(OBJECT_BACKGROUND);
+			} else {
+				look.addAll(OBJECT_LOOK);
+			}
+			look.add(R.string.formula_editor_function_color_touches_color);
+			groups.add(new CategoryGroup(context.getString(R.string.formula_editor_object_look), look, null));
+			List<Integer> movement = new ArrayList<>(OBJECT_PHYSICAL_1);
+			movement.addAll(OBJECT_PHYSICAL_COLLISION);
+			movement.addAll(OBJECT_PHYSICAL_2);
+			movement.addAll(OBJECT_COLOR_COLLISION);
+			groups.add(new CategoryGroup(context.getString(R.string.formula_editor_object_movement), movement, null));
+		} else if (SENSOR_TAG.equals(tag)) {
+			List<Integer> device = new ArrayList<>(SENSORS_DEFAULT);
+			device.addAll(SENSORS_COLOR_AT_XY);
+			device.addAll(SENSORS_COLOR_EQUALS_COLOR);
+			device.addAll(SENSORS_ACCELERATION);
+			device.addAll(SENSORS_INCLINATION);
+			device.addAll(SENSORS_COMPASS);
+			device.addAll(SENSORS_GPS);
+			device.addAll(SENSOR_USER_LANGUAGE);
+			groups.add(new CategoryGroup(context.getString(R.string.formula_editor_device_sensors), device, null));
+			groups.add(new CategoryGroup(context.getString(R.string.formula_editor_device_touch_detection), SENSORS_TOUCH, SENSORS_TOUCH_PARAMS));
+			groups.add(new CategoryGroup(context.getString(R.string.formula_editor_device_date_and_time), SENSORS_DATE_TIME, null));
+		}
+		return groups;
+	}
+
 	private RecyclerView recyclerView;
 
     private List<CategoryListItem> allItems = new ArrayList<>();

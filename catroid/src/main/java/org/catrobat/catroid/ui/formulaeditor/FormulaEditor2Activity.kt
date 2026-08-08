@@ -38,9 +38,9 @@ import org.catrobat.catroid.formulaeditor.Functions
 import org.catrobat.catroid.formulaeditor.InternFormulaParser
 import org.catrobat.catroid.formulaeditor.Sensors
 import org.catrobat.catroid.ui.neopaint.ColorPickerDialog
+import org.catrobat.catroid.ui.recyclerview.fragment.CategoryListFragment
 import org.catrobat.catroid.content.Scope
 import org.catrobat.catroid.formulaeditor.UserVariable
-import java.util.Locale
 
 class FormulaEditor2Activity : AppCompatActivity() {
 
@@ -634,156 +634,68 @@ class FormulaEditor2Activity : AppCompatActivity() {
     }
 
     private fun showFunctionsBrowser() {
-        val categories = mutableListOf<Pair<String, List<CategoryBrowser.CategoryItem>>>()
-
-        val mathFns = listOf("sin", "cos", "tan", "ln", "log", "sqrt", "abs", "round",
-            "floor", "ceil", "exp", "pow", "mod", "max", "min", "sign", "lerp",
-            "arcsin", "arccos", "arctan", "arctan2", "distan", "clamp", "map_range",
-            "rgb", "hsv", "mix_color", "if_then_else", "to_hex", "to_dec")
-        categories.add("Maths" to mathFns.map {
-            CategoryBrowser.CategoryItem(it, it, getParamHint(it))
-        })
-
-        val strFns = listOf("length", "letter", "subtext", "upper", "lower", "reverse",
-            "join", "join3", "joinnumber", "replace", "contains_str", "repeat",
-            "random_str", "regex", "var", "varname", "varvalue")
-        categories.add("Strings" to strFns.map {
-            CategoryBrowser.CategoryItem(it, it, getParamHint(it))
-        })
-
-        val listFns = listOf("number_of_items", "list_item", "get_item", "contains",
-            "index_of_item", "flatten", "connect", "find")
-        categories.add("Lists" to listFns.map {
-            CategoryBrowser.CategoryItem(it, it, getParamHint(it))
-        })
-
-        val fileFns = listOf("file", "files_path", "all_files", "file_size",
-            "file_project_size", "file_size_in_dir", "file_size_at_path",
-            "read_string", "file_exists", "file_project_exists")
-        categories.add("File I/O" to fileFns.map {
-            CategoryBrowser.CategoryItem(it, it, null)
-        })
-
-        val deviceFns = listOf("device_name", "device_manufacturer", "android_version",
-            "api_level", "system_language", "system_theme", "cpu_name", "cpu_architecture",
-            "cpu_cores", "cpu_frequency", "total_ram", "free_ram", "total_storage",
-            "free_storage", "battery_percent", "battery_charging", "battery_temp",
-            "battery_voltage", "internet_connected", "screen_width", "screen_height",
-            "screen_dpi", "screen_refresh", "is_pc", "is_mobile", "current_scene_name",
-            "scene_time", "delta")
-        categories.add("Device Info" to deviceFns.map {
-            CategoryBrowser.CategoryItem(it, it, null)
-        })
-
-        val spriteFns = listOf("sprite_exists", "sprite_x", "sprite_y", "sprite_size",
-            "sprite_width", "sprite_height", "sprite_direction", "sprite_visible",
-            "sprite_transparency", "sprite_layer", "sprite_name_get", "sprite_index_get",
-            "sprite_uuid", "sprite_clone_count", "sprite_look_count", "sprite_distance",
-            "sprite_touching", "sprite_angle_to")
-        categories.add("Sprite Info" to spriteFns.map {
-            CategoryBrowser.CategoryItem(it, it, getParamHint(it))
-        })
-
-        val jsonFns = listOf("json_get", "json_set", "json_is_valid")
-        categories.add("JSON" to jsonFns.map {
-            CategoryBrowser.CategoryItem(it, it, getParamHint(it))
-        })
-
-        CategoryBrowser.show(this, getString(R.string.formula_editor_functions), categories) { name, params ->
-            insertWithParams(name)
+        val categories = FormulaEditor2Menus.categoriesFor(this, CategoryListFragment.FUNCTION_TAG)
+        if (categories.isEmpty()) {
+            Toast.makeText(this, R.string.formula_editor_2_no_values, Toast.LENGTH_SHORT).show()
+            return
+        }
+        CategoryBrowser.show(this, getString(R.string.formula_editor_functions), categories) { name, _ ->
+            insertFromBrowser(name)
         }
     }
 
     private fun showLogicBrowser() {
-        val categories = listOf(
-            "Boolean" to listOf("true", "false", "AND", "OR", "NOT").map {
-                CategoryBrowser.CategoryItem(it, it)
-            },
-            "Comparison" to listOf("=", "!=", ">", "<", ">=", "<=").map {
-                CategoryBrowser.CategoryItem(it, it)
-            }
-        )
+        val categories = FormulaEditor2Menus.categoriesFor(this, CategoryListFragment.LOGIC_TAG)
+        if (categories.isEmpty()) {
+            Toast.makeText(this, R.string.formula_editor_2_no_values, Toast.LENGTH_SHORT).show()
+            return
+        }
         CategoryBrowser.show(this, getString(R.string.formula_editor_logic), categories) { name, _ ->
-            insertAtCursor(name)
+            insertFromBrowser(name)
         }
     }
 
     private fun showObjectBrowser() {
-        val categories = mutableListOf<Pair<String, List<CategoryBrowser.CategoryItem>>>()
-
-        val lookFns = listOf("object_look_number", "object_number_of_looks",
-            "object_look_width", "object_look_height", "object_look_name",
-            "object_transparency", "object_brightness", "object_color",
-            "object_layer", "color_touches_color")
-        categories.add("Object Look" to lookFns.map {
-            CategoryBrowser.CategoryItem(it, it, null)
-        })
-
-        val moveFns = listOf("object_x", "object_y", "object_size", "object_width",
-            "object_height", "object_direction", "object_x_velocity", "object_y_velocity",
-            "object_angular_velocity", "object_distance_to", "collides_with_edge",
-            "collides_with_finger", "touched", "object_touches_object")
-        categories.add("Object Movement" to moveFns.map {
-            CategoryBrowser.CategoryItem(it, it, null)
-        })
-
+        val categories = FormulaEditor2Menus.categoriesFor(this, CategoryListFragment.OBJECT_TAG)
+        if (categories.isEmpty()) {
+            Toast.makeText(this, R.string.formula_editor_2_no_values, Toast.LENGTH_SHORT).show()
+            return
+        }
         CategoryBrowser.show(this, getString(R.string.formula_editor_object), categories) { name, _ ->
-            insertAtCursor(name)
+            insertFromBrowser(name)
         }
     }
 
     private fun showSensorsBrowser() {
-        val categories = mutableListOf<Pair<String, List<CategoryBrowser.CategoryItem>>>()
-
-        val touchFns = listOf("finger_x", "finger_y", "finger_touched",
-            "multi_finger_x", "multi_finger_y", "multi_finger_touched",
-            "number_current_touches", "last_finger_index", "index_current_touch",
-            "mouse_x", "mouse_y", "mouse_delta_x", "mouse_delta_y", "mouse_scroll")
-        categories.add("Touch" to touchFns.map {
-            CategoryBrowser.CategoryItem(it, it, null)
-        })
-
-        val deviceSensors = listOf("x_acceleration", "y_acceleration", "z_acceleration",
-            "compass_direction", "x_inclination", "y_inclination",
-            "loudness", "latitude", "longitude", "location_accuracy", "altitude")
-        categories.add("Device Sensors" to deviceSensors.map {
-            CategoryBrowser.CategoryItem(it, it, null)
-        })
-
-        val dateFns = listOf("timer", "date_year", "date_month", "date_day",
-            "date_weekday", "time_hour", "time_minute", "time_second")
-        categories.add("Date/Time" to dateFns.map {
-            CategoryBrowser.CategoryItem(it, it, null)
-        })
-
-        val legoFns = listOf("nxt_sensor_1", "nxt_sensor_2", "nxt_sensor_3", "nxt_sensor_4",
-            "ev3_sensor_1", "ev3_sensor_2", "ev3_sensor_3", "ev3_sensor_4")
-        categories.add("LEGO" to legoFns.map {
-            CategoryBrowser.CategoryItem(it, it, null)
-        })
-
-        val faceFns = listOf("face_detected", "face_size", "face_x", "face_y",
-            "second_face_detected", "second_face_size", "second_face_x", "second_face_y")
-        categories.add("Face Detection" to faceFns.map {
-            CategoryBrowser.CategoryItem(it, it, null)
-        })
-
-        val poseFns = listOf("nose_x", "nose_y", "left_eye_center_x", "left_eye_center_y",
-            "right_eye_center_x", "right_eye_center_y", "left_ear_x", "left_ear_y",
-            "right_ear_x", "right_ear_y", "mouth_left_corner_x", "mouth_left_corner_y",
-            "left_shoulder_x", "left_shoulder_y", "right_shoulder_x", "right_shoulder_y",
-            "left_wrist_x", "left_wrist_y", "right_wrist_x", "right_wrist_y")
-        categories.add("Pose Detection" to poseFns.map {
-            CategoryBrowser.CategoryItem(it, it, null)
-        })
-
-        val stageFns = listOf("stage_width", "stage_height")
-        categories.add("Stage" to stageFns.map {
-            CategoryBrowser.CategoryItem(it, it, null)
-        })
-
+        val categories = FormulaEditor2Menus.categoriesFor(this, CategoryListFragment.SENSOR_TAG)
+        if (categories.isEmpty()) {
+            Toast.makeText(this, R.string.formula_editor_2_no_values, Toast.LENGTH_SHORT).show()
+            return
+        }
         CategoryBrowser.show(this, getString(R.string.formula_editor_device), categories) { name, _ ->
-            insertAtCursor(name)
+            insertFromBrowser(name)
+        }
+    }
+
+    private fun insertFromBrowser(resIdString: String) {
+        val resId = resIdString.toIntOrNull()
+        if (resId == null || resId <= 0) return
+        val tokenText = FormulaEditor2Menus.insertionText(this, resId)
+        if (tokenText != null) {
+            insertFormulaTokenText(tokenText)
+        } else {
+            insertAtCursor(getString(resId))
+        }
+    }
+
+    private fun insertFormulaTokenText(tokenText: String) {
+        val paramStart = tokenText.indexOf('(')
+        if (tokenText.endsWith(")") && paramStart >= 0) {
+            val cursor = formulaInput.selectionStart.coerceAtMost(formulaInput.length())
+            formulaInput.text.insert(cursor, tokenText)
+            formulaInput.setSelection(cursor + paramStart + 1)
+        } else {
+            insertAtCursor(tokenText)
         }
     }
 
@@ -888,111 +800,6 @@ class FormulaEditor2Activity : AppCompatActivity() {
             val hex = String.format("#%08X", color)
             insertAtCursor(hex)
         }.show()
-    }
-
-    private val NO_ARG_FUNCTIONS = setOf(
-        "pi", "true", "false", "e", "nan", "infinity",
-        "screen_width", "screen_height", "device_name", "current_language", "system_language",
-        "last_finger_index", "finger_touched", "number_current_touches", "acceleration_x",
-        "acceleration_y", "acceleration_z", "gps_latitude", "gps_longitude", "gps_altitude",
-        "object_x", "object_y", "object_size", "object_direction", "object_look_number",
-        "object_number_of_looks", "object_x_velocity", "object_y_velocity", "timer",
-        "object_brightness", "object_transparency", "object_color", "object_volume",
-        "object_rotation_style", "object_layer", "object_width", "object_height",
-        "stage_width", "stage_height", "min_x", "max_x", "min_y", "max_y",
-        "object_touching_finger", "object_touching_touch",
-        "nxt_sensor_1", "nxt_sensor_2", "nxt_sensor_3", "nxt_sensor_4",
-        "ev3_sensor_1", "ev3_sensor_2", "ev3_sensor_3", "ev3_sensor_4"
-    )
-
-    private fun getParamHint(name: String): String? {
-        val lower = name.lowercase(Locale.US)
-        if (lower in NO_ARG_FUNCTIONS) return null
-        val hints = mapOf(
-            "rand" to "min, max",
-            "round" to "value",
-            "floor" to "value",
-            "ceil" to "value",
-            "abs" to "value",
-            "sin" to "degrees",
-            "cos" to "degrees",
-            "tan" to "degrees",
-            "ln" to "value",
-            "log" to "value",
-            "sqrt" to "value",
-            "exp" to "value",
-            "pow" to "base, exponent",
-            "mod" to "dividend, divisor",
-            "max" to "value1, value2",
-            "min" to "value1, value2",
-            "sign" to "value",
-            "lerp" to "start, end, t",
-            "clamp" to "value, min, max",
-            "length" to "string",
-            "letter" to "index, string",
-            "subtext" to "start, end, string",
-            "upper" to "string",
-            "lower" to "string",
-            "reverse" to "string",
-            "join" to "string1, string2",
-            "join3" to "s1, s2, s3",
-            "joinnumber" to "string, number",
-            "replace" to "text, old, new",
-            "contains_str" to "text, search",
-            "repeat" to "text, count",
-            "random_str" to "length",
-            "regex" to "text, pattern",
-            "number_of_items" to "list",
-            "list_item" to "index, list",
-            "get_item" to "index, list",
-            "contains" to "item, list",
-            "index_of_item" to "item, list",
-            "flatten" to "list",
-            "connect" to "list1, list2",
-            "find" to "item, list",
-            "json_get" to "json, path",
-            "json_set" to "json, path, value",
-            "json_is_valid" to "json",
-            "if_then_else" to "condition, then, else",
-            "distan" to "x1, y1, x2, y2",
-            "map_range" to "value, fromLow, fromHigh, toLow, toHigh",
-            "rgb" to "r, g, b",
-            "hsv" to "h, s, v",
-            "sprite_exists" to "sprite_name",
-            "sprite_x" to "sprite_name",
-            "sprite_y" to "sprite_name",
-            "sprite_touching" to "sprite_name",
-            "sprite_distance" to "sprite_name",
-            "sprite_angle_to" to "sprite_name",
-            "sprite_name_get" to "sprite_name",
-            "to_hex" to "value",
-            "to_dec" to "hex_string",
-            "arcsin" to "value",
-            "arccos" to "value",
-            "arctan" to "value",
-            "arctan2" to "y, x"
-        )
-        return hints[lower]
-    }
-
-    private fun insertWithParams(token: String) {
-        val lower = token.lowercase(Locale.US)
-        if (lower in NO_ARG_FUNCTIONS) {
-            insertAtCursor(token)
-        } else {
-            val hint = getParamHint(token)
-            val placeholder = hint ?: ""
-            val insertText = "$token($placeholder)"
-            val cursor = formulaInput.selectionStart.coerceAtMost(formulaInput.length())
-            formulaInput.text.insert(cursor, insertText)
-            if (placeholder.isNotEmpty()) {
-                val selStart = cursor + token.length + 1
-                val selEnd = selStart + placeholder.length
-                formulaInput.setSelection(selStart, selEnd.coerceAtMost(formulaInput.length()))
-            } else {
-                formulaInput.setSelection((cursor + insertText.length).coerceAtMost(formulaInput.length()))
-            }
-        }
     }
 
     private fun copyFormula() {

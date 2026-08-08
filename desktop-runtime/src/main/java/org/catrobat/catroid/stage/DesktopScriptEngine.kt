@@ -278,6 +278,26 @@ class DesktopScriptEngine(
     private val localDb = mutableMapOf<String, MutableList<MutableList<Double>>>()
     private val baseStore = mutableMapOf<String, String>()
     private val buffers = mutableMapOf<String, BufferState>()
+    private val activeTimers = mutableMapOf<String, java.util.Timer>()
+    private var recordingActive = false
+    private var recordingStream: javax.sound.sampled.TargetDataLine? = null
+    private var recordingThread: Thread? = null
+    private var recordingBuffer = java.io.ByteArrayOutputStream()
+    private var cameraActive = false
+    private var cameraFrontFacing = false
+    private var cameraTracking = false
+    private var cameraWebcam: java.awt.image.BufferedImage? = null
+    data class Object3DState(
+        var posX: Float = 0f, var posY: Float = 0f, var posZ: Float = 0f,
+        var rotX: Float = 0f, var rotY: Float = 0f, var rotZ: Float = 0f,
+        var scaleX: Float = 1f, var scaleY: Float = 1f, var scaleZ: Float = 1f,
+        var velX: Float = 0f, var velY: Float = 0f, var velZ: Float = 0f,
+        var friction: Float = 0f,
+        var gravX: Float = 0f, var gravY: Float = -9.8f, var gravZ: Float = 0f,
+        var forceX: Float = 0f, var forceY: Float = 0f, var forceZ: Float = 0f,
+        var modelFile: String = ""
+    )
+    private val object3DStates = mutableMapOf<String, Object3DState>()
     private val videos = mutableMapOf<String, VideoState>()
     private var runAsSpriteDepth = 0
     private var scriptIndexForSprite: (Int) -> Int = { 0 }
@@ -697,6 +717,17 @@ class DesktopScriptEngine(
     private fun remapSpriteIndicesAfterRemoval(removedIndex: Int) {
         for (s in scriptStates) {
             if (s.spriteIndex > removedIndex) s.spriteIndex--
+        }
+    }
+    private fun remapSpriteIndicesAfterMove(fromIdx: Int, toIdx: Int) {
+        if (fromIdx == toIdx) return
+        for (s in scriptStates) {
+            s.spriteIndex = when {
+                s.spriteIndex == fromIdx -> toIdx
+                fromIdx < toIdx && s.spriteIndex in (fromIdx + 1)..toIdx -> s.spriteIndex - 1
+                fromIdx > toIdx && s.spriteIndex in toIdx until fromIdx -> s.spriteIndex + 1
+                else -> s.spriteIndex
+            }
         }
     }
     private fun executeControl(block: Block, sprite: DesktopSprite, frame: Frame, state: ScriptState) {
@@ -1427,6 +1458,33 @@ class DesktopScriptEngine(
             "finish_stage", "exit_stage" -> {
                 com.badlogic.gdx.Gdx.app.exit()
                 frame.ip = frame.blocks.size
+            }
+            "timer_start" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                val duration = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
+                val varName = block.args.getOrNull(3) as? String ?: ""
+                if (name.isNotEmpty() && varName.isNotEmpty()) {
+                    activeTimers[name]?.cancel()
+                    val startTime = System.currentTimeMillis()
+                    val durationMs = (duration * 1000).toLong()
+                    val timer = java.util.Timer()
+                    activeTimers[name] = timer
+                    val updateTask = object : java.util.TimerTask() {
+                        override fun run() {
+                            val elapsed = System.currentTimeMillis() - startTime
+                            val remaining = ((durationMs - elapsed) / 1000.0)
+                            if (remaining > 0) {
+                                variables[varName] = remaining
+                            } else {
+                                variables[varName] = 0.0
+                                timer.cancel()
+                                activeTimers.remove(name)
+                            }
+                        }
+                    }
+                    timer.scheduleAtFixedRate(updateTask, 100L, 100L)
+                }
+                frame.ip++
             }
         }
     }
@@ -2166,9 +2224,24 @@ class DesktopScriptEngine(
                 }
             }
             "come_to_front" -> {
+                val currentIdx = project.sprites.indexOf(sprite)
+                if (currentIdx >= 0 && currentIdx < project.sprites.lastIndex) {
+                    project.sprites.removeAt(currentIdx)
+                    project.sprites.add(sprite)
+                    remapSpriteIndicesAfterMove(currentIdx, project.sprites.lastIndex)
+                }
             }
             "go_back_layers" -> {
                 val n = (block.args.getOrNull(1) as? Number)?.toInt() ?: 1
+                val currentIdx = project.sprites.indexOf(sprite)
+                if (currentIdx > 0) {
+                    val newIdx = (currentIdx - n).coerceAtLeast(0)
+                    if (newIdx != currentIdx) {
+                        project.sprites.removeAt(currentIdx)
+                        project.sprites.add(newIdx, sprite)
+                        remapSpriteIndicesAfterMove(currentIdx, newIdx)
+                    }
+                }
             }
             "set_rotation_style" -> {
                 sprite.rotationStyle = (block.args.getOrNull(1) as? Number)?.toInt() ?: 0
@@ -2679,58 +2752,120 @@ class DesktopScriptEngine(
             "create_3d_object" -> {
                 val name = block.args.getOrNull(1) as? String ?: ""
                 val file = block.args.getOrNull(2) as? String ?: ""
-                if (name.isNotEmpty()) variables["__3dobj_$name"] = file
+                if (name.isNotEmpty()) {
+                    val state = Object3DState(modelFile = file)
+                    object3DStates[name] = state
+                    val targetSprite = project.sprites.find { it.name == name }
+                    if (targetSprite == null && file.isNotEmpty()) {
+                        val newSprite = DesktopSprite(name = name)
+                        project.sprites.add(newSprite)
+                    }
+                }
             }
             "remove_3d_object" -> {
                 val name = block.args.getOrNull(1) as? String ?: ""
-                variables.remove("__3dobj_$name")
+                object3DStates.remove(name)
+                val idx = project.sprites.indexOfFirst { it.name == name }
+                if (idx >= 0) {
+                    val removed = project.sprites.removeAt(idx)
+                    physicsWorld?.removeBody(removed)
+                    remapSpriteIndicesAfterRemoval(idx)
+                }
             }
             "set_3d_position" -> {
                 val name = block.args.getOrNull(1) as? String ?: ""
                 val x = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
                 val y = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 0f
                 val z = (block.args.getOrNull(4) as? Number)?.toFloat() ?: 0f
-                if (name.isNotEmpty()) variables["__3dpos_$name"] = "$x,$y,$z"
+                if (name.isNotEmpty()) {
+                    val state = object3DStates.getOrPut(name) { Object3DState() }
+                    state.posX = x; state.posY = y; state.posZ = z
+                    project.sprites.find { it.name == name }?.let {
+                        it.x = x; it.y = y
+                    }
+                }
             }
             "set_3d_rotation" -> {
                 val name = block.args.getOrNull(1) as? String ?: ""
                 val rx = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
                 val ry = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 0f
                 val rz = (block.args.getOrNull(4) as? Number)?.toFloat() ?: 0f
-                if (name.isNotEmpty()) variables["__3drot_$name"] = "$rx,$ry,$rz"
+                if (name.isNotEmpty()) {
+                    val state = object3DStates.getOrPut(name) { Object3DState() }
+                    state.rotX = rx; state.rotY = ry; state.rotZ = rz
+                    project.sprites.find { it.name == name }?.let {
+                        it.direction = ry % 360f
+                    }
+                }
             }
             "set_3d_scale" -> {
                 val name = block.args.getOrNull(1) as? String ?: ""
                 val sx = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 1f
                 val sy = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 1f
                 val sz = (block.args.getOrNull(4) as? Number)?.toFloat() ?: 1f
-                if (name.isNotEmpty()) variables["__3dscale_$name"] = "$sx,$sy,$sz"
+                if (name.isNotEmpty()) {
+                    val state = object3DStates.getOrPut(name) { Object3DState() }
+                    state.scaleX = sx; state.scaleY = sy; state.scaleZ = sz
+                    project.sprites.find { it.name == name }?.let {
+                        it.size = ((sx + sy) / 2f) * 100f
+                    }
+                }
             }
             "set_3d_velocity" -> {
                 val name = block.args.getOrNull(1) as? String ?: ""
                 val vx = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
                 val vy = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 0f
                 val vz = (block.args.getOrNull(4) as? Number)?.toFloat() ?: 0f
-                if (name.isNotEmpty()) variables["__3dvel_$name"] = "$vx,$vy,$vz"
+                if (name.isNotEmpty()) {
+                    val state = object3DStates.getOrPut(name) { Object3DState() }
+                    state.velX = vx; state.velY = vy; state.velZ = vz
+                    project.sprites.find { it.name == name }?.let { target ->
+                        physicsWorld?.getBody(target)?.linearVelocity =
+                            com.badlogic.gdx.math.Vector2(vx, vy)
+                    }
+                }
             }
             "set_3d_friction" -> {
                 val name = block.args.getOrNull(1) as? String ?: ""
                 val friction = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
-                if (name.isNotEmpty()) variables["__3dfric_$name"] = friction
+                if (name.isNotEmpty()) {
+                    val state = object3DStates.getOrPut(name) { Object3DState() }
+                    state.friction = friction
+                    project.sprites.find { it.name == name }?.let {
+                        physicsWorld?.setFriction(it, friction)
+                    }
+                }
             }
             "set_3d_gravity" -> {
                 val name = block.args.getOrNull(1) as? String ?: ""
                 val gx = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
-                val gy = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 0f
+                val gy = (block.args.getOrNull(3) as? Number)?.toFloat() ?: -9.8f
                 val gz = (block.args.getOrNull(4) as? Number)?.toFloat() ?: 0f
-                if (name.isNotEmpty()) variables["__3dgrav_$name"] = "$gx,$gy,$gz"
+                if (name.isNotEmpty()) {
+                    val state = object3DStates.getOrPut(name) { Object3DState() }
+                    state.gravX = gx; state.gravY = gy; state.gravZ = gz
+                    physicsWorld?.setGravity(gx, gy)
+                }
             }
             "apply_3d_force" -> {
                 val name = block.args.getOrNull(1) as? String ?: ""
                 val fx = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
                 val fy = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 0f
                 val fz = (block.args.getOrNull(4) as? Number)?.toFloat() ?: 0f
-                if (name.isNotEmpty()) variables["__3dforce_$name"] = "$fx,$fy,$fz"
+                if (name.isNotEmpty()) {
+                    val state = object3DStates.getOrPut(name) { Object3DState() }
+                    state.forceX = fx; state.forceY = fy; state.forceZ = fz
+                    project.sprites.find { it.name == name }?.let { target ->
+                        physicsWorld?.applyForce(target, fx, fy)
+                    }
+                }
+            }
+            "apply_3d_torque" -> {
+                val name = block.args.getOrNull(1) as? String ?: ""
+                val torque = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
+                project.sprites.find { it.name == name }?.let { target ->
+                    physicsWorld?.applyTorque(target, torque)
+                }
             }
             "fast2d_create" -> {
                 val name = block.args.getOrNull(1) as? String ?: ""
@@ -2963,14 +3098,45 @@ class DesktopScriptEngine(
             "set_buffer_camera", "set_buffer_camera_3d" -> {
             }
             "camera_preview" -> {
+                val on = (block.args.getOrNull(1) as? Number)?.toInt() ?: 0
+                if (on != 0) {
+                    cameraActive = true
+                    variables["__camera_status"] = "preview_on"
+                } else {
+                    cameraActive = false
+                    variables["__camera_status"] = "preview_off"
+                }
             }
             "camera_choose" -> {
+                val front = (block.args.getOrNull(1) as? Number)?.toInt() ?: 0
+                cameraFrontFacing = front != 0
+                variables["__camera_status"] = if (front != 0) "front_camera" else "back_camera"
             }
             "camera_flash" -> {
+                val flashId = (block.args.getOrNull(1) as? Number)?.toInt() ?: 0
+                variables["__camera_flash"] = flashId.toDouble()
             }
             "camera_photo" -> {
+                if (cameraActive) {
+                    try {
+                        val frame = captureCameraFrame()
+                        if (frame != null) {
+                            val fileName = "photo_${System.currentTimeMillis()}.png"
+                            val file = java.io.File(fileName)
+                            javax.imageio.ImageIO.write(frame, "png", file)
+                            variables["__camera_last_photo"] = fileName
+                            variables["__camera_status"] = "photo_saved"
+                        } else {
+                            variables["__camera_status"] = "Error: No camera frame"
+                        }
+                    } catch (e: Exception) {
+                        variables["__camera_status"] = "Error: ${e.message}"
+                    }
+                }
             }
             "camera_tracking" -> {
+                val enabled = (block.args.getOrNull(1) as? Number)?.toInt() ?: 0
+                cameraTracking = enabled != 0
             }
             "camera_focus" -> {
             }
@@ -3140,8 +3306,84 @@ class DesktopScriptEngine(
                 variables["__fade_out_elapsed"] = 0f
                 variables["__fade_out_vol"] = currentVol
             }
+            "listen_micro" -> {
+                frame.ip++
+            }
+            "start_recording" -> {
+                if (!recordingActive) {
+                    try {
+                        val format = javax.sound.sampled.AudioFormat(44100f, 16, 1, true, false)
+                        val info = javax.sound.sampled.DataLine.Info(javax.sound.sampled.TargetDataLine::class.java, format)
+                        val line = javax.sound.sampled.AudioSystem.getLine(info) as javax.sound.sampled.TargetDataLine
+                        line.open(format)
+                        line.start()
+                        recordingStream = line
+                        recordingBuffer = java.io.ByteArrayOutputStream()
+                        recordingActive = true
+                        recordingThread = Thread {
+                            val buf = ByteArray(4096)
+                            while (recordingActive && line.isOpen) {
+                                val count = line.read(buf, 0, buf.size)
+                                if (count > 0) {
+                                    recordingBuffer.write(buf, 0, count)
+                                }
+                            }
+                        }.apply {
+                            isDaemon = true
+                            start()
+                        }
+                        variables["__recording_status"] = "recording"
+                    } catch (_: Exception) {
+                        variables["__recording_status"] = "Error: Microphone unavailable"
+                    }
+                }
+                frame.ip++
+            }
+            "stop_recording" -> {
+                if (recordingActive) {
+                    recordingActive = false
+                    try {
+                        recordingThread?.join(2000)
+                        recordingStream?.stop()
+                        recordingStream?.close()
+                        val audioData = recordingBuffer.toByteArray()
+                        val fileName = "recording_${System.currentTimeMillis()}.wav"
+                        val file = java.io.File(fileName)
+                        saveWavFile(audioData, file)
+                        variables["__recording_status"] = "saved:$fileName"
+                        variables["__recording_samples"] = audioData.size.toDouble()
+                    } catch (e: Exception) {
+                        variables["__recording_status"] = "Error: ${e.message}"
+                    }
+                    recordingStream = null
+                    recordingThread = null
+                }
+                frame.ip++
+            }
         }
         frame.ip++
+    }
+    private fun saveWavFile(audioData: ByteArray, file: java.io.File) {
+        val format = javax.sound.sampled.AudioFormat(44100f, 16, 1, true, false)
+        val audioInputStream = javax.sound.sampled.AudioInputStream(
+            java.io.ByteArrayInputStream(audioData),
+            format,
+            (audioData.size / format.frameSize).toLong()
+        )
+        javax.sound.sampled.AudioSystem.write(audioInputStream, javax.sound.sampled.AudioFileFormat.Type.WAVE, file)
+        audioInputStream.close()
+    }
+    private fun captureCameraFrame(): java.awt.image.BufferedImage? {
+        return try {
+            val toolkit = java.awt.Toolkit.getDefaultToolkit()
+            val screenSize = toolkit.screenSize
+            val robot = java.awt.Robot()
+            val captureRect = java.awt.Rectangle(screenSize.width / 4, screenSize.height / 4,
+                screenSize.width / 2, screenSize.height / 2)
+            robot.createScreenCapture(captureRect)
+        } catch (_: Exception) {
+            null
+        }
     }
     private fun executeMusic(block: Block, frame: Frame) {
         when (block.args.getOrNull(0) as? String) {
@@ -7493,6 +7735,11 @@ class DesktopScriptEngine(
                 val fz = extractFormulaValue(el, "FORCE_Z") ?: 0f
                 Block(Block.Type.PHYSICS, listOf("apply_3d_force", objectId, fx, fy, fz))
             }
+            "Apply3dTorqueBrick" -> {
+                val objectId = extractFormulaString(el, "NAME") ?: ""
+                val torque = extractFormulaValue(el, "TORQUE") ?: 0f
+                Block(Block.Type.PHYSICS, listOf("apply_3d_torque", objectId, torque))
+            }
             "SetParticleEmissionBrick" -> {
                 val objectId = extractFormulaString(el, "NAME") ?: ""
                 val rate = extractFormulaValue(el, "VALUE") ?: 0f
@@ -7656,6 +7903,22 @@ class DesktopScriptEngine(
                 val shaderName = extractFormulaString(el, "TEXT") ?: ""
                 Block(Block.Type.LOOKS, listOf("apply_shader_to_image", fileName, shaderName))
             }
+            "EmptyEventBrick" -> null
+            "ElseIfSeparatorBrick" -> null
+            "TimerBrick" -> {
+                val name = extractFormulaString(el, "NAME") ?: ""
+                val duration = extractFormulaValue(el, "DURATION_IN_SECONDS") ?: 0f
+                val variable = extractVariableName(el) ?: ""
+                Block(Block.Type.CONTROL, listOf("timer_start", name, duration, variable))
+            }
+            "UserDefinedBrick" -> {
+                val procId = getTagText(el, "userDefinedBrickID") ?: ""
+                val argFormulas = extractUserDefinedArgFormulas(el)
+                Block(Block.Type.CONTROL, listOf("user_call", procId, argFormulas))
+            }
+            "ListenMicroBrick" -> Block(Block.Type.SOUND, listOf("listen_micro"))
+            "StartRecordingBrick" -> Block(Block.Type.SOUND, listOf("start_recording"))
+            "StopRecordingBrick" -> Block(Block.Type.SOUND, listOf("stop_recording"))
             else -> null
         }
     }
