@@ -25,12 +25,14 @@ package org.catrobat.catroid.ui.recyclerview.controller
 import android.util.Log
 import org.catrobat.catroid.ProjectManager
 import org.catrobat.catroid.cast.CastManager
+import org.catrobat.catroid.common.SoundInfo
 import org.catrobat.catroid.content.Project
 import org.catrobat.catroid.content.Scene
 import org.catrobat.catroid.content.Scope
 import org.catrobat.catroid.content.Script
 import org.catrobat.catroid.content.Sprite
 import org.catrobat.catroid.content.bricks.Brick
+import org.catrobat.catroid.io.StorageOperations
 import org.catrobat.catroid.content.bricks.Brick.BrickData
 import org.catrobat.catroid.content.bricks.BroadcastMessageBrick
 import org.catrobat.catroid.content.bricks.FormulaBrick
@@ -124,9 +126,13 @@ class ScriptController {
     }
 
     @Throws(CloneNotSupportedException::class)
-    fun pack(groupName: String?, bricksToPack: List<Brick>?) {
+    fun pack(groupName: String?, bricksToPack: List<Brick>?, includeSounds: Boolean = true, includeValues: Boolean = true) {
         val scriptsToPack: MutableList<Script> = ArrayList()
         val userDefinedBrickListToPack: MutableList<UserDefinedBrick> = ArrayList()
+        val soundsToPack: MutableList<SoundInfo> = ArrayList()
+        val variableValues: MutableMap<String, String> = HashMap()
+        val listValues: MutableMap<String, String> = HashMap()
+
         bricksToPack?.forEach { brick ->
             if (brick is ScriptBrick) {
                 if (brick is UserDefinedReceiverBrick) {
@@ -144,12 +150,120 @@ class ScriptController {
                     userDefinedBrickListToPack.add(brick.clone() as UserDefinedBrick)
                 }
             }
+
+            // Collect sounds referenced by the script
+            if (includeSounds) {
+                packSound(brick, soundsToPack)
+            }
+
+            // Collect variable/list values
+            if (includeValues) {
+                collectVariableValues(brick, variableValues, listValues)
+            }
+
             checkForUserData(projectManager.currentSprite, groupName, brick)
         }
 
         backpackListManager.addUserDefinedBrickToBackPack(groupName, userDefinedBrickListToPack)
         backpackListManager.addScriptToBackPack(groupName, scriptsToPack)
+
+        // Store sounds and values per script group
+        if (soundsToPack.isNotEmpty()) {
+            backpackListManager.getBackpackedScriptSounds()[groupName] = soundsToPack
+        }
+        if (variableValues.isNotEmpty()) {
+            backpackListManager.getBackpackedVariableValues()[groupName] = HashMap(variableValues)
+        }
+        if (listValues.isNotEmpty()) {
+            backpackListManager.getBackpackedListValues()[groupName] = HashMap(listValues)
+        }
+
         backpackListManager.saveBackpack()
+    }
+
+    private fun packSound(brick: Brick, soundsToPack: MutableList<SoundInfo>) {
+        val sound = when (brick) {
+            is PlaySoundBrick -> brick.sound
+            is PlaySoundAndWaitBrick -> brick.sound
+            else -> null
+        }
+        if (sound != null && sound.file != null && sound.file.exists()) {
+            // Avoid duplicate sounds within the same pack operation
+            if (soundsToPack.none { it.name == sound.name }) {
+                // Copy file to backpack sound directory for portability
+                try {
+                    val backpackDir = backpackListManager.backpackSoundDirectory
+                    val copiedFile = StorageOperations.copyFileToDir(sound.file, backpackDir)
+                    soundsToPack.add(SoundInfo(sound.name, copiedFile))
+                } catch (e: IOException) {
+                    Log.e(TAG, "Failed to copy sound to backpack: ${sound.name}", e)
+                    // Fallback: store original reference
+                    soundsToPack.add(SoundInfo(sound.name, sound.file))
+                }
+            }
+        }
+    }
+
+    private fun collectVariableValues(brick: Brick, variableValues: MutableMap<String, String>, listValues: MutableMap<String, String>) {
+        when (brick) {
+            is UserVariableBrickInterface -> brick.userVariable?.let { variable ->
+                if (!variableValues.containsKey(variable.name)) {
+                    variableValues[variable.name] = variable.value?.toString() ?: ""
+                }
+            }
+            is UserListBrick -> brick.userList?.let { list ->
+                if (!listValues.containsKey(list.name)) {
+                    listValues[list.name] = list.getValue()?.joinToString(",") ?: ""
+                }
+            }
+        }
+        // Also scan formulas for variable/list references
+        if (brick is FormulaBrick) {
+            for ((_, formula) in brick.allFormulasMap) {
+                formula.formulaTree?.let { root ->
+                    collectValuesFromFormula(root, variableValues, listValues)
+                }
+            }
+        }
+    }
+
+    private fun collectValuesFromFormula(element: org.catrobat.catroid.formulaeditor.FormulaElement, variableValues: MutableMap<String, String>, listValues: MutableMap<String, String>) {
+        when (element.elementType) {
+            USER_VARIABLE -> {
+                val name = element.value ?: return
+                if (!variableValues.containsKey(name)) {
+                    val variable = findVariableByName(name)
+                    variableValues[name] = variable?.value?.toString() ?: ""
+                }
+            }
+            USER_LIST -> {
+                val name = element.value ?: return
+                if (!listValues.containsKey(name)) {
+                    val list = findListByName(name)
+                    listValues[name] = list?.value?.joinToString(",") ?: ""
+                }
+            }
+            else -> {
+                element.leftChild?.let { collectValuesFromFormula(it, variableValues, listValues) }
+                element.rightChild?.let { collectValuesFromFormula(it, variableValues, listValues) }
+                element.additionalChildren.forEach { child ->
+                    collectValuesFromFormula(child, variableValues, listValues)
+                }
+            }
+        }
+    }
+
+    private fun findVariableByName(name: String): UserVariable? {
+        val sprite = projectManager.currentSprite
+        return projectManager.currentProject.userVariables.find { it.name == name }
+            ?: sprite.userVariables.find { it.name == name }
+            ?: projectManager.currentProject.multiplayerVariables.find { it.name == name }
+    }
+
+    private fun findListByName(name: String): UserList? {
+        val sprite = projectManager.currentSprite
+        return projectManager.currentProject.userLists.find { it.name == name }
+            ?: sprite.userLists.find { it.name == name }
     }
 
     private fun checkForUserData(sprite: Sprite, groupName: String?, brick: Brick) {
@@ -309,6 +423,12 @@ class ScriptController {
     fun unpack(scriptName: String, scriptToUnpack: Script, destinationSprite: Sprite) {
         val script = scriptToUnpack.clone()
         copyBroadcastMessages(script.scriptBrick)
+
+        // Build a map of backpacked sounds for this script group (name → SoundInfo)
+        val backpackedSounds = backpackListManager.getBackpackedScriptSounds()[scriptName] ?: emptyList()
+        // Track which backpacked sound name maps to which destination SoundInfo
+        val soundMapping = HashMap<String, SoundInfo>()
+
         for (brick in script.brickList) {
             if (projectManager.currentProject.isCastProject &&
                 CastManager.unsupportedBricks.contains(brick.javaClass)
@@ -316,13 +436,98 @@ class ScriptController {
                 Log.e(TAG, "CANNOT insert bricks into ChromeCast project")
                 return
             }
+
+            // Remap sounds from backpack to destination sprite
+            unpackSound(brick, backpackedSounds, soundMapping, destinationSprite)
+
             unpackUserVariable(projectManager.currentSprite, scriptName, brick)
             unpackUserList(projectManager.currentSprite, scriptName, brick)
+
+            // Restore variable/list values from backpack
+            restoreVariableValues(brick, scriptName)
+
             copyBroadcastMessages(brick)
         }
         destinationSprite.scriptList.add(script)
         renamedUserVariables.clear()
         renamedUserLists.clear()
+    }
+
+    private fun unpackSound(brick: Brick, backpackedSounds: List<SoundInfo>, soundMapping: HashMap<String, SoundInfo>, destinationSprite: Sprite) {
+        val soundField = when (brick) {
+            is PlaySoundBrick -> brick.sound
+            is PlaySoundAndWaitBrick -> brick.sound
+            else -> null
+        } ?: return
+
+        val originalName = soundField.name
+
+        // If we already resolved this sound name, reuse the mapping
+        if (soundMapping.containsKey(originalName)) {
+            val resolved = soundMapping[originalName]
+            when (brick) {
+                is PlaySoundBrick -> brick.sound = resolved
+                is PlaySoundAndWaitBrick -> brick.sound = resolved
+            }
+            return
+        }
+
+        // Check if a sound with the same name already exists in destination
+        val existingByName = destinationSprite.soundList.find { it.name == originalName }
+        if (existingByName != null) {
+            soundMapping[originalName] = existingByName
+            when (brick) {
+                is PlaySoundBrick -> brick.sound = existingByName
+                is PlaySoundAndWaitBrick -> brick.sound = existingByName
+            }
+            return
+        }
+
+        // Check if we have this sound in the backpack
+        val backpackedSound = backpackedSounds.find { it.name == originalName }
+        if (backpackedSound != null && backpackedSound.file != null && backpackedSound.file.exists()) {
+            try {
+                val copiedSound = soundController.copy(backpackedSound, projectManager.currentlyEditedScene, destinationSprite)
+                destinationSprite.soundList.add(copiedSound)
+                soundMapping[originalName] = copiedSound
+                when (brick) {
+                    is PlaySoundBrick -> brick.sound = copiedSound
+                    is PlaySoundAndWaitBrick -> brick.sound = copiedSound
+                }
+            } catch (e: IOException) {
+                Log.e(TAG, "Failed to copy backpacked sound: $originalName", e)
+            }
+        }
+    }
+
+    private fun restoreVariableValues(brick: Brick, scriptName: String) {
+        val backpackedVarValues = backpackListManager.getBackpackedVariableValues()[scriptName] ?: emptyMap()
+        val backpackedListValues = backpackListManager.getBackpackedListValues()[scriptName] ?: emptyMap()
+
+        when (brick) {
+            is UserVariableBrickInterface -> brick.userVariable?.let { variable ->
+                // Try to find value by original name (before any renaming)
+                val originalName = renamedUserVariables.entries.find { it.value == variable.name }?.key ?: variable.name
+                if (backpackedVarValues.containsKey(originalName)) {
+                    val savedValue = backpackedVarValues[originalName]!!
+                    variable.setValue(parseValue(savedValue))
+                }
+            }
+            is UserListBrick -> brick.userList?.let { list ->
+                val originalName = renamedUserLists.entries.find { it.value == list.name }?.key ?: list.name
+                if (backpackedListValues.containsKey(originalName)) {
+                    val savedValue = backpackedListValues[originalName]!!
+                    if (savedValue.isNotEmpty()) {
+                        list.setValue(savedValue.split(","))
+                    }
+                }
+            }
+        }
+    }
+
+    private fun parseValue(valueStr: String): Any {
+        // Try to parse as number first, otherwise keep as string
+        return valueStr.toDoubleOrNull() ?: valueStr
     }
 
     private fun unpackUserVariable(sprite: Sprite, scriptName: String, brick: Brick) {

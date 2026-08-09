@@ -134,6 +134,9 @@ public class BrickSpinner<T extends Nameable> implements AdapterView.OnItemSelec
 		spinner.setOnItemSelectedListener(null);
 
 		int position = adapter.getPosition(item);
+		if (position == -1 && item instanceof Nameable) {
+			position = adapter.getPosition(((Nameable) item).getName());
+		}
 		position = consolidateSpinnerSelection(position);
 
 		if (position < adapter.getCount()) {

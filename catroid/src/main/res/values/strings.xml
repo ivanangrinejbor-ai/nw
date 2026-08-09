@@ -2249,6 +2249,13 @@
 <string formatted="false" name="make_invisible_on_scenes">Hide from all scenes</string>
 <string formatted="false" name="backpack_empty">Backpack empty. Nothing to unpack.</string>
 <string formatted="false" name="packed_script_group">Backpacked one script group.</string>
+    <string formatted="false" name="pack_include_sounds">This script contains sounds. Save them together with the script?</string>
+    <string formatted="false" name="pack_include_values">Save current variable and list values?</string>
+    <string formatted="false" name="pack_yes">Yes</string>
+    <string formatted="false" name="pack_no">No</string>
+    <string formatted="false" name="pack_options_title">Pack options</string>
+    <string formatted="false" name="pack_include_values_short">values</string>
+    <string formatted="false" name="pack_include_sounds_short">sounds</string>
 <string formatted="false" name="renamed_project">Renamed project</string>
 <string formatted="false" name="project_list_title">Projects</string>
 <string formatted="false" name="last_used">Last access:</string>

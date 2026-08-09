@@ -98,6 +98,21 @@ public final class BackpackListManager {
 		getBackpack().backpackedUserVariables.remove(scriptGroup);
 		getBackpack().backpackedUserLists.remove(scriptGroup);
 		getBackpack().backpackedUserDefinedBricks.remove(scriptGroup);
+		getBackpack().backpackedScriptSounds.remove(scriptGroup);
+		getBackpack().backpackedVariableValues.remove(scriptGroup);
+		getBackpack().backpackedListValues.remove(scriptGroup);
+	}
+
+	public HashMap<String, List<SoundInfo>> getBackpackedScriptSounds() {
+		return getBackpack().backpackedScriptSounds;
+	}
+
+	public HashMap<String, HashMap<String, String>> getBackpackedVariableValues() {
+		return getBackpack().backpackedVariableValues;
+	}
+
+	public HashMap<String, HashMap<String, String>> getBackpackedListValues() {
+		return getBackpack().backpackedListValues;
 	}
 
 	public List<Scene> getScenes() {
@@ -161,6 +176,11 @@ public final class BackpackListManager {
 
 		setLookFileReferences(getBackpackedLooks(), backpackImageDirectory);
 		setSoundFileReferences(getBackpackedSounds(), backpackSoundDirectory);
+
+		// Restore file references for sounds packed inside script groups
+		for (List<SoundInfo> scriptSounds : getBackpackedScriptSounds().values()) {
+			setSoundFileReferences(scriptSounds, backpackSoundDirectory);
+		}
 
 		for (Iterable<Script> scripts : getBackpackedScripts().values()) {
 			for (Script script : scripts) {

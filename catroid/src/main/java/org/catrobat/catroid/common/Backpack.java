@@ -47,4 +47,13 @@ public class Backpack implements Serializable {
 
 	public HashMap<String, HashMap<String, Integer>> backpackedUserVariables = new HashMap<>();
 	public HashMap<String, HashMap<String, Integer>> backpackedUserLists = new HashMap<>();
+
+	// Per-script-group sounds: groupName → list of SoundInfo (file references point to backpack sound dir)
+	public HashMap<String, List<SoundInfo>> backpackedScriptSounds = new HashMap<>();
+
+	// Per-script-group variable values: groupName → (variableName → value as String)
+	public HashMap<String, HashMap<String, String>> backpackedVariableValues = new HashMap<>();
+
+	// Per-script-group list values: groupName → (listName → CSV string of items)
+	public HashMap<String, HashMap<String, String>> backpackedListValues = new HashMap<>();
 }

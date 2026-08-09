@@ -263,6 +263,105 @@ test/neoscript/
 
 ---
 
+# Backpack — портфель скриптов/объектов
+
+## Обзор
+
+Backpack («портфель»/«рюкзак») — система копирования скриптов, объектов, сцен, звуков и образов между проектами без экспорта в файл. Данные хранятся в директории приложения как JSON + файлы.
+
+## Файлы
+
+```
+common/Backpack.java                                  — модель данных (списки для каждого типа)
+io/BackpackSerializer.java                            — JSON-сериализация/десериализация
+io/BackpackScriptSerializerAndDeserializer.java       — Gson-адаптер для Script
+io/BackpackFormulaFieldSerializerAndDeserializer.java — Gson-адаптер для формул
+io/BackpackInterfaceSerializerAndDeserializer.java    — базовый адаптер
+ui/controller/BackpackListManager.java                — singleton, доступ к рюкзау + сохранение/загрузка
+ui/recyclerview/backpack/
+  BackpackActivity.java                               — Activity с ViewPager (вкладки Scripts/Sounds/Looks/Sprites/Scenes)
+  BackpackScriptFragment.java                         — список скрипт-групп, unpack/delete
+  BackpackSoundFragment.java                          — список звуков в рюкзаке
+  BackpackLookFragment.java                           — список образов
+  BackpackSpriteFragment.java                         — список спрайтов
+  BackpackSceneFragment.java                          — список сцен
+ui/recyclerview/fragment/
+  ScriptFragment.java                                 — action mode "Pack", диалоги упаковки/распаковки
+  SoundFragment.java                                  — action mode "Pack" для звуков
+ui/recyclerview/controller/
+  ScriptController.java                               — pack()/unpack() — упаковка/распаковка скриптов
+  SoundController.java                                — pack()/unpack()/copy() — упаковка/распаковка звуков
+  LookController.java                                 — pack()/unpack()/copy() — упаковка/распаковка образов
+layout/
+  dialog_pack_options.xml                             — диалог с чекбоксами (звуки + значения)
+```
+
+## Модель данных (Backpack.java)
+
+| Поле | Тип | Назначение |
+|------|-----|------------|
+| `backpackedScripts` | `HashMap<String, List<Script>>` | Скрипт-группы по имени |
+| `backpackedUserDefinedBricks` | `HashMap<String, List<UserDefinedBrick>>` | UserDefined брики по группе |
+| `backpackedUserVariables` | `HashMap<String, HashMap<String, Int>>` | Имена переменных + тип (GLOBAL/LOCAL/MULTIPLAYER) по группе |
+| `backpackedUserLists` | `HashMap<String, HashMap<String, Int>>` | Имена списков + тип по группе |
+| `backpackedSounds` | `List<SoundInfo>` | Звуки в рюкзаке (отдельно от скриптов) |
+| `backpackedLooks` | `List<LookData>` | Образы в рюкзаке |
+| `backpackedScriptSounds` | `HashMap<String, List<SoundInfo>>` | Звуки ВНУТРИ скрипт-групп (NEW) |
+| `backpackedVariableValues` | `HashMap<String, HashMap<String, String>>` | Значения переменных по группе (NEW) |
+| `backpackedListValues` | `HashMap<String, HashMap<String, String>>` | Значения списков (CSV) по группе (NEW) |
+
+## Упаковка скриптов (2026-08)
+
+### Диалог выбора
+
+При упаковке скрипта через `ScriptFragment.showNewScriptGroupAlert()`:
+1. Пользователь вводит имя группы
+2. Если скрипт содержит звуки или переменные — показывается `dialog_pack_options.xml`:
+   - ☑ «Скрипт содержит звуки. Сохранить их вместе со скриптом?»
+   - ☑ «Сохранить текущие значения переменных и списков?»
+3. Чекбоксы скрываются если соответствующих данных нет в скрипте
+
+### ScriptController.pack()
+
+```
+pack(groupName, bricksToPack, includeSounds, includeValues)
+```
+
+- Клонирует скрипты и UserDefined брики
+- `includeSounds=true` → собирает `SoundInfo` из `PlaySoundBrick`/`PlaySoundAndWaitBrick` (dedup по имя)
+- `includeValues=true` → собирает значения `UserVariable`/`UserList` из бриков и формул (рекурсивный обход `FormulaElement`)
+- Сохраняет всё в `BackpackListManager`
+
+### Хранение звуков в скрипт-группе
+
+Звуки хранятся отдельно от глобального списка `backpackedSounds`:
+- `backpackedScriptSounds[groupName]` → список `SoundInfo` (файлы в `backpackSoundDirectory`)
+- При удалении группы звуки тоже удаляются (`removeItemFromScriptBackPack`)
+
+## Распаковка скриптов (2026-08)
+
+### ScriptController.unpack()
+
+```
+unpack(scriptName, scriptToUnpack, destinationSprite)
+```
+
+- Клонирует скрипт
+- **Звуки:** для каждого `PlaySoundBrick`:
+  - Если звук с таким именем уже есть в спрайте → использовать существующий
+  - Если есть в рюкзаке (`backpackedScriptSounds[scriptName]`) → копировать через `SoundController.copy()`
+  - Иначе оставить как есть (звук не привязан)
+- **Значения:** для `UserVariableBrickInterface`/`UserListBrick`:
+  - Если есть сохранённое значение в `backpackedVariableValues`/`backpackedListValues` → восстановить
+  - Числа парсятся как `Double`, остальное как `String`
+  - Списки хранятся как CSV (comma-separated)
+
+### Dedup по имя
+
+При распаковке звуков поиск сначала по имя файла (не по UUID), что позволяет корректно резолвить звуки после упаковки.
+
+---
+
 # Исправления безопасности и багов (2026-07)
 
 ## 🔴 Критические проблемы безопасности

@@ -2896,6 +2896,13 @@
         <item quantity="other">Упаковано %d звуков.</item>
     </plurals>
     <string formatted="false" name="packed_script_group">Упакована одна группа скриптов.</string>
+    <string formatted="false" name="pack_include_sounds">Скрипт содержит звуки. Сохранить их вместе со скриптом?</string>
+    <string formatted="false" name="pack_include_values">Сохранить текущие значения переменных и списков?</string>
+    <string formatted="false" name="pack_yes">Да</string>
+    <string formatted="false" name="pack_no">Нет</string>
+    <string formatted="false" name="pack_options_title">Параметры упаковки</string>
+    <string formatted="false" name="pack_include_values_short">значения</string>
+    <string formatted="false" name="pack_include_sounds_short">звуки</string>
     <!-- Unpack -->
     <plurals name="unpacked_scenes">
         <item quantity="one">Распакована %d сцена.</item>

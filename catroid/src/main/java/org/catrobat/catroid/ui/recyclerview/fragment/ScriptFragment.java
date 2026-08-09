@@ -45,6 +45,7 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListAdapter;
 import android.widget.TextView;
+import android.widget.CheckBox;
 
 import org.catrobat.catroid.BuildConfig;
 import org.catrobat.catroid.ProjectManager;
@@ -64,11 +65,14 @@ import org.catrobat.catroid.content.StartScript;
 import org.catrobat.catroid.content.bricks.Brick;
 import org.catrobat.catroid.content.bricks.EmptyEventBrick;
 import org.catrobat.catroid.content.bricks.FormulaBrick;
+import org.catrobat.catroid.content.bricks.PlaySoundAndWaitBrick;
+import org.catrobat.catroid.content.bricks.PlaySoundBrick;
 import org.catrobat.catroid.content.bricks.ScriptBrick;
 import org.catrobat.catroid.content.bricks.UserDefinedBrick;
 import org.catrobat.catroid.content.bricks.UserDefinedReceiverBrick;
 import org.catrobat.catroid.content.bricks.CompositeBrick;
 import org.catrobat.catroid.content.bricks.UserVariableBrickInterface;
+import org.catrobat.catroid.content.bricks.UserListBrick;
 import org.catrobat.catroid.content.bricks.VisualPlacementBrick;
 import org.catrobat.catroid.content.bricks.ElseIfSeparatorBrick;
 import java.util.function.Consumer;
@@ -1317,17 +1321,65 @@ case R.string.brick_context_dialog_system_info:
 
 		builder.setHint(getString(R.string.script_group_label))
 				.setTextWatcher(duplicateInputTextwatcher)
-				.setPositiveButton(getString(R.string.ok), (TextInputDialog.OnClickListener) (dialog, textInput) -> pack(textInput, selectedBricks));
+				.setPositiveButton(getString(R.string.ok), (TextInputDialog.OnClickListener) (dialog, textInput) -> showPackOptionsDialog(textInput, selectedBricks));
 
 		builder.setTitle(R.string.new_group)
 				.setNegativeButton(R.string.cancel, null)
 				.show();
 	}
 
-	public void pack(String name, List<Brick> selectedBricks) {
+	private void showPackOptionsDialog(String groupName, List<Brick> selectedBricks) {
+		View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_pack_options, null);
+		CheckBox includeSounds = dialogView.findViewById(R.id.pack_dialog_include_sounds);
+		CheckBox includeValues = dialogView.findViewById(R.id.pack_dialog_include_values);
+
+		// Check if script actually contains sounds/variables to show relevant options
+		boolean hasSounds = false;
+		boolean hasValues = false;
+		for (Brick brick : selectedBricks) {
+			if (brick instanceof PlaySoundBrick || brick instanceof PlaySoundAndWaitBrick) {
+				hasSounds = true;
+			}
+			if (brick instanceof UserVariableBrickInterface || brick instanceof UserListBrick || brick instanceof FormulaBrick) {
+				hasValues = true;
+			}
+			if (hasSounds && hasValues) break;
+		}
+
+		if (!hasSounds && !hasValues) {
+			// No options needed, pack directly
+			pack(groupName, selectedBricks, false, false);
+			return;
+		}
+
+		includeSounds.setVisibility(hasSounds ? View.VISIBLE : View.GONE);
+		includeValues.setVisibility(hasValues ? View.VISIBLE : View.GONE);
+
+		final boolean finalHasSounds = hasSounds;
+		final boolean finalHasValues = hasValues;
+
+		new AlertDialog.Builder(getContext())
+				.setTitle(R.string.pack_options_title)
+				.setView(dialogView)
+				.setPositiveButton(R.string.ok, (dialog, which) ->
+						pack(groupName, selectedBricks, finalHasSounds && includeSounds.isChecked(), finalHasValues && includeValues.isChecked()))
+				.setNegativeButton(R.string.cancel, null)
+				.show();
+	}
+
+	public void pack(String name, List<Brick> selectedBricks, boolean includeSounds, boolean includeValues) {
 		try {
-			scriptController.pack(name, selectedBricks);
-			ToastUtil.showSuccess(getActivity(), getString(R.string.packed_script_group));
+			scriptController.pack(name, selectedBricks, includeSounds, includeValues);
+			StringBuilder msg = new StringBuilder(getString(R.string.packed_script_group));
+			if (includeSounds || includeValues) {
+				msg.append(" (");
+				List<String> parts = new ArrayList<>();
+				if (includeSounds) parts.add(getString(R.string.pack_include_sounds_short));
+				if (includeValues) parts.add(getString(R.string.pack_include_values_short));
+				msg.append(String.join(", ", parts));
+				msg.append(")");
+			}
+			ToastUtil.showSuccess(getActivity(), msg.toString());
 			switchToBackpack();
 		} catch (Exception e) {
 			Log.e(TAG, "Packing scripts failed", e);
