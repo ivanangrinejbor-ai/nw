@@ -232,7 +232,7 @@ public final class ServerCalls implements ScratchDataFetcher {
 				urlStringBuilder.append(entry.getValue());
 				urlStringBuilder.append('&');
 			}
-			urlStringBuilder.setLength(urlStringBuilder.length() - 1); // removes trailing "&" or "?" character
+			urlStringBuilder.setLength(urlStringBuilder.length() - 1);
 
 			final String url = urlStringBuilder.toString();
 			resultString = getRequestInterruptable(url);

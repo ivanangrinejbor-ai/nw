@@ -44,8 +44,8 @@ import name.antonsmirnov.firmata.serial.StreamingSerialAdapter;
 
 public class ArduinoImpl implements Arduino {
 
-	public static final int NUMBER_OF_DIGITAL_PINS = 14; // assuming numbered from 0 to NUMBER_OF_DIGITAL_PINS-1
-	public static final int NUMBER_OF_ANALOG_PINS = 6;   // assuming numbered from 0 to NUMBER_OF_ANALOG_PINS-1
+	public static final int NUMBER_OF_DIGITAL_PINS = 14;
+	public static final int NUMBER_OF_ANALOG_PINS = 6;
 	public static final int[] PWM_PINS = {3, 5, 6, 9, 10, 11};
 
 	public static final int PINS_IN_A_PORT = 8;

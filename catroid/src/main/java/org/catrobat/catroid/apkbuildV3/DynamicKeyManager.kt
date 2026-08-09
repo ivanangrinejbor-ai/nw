@@ -9,7 +9,7 @@ import java.util.concurrent.ThreadLocalRandom
 object DynamicKeyManager {
     private const val TAG = "DynamicKeyManager"
     private const val CANDIDATE_COUNT = 50
-    private const val KEY_LENGTH_BYTES = 32 // AES-256
+    private const val KEY_LENGTH_BYTES = 32
     private const val XOR_MASK: Byte = 0x7A.toByte()
 
     fun generateKey(projectName: String): KeyGenerationResult {

@@ -664,6 +664,7 @@
     <string name="formula_sprite_height" formatted="false">Спрайт_высота</string>
     <string name="formula_sprite_direction" formatted="false">Спрайт_направление</string>
     <string name="formula_sprite_visible" formatted="false">Спрайт_видим</string>
+    <string name="formula_sprite_ragdolled" formatted="false">Спрайт_зарегдоллен</string>
     <string name="formula_sprite_transparency" formatted="false">Спрайт_прозрачность</string>
     <string name="formula_sprite_layer" formatted="false">Спрайт_слой</string>
     <string name="formula_sprite_name_get" formatted="false">Спрайт_имя</string>
@@ -3380,8 +3381,25 @@
 <string formatted="false" name="brick_scene_back">Вернуться к предыдущей сцене</string>
 <string formatted="false" name="formula_editor_sensor_current_scene_name">текущая сцена</string>
 <string formatted="false" name="formula_editor_sensor_scene_time">время в сцене</string>
-<string formatted="false" name="formula_editor_function_scene_launch_count">запусков сцены</string>
-<string formatted="false" name="formula_editor_function_scene_launch_count_parameter">(имя сцены)</string>
+    <string formatted="false" name="formula_editor_function_scene_launch_count">запусков сцены</string>
+    <string formatted="false" name="formula_editor_function_scene_launch_count_parameter">(имя сцены)</string>
+    <string formatted="false" name="formula_editor_function_list_slice">подсписок</string>
+    <string formatted="false" name="formula_editor_function_list_slice_parameter">(список, начало, конец)</string>
+    <string formatted="false" name="formula_editor_function_list_sum">сумма списка</string>
+    <string formatted="false" name="formula_editor_function_list_sum_parameter">(список)</string>
+    <string formatted="false" name="formula_editor_function_list_average">среднее списка</string>
+    <string formatted="false" name="formula_editor_function_list_average_parameter">(список)</string>
+    <string formatted="false" name="formula_editor_function_list_min">минимум списка</string>
+    <string formatted="false" name="formula_editor_function_list_min_parameter">(список)</string>
+    <string formatted="false" name="formula_editor_function_list_max">максимум списка</string>
+    <string formatted="false" name="formula_editor_function_list_max_parameter">(список)</string>
+    <string formatted="false" name="formula_editor_function_rgb_to_hex">RGB в HEX</string>
+    <string formatted="false" name="formula_editor_function_rgb_to_hex_parameter">(красный, зелёный, синий)</string>
+    <string formatted="false" name="formula_editor_function_hex_to_rgb">HEX в RGB</string>
+    <string formatted="false" name="formula_editor_function_hex_to_rgb_parameter">(HEX цвет)</string>
+    <string formatted="false" name="formula_editor_sensor_touching_sprite">касается спрайта</string>
+    <string formatted="false" name="formula_editor_sensor_timer_ms">таймер в миллисекундах</string>
+    <string formatted="false" name="formula_editor_sensor_shake_intensity">сила встряхивания</string>
 <string formatted="false" name="global_scene_badge">Глобальная сцена</string>
 <string formatted="false" name="delete_global_scene_confirm">Удалить глобальную сцену и все её объекты?</string>
     <string formatted="false" name="dialog_edit_broadcast_message_title">Изменить сообщение</string>
@@ -3412,6 +3430,9 @@
     <string formatted="false" name="category_raspi">Raspberry Pi</string>
     <string formatted="false" name="category_assertions">Тестирование</string>
     <string formatted="false" name="category_search_bricks">Поиск блоков</string>
+    <string name="category_help_button">Чаво</string>
+    <string name="category_help_dialog_title">Справка по категории</string>
+    <string name="category_help_examples_header">Примеры:</string>
     <!--  -->
     <!-- User Defined Bricks -->
     <string formatted="false" name="brick_user_defined_add_label">Добавить текст</string>
@@ -3772,6 +3793,18 @@
     <string formatted="false" name="brick_add_item_to_userlist_add">Добавить</string>
     <string formatted="false" name="brick_add_item_to_userlist">в список</string>
     <string formatted="false" name="brick_clear_userlist">Очистить список</string>
+    <string formatted="false" name="brick_sum_of_list">Сумма списка</string>
+    <string formatted="false" name="brick_average_of_list">Среднее списка</string>
+    <string formatted="false" name="brick_min_of_list">Минимум списка</string>
+    <string formatted="false" name="brick_max_of_list">Максимум списка</string>
+    <string formatted="false" name="brick_store_in">и сохранить результат в переменную</string>
+    <string formatted="false" name="brick_sort_list">Сортировать список</string>
+    <string formatted="false" name="brick_reverse_list">Развернуть список</string>
+    <string formatted="false" name="brick_break">Прервать цикл</string>
+    <string formatted="false" name="brick_continue">Перейти к следующей итерации</string>
+    <string formatted="false" name="brick_when_variable_changed">Когда переменная изменится</string>
+    <string formatted="false" name="sort_ascending">По возрастанию</string>
+    <string formatted="false" name="sort_descending">По убыванию</string>
     <string formatted="false" name="brick_delete_item_from_userlist_delete">Удалить элемент из списка</string>
     <string formatted="false" name="brick_delete_item_from_userlist">на позиции</string>
     <string formatted="false" name="brick_insert_item_into_userlist_insert_into">Вставить</string>
@@ -4846,6 +4879,7 @@
     <string formatted="false" name="serif_font" translatable="false">serif</string>
     <string name="title_activity_editor">Редактор сцен</string>
     <string formatted="false" name="brick_point_touch_direction">Направить на касание</string>
+    <string formatted="false" name="brick_set_ragdoll">Зарегдолить (1=вкл, 0=выкл):</string>
     <string formatted="false" name="brick_put_file_into_folder">Положить файл в папку</string>
     <string formatted="false" name="brick_put_file_into_path">Положить файл по пути</string>
     <string formatted="false" name="brick_count_loop">повторить %s раз сохранить</string>

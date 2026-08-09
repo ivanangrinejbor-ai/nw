@@ -11,7 +11,7 @@ import java.util.zip.ZipOutputStream
 
 object MemoryAwarePipeline {
     private const val TAG = "MemoryAwarePipeline"
-    private const val DEFAULT_CHUNK_SIZE = 4 * 1024 * 1024 // 4 MB chunks
+    private const val DEFAULT_CHUNK_SIZE = 4 * 1024 * 1024
     private const val STREAM_BUFFER_SIZE = 64 * 1024
 
     fun copyFile(source: File, dest: File): Long {

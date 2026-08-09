@@ -163,14 +163,16 @@ public class ForItemInUserListBrick extends UserDataBrick implements CompositeBr
 		ScriptSequenceAction repeatSequence =
 				(ScriptSequenceAction) ActionFactory.createScriptSequenceAction(sequence.getScript());
 
+		Action action = sprite.getActionFactory()
+				.createForItemInUserListAction(userList, userVariable, repeatSequence, isLoopDelay);
+
+		sprite.getActionFactory().pushLoopControl((org.catrobat.catroid.content.actions.LoopControl) action);
 		for (Brick brick : loopBricks) {
 			if (!brick.isCommentedOut()) {
 				brick.addActionToSequence(sprite, repeatSequence);
 			}
 		}
-
-		Action action = sprite.getActionFactory()
-				.createForItemInUserListAction(userList, userVariable, repeatSequence, isLoopDelay);
+		sprite.getActionFactory().popLoopControl();
 
 		sequence.addAction(action);
 	}

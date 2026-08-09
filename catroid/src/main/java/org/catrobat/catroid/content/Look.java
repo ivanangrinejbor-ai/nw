@@ -495,9 +495,6 @@ public class Look extends Image {
             return;
         }
 
-		// Scene2D still calls draw() for every actor, including clones outside the
-		// camera. Reject those actors before particles, shaders and Image.draw() do
-		// any work. The radius keeps rotated looks from being clipped at the edge.
 		if (isOutsideGameCamera()) {
 			return;
 		}

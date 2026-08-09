@@ -24,7 +24,6 @@
 package org.catrobat.catroid.content;
 
 public class PenColor {
-	// CHECKSTYLE DISABLE MemberNameCheck FOR 10 LINES
 	public float r;
 	public float g;
 	public float b;

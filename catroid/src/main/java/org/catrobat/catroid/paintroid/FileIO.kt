@@ -537,7 +537,7 @@ object FileIO {
             (info.maxMemory() - info.totalMemory() + info.freeMemory()) * CONSTANT_POINT9
         val heightToWidthFactor = options.outWidth.toFloat() / options.outHeight.toFloat()
         val availablePixels =
-            availableMemory / MAX_LAYERS.toFloat() * CONSTANT_POINT9 / CONSTANT_4 // 4 byte per pixel, 10% safety buffer on memory
+            availableMemory / MAX_LAYERS.toFloat() * CONSTANT_POINT9 / CONSTANT_4
         val availableHeight = sqrt(availablePixels / heightToWidthFactor)
         val availableWidth = availablePixels / availableHeight
         return calculateSampleSize(

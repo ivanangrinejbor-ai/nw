@@ -2042,6 +2042,57 @@ public class ActionFactory extends Actions {
 		return action;
 	}
 
+	public Action createSumOfListAction(UserList userList, UserVariable resultVariable) {
+		SumOfListAction action = action(SumOfListAction.class);
+		action.setUserList(userList);
+		action.setResultVariable(resultVariable);
+		return action;
+	}
+
+	public Action createAverageOfListAction(UserList userList, UserVariable resultVariable) {
+		AverageOfListAction action = action(AverageOfListAction.class);
+		action.setUserList(userList);
+		action.setResultVariable(resultVariable);
+		return action;
+	}
+
+	public Action createMinOfListAction(UserList userList, UserVariable resultVariable) {
+		MinOfListAction action = action(MinOfListAction.class);
+		action.setUserList(userList);
+		action.setResultVariable(resultVariable);
+		return action;
+	}
+
+	public Action createMaxOfListAction(UserList userList, UserVariable resultVariable) {
+		MaxOfListAction action = action(MaxOfListAction.class);
+		action.setUserList(userList);
+		action.setResultVariable(resultVariable);
+		return action;
+	}
+
+	public Action createSortListAction(UserList userList, boolean ascending) {
+		SortListAction action = (SortListAction) action(SortListAction.class);
+		action.setUserList(userList);
+		action.ascending = ascending;
+		return action;
+	}
+
+	public Action createReverseListAction(UserList userList) {
+		ReverseListAction action = action(ReverseListAction.class);
+		action.setUserList(userList);
+		return action;
+	}
+
+	public Action createWhenVariableChangedAction(Sprite sprite, SequenceAction sequence,
+			ScriptSequenceAction innerAction, UserVariable monitoredVariable, boolean isLoopDelay) {
+		WhenVariableChangedAction action = action(WhenVariableChangedAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setMonitoredVariable(monitoredVariable);
+		action.setInnerAction(innerAction);
+		return action;
+	}
+
 	public Action createAddItemToUserListAction(Sprite sprite, SequenceAction sequence,
 			Formula userListFormula, UserList userList) {
 		AddItemToUserListAction action = action(AddItemToUserListAction.class);
@@ -3044,6 +3095,45 @@ public class ActionFactory extends Actions {
 		action.setScope(scope);
 		action.setLoopDelay(isLoopDelay);
 		return action;
+	}
+
+	public Action createBreakAction() {
+		LoopControl loop = currentLoopControl.get();
+		if (loop == null) {
+			return action(com.badlogic.gdx.scenes.scene2d.actions.SequenceAction.class);
+		}
+		Action action = action(BreakAction.class);
+		if (action instanceof BreakAction) {
+			((BreakAction) action).setLoopControl(loop);
+		}
+		return action;
+	}
+
+	public Action createContinueAction() {
+		LoopControl loop = currentLoopControl.get();
+		if (loop == null) {
+			return action(com.badlogic.gdx.scenes.scene2d.actions.SequenceAction.class);
+		}
+		Action action = action(ContinueAction.class);
+		if (action instanceof ContinueAction) {
+			((ContinueAction) action).setLoopControl(loop);
+		}
+		return action;
+	}
+
+	private final ThreadLocal<LoopControl> currentLoopControl = new ThreadLocal<LoopControl>() {
+		@Override
+		protected LoopControl initialValue() {
+			return null;
+		}
+	};
+
+	public void pushLoopControl(LoopControl loop) {
+		currentLoopControl.set(loop);
+	}
+
+	public void popLoopControl() {
+		currentLoopControl.remove();
 	}
 
 	public static Action createStitchAction(Sprite sprite) {
@@ -5161,6 +5251,14 @@ public class ActionFactory extends Actions {
         TouchDirectionAction action = action(TouchDirectionAction.class);
         Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
         action.setScope(scope);
+        return action;
+    }
+
+    public Action createSetRagdollAction(Sprite sprite, SequenceAction sequence, Formula enable) {
+        SetRagdollAction action = action(SetRagdollAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setEnable(enable);
         return action;
     }
 

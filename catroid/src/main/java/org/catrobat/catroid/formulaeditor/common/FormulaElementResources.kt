@@ -208,7 +208,8 @@ object FormulaElementResources {
     private fun addCollisionSensorsResources(resources: MutableSet<Int?>, sensor: Sensors?) {
         when (sensor) {
             Sensors.COLLIDES_WITH_EDGE,
-            Sensors.COLLIDES_WITH_FINGER -> Brick.COLLISION
+            Sensors.COLLIDES_WITH_FINGER,
+            Sensors.TOUCHING_SPRITE -> Brick.COLLISION
 
             else -> return
         }.let { resources.add(it) }

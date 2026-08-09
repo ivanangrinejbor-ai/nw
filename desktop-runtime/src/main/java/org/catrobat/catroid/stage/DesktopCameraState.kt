@@ -21,4 +21,6 @@ class DesktopCameraState {
     var touchControlEnabled: Boolean = false
 
     val cameraPinned: MutableMap<String, Pair<Float, Float>> = mutableMapOf()
+    /** Preserved for 3D-capable renderers; 2D rendering ignores Z. */
+    val cameraPinnedZ: MutableMap<String, Float> = mutableMapOf()
 }

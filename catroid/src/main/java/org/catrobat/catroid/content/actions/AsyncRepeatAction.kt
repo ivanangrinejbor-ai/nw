@@ -37,7 +37,7 @@ class AsyncRepeatAction : LoopAction() {
     var isForeverRepeat = false
     var repeatCount: Formula? = null
 
-    public override fun delegate(delta: Float): Boolean {
+    override fun loopDelegate(delta: Float): Boolean {
         if (!isRepeatActionInitialized) {
             isRepeatActionInitialized = true
             interpretRepeatCount()

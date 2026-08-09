@@ -107,7 +107,7 @@ public class NXTMotor implements MindstormsMotor {
 		public MotorRegulation regulation;
 		public byte turnRatio;
 		public MotorRunState runState;
-		public int tachoLimit; //Current limit on a movement in progress, if any
+		public int tachoLimit;
 
 		public void setSpeed(int speed) {
 			if (speed > 100) {

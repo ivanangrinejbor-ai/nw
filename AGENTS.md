@@ -120,11 +120,6 @@ public class MyBrick extends FormulaBrick {
 
 ---
 
-# AI Project Assistant
-
-Папка `aip/`: datasets, training, model, deploy.
-Обучение: `python train.py` (n-gram) или `python train_lstm.py` (LSTM).
-Деплой: `aip\deploy.bat` копирует model.* в assets.
 
 ---
 
@@ -147,7 +142,35 @@ public class MyBrick extends FormulaBrick {
 - **PrepareNotificationBrick** — подготовка уведомления с заголовком, текстом, важностью и pin
 
 ## 3. Motion category — направление на касание
-- **TouchDirectionBrick** — автоматически вычисляет угол от спрайта к точке касания
+- **TouchDirectionBrick** — автоматически вычисляет угол от спрайта к точке касанию
+
+## 3a. Physics category — регдолл
+- **SetRagdollBrick** — включает/выключает режим регдолла (1 = вкл, 0 = выкл)
+- **Формула `Sprite_ragdolled`** — возвращает 1 если спрайт в регдолле, иначе 0
+
+### Рантайм-эффект регдолла (Android)
+- **Sprite.isRagdolled** (transient boolean) — флаг состояния
+- **SetRagdollAction** — ставит флаг из формулы (value != 0 → true)
+- **PhysicsLook** — при `isRagdolled == true`:
+  - `setX/setY/setPosition/setXInUserInterfaceDimensionUnit` — **НЕ пишут** в physicsObject (движение игнорируется)
+  - `setRotation` — **НЕ меняет** направление physicsObject
+  - `setScale` — **НЕ перестраивает** физическую форму
+  - `getX/getY/getRotation` — читают с physicsObject (спрайт визуально следует за телом)
+- **Что продолжает работать** в регдолле:
+  - Гравитация и коллизии (тело DYNAMIC)
+  - `SetVelocityAction`, `ApplyForceAction` и другие physics-actions (идут напрямую в physicsObject/mинуя PhysicsLook)
+- **Формула `SPRITE_RAGDOLLED`** — читает `s.isRagdolled` из FormulaElement
+
+### Файлы
+```
+content/actions/SetRagdollAction.kt     — ставит sprite.isRagdolled
+content/bricks/SetRagdollBrick.java     — brick (FormulaBrick, PHYSICS_TOGGLE field)
+content/Sprite.java                     — поле isRagdolled
+physics/PhysicsLook.java                — isRagdolled() guard в сеттерах
+formulaeditor/Functions.java            — SPRITE_RAGDOLLED enum
+formulaeditor/FormulaElement.java       — case SPRITE_RAGDOLLED
+test/.../SetRagdollBrickTest.java       — 12 тестов (brick wiring, action, formula)
+```
 
 ## 4. Control category — клоны по номеру
 - **DeleteCloneByNumberBrick** — удаляет клон по номеру (cloneIndex)
@@ -227,11 +250,11 @@ test/neoscript/
 Любой новый Brick в пакете `org.catrobat.catroid.content.bricks` обнаруживается автоматически — не требуется регистрация в XStream. Для корректной сериализации достаточно конструктора без параметров и соответствия имени класса.
 
 ### NeoScript brick reference (current)
-| Brick | Action | Parameters | Description |
-|-------|--------|------------|-------------|
-| `ImportScriptBrick` (File→NeoScript cat.) | `ImportScriptAction` | objectName, filePath, overwrite | Import .neoscript into existing object |
-| `CreateObjectBrick` (NeoScript cat., NEW) | `CreateObjectAction` | objectName (Formula), scene (spinner), persist (Yes/No) | Create blank sprite in scene; if persist=Yes, save canonical project to disk |
-| `AssignScriptsBrick` (NeoScript cat., NEW) | `AssignScriptsAction` | filePath, objectName, scene, replace (Yes/No), save (Yes/No) | Assign .neoscript to object in scene; if save=Yes, save canonical project to disk |
+
+
+ `ImportScriptBrick` (File→NeoScript cat.) `ImportScriptAction` | objectName, filePath, overwrite | Import .neoscript into existing object |
+ `CreateObjectBrick` (NeoScript cat., NEW)  `CreateObjectAction` | objectName (Formula), scene (spinner), persist (Yes/No) | Create blank sprite in scene; if persist=Yes, save canonical project to disk
+ `AssignScriptsBrick` (NeoScript cat., NEW)  `AssignScriptsAction` | filePath, objectName, scene, replace (Yes/No), save (Yes/No) | Assign .neoscript to object in scene; if save=Yes, save canonical project to disk 
 
 ### Scene-aware bricks design
 - Scene stored as `String` (name): `null`/empty = Current scene, otherwise `project.getSceneByName(name)`.
@@ -298,17 +321,16 @@ layout/
 
 ## Модель данных (Backpack.java)
 
-| Поле | Тип | Назначение |
-|------|-----|------------|
-| `backpackedScripts` | `HashMap<String, List<Script>>` | Скрипт-группы по имени |
-| `backpackedUserDefinedBricks` | `HashMap<String, List<UserDefinedBrick>>` | UserDefined брики по группе |
-| `backpackedUserVariables` | `HashMap<String, HashMap<String, Int>>` | Имена переменных + тип (GLOBAL/LOCAL/MULTIPLAYER) по группе |
-| `backpackedUserLists` | `HashMap<String, HashMap<String, Int>>` | Имена списков + тип по группе |
-| `backpackedSounds` | `List<SoundInfo>` | Звуки в рюкзаке (отдельно от скриптов) |
-| `backpackedLooks` | `List<LookData>` | Образы в рюкзаке |
-| `backpackedScriptSounds` | `HashMap<String, List<SoundInfo>>` | Звуки ВНУТРИ скрипт-групп (NEW) |
-| `backpackedVariableValues` | `HashMap<String, HashMap<String, String>>` | Значения переменных по группе (NEW) |
-| `backpackedListValues` | `HashMap<String, HashMap<String, String>>` | Значения списков (CSV) по группе (NEW) |
+
+ `backpackedScripts` | `HashMap<String, List<Script>>` | Скрипт-группы по имени |
+ `backpackedUserDefinedBricks` | `HashMap<String, List<UserDefinedBrick>>` | UserDefined брики по группе |
+ `backpackedUserVariables` | `HashMap<String, HashMap<String, Int>>` | Имена переменных + тип (GLOBAL/LOCAL/MULTIPLAYER) по группе |
+ `backpackedUserLists` | `HashMap<String, HashMap<String, Int>>` | Имена списков + тип по группе |
+`backpackedSounds` | `List<SoundInfo>` | Звуки в рюкзаке (отдельно от скриптов) |
+ `backpackedLooks` | `List<LookData>` | Образы в рюкзаке |
+`backpackedScriptSounds` | `HashMap<String, List<SoundInfo>>` | Звуки ВНУТРИ скрипт-групп (NEW) |
+ `backpackedVariableValues` | `HashMap<String, HashMap<String, String>>` | Значения переменных по группе (NEW) |
+ `backpackedListValues` | `HashMap<String, HashMap<String, String>>` | Значения списков (CSV) по группе (NEW) |
 
 ## Упаковка скриптов (2026-08)
 
@@ -364,7 +386,7 @@ unpack(scriptName, scriptToUnpack, destinationSprite)
 
 # Исправления безопасности и багов (2026-07)
 
-## 🔴 Критические проблемы безопасности
+##  Критические проблемы безопасности
 - **Keystore удалён из VCS**: `catroid/keystore` → `git rm --cached`, добавлен в `.gitignore` (настоятельно рекомендуется отозвать ключ)
 - **GitHub OAuth Client ID**: `SettingsFragment.java` — захардкоженный client ID заменён на `BuildConfig.GITHUB_CLIENT_ID` с fallback (сам литерал в документации не приводится)
 - **Gemini API key**: `GeminiManager.kt` — `@Deprecated api_key` синхронизирован с `EncryptedSharedPreferences`; `SetGeminiKeyAction.kt` пишет в оба места
@@ -373,12 +395,12 @@ unpack(scriptName, scriptToUnpack, destinationSprite)
 - **AskGemini2Action.kt**: удалён `hostnameVerifier { _, _ -> true }`, добавлены timeouts, JSONObject вместо raw string
 - **WriteVariableToFileAction.kt**: `System.getProperty("user.home")` → `Environment.getExternalStoragePublicDirectory`
 
-## 🧹 Чистка мусора
+##  Чистка мусора
 - `catroid/src/main/libs/test/` (382 файла) — удалён
 - `catroid/src/main/libs/__prebuilt_aar_backup/` — удалён
 - `assets/ababuy.txt` — удалён
 
-## 🛠️ Система сборки
+##  Система сборки
 ## Desktop Runtime — code.xml parsing (важно)
 
 `BakedApkBuilder.kt` пишет `code.xml` через `XstreamSerializer` (XStream). Но **реальный
@@ -502,7 +524,7 @@ Bug B (инверсия X при drag): в коде desktop-рантайма и�
 - `testCoverageEnabled` → `enableUnitTestCoverage` (deprecation)
 - Дублирующийся `kotlin-stdlib` и мёртвый код удалены
 
-## 🎨 NeoPaint
+##  NeoPaint
 - **Layout**: `activity_neopaint.xml` — починено позиционирование (action_bar/toolbar/layers_panel/property_bar)
 - **Save**: `saveAndReturn()` — при `picturePath == null` сохраняет во временный файл и возвращает `RESULT_OK`
 - **UI**: `setupToolbars()` — ImageButton + setSelected() + подсветка активного инструмента
@@ -512,7 +534,7 @@ Bug B (инверсия X при drag): в коде desktop-рантайма и�
 - **DrawingView**: удалены дублирующие `max()`/`min()`, `smudgeSrc = null` в `ACTION_UP`, PorterDuff.Mode.CLEAR → BlendModeColorFilter (API 29+) с fallback
 - **Dialog**: `text_dialog` — AlertDialog.setPositiveButton() (устаревшее create().apply)
 
-## 🧪 Тесты (20 файлов для 10 новых блоков)
+##  Тесты (21 файл для 11 новых блоков)
 ### Brick tests (верификация addActionToSequence):
 1. `PutFileIntoFolderBrickTest.java`
 2. `PutFileIntoPathBrickTest.java`
@@ -520,6 +542,7 @@ Bug B (инверсия X при drag): в коде desktop-рантайма и�
 4. `ShowScheduledNotificationBrickTest.java`
 5. `NotificationActionBrickTest.java`
 6. `PrepareNotificationBrickTest.java`
+6a. `SetRagdollBrickTest.java` — 12 тестов (brick wiring, action, formula)
 7. `TouchDirectionBrickTest.java`
 8. `DeleteCloneByNumberBrickTest.java`
 9. `ExecuteForCloneNumberBrickTest.java` (+ composite brick тесты)
@@ -537,7 +560,7 @@ Bug B (инверсия X при drag): в коде desktop-рантайма и�
 9. `SendNotificationActionTest.kt` — PowerMock(StageActivity, NotificationStorage)
 10. `ShowScheduledNotificationActionTest.kt` — PowerMock(StageActivity, NotificationStorage)
 
-## 🐛 Исправление pre-existing ошибок компиляции
+##  Исправление pre-existing ошибок компиляции
 ### Java (main):
 - `ShowColorPickerFormulaEditorStrategy.java` — добавлен импорт `FragmentManager`, `value -> { ... return null; }` для Kotlin `Unit`
 - `FormulaEditorFragment.java` — то же исправление lambda return
@@ -571,7 +594,7 @@ Bug B (инверсия X при drag): в коде desktop-рантайма и�
 - Removed duplicate `createDeleteCloneByNumberAction` from ActionFactory
 - Добавлены missing resources: `cancel_button_text`, `import_step_prepare`, `menu_rate_us`, `ic_pocketpaint_tool_resize_adjust`
 
-## 📦 Обновление зависимостей (2026-07)
+##  Обновление зависимостей (2026-07)
 | Зависимость | Было | Стало |
 |---|---|---|
 | AGP | 8.3.0 | 8.7.3 |
@@ -630,7 +653,7 @@ Bug B (инверсия X при drag): в коде desktop-рантайма и�
 - Собирает `player.jar` (или берёт из шаблона) → встраивает `project.zip` как NEOCAT01-footer → конвертирует PNG в ICO → при наличии launch4j в шаблоне создаёт `NeoCatroid.exe` (с бандлом `jre/`), иначе `NeoCatroid.bat`.
 - Шаг упаковки шаблона (`template_win.zip`) копирует `launch4j/` из `desktop-runtime\launch4j\` в bundle, чтобы launch4j попал в ассеты Android-пакета.
 
-### ⚠️ Известный регрессионный баг сборки EXE (2026-07)
+###  Известный регрессионный баг сборки EXE (2026-07)
 `git`-версия `desktop-runtime/launch4j/` **НЕПОЛНАЯ** — в ней нет `lib/` (xstream.jar и т.п.),
 `bin/` (windres.exe/ld.exe), `head/` (guihead.o, head.o) и `w32api/` (crt2.o и MinGW .a).
 Поэтому `launch4jc.exe`/`launch4j.exe` падают (NoClassDefFoundError → затем
@@ -711,20 +734,20 @@ StageListenerHolder: `object StageListenerHolder { var listener: StageListener? 
 
 | Тип | Значение | Поддержка |
 |-----|----------|-----------|
-| `NUMBER` | `value.toDouble()` | ✅ |
-| `STRING` | строковая константа | ✅ |
-| `OPERATOR` | PLUS, MINUS, MULT, DIVIDE, MOD, POW, EQUAL, NOT_EQUAL, SMALLER_THAN, GREATER_THAN, SMALLER_OR_EQUAL, GREATER_OR_EQUAL, LOGICAL_AND, LOGICAL_OR, LOGICAL_NOT | ✅ все |
-| `FUNCTION` | Математические: SIN, COS, TAN, LN, LOG, SQRT, ABS, ROUND, FLOOR, CEIL, PI, TRUE, FALSE, RAND, MAX, MIN, POWER, MOD, ARCSIN, ARCCOS, ARCTAN, ARCTAN2, EXP, ROUNDTO, CLAMP | ✅ |
-| `FUNCTION` | Строковые: LENGTH, LETTER, SUBTEXT, UPPER, LOWER, JOIN, JOIN3, REVERSE | ✅ |
-| `FUNCTION` | Системные: SCREEN_WIDTH, SCREEN_HEIGHT, DEVICE_NAME | ✅ |
-| `SENSOR` | OBJECT_X, OBJECT_Y, OBJECT_SIZE, OBJECT_WIDTH, OBJECT_HEIGHT, OBJECT_DIRECTION, MOTION_DIRECTION, LOOK_DIRECTION, OBJECT_TRANSPARENCY, OBJECT_BRIGHTNESS, OBJECT_COLOR, OBJECT_LOOK_NUMBER, OBJECT_NUMBER_OF_LOOKS, OBJECT_X_VELOCITY, OBJECT_Y_VELOCITY, STAGE_WIDTH, STAGE_HEIGHT | ✅ |
-| `SENSOR` | MOUSE_X, MOUSE_Y, MOUSE_DELTA_X, MOUSE_DELTA_Y, FINGER_X, FINGER_Y, FINGER_TOUCHED, NUMBER_CURRENT_TOUCHES, INDEX_CURRENT_TOUCH | ✅ |
-| `SENSOR` | DATE_YEAR, DATE_MONTH, DATE_DAY, DATE_WEEKDAY, TIME_HOUR, TIME_MINUTE, TIME_SECOND | ✅ |
-| `SENSOR` | X_ACCELERATION, Y_ACCELERATION, Z_ACCELERATION, COMPASS_DIRECTION, LATITUDE, LONGITUDE (заглушки = 0) | ✅ заглушки |
-| `USER_VARIABLE` | lookup(name) в `variables[name]` (возвращает `Any`, по умолчанию `0f`) | ✅ |
-| `USER_LIST` | возвращает "" | ✅ заглушка |
-| `BRACKET` | вычисляет rightChild | ✅ |
-| `COLLISION_FORMULA` | возвращает value как Double | ✅ |
+| `NUMBER` | `value.toDouble()` | да|
+| `STRING` | строковая константа | да |
+| `OPERATOR` | PLUS, MINUS, MULT, DIVIDE, MOD, POW, EQUAL, NOT_EQUAL, SMALLER_THAN, GREATER_THAN, SMALLER_OR_EQUAL, GREATER_OR_EQUAL, LOGICAL_AND, LOGICAL_OR, LOGICAL_NOT |  все |
+| `FUNCTION` | Математические: SIN, COS, TAN, LN, LOG, SQRT, ABS, ROUND, FLOOR, CEIL, PI, TRUE, FALSE, RAND, MAX, MIN, POWER, MOD, ARCSIN, ARCCOS, ARCTAN, ARCTAN2, EXP, ROUNDTO, CLAMP | да |
+| `FUNCTION` | Строковые: LENGTH, LETTER, SUBTEXT, UPPER, LOWER, JOIN, JOIN3, REVERSE | да |
+| `FUNCTION` | Системные: SCREEN_WIDTH, SCREEN_HEIGHT, DEVICE_NAME | да |
+| `SENSOR` | OBJECT_X, OBJECT_Y, OBJECT_SIZE, OBJECT_WIDTH, OBJECT_HEIGHT, OBJECT_DIRECTION, MOTION_DIRECTION, LOOK_DIRECTION, OBJECT_TRANSPARENCY, OBJECT_BRIGHTNESS, OBJECT_COLOR, OBJECT_LOOK_NUMBER, OBJECT_NUMBER_OF_LOOKS, OBJECT_X_VELOCITY, OBJECT_Y_VELOCITY, STAGE_WIDTH, STAGE_HEIGHT | да |
+| `SENSOR` | MOUSE_X, MOUSE_Y, MOUSE_DELTA_X, MOUSE_DELTA_Y, FINGER_X, FINGER_Y, FINGER_TOUCHED, NUMBER_CURRENT_TOUCHES, INDEX_CURRENT_TOUCH | да|
+| `SENSOR` | DATE_YEAR, DATE_MONTH, DATE_DAY, DATE_WEEKDAY, TIME_HOUR, TIME_MINUTE, TIME_SECOND | да |
+| `SENSOR` | X_ACCELERATION, Y_ACCELERATION, Z_ACCELERATION, COMPASS_DIRECTION, LATITUDE, LONGITUDE (заглушки = 0) | да заглушки |
+| `USER_VARIABLE` | lookup(name) в `variables[name]` (возвращает `Any`, по умолчанию `0f`) | да|
+| `USER_LIST` | возвращает "" | да заглушка |
+| `BRACKET` | вычисляет rightChild | да |
+| `COLLISION_FORMULA` | возвращает value как Double | да |
 
 ### DesktopNetworkService (новый seam, 2026-07-13)
 - `NetworkService` (интерфейс, `:core`): `httpGet(url)`, `httpPost(url, body)`, `httpPut(url, body)`, `httpDelete(url)` (4 метода).
@@ -736,11 +759,11 @@ StageListenerHolder: `object StageListenerHolder { var listener: StageListener? 
 
 | Модуль | Файл | Методы | Статус |
 |--------|------|--------|--------|
-| :core | RuntimeServices (7 методов) | DesktopRuntimeServices | ✅ все |
-| :core | AudioService (18 методов) | DesktopAudioService | ✅ все |
-| :core | MidiService (16 методов) | DesktopMidiService | ✅ все |
-| :core | TextService (1 метод) | DesktopTextService | ✅ |
-| :core | NotificationService (4 метода) | DesktopNotificationService | ✅ все |
+| :core | RuntimeServices (7 методов) | DesktopRuntimeServices |  все |
+| :core | AudioService (18 методов) | DesktopAudioService |  все |
+| :core | MidiService (16 методов) | DesktopMidiService | все |
+| :core | TextService (1 метод) | DesktopTextService | усе  |
+| :core | NotificationService (4 метода) | DesktopNotificationService |  все |
 
 ## Исправления багов рантайма (2026-07-13)
 - **DesktopInput**: `isMouseJustPressed` всегда был `false` из-за `wasMouseDown = isMouseDown` (текущее состояние вместо предыдущего) — переделано на двухкадровый трекинг через `previousMouseDown`.
@@ -766,7 +789,7 @@ StageListenerHolder: `object StageListenerHolder { var listener: StageListener? 
 
 ## Исправления багов (2026-07-13, второй заход)
 
-### 🔴 Critical (8)
+###  Critical (8)
 1. **WaitUntilBrick**: BrickField `REPEAT_UNTIL_CONDITION` → `IF_CONDITION`. Теперь использует RuntimeFormula.
 2. **RepeatUntilBrick**: Условие никогда не проверялось (бесконечный цикл). Переделано на новый `repeat_until` тип с `repeatRemaining = -2` и проверкой условия при каждом входе.
 3. **SetWidth/ChangeWidth/SetHeight/ChangeHeight**: BrickField `WIDTH`/`HEIGHT` → `SIZE` (все четыре поля используют один BrickField `SIZE`).
@@ -776,7 +799,7 @@ StageListenerHolder: `object StageListenerHolder { var listener: StageListener? 
 7. **PutWebRequestBrick**: Хардкодное тело `__put_body`. Исправлено: парсит `BODY` формулу, использует `http_put`.
 8. **TouchDirectionBrick**: Хардкодный угол 0°. Теперь вычисляет `atan2(touchY - spriteY, touchX - spriteX)` в executeMotion.
 
-### 🟡 Important (7)
+###  Important (7)
 - **SetRotationStyleBrick**: Парсит `selection` из XML-элемента (был хардкод 0).
 - **SetInstrumentBrick**: Парсит `instrumentSelection` из XML, маппит через `INSTRUMENT_PROGRAM_MAP`.
 - **PlayDrumForBeatsBrick**: Поле `BEATS_TO_PLAY_NOTE` → `PLAY_DRUM`. Парсит `drumSelection` из XML через `DRUM_PROGRAM_MAP`.
@@ -785,16 +808,16 @@ StageListenerHolder: `object StageListenerHolder { var listener: StageListener? 
 - **LAST_FINGER_INDEX sensor**: Был на одной строке с FINGER_X (возвращал fingerX). Теперь возвращает 0 если есть касание, -1 если нет.
 - **USER_LANGUAGE / SYSTEM_LANGUAGE**: Возвращали `1.0` (проверка существования property). Теперь возвращают строку языка. Тип `evaluateSensor` изменён на `Any?`.
 
-### 🟢 Medium (4)
+### Medium (4)
 - **SetLookBrick**: Парсит `<look name="...">` из XML, маппит через `sprite.looks.indexOfFirst { it.name == name }`.
 - **GoToBrick**: Парсит `spinnerSelection` (80=touch, 81=random, 82=other sprite), создаёт `goto_touch/goto_random/goto_sprite` блоки.
 - **ForVariableFromToBrick**: Добавлен синтетический `inc_var` блок в конец детей цикла.
 - **RunAsSpriteBrick**: Добавлены маркеры `run_as_start`/`run_as_end` с защитой от рекурсии (макс. 10 уровней).
 
-### 🌐 NetworkService
+###  NetworkService
 - Добавлены `httpPut(url, body)` и `httpDelete(url)` в интерфейс и `DesktopNetworkService`.
 
-### 📊 Статистика DesktopScriptEngine
+###  Статистика DesktopScriptEngine
 - Размер: ~1780 строк.
 - Типов блоков уже портировано: ~70 (все основные категории).
 - Операторов: 15.
@@ -811,7 +834,7 @@ StageListenerHolder: `object StageListenerHolder { var listener: StageListener? 
 
 Ниже — анализ оставшихся ~320 бриков по категориям с указанием портируемости.
 
-### ✅ Легко портируются (нет Android-зависимостей, только Formula + Action)
+###  Легко портируются (нет Android-зависимостей, только Formula + Action)
 
 #### 1. User List bricks — 8 шт.
 `AddItemToUserListBrick`, `DeleteItemOfUserListBrick`, `InsertItemIntoUserListBrick`, `ReplaceItemInUserListBrick`, `ClearUserListBrick`, `SplitBrick`, `StoreCSVIntoUserListBrick`, `RegexBrick`
@@ -874,7 +897,7 @@ StageListenerHolder: `object StageListenerHolder { var listener: StageListener? 
 - **Что нужно**: чтение/запись в файлы (уже есть через File I/O)
 - **Оценка**: 0.5 дня
 
-### ⚠️ Портятся с минимальными изменениями
+###  Портятся с минимальными изменениями
 
 #### 13. Ask/Speech/AI bricks — 6 шт.
 `AskBrick` (консольный ввод), `SpeakBrick` (FreeTTS), `SpeakAndWaitBrick`, `CopyTextBrick` (Clipboard), `SetAIBrick`, `SetGeminiKeyBrick`
@@ -891,7 +914,7 @@ StageListenerHolder: `object StageListenerHolder { var listener: StageListener? 
 - **Что нужно**: DesktopNotificationService (уже есть). Большинство уже реализовано в Action-классах
 - **Оценка**: 0.5 дня (только парсинг)
 
-### 🔴 Не портятся (Android-only)
+###  Не портятся (Android-only)
 - **Camera/Photo** (FlashBrick, CameraBrick, ChooseCameraBrick, PhotoBrick, CameraSettingsBrick) — аппаратная камера
 - **NFC** (WhenNfcBrick, SetNfcTagBrick) — NFC-чип
 - **Bluetooth/BLE** — если есть (не найдены в бриках)
@@ -903,22 +926,19 @@ StageListenerHolder: `object StageListenerHolder { var listener: StageListener? 
 
 | Приоритет | Категория | Бриков | Сложность |
 |-----------|-----------|--------|-----------|
-| 🥇 | **User List** | 8 | Лёгкая |
-| 🥇 | **Pen Drawing** | 10 | Лёгкая |
-| 🥇 | **File I/O** | 20 | Лёгкая |
-| 🥇 | **Текст/Баблики** | 12 | Средняя |
-| 🥇 | **Event Triggers** | 10 | Средняя |
-| 🥇 | **Data (device read/write)** | 4 | Лёгкая |
-| 🥈 | **Control (Switch, Try, Clone)** | 8 | Средняя |
-| 🥈 | **Sound (pan, tone, 3D)** | 15 | Средняя |
-| 🥈 | **Web (WebSocket, Server)** | 20 | Сложная |
-| 🥈 | **Physics (joints, forces)** | 25 | Средняя |
-| 🥉 | **Camera 3D** | 20 | Средняя |
-| 🥉 | **Variables (create/delete)** | 8 | Лёгкая |
-| 🥉 | **Ask/Speak/AI** | 6 | Средняя |
-| 🥉 | **Notifications** | 6 | Лёгкая |
-| 🥉 | **Device** | 8 | Лёгкая |
-
+|  | **User List** | 8 | Лёгкая |
+|  | **Pen Drawing** | 10 | Лёгкая |
+|  | **File I/O** | 20 | Лёгкая |
+|  | **Текст/Баблики** | 12 | Средняя |
+|  | **Event Triggers** | 10 | Средняя |
+|  | **Data (device read/write)** | 4 | Лёгкая |
+|  | **Control (Switch, Try, Clone)** | 8 | Средняя |
+|  | **Sound (pan, tone, 3D)** | 15 | Средняя |
+|  | **Web (WebSocket, Server)** | 20 | Сложная |
+|  | **Physics (joints, forces)** | 25 | Средняя |
+|  | | **Variables (create/delete)** | 8 | Лёгкая |
+|  | **Notifications** | 6 | Лёгкая |
+| 
 **Итого портируемых: ~170 шт.** (из ~390 Android)
 **Уже портировано: ~70 шт.**
 **Осталось: ~100 шт.** ценных для портирования (исключая 3D-специфичные и Android-only).

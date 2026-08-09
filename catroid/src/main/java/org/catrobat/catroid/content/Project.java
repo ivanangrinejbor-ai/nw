@@ -204,7 +204,6 @@ public class Project implements Serializable {
 		return globalScene != null;
 	}
 
-	@Deprecated
 	public Scene getGlobalSceneForMigration() {
 		return globalScene;
 	}

@@ -33,7 +33,7 @@ class FormulasEditorFragment : Fragment() {
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
 
         viewModel.libraryDraft.observe(viewLifecycleOwner) { draft ->
-            adapter.submitList(draft.formulas.toList()) // Отправляем копию списка
+            adapter.submitList(draft.formulas.toList())
         }
 
         fab.setOnClickListener {

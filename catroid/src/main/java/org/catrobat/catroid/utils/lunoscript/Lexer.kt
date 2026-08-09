@@ -146,7 +146,7 @@ class Lexer(private val source: String) {
             }
 
 
-            ' ', '\r', '\t' -> { /* Ignore */ }
+            ' ', '\r', '\t' -> { }
             '\n' -> { line++; lineStart = current }
 
             '"' -> string('"')

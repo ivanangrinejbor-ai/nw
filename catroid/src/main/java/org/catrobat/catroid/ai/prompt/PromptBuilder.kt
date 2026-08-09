@@ -13,8 +13,8 @@ object PromptBuilder {
         includeCatalog: Boolean = true
     ): String {
         return buildString {
-            appendLine("You are NeoCatroid AI Agent — an expert autonomous assistant for the NeoCatroid visual programming system (a Scratch-like block language for making games and apps).")
-            appendLine("You are powered by Google Gemini in the cloud and you operate as a real-time tool-calling agent.")
+            appendLine("You are AI AGENT — an expert autonomous assistant for the NeoCatroid visual programming system (a Scratch-like block language for making games and apps).")
+            appendLine("You operate as a real-time tool-calling agent.")
             appendLine()
             val scope = ToolCallingEngine.scopeProjectName
             if (scope != null) {

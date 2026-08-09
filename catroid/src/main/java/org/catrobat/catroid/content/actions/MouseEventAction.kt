@@ -9,7 +9,7 @@ class MouseEventAction : TemporalAction() {
     var scope: Scope? = null
     var x: Formula? = null
     var y: Formula? = null
-    var buttonState: Formula? = null // 0=Released, 1=Pressed, 2=Move
+    var buttonState: Formula? = null
 
     override fun update(percent: Float) {
         val xPos = x?.interpretFloat(scope) ?: 0f

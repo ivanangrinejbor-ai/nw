@@ -56,6 +56,7 @@ import org.catrobat.catroid.content.WhenBackgroundChangesScript;
 import org.catrobat.catroid.content.WhenBounceOffScript;
 import org.catrobat.catroid.content.WhenClonedScript;
 import org.catrobat.catroid.content.WhenConditionScript;
+import org.catrobat.catroid.content.WhenVariableChangedScript;
 import org.catrobat.catroid.content.WhenFirebaseChangedScript;
 import org.catrobat.catroid.content.WhenGamepadButtonScript;
 import org.catrobat.catroid.content.WhenNfcScript;
@@ -272,6 +273,7 @@ public final class XstreamSerializer {
 		xstream.alias("script", org.catrobat.catroid.content.WhenSceneExitedScript.class);
 		xstream.alias("script", WhenScript.class);
 		xstream.alias("script", WhenConditionScript.class);
+		xstream.alias("script", WhenVariableChangedScript.class);
 		xstream.alias("whenFirebaseChangedScript", WhenFirebaseChangedScript.class);
 		xstream.alias("script", WhenNfcScript.class);
 		xstream.alias("script", BroadcastScript.class);
@@ -831,6 +833,7 @@ public final class XstreamSerializer {
 		xstream.alias("brick", SetGravityBrick.class);
 		xstream.alias("brick", SetMassBrick.class);
 		xstream.alias("brick", SetPhysicsObjectTypeBrick.class);
+		xstream.alias("brick", SetRagdollBrick.class);
 		xstream.alias("brick", SetVelocityBrick.class);
 		xstream.alias("brick", TurnLeftSpeedBrick.class);
 		xstream.alias("brick", TurnRightSpeedBrick.class);
@@ -871,6 +874,15 @@ public final class XstreamSerializer {
         xstream.alias("brick", TimerBrick.class);
         xstream.alias("brick", TouchDirectionBrick.class);
         xstream.alias("brick", TweenPositionBrick.class);
+        xstream.alias("brick", AverageOfListBrick.class);
+        xstream.alias("brick", BreakBrick.class);
+        xstream.alias("brick", ContinueBrick.class);
+        xstream.alias("brick", MaxOfListBrick.class);
+        xstream.alias("brick", MinOfListBrick.class);
+        xstream.alias("brick", ReverseListBrick.class);
+        xstream.alias("brick", SortListBrick.class);
+        xstream.alias("brick", SumOfListBrick.class);
+        xstream.alias("brick", WhenVariableChangedBrick.class);
         xstream.alias("brick", WhenNotificationActionClickedBrick.class);
         xstream.alias("brick", WhenNotificationDismissedBrick.class);
         xstream.alias("brick", WhenNotificationReplyBrick.class);
@@ -1011,8 +1023,8 @@ public final class XstreamSerializer {
 				}
 				Scene oldGlobal = project.getGlobalSceneForMigration();
 				if (oldGlobal != null) {
-				if (oldGlobal.isGlobalScene()) {
-					oldGlobal.setProject(project);
+					if (oldGlobal.isGlobalScene()) {
+						oldGlobal.setProject(project);
 					} else if (!oldGlobal.getSpriteList().isEmpty()) {
 						Scene defaultScene = project.getDefaultScene();
 						if (defaultScene != null) {

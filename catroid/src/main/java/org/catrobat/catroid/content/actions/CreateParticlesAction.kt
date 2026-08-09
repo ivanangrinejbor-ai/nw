@@ -32,9 +32,9 @@ class CreateParticlesAction : TemporalAction() {
     var positionX: Formula? = null
     var positionY: Formula? = null
     var positionZ: Formula? = null
-    var rotationPitch: Formula? = null // X
-    var rotationYaw: Formula? = null   // Y
-    var rotationRoll: Formula? = null  // Z
+    var rotationPitch: Formula? = null
+    var rotationYaw: Formula? = null
+    var rotationRoll: Formula? = null
 
     override fun update(percent: Float) {
         val listener = StageActivity.getActiveStageListener() ?: return

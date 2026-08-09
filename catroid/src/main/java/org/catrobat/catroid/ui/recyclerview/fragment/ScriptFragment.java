@@ -1333,7 +1333,6 @@ case R.string.brick_context_dialog_system_info:
 		CheckBox includeSounds = dialogView.findViewById(R.id.pack_dialog_include_sounds);
 		CheckBox includeValues = dialogView.findViewById(R.id.pack_dialog_include_values);
 
-		// Check if script actually contains sounds/variables to show relevant options
 		boolean hasSounds = false;
 		boolean hasValues = false;
 		for (Brick brick : selectedBricks) {
@@ -1347,7 +1346,6 @@ case R.string.brick_context_dialog_system_info:
 		}
 
 		if (!hasSounds && !hasValues) {
-			// No options needed, pack directly
 			pack(groupName, selectedBricks, false, false);
 			return;
 		}

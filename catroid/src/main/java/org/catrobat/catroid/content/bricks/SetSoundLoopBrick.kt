@@ -20,7 +20,7 @@ class SetSoundLoopBrick : BrickBaseType(),
     BrickSpinner.OnItemSelectedListener<SoundInfo>, NewItemInterface<SoundInfo> {
 
     var sound: SoundInfo? = null
-    var loopEnabled: Int = 1 // 0=No, 1=Yes
+    var loopEnabled: Int = 1
     @Transient private lateinit var spinner: BrickSpinner<SoundInfo>
 
     override fun getViewResource() = R.layout.brick_set_sound_loop

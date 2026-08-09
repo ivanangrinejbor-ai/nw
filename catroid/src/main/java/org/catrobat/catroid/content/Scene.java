@@ -280,15 +280,6 @@ public class Scene implements Nameable, Serializable {
 		}
 	}
 
-    public File getDirectoryNew() {
-        if (project == null) {
-            return new File(BackpackListManager.getInstance().backpackSceneDirectory,
-                    FileMetaDataExtractor.encodeSpecialCharsForFileSystem(name));
-        } else {
-            return new File(project.getDirectory() + "scenes/", FileMetaDataExtractor.encodeSpecialCharsForFileSystem(name));
-        }
-    }
-
 	public void removeClonedSprites() {
 		for (Iterator<Sprite> iterator = spriteList.iterator(); iterator.hasNext(); ) {
 			Sprite sprite = iterator.next();

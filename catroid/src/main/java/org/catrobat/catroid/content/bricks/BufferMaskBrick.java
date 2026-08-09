@@ -12,7 +12,7 @@ import org.catrobat.catroid.formulaeditor.Formula;
 
 public class BufferMaskBrick extends FormulaBrick {
     private static final long serialVersionUID = 1L;
-    private int modeSelection = 0; // 0: Stretch, 1: Screen
+    private int modeSelection = 0;
 
     public BufferMaskBrick() {
         addAllowedBrickField(BrickField.VALUE_1, R.id.brick_buffer_mask_name_field);

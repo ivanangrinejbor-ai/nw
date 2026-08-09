@@ -77,6 +77,7 @@ object DesktopProjectManager {
             for ((i, objEl) in sel.objectEls.withIndex()) {
                 project.sprites.add(parseSpriteElement(objEl, i))
             }
+            loadUserDataDefinitions(project, doc, sel.objectEls)
 
             currentProject = project
             Gdx.app.log(TAG, "Loaded project '${project.name}' with ${project.sprites.size} sprites")
@@ -143,6 +144,7 @@ object DesktopProjectManager {
         for ((offset, el) in sceneLocalEls.withIndex()) {
             project.sprites.add(parseSpriteElement(el, keep + offset))
         }
+        loadUserDataDefinitions(project, doc, sel.objectEls)
         project.activeSceneName = sel.activeSceneName
         resolveSceneMediaDir(dir, sel.activeSceneName, "images")?.let { project.imagesDir = it }
         resolveSceneMediaDir(dir, sel.activeSceneName, "sounds")?.let { project.soundsDir = it }
@@ -276,6 +278,64 @@ object DesktopProjectManager {
         return if (cleaned.isEmpty()) "_" else cleaned
     }
 
+    /**
+     * XStream writes project data as programVariableList/programListOfLists and
+     * sprite data as userVariables/userLists. Keep only declarations here; the
+     * runtime owns the mutable values and applies Android's local-first lookup.
+     */
+    private fun loadUserDataDefinitions(project: DesktopProject, doc: Document, objectEls: List<Element>) {
+        project.globalVariableNames.clear()
+        project.globalListNames.clear()
+        project.localVariableNamesBySprite.clear()
+        project.localListNamesBySprite.clear()
+
+        directChildren(doc.documentElement, "programVariableList")
+            .flatMap { directUserDataNames(it, "userVariable") }
+            .filter { it.isNotEmpty() }
+            .forEach { project.globalVariableNames.add(it) }
+        directChildren(doc.documentElement, "programListOfLists")
+            .flatMap { directUserDataNames(it, "userList") }
+            .filter { it.isNotEmpty() }
+            .forEach { project.globalListNames.add(it) }
+
+        objectEls.forEachIndexed { index, objectEl ->
+            project.localVariableNamesBySprite[index] = directChildren(objectEl, "userVariables")
+                .flatMap { directUserDataNames(it, "userVariable") }
+                .filter { it.isNotEmpty() }
+                .toMutableSet()
+            project.localListNamesBySprite[index] = directChildren(objectEl, "userLists")
+                .flatMap { directUserDataNames(it, "userList") }
+                .filter { it.isNotEmpty() }
+                .toMutableSet()
+        }
+        Gdx.app.log(TAG, "user data: globals=${project.globalVariableNames.size} variables, "
+            + "${project.globalListNames.size} lists; local sprites="
+            + "${project.localVariableNamesBySprite.count { it.value.isNotEmpty() }}/"
+            + "${project.localListNamesBySprite.count { it.value.isNotEmpty() }}")
+    }
+
+    private fun directUserDataNames(parent: Element, tag: String): List<String> {
+        return directChildren(parent, tag).mapNotNull { node ->
+            val name = node.getAttribute("name").trim()
+            if (name.isNotEmpty()) name else {
+                val nested = directChildren(node, "name").firstOrNull()?.textContent?.trim()
+                nested?.takeIf { it.isNotEmpty() } ?: node.textContent.trim().takeIf { it.isNotEmpty() }
+            }
+        }
+    }
+
+    private fun directChildren(parent: Element, tag: String): List<Element> {
+        val result = mutableListOf<Element>()
+        val children = parent.childNodes
+        for (i in 0 until children.length) {
+            val child = children.item(i)
+            if (child.nodeType == Node.ELEMENT_NODE && (tag.isEmpty() || child.nodeName == tag)) {
+                result.add(child as Element)
+            }
+        }
+        return result
+    }
+
     fun getCurrentProject(): DesktopProject? = currentProject
 
     fun clear() {
@@ -313,6 +373,7 @@ object SceneSelector {
         all.addAll(sceneObjs)
         return Selection(all, globalObjs.size, activeName, sceneNames, globalEl != null)
     }
+
 
     private fun regularSceneEls(doc: Document): List<Element> {
         val out = ArrayList<Element>()

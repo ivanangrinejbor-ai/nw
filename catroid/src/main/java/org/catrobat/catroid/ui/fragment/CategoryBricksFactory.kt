@@ -117,6 +117,7 @@ import org.catrobat.catroid.content.bricks.CopyProjectFileBrick
 import org.catrobat.catroid.content.bricks.ZipProjectFilesBrick
 import org.catrobat.catroid.content.bricks.CopyProjectFileToFolderBrick
 import org.catrobat.catroid.content.bricks.CopyProjectFileToPathBrick
+import org.catrobat.catroid.content.bricks.ContinueBrick
 import org.catrobat.catroid.content.bricks.CopyTextBrick
 import org.catrobat.catroid.content.bricks.Create2dJoystickBrick
 import org.catrobat.catroid.content.bricks.Create2dJumpButtonBrick
@@ -290,6 +291,9 @@ import org.catrobat.catroid.content.bricks.LockMouseBrick
 import org.catrobat.catroid.content.bricks.LookFileBrick
 import org.catrobat.catroid.content.bricks.LookFromTableBrick
 import org.catrobat.catroid.content.bricks.LookRequestBrick
+import org.catrobat.catroid.content.bricks.MaxOfListBrick
+import org.catrobat.catroid.content.bricks.MinOfListBrick
+import org.catrobat.catroid.content.bricks.AverageOfListBrick
 import org.catrobat.catroid.content.bricks.LookToTableBrick
 import org.catrobat.catroid.content.bricks.LunoScriptBrick
 import org.catrobat.catroid.content.bricks.MLLoadBrick
@@ -390,6 +394,7 @@ import org.catrobat.catroid.content.bricks.RepeatBrick
 import org.catrobat.catroid.content.bricks.RepeatUntilBrick
 import org.catrobat.catroid.content.bricks.RepeatWhileBrick
 import org.catrobat.catroid.content.bricks.ReplaceItemInUserListBrick
+import org.catrobat.catroid.content.bricks.ReverseListBrick
 import org.catrobat.catroid.content.bricks.ReportBrick
 import org.catrobat.catroid.content.bricks.Replace3DModelBrick
 import org.catrobat.catroid.content.bricks.ResetTimerBrick
@@ -564,6 +569,7 @@ import org.catrobat.catroid.content.bricks.UnzipProjectFilesBrick
 import org.catrobat.catroid.content.bricks.Base64ToFileBrick
 import org.catrobat.catroid.content.bricks.OpenAppBrick
 import org.catrobat.catroid.content.bricks.ShareBrick
+import org.catrobat.catroid.content.bricks.BreakBrick
 import org.catrobat.catroid.content.bricks.BroadcastWithParamsBrick
 import org.catrobat.catroid.content.bricks.BroadcastWithParamsReceiverBrick
 import org.catrobat.catroid.content.bricks.ShowText3Brick
@@ -603,7 +609,9 @@ import org.catrobat.catroid.content.bricks.StopAnimationBrick
 import org.catrobat.catroid.content.bricks.StopPlotBrick
 import org.catrobat.catroid.content.bricks.StopRecordingBrick
 import org.catrobat.catroid.content.bricks.StopRunningStitchBrick
+import org.catrobat.catroid.content.bricks.SortListBrick
 import org.catrobat.catroid.content.bricks.StopScriptBrick
+import org.catrobat.catroid.content.bricks.SumOfListBrick
 import org.catrobat.catroid.content.bricks.StopServerBrick
 import org.catrobat.catroid.content.bricks.StopBufferRecordingBrick
 import org.catrobat.catroid.content.bricks.StopGifBrick
@@ -666,6 +674,7 @@ import org.catrobat.catroid.content.bricks.WhenClonedWithNameBrick
 import org.catrobat.catroid.content.bricks.WhenFingerMovedOnScreenBrick
 import org.catrobat.catroid.content.bricks.WhenFingerMovedOverSpriteBrick
 import org.catrobat.catroid.content.bricks.WhenSpriteReleasedBrick
+import org.catrobat.catroid.content.bricks.WhenVariableChangedBrick
 import org.catrobat.catroid.content.bricks.WhenWindowResizedBrick
 import org.catrobat.catroid.content.bricks.WebRequestBrick
 import org.catrobat.catroid.content.bricks.WhenBackPressedBrick
@@ -705,6 +714,7 @@ import org.catrobat.catroid.content.bricks.SecureReadVariableBrick
 import org.catrobat.catroid.content.bricks.WriteVariableToFileBrick
 import org.catrobat.catroid.content.bricks.ZigZagStitchBrick
 import org.catrobat.catroid.content.bricks.ZipBrick
+import org.catrobat.catroid.content.bricks.SetRagdollBrick
 import org.catrobat.catroid.content.bricks.AdmobEnableTestModeBrick
 import org.catrobat.catroid.content.bricks.AdmobSetAppIdBrick
 import org.catrobat.catroid.content.bricks.AdmobInitializeBrick
@@ -932,6 +942,7 @@ open class CategoryBricksFactory {
                 eventBrickList.add(WhenBrick())
                 eventBrickList.add(WhenTouchDownBrick())
                 eventBrickList.add(WhenSwipedBrick(WhenSwipedScript(0)))
+                eventBrickList.add(WhenVariableChangedBrick())
                 val broadcastMessages =
                     ProjectManager.getInstance().currentProject?.broadcastMessageContainer?.broadcastMessages
                 var broadcastMessage: String? = context.getString(R.string.brick_broadcast_default_value)
@@ -1012,6 +1023,7 @@ open class CategoryBricksFactory {
         eventBrickList.add(WhenBrick())
         eventBrickList.add(WhenTouchDownBrick())
         eventBrickList.add(WhenSwipedBrick(WhenSwipedScript(0)))
+        eventBrickList.add(WhenVariableChangedBrick())
         eventBrickList.add(WhenBackPressedBrick())
 
         eventBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_event_messages), template))
@@ -1133,6 +1145,8 @@ open class CategoryBricksFactory {
                 }
                 controlBrickList.add(ExitStageBrick())
                 controlBrickList.add(StopScriptBrick(BrickValues.STOP_THIS_SCRIPT))
+                controlBrickList.add(BreakBrick())
+                controlBrickList.add(ContinueBrick())
                 controlBrickList.add(WaitTillIdleBrick())
                 controlBrickList.add(TryCatchFinallyBrick())
                 controlBrickList.add(WhenClonedBrick())
@@ -1359,6 +1373,7 @@ open class CategoryBricksFactory {
                 motionBrickList.add(SetCameraFocusPointBrick())
                 motionBrickList.add(VibrationBrick(BrickValues.VIBRATE_SECONDS))
                 motionBrickList.add(SetPhysicsObjectTypeBrick(BrickValues.PHYSIC_TYPE))
+                motionBrickList.add(SetRagdollBrick(1))
                 if (!isBackgroundSprite) motionBrickList.add(WhenBounceOffBrick(WhenBounceOffScript(null)))
                 motionBrickList.add(SetHitboxBrick())
                 motionBrickList.add(SetVelocityBrick(BrickValues.PHYSIC_VELOCITY))
@@ -1421,6 +1436,7 @@ open class CategoryBricksFactory {
 
         motionBrickList.add(SubCategoryHeaderBrick(context?.getString(R.string.subcategory_motion_physics_core) ?: "", template))
         motionBrickList.add(SetPhysicsObjectTypeBrick(BrickValues.PHYSIC_TYPE))
+        motionBrickList.add(SetRagdollBrick(1))
         motionBrickList.add(SetHitboxBrick())
         if (!isBackgroundSprite) {
             motionBrickList.add(IfOnEdgeBounceBrick())
@@ -1929,6 +1945,12 @@ open class CategoryBricksFactory {
                 dataBrickList.add(AddItemToUserListBrick(BrickValues.ADD_ITEM_TO_USERLIST))
                 dataBrickList.add(DeleteItemOfUserListBrick(BrickValues.DELETE_ITEM_OF_USERLIST))
                 dataBrickList.add(ClearUserListBrick())
+                dataBrickList.add(SumOfListBrick())
+                dataBrickList.add(AverageOfListBrick())
+                dataBrickList.add(MinOfListBrick())
+                dataBrickList.add(MaxOfListBrick())
+                dataBrickList.add(SortListBrick())
+                dataBrickList.add(ReverseListBrick())
                 dataBrickList.add(InsertItemIntoUserListBrick(BrickValues.INSERT_ITEM_INTO_USERLIST_VALUE, BrickValues.INSERT_ITEM_INTO_USERLIST_INDEX))
                 dataBrickList.add(ReplaceItemInUserListBrick(BrickValues.REPLACE_ITEM_IN_USERLIST_VALUE, BrickValues.REPLACE_ITEM_IN_USERLIST_INDEX))
                 dataBrickList.add(WriteListOnDeviceBrick())
@@ -2015,6 +2037,12 @@ open class CategoryBricksFactory {
         dataBrickList.add(InsertItemIntoUserListBrick(BrickValues.INSERT_ITEM_INTO_USERLIST_VALUE, BrickValues.INSERT_ITEM_INTO_USERLIST_INDEX))
         dataBrickList.add(ReplaceItemInUserListBrick(BrickValues.REPLACE_ITEM_IN_USERLIST_VALUE, BrickValues.REPLACE_ITEM_IN_USERLIST_INDEX))
         dataBrickList.add(ClearUserListBrick())
+        dataBrickList.add(SumOfListBrick())
+        dataBrickList.add(AverageOfListBrick())
+        dataBrickList.add(MinOfListBrick())
+        dataBrickList.add(MaxOfListBrick())
+        dataBrickList.add(SortListBrick())
+        dataBrickList.add(ReverseListBrick())
         dataBrickList.add(CreateTableBrick("myTable", 5, 5))
         dataBrickList.add(InsertTableBrick("myTable", "1", 3, 2))
         dataBrickList.add(DeleteTableBrick("myTable"))

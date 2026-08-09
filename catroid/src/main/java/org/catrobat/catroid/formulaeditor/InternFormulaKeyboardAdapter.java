@@ -517,6 +517,8 @@ case R.string.formula_editor_function_state_time:
                 return buildSingleParameterFunction(Functions.SPRITE_DIRECTION, STRING, "Player");
             case R.string.formula_sprite_visible:
                 return buildSingleParameterFunction(Functions.SPRITE_VISIBLE, STRING, "Player");
+            case R.string.formula_sprite_ragdolled:
+                return buildSingleParameterFunction(Functions.SPRITE_RAGDOLLED, STRING, "Player");
             case R.string.formula_sprite_transparency:
                 return buildSingleParameterFunction(Functions.SPRITE_TRANSPARENCY, STRING, "Player");
             case R.string.formula_sprite_layer:
@@ -815,6 +817,26 @@ case R.string.formula_editor_function_state_time:
 				return buildSensor(Sensors.SCENE_TIME);
 			case R.string.formula_editor_function_scene_launch_count:
 				return buildSingleParameterFunction(Functions.SCENE_LAUNCH_COUNT, STRING, "Scene 1");
+			case R.string.formula_editor_function_list_slice:
+				return buildTripleParameterFunction(Functions.LIST_SLICE, USER_LIST, "list", NUMBER, "1", NUMBER, "5");
+			case R.string.formula_editor_function_list_sum:
+				return buildSingleParameterFunction(Functions.LIST_SUM, USER_LIST, "list");
+			case R.string.formula_editor_function_list_average:
+				return buildSingleParameterFunction(Functions.LIST_AVERAGE, USER_LIST, "list");
+			case R.string.formula_editor_function_list_min:
+				return buildSingleParameterFunction(Functions.LIST_MIN, USER_LIST, "list");
+			case R.string.formula_editor_function_list_max:
+				return buildSingleParameterFunction(Functions.LIST_MAX, USER_LIST, "list");
+			case R.string.formula_editor_function_rgb_to_hex:
+				return buildTripleParameterFunction(Functions.RGB_TO_HEX, NUMBER, "255", NUMBER, "128", NUMBER, "0");
+			case R.string.formula_editor_function_hex_to_rgb:
+				return buildSingleParameterFunction(Functions.HEX_TO_RGB, STRING, "#FF8000");
+			case R.string.formula_editor_sensor_touching_sprite:
+				return buildObject(Sensors.TOUCHING_SPRITE);
+			case R.string.formula_editor_sensor_timer_ms:
+				return buildSensor(Sensors.TIMER_MS);
+			case R.string.formula_editor_sensor_shake_intensity:
+				return buildSensor(Sensors.SHAKE_INTENSITY);
 			case R.string.formula_editor_sensor_date_year:
 				return buildSensor(Sensors.DATE_YEAR);
 			case R.string.formula_editor_sensor_date_month:

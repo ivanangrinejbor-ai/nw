@@ -61,8 +61,9 @@ class SceneListFragment : RecyclerViewFragment<Scene?>(),
         if (!hasMultipleScenes) {
             projectManager.currentlyEditedScene = currentProject.defaultScene
             switchToSpriteListFragment()
+        } else {
+            projectManager.currentlyEditedScene = currentProject.defaultScene
         }
-        projectManager.currentlyEditedScene = currentProject.defaultScene
         (requireActivity() as AppCompatActivity).supportActionBar?.title = currentProject.name
     }
 

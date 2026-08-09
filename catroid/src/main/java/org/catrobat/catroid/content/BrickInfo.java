@@ -75,6 +75,8 @@ public final class BrickInfo {
         add(LaunchProjectBrick.class, "Запускает проект из файлов проекта, останавливает текущий");
         add(FinishStageBrick.class, "Выходит из проекта, или приложения (в APK)");
         add(StopScriptBrick.class, "Останавливает выбранный скрипт (-ы)");
+        add(BreakBrick.class, "Прерывает выполнение цикла");
+        add(ContinueBrick.class, "Переходит к следующей итерации цикла");
         add(WaitTillIdleBrick.class, "Ждет, пока во всей сцене остановятся все скрипты");
         add(TryCatchFinallyBrick.class, "Пробует выполнить действие, при фатальной ошибке - перехватывает ее. В конце вызывает блоки");
         add(BroadcastBrick.class, "Отправляет выбранное сообщение");
@@ -118,6 +120,7 @@ public final class BrickInfo {
         add(PerformRayCastBrick.class, "Пускает луч, может пригодиться для врагов, или стрельбы. ну а так же и др.");
         add(VibrationBrick.class, "Заставляет устройство вибрировать");
         add(SetPhysicsObjectTypeBrick.class, "Задает тип движения обьекта: динамичный - падает и подчиняется законам ньютона. статический - не падает, но от него отталкиваются динамические");
+        add(SetRagdollBrick.class, "Зарегдолить спрайт: 1 = включить режим регдолла (свободная физика), 0 = выключить. Комбинируйте с формулой Sprite_ragdolled для проверки состояния.");
         add(SetHitboxBrick.class, "Оставляет хитбокс текущего образа, но изменяет видимый образ. ВАЖНО: плохо работает");
         add(SetVelocityBrick.class, "Задает скорость динамическому телу");
         add(TurnRightSpeedBrick.class, "Задает скорость вращения");
@@ -528,6 +531,20 @@ public final class BrickInfo {
         addEn(DeleteFromApkBrick.class, "Deletes files matching a pattern from an APK file at the given path.");
         add(DeleteItemOfUserListBrick.class, "Удаляет элемент из списка в указанной позиции.");
         addEn(DeleteItemOfUserListBrick.class, "Deletes the item at the given position from a list.");
+        add(SumOfListBrick.class, "Вычисляет сумму всех элементов списка и сохраняет в переменную.");
+        addEn(SumOfListBrick.class, "Calculates the sum of all list items and stores in a variable.");
+        add(AverageOfListBrick.class, "Вычисляет среднее значение элементов списка и сохраняет в переменную.");
+        addEn(AverageOfListBrick.class, "Calculates the average of list items and stores in a variable.");
+        add(MinOfListBrick.class, "Находит минимальное значение в списке и сохраняет в переменную.");
+        addEn(MinOfListBrick.class, "Finds the minimum value in a list and stores in a variable.");
+        add(MaxOfListBrick.class, "Находит максимальное значение в списке и сохраняет в переменную.");
+        addEn(MaxOfListBrick.class, "Finds the maximum value in a list and stores in a variable.");
+        add(SortListBrick.class, "Сортирует список по возрастанию или убыванию.");
+        addEn(SortListBrick.class, "Sorts a list in ascending or descending order.");
+        add(ReverseListBrick.class, "Разворачивает список в обратном порядке.");
+        addEn(ReverseListBrick.class, "Reverses the order of a list.");
+        add(WhenVariableChangedBrick.class, "Срабатывает при изменении значения выбранной переменной.");
+        addEn(WhenVariableChangedBrick.class, "Triggers when the selected variable changes value.");
         add(DeleteTableBrick.class, "Удаляет таблицу с указанным именем.");
         addEn(DeleteTableBrick.class, "Deletes a table with the given name.");
         add(DeleteVarBrick.class, "Удаляет локальную переменную по имени.");
@@ -1056,6 +1073,8 @@ public final class BrickInfo {
         addEn(LaunchProjectBrick.class, "Launches a project from the project files, stops the current one");
         addEn(FinishStageBrick.class, "Exits the project, or the application (in APK)");
         addEn(StopScriptBrick.class, "Stops the selected script(s)");
+        addEn(BreakBrick.class, "Breaks out of the current loop");
+        addEn(ContinueBrick.class, "Continues with the next iteration of the loop");
         addEn(WaitTillIdleBrick.class, "Waits until all scripts in the entire scene stop");
         addEn(TryCatchFinallyBrick.class, "Tries to execute an action, on a fatal error - catches it. At the end runs the blocks");
         addEn(BroadcastBrick.class, "Sends the selected broadcast message");
@@ -1094,6 +1113,7 @@ public final class BrickInfo {
         addEn(PerformRayCastBrick.class, "Casts a ray, can be useful for enemies or shooting, and so on");
         addEn(VibrationBrick.class, "Makes the device vibrate");
         addEn(SetPhysicsObjectTypeBrick.class, "Sets the object's motion type: dynamic - falls and obeys Newton's laws. static - does not fall, but dynamic objects bounce off it");
+        addEn(SetRagdollBrick.class, "Set ragdoll for the sprite: 1 = enable ragdoll mode (free physics), 0 = disable. Combine with Sprite_ragdolled formula to check the state.");
         addEn(SetHitboxBrick.class, "Keeps the current look's hitbox but changes the visible image. IMPORTANT: works poorly");
         addEn(SetVelocityBrick.class, "Sets the velocity of a dynamic body");
         addEn(TurnRightSpeedBrick.class, "Sets the rotation speed");

@@ -46,7 +46,7 @@ class FullTemplateStrategy(private val context: Context) {
         val totalScenes = project.sceneList.size
         if (totalScenes == 0) return
 
-        val sceneProgressWeight = 0.4f // remaining 40% of loading
+        val sceneProgressWeight = 0.4f
 
         project.sceneList.forEachIndexed { index, scene ->
             scene.firstStart = true

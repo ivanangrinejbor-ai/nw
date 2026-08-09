@@ -93,6 +93,7 @@ public final class SensorHandler implements SensorEventListener, SensorCustomEve
 	private float[] accelerationXYZ = new float[3];
 	private float signAccelerationZ;
 	private long lastShakeTime = 0;
+	private float shakeIntensity = 0f;
 	private static final float SHAKE_THRESHOLD = 13.0f;
 	private final float[] gravity = {0f, 0f, 0f};
 	private boolean useLinearAccelerationFallback;
@@ -358,6 +359,10 @@ public final class SensorHandler implements SensorEventListener, SensorCustomEve
 				return org.catrobat.catroid.content.GlobalManager.getCurrentSceneName();
 			case SCENE_TIME:
 				return org.catrobat.catroid.content.GlobalManager.sceneTimeSeconds();
+			case TIMER_MS:
+				return (double) (SystemClock.uptimeMillis() - timerReferenceValue);
+			case SHAKE_INTENSITY:
+				return instance.shakeIntensity;
 			case DATE_YEAR:
 				return (double) Calendar.getInstance().get(Calendar.YEAR);
 			case DATE_MONTH:
@@ -692,6 +697,7 @@ public final class SensorHandler implements SensorEventListener, SensorCustomEve
 				float ay = event.values[1];
 				float az = event.values[2];
 				double gForce = Math.sqrt(ax * ax + ay * ay + az * az) - android.hardware.SensorManager.GRAVITY_EARTH;
+				shakeIntensity = (float) Math.min(1.0, gForce / 20.0);
 				if (gForce > SHAKE_THRESHOLD) {
 					long now = System.currentTimeMillis();
 					if (now - lastShakeTime > 800) {

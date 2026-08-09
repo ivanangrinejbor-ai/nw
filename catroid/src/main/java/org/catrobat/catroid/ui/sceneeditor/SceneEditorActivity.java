@@ -482,7 +482,6 @@ private Sprite pendingLookSprite;
 		EditText inputX = new EditText(this);
 		boolean foundInScript = false;
 		int posX = 0, posY = 0;
-		// Сначала ищем PlaceAtBrick в скриптах
 		outer:
 		for (org.catrobat.catroid.content.Script script : targetSprite.getScriptList()) {
 			for (org.catrobat.catroid.content.bricks.Brick b : script.getBrickList()) {
@@ -498,7 +497,6 @@ private Sprite pendingLookSprite;
 				}
 			}
 		}
-		// Фоллбек: берём координаты из уже распарсенных sceneObjects
 		if (!foundInScript && sceneObjects != null) {
 			for (SceneEditorView.SceneObject obj : sceneObjects) {
 				if (obj.sprite == targetSprite) {

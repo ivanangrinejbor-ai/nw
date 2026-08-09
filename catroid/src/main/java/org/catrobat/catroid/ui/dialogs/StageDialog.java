@@ -138,7 +138,7 @@ public class StageDialog extends Dialog implements View.OnClickListener {
 				break;
 			case R.id.stage_dialog_button_debug:
 				showDebugMenu();
-				dismiss(); // Закрываем основное меню
+				dismiss();
 				StageLifeCycleController.stageResume(stageActivity);
 				break;
 			default:

@@ -400,7 +400,6 @@ private void notifySelection() {
 
 	private void lockBadge(View brickView) {
 		if (!(brickView instanceof ViewGroup)) return;
-		// Показываем иконку замка вместо текста
 		ImageView lockIcon = new ImageView(getContext());
 		try {
 			android.graphics.drawable.Drawable d = getContext().getDrawable(R.drawable.ic_lock_gray);

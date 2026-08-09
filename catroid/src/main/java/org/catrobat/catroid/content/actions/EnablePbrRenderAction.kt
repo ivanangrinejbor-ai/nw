@@ -12,7 +12,7 @@ import org.catrobat.catroid.stage.StageActivity
 
 class EnablePbrRenderAction : TemporalAction() {
     var scope: Scope? = null
-    var renderState: Int = 0 // 0: Off, 1: On
+    var renderState: Int = 0
 
     override fun update(percent: Float) {
         val threeDManager = StageActivity.activeStageActivity.get()?.stageListener?.threeDManager ?: return

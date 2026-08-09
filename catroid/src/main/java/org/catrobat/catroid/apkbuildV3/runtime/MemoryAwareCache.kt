@@ -55,7 +55,7 @@ class MemoryAwareCache<K : Any, V : Any>(
     }
 
     companion object {
-        private const val DEFAULT_MAX_MEMORY = 64L * 1024 * 1024 // 64 MB
+        private const val DEFAULT_MAX_MEMORY = 64L * 1024 * 1024
         private const val DEFAULT_MAX_ENTRIES = 50
 
         fun forDevice(totalRamMB: Long): MemoryAwareCache<String, Any> {

@@ -191,14 +191,17 @@ public class RepeatBrick extends FormulaBrick implements CompositeBrick {
 	public void addActionToSequence(Sprite sprite, ScriptSequenceAction sequence) {
 		ScriptSequenceAction repeatSequence = (ScriptSequenceAction) ActionFactory.createScriptSequenceAction(sequence.getScript());
 		boolean isLoopDelay = LoopUtil.checkLoopBrickForLoopDelay(this, sequence.getScript());
+
+		Action action = sprite.getActionFactory().createRepeatAction(sprite, sequence,
+				getFormulaWithBrickField(BrickField.TIMES_TO_REPEAT), repeatSequence, isLoopDelay);
+
+		sprite.getActionFactory().pushLoopControl((org.catrobat.catroid.content.actions.LoopControl) action);
 		for (Brick brick : loopBricks) {
 			if (!brick.isCommentedOut()) {
 				brick.addActionToSequence(sprite, repeatSequence);
 			}
 		}
-
-		Action action = sprite.getActionFactory().createRepeatAction(sprite, sequence,
-				getFormulaWithBrickField(BrickField.TIMES_TO_REPEAT), repeatSequence, isLoopDelay);
+		sprite.getActionFactory().popLoopControl();
 
 		sequence.addAction(action);
 	}

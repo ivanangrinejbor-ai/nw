@@ -12,7 +12,7 @@ public class ThreedCreateFixedConstraintAction extends TemporalAction {
     public Formula ax, ay, az;
     public Formula bx, by, bz;
 
-    public int mode; // 0 = Auto, 1 = Manual
+    public int mode;
 
     @Override
     protected void update(float percent) {

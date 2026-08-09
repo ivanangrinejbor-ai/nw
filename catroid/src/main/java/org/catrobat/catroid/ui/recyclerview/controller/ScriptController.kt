@@ -151,12 +151,10 @@ class ScriptController {
                 }
             }
 
-            // Collect sounds referenced by the script
             if (includeSounds) {
                 packSound(brick, soundsToPack)
             }
 
-            // Collect variable/list values
             if (includeValues) {
                 collectVariableValues(brick, variableValues, listValues)
             }
@@ -167,7 +165,6 @@ class ScriptController {
         backpackListManager.addUserDefinedBrickToBackPack(groupName, userDefinedBrickListToPack)
         backpackListManager.addScriptToBackPack(groupName, scriptsToPack)
 
-        // Store sounds and values per script group
         if (soundsToPack.isNotEmpty()) {
             backpackListManager.getBackpackedScriptSounds()[groupName] = soundsToPack
         }
@@ -188,16 +185,13 @@ class ScriptController {
             else -> null
         }
         if (sound != null && sound.file != null && sound.file.exists()) {
-            // Avoid duplicate sounds within the same pack operation
             if (soundsToPack.none { it.name == sound.name }) {
-                // Copy file to backpack sound directory for portability
                 try {
                     val backpackDir = backpackListManager.backpackSoundDirectory
                     val copiedFile = StorageOperations.copyFileToDir(sound.file, backpackDir)
                     soundsToPack.add(SoundInfo(sound.name, copiedFile))
                 } catch (e: IOException) {
                     Log.e(TAG, "Failed to copy sound to backpack: ${sound.name}", e)
-                    // Fallback: store original reference
                     soundsToPack.add(SoundInfo(sound.name, sound.file))
                 }
             }
@@ -217,7 +211,6 @@ class ScriptController {
                 }
             }
         }
-        // Also scan formulas for variable/list references
         if (brick is FormulaBrick) {
             for ((_, formula) in brick.allFormulasMap) {
                 formula.formulaTree?.let { root ->
@@ -424,9 +417,7 @@ class ScriptController {
         val script = scriptToUnpack.clone()
         copyBroadcastMessages(script.scriptBrick)
 
-        // Build a map of backpacked sounds for this script group (name → SoundInfo)
         val backpackedSounds = backpackListManager.getBackpackedScriptSounds()[scriptName] ?: emptyList()
-        // Track which backpacked sound name maps to which destination SoundInfo
         val soundMapping = HashMap<String, SoundInfo>()
 
         for (brick in script.brickList) {
@@ -437,13 +428,11 @@ class ScriptController {
                 return
             }
 
-            // Remap sounds from backpack to destination sprite
             unpackSound(brick, backpackedSounds, soundMapping, destinationSprite)
 
             unpackUserVariable(projectManager.currentSprite, scriptName, brick)
             unpackUserList(projectManager.currentSprite, scriptName, brick)
 
-            // Restore variable/list values from backpack
             restoreVariableValues(brick, scriptName)
 
             copyBroadcastMessages(brick)
@@ -462,7 +451,6 @@ class ScriptController {
 
         val originalName = soundField.name
 
-        // If we already resolved this sound name, reuse the mapping
         if (soundMapping.containsKey(originalName)) {
             val resolved = soundMapping[originalName]
             when (brick) {
@@ -472,7 +460,6 @@ class ScriptController {
             return
         }
 
-        // Check if a sound with the same name already exists in destination
         val existingByName = destinationSprite.soundList.find { it.name == originalName }
         if (existingByName != null) {
             soundMapping[originalName] = existingByName
@@ -483,7 +470,6 @@ class ScriptController {
             return
         }
 
-        // Check if we have this sound in the backpack
         val backpackedSound = backpackedSounds.find { it.name == originalName }
         if (backpackedSound != null && backpackedSound.file != null && backpackedSound.file.exists()) {
             try {
@@ -506,7 +492,6 @@ class ScriptController {
 
         when (brick) {
             is UserVariableBrickInterface -> brick.userVariable?.let { variable ->
-                // Try to find value by original name (before any renaming)
                 val originalName = renamedUserVariables.entries.find { it.value == variable.name }?.key ?: variable.name
                 if (backpackedVarValues.containsKey(originalName)) {
                     val savedValue = backpackedVarValues[originalName]!!
@@ -526,7 +511,6 @@ class ScriptController {
     }
 
     private fun parseValue(valueStr: String): Any {
-        // Try to parse as number first, otherwise keep as string
         return valueStr.toDoubleOrNull() ?: valueStr
     }
 

@@ -22,7 +22,7 @@ class SetPostProcessingNewAction : TemporalAction() {
         val floatVal = valueFormula?.interpretFloat(scope) ?: 0f
         val boolVal = floatVal > 0.5f
 
-        if (effectIndex == 0) { // Global
+        if (effectIndex == 0) {
             when (paramIndex) {
                 0 -> config.isActive = boolVal
                 1 -> config.qualityScale = floatVal.coerceIn(0.01f, 1.0f)

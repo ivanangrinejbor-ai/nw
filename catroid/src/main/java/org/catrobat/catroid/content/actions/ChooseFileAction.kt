@@ -18,7 +18,7 @@ import java.io.InputStream
 
 class ChooseFileAction : TemporalAction() {
     var scope: Scope? = null
-    var fileType: Int = 4 // По умолчанию - все файлы
+    var fileType: Int = 4
     var variable: UserVariable? = null
 
     companion object {
@@ -26,11 +26,11 @@ class ChooseFileAction : TemporalAction() {
         private val TAG = ChooseFileAction::class.java.simpleName
 
         private val MIME_TYPES = arrayOf(
-            "image/*",   // 0 - Изображения
-            "video/*",   // 1 - Видео
-            "audio/*",   // 2 - Аудио
-            "application/*", // 3 - Документы (разные форматы)
-            "*/*"        // 4 - Любые файлы
+            "image/*",
+            "video/*",
+            "audio/*",
+            "application/*",
+            "*/*"
         )
 
         private var TARGET_DIRECTORY = File(CatroidApplication.getAppContext().filesDir, "chosen_files")

@@ -67,8 +67,20 @@ class AddBrickFragment : ListFragment() {
         val view = inflater.inflate(R.layout.fragment_brick_add, container, false)
         previousActionBarTitle = (activity as? AppCompatActivity)?.supportActionBar?.title
         (activity as? AppCompatActivity)?.supportActionBar?.title = arguments?.getString(BUNDLE_ARGUMENTS_SELECTED_CATEGORY)
+        addHelpHeader(inflater)
         setupSelectedBrickCategory()
         return view
+    }
+
+    private fun addHelpHeader(inflater: LayoutInflater) {
+        val listView = listView ?: return
+        if (listView.headerViewsCount > 0) return
+        val header = inflater.inflate(R.layout.fragment_brick_add_header, listView, false)
+        val helpButton = header.findViewById<TextView>(R.id.category_help_button)
+        helpButton?.setOnClickListener {
+            showCategoryHelpDialog()
+        }
+        listView.addHeaderView(header, null, false)
     }
 
     private fun setupSelectedBrickCategory() {
@@ -348,6 +360,48 @@ class AddBrickFragment : ListFragment() {
             .setNegativeButton(R.string.dialog_add_brick_cancel) { dialog, _ ->
                 dialog.dismiss()
             }
+            .show()
+    }
+
+    private fun showCategoryHelpDialog() {
+        val context = requireContext()
+        val categoryName = arguments?.getString(BUNDLE_ARGUMENTS_SELECTED_CATEGORY) ?: return
+        val doc = CategoryDocs.getDoc(categoryName, context)
+
+        val density = context.resources.displayMetrics.density
+        val scrollView = android.widget.ScrollView(context).apply {
+            setPadding((20 * density).toInt(), (16 * density).toInt(), (20 * density).toInt(), (16 * density).toInt())
+        }
+
+        val contentView = TextView(context).apply {
+            val examplesHeader = context.getString(R.string.category_help_examples_header)
+            val spannable = android.text.SpannableStringBuilder().apply {
+                append(doc.description)
+                append("\n\n")
+                val start = length
+                append(examplesHeader)
+                setSpan(
+                    android.text.style.StyleSpan(android.graphics.Typeface.BOLD),
+                    start, length, android.text.Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+                )
+                setSpan(
+                    android.text.style.RelativeSizeSpan(1.1f),
+                    start, length, android.text.Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+                )
+                append("\n")
+                append(doc.examples)
+            }
+            setText(spannable)
+            setTextColor(context.resources.getColor(R.color.solid_white))
+            textSize = 15f
+            setLineSpacing(4f, 1.2f)
+        }
+        scrollView.addView(contentView)
+
+        androidx.appcompat.app.AlertDialog.Builder(context)
+            .setTitle(doc.title)
+            .setView(scrollView)
+            .setPositiveButton(R.string.dialog_add_brick_cancel) { dialog, _ -> dialog.dismiss() }
             .show()
     }
 

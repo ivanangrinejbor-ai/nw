@@ -594,7 +594,7 @@ public class DebugMenuView extends FrameLayout {
             if (getParent() != null) {
                 try {
                     windowManager.updateViewLayout(DebugMenuView.this, params);
-                } catch (Exception ignored) { // ignored
+                } catch (Exception ignored) {
                 }
             }
         });

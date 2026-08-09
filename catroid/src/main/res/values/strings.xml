@@ -641,6 +641,7 @@
     <string name="formula_sprite_height" formatted="false">Sprite_height</string>
     <string name="formula_sprite_direction" formatted="false">Sprite_direction</string>
     <string name="formula_sprite_visible" formatted="false">Sprite_visible</string>
+    <string name="formula_sprite_ragdolled" formatted="false">Sprite_ragdolled</string>
     <string name="formula_sprite_transparency" formatted="false">Sprite_transparency</string>
     <string name="formula_sprite_layer" formatted="false">Sprite_layer</string>
     <string name="formula_sprite_name_get" formatted="false">Sprite_name</string>
@@ -2536,6 +2537,23 @@
 <string formatted="false" name="formula_editor_sensor_scene_time">time in scene</string>
 <string formatted="false" name="formula_editor_function_scene_launch_count">scene launches</string>
 <string formatted="false" name="formula_editor_function_scene_launch_count_parameter">(scene name)</string>
+<string formatted="false" name="formula_editor_function_list_slice">sublist</string>
+<string formatted="false" name="formula_editor_function_list_slice_parameter">(list, start, end)</string>
+<string formatted="false" name="formula_editor_function_list_sum">sum of list</string>
+<string formatted="false" name="formula_editor_function_list_sum_parameter">(list)</string>
+<string formatted="false" name="formula_editor_function_list_average">average of list</string>
+<string formatted="false" name="formula_editor_function_list_average_parameter">(list)</string>
+<string formatted="false" name="formula_editor_function_list_min">minimum of list</string>
+<string formatted="false" name="formula_editor_function_list_min_parameter">(list)</string>
+<string formatted="false" name="formula_editor_function_list_max">maximum of list</string>
+<string formatted="false" name="formula_editor_function_list_max_parameter">(list)</string>
+<string formatted="false" name="formula_editor_function_rgb_to_hex">RGB to hex</string>
+<string formatted="false" name="formula_editor_function_rgb_to_hex_parameter">(red, green, blue)</string>
+<string formatted="false" name="formula_editor_function_hex_to_rgb">hex to RGB</string>
+<string formatted="false" name="formula_editor_function_hex_to_rgb_parameter">(hex color)</string>
+<string formatted="false" name="formula_editor_sensor_touching_sprite">touching sprite</string>
+<string formatted="false" name="formula_editor_sensor_timer_ms">timer in milliseconds</string>
+<string formatted="false" name="formula_editor_sensor_shake_intensity">shake intensity</string>
 <string formatted="false" name="global_scene_badge">Global scene</string>
 <string formatted="false" name="delete_global_scene_confirm">Delete the global scene and all its objects?</string>
 <string formatted="false" name="dialog_edit_broadcast_message_title">Edit message</string>
@@ -2565,6 +2583,9 @@
 <string formatted="false" name="category_raspi">Raspberry Pi</string>
 <string formatted="false" name="category_assertions">Testing</string>
 <string formatted="false" name="category_search_bricks">Search Bricks</string>
+    <string name="category_help_button">What</string>
+    <string name="category_help_dialog_title">Category Help</string>
+    <string name="category_help_examples_header">Examples:</string>
 <string formatted="false" name="brick_user_defined_add_label">Add label</string>
 <string formatted="false" name="brick_user_defined_add_input">Add input</string>
 <string formatted="false" name="brick_user_defined_add_input_description">Add input for this brick:</string>
@@ -2603,6 +2624,7 @@
 <string formatted="false" name="brick_point_in_direction">Point in direction</string>
 <string formatted="false" name="brick_point_to">Point towards</string>
 <string formatted="false" name="brick_point_touch_direction">Point to touch</string>
+<string formatted="false" name="brick_set_ragdoll">Set ragdoll (1=on, 0=off):</string>
 <string formatted="false" name="brick_glide">Glide</string>
 <string formatted="false" name="brick_glide_to_x">to x:</string>
 <string formatted="false" name="brick_tween_position">Tween to x:</string>
@@ -2864,6 +2886,18 @@
 <string formatted="false" name="brick_add_item_to_userlist_add">Add</string>
 <string formatted="false" name="brick_add_item_to_userlist">to list</string>
 <string formatted="false" name="brick_clear_userlist">Delete all items from list</string>
+<string formatted="false" name="brick_sum_of_list">Sum of list</string>
+<string formatted="false" name="brick_average_of_list">Average of list</string>
+<string formatted="false" name="brick_min_of_list">Minimum of list</string>
+<string formatted="false" name="brick_max_of_list">Maximum of list</string>
+<string formatted="false" name="brick_store_in">and store result in variable</string>
+<string formatted="false" name="brick_sort_list">Sort list</string>
+<string formatted="false" name="brick_reverse_list">Reverse list</string>
+<string formatted="false" name="brick_break">Break loop</string>
+<string formatted="false" name="brick_continue">Continue with next iteration</string>
+<string formatted="false" name="brick_when_variable_changed">When variable changes</string>
+<string formatted="false" name="sort_ascending">Ascending</string>
+<string formatted="false" name="sort_descending">Descending</string>
 <string formatted="false" name="brick_delete_item_from_userlist_delete">Delete item from list</string>
 <string formatted="false" name="brick_delete_item_from_userlist">at position</string>
 <string formatted="false" name="brick_insert_item_into_userlist_insert_into">Insert</string>

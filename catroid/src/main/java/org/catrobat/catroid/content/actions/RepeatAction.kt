@@ -36,12 +36,12 @@ class RepeatAction : LoopAction() {
     var scope: Scope? = null
     var isForeverRepeat = false
     var repeatCount: Formula? = null
-    
+
     companion object {
         private const val MAX_REPEAT_COUNT = 10_000_000
     }
 
-    public override fun delegate(delta: Float): Boolean {
+    override fun loopDelegate(delta: Float): Boolean {
         if (!isRepeatActionInitialized) {
             isRepeatActionInitialized = true
             interpretRepeatCount()
@@ -69,6 +69,16 @@ class RepeatAction : LoopAction() {
             isCurrentLoopInitialized = false
             action?.restart()
         }
+        return false
+    }
+
+    override fun onContinue(): Boolean {
+        executedCount++
+        if (!isForeverRepeat && executedCount >= repeatCountValue) {
+            return true
+        }
+        isCurrentLoopInitialized = false
+        action?.restart()
         return false
     }
 

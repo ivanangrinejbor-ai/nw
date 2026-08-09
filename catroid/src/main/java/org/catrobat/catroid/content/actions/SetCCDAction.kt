@@ -8,7 +8,7 @@ import org.catrobat.catroid.stage.StageActivity
 class SetCCDAction : TemporalAction() {
     var scope: Scope? = null
     var objectId: Formula? = null
-    var enabled: Formula? = null // Будет "true" или "false"
+    var enabled: Formula? = null
 
     override fun update(percent: Float) {
         val manager = StageActivity.activeStageActivity.get()?.stageListener?.threeDManager ?: return

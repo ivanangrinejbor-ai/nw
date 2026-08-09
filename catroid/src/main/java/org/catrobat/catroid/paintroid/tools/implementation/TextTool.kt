@@ -500,7 +500,7 @@ class TextTool(
                 } catch (e: Exception) {
                     Log.e(TAG, "dubai")
                 }
-            FontType.PROJECT_FONT -> { /* handled above */ }
+            FontType.PROJECT_FONT -> { }
         }
     }
 

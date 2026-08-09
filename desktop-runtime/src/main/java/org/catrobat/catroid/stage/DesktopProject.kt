@@ -129,6 +129,8 @@ class DesktopSprite(
     var penBorderColorBlue: Float = 0f,
     var rotationStyle: Int = 0,
     var cloneIndex: Int = 0,
+    /** Mirrors Android Sprite.isRagdolled. */
+    var isRagdolled: Boolean = false,
     var parentName: String? = null,
     var scaleX: Float = 1f,
     var scaleY: Float = 1f,
@@ -165,7 +167,8 @@ class DesktopSprite(
             penCornerRadius = penCornerRadius, penBorderWidth = penBorderWidth,
             penBorderColorRed = penBorderColorRed, penBorderColorGreen = penBorderColorGreen,
             penBorderColorBlue = penBorderColorBlue, rotationStyle = rotationStyle,
-            cloneIndex = 0, parentName = null, scaleX = scaleX, scaleY = scaleY, zIndex = zIndex
+            cloneIndex = 0, isRagdolled = false, parentName = null,
+            scaleX = scaleX, scaleY = scaleY, zIndex = zIndex
         )
         clone.sprite = null
         return clone
@@ -205,5 +208,11 @@ class DesktopProject(
     var activeSceneName: String? = null,
     val sceneNames: MutableList<String> = mutableListOf(),
     var hasGlobalScene: Boolean = false,
-    var globalSpriteCount: Int = 0
+    var globalSpriteCount: Int = 0,
+    /** Names declared in Project.programVariableList/programListOfLists. */
+    val globalVariableNames: MutableSet<String> = mutableSetOf(),
+    val globalListNames: MutableSet<String> = mutableSetOf(),
+    /** Names declared on each Sprite. Android resolves these before project globals. */
+    val localVariableNamesBySprite: MutableMap<Int, MutableSet<String>> = mutableMapOf(),
+    val localListNamesBySprite: MutableMap<Int, MutableSet<String>> = mutableMapOf()
 )

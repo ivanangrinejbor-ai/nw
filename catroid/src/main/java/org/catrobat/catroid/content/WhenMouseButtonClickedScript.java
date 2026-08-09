@@ -7,7 +7,7 @@ import org.catrobat.catroid.content.eventids.MouseButtonEventId;
 
 public class WhenMouseButtonClickedScript extends Script {
     private static final long serialVersionUID = 1L;
-    private int buttonCode; // LibGDX Input.Buttons.LEFT, RIGHT, etc.
+    private int buttonCode;
 
     public WhenMouseButtonClickedScript(int buttonCode) {
         this.buttonCode = buttonCode;
@@ -17,7 +17,7 @@ public class WhenMouseButtonClickedScript extends Script {
         return buttonCode;
     }
 
-    public void setButtonCode(int buttonCode) { // <-- ДОБАВЬТЕ ЭТОТ МЕТОД
+    public void setButtonCode(int buttonCode) {
         this.buttonCode = buttonCode;
     }
 

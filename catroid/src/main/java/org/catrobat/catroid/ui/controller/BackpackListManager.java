@@ -177,7 +177,6 @@ public final class BackpackListManager {
 		setLookFileReferences(getBackpackedLooks(), backpackImageDirectory);
 		setSoundFileReferences(getBackpackedSounds(), backpackSoundDirectory);
 
-		// Restore file references for sounds packed inside script groups
 		for (List<SoundInfo> scriptSounds : getBackpackedScriptSounds().values()) {
 			setSoundFileReferences(scriptSounds, backpackSoundDirectory);
 		}

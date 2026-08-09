@@ -61,13 +61,13 @@ class PreviewView(context: Context) : FrameLayout(context) {
         surfaceView.scaleX = 1f
         surfaceView.scaleY = 1f
 
-        if (screenAspectRatio < 1) { // portrait mode
+        if (screenAspectRatio < 1) {
             val scalingFactor = imageAspectRatio / screenAspectRatio
             if (Build.VERSION.SDK_INT == Build.VERSION_CODES.M) {
                 surfaceView.layoutParams.width = (this.width * scalingFactor).roundToInt()
             }
             surfaceView.scaleX = scalingFactor
-        } else { // landscape mode
+        } else {
             val scalingFactor = imageAspectRatio * screenAspectRatio
             if (Build.VERSION.SDK_INT == Build.VERSION_CODES.M) {
                 surfaceView.layoutParams.height = (this.height * scalingFactor).roundToInt()

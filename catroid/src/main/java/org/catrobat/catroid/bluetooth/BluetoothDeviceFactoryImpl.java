@@ -57,6 +57,6 @@ public class BluetoothDeviceFactoryImpl implements BluetoothDeviceFactory {
 			return new Multiplayer();
 		}
 
-		return null; // may throw exception
+		return null;
 	}
 }

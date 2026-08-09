@@ -39,7 +39,7 @@ class CountLoopAction : LoopAction() {
     var count: Formula? = null
     var loopVariable: UserVariable? = null
 
-    public override fun delegate(delta: Float): Boolean {
+    override fun loopDelegate(delta: Float): Boolean {
         if (!isCountLoopInitialized) {
             isCountLoopInitialized = true
             interpretCount()

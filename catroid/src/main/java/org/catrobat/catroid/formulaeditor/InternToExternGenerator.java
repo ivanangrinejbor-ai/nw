@@ -399,6 +399,16 @@ public class InternToExternGenerator {
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.CURRENT_SCENE_NAME.name(), R.string.formula_editor_sensor_current_scene_name);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.SCENE_TIME.name(), R.string.formula_editor_sensor_scene_time);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.SCENE_LAUNCH_COUNT.name(), R.string.formula_editor_function_scene_launch_count);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.LIST_SLICE.name(), R.string.formula_editor_function_list_slice);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.LIST_SUM.name(), R.string.formula_editor_function_list_sum);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.LIST_AVERAGE.name(), R.string.formula_editor_function_list_average);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.LIST_MIN.name(), R.string.formula_editor_function_list_min);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.LIST_MAX.name(), R.string.formula_editor_function_list_max);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.RGB_TO_HEX.name(), R.string.formula_editor_function_rgb_to_hex);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.HEX_TO_RGB.name(), R.string.formula_editor_function_hex_to_rgb);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.TOUCHING_SPRITE.name(), R.string.formula_editor_sensor_touching_sprite);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.TIMER_MS.name(), R.string.formula_editor_sensor_timer_ms);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.SHAKE_INTENSITY.name(), R.string.formula_editor_sensor_shake_intensity);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.DATE_YEAR.name(), R.string.formula_editor_sensor_date_year);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.DATE_MONTH.name(), R.string.formula_editor_sensor_date_month);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.DATE_DAY.name(), R.string.formula_editor_sensor_date_day);
@@ -470,6 +480,7 @@ public class InternToExternGenerator {
         INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.SPRITE_HEIGHT.name(), R.string.formula_sprite_height);
         INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.SPRITE_DIRECTION.name(), R.string.formula_sprite_direction);
         INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.SPRITE_VISIBLE.name(), R.string.formula_sprite_visible);
+        INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.SPRITE_RAGDOLLED.name(), R.string.formula_sprite_ragdolled);
         INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.SPRITE_TRANSPARENCY.name(), R.string.formula_sprite_transparency);
         INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.SPRITE_LAYER.name(), R.string.formula_sprite_layer);
         INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.SPRITE_NAME_GET.name(), R.string.formula_sprite_name_get);

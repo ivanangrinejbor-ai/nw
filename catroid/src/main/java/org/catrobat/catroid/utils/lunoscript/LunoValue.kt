@@ -279,7 +279,7 @@ sealed class LunoValue {
                 }
                 try {
                     interpreter.executeBlock(initMethod.declaration.body.statements, environment)
-                } catch (ret: ReturnSignal) { /* 'init' не должен возвращать значение */ }
+                } catch (ret: ReturnSignal) { }
             }
 
             return finalInstance

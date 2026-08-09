@@ -37,7 +37,7 @@ class RepeatParameterizedAction : LoopAction() {
     var parameterizedData: ParameterizedData? = null
     var parameters: List<Pair<UserList, UserVariable>> = emptyList()
 
-    override fun delegate(delta: Float): Boolean {
+    override fun loopDelegate(delta: Float): Boolean {
         if (parameters.isNullOrEmpty()) {
             fail("Input was not selected")
             return true

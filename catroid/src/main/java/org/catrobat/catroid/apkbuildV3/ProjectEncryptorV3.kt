@@ -13,7 +13,7 @@ object ProjectEncryptorV3 {
     private const val TAG = "ProjectEncryptorV3"
     private val MAGIC = byteArrayOf('N'.code.toByte(), 'C'.code.toByte(), 'V'.code.toByte(), '3'.code.toByte())
     private const val FORMAT_VERSION: Short = 1
-    private const val CHUNK_SIZE = 1024 * 1024 // 1 MB per chunk
+    private const val CHUNK_SIZE = 1024 * 1024
     private const val GCM_IV_SIZE = 12
     private const val GCM_TAG_LENGTH = 128
     private const val ALGORITHM = "AES/GCM/NoPadding"
@@ -30,7 +30,7 @@ object ProjectEncryptorV3 {
         val aesKey = SecretKeySpec(key, "AES")
         val totalSize = sourceFile.length()
         val totalChunks = ((totalSize + CHUNK_SIZE - 1) / CHUNK_SIZE).toInt()
-        val chunkOffsets = IntArray(totalChunks) // relative to chunk data start
+        val chunkOffsets = IntArray(totalChunks)
         val chunkEncLens = IntArray(totalChunks)
 
         destFile.parentFile?.mkdirs()
@@ -39,9 +39,9 @@ object ProjectEncryptorV3 {
             raf.setLength(0)
             raf.write(MAGIC)
             writeShort(raf, FORMAT_VERSION.toInt())
-            writeShort(raf, 0) // flags
-            writeInt(raf, 0)   // reserved
-            writeInt(raf, totalChunks) // total chunks (final value)
+            writeShort(raf, 0)
+            writeInt(raf, 0)
+            writeInt(raf, totalChunks)
 
             val digest = java.security.MessageDigest.getInstance(SHA256)
             FileInputStream(sourceFile).use { hashIn ->
@@ -55,9 +55,9 @@ object ProjectEncryptorV3 {
 
             val chunkTablePos = raf.filePointer
             for (i in 0 until totalChunks) {
-                writeInt(raf, 0)    // chunk index
-                writeLong(raf, 0L)  // offset
-                writeInt(raf, 0)    // encrypted length
+                writeInt(raf, 0)
+                writeLong(raf, 0L)
+                writeInt(raf, 0)
             }
 
             val dataStartPos = raf.filePointer
@@ -109,14 +109,14 @@ object ProjectEncryptorV3 {
         }
 
         val chunkTableOffset = HEADER_SIZE.toLong()
-        val chunkEntrySize = 4 + 8 + 4 // index + offset + encLen
+        val chunkEntrySize = 4 + 8 + 4
         val entryPos = chunkTableOffset + chunkIndex * chunkEntrySize
 
         FileInputStream(encryptedFile).use { fileIn ->
             fileIn.channel.position(entryPos)
 
-            val idx = readInt(fileIn) // chunk index
-            val offset = readLong(fileIn) // offset from data start
+            val idx = readInt(fileIn)
+            val offset = readLong(fileIn)
             val encLen = readInt(fileIn)
 
             val dataStartPos = chunkTableOffset + totalChunks * chunkEntrySize

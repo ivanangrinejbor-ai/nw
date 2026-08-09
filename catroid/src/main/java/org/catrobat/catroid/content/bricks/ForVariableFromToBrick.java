@@ -180,16 +180,18 @@ public class ForVariableFromToBrick extends UserVariableBrickWithFormula impleme
 		ScriptSequenceAction repeatSequence = (ScriptSequenceAction) ActionFactory.createScriptSequenceAction(sequence.getScript());
 		boolean isLoopDelay = LoopUtil.checkLoopBrickForLoopDelay(this, sequence.getScript());
 
+		Action action = sprite.getActionFactory()
+				.createForVariableFromToAction(sprite, sequence, userVariable,
+						getFormulaWithBrickField(BrickField.FOR_LOOP_FROM),
+						getFormulaWithBrickField(BrickField.FOR_LOOP_TO), repeatSequence, isLoopDelay);
+
+		sprite.getActionFactory().pushLoopControl((org.catrobat.catroid.content.actions.LoopControl) action);
 		for (Brick brick : loopBricks) {
 			if (!brick.isCommentedOut()) {
 				brick.addActionToSequence(sprite, repeatSequence);
 			}
 		}
-
-		Action action = sprite.getActionFactory()
-				.createForVariableFromToAction(sprite, sequence, userVariable,
-						getFormulaWithBrickField(BrickField.FOR_LOOP_FROM),
-						getFormulaWithBrickField(BrickField.FOR_LOOP_TO), repeatSequence, isLoopDelay);
+		sprite.getActionFactory().popLoopControl();
 
 		sequence.addAction(action);
 	}

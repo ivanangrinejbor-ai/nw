@@ -491,7 +491,6 @@ canvas = new ScriptCanvasView(this);
 		builder.setView(input);
 		builder.setPositiveButton(R.string.save, (dialog, which) -> {
 			String name = input.getText().toString().trim();
-			// Reject empty names OR names with forbidden filesystem characters
 			if (name.isEmpty() || name.matches(".*[\\\\/:*?\"<>|].*")) {
 				Toast.makeText(this, R.string.save_script_invalid_name, Toast.LENGTH_SHORT).show();
 				return;

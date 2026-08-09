@@ -58,13 +58,6 @@ object ProjectCrypto {
     private val PASSWORD_CONTAINER_MAGIC = byteArrayOf('N'.code.toByte(), 'C'.code.toByte(), 'P'.code.toByte(), 'W'.code.toByte())
     private const val SEGMENT_SIZE = 4 * 1024 * 1024
 
-    /**
-     * NCPW (password container) wraps an NCPS/NCPP payload with a per-build random
-     * password so each baked artifact is encrypted with its own key instead of a
-     * shared public constant.
-     *
-     * Layout: "NCPW"(4) + pwdLen(int32 BE) + password(UTF-8) + inner payload (NCPS/NCPP/NCPX).
-     */
     fun writePasswordContainerHeader(out: OutputStream, password: String) {
         out.write(PASSWORD_CONTAINER_MAGIC)
         val pwdBytes = password.toByteArray(Charsets.UTF_8)

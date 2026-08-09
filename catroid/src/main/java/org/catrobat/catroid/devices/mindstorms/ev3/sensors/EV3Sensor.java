@@ -202,7 +202,7 @@ public abstract class EV3Sensor implements LegoSensor {
 
 			try {
 				EV3Reply reply = sendCommandAndGetReply(command, commandCount);
-				percentValue = reply.getByte(3); // first 2 bytes(reply length) not saved
+				percentValue = reply.getByte(3);
 			} catch (MindstormsException e) {
 				Log.e(TAG, e.getMessage());
 			}
@@ -266,7 +266,7 @@ public abstract class EV3Sensor implements LegoSensor {
 		int chainLayer = 0;
 		int type = this.sensorType.getByte();
 		int mode = this.sensorMode.getByte();
-		int returnValue = 1; // request 1 return value
+		int returnValue = 1;
 		int returnValueIndex = 0;
 
 		if (commandCode != null) {

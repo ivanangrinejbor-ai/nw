@@ -36,7 +36,7 @@ public class ForItemInUserListAction extends LoopAction {
 	private int index = 0;
 
 	@Override
-	public boolean delegate(float delta) {
+	protected boolean loopDelegate(float delta) {
 		if (!isCurrentLoopInitialized) {
 			setCurrentTime(0f);
 			isCurrentLoopInitialized = true;

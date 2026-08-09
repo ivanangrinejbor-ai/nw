@@ -154,7 +154,7 @@ public class LegoSensorService implements CatroidService, SharedPreferences.OnSh
 
 		command.append(EV3CommandByte.EV3CommandByteCode.INPUT_DEVICE_STOP_ALL.getByte());
 
-		int chainLayer = -1; // all chain-layers
+		int chainLayer = -1;
 		command.append(EV3CommandByte.EV3CommandParamFormat.PARAM_FORMAT_SHORT, chainLayer);
 
 		try {

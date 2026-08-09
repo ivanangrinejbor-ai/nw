@@ -1073,6 +1073,20 @@ public class FormulaElement implements Serializable {
                 return interpretFunctionConnect(arg1, scope);
             case FIND:
                 return interpretFunctionFind(arg1, scope);
+            case LIST_SLICE:
+                return interpretFunctionListSlice(arg0, arg1, arg2, scope);
+            case LIST_SUM:
+                return interpretFunctionListSum(arg0, scope);
+            case LIST_AVERAGE:
+                return interpretFunctionListAverage(arg0, scope);
+            case LIST_MIN:
+                return interpretFunctionListMin(arg0, scope);
+            case LIST_MAX:
+                return interpretFunctionListMax(arg0, scope);
+            case RGB_TO_HEX:
+                return interpretFunctionRgbToHex(arg0, arg1, arg2);
+            case HEX_TO_RGB:
+                return interpretFunctionHexToRgb(arg0, scope);
             case COLLIDES_WITH_COLOR:
                 return booleanToDouble(new ColorCollisionDetection(scope, StageActivity.getActiveStageListener())
                         .tryInterpretFunctionTouchesColor(arg0));
@@ -1522,6 +1536,10 @@ public class FormulaElement implements Serializable {
             case SPRITE_VISIBLE: {
                 Sprite s = findSprite(String.valueOf(arg0));
                 return booleanToDouble(s != null && s.look != null && s.look.isLookVisible());
+            }
+            case SPRITE_RAGDOLLED: {
+                Sprite s = findSprite(String.valueOf(arg0));
+                return booleanToDouble(s != null && s.isRagdolled);
             }
             case SPRITE_TRANSPARENCY: {
                 Sprite s = findSprite(String.valueOf(arg0));
@@ -1977,6 +1995,102 @@ public class FormulaElement implements Serializable {
             }
         }
         return "";
+    }
+
+    private Object interpretFunctionListSlice(Object listArg, Object startArg, Object endArg, Scope scope) {
+        UserList userList = listArg instanceof UserList ? (UserList) listArg : getUserListOfChild(leftChild, scope);
+        if (userList == null) return "";
+        List<Object> list = userList.getValue();
+        int start = (startArg instanceof Number) ? ((Number) startArg).intValue() - 1 : 0;
+        int end = (endArg instanceof Number) ? ((Number) endArg).intValue() : list.size();
+        start = Math.max(0, Math.min(start, list.size()));
+        end = Math.max(start, Math.min(end, list.size()));
+        StringBuilder sb = new StringBuilder();
+        for (int i = start; i < end; i++) {
+            if (i > start) sb.append(",");
+            sb.append(String.valueOf(list.get(i)));
+        }
+        return sb.toString();
+    }
+
+    private Object interpretFunctionListSum(Object listArg, Scope scope) {
+        UserList userList = listArg instanceof UserList ? (UserList) listArg : getUserListOfChild(leftChild, scope);
+        if (userList == null) return 0.0;
+        double sum = 0.0;
+        for (Object item : userList.getValue()) {
+            if (item instanceof Number) sum += ((Number) item).doubleValue();
+            else {
+                try { sum += Double.parseDouble(String.valueOf(item)); } catch (NumberFormatException ignored) {}
+            }
+        }
+        return sum;
+    }
+
+    private Object interpretFunctionListAverage(Object listArg, Scope scope) {
+        UserList userList = listArg instanceof UserList ? (UserList) listArg : getUserListOfChild(leftChild, scope);
+        if (userList == null) return 0.0;
+        double sum = 0.0;
+        int count = 0;
+        for (Object item : userList.getValue()) {
+            if (item instanceof Number) { sum += ((Number) item).doubleValue(); count++; }
+            else {
+                try { sum += Double.parseDouble(String.valueOf(item)); count++; } catch (NumberFormatException ignored) {}
+            }
+        }
+        return count > 0 ? sum / count : 0.0;
+    }
+
+    private Object interpretFunctionListMin(Object listArg, Scope scope) {
+        UserList userList = listArg instanceof UserList ? (UserList) listArg : getUserListOfChild(leftChild, scope);
+        if (userList == null) return 0.0;
+        double min = Double.MAX_VALUE;
+        boolean found = false;
+        for (Object item : userList.getValue()) {
+            double val = (item instanceof Number) ? ((Number) item).doubleValue() : Double.NaN;
+            if (Double.isNaN(val)) { try { val = Double.parseDouble(String.valueOf(item)); } catch (NumberFormatException e) { continue; } }
+            if (val < min) min = val;
+            found = true;
+        }
+        return found ? min : 0.0;
+    }
+
+    private Object interpretFunctionListMax(Object listArg, Scope scope) {
+        UserList userList = listArg instanceof UserList ? (UserList) listArg : getUserListOfChild(leftChild, scope);
+        if (userList == null) return 0.0;
+        double max = -Double.MAX_VALUE;
+        boolean found = false;
+        for (Object item : userList.getValue()) {
+            double val = (item instanceof Number) ? ((Number) item).doubleValue() : Double.NaN;
+            if (Double.isNaN(val)) { try { val = Double.parseDouble(String.valueOf(item)); } catch (NumberFormatException e) { continue; } }
+            if (val > max) max = val;
+            found = true;
+        }
+        return found ? max : 0.0;
+    }
+
+    private String interpretFunctionRgbToHex(Object rArg, Object gArg, Object bArg) {
+        int r = (rArg instanceof Number) ? ((Number) rArg).intValue() : 0;
+        int g = (gArg instanceof Number) ? ((Number) gArg).intValue() : 0;
+        int b = (bArg instanceof Number) ? ((Number) bArg).intValue() : 0;
+        r = Math.max(0, Math.min(255, r));
+        g = Math.max(0, Math.min(255, g));
+        b = Math.max(0, Math.min(255, b));
+        return String.format("#%02X%02X%02X", r, g, b);
+    }
+
+    private String interpretFunctionHexToRgb(Object hexArg, Scope scope) {
+        String hex = String.valueOf(hexArg).trim();
+        if (hex.startsWith("#")) hex = hex.substring(1);
+        if (hex.length() == 3) hex = "" + hex.charAt(0) + hex.charAt(0) + hex.charAt(1) + hex.charAt(1) + hex.charAt(2) + hex.charAt(2);
+        if (hex.length() != 6) return "0,0,0";
+        try {
+            int r = Integer.parseInt(hex.substring(0, 2), 16);
+            int g = Integer.parseInt(hex.substring(2, 4), 16);
+            int b = Integer.parseInt(hex.substring(4, 6), 16);
+            return r + "," + g + "," + b;
+        } catch (NumberFormatException e) {
+            return "0,0,0";
+        }
     }
 
     @Nullable

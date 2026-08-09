@@ -8,7 +8,7 @@ import org.catrobat.catroid.stage.StageActivity
 class KeyframeAnimationAction : TemporalAction() {
     var scope: Scope? = null
     var objectId: Formula? = null
-    var actionType: Int = 0 // 0: Play, 1: Stop, 2: Set Time
+    var actionType: Int = 0
     var timeFormula: Formula? = null
 
     override fun update(percent: Float) {

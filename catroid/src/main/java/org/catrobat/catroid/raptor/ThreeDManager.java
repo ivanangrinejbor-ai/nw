@@ -216,19 +216,19 @@ public class ThreeDManager implements Disposable {
 
         if (renderScale < 1.0f || aspectMode != 0) {
             renderHeight = (int)(height * renderScale);
-            if (aspectMode == 1) { // 4:3
+            if (aspectMode == 1) {
                 renderWidth = (int)(renderHeight * (4.0f / 3.0f));
                 if (renderWidth > (int)(width * renderScale)) {
                     renderWidth = (int)(width * renderScale);
                     renderHeight = (int)(renderWidth * (3.0f / 4.0f));
                 }
-            } else if (aspectMode == 2) { // 16:9
+            } else if (aspectMode == 2) {
                 renderWidth = (int)(renderHeight * (16.0f / 9.0f));
                 if (renderWidth > (int)(width * renderScale)) {
                     renderWidth = (int)(width * renderScale);
                     renderHeight = (int)(renderWidth * (9.0f / 16.0f));
                 }
-            } else if (aspectMode == 3) { // 1:1
+            } else if (aspectMode == 3) {
                 renderWidth = renderHeight;
                 if (renderWidth > (int)(width * renderScale)) {
                     renderWidth = (int)(width * renderScale);
@@ -501,8 +501,6 @@ public class ThreeDManager implements Disposable {
     public final Vector3 cameraTrackPosOffset = new Vector3();
     public final Quaternion cameraTrackRotOffset = new Quaternion();
 
-    // The editor renders directly to the screen unless post-processing is active.
-    // A sub-1 scale in that path used to draw an unrendered FBO and produced a black screen.
     private float renderScale = 1.0f;
     private int aspectMode = 0;
     private int lastScreenWidth;
@@ -2738,9 +2736,6 @@ public class ThreeDManager implements Disposable {
     }
 
     public void update(float delta) {
-        // A resumed/suspended app can report a very large frame delta. Feeding it
-        // into animations, physics and the glTF scene manager causes visible
-        // jumps and expensive catch-up work in both editors and the runtime.
         if (Float.isNaN(delta) || Float.isInfinite(delta)) {
             delta = 0f;
         } else {
@@ -3282,7 +3277,7 @@ public class ThreeDManager implements Disposable {
             modelBatch.begin(camera);
 
             for (Map.Entry<String, ModelInstance> entry : sceneObjects.entrySet()) {
-                if (!inactiveRenderObjects.contains(entry.getKey())) { // PERF: HashSet.contains() per object per frame — O(n) lookup; consider Set lookup or skip-list if sceneObjects grows large
+                if (!inactiveRenderObjects.contains(entry.getKey())) {
                     modelBatch.render(entry.getValue(), environment);
                 }
             }
@@ -3723,16 +3718,16 @@ public class ThreeDManager implements Disposable {
             aspectMode = 0;
             lastRenderedTexture = null;
 
-            try { depthFbo.end(); } catch (Exception ignored) { /* cleanup on error */ }
-            try { depthBatch.end(); } catch (Exception ignored) { /* cleanup on error */ }
-            try { modelBatch.end(); } catch (Exception ignored) { /* cleanup on error */ }
-            try { particleModelBatch.end(); } catch (Exception ignored) { /* cleanup on error */ }
-            try { if (sceneFbo2 != null) sceneFbo2.end(); } catch (Exception ignored) { /* cleanup on error */ }
+            try { depthFbo.end(); } catch (Exception ignored) { }
+            try { depthBatch.end(); } catch (Exception ignored) { }
+            try { modelBatch.end(); } catch (Exception ignored) { }
+            try { particleModelBatch.end(); } catch (Exception ignored) { }
+            try { if (sceneFbo2 != null) sceneFbo2.end(); } catch (Exception ignored) { }
             try {
                 Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
                 Gdx.gl.glClearColor(skyColor.r, skyColor.g, skyColor.b, 1f);
                 Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
-            } catch (Exception ignored) { /* keep the render loop alive */ }
+            } catch (Exception ignored) { }
         }
     }
 

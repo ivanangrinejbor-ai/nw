@@ -114,9 +114,6 @@ public class SpriteController {
 		sprite.isClone = true;
 		sprite.setActionFactory(spriteToCopy.getActionFactory());
 
-		// LookData owns the decoded texture. Runtime clones never mutate the
-		// LookData itself; they only change which look is selected and their own
-		// Look transform. Reusing the instances avoids one Pixmap/Texture per clone.
 		sprite.getLookList().addAll(spriteToCopy.getLookList());
 
 		sprite.getSoundList().addAll(spriteToCopy.getSoundList());
@@ -174,8 +171,6 @@ public class SpriteController {
 		sprite.isClone = true;
 		sprite.setActionFactory(spriteToCopy.getActionFactory());
 
-		// See the overload above: clone-local transforms do not require clone-local
-		// decoded image resources.
 		sprite.getLookList().addAll(spriteToCopy.getLookList());
 
 		sprite.getSoundList().addAll(spriteToCopy.getSoundList());

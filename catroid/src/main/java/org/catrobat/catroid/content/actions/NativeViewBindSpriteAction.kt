@@ -12,7 +12,7 @@ class NativeViewBindSpriteAction : TemporalAction() {
     var spriteName: Formula? = null
     var offsetX: Formula? = null
     var offsetY: Formula? = null
-    var alignMode: Int = 1 // 0=Top-Left, 1=Center
+    var alignMode: Int = 1
 
     override fun update(percent: Float) {
         val stageListener = StageActivity.getActiveStageListener() ?: return

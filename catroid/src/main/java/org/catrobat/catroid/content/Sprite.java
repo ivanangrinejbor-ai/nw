@@ -174,6 +174,9 @@ public class Sprite implements Nameable, Serializable {
 	public transient Sprite myOriginal = null;
 	public transient int cloneIndex = 0;
 
+	/** Ragdoll state — set by SetRagdollBrick, read by SPRITE_RAGDOLLED formula. */
+	public transient boolean isRagdolled = false;
+
 	public transient boolean movedByStepsBrick = false;
 
 	private transient boolean isGliding = false;
@@ -448,9 +451,6 @@ public class Sprite implements Nameable, Serializable {
 		} else {
 			look = new Look(this);
 		}
-		// Runtime clones share LookData with their original to avoid allocating a
-		// decoded Pixmap/Texture for every clone. The original sprite owns these
-		// resources and disposes them when the project is torn down.
 		if (!isClone) {
 			for (LookData lookData : lookList) {
 				lookData.dispose();

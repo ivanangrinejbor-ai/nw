@@ -174,7 +174,7 @@ class SmudgeTool(
         coordinate ?: return false
 
         if (currentBitmap != null) {
-            if (pressure < DRAW_THRESHOLD) { // Needed to stop drawing preview when bitmap becomes too transparent. Has no effect on final drawing.
+            if (pressure < DRAW_THRESHOLD) {
                 return false
             }
 

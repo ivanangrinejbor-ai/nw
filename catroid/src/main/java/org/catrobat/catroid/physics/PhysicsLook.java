@@ -73,12 +73,19 @@ public class PhysicsLook extends Look {
 
 	@Override
 	public void setXInUserInterfaceDimensionUnit(float x) {
+		if (isRagdolled()) {
+			super.setXInUserInterfaceDimensionUnit(x);
+			return;
+		}
 		setX(applyCenterOffset(x, true, false));
 	}
 
 	@Override
 	public void setPosition(float x, float y) {
 		super.setPosition(x, y);
+		if (isRagdolled()) {
+			return;
+		}
 		if (null != physicsObject) {
 			physicsObject.setX(applyCenterOffset(x, true, true));
 			physicsObject.setY(applyCenterOffset(y, false, true));
@@ -88,6 +95,9 @@ public class PhysicsLook extends Look {
 	@Override
 	public void setX(float x) {
 		super.setX(x);
+		if (isRagdolled()) {
+			return;
+		}
 		if (null != physicsObject) {
 			physicsObject.setX(applyCenterOffset(x, true, true));
 		}
@@ -96,6 +106,9 @@ public class PhysicsLook extends Look {
 	@Override
 	public void setY(float y) {
 		super.setY(y);
+		if (isRagdolled()) {
+			return;
+		}
 		if (null != physicsObject) {
 			physicsObject.setY(applyCenterOffset(y, false, true));
 		}
@@ -192,6 +205,9 @@ public class PhysicsLook extends Look {
 	@Override
 	public void setRotation(float degrees) {
 		super.setRotation(degrees);
+		if (isRagdolled()) {
+			return;
+		}
 		if (null != physicsObject) {
 			physicsObject.setDirection(super.getRotation() % FULL_CIRCLE_DEGREE);
 		}
@@ -218,6 +234,9 @@ public class PhysicsLook extends Look {
 
 		super.setScale(scaleX, scaleY);
 
+		if (isRagdolled()) {
+			return;
+		}
 		if (physicsObject != null) {
 			PhysicsWorld physicsWorld = ProjectManager.getInstance().getCurrentlyPlayingScene().getPhysicsWorld();
 			physicsWorld.changeLook(physicsObject, this);
@@ -276,6 +295,10 @@ public class PhysicsLook extends Look {
 		if ((direction >= 0 && direction <= HALF_CIRCLE_DEGREE) != (newDirection >= 0 && newDirection <= HALF_CIRCLE_DEGREE)) {
 			updateFlippedByAction();
 		}
+	}
+
+	private boolean isRagdolled() {
+		return sprite != null && sprite.isRagdolled;
 	}
 
 	private boolean isLookMoving() {

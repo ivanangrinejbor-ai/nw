@@ -9,8 +9,8 @@ import org.catrobat.catroid.stage.StageActivity;
 public class SetPhysicsStateAction extends TemporalAction {
     public Scope scope;
     public Formula objectId;
-    public int stateSelection; // 0: None, 1: Static, 2: Dynamic
-    public int shapeSelection; // 0: Box, 1: Sphere, 2: Capsule
+    public int stateSelection;
+    public int shapeSelection;
     public Formula mass;
 
     @Override

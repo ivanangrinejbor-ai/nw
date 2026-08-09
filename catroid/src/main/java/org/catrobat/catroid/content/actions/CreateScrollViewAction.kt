@@ -13,11 +13,11 @@ import org.catrobat.catroid.stage.StageActivity
 class CreateScrollViewAction : TemporalAction() {
     var scope: Scope? = null
     var viewId: Formula? = null
-    var scrollMode: Int = 1 // 0=None, 1=Vert, 2=Horiz, 3=Both
+    var scrollMode: Int = 1
     var bgColor: Formula? = null
     var showBars: Formula? = null
     var padding: Formula? = null
-    var overScrollMode: Int = 1 // 0=Always, 1=IfScrolls, 2=Never
+    var overScrollMode: Int = 1
     var x: Formula? = null
     var y: Formula? = null
     var width: Formula? = null

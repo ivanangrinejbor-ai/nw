@@ -134,7 +134,7 @@ class SystemLoadingActor(
         for (scene in project.sceneList) {
             for (sprite in scene.spriteList) {
                 for (sound in sprite.soundList) {
-                    sound.file?.let { it.exists() } // verify existence
+                    sound.file?.let { it.exists() }
                 }
             }
         }

@@ -22,7 +22,7 @@ class LightTemplateStrategy(private val context: Context) {
             val memInfo = ActivityManager.MemoryInfo()
             it.getMemoryInfo(memInfo)
             memInfo.totalMem
-        } ?: (2L * 1024 * 1024 * 1024) // default to 2 GB if unavailable
+        } ?: (2L * 1024 * 1024 * 1024)
         MemoryAwareCache.forDevice(totalRam / (1024 * 1024))
     }
 
@@ -147,7 +147,7 @@ class LightTemplateStrategy(private val context: Context) {
                 sound.file?.length() ?: 0L
             }
         }
-        return total.coerceAtLeast(1024L * 1024L) // minimum 1 MB
+        return total.coerceAtLeast(1024L * 1024L)
     }
 }
 

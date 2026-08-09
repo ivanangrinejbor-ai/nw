@@ -98,8 +98,6 @@ public class FastTwoDManager implements Disposable {
         Texture cached = textureCache.get(cacheKey);
         if (cached != null) return cached;
         try {
-            // 2D stage sprites are rendered at their native screen size. Mipmaps
-            // add memory and upload cost without helping this orthographic path.
             Texture texture = new Texture(Gdx.files.absolute(cacheKey), false);
             texture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
             textureCache.put(cacheKey, texture);

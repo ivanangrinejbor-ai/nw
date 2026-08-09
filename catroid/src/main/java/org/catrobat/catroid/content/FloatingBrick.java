@@ -28,12 +28,6 @@ import org.catrobat.catroid.content.bricks.Brick;
 
 import java.io.Serializable;
 
-/**
- * A brick that has been dragged out of any script and sits alone on the
- * editor canvas. It is stored in {@link Sprite#getFloatingBricks()}, so it
- * survives editor sessions, but it is NOT part of any script and is never
- * executed by the runtime.
- */
 @XStreamAlias("floatingBrick")
 public class FloatingBrick implements Serializable {
 

@@ -150,15 +150,17 @@ public class ForeverBrick extends BrickBaseType implements CompositeBrick {
 		ScriptSequenceAction foreverSequence = (ScriptSequenceAction) ActionFactory.createScriptSequenceAction(sequence.getScript());
 		boolean isLoopDelay = LoopUtil.checkLoopBrickForLoopDelay(this, sequence.getScript());
 
+		Action loopAction = sprite.getActionFactory().createForeverAction(sprite, sequence, foreverSequence, isLoopDelay);
+
+		sprite.getActionFactory().pushLoopControl((org.catrobat.catroid.content.actions.LoopControl) loopAction);
 		for (Brick brick : loopBricks) {
 			if (!brick.isCommentedOut()) {
 				brick.addActionToSequence(sprite, foreverSequence);
 			}
 		}
+		sprite.getActionFactory().popLoopControl();
 
-		Action action = sprite.getActionFactory().createForeverAction(sprite, sequence, foreverSequence, isLoopDelay);
-
-		sequence.addAction(action);
+		sequence.addAction(loopAction);
 	}
 
 	@Override

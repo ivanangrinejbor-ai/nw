@@ -162,6 +162,7 @@ class DesktopScriptEngine(
         var ip: Int = 0,
         var repeatRemaining: Int = 0
     ) {
+        var ownerSpriteIndex: Int = -1
         var waitTimer: Float = 0f
         var glideState: GlideState? = null
         var procVars: MutableMap<String, Any>? = null
@@ -268,6 +269,8 @@ class DesktopScriptEngine(
     private val setExecSeen = HashSet<String>()
     private val variables = mutableMapOf<String, Any>()
     private val userLists = mutableMapOf<String, MutableList<Any>>()
+    private val localVariableValues = mutableMapOf<Int, MutableMap<String, Any>>()
+    private val localListValues = mutableMapOf<Int, MutableMap<String, MutableList<Any>>>()
     private val procedures = mutableMapOf<String, ProcedureDef>()
     private var activeState: ScriptState? = null
     val textOverlays = mutableMapOf<String, TextOverlay>()
@@ -295,7 +298,11 @@ class DesktopScriptEngine(
         var friction: Float = 0f,
         var gravX: Float = 0f, var gravY: Float = -9.8f, var gravZ: Float = 0f,
         var forceX: Float = 0f, var forceY: Float = 0f, var forceZ: Float = 0f,
-        var modelFile: String = ""
+        var modelFile: String = "",
+        var animationName: String = "",
+        var animationSpeed: Float = 1f,
+        var animationLoops: Int = -1,
+        var animationPlaying: Boolean = false
     )
     private val object3DStates = mutableMapOf<String, Object3DState>()
     private val videos = mutableMapOf<String, VideoState>()
@@ -553,9 +560,10 @@ class DesktopScriptEngine(
     private fun bindLoopVar(frame: Frame) {
         val varName = frame.loopVarName ?: return
         val listName = frame.loopListName ?: return
-        val list = userLists[listName] ?: return
+        val spriteIndex = if (frame.ownerSpriteIndex >= 0) frame.ownerSpriteIndex else activeState?.spriteIndex ?: 0
+        val list = getUserListValue(listName, spriteIndex) ?: return
         val idx = frame.loopCounter
-        if (idx in list.indices) variables[varName] = list[idx]
+        if (idx in list.indices) setUserVariableValue(varName, list[idx], spriteIndex)
     }
     private fun processGlideForState(state: ScriptState, delta: Float) {
         for (frame in state.frames) {
@@ -715,8 +723,25 @@ class DesktopScriptEngine(
         }
     }
     private fun remapSpriteIndicesAfterRemoval(removedIndex: Int) {
+        localVariableValues.remove(removedIndex)
+        localListValues.remove(removedIndex)
+        fun <T> remap(map: MutableMap<Int, T>) {
+            val moved = map.entries.filter { it.key > removedIndex }
+            moved.forEach { map.remove(it.key) }
+            moved.forEach { map[it.key - 1] = it.value }
+        }
+        remap(localVariableValues)
+        remap(localListValues)
         for (s in scriptStates) {
             if (s.spriteIndex > removedIndex) s.spriteIndex--
+        }
+    }
+
+    private fun copyLocalUserData(sourceIndex: Int, cloneIndex: Int) {
+        if (sourceIndex < 0 || cloneIndex < 0) return
+        localVariableValues[sourceIndex]?.let { localVariableValues[cloneIndex] = it.toMutableMap() }
+        localListValues[sourceIndex]?.let { source ->
+            localListValues[cloneIndex] = source.mapValues { (_, values) -> values.toMutableList() }.toMutableMap()
         }
     }
     private fun remapSpriteIndicesAfterMove(fromIdx: Int, toIdx: Int) {
@@ -790,7 +815,7 @@ class DesktopScriptEngine(
                 }
             }
             "execute_for_clone_number" -> {
-                val targetNum = evalBlockArgFloat(block, 1, sprite, state)?.toInt() ?: 0
+                val targetNum = evalBlockFloat(block, 1, sprite, 0f).toInt()
                 if (sprite?.cloneIndex == targetNum) {
                     state.frames.add(Frame(block.children, repeatRemaining = 1))
                 } else {
@@ -842,6 +867,7 @@ class DesktopScriptEngine(
                     clone.cloneIndex = cloneCounter.incrementAndGet()
                     project.sprites.add(clone)
                     val cloneIdx = project.sprites.lastIndex
+                    copyLocalUserData(state.spriteIndex, cloneIdx)
                     triggerWhenClonedForClone(cloneIdx, state.spriteIndex)
                 }
                 frame.ip++
@@ -852,9 +878,7 @@ class DesktopScriptEngine(
                     val removedSprite = project.sprites[spriteIdx]
                     project.sprites.removeAt(spriteIdx)
                     physicsWorld?.removeBody(removedSprite)
-                    for (s in scriptStates) {
-                        if (s !== state && s.spriteIndex > spriteIdx) s.spriteIndex--
-                    }
+                    remapSpriteIndicesAfterRemoval(spriteIdx)
                     state.frames.clear()
                 }
                 frame.ip = frame.blocks.size
@@ -924,6 +948,7 @@ class DesktopScriptEngine(
                 val items = (list?.size ?: 0)
                 if (items > 0) {
                     val loopFrame = Frame(block.children, repeatRemaining = items)
+                    loopFrame.ownerSpriteIndex = state.spriteIndex
                     loopFrame.loopVarName = varName
                     loopFrame.loopListName = listName
                     bindLoopVar(loopFrame)
@@ -1134,18 +1159,19 @@ class DesktopScriptEngine(
                 val newName = block.args.getOrNull(2) as? String ?: ""
                 val src = project.sprites.find { it.name == srcName }
                 if (src != null) {
+                    val srcIdx = project.sprites.indexOf(src)
                     val clone = src.copy()
                     clone.name = if (newName.isNotEmpty()) newName else "${srcName}_clone"
                     clone.cloneIndex = cloneCounter.incrementAndGet()
                     project.sprites.add(clone)
                     val cloneIdx = project.sprites.lastIndex
-                    val srcIdx = project.sprites.indexOfFirst { it.name == srcName }
+                    copyLocalUserData(srcIdx, cloneIdx)
                     if (srcIdx >= 0) triggerWhenClonedForClone(cloneIdx, srcIdx)
                 }
                 frame.ip++
             }
             "delete_clone_by_number" -> {
-                val n = (block.args.getOrNull(1) as? Number)?.toInt() ?: 0
+                val n = evalBlockFloat(block, 1, sprite, 0f).toInt()
                 if (n > 0) {
                     for (state in scriptStates) {
                         val sp = project.sprites.getOrNull(state.spriteIndex)
@@ -1168,6 +1194,7 @@ class DesktopScriptEngine(
                     clone.cloneIndex = cloneCounter.incrementAndGet()
                     project.sprites.add(clone)
                     val cloneIdx = project.sprites.lastIndex
+                    copyLocalUserData(state.spriteIndex, cloneIdx)
                     triggerWhenClonedForClone(cloneIdx, state.spriteIndex)
                 }
                 frame.ip++
@@ -1555,25 +1582,25 @@ class DesktopScriptEngine(
                     refreshLookHitboxes(sprite)
                 }
             }
-            "set_size" -> sprite.size = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 100f
-            "change_size" -> sprite.size += (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
-            "set_transparency" -> sprite.transparency = ((block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f).coerceIn(0f, 100f)
+            "set_size" -> sprite.size = evalBlockFloat(block, 1, sprite, 100f)
+            "change_size" -> sprite.size += evalBlockFloat(block, 1, sprite, 0f)
+            "set_transparency" -> sprite.transparency = evalBlockFloat(block, 1, sprite, 0f).coerceIn(0f, 100f)
             "change_transparency" -> {
-                val d = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
+                val d = evalBlockFloat(block, 1, sprite, 0f)
                 sprite.transparency = (sprite.transparency + d).coerceIn(0f, 100f)
             }
-            "set_brightness" -> sprite.brightness = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 100f
-            "change_brightness" -> sprite.brightness += (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
-            "set_color" -> sprite.color = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
-            "change_color" -> sprite.color += (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
+            "set_brightness" -> sprite.brightness = evalBlockFloat(block, 1, sprite, 100f)
+            "change_brightness" -> sprite.brightness += evalBlockFloat(block, 1, sprite, 0f)
+            "set_color" -> sprite.color = evalBlockFloat(block, 1, sprite, 0f)
+            "change_color" -> sprite.color += evalBlockFloat(block, 1, sprite, 0f)
             "clear_effects" -> {
                 sprite.transparency = 0f
                 sprite.brightness = 100f
                 sprite.color = 0f
             }
-            "set_filter_blur" -> sprite.filterBlur = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
-            "set_filter_pixelate" -> sprite.filterPixelate = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
-            "set_filter_sepia" -> sprite.filterSepia = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
+            "set_filter_blur" -> sprite.filterBlur = evalBlockFloat(block, 1, sprite, 0f)
+            "set_filter_pixelate" -> sprite.filterPixelate = evalBlockFloat(block, 1, sprite, 0f)
+            "set_filter_sepia" -> sprite.filterSepia = evalBlockFloat(block, 1, sprite, 0f)
             "set_font" -> {
                 sprite.fontName = block.args.getOrNull(1) as? String ?: ""
                 sprite.fontSize = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 14f
@@ -1636,10 +1663,10 @@ class DesktopScriptEngine(
                 screenShaderVertexCode = block.args.getOrNull(1) as? String ?: ""
                 screenShaderFragmentCode = block.args.getOrNull(2) as? String ?: ""
             }
-            "set_width" -> sprite.width = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 100f
-            "change_width" -> sprite.width += (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
-            "set_height" -> sprite.height = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 100f
-            "change_height" -> sprite.height += (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
+            "set_width" -> sprite.width = evalBlockFloat(block, 1, sprite, 100f)
+            "change_width" -> sprite.width += evalBlockFloat(block, 1, sprite, 0f)
+            "set_height" -> sprite.height = evalBlockFloat(block, 1, sprite, 100f)
+            "change_height" -> sprite.height += evalBlockFloat(block, 1, sprite, 0f)
             "think_bubble" -> {
                 val text = block.args.getOrNull(1) as? String ?: ""
                 val name = "think_${sprite.name}"
@@ -1660,7 +1687,7 @@ class DesktopScriptEngine(
             }
             "think_for_bubble" -> {
                 val text = block.args.getOrNull(1) as? String ?: ""
-                val duration = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 2f
+                val duration = evalBlockFloat(block, 2, sprite, 2f)
                 val name = "think_${sprite.name}"
                 textOverlays[name] = TextOverlay(
                     name = name, text = text,
@@ -1671,7 +1698,7 @@ class DesktopScriptEngine(
             }
             "say_for_bubble" -> {
                 val text = block.args.getOrNull(1) as? String ?: ""
-                val duration = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 2f
+                val duration = evalBlockFloat(block, 2, sprite, 2f)
                 val name = "say_${sprite.name}"
                 textOverlays[name] = TextOverlay(
                     name = name, text = text,
@@ -1747,6 +1774,26 @@ class DesktopScriptEngine(
                 }
             }
             "cut_look" -> {
+                val x1 = (block.args.getOrNull(1) as? Number)?.toInt() ?: 0
+                val y1 = (block.args.getOrNull(2) as? Number)?.toInt() ?: 0
+                val x2 = (block.args.getOrNull(3) as? Number)?.toInt() ?: 0
+                val y2 = (block.args.getOrNull(4) as? Number)?.toInt() ?: 0
+                val source = sprite.currentLook()?.texture
+                if (source != null) {
+                    val cropX = minOf(x1, x2).coerceIn(0, source.width - 1)
+                    val cropY = minOf(y1, y2).coerceIn(0, source.height - 1)
+                    val cropW = (kotlin.math.abs(x2 - x1)).coerceAtLeast(1).coerceAtMost(source.width - cropX)
+                    val cropH = (kotlin.math.abs(y2 - y1)).coerceAtLeast(1).coerceAtMost(source.height - cropY)
+                    val sourceData = source.textureData
+                    if (!sourceData.isPrepared) sourceData.prepare()
+                    val pixmap = sourceData.consumePixmap()
+                    val cropped = com.badlogic.gdx.graphics.Pixmap(cropW, cropH, com.badlogic.gdx.graphics.Pixmap.Format.RGBA8888)
+                    cropped.drawPixmap(pixmap, 0, 0, cropX, cropY, cropW, cropH)
+                    sprite.currentLook()?.texture = com.badlogic.gdx.graphics.Texture(cropped)
+                    cropped.dispose()
+                    sourceData.disposePixmap()
+                    sprite.resetSprite()
+                }
             }
             "resize_img" -> {
                 val file = block.args.getOrNull(1) as? String ?: ""
@@ -1786,10 +1833,23 @@ class DesktopScriptEngine(
                 }
             }
             "set_anim_speed" -> {
+                val objectId = block.args.getOrNull(1) as? String ?: ""
+                val speed = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 1f
+                if (objectId.isNotEmpty()) object3DStates.getOrPut(objectId) { Object3DState() }.animationSpeed = speed
             }
             "play_anim" -> {
+                val objectId = block.args.getOrNull(1) as? String ?: ""
+                if (objectId.isNotEmpty()) {
+                    val state = object3DStates.getOrPut(objectId) { Object3DState() }
+                    state.animationName = block.args.getOrNull(2) as? String ?: ""
+                    state.animationLoops = (block.args.getOrNull(3) as? Number)?.toInt() ?: -1
+                    state.animationSpeed = (block.args.getOrNull(4) as? Number)?.toFloat() ?: 1f
+                    state.animationPlaying = true
+                }
             }
             "stop_anim" -> {
+                val objectId = block.args.getOrNull(1) as? String ?: ""
+                if (objectId.isNotEmpty()) object3DStates[objectId]?.animationPlaying = false
             }
             "set_active" -> {
                 val objName = block.args.getOrNull(1) as? String ?: ""
@@ -2129,31 +2189,35 @@ class DesktopScriptEngine(
         val body = physicsWorld?.getBody(sprite)
         when (block.args.getOrNull(0) as? String) {
             "move_steps" -> {
-                val steps = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
+                val steps = evalBlockFloat(block, 1, sprite, 0f)
+                if (sprite.isRagdolled) return
                 val angleRad = Math.toRadians((90f - sprite.direction).toDouble()).toFloat()
                 sprite.x += (cos(angleRad.toDouble())).toFloat() * steps
                 sprite.y += (sin(angleRad.toDouble())).toFloat() * steps
                 body?.setTransform(sprite.x, sprite.y, body.angle)
             }
             "turn_right" -> {
-                val deg = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
+                val deg = evalBlockFloat(block, 1, sprite, 0f)
                 sprite.direction = (sprite.direction + deg) % 360f
             }
             "turn_left" -> {
-                val deg = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
+                val deg = evalBlockFloat(block, 1, sprite, 0f)
                 sprite.direction = (sprite.direction - deg + 360f) % 360f
             }
             "goto_xy" -> {
-                sprite.x = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
-                sprite.y = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
+                if (sprite.isRagdolled) return
+                sprite.x = evalBlockFloat(block, 1, sprite, 0f)
+                sprite.y = evalBlockFloat(block, 2, sprite, 0f)
                 body?.setTransform(sprite.x, sprite.y, body.angle)
             }
             "goto_touch" -> {
+                if (sprite.isRagdolled) return
                 sprite.x = input.fingerX
                 sprite.y = input.fingerY
                 body?.setTransform(sprite.x, sprite.y, body.angle)
             }
             "goto_random" -> {
+                if (sprite.isRagdolled) return
                 val w = (project.stageWidth ?: 480).toFloat()
                 val h = (project.stageHeight ?: 720).toFloat()
                 sprite.x = (Math.random() * (w + 1f)).toFloat() - w / 2f
@@ -2161,6 +2225,7 @@ class DesktopScriptEngine(
                 body?.setTransform(sprite.x, sprite.y, body.angle)
             }
             "goto_sprite" -> {
+                if (sprite.isRagdolled) return
                 val destName = block.args.getOrNull(1) as? String ?: ""
                 val dest = project.sprites.find { it.name == destName }
                 if (dest != null) {
@@ -2170,23 +2235,28 @@ class DesktopScriptEngine(
                 }
             }
             "set_x" -> {
-                sprite.x = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
+                if (sprite.isRagdolled) return
+                sprite.x = evalBlockFloat(block, 1, sprite, 0f)
                 body?.setTransform(sprite.x, sprite.y, body.angle)
             }
             "set_y" -> {
-                sprite.y = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
+                if (sprite.isRagdolled) return
+                sprite.y = evalBlockFloat(block, 1, sprite, 0f)
                 body?.setTransform(sprite.x, sprite.y, body.angle)
             }
             "change_x" -> {
-                sprite.x += (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
+                if (sprite.isRagdolled) return
+                sprite.x += evalBlockFloat(block, 1, sprite, 0f)
                 body?.setTransform(sprite.x, sprite.y, body.angle)
             }
             "change_y" -> {
-                sprite.y += (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
+                if (sprite.isRagdolled) return
+                sprite.y += evalBlockFloat(block, 1, sprite, 0f)
                 body?.setTransform(sprite.x, sprite.y, body.angle)
             }
             "set_direction" -> {
-                sprite.direction = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 90f
+                if (sprite.isRagdolled) return
+                sprite.direction = evalBlockFloat(block, 1, sprite, 90f)
                 val angleRad = Math.toRadians((90.0 - sprite.direction).toDouble()).toFloat()
                 body?.setTransform(body?.position?.x ?: sprite.x, body?.position?.y ?: sprite.y, angleRad)
             }
@@ -2196,9 +2266,10 @@ class DesktopScriptEngine(
             }
             "continue_movement" -> { }
             "glide" -> {
-                val targetX = (block.args.getOrNull(1) as? Number)?.toFloat() ?: sprite.x
-                val targetY = (block.args.getOrNull(2) as? Number)?.toFloat() ?: sprite.y
-                val duration = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 1f
+                if (sprite.isRagdolled) return
+                val targetX = evalBlockFloat(block, 1, sprite, sprite.x)
+                val targetY = evalBlockFloat(block, 2, sprite, sprite.y)
+                val duration = evalBlockFloat(block, 3, sprite, 1f)
                 frame.glideState = GlideState(
                     startX = sprite.x,
                     startY = sprite.y,
@@ -2328,7 +2399,9 @@ class DesktopScriptEngine(
                     clone.cloneIndex = cloneCounter.incrementAndGet()
                     project.sprites.add(clone)
                     val cloneIdx = project.sprites.lastIndex
-                    triggerWhenClonedForClone(cloneIdx, project.sprites.indexOfFirst { it.name == sprite.name })
+                    val sourceIndex = project.sprites.indexOf(sprite)
+                    copyLocalUserData(sourceIndex, cloneIdx)
+                    triggerWhenClonedForClone(cloneIdx, sourceIndex)
                 }
             }
                 "delete_clone_by_number" -> {
@@ -2451,30 +2524,33 @@ class DesktopScriptEngine(
     }
     private fun executePhysics(block: Block, sprite: DesktopSprite, frame: Frame) {
         when (block.args.getOrNull(0) as? String) {
+            "set_ragdoll" -> {
+                sprite.isRagdolled = evalBlockFloat(block, 1, sprite, 0f) != 0f
+            }
             "set_gravity" -> {
-                val gx = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
-                val gy = (block.args.getOrNull(2) as? Number)?.toFloat() ?: -9.8f
+                val gx = evalBlockFloat(block, 1, sprite, 0f)
+                val gy = evalBlockFloat(block, 2, sprite, -9.8f)
                 physicsWorld?.setGravity(gx, gy)
             }
             "set_friction" -> {
-                val friction = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0.5f
+                val friction = evalBlockFloat(block, 1, sprite, 0.5f)
                 physicsWorld?.setFriction(sprite, friction)
             }
             "set_mass" -> {
-                val mass = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 1f
+                val mass = evalBlockFloat(block, 1, sprite, 1f)
                 physicsWorld?.setMass(sprite, mass)
             }
             "set_restitution" -> {
                 val objectId = block.args.getOrNull(1) as? String ?: ""
-                val restitution = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0.5f
+                val restitution = evalBlockFloat(block, 2, sprite, 0.5f)
                 val target = project.sprites.find { it.name == objectId } ?: sprite
                 physicsWorld?.setBounce(target, restitution)
             }
             "set_rotation_lock" -> {
                 val objectId = block.args.getOrNull(1) as? String ?: ""
-                val lockX = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
-                val lockY = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 0f
-                val lockZ = (block.args.getOrNull(4) as? Number)?.toFloat() ?: 0f
+                val lockX = evalBlockFloat(block, 2, sprite, 0f)
+                val lockY = evalBlockFloat(block, 3, sprite, 0f)
+                val lockZ = evalBlockFloat(block, 4, sprite, 0f)
                 val target = project.sprites.find { it.name == objectId } ?: sprite
                 target.rotationLockX = lockX != 0f
                 target.rotationLockY = lockY != 0f
@@ -2482,37 +2558,37 @@ class DesktopScriptEngine(
                 physicsWorld?.getBody(target)?.isFixedRotation = target.rotationLockX || target.rotationLockY || target.rotationLockZ
             }
             "set_damping" -> {
-                val linear = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
-                val angular = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
+                val linear = evalBlockFloat(block, 1, sprite, 0f)
+                val angular = evalBlockFloat(block, 2, sprite, 0f)
                 physicsWorld?.setDamping(sprite, linear, angular)
             }
             "apply_force_at_point" -> {
-                val fx = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
-                val fy = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
-                val px = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 0f
-                val py = (block.args.getOrNull(4) as? Number)?.toFloat() ?: 0f
+                val fx = evalBlockFloat(block, 1, sprite, 0f)
+                val fy = evalBlockFloat(block, 2, sprite, 0f)
+                val px = evalBlockFloat(block, 3, sprite, 0f)
+                val py = evalBlockFloat(block, 4, sprite, 0f)
                 physicsWorld?.getBody(sprite)?.applyForce(fx, fy, px, py, true)
             }
             "set_angular_velocity" -> {
-                physicsWorld?.getBody(sprite)?.angularVelocity = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
+                physicsWorld?.getBody(sprite)?.angularVelocity = evalBlockFloat(block, 1, sprite, 0f)
             }
             "set_gravity_scale" -> {
-                physicsWorld?.getBody(sprite)?.gravityScale = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 1f
+                physicsWorld?.getBody(sprite)?.gravityScale = evalBlockFloat(block, 1, sprite, 1f)
             }
             "set_linear_damping" -> {
-                physicsWorld?.getBody(sprite)?.linearDamping = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
+                physicsWorld?.getBody(sprite)?.linearDamping = evalBlockFloat(block, 1, sprite, 0f)
             }
             "set_angular_damping" -> {
-                physicsWorld?.getBody(sprite)?.angularDamping = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
+                physicsWorld?.getBody(sprite)?.angularDamping = evalBlockFloat(block, 1, sprite, 0f)
             }
             "set_fixed_rotation" -> {
-                physicsWorld?.getBody(sprite)?.isFixedRotation = ((block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f) != 0f
+                physicsWorld?.getBody(sprite)?.isFixedRotation = evalBlockFloat(block, 1, sprite, 0f) != 0f
             }
             "set_bullet_flag" -> {
-                physicsWorld?.getBody(sprite)?.isBullet = ((block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f) != 0f
+                physicsWorld?.getBody(sprite)?.isBullet = evalBlockFloat(block, 1, sprite, 0f) != 0f
             }
             "set_physics_sensor" -> {
-                val on = ((block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f) != 0f
+                val on = evalBlockFloat(block, 1, sprite, 0f) != 0f
                 physicsWorld?.getBody(sprite)?.fixtureList?.forEach { it.isSensor = on }
             }
             "set_physics_type" -> {
@@ -2985,39 +3061,39 @@ class DesktopScriptEngine(
     private fun executeCamera(block: Block, sprite: DesktopSprite, frame: Frame) {
         when (block.args.getOrNull(0) as? String) {
             "set_camera_position" -> {
-                val x = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
-                val y = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
+                val x = evalBlockFloat(block, 1, sprite, 0f)
+                val y = evalBlockFloat(block, 2, sprite, 0f)
                 cameraState.x = x
                 cameraState.y = y
             }
             "set_camera_position2" -> {
-                val x = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
-                val y = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
+                val x = evalBlockFloat(block, 1, sprite, 0f)
+                val y = evalBlockFloat(block, 2, sprite, 0f)
                 cameraState.x = x
                 cameraState.y = y
             }
             "fast2d_set_camera" -> {
-                val x = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
-                val y = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
-                val zoom = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 1f
+                val x = evalBlockFloat(block, 1, sprite, 0f)
+                val y = evalBlockFloat(block, 2, sprite, 0f)
+                val zoom = evalBlockFloat(block, 3, sprite, 1f)
                 cameraState.x = x
                 cameraState.y = y
                 cameraState.zoom = zoom
             }
             "set_camera_rotation" -> {
-                val yaw = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
+                val yaw = evalBlockFloat(block, 1, sprite, 0f)
                 cameraState.rotation = yaw
             }
             "set_camera_rotation2" -> {
-                val deg = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
+                val deg = evalBlockFloat(block, 1, sprite, 0f)
                 cameraState.rotation = deg
             }
             "set_camera_zoom" -> {
-                val zoom = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 1f
+                val zoom = evalBlockFloat(block, 1, sprite, 1f)
                 cameraState.zoom = zoom
             }
             "rotate_camera_by" -> {
-                val yaw = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
+                val yaw = evalBlockFloat(block, 2, sprite, 0f)
                 cameraState.rotation += yaw
             }
             "pin_to_camera" -> {
@@ -3039,15 +3115,18 @@ class DesktopScriptEngine(
                 val name = block.args.getOrNull(1) as? String ?: ""
                 val offX = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
                 val offY = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 0f
+                val offZ = (block.args.getOrNull(4) as? Number)?.toFloat() ?: 0f
                 val target = project.sprites.find { it.name == name } ?: sprite
                 val sx = ((target.x + offX) - cameraState.x) * cameraState.zoom
                 val sy = ((target.y + offY) + cameraState.y) * cameraState.zoom
                 cameraState.cameraPinned[target.name] = sx to sy
+                cameraState.cameraPinnedZ[target.name] = offZ
             }
             "detach_from_camera" -> {
                 val name = block.args.getOrNull(1) as? String ?: ""
-                if (name.isNotEmpty()) cameraState.cameraPinned.remove(name)
-                else cameraState.cameraPinned.remove(sprite.name)
+                val targetName = if (name.isNotEmpty()) name else sprite.name
+                cameraState.cameraPinned.remove(targetName)
+                cameraState.cameraPinnedZ.remove(targetName)
             }
             "set_view_position" -> {
                 val x = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
@@ -3199,12 +3278,12 @@ class DesktopScriptEngine(
             "sound_file" -> { }
             "sound_files" -> { }
             "set_volume" -> {
-                val vol = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 1f
+                val vol = evalBlockFloat(block, 1, sprite, 1f)
                 AudioServiceHolder.audioService?.setVolume(vol)
                 MidiServiceHolder.midiService?.setVolume(vol)
             }
             "change_volume" -> {
-                val delta = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
+                val delta = evalBlockFloat(block, 1, sprite, 0f)
                 val current = AudioServiceHolder.audioService?.getVolume() ?: 100f
                 val newVol = (current + delta).coerceIn(0f, 100f)
                 AudioServiceHolder.audioService?.setVolume(newVol)
@@ -3432,11 +3511,11 @@ class DesktopScriptEngine(
             "clear_canvas" -> {
                 project.sprites.forEach { it.penDrawCommands.clear() }
             }
-            "set_pen_size" -> sprite.penSize = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 1f
+            "set_pen_size" -> sprite.penSize = evalBlockFloat(block, 1, sprite, 1f)
             "set_pen_color" -> {
-                sprite.penColorRed = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
-                sprite.penColorGreen = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
-                sprite.penColorBlue = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 0f
+                sprite.penColorRed = evalBlockFloat(block, 1, sprite, 0f)
+                sprite.penColorGreen = evalBlockFloat(block, 2, sprite, 0f)
+                sprite.penColorBlue = evalBlockFloat(block, 3, sprite, 0f)
             }
             "stamp" -> {
                 sprite.penDrawCommands.add(PenDrawCommand.StampSprite(
@@ -3450,10 +3529,10 @@ class DesktopScriptEngine(
                 sprite.penDrawCommands.clear()
             }
             "draw_line" -> {
-                val x1 = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
-                val y1 = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
-                val x2 = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 0f
-                val y2 = (block.args.getOrNull(4) as? Number)?.toFloat() ?: 0f
+                val x1 = evalBlockFloat(block, 1, sprite, 0f)
+                val y1 = evalBlockFloat(block, 2, sprite, 0f)
+                val x2 = evalBlockFloat(block, 3, sprite, 0f)
+                val y2 = evalBlockFloat(block, 4, sprite, 0f)
                 sprite.penDrawCommands.add(PenDrawCommand.DrawLine(
                     toScreenX(x1), toScreenY(y1),
                     toScreenX(x2), toScreenY(y2),
@@ -3462,9 +3541,9 @@ class DesktopScriptEngine(
                 ))
             }
             "draw_circle" -> {
-                val cx = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
-                val cy = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
-                val r = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 10f
+                val cx = evalBlockFloat(block, 1, sprite, 0f)
+                val cy = evalBlockFloat(block, 2, sprite, 0f)
+                val r = evalBlockFloat(block, 3, sprite, 10f)
                 sprite.penDrawCommands.add(PenDrawCommand.DrawCircle(
                     toScreenX(cx), toScreenY(cy), r,
                     sprite.penColorRed, sprite.penColorGreen, sprite.penColorBlue,
@@ -3472,10 +3551,10 @@ class DesktopScriptEngine(
                 ))
             }
             "draw_rect" -> {
-                val rx = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
-                val ry = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
-                val rw = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 50f
-                val rh = (block.args.getOrNull(4) as? Number)?.toFloat() ?: 50f
+                val rx = evalBlockFloat(block, 1, sprite, 0f)
+                val ry = evalBlockFloat(block, 2, sprite, 0f)
+                val rw = evalBlockFloat(block, 3, sprite, 50f)
+                val rh = evalBlockFloat(block, 4, sprite, 50f)
                 sprite.penDrawCommands.add(PenDrawCommand.DrawRect(
                     toScreenX(rx), toScreenY(ry), rw, rh,
                     sprite.penColorRed, sprite.penColorGreen, sprite.penColorBlue,
@@ -3483,9 +3562,9 @@ class DesktopScriptEngine(
                 ))
             }
             "draw_text" -> {
-                val tx = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
-                val ty = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
-                val txt = block.args.getOrNull(3) as? String ?: ""
+                val tx = evalBlockFloat(block, 1, sprite, 0f)
+                val ty = evalBlockFloat(block, 2, sprite, 0f)
+                val txt = evalBlockString(block, 3, sprite)
                 sprite.penDrawCommands.add(PenDrawCommand.DrawText(
                     toScreenX(tx), toScreenY(ty), txt,
                     sprite.penColorRed, sprite.penColorGreen, sprite.penColorBlue,
@@ -3493,9 +3572,9 @@ class DesktopScriptEngine(
                 ))
             }
             "fill_circle" -> {
-                val cx = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
-                val cy = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
-                val r = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 10f
+                val cx = evalBlockFloat(block, 1, sprite, 0f)
+                val cy = evalBlockFloat(block, 2, sprite, 0f)
+                val r = evalBlockFloat(block, 3, sprite, 10f)
                 sprite.penDrawCommands.add(PenDrawCommand.DrawCircle(
                     toScreenX(cx), toScreenY(cy), r,
                     sprite.penColorRed, sprite.penColorGreen, sprite.penColorBlue,
@@ -3503,10 +3582,10 @@ class DesktopScriptEngine(
                 ))
             }
             "fill_rect" -> {
-                val rx = (block.args.getOrNull(1) as? Number)?.toFloat() ?: 0f
-                val ry = (block.args.getOrNull(2) as? Number)?.toFloat() ?: 0f
-                val rw = (block.args.getOrNull(3) as? Number)?.toFloat() ?: 50f
-                val rh = (block.args.getOrNull(4) as? Number)?.toFloat() ?: 50f
+                val rx = evalBlockFloat(block, 1, sprite, 0f)
+                val ry = evalBlockFloat(block, 2, sprite, 0f)
+                val rw = evalBlockFloat(block, 3, sprite, 50f)
+                val rh = evalBlockFloat(block, 4, sprite, 50f)
                 sprite.penDrawCommands.add(PenDrawCommand.DrawRect(
                     toScreenX(rx), toScreenY(ry), rw, rh,
                     sprite.penColorRed, sprite.penColorGreen, sprite.penColorBlue,
@@ -3558,7 +3637,7 @@ class DesktopScriptEngine(
                         is Number -> arg.toDouble()
                         else -> 0.0
                     }
-                    variables[name] = value
+                    setUserVariableValue(name, value, state.spriteIndex)
                     val vs = value.toString()
                     if (varLastLogged[name] != vs) { varLastLogged[name] = vs; Gdx.app.log("VarDiag", "SET '$name' = '${vs.take(80)}'") }
                 }
@@ -3572,15 +3651,15 @@ class DesktopScriptEngine(
                         is Number -> arg.toDouble()
                         else -> 0.0
                     }
-                    val old = getVariableDouble(name)
-                    variables[name] = old + delta
+                    val old = getVariableDouble(name, state.spriteIndex)
+                    setUserVariableValue(name, old + delta, state.spriteIndex)
                 }
             }
             "inc_var" -> {
                 val name = block.args.getOrNull(1) as? String ?: ""
                 if (name.isNotEmpty()) {
-                    val current = getVariableFloat(name)
-                    variables[name] = current + 1f
+                    val current = getVariableDouble(name, state.spriteIndex).toFloat()
+                    setUserVariableValue(name, current + 1f, state.spriteIndex)
                 }
             }
             "show_variable" -> {
@@ -3588,7 +3667,7 @@ class DesktopScriptEngine(
                 val x = evalBlockArgFloat(block, 2, sprite, state) ?: 0f
                 val y = evalBlockArgFloat(block, 3, sprite, state) ?: 0f
                 if (varName.isNotEmpty()) {
-                    val varValue = variables[varName]
+                    val varValue = getUserVariableValue(varName, state.spriteIndex)
                     val text = when (varValue) {
                         is Double -> if (varValue == varValue.toLong().toDouble()) varValue.toLong().toString() else varValue.toString()
                         is Float -> if (varValue == varValue.toLong().toFloat()) varValue.toLong().toString() else varValue.toString()
@@ -3614,11 +3693,17 @@ class DesktopScriptEngine(
             }
             "create_float" -> {
                 val name = block.args.getOrNull(1) as? String ?: ""
-                if (name.isNotEmpty() && !variables.containsKey(name)) variables[name] = 0f
+                if (name.isNotEmpty() && getUserVariableValue(name, state.spriteIndex) == null) {
+                    setUserVariableValue(name, 0f, state.spriteIndex)
+                }
             }
             "delete_float" -> {
                 val name = block.args.getOrNull(1) as? String ?: ""
-                variables.remove(name)
+                if (isLocalVariable(name, state.spriteIndex)) {
+                    localVariableValues[state.spriteIndex]?.remove(name)
+                } else {
+                    variables.remove(name)
+                }
             }
             "set_easing" -> {
                 val name = block.args.getOrNull(1) as? String ?: ""
@@ -3629,14 +3714,15 @@ class DesktopScriptEngine(
                 val name = block.args.getOrNull(1) as? String ?: ""
                 val value = block.args.getOrNull(2) as? String ?: ""
                 if (name.isNotEmpty()) {
-                    userLists.getOrPut(name) { mutableListOf() }.add(value)
+                    getUserListValue(name, state.spriteIndex)?.add(value)
+                        ?: setUserListValue(name, mutableListOf(value as Any), state.spriteIndex)
                 }
             }
             "list_delete" -> {
                 val name = block.args.getOrNull(1) as? String ?: ""
                 val index = (block.args.getOrNull(2) as? Number)?.toInt() ?: 1
                 if (name.isNotEmpty()) {
-                    val list = userLists[name]
+                    val list = getUserListValue(name, state.spriteIndex)
                     if (list != null && index > 0 && index <= list.size) {
                         list.removeAt(index - 1)
                     }
@@ -3647,7 +3733,8 @@ class DesktopScriptEngine(
                 val index = (block.args.getOrNull(2) as? Number)?.toInt() ?: 1
                 val value = block.args.getOrNull(3) as? String ?: ""
                 if (name.isNotEmpty()) {
-                    val list = userLists.getOrPut(name) { mutableListOf() }
+                    val list = getUserListValue(name, state.spriteIndex)
+                        ?: mutableListOf<Any>().also { setUserListValue(name, it, state.spriteIndex) }
                     val idx = (index - 1).coerceIn(0, list.size)
                     list.add(idx, value)
                 }
@@ -3657,7 +3744,7 @@ class DesktopScriptEngine(
                 val index = (block.args.getOrNull(2) as? Number)?.toInt() ?: 1
                 val value = block.args.getOrNull(3) as? String ?: ""
                 if (name.isNotEmpty()) {
-                    val list = userLists[name]
+                    val list = getUserListValue(name, state.spriteIndex)
                     if (list != null && index > 0 && index <= list.size) {
                         list[index - 1] = value
                     }
@@ -3666,7 +3753,7 @@ class DesktopScriptEngine(
             "list_clear" -> {
                 val name = block.args.getOrNull(1) as? String ?: ""
                 if (name.isNotEmpty()) {
-                    userLists[name]?.clear()
+                    getUserListValue(name, state.spriteIndex)?.clear()
                 }
             }
             "list_split" -> {
@@ -3675,7 +3762,7 @@ class DesktopScriptEngine(
                 val separator = block.args.getOrNull(3) as? String ?: ""
                 if (name.isNotEmpty()) {
                     val items: MutableList<Any> = if (separator.isNotEmpty()) text.split(separator).toMutableList() else text.chunked(1).toMutableList()
-                    userLists[name] = items
+                    setUserListValue(name, items, state.spriteIndex)
                 }
             }
             "list_csv" -> {
@@ -3690,7 +3777,7 @@ class DesktopScriptEngine(
                         val idx = (column - 1).coerceIn(0, parts.lastIndex)
                         result.add(parts[idx].trim())
                     }
-                    userLists[name] = result
+                    setUserListValue(name, result, state.spriteIndex)
                 }
             }
             "list_regex" -> {
@@ -3701,9 +3788,9 @@ class DesktopScriptEngine(
                     try {
                         val pattern = Regex(regex)
                         val matches = pattern.findAll(text).map { it.value as Any }.toMutableList()
-                        userLists[name] = matches
+                        setUserListValue(name, matches, state.spriteIndex)
                     } catch (_: Exception) {
-                        userLists[name] = mutableListOf<Any>()
+                        setUserListValue(name, mutableListOf<Any>(), state.spriteIndex)
                     }
                 }
             }
@@ -4516,7 +4603,7 @@ class DesktopScriptEngine(
                         val file = java.io.File(projectDir ?: java.io.File("."), "${name}.list.txt")
                         if (file.exists()) {
                             val lines = file.readLines().map { it.trim() }.filter { it.isNotEmpty() }
-                            userLists[name] = lines.map { it.toDoubleOrNull() ?: it as Any }.toMutableList()
+                            setUserListValue(name, lines.map { it.toDoubleOrNull() ?: it as Any }.toMutableList(), activeState?.spriteIndex ?: 0)
                         }
                     } catch (_: Exception) {  }
                 }
@@ -4525,7 +4612,7 @@ class DesktopScriptEngine(
                 val name = block.args.getOrNull(1) as? String ?: ""
                 if (name.isNotEmpty()) {
                     try {
-                        val list = userLists[name] ?: mutableListOf()
+                        val list = getUserListValue(name, activeState?.spriteIndex ?: 0) ?: mutableListOf()
                         val projectDir = DesktopProjectManager.getInstance().getCurrentProject()?.projectDir
                         val file = java.io.File(projectDir ?: java.io.File("."), "${name}.list.txt")
                         file.parentFile?.mkdirs()
@@ -4909,6 +4996,63 @@ class DesktopScriptEngine(
             else -> null
         }
     }
+    private fun isLocalVariable(name: String, spriteIndex: Int): Boolean =
+        project.localVariableNamesBySprite[spriteIndex]?.contains(name) == true
+
+    private fun isLocalList(name: String, spriteIndex: Int): Boolean =
+        project.localListNamesBySprite[spriteIndex]?.contains(name) == true
+
+    private fun getUserVariableValue(name: String, spriteIndex: Int): Any? {
+        return if (isLocalVariable(name, spriteIndex)) {
+            localVariableValues.getOrPut(spriteIndex) { mutableMapOf() }[name]
+        } else {
+            variables[name]
+        }
+    }
+
+    private fun setUserVariableValue(name: String, value: Any, spriteIndex: Int) {
+        if (isLocalVariable(name, spriteIndex)) {
+            localVariableValues.getOrPut(spriteIndex) { mutableMapOf() }[name] = value
+        } else {
+            variables[name] = value
+        }
+    }
+
+    private fun getUserListValue(name: String, spriteIndex: Int): MutableList<Any>? {
+        return if (isLocalList(name, spriteIndex)) {
+            localListValues.getOrPut(spriteIndex) { mutableMapOf() }.getOrPut(name) { mutableListOf() }
+        } else {
+            userLists[name]
+        }
+    }
+
+    private fun setUserListValue(name: String, value: MutableList<Any>, spriteIndex: Int) {
+        if (isLocalList(name, spriteIndex)) {
+            localListValues.getOrPut(spriteIndex) { mutableMapOf() }[name] = value
+        } else {
+            userLists[name] = value
+        }
+    }
+
+    /** Evaluates both literal and deferred formula arguments at execution time. */
+    private fun evalBlockFloat(block: Block, argIndex: Int, sprite: DesktopSprite, default: Float): Float {
+        val arg = block.args.getOrNull(argIndex)
+        return when (arg) {
+            is RuntimeFormula -> evaluateBrickFieldFormula(sprite, activeState ?: return default, arg) ?: default
+            is Number -> arg.toFloat()
+            is String -> arg.toFloatOrNull() ?: default
+            else -> default
+        }
+    }
+
+    private fun evalBlockString(block: Block, argIndex: Int, sprite: DesktopSprite, default: String = ""): String {
+        val arg = block.args.getOrNull(argIndex)
+        return when (arg) {
+            is RuntimeFormula -> evaluateBrickFieldFormulaString(sprite, activeState ?: return default, arg) ?: default
+            is String -> arg
+            else -> arg?.toString() ?: default
+        }
+    }
     private fun evaluateBrickFieldFormula(sprite: DesktopSprite, state: ScriptState, rf: RuntimeFormula): Float? {
         val spriteIndex = state.spriteIndex
         val result = evalCompiledFormula(rf.compiled, spriteIndex)
@@ -4956,10 +5100,10 @@ class DesktopScriptEngine(
             is CompiledFormula.Str -> f.value
             is CompiledFormula.Null -> null
             is CompiledFormula.CollisionFormula -> f.value
-            is CompiledFormula.UserList -> ""
+            is CompiledFormula.UserList -> getUserListValue(f.name, spriteIndex)?.joinToString(", ") ?: ""
             is CompiledFormula.Bracket -> f.child?.let { evalCompiledFormula(it, spriteIndex) }
             is CompiledFormula.Var -> {
-                val v = variables[f.name]
+                val v = getUserVariableValue(f.name, spriteIndex)
                 when (v) {
                     is Number -> v.toDouble()
                     is String -> v.toDoubleOrNull() ?: 0.0
@@ -4969,7 +5113,7 @@ class DesktopScriptEngine(
             is CompiledFormula.UserDefinedInput -> {
                 val local = activeState?.currentFrame?.procVars?.get(f.name)
                 if (local != null) return local
-                val gv = variables[f.name]
+                val gv = getUserVariableValue(f.name, spriteIndex)
                 if (gv != null) return gv
                 f.name.toDoubleOrNull() ?: f.name
             }
@@ -5048,15 +5192,15 @@ class DesktopScriptEngine(
             "LIST_ITEM" -> {
                 val listName = bStr
                 val idx = a.toInt() - 1
-                val list = userLists[listName]
+                val list = getUserListValue(listName, spriteIndex)
                 if (list != null && idx in list.indices) list[idx] else ""
             }
             "LIST_COUNT" -> {
-                val list = userLists[aStr]
+                val list = getUserListValue(aStr, spriteIndex)
                 (list?.size ?: 0).toDouble()
             }
             "LIST_CONTAINS" -> {
-                val list = userLists[aStr]
+                val list = getUserListValue(aStr, spriteIndex)
                 if (list != null && list.contains(bStr)) 1.0 else 0.0
             }
             "X_POSITION" -> {
@@ -5088,6 +5232,10 @@ class DesktopScriptEngine(
                 val sprite = project.sprites.getOrNull(spriteIndex)
                 (sprite?.cloneIndex ?: 0).toDouble()
             }
+            "SPRITE_RAGDOLLED" -> {
+                val sprite = project.sprites.getOrNull(spriteIndex)
+                if (sprite?.isRagdolled == true) 1.0 else 0.0
+            }
             "TIMER" -> timerSeconds.toDouble()
             "FINGER_TOUCHED" -> if (input.isTouched) 1.0 else 0.0
             "FINGER_X" -> input.fingerX.toDouble()
@@ -5110,8 +5258,8 @@ class DesktopScriptEngine(
             }
         }
     }
-    private fun getVariableDouble(name: String): Double {
-        val v = variables[name]
+    private fun getVariableDouble(name: String, spriteIndex: Int = activeState?.spriteIndex ?: 0): Double {
+        val v = getUserVariableValue(name, spriteIndex)
         return when (v) {
             is Number -> v.toDouble()
             is String -> v.toDoubleOrNull() ?: 0.0
@@ -5406,10 +5554,10 @@ class DesktopScriptEngine(
                     idx = findLoopEnd(nodes, idx + 1)
                 }
                 "ExecuteForCloneNumberBrick" -> {
-                    val cloneNum = extractFormulaValue(el, "NUMBER") ?: 0f
+                    val cloneNum = getRuntimeFormula(el, "NUMBER") ?: (extractFormulaValue(el, "NUMBER") ?: 0f)
                     val (children, rf) = parseBrickListRecursive(nodes, idx + 1, spriteIndex)
                     allRuntimeFormulas.addAll(rf)
-                    result.add(Block(Block.Type.CONTROL, listOf("execute_for_clone_number", cloneNum.toInt()), children))
+                    result.add(Block(Block.Type.CONTROL, listOf("execute_for_clone_number", cloneNum), children))
                     idx = findLoopEnd(nodes, idx + 1)
                 }
                 "RunAsSpriteBrick" -> {
@@ -5673,7 +5821,7 @@ class DesktopScriptEngine(
                     idx++
                 }
                 "DeleteThisCloneBrick" -> {
-                    result.add(Block(Block.Type.CONTROL, listOf("delete_clone")))
+                    result.add(Block(Block.Type.CONTROL, listOf("delete_this_clone")))
                     idx++
                 }
                 "StopScriptBrick" -> {
@@ -5743,41 +5891,41 @@ class DesktopScriptEngine(
                     idx++
                 }
                 "SetCameraPositionBrick" -> {
-                    val x = extractFormulaValue(el, "VALUE") ?: 0f
-                    val y = extractFormulaValue(el, "VALUE_2") ?: 0f
+                    val x = getRuntimeFormula(el, "VALUE") ?: (extractFormulaValue(el, "VALUE") ?: 0f)
+                    val y = getRuntimeFormula(el, "VALUE_2") ?: (extractFormulaValue(el, "VALUE_2") ?: 0f)
                     result.add(Block(Block.Type.CAMERA, listOf("set_camera_position", x, y)))
                     idx++
                 }
                 "SetCameraPosition2Brick" -> {
-                    val x = extractFormulaValue(el, "X_POSITION") ?: 0f
-                    val y = extractFormulaValue(el, "Y_POSITION") ?: 0f
+                    val x = getRuntimeFormula(el, "X_POSITION") ?: (extractFormulaValue(el, "X_POSITION") ?: 0f)
+                    val y = getRuntimeFormula(el, "Y_POSITION") ?: (extractFormulaValue(el, "Y_POSITION") ?: 0f)
                     result.add(Block(Block.Type.CAMERA, listOf("set_camera_position2", x, y)))
                     idx++
                 }
                 "Fast2DSetCameraBrick" -> {
-                    val x = extractFormulaValue(el, "X_POSITION") ?: 0f
-                    val y = extractFormulaValue(el, "Y_POSITION") ?: 0f
-                    val zoom = extractFormulaValue(el, "SIZE") ?: 1f
+                    val x = getRuntimeFormula(el, "X_POSITION") ?: (extractFormulaValue(el, "X_POSITION") ?: 0f)
+                    val y = getRuntimeFormula(el, "Y_POSITION") ?: (extractFormulaValue(el, "Y_POSITION") ?: 0f)
+                    val zoom = getRuntimeFormula(el, "SIZE") ?: (extractFormulaValue(el, "SIZE") ?: 1f)
                     result.add(Block(Block.Type.CAMERA, listOf("fast2d_set_camera", x, y, zoom)))
                     idx++
                 }
                 "SetCameraRotationBrick" -> {
-                    val yaw = extractFormulaValue(el, "VALUE_1") ?: 0f
+                    val yaw = getRuntimeFormula(el, "VALUE_1") ?: (extractFormulaValue(el, "VALUE_1") ?: 0f)
                     result.add(Block(Block.Type.CAMERA, listOf("set_camera_rotation", yaw)))
                     idx++
                 }
                 "SetCameraRotation2Brick" -> {
-                    val deg = extractFormulaValue(el, "DEGREES") ?: 0f
+                    val deg = getRuntimeFormula(el, "DEGREES") ?: (extractFormulaValue(el, "DEGREES") ?: 0f)
                     result.add(Block(Block.Type.CAMERA, listOf("set_camera_rotation2", deg)))
                     idx++
                 }
                 "SetCameraZoomBrick" -> {
-                    val zoom = extractFormulaValue(el, "VALUE") ?: 1f
+                    val zoom = getRuntimeFormula(el, "VALUE") ?: (extractFormulaValue(el, "VALUE") ?: 1f)
                     result.add(Block(Block.Type.CAMERA, listOf("set_camera_zoom", zoom)))
                     idx++
                 }
                 "RotateCameraByBrick" -> {
-                    val yaw = extractFormulaValue(el, "YAW") ?: 0f
+                    val yaw = getRuntimeFormula(el, "YAW") ?: (extractFormulaValue(el, "YAW") ?: 0f)
                     result.add(Block(Block.Type.CAMERA, listOf("rotate_camera_by", 0f, yaw, 0f)))
                     idx++
                 }
@@ -5798,7 +5946,8 @@ class DesktopScriptEngine(
                     val name = extractFormulaString(el, "NAME") ?: ""
                     val x = extractFormulaValue(el, "X_POSITION") ?: 0f
                     val y = extractFormulaValue(el, "Y_POSITION") ?: 0f
-                    result.add(Block(Block.Type.CAMERA, listOf("attach_to_camera_with_offset", name, x, y)))
+                    val z = extractFormulaValue(el, "Z_POSITION") ?: 0f
+                    result.add(Block(Block.Type.CAMERA, listOf("attach_to_camera_with_offset", name, x, y, z)))
                     idx++
                 }
                 "DetachFromCameraBrick" -> {
@@ -5932,31 +6081,31 @@ class DesktopScriptEngine(
     private fun parseBrickLeaf(el: Element, typeName: String): Block? {
         return when (typeName) {
             "MoveNStepsBrick" -> {
-                val steps = extractFormulaValue(el, "STEPS") ?: 10f
+                val steps = getRuntimeFormula(el, "STEPS") ?: (extractFormulaValue(el, "STEPS") ?: 10f)
                 Block(Block.Type.MOTION, listOf("move_steps", steps))
             }
             "TurnLeftBrick" -> {
-                val deg = extractFormulaValue(el, "TURN_LEFT_DEGREES") ?: 15f
+                val deg = getRuntimeFormula(el, "TURN_LEFT_DEGREES") ?: (extractFormulaValue(el, "TURN_LEFT_DEGREES") ?: 15f)
                 Block(Block.Type.MOTION, listOf("turn_left", deg))
             }
             "TurnRightBrick" -> {
-                val deg = extractFormulaValue(el, "TURN_RIGHT_DEGREES") ?: 15f
+                val deg = getRuntimeFormula(el, "TURN_RIGHT_DEGREES") ?: (extractFormulaValue(el, "TURN_RIGHT_DEGREES") ?: 15f)
                 Block(Block.Type.MOTION, listOf("turn_right", deg))
             }
             "SetXBrick" -> {
-                val x = extractFormulaValue(el, "X_POSITION") ?: 0f
+                val x = getRuntimeFormula(el, "X_POSITION") ?: (extractFormulaValue(el, "X_POSITION") ?: 0f)
                 Block(Block.Type.MOTION, listOf("set_x", x))
             }
             "SetYBrick" -> {
-                val y = extractFormulaValue(el, "Y_POSITION") ?: 0f
+                val y = getRuntimeFormula(el, "Y_POSITION") ?: (extractFormulaValue(el, "Y_POSITION") ?: 0f)
                 Block(Block.Type.MOTION, listOf("set_y", y))
             }
             "ChangeXByNBrick" -> {
-                val dx = extractFormulaValue(el, "X_POSITION_CHANGE") ?: 0f
+                val dx = getRuntimeFormula(el, "X_POSITION_CHANGE") ?: (extractFormulaValue(el, "X_POSITION_CHANGE") ?: 0f)
                 Block(Block.Type.MOTION, listOf("change_x", dx))
             }
             "ChangeYByNBrick" -> {
-                val dy = extractFormulaValue(el, "Y_POSITION_CHANGE") ?: 0f
+                val dy = getRuntimeFormula(el, "Y_POSITION_CHANGE") ?: (extractFormulaValue(el, "Y_POSITION_CHANGE") ?: 0f)
                 Block(Block.Type.MOTION, listOf("change_y", dy))
             }
             "GoToBrick" -> {
@@ -5973,19 +6122,19 @@ class DesktopScriptEngine(
                 }
             }
             "PlaceAtBrick" -> {
-                val x = extractFormulaValue(el, "X_POSITION") ?: 0f
-                val y = extractFormulaValue(el, "Y_POSITION") ?: 0f
+                val x = getRuntimeFormula(el, "X_POSITION") ?: (extractFormulaValue(el, "X_POSITION") ?: 0f)
+                val y = getRuntimeFormula(el, "Y_POSITION") ?: (extractFormulaValue(el, "Y_POSITION") ?: 0f)
                 Block(Block.Type.MOTION, listOf("goto_xy", x, y))
             }
-            "SetSizeToBrick" -> Block(Block.Type.LOOKS, listOf("set_size", extractFormulaValue(el, "SIZE") ?: 100f))
+            "SetSizeToBrick" -> Block(Block.Type.LOOKS, listOf("set_size", getRuntimeFormula(el, "SIZE") ?: (extractFormulaValue(el, "SIZE") ?: 100f)))
             "PointInDirectionBrick" -> {
-                val dir = extractFormulaValue(el, "DEGREES") ?: 90f
+                val dir = getRuntimeFormula(el, "DEGREES") ?: (extractFormulaValue(el, "DEGREES") ?: 90f)
                 Block(Block.Type.MOTION, listOf("set_direction", dir))
             }
             "GlideToBrick" -> {
-                val x = extractFormulaValue(el, "X_DESTINATION") ?: 0f
-                val y = extractFormulaValue(el, "Y_DESTINATION") ?: 0f
-                val dur = extractFormulaValue(el, "DURATION_IN_SECONDS") ?: 1f
+                val x = getRuntimeFormula(el, "X_DESTINATION") ?: (extractFormulaValue(el, "X_DESTINATION") ?: 0f)
+                val y = getRuntimeFormula(el, "Y_DESTINATION") ?: (extractFormulaValue(el, "Y_DESTINATION") ?: 0f)
+                val dur = getRuntimeFormula(el, "DURATION_IN_SECONDS") ?: (extractFormulaValue(el, "DURATION_IN_SECONDS") ?: 1f)
                 Block(Block.Type.MOTION, listOf("glide", x, y, dur))
             }
             "IfOnEdgeBounceBrick" -> Block(Block.Type.MOTION, listOf("bounce"))
@@ -5999,6 +6148,10 @@ class DesktopScriptEngine(
                 Block(Block.Type.MOTION, listOf("set_rotation_style", selText.toIntOrNull() ?: 0))
             }
             "TouchDirectionBrick" -> Block(Block.Type.MOTION, listOf("touch_direction"))
+            "SetRagdollBrick" -> {
+                val enabled = getRuntimeFormula(el, "PHYSICS_TOGGLE")
+                Block(Block.Type.PHYSICS, listOf("set_ragdoll", enabled ?: (extractFormulaValue(el, "PHYSICS_TOGGLE") ?: 0f)))
+            }
             "ShowBrick" -> Block(Block.Type.LOOKS, listOf("show"))
             "HideBrick" -> Block(Block.Type.LOOKS, listOf("hide"))
             "NextLookBrick" -> Block(Block.Type.LOOKS, listOf("next_look"))
@@ -6017,60 +6170,60 @@ class DesktopScriptEngine(
                 Block(Block.Type.LOOKS, listOf("switch_look", idx.toInt()))
             }
             "ChangeSizeByNBrick" -> {
-                val delta = extractFormulaValue(el, "SIZE_CHANGE") ?: 0f
+                val delta = getRuntimeFormula(el, "SIZE_CHANGE") ?: (extractFormulaValue(el, "SIZE_CHANGE") ?: 0f)
                 Block(Block.Type.LOOKS, listOf("change_size", delta))
             }
             "SetTransparencyBrick" -> {
-                val v = extractFormulaValue(el, "TRANSPARENCY") ?: 0f
+                val v = getRuntimeFormula(el, "TRANSPARENCY") ?: (extractFormulaValue(el, "TRANSPARENCY") ?: 0f)
                 Block(Block.Type.LOOKS, listOf("set_transparency", v))
             }
             "ChangeTransparencyByNBrick" -> {
-                val v = extractFormulaValue(el, "TRANSPARENCY_CHANGE") ?: 0f
+                val v = getRuntimeFormula(el, "TRANSPARENCY_CHANGE") ?: (extractFormulaValue(el, "TRANSPARENCY_CHANGE") ?: 0f)
                 Block(Block.Type.LOOKS, listOf("change_transparency", v))
             }
             "SetBrightnessBrick" -> {
-                val v = extractFormulaValue(el, "BRIGHTNESS") ?: 100f
+                val v = getRuntimeFormula(el, "BRIGHTNESS") ?: (extractFormulaValue(el, "BRIGHTNESS") ?: 100f)
                 Block(Block.Type.LOOKS, listOf("set_brightness", v))
             }
             "ChangeBrightnessByNBrick" -> {
-                val v = extractFormulaValue(el, "BRIGHTNESS_CHANGE") ?: 0f
+                val v = getRuntimeFormula(el, "BRIGHTNESS_CHANGE") ?: (extractFormulaValue(el, "BRIGHTNESS_CHANGE") ?: 0f)
                 Block(Block.Type.LOOKS, listOf("change_brightness", v))
             }
             "SetColorBrick" -> {
-                val v = extractFormulaValue(el, "COLOR") ?: 0f
+                val v = getRuntimeFormula(el, "COLOR") ?: (extractFormulaValue(el, "COLOR") ?: 0f)
                 Block(Block.Type.LOOKS, listOf("set_color", v))
             }
             "ChangeColorByNBrick" -> {
-                val v = extractFormulaValue(el, "COLOR_CHANGE") ?: 0f
+                val v = getRuntimeFormula(el, "COLOR_CHANGE") ?: (extractFormulaValue(el, "COLOR_CHANGE") ?: 0f)
                 Block(Block.Type.LOOKS, listOf("change_color", v))
             }
             "ClearGraphicEffectBrick" -> Block(Block.Type.LOOKS, listOf("clear_effects"))
             "SetFilterBlurBrick" -> {
-                val v = extractFormulaValue(el, "INTENSITY") ?: 0f
+                val v = getRuntimeFormula(el, "INTENSITY") ?: (extractFormulaValue(el, "INTENSITY") ?: 0f)
                 Block(Block.Type.LOOKS, listOf("set_filter_blur", v))
             }
             "SetFilterPixelateBrick" -> {
-                val v = extractFormulaValue(el, "SIZE") ?: 0f
+                val v = getRuntimeFormula(el, "SIZE") ?: (extractFormulaValue(el, "SIZE") ?: 0f)
                 Block(Block.Type.LOOKS, listOf("set_filter_pixelate", v))
             }
             "SetFilterSepiaBrick" -> {
-                val v = extractFormulaValue(el, "VALUE_1") ?: 0f
+                val v = getRuntimeFormula(el, "VALUE_1") ?: (extractFormulaValue(el, "VALUE_1") ?: 0f)
                 Block(Block.Type.LOOKS, listOf("set_filter_sepia", v))
             }
             "SetWidthBrick" -> {
-                val v = extractFormulaValue(el, "SIZE") ?: 100f
+                val v = getRuntimeFormula(el, "SIZE") ?: (extractFormulaValue(el, "SIZE") ?: 100f)
                 Block(Block.Type.LOOKS, listOf("set_width", v))
             }
             "ChangeWidthBrick" -> {
-                val v = extractFormulaValue(el, "SIZE") ?: 0f
+                val v = getRuntimeFormula(el, "SIZE") ?: (extractFormulaValue(el, "SIZE") ?: 0f)
                 Block(Block.Type.LOOKS, listOf("change_width", v))
             }
             "SetHeightBrick" -> {
-                val v = extractFormulaValue(el, "SIZE") ?: 100f
+                val v = getRuntimeFormula(el, "SIZE") ?: (extractFormulaValue(el, "SIZE") ?: 100f)
                 Block(Block.Type.LOOKS, listOf("set_height", v))
             }
             "ChangeHeightBrick" -> {
-                val v = extractFormulaValue(el, "SIZE") ?: 0f
+                val v = getRuntimeFormula(el, "SIZE") ?: (extractFormulaValue(el, "SIZE") ?: 0f)
                 Block(Block.Type.LOOKS, listOf("change_height", v))
             }
             "ThinkBubbleBrick" -> {
@@ -6167,16 +6320,16 @@ class DesktopScriptEngine(
             }
             "StopAllSoundsBrick" -> Block(Block.Type.SOUND, listOf("stop_all_sounds"))
             "SetVolumeToBrick" -> {
-                val vol = extractFormulaValue(el, "VOLUME") ?: 100f
-                Block(Block.Type.SOUND, listOf("set_volume", vol.coerceIn(0f, 100f)))
+                val vol = getRuntimeFormula(el, "VOLUME") ?: (extractFormulaValue(el, "VOLUME") ?: 100f)
+                Block(Block.Type.SOUND, listOf("set_volume", vol))
             }
             "ChangeVolumeByNBrick" -> {
-                val delta = extractFormulaValue(el, "VOLUME_CHANGE") ?: 0f
+                val delta = getRuntimeFormula(el, "VOLUME_CHANGE") ?: (extractFormulaValue(el, "VOLUME_CHANGE") ?: 0f)
                 Block(Block.Type.SOUND, listOf("change_volume", delta))
             }
             "SetSoundVolumeBrick" -> {
-                val vol = extractFormulaValue(el, "VOLUME") ?: 100f
-                Block(Block.Type.SOUND, listOf("set_volume", vol.coerceIn(0f, 100f)))
+                val vol = getRuntimeFormula(el, "VOLUME") ?: (extractFormulaValue(el, "VOLUME") ?: 100f)
+                Block(Block.Type.SOUND, listOf("set_volume", vol))
             }
             "PlaySoundAtPositionBrick" -> {
                 val sound = extractFormulaString(el, "SOUND_NAME") ?: ""
@@ -6237,35 +6390,35 @@ class DesktopScriptEngine(
             "PenDownBrick" -> Block(Block.Type.PEN, listOf("pen_down"))
             "PenUpBrick" -> Block(Block.Type.PEN, listOf("pen_up"))
             "SetPenSizeBrick" -> {
-                val sz = extractFormulaValue(el, "PEN_SIZE") ?: 1f
+                val sz = getRuntimeFormula(el, "PEN_SIZE") ?: (extractFormulaValue(el, "PEN_SIZE") ?: 1f)
                 Block(Block.Type.PEN, listOf("set_pen_size", sz))
             }
             "SetPenColorBrick" -> {
-                val r = extractFormulaValue(el, "PEN_COLOR_RED") ?: 0f
-                val g = extractFormulaValue(el, "PEN_COLOR_GREEN") ?: 0f
-                val b = extractFormulaValue(el, "PEN_COLOR_BLUE") ?: 0f
+                val r = getRuntimeFormula(el, "PEN_COLOR_RED") ?: (extractFormulaValue(el, "PEN_COLOR_RED") ?: 0f)
+                val g = getRuntimeFormula(el, "PEN_COLOR_GREEN") ?: (extractFormulaValue(el, "PEN_COLOR_GREEN") ?: 0f)
+                val b = getRuntimeFormula(el, "PEN_COLOR_BLUE") ?: (extractFormulaValue(el, "PEN_COLOR_BLUE") ?: 0f)
                 Block(Block.Type.PEN, listOf("set_pen_color", r, g, b))
             }
             "StampBrick" -> Block(Block.Type.PEN, listOf("stamp"))
             "ClearBackgroundBrick" -> Block(Block.Type.PEN, listOf("clear_background"))
             "DrawLineBrick" -> {
-                val x1 = extractFormulaValue(el, "X1") ?: 0f
-                val y1 = extractFormulaValue(el, "Y1") ?: 0f
-                val x2 = extractFormulaValue(el, "X2") ?: 0f
-                val y2 = extractFormulaValue(el, "Y2") ?: 0f
+                val x1 = getRuntimeFormula(el, "X1") ?: (extractFormulaValue(el, "X1") ?: 0f)
+                val y1 = getRuntimeFormula(el, "Y1") ?: (extractFormulaValue(el, "Y1") ?: 0f)
+                val x2 = getRuntimeFormula(el, "X2") ?: (extractFormulaValue(el, "X2") ?: 0f)
+                val y2 = getRuntimeFormula(el, "Y2") ?: (extractFormulaValue(el, "Y2") ?: 0f)
                 Block(Block.Type.PEN, listOf("draw_line", x1, y1, x2, y2))
             }
             "DrawCircleBrick" -> {
-                val cx = extractFormulaValue(el, "X") ?: 0f
-                val cy = extractFormulaValue(el, "Y") ?: 0f
-                val r = extractFormulaValue(el, "SIZE") ?: 10f
+                val cx = getRuntimeFormula(el, "X") ?: (extractFormulaValue(el, "X") ?: 0f)
+                val cy = getRuntimeFormula(el, "Y") ?: (extractFormulaValue(el, "Y") ?: 0f)
+                val r = getRuntimeFormula(el, "SIZE") ?: (extractFormulaValue(el, "SIZE") ?: 10f)
                 Block(Block.Type.PEN, listOf("draw_circle", cx, cy, r))
             }
             "DrawRectBrick" -> {
-                val rx = extractFormulaValue(el, "X") ?: 0f
-                val ry = extractFormulaValue(el, "Y") ?: 0f
-                val rw = extractFormulaValue(el, "WIDTH") ?: 50f
-                val rh = extractFormulaValue(el, "HEIGHT") ?: 50f
+                val rx = getRuntimeFormula(el, "X") ?: (extractFormulaValue(el, "X") ?: 0f)
+                val ry = getRuntimeFormula(el, "Y") ?: (extractFormulaValue(el, "Y") ?: 0f)
+                val rw = getRuntimeFormula(el, "WIDTH") ?: (extractFormulaValue(el, "WIDTH") ?: 50f)
+                val rh = getRuntimeFormula(el, "HEIGHT") ?: (extractFormulaValue(el, "HEIGHT") ?: 50f)
                 Block(Block.Type.PEN, listOf("draw_rect", rx, ry, rw, rh))
             }
             "DrawTextBrick" -> {
@@ -6334,19 +6487,19 @@ class DesktopScriptEngine(
                 Block(Block.Type.MOTION, listOf("glide", x, y, dur))
             }
             "ApplyForceAtPointBrick" -> {
-                val fx = extractFormulaValue(el, "PHYSICS_FORCE_X") ?: 0f
-                val fy = extractFormulaValue(el, "PHYSICS_FORCE_Y") ?: 0f
-                val px = extractFormulaValue(el, "PHYSICS_POINT_X") ?: 0f
-                val py = extractFormulaValue(el, "PHYSICS_POINT_Y") ?: 0f
+                val fx = getRuntimeFormula(el, "PHYSICS_FORCE_X") ?: (extractFormulaValue(el, "PHYSICS_FORCE_X") ?: 0f)
+                val fy = getRuntimeFormula(el, "PHYSICS_FORCE_Y") ?: (extractFormulaValue(el, "PHYSICS_FORCE_Y") ?: 0f)
+                val px = getRuntimeFormula(el, "PHYSICS_POINT_X") ?: (extractFormulaValue(el, "PHYSICS_POINT_X") ?: 0f)
+                val py = getRuntimeFormula(el, "PHYSICS_POINT_Y") ?: (extractFormulaValue(el, "PHYSICS_POINT_Y") ?: 0f)
                 Block(Block.Type.PHYSICS, listOf("apply_force_at_point", fx, fy, px, py))
             }
-            "SetAngularVelocityBrick" -> Block(Block.Type.PHYSICS, listOf("set_angular_velocity", extractFormulaValue(el, "PHYSICS_ANGULAR_VELOCITY") ?: 0f))
-            "SetGravityScaleBrick" -> Block(Block.Type.PHYSICS, listOf("set_gravity_scale", extractFormulaValue(el, "PHYSICS_GRAVITY_SCALE") ?: 1f))
-            "SetLinearDampingBrick" -> Block(Block.Type.PHYSICS, listOf("set_linear_damping", extractFormulaValue(el, "PHYSICS_DAMPING") ?: 0f))
-            "SetAngularDampingBrick" -> Block(Block.Type.PHYSICS, listOf("set_angular_damping", extractFormulaValue(el, "PHYSICS_DAMPING") ?: 0f))
-            "SetPhysicsFixedRotationBrick" -> Block(Block.Type.PHYSICS, listOf("set_fixed_rotation", extractFormulaValue(el, "PHYSICS_TOGGLE") ?: 0f))
-            "SetPhysicsBulletBrick" -> Block(Block.Type.PHYSICS, listOf("set_bullet_flag", extractFormulaValue(el, "PHYSICS_TOGGLE") ?: 0f))
-            "SetPhysicsSensorBrick" -> Block(Block.Type.PHYSICS, listOf("set_physics_sensor", extractFormulaValue(el, "PHYSICS_TOGGLE") ?: 0f))
+            "SetAngularVelocityBrick" -> Block(Block.Type.PHYSICS, listOf("set_angular_velocity", getRuntimeFormula(el, "PHYSICS_ANGULAR_VELOCITY") ?: (extractFormulaValue(el, "PHYSICS_ANGULAR_VELOCITY") ?: 0f)))
+            "SetGravityScaleBrick" -> Block(Block.Type.PHYSICS, listOf("set_gravity_scale", getRuntimeFormula(el, "PHYSICS_GRAVITY_SCALE") ?: (extractFormulaValue(el, "PHYSICS_GRAVITY_SCALE") ?: 1f)))
+            "SetLinearDampingBrick" -> Block(Block.Type.PHYSICS, listOf("set_linear_damping", getRuntimeFormula(el, "PHYSICS_DAMPING") ?: (extractFormulaValue(el, "PHYSICS_DAMPING") ?: 0f)))
+            "SetAngularDampingBrick" -> Block(Block.Type.PHYSICS, listOf("set_angular_damping", getRuntimeFormula(el, "PHYSICS_DAMPING") ?: (extractFormulaValue(el, "PHYSICS_DAMPING") ?: 0f)))
+            "SetPhysicsFixedRotationBrick" -> Block(Block.Type.PHYSICS, listOf("set_fixed_rotation", getRuntimeFormula(el, "PHYSICS_TOGGLE") ?: (extractFormulaValue(el, "PHYSICS_TOGGLE") ?: 0f)))
+            "SetPhysicsBulletBrick" -> Block(Block.Type.PHYSICS, listOf("set_bullet_flag", getRuntimeFormula(el, "PHYSICS_TOGGLE") ?: (extractFormulaValue(el, "PHYSICS_TOGGLE") ?: 0f)))
+            "SetPhysicsSensorBrick" -> Block(Block.Type.PHYSICS, listOf("set_physics_sensor", getRuntimeFormula(el, "PHYSICS_TOGGLE") ?: (extractFormulaValue(el, "PHYSICS_TOGGLE") ?: 0f)))
             "ShakeScreenBrick" -> {
                 val intensity = extractFormulaValue(el, "INTENSITY") ?: 0f
                 val dur = extractFormulaValue(el, "DURATION") ?: 0f
@@ -6354,7 +6507,7 @@ class DesktopScriptEngine(
             }
             "ResumeSoundBrick" -> Block(Block.Type.SOUND, listOf("resume_sound"))
             "PauseSoundBrick" -> Block(Block.Type.SOUND, listOf("pause_sound"))
-            "SetGameVolumeBrick" -> Block(Block.Type.SOUND, listOf("set_volume", (extractFormulaValue(el, "VOLUME") ?: 100f).coerceIn(0f, 100f)))
+            "SetGameVolumeBrick" -> Block(Block.Type.SOUND, listOf("set_volume", getRuntimeFormula(el, "VOLUME") ?: (extractFormulaValue(el, "VOLUME") ?: 100f)))
             "PlaySoundWithSpeedBrick" -> {
                 val sound = extractSoundName(el) ?: ""
                 val speed = extractFormulaValue(el, "PLAYBACK_SPEED") ?: 1f
@@ -6899,21 +7052,21 @@ class DesktopScriptEngine(
                 Block(Block.Type.EVENT, listOf("scene_start", sceneName))
             }
             "SetGravityBrick" -> {
-                val gx = extractFormulaValue(el, "PHYSICS_GRAVITY_X") ?: 0f
-                val gy = extractFormulaValue(el, "PHYSICS_GRAVITY_Y") ?: -9.8f
+                val gx = getRuntimeFormula(el, "PHYSICS_GRAVITY_X") ?: (extractFormulaValue(el, "PHYSICS_GRAVITY_X") ?: 0f)
+                val gy = getRuntimeFormula(el, "PHYSICS_GRAVITY_Y") ?: (extractFormulaValue(el, "PHYSICS_GRAVITY_Y") ?: -9.8f)
                 Block(Block.Type.PHYSICS, listOf("set_gravity", gx, gy))
             }
             "SetFrictionBrick" -> {
-                val friction = extractFormulaValue(el, "PHYSICS_FRICTION") ?: 0.5f
+                val friction = getRuntimeFormula(el, "PHYSICS_FRICTION") ?: (extractFormulaValue(el, "PHYSICS_FRICTION") ?: 0.5f)
                 Block(Block.Type.PHYSICS, listOf("set_friction", friction))
             }
             "SetMassBrick" -> {
-                val mass = extractFormulaValue(el, "PHYSICS_MASS") ?: 1f
+                val mass = getRuntimeFormula(el, "PHYSICS_MASS") ?: (extractFormulaValue(el, "PHYSICS_MASS") ?: 1f)
                 Block(Block.Type.PHYSICS, listOf("set_mass", mass))
             }
             "SetDampingBrick" -> {
-                val linear = extractFormulaValue(el, "LINEAR_DAMPING") ?: 0f
-                val angular = extractFormulaValue(el, "ANGULAR_DAMPING") ?: 0f
+                val linear = getRuntimeFormula(el, "LINEAR_DAMPING") ?: (extractFormulaValue(el, "LINEAR_DAMPING") ?: 0f)
+                val angular = getRuntimeFormula(el, "ANGULAR_DAMPING") ?: (extractFormulaValue(el, "ANGULAR_DAMPING") ?: 0f)
                 Block(Block.Type.PHYSICS, listOf("set_damping", linear, angular))
             }
             "SetPhysicsObjectTypeBrick" -> {
@@ -6934,8 +7087,8 @@ class DesktopScriptEngine(
                     stateSel.toIntOrNull() ?: 0, shapeSel.toIntOrNull() ?: 0))
             }
             "ApplyForceBrick" -> {
-                val fx = extractFormulaValue(el, "FORCE_X") ?: 0f
-                val fy = extractFormulaValue(el, "FORCE_Y") ?: 0f
+                val fx = getRuntimeFormula(el, "FORCE_X") ?: (extractFormulaValue(el, "FORCE_X") ?: 0f)
+                val fy = getRuntimeFormula(el, "FORCE_Y") ?: (extractFormulaValue(el, "FORCE_Y") ?: 0f)
                 Block(Block.Type.PHYSICS, listOf("apply_force", fx, fy))
             }
             "ApplyImpulseBrick" -> {
@@ -7083,8 +7236,8 @@ class DesktopScriptEngine(
                 Block(Block.Type.CONTROL, listOf("clone_and_name", name))
             }
             "DeleteCloneByNumberBrick" -> {
-                val n = extractFormulaValue(el, "NUMBER") ?: 0f
-                Block(Block.Type.CONTROL, listOf("delete_clone_by_number", n.toInt()))
+                val n = getRuntimeFormula(el, "NUMBER") ?: (extractFormulaValue(el, "NUMBER") ?: 0f)
+                Block(Block.Type.CONTROL, listOf("delete_clone_by_number", n))
             }
             "TimerResetBrick" -> Block(Block.Type.SENSING, listOf("reset_timer"))
             "TimerStartBrick" -> Block(Block.Type.CONTROL, listOf("timer_start"))
@@ -8002,16 +8155,14 @@ class DesktopScriptEngine(
             "FUNCTION" -> evaluateFunction(value, node, spriteIndex)
             "SENSOR" -> evaluateSensor(value, spriteIndex)
             "USER_VARIABLE" -> {
-                val v = variables[value]
+                val v = getUserVariableValue(value, spriteIndex)
                 when (v) {
                     is Number -> v.toDouble()
                     is String -> v.toDoubleOrNull() ?: 0.0
                     else -> 0.0
                 }
             }
-            "USER_LIST" -> {
-                ""
-            }
+            "USER_LIST" -> getUserListValue(value, spriteIndex)?.joinToString(", ") ?: ""
             "BRACKET" -> {
                 val rightChild = getChildElement(node, "rightChild")
                 rightChild?.let { evaluateFormulaNode(it, spriteIndex) }
@@ -8020,7 +8171,7 @@ class DesktopScriptEngine(
             "USER_DEFINED_BRICK_INPUT" -> {
                 val local = activeState?.currentFrame?.procVars?.get(value)
                 if (local != null) return local
-                val gv = variables[value]
+                val gv = getUserVariableValue(value, spriteIndex)
                 if (gv != null) return gv
                 value.toDoubleOrNull() ?: value
             }
@@ -8140,7 +8291,7 @@ class DesktopScriptEngine(
                 (1..len).map { chars[kotlin.random.Random.nextInt(chars.length)] }.joinToString("")
             }
             "REPEAT" -> aStr.repeat(b.toInt().coerceAtLeast(0))
-            "VAR" -> variables[aStr]?.let {
+            "VAR" -> getUserVariableValue(aStr, spriteIndex)?.let {
                 when (it) { is Number -> it.toDouble() else -> it.toString() }
             } ?: 0.0
             "VARNAME" -> {
@@ -8148,7 +8299,7 @@ class DesktopScriptEngine(
                 val keys = variables.keys.toList()
                 keys.getOrElse(idx) { "" }
             }
-            "VARVALUE" -> variables[aStr]?.let {
+            "VARVALUE" -> getUserVariableValue(aStr, spriteIndex)?.let {
                 when (it) { is Number -> it.toDouble() else -> it.toString() }
             } ?: 0.0
             "DISTAN" -> {
@@ -8172,25 +8323,25 @@ class DesktopScriptEngine(
                 aStr + bStr + s3
             }
             "NUMBER_OF_ITEMS" -> {
-                val list = userLists[aStr]
+                val list = getUserListValue(aStr, spriteIndex)
                 (list?.size ?: 0).toDouble()
             }
             "LIST_ITEM" -> {
                 val idx = b.toInt()
-                userLists[aStr]?.getOrNull(idx)?.toString() ?: ""
+                getUserListValue(aStr, spriteIndex)?.getOrNull(idx)?.toString() ?: ""
             }
             "INDEX_OF_ITEM" -> {
-                val idx = userLists[aStr]?.indexOfFirst { it.toString() == bStr }
+                val idx = getUserListValue(aStr, spriteIndex)?.indexOfFirst { it.toString() == bStr }
                 (idx ?: -1).toDouble()
             }
             "FLATTEN" -> {
                 userLists.values.flatten().joinToString(", ")
             }
             "CONNECT" -> {
-                userLists[aStr]?.joinToString(", ") ?: ""
+                getUserListValue(aStr, spriteIndex)?.joinToString(", ") ?: ""
             }
             "FIND" -> {
-                userLists[aStr]?.filter { it.toString().contains(bStr, ignoreCase = true) }?.joinToString(", ") ?: ""
+                getUserListValue(aStr, spriteIndex)?.filter { it.toString().contains(bStr, ignoreCase = true) }?.joinToString(", ") ?: ""
             }
             "FILE_EXISTS" -> {
                 val path = aStr

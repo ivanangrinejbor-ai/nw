@@ -62,7 +62,7 @@ public class VibratePatternAction extends TemporalAction {
 			for (int i = 0; i < parts.length; i++) {
 				try {
 					long val = Long.parseLong(parts[i].trim());
-					if (val < 0) val = 0; // negative values would crash VibrationEffect
+					if (val < 0) val = 0;
 					patternArray[i] = val;
 					totalDuration += val;
 				} catch (NumberFormatException nfe) {

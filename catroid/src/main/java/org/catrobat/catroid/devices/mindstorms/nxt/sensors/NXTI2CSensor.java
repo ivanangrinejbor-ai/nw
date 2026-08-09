@@ -40,7 +40,7 @@ public abstract class NXTI2CSensor extends NXTSensor {
 
 	private byte address;
 	private int pendingCommunicationErrorWaitTime;
-	private final int requestTimeout = 500; //in MS
+	private final int requestTimeout = 500;
 
 	private static final byte BYTES_READ_BYTE = 3;
 

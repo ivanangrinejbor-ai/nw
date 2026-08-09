@@ -10,7 +10,7 @@ class IfCustomParamEqualsAction : LoopAction() {
     var expectedValFormula: Formula? = null
     private var conditionMatched = false
 
-    override fun delegate(delta: Float): Boolean {
+    override fun loopDelegate(delta: Float): Boolean {
         val sc = scope ?: return true
         val sequence = sc.sequence as? ScriptSequenceAction
         val script = sequence?.script

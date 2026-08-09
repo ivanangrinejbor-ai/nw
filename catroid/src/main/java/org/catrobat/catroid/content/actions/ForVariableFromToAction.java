@@ -46,7 +46,7 @@ public class ForVariableFromToAction extends LoopAction {
 	private int iterationCount = 0;
 
 	@Override
-	public boolean delegate(float delta) {
+	protected boolean loopDelegate(float delta) {
 
 		if (!isRepeatActionInitialized && !interpretParameters()) {
 			return true;

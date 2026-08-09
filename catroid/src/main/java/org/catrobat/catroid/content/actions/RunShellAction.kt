@@ -13,7 +13,7 @@ import org.catrobat.catroid.ui.MainMenuActivity
 class RunShellAction : TemporalAction() {
     var scope: Scope? = null
     var command: Formula? = null
-    var userVariable: UserVariable? = null // Новое поле
+    var userVariable: UserVariable? = null
 
     override fun update(percent: Float) {
         val commandContent = command?.interpretString(scope)

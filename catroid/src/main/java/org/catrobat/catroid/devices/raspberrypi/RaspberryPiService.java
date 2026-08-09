@@ -144,7 +144,7 @@ public final class RaspberryPiService {
 			availableGPIOs.add(37);
 			availableGPIOs.add(38);
 			availableGPIOs.add(40);
-		} else { // legacy mode, try to support if we don't know the version
+		} else {
 			availableGPIOs.add(3);
 			availableGPIOs.add(5);
 			availableGPIOs.add(7);

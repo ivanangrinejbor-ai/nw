@@ -146,6 +146,19 @@ object FormulaElementOperations {
         )
     }
 
+    @JvmStatic
+    fun calculateTouchingSprite(look: Look): String {
+        val stageListener = StageActivity.activeStageActivity.get()?.stageListener ?: return ""
+        val currentSprite = look.sprite ?: return ""
+        for (sprite in stageListener.spritesFromStage) {
+            if (sprite == currentSprite || !sprite.look.isLookVisible) continue
+            if (CollisionDetection.checkCollisionBetweenLooks(look, sprite.look)) {
+                return sprite.name
+            }
+        }
+        return ""
+    }
+
     fun getLookWidth(lookData: LookData?): Int {
         lookData?.let {
             val dimensions: IntArray = lookData.getMeasure()
@@ -210,6 +223,7 @@ object FormulaElementOperations {
                 currentProject?.screenRectangle
             )
             Sensors.COLLIDES_WITH_FINGER -> calculateCollidesWithFinger(look)
+            Sensors.TOUCHING_SPRITE -> calculateTouchingSprite(look)
             else -> Conversions.FALSE
         }
     }
