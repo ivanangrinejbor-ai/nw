@@ -25,14 +25,11 @@ package org.catrobat.catroid.content.bricks
 import org.catrobat.catroid.R
 import org.catrobat.catroid.content.Sprite
 import org.catrobat.catroid.content.actions.ScriptSequenceAction
+import org.catrobat.catroid.content.bricks.Brick.BrickField
+import org.catrobat.catroid.content.bricks.Brick.ResourcesSet
 import org.catrobat.catroid.formulaeditor.Formula
 
-class LookFromUrlBrick : FormulaBrick() {
-
-    constructor() {
-        addAllowedBrickField(BrickField.URL, R.id.brick_look_from_url_edit)
-        addAllowedBrickField(BrickField.NAME, R.id.brick_look_from_url_name_edit)
-    }
+class LookFromUrlBrick constructor() : FormulaBrick() {
 
     constructor(url: String, name: String) : this() {
         setFormulaWithBrickField(BrickField.URL, Formula(url))
@@ -44,10 +41,15 @@ class LookFromUrlBrick : FormulaBrick() {
         setFormulaWithBrickField(BrickField.NAME, name)
     }
 
+    init {
+        addAllowedBrickField(BrickField.URL, R.id.brick_look_from_url_edit)
+        addAllowedBrickField(BrickField.NAME, R.id.brick_look_from_url_name_edit)
+    }
+
     override fun getViewResource(): Int = R.layout.brick_look_from_url
 
     override fun addRequiredResources(requiredResourcesSet: ResourcesSet) {
-        requiredResourcesSet.add(NETWORK_CONNECTION)
+        requiredResourcesSet.add(Brick.NETWORK_CONNECTION)
         super.addRequiredResources(requiredResourcesSet)
     }
 

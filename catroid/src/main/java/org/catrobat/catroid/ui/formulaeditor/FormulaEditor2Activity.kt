@@ -92,20 +92,8 @@ class FormulaEditor2Activity : AppCompatActivity() {
     private val backCallback = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
             if (hasUnsavedChanges) {
-                AlertDialog.Builder(this@FormulaEditor2Activity, android.R.style.Theme_DeviceDefault_Dialog_Alert)
-                    .setTitle(R.string.formula_editor_discard_changes_dialog_title)
-                    .setMessage(R.string.formula_editor_discard_changes_dialog_message)
-                    .setPositiveButton(R.string.save) { _, _ ->
-                        hasUnsavedChanges = false
-                        applyFormula()
-                    }
-                    .setNegativeButton(R.string.discard) { _, _ ->
-                        hasUnsavedChanges = false
-                        setResult(Activity.RESULT_CANCELED)
-                        finish()
-                    }
-                    .setNeutralButton(android.R.string.cancel, null)
-                    .show()
+                hasUnsavedChanges = false
+                applyFormula()
             } else {
                 isEnabled = false
                 onBackPressedDispatcher.onBackPressed()

@@ -1152,29 +1152,16 @@ public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.
         }
 
         if (hasFormulaBeenChanged || formulaEditorEditText.hasChanges()) {
-            new androidx.appcompat.app.AlertDialog.Builder(requireContext())
-                .setTitle(R.string.formula_editor_unsaved_title)
-                .setMessage(R.string.formula_editor_unsaved_message)
-                .setPositiveButton(R.string.save, (dialog, which) -> {
-                    if (saveFormulaIfPossible()) {
-                        hasFormulaBeenChanged = false;
-                        doExitFormulaEditor();
-                    }
-                })
-                .setNegativeButton(R.string.discard, (dialog, which) -> {
-                    formulaEditorEditText.endEdit();
-                    hasFormulaBeenChanged = false;
-                    doExitFormulaEditor();
-                })
-                .setNeutralButton(R.string.cancel, null)
-                .show();
-            return;
+            if (saveFormulaIfPossible()) {
+                hasFormulaBeenChanged = false;
+                doExitFormulaEditor(true);
+            }
+        } else {
+            doExitFormulaEditor(false);
         }
-
-        doExitFormulaEditor();
     }
 
-    private void doExitFormulaEditor() {
+    private void doExitFormulaEditor(boolean persist) {
         ScriptFragment scriptFragment = (ScriptFragment) getActivity().getSupportFragmentManager().findFragmentByTag(ScriptFragment.TAG);
         if (scriptFragment != null) {
             scriptFragment.notifyDataSetChanged();
@@ -1182,7 +1169,7 @@ public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.
 
         onUserDismiss();
 
-        if (!(getActivity() instanceof org.catrobat.catroid.ui.dialogs.RuntimeConsoleActivity)) {
+        if (persist && !(getActivity() instanceof org.catrobat.catroid.ui.dialogs.RuntimeConsoleActivity)) {
             XstreamSerializer.getInstance().saveProject(ProjectManager.getInstance().getCurrentProject());
         }
 

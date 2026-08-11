@@ -60,6 +60,7 @@ import org.catrobat.catroid.plugins.PluginOverlayManager;
 import org.catrobat.catroid.utils.FileMetaDataExtractor;
 import org.catrobat.catroid.utils.ThemeEngine;
 import org.catrobat.catroid.utils.Utils;
+import org.catrobat.catroid.telemetry.TelemetryManager;
 
 import java.io.File;
 import java.util.Locale;
@@ -85,6 +86,7 @@ public class CatroidApplication extends Application {
 	@TargetApi(30)
 	@Override
 	public void onCreate() {
+		TelemetryManager.recordLaunchStart();
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
 		prefs.edit().putBoolean("RECOVERED_FROM_CRASH", false).apply();
 		boolean forceSafeMode = prefs.getBoolean("force_safe_mode", false);
@@ -278,6 +280,7 @@ public class CatroidApplication extends Application {
 
 		@Override
 		public void onActivityResumed(@NonNull Activity activity) {
+			TelemetryManager.onLaunchCompleted(activity);
 			PluginOverlayManager.getInstance().attach(activity);
 			String activityName = activity.getClass().getSimpleName();
 			PluginEventBus.getInstance().dispatch("Activity.onShow", activityName);

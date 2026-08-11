@@ -646,6 +646,10 @@
     <string formatted="false" name="formula_used_ram">Использовано RAM</string>
     <string formatted="false" name="formula_used_storage">Использовано памяти</string>
     <string formatted="false" name="formula_volume_level">Уровень громкости</string>
+    <string formatted="false" name="formula_volume_up_held">Кнопка вверх зажата</string>
+    <string formatted="false" name="formula_volume_down_held">Кнопка вниз зажата</string>
+    <string formatted="false" name="formula_volume_up_held_seconds">Секунд зажата вверх</string>
+    <string formatted="false" name="formula_volume_down_held_seconds">Секунд зажата вниз</string>
     <string formatted="false" name="formula_screen_brightness">Яркость экрана</string>
     <string formatted="false" name="formula_is_in_foreground">Приложение в фореграунде</string>
     <string formatted="false" name="formula_cpu_frequency_min">Мин. частота CPU</string>
@@ -3689,6 +3693,9 @@
     <string formatted="false" name="brick_when_button_pressed_up">громкость вверх</string>
     <string formatted="false" name="brick_when_button_pressed_down">громкость вниз</string>
     <string formatted="false" name="brick_when_button_pressed_pressed">нажата</string>
+    <string formatted="false" name="brick_volume_button_hold_up">Кнопка громкости вверх зажата</string>
+    <string formatted="false" name="brick_volume_button_hold_down">Кнопка громкости вниз зажата</string>
+    <string formatted="false" name="brick_volume_button_hold_seconds">секунд</string>
     <string formatted="false" name="brick_when_nfc">Когда NFC метка обнаружена</string>
     <string formatted="false" name="brick_stop_script">Остановить</string>
     <string formatted="false" name="brick_stop_this_script">этот скрипт</string>
@@ -6134,4 +6141,57 @@ Catrobat — это визуальный язык программировани
     <string name="formula_editor_2_variable_renamed">Переменная переименована в «%1$s»</string>
     <string name="formula_editor_2_variable_deleted">Переменная «%1$s» удалена</string>
     <string name="formula_editor_2_delete_variable_confirm">Удалить переменную «%1$s»?</string>
+    <string name="telemetry_title">Телеметрия</string>
+    <string name="telemetry_summary">Информация о собираемых технических данных</string>
+    <string name="telemetry_description">NeoCatroid собирает минимальные технические данные для статистики, анализа производительности и улучшения приложения.</string>
+    <string name="telemetry_info_title">Телеметрия включена по умолчанию</string>
+    <string name="telemetry_info_text">Приложение отправляет технические данные при запуске. Персональные данные и содержимое проектов не собираются.</string>
+    <string name="telemetry_collected_title">Что собирается</string>
+    <string name="telemetry_not_collected_title">Что НЕ собирается</string>
+    <string name="telemetry_usage_title">Как используются данные</string>
+    <string name="telemetry_app_version">Версия приложения — app_version</string>
+    <string name="telemetry_app_version_desc">Версия приложения из сборки (например, 2.2.0).</string>
+    <string name="telemetry_package_name">Имя пакета — package_name</string>
+    <string name="telemetry_package_name_desc">Технический идентификатор приложения.</string>
+    <string name="telemetry_android_version">Версия Android — android_version</string>
+    <string name="telemetry_android_version_desc">Версия операционной системы устройства.</string>
+    <string name="telemetry_device_model">Модель устройства — device_model</string>
+    <string name="telemetry_device_model_desc">Название модели устройства.</string>
+    <string name="telemetry_cpu">CPU / SoC — cpu</string>
+    <string name="telemetry_cpu_desc">Производитель и модель процессора устройства.</string>
+    <string name="telemetry_device_board">Аппаратная плата — device_board</string>
+    <string name="telemetry_device_board_desc">Название аппаратной платы устройства.</string>
+    <string name="telemetry_screen">Разрешение экрана — screen</string>
+    <string name="telemetry_screen_desc">Разрешение экрана в пикселях (например, 1080x2460).</string>
+    <string name="telemetry_launch_duration">Длительность запуска — launch_duration</string>
+    <string name="telemetry_launch_duration_desc">Время запуска приложения в миллисекундах.</string>
+    <string name="telemetry_last_seen">Дата последнего запуска — last_seen</string>
+    <string name="telemetry_last_seen_desc">Дата последнего запуска приложения в формате YYYY-MM-DD.</string>
+    <string name="telemetry_uuid">Случайный UUID установки</string>
+    <string name="telemetry_uuid_desc">Случайный идентификатор установки. Генерируется один раз и хранится только на устройстве.</string>
+    <string name="telemetry_not_collected">Не собирается</string>
+    <string name="telemetry_not_ip_title">IP-адрес</string>
+    <string name="telemetry_not_imei_title">IMEI</string>
+    <string name="telemetry_not_mac_title">MAC-адрес</string>
+    <string name="telemetry_not_gps_title">GPS / точная геолокация</string>
+    <string name="telemetry_not_advertising_id_title">Advertising ID</string>
+    <string name="telemetry_not_contacts_title">Контакты</string>
+    <string name="telemetry_not_username_title">Имя пользователя</string>
+    <string name="telemetry_not_projects_title">Содержимое проектов</string>
+    <string name="telemetry_not_files_title">Пользовательские файлы</string>
+    <string name="telemetry_usage_firestore">Данные отправляются в Firebase Firestore</string>
+    <string name="telemetry_usage_firestore_desc">Телеметрия хранится в облачной базе Firebase Firestore.</string>
+    <string name="telemetry_usage_collection">Коллекция telemetry</string>
+    <string name="telemetry_usage_collection_desc">Записи хранятся в коллекции telemetry.</string>
+    <string name="telemetry_usage_create_update">Только создание или обновление</string>
+    <string name="telemetry_usage_create_update_desc">Приложение создаёт или обновляет только свою запись.</string>
+    <string name="telemetry_usage_no_read">Приложение не читает телеметрию</string>
+    <string name="telemetry_usage_no_read_desc">Чтение данных из Firestore не выполняется.</string>
+    <string name="telemetry_usage_no_delete">Приложение не удаляет телеметрию</string>
+    <string name="telemetry_usage_no_delete_desc">Удаление записей из Firestore не выполняется.</string>
+    <string name="telemetry_usage_uuid">UUID генерируется случайно</string>
+    <string name="telemetry_usage_uuid_desc">Идентификатор установки генерируется случайно и хранится локально на устройстве.</string>
+    <string name="telemetry_usage_no_ads">Данные не используются для рекламы</string>
+    <string name="telemetry_usage_no_ads_desc">Телеметрия не используется для показа рекламы.</string>
+    <string name="telemetry_privacy_policy">Политика конфиденциальности</string>
 </resources>

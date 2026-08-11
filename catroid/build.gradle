@@ -658,6 +658,7 @@ dependencies {
     implementation 'com.google.firebase:firebase-analytics'
     implementation 'com.google.firebase:firebase-database-ktx'
     implementation 'com.google.firebase:firebase-analytics-ktx'
+    implementation 'com.google.firebase:firebase-firestore'
 
     // CAST
     //implementation "com.google.android.gms:play-services-cast:17.0.0"

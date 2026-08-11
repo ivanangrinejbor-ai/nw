@@ -3,14 +3,11 @@ package org.catrobat.catroid.content.bricks
 import org.catrobat.catroid.R
 import org.catrobat.catroid.content.Sprite
 import org.catrobat.catroid.content.actions.ScriptSequenceAction
+import org.catrobat.catroid.content.bricks.Brick.BrickField
+import org.catrobat.catroid.content.bricks.Brick.ResourcesSet
 import org.catrobat.catroid.formulaeditor.Formula
 
-class DownloadZippedLooksBrick : FormulaBrick() {
-
-    init {
-        addAllowedBrickField(BrickField.DOWNLOAD_URL, R.id.brick_download_zipped_looks_url_edit)
-        addAllowedBrickField(BrickField.NAME, R.id.brick_download_zipped_looks_prefix_edit)
-    }
+class DownloadZippedLooksBrick constructor() : FormulaBrick() {
 
     constructor(url: String, prefix: String) : this() {
         setFormulaWithBrickField(BrickField.DOWNLOAD_URL, Formula(url))
@@ -20,6 +17,11 @@ class DownloadZippedLooksBrick : FormulaBrick() {
     constructor(url: Formula, prefix: Formula) : this() {
         setFormulaWithBrickField(BrickField.DOWNLOAD_URL, url)
         setFormulaWithBrickField(BrickField.NAME, prefix)
+    }
+
+    init {
+        addAllowedBrickField(BrickField.DOWNLOAD_URL, R.id.brick_download_zipped_looks_url_edit)
+        addAllowedBrickField(BrickField.NAME, R.id.brick_download_zipped_looks_prefix_edit)
     }
 
     override fun getViewResource(): Int = R.layout.brick_download_zipped_looks

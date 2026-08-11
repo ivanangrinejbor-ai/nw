@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    android:key="setting_telemetry_screen"
+    android:title="@string/telemetry_title">
+
+    <Preference
+        android:key="telemetry_header"
+        android:selectable="false"
+        android:summary="@string/telemetry_description"
+        android:title="@string/telemetry_title" />
+
+    <Preference
+        android:key="telemetry_info"
+        android:selectable="false"
+        android:summary="@string/telemetry_info_text"
+        android:title="@string/telemetry_info_title" />
+
+    <PreferenceCategory android:title="@string/telemetry_collected_title">
+
+        <Preference
+            android:key="telemetry_app_version"
+            android:selectable="false"
+            android:summary="@string/telemetry_app_version_desc"
+            android:title="@string/telemetry_app_version" />
+
+        <Preference
+            android:key="telemetry_package_name"
+            android:selectable="false"
+            android:summary="@string/telemetry_package_name_desc"
+            android:title="@string/telemetry_package_name" />
+
+        <Preference
+            android:key="telemetry_android_version"
+            android:selectable="false"
+            android:summary="@string/telemetry_android_version_desc"
+            android:title="@string/telemetry_android_version" />
+
+        <Preference
+            android:key="telemetry_device_model"
+            android:selectable="false"
+            android:summary="@string/telemetry_device_model_desc"
+            android:title="@string/telemetry_device_model" />
+
+        <Preference
+            android:key="telemetry_cpu"
+            android:selectable="false"
+            android:summary="@string/telemetry_cpu_desc"
+            android:title="@string/telemetry_cpu" />
+
+        <Preference
+            android:key="telemetry_device_board"
+            android:selectable="false"
+            android:summary="@string/telemetry_device_board_desc"
+            android:title="@string/telemetry_device_board" />
+
+        <Preference
+            android:key="telemetry_screen"
+            android:selectable="false"
+            android:summary="@string/telemetry_screen_desc"
+            android:title="@string/telemetry_screen" />
+
+        <Preference
+            android:key="telemetry_launch_duration"
+            android:selectable="false"
+            android:summary="@string/telemetry_launch_duration_desc"
+            android:title="@string/telemetry_launch_duration" />
+
+        <Preference
+            android:key="telemetry_last_seen"
+            android:selectable="false"
+            android:summary="@string/telemetry_last_seen_desc"
+            android:title="@string/telemetry_last_seen" />
+
+        <Preference
+            android:key="telemetry_uuid"
+            android:selectable="false"
+            android:summary="@string/telemetry_uuid_desc"
+            android:title="@string/telemetry_uuid" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/telemetry_not_collected_title">
+
+        <Preference
+            android:key="telemetry_not_ip"
+            android:selectable="false"
+            android:summary="@string/telemetry_not_collected"
+            android:title="@string/telemetry_not_ip_title" />
+
+        <Preference
+            android:key="telemetry_not_imei"
+            android:selectable="false"
+            android:summary="@string/telemetry_not_collected"
+            android:title="@string/telemetry_not_imei_title" />
+
+        <Preference
+            android:key="telemetry_not_mac"
+            android:selectable="false"
+            android:summary="@string/telemetry_not_collected"
+            android:title="@string/telemetry_not_mac_title" />
+
+        <Preference
+            android:key="telemetry_not_gps"
+            android:selectable="false"
+            android:summary="@string/telemetry_not_collected"
+            android:title="@string/telemetry_not_gps_title" />
+
+        <Preference
+            android:key="telemetry_not_advertising_id"
+            android:selectable="false"
+            android:summary="@string/telemetry_not_collected"
+            android:title="@string/telemetry_not_advertising_id_title" />
+
+        <Preference
+            android:key="telemetry_not_contacts"
+            android:selectable="false"
+            android:summary="@string/telemetry_not_collected"
+            android:title="@string/telemetry_not_contacts_title" />
+
+        <Preference
+            android:key="telemetry_not_username"
+            android:selectable="false"
+            android:summary="@string/telemetry_not_collected"
+            android:title="@string/telemetry_not_username_title" />
+
+        <Preference
+            android:key="telemetry_not_projects"
+            android:selectable="false"
+            android:summary="@string/telemetry_not_collected"
+            android:title="@string/telemetry_not_projects_title" />
+
+        <Preference
+            android:key="telemetry_not_files"
+            android:selectable="false"
+            android:summary="@string/telemetry_not_collected"
+            android:title="@string/telemetry_not_files_title" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/telemetry_usage_title">
+
+        <Preference
+            android:key="telemetry_usage_firestore"
+            android:selectable="false"
+            android:summary="@string/telemetry_usage_firestore_desc"
+            android:title="@string/telemetry_usage_firestore" />
+
+        <Preference
+            android:key="telemetry_usage_collection"
+            android:selectable="false"
+            android:summary="@string/telemetry_usage_collection_desc"
+            android:title="@string/telemetry_usage_collection" />
+
+        <Preference
+            android:key="telemetry_usage_create_update"
+            android:selectable="false"
+            android:summary="@string/telemetry_usage_create_update_desc"
+            android:title="@string/telemetry_usage_create_update" />
+
+        <Preference
+            android:key="telemetry_usage_no_read"
+            android:selectable="false"
+            android:summary="@string/telemetry_usage_no_read_desc"
+            android:title="@string/telemetry_usage_no_read" />
+
+        <Preference
+            android:key="telemetry_usage_no_delete"
+            android:selectable="false"
+            android:summary="@string/telemetry_usage_no_delete_desc"
+            android:title="@string/telemetry_usage_no_delete" />
+
+        <Preference
+            android:key="telemetry_usage_uuid"
+            android:selectable="false"
+            android:summary="@string/telemetry_usage_uuid_desc"
+            android:title="@string/telemetry_usage_uuid" />
+
+        <Preference
+            android:key="telemetry_usage_no_ads"
+            android:selectable="false"
+            android:summary="@string/telemetry_usage_no_ads_desc"
+            android:title="@string/telemetry_usage_no_ads" />
+
+    </PreferenceCategory>
+
+    <Preference
+        android:key="telemetry_privacy_policy"
+        android:layout="@layout/preference_telemetry_privacy_button"
+        android:title="@string/telemetry_privacy_policy" />
+
+</PreferenceScreen>

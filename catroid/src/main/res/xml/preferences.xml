@@ -31,6 +31,11 @@
         android:summary="@string/preference_description_language"
         android:title="@string/preference_title_language" />
 
+    <PreferenceScreen
+        android:key="setting_telemetry_screen"
+        android:summary="@string/telemetry_summary"
+        android:title="@string/telemetry_title" />
+
     <!--<TrustListEditorPreference
         android:defaultValue=""
         android:key="setting_trusted_domains"

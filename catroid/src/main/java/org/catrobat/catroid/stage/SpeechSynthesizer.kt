@@ -75,8 +75,8 @@ class SpeechSynthesizer(val scope: Scope?, val text: Formula?) {
             is UtteranceProgressListener -> {
                 val speakParameter = HashMap<String, String?>()
                 speakParameter[TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID] = hashText
-                rate?.let { speakParameter[TextToSpeech.Engine.KEY_PARAM_RATE] = it.toString() }
-                pitch?.let { speakParameter[TextToSpeech.Engine.KEY_PARAM_PITCH] = it.toString() }
+                rate?.let { runCatching { TextToSpeechHolder.instance.setSpeechRate(it.toString().toFloatOrNull() ?: 1f) } }
+                pitch?.let { runCatching { TextToSpeechHolder.instance.setSpeechPitch(it.toString().toFloatOrNull() ?: 1f) } }
                 TextToSpeechHolder.instance.textToSpeech(
                     interpretedText.toString(),
                     speechFile,

@@ -453,6 +453,10 @@ public class InternToExternGenerator {
         INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.USED_RAM.name(), R.string.formula_used_ram);
         INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.USED_STORAGE.name(), R.string.formula_used_storage);
         INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.VOLUME_LEVEL.name(), R.string.formula_volume_level);
+        INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.VOLUME_UP_HELD.name(), R.string.formula_volume_up_held);
+        INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.VOLUME_DOWN_HELD.name(), R.string.formula_volume_down_held);
+        INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.VOLUME_UP_HELD_SECONDS.name(), R.string.formula_volume_up_held_seconds);
+        INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.VOLUME_DOWN_HELD_SECONDS.name(), R.string.formula_volume_down_held_seconds);
         INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.SCREEN_BRIGHTNESS.name(), R.string.formula_screen_brightness);
         INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.IS_IN_FOREGROUND.name(), R.string.formula_is_in_foreground);
         INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.CPU_FREQUENCY_MIN.name(), R.string.formula_cpu_frequency_min);

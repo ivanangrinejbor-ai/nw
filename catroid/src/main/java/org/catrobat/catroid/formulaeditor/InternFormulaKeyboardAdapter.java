@@ -495,6 +495,14 @@ case R.string.formula_editor_function_state_time:
                 return buildFunctionWithoutParametersAndBrackets(Functions.USED_STORAGE);
             case R.string.formula_volume_level:
                 return buildFunctionWithoutParametersAndBrackets(Functions.VOLUME_LEVEL);
+            case R.string.formula_volume_up_held:
+                return buildFunctionWithoutParametersAndBrackets(Functions.VOLUME_UP_HELD);
+            case R.string.formula_volume_down_held:
+                return buildFunctionWithoutParametersAndBrackets(Functions.VOLUME_DOWN_HELD);
+            case R.string.formula_volume_up_held_seconds:
+                return buildFunctionWithoutParametersAndBrackets(Functions.VOLUME_UP_HELD_SECONDS);
+            case R.string.formula_volume_down_held_seconds:
+                return buildFunctionWithoutParametersAndBrackets(Functions.VOLUME_DOWN_HELD_SECONDS);
             case R.string.formula_screen_brightness:
                 return buildFunctionWithoutParametersAndBrackets(Functions.SCREEN_BRIGHTNESS);
             case R.string.formula_is_in_foreground:

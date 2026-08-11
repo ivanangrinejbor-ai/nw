@@ -60,6 +60,7 @@ import org.catrobat.catroid.content.WhenVariableChangedScript;
 import org.catrobat.catroid.content.WhenFirebaseChangedScript;
 import org.catrobat.catroid.content.WhenGamepadButtonScript;
 import org.catrobat.catroid.content.WhenButtonPressedScript;
+import org.catrobat.catroid.content.VolumeButtonHoldScript;
 import org.catrobat.catroid.content.WhenTimeReachedScript;
 import org.catrobat.catroid.content.WhenNfcScript;
 import org.catrobat.catroid.content.WhenScript;
@@ -748,6 +749,9 @@ public final class XstreamSerializer {
 
 		xstream.alias("script", WhenButtonPressedScript.class);
 		xstream.alias("brick", WhenButtonPressedBrick.class);
+
+		xstream.alias("script", VolumeButtonHoldScript.class);
+		xstream.alias("brick", VolumeButtonHoldBrick.class);
 
 		xstream.alias("script", WhenTimeReachedScript.class);
 		xstream.alias("brick", WhenTimeReachedBrick.class);

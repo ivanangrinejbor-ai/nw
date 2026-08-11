@@ -64,7 +64,7 @@ public class WhenTimeReachedScript extends Script {
 
 	public Formula getConditionFormula() {
 		Formula target = getTimeFormula();
-		if (builtCondition == null || builtCondition.getRoot().getRightChild() != target.getRoot()) {
+		if (builtCondition == null || builtCondition.getRoot().rightChild != target.getRoot()) {
 			builtCondition = buildCondition(target);
 		}
 		return builtCondition;

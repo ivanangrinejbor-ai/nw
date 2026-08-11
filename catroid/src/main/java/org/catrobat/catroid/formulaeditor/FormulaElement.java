@@ -1475,6 +1475,18 @@ public class FormulaElement implements Serializable {
                     return (double) audio.getStreamVolume(android.media.AudioManager.STREAM_MUSIC);
                 } catch (Exception e) { return 0.0; }
             }
+            case VOLUME_UP_HELD: {
+                return org.catrobat.catroid.stage.VolumeButtonState.isVolumeUpHeld() ? 1.0 : 0.0;
+            }
+            case VOLUME_DOWN_HELD: {
+                return org.catrobat.catroid.stage.VolumeButtonState.isVolumeDownHeld() ? 1.0 : 0.0;
+            }
+            case VOLUME_UP_HELD_SECONDS: {
+                return (double) org.catrobat.catroid.stage.VolumeButtonState.getVolumeUpHeldSeconds();
+            }
+            case VOLUME_DOWN_HELD_SECONDS: {
+                return (double) org.catrobat.catroid.stage.VolumeButtonState.getVolumeDownHeldSeconds();
+            }
             case SCREEN_BRIGHTNESS: {
                 try {
                     int brightness = android.provider.Settings.System.getInt(

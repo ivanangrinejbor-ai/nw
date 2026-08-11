@@ -80,6 +80,14 @@ class TextToSpeechHolder private constructor() {
         }
     }
 
+    fun setSpeechRate(rate: Float) {
+        textToSpeech?.setSpeechRate(rate)
+    }
+
+    fun setSpeechPitch(pitch: Float) {
+        textToSpeech?.setPitch(pitch)
+    }
+
     fun deleteSpeechFiles() {
         val pathToSpeechFiles = File(Constants.TEXT_TO_SPEECH_TMP_PATH)
         if (pathToSpeechFiles.isDirectory) {

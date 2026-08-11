@@ -34,6 +34,7 @@ import org.catrobat.catroid.content.WhenSwipedScript
 import org.catrobat.catroid.content.WhenConditionScript
 import org.catrobat.catroid.content.WhenGamepadButtonScript
 import org.catrobat.catroid.content.WhenButtonPressedScript
+import org.catrobat.catroid.content.VolumeButtonHoldScript
 import org.catrobat.catroid.content.WhenTimeReachedScript
 import org.catrobat.catroid.content.WhenClonedWithNameScript
 import org.catrobat.catroid.content.WhenMqttMessageScript
@@ -686,6 +687,7 @@ import org.catrobat.catroid.content.bricks.WhenBackPressedBrick
 import org.catrobat.catroid.content.bricks.WhenBackgroundChangesBrick
 import org.catrobat.catroid.content.bricks.WhenBounceOffBrick
 import org.catrobat.catroid.content.bricks.WhenButtonPressedBrick
+import org.catrobat.catroid.content.bricks.VolumeButtonHoldBrick
 import org.catrobat.catroid.content.bricks.WhenSwipedBrick
 import org.catrobat.catroid.content.bricks.WhenBrick
 import org.catrobat.catroid.content.bricks.WhenClonedBrick
@@ -966,6 +968,8 @@ open class CategoryBricksFactory {
                 eventBrickList.add(WhenAppRestoredBrick())
                 eventBrickList.add(WhenBackPressedBrick())
                 eventBrickList.add(WhenButtonPressedBrick(WhenButtonPressedScript(WhenButtonPressedScript.BUTTON_VOLUME_UP)))
+                eventBrickList.add(VolumeButtonHoldBrick(VolumeButtonHoldScript(VolumeButtonHoldScript.BUTTON_VOLUME_UP, org.catrobat.catroid.formulaeditor.Formula(1.0f))))
+                eventBrickList.add(VolumeButtonHoldBrick(VolumeButtonHoldScript(VolumeButtonHoldScript.BUTTON_VOLUME_DOWN, org.catrobat.catroid.formulaeditor.Formula(1.0f))))
 eventBrickList.add(WhenConditionBrick(WhenConditionScript(Formula(defaultIf))))
                 eventBrickList.add(WhenTimeReachedBrick(WhenTimeReachedScript(Formula(1430))))
                 if (!isBackgroundSprite) {
