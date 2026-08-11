@@ -295,7 +295,9 @@ class MainActivity : AppCompatActivity(), MainView, CommandListener {
             Intent.ACTION_EDIT ->
                 receivedType.startsWith("image/")
             Intent.ACTION_SEND, Intent.ACTION_VIEW ->
-                receivedType.startsWith("image/") || receivedType.startsWith("application/")
+                receivedType.startsWith("image/") ||
+                    receivedType == "application/zip" ||
+                    receivedType == "application/octet-stream"
             else -> false
         }
     }
@@ -659,7 +661,11 @@ class MainActivity : AppCompatActivity(), MainView, CommandListener {
 
     private fun setBottomBarListeners(viewHolder: BottomBarViewHolder) {
         val toolTypes = ToolType.values()
+        val boundButtonIds = HashSet<Int>()
         for (type in toolTypes) {
+            if (!boundButtonIds.add(type.toolButtonID)) {
+                continue
+            }
             val toolButton = viewHolder.layout.findViewById<View>(type.toolButtonID) ?: continue
             toolButton.setOnClickListener { presenterMain.toolClicked(type) }
         }

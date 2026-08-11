@@ -111,12 +111,12 @@ class LoadImage(
             }
 
             withContext(Dispatchers.Main) {
-                if (!callback.isFinishing) {
-                    try {
+                try {
+                    if (!callback.isFinishing) {
                         callback.onLoadImagePostExecute(requestCode, uri, returnValue)
-                    } finally {
-                        idlingResource.decrement()
                     }
+                } finally {
+                    idlingResource.decrement()
                 }
             }
         }

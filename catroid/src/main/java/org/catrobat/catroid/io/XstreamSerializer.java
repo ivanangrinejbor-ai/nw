@@ -54,6 +54,8 @@ import org.catrobat.catroid.content.StartScript;
 import org.catrobat.catroid.content.UserDefinedScript;
 import org.catrobat.catroid.content.WhenBackgroundChangesScript;
 import org.catrobat.catroid.content.WhenBounceOffScript;
+import org.catrobat.catroid.content.WhenTouchingSpriteScript;
+import org.catrobat.catroid.content.WhenTouchingSpriteByNameScript;
 import org.catrobat.catroid.content.WhenClonedScript;
 import org.catrobat.catroid.content.WhenConditionScript;
 import org.catrobat.catroid.content.WhenVariableChangedScript;
@@ -843,6 +845,11 @@ public final class XstreamSerializer {
 		xstream.alias("script", WhenBounceOffScript.class);
 		xstream.alias("brick", WhenBounceOffBrick.class);
 
+		xstream.alias("script", WhenTouchingSpriteScript.class);
+		xstream.alias("brick", WhenTouchingSpriteBrick.class);
+		xstream.alias("script", WhenTouchingSpriteByNameScript.class);
+		xstream.alias("brick", WhenTouchingSpriteByNameBrick.class);
+
 		xstream.alias("brick", SetBounceBrick.class);
 		xstream.alias("brick", SetFrictionBrick.class);
 		xstream.alias("brick", SetGravityBrick.class);
@@ -1039,7 +1046,7 @@ public final class XstreamSerializer {
 				Scene oldGlobal = project.getGlobalSceneForMigration();
 				if (oldGlobal != null) {
 					if (oldGlobal.isGlobalScene()) {
-						oldGlobal.setProject(project);
+						project.setGlobalScene(oldGlobal);
 					} else if (!oldGlobal.getSpriteList().isEmpty()) {
 						Scene defaultScene = project.getDefaultScene();
 						if (defaultScene != null) {
@@ -1049,6 +1056,9 @@ public final class XstreamSerializer {
 							}
 						}
 						oldGlobal.getSpriteList().clear();
+						project.setGlobalScene(null);
+					} else {
+						project.setGlobalScene(oldGlobal);
 					}
 				}
 			}

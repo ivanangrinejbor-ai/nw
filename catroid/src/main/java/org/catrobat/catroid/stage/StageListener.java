@@ -356,6 +356,10 @@ public class StageListener implements ApplicationListener {
 
 		resetConditionScriptTriggers();
 
+		for (Sprite sprite : sprites) {
+			sprite.initTouchingSpriteTriggers();
+		}
+
 		embroideryPatternManager = new DSTPatternManager();
 		initActors(sprites);
 
@@ -852,7 +856,7 @@ public class StageListener implements ApplicationListener {
 
 		for (Sprite sprite : sprites) {
 			boolean isGlobal = globalSceneSprites.contains(sprite);
-			if (!isGlobal) {
+			if (!isGlobal || sprite.look == null || sprite.look.getLookData() == null) {
 				sprite.resetSprite();
 			}
 			if (sprite.look != null) {
@@ -886,7 +890,9 @@ public class StageListener implements ApplicationListener {
 		if (project.hasGlobalScene()) {
 			for (Sprite sprite : project.getGlobalScene().getSpriteList()) {
 				globalSceneSprites.add(sprite);
-				sprites.add(sprite);
+				if (!sprites.contains(sprite)) {
+					sprites.add(sprite);
+				}
 			}
 		}
 		List<Sprite> legacyGlobal = new java.util.ArrayList<>();
@@ -898,8 +904,14 @@ public class StageListener implements ApplicationListener {
 			}
 		}
 		if (!legacyGlobal.isEmpty()) {
-			globalSceneSprites.addAll(legacyGlobal);
-			sprites.addAll(legacyGlobal);
+			for (Sprite sprite : legacyGlobal) {
+				if (!globalSceneSprites.contains(sprite)) {
+					globalSceneSprites.add(sprite);
+				}
+				if (!sprites.contains(sprite)) {
+					sprites.add(sprite);
+				}
+			}
 		}
 	}
 
@@ -927,6 +939,7 @@ public class StageListener implements ApplicationListener {
 		}
 		copy.initializeEventThreads(EventId.START_AS_CLONE);
 		copy.initConditionScriptTriggers();
+		copy.initTouchingSpriteTriggers();
 		copy.initFirebaseChangedTriggers();
 	}
 
@@ -954,6 +967,7 @@ public class StageListener implements ApplicationListener {
 		}
 		copy.initializeEventThreads(EventId.START_AS_CLONE);
 		copy.initConditionScriptTriggers();
+		copy.initTouchingSpriteTriggers();
 		copy.initFirebaseChangedTriggers();
 	}
 
@@ -1530,6 +1544,7 @@ public class StageListener implements ApplicationListener {
 							sprite.initializeEventThreads(EventId.START);
 						}
 						sprite.initConditionScriptTriggers();
+						sprite.initTouchingSpriteTriggers();
 						sprite.initFirebaseChangedTriggers();
 						sprite.initIfConditionBrickTriggers();
 					}
@@ -2198,7 +2213,11 @@ public class StageListener implements ApplicationListener {
 	}
 
 	private void disposeTextures() {
-		for (Scene scene : project.getSceneList()) {
+		List<Scene> scenes = new ArrayList<>(project.getSceneList());
+		if (project.hasGlobalScene()) {
+			scenes.add(project.getGlobalScene());
+		}
+		for (Scene scene : scenes) {
 			for (Sprite sprite : scene.getSpriteList()) {
 				for (LookData lookData : sprite.getLookList()) {
 					lookData.dispose();

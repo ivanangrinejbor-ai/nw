@@ -559,6 +559,9 @@ object FileIO {
             inJustDecodeBounds = false
         }
         val scaling = hasEnoughMemory(resolver, bitmapUri, context)
+        if (scaling) {
+            return BitmapReturnValue(null, null, true)
+        }
         val bitmap = enableAlpha(decodeBitmapFromUri(resolver, bitmapUri, options, context))
         return BitmapReturnValue(
             null,
@@ -644,8 +647,16 @@ object FileIO {
                     }
                 } else {
                     val latest = fileList.maxByOrNull { it.lastModified() }
-                    latest?.renameTo(File(internalMemoryPath, TEMP_IMAGE_PATH))
-                    temporaryFilePath = TEMP_IMAGE_PATH
+                    val target = File(internalMemoryPath, TEMP_IMAGE_PATH)
+                    if (latest != null && latest.absoluteFile != target.absoluteFile) {
+                        target.delete()
+                        latest.renameTo(target)
+                    }
+                    temporaryFilePath = when {
+                        target.isFile -> TEMP_IMAGE_PATH
+                        latest?.isFile == true -> latest.path
+                        else -> null
+                    }
                 }
             }
             return true

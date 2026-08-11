@@ -686,6 +686,8 @@ import org.catrobat.catroid.content.bricks.WebRequestBrick
 import org.catrobat.catroid.content.bricks.WhenBackPressedBrick
 import org.catrobat.catroid.content.bricks.WhenBackgroundChangesBrick
 import org.catrobat.catroid.content.bricks.WhenBounceOffBrick
+import org.catrobat.catroid.content.bricks.WhenTouchingSpriteBrick
+import org.catrobat.catroid.content.bricks.WhenTouchingSpriteByNameBrick
 import org.catrobat.catroid.content.bricks.WhenButtonPressedBrick
 import org.catrobat.catroid.content.bricks.VolumeButtonHoldBrick
 import org.catrobat.catroid.content.bricks.WhenSwipedBrick
@@ -974,6 +976,8 @@ eventBrickList.add(WhenConditionBrick(WhenConditionScript(Formula(defaultIf))))
                 eventBrickList.add(WhenTimeReachedBrick(WhenTimeReachedScript(Formula(1430))))
                 if (!isBackgroundSprite) {
                     eventBrickList.add(WhenBounceOffBrick(WhenBounceOffScript(null)))
+                    eventBrickList.add(WhenTouchingSpriteBrick())
+                    eventBrickList.add(WhenTouchingSpriteByNameBrick())
                 }
         eventBrickList.add(WhenBackgroundChangesBrick())
         eventBrickList.add(WhenFirebaseChangedBrick())
@@ -1058,6 +1062,8 @@ eventBrickList.add(WhenConditionBrick(WhenConditionScript(Formula(defaultIf))))
         eventBrickList.add(WhenTimeReachedBrick(WhenTimeReachedScript(Formula(1430))))
         if (!isBackgroundSprite) {
             eventBrickList.add(WhenBounceOffBrick(WhenBounceOffScript(null)))
+            eventBrickList.add(WhenTouchingSpriteBrick())
+            eventBrickList.add(WhenTouchingSpriteByNameBrick())
         }
         eventBrickList.add(WhenBackgroundChangesBrick())
 

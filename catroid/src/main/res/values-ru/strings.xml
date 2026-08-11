@@ -3709,6 +3709,10 @@
     </plurals>
     <string formatted="false" name="brick_collision_receive">При столкновении с</string>
     <string formatted="false" name="collision_with_anything">любым краем, актером, или объектом</string>
+    <string formatted="false" name="brick_when_touching_sprite">Когда касается другого актёра</string>
+    <string formatted="false" name="brick_when_touching_sprite_by_name">Когда касается</string>
+    <string formatted="false" name="touching_sprite_anything">любого актёра или объекта</string>
+    <string formatted="false" name="brick_when_touching_sprite_background">реагировать на фон</string>
     <string formatted="false" name="brick_broadcast_receive">Когда будет получено</string>
     <string formatted="false" name="brick_broadcast">Вещать всем</string>
     <string formatted="false" name="brick_broadcast_wait">Вещать всем и ждать</string>

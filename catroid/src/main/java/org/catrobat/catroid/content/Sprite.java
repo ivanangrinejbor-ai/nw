@@ -111,6 +111,7 @@ public class Sprite implements Nameable, Serializable {
 	private transient String runtimeName;
 	private transient Multimap<EventId, ScriptSequenceAction> idToEventThreadMap = LinkedHashMultimap.create();
 	private transient Set<ConditionScriptTrigger> conditionScriptTriggers = new HashSet<>();
+	private transient Set<TouchingSpriteTrigger> touchingSpriteTriggers = new HashSet<>();
 	private transient Set<FirebaseChangedTrigger> firebaseChangedTriggers = new HashSet<>();
 	private transient List<Integer> usedTouchPointer = new ArrayList<>();
 	private transient Color embroideryThreadColor = Color.BLACK;
@@ -471,6 +472,7 @@ public class Sprite implements Nameable, Serializable {
 	public void invalidate() {
 		idToEventThreadMap = null;
 		conditionScriptTriggers = null;
+		touchingSpriteTriggers = null;
 		firebaseChangedTriggers = null;
 		penConfiguration = null;
 		plot = null;
@@ -500,6 +502,34 @@ public class Sprite implements Nameable, Serializable {
 	public void resetConditionScriptTriggers() {
 		for (ConditionScriptTrigger conditionScriptTrigger : conditionScriptTriggers) {
 			conditionScriptTrigger.resetStartTimeIfSceneRestarted();
+		}
+	}
+
+	public void initTouchingSpriteTriggers() {
+		if (touchingSpriteTriggers == null) {
+			touchingSpriteTriggers = new HashSet<>();
+		}
+		touchingSpriteTriggers.clear();
+		for (Script script : scriptList) {
+			if (script instanceof WhenTouchingSpriteScript) {
+				WhenTouchingSpriteScript touchingScript = (WhenTouchingSpriteScript) script;
+				touchingSpriteTriggers.add(new TouchingSpriteTrigger("",
+						touchingScript.isReactToBackground()));
+			} else if (script instanceof WhenTouchingSpriteByNameScript) {
+				WhenTouchingSpriteByNameScript touchingScript = (WhenTouchingSpriteByNameScript) script;
+				touchingSpriteTriggers.add(new TouchingSpriteTrigger(
+						touchingScript.getSpriteToTouchName(),
+						touchingScript.isReactToBackground()));
+			}
+		}
+	}
+
+	void evaluateTouchingSpriteTriggers() {
+		if (touchingSpriteTriggers == null) {
+			return;
+		}
+		for (TouchingSpriteTrigger touchingSpriteTrigger : touchingSpriteTriggers) {
+			touchingSpriteTrigger.evaluateAndTriggerActions(this);
 		}
 	}
 

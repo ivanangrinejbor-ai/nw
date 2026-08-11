@@ -133,6 +133,8 @@ public final class BrickInfo {
         add(ComeToFrontBrick.class, "Перемещает обьект на передний план");
         add(GoNStepsBackBrick.class, "Изменяет слой обьекта в меньшую сторону");
         add(WhenBounceOffBrick.class, "Вызывается, когда столкновение закончено. ВАЖНО: плохо работает");
+        add(WhenTouchingSpriteBrick.class, "Вызывается, когда этот спрайт касается любого другого спрайта. Не требует физики.");
+        add(WhenTouchingSpriteByNameBrick.class, "Вызывается, когда этот спрайт касается выбранного спрайта. Не требует физики.");
         add(PlaySoundBrick.class, "Играет звук");
         add(PlaySoundAndWaitBrick.class, "Играет звук и ждет окончания");
         add(PlaySoundAtBrick.class, "Играет звук с определенного момента");
@@ -1126,6 +1128,8 @@ public final class BrickInfo {
         addEn(ComeToFrontBrick.class, "Moves the object to the front layer");
         addEn(GoNStepsBackBrick.class, "Shifts the object one layer backward");
         addEn(WhenBounceOffBrick.class, "Triggers when a collision ends. IMPORTANT: does not work well");
+        addEn(WhenTouchingSpriteBrick.class, "Triggers when this sprite touches any other sprite. No physics required.");
+        addEn(WhenTouchingSpriteByNameBrick.class, "Triggers when this sprite touches the selected sprite. No physics required.");
         addEn(PlaySoundBrick.class, "Plays a sound");
         addEn(PlaySoundAndWaitBrick.class, "Plays a sound and waits for it to finish");
         addEn(PlaySoundAtBrick.class, "Plays a sound from a specific playback position");

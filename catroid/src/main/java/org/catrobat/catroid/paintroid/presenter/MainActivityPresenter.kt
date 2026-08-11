@@ -831,6 +831,7 @@ open class MainActivityPresenter(
     private fun switchTool(type: ToolType) {
         navigator.setMaskFilterToNull()
         view.hideKeyboard()
+        downTimer?.cancel()
         downTimer = object :
             CountDownTimer(
                 if (toolController.toolList.contains(toolController.currentTool?.toolType)) CLICK_TIMEOUT_MILLIS else 0L,
@@ -841,6 +842,7 @@ open class MainActivityPresenter(
             }
             override fun onFinish() {
                 downTimer?.cancel()
+                downTimer = null
                 workspace.invalidate()
                 setTool(type)
                 toolController.switchTool(type)

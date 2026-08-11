@@ -459,6 +459,13 @@ class DesktopScriptEngine(
                         }
                     }
                 }
+                "touching_sprite" -> {
+                    val targetName = state.eventParam?.takeIf { it.isNotEmpty() }
+                    val touching = checkSpriteCollision(sprite, targetName)
+                    if (touching) {
+                        state.eventFired = true
+                    }
+                }
                 "background_changes" -> {
                     state.eventFired = (state.currentFrame?.ip ?: 0) == 0
                 }
@@ -5319,6 +5326,7 @@ class DesktopScriptEngine(
             "WhenFirebaseChangedScript" -> "firebase_changed"
             "WhenBackgroundChangesScript" -> "background_changes"
             "WhenBounceOffScript" -> "bounce_off"
+            "WhenTouchingSpriteScript", "WhenTouchingSpriteByNameScript" -> "touching_sprite"
             "BackPressedScript" -> "back_pressed"
             "WhenMouseButtonClickedScript" -> "mouse_clicked"
             "WhenMouseWheelScrolledScript" -> "mouse_wheel"
@@ -5406,6 +5414,8 @@ class DesktopScriptEngine(
                         }
                     } else if (eventType == "bounce_off") {
                         eventParam2 = extractTextContent(scriptEl, "spriteToBounceOffName")
+                    } else if (eventType == "touching_sprite") {
+                        eventParam2 = extractTextContent(scriptEl, "spriteToTouchName")
                     } else if (eventType == "gamepad_button") {
                         eventParam2 = extractTextContent(scriptEl, "action")
                     } else if (eventType == "mouse_clicked") {

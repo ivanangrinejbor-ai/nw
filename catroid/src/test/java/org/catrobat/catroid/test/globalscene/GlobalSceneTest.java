@@ -54,6 +54,7 @@ public class GlobalSceneTest {
         project.setGlobalScene(gs1);
         project.setGlobalScene(gs2);
         assertEquals("Global2", project.getGlobalScene().getName());
+        assertFalse("Replaced global scene must no longer be marked global", gs1.isGlobalScene());
     }
 
     @Test
@@ -126,6 +127,19 @@ public class GlobalSceneTest {
         project.setGlobalScene(gs);
 
         assertEquals(2, project.getAllGlobalSprites().size());
+    }
+
+    @Test
+    public void testGlobalSpriteIsReturnedOnlyOnceWhenAlsoLegacyGlobal() {
+        Scene gs = new Scene("Global", project);
+        Sprite sprite = new Sprite("Shared");
+        sprite.setGlobal(true);
+        gs.addSprite(sprite);
+        project.setGlobalScene(gs);
+        project.getDefaultScene().addSprite(sprite);
+
+        assertEquals("Global sprite ownership must be deduplicated", 1,
+                project.getAllGlobalSprites().size());
     }
 
     @Test
@@ -226,6 +240,16 @@ public class GlobalSceneTest {
         assertTrue(project.hasGlobalScene());
         project.setGlobalScene(null);
         assertFalse(project.hasGlobalScene());
+        assertFalse("Removed global scene must no longer be marked global", gs.isGlobalScene());
+    }
+
+    @Test
+    public void testAssigningRegularSceneAsGlobalMovesItOutOfSceneList() {
+        Scene regular = project.getDefaultScene();
+        project.setGlobalScene(regular);
+
+        assertTrue(regular.isGlobalScene());
+        assertFalse("A scene cannot be both regular and global", project.getSceneList().contains(regular));
     }
 
     @Test

@@ -99,6 +99,8 @@ public class SceneEditorActivity extends AppCompatActivity implements SceneEdito
 	private static final int REQUEST_SOUND_FILE = 8024;
 	private static final int REQUEST_SOUND_RECORD = 8025;
 private static final int REQUEST_OBJECT_LIBRARY = 8026;
+	private static final String PAINT_TARGET_SPRITE_ID = "paintTargetSpriteId";
+	private static final String PAINT_TARGET_LOOK_INDEX = "paintTargetLookIndex";
 
 	private SceneEditorView canvas;
 	private TextView hintView;
@@ -149,6 +151,7 @@ private Sprite pendingLookSprite;
 			finish();
 			return;
 		}
+		restorePaintTarget(savedInstanceState);
 
 		title.setText(getString(R.string.scene_editor_title) + ": " + scene.getName());
 		if (project.getXmlHeader() != null) {
@@ -1316,6 +1319,25 @@ private void showCreateObjectDialog() {
 		ProjectSaveCoordinator.saveAsync(ProjectManager.getInstance().getCurrentProject());
 	}
 
+	private void restorePaintTarget(Bundle savedInstanceState) {
+		if (savedInstanceState == null || project == null) return;
+		String spriteId = savedInstanceState.getString(PAINT_TARGET_SPRITE_ID);
+		int lookIndex = savedInstanceState.getInt(PAINT_TARGET_LOOK_INDEX, -1);
+		if (spriteId == null || lookIndex < 0) return;
+		List<Scene> scenes = new ArrayList<>(project.getSceneList());
+		if (project.hasGlobalScene()) scenes.add(project.getGlobalScene());
+		for (Scene candidateScene : scenes) {
+			for (Sprite candidateSprite : candidateScene.getSpriteList()) {
+				if (spriteId.equals(candidateSprite.getSpriteId())
+						&& lookIndex < candidateSprite.getLookList().size()) {
+					paintTargetSprite = candidateSprite;
+					paintTargetLook = candidateSprite.getLookList().get(lookIndex);
+					return;
+				}
+			}
+		}
+	}
+
 	private void switchScene(Scene targetScene) {
 		scene = targetScene;
 		ProjectManager.getInstance().setCurrentlyEditedScene(targetScene);
@@ -1420,6 +1442,16 @@ private void showCreateObjectDialog() {
 	@Override
 	public void onClosed(FloatingObjectWindow window) {
 		windows.remove(window);
+	}
+
+	@Override
+	protected void onSaveInstanceState(Bundle outState) {
+		if (paintTargetSprite != null) {
+			outState.putString(PAINT_TARGET_SPRITE_ID, paintTargetSprite.getSpriteId());
+			outState.putInt(PAINT_TARGET_LOOK_INDEX,
+					paintTargetLook == null ? -1 : paintTargetSprite.getLookList().indexOf(paintTargetLook));
+		}
+		super.onSaveInstanceState(outState);
 	}
 
 	@Override

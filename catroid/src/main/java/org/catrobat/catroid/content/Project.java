@@ -56,6 +56,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 
 import static org.catrobat.catroid.common.Constants.Z_INDEX_BACKGROUND;
@@ -193,6 +194,12 @@ public class Project implements Serializable {
 	}
 
 	public void setGlobalScene(Scene scene) {
+		if (globalScene != null && globalScene != scene) {
+			globalScene.setGlobalScene(false);
+		}
+		if (scene != null) {
+			sceneList.remove(scene);
+		}
 		this.globalScene = scene;
 		if (scene != null) {
 			scene.setGlobalScene(true);
@@ -209,7 +216,7 @@ public class Project implements Serializable {
 	}
 
 	public List<Sprite> getAllGlobalSprites() {
-		List<Sprite> result = new ArrayList<>();
+		LinkedHashSet<Sprite> result = new LinkedHashSet<>();
 		if (globalScene != null) {
 			result.addAll(globalScene.getSpriteList());
 		}
@@ -220,7 +227,7 @@ public class Project implements Serializable {
 				}
 			}
 		}
-		return result;
+		return new ArrayList<>(result);
 	}
 
 	public <T> boolean hasUserDataChanged(List<T> newUserData, List<T> oldUserData) {

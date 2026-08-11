@@ -17,7 +17,11 @@ class BottomBarViewHolder(val layout: View) : MainActivityContracts.BottomBarVie
     }
 
     override fun setSelectedTool(toolType: ToolType) {
+        val handledButtonIds = HashSet<Int>()
         for (type in ToolType.values()) {
+            if (!handledButtonIds.add(type.toolButtonID)) {
+                continue
+            }
             val button = layout.findViewById<View>(type.toolButtonID) ?: continue
             button.isSelected = type == toolType
         }

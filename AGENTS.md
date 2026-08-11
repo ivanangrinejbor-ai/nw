@@ -286,6 +286,59 @@ test/neoscript/
 
 ---
 
+# Event category — касание спрайтов (WhenTouchingSprite, 2026-08)
+
+Два блока событий, срабатывающих при перекрытии хитбоксов (AABB) БЕЗ физики:
+
+- **WhenTouchingSpriteBrick** («Когда касается другого актёра») — триггерится на касание ЛЮБОГО спрайта
+- **WhenTouchingSpriteByNameBrick** («Когда касается …») — spinner с выбором конкретного спрайта (или «любого актёра»)
+- У обоих есть CheckBox «реагировать на фон» (`reactToBackground`) — по умолчанию фон игнорируется
+
+## Файлы
+
+```
+content/
+  WhenTouchingSpriteScript.java           — Script (reactToBackground; eventId = TouchingSpriteEventId(sprite, ""))
+  WhenTouchingSpriteByNameScript.java     — Script (spriteToTouchName + reactToBackground)
+  TouchingSpriteTrigger.java              — edge-trigger: TRIGGER_NOW → fire → ALREADY_TRIGGERED → reset при расхождении
+  eventids/TouchingSpriteEventId.java     — equality: sprite + touchedSpriteName (String, "" = любой)
+content/bricks/
+  WhenTouchingSpriteBrick.java            — checkbox background (R.id.brick_when_touching_sprite_background_checkbox)
+  WhenTouchingSpriteByNameBrick.java      — BrickSpinner<Sprite> + checkbox
+res/layout/
+  brick_when_touching_sprite.xml
+  brick_when_touching_sprite_by_name.xml
+```
+
+## Рантайм (Android)
+
+- `Sprite.touchingSpriteTriggers` (transient Set<TouchingSpriteTrigger>), инициализация в `initTouchingSpriteTriggers()` (вызывается из `StageListener` при старте сцены и при клонировании, по аналогии с condition/firebase-триггерами).
+- Проверка каждый кадр: `Look.update()` → `sprite.evaluateTouchingSpriteTriggers()`.
+- `TouchingSpriteTrigger.isTouching()`: оба спрайта видны, не фон (если не reactToBackground), имя совпадает (или любой), AABB-перекрытие через `Look.getX/Y/Width/HeightInUserInterfaceDimensionUnit()`.
+- Fire: `sprite.look.fire(new EventWrapper(new TouchingSpriteEventId(sprite, name), false))` — edge-triggered: событие шлётся один раз при ВХОДЕ в касание, статус сбрасывается когда касание пропало.
+- Клоны: `matchesTargetName` матчит и по имени оригинала (`other.myOriginal`).
+
+## Desktop (DesktopScriptEngine.kt)
+
+- `mapScriptTypeToEvent`: `WhenTouchingSpriteScript`/`WhenTouchingSpriteByNameScript` → `"touching_sprite"`.
+- Парсинг: `eventParam2 = <spriteToTouchName>` (для универсального скрипта элемента нет → пустая строка = любой).
+- `checkEvents`: `checkSpriteCollision(sprite, eventParam?.takeIf { isNotEmpty })` — пустое имя → любой спрайт.
+
+## Регистрация
+
+- `XstreamSerializer`: алиасы script/brick для обоих типов.
+- `CategoryBricksFactory.kt`: оба блока в Events (только для не-фоновых спрайтов, обе ветки grouped/ungrouped).
+- `BrickInfo.java`: справка ru/en.
+- `RecentBrickListManager`: оба в nonBackgroundSpriteClasses.
+- `strings.xml`/`values-ru`: `brick_when_touching_sprite`, `brick_when_touching_sprite_by_name`, `touching_sprite_anything`, `brick_when_touching_sprite_background`.
+
+## Тесты
+
+- `WhenTouchingSpriteBrickTest.java` (4) + `WhenTouchingSpriteByNameBrickTest.java` (3) — brick↔script linkage, clone, конструкторы.
+- Проверка: `./gradlew :catroid:testCatroidDebugUnitTest --tests "*WhenTouchingSprite*"`.
+
+---
+
 # Backpack — портфель скриптов/объектов
 
 ## Обзор

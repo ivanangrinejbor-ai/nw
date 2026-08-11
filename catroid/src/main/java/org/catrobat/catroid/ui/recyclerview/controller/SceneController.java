@@ -117,7 +117,11 @@ public class SceneController {
 	}
 
 	public Scene copy(Scene sceneToCopy, Project dstProject) throws IOException {
-		String name = uniqueNameProvider.getUniqueNameInNameables(sceneToCopy.getName(), dstProject.getSceneList());
+		List<Scene> existingScenes = new java.util.ArrayList<>(dstProject.getSceneList());
+		if (dstProject.hasGlobalScene()) {
+			existingScenes.add(dstProject.getGlobalScene());
+		}
+		String name = uniqueNameProvider.getUniqueNameInNameables(sceneToCopy.getName(), existingScenes);
 
 		Scene scene = new Scene();
 		scene.setName(name);
@@ -161,7 +165,7 @@ public class SceneController {
 	public void delete(Scene sceneToDelete) throws IOException {
 		Project currentProject = ProjectManager.getInstance().getCurrentProject();
 
-		if (sceneToDelete.isGlobalScene() || sceneToDelete.equals(currentProject.getGlobalScene())) {
+		if (sceneToDelete.equals(currentProject.getGlobalScene())) {
 			currentProject.setGlobalScene(null);
 			StorageOperations.deleteDir(sceneToDelete.getDirectory());
 			XstreamSerializer.getInstance().saveProject(currentProject);

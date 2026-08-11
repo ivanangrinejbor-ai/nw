@@ -60,7 +60,6 @@ class PaintNewLookAction : PocketPaintAction() {
             bundle.putString(Constants.EXTRA_PICTURE_PATH_POCKET_PAINT, createEmptyImageFile().absolutePath)
             intent.putExtras(bundle)
             intent.addCategory("android.intent.category.LAUNCHER")
-            StageActivity.activeStageActivity.get()?.onPause()
             intent
         }
     }
@@ -127,12 +126,14 @@ class PaintNewLookAction : PocketPaintAction() {
 
 object LookRequester {
     private val anyAsked = java.util.concurrent.atomic.AtomicBoolean(false)
+    private var pendingAction: PocketPaintAction? = null
 
     @Synchronized
     fun requestNewLook(pocketPaintAction: PocketPaintAction): Boolean {
         if (anyAsked.getAndSet(true)) {
             return false
         }
+        pendingAction = pocketPaintAction
         StageActivity.messageHandler?.obtainMessage(StageActivity.REGISTER_INTENT, arrayListOf(pocketPaintAction)
         )?.sendToTarget()
         return true
@@ -143,8 +144,14 @@ object LookRequester {
         var file: File? = null
         val TAG = "LookRequester"
         try {
-            val currentScene = ProjectManager.getInstance().currentlyPlayingScene
-            val imageDirectory = File(currentScene.directory, Constants.IMAGE_DIRECTORY_NAME)
+            val project = ProjectManager.getInstance().currentProject
+            val sprite = pendingAction?.scope?.sprite
+            val ownerScene = project.globalScene?.takeIf { scene ->
+                scene.spriteList.any { it === sprite }
+            } ?: project.sceneList.firstOrNull { scene ->
+                scene.spriteList.any { it === sprite }
+            } ?: ProjectManager.getInstance().currentlyPlayingScene
+            val imageDirectory = File(ownerScene.directory, Constants.IMAGE_DIRECTORY_NAME)
             val pocketPaintImageFileName = Constants.TMP_IMAGE_FILE_NAME + Constants.DEFAULT_IMAGE_EXTENSION
             val pocketPaintFile = File(Constants.POCKET_PAINT_CACHE_DIRECTORY, pocketPaintImageFileName)
             file = StorageOperations.copyFileToDir(pocketPaintFile, imageDirectory)
@@ -152,10 +159,13 @@ object LookRequester {
             Log.e(TAG, Log.getStackTraceString(e))
         }
         anyAsked.set(false)
+        pendingAction = null
         return file
     }
 
+    @Synchronized
     fun reset() {
         anyAsked.set(false)
+        pendingAction = null
     }
 }
