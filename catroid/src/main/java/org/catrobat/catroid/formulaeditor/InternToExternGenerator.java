@@ -80,6 +80,10 @@ public class InternToExternGenerator {
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.RGB.name(), R.string.formula_editor_function_rgb);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.HSV.name(), R.string.formula_editor_function_hsv);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.MIX_COLOR.name(), R.string.formula_editor_function_mix_color);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.TIMESTAMP.name(), R.string.formula_editor_function_timestamp);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.COLOR_ADD.name(), R.string.formula_editor_function_color_add);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.COLOR_DARKEN.name(), R.string.formula_editor_function_color_darken);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.COLOR_LIGHTEN.name(), R.string.formula_editor_function_color_lighten);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.CURRENT_STATE.name(), R.string.formula_editor_function_current_state);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.STATE_TIME.name(), R.string.formula_editor_function_state_time);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.DISTAN.name(), R.string.formula_editor_function_distan);

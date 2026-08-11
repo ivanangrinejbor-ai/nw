@@ -67,9 +67,13 @@ class AddBrickFragment : ListFragment() {
         val view = inflater.inflate(R.layout.fragment_brick_add, container, false)
         previousActionBarTitle = (activity as? AppCompatActivity)?.supportActionBar?.title
         (activity as? AppCompatActivity)?.supportActionBar?.title = arguments?.getString(BUNDLE_ARGUMENTS_SELECTED_CATEGORY)
-        addHelpHeader(inflater)
         setupSelectedBrickCategory()
         return view
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        addHelpHeader(LayoutInflater.from(requireContext()))
     }
 
     private fun addHelpHeader(inflater: LayoutInflater) {
@@ -120,7 +124,9 @@ class AddBrickFragment : ListFragment() {
         }
 
         listView.onItemClickListener = AdapterView.OnItemClickListener { parent: AdapterView<*>?, view: View?, position: Int, id: Long ->
-            adapter?.getItem(position)?.let { brick ->
+            val adapterPosition = position - listView.headerViewsCount
+            if (adapterPosition < 0) return@OnItemClickListener
+            adapter?.getItem(adapterPosition)?.let { brick ->
                 if (brick is org.catrobat.catroid.content.bricks.SubCategoryHeaderBrick) {
                     brick.isExpanded = !brick.isExpanded
                     view?.let { clickedView ->
@@ -136,7 +142,9 @@ class AddBrickFragment : ListFragment() {
         }
 
         listView.onItemLongClickListener = AdapterView.OnItemLongClickListener { _, _, position, _ ->
-            adapter?.getItem(position)?.let { brick ->
+            val adapterPosition = position - listView.headerViewsCount
+            if (adapterPosition < 0) return@OnItemLongClickListener true
+            adapter?.getItem(adapterPosition)?.let { brick ->
                 if (brick !is org.catrobat.catroid.content.bricks.SubCategoryHeaderBrick) {
                     showAddBrickPreviewDialog(brick)
                 }

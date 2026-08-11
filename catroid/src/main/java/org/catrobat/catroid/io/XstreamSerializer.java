@@ -59,6 +59,8 @@ import org.catrobat.catroid.content.WhenConditionScript;
 import org.catrobat.catroid.content.WhenVariableChangedScript;
 import org.catrobat.catroid.content.WhenFirebaseChangedScript;
 import org.catrobat.catroid.content.WhenGamepadButtonScript;
+import org.catrobat.catroid.content.WhenButtonPressedScript;
+import org.catrobat.catroid.content.WhenTimeReachedScript;
 import org.catrobat.catroid.content.WhenNfcScript;
 import org.catrobat.catroid.content.WhenScript;
 import org.catrobat.catroid.content.WhenTouchDownScript;
@@ -606,6 +608,7 @@ public final class XstreamSerializer {
 		xstream.alias("brick", LoopEndBrick.class);
 		xstream.alias("brick", LoopEndlessBrick.class);
 		xstream.alias("brick", LookRequestBrick.class);
+		xstream.alias("brick", LookFromUrlBrick.class);
 		xstream.alias("brick", PaintNewLookBrick.class);
 		xstream.alias("brick", EditLookBrick.class);
 		xstream.alias("brick", DeleteLookBrick.class);
@@ -664,6 +667,7 @@ public final class XstreamSerializer {
 		xstream.alias("brick", ShowTextBrick.class);
 		xstream.alias("brick", SpeakBrick.class);
 		xstream.alias("brick", SpeakAndWaitBrick.class);
+		xstream.alias("brick", SpeakWithRateBrick.class);
 		xstream.alias("brick", StartListeningBrick.class);
 		xstream.alias("brick", StartRecordingBrick.class);
 		xstream.alias("brick", StopRecordingBrick.class);
@@ -742,6 +746,12 @@ public final class XstreamSerializer {
 		xstream.alias("script", WhenGamepadButtonScript.class);
 		xstream.alias("brick", WhenGamepadButtonBrick.class);
 
+		xstream.alias("script", WhenButtonPressedScript.class);
+		xstream.alias("brick", WhenButtonPressedBrick.class);
+
+		xstream.alias("script", WhenTimeReachedScript.class);
+		xstream.alias("brick", WhenTimeReachedBrick.class);
+
 		xstream.alias("brick", AssertEqualsBrick.class);
 		xstream.alias("brick", FinishStageBrick.class);
 		xstream.alias("brick", AssertUserListsBrick.class);
@@ -810,6 +820,7 @@ public final class XstreamSerializer {
 		xstream.alias("brick", BigAskBrick.class);
 		xstream.alias("brick", ZipBrick.class);
 		xstream.alias("brick", UnzipBrick.class);
+		xstream.alias("brick", DownloadZippedLooksBrick.class);
 		xstream.alias("brick", GetZipFileNamesBrick.class);
 		xstream.alias("brick", ShowText3Brick.class);
 		xstream.alias("brick", HideText3Brick.class);
@@ -1226,6 +1237,7 @@ public final class XstreamSerializer {
 
 			if (!tmpCodeFile.renameTo(currentCodeFile)) {
 				Log.e(TAG, "Cannot rename code.xml for " + project.getName());
+				return false;
 			}
 
 			return true;

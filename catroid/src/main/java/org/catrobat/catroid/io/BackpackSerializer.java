@@ -92,11 +92,16 @@ public final class BackpackSerializer {
 		try {
 			BufferedReader bufferedReader = new BufferedReader(new FileReader(backpackFile));
 			return backpackGson.fromJson(bufferedReader, Backpack.class);
+		} catch (FileNotFoundException e) {
+			Log.e(TAG, "Backpack file not found. Creating new Backpack.", e);
+			return new Backpack();
 		} catch (Exception e) {
-			if (!(e instanceof FileNotFoundException)) {
-				backpackFile.delete();
+			Log.e(TAG, "Cannot load Backpack. Preserving corrupted file.", e);
+			File corrupted = new File(backpackFile.getAbsolutePath() + ".corrupted");
+			if (corrupted.exists()) {
+				corrupted.delete();
 			}
-			Log.e(TAG, "Cannot load Backpack. Creating new Backpack File.", e);
+			backpackFile.renameTo(corrupted);
 			return new Backpack();
 		}
 	}

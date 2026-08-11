@@ -190,4 +190,12 @@ public class PocketMusicActivity extends BaseActivity {
 			midiDriver.setInstrument((byte) 0, Project.DEFAULT_INSTRUMENT);
 		}
 	}
+
+	@Override
+	protected void onDestroy() {
+		if (midiDriver != null) {
+			midiDriver.stop();
+		}
+		super.onDestroy();
+	}
 }

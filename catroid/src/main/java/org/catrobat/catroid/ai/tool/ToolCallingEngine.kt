@@ -43,7 +43,7 @@ object ToolCallingEngine {
     )
 
     fun init(appContext: Context) {
-        context = appContext
+        context = appContext.applicationContext
         registerDefaultTools()
     }
 

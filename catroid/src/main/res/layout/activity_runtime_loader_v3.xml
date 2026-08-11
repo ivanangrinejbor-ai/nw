@@ -2,58 +2,54 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#3A3A3C"
     android:gravity="center"
     android:orientation="vertical"
-    android:background="#1A1A2E"
-    android:padding="32dp">
-
-    <ImageView
-        android:id="@+id/v3_runtime_logo"
-        android:layout_width="96dp"
-        android:layout_height="96dp"
-        android:src="@mipmap/ic_launcher"
-        android:contentDescription="Logo"
-        android:layout_marginBottom="16dp" />
+    android:padding="40dp">
 
     <TextView
         android:id="@+id/v3_runtime_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/v3_loading_title"
-        android:textSize="22sp"
-        android:textColor="#FFFFFF"
-        android:textStyle="bold"
-        android:layout_marginBottom="32dp" />
+        android:layout_marginBottom="24dp"
+        android:fontFamily="sans-serif-light"
+        android:text="@string/v3_loading"
+        android:textColor="#A8DFF4"
+        android:textSize="22sp" />
 
     <ProgressBar
         android:id="@+id/v3_progress_bar"
         style="?android:attr/progressBarStyleHorizontal"
         android:layout_width="match_parent"
-        android:layout_height="10dp"
-        android:layout_marginBottom="12dp"
+        android:layout_height="6dp"
+        android:layout_marginBottom="8dp"
         android:max="100"
         android:progress="0"
-        android:progressTint="#E94560"
-        android:indeterminateTint="#E94560" />
+        android:progressTint="#A8DFF4"
+        android:indeterminateTint="#A8DFF4" />
 
     <TextView
         android:id="@+id/v3_status_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="40dp"
+        android:fontFamily="sans-serif-light"
         android:text="@string/v3_loading"
-        android:textSize="15sp"
-        android:textColor="#CCCCCC"
-        android:layout_marginBottom="48dp" />
+        android:textColor="#FFFFFF"
+        android:textSize="15sp" />
 
     <TextView
         android:id="@+id/v3_fact_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text=""
-        android:textSize="12sp"
-        android:textColor="#888888"
+        android:layout_marginHorizontal="16dp"
+        android:alpha="0.8"
+        android:fontFamily="sans-serif-light"
         android:gravity="center"
+        android:lineSpacingMultiplier="1.25"
         android:maxLines="3"
-        android:layout_marginHorizontal="16dp" />
+        android:text=""
+        android:textColor="#A8DFF4"
+        android:textSize="14sp" />
 
 </LinearLayout>

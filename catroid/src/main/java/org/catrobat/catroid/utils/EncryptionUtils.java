@@ -29,10 +29,22 @@ public final class EncryptionUtils {
 	private EncryptionUtils() {
 	}
 
+	private static final String PREF_FALLBACK_ID = "encryption_fallback_device_id";
+
+	private static String getOrCreateFallbackId(Context context) {
+		android.content.SharedPreferences prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+		String id = prefs.getString(PREF_FALLBACK_ID, null);
+		if (id == null || id.isEmpty()) {
+			id = java.util.UUID.randomUUID().toString();
+			prefs.edit().putString(PREF_FALLBACK_ID, id).apply();
+		}
+		return id;
+	}
+
 	private static SecretKeySpec getSecretKey(Context context) throws Exception {
 		String androidId = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
 		if (androidId == null || androidId.isEmpty()) {
-			androidId = "neocatroid_default_fallback_device_id_2026";
+			androidId = getOrCreateFallbackId(context);
 		}
 		String rawKey = androidId + "_" + context.getPackageName() + "_secure_var_salt";
 		MessageDigest digest = MessageDigest.getInstance("SHA-256");

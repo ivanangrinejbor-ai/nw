@@ -1672,6 +1672,18 @@ public class ActionFactory extends Actions {
 		return action;
 	}
 
+	public Action createSpeakWithRateAction(Sprite sprite, SequenceAction sequence, Formula text,
+			Formula rate, Formula pitch) {
+		SpeakWithRateAction action = action(SpeakWithRateAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setSpeechSynthesizer(new SpeechSynthesizer(scope, text));
+		action.setRate(rate);
+		action.setPitch(pitch);
+		action.setMobileServiceAvailability(get(MobileServiceAvailability.class));
+		action.setContext(StageActivity.activeStageActivity != null ? StageActivity.activeStageActivity.get() : null);
+		return action;
+	}
+
 	public Action createStopAllSoundsAction() {
 		return Actions.action(StopAllSoundsAction.class);
 	}
@@ -3765,6 +3777,26 @@ public class ActionFactory extends Actions {
 		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
 		action.setScope(scope);
 		action.setFormula(variableFormula);
+		return action;
+	}
+
+	public Action createLookFromUrlAction(Sprite sprite, SequenceAction sequence,
+			Formula url, Formula lookName) {
+		LookFromUrlAction action = action(LookFromUrlAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setFormula(url);
+		action.setLookName(lookName);
+		return action;
+	}
+
+	public Action createDownloadZippedLooksAction(Sprite sprite, SequenceAction sequence,
+			Formula url, Formula lookNamePrefix) {
+		DownloadZippedLooksAction action = action(DownloadZippedLooksAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setUrl(url);
+		action.setLookNamePrefix(lookNamePrefix);
 		return action;
 	}
 

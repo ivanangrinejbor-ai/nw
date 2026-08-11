@@ -56,7 +56,7 @@ object ApkBuilderV3Engine {
             listener.onProgress(30f, "Generating encryption keys...", "")
 
             val keyResult = DynamicKeyManager.generateKey(project.name)
-            if (!DynamicKeyManager.verifyKeyIntegrity(keyResult.storedKeyString)) {
+            if (!DynamicKeyManager.verifyKeyIntegrity(keyResult.keyFileContents)) {
                 return@withContext AssemblyResult.Failure("Key generation integrity check failed.")
             }
 
@@ -88,8 +88,8 @@ object ApkBuilderV3Engine {
                 context = context,
                 config = config,
                 encryptedPayload = encryptedPayload,
-                keyFileName = keyResult.keyFileName,
-                keyContent = keyResult.storedKeyString,
+                keyFileNames = keyResult.keyFileNames,
+                keyFileContents = keyResult.keyFileContents,
                 workDir = tempDir,
                 firebaseConfig = config.firebaseConfig
             ) { p, file ->
@@ -118,7 +118,7 @@ object ApkBuilderV3Engine {
 
             AssemblyResult.Success(
                 apkFile = resultFile,
-                keyFileName = keyResult.keyFileName,
+                keyFileNames = keyResult.keyFileNames,
                 templateType = config.templateType,
                 totalSizeBytes = resultFile.length()
             )

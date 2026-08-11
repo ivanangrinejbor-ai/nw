@@ -163,8 +163,9 @@ public abstract class RVAdapter<T> extends RecyclerView.Adapter<CheckableViewHol
 	}
 
 	public boolean remove(T item) {
-		if (items.remove(item)) {
-			notifyItemRemoved(items.indexOf(item));
+		int index = items.indexOf(item);
+		if (index >= 0 && items.remove(index) != null) {
+			notifyItemRemoved(index);
 			return true;
 		}
 		return false;

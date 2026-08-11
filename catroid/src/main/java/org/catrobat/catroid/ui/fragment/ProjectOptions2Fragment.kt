@@ -496,7 +496,8 @@ class ProjectOptions2Fragment : Fragment() {
                 val zipFile = File(appContext.cacheDir, "${proj.name}_baked.zip")
                 zipDirectoryTo(tempDir, zipFile) { progress.updateFile(it) }
                 val encFile = File(appContext.cacheDir, "${proj.name}_baked.enc")
-                ProjectCrypto.encrypt(zipFile, encFile, ProtectedProjectPayload.PASSWORD)
+                val bakedPassword = org.catrobat.catroid.io.ProjectCrypto.generateRandomPassword()
+                ProjectCrypto.encrypt(zipFile, encFile, bakedPassword)
                 zipFile.delete()
                 tempDir.deleteRecursively()
 

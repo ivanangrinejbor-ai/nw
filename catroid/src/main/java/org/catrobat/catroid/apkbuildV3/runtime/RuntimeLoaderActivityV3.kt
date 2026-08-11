@@ -141,7 +141,7 @@ class RuntimeLoaderActivityV3 : Activity() {
     }
 
     private fun showRandomFact() {
-        val fact = FUN_FACTS[Math.random().toInt().let { Math.abs(it) % FUN_FACTS.size }]
+        val fact = FUN_FACTS[java.util.concurrent.ThreadLocalRandom.current().nextInt(FUN_FACTS.size)]
         factText.text = getString(R.string.v3_fun_fact_prefix, fact)
     }
 
@@ -162,5 +162,7 @@ class RuntimeLoaderActivityV3 : Activity() {
     override fun onDestroy() {
         super.onDestroy()
         handler.removeCallbacksAndMessages(null)
+        File(cacheDir, "v3_project_full").deleteRecursively()
+        File(cacheDir, "v3_project_light").deleteRecursively()
     }
 }

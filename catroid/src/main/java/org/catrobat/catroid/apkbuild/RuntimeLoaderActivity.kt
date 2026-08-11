@@ -33,6 +33,7 @@ class RuntimeLoaderActivity : Activity() {
         Thread {
             val projectDir = prepareBakedProject()
             handler.post {
+                if (isFinishing || isDestroyed) return@post
                 if (projectDir == null) {
                     statusText.text = if (tampered) {
                         getString(R.string.baked_project_tampered)
@@ -95,7 +96,8 @@ class RuntimeLoaderActivity : Activity() {
                     keyInput.bufferedReader().readText().trim()
                 }
             } catch (e: Exception) {
-                ProtectedProjectPayload.PASSWORD
+                Log.e("RuntimeLoader", "No key asset found", e)
+                return null
             }
 
             val sigContent = try {
@@ -103,14 +105,17 @@ class RuntimeLoaderActivity : Activity() {
             } catch (e: Exception) {
                 null
             }
-            if (sigContent != null) {
-                val ownCert = PayloadIntegrity.ownCertHash(this)
-                val datBytes = encryptedFile.readBytes()
-                if (ownCert == null || !PayloadIntegrity.verify(sigContent, datBytes, ownCert)) {
-                    Log.e("RuntimeLoader", "Integrity check failed — tampered or repacked APK")
-                    tampered = true
-                    return null
-                }
+            if (sigContent == null) {
+                Log.e("RuntimeLoader", "Integrity signature missing — refusing to load protected project")
+                tampered = true
+                return null
+            }
+            val ownCert = PayloadIntegrity.ownCertHash(this)
+            val datBytes = encryptedFile.readBytes()
+            if (ownCert == null || !PayloadIntegrity.verify(sigContent, datBytes, ownCert)) {
+                Log.e("RuntimeLoader", "Integrity check failed — tampered or repacked APK")
+                tampered = true
+                return null
             }
 
             if (!PayloadDecryptor.decrypt(this, encryptedFile, decryptedZip, password)) {
@@ -154,5 +159,6 @@ class RuntimeLoaderActivity : Activity() {
     override fun onDestroy() {
         super.onDestroy()
         handler.removeCallbacksAndMessages(null)
+        File(cacheDir, "baked_project").deleteRecursively()
     }
 }

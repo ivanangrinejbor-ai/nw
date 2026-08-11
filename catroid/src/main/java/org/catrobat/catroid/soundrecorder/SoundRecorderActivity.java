@@ -99,6 +99,21 @@ public class SoundRecorderActivity extends BaseActivity implements OnClickListen
 		super.onBackPressed();
 	}
 
+	@Override
+	protected void onPause() {
+		if (isFinishing()) {
+			stopRecording();
+		}
+		super.onPause();
+	}
+
+	@Override
+	protected void onDestroy() {
+		stopRecording();
+		soundRecorder = null;
+		super.onDestroy();
+	}
+
 	private synchronized void startRecording() {
 		if (soundRecorder != null && soundRecorder.isRecording()) {
 			return;

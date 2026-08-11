@@ -223,6 +223,14 @@ case R.string.formula_editor_function_hsv:
 case R.string.formula_editor_function_mix_color:
 				return buildTripleParameterFunction(Functions.MIX_COLOR, STRING, "#ff0000", STRING,
 						"#0000ff", NUMBER, "0.5");
+case R.string.formula_editor_function_timestamp:
+				return buildFunctionWithoutParametersAndBrackets(Functions.TIMESTAMP);
+case R.string.formula_editor_function_color_add:
+				return buildDoubleParameterFunction(Functions.COLOR_ADD, STRING, "#ff0000", STRING, "#00ff00");
+case R.string.formula_editor_function_color_darken:
+				return buildDoubleParameterFunction(Functions.COLOR_DARKEN, STRING, "#ff0000", NUMBER, "0.5");
+case R.string.formula_editor_function_color_lighten:
+				return buildDoubleParameterFunction(Functions.COLOR_LIGHTEN, STRING, "#ff0000", NUMBER, "0.5");
 case R.string.formula_editor_function_current_state:
 				return buildSingleParameterFunction(Functions.CURRENT_STATE, STRING, "ai");
 case R.string.formula_editor_function_state_time:

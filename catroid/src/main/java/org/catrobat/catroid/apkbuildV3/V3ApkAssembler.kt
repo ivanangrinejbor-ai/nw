@@ -47,8 +47,8 @@ object V3ApkAssembler {
         context: Context,
         config: ApkBuilderV3Config,
         encryptedPayload: File,
-        keyFileName: String,
-        keyContent: String,
+        keyFileNames: List<String>,
+        keyFileContents: List<String>,
         workDir: File,
         firebaseConfig: FirebaseConfig? = null,
         onProgress: ((Float, String) -> Unit)? = null
@@ -60,7 +60,7 @@ object V3ApkAssembler {
         onProgress?.invoke(0.15f, baseApk.name)
 
         val injectedApk = File(workDir, "v3_injected.apk")
-        injectAssets(baseApk, injectedApk, encryptedPayload, keyFileName, keyContent, config.templateType)
+        injectAssets(baseApk, injectedApk, encryptedPayload, keyFileNames, keyFileContents, config.templateType, workDir)
         onProgress?.invoke(0.4f, injectedApk.name)
 
         val patchedApk = File(workDir, "v3_patched.apk")
@@ -89,79 +89,79 @@ object V3ApkAssembler {
         return TemplateManagerV3.prepareBaseApk(context, workDir)
     }
 
-    private fun forceArscUncompressed(module: ApkModule) {
-        try {
-            module.zipEntryMap.getInputSource("resources.arsc")?.isUncompressed = true
-        } catch (e: Exception) {
-            Log.w(TAG, "Could not force resources.arsc uncompressed", e)
-        }
-    }
-
-    private fun injectAssets(
+    internal fun injectAssets(
         baseApk: File,
         outApk: File,
         payload: File,
-        keyFileName: String,
-        keyContent: String,
-        templateType: TemplateType
+        keyFileNames: List<String>,
+        keyFileContents: List<String>,
+        templateType: TemplateType,
+        workDir: File
     ) {
-        baseApk.copyTo(outApk, overwrite = true)
+        ApkModule.loadApkFile(baseApk).use { module ->
+            module.setLoadDefaultFramework(false)
 
-        ApkModule.loadApkFile(outApk).use { module ->
-            module.zipEntryMap.remove("assets/project")
-            module.zipEntryMap.remove("assets/project.zip")
-            module.zipEntryMap.remove("assets/$ASSET_PAYLOAD")
+            for (old in listOf("assets/project", "assets/project.zip", "assets/$ASSET_PAYLOAD", "assets/$FULL_MARKER")) {
+                runCatching { module.removeInputSource(old) }
+                runCatching { module.removeDir(old) }
+            }
 
             module.add(FileInputSource(payload, "assets/$ASSET_PAYLOAD"))
 
-            val keyFile = File.createTempFile("v3_key_", ".tmp")
-            keyFile.writeText(keyContent)
-            module.add(FileInputSource(keyFile, "assets/$keyFileName"))
-
-            if (templateType == TemplateType.FULL) {
-                val marker = File.createTempFile("v3_marker_", ".tmp")
-                marker.writeText("FULL")
-                module.add(FileInputSource(marker, "assets/$FULL_MARKER"))
+            for ((idx, fileName) in keyFileNames.withIndex()) {
+                val content = keyFileContents.getOrElse(idx) { "" }.toByteArray()
+                val keyFile = File(workDir, fileName)
+                keyFile.writeBytes(content)
+                module.add(FileInputSource(keyFile, "assets/$fileName"))
             }
 
-            forceArscUncompressed(module)
+            if (templateType == TemplateType.FULL) {
+                val markerFile = File(workDir, FULL_MARKER)
+                markerFile.writeText("FULL")
+                module.add(FileInputSource(markerFile, "assets/$FULL_MARKER"))
+            }
+
             module.writeApk(outApk)
         }
     }
 
-    private fun patchManifest(baseApk: File, outApk: File, config: ApkBuilderV3Config) {
-        baseApk.copyTo(outApk, overwrite = true)
+    internal fun patchManifest(injectedApk: File, outApk: File, config: ApkBuilderV3Config) {
+        try {
+            ApkModule.loadApkFile(injectedApk).use { module ->
+                module.setLoadDefaultFramework(false)
+                val manifest = module.androidManifest
 
-        ApkModule.loadApkFile(outApk).use { module ->
-            val manifest = module.androidManifest
+                if (config.packageName.isNotBlank()) {
+                    applyPackageRename(manifest, config.packageName)
+                }
 
-            if (config.packageName.isNotBlank()) {
-                applyPackageRename(manifest, config.packageName)
+                manifest.versionCode = config.versionCode
+                manifest.versionName = config.versionName
+
+                manifest.minSdkVersion = config.minSdk
+                manifest.targetSdkVersion = config.targetSdk
+
+                val appElem = manifest.applicationElement
+                appElem.getOrCreateAndroidAttribute("label", ATTR_LABEL)
+                    .setValueAsString(config.appName)
+
+                appElem.getOrCreateAndroidAttribute("debuggable", ATTR_DEBUGGABLE)
+                    .setValueAsBoolean(config.debuggable)
+                appElem.getOrCreateAndroidAttribute("testOnly", ATTR_TEST_ONLY)
+                    .setValueAsBoolean(false)
+
+                config.permissions.forEach { perm ->
+                    manifest.addUsesPermission(perm)
+                }
+
+                makeRuntimeLoaderLauncher(manifest)
+
+                module.refreshManifest()
+                module.writeApk(outApk)
             }
-
-            manifest.versionCode = config.versionCode
-            manifest.versionName = config.versionName
-
-            manifest.minSdkVersion = config.minSdk
-            manifest.targetSdkVersion = config.targetSdk
-
-            val appElem = manifest.applicationElement
-            appElem.getOrCreateAndroidAttribute("label", ATTR_LABEL)
-                .setValueAsString(config.appName)
-
-            appElem.getOrCreateAndroidAttribute("debuggable", ATTR_DEBUGGABLE)
-                .setValueAsBoolean(config.debuggable)
-            appElem.getOrCreateAndroidAttribute("testOnly", ATTR_TEST_ONLY)
-                .setValueAsBoolean(false)
-
-            config.permissions.forEach { perm ->
-                manifest.addUsesPermission(perm)
-            }
-
-            makeRuntimeLoaderLauncher(manifest)
-
-            forceArscUncompressed(module)
-            module.writeApk(outApk)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to patch manifest", e)
+            throw e
         }
     }
 
@@ -230,54 +230,61 @@ object V3ApkAssembler {
         }
     }
 
-    private fun injectFirebaseConfig(
+    internal fun injectFirebaseConfig(
         inputApk: File,
         outputApk: File,
         firebaseConfig: FirebaseConfig,
         targetPackage: String
     ) {
-        inputApk.copyTo(outputApk, overwrite = true)
+        try {
+            ApkModule.loadApkFile(inputApk).use { module ->
+                module.setLoadDefaultFramework(false)
+                val table = module.getTableBlock(false)
 
-        ApkModule.loadApkFile(outputApk).use { module ->
-            val table = module.getTableBlock(false) ?: run {
-                Log.w(TAG, "Cannot inject Firebase config: no TableBlock found")
-                return
-            }
-
-            val replacements = mapOf(
-                "google_app_id" to firebaseConfig.mobileSdkAppId,
-                "gcm_defaultSenderId" to firebaseConfig.projectNumber,
-                "google_api_key" to firebaseConfig.apiKey,
-                "google_crash_reporting_api_key" to firebaseConfig.apiKey,
-                "project_id" to firebaseConfig.projectId,
-                "google_storage_bucket" to firebaseConfig.storageBucket,
-                "firebase_database_url" to firebaseConfig.databaseUrl,
-                "default_web_client_id" to firebaseConfig.defaultWebClientId
-            )
-
-            var updatedCount = 0
-            for ((resName, resValue) in replacements) {
-                if (resValue.isBlank()) {
-                    Log.d(TAG, "Firebase resource '$resName' has empty value, skipping")
-                    continue
+                if (table == null) {
+                    Log.w(TAG, "Cannot inject Firebase config: no TableBlock found")
+                    module.writeApk(outputApk)
+                    return@use
                 }
-                try {
-                    val entry = table.getEntry("string", resName, "")
-                    if (entry != null) {
-                        entry.resValue?.setValueAsString(resValue)
-                        updatedCount++
-                        Log.d(TAG, "Updated Firebase resource: $resName = $resValue")
-                    } else {
-                        Log.w(TAG, "Firebase resource '$resName' not found in resources.arsc")
+
+                val replacements = mapOf(
+                    "google_app_id" to firebaseConfig.mobileSdkAppId,
+                    "gcm_defaultSenderId" to firebaseConfig.projectNumber,
+                    "google_api_key" to firebaseConfig.apiKey,
+                    "google_crash_reporting_api_key" to firebaseConfig.apiKey,
+                    "project_id" to firebaseConfig.projectId,
+                    "google_storage_bucket" to firebaseConfig.storageBucket,
+                    "firebase_database_url" to firebaseConfig.databaseUrl,
+                    "default_web_client_id" to firebaseConfig.defaultWebClientId
+                )
+
+                var updatedCount = 0
+                for ((resName, resValue) in replacements) {
+                    if (resValue.isBlank()) {
+                        Log.d(TAG, "Firebase resource '$resName' has empty value, skipping")
+                        continue
                     }
-                } catch (e: Exception) {
-                    Log.w(TAG, "Failed to update Firebase resource '$resName'", e)
+                    try {
+                        val entry = table.getEntry("string", resName, "")
+                        if (entry != null) {
+                            entry.resValue?.setValueAsString(resValue)
+                            updatedCount++
+                            Log.d(TAG, "Updated Firebase resource: $resName = $resValue")
+                        } else {
+                            Log.w(TAG, "Firebase resource '$resName' not found in resources.arsc")
+                        }
+                    } catch (e: Exception) {
+                        Log.w(TAG, "Failed to update Firebase resource '$resName'", e)
+                    }
                 }
-            }
 
-            Log.i(TAG, "Firebase config injected: $updatedCount resources updated")
-            forceArscUncompressed(module)
-            module.writeApk(outputApk)
+                Log.i(TAG, "Firebase config injected: $updatedCount resources updated")
+                module.refreshTable()
+                module.writeApk(outputApk)
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to inject Firebase config", e)
+            throw e
         }
     }
 
@@ -297,7 +304,7 @@ object V3ApkAssembler {
         val validityDays = 3650L * 24 * 60 * 60 * 1000
         val certBuilder = JcaX509v3CertificateBuilder(
             X500Name("CN=NeoCatroid V3, O=NeoCatroid, C=US"),
-            BigInteger.valueOf(System.currentTimeMillis()),
+            BigInteger(64, java.security.SecureRandom()),
             Date(now.time - 1000),
             Date(now.time + validityDays),
             X500Name("CN=NeoCatroid V3, O=NeoCatroid, C=US"),
@@ -315,14 +322,18 @@ object V3ApkAssembler {
         keyStore.setKeyEntry(alias, kp.private, password.toCharArray(), arrayOf(certificate))
         keystoreFile.outputStream().use { keyStore.store(it, password.toCharArray()) }
 
-        val signerConfig = SignerConfig.Builder(alias, kp.private as PrivateKey, listOf(certificate)).build()
-        ApkSigner.Builder(listOf(signerConfig))
-            .setInputApk(inputApk)
-            .setOutputApk(outputApk)
-            .setV1SigningEnabled(true)
-            .setV2SigningEnabled(true)
-            .setV3SigningEnabled(true)
-            .build()
-            .sign()
+        try {
+            val signerConfig = SignerConfig.Builder(alias, kp.private as PrivateKey, listOf(certificate)).build()
+            ApkSigner.Builder(listOf(signerConfig))
+                .setInputApk(inputApk)
+                .setOutputApk(outputApk)
+                .setV1SigningEnabled(true)
+                .setV2SigningEnabled(true)
+                .setV3SigningEnabled(true)
+                .build()
+                .sign()
+        } finally {
+            keystoreFile.delete()
+        }
     }
 }

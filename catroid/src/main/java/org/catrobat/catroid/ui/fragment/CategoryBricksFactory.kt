@@ -33,6 +33,8 @@ import org.catrobat.catroid.content.WhenBounceOffScript
 import org.catrobat.catroid.content.WhenSwipedScript
 import org.catrobat.catroid.content.WhenConditionScript
 import org.catrobat.catroid.content.WhenGamepadButtonScript
+import org.catrobat.catroid.content.WhenButtonPressedScript
+import org.catrobat.catroid.content.WhenTimeReachedScript
 import org.catrobat.catroid.content.WhenClonedWithNameScript
 import org.catrobat.catroid.content.WhenMqttMessageScript
 import org.catrobat.catroid.content.WhenNotificationActionTriggeredScript
@@ -291,6 +293,7 @@ import org.catrobat.catroid.content.bricks.LockMouseBrick
 import org.catrobat.catroid.content.bricks.LookFileBrick
 import org.catrobat.catroid.content.bricks.LookFromTableBrick
 import org.catrobat.catroid.content.bricks.LookRequestBrick
+import org.catrobat.catroid.content.bricks.LookFromUrlBrick
 import org.catrobat.catroid.content.bricks.MaxOfListBrick
 import org.catrobat.catroid.content.bricks.MinOfListBrick
 import org.catrobat.catroid.content.bricks.AverageOfListBrick
@@ -592,6 +595,7 @@ import org.catrobat.catroid.content.bricks.SoundFileBrick
 import org.catrobat.catroid.content.bricks.SoundFilesBrick
 import org.catrobat.catroid.content.bricks.SpeakAndWaitBrick
 import org.catrobat.catroid.content.bricks.SpeakBrick
+import org.catrobat.catroid.content.bricks.SpeakWithRateBrick
 import org.catrobat.catroid.content.bricks.SplitBrick
 import org.catrobat.catroid.content.bricks.SpawnThreadBrick
 import org.catrobat.catroid.content.bricks.SquareBrick
@@ -645,6 +649,7 @@ import org.catrobat.catroid.content.bricks.UnloadNNBrick
 import org.catrobat.catroid.content.bricks.UnlockMouseBrick
 import org.catrobat.catroid.content.bricks.UnpinFromCameraBrick
 import org.catrobat.catroid.content.bricks.UnzipBrick
+import org.catrobat.catroid.content.bricks.DownloadZippedLooksBrick
 import org.catrobat.catroid.content.bricks.UpdateManifestBrick
 import org.catrobat.catroid.content.bricks.UploadFileBrick
 import org.catrobat.catroid.content.bricks.UploadFileToFirebaseBrick
@@ -680,10 +685,12 @@ import org.catrobat.catroid.content.bricks.WebRequestBrick
 import org.catrobat.catroid.content.bricks.WhenBackPressedBrick
 import org.catrobat.catroid.content.bricks.WhenBackgroundChangesBrick
 import org.catrobat.catroid.content.bricks.WhenBounceOffBrick
+import org.catrobat.catroid.content.bricks.WhenButtonPressedBrick
 import org.catrobat.catroid.content.bricks.WhenSwipedBrick
 import org.catrobat.catroid.content.bricks.WhenBrick
 import org.catrobat.catroid.content.bricks.WhenClonedBrick
 import org.catrobat.catroid.content.bricks.WhenConditionBrick
+import org.catrobat.catroid.content.bricks.WhenTimeReachedBrick
 import org.catrobat.catroid.content.bricks.WhenFirebaseChangedBrick
 import org.catrobat.catroid.content.bricks.WhenGamepadButtonBrick
 import org.catrobat.catroid.content.bricks.WhenMouseButtonClickedBrick
@@ -958,7 +965,9 @@ open class CategoryBricksFactory {
                 eventBrickList.add(WhenAppMinimizedBrick())
                 eventBrickList.add(WhenAppRestoredBrick())
                 eventBrickList.add(WhenBackPressedBrick())
-                eventBrickList.add(WhenConditionBrick(WhenConditionScript(Formula(defaultIf))))
+                eventBrickList.add(WhenButtonPressedBrick(WhenButtonPressedScript(WhenButtonPressedScript.BUTTON_VOLUME_UP)))
+eventBrickList.add(WhenConditionBrick(WhenConditionScript(Formula(defaultIf))))
+                eventBrickList.add(WhenTimeReachedBrick(WhenTimeReachedScript(Formula(1430))))
                 if (!isBackgroundSprite) {
                     eventBrickList.add(WhenBounceOffBrick(WhenBounceOffScript(null)))
                 }
@@ -1025,6 +1034,7 @@ open class CategoryBricksFactory {
         eventBrickList.add(WhenSwipedBrick(WhenSwipedScript(0)))
         eventBrickList.add(WhenVariableChangedBrick())
         eventBrickList.add(WhenBackPressedBrick())
+        eventBrickList.add(WhenButtonPressedBrick(WhenButtonPressedScript(WhenButtonPressedScript.BUTTON_VOLUME_UP)))
 
         eventBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_event_messages), template))
         val broadcastMessages =
@@ -1041,6 +1051,7 @@ open class CategoryBricksFactory {
 
         eventBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_event_conditions), template))
         eventBrickList.add(WhenConditionBrick(WhenConditionScript(Formula(defaultIf))))
+        eventBrickList.add(WhenTimeReachedBrick(WhenTimeReachedScript(Formula(1430))))
         if (!isBackgroundSprite) {
             eventBrickList.add(WhenBounceOffBrick(WhenBounceOffScript(null)))
         }
@@ -1507,6 +1518,7 @@ open class CategoryBricksFactory {
                 if (SettingsFragment.isAISpeechSynthetizationSharedPreferenceEnabled(context)) {
                     soundBrickList.add(SpeakBrick(context.getString(R.string.brick_speak_default_value)))
                     soundBrickList.add(SpeakAndWaitBrick(context.getString(R.string.brick_speak_default_value)))
+                    soundBrickList.add(SpeakWithRateBrick(context.getString(R.string.brick_speak_default_value), 1.0, 1.0))
                 }
                 if (SettingsFragment.isPhiroSharedPreferenceEnabled(context)) {
                     soundBrickList.add(PhiroPlayToneBrick(PhiroPlayToneBrick.Tone.DO, BrickValues.PHIRO_DURATION))
@@ -1562,6 +1574,7 @@ open class CategoryBricksFactory {
         if (SettingsFragment.isAISpeechSynthetizationSharedPreferenceEnabled(context)) {
             soundBrickList.add(SpeakBrick(context.getString(R.string.brick_speak_default_value)))
             soundBrickList.add(SpeakAndWaitBrick(context.getString(R.string.brick_speak_default_value)))
+            soundBrickList.add(SpeakWithRateBrick(context.getString(R.string.brick_speak_default_value), 1.0, 1.0))
         }
         if (SettingsFragment.isAISpeechRecognitionSharedPreferenceEnabled(context)) {
             soundBrickList.add(AskSpeechBrick(context.getString(R.string.brick_ask_speech_default_question)))
@@ -1664,6 +1677,9 @@ open class CategoryBricksFactory {
                     !isBackgroundSprite -> looksBrickList.add(LookRequestBrick(BrickValues.LOOK_REQUEST))
                     ProjectManager.getInstance().currentProject.xmlHeader.islandscapeMode() -> looksBrickList.add(BackgroundRequestBrick(BrickValues.BACKGROUND_REQUEST_LANDSCAPE))
                     else -> looksBrickList.add(BackgroundRequestBrick(BrickValues.BACKGROUND_REQUEST))
+                }
+                if (!isBackgroundSprite) {
+                    looksBrickList.add(LookFromUrlBrick("https://example.com/image.png", "myLook"))
                 }
                 looksBrickList.add(ScreenShotBrick())
                 looksBrickList.add(PhotoBrick())
@@ -1822,6 +1838,9 @@ open class CategoryBricksFactory {
             !isBackgroundSprite -> looksBrickList.add(LookRequestBrick(BrickValues.LOOK_REQUEST))
             ProjectManager.getInstance().currentProject.xmlHeader.islandscapeMode() -> looksBrickList.add(BackgroundRequestBrick(BrickValues.BACKGROUND_REQUEST_LANDSCAPE))
             else -> looksBrickList.add(BackgroundRequestBrick(BrickValues.BACKGROUND_REQUEST))
+        }
+        if (!isBackgroundSprite) {
+            looksBrickList.add(LookFromUrlBrick("https://example.com/image.png", "myLook"))
         }
         looksBrickList.add(ScreenShotBrick())
         looksBrickList.add(PhotoBrick())
@@ -2770,6 +2789,7 @@ void main() {
         fileBrickList.add(ZipBrick("myZip.zip", "my_actor.png,fileFromUrl.jpg"))
         fileBrickList.add(GetZipFileNamesBrick("myZip.zip"))
         fileBrickList.add(UnzipBrick("myZip.zip"))
+        fileBrickList.add(DownloadZippedLooksBrick("https://example.com/looks.zip", "myLook"))
         fileBrickList.add(OpenFileBrick("fileFromUrl.txt"))
         fileBrickList.add(MoveFilesBrick("variable.txt"))
         fileBrickList.add(MoveDownloadsBrick("variable.txt"))

@@ -55,6 +55,7 @@ class AndroidAudioService : AudioService {
                 .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
                 .setChannelMask(AudioFormat.CHANNEL_OUT_MONO)
                 .build()
+            toneTrack?.let { try { it.stop(); it.release() } catch (_: Exception) {} }
             toneTrack = AudioTrack.Builder()
                 .setAudioAttributes(attr)
                 .setAudioFormat(format)

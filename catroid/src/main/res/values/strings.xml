@@ -2753,6 +2753,15 @@
 <string formatted="false" name="brick_change_volume_by">Change volume by</string>
 <string formatted="false" name="brick_speak">Speak</string>
 <string formatted="false" name="brick_speak_default_value">Hello!</string>
+<string formatted="false" name="brick_speak_with_rate">Speak</string>
+<string formatted="false" name="brick_speak_with_rate_rate">rate</string>
+<string formatted="false" name="brick_speak_with_rate_pitch">pitch</string>
+<string formatted="false" name="brick_look_from_url">Get look from URL</string>
+<string formatted="false" name="brick_look_from_url_as">as</string>
+<string formatted="false" name="brick_when_time_reached">When time reaches</string>
+<string formatted="false" name="brick_when_time_reached_hint">1430</string>
+<string formatted="false" name="brick_download_zipped_looks">Download looks from zip</string>
+<string formatted="false" name="brick_download_zipped_looks_prefix">name prefix</string>
 <string formatted="false" name="brick_speak_and_wait">and wait</string>
 <string formatted="false" name="brick_start_listening_to_voice">Start listening to voice and store spoken words in</string>
 <string formatted="false" name="speech_recognition_not_available">Speech recognition isn\'t available.</string>
@@ -2795,6 +2804,10 @@
 <string formatted="false" name="brick_while_second_part">is false</string>
 <string formatted="false" name="brick_when_gamepad_button">When gamepad button</string>
 <string formatted="false" name="brick_when_gamepad_button_tapped">tapped</string>
+<string formatted="false" name="brick_when_button_pressed">When volume button</string>
+<string formatted="false" name="brick_when_button_pressed_up">volume up</string>
+<string formatted="false" name="brick_when_button_pressed_down">volume down</string>
+<string formatted="false" name="brick_when_button_pressed_pressed">pressed</string>
 <string formatted="false" name="brick_when_nfc">When NFC</string>
 <string formatted="false" name="brick_stop_script">Stop</string>
 <string formatted="false" name="brick_stop_this_script">this script</string>
@@ -3350,7 +3363,15 @@
 <string formatted="false" name="formula_editor_function_hsv">hsv color</string>
 <string formatted="false" name="formula_editor_function_hsv_parameter">(200, 100, 100)</string>
 <string formatted="false" name="formula_editor_function_mix_color">mix color</string>
-<string formatted="false" name="formula_editor_function_mix_color_parameter">(\'#ff0000\', \'#0000ff\', 0.5)</string>
+    <string formatted="false" name="formula_editor_function_mix_color_parameter">(\'#ff0000\', \'#0000ff\', 0.5)</string>
+    <string formatted="false" name="formula_editor_function_timestamp">timestamp</string>
+    <string formatted="false" name="formula_editor_function_timestamp_parameter"></string>
+    <string formatted="false" name="formula_editor_function_color_add">add colors</string>
+    <string formatted="false" name="formula_editor_function_color_add_parameter">(\'#ff0000\', \'#00ff00\')</string>
+    <string formatted="false" name="formula_editor_function_color_darken">darken color</string>
+    <string formatted="false" name="formula_editor_function_color_darken_parameter">(\'#ff0000\', 0.5)</string>
+    <string formatted="false" name="formula_editor_function_color_lighten">lighten color</string>
+    <string formatted="false" name="formula_editor_function_color_lighten_parameter">(\'#ff0000\', 0.5)</string>
 <string formatted="false" name="formula_editor_function_current_state">current state</string>
 <string formatted="false" name="formula_editor_function_current_state_parameter">(\'ai\')</string>
 <string formatted="false" name="formula_editor_function_state_time">state time</string>

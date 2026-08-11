@@ -290,10 +290,11 @@ class ProjectOptionsFragment : Fragment() {
                 }
 
                 val encFile = File(requireContext().cacheDir, "${project!!.name}_baked.enc")
+                val exePassword = org.catrobat.catroid.io.ProjectCrypto.generateRandomPassword()
                 org.catrobat.catroid.io.ProjectCrypto.encrypt(
                     zipFile,
                     encFile,
-                    org.catrobat.catroid.apkbuild.ProtectedProjectPayload.PASSWORD
+                    exePassword
                 )
                 zipFile.delete()
                 tempDir.deleteRecursively()
@@ -1724,7 +1725,9 @@ class ProjectOptionsFragment : Fragment() {
                 val config = AlignedApkBuilder.ApkConfig(
                     appName = p.name,
                     permissions = listOf("android.permission.INTERNET"),
-                    iconFile = iconFile
+                    iconFile = iconFile,
+                    keystorePass = "keystore",
+                    keyPass = "keystore"
                 )
                 val result = AlignedApkBuilder.build(ctx, p.directory, config) { progress ->
                     android.os.Handler(android.os.Looper.getMainLooper()).post { progressText.text = progress }
@@ -1898,7 +1901,9 @@ class ProjectOptionsFragment : Fragment() {
                 minSdk = minSdk,
                 targetSdk = targetSdk,
                 iconFile = iconFile,
-                payloadPassword = passInput.text.toString().ifEmpty { null }
+                payloadPassword = passInput.text.toString().ifEmpty { null },
+                keystorePass = "keystore",
+                keyPass = "keystore"
             )
             startApkBuild(config)
         }

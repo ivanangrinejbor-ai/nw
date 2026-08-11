@@ -4,53 +4,94 @@ import android.util.Log
 import java.io.File
 import java.security.MessageDigest
 import java.security.SecureRandom
-import java.util.concurrent.ThreadLocalRandom
 
 object DynamicKeyManager {
     private const val TAG = "DynamicKeyManager"
-    private const val CANDIDATE_COUNT = 50
     private const val KEY_LENGTH_BYTES = 32
-    private const val XOR_MASK: Byte = 0x7A.toByte()
+    private const val KEY_PARTS = 4
+
+    const val KEY_FILE_PREFIX = "nk_"
+    private val KEY_FILE_SUFFIX = ".nk"
+    private val DECOY_COUNT = 3
 
     fun generateKey(projectName: String): KeyGenerationResult {
         val random = SecureRandom()
-        val candidates = Array(CANDIDATE_COUNT) {
-            val key = ByteArray(KEY_LENGTH_BYTES)
-            random.nextBytes(key)
-            key
+        val key = ByteArray(KEY_LENGTH_BYTES)
+        random.nextBytes(key)
+
+        val partLength = KEY_LENGTH_BYTES / KEY_PARTS
+        val parts = Array(KEY_PARTS) { partIdx ->
+            val part = key.copyOfRange(partIdx * partLength, (partIdx + 1) * partLength)
+            val mask = ByteArray(partLength).also { random.nextBytes(it) }
+            val obfuscated = ByteArray(partLength)
+            for (i in 0 until partLength) {
+                obfuscated[i] = (part[i].toInt() xor mask[i].toInt()).toByte()
+            }
+            Triple(partIdx, obfuscated, mask)
         }
 
-        val nonce = ByteArray(8).also { random.nextBytes(it) }
-        val selectorSeed = projectName.toByteArray() + nonce
-        val digest = MessageDigest.getInstance("SHA-256").digest(selectorSeed)
-        val selectorIndex = (digest[0].toInt() and 0xFF) % CANDIDATE_COUNT
-        val selectedKey = candidates[selectorIndex]
+        val fileNames = mutableListOf<String>()
+        val fileContents = mutableListOf<String>()
 
-        val filenameBytes = ByteArray(16).also { random.nextBytes(it) }
-        val filename = filenameBytes.joinToString("") { "%02x".format(it) } + ".k3y"
+        for ((partIdx, obfuscated, mask) in parts) {
+            val nameBytes = ByteArray(8).also { random.nextBytes(it) }
+            val randomHex = nameBytes.joinToString("") { "%02x".format(it) }
+            val filename = "${KEY_FILE_PREFIX}${partIdx}_${randomHex}${KEY_FILE_SUFFIX}"
+            val stored = Base64Codec.encode(obfuscated + mask)
+            fileNames.add(filename)
+            fileContents.add(stored)
+        }
 
-        val obfuscated = selectedKey.map { (it.toInt() xor XOR_MASK.toInt()).toByte() }.toByteArray()
-        val storedKey = android.util.Base64.encodeToString(obfuscated, android.util.Base64.NO_WRAP)
+        for (i in 0 until DECOY_COUNT) {
+            val nameBytes = ByteArray(8).also { random.nextBytes(it) }
+            val randomHex = nameBytes.joinToString("") { "%02x".format(it) }
+            val filename = "${KEY_FILE_PREFIX}decoy_${randomHex}${KEY_FILE_SUFFIX}"
+            val decoy = ByteArray(KEY_LENGTH_BYTES).also { random.nextBytes(it) }
+            val stored = Base64Codec.encode(decoy)
+            fileNames.add(filename)
+            fileContents.add(stored)
+        }
 
         return KeyGenerationResult(
-            selectedKey = selectedKey,
-            storedKeyString = storedKey,
-            keyFileName = filename,
-            selectorIndex = selectorIndex,
-            selectorNonce = nonce,
-            candidateCount = CANDIDATE_COUNT
+            selectedKey = key,
+            keyFileNames = fileNames,
+            keyFileContents = fileContents,
+            realPartCount = KEY_PARTS
         )
     }
 
-    fun resolveStoredKey(storedKeyString: String): ByteArray {
-        val obfuscated = android.util.Base64.decode(storedKeyString, android.util.Base64.NO_WRAP)
-        return obfuscated.map { (it.toInt() xor XOR_MASK.toInt()).toByte() }.toByteArray()
+    fun resolveStoredKey(parts: List<String>): ByteArray {
+        val partLength = KEY_LENGTH_BYTES / KEY_PARTS
+        val key = ByteArray(KEY_LENGTH_BYTES)
+        for ((idx, partContent) in parts.withIndex()) {
+            if (idx >= KEY_PARTS) break
+            try {
+                val decoded = Base64Codec.decode(partContent)
+                if (decoded.size != partLength * 2) continue
+                val obfuscated = decoded.copyOfRange(0, partLength)
+                val mask = decoded.copyOfRange(partLength, decoded.size)
+                for (i in 0 until partLength) {
+                    key[idx * partLength + i] = (obfuscated[i].toInt() xor mask[i].toInt()).toByte()
+                }
+            } catch (e: Exception) {
+                Log.w(TAG, "Failed to decode key part", e)
+            }
+        }
+        return key
     }
 
-    fun verifyKeyIntegrity(storedKeyString: String): Boolean {
+    fun verifyKeyIntegrity(parts: List<String>): Boolean {
         return try {
-            val key = resolveStoredKey(storedKeyString)
-            key.size == KEY_LENGTH_BYTES
+            val partLength = KEY_LENGTH_BYTES / KEY_PARTS
+            val realParts = parts.count { partContent ->
+                try {
+                    val decoded = Base64Codec.decode(partContent)
+                    decoded.size == partLength * 2
+                } catch (e: Exception) {
+                    false
+                }
+            }
+            realParts >= KEY_PARTS
         } catch (e: Exception) {
             Log.e(TAG, "Key integrity check failed", e)
             false
@@ -59,28 +100,20 @@ object DynamicKeyManager {
 
     data class KeyGenerationResult(
         val selectedKey: ByteArray,
-        val storedKeyString: String,
-        val keyFileName: String,
-        val selectorIndex: Int,
-        val selectorNonce: ByteArray,
-        val candidateCount: Int
+        val keyFileNames: List<String>,
+        val keyFileContents: List<String>,
+        val realPartCount: Int
     ) {
-        val selectorNonceHex: String get() = selectorNonce.joinToString("") { "%02x".format(it) }
-
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
             if (other !is KeyGenerationResult) return false
-            return keyFileName == other.keyFileName &&
-                    selectorIndex == other.selectorIndex &&
-                    selectedKey.contentEquals(other.selectedKey) &&
-                    selectorNonce.contentEquals(other.selectorNonce)
+            return selectedKey.contentEquals(other.selectedKey) &&
+                    keyFileNames == other.keyFileNames
         }
 
         override fun hashCode(): Int {
             var result = selectedKey.contentHashCode()
-            result = 31 * result + keyFileName.hashCode()
-            result = 31 * result + selectorIndex
-            result = 31 * result + selectorNonce.contentHashCode()
+            result = 31 * result + keyFileNames.hashCode()
             return result
         }
     }

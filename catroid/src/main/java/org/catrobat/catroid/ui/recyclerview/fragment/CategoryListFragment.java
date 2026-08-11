@@ -136,6 +136,8 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 			R.string.formula_editor_function_max, R.string.formula_editor_function_min, R.string.formula_editor_function_clamp,
 			R.string.formula_editor_function_sign, R.string.formula_editor_function_lerp, R.string.formula_editor_function_map_range,
 			R.string.formula_editor_function_rgb, R.string.formula_editor_function_hsv, R.string.formula_editor_function_mix_color,
+			R.string.formula_editor_function_timestamp, R.string.formula_editor_function_color_add,
+			R.string.formula_editor_function_color_darken, R.string.formula_editor_function_color_lighten,
 			R.string.formula_editor_function_rgb_to_hex, R.string.formula_editor_function_hex_to_rgb,
 			R.string.formula_editor_function_distan,
 			R.string.formula_editor_function_if_then_else);
@@ -154,6 +156,8 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 			R.string.formula_editor_function_max_parameter, R.string.formula_editor_function_min_parameter, R.string.formula_editor_function_clamp_parameter,
 			R.string.formula_editor_function_sign_parameter, R.string.formula_editor_function_lerp_parameter, R.string.formula_editor_function_map_range_parameter,
 			R.string.formula_editor_function_rgb_parameter, R.string.formula_editor_function_hsv_parameter, R.string.formula_editor_function_mix_color_parameter,
+			R.string.formula_editor_function_timestamp_parameter, R.string.formula_editor_function_color_add_parameter,
+			R.string.formula_editor_function_color_darken_parameter, R.string.formula_editor_function_color_lighten_parameter,
 			R.string.formula_editor_function_rgb_to_hex_parameter, R.string.formula_editor_function_hex_to_rgb_parameter,
 			R.string.formula_editor_function_distan_parameter,
 			R.string.formula_editor_function_if_then_else_parameter);

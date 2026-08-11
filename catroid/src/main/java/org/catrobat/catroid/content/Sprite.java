@@ -489,6 +489,10 @@ public class Sprite implements Nameable, Serializable {
 					conditionScriptTrigger.updateSceneFirstStart();
 				}
 				conditionScriptTriggers.add(conditionScriptTrigger);
+			} else if (script instanceof WhenTimeReachedScript) {
+				ConditionScriptTrigger conditionScriptTrigger =
+						new ConditionScriptTrigger(((WhenTimeReachedScript) script).getConditionFormula());
+				conditionScriptTriggers.add(conditionScriptTrigger);
 			}
 		}
 	}

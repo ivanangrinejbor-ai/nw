@@ -57,6 +57,7 @@ import android.util.Log;
 import android.util.SparseArray;
 import android.util.TypedValue;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.TextureView;
@@ -97,6 +98,7 @@ import org.catrobat.catroid.common.CatroidService;
 import org.catrobat.catroid.common.ScreenValues;
 import org.catrobat.catroid.common.ServiceProvider;
 import org.catrobat.catroid.content.BackPressedScript;
+import org.catrobat.catroid.content.WhenButtonPressedScript;
 import org.catrobat.catroid.content.GlobalManager;
 import org.catrobat.catroid.content.MyActivityManager;
 import org.catrobat.catroid.content.Project;
@@ -108,6 +110,7 @@ import org.catrobat.catroid.content.actions.RunJSAction;
 import org.catrobat.catroid.content.actions.ScriptSequenceAction;
 import org.catrobat.catroid.content.bricks.Brick;
 import org.catrobat.catroid.content.eventids.EventId;
+import org.catrobat.catroid.content.eventids.VolumeButtonEventId;
 import org.catrobat.catroid.devices.raspberrypi.RaspberryPiService;
 import org.catrobat.catroid.exceptions.ProjectException;
 import org.catrobat.catroid.formulaeditor.UserVariable;
@@ -1740,6 +1743,22 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 
 
 		return null;
+	}
+
+	@Override
+	public boolean dispatchKeyEvent(KeyEvent event) {
+		Project currentProject = ProjectManager.getInstance().getCurrentProject();
+		if (event.getKeyCode() == KeyEvent.KEYCODE_VOLUME_UP || event.getKeyCode() == KeyEvent.KEYCODE_VOLUME_DOWN) {
+			boolean buttonPressedScriptExists = EventManager.projectHasScriptOfType(
+					currentProject, WhenButtonPressedScript.class);
+			if (buttonPressedScriptExists) {
+				if (event.getAction() == KeyEvent.ACTION_DOWN) {
+					broadcastEventToAllSprites(new VolumeButtonEventId(event.getKeyCode()));
+				}
+				return true;
+			}
+		}
+		return super.dispatchKeyEvent(event);
 	}
 
 	@Override

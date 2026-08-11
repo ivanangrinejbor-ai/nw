@@ -326,6 +326,7 @@ object ProjectCrypto {
         val factory = SecretKeyFactory.getInstance(KEY_ALGORITHM)
         val spec = PBEKeySpec(password.toCharArray(), salt, PBKDF2_ITERATIONS, AES_KEY_SIZE)
         val tmpKey = factory.generateSecret(spec)
+        spec.clearPassword()
         return SecretKeySpec(tmpKey.encoded, "AES")
     }
 }

@@ -582,6 +582,14 @@ public class FormulaElement implements Serializable {
                 return interpretFunctionHsv(arg0, arg1, arg2);
             case MIX_COLOR:
                 return interpretFunctionMixColor(arg0, arg1, arg2);
+            case TIMESTAMP:
+                return System.currentTimeMillis() / 1000.0;
+            case COLOR_ADD:
+                return interpretFunctionColorAdd(arg0, arg1);
+            case COLOR_DARKEN:
+                return interpretFunctionColorDarken(arg0, arg1);
+            case COLOR_LIGHTEN:
+                return interpretFunctionColorLighten(arg0, arg1);
             case CURRENT_STATE:
                 return StateMachineManager.getState(scope.getSprite(), String.valueOf(arg0));
             case STATE_TIME:
@@ -2558,6 +2566,45 @@ public class FormulaElement implements Serializable {
         int r = clampColorComponent(c1[0] + (c2[0] - c1[0]) * t);
         int g = clampColorComponent(c1[1] + (c2[1] - c1[1]) * t);
         int b = clampColorComponent(c1[2] + (c2[2] - c1[2]) * t);
+        return String.format(java.util.Locale.US, "#%02X%02X%02X", r, g, b);
+    }
+
+    private Object interpretFunctionColorAdd(Object color1Arg, Object color2Arg) {
+        int[] c1 = parseHexColor(color1Arg == null ? null : String.valueOf(color1Arg));
+        int[] c2 = parseHexColor(color2Arg == null ? null : String.valueOf(color2Arg));
+        if (c1 == null || c2 == null) {
+            return "#000000";
+        }
+        int r = clampColorComponent(c1[0] + c2[0]);
+        int g = clampColorComponent(c1[1] + c2[1]);
+        int b = clampColorComponent(c1[2] + c2[2]);
+        return String.format(java.util.Locale.US, "#%02X%02X%02X", r, g, b);
+    }
+
+    private Object interpretFunctionColorDarken(Object colorArg, Object amountArg) {
+        int[] c = parseHexColor(colorArg == null ? null : String.valueOf(colorArg));
+        if (c == null) {
+            return "#000000";
+        }
+        double amount = amountArg == null ? 0.0 : tryInterpretDoubleValue(amountArg);
+        amount = Math.max(0, Math.min(1, amount));
+        double factor = 1 - amount;
+        int r = clampColorComponent(c[0] * factor);
+        int g = clampColorComponent(c[1] * factor);
+        int b = clampColorComponent(c[2] * factor);
+        return String.format(java.util.Locale.US, "#%02X%02X%02X", r, g, b);
+    }
+
+    private Object interpretFunctionColorLighten(Object colorArg, Object amountArg) {
+        int[] c = parseHexColor(colorArg == null ? null : String.valueOf(colorArg));
+        if (c == null) {
+            return "#000000";
+        }
+        double amount = amountArg == null ? 0.0 : tryInterpretDoubleValue(amountArg);
+        amount = Math.max(0, Math.min(1, amount));
+        int r = clampColorComponent(c[0] + (255 - c[0]) * amount);
+        int g = clampColorComponent(c[1] + (255 - c[1]) * amount);
+        int b = clampColorComponent(c[2] + (255 - c[2]) * amount);
         return String.format(java.util.Locale.US, "#%02X%02X%02X", r, g, b);
     }
 

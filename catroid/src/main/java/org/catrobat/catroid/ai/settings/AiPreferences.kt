@@ -71,9 +71,6 @@ object AiPreferences {
         if (!secure.isNullOrBlank()) return secure
         val legacy = prefs?.getString(KEY_PROVIDER_KEY_PREFIX + providerId, null)
         if (!legacy.isNullOrBlank()) return legacy
-        if (providerId.equals("gemini", ignoreCase = true)) {
-            return org.catrobat.catroid.content.GeminiManager.api_key
-        }
         return null
     }
 

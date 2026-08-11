@@ -669,7 +669,7 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
             encryptedAsset.use { input ->
                 encryptedFile.outputStream().use { output -> input.copyTo(output) }
             }
-            if (!PayloadDecryptor.decrypt(this, encryptedFile, decryptedZip)) {
+            if (!PayloadDecryptor.decrypt(this, encryptedFile, decryptedZip, "")) {
                 throw IOException("Cannot decrypt protected standalone project.")
             }
             ZipArchiver().unzip(decryptedZip, tempDir)

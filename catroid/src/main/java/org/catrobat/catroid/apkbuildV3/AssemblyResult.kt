@@ -5,7 +5,7 @@ import java.io.File
 sealed class AssemblyResult {
     data class Success(
         val apkFile: File,
-        val keyFileName: String,
+        val keyFileNames: List<String>,
         val templateType: TemplateType,
         val totalSizeBytes: Long
     ) : AssemblyResult()

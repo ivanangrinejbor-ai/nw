@@ -83,6 +83,7 @@ public class SoundRecorder {
 		}
 		recorder.reset();
 		recorder.release();
+		recorder = null;
 		isRecording = false;
 	}
 

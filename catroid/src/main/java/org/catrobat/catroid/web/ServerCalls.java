@@ -318,7 +318,7 @@ public final class ServerCalls implements ScratchDataFetcher {
 	}
 
 	private void executeUploadCall(Request request, UploadCallSuccessCallback successCallback, UploadErrorCallback errorCallback) {
-		Response response;
+		Response response = null;
 		UploadResponse uploadResponse;
 		try {
 			response = okHttpClient.newCall(request).execute();
@@ -335,6 +335,10 @@ public final class ServerCalls implements ScratchDataFetcher {
 		} catch (JsonSyntaxException jsonSyntaxException) {
 			Log.e(TAG, Log.getStackTraceString(jsonSyntaxException));
 			errorCallback.onError(WebConnectionException.ERROR_JSON, "JsonSyntaxException");
+		} finally {
+			if (response != null) {
+				response.close();
+			}
 		}
 	}
 

@@ -15,13 +15,6 @@ class ProjectLoaderV3(private val context: Context) {
     private val tag = "ProjectLoaderV3"
     private val payloadAssetName = "project.ncv3"
 
-    private val STATIC_FALLBACK_KEY: ByteArray = byteArrayOf(
-        -100, 0x45, 0x23, 0x01, 0x67, -0x56, 0x34, 0x12,
-        -0x78, -0x67, 0x56, 0x34, -0x12, -0x34, -0x56, -0x78,
-        0x12, 0x34, 0x56, 0x78, -0x12, -0x34, -0x56, -0x78,
-        0x7A, -0x7B, 0x3C, -0x3D, 0x1E, -0x1F, 0x0A, -0x0B
-    )
-
     data class FullProjectResult(
         val project: Project,
         val projectDir: File
@@ -133,8 +126,8 @@ class ProjectLoaderV3(private val context: Context) {
             return dynamicKey
         }
 
-        Log.w(tag, "No dynamic key found, using static fallback key")
-        return STATIC_FALLBACK_KEY
+        Log.e(tag, "No dynamic key found")
+        return null
     }
 
     data class ProjectMetadata(

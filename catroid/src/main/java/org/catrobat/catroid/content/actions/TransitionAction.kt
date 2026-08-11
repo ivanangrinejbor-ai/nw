@@ -45,15 +45,25 @@ class TransitionAction : TemporalAction() {
     private var startY = 0f
     private var endX = 0f
     private var endY = 0f
+    private var durationCalculated = 0f
+    private var initialized = false
 
-    override fun begin() {
+    override fun setActor(actor: com.badlogic.gdx.scenes.scene2d.Actor?) {
+        super.setActor(actor)
+        if (!initialized) {
+            initialize()
+        }
+    }
+
+    private fun initialize() {
         val look = scope?.sprite?.look ?: return
         val speed = try {
             speedFormula?.interpretFloat(scope) ?: 1f
         } catch (e: InterpretationException) {
             1f
         }
-        duration = 1f / speed.coerceAtLeast(MIN_SPEED)
+        durationCalculated = 1f / speed.coerceAtLeast(MIN_SPEED)
+        duration = durationCalculated
 
         when (type) {
             Type.FADE_IN -> {
@@ -90,10 +100,19 @@ class TransitionAction : TemporalAction() {
                 endY = off.second
             }
         }
+        initialized = true
     }
 
-    override fun update(percent: Float) {
-        val look = scope?.sprite?.look ?: return
+    override fun act(delta: Float): Boolean {
+        val look = scope?.sprite?.look ?: return true
+        if (!initialized) {
+            initialize()
+        }
+        if (durationCalculated <= 0f) return true
+
+        time += delta
+        val percent = (time / durationCalculated).coerceIn(0f, 1f)
+
         when (type) {
             Type.FADE_IN, Type.FADE_OUT ->
                 look.setTransparencyInUserInterfaceDimensionUnit(interpolate(startScalar, endScalar, percent))
@@ -105,6 +124,17 @@ class TransitionAction : TemporalAction() {
                     interpolate(startY, endY, percent)
                 )
         }
+
+        return percent >= 1f
+    }
+
+    override fun update(percent: Float) {
+    }
+
+    override fun reset() {
+        super.reset()
+        initialized = false
+        durationCalculated = 0f
     }
 
     private fun interpolate(from: Float, to: Float, percent: Float): Float = from + (to - from) * percent

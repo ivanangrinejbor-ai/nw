@@ -198,7 +198,11 @@ private fun ProjectUnZipperAndImporter.unzipAndImportProject(projectZipFile: Fil
         }
         if (ProjectCrypto.isEncrypted(projectZipFile)) {
             reportProgress(5, "import_step_decrypt")
-            val key = if (!password.isNullOrEmpty()) password!! else ProtectedProjectPayload.PASSWORD
+            val key = password
+            if (key.isNullOrEmpty()) {
+                Log.e(TAG, "Encrypted project requires password")
+                return@unzipAndImportProject ImportResult.WrongPassword
+            }
             val decryptedFile = File(CACHE_DIRECTORY, tempDirName + "_decrypted.zip")
             if (!ProjectCrypto.decrypt(projectZipFile, decryptedFile, key)) {
                 Log.e(TAG, "Failed to decrypt project (wrong password?)")

@@ -67,6 +67,7 @@ class TextToSpeechHolder private constructor() {
     fun shutDownTextToSpeech() {
             textToSpeech?.stop()
             textToSpeech?.shutdown()
+            textToSpeech = null
     }
 
     fun textToSpeech(text: String?, speechFile: File, listener: UtteranceProgressListener, speakParameter: HashMap<String, String?>) {

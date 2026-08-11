@@ -129,38 +129,45 @@ public class Formula implements Serializable {
         }
     }
 
-	public void updateCollisionFormulas(String oldName, String newName, Context context) {
-		internFormula.updateCollisionFormula(oldName, newName, context);
-		formulaTree.updateElementByName(oldName, newName, ElementType.COLLISION_FORMULA);
-	}
+	private void ensureInternFormula() {
+ 		if (internFormula == null && formulaTree != null) {
+ 			internFormula = new InternFormula(formulaTree.getInternTokenList());
+ 		}
+ 	}
 
-	public void flattenAllLists() {
-		formulaTree.insertFlattenForAllUserLists(formulaTree, null);
-		formulaTree = formulaTree.getRoot();
-		internFormula.setInternTokenFormulaList(formulaTree.getInternTokenList());
-	}
+ 	public void updateCollisionFormulas(String oldName, String newName, Context context) {
+ 		internFormula.updateCollisionFormula(oldName, newName, context);
+ 		formulaTree.updateElementByName(oldName, newName, ElementType.COLLISION_FORMULA);
+ 	}
 
-	public void updateCollisionFormulasToVersion() {
-		internFormula.updateCollisionFormulaToVersion(CatroidApplication.getAppContext());
-		formulaTree.updateCollisionFormulaToVersion(ProjectManager.getInstance().getCurrentProject());
-	}
+ 	public void flattenAllLists() {
+ 		formulaTree.insertFlattenForAllUserLists(formulaTree, null);
+ 		formulaTree = formulaTree.getRoot();
+ 		ensureInternFormula();
+ 		internFormula.setInternTokenFormulaList(formulaTree.getInternTokenList());
+ 	}
 
-	public void updateDirectionPropertyToVersion() {
-		String oldName = "OBJECT_ROTATION";
-		String newName = "MOTION_DIRECTION";
-		internFormula.updateSensorTokens(oldName, newName, CatroidApplication.getAppContext());
-		formulaTree.updateElementByName(oldName, newName, ElementType.SENSOR);
-	}
+ 	public void updateCollisionFormulasToVersion() {
+ 		internFormula.updateCollisionFormulaToVersion(CatroidApplication.getAppContext());
+ 		formulaTree.updateCollisionFormulaToVersion(ProjectManager.getInstance().getCurrentProject());
+ 	}
 
-	public void updateVariableName(String oldName, String newName) {
-		internFormula.updateVariableReferences(oldName, newName, CatroidApplication.getAppContext());
-		formulaTree.updateElementByName(oldName, newName, ElementType.USER_VARIABLE);
-	}
+ 	public void updateDirectionPropertyToVersion() {
+ 		String oldName = "OBJECT_ROTATION";
+ 		String newName = "MOTION_DIRECTION";
+ 		internFormula.updateSensorTokens(oldName, newName, CatroidApplication.getAppContext());
+ 		formulaTree.updateElementByName(oldName, newName, ElementType.SENSOR);
+ 	}
 
-	public void updateUserlistName(String oldName, String newName) {
-		internFormula.updateListReferences(oldName, newName, CatroidApplication.getAppContext());
-		formulaTree.updateElementByName(oldName, newName, ElementType.USER_LIST);
-	}
+ 	public void updateVariableName(String oldName, String newName) {
+ 		internFormula.updateVariableReferences(oldName, newName, CatroidApplication.getAppContext());
+ 		formulaTree.updateElementByName(oldName, newName, ElementType.USER_VARIABLE);
+ 	}
+
+ 	public void updateUserlistName(String oldName, String newName) {
+ 		internFormula.updateListReferences(oldName, newName, CatroidApplication.getAppContext());
+ 		formulaTree.updateElementByName(oldName, newName, ElementType.USER_LIST);
+ 	}
 
 	public boolean containsSpriteInCollision(String name) {
 		return formulaTree.containsSpriteInCollision(name);
@@ -251,13 +258,15 @@ public class Formula implements Serializable {
 		return formulaTree;
 	}
 
-	public String getTrimmedFormulaString(Context context) {
-		return internFormula.trimExternFormulaString(context);
-	}
+ 	public String getTrimmedFormulaString(Context context) {
+ 		ensureInternFormula();
+ 		return internFormula.trimExternFormulaString(context);
+ 	}
 
-	public InternFormulaState getInternFormulaState() {
-		return internFormula.getInternFormulaState();
-	}
+ 	public InternFormulaState getInternFormulaState() {
+ 		ensureInternFormula();
+ 		return internFormula.getInternFormulaState();
+ 	}
 
 	public boolean containsElement(FormulaElement.ElementType elementType) {
 		return formulaTree.containsElement(elementType);

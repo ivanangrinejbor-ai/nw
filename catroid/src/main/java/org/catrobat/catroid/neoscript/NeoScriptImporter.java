@@ -28,6 +28,7 @@ import org.catrobat.catroid.content.WhenGamepadButtonScript;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 public final class NeoScriptImporter {
@@ -157,7 +158,7 @@ public final class NeoScriptImporter {
 	private static void removeScriptBySignature(Sprite sprite, String signature) {
 		List<Script> toRemove = new ArrayList<>();
 		for (Script script : sprite.getScriptList()) {
-			if (scriptSignature(script).equals(signature)) {
+			if (Objects.equals(scriptSignature(script), signature)) {
 				toRemove.add(script);
 			}
 		}

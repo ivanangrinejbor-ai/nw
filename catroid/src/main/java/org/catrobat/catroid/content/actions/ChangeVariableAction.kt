@@ -61,7 +61,7 @@ class ChangeVariableAction : Action() {
         val valueToAdd = value.takeUnless { it.isNaN() } ?: 0.0
         userVariable?.value = original + valueToAdd
 
-        val multiplayerVariable = ProjectManager.getInstance().currentProject.getMultiplayerVariable(userVariable?.name)
+        val multiplayerVariable = ProjectManager.getInstance().currentProject?.getMultiplayerVariable(userVariable?.name)
         multiplayerVariable?.let {
             val multiplayerDevice = getMultiplayerDevice()
             multiplayerDevice?.sendChangedMultiplayerVariables(userVariable)

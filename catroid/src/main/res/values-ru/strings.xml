@@ -2398,6 +2398,14 @@
     <string formatted="false" name="formula_editor_function_hsv_parameter">(200, 100, 100)</string>
     <string formatted="false" name="formula_editor_function_mix_color">смешать цвета</string>
     <string formatted="false" name="formula_editor_function_mix_color_parameter">(\'#ff0000\', \'#0000ff\', 0.5)</string>
+    <string formatted="false" name="formula_editor_function_timestamp">метка времени</string>
+    <string formatted="false" name="formula_editor_function_timestamp_parameter"></string>
+    <string formatted="false" name="formula_editor_function_color_add">сложить цвета</string>
+    <string formatted="false" name="formula_editor_function_color_add_parameter">(\'#ff0000\', \'#00ff00\')</string>
+    <string formatted="false" name="formula_editor_function_color_darken">затемнить цвет</string>
+    <string formatted="false" name="formula_editor_function_color_darken_parameter">(\'#ff0000\', 0.5)</string>
+    <string formatted="false" name="formula_editor_function_color_lighten">осветлить цвет</string>
+    <string formatted="false" name="formula_editor_function_color_lighten_parameter">(\'#ff0000\', 0.5)</string>
     <string formatted="false" name="formula_editor_function_current_state">текущее состояние</string>
     <string formatted="false" name="formula_editor_function_current_state_parameter">(\'ai\')</string>
     <string formatted="false" name="formula_editor_function_state_time">время состояния</string>
@@ -3623,6 +3631,15 @@
     <string formatted="false" name="brick_change_volume_by">Изменить громкость на</string>
     <string formatted="false" name="brick_speak">Сказать</string>
     <string formatted="false" name="brick_speak_default_value">Привет!</string>
+    <string formatted="false" name="brick_speak_with_rate">Сказать</string>
+    <string formatted="false" name="brick_speak_with_rate_rate">скорость</string>
+    <string formatted="false" name="brick_speak_with_rate_pitch">тон</string>
+    <string formatted="false" name="brick_look_from_url">Получить образ по URL</string>
+    <string formatted="false" name="brick_look_from_url_as">как</string>
+    <string formatted="false" name="brick_when_time_reached">Когда время достигнет</string>
+    <string formatted="false" name="brick_when_time_reached_hint">1430</string>
+    <string formatted="false" name="brick_download_zipped_looks">Скачать образы из zip</string>
+    <string formatted="false" name="brick_download_zipped_looks_prefix">префикс имени</string>
     <string formatted="false" name="brick_speak_and_wait">и ждать</string>
     <string formatted="false" name="brick_start_listening_to_voice">Начать слушать голос и хранить сказанные слова в</string>
     <string formatted="false" name="speech_recognition_not_available">Распознавание речи недоступно.</string>
@@ -3668,6 +3685,10 @@
     <string formatted="false" name="brick_while_second_part">истина</string>
     <string formatted="false" name="brick_when_gamepad_button">Когда кнопка джойстика</string>
     <string formatted="false" name="brick_when_gamepad_button_tapped">нажата</string>
+    <string formatted="false" name="brick_when_button_pressed">Когда кнопка громкости</string>
+    <string formatted="false" name="brick_when_button_pressed_up">громкость вверх</string>
+    <string formatted="false" name="brick_when_button_pressed_down">громкость вниз</string>
+    <string formatted="false" name="brick_when_button_pressed_pressed">нажата</string>
     <string formatted="false" name="brick_when_nfc">Когда NFC метка обнаружена</string>
     <string formatted="false" name="brick_stop_script">Остановить</string>
     <string formatted="false" name="brick_stop_this_script">этот скрипт</string>

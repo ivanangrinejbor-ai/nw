@@ -61,9 +61,9 @@ object BakedApkBuilder {
         val iconFile: File? = null,
         val payloadPassword: String? = null,
         val customKeystore: File? = null,
-        val keystorePass: String = "keystore",
+        val keystorePass: String,
         val keyAlias: String = "newcatroid",
-        val keyPass: String = "keystore"
+        val keyPass: String
     ) : Parcelable {
         constructor(parcel: Parcel) : this(
             appName = parcel.readString() ?: "",
@@ -76,9 +76,9 @@ object BakedApkBuilder {
             iconFile = parcel.readString()?.let { File(it) },
             payloadPassword = parcel.readString(),
             customKeystore = parcel.readString()?.let { File(it) },
-            keystorePass = parcel.readString() ?: "keystore",
+            keystorePass = parcel.readString() ?: error("keystorePass required"),
             keyAlias = parcel.readString() ?: "newcatroid",
-            keyPass = parcel.readString() ?: "keystore"
+            keyPass = parcel.readString() ?: error("keyPass required")
         )
 
         override fun writeToParcel(parcel: Parcel, flags: Int) {

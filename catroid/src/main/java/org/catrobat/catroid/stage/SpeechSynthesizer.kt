@@ -51,6 +51,8 @@ class SpeechSynthesizer(val scope: Scope?, val text: Formula?) {
     private var hashText: String? = null
     var speechFile: File? = null
         private set
+    var rate: Any? = null
+    var pitch: Any? = null
 
     private var listener: Any? = null
 
@@ -73,6 +75,8 @@ class SpeechSynthesizer(val scope: Scope?, val text: Formula?) {
             is UtteranceProgressListener -> {
                 val speakParameter = HashMap<String, String?>()
                 speakParameter[TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID] = hashText
+                rate?.let { speakParameter[TextToSpeech.Engine.KEY_PARAM_RATE] = it.toString() }
+                pitch?.let { speakParameter[TextToSpeech.Engine.KEY_PARAM_PITCH] = it.toString() }
                 TextToSpeechHolder.instance.textToSpeech(
                     interpretedText.toString(),
                     speechFile,

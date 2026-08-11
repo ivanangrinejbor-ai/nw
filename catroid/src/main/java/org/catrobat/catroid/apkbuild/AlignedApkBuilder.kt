@@ -35,9 +35,9 @@ object AlignedApkBuilder {
         val iconFile: File? = null,
         val payloadPassword: String? = null,
         val customKeystore: File? = null,
-        val keystorePass: String = "keystore",
+        val keystorePass: String,
         val keyAlias: String = "newcatroid",
-        val keyPass: String = "keystore"
+        val keyPass: String
     ) : Parcelable {
         constructor(parcel: Parcel) : this(
             appName = parcel.readString() ?: "",
@@ -50,9 +50,9 @@ object AlignedApkBuilder {
             iconFile = parcel.readString()?.let { File(it) },
             payloadPassword = parcel.readString(),
             customKeystore = parcel.readString()?.let { File(it) },
-            keystorePass = parcel.readString() ?: "keystore",
+            keystorePass = parcel.readString() ?: error("keystorePass required"),
             keyAlias = parcel.readString() ?: "newcatroid",
-            keyPass = parcel.readString() ?: "keystore"
+            keyPass = parcel.readString() ?: error("keyPass required")
         )
 
         override fun writeToParcel(parcel: Parcel, flags: Int) {
@@ -292,6 +292,10 @@ object AlignedApkBuilder {
             out.write(data)
             position += data.size
         }
+        fun write(data: ByteArray, offset: Int, length: Int) {
+            out.write(data, offset, length)
+            position += length
+        }
         override fun close() { out.close() }
         fun flush() { (out as? Flushable)?.flush() }
     }
@@ -310,7 +314,7 @@ object AlignedApkBuilder {
 
         val headerBase = 30 + nameBytes.size
         val misalign = (w.position + headerBase) % 4
-        val padding = if (method == ZipEntry.STORED && misalign != 0L) (4 - misalign).toInt() else 0
+        val padding = if (misalign != 0L) (4 - misalign).toInt() else 0
 
         w.writeInt(0x04034b50)
         w.writeShort(20)
@@ -338,13 +342,16 @@ object AlignedApkBuilder {
         workDir: File?
     ) {
 
-        data class EntryData(val name: String, val method: Int, val data: ByteArray, val crc: Long)
+        data class EntryData(val name: String, val method: Int, val file: File, val crc: Long)
         val templateEntries = mutableListOf<EntryData>()
         var arscData: ByteArray? = null
         var arscCrc = 0L
         val iconTargets = mutableSetOf<String>()
 
+        val tmpDir = File(workDir ?: outputFile.parentFile, "apk_tmp_${System.currentTimeMillis()}").apply { mkdirs() }
+
         ZipFile(templateFile).use { zf ->
+            val buffer = ByteArray(8192)
             for (ze in zf.entries().asSequence()) {
                 val name = ze.name
                 when {
@@ -363,9 +370,19 @@ object AlignedApkBuilder {
                         continue
                     }
                 }
-                val rawData = zf.getInputStream(ze).readBytes()
-                val crc32 = java.util.zip.CRC32().apply { update(rawData) }
-                templateEntries.add(EntryData(name, ze.method, rawData, crc32.value))
+                val tmpFile = File(tmpDir, name.replace('/', '_'))
+                tmpFile.parentFile?.mkdirs()
+                val crc32 = java.util.zip.CRC32()
+                zf.getInputStream(ze).use { input ->
+                    tmpFile.outputStream().use { output ->
+                        var len: Int
+                        while (input.read(buffer).also { len = it } != -1) {
+                            crc32.update(buffer, 0, len)
+                            output.write(buffer, 0, len)
+                        }
+                    }
+                }
+                templateEntries.add(EntryData(name, ze.method, tmpFile, crc32.value))
             }
             Log.d(TAG, "Template entries loaded: ${templateEntries.size}")
         }
@@ -386,6 +403,67 @@ object AlignedApkBuilder {
                     val offset = w.position.toInt()
                     writeLocalEntry(w, name, data, data.size, ZipEntry.STORED, crc)
                     return CdEntry(name, ZipEntry.STORED, crc.toInt(), data.size, data.size, offset)
+                }
+
+                fun writeLocalHeader(name: String, compressedSize: Int, uncompressedSize: Int, method: Int, crc: Long) {
+                    val nameBytes = name.toByteArray(Charsets.UTF_8)
+                    val crc32 = crc.toInt()
+                    val headerBase = 30 + nameBytes.size
+                    val misalign = (w.position + headerBase) % 4
+                    val padding = if (method == ZipEntry.STORED && misalign != 0L) (4 - misalign).toInt() else 0
+                    w.writeInt(0x04034b50)
+                    w.writeShort(20)
+                    w.writeShort(0)
+                    w.writeShort(method)
+                    w.writeShort(0)
+                    w.writeShort(0)
+                    w.writeInt(crc32)
+                    w.writeInt(compressedSize)
+                    w.writeInt(uncompressedSize)
+                    w.writeShort(nameBytes.size)
+                    w.writeShort(padding)
+                    w.writeBytes(nameBytes)
+                    if (padding > 0) w.writeBytes(ByteArray(padding))
+                }
+
+                fun writeEntryFromFile(name: String, file: File, method: Int, crc: Long): CdEntry {
+                    val size = file.length().toInt()
+                    if (method != ZipEntry.DEFLATED) {
+                        val offset = w.position.toInt()
+                        writeLocalHeader(name, size, size, ZipEntry.STORED, crc)
+                        file.inputStream().use { input ->
+                            val tmp = ByteArray(8192)
+                            var len: Int
+                            while (input.read(tmp).also { len = it } != -1) {
+                                w.write(tmp, 0, len)
+                            }
+                        }
+                        return CdEntry(name, ZipEntry.STORED, crc.toInt(), size, size, offset)
+                    }
+                    val deflater = java.util.zip.Deflater(java.util.zip.Deflater.DEFAULT_COMPRESSION, true)
+                    val tmp = ByteArray(8192)
+                    val buf = ByteArrayOutputStream()
+                    file.inputStream().use { input ->
+                        var len: Int
+                        while (input.read(tmp).also { len = it } != -1) {
+                            deflater.setInput(tmp, 0, len)
+                            while (!deflater.needsInput()) {
+                                val n = deflater.deflate(tmp)
+                                if (n > 0) buf.write(tmp, 0, n)
+                            }
+                        }
+                    }
+                    deflater.finish()
+                    while (!deflater.finished()) {
+                        val n = deflater.deflate(tmp)
+                        if (n > 0) buf.write(tmp, 0, n)
+                    }
+                    deflater.end()
+                    val comp = buf.toByteArray()
+                    val offset = w.position.toInt()
+                    writeLocalHeader(name, comp.size, size, ZipEntry.DEFLATED, crc)
+                    w.writeBytes(comp)
+                    return CdEntry(name, ZipEntry.DEFLATED, crc.toInt(), comp.size, size, offset)
                 }
 
                 fun writeEntry(name: String, uncompressed: ByteArray, method: Int, crc: Long): CdEntry {
@@ -418,7 +496,7 @@ object AlignedApkBuilder {
                 }
 
                 for (e in templateEntries) {
-                    cdEntries.add(writeEntry(e.name, e.data, e.method, e.crc))
+                    cdEntries.add(writeEntryFromFile(e.name, e.file, e.method, e.crc))
                 }
 
                 if (iconFile != null && iconFile.exists()) {
@@ -486,6 +564,7 @@ object AlignedApkBuilder {
         outputFile.delete()
         tempFile.renameTo(outputFile)
         Log.d(TAG, "Aligned APK: ${outputFile.length() / (1024 * 1024)} MB")
+        tmpDir.deleteRecursively()
     }
 
     private fun writeEncryptedPayload(

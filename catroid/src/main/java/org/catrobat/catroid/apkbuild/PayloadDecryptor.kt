@@ -10,15 +10,12 @@ import org.catrobat.catroid.R
 import org.catrobat.catroid.io.ProjectCrypto
 import java.io.File
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
 object PayloadDecryptor {
-    fun decrypt(context: Context, encryptedFile: File, decryptedZip: File, password: String = ProtectedProjectPayload.PASSWORD): Boolean {
+    fun decrypt(context: Context, encryptedFile: File, decryptedZip: File, password: String): Boolean {
         if (ProjectCrypto.decrypt(encryptedFile, decryptedZip, password)) {
-            return true
-        }
-        if (password != ProtectedProjectPayload.PASSWORD &&
-            ProjectCrypto.decrypt(encryptedFile, decryptedZip, ProtectedProjectPayload.PASSWORD)) {
             return true
         }
 
@@ -30,6 +27,7 @@ object PayloadDecryptor {
             val input = EditText(context).apply {
                 inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
                 hint = context.getString(R.string.payload_password_hint)
+                importantForAutofill = android.view.View.IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS
             }
             AlertDialog.Builder(context)
                 .setTitle(R.string.payload_password_title)
@@ -44,7 +42,7 @@ object PayloadDecryptor {
                 .show()
         }
 
-        latch.await()
+        latch.await(60, TimeUnit.SECONDS)
         if (!passphrase.isNullOrEmpty()) {
             result.set(ProjectCrypto.decrypt(encryptedFile, decryptedZip, passphrase!!))
         }

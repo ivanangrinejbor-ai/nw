@@ -252,9 +252,10 @@ class V3PackageRenameTest {
             launcher?.let { AndroidManifestBlock.getAndroidNameValue(it) }
         )
 
+        val classRefAttrs = setOf("name", "parentActivityName", "process")
         manifest.recursiveAttributes().forEach { attr ->
             val value = attr.getValueString() ?: return@forEach
-            if (attr.name != "name") {
+            if (attr.name !in classRefAttrs) {
                 assertFalse("leftover old package in attribute '${attr.name}': $value", value.contains("org.catrobat.catroid"))
                 assertFalse("unresolved placeholder in attribute '${attr.name}': $value", value.contains("\${"))
             }

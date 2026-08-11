@@ -231,7 +231,7 @@ object ApkToolboxManager {
 
             val notBefore = Date(System.currentTimeMillis() - 1000L * 60 * 60 * 24)
             val notAfter = Date(System.currentTimeMillis() + 1000L * 60 * 60 * 24 * 365 * 25)
-            val serialNumber = BigInteger.valueOf(System.currentTimeMillis())
+            val serialNumber = BigInteger(64, java.security.SecureRandom())
             val owner = X500Principal("CN=$commonName, OU=CatroidBuilder, O=NewCatroid, C=WW")
 
 
@@ -299,11 +299,7 @@ object ApkToolboxManager {
                 val config = com.android.apksig.ApkSigner.SignerConfig.Builder("CERT", privateKey, listOf(cert)).build()
                 signerBuilder = ApkSigner.Builder(listOf(config))
             } else {
-                val tempKey = File(context.cacheDir, "debug_auto.jks")
-                if (!tempKey.exists()) {
-                    generateKeyStore(tempKey.absolutePath, "debug", "android", "Debug User")
-                }
-                return signApk(context, inputApkPath, outputApkPath, tempKey.absolutePath, "debug", "android")
+                throw IllegalArgumentException("Keystore not found at: $keyStorePath")
             }
 
             signerBuilder
@@ -523,17 +519,34 @@ object ApkToolboxManager {
 
                             val align = alignDataOffset(name)
                             val extra = ByteArray(align)
+                            // Записи пишутся ТОЛЬКО в STORED-режиме с известными размерами:
+                            // java.util.zip.ZipOutputStream не умеет писать DEFLATED-записи
+                            // без data descriptor'ов (флаг 0x08), а APK с дескрипторами не
+                            // устанавливаются (INSTALL_PARSE_FAILED_NOT_APK).
                             val newEntry = ZipEntry(name)
-                            newEntry.method = entry.method
+                            newEntry.method = ZipEntry.STORED
                             newEntry.time = entry.time
-                            if (entry.method == ZipEntry.STORED) {
+                            val crcKnown = entry.crc != -1L && entry.size > 0
+                            if (crcKnown) {
                                 newEntry.size = entry.size
-                                newEntry.compressedSize = entry.compressedSize
+                                newEntry.compressedSize = entry.size
                                 newEntry.crc = entry.crc
+                                if (align > 0) newEntry.extra = extra
+                                zos.putNextEntry(newEntry)
+                                zis.copyTo(zos)
+                            } else {
+                                val buffer = java.io.ByteArrayOutputStream()
+                                zis.copyTo(buffer)
+                                val bytes = buffer.toByteArray()
+                                val crc32 = java.util.zip.CRC32()
+                                crc32.update(bytes)
+                                newEntry.size = bytes.size.toLong()
+                                newEntry.compressedSize = bytes.size.toLong()
+                                newEntry.crc = crc32.value
+                                if (align > 0) newEntry.extra = extra
+                                zos.putNextEntry(newEntry)
+                                zos.write(bytes)
                             }
-                            if (align > 0) newEntry.extra = extra
-                            zos.putNextEntry(newEntry)
-                            zis.copyTo(zos)
                             zos.closeEntry()
                         }
 

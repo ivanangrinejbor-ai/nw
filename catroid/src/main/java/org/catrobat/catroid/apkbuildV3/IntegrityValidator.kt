@@ -13,22 +13,24 @@ object IntegrityValidator {
         return try {
             val storedHash = ProjectEncryptorV3.readIntegrityHash(encryptedFile)
 
-            val tempFile = File.createTempFile("v3_verify_", ".tmp")
+            val tempFile = File.createTempFile("v3_verify_", ".tmp", File(System.getProperty("java.io.tmpdir")))
+            tempFile.setReadable(true, true)
+            tempFile.setWritable(true, true)
             try {
                 if (!ProjectEncryptorV3.decryptAll(encryptedFile, key, tempFile)) {
                     return false
                 }
 
                 val computedHash = computeSha256(tempFile)
-                val match = storedHash.contentEquals(computedHash)
+                val match = MessageDigest.isEqual(storedHash, computedHash)
 
                 if (!match) {
-                    Log.e(TAG, "Integrity mismatch! Stored=${storedHash.joinToString("") { "%02x".format(it) }}, " +
-                            "Computed=${computedHash.joinToString("") { "%02x".format(it) }}")
+                    Log.e(TAG, "Integrity mismatch!")
                 }
 
                 match
             } finally {
+                tempFile.outputStream().use { it.write(ByteArray(tempFile.length().toInt())) }
                 tempFile.delete()
             }
         } catch (e: Exception) {
