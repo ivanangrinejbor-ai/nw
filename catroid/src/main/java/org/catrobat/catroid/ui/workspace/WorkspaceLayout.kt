@@ -710,6 +710,11 @@ class WorkspaceLayout @JvmOverloads constructor(
     }
 
     fun openAddBrickWindow(category: String) {
+        if (org.catrobat.catroid.ProjectManager.getInstance().currentProject?.isProtectedProject == true) {
+            android.widget.Toast.makeText(context, R.string.protected_project_cannot_edit,
+                android.widget.Toast.LENGTH_SHORT).show()
+            return
+        }
         val tag = org.catrobat.catroid.ui.fragment.AddBrickFragment.ADD_BRICK_FRAGMENT_TAG
         openWindow(tag, getLocalizedString("add_brick") + ": $category") {
             val scriptsFragment = (context as? androidx.fragment.app.FragmentActivity)
@@ -725,6 +730,15 @@ class WorkspaceLayout @JvmOverloads constructor(
         formulaField: org.catrobat.catroid.content.bricks.Brick.FormulaField,
         showCustomView: Boolean
     ) {
+        if (formulaBrick.isLocked) {
+            android.widget.Toast.makeText(context, R.string.brick_locked, android.widget.Toast.LENGTH_SHORT).show()
+            return
+        }
+        if (org.catrobat.catroid.ProjectManager.getInstance().currentProject?.isProtectedProject == true) {
+            android.widget.Toast.makeText(context, R.string.protected_project_cannot_edit,
+                android.widget.Toast.LENGTH_SHORT).show()
+            return
+        }
         val tag = org.catrobat.catroid.ui.fragment.FormulaEditorFragment.FORMULA_EDITOR_FRAGMENT_TAG
         val title = getLocalizedString("formula_editor")
 

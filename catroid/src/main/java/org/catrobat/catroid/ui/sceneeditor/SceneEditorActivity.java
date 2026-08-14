@@ -1108,6 +1108,10 @@ private Sprite pendingLookSprite;
 	}
 
 	private void deleteScene(Scene targetScene) {
+		if (ProjectManager.getInstance().getCurrentProject().isProtectedProject()) {
+			Toast.makeText(this, R.string.protected_project_cannot_edit, Toast.LENGTH_SHORT).show();
+			return;
+		}
 		if (project.getSceneList().size() <= 1) {
 			hintView.setText(R.string.scene_editor_cant_delete_scene);
 			return;
@@ -1139,6 +1143,10 @@ private Sprite pendingLookSprite;
 
 	private void writePosition(Sprite sprite, float x, float y) {
 		if (sprite == null) return;
+		if (ProjectManager.getInstance().getCurrentProject().isProtectedProject()) {
+			Toast.makeText(this, R.string.protected_project_cannot_edit, Toast.LENGTH_SHORT).show();
+			return;
+		}
 		for (org.catrobat.catroid.content.Script script : sprite.getScriptList()) {
 			for (org.catrobat.catroid.content.bricks.Brick b : script.getBrickList()) {
 				if (b instanceof org.catrobat.catroid.content.bricks.PlaceAtBrick) {

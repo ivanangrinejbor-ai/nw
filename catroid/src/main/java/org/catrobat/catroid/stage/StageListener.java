@@ -1295,9 +1295,8 @@ public class StageListener implements ApplicationListener {
 		}
 
 		if (threeDManager != null) {
-			threeDManager.dispose();
+			threeDManager = null;
 		}
-		threeDManager = null;
 
         if (fastTwoDManager != null) {
             fastTwoDManager.clearScene();
@@ -1339,15 +1338,6 @@ public class StageListener implements ApplicationListener {
 		globalScriptsStarted = false;
 		GlobalManager.Companion.setStopSounds(true);
 		GlobalManager.Companion.setSaveScenes(true);
-
-		try {
-			RenderManager.INSTANCE.initialize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-			threeDManager = new ThreeDManager();
-			threeDManager.init();
-			sceneManager = new SceneManager(threeDManager);
-		} catch (Exception e) {
-					Log.e("StageListener", "INITIALIZE ERROR: " + e);
-		}
 
 		reloadProject = true;
 	}
@@ -1476,9 +1466,13 @@ public class StageListener implements ApplicationListener {
 					threeDManager.dispose();
 				}
 
-
-				threeDManager = new ThreeDManager();
-				threeDManager.init();
+				try {
+					RenderManager.INSTANCE.initialize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+					threeDManager = new ThreeDManager();
+					threeDManager.init();
+				} catch (Exception e) {
+					Log.e("StageListener", "INITIALIZE ERROR: " + e);
+				}
 				sceneManager = new SceneManager(threeDManager);
 
 				stage.clear();

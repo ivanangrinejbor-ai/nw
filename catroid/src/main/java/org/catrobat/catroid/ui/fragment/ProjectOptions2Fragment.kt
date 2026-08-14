@@ -584,6 +584,17 @@ class ProjectOptions2Fragment : Fragment() {
     }
 
     private fun exportProtectedProject() {
+        androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setTitle(R.string.export_protected_project)
+            .setMessage(R.string.export_protected_warning)
+            .setPositiveButton(android.R.string.ok) { _: android.content.DialogInterface?, _: Int ->
+                doProtectedExport()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun doProtectedExport() {
         val proj = project ?: return
         proj.xmlHeader?.setProtectedProject(true)
         saveProjectAsync()
@@ -665,11 +676,8 @@ class ProjectOptions2Fragment : Fragment() {
                         Toast.makeText(requireContext(), "Ошибка экспорта: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
                     }
                 }
-            } finally {
-                proj.xmlHeader?.setProtectedProject(false)
-                ProjectSaveCoordinator.saveAsync(proj)
             }
-        }.start()
+        }.apply { isDaemon = true }.start()
     }
 
     private fun zipDirectoryTo(sourceDir: File, destZip: File, onFile: ((String) -> Unit)? = null) {

@@ -173,6 +173,15 @@
         </activity>
 
         <activity
+            android:name=".ui.CrashActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:noHistory="true"
+            android:theme="@style/Catroid" />
+
+        <activity
             android:name=".ui.MarketingActivity"
             android:configChanges="orientation|screenSize|keyboardHidden"
             />

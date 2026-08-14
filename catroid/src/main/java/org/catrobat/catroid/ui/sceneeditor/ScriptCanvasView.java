@@ -561,6 +561,11 @@ private void notifySelection() {
 		if (sprite == null) {
 			return false;
 		}
+		if (ProjectManager.getInstance().getCurrentProject() != null
+				&& ProjectManager.getInstance().getCurrentProject().isProtectedProject()) {
+			Toast.makeText(getContext(), R.string.protected_project_cannot_edit, Toast.LENGTH_SHORT).show();
+			return false;
+		}
 		int[] location = new int[2];
 		getLocationOnScreen(location);
 		float localX = rawX - location[0];
@@ -639,6 +644,11 @@ for (FloatingBrick detached : detachedBricks) {
 	}
 
 	private void insertBrickIntoScript(Script script, Brick targetBrick, Brick clone) {
+		if (ProjectManager.getInstance().getCurrentProject() != null
+				&& ProjectManager.getInstance().getCurrentProject().isProtectedProject()) {
+			Toast.makeText(getContext(), R.string.protected_project_cannot_edit, Toast.LENGTH_SHORT).show();
+			return;
+		}
 		if (targetBrick == null || targetBrick instanceof ScriptBrick) {
 			script.addBrick(0, clone);
 			return;
@@ -1057,6 +1067,15 @@ private FloatingBrick findDetachedBrick(Brick brick) {
 		if (moving == null || sprite == null) {
 			return;
 		}
+		if (ProjectManager.getInstance().getCurrentProject() != null
+				&& ProjectManager.getInstance().getCurrentProject().isProtectedProject()) {
+			Toast.makeText(getContext(), R.string.protected_project_cannot_edit, Toast.LENGTH_SHORT).show();
+			return;
+		}
+		if (moving.isLocked()) {
+			Toast.makeText(getContext(), R.string.brick_locked, Toast.LENGTH_SHORT).show();
+			return;
+		}
 		int[] location = new int[2];
 		getLocationOnScreen(location);
 		float localX = rawX - location[0];
@@ -1344,6 +1363,40 @@ case MotionEvent.ACTION_DOWN:
 
 	private void showBlockContextMenu(Brick brick, View brickView, View stackView) {
 		if (brick == null) return;
+		boolean isProtected = ProjectManager.getInstance().getCurrentProject() != null
+				&& ProjectManager.getInstance().getCurrentProject().isProtectedProject();
+		if (isProtected) {
+			List<String> protectedItems = new ArrayList<>();
+			List<Runnable> protectedActions = new ArrayList<>();
+			protectedItems.add("Справка по блоку");
+			protectedActions.add(() -> showBrickHelp(brick));
+			protectedItems.add("Системная информация");
+			protectedActions.add(() -> showSystemInfo(brick));
+			new AlertDialog.Builder(getContext(), android.R.style.Theme_DeviceDefault_Dialog_Alert)
+					.setTitle("Блок: " + brick.getClass().getSimpleName())
+					.setItems(protectedItems.toArray(new String[0]),
+							(dialog, which) -> protectedActions.get(which).run())
+					.setNegativeButton(android.R.string.cancel, null)
+					.show();
+			return;
+		}
+		if (brick.isLocked()) {
+			List<String> lockedItems = new ArrayList<>();
+			List<Runnable> lockedActions = new ArrayList<>();
+			lockedItems.add("Справка по блоку");
+			lockedActions.add(() -> showBrickHelp(brick));
+			lockedItems.add("Снять блокировку");
+			lockedActions.add(() -> unlockBrick(brick));
+			lockedItems.add("Системная информация");
+			lockedActions.add(() -> showSystemInfo(brick));
+			new AlertDialog.Builder(getContext(), android.R.style.Theme_DeviceDefault_Dialog_Alert)
+					.setTitle("Блок: " + brick.getClass().getSimpleName())
+					.setItems(lockedItems.toArray(new String[0]),
+							(dialog, which) -> lockedActions.get(which).run())
+					.setNegativeButton(android.R.string.cancel, null)
+					.show();
+			return;
+		}
 		String brickName = brick.getClass().getSimpleName();
 		List<String> items = new ArrayList<>();
 		List<Runnable> actions = new ArrayList<>();
@@ -1436,8 +1489,15 @@ if (brick instanceof VisualPlacementBrick) {
 
 		boolean isProt = ProjectManager.getInstance().getCurrentProject() != null
 				&& ProjectManager.getInstance().getCurrentProject().isProtectedProject();
-		items.add(isProt ? "Снять защиту проекта" : "Защитить проект от изменений");
-		actions.add(this::toggleProjectProtection);
+		if (!isProt) {
+			items.add("Защитить проект от изменений");
+			actions.add(() -> new AlertDialog.Builder(getContext(), android.R.style.Theme_DeviceDefault_Dialog_Alert)
+					.setTitle("Защитить проект от изменений")
+					.setMessage(getContext().getString(R.string.export_protected_warning))
+					.setPositiveButton(android.R.string.ok, (d, w) -> toggleProjectProtection())
+					.setNegativeButton(android.R.string.cancel, null)
+					.show());
+		}
 
 		items.add("Системная информация");
 		actions.add(() -> showSystemInfo(brick));
@@ -1499,6 +1559,15 @@ if (brick instanceof VisualPlacementBrick) {
 
 	private void openFormulaEditor2(FormulaBrick formulaBrick, Brick.FormulaField field) {
 		if (!(getContext() instanceof ScriptCanvasActivity)) return;
+		if (formulaBrick.isLocked()) {
+			Toast.makeText(getContext(), R.string.brick_locked, Toast.LENGTH_SHORT).show();
+			return;
+		}
+		if (ProjectManager.getInstance().getCurrentProject() != null
+				&& ProjectManager.getInstance().getCurrentProject().isProtectedProject()) {
+			Toast.makeText(getContext(), R.string.protected_project_cannot_edit, Toast.LENGTH_SHORT).show();
+			return;
+		}
 		ScriptCanvasActivity activity = (ScriptCanvasActivity) getContext();
 		activity.setActiveEditFormula(formulaBrick, field);
 		Intent intent = new Intent(getContext(),
@@ -1843,6 +1912,17 @@ if (brick instanceof VisualPlacementBrick) {
 
 	private void deleteSelectedBricks() {
 		if (selectedBricks.isEmpty()) return;
+		if (ProjectManager.getInstance().getCurrentProject() != null
+				&& ProjectManager.getInstance().getCurrentProject().isProtectedProject()) {
+			Toast.makeText(getContext(), R.string.protected_project_cannot_edit, Toast.LENGTH_SHORT).show();
+			return;
+		}
+		for (Brick brick : selectedBricks) {
+			if (brick.isLocked()) {
+				Toast.makeText(getContext(), R.string.brick_locked, Toast.LENGTH_SHORT).show();
+				return;
+			}
+		}
 		snapshot();
 		List<Brick> toDelete = collectSelection();
 		for (Brick brick : toDelete) {
@@ -1916,6 +1996,11 @@ if (brick instanceof VisualPlacementBrick) {
 
 	private void pasteSelectedClipboard() {
 		if (copiedSelectionClipboard == null || copiedSelectionClipboard.isEmpty()) return;
+		if (ProjectManager.getInstance().getCurrentProject() != null
+				&& ProjectManager.getInstance().getCurrentProject().isProtectedProject()) {
+			Toast.makeText(getContext(), R.string.protected_project_cannot_edit, Toast.LENGTH_SHORT).show();
+			return;
+		}
 		snapshot();
 		for (Brick template : copiedSelectionClipboard) {
 			try {

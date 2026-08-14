@@ -55,6 +55,7 @@ import org.catrobat.catroid.ui.controller.RecentBrickListManager
 import org.catrobat.catroid.ui.fragment.BrickCategoryListBuilder
 import org.catrobat.catroid.ui.fragment.CategoryBricksFactory
 import org.catrobat.catroid.ui.settingsfragments.SettingsFragment
+import org.catrobat.catroid.utils.ToastUtil
 import org.json.JSONArray
 import org.koin.java.KoinJavaComponent.inject
 import java.util.Locale
@@ -465,6 +466,10 @@ class CatblocksScriptFragment(
     }
 
     fun handleAddButton() {
+        if (ProjectManager.getInstance().currentProject?.isProtectedProject == true) {
+            ToastUtil.showError(requireContext(), R.string.protected_project_cannot_edit)
+            return
+        }
 
         val brickCategoryInfos = getAvailableBrickCategories()
         val jsonCategoryInfos = Gson().toJson(brickCategoryInfos)

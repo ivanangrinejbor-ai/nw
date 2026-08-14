@@ -82,12 +82,13 @@ public final class PhysicsShapeBuilder {
 		}
 
 		String imageIdentifier = Utils.md5Checksum(lookData.getFile());
-		if (!imageShapesMap.containsKey(imageIdentifier)) {
-			imageShapesMap.put(imageIdentifier, new ImageShapes(pixmap));
+		ImageShapes imageShapes = imageShapesMap.get(imageIdentifier);
+		if (imageShapes == null || !imageShapes.hasPixmap(pixmap)) {
+			imageShapes = new ImageShapes(pixmap);
+			imageShapesMap.put(imageIdentifier, imageShapes);
 		}
 
 		float accuracyLevel = getAccuracyLevel(scaleFactor);
-		ImageShapes imageShapes = imageShapesMap.get(imageIdentifier);
 		Shape[] shapes = imageShapes.getShapes(accuracyLevel);
 
 		if (shapes == null) {
@@ -184,6 +185,12 @@ public final class PhysicsShapeBuilder {
 		private Shape[] computeNewShape(float accuracy) {
 			int width = pixmap.getWidth();
 			int height = pixmap.getHeight();
+
+			if (width < 1 || height < 1) {
+				Log.e(TAG, "pixmap has invalid size: " + width + "x" + height);
+				return null;
+			}
+
 			int scaledWidth = Math.round(width * sizeAdjustmentScaleFactor * accuracy);
 			int scaledHeight = Math.round(height * sizeAdjustmentScaleFactor * accuracy);
 
@@ -196,12 +203,25 @@ public final class PhysicsShapeBuilder {
 
 			Pixmap scaledPixmap = new Pixmap(scaledWidth, scaledHeight, pixmap.getFormat());
 			scaledPixmap.setFilter(Pixmap.Filter.NearestNeighbour);
-			scaledPixmap.drawPixmap(pixmap, 0, 0, width, height, 0, 0, scaledWidth, scaledHeight);
+			try {
+				scaledPixmap.drawPixmap(pixmap, 0, 0, width, height, 0, 0, scaledWidth, scaledHeight);
+			} catch (RuntimeException e) {
+				Log.e(TAG, "drawPixmap failed for " + width + "x" + height, e);
+				scaledPixmap.dispose();
+				return null;
+			}
 			Shape[] scaledShapes = strategy.build(scaledPixmap, 1.0f);
 
 			scaledPixmap.dispose();
 
+			if (scaledShapes == null) {
+				return null;
+			}
 			return PhysicsShapeScaleUtils.scaleShapes(scaledShapes, 1.0f, sizeAdjustmentScaleFactor * accuracy);
+		}
+
+		public boolean hasPixmap(Pixmap currentPixmap) {
+			return pixmap == currentPixmap;
 		}
 
 		public Shape[] getShapes(float accuracyLevel) throws RuntimeException {

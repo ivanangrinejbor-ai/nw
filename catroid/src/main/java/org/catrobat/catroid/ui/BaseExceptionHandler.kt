@@ -23,18 +23,13 @@
 package org.catrobat.catroid.ui
 
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Process
 import android.preference.PreferenceManager
 import android.util.Log
 import kotlin.system.exitProcess
 import java.io.File
-import java.io.FileWriter
-import java.io.PrintWriter
-import java.io.StringWriter
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 private const val EXIT_CODE = 10
 
@@ -45,26 +40,31 @@ open class BaseExceptionHandler(context: Context) : Thread.UncaughtExceptionHand
 
     override fun uncaughtException(thread: Thread, exception: Throwable) {
         Log.e(TAG, "uncaughtException: ", exception)
-        writeCrashToFile(thread, exception)
-        preferences.edit()
-            .putBoolean(RECOVERED_FROM_CRASH, true)
-            .apply()
-        exit()
+        try {
+            val logcat = CrashReporter.collectLogcat()
+            val report = CrashReporter.buildReport(thread, exception, logcat)
+            val reportFile = CrashReporter.saveReport(appContext, report)
+            preferences.edit()
+                .putBoolean(RECOVERED_FROM_CRASH, true)
+                .apply()
+            launchCrashActivity(reportFile)
+        } catch (e: Throwable) {
+            Log.e(TAG, "Crash recovery failed, falling back to exit", e)
+            exit()
+        }
     }
 
-    private fun writeCrashToFile(thread: Thread, exception: Throwable) {
+    private fun launchCrashActivity(reportFile: File?) {
         try {
-            val cacheDir = appContext.cacheDir ?: return
-            val crashFile = File(cacheDir, "crash_log.txt")
-            val time = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US).format(Date())
-            val sw = StringWriter()
-            sw.append("TIME: ").append(time).append("\n")
-            sw.append("THREAD: ").append(thread.name).append("\n")
-            exception.printStackTrace(PrintWriter(sw))
-            val existing = if (crashFile.exists()) crashFile.readText() else ""
-            FileWriter(crashFile, false).use { it.write(existing + "\n===== CRASH =====\n" + sw.toString()) }
-        } catch (e: Throwable) {
-            Log.e(TAG, "Failed to write crash log", e)
+            val intent = Intent(appContext, CrashActivity::class.java)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+            if (reportFile != null) {
+                intent.putExtra(CrashActivity.EXTRA_REPORT_PATH, reportFile.absolutePath)
+            }
+            appContext.startActivity(intent)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to launch CrashActivity", e)
+            exit()
         }
     }
 

@@ -49,6 +49,10 @@ public class PhysicsLook extends Look {
 		physicsObjectStateHandler = new PhysicsObjectStateHandler(this, physicsObject, physicsWorld);
 	}
 
+	public boolean isPhysicsObject(PhysicsObject other) {
+		return physicsObject == other;
+	}
+
 	@Override
 	public void copyTo(final Look destination) {
 		super.copyTo(destination);

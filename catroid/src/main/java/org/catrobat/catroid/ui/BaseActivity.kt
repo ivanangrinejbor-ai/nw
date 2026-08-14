@@ -84,7 +84,6 @@ abstract class BaseActivity : AppCompatActivity(), PermissionHandlingActivity {
         applyAccessibilityStyles()
         applyWindowInsets()
 
-        Thread.setDefaultUncaughtExceptionHandler(BaseExceptionHandler(this))
         checkIfCrashRecoveryAndFinishActivity(this)
         checkIfProcessRecreatedAndFinishActivity(savedInstanceState)
 

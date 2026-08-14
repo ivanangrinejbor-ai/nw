@@ -872,6 +872,10 @@ public class ScriptFragment extends ListFragment implements
 
 	public void handleAddButton() {
 		stopAiAnalysisTimer();
+		if (ProjectManager.getInstance().getCurrentProject().isProtectedProject()) {
+			ToastUtil.showError(getContext(), R.string.protected_project_cannot_edit);
+			return;
+		}
 		if (listView.isCurrentlyHighlighted()) {
 			listView.cancelHighlighting();
 		}
@@ -1075,6 +1079,14 @@ public class ScriptFragment extends ListFragment implements
 				&& itemId != R.string.brick_context_dialog_system_info
 				&& itemId != R.string.brick_context_dialog_highlight_brick_parts) {
 			ToastUtil.showError(getContext(), R.string.protected_project_cannot_edit);
+			return;
+		}
+		if (brick.isLocked() && itemId != R.string.brick_context_dialog_lock
+				&& itemId != R.string.brick_context_dialog_unlock
+				&& itemId != R.string.brick_context_dialog_help
+				&& itemId != R.string.brick_context_dialog_system_info
+				&& itemId != R.string.brick_context_dialog_highlight_brick_parts) {
+			ToastUtil.showError(getContext(), R.string.brick_locked);
 			return;
 		}
 		showUndo(false);

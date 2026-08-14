@@ -442,7 +442,10 @@ public class PhysicsObject {
 		if (body.getUserData() != null && body.getUserData() instanceof Sprite) {
 			Object look = ((Sprite) body.getUserData()).look;
 			if (look != null && look instanceof PhysicsLook) {
-				((PhysicsLook) look).setNonColliding(isNonColliding());
+				PhysicsLook physicsLook = (PhysicsLook) look;
+				if (physicsLook.isPhysicsObject(this)) {
+					physicsLook.setNonColliding(isNonColliding());
+				}
 			}
 		}
 	}

@@ -164,6 +164,10 @@ android {
                                  intentFilterHost: "share.catrob.at",
                                  intentFilterPathPattern: "/.*/project/.*"]
 
+        ndk {
+            abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86_64'
+        }
+
         buildConfigField "String", "GIT_COMMIT_INFO", "\"${getGitCommitInfo()}\""
         buildConfigField "String", "WEB_TEST_URL", "\"" + project.getProperties().get('webTestUrl') + "\""
         buildConfigField "boolean", "WEB_TEST_FLAG", (project.hasProperty('webTestUrl') ? 'true' :
@@ -274,6 +278,10 @@ android {
         pocketCodeBeta {}
         mindstorms {}
         standalone {}
+    }
+
+    androidResources {
+        ignoreAssetsPattern "!.gitignore:!template_win.zip:!app-classes.jar:!gdx.jar:!core.jar:!patterns.json:!model.tflite"
     }
 
     packagingOptions {
@@ -1042,21 +1050,11 @@ tasks.register('copyAllRuntimeTemplates') {
 
 tasks.register('copyDesktopTemplate') {
     group = "build"
-    description = "Copies the Windows desktop player template (template_win.zip, build_exe.bat) to Android assets"
+    description = "Copies build_exe.bat to Android assets"
     doLast {
         def desktopRuntimeDir = file("$rootDir/desktop-runtime")
         def assetsDir = file("$projectDir/src/main/assets")
-        def templateZip = file("$desktopRuntimeDir/template_win.zip")
         def buildExeBat = file("$desktopRuntimeDir/build_exe.bat")
-        if (templateZip.exists()) {
-            copy {
-                from templateZip
-                into assetsDir
-            }
-            println "Desktop template copied: $templateZip -> $assetsDir"
-        } else {
-            println "WARNING: $templateZip not found — run ':desktop-runtime:jar' first, or build_exe.bat on Windows."
-        }
         if (buildExeBat.exists()) {
             copy {
                 from buildExeBat

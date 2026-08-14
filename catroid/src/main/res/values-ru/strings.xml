@@ -770,8 +770,6 @@
     <string name="scene_transition_exit">При выходе</string>
     <string name="export_with_password">Экспорт с паролем</string>
     <string name="export_protected_project">Экспорт как защищённый проект</string>
-    <string name="export_exe_v2">Windows EXE v2 (единый файл)</string>
-    <string name="exe_v2_progress">Сборка Windows EXE v2...</string>
     <string name="export_compressed_light">Экспорт с лёгким сжатием</string>
     <string name="export_compressed_hard">Экспорт с жёстким сжатием</string>
     <string name="export_compressed_light_progress">Очистка проекта…</string>
@@ -782,10 +780,9 @@
     <string name="export_bake">Запечь проект</string>
     <string name="protected_project_imported">Этот проект защищён. Редактирование отключено.</string>
     <string name="protected_project_cannot_edit">Нельзя редактировать защищённый проект</string>
+    <string name="export_protected_warning">Проект станет защищённым от изменений навсегда. Снять защиту будет невозможно. Продолжить экспорт?</string>
     <string name="export_as_apk">Экспортировать как APK</string>
-    <string name="export_as_exe">Экспортировать как EXE</string>
     <string name="export_as_apk_v2">Экспортировать как APK v2</string>
-    <string name="export_exe_coming_soon">Функция «Экспорт как EXE» появится в будущем.</string>
     <string name="enter_export_password">Введите пароль для экспорта</string>
     <string name="password_hint">Пароль</string>
     <string name="confirm_password_hint">Подтвердите пароль</string>
@@ -2642,8 +2639,11 @@
     <string formatted="false" name="preference_description_cast_feature_globally_enabled">Показывать кнопку трансляции и транслируемые проекты</string>
     <string formatted="false" name="preference_title_enable_nfc_bricks">Расширение NFC</string>
     <string formatted="false" name="preference_description_nfc_bricks">Разрешить приложению использовать NFC теги в проектах</string>
-    <string formatted="false" name="preference_title_enable_crash_reports">Отправлять анонимные отчеты об ошибках</string>
-    <string formatted="false" name="preference_description_crash_reports">Разрешить приложению автоматически отправлять отчеты об ошибках</string>
+<string formatted="false" name="preference_title_enable_crash_reports">Отправлять анонимные отчеты об ошибках</string>
+<string formatted="false" name="preference_description_crash_reports">Разрешить приложению автоматически отправлять отчеты об ошибках</string>
+<string formatted="false" name="crash_dialog_title">Что-то пошло не так</string>
+<string formatted="false" name="crash_dialog_message">Ваш баг будет починен в скорейшем времени</string>
+<string formatted="false" name="crash_dialog_ok">ОК</string>
     <!-- -->
     <string formatted="false" name="preference_title_enable_raspi_bricks">Расширение Raspberry Pi</string>
     <string formatted="false" name="preference_description_raspi_bricks">Разрешить приложению управлять компьютерами Raspberry Pi</string>
@@ -5686,7 +5686,6 @@
     <string formatted="false" name="pathfinder_dynamic_replan">Динамическое перепланирование</string>
     <string formatted="false" name="pathfinder_dynamic_replan_enabled">Включено (1/0)</string>
     <string formatted="false" name="notification_low_battery_with_value">Внимание. Батарея разряжена. Текущий уровень: %d</string>
-    <string formatted="false" name="export_exe_2d_only_warning">Внимание: этот EXE для ПК работает только в 2D. 3D-блоки, 3D-камера и функции 3D-рендеринга не поддерживаются.</string>
     <string formatted="false" name="brick_user_defined_script_as">как</string>
     <string formatted="false" name="brick_look_request_default_value">https://catrob.at/penguin</string>
     <string formatted="false" name="brick_background_request_default_value_landscape">https://catrob.at/HalloweenLandscape</string>

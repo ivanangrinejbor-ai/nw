@@ -47,6 +47,7 @@ import org.catrobat.catroid.codeanalysis.AnalysisManager
 import org.catrobat.catroid.codeanalysis.Severity
 import org.catrobat.catroid.content.Script
 import org.catrobat.catroid.content.Sprite
+import org.catrobat.catroid.ProjectManager
 import org.catrobat.catroid.content.bricks.Brick
 import org.catrobat.catroid.content.bricks.Brick.BrickField
 import org.catrobat.catroid.content.bricks.CompositeBrick
@@ -480,6 +481,14 @@ class BrickAdapter(val sprite: Sprite) :
 
     private fun handleCheckBoxModeNone(item: Brick) {
         item.checkBox?.visibility = View.GONE
+        if (item.isLocked) {
+            item.disableSpinners()
+            return
+        }
+        if (ProjectManager.getInstance().currentProject?.isProtectedProject == true) {
+            item.disableSpinners()
+            return
+        }
         if (item is FormulaBrick) {
             item.setClickListeners()
         } else if (item is ListSelectorBrick) {

@@ -59,6 +59,11 @@ public class BackpackSceneFragment extends BackpackRecyclerViewFragment<Scene> {
 	@Override
 	protected void unpackItems(List<Scene> selectedItems) {
 		setShowProgressBar(true);
+		if (ProjectManager.getInstance().getCurrentProject().isProtectedProject()) {
+			ToastUtil.showError(getActivity(), R.string.protected_project_cannot_edit);
+			finishActionMode();
+			return;
+		}
 		Project destinationProject = ProjectManager.getInstance().getCurrentProject();
 		int unpackedItemCnt = 0;
 

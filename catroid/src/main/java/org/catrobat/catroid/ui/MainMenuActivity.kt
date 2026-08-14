@@ -111,6 +111,8 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
 
         SettingsFragment.setToChosenLanguage(this)
 
+        CrashReporter.sendPendingReports(this)
+
         if (!BuildConfig.FEATURE_APK_GENERATOR_ENABLED) {
             val startTime = System.currentTimeMillis()
 

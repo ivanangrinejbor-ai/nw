@@ -61,6 +61,11 @@ public class ActorAndObjectSpriteFragment extends ActorAndObjectRecyclerViewFrag
 	@Override
 	protected void unpackItems(List<Sprite> selectedItems) {
 		setShowProgressBar(true);
+		if (ProjectManager.getInstance().getCurrentProject().isProtectedProject()) {
+			ToastUtil.showError(getActivity(), R.string.protected_project_cannot_edit);
+			finishActionMode();
+			return;
+		}
 		Project dstProject = ProjectManager.getInstance().getCurrentProject();
 		Scene dstScene = ProjectManager.getInstance().getCurrentlyEditedScene();
 		int unpackedItemCnt = 0;

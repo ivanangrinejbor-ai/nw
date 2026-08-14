@@ -110,7 +110,6 @@ import org.catrobat.catroid.utils.git.GitResult
 import org.catrobat.catroid.utils.git.TokenManager
 import org.catrobat.catroid.utils.lunoscript.baker.ProjectBaker
 import org.catrobat.catroid.utils.notifications.StatusBarNotificationManager
-import org.catrobat.catroid.desktop.export.DesktopExeBuilder
 import org.koin.android.ext.android.inject
 import java.io.File
 import java.io.FileInputStream
@@ -209,7 +208,6 @@ class ProjectOptionsFragment : Fragment() {
             val items = arrayOf(
                 getString(R.string.export_bake),
                 getString(R.string.export_project),
-                getString(R.string.export_as_exe),
                 getString(R.string.export_with_password),
                 getString(R.string.export_as_apk_v3),
                 getString(R.string.export_protected_project)
@@ -220,42 +218,14 @@ class ProjectOptionsFragment : Fragment() {
                 when (which) {
                     0 -> runExportWalkthrough { exportBakedProject() }
                     1 -> runExportWalkthrough { exportProject() }
-                    2 -> runExportWalkthrough { exportAsStandaloneExe() }
-                    3 -> runExportWalkthrough { exportWithPassword() }
-                    4 -> buildApkV3()
-                    5 -> runExportWalkthrough { exportProtectedProject() }
+                    2 -> runExportWalkthrough { exportWithPassword() }
+                    3 -> buildApkV3()
+                    4 -> runExportWalkthrough { exportProtectedProject() }
                 }
             }
             .show()
         }
     }
-
-    private fun exportAsStandaloneExe() {
-        saveProject()
-        val currentProject = project ?: return
-
-        showProgressDialog(getString(R.string.export_as_exe))
-
-        lifecycleScope.launch(Dispatchers.IO) {
-            val destination = DesktopExeBuilder.getDefaultExportFile(currentProject)
-            val success = DesktopExeBuilder.buildStandaloneExe(requireContext(), currentProject, destination)
-
-            withContext(Dispatchers.Main) {
-                hideProgressDialog()
-                if (success) {
-                    androidx.appcompat.app.AlertDialog.Builder(requireContext())
-                        .setTitle(R.string.export_as_exe)
-                        .setMessage("Файл успешно сохранен в Загрузки:\n${destination.absolutePath}")
-                        .setPositiveButton(android.R.string.ok, null)
-                        .show()
-                } else {
-                    ToastUtil.showError(requireContext(), "Ошибка создания EXE файла")
-                }
-            }
-        }
-    }
-
-
 
     private fun exportBakedProject() {
         saveProject()
@@ -1283,10 +1253,19 @@ class ProjectOptionsFragment : Fragment() {
     }
 
     private fun exportProtectedProject() {
+        AlertDialog.Builder(requireContext())
+            .setTitle(R.string.export_protected_project)
+            .setMessage(R.string.export_protected_warning)
+            .setPositiveButton(android.R.string.ok) { _, _ -> startProtectedExport() }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun startProtectedExport() {
         isProtectedExport = true
         saveProject()
         project?.xmlHeader?.setProtectedProject(true)
-        project?.let { ProjectSaver(it, requireContext()).saveProjectAsync({}) }
+        saveProjectSerial(project, requireContext())
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             exportUsingSystemFilePicker()
         } else {
@@ -1588,173 +1567,6 @@ class ProjectOptionsFragment : Fragment() {
         }
     }
 
-
-    private fun buildExe() {
-        project ?: return
-
-        releaseAllLookCaches()
-        System.gc()
-
-        showProgressDialog("Сборка Windows-пакета...")
-
-        lifecycleScope.launch(Dispatchers.IO) {
-            try {
-                val proj = project!!
-                val projectName = proj.name
-                val ctx = requireContext()
-                val cache = ctx.cacheDir
-
-                val projectBytes = proj.directory.walkTopDown().filter { it.isFile }.sumOf { it.length() }
-                val neededBytes = projectBytes + 250L * 1024 * 1024
-                val freeBytes = cache.usableSpace
-                if (freeBytes < neededBytes) {
-                    throw java.io.IOException(
-                        "Недостаточно места для сборки: нужно ~${neededBytes / (1024 * 1024)} МБ, " +
-                            "свободно ${freeBytes / (1024 * 1024)} МБ. Освободите место и повторите."
-                    )
-                }
-                System.gc()
-
-                val iconPng: File? = run {
-                    val manual = File(proj.directory, "manual_screenshot.png")
-                    val auto = File(proj.directory, "automatic_screenshot.png")
-                    when { manual.exists() -> manual; auto.exists() -> auto; else -> null }
-                }
-
-                val bundledAssets = listOf(
-                    "build_exe.bat",
-                    "write_launch4j_xml.ps1",
-                    "embed_payload.ps1",
-                    "inject_project.ps1",
-                    "stage_root.ps1",
-                    "build_template.ps1",
-                    "template_win.zip"
-                )
-                val outputFile = File(cache, "${projectName}_win.zip")
-                if (outputFile.exists()) outputFile.delete()
-                java.util.zip.ZipOutputStream(
-                    java.io.BufferedOutputStream(java.io.FileOutputStream(outputFile))
-                ).use { zos ->
-                    zos.setLevel(java.util.zip.Deflater.NO_COMPRESSION)
-                    val buf = ByteArray(65536)
-                    fun addStream(name: String, input: java.io.InputStream) {
-                        zos.putNextEntry(java.util.zip.ZipEntry(name))
-                        input.use {
-                            var n = it.read(buf)
-                            while (n >= 0) { zos.write(buf, 0, n); n = it.read(buf) }
-                        }
-                        zos.closeEntry()
-                    }
-                    val readme = listOf(
-                        "NeoCatroid — сборка Windows-приложения (.exe)",
-                        "==============================================",
-                        "",
-                        "В этом архиве — рантайм и ваш проект. Чтобы получить один",
-                        "запускаемый NeoCatroid.exe, нужно один раз собрать его на Windows.",
-                        "",
-                        "Как собрать:",
-                        "  1. Распакуйте ВЕСЬ архив в отдельную папку (не запускайте из архива).",
-                        "  2. Дважды кликните «СОБРАТЬ EXE.bat».",
-                        "  3. Подождите ~1–2 минуты (готовится рантайм, launch4j оборачивает exe,",
-                        "     проект вшивается внутрь). Нужен только Windows, JDK не требуется.",
-                        "  4. В этой папке появится NeoCatroid.exe — самодостаточный,",
-                        "     с уже вшитыми рантаймом и проектом.",
-                        "  5. Запускайте и раздавайте NeoCatroid.exe.",
-                        "",
-                        "Если что-то пошло не так — откройте post_log.txt рядом со скриптом."
-                    ).joinToString("\r\n")
-                    val runner = listOf(
-                        "@echo off",
-                        "chcp 65001 >nul",
-                        "call \"%~dp0build_exe.bat\"",
-                        "echo.",
-                        "echo Готово! Запускайте NeoCatroid.exe в этой папке.",
-                        "pause"
-                    ).joinToString("\r\n")
-                    addStream("КАК ЗАПУСТИТЬ.txt", readme.byteInputStream(Charsets.UTF_8))
-                    addStream("СОБРАТЬ EXE.bat", runner.toByteArray(Charsets.UTF_8).inputStream())
-                    for (asset in bundledAssets) {
-                        addStream(asset, ctx.assets.open(asset))
-                    }
-                    zos.putNextEntry(java.util.zip.ZipEntry("project.zip"))
-                    val payloadPassword = org.catrobat.catroid.io.ProjectCrypto.generateRandomPassword()
-                    org.catrobat.catroid.io.ProjectCrypto.writePasswordContainerHeader(zos, payloadPassword)
-                    org.catrobat.catroid.io.ProjectCrypto.encryptDirectoryToStreamChunked(
-                        proj.directory,
-                        zos,
-                        payloadPassword,
-                        filter = { fileName -> fileName != "undo_code.xml" }
-                    )
-                    zos.closeEntry()
-                    if (iconPng != null && iconPng.exists()) {
-                        addStream("icon.png", iconPng.inputStream())
-                    }
-                }
-                System.gc()
-
-                withContext(Dispatchers.Main) {
-                    hideProgressDialog()
-                    shareFile(outputFile)
-                }
-
-            } catch (e: Throwable) {
-                withContext(Dispatchers.Main) {
-                    hideProgressDialog()
-                    ToastUtil.showError(requireContext(), "Ошибка: ${e.message}")
-                    e.printStackTrace()
-                }
-            }
-        }
-    }
-
-    private fun buildExeV2() {
-        val p = project ?: return
-        saveProject()
-        releaseAllLookCaches()
-        System.gc()
-
-        showProgressDialog(getString(R.string.exe_v2_progress))
-
-        lifecycleScope.launch(Dispatchers.IO) {
-            try {
-                val proj = project!!
-                val ctx = requireContext()
-                val cache = ctx.cacheDir
-
-                val projectBytes = proj.directory.walkTopDown().filter { it.isFile }.sumOf { it.length() }
-                val neededBytes = projectBytes + 108L * 1024 * 1024
-                val freeBytes = cache.usableSpace
-                if (freeBytes < neededBytes) {
-                    throw java.io.IOException(
-                        "Недостаточно места для сборки: нужно ~${neededBytes / (1024 * 1024)} МБ, " +
-                            "свободно ${freeBytes / (1024 * 1024)} МБ. Освободите место и повторите."
-                    )
-                }
-                System.gc()
-
-                val outputFile = File(cache, "${proj.name}_exe_v2.exe")
-                if (outputFile.exists()) outputFile.delete()
-                org.catrobat.catroid.exebuildv2.ExeBuilderV2.build(
-                    ctx,
-                    proj.directory,
-                    proj.name,
-                    outputFile
-                )
-                System.gc()
-
-                withContext(Dispatchers.Main) {
-                    hideProgressDialog()
-                    shareFile(outputFile)
-                }
-            } catch (e: Throwable) {
-                withContext(Dispatchers.Main) {
-                    hideProgressDialog()
-                    ToastUtil.showError(requireContext(), "Ошибка: ${e.message}")
-                    e.printStackTrace()
-                }
-            }
-        }
-    }
 
     private fun buildApk() {
         saveProject()
@@ -2308,13 +2120,6 @@ class ProjectOptionsFragment : Fragment() {
                     it.name
                 )
             val task = ProjectExportTask(it.directory, projectDestination, notificationData, requireContext())
-            if (isProtectedExport) {
-                task.registerCallback(object : ProjectExportTask.ProjectExportCallback {
-                    override fun onProjectExportFinished() {
-                        activity?.runOnUiThread { resetProtectedFlag() }
-                    }
-                })
-            }
             task.execute()
         }
     }

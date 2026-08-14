@@ -215,6 +215,15 @@ public abstract class FormulaBrick extends BrickBaseType implements View.OnClick
 	}
 
 	private void showFormulaCopyPasteMenu(View anchor, FormulaField field) {
+		if (isLocked()) {
+			android.widget.Toast.makeText(anchor.getContext(), R.string.brick_locked,
+				android.widget.Toast.LENGTH_SHORT).show();
+			return;
+		}
+		if (isProtectedProject()) {
+			showProtectedProjectToast(anchor.getContext());
+			return;
+		}
 		android.content.Context ctx = anchor.getContext();
 		java.util.List<String> options = new java.util.ArrayList<>();
 		options.add(ctx.getString(R.string.copy) + " формулу");
@@ -244,6 +253,16 @@ public abstract class FormulaBrick extends BrickBaseType implements View.OnClick
 			.show();
 	}
 
+	private boolean isProtectedProject() {
+		return ProjectManager.getInstance().getCurrentProject() != null
+			&& ProjectManager.getInstance().getCurrentProject().isProtectedProject();
+	}
+
+	private void showProtectedProjectToast(Context ctx) {
+		android.widget.Toast.makeText(ctx, R.string.protected_project_cannot_edit,
+			android.widget.Toast.LENGTH_SHORT).show();
+	}
+
 	public List<Formula> getFormulas() {
 		return new ArrayList<>(formulaMap.values());
 	}
@@ -267,6 +286,15 @@ public abstract class FormulaBrick extends BrickBaseType implements View.OnClick
 
 	@Override
 	public void onClick(View view) {
+		if (isLocked()) {
+			android.widget.Toast.makeText(view.getContext(), R.string.brick_locked,
+				android.widget.Toast.LENGTH_SHORT).show();
+			return;
+		}
+		if (isProtectedProject()) {
+			showProtectedProjectToast(view.getContext());
+			return;
+		}
 		saveCodeFile(view);
 		showFormulaEditorToEditFormula(view);
 	}

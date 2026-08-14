@@ -62,6 +62,11 @@ public class BackpackLookFragment extends BackpackRecyclerViewFragment<LookData>
 	@Override
 	protected void unpackItems(List<LookData> selectedItems) {
 		setShowProgressBar(true);
+		if (projectManager.getCurrentProject().isProtectedProject()) {
+			ToastUtil.showError(getActivity(), R.string.protected_project_cannot_edit);
+			finishActionMode();
+			return;
+		}
 		Sprite destinationSprite = projectManager.getCurrentSprite();
 		int unpackedItemCnt = 0;
 

@@ -25,7 +25,10 @@ package org.catrobat.catroid.io.asynctask
 import android.content.ContentResolver
 import android.content.Context
 import android.net.Uri
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
+import android.widget.Toast
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -34,6 +37,7 @@ import kotlinx.coroutines.withContext
 import org.catrobat.catroid.common.Constants
 import org.catrobat.catroid.common.Constants.CACHE_DIRECTORY
 import org.catrobat.catroid.common.FlavoredConstants
+import org.catrobat.catroid.R
 import org.catrobat.catroid.content.backwardcompatibility.ProjectMetaDataParser
 import org.catrobat.catroid.io.StorageOperations
 import org.catrobat.catroid.io.XstreamSerializer
@@ -392,6 +396,11 @@ private fun ProjectUnZipperAndImporter.normalizeProject(projectDir: File) {
     val ctx = importContext ?: return
     try {
         val project = XstreamSerializer.getInstance().loadProject(projectDir, ctx)
+        if (project.xmlHeader?.isProtectedProject == true) {
+            Handler(Looper.getMainLooper()).post {
+                Toast.makeText(ctx.applicationContext, R.string.protected_project_imported, Toast.LENGTH_LONG).show()
+            }
+        }
         XstreamSerializer.getInstance().saveProject(project)
     } catch (e: Exception) {
         Log.w(TAG, "Project normalization (load/save) failed; keeping imported copy as-is", e)

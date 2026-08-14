@@ -747,8 +747,6 @@
     <string name="scene_transition_exit">On leave</string>
     <string name="export_with_password">Export with password</string>
     <string name="export_protected_project">Export as protected project</string>
-    <string name="export_exe_v2">Windows EXE v2 (single file)</string>
-    <string name="exe_v2_progress">Building Windows EXE v2...</string>
     <string name="export_compressed_light">Export with light compression</string>
     <string name="export_compressed_hard">Export with hard compression</string>
     <string name="export_compressed_light_progress">Cleaning up project…</string>
@@ -759,11 +757,9 @@
     <string name="export_bake">Bake project</string>
     <string name="protected_project_imported">This project is protected. Editing is disabled.</string>
     <string name="protected_project_cannot_edit">Cannot edit protected project</string>
+    <string name="export_protected_warning">The project will become protected from changes forever. Removing the protection will be impossible. Continue export?</string>
     <string name="export_as_apk">Export as APK</string>
-    <string name="export_as_exe">Export as EXE (2D only)</string>
     <string name="export_as_apk_v2">Export as APK v2</string>
-    <string name="export_exe_coming_soon">EXE export is 2D-only. 3D blocks are not supported in the desktop player yet.</string>
-    <string name="export_exe_2d_only_warning">Warning: this desktop EXE is 2D-only. 3D blocks, 3D camera, and 3D renderer features are not supported.</string>
     <string name="enter_export_password">Enter export password</string>
     <string name="password_hint">Password</string>
     <string name="confirm_password_hint">Confirm password</string>
@@ -2156,6 +2152,9 @@
 <string formatted="false" name="preference_description_nfc_bricks">Allow the app to use NFC tags in projects</string>
 <string formatted="false" name="preference_title_enable_crash_reports">Sending anonymous crash reports</string>
 <string formatted="false" name="preference_description_crash_reports">Allow the app to send crash reports automatically</string>
+<string formatted="false" name="crash_dialog_title">Something went wrong</string>
+<string formatted="false" name="crash_dialog_message">Your bug will be fixed soon</string>
+<string formatted="false" name="crash_dialog_ok">OK</string>
 <string formatted="false" name="category_libraries">Libraries</string>
 <string formatted="false" name="preference_title_enable_raspi_bricks">Raspberry Pi extension</string>
 <string formatted="false" name="preference_description_raspi_bricks">Allow the app to control Raspberry Pi computers</string>

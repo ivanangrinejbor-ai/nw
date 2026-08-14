@@ -67,12 +67,12 @@ object TelemetryManager {
         }
     }
 
-    private fun getTelemetryFirestore(context: Context): FirebaseFirestore? {
+    internal fun getTelemetryFirestore(context: Context): FirebaseFirestore? {
         val app = getTelemetryApp(context) ?: return null
         return FirebaseFirestore.getInstance(app)
     }
 
-    private fun getTelemetryApp(context: Context): FirebaseApp? {
+    internal fun getTelemetryApp(context: Context): FirebaseApp? {
         return try {
             FirebaseApp.getApps(context).firstOrNull { it.name == TELEMETRY_APP_NAME }?.let { return it }
             val options = FirebaseOptions.Builder()
