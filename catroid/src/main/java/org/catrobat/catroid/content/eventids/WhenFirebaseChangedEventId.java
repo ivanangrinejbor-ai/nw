@@ -48,17 +48,21 @@ public class WhenFirebaseChangedEventId extends EventId {
 
 		WhenFirebaseChangedEventId that = (WhenFirebaseChangedEventId) o;
 
-		if (bucket != null ? !bucket.equals(that.bucket) : that.bucket != null) {
-			return false;
-		}
-		return path != null ? path.equals(that.path) : that.path == null;
+		String thisBucket = bucket != null ? bucket.getTrimmedFormulaString(null) : "";
+		String thatBucket = that.bucket != null ? that.bucket.getTrimmedFormulaString(null) : "";
+		String thisPath = path != null ? path.getTrimmedFormulaString(null) : "";
+		String thatPath = that.path != null ? that.path.getTrimmedFormulaString(null) : "";
+
+		return thisBucket.equals(thatBucket) && thisPath.equals(thatPath);
 	}
 
 	@Override
 	public int hashCode() {
 		int result = super.hashCode();
-		result = 31 * result + (bucket != null ? bucket.hashCode() : 0);
-		result = 31 * result + (path != null ? path.hashCode() : 0);
+		String thisBucket = bucket != null ? bucket.getTrimmedFormulaString(null) : "";
+		String thisPath = path != null ? path.getTrimmedFormulaString(null) : "";
+		result = 31 * result + thisBucket.hashCode();
+		result = 31 * result + thisPath.hashCode();
 		return result;
 	}
 }

@@ -76,6 +76,34 @@ object CloudModelRuntime {
         }
     }
 
+    suspend fun generateForProvider(
+        provider: AiProvider,
+        model: String,
+        systemPrompt: String,
+        userContent: String,
+        temperature: Float = 0.7f,
+        maxTokens: Int = 2048
+    ): String = generateMutex.withLock {
+        val apiKey = AiPreferences.getApiKeyForProvider(provider.id)
+        if (apiKey.isNullOrBlank()) {
+            return@withLock "Error: No API key configured for provider ${provider.displayName}."
+        }
+        val resolvedModel = model.ifBlank { provider.defaultModels.firstOrNull() ?: "" }
+        try {
+            withContext(Dispatchers.IO) {
+                when (provider) {
+                    AiProvider.GEMINI -> requestGemini(apiKey, resolvedModel, systemPrompt, userContent, temperature, maxTokens)
+                    AiProvider.OPENAI, AiProvider.DEEPSEEK, AiProvider.OPENROUTER, AiProvider.OPENCODE ->
+                        requestOpenAiFormat(provider, apiKey, resolvedModel, systemPrompt, userContent, temperature, maxTokens)
+                    AiProvider.CLAUDE -> requestClaude(apiKey, resolvedModel, systemPrompt, userContent, temperature, maxTokens)
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Generation failed for ${provider.displayName}", e)
+            "Error: Cloud request failed - ${e.message}"
+        }
+    }
+
     private fun requestGemini(
         apiKey: String,
         model: String,

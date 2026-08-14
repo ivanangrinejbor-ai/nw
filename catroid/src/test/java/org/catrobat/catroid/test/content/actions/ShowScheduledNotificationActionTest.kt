@@ -9,6 +9,9 @@ package org.catrobat.catroid.test.content.actions
 import android.app.NotificationManager
 import android.content.Context
 import com.badlogic.gdx.utils.GdxNativesLoader
+import org.catrobat.catroid.ProjectManager
+import org.catrobat.catroid.content.Project
+import org.catrobat.catroid.content.Scene
 import org.catrobat.catroid.content.Scope
 import org.catrobat.catroid.content.Script
 import org.catrobat.catroid.content.Sprite
@@ -16,7 +19,10 @@ import org.catrobat.catroid.content.actions.ScriptSequenceAction
 import org.catrobat.catroid.content.notification.NotificationData
 import org.catrobat.catroid.content.notification.NotificationStorage
 import org.catrobat.catroid.formulaeditor.Formula
+import org.catrobat.catroid.notification.NotificationService
+import org.catrobat.catroid.notification.NotificationServiceHolder
 import org.catrobat.catroid.stage.StageActivity
+import org.catrobat.catroid.test.MockUtil
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -42,7 +48,13 @@ class ShowScheduledNotificationActionTest {
 
         NotificationStorage.clear()
 
+        val project = Project(MockUtil.mockContextForProject(), "Project")
+        val scene = Scene("test", project)
         sprite = Sprite("testSprite")
+        scene.addSprite(sprite)
+        project.addScene(scene)
+        ProjectManager.getInstance().setCurrentProject(project)
+
         scriptSequence = ScriptSequenceAction(Mockito.mock(Script::class.java))
         scope = Scope(null, sprite, scriptSequence)
     }
@@ -90,18 +102,15 @@ class ShowScheduledNotificationActionTest {
             iconPath = "", importanceLevel = NotificationManager.IMPORTANCE_DEFAULT, isPinned = false
         ))
 
-        val mockActivity = Mockito.mock(StageActivity::class.java)
-        val mockNotificationManager = Mockito.mock(NotificationManager::class.java)
-        Mockito.`when`(mockActivity.getSystemService(Mockito.eq(Context.NOTIFICATION_SERVICE)))
-            .thenReturn(mockNotificationManager)
-        Whitebox.setInternalState(StageActivity::class.java, "activeStageActivity", java.lang.ref.WeakReference(mockActivity))
+        val mockService = Mockito.mock(NotificationService::class.java)
+        NotificationServiceHolder.service = mockService
 
         val action = sprite.actionFactory.createShowScheduledNotificationAction(
             sprite, scriptSequence, Formula(2), Formula(0)
         )
         action.act(1.0f)
 
-        Mockito.verify(mockNotificationManager).createNotificationChannel(Mockito.any())
+        Mockito.verify(mockService).showScheduled(2, 0)
     }
 
     @Test

@@ -53,12 +53,22 @@ class DeleteWebRequestAction : TemporalAction() {
 
         if (userVariable == null) return
 
-        val request = Request.Builder()
-            .url(urlText)
-            .delete()
-            .build()
-        Thread {
-            okHttpClient.newCall(request).enqueue(object : Callback {
+        try {
+            val reqBuilder = Request.Builder().url(urlText).delete()
+            val headerStr = header?.interpretString(scope)
+            if (!headerStr.isNullOrBlank()) {
+                headerStr.split("\n").forEach { line ->
+                    val colonIdx = line.indexOf(':')
+                    if (colonIdx > 0) {
+                        val key = line.substring(0, colonIdx).trim()
+                        val value = line.substring(colonIdx + 1).trim()
+                        reqBuilder.addHeader(key, value)
+                    }
+                }
+            }
+            val request = reqBuilder.build()
+            Thread {
+                okHttpClient.newCall(request).enqueue(object : Callback {
                 override fun onFailure(call: Call, e: IOException) {
                     MyActivityManager.stage_activity?.runOnUiThread {
                         userVariable?.value = "Response error: ${e.message}"
@@ -80,6 +90,9 @@ class DeleteWebRequestAction : TemporalAction() {
                 }
             })
         }.start()
+        } catch (e: Exception) {
+            userVariable?.value = "Request error: ${e.message}"
+        }
     }
 
     override fun restart() {

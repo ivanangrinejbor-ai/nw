@@ -69,6 +69,11 @@ public class XStreamBrickConverter extends ReflectionConverter {
 	public Object doUnmarshal(Object result, HierarchicalStreamReader reader, UnmarshallingContext context) {
 
 		String type = reader.getAttribute(TYPE);
+		if (type == null) {
+			result = new UnknownBrick("UnknownBrick");
+			return super.doUnmarshal(result, reader, context);
+		}
+
 		Class<?> cls = BRICK_CLASS_CACHE.get(type);
 		if (cls == null) {
 			for (int index = 0; index < BRICKS_PACKAGE_NAMES.length; index++) {

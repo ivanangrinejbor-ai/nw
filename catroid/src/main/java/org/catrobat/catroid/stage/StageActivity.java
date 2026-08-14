@@ -1782,6 +1782,11 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 
 
 	public void broadcastEventToAllSprites(EventId eventId) {
+		if (stageListener != null) {
+			stageListener.broadcastEventToAllSprites(eventId);
+			return;
+		}
+
 		Scene scene = ProjectManager.getInstance().getCurrentlyPlayingScene();
 		if (scene == null) {
 			return;

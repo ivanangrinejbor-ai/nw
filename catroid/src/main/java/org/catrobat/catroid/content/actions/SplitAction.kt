@@ -60,6 +60,8 @@ class SplitAction() : TemporalAction() {
     }
 
     fun splitString(input: String, delimiter: String): List<String> {
+        if (input.isEmpty()) return emptyList()
+        if (delimiter.isEmpty()) return input.map { it.toString() }
         return input.split(delimiter).map { it.trim() }.filter { it.isNotEmpty() }
     }
 }

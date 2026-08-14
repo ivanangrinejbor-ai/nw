@@ -171,10 +171,10 @@ public class StageResourceHolder implements GatherCollisionInformationTask.OnPol
 			} catch (Exception e) {
 				Log.w(TAG, "MobileServiceAvailability not available: " + e.getMessage());
 			}
-			if (mobileServiceAvailability != null && mobileServiceAvailability.isGmsAvailable(stageActivity)) {
-				TextToSpeechHolder.Companion.getInstance().initTextToSpeech(stageActivity, this);
-			} else if (mobileServiceAvailability != null && mobileServiceAvailability.isHmsAvailable(stageActivity)) {
+			if (mobileServiceAvailability != null && mobileServiceAvailability.isHmsAvailable(stageActivity) && !mobileServiceAvailability.isGmsAvailable(stageActivity)) {
 				HuaweiTextToSpeechHolder.Companion.getInstance().initTextToSpeech(stageActivity, this);
+			} else {
+				TextToSpeechHolder.Companion.getInstance().initTextToSpeech(stageActivity, this);
 			}
 		}
 

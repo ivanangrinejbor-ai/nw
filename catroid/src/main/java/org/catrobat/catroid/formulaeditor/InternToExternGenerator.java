@@ -92,6 +92,7 @@ public class InternToExternGenerator {
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.FALSE.name(), R.string.formula_editor_function_false);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.LENGTH.name(), R.string.formula_editor_function_length);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.NUMBER_OF_ITEMS.name(), R.string.formula_editor_function_number_of_items);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.GET_ITEM.name(), R.string.formula_editor_function_get_item);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.LETTER.name(), R.string.formula_editor_function_letter);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.SUBTEXT.name(), R.string.formula_editor_function_subtext);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.FILE.name(), R.string.formula_editor_function_file);

@@ -65,6 +65,7 @@ import okhttp3.ConnectionSpec;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import okhttp3.ResponseBody;
 import okio.BufferedSink;
 import okio.Okio;
 
@@ -307,7 +308,7 @@ public final class ServerCalls implements ScratchDataFetcher {
 
 					if (uploadResponse.statusCode != SERVER_RESPONSE_TOKEN_OK) {
 						errorCallback.onError(uploadResponse.statusCode, "Upload failed! JSON Response was " + uploadResponse.statusCode);
-					} else if (newToken.equals(TOKEN_CODE_INVALID) || newToken.length() != TOKEN_LENGTH) {
+					} else if (newToken == null || newToken.equals(TOKEN_CODE_INVALID) || newToken.length() != TOKEN_LENGTH) {
 						errorCallback.onError(uploadResponse.statusCode, uploadResponse.answer);
 					} else {
 						successCallback.onSuccess(projectId, uploadData.getUsername(), newToken);
@@ -323,7 +324,12 @@ public final class ServerCalls implements ScratchDataFetcher {
 		try {
 			response = okHttpClient.newCall(request).execute();
 			if (response.isSuccessful()) {
-				uploadResponse = new Gson().fromJson(response.body().string(), UploadResponse.class);
+				ResponseBody responseBody = response.body();
+				if (responseBody == null) {
+					errorCallback.onError(WebConnectionException.ERROR_JSON, "Empty response body");
+					return;
+				}
+				uploadResponse = new Gson().fromJson(responseBody.string(), UploadResponse.class);
 				successCallback.onSuccess(uploadResponse);
 			} else {
 				Log.v(TAG, "Upload not successful");
@@ -346,7 +352,8 @@ public final class ServerCalls implements ScratchDataFetcher {
 			throws IOException, WebConnectionException {
 
 		File file = new File(filePath);
-		if (!(file.getParentFile().mkdirs() || file.getParentFile().isDirectory())) {
+		File parentFile = file.getParentFile();
+		if (parentFile != null && !(parentFile.mkdirs() || parentFile.isDirectory())) {
 			throw new IOException("Directory not created");
 		}
 

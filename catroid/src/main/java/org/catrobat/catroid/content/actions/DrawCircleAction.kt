@@ -46,10 +46,12 @@ class DrawCircleAction : TemporalAction() {
         val yVal = y?.interpretFloat(s) ?: 0f
         val radiusVal = radius?.interpretFloat(s) ?: 0f
 
+        val penColor = s.sprite.penConfiguration.getPenColor()
         camera.update()
         buffer.begin()
         shapeRenderer.projectionMatrix = camera.combined
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
+        shapeRenderer.setColor(penColor.r, penColor.g, penColor.b, penColor.a)
         shapeRenderer.circle(xVal, yVal, radiusVal)
         shapeRenderer.end()
         buffer.end()

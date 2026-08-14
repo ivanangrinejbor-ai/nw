@@ -20,7 +20,13 @@ class PhotoAction() : Action() {
         if (hasStarted) return false
         hasStarted = true
 
-        StageActivity.getActiveCameraManager().takePicture2 { success, file ->
+        val cameraManager = StageActivity.getActiveCameraManager()
+        if (cameraManager == null) {
+            finished = true
+            return true
+        }
+
+        cameraManager.takePicture2 { success, file ->
             if (success && file != null) {
                 Gdx.app.postRunnable {
                     Log.d("PhotoAction", "Running on libGDX thread...")

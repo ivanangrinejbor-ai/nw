@@ -178,12 +178,20 @@ public final class NeoScriptImporter {
 		}
 		if (script instanceof WhenFirebaseChangedScript) {
 			WhenFirebaseChangedScript fb = (WhenFirebaseChangedScript) script;
-			String bucket = fb.getFormulaMap().containsKey(org.catrobat.catroid.content.bricks.Brick.BrickField.FIREBASE_TRIGGER_BUCKET)
-					? fb.getFormulaMap().get(org.catrobat.catroid.content.bricks.Brick.BrickField.FIREBASE_TRIGGER_BUCKET).getTrimmedFormulaString(null)
-					: "";
-			String path = fb.getFormulaMap().containsKey(org.catrobat.catroid.content.bricks.Brick.BrickField.FIREBASE_TRIGGER_PATH)
-					? fb.getFormulaMap().get(org.catrobat.catroid.content.bricks.Brick.BrickField.FIREBASE_TRIGGER_PATH).getTrimmedFormulaString(null)
-					: "";
+			String bucket = "";
+			if (fb.getFormulaMap() != null && fb.getFormulaMap().containsKey(org.catrobat.catroid.content.bricks.Brick.BrickField.FIREBASE_TRIGGER_BUCKET)) {
+				org.catrobat.catroid.formulaeditor.Formula f = fb.getFormulaMap().get(org.catrobat.catroid.content.bricks.Brick.BrickField.FIREBASE_TRIGGER_BUCKET);
+				if (f != null) {
+					bucket = f.getTrimmedFormulaString(null);
+				}
+			}
+			String path = "";
+			if (fb.getFormulaMap() != null && fb.getFormulaMap().containsKey(org.catrobat.catroid.content.bricks.Brick.BrickField.FIREBASE_TRIGGER_PATH)) {
+				org.catrobat.catroid.formulaeditor.Formula f = fb.getFormulaMap().get(org.catrobat.catroid.content.bricks.Brick.BrickField.FIREBASE_TRIGGER_PATH);
+				if (f != null) {
+					path = f.getTrimmedFormulaString(null);
+				}
+			}
 			return "WhenFirebaseChangedScript#" + bucket + "/" + path;
 		}
 		if (script instanceof RaspiInterruptScript) {

@@ -277,17 +277,17 @@ public final class SensorHandler implements SensorEventListener, SensorCustomEve
 			return;
 		}
 
-		if (!instance.useLinearAccelerationFallback) {
+		if (!instance.useLinearAccelerationFallback && instance.linearAccelerationSensor != null) {
 			instance.sensorManager.registerListener(listener, instance.linearAccelerationSensor,
 					android.hardware.SensorManager.SENSOR_DELAY_GAME);
 		}
 
-		if (!instance.useRotationVectorFallback) {
+		if (!instance.useRotationVectorFallback && instance.rotationVectorSensor != null) {
 			instance.sensorManager.registerListener(listener, instance.rotationVectorSensor,
 					android.hardware.SensorManager.SENSOR_DELAY_GAME);
 		}
 
-		if (instance.useLinearAccelerationFallback || instance.useRotationVectorFallback) {
+		if ((instance.useLinearAccelerationFallback || instance.useRotationVectorFallback) && instance.accelerometerSensor != null) {
 			instance.sensorManager.registerListener(listener, instance.accelerometerSensor,
 					android.hardware.SensorManager.SENSOR_DELAY_GAME);
 		}
@@ -457,7 +457,7 @@ public final class SensorHandler implements SensorEventListener, SensorCustomEve
 			case NFC_TAG_ID:
 				return String.valueOf(NfcHandler.getLastNfcTagId());
 			case SPEECH_RECOGNITION_LANGUAGE:
-				return listeningLanguageSensor;
+				return (listeningLanguageSensor != null) ? listeningLanguageSensor : java.util.Locale.getDefault().getLanguage();
 			case USER_LANGUAGE:
 				return userLocaleTag;
 			case STAGE_WIDTH:

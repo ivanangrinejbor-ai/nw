@@ -226,6 +226,8 @@ public class MidiSoundManager {
 
 	public void reset() {
 		setTempo(60);
+		setInstrument(Project.DEFAULT_INSTRUMENT);
+		setVolume(70);
 	}
 
 	public float getVolume() {

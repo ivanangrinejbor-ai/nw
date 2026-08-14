@@ -71,7 +71,6 @@ public class BackpackInterfaceSerializerAndDeserializer<T> implements JsonSerial
 			classToDeserialize = Class.forName(type);
 		} catch (ClassNotFoundException classNotFoundException) {
 			Log.e(TAG, "Could not deserialize backpacked element: " + type);
-			file.delete();
 			return null;
 		}
 		return context.deserialize(element, classToDeserialize);

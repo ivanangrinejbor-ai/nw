@@ -34,7 +34,10 @@ object ApkBuilderV3Engine {
 
             val projectSize = projectDir.sizeRecursively()
             val neededSpace = projectSize * 3 + BUILD_HEADROOM_MB * 1024 * 1024
-            checkDiskSpace(tempDir, neededSpace)
+            val diskSpaceError = checkDiskSpace(tempDir, neededSpace)
+            if (diskSpaceError != null) {
+                return@withContext AssemblyResult.Failure(diskSpaceError)
+            }
 
             listener.onProgress(5f, "Loading and serializing project...", "")
 
@@ -179,16 +182,15 @@ object ApkBuilderV3Engine {
         }
     }
 
-    private fun checkDiskSpace(dir: File, neededBytes: Long) {
-        runCatching {
+    private fun checkDiskSpace(dir: File, neededBytes: Long): String? {
+        return try {
             val stat = StatFs(dir.absolutePath)
             val usable = stat.blockSizeLong * stat.availableBlocksLong
             if (usable < neededBytes) {
-                throw IllegalStateException(
-                    "Insufficient disk space. Need ~${neededBytes / (1024 * 1024)} MB, " +
-                            "available: ${usable / (1024 * 1024)} MB."
-                )
-            }
+                "Insufficient disk space. Need ~${neededBytes / (1024 * 1024)} MB, available: ${usable / (1024 * 1024)} MB."
+            } else null
+        } catch (e: Exception) {
+            null
         }
     }
 

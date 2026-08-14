@@ -3118,10 +3118,12 @@ public class ThreeDManager implements Disposable {
         }
 
         if (panoramicConverter == null) {
-            Gdx.app.error("Skybox", "PanoramicConverter is not initialized yet. Deferring task.");
-
-            Gdx.app.postRunnable(() -> setSkybox(panoramicTexturePath));
-            return;
+            try {
+                panoramicConverter = new PanoramicConverter();
+            } catch (Exception e) {
+                Gdx.app.error("Skybox", "Failed to initialize PanoramicConverter: " + e.getMessage());
+                return;
+            }
         }
 
         if (panoramicTexturePath == null || panoramicTexturePath.isEmpty()) {

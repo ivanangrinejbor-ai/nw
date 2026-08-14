@@ -164,10 +164,12 @@ public class ScratchReconvertDialog extends DialogFragment {
 	}
 
 	private boolean handleOkButton() {
-		if (downloadExistingProgramRadioButton.isChecked()) {
-			callback.onDownloadExistingProgram();
-		} else if (reconvertProgramRadioButton.isChecked()) {
-			callback.onReconvertProgram();
+		if (callback != null) {
+			if (downloadExistingProgramRadioButton.isChecked()) {
+				callback.onDownloadExistingProgram();
+			} else if (reconvertProgramRadioButton.isChecked()) {
+				callback.onReconvertProgram();
+			}
 		}
 		dismiss();
 		return true;

@@ -53,33 +53,46 @@ class OptionsWebRequestAction : TemporalAction() {
 
         if (userVariable == null) return
 
-        val request = Request.Builder()
-            .url(urlText)
-            .method("OPTIONS", null)
-            .build()
-        Thread {
-            okHttpClient.newCall(request).enqueue(object : Callback {
-                override fun onFailure(call: Call, e: IOException) {
-                    MyActivityManager.stage_activity?.runOnUiThread {
-                        userVariable?.value = "Response error: ${e.message}"
+        try {
+            val reqBuilder = Request.Builder().url(urlText).method("OPTIONS", null)
+            val headerStr = header?.interpretString(scope)
+            if (!headerStr.isNullOrBlank()) {
+                headerStr.split("\n").forEach { line ->
+                    val colonIdx = line.indexOf(':')
+                    if (colonIdx > 0) {
+                        val key = line.substring(0, colonIdx).trim()
+                        val value = line.substring(colonIdx + 1).trim()
+                        reqBuilder.addHeader(key, value)
                     }
                 }
+            }
+            val request = reqBuilder.build()
+            Thread {
+                okHttpClient.newCall(request).enqueue(object : Callback {
+                    override fun onFailure(call: Call, e: IOException) {
+                        MyActivityManager.stage_activity?.runOnUiThread {
+                            userVariable?.value = "Response error: ${e.message}"
+                        }
+                    }
 
-                override fun onResponse(call: Call, response: Response) {
-                    if (response.isSuccessful) {
-                        val allowHeader = response.header("Allow") ?: response.header("allow") ?: ""
-                        MyActivityManager.stage_activity?.runOnUiThread {
-                            userVariable?.value = allowHeader
-                        }
-                    } else {
-                        val errorMessage = "Error ${response.code}: ${response.message}"
-                        MyActivityManager.stage_activity?.runOnUiThread {
-                            userVariable?.value = errorMessage
+                    override fun onResponse(call: Call, response: Response) {
+                        if (response.isSuccessful) {
+                            val allowHeader = response.header("Allow") ?: response.header("allow") ?: ""
+                            MyActivityManager.stage_activity?.runOnUiThread {
+                                userVariable?.value = allowHeader
+                            }
+                        } else {
+                            val errorMessage = "Error ${response.code}: ${response.message}"
+                            MyActivityManager.stage_activity?.runOnUiThread {
+                                userVariable?.value = errorMessage
+                            }
                         }
                     }
-                }
-            })
-        }.start()
+                })
+            }.start()
+        } catch (e: Exception) {
+            userVariable?.value = "Request error: ${e.message}"
+        }
     }
 
     override fun restart() {

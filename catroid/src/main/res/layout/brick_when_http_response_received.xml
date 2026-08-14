@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:orientation="horizontal">
+    <org.catrobat.catroid.ui.BrickLayout
+        style="@style/BrickContainer.Event.Small">
+        <include layout="@layout/icon_brick_category_event" />
+        <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_when_http_response_received" />
+        <TextView android:id="@+id/brick_when_http_response_request_id" style="@style/BrickEditText" />
+    </org.catrobat.catroid.ui.BrickLayout>
+</LinearLayout>

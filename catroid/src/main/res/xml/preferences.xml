@@ -70,6 +70,12 @@
         android:title="@string/preference_title_old_drag" />
 
     <CheckBoxPreference
+        android:defaultValue="false"
+        android:key="setting_redrawn_brick_mode"
+        android:summary="@string/preference_description_redrawn_brick_mode"
+        android:title="@string/preference_title_redrawn_brick_mode" />
+
+    <CheckBoxPreference
         android:key="pref_pc_mode_enabled"
         android:title="PC Mode"
         android:summary="@string/preference_title_pcmode"

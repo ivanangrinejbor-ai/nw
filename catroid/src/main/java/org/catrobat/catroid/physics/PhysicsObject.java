@@ -123,8 +123,41 @@ public class PhysicsObject {
 		destination.setVelocity(this.getVelocity());
 		destination.setGravityScale(this.getGravityScale());
 		if (this.shapes != null) {
-			destination.setShape(this.shapes);
+			destination.setShape(cloneShapes(this.shapes));
 		}
+	}
+
+	private Shape[] cloneShapes(Shape[] source) {
+		if (source == null) {
+			return null;
+		}
+		Shape[] cloned = new Shape[source.length];
+		for (int i = 0; i < source.length; i++) {
+			Shape s = source[i];
+			if (s instanceof CircleShape) {
+				CircleShape srcCircle = (CircleShape) s;
+				CircleShape circle = new CircleShape();
+				circle.setPosition(srcCircle.getPosition());
+				circle.setRadius(srcCircle.getRadius());
+				cloned[i] = circle;
+			} else if (s instanceof PolygonShape) {
+				PolygonShape srcPoly = (PolygonShape) s;
+				PolygonShape poly = new PolygonShape();
+				int vertexCount = srcPoly.getVertexCount();
+				float[] vertices = new float[vertexCount * 2];
+				Vector2 vertex = new Vector2();
+				for (int j = 0; j < vertexCount; j++) {
+					srcPoly.getVertex(j, vertex);
+					vertices[j * 2] = vertex.x;
+					vertices[j * 2 + 1] = vertex.y;
+				}
+				poly.set(vertices);
+				cloned[i] = poly;
+			} else {
+				cloned[i] = s;
+			}
+		}
+		return cloned;
 	}
 
 	public void setShape(Shape[] shapes) {

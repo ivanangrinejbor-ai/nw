@@ -22,6 +22,11 @@
  */
 package org.catrobat.catroid.content.bricks;
 
+import android.content.Context;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Spinner;
 import org.catrobat.catroid.R;
 import org.catrobat.catroid.content.Sprite;
 import org.catrobat.catroid.content.actions.ScriptSequenceAction;
@@ -33,6 +38,7 @@ import org.catrobat.catroid.formulaeditor.UserVariable;
 public class DeleteBaseBrick extends FormulaBrick {
 
     private static final long serialVersionUID = 1L;
+    private int waitForResponseSelection = 0;
 
     public DeleteBaseBrick() {
         addAllowedBrickField(BrickField.FIREBASE_ID, R.id.brick_delete_base_edit_base);
@@ -49,6 +55,29 @@ public class DeleteBaseBrick extends FormulaBrick {
         setFormulaWithBrickField(BrickField.FIREBASE_KEY, key);
     }
 
+    public DeleteBaseBrick(String base, String key, int waitForResponseSelection) {
+        this(base, key);
+        this.waitForResponseSelection = waitForResponseSelection;
+    }
+
+    @Override
+    public View getView(Context context) {
+        super.getView(context);
+        Spinner spinner = view.findViewById(R.id.brick_delete_base_wait_spinner);
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(context,
+                R.array.firebase_wait_options, android.R.layout.simple_spinner_item);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(adapter);
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override public void onItemSelected(AdapterView<?> parent, View itemView, int position, long id) {
+                waitForResponseSelection = position;
+            }
+            @Override public void onNothingSelected(AdapterView<?> parent) { }
+        });
+        spinner.setSelection(waitForResponseSelection);
+        return view;
+    }
+
     @Override
     public int getViewResource() {
         return R.layout.brick_delete_base;
@@ -57,6 +86,7 @@ public class DeleteBaseBrick extends FormulaBrick {
     @Override
     public void addActionToSequence(Sprite sprite, ScriptSequenceAction sequence) {
         sequence.addAction(sprite.getActionFactory().createDeleteBaseAction(sprite, sequence,
-                getFormulaWithBrickField(BrickField.FIREBASE_ID), getFormulaWithBrickField(BrickField.FIREBASE_KEY)));
+                getFormulaWithBrickField(BrickField.FIREBASE_ID), getFormulaWithBrickField(BrickField.FIREBASE_KEY),
+                waitForResponseSelection == 0));
     }
 }

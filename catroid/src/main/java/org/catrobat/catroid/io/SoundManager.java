@@ -85,7 +85,7 @@ public class SoundManager {
 					mediaPlayer.getStartedBySprite() == sprite &&
 					mediaPlayer.getPathToSoundFile().equals(soundFilePath)) {
 
-				applyVolumeTo(mediaPlayer);
+				applyVolumeTo(mediaPlayer, volume);
 			}
 		}
 	}
@@ -211,7 +211,11 @@ public class SoundManager {
 	}
 
 	private void applyVolumeTo(MediaPlayer mediaPlayer) {
-		float vol = volume * 0.01f;
+		applyVolumeTo(mediaPlayer, this.volume);
+	}
+
+	private void applyVolumeTo(MediaPlayer mediaPlayer, float volumePercent) {
+		float vol = volumePercent * 0.01f;
 		float left = vol * (1.0f - pan);
 		float right = vol * (1.0f + pan);
 		if (left < 0.0f) {
@@ -280,7 +284,11 @@ public class SoundManager {
 	public synchronized void resume() {
 		for (MediaPlayer mediaPlayer : mediaPlayers) {
 			if (!mediaPlayer.isPlaying()) {
-				mediaPlayer.start();
+				try {
+					mediaPlayer.start();
+				} catch (Exception exception) {
+					Log.w(TAG, "Failed to resume mediaPlayer", exception);
+				}
 			}
 		}
 	}

@@ -1314,6 +1314,10 @@ public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.
 		return formulaBrick;
 	}
 
+	public void setFormulaBrick(FormulaBrick formulaBrick) {
+		this.formulaBrick = formulaBrick;
+	}
+
 	public Brick.FormulaField getCurrentBrickField() {
 		return currentFormulaField;
 	}

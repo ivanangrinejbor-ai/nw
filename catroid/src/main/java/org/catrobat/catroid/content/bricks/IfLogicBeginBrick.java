@@ -39,6 +39,12 @@ public class IfLogicBeginBrick extends FormulaBrick implements CompositeBrick {
     }
 
     private Object readResolve() {
+        if (elseBrick == null) {
+            elseBrick = new ElseBrick(this);
+        }
+        if (endBrick == null) {
+            endBrick = new EndBrick(this, R.layout.brick_if_end_if);
+        }
         if (elseIfBranches == null) {
             elseIfBranches = new ArrayList<>();
         }

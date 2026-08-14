@@ -47,7 +47,9 @@ class UnzipProjectFilesAction : Action() {
             while (entry != null) {
                 val newFile = File(targetDir, entry.name)
 
-                if (!newFile.canonicalPath.startsWith(targetDir.canonicalPath)) {
+                val targetCanonical = targetDir.canonicalPath
+                val fileCanonical = newFile.canonicalPath
+                if (!fileCanonical.startsWith(targetCanonical + File.separator) && fileCanonical != targetCanonical) {
                     entry = zis.nextEntry
                     continue
                 }

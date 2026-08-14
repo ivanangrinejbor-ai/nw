@@ -9,6 +9,7 @@ import androidx.core.app.RemoteInput;
 
 import org.catrobat.catroid.content.eventids.EventId;
 import org.catrobat.catroid.content.notification.NotificationStorage;
+import org.catrobat.catroid.notification.AndroidNotificationService;
 import org.catrobat.catroid.notification.NotificationServiceHolder;
 import org.catrobat.catroid.stage.StageActivity;
 
@@ -54,8 +55,12 @@ public class NotificationEventReceiver extends BroadcastReceiver {
         } else if ("SCHEDULED_NOTIFICATION".equals(action)) {
             int nid = intent.getIntExtra(EXTRA_NOTIFICATION_ID, -1);
             if (nid != -1) {
-                NotificationServiceHolder.service.show(nid);
-                NotificationStorage.removeNotification(nid);
+                if (!NotificationServiceHolder.INSTANCE.isServiceInitialized()) {
+                    NotificationServiceHolder.INSTANCE.setService(
+                            new AndroidNotificationService(context));
+                }
+                NotificationServiceHolder.INSTANCE.getService().show(nid);
+                NotificationStorage.INSTANCE.removeNotification(nid);
             }
             broadcastEvent(EventId.NOTIFICATION_SHOWN);
         }

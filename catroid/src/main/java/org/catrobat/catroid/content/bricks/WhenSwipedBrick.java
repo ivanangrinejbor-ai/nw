@@ -75,8 +75,10 @@ public class WhenSwipedBrick extends ScriptBrickBaseType {
 		ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(context,
 				R.array.swipe_directions, android.R.layout.simple_spinner_item);
 		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-		spinner.setAdapter(adapter);
-		spinner.setSelection(script.getDirection());
+		int dir = script.getDirection();
+		if (dir >= 0 && dir < adapter.getCount()) {
+			spinner.setSelection(dir);
+		}
 		spinner.setOnItemSelectedListener(new AdapterViewOnItemSelectedListenerImpl(position -> {
 			script.setDirection(position);
 			return Unit.INSTANCE;

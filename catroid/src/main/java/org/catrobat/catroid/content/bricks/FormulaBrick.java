@@ -91,6 +91,17 @@ public abstract class FormulaBrick extends BrickBaseType implements View.OnClick
 		}
 	}
 
+	public Formula getFormulaWithBrickField(FormulaField formulaField, FormulaField alternativeFormulaField) {
+		Formula formula = getFormulaWithBrickField(formulaField, true);
+		if (formula == null) {
+			formula = getFormulaWithBrickField(alternativeFormulaField, true);
+			if (formula != null) {
+				replaceFormulaBrickField(alternativeFormulaField, formulaField);
+			}
+		}
+		return formula;
+	}
+
 	public Map<BrickField, Formula> getAllFormulaFieldsWithFormulas() {
 		Map<BrickField, Formula> standardMap = new java.util.HashMap<>();
 

@@ -24,10 +24,14 @@
 package org.catrobat.catroid.ui;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.Path;
+import android.graphics.RectF;
+import android.preference.PreferenceManager;
 import android.util.AttributeSet;
 import android.util.TypedValue;
 import android.view.View;
@@ -36,6 +40,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 import org.catrobat.catroid.R;
+import org.catrobat.catroid.common.SharedPreferenceKeys;
 
 import java.util.LinkedList;
 
@@ -53,6 +58,15 @@ public class BrickLayout extends ViewGroup {
 	protected boolean debugDraw = true;
 	protected boolean userBrick = false;
 	protected boolean usePng = false;
+	private boolean redrawnMode;
+	private SharedPreferences redrawnPreferences;
+	private final SharedPreferences.OnSharedPreferenceChangeListener redrawnModeListener =
+			(sharedPreferences, key) -> {
+				if (SharedPreferenceKeys.REDRAWN_BRICK_MODE_PREFERENCE_KEY.equals(key)) {
+					redrawnMode = sharedPreferences.getBoolean(key, false);
+					invalidate();
+				}
+			};
 
 	protected LinkedList<LineData> lines;
 
@@ -421,6 +435,53 @@ public class BrickLayout extends ViewGroup {
 					layoutParams.positionX + child.getMeasuredWidth(),
 					layoutParams.positionY + child.getMeasuredHeight());
 		}
+	}
+
+	@Override
+	protected void onAttachedToWindow() {
+		super.onAttachedToWindow();
+		redrawnPreferences = PreferenceManager.getDefaultSharedPreferences(getContext().getApplicationContext());
+		redrawnMode = redrawnPreferences.getBoolean(
+				SharedPreferenceKeys.REDRAWN_BRICK_MODE_PREFERENCE_KEY, false);
+		redrawnPreferences.registerOnSharedPreferenceChangeListener(redrawnModeListener);
+	}
+
+	@Override
+	protected void onDetachedFromWindow() {
+		if (redrawnPreferences != null) {
+			redrawnPreferences.unregisterOnSharedPreferenceChangeListener(redrawnModeListener);
+			redrawnPreferences = null;
+		}
+		super.onDetachedFromWindow();
+	}
+
+	@Override
+	public void draw(Canvas canvas) {
+		if (!redrawnMode || getWidth() <= 0 || getHeight() <= 0) {
+			super.draw(canvas);
+			return;
+		}
+
+		float cornerRadius = getResources().getDimension(R.dimen.redrawn_brick_corner_radius);
+		RectF bounds = new RectF(1.0f, 1.0f, getWidth() - 1.0f, getHeight() - 1.0f);
+		Path clipPath = new Path();
+		clipPath.addRoundRect(bounds, cornerRadius, cornerRadius, Path.Direction.CW);
+
+		int saveCount = canvas.save();
+		canvas.clipPath(clipPath);
+		super.draw(canvas);
+		canvas.restoreToCount(saveCount);
+
+		Paint borderPaint = createPaint(getResources().getColor(R.color.redrawn_brick_border));
+		borderPaint.setStyle(Paint.Style.STROKE);
+		borderPaint.setStrokeWidth(getResources().getDimension(R.dimen.redrawn_brick_border_width));
+		canvas.drawRoundRect(bounds, cornerRadius, cornerRadius, borderPaint);
+
+		Paint highlightPaint = createPaint(getResources().getColor(R.color.redrawn_brick_highlight));
+		highlightPaint.setStyle(Paint.Style.STROKE);
+		highlightPaint.setStrokeWidth(1.0f);
+		RectF highlightBounds = new RectF(2.0f, 2.0f, getWidth() - 2.0f, getHeight() - 2.0f);
+		canvas.drawRoundRect(highlightBounds, cornerRadius - 1.0f, cornerRadius - 1.0f, highlightPaint);
 	}
 
 	@Override

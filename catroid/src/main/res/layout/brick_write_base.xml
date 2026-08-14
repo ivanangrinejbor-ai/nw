@@ -73,6 +73,17 @@
             android:id="@+id/brick_write_base_edit_value"
             style="@style/BrickEditText" />
 
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/firebase_wait_for_response"
+            app:layout_newLine="true" />
+
+        <Spinner
+            android:id="@+id/brick_write_base_wait_spinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textDirection="locale" />
+
     </org.catrobat.catroid.ui.BrickLayout>
 
 </LinearLayout>

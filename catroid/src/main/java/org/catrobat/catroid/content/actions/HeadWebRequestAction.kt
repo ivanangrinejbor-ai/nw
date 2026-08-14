@@ -52,33 +52,46 @@ class HeadWebRequestAction : TemporalAction() {
 
         if (userVariable == null) return
 
-        val request = Request.Builder()
-            .url(urlText)
-            .head()
-            .build()
-        Thread {
-            okHttpClient.newCall(request).enqueue(object : Callback {
-                override fun onFailure(call: Call, e: IOException) {
-                    MyActivityManager.stage_activity?.runOnUiThread {
-                        userVariable?.value = "Response error: ${e.message}"
+        try {
+            val reqBuilder = Request.Builder().url(urlText).head()
+            val headerStr = header?.interpretString(scope)
+            if (!headerStr.isNullOrBlank()) {
+                headerStr.split("\n").forEach { line ->
+                    val colonIdx = line.indexOf(':')
+                    if (colonIdx > 0) {
+                        val key = line.substring(0, colonIdx).trim()
+                        val value = line.substring(colonIdx + 1).trim()
+                        reqBuilder.addHeader(key, value)
                     }
                 }
+            }
+            val request = reqBuilder.build()
+            Thread {
+                okHttpClient.newCall(request).enqueue(object : Callback {
+                    override fun onFailure(call: Call, e: IOException) {
+                        MyActivityManager.stage_activity?.runOnUiThread {
+                            userVariable?.value = "Response error: ${e.message}"
+                        }
+                    }
 
-                override fun onResponse(call: Call, response: Response) {
-                    if (response.isSuccessful) {
-                        val headerStr = response.headers.toMap().map { (key, vals) -> "$key: ${vals.firstOrNull() ?: ""}" }.joinToString("\n")
-                        MyActivityManager.stage_activity?.runOnUiThread {
-                            userVariable?.value = headerStr
-                        }
-                    } else {
-                        val errorMessage = "Error ${response.code}: ${response.message}"
-                        MyActivityManager.stage_activity?.runOnUiThread {
-                            userVariable?.value = errorMessage
+                    override fun onResponse(call: Call, response: Response) {
+                        if (response.isSuccessful) {
+                            val headerResult = response.headers.toMap().map { (key, vals) -> "$key: ${vals.firstOrNull() ?: ""}" }.joinToString("\n")
+                            MyActivityManager.stage_activity?.runOnUiThread {
+                                userVariable?.value = headerResult
+                            }
+                        } else {
+                            val errorMessage = "Error ${response.code}: ${response.message}"
+                            MyActivityManager.stage_activity?.runOnUiThread {
+                                userVariable?.value = errorMessage
+                            }
                         }
                     }
-                }
-            })
-        }.start()
+                })
+            }.start()
+        } catch (e: Exception) {
+            userVariable?.value = "Request error: ${e.message}"
+        }
     }
 
     override fun restart() {

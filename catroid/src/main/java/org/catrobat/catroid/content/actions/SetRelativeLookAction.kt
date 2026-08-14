@@ -33,9 +33,11 @@ abstract class SetRelativeLookAction : SetLookByIndexAction() {
         val look = sprite?.look
         val currentLookData = sprite?.look?.lookData
         val newIndex =
-            if (look != null && lookList != null && look.lookListIndexBeforeLookRequest > -1) {
+            if (lookList.isNullOrEmpty()) {
+                0
+            } else if (look != null && look.lookListIndexBeforeLookRequest > -1) {
                 (look.lookListIndexBeforeLookRequest + change + lookList.size) % lookList.size
-            } else if (currentLookData != null && lookList?.contains(currentLookData) == true) {
+            } else if (currentLookData != null && lookList.contains(currentLookData)) {
                 (lookList.indexOf(currentLookData) + change + lookList.size) % lookList.size
             } else 0
         formula = Formula(newIndex + 1)

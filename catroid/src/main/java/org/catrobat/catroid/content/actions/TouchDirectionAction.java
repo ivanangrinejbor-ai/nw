@@ -41,8 +41,8 @@ public class TouchDirectionAction extends TemporalAction {
         }
         float spriteX = scope.getSprite().look.getXInUserInterfaceDimensionUnit();
         float spriteY = scope.getSprite().look.getYInUserInterfaceDimensionUnit();
-        float touchX = TouchUtil.getX(0);
-        float touchY = TouchUtil.getY(0);
+        float touchX = TouchUtil.getX(1);
+        float touchY = TouchUtil.getY(1);
 
         double rotationDegrees;
         if (spriteX == touchX && spriteY == touchY) {

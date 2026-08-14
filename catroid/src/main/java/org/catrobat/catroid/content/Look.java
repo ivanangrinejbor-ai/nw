@@ -249,7 +249,6 @@ public class Look extends Image {
 				Actor target = getParent().hit(stageX, stageY, true);
 				if (target != null) {
 					target.fire(event);
-					target.fire(event);
 				}
 				setTouchable(Touchable.enabled);
 
@@ -351,6 +350,8 @@ public class Look extends Image {
 		destination.setRotationMode(this.getRotationMode());
 		destination.setMotionDirectionInUserInterfaceDimensionUnit(this.getMotionDirectionInUserInterfaceDimensionUnit());
 		destination.setBrightnessInUserInterfaceDimensionUnit(this.getBrightnessInUserInterfaceDimensionUnit());
+		destination.setScaleX(this.getScaleX());
+		destination.setScaleY(this.getScaleY());
 		destination.hasParticleEffect = hasParticleEffect;
 		destination.isAdditive = isAdditive;
 	}
@@ -438,7 +439,7 @@ public class Look extends Image {
 	}
 
 	public void setWidthV(Float value) {
-		height = value;
+		width = value;
 		this.setScaleX(value);
 	}
 
@@ -985,8 +986,10 @@ public class Look extends Image {
 		boolean differentModeButFlipped = mode != ROTATION_STYLE_LEFT_RIGHT_ONLY && isFlipped();
 		boolean facingWrongDirection = mode == ROTATION_STYLE_LEFT_RIGHT_ONLY && (orientedLeft ^ isFlipped());
 		if (differentModeButFlipped || facingWrongDirection) {
-			getLookData().getTextureRegion().flip(true, false);
-			if (lookData2 != null) {
+			if (getLookData() != null && getLookData().getTextureRegion() != null) {
+				getLookData().getTextureRegion().flip(true, false);
+			}
+			if (lookData2 != null && lookData2.getTextureRegion() != null) {
 				lookData2.getTextureRegion().flip(true, false);
 			}
 		}
@@ -1502,6 +1505,27 @@ public class Look extends Image {
 		}
 	}
 
+	private static ShaderProgram cachedCornerShader;
+	private static Mesh cachedCornerMesh;
+
+	private static ShaderProgram getCornerShader() {
+		if (cachedCornerShader == null) {
+			cachedCornerShader = new ShaderProgram(CORNER_VERTEX_SHADER, CORNER_FRAGMENT_SHADER);
+		}
+		return cachedCornerShader;
+	}
+
+	private static Mesh getCornerMesh() {
+		if (cachedCornerMesh == null) {
+			short[] indices = {0, 1, 2, 2, 3, 0};
+			cachedCornerMesh = new Mesh(true, 4, indices.length,
+					new VertexAttribute(VertexAttributes.Usage.Position, 2, "a_position"),
+					new VertexAttribute(VertexAttributes.Usage.TextureCoordinates, 2, "a_texCoord0"));
+			cachedCornerMesh.setIndices(indices);
+		}
+		return cachedCornerMesh;
+	}
+
 	private void drawCornerMesh(Batch batch) {
 		Drawable drawable = getDrawable();
 		if (drawable == null || !(drawable instanceof TextureRegionDrawable)) return;
@@ -1525,18 +1549,13 @@ public class Look extends Image {
 		if (wasDrawing) batch.end();
 
 		Matrix4 proj = batch.getProjectionMatrix().cpy();
-		ShaderProgram shader = new ShaderProgram(CORNER_VERTEX_SHADER, CORNER_FRAGMENT_SHADER);
+		ShaderProgram shader = getCornerShader();
 		if (!shader.isCompiled()) {
-			Log.w("Look", "Corner mesh shader failed: " + shader.getLog());
-			shader.dispose();
 			if (wasDrawing) batch.begin();
 			return;
 		}
 
-		short[] indices = {0, 1, 2, 2, 3, 0};
-		Mesh mesh = new Mesh(true, 4, indices.length,
-				new VertexAttribute(VertexAttributes.Usage.Position, 2, "a_position"),
-				new VertexAttribute(VertexAttributes.Usage.TextureCoordinates, 2, "a_texCoord0"));
+		Mesh mesh = getCornerMesh();
 		float[] verts = {
 				tl.x, tl.y, u, v,
 				tr.x, tr.y, u2, v,
@@ -1544,7 +1563,6 @@ public class Look extends Image {
 				bl.x, bl.y, u, v2
 		};
 		mesh.setVertices(verts);
-		mesh.setIndices(indices);
 
 		region.getTexture().bind();
 		shader.bind();
@@ -1553,8 +1571,6 @@ public class Look extends Image {
 		shader.setUniformi("u_texture", 0);
 		mesh.render(shader, GL20.GL_TRIANGLES);
 
-		mesh.dispose();
-		shader.dispose();
 		if (wasDrawing) batch.begin();
 	}
 }

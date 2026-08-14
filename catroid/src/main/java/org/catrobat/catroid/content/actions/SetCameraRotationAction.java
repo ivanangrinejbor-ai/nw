@@ -12,8 +12,9 @@ public class SetCameraRotationAction extends TemporalAction {
     @Override
     protected void update(float percent) {
         if (scope == null) return;
-        if (yaw == null || pitch == null || roll == null) return;
-        var threeDManager = StageActivity.getActiveStageListener().getThreeDManager();
+        var listener = StageActivity.getActiveStageListener();
+        if (listener == null) return;
+        var threeDManager = listener.getThreeDManager();
         if (threeDManager == null) return;
 
         try {

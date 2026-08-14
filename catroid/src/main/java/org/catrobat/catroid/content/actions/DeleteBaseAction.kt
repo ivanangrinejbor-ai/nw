@@ -25,7 +25,7 @@ package org.catrobat.catroid.content.actions
 
 import android.widget.Toast
 import android.content.Context
-import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction
+import com.badlogic.gdx.scenes.scene2d.Action
 import android.app.Activity
 import org.catrobat.catroid.stage.StageActivity
 import org.catrobat.catroid.stage.StageActivity.IntentListener
@@ -38,16 +38,42 @@ import org.catrobat.catroid.content.Scope
 import org.catrobat.catroid.formulaeditor.Formula
 import java.util.ArrayList
 
-class DeleteBaseAction() : TemporalAction() {
+class DeleteBaseAction() : Action() {
     private var contextt: Context? = null
     var scope: Scope? = null
     var base: Formula? = null
     var key: Formula? = null
+    var waitForResponse: Boolean = true
+    private var started = false
+    @Volatile private var finished = false
 
-    override fun update(percent: Float) {
-        val base_str = base?.interpretString(scope) ?: ""
-        val key_str = key?.interpretString(scope) ?: ""
+    override fun act(delta: Float): Boolean {
+        if (!started) {
+            started = true
+            val baseStr = base?.interpretString(scope) ?: ""
+            val keyStr = key?.interpretString(scope) ?: ""
+            if (waitForResponse) {
+                FireBaseManager.deleteFromDatabase(baseStr, keyStr) { finished = true }
+                return finished
+            }
+            FireBaseManager.deleteFromDatabase(baseStr, keyStr)
+            return true
+        }
+        return finished
+    }
 
-        FireBaseManager.deleteFromDatabase(base_str, key_str)
+    override fun restart() {
+        super.restart()
+        started = false
+        finished = false
+    }
+
+    override fun reset() {
+        super.reset()
+        started = false
+        finished = false
+        scope = null
+        base = null
+        key = null
     }
 }

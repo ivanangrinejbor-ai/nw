@@ -135,6 +135,8 @@ public final class BrickInfo {
         add(WhenBounceOffBrick.class, "Вызывается, когда столкновение закончено. ВАЖНО: плохо работает");
         add(WhenTouchingSpriteBrick.class, "Вызывается, когда этот спрайт касается любого другого спрайта. Не требует физики.");
         add(WhenTouchingSpriteByNameBrick.class, "Вызывается, когда этот спрайт касается выбранного спрайта. Не требует физики.");
+        add(WhenAIResponseBrick.class, "Вызывается, когда ИИ ответил на запрос блока «Спросить ИИ».");
+        add(AskAIBrick.class, "Задаёт вопрос ИИ (провайдер выбирается внизу блока) и сохраняет ответ в переменную.");
         add(PlaySoundBrick.class, "Играет звук");
         add(PlaySoundAndWaitBrick.class, "Играет звук и ждет окончания");
         add(PlaySoundAtBrick.class, "Играет звук с определенного момента");
@@ -1130,6 +1132,8 @@ public final class BrickInfo {
         addEn(WhenBounceOffBrick.class, "Triggers when a collision ends. IMPORTANT: does not work well");
         addEn(WhenTouchingSpriteBrick.class, "Triggers when this sprite touches any other sprite. No physics required.");
         addEn(WhenTouchingSpriteByNameBrick.class, "Triggers when this sprite touches the selected sprite. No physics required.");
+        addEn(WhenAIResponseBrick.class, "Triggers when AI answered a request from the \"Ask AI\" brick.");
+        addEn(AskAIBrick.class, "Asks AI a question (provider is selected at the bottom of the brick) and saves the answer to a variable.");
         addEn(PlaySoundBrick.class, "Plays a sound");
         addEn(PlaySoundAndWaitBrick.class, "Plays a sound and waits for it to finish");
         addEn(PlaySoundAtBrick.class, "Plays a sound from a specific playback position");
@@ -1443,6 +1447,14 @@ public final class BrickInfo {
         addEn(HttpCreateBrick.class, "Creates an HTTP request with the given method and URL under the specified ID.");
         add(HttpSaveFileBrick.class, "Сохраняет ответ HTTP-запроса в указанный файл проекта.");
         addEn(HttpSaveFileBrick.class, "Saves the HTTP request response to the given project file.");
+        add(HttpClearBrick.class, "Удаляет подготовленный HTTP-запрос и его ответ из памяти.");
+        addEn(HttpClearBrick.class, "Clears a prepared HTTP request and its response from memory.");
+        add(HttpCancelBrick.class, "Отменяет выполняющийся HTTP-запрос по ID.");
+        addEn(HttpCancelBrick.class, "Cancels an active HTTP request by ID.");
+        add(WhenHttpResponseReceivedBrick.class, "Событие: запускает вложенные блоки после получения HTTP-ответа.");
+        addEn(WhenHttpResponseReceivedBrick.class, "Event: runs nested blocks when an HTTP response is received.");
+        add(WhenHttpRequestFailedBrick.class, "Событие: запускает вложенные блоки при сетевой ошибке HTTP-запроса.");
+        addEn(WhenHttpRequestFailedBrick.class, "Event: runs nested blocks when an HTTP request fails.");
         add(HttpSendBrick.class, "Отправляет HTTP-запрос с указанным ID. ВАЖНО: ждёт завершения запроса.");
         addEn(HttpSendBrick.class, "Sends the HTTP request with the given ID. IMPORTANT: waits for the request to finish.");
         add(JsonParseBrick.class, "Разбирает JSON-текст и сохраняет его под указанным именем.");

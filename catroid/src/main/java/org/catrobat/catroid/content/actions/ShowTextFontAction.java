@@ -64,42 +64,39 @@ public class ShowTextFontAction extends TemporalAction {
         try {
             String namestr = (name.interpretString(scope) != null) ? name.interpretString(scope) : "dummyActor";
             String textstr = (text.interpretString(scope) != null) ? text.interpretString(scope) : "NaN";
-            String file_font = (file.interpretString(scope) != null) ? file.interpretString(scope) : "font.tff";
-            File file = scope.getProject().getFile(file_font);
-            if(file == null) {
-                Log.e("fontShow", "file " + file_font + " not exsists");
-                return;
-            }
+            String file_font = (file != null && file.interpretString(scope) != null) ? file.interpretString(scope) : "font.ttf";
+            File fontFile = (scope != null && scope.getProject() != null) ? scope.getProject().getFile(file_font) : null;
+            String fontPath = (fontFile != null && fontFile.exists()) ? fontFile.getAbsolutePath() : null;
 
             variableToShow = new UserVariable(namestr, textstr);
-            int xPosition = this.xPosition.interpretInteger(scope);
-            int yPosition = this.yPosition.interpretInteger(scope);
-            float relativeTextSize = this.relativeTextSize.interpretFloat(scope) / 100;
-            String color = this.color.interpretString(scope);
-            if (StageActivity.getActiveStageListener() != null) {
-                Array<Actor> stageActors = StageActivity.getActiveStageListener().getStage().getActors();
-                ShowTextActor dummyActor = new ShowTextActor(true, new UserVariable("dummyActor"), 0,
-                        0, relativeTextSize, color, scope.getSprite(), alignment, androidStringProvider);
-                dummyActor.setFont(file.getAbsolutePath());
-                dummyActor.setWrap(true);
-                for (Actor actor : stageActors) {
-                    if (actor.getClass().equals(dummyActor.getClass())) {
-                        ShowTextActor showTextActor = (ShowTextActor) actor;
+            int xPosition = this.xPosition != null ? this.xPosition.interpretInteger(scope) : 0;
+            int yPosition = this.yPosition != null ? this.yPosition.interpretInteger(scope) : 0;
+            float relativeTextSize = this.relativeTextSize != null ? (this.relativeTextSize.interpretFloat(scope) / 100f) : 1f;
+            String color = this.color != null ? this.color.interpretString(scope) : "#FFFFFF";
+
+            var stageListener = StageActivity.getActiveStageListener();
+            if (stageListener != null && stageListener.getStage() != null) {
+                Array<Actor> stageActors = stageListener.getStage().getActors();
+                for (Actor a : stageActors) {
+                    if (a instanceof ShowTextActor) {
+                        ShowTextActor showTextActor = (ShowTextActor) a;
                         if (showTextActor.getVariableNameToCompare().equals(variableToShow.getName())
                                 && showTextActor.getSprite().equals(scope.getSprite())) {
-                            actor.remove();
+                            a.remove();
                         }
                     }
                 }
                 actor = new ShowTextActor(true, variableToShow, xPosition, yPosition, relativeTextSize,
                         color, scope.getSprite(), alignment, androidStringProvider);
-                actor.setFont(file.getAbsolutePath());
+                if (fontPath != null) {
+                    actor.setFont(fontPath);
+                }
                 actor.setWrap(true);
+                stageListener.addActor(actor);
             }
-            StageActivity.getActiveStageListener().addActor(actor);
             variableToShow.setVisible(true);
-        } catch (InterpretationException e) {
-            Log.d(TAG, "InterpretationException: " + e);
+        } catch (Exception e) {
+            Log.d(TAG, "Exception in ShowTextFontAction: " + e);
         }
     }
 

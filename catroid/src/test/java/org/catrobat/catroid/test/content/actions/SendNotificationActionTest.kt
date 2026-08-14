@@ -9,6 +9,9 @@ package org.catrobat.catroid.test.content.actions
 import android.app.NotificationManager
 import android.content.Context
 import com.badlogic.gdx.utils.GdxNativesLoader
+import org.catrobat.catroid.ProjectManager
+import org.catrobat.catroid.content.Project
+import org.catrobat.catroid.content.Scene
 import org.catrobat.catroid.content.Scope
 import org.catrobat.catroid.content.Script
 import org.catrobat.catroid.content.Sprite
@@ -16,7 +19,10 @@ import org.catrobat.catroid.content.actions.ScriptSequenceAction
 import org.catrobat.catroid.content.notification.NotificationData
 import org.catrobat.catroid.content.notification.NotificationStorage
 import org.catrobat.catroid.formulaeditor.Formula
+import org.catrobat.catroid.notification.NotificationService
+import org.catrobat.catroid.notification.NotificationServiceHolder
 import org.catrobat.catroid.stage.StageActivity
+import org.catrobat.catroid.test.MockUtil
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -42,7 +48,13 @@ class SendNotificationActionTest {
 
         NotificationStorage.clear()
 
+        val project = Project(MockUtil.mockContextForProject(), "Project")
+        val scene = Scene("test", project)
         sprite = Sprite("testSprite")
+        scene.addSprite(sprite)
+        project.addScene(scene)
+        ProjectManager.getInstance().setCurrentProject(project)
+
         scope = Scope(null, sprite, ScriptSequenceAction(Mockito.mock(Script::class.java)))
         scriptSequence = ScriptSequenceAction(Mockito.mock(Script::class.java))
     }
@@ -95,18 +107,17 @@ class SendNotificationActionTest {
             iconPath = "", importanceLevel = NotificationManager.IMPORTANCE_DEFAULT, isPinned = false
         ))
 
+        val mockService = Mockito.mock(NotificationService::class.java)
+        NotificationServiceHolder.service = mockService
+
         val action = sprite.actionFactory.createSendNotificationAction(
             sprite, scriptSequence, Formula(1)
         )
         action.act(1.0f)
 
-        val mockActivity = Mockito.mock(StageActivity::class.java)
-        val mockNotificationManager = Mockito.mock(NotificationManager::class.java)
-        Mockito.`when`(mockActivity.getSystemService(Context.NOTIFICATION_SERVICE))
-            .thenReturn(mockNotificationManager)
-        Whitebox.setInternalState(StageActivity::class.java, "activeStageActivity", java.lang.ref.WeakReference(mockActivity))
-
         action.restart()
         action.act(1.0f)
+
+        Mockito.verify(mockService, Mockito.times(2)).show(1)
     }
 }

@@ -256,7 +256,7 @@ public class MoveToObjectBrick extends FormulaBrick implements BrickSpinner.OnIt
                         moveMode,
                         sizeCheckMode,
                         blockedPathAction,
-                        getFormulaWithBrickField(BrickField.ROTATE_OBJECT),
-                        getFormulaWithBrickField(BrickField.DYNAMIC_REPLANNING)));
+                        getFormulaWithBrickField(BrickField.ROTATE_OBJECT, true),
+                        getFormulaWithBrickField(BrickField.DYNAMIC_REPLANNING, true)));
     }
 }

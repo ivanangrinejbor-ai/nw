@@ -7,17 +7,6 @@ import okhttp3.Dns
 
 class CustomDns : Dns {
     override fun lookup(hostname: String): List<InetAddress> {
-        return try {
-            if (GeminiManager.dns_server.isNullOrEmpty()) {
-                Dns.SYSTEM.lookup(hostname)
-            } else {
-                Log.d("CustomDns", "Resolving hostname using DNS server: ${GeminiManager.dns_server}")
-                val addresses = InetAddress.getAllByName(GeminiManager.dns_server)
-                addresses.toList()
-            }
-        } catch (e: UnknownHostException) {
-            Log.e("CustomDns", "Error resolving DNS: ${e.message}")
-            throw e
-        }
+        return Dns.SYSTEM.lookup(hostname)
     }
 }

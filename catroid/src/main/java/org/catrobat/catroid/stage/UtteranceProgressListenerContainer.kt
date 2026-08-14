@@ -60,6 +60,11 @@ class UtteranceProgressListenerContainer : UtteranceProgressListener() {
     @SuppressWarnings("EmptyFunctionBlock")
     override fun onStart(utteranceId: String) {}
 
-    @SuppressWarnings("EmptyFunctionBlock")
-    override fun onError(utteranceId: String) {}
+    @Synchronized
+    override fun onError(utteranceId: String) {
+        for (listener in listeners[utteranceId].orEmpty()) {
+            listener.onError(utteranceId)
+        }
+        listeners[utteranceId] = null
+    }
 }

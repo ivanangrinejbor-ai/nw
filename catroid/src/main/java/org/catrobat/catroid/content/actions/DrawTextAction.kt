@@ -64,12 +64,17 @@ class DrawTextAction : TemporalAction() {
             0f
         }
 
+        val font = currentScope.sprite.penConfiguration.getFontName()
+        val fontSize = currentScope.sprite.penConfiguration.getFontSize().toFloat().coerceAtLeast(8f)
+        val penColor = currentScope.sprite.penConfiguration.getPenColor()
+        val colorHex = String.format("#%02X%02X%02X%02X", (penColor.a * 255).toInt(), (penColor.r * 255).toInt(), (penColor.g * 255).toInt(), (penColor.b * 255).toInt())
+
         val rasterizedText = try {
             TextServiceHolder.textService.rasterizeText(
                 textStr,
-                40f,
-                null,
-                null,
+                fontSize,
+                font,
+                colorHex,
                 false,
                 0
             )

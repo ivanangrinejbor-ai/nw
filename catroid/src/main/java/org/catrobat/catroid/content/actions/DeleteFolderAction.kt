@@ -19,8 +19,8 @@ class DeleteFolderAction : TemporalAction() {
             val downloadsDir = File(RuntimeServicesHolder.services.getDownloadsDir())
             val baseCanonical = downloadsDir.canonicalPath
             val folder = File(downloadsDir, name).canonicalFile
-            if (!folder.canonicalPath.startsWith(baseCanonical + File.separator) && folder.canonicalPath != baseCanonical) {
-                Log.e("DeleteFolderAction", "Path traversal detected: $name")
+            if (folder.canonicalPath == baseCanonical || !folder.canonicalPath.startsWith(baseCanonical + File.separator)) {
+                Log.e("DeleteFolderAction", "Path traversal or root folder delete detected: $name")
                 return
             }
             if (folder.exists() && folder.isDirectory) {

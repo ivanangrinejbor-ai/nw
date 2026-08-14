@@ -1597,7 +1597,10 @@ public class FormulaElement implements Serializable {
                 String name = String.valueOf(arg0);
                 int count = 0;
                 for (Sprite sp : listener.getSpritesFromStage()) {
-                    if (sp.isClone && name.equals(sp.getName())) count++;
+                    if (sp.isClone) {
+                        String baseName = sp.getName().replaceAll("-c\\d+$", "");
+                        if (name.equals(baseName) || name.equals(sp.getName())) count++;
+                    }
                 }
                 return (double) count;
             }
@@ -2700,9 +2703,9 @@ public class FormulaElement implements Serializable {
             case MULT:
                 return left * right;
             case DIVIDE:
-                return (right == 0.0) ? Double.NaN : (left / right);
+                return (right == 0.0) ? 0.0 : (left / right);
             case MOD:
-                return (right == 0.0) ? Double.NaN : (left % right);
+                return (right == 0.0) ? 0.0 : (left % right);
             case POW:
                 return Math.pow(left, right);
             case EQUAL:

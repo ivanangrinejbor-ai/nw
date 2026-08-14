@@ -75,6 +75,17 @@
             android:layout_height="wrap_content"
             android:textDirection="locale" />
 
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/firebase_wait_for_response"
+            app:layout_newLine="true" />
+
+        <Spinner
+            android:id="@+id/brick_read_base_wait_spinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textDirection="locale" />
+
     </org.catrobat.catroid.ui.BrickLayout>
 
 </LinearLayout>

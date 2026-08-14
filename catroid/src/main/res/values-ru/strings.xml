@@ -593,6 +593,8 @@
     <string name="preference_description_grouping_device">Включить группировку блоков в устройствах</string>
     <string name="preference_title_grouping_threed">Категория 3D</string>
     <string name="preference_description_grouping_threed">Включить группировку блоков в 3D (Рекомендуется)</string>
+    <string name="preference_title_redrawn_brick_mode">Перерисованный режим</string>
+    <string name="preference_description_redrawn_brick_mode">Сделать фон всех блоков мягче, скруглить края и добавить аккуратный контур</string>
 
     <string name="dialog_add_brick_add">Добавить</string>
     <string name="dialog_add_brick_cancel">Отмена</string>
@@ -768,6 +770,8 @@
     <string name="scene_transition_exit">При выходе</string>
     <string name="export_with_password">Экспорт с паролем</string>
     <string name="export_protected_project">Экспорт как защищённый проект</string>
+    <string name="export_exe_v2">Windows EXE v2 (единый файл)</string>
+    <string name="exe_v2_progress">Сборка Windows EXE v2...</string>
     <string name="export_compressed_light">Экспорт с лёгким сжатием</string>
     <string name="export_compressed_hard">Экспорт с жёстким сжатием</string>
     <string name="export_compressed_light_progress">Очистка проекта…</string>
@@ -1199,6 +1203,11 @@
     <string formatted="false" name="firebase_key">Ключ</string>
     <string formatted="false" name="firebase_value">Значение</string>
     <string formatted="false" name="firebase_store">и сохранить в</string>
+    <string formatted="false" name="firebase_wait_for_response">Ждать ответа</string>
+    <string-array name="firebase_wait_options">
+        <item>Ждать ответа</item>
+        <item>Не ждать ответа</item>
+    </string-array>
     <string formatted="false" name="firebase_upload">Загрузить в Firebase Storage</string>
     <string formatted="false" name="firebase_download">Скачать из Firebase Storage</string>
     <string formatted="false" name="firebase_list">Список файлов в Firebase Storage</string>
@@ -2124,6 +2133,12 @@
     <string formatted="false" name="brick_lunoscript">Выполнить LunoScript</string>
     <string formatted="false" name="brick_ask_gpt">Спросить ChatGPT</string>
     <string formatted="false" name="brick_ask_gpt2">Системный промпт</string>
+    <string formatted="false" name="brick_ask_ai">Спросить ИИ</string>
+    <string formatted="false" name="brick_ask_ai_system">Системный промпт</string>
+    <string formatted="false" name="brick_ask_ai_model">Модель (пусто — по умолчанию)</string>
+    <string formatted="false" name="brick_ask_ai_provider">Провайдер</string>
+    <string formatted="false" name="brick_when_ai_response">Когда ИИ ответил</string>
+    <string formatted="false" name="ai_provider_any">Любой провайдер</string>
     <string formatted="false" name="formula_editor_object_width">ширина</string>
     <string formatted="false" name="formula_editor_object_height">высота</string>
     <string formatted="false" name="brick_unkown">Неизвестный блок</string>
@@ -2324,6 +2339,14 @@
     <string formatted="false" name="brick_websocket_receive">WebSocket получить</string>
     <string formatted="false" name="brick_websocket_receive_variable">сохранить в</string>
     <string formatted="false" name="brick_websocket_close">WebSocket закрыть</string>
+    <string formatted="false" name="brick_http_clear">Очистить HTTP-запрос</string>
+    <string formatted="false" name="brick_http_clear_id">ID запроса</string>
+    <string formatted="false" name="brick_http_cancel">Отменить HTTP-запрос</string>
+    <string formatted="false" name="brick_http_cancel_id">ID запроса</string>
+    <string formatted="false" name="brick_when_http_response_received">Когда получен HTTP-ответ</string>
+    <string formatted="false" name="brick_when_http_response_request_id">ID запроса</string>
+    <string formatted="false" name="brick_when_http_request_failed">Когда HTTP-запрос завершился ошибкой</string>
+    <string formatted="false" name="brick_when_http_failed_request_id">ID запроса</string>
     <string formatted="false" name="brick_download_file">Скачать файл</string>
     <string formatted="false" name="brick_download_file_url">с URL</string>
     <string formatted="false" name="brick_download_file_name">сохранить как</string>

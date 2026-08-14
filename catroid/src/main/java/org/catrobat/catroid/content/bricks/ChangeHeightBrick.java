@@ -52,6 +52,6 @@ public class ChangeHeightBrick extends FormulaBrick {
 	@Override
 	public void addActionToSequence(Sprite sprite, ScriptSequenceAction sequence) {
 		sequence.addAction(sprite.getActionFactory().createChangeHeightAction(sprite, sequence,
-				getFormulaWithBrickField(BrickField.HEIGHT_CHANGE)));
+				getFormulaWithBrickField(BrickField.HEIGHT_CHANGE, BrickField.SIZE)));
 	}
 }

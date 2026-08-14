@@ -79,6 +79,8 @@ public class ShowTextActor extends Actor {
 	private String lastRenderedText;
 	private String lastRenderedColor;
 	private float lastRenderedTextSize;
+	private float lastRenderedDrawX;
+	private float lastRenderedDrawY;
 
 	public ShowTextActor(Boolean text, UserVariable userVariable, int xPosition, int yPosition, float relativeSize,
 			String color, Sprite sprite, int alignment, AndroidStringProvider androidStringProvider) {
@@ -196,7 +198,19 @@ public class ShowTextActor extends Actor {
 		}
 
 		if (!textChanged && cachedTexture != null) {
-			batch.draw(cachedTexture, posX, posY);
+			int totalWidth = cachedTexture.getWidth();
+			int totalHeight = cachedTexture.getHeight();
+			float drawX = posX;
+			float drawY = posY - totalHeight / 2f;
+			switch (alignment) {
+				case ALIGNMENT_STYLE_CENTERED:
+					drawX -= totalWidth / 2f;
+					break;
+				case ShowTextUtils.ALIGNMENT_STYLE_RIGHT:
+					drawX -= totalWidth;
+					break;
+			}
+			batch.draw(cachedTexture, drawX, drawY);
 			return;
 		}
 
@@ -206,27 +220,27 @@ public class ShowTextActor extends Actor {
 		int totalWidth = rt.getWidth();
 		int totalHeight = rt.getHeight();
 
-		float adjustedPosY = posY;
-		if (isTextWrapped) {
-			adjustedPosY -= totalHeight / 2f;
-		}
+		float drawX = posX;
+		float drawY = posY - totalHeight / 2f;
 
 		switch (alignment) {
 			case ALIGNMENT_STYLE_CENTERED:
-				posX -= totalWidth / 2;
+				drawX -= totalWidth / 2f;
 				break;
 			case ShowTextUtils.ALIGNMENT_STYLE_RIGHT:
-				posX -= totalWidth;
+				drawX -= totalWidth;
 				break;
 		}
 
 		cachedTexture = buildTexture(rt);
 		batch.setColor(1, 1, 1, 1);
-		batch.draw(cachedTexture, posX, adjustedPosY);
+		batch.draw(cachedTexture, drawX, drawY);
 
 		lastRenderedText = text;
 		lastRenderedColor = color;
 		lastRenderedTextSize = textSizeInPx;
+		lastRenderedDrawX = drawX;
+		lastRenderedDrawY = drawY;
 	}
 
 	private Texture buildTexture(RasterizedText rt) {
@@ -251,5 +265,14 @@ public class ShowTextActor extends Actor {
 
 	public Sprite getSprite() {
 		return sprite;
+	}
+
+	@Override
+	public boolean remove() {
+		if (cachedTexture != null) {
+			cachedTexture.dispose();
+			cachedTexture = null;
+		}
+		return super.remove();
 	}
 }

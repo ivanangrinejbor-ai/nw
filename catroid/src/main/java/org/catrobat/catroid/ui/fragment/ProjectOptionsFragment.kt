@@ -109,8 +109,8 @@ import org.catrobat.catroid.utils.git.GitController
 import org.catrobat.catroid.utils.git.GitResult
 import org.catrobat.catroid.utils.git.TokenManager
 import org.catrobat.catroid.utils.lunoscript.baker.ProjectBaker
-import org.catrobat.catroid.utils.lunoscript.security.LunoSecurity
 import org.catrobat.catroid.utils.notifications.StatusBarNotificationManager
+import org.catrobat.catroid.desktop.export.DesktopExeBuilder
 import org.koin.android.ext.android.inject
 import java.io.File
 import java.io.FileInputStream
@@ -209,6 +209,7 @@ class ProjectOptionsFragment : Fragment() {
             val items = arrayOf(
                 getString(R.string.export_bake),
                 getString(R.string.export_project),
+                getString(R.string.export_as_exe),
                 getString(R.string.export_with_password),
                 getString(R.string.export_as_apk_v3),
                 getString(R.string.export_protected_project)
@@ -216,15 +217,41 @@ class ProjectOptionsFragment : Fragment() {
             androidx.appcompat.app.AlertDialog.Builder(requireContext())
                 .setTitle(R.string.export_project)
                 .setItems(items) { _, which ->
-                    when (which) {
-                        0 -> runExportWalkthrough { exportBakedProject() }
-                        1 -> runExportWalkthrough { exportProject() }
-                        2 -> runExportWalkthrough { exportWithPassword() }
-                        3 -> buildApkV3()
-                        4 -> runExportWalkthrough { exportProtectedProject() }
-                    }
+                when (which) {
+                    0 -> runExportWalkthrough { exportBakedProject() }
+                    1 -> runExportWalkthrough { exportProject() }
+                    2 -> runExportWalkthrough { exportAsStandaloneExe() }
+                    3 -> runExportWalkthrough { exportWithPassword() }
+                    4 -> buildApkV3()
+                    5 -> runExportWalkthrough { exportProtectedProject() }
                 }
-                .show()
+            }
+            .show()
+        }
+    }
+
+    private fun exportAsStandaloneExe() {
+        saveProject()
+        val currentProject = project ?: return
+
+        showProgressDialog(getString(R.string.export_as_exe))
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            val destination = DesktopExeBuilder.getDefaultExportFile(currentProject)
+            val success = DesktopExeBuilder.buildStandaloneExe(requireContext(), currentProject, destination)
+
+            withContext(Dispatchers.Main) {
+                hideProgressDialog()
+                if (success) {
+                    androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                        .setTitle(R.string.export_as_exe)
+                        .setMessage("Файл успешно сохранен в Загрузки:\n${destination.absolutePath}")
+                        .setPositiveButton(android.R.string.ok, null)
+                        .show()
+                } else {
+                    ToastUtil.showError(requireContext(), "Ошибка создания EXE файла")
+                }
+            }
         }
     }
 
@@ -336,6 +363,7 @@ class ProjectOptionsFragment : Fragment() {
         intent.type = when {
             file.name.endsWith(".ncpp", true) -> "application/octet-stream"
             file.name.endsWith(".enc", true) -> "application/octet-stream"
+            file.name.endsWith(".exe", true) -> "application/octet-stream"
             else -> "application/zip"
         }
         intent.putExtra(Intent.EXTRA_STREAM, uri)
@@ -1669,6 +1697,55 @@ class ProjectOptionsFragment : Fragment() {
                     shareFile(outputFile)
                 }
 
+            } catch (e: Throwable) {
+                withContext(Dispatchers.Main) {
+                    hideProgressDialog()
+                    ToastUtil.showError(requireContext(), "Ошибка: ${e.message}")
+                    e.printStackTrace()
+                }
+            }
+        }
+    }
+
+    private fun buildExeV2() {
+        val p = project ?: return
+        saveProject()
+        releaseAllLookCaches()
+        System.gc()
+
+        showProgressDialog(getString(R.string.exe_v2_progress))
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val proj = project!!
+                val ctx = requireContext()
+                val cache = ctx.cacheDir
+
+                val projectBytes = proj.directory.walkTopDown().filter { it.isFile }.sumOf { it.length() }
+                val neededBytes = projectBytes + 108L * 1024 * 1024
+                val freeBytes = cache.usableSpace
+                if (freeBytes < neededBytes) {
+                    throw java.io.IOException(
+                        "Недостаточно места для сборки: нужно ~${neededBytes / (1024 * 1024)} МБ, " +
+                            "свободно ${freeBytes / (1024 * 1024)} МБ. Освободите место и повторите."
+                    )
+                }
+                System.gc()
+
+                val outputFile = File(cache, "${proj.name}_exe_v2.exe")
+                if (outputFile.exists()) outputFile.delete()
+                org.catrobat.catroid.exebuildv2.ExeBuilderV2.build(
+                    ctx,
+                    proj.directory,
+                    proj.name,
+                    outputFile
+                )
+                System.gc()
+
+                withContext(Dispatchers.Main) {
+                    hideProgressDialog()
+                    shareFile(outputFile)
+                }
             } catch (e: Throwable) {
                 withContext(Dispatchers.Main) {
                     hideProgressDialog()

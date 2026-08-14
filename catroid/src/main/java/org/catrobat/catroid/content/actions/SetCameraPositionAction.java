@@ -15,8 +15,9 @@ public class SetCameraPositionAction extends TemporalAction {
     @Override
     protected void update(float percent) {
         if (scope == null) return;
-        if (xValue == null || yValue == null || zValue == null) return;
-        var threeDManager = StageActivity.getActiveStageListener().getThreeDManager();
+        var listener = StageActivity.getActiveStageListener();
+        if (listener == null) return;
+        var threeDManager = listener.getThreeDManager();
         if (threeDManager == null) {
             return;
         }

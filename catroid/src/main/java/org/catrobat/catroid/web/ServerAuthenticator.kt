@@ -29,6 +29,7 @@ import androidx.annotation.VisibleForTesting
 import okhttp3.OkHttpClient
 import org.catrobat.catroid.common.Constants
 import org.catrobat.catroid.common.SharedPreferenceKeys.DEVICE_LANGUAGE
+import org.json.JSONException
 import org.catrobat.catroid.web.ServerAuthenticationConstants.CATROBAT_COUNTRY_KEY
 import org.catrobat.catroid.web.ServerAuthenticationConstants.CATROBAT_EMAIL_KEY
 import org.catrobat.catroid.web.ServerAuthenticationConstants.CATROBAT_PASSWORD_KEY
@@ -102,7 +103,12 @@ class ServerAuthenticator(
             return
         }
 
-        val resultJsonObject = JSONObject(resultString)
+        val resultJsonObject = try {
+            JSONObject(resultString)
+        } catch (e: JSONException) {
+            taskListener.onError(WebConnectionException.ERROR_JSON, null)
+            return
+        }
         if (isInvalidResponse(acceptedStatusCode, resultJsonObject)) {
             val statusCode = resultJsonObject.optInt(JSON_STATUS_CODE)
             val serverAnswer = resultJsonObject.optString(JSON_ANSWER)

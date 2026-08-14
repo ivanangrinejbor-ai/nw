@@ -48,10 +48,12 @@ class DrawRectAction : TemporalAction() {
         val wVal = width?.interpretFloat(s) ?: 0f
         val hVal = height?.interpretFloat(s) ?: 0f
 
+        val penColor = s.sprite.penConfiguration.getPenColor()
         camera.update()
         buffer.begin()
         shapeRenderer.projectionMatrix = camera.combined
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
+        shapeRenderer.setColor(penColor.r, penColor.g, penColor.b, penColor.a)
         shapeRenderer.rect(xVal, yVal, wVal, hVal)
         shapeRenderer.end()
         buffer.end()

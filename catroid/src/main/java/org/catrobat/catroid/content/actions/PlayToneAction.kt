@@ -37,7 +37,8 @@ class PlayToneAction : TemporalAction() {
     override fun begin() {
         try {
             val freq = frequency?.interpretFloat(scope) ?: 440f
-            val dur = duration?.interpretFloat(scope) ?: 1f
+            val rawDur = duration?.interpretFloat(scope) ?: 1f
+            val dur = rawDur.coerceIn(0f, 60f)
             super.setDuration(dur)
 
             val sampleRate = 44100

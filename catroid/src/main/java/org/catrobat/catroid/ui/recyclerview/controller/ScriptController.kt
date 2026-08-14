@@ -146,7 +146,9 @@ class ScriptController {
                 val userDefinedScript = projectManager.currentSprite.getUserDefinedScript(brick.userDefinedBrickID)
 
                 if (!checkIfUserDefinedBrickDefinitionIsInBricksToPack(bricksToPack, brick)) {
-                    scriptsToPack.add(userDefinedScript)
+                    if (userDefinedScript != null) {
+                        scriptsToPack.add(userDefinedScript.clone())
+                    }
                     userDefinedBrickListToPack.add(brick.clone() as UserDefinedBrick)
                 }
             }

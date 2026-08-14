@@ -1,44 +1,73 @@
-/*
- * NeoCatroid — :desktop-runtime module.
- *
- * Pure-JVM home for the Windows desktop player. Depends on :core (the portable
- * runtime contracts + logic) and supplies Desktop implementations of every
- * seam interface (RuntimeServices / AudioService / MidiService / TextService /
- * NotificationService) using only the standard JDK — no Android, no LWJGL.
- *
- * The stage render loop (libGDX LWJGL backend) is added separately in DesktopStage.
- */
 plugins {
+    id 'application'
     id 'org.jetbrains.kotlin.jvm'
+}
+
+ext {
+    gdxVersion = '1.13.1'
+}
+
+application {
+    mainClass = 'org.catrobat.catroid.desktop.DesktopLauncher'
 }
 
 dependencies {
     implementation project(':core')
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    implementation "com.badlogicgames.gdx:gdx-backend-lwjgl3:1.13.1"
-    implementation "com.badlogicgames.gdx:gdx-platform:1.13.1:natives-desktop"
-    implementation "com.badlogicgames.gdx:gdx-box2d:1.13.1"
-    implementation "com.badlogicgames.gdx:gdx-box2d-platform:1.13.1:natives-desktop"
-    implementation "org.jcodec:jcodec:0.2.5"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0"
 
-    testImplementation "junit:junit:4.13.2"
+    implementation "com.badlogicgames.gdx:gdx:$gdxVersion"
+    implementation "com.badlogicgames.gdx:gdx-backend-lwjgl3:$gdxVersion"
+    implementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
+    implementation "com.badlogicgames.gdx:gdx-box2d:$gdxVersion"
+    implementation "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-desktop"
+    implementation "com.badlogicgames.gdx:gdx-bullet:$gdxVersion"
+    implementation "com.badlogicgames.gdx:gdx-bullet-platform:$gdxVersion:natives-desktop"
+    implementation "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
+    implementation "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-desktop"
+
+    implementation 'com.github.mgsx-dev.gdx-gltf:gltf:2.2.1'
+    implementation 'com.crashinvaders.vfx:gdx-vfx-core:0.5.4'
+    implementation 'com.crashinvaders.vfx:gdx-vfx-effects:0.5.4'
+
+    implementation "com.thoughtworks.xstream:xstream:1.4.20"
+    implementation "com.squareup.okhttp3:okhttp:4.12.0"
 }
 
-test {
-    testLogging {
-        events "passed", "failed", "skipped"
-        showStandardStreams = true
-    }
-}
-
-jar {
-    duplicatesStrategy = org.gradle.api.file.DuplicatesStrategy.EXCLUDE
-    archiveBaseName = 'player'
+task fatJar(type: Jar) {
+    archiveBaseName = 'NeoCatroidDesktop'
+    archiveVersion = '1.0.0'
     manifest {
-        attributes 'Main-Class': 'org.catrobat.catroid.stage.DesktopStage'
+        attributes(
+            'Main-Class': application.mainClass.get(),
+            'Implementation-Title': 'NeoCatroid Desktop Player',
+            'Implementation-Version': archiveVersion
+        )
     }
-
     from {
-        configurations.runtimeClasspath.findAll { it.name.endsWith('.jar') }.collect { zipTree(it) }
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    with jar
+}
+
+task packageExe(type: Exec) {
+    dependsOn fatJar
+    group = 'distribution'
+    description = 'Packages the fatJar into a standalone Windows .exe with bundled minimal JRE via jpackage'
+    
+    doFirst {
+        file("$buildDir/dist").mkdirs()
+    }
+    
+    workingDir project.projectDir
+    commandLine 'jpackage',
+            '--type', 'app-image',
+            '--name', 'NeoCatroidPlayer',
+            '--input', "${buildDir}/libs",
+            '--main-jar', "NeoCatroidDesktop-1.0.0.jar",
+            '--main-class', application.mainClass.get(),
+            '--dest', "${buildDir}/dist"
+            
+    ignoreExitValue = true
 }

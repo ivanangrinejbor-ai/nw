@@ -76,7 +76,12 @@ public class XStreamConcurrentFormulaHashMapConverter implements Converter {
 
 			Brick.FormulaField formulaField;
 			if (hierarchicalStreamReader.getAttribute(CATEGORY) != null) {
-				formulaField = Brick.BrickField.valueOf(hierarchicalStreamReader.getAttribute(CATEGORY));
+				String categoryName = hierarchicalStreamReader.getAttribute(CATEGORY);
+				try {
+					formulaField = Brick.BrickField.valueOf(categoryName);
+				} catch (IllegalArgumentException e) {
+					formulaField = new InputFormulaField(categoryName);
+				}
 			} else {
 				formulaField = new InputFormulaField(hierarchicalStreamReader.getAttribute(USER_DEFINED_INPUT));
 			}

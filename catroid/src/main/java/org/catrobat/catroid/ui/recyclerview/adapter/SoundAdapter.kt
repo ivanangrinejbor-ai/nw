@@ -112,6 +112,12 @@ class SoundAdapter(items: List<SoundInfo?>?) : ExtendedRVAdapter<SoundInfo?>(ite
     }
 
     override fun stopSound() {
-        mediaPlayer.stop()
+        try {
+            if (mediaPlayer.isPlaying) {
+                mediaPlayer.stop()
+            }
+        } catch (e: Exception) {
+            Log.e("[ERROR]", Log.getStackTraceString(e))
+        }
     }
 }

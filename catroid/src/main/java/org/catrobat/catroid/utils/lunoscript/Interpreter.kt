@@ -3910,27 +3910,16 @@ class Interpreter(
     }
 
     private fun executeImportStatement(stmt: ImportStatement) {
-        
         val fullClassName = stmt.path.joinToString(".") { it.lexeme }
-
         try {
-            
-            val loadedClass = Class.forName(fullClassName)
-
-            
+            val loadedClass = org.catrobat.catroid.utils.lunoscript.security.LunoSandbox.safeForName(fullClassName)
+                ?: throw LunoRuntimeError("Class '$fullClassName' is not permitted or not found.", stmt.line)
             val simpleName = loadedClass.simpleName
-
-            
             val classValue = LunoValue.NativeClass(loadedClass)
-
-            
             currentScope.define(simpleName, classValue)
-
-        } catch (e: ClassNotFoundException) {
-            
-            throw LunoRuntimeError("Class '$fullClassName' not found.", stmt.line, e)
+        } catch (e: LunoRuntimeError) {
+            throw e
         } catch (e: Exception) {
-            
             throw LunoRuntimeError("Error while importing '$fullClassName': ${e.message}", stmt.line, e)
         }
     }

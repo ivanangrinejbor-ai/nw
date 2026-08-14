@@ -569,6 +569,8 @@
     <string name="preference_description_grouping_device">Enable grouping in Device category</string>
     <string name="preference_title_grouping_threed">3D Category</string>
     <string name="preference_description_grouping_threed">Enable grouping in 3D category (Recommended)</string>
+    <string name="preference_title_redrawn_brick_mode">Redrawn block mode</string>
+    <string name="preference_description_redrawn_brick_mode">Use softer rounded surfaces and borders for all blocks</string>
 
     <string name="dialog_add_brick_add">Add</string>
     <string name="dialog_add_brick_cancel">Cancel</string>
@@ -745,6 +747,8 @@
     <string name="scene_transition_exit">On leave</string>
     <string name="export_with_password">Export with password</string>
     <string name="export_protected_project">Export as protected project</string>
+    <string name="export_exe_v2">Windows EXE v2 (single file)</string>
+    <string name="exe_v2_progress">Building Windows EXE v2...</string>
     <string name="export_compressed_light">Export with light compression</string>
     <string name="export_compressed_hard">Export with hard compression</string>
     <string name="export_compressed_light_progress">Cleaning up project…</string>
@@ -1207,6 +1211,11 @@
 <string formatted="false" name="firebase_key">Key</string>
 <string formatted="false" name="firebase_value">Value</string>
 <string formatted="false" name="firebase_store">and store in</string>
+<string formatted="false" name="firebase_wait_for_response">Wait for response</string>
+<string-array name="firebase_wait_options">
+    <item>Wait for response</item>
+    <item>Do not wait for response</item>
+</string-array>
 <string formatted="false" name="firebase_upload">Upload to Firebase Storage</string>
 <string formatted="false" name="firebase_download">Download from Firebase Storage</string>
 <string formatted="false" name="brick_create_2d_joystick_label">Create 2D Joystick at X:</string>
@@ -1774,6 +1783,12 @@
 <string name="formula_editor_custom_functions_header">Libaries</string>
 <string formatted="false" name="brick_ask_gpt">Ask ChatGPT</string>
 <string formatted="false" name="brick_ask_gpt2">System prompt</string>
+<string formatted="false" name="brick_ask_ai">Ask AI</string>
+<string formatted="false" name="brick_ask_ai_system">System prompt</string>
+<string formatted="false" name="brick_ask_ai_model">Model (leave empty for default)</string>
+<string formatted="false" name="brick_ask_ai_provider">Provider</string>
+<string formatted="false" name="brick_when_ai_response">When AI responds</string>
+<string formatted="false" name="ai_provider_any">Any provider</string>
 <string formatted="false" name="brick_unkown">Unkown brick</string>
 <string formatted="false" name="brick_choose_file">Choose file</string>
 <string formatted="false" name="brick_choose_file2">save name to variable</string>
@@ -1958,6 +1973,14 @@
 <string formatted="false" name="brick_websocket_receive">WebSocket receive</string>
 <string formatted="false" name="brick_websocket_receive_variable">store in</string>
 <string formatted="false" name="brick_websocket_close">WebSocket close</string>
+<string formatted="false" name="brick_http_clear">Clear HTTP request</string>
+<string formatted="false" name="brick_http_clear_id">request ID</string>
+<string formatted="false" name="brick_http_cancel">Cancel HTTP request</string>
+<string formatted="false" name="brick_http_cancel_id">request ID</string>
+<string formatted="false" name="brick_when_http_response_received">When HTTP response received</string>
+<string formatted="false" name="brick_when_http_response_request_id">request ID</string>
+<string formatted="false" name="brick_when_http_request_failed">When HTTP request failed</string>
+<string formatted="false" name="brick_when_http_failed_request_id">request ID</string>
 <string formatted="false" name="brick_download_file">Download file</string>
 <string formatted="false" name="brick_download_file_url">from URL</string>
 <string formatted="false" name="brick_download_file_name">save as</string>

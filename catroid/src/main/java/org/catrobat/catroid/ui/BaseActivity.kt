@@ -36,8 +36,11 @@ import android.preference.PreferenceManager
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.menu.MenuBuilder
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import com.danvexteam.lunoscript_annotations.LunoClass
 import com.google.android.gms.analytics.HitBuilders.ScreenViewBuilder
 import org.catrobat.catroid.CatroidApplication
@@ -79,6 +82,7 @@ abstract class BaseActivity : AppCompatActivity(), PermissionHandlingActivity {
         super.onCreate(savedInstanceState)
         SettingsFragment.setToChosenLanguage(this)
         applyAccessibilityStyles()
+        applyWindowInsets()
 
         Thread.setDefaultUncaughtExceptionHandler(BaseExceptionHandler(this))
         checkIfCrashRecoveryAndFinishActivity(this)
@@ -184,6 +188,7 @@ abstract class BaseActivity : AppCompatActivity(), PermissionHandlingActivity {
     override fun onResume() {
         super.onResume()
         SettingsFragment.setToChosenLanguage(this)
+        SmoothMode.apply(this)
         if (SettingsFragment.isCastSharedPreferenceEnabled(this)) {
             CastManager.getInstance().initializeCast(this)
         }
@@ -217,6 +222,15 @@ abstract class BaseActivity : AppCompatActivity(), PermissionHandlingActivity {
             } else {
                 activity.finish()
             }
+        }
+    }
+
+    private fun applyWindowInsets() {
+        val rootView = findViewById<View>(android.R.id.content) ?: return
+        ViewCompat.setOnApplyWindowInsetsListener(rootView) { view, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(insets.left, insets.top, insets.right, insets.bottom)
+            WindowInsetsCompat.CONSUMED
         }
     }
 

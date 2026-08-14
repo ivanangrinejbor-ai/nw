@@ -93,7 +93,6 @@ class SoundFilesAction : TemporalAction() {
                 } else {
                     Log.e("SoundFile", "File has not exists")
                 }
-                file.delete()
             }
         }
     }
@@ -126,8 +125,8 @@ class SoundFilesAction : TemporalAction() {
         inputName?.let { inname ->
             var name = inname.interpretString(scope)
             val lastDotIndex = name.lastIndexOf('.')
-            if(lastDotIndex <= 0 && lastDotIndex >= name.length - 1) {
-                name += ".png"
+            if (lastDotIndex <= 0) {
+                name += ".mp3"
             }
             return name
         }

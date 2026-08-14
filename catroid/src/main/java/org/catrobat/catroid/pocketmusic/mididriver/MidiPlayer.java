@@ -267,6 +267,10 @@ public class MidiPlayer {
 
 	public void resume() {
 		if (paused) {
+			if (playRunnables.isEmpty()) {
+				paused = false;
+				return;
+			}
 			long currentTime = System.currentTimeMillis();
 			long referenceTime = playRunnables.get(0).getScheduledTime();
 			for (MidiRunnable r : playRunnables) {

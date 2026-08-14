@@ -127,15 +127,15 @@ public abstract class DeviceUserDataAccessor {
 
 	@VisibleForTesting
 	public Map<UUID, Object> readMapFromJson() {
-		try {
+		if (!deviceFile.exists()) {
+			return null;
+		}
+		try (FileReader reader = new FileReader(deviceFile)) {
 			Type mapType = new TypeToken<HashMap<UUID, Object>>() {
 			}.getType();
-			return new Gson().fromJson(new FileReader(deviceFile), mapType);
-		} catch (FileNotFoundException e) {
-			if (deviceFile.exists()) {
-				Log.e(TAG, "Device Variable File corrupted!");
-				deviceFile.delete();
-			}
+			return new Gson().fromJson(reader, mapType);
+		} catch (Exception e) {
+			Log.e(TAG, "Device Variable File corrupted: " + e.getMessage());
 			return null;
 		}
 	}
@@ -149,7 +149,7 @@ public abstract class DeviceUserDataAccessor {
 			String jsonString = new Gson().toJson(map, mapType);
 			bos.write(jsonString.getBytes());
 			bos.flush();
-		} catch (IOException e) {
+		} catch (Exception e) {
 			Log.e(TAG, e.getMessage());
 		}
 	}

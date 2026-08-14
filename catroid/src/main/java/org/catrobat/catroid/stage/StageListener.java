@@ -343,6 +343,7 @@ public class StageListener implements ApplicationListener {
 			stage.getRoot().clear();
 			uiStage.getRoot().clear();
 		}
+		org.catrobat.catroid.content.UserVarsManager.INSTANCE.clearVars();
 		initScreenMode();
 		initStageInputListener();
 		screenshotSaver = new ScreenshotSaver(Gdx.files, getScreenshotPath(), screenshotWidth,
@@ -985,6 +986,7 @@ public class StageListener implements ApplicationListener {
 		boolean removedSprite = sprites.remove(sprite);
 		if (removedSprite) {
 			clonesByIndex.remove(sprite.cloneIndex);
+			removeBubbleActorForSprite(sprite);
 			sprite.look.destroy();
 			sprite.invalidate();
 		}
@@ -1132,7 +1134,7 @@ public class StageListener implements ApplicationListener {
 			resume();
 			fireSceneStartedEvent(scene.getName());
 		}
-		Gdx.input.setInputProcessor(stage);
+		Gdx.input.setInputProcessor(inputMultiplexer != null ? inputMultiplexer : stage);
 	}
 
 	private void fireSceneStartedEvent(String sceneName) {
@@ -1184,7 +1186,7 @@ public class StageListener implements ApplicationListener {
 			resume();
 			fireSceneStartedEvent(scene.getName());
 		}
-		Gdx.input.setInputProcessor(stage);
+		Gdx.input.setInputProcessor(inputMultiplexer != null ? inputMultiplexer : stage);
 	}
 
 	public void transitionToScene(String sceneName, Boolean stopSounds, Boolean save) {
@@ -1214,7 +1216,7 @@ public class StageListener implements ApplicationListener {
 			resume();
 			fireSceneStartedEvent(scene.getName());
 		}
-		Gdx.input.setInputProcessor(stage);
+		Gdx.input.setInputProcessor(inputMultiplexer != null ? inputMultiplexer : stage);
 	}
 
 	public void clearScene(String name) {
@@ -1260,7 +1262,7 @@ public class StageListener implements ApplicationListener {
 
 		stageBackupMap.remove(newScene.getName());
 
-		Gdx.input.setInputProcessor(stage);
+		Gdx.input.setInputProcessor(inputMultiplexer != null ? inputMultiplexer : stage);
 
 		scene.firstStart = true;
 		create();
@@ -1895,7 +1897,7 @@ public class StageListener implements ApplicationListener {
 
 
 
-	private void broadcastEventToAllSprites(EventId eventId) {
+	public void broadcastEventToAllSprites(EventId eventId) {
 
 		if (sprites == null) {
 			return;
@@ -2269,9 +2271,14 @@ public class StageListener implements ApplicationListener {
 	}
 
 	public void removeBubbleActorForSprite(Sprite sprite) {
-		getBubbleActorForSprite(sprite).close();
-		getStage().getActors().removeValue(getBubbleActorForSprite(sprite), true);
-		bubbleActorMap.remove(sprite);
+		ShowBubbleActor actor = getBubbleActorForSprite(sprite);
+		if (actor != null) {
+			actor.close();
+			if (getStage() != null && getStage().getActors() != null) {
+				getStage().getActors().removeValue(actor, true);
+			}
+			bubbleActorMap.remove(sprite);
+		}
 	}
 
 	public ShowBubbleActor getBubbleActorForSprite(Sprite sprite) {

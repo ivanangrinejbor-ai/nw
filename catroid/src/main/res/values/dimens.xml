@@ -64,6 +64,10 @@
     <dimen name="brick_space_padding_formular_editor">8dp</dimen>
     <dimen name="brick_top_space_padding_control">35dp</dimen>
     <dimen name="brick_space_padding">8dp</dimen>
+    <dimen name="redrawn_brick_corner_radius">16dp</dimen>
+    <dimen name="redrawn_brick_border_width">2dp</dimen>
+    <dimen name="smooth_corner_radius">18dp</dimen>
+    <dimen name="smooth_border_width">1dp</dimen>
     <dimen name="data_view_space">200dp</dimen>
     <dimen name="data_view_space_spinner_text">400dp</dimen>
     <dimen name="edit_text_baseline_spacing">10dp</dimen>

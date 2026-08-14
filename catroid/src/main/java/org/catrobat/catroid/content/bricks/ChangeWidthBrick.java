@@ -52,6 +52,6 @@ public class ChangeWidthBrick extends FormulaBrick {
 	@Override
 	public void addActionToSequence(Sprite sprite, ScriptSequenceAction sequence) {
 		sequence.addAction(sprite.getActionFactory().createChangeWidthAction(sprite, sequence,
-				getFormulaWithBrickField(BrickField.WIDTH_CHANGE)));
+				getFormulaWithBrickField(BrickField.WIDTH_CHANGE, BrickField.SIZE)));
 	}
 }

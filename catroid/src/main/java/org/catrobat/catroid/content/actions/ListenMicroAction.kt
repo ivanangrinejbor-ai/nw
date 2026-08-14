@@ -21,13 +21,14 @@ class ListenMicroAction : TemporalAction() {
         super.begin()
         Log.d("ListenMicro", "Started")
 
-        val updateInterval = (time?.interpretObject(scope)?.toString()?.toLongOrNull() ?: 100L)
+        val durationSeconds = (time?.interpretFloat(scope) ?: 60f).coerceAtLeast(0.1f)
+        val totalMillis = (durationSeconds * 1000f).toLong()
         val activity = StageActivity.activeStageActivity.get()
 
         activity?.runOnUiThread {
             audioAnalyzer.start()
 
-            countDownTimer = object : CountDownTimer(60_000, updateInterval) {
+            countDownTimer = object : CountDownTimer(totalMillis, 100L) {
                 override fun onTick(millisUntilFinished: Long) {
                     VolumeManager.volume = audioAnalyzer.currentVolume
                     VolumeManager.frequency = audioAnalyzer.currentFrequency

@@ -356,14 +356,45 @@ public final class Utils {
 		return messageDigest;
 	}
 
+	private static MessageDigest getMD5MessageDigest() {
+		MessageDigest messageDigest = null;
+		try {
+			messageDigest = MessageDigest.getInstance("MD5");
+		} catch (NoSuchAlgorithmException e) {
+			Log.w(TAG, "NoSuchAlgorithmException thrown in getMD5MessageDigest()");
+		}
+		return messageDigest;
+	}
+
 	@Deprecated
 	public static String md5Checksum(File file) {
-		return sha256Checksum(file);
+		if (!file.isFile()) {
+			return null;
+		}
+		MessageDigest messageDigest = getMD5MessageDigest();
+		if (messageDigest == null) {
+			return null;
+		}
+		try (FileInputStream fis = new FileInputStream(file)) {
+			byte[] buffer = new byte[Constants.BUFFER_8K];
+			int length;
+			while ((length = fis.read(buffer)) != -1) {
+				messageDigest.update(buffer, 0, length);
+			}
+		} catch (IOException e) {
+			Log.w(TAG, "IOException thrown in md5Checksum()");
+		}
+		return toHex(messageDigest.digest()).toLowerCase(Locale.US);
 	}
 
 	@Deprecated
 	public static String md5Checksum(String string) {
-		return sha256Checksum(string);
+		MessageDigest messageDigest = getMD5MessageDigest();
+		if (messageDigest == null) {
+			return null;
+		}
+		messageDigest.update(string.getBytes());
+		return toHex(messageDigest.digest()).toLowerCase(Locale.US);
 	}
 
 	public static InputStream getInputStreamFromAsset(Context context, String filename) throws IOException, NullPointerException {

@@ -64,10 +64,24 @@ object NewCatroidHttpManager {
 
     private val activeRequests = ConcurrentHashMap<String, RequestState>()
     private val completedResponses = ConcurrentHashMap<String, ResponseState>()
+    private val activeCalls = ConcurrentHashMap<String, Call>()
 
     fun createRequest(id: String, method: String, url: String) {
+        activeCalls[id]?.cancel()
         activeRequests[id] = RequestState(id, method.uppercase(), url)
         completedResponses.remove(id)
+    }
+
+    fun clearRequest(id: String) {
+        activeCalls.remove(id)?.cancel()
+        activeRequests.remove(id)
+        completedResponses.remove(id)
+    }
+
+    fun cancelRequest(id: String): Boolean {
+        val call = activeCalls.remove(id) ?: return false
+        call.cancel()
+        return true
     }
 
     fun setConfig(id: String, type: String, key: String, value: String) {
@@ -121,6 +135,7 @@ object NewCatroidHttpManager {
                 headers = emptyMap(),
                 bodyBytes = "Request failed: Request ID '$id' was not created. Check for typos!".toByteArray()
             )
+            org.catrobat.catroid.content.HttpRequestEventDispatcher.dispatch(id, true)
             onComplete()
             return
         }
@@ -174,6 +189,7 @@ object NewCatroidHttpManager {
                 headers = emptyMap(),
                 bodyBytes = "Request failed: Invalid URL '$sanitizedUrl'".toByteArray()
             )
+            org.catrobat.catroid.content.HttpRequestEventDispatcher.dispatch(id, true)
             onComplete()
             return
         }
@@ -205,8 +221,10 @@ object NewCatroidHttpManager {
             }
             .build()
 
+        val call = client.newCall(request)
+        activeCalls[id] = call
         try {
-            client.newCall(request).execute().use { response ->
+            call.execute().use { response ->
                 val headersMap = mutableMapOf<String, String>()
                 for (name in response.headers.names()) {
                     headersMap[name] = response.header(name) ?: ""
@@ -219,6 +237,7 @@ object NewCatroidHttpManager {
                     headers = headersMap,
                     bodyBytes = bodyBytes
                 )
+                org.catrobat.catroid.content.HttpRequestEventDispatcher.dispatch(id, false)
             }
         } catch (e: Throwable) {
             e.printStackTrace()
@@ -227,7 +246,9 @@ object NewCatroidHttpManager {
                 headers = emptyMap(),
                 bodyBytes = "Request failed: ${e.localizedMessage}".toByteArray()
             )
+            org.catrobat.catroid.content.HttpRequestEventDispatcher.dispatch(id, true)
         } finally {
+            activeCalls.remove(id, call)
             onComplete()
         }
     }

@@ -373,7 +373,17 @@ public class Sprite implements Nameable, Serializable {
 		return userVariables;
 	}
 
+	private Object readResolve() {
+		if (variableCache == null) {
+			variableCache = new java.util.HashMap<>();
+		}
+		return this;
+	}
+
 	public UserVariable getUserVariable(String name) {
+		if (variableCache == null) {
+			variableCache = new java.util.HashMap<>();
+		}
 		UserVariable cached = variableCache.get(name);
 		if (cached != null) {
 			return cached;
@@ -389,6 +399,9 @@ public class Sprite implements Nameable, Serializable {
 	}
 
 	public boolean addUserVariable(UserVariable userVariable) {
+		if (variableCache == null) {
+			variableCache = new java.util.HashMap<>();
+		}
 		variableCache.put(userVariable.getName(), userVariable);
 		return userVariables.add(userVariable);
 	}
@@ -1011,7 +1024,13 @@ public class Sprite implements Nameable, Serializable {
 			Log.e(TAG, Log.getStackTraceString(e));
 			throw e;
 		}
-		this.scriptList.addAll(sprite.scriptList);
+		for (Script script : sprite.scriptList) {
+			try {
+				this.scriptList.add(script.clone());
+			} catch (CloneNotSupportedException e) {
+				this.scriptList.add(script);
+			}
+		}
 		this.nfcTagList.addAll(sprite.nfcTagList);
 
 		for (UserVariable userVariable: sprite.userVariables) {
@@ -1025,7 +1044,13 @@ public class Sprite implements Nameable, Serializable {
 			}
 		}
 
-		this.userDefinedBrickList.addAll(sprite.userDefinedBrickList);
+		for (Brick brick : sprite.userDefinedBrickList) {
+			try {
+				this.userDefinedBrickList.add(brick.clone());
+			} catch (CloneNotSupportedException e) {
+				this.userDefinedBrickList.add(brick);
+			}
+		}
 		this.global = this.global || sprite.global;
 	}
 

@@ -162,7 +162,10 @@ class RuntimeLoaderActivityV3 : Activity() {
     override fun onDestroy() {
         super.onDestroy()
         handler.removeCallbacksAndMessages(null)
-        File(cacheDir, "v3_project_full").deleteRecursively()
-        File(cacheDir, "v3_project_light").deleteRecursively()
+        // NOTE: do NOT delete the extracted project cache here. StageActivity still
+        // loads textures/scripts from these files after the runtime permissions
+        // dialog and the first GL frame; deleting them causes a black screen.
+        // The cache dirs are cleaned at the next launch (deleteRecursively in
+        // loadFullTemplate/loadLightTemplate) and by the OS when storage is low.
     }
 }

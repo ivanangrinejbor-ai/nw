@@ -35,10 +35,7 @@ class AddItemToUserListAction : TemporalAction() {
     var userList: UserList? = null
 
     override fun update(percent: Float) {
-        var value = formulaItemToAdd?.interpretObject(scope) ?: 0.0
-        if (formulaItemToAdd != null && formulaItemToAdd?.root?.isBoolean(scope) == true) {
-            value = (value as? Double)?.let { it != 0.0 } ?: false
-        }
-        userList?.addListItem(if (formulaItemToAdd != null) value.toString() else value)
+        val str = formulaItemToAdd?.interpretString(scope) ?: "0"
+        userList?.addListItem(str)
     }
 }

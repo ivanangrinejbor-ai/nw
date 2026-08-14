@@ -152,7 +152,7 @@ public class CategoryBeginnerBricksFactory extends CategoryBricksFactory {
 		looksBrickList.add(new SetSizeToBrick(BrickValues.SET_SIZE_TO));
 		looksBrickList.add(new SetWidthBrick(75));
 		looksBrickList.add(new SetHeightBrick(75));
-		looksBrickList.add(new ChangeHeightBrick(75));
+		looksBrickList.add(new org.catrobat.catroid.content.bricks.ChangeWidthBrick(75));
 		looksBrickList.add(new ChangeHeightBrick(75));
 		looksBrickList.add(new ChangeSizeByNBrick(BrickValues.CHANGE_SIZE_BY));
 		looksBrickList.add(new HideBrick());

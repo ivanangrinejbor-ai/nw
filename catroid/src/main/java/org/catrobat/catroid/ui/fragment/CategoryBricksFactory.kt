@@ -714,6 +714,7 @@ import org.catrobat.catroid.content.bricks.WhenRaspiPinChangedBrick
 import org.catrobat.catroid.content.bricks.WhenStartedBrick
 import org.catrobat.catroid.content.bricks.WhenSceneLaunchedBrick
 import org.catrobat.catroid.content.bricks.WhenSceneExitedBrick
+import org.catrobat.catroid.content.bricks.WhenShakeBrick
 import org.catrobat.catroid.content.bricks.WhenTouchDownBrick
 import org.catrobat.catroid.content.bricks.WriteBaseBrick
 import org.catrobat.catroid.content.bricks.WriteEmbroideryToFileBrick
@@ -974,6 +975,7 @@ open class CategoryBricksFactory {
                 eventBrickList.add(VolumeButtonHoldBrick(VolumeButtonHoldScript(VolumeButtonHoldScript.BUTTON_VOLUME_DOWN, org.catrobat.catroid.formulaeditor.Formula(1.0f))))
 eventBrickList.add(WhenConditionBrick(WhenConditionScript(Formula(defaultIf))))
                 eventBrickList.add(WhenTimeReachedBrick(WhenTimeReachedScript(Formula(1430))))
+                eventBrickList.add(WhenShakeBrick())
                 if (!isBackgroundSprite) {
                     eventBrickList.add(WhenBounceOffBrick(WhenBounceOffScript(null)))
                     eventBrickList.add(WhenTouchingSpriteBrick())
@@ -1060,6 +1062,7 @@ eventBrickList.add(WhenConditionBrick(WhenConditionScript(Formula(defaultIf))))
         eventBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_event_conditions), template))
         eventBrickList.add(WhenConditionBrick(WhenConditionScript(Formula(defaultIf))))
         eventBrickList.add(WhenTimeReachedBrick(WhenTimeReachedScript(Formula(1430))))
+        eventBrickList.add(WhenShakeBrick())
         if (!isBackgroundSprite) {
             eventBrickList.add(WhenBounceOffBrick(WhenBounceOffScript(null)))
             eventBrickList.add(WhenTouchingSpriteBrick())

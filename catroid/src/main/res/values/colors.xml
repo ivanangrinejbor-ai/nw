@@ -144,6 +144,17 @@
     <color name="surface_card_pressed">#48484A</color>
     <color name="text_secondary">#8E8E93</color>
     <color name="black_overlay">#66000000</color>
+    <color name="redrawn_brick_border">#30413D</color>
+    <color name="redrawn_brick_highlight">#66FFF4E8</color>
+
+    <!-- Optional smooth lavender interface palette -->
+    <color name="smooth_toolbar">#8887B8</color>
+    <color name="smooth_toolbar_text">#F5F3FF</color>
+    <color name="smooth_background">#F1F0FA</color>
+    <color name="smooth_card">#E8E7F4</color>
+    <color name="smooth_border">#C9C7E2</color>
+    <color name="smooth_text">#484761</color>
+    <color name="smooth_text_secondary">#696783</color>
 
     <!-- Previously provided by the Paintroid/colorpicker AAR (now in-app) -->
     <color name="pocketpaint_color_picker_gray">#757575</color>

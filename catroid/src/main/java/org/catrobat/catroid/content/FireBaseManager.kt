@@ -60,18 +60,32 @@ object FireBaseManager {
         })
     }
 
-    fun writeToDatabase(databaseUrl: String, key: String, value: String) {
-        val ref = getDbRef(databaseUrl, key) ?: return
-        ref.setValue(value).addOnFailureListener { error ->
-            Log.e("FireBaseManager", "Error writing data: ${error.message}")
+    fun writeToDatabase(databaseUrl: String, key: String, value: String, callback: (Boolean) -> Unit = {}) {
+        val ref = getDbRef(databaseUrl, key)
+        if (ref == null) {
+            callback(false)
+            return
         }
+        ref.setValue(value)
+            .addOnSuccessListener { callback(true) }
+            .addOnFailureListener { error ->
+                Log.e("FireBaseManager", "Error writing data: ${error.message}")
+                callback(false)
+            }
     }
 
-    fun deleteFromDatabase(databaseUrl: String, key: String) {
-        val ref = getDbRef(databaseUrl, key) ?: return
-        ref.removeValue().addOnFailureListener { error ->
-            Log.e("FireBaseManager", "Error deleting data: ${error.message}")
+    fun deleteFromDatabase(databaseUrl: String, key: String, callback: (Boolean) -> Unit = {}) {
+        val ref = getDbRef(databaseUrl, key)
+        if (ref == null) {
+            callback(false)
+            return
         }
+        ref.removeValue()
+            .addOnSuccessListener { callback(true) }
+            .addOnFailureListener { error ->
+                Log.e("FireBaseManager", "Error deleting data: ${error.message}")
+                callback(false)
+            }
     }
 
     fun observeValue(databaseUrl: String, key: String, listener: ValueEventListener): DatabaseReference? {

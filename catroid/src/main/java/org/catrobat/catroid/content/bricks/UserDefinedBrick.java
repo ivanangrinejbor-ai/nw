@@ -97,6 +97,7 @@ public class UserDefinedBrick extends FormulaBrick {
 		UserDefinedBrick clone = (UserDefinedBrick) super.clone();
 		clone.userDefinedBrickID = this.getUserDefinedBrickID();
 		clone.isCallingBrick = this.isCallingBrick;
+		clone.copyUserDefinedDataList(this);
 		return clone;
 	}
 

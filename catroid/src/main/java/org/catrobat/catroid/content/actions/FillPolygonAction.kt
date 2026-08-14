@@ -52,11 +52,28 @@ class FillPolygonAction : TemporalAction() {
         }
         if (verts.size < 6) return
 
+        val triangulator = com.badlogic.gdx.math.EarClippingTriangulator()
+        val floatArray = verts.toFloatArray()
+        val indices = triangulator.computeTriangles(floatArray)
+
+        val penColor = s.sprite.penConfiguration.getPenColor()
         camera.update()
         buffer.begin()
         shapeRenderer.projectionMatrix = camera.combined
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
-        shapeRenderer.polygon(verts.toFloatArray())
+        shapeRenderer.setColor(penColor.r, penColor.g, penColor.b, penColor.a)
+        var i = 0
+        while (i < indices.size) {
+            val i1 = indices.get(i).toInt() * 2
+            val i2 = indices.get(i + 1).toInt() * 2
+            val i3 = indices.get(i + 2).toInt() * 2
+            shapeRenderer.triangle(
+                floatArray[i1], floatArray[i1 + 1],
+                floatArray[i2], floatArray[i2 + 1],
+                floatArray[i3], floatArray[i3 + 1]
+            )
+            i += 3
+        }
         shapeRenderer.end()
         buffer.end()
     }

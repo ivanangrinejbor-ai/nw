@@ -22,6 +22,11 @@
  */
 package org.catrobat.catroid.content.bricks;
 
+import android.content.Context;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Spinner;
 import org.catrobat.catroid.R;
 import org.catrobat.catroid.content.Sprite;
 import org.catrobat.catroid.content.actions.ScriptSequenceAction;
@@ -33,6 +38,7 @@ import org.catrobat.catroid.formulaeditor.UserVariable;
 public class ReadBaseBrick extends UserVariableBrickWithFormula {
 
     private static final long serialVersionUID = 1L;
+    private int waitForResponseSelection = 0;
 
     public ReadBaseBrick() {
         addAllowedBrickField(BrickField.FIREBASE_ID, R.id.brick_read_base_edit_base);
@@ -48,10 +54,33 @@ public class ReadBaseBrick extends UserVariableBrickWithFormula {
         this.userVariable = userVariable;
     }
 
+    public ReadBaseBrick(Formula base, Formula key, UserVariable userVariable, int waitForResponseSelection) {
+        this(base, key, userVariable);
+        this.waitForResponseSelection = waitForResponseSelection;
+    }
+
     private ReadBaseBrick(Formula base, Formula key) {
         this();
         setFormulaWithBrickField(BrickField.FIREBASE_ID, base);
         setFormulaWithBrickField(BrickField.FIREBASE_KEY, key);
+    }
+
+    @Override
+    public View getView(Context context) {
+        super.getView(context);
+        Spinner spinner = view.findViewById(R.id.brick_read_base_wait_spinner);
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(context,
+                R.array.firebase_wait_options, android.R.layout.simple_spinner_item);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(adapter);
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override public void onItemSelected(AdapterView<?> parent, View itemView, int position, long id) {
+                waitForResponseSelection = position;
+            }
+            @Override public void onNothingSelected(AdapterView<?> parent) { }
+        });
+        spinner.setSelection(waitForResponseSelection);
+        return view;
     }
 
     @Override
@@ -67,6 +96,7 @@ public class ReadBaseBrick extends UserVariableBrickWithFormula {
     @Override
     public void addActionToSequence(Sprite sprite, ScriptSequenceAction sequence) {
         sequence.addAction(sprite.getActionFactory().createReadBaseAction(sprite, sequence,
-                getFormulaWithBrickField(BrickField.FIREBASE_ID), getFormulaWithBrickField(BrickField.FIREBASE_KEY), userVariable));
+                getFormulaWithBrickField(BrickField.FIREBASE_ID), getFormulaWithBrickField(BrickField.FIREBASE_KEY),
+                userVariable, waitForResponseSelection == 0));
     }
 }

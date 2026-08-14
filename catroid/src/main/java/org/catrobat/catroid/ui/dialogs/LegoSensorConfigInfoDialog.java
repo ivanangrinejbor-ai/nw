@@ -67,6 +67,7 @@ public class LegoSensorConfigInfoDialog extends DialogFragment {
 
 		if (getArguments() == null) {
 			dismiss();
+			return super.onCreateDialog(savedInstanceState);
 		}
 
 		final int legoSensorType = getArguments().getInt(BUNDLE_KEY_SENSOR_TYPE, Constants.NXT);

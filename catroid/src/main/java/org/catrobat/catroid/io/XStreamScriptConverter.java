@@ -37,7 +37,9 @@ import org.catrobat.catroid.content.Script;
 public class XStreamScriptConverter extends ReflectionConverter {
 
 	private static final String TAG = XStreamScriptConverter.class.getSimpleName();
-	private static final String SCRIPTS_PACKAGE_NAME = "org.catrobat.catroid.content";
+	private static final String[] SCRIPTS_PACKAGE_NAMES = {
+			"org.catrobat.catroid.content",
+			"org.catrobat.catroid.content.scripts"};
 	private static final String TYPE = "type";
 
 	public XStreamScriptConverter(Mapper mapper, ReflectionProvider reflectionProvider) {
@@ -59,12 +61,19 @@ public class XStreamScriptConverter extends ReflectionConverter {
 	public Object doUnmarshal(Object result, HierarchicalStreamReader reader, UnmarshallingContext context) {
 		String type = reader.getAttribute(TYPE);
 		if (type != null) {
-			try {
-				Class cls = Class.forName(SCRIPTS_PACKAGE_NAME + "." + type);
+			Class cls = null;
+			for (String packageName : SCRIPTS_PACKAGE_NAMES) {
+				try {
+					cls = Class.forName(packageName + "." + type);
+					break;
+				} catch (ClassNotFoundException ignored) {
+				}
+			}
+			if (cls != null) {
 				Script script = (Script) reflectionProvider.newInstance(cls);
 				return super.doUnmarshal(script, reader, context);
-			} catch (ClassNotFoundException exception) {
-				Log.e(TAG, "Script class not found : " + result.toString(), exception);
+			} else {
+				Log.e(TAG, "Script class not found : " + type);
 			}
 		}
 		return super.doUnmarshal(result, reader, context);

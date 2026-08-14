@@ -140,6 +140,10 @@ public class PenConfiguration {
 		this.penColor = penColor;
 	}
 
+	public PenColor getPenColor() {
+		return penColor;
+	}
+
 	public void setStamp(boolean stamp) {
 		this.stamp = stamp;
 	}

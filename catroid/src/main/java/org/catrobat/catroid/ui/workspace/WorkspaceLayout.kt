@@ -735,6 +735,7 @@ class WorkspaceLayout @JvmOverloads constructor(
             val fragment = (context as? androidx.fragment.app.FragmentActivity)
                 ?.supportFragmentManager
                 ?.findFragmentByTag(tag) as? org.catrobat.catroid.ui.fragment.FormulaEditorFragment
+            fragment?.setFormulaBrick(formulaBrick)
             fragment?.setInputFormula(formulaField, 1)
             return
         }

@@ -13,7 +13,7 @@ object IntegrityValidator {
         return try {
             val storedHash = ProjectEncryptorV3.readIntegrityHash(encryptedFile)
 
-            val tempFile = File.createTempFile("v3_verify_", ".tmp", File(System.getProperty("java.io.tmpdir")))
+            val tempFile = File.createTempFile("v3_verify_", ".tmp")
             tempFile.setReadable(true, true)
             tempFile.setWritable(true, true)
             try {
@@ -30,7 +30,18 @@ object IntegrityValidator {
 
                 match
             } finally {
-                tempFile.outputStream().use { it.write(ByteArray(tempFile.length().toInt())) }
+                try {
+                    val zeroBuf = ByteArray(64 * 1024)
+                    var remaining = tempFile.length()
+                    tempFile.outputStream().use { out ->
+                        while (remaining > 0) {
+                            val toWrite = minOf(remaining, zeroBuf.size.toLong()).toInt()
+                            out.write(zeroBuf, 0, toWrite)
+                            remaining -= toWrite
+                        }
+                    }
+                } catch (ignored: Exception) {
+                }
                 tempFile.delete()
             }
         } catch (e: Exception) {

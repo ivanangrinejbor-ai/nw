@@ -1991,6 +1991,20 @@ public class ActionFactory extends Actions {
 		return action;
 	}
 
+	public Action createAskAIAction(Sprite sprite, SequenceAction sequence,
+									Formula prompt, Formula systemPrompt, Formula model,
+									String provider, UserVariable userVariable) {
+		AskAIAction action = Actions.action(AskAIAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setPrompt(prompt);
+		action.setSystemPrompt(systemPrompt);
+		action.setModel(model);
+		action.setProvider(provider);
+		action.setUserVariable(userVariable);
+		return action;
+	}
+
 	public Action createCustomAction(Sprite sprite, SequenceAction sequence,
 									 CustomBrickDefinition definition, List<Formula> parameterFormulas) {
 		CustomAction action = Actions.action(CustomAction.class);
@@ -2444,35 +2458,53 @@ public class ActionFactory extends Actions {
 	}
 
 	public Action createReadBaseAction(Sprite sprite, SequenceAction sequence,
-										Formula base, Formula key, UserVariable variable) {
+										Formula base, Formula key, UserVariable variable, boolean waitForResponse) {
 		ReadBaseAction action = action(ReadBaseAction.class);
 		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
 		action.setScope(scope);
 		action.setBase(base);
 		action.setKey(key);
 		action.setVariable(variable);
+		action.setWaitForResponse(waitForResponse);
 		return action;
 	}
 
+	public Action createReadBaseAction(Sprite sprite, SequenceAction sequence,
+										Formula base, Formula key, UserVariable variable) {
+		return createReadBaseAction(sprite, sequence, base, key, variable, true);
+	}
+
 	public Action createWriteBaseAction(Sprite sprite, SequenceAction sequence,
-									   Formula base, Formula key, Formula value) {
+									   Formula base, Formula key, Formula value, boolean waitForResponse) {
 		WriteBaseAction action = action(WriteBaseAction.class);
 		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
 		action.setScope(scope);
 		action.setBase(base);
 		action.setKey(key);
 		action.setValue(value);
+		action.setWaitForResponse(waitForResponse);
 		return action;
 	}
 
+	public Action createWriteBaseAction(Sprite sprite, SequenceAction sequence,
+									   Formula base, Formula key, Formula value) {
+		return createWriteBaseAction(sprite, sequence, base, key, value, true);
+	}
+
 	public Action createDeleteBaseAction(Sprite sprite, SequenceAction sequence,
-										Formula base, Formula key) {
+										Formula base, Formula key, boolean waitForResponse) {
 		DeleteBaseAction action = action(DeleteBaseAction.class);
 		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
 		action.setScope(scope);
 		action.setBase(base);
 		action.setKey(key);
+		action.setWaitForResponse(waitForResponse);
 		return action;
+	}
+
+	public Action createDeleteBaseAction(Sprite sprite, SequenceAction sequence,
+										Formula base, Formula key) {
+		return createDeleteBaseAction(sprite, sequence, base, key, true);
 	}
 
 	public Action createUnzipAction(Sprite sprite, SequenceAction sequence,
@@ -3110,7 +3142,8 @@ public class ActionFactory extends Actions {
 	}
 
 	public Action createBreakAction() {
-		LoopControl loop = currentLoopControl.get();
+		java.util.ArrayDeque<LoopControl> stack = currentLoopControlStack.get();
+		LoopControl loop = stack.peek();
 		if (loop == null) {
 			return action(com.badlogic.gdx.scenes.scene2d.actions.SequenceAction.class);
 		}
@@ -3122,7 +3155,8 @@ public class ActionFactory extends Actions {
 	}
 
 	public Action createContinueAction() {
-		LoopControl loop = currentLoopControl.get();
+		java.util.ArrayDeque<LoopControl> stack = currentLoopControlStack.get();
+		LoopControl loop = stack.peek();
 		if (loop == null) {
 			return action(com.badlogic.gdx.scenes.scene2d.actions.SequenceAction.class);
 		}
@@ -3133,19 +3167,22 @@ public class ActionFactory extends Actions {
 		return action;
 	}
 
-	private final ThreadLocal<LoopControl> currentLoopControl = new ThreadLocal<LoopControl>() {
+	private final ThreadLocal<java.util.ArrayDeque<LoopControl>> currentLoopControlStack = new ThreadLocal<java.util.ArrayDeque<LoopControl>>() {
 		@Override
-		protected LoopControl initialValue() {
-			return null;
+		protected java.util.ArrayDeque<LoopControl> initialValue() {
+			return new java.util.ArrayDeque<>();
 		}
 	};
 
 	public void pushLoopControl(LoopControl loop) {
-		currentLoopControl.set(loop);
+		currentLoopControlStack.get().push(loop);
 	}
 
 	public void popLoopControl() {
-		currentLoopControl.remove();
+		java.util.ArrayDeque<LoopControl> stack = currentLoopControlStack.get();
+		if (!stack.isEmpty()) {
+			stack.pop();
+		}
 	}
 
 	public static Action createStitchAction(Sprite sprite) {
@@ -6602,6 +6639,20 @@ public class ActionFactory extends Actions {
         return action;
     }
 
+    public Action createHttpClearAction(Sprite sprite, SequenceAction sequence, Formula requestId) {
+        HttpClearAction action = action(HttpClearAction.class);
+        action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        action.setRequestId(requestId);
+        return action;
+    }
+
+    public Action createHttpCancelAction(Sprite sprite, SequenceAction sequence, Formula requestId) {
+        HttpCancelAction action = action(HttpCancelAction.class);
+        action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        action.setRequestId(requestId);
+        return action;
+    }
+
     public Action createHttpConfigAction(Sprite sprite, SequenceAction sequence, Formula requestId, int configType, Formula key, Formula value) {
         HttpConfigAction action = action(HttpConfigAction.class);
         Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
@@ -6722,7 +6773,7 @@ public class ActionFactory extends Actions {
         return action;
     }
 
-    public Action createSetBufferEffectsAction(Sprite sprite, SequenceAction sequence, Formula name, Formula vfx, Formula mip) {
+public Action createSetBufferEffectsAction(Sprite sprite, SequenceAction sequence, Formula name, Formula vfx, Formula mip) {
         SetBufferEffectsAction action = action(SetBufferEffectsAction.class);
         action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
         action.setBufferName(name);
@@ -6772,36 +6823,44 @@ public class ActionFactory extends Actions {
     public Action createCreateButtonAction(Sprite sprite, ScriptSequenceAction sequence, Formula v1, Formula v2, Formula v3, Formula v4, Formula v5, Formula v6, Formula x, Formula y, Formula w, Formula h) {
         CreateButtonAction a = action(CreateButtonAction.class);
         a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        a.setViewId(v1); a.setText(v2); a.setColorHex(v3); a.setFontSize(v4); a.setBgColor(v5); a.setCornerRadius(v6); a.setX(x); a.setY(y); a.setWidth(w); a.setHeight(h);
         return a;
     }
 
     public Action createCreateImageViewAction(Sprite sprite, ScriptSequenceAction sequence, int scale, Formula v1, Formula v2, Formula v3, Formula x, Formula y, Formula w, Formula h) {
         CreateImageViewAction a = action(CreateImageViewAction.class);
         a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        a.setScaleSelection(scale); a.setViewId(v1); a.setSource(v2); a.setCornerRadius(v3); a.setX(x); a.setY(y); a.setWidth(w); a.setHeight(h);
         return a;
     }
 
     public Action createCreateScrollViewAction(Sprite sprite, ScriptSequenceAction sequence, int scrollMode, int overScrollMode, Formula v1, Formula v2, Formula v3, Formula v4, Formula x, Formula y, Formula w, Formula h) {
         CreateScrollViewAction a = action(CreateScrollViewAction.class);
         a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        a.setScrollMode(scrollMode); a.setOverScrollMode(overScrollMode); a.setViewId(v1); a.setBgColor(v2); a.setShowBars(v3); a.setPadding(v4); a.setX(x); a.setY(y); a.setWidth(w); a.setHeight(h);
         return a;
     }
 
     public Action createCreateSliderAction(Sprite sprite, ScriptSequenceAction sequence, Formula v1, Formula v2, Formula v3, Formula v4, Formula x, Formula y, Formula w, Formula h) {
         CreateSliderAction a = action(CreateSliderAction.class);
         a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        a.setViewId(v1); a.setMinValue(v2); a.setMaxValue(v3); a.setCurrentValue(v4); a.setX(x); a.setY(y); a.setWidth(w); a.setHeight(h);
         return a;
     }
 
     public Action createCreateSwitchAction(Sprite sprite, ScriptSequenceAction sequence, Formula v1, Formula v2, Formula v3, Formula x, Formula y, Formula w, Formula h) {
         CreateSwitchAction a = action(CreateSwitchAction.class);
         a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        a.setViewId(v1); a.setText(v2); a.setDefaultState(v3); a.setX(x); a.setY(y); a.setWidth(w); a.setHeight(h);
         return a;
     }
 
     public Action createCreateTextLabelAction(Sprite sprite, ScriptSequenceAction sequence, int formatMode, int alignMode, int scrollMode, Formula v1, Formula v2, Formula v3, Formula v4, Formula v5, Formula v6, Formula v7, Formula v8, Formula x, Formula y, Formula w, Formula h) {
         CreateTextLabelAction a = action(CreateTextLabelAction.class);
         a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        a.setFormatMode(formatMode); a.setAlignMode(alignMode); a.setScrollMode(scrollMode);
+        a.setViewId(v1); a.setText(v2); a.setColorHex(v3); a.setFontSize(v4); a.setBgColor(v5); a.setFontPath(v6); a.setCornerRadius(v7); a.setLineSpacing(v8);
+        a.setX(x); a.setY(y); a.setWidth(w); a.setHeight(h);
         return a;
     }
 
@@ -6820,6 +6879,7 @@ public class ActionFactory extends Actions {
     public Action createExport3dObjectToGlbAction(Sprite sprite, ScriptSequenceAction sequence, Formula v1, Formula v2) {
         Export3dObjectToGlbAction a = action(Export3dObjectToGlbAction.class);
         a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        a.setObjectId(v1); a.setDestFileName(v2);
         return a;
     }
 
@@ -6832,78 +6892,94 @@ public class ActionFactory extends Actions {
     public Action createCompileJavaToDexAction(Sprite sprite, ScriptSequenceAction sequence, Formula v1, Formula v2, Object userVariable) {
         CompileJavaToDexAction a = action(CompileJavaToDexAction.class);
         a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        a.setSourcePath(v1); a.setOutputPath(v2);
         return a;
     }
 
     public Action createDownloadDependencyAction(Sprite sprite, ScriptSequenceAction sequence, Formula v1, Formula v2, Object userVariable, boolean recursive) {
         DownloadDependencyAction a = action(DownloadDependencyAction.class);
         a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        a.setUrl(v1); a.setDestinationPath(v2);
         return a;
     }
 
     public Action createLoadAndRunDexAction(Sprite sprite, ScriptSequenceAction sequence, Formula v1, Formula v2, Formula v3, Formula v4) {
         LoadAndRunDexAction a = action(LoadAndRunDexAction.class);
         a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        a.setDexPath(v1);
         return a;
     }
 
     public Action createMqttConnectAction(Sprite sprite, ScriptSequenceAction sequence, Formula v1, Formula v2, Formula v3) {
         MqttConnectAction a = action(MqttConnectAction.class);
         a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        a.setClientId(v1); a.setHost(v2); a.setPort(v3);
         return a;
     }
 
     public Action createMqttDisconnectAction(Sprite sprite, ScriptSequenceAction sequence, Formula v1) {
         MqttDisconnectAction a = action(MqttDisconnectAction.class);
         a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        a.setClientId(v1);
         return a;
     }
 
     public Action createMqttJoinRoomAction(Sprite sprite, ScriptSequenceAction sequence, Formula v1, Formula v2, Formula v3) {
         MqttJoinRoomAction a = action(MqttJoinRoomAction.class);
         a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        a.setClientId(v1); a.setRoomId(v2); a.setSalt(v3);
         return a;
     }
 
     public Action createMqttPublishAction(Sprite sprite, ScriptSequenceAction sequence, Formula v1, Formula v2, Formula v3, Formula v4) {
         MqttPublishAction a = action(MqttPublishAction.class);
         a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        a.setClientId(v1); a.setRoomId(v2); a.setSalt(v3); a.setMessage(v4);
         return a;
     }
 
     public Action createNativeViewAnimateAction(Sprite sprite, ScriptSequenceAction sequence, int property, int easing, Formula v1, Formula v2, Formula v3) {
         NativeViewAnimateAction a = action(NativeViewAnimateAction.class);
         a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        a.setPropertySelection(property); a.setEasingSelection(easing); a.setViewId(v1); a.setValue(v2); a.setDurationMs(v3);
         return a;
     }
 
     public Action createNativeViewBindSpriteAction(Sprite sprite, ScriptSequenceAction sequence, int align, Formula v1, Formula v2, Formula x, Formula y) {
         NativeViewBindSpriteAction a = action(NativeViewBindSpriteAction.class);
         a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        a.setAlignMode(align); a.setViewId(v1); a.setSpriteName(v2); a.setOffsetX(x); a.setOffsetY(y);
         return a;
     }
 
     public Action createNativeViewConfigAction(Sprite sprite, ScriptSequenceAction sequence, int property, Formula v1, Formula v2) {
         NativeViewConfigAction a = action(NativeViewConfigAction.class);
         a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        a.setPropertySelection(property); a.setViewId(v1); a.setValue(v2);
         return a;
     }
 
     public Action createNativeViewControlAction(Sprite sprite, ScriptSequenceAction sequence, int command, Formula v1, Formula v2) {
         NativeViewControlAction a = action(NativeViewControlAction.class);
         a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        a.setCommandSelection(command); a.setViewId(v1); a.setParameter(v2);
         return a;
     }
 
     public Action createNativeViewListenerAction(Sprite sprite, ScriptSequenceAction sequence, int event, Formula v1, Object userVariable) {
         NativeViewListenerAction a = action(NativeViewListenerAction.class);
         a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        a.setEventSelection(event); a.setViewId(v1);
+        if (userVariable instanceof UserVariable) {
+            a.setUserVariable((UserVariable) userVariable);
+        }
         return a;
     }
 
     public Action createObjectLookAtCorrectAction(Sprite sprite, ScriptSequenceAction sequence, Formula v1, Formula v2, Formula v3, Formula v4) {
         ObjectLookAtCorrectAction a = action(ObjectLookAtCorrectAction.class);
         a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        a.setObjectId(v1); a.setTargetObjectId(v2);
         return a;
     }
 
@@ -6934,6 +7010,7 @@ public class ActionFactory extends Actions {
     public Action createSetNativeParentAction(Sprite sprite, ScriptSequenceAction sequence, Formula v1, Formula v2) {
         SetNativeParentAction a = action(SetNativeParentAction.class);
         a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        a.setViewId(v1); a.setParentId(v2);
         return a;
     }
 
@@ -6946,6 +7023,7 @@ public class ActionFactory extends Actions {
     public Action createShowNotificationAction(Sprite sprite, ScriptSequenceAction sequence, Formula v1, Formula v2, Formula v3, Formula v4, int importance, Formula v5, boolean ongoing) {
         ShowNotificationAction a = action(ShowNotificationAction.class);
         a.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        a.setNotificationId(v1); a.setChannelName(v2); a.setTitle(v3); a.setText(v4); a.setImportanceSelection(importance); a.setLargeIconFile(v5); a.setOngoing(ongoing);
         return a;
     }
 

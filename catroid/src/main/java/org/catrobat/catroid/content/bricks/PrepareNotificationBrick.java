@@ -63,9 +63,10 @@ public class PrepareNotificationBrick extends FormulaBrick {
         ArrayAdapter<String> importanceAdapter = new ArrayAdapter<>(context, android.R.layout.simple_spinner_item, importanceValues);
         importanceAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         importanceSpinner.setAdapter(importanceAdapter);
-        importanceSpinner.setSelection(importanceLevel);
+        int importancePosition = Math.max(IMPORTANCE_MIN, Math.min(IMPORTANCE_MAX, importanceLevel - 1));
+        importanceSpinner.setSelection(importancePosition);
         importanceSpinner.setOnItemSelectedListener(new AdapterViewOnItemSelectedListenerImpl(position -> {
-            importanceLevel = position;
+            importanceLevel = position + 1;
             return Unit.INSTANCE;
         }));
 

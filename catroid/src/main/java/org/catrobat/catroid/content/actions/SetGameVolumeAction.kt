@@ -13,6 +13,6 @@ class SetGameVolumeAction : TemporalAction() {
     override fun update(percent: Float) {
         val vol = volume?.interpretFloat(scope)?.coerceIn(0f, 100f)?.toInt() ?: 100
         GlobalManager.gameVolume = vol
-        SoundManager.getInstance().setVolume(vol / 100f)
+        SoundManager.getInstance().setVolume(vol.toFloat())
     }
 }

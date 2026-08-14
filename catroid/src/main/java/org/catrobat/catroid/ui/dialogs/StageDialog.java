@@ -231,7 +231,7 @@ public class StageDialog extends Dialog implements View.OnClickListener {
 		stageListener.reloadProject(this);
 		synchronized (this) {
 			try {
-				this.wait();
+				this.wait(2000);
 			} catch (InterruptedException e) {
 				Log.e(TAG, "Thread activated too early!", e);
 			}

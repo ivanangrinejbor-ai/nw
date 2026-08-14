@@ -286,6 +286,61 @@ test/neoscript/
 
 ---
 
+# AI category — единый блок «Спросить ИИ» + событие ответа (2026-08)
+
+Замена старых блоков AskGPT/AskGemini/AskGemini2/SetGeminiKey на один универсальный
+блок с выбором провайдера (OpenAI, Gemini, DeepSeek, OpenRouter, Anthropic, OpenCode):
+
+- **AskAIBrick** («Спросить ИИ», Neural → LLM) — поля: TEXT (промпт), BODY (системный
+  промпт), MODEL (модель, пусто = дефолт провайдера), спиннер провайдера, спиннер
+  переменной для ответа. Пишет ответ в UserVariable и fire `AiResponseEventId`.
+- **WhenAIResponseBrick** («Когда ИИ ответил», Events) — ScriptBrick, спиннер провайдера
+  («Любой провайдер» = пустая строка). Триггерится после завершения AskAIBrick.
+- Старые классы (`AskGPTBrick`, `AskGeminiBrick`, `AskGemini2Brick`, `SetGeminiKeyBrick`)
+  **оставлены** для десериализации старых проектов (XStream по имени класса), убраны
+  только из палитры `setupNeuralCategoryList`.
+
+## Файлы
+
+```
+content/
+  WhenAIResponseScript.java           — Script (provider: String, "" = любой)
+  eventids/AiResponseEventId.java     — equals: sprite + provider; пустой provider = wildcard
+content/actions/
+  AskAIAction.kt                      — TemporalAction: Thread + runBlocking CloudModelRuntime,
+                                        пишет ответ в переменную, fire AiResponseEventId(sprite, providerId)
+content/bricks/
+  AskAIBrick.kt                       — UserVariableBrickWithFormula + BrickSpinner<StringOption>
+  WhenAIResponseBrick.java            — ScriptBrickBaseType + BrickSpinner<StringOption>
+res/layout/
+  brick_ask_ai.xml                    — Neural.Big: prompt/system/model edit + 2 спиннера
+  brick_when_ai_response.xml          — Motion.MediumWhen: label + spinner
+ai/model/CloudModelRuntime.kt         — добавлен `generateForProvider(provider, model, system, user)`
+                                        (ключ через AiPreferences.getApiKeyForProvider(provider.id))
+```
+
+## Регистрация
+
+- `XstreamSerializer`: алиасы `WhenAIResponseScript`/`WhenAIResponseBrick`/`AskAIBrick`.
+- `CategoryBricksFactory.kt`: `AskAIBrick("Hello!")` в Neural (обе ветки grouped/ungrouped);
+  `WhenAIResponseBrick()` в Events (в обеих ветках, доступен и фону).
+- `BrickInfo.java`: справка ru/en. `RecentBrickListManager`: WhenAIResponseBrick в
+  nonBackgroundSpriteClasses.
+- `strings.xml`/`values-ru`: `brick_ask_ai`, `brick_ask_ai_system`, `brick_ask_ai_model`,
+  `brick_ask_ai_provider`, `brick_when_ai_response`, `ai_provider_any`.
+- `AiProvider` (ai/model/AiProvider.kt) — единственный источник списка провайдеров
+  (id, displayName, baseUrl, defaultModels); спиннеры строятся из `AiProvider.values()`.
+
+## Тесты
+
+- `AskAIBrickTest.java` (4): wiring через ActionFactory.createAskAIAction, дефолтный
+  провайдер, конструкторы, clone.
+- `WhenAIResponseBrickTest.java` (6): script↔brick, конструкторы, clone, createEventId,
+  wildcard-equals (пустой провайдер = любой) + hashCode-консистентность.
+- Проверка: `./gradlew :catroid:testCatroidDebugUnitTest --tests "*AskAIBrickTest*" --tests "*WhenAIResponseBrickTest*"`.
+
+---
+
 # Event category — касание спрайтов (WhenTouchingSprite, 2026-08)
 
 Два блока событий, срабатывающих при перекрытии хитбоксов (AABB) БЕЗ физики:
@@ -720,6 +775,212 @@ Bug B (инверсия X при drag): в коде desktop-рантайма и�
 (GUI может не подняться без desktop-сессии). Иконку в `launch4j.xml` задавать АБСОЛЮТНЫМ путём
 (launch4j резолвит icon относительно файла xml, а не exe).
 
+## Windows Desktop Player V2 — единый EXE через WebView2 (2026-08)
+
+Альтернатива build_exe: НЕ нужен launch4j/JRE/batch-пайплайн. Один `NeoCatroid.exe`
+(~176 КБ, C#/.NET Framework 4.8 stub) + footer `NEOCAT01` → WebView2 открывает
+`app.html` и исполняет проект в браузере. Сборка целиком на телефоне, без Windows.
+
+### Формат файла
+```
+[NeoCatroid.exe (stub)] [web.zip] [size: Int64 LE (8 байт)] [NEOCAT01 (8 байт)]
+```
+- Footer читает `NeoCatroidStub.cs` (`ReadFooterPayload`, диагностика `--check-footer <file>`).
+- `web.zip`: `app.html`, `player.js`, `title.txt` (имя проекта), `project.pak`.
+- `project.pak` = **NCPW**-контейнер (`NCPW` + len(BE) + password(UTF-8) + вложенный поток)
+  со СЛУЧАЙНЫМ паролем на каждую сборку (`ProjectCrypto.generateRandomPassword()`);
+  внутри — **NCPP** (AES-256-GCM + PBKDF2 100000) от zip-проекта (code.xml + images/ + sounds/,
+  `undo_code.xml` исключается). Старый `ProtectedProjectPayload.PASSWORD` НЕ используется.
+
+### Файлы
+```
+desktop-runtime/webview2_stub/
+  NeoCatroidStub.cs        — C# stub (WinForms + WebView2), тема приложения = title.txt
+  build_stub.bat           — сборка csc.exe (нужен только .NET Framework 4.8)
+  NeoCatroid.exe           — готовый stub (~176 КБ)
+  lib/                     — Microsoft.Web.WebView2 (net462 + WebView2Loader.dll в ресурсах)
+  player/
+    player.js              — WebView2-рантайм: NCXml/NCZip/NCCrypto/NCEngine/NCBoot (~63 КБ)
+    app.html               — bootstrap
+    player_test.js         — 61 Node-тест (node player_test.js)
+catroid/src/main/assets/exe_v2/   — NeoCatroid.exe, player.js, app.html (копии для Android)
+catroid/src/main/java/org/catrobat/catroid/exebuildv2/ExeBuilderV2.kt — сборка на телефоне
+catroid/.../ui/fragment/ProjectOptionsFragment.kt — пункт «Windows EXE v2» в export-меню (индекс 5)
+catroid/src/test/.../robolectric/exebuildv2/ExeBuilderV2FooterTest.kt — 3 Robolectric-теста
+```
+
+### player.js (WebView2-рантайм)
+- **NCXml** — XML-парсер (attr/children/text, декларации, CDATA; CP1251-fallback декодирует
+  только при ошибке UTF-8).
+- **NCZip** — zip-ридер по центральному каталогу (методы 0/store и 8/deflate).
+- **NCCrypto** — NCPW-контейнер + NCPP/NCPX (одиночный) и **NCPS** (сегментный поток,
+  зеркало `ChunkedGcmOutputStream`: `NCPS` + salt + ivPrefix(8), сегменты
+  `len(BE) + ct`, iv = ivPrefix + BE32-индекс). WebCrypto (PBKDF2 100000, AES-GCM 256).
+- **NCEngine** — парсер code.xml (вложенные `scenes/scene/objectList/object`, XStream
+  `formulaList/entry/key|value` и legacy `formula category`, контейнеры через
+  `loopBricks`/`ifBricks`/`elseBricks`) + интерпретатор:
+  stack-фреймы (repeat/forever/if/broadcast_wait/wait/glide), сенсоры, переменные.
+- **Boot**: `fetch('project.pak')` → NCPW→дешифровка → zip → `code.xml` + images/ (ImageBitmap)
+  + sounds/ (Audio-элементы), рендер в canvas (letterbox FitViewport), pointer-ввод.
+
+### Scenes в player.js (2026-08)
+
+Полноценная сценовая модель (по образцу Android StageListener):
+
+- `loadXml` группирует объекты по `<scene name="...">` в `this.scenes` (fallback: плоский
+  `<objectList>`/`<object>` = одна сцена с пустым именем). Активна ТОЛЬКО первая сцена:
+  `this.sprites = buildSceneSprites(0)` — объекты остальных сцен не создаются и не играют.
+- `switchScene(name, additive)` — переключение: fire `sceneExited`-скриптов совпадающей сцены
+  (с их sync-выполнением через `stepInstance`), kill всех инстансов/клонов/joints/rays,
+  очистка edge-triggers и `texts`, `stopAllSounds()` если `this.stopSounds`, сброс
+  `cloneCounter`/`sceneTime`, push старой сцены в `sceneBackStack`, пересоздание спрайтов
+  сцены через `parseObject` (свежее состояние, как `create()` в Android) и старт
+  start/`scene_start`-скриптов. `additive=true` — append спрайтов сцены к активным.
+- Брики: `SceneStartBrick`/`SceneTransitionBrick` → `scene_switch` (textContent
+  `sceneToStart`/`sceneForTransition`), `SceneBackBrick` → `scene_back` (pop backStack).
+  После переключения текущий инстанс завершается (`stop`). `SceneIdBrick`/`ClearScene`/
+  `SetSaveScenes`/`SetStopSounds`/`SetPreloading`/`LaunchProject`/`ReturnToPreviousProject`
+  остаются `scene_op` (no-op).
+- `WhenSceneExitedScript` парсится в `sceneExited` c `param = <sceneName>`;
+  `WhenSceneLaunchedScript` — `scene_start` (запускается как start при входе в сцену).
+- Сенсоры: `CURRENT_SCENE_NAME` — `this.currentSceneName`; `SCENE_TIME` — `this.sceneTime`
+  (сбрасывается при каждом входе в сцену).
+- **Глобальная сцена**: объекты `<globalScene>` и спрайты с флагом `isGlobal/global` (в т.ч.
+  legacy внутри сцен) собираются в `this.globalSprites`, добавляются к активной сцене при
+  старте и ПЕРЕЖИВАЮТ переключение сцен (скрипты/инстансы не убиваются, состояние
+  сохраняется). `isBackgroundSprite` — первый спрайт сцены (глобальные добавляются после).
+- Тесты: `player_test.js` — секция `scenes suite` (8 тестов: изоляция сцен, transition,
+  exit-скрипты, остановка фоновых сцен, start, back, globalScene + isGlobal-спрайт).
+
+### File в player.js (2026-08)
+
+Полная категория **File** (~50 блоков из `CategoryBricksFactory.setupFileCategoryList`):
+
+- **Виртуальная ФС (VFS)**: `engine.fileWrites` (Map name→Uint8Array, записываемый слой поверх
+  read-only `engine.files` из проекта). Хелперы `vfsRead/vfsWrite/vfsDelete/vfsList`,
+  `normFileWrite` (добавляет `.txt` при отсутствии расширения), `normFileRead`, `readZipSync`
+  (синхронный store-ридер, зеркало `NCZip.read` без async-inflate).
+- **NCZip.write** (store-метод, совместим с `NCZip.read`): `crc32` + локальные/центральные
+  заголовки + EOCD; используется `ZipBrick` для создания zip в VFS.
+- **Реальный парсинг+исполнение** (portable): WriteVariableToFile, ReadVariableFromFile
+  (спиннер KEEP/DELETE), WriteToFiles, ReadFromFiles, DeleteFiles, Zip/Unzip/UnzipProjectFiles,
+  GetZipFileNames, OpenFile, MoveFiles/MoveDownloads (rename по `>`), CopyProjectFile(+ToFolder/
+  ToPath), PutFileIntoFolder/Path, Create/DeleteFolder(+ByPath), SaveToInternalStorage,
+  LoadFromInternalStorage (no-op), Base64ToFile.
+- **Семантика** повторяет Android-`*Action.kt`: VALUE/WRITE_FILENAME = имя файла (var = контент);
+  чтение кладёт текст в userVariable; zip собирает перечисленные через запятую файлы;
+  unzip раскладывает entry обратно в VFS.
+- **Android-only заглушки** (`file_noop`, просто `return 'advance'`): FileUrl, FilesUrl,
+  DownloadZippedLooks, DownloadFile, UploadFile, ChooseFile, ExportProjectFile, CreateVideo,
+  LoadNN, ResizeImg, GrayscaleImg, NormalizeImg, ApplyShaderToImage, LoadNativeModule,
+  LoadPythonLibrary, RunVm2, RunVM, GenerateKey, SignApk, UpdateManifest, ExtractFile,
+  AddFileToApk, DeleteFromApk, ZipProjectFiles, HttpSaveFile, HttpAttachFile (сети/ВМ/APK/
+  изображения/UI — недоступны в браузере).
+- **Тесты**: `player_test.js` добавлены 9 File-тестов (VFS state, write/read roundtrip,
+  delete, zip+unzip roundtrip, get_zip_names, base64, create_folder + стабы). Всего 61 тест.
+
+### Firebase в player.js (2026-08)
+
+Firebase Storage (upload/download/delete/list) + `WhenFirebaseChangedScript` (Realtime Database
+polling) — без Firebase SDK, через `fetch()` (WebView2):
+
+- **Парсинг** (`parseBrickRec`): `UploadFileToFirebaseBrick` → `firebase_upload` (FIREBASE_BUCKET,
+  FIREBASE_STORAGE_PATH, FILE), `DownloadFileFromFirebaseBrick` → `firebase_download`
+  (+DOWNLOAD_PATH, var), `ListFirebaseFilesBrick` → `firebase_list` (+var), `DeleteFirebaseFileBrick`
+  → `firebase_delete`. `WriteBaseBrick` → `firebase_db_write` (FIREBASE_ID, FIREBASE_KEY,
+  FIREBASE_VALUE + wait-флаг из `waitForResponseSelection`), `ReadBaseBrick` → `firebase_db_read`
+  (FIREBASE_ID, FIREBASE_KEY, var + wait-флаг), `DeleteBaseBrick` → `firebase_db_delete`
+  (FIREBASE_ID, FIREBASE_KEY + wait-флаг). `waitForResponseSelection=0` (Wait) → блок ждёт ответа.
+- **RTDB REST** (`{baseUrl}/{key}.json`, key через encodeURIComponent по сегментам):
+  write = `PUT` с `JSON.stringify(value)` (строки в кавычках, как Android `setValue(String)`);
+  read = `GET` → JSON-парс → переменная (число голое, строка без кавычек, `null` → `"No data"`,
+  объект → JSON-строка; `setVar` конвертирует числовые строки в числа); delete = `DELETE`.
+- **Ожидание ответа**: `waitForResponse=true` → execBlock возвращает `'waiting'`, на фрейм
+  вешается `frame._asyncPending = { done, promise }`; `stepInstance` в начале проверяет его
+  (done → `ip++`, иначе return). Сброс `_asyncPending` при выходе фрейма — не нужен (фреймы
+  одноразовые).
+- **Storage REST** (`https://firebasestorage.googleapis.com/v0/b/{bucket}/o...`):
+  upload = `POST ?name={path}` (тело — байты файла из VFS, `application/octet-stream`), download =
+  `GET {path}?alt=media` → `vfsWrite(dest)` + переменная = путь (или `"ERROR"`), delete = `DELETE`,
+  list = `GET ?maxResults=1000&prefix=` → имена через `"name":"` → переменная = `join(", ")`.
+  Семантика повторяет `FireBaseStorageManager.kt` + `*FirebaseAction.kt` Android.
+- **Аутентификация (lazy)**: `_firebaseAuthHeaders()` — API key из переменной проекта
+  `FIREBASE_API_KEY` (UserVariable/UserList); при первом вызове запускает anonymous auth
+  (`identitytoolkit.googleapis.com/v1/accounts:signInAnonymously?key=...`), `idToken` кэшируется
+  в `this.firebase.token`; последующие запросы идут с `Authorization: Bearer {token}`. Без ключа —
+  запросы без auth (публичные правила).
+- **WhenFirebaseChangedScript** (`parseScript`): `st='firebase'`, `param = { bucket, path }` —
+  формулы `FIREBASE_TRIGGER_BUCKET`/`FIREBASE_TRIGGER_PATH` из `<formulaMap>` скрипта (метод
+  `getFormula` расширен: читает и `formulaList`, и `formulaMap`). bucket = URL RTDB
+  (`https://...firebaseio.com`), path = ключ.
+- **Polling**: `update()` каждые 2с (`_fbPollTimer`) → `_firebasePoll()`: GET
+  `{bucket}/{path.split('/').map(encodeURIComponent)}.json` (cache: no-store); первый ответ —
+  baseline (не триггерит), при изменении текста — `startScript(sp, s)` (edge-trigger, ключ
+  `sp.name#index`, `_fbPrev`); `_fbPrev.clear()` при `switchScene`/`loadXml`. Guard на отсутствие
+  fetch/пустые формулы.
+- **Состояние**: `this.firebase = { token, listeners, config }`, `_fbPrev`, `_fbPollTimer`,
+  `_fbInitStarted` (в constructor).
+- **Тесты**: `player_test.js` — секция `firebase suite` (16 тестов, последовательный запуск
+  после `await Promise.all(pending)`, мок `global.fetch`): парсинг 4 блоков Storage + 3 блоков
+  RTDB (вкл. wait-флаги из спиннера), upload POST тела из VFS, no-op без fetch/файла,
+  download → VFS+переменная, ERROR на HTTP-сбой, list → join, delete DELETE, парсинг
+  WhenFirebaseChangedScript, poll baseline/change/no-refire/refire, auth: anonymous sign-in +
+  Bearer в последующих запросах, db_write PUT JSON + блокировка до ответа, db_read (число/
+  строка/`No data`/объект), db_delete DELETE.
+
+### Motion/Physics в player.js (2026-08)
+
+Полная категория **Motion** (~48 блоков, включая физику и шарниры):
+
+- **Механика**: `sprite.ph = {type (0 NONE/1 DYNAMIC/2 FIXED), mass, vx, vy, omega, fx, fy,
+  torque, linDamping, angDamping, bounce, friction, ragdoll}` — инициализируется в `parseObject`.
+  `stepPhysics(dt)` (в `update()` перед шагом инстансов): гравитация `this.gravity`
+  (дефолт `{x:0, y:-980}` px/s²) + накопленные силы/моменты → интеграция позиции/угла,
+  демпфирование, joint-ограничения, коллизии DYNAMIC↔FIXED (выталкивание по меньшей оси +
+  отражение `vx/vy × bounce`) и стены сцены (±VW/2, ±VH/2 − половинный хитбокс).
+- **Векторы до -980**: SetVelocity/ApplyForce/Impulse, Torque/AngularImpulse,
+  TurnLeft/RightSpeed (omega), SetGravity/SetMass/SetDamping/SetBounce(0..1, в формуле %)/SetFriction.
+  Все force/velocity-блоки промотируют NONE→DYNAMIC, но НЕ перебивают явный FIXED.
+- **SetPhysicsObjectTypeBrick** — `<type>` из XML (DYNAMIC/FIXED/NONE). **SetRagdollBrick** —
+  флаг `ph.ragdoll`. **SetHitboxBrick** — `sprite.hitbox {w,h}` переопределяет AABB
+  (используется в aabbFor → коллизии/raycast/триггеры).
+- **PointToBrick** — `pointedObject` с `reference="/.../object[N]"` (XStream) резолвится в
+  `resolveTargetName('ref:…')` **на этапе исполнения** (при парсинге `this.sprites` ещё пуст);
+  пустой target → случайное направление. GoToBrick `destinationSprite` — та же механика.
+- **PerformRayCastBrick** — Liang-Barsky `segmentAABB` по хитбоксам, результат в
+  `engine.rays.get(id)` = `{sprite, t}` (ближайшее пересечение) или null.
+- **Шарниры**: `create_joint` записывает в `this.joints` `{type, body, target, length?}`;
+  реально работают **distance** (позиционный constraint, сходится к JOINT_LENGTH) и
+  **weld/revolute** (фиксация относительного смещения); prismatic/pulley/gear записываются
+  (inert), DestroyJoint удаляет по JOINT_ID.
+- **VibrationBrick** — `navigator.vibrate` (guard в Node). **SetCameraFocusPointBrick**
+  (+HORIZONTAL/VERTICAL_FLEXIBILITY) и **FadeParticleEffectBrick** — no-op.
+- **WhenBounceOffScript** → тип `bounce`, param = `spriteToBounceOffName` (пусто = любой).
+  `checkBounceTriggers()` (в `update()` ДО `stepPhysics`, иначе выталкивание гасит событие):
+  edge-trigger по AABB-перекрытию пар, где хотя бы один DYNAMIC; fire на оба спрайта;
+  повторный fire только после расхождения пары (`_bouncePrev: Set`).
+
+### Исправленные баги при тестировании (2026-08)
+- NCXml: самозакрывающиеся теги (`<look .../>`) клались в стек → siblings вкладывались;
+  `stack.push` только при `!selfClosed`.
+- NCZip: тестовый builder без поля date → центральный каталог сдвинут на 2 байта
+  (Z_BUF_ERROR на inflate); хедеры приведены к стандарту.
+- Интерпретатор: повтор контейнера инкрементировал ip каждый проход → restart с
+  `blocks[parent.ip]`; `parent.ip++` только когда repeat исчерпан.
+- Глид считал `performance.now()` → детерминированный `elapsed += dt`.
+- `B()`/`N()` хелперы не были определены (ReferenceError) — добавлены в parseBrickRec;
+  блоки пишутся как `{t, args, kids?}` (интерпретатор читает `b.args`).
+- `SetYPositionBrick` отсутствовал в парсере (skip) — добавлен алиас на `set_y`.
+- spriteAt требовал `l.img` → fallback-размер 80 (дефолт Catroid) для без-изображений.
+
+### Проверка
+```
+cd desktop-runtime/webview2_stub/player && node player_test.js        # 61 тест (node player_test.js, вкл. Motion/physics/File)
+./gradlew :catroid:testCatroidDebugUnitTest --tests "*ExeBuilderV2FooterTest*"   # 3 Robolectric
+```
+Экспорт в приложении: Проект → ⋮ → Export → «Windows EXE v2 (single file)».
+Старый `buildExe` (V1, launch4j-пайплайн) НЕ тронут — он остаётся неиспользуемым.
+
 ## Переносимые seam (в `:core`)
 
 | Seam | Интерфейс | Holder |
@@ -773,7 +1034,7 @@ StageListenerHolder: `object StageListenerHolder { var listener: StageListener? 
 #### Поддерживаемые листовые брики (~60 типов)
 - **Motion**: MoveNSteps, TurnLeft/Right, SetX/Y, ChangeX/Y, GoTo, PlaceAt, PointInDirection, SetSizeTo, GlideTo, IfOnEdgeBounce, ComeToFront, GoNStepsBack, SetRotationStyle, TouchDirection
 - **Looks**: Show, Hide, Next/Previous Look, SetLook(byIndex), SetBackground(byIndex), SetSizeTo, ChangeSize, Set/Change Transparency/Brightness/Color, ClearEffects, Set/Change Width/Height
-- **Sound**: PlaySound, PlaySoundAndWait, StopSound, StopAllSounds, SetVolume, ChangeVolume
+- **Sound**: PlaySound, PlaySoundAndWait, PlaySoundAt, SoundFile, SoundFiles, PrepareSound, PlayPrepared, StopSound, StopSoundBrick2, StopAllSounds, Sound_StopAll, SetVolume, ChangeVolume, SetSoundVolume, SetGlobalSoundVolume, SetGameVolume, SetStopSounds, Speak, SpeakAndWait, SpeakWithRate, AskSpeech, StartListening, SetListeningLanguage, ListenMicro, StartRecording, StopRecording, SetPan, SetPitchOnly, AudioFadeIn, AudioFadeOut, EqualizerSetBand, PlayTone
 - **Music**: PlayNoteForBeats, PlayDrumForBeats, SetInstrument, SetTempo, ChangeTempo, PauseForBeats
 - **Pen**: PenDown/Up, SetPenSize, SetPenColor, Stamp, ClearBackground
 - **Control**: Wait (с runtime-формулами), WaitUntil, Note (комментарий), FinishStage, ExitStage
@@ -836,7 +1097,7 @@ StageListenerHolder: `object StageListenerHolder { var listener: StageListener? 
 - **15 операторов**: PLUS, MINUS, MULT, DIVIDE, MOD, POW, EQUAL, NOT_EQUAL, SMALLER_THAN, GREATER_THAN, SMALLER_OR_EQUAL, GREATER_OR_EQUAL, LOGICAL_AND, LOGICAL_OR, LOGICAL_NOT.
 - **30+ функций**: SIN, COS, TAN, SQRT, RAND, ABS, ROUND, FLOOR, CEIL, PI, TRUE, FALSE, MAX, MIN, POWER, MOD, ARCSIN, ARCCOS, ARCTAN, ARCTAN2, EXP, ROUNDTO, CLAMP, LENGTH, LETTER, SUBTEXT, UPPER, LOWER, JOIN, JOIN3, REVERSE, SCREEN_WIDTH, SCREEN_HEIGHT, DEVICE_NAME.
 - **40+ сенсоров**: OBJECT_X/Y/SIZE/WIDTH/HEIGHT/TRANSPARENCY/BRIGHTNESS/COLOR/LOOK_NUMBER/VELOCITY, MOUSE_X/Y/DELTA, FINGER_X/Y/TOUCHED, дата/время, заглушки для акселерометра/компаса/GPS.
-- **~60 типов бриков**: Motion (14), Looks (14), Sound (6), Music (6), Pen (6), Control (8), Variables (4), Web (4), Data (2), Sensing (1).
+- **~89 типов бриков**: Motion (14), Looks (14), Sound (30), Music (6), Pen (6), Control (8), Variables (4), Web (4), Data (2), Sensing (1).
 - **RuntimeFormula** — для SetVariable/ChangeVariable/Wait формулы с сенсорами/переменными вычисляются при каждом проходе, а не при парсинге.
 - **6 контейнерных бриков**: Forever, Repeat, RepeatUntil, IfLogicBegin(+else), ForVariableFromTo, Schedule, ExecuteForCloneNumber, RunAsSprite, Broadcast.
 

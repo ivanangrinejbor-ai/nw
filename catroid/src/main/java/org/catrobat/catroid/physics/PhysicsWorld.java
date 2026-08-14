@@ -343,9 +343,12 @@ public class PhysicsWorld {
 		if (a1 == b1 || a1 == b2) {
 			common = a1;
 			uniqueA = a2;
-		} else {
+		} else if (a2 == b1 || a2 == b2) {
 			common = a2;
 			uniqueA = a1;
+		} else {
+			Log.e(TAG, "Cannot create GearJoint: joints do not share a common body.");
+			return false;
 		}
 		if (b1 == common) {
 			uniqueB = b2;

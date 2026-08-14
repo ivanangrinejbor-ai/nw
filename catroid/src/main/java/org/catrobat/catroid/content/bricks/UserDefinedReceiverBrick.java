@@ -72,7 +72,10 @@ public class UserDefinedReceiverBrick extends ScriptBrickBaseType implements Bri
 	}
 
 	public UserDefinedBrick getUserDefinedBrick() {
-		return (UserDefinedBrick) userDefinedBrick;
+		if (userDefinedBrick instanceof UserDefinedBrick) {
+			return (UserDefinedBrick) userDefinedBrick;
+		}
+		return null;
 	}
 
 	@Override

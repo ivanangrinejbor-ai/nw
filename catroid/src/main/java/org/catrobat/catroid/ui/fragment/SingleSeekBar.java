@@ -60,7 +60,11 @@ public class SingleSeekBar {
 
 		SeekBar seekBar = view.findViewById(R.id.single_seekbar_seekbar);
 		String currentStringValue = formulaBrick.getFormulaWithBrickField(brickField).getTrimmedFormulaString(context);
-		seekBar.setProgress(Double.valueOf(currentStringValue.replace(",", ".")).intValue());
+		try {
+			seekBar.setProgress(Double.valueOf(currentStringValue.replace(",", ".")).intValue());
+		} catch (NumberFormatException e) {
+			seekBar.setProgress(0);
+		}
 		valueTextView.setText(String.valueOf(seekBar.getProgress()));
 		seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
 			@Override

@@ -47,12 +47,14 @@ class DrawLineAction : TemporalAction() {
         val y1Val = y1?.interpretFloat(s) ?: 0f
         val x2Val = x2?.interpretFloat(s) ?: 0f
         val y2Val = y2?.interpretFloat(s) ?: 0f
-        val lineWidth = s.sprite.penConfiguration.penSize.toFloat()
+        val lineWidth = s.sprite.penConfiguration.getPenSize().toFloat()
 
+        val penColor = s.sprite.penConfiguration.getPenColor()
         camera.update()
         buffer.begin()
         shapeRenderer.projectionMatrix = camera.combined
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
+        shapeRenderer.setColor(penColor.r, penColor.g, penColor.b, penColor.a)
         shapeRenderer.rectLine(x1Val, y1Val, x2Val, y2Val, lineWidth)
         shapeRenderer.end()
         buffer.end()

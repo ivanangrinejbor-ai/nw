@@ -41,6 +41,7 @@ import org.catrobat.catroid.content.bricks.ThinkBubbleBrick;
 import org.catrobat.catroid.content.bricks.ThinkForBubbleBrick;
 import org.catrobat.catroid.content.bricks.WhenBounceOffBrick;
 import org.catrobat.catroid.content.bricks.WhenTouchingSpriteBrick;
+import org.catrobat.catroid.content.bricks.WhenAIResponseBrick;
 import org.catrobat.catroid.content.bricks.WhenTouchingSpriteByNameBrick;
 import org.catrobat.catroid.io.RecentBrickListSerializer;
 
@@ -56,6 +57,7 @@ public final class RecentBrickListManager {
 
 	private final Class[] nonBackgroundSpriteClasses = {WhenBounceOffBrick.class,
 			WhenTouchingSpriteBrick.class, WhenTouchingSpriteByNameBrick.class,
+			WhenAIResponseBrick.class,
 			IfOnEdgeBounceBrick.class, GoNStepsBackBrick.class, ComeToFrontBrick.class,
 			SetLookBrick.class, SetLookByIndexBrick.class, SayBubbleBrick.class,
 			SayForBubbleBrick.class, ThinkBubbleBrick.class, ThinkForBubbleBrick.class,

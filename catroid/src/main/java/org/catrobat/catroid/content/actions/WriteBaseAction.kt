@@ -25,7 +25,7 @@ package org.catrobat.catroid.content.actions
 
 import android.widget.Toast
 import android.content.Context
-import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction
+import com.badlogic.gdx.scenes.scene2d.Action
 import android.app.Activity
 import org.catrobat.catroid.stage.StageActivity
 import org.catrobat.catroid.stage.StageActivity.IntentListener
@@ -38,18 +38,45 @@ import org.catrobat.catroid.content.Scope
 import org.catrobat.catroid.formulaeditor.Formula
 import java.util.ArrayList
 
-class WriteBaseAction() : TemporalAction() {
+class WriteBaseAction() : Action() {
     private var contextt: Context? = null
     var scope: Scope? = null
     var base: Formula? = null
     var key: Formula? = null
     var value: Formula? = null
+    var waitForResponse: Boolean = true
+    private var started = false
+    @Volatile private var finished = false
 
-    override fun update(percent: Float) {
-        val base_str = base?.interpretString(scope) ?: ""
-        val key_str = key?.interpretString(scope) ?: ""
-        val value_str = value?.interpretString(scope) ?: ""
+    override fun act(delta: Float): Boolean {
+        if (!started) {
+            started = true
+            val baseStr = base?.interpretString(scope) ?: ""
+            val keyStr = key?.interpretString(scope) ?: ""
+            val valueStr = value?.interpretString(scope) ?: ""
+            if (waitForResponse) {
+                FireBaseManager.writeToDatabase(baseStr, keyStr, valueStr) { finished = true }
+                return finished
+            }
+            FireBaseManager.writeToDatabase(baseStr, keyStr, valueStr)
+            return true
+        }
+        return finished
+    }
 
-        FireBaseManager.writeToDatabase(base_str, key_str, value_str)
+    override fun restart() {
+        super.restart()
+        started = false
+        finished = false
+    }
+
+    override fun reset() {
+        super.reset()
+        started = false
+        finished = false
+        scope = null
+        base = null
+        key = null
+        value = null
     }
 }

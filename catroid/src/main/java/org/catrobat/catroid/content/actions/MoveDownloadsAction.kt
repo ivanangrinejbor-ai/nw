@@ -43,12 +43,17 @@ class MoveDownloadsAction() : TemporalAction() {
     private fun copyFileFromDownloadsLegacy(fileName: String, destinationDir: File) {
         val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
         val sourceFile = File(downloadsDir, fileName)
+        val destinationFile = File(destinationDir, fileName).canonicalFile
+        if (!destinationFile.canonicalPath.startsWith(destinationDir.canonicalPath + File.separator)) {
+            Log.e("MoveDownloadsAction", "Path traversal detected in destination: $fileName")
+            return
+        }
         if (!sourceFile.exists()) {
             Log.w("MoveDownloadsAction", "File '$fileName' not found in Downloads.")
             return
         }
         try {
-            sourceFile.copyTo(File(destinationDir, fileName), overwrite = true)
+            sourceFile.copyTo(destinationFile, overwrite = true)
         } catch (e: IOException) {
             Log.e("MoveDownloadsAction", "Error copying file from Downloads", e)
         }
@@ -57,6 +62,12 @@ class MoveDownloadsAction() : TemporalAction() {
     @RequiresApi(Build.VERSION_CODES.Q)
     private fun copyFileFromDownloads(context: android.content.Context, fileName: String, destinationDir: File) {
         val resolver = context.contentResolver ?: return
+
+        val destinationFile = File(destinationDir, fileName).canonicalFile
+        if (!destinationFile.canonicalPath.startsWith(destinationDir.canonicalPath + File.separator)) {
+            Log.e("MoveDownloadsAction", "Path traversal detected in destination: $fileName")
+            return
+        }
 
         val collection = MediaStore.Downloads.EXTERNAL_CONTENT_URI
         val projection = arrayOf(MediaStore.Downloads._ID, MediaStore.Downloads.DISPLAY_NAME)
@@ -72,7 +83,6 @@ class MoveDownloadsAction() : TemporalAction() {
                     val contentUri = ContentUris.withAppendedId(MediaStore.Downloads.EXTERNAL_CONTENT_URI, id)
 
                     resolver.openInputStream(contentUri)?.use { inputStream ->
-                        val destinationFile = File(destinationDir, fileName)
                         destinationFile.outputStream().use { outputStream ->
                             inputStream.copyTo(outputStream)
                         }

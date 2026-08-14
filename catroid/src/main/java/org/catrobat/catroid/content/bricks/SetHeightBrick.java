@@ -52,6 +52,6 @@ public class SetHeightBrick extends FormulaBrick {
 	@Override
 	public void addActionToSequence(Sprite sprite, ScriptSequenceAction sequence) {
 		sequence.addAction(sprite.getActionFactory().createSetHeightAction(sprite, sequence,
-				getFormulaWithBrickField(BrickField.HEIGHT)));
+				getFormulaWithBrickField(BrickField.HEIGHT, BrickField.SIZE)));
 	}
 }

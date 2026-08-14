@@ -25,7 +25,7 @@ package org.catrobat.catroid.content.actions
 
 import android.widget.Toast
 import android.content.Context
-import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction
+import com.badlogic.gdx.scenes.scene2d.Action
 import android.app.Activity
 import org.catrobat.catroid.stage.StageActivity
 import org.catrobat.catroid.stage.StageActivity.IntentListener
@@ -39,19 +39,43 @@ import org.catrobat.catroid.formulaeditor.Formula
 import org.catrobat.catroid.formulaeditor.UserVariable
 import java.util.ArrayList
 
-class ReadBaseAction() : TemporalAction() {
+class ReadBaseAction() : Action() {
     private var contextt: Context? = null
     var scope: Scope? = null
     var base: Formula? = null
     var key: Formula? = null
     var variable: UserVariable? = null
+    var waitForResponse: Boolean = true
+    private var started = false
+    @Volatile private var finished = false
 
-    override fun update(percent: Float) {
-        val base_str = base?.interpretString(scope) ?: ""
-        val key_str = key?.interpretString(scope) ?: ""
-
-        FireBaseManager.readFromDatabase(base_str, key_str) { result ->
-            variable?.value = result
+    override fun act(delta: Float): Boolean {
+        if (!started) {
+            started = true
+            val baseStr = base?.interpretString(scope) ?: ""
+            val keyStr = key?.interpretString(scope) ?: ""
+            FireBaseManager.readFromDatabase(baseStr, keyStr) { result ->
+                variable?.value = result
+                finished = true
+            }
+            if (!waitForResponse) return true
         }
+        return finished
+    }
+
+    override fun restart() {
+        super.restart()
+        started = false
+        finished = false
+    }
+
+    override fun reset() {
+        super.reset()
+        started = false
+        finished = false
+        scope = null
+        base = null
+        key = null
+        variable = null
     }
 }
