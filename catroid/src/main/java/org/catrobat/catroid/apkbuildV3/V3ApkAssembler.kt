@@ -56,7 +56,7 @@ object V3ApkAssembler {
         onProgress?.invoke(0f, "")
         workDir.mkdirs()
 
-        val baseApk = locateBaseApk(context, workDir)
+        val baseApk = locateBaseApk(context, workDir, onProgress)
         onProgress?.invoke(0.15f, baseApk.name)
 
         val injectedApk = File(workDir, "v3_injected.apk")
@@ -85,8 +85,14 @@ object V3ApkAssembler {
         return signedApk
     }
 
-    private fun locateBaseApk(context: Context, workDir: File): File {
-        return TemplateManagerV3.prepareBaseApk(context, workDir)
+    private fun locateBaseApk(
+        context: Context,
+        workDir: File,
+        onProgress: ((Float, String) -> Unit)? = null
+    ): File {
+        return TemplateManagerV3.prepareBaseApk(context, workDir) { p, msg ->
+            onProgress?.invoke(p * 0.15f, msg)
+        }
     }
 
     internal fun injectAssets(

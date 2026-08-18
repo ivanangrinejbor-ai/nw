@@ -223,6 +223,9 @@ android {
                 arguments += ["room.schemaLocation": "$projectDir/schemas".toString()]
             }
         }
+        ksp {
+            arg("room.schemaLocation", "$projectDir/schemas".toString())
+        }
         externalNativeBuild {
             cmake {
                 cppFlags ''
@@ -438,6 +441,16 @@ android {
             buildConfigField "boolean", "FEATURE_AI_ASSIST_ENABLED", "false"
             manifestPlaceholders.appName = "NeoCatroid Runtime"
         }
+
+        // Лёгкая сборка: только arm64-v8a, без QEMU и тяжёлых нативных библиотек
+        chat {
+            applicationIdSuffix '.chat'
+            versionNameSuffix '-chat'
+
+            ndk {
+                abiFilters 'arm64-v8a'
+            }
+        }
     }
 
     applicationVariants.all { variant ->
@@ -534,6 +547,31 @@ android.applicationVariants.all { variant ->
                     include '**/libcrypto.so'
                     include '**/libssl.so'
                     include '**/libmidi.so'
+                })
+            }
+        }
+    }
+
+    // Флейвор 'chat': убираем QEMU и лишние ABI — только arm64-v8a
+    if (variant.flavorName == 'chat') {
+        def mergeAssetsTask = tasks.findByName("merge${variant.name.capitalize()}Assets")
+        if (mergeAssetsTask != null) {
+            mergeAssetsTask.outputs.upToDateWhen { false }
+            mergeAssetsTask.doLast {
+                delete(fileTree(mergeAssetsTask.outputDir) {
+                    include '**/qemu_x86_64/**'
+                    include '**/qemu_arm64/**'
+                })
+            }
+        }
+        def mergeNativeLibsTask = tasks.findByName("merge${variant.name.capitalize()}NativeLibs")
+        if (mergeNativeLibsTask != null) {
+            mergeNativeLibsTask.doLast {
+                delete(fileTree(mergeNativeLibsTask.outputDir) {
+                    // Оставляем только arm64-v8a — удаляем остальные ABI
+                    include 'lib/armeabi-v7a/**'
+                    include 'lib/x86/**'
+                    include 'lib/x86_64/**'
                 })
             }
         }

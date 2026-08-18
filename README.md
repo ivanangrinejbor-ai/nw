@@ -24,6 +24,7 @@
 - **Сборка APK**: кнопка «Build APK» в опциях проекта, авто-шаблон через `./gradlew copyTemplateApk`
 - **Firebase**: включён в APK-темплейте, интернет-проверка, без чёрного экрана при ошибке
 - **Серый дизайн**: новый цвет фона `#3C3C3C`
+  **И многое другое**
 
 ### Основные возможности
 
@@ -47,7 +48,7 @@
 ### Быстрый старт
 
 ```bash
-git clone https://github.com/Danveyd/NeoCatroid.git
+git clone https://github.com/ivanangrinejbor-ai/nw.git
 cd NeoCatroid
 # Открыть в Android Studio, дождаться синхронизации Gradle
 ```

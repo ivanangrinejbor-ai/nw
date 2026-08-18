@@ -377,10 +377,15 @@ public class StageListener implements ApplicationListener {
 				totalLooks += sprite.getLookList().size();
 			}
 		}
-		StageActivity.updatePrecompileProgress(0, totalLooks);
+		StageActivity stageActivity = StageActivity.activeStageActivity.get();
+		if (stageActivity != null) {
+			stageActivity.updatePrecompileProgress(0, totalLooks);
+		}
 		int lookCounter = 0;
 		for (Sprite sprite : sprites) {
-			StageActivity.updatePrecompileStatus(sprite.getName());
+			if (stageActivity != null) {
+				stageActivity.updatePrecompileStatus(sprite.getName());
+			}
 			if (sprite.getLookList() != null) {
 				for (LookData lookData : sprite.getLookList()) {
 					if (lookData != null && !(lookData instanceof TilemapLookData)) {
@@ -388,7 +393,9 @@ public class StageListener implements ApplicationListener {
 						lookData.getCollisionInformation().loadCollisionPolygon();
 					}
 					lookCounter++;
-					StageActivity.updatePrecompileProgress(lookCounter, totalLooks);
+					if (stageActivity != null) {
+						stageActivity.updatePrecompileProgress(lookCounter, totalLooks);
+					}
 				}
 			}
 
@@ -878,7 +885,10 @@ public class StageListener implements ApplicationListener {
 		vmMonitorActor.setZIndex(0);
 
 		for (Sprite sprite : sprites) {
-			StageActivity.updatePrecompileStatus(sprite.getName());
+			StageActivity stageActivity = StageActivity.activeStageActivity.get();
+			if (stageActivity != null) {
+				stageActivity.updatePrecompileStatus(sprite.getName());
+			}
 			boolean isGlobal = globalSceneSprites.contains(sprite);
 			if (!isGlobal || sprite.look == null || sprite.look.getLookData() == null) {
 				sprite.resetSprite();
