@@ -2733,6 +2733,7 @@ void exec_layer_gru_cell(const std::string& name, const std::string& input_n, co
     }
     g_Tensors[h_out_n] = Hout;
 }
+JNIEXPORT void JNICALL
 JNI_ML(nativeResetEngine)(JNIEnv *env, jclass) {
     std::lock_guard<std::mutex> lock(g_MnnMutex);
     g_Tensors.clear();
@@ -2741,6 +2742,7 @@ JNI_ML(nativeResetEngine)(JNIEnv *env, jclass) {
     g_IsTraining = false;
     __android_log_print(ANDROID_LOG_INFO, "Pocketensor", "Engine memory reset complete.");
 }
+JNIEXPORT void JNICALL
 JNI_ML(nativeSetTensorArray)(JNIEnv *env, jclass, jstring name_j, jfloatArray data_j) {
     const char* name = env->GetStringUTFChars(name_j, nullptr);
     jfloat* data_ptr = env->GetFloatArrayElements(data_j, nullptr);
@@ -2757,6 +2759,7 @@ JNI_ML(nativeSetTensorArray)(JNIEnv *env, jclass, jstring name_j, jfloatArray da
     env->ReleaseFloatArrayElements(data_j, data_ptr, JNI_ABORT);
     env->ReleaseStringUTFChars(name_j, name);
 }
+JNIEXPORT void JNICALL
 JNI_ML(nativeSetOneHot)(JNIEnv *env, jclass, jstring name_j, jint active_index) {
     const char* name = env->GetStringUTFChars(name_j, nullptr);
 
@@ -2770,6 +2773,7 @@ JNI_ML(nativeSetOneHot)(JNIEnv *env, jclass, jstring name_j, jint active_index) 
     }
     env->ReleaseStringUTFChars(name_j, name);
 }
+JNIEXPORT jint JNICALL
 JNI_ML(nativeSampleCategorical)(JNIEnv *env, jclass, jstring name_j) {
     const char* name = env->GetStringUTFChars(name_j, nullptr);
     std::lock_guard<std::mutex> lock(g_MnnMutex);
@@ -2792,6 +2796,7 @@ JNI_ML(nativeSampleCategorical)(JNIEnv *env, jclass, jstring name_j) {
     env->ReleaseStringUTFChars(name_j, name);
     return chosen_index;
 }
+JNIEXPORT void JNICALL
 JNI_ML(nativeDropout)(JNIEnv *env, jclass, jstring res_j, jstring input_j, jfloat p) {
     const char* res_n = env->GetStringUTFChars(res_j, nullptr);
     const char* in_n = env->GetStringUTFChars(input_j, nullptr);
@@ -2820,6 +2825,7 @@ JNI_ML(nativeDropout)(JNIEnv *env, jclass, jstring res_j, jstring input_j, jfloa
     env->ReleaseStringUTFChars(res_j, res_n);
     env->ReleaseStringUTFChars(input_j, in_n);
 }
+JNIEXPORT void JNICALL
 JNI_ML(nativeLayerConv2D)(JNIEnv *env, jclass, jstring layerName_j, jstring input_j, jstring output_j, jint inC, jint outC, jint kSize, jint stride) {
     const char* layer_n = env->GetStringUTFChars(layerName_j, nullptr);
     const char* in_n = env->GetStringUTFChars(input_j, nullptr);
@@ -2834,6 +2840,7 @@ JNI_ML(nativeLayerConv2D)(JNIEnv *env, jclass, jstring layerName_j, jstring inpu
     env->ReleaseStringUTFChars(input_j, in_n);
     env->ReleaseStringUTFChars(output_j, out_n);
 }
+JNIEXPORT void JNICALL
 JNI_ML(nativeLayerEmbedding)(JNIEnv *env, jclass, jstring layerName_j, jstring input_j, jstring output_j, jint vocabSize, jint embDim) {
     const char* layer_n = env->GetStringUTFChars(layerName_j, nullptr);
     const char* in_n = env->GetStringUTFChars(input_j, nullptr);
@@ -2868,6 +2875,7 @@ JNI_ML(nativeLayerEmbedding)(JNIEnv *env, jclass, jstring layerName_j, jstring i
     env->ReleaseStringUTFChars(input_j, in_n);
     env->ReleaseStringUTFChars(output_j, out_n);
 }
+JNIEXPORT void JNICALL
 JNI_ML(nativeSlice)(JNIEnv *env, jclass, jstring res_j, jstring input_j, jint start_col, jint end_col) {
     const char* res_n = env->GetStringUTFChars(res_j, nullptr);
     const char* in_n = env->GetStringUTFChars(input_j, nullptr);
@@ -2898,6 +2906,7 @@ JNI_ML(nativeSlice)(JNIEnv *env, jclass, jstring res_j, jstring input_j, jint st
     env->ReleaseStringUTFChars(res_j, res_n);
     env->ReleaseStringUTFChars(input_j, in_n);
 }
+JNIEXPORT void JNICALL
 JNI_ML(nativeCreateNormalTensor)(JNIEnv *env, jclass, jstring name_j, jintArray shape_j, jfloat mean, jfloat stddev, jboolean trainable) {
     const char* name = env->GetStringUTFChars(name_j, nullptr);
     jint* s_ptr = env->GetIntArrayElements(shape_j, nullptr);
@@ -2917,12 +2926,14 @@ JNI_ML(nativeCreateNormalTensor)(JNIEnv *env, jclass, jstring name_j, jintArray 
     env->ReleaseIntArrayElements(shape_j, s_ptr, 0);
     env->ReleaseStringUTFChars(name_j, name);
 }
+JNIEXPORT void JNICALL
 JNI_ML(nativeZeroGrad)(JNIEnv *env, jclass) {
     std::lock_guard<std::mutex> lock(g_MnnMutex);
     for (auto const& [name, t] : g_Tensors) {
         t->zero_grad();
     }
 }
+JNIEXPORT void JNICALL
 JNI_ML(nativeLayerAttention)(JNIEnv *env, jclass, jstring layerName_j, jstring input_j, jstring output_j, jint embedDim) {
     const char* layer_n = env->GetStringUTFChars(layerName_j, nullptr);
     const char* in_n = env->GetStringUTFChars(input_j, nullptr);
@@ -2937,6 +2948,7 @@ JNI_ML(nativeLayerAttention)(JNIEnv *env, jclass, jstring layerName_j, jstring i
     env->ReleaseStringUTFChars(input_j, in_n);
     env->ReleaseStringUTFChars(output_j, out_n);
 }
+JNIEXPORT void JNICALL
 JNI_ML(nativeClipGrad)(JNIEnv *env, jclass, jfloat max_norm) {
     std::lock_guard<std::mutex> lock(g_MnnMutex);
     float total_sum = 0.0f;
@@ -2953,6 +2965,7 @@ JNI_ML(nativeClipGrad)(JNIEnv *env, jclass, jfloat max_norm) {
         }
     }
 }
+JNIEXPORT void JNICALL
 JNI_ML(nativeMaxPool2D)(JNIEnv *env, jclass, jstring res_j, jstring input_j, jint poolSize, jint stride) {
     const char* res_n = env->GetStringUTFChars(res_j, nullptr);
     const char* in_n = env->GetStringUTFChars(input_j, nullptr);
@@ -2990,6 +3003,7 @@ JNI_ML(nativeMaxPool2D)(JNIEnv *env, jclass, jstring res_j, jstring input_j, jin
     env->ReleaseStringUTFChars(res_j, res_n);
     env->ReleaseStringUTFChars(input_j, in_n);
 }
+JNIEXPORT void JNICALL
 JNI_ML(nativeStepAdamW)(JNIEnv *env, jclass, jfloat lr, jfloat weightDecay) {
     std::lock_guard<std::mutex> lock(g_MnnMutex);
 
@@ -3031,6 +3045,7 @@ JNI_ML(nativeStepAdamW)(JNIEnv *env, jclass, jfloat lr, jfloat weightDecay) {
     }
     g_Tape.clear();
 }
+JNIEXPORT void JNICALL
 JNI_ML(nativeLayerLstmCell)(JNIEnv *env, jclass, jstring layerName_j, jstring input_j, jstring hIn_j, jstring cIn_j, jstring hOut_j, jstring cOut_j, jint inDim, jint hiddenDim) {
     const char* layer_n = env->GetStringUTFChars(layerName_j, nullptr);
     const char* in_n = env->GetStringUTFChars(input_j, nullptr);
@@ -3051,6 +3066,7 @@ JNI_ML(nativeLayerLstmCell)(JNIEnv *env, jclass, jstring layerName_j, jstring in
     env->ReleaseStringUTFChars(hOut_j, hout_n);
     env->ReleaseStringUTFChars(cOut_j, cout_n);
 }
+JNIEXPORT void JNICALL
 JNI_ML(nativeLayerGruCell)(JNIEnv *env, jclass, jstring layerName_j, jstring input_j, jstring hIn_j, jstring hOut_j, jint inDim, jint hiddenDim) {
     const char* layer_n = env->GetStringUTFChars(layerName_j, nullptr);
     const char* in_n = env->GetStringUTFChars(input_j, nullptr);
