@@ -260,12 +260,18 @@ public class Look extends Image {
 				if (pointer == 0 && swipeController != null) {
 					swipeController.onTouchDragged(event.getStageX(), event.getStageY());
 				}
+				if (sprite != null && isLookVisible()) {
+					sprite.look.fire(new EventWrapper(new EventId(EventId.FINGER_MOVED_OVER_SPRITE), false));
+				}
 			}
 
 			@Override
 			public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
 				if (pointer == 0 && swipeController != null) {
 					swipeController.onTouchUp(event.getStageX(), event.getStageY());
+				}
+				if (sprite != null && isLookVisible()) {
+					sprite.look.fire(new EventWrapper(new EventId(EventId.SPRITE_RELEASED), false));
 				}
 			}
 		});

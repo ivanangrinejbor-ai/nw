@@ -109,9 +109,30 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
+            BaseExceptionHandler(applicationContext).uncaughtException(thread, throwable)
+        }
+
         SettingsFragment.setToChosenLanguage(this)
 
         CrashReporter.sendPendingReports(this)
+
+        val crashFile = File(cacheDir, BaseExceptionHandler.LAST_CRASH_LOG_FILE)
+        if (crashFile.exists()) {
+            val errorText = try {
+                crashFile.readText()
+            } catch (e: Exception) {
+                ""
+            }
+            crashFile.delete()
+            if (errorText.isNotEmpty()) {
+                AlertDialog.Builder(this)
+                    .setTitle(R.string.crash_dialog_title)
+                    .setMessage(getString(R.string.crash_dialog_message) + "\n\n" + errorText)
+                    .setPositiveButton(R.string.crash_dialog_ok, null)
+                    .show()
+            }
+        }
 
         if (!BuildConfig.FEATURE_APK_GENERATOR_ENABLED) {
             val startTime = System.currentTimeMillis()

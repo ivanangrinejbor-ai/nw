@@ -43,6 +43,10 @@ public class PhysicsLook extends Look {
 
 	private boolean isFlippedByAction = false;
 
+	private float followTargetX;
+	private float followTargetY;
+	private boolean followTargetSet;
+
 	public PhysicsLook(Sprite sprite, PhysicsWorld physicsWorld) {
 		super(sprite);
 		physicsObject = physicsWorld.getPhysicsObject(sprite);
@@ -79,6 +83,10 @@ public class PhysicsLook extends Look {
 	public void setXInUserInterfaceDimensionUnit(float x) {
 		if (isRagdolled()) {
 			super.setXInUserInterfaceDimensionUnit(x);
+			if (isRagdollFollow()) {
+				followTargetX = x;
+				followTargetSet = true;
+			}
 			return;
 		}
 		setX(applyCenterOffset(x, true, false));
@@ -88,6 +96,11 @@ public class PhysicsLook extends Look {
 	public void setPosition(float x, float y) {
 		super.setPosition(x, y);
 		if (isRagdolled()) {
+			if (isRagdollFollow()) {
+				followTargetX = x + getWidth() / 2.0f;
+				followTargetY = y + getHeight() / 2.0f;
+				followTargetSet = true;
+			}
 			return;
 		}
 		if (null != physicsObject) {
@@ -100,6 +113,10 @@ public class PhysicsLook extends Look {
 	public void setX(float x) {
 		super.setX(x);
 		if (isRagdolled()) {
+			if (isRagdollFollow()) {
+				followTargetX = x + getWidth() / 2.0f;
+				followTargetSet = true;
+			}
 			return;
 		}
 		if (null != physicsObject) {
@@ -111,6 +128,10 @@ public class PhysicsLook extends Look {
 	public void setY(float y) {
 		super.setY(y);
 		if (isRagdolled()) {
+			if (isRagdollFollow()) {
+				followTargetY = y + getHeight() / 2.0f;
+				followTargetSet = true;
+			}
 			return;
 		}
 		if (null != physicsObject) {
@@ -256,6 +277,14 @@ public class PhysicsLook extends Look {
 
 	@Override
 	public void draw(Batch batch, float parentAlpha) {
+		if (isRagdollFollow()) {
+			updateRagdollFollow();
+			getX();
+			getY();
+			getRotation();
+		} else if (followTargetSet) {
+			followTargetSet = false;
+		}
 		physicsObjectStateHandler.checkHangup(true);
 		super.draw(batch, parentAlpha);
 	}
@@ -302,7 +331,30 @@ public class PhysicsLook extends Look {
 	}
 
 	private boolean isRagdolled() {
-		return sprite != null && sprite.isRagdolled;
+		return sprite != null && sprite.ragdollMode > 0;
+	}
+
+	private boolean isRagdollFollow() {
+		return sprite != null && sprite.ragdollMode == 2;
+	}
+
+	private void updateRagdollFollow() {
+		if (physicsObject == null) {
+			return;
+		}
+		if (!followTargetSet) {
+			followTargetX = physicsObject.getX() + getWidth() / 2.0f;
+			followTargetY = physicsObject.getY() + getHeight() / 2.0f;
+			followTargetSet = true;
+		}
+		float dx = followTargetX - (physicsObject.getX() + getWidth() / 2.0f);
+		float dy = followTargetY - (physicsObject.getY() + getHeight() / 2.0f);
+		Vector2 velocity = physicsObject.getVelocity();
+		float stiffness = 6.0f;
+		float blend = 0.2f;
+		physicsObject.setVelocity(
+				velocity.x + (dx * stiffness - velocity.x) * blend,
+				velocity.y + (dy * stiffness - velocity.y) * blend);
 	}
 
 	private boolean isLookMoving() {

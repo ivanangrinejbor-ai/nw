@@ -1234,7 +1234,9 @@ public class SceneManager {
                     }
                 }
                 if (!engine.createObject(go.id, absolutePath)) {
-                    Gdx.app.error("SceneManager", "Rebuild failed: Could not create render object for " + go.id);
+                    Gdx.app.error("SceneManager", "Rebuild failed: Could not create render object for " + go.id
+                            + " (model: " + modelName + "). Falling back to cube primitive.");
+                    engine.createCube(go.id);
                     return;
                 }
             }

@@ -149,7 +149,7 @@ import org.catrobat.catroid.stage.StageListener;
 import org.catrobat.catroid.utils.ModelPathProcessor;
 
 import java.io.File;
-import java.util.ArrayList;
+import java.io.InputStream;import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -408,6 +408,9 @@ public class ThreeDManager implements Disposable {
     private final Set<String> inactiveRenderObjects = new HashSet<>();
     private final Map<String, btRigidBody> inactivePhysicsBodies = new HashMap<>();
     private final Map<String, net.mgsx.gltf.scene3d.scene.Scene> inactivePbrScenes = new HashMap<>();
+
+    private final Map<String, com.badlogic.gdx.math.collision.BoundingBox> objectLocalBounds = new HashMap<>();
+    private final Map<String, com.badlogic.gdx.math.collision.BoundingBox> objectWorldBounds = new HashMap<>();
 
     private SceneSettings currentSettings;
 
@@ -2559,6 +2562,13 @@ public class ThreeDManager implements Disposable {
             sceneObjects.put(newId, sceneObjects.remove(oldId));
         }
 
+        if (objectLocalBounds.containsKey(oldId)) {
+            objectLocalBounds.put(newId, objectLocalBounds.remove(oldId));
+        }
+        if (objectWorldBounds.containsKey(oldId)) {
+            objectWorldBounds.put(newId, objectWorldBounds.remove(oldId));
+        }
+
         if (physicsBodies.containsKey(oldId)) {
             physicsBodies.put(newId, physicsBodies.remove(oldId));
         }
@@ -2836,7 +2846,43 @@ public class ThreeDManager implements Disposable {
             update3DAudio();
         }
         applyCameraEffects(delta);
+        updateWorldBounds();
         if (LOG_THREED_MANAGER_DEBUG) Log.d("TDM_DEBUG", "--- ThreeDManager.update() END ---");
+    }
+
+    private void updateWorldBounds() {
+        for (Map.Entry<String, ModelInstance> entry : sceneObjects.entrySet()) {
+            String id = entry.getKey();
+            if (inactiveRenderObjects.contains(id)) continue;
+            ModelInstance inst = entry.getValue();
+            com.badlogic.gdx.math.collision.BoundingBox local = objectLocalBounds.get(id);
+            if (local == null) {
+                local = new com.badlogic.gdx.math.collision.BoundingBox();
+                try {
+                    inst.calculateBoundingBox(local);
+                } catch (Exception ignored) {
+                    objectLocalBounds.put(id, local);
+                    continue;
+                }
+                if (!local.isValid()) {
+                    objectLocalBounds.put(id, local);
+                    continue;
+                }
+                float inflateX = (local.max.x - local.min.x) * 0.15f;
+                float inflateY = (local.max.y - local.min.y) * 0.15f;
+                float inflateZ = (local.max.z - local.min.z) * 0.15f;
+                local.min.sub(inflateX, inflateY, inflateZ);
+                local.max.add(inflateX, inflateY, inflateZ);
+                objectLocalBounds.put(id, local);
+            }
+            com.badlogic.gdx.math.collision.BoundingBox world = objectWorldBounds.get(id);
+            if (world == null) {
+                world = new com.badlogic.gdx.math.collision.BoundingBox();
+                objectWorldBounds.put(id, world);
+            }
+            world.set(local);
+            world.mul(inst.transform);
+        }
     }
 
     private void update3DAudio() {
@@ -3265,9 +3311,21 @@ public class ThreeDManager implements Disposable {
                 Gdx.gl.glClearColor(skyColor.r, skyColor.g, skyColor.b, skyColor.a);
                 Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
             }
-            sceneManager.renderMirror();
-            sceneManager.renderTransmission();
-            sceneManager.renderColors();
+            try {
+                sceneManager.renderMirror();
+            } catch (Throwable t) {
+                Gdx.app.error("3DManager", "renderMirror failed", t);
+            }
+            try {
+                sceneManager.renderTransmission();
+            } catch (Throwable t) {
+                Gdx.app.error("3DManager", "renderTransmission failed", t);
+            }
+            try {
+                sceneManager.renderColors();
+            } catch (Throwable t) {
+                Gdx.app.error("3DManager", "renderColors failed", t);
+            }
         } else {
             Gdx.gl.glViewport(0, 0, renderWidth, renderHeight);
 
@@ -3278,12 +3336,26 @@ public class ThreeDManager implements Disposable {
 
             modelBatch.begin(camera);
 
+            List<String> failedObjects = new java.util.ArrayList<>();
             for (Map.Entry<String, ModelInstance> entry : sceneObjects.entrySet()) {
-                if (!inactiveRenderObjects.contains(entry.getKey())) {
+                String id = entry.getKey();
+                if (inactiveRenderObjects.contains(id)) continue;
+                com.badlogic.gdx.math.collision.BoundingBox world = objectWorldBounds.get(id);
+                if (world != null && !camera.frustum.boundsInFrustum(world)) continue;
+                try {
                     modelBatch.render(entry.getValue(), environment);
+                } catch (Throwable t) {
+                    Gdx.app.error("3DManager", "Render failed for object '" + id + "' — removing it to keep the game running", t);
+                    failedObjects.add(id);
                 }
             }
             modelBatch.end();
+
+            for (String id : failedObjects) {
+                sceneObjects.remove(id);
+                gltfObjectIds.remove(id);
+                animationControllers.remove(id);
+            }
         }
 
         if (particleSystemInitialized && !activeParticleEffects.isEmpty()) {
@@ -3653,9 +3725,11 @@ public class ThreeDManager implements Disposable {
                         modelBatch.begin(camera);
 
                         for (Map.Entry<String, ModelInstance> entry : sceneObjects.entrySet()) {
-                            if (!inactiveRenderObjects.contains(entry.getKey())) {
-                                modelBatch.render(entry.getValue(), environment);
-                            }
+                            String id = entry.getKey();
+                            if (inactiveRenderObjects.contains(id)) continue;
+                            com.badlogic.gdx.math.collision.BoundingBox world = objectWorldBounds.get(id);
+                            if (world != null && !camera.frustum.boundsInFrustum(world)) continue;
+                            modelBatch.render(entry.getValue(), environment);
                         }
                         modelBatch.end();
                     }
@@ -3991,6 +4065,48 @@ public class ThreeDManager implements Disposable {
         return (result != null) ? result.hitObjectId : "";
     }
 
+    private static final Set<String> UNSUPPORTED_GLTF_EXTENSIONS = new HashSet<>(java.util.Arrays.asList(
+            "KHR_draco_mesh_compression", "EXT_meshopt_compression", "KHR_texture_basisu"));
+
+    private boolean hasUnsupportedGltfExtensions(FileHandle fileHandle) {
+        String json = readGltfJsonChunk(fileHandle);
+        if (json == null) return false;
+        for (String ext : UNSUPPORTED_GLTF_EXTENSIONS) {
+            if (json.contains(ext)) return true;
+        }
+        return false;
+    }
+
+    private String readGltfJsonChunk(FileHandle fileHandle) {
+        try (InputStream in = fileHandle.read()) {
+            byte[] magic = new byte[4];
+            if (in.read(magic) < 4
+                    || magic[0] != 'g' || magic[1] != 'l' || magic[2] != 'T' || magic[3] != 'F') {
+                return null;
+            }
+            byte[] skip = new byte[8];
+            if (in.read(skip) < 8) return null;
+            byte[] chunkHeader = new byte[8];
+            if (in.read(chunkHeader) < 8) return null;
+            long chunkLength = ((chunkHeader[3] & 0xFFL) << 24) | ((chunkHeader[2] & 0xFFL) << 16)
+                    | ((chunkHeader[1] & 0xFFL) << 8) | (chunkHeader[0] & 0xFFL);
+            long chunkType = ((chunkHeader[7] & 0xFFL) << 24) | ((chunkHeader[6] & 0xFFL) << 16)
+                    | ((chunkHeader[5] & 0xFFL) << 8) | (chunkHeader[4] & 0xFFL);
+            if (chunkType != 0x4E4F534AL || chunkLength <= 0 || chunkLength > 16L * 1024 * 1024) return null;
+            byte[] jsonBytes = new byte[(int) chunkLength];
+            int read = 0;
+            while (read < jsonBytes.length) {
+                int n = in.read(jsonBytes, read, jsonBytes.length - read);
+                if (n < 0) break;
+                read += n;
+            }
+            if (read < jsonBytes.length) return null;
+            return new String(jsonBytes, "UTF-8");
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
 
 
 
@@ -4014,6 +4130,12 @@ public class ThreeDManager implements Disposable {
             String lowerCasePath = modelPath.toLowerCase();
 
             if (lowerCasePath.endsWith(".glb") || lowerCasePath.endsWith(".gltf")) {
+                if (hasUnsupportedGltfExtensions(fileHandle)) {
+                    Gdx.app.error("3DManager", "Model uses unsupported compression extensions "
+                            + "(KHR_draco_mesh_compression / EXT_meshopt_compression / KHR_texture_basisu), "
+                            + "gdx-gltf cannot load it: " + modelPath);
+                    return false;
+                }
                 net.mgsx.gltf.scene3d.scene.SceneAsset sceneAsset;
 
                 if (lowerCasePath.endsWith(".glb")) {
@@ -4065,8 +4187,8 @@ public class ThreeDManager implements Disposable {
 
                         model = loader.loadModel(patchedModelHandle, true);
                         loadedModels.put(modelCacheKey, model);
-                    } catch (Exception e) {
-                        Gdx.app.error("3DManager", "Could not load model: " + modelPath, e);
+                    } catch (Throwable t) {
+                        Gdx.app.error("3DManager", "Could not load model: " + modelPath, t);
                         return false;
                     }
                 }
@@ -4095,9 +4217,8 @@ public class ThreeDManager implements Disposable {
 
 
 
-        } catch (Exception e) {
-            Gdx.app.error("3DManager_PBR", "Failed to load GLTF model: " + modelPath, e);
-            e.printStackTrace();
+        } catch (Throwable t) {
+            Gdx.app.error("3DManager_PBR", "Failed to load GLTF model: " + modelPath, t);
             return false;
         }
 
@@ -4155,7 +4276,7 @@ public class ThreeDManager implements Disposable {
     }
 
     private float currentShadowSize = 100f;
-    private int currentShadowResolution = 2048;
+    private int currentShadowResolution = 1024;
 
 
     private void setupDefaultLighting() {
@@ -4702,6 +4823,8 @@ public class ThreeDManager implements Disposable {
     public boolean removeObject(String objectId) {
         manager.removeGameObject(manager.findGameObject(objectId));
         ModelInstance instance = sceneObjects.remove(objectId);
+        objectLocalBounds.remove(objectId);
+        objectWorldBounds.remove(objectId);
         if (instance != null) {
             removePhysicsBody(objectId);
             animationControllers.remove(objectId);
@@ -6313,6 +6436,12 @@ public class ThreeDManager implements Disposable {
             Model newModel;
 
             if (lowerCasePath.endsWith(".glb") || lowerCasePath.endsWith(".gltf")) {
+                if (hasUnsupportedGltfExtensions(fileHandle)) {
+                    Gdx.app.error("ThreeDManager", "Model uses unsupported compression extensions "
+                            + "(KHR_draco_mesh_compression / EXT_meshopt_compression / KHR_texture_basisu), "
+                            + "gdx-gltf cannot load it: " + modelPath);
+                    return;
+                }
                 net.mgsx.gltf.scene3d.scene.SceneAsset sceneAsset;
                 if (lowerCasePath.endsWith(".glb")) {
                     sceneAsset = new net.mgsx.gltf.loaders.glb.GLBLoader().load(fileHandle, true);
@@ -6401,8 +6530,8 @@ public class ThreeDManager implements Disposable {
                     oldModel.dispose();
                 }
             }
-        } catch (Exception e) {
-            Gdx.app.error("ThreeDManager", "Could not replace model for object: " + objectId, e);
+        } catch (Throwable t) {
+            Gdx.app.error("ThreeDManager", "Could not replace model for object: " + objectId, t);
         }
     }
 }

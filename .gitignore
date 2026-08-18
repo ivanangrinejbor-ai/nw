@@ -146,3 +146,7 @@ buildSrc/build/
 # KSP / KAPT generated files
 .ksp/
 .kotlin/
+
+# nested clone + build log
+/newcatroid/NewCatroid/
+/build-log.txt

@@ -36,6 +36,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import android.widget.EditText
+import android.widget.LinearLayout
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
@@ -109,6 +112,73 @@ class ProjectFilesFragment : Fragment() {
         binding.projectFilesCmd.setOnClickListener {
             handleCmd()
         }
+        binding.projectFilesNew.setOnClickListener {
+            handleNewFile()
+        }
+    }
+
+    private fun handleNewFile() {
+        val proj = project ?: return
+        val filesDir = File(proj.directory, "files")
+        if (!filesDir.exists()) {
+            filesDir.mkdirs()
+        }
+
+        val nameInput = EditText(requireContext())
+        nameInput.hint = getString(R.string.project_files_new_name)
+        nameInput.setTextColor(0xFF000000.toInt())
+        nameInput.setHintTextColor(0xFF808080.toInt())
+
+        val extInput = EditText(requireContext())
+        extInput.hint = getString(R.string.project_files_new_ext)
+        extInput.setTextColor(0xFF000000.toInt())
+        extInput.setHintTextColor(0xFF808080.toInt())
+
+        val container = LinearLayout(requireContext()).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(60, 20, 60, 0)
+            addView(nameInput)
+            addView(extInput)
+        }
+
+        AlertDialog.Builder(requireContext())
+            .setTitle(R.string.project_files_new)
+            .setView(container)
+            .setPositiveButton(R.string.ok) { _, _ ->
+                val rawName = nameInput.text.toString().trim()
+                var rawExt = extInput.text.toString().trim()
+                if (rawName.isEmpty()) {
+                    Toast.makeText(requireContext(), R.string.project_files_new_error_name, Toast.LENGTH_SHORT).show()
+                    return@setPositiveButton
+                }
+                if (rawExt.startsWith(".")) {
+                    rawExt = rawExt.substring(1)
+                }
+                val invalid = "[\\\\/:*?\"<>|]".toRegex()
+                val fileName = if (rawExt.isEmpty()) rawName else "$rawName.$rawExt"
+                if (invalid.containsMatchIn(fileName)) {
+                    Toast.makeText(requireContext(), R.string.project_files_new_error_chars, Toast.LENGTH_SHORT).show()
+                    return@setPositiveButton
+                }
+                val file = File(filesDir, fileName)
+                if (file.exists()) {
+                    Toast.makeText(requireContext(), R.string.project_files_new_error_exists, Toast.LENGTH_SHORT).show()
+                    return@setPositiveButton
+                }
+                try {
+                    if (file.createNewFile()) {
+                        updateFilesList(filesDir)
+                        Toast.makeText(requireContext(), getRandomMessage(), Toast.LENGTH_SHORT).show()
+                    } else {
+                        Toast.makeText(requireContext(), R.string.project_files_new_error_exists, Toast.LENGTH_SHORT).show()
+                    }
+                } catch (e: Exception) {
+                    Log.e("ProjectFile", "Error creating file", e)
+                    Toast.makeText(requireContext(), "Ошибка при создании: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .setNegativeButton(R.string.cancel_button_text, null)
+            .show()
     }
 
     private fun setupRecyclerView() {

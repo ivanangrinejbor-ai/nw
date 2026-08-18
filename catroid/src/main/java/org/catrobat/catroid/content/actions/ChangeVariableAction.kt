@@ -27,7 +27,9 @@ import org.catrobat.catroid.ProjectManager
 import org.catrobat.catroid.bluetooth.base.BluetoothDevice
 import org.catrobat.catroid.common.CatroidService
 import org.catrobat.catroid.common.ServiceProvider
+import org.catrobat.catroid.content.EventWrapper
 import org.catrobat.catroid.content.Scope
+import org.catrobat.catroid.content.eventids.WhenVariableChangedEventId
 import org.catrobat.catroid.devices.multiplayer.MultiplayerInterface
 import org.catrobat.catroid.formulaeditor.Formula
 import org.catrobat.catroid.formulaeditor.UserVariable
@@ -61,11 +63,19 @@ class ChangeVariableAction : Action() {
         val valueToAdd = value.takeUnless { it.isNaN() } ?: 0.0
         userVariable?.value = original + valueToAdd
 
+        fireVariableChanged()
+
         val multiplayerVariable = ProjectManager.getInstance().currentProject?.getMultiplayerVariable(userVariable?.name)
         multiplayerVariable?.let {
             val multiplayerDevice = getMultiplayerDevice()
             multiplayerDevice?.sendChangedMultiplayerVariables(userVariable)
         }
+    }
+
+    private fun fireVariableChanged() {
+        val sprite = scope?.sprite ?: return
+        val name = userVariable?.name ?: return
+        sprite.look.fire(EventWrapper(WhenVariableChangedEventId(name), false))
     }
 
     fun getMultiplayerDevice(): MultiplayerInterface? = ServiceProvider.getService(CatroidService.BLUETOOTH_DEVICE_SERVICE).getDevice(BluetoothDevice.MULTIPLAYER)

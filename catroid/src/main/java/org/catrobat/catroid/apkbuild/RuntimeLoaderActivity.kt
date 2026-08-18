@@ -159,6 +159,5 @@ class RuntimeLoaderActivity : Activity() {
     override fun onDestroy() {
         super.onDestroy()
         handler.removeCallbacksAndMessages(null)
-        File(cacheDir, "baked_project").deleteRecursively()
     }
 }

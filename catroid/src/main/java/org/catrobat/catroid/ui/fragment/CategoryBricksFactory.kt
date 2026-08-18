@@ -140,6 +140,27 @@ import org.catrobat.catroid.content.bricks.CreateGearJointBrick
 import org.catrobat.catroid.content.bricks.CreateParticlesBrick
 import org.catrobat.catroid.content.bricks.CreateParticleSystemBrick
 import org.catrobat.catroid.content.bricks.SetParticleColorBrick
+import org.catrobat.catroid.content.bricks.SetPenPropertyBrick
+import org.catrobat.catroid.content.bricks.SetTextPropertyBrick
+import org.catrobat.catroid.content.bricks.PenClearColorBrick
+import org.catrobat.catroid.content.bricks.PenDrawCircleBrick
+import org.catrobat.catroid.content.bricks.PenDrawLineBrick
+import org.catrobat.catroid.content.bricks.PenDrawRectBrick
+import org.catrobat.catroid.content.bricks.PenDrawTriangleBrick
+import org.catrobat.catroid.content.bricks.PenFlushBrick
+import org.catrobat.catroid.content.bricks.PtAttentionBrick
+import org.catrobat.catroid.content.bricks.PtClipGradBrick
+import org.catrobat.catroid.content.bricks.PtConv2DBrick
+import org.catrobat.catroid.content.bricks.PtCreateNormalTensorBrick
+import org.catrobat.catroid.content.bricks.PtDropoutBrick
+import org.catrobat.catroid.content.bricks.PtEmbeddingBrick
+import org.catrobat.catroid.content.bricks.PtGruCellBrick
+import org.catrobat.catroid.content.bricks.PtLayerLinearBrick
+import org.catrobat.catroid.content.bricks.PtLstmCellBrick
+import org.catrobat.catroid.content.bricks.PtMaxPool2DBrick
+import org.catrobat.catroid.content.bricks.PtSliceBrick
+import org.catrobat.catroid.content.bricks.PtZeroGradBrick
+import org.catrobat.catroid.content.bricks.MLStepAdamWBrick
 import org.catrobat.catroid.content.bricks.FadeParticleEffectBrick
 import org.catrobat.catroid.content.bricks.ParticleEffectAdditivityBrick
 import org.catrobat.catroid.content.bricks.CreatePointJointBrick
@@ -152,6 +173,7 @@ import org.catrobat.catroid.content.bricks.CreateSpringConstraintBrick
 import org.catrobat.catroid.content.bricks.CreateTableBrick
 import org.catrobat.catroid.content.bricks.CreateTextFieldBrick
 import org.catrobat.catroid.content.bricks.CreateVarBrick
+import org.catrobat.catroid.content.bricks.SetVariableByNameBrick
 import org.catrobat.catroid.content.bricks.CreateVideoBrick
 import org.catrobat.catroid.content.bricks.CreateWebFileBrick
 import org.catrobat.catroid.content.bricks.CreateWebUrlBrick
@@ -618,6 +640,12 @@ import org.catrobat.catroid.content.bricks.SortListBrick
 import org.catrobat.catroid.content.bricks.StopScriptBrick
 import org.catrobat.catroid.content.bricks.SumOfListBrick
 import org.catrobat.catroid.content.bricks.StopServerBrick
+import org.catrobat.catroid.content.bricks.GetFromPastebinBrick
+import org.catrobat.catroid.content.bricks.CheckPortBrick
+import org.catrobat.catroid.content.bricks.SetTcpServerClientLimitBrick
+import org.catrobat.catroid.content.bricks.SetTcpServerTimeoutBrick
+import org.catrobat.catroid.content.bricks.SendToTcpServerBrick
+import org.catrobat.catroid.content.bricks.ListenTcpServerBrick
 import org.catrobat.catroid.content.bricks.StopBufferRecordingBrick
 import org.catrobat.catroid.content.bricks.StopGifBrick
 import org.catrobat.catroid.content.bricks.StopSoundBrick
@@ -1934,6 +1962,13 @@ eventBrickList.add(WhenConditionBrick(WhenConditionScript(Formula(defaultIf))))
         penBrickList.add(ClearCanvasBrick())
         penBrickList.add(SetFontBrick(Formula("Arial"), Formula(12)))
         penBrickList.add(DrawTextBrick(Formula(0.0), Formula(0.0), Formula("")))
+        penBrickList.add(SetPenPropertyBrick(0, "1"))
+        penBrickList.add(PenDrawLineBrick(0.0, 0.0, 100.0, 100.0, 5.0))
+        penBrickList.add(PenDrawTriangleBrick(-50.0, -50.0, 0.0, 50.0, 50.0, -50.0, 1))
+        penBrickList.add(PenDrawRectBrick(0.0, 0.0, 100.0, 100.0, 1))
+        penBrickList.add(PenDrawCircleBrick(0.0, 0.0, 50.0, 0.0, 360.0, 1))
+        penBrickList.add(PenFlushBrick())
+        penBrickList.add(PenClearColorBrick("#FFFFFF", 50.0))
         return penBrickList
     }
 
@@ -1958,6 +1993,7 @@ eventBrickList.add(WhenConditionBrick(WhenConditionScript(Formula(defaultIf))))
                 dataBrickList.add(ShowVarFontBrick(BrickValues.X_POSITION, BrickValues.Y_POSITION, BrickValues.RELATIVE_SIZE_IN_PERCENT, BrickValues.SHOW_VARIABLE_COLOR, "font.ttf"))
                 dataBrickList.add(ShowText3Brick("myText", "Hello!", BrickValues.X_POSITION, BrickValues.Y_POSITION, BrickValues.RELATIVE_SIZE_IN_PERCENT, BrickValues.SHOW_VARIABLE_COLOR))
                 dataBrickList.add(ShowTextFontBrick("myText", "Ababuy!", "font.ttf", BrickValues.X_POSITION, BrickValues.Y_POSITION, BrickValues.RELATIVE_SIZE_IN_PERCENT, BrickValues.SHOW_VARIABLE_COLOR))
+        dataBrickList.add(SetTextPropertyBrick("myText", 0, "100"))
                 dataBrickList.add(WriteVariableOnDeviceBrick())
                 dataBrickList.add(SecureSaveVariableBrick())
                 dataBrickList.add(ReadVariableFromDeviceBrick())
@@ -2008,6 +2044,7 @@ eventBrickList.add(WhenConditionBrick(WhenConditionScript(Formula(defaultIf))))
                 dataBrickList.add(OptionsWebRequestBrick("https://api.calfire.com/v2/texts?limit=50&offset=200",
                     "Content-Type:application/json"))
                 dataBrickList.add(CreateVarBrick("variable1", "0"))
+        dataBrickList.add(SetVariableByNameBrick("variable1", "0"))
                 dataBrickList.add(DeleteVarBrick("variable1"))
                 dataBrickList.add(DeleteVarsBrick())
                 dataBrickList.add(CreateTableBrick("myTable", 5, 5))
@@ -2060,6 +2097,7 @@ eventBrickList.add(WhenConditionBrick(WhenConditionScript(Formula(defaultIf))))
         dataBrickList.add(ChangeVariableBrick(BrickValues.CHANGE_VARIABLE))
         dataBrickList.add(SetVariableEasingBrick(1, 0f, 10f, 0f, 100f))
         dataBrickList.add(CreateVarBrick("variable1", "0"))
+        dataBrickList.add(SetVariableByNameBrick("variable1", "0"))
         dataBrickList.add(DeleteVarBrick("variable1"))
         dataBrickList.add(DeleteVarsBrick())
 
@@ -2086,6 +2124,7 @@ eventBrickList.add(WhenConditionBrick(WhenConditionScript(Formula(defaultIf))))
         dataBrickList.add(ShowVarFontBrick(BrickValues.X_POSITION, BrickValues.Y_POSITION, BrickValues.RELATIVE_SIZE_IN_PERCENT, BrickValues.SHOW_VARIABLE_COLOR, "font.ttf"))
         dataBrickList.add(ShowText3Brick("myText", "Hello!", BrickValues.X_POSITION, BrickValues.Y_POSITION, BrickValues.RELATIVE_SIZE_IN_PERCENT, BrickValues.SHOW_VARIABLE_COLOR))
         dataBrickList.add(ShowTextFontBrick("myText", "Ababuy!", "font.ttf", BrickValues.X_POSITION, BrickValues.Y_POSITION, BrickValues.RELATIVE_SIZE_IN_PERCENT, BrickValues.SHOW_VARIABLE_COLOR))
+        dataBrickList.add(SetTextPropertyBrick("myText", 0, "100"))
         dataBrickList.add(HideTextBrick())
         dataBrickList.add(HideText3Brick("myText"))
         dataBrickList.add(ShowToastBrick("Hello World!"))
@@ -2738,14 +2777,27 @@ void main() {
 
         pocketensorBrickList.add(PtSetTrainingBrick(1))
         pocketensorBrickList.add(PtCreateTensorBrick("tensor", "10,4", 0f, true))
+        pocketensorBrickList.add(PtCreateNormalTensorBrick("noise", "1,10", 0f, 1f, false))
         pocketensorBrickList.add(PtOpBrick())
         pocketensorBrickList.add(PtLinearBrick("linear1", "input", "hidden", 4, 8))
         pocketensorBrickList.add(PtBackwardBrick("loss"))
         pocketensorBrickList.add(PtStepBrick(0.01f))
         pocketensorBrickList.add(MLStepAdamBrick(Formula(0.01f)))
+        pocketensorBrickList.add(MLStepAdamWBrick(0.001f, 0.01f))
         pocketensorBrickList.add(PtSetTensorBrick("tensor", "1,2,3"))
         pocketensorBrickList.add(PtSetByIndexBrick("tensor", 0, 1f))
         pocketensorBrickList.add(PtReshapeBrick("tensor", "20,2"))
+        pocketensorBrickList.add(PtSliceBrick("res", "in", 0, 5))
+        pocketensorBrickList.add(PtDropoutBrick("drop", "x", 0.2f))
+        pocketensorBrickList.add(PtZeroGradBrick())
+        pocketensorBrickList.add(PtClipGradBrick(5f))
+        pocketensorBrickList.add(PtLayerLinearBrick("fc1", "x", "out", 10, 5))
+        pocketensorBrickList.add(PtConv2DBrick("conv1", "img", "features", 1, 16, 3, 1))
+        pocketensorBrickList.add(PtMaxPool2DBrick("pooled", "features", 2, 2))
+        pocketensorBrickList.add(PtGruCellBrick("gru1", "x", "hin", "hout", 8, 16))
+        pocketensorBrickList.add(PtLstmCellBrick("lstm1", "x", "hin", "cin", "hout", "cout", 8, 16))
+        pocketensorBrickList.add(PtEmbeddingBrick("emb1", "tokens", "vectors", 100, 16))
+        pocketensorBrickList.add(PtAttentionBrick("attn1", "x", "context", 8))
         pocketensorBrickList.add(MLSaveBrick("model.bin"))
         pocketensorBrickList.add(MLLoadBrick("model.bin"))
 
@@ -3206,6 +3258,12 @@ void main() {
         internetBrickList.add(ListenServerBrick())
         internetBrickList.add(SendServerBrick("Hi"))
         internetBrickList.add(StopServerBrick())
+        internetBrickList.add(GetFromPastebinBrick("https://pastebin.com/raw/..."))
+        internetBrickList.add(CheckPortBrick("8888"))
+        internetBrickList.add(SetTcpServerClientLimitBrick(10))
+        internetBrickList.add(SetTcpServerTimeoutBrick(30))
+        internetBrickList.add(SendToTcpServerBrick("okay"))
+        internetBrickList.add(ListenTcpServerBrick())
         internetBrickList.add(WriteBaseBrick("firebase_id", "key", "hello"))
         internetBrickList.add(ReadBaseBrick("firebase_id", "key"))
         internetBrickList.add(DeleteBaseBrick("firebase_id", "key"))

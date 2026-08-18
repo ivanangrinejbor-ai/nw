@@ -44,6 +44,12 @@ open class BaseExceptionHandler(context: Context) : Thread.UncaughtExceptionHand
             val logcat = CrashReporter.collectLogcat()
             val report = CrashReporter.buildReport(thread, exception, logcat)
             val reportFile = CrashReporter.saveReport(appContext, report)
+            try {
+                val crashFile = File(appContext.cacheDir, LAST_CRASH_LOG_FILE)
+                crashFile.writeText(report)
+            } catch (e: Exception) {
+                Log.e(TAG, "failed to write last_crash_log.txt", e)
+            }
             preferences.edit()
                 .putBoolean(RECOVERED_FROM_CRASH, true)
                 .apply()
@@ -75,5 +81,6 @@ open class BaseExceptionHandler(context: Context) : Thread.UncaughtExceptionHand
 
     companion object {
         private val TAG = BaseExceptionHandler::class.java.simpleName
+        const val LAST_CRASH_LOG_FILE = "last_crash_log.txt"
     }
 }

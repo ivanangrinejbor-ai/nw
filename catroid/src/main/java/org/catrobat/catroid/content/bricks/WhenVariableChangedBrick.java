@@ -7,6 +7,7 @@ import org.catrobat.catroid.ProjectManager;
 import org.catrobat.catroid.R;
 import org.catrobat.catroid.common.Nameable;
 import org.catrobat.catroid.content.Script;
+import org.catrobat.catroid.content.Scene;
 import org.catrobat.catroid.content.Sprite;
 import org.catrobat.catroid.content.WhenVariableChangedScript;
 import org.catrobat.catroid.content.actions.ScriptSequenceAction;
@@ -155,6 +156,10 @@ public class WhenVariableChangedBrick extends BrickBaseType implements Composite
         varItems.add(new NewOption(context.getString(R.string.new_option)));
         if (sprite != null) {
             varItems.addAll(sprite.getUserVariables());
+        }
+        Scene editedScene = ProjectManager.getInstance().getCurrentlyEditedScene();
+        if (editedScene != null) {
+            varItems.addAll(editedScene.getSceneVariables());
         }
         varItems.addAll(ProjectManager.getInstance().getCurrentProject().getUserVariables());
 

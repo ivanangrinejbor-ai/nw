@@ -7,12 +7,12 @@
     <string name="formula_editor_valid">Formula is valid</string>
     <string name="formula_editor_invalid">Formula error at position %1$d</string>
 
-    <string name="project_reload_status">Reloading project…</string>
+    <string name="project_reload_status">Reloading projectвЂ¦</string>
     <string-array name="project_reload_facts">
         <item>You can share .neoscript modules between projects!</item>
         <item>Hold a brick to access copy, paste, and cut actions.</item>
         <item>Variables can be local to a sprite or global to all sprites.</item>
-        <item>Use «When I start as clone» to run code only on clones.</item>
+        <item>Use В«When I start as cloneВ» to run code only on clones.</item>
         <item>LunoScript lets you write scripts in a real programming language.</item>
         <item>3D objects and 2D sprites can coexist in the same scene.</item>
         <item>You can create and assign scripts at runtime with NeoScript bricks.</item>
@@ -295,6 +295,8 @@
     <string name="editor_3d_add_cube">Add Cube</string>
     <string name="editor_3d_add_sphere">Add Sphere</string>
     <string name="editor_3d_inspector">Inspector</string>
+    <string name="editor_3d_particles">Particles</string>
+    <string name="editor_3d_particles_add_prompt">This object has no particle system yet. Add a Particle System 3D component and open the particle editor?</string>
 
     <string name="editor_3d_mass_delete_title">Mass Delete</string>
     <string name="editor_3d_mass_delete_msg">Delete ALL objects containing \'%1$s\'?</string>
@@ -429,8 +431,8 @@
     <string name="editor_3d_pp_quality">Quality Scale (0.1 - 1.0)</string>
     <string name="editor_3d_pp_add_effect">Add Effect</string>
 
-    <string name="formula_fold">Collapse [－]</string>
-    <string name="formula_unfold">Expand [＋]</string>
+    <string name="formula_fold">Collapse [пјЌ]</string>
+    <string name="formula_unfold">Expand [пј‹]</string>
     <string name="brick_context_dialog_system_info">System Info</string>
     <string name="dialog_add_brick_system_info_button">System Info</string>
     <string name="dialog_add_brick_system_info_title">Block Properties</string>
@@ -728,6 +730,10 @@
     <string formatted="false" name="pathfinder_blocked_action">If blocked</string>
     <string formatted="false" name="pathfinder_blocked_dont_go">don\'t go</string>
     <string formatted="false" name="pathfinder_blocked_stop_there">stop where blocked</string>
+    <string formatted="false" name="pathfinder_strategy">Path</string>
+    <string formatted="false" name="pathfinder_strategy_short">short</string>
+    <string formatted="false" name="pathfinder_strategy_medium">normal</string>
+    <string formatted="false" name="pathfinder_strategy_long">long</string>
     <string formatted="false" name="transition_fade_to_black">Fade to Black</string>
     <string formatted="false" name="transition_fade_from_black">Fade from Black</string>
     <string formatted="false" name="transition_crossfade">Crossfade</string>
@@ -749,8 +755,8 @@
     <string name="export_protected_project">Export as protected project</string>
     <string name="export_compressed_light">Export with light compression</string>
     <string name="export_compressed_hard">Export with hard compression</string>
-    <string name="export_compressed_light_progress">Cleaning up project…</string>
-    <string name="export_compressed_hard_progress">Converting assets…</string>
+    <string name="export_compressed_light_progress">Cleaning up projectвЂ¦</string>
+    <string name="export_compressed_hard_progress">Converting assetsвЂ¦</string>
     <string name="export_image_format">Image format</string>
     <string name="export_audio_format">Audio format</string>
     <string name="export_keep_original">Keep original</string>
@@ -765,8 +771,8 @@
     <string name="confirm_password_hint">Confirm password</string>
     <string name="passwords_dont_match">Passwords do not match</string>
     <string name="encrypted_file_detected">Encrypted project detected. Enter password to open:</string>
-    <string name="exporting_project">Exporting project…</string>
-    <string name="encrypting_project">Encrypting…</string>
+    <string name="exporting_project">Exporting projectвЂ¦</string>
+    <string name="encrypting_project">EncryptingвЂ¦</string>
     <string formatted="false" name="transition">Transitions</string>
     <string name="preference_title_pcmode" formatted="false">Enable big-screen interface</string>
     <string name="fast2d_set_collision_filter" formatted="false">Collision filter</string>
@@ -1005,7 +1011,7 @@
     <string name="pt_reshape">Change shape of</string>
     <string name="pt_reshape_to">to</string>
     <string name="set_tensor">set</string>
-    <string name="project_options_build_exe">Собрать EXE</string>
+    <string name="project_options_build_exe">РЎРѕР±СЂР°С‚СЊ EXE</string>
 
 <string formatted="false" name="pathfinder_replan">Dynamic replan</string>
 <string formatted="false" name="pathfinder_replan_enabled">Enabled (1/0)</string>
@@ -1599,9 +1605,9 @@
 <string name="brick_upload_mime_type">MIME type</string>
 <string name="brick_upload_storage_type">Storage type</string>
 <string name="brick_set_3d_fog">Set Fog</string>
-<string name="brick_3d_fog_r">R (0���1)</string>
-<string name="brick_3d_fog_g">G (0���1)</string>
-<string name="brick_3d_fog_b">B (0���1)</string>
+<string name="brick_3d_fog_r">R (0пїЅпїЅпїЅ1)</string>
+<string name="brick_3d_fog_g">G (0пїЅпїЅпїЅ1)</string>
+<string name="brick_3d_fog_b">B (0пїЅпїЅпїЅ1)</string>
 <string name="brick_3d_fog_density">density</string>
 <string name="brick_create_sphere" formatted="false">Create sphere with ID</string>
 <string name="formula_3d_touches" formatted="false">object touches object</string>
@@ -1794,15 +1800,15 @@
     <string formatted="false" name="hitbox_add">Add hitbox</string>
     <string formatted="false" name="hitbox_delete">Delete hitbox</string>
     <string formatted="false" name="hitbox_save">Save hitboxes</string>
-    <string formatted="false" name="hitbox_hint_default">Tap hitbox to select • Drag handles to resize • Long press to move • Double tap to rotate</string>
-    <string formatted="false" name="hitbox_hint_modified">Modified — press save to apply</string>
+    <string formatted="false" name="hitbox_hint_default">Tap hitbox to select вЂў Drag handles to resize вЂў Long press to move вЂў Double tap to rotate</string>
+    <string formatted="false" name="hitbox_hint_modified">Modified вЂ” press save to apply</string>
     <string formatted="false" name="hitbox_hint_added">Hitbox added</string>
     <string formatted="false" name="hitbox_hint_deleted">Hitbox deleted</string>
     <string formatted="false" name="hitbox_editor_menu">Hitbox editor</string>
     <string name="hitbox_info_button_desc">Info</string>
     <string name="hitbox_mode_full">Full</string>
     <string name="hitbox_mode_physics">Physics</string>
-<string formatted="false" name="ogurec">�� T�T� ��TΦ-��T�T� �-��T�T�T�T�?</string>
+<string formatted="false" name="ogurec">пїЅпїЅ TпїЅTпїЅ пїЅпїЅTО¦-пїЅпїЅTпїЅTпїЅ пїЅ-пїЅпїЅTпїЅTпїЅTпїЅTпїЅ?</string>
 <string formatted="false" name="only_numbers">Only numbers and fractional numbers allowed here</string>
 <string formatted="false" name="project_physics_height">Physics height area</string>
 <string formatted="false" name="project_physics_width">Physics width area</string>
@@ -1838,7 +1844,7 @@
 <string formatted="false" name="formula_editor_function_random_str">random string</string>
 <string formatted="false" name="formula_editor_function_random_str_parameter">(15)</string>
 <string formatted="false" name="formula_editor_function_repeat">repeat text</string>
-<string formatted="false" name="formula_editor_function_repeat_parameter">(\'���-�-T¦-T����-���� - ��T������-�-�� �-����Tæ-��T� \', 10)</string>
+<string formatted="false" name="formula_editor_function_repeat_parameter">(\'пїЅпїЅпїЅ-пїЅ-TВ¦-TпїЅпїЅпїЅпїЅ-пїЅпїЅпїЅпїЅ - пїЅпїЅTпїЅпїЅпїЅпїЅпїЅпїЅ-пїЅ-пїЅпїЅ пїЅ-пїЅпїЅпїЅпїЅTГ¦-пїЅпїЅTпїЅ \', 10)</string>
 <string formatted="false" name="formula_editor_function_replace">replace</string>
 <string formatted="false" name="formula_editor_function_replace_parameter">(\'pandas love bamboo\',\'love\',\'eat\')</string>
 <string formatted="false" name="formula_editor_function_contains_str">string contains</string>
@@ -1872,13 +1878,20 @@
 <string formatted="false" name="change_icon_button">Change icon</string>
 <string formatted="false" name="change_orientation_button">Change orientation</string>
 <string formatted="false" name="clear_vars_button">Clear saved variables</string>
-<string formatted="false" name="brick_send_server">Send to local server</string>
-<string formatted="false" name="brick_listen_server">Listen server and store</string>
+<string formatted="false" name="brick_send_server">Send to TCP server</string>
+<string formatted="false" name="brick_listen_server">Listen TCP server and store</string>
 <string formatted="false" name="brick_connect_server2">with ip</string>
 <string formatted="false" name="brick_connect_server3">and port</string>
-<string formatted="false" name="brick_connect_server">Connect to local server</string>
-<string formatted="false" name="brick_stop_server">Stop local server</string>
-<string formatted="false" name="brick_start_server">Start local lerver with port</string>
+<string formatted="false" name="brick_connect_server">Connect to TCP server</string>
+<string formatted="false" name="brick_stop_server">Stop TCP server</string>
+<string formatted="false" name="brick_start_server">Start TCP server with port</string>
+<string formatted="false" name="brick_get_from_pastebin">Get from Pastebin</string>
+<string formatted="false" name="brick_check_port">Check port</string>
+<string formatted="false" name="brick_set_tcp_client_limit">TCP server client limit</string>
+<string formatted="false" name="brick_set_tcp_timeout">TCP server timeout (seconds)</string>
+<string formatted="false" name="brick_send_to_tcp_server">Send to TCP server</string>
+<string formatted="false" name="brick_listen_tcp_server">Listen TCP server and store</string>
+<string formatted="false" name="formula_external_ip">External_ip</string>
 <string formatted="false" name="brick_screenshot">Take screenshot and store it as look</string>
 <string formatted="false" name="formula_editor_function_distance">levenshtein distance</string>
 <string formatted="false" name="formula_editor_function_distance_parameter">(\'panda\', \'lavanda\')</string>
@@ -1917,6 +1930,8 @@
 <string formatted="false" name="brick_delete_vars">Delete all local variables</string>
 <string formatted="false" name="brick_create_var">Create/Set Local Variable</string>
 <string formatted="false" name="brick_create_var2">to</string>
+    <string formatted="false" name="brick_set_variable_by_name">Set Variable by Name</string>
+    <string formatted="false" name="brick_set_variable_by_name2">to</string>
 <string formatted="false" name="formula_editor_sensor_frequency">micro frecuency</string>
 <string formatted="false" name="formula_editor_sensor_ip">local server ip</string>
 <string formatted="false" name="formula_editor_sensor_port">local server port</string>
@@ -1992,8 +2007,8 @@
 <string formatted="false" name="settings">Settings</string>
 <string formatted="false" name="redo">Redo</string>
 <string formatted="false" name="undo">Undo</string>
-<string formatted="false" name="new_option">new���</string>
-<string formatted="false" name="edit_option">edit���</string>
+<string formatted="false" name="new_option">newпїЅпїЅпїЅ</string>
+<string formatted="false" name="edit_option">editпїЅпїЅпїЅ</string>
 <string formatted="false" name="confirm">Confirm</string>
 <string formatted="false" name="ignore">Ignore</string>
 <string formatted="false" name="cancel">Cancel</string>
@@ -2002,6 +2017,12 @@
 <string formatted="false" name="discard">Discard</string>
 <string formatted="false" name="next">Next</string>
 <string formatted="false" name="ok">OK</string>
+    <string formatted="false" name="project_files_new">New file</string>
+    <string formatted="false" name="project_files_new_name">File name</string>
+    <string formatted="false" name="project_files_new_ext">Extension (optional)</string>
+    <string formatted="false" name="project_files_new_error_name">Enter a file name</string>
+    <string formatted="false" name="project_files_new_error_chars">Invalid characters in file name</string>
+    <string formatted="false" name="project_files_new_error_exists">A file with this name already exists</string>
 <string formatted="false" name="done">Done</string>
 <string formatted="false" name="close">Close</string>
 <string formatted="false" name="yes">Yes</string>
@@ -2017,7 +2038,7 @@
 <string formatted="false" name="skip">skip</string>
 <string formatted="false" name="warning">Warning</string>
 <string formatted="false" name="error">Error</string>
-<string formatted="false" name="loading">Loading���</string>
+<string formatted="false" name="loading">LoadingпїЅпїЅпїЅ</string>
 <string formatted="false" name="please_wait">Please wait</string>
 <string formatted="false" name="search_hint">Search</string>
 <string formatted="false" name="backpack_add">Add to backpack</string>
@@ -2025,9 +2046,9 @@
 <string formatted="false" name="api_replacement_dialog_neutral">Upload without change</string>
 <string formatted="false" name="api_replacement_dialog_accept">Upload with keys replaced</string>
 <string formatted="false" name="api_replacement">insert API key here</string>
-<string formatted="false" name="loading_check_oauth_token">Checking login data���</string>
-<string formatted="false" name="loading_google_exchange_code">Exchanging Google login data���</string>
-<string formatted="false" name="loading_google_login">Google login on our server is complete���</string>
+<string formatted="false" name="loading_check_oauth_token">Checking login dataпїЅпїЅпїЅ</string>
+<string formatted="false" name="loading_google_exchange_code">Exchanging Google login dataпїЅпїЅпїЅ</string>
+<string formatted="false" name="loading_google_login">Google login on our server is completeпїЅпїЅпїЅ</string>
 <string formatted="false" name="logout_successful">Logout successful</string>
 <string formatted="false" name="degrees">degrees</string>
 <string formatted="false" name="background">Background</string>
@@ -2171,15 +2192,15 @@
 <string formatted="false" name="search_failed">Nothing found, please retry later.</string>
 <string formatted="false" name="connection_lost_or_closed_by_server">Server connection lost.</string>
 <string formatted="false" name="connection_failed">We can\'t connect you to the server right now, please try again later.</string>
-<string formatted="false" name="scratch_conversion_started">Started to convert Scratch project���</string>
+<string formatted="false" name="scratch_conversion_started">Started to convert Scratch projectпїЅпїЅпїЅ</string>
 <string formatted="false" name="convert">Convert</string>
-<string formatted="false" name="converting">Converting���</string>
+<string formatted="false" name="converting">ConvertingпїЅпїЅпїЅ</string>
 <string formatted="false" name="status_scheduled">Scheduled</string>
-<string formatted="false" name="status_waiting_for_worker">Looking for a free worker��� Please wait���</string>
-<string formatted="false" name="status_started">Started���</string>
+<string formatted="false" name="status_waiting_for_worker">Looking for a free workerпїЅпїЅпїЅ Please waitпїЅпїЅпїЅ</string>
+<string formatted="false" name="status_started">StartedпїЅпїЅпїЅ</string>
 <string formatted="false" name="status_conversion_finished">Conversion finished</string>
 <string formatted="false" name="status_conversion_failed">Conversion failed!</string>
-<string formatted="false" name="status_downloading">Downloading���</string>
+<string formatted="false" name="status_downloading">DownloadingпїЅпїЅпїЅ</string>
 <string formatted="false" name="status_download_finished">Download finished.</string>
 <string formatted="false" name="status_download_canceled">Download canceled!</string>
 <string formatted="false" name="scratch_programs_in_progress_title">In progress</string>
@@ -2198,7 +2219,7 @@
 <string formatted="false" name="details_sprites_count">Total sprites:</string>
 <string formatted="false" name="details_sounds_count">Total sounds:</string>
 <string formatted="false" name="details_scenes_count">Total scenes:</string>
-<string formatted="false" name="details_counting">Counting���</string>
+<string formatted="false" name="details_counting">CountingпїЅпїЅпїЅ</string>
 <string formatted="false" name="description_hint">Press to add description</string>
 <string formatted="false" name="notes_and_credits_hint">Press to add notes and credits</string>
 <string formatted="false" name="reconvert_text">You converted this project %1$s ago.</string>
@@ -2351,14 +2372,14 @@
 <string formatted="false" name="import_progress_title">Importing project</string>
 <string formatted="false" name="import_progress_details">Details</string>
 <string formatted="false" name="import_progress_hide_details">Hide details</string>
-<string formatted="false" name="import_step_decrypt">Decrypting���</string>
-<string formatted="false" name="import_step_unzip">Extracting archive���</string>
-<string formatted="false" name="import_step_unzip_progress">Unzipping: file %1$d/%2$d ��� %3$s</string>
-<string formatted="false" name="import_step_scanning">Scanning project���</string>
+<string formatted="false" name="import_step_decrypt">DecryptingпїЅпїЅпїЅ</string>
+<string formatted="false" name="import_step_unzip">Extracting archiveпїЅпїЅпїЅ</string>
+<string formatted="false" name="import_step_unzip_progress">Unzipping: file %1$d/%2$d пїЅпїЅпїЅ %3$s</string>
+<string formatted="false" name="import_step_scanning">Scanning projectпїЅпїЅпїЅ</string>
 <string formatted="false" name="import_step_scene">Scene: %1$s</string>
-<string formatted="false" name="import_step_sprite">  ��� Object: %1$s</string>
-<string formatted="false" name="import_step_copy">Copying files���</string>
-<string formatted="false" name="import_step_finish">Finishing���</string>
+<string formatted="false" name="import_step_sprite">  пїЅпїЅпїЅ Object: %1$s</string>
+<string formatted="false" name="import_step_copy">Copying filesпїЅпїЅпїЅ</string>
+<string formatted="false" name="import_step_finish">FinishingпїЅпїЅпїЅ</string>
 <string formatted="false" name="project_options_description">Description</string>
 <string formatted="false" name="project_options_notes_and_credits">Notes and credits</string>
 <string formatted="false" name="project_options_tags">Tags</string>
@@ -2389,11 +2410,13 @@
 <string formatted="false" name="multiplayer_vars_headline">Variables for connected devices</string>
 <string formatted="false" name="global_vars_headline">Variables for all actors and objects</string>
 <string formatted="false" name="local_vars_headline">Variables for this actor or object only</string>
-<string formatted="false" name="global_lists_headline">Lists for all actors and objects</string>
+    <string formatted="false" name="scene_vars_headline">Variables for this scene only</string>
+    <string formatted="false" name="global_lists_headline">Lists for all actors and objects</string>
 <string formatted="false" name="local_lists_headline">Lists for this actor or object only</string>
 <string formatted="false" name="fragment_data_text_description">Tap \"+\" to add\nvariables or lists</string>
 <string formatted="false" name="new_data_for_all_sprites">For all actors, objects, and clones in all scenes</string>
 <string formatted="false" name="new_data_for_this_sprite_only">For this actor, object, or one of its clones only</string>
+    <string formatted="false" name="new_data_for_this_scene_only">For this scene only</string>
 <string formatted="false" name="backpack_title">Your backpack</string>
 <string formatted="false" name="actor_object_title">Actors and Objects</string>
 <string formatted="false" name="pack">Pack</string>
@@ -2677,7 +2700,7 @@
 <string formatted="false" name="brick_set_velocity_to">"Set velocity to"</string>
 <string formatted="false" name="brick_set_velocity_unit">steps/second</string>
 <string formatted="false" name="brick_set_angular_velocity">Set angular velocity to</string>
-<string formatted="false" name="brick_set_angular_velocity_unit">°/sec</string>
+<string formatted="false" name="brick_set_angular_velocity_unit">В°/sec</string>
 <string formatted="false" name="brick_set_linear_damping">Set linear damping to</string>
 <string formatted="false" name="brick_set_angular_damping">Set angular damping to</string>
 <string formatted="false" name="brick_set_fixed_rotation">Set fixed rotation</string>
@@ -2735,7 +2758,7 @@
 <string formatted="false" name="brick_vibration">Vibrate for</string>
 <string formatted="false" name="brick_ask_label">Ask</string>
 <string formatted="false" name="brick_ask_label2">Set clue</string>
-<string formatted="false" name="brick_ask_label3">Set text "��k"</string>
+<string formatted="false" name="brick_ask_label3">Set text "пїЅпїЅk"</string>
 <string formatted="false" name="brick_ask_label4">Set text "Canel"</string>
 <string formatted="false" name="brick_ask_label5">Default value</string>
 <string formatted="false" name="brick_ask_store">and store written answer in</string>
@@ -2925,7 +2948,7 @@
 <string formatted="false" name="brick_write_list_on_device">Write list on device</string>
 <string formatted="false" name="brick_read_list_from_device">Read list from device</string>
 <string formatted="false" name="unknown_brick_text">This block is not available in this engine: %s</string>
-<string formatted="false" name="brick_note_default_value">add comment here���</string>
+<string formatted="false" name="brick_note_default_value">add comment hereпїЅпїЅпїЅ</string>
 <string formatted="false" name="brick_think_bubble_default_value">Hmmmm!</string>
 <string formatted="false" name="brick_say_bubble_default_value">Hello!</string>
 <string formatted="false" name="brick_broadcast_default_value">"new message"</string>
@@ -3101,7 +3124,7 @@
 <string formatted="false" name="title_other_devices">Available devices</string>
 <string formatted="false" name="bluetooth_connection_title">Bluetooth connection</string>
 <string formatted="false" name="skip_bluetooth_connection">Skip</string>
-<string formatted="false" name="connecting_please_wait">Connecting to your device.\nPlease wait���</string>
+<string formatted="false" name="connecting_please_wait">Connecting to your device.\nPlease waitпїЅпїЅпїЅ</string>
 <string formatted="false" name="bt_connection_failed">Connection to device failed!</string>
 <string formatted="false" name="none_found">No unpaired devices found</string>
 <string formatted="false" name="brick_arduino_select_digital_value">Set Arduino digital pin</string>
@@ -3128,7 +3151,7 @@
 <string formatted="false" name="nxt_play_tone">Play NXT tone</string>
 <string formatted="false" name="nxt_tone_duration">Duration</string>
 <string formatted="false" name="nxt_tone_frequency">Frequency</string>
-<string formatted="false" name="nxt_tone_hundred_hz">+�100Hz</string>
+<string formatted="false" name="nxt_tone_hundred_hz">+пїЅ100Hz</string>
 <string formatted="false" name="nxt_motor_a">A</string>
 <string formatted="false" name="nxt_motor_b">B</string>
 <string formatted="false" name="nxt_motor_c">C</string>
@@ -3596,10 +3619,10 @@
 <string formatted="false" name="formula_editor_logic_greaterequal">&#x2265;</string>
 <string formatted="false" name="formula_editor_logic_leserequal">&#x2264;</string>
 <string formatted="false" name="formula_editor_logic_equal">=</string>
-<string formatted="false" name="formula_editor_operator_mult">+�</string>
+<string formatted="false" name="formula_editor_operator_mult">+пїЅ</string>
 <string formatted="false" name="formula_editor_operator_plus">+</string>
 <string formatted="false" name="formula_editor_operator_minus">-</string>
-<string formatted="false" name="formula_editor_operator_divide">+�</string>
+<string formatted="false" name="formula_editor_operator_divide">+пїЅ</string>
 <string formatted="false" name="formula_editor_operator_power">^</string>
 <string formatted="false" name="formula_editor_operator_concat">..</string>
 <string formatted="false" name="formula_editor_image_button_description_delete">delete</string>
@@ -3760,7 +3783,7 @@
 <string formatted="false" name="plus" translatable="false">+</string>
 <string formatted="false" name="device_language">Your device\'s language</string>
 <string formatted="false" name="percent_symbol">%</string>
-<string formatted="false" name="hertz_symbol">���</string>
+<string formatted="false" name="hertz_symbol">пїЅпїЅпїЅ</string>
 <string formatted="false" name="sans_serif_font" translatable="false">sans_serif</string>
 <string formatted="false" name="serif_font" translatable="false">serif</string>
 <string formatted="false" name="edit">Edit</string>
@@ -3783,7 +3806,7 @@
 <string formatted="false" name="sort">Sort</string>
 <string formatted="false" name="checkbox">checkbox</string>
 <string name="ai_token_limit_title">AI max tokens</string>
-<string name="ai_token_limit_summary">Context window size (500��-?"40000, default 2000). Higher = more context, slower inference.</string>
+<string name="ai_token_limit_summary">Context window size (500пїЅпїЅ-?"40000, default 2000). Higher = more context, slower inference.</string>
 <string formatted="false" name="brick_count_loop">repeat %s times store</string>
 <string formatted="false" name="brick_count_loop_variable">iteration in var</string>
 <string formatted="false" name="brick_delay_microseconds">delay</string>
@@ -3908,7 +3931,7 @@
 <string name="formula_admob_last_error_message">Last AdMob error message</string>
 <string name="formula_admob_is_google_play_services_available">Google Play Services available</string>
 <string name="cancel_button_text">Cancel</string>
-<string name="import_step_prepare">Preparing import���</string>
+<string name="import_step_prepare">Preparing importпїЅпїЅпїЅ</string>
 <string name="neopaint_color_picker">Color picker</string>
 <string name="neopaint_title">NeoPaint Editor</string>
 <string name="neopaint_tool_brush">Brush</string>
@@ -4261,7 +4284,7 @@ For precise details of the license see the link below.</string>
 <string formatted="false" name="warning_program_visibility">WARNING:\nThis seems to be a private project. You can try to
         convert it but it might not work.</string>
 <string formatted="false" name="declined_terms_of_use_and_service_alert">To use our app, it is necessary to accept our Terms of Use and Service.
-        However, if you don\���t feel comfortable to do so, you can use our free web-services on</string>
+        However, if you don\пїЅпїЅпїЅt feel comfortable to do so, you can use our free web-services on</string>
 <string formatted="false" name="name_consists_of_spaces_only">You only put spaces into the text field, please enter a text
         using letters, numbers or other special characters.</string>
 <string formatted="false" name="dialog_confirm_delete">Are you sure that you want to
@@ -4279,7 +4302,7 @@ For precise details of the license see the link below.</string>
 THIS APPLICATION IS A FORK OF Catrobat/Catroid, and is also open source (Danveyd/NeoCatroid).\n
 The source code is primarily licensed under the GNU AGPL v3. (This is the same as the original project.)\n
 For detailed license information, see the link below.\n</string>
-<string formatted="false" name="error_register_invalid_username">Username should only contain letters (a���z), numbers (0���9),
+<string formatted="false" name="error_register_invalid_username">Username should only contain letters (aпїЅпїЅпїЅz), numbers (0пїЅпїЅпїЅ9),
         dashes (-), underscores (_), and periods (.).</string>
 <string formatted="false" name="error_register_username_start_with">Username should not start with dashes (-), underscores (_), or
         periods (.).</string>
@@ -4348,8 +4371,8 @@ needs read and write access to it. You can always change permissions through you
 <string formatted="false" name="formula_editor_dialog_change_regular_expression">Change regular
         expression</string>
 <string formatted="false" name="formula_editor_intro_summary_formula_editor">With the formula editor you can create mathematical and
-        logical formulas that you can use in your bricks.\n\nContinue by tapping ���NEXT��� or exit
-        with ���SKIP���.
+        logical formulas that you can use in your bricks.\n\nContinue by tapping пїЅпїЅпїЅNEXTпїЅпїЅпїЅ or exit
+        with пїЅпїЅпїЅSKIPпїЅпїЅпїЅ.
     </string>
 <string formatted="false" name="formula_editor_intro_summary_keyboard">This is where you can create
         your formula, just like on a calculator.</string>
@@ -4386,7 +4409,7 @@ needs read and write access to it. You can always change permissions through you
         and on.</string>
 <string formatted="false" name="deletion_alert_text">Deleting a variable or list that is still in use can cause
         errors. You can\'t undo this!</string>
-<string formatted="false" name="progress_upload_dialog_message">Your project gets uploaded to the app\���s sharing site where others
+<string formatted="false" name="progress_upload_dialog_message">Your project gets uploaded to the app\пїЅпїЅпїЅs sharing site where others
         can use and download it. You can also download your project as a standalone app.</string>
 <string formatted="false" name="progress_upload_dialog_failed">Upload failed. Please check your internet connection and try
         again!</string>
@@ -4415,153 +4438,161 @@ needs read and write access to it. You can always change permissions through you
         without a look.</string>
 <string name="permission_info_permanent_denial_text">This app needs the requested permission to function properly. In order to save images to the local memory, the app needs read and write access to it.
         As you have denied permission with do not ask again, please go to your phone settings and grant the required permissions if you wish to use the associated functions.</string>
-<string name="formula_crypto_hash_file" formatted="false">Hash_файл</string>
+<string name="formula_crypto_hash_file" formatted="false">Hash_С„Р°Р№Р»</string>
 <string name="formula_crypto_hmac_sha_256" formatted="false">HMAC_SHA_256</string>
-<string name="formula_crypto_generate_uuid" formatted="false">Сгенерировать_UUID</string>
+<string name="formula_crypto_generate_uuid" formatted="false">РЎРіРµРЅРµСЂРёСЂРѕРІР°С‚СЊ_UUID</string>
 <string formatted="false" name="formula_editor_object_general">General properties</string>
 <string formatted="false" name="dialog_terms_of_use_jumpingsumo_reminder_text">You are about to use this app together with
         Parrot\'s Jumping Sumo. We strongly remind you to abide by both Parrot\'s and Catrobat\'s Terms of Use and
         Services.</string>
-<string name="formula_crypto_is_base64" formatted="false">Это_base64</string>
+<string name="formula_crypto_is_base64" formatted="false">Р­С‚Рѕ_base64</string>
 <string formatted="false" name="notification_low_battery_with_value">Attention. Battery is low. Current status is %d</string>
-<string name="formula_crypto_derive_key" formatted="false">Произвести_ключ</string>
-<string formatted="false" name="dialog_new_broadcast_message_name">порука:</string>
-<string name="formula_crypto_hex_encode_param" formatted="false">(байты)</string>
-<string name="formula_crypto_random_hex_param" formatted="false">(длина)</string>
-<string name="formula_crypto_rsa_verify" formatted="false">RSA_проверка</string>
+<string name="formula_crypto_derive_key" formatted="false">РџСЂРѕРёР·РІРµСЃС‚Рё_РєР»СЋС‡</string>
+<string formatted="false" name="dialog_new_broadcast_message_name">РїРѕСЂСѓРєР°:</string>
+<string name="formula_crypto_hex_encode_param" formatted="false">(Р±Р°Р№С‚С‹)</string>
+<string name="formula_crypto_random_hex_param" formatted="false">(РґР»РёРЅР°)</string>
+<string name="formula_crypto_rsa_verify" formatted="false">RSA_РїСЂРѕРІРµСЂРєР°</string>
 <string name="formula_crypto_generate_uuid_param" formatted="false"></string>
-<string name="import_selected">Импортировать</string>
-<string name="formula_crypto_chacha20_decrypt_param" formatted="false">(данные, ключ, nonce)</string>
+<string name="import_selected">РРјРїРѕСЂС‚РёСЂРѕРІР°С‚СЊ</string>
+<string name="formula_crypto_chacha20_decrypt_param" formatted="false">(РґР°РЅРЅС‹Рµ, РєР»СЋС‡, nonce)</string>
 <string formatted="false" name="button_scan">Search Bluetooth devices</string>
 <string name="formula_crypto_pbkdf2" formatted="false">PBKDF2</string>
-<string formatted="false" name="brick_post_web_request">Отправить POST веб-запрос</string>
+<string formatted="false" name="brick_post_web_request">РћС‚РїСЂР°РІРёС‚СЊ POST РІРµР±-Р·Р°РїСЂРѕСЃ</string>
 <string formatted="false" name="error_no_jumpingsumo_connected">Connect your wifi to the Jumping Sumo and try again.</string>
 <string name="formula_crypto_sha_224" formatted="false">SHA_224</string>
-<string name="import_fonts_from_project">Импорт шрифтов из проекта</string>
-<string formatted="false" name="formula_file_read_string_param">(\'строка\', \'имяФайла\')</string>
-<string name="formula_crypto_compare_hash_param" formatted="false">(текст, хеш)</string>
+<string name="import_fonts_from_project">РРјРїРѕСЂС‚ С€СЂРёС„С‚РѕРІ РёР· РїСЂРѕРµРєС‚Р°</string>
+<string formatted="false" name="formula_file_read_string_param">(\'СЃС‚СЂРѕРєР°\', \'РёРјСЏР¤Р°Р№Р»Р°\')</string>
+<string name="formula_crypto_compare_hash_param" formatted="false">(С‚РµРєСЃС‚, С…РµС€)</string>
 <string formatted="false" name="dialog_terms_of_use_link_text_parrot_reminder">Terms of Use and Service</string>
 <string name="formula_crypto_hmac_sha_512" formatted="false">HMAC_SHA_512</string>
-<string formatted="false" name="export_exporting">Экспорт проекта…</string>
-<string formatted="false" name="notification_action_behavior_add_input_field">С вводом текста</string>
-<string name="formula_crypto_random_base64" formatted="false">Случ_base64</string>
-<string formatted="false" name="build_desktop_bundle_title">Сборка ZIP для Windows</string>
-<string name="formula_crypto_chacha20_encrypt_param" formatted="false">(текст, ключ, nonce)</string>
+<string formatted="false" name="export_exporting">Р­РєСЃРїРѕСЂС‚ РїСЂРѕРµРєС‚Р°вЂ¦</string>
+<string formatted="false" name="notification_action_behavior_add_input_field">РЎ РІРІРѕРґРѕРј С‚РµРєСЃС‚Р°</string>
+<string name="formula_crypto_random_base64" formatted="false">РЎР»СѓС‡_base64</string>
+<string formatted="false" name="build_desktop_bundle_title">РЎР±РѕСЂРєР° ZIP РґР»СЏ Windows</string>
+<string name="formula_crypto_chacha20_encrypt_param" formatted="false">(С‚РµРєСЃС‚, РєР»СЋС‡, nonce)</string>
 <string formatted="false" name="dialog_privacy_policy_declined_text">It is necessary to agree to the Privacy Policy to register or to
         continue using your account. If you do not want us to collect this data, you can delete your
         account via your profile page on our https://share.catrob.at/ website.
     </string>
 <string formatted="false" name="error_jumpingsumo_wrong_platform_title">No Jumping Sumo support</string>
 <string formatted="false" name="select_device">Select device:</string>
-<string name="formula_crypto_rsa_decrypt" formatted="false">RSA_дешифр</string>
-<string name="formula_crypto_pbkdf2_param" formatted="false">(пароль, соль, итерации)</string>
-<string formatted="false" name="build_desktop_bundle_done">ZIP для Windows готов</string>
+<string name="formula_crypto_rsa_decrypt" formatted="false">RSA_РґРµС€РёС„СЂ</string>
+<string name="formula_crypto_pbkdf2_param" formatted="false">(РїР°СЂРѕР»СЊ, СЃРѕР»СЊ, РёС‚РµСЂР°С†РёРё)</string>
+<string formatted="false" name="build_desktop_bundle_done">ZIP РґР»СЏ Windows РіРѕС‚РѕРІ</string>
 <string formatted="false" name="error_drone_wrong_platform_title">No AR.Drone 2.0 support.</string>
 <string formatted="false" name="brick_background_request_default_value_portrait">https://catrob.at/HalloweenPortrait</string>
-<string name="formula_crypto_hex_decode_param" formatted="false">(текст)</string>
-<string formatted="false" name="export_summary_object">Объект</string>
+<string name="formula_crypto_hex_decode_param" formatted="false">(С‚РµРєСЃС‚)</string>
+<string formatted="false" name="export_summary_object">РћР±СЉРµРєС‚</string>
 <string name="formula_crypto_sha_384" formatted="false">SHA_384</string>
 <string formatted="false" name="drone_emergency_angle">AR.Drone 2.0 Euler angles went too high. Motors shut down to prevent dangerous
         behavior.</string>
-<string formatted="false" name="notification_action_behavior_silent_background">Тихий фон</string>
-<string formatted="false" name="build_desktop_bundle_progress">Сборка ZIP для Windows...</string>
-<string name="formula_crypto_is_hex" formatted="false">Это_hex</string>
-<string name="formula_crypto_rsa_verify_param" formatted="false">(текст, подпись, публичныйКлюч)</string>
+<string formatted="false" name="notification_action_behavior_silent_background">РўРёС…РёР№ С„РѕРЅ</string>
+<string formatted="false" name="build_desktop_bundle_progress">РЎР±РѕСЂРєР° ZIP РґР»СЏ Windows...</string>
+<string name="formula_crypto_is_hex" formatted="false">Р­С‚Рѕ_hex</string>
+<string name="formula_crypto_rsa_verify_param" formatted="false">(С‚РµРєСЃС‚, РїРѕРґРїРёСЃСЊ, РїСѓР±Р»РёС‡РЅС‹Р№РљР»СЋС‡)</string>
 <string formatted="false" name="error_no_jumpingsumo_connected_title">Cannot find Jumping Sumo</string>
-<string name="formula_crypto_sha_512_param" formatted="false">(текст)</string>
-<string name="formula_crypto_sha_384_param" formatted="false">(текст)</string>
+<string name="formula_crypto_sha_512_param" formatted="false">(С‚РµРєСЃС‚)</string>
+<string name="formula_crypto_sha_384_param" formatted="false">(С‚РµРєСЃС‚)</string>
 <string formatted="false" name="error_drone_low_battery_title">AR.Drone 2.0 battery low: %d%%</string>
-<string name="formula_crypto_chacha20_decrypt" formatted="false">ChaCha20_дешифр</string>
-<string formatted="false" name="dialog_privacy_policy_title">Правила приватности</string>
+<string name="formula_crypto_chacha20_decrypt" formatted="false">ChaCha20_РґРµС€РёС„СЂ</string>
+<string formatted="false" name="dialog_privacy_policy_title">РџСЂР°РІРёР»Р° РїСЂРёРІР°С‚РЅРѕСЃС‚Рё</string>
 <string formatted="false" name="none_paired">No paired devices found</string>
-<string formatted="false" name="formula_file_read_string">прочитать строку из файла проекта</string>
-<string formatted="false" name="enter_url">Введите URL</string>
+<string formatted="false" name="formula_file_read_string">РїСЂРѕС‡РёС‚Р°С‚СЊ СЃС‚СЂРѕРєСѓ РёР· С„Р°Р№Р»Р° РїСЂРѕРµРєС‚Р°</string>
+    <string name="formula_read_file" formatted="false">read_file</string>
+    <string name="formula_read_file_param" formatted="false">(\'file.txt\')</string>
+    <string name="formula_file_to_base64" formatted="false">file_to_base64</string>
+    <string name="formula_file_to_base64_param" formatted="false">(\'filename\')</string>
+    <string name="formula_md5" formatted="false">md5</string>
+    <string name="formula_md5_param" formatted="false">(\'text\')</string>
+    <string name="formula_notification_reply" formatted="false">notification_reply</string>
+    <string name="formula_notification_reply_param" formatted="false">(\'action_id\')</string>
+<string formatted="false" name="enter_url">Р’РІРµРґРёС‚Рµ URL</string>
 <string formatted="false" name="drone_emergency_cutout">One or more motors were stopped by environment.</string>
-<string name="formula_crypto_hmac_sha_256_param" formatted="false">(текст, ключ)</string>
+<string name="formula_crypto_hmac_sha_256_param" formatted="false">(С‚РµРєСЃС‚, РєР»СЋС‡)</string>
 <string formatted="false" name="pairing_message">After pairing, connect.</string>
 <string formatted="false" name="upload_button">Upload</string>
 <string formatted="false" name="deletion_alert_yes">Yes, delete anyway!</string>
-<string name="formula_crypto_generate_password_param" formatted="false">(длина)</string>
-<string name="formula_crypto_base64_decode" formatted="false">Base64_декод</string>
-<string name="no_projects_available">Нет доступных проектов</string>
-<string name="formula_crypto_aes_decrypt" formatted="false">AES_дешифр</string>
+<string name="formula_crypto_generate_password_param" formatted="false">(РґР»РёРЅР°)</string>
+<string name="formula_crypto_base64_decode" formatted="false">Base64_РґРµРєРѕРґ</string>
+<string name="no_projects_available">РќРµС‚ РґРѕСЃС‚СѓРїРЅС‹С… РїСЂРѕРµРєС‚РѕРІ</string>
+<string name="formula_crypto_aes_decrypt" formatted="false">AES_РґРµС€РёС„СЂ</string>
 <string formatted="false" name="error_no_drone_connected_title">Cannot find AR.Drone 2.0.</string>
 <string name="formula_crypto_sha_512" formatted="false">SHA_512</string>
-<string formatted="false" name="notification_action_behavior_launch_app">Открыть приложение</string>
+<string formatted="false" name="notification_action_behavior_launch_app">РћС‚РєСЂС‹С‚СЊ РїСЂРёР»РѕР¶РµРЅРёРµ</string>
 <string formatted="false" name="assistant">Assistant</string>
 <string name="app_name_test">CatroidTest</string>
 <string name="formula_crypto_rsa_generate_key_pair_param" formatted="false"></string>
 <string formatted="false" name="import_from_project">Select project to import from</string>
-<string name="formula_crypto_base64_decode_param" formatted="false">(текст)</string>
+<string name="formula_crypto_base64_decode_param" formatted="false">(С‚РµРєСЃС‚)</string>
 <string formatted="false" name="error_jumpingsumo_battery">Insert a charged battery and try again.</string>
-<string name="formula_crypto_compare_hash" formatted="false">Сравнить_хеш</string>
-<string name="formula_crypto_base64_encode_param" formatted="false">(текст)</string>
-<string formatted="false" name="formula_editor_functions_crypto">Криптография</string>
-<string formatted="false" name="export_summary_empty">Проект пуст.</string>
-<string name="formula_crypto_hash_bytes" formatted="false">Hash_байты</string>
+<string name="formula_crypto_compare_hash" formatted="false">РЎСЂР°РІРЅРёС‚СЊ_С…РµС€</string>
+<string name="formula_crypto_base64_encode_param" formatted="false">(С‚РµРєСЃС‚)</string>
+<string formatted="false" name="formula_editor_functions_crypto">РљСЂРёРїС‚РѕРіСЂР°С„РёСЏ</string>
+<string formatted="false" name="export_summary_empty">РџСЂРѕРµРєС‚ РїСѓСЃС‚.</string>
+<string name="formula_crypto_hash_bytes" formatted="false">Hash_Р±Р°Р№С‚С‹</string>
 <string formatted="false" name="drone_emergency_ultrasound">Ultrasound sensor is not responding.</string>
-<string name="formula_crypto_generate_password" formatted="false">Сгенерировать_пароль</string>
+<string name="formula_crypto_generate_password" formatted="false">РЎРіРµРЅРµСЂРёСЂРѕРІР°С‚СЊ_РїР°СЂРѕР»СЊ</string>
 <string formatted="false" name="error_drone_low_battery">Insert a charged battery and try again.</string>
-<string formatted="false" name="password_forgotten">Заборавили сте лозинку?</string>
-<string name="text_tool_dialog_font_load_error">Не удалось загрузить шрифт</string>
-<string name="text_tool_dialog_no_fonts">В проекте нет TTF-файлов</string>
-<string name="formula_crypto_generate_salt" formatted="false">Сгенерировать_соль</string>
+<string formatted="false" name="password_forgotten">Р—Р°Р±РѕСЂР°РІРёР»Рё СЃС‚Рµ Р»РѕР·РёРЅРєСѓ?</string>
+<string name="text_tool_dialog_font_load_error">РќРµ СѓРґР°Р»РѕСЃСЊ Р·Р°РіСЂСѓР·РёС‚СЊ С€СЂРёС„С‚</string>
+<string name="text_tool_dialog_no_fonts">Р’ РїСЂРѕРµРєС‚Рµ РЅРµС‚ TTF-С„Р°Р№Р»РѕРІ</string>
+<string name="formula_crypto_generate_salt" formatted="false">РЎРіРµРЅРµСЂРёСЂРѕРІР°С‚СЊ_СЃРѕР»СЊ</string>
 <string formatted="false" name="project_id">Project ID</string>
-<string name="formula_crypto_rsa_encrypt_param" formatted="false">(текст, публичныйКлюч)</string>
-<string name="formula_crypto_rsa_decrypt_param" formatted="false">(данные, приватныйКлюч)</string>
+<string name="formula_crypto_rsa_encrypt_param" formatted="false">(С‚РµРєСЃС‚, РїСѓР±Р»РёС‡РЅС‹Р№РљР»СЋС‡)</string>
+<string name="formula_crypto_rsa_decrypt_param" formatted="false">(РґР°РЅРЅС‹Рµ, РїСЂРёРІР°С‚РЅС‹Р№РљР»СЋС‡)</string>
 <string formatted="false" name="brick_user_defined_script_as" tools:ignore="UnusedResources">as</string>
-<string name="formula_crypto_generate_aes_key" formatted="false">Сгенерировать_AES_ключ</string>
-<string name="formula_crypto_random_int_secure" formatted="false">Случ_int_защ</string>
-<string name="formula_crypto_rsa_sign" formatted="false">RSA_подпись</string>
-<string name="formula_crypto_random_hex" formatted="false">Случ_hex</string>
-<string formatted="false" name="export_summary_sound">Звук</string>
-<string name="formula_crypto_aes_encrypt_param" formatted="false">(текст, пароль)</string>
-<string name="formula_crypto_hash_file_param" formatted="false">(путь)</string>
-<string formatted="false" name="enter_data">Введите данные</string>
+<string name="formula_crypto_generate_aes_key" formatted="false">РЎРіРµРЅРµСЂРёСЂРѕРІР°С‚СЊ_AES_РєР»СЋС‡</string>
+<string name="formula_crypto_random_int_secure" formatted="false">РЎР»СѓС‡_int_Р·Р°С‰</string>
+<string name="formula_crypto_rsa_sign" formatted="false">RSA_РїРѕРґРїРёСЃСЊ</string>
+<string name="formula_crypto_random_hex" formatted="false">РЎР»СѓС‡_hex</string>
+<string formatted="false" name="export_summary_sound">Р—РІСѓРє</string>
+<string name="formula_crypto_aes_encrypt_param" formatted="false">(С‚РµРєСЃС‚, РїР°СЂРѕР»СЊ)</string>
+<string name="formula_crypto_hash_file_param" formatted="false">(РїСѓС‚СЊ)</string>
+<string formatted="false" name="enter_data">Р’РІРµРґРёС‚Рµ РґР°РЅРЅС‹Рµ</string>
 <string formatted="false" name="drone_alert_battery_low">Battery is too low to take off again.</string>
-<string name="formula_crypto_random_base64_param" formatted="false">(длина)</string>
+<string name="formula_crypto_random_base64_param" formatted="false">(РґР»РёРЅР°)</string>
 <string formatted="false" name="drone_alert_ultrasound">Ultrasound sensor can\'t determine AR.Drone 2.0 altitude.</string>
-<string formatted="false" name="build_desktop_bundle_button">Билд ZIP для Windows</string>
-<string name="formula_crypto_random_int_secure_param" formatted="false">(мин, макс)</string>
-<string formatted="false" name="delete_account">Обриши налог</string>
+<string formatted="false" name="build_desktop_bundle_button">Р‘РёР»Рґ ZIP РґР»СЏ Windows</string>
+<string name="formula_crypto_random_int_secure_param" formatted="false">(РјРёРЅ, РјР°РєСЃ)</string>
+<string formatted="false" name="delete_account">РћР±СЂРёС€Рё РЅР°Р»РѕРі</string>
 <string formatted="false" name="searching_devices">Looking for devices&#8230;</string>
 <string name="app_name">NeoCatroid</string>
-<string name="formula_crypto_generate_aes_key_param" formatted="false">(биты)</string>
+<string name="formula_crypto_generate_aes_key_param" formatted="false">(Р±РёС‚С‹)</string>
 <string name="formula_crypto_sha_256" formatted="false">SHA_256</string>
-<string name="formula_crypto_rsa_generate_key_pair" formatted="false">RSA_сгенерировать_пару</string>
+<string name="formula_crypto_rsa_generate_key_pair" formatted="false">RSA_СЃРіРµРЅРµСЂРёСЂРѕРІР°С‚СЊ_РїР°СЂСѓ</string>
 <string formatted="false" name="formula_editor_device_visual_detection">Visual sensors</string>
-<string name="formula_crypto_hmac_sha_512_param" formatted="false">(текст, ключ)</string>
+<string name="formula_crypto_hmac_sha_512_param" formatted="false">(С‚РµРєСЃС‚, РєР»СЋС‡)</string>
 <string formatted="false" name="error_jumpingsumo_battery_title">Jumping Sumo battery low</string>
 <string formatted="false" name="formula_editor_changes_saved">Changes saved.</string>
-<string name="formula_crypto_derive_key_param" formatted="false">(пароль)</string>
+<string name="formula_crypto_derive_key_param" formatted="false">(РїР°СЂРѕР»СЊ)</string>
 <string formatted="false" name="dialog_terms_of_use_parrot_reminder_do_not_remind_again">Do not remind me again.</string>
-<string name="formula_crypto_random_string_secure" formatted="false">Случ_строка_защ</string>
-<string name="formula_crypto_aes_encrypt" formatted="false">AES_шифр</string>
-<string name="formula_crypto_chacha20_encrypt" formatted="false">ChaCha20_шифр</string>
-<string formatted="false" name="disagree">Не прихватам</string>
+<string name="formula_crypto_random_string_secure" formatted="false">РЎР»СѓС‡_СЃС‚СЂРѕРєР°_Р·Р°С‰</string>
+<string name="formula_crypto_aes_encrypt" formatted="false">AES_С€РёС„СЂ</string>
+<string name="formula_crypto_chacha20_encrypt" formatted="false">ChaCha20_С€РёС„СЂ</string>
+<string formatted="false" name="disagree">РќРµ РїСЂРёС…РІР°С‚Р°Рј</string>
 <string formatted="false" name="prestage_no_jumping_sumo_available">\u2022 Jumping Sumo\n</string>
 <string formatted="false" name="prestage_resource_in_use_text">Another device is connected to the Jumping Sumo. Make sure you
         are the one connected to the drone.</string>
 <string formatted="false" name="error_no_drone_connected">Connect your wifi to the AR.Drone 2.0 and try again.</string>
 <string formatted="false" name="brick_look_request_default_value">https://catrob.at/penguin</string>
 <string formatted="false" name="brick_background_request_default_value_landscape">https://catrob.at/HalloweenLandscape</string>
-<string formatted="false" name="export_summary_scene">Сцена</string>
-<string name="formula_crypto_generate_random_bytes" formatted="false">Сгенерировать_случ_байты</string>
-<string name="formula_crypto_is_hex_param" formatted="false">(текст)</string>
-<string name="formula_crypto_is_base64_param" formatted="false">(текст)</string>
-<string name="formula_crypto_rsa_encrypt" formatted="false">RSA_шифр</string>
+<string formatted="false" name="export_summary_scene">РЎС†РµРЅР°</string>
+<string name="formula_crypto_generate_random_bytes" formatted="false">РЎРіРµРЅРµСЂРёСЂРѕРІР°С‚СЊ_СЃР»СѓС‡_Р±Р°Р№С‚С‹</string>
+<string name="formula_crypto_is_hex_param" formatted="false">(С‚РµРєСЃС‚)</string>
+<string name="formula_crypto_is_base64_param" formatted="false">(С‚РµРєСЃС‚)</string>
+<string name="formula_crypto_rsa_encrypt" formatted="false">RSA_С€РёС„СЂ</string>
 <string formatted="false" name="formula_editor_dialog_wiki_button">More information</string>
-<string formatted="false" name="back">Назад</string>
-<string name="formula_crypto_sha_256_param" formatted="false">(текст)</string>
-<string name="add_font">Добавить шрифт</string>
-<string name="formula_crypto_hex_decode" formatted="false">Hex_декод</string>
-<string name="formula_crypto_generate_salt_param" formatted="false">(длина)</string>
+<string formatted="false" name="back">РќР°Р·Р°Рґ</string>
+<string name="formula_crypto_sha_256_param" formatted="false">(С‚РµРєСЃС‚)</string>
+<string name="add_font">Р”РѕР±Р°РІРёС‚СЊ С€СЂРёС„С‚</string>
+<string name="formula_crypto_hex_decode" formatted="false">Hex_РґРµРєРѕРґ</string>
+<string name="formula_crypto_generate_salt_param" formatted="false">(РґР»РёРЅР°)</string>
 <string formatted="false" name="drone_emergency_camera">One or more cameras are not responding.</string>
-<string formatted="false" name="build_desktop_bundle_failed">Сборка ZIP для Windows не удалась</string>
+<string formatted="false" name="build_desktop_bundle_failed">РЎР±РѕСЂРєР° ZIP РґР»СЏ Windows РЅРµ СѓРґР°Р»Р°СЃСЊ</string>
 <string formatted="false" name="dialog_privacy_policy_text">To offer you all the benefits of our services and the associated account,
         it is necessary to collect certain data from you.\n\n
 
-        • To maintain and improve our services (apps and websites) and to do scientific research on ICT and
+        вЂў To maintain and improve our services (apps and websites) and to do scientific research on ICT and
             STEM/STEAM education, we use Google Analytics, Crashlytics, and Firebase, all by Google LLC (USA), 
             as well as Dynatrace by Dynatrace LLC (USA) to get
             metadata about the usage of our services, e.g., crash information, timestamps, visited pages/screens,
@@ -4572,35 +4603,35 @@ needs read and write access to it. You can always change permissions through you
             Data processing is based on agreements with Google LLC and Dynatrace LLC. 
             This relationship to the service provider conforms to the European Union\'s General Data
             Protection Regulation (EU GDPR) and EU-USA \"Privacy Shield\" agreement.\n\n
-        • To create and use an account in our systems, and to inform you about necessary changes about your
+        вЂў To create and use an account in our systems, and to inform you about necessary changes about your
             account per e-mail, e.g., updates or violations of our Terms of Use and Service, our community rules, or
             our policies, we will store your username and, if provided by you, your e-mail address. If you have
             connected your account via your Google or Facebook account, we additionally store an identification key connected
             to your account on these services. We will not use this data for any other (e.g., marketing) purposes,
             unless you explicitly allowed us to do so.\n\n
-        • On a voluntary basis, you can give us your country of residence through your account page on the sharing
+        вЂў On a voluntary basis, you can give us your country of residence through your account page on the sharing
             site. This will get displayed on your public profile and only be used for statistical and research
             purposes by us. It can be removed at any time in your profile settings.\n\n
-        • You can withdraw the usage of the personal data belonging to your account at any time by deleting your
+        вЂў You can withdraw the usage of the personal data belonging to your account at any time by deleting your
             account through your profile page on https://share.catrob.at. After deleting your account you will still
             be able to use the provided services, but not to collaborate, e.g., through uploading programs,
             commenting, or liking. Also, all provided content linked to your account, e.g., uploaded programs,
             comments, etc., will be deleted.\n\n
-        • To avoid misuse of our services, e.g., through user contributed uploads or comments for illegal
+        вЂў To avoid misuse of our services, e.g., through user contributed uploads or comments for illegal
             purposes, all user generated public data (uploads, comments) will be stored internally in a database,
             together with a timestamp and the used internet address. This data will not be used by or forwarded to
             any institutions, unless sufficiently illegal actions are reasonably suspected and officially entitled
             legal institutions request it based on applicable law. Each case will be thoroughly checked on an
             individual basis by us first.\n\n
-        • You can voluntarily subscribe to the Catrobat Newsletter, on https://catrob.at/newsletter provided
+        вЂў You can voluntarily subscribe to the Catrobat Newsletter, on https://catrob.at/newsletter provided
             by us through the MailChimp service (The Rocket Science Group LLC d/b/a MailChimp, USA). You will then
             receive updates on the Catrobat project and its services to your provided e-mail address. You can withdraw
             the newsletter at any time by using the \"unsubscribe\" link in the footer of every newsletter. This
             newsletter is provided by MailChimp with whom we do have a data-processing agreement and who committed to
             the EU General Data Protection Regulation and EU-USA \"Privacy Shield\". For further details on MailChimp
             please also look up MailChimp\'s Privacy Policy and Terms of Use.\n\n
-        • All Services are provided by the free open source Catrobat project under the umbrella of the
-            International Catrobat Association – Verein zur Förderung freier Software, a non-profit NGO incorporated
+        вЂў All Services are provided by the free open source Catrobat project under the umbrella of the
+            International Catrobat Association вЂ“ Verein zur FГ¶rderung freier Software, a non-profit NGO incorporated
             in Graz, Austria (European Union). Our policies pay respect to EU and Austrian data protection law
             (GDPR). To get in touch with us, please send an e-mail to contact@catrobat.org or mail us to Catrobat,\n
                 c/o\n
@@ -4620,21 +4651,21 @@ needs read and write access to it. You can always change permissions through you
         http://developer.catrobat.org/privacy_policy_2-0
     </string>
 <string formatted="false" name="error_drone_wrong_platform">We cannot run an AR.Drone 2.0 project on your device.</string>
-<string name="formula_crypto_rsa_sign_param" formatted="false">(текст, приватныйКлюч)</string>
+<string name="formula_crypto_rsa_sign_param" formatted="false">(С‚РµРєСЃС‚, РїСЂРёРІР°С‚РЅС‹Р№РљР»СЋС‡)</string>
 <string formatted="false" name="drone_alert_vision">No speed estimation from bottom facing camera.</string>
-<string name="formula_crypto_aes_decrypt_param" formatted="false">(данные, пароль)</string>
-<string name="formula_crypto_random_string_secure_param" formatted="false">(длина)</string>
+<string name="formula_crypto_aes_decrypt_param" formatted="false">(РґР°РЅРЅС‹Рµ, РїР°СЂРѕР»СЊ)</string>
+<string name="formula_crypto_random_string_secure_param" formatted="false">(РґР»РёРЅР°)</string>
 <string formatted="false" name="drone_emergency_battery_low">Battery is low (automatic landing).</string>
-<string name="formula_crypto_hash_bytes_param" formatted="false">(байты)</string>
+<string name="formula_crypto_hash_bytes_param" formatted="false">(Р±Р°Р№С‚С‹)</string>
 <string formatted="false" name="dialog_terms_of_use_parrot_reminder_text">You are about to use this app together with Parrot\'s
         AR.Drone 2.0. We strongly remind you to abide by both Parrot\'s and Catrobat\'s Terms of Use and Services.</string>
-<string name="formula_crypto_sha_224_param" formatted="false">(текст)</string>
+<string name="formula_crypto_sha_224_param" formatted="false">(С‚РµРєСЃС‚)</string>
 <string formatted="false" name="error_jumpingsumo_wrong_platform">We cannot run a Jumping Sumo project on your device.</string>
-<string formatted="false" name="notification_action_behavior_run_in_background">Фон</string>
+<string formatted="false" name="notification_action_behavior_run_in_background">Р¤РѕРЅ</string>
 <string formatted="false" name="drone_emergency_title">Emergency</string>
-<string name="formula_crypto_base64_encode" formatted="false">Base64_код</string>
-<string name="formula_crypto_hex_encode" formatted="false">Hex_код</string>
-<string name="formula_crypto_generate_random_bytes_param" formatted="false">(длина)</string>
+<string name="formula_crypto_base64_encode" formatted="false">Base64_РєРѕРґ</string>
+<string name="formula_crypto_hex_encode" formatted="false">Hex_РєРѕРґ</string>
+<string name="formula_crypto_generate_random_bytes_param" formatted="false">(РґР»РёРЅР°)</string>
     <string-array name="loading_facts">
         <item>Did you know? Catrobat is a visual programming language for creating games, stories and animations.</item>
         <item>NeoCatroid is a fork of Catrobat/Catroid with built-in 3D support.</item>
@@ -4653,17 +4684,17 @@ needs read and write access to it. You can always change permissions through you
     <!-- ============ APK Builder V3 ============ -->
     <string name="export_as_apk_v3">APK Builder V3</string>
     <string name="v3_loading_title">NeoCatroid</string>
-    <string name="v3_loading">Loading…</string>
-    <string name="v3_decrypting">Decrypting project…</string>
-    <string name="v3_decrypting_meta">Decrypting metadata…</string>
-    <string name="v3_extracting">Extracting resources…</string>
-    <string name="v3_preparing">Preparing scenes…</string>
-    <string name="v3_initializing">Initializing runtime…</string>
-    <string name="v3_starting">Starting game…</string>
+    <string name="v3_loading">LoadingвЂ¦</string>
+    <string name="v3_decrypting">Decrypting projectвЂ¦</string>
+    <string name="v3_decrypting_meta">Decrypting metadataвЂ¦</string>
+    <string name="v3_extracting">Extracting resourcesвЂ¦</string>
+    <string name="v3_preparing">Preparing scenesвЂ¦</string>
+    <string name="v3_initializing">Initializing runtimeвЂ¦</string>
+    <string name="v3_starting">Starting gameвЂ¦</string>
     <string name="v3_load_failed">Failed to load project</string>
     <string name="v3_fun_fact_prefix">Fun fact: %s</string>
 
-    <string name="v3_building_apk">Building APK…</string>
+    <string name="v3_building_apk">Building APKвЂ¦</string>
 
     <string name="v3_app_name">App name</string>
     <string name="v3_package_name">Package name</string>
@@ -5023,14 +5054,14 @@ needs read and write access to it. You can always change permissions through you
     <string name="tilemap_map_size">Map size</string>
     <string name="tilemap_tile_size">Tile size</string>
     <string name="tilemap_select_tileset">Tileset</string>
-    <string name="tilemap_import_image">Import image…</string>
+    <string name="tilemap_import_image">Import imageвЂ¦</string>
     <string name="tilemap_columns">Columns</string>
     <string name="tilemap_rows">Rows</string>
     <string name="tilemap_tile_width">Tile width (px)</string>
     <string name="tilemap_tile_height">Tile height (px)</string>
     <string name="tilemap_hint_default">Tap to draw; pinch to zoom</string>
     <string name="tilemap_hint_modified">Modified</string>
-    <string name="tilemap_saving">Saving…</string>
+    <string name="tilemap_saving">SavingвЂ¦</string>
     <string name="tilemap_unsaved_title">Unsaved changes</string>
     <string name="tilemap_unsaved_message">Save changes to the tilemap before leaving?</string>
     <string name="tilemap_discard">Discard</string>
@@ -5069,7 +5100,7 @@ needs read and write access to it. You can always change permissions through you
     <string name="theme_default_name">Default theme</string>
     <string name="theme_import_button">Import theme</string>
     <string name="theme_applied">Applied</string>
-    <string name="theme_applying">Applying theme…</string>
+    <string name="theme_applying">Applying themeвЂ¦</string>
     <string name="theme_by_author">By %1$s</string>
     <string name="theme_import_success">Theme imported</string>
     <string name="theme_import_error">Could not import theme: %1$s</string>
@@ -5118,10 +5149,10 @@ needs read and write access to it. You can always change permissions through you
     <string name="scene_editor_window_resize">Resize</string>
     <string name="scene_editor_switch_scene">Switch scene</string>
     <string name="scene_editor_add_object">Add object</string>
-    <string name="scene_editor_new_object">Новый объект</string>
-    <string name="scene_editor_object_created">Объект создан: %1$s</string>
+    <string name="scene_editor_new_object">РќРѕРІС‹Р№ РѕР±СЉРµРєС‚</string>
+    <string name="scene_editor_object_created">РћР±СЉРµРєС‚ СЃРѕР·РґР°РЅ: %1$s</string>
     <string name="scene_editor_scenes">Scenes</string>
-    <string name="scene_editor_paint_error">Не удалось сохранить рисунок</string>
+    <string name="scene_editor_paint_error">РќРµ СѓРґР°Р»РѕСЃСЊ СЃРѕС…СЂР°РЅРёС‚СЊ СЂРёСЃСѓРЅРѕРє</string>
     <string name="scene_editor_objects">Objects</string>
     <string name="script_canvas_close">Close</string>
     <string name="script_canvas_palette">Blocks</string>
@@ -5150,10 +5181,10 @@ needs read and write access to it. You can always change permissions through you
     <string name="scene_editor_promo_try">Try now</string>
     <string name="scene_editor_promo_enable">Enable always</string>
     <string name="scene_editor_promo_later">Later</string>
-    <string name="scene_editor_create_empty_sprite">Пустой спрайт</string>
-    <string name="scene_editor_from_library">Из библиотеки</string>
-    <string name="scene_editor_object_imported">Объект импортирован</string>
-    <string name="scene_editor_import_failed">Не удалось импортировать объект</string>
+    <string name="scene_editor_create_empty_sprite">РџСѓСЃС‚РѕР№ СЃРїСЂР°Р№С‚</string>
+    <string name="scene_editor_from_library">РР· Р±РёР±Р»РёРѕС‚РµРєРё</string>
+    <string name="scene_editor_object_imported">РћР±СЉРµРєС‚ РёРјРїРѕСЂС‚РёСЂРѕРІР°РЅ</string>
+    <string name="scene_editor_import_failed">РќРµ СѓРґР°Р»РѕСЃСЊ РёРјРїРѕСЂС‚РёСЂРѕРІР°С‚СЊ РѕР±СЉРµРєС‚</string>
     <string-array name="swipe_directions">
         <item>Up</item>
         <item>Down</item>
@@ -5215,7 +5246,7 @@ needs read and write access to it. You can always change permissions through you
     <string name="formula_editor_2_color_purple">Purple</string>
     <string name="formula_editor_undo">Undo</string>
     <string name="formula_editor_redo">Redo</string>
-    <string name="formula_editor_2_string_warning">Warning: string contains formula syntax (operators/functions). Use Data → Variables to insert values.</string>
+    <string name="formula_editor_2_string_warning">Warning: string contains formula syntax (operators/functions). Use Data в†’ Variables to insert values.</string>
     <string name="formula_editor_2_compute">Formula Result</string>
     <string name="formula_editor_2_no_formula">Enter a formula first</string>
     <string name="formula_editor_2_clipboard_history">Paste from history</string>
@@ -5233,7 +5264,7 @@ needs read and write access to it. You can always change permissions through you
     <string name="formula_editor_2_delete_variable_confirm">Delete variable \"%1$s\"?</string>
     <string name="formula_editor_discard">Discard</string>
     <string name="formula_editor_save">Save</string>
-    <string name="formula_editor_search_hint">Search…</string>
+    <string name="formula_editor_search_hint">SearchвЂ¦</string>
     <string name="formula_editor_sensors">Sensors</string>
     <string name="formula_editor_sensors_touch">Touch</string>
     <string name="formula_editor_sensors_device">Device</string>
@@ -5261,6 +5292,11 @@ needs read and write access to it. You can always change permissions through you
     <string name="script_canvas_no_global_variables">No global variables</string>
     <string name="script_canvas_local_variables">Variables: %1$s</string>
     <string name="script_canvas_no_local_variables">No local variables</string>
+    <string name="script_canvas_scene_variable">Scene variable: %1$s</string>
+    <string name="script_canvas_scene_variables">Scene variables: %1$s</string>
+    <string name="script_canvas_no_scene_variables">No scene variables</string>
+    <string name="script_canvas_scene_variable_name_hint">Scene variable name</string>
+    <string name="script_canvas_scene_variable_title">Scene variable: %1$s</string>
     <string name="script_canvas_project_lists">Project lists</string>
     <string name="script_canvas_no_global_lists">No global lists</string>
     <string name="script_canvas_local_lists">Lists: %1$s</string>
@@ -5365,23 +5401,23 @@ needs read and write access to it. You can always change permissions through you
     <string name="telemetry_collected_title">What is collected</string>
     <string name="telemetry_not_collected_title">What is NOT collected</string>
     <string name="telemetry_usage_title">How the data is used</string>
-    <string name="telemetry_app_version">App version — app_version</string>
+    <string name="telemetry_app_version">App version вЂ” app_version</string>
     <string name="telemetry_app_version_desc">App version from the build (e.g. 2.2.0).</string>
-    <string name="telemetry_package_name">Package name — package_name</string>
+    <string name="telemetry_package_name">Package name вЂ” package_name</string>
     <string name="telemetry_package_name_desc">Technical identifier of the application.</string>
-    <string name="telemetry_android_version">Android version — android_version</string>
+    <string name="telemetry_android_version">Android version вЂ” android_version</string>
     <string name="telemetry_android_version_desc">Version of the device operating system.</string>
-    <string name="telemetry_device_model">Device model — device_model</string>
+    <string name="telemetry_device_model">Device model вЂ” device_model</string>
     <string name="telemetry_device_model_desc">Device model name.</string>
-    <string name="telemetry_cpu">CPU / SoC — cpu</string>
+    <string name="telemetry_cpu">CPU / SoC вЂ” cpu</string>
     <string name="telemetry_cpu_desc">Device processor manufacturer and model.</string>
-    <string name="telemetry_device_board">Device board — device_board</string>
+    <string name="telemetry_device_board">Device board вЂ” device_board</string>
     <string name="telemetry_device_board_desc">Device board name.</string>
-    <string name="telemetry_screen">Screen resolution — screen</string>
+    <string name="telemetry_screen">Screen resolution вЂ” screen</string>
     <string name="telemetry_screen_desc">Screen resolution in pixels (e.g. 1080x2460).</string>
-    <string name="telemetry_launch_duration">Launch duration — launch_duration</string>
+    <string name="telemetry_launch_duration">Launch duration вЂ” launch_duration</string>
     <string name="telemetry_launch_duration_desc">App launch duration in milliseconds.</string>
-    <string name="telemetry_last_seen">Last launch date — last_seen</string>
+    <string name="telemetry_last_seen">Last launch date вЂ” last_seen</string>
     <string name="telemetry_last_seen_desc">Date of the last app launch in YYYY-MM-DD format.</string>
     <string name="telemetry_uuid">Random installation UUID</string>
     <string name="telemetry_uuid_desc">Random installation identifier. Generated once and stored only on the device.</string>
@@ -5410,4 +5446,96 @@ needs read and write access to it. You can always change permissions through you
     <string name="telemetry_usage_no_ads">Data is not used for advertising</string>
     <string name="telemetry_usage_no_ads_desc">Telemetry is not used for showing ads.</string>
     <string name="telemetry_privacy_policy">Privacy policy</string>
+
+    <!-- ===== Ported bricks (2026-08) ===== -->
+    <string name="brick_pen_circle_radius">Radius</string>
+    <string name="brick_pen_circle_start_angle">Angle</string>
+    <string name="brick_pen_circle_sweep_angle">Arc (В°)</string>
+    <string name="brick_pen_circle_y">Y</string>
+    <string name="brick_pen_clear_alpha">Transparency (%)</string>
+    <string name="brick_pen_clear_color">Clear with color</string>
+    <string name="brick_pen_draw_circle">Arc/Circle X</string>
+    <string name="brick_pen_draw_line">Draw line from X</string>
+    <string name="brick_pen_draw_line_x2">to X</string>
+    <string name="brick_pen_draw_line_y1">Y</string>
+    <string name="brick_pen_draw_line_y2">Y</string>
+    <string name="brick_pen_draw_rect">Rectangle X</string>
+    <string name="brick_pen_draw_triangle">Triangle X1</string>
+    <string name="brick_pen_fill">Fill (1/0)</string>
+    <string name="brick_pen_flush">Flush screen</string>
+    <string name="brick_pen_rect_h">Height</string>
+    <string name="brick_pen_rect_w">Width</string>
+    <string name="brick_pen_rect_y">Y</string>
+    <string name="brick_pen_thickness">Thickness</string>
+    <string name="brick_pen_triangle_x2">X2</string>
+    <string name="brick_pen_triangle_x3">X3</string>
+    <string name="brick_pen_triangle_y1">Y1</string>
+    <string name="brick_pen_triangle_y2">Y2</string>
+    <string name="brick_pen_triangle_y3">Y3</string>
+    <string name="brick_set_pen_property_title">Set for pen</string>
+    <string name="brick_set_pen_property_to">Value</string>
+    <string name="brick_set_text_property_title">Set for text</string>
+    <string name="brick_set_text_property_to">Value</string>
+    <string name="pt_attn_dim" formatted="false">Feature dimension</string>
+    <string name="pt_clip_grad" formatted="false">Clip Gradients (ClipGrad)</string>
+    <string name="pt_conv_in_c" formatted="false">In channels</string>
+    <string name="pt_conv_ksize" formatted="false">Kernel size</string>
+    <string name="pt_conv_out_c" formatted="false">Out channels</string>
+    <string name="pt_conv_stride" formatted="false">Stride</string>
+    <string name="pt_create_normal_tensor" formatted="false">Create Gaussian Tensor</string>
+    <string name="pt_drop_prob" formatted="false">Drop rate (0-1)</string>
+    <string name="pt_dropout_res" formatted="false">Dropout result</string>
+    <string name="pt_emb_dim" formatted="false">Embedding dim</string>
+    <string name="pt_emb_vocab" formatted="false">Vocab size</string>
+    <string name="pt_layer_attention" formatted="false">Self-Attention Layer</string>
+    <string name="pt_layer_conv2d" formatted="false">Conv2D Layer</string>
+    <string name="pt_layer_embedding" formatted="false">Embedding Layer</string>
+    <string name="pt_layer_gru_cell" formatted="false">GRU Cell</string>
+    <string formatted="false" name="pt_layer_linear">Linear Layer</string>
+    <string formatted="false" name="pt_layer_linear_in">Input tensor</string>
+    <string formatted="false" name="pt_layer_linear_in_f">In features</string>
+    <string formatted="false" name="pt_layer_linear_out">Output tensor</string>
+    <string formatted="false" name="pt_layer_linear_out_f">Out features</string>
+    <string name="pt_layer_lstm_cell" formatted="false">LSTM Cell</string>
+    <string name="pt_lstm_cin" formatted="false">Input C (C_in)</string>
+    <string name="pt_lstm_cout" formatted="false">Output C (C_out)</string>
+    <string name="pt_lstm_hiddendim" formatted="false">Hidden dim</string>
+    <string name="pt_lstm_hin" formatted="false">Input H (H_in)</string>
+    <string name="pt_lstm_hout" formatted="false">Output H (H_out)</string>
+    <string name="pt_maxpool2d_res" formatted="false">MaxPool2D result</string>
+    <string name="pt_pool_size" formatted="false">Pool size</string>
+    <string name="pt_slice_from" formatted="false">Column from</string>
+    <string name="pt_slice_input" formatted="false">From tensor</string>
+    <string name="pt_slice_res" formatted="false">Slice tensor</string>
+    <string name="pt_slice_to" formatted="false">To</string>
+    <string name="pt_step_adamw" formatted="false">AdamW Step</string>
+    <string name="pt_tensor_mean" formatted="false">Mean</string>
+    <string name="pt_tensor_shape" formatted="false">Shape</string>
+    <string name="pt_tensor_std" formatted="false">StdDev</string>
+    <string name="pt_tensor_trainable" formatted="false">Trainable (1/0)</string>
+    <string name="pt_weight_decay" formatted="false">Weight decay</string>
+    <string name="pt_zero_grad" formatted="false">Clear Gradients (Zero Grad)</string>
+
+
+    <!-- ===== Pen/Text property spinners (2026-08) ===== -->
+    <string-array name="brick_pen_properties">
+        <item>Layer (Z-Index)</item>
+        <item>Transparency (%)</item>
+        <item>Blend Mode (0-Norm, 1-Glow, 2-Eraser)</item>
+        <item>Auto-Update (0-Off, 1-On)</item>
+    </string-array>
+    <string-array name="brick_text_properties">
+        <item>Position X</item>
+        <item>Position Y</item>
+        <item>Size (%)</item>
+        <item>Width (%)</item>
+        <item>Height (%)</item>
+        <item>Color (#HEX)</item>
+        <item>Rotation</item>
+        <item>Layer</item>
+        <item>Transparency (%)</item>
+        <item>Alignment (0-2)</item>
+        <item>Text</item>
+        <item>Font file</item>
+    </string-array>
 </resources>

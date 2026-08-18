@@ -126,6 +126,9 @@ public class EditorListener extends ApplicationAdapter {
             if (threeDManager != null) {
                 threeDManager.dispose();
             }
+            if (gizmo != null) {
+                gizmo.dispose();
+            }
             if (gizmoBatch != null) {
                 gizmoBatch.dispose();
             }
@@ -424,6 +427,9 @@ public class EditorListener extends ApplicationAdapter {
     public void dispose() {
         if (threeDManager != null) {
             threeDManager.dispose();
+        }
+        if (gizmo != null) {
+            gizmo.dispose();
         }
         if (gizmoBatch != null) {
             gizmoBatch.dispose();

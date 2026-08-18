@@ -55,6 +55,7 @@ public class MoveToObjectBrick extends FormulaBrick implements BrickSpinner.OnIt
     private static final long serialVersionUID = 1L;
     private String targetObject;
     private int moveMode = 0;
+    private int pathStrategy = 0;
     private int sizeCheckMode = 0;
     private int blockedPathAction = 0;
     private transient BrickSpinner<Sprite> spinner;
@@ -144,6 +145,28 @@ public class MoveToObjectBrick extends FormulaBrick implements BrickSpinner.OnIt
                 @Override
                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                     moveMode = position;
+                }
+                @Override
+                public void onNothingSelected(AdapterView<?> parent) {}
+            });
+        }
+
+        Spinner strategySpinner = view.findViewById(R.id.brick_move_to_strategy_spinner);
+        if (strategySpinner != null) {
+            String[] strategyItems = new String[] {
+                context.getString(R.string.pathfinder_strategy_short),
+                context.getString(R.string.pathfinder_strategy_medium),
+                context.getString(R.string.pathfinder_strategy_long)
+            };
+            ArrayAdapter<String> strategyAdapter = new ArrayAdapter<>(context,
+                android.R.layout.simple_spinner_item, strategyItems);
+            strategyAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            strategySpinner.setAdapter(strategyAdapter);
+            strategySpinner.setSelection(pathStrategy);
+            strategySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                    pathStrategy = position;
                 }
                 @Override
                 public void onNothingSelected(AdapterView<?> parent) {}
@@ -256,6 +279,7 @@ public class MoveToObjectBrick extends FormulaBrick implements BrickSpinner.OnIt
                         moveMode,
                         sizeCheckMode,
                         blockedPathAction,
+                        pathStrategy,
                         getFormulaWithBrickField(BrickField.ROTATE_OBJECT, true),
                         getFormulaWithBrickField(BrickField.DYNAMIC_REPLANNING, true)));
     }

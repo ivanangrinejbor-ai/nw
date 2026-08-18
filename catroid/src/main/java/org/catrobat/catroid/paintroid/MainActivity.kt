@@ -381,7 +381,9 @@ class MainActivity : AppCompatActivity(), MainView, CommandListener {
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
         if (!hasFocus) {
-            presenterMain.saveNewTemporaryImage()
+            if (!model.isOpenedFromCatroid) {
+                presenterMain.saveNewTemporaryImage()
+            }
             minuteTemporaryCopiesCounter = 0
             userInteraction = false
         }
@@ -709,7 +711,9 @@ class MainActivity : AppCompatActivity(), MainView, CommandListener {
     override fun onDestroy() {
         autoSaveScope.cancel()
         commandManager.removeCommandListener(this)
-        presenterMain.saveNewTemporaryImage()
+        if (!model.isOpenedFromCatroid) {
+            presenterMain.saveNewTemporaryImage()
+        }
         if (finishing) {
             commandManager.shutdown()
             appFragment.currentTool = null
@@ -830,7 +834,9 @@ class MainActivity : AppCompatActivity(), MainView, CommandListener {
                 delay(TEMP_IMAGE_COROUTINE_DELAY_MILLI_SEC.toLong())
                 addToMinuteTemporaryCopiesCounter(TEMP_IMAGE_COROUTINE_DELAY_MILLI_SEC / MILLI_SEC_TO_SEC)
                 if ((System.currentTimeMillis() - lastInteractionTime >= TEMP_IMAGE_IDLE_INTERVAL || minuteTemporaryCopiesCounter >= TEMP_IMAGE_SAVE_INTERVAL) && userInteraction) {
-                    presenterMain.saveNewTemporaryImage()
+                    if (!model.isOpenedFromCatroid) {
+                        presenterMain.saveNewTemporaryImage()
+                    }
                     minuteTemporaryCopiesCounter = 0
                     userInteraction = false
                 }

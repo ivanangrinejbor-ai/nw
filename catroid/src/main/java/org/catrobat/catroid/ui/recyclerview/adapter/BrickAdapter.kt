@@ -251,7 +251,7 @@ class BrickAdapter(val sprite: Sprite) :
         clearHighlights(itemView as ViewGroup)
 
         val result = AnalysisManager.getResultFor(item)
-        if (result != null) {
+        if (result != null && !item.isCommentedOut) {
             applyHighlight(itemView, result.severity)
         }
 

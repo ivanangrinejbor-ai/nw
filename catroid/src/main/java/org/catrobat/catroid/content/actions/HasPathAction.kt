@@ -33,17 +33,21 @@ class HasPathAction : TemporalAction() {
     var targetObject: String = ""
     var resultVar: Formula? = null
 
+    private var requestInFlight = false
+
     override fun update(percent: Float) {
+        if (requestInFlight) return
         val pf = StageActivity.activeStageActivity.get()?.stageListener?.pathfindingManager ?: return
         val spriteName = scope?.sprite?.name ?: return
+        requestInFlight = true
 
-        val result = pf.findPathToObject(spriteName, targetObject)
-
-        val varName = resultVar?.interpretString(scope) ?: return
-        val variable = scope?.project?.getUserVariable(varName)
-            ?: scope?.sprite?.getUserVariable(varName)
-            ?: return
-
-        variable.setValue(if (result.found) 1.0 else 0.0)
+        pf.findPathToObjectAsync(spriteName, targetObject) { result ->
+            val varName = resultVar?.interpretString(scope)
+            val variable = scope?.project?.getUserVariable(varName)
+                ?: scope?.sprite?.getUserVariable(varName)
+            if (variable != null) {
+                variable.setValue(if (result.found) 1.0 else 0.0)
+            }
+        }
     }
 }

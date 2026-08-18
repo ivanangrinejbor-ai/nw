@@ -74,7 +74,7 @@ import org.catrobat.catroid.formulaeditor.UndoState;
 import org.catrobat.catroid.formulaeditor.UserData;
 import org.catrobat.catroid.formulaeditor.UserList;
 import org.catrobat.catroid.formulaeditor.UserVariable;
-import org.catrobat.catroid.io.XstreamSerializer;
+import org.catrobat.catroid.ui.sceneeditor.ProjectSaveCoordinator;
 import org.catrobat.catroid.ui.BottomBar;
 import org.catrobat.catroid.ui.FormulaEditorClipboard;
 import org.catrobat.catroid.ui.SpriteActivity;
@@ -1170,7 +1170,7 @@ public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.
         onUserDismiss();
 
         if (persist && !(getActivity() instanceof org.catrobat.catroid.ui.dialogs.RuntimeConsoleActivity)) {
-            XstreamSerializer.getInstance().saveProject(ProjectManager.getInstance().getCurrentProject());
+            ProjectSaveCoordinator.saveAsync(ProjectManager.getInstance().getCurrentProject());
         }
 
         if (getActivity() != null) {

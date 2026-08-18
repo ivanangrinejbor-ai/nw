@@ -29,7 +29,9 @@ import org.catrobat.catroid.bluetooth.base.BluetoothDevice
 import org.catrobat.catroid.common.CatroidService
 import org.catrobat.catroid.common.Constants
 import org.catrobat.catroid.common.ServiceProvider
+import org.catrobat.catroid.content.EventWrapper
 import org.catrobat.catroid.content.Scope
+import org.catrobat.catroid.content.eventids.WhenVariableChangedEventId
 import org.catrobat.catroid.devices.multiplayer.MultiplayerInterface
 import org.catrobat.catroid.formulaeditor.Formula
 import org.catrobat.catroid.formulaeditor.FormulaElement
@@ -62,7 +64,14 @@ class SetVariableAction : TemporalAction() {
         }
 
         userVariable?.value = value
+        fireVariableChanged()
         handleMultiplayerVariable()
+    }
+
+    private fun fireVariableChanged() {
+        val sprite = scope?.sprite ?: return
+        val name = userVariable?.name ?: return
+        sprite.look.fire(EventWrapper(WhenVariableChangedEventId(name), false))
     }
 
     val multiplayerDevice: MultiplayerInterface?

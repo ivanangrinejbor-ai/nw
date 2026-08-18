@@ -71,7 +71,8 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.FrameLayout;
-import android.widget.MediaController;
+	import android.widget.MediaController;
+	import android.widget.ProgressBar;
 import android.widget.Toast;
 import android.widget.VideoView;
 
@@ -217,8 +218,8 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 
 	private FrameLayout rootLayout;
 	private View precompileOverlay;
-	private TextView precompileFactText;
-	private Handler precompileFactHandler;
+	private TextView precompileStatusText;
+	private ProgressBar precompileProgressBar;
 	private FrameLayout backgroundLayout;
 	private FrameLayout foregroundLayout;
 	private FrameLayout activeNativeLayer;
@@ -360,10 +361,6 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 		backgroundLayout = new FrameLayout(this);
 		foregroundLayout = new FrameLayout(this);
 
-		if (shouldShowPrecompileOverlay()) {
-			showPrecompileOverlay(rootLayout);
-		}
-
 		StageLifeCycleController.stageCreate(this);
 
 		if (ProjectManager.getInstance().getCurrentProject() == null || getGdxGraphics() == null) {
@@ -400,6 +397,10 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 		}
 		rootLayout.addView(gameView);
 		rootLayout.addView(foregroundLayout);
+
+		if (shouldShowPrecompileOverlay()) {
+			showPrecompileOverlay(rootLayout);
+		}
 
 		activeNativeLayer = foregroundLayout;
 
@@ -1598,11 +1599,6 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 	@Override
 	protected void onDestroy() {
 		try {
-			if (precompileFactHandler != null) {
-				precompileFactHandler.removeCallbacksAndMessages(null);
-				precompileFactHandler = null;
-			}
-
 			if (NativeBridge.INSTANCE.isWorking()) NativeBridge.INSTANCE.cleanupAllInstances();
 
 
@@ -2282,12 +2278,12 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 
 	private boolean shouldShowPrecompileOverlay() {
 		Project project = ProjectManager.getInstance().getCurrentProject();
-		return project != null && project.getXmlHeader() != null && project.getXmlHeader().isPrecompileEnabled();
+		return project != null && project.getXmlHeader() != null;
 	}
 
 	private void showPrecompileOverlay(FrameLayout parent) {
 		FrameLayout overlay = new FrameLayout(this);
-		overlay.setBackgroundColor(0x88000000);
+		overlay.setBackgroundColor(0xFF555555);
 		overlay.setLayoutParams(new FrameLayout.LayoutParams(
 				ViewGroup.LayoutParams.MATCH_PARENT,
 				ViewGroup.LayoutParams.MATCH_PARENT));
@@ -2297,19 +2293,12 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 		content.setGravity(Gravity.CENTER);
 		content.setPadding(48, 48, 48, 48);
 
-		ImageView logo = new ImageView(this);
-		logo.setImageResource(R.mipmap.ic_launcher);
-		LinearLayout.LayoutParams logoParams = new LinearLayout.LayoutParams(80, 80);
-		logo.setLayoutParams(logoParams);
-		content.addView(logo);
-
 		TextView appName = new TextView(this);
 		appName.setText(R.string.app_name);
 		appName.setTextColor(Color.WHITE);
 		appName.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
 		appName.setTypeface(null, Typeface.BOLD);
 		appName.setGravity(Gravity.CENTER);
-		appName.setPadding(0, 8, 0, 0);
 		content.addView(appName);
 
 		String sceneName = ProjectManager.getInstance().getCurrentlyPlayingScene() != null
@@ -2323,37 +2312,54 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 		compilingText.setPadding(0, 24, 0, 0);
 		content.addView(compilingText);
 
-		precompileFactText = new TextView(this);
-		precompileFactText.setTextColor(0x99FFFFFF);
-		precompileFactText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
-		precompileFactText.setGravity(Gravity.CENTER);
-		precompileFactText.setMaxWidth(400);
-		precompileFactText.setPadding(0, 16, 0, 0);
-		content.addView(precompileFactText);
+		ProgressBar progressBar = new ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
+		progressBar.setIndeterminate(true);
+		LinearLayout.LayoutParams barParams = new LinearLayout.LayoutParams(
+				ViewGroup.LayoutParams.MATCH_PARENT, 24);
+		barParams.topMargin = 32;
+		progressBar.setLayoutParams(barParams);
+		content.addView(progressBar);
 
 		overlay.addView(content);
+
+		precompileStatusText = new TextView(this);
+		precompileStatusText.setTextColor(0xCCFFFFFF);
+		precompileStatusText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
+		precompileStatusText.setGravity(Gravity.CENTER);
+		precompileStatusText.setPadding(0, 0, 0, 48);
+		FrameLayout.LayoutParams statusParams = new FrameLayout.LayoutParams(
+				ViewGroup.LayoutParams.MATCH_PARENT,
+				ViewGroup.LayoutParams.WRAP_CONTENT);
+		statusParams.gravity = Gravity.BOTTOM;
+		precompileStatusText.setLayoutParams(statusParams);
+		overlay.addView(precompileStatusText);
+
 		parent.addView(overlay);
 		this.precompileOverlay = overlay;
+		this.precompileProgressBar = progressBar;
 		this.precompileOverlay.bringToFront();
-
-		startPrecompileFacts();
 	}
 
-	private void startPrecompileFacts() {
-		final String[] facts = getResources().getStringArray(R.array.loading_facts);
-		if (facts.length == 0) return;
-		precompileFactHandler = new Handler(Looper.getMainLooper());
-		final int[] index = {new java.util.Random().nextInt(facts.length)};
-		precompileFactHandler.post(new Runnable() {
+	public void updatePrecompileStatus(final String name) {
+		runOnMainThread(new Runnable() {
 			@Override
 			public void run() {
-				if (isFinishing() || isDestroyed() || precompileOverlay == null
-						|| precompileOverlay.getVisibility() != View.VISIBLE) {
-					return;
+				if (precompileStatusText != null) {
+					precompileStatusText.setText(name);
 				}
-				precompileFactText.setText(facts[index[0] % facts.length]);
-				index[0]++;
-				precompileFactHandler.postDelayed(this, 7000L);
+			}
+		});
+	}
+
+	public void updatePrecompileProgress(final int progress, final int max) {
+		runOnMainThread(new Runnable() {
+			@Override
+			public void run() {
+				if (precompileProgressBar != null) {
+					precompileProgressBar.setIndeterminate(false);
+					precompileProgressBar.setMax(Math.max(max, 1));
+					precompileProgressBar.setProgress(progress);
+				}
 			}
 		});
 	}

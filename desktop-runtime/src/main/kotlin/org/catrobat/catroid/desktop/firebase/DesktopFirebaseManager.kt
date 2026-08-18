@@ -132,4 +132,46 @@ object DesktopFirebaseManager {
             }
         })
     }
+
+    fun listFiles(bucket: String, prefix: String, callback: (List<String>) -> Unit) {
+        val encodedPrefix = URLEncoder.encode(prefix, "UTF-8")
+        val endpoint = "$STORAGE_API/$bucket/o?maxResults=1000&prefix=$encodedPrefix"
+
+        val request = Request.Builder().url(endpoint).get().build()
+        client.newCall(request).enqueue(object : okhttp3.Callback {
+            override fun onFailure(call: okhttp3.Call, e: IOException) {
+                callback(emptyList())
+            }
+            override fun onResponse(call: okhttp3.Call, response: okhttp3.Response) {
+                response.use {
+                    if (!response.isSuccessful) {
+                        callback(emptyList())
+                        return
+                    }
+                    val body = response.body?.string() ?: ""
+                    val names = mutableListOf<String>()
+                    val pattern = Regex("\"name\":\"(.*?)\"")
+                    for (m in pattern.findAll(body)) {
+                        names += m.groupValues[1]
+                    }
+                    callback(names)
+                }
+            }
+        })
+    }
+
+    fun deleteFile(bucket: String, path: String, callback: (Boolean) -> Unit = {}) {
+        val encodedPath = URLEncoder.encode(path, "UTF-8")
+        val endpoint = "$STORAGE_API/$bucket/o/$encodedPath"
+
+        val request = Request.Builder().url(endpoint).delete().build()
+        client.newCall(request).enqueue(object : okhttp3.Callback {
+            override fun onFailure(call: okhttp3.Call, e: IOException) {
+                callback(false)
+            }
+            override fun onResponse(call: okhttp3.Call, response: okhttp3.Response) {
+                response.use { callback(response.isSuccessful) }
+            }
+        })
+    }
 }

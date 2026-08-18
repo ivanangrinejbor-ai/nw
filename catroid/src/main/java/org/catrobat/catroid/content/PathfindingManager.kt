@@ -64,6 +64,7 @@ data class PathFollower(
     var stopOnTouch: Boolean = false,
     var sizeCheckMode: Int = 0,
     var blockedPathAction: Int = 0,
+    var pathStrategy: Int = 0,
     var rotateObject: Boolean = true
 ) {
     @Volatile var replanInFlight: Boolean = false
@@ -73,7 +74,7 @@ class PathfindingManager {
 
     companion object {
         private const val TAG = "PathfindingManager"
-        private const val MAX_ITERATIONS = 50000
+        private const val MAX_ITERATIONS = 200000
     }
 
     data class NavGrid(
@@ -104,9 +105,15 @@ class PathfindingManager {
 
     var navGrid: NavGrid? = null
     private val obstacles = mutableMapOf<String, MutableList<Vector2>>()
+    private val pendingObstacleNames = mutableSetOf<String>()
     private val followers = mutableMapOf<String, PathFollower>()
     private val pathNodePool = mutableListOf<PathNode>()
     private val maxPoolSize = 5000
+
+    private data class ObstacleState(val x: Float, val y: Float, val w: Float, val h: Float)
+    private val lastObstacleState = mutableMapOf<String, ObstacleState>()
+    private var obstacleUpdateAccumulator = 0f
+    private val obstacleUpdateInterval = 0.5f
 
     private val pathExecutor = java.util.concurrent.Executors.newSingleThreadExecutor { r ->
         Thread(r, "pathfinder").apply { isDaemon = true }
@@ -126,6 +133,7 @@ class PathfindingManager {
         targetSprite: String,
         sizeCheckMode: Int = 0,
         blockedPathAction: Int = 0,
+        pathStrategy: Int = 0,
         onResult: (PathResult) -> Unit
     ) {
         val from = findSpriteByName(fromSprite)?.look
@@ -142,7 +150,7 @@ class PathfindingManager {
         val sh = from.heightInUserInterfaceDimensionUnit
         pathExecutor.execute {
             val result = try {
-                findPath(sx, sy, ex, ey, sizeCheckMode, sw, sh, blockedPathAction)
+                findPath(sx, sy, ex, ey, sizeCheckMode, sw, sh, blockedPathAction, pathStrategy)
             } catch (e: Exception) {
                 Log.e(TAG, "Async pathfinding failed", e)
                 PathResult(emptyList(), false)
@@ -161,6 +169,11 @@ class PathfindingManager {
                 markObstacle(pt.x, pt.y, false)
             }
         }
+        val pending = pendingObstacleNames.toList()
+        pendingObstacleNames.clear()
+        for (name in pending) {
+            addObstacle(name)
+        }
     }
 
     @Synchronized
@@ -168,20 +181,6 @@ class PathfindingManager {
         navGrid = null
         followers.clear()
         obstacles.clear()
-    }
-
-    fun rebuildGrid() {
-        val grid = navGrid ?: return
-        for (x in 0 until grid.width) {
-            for (y in 0 until grid.height) {
-                grid.walkable[x][y] = true
-            }
-        }
-        for ((_, points) in obstacles) {
-            for (pt in points) {
-                markObstacle(pt.x, pt.y, false)
-            }
-        }
     }
 
     private fun worldToCell(worldX: Float, worldY: Float): Pair<Int, Int>? {
@@ -193,6 +192,12 @@ class PathfindingManager {
             return cx to cy
         }
         return null
+    }
+
+    private fun snapshotGrid(): NavGrid? {
+        val grid = navGrid ?: return null
+        val walkable = Array(grid.width) { i -> grid.walkable[i].clone() }
+        return NavGrid(grid.width, grid.height, grid.cellSize, walkable, grid.offsetX, grid.offsetY)
     }
 
     private fun markObstacle(worldX: Float, worldY: Float, walkable: Boolean) {
@@ -216,6 +221,11 @@ class PathfindingManager {
     @Synchronized
     fun addObstacle(name: String) {
         if (obstacles.containsKey(name)) return
+        val grid = navGrid
+        if (grid == null) {
+            pendingObstacleNames.add(name)
+            return
+        }
         val sprite = findSpriteByName(name) ?: return
         val look = sprite.look ?: return
         val x = look.xInUserInterfaceDimensionUnit
@@ -223,7 +233,7 @@ class PathfindingManager {
         val w = (look.widthInUserInterfaceDimensionUnit / 2f).coerceAtLeast(1f)
         val h = (look.heightInUserInterfaceDimensionUnit / 2f).coerceAtLeast(1f)
         val points = mutableListOf<Vector2>()
-        val step = navGrid?.cellSize ?: 1f
+        val step = grid.cellSize
 
         val pixmap: Pixmap? = try {
             look.lookData?.getPixmap()
@@ -275,29 +285,6 @@ class PathfindingManager {
         }
     }
 
-    fun updateObstacles() {
-        val names = obstacles.keys.toList()
-        obstacles.clear()
-        if (navGrid != null) rebuildGrid()
-        for (name in names) {
-            addObstacle(name)
-        }
-    }
-
-
-
-    fun createObstaclesFromBackground(): Int {
-        val stageListener = StageActivity.getActiveStageListener() ?: return 0
-        var count = 0
-        for (sprite in stageListener.spritesFromStage) {
-            if (sprite.name == "Background") continue
-            if (obstacles.containsKey(sprite.name)) continue
-            addObstacle(sprite.name)
-            count++
-        }
-        return count
-    }
-
     fun isCellWalkableForSize(cx: Int, cy: Int, grid: NavGrid, sizeCheckMode: Int, spriteWidth: Float, spriteHeight: Float): Boolean {
         if (cx !in 0 until grid.width || cy !in 0 until grid.height) return false
         if (!grid.walkable[cx][cy]) return false
@@ -338,9 +325,9 @@ class PathfindingManager {
     fun findPath(
         startX: Float, startY: Float, endX: Float, endY: Float,
         sizeCheckMode: Int = 0, spriteWidth: Float = 0f, spriteHeight: Float = 0f,
-        blockedPathAction: Int = 0
+        blockedPathAction: Int = 0, pathStrategy: Int = 0
     ): PathResult {
-        val grid = navGrid ?: return PathResult(emptyList(), false)
+        val grid = snapshotGrid() ?: return PathResult(emptyList(), false)
         val cs = grid.cellSize
         var sx = kotlin.math.floor((startX - grid.offsetX) / cs).toInt().coerceIn(0, grid.width - 1)
         var sy = kotlin.math.floor((startY - grid.offsetY) / cs).toInt().coerceIn(0, grid.height - 1)
@@ -419,7 +406,11 @@ class PathfindingManager {
                     }
                 }
 
-                val moveCost = if (dx != 0 && dy != 0) 1.414f else 1f
+                var moveCost = if (dx != 0 && dy != 0) 1.414f else 1f
+                if (pathStrategy != 0) {
+                    val penalty = proximityPenalty(nx, ny, grid)
+                    moveCost += (if (pathStrategy == 2) 1.5f else 0.15f) * penalty
+                }
                 val g = current.g + moveCost
                 val nKey = nx to ny
                 val prevBest = bestG[nKey]
@@ -445,6 +436,23 @@ class PathfindingManager {
         val dx = kotlin.math.abs(ax - bx).toFloat()
         val dy = kotlin.math.abs(ay - by).toFloat()
         return (dx + dy) + (1.414f - 2f) * minOf(dx, dy)
+    }
+
+    private fun proximityPenalty(cx: Int, cy: Int, grid: NavGrid): Float {
+        var blocked = 0
+        var count = 0
+        for (dx in -1..1) {
+            for (dy in -1..1) {
+                if (dx == 0 && dy == 0) continue
+                val nx = cx + dx
+                val ny = cy + dy
+                if (nx in 0 until grid.width && ny in 0 until grid.height) {
+                    if (!grid.walkable[nx][ny]) blocked++
+                    count++
+                }
+            }
+        }
+        return if (count == 0) 0f else blocked.toFloat() / count
     }
 
     private fun findNearestWalkableCell(
@@ -481,19 +489,6 @@ class PathfindingManager {
         return path.reversed()
     }
 
-    fun findPathToObject(fromSprite: String, targetSprite: String, sizeCheckMode: Int = 0, blockedPathAction: Int = 0): PathResult {
-        val from = findSpriteByName(fromSprite)?.look ?: return PathResult(emptyList(), false)
-        val to = findSpriteByName(targetSprite)?.look ?: return PathResult(emptyList(), false)
-        return findPath(
-            from.xInUserInterfaceDimensionUnit, from.yInUserInterfaceDimensionUnit,
-            to.xInUserInterfaceDimensionUnit, to.yInUserInterfaceDimensionUnit,
-            sizeCheckMode,
-            from.widthInUserInterfaceDimensionUnit,
-            from.heightInUserInterfaceDimensionUnit,
-            blockedPathAction
-        )
-    }
-
     fun setPathForFollowerWithTarget(spriteName: String, path: List<Vector2>, targetSpriteName: String) {
         val follower = followers.getOrPut(spriteName) { PathFollower(spriteName) }
         val targetSprite = findSpriteByName(targetSpriteName)
@@ -502,7 +497,15 @@ class PathfindingManager {
             val finalPoint = Vector2(targetLook.xInUserInterfaceDimensionUnit, targetLook.yInUserInterfaceDimensionUnit)
             val points = path.toMutableList()
             if (points.isEmpty() || points.last().dst(finalPoint) > 1f) {
-                points.add(finalPoint)
+                val followerLook = findSpriteByName(spriteName)?.look
+                val sw = followerLook?.widthInUserInterfaceDimensionUnit ?: 0f
+                val sh = followerLook?.heightInUserInterfaceDimensionUnit ?: 0f
+                val from = if (points.isNotEmpty()) points.last()
+                           else Vector2(followerLook?.xInUserInterfaceDimensionUnit ?: finalPoint.x,
+                                        followerLook?.yInUserInterfaceDimensionUnit ?: finalPoint.y)
+                if (sw <= 0f || sh <= 0f || hasLineOfSight(from, finalPoint, snapshotGrid() ?: return, follower.sizeCheckMode, sw, sh)) {
+                    points.add(finalPoint)
+                }
             }
             follower.waypoints = points
         } else {
@@ -536,6 +539,10 @@ class PathfindingManager {
         followers.getOrPut(spriteName) { PathFollower(spriteName) }.enableDynamicReplanning = enabled
     }
 
+    fun setFollowerPathStrategy(spriteName: String, strategy: Int) {
+        followers.getOrPut(spriteName) { PathFollower(spriteName) }.pathStrategy = strategy
+    }
+
     fun smoothPath(
         path: List<Vector2>,
         sizeCheckMode: Int = 0,
@@ -543,6 +550,8 @@ class PathfindingManager {
         spriteHeight: Float = 0f
     ): List<Vector2> {
         if (path.size <= 2) return path
+
+        val grid = snapshotGrid() ?: return path
         
         val smoothed = mutableListOf<Vector2>()
         smoothed.add(path.first())
@@ -553,7 +562,7 @@ class PathfindingManager {
             
             val maxCheck = kotlin.math.min(path.size - 1, currentIndex + 32)
             for (i in maxCheck downTo currentIndex + 2) {
-                if (hasLineOfSight(path[currentIndex], path[i], sizeCheckMode, spriteWidth, spriteHeight)) {
+                if (hasLineOfSight(path[currentIndex], path[i], grid, sizeCheckMode, spriteWidth, spriteHeight)) {
                     farthestVisible = i
                     break
                 }
@@ -574,11 +583,11 @@ class PathfindingManager {
     private fun hasLineOfSight(
         from: Vector2,
         to: Vector2,
+        grid: NavGrid,
         sizeCheckMode: Int = 0,
         spriteWidth: Float = 0f,
         spriteHeight: Float = 0f
     ): Boolean {
-        val grid = navGrid ?: return false
         val distance = from.dst(to)
         val steps = (distance / (grid.cellSize * 0.5f)).toInt().coerceAtLeast(1)
         
@@ -598,7 +607,26 @@ class PathfindingManager {
 
     fun updateObstaclesDynamic() {
         val currentObstacles = obstacles.keys.toList()
+        val currentSet = currentObstacles.toHashSet()
+        val iterator = lastObstacleState.keys.iterator()
+        while (iterator.hasNext()) {
+            if (iterator.next() !in currentSet) iterator.remove()
+        }
         for (name in currentObstacles) {
+            val sprite = findSpriteByName(name)
+            val look = sprite?.look
+            if (look == null) {
+                lastObstacleState.remove(name)
+                removeObstacle(name)
+                continue
+            }
+            val x = look.xInUserInterfaceDimensionUnit
+            val y = look.yInUserInterfaceDimensionUnit
+            val w = look.widthInUserInterfaceDimensionUnit
+            val h = look.heightInUserInterfaceDimensionUnit
+            val prev = lastObstacleState[name]
+            if (prev != null && prev.x == x && prev.y == y && prev.w == w && prev.h == h) continue
+            lastObstacleState[name] = ObstacleState(x, y, w, h)
             removeObstacle(name)
             addObstacle(name)
         }
@@ -640,20 +668,76 @@ class PathfindingManager {
     fun update(delta: Float) {
         val stageListener = StageActivity.getActiveStageListener() ?: return
         val stageSprites = stageListener.spritesFromStage.toList()
+        val spritesByName = HashMap<String, Sprite>(stageSprites.size * 2)
+        for (s in stageSprites) {
+            spritesByName[s.name] = s
+        }
+
+        obstacleUpdateAccumulator += delta
+        if (obstacleUpdateAccumulator >= obstacleUpdateInterval) {
+            obstacleUpdateAccumulator = 0f
+            updateObstaclesDynamic()
+        }
+
         for ((name, follower) in followers) {
             if (follower.state != FollowState.FOLLOWING) continue
+
+            val look = spritesByName[name]?.look
+
             if (follower.currentIndex >= follower.waypoints.size) {
+                if (look != null && follower.enableDynamicReplanning && follower.targetName != null && !follower.replanInFlight) {
+                    val tLook = findSpriteByName(follower.targetName!!)?.look
+                    if (tLook != null) {
+                        val tPos = Vector2(tLook.xInUserInterfaceDimensionUnit, tLook.yInUserInterfaceDimensionUnit)
+                        val from = Vector2(look.xInUserInterfaceDimensionUnit, look.yInUserInterfaceDimensionUnit)
+                        val sw = look.widthInUserInterfaceDimensionUnit
+                        val sh = look.heightInUserInterfaceDimensionUnit
+                        if (!hasLineOfSight(from, tPos, snapshotGrid() ?: return, follower.sizeCheckMode, sw, sh)) {
+                            follower.replanInFlight = true
+                            val scm = follower.sizeCheckMode
+                            val bpa = follower.blockedPathAction
+                            val pst = follower.pathStrategy
+                            pathExecutor.execute {
+                                val replanResult = try {
+                                    findPath(from.x, from.y, tPos.x, tPos.y, scm, sw, sh, bpa, pst)
+                                } catch (e: Exception) {
+                                    Log.e(TAG, "Async target replan failed", e)
+                                    PathResult(emptyList(), false)
+                                }
+                                val newWaypoints = if (replanResult.found || (bpa == 1 && replanResult.points.isNotEmpty())) {
+                                    var wp = smoothPath(replanResult.points, scm, sw, sh)
+                                    if (wp.isNotEmpty() && wp.last().dst(tPos) > 1f
+                                        && hasLineOfSight(wp.last(), tPos, snapshotGrid() ?: return@execute, scm, sw, sh)) {
+                                        wp = wp.toMutableList().also { it.add(tPos) }
+                                    }
+                                    wp
+                                } else {
+                                    null
+                                }
+                                runOnRenderThread {
+                                    follower.replanInFlight = false
+                                    val stalePath = newWaypoints != null && newWaypoints.isNotEmpty()
+                                            && follower.waypoints.isNotEmpty()
+                                            && follower.waypoints.last().dst(newWaypoints.last()) < 1f
+                                    if (newWaypoints != null && newWaypoints.isNotEmpty() && !stalePath) {
+                                        follower.waypoints = newWaypoints
+                                        follower.currentIndex = 0
+                                    } else {
+                                        follower.state = FollowState.REACHED
+                                        follower.callback?.onPathCompleted(name)
+                                    }
+                                }
+                            }
+                            continue
+                        }
+                    }
+                }
                 follower.state = FollowState.REACHED
                 follower.callback?.onPathCompleted(name)
                 continue
             }
             val target = follower.waypoints[follower.currentIndex]
-
-            var sprite: Sprite? = null
-            for (s in stageSprites) {
-                if (s.name == name) { sprite = s; break }
-            }
-            val look = sprite?.look ?: continue
+            if (look == null) continue
 
             if (follower.stopOnTouch && follower.targetName != null) {
                 val targetSprite = findSpriteByName(follower.targetName!!)
@@ -693,18 +777,20 @@ class PathfindingManager {
                     val endY = finalTarget?.y ?: target.y
                     val scm = follower.sizeCheckMode
                     val bpa = follower.blockedPathAction
+                    val pst = follower.pathStrategy
                     val sw = look.widthInUserInterfaceDimensionUnit
                     val sh = look.heightInUserInterfaceDimensionUnit
                     pathExecutor.execute {
                         val replanResult = try {
-                            findPath(currentX, currentY, endX, endY, scm, sw, sh, bpa)
+                            findPath(currentX, currentY, endX, endY, scm, sw, sh, bpa, pst)
                         } catch (e: Exception) {
                             Log.e(TAG, "Async replan failed", e)
                             PathResult(emptyList(), false)
                         }
                         val newWaypoints = if (replanResult.found || (bpa == 1 && replanResult.points.isNotEmpty())) {
                             var wp = smoothPath(replanResult.points, scm, sw, sh)
-                            if (finalTarget != null && wp.isNotEmpty() && wp.last().dst(finalTarget) > 1f) {
+                            if (finalTarget != null && wp.isNotEmpty() && wp.last().dst(finalTarget) > 1f
+                                && hasLineOfSight(wp.last(), finalTarget, snapshotGrid() ?: return@execute, scm, sw, sh)) {
                                 wp = wp.toMutableList().also { it.add(finalTarget) }
                             }
                             wp
@@ -713,7 +799,10 @@ class PathfindingManager {
                         }
                         runOnRenderThread {
                             follower.replanInFlight = false
-                            if (newWaypoints != null) {
+                            val stalePath = newWaypoints != null && newWaypoints.isNotEmpty()
+                                    && follower.waypoints.isNotEmpty()
+                                    && follower.waypoints.last().dst(newWaypoints.last()) < 1f
+                            if (newWaypoints != null && newWaypoints.isNotEmpty() && !stalePath) {
                                 follower.waypoints = newWaypoints
                                 follower.currentIndex = 0
                             } else {
@@ -744,11 +833,12 @@ class PathfindingManager {
                             val endY = follower.waypoints.last().y
                             val scm = follower.sizeCheckMode
                             val bpa = follower.blockedPathAction
+                            val pst = follower.pathStrategy
                             val sw = look.widthInUserInterfaceDimensionUnit
                             val sh = look.heightInUserInterfaceDimensionUnit
                             pathExecutor.execute {
                                 val replanResult = try {
-                                    findPath(currentX, currentY, endX, endY, scm, sw, sh, bpa)
+                                    findPath(currentX, currentY, endX, endY, scm, sw, sh, bpa, pst)
                                 } catch (e: Exception) {
                                     Log.e(TAG, "Async dynamic replan failed", e)
                                     PathResult(emptyList(), false)
@@ -760,7 +850,10 @@ class PathfindingManager {
                                 }
                                 runOnRenderThread {
                                     follower.replanInFlight = false
-                                    if (newWaypoints != null) {
+                                    val stalePath = newWaypoints != null && newWaypoints.isNotEmpty()
+                                            && follower.waypoints.isNotEmpty()
+                                            && follower.waypoints.last().dst(newWaypoints.last()) < 1f
+                                    if (newWaypoints != null && newWaypoints.isNotEmpty() && !stalePath) {
                                         follower.waypoints = newWaypoints
                                         follower.currentIndex = 0
                                     } else {
@@ -830,6 +923,8 @@ class PathfindingManager {
         navGrid = null
         obstacles.clear()
         followers.clear()
+        lastObstacleState.clear()
+        obstacleUpdateAccumulator = 0f
     }
 
     fun dispose() {
@@ -850,121 +945,6 @@ class PathfindingManager {
             return PathResult(smoothPath(points, sizeCheckMode, spriteWidth, spriteHeight), true)
         }
         return result
-    }
-
-    fun findPathToObjectWithSmoothing(fromSprite: String, targetSprite: String, sizeCheckMode: Int = 0): PathResult {
-        val from = findSpriteByName(fromSprite)?.look ?: return PathResult(emptyList(), false)
-        findSpriteByName(targetSprite)?.look ?: return PathResult(emptyList(), false)
-        val result = findPathToObject(fromSprite, targetSprite, sizeCheckMode)
-        return if (result.found) {
-            PathResult(smoothPath(result.points, sizeCheckMode, from.widthInUserInterfaceDimensionUnit, from.heightInUserInterfaceDimensionUnit), true)
-        } else {
-            result
-        }
-    }
-
-    fun setPathForFollowerWithSmoothing(spriteName: String, path: List<Vector2>) {
-        val follower = followers[spriteName]
-        val (sizeMode, w, h) = if (follower != null) {
-            val sprite = findSpriteByName(spriteName)
-            val look = sprite?.look
-            Triple(follower.sizeCheckMode, look?.widthInUserInterfaceDimensionUnit ?: 0f, look?.heightInUserInterfaceDimensionUnit ?: 0f)
-        } else {
-            Triple(0, 0f, 0f)
-        }
-        val smoothedPath = smoothPath(path, sizeMode, w, h)
-        setPathForFollower(spriteName, smoothedPath)
-    }
-
-    fun getGridInfo(): String {
-        val grid = navGrid ?: return "No grid created"
-        return "Grid: ${grid.width}x${grid.height}, cellSize: ${grid.cellSize}, offset: (${grid.offsetX}, ${grid.offsetY})"
-    }
-
-    fun getObstacleCount(): Int = obstacles.size
-
-    fun getFollowerCount(): Int = followers.size
-
-    fun getFollowerInfo(spriteName: String): String {
-        val follower = followers[spriteName] ?: return "No follower for $spriteName"
-        return "Follower: $spriteName, state: ${follower.state}, waypoints: ${follower.waypoints.size}, " +
-                "current: ${follower.currentIndex}, speed: ${follower.speed}"
-    }
-
-    fun isPathWalkable(
-        path: List<Vector2>,
-        sizeCheckMode: Int = 0,
-        spriteWidth: Float = 0f,
-        spriteHeight: Float = 0f
-    ): Boolean {
-        val grid = navGrid ?: return false
-        for (point in path) {
-            val cell = worldToCell(point.x, point.y) ?: return false
-            if (!isCellWalkableForSize(cell.first, cell.second, grid, sizeCheckMode, spriteWidth, spriteHeight)) {
-                return false
-            }
-        }
-        return true
-    }
-
-    fun getNearestWalkablePoint(worldX: Float, worldY: Float, searchRadius: Float = 100f): Vector2? {
-        val grid = navGrid ?: return null
-        val step = grid.cellSize
-        
-        if (isWalkable(worldX, worldY)) {
-            return Vector2(worldX, worldY)
-        }
-        
-        var radius = step
-        while (radius <= searchRadius) {
-            for (angle in 0 until 360 step 45) {
-                val rad = Math.toRadians(angle.toDouble())
-                val testX = worldX + (kotlin.math.cos(rad) * radius).toFloat()
-                val testY = worldY + (kotlin.math.sin(rad) * radius).toFloat()
-                
-                if (isWalkable(testX, testY)) {
-                    return Vector2(testX, testY)
-                }
-            }
-            radius += step
-        }
-        
-        return null
-    }
-
-    fun debugPrintGrid() {
-        val grid = navGrid ?: run {
-            println("No grid created")
-            return
-        }
-        
-        println("Pathfinding Grid (${grid.width}x${grid.height}):")
-        println("Cell size: ${grid.cellSize}, Offset: (${grid.offsetX}, ${grid.offsetY})")
-        println("Obstacles: ${obstacles.size}, Followers: ${followers.size}")
-        
-        for (y in 0 until grid.height) {
-            val row = StringBuilder()
-            for (x in 0 until grid.width) {
-                row.append(if (grid.walkable[x][y]) "." else "#")
-            }
-            println(row.toString())
-        }
-    }
-
-    fun getWalkableAreaPercentage(): Float {
-        val grid = navGrid ?: return 0f
-        var walkableCount = 0
-        val totalCells = grid.width * grid.height
-        
-        for (x in 0 until grid.width) {
-            for (y in 0 until grid.height) {
-                if (grid.walkable[x][y]) {
-                    walkableCount++
-                }
-            }
-        }
-        
-        return (walkableCount.toFloat() / totalCells) * 100f
     }
 
     fun clearAllFollowers() {

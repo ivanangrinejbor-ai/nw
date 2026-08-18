@@ -2769,6 +2769,62 @@ public class ActionFactory extends Actions {
 		return action;
 	}
 
+	public Action createGetFromPastebinAction(Sprite sprite, SequenceAction sequence,
+											  Formula url, UserVariable variable) {
+		GetFromPastebinAction action = action(GetFromPastebinAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setUrl(url);
+		action.setVariable(variable);
+		return action;
+	}
+
+	public Action createCheckPortAction(Sprite sprite, SequenceAction sequence,
+										Formula port, UserVariable variable) {
+		CheckPortAction action = action(CheckPortAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setPort(port);
+		action.setVariable(variable);
+		return action;
+	}
+
+	public Action createSetTcpServerClientLimitAction(Sprite sprite, SequenceAction sequence,
+													  Formula limit) {
+		SetTcpServerClientLimitAction action = action(SetTcpServerClientLimitAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setLimit(limit);
+		return action;
+	}
+
+	public Action createSetTcpServerTimeoutAction(Sprite sprite, SequenceAction sequence,
+												  Formula timeout) {
+		SetTcpServerTimeoutAction action = action(SetTcpServerTimeoutAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setTimeout(timeout);
+		return action;
+	}
+
+	public Action createSendToTcpServerAction(Sprite sprite, SequenceAction sequence,
+											  List<Formula> values) {
+		SendToTcpServerAction action = action(SendToTcpServerAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setValues(values);
+		return action;
+	}
+
+	public Action createListenTcpServerAction(Sprite sprite, SequenceAction sequence,
+											  List<UserVariable> variables) {
+		ListenTcpServerAction action = action(ListenTcpServerAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setVariables(variables);
+		return action;
+	}
+
 	public static String generateRandomString(int length) {
 
 		String alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
@@ -2858,9 +2914,19 @@ public class ActionFactory extends Actions {
 		return action;
 	}
 
-	public Action createVarAction(Sprite sprite, SequenceAction sequence,
-										Formula varname, Formula value) {
+public Action createVarAction(Sprite sprite, SequenceAction sequence,
+									Formula varname, Formula value) {
 		CreateVarAction action = action(CreateVarAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setVarname(varname);
+		action.setValue(value);
+		return action;
+	}
+
+	public Action createSetVariableByNameAction(Sprite sprite, SequenceAction sequence,
+									Formula varname, Formula value) {
+		SetVariableByNameAction action = action(SetVariableByNameAction.class);
 		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
 		action.setScope(scope);
 		action.setVarname(varname);
@@ -7150,7 +7216,7 @@ public Action createSetBufferEffectsAction(Sprite sprite, SequenceAction sequenc
 
 	public Action createMoveToObjectAction(Sprite sprite, SequenceAction sequence,
 			String targetObject, Formula avoidObjects, Formula speed, int moveMode,
-			int sizeCheckMode, int blockedPathAction, Formula rotateObject, Formula dynamicReplanning) {
+			int sizeCheckMode, int blockedPathAction, int pathStrategy, Formula rotateObject, Formula dynamicReplanning) {
 		MoveToObjectAction action = Actions.action(MoveToObjectAction.class);
 		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
 		action.setScope(scope);
@@ -7160,8 +7226,231 @@ public Action createSetBufferEffectsAction(Sprite sprite, SequenceAction sequenc
 		action.setMoveMode(moveMode);
 		action.setSizeCheckMode(sizeCheckMode);
 		action.setBlockedPathAction(blockedPathAction);
+		action.setPathStrategy(pathStrategy);
 		action.setRotateObject(rotateObject);
 		action.setDynamicReplanning(dynamicReplanning);
+		return action;
+	}
+
+	public Action createPtLayerLinearAction(Sprite sprite, SequenceAction sequence,
+											Formula layerName, Formula input, Formula output, Formula inF, Formula outF) {
+		PtLayerLinearAction action = action(PtLayerLinearAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setLayerNameFormula(layerName);
+		action.setInputFormula(input);
+		action.setOutputFormula(output);
+		action.setInFeaturesFormula(inF);
+		action.setOutFeaturesFormula(outF);
+		return action;
+	}
+
+	public Action createPtZeroGradAction(Sprite sprite, ScriptSequenceAction sequence) {
+		PtZeroGradAction action = action(PtZeroGradAction.class);
+		return action;
+	}
+
+	public Action createPtSliceAction(Sprite sprite, SequenceAction sequence,
+									  Formula res, Formula input, Formula start, Formula end) {
+		PtSliceAction action = action(PtSliceAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setResFormula(res);
+		action.setInputFormula(input);
+		action.setStartColFormula(start);
+		action.setEndColFormula(end);
+		return action;
+	}
+
+	public Action createPtCreateNormalTensorAction(Sprite sprite, SequenceAction sequence,
+												   Formula name, Formula shape, Formula mean, Formula std, Formula trainable) {
+		PtCreateNormalTensorAction action = action(PtCreateNormalTensorAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setNameFormula(name);
+		action.setShapeFormula(shape);
+		action.setMeanFormula(mean);
+		action.setStdFormula(std);
+		action.setTrainableFormula(trainable);
+		return action;
+	}
+
+	public Action createPtEmbeddingAction(Sprite sprite, SequenceAction sequence,
+										  Formula layerName, Formula input, Formula output, Formula vocabSize, Formula embDim) {
+		PtEmbeddingAction action = action(PtEmbeddingAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setLayerNameFormula(layerName);
+		action.setInputFormula(input);
+		action.setOutputFormula(output);
+		action.setVocabSizeFormula(vocabSize);
+		action.setEmbDimFormula(embDim);
+		return action;
+	}
+
+	public Action createPtAttentionAction(Sprite sprite, SequenceAction sequence,
+										  Formula layerName, Formula input, Formula output, Formula embedDim) {
+		PtAttentionAction action = action(PtAttentionAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setLayerNameFormula(layerName);
+		action.setInputFormula(input);
+		action.setOutputFormula(output);
+		action.setEmbedDimFormula(embedDim);
+		return action;
+	}
+
+	public Action createPtClipGradAction(Sprite sprite, SequenceAction sequence, Formula maxNorm) {
+		PtClipGradAction action = action(PtClipGradAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setMaxNormFormula(maxNorm);
+		return action;
+	}
+
+	public Action createPtConv2DAction(Sprite sprite, SequenceAction sequence,
+									   Formula layerName, Formula input, Formula output,
+									   Formula inC, Formula outC, Formula kSize, Formula stride) {
+		PtConv2DAction action = action(PtConv2DAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setLayerNameFormula(layerName);
+		action.setInputFormula(input);
+		action.setOutputFormula(output);
+		action.setInChannelsFormula(inC);
+		action.setOutChannelsFormula(outC);
+		action.setKernelSizeFormula(kSize);
+		action.setStrideFormula(stride);
+		return action;
+	}
+
+	public Action createPtMaxPool2DAction(Sprite sprite, SequenceAction sequence,
+										  Formula res, Formula input, Formula poolSize, Formula stride) {
+		PtMaxPool2DAction action = action(PtMaxPool2DAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setResFormula(res);
+		action.setInputFormula(input);
+		action.setPoolSizeFormula(poolSize);
+		action.setStrideFormula(stride);
+		return action;
+	}
+
+	public Action createPtDropoutAction(Sprite sprite, SequenceAction sequence,
+										Formula res, Formula input, Formula prob) {
+		PtDropoutAction action = action(PtDropoutAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setResFormula(res);
+		action.setInputFormula(input);
+		action.setProbFormula(prob);
+		return action;
+	}
+
+	public Action createMLStepAdamWAction(Sprite sprite, SequenceAction sequence,
+										  Formula lr, Formula weightDecay) {
+		MLStepAdamWAction action = action(MLStepAdamWAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setLrFormula(lr);
+		action.setWeightDecayFormula(weightDecay);
+		return action;
+	}
+
+	public Action createPtLstmCellAction(Sprite sprite, SequenceAction sequence,
+										 Formula layerName, Formula input, Formula hIn, Formula cIn,
+										 Formula hOut, Formula cOut, Formula inDim, Formula hiddenDim) {
+		PtLstmCellAction action = action(PtLstmCellAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setLayerNameFormula(layerName);
+		action.setInputFormula(input);
+		action.setHInFormula(hIn);
+		action.setCInFormula(cIn);
+		action.setHOutFormula(hOut);
+		action.setCOutFormula(cOut);
+		action.setInDimFormula(inDim);
+		action.setHiddenDimFormula(hiddenDim);
+		return action;
+	}
+
+	public Action createPtGruCellAction(Sprite sprite, SequenceAction sequence,
+										Formula layerName, Formula input, Formula hIn, Formula hOut,
+										Formula inDim, Formula hiddenDim) {
+		PtGruCellAction action = action(PtGruCellAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setLayerNameFormula(layerName);
+		action.setInputFormula(input);
+		action.setHInFormula(hIn);
+		action.setHOutFormula(hOut);
+		action.setInDimFormula(inDim);
+		action.setHiddenDimFormula(hiddenDim);
+		return action;
+	}
+
+	public Action createSetTextPropertyAction(Sprite sprite, SequenceAction sequence,
+											  Formula nameFormula, int propertySelection, Formula valueFormula) {
+		SetTextPropertyAction action = action(SetTextPropertyAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setNameFormula(nameFormula);
+		action.setPropertySelection(propertySelection);
+		action.setValueFormula(valueFormula);
+		return action;
+	}
+
+	public Action createSetPenPropertyAction(Sprite sprite, SequenceAction sequence, int propertySelection, Formula valueFormula) {
+		SetPenPropertyAction action = action(SetPenPropertyAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setPropertySelection(propertySelection);
+		action.setValueFormula(valueFormula);
+		return action;
+	}
+
+	public Action createPenDrawLineAction(Sprite sprite, SequenceAction sequence, Formula x1, Formula y1, Formula x2, Formula y2, Formula thick) {
+		PenDrawLineAction action = action(PenDrawLineAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setFormulas(x1, y1, x2, y2, thick);
+		return action;
+	}
+
+	public Action createPenDrawTriangleAction(Sprite sprite, SequenceAction sequence, Formula x1, Formula y1, Formula x2, Formula y2, Formula x3, Formula y3, Formula fill) {
+		PenDrawTriangleAction action = action(PenDrawTriangleAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setFormulas(x1, y1, x2, y2, x3, y3, fill);
+		return action;
+	}
+
+	public Action createPenClearColorAction(Sprite sprite, SequenceAction sequence, Formula color, Formula alpha) {
+		PenClearColorAction action = action(PenClearColorAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setFormulas(color, alpha);
+		return action;
+	}
+
+	public Action createPenFlushAction(Sprite sprite, SequenceAction sequence) {
+		PenFlushAction action = action(PenFlushAction.class);
+		return action;
+	}
+
+	public Action createPenDrawRectAction(Sprite sprite, SequenceAction sequence, Formula x, Formula y, Formula width, Formula height, Formula fill) {
+		PenDrawRectAction action = action(PenDrawRectAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setFormulas(x, y, width, height, fill);
+		return action;
+	}
+
+	public Action createPenDrawCircleAction(Sprite sprite, SequenceAction sequence, Formula x, Formula y, Formula radius, Formula startAngle, Formula degrees, Formula fill) {
+		PenDrawCircleAction action = action(PenDrawCircleAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setFormulas(x, y, radius, startAngle, degrees, fill);
 		return action;
 	}
 }

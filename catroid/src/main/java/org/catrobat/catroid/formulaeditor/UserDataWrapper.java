@@ -24,7 +24,14 @@ public final class UserDataWrapper {
         }
 
         Project project = scope.getProject();
-        if (project != null) {
+        if (project != null && sprite != null) {
+            for (Scene scene : project.getSceneList()) {
+                if (scene.getSpriteList().contains(sprite)) {
+                    UserVariable uv = scene.getSceneVariable(name);
+                    if (uv != null) return uv;
+                    break;
+                }
+            }
             UserVariable uv = project.getUserVariable(name);
             if (uv != null) return uv;
 
@@ -62,6 +69,7 @@ public final class UserDataWrapper {
     public static void resetAllUserData(Project project) {
         project.resetUserData();
         for (Scene scene : project.getSceneList()) {
+            scene.resetSceneVariables();
             for (Sprite sprite : scene.getSpriteList()) {
                 sprite.resetUserData();
             }

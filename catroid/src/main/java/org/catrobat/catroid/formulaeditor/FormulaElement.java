@@ -55,6 +55,7 @@ import org.luaj.vm2.Globals;
 import org.luaj.vm2.lib.jse.JsePlatform;
 
 import java.io.File;
+import org.catrobat.catroid.utils.NewCatroidNotificationManager;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.io.Serializable;
@@ -607,6 +608,41 @@ public class FormulaElement implements Serializable {
                 } catch (Exception e) {
                     return false;
                 }
+            }
+            case FILE_TO_BASE64: {
+                String fileName = String.valueOf(arg0);
+                try {
+                    File file = scope.getProject() != null ? scope.getProject().getFile(fileName) : null;
+                    if (file != null && file.exists()) {
+                        byte[] bytes = new byte[(int) file.length()];
+                        try (java.io.FileInputStream fis = new java.io.FileInputStream(file)) {
+                            fis.read(bytes);
+                        }
+                        return android.util.Base64.encodeToString(bytes, android.util.Base64.NO_WRAP);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                return "";
+            }
+            case READ_FILE: {
+                String filename = String.valueOf(arg0);
+                File file = scope.getProject() != null ? scope.getProject().getFile(filename) : null;
+                if (file == null || !file.exists()) return "";
+                try {
+                    if (file.length() > 2 * 1024 * 1024) return "File is too large";
+                    return com.badlogic.gdx.Gdx.files.absolute(file.getAbsolutePath()).readString("UTF-8");
+                } catch (Exception e) {
+                    return "";
+                }
+            }
+            case MD5: {
+                String text = String.valueOf(arg0);
+                return org.catrobat.catroid.utils.HashUtils.hashString(text, "MD5");
+            }
+            case NOTIFICATION_REPLY: {
+                String actionId = NewCatroidNotificationManager.cleanStringId(String.valueOf(arg0));
+                return NewCatroidNotificationManager.INSTANCE.getSavedReplies().getOrDefault(actionId, "");
             }
             case FILE_READ_STRING: {
                 if (scope.getProject() == null) return "";
@@ -1415,6 +1451,9 @@ public class FormulaElement implements Serializable {
                 }
                 return "Unknown";
             }
+            case EXTERNAL_IP: {
+                return ExternalIpFetcher.getExternalIp();
+            }
             case SCREEN_WIDTH: {
                 try {
                     android.util.DisplayMetrics metrics = CatroidApplication.getAppContext()
@@ -1559,7 +1598,7 @@ public class FormulaElement implements Serializable {
             }
             case SPRITE_RAGDOLLED: {
                 Sprite s = findSprite(String.valueOf(arg0));
-                return booleanToDouble(s != null && s.isRagdolled);
+                return booleanToDouble(s != null && s.ragdollMode > 0);
             }
             case SPRITE_TRANSPARENCY: {
                 Sprite s = findSprite(String.valueOf(arg0));
@@ -1829,7 +1868,7 @@ public class FormulaElement implements Serializable {
     private Object interpretCustomLunoFunction(CustomFormula customFormula, List<Object> arguments, Scope scope) {
         LoadedLibrary library = LibraryManager.INSTANCE.getLoadedLibrary(customFormula.getOwnerLibraryId());
         if (library == null) {
-            Log.e(TAG_FORMULA_ELEMENT, "Библиотека " + customFormula.getOwnerLibraryId() + " не загружена для функции " + customFormula.getUniqueName());
+            Log.e(TAG_FORMULA_ELEMENT, "Р‘РёР±Р»РёРѕС‚РµРєР° " + customFormula.getOwnerLibraryId() + " РЅРµ Р·Р°РіСЂСѓР¶РµРЅР° РґР»СЏ С„СѓРЅРєС†РёРё " + customFormula.getUniqueName());
             return "LIB NOT FOUND";
         }
 
@@ -1839,7 +1878,7 @@ public class FormulaElement implements Serializable {
             LunoValue functionValue = interpreter.getGlobals().get(new Token(TokenType.IDENTIFIER, customFormula.getLunoFunctionName(), null, -1, -1));
 
             if (!(functionValue instanceof LunoValue.Callable)) {
-                Log.e(TAG_FORMULA_ELEMENT, "Функция " + customFormula.getLunoFunctionName() + " не найдена или не является функцией в библиотеке " + library.getId());
+                Log.e(TAG_FORMULA_ELEMENT, "Р¤СѓРЅРєС†РёСЏ " + customFormula.getLunoFunctionName() + " РЅРµ РЅР°Р№РґРµРЅР° РёР»Рё РЅРµ СЏРІР»СЏРµС‚СЃСЏ С„СѓРЅРєС†РёРµР№ РІ Р±РёР±Р»РёРѕС‚РµРєРµ " + library.getId());
                 return "FUNC NOT FOUND";
             }
             LunoValue.Callable lunoFunction = (LunoValue.Callable) functionValue;
@@ -1865,7 +1904,7 @@ public class FormulaElement implements Serializable {
             return resultJava;
 
         } catch (LunoRuntimeError e) {
-            Log.e(TAG_FORMULA_ELEMENT, "Ошибка выполнения LunoScript для функции " + customFormula.getUniqueName(), e);
+            Log.e(TAG_FORMULA_ELEMENT, "РћС€РёР±РєР° РІС‹РїРѕР»РЅРµРЅРёСЏ LunoScript РґР»СЏ С„СѓРЅРєС†РёРё " + customFormula.getUniqueName(), e);
             return "LUNO ERROR";
         }
     }

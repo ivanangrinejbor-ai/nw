@@ -138,6 +138,16 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:layout_marginTop="4dp"/>
 
+            <ImageButton
+                android:id="@+id/btn_quick_particles"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:src="@drawable/ic_particles"
+                android:contentDescription="@string/editor_3d_particles"
+                app:tint="@color/solid_white"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:layout_marginTop="4dp"/>
+
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"

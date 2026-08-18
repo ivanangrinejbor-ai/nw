@@ -90,6 +90,7 @@ class DataListFragment : Fragment(),
     private var originalUserDefinedBrickInputs = listOf<UserDefinedBrickInput>()
     private var originalGlobalVars = mutableListOf<UserVariable>()
     private var originalLocalVars = mutableListOf<UserVariable>()
+    private var originalSceneVars = mutableListOf<UserVariable>()
     private var originalMultiplayerVars = mutableListOf<UserVariable>()
     private var originalGlobalLists = mutableListOf<UserList>()
     private var originalLocalLists = mutableListOf<UserList>()
@@ -316,6 +317,7 @@ class DataListFragment : Fragment(),
         }
         originalGlobalVars = currentProject.userVariables
         originalLocalVars = currentSprite.userVariables
+        originalSceneVars = ProjectManager.getInstance().currentlyEditedScene?.sceneVariables ?: mutableListOf()
         originalMultiplayerVars = currentProject.multiplayerVariables
         originalGlobalLists = currentProject.userLists
         originalLocalLists = currentSprite.userLists
@@ -352,6 +354,12 @@ class DataListFragment : Fragment(),
             originalLocalVars.filter { it.name.contains(query, ignoreCase = true) }.toMutableList()
         }
 
+        val filteredSceneVars = if (query.isEmpty()) {
+            originalSceneVars.toMutableList()
+        } else {
+            originalSceneVars.filter { it.name.contains(query, ignoreCase = true) }.toMutableList()
+        }
+
         val filteredGlobalLists = if (query.isEmpty()) {
             originalGlobalLists.toMutableList()
         } else {
@@ -374,7 +382,7 @@ class DataListFragment : Fragment(),
 
         adapter = DataListAdapter(
             filteredUserDefinedInputs, filteredMultiplayerVars, filteredGlobalVars,
-            filteredLocalVars, filteredGlobalLists, filteredLocalLists
+            filteredLocalVars, filteredSceneVars, filteredGlobalLists, filteredLocalLists
         )
 
         try {
@@ -402,6 +410,7 @@ class DataListFragment : Fragment(),
 
         val globalVars = currentProject.userVariables
         val localVars = currentSprite.userVariables
+        val sceneVars = ProjectManager.getInstance().currentlyEditedScene?.sceneVariables ?: mutableListOf()
         val multiplayerVars = currentProject.multiplayerVariables
         val globalLists = currentProject.userLists
         val localLists = currentSprite.userLists
@@ -410,7 +419,7 @@ class DataListFragment : Fragment(),
             .getBoolean(INDEXING_VARIABLE_PREFERENCE_KEY, false)
 
         if (!indexVariable) {
-            initialIndexing(userDefinedBrickInputs, globalVars, localVars, multiplayerVars,
+            initialIndexing(userDefinedBrickInputs, globalVars, localVars, sceneVars, multiplayerVars,
                             globalLists, localLists)
             indexVariable = true
             PreferenceManager.getDefaultSharedPreferences(activity)
@@ -419,7 +428,7 @@ class DataListFragment : Fragment(),
                 .apply()
         }
 
-        sortVariableAndList(userDefinedBrickInputs, globalVars, localVars, multiplayerVars,
+        sortVariableAndList(userDefinedBrickInputs, globalVars, localVars, sceneVars, multiplayerVars,
                             globalLists, localLists)
         adapter?.notifyDataSetChanged()
     }
@@ -429,6 +438,7 @@ class DataListFragment : Fragment(),
         userDefinedBrickInputs: List<UserDefinedBrickInput>,
         globalVars: MutableList<UserVariable>,
         localVars: MutableList<UserVariable>,
+        sceneVars: MutableList<UserVariable>,
         multiplayerVars: MutableList<UserVariable>,
         globalLists: MutableList<UserList>,
         localLists: MutableList<UserList>
@@ -451,6 +461,7 @@ class DataListFragment : Fragment(),
         sortUserVariable(multiplayerVars, sortData)
         sortUserVariable(globalVars, sortData)
         sortUserVariable(localVars, sortData)
+        sortUserVariable(sceneVars, sortData)
         sortUserList(globalLists, sortData)
         sortUserList(localLists, sortData)
     }
@@ -484,6 +495,7 @@ class DataListFragment : Fragment(),
         userDefinedBrickInputs: List<UserDefinedBrickInput>,
         globalVars: MutableList<UserVariable>,
         localVars: MutableList<UserVariable>,
+        sceneVars: MutableList<UserVariable>,
         multiplayerVars: MutableList<UserVariable>,
         globalLists: MutableList<UserList>,
         localLists: MutableList<UserList>
@@ -497,6 +509,7 @@ class DataListFragment : Fragment(),
         }
         setUserVariableIndex(globalVars)
         setUserVariableIndex(localVars)
+        setUserVariableIndex(sceneVars)
         setUserVariableIndex(multiplayerVars)
         setUserListIndex(globalLists)
         setUserListIndex(localLists)
@@ -631,6 +644,7 @@ class DataListFragment : Fragment(),
                 currentProject.userVariables.remove(item)
                 currentSprite.userVariables.remove(item)
                 currentProject.multiplayerVariables.remove(item)
+                ProjectManager.getInstance().currentlyEditedScene?.sceneVariables?.remove(item)
             } else if (item is UserList) {
                 currentProject.userLists.remove(item)
                 currentSprite.userLists.remove(item)

@@ -1,10 +1,12 @@
 package org.catrobat.catroid.content;
 
+import org.catrobat.catroid.ProjectManager;
 import org.catrobat.catroid.content.bricks.Brick;
 import org.catrobat.catroid.content.bricks.ConcurrentFormulaHashMap;
 import org.catrobat.catroid.content.bricks.ScriptBrick;
 import org.catrobat.catroid.content.bricks.WhenNotificationActionTriggeredBrick;
 import org.catrobat.catroid.content.eventids.EventId;
+import org.catrobat.catroid.content.eventids.NotificationActionEventId;
 import org.catrobat.catroid.formulaeditor.Formula;
 
 public class WhenNotificationActionTriggeredScript extends Script {
@@ -52,6 +54,14 @@ public class WhenNotificationActionTriggeredScript extends Script {
 
     @Override
     public EventId createEventId(Sprite sprite) {
-        return new EventId(EventId.OTHER);
+        Formula formula = formulaMap.get(Brick.BrickField.VALUE_1);
+        String actionId = "";
+        if (formula != null) {
+            try {
+                actionId = formula.interpretString(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, null));
+            } catch (Exception ignored) {
+            }
+        }
+        return new NotificationActionEventId(actionId);
     }
 }

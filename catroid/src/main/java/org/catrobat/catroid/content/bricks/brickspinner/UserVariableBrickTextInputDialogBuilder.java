@@ -31,7 +31,9 @@ import android.widget.EditText;
 import android.widget.RadioButton;
 
 import org.catrobat.catroid.R;
+import org.catrobat.catroid.ProjectManager;
 import org.catrobat.catroid.content.Project;
+import org.catrobat.catroid.content.Scene;
 import org.catrobat.catroid.content.Sprite;
 import org.catrobat.catroid.formulaeditor.UserVariable;
 import org.catrobat.catroid.ui.recyclerview.dialog.TextInputDialog;
@@ -54,6 +56,12 @@ public class UserVariableBrickTextInputDialogBuilder extends TextInputDialog.Bui
 			multiplayerRadioButton.setVisibility(View.VISIBLE);
 		}
 
+		RadioButton sceneRadioButton = dialogView.findViewById(R.id.scene);
+		Scene editedScene = ProjectManager.getInstance().getCurrentlyEditedScene();
+		if (editedScene != null && !editedScene.isGlobalScene()) {
+			sceneRadioButton.setVisibility(View.VISIBLE);
+		}
+
 		CheckBox protectedCheckBox = dialogView.findViewById(R.id.protected_var);
 		View passwordInput = dialogView.findViewById(R.id.password_input);
 		protectedCheckBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
@@ -70,11 +78,14 @@ public class UserVariableBrickTextInputDialogBuilder extends TextInputDialog.Bui
 					RadioButton addToProjectVariablesRadioButton = ((Dialog) dialog).findViewById(R.id.global);
 					boolean addToProjectVariables = addToProjectVariablesRadioButton.isChecked();
 					boolean addToMultiplayerVariables = multiplayerRadioButton.isChecked();
+					boolean addToSceneVariables = sceneRadioButton.isChecked();
 
 					if (addToProjectVariables) {
 						project.addUserVariable(userVariable);
 					} else if (addToMultiplayerVariables) {
 						project.addMultiplayerVariable(userVariable);
+					} else if (addToSceneVariables && editedScene != null) {
+						editedScene.addSceneVariable(userVariable);
 					} else {
 						sprite.addUserVariable(userVariable);
 					}

@@ -85,8 +85,8 @@ class ShowTextAction : TemporalAction() {
             val xPosition = xPosition?.interpretInteger(scope)
             val yPosition = yPosition?.interpretInteger(scope)
             if (showTextActor != null) {
-                showTextActor?.setPositionX(xPosition ?: 0)
-                showTextActor?.setPositionY(yPosition ?: 0)
+                showTextActor?.setPositionX((xPosition ?: 0).toFloat())
+                showTextActor?.setPositionY((yPosition ?: 0).toFloat())
             }
         } catch (e: InterpretationException) {
             Log.d(TAG, "InterpretationException $e")

@@ -36,6 +36,7 @@ import org.catrobat.catroid.ProjectManager;
 import org.catrobat.catroid.R;
 import org.catrobat.catroid.common.Nameable;
 import org.catrobat.catroid.content.Project;
+import org.catrobat.catroid.content.Scene;
 import org.catrobat.catroid.content.Sprite;
 import org.catrobat.catroid.content.bricks.brickspinner.BrickSpinner;
 import org.catrobat.catroid.content.bricks.brickspinner.NewOption;
@@ -137,6 +138,10 @@ public abstract class UserDataBrick extends FormulaBrick implements BrickSpinner
 		List<Nameable> variables = new ArrayList<>();
 		variables.add(new NewOption(context.getString(R.string.new_option)));
 		variables.addAll(sprite.getUserVariables());
+		Scene editedScene = ProjectManager.getInstance().getCurrentlyEditedScene();
+		if (editedScene != null) {
+			variables.addAll(editedScene.getSceneVariables());
+		}
 		variables.addAll(ProjectManager.getInstance().getCurrentProject().getUserVariables());
 
 		for (Map.Entry<BrickData, UserData> entry : userDataList.entrySet()) {

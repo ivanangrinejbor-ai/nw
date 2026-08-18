@@ -33,6 +33,7 @@ import org.catrobat.catroid.content.bricks.BroadcastMessageBrick;
 import org.catrobat.catroid.content.bricks.CloneAndNameBrick;
 import org.catrobat.catroid.content.bricks.CloneBrick;
 import org.catrobat.catroid.formulaeditor.UserData;
+import org.catrobat.catroid.formulaeditor.UserVariable;
 import org.catrobat.catroid.io.XStreamFieldKeyOrder;
 import org.catrobat.catroid.physics.PhysicsWorld;
 import org.catrobat.catroid.ui.controller.BackpackListManager;
@@ -61,8 +62,9 @@ import androidx.annotation.NonNull;
 		"startTransitionType",
 		"startTransitionDuration",
 		"exitTransitionType",
-		"exitTransitionDuration"
-})
+		"exitTransitionDuration",
+		"sceneVariables"
+	})
 @LunoClass
 public class Scene implements Nameable, Serializable {
 
@@ -74,6 +76,9 @@ public class Scene implements Nameable, Serializable {
 	private String name;
 	@XStreamAlias("objectList")
 	private List<Sprite> spriteList = new ArrayList<>();
+
+	@XStreamAlias("sceneVariables")
+	private List<UserVariable> sceneVariables = new ArrayList<>();
 
 	@XStreamAlias("transitionType")
 	private int transitionType = 0;
@@ -212,6 +217,41 @@ public class Scene implements Nameable, Serializable {
 			}
 		}
 		return null;
+	}
+
+	public List<UserVariable> getSceneVariables() {
+		if (sceneVariables == null) {
+			sceneVariables = new ArrayList<>();
+		}
+		return sceneVariables;
+	}
+
+	public UserVariable getSceneVariable(String name) {
+		for (UserVariable variable : sceneVariables) {
+			if (variable.getName().equals(name)) {
+				return variable;
+			}
+		}
+		return null;
+	}
+
+	public boolean addSceneVariable(UserVariable userVariable) {
+		return getSceneVariables().add(userVariable);
+	}
+
+	public boolean removeSceneVariable(String name) {
+		for (UserVariable variable : sceneVariables) {
+			if (variable.getName().equals(name)) {
+				return sceneVariables.remove(variable);
+			}
+		}
+		return false;
+	}
+
+	public void resetSceneVariables() {
+		for (UserVariable userVariable : getSceneVariables()) {
+			userVariable.reset();
+		}
 	}
 
 	public Sprite getSpriteAll(String spriteName) {
@@ -359,6 +399,10 @@ public class Scene implements Nameable, Serializable {
 
 	public void updateUserDataReferences(String oldName, String newName, UserData<?> item) {
 		if (ProjectManager.getInstance().getCurrentProject().isGlobalVariable(item)) {
+			for (Sprite sprite : spriteList) {
+				sprite.updateUserDataReferences(oldName, newName, item);
+			}
+		} else if (sceneVariables != null && sceneVariables.contains(item)) {
 			for (Sprite sprite : spriteList) {
 				sprite.updateUserDataReferences(oldName, newName, item);
 			}

@@ -38,6 +38,7 @@ class CrashActivity : Activity() {
         val reportFile = reportPath?.let { File(it) }
         showCrashDialog(reportFile)
         sendReportOnce(reportFile)
+        File(cacheDir, BaseExceptionHandler.LAST_CRASH_LOG_FILE).delete()
     }
 
     private fun showCrashDialog(reportFile: File?) {

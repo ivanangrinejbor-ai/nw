@@ -11,7 +11,7 @@ import org.catrobat.catroid.raptor.SceneManager;
 public class HierarchyDragCallback extends ItemTouchHelper.SimpleCallback {
 
     private final HierarchyAdapter adapter;
-    private final SceneManager sceneManager;
+    private SceneManager sceneManager;
     private final EditorActivity activity;
     private final DraggableLinearLayoutManager layoutManager;
 
@@ -23,6 +23,10 @@ public class HierarchyDragCallback extends ItemTouchHelper.SimpleCallback {
         this.sceneManager = sceneManager;
         this.activity = activity;
         this.layoutManager = layoutManager;
+    }
+
+    public void setSceneManager(SceneManager sceneManager) {
+        this.sceneManager = sceneManager;
     }
 
     @Override

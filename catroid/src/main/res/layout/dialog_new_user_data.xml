@@ -66,6 +66,13 @@
                 android:text="@string/new_data_for_this_sprite_only" />
 
             <RadioButton
+                android:id="@+id/scene"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/new_data_for_this_scene_only"
+                android:visibility="gone" />
+
+            <RadioButton
                 android:id="@+id/multiplayer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

@@ -373,7 +373,6 @@ public class StageResourceHolder implements GatherCollisionInformationTask.OnPol
 	@SuppressLint("WrongConstant")
     public void initFinishedRunStage() {
 		Log.i(TAG, "initFinishedRunStage after " + (System.currentTimeMillis() - initStart) + "ms; failed=" + failedResources.size());
-		stageActivity.hidePrecompileOverlay();
 
 		try {
 			ServiceProvider.getService(CatroidService.BLUETOOTH_DEVICE_SERVICE).initialise();

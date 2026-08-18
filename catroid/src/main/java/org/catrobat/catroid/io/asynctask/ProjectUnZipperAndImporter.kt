@@ -37,7 +37,9 @@ import kotlinx.coroutines.withContext
 import org.catrobat.catroid.common.Constants
 import org.catrobat.catroid.common.Constants.CACHE_DIRECTORY
 import org.catrobat.catroid.common.FlavoredConstants
+import org.catrobat.catroid.ProjectManager
 import org.catrobat.catroid.R
+import org.catrobat.catroid.content.Project
 import org.catrobat.catroid.content.backwardcompatibility.ProjectMetaDataParser
 import org.catrobat.catroid.io.StorageOperations
 import org.catrobat.catroid.io.XstreamSerializer
@@ -401,9 +403,48 @@ private fun ProjectUnZipperAndImporter.normalizeProject(projectDir: File) {
                 Toast.makeText(ctx.applicationContext, R.string.protected_project_imported, Toast.LENGTH_LONG).show()
             }
         }
+        warmUpBricks(project, ctx)
         XstreamSerializer.getInstance().saveProject(project)
     } catch (e: Exception) {
         Log.w(TAG, "Project normalization (load/save) failed; keeping imported copy as-is", e)
+    }
+}
+
+private fun warmUpBricks(project: Project, context: Context) {
+    val projectManager = ProjectManager.getInstance()
+    val previousProject = projectManager.getCurrentProject()
+    val previousScene = projectManager.getCurrentlyEditedScene()
+    val previousSprite = projectManager.getCurrentSprite()
+
+    projectManager.setCurrentProject(project)
+
+    var brickCount = 0
+    try {
+        for (scene in project.sceneList) {
+            projectManager.setCurrentlyEditedScene(scene)
+            for (sprite in scene.spriteList) {
+                projectManager.setCurrentSprite(sprite)
+                for (script in sprite.scriptList) {
+                    for (brick in script.brickList) {
+                        try {
+                            brick.getView(context)
+                            brickCount++
+                        } catch (t: Throwable) {
+                            Log.w(TAG, "Brick warm-up failed for ${brick.javaClass.simpleName}: ${t.message}")
+                        }
+                    }
+                }
+            }
+        }
+        Log.d(TAG, "Warm-up completed for $brickCount bricks")
+    } finally {
+        if (previousProject == null) {
+            projectManager.resetProjectManager()
+        } else {
+            projectManager.setCurrentProject(previousProject)
+            previousScene?.let { projectManager.setCurrentlyEditedScene(it) }
+            previousSprite?.let { projectManager.setCurrentSprite(it) }
+        }
     }
 }
 

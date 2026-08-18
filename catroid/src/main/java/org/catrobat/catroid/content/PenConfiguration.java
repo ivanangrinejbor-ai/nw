@@ -25,174 +25,227 @@ package org.catrobat.catroid.content;
 
 import android.graphics.PointF;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.utils.Queue;
 
 import org.catrobat.catroid.common.BrickValues;
+import org.catrobat.catroid.stage.PenActor;
 import org.catrobat.catroid.stage.StageActivity;
 
 public class PenConfiguration {
 
-	private Queue<Queue<PointF>> positions = new Queue<>();
-	private boolean penDown = false;
-	private double penSize = BrickValues.PEN_SIZE;
-	private PenColor penColor = new PenColor(0, 0, 1, 1);
-	private boolean stamp = false;
-	private int queuesToFinish = 0;
-	private PenColor borderColor = new PenColor(0, 0, 0, 1);
-	private double borderWidth = 2.0;
-	private double cornerRadius = 5.0;
-	private String fontName = "Arial";
-	private double fontSize = 24.0;
+    private Queue<Queue<PointF>> positions = new Queue<>();
+    private boolean penDown = false;
+    private double penSize = BrickValues.PEN_SIZE;
+    private PenColor penColor = new PenColor(0, 0, 1, 1);
+    private boolean stamp = false;
+    private int queuesToFinish = 0;
+    private PenColor borderColor = new PenColor(0, 0, 0, 1);
+    private double borderWidth = 2.0;
+    private double cornerRadius = 5.0;
+    private String fontName = "Arial";
+    private double fontSize = 24.0;
 
-	public PenConfiguration() {
-	}
+    public PenConfiguration() {
+    }
 
-	public void drawLinesForSprite(Float screenRatio, Camera camera) {
+    public boolean hasLinesToDraw() {
+        return currentQueueHasJobToHandle();
+    }
 
-		ShapeRenderer renderer = StageActivity.getActiveStageListener().shapeRenderer;
-		renderer.setColor(new Color(penColor.r, penColor.g, penColor.b, penColor.a));
-		renderer.begin(ShapeRenderer.ShapeType.Filled);
+    public void drawLinesForSprite(Float screenRatio, Camera camera, float globalPenAlpha, int blendMode) {
+        if (!currentQueueHasJobToHandle()) {
+            return;
+        }
 
-		while (currentQueueHasJobToHandle()) {
-			drawLine(screenRatio, renderer, camera);
-			updateQueues();
-		}
+        ShapeRenderer renderer = StageActivity.getActiveStageListener().shapeRenderer;
+        renderer.setProjectionMatrix(camera.combined);
+        renderer.setColor(new Color(penColor.r, penColor.g, penColor.b, penColor.a * globalPenAlpha));
+        renderer.begin(ShapeRenderer.ShapeType.Filled);
 
-		renderer.end();
-	}
+        PenActor.applyBlendMode(blendMode);
 
-	private boolean currentQueueHasJobToHandle() {
-		return !positions.isEmpty() && (positions.first().size > 1 || queuesToFinish > 0);
-	}
+        while (currentQueueHasJobToHandle()) {
+            drawLine(screenRatio, renderer, camera);
+            updateQueues();
+        }
 
-	public void drawAllLines(ShapeRenderer renderer, Float screenRatio, Camera camera) {
-		renderer.setColor(new Color(penColor.r, penColor.g, penColor.b, penColor.a));
+        renderer.end();
+    }
 
-		while (currentQueueHasJobToHandle()) {
-			drawLine(screenRatio, renderer, camera);
-			updateQueues();
-		}
-		renderer.flush();
-	}
+    public void drawLinesForSprite(Float screenRatio, Camera camera, float globalPenAlpha) {
+        drawLinesForSprite(screenRatio, camera, globalPenAlpha, 0);
+    }
 
-	private void drawLine(Float screenRatio, ShapeRenderer renderer, Camera camera) {
+    public void drawLinesForSprite(Float screenRatio, Camera camera) {
+        drawLinesForSprite(screenRatio, camera, 1f, 0);
+    }
 
-		PointF currentPosition = positions.first().removeFirst();
-		PointF nextPosition = positions.first().first();
-		currentPosition.x += camera.position.x;
-		currentPosition.y += camera.position.y;
-		nextPosition.x += camera.position.x;
-		nextPosition.y += camera.position.y;
-		if (currentPosition.x != nextPosition.x || currentPosition.y != nextPosition.y) {
-			Float penSize = (float) this.penSize * screenRatio;
-			renderer.circle(currentPosition.x, currentPosition.y, penSize / 2);
-			renderer.rectLine(currentPosition.x, currentPosition.y, nextPosition.x, nextPosition.y,
-					penSize);
-			renderer.circle(nextPosition.x, nextPosition.y, penSize / 2);
-		}
-		nextPosition.x -= camera.position.x;
-		nextPosition.y -= camera.position.y;
-	}
+    private boolean currentQueueHasJobToHandle() {
+        if (positions.isEmpty()) {
+            return false;
+        }
+        Queue<PointF> currentQueue = positions.first();
+        if (currentQueue == null || currentQueue.isEmpty()) {
+            positions.removeFirst();
+            if (queuesToFinish > 0) {
+                queuesToFinish--;
+            }
+            return !positions.isEmpty();
+        }
+        return currentQueue.size > 1 || (currentQueue.size == 1 && queuesToFinish > 0);
+    }
 
-	private void updateQueues() {
-		if (queuesToFinish > 0 && positions.first().size <= 1) {
-			positions.removeFirst();
-			queuesToFinish--;
-		}
-	}
+    public void drawAllLines(ShapeRenderer renderer, Float screenRatio, Camera camera) {
+        renderer.setColor(new Color(penColor.r, penColor.g, penColor.b, penColor.a));
 
-	public void addQueue() {
-		positions.addLast(new Queue<>());
-	}
+        while (currentQueueHasJobToHandle()) {
+            drawLine(screenRatio, renderer, camera);
+            updateQueues();
+        }
+        renderer.flush();
+    }
 
-	public void addPosition(PointF position) {
-		positions.last().addLast(position);
-	}
+    private void drawLine(Float screenRatio, ShapeRenderer renderer, Camera camera) {
+        if (positions.isEmpty()) {
+            return;
+        }
+        Queue<PointF> currentQueue = positions.first();
+        if (currentQueue == null || currentQueue.isEmpty()) {
+            return;
+        }
 
-	public void incrementQueuesToFinish() {
-		queuesToFinish++;
-	}
+        Float calculatedPenSize = (float) this.penSize * screenRatio;
 
-	public void decrementQueuesToFinish() {
-		queuesToFinish--;
-	}
+        if (currentQueue.size == 1) {
+            PointF point = currentQueue.removeFirst();
+            float x = point.x + camera.position.x;
+            float y = point.y + camera.position.y;
+            renderer.circle(x, y, calculatedPenSize / 2f);
+        } else {
+            PointF currentPosition = currentQueue.removeFirst();
+            PointF nextPosition = currentQueue.first();
 
-	public void setPenDown(boolean penDown) {
-		this.penDown = penDown;
-	}
+            float x1 = currentPosition.x + camera.position.x;
+            float y1 = currentPosition.y + camera.position.y;
+            float x2 = nextPosition.x + camera.position.x;
+            float y2 = nextPosition.y + camera.position.y;
 
-	public boolean isPenDown() {
-		return penDown;
-	}
+            if (x1 != x2 || y1 != y2) {
+                renderer.circle(x1, y1, calculatedPenSize / 2f);
+                renderer.rectLine(x1, y1, x2, y2, calculatedPenSize);
+                renderer.circle(x2, y2, calculatedPenSize / 2f);
+            }
+        }
+    }
 
-	public void setPenSize(double penSize) {
-		this.penSize = penSize;
-	}
+    private void updateQueues() {
+        if (!positions.isEmpty() && positions.first().isEmpty()) {
+            positions.removeFirst();
+            if (queuesToFinish > 0) {
+                queuesToFinish--;
+            }
+        }
+    }
 
-	public double getPenSize() {
-		return penSize;
-	}
+    public void addQueue() {
+        positions.addLast(new Queue<>());
+    }
 
-	public void setPenColor(PenColor penColor) {
-		this.penColor = penColor;
-	}
+    public void addPosition(PointF position) {
+        if (positions.isEmpty()) {
+            addQueue();
+        }
+        positions.last().addLast(position);
+    }
 
-	public PenColor getPenColor() {
-		return penColor;
-	}
+    public void incrementQueuesToFinish() {
+        queuesToFinish++;
+    }
 
-	public void setStamp(boolean stamp) {
-		this.stamp = stamp;
-	}
+    public void decrementQueuesToFinish() {
+        if (queuesToFinish > 0) {
+            queuesToFinish--;
+        }
+    }
 
-	public boolean hasStamp() {
-		return stamp;
-	}
+    public void setPenDown(boolean penDown) {
+        this.penDown = penDown;
+    }
 
-	public Queue<Queue<PointF>> getPositions() {
-		return positions;
-	}
+    public boolean isPenDown() {
+        return penDown;
+    }
 
-	public void setBorderColor(PenColor borderColor) {
-		this.borderColor = borderColor;
-	}
+    public void setPenSize(double penSize) {
+        this.penSize = penSize;
+    }
 
-	public PenColor getBorderColor() {
-		return borderColor;
-	}
+    public double getPenSize() {
+        return penSize;
+    }
 
-	public void setBorderWidth(double borderWidth) {
-		this.borderWidth = borderWidth;
-	}
+    public void setPenColor(PenColor penColor) {
+        this.penColor = penColor;
+    }
 
-	public double getBorderWidth() {
-		return borderWidth;
-	}
+    public PenColor getPenColor() {
+        return penColor;
+    }
 
-	public void setCornerRadius(double cornerRadius) {
-		this.cornerRadius = cornerRadius;
-	}
+    public void setStamp(boolean stamp) {
+        this.stamp = stamp;
+    }
 
-	public double getCornerRadius() {
-		return cornerRadius;
-	}
+    public boolean hasStamp() {
+        return stamp;
+    }
 
-	public void setFontName(String fontName) {
-		this.fontName = fontName;
-	}
+    public Queue<Queue<PointF>> getPositions() {
+        return positions;
+    }
 
-	public String getFontName() {
-		return fontName;
-	}
+    public void setBorderColor(PenColor borderColor) {
+        this.borderColor = borderColor;
+    }
 
-	public void setFontSize(double fontSize) {
-		this.fontSize = fontSize;
-	}
+    public PenColor getBorderColor() {
+        return borderColor;
+    }
 
-	public double getFontSize() {
-		return fontSize;
-	}
+    public void setBorderWidth(double borderWidth) {
+        this.borderWidth = borderWidth;
+    }
+
+    public double getBorderWidth() {
+        return borderWidth;
+    }
+
+    public void setCornerRadius(double cornerRadius) {
+        this.cornerRadius = cornerRadius;
+    }
+
+    public double getCornerRadius() {
+        return cornerRadius;
+    }
+
+    public void setFontName(String fontName) {
+        this.fontName = fontName;
+    }
+
+    public String getFontName() {
+        return fontName;
+    }
+
+    public void setFontSize(double fontSize) {
+        this.fontSize = fontSize;
+    }
+
+    public double getFontSize() {
+        return fontSize;
+    }
 }

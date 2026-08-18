@@ -9,27 +9,36 @@ import java.net.*
 class LocalServer private constructor() {
     companion object {
         private var serverSocket: ServerSocket? = null
-        private var clientSocket: Socket? = null
-        private var outputStream: OutputStream? = null
+        private val clients = mutableListOf<Socket>()
+        private val outputStreams = mutableListOf<OutputStream>()
+
+        @Volatile var clientLimit: Int = 10
+        @Volatile var serverTimeoutSeconds: Int = 30
 
         @Volatile private var connectedPort: String? = null
         @Volatile private var connectedIP: String? = null
-        @Volatile private var receivedValue: String = ""
         @Volatile private var isRunning = false
 
-        private var job: Job? = null
+        private val recentMessages = ArrayDeque<String>()
+
+        private var serverJob: Job? = null
+        private val sendJobs = mutableListOf<Job>()
         private val coroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+        private var sessionCounter = 0
 
         fun startOrJoin(ip: String?, port: String) {
             stop()
-
-            job = coroutineScope.launch {
+            synchronized(recentMessages) {
+                recentMessages.clear()
+            }
+            val session = ++sessionCounter
+            isRunning = true
+            serverJob = coroutineScope.launch {
                 try {
-                    isRunning = true
                     if (ip.isNullOrEmpty()) {
-                        startServer(port)
+                        startServer(port, session)
                     } else {
-                        connectToServer(ip, port)
+                        connectToServer(ip, port, session)
                     }
                 } catch (e: Exception) {
                     if (isRunning) {
@@ -37,90 +46,243 @@ class LocalServer private constructor() {
                         Log.e("LocalServer", "Ошибка: ${e.message}", e)
                     }
                 } finally {
-                    stop()
+                    if (session == sessionCounter) {
+                        stop()
+                    }
                 }
             }
         }
 
-        private suspend fun startServer(port: String) = withContext(Dispatchers.IO) {
-            serverSocket = ServerSocket(port.toInt())
+        private suspend fun startServer(port: String, session: Int) = withContext(Dispatchers.IO) {
+            if (session != sessionCounter) {
+                return@withContext
+            }
+            val server = ServerSocket(port.toInt())
+            serverSocket = server
+            server.soTimeout = serverTimeoutSeconds * 1000
+            val ip = getLocalIPAddress()
+            if (session != sessionCounter || !isRunning) {
+                try {
+                    server.close()
+                } catch (e: IOException) {
+                    Log.w("LocalServer", "Ошибка при закрытии сокета: ${e.message}")
+                }
+                serverSocket = null
+                return@withContext
+            }
             connectedPort = port
-            connectedIP = getLocalIPAddress()
-            Log.d("LocalServer", "Сервер запущен на $connectedIP:$port")
+            connectedIP = ip
+            Log.d("LocalServer",
+                "TCP сервер запущен на ${connectedIP ?: "?"}:$port (лимит $clientLimit, таймаут ${serverTimeoutSeconds}с)")
 
-            val socket = serverSocket!!.accept()
-            setupConnection(socket)
+            while (isRunning && session == sessionCounter) {
+                try {
+                    val socket = server.accept()
+                    if (clients.size >= clientLimit) {
+                        Log.w("LocalServer", "Достигнут лимит клиентов ($clientLimit), соединение отклонено")
+                        socket.close()
+                        continue
+                    }
+                    addClient(socket)
+                    launch { setupConnection(socket) }
+                } catch (e: java.net.SocketTimeoutException) {
+                    Log.d("LocalServer", "Таймаут ожидания клиента, сервер останавливается")
+                    break
+                }
+            }
         }
 
-        private suspend fun connectToServer(ip: String, port: String) = withContext(Dispatchers.IO) {
-            val socket = Socket(ip, port.toInt())
+        private suspend fun connectToServer(ip: String, port: String, session: Int) = withContext(Dispatchers.IO) {
+            val socket = Socket()
+            try {
+                socket.connect(InetSocketAddress(ip, port.toInt()), 10000)
+            } catch (e: Exception) {
+                try {
+                    socket.close()
+                } catch (closeError: IOException) {
+                    Log.w("LocalServer", "Ошибка при закрытии сокета после неудачного подключения: ${closeError.message}")
+                }
+                throw e
+            }
+            if (session != sessionCounter || !isRunning) {
+                try {
+                    socket.close()
+                } catch (e: IOException) {
+                    Log.w("LocalServer", "Ошибка при закрытии сокета: ${e.message}")
+                }
+                return@withContext
+            }
             connectedIP = ip
             connectedPort = port
+            addClient(socket)
             setupConnection(socket)
         }
 
-        private fun setupConnection(socket: Socket) {
-            clientSocket = socket
-            outputStream = socket.getOutputStream()
-            listenForMessages(socket)
+        private fun addClient(socket: Socket) {
+            synchronized(clients) {
+                clients.add(socket)
+                outputStreams.add(socket.getOutputStream())
+            }
         }
 
-        private fun listenForMessages(socket: Socket) {
+        private fun removeClient(socket: Socket) {
+            synchronized(clients) {
+                val index = clients.indexOf(socket)
+                if (index >= 0) {
+                    clients.removeAt(index)
+                    if (index < outputStreams.size) {
+                        outputStreams.removeAt(index)
+                    }
+                }
+            }
             try {
-                BufferedReader(InputStreamReader(socket.getInputStream())).use { reader ->
+                socket.close()
+            } catch (e: IOException) {
+                Log.w("LocalServer", "Ошибка при закрытии сокета: ${e.message}")
+            }
+        }
+
+        private suspend fun setupConnection(socket: Socket) = withContext(Dispatchers.IO) {
+            socket.soTimeout = serverTimeoutSeconds * 1000
+            try {
+                BufferedReader(InputStreamReader(socket.getInputStream(), Charsets.UTF_8)).use { reader ->
                     while (isRunning && !socket.isClosed) {
                         val message = reader.readLine()
                         if (message == null) {
                             Log.d("LocalServer", "Соединение разорвано удаленной стороной.")
                             break
                         }
-                        receivedValue = message
+                        synchronized(recentMessages) {
+                            recentMessages.addLast(message)
+                            while (recentMessages.size > 50) {
+                                recentMessages.removeFirst()
+                            }
+                        }
+                        Log.d("LocalServer", "Получено: $message")
                     }
                 }
             } catch (e: Exception) {
-                if (isRunning) Log.e("LocalServer", "Ошибка чтения: ${e.message}")
+                if (isRunning && e !is java.net.SocketTimeoutException) {
+                    Log.e("LocalServer", "Ошибка чтения: ${e.message}")
+                }
             } finally {
-                stop()
+                removeClient(socket)
             }
         }
 
         fun send(value: String) {
-            coroutineScope.launch {
-                val out = outputStream
-                if (out == null) {
+            sendAll(listOf(value))
+        }
+
+        fun sendAll(values: List<String>) {
+            val job = coroutineScope.launch {
+                val deadline = System.currentTimeMillis() + 2000
+                val pending = values.toMutableList()
+                while (System.currentTimeMillis() < deadline && isRunning) {
+                    val outs: List<OutputStream>
+                    synchronized(clients) {
+                        outs = outputStreams.toList()
+                    }
+                    if (outs.isEmpty()) {
+                        delay(10)
+                        continue
+                    }
+                    for (value in pending) {
+                        val data = (value + "\n").toByteArray(Charsets.UTF_8)
+                        for (out in outs) {
+                            try {
+                                out.write(data)
+                                out.flush()
+                            } catch (e: Exception) {
+                                Log.e("LocalServer", "Ошибка отправки: ${e.message}")
+                            }
+                        }
+                    }
+                    pending.clear()
+                    break
+                }
+                if (pending.isNotEmpty()) {
                     Log.e("LocalServer", "Соединение не установлено.")
-                    return@launch
                 }
-                try {
-                    out.write((value + "\n").toByteArray(Charsets.UTF_8))
-                    out.flush()
-                } catch (e: Exception) {
-                    Log.e("LocalServer", "Ошибка отправки: ${e.message}")
-                    stop()
+            }
+            synchronized(sendJobs) {
+                sendJobs.add(job)
+                job.invokeOnCompletion {
+                    synchronized(sendJobs) {
+                        sendJobs.remove(job)
+                    }
                 }
+            }
+        }
+
+        fun isPortInUse(port: Int): Boolean {
+            return try {
+                ServerSocket().use { socket ->
+                    socket.reuseAddress = true
+                    socket.bind(InetSocketAddress(port))
+                    false
+                }
+            } catch (e: Exception) {
+                true
             }
         }
 
         @Synchronized
         fun stop() {
-            if (!isRunning) return
+            sessionCounter++
+            if (!isRunning) {
+                return
+            }
             isRunning = false
             try {
-                outputStream?.close()
-                clientSocket?.close()
+                synchronized(sendJobs) {
+                    for (job in sendJobs) {
+                        job.cancel()
+                    }
+                    sendJobs.clear()
+                }
+                synchronized(clients) {
+                    for (out in outputStreams) {
+                        try {
+                            out.close()
+                        } catch (e: IOException) {
+                            Log.w("LocalServer", "Ошибка при закрытии потока: ${e.message}")
+                        }
+                    }
+                    for (socket in clients) {
+                        try {
+                            socket.close()
+                        } catch (e: IOException) {
+                            Log.w("LocalServer", "Ошибка при закрытии сокета: ${e.message}")
+                        }
+                    }
+                    clients.clear()
+                    outputStreams.clear()
+                }
                 serverSocket?.close()
             } catch (e: IOException) {
                 Log.w("LocalServer", "Ошибка при закрытии: ${e.message}")
             } finally {
-                outputStream = null
-                clientSocket = null
                 serverSocket = null
-                job?.cancel()
-                job = null
+                serverJob?.cancel()
+                serverJob = null
+                connectedIP = null
+                connectedPort = null
             }
         }
 
-        fun getValue(): String = receivedValue
+        fun getValue(): String {
+            synchronized(recentMessages) {
+                return recentMessages.lastOrNull() ?: ""
+            }
+        }
+
+        fun getMessages(): List<String> {
+            synchronized(recentMessages) {
+                return recentMessages.toList()
+            }
+        }
+
         fun getIP(): String = connectedIP ?: "NaN"
         fun getPort(): String = connectedPort ?: "NaN"
 

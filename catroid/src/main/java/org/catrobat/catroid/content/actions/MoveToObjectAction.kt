@@ -37,6 +37,7 @@ class MoveToObjectAction : Action() {
     var moveMode: Int = 0
     var sizeCheckMode: Int = 0
     var blockedPathAction: Int = 0
+    var pathStrategy: Int = 0
     var rotateObject: Formula? = null
     var dynamicReplanning: Formula? = null
 
@@ -72,9 +73,10 @@ class MoveToObjectAction : Action() {
                 pf.setFollowerBlockedPathAction(spriteName, blockedPathAction)
                 pf.setFollowerRotateObject(spriteName, rotVal != 0)
                 pf.setFollowerDynamicReplanning(spriteName, replanVal != 0)
+                pf.setFollowerPathStrategy(spriteName, pathStrategy)
                 requestInFlight = true
                 val generation = requestGeneration
-                pf.findPathToObjectAsync(spriteName, targetObject, sizeCheckMode, blockedPathAction) { result ->
+                pf.findPathToObjectAsync(spriteName, targetObject, sizeCheckMode, blockedPathAction, pathStrategy) { result ->
                     if (generation != requestGeneration) return@findPathToObjectAsync
                     requestInFlight = false
                     if (result.found || (blockedPathAction == 1 && result.points.isNotEmpty())) {

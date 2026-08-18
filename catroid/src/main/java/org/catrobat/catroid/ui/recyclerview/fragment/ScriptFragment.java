@@ -1713,8 +1713,19 @@ case R.string.brick_context_dialog_system_info:
 	}
 
 	private void toggleComments(List<Brick> selectedBricks) {
-		for (Brick brick : adapter.getItems()) {
-			brick.setCommentedOut(selectedBricks.contains(brick));
+		if (selectedBricks.isEmpty()) {
+			return;
+		}
+		boolean allCommentedOut = true;
+		for (Brick brick : selectedBricks) {
+			if (!brick.isCommentedOut()) {
+				allCommentedOut = false;
+				break;
+			}
+		}
+		boolean commentedOut = !allCommentedOut;
+		for (Brick brick : selectedBricks) {
+			brick.setCommentedOut(commentedOut);
 		}
 		finishActionMode();
 	}

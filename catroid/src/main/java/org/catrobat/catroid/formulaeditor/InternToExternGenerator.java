@@ -474,6 +474,7 @@ public class InternToExternGenerator {
         INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.INTERNET_TYPE.name(), R.string.formula_internet_type);
         INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.INTERNET_SPEED.name(), R.string.formula_internet_speed);
         INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.LOCAL_IP.name(), R.string.formula_local_ip);
+        INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.EXTERNAL_IP.name(), R.string.formula_external_ip);
         INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.GET_STATUS_CODE.name(), R.string.formula_get_status_code);
         INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.DOWNLOAD_PROGRESS.name(), R.string.formula_download_progress);
         INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.SCREEN_WIDTH.name(), R.string.formula_screen_width);
@@ -618,6 +619,11 @@ public class InternToExternGenerator {
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.TILEMAP_WIDTH.name(), R.string.formula_tilemap_width);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.TILEMAP_HEIGHT.name(), R.string.formula_tilemap_height);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.TILE_SIZE.name(), R.string.formula_tile_size);
+
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.READ_FILE.name(), R.string.formula_read_file);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.FILE_TO_BASE64.name(), R.string.formula_file_to_base64);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.MD5.name(), R.string.formula_md5);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.NOTIFICATION_REPLY.name(), R.string.formula_notification_reply);
 	}
 	public InternToExternGenerator(Context context) {
 		this.context = context;

@@ -102,6 +102,8 @@ import org.catrobat.catroid.content.eventids.MouseButtonEventId;
 import org.catrobat.catroid.embroidery.DSTPatternManager;
 import org.catrobat.catroid.embroidery.EmbroideryPatternManager;
 import org.catrobat.catroid.fast2d.FastTwoDManager;
+import org.catrobat.catroid.audio.AudioServiceHolder;
+import org.catrobat.catroid.audio.MidiServiceHolder;
 import org.catrobat.catroid.content.PathfindingManager;
 import org.catrobat.catroid.content.TransitionManager;
 import org.catrobat.catroid.content.TransitionType;
@@ -369,14 +371,24 @@ public class StageListener implements ApplicationListener {
 		RenderManager.INSTANCE.initialize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
 		Gdx.app.log("CacheWarming", "Starting asset pre-loading...");
+		int totalLooks = 0;
 		for (Sprite sprite : sprites) {
-
+			if (sprite.getLookList() != null) {
+				totalLooks += sprite.getLookList().size();
+			}
+		}
+		StageActivity.updatePrecompileProgress(0, totalLooks);
+		int lookCounter = 0;
+		for (Sprite sprite : sprites) {
+			StageActivity.updatePrecompileStatus(sprite.getName());
 			if (sprite.getLookList() != null) {
 				for (LookData lookData : sprite.getLookList()) {
 					if (lookData != null && !(lookData instanceof TilemapLookData)) {
 
 						lookData.getCollisionInformation().loadCollisionPolygon();
 					}
+					lookCounter++;
+					StageActivity.updatePrecompileProgress(lookCounter, totalLooks);
 				}
 			}
 
@@ -465,6 +477,16 @@ public class StageListener implements ApplicationListener {
 		} catch (Exception e) {
 						Log.e("SHADER_ERROR", "Could not load VNC Swizzle Shader files", e);
 		}
+
+		StageActivity.runOnMainThread(new Runnable() {
+			@Override
+			public void run() {
+				StageActivity activity = StageActivity.activeStageActivity.get();
+				if (activity != null) {
+					activity.hidePrecompileOverlay();
+				}
+			}
+		});
 	}
 
 	public void setCameraPosition(float x, float y) {
@@ -856,6 +878,7 @@ public class StageListener implements ApplicationListener {
 		vmMonitorActor.setZIndex(0);
 
 		for (Sprite sprite : sprites) {
+			StageActivity.updatePrecompileStatus(sprite.getName());
 			boolean isGlobal = globalSceneSprites.contains(sprite);
 			if (!isGlobal || sprite.look == null || sprite.look.getLookData() == null) {
 				sprite.resetSprite();
@@ -938,6 +961,7 @@ public class StageListener implements ApplicationListener {
 			int currentLookDataIndex = cloneMe.getLookList().indexOf(cloneMe.look.getLookData());
 			copy.look.setLookData(copy.getLookList().get(currentLookDataIndex));
 		}
+		ensurePhysicsBodyClean(copy);
 		copy.initializeEventThreads(EventId.START_AS_CLONE);
 		copy.initConditionScriptTriggers();
 		copy.initTouchingSpriteTriggers();
@@ -966,6 +990,7 @@ public class StageListener implements ApplicationListener {
 			int currentLookDataIndex = cloneMe.getLookList().indexOf(cloneMe.look.getLookData());
 			copy.look.setLookData(copy.getLookList().get(currentLookDataIndex));
 		}
+		ensurePhysicsBodyClean(copy);
 		copy.initializeEventThreads(EventId.START_AS_CLONE);
 		copy.initConditionScriptTriggers();
 		copy.initTouchingSpriteTriggers();
@@ -977,6 +1002,17 @@ public class StageListener implements ApplicationListener {
 			rootGroup.addActor(cloneMeLook);
 		}
 		rootGroup.addActorBefore(cloneMeLook, copyLook);
+	}
+
+	private void ensurePhysicsBodyClean(Sprite sprite) {
+		if (!(sprite.look instanceof PhysicsLook)) {
+			return;
+		}
+		PhysicsWorld physicsWorld = ProjectManager.getInstance().getCurrentlyPlayingScene().getPhysicsWorld();
+		PhysicsObject physicsObject = physicsWorld.getPhysicsObject(sprite);
+		PhysicsObject.Type currentType = physicsObject.getType();
+		physicsObject.setType(PhysicsObject.Type.NONE);
+		physicsObject.setType(currentType);
 	}
 
 	public boolean removeClonedSpriteFromStage(Sprite sprite) {
@@ -1041,6 +1077,13 @@ public class StageListener implements ApplicationListener {
 		if (mouseInputAdapter == null) {
 			mouseInputAdapter = new InputAdapter() {
 				@Override
+				public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+					EventWrapper e = new EventWrapper(new MouseButtonEventId(button), false);
+					if (project != null) project.fireToAllSprites(e);
+					return false;
+				}
+
+				@Override
 				public boolean mouseMoved(int screenX, int screenY) {
                     tempVec3.set(screenX, screenY, 0);
                     viewPort.unproject(tempVec3);
@@ -1051,6 +1094,8 @@ public class StageListener implements ApplicationListener {
 				@Override
 				public boolean touchDragged(int screenX, int screenY, int pointer) {
 					if (pointer == 0) {
+						EventWrapper e = new EventWrapper(new EventId(EventId.FINGER_MOVED_ON_SCREEN), false);
+						if (project != null) project.fireToAllSprites(e);
 						return mouseMoved(screenX, screenY);
 					}
 					return false;
@@ -1118,6 +1163,7 @@ public class StageListener implements ApplicationListener {
 		if (newScene == null || scene == null) return;
 
 		stageBackupMap.put(scene.getName(), saveToBackup());
+		resetLeavingSceneVariables();
 		pause();
 
 		scene = newScene;
@@ -1169,8 +1215,10 @@ public class StageListener implements ApplicationListener {
 
 		stageBackupMap.put(scene.getName(), saveToBackup());
 		if(stopSounds) {
-			pause();
+			stopAllSounds();
 		}
+
+		resetLeavingSceneVariables();
 
 		scene = newScene;
 		ProjectManager.getInstance().setCurrentlyPlayingScene(scene);
@@ -1201,8 +1249,9 @@ public class StageListener implements ApplicationListener {
 		if (save) {
 			stageBackupMap.put(scene.getName(), saveToBackup());
 		}
+		resetLeavingSceneVariables();
 		if (stopSounds) {
-			pause();
+			stopAllSounds();
 		}
 		scene = newScene;
 		ProjectManager.getInstance().setCurrentlyPlayingScene(scene);
@@ -1239,8 +1288,9 @@ public class StageListener implements ApplicationListener {
 		if (save) {
 			stageBackupMap.put(scene.getName(), saveToBackup());
 		}
+		resetLeavingSceneVariables();
 		if (stopSound) {
-			pause();
+			stopAllSounds();
 		}
 		scene = newScene;
 		ProjectManager.getInstance().setCurrentlyPlayingScene(scene);
@@ -1267,6 +1317,12 @@ public class StageListener implements ApplicationListener {
 		scene.firstStart = true;
 		create();
 		resume();
+	}
+
+	private void resetLeavingSceneVariables() {
+		if (scene != null) {
+			scene.resetSceneVariables();
+		}
 	}
 
 	public void startScene(String sceneName) {
@@ -1363,6 +1419,11 @@ public class StageListener implements ApplicationListener {
 			setSchedulerStateForAllLooks(ThreadScheduler.SUSPENDED);
 			SoundManager.getInstance().pause();
 		}
+	}
+
+	private void stopAllSounds() {
+		AudioServiceHolder.audioService.stopAllSounds();
+		MidiServiceHolder.midiService.stopAllSounds();
 	}
 
 	private Texture vmTexture;
@@ -1566,7 +1627,13 @@ public class StageListener implements ApplicationListener {
                 long logicStartTime = System.nanoTime();
 
                 if (sceneManager != null) {
+                    if (project != null) {
+                        project.fireToAllSprites(new EventWrapper(new EventId(EventId.BEFORE_UPDATE), false));
+                    }
                     sceneManager.update(deltaTime);
+                    if (project != null) {
+                        project.fireToAllSprites(new EventWrapper(new EventId(EventId.AFTER_UPDATE), false));
+                    }
                 }
 
                 int steps = Math.max(1, Math.round(deltaActionTimeDivisor));
@@ -1860,6 +1927,9 @@ public class StageListener implements ApplicationListener {
         if (fastTwoDManager != null) fastTwoDManager.resize(width, height);
         if (pathfindingManager != null) pathfindingManager.resize(width, height);
         if (transitionManager != null) transitionManager.resize(width, height);
+
+        EventWrapper resizeEvent = new EventWrapper(new EventId(EventId.WINDOW_RESIZED), false);
+        if (project != null) project.fireToAllSprites(resizeEvent);
     }
 
 
@@ -2473,5 +2543,14 @@ public class StageListener implements ApplicationListener {
 				Log.e("RuntimeConsole", "Failed to execute sandbox script", e);
             }
         });
+    }
+
+    public void setActorZIndexSafely(com.badlogic.gdx.scenes.scene2d.Actor actor, int desiredZIndex) {
+        if (actor == null || stage == null) return;
+        com.badlogic.gdx.utils.Array<com.badlogic.gdx.scenes.scene2d.Actor> actors = stage.getActors();
+        if (actors == null || actors.size == 0) return;
+
+        int safeZIndex = Math.max(0, Math.min(desiredZIndex, actors.size - 1));
+        actor.setZIndex(safeZIndex);
     }
 }

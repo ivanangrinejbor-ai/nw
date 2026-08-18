@@ -30,6 +30,7 @@ import org.catrobat.catroid.ProjectManager;
 import org.catrobat.catroid.R;
 import org.catrobat.catroid.common.Nameable;
 import org.catrobat.catroid.content.Project;
+import org.catrobat.catroid.content.Scene;
 import org.catrobat.catroid.content.Sprite;
 import org.catrobat.catroid.content.bricks.brickspinner.BrickSpinner;
 import org.catrobat.catroid.content.bricks.brickspinner.NewOption;
@@ -84,6 +85,10 @@ public abstract class UserVariableBrick extends BrickBaseType implements UserVar
 		items.add(new NewOption(context.getString(R.string.new_option)));
 		if (sprite != null) {
 			items.addAll(sprite.getUserVariables());
+		}
+		Scene editedScene = ProjectManager.getInstance().getCurrentlyEditedScene();
+		if (editedScene != null) {
+			items.addAll(editedScene.getSceneVariables());
 		}
 		items.addAll(ProjectManager.getInstance().getCurrentProject().getUserVariables());
 		items.addAll(ProjectManager.getInstance().getCurrentProject().getMultiplayerVariables());

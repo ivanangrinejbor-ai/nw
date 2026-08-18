@@ -466,7 +466,7 @@ public abstract class RecyclerViewFragment<T extends Nameable> extends Fragment 
 		touchHelper.startDrag(holder);
 	}
 
-	protected abstract void initializeAdapter();
+	public abstract void initializeAdapter();
 
 	public void notifyDataSetChanged() {
 		adapter.notifyDataSetChanged();

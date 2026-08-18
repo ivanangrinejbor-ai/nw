@@ -687,6 +687,10 @@ canvas = new ScriptCanvasView(this);
 				() -> { dialog.dismiss(); createVariableDialog(); });
 		addDataBtn(container, getString(R.string.script_canvas_object_variable, sprite.getName()), 0xFF34D399, dp10, dp8,
 				() -> { dialog.dismiss(); createSpriteVariableDialog(); });
+		if (scene != null) {
+			addDataBtn(container, getString(R.string.script_canvas_scene_variable, scene.getName()), 0xFFA78BFA, dp10, dp8,
+					() -> { dialog.dismiss(); createSceneVariableDialog(); });
+		}
 		addDataBtn(container, getString(R.string.script_canvas_project_list), 0xFFFBBF24, dp10, dp8,
 				() -> { dialog.dismiss(); createListDialog(); });
 		addDataBtn(container, getString(R.string.script_canvas_object_list, sprite.getName()), 0xFFF97316, dp10, dp8,
@@ -711,6 +715,19 @@ canvas = new ScriptCanvasView(this);
 			for (org.catrobat.catroid.formulaeditor.UserVariable uv : new ArrayList<>(spriteVars)) {
 				addDeletableRow(container, uv.getName(), 0xFF6EE7B7, dp10, dp8,
 						() -> { spriteVars.remove(uv); dialog.dismiss(); showDataManagerDialog(); });
+			}
+		}
+
+		if (scene != null) {
+			addSectionTitle(container, getString(R.string.script_canvas_scene_variables, scene.getName()), 0xFFA78BFA, dp10);
+			List<org.catrobat.catroid.formulaeditor.UserVariable> sceneVars = scene.getSceneVariables();
+			if (sceneVars == null || sceneVars.isEmpty()) {
+				addSmallLabel(container, getString(R.string.script_canvas_no_scene_variables), dp8);
+			} else {
+				for (org.catrobat.catroid.formulaeditor.UserVariable uv : new ArrayList<>(sceneVars)) {
+					addDeletableRow(container, uv.getName(), 0xFFA78BFA, dp10, dp8,
+							() -> { sceneVars.remove(uv); dialog.dismiss(); showDataManagerDialog(); });
+				}
 			}
 		}
 
@@ -859,6 +876,25 @@ canvas = new ScriptCanvasView(this);
 					String name = input.getText().toString().trim();
 					if (!name.isEmpty()) {
 						sprite.getUserVariables().add(new org.catrobat.catroid.formulaeditor.UserVariable(name));
+						Toast.makeText(this, getString(R.string.script_canvas_variable_created, name), Toast.LENGTH_SHORT).show();
+					}
+				})
+				.setNegativeButton(R.string.script_canvas_cancel, null)
+				.show();
+	}
+
+	private void createSceneVariableDialog() {
+		EditText input = new EditText(this);
+		input.setHint(R.string.script_canvas_scene_variable_name_hint);
+		int p = dp(16);
+		input.setPadding(p, p, p, p);
+		new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
+				.setTitle(getString(R.string.script_canvas_scene_variable_title, scene.getName()))
+				.setView(input)
+				.setPositiveButton(R.string.script_canvas_create, (dialog, which) -> {
+					String name = input.getText().toString().trim();
+					if (!name.isEmpty()) {
+						scene.addSceneVariable(new org.catrobat.catroid.formulaeditor.UserVariable(name));
 						Toast.makeText(this, getString(R.string.script_canvas_variable_created, name), Toast.LENGTH_SHORT).show();
 					}
 				})

@@ -175,8 +175,8 @@ public class Sprite implements Nameable, Serializable {
 	public transient Sprite myOriginal = null;
 	public transient int cloneIndex = 0;
 
-	/** Ragdoll state — set by SetRagdollBrick, read by SPRITE_RAGDOLLED formula. */
-	public transient boolean isRagdolled = false;
+	/** Ragdoll mode — set by SetRagdollBrick, read by SPRITE_RAGDOLLED formula. 0 = off, 1 = ragdoll, 2 = ragdoll follow. */
+	public transient int ragdollMode = 0;
 
 	public transient boolean movedByStepsBrick = false;
 

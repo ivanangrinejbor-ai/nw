@@ -34,6 +34,7 @@ import org.catrobat.catroid.CatroidApplication;
 import org.catrobat.catroid.ProjectManager;
 import org.catrobat.catroid.R;
 import org.catrobat.catroid.common.ScreenValues;
+import org.catrobat.catroid.content.Scene;
 import org.catrobat.catroid.content.Sprite;
 import org.catrobat.catroid.formulaeditor.UserVariable;
 import org.catrobat.catroid.text.RasterizedText;
@@ -41,6 +42,7 @@ import org.catrobat.catroid.text.TextServiceHolder;
 import org.catrobat.catroid.utils.ShowTextUtils;
 import org.catrobat.catroid.utils.ShowTextUtils.AndroidStringProvider;
 
+import java.io.File;
 import java.util.List;
 import java.util.Locale;
 
@@ -58,9 +60,10 @@ public class ShowTextActor extends Actor {
 
 	private static final int DEFAULT_ALIGNMENT = ALIGNMENT_STYLE_CENTERED;
 	private float textSize;
-	private int xPosition;
-	private int yPosition;
+	private float xPosition;
+	private float yPosition;
 	private String color;
+	private String rawText;
 	private UserVariable variableToShow;
 	private String variableNameToCompare;
 	private int alignment;
@@ -72,6 +75,10 @@ public class ShowTextActor extends Actor {
 	private boolean isTextWrapped;
 
 	private float rotation = 0;
+
+	private float scaleX = 1f;
+	private float scaleY = 1f;
+	private float alpha = 1f;
 
 	private Boolean isText;
 
@@ -98,6 +105,7 @@ public class ShowTextActor extends Actor {
 
 	public void setFont(String typefaceName) {
 		this.typefaceName = typefaceName;
+		lastRenderedText = null;
 	}
 
 	public void setWrap(boolean wrap) {
@@ -106,6 +114,64 @@ public class ShowTextActor extends Actor {
 
 	public void setRotation(float angle) {
 		this.rotation = angle;
+	}
+
+	public void setPositionX(float x) { this.xPosition = x; }
+
+	public void setPositionY(float y) { this.yPosition = y; }
+
+	public void setScaleX(float scaleX) {
+		this.scaleX = scaleX;
+		lastRenderedDrawX = Float.NaN;
+		lastRenderedDrawY = Float.NaN;
+	}
+
+	public void setScaleY(float scaleY) {
+		this.scaleY = scaleY;
+		lastRenderedDrawX = Float.NaN;
+		lastRenderedDrawY = Float.NaN;
+	}
+
+	public void setAlphaValue(float alpha) {
+		this.alpha = Math.max(0f, Math.min(1f, alpha));
+	}
+
+	public void setRotationDegrees(float degrees) {
+		setRotation(degrees);
+	}
+
+	public void setRelativeSize(float relativeSize) {
+		this.textSize = DEFAULT_TEXT_SIZE * relativeSize;
+		lastRenderedTextSize = -1f;
+		lastRenderedText = null;
+	}
+
+	public void setColorStr(String color) {
+		if (color != null && !color.equals(this.color)) {
+			this.color = color;
+			lastRenderedText = null;
+		}
+	}
+
+	public void setRawText(String text) {
+		if (text != null && !text.equals(this.rawText)) {
+			this.rawText = text;
+			lastRenderedText = null;
+		}
+	}
+
+	public void setAlignment(int alignment) {
+		if (this.alignment != alignment) {
+			this.alignment = alignment;
+			lastRenderedText = null;
+		}
+	}
+
+	public void setFontFromFile(File fontFile) {
+		if (fontFile != null && fontFile.exists()) {
+			this.typefaceName = fontFile.getName();
+			lastRenderedText = null;
+		}
 	}
 
 	public ShowTextActor(Boolean text, String name, int xPosition, int yPosition, float relativeSize,
@@ -141,6 +207,10 @@ public class ShowTextActor extends Actor {
 		drawVariables(ProjectManager.getInstance().getCurrentProject().getUserVariables(), batch);
 		drawVariables(ProjectManager.getInstance().getCurrentProject().getMultiplayerVariables(), batch);
 		drawVariables(sprite.getUserVariables(), batch);
+		Scene currentScene = ProjectManager.getInstance().getCurrentlyPlayingScene();
+		if (currentScene != null) {
+			drawVariables(currentScene.getSceneVariables(), batch);
+		}
 	}
 
 	private void drawVariables(List<UserVariable> variableList, Batch batch) {
@@ -150,7 +220,7 @@ public class ShowTextActor extends Actor {
 
 		if (this.isText) {
 			drawText(batch,
-					String.valueOf(this.variableToShow.getValue()),
+					rawText != null ? rawText : String.valueOf(this.variableToShow.getValue()),
 					xPosition, yPosition, color);
 		} else if (variableToShow.isDummy()) {
 			drawText(batch,
@@ -200,17 +270,22 @@ public class ShowTextActor extends Actor {
 		if (!textChanged && cachedTexture != null) {
 			int totalWidth = cachedTexture.getWidth();
 			int totalHeight = cachedTexture.getHeight();
+			float effW = totalWidth * scaleX;
+			float effH = totalHeight * scaleY;
 			float drawX = posX;
-			float drawY = posY - totalHeight / 2f;
+			float drawY = posY - effH / 2f;
 			switch (alignment) {
 				case ALIGNMENT_STYLE_CENTERED:
-					drawX -= totalWidth / 2f;
+					drawX -= effW / 2f;
 					break;
 				case ShowTextUtils.ALIGNMENT_STYLE_RIGHT:
-					drawX -= totalWidth;
+					drawX -= effW;
 					break;
 			}
-			batch.draw(cachedTexture, drawX, drawY);
+			batch.setColor(1f, 1f, 1f, alpha);
+			batch.draw(cachedTexture, drawX, drawY, totalWidth / 2f, totalHeight / 2f,
+					totalWidth, totalHeight, scaleX, scaleY, rotation,
+					0, 0, totalWidth, totalHeight, false, false);
 			return;
 		}
 
@@ -233,8 +308,10 @@ public class ShowTextActor extends Actor {
 		}
 
 		cachedTexture = buildTexture(rt);
-		batch.setColor(1, 1, 1, 1);
-		batch.draw(cachedTexture, drawX, drawY);
+		batch.setColor(1, 1, 1, alpha);
+		batch.draw(cachedTexture, drawX, drawY, totalWidth / 2f, totalHeight / 2f,
+				totalWidth, totalHeight, scaleX, scaleY, rotation,
+				0, 0, totalWidth, totalHeight, false, false);
 
 		lastRenderedText = text;
 		lastRenderedColor = color;
@@ -249,14 +326,6 @@ public class ShowTextActor extends Actor {
 		Texture texture = new Texture(pixmap);
 		pixmap.dispose();
 		return texture;
-	}
-
-	public void setPositionX(int xPosition) {
-		this.xPosition = xPosition;
-	}
-
-	public void setPositionY(int yPosition) {
-		this.yPosition = yPosition;
 	}
 
 	public String getVariableNameToCompare() {

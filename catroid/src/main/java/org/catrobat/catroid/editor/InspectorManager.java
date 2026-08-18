@@ -28,6 +28,7 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 import com.flask.colorpicker.ColorPickerView;
 import com.flask.colorpicker.builder.ColorPickerDialogBuilder;
+import org.catrobat.catroid.editor.Commands;
 
 import org.catrobat.catroid.ProjectManager;
 import org.catrobat.catroid.R;
@@ -336,11 +337,12 @@ public class InspectorManager {
                 if (fromUser) {
                     float time = (progress / 1000f) * anim.getDuration();
                     sceneManager.setKeyframeAnimationTime(go.id, time);
-                    populateInspector(go);
                 }
             }
             @Override public void onStartTrackingTouch(SeekBar seekBar) {}
-            @Override public void onStopTrackingTouch(SeekBar seekBar) {}
+            @Override public void onStopTrackingTouch(SeekBar seekBar) {
+                populateInspector(go);
+            }
         });
 
 
@@ -585,6 +587,13 @@ public class InspectorManager {
         alignPosBtn.setOnClickListener(v -> {
             if (threeDManager != null && selectedObject != null) {
                 Vector3 cameraPos = threeDManager.getCameraPosition();
+                if (activity.getUndoManager() != null) {
+                    activity.getUndoManager().pushCommand(new Commands.TransformCommand(
+                            sceneManager, selectedObject,
+                            selectedObject.transform.position.cpy(),
+                            selectedObject.transform.rotation.cpy(),
+                            selectedObject.transform.scale.cpy()));
+                }
                 selectedObject.transform.position.set(cameraPos);
                 populateInspector(selectedObject);
             }
@@ -595,6 +604,13 @@ public class InspectorManager {
                 Quaternion cameraRot = new Quaternion();
                 threeDManager.getCamera().view.getRotation(cameraRot, true).conjugate();
 
+                if (activity.getUndoManager() != null) {
+                    activity.getUndoManager().pushCommand(new Commands.TransformCommand(
+                            sceneManager, selectedObject,
+                            selectedObject.transform.position.cpy(),
+                            selectedObject.transform.rotation.cpy(),
+                            selectedObject.transform.scale.cpy()));
+                }
                 selectedObject.transform.rotation.set(cameraRot);
                 populateInspector(selectedObject);
             }

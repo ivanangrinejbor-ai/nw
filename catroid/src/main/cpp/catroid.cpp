@@ -1,4 +1,4 @@
-#include <jni.h>
+﻿#include <jni.h>
 #include <map>
 #include <string>
 #include <mutex>
@@ -2074,15 +2074,15 @@ JNI_ML(nativeSaveModel)(JNIEnv *env, jclass, jstring path_j) {
     for (auto const& [name, t] : g_Tensors) if (t->trainable) count++;
 
     fs.write((char*)&count, sizeof(int));
-    __android_log_print(ANDROID_LOG_INFO, "Pocketensor", "SAVE: Начало записи %d тензоров в %s", count, path);
+    __android_log_print(ANDROID_LOG_INFO, "Pocketensor", "SAVE: РќР°С‡Р°Р»Рѕ Р·Р°РїРёСЃРё %d С‚РµРЅР·РѕСЂРѕРІ РІ %s", count, path);
     for (auto const& [name, t] : g_Tensors) {
         if (!t->trainable) continue;
         float first_val = (t->total_size > 0) ? t->data[0] : 0.0f;
 
         if (std::isnan(first_val) || std::isinf(first_val)) {
-            __android_log_print(ANDROID_LOG_ERROR, "Pocketensor", "SAVE WARNING: Тензор '%s' сломан (NaN/Inf)!", name.c_str());
+            __android_log_print(ANDROID_LOG_ERROR, "Pocketensor", "SAVE WARNING: РўРµРЅР·РѕСЂ '%s' СЃР»РѕРјР°РЅ (NaN/Inf)!", name.c_str());
         } else {
-            __android_log_print(ANDROID_LOG_INFO, "Pocketensor", "SAVE: Запись '%s' [%d], val[0]=%f", name.c_str(), t->total_size, first_val);
+            __android_log_print(ANDROID_LOG_INFO, "Pocketensor", "SAVE: Р—Р°РїРёСЃСЊ '%s' [%d], val[0]=%f", name.c_str(), t->total_size, first_val);
         }
         int name_len = name.size();
         fs.write((char*)&name_len, sizeof(int));
@@ -2150,7 +2150,7 @@ Java_org_catrobat_catroid_ml_MLBridge_nativeLoadModel(JNIEnv *env, jclass, jstri
     const char* path = env->GetStringUTFChars(path_j, nullptr);
     std::ifstream fs(path, std::ios::binary);
     if (!fs.is_open()) {
-        __android_log_print(ANDROID_LOG_ERROR, "Pocketensor", "LOAD: Не удалось открыть файл %s", path);
+        __android_log_print(ANDROID_LOG_ERROR, "Pocketensor", "LOAD: РќРµ СѓРґР°Р»РѕСЃСЊ РѕС‚РєСЂС‹С‚СЊ С„Р°Р№Р» %s", path);
         env->ReleaseStringUTFChars(path_j, path);
         return JNI_FALSE;
     }
@@ -2158,11 +2158,11 @@ Java_org_catrobat_catroid_ml_MLBridge_nativeLoadModel(JNIEnv *env, jclass, jstri
     int tensor_count = 0;
     fs.read((char*)&tensor_count, sizeof(int));
     if (!fs.good() || tensor_count < 0 || tensor_count > 100000) {
-        __android_log_print(ANDROID_LOG_ERROR, "Pocketensor", "LOAD: Некорректный заголовок файла (count=%d)", tensor_count);
+        __android_log_print(ANDROID_LOG_ERROR, "Pocketensor", "LOAD: РќРµРєРѕСЂСЂРµРєС‚РЅС‹Р№ Р·Р°РіРѕР»РѕРІРѕРє С„Р°Р№Р»Р° (count=%d)", tensor_count);
         env->ReleaseStringUTFChars(path_j, path);
         return JNI_FALSE;
     }
-    __android_log_print(ANDROID_LOG_DEBUG, "Pocketensor", "LOAD: В файле найдено тензоров: %d", tensor_count);
+    __android_log_print(ANDROID_LOG_DEBUG, "Pocketensor", "LOAD: Р’ С„Р°Р№Р»Рµ РЅР°Р№РґРµРЅРѕ С‚РµРЅР·РѕСЂРѕРІ: %d", tensor_count);
 
     std::lock_guard<std::mutex> lock(g_MnnMutex);
 
@@ -2170,23 +2170,23 @@ Java_org_catrobat_catroid_ml_MLBridge_nativeLoadModel(JNIEnv *env, jclass, jstri
         int name_len = 0;
         fs.read((char*)&name_len, sizeof(int));
         if (!fs.good() || name_len < 0 || name_len > 1000000) {
-            __android_log_print(ANDROID_LOG_ERROR, "Pocketensor", "LOAD: Повреждённая длина имени (%d), прерывание", name_len);
+            __android_log_print(ANDROID_LOG_ERROR, "Pocketensor", "LOAD: РџРѕРІСЂРµР¶РґС‘РЅРЅР°СЏ РґР»РёРЅР° РёРјРµРЅРё (%d), РїСЂРµСЂС‹РІР°РЅРёРµ", name_len);
             break;
         }
         std::vector<char> name_buf(name_len);
         fs.read(name_buf.data(), name_len);
-        if (!fs.good()) { __android_log_print(ANDROID_LOG_ERROR, "Pocketensor", "LOAD: Ошибка чтения имени, прерывание"); break; }
+        if (!fs.good()) { __android_log_print(ANDROID_LOG_ERROR, "Pocketensor", "LOAD: РћС€РёР±РєР° С‡С‚РµРЅРёСЏ РёРјРµРЅРё, РїСЂРµСЂС‹РІР°РЅРёРµ"); break; }
         std::string name(name_buf.begin(), name_buf.end());
 
         int dims_count = 0;
         fs.read((char*)&dims_count, sizeof(int));
         if (!fs.good() || dims_count < 0 || dims_count > 32) {
-            __android_log_print(ANDROID_LOG_ERROR, "Pocketensor", "LOAD: Повреждённое число измерений (%d), прерывание", dims_count);
+            __android_log_print(ANDROID_LOG_ERROR, "Pocketensor", "LOAD: РџРѕРІСЂРµР¶РґС‘РЅРЅРѕРµ С‡РёСЃР»Рѕ РёР·РјРµСЂРµРЅРёР№ (%d), РїСЂРµСЂС‹РІР°РЅРёРµ", dims_count);
             break;
         }
         std::vector<int> shape(dims_count);
         fs.read((char*)shape.data(), sizeof(int) * dims_count);
-        if (!fs.good()) { __android_log_print(ANDROID_LOG_ERROR, "Pocketensor", "LOAD: Ошибка чтения формы, прерывание"); break; }
+        if (!fs.good()) { __android_log_print(ANDROID_LOG_ERROR, "Pocketensor", "LOAD: РћС€РёР±РєР° С‡С‚РµРЅРёСЏ С„РѕСЂРјС‹, РїСЂРµСЂС‹РІР°РЅРёРµ"); break; }
 
         long long size = 1;
         bool shape_ok = true;
@@ -2196,13 +2196,13 @@ Java_org_catrobat_catroid_ml_MLBridge_nativeLoadModel(JNIEnv *env, jclass, jstri
             if (size > 100000000LL) { shape_ok = false; break; } // >100M floats, reject
         }
         if (!shape_ok) {
-            __android_log_print(ANDROID_LOG_ERROR, "Pocketensor", "LOAD: Недопустимая форма тензора '%s', прерывание", name.c_str());
+            __android_log_print(ANDROID_LOG_ERROR, "Pocketensor", "LOAD: РќРµРґРѕРїСѓСЃС‚РёРјР°СЏ С„РѕСЂРјР° С‚РµРЅР·РѕСЂР° '%s', РїСЂРµСЂС‹РІР°РЅРёРµ", name.c_str());
             break;
         }
         std::vector<float> data((size_t)size);
         fs.read((char*)data.data(), sizeof(float) * (size_t)size);
         if (!fs.good() && !fs.eof()) {
-            __android_log_print(ANDROID_LOG_ERROR, "Pocketensor", "LOAD: Ошибка чтения данных '%s', прерывание", name.c_str());
+            __android_log_print(ANDROID_LOG_ERROR, "Pocketensor", "LOAD: РћС€РёР±РєР° С‡С‚РµРЅРёСЏ РґР°РЅРЅС‹С… '%s', РїСЂРµСЂС‹РІР°РЅРёРµ", name.c_str());
             break;
         }
 
@@ -2211,16 +2211,16 @@ Java_org_catrobat_catroid_ml_MLBridge_nativeLoadModel(JNIEnv *env, jclass, jstri
 
             if (target->total_size == (int)size) {
                 target->data = data;
-                __android_log_print(ANDROID_LOG_INFO, "Pocketensor", "LOAD: Успешно загружен тензор: %s", name.c_str());
+                __android_log_print(ANDROID_LOG_INFO, "Pocketensor", "LOAD: РЈСЃРїРµС€РЅРѕ Р·Р°РіСЂСѓР¶РµРЅ С‚РµРЅР·РѕСЂ: %s", name.c_str());
             } else {
-                __android_log_print(ANDROID_LOG_ERROR, "Pocketensor", "LOAD: Ошибка размера для %s! В файле: %lld, В проекте: %d", name.c_str(), size, target->total_size);
+                __android_log_print(ANDROID_LOG_ERROR, "Pocketensor", "LOAD: РћС€РёР±РєР° СЂР°Р·РјРµСЂР° РґР»СЏ %s! Р’ С„Р°Р№Р»Рµ: %lld, Р’ РїСЂРѕРµРєС‚Рµ: %d", name.c_str(), size, target->total_size);
             };
         } else {
 
             auto t = std::make_shared<CatroidTensor>(shape, 0.0f, true, name);
             t->data = data;
             g_Tensors[name] = t;
-            __android_log_print(ANDROID_LOG_INFO, "Pocketensor", "LOAD: Создан новый тензор из файла: %s", name.c_str());
+            __android_log_print(ANDROID_LOG_INFO, "Pocketensor", "LOAD: РЎРѕР·РґР°РЅ РЅРѕРІС‹Р№ С‚РµРЅР·РѕСЂ РёР· С„Р°Р№Р»Р°: %s", name.c_str());
         }
     }
 
@@ -2229,5 +2229,845 @@ Java_org_catrobat_catroid_ml_MLBridge_nativeLoadModel(JNIEnv *env, jclass, jstri
     return JNI_TRUE;
 }
 
+
+
+// ===== PORTED FROM ORIGINAL (2026-08): ML layers (conv2d/lstm/gru/attention/embedding/dropout/maxpool2d/slice/zero_grad/clip_grad/adamw) =====
+void kernel_leaky_relu_forward(const std::shared_ptr<CatroidTensor>& A, std::shared_ptr<CatroidTensor>& C) {
+    for (int i = 0; i < A->total_size; ++i) C->data[i] = A->data[i] >= 0.0f ? A->data[i] : 0.01f * A->data[i];
+}
+void kernel_leaky_relu_backward(OpNode& node) {
+    if (!node.input_a->trainable) return;
+    for (int i = 0; i < node.output->total_size; ++i) {
+        node.input_a->grad[i] += node.output->grad[i] * (node.input_a->data[i] >= 0.0f ? 1.0f : 0.01f);
+    }
+}
+void kernel_math_ops_forward(const std::shared_ptr<CatroidTensor>& A, std::shared_ptr<CatroidTensor>& C, const std::string& op) {
+    for (int i = 0; i < A->total_size; ++i) {
+        float val = A->data[i];
+        if (op == "sqrt") C->data[i] = std::sqrt(std::max(1e-7f, val));
+        else if (op == "exp") C->data[i] = std::exp(val);
+        else if (op == "log") C->data[i] = std::log(std::max(1e-7f, val));
+        else if (op == "clamp") C->data[i] = std::max(-1.0f, std::min(1.0f, val));
+    }
+}
+void kernel_math_ops_backward(OpNode& node) {
+    auto A = node.input_a;
+    auto C = node.output;
+    if (!A->trainable) return;
+
+    for (int i = 0; i < A->total_size; ++i) {
+        float x = A->data[i];
+        float dy = C->grad[i];
+
+        if (node.op_type == "exp") {
+            A->grad[i] += dy * C->data[i]; // d/dx(e^x) = e^x
+        } else if (node.op_type == "log") {
+            A->grad[i] += dy * (1.0f / std::max(1e-7f, x)); // d/dx(ln x) = 1/x
+        } else if (node.op_type == "sqrt") {
+            A->grad[i] += dy * (0.5f / std::max(1e-7f, C->data[i])); // d/dx(sqrt x) = 1 / (2*sqrt x)
+        } else if (node.op_type == "clamp") {
+            A->grad[i] += (x >= -1.0f && x <= 1.0f) ? dy : 0.0f;
+        }
+    }
+}
+void kernel_slice_forward(const std::shared_ptr<CatroidTensor>& A, std::shared_ptr<CatroidTensor>& C, int start_col, int end_col) {
+    int rows = A->shape[0];
+    int in_cols = A->shape[1];
+    int out_cols = end_col - start_col;
+
+    for (int r = 0; r < rows; ++r) {
+        for (int c = 0; c < out_cols; ++c) {
+            C->data[r * out_cols + c] = A->data[r * in_cols + start_col + c];
+        }
+    }
+}
+void kernel_slice_backward(OpNode& node, int start_col, int end_col) {
+    auto A = node.input_a;
+    auto C = node.output;
+    if (!A->trainable) return;
+
+    int rows = A->shape[0];
+    int in_cols = A->shape[1];
+    int out_cols = end_col - start_col;
+
+    for (int r = 0; r < rows; ++r) {
+        for (int c = 0; c < out_cols; ++c) {
+            A->grad[r * in_cols + start_col + c] += C->grad[r * out_cols + c];
+        }
+    }
+}
+void kernel_flatten_forward(const std::shared_ptr<CatroidTensor>& A, std::shared_ptr<CatroidTensor>& C) {
+    C->data = A->data;
+}
+void kernel_flatten_backward(OpNode& node) {
+    if (!node.input_a->trainable) return;
+    for (int i = 0; i < node.output->total_size; ++i) node.input_a->grad[i] += node.output->grad[i];
+}
+void kernel_cross_entropy_forward(const std::shared_ptr<CatroidTensor>& Pred, const std::shared_ptr<CatroidTensor>& Target, std::shared_ptr<CatroidTensor>& Loss) {
+    float total_loss = 0.0f;
+    const float eps = 1e-7f;
+    for (int i = 0; i < Pred->total_size; i++) {
+        float p = std::max(eps, std::min(1.0f - eps, Pred->data[i]));
+        total_loss -= Target->data[i] * std::log(p);
+    }
+    Loss->data[0] = total_loss / (Pred->shape.size() > 1 ? Pred->shape[0] : 1);
+}
+void kernel_cross_entropy_backward(OpNode& node) {
+    auto Pred = node.input_a;
+    auto Target = node.input_b;
+    if (!Pred->trainable) return;
+    const float eps = 1e-7f;
+    for (int i = 0; i < Pred->total_size; i++) {
+        float p = std::max(eps, std::min(1.0f - eps, Pred->data[i]));
+        Pred->grad[i] += (-Target->data[i] / p) * node.output->grad[0];
+    }
+}
+void kernel_concat_forward(const std::shared_ptr<CatroidTensor>& A, const std::shared_ptr<CatroidTensor>& B, std::shared_ptr<CatroidTensor>& C) {
+    int rows = A->shape[0];
+    int colsA = A->shape[1];
+    int colsB = B->shape[1];
+    for (int r = 0; r < rows; ++r) {
+        std::copy(A->data.begin() + r * colsA, A->data.begin() + (r + 1) * colsA, C->data.begin() + r * (colsA + colsB));
+        std::copy(B->data.begin() + r * colsB, B->data.begin() + (r + 1) * colsB, C->data.begin() + r * (colsA + colsB) + colsA);
+    }
+}
+void kernel_concat_backward(OpNode& node) {
+    auto A = node.input_a;
+    auto B = node.input_b;
+    auto C = node.output;
+    int rows = A->shape[0];
+    int colsA = A->shape[1];
+    int colsB = B->shape[1];
+
+    for (int r = 0; r < rows; ++r) {
+        if (A->trainable) {
+            for (int c = 0; c < colsA; ++c) A->grad[r * colsA + c] += C->grad[r * (colsA + colsB) + c];
+        }
+        if (B->trainable) {
+            for (int c = 0; c < colsB; ++c) B->grad[r * colsB + c] += C->grad[r * (colsA + colsB) + colsA + c];
+        }
+    }
+}
+void kernel_dropout_forward(const std::shared_ptr<CatroidTensor>& A, std::shared_ptr<CatroidTensor>& C, float p, std::vector<float>& mask) {
+    mask.resize(A->total_size);
+    if (g_IsTraining && p > 0.0f) {
+        float scale = 1.0f / (1.0f - p);
+        std::uniform_real_distribution<float> dist(0.0f, 1.0f);
+        for (int i = 0; i < A->total_size; ++i) {
+            if (dist(rng) < p) {
+                C->data[i] = 0.0f;
+                mask[i] = 0.0f;
+            } else {
+                C->data[i] = A->data[i] * scale;
+                mask[i] = scale;
+            }
+        }
+    } else {
+        C->data = A->data;
+        std::fill(mask.begin(), mask.end(), 1.0f);
+    }
+}
+void kernel_dropout_backward(OpNode& node) {
+    if (!node.input_a->trainable) return;
+    auto A = node.input_a;
+    auto C = node.output;
+    for (size_t i = 0; i < C->total_size; ++i) {
+        float m = (i < node.meta_data.size()) ? (float)node.meta_data[i] / 10000.0f : 1.0f;
+        A->grad[i] += C->grad[i] * m;
+    }
+}
+void kernel_embedding_forward(const std::shared_ptr<CatroidTensor>& Weight, const std::shared_ptr<CatroidTensor>& InputIDs, std::shared_ptr<CatroidTensor>& Output) {
+    int num_indices = InputIDs->total_size;
+    int emb_dim = Weight->shape[1];
+    int vocab_size = Weight->shape[0];
+
+    for (int i = 0; i < num_indices; ++i) {
+        int idx = static_cast<int>(InputIDs->data[i]);
+        if (idx >= 0 && idx < vocab_size) {
+            std::copy(Weight->data.begin() + idx * emb_dim, Weight->data.begin() + (idx + 1) * emb_dim, Output->data.begin() + i * emb_dim);
+        } else {
+            std::fill(Output->data.begin() + i * emb_dim, Output->data.begin() + (i + 1) * emb_dim, 0.0f);
+        }
+    }
+}
+void kernel_embedding_backward(OpNode& node) {
+    auto Weight = node.input_a;
+    auto InputIDs = node.input_b;
+    auto Output = node.output;
+    if (!Weight->trainable) return;
+
+    int num_indices = InputIDs->total_size;
+    int emb_dim = Weight->shape[1];
+    int vocab_size = Weight->shape[0];
+
+    for (int i = 0; i < num_indices; ++i) {
+        int idx = static_cast<int>(InputIDs->data[i]);
+        if (idx >= 0 && idx < vocab_size) {
+            for (int d = 0; d < emb_dim; ++d) {
+                Weight->grad[idx * emb_dim + d] += Output->grad[i * emb_dim + d];
+            }
+        }
+    }
+}
+void kernel_maxpool2d_forward(const std::shared_ptr<CatroidTensor>& A, std::shared_ptr<CatroidTensor>& C, int pool_size, int stride, std::vector<int>& max_indices) {
+    int in_h = A->shape.size() >= 2 ? A->shape[A->shape.size() - 2] : A->shape[0];
+    int in_w = A->shape.back();
+    int channels = A->total_size / (in_h * in_w);
+    if (channels < 1) channels = 1;
+
+    int out_h = (in_h - pool_size) / stride + 1;
+    int out_w = (in_w - pool_size) / stride + 1;
+
+    max_indices.resize(C->total_size);
+
+    for (int c = 0; c < channels; ++c) {
+        for (int oh = 0; oh < out_h; ++oh) {
+            for (int ow = 0; ow < out_w; ++ow) {
+                float max_val = -1e9f;
+                int max_idx = -1;
+                int ih_base = oh * stride;
+                int iw_base = ow * stride;
+
+                for (int kh = 0; kh < pool_size; ++kh) {
+                    for (int kw = 0; kw < pool_size; ++kw) {
+                        int ih = ih_base + kh;
+                        int iw = iw_base + kw;
+                        if (ih < in_h && iw < in_w) {
+                            int idx = (c * in_h + ih) * in_w + iw;
+                            if (A->data[idx] > max_val) {
+                                max_val = A->data[idx];
+                                max_idx = idx;
+                            }
+                        }
+                    }
+                }
+                int out_idx = (c * out_h + oh) * out_w + ow;
+                C->data[out_idx] = max_val;
+                max_indices[out_idx] = max_idx;
+            }
+        }
+    }
+}
+void kernel_maxpool2d_backward(OpNode& node) {
+    auto A = node.input_a;
+    auto C = node.output;
+    if (!A->trainable) return;
+
+    for (size_t out_idx = 0; out_idx < C->total_size; ++out_idx) {
+        int in_max_idx = node.meta_data[out_idx];
+        if (in_max_idx >= 0 && in_max_idx < A->total_size) {
+            A->grad[in_max_idx] += C->grad[out_idx];
+        }
+    }
+}
+void exec_layer_conv2d(const std::string& name, const std::string& input_n, const std::string& output_n, int in_c, int out_c, int k_size, int stride) {
+    std::string w_name = name + "_w";
+    std::string b_name = name + "_b";
+
+    int w_total = out_c * in_c * k_size * k_size;
+    if (g_Tensors.find(w_name) == g_Tensors.end()) {
+        auto w = std::make_shared<CatroidTensor>(std::vector<int>{out_c, in_c, k_size, k_size}, 0.0f, true, w_name);
+        init_xavier(w->data, in_c * k_size * k_size, out_c);
+        g_Tensors[w_name] = w;
+
+        auto b = std::make_shared<CatroidTensor>(std::vector<int>{out_c}, 0.0f, true, b_name);
+        g_Tensors[b_name] = b;
+    }
+
+    auto X = g_Tensors[input_n];
+    auto W = g_Tensors[w_name];
+    auto B = g_Tensors[b_name];
+
+    int in_h = X->shape.size() >= 2 ? X->shape[X->shape.size() - 2] : X->shape[0];
+    int in_w = X->shape.back();
+    int out_h = (in_h - k_size) / stride + 1;
+    int out_w = (in_w - k_size) / stride + 1;
+
+    auto Res = std::make_shared<CatroidTensor>(std::vector<int>{out_c, out_h, out_w}, 0.0f, g_IsTraining, output_n);
+
+    for (int oc = 0; oc < out_c; ++oc) {
+        for (int oh = 0; oh < out_h; ++oh) {
+            for (int ow = 0; ow < out_w; ++ow) {
+                float sum = B->data[oc];
+                int ih_base = oh * stride;
+                int iw_base = ow * stride;
+
+                for (int ic = 0; ic < in_c; ++ic) {
+                    for (int kh = 0; kh < k_size; ++kh) {
+                        for (int kw = 0; kw < k_size; ++kw) {
+                            int x_idx = (ic * in_h + (ih_base + kh)) * in_w + (iw_base + kw);
+                            int w_idx = ((oc * in_c + ic) * k_size + kh) * k_size + kw;
+                            sum += X->data[x_idx % X->total_size] * W->data[w_idx];
+                        }
+                    }
+                }
+                Res->data[(oc * out_h + oh) * out_w + ow] = sum;
+            }
+        }
+    }
+    g_Tensors[output_n] = Res;
+}
+void exec_layer_attention(const std::string& name, const std::string& input_n, const std::string& output_n, int embed_dim) {
+    std::string wq_name = name + "_wq";
+    std::string wk_name = name + "_wk";
+    std::string wv_name = name + "_wv";
+
+    if (g_Tensors.find(wq_name) == g_Tensors.end()) {
+        auto wq = std::make_shared<CatroidTensor>(std::vector<int>{embed_dim, embed_dim}, 0.0f, true, wq_name);
+        auto wk = std::make_shared<CatroidTensor>(std::vector<int>{embed_dim, embed_dim}, 0.0f, true, wk_name);
+        auto wv = std::make_shared<CatroidTensor>(std::vector<int>{embed_dim, embed_dim}, 0.0f, true, wv_name);
+
+        init_xavier(wq->data, embed_dim, embed_dim);
+        init_xavier(wk->data, embed_dim, embed_dim);
+        init_xavier(wv->data, embed_dim, embed_dim);
+
+        g_Tensors[wq_name] = wq;
+        g_Tensors[wk_name] = wk;
+        g_Tensors[wv_name] = wv;
+    }
+
+    auto X = g_Tensors[input_n];
+    auto WQ = g_Tensors[wq_name];
+    auto WK = g_Tensors[wk_name];
+    auto WV = g_Tensors[wv_name];
+
+    int batch_size = X->shape[0];
+
+    // Q = X * WQ, K = X * WK, V = X * WV
+    auto Q = std::make_shared<CatroidTensor>(std::vector<int>{batch_size, embed_dim}, 0.0f, g_IsTraining, name + "_Q");
+    auto K = std::make_shared<CatroidTensor>(std::vector<int>{batch_size, embed_dim}, 0.0f, g_IsTraining, name + "_K");
+    auto V = std::make_shared<CatroidTensor>(std::vector<int>{batch_size, embed_dim}, 0.0f, g_IsTraining, name + "_V");
+
+    kernel_matmul_forward(X, WQ, Q);
+    kernel_matmul_forward(X, WK, K);
+    kernel_matmul_forward(X, WV, V);
+
+    if (g_IsTraining) {
+        g_Tape.push_back({"matmul", X, WQ, Q});
+        g_Tape.push_back({"matmul", X, WK, K});
+        g_Tape.push_back({"matmul", X, WV, V});
+    }
+
+    // K_T (Transpose K)
+    auto KT = std::make_shared<CatroidTensor>(std::vector<int>{embed_dim, batch_size}, 0.0f, g_IsTraining, name + "_KT");
+    kernel_transpose_forward(K, KT);
+    if (g_IsTraining) g_Tape.push_back({"transpose", K, nullptr, KT});
+
+    // Scores = Q * K_T
+    auto Scores = std::make_shared<CatroidTensor>(std::vector<int>{batch_size, batch_size}, 0.0f, g_IsTraining, name + "_scores");
+    kernel_matmul_forward(Q, KT, Scores);
+    if (g_IsTraining) g_Tape.push_back({"matmul", Q, KT, Scores});
+
+    // Scale
+    float scale = 1.0f / std::sqrt((float)embed_dim);
+    for (int i = 0; i < Scores->total_size; ++i) Scores->data[i] *= scale;
+
+    // Softmax
+    auto AttnWeights = std::make_shared<CatroidTensor>(Scores->shape, 0.0f, g_IsTraining, name + "_attn_weights");
+    kernel_softmax_forward(Scores, AttnWeights);
+    if (g_IsTraining) g_Tape.push_back({"softmax", Scores, nullptr, AttnWeights});
+
+    // Context = AttnWeights * V
+    auto Out = std::make_shared<CatroidTensor>(std::vector<int>{batch_size, embed_dim}, 0.0f, g_IsTraining, output_n);
+    kernel_matmul_forward(AttnWeights, V, Out);
+    if (g_IsTraining) g_Tape.push_back({"matmul", AttnWeights, V, Out});
+
+    g_Tensors[output_n] = Out;
+}
+void exec_layer_lstm_cell(const std::string& name, const std::string& input_n, const std::string& h_in_n, const std::string& c_in_n,
+                          const std::string& h_out_n, const std::string& c_out_n, int in_dim, int hidden_dim) {
+    std::string w_name = name + "_w";
+    std::string b_name = name + "_b";
+    int concat_dim = in_dim + hidden_dim;
+
+    if (g_Tensors.find(w_name) == g_Tensors.end()) {
+        auto w = std::make_shared<CatroidTensor>(std::vector<int>{concat_dim, 4 * hidden_dim}, 0.0f, true, w_name);
+        init_xavier(w->data, concat_dim, 4 * hidden_dim);
+        g_Tensors[w_name] = w;
+
+        auto b = std::make_shared<CatroidTensor>(std::vector<int>{1, 4 * hidden_dim}, 0.0f, true, b_name);
+        g_Tensors[b_name] = b;
+    }
+
+    auto X = g_Tensors[input_n];
+    auto Hin = g_Tensors[h_in_n];
+    auto Cin = g_Tensors[c_in_n];
+    auto W = g_Tensors[w_name];
+    auto B = g_Tensors[b_name];
+
+    int batch_size = X->shape[0];
+
+    // Concat(X, H_in)
+    auto XH = std::make_shared<CatroidTensor>(std::vector<int>{batch_size, concat_dim}, 0.0f, g_IsTraining, name + "_xh");
+    kernel_concat_forward(X, Hin, XH);
+    if (g_IsTraining) g_Tape.push_back({"concat", X, Hin, XH});
+
+    // Gates = XH * W + B
+    auto Gates_tmp = std::make_shared<CatroidTensor>(std::vector<int>{batch_size, 4 * hidden_dim}, 0.0f, g_IsTraining, name + "_gtmp");
+    kernel_matmul_forward(XH, W, Gates_tmp);
+    if (g_IsTraining) g_Tape.push_back({"matmul", XH, W, Gates_tmp});
+
+    auto Gates = std::make_shared<CatroidTensor>(std::vector<int>{batch_size, 4 * hidden_dim}, 0.0f, g_IsTraining, name + "_gates");
+    kernel_add_forward(Gates_tmp, B, Gates);
+    if (g_IsTraining) g_Tape.push_back({"add", Gates_tmp, B, Gates});
+
+    // Slices for f, i, c_tilde, o
+    auto f_raw = std::make_shared<CatroidTensor>(std::vector<int>{batch_size, hidden_dim}, 0.0f, g_IsTraining, name + "_fraw");
+    auto i_raw = std::make_shared<CatroidTensor>(std::vector<int>{batch_size, hidden_dim}, 0.0f, g_IsTraining, name + "_iraw");
+    auto c_raw = std::make_shared<CatroidTensor>(std::vector<int>{batch_size, hidden_dim}, 0.0f, g_IsTraining, name + "_craw");
+    auto o_raw = std::make_shared<CatroidTensor>(std::vector<int>{batch_size, hidden_dim}, 0.0f, g_IsTraining, name + "_oraw");
+
+    kernel_slice_forward(Gates, f_raw, 0, hidden_dim);
+    kernel_slice_forward(Gates, i_raw, hidden_dim, 2 * hidden_dim);
+    kernel_slice_forward(Gates, c_raw, 2 * hidden_dim, 3 * hidden_dim);
+    kernel_slice_forward(Gates, o_raw, 3 * hidden_dim, 4 * hidden_dim);
+
+    if (g_IsTraining) {
+        g_Tape.push_back({"slice", Gates, nullptr, f_raw, {0, hidden_dim}});
+        g_Tape.push_back({"slice", Gates, nullptr, i_raw, {hidden_dim, 2 * hidden_dim}});
+        g_Tape.push_back({"slice", Gates, nullptr, c_raw, {2 * hidden_dim, 3 * hidden_dim}});
+        g_Tape.push_back({"slice", Gates, nullptr, o_raw, {3 * hidden_dim, 4 * hidden_dim}});
+    }
+
+    auto f = std::make_shared<CatroidTensor>(f_raw->shape, 0.0f, g_IsTraining, name + "_f");
+    auto i = std::make_shared<CatroidTensor>(i_raw->shape, 0.0f, g_IsTraining, name + "_i");
+    auto c_tilde = std::make_shared<CatroidTensor>(c_raw->shape, 0.0f, g_IsTraining, name + "_ctilde");
+    auto o = std::make_shared<CatroidTensor>(o_raw->shape, 0.0f, g_IsTraining, name + "_o");
+
+    kernel_sigmoid_forward(f_raw, f);
+    kernel_sigmoid_forward(i_raw, i);
+    kernel_tanh_forward(c_raw, c_tilde);
+    kernel_sigmoid_forward(o_raw, o);
+
+    if (g_IsTraining) {
+        g_Tape.push_back({"sigmoid", f_raw, nullptr, f});
+        g_Tape.push_back({"sigmoid", i_raw, nullptr, i});
+        g_Tape.push_back({"tanh", c_raw, nullptr, c_tilde});
+        g_Tape.push_back({"sigmoid", o_raw, nullptr, o});
+    }
+
+    // C_out = f * C_in + i * c_tilde
+    auto f_cin = std::make_shared<CatroidTensor>(f->shape, 0.0f, g_IsTraining, name + "_fcin");
+    auto i_ctilde = std::make_shared<CatroidTensor>(i->shape, 0.0f, g_IsTraining, name + "_ictilde");
+    kernel_mul_forward(f, Cin, f_cin);
+    kernel_mul_forward(i, c_tilde, i_ctilde);
+
+    auto Cout = std::make_shared<CatroidTensor>(f->shape, 0.0f, g_IsTraining, c_out_n);
+    kernel_add_forward(f_cin, i_ctilde, Cout);
+
+    if (g_IsTraining) {
+        g_Tape.push_back({"mul", f, Cin, f_cin});
+        g_Tape.push_back({"mul", i, c_tilde, i_ctilde});
+        g_Tape.push_back({"add", f_cin, i_ctilde, Cout});
+    }
+
+    // H_out = o * tanh(C_out)
+    auto tanh_cout = std::make_shared<CatroidTensor>(Cout->shape, 0.0f, g_IsTraining, name + "_tanhcout");
+    kernel_tanh_forward(Cout, tanh_cout);
+
+    auto Hout = std::make_shared<CatroidTensor>(Cout->shape, 0.0f, g_IsTraining, h_out_n);
+    kernel_mul_forward(o, tanh_cout, Hout);
+
+    if (g_IsTraining) {
+        g_Tape.push_back({"tanh", Cout, nullptr, tanh_cout});
+        g_Tape.push_back({"mul", o, tanh_cout, Hout});
+    }
+
+    g_Tensors[c_out_n] = Cout;
+    g_Tensors[h_out_n] = Hout;
+}
+void exec_layer_gru_cell(const std::string& name, const std::string& input_n, const std::string& h_in_n,
+                         const std::string& h_out_n, int in_dim, int hidden_dim) {
+    std::string w_name = name + "_w";
+    std::string b_name = name + "_b";
+    int concat_dim = in_dim + hidden_dim;
+
+    if (g_Tensors.find(w_name) == g_Tensors.end()) {
+        auto w = std::make_shared<CatroidTensor>(std::vector<int>{concat_dim, 3 * hidden_dim}, 0.0f, true, w_name);
+        init_xavier(w->data, concat_dim, 3 * hidden_dim);
+        g_Tensors[w_name] = w;
+
+        auto b = std::make_shared<CatroidTensor>(std::vector<int>{1, 3 * hidden_dim}, 0.0f, true, b_name);
+        g_Tensors[b_name] = b;
+    }
+
+    auto X = g_Tensors[input_n];
+    auto Hin = g_Tensors[h_in_n];
+    auto W = g_Tensors[w_name];
+    auto B = g_Tensors[b_name];
+
+    int batch_size = X->shape[0];
+
+    auto XH = std::make_shared<CatroidTensor>(std::vector<int>{batch_size, concat_dim}, 0.0f, g_IsTraining, name + "_xh");
+    kernel_concat_forward(X, Hin, XH);
+    if (g_IsTraining) g_Tape.push_back({"concat", X, Hin, XH});
+
+    auto Gates_tmp = std::make_shared<CatroidTensor>(std::vector<int>{batch_size, 3 * hidden_dim}, 0.0f, g_IsTraining, name + "_gtmp");
+    kernel_matmul_forward(XH, W, Gates_tmp);
+    if (g_IsTraining) g_Tape.push_back({"matmul", XH, W, Gates_tmp});
+
+    auto Gates = std::make_shared<CatroidTensor>(std::vector<int>{batch_size, 3 * hidden_dim}, 0.0f, g_IsTraining, name + "_gates");
+    kernel_add_forward(Gates_tmp, B, Gates);
+    if (g_IsTraining) g_Tape.push_back({"add", Gates_tmp, B, Gates});
+
+    auto r_raw = std::make_shared<CatroidTensor>(std::vector<int>{batch_size, hidden_dim}, 0.0f, g_IsTraining, name + "_rraw");
+    auto z_raw = std::make_shared<CatroidTensor>(std::vector<int>{batch_size, hidden_dim}, 0.0f, g_IsTraining, name + "_zraw");
+    auto n_raw = std::make_shared<CatroidTensor>(std::vector<int>{batch_size, hidden_dim}, 0.0f, g_IsTraining, name + "_nraw");
+
+    kernel_slice_forward(Gates, r_raw, 0, hidden_dim);
+    kernel_slice_forward(Gates, z_raw, hidden_dim, 2 * hidden_dim);
+    kernel_slice_forward(Gates, n_raw, 2 * hidden_dim, 3 * hidden_dim);
+
+    auto r = std::make_shared<CatroidTensor>(r_raw->shape, 0.0f, g_IsTraining, name + "_r");
+    auto z = std::make_shared<CatroidTensor>(z_raw->shape, 0.0f, g_IsTraining, name + "_z");
+    auto n = std::make_shared<CatroidTensor>(n_raw->shape, 0.0f, g_IsTraining, name + "_n");
+
+    kernel_sigmoid_forward(r_raw, r);
+    kernel_sigmoid_forward(z_raw, z);
+    kernel_tanh_forward(n_raw, n);
+
+    auto Hout = std::make_shared<CatroidTensor>(r->shape, 0.0f, g_IsTraining, h_out_n);
+    for (int i = 0; i < Hout->total_size; ++i) {
+        float zv = z->data[i];
+        Hout->data[i] = (1.0f - zv) * n->data[i] + zv * Hin->data[i];
+    }
+    g_Tensors[h_out_n] = Hout;
+}
+JNI_ML(nativeResetEngine)(JNIEnv *env, jclass) {
+    std::lock_guard<std::mutex> lock(g_MnnMutex);
+    g_Tensors.clear();
+    g_Tape.clear();
+    g_AdamStates.clear();
+    g_IsTraining = false;
+    __android_log_print(ANDROID_LOG_INFO, "Pocketensor", "Engine memory reset complete.");
+}
+JNI_ML(nativeSetTensorArray)(JNIEnv *env, jclass, jstring name_j, jfloatArray data_j) {
+    const char* name = env->GetStringUTFChars(name_j, nullptr);
+    jfloat* data_ptr = env->GetFloatArrayElements(data_j, nullptr);
+    int len = env->GetArrayLength(data_j);
+
+    std::lock_guard<std::mutex> lock(g_MnnMutex);
+    if (g_Tensors.count(name)) {
+        auto t = g_Tensors[name];
+        int count = std::min(len, t->total_size);
+        for (int i = 0; i < count; i++) {
+            t->data[i] = data_ptr[i];
+        }
+    }
+    env->ReleaseFloatArrayElements(data_j, data_ptr, JNI_ABORT);
+    env->ReleaseStringUTFChars(name_j, name);
+}
+JNI_ML(nativeSetOneHot)(JNIEnv *env, jclass, jstring name_j, jint active_index) {
+    const char* name = env->GetStringUTFChars(name_j, nullptr);
+
+    std::lock_guard<std::mutex> lock(g_MnnMutex);
+    if (g_Tensors.count(name)) {
+        auto t = g_Tensors[name];
+        std::fill(t->data.begin(), t->data.end(), 0.0f);
+        if (active_index >= 0 && active_index < t->total_size) {
+            t->data[active_index] = 1.0f;
+        }
+    }
+    env->ReleaseStringUTFChars(name_j, name);
+}
+JNI_ML(nativeSampleCategorical)(JNIEnv *env, jclass, jstring name_j) {
+    const char* name = env->GetStringUTFChars(name_j, nullptr);
+    std::lock_guard<std::mutex> lock(g_MnnMutex);
+    int chosen_index = 0;
+
+    if (g_Tensors.count(name)) {
+        auto t = g_Tensors[name];
+        std::uniform_real_distribution<float> dist(0.0f, 1.0f);
+        float r = dist(rng);
+        float cumulative = 0.0f;
+
+        for (int i = 0; i < t->total_size; i++) {
+            cumulative += t->data[i];
+            if (r <= cumulative) {
+                chosen_index = i;
+                break;
+            }
+        }
+    }
+    env->ReleaseStringUTFChars(name_j, name);
+    return chosen_index;
+}
+JNI_ML(nativeDropout)(JNIEnv *env, jclass, jstring res_j, jstring input_j, jfloat p) {
+    const char* res_n = env->GetStringUTFChars(res_j, nullptr);
+    const char* in_n = env->GetStringUTFChars(input_j, nullptr);
+
+    std::lock_guard<std::mutex> lock(g_MnnMutex);
+    if (g_Tensors.count(in_n)) {
+        auto A = g_Tensors[in_n];
+        bool is_trainable = g_IsTraining && A->trainable;
+        auto R = std::make_shared<CatroidTensor>(A->shape, 0.0f, is_trainable, res_n);
+
+        std::vector<float> mask;
+        kernel_dropout_forward(A, R, p, mask);
+        g_Tensors[res_n] = R;
+
+        if (g_IsTraining) {
+            OpNode node;
+            node.op_type = "dropout";
+            node.input_a = A;
+            node.output = R;
+            node.meta_data.resize(mask.size());
+            for (size_t i = 0; i < mask.size(); ++i) node.meta_data[i] = (int)(mask[i] * 10000.0f);
+            g_Tape.push_back(node);
+        }
+    }
+
+    env->ReleaseStringUTFChars(res_j, res_n);
+    env->ReleaseStringUTFChars(input_j, in_n);
+}
+JNI_ML(nativeLayerConv2D)(JNIEnv *env, jclass, jstring layerName_j, jstring input_j, jstring output_j, jint inC, jint outC, jint kSize, jint stride) {
+    const char* layer_n = env->GetStringUTFChars(layerName_j, nullptr);
+    const char* in_n = env->GetStringUTFChars(input_j, nullptr);
+    const char* out_n = env->GetStringUTFChars(output_j, nullptr);
+
+    std::lock_guard<std::mutex> lock(g_MnnMutex);
+    if (g_Tensors.count(in_n)) {
+        exec_layer_conv2d(layer_n, in_n, out_n, inC, outC, kSize, stride);
+    }
+
+    env->ReleaseStringUTFChars(layerName_j, layer_n);
+    env->ReleaseStringUTFChars(input_j, in_n);
+    env->ReleaseStringUTFChars(output_j, out_n);
+}
+JNI_ML(nativeLayerEmbedding)(JNIEnv *env, jclass, jstring layerName_j, jstring input_j, jstring output_j, jint vocabSize, jint embDim) {
+    const char* layer_n = env->GetStringUTFChars(layerName_j, nullptr);
+    const char* in_n = env->GetStringUTFChars(input_j, nullptr);
+    const char* out_n = env->GetStringUTFChars(output_j, nullptr);
+
+    std::string w_name = std::string(layer_n) + "_weight";
+
+    std::lock_guard<std::mutex> lock(g_MnnMutex);
+
+    if (g_Tensors.find(w_name) == g_Tensors.end()) {
+        auto w = std::make_shared<CatroidTensor>(std::vector<int>{vocabSize, embDim}, 0.0f, true, w_name);
+        init_xavier(w->data, vocabSize, embDim);
+        g_Tensors[w_name] = w;
+    }
+
+    if (g_Tensors.count(in_n)) {
+        auto X = g_Tensors[in_n];
+        auto W = g_Tensors[w_name];
+
+        int num_tokens = X->total_size;
+        auto Res = std::make_shared<CatroidTensor>(std::vector<int>{num_tokens, embDim}, 0.0f, g_IsTraining, out_n);
+
+        kernel_embedding_forward(W, X, Res);
+        g_Tensors[out_n] = Res;
+
+        if (g_IsTraining) {
+            g_Tape.push_back({"embedding", W, X, Res});
+        }
+    }
+
+    env->ReleaseStringUTFChars(layerName_j, layer_n);
+    env->ReleaseStringUTFChars(input_j, in_n);
+    env->ReleaseStringUTFChars(output_j, out_n);
+}
+JNI_ML(nativeSlice)(JNIEnv *env, jclass, jstring res_j, jstring input_j, jint start_col, jint end_col) {
+    const char* res_n = env->GetStringUTFChars(res_j, nullptr);
+    const char* in_n = env->GetStringUTFChars(input_j, nullptr);
+
+    std::lock_guard<std::mutex> lock(g_MnnMutex);
+    if (g_Tensors.count(in_n)) {
+        auto A = g_Tensors[in_n];
+        int rows = A->shape.size() > 1 ? A->shape[0] : 1;
+        int out_cols = end_col - start_col;
+
+        if (out_cols > 0 && start_col >= 0 && end_col <= A->shape.back()) {
+            bool is_trainable = g_IsTraining && A->trainable;
+            auto R = std::make_shared<CatroidTensor>(std::vector<int>{rows, out_cols}, 0.0f, is_trainable, res_n);
+
+            kernel_slice_forward(A, R, start_col, end_col);
+            g_Tensors[res_n] = R;
+
+            if (g_IsTraining) {
+                OpNode node;
+                node.op_type = "slice";
+                node.input_a = A;
+                node.output = R;
+                node.meta_data = {start_col, end_col};
+                g_Tape.push_back(node);
+            }
+        }
+    }
+    env->ReleaseStringUTFChars(res_j, res_n);
+    env->ReleaseStringUTFChars(input_j, in_n);
+}
+JNI_ML(nativeCreateNormalTensor)(JNIEnv *env, jclass, jstring name_j, jintArray shape_j, jfloat mean, jfloat stddev, jboolean trainable) {
+    const char* name = env->GetStringUTFChars(name_j, nullptr);
+    jint* s_ptr = env->GetIntArrayElements(shape_j, nullptr);
+    int dim = env->GetArrayLength(shape_j);
+    std::vector<int> shape;
+    int total_size = 1;
+    for(int i = 0; i < dim; i++) { shape.push_back(s_ptr[i]); total_size *= s_ptr[i]; }
+
+    auto t = std::make_shared<CatroidTensor>(shape, 0.0f, (bool)trainable, name);
+
+    std::normal_distribution<float> distribution(mean, stddev);
+    for(int i = 0; i < total_size; i++) t->data[i] = distribution(rng);
+
+    std::lock_guard<std::mutex> lock(g_MnnMutex);
+    g_Tensors[name] = t;
+
+    env->ReleaseIntArrayElements(shape_j, s_ptr, 0);
+    env->ReleaseStringUTFChars(name_j, name);
+}
+JNI_ML(nativeZeroGrad)(JNIEnv *env, jclass) {
+    std::lock_guard<std::mutex> lock(g_MnnMutex);
+    for (auto const& [name, t] : g_Tensors) {
+        t->zero_grad();
+    }
+}
+JNI_ML(nativeLayerAttention)(JNIEnv *env, jclass, jstring layerName_j, jstring input_j, jstring output_j, jint embedDim) {
+    const char* layer_n = env->GetStringUTFChars(layerName_j, nullptr);
+    const char* in_n = env->GetStringUTFChars(input_j, nullptr);
+    const char* out_n = env->GetStringUTFChars(output_j, nullptr);
+
+    std::lock_guard<std::mutex> lock(g_MnnMutex);
+    if (g_Tensors.count(in_n)) {
+        exec_layer_attention(layer_n, in_n, out_n, embedDim);
+    }
+
+    env->ReleaseStringUTFChars(layerName_j, layer_n);
+    env->ReleaseStringUTFChars(input_j, in_n);
+    env->ReleaseStringUTFChars(output_j, out_n);
+}
+JNI_ML(nativeClipGrad)(JNIEnv *env, jclass, jfloat max_norm) {
+    std::lock_guard<std::mutex> lock(g_MnnMutex);
+    float total_sum = 0.0f;
+    for (auto const& [name, t] : g_Tensors) {
+        if (!t->trainable) continue;
+        for (float g : t->grad) total_sum += g * g;
+    }
+    float norm = std::sqrt(total_sum);
+    if (norm > max_norm && norm > 1e-6f) {
+        float scale = max_norm / norm;
+        for (auto const& [name, t] : g_Tensors) {
+            if (!t->trainable) continue;
+            for (float &g : t->grad) g *= scale;
+        }
+    }
+}
+JNI_ML(nativeMaxPool2D)(JNIEnv *env, jclass, jstring res_j, jstring input_j, jint poolSize, jint stride) {
+    const char* res_n = env->GetStringUTFChars(res_j, nullptr);
+    const char* in_n = env->GetStringUTFChars(input_j, nullptr);
+
+    std::lock_guard<std::mutex> lock(g_MnnMutex);
+    if (g_Tensors.count(in_n)) {
+        auto A = g_Tensors[in_n];
+        int in_h = A->shape.size() >= 2 ? A->shape[A->shape.size() - 2] : A->shape[0];
+        int in_w = A->shape.back();
+        int channels = A->total_size / (in_h * in_w);
+        if (channels < 1) channels = 1;
+
+        int out_h = (in_h - poolSize) / stride + 1;
+        int out_w = (in_w - poolSize) / stride + 1;
+
+        if (out_h > 0 && out_w > 0) {
+            bool is_trainable = g_IsTraining && A->trainable;
+            auto R = std::make_shared<CatroidTensor>(std::vector<int>{channels, out_h, out_w}, 0.0f, is_trainable, res_n);
+
+            std::vector<int> max_indices;
+            kernel_maxpool2d_forward(A, R, poolSize, stride, max_indices);
+            g_Tensors[res_n] = R;
+
+            if (g_IsTraining) {
+                OpNode node;
+                node.op_type = "maxpool2d";
+                node.input_a = A;
+                node.output = R;
+                node.meta_data = max_indices;
+                g_Tape.push_back(node);
+            }
+        }
+    }
+
+    env->ReleaseStringUTFChars(res_j, res_n);
+    env->ReleaseStringUTFChars(input_j, in_n);
+}
+JNI_ML(nativeStepAdamW)(JNIEnv *env, jclass, jfloat lr, jfloat weightDecay) {
+    std::lock_guard<std::mutex> lock(g_MnnMutex);
+
+    const float beta1 = 0.9f;
+    const float beta2 = 0.999f;
+    const float eps = 1e-8f;
+
+    for (auto const& [name, t] : g_Tensors) {
+        if (!t->trainable) continue;
+
+        if (g_AdamStates.find(name) == g_AdamStates.end()) {
+            g_AdamStates[name].m.assign(t->total_size, 0.0f);
+            g_AdamStates[name].v.assign(t->total_size, 0.0f);
+            g_AdamStates[name].t = 0;
+        }
+
+        AdamState& st = g_AdamStates[name];
+        st.t++;
+
+        float bias_correction1 = 1.0f - std::pow(beta1, st.t);
+        float bias_correction2 = 1.0f - std::pow(beta2, st.t);
+
+        for (int i = 0; i < t->total_size; i++) {
+            t->data[i] -= lr * weightDecay * t->data[i];
+
+            float grad = t->grad[i];
+            if (grad > 5.0f) grad = 5.0f;
+            if (grad < -5.0f) grad = -5.0f;
+
+            st.m[i] = beta1 * st.m[i] + (1.0f - beta1) * grad;
+            st.v[i] = beta2 * st.v[i] + (1.0f - beta2) * grad * grad;
+
+            float m_hat = st.m[i] / bias_correction1;
+            float v_hat = st.v[i] / bias_correction2;
+
+            t->data[i] -= lr * m_hat / (std::sqrt(v_hat) + eps);
+            t->grad[i] = 0.0f;
+        }
+    }
+    g_Tape.clear();
+}
+JNI_ML(nativeLayerLstmCell)(JNIEnv *env, jclass, jstring layerName_j, jstring input_j, jstring hIn_j, jstring cIn_j, jstring hOut_j, jstring cOut_j, jint inDim, jint hiddenDim) {
+    const char* layer_n = env->GetStringUTFChars(layerName_j, nullptr);
+    const char* in_n = env->GetStringUTFChars(input_j, nullptr);
+    const char* hin_n = env->GetStringUTFChars(hIn_j, nullptr);
+    const char* cin_n = env->GetStringUTFChars(cIn_j, nullptr);
+    const char* hout_n = env->GetStringUTFChars(hOut_j, nullptr);
+    const char* cout_n = env->GetStringUTFChars(cOut_j, nullptr);
+
+    std::lock_guard<std::mutex> lock(g_MnnMutex);
+    if (g_Tensors.count(in_n) && g_Tensors.count(hin_n) && g_Tensors.count(cin_n)) {
+        exec_layer_lstm_cell(layer_n, in_n, hin_n, cin_n, hout_n, cout_n, inDim, hiddenDim);
+    }
+
+    env->ReleaseStringUTFChars(layerName_j, layer_n);
+    env->ReleaseStringUTFChars(input_j, in_n);
+    env->ReleaseStringUTFChars(hIn_j, hin_n);
+    env->ReleaseStringUTFChars(cIn_j, cin_n);
+    env->ReleaseStringUTFChars(hOut_j, hout_n);
+    env->ReleaseStringUTFChars(cOut_j, cout_n);
+}
+JNI_ML(nativeLayerGruCell)(JNIEnv *env, jclass, jstring layerName_j, jstring input_j, jstring hIn_j, jstring hOut_j, jint inDim, jint hiddenDim) {
+    const char* layer_n = env->GetStringUTFChars(layerName_j, nullptr);
+    const char* in_n = env->GetStringUTFChars(input_j, nullptr);
+    const char* hin_n = env->GetStringUTFChars(hIn_j, nullptr);
+    const char* hout_n = env->GetStringUTFChars(hOut_j, nullptr);
+
+    std::lock_guard<std::mutex> lock(g_MnnMutex);
+    if (g_Tensors.count(in_n) && g_Tensors.count(hin_n)) {
+        exec_layer_gru_cell(layer_n, in_n, hin_n, hout_n, inDim, hiddenDim);
+    }
+
+    env->ReleaseStringUTFChars(layerName_j, layer_n);
+    env->ReleaseStringUTFChars(input_j, in_n);
+    env->ReleaseStringUTFChars(hIn_j, hin_n);
+    env->ReleaseStringUTFChars(hOut_j, hout_n);
+}
+
+// ===== END PORTED =====  (external refs to check: __android_log_print, assign, back, begin, clear, Concat, copy, dist, distribution, dx, fill, GetArrayLength, GetFloatArrayElements, GetIntArrayElements, GetStringUTFChars, K_T, push_back, ReleaseFloatArrayElements, ReleaseIntArrayElements, ReleaseStringUTFChars, resize, tanh)
 
 }

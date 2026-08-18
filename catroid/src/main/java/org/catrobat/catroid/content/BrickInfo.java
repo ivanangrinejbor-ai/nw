@@ -234,6 +234,8 @@ public final class BrickInfo {
         add(WebRequestBrick.class, "Отправляет GET запрос на сайт и получает результат");
         add(PostWebRequestBrick.class, "Отправляет POST запрос на сайт и получает результат ВАЖНО: не ждет окончания, продолжает выполнять код");
         add(CreateVarBrick.class, "Задает значение переменной ВАЖНО: локальные переменные - тип переменных, который создается по ключу в процессе выполнения. Так же они не очищаются при выходе из проекта (но очищаются при выходе из приложения)");
+        add(SetVariableByNameBrick.class, "Изменяет переменную по имени (имя вводится формулой, не списком). Если переменной нет - создает ее. ВАЖНО: локальные переменные создаются по ключу в процессе выполнения");
+        addEn(SetVariableByNameBrick.class, "Sets a variable by name (name entered as formula, not spinner). Creates the variable if it does not exist. NOTE: local variables are created by key during execution");
         add(CreateTableBrick.class, "Создает таблицу с определенным размером ВАЖНО: таблицы - мощный инструмент. Они работают так же, как и локальные переменные");
         add(ShowToastBrick.class, "Показывает сообщение снизу");
         add(CopyTextBrick.class, "Копирует текст в буфер обмена");
@@ -1671,7 +1673,49 @@ public final class BrickInfo {
         addEn(UnknownBrick.class, "Internal placeholder brick: appears in place of an unknown block when loading a project and does nothing.");
         add(VisualPlacementBrick.class, "Служебный базовый блок: открывает режим визуального размещения спрайта на сцене для задания координат X и Y.");
         addEn(VisualPlacementBrick.class, "Internal base brick: opens the visual placement mode to drag the sprite on the stage and set the X and Y coordinates.");
-    }
+    
+        add(SetTextPropertyBrick.class, "Изменяет указанное свойство текста (позиция, размер, ширина, высота, цвет, поворот, слой, прозрачность, выравнивание, текст, шрифт)");
+        addEn(SetTextPropertyBrick.class, "Changes the specified text property (position, size, width, height, color, rotation, layer, transparency, alignment, text, font)");
+        add(SetPenPropertyBrick.class, "Изменяет указанное свойство пера (слой, прозрачность, режим смешивания, авто-обновление)");
+        addEn(SetPenPropertyBrick.class, "Changes the specified pen property (layer, transparency, blend mode, auto-update)");
+        add(PenDrawLineBrick.class, "Быстро рисует векторную линию прямо на холсте пера");
+        addEn(PenDrawLineBrick.class, "Fast draws a vector line directly on the pen canvas");
+        add(PenDrawTriangleBrick.class, "Рисует треугольник с заливкой или без (идеально для 3D графики)");
+        addEn(PenDrawTriangleBrick.class, "Draws a triangle with or without fill (ideal for 3D graphics)");
+        add(PenClearColorBrick.class, "Очищает холст пера указанным цветом и прозрачностью");
+        addEn(PenClearColorBrick.class, "Clears canvas with specified color and transparency");
+        add(PenFlushBrick.class, "Мгновенно рендерит все нарисованные линии и фигуры на экран");
+        addEn(PenFlushBrick.class, "Instantly renders all drawn lines and shapes to the screen");
+        add(PenDrawRectBrick.class, "Рисует прямоугольник с заливкой или без прямо на холсте пера");
+        addEn(PenDrawRectBrick.class, "Draws a rectangle with or without fill directly on the pen canvas");
+        add(PenDrawCircleBrick.class, "Рисует круг, полукруг, сектор или конус с настройками направления и дуги");
+        addEn(PenDrawCircleBrick.class, "Draws a circle, semicircle, sector, or cone with direction and arc degree settings");
+        add(PtLayerLinearBrick.class, "Линейный слой нейросети: вход, выход, in_features, out_features (Pocketensor).");
+        addEn(PtLayerLinearBrick.class, "Linear layer: input, output, in_features, out_features (Pocketensor).");
+        add(PtZeroGradBrick.class, "Обнуляет градиенты всех тензоров (перед backward).");
+        addEn(PtZeroGradBrick.class, "Zeroes gradients of all tensors (before backward).");
+        add(PtSliceBrick.class, "Срез тензора по столбцам: res = input[:, start:end].");
+        addEn(PtSliceBrick.class, "Slices a tensor by columns: res = input[:, start:end].");
+        add(PtCreateNormalTensorBrick.class, "Создаёт тензор с нормальным распределением (mean, std); trainable включает градиенты.");
+        addEn(PtCreateNormalTensorBrick.class, "Creates a normal-distribution tensor (mean, std); trainable enables gradients.");
+        add(PtEmbeddingBrick.class, "Embedding-слой: токены в векторы (vocab_size, emb_dim).");
+        addEn(PtEmbeddingBrick.class, "Embedding layer: tokens to vectors (vocab_size, emb_dim).");
+        add(PtAttentionBrick.class, "Слой самовнимания с заданной размерностью (embed_dim).");
+        addEn(PtAttentionBrick.class, "Self-attention layer with the given embedding dimension.");
+        add(PtClipGradBrick.class, "Клипирует градиенты по норме (max_norm).");
+        addEn(PtClipGradBrick.class, "Clips gradients by their norm (max_norm).");
+        add(PtConv2DBrick.class, "Свёрточный слой: in_channels, out_channels, kernel_size, stride.");
+        addEn(PtConv2DBrick.class, "Conv2D layer: in_channels, out_channels, kernel_size, stride.");
+        add(PtMaxPool2DBrick.class, "Макс-пулинг с размером окна и шагом.");
+        addEn(PtMaxPool2DBrick.class, "Max-pooling with pool size and stride.");
+        add(PtDropoutBrick.class, "Дропаут с вероятностью p (0..1).");
+        addEn(PtDropoutBrick.class, "Dropout with probability p (0..1).");
+        add(PtLstmCellBrick.class, "LSTM-ячейка: x, h_in/c_in в h_out/c_out, input_size, hidden_size.");
+        addEn(PtLstmCellBrick.class, "LSTM cell: x, h_in/c_in to h_out/c_out, input_size, hidden_size.");
+        add(PtGruCellBrick.class, "GRU-ячейка: x, h_in в h_out, input_size, hidden_size.");
+        addEn(PtGruCellBrick.class, "GRU cell: x, h_in to h_out, input_size, hidden_size.");
+        add(MLStepAdamWBrick.class, "Шаг обучения нейросети оптимизатором AdamW с заданным learning rate и weight decay.");
+        addEn(MLStepAdamWBrick.class, "Performs one training step of the neural network using the AdamW optimizer with the given learning rate and weight decay.");}
 
     private static <T extends Brick> void add(Class<T> brickClass, String description) {
         brickDescriptions.put(brickClass, description);

@@ -1004,6 +1004,28 @@ public final class XstreamSerializer {
         xstream.alias("brick", ListFirebaseFilesBrick.class);
         xstream.alias("brick", DeleteFirebaseFileBrick.class);
 
+        xstream.alias("brick", PenDrawLineBrick.class);
+        xstream.alias("brick", PenDrawCircleBrick.class);
+        xstream.alias("brick", PenDrawRectBrick.class);
+        xstream.alias("brick", PenDrawTriangleBrick.class);
+        xstream.alias("brick", PenClearColorBrick.class);
+        xstream.alias("brick", PenFlushBrick.class);
+        xstream.alias("brick", SetPenPropertyBrick.class);
+        xstream.alias("brick", SetTextPropertyBrick.class);
+        xstream.alias("brick", MLStepAdamWBrick.class);
+        xstream.alias("brick", PtLayerLinearBrick.class);
+        xstream.alias("brick", PtZeroGradBrick.class);
+        xstream.alias("brick", PtSliceBrick.class);
+        xstream.alias("brick", PtCreateNormalTensorBrick.class);
+        xstream.alias("brick", PtEmbeddingBrick.class);
+        xstream.alias("brick", PtAttentionBrick.class);
+        xstream.alias("brick", PtClipGradBrick.class);
+        xstream.alias("brick", PtConv2DBrick.class);
+        xstream.alias("brick", PtMaxPool2DBrick.class);
+        xstream.alias("brick", PtDropoutBrick.class);
+        xstream.alias("brick", PtLstmCellBrick.class);
+        xstream.alias("brick", PtGruCellBrick.class);
+
         for (XStreamSetupListener listener : pluginListeners) {
             listener.onSetup(xstream);
         }

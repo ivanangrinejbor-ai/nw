@@ -13,9 +13,13 @@ class SetRagdollAction : TemporalAction() {
         val sprite = scope?.sprite ?: return
         try {
             val value = enable?.interpretDouble(scope) ?: 0.0
-            sprite.isRagdolled = value != 0.0
+            sprite.ragdollMode = when {
+                value >= 2.0 -> 2
+                value != 0.0 -> 1
+                else -> 0
+            }
         } catch (e: Exception) {
-            sprite.isRagdolled = false
+            sprite.ragdollMode = 0
         }
     }
 }

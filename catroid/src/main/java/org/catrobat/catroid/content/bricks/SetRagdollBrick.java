@@ -11,6 +11,8 @@ import org.catrobat.catroid.formulaeditor.Formula;
  * Parameter (Formula):
  *   1 (or any non-zero) → enable ragdoll
  *   0                   → disable ragdoll
+ *   2                   → ragdoll follow: body is dragged after the target position
+ *                          set by scripts (rope-like), see PhysicsLook ragdoll follow.
  *
  * Category: Motion / Physics
  */

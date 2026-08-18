@@ -121,7 +121,6 @@ public class PhysicsObject {
 		destination.setBounceFactor(this.getBounceFactor());
 		destination.setFriction(this.getFriction());
 		destination.setVelocity(this.getVelocity());
-		destination.setGravityScale(this.getGravityScale());
 		if (this.shapes != null) {
 			destination.setShape(cloneShapes(this.shapes));
 		}

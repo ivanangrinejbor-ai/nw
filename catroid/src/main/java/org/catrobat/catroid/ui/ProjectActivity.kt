@@ -874,9 +874,7 @@ class ProjectActivity : BaseCastActivity() {
         )
         scene.setGlobalScene(true)
         currentProject.setGlobalScene(scene)
-        if (currentFragment is SceneListFragment) {
-            (currentFragment as RecyclerViewFragment<*>).notifyDataSetChanged()
-        }
+        refreshScenesListUi()
         ToastUtil.showSuccess(this, getString(R.string.global_scene_name) + " created")
     }
 
@@ -900,18 +898,27 @@ class ProjectActivity : BaseCastActivity() {
                         currentProject
                     )
                 currentProject.addScene(scene)
-                if (currentFragment is SceneListFragment) {
-                    (currentFragment as RecyclerViewFragment<*>).notifyDataSetChanged()
-                } else {
-                    val intent = Intent(this, ProjectActivity::class.java)
-                    intent.putExtra(EXTRA_FRAGMENT_POSITION, FRAGMENT_SCENES)
-                    startActivity(intent)
-                    finish()
-                }
+                refreshScenesListUi()
             }
         builder.setTitle(R.string.new_scene_dialog)
             .setNegativeButton(R.string.cancel, null)
             .show()
+    }
+
+    private fun refreshScenesListUi() {
+        val workspace = workspaceLayout
+        if (workspace != null && workspace.visibility == View.VISIBLE) {
+            val sceneFragment = supportFragmentManager
+                .findFragmentByTag(SceneListFragment.TAG) as? SceneListFragment
+            sceneFragment?.initializeAdapter()
+            return
+        }
+        val currentFragment = currentFragment
+        if (currentFragment is SceneListFragment) {
+            currentFragment.initializeAdapter()
+        } else {
+            loadFragment(FRAGMENT_SCENES)
+        }
     }
 
     private fun handleAddSpriteButton() {

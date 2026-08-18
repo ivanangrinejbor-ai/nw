@@ -48,6 +48,7 @@ import com.flask.colorpicker.builder.ColorPickerDialogBuilder;
 import org.catrobat.catroid.ProjectManager;
 import org.catrobat.catroid.R;
 import org.catrobat.catroid.raptor.GameObject;
+import org.catrobat.catroid.raptor.ParticleSystem3DComponent;
 import org.catrobat.catroid.raptor.SceneData;
 import org.catrobat.catroid.raptor.SceneManager;
 import org.catrobat.catroid.raptor.ThreeDManager;
@@ -73,6 +74,8 @@ public class EditorActivity extends AppCompatActivity implements AndroidFragment
     private Gizmo gizmo;
 
     private ItemTouchHelper touchHelper;
+    private HierarchyDragCallback hierarchyDragCallback;
+    private boolean uiInitialized = false;
 
     private GameObject currentSelectedObject = null;
     private View quickActions;
@@ -160,7 +163,9 @@ public class EditorActivity extends AppCompatActivity implements AndroidFragment
                 currentSelectedObject = go;
             }
 
-            quickActions.setVisibility(go != null ? View.VISIBLE : View.GONE);
+            if (quickActions != null) {
+                quickActions.setVisibility(go != null ? View.VISIBLE : View.GONE);
+            }
 
             if (go != null && showInspector && drawerLayout != null) {
                 drawerLayout.openDrawer(GravityCompat.END);
@@ -209,6 +214,15 @@ public class EditorActivity extends AppCompatActivity implements AndroidFragment
     }
 
     private void setupUI() {
+        if (uiInitialized) {
+            if (hierarchyDragCallback != null) {
+                hierarchyDragCallback.setSceneManager(sceneManager);
+            }
+            updateHierarchy();
+            return;
+        }
+        uiInitialized = true;
+
         hierarchyRecyclerView = findViewById(R.id.hierarchy_recyclerview);
         DraggableLinearLayoutManager layoutManager = new DraggableLinearLayoutManager(this);
         hierarchyRecyclerView.setLayoutManager(layoutManager);
@@ -220,6 +234,7 @@ public class EditorActivity extends AppCompatActivity implements AndroidFragment
 
         ItemTouchHelper.Callback callback = new HierarchyDragCallback(
                 hierarchyAdapter, sceneManager, this, layoutManager);
+        hierarchyDragCallback = (HierarchyDragCallback) callback;
 
         this.touchHelper = new ItemTouchHelper(callback);
         touchHelper.attachToRecyclerView(hierarchyRecyclerView);
@@ -334,6 +349,30 @@ public class EditorActivity extends AppCompatActivity implements AndroidFragment
             if (currentSelectedObject != null) {
                 drawerLayout.openDrawer(GravityCompat.END);
             }
+        });
+
+        findViewById(R.id.btn_quick_particles).setOnClickListener(v -> {
+            if (currentSelectedObject == null) return;
+            if (currentSelectedObject.hasComponent(ParticleSystem3DComponent.class)) {
+                ParticleEditorActivity.Companion.launch(this, currentSelectedObject.id, false);
+                return;
+            }
+            new AlertDialog.Builder(this, R.style.Theme_NeoCatroid_Dialog)
+                    .setTitle(R.string.component_particle_3d)
+                    .setMessage(R.string.editor_3d_particles_add_prompt)
+                    .setPositiveButton(android.R.string.yes, (dialog, which) -> {
+                        ParticleSystem3DComponent ps3d = new ParticleSystem3DComponent();
+                        currentSelectedObject.addComponent(ps3d);
+                        sceneManager.engine.createParticleProxy(currentSelectedObject.id);
+                        sceneManager.engine.updateParticleEffect3D(currentSelectedObject.id, ps3d,
+                                currentSelectedObject.transform.worldTransform);
+                        if (inspectorManager != null) {
+                            inspectorManager.populateInspector(currentSelectedObject);
+                        }
+                        ParticleEditorActivity.Companion.launch(this, currentSelectedObject.id, false);
+                    })
+                    .setNegativeButton(android.R.string.no, null)
+                    .show();
         });
 
         findViewById(R.id.btn_mass_delete).setOnClickListener(v -> {
@@ -470,8 +509,17 @@ public class EditorActivity extends AppCompatActivity implements AndroidFragment
                 Camera cam = threeDManager.getCamera();
                 Vector3 newPos = cam.position.cpy();
 
-                currentSelectedObject.transform.position.set(newPos);
-                sceneManager.rebuildGameObject(currentSelectedObject);
+                GameObject target = currentSelectedObject;
+                if (undoManager != null) {
+                    undoManager.pushCommand(new Commands.TransformCommand(
+                            sceneManager, target,
+                            target.transform.position.cpy(),
+                            target.transform.rotation.cpy(),
+                            target.transform.scale.cpy()));
+                }
+
+                target.transform.position.set(newPos);
+                sceneManager.rebuildGameObject(target);
 
                 Toast.makeText(this, R.string.editor_3d_moved_to_view, Toast.LENGTH_SHORT).show();
             }
@@ -649,16 +697,6 @@ public class EditorActivity extends AppCompatActivity implements AndroidFragment
         return super.onOptionsItemSelected(item);
     }
 
-    private void cacheCurrentScene() {
-        if (sceneManager != null) {
-            SceneData currentSceneData = sceneManager.getCurrentSceneData();
-            Json json = sceneManager.getJson();
-            String sceneJson = json.toJson(currentSceneData);
-            EditorStateManager.cacheScene(sceneJson);
-            Gdx.app.log("EditorActivity", "Scene JSON cached.");
-        }
-    }
-
     private void showSaveSceneDialog() {
         showSaveSceneDialog(null);
     }
@@ -688,6 +726,8 @@ public class EditorActivity extends AppCompatActivity implements AndroidFragment
     }
 
     private void showSceneSettingsDialog() {
+        if (sceneManager == null) return;
+
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_scene_settings, null);
         Button colorButton = dialogView.findViewById(R.id.btn_sky_color);
         SeekBar ambientSeekBar = dialogView.findViewById(R.id.seekbar_ambient_light);
@@ -706,7 +746,7 @@ public class EditorActivity extends AppCompatActivity implements AndroidFragment
         android.widget.TextView csmHintText = dialogView.findViewById(R.id.text_csm_hint);
 
 
-        String[] resolutions = {"2", "64", "128", "256", "512", "1024", "2048", "4096", "8192", "16384", "32768"};
+        String[] resolutions = {"64", "128", "256", "512", "1024", "2048", "4096", "8192", "16384", "32768"};
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, R.layout.simple_spinner_item_white_text, resolutions);
         adapter.setDropDownViewResource(R.layout.simple_spinner_dropdown_item_white_text);
         shadowResSpinner.setAdapter(adapter);
@@ -1025,7 +1065,22 @@ public class EditorActivity extends AppCompatActivity implements AndroidFragment
 
     @Override
     protected void onPause() {
-        cacheCurrentScene();
+        final SceneManager manager = sceneManager;
+        if (manager != null) {
+            Thread t = new Thread(() -> {
+                try {
+                    SceneData currentSceneData = manager.getCurrentSceneData();
+                    Json json = manager.getJson();
+                    String sceneJson = json.toJson(currentSceneData);
+                    EditorStateManager.cacheScene(sceneJson);
+                    Gdx.app.log("EditorActivity", "Scene JSON cached.");
+                } catch (Exception e) {
+                    Log.e("EditorActivity", "Scene cache failed", e);
+                }
+            });
+            t.setDaemon(true);
+            t.start();
+        }
         super.onPause();
     }
 

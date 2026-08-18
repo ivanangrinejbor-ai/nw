@@ -82,21 +82,27 @@ public class SetRagdollBrickTest {
     // ---- Sprite flag ----
 
     @Test
-    public void testSpriteIsRagdolledDefaultsFalse() {
-        assertFalse("New sprite should not be in ragdoll mode", sprite.isRagdolled);
+    public void testSpriteRagdollModeDefaultsZero() {
+        assertTrue("New sprite should not be in ragdoll mode", sprite.ragdollMode == 0);
     }
 
     @Test
-    public void testSpriteRagdollFlagCanBeSetTrue() {
-        sprite.isRagdolled = true;
-        assertTrue(sprite.isRagdolled);
+    public void testSpriteRagdollModeCanBeSetToRagdoll() {
+        sprite.ragdollMode = 1;
+        assertTrue("Mode 1 = ragdoll", sprite.ragdollMode == 1);
     }
 
     @Test
-    public void testSpriteRagdollFlagCanBeSetFalse() {
-        sprite.isRagdolled = true;
-        sprite.isRagdolled = false;
-        assertFalse(sprite.isRagdolled);
+    public void testSpriteRagdollModeCanBeSetToFollow() {
+        sprite.ragdollMode = 2;
+        assertTrue("Mode 2 = ragdoll follow", sprite.ragdollMode == 2);
+    }
+
+    @Test
+    public void testSpriteRagdollModeCanBeCleared() {
+        sprite.ragdollMode = 1;
+        sprite.ragdollMode = 0;
+        assertTrue("Mode 0 = ragdoll off", sprite.ragdollMode == 0);
     }
 
     // ---- Formula round-trip ----
@@ -127,32 +133,66 @@ public class SetRagdollBrickTest {
     }
 
     @Test
-    public void testActionSetsRagdollFlagTrue() {
+    public void testActionSetsRagdollModeOne() {
         SetRagdollAction action = createAction(1);
 
-        sprite.isRagdolled = false;
+        sprite.ragdollMode = 0;
         action.act(1.0f);
 
-        assertTrue("Non-zero value should enable ragdoll", sprite.isRagdolled);
+        assertTrue("Non-zero value should enable ragdoll", sprite.ragdollMode == 1);
     }
 
     @Test
-    public void testActionSetsRagdollFlagFalse() {
+    public void testActionClearsRagdollMode() {
         SetRagdollAction action = createAction(0);
 
-        sprite.isRagdolled = true;
+        sprite.ragdollMode = 1;
         action.act(1.0f);
 
-        assertFalse("Zero value should disable ragdoll", sprite.isRagdolled);
+        assertTrue("Zero value should disable ragdoll", sprite.ragdollMode == 0);
     }
 
     @Test
     public void testActionAnyNonZeroEnablesRagdoll() {
         SetRagdollAction action = createAction(0.5);
 
-        sprite.isRagdolled = false;
+        sprite.ragdollMode = 0;
         action.act(1.0f);
 
-        assertTrue("Any non-zero value should enable ragdoll", sprite.isRagdolled);
+        assertTrue("Any non-zero value should enable ragdoll", sprite.ragdollMode == 1);
+    }
+
+    @Test
+    public void testActionValueTwoEnablesFollowMode() {
+        SetRagdollAction action = createAction(2);
+
+        sprite.ragdollMode = 0;
+        action.act(1.0f);
+
+        assertTrue("Value 2 should enable ragdoll follow mode", sprite.ragdollMode == 2);
+    }
+
+    @Test
+    public void testActionValueAboveTwoClampsToFollowMode() {
+        SetRagdollAction action = createAction(3);
+
+        sprite.ragdollMode = 0;
+        action.act(1.0f);
+
+        assertTrue("Value >2 should clamp to ragdoll follow mode", sprite.ragdollMode == 2);
+    }
+
+    @Test
+    public void testActionFormulaExceptionClearsMode() {
+        SetRagdollAction action = new SetRagdollAction();
+        action.setEnable(new Formula(Double.NaN));
+        org.catrobat.catroid.content.Scope scope = Mockito.mock(org.catrobat.catroid.content.Scope.class);
+        Mockito.when(scope.getSprite()).thenReturn(sprite);
+        action.setScope(scope);
+
+        sprite.ragdollMode = 2;
+        action.act(1.0f);
+
+        assertTrue("Exception should fall back to ragdoll off", sprite.ragdollMode == 0);
     }
 }

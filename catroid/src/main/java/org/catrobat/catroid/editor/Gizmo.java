@@ -36,6 +36,7 @@ public class Gizmo {
     private ModelInstance gizmoRotateX, gizmoRotateY, gizmoRotateZ;
     private ModelInstance gizmoScaleBoxX, gizmoScaleBoxY, gizmoScaleBoxZ;
     private ModelInstance gizmoScaleLineX, gizmoScaleLineY, gizmoScaleLineZ;
+    private final java.util.List<Model> ownedModels = new java.util.ArrayList<>();
     private final BoundingBox boxX = new BoundingBox(), boxY = new BoundingBox(), boxZ = new BoundingBox();
 
     private EditorTool currentTool = EditorTool.TRANSLATE;
@@ -72,6 +73,7 @@ public class Gizmo {
         Model arrowXModel = modelBuilder.createArrow(0, 0, 0, 1, 0, 0, 0.25f, 0.1f, 10, GL20.GL_TRIANGLES, new Material(ColorAttribute.createDiffuse(Color.RED)), usage);
         Model arrowYModel = modelBuilder.createArrow(0, 0, 0, 0, 1, 0, 0.25f, 0.1f, 10, GL20.GL_TRIANGLES, new Material(ColorAttribute.createDiffuse(Color.GREEN)), usage);
         Model arrowZModel = modelBuilder.createArrow(0, 0, 0, 0, 0, 1, 0.25f, 0.1f, 10, GL20.GL_TRIANGLES, new Material(ColorAttribute.createDiffuse(Color.BLUE)), usage);
+        ownedModels.add(arrowXModel); ownedModels.add(arrowYModel); ownedModels.add(arrowZModel);
         gizmoTranslateX = new ModelInstance(arrowXModel);
         gizmoTranslateY = new ModelInstance(arrowYModel);
         gizmoTranslateZ = new ModelInstance(arrowZModel);
@@ -83,9 +85,11 @@ public class Gizmo {
         gizmoRotateY = new ModelInstance(ringYModel);
 
         Model ringZModel = modelBuilder.createCylinder(2, 0.04f, 2, 32, new Material(ColorAttribute.createDiffuse(Color.BLUE)), usage);
+        ownedModels.add(ringXModel); ownedModels.add(ringYModel); ownedModels.add(ringZModel);
         gizmoRotateZ = new ModelInstance(ringZModel);
 
         Model cubeModel = modelBuilder.createBox(0.2f, 0.2f, 0.2f, new Material(), usage);
+        ownedModels.add(cubeModel);
         gizmoScaleBoxX = new ModelInstance(cubeModel);
         gizmoScaleBoxX.materials.get(0).set(ColorAttribute.createDiffuse(Color.RED));
         gizmoScaleBoxY = new ModelInstance(cubeModel);
@@ -94,6 +98,7 @@ public class Gizmo {
         gizmoScaleBoxZ.materials.get(0).set(ColorAttribute.createDiffuse(Color.BLUE));
 
         Model stickModel = modelBuilder.createCylinder(0.05f, 1f, 0.05f, 8, new Material(ColorAttribute.createDiffuse(Color.WHITE)), usage);
+        ownedModels.add(stickModel);
         gizmoScaleLineX = new ModelInstance(stickModel);
         gizmoScaleLineX.materials.get(0).set(ColorAttribute.createDiffuse(Color.RED));
         gizmoScaleLineY = new ModelInstance(stickModel);
@@ -107,6 +112,21 @@ public class Gizmo {
         this.selectedObject = go;
         this.selectedCollider = null;
         this.selectedKeyframe = null;
+    }
+
+    public void dispose() {
+        if (ownedModels != null) {
+            for (Model model : ownedModels) {
+                if (model != null) {
+                    model.dispose();
+                }
+            }
+            ownedModels.clear();
+        }
+        gizmoTranslateX = null; gizmoTranslateY = null; gizmoTranslateZ = null;
+        gizmoRotateX = null; gizmoRotateY = null; gizmoRotateZ = null;
+        gizmoScaleBoxX = null; gizmoScaleBoxY = null; gizmoScaleBoxZ = null;
+        gizmoScaleLineX = null; gizmoScaleLineY = null; gizmoScaleLineZ = null;
     }
 
     public void setSelected(GameObject go, ColliderShapeData collider) {
@@ -313,7 +333,12 @@ public class Gizmo {
                     float projection = dragVector.dot(axisVector);
                     float scaleAmount = projection * 0.1f;
                     Vector3 scaleVec = axisVector.cpy().scl(scaleAmount);
-                    selectedObject.transform.scale.add(scaleVec);
+                    Vector3 newScale = selectedObject.transform.scale.cpy().add(scaleVec);
+
+                    if (newScale.x < 0.01f) newScale.x = 0.01f;
+                    if (newScale.y < 0.01f) newScale.y = 0.01f;
+                    if (newScale.z < 0.01f) newScale.z = 0.01f;
+                    selectedObject.transform.scale.set(newScale);
                     break;
                 }
                 case ROTATE: {

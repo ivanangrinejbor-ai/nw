@@ -8,6 +8,7 @@ import android.os.Bundle;
 import androidx.core.app.RemoteInput;
 
 import org.catrobat.catroid.content.eventids.EventId;
+import org.catrobat.catroid.content.eventids.NotificationActionEventId;
 import org.catrobat.catroid.content.notification.NotificationStorage;
 import org.catrobat.catroid.notification.AndroidNotificationService;
 import org.catrobat.catroid.notification.NotificationServiceHolder;
@@ -48,6 +49,9 @@ public class NotificationEventReceiver extends BroadcastReceiver {
                 eventId = EventId.NOTIFICATION_REPLY_SENT;
             }
             broadcastEvent(eventId);
+            if (actionId != null && !actionId.isEmpty()) {
+                broadcastEvent(new NotificationActionEventId(actionId));
+            }
         } else if ("NOTIFICATION_SHOWN".equals(action)) {
             broadcastEvent(EventId.NOTIFICATION_SHOWN);
         } else if ("NOTIFICATION_DISMISSED".equals(action)) {
@@ -70,6 +74,13 @@ public class NotificationEventReceiver extends BroadcastReceiver {
         StageActivity stage = StageActivity.activeStageActivity.get();
         if (stage != null) {
             stage.broadcastEventToAllSprites(new EventId(eventId));
+        }
+    }
+
+    public void broadcastEvent(EventId eventId) {
+        StageActivity stage = StageActivity.activeStageActivity.get();
+        if (stage != null) {
+            stage.broadcastEventToAllSprites(eventId);
         }
     }
 }

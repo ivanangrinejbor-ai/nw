@@ -433,6 +433,14 @@ case R.string.formula_editor_function_state_time:
                 return buildDoubleParameterFunction(Functions.FILE_SIZE_AT_PATH, STRING, "save.dat", STRING, "Downloads/Save");
             case R.string.formula_file_read_string:
                 return buildDoubleParameterFunction(Functions.FILE_READ_STRING, STRING, "lines.txt", STRING, "file.txt");
+            case R.string.formula_read_file:
+                return buildSingleParameterFunction(Functions.READ_FILE, STRING, "data.txt");
+            case R.string.formula_file_to_base64:
+                return buildSingleParameterFunction(Functions.FILE_TO_BASE64, STRING, "image.png");
+            case R.string.formula_md5:
+                return buildSingleParameterFunction(Functions.MD5, STRING, "text");
+            case R.string.formula_notification_reply:
+                return buildSingleParameterFunction(Functions.NOTIFICATION_REPLY, STRING, "my_action_id");
             case R.string.formula_device_name:
                 return buildFunctionWithoutParametersAndBrackets(Functions.DEVICE_NAME);
             case R.string.formula_device_manufacturer:
