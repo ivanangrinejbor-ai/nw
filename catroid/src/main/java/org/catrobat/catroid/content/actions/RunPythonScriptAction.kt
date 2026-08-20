@@ -29,7 +29,7 @@ class RunPythonScriptAction : Action() {
         }
 
         val pythonEngine = MainMenuActivity.pythonEngine
-        if (pythonEngine == null) {
+        if (pythonEngine == null || !pythonEngine.isAvailable()) {
             Log.e("RunPythonScript", "PythonEngine not available.")
             finished = true
             return true

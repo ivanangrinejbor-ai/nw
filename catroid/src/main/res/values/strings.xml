@@ -1884,6 +1884,8 @@
 <string formatted="false" name="brick_connect_server3">and port</string>
 <string formatted="false" name="brick_connect_server">Connect to TCP server</string>
 <string formatted="false" name="brick_stop_server">Stop TCP server</string>
+  <string formatted="false" name="brick_disconnect_server">Disconnect from TCP server</string>
+  <string formatted="false" name="brick_clear_server_messages">Clear last message</string>
 <string formatted="false" name="brick_start_server">Start TCP server with port</string>
 <string formatted="false" name="brick_get_from_pastebin">Get from Pastebin</string>
 <string formatted="false" name="brick_check_port">Check port</string>

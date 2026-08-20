@@ -2750,6 +2750,20 @@ public class ActionFactory extends Actions {
 		return action;
 	}
 
+	public Action createDisconnectServerAction(Sprite sprite, SequenceAction sequence) {
+		DisconnectServerAction action = action(DisconnectServerAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		return action;
+	}
+
+	public Action createClearServerMessagesAction(Sprite sprite, SequenceAction sequence) {
+		ClearServerMessagesAction action = action(ClearServerMessagesAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		return action;
+	}
+
 	public Action createListenServerAction(Sprite sprite, SequenceAction sequence,
 										  UserVariable variable) {
 		ListenServerAction action = action(ListenServerAction.class);

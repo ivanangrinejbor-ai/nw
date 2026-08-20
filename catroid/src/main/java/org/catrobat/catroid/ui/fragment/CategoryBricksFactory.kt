@@ -640,6 +640,8 @@ import org.catrobat.catroid.content.bricks.SortListBrick
 import org.catrobat.catroid.content.bricks.StopScriptBrick
 import org.catrobat.catroid.content.bricks.SumOfListBrick
 import org.catrobat.catroid.content.bricks.StopServerBrick
+import org.catrobat.catroid.content.bricks.DisconnectServerBrick
+import org.catrobat.catroid.content.bricks.ClearServerMessagesBrick
 import org.catrobat.catroid.content.bricks.GetFromPastebinBrick
 import org.catrobat.catroid.content.bricks.CheckPortBrick
 import org.catrobat.catroid.content.bricks.SetTcpServerClientLimitBrick
@@ -2212,10 +2214,11 @@ eventBrickList.add(WhenConditionBrick(WhenConditionScript(Formula(defaultIf))))
                 deviceBrickList.add(RunJSBrick("1 + 2"))
                 deviceBrickList.add(RunLuaBrick("return 'Привет из Lua!'"))
                 deviceBrickList.add(LunoScriptBrick("MakeToast(\"Hey from Luno! :)\");"))
-                deviceBrickList.add(ClearPythonEnvironmentBrick())
-                deviceBrickList.add(LoadNativeModuleBrick("libz.so"))
-                deviceBrickList.add(LoadPythonLibraryBrick("telebot.whl"))
-                deviceBrickList.add(RunPythonScriptBrick("""import telebot
+                if (BuildConfig.FEATURE_PYQEMU_BRICKS_ENABLED) {
+                    deviceBrickList.add(ClearPythonEnvironmentBrick())
+                    deviceBrickList.add(LoadNativeModuleBrick("libz.so"))
+                    deviceBrickList.add(LoadPythonLibraryBrick("telebot.whl"))
+                    deviceBrickList.add(RunPythonScriptBrick("""import telebot
 
 API_TOKEN = 'YOUR_API_TOKEN' #Telegram Bot API
 
@@ -2232,7 +2235,8 @@ def send_hello(message):
 print("Bot is starting...")
 bot.polling()
 print("Bot has stopped.")""", "myVar"))
-                deviceBrickList.add(RunShellBrick("pip install --file pyTelegramBotApi"))
+                    deviceBrickList.add(RunShellBrick("pip install --file pyTelegramBotApi"))
+                }
                 deviceBrickList.add(OpenFileBrick("fileFromUrl.txt"))
                 deviceBrickList.add(MoveFilesBrick("variable.txt"))
                 deviceBrickList.add(MoveDownloadsBrick("variable.txt"))
@@ -2269,21 +2273,25 @@ print("Bot has stopped.")""", "myVar"))
                 deviceBrickList.add(CreateGLViewBrick("glView", 100, 200, 500, 300))
                 deviceBrickList.add(SetViewPositionBrick("myVideoPlayer", 100, 200))
                 deviceBrickList.add(DeleteWebBrick("myWebView"))
-                deviceBrickList.add(BindVmOutputBrick())
-                deviceBrickList.add(RunVm2Brick("-kernel \"%PROJECT_FILES%/bzImage\" -initrd \"%PROJECT_FILES%/core.gz\" -append \"console=ttyS0 quiet\""))
-                deviceBrickList.add(RunVMBrick("1024", "2", "myDisk.qcow2", "flash.iso"))
-                deviceBrickList.add(CreateDiskBrick("myDisk.qcow2", "10G"))
+                if (BuildConfig.FEATURE_PYQEMU_BRICKS_ENABLED) {
+                    deviceBrickList.add(BindVmOutputBrick())
+                    deviceBrickList.add(RunVm2Brick("-kernel \"%PROJECT_FILES%/bzImage\" -initrd \"%PROJECT_FILES%/core.gz\" -append \"console=ttyS0 quiet\""))
+                    deviceBrickList.add(RunVMBrick("1024", "2", "myDisk.qcow2", "flash.iso"))
+                    deviceBrickList.add(CreateDiskBrick("myDisk.qcow2", "10G"))
+                }
                 deviceBrickList.add(Create2dJoystickBrick(100.0, 100.0, "joystick_bg.png", "joystick_thumb.png", 5.0))
                 deviceBrickList.add(Create2dJumpButtonBrick(300.0, 100.0, "jump_active.png", "jump_inactive.png", 25.0))
                 deviceBrickList.add(Create3dJoystickBrick("myObject", 100.0, 100.0, "joystick_bg.png", "joystick_thumb.png", 0.5))
                 deviceBrickList.add(Create3dJumpButtonBrick("myObject", 300.0, 100.0, "jump_active.png", "jump_inactive.png", 2.0))
-                deviceBrickList.add(ToggleDisplayBrick(1))
-                deviceBrickList.add(VmSetMonitorSizeBrick(1000, 800))
-                deviceBrickList.add(MouseEventBrick("0", "100", 1))
-                deviceBrickList.add(VmRelativeMouseMoveBrick(0, 100, 1))
-                deviceBrickList.add(KeyEventBrick("a", 1))
-                deviceBrickList.add(SendVmInputBrick("ls ~/"))
-                deviceBrickList.add(StopVMBrick())
+                if (BuildConfig.FEATURE_PYQEMU_BRICKS_ENABLED) {
+                    deviceBrickList.add(ToggleDisplayBrick(1))
+                    deviceBrickList.add(VmSetMonitorSizeBrick(1000, 800))
+                    deviceBrickList.add(MouseEventBrick("0", "100", 1))
+                    deviceBrickList.add(VmRelativeMouseMoveBrick(0, 100, 1))
+                    deviceBrickList.add(KeyEventBrick("a", 1))
+                    deviceBrickList.add(SendVmInputBrick("ls ~/"))
+                    deviceBrickList.add(StopVMBrick())
+                }
                 deviceBrickList.add(RunChip8Brick("tetris.ch8"))
                 deviceBrickList.add(ScreenShotBrick())
                 deviceBrickList.add(ResetTimerBrick())
@@ -2393,7 +2401,8 @@ void main() {
         deviceBrickList.add(RunJSBrick("1 + 2"))
         deviceBrickList.add(RunLuaBrick("return 'Привет из Lua!'"))
         deviceBrickList.add(LunoScriptBrick("MakeToast(\"Hey from Luno! :)\");"))
-        deviceBrickList.add(RunPythonScriptBrick("""import telebot
+        if (BuildConfig.FEATURE_PYQEMU_BRICKS_ENABLED) {
+            deviceBrickList.add(RunPythonScriptBrick("""import telebot
 API_TOKEN = 'YOUR_API_TOKEN' #Telegram Bot API
 bot = telebot.TeleBot(API_TOKEN)
 @bot.message_handler(commands=['start'])
@@ -2401,23 +2410,26 @@ def send_welcome(message):
     bot.reply_to(message, "Welcome! I am a simple test bot.")
 print("Bot is starting...")
 bot.polling()""", "myVar"))
-        deviceBrickList.add(LoadNativeModuleBrick("libz.so"))
-        deviceBrickList.add(LoadPythonLibraryBrick("telebot.whl"))
-        deviceBrickList.add(ClearPythonEnvironmentBrick())
-        deviceBrickList.add(RunShellBrick("pip install --file pyTelegramBotApi"))
+            deviceBrickList.add(LoadNativeModuleBrick("libz.so"))
+            deviceBrickList.add(LoadPythonLibraryBrick("telebot.whl"))
+            deviceBrickList.add(ClearPythonEnvironmentBrick())
+            deviceBrickList.add(RunShellBrick("pip install --file pyTelegramBotApi"))
+        }
 
-        deviceBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_device_vm), template))
-        deviceBrickList.add(RunVMBrick("1024", "2", "myDisk.qcow2", "flash.iso"))
-        deviceBrickList.add(RunVm2Brick("-kernel \"%PROJECT_FILES%/bzImage\" -initrd \"%PROJECT_FILES%/core.gz\" -append \"console=ttyS0 quiet\""))
-        deviceBrickList.add(StopVMBrick())
-        deviceBrickList.add(CreateDiskBrick("myDisk.qcow2", "10G"))
-        deviceBrickList.add(ToggleDisplayBrick(1))
-        deviceBrickList.add(VmSetMonitorSizeBrick(1000, 800))
-        deviceBrickList.add(MouseEventBrick("0", "100", 1))
-        deviceBrickList.add(VmRelativeMouseMoveBrick(0, 100, 1))
-        deviceBrickList.add(KeyEventBrick("a", 1))
-        deviceBrickList.add(SendVmInputBrick("ls ~/"))
-        deviceBrickList.add(BindVmOutputBrick())
+        if (BuildConfig.FEATURE_PYQEMU_BRICKS_ENABLED) {
+            deviceBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_device_vm), template))
+            deviceBrickList.add(RunVMBrick("1024", "2", "myDisk.qcow2", "flash.iso"))
+            deviceBrickList.add(RunVm2Brick("-kernel \"%PROJECT_FILES%/bzImage\" -initrd \"%PROJECT_FILES%/core.gz\" -append \"console=ttyS0 quiet\""))
+            deviceBrickList.add(StopVMBrick())
+            deviceBrickList.add(CreateDiskBrick("myDisk.qcow2", "10G"))
+            deviceBrickList.add(ToggleDisplayBrick(1))
+            deviceBrickList.add(VmSetMonitorSizeBrick(1000, 800))
+            deviceBrickList.add(MouseEventBrick("0", "100", 1))
+            deviceBrickList.add(VmRelativeMouseMoveBrick(0, 100, 1))
+            deviceBrickList.add(KeyEventBrick("a", 1))
+            deviceBrickList.add(SendVmInputBrick("ls ~/"))
+            deviceBrickList.add(BindVmOutputBrick())
+        }
         deviceBrickList.add(RunChip8Brick("tetris.ch8"))
 
         deviceBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_device_views), template))
@@ -2911,10 +2923,12 @@ void main() {
         fileBrickList.add(UploadFileBrick(Formula("https://"), Formula("file.txt"), 0, Formula("application/"), 0))
 
         fileBrickList.add(CreateVideoBrick("myVideoPlayer", "video.mp4", 0, 0, 750, 500, 1, 0))
-        fileBrickList.add(LoadNativeModuleBrick("libz.so"))
-        fileBrickList.add(LoadPythonLibraryBrick("telebot.whl"))
-        fileBrickList.add(RunVm2Brick("-kernel \"%PROJECT_FILES%/bzImage\" -initrd \"%PROJECT_FILES%/core.gz\" -append \"console=ttyS0 quiet\""))
-        fileBrickList.add(RunVMBrick("1024", "2", "myDisk.qcow2", "flash.iso"))
+        if (BuildConfig.FEATURE_PYQEMU_BRICKS_ENABLED) {
+            fileBrickList.add(LoadNativeModuleBrick("libz.so"))
+            fileBrickList.add(LoadPythonLibraryBrick("telebot.whl"))
+            fileBrickList.add(RunVm2Brick("-kernel \"%PROJECT_FILES%/bzImage\" -initrd \"%PROJECT_FILES%/core.gz\" -append \"console=ttyS0 quiet\""))
+            fileBrickList.add(RunVMBrick("1024", "2", "myDisk.qcow2", "flash.iso"))
+        }
 
         fileBrickList.add(GenerateKeyBrick("keystore.jks", "123456", "alias", "KEBAB_337"))
         fileBrickList.add(SignApkBrick("input.apk", "output.apk", "keystore.jks", "123456", "alias"))
@@ -3258,6 +3272,8 @@ void main() {
         internetBrickList.add(ListenServerBrick())
         internetBrickList.add(SendServerBrick("Hi"))
         internetBrickList.add(StopServerBrick())
+        internetBrickList.add(DisconnectServerBrick())
+        internetBrickList.add(ClearServerMessagesBrick())
         internetBrickList.add(GetFromPastebinBrick("https://pastebin.com/raw/..."))
         internetBrickList.add(CheckPortBrick("8888"))
         internetBrickList.add(SetTcpServerClientLimitBrick(10))

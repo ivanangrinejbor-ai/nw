@@ -48,6 +48,8 @@ class PythonEngine(private val context: Context) {
 
     var isInitialized = false
 
+    fun isAvailable(): Boolean = isSupportedArchitecture
+
     private external fun nativeInitPython(modulePaths: Array<String>)
     private external fun nativeRunScript(script: String): String
     private external fun nativeFinalizePython()

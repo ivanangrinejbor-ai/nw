@@ -254,9 +254,13 @@ class BrickSearchFragment : ListFragment() {
             val escapedParts = parts.map { Regex.escape(it) }
             val regexQuery = ".*" + escapedParts.joinToString(".*") + ".*"
             val pattern = regexQuery.toRegex()
-            val brickView = brick.getView(ctx)
-            if (pattern.containsMatchIn(findBrickString(brickView)) && !searchResultContains(brick)) {
-                searchResults.add(brick)
+            try {
+                val brickView = brick.getView(ctx)
+                if (pattern.containsMatchIn(findBrickString(brickView)) && !searchResultContains(brick)) {
+                    searchResults.add(brick)
+                }
+            } catch (t: Throwable) {
+                android.util.Log.w("BrickSearch", "Skipping brick " + brick.javaClass.simpleName + ": " + t)
             }
         }
     }
@@ -286,7 +290,8 @@ class BrickSearchFragment : ListFragment() {
             onlyBeginnerBricks() -> CategoryBeginnerBricksFactory()
             else -> CategoryBricksFactory()
         }
-        val backgroundSprite = ProjectManager.getInstance().currentlyEditedScene.backgroundSprite
+        val editedScene = ProjectManager.getInstance().currentlyEditedScene ?: return
+        val backgroundSprite = editedScene.backgroundSprite
         val sprite = ProjectManager.getInstance().currentSprite
         recentlyUsedBricks.addAll(categoryBricksFactory.getBricks(requireContext().getString(R.string.category_recently_used), backgroundSprite.equals(sprite), requireContext()))
     }

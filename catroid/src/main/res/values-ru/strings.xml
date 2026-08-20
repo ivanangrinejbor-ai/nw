@@ -2238,6 +2238,8 @@
     <string formatted="false" name="brick_connect_server3">и портом</string>
     <string formatted="false" name="brick_connect_server">Подключиться к TCP серверу</string>
     <string formatted="false" name="brick_stop_server">Остановить TCP сервер</string>
+    <string formatted="false" name="brick_disconnect_server">Отключиться от TCP сервера</string>
+    <string formatted="false" name="brick_clear_server_messages">Очистить последнее сообщение</string>
     <string formatted="false" name="brick_start_server">Запустить TCP сервер с портом</string>
     <string formatted="false" name="brick_get_from_pastebin">Получить из Pastebin</string>
     <string formatted="false" name="brick_check_port">Проверить порт</string>
@@ -6329,23 +6331,23 @@ Catrobat — это визуальный язык программировани
 
     <!-- ===== Pen/Text property spinners (2026-08) ===== -->
     <string-array name="brick_pen_properties">
-        <item>╨б╨╗╨╛╨╣ (Z-Index)</item>
-        <item>╨Я╤А╨╛╨╖╤А╨░╤З╨╜╨╛╤Б╤В╤М (%)</item>
-        <item>╨а╨╡╨╢╨╕╨╝ ╤Б╨╝╨╡╤И╨╕╨▓╨░╨╜╨╕╤П (0-╨Ю╨▒╤Л╤З, 1-╨б╨▓╨╡╤З╨╡╨╜╨╕╨╡, 2-╨Ы╨░╤Б╤В╨╕╨║)</item>
-        <item>╨Р╨▓╤В╨╛-╨╛╨▒╨╜╨╛╨▓╨╗╨╡╨╜╨╕╨╡ (0-╨Т╤Л╨║╨╗, 1-╨Т╨║╨╗)</item>
+        <item>Слой (Z-Index)</item>
+        <item>Прозрачность (%)</item>
+        <item>Режим смешивания (0-Обыч, 1-Свечение, 2-Ластик)</item>
+        <item>Авто-обновление (0-Выкл, 1-Вкл)</item>
     </string-array>
     <string-array name="brick_text_properties">
-        <item>╨Я╨╛╨╖╨╕╤Ж╨╕╤П X</item>
-        <item>╨Я╨╛╨╖╨╕╤Ж╨╕╤П Y</item>
-        <item>╨а╨░╨╖╨╝╨╡╤А (%)</item>
-        <item>╨и╨╕╤А╨╕╨╜╨░ (%)</item>
-        <item>╨Т╤Л╤Б╨╛╤В╨░ (%)</item>
-        <item>╨ж╨▓╨╡╤В (#HEX)</item>
-        <item>╨Я╨╛╨▓╨╛╤А╨╛╤В</item>
-        <item>╨б╨╗╨╛╨╣</item>
-        <item>╨Я╤А╨╛╨╖╤А╨░╤З╨╜╨╛╤Б╤В╤М (%)</item>
-        <item>╨Т╤Л╤А╨░╨▓╨╜╨╕╨▓╨░╨╜╨╕╨╡ (0-2)</item>
-        <item>╨в╨╡╨║╤Б╤В</item>
-        <item>╨д╨░╨╣╨╗ ╤И╤А╨╕╤Д╤В╨░</item>
+        <item>Позиция X</item>
+        <item>Позиция Y</item>
+        <item>Размер (%)</item>
+        <item>Ширина (%)</item>
+        <item>Высота (%)</item>
+        <item>Цвет (#HEX)</item>
+        <item>Поворот</item>
+        <item>Слой</item>
+        <item>Прозрачность (%)</item>
+        <item>Выравнивание (0-2)</item>
+        <item>Текст</item>
+        <item>Файл шрифта</item>
     </string-array>
 </resources>

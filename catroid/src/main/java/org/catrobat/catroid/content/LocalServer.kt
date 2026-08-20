@@ -18,6 +18,7 @@ class LocalServer private constructor() {
         @Volatile private var connectedPort: String? = null
         @Volatile private var connectedIP: String? = null
         @Volatile private var isRunning = false
+        @Volatile private var clientSocket: Socket? = null
 
         private val recentMessages = ArrayDeque<String>()
 
@@ -115,6 +116,7 @@ class LocalServer private constructor() {
             connectedIP = ip
             connectedPort = port
             addClient(socket)
+            clientSocket = socket
             setupConnection(socket)
         }
 
@@ -151,6 +153,10 @@ class LocalServer private constructor() {
                         if (message == null) {
                             Log.d("LocalServer", "Соединение разорвано удаленной стороной.")
                             break
+                        }
+                        if (message == "nil") {
+                            clearRecentMessages()
+                            continue
                         }
                         synchronized(recentMessages) {
                             recentMessages.addLast(message)
@@ -268,6 +274,7 @@ class LocalServer private constructor() {
                 serverJob = null
                 connectedIP = null
                 connectedPort = null
+                clientSocket = null
             }
         }
 
@@ -275,6 +282,27 @@ class LocalServer private constructor() {
             synchronized(recentMessages) {
                 return recentMessages.lastOrNull() ?: ""
             }
+        }
+
+        fun clearRecentMessages() {
+            synchronized(recentMessages) {
+                recentMessages.clear()
+            }
+        }
+
+        fun disconnectFromServer() {
+            val socket = clientSocket
+            if (socket == null) {
+                return
+            }
+            clientSocket = null
+            try {
+                socket.getOutputStream().write("nil\n".toByteArray(Charsets.UTF_8))
+                socket.getOutputStream().flush()
+            } catch (e: IOException) {
+                Log.w("LocalServer", "Ошибка при отправке nil: ${e.message}")
+            }
+            removeClient(socket)
         }
 
         fun getMessages(): List<String> {

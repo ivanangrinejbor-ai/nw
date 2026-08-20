@@ -211,6 +211,7 @@ android {
         buildConfigField "boolean", "FEATURE_CATBLOCKS_ENABLED", "true"
         buildConfigField "boolean", "FEATURE_CATBLOCKS_DEBUGABLE", "false"
         buildConfigField "boolean", "FEATURE_AI_ASSIST_ENABLED", "false"
+        buildConfigField "boolean", "FEATURE_PYQEMU_BRICKS_ENABLED", "true"
         resValue "string", "FEATURE_EMBROIDERY_PREFERENCES_ENABLED", "true"
         resValue "string", "FEATURE_PHIRO_PREFERENCES_ENABLED", "true"
         resValue "string", "FEATURE_MINDSTORMS_PREFERENCES_ENABLED", "true"
@@ -447,6 +448,9 @@ android {
             applicationIdSuffix '.chat'
             versionNameSuffix '-chat'
 
+            // Python/QEMU блоки скрываются из палитры редактора
+            buildConfigField "boolean", "FEATURE_PYQEMU_BRICKS_ENABLED", "false"
+
             ndk {
                 abiFilters 'arm64-v8a'
             }
@@ -552,7 +556,7 @@ android.applicationVariants.all { variant ->
         }
     }
 
-    // Флейвор 'chat': убираем QEMU и лишние ABI — только arm64-v8a
+    // Флейвор 'chat': убираем QEMU, Python и лишние ABI — только arm64-v8a
     if (variant.flavorName == 'chat') {
         def mergeAssetsTask = tasks.findByName("merge${variant.name.capitalize()}Assets")
         if (mergeAssetsTask != null) {
@@ -561,6 +565,8 @@ android.applicationVariants.all { variant ->
                 delete(fileTree(mergeAssetsTask.outputDir) {
                     include '**/qemu_x86_64/**'
                     include '**/qemu_arm64/**'
+                    include '**/python3.12/**'
+                    include '**/default_pylibs/**'
                 })
             }
         }
@@ -572,6 +578,13 @@ android.applicationVariants.all { variant ->
                     include 'lib/armeabi-v7a/**'
                     include 'lib/x86/**'
                     include 'lib/x86_64/**'
+                    // Python: libcatroid.so линкуется против libpython3.12.so, поэтому
+                    // при удалении python-библиотек CORE-фича деградирует (no-op), а не падает
+                    include '**/libpython3.12.so'
+                    include '**/libopenblas.so'
+                    include '**/libcrypto.so'
+                    include '**/libssl.so'
+                    include '**/libexpat.so'
                 })
             }
         }
