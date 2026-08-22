@@ -103,6 +103,13 @@ class BrickAdapter(val sprite: Sprite) :
 
     private var useIndentationCached: Boolean? = null
 
+    private var dataVersion = 0L
+
+    fun refreshBrickViews() {
+        dataVersion++
+        notifyDataSetChanged()
+    }
+
     init {
         updateItems(sprite)
     }
@@ -239,7 +246,9 @@ class BrickAdapter(val sprite: Sprite) :
         val depth = if (useIndentation) getBrickDepth(item) else 0
 
         val itemView: View =
-            if (convertView != null && convertView.tag === item && convertView !is IndentedBrickLayout && depth <= 0) {
+            if (convertView != null && convertView.tag === item
+                && convertView.getTag(R.id.brick_view_data_version) as? Long == dataVersion
+                && convertView !is IndentedBrickLayout && depth <= 0) {
                 convertView
             } else try {
                 item.getView(parent.context)
@@ -247,6 +256,7 @@ class BrickAdapter(val sprite: Sprite) :
                 Log.e("BrickAdapter", "Failed to render ${item.javaClass.name}", e)
                 createUnknownView(item.javaClass.name, parent)
             }
+        itemView.setTag(R.id.brick_view_data_version, dataVersion)
 
         clearHighlights(itemView as ViewGroup)
 

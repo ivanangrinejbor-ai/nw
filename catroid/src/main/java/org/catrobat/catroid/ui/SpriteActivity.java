@@ -1098,8 +1098,7 @@ public class SpriteActivity extends BaseActivity {
 					}
 
 					if (getCurrentFragment() instanceof DataListFragment) {
-						((DataListFragment) getCurrentFragment()).notifyDataSetChanged();
-						((DataListFragment) getCurrentFragment()).indexAndSort();
+						((DataListFragment) getCurrentFragment()).initializeAdapter();
 					}
 				});
 

@@ -225,7 +225,7 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
                 factJob.cancel()
 
                 val elapsedTime = System.currentTimeMillis() - startTime
-                val remainingTime = 2500 - elapsedTime
+                val remainingTime = 1200 - elapsedTime
                 if (remainingTime > 0) {
                     kotlinx.coroutines.delay(remainingTime)
                 }
@@ -258,7 +258,7 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
                     waveView.flatline(350) {
                         performExitTransition()
                     }
-                    kotlinx.coroutines.delay(2000)
+                    kotlinx.coroutines.delay(1200)
                     performExitTransition()
                 } else {
                     performExitTransition()
@@ -282,7 +282,6 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
 
     private fun heavyInitialization() {
         NativeLibraryManager.initialize()
-        Thread.sleep(3000)
         PreferenceManager.setDefaultValues(this, R.xml.preferences, true)
         PreferenceManager.setDefaultValues(this, R.xml.nxt_preferences, true)
         PreferenceManager.setDefaultValues(this, R.xml.ev3_preferences, true)
@@ -423,7 +422,7 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
                 if (currentProject != null) {
                     StageActivity.handlePlayButton(projectManager, this)
                 } else {
-                    Toast.makeText(this, "Нет активного проекта для запуска", Toast.LENGTH_SHORT).show()
+                    ToastUtil.showError(this, R.string.error_no_project_loaded)
                 }
                 return true
             }

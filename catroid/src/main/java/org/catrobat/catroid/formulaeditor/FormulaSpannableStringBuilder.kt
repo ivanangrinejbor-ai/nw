@@ -53,7 +53,7 @@ object FormulaSpannableStringBuilder {
     }
 
     private fun isColorString(colorString: String): Boolean =
-        colorString.matches(Regex("^'#.{6}'$"))
+        colorString.matches(Regex("^'#[0-9A-Fa-f]{6,8}'$"))
 
     private fun addColoredSquareToColorString(
         context: Context,

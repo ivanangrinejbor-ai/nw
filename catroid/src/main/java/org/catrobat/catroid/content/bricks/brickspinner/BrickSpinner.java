@@ -83,7 +83,23 @@ public class BrickSpinner<T extends Nameable> implements AdapterView.OnItemSelec
 			return;
 		}
 
-		if (item.getClass().equals(NewOption.class) || item.getClass().equals(EditOption.class)) {
+		if (item.getClass().equals(NewOption.class)) {
+			spinner.setOnItemSelectedListener(null);
+			int prevPos = previousItem != null ? adapter.getPosition(previousItem) : 0;
+			if (prevPos == -1) prevPos = 0;
+			spinner.setSelection(prevPos);
+			spinner.setOnItemSelectedListener(this);
+			onItemSelectedListener.onNewOptionSelected(spinnerid);
+			return;
+		}
+
+		if (item.getClass().equals(EditOption.class)) {
+			spinner.setOnItemSelectedListener(null);
+			int prevPos = previousItem != null ? adapter.getPosition(previousItem) : 0;
+			if (prevPos == -1) prevPos = 0;
+			spinner.setSelection(prevPos);
+			spinner.setOnItemSelectedListener(this);
+			onItemSelectedListener.onEditOptionSelected(spinnerid);
 			return;
 		}
 
@@ -229,20 +245,9 @@ public class BrickSpinner<T extends Nameable> implements AdapterView.OnItemSelec
 			}
 
 			final Nameable item = getItem(position);
-			((TextView) convertView).setText(item.getName());
-			convertView.setOnTouchListener(new View.OnTouchListener() {
-				@Override
-				public boolean onTouch(View view, MotionEvent event) {
-					if (event.getActionIndex() == MotionEvent.ACTION_DOWN) {
-						if (item.getClass().equals(NewOption.class)) {
-							onItemSelectedListener.onNewOptionSelected(spinnerid);
-						} else if (item.getClass().equals(EditOption.class)) {
-							onItemSelectedListener.onEditOptionSelected(spinnerid);
-						}
-					}
-					return false;
-				}
-			});
+			if (item != null) {
+				((TextView) convertView).setText(item.getName());
+			}
 			return convertView;
 		}
 

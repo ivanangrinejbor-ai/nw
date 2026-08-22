@@ -32,6 +32,7 @@ class AiAgentSettingsFragment : PreferenceFragment() {
         setupClearMemory()
         setupToolHistory()
         setupTemperature()
+        setupReasoningLevel()
         setupMaxContext()
         setupMaxToolCalls()
     }
@@ -127,6 +128,17 @@ class AiAgentSettingsFragment : PreferenceFragment() {
                 }
                 true
             }
+    }
+
+    private fun setupReasoningLevel() {
+        val pref = findPreference("ai_agent_reasoning_level") as? android.preference.ListPreference ?: return
+        pref.value = AiPreferences.getReasoningLevel()
+        pref.setOnPreferenceChangeListener { _, newValue ->
+            val level = newValue as? String ?: return@setOnPreferenceChangeListener true
+            AiPreferences.setReasoningLevel(level)
+            pref.value = level
+            true
+        }
     }
 
     private fun setupTemperature() {

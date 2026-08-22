@@ -1397,6 +1397,15 @@ public class ActionFactory extends Actions {
 		return action;
 	}
 
+	public Action createSetLookByNameAction(Sprite sprite, SequenceAction sequence, Formula formula) {
+		SetLookByNameAction action = Actions.action(SetLookByNameAction.class);
+		action.setSprite(sprite);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setFormula(formula);
+		return action;
+	}
+
 	private Sprite currentBackgroundSpriteOrNull() {
 		Scene scene = ProjectManager.getInstance().getCurrentlyPlayingScene();
 		return scene != null ? scene.getBackgroundSprite() : null;
@@ -1574,6 +1583,42 @@ public class ActionFactory extends Actions {
 		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
 		action.setScope(scope);
 		action.setSize(size);
+		return action;
+	}
+
+	public Action createSetWidthDirectionAction(Sprite sprite, SequenceAction sequence, Formula size, int direction) {
+		SetWidthDirectionAction action = Actions.action(SetWidthDirectionAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setSize(size);
+		action.setDirection(direction);
+		return action;
+	}
+
+	public Action createChangeWidthDirectionAction(Sprite sprite, SequenceAction sequence, Formula size, int direction) {
+		ChangeWidthDirectionAction action = Actions.action(ChangeWidthDirectionAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setSize(size);
+		action.setDirection(direction);
+		return action;
+	}
+
+	public Action createSetHeightDirectionAction(Sprite sprite, SequenceAction sequence, Formula size, int direction) {
+		SetHeightDirectionAction action = Actions.action(SetHeightDirectionAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setSize(size);
+		action.setDirection(direction);
+		return action;
+	}
+
+	public Action createChangeHeightDirectionAction(Sprite sprite, SequenceAction sequence, Formula size, int direction) {
+		ChangeHeightDirectionAction action = Actions.action(ChangeHeightDirectionAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setSize(size);
+		action.setDirection(direction);
 		return action;
 	}
 
@@ -2505,6 +2550,243 @@ public class ActionFactory extends Actions {
 	public Action createDeleteBaseAction(Sprite sprite, SequenceAction sequence,
 										Formula base, Formula key) {
 		return createDeleteBaseAction(sprite, sequence, base, key, true);
+	}
+
+	public Action createFirebaseSignInAnonymouslyAction(Sprite sprite, SequenceAction sequence,
+														boolean waitForResponse) {
+		FirebaseSignInAnonymouslyAction action = action(FirebaseSignInAnonymouslyAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setWaitForResponse(waitForResponse);
+		return action;
+	}
+
+	public Action createFirebaseSignInEmailPasswordAction(Sprite sprite, SequenceAction sequence,
+														  Formula email, Formula password, boolean waitForResponse) {
+		FirebaseSignInEmailPasswordAction action = action(FirebaseSignInEmailPasswordAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setEmail(email);
+		action.setPassword(password);
+		action.setWaitForResponse(waitForResponse);
+		return action;
+	}
+
+	public Action createFirebaseSignInEmailPasswordAction(Sprite sprite, SequenceAction sequence,
+														  Formula email, Formula password) {
+		return createFirebaseSignInEmailPasswordAction(sprite, sequence, email, password, true);
+	}
+
+	public Action createFirebaseSignOutAction(Sprite sprite, SequenceAction sequence,
+											  boolean waitForResponse) {
+		FirebaseSignOutAction action = action(FirebaseSignOutAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setWaitForResponse(waitForResponse);
+		return action;
+	}
+
+	public Action createFirebaseGetUserIdAction(Sprite sprite, SequenceAction sequence,
+												UserVariable variable) {
+		FirebaseGetUserIdAction action = action(FirebaseGetUserIdAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setVariable(variable);
+		return action;
+	}
+
+	public Action createFirebaseIsSignedInAction(Sprite sprite, SequenceAction sequence,
+												 UserVariable variable) {
+		FirebaseIsSignedInAction action = action(FirebaseIsSignedInAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setVariable(variable);
+		return action;
+	}
+
+	public Action createPushBaseAction(Sprite sprite, SequenceAction sequence,
+									   Formula base, Formula key, Formula value, UserVariable variable,
+									   boolean waitForResponse) {
+		PushBaseAction action = action(PushBaseAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setBase(base);
+		action.setKey(key);
+		action.setValue(value);
+		action.setVariable(variable);
+		action.setWaitForResponse(waitForResponse);
+		return action;
+	}
+
+	public Action createUpdateBaseAction(Sprite sprite, SequenceAction sequence,
+										 Formula base, Formula key, Formula value, boolean waitForResponse) {
+		UpdateBaseAction action = action(UpdateBaseAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setBase(base);
+		action.setKey(key);
+		action.setValue(value);
+		action.setWaitForResponse(waitForResponse);
+		return action;
+	}
+
+	public Action createUpdateBaseAction(Sprite sprite, SequenceAction sequence,
+										 Formula base, Formula key, Formula value) {
+		return createUpdateBaseAction(sprite, sequence, base, key, value, true);
+	}
+
+	public Action createQueryBaseAction(Sprite sprite, SequenceAction sequence,
+										Formula base, Formula key, Formula orderBy, Formula limit,
+										Formula equalTo, UserVariable variable) {
+		QueryBaseAction action = action(QueryBaseAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setBase(base);
+		action.setKey(key);
+		action.setOrderBy(orderBy);
+		action.setLimit(limit);
+		action.setEqualTo(equalTo);
+		action.setVariable(variable);
+		return action;
+	}
+
+	public Action createWriteFirestoreAction(Sprite sprite, SequenceAction sequence,
+											 Formula base, Formula path, Formula value, boolean waitForResponse) {
+		WriteFirestoreAction action = action(WriteFirestoreAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setBase(base);
+		action.setPath(path);
+		action.setValue(value);
+		action.setWaitForResponse(waitForResponse);
+		return action;
+	}
+
+	public Action createWriteFirestoreAction(Sprite sprite, SequenceAction sequence,
+											 Formula path, Formula value, boolean waitForResponse) {
+		return createWriteFirestoreAction(sprite, sequence, new Formula(""), path, value, waitForResponse);
+	}
+
+	public Action createWriteFirestoreAction(Sprite sprite, SequenceAction sequence,
+											 Formula path, Formula value) {
+		return createWriteFirestoreAction(sprite, sequence, path, value, true);
+	}
+
+	public Action createUpdateFirestoreAction(Sprite sprite, SequenceAction sequence,
+											  Formula base, Formula path, Formula value, boolean waitForResponse) {
+		UpdateFirestoreAction action = action(UpdateFirestoreAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setBase(base);
+		action.setPath(path);
+		action.setValue(value);
+		action.setWaitForResponse(waitForResponse);
+		return action;
+	}
+
+	public Action createUpdateFirestoreAction(Sprite sprite, SequenceAction sequence,
+											  Formula path, Formula value, boolean waitForResponse) {
+		return createUpdateFirestoreAction(sprite, sequence, new Formula(""), path, value, waitForResponse);
+	}
+
+	public Action createUpdateFirestoreAction(Sprite sprite, SequenceAction sequence,
+											  Formula path, Formula value) {
+		return createUpdateFirestoreAction(sprite, sequence, path, value, true);
+	}
+
+	public Action createAddFirestoreDocumentAction(Sprite sprite, SequenceAction sequence,
+												   Formula base, Formula collection, Formula value, UserVariable variable, boolean waitForResponse) {
+		AddFirestoreDocumentAction action = action(AddFirestoreDocumentAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setBase(base);
+		action.setCollection(collection);
+		action.setValue(value);
+		action.setVariable(variable);
+		action.setWaitForResponse(waitForResponse);
+		return action;
+	}
+
+	public Action createAddFirestoreDocumentAction(Sprite sprite, SequenceAction sequence,
+												   Formula collection, Formula value, UserVariable variable, boolean waitForResponse) {
+		return createAddFirestoreDocumentAction(sprite, sequence, new Formula(""), collection, value, variable, waitForResponse);
+	}
+
+	public Action createAddFirestoreDocumentAction(Sprite sprite, SequenceAction sequence,
+												   Formula collection, Formula value, UserVariable variable) {
+		return createAddFirestoreDocumentAction(sprite, sequence, collection, value, variable, true);
+	}
+
+	public Action createReadFirestoreAction(Sprite sprite, SequenceAction sequence,
+											Formula base, Formula path, UserVariable variable, boolean waitForResponse) {
+		ReadFirestoreAction action = action(ReadFirestoreAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setBase(base);
+		action.setPath(path);
+		action.setVariable(variable);
+		action.setWaitForResponse(waitForResponse);
+		return action;
+	}
+
+	public Action createReadFirestoreAction(Sprite sprite, SequenceAction sequence,
+											Formula path, UserVariable variable, boolean waitForResponse) {
+		return createReadFirestoreAction(sprite, sequence, new Formula(""), path, variable, waitForResponse);
+	}
+
+	public Action createReadFirestoreAction(Sprite sprite, SequenceAction sequence,
+											Formula path, UserVariable variable) {
+		return createReadFirestoreAction(sprite, sequence, path, variable, true);
+	}
+
+	public Action createDeleteFirestoreAction(Sprite sprite, SequenceAction sequence,
+											  Formula base, Formula path, boolean waitForResponse) {
+		DeleteFirestoreAction action = action(DeleteFirestoreAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setBase(base);
+		action.setPath(path);
+		action.setWaitForResponse(waitForResponse);
+		return action;
+	}
+
+	public Action createDeleteFirestoreAction(Sprite sprite, SequenceAction sequence,
+											  Formula path, boolean waitForResponse) {
+		return createDeleteFirestoreAction(sprite, sequence, new Formula(""), path, waitForResponse);
+	}
+
+	public Action createDeleteFirestoreAction(Sprite sprite, SequenceAction sequence,
+											  Formula path) {
+		return createDeleteFirestoreAction(sprite, sequence, path, true);
+	}
+
+	public Action createQueryFirestoreAction(Sprite sprite, SequenceAction sequence,
+											 Formula base, Formula collection, Formula field, String operator, Formula value, Formula limit,
+											 UserVariable variable, boolean waitForResponse) {
+		QueryFirestoreAction action = action(QueryFirestoreAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setBase(base);
+		action.setCollection(collection);
+		action.setField(field);
+		action.setOperator(operator);
+		action.setValue(value);
+		action.setLimit(limit);
+		action.setVariable(variable);
+		action.setWaitForResponse(waitForResponse);
+		return action;
+	}
+
+	public Action createQueryFirestoreAction(Sprite sprite, SequenceAction sequence,
+											 Formula collection, Formula field, String operator, Formula value, Formula limit,
+											 UserVariable variable, boolean waitForResponse) {
+		return createQueryFirestoreAction(sprite, sequence, new Formula(""), collection, field, operator, value, limit, variable, waitForResponse);
+	}
+
+	public Action createQueryFirestoreAction(Sprite sprite, SequenceAction sequence,
+											 Formula collection, Formula field, String operator, Formula value, Formula limit,
+											 UserVariable variable) {
+		return createQueryFirestoreAction(sprite, sequence, collection, field, operator, value, limit, variable, true);
 	}
 
 	public Action createUnzipAction(Sprite sprite, SequenceAction sequence,
@@ -7467,4 +7749,134 @@ public Action createSetBufferEffectsAction(Sprite sprite, SequenceAction sequenc
 		action.setFormulas(x, y, radius, startAngle, degrees, fill);
 		return action;
 	}
+
+	public Action createFlipLookAction(Sprite sprite, SequenceAction sequence, boolean flipHorizontal) {
+		FlipLookAction action = action(FlipLookAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setFlipHorizontal(flipHorizontal);
+		return action;
+	}
+
+	public Action createFlashColorAction(Sprite sprite, SequenceAction sequence, Formula color, Formula duration) {
+		FlashColorAction action = action(FlashColorAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setColor(color);
+		action.setDuration(duration);
+		return action;
+	}
+
+	public Action createBlinkSpriteAction(Sprite sprite, SequenceAction sequence, Formula times, Formula interval) {
+		BlinkSpriteAction action = action(BlinkSpriteAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setTimesFormula(times);
+		action.setIntervalFormula(interval);
+		return action;
+	}
+
+	public Action createMoveTowardsPointAction(Sprite sprite, SequenceAction sequence, Formula targetX, Formula targetY, Formula steps) {
+		MoveTowardsPointAction action = action(MoveTowardsPointAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setTargetX(targetX);
+		action.setTargetY(targetY);
+		action.setSteps(steps);
+		return action;
+	}
+
+	public Action createRotateTowardsTargetAction(Sprite sprite, SequenceAction sequence, Formula targetX, Formula targetY, Formula speed) {
+		RotateTowardsTargetAction action = action(RotateTowardsTargetAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setTargetX(targetX);
+		action.setTargetY(targetY);
+		action.setSpeed(speed);
+		return action;
+	}
+
+	public Action createClampPositionAction(Sprite sprite, SequenceAction sequence, Formula minX, Formula maxX, Formula minY, Formula maxY) {
+		ClampPositionAction action = action(ClampPositionAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setMinX(minX);
+		action.setMaxX(maxX);
+		action.setMinY(minY);
+		action.setMaxY(maxY);
+		return action;
+	}
+
+	public Action createCooldownAction(Sprite sprite, SequenceAction sequence, Formula cooldown) {
+		CooldownAction action = action(CooldownAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setCooldown(cooldown);
+		return action;
+	}
+
+	public Action createWaitFramesAction(Sprite sprite, SequenceAction sequence, Formula frames) {
+		WaitFramesAction action = action(WaitFramesAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setFrames(frames);
+		return action;
+	}
+
+	public Action createNormalizeSpriteShaderAction(Sprite sprite, SequenceAction sequence) {
+		NormalizeSpriteShaderAction action = action(NormalizeSpriteShaderAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		return action;
+	}
+
+	public Action createDarkGrayscaleShaderAction(Sprite sprite, SequenceAction sequence) {
+		DarkGrayscaleShaderAction action = action(DarkGrayscaleShaderAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		return action;
+	}
+
+	public Action createInvertColorsShaderAction(Sprite sprite, SequenceAction sequence) {
+		InvertColorsShaderAction action = action(InvertColorsShaderAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		return action;
+	}
+
+	public Action createTintShaderAction(Sprite sprite, SequenceAction sequence, Formula red, Formula green, Formula blue, Formula amount) {
+		TintShaderAction action = action(TintShaderAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setRed(red);
+		action.setGreen(green);
+		action.setBlue(blue);
+		action.setAmount(amount);
+		return action;
+	}
+
+	public Action createSetFilterPixelateAction(Sprite sprite, SequenceAction sequence, Formula size) {
+		SetFilterPixelateAction action = action(SetFilterPixelateAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setSize(size);
+		return action;
+	}
+
+	public Action createSetFilterBlurAction(Sprite sprite, SequenceAction sequence, Formula radius) {
+		SetFilterBlurAction action = action(SetFilterBlurAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setRadius(radius);
+		return action;
+	}
+
+	public Action createSetFilterSepiaAction(Sprite sprite, SequenceAction sequence, Formula intensity) {
+		SetFilterSepiaAction action = action(SetFilterSepiaAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setIntensity(intensity);
+		return action;
+	}
 }
+

@@ -83,7 +83,7 @@ public abstract class BroadcastMessageBrick extends BrickBaseType implements
 	@Override
 	public void onNewOptionSelected(Integer spinnerId) {
 		final AppCompatActivity activity = UiUtils.getActivityFromView(view);
-		if (!(activity instanceof SpriteActivity)) {
+		if (activity == null) {
 			return;
 		}
 		TextInputDialog.Builder builder = new TextInputDialog.Builder(activity);
@@ -101,7 +101,7 @@ public abstract class BroadcastMessageBrick extends BrickBaseType implements
 	@Override
 	public void onEditOptionSelected(Integer spinnerId) {
 		final AppCompatActivity activity = UiUtils.getActivityFromView(view);
-		if (!(activity instanceof SpriteActivity)) {
+		if (activity == null) {
 			return;
 		}
 

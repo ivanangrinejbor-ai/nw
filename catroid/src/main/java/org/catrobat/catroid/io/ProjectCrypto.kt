@@ -95,6 +95,81 @@ object ProjectCrypto {
         }
     }
 
+    fun isPasswordContainer(file: File): Boolean {
+        if (!file.exists() || file.length() < 12) return false
+        return FileInputStream(file).use { input ->
+            val header = ByteArray(4)
+            input.read(header)
+            header.contentEquals(PASSWORD_CONTAINER_MAGIC)
+        }
+    }
+
+    fun readPasswordContainer(file: File): String? {
+        if (!file.exists() || file.length() < 12) return null
+        var input: FileInputStream? = null
+        return try {
+            input = FileInputStream(file)
+            val magic = ByteArray(4)
+            if (input!!.read(magic) < 4 || !magic.contentEquals(PASSWORD_CONTAINER_MAGIC)) return null
+            val lenBytes = ByteArray(4)
+            if (input!!.read(lenBytes) < 4) return null
+            val len = ((lenBytes[0].toInt() and 0xFF) shl 24) or
+                ((lenBytes[1].toInt() and 0xFF) shl 16) or
+                ((lenBytes[2].toInt() and 0xFF) shl 8) or
+                (lenBytes[3].toInt() and 0xFF)
+            if (len <= 0 || len > 1024 * 1024) return null
+            val pwdBytes = ByteArray(len)
+            if (input!!.read(pwdBytes) < len) return null
+            String(pwdBytes, Charsets.UTF_8)
+        } catch (e: Exception) {
+            Log.e(TAG, "Cannot read password container", e)
+            null
+        } finally {
+            input?.close()
+        }
+    }
+
+    fun wrapPasswordContainerFile(innerFile: File, destFile: File, password: String) {
+        destFile.parentFile?.mkdirs()
+        FileOutputStream(destFile).use { out ->
+            writePasswordContainerHeader(out, password)
+            FileInputStream(innerFile).use { input -> input.copyTo(out) }
+        }
+    }
+
+    fun decryptPasswordContainer(containerFile: File, destFile: File): Boolean {
+        val password = readPasswordContainer(containerFile) ?: return false
+        val inner = File(containerFile.parentFile ?: File("."), containerFile.name + "_inner.ncpp")
+        var input: FileInputStream? = null
+        try {
+            input = FileInputStream(containerFile)
+            val magic = ByteArray(4)
+            if (input!!.read(magic) < 4 || !magic.contentEquals(PASSWORD_CONTAINER_MAGIC)) return false
+            val lenBytes = ByteArray(4)
+            if (input!!.read(lenBytes) < 4) return false
+            val len = ((lenBytes[0].toInt() and 0xFF) shl 24) or
+                ((lenBytes[1].toInt() and 0xFF) shl 16) or
+                ((lenBytes[2].toInt() and 0xFF) shl 8) or
+                (lenBytes[3].toInt() and 0xFF)
+            if (len <= 0 || len > 1024 * 1024) return false
+            val pwdBytes = ByteArray(len)
+            if (input!!.read(pwdBytes) < len) return false
+            val out = FileOutputStream(inner)
+            try {
+                input!!.copyTo(out)
+            } finally {
+                out.close()
+            }
+            return decrypt(inner, destFile, password)
+        } catch (e: Exception) {
+            Log.e(TAG, "Cannot decrypt password container", e)
+            return false
+        } finally {
+            input?.close()
+            inner.delete()
+        }
+    }
+
     fun encrypt(sourceFile: File, destFile: File, password: String, locked: Boolean = false) {
         val salt = ByteArray(SALT_SIZE).also { SecureRandom().nextBytes(it) }
         val iv = ByteArray(IV_SIZE).also { SecureRandom().nextBytes(it) }

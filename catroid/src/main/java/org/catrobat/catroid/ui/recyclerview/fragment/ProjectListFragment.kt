@@ -96,6 +96,7 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
     private var filesForUnzipAndImportTask: ArrayList<File>? = null
     private var hasUnzipAndImportTaskFinished = false
     private var importTask: ProjectUnZipperAndImporter? = null
+    private var lastUnreadableProjectCount = 0
 
     private val projectManager: ProjectManager by inject()
 
@@ -267,7 +268,7 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
     private val itemList: List<ProjectData>
         get() {
             val items: MutableList<ProjectData> = ArrayList()
-            getLocalProjectList(items)
+            lastUnreadableProjectCount = getLocalProjectList(items)
             items.sortWith(Comparator { project1: ProjectData, project2: ProjectData ->
                 project2.lastUsed.compareTo(project1.lastUsed)
             })
@@ -277,7 +278,7 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
     private val sortedItemList: List<ProjectData>
         get() {
             val items: MutableList<ProjectData> = ArrayList()
-            getLocalProjectList(items)
+            lastUnreadableProjectCount = getLocalProjectList(items)
             items.sortWith(Comparator { project1: ProjectData, project2: ProjectData ->
                 project1.name.compareTo(
                     project2.name
@@ -876,7 +877,8 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
         private const val REQUEST_IMPORT_PROJECT = 7
 
         @JvmStatic
-        fun getLocalProjectList(items: MutableList<ProjectData>) {
+        fun getLocalProjectList(items: MutableList<ProjectData>): Int {
+            var unreadableProjects = 0
             FlavoredConstants.DEFAULT_ROOT_DIRECTORY.listFiles()?.forEach { projectDir ->
                 val codeXml = File(projectDir, Constants.CODE_XML_FILE_NAME)
                 val scenesDir = File(projectDir, "scenes")
@@ -889,6 +891,7 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
                         items.add(metaDataParser.projectMetaData)
                     } catch (exception: IOException) {
                         Log.e(TAG, "Could not parse local project.", exception)
+                        unreadableProjects++
                     }
                 }
 
@@ -898,9 +901,11 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
                         items.add(metaDataParser.projectMetaData)
                     } catch (exception: IOException) {
                         Log.e(TAG, "Could not parse local project.", exception)
+                        unreadableProjects++
                     }
                 }
             }
+            return unreadableProjects
         }
     }
 
@@ -913,6 +918,14 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
             withContext(Dispatchers.Main) {
                 adapter.setItems(items)
                 adapter.notifyDataSetChanged()
+
+                if (lastUnreadableProjectCount > 0) {
+                    ToastUtil.showError(
+                        requireContext(),
+                        requireContext().getString(R.string.error_unreadable_projects, lastUnreadableProjectCount)
+                    )
+                    lastUnreadableProjectCount = 0
+                }
 
                 if (adapter.items.isEmpty()) {
                     if (FileMetaDataExtractor.getProjectNames(FlavoredConstants.DEFAULT_ROOT_DIRECTORY).isNotEmpty()) {

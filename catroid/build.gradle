@@ -285,7 +285,7 @@ android {
     }
 
     androidResources {
-        ignoreAssetsPattern "!.gitignore:!template_win.zip:!app-classes.jar:!gdx.jar:!core.jar:!patterns.json:!model.tflite"
+        ignoreAssetsPattern "!.gitignore:!app-classes.jar:!gdx.jar:!core.jar:!patterns.json:!model.tflite"
     }
 
     packagingOptions {
@@ -718,6 +718,7 @@ dependencies {
     implementation 'com.google.firebase:firebase-database-ktx'
     implementation 'com.google.firebase:firebase-analytics-ktx'
     implementation 'com.google.firebase:firebase-firestore'
+    implementation 'com.google.firebase:firebase-auth'
 
     // CAST
     //implementation "com.google.android.gms:play-services-cast:17.0.0"
@@ -1098,29 +1099,6 @@ tasks.register('copyAllRuntimeTemplates') {
     dependsOn 'copyTemplateApk'
     doLast {
         println "Runtime template APK copied to: $projectDir/src/main/assets"
-    }
-}
-
-tasks.register('copyDesktopTemplate') {
-    group = "build"
-    description = "Copies build_exe.bat to Android assets"
-    doLast {
-        def desktopRuntimeDir = file("$rootDir/desktop-runtime")
-        def assetsDir = file("$projectDir/src/main/assets")
-        def buildExeBat = file("$desktopRuntimeDir/build_exe.bat")
-        if (buildExeBat.exists()) {
-            copy {
-                from buildExeBat
-                into assetsDir
-            }
-            println "build_exe.bat copied to assets."
-        }
-    }
-}
-
-tasks.whenTaskAdded { task ->
-    if (task.name.startsWith('merge') && task.name.endsWith('Assets')) {
-        task.dependsOn 'copyDesktopTemplate'
     }
 }
 

@@ -1543,3 +1543,15 @@ ew Scope(project, sprite, null) РІР°Р»РёРґРµРЅ; РІ plain-JUnit РѕР±СЏР·Р°С‚РµР»Р
 
 ## РР·РІРµСЃС‚РЅР°СЏ С…СЂСѓРїРєРѕСЃС‚СЊ (РќР• РЅР°С€Р°)
 - SceneTransitionActionTest (2 С‚РµСЃС‚Р°) РїР°РґР°РµС‚ РІ РїР°С‡РєРµ (GlobalSceneTest/NeoScriptSceneTest + РґСЂ. РІ РѕРґРЅРѕРј РїСЂРѕС†РµСЃСЃРµ): NPE В«Scene.getName() is nullВ» РІ SceneTransitionAction.update (~:45) вЂ” РґСЂСѓРіРѕР№ С‚РµСЃС‚ СЃС‚Р°РІРёС‚ currentlyPlayingScene = defaultScene СЃ null-РёРјРµРЅРµРј (РјРѕРє getString(R.string.default_scene_name)). Р’ РёР·РѕР»СЏС†РёРё С‚РµСЃС‚ РїСЂРѕС…РѕРґРёС‚, РЅР° С‡РёСЃС‚РѕРј HEAD РІ РёР·РѕР»СЏС†РёРё С‚РѕР¶Рµ РїСЂРѕС…РѕРґРёС‚ вЂ” pre-existing, РЅРµ СЂРµРіСЂРµСЃСЃРёСЏ.
+## Crash fix: NPE в hasUserDataChanged / hasSameValue (2026-08)
+
+Краш при выходе из FormulaEditor (SpriteActivity.onBackPressed > ScriptFragment.checkVariables):
+`UserVariable.hasSameValue` падал с NPE, т.к. `value`/`list` у UserVariable/UserList — **transient**
+(после загрузки проекта с диска = null). Второй краш (List.size() on null) — те же списки,
+переданные null в `hasUserDataChanged`.
+
+- `UserVariable.java`: `hasSameValue`/`equals`/`hashCode` — null-safe (value и name).
+- `UserList.java`: `hasSameListSize`/`equals`/`hashCode` — null-safe (list и name).
+- `Project.java` + `Sprite.java`: `hasUserDataChanged` — null-список = пустой список
+  (size 0); `checkEquality`/`checkUserData` — guard на null oldUserData.
+- Тест: `test/formulaeditor/UserVariableNullSafetyTest.java` (6 тестов).

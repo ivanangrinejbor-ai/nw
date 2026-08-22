@@ -63,6 +63,8 @@
     <string formatted="false" name="ai_agent_max_context_summary">Maximum tokens for context window</string>
     <string formatted="false" name="ai_agent_max_tool_calls_title">Max Tool Calls</string>
     <string formatted="false" name="ai_agent_max_tool_calls_summary">Maximum tool calls per response cycle</string>
+    <string formatted="false" name="ai_agent_reasoning_title">Reasoning level</string>
+    <string formatted="false" name="ai_agent_reasoning_summary">Thinking effort for models that support it (Gemini thinking, OpenAI reasoning_effort, OpenRouter reasoning, Claude extended thinking). Used with your API key</string>
 
     <!-- Memory -->
     <string formatted="false" name="ai_agent_memory_category">Memory</string>

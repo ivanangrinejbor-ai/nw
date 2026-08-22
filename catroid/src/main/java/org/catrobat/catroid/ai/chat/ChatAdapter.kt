@@ -22,6 +22,7 @@ class ChatAdapter(
 
     private var thinkingActive = false
     private var thinkingDetail = ""
+    private var thinkingReasoning = ""
 
     fun updateMessages(newMessages: List<ChatMessage>) {
         val diffResult = DiffUtil.calculateDiff(object : DiffUtil.Callback() {
@@ -38,9 +39,11 @@ class ChatAdapter(
         diffResult.dispatchUpdatesTo(this)
     }
 
-    fun setThinking(active: Boolean, detail: String) {
+    fun setThinking(active: Boolean, detail: String, reasoning: String = thinkingReasoning) {
         val wasActive = thinkingActive
+        val reasoningChanged = thinkingReasoning != reasoning
         thinkingDetail = detail
+        thinkingReasoning = reasoning
         when {
             active && !wasActive -> {
                 thinkingActive = true
@@ -51,7 +54,11 @@ class ChatAdapter(
                 notifyItemRemoved(messages.size)
             }
             active && wasActive -> {
-                notifyItemChanged(messages.size)
+                if (reasoningChanged) {
+                    notifyItemChanged(messages.size)
+                } else {
+                    notifyItemChanged(messages.size)
+                }
             }
         }
     }
@@ -87,7 +94,7 @@ class ChatAdapter(
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         when (holder) {
-            is ThinkingViewHolder -> holder.bind(thinkingDetail)
+            is ThinkingViewHolder -> holder.bind(thinkingDetail, thinkingReasoning)
             is ChangeViewHolder -> holder.bind(messages[position])
             is MessageViewHolder -> holder.bind(messages[position], markwon)
         }
@@ -167,12 +174,28 @@ class ChatAdapter(
         private val root: View = itemView.findViewById(R.id.thinking_root)
         private val label: ShimmerTextView = itemView.findViewById(R.id.thinking_label)
         private val detail: TextView = itemView.findViewById(R.id.thinking_detail)
+        private val reasoning: TextView = itemView.findViewById(R.id.thinking_reasoning)
+        private var expanded = false
 
-        fun bind(detailText: String) {
+        fun bind(detailText: String, reasoningText: String) {
             label.startShimmer()
             detail.text = detailText
             detail.visibility = if (detailText.isNotBlank()) View.VISIBLE else View.GONE
-            root.setOnClickListener(null)
+            if (reasoningText.isNotBlank()) {
+                reasoning.visibility = View.VISIBLE
+                reasoning.text = reasoningText
+                reasoning.maxLines = if (expanded) Integer.MAX_VALUE else 8
+                reasoning.ellipsize = if (expanded) null else android.text.TextUtils.TruncateAt.END
+                root.setOnClickListener {
+                    expanded = !expanded
+                    reasoning.maxLines = if (expanded) Integer.MAX_VALUE else 8
+                    reasoning.ellipsize = if (expanded) null else android.text.TextUtils.TruncateAt.END
+                }
+            } else {
+                reasoning.visibility = View.GONE
+                reasoning.text = ""
+                root.setOnClickListener(null)
+            }
         }
     }
 

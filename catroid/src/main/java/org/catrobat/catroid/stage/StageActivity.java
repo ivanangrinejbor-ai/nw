@@ -2210,12 +2210,16 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 
 	private static void launchProject(ProjectManager projectManager, final Activity activity) {
         Project project = projectManager.getCurrentProject();
-        if (project == null) return;
+        if (project == null) {
+            ToastUtil.showError(activity, R.string.error_no_project_loaded);
+            return;
+        }
 
         Scene currentScene = projectManager.getCurrentlyEditedScene();
         Scene defaultScene = project.getDefaultScene();
 
         if (currentScene == null || defaultScene == null) {
+            ToastUtil.showError(activity, R.string.error_load_project);
             return;
         }
 

@@ -47,10 +47,20 @@ public final class ShowTextUtils {
 
 	public static int[] calculateColorRGBs(String color) {
 		int[] rgb = new int[3];
-		long colorValue = Long.parseLong(color.substring(1), 16);
-		rgb[0] = (int) ((colorValue & 0xFF0000) >> 16);
-		rgb[1] = (int) ((colorValue & 0xFF00) >> 8);
-		rgb[2] = (int) (colorValue & 0xFF);
+		if (color == null) {
+			return rgb;
+		}
+		String clean = color.replace("'", "").replace("\"", "").trim();
+		if (clean.startsWith("#")) {
+			clean = clean.substring(1);
+		}
+		try {
+			long colorValue = Long.parseLong(clean, 16);
+			rgb[0] = (int) ((colorValue & 0xFF0000) >> 16);
+			rgb[1] = (int) ((colorValue & 0xFF00) >> 8);
+			rgb[2] = (int) (colorValue & 0xFF);
+		} catch (Exception ignored) {
+		}
 		return rgb;
 	}
 
@@ -65,8 +75,11 @@ public final class ShowTextUtils {
 	}
 
 	public static boolean isValidColorString(String color) {
-		if (color != null && color.matches("#[A-F0-9a-f]+")) {
-            return color.length() == 7 || color.length() == 9;
+		if (color != null) {
+			String clean = color.replace("'", "").replace("\"", "").trim();
+			if (clean.matches("#[A-F0-9a-f]+")) {
+				return clean.length() == 7 || clean.length() == 9;
+			}
 		}
 
 		return false;

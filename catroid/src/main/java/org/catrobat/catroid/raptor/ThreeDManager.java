@@ -398,6 +398,7 @@ public class ThreeDManager implements Disposable {
     private Model wireframeCylinderModel;
     private Model cameraProxyModel;
     public String cameraTargetId = null;
+    private boolean cameraTargetBound = false;
     private final Vector3 cameraOffset = new Vector3();
     private float cameraDistance = 10.0f;
     private float cameraPitch = 20.0f;
@@ -786,25 +787,29 @@ public class ThreeDManager implements Disposable {
 
     public void setFreeCamera() {
         this.cameraTargetId = null;
+        this.cameraTargetBound = false;
         this.cameraTrackMode = 0;
         this.cameraTrackTargetId = null;
     }
 
     public void setThirdPersonCamera(String targetObjectId, float distance, float height, float pitch) {
         ModelInstance target = sceneObjects.get(targetObjectId);
-        if (target == null) {
-            Gdx.app.error("3DManager", "Camera target object not found: " + targetObjectId);
-            this.cameraTargetId = null;
-            return;
-        }
 
         this.cameraTrackMode = 0;
-
         this.cameraTargetId = targetObjectId;
         this.cameraDistance = distance;
         this.cameraOffset.set(0, height, 0);
         this.cameraPitch = pitch;
+
+        if (target == null) {
+            // The scene may still be rebuilding on the GL thread: attach as soon as the object appears.
+            this.cameraTargetBound = false;
+            Gdx.app.log("3DManager", "Camera target '" + targetObjectId + "' not found yet; will attach when it appears");
+            return;
+        }
+
         this.cameraYaw = target.transform.getRotation(new Quaternion()).getYaw();
+        this.cameraTargetBound = true;
     }
 
     public void setCameraTracking(String targetId, int mode, float px, float py, float pz, float yaw, float pitch, float roll) {
@@ -2846,7 +2851,9 @@ public class ThreeDManager implements Disposable {
             update3DAudio();
         }
         applyCameraEffects(delta);
-        updateWorldBounds();
+        if (!realisticMode) {
+            updateWorldBounds();
+        }
         if (LOG_THREED_MANAGER_DEBUG) Log.d("TDM_DEBUG", "--- ThreeDManager.update() END ---");
     }
 
@@ -3025,8 +3032,15 @@ public class ThreeDManager implements Disposable {
     private void updateThirdPersonCamera() {
         ModelInstance target = sceneObjects.get(cameraTargetId);
         if (target == null) {
-            setFreeCamera();
+            if (cameraTargetBound) {
+                setFreeCamera();
+            }
             return;
+        }
+
+        if (!cameraTargetBound) {
+            cameraYaw = target.transform.getRotation(new Quaternion()).getYaw();
+            cameraTargetBound = true;
         }
 
         target.transform.getTranslation(tpTargetPos);

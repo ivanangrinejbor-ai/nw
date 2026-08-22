@@ -231,8 +231,13 @@ public class Project implements Serializable {
 	}
 
 	public <T> boolean hasUserDataChanged(List<T> newUserData, List<T> oldUserData) {
-		if (newUserData.size() != oldUserData.size()) {
+		int newSize = newUserData == null ? 0 : newUserData.size();
+		int oldSize = oldUserData == null ? 0 : oldUserData.size();
+		if (newSize != oldSize) {
 			return true;
+		}
+		if (newSize == 0) {
+			return false;
 		}
 
 		for (T userData : newUserData) {
@@ -245,6 +250,9 @@ public class Project implements Serializable {
 	}
 
 	public <T> boolean checkEquality(T newUserData, List<T> oldUserData) {
+		if (oldUserData == null) {
+			return false;
+		}
 		for (T userData : oldUserData) {
 			if (userData.equals(newUserData)) {
 				if (userData.getClass() == UserVariable.class) {

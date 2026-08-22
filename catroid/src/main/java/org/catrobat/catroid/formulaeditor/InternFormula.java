@@ -240,6 +240,11 @@ public class InternFormula {
 		List<InternToken> keyInputInternTokenList = new InternFormulaKeyboardAdapter()
 				.createInternTokenListByResourceId(resourceId, name);
 
+		if (keyInputInternTokenList == null && resourceId != R.id.formula_editor_keyboard_delete) {
+			Log.e(TAG, "handleKeyInput: no intern tokens for resource " + resourceId + " / name '" + name + "'");
+			return;
+		}
+
 		CursorTokenPropertiesAfterModification cursorTokenPropertiesAfterInput = CursorTokenPropertiesAfterModification
 				.DO_NOT_MODIFY;
 
@@ -755,6 +760,10 @@ public class InternFormula {
 
 	private CursorTokenPropertiesAfterModification insertLeftToCurrentToken(List<InternToken> internTokensToInsert) {
 
+		if (internTokensToInsert == null || internTokensToInsert.isEmpty()) {
+			return CursorTokenPropertiesAfterModification.DO_NOT_MODIFY;
+		}
+
 		InternToken firstLeftInternToken = null;
 		if (cursorPositionInternTokenIndex > 0) {
 			firstLeftInternToken = internTokenFormulaList.get(cursorPositionInternTokenIndex - 1);
@@ -822,6 +831,10 @@ public class InternFormula {
 	}
 
 	private CursorTokenPropertiesAfterModification insertRightToCurrentToken(List<InternToken> internTokensToInsert) {
+
+		if (internTokensToInsert == null || internTokensToInsert.isEmpty()) {
+			return CursorTokenPropertiesAfterModification.DO_NOT_MODIFY;
+		}
 
 		if (cursorPositionInternToken == null) {
 
@@ -1120,6 +1133,9 @@ public class InternFormula {
 	}
 
 	public void addTokens(Context context, List<InternToken> tokens) {
+		if (tokens == null || tokens.isEmpty()) {
+			return;
+		}
 		CursorTokenPropertiesAfterModification cursorTokenPropertiesAfterInput =
 				CursorTokenPropertiesAfterModification
 						.DO_NOT_MODIFY;

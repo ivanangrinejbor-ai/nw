@@ -247,6 +247,94 @@ public class StageListener implements ApplicationListener {
     public TransitionManager transitionManager;
     public boolean isBackgroundModeEnabled = false;
 
+    private final List<ScriptSequenceAction> beforeUpdateActions = new ArrayList<>();
+    private boolean hasBeforeUpdateScripts = false;
+
+    private final List<ScriptSequenceAction> afterUpdateActions = new ArrayList<>();
+    private boolean hasAfterUpdateScripts = false;
+
+    private void cacheBeforeUpdateScripts() {
+        beforeUpdateActions.clear();
+        hasBeforeUpdateScripts = false;
+        if (sprites == null) return;
+
+        for (Sprite sprite : sprites) {
+            for (Script script : sprite.getScriptList()) {
+                if (script instanceof org.catrobat.catroid.content.BeforeUpdateScript && !script.isCommentedOut()) {
+                    ScriptSequenceAction action = sprite.createSequenceAction(script);
+                    action.setActor(sprite.look);
+                    beforeUpdateActions.add(action);
+                }
+            }
+        }
+        for (Sprite sprite : globalSceneSprites) {
+            for (Script script : sprite.getScriptList()) {
+                if (script instanceof org.catrobat.catroid.content.BeforeUpdateScript && !script.isCommentedOut()) {
+                    ScriptSequenceAction action = sprite.createSequenceAction(script);
+                    action.setActor(sprite.look);
+                    beforeUpdateActions.add(action);
+                }
+            }
+        }
+        hasBeforeUpdateScripts = !beforeUpdateActions.isEmpty();
+    }
+
+    private void cacheAfterUpdateScripts() {
+        afterUpdateActions.clear();
+        hasAfterUpdateScripts = false;
+        if (sprites == null) return;
+
+        for (Sprite sprite : sprites) {
+            for (Script script : sprite.getScriptList()) {
+                if (script instanceof org.catrobat.catroid.content.AfterUpdateScript && !script.isCommentedOut()) {
+                    ScriptSequenceAction action = sprite.createSequenceAction(script);
+                    action.setActor(sprite.look);
+                    afterUpdateActions.add(action);
+                }
+            }
+        }
+        for (Sprite sprite : globalSceneSprites) {
+            for (Script script : sprite.getScriptList()) {
+                if (script instanceof org.catrobat.catroid.content.AfterUpdateScript && !script.isCommentedOut()) {
+                    ScriptSequenceAction action = sprite.createSequenceAction(script);
+                    action.setActor(sprite.look);
+                    afterUpdateActions.add(action);
+                }
+            }
+        }
+        hasAfterUpdateScripts = !afterUpdateActions.isEmpty();
+    }
+
+    private void executeBeforeUpdateScripts(float delta) {
+        for (int i = 0; i < beforeUpdateActions.size(); i++) {
+            ScriptSequenceAction action = beforeUpdateActions.get(i);
+            action.restart();
+
+            int iterations = 0;
+            while (iterations < 10000) {
+                if (action.act(delta)) {
+                    break;
+                }
+                iterations++;
+            }
+        }
+    }
+
+    private void executeAfterUpdateScripts(float delta) {
+        for (int i = 0; i < afterUpdateActions.size(); i++) {
+            ScriptSequenceAction action = afterUpdateActions.get(i);
+            action.restart();
+
+            int iterations = 0;
+            while (iterations < 10000) {
+                if (action.act(delta)) {
+                    break;
+                }
+                iterations++;
+            }
+        }
+    }
+
 	public void setMaxViewPort(Resolution maxViewPort) {
 		this.maxViewPort = maxViewPort;
 	}
@@ -365,6 +453,8 @@ public class StageListener implements ApplicationListener {
 
 		embroideryPatternManager = new DSTPatternManager();
 		initActors(sprites);
+		cacheBeforeUpdateScripts();
+		cacheAfterUpdateScripts();
 
 		SoundCacheManager.getInstance().initialize();
 
@@ -976,6 +1066,10 @@ public class StageListener implements ApplicationListener {
 		copy.initConditionScriptTriggers();
 		copy.initTouchingSpriteTriggers();
 		copy.initFirebaseChangedTriggers();
+		copy.initFirebaseChildChangedTriggers();
+		copy.initFirestoreChangedTriggers();
+		cacheBeforeUpdateScripts();
+		cacheAfterUpdateScripts();
 	}
 
 	public void cloneSpriteAndAddToStage(Sprite cloneMe, String newName) {
@@ -1005,6 +1099,10 @@ public class StageListener implements ApplicationListener {
 		copy.initConditionScriptTriggers();
 		copy.initTouchingSpriteTriggers();
 		copy.initFirebaseChangedTriggers();
+		copy.initFirebaseChildChangedTriggers();
+		copy.initFirestoreChangedTriggers();
+		cacheBeforeUpdateScripts();
+		cacheAfterUpdateScripts();
 	}
 
 	public void addCloneActorToStage(Stage stage, Group rootGroup, Look cloneMeLook, Look copyLook) {
@@ -1035,6 +1133,8 @@ public class StageListener implements ApplicationListener {
 			removeBubbleActorForSprite(sprite);
 			sprite.look.destroy();
 			sprite.invalidate();
+			cacheBeforeUpdateScripts();
+			cacheAfterUpdateScripts();
 		}
 		return removedSprite;
 	}
@@ -1567,6 +1667,9 @@ public class StageListener implements ApplicationListener {
 
 				initStageInputListener();
 
+				cacheBeforeUpdateScripts();
+				cacheAfterUpdateScripts();
+
 				paused = true;
 				scene.firstStart = true;
 				reloadProject = false;
@@ -1613,6 +1716,8 @@ public class StageListener implements ApplicationListener {
 						sprite.initConditionScriptTriggers();
 						sprite.initTouchingSpriteTriggers();
 						sprite.initFirebaseChangedTriggers();
+						sprite.initFirebaseChildChangedTriggers();
+						sprite.initFirestoreChangedTriggers();
 						sprite.initIfConditionBrickTriggers();
 					}
 
@@ -1636,14 +1741,16 @@ public class StageListener implements ApplicationListener {
             if (!paused) {
                 long logicStartTime = System.nanoTime();
 
+                if (hasBeforeUpdateScripts) {
+                    executeBeforeUpdateScripts(deltaTime);
+                }
+
                 if (sceneManager != null) {
-                    if (project != null) {
-                        project.fireToAllSprites(new EventWrapper(new EventId(EventId.BEFORE_UPDATE), false));
-                    }
                     sceneManager.update(deltaTime);
-                    if (project != null) {
-                        project.fireToAllSprites(new EventWrapper(new EventId(EventId.AFTER_UPDATE), false));
-                    }
+                }
+
+                if (hasAfterUpdateScripts) {
+                    executeAfterUpdateScripts(deltaTime);
                 }
 
                 int steps = Math.max(1, Math.round(deltaActionTimeDivisor));
@@ -2515,6 +2622,8 @@ public class StageListener implements ApplicationListener {
 					soundBackup.getStartedBySprite(), soundBackup.getCurrentPosition());
 		}
 		initStageInputListener();
+		cacheBeforeUpdateScripts();
+		cacheAfterUpdateScripts();
 	}
 
 	private void rebuildCloneIndex() {

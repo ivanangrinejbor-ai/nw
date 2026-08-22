@@ -197,4 +197,68 @@ class ProjectCryptoPasswordTest {
         assertEquals("inner payload must be NCPS", "NCPS", String(innerMagic, StandardCharsets.US_ASCII))
         assertEquals("payload must contain encrypted data after the header", true, input.available() > 32)
     }
+
+    // ==================== protected-project file container (NCPW + NCPP, 2026-08) ====================
+
+    @Test
+    fun protectedContainerRoundTrip() {
+        val plainZip = tempFolder.newFile("project.zip")
+        plainZip.writeBytes(sampleZip())
+
+        val password = ProjectCrypto.generateRandomPassword()
+        val ncpp = File(tempFolder.root, "inner.ncpp")
+        ProjectCrypto.encrypt(plainZip, ncpp, password)
+        val container = File(tempFolder.root, "project.neotrobat")
+        ProjectCrypto.wrapPasswordContainerFile(ncpp, container, password)
+
+        assertTrue("container must be detected", ProjectCrypto.isPasswordContainer(container))
+        assertEquals("embedded password must be readable", password, ProjectCrypto.readPasswordContainer(container))
+        assertTrue("inner must still be encrypted (NCPP)", ProjectCrypto.isEncrypted(ncpp))
+
+        val decrypted = File(tempFolder.root, "decrypted.zip")
+        assertTrue("decrypting the container must succeed", ProjectCrypto.decryptPasswordContainer(container, decrypted))
+        assertArrayEquals("decrypted bytes must equal original zip", plainZip.readBytes(), decrypted.readBytes())
+    }
+
+    @Test
+    fun plainZipIsNotAProtectedContainer() {
+        val plain = tempFolder.newFile("plain.zip")
+        plain.writeBytes(sampleZip())
+        assertFalse(ProjectCrypto.isPasswordContainer(plain))
+        assertEquals(null, ProjectCrypto.readPasswordContainer(plain))
+    }
+
+    @Test
+    fun truncatedContainerIsRejected() {
+        val plainZip = tempFolder.newFile("project.zip")
+        plainZip.writeBytes(sampleZip())
+        val password = ProjectCrypto.generateRandomPassword()
+        val ncpp = File(tempFolder.root, "inner.ncpp")
+        ProjectCrypto.encrypt(plainZip, ncpp, password)
+        val container = File(tempFolder.root, "project.neotrobat")
+        ProjectCrypto.wrapPasswordContainerFile(ncpp, container, password)
+
+        val truncated = File(tempFolder.root, "truncated.neotrobat")
+        truncated.writeBytes(container.readBytes().copyOf(6))
+        assertFalse("too-short file must not be a container", ProjectCrypto.isPasswordContainer(truncated))
+        assertEquals(null, ProjectCrypto.readPasswordContainer(truncated))
+        assertFalse("decrypt must fail on truncated container", ProjectCrypto.decryptPasswordContainer(truncated, File(tempFolder.root, "out.zip")))
+    }
+
+    @Test
+    fun corruptedContainerFailsDecryption() {
+        val plainZip = tempFolder.newFile("project.zip")
+        plainZip.writeBytes(sampleZip())
+        val password = ProjectCrypto.generateRandomPassword()
+        val ncpp = File(tempFolder.root, "inner.ncpp")
+        ProjectCrypto.encrypt(plainZip, ncpp, password)
+        val container = File(tempFolder.root, "project.neotrobat")
+        ProjectCrypto.wrapPasswordContainerFile(ncpp, container, password)
+
+        val corrupted = File(tempFolder.root, "corrupted.neotrobat")
+        val bytes = container.readBytes()
+        bytes[bytes.size - 1] = (bytes.last().toInt() xor 0xFF).toByte()
+        corrupted.writeBytes(bytes)
+        assertFalse("GCM tag must reject corrupted content", ProjectCrypto.decryptPasswordContainer(corrupted, File(tempFolder.root, "out.zip")))
+    }
 }

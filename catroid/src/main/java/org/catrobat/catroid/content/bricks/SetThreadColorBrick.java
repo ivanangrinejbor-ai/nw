@@ -30,7 +30,8 @@ import org.catrobat.catroid.content.actions.ScriptSequenceAction;
 import org.catrobat.catroid.content.strategy.ShowColorPickerFormulaEditorStrategy;
 import org.catrobat.catroid.content.strategy.ShowFormulaEditorStrategy;
 import org.catrobat.catroid.formulaeditor.Formula;
-import org.catrobat.catroid.formulaeditor.InterpretationException;
+import org.catrobat.catroid.formulaeditor.common.Conversions;
+import org.catrobat.catroid.utils.ShowTextUtils;
 import org.catrobat.catroid.ui.UiUtils;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -92,7 +93,7 @@ public class SetThreadColorBrick extends FormulaBrick {
 
 		@Override
 		public void setValue(int value) {
-			setFormulaWithBrickField(BrickField.THREAD_COLOR, new Formula(convertToHexString(value)));
+			setFormulaWithBrickField(BrickField.THREAD_COLOR, new Formula(ShowTextUtils.convertColorToString(value)));
 
 			AppCompatActivity activity = UiUtils.getActivityFromView(view);
 			notifyDataSetChanged(activity);
@@ -105,19 +106,8 @@ public class SetThreadColorBrick extends FormulaBrick {
 
 		private int getColorValueFromBrickField(BrickField brickField) {
 			Formula formula = getFormulaWithBrickField(brickField);
-			try {
-				String value = formula.interpretString(null);
-				return Integer.decode(value);
-			} catch (InterpretationException e) {
-				return 0;
-			}
-		}
-
-		private String convertToHexString(int value) {
-			String hexValue = Integer.toHexString(value);
-			hexValue = hexValue.substring(2);
-			hexValue = "#" + hexValue;
-			return hexValue;
+			String value = formula.getRoot().getValue();
+			return Conversions.tryParseColor(value);
 		}
 	}
 }

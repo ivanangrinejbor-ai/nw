@@ -90,7 +90,7 @@ class ChatActivity : AppCompatActivity() {
             agent.state.collectLatest { state ->
                 val isThinking = state != AiAgentState.IDLE && state != AiAgentState.ERROR
                 sendButton.isEnabled = !isThinking
-                adapter.setThinking(isThinking, agent.activity.value)
+                adapter.setThinking(isThinking, agent.activity.value, agent.reasoning.value)
                 if (isThinking) scrollToBottom()
             }
         }
@@ -99,7 +99,16 @@ class ChatActivity : AppCompatActivity() {
             agent.activity.collectLatest { detail ->
                 val state = agent.state.value
                 val isThinking = state != AiAgentState.IDLE && state != AiAgentState.ERROR
-                adapter.setThinking(isThinking, detail)
+                adapter.setThinking(isThinking, detail, agent.reasoning.value)
+                if (isThinking) scrollToBottom()
+            }
+        }
+
+        lifecycleScope.launch {
+            agent.reasoning.collectLatest { thoughts ->
+                val state = agent.state.value
+                val isThinking = state != AiAgentState.IDLE && state != AiAgentState.ERROR
+                adapter.setThinking(isThinking, agent.activity.value, thoughts.takeLast(6000))
                 if (isThinking) scrollToBottom()
             }
         }

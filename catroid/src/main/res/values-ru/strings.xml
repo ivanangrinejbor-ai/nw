@@ -1213,6 +1213,51 @@
     </string-array>
     <string formatted="false" name="firebase_upload">Загрузить в Firebase Storage</string>
     <string formatted="false" name="firebase_download">Скачать из Firebase Storage</string>
+    <string formatted="false" name="firebase_sign_in_anonymous">Войти в FireBase анонимно</string>
+    <string formatted="false" name="firebase_sign_in_email">Войти в FireBase по email</string>
+    <string formatted="false" name="firebase_email">Email</string>
+    <string formatted="false" name="firebase_password">Пароль</string>
+    <string formatted="false" name="firebase_sign_out">Выйти из FireBase</string>
+    <string formatted="false" name="firebase_get_user_id">Получить айди пользователя FireBase</string>
+    <string formatted="false" name="firebase_is_signed_in">FireBase вход выполнен?</string>
+    <string formatted="false" name="firebase_push">Добавить в FireBase</string>
+    <string formatted="false" name="firebase_update">Обновить FireBase</string>
+    <string formatted="false" name="firebase_query">Запросить FireBase</string>
+    <string formatted="false" name="firebase_query_order">Сортировать по полю</string>
+    <string formatted="false" name="firebase_query_limit">Ограничить первыми</string>
+    <string formatted="false" name="firebase_query_equal">Равно</string>
+    <string formatted="false" name="firebase_child_event">Когда дочерний узел</string>
+    <string formatted="false" name="brick_when_firebase_child_changed">Когда дочерний узел FireBase изменился</string>
+    <string-array name="firebase_child_event_options">
+        <item>Добавлен</item>
+        <item>Изменён</item>
+        <item>Удалён</item>
+        <item>Любое изменение</item>
+    </string-array>
+    <string formatted="false" name="firestore_write">Записать в Firestore</string>
+    <string formatted="false" name="firestore_update">Обновить Firestore</string>
+    <string formatted="false" name="firestore_add">Добавить документ Firestore</string>
+    <string formatted="false" name="firestore_read">Прочитать из Firestore</string>
+    <string formatted="false" name="firestore_delete">Удалить из Firestore</string>
+    <string formatted="false" name="firestore_query">Запросить Firestore</string>
+    <string formatted="false" name="firestore_base">Айди базы FireStore</string>
+    <string formatted="false" name="firestore_path">Путь</string>
+    <string formatted="false" name="firestore_value">Значение (JSON)</string>
+    <string formatted="false" name="firestore_collection">Коллекция</string>
+    <string formatted="false" name="firestore_field">Поле</string>
+    <string formatted="false" name="firestore_operator">Оператор</string>
+    <string formatted="false" name="firestore_limit">Лимит</string>
+    <string formatted="false" name="firestore_store">и сохранить в</string>
+    <string-array name="firestore_operator_options">
+        <item>=</item>
+        <item>&gt;</item>
+        <item>&gt;=</item>
+        <item>&lt;</item>
+        <item>&lt;=</item>
+        <item>!=</item>
+        <item>contains</item>
+    </string-array>
+    <string formatted="false" name="brick_when_firestore_changed">Когда Firestore изменился</string>
     <string formatted="false" name="firebase_list">Список файлов в Firebase Storage</string>
     <string formatted="false" name="firebase_delete_storage">Удалить из Firebase Storage</string>
     <string formatted="false" name="firebase_bucket">URL хранилища</string>
@@ -1269,7 +1314,7 @@
         <item>нет</item>
     </string-array>
 
-    <!-- Р¤РёР·РёС‡РµСЃРєРёРµ РЎРѕРµРґРёРЅРµРЅРёСЏ -->
+    <!-- Физические Соединения -->
     <string name="brick_create_revolute_joint">Создать шарнир</string>
     <string name="brick_create_distance_joint">Создать пружину/стержень</string>
     <string name="brick_create_weld_joint">Создать сварку</string>
@@ -1293,7 +1338,7 @@
     <string name="brick_joint_a_id">ID соединения А</string>
     <string name="brick_joint_b_id">ID соединения Б</string>
 
-    <!-- Р¤РёР·РёС‡РµСЃРєРёРµ РЎРёР»С‹ Рё РРјРїСѓР»СЊСЃС‹ -->
+    <!-- Физические Силы и Импульсы -->
     <string name="brick_apply_force">Приложить силу</string>
     <string name="brick_apply_impulse">Придать импульс</string>
     <string name="brick_apply_torque">Приложить вращение</string>
@@ -1305,11 +1350,11 @@
     <string name="brick_torque">Момент вращения</string>
     <string name="brick_angular_impulse">Угловой импульс</string>
 
-    <!-- Р¤РёР·РёС‡РµСЃРєРёРµ РЎРІРѕР№СЃС‚РІР° -->
+    <!-- Физические Свойства -->
     <string name="brick_set_damping">Установить затухание</string>
     <string name="brick_damping_factor">Коэфф. затухания</string>
 
-    <!-- Р¤РёР·РёС‡РµСЃРєРёР№ Raycasting -->
+    <!-- Физический Raycasting -->
     <string name="brick_raycast">Пустить луч</string>
     <string name="brick_ray_id">ID луча</string>
     <string name="brick_ray_start">Начало</string>
@@ -2306,6 +2351,42 @@
     <string formatted="false" name="brick_change_height">Изменить высоту на</string>
     <string formatted="false" name="brick_set_width">Задать ширину</string>
     <string formatted="false" name="brick_set_height">Задать высоту</string>
+    <string formatted="false" name="brick_change_width_direction">Изменить ширину на</string>
+    <string formatted="false" name="brick_set_width_direction">Задать ширину</string>
+    <string formatted="false" name="brick_change_height_direction">Изменить высоту на</string>
+    <string formatted="false" name="brick_set_height_direction">Задать высоту</string>
+    <string formatted="false" name="brick_direction_towards">в сторону</string>
+    <string formatted="false" name="brick_direction_right">Вправо</string>
+    <string formatted="false" name="brick_direction_left">Влево</string>
+    <string formatted="false" name="brick_direction_up">Вверх</string>
+    <string formatted="false" name="brick_direction_down">Вниз</string>
+    <string formatted="false" name="brick_direction_center">От центра</string>
+    <string formatted="false" name="brick_flip_look">Отразить образ</string>
+    <string formatted="false" name="brick_flip_horizontal">По горизонтали</string>
+    <string formatted="false" name="brick_flip_vertical">По вертикали</string>
+    <string formatted="false" name="brick_flash_color">Вспышка цветом</string>
+    <string formatted="false" name="brick_flash_color_for">на</string>
+    <string formatted="false" name="brick_flash_color_seconds">сек</string>
+    <string formatted="false" name="brick_blink_sprite">Мигать</string>
+    <string formatted="false" name="brick_blink_times">раз(а) с интервалом</string>
+    <string formatted="false" name="brick_blink_interval">сек</string>
+    <string formatted="false" name="brick_move_towards_point">Двигаться к</string>
+    <string formatted="false" name="brick_move_towards_x">X:</string>
+    <string formatted="false" name="brick_move_towards_y">Y:</string>
+    <string formatted="false" name="brick_move_towards_steps">шагов</string>
+    <string formatted="false" name="brick_rotate_towards_target">Повернуть к</string>
+    <string formatted="false" name="brick_rotate_towards_x">X:</string>
+    <string formatted="false" name="brick_rotate_towards_y">Y:</string>
+    <string formatted="false" name="brick_rotate_towards_speed">скорость (град/с)</string>
+    <string formatted="false" name="brick_clamp_position">Ограничить позицию</string>
+    <string formatted="false" name="brick_clamp_min_x">мин X:</string>
+    <string formatted="false" name="brick_clamp_max_x">макс X:</string>
+    <string formatted="false" name="brick_clamp_min_y">мин Y:</string>
+    <string formatted="false" name="brick_clamp_max_y">макс Y:</string>
+    <string formatted="false" name="brick_cooldown">Кулдаун</string>
+    <string formatted="false" name="brick_cooldown_seconds">сек</string>
+    <string formatted="false" name="brick_wait_frames">Ждать</string>
+    <string formatted="false" name="brick_wait_frames_frames">кадр(ов)</string>
     <string formatted="false" name="brick_copy_text">Скопировать</string>
     <string formatted="false" name="brick_copy_text2">в буфер обмена</string>
     <string formatted="false" name="post_web_request">Отправить POST веб-запрос на</string>
@@ -2711,14 +2792,14 @@
     <string formatted="false" name="error_cannot_convert_deprecated_scratch_program_x_x">Невозможно преобразовать %1$s. Похоже, это
         старый проект Scratch версии раньше %2$s. Пожалуйста, попробуйте другой.</string>
     <plurals name="error_cannot_convert_more_than_x_programs">
-        <item quantity="one">Р’С‹ РЅРµ РјРѕР¶РµС‚Рµ РєРѕРЅРІРµСЂС‚РёСЂРѕРІР°С‚СЊ Р±РѕР»РµРµ С‡РµРј %d РїСЂРѕРµРєС‚ РѕРґРЅРѕРІСЂРµРјРµРЅРЅРѕ. РџРѕР¶Р°Р»СѓР№СЃС‚Р°, РїРѕРґРѕР¶РґРёС‚Рµ
-            Р·Р°РІРµСЂС€РµРЅРёСЏ С‚РµРєСѓС‰РёС… РєРѕРЅРІРµСЂС‚Р°С†РёР№.</item>
-        <item quantity="few">Р’С‹ РЅРµ РјРѕР¶РµС‚Рµ РєРѕРЅРІРµСЂС‚РёСЂРѕРІР°С‚СЊ Р±РѕР»РµРµ С‡РµРј %d РїСЂРѕРµРєС‚РѕРІ РѕРґРЅРѕРІСЂРµРјРµРЅРЅРѕ. РџРѕР¶Р°Р»СѓР№СЃС‚Р°, РїРѕРґРѕР¶РґРёС‚Рµ
-            Р·Р°РІРµСЂС€РµРЅРёСЏ С‚РµРєСѓС‰РёС… РєРѕРЅРІРµСЂС‚Р°С†РёР№.</item>
-        <item quantity="many">Р’С‹ РЅРµ РјРѕР¶РµС‚Рµ РєРѕРЅРІРµСЂС‚РёСЂРѕРІР°С‚СЊ Р±РѕР»РµРµ С‡РµРј %d РїСЂРѕРµРєС‚РѕРІ РѕРґРЅРѕРІСЂРµРјРµРЅРЅРѕ. РџРѕР¶Р°Р»СѓР№СЃС‚Р°, РїРѕРґРѕР¶РґРёС‚Рµ
-            Р·Р°РІРµСЂС€РµРЅРёСЏ С‚РµРєСѓС‰РёС… РєРѕРЅРІРµСЂС‚Р°С†РёР№.</item>
-        <item quantity="other">Р’С‹ РЅРµ РјРѕР¶РµС‚Рµ РєРѕРЅРІРµСЂС‚РёСЂРѕРІР°С‚СЊ Р±РѕР»РµРµ С‡РµРј %d РїСЂРѕРµРєС‚РѕРІ РѕРґРЅРѕРІСЂРµРјРµРЅРЅРѕ. РџРѕР¶Р°Р»СѓР№СЃС‚Р°, РїРѕРґРѕР¶РґРёС‚Рµ
-            Р·Р°РІРµСЂС€РµРЅРёСЏ С‚РµРєСѓС‰РёС… РєРѕРЅРІРµСЂС‚Р°С†РёР№.</item>
+        <item quantity="one">Вы не можете конвертировать более чем %d проект одновременно. Пожалуйста, подождите
+            завершения текущих конвертаций.</item>
+        <item quantity="few">Вы не можете конвертировать более чем %d проектов одновременно. Пожалуйста, подождите
+            завершения текущих конвертаций.</item>
+        <item quantity="many">Вы не можете конвертировать более чем %d проектов одновременно. Пожалуйста, подождите
+            завершения текущих конвертаций.</item>
+        <item quantity="other">Вы не можете конвертировать более чем %d проектов одновременно. Пожалуйста, подождите
+            завершения текущих конвертаций.</item>
     </plurals>
     <string formatted="false" name="error_cannot_open_failed_scratch_program">Не удается открыть проект, потому что он не был
         конвертирован правильно. Пожалуйста, попробуйте конвертировать его снова.</string>
@@ -2728,10 +2809,10 @@
     <string formatted="false" name="authentication_failed">Похоже, возникла проблема с подключением к сервису. Пожалуйста,
         свяжитесь с командой Catrobat.</string>
     <plurals name="scratch_conversion_scheduled_x">
-        <item quantity="one">%d РџСЂРѕРµРєС‚ Scratch РґРѕР±Р°РІР»РµРЅ РІ РѕС‡РµСЂРµРґСЊ&#8230;</item>
-        <item quantity="few">%d РџСЂРѕРµРєС‚РѕРІ Scratch РґРѕР±Р°РІР»РµРЅРѕ РІ РѕС‡РµСЂРµРґСЊ&#8230;</item>
-        <item quantity="many">%d РџСЂРѕРµРєС‚РѕРІ Scratch РґРѕР±Р°РІР»РµРЅРѕ РІ РѕС‡РµСЂРµРґСЊ&#8230;</item>
-        <item quantity="other">%d РџСЂРѕРµРєС‚РѕРІ Scratch РґРѕР±Р°РІР»РµРЅРѕ РІ РѕС‡РµСЂРµРґСЊ&#8230;</item>
+        <item quantity="one">%d Проект Scratch добавлен в очередь&#8230;</item>
+        <item quantity="few">%d Проектов Scratch добавлено в очередь&#8230;</item>
+        <item quantity="many">%d Проектов Scratch добавлено в очередь&#8230;</item>
+        <item quantity="other">%d Проектов Scratch добавлено в очередь&#8230;</item>
     </plurals>
     <string formatted="false" name="scratch_conversion_started">Конвертация Scratch проекта запущена&#8230;</string>
     <string formatted="false" name="convert">Конвертировать</string>
@@ -2741,16 +2822,16 @@
     <string formatted="false" name="status_started">Начато&#8230;</string>
     <string formatted="false" name="status_conversion_finished">Конвертация завершена</string>
     <plurals name="status_in_progress_x_jobs">
-        <item quantity="one">Р’ РїСЂРѕС†РµСЃСЃРµ: %d РѕРїРµСЂР°С†РёСЏ</item>
-        <item quantity="few">Р’ РїСЂРѕС†РµСЃСЃРµ: %d РѕРїРµСЂР°С†РёРё</item>
-        <item quantity="many">Р’ РїСЂРѕС†РµСЃСЃРµ: %d РѕРїРµСЂР°С†РёРё</item>
-        <item quantity="other">Р’ РїСЂРѕС†РµСЃСЃРµ: %d РѕРїРµСЂР°С†РёРё</item>
+        <item quantity="one">В процессе: %d операция</item>
+        <item quantity="few">В процессе: %d операции</item>
+        <item quantity="many">В процессе: %d операции</item>
+        <item quantity="other">В процессе: %d операции</item>
     </plurals>
     <plurals name="status_completed_x_jobs">
-        <item quantity="one">Р—Р°РІРµСЂС€РµРЅР°: %d РѕРїРµСЂР°С†РёСЏ</item>
-        <item quantity="few">Р—Р°РІРµСЂС€РµРЅС‹: %d РѕРїРµСЂР°С†РёРё</item>
-        <item quantity="many">Р—Р°РІРµСЂС€РµРЅС‹: %d РѕРїРµСЂР°С†РёРё</item>
-        <item quantity="other">Р—Р°РІРµСЂС€РµРЅС‹: %d РѕРїРµСЂР°С†РёРё</item>
+        <item quantity="one">Завершена: %d операция</item>
+        <item quantity="few">Завершены: %d операции</item>
+        <item quantity="many">Завершены: %d операции</item>
+        <item quantity="other">Завершены: %d операции</item>
     </plurals>
     <string formatted="false" name="status_conversion_failed">Конвертация не удалась!</string>
     <string formatted="false" name="status_downloading">Скачивание&#8230;</string>
@@ -2781,22 +2862,22 @@
     <!-- ScratchReconvertDialog Strings -->
     <string formatted="false" name="reconvert_text">Вы конвертировали этот проект %1$s назад.</string>
     <plurals name="minutes">
-        <item quantity="one">%d РјРёРЅСѓС‚Р°</item>
-        <item quantity="few">%d РјРёРЅСѓС‚</item>
-        <item quantity="many">%d РјРёРЅСѓС‚</item>
-        <item quantity="other">%d РјРёРЅСѓС‚</item>
+        <item quantity="one">%d минута</item>
+        <item quantity="few">%d минут</item>
+        <item quantity="many">%d минут</item>
+        <item quantity="other">%d минут</item>
     </plurals>
     <plurals name="hours">
-        <item quantity="one">%d С‡Р°СЃ</item>
-        <item quantity="few">%d С‡Р°СЃРѕРІ</item>
-        <item quantity="many">%d С‡Р°СЃРѕРІ</item>
-        <item quantity="other">%d С‡Р°СЃРѕРІ</item>
+        <item quantity="one">%d час</item>
+        <item quantity="few">%d часов</item>
+        <item quantity="many">%d часов</item>
+        <item quantity="other">%d часов</item>
     </plurals>
     <plurals name="days">
-        <item quantity="one">%d РґРµРЅСЊ</item>
-        <item quantity="few">%d РґРЅРµР№</item>
-        <item quantity="many">%d РґРЅРµР№</item>
-        <item quantity="other">%d РґРЅРµР№</item>
+        <item quantity="one">%d день</item>
+        <item quantity="few">%d дней</item>
+        <item quantity="many">%d дней</item>
+        <item quantity="other">%d дней</item>
     </plurals>
     <string formatted="false" name="reconvert_dialog_download">Скачать проект снова</string>
     <string formatted="false" name="reconvert_dialog_reconvert">Конвертировать этот проект снова</string>
@@ -2843,46 +2924,46 @@
     <string formatted="false" name="new_scene_dialog">Новая сцена</string>
     <!-- Delete Dialog Titles -->
     <plurals name="delete_projects">
-        <item quantity="one">РЈРґР°Р»РёС‚СЊ СЌС‚РѕС‚ РїСЂРѕРµРєС‚?</item>
-        <item quantity="few">РЈРґР°Р»РёС‚СЊ СЌС‚Рё РїСЂРѕРµРєС‚С‹?</item>
-        <item quantity="many">РЈРґР°Р»РёС‚СЊ СЌС‚Рё РїСЂРѕРµРєС‚С‹?</item>
-        <item quantity="other">РЈРґР°Р»РёС‚СЊ СЌС‚Рё РїСЂРѕРµРєС‚С‹?</item>
+        <item quantity="one">Удалить этот проект?</item>
+        <item quantity="few">Удалить эти проекты?</item>
+        <item quantity="many">Удалить эти проекты?</item>
+        <item quantity="other">Удалить эти проекты?</item>
     </plurals>
     <plurals name="delete_scenes">
-        <item quantity="one">РЈРґР°Р»РёС‚СЊ СЌС‚Сѓ СЃС†РµРЅСѓ?</item>
-        <item quantity="few">РЈРґР°Р»РёС‚СЊ СЌС‚Рё СЃС†РµРЅС‹?</item>
-        <item quantity="many">РЈРґР°Р»РёС‚СЊ СЌС‚Рё СЃС†РµРЅС‹?</item>
-        <item quantity="other">РЈРґР°Р»РёС‚СЊ СЌС‚Рё СЃС†РµРЅС‹?</item>
+        <item quantity="one">Удалить эту сцену?</item>
+        <item quantity="few">Удалить эти сцены?</item>
+        <item quantity="many">Удалить эти сцены?</item>
+        <item quantity="other">Удалить эти сцены?</item>
     </plurals>
     <plurals name="delete_sprites">
-        <item quantity="one">РЈРґР°Р»РёС‚СЊ СЌС‚РѕРіРѕ Р°РєС‚РµСЂР° РёР»Рё РѕР±СЉРµРєС‚Р°?</item>
-        <item quantity="few">РЈРґР°Р»РёС‚СЊ СЌС‚РёС… Р°РєС‚РµСЂРѕРІ РёР»Рё РѕР±СЉРµРєС‚РѕРІ?</item>
-        <item quantity="many">РЈРґР°Р»РёС‚СЊ СЌС‚РёС… Р°РєС‚РµСЂРѕРІ РёР»Рё РѕР±СЉРµРєС‚РѕРІ?</item>
-        <item quantity="other">РЈРґР°Р»РёС‚СЊ СЌС‚РёС… Р°РєС‚РµСЂРѕРІ РёР»Рё РѕР±СЉРµРєС‚РѕРІ?</item>
+        <item quantity="one">Удалить этого актера или объекта?</item>
+        <item quantity="few">Удалить этих актеров или объектов?</item>
+        <item quantity="many">Удалить этих актеров или объектов?</item>
+        <item quantity="other">Удалить этих актеров или объектов?</item>
     </plurals>
     <plurals name="delete_looks">
-        <item quantity="one">РЈРґР°Р»РёС‚СЊ СЌС‚РѕС‚ РѕР±СЂР°Р·?</item>
-        <item quantity="few">РЈРґР°Р»РёС‚СЊ СЌС‚Рё РѕР±СЂР°Р·С‹?</item>
-        <item quantity="many">РЈРґР°Р»РёС‚СЊ СЌС‚Рё РѕР±СЂР°Р·С‹?</item>
-        <item quantity="other">РЈРґР°Р»РёС‚СЊ СЌС‚Рё РѕР±СЂР°Р·С‹?</item>
+        <item quantity="one">Удалить этот образ?</item>
+        <item quantity="few">Удалить эти образы?</item>
+        <item quantity="many">Удалить эти образы?</item>
+        <item quantity="other">Удалить эти образы?</item>
     </plurals>
     <plurals name="delete_sounds">
-        <item quantity="one">РЈРґР°Р»РёС‚СЊ СЌС‚РѕС‚ Р·РІСѓРє?</item>
-        <item quantity="few">РЈРґР°Р»РёС‚СЊ СЌС‚Рё Р·РІСѓРєРё?</item>
-        <item quantity="many">РЈРґР°Р»РёС‚СЊ СЌС‚Рё Р·РІСѓРєРё?</item>
-        <item quantity="other">РЈРґР°Р»РёС‚СЊ СЌС‚Рё Р·РІСѓРєРё?</item>
+        <item quantity="one">Удалить этот звук?</item>
+        <item quantity="few">Удалить эти звуки?</item>
+        <item quantity="many">Удалить эти звуки?</item>
+        <item quantity="other">Удалить эти звуки?</item>
     </plurals>
     <plurals name="delete_nfc_tags">
-        <item quantity="one">РЈРґР°Р»РёС‚СЊ СЌС‚РѕС‚ С‚РµРі?</item>
-        <item quantity="few">РЈРґР°Р»РёС‚СЊ СЌС‚Рё С‚РµРіРё?</item>
-        <item quantity="many">РЈРґР°Р»РёС‚СЊ СЌС‚Рё С‚РµРіРё?</item>
-        <item quantity="other">РЈРґР°Р»РёС‚СЊ СЌС‚Рё С‚РµРіРё?</item>
+        <item quantity="one">Удалить этот тег?</item>
+        <item quantity="few">Удалить эти теги?</item>
+        <item quantity="many">Удалить эти теги?</item>
+        <item quantity="other">Удалить эти теги?</item>
     </plurals>
     <plurals name="delete_scripts">
-        <item quantity="one">РЈРґР°Р»РёС‚СЊ СЌС‚РѕС‚ СЃРєСЂРёРїС‚?</item>
-        <item quantity="few">РЈРґР°Р»РёС‚СЊ СЌС‚Рё СЃРєСЂРёРїС‚С‹?</item>
-        <item quantity="many">РЈРґР°Р»РёС‚СЊ СЌС‚Рё СЃРєСЂРёРїС‚С‹?</item>
-        <item quantity="other">РЈРґР°Р»РёС‚СЊ СЌС‚Рё СЃРєСЂРёРїС‚С‹?</item>
+        <item quantity="one">Удалить этот скрипт?</item>
+        <item quantity="few">Удалить эти скрипты?</item>
+        <item quantity="many">Удалить эти скрипты?</item>
+        <item quantity="other">Удалить эти скрипты?</item>
     </plurals>
     <!-- Dialog Labels -->
     <string formatted="false" name="project_name_label">Название проекта</string>
@@ -2939,28 +3020,28 @@
     <!-- Backpack -->
     <string formatted="false" name="backpack_empty">Портфель пуст. Нечего распаковывать.</string>
     <plurals name="packed_scenes">
-        <item quantity="one">РЈРїР°РєРѕРІР°РЅР° %d СЃС†РµРЅР°.</item>
-        <item quantity="few">РЈРїР°РєРѕРІР°РЅРѕ %d СЃС†РµРЅ.</item>
-        <item quantity="many">РЈРїР°РєРѕРІР°РЅРѕ %d СЃС†РµРЅ.</item>
-        <item quantity="other">РЈРїР°РєРѕРІР°РЅРѕ %d СЃС†РµРЅ.</item>
+        <item quantity="one">Упакована %d сцена.</item>
+        <item quantity="few">Упаковано %d сцен.</item>
+        <item quantity="many">Упаковано %d сцен.</item>
+        <item quantity="other">Упаковано %d сцен.</item>
     </plurals>
     <plurals name="packed_sprites">
-        <item quantity="one">РЈРїР°РєРѕРІР°РЅ %d Р°РєС‚РµСЂ РёР»Рё РѕР±СЉРµРєС‚.</item>
-        <item quantity="few">РЈРїР°РєРѕРІР°РЅРѕ %d Р°РєС‚РµСЂРѕРІ РёР»Рё РѕР±СЉРµРєС‚РѕРІ.</item>
-        <item quantity="many">РЈРїР°РєРѕРІР°РЅРѕ %d Р°РєС‚РµСЂРѕРІ РёР»Рё РѕР±СЉРµРєС‚РѕРІ.</item>
-        <item quantity="other">РЈРїР°РєРѕРІР°РЅРѕ %d Р°РєС‚РµСЂРѕРІ РёР»Рё РѕР±СЉРµРєС‚РѕРІ.</item>
+        <item quantity="one">Упакован %d актер или объект.</item>
+        <item quantity="few">Упаковано %d актеров или объектов.</item>
+        <item quantity="many">Упаковано %d актеров или объектов.</item>
+        <item quantity="other">Упаковано %d актеров или объектов.</item>
     </plurals>
     <plurals name="packed_looks">
-        <item quantity="one">РЈРїР°РєРѕРІР°РЅ %d РѕР±СЂР°Р·.</item>
-        <item quantity="few">РЈРїР°РєРѕРІР°РЅРѕ %d РѕР±СЂР°Р·РѕРІ.</item>
-        <item quantity="many">РЈРїР°РєРѕРІР°РЅРѕ %d РѕР±СЂР°Р·РѕРІ.</item>
-        <item quantity="other">РЈРїР°РєРѕРІР°РЅРѕ %d РѕР±СЂР°Р·РѕРІ.</item>
+        <item quantity="one">Упакован %d образ.</item>
+        <item quantity="few">Упаковано %d образов.</item>
+        <item quantity="many">Упаковано %d образов.</item>
+        <item quantity="other">Упаковано %d образов.</item>
     </plurals>
     <plurals name="packed_sounds">
-        <item quantity="one">РЈРїР°РєРѕРІР°РЅ %d Р·РІСѓРє.</item>
-        <item quantity="few">РЈРїР°РєРѕРІР°РЅРѕ %d Р·РІСѓРєР°.</item>
-        <item quantity="many">РЈРїР°РєРѕРІР°РЅРѕ %d Р·РІСѓРєРѕРІ.</item>
-        <item quantity="other">РЈРїР°РєРѕРІР°РЅРѕ %d Р·РІСѓРєРѕРІ.</item>
+        <item quantity="one">Упакован %d звук.</item>
+        <item quantity="few">Упаковано %d звука.</item>
+        <item quantity="many">Упаковано %d звуков.</item>
+        <item quantity="other">Упаковано %d звуков.</item>
     </plurals>
     <string formatted="false" name="packed_script_group">Упакована одна группа скриптов.</string>
     <string formatted="false" name="pack_include_sounds">Скрипт содержит звуки. Сохранить их вместе со скриптом?</string>
@@ -2972,121 +3053,121 @@
     <string formatted="false" name="pack_include_sounds_short">звуки</string>
     <!-- Unpack -->
     <plurals name="unpacked_scenes">
-        <item quantity="one">Р Р°СЃРїР°РєРѕРІР°РЅР° %d СЃС†РµРЅР°.</item>
-        <item quantity="few">Р Р°СЃРїР°РєРѕРІР°РЅРѕ %d СЃС†РµРЅ.</item>
-        <item quantity="many">Р Р°СЃРїР°РєРѕРІР°РЅРѕ %d СЃС†РµРЅ.</item>
-        <item quantity="other">Р Р°СЃРїР°РєРѕРІР°РЅРѕ %d СЃС†РµРЅ.</item>
+        <item quantity="one">Распакована %d сцена.</item>
+        <item quantity="few">Распаковано %d сцен.</item>
+        <item quantity="many">Распаковано %d сцен.</item>
+        <item quantity="other">Распаковано %d сцен.</item>
     </plurals>
     <plurals name="unpacked_sprites">
-        <item quantity="one">Р Р°СЃРїР°РєРѕРІР°РЅ %d Р°РєС‚РµСЂ РёР»Рё РѕР±СЉРµРєС‚.</item>
-        <item quantity="few">Р Р°СЃРїР°РєРѕРІР°РЅРѕ %d Р°РєС‚РµСЂРѕРІ РёР»Рё РѕР±СЉРµРєС‚РѕРІ.</item>
-        <item quantity="many">Р Р°СЃРїР°РєРѕРІР°РЅРѕ %d Р°РєС‚РµСЂРѕРІ РёР»Рё РѕР±СЉРµРєС‚РѕРІ.</item>
-        <item quantity="other">Р Р°СЃРїР°РєРѕРІР°РЅРѕ %d Р°РєС‚РµСЂРѕРІ РёР»Рё РѕР±СЉРµРєС‚РѕРІ.</item>
+        <item quantity="one">Распакован %d актер или объект.</item>
+        <item quantity="few">Распаковано %d актеров или объектов.</item>
+        <item quantity="many">Распаковано %d актеров или объектов.</item>
+        <item quantity="other">Распаковано %d актеров или объектов.</item>
     </plurals>
     <plurals name="unpacked_looks">
-        <item quantity="one">Р Р°СЃРїР°РєРѕРІР°РЅ %d РѕР±СЂР°Р·.</item>
-        <item quantity="few">Р Р°СЃРїР°РєРѕРІР°РЅРѕ %d РѕР±СЂР°Р·Р°.</item>
-        <item quantity="many">Р Р°СЃРїР°РєРѕРІР°РЅРѕ %d РѕР±СЂР°Р·РѕРІ.</item>
-        <item quantity="other">Р Р°СЃРїР°РєРѕРІР°РЅРѕ %d РѕР±СЂР°Р·РѕРІ.</item>
+        <item quantity="one">Распакован %d образ.</item>
+        <item quantity="few">Распаковано %d образа.</item>
+        <item quantity="many">Распаковано %d образов.</item>
+        <item quantity="other">Распаковано %d образов.</item>
     </plurals>
     <plurals name="unpacked_sounds">
-        <item quantity="one">Р Р°СЃРїР°РєРѕРІР°РЅ %d Р·РІСѓРє.</item>
-        <item quantity="few">Р Р°СЃРїР°РєРѕРІР°РЅРѕ %d Р·РІСѓРєР°.</item>
-        <item quantity="many">Р Р°СЃРїР°РєРѕРІР°РЅРѕ %d Р·РІСѓРєРѕРІ.</item>
-        <item quantity="other">Р Р°СЃРїР°РєРѕРІР°РЅРѕ %d Р·РІСѓРєРѕРІ.</item>
+        <item quantity="one">Распакован %d звук.</item>
+        <item quantity="few">Распаковано %d звука.</item>
+        <item quantity="many">Распаковано %d звуков.</item>
+        <item quantity="other">Распаковано %d звуков.</item>
     </plurals>
     <plurals name="unpacked_scripts">
-        <item quantity="one">Р Р°СЃРїР°РєРѕРІР°РЅ %d СЃРєСЂРёРїС‚.</item>
-        <item quantity="few">Р Р°СЃРїР°РєРѕРІР°РЅРѕ %d СЃРєСЂРёРїС‚РѕРІ.</item>
-        <item quantity="many">Р Р°СЃРїР°РєРѕРІР°РЅРѕ %d СЃРєСЂРёРїС‚РѕРІ.</item>
-        <item quantity="other">Р Р°СЃРїР°РєРѕРІР°РЅРѕ %d СЃРєСЂРёРїС‚РѕРІ.</item>
+        <item quantity="one">Распакован %d скрипт.</item>
+        <item quantity="few">Распаковано %d скриптов.</item>
+        <item quantity="many">Распаковано %d скриптов.</item>
+        <item quantity="other">Распаковано %d скриптов.</item>
     </plurals>
     <!-- Copy -->
     <plurals name="copied_scenes">
-        <item quantity="one">РЎРєРѕРїРёСЂРѕРІР°РЅР° %d СЃС†РµРЅР°.</item>
-        <item quantity="few">РЎРєРѕРїРёСЂРѕРІР°РЅРѕ %d СЃС†РµРЅ.</item>
-        <item quantity="many">РЎРєРѕРїРёСЂРѕРІР°РЅРѕ %d СЃС†РµРЅ.</item>
-        <item quantity="other">РЎРєРѕРїРёСЂРѕРІР°РЅРѕ %d СЃС†РµРЅ.</item>
+        <item quantity="one">Скопирована %d сцена.</item>
+        <item quantity="few">Скопировано %d сцен.</item>
+        <item quantity="many">Скопировано %d сцен.</item>
+        <item quantity="other">Скопировано %d сцен.</item>
     </plurals>
     <plurals name="copied_sprites">
-        <item quantity="one">РЎРєРѕРїРёСЂРѕРІР°РЅ %d Р°РєС‚РµСЂ РёР»Рё РѕР±СЉРµРєС‚.</item>
-        <item quantity="few">РЎРєРѕРїРёСЂРѕРІР°РЅРѕ %d Р°РєС‚РµСЂРѕРІ РёР»Рё РѕР±СЉРµРєС‚РѕРІ.</item>
-        <item quantity="many">РЎРєРѕРїРёСЂРѕРІР°РЅРѕ %d Р°РєС‚РµСЂРѕРІ РёР»Рё РѕР±СЉРµРєС‚РѕРІ.</item>
-        <item quantity="other">РЎРєРѕРїРёСЂРѕРІР°РЅРѕ %d Р°РєС‚РµСЂРѕРІ РёР»Рё РѕР±СЉРµРєС‚РѕРІ.</item>
+        <item quantity="one">Скопирован %d актер или объект.</item>
+        <item quantity="few">Скопировано %d актеров или объектов.</item>
+        <item quantity="many">Скопировано %d актеров или объектов.</item>
+        <item quantity="other">Скопировано %d актеров или объектов.</item>
     </plurals>
     <plurals name="copied_looks">
-        <item quantity="one">РЎРєРѕРїРёСЂРѕРІР°РЅ %d РѕР±СЂР°Р·.</item>
-        <item quantity="few">РЎРєРѕРїРёСЂРѕРІР°РЅРѕ %d РѕР±СЂР°Р·РѕРІ.</item>
-        <item quantity="many">РЎРєРѕРїРёСЂРѕРІР°РЅРѕ %d РѕР±СЂР°Р·РѕРІ.</item>
-        <item quantity="other">РЎРєРѕРїРёСЂРѕРІР°РЅРѕ %d РѕР±СЂР°Р·РѕРІ.</item>
+        <item quantity="one">Скопирован %d образ.</item>
+        <item quantity="few">Скопировано %d образов.</item>
+        <item quantity="many">Скопировано %d образов.</item>
+        <item quantity="other">Скопировано %d образов.</item>
     </plurals>
     <plurals name="copied_sounds">
-        <item quantity="one">РЎРєРѕРїРёСЂРѕРІР°РЅ %d Р·РІСѓРє.</item>
-        <item quantity="few">РЎРєРѕРїРёСЂРѕРІР°РЅРѕ %d Р·РІСѓРєРѕРІ.</item>
-        <item quantity="many">РЎРєРѕРїРёСЂРѕРІР°РЅРѕ %d Р·РІСѓРєРѕРІ.</item>
-        <item quantity="other">РЎРєРѕРїРёСЂРѕРІР°РЅРѕ %d Р·РІСѓРєРѕРІ.</item>
+        <item quantity="one">Скопирован %d звук.</item>
+        <item quantity="few">Скопировано %d звуков.</item>
+        <item quantity="many">Скопировано %d звуков.</item>
+        <item quantity="other">Скопировано %d звуков.</item>
     </plurals>
     <plurals name="copied_nfc_tags">
-        <item quantity="one">РЎРєРѕРїРёСЂРѕРІР°РЅ %d NFC С‚РµРі.</item>
-        <item quantity="few">РЎРєРѕРїРёСЂРѕРІР°РЅРѕ %d NFC С‚РµРіРѕРІ.</item>
-        <item quantity="many">РЎРєРѕРїРёСЂРѕРІР°РЅРѕ %d NFC С‚РµРіРѕРІ.</item>
-        <item quantity="other">РЎРєРѕРїРёСЂРѕРІР°РЅРѕ %d NFC С‚РµРіРѕРІ.</item>
+        <item quantity="one">Скопирован %d NFC тег.</item>
+        <item quantity="few">Скопировано %d NFC тегов.</item>
+        <item quantity="many">Скопировано %d NFC тегов.</item>
+        <item quantity="other">Скопировано %d NFC тегов.</item>
     </plurals>
     <!-- Delete -->
     <plurals name="deleted_projects">
-        <item quantity="one">РЈРґР°Р»РµРЅ %d РїСЂРѕРµРєС‚.</item>
-        <item quantity="few">РЈРґР°Р»РµРЅРѕ %d РїСЂРѕРµРєС‚РѕРІ.</item>
-        <item quantity="many">РЈРґР°Р»РµРЅРѕ %d РїСЂРѕРµРєС‚РѕРІ.</item>
-        <item quantity="other">РЈРґР°Р»РµРЅРѕ %d РїСЂРѕРµРєС‚РѕРІ.</item>
+        <item quantity="one">Удален %d проект.</item>
+        <item quantity="few">Удалено %d проектов.</item>
+        <item quantity="many">Удалено %d проектов.</item>
+        <item quantity="other">Удалено %d проектов.</item>
     </plurals>
     <plurals name="deleted_scenes">
-        <item quantity="one">РЈРґР°Р»РµРЅР° %d СЃС†РµРЅР°.</item>
-        <item quantity="few">РЈРґР°Р»РµРЅРѕ %d СЃС†РµРЅ.</item>
-        <item quantity="many">РЈРґР°Р»РµРЅРѕ %d СЃС†РµРЅ.</item>
-        <item quantity="other">РЈРґР°Р»РµРЅРѕ %d СЃС†РµРЅ.</item>
+        <item quantity="one">Удалена %d сцена.</item>
+        <item quantity="few">Удалено %d сцен.</item>
+        <item quantity="many">Удалено %d сцен.</item>
+        <item quantity="other">Удалено %d сцен.</item>
     </plurals>
     <plurals name="deleted_sprites">
-        <item quantity="one">РЈРґР°Р»РµРЅ %d Р°РєС‚РµСЂ РёР»Рё РѕР±СЉРµРєС‚.</item>
-        <item quantity="few">РЈРґР°Р»РµРЅРѕ %d Р°РєС‚РµСЂРѕРІ РёР»Рё РѕР±СЉРµРєС‚РѕРІ.</item>
-        <item quantity="many">РЈРґР°Р»РµРЅРѕ %d Р°РєС‚РµСЂРѕРІ РёР»Рё РѕР±СЉРµРєС‚РѕРІ.</item>
-        <item quantity="other">РЈРґР°Р»РµРЅРѕ %d Р°РєС‚РµСЂРѕРІ РёР»Рё РѕР±СЉРµРєС‚РѕРІ.</item>
+        <item quantity="one">Удален %d актер или объект.</item>
+        <item quantity="few">Удалено %d актеров или объектов.</item>
+        <item quantity="many">Удалено %d актеров или объектов.</item>
+        <item quantity="other">Удалено %d актеров или объектов.</item>
     </plurals>
     <plurals name="deleted_looks">
-        <item quantity="one">РЈРґР°Р»РµРЅ %d РѕР±СЂР°Р·.</item>
-        <item quantity="few">РЈРґР°Р»РµРЅРѕ %d РѕР±СЂР°Р·РѕРІ.</item>
-        <item quantity="many">РЈРґР°Р»РµРЅРѕ %d РѕР±СЂР°Р·РѕРІ.</item>
-        <item quantity="other">РЈРґР°Р»РµРЅРѕ %d РѕР±СЂР°Р·РѕРІ.</item>
+        <item quantity="one">Удален %d образ.</item>
+        <item quantity="few">Удалено %d образов.</item>
+        <item quantity="many">Удалено %d образов.</item>
+        <item quantity="other">Удалено %d образов.</item>
     </plurals>
     <plurals name="deleted_sounds">
-        <item quantity="one">РЈРґР°Р»РµРЅ %d Р·РІСѓРє.</item>
-        <item quantity="few">РЈРґР°Р»РµРЅРѕ %d Р·РІСѓРєРѕРІ.</item>
-        <item quantity="many">РЈРґР°Р»РµРЅРѕ %d Р·РІСѓРєРѕРІ.</item>
-        <item quantity="other">РЈРґР°Р»РµРЅРѕ %d Р·РІСѓРєРѕРІ.</item>
+        <item quantity="one">Удален %d звук.</item>
+        <item quantity="few">Удалено %d звуков.</item>
+        <item quantity="many">Удалено %d звуков.</item>
+        <item quantity="other">Удалено %d звуков.</item>
     </plurals>
     <plurals name="deleted_nfc_tags">
-        <item quantity="one">РЈРґР°Р»РµРЅ %d NFC С‚РµРі.</item>
-        <item quantity="few">РЈРґР°Р»РµРЅРѕ %d NFC С‚РµРіРѕРІ.</item>
-        <item quantity="many">РЈРґР°Р»РµРЅРѕ %d NFC С‚РµРіРѕРІ.</item>
-        <item quantity="other">РЈРґР°Р»РµРЅРѕ %d NFC С‚РµРіРѕРІ.</item>
+        <item quantity="one">Удален %d NFC тег.</item>
+        <item quantity="few">Удалено %d NFC тегов.</item>
+        <item quantity="many">Удалено %d NFC тегов.</item>
+        <item quantity="other">Удалено %d NFC тегов.</item>
     </plurals>
     <plurals name="deleted_scripts">
-        <item quantity="one">РЈРґР°Р»РµРЅ %d СЃРєСЂРёРїС‚.</item>
-        <item quantity="few">РЈРґР°Р»РµРЅРѕ %d СЃРєСЂРёРїС‚РѕРІ.</item>
-        <item quantity="many">РЈРґР°Р»РµРЅРѕ %d СЃРєСЂРёРїС‚РѕРІ.</item>
-        <item quantity="other">РЈРґР°Р»РµРЅРѕ %d СЃРєСЂРёРїС‚РѕРІ.</item>
+        <item quantity="one">Удален %d скрипт.</item>
+        <item quantity="few">Удалено %d скриптов.</item>
+        <item quantity="many">Удалено %d скриптов.</item>
+        <item quantity="other">Удалено %d скриптов.</item>
     </plurals>
     <plurals name="deleted_Items">
-        <item quantity="one">РЈРґР°Р»РµРЅ %d СЌР»РµРјРµРЅС‚.</item>
-        <item quantity="few">РЈРґР°Р»РµРЅРѕ %d СЌР»РµРјРµРЅС‚РѕРІ.</item>
-        <item quantity="many">РЈРґР°Р»РµРЅРѕ %d СЌР»РµРјРµРЅС‚РѕРІ.</item>
-        <item quantity="other">РЈРґР°Р»РµРЅРѕ %d СЌР»РµРјРµРЅС‚РѕРІ.</item>
+        <item quantity="one">Удален %d элемент.</item>
+        <item quantity="few">Удалено %d элементов.</item>
+        <item quantity="many">Удалено %d элементов.</item>
+        <item quantity="other">Удалено %d элементов.</item>
     </plurals>
     <!-- Imported -->
     <plurals name="imported_projects">
-        <item quantity="one">РРјРїРѕСЂС‚РёСЂРѕРІР°РЅ %d РїСЂРѕРµРєС‚.</item>
-        <item quantity="few">РРјРїРѕСЂС‚РёСЂРѕРІР°РЅРѕ %d РїСЂРѕРµРєС‚РѕРІ.</item>
-        <item quantity="many">РРјРїРѕСЂС‚РёСЂРѕРІР°РЅРѕ %d РїСЂРѕРµРєС‚РѕРІ.</item>
-        <item quantity="other">РРјРїРѕСЂС‚РёСЂРѕРІР°РЅРѕ %d РїСЂРѕРµРєС‚РѕРІ.</item>
+        <item quantity="one">Импортирован %d проект.</item>
+        <item quantity="few">Импортировано %d проектов.</item>
+        <item quantity="many">Импортировано %d проектов.</item>
+        <item quantity="other">Импортировано %d проектов.</item>
     </plurals>
     <!-- Renamed -->
     <string formatted="false" name="renamed_project">Проект был переименован</string>
@@ -3217,10 +3298,10 @@
     <string formatted="false" name="local_lists_headline">Списки только для этого актера или объекта</string>
     <string formatted="false" name="fragment_data_text_description">Нажмите \"+\" чтобы добавить\nпеременные или списки</string>
     <plurals name="user_defined_brick_input_headline">
-        <item quantity="one">Р’РІРѕРґ РґР»СЏ СЌС‚РѕРіРѕ Р±Р»РѕРєР°</item>
-        <item quantity="few">Р’РІРѕРґС‹ РґР»СЏ СЌС‚РѕРіРѕ Р±Р»РѕРєР°</item>
-        <item quantity="many">Р’РІРѕРґС‹ РґР»СЏ СЌС‚РѕРіРѕ Р±Р»РѕРєР°</item>
-        <item quantity="other">Р’РІРѕРґС‹ РґР»СЏ СЌС‚РёС… Р±Р»РѕРєРѕРІ</item>
+        <item quantity="one">Ввод для этого блока</item>
+        <item quantity="few">Вводы для этого блока</item>
+        <item quantity="many">Вводы для этого блока</item>
+        <item quantity="other">Вводы для этих блоков</item>
     </plurals>
     <!-- NewDataDialog -->
     <string formatted="false" name="new_data_for_all_sprites">Для всех актеров, объектов, и клонов во всех сценах</string>
@@ -3538,19 +3619,19 @@
     <string formatted="false" name="brick_set_rotation_style_normal">вокруг</string>
     <string formatted="false" name="brick_set_rotation_style_no">не вращать</string>
     <plurals name="brick_go_back_layer_plural">
-        <item quantity="one">СЃР»РѕР№</item>
-        <item quantity="few">СЃР»РѕРµРІ</item>
-        <item quantity="many">СЃР»РѕРµРІ</item>
-        <item quantity="other">СЃР»РѕСЏ</item>
+        <item quantity="one">слой</item>
+        <item quantity="few">слоев</item>
+        <item quantity="many">слоев</item>
+        <item quantity="other">слоя</item>
     </plurals>
     <string formatted="false" name="brick_come_to_front">Переместить на передний слой</string>
     <string formatted="false" name="brick_if_on_edge_bounce">Оттолкнуться, если на краю</string>
     <string formatted="false" name="brick_move">Идти</string>
     <plurals name="brick_move_n_step_plural">
-        <item quantity="one">С€Р°Рі</item>
-        <item quantity="few">С€Р°РіР°</item>
-        <item quantity="many">С€Р°РіРѕРІ</item>
-        <item quantity="other">С€Р°РіРѕРІ</item>
+        <item quantity="one">шаг</item>
+        <item quantity="few">шага</item>
+        <item quantity="many">шагов</item>
+        <item quantity="other">шагов</item>
     </plurals>
     <string formatted="false" name="brick_turn_left">Повернуть налево на</string>
     <string formatted="false" name="brick_turn_right">Повернуть направо на</string>
@@ -3758,10 +3839,10 @@
     <string formatted="false" name="brick_stop_all_scripts">все скрипты</string>
     <string formatted="false" name="brick_stop_other_scripts">другие скрипты этого актера или объекта</string>
     <plurals name="second_plural">
-        <item quantity="one">"СЃРµРєСѓРЅРґСѓ "</item>
-        <item quantity="few">"СЃРµРєСѓРЅРґ"</item>
-        <item quantity="many">"СЃРµРєСѓРЅРґ"</item>
-        <item quantity="other">"СЃРµРєСѓРЅРґ "</item>
+        <item quantity="one">"секунду "</item>
+        <item quantity="few">"секунд"</item>
+        <item quantity="many">"секунд"</item>
+        <item quantity="other">"секунд "</item>
     </plurals>
     <string formatted="false" name="brick_collision_receive">При столкновении с</string>
     <string formatted="false" name="collision_with_anything">любым краем, актером, или объектом</string>
@@ -3817,28 +3898,28 @@
     <string formatted="false" name="brick_parameterized_assert">утвердить</string>
     <string formatted="false" name="brick_parameterized_equals">равно ожидаемому элементу</string>
     <plurals name="brick_parameterized_foreach_plural">
-        <item quantity="one">Р”Р»СЏ РєР°Р¶РґРѕРіРѕ СЌР»РµРјРµРЅС‚Р°</item>
-        <item quantity="few">Р”Р»СЏ РєР°Р¶РґРѕРіРѕ СЌР»РµРјРµРЅС‚Р°</item>
-        <item quantity="many">Р”Р»СЏ РєР°Р¶РґС‹С… СЌР»РµРјРµРЅС‚РѕРІ</item>
-        <item quantity="other">Р”Р»СЏ РєР°Р¶РґС‹С… СЌР»РµРјРµРЅС‚РѕРІ</item>
+        <item quantity="one">Для каждого элемента</item>
+        <item quantity="few">Для каждого элемента</item>
+        <item quantity="many">Для каждых элементов</item>
+        <item quantity="other">Для каждых элементов</item>
     </plurals>
     <plurals name="brick_parameterized_stored_plural">
-        <item quantity="one">СЃРѕС…СЂР°РЅРµРЅР° РІ РїРµСЂРµРјРµРЅРЅСѓСЋ СЃ С‚Р°РєРёРј Р¶Рµ РёРјРµРЅРµРј</item>
-        <item quantity="few">СЃРѕС…СЂР°РЅРµРЅС‹ РІ РїРµСЂРµРјРµРЅРЅС‹Рµ СЃ С‚Р°РєРёРј Р¶Рµ РёРјРµРЅРµРј</item>
-        <item quantity="many">СЃРѕС…СЂР°РЅРµРЅС‹ РІ РїРµСЂРµРјРµРЅРЅС‹Рµ СЃ С‚Р°РєРёРј Р¶Рµ РёРјРµРЅРµРј</item>
-        <item quantity="other">СЃРѕС…СЂР°РЅРµРЅС‹ РІ РїРµСЂРµРјРµРЅРЅС‹Рµ СЃ С‚Р°РєРёРј Р¶Рµ РёРјРµРЅРµРј</item>
+        <item quantity="one">сохранена в переменную с таким же именем</item>
+        <item quantity="few">сохранены в переменные с таким же именем</item>
+        <item quantity="many">сохранены в переменные с таким же именем</item>
+        <item quantity="other">сохранены в переменные с таким же именем</item>
     </plurals>
     <plurals name="list_selection_plural">
-        <item quantity="one">%d СЃРїРёСЃРѕРє РІС‹Р±СЂР°РЅ</item>
-        <item quantity="few">%d СЃРїРёСЃРєРѕРІ РІС‹Р±СЂР°РЅРѕ</item>
-        <item quantity="many">%d СЃРїРёСЃРєРѕРІ РІС‹Р±СЂР°РЅРѕ</item>
-        <item quantity="other">%d СЃРїРёСЃРєРѕРІ РІС‹Р±СЂР°РЅРѕ</item>
+        <item quantity="one">%d список выбран</item>
+        <item quantity="few">%d списков выбрано</item>
+        <item quantity="many">%d списков выбрано</item>
+        <item quantity="other">%d списков выбрано</item>
     </plurals>
     <plurals name="time_plural">
-        <item quantity="one">СЂР°Р·</item>
-        <item quantity="few">СЂР°Р·a</item>
-        <item quantity="many">СЂР°Р·</item>
-        <item quantity="other">СЂР°Р·a</item>
+        <item quantity="one">раз</item>
+        <item quantity="few">разa</item>
+        <item quantity="many">раз</item>
+        <item quantity="other">разa</item>
     </plurals>
     <string formatted="false" name="brick_loop_end">Конец (цикла)</string>
 
@@ -4070,6 +4151,7 @@
     <string formatted="false" name="error_new_project">Произошла ошибка при создании нового проекта.</string>
     <string formatted="false" name="error_rename_scene">Что-то пошло не так при переименовании сцены.</string>
     <string formatted="false" name="error_load_project">Что-то пошло не так при загрузке проекта.</string>
+    <string formatted="false" name="error_no_project_loaded">Нет активного проекта для запуска. Сначала откройте или создайте проект.</string>
     <string formatted="false" name="error_screenshot_failed">Что-то пошло не так при сохранении превью.</string>
     <string formatted="false" name="error_internet_connection">Произошла неизвестная ошибка. Проверьте подключение к интернету.</string>
     <string formatted="false" name="error_project_compatibility">Проект несовместим с этой версией приложения.</string>
@@ -4081,6 +4163,8 @@
     <string formatted="false" name="error_adding_brick">Что-то пошло не так при добавлении этого блока.</string>
     <string formatted="false" name="error_copying_brick">Что-то пошло не так при копировании этого блока.</string>
     <string formatted="false" name="error_rename_incompatible_project">Переименование несовместимого проекта невозможно.</string>
+    <string formatted="false" name="error_rename_project">Не удалось переименовать проект. Восстановлено старое имя.</string>
+    <string formatted="false" name="error_unreadable_projects">Проектов повреждено и скрыто из списка: %1$d.</string>
     <string formatted="false" name="error_embroidery_file_export">Что-то пошло не так при передаче файла для вышивки.</string>
     <string formatted="false" name="error_embroidery_file_write">Что-то пошло не так при сохранении файла для вышивки.</string>
     <string formatted="false" name="error_embroidery_data_not_found">Отсутствует файл для вышивки.</string>
@@ -5273,6 +5357,7 @@
     <!-- ============ APK Builder V3 ============ -->
     <string name="export_as_apk_v3">APK Builder V3</string>
     <string name="v3_loading_title">NeoCatroid</string>
+
     <string name="v3_loading">Загрузка…</string>
     <string name="v3_decrypting">Расшифровка проекта…</string>
     <string name="v3_decrypting_meta">Расшифровка метаданных…</string>
@@ -5299,7 +5384,7 @@
     <string name="v3_icon_project">Иконка проекта</string>
     <string name="v3_icon_default">Иконка по умолчанию</string>
 
-    <!-- Firebase РєРѕРЅС„РёРіСѓСЂР°С†РёСЏ РґР»СЏ APK Builder V3 -->
+    <!-- Firebase конфигурация для APK Builder V3 -->
     <string name="v3_firebase_section">Firebase</string>
     <string name="v3_firebase_add_button">Добавить свой google-services.json</string>
     <string name="v3_firebase_file_added">google-services.json добавлен</string>
@@ -6009,7 +6094,7 @@ Catrobat — это визуальный язык программировани
     <string name="hitbox_mode_info_full_text">Для проверки столкновений используется вся фигура. Лучше всего подходит для точной проверки касаний, но тяжелее при большом количестве объектов.</string>
     <string name="hitbox_mode_info_physics_title">Физическое столкновение</string>
     <string name="hitbox_mode_info_physics_text">Движок физики использует упрощённую фигуру. Быстрее и рекомендуется, когда объекты сталкиваются и отскакивают друг от друга.</string>
-    <!-- РљР°СЃС‚РѕРјРЅС‹Рµ С‚РµРјС‹ (.neotema) -->
+    <!-- Кастомные темы (.neotema) -->
     <string name="settings_themes_title">Темы</string>
     <string name="settings_themes_summary">Импорт и применение кастомных тем .neotema</string>
     <string name="theme_default_name">Обычная тема</string>
@@ -6152,8 +6237,8 @@ Catrobat — это визуальный язык программировани
     <string name="formula_tile_size">размер тайла</string>
     <string name="formula_param_column">столбец</string>
     <string name="formula_param_row">строка</string>
-<string name="formula_tile_at_position_param" formatted="false">(СЃС‚РѕР»Р±РµС†, СЃС‚СЂРѕРєР°)</string>
-<string name="formula_is_solid_tile_at_param" formatted="false">(СЃС‚РѕР»Р±РµС†, СЃС‚СЂРѕРєР°)</string>
+<string name="formula_tile_at_position_param" formatted="false">(столбец, строка)</string>
+<string name="formula_is_solid_tile_at_param" formatted="false">(столбец, строка)</string>
 
     <!-- Look list entries -->
     <string name="look_new_tilemap">Новый тайлмап</string>
@@ -6350,4 +6435,16 @@ Catrobat — это визуальный язык программировани
         <item>Текст</item>
         <item>Файл шрифта</item>
     </string-array>
+
+    <string name="category_shaders" formatted="false">Шейдеры</string>
+    <string name="brick_normalize_sprite_shader" formatted="false">Нормализовать объект</string>
+    <string name="brick_dark_grayscale_shader" formatted="false">Сделать тёмно-серым объект</string>
+    <string name="brick_invert_colors_shader" formatted="false">Инвертировать цвета объекта</string>
+    <string name="brick_tint_shader" formatted="false">Окрасить объект</string>
+    <string name="brick_tint_shader_red" formatted="false">Красный</string>
+    <string name="brick_tint_shader_green" formatted="false">Зелёный</string>
+    <string name="brick_tint_shader_blue" formatted="false">Синий</string>
+    <string name="brick_tint_shader_amount" formatted="false">Интенсивность %</string>
+    <string name="brick_set_look_by_name" formatted="false">Задать образ по имени</string>
+    <string name="brick_set_look_by_name_default" formatted="false">образ1</string>
 </resources>

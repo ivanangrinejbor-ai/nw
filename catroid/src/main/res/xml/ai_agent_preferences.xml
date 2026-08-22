@@ -63,6 +63,14 @@
             android:summary="@string/ai_agent_max_tool_calls_summary"
             android:title="@string/ai_agent_max_tool_calls_title" />
 
+        <ListPreference
+            android:defaultValue="default"
+            android:entries="@array/ai_agent_reasoning_entries"
+            android:entryValues="@array/ai_agent_reasoning_values"
+            android:key="ai_agent_reasoning_level"
+            android:summary="@string/ai_agent_reasoning_summary"
+            android:title="@string/ai_agent_reasoning_title" />
+
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/ai_agent_memory_category">

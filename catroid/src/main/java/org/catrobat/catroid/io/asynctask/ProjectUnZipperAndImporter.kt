@@ -202,7 +202,15 @@ private fun ProjectUnZipperAndImporter.unzipAndImportProject(projectZipFile: Fil
             Log.e(TAG, "Refusing to import a locked (baked) payload")
             return@unzipAndImportProject ImportResult.LockedProject
         }
-        if (ProjectCrypto.isEncrypted(projectZipFile)) {
+        if (ProjectCrypto.isPasswordContainer(projectZipFile)) {
+            reportProgress(5, "import_step_decrypt")
+            val decryptedFile = File(CACHE_DIRECTORY, tempDirName + "_protected_decrypted.zip")
+            if (!ProjectCrypto.decryptPasswordContainer(projectZipFile, decryptedFile)) {
+                Log.e(TAG, "Failed to decrypt protected project container")
+                return@unzipAndImportProject ImportResult.Failure
+            }
+            fileToUnzip = decryptedFile
+        } else if (ProjectCrypto.isEncrypted(projectZipFile)) {
             reportProgress(5, "import_step_decrypt")
             val key = password
             if (key.isNullOrEmpty()) {
@@ -285,7 +293,7 @@ private fun ProjectUnZipperAndImporter.unzipAndImportProject(projectZipFile: Fil
 
 private fun estimateRequiredCacheSpace(zipFile: File): Long {
     val zipLen = zipFile.length()
-    val encrypted = ProjectCrypto.isEncrypted(zipFile)
+    val encrypted = ProjectCrypto.isEncrypted(zipFile) || ProjectCrypto.isPasswordContainer(zipFile)
     val uncompressed = if (!encrypted) sumUncompressedZipSizes(zipFile) else 0L
     val unzip = if (uncompressed > 0L) uncompressed else zipLen
     val decryptedCopy = if (encrypted) zipLen else 0L

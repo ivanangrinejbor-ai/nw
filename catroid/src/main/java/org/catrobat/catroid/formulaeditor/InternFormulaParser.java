@@ -131,6 +131,45 @@ public class InternFormulaParser {
 		internTokensToParse.add(endOfFileParserToken);
 	}
 
+	private void normalizeConcatOperatorTokens() {
+		for (int i = 0; i < internTokensToParse.size(); i++) {
+			InternToken token = internTokensToParse.get(i);
+			if (token.isString() && "..".equals(token.getTokenStringValue())) {
+				internTokensToParse.set(i, new InternToken(InternTokenType.OPERATOR, Operators.CONCAT.name()));
+			}
+		}
+
+		int i = 0;
+		while (i < internTokensToParse.size()) {
+			InternToken token = internTokensToParse.get(i);
+			boolean isConcat = token.isOperator()
+					&& Operators.CONCAT.name().equals(token.getTokenStringValue());
+			if (!isConcat) {
+				i++;
+				continue;
+			}
+			boolean needsLeftOperand = i == 0 || internTokensToParse.get(i - 1).isOperator();
+			if (needsLeftOperand) {
+				internTokensToParse.add(i, new InternToken(InternTokenType.STRING, ""));
+				i++;
+			}
+			int next = i + 1;
+			if (next < internTokensToParse.size() && internTokensToParse.get(next).isOperator()) {
+				internTokensToParse.add(next, new InternToken(InternTokenType.STRING, ""));
+				i = next;
+			} else {
+				i++;
+			}
+		}
+
+		if (!internTokensToParse.isEmpty()) {
+			InternToken last = internTokensToParse.get(internTokensToParse.size() - 1);
+			if (last.isOperator() && Operators.CONCAT.name().equals(last.getTokenStringValue())) {
+				internTokensToParse.add(new InternToken(InternTokenType.STRING, ""));
+			}
+		}
+	}
+
 	private void removeEndOfFileToken() {
 		internTokensToParse.remove(internTokensToParse.size() - 1);
 	}
@@ -157,6 +196,8 @@ public class InternFormulaParser {
 		} catch (EmptyStackException emptyStackException) {
 			Log.d(TAG, "Bracket correction failed.", emptyStackException);
 		}
+
+		normalizeConcatOperatorTokens();
 
 		addEndOfFileToken();
 		currentToken = internTokensToParse.get(0);

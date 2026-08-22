@@ -177,6 +177,8 @@ class LookListFragment : RecyclerViewFragment<LookData?>() {
         }
         setShowProgressBar(true)
         var deletedItemCount = 0
+        val deletedLooks = selectedItems.filterNotNull().toMutableSet()
+        val sprite = ProjectManager.getInstance().currentSprite
         for (item in selectedItems) {
             try {
                 lookController.delete(item)
@@ -186,6 +188,14 @@ class LookListFragment : RecyclerViewFragment<LookData?>() {
             adapter.remove(item)
             deletedItemCount++
         }
+
+        if (sprite.look.lookData != null && deletedLooks.contains(sprite.look.lookData)) {
+            val fallbackLook = sprite.lookList.firstOrNull { !deletedLooks.contains(it) }
+            if (fallbackLook != null) {
+                sprite.look.setLookData(fallbackLook)
+            }
+        }
+
         ToastUtil.showSuccess(
             requireContext(), resources.getQuantityString(
                 R.plurals.deleted_looks,

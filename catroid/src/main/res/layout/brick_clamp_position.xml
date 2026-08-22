@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal">
+
+    <CheckBox
+        android:id="@+id/brick_checkbox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:visibility="gone" />
+
+    <org.catrobat.catroid.ui.BrickLayout
+        android:id="@+id/brick_clamp_position_layout"
+        style="@style/BrickContainer.Motion.Big">
+
+        <include layout="@layout/icon_brick_category_motion" />
+
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_clamp_position" />
+
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_clamp_min_x" />
+
+        <TextView
+            android:id="@+id/brick_clamp_position_min_x_edit_text"
+            style="@style/BrickEditText" />
+
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_clamp_max_x" />
+
+        <TextView
+            android:id="@+id/brick_clamp_position_max_x_edit_text"
+            style="@style/BrickEditText" />
+
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_clamp_min_y" />
+
+        <TextView
+            android:id="@+id/brick_clamp_position_min_y_edit_text"
+            style="@style/BrickEditText" />
+
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_clamp_max_y" />
+
+        <TextView
+            android:id="@+id/brick_clamp_position_max_y_edit_text"
+            style="@style/BrickEditText" />
+
+    </org.catrobat.catroid.ui.BrickLayout>
+
+</LinearLayout>

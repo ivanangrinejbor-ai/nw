@@ -729,7 +729,7 @@ public class ScriptFragment extends ListFragment implements
 	}
 
 	public void notifyDataSetChanged() {
-		adapter.notifyDataSetChanged();
+		adapter.refreshBrickViews();
 	}
 
 	public boolean isCurrentlyMoving() {
@@ -1802,11 +1802,33 @@ case R.string.brick_context_dialog_system_info:
 		Sprite currentSprite = projectManager.getCurrentSprite();
 		Project project = projectManager.getCurrentProject();
 
-		return (project.hasUserDataChanged(project.getUserVariables(), savedUserVariables)
-				|| project.hasUserDataChanged(project.getMultiplayerVariables(), savedMultiplayerVariables)
-				|| project.hasUserDataChanged(project.getUserLists(), savedUserLists)
-				|| currentSprite.hasUserDataChanged(currentSprite.getUserVariables(), savedLocalUserVariables)
-				|| currentSprite.hasUserDataChanged(currentSprite.getUserLists(), savedLocalLists));
+		return (project != null && hasProjectVariablesChanged(project))
+				|| (currentSprite != null && hasSpriteVariablesChanged(currentSprite));
+	}
+
+	private boolean hasProjectVariablesChanged(Project project) {
+		boolean changed = false;
+		if (savedUserVariables != null && project.getUserVariables() != null) {
+			changed |= project.hasUserDataChanged(project.getUserVariables(), savedUserVariables);
+		}
+		if (savedMultiplayerVariables != null && project.getMultiplayerVariables() != null) {
+			changed |= project.hasUserDataChanged(project.getMultiplayerVariables(), savedMultiplayerVariables);
+		}
+		if (savedUserLists != null && project.getUserLists() != null) {
+			changed |= project.hasUserDataChanged(project.getUserLists(), savedUserLists);
+		}
+		return changed;
+	}
+
+	private boolean hasSpriteVariablesChanged(Sprite currentSprite) {
+		boolean changed = false;
+		if (savedLocalUserVariables != null && currentSprite.getUserVariables() != null) {
+			changed |= currentSprite.hasUserDataChanged(currentSprite.getUserVariables(), savedLocalUserVariables);
+		}
+		if (savedLocalLists != null && currentSprite.getUserLists() != null) {
+			changed |= currentSprite.hasUserDataChanged(currentSprite.getUserLists(), savedLocalLists);
+		}
+		return changed;
 	}
 
 	private void loadVariables() {
@@ -1814,11 +1836,25 @@ case R.string.brick_context_dialog_system_info:
 		Sprite currentSprite = projectManager.getCurrentSprite();
 		Project project = projectManager.getCurrentProject();
 
-		project.restoreUserDataValues(project.getUserVariables(), savedUserVariables);
-		project.restoreUserDataValues(project.getMultiplayerVariables(), savedMultiplayerVariables);
-		project.restoreUserDataValues(project.getUserLists(), savedUserLists);
-		currentSprite.restoreUserDataValues(currentSprite.getUserVariables(), savedLocalUserVariables);
-		currentSprite.restoreUserDataValues(currentSprite.getUserLists(), savedLocalLists);
+		if (project != null) {
+			if (savedUserVariables != null) {
+				project.restoreUserDataValues(project.getUserVariables(), savedUserVariables);
+			}
+			if (savedMultiplayerVariables != null) {
+				project.restoreUserDataValues(project.getMultiplayerVariables(), savedMultiplayerVariables);
+			}
+			if (savedUserLists != null) {
+				project.restoreUserDataValues(project.getUserLists(), savedUserLists);
+			}
+		}
+		if (currentSprite != null) {
+			if (savedLocalUserVariables != null) {
+				currentSprite.restoreUserDataValues(currentSprite.getUserVariables(), savedLocalUserVariables);
+			}
+			if (savedLocalLists != null) {
+				currentSprite.restoreUserDataValues(currentSprite.getUserLists(), savedLocalLists);
+			}
+		}
 	}
 
 	private void refreshFragmentAfterUndo() {

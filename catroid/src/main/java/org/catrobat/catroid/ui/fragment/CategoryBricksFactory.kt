@@ -74,6 +74,14 @@ import org.catrobat.catroid.content.bricks.AttachToCameraWithOffsetBrick
 import org.catrobat.catroid.content.bricks.BackgroundRequestBrick
 import org.catrobat.catroid.content.bricks.BakeByPrefixBrick
 import org.catrobat.catroid.content.bricks.BigAskBrick
+import org.catrobat.catroid.content.bricks.BlinkSpriteBrick
+import org.catrobat.catroid.content.bricks.ClampPositionBrick
+import org.catrobat.catroid.content.bricks.CooldownBrick
+import org.catrobat.catroid.content.bricks.FlashColorBrick
+import org.catrobat.catroid.content.bricks.FlipLookBrick
+import org.catrobat.catroid.content.bricks.MoveTowardsPointBrick
+import org.catrobat.catroid.content.bricks.RotateTowardsTargetBrick
+import org.catrobat.catroid.content.bricks.WaitFramesBrick
 import org.catrobat.catroid.content.bricks.BindVmOutputBrick
 import org.catrobat.catroid.content.bricks.Brick
 import org.catrobat.catroid.content.bricks.BroadcastBrick
@@ -93,12 +101,14 @@ import org.catrobat.catroid.content.bricks.CastRayBrick
 import org.catrobat.catroid.content.bricks.ChangeBrightnessByNBrick
 import org.catrobat.catroid.content.bricks.ChangeColorByNBrick
 import org.catrobat.catroid.content.bricks.ChangeHeightBrick
+import org.catrobat.catroid.content.bricks.ChangeHeightDirectionBrick
 import org.catrobat.catroid.content.bricks.ChangeSizeByNBrick
 import org.catrobat.catroid.content.bricks.ChangeTempoByNBrick
 import org.catrobat.catroid.content.bricks.ChangeTransparencyByNBrick
 import org.catrobat.catroid.content.bricks.ChangeVariableBrick
 import org.catrobat.catroid.content.bricks.ChangeVolumeByNBrick
 import org.catrobat.catroid.content.bricks.ChangeWidthBrick
+import org.catrobat.catroid.content.bricks.ChangeWidthDirectionBrick
 import org.catrobat.catroid.content.bricks.ChangeXByNBrick
 import org.catrobat.catroid.content.bricks.ChangeYByNBrick
 import org.catrobat.catroid.content.bricks.ChooseCameraBrick
@@ -185,6 +195,14 @@ import org.catrobat.catroid.content.bricks.DeleteAllTablesBrick
 import org.catrobat.catroid.content.bricks.DeleteCloneByNumberBrick
 import org.catrobat.catroid.content.bricks.DeleteBaseBrick
 import org.catrobat.catroid.content.bricks.DeleteFilesBrick
+import org.catrobat.catroid.content.bricks.FirebaseGetUserIdBrick
+import org.catrobat.catroid.content.bricks.FirebaseIsSignedInBrick
+import org.catrobat.catroid.content.bricks.FirebaseSignInAnonymouslyBrick
+import org.catrobat.catroid.content.bricks.FirebaseSignInEmailPasswordBrick
+import org.catrobat.catroid.content.bricks.FirebaseSignOutBrick
+import org.catrobat.catroid.content.bricks.PushBaseBrick
+import org.catrobat.catroid.content.bricks.QueryBaseBrick
+import org.catrobat.catroid.content.bricks.UpdateBaseBrick
 import org.catrobat.catroid.content.bricks.DeleteFloatBrick
 import org.catrobat.catroid.content.bricks.DeleteFolderBrick
 import org.catrobat.catroid.content.bricks.DeleteFolderByPathBrick
@@ -329,6 +347,10 @@ import org.catrobat.catroid.content.bricks.MouseEventBrick
 import org.catrobat.catroid.content.bricks.MoveDownloadsBrick
 import org.catrobat.catroid.content.bricks.MoveFilesBrick
 import org.catrobat.catroid.content.bricks.MoveNStepsBrick
+import org.catrobat.catroid.content.bricks.DarkGrayscaleShaderBrick
+import org.catrobat.catroid.content.bricks.InvertColorsShaderBrick
+import org.catrobat.catroid.content.bricks.NormalizeSpriteShaderBrick
+import org.catrobat.catroid.content.bricks.TintShaderBrick
 import org.catrobat.catroid.content.bricks.NativeLayerBrick
 import org.catrobat.catroid.content.bricks.NextLookBrick
 import org.catrobat.catroid.content.bricks.NormalizeImgBrick
@@ -502,12 +524,14 @@ import org.catrobat.catroid.content.bricks.SetGeminiKeyBrick
 import org.catrobat.catroid.content.bricks.SetGlobalSoundVolumeBrick
 import org.catrobat.catroid.content.bricks.SetGravityBrick
 import org.catrobat.catroid.content.bricks.SetHeightBrick
+import org.catrobat.catroid.content.bricks.SetHeightDirectionBrick
 import org.catrobat.catroid.content.bricks.SetHingeMotorBrick
 import org.catrobat.catroid.content.bricks.SetHitboxBrick
 import org.catrobat.catroid.content.bricks.SetInstrumentBrick
 import org.catrobat.catroid.content.bricks.SetListeningLanguageBrick
 import org.catrobat.catroid.content.bricks.SetLookBrick
 import org.catrobat.catroid.content.bricks.SetLookByIndexBrick
+import org.catrobat.catroid.content.bricks.SetLookByNameBrick
 import org.catrobat.catroid.content.bricks.SetLookFilesBrick
 import org.catrobat.catroid.content.bricks.SetMassBrick
 import org.catrobat.catroid.content.bricks.SetMaterialBrick
@@ -574,6 +598,7 @@ import org.catrobat.catroid.content.bricks.SetViewPositionBrick
 import org.catrobat.catroid.content.bricks.SetVolumeToBrick
 import org.catrobat.catroid.content.bricks.SetWebBrick
 import org.catrobat.catroid.content.bricks.SetWidthBrick
+import org.catrobat.catroid.content.bricks.SetWidthDirectionBrick
 import org.catrobat.catroid.content.bricks.SetXBrick
 import org.catrobat.catroid.content.bricks.SetYBrick
 import org.catrobat.catroid.content.bricks.SewUpBrick
@@ -726,6 +751,8 @@ import org.catrobat.catroid.content.bricks.WhenClonedBrick
 import org.catrobat.catroid.content.bricks.WhenConditionBrick
 import org.catrobat.catroid.content.bricks.WhenTimeReachedBrick
 import org.catrobat.catroid.content.bricks.WhenFirebaseChangedBrick
+import org.catrobat.catroid.content.bricks.WhenFirebaseChildChangedBrick
+import org.catrobat.catroid.content.bricks.WhenFirestoreChangedBrick
 import org.catrobat.catroid.content.bricks.WhenGamepadButtonBrick
 import org.catrobat.catroid.content.bricks.WhenMouseButtonClickedBrick
 import org.catrobat.catroid.content.bricks.WhenMouseWheelScrolledBrick
@@ -747,6 +774,12 @@ import org.catrobat.catroid.content.bricks.WhenSceneExitedBrick
 import org.catrobat.catroid.content.bricks.WhenShakeBrick
 import org.catrobat.catroid.content.bricks.WhenTouchDownBrick
 import org.catrobat.catroid.content.bricks.WriteBaseBrick
+import org.catrobat.catroid.content.bricks.WriteFirestoreBrick
+import org.catrobat.catroid.content.bricks.UpdateFirestoreBrick
+import org.catrobat.catroid.content.bricks.AddFirestoreDocumentBrick
+import org.catrobat.catroid.content.bricks.ReadFirestoreBrick
+import org.catrobat.catroid.content.bricks.DeleteFirestoreBrick
+import org.catrobat.catroid.content.bricks.QueryFirestoreBrick
 import org.catrobat.catroid.content.bricks.WriteEmbroideryToFileBrick
 import org.catrobat.catroid.content.bricks.WriteListOnDeviceBrick
 import org.catrobat.catroid.content.bricks.WriteToFilesBrick
@@ -882,6 +915,7 @@ open class CategoryBricksFactory {
             context.getString(R.string.category_motion) -> setupMotionCategoryList(context, isBackgroundSprite)
             context.getString(R.string.category_sound) -> setupSoundCategoryList(context)
             context.getString(R.string.category_looks) -> setupLooksCategoryList(context, isBackgroundSprite)
+            context.getString(R.string.category_shaders) -> setupShadersCategoryList(context, isBackgroundSprite)
             context.getString(R.string.category_user_bricks) -> setupUserBricksCategoryList(context)
             context.getString(R.string.category_data) -> setupDataCategoryList(context, isBackgroundSprite)
             context.getString(R.string.category_device) -> setupDeviceCategoryList(context, isBackgroundSprite)
@@ -1013,6 +1047,7 @@ eventBrickList.add(WhenConditionBrick(WhenConditionScript(Formula(defaultIf))))
                 }
         eventBrickList.add(WhenBackgroundChangesBrick())
         eventBrickList.add(WhenFirebaseChangedBrick())
+                eventBrickList.add(WhenFirebaseChildChangedBrick())
                 eventBrickList.add(WhenClonedBrick())
                 eventBrickList.add(CloneBrick())
                 eventBrickList.add(CloneAndNameBrick("clone"))
@@ -1202,6 +1237,8 @@ eventBrickList.add(WhenConditionBrick(WhenConditionScript(Formula(defaultIf))))
                 controlBrickList.add(BreakBrick())
                 controlBrickList.add(ContinueBrick())
                 controlBrickList.add(WaitTillIdleBrick())
+                controlBrickList.add(WaitFramesBrick(1))
+                controlBrickList.add(CooldownBrick(1.0))
                 controlBrickList.add(TryCatchFinallyBrick())
                 controlBrickList.add(WhenClonedBrick())
                 controlBrickList.add(CloneBrick())
@@ -1252,6 +1289,7 @@ eventBrickList.add(WhenConditionBrick(WhenConditionScript(Formula(defaultIf))))
 
         controlBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_control_waiting), template))
         controlBrickList.add(WaitBrick(BrickValues.WAIT))
+        controlBrickList.add(WaitFramesBrick(1))
         controlBrickList.add(WaitUntilBrick(ifConditionFormula))
         controlBrickList.add(WaitWhileBrick(ifConditionFormula))
         controlBrickList.add(WaitTillIdleBrick())
@@ -1270,6 +1308,7 @@ eventBrickList.add(WhenConditionBrick(WhenConditionScript(Formula(defaultIf))))
         controlBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_control_conditions), template))
         controlBrickList.add(IfLogicBeginBrick(ifConditionFormula))
         controlBrickList.add(IfThenLogicBeginBrick(ifConditionFormula))
+        controlBrickList.add(CooldownBrick(1.0))
         controlBrickList.add(TryCatchFinallyBrick())
         if (SettingsFragment.isPhiroSharedPreferenceEnabled(context)) {
             controlBrickList.add(PhiroIfLogicBeginBrick())
@@ -1411,6 +1450,9 @@ eventBrickList.add(WhenConditionBrick(WhenConditionScript(Formula(defaultIf))))
                 motionBrickList.add(ChangeXByNBrick(BrickValues.CHANGE_X_BY))
                 motionBrickList.add(ChangeYByNBrick(BrickValues.CHANGE_Y_BY))
                 motionBrickList.add(GoToBrick(null))
+                motionBrickList.add(MoveTowardsPointBrick(0.0, 0.0, 10.0))
+                motionBrickList.add(RotateTowardsTargetBrick(0.0, 0.0, 10.0))
+                motionBrickList.add(ClampPositionBrick(-540.0, 540.0, -960.0, 960.0))
                 if (!isBackgroundSprite) motionBrickList.add(IfOnEdgeBounceBrick())
                 motionBrickList.add(MoveNStepsBrick(BrickValues.MOVE_STEPS))
                 motionBrickList.add(TurnLeftBrick(BrickValues.TURN_DEGREES))
@@ -1471,6 +1513,8 @@ eventBrickList.add(WhenConditionBrick(WhenConditionScript(Formula(defaultIf))))
         motionBrickList.add(ChangeYByNBrick(BrickValues.CHANGE_Y_BY))
         motionBrickList.add(GoToBrick(null))
         motionBrickList.add(GlideToBrick(BrickValues.X_POSITION, BrickValues.Y_POSITION, BrickValues.GLIDE_SECONDS))
+        motionBrickList.add(MoveTowardsPointBrick(0.0, 0.0, 10.0))
+        motionBrickList.add(ClampPositionBrick(-540.0, 540.0, -960.0, 960.0))
 
         motionBrickList.add(SubCategoryHeaderBrick(context?.getString(R.string.subcategory_motion_rotation) ?: "", template))
         motionBrickList.add(MoveNStepsBrick(BrickValues.MOVE_STEPS))
@@ -1478,6 +1522,7 @@ eventBrickList.add(WhenConditionBrick(WhenConditionScript(Formula(defaultIf))))
         motionBrickList.add(TurnRightBrick(BrickValues.TURN_DEGREES))
         motionBrickList.add(PointInDirectionBrick(BrickValues.POINT_IN_DIRECTION))
         motionBrickList.add(PointToBrick(null))
+        motionBrickList.add(RotateTowardsTargetBrick(0.0, 0.0, 10.0))
         motionBrickList.add(TouchDirectionBrick())
         motionBrickList.add(SetRotationStyleBrick())
 
@@ -1664,6 +1709,12 @@ eventBrickList.add(WhenConditionBrick(WhenConditionScript(Formula(defaultIf))))
                 looksBrickList.add(SetHeightBrick(BrickValues.SET_SIZE_TO))
                 looksBrickList.add(ChangeWidthBrick(BrickValues.CHANGE_SIZE_BY))
                 looksBrickList.add(ChangeHeightBrick(BrickValues.CHANGE_SIZE_BY))
+                looksBrickList.add(SetWidthDirectionBrick(BrickValues.SET_SIZE_TO))
+                looksBrickList.add(SetHeightDirectionBrick(BrickValues.SET_SIZE_TO))
+                looksBrickList.add(ChangeWidthDirectionBrick(BrickValues.CHANGE_SIZE_BY))
+                looksBrickList.add(ChangeHeightDirectionBrick(BrickValues.CHANGE_SIZE_BY))
+                looksBrickList.add(FlipLookBrick())
+                looksBrickList.add(BlinkSpriteBrick(3, 0.2))
                 looksBrickList.add(NextLookBrick())
                 looksBrickList.add(PreviousLookBrick())
                 looksBrickList.add(SetSizeToBrick(BrickValues.SET_SIZE_TO))
@@ -1679,6 +1730,7 @@ eventBrickList.add(WhenConditionBrick(WhenConditionScript(Formula(defaultIf))))
                 looksBrickList.add(PointInDirectionForAllBrick(BrickValues.POINT_IN_DIRECTION))
                 looksBrickList.add(ShowAllBrick())
                 looksBrickList.add(HideAllBrick())
+                looksBrickList.add(FlashColorBrick(0.0, 1.0))
                 looksBrickList.add(AskBrick(context.getString(R.string.brick_ask_default_question)))
                 looksBrickList.add(BigAskBrick(context.getString(R.string.brick_ask_default_question), "Введите ответ:", "OK", "Отмена", "Ваш ответ"))
                 if (!isBackgroundSprite) {
@@ -1798,6 +1850,7 @@ eventBrickList.add(WhenConditionBrick(WhenConditionScript(Formula(defaultIf))))
         if (!isBackgroundSprite) {
             looksBrickList.add(SetLookBrick())
             looksBrickList.add(SetLookByIndexBrick(BrickValues.SET_LOOK_BY_INDEX))
+            looksBrickList.add(SetLookByNameBrick(context.getString(R.string.brick_set_look_by_name_default)))
             looksBrickList.add(NextLookBrick())
             looksBrickList.add(PreviousLookBrick())
         }
@@ -1829,6 +1882,12 @@ eventBrickList.add(WhenConditionBrick(WhenConditionScript(Formula(defaultIf))))
         looksBrickList.add(SetHeightBrick(BrickValues.SET_SIZE_TO))
         looksBrickList.add(ChangeWidthBrick(BrickValues.CHANGE_SIZE_BY))
         looksBrickList.add(ChangeHeightBrick(BrickValues.CHANGE_SIZE_BY))
+        looksBrickList.add(SetWidthDirectionBrick(BrickValues.SET_SIZE_TO))
+        looksBrickList.add(SetHeightDirectionBrick(BrickValues.SET_SIZE_TO))
+        looksBrickList.add(ChangeWidthDirectionBrick(BrickValues.CHANGE_SIZE_BY))
+        looksBrickList.add(ChangeHeightDirectionBrick(BrickValues.CHANGE_SIZE_BY))
+        looksBrickList.add(FlipLookBrick())
+        looksBrickList.add(BlinkSpriteBrick(3, 0.2))
 
         looksBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_looks_effects), template))
         looksBrickList.add(SetTransparencyBrick(BrickValues.SET_TRANSPARENCY))
@@ -1837,6 +1896,7 @@ eventBrickList.add(WhenConditionBrick(WhenConditionScript(Formula(defaultIf))))
         looksBrickList.add(ChangeBrightnessByNBrick(BrickValues.CHANGE_BRIGHTNESS_BY))
         looksBrickList.add(SetColorBrick(BrickValues.SET_COLOR_TO))
         looksBrickList.add(ChangeColorByNBrick(BrickValues.CHANGE_COLOR_BY))
+        looksBrickList.add(FlashColorBrick(0.0, 1.0))
         looksBrickList.add(FadeParticleEffectBrick())
         looksBrickList.add(ParticleEffectAdditivityBrick())
         looksBrickList.add(SetParticleColorBrick(BrickValues.PARTICLE_COLOR))
@@ -1942,6 +2002,21 @@ eventBrickList.add(WhenConditionBrick(WhenConditionScript(Formula(defaultIf))))
         looksBrickList.add(SetTilemapSolidBrick(0, true))
 
         return looksBrickList
+    }
+
+    protected open fun setupShadersCategoryList(
+        context: Context,
+        isBackgroundSprite: Boolean
+    ): List<Brick> {
+        val shadersBrickList: MutableList<Brick> = ArrayList()
+        shadersBrickList.add(NormalizeSpriteShaderBrick())
+        shadersBrickList.add(DarkGrayscaleShaderBrick())
+        shadersBrickList.add(SetFilterPixelateBrick(Formula(8.0)))
+        shadersBrickList.add(InvertColorsShaderBrick())
+        shadersBrickList.add(TintShaderBrick(Formula(255.0), Formula(0.0), Formula(0.0), Formula(50.0)))
+        shadersBrickList.add(SetFilterBlurBrick(Formula(3.0)))
+        shadersBrickList.add(SetFilterSepiaBrick(Formula(0.8)))
+        return shadersBrickList
     }
 
     private fun setupPenCategoryList(isBackgroundSprite: Boolean): List<Brick> {
@@ -3287,6 +3362,14 @@ void main() {
         internetBrickList.add(DownloadFileFromFirebaseBrick("bucket", "images/photo.jpg", "downloaded.png"))
         internetBrickList.add(ListFirebaseFilesBrick("bucket", "images/"))
         internetBrickList.add(DeleteFirebaseFileBrick("bucket", "images/old.jpg"))
+        internetBrickList.add(FirebaseSignInAnonymouslyBrick())
+        internetBrickList.add(FirebaseSignInEmailPasswordBrick("email@example.com", "password"))
+        internetBrickList.add(FirebaseSignOutBrick())
+        internetBrickList.add(FirebaseGetUserIdBrick())
+        internetBrickList.add(FirebaseIsSignedInBrick())
+        internetBrickList.add(PushBaseBrick("firebase_id", "messages", "hello"))
+        internetBrickList.add(UpdateBaseBrick("firebase_id", "user/name", "{\"nick\":\"Tom\"}"))
+        internetBrickList.add(QueryBaseBrick("firebase_id", "messages", "score", "10", ""))
         internetBrickList.add(UploadFileBrick(Formula("https://"), Formula("file.txt"), 0, Formula("application/"), 0))
         internetBrickList.add(WebRequestBrick(context.getString(R.string.brick_web_request_default_value)))
         internetBrickList.add(PostWebRequestBrick("https://api.calfire.com/v2/texts?limit=50&offset=200",
@@ -3364,6 +3447,7 @@ void main() {
             searchList(brick, setupMotionCategoryList(context, isBackgroundSprite)) -> res.getString(R.string.category_motion)
             searchList(brick, setupSoundCategoryList(context)) -> res.getString(R.string.category_sound)
             searchList(brick, setupLooksCategoryList(context, isBackgroundSprite)) -> res.getString(R.string.category_looks)
+            searchList(brick, setupShadersCategoryList(context, isBackgroundSprite)) -> res.getString(R.string.category_shaders)
             searchList(brick, setupPenCategoryList(isBackgroundSprite)) -> res.getString(R.string.category_pen)
             searchList(brick, setupDataCategoryList(context, isBackgroundSprite)) -> res.getString(R.string.category_data)
             searchList(brick, setupLegoNxtCategoryList()) -> res.getString(R.string.category_lego_nxt)
@@ -3417,6 +3501,7 @@ void main() {
         all.addAll(setupMotionCategoryList(context, isBackgroundSprite))
         all.addAll(setupSoundCategoryList(context))
         all.addAll(setupLooksCategoryList(context, isBackgroundSprite))
+        all.addAll(setupShadersCategoryList(context, isBackgroundSprite))
         all.addAll(setupPenCategoryList(isBackgroundSprite))
         all.addAll(setupDataCategoryList(context, isBackgroundSprite))
         all.addAll(setupDeviceCategoryList(context, isBackgroundSprite))

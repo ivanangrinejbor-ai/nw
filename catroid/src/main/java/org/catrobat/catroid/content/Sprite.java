@@ -51,6 +51,8 @@ import org.catrobat.catroid.content.bricks.UserDefinedBrickV2;
 import org.catrobat.catroid.content.bricks.UserDefinedReceiverBrickV2;
 import org.catrobat.catroid.content.bricks.WhenConditionBrick;
 import org.catrobat.catroid.content.bricks.WhenFirebaseChangedBrick;
+import org.catrobat.catroid.content.bricks.WhenFirebaseChildChangedBrick;
+import org.catrobat.catroid.content.bricks.WhenFirestoreChangedBrick;
 import org.catrobat.catroid.content.eventids.EventId;
 import org.catrobat.catroid.embroidery.RunningStitch;
 import org.catrobat.catroid.formulaeditor.Formula;
@@ -113,6 +115,8 @@ public class Sprite implements Nameable, Serializable {
 	private transient Set<ConditionScriptTrigger> conditionScriptTriggers = new HashSet<>();
 	private transient Set<TouchingSpriteTrigger> touchingSpriteTriggers = new HashSet<>();
 	private transient Set<FirebaseChangedTrigger> firebaseChangedTriggers = new HashSet<>();
+	private transient Set<FirebaseChildChangedTrigger> firebaseChildChangedTriggers = new HashSet<>();
+	private transient Set<FirestoreChangedTrigger> firestoreChangedTriggers = new HashSet<>();
 	private transient List<Integer> usedTouchPointer = new ArrayList<>();
 	private transient Color embroideryThreadColor = Color.BLACK;
 
@@ -296,8 +300,13 @@ public class Sprite implements Nameable, Serializable {
 	}
 
 	public <T> boolean hasUserDataChanged(List<T> newUserData, List<T> oldUserData) {
-		if (newUserData.size() != oldUserData.size()) {
+		int newSize = newUserData == null ? 0 : newUserData.size();
+		int oldSize = oldUserData == null ? 0 : oldUserData.size();
+		if (newSize != oldSize) {
 			return true;
+		}
+		if (newSize == 0) {
+			return false;
 		}
 
 		for (T userData : newUserData) {
@@ -321,6 +330,9 @@ public class Sprite implements Nameable, Serializable {
 	}
 
 	public <T> boolean checkUserData(T newUserData, List<T> oldUserData) {
+		if (oldUserData == null) {
+			return false;
+		}
 		for (T userData : oldUserData) {
 			if (userData.equals(newUserData)) {
 				if (userData.getClass() == UserVariable.class) {
@@ -612,6 +624,67 @@ public class Sprite implements Nameable, Serializable {
 		}
 	}
 
+	public void initFirebaseChildChangedTriggers() {
+		stopFirebaseChildChangedTriggers();
+		for (Script script : scriptList) {
+			if (script instanceof WhenFirebaseChildChangedScript) {
+				WhenFirebaseChildChangedBrick brick = (WhenFirebaseChildChangedBrick) script.getScriptBrick();
+				Formula bucket = brick.getFormulaWithBrickField(Brick.BrickField.FIREBASE_TRIGGER_BUCKET);
+				Formula path = brick.getFormulaWithBrickField(Brick.BrickField.FIREBASE_TRIGGER_PATH);
+				FirebaseChildChangedTrigger trigger = new FirebaseChildChangedTrigger(
+						bucket, path, brick.getEventTypeSelection(), this);
+				firebaseChildChangedTriggers.add(trigger);
+				trigger.startListening();
+			}
+		}
+	}
+
+	public void stopFirebaseChildChangedTriggers() {
+		if (firebaseChildChangedTriggers == null) {
+			return;
+		}
+		for (FirebaseChildChangedTrigger trigger : firebaseChildChangedTriggers) {
+			trigger.stopListening();
+		}
+		firebaseChildChangedTriggers.clear();
+	}
+
+	void evaluateFirebaseChildChangedTriggers() {
+		for (FirebaseChildChangedTrigger trigger : firebaseChildChangedTriggers) {
+			trigger.evaluateAndTriggerActions();
+		}
+	}
+
+	public void initFirestoreChangedTriggers() {
+		stopFirestoreChangedTriggers();
+		for (Script script : scriptList) {
+			if (script instanceof WhenFirestoreChangedScript) {
+				WhenFirestoreChangedBrick brick = (WhenFirestoreChangedBrick) script.getScriptBrick();
+				Formula path = brick.getFormulaWithBrickField(Brick.BrickField.FIRESTORE_TRIGGER_PATH);
+				Formula base = brick.getFormulaWithBrickField(Brick.BrickField.FIRESTORE_BASE);
+				FirestoreChangedTrigger trigger = new FirestoreChangedTrigger(path, base, this);
+				firestoreChangedTriggers.add(trigger);
+				trigger.startListening();
+			}
+		}
+	}
+
+	public void stopFirestoreChangedTriggers() {
+		if (firestoreChangedTriggers == null) {
+			return;
+		}
+		for (FirestoreChangedTrigger trigger : firestoreChangedTriggers) {
+			trigger.stopListening();
+		}
+		firestoreChangedTriggers.clear();
+	}
+
+	void evaluateFirestoreChangedTriggers() {
+		for (FirestoreChangedTrigger trigger : firestoreChangedTriggers) {
+			trigger.evaluateAndTriggerActions();
+		}
+	}
+
 	public void initializeEventThreads(@EventId.EventType int startType) {
 		idToEventThreadMap.clear();
 		for (Script script : scriptList) {
@@ -780,7 +853,32 @@ public class Sprite implements Nameable, Serializable {
 		if (hasCollision(scene)) {
 			renameSpriteInCollisionFormulas(newSpriteName, scene);
 		}
+		renameSpriteInNameKeyedScripts(newSpriteName, scene);
 		setName(newSpriteName);
+	}
+
+	private void renameSpriteInNameKeyedScripts(String newName, Scene scene) {
+		String oldName = getName();
+		if (oldName == null || oldName.equals(newName)) {
+			return;
+		}
+		for (Sprite sprite : scene.getSpriteList()) {
+			for (Script script : sprite.getScriptList()) {
+				if (script instanceof WhenTouchingSpriteByNameScript) {
+					WhenTouchingSpriteByNameScript touchingScript = (WhenTouchingSpriteByNameScript) script;
+					String targetName = touchingScript.getSpriteToTouchName();
+					if (oldName.equals(targetName)) {
+						touchingScript.setSpriteToTouchName(newName);
+					}
+				} else if (script instanceof WhenBounceOffScript) {
+					WhenBounceOffScript bounceOffScript = (WhenBounceOffScript) script;
+					String bounceOffName = bounceOffScript.getSpriteToBounceOffName();
+					if (oldName.equals(bounceOffName)) {
+						bounceOffScript.setSpriteToBounceOffName(newName);
+					}
+				}
+			}
+		}
 	}
 
 	public boolean hasCollision(Scene scene) {
@@ -844,7 +942,13 @@ public class Sprite implements Nameable, Serializable {
 	}
 
 	public boolean doesUserBrickAlreadyExist(UserDefinedBrick userDefinedBrick) {
+		if (userDefinedBrick == null) {
+			return false;
+		}
 		for (Brick alreadyDefinedBrick : getUserDefinedBrickList()) {
+			if (!(alreadyDefinedBrick instanceof UserDefinedBrick)) {
+				continue;
+			}
 			if (((UserDefinedBrick) alreadyDefinedBrick).isUserDefinedBrickDataEqual(userDefinedBrick)) {
 				return true;
 			}

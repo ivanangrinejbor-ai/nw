@@ -227,6 +227,7 @@ class ProjectOptionsFragment : Fragment() {
         }
     }
 
+
     private fun exportBakedProject() {
         saveProject()
         project ?: return
@@ -510,6 +511,7 @@ class ProjectOptionsFragment : Fragment() {
                 }
                 val token = TokenManager.getToken(requireContext()) ?: return@setPositiveButton
                 val originalProjectDir = project?.directory ?: return@setPositiveButton
+                val appContext = requireContext().applicationContext
 
                 val tempDir = File(requireContext().cacheDir, "git_clone_temp_${System.currentTimeMillis()}")
                 tempDir.mkdirs()
@@ -521,36 +523,46 @@ class ProjectOptionsFragment : Fragment() {
 
                     var finalResult: GitResult<Unit> = GitResult.Error("Operation failed before replacement.")
                     if (result is GitResult.Success) {
+                        val backupDir = File(
+                            originalProjectDir.parent,
+                            originalProjectDir.name + "_backup_" + System.currentTimeMillis()
+                        )
                         try {
-
-                            originalProjectDir.deleteRecursively()
+                            if (!originalProjectDir.renameTo(backupDir)) {
+                                throw IOException("Failed to backup current project directory.")
+                            }
                             if (!tempDir.renameTo(originalProjectDir)) {
                                 throw IOException("Failed to replace project directory.")
                             }
 
-
-
-                            val clonedProject = XstreamSerializer.getInstance().loadProject(originalProjectDir, requireContext())
+                            val clonedProject = XstreamSerializer.getInstance().loadProject(originalProjectDir, appContext)
                                 ?: throw IOException("Failed to load cloned project from disk.")
-
 
                             clonedProject.xmlHeader.gitRemoteUrl = repoUrl
                             XstreamSerializer.getInstance().saveProject(clonedProject)
-
 
                             projectManager.currentProject = clonedProject
                             project = clonedProject
 
-                            clonedProject.xmlHeader.gitRemoteUrl = repoUrl
-                            XstreamSerializer.getInstance().saveProject(clonedProject)
-
                             finalResult = GitResult.Success(Unit)
+                            backupDir.deleteRecursively()
                         } catch (e: Exception) {
                             e.printStackTrace()
                             tempDir.deleteRecursively()
+                            try {
+                                if (backupDir.exists()) {
+                                    if (originalProjectDir.exists()) {
+                                        originalProjectDir.deleteRecursively()
+                                    }
+                                    backupDir.renameTo(originalProjectDir)
+                                }
+                            } catch (rollbackException: Exception) {
+                                Log.e("ProjectOptions", "Failed to rollback git clone", rollbackException)
+                            }
                             finalResult = GitResult.Error("Failed to replace or load project: ${e.message}")
                         }
                     } else {
+                        tempDir.deleteRecursively()
                         finalResult = result
                     }
 
@@ -1266,11 +1278,56 @@ class ProjectOptionsFragment : Fragment() {
         saveProject()
         project?.xmlHeader?.setProtectedProject(true)
         saveProjectSerial(project, requireContext())
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            exportUsingSystemFilePicker()
-        } else {
-            exportToExternalMemory()
+        val proj = project ?: run { resetProtectedFlag(); return }
+        val progressDialog = androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setTitle(R.string.exporting_project)
+            .setMessage(R.string.encrypting_project)
+            .setCancelable(false)
+            .create()
+        progressDialog.show()
+        kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+            try {
+                val zipFile = java.io.File(requireContext().cacheDir, "${proj.name}_protected_export.zip")
+                zipDirectory(proj.directory, zipFile)
+                val password = org.catrobat.catroid.io.ProjectCrypto.generateRandomPassword()
+                val ncppFile = java.io.File(requireContext().cacheDir, "${proj.name}_protected_export.ncpp")
+                org.catrobat.catroid.io.ProjectCrypto.encrypt(zipFile, ncppFile, password)
+                val containerFile = java.io.File(requireContext().cacheDir, "${proj.name}_protected${Constants.CATROBAT_EXTENSION}")
+                org.catrobat.catroid.io.ProjectCrypto.wrapPasswordContainerFile(ncppFile, containerFile, password)
+                zipFile.delete()
+                ncppFile.delete()
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                    progressDialog.dismiss()
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        encFileToSave = containerFile
+                        startProtectedFilePicker(containerFile, proj.name)
+                    } else {
+                        Constants.DOWNLOAD_DIRECTORY.mkdirs()
+                        val dest = java.io.File(Constants.DOWNLOAD_DIRECTORY, "${proj.name}_protected${Constants.CATROBAT_EXTENSION}")
+                        containerFile.copyTo(dest, overwrite = true)
+                        containerFile.delete()
+                        resetProtectedFlag()
+                        showToast(getString(R.string.export_project) + " ✓")
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Protected export failed", e)
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                    progressDialog.dismiss()
+                    resetProtectedFlag()
+                    ToastUtil.showError(activity, "Export failed: ${e.message}")
+                }
+            }
         }
+    }
+
+    private fun startProtectedFilePicker(encFile: java.io.File, projectName: String) {
+        val intent = Intent(Intent.ACTION_CREATE_DOCUMENT)
+        intent.addCategory(Intent.CATEGORY_OPENABLE)
+        intent.putExtra(Intent.EXTRA_TITLE, "${projectName}_protected${Constants.CATROBAT_EXTENSION}")
+        intent.type = "*/*"
+        intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, Environment.DIRECTORY_DOWNLOADS)
+        startActivityForResult(Intent.createChooser(intent, getString(R.string.export_protected_project)), REQUEST_EXPORT_PROTECTED)
     }
 
     private fun resetProtectedFlag() {
@@ -1437,8 +1494,14 @@ class ProjectOptionsFragment : Fragment() {
             val params = ArrayList<Any>(listOf(toast))
             StageActivity.messageHandler.obtainMessage(StageActivity.SHOW_TOAST, params).sendToTarget()
         } else {
-
-            Log.e("ShowToast", "messageHandler is null!")
+            val currentActivity = activity
+            if (currentActivity != null && !currentActivity.isFinishing) {
+                currentActivity.runOnUiThread {
+                    ToastUtil.showSuccess(currentActivity, toast)
+                }
+            } else {
+                Log.i("ShowToast", toast)
+            }
         }
     }
 
@@ -1583,6 +1646,7 @@ class ProjectOptionsFragment : Fragment() {
             ToastUtil.showError(requireContext(), "Ошибка открытия сборщика APK: ${e.message}")
         }
     }
+
 
     private fun buildApkV2() {
         val p = project ?: return
@@ -2048,6 +2112,19 @@ class ProjectOptionsFragment : Fragment() {
             }
             return
         }
+        if (requestCode == REQUEST_EXPORT_PROTECTED) {
+            if (resultCode == Activity.RESULT_OK) {
+                val uri = data?.data
+                if (uri != null) {
+                    encFileToSave?.let { saveEncryptedFileToUri(it, uri) }
+                }
+            } else {
+                encFileToSave?.delete()
+            }
+            encFileToSave = null
+            resetProtectedFlag()
+            return
+        }
         data ?: return
         if (requestCode == REQUEST_EXPORT_ENCRYPTED && resultCode == Activity.RESULT_OK) {
             val uri = data.data ?: return
@@ -2196,5 +2273,6 @@ class ProjectOptionsFragment : Fragment() {
         private const val REQUEST_BUILD_PROJECT = 11
         private const val REQUEST_SELECT_IMAGE = 12
         private const val REQUEST_EXPORT_ENCRYPTED = 13
+        private const val REQUEST_EXPORT_PROTECTED = 14
     }
 }

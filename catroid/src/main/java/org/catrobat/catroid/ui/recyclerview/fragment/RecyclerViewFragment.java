@@ -106,6 +106,18 @@ public abstract class RecyclerViewFragment<T extends Nameable> extends Fragment 
 			super.onChanged();
 			setShowEmptyView(shouldShowEmptyView());
 		}
+
+		@Override
+		public void onItemRangeInserted(int positionStart, int itemCount) {
+			super.onItemRangeInserted(positionStart, itemCount);
+			setShowEmptyView(shouldShowEmptyView());
+		}
+
+		@Override
+		public void onItemRangeRemoved(int positionStart, int itemCount) {
+			super.onItemRangeRemoved(positionStart, itemCount);
+			setShowEmptyView(shouldShowEmptyView());
+		}
 	};
 
 	boolean shouldShowEmptyView() {

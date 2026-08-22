@@ -52,6 +52,8 @@
     <string formatted="false" name="ai_agent_max_context_summary">Максимальное количество токенов контекста</string>
     <string formatted="false" name="ai_agent_max_tool_calls_title">Макс. вызовов инструментов</string>
     <string formatted="false" name="ai_agent_max_tool_calls_summary">Максимальное количество вызовов инструментов за цикл</string>
+    <string formatted="false" name="ai_agent_reasoning_title">Уровень рассуждения</string>
+    <string formatted="false" name="ai_agent_reasoning_summary">Глубина размышлений для моделей с поддержкой (Gemini thinking, OpenAI reasoning_effort, OpenRouter reasoning, Claude extended thinking). Используется вместе с вашим API-ключом</string>
     <string formatted="false" name="ai_agent_memory_category">Память</string>
     <string formatted="false" name="ai_agent_clear_history_title">Очистить историю</string>
     <string formatted="false" name="ai_agent_clear_history_summary">Сбросить историю разговора</string>

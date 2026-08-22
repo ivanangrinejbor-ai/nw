@@ -1220,6 +1220,51 @@
 </string-array>
 <string formatted="false" name="firebase_upload">Upload to Firebase Storage</string>
 <string formatted="false" name="firebase_download">Download from Firebase Storage</string>
+<string formatted="false" name="firebase_sign_in_anonymous">Sign in anonymously to FireBase</string>
+<string formatted="false" name="firebase_sign_in_email">Sign in to FireBase with email</string>
+<string formatted="false" name="firebase_email">Email</string>
+<string formatted="false" name="firebase_password">Password</string>
+<string formatted="false" name="firebase_sign_out">Sign out of FireBase</string>
+<string formatted="false" name="firebase_get_user_id">Get FireBase user ID</string>
+<string formatted="false" name="firebase_is_signed_in">FireBase signed in?</string>
+<string formatted="false" name="firebase_push">Push to FireBase</string>
+<string formatted="false" name="firebase_update">Update FireBase</string>
+<string formatted="false" name="firebase_query">Query FireBase</string>
+<string formatted="false" name="firebase_query_order">Order by child field</string>
+<string formatted="false" name="firebase_query_limit">Limit to first</string>
+<string formatted="false" name="firebase_query_equal">Equal to</string>
+<string formatted="false" name="firebase_child_event">When a child is</string>
+<string formatted="false" name="brick_when_firebase_child_changed">When Firebase child changed</string>
+<string-array name="firebase_child_event_options">
+    <item>Added</item>
+    <item>Changed</item>
+    <item>Removed</item>
+    <item>Any change</item>
+</string-array>
+<string formatted="false" name="firestore_write">Write to Firestore</string>
+<string formatted="false" name="firestore_update">Update Firestore</string>
+<string formatted="false" name="firestore_add">Add Firestore document</string>
+<string formatted="false" name="firestore_read">Read from Firestore</string>
+<string formatted="false" name="firestore_delete">Delete from Firestore</string>
+<string formatted="false" name="firestore_query">Query Firestore</string>
+<string formatted="false" name="firestore_base">FireStore ID</string>
+<string formatted="false" name="firestore_path">Path</string>
+<string formatted="false" name="firestore_value">Value (JSON)</string>
+<string formatted="false" name="firestore_collection">Collection</string>
+<string formatted="false" name="firestore_field">Field</string>
+<string formatted="false" name="firestore_operator">Operator</string>
+<string formatted="false" name="firestore_limit">Limit</string>
+<string formatted="false" name="firestore_store">and store in</string>
+<string-array name="firestore_operator_options">
+    <item>=</item>
+    <item>&gt;</item>
+    <item>&gt;=</item>
+    <item>&lt;</item>
+    <item>&lt;=</item>
+    <item>!=</item>
+    <item>contains</item>
+</string-array>
+<string formatted="false" name="brick_when_firestore_changed">When Firestore changed</string>
 <string formatted="false" name="brick_create_2d_joystick_label">Create 2D Joystick at X:</string>
 <string formatted="false" name="brick_create_3d_joystick_label">Create 3D Joystick at X:</string>
 <string formatted="false" name="brick_create_2d_jump_label">Create 2D Jump Button at X:</string>
@@ -1949,6 +1994,42 @@
 <string formatted="false" name="brick_change_height">Change height to</string>
 <string formatted="false" name="brick_set_width">Set width to</string>
 <string formatted="false" name="brick_set_height">Set height to</string>
+<string formatted="false" name="brick_change_width_direction">Change width by</string>
+<string formatted="false" name="brick_set_width_direction">Set width to</string>
+<string formatted="false" name="brick_change_height_direction">Change height by</string>
+<string formatted="false" name="brick_set_height_direction">Set height to</string>
+<string formatted="false" name="brick_direction_towards">towards</string>
+<string formatted="false" name="brick_direction_right">Right</string>
+<string formatted="false" name="brick_direction_left">Left</string>
+<string formatted="false" name="brick_direction_up">Up</string>
+<string formatted="false" name="brick_direction_down">Down</string>
+<string formatted="false" name="brick_direction_center">Center</string>
+<string formatted="false" name="brick_flip_look">Flip look</string>
+<string formatted="false" name="brick_flip_horizontal">Horizontally</string>
+<string formatted="false" name="brick_flip_vertical">Vertically</string>
+<string formatted="false" name="brick_flash_color">Flash color</string>
+<string formatted="false" name="brick_flash_color_for">for</string>
+<string formatted="false" name="brick_flash_color_seconds">second(s)</string>
+<string formatted="false" name="brick_blink_sprite">Blink</string>
+<string formatted="false" name="brick_blink_times">times with interval</string>
+<string formatted="false" name="brick_blink_interval">second(s)</string>
+<string formatted="false" name="brick_move_towards_point">Move towards</string>
+<string formatted="false" name="brick_move_towards_x">X:</string>
+<string formatted="false" name="brick_move_towards_y">Y:</string>
+<string formatted="false" name="brick_move_towards_steps">steps</string>
+<string formatted="false" name="brick_rotate_towards_target">Rotate towards</string>
+<string formatted="false" name="brick_rotate_towards_x">X:</string>
+<string formatted="false" name="brick_rotate_towards_y">Y:</string>
+<string formatted="false" name="brick_rotate_towards_speed">speed (deg/s)</string>
+<string formatted="false" name="brick_clamp_position">Clamp position</string>
+<string formatted="false" name="brick_clamp_min_x">min X:</string>
+<string formatted="false" name="brick_clamp_max_x">max X:</string>
+<string formatted="false" name="brick_clamp_min_y">min Y:</string>
+<string formatted="false" name="brick_clamp_max_y">max Y:</string>
+<string formatted="false" name="brick_cooldown">Cooldown</string>
+<string formatted="false" name="brick_cooldown_seconds">second(s)</string>
+<string formatted="false" name="brick_wait_frames">Wait</string>
+<string formatted="false" name="brick_wait_frames_frames">frame(s)</string>
 <string formatted="false" name="brick_copy_text">Copy</string>
 <string formatted="false" name="brick_copy_text2">to clipboard</string>
 <string formatted="false" name="post_web_request">POST web request to</string>
@@ -3106,6 +3187,7 @@
 <string formatted="false" name="error_new_project">Something went wrong while creating a new project.</string>
 <string formatted="false" name="error_rename_scene">Something went wrong while renaming the scene.</string>
 <string formatted="false" name="error_load_project">Something went wrong while loading the project.</string>
+<string formatted="false" name="error_no_project_loaded">No active project to launch. Open or create a project first.</string>
 <string formatted="false" name="error_screenshot_failed">Something went wrong while saving the preview image.</string>
 <string formatted="false" name="error_internet_connection">An unknown error occurred. Check your Internet connection.</string>
 <string formatted="false" name="error_project_compatibility">The project is not compatible with this version of the app.</string>
@@ -3113,6 +3195,8 @@
 <string formatted="false" name="error_adding_brick">Something went wrong while adding this brick.</string>
 <string formatted="false" name="error_copying_brick">Something went wrong while copying this brick.</string>
 <string formatted="false" name="error_rename_incompatible_project">Renaming an incompatible project is not possible.</string>
+<string formatted="false" name="error_rename_project">Something went wrong while renaming the project. The old name has been restored.</string>
+<string formatted="false" name="error_unreadable_projects">%1$d project(s) are damaged and were hidden from the list.</string>
 <string formatted="false" name="error_embroidery_file_export">Something went wrong while sharing the embroidery file.</string>
 <string formatted="false" name="error_embroidery_file_write">Something went wrong while writing the embroidery file.</string>
 <string formatted="false" name="error_embroidery_data_not_found">Embroidery is missing.</string>
@@ -4686,6 +4770,7 @@ needs read and write access to it. You can always change permissions through you
     <!-- ============ APK Builder V3 ============ -->
     <string name="export_as_apk_v3">APK Builder V3</string>
     <string name="v3_loading_title">NeoCatroid</string>
+
     <string name="v3_loading">Loading…</string>
     <string name="v3_decrypting">Decrypting project…</string>
     <string name="v3_decrypting_meta">Decrypting metadata…</string>
@@ -5540,4 +5625,16 @@ needs read and write access to it. You can always change permissions through you
         <item>Text</item>
         <item>Font file</item>
     </string-array>
+
+    <string name="category_shaders" formatted="false">Shaders</string>
+    <string name="brick_normalize_sprite_shader" formatted="false">Normalize object</string>
+    <string name="brick_dark_grayscale_shader" formatted="false">Set dark grayscale</string>
+    <string name="brick_invert_colors_shader" formatted="false">Invert colors</string>
+    <string name="brick_tint_shader" formatted="false">Tint object</string>
+    <string name="brick_tint_shader_red" formatted="false">Red</string>
+    <string name="brick_tint_shader_green" formatted="false">Green</string>
+    <string name="brick_tint_shader_blue" formatted="false">Blue</string>
+    <string name="brick_tint_shader_amount" formatted="false">Intensity %</string>
+    <string name="brick_set_look_by_name" formatted="false">Switch to look by name</string>
+    <string name="brick_set_look_by_name_default" formatted="false">look1</string>
 </resources>

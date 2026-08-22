@@ -666,6 +666,15 @@ class PathfindingManager {
 
     @Synchronized
     fun update(delta: Float) {
+        var followerActive = false
+        for (f in followers.values) {
+            if (f.state == FollowState.FOLLOWING) {
+                followerActive = true
+                break
+            }
+        }
+        if (!followerActive && obstacles.isEmpty()) return
+
         val stageListener = StageActivity.getActiveStageListener() ?: return
         val stageSprites = stageListener.spritesFromStage.toList()
         val spritesByName = HashMap<String, Sprite>(stageSprites.size * 2)

@@ -32,6 +32,7 @@ import java.util.Set;
 public class BroadcastMessageContainer {
 
 	private final List<String> broadcastMessages;
+	private final java.util.Set<String> customCreatedMessages = new java.util.LinkedHashSet<>();
 	private final java.util.Map<String, BroadcastMessageScope> messageScopes = new java.util.HashMap<>();
 
 	public BroadcastMessageContainer() {
@@ -45,32 +46,39 @@ public class BroadcastMessageContainer {
 		if (editedScene == null) {
 			return;
 		}
+		java.util.Set<String> all = new java.util.LinkedHashSet<>();
 		if (editedScene.isGlobalScene()) {
-			java.util.Set<String> all = new java.util.LinkedHashSet<>(editedScene.getBroadcastMessagesInUse());
+			all.addAll(editedScene.getBroadcastMessagesInUse());
 			org.catrobat.catroid.content.Project project = ProjectManager.getInstance().getCurrentProject();
 			if (project != null) {
 				for (org.catrobat.catroid.content.Scene scene : project.getSceneList()) {
 					all.addAll(scene.getBroadcastMessagesInUse());
 				}
 			}
-			broadcastMessages.addAll(all);
 		} else {
-			broadcastMessages.addAll(editedScene.getBroadcastMessagesInUse());
+			all.addAll(editedScene.getBroadcastMessagesInUse());
 		}
+		all.addAll(customCreatedMessages);
+		broadcastMessages.addAll(all);
 	}
 
 	public boolean addBroadcastMessage(String messageToAdd) {
-		return messageToAdd != null
-				&& !messageToAdd.isEmpty()
-				&& !broadcastMessages.contains(messageToAdd)
-				&& broadcastMessages.add(messageToAdd);
+		if (messageToAdd != null && !messageToAdd.isEmpty()) {
+			customCreatedMessages.add(messageToAdd);
+			if (!broadcastMessages.contains(messageToAdd)) {
+				broadcastMessages.add(messageToAdd);
+			}
+			return true;
+		}
+		return false;
 	}
 
 	public boolean removeBroadcastMessage(String messageToRemove) {
-		return messageToRemove != null
-				&& !messageToRemove.isEmpty()
-				&& broadcastMessages.contains(messageToRemove)
-				&& broadcastMessages.remove(messageToRemove);
+		if (messageToRemove != null && !messageToRemove.isEmpty()) {
+			customCreatedMessages.remove(messageToRemove);
+			return broadcastMessages.remove(messageToRemove);
+		}
+		return false;
 	}
 
 	public List<String> getBroadcastMessages() {

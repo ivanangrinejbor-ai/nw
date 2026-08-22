@@ -82,6 +82,10 @@ public class InternFormulaKeyboardAdapter {
 			return buildString(name);
 		}
 
+		if (resource == R.id.formula_editor_keyboard_delete) {
+			return new LinkedList<>();
+		}
+
 		switch (resource) {
 			case R.id.formula_editor_keyboard_0:
 				return buildNumber("0");
@@ -487,6 +491,12 @@ case R.string.formula_editor_function_state_time:
                 return buildFunctionWithoutParametersAndBrackets(Functions.INTERNET_SPEED);
             case R.string.formula_local_ip:
                 return buildFunctionWithoutParametersAndBrackets(Functions.LOCAL_IP);
+            case R.string.formula_external_ip:
+                return buildFunctionWithoutParametersAndBrackets(Functions.EXTERNAL_IP);
+            case R.string.formula_get_status_code:
+                return buildFunctionWithoutParametersAndBrackets(Functions.GET_STATUS_CODE);
+            case R.string.formula_download_progress:
+                return buildFunctionWithoutParametersAndBrackets(Functions.DOWNLOAD_PROGRESS);
             case R.string.formula_screen_width:
                 return buildFunctionWithoutParametersAndBrackets(Functions.SCREEN_WIDTH);
             case R.string.formula_screen_height:

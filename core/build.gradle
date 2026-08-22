@@ -5,9 +5,8 @@
  * contract, its global accessor, and (eventually) the portable parts of
  * content/, formulaeditor/, stage/, io/ and utils/lunoscript.
  *
- * No android.* here — both :catroid (Android) and the future
- * :desktop-runtime depend on this module and supply their own
- * RuntimeServices implementation.
+ * No android.* here — :catroid (Android) depends on this module and supplies
+ * its own RuntimeServices implementation.
  */
 
 plugins {

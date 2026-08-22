@@ -660,6 +660,8 @@ public class Look extends Image {
 				sprite.evaluateConditionScriptTriggers();
 				sprite.evaluateTouchingSpriteTriggers();
 				sprite.evaluateFirebaseChangedTriggers();
+				sprite.evaluateFirebaseChildChangedTriggers();
+				sprite.evaluateFirestoreChangedTriggers();
 			}
 		}
 		updateGifAnimation(delta);

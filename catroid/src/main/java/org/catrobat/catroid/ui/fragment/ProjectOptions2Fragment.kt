@@ -23,6 +23,9 @@ import org.catrobat.catroid.common.Constants
 import org.catrobat.catroid.content.Project
 import org.catrobat.catroid.io.AssetConverter
 import org.catrobat.catroid.io.ProjectCrypto
+import org.catrobat.catroid.io.XstreamSerializer
+import org.catrobat.catroid.io.asynctask.loadProject
+import org.catrobat.catroid.io.asynctask.renameProject
 import org.catrobat.catroid.apkbuild.ProtectedProjectPayload
 import org.catrobat.catroid.utils.lunoscript.baker.ProjectBaker
 import org.catrobat.catroid.io.asynctask.ProjectExportTask
@@ -157,10 +160,22 @@ class ProjectOptions2Fragment : Fragment() {
 
         val saveInfoBtn = createActionButton(getString(R.string.project_options_2_save_name)) {
             val newName = nameInput.text.toString().trim()
-            if (newName.isNotEmpty()) {
-                proj.name = newName
+            val newDescription = descInput.text.toString().trim()
+            val currentProject = project ?: return@createActionButton
+
+            if (newName.isNotEmpty() && newName != currentProject.name) {
+                XstreamSerializer.getInstance().saveProject(currentProject)
+                val renamedDirectory = renameProject(currentProject.directory, newName)
+                if (renamedDirectory == null) {
+                    Toast.makeText(requireContext(), R.string.error_rename_project, Toast.LENGTH_LONG).show()
+                    nameInput.setText(currentProject.name)
+                    return@createActionButton
+                }
+                loadProject(renamedDirectory, requireContext().applicationContext)
+                project = ProjectManager.getInstance().currentProject
             }
-            proj.description = descInput.text.toString().trim()
+
+            project?.description = newDescription
             saveProjectAsync()
             Toast.makeText(requireContext(), R.string.project_options_2_info_saved, Toast.LENGTH_SHORT).show()
         }
@@ -609,6 +624,15 @@ class ProjectOptions2Fragment : Fragment() {
                 }
                 val safeName = proj.name.replace(Regex("[\\\\/:*?\"<>|]"), "_")
                 val fileName = "${safeName}_export.catrobat"
+                val zipFile = File(appContext.cacheDir, "${proj.name}_protected_export.zip")
+                zipDirectoryTo(proj.directory, zipFile) { progress.updateFile(it) }
+                val password = ProjectCrypto.generateRandomPassword()
+                val ncppFile = File(appContext.cacheDir, "${proj.name}_protected_export.ncpp")
+                ProjectCrypto.encrypt(zipFile, ncppFile, password)
+                val containerFile = File(appContext.cacheDir, "${proj.name}_protected_export.catrobat")
+                ProjectCrypto.wrapPasswordContainerFile(ncppFile, containerFile, password)
+                zipFile.delete()
+                ncppFile.delete()
                 val output: OutputStream
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     val values = ContentValues().apply {
@@ -622,18 +646,7 @@ class ProjectOptions2Fragment : Fragment() {
                     try {
                         output = appContext.contentResolver.openOutputStream(uri)
                             ?: error("Не удалось открыть файл экспорта")
-                        ZipOutputStream(output).use { zos ->
-                            proj.directory.walk().filter { it != proj.directory }.forEach { file ->
-                                val entryPath = file.relativeTo(proj.directory).path
-                                progress.updateFile(entryPath)
-                                val zipEntry = if (file.isDirectory) ZipEntry("$entryPath/") else ZipEntry(entryPath)
-                                zos.putNextEntry(zipEntry)
-                                if (file.isFile) {
-                                    FileInputStream(file).use { fis -> fis.copyTo(zos, 8192) }
-                                }
-                                zos.closeEntry()
-                            }
-                        }
+                        FileInputStream(containerFile).use { fis -> fis.copyTo(output, 8192) }
                         appContext.contentResolver.update(
                             uri,
                             ContentValues().apply { put(MediaStore.Downloads.IS_PENDING, 0) },
@@ -649,20 +662,10 @@ class ProjectOptions2Fragment : Fragment() {
                     if (!exportDir.exists() && !exportDir.mkdirs()) error("Не удалось создать папку экспорта")
                     val outputFile = File(exportDir, fileName)
                     FileOutputStream(outputFile).use { out ->
-                        ZipOutputStream(out).use { zos ->
-                            proj.directory.walk().filter { it != proj.directory }.forEach { file ->
-                                val entryPath = file.relativeTo(proj.directory).path
-                                progress.updateFile(entryPath)
-                                val zipEntry = if (file.isDirectory) ZipEntry("$entryPath/") else ZipEntry(entryPath)
-                                zos.putNextEntry(zipEntry)
-                                if (file.isFile) {
-                                    FileInputStream(file).use { fis -> fis.copyTo(zos, 8192) }
-                                }
-                                zos.closeEntry()
-                            }
-                        }
+                        FileInputStream(containerFile).use { fis -> fis.copyTo(out, 8192) }
                     }
                 }
+                containerFile.delete()
                 activity?.runOnUiThread {
                     progress.dismiss()
                     if (isAdded && context != null) {

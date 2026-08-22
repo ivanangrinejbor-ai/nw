@@ -50,6 +50,14 @@ class AiAgentManager private constructor() {
     private val _activity = MutableStateFlow("")
     val activity: StateFlow<String> = _activity.asStateFlow()
 
+    private val _reasoning = MutableStateFlow("")
+    val reasoning: StateFlow<String> = _reasoning.asStateFlow()
+
+    private val messageTimestampSeq = java.util.concurrent.atomic.AtomicLong(0)
+
+    private fun nextTimestamp(): Long =
+        System.currentTimeMillis() + messageTimestampSeq.incrementAndGet() % 1000
+
     @Volatile
     var scopeProjectName: String? = null
         private set
@@ -100,7 +108,7 @@ class AiAgentManager private constructor() {
         val userMsg = ChatMessage(
             role = ChatMessage.Role.USER,
             content = text,
-            timestamp = System.currentTimeMillis()
+            timestamp = nextTimestamp()
         )
         _messages.update { it + userMsg }
 
@@ -116,7 +124,7 @@ class AiAgentManager private constructor() {
             val errMsg = ChatMessage(
                 role = ChatMessage.Role.ASSISTANT,
                 content = reason,
-                timestamp = System.currentTimeMillis()
+                timestamp = nextTimestamp()
             )
             _messages.update { it + errMsg }
             return
@@ -127,23 +135,44 @@ class AiAgentManager private constructor() {
     private fun isBackendReady(): Boolean =
         if (AiPreferences.isLocalBackend()) ModelRuntime.isModelLoaded() else cloudRuntime.isReady()
 
-    private suspend fun generate(systemPrompt: String, userContent: String, temperature: Float, maxTokens: Int): String =
+    private suspend fun generate(
+        systemPrompt: String,
+        userContent: String,
+        temperature: Float,
+        maxTokens: Int
+    ): Pair<String, String?> {
         if (AiPreferences.isLocalBackend() && ModelRuntime.isModelLoaded()) {
             val modelId = AiPreferences.getSelectedModelId()
-            modelRuntime.generate(
+            val raw = modelRuntime.generate(
                 applyLocalChatTemplate(systemPrompt, truncateForLocalBackend(userContent), modelId),
                 temperature,
                 maxTokens = LOCAL_MAX_GEN_TOKENS
             )
-        } else {
-            cloudRuntime.generate(systemPrompt, userContent, temperature, maxTokens = maxTokens.coerceIn(256, 8192))
+            return splitThinkBlock(raw)
         }
+        val result = cloudRuntime.generateWithMeta(systemPrompt, userContent, temperature, maxTokens = maxTokens.coerceIn(256, 8192))
+        return result.content to result.reasoning
+    }
+
+    private fun splitThinkBlock(text: String): Pair<String, String?> {
+        val open = text.indexOf("<think>")
+        if (open < 0) return text to null
+        val close = text.indexOf("</think>", open)
+        if (close < 0) {
+            val thinking = text.substring(open + 7).trim()
+            return text.substring(0, open).trim() to thinking.takeIf { it.isNotEmpty() }
+        }
+        val thinking = text.substring(open + 7, close).trim()
+        val rest = (text.substring(0, open) + text.substring(close + 8)).trim()
+        return rest to thinking.takeIf { it.isNotEmpty() }
+    }
 
     private fun processMessage(userInput: String) {
         scope.launch {
             try {
                 _state.value = AiAgentState.THINKING
                 _activity.value = "Reading your request…"
+                _reasoning.value = ""
 
                 val project = ProjectManager.getInstance().currentProject
                 val analysis = if (project != null && AiPreferences.isAutoReadEnabled()) {
@@ -169,12 +198,15 @@ class AiAgentManager private constructor() {
 
                 while (iteration < maxRounds) {
                     _activity.value = "Thinking…"
-                    val response = generate(
+                    val (response, reasoning) = generate(
                         systemPrompt,
                         userContent,
                         temperature = temperature,
                         maxTokens = maxTokens
                     )
+                    if (!reasoning.isNullOrBlank()) {
+                        _reasoning.value = (_reasoning.value + "\n" + reasoning).trim()
+                    }
                     if (response.startsWith("Error")) {
                         toolResult = response
                         break
@@ -192,12 +224,14 @@ class AiAgentManager private constructor() {
                         break
                     }
                     malformedStreak = 0
+                    _state.value = AiAgentState.USING_TOOLS
                     val executionResults = executeToolCallsWithRetry(toolCalls) { toolCall ->
                         _activity.value = describeToolActivity(toolCall)
                     }
                     for ((toolCall, result) in executionResults) {
                         userContent += "\nTool result: $result\n"
                         contextManager.addToolCall(toolCall.name, toolCall.args, result)
+                        emitToolFeed(toolCall, result)
                     }
                     val pending = toolEngine.getPendingChanges()
                     if (pending.isNotEmpty()) {
@@ -216,21 +250,38 @@ class AiAgentManager private constructor() {
                     iteration++
                 }
 
-                val finalResponse = toolResult ?: generate(
-                    systemPrompt,
-                    userContent,
-                    temperature = temperature,
-                    maxTokens = maxTokens
-                )
+                val (finalResponse, finalReasoning) = if (toolResult != null) {
+                    toolResult to null
+                } else {
+                    _activity.value = "Thinking…"
+                    generate(
+                        systemPrompt,
+                        userContent,
+                        temperature = temperature,
+                        maxTokens = maxTokens
+                    )
+                }
+                if (!finalReasoning.isNullOrBlank()) {
+                    _reasoning.value = (_reasoning.value + "\n" + finalReasoning).trim()
+                }
 
                 kotlinx.coroutines.delay(50)
 
                 _state.value = AiAgentState.RESPONDING
 
+                val assistantBody = buildString {
+                    val thoughts = _reasoning.value.trim()
+                    if (thoughts.isNotEmpty()) {
+                        append("💭 **Reasoning**\n")
+                        thoughts.split("\n").forEach { line -> append("> ").appendLine(line.take(400)) }
+                        append("\n")
+                    }
+                    append(finalResponse)
+                }
                 val aiMsg = ChatMessage(
                     role = ChatMessage.Role.ASSISTANT,
-                    content = finalResponse,
-                    timestamp = System.currentTimeMillis()
+                    content = assistantBody,
+                    timestamp = nextTimestamp()
                 )
                 _messages.update { it + aiMsg }
                 contextManager.addMessage(userInput, finalResponse)
@@ -249,11 +300,24 @@ class AiAgentManager private constructor() {
                 val errMsg = ChatMessage(
                     role = ChatMessage.Role.ASSISTANT,
                     content = "Error: ${e.message}",
-                    timestamp = System.currentTimeMillis()
+                    timestamp = nextTimestamp()
                 )
                 _messages.update { it + errMsg }
             }
         }
+    }
+
+    private fun emitToolFeed(toolCall: org.catrobat.catroid.ai.tool.ToolCall, result: String) {
+        val argsPreview = toolCall.args.entries.joinToString(", ") { "${it.key}=${it.value.take(60)}" }
+        val ok = !(result.startsWith("ERROR") || result.startsWith("Error"))
+        val status = if (ok) "✅" else "⚠️"
+        val resultPreview = result.replace("\n", " ").take(200)
+        val feed = ChatMessage(
+            role = ChatMessage.Role.TOOL,
+            content = "$status ${toolCall.name}(${argsPreview.take(160)}) → $resultPreview",
+            timestamp = nextTimestamp()
+        )
+        _messages.update { it + feed }
     }
 
     private suspend fun applyPendingChangesSafely(
@@ -370,7 +434,7 @@ class AiAgentManager private constructor() {
             ChatMessage(
                 role = ChatMessage.Role.CHANGE,
                 content = card.label,
-                timestamp = System.currentTimeMillis(),
+                timestamp = nextTimestamp(),
                 changeCard = card
             )
         }

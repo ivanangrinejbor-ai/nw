@@ -16,6 +16,7 @@ object AiPreferences {
     private const val KEY_TEMPERATURE = "ai_agent_temperature"
     private const val KEY_MAX_CONTEXT = "ai_agent_max_context"
     private const val KEY_MAX_TOOL_CALLS = "ai_agent_max_tool_calls"
+    private const val KEY_REASONING_LEVEL = "ai_agent_reasoning_level"
     private const val KEY_CLOUD_MODEL = "ai_agent_cloud_model"
     private const val KEY_CLOUD_MODEL_PROVIDER = "ai_agent_cloud_model_provider"
     private const val KEY_BACKEND = "ai_agent_backend"
@@ -155,6 +156,25 @@ object AiPreferences {
 
     fun setMaxToolCalls(max: Int) {
         prefs?.edit()?.putString(KEY_MAX_TOOL_CALLS, max.coerceIn(1, 50).toString())?.apply()
+    }
+
+    const val REASONING_DEFAULT = "default"
+    const val REASONING_OFF = "off"
+    const val REASONING_LOW = "low"
+    const val REASONING_MEDIUM = "medium"
+    const val REASONING_HIGH = "high"
+
+    val reasoningLevels = listOf(REASONING_DEFAULT, REASONING_OFF, REASONING_LOW, REASONING_MEDIUM, REASONING_HIGH)
+
+    fun getReasoningLevel(): String {
+        val raw = prefs?.getString(KEY_REASONING_LEVEL, REASONING_DEFAULT) ?: REASONING_DEFAULT
+        return if (raw in reasoningLevels) raw else REASONING_DEFAULT
+    }
+
+    fun setReasoningLevel(level: String) {
+        if (level in reasoningLevels) {
+            prefs?.edit()?.putString(KEY_REASONING_LEVEL, level)?.apply()
+        }
     }
 
     fun getCloudModelId(): String {

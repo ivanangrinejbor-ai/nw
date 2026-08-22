@@ -84,7 +84,11 @@ public class SpriteController {
 		}
 
 		for (Brick userDefinedBrick : spriteToCopy.getUserDefinedBrickList()) {
-			sprite.getUserDefinedBrickList().add(new UserDefinedBrick((UserDefinedBrick) userDefinedBrick));
+			if (userDefinedBrick instanceof org.catrobat.catroid.content.bricks.UserDefinedBrickV2) {
+				sprite.getUserDefinedBrickList().add(new org.catrobat.catroid.content.bricks.UserDefinedBrickV2((org.catrobat.catroid.content.bricks.UserDefinedBrickV2) userDefinedBrick));
+			} else if (userDefinedBrick instanceof org.catrobat.catroid.content.bricks.UserDefinedBrick) {
+				sprite.getUserDefinedBrickList().add(new UserDefinedBrick((UserDefinedBrick) userDefinedBrick));
+			}
 		}
 
 		for (Script script : spriteToCopy.getScriptList()) {
@@ -132,7 +136,11 @@ public class SpriteController {
 		}
 
 		for (Brick userDefinedBrick : spriteToCopy.getUserDefinedBrickList()) {
-			sprite.getUserDefinedBrickList().add(new UserDefinedBrick((UserDefinedBrick) userDefinedBrick));
+			if (userDefinedBrick instanceof org.catrobat.catroid.content.bricks.UserDefinedBrickV2) {
+				sprite.getUserDefinedBrickList().add(new org.catrobat.catroid.content.bricks.UserDefinedBrickV2((org.catrobat.catroid.content.bricks.UserDefinedBrickV2) userDefinedBrick));
+			} else if (userDefinedBrick instanceof org.catrobat.catroid.content.bricks.UserDefinedBrick) {
+				sprite.getUserDefinedBrickList().add(new UserDefinedBrick((UserDefinedBrick) userDefinedBrick));
+			}
 		}
 
 		for (Script script : spriteToCopy.getScriptList()) {
@@ -189,7 +197,11 @@ public class SpriteController {
 		}
 
 		for (Brick userDefinedBrick : spriteToCopy.getUserDefinedBrickList()) {
-			sprite.getUserDefinedBrickList().add(new UserDefinedBrick((UserDefinedBrick) userDefinedBrick));
+			if (userDefinedBrick instanceof org.catrobat.catroid.content.bricks.UserDefinedBrickV2) {
+				sprite.getUserDefinedBrickList().add(new org.catrobat.catroid.content.bricks.UserDefinedBrickV2((org.catrobat.catroid.content.bricks.UserDefinedBrickV2) userDefinedBrick));
+			} else if (userDefinedBrick instanceof org.catrobat.catroid.content.bricks.UserDefinedBrick) {
+				sprite.getUserDefinedBrickList().add(new UserDefinedBrick((UserDefinedBrick) userDefinedBrick));
+			}
 		}
 
 		for (Script script : spriteToCopy.getScriptList()) {

@@ -303,7 +303,7 @@ class DataListFragment : Fragment(),
         BottomBar.hideBottomBar(activity)
     }
 
-    private fun initializeAdapter() {
+    fun initializeAdapter() {
         arguments?.getSerializable(PARENT_SCRIPT_BRICK_BUNDLE_ARGUMENT)
             .let { parentScriptBrick = it as ScriptBrick? }
 
@@ -574,7 +574,7 @@ class DataListFragment : Fragment(),
                     .edit()
                     .putBoolean(SORT_VARIABLE_PREFERENCE_KEY, sortData)
                     .apply()
-                indexAndSort()
+                initializeAdapter()
             }
             else -> return super.onOptionsItemSelected(item)
         }

@@ -113,16 +113,19 @@ public class UserList implements Serializable, UserData<List<Object>> {
 		if (!getClass().equals(obj.getClass())) {
 			return false;
 		}
-		return ((UserList) obj).name.equals(name);
+		Object otherName = ((UserList) obj).name;
+		return name == null ? otherName == null : name.equals(otherName);
 	}
 
 	public boolean hasSameListSize(UserList listToCheck) {
-		return listToCheck.list.size() == list.size();
+		int otherSize = listToCheck == null || listToCheck.list == null ? 0 : listToCheck.list.size();
+		int thisSize = list == null ? 0 : list.size();
+		return otherSize == thisSize;
 	}
 
 	@Override
 	public int hashCode() {
-		return name.hashCode();
+		return name == null ? 0 : name.hashCode();
 	}
 
 	public UUID getDeviceKey() {

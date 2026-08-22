@@ -47,14 +47,19 @@ object Conversions {
     @JvmStatic
     @JvmOverloads
     fun tryParseColor(string: String?, defaultValue: Int = Color.BLACK): Int {
-        return if (string.isValidHexColor()) {
-            Color.parseColor(string)
+        val clean = string?.replace("'", "")?.replace("\"", "")?.trim()
+        return if (clean.isValidHexColor()) {
+            Color.parseColor(clean)
         } else {
             defaultValue
         }
     }
 
-    fun String?.isValidHexColor() = this != null && colorPattern.matcher(this).matches()
+    fun String?.isValidHexColor(): Boolean {
+        if (this == null) return false
+        val clean = this.replace("'", "").replace("\"", "").trim()
+        return colorPattern.matcher(clean).matches()
+    }
 
     @JvmStatic
     fun convertArgumentToDouble(argument: Any?): Double? {

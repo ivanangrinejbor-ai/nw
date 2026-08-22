@@ -26,5 +26,8 @@
     <item name="drag_and_drop_list_view_image_view" type="id"/>
     <item name="button_ai_assist" type="id"/>
     <item name="unlock_variable" type="id"/>
+    <item name="formula_editor_keyboard_undo" type="id"/>
+    <item name="formula_editor_keyboard_redo" type="id"/>
+    <item name="brick_view_data_version" type="id"/>
 
 </resources>

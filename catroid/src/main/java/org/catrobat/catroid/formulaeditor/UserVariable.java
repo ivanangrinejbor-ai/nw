@@ -127,16 +127,21 @@ public class UserVariable implements Serializable, UserData<Object> {
 		if (!getClass().equals(obj.getClass())) {
 			return false;
 		}
-		return ((UserVariable) obj).name.equals(name);
+		Object otherName = ((UserVariable) obj).name;
+		return name == null ? otherName == null : name.equals(otherName);
 	}
 
 	public boolean hasSameValue(UserVariable variableToCheck) {
-		return variableToCheck.value.equals(value);
+		if (variableToCheck == null) {
+			return value == null;
+		}
+		Object otherValue = variableToCheck.value;
+		return value == null ? otherValue == null : value.equals(otherValue);
 	}
 
 	@Override
 	public int hashCode() {
-		return name.hashCode();
+		return name == null ? 0 : name.hashCode();
 	}
 
 	public UUID getDeviceKey() {

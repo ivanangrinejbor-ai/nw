@@ -566,6 +566,8 @@ class ScriptController {
             }
 
             updateFormula(brick, name, newNameForVariable, USER_VARIABLE)
+        } else if (brick is UserVariableBrickInterface) {
+            brick.userVariable = destinationList.find { variable -> variable.name == name }
         }
     }
 
@@ -591,6 +593,8 @@ class ScriptController {
             }
 
             updateFormula(brick, name, newNameForList, USER_LIST)
+        } else if (brick is UserListBrick) {
+            brick.userList = destinationList.find { list -> list.name == name }
         }
     }
 

@@ -81,7 +81,6 @@ fun renameProject(projectDirectory: File, destinationName: String): File? {
 fun tryRenameTo(projectDirectory: File, destinationDirectory: File): Boolean {
     return try {
         projectDirectory.renameTo(destinationDirectory)
-        true
     } catch (e: IOException) {
         Log.e(TAG, "Cannot rename project directory ${projectDirectory.absolutePath} to ${destinationDirectory.name}", e)
         false

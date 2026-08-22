@@ -908,6 +908,10 @@
         <item name="android:background">@drawable/brick_categories_green</item>
     </style>
 
+    <style name="BrickCategory.Shaders">
+        <item name="android:background">@drawable/brick_categories_green</item>
+    </style>
+
     <style name="BrickCategory.Device">
         <item name="android:background">@drawable/brick_categories_gold</item>
     </style>

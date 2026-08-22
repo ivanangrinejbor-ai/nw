@@ -50,9 +50,12 @@ class TransitionAction : TemporalAction() {
 
     override fun setActor(actor: com.badlogic.gdx.scenes.scene2d.Actor?) {
         super.setActor(actor)
-        if (!initialized) {
-            initialize()
-        }
+    }
+
+    override fun restart() {
+        super.restart()
+        initialized = false
+        durationCalculated = 0f
     }
 
     private fun initialize() {
