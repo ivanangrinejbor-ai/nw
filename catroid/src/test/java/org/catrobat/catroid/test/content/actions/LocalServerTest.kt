@@ -58,8 +58,6 @@ class LocalServerTest {
 		LocalServer.serverTimeoutSeconds = 30
 	}
 
-	// ======================== isPortInUse ========================
-
 	@Test
 	fun testIsPortInUseFreePortReturnsFalse() {
 		val port = freePort()
@@ -126,8 +124,6 @@ class LocalServerTest {
 			assertFalse(LocalServer.isPortInUse(port))
 		}
 	}
-
-	// ======================== server lifecycle ========================
 
 	@Test
 	fun testStartServerAcceptsMessageFromClient() {
@@ -453,8 +449,6 @@ class LocalServerTest {
 		client.close()
 	}
 
-	// ======================== client mode ========================
-
 	@Test
 	fun testConnectToServerReceivesMessages() {
 		val server = ServerSocket(0)
@@ -493,8 +487,6 @@ class LocalServerTest {
 		LocalServer.startOrJoin("127.0.0.1", "notaport")
 		Thread.sleep(300)
 	}
-
-	// ======================== client limit ========================
 
 	@Test
 	fun testClientLimitOneRejectsSecondClient() {
@@ -569,8 +561,6 @@ class LocalServerTest {
 		}
 		await { LocalServer.getValue() == "second" }
 	}
-
-	// ======================== concurrency ========================
 
 	@Test
 	fun testConcurrentSendsDoNotCrash() {

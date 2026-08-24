@@ -18,8 +18,6 @@ class GetFromPastebinActionTest {
 		action.act(1f)
 	}
 
-	// ======================== defensive cases ========================
-
 	@Test
 	fun testNullUrlLeavesVariableUntouched() {
 		val variable = UserVariable("v").apply { value = "INITIAL" }

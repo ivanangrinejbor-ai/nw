@@ -1,11 +1,3 @@
-/*
- * NeoCatroid — baked APK payload password tests.
- *
- * Covers the per-build random password flow used by BakedApkBuilder/AlignedApkBuilder:
- * generate password -> write to neocatroid.key asset -> ProjectCrypto.encrypt(locked)
- * -> RuntimeLoaderActivity/PayloadDecryptor decrypt with the same password.
- */
-
 package org.catrobat.catroid.test.apkbuild
 
 import org.catrobat.catroid.io.ProjectCrypto
@@ -43,8 +35,6 @@ class ProjectCryptoPasswordTest {
         return zipBytes.toByteArray()
     }
 
-    // ==================== password generation ====================
-
     @Test
     fun generatedPasswordIs32HexChars() {
         repeat(50) {
@@ -62,8 +52,6 @@ class ProjectCryptoPasswordTest {
             assertTrue("passwords must be unique (duplicate: $pwd)", seen.add(pwd))
         }
     }
-
-    // ==================== APK payload round-trip (locked, like BakedApkBuilder) ====================
 
     private fun encryptLikeBakedApk(source: File, dest: File, password: String) {
         ProjectCrypto.encrypt(source, dest, password, locked = true)
@@ -136,8 +124,6 @@ class ProjectCryptoPasswordTest {
         assertFalse("decrypt of a plain zip must return false", ProjectCrypto.decrypt(plain, out, "whatever"))
     }
 
-    // ==================== NCPW container header (EXE path, shared helper) ====================
-
     @Test
     fun ncpwContainerHeaderRoundTrip() {
         val password = ProjectCrypto.generateRandomPassword()
@@ -197,8 +183,6 @@ class ProjectCryptoPasswordTest {
         assertEquals("inner payload must be NCPS", "NCPS", String(innerMagic, StandardCharsets.US_ASCII))
         assertEquals("payload must contain encrypted data after the header", true, input.available() > 32)
     }
-
-    // ==================== protected-project file container (NCPW + NCPP, 2026-08) ====================
 
     @Test
     fun protectedContainerRoundTrip() {

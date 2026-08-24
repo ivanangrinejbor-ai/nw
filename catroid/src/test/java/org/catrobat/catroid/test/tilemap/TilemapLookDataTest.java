@@ -38,7 +38,6 @@ public class TilemapLookDataTest {
         data.initLayers(1);
         // Default tile should be EMPTY (-1)
         assertEquals(TilemapLookData.EMPTY, data.getTile(0, 0));
-        // Set tile
         data.setTile(0, 0, (short) 3);
         assertEquals(3, data.getTile(0, 0));
         // Out of bounds should return EMPTY
@@ -78,7 +77,6 @@ public class TilemapLookDataTest {
         assertEquals(1, data.getLayerCount());
         data.initLayers(2);
         assertEquals(2, data.getLayerCount());
-        // Set tile on layer 1
         data.setTile(1, 0, 0, (short) 5);
         assertEquals(5, data.getTile(1, 0, 0));
         // Layer 0 should still be EMPTY

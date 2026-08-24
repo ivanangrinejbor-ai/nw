@@ -31,8 +31,6 @@ class TcpServerConfigActionsTest {
 		action.act(1f)
 	}
 
-	// ======================== client limit ========================
-
 	@Test
 	fun testDefaultClientLimitIsTen() {
 		assertEquals(10, LocalServer.clientLimit)
@@ -109,8 +107,6 @@ class TcpServerConfigActionsTest {
 		assertEquals(4, LocalServer.clientLimit)
 	}
 
-	// ======================== server timeout ========================
-
 	@Test
 	fun testDefaultTimeoutIsThirty() {
 		assertEquals(30, LocalServer.serverTimeoutSeconds)
@@ -186,8 +182,6 @@ class TcpServerConfigActionsTest {
 		}
 		assertEquals(8, LocalServer.serverTimeoutSeconds)
 	}
-
-	// ======================== combined ========================
 
 	@Test
 	fun testLimitAndTimeoutIndependent() {

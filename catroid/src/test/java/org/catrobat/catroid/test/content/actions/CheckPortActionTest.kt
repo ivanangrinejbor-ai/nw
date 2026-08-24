@@ -45,8 +45,6 @@ class CheckPortActionTest {
 		occupiedSockets.forEach { runCatching { it.close() } }
 	}
 
-	// ======================== valid ports (free) ========================
-
 	@Test
 	fun testFreePortReturnsFalse() {
 		assertResult(Formula(freePort().toString()), "false", UserVariable("v"))
@@ -107,8 +105,6 @@ class CheckPortActionTest {
 		assertEquals("false", variable.value)
 	}
 
-	// ======================== occupied ports ========================
-
 	@Test
 	fun testOccupiedPortReturnsTrue() {
 		val port = occupyPort()
@@ -146,8 +142,6 @@ class CheckPortActionTest {
 			assertEquals("true", variable.value)
 		}
 	}
-
-	// ======================== invalid values ========================
 
 	@Test
 	fun testPortZeroReturnsError() {

@@ -66,10 +66,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
-/**
- * Comprehensive tests for Backpack script packing/unpacking with sounds and variable values.
- * 45 test cases covering: packing sounds, packing values, unpacking dedup, edge cases.
- */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({GdxNativesLoader.class, BackpackListManager.class, ProjectManager.class})
 public class BackpackScriptPackTest {
@@ -116,8 +112,6 @@ public class BackpackScriptPackTest {
 		backpack.backpackedUserVariables.clear();
 		backpack.backpackedUserLists.clear();
 	}
-
-	// ==================== PACK: SOUNDS ====================
 
 	@Test
 	public void packScriptWithSounds() throws Exception {
@@ -238,8 +232,6 @@ public class BackpackScriptPackTest {
 		assertFalse("Sound with non-existent file should not be packed", backpack.backpackedScriptSounds.containsKey("testGroup"));
 	}
 
-	// ==================== PACK: VALUES ====================
-
 	@Test
 	public void packScriptWithVariableValues() throws Exception {
 		StartScript script = new StartScript();
@@ -336,8 +328,6 @@ public class BackpackScriptPackTest {
 		assertEquals("Value should match", "99.0", backpack.backpackedVariableValues.get("testGroup").get("var-with-dash"));
 	}
 
-	// ==================== PACK: COMBINED ====================
-
 	@Test
 	public void packScriptWithBothSoundsAndValues() throws Exception {
 		StartScript script = new StartScript();
@@ -417,8 +407,6 @@ public class BackpackScriptPackTest {
 		assertFalse("No values for empty group", backpack.backpackedVariableValues.containsKey("emptyGroup"));
 	}
 
-	// ==================== UNPACK: SOUNDS ====================
-
 	@Test
 	public void unpackSoundExistsInDestination() throws Exception {
 		StartScript script = new StartScript();
@@ -427,18 +415,15 @@ public class BackpackScriptPackTest {
 		soundBrick.setSound(backpackSound);
 		script.addBrick(soundBrick);
 
-		// Destination already has a sound with the same name
 		SoundInfo existingSound = createSoundInfo("meow.mp3");
 		sprite.getSoundList().add(existingSound);
 
-		// Setup backpack with sound
 		List<SoundInfo> packedSounds = new ArrayList<>();
 		packedSounds.add(createSoundInfo("meow.mp3"));
 		backpack.backpackedScriptSounds.put("testGroup", packedSounds);
 
 		scriptController.unpack("testGroup", script, sprite);
 
-		// Should use existing sound, not create new one
 		assertEquals("Destination should still have 1 sound", 1, sprite.getSoundList().size());
 	}
 
@@ -450,7 +435,6 @@ public class BackpackScriptPackTest {
 		soundBrick.setSound(originalSound);
 		script.addBrick(soundBrick);
 
-		// Empty backpack sounds
 		backpack.backpackedScriptSounds.put("testGroup", new ArrayList<>());
 
 		scriptController.unpack("testGroup", script, sprite);
@@ -470,7 +454,6 @@ public class BackpackScriptPackTest {
 		script.addBrick(brick1);
 		script.addBrick(brick2);
 
-		// Setup backpack with sound
 		List<SoundInfo> packedSounds = new ArrayList<>();
 		packedSounds.add(createSoundInfo("click.mp3"));
 		backpack.backpackedScriptSounds.put("testGroup", packedSounds);
@@ -488,7 +471,6 @@ public class BackpackScriptPackTest {
 		soundBrick.setSound(sound);
 		script.addBrick(soundBrick);
 
-		// No sounds in backpack for this group
 		backpack.backpackedScriptSounds.put("testGroup", new ArrayList<>());
 
 		scriptController.unpack("testGroup", script, sprite);
@@ -500,7 +482,6 @@ public class BackpackScriptPackTest {
 	public void unpackWithNullScriptName() throws Exception {
 		StartScript script = new StartScript();
 
-		// Should not throw NPE
 		scriptController.unpack(null, script, sprite);
 	}
 
@@ -514,7 +495,6 @@ public class BackpackScriptPackTest {
 		SetVariableBrick varBrick = new SetVariableBrick(0);
 		script.addBrick(varBrick);
 
-		// Setup backpack with value
 		HashMap<String, String> values = new HashMap<>();
 		values.put("score", "100.0");
 		backpack.backpackedVariableValues.put("testGroup", values);
@@ -532,7 +512,6 @@ public class BackpackScriptPackTest {
 		SetVariableBrick varBrick = new SetVariableBrick(0);
 		script.addBrick(varBrick);
 
-		// Setup backpack with string value
 		HashMap<String, String> values = new HashMap<>();
 		values.put("name", "Player1");
 		backpack.backpackedVariableValues.put("testGroup", values);
@@ -541,8 +520,6 @@ public class BackpackScriptPackTest {
 
 		assertEquals("Variable string value should be restored", "Player1", variable.getValue());
 	}
-
-	// ==================== BACKPACK MODEL ====================
 
 	@Test
 	public void backpackScriptSoundsPerGroup() {
@@ -619,10 +596,6 @@ public class BackpackScriptPackTest {
 		assertTrue("backpackedVariableValues should be empty", backpack.backpackedVariableValues.isEmpty());
 		assertTrue("backpackedListValues should be empty", backpack.backpackedListValues.isEmpty());
 	}
-
-	// ==================== BRICKSPINNER FIX TESTS ====================
-
-	// ==================== EDGE CASES ====================
 
 	@Test
 	public void packWithMaximalValues() throws Exception {
@@ -728,7 +701,6 @@ public class BackpackScriptPackTest {
 
 	@Test
 	public void packSoundAndValueIndependently() throws Exception {
-		// Test that includeSounds=true, includeValues=false works
 		StartScript script = new StartScript();
 		SoundInfo sound = createSoundInfo("test.mp3");
 		PlaySoundBrick soundBrick = new PlaySoundBrick();
@@ -750,7 +722,6 @@ public class BackpackScriptPackTest {
 
 	@Test
 	public void packValueAndSoundIndependently() throws Exception {
-		// Test that includeSounds=false, includeValues=true works
 		StartScript script = new StartScript();
 		SoundInfo sound = createSoundInfo("test.mp3");
 		PlaySoundBrick soundBrick = new PlaySoundBrick();
@@ -769,8 +740,6 @@ public class BackpackScriptPackTest {
 		assertFalse("Sounds should NOT be packed", backpack.backpackedScriptSounds.containsKey("testGroup"));
 		assertTrue("Values should be packed", backpack.backpackedVariableValues.containsKey("testGroup"));
 	}
-
-	// ==================== ADDITIONAL EDGE CASES ====================
 
 	@Test
 	public void packTwoGroupsIndependently() throws Exception {
@@ -888,8 +857,6 @@ public class BackpackScriptPackTest {
 
 		assertEquals("Empty string should be preserved", "", backpack.backpackedVariableValues.get("testGroup").get("empty_str"));
 	}
-
-	// ==================== HELPER METHODS ====================
 
 	private SoundInfo createSoundInfo(String name) {
 		File mockFile = Mockito.mock(File.class);

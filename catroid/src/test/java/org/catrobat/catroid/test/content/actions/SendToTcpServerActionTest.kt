@@ -66,8 +66,6 @@ private fun runAction(values: List<Formula?>?) {
 		LocalServer.stop()
 	}
 
-	// ======================== defensive cases ========================
-
 	@Test
 	fun testNullValuesDoesNotCrash() {
 		runAction(null)
@@ -95,8 +93,6 @@ private fun runAction(values: List<Formula?>?) {
 		runAction(listOf(Formula("x")))
 		runAction(listOf(Formula("y")))
 	}
-
-	// ======================== integration with LocalServer ========================
 
 	@Test
 	fun testSingleValueReachesClient() {

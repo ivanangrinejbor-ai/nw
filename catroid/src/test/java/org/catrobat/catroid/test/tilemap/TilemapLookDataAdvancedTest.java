@@ -21,8 +21,6 @@ import static org.junit.Assert.assertTrue;
 @RunWith(JUnit4.class)
 public class TilemapLookDataAdvancedTest {
 
-    // ======================= setMapSize resize =======================
-
     @Test
     public void testResizePreservesOverlappingTiles() {
         TilemapLookData data = new TilemapLookData();
@@ -64,8 +62,6 @@ public class TilemapLookDataAdvancedTest {
         assertEquals(TilemapLookData.EMPTY, data.getTile(0, 0));
     }
 
-    // ======================= Tile properties =======================
-
     @Test
     public void testSetTileReturnsTrueOnChange() {
         TilemapLookData data = new TilemapLookData();
@@ -91,8 +87,6 @@ public class TilemapLookDataAdvancedTest {
         assertFalse(data.setTile(10, 10, (short) 1));
     }
 
-    // ======================= Solid tiles =======================
-
     @Test
     public void testMultipleSolidTiles() {
         TilemapLookData data = new TilemapLookData();
@@ -117,8 +111,6 @@ public class TilemapLookDataAdvancedTest {
         assertFalse(data.isSolidTile(5));
         assertEquals(0, data.getSolidTiles().size());
     }
-
-    // ======================= Tileset geometry =======================
 
     @Test
     public void testTilesetColumnsFromImageWidth() {
@@ -161,8 +153,6 @@ public class TilemapLookDataAdvancedTest {
         assertEquals(8, data.getTilesetRows(128));
     }
 
-    // ======================= Layer access =======================
-
     @Test
     public void testGetLayerOutOfBoundsReturnsNull() {
         TilemapLookData data = new TilemapLookData();
@@ -181,8 +171,6 @@ public class TilemapLookDataAdvancedTest {
         assertEquals(9, data.getLayer(0).length); // 3*3
     }
 
-    // ======================= Tile properties map =======================
-
     @Test
     public void testTilePropertiesInitiallyEmpty() {
         TilemapLookData data = new TilemapLookData();
@@ -190,14 +178,10 @@ public class TilemapLookDataAdvancedTest {
         assertTrue(data.getTileProperties().isEmpty());
     }
 
-    // ======================= EMPTY constant =======================
-
     @Test
     public void testEmptyConstantIsMinusOne() {
         assertEquals(-1, TilemapLookData.EMPTY);
     }
-
-    // ======================= Tile width/height setters =======================
 
     @Test
     public void testTileWidthMinimumIsOne() {

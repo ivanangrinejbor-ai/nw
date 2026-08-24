@@ -336,8 +336,6 @@ public class InternFormulaRegexAssistantTest {
 	@Test
 	public void testNonRegexFunctionSecondParamSelectedStaysSelected() {
 		ArrayList<InternToken> internTokens = new ArrayList<>();
-		//join ('Hello', 'World')
-		//null( 'Hello' , 'World' )
 		internTokens.add(new InternToken(InternTokenType.FUNCTION_NAME, Functions.JOIN.name()));
 		internTokens.add(new InternToken(InternTokenType.FUNCTION_PARAMETERS_BRACKET_OPEN));
 		internTokens.add(new InternToken(InternTokenType.STRING, "Hello"));

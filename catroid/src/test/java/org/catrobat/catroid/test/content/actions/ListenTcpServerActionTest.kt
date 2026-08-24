@@ -66,8 +66,6 @@ class ListenTcpServerActionTest {
 		LocalServer.stop()
 	}
 
-	// ======================== defensive cases ========================
-
 	@Test
 	fun testNullVariablesReturnsTrue() {
 		assertTrue(runAction(null))
@@ -98,8 +96,6 @@ class ListenTcpServerActionTest {
 	fun testActionReturnsTrueImmediately() {
 		assertTrue(runAction(listOf(UserVariable("v"))))
 	}
-
-	// ======================== integration ========================
 
 	@Test
 	fun testSingleVariableGetsLastMessage() {

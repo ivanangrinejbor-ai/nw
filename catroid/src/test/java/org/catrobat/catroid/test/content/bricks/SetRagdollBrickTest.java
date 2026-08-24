@@ -49,8 +49,6 @@ public class SetRagdollBrickTest {
         ProjectManager.getInstance().setCurrentlyPlayingScene(scene);
     }
 
-    // ---- Brick wiring ----
-
     @Test
     public void testBrickDelegatesToActionFactory() {
         ActionFactory actionFactory = Mockito.mock(ActionFactory.class);
@@ -79,8 +77,6 @@ public class SetRagdollBrickTest {
                 any(Formula.class));
     }
 
-    // ---- Sprite flag ----
-
     @Test
     public void testSpriteRagdollModeDefaultsZero() {
         assertTrue("New sprite should not be in ragdoll mode", sprite.ragdollMode == 0);
@@ -105,8 +101,6 @@ public class SetRagdollBrickTest {
         assertTrue("Mode 0 = ragdoll off", sprite.ragdollMode == 0);
     }
 
-    // ---- Formula round-trip ----
-
     @Test
     public void testBrickConstructorWithIntFormulaSetsField() {
         SetRagdollBrick brickOn = new SetRagdollBrick(1);
@@ -120,8 +114,6 @@ public class SetRagdollBrickTest {
         assertTrue("Formula(1) should not be null", formulaOn != null);
         assertTrue("Formula(0) should not be null", formulaOff != null);
     }
-
-    // ---- SetRagdollAction runtime effect ----
 
     private SetRagdollAction createAction(double formulaValue) {
         SetRagdollAction action = new SetRagdollAction();

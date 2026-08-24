@@ -51,35 +51,11 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-/**
- * Stress-audit for ThreadScheduler — the core event-dispatch engine.
- *
- * Scenarios tested:
- *   ST-01  1 "When started" block         → baseline sanity
- *   ST-02  10 distinct blocks             → linear growth
- *   ST-03  50 distinct blocks             → medium load
- *   ST-04  60 distinct blocks             → threshold test (user request)
- *   ST-05  100 distinct blocks            → high load
- *   ST-06  500 distinct blocks            → extreme load, no OOM
- *   ST-07  Same-script de-duplication     → only last action enqueued survives
- *   ST-08  Large-scale de-duplication     → 60 pairs, all duplicates removed
- *   ST-09  Ordering guarantee             → scripts execute in insertion order
- *   ST-10  stop-all mid-run              → threads removed, others unaffected
- *   ST-11  Suspended state at scale       → no action.act() called when SUSPENDED
- *   ST-12  haveAllThreadsFinished         → sentinel correct after full drain
- *   ST-13  PerformanceTracker counter     → activeThreads increments by action count
- *   ST-14  Re-start after completion      → finished script can be re-queued
- *   ST-15  Mixed complete / continuous    → completed threads removed, others continue
- */
 @RunWith(JUnit4.class)
 public class ScriptStressTest {
 
 	private ThreadScheduler scheduler;
 	private Actor actor;
-
-	// -----------------------------------------------------------------------
-	// Setup
-	// -----------------------------------------------------------------------
 
 	@Before
 	public void setUp() {
@@ -88,10 +64,6 @@ public class ScriptStressTest {
 		// Reset global counter so tests are independent
 		PerformanceTracker.activeThreads.set(0);
 	}
-
-	// -----------------------------------------------------------------------
-	// Helper
-	// -----------------------------------------------------------------------
 
 	/** Creates a mock ScriptSequenceAction tied to a unique Script instance. */
 	private ScriptSequenceAction makeAction(boolean finishesImmediately) {
@@ -112,10 +84,6 @@ public class ScriptStressTest {
 		return actions;
 	}
 
-	// -----------------------------------------------------------------------
-	// ST-01  Baseline: 1 "When started" block
-	// -----------------------------------------------------------------------
-
 	@Test
 	public void st01_singleBlockStartsAndRuns() {
 		ScriptSequenceAction action = makeAction(false);
@@ -125,10 +93,6 @@ public class ScriptStressTest {
 		assertEquals("One action should be in the actor", 1, actor.getActions().size);
 		verify(action, times(1)).act(anyFloat());
 	}
-
-	// -----------------------------------------------------------------------
-	// ST-02  10 distinct "When started" blocks
-	// -----------------------------------------------------------------------
 
 	@Test
 	public void st02_tenDistinctBlocksAllRun() {
@@ -144,10 +108,6 @@ public class ScriptStressTest {
 		}
 	}
 
-	// -----------------------------------------------------------------------
-	// ST-03  50 distinct blocks
-	// -----------------------------------------------------------------------
-
 	@Test
 	public void st03_fiftyDistinctBlocksAllRun() {
 		List<ScriptSequenceAction> actions = makeNDistinctActions(50);
@@ -162,10 +122,6 @@ public class ScriptStressTest {
 		}
 	}
 
-	// -----------------------------------------------------------------------
-	// ST-04  60 distinct blocks (user-specified threshold)
-	// -----------------------------------------------------------------------
-
 	@Test
 	public void st04_sixtyDistinctBlocksAllRun() {
 		final int COUNT = 60;
@@ -174,7 +130,6 @@ public class ScriptStressTest {
 			scheduler.startThread(a);
 		}
 
-		// Simulate 3 game ticks
 		scheduler.tick(1f);
 		scheduler.tick(1f);
 		scheduler.tick(1f);
@@ -184,10 +139,6 @@ public class ScriptStressTest {
 			verify(a, times(3)).act(anyFloat());
 		}
 	}
-
-	// -----------------------------------------------------------------------
-	// ST-05  100 distinct blocks — high load
-	// -----------------------------------------------------------------------
 
 	@Test
 	public void st05_oneHundredDistinctBlocksAllRun() {
@@ -204,10 +155,6 @@ public class ScriptStressTest {
 		}
 	}
 
-	// -----------------------------------------------------------------------
-	// ST-06  500 distinct blocks — extreme load, must not OOM or hang
-	// -----------------------------------------------------------------------
-
 	@Test(timeout = 10_000)
 	public void st06_fiveHundredDistinctBlocksNoOOM() {
 		final int COUNT = 500;
@@ -220,10 +167,6 @@ public class ScriptStressTest {
 
 		assertEquals("All 500 threads stay alive (continuous)", COUNT, actor.getActions().size);
 	}
-
-	// -----------------------------------------------------------------------
-	// ST-07  Same-script de-duplication: 2 actions with the same Script object
-	// -----------------------------------------------------------------------
 
 	@Test
 	public void st07_sameScriptDeduplicatedInStartQueue() {
@@ -242,15 +185,10 @@ public class ScriptStressTest {
 
 		scheduler.tick(1f);
 
-		// Only action2 survives; action1 was never added to the actor
 		verify(action1, never()).act(anyFloat());
 		verify(action2, times(1)).act(anyFloat());
 		assertEquals(1, actor.getActions().size);
 	}
-
-	// -----------------------------------------------------------------------
-	// ST-08  Large-scale de-duplication: 60 pairs → only 60 unique scripts
-	// -----------------------------------------------------------------------
 
 	@Test
 	public void st08_largeScaleDeduplication_sixtyPairs() {
@@ -282,7 +220,6 @@ public class ScriptStressTest {
 
 		scheduler.tick(1f);
 
-		// After de-duplication, only PAIRS (60) actions should be active
 		assertEquals("De-duplication must leave exactly " + PAIRS + " threads", PAIRS, actor.getActions().size);
 
 		// First batch actions must NOT have run (they were evicted before tick)
@@ -294,13 +231,6 @@ public class ScriptStressTest {
 			verify(a, times(1)).act(anyFloat());
 		}
 	}
-
-	// -----------------------------------------------------------------------
-	// ST-09  Ordering guarantee — scripts execute in insertion order
-	//
-	//        We verify this by tracking invocation order via Mockito's
-	//        InOrder verifier applied to the sequence of actions.
-	// -----------------------------------------------------------------------
 
 	@Test
 	public void st09_executionOrderMatchesInsertionOrder() {
@@ -320,10 +250,6 @@ public class ScriptStressTest {
 			inOrder.verify(a).act(anyFloat());
 		}
 	}
-
-	// -----------------------------------------------------------------------
-	// ST-10  Stop-all mid-run: stopping one script leaves others intact
-	// -----------------------------------------------------------------------
 
 	@Test
 	public void st10_stopOneScriptAtScalePreservesRest() {
@@ -357,10 +283,6 @@ public class ScriptStressTest {
 		assertEquals("29 threads should remain", COUNT - 1, actor.getActions().size);
 	}
 
-	// -----------------------------------------------------------------------
-	// ST-11  Suspended state at scale: 60 threads queued but not executed
-	// -----------------------------------------------------------------------
-
 	@Test
 	public void st11_suspendedStateBlocksAllThreadsAtScale() {
 		final int COUNT = 60;
@@ -380,10 +302,6 @@ public class ScriptStressTest {
 		}
 	}
 
-	// -----------------------------------------------------------------------
-	// ST-12  haveAllThreadsFinished — sentinel correct after drain
-	// -----------------------------------------------------------------------
-
 	@Test
 	public void st12_allThreadsFinishedSentinelAfterDrain() {
 		final int COUNT = 10;
@@ -401,10 +319,6 @@ public class ScriptStressTest {
 
 		assertTrue("After drain: all threads finished", scheduler.haveAllThreadsFinished());
 	}
-
-	// -----------------------------------------------------------------------
-	// ST-13  PerformanceTracker.activeThreads accumulates correctly
-	// -----------------------------------------------------------------------
 
 	@Test
 	public void st13_performanceTrackerCounterAccumulatesAtScale() {
@@ -437,10 +351,6 @@ public class ScriptStressTest {
 				counterAfterTick2 + COUNT, counterAfterTick3);
 	}
 
-	// -----------------------------------------------------------------------
-	// ST-14  Re-start after completion: a finished script can be re-queued
-	// -----------------------------------------------------------------------
-
 	@Test
 	public void st14_reStartAfterCompletionWorks() {
 		ScriptSequenceAction action = makeAction(true); // completes on first act()
@@ -457,10 +367,6 @@ public class ScriptStressTest {
 		// verify: act() was called exactly twice total (once per startThread)
 		verify(action, times(2)).act(anyFloat());
 	}
-
-	// -----------------------------------------------------------------------
-	// ST-15  Mixed: some blocks finish, others keep running
-	// -----------------------------------------------------------------------
 
 	@Test
 	public void st15_mixedCompleteAndContinuousThreads() {

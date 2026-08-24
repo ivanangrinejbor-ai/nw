@@ -88,7 +88,6 @@ public class TilemapEditHistoryTest {
         history.undo();
         assertTrue(history.canRedo());
 
-        // New action clears redo
         history.beginBatch();
         history.recordCellChange(0, 1, 1, (short) -1, (short) 2);
         history.commitBatch();

@@ -56,8 +56,6 @@ class TcpNetworkBricksDeepTest {
 		sequence = ScriptSequenceAction(Mockito.mock(Script::class.java))
 	}
 
-	// ======================== GetFromPastebinBrick ========================
-
 	@Test
 	fun testPastebinConstructors() {
 		val empty = GetFromPastebinBrick()
@@ -99,8 +97,6 @@ class TcpNetworkBricksDeepTest {
 		assertNull(restored.getUserVariable())
 	}
 
-	// ======================== CheckPortBrick ========================
-
 	@Test
 	fun testCheckPortConstructors() {
 		val fromString = CheckPortBrick("8080")
@@ -127,8 +123,6 @@ class TcpNetworkBricksDeepTest {
 		assertEquals("portInUse", restored.getUserVariable().name)
 	}
 
-	// ======================== SetTcpServerClientLimitBrick ========================
-
 	@Test
 	fun testLimitConstructors() {
 		val fromInt = SetTcpServerClientLimitBrick(10)
@@ -152,8 +146,6 @@ class TcpNetworkBricksDeepTest {
 		assertEquals("42", restored.getFormulaWithBrickField(Brick.BrickField.VALUE).interpretString(null))
 	}
 
-	// ======================== SetTcpServerTimeoutBrick ========================
-
 	@Test
 	fun testTimeoutConstructors() {
 		val fromInt = SetTcpServerTimeoutBrick(30)
@@ -174,8 +166,6 @@ class TcpNetworkBricksDeepTest {
 		val restored = roundTrip(SetTcpServerTimeoutBrick(120)) as SetTcpServerTimeoutBrick
 		assertEquals("120", restored.getFormulaWithBrickField(Brick.BrickField.VALUE).interpretString(null))
 	}
-
-	// ======================== SendToTcpServerBrick ========================
 
 	@Test
 	fun testSendVisibleFieldsDefaultOne() {
@@ -241,8 +231,6 @@ class TcpNetworkBricksDeepTest {
 		Mockito.verify(actionFactory).createSendToTcpServerAction(
 			Mockito.eq(sprite), Mockito.any(), Mockito.anyList())
 	}
-
-	// ======================== ListenTcpServerBrick ========================
 
 	@Test
 	fun testListenVariableAccessors() {
@@ -311,8 +299,6 @@ class TcpNetworkBricksDeepTest {
 		Mockito.verify(actionFactory).createListenTcpServerAction(
 			Mockito.eq(sprite), Mockito.any(), Mockito.anyList())
 	}
-
-	// ======================== views ========================
 
 	@Test
 	fun testAllSixBricksInflateViews() {

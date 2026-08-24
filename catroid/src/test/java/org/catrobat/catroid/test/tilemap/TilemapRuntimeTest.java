@@ -42,8 +42,6 @@ public class TilemapRuntimeTest {
         TilemapRuntimeManager.disposeAll(null);
     }
 
-    // ======================= TilemapRuntime dirty flags =======================
-
     @Test
     public void testNewRuntimeIsPhysicsDirty() {
         TilemapRuntime runtime = new TilemapRuntime(data);
@@ -90,8 +88,6 @@ public class TilemapRuntimeTest {
         TilemapRuntime runtime = new TilemapRuntime(data);
         runtime.dispose(null); // should not throw
     }
-
-    // ======================= TilemapRuntimeManager =======================
 
     @Test
     public void testGetOrCreateReturnsRuntime() {

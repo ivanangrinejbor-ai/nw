@@ -10,11 +10,6 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
-/**
- * Tests for 7 new sound bricks:
- * PauseSound, ResumeSound, SetSoundLoop, CrossFadeSound,
- * PlaySoundWithSpeed, SetGameVolume + master volume override
- */
 public class NewSoundBricksTest {
 
     @Before
@@ -26,8 +21,6 @@ public class NewSoundBricksTest {
     public void tearDown() {
         GlobalManager.Companion.setGameVolume(null);
     }
-
-    // --- PauseSoundBrick ---
 
     @Test
     public void testPauseSoundBrickCreation() {
@@ -42,8 +35,6 @@ public class NewSoundBricksTest {
         assertNull(brick.getSound());
     }
 
-    // --- ResumeSoundBrick ---
-
     @Test
     public void testResumeSoundBrickCreation() {
         ResumeSoundBrick brick = new ResumeSoundBrick();
@@ -57,8 +48,6 @@ public class NewSoundBricksTest {
         assertNull(brick.getSound());
     }
 
-    // --- SetSoundLoopBrick ---
-
     @Test
     public void testSetSoundLoopBrickCreation() {
         SetSoundLoopBrick brick = new SetSoundLoopBrick();
@@ -71,8 +60,6 @@ public class NewSoundBricksTest {
         SetSoundLoopBrick brick = new SetSoundLoopBrick();
         assertEquals(1, brick.getLoopEnabled()); // default = Yes (1)
     }
-
-    // --- CrossFadeSoundBrick ---
 
     @Test
     public void testCrossFadeSoundBrickCreation() {
@@ -94,8 +81,6 @@ public class NewSoundBricksTest {
         assertNotNull(clone);
     }
 
-    // --- PlaySoundWithSpeedBrick ---
-
     @Test
     public void testPlaySoundWithSpeedBrickCreation() {
         PlaySoundWithSpeedBrick brick = new PlaySoundWithSpeedBrick();
@@ -108,8 +93,6 @@ public class NewSoundBricksTest {
         PlaySoundWithSpeedBrick brick = new PlaySoundWithSpeedBrick(2.0);
         assertNotNull(brick.getFormulaWithBrickField(Brick.BrickField.PLAYBACK_SPEED));
     }
-
-    // --- SetGameVolumeBrick ---
 
     @Test
     public void testSetGameVolumeBrickCreation() {
@@ -131,8 +114,6 @@ public class NewSoundBricksTest {
         assertNotNull(clone);
         assertTrue(clone instanceof SetGameVolumeBrick);
     }
-
-    // --- Master Volume Override Logic ---
 
     @Test
     public void testGameVolumeInitiallyNull() {
@@ -175,8 +156,6 @@ public class NewSoundBricksTest {
         GlobalManager.Companion.setGameVolume(100);
         assertEquals(Integer.valueOf(100), GlobalManager.Companion.getGameVolume());
     }
-
-    // --- All bricks have no-arg constructor ---
 
     @Test
     public void testAllNewSoundBricksNoArgConstructor() {
