@@ -169,7 +169,7 @@ public class ShowTextActor extends Actor {
 
 	public void setFontFromFile(File fontFile) {
 		if (fontFile != null && fontFile.exists()) {
-			this.typefaceName = fontFile.getName();
+			this.typefaceName = fontFile.getAbsolutePath();
 			lastRenderedText = null;
 		}
 	}

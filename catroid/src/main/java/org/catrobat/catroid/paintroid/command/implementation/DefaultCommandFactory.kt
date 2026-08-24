@@ -32,6 +32,7 @@ import org.catrobat.catroid.paintroid.command.serialization.SerializablePath
 import org.catrobat.catroid.paintroid.command.serialization.SerializableTypeface
 import org.catrobat.catroid.paintroid.common.CommonFactory
 import org.catrobat.catroid.paintroid.contract.LayerContracts
+import org.catrobat.catroid.paintroid.tools.TextToolEffects
 import org.catrobat.catroid.paintroid.tools.Tool
 import org.catrobat.catroid.paintroid.tools.drawable.ShapeDrawable
 import org.catrobat.catroid.paintroid.tools.helper.JavaFillAlgorithmFactory
@@ -156,11 +157,12 @@ class DefaultCommandFactory : CommandFactory {
         boxHeight: Float,
         toolPosition: PointF,
         boxRotation: Float,
-        typefaceInfo: SerializableTypeface
+        typefaceInfo: SerializableTypeface,
+        effects: TextToolEffects?
     ): Command = TextToolCommand(
         multilineText, commonFactory.createPaint(textPaint),
         boxOffset.toFloat(), boxWidth, boxHeight, commonFactory.createPointF(toolPosition),
-        boxRotation, typefaceInfo
+        boxRotation, typefaceInfo, effects
     )
 
     override fun createResizeCommand(newWidth: Int, newHeight: Int): Command =

@@ -69,12 +69,22 @@ class DrawTextAction : TemporalAction() {
         val penColor = currentScope.sprite.penConfiguration.getPenColor()
         val colorHex = String.format("#%02X%02X%02X%02X", (penColor.a * 255).toInt(), (penColor.r * 255).toInt(), (penColor.g * 255).toInt(), (penColor.b * 255).toInt())
 
+        val fontPath = if (!font.isNullOrEmpty()) {
+            try {
+                currentScope.project?.getFile(font)?.takeIf { it.exists() }?.absolutePath
+            } catch (_: Exception) {
+                null
+            }
+        } else {
+            null
+        }
+
         val rasterizedText = try {
             TextServiceHolder.textService.rasterizeText(
                 textStr,
                 fontSize,
-                font,
                 colorHex,
+                fontPath,
                 false,
                 0
             )
@@ -105,5 +115,11 @@ class DrawTextAction : TemporalAction() {
         buffer.end()
 
         texture.dispose()
+    }
+
+    override fun restart() {
+        super.restart()
+        batch?.dispose()
+        batch = null
     }
 }

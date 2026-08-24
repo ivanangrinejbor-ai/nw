@@ -67,6 +67,7 @@ class OpenRasterFileFormatConversion private constructor() {
         private const val THUMBNAIL_HEIGHT = 256
         private const val ORA_VERSION = "0.0.2"
         private const val DATE_DIVIDER = 1000
+        private const val MAX_ORA_TOTAL_PIXELS = 64L * 1024 * 1024
         private var mainActivityRef: WeakReference<MainActivity>? = null
         var mainActivity: MainActivity?
             get() = mainActivityRef?.get()
@@ -205,25 +206,26 @@ class OpenRasterFileFormatConversion private constructor() {
                              fileName: String,
                              bitmapAllLayers: Bitmap?,
                              resolver: ContentResolver?): Uri? {
+            val imageUriLocal = exportToOraFile(layers, fileName, bitmapAllLayers, resolver)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 val projection = arrayOf(MediaStore.Images.Media._ID)
                 val c = resolver?.query(uri, projection, null, null, null)
-                if (c?.moveToFirst() == true) {
-                    val id = c.getLong(c.getColumnIndexOrThrow(MediaStore.Images.Media._ID))
-                    val deleteUri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
-                    resolver.delete(deleteUri, null, null)
-                } else {
-                    throw IOException("No file to delete was found!")
+                if (c != null) {
+                    try {
+                        if (c.moveToFirst()) {
+                            val id = c.getLong(c.getColumnIndexOrThrow(MediaStore.Images.Media._ID))
+                            val deleteUri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
+                            resolver.delete(deleteUri, null, null)
+                        }
+                    } finally {
+                        c.close()
+                    }
                 }
-                c.close()
             } else {
                 val file = File(uri.path.toString())
-                val isDeleted = file.delete()
-                if (!isDeleted) {
-                    throw IOException("No file to delete was found!")
-                }
+                file.delete()
             }
-            return exportToOraFile(layers, fileName, bitmapAllLayers, resolver)
+            return imageUriLocal
         }
 
         @Throws(IOException::class)
@@ -234,11 +236,19 @@ class OpenRasterFileFormatConversion private constructor() {
             return inputStream.use { stream ->
                 val zipInput = ZipInputStream(stream)
                 val layers: MutableList<LayerContracts.Layer> = ArrayList()
+                var totalPixels = 0L
                 var current = zipInput.nextEntry
                 while (current != null) {
+                    if (layers.size > MAX_LAYERS) {
+                        throw IOException("Bitmap list is wrong!")
+                    }
                     if (current.name.matches("data/(.*).png".toRegex())) {
                         val layerBitmap = enableAlpha(BitmapFactory.decodeStream(zipInput, null, options))
                                 ?: throw IOException("Cannot decode stream to bitmap!")
+                        totalPixels += layerBitmap.width.toLong() * layerBitmap.height.toLong()
+                        if (totalPixels > MAX_ORA_TOTAL_PIXELS) {
+                            throw IOException("ORA file is too large!")
+                        }
                         val layer: LayerContracts.Layer = Layer(layerBitmap)
                         current = zipInput.nextEntry
                         if (current != null && current.name.matches("alpha/(.*)".toRegex())) {

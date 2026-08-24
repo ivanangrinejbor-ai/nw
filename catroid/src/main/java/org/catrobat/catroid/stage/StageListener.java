@@ -1712,8 +1712,10 @@ public class StageListener implements ApplicationListener {
 						boolean isGlobal = progressiveGlobalSprites.contains(sprite);
 						if (!isGlobal || !globalScriptsStarted) {
 							sprite.initializeEventThreads(EventId.START);
+							sprite.initConditionScriptTriggers();
+						} else {
+							sprite.resetConditionScriptTriggers();
 						}
-						sprite.initConditionScriptTriggers();
 						sprite.initTouchingSpriteTriggers();
 						sprite.initFirebaseChangedTriggers();
 						sprite.initFirebaseChildChangedTriggers();

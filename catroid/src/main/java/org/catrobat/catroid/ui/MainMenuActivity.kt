@@ -308,11 +308,13 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
         }
 
         if (!BuildConfig.FEATURE_APK_GENERATOR_ENABLED) {
-            try {
-                CatroidApplication.getInstance().loadPluginsIfNotLoaded()
-            } catch (e: Exception) {
-                Log.e(TAG, "loadPluginsIfNotLoaded failed", e)
-            }
+            Thread {
+                try {
+                    CatroidApplication.getInstance().loadPluginsIfNotLoaded()
+                } catch (e: Throwable) {
+                    Log.e(TAG, "loadPluginsIfNotLoaded failed", e)
+                }
+            }.start()
         }
 
         oldPrivacyPolicy = PreferenceManager.getDefaultSharedPreferences(this)

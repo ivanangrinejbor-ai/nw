@@ -21,6 +21,7 @@ package org.catrobat.catroid.paintroid.tools.options
 import android.graphics.Typeface
 import android.view.View
 import org.catrobat.catroid.paintroid.tools.FontEntry
+import org.catrobat.catroid.paintroid.tools.TextToolEffects
 
 interface TextToolOptionsView {
     fun setState(
@@ -58,6 +59,10 @@ interface TextToolOptionsView {
         fun setBold(bold: Boolean)
 
         fun setTextSize(size: Int)
+
+        fun getToolEffects(): TextToolEffects
+
+        fun setToolEffects(effects: TextToolEffects)
 
         fun hideToolOptions()
     }

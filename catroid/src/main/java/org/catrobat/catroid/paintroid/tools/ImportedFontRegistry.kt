@@ -19,6 +19,8 @@ package org.catrobat.catroid.paintroid.tools
 
 import android.content.Context
 import android.graphics.Typeface
+import android.net.Uri
+import android.provider.OpenableColumns
 import java.io.File
 
 sealed class FontEntry {
@@ -57,6 +59,70 @@ object ImportedFontRegistry {
         if (!file.exists()) return null
         return createTypefaceWithFallback(file)
     }
+
+    fun remove(context: Context, name: String) {
+        val font = getAll(context).firstOrNull { it.name == name } ?: return
+        File(fontDir(context), font.fileName).delete()
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val updated = getAll(context).filterNot { it.name == name }
+            .map { "${it.name}::${it.fileName}" }
+            .toSet()
+        prefs.edit().putStringSet(KEY_FONTS, updated).apply()
+    }
+
+    fun copyToProject(context: Context, font: ImportedFont, projectFilesDir: File): Boolean {
+        val src = File(fontDir(context), font.fileName)
+        if (!src.exists() || font.name.isBlank()) {
+            return false
+        }
+        if (!projectFilesDir.exists() && !projectFilesDir.mkdirs()) {
+            return false
+        }
+        val extension = font.fileName.substringAfterLast('.', "ttf")
+        val existing = projectFilesDir.listFiles()?.map { it.name } ?: emptyList()
+        val destName = uniqueName(existing, "${font.name}.$extension")
+        return try {
+            src.copyTo(File(projectFilesDir, destName), overwrite = false).exists()
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    @Suppress("ReturnCount", "TooGenericExceptionCaught")
+    fun importFromFile(context: Context, uri: Uri): ImportedFont? {
+        val resolver = context.contentResolver
+        var displayName = queryDisplayName(resolver, uri) ?: return null
+        if (!displayName.endsWith(".ttf", ignoreCase = true) &&
+            !displayName.endsWith(".otf", ignoreCase = true)
+        ) {
+            return null
+        }
+        val baseName = displayName.substringBeforeLast('.')
+        val dir = fontDir(context)
+        val existing = getAll(context).toMutableList()
+        val destName = uniqueName(existing.map { it.fileName }, displayName)
+        val dest = File(dir, destName)
+        return try {
+            resolver.openInputStream(uri)?.use { input ->
+                dest.outputStream().use { output -> input.copyTo(output) }
+            } ?: return null
+            val entry = ImportedFont(baseName, destName)
+            existing.add(entry)
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            prefs.edit()
+                .putStringSet(KEY_FONTS, existing.map { "${it.name}::${it.fileName}" }.toSet())
+                .apply()
+            entry
+        } catch (e: Exception) {
+            dest.delete()
+            null
+        }
+    }
+
+    private fun queryDisplayName(resolver: android.content.ContentResolver, uri: Uri): String? =
+        resolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { cursor ->
+            if (cursor.moveToFirst()) cursor.getString(0) else null
+        }
 
     private fun createTypefaceWithFallback(file: File): Typeface {
         val fallback = Typeface.SANS_SERIF

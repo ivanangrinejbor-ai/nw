@@ -49,7 +49,6 @@ import org.catrobat.catroid.paintroid.common.TEMP_IMAGE_NAME
 import org.catrobat.catroid.paintroid.common.TEMP_IMAGE_PATH
 import org.catrobat.catroid.paintroid.common.TEMP_IMAGE_TEMP_PATH
 import org.catrobat.catroid.paintroid.common.TEMP_PICTURE_NAME
-import org.catrobat.catroid.paintroid.contract.MainActivityContracts
 import org.catrobat.catroid.paintroid.iotasks.BitmapReturnValue
 import org.catrobat.catroid.paintroid.iotasks.WorkspaceReturnValue
 import org.catrobat.catroid.paintroid.presenter.MainActivityPresenter
@@ -87,8 +86,6 @@ object FileIO {
     var compressFormat = CompressFormat.PNG
 
     var catroidFlag = false
-
-    var navigator: MainActivityContracts.Navigator? = null
 
     @JvmField
     var storeImageUri: Uri? = null
@@ -178,7 +175,11 @@ object FileIO {
                 compressor.setDestinationDirectoryPath(cachePath.path)
                 compressed = compressor.compressToFile(fileToCompress, tempFileName + fileType.toExtension())
                 val os = mainActivity.contentResolver.openOutputStream(destination)
-                os?.let { copyStreams(FileInputStream(compressed), it) }
+                if (os == null) {
+                    Log.e("Compression", "Can not open output stream for $destination")
+                    return false
+                }
+                os.use { copyStreams(FileInputStream(compressed), it) }
                 true
             } catch (e: IOException) {
                 Log.e("Compression", "Can not compress image file.", e)
@@ -608,16 +609,16 @@ object FileIO {
         val tempPath = File(internalMemoryPath, TEMP_IMAGE_DIRECTORY_NAME)
         val oldFile = File(internalMemoryPath, TEMP_IMAGE_PATH)
         val newFile = File(internalMemoryPath, TEMP_IMAGE_TEMP_PATH)
-        try {
-            tempPath.mkdirs()
-            FileOutputStream("$tempPath/$newFileName").use { stream ->
-                commandSerializer.writeToInternalMemory(stream)
-            }
-        } catch (e: IOException) {
-            Log.e("Cannot write", "Can't write to stream", e)
-            return
-        }
         synchronized(tempFileLock) {
+            try {
+                tempPath.mkdirs()
+                FileOutputStream("$tempPath/$newFileName").use { stream ->
+                    commandSerializer.writeToInternalMemory(stream)
+                }
+            } catch (e: IOException) {
+                Log.e("Cannot write", "Can't write to stream", e)
+                return
+            }
             if (oldFile.exists()) {
                 oldFile.delete()
             }
@@ -673,15 +674,22 @@ object FileIO {
         }
     }
 
-    fun openTemporaryPictureFile(commandSerializer: CommandSerializer): WorkspaceReturnValue? {
+    fun openTemporaryPictureFile(
+        internalMemoryPath: File,
+        commandSerializer: CommandSerializer
+    ): WorkspaceReturnValue? {
         var workspaceReturnValue: WorkspaceReturnValue? = null
         synchronized(tempFileLock) {
             if (temporaryFilePath != null) {
+                val file = File(internalMemoryPath, temporaryFilePath.orEmpty())
                 try {
-                    val stream = FileInputStream(temporaryFilePath)
-                    workspaceReturnValue = commandSerializer.readFromInternalMemory(stream)
+                    FileInputStream(file).use { stream ->
+                        workspaceReturnValue = commandSerializer.readFromInternalMemory(stream)
+                    }
                 } catch (e: IOException) {
                     Log.e("Cannot read", "Can't read from stream", e)
+                } catch (e: RuntimeException) {
+                    Log.e("Cannot read", "Corrupted temporary image file", e)
                 }
             }
         }

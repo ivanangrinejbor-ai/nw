@@ -24,21 +24,15 @@
 package org.catrobat.catroid.content.actions
 
 import android.widget.Toast
-import android.content.Context
 import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction
-import android.app.Activity
-import org.catrobat.catroid.stage.StageActivity
-import org.catrobat.catroid.stage.StageActivity.IntentListener
 import android.util.Log
 import org.catrobat.catroid.CatroidApplication
-import org.catrobat.catroid.R
-
 import org.catrobat.catroid.content.Scope
 import org.catrobat.catroid.formulaeditor.Formula
+import org.catrobat.catroid.stage.StageActivity
 import java.util.ArrayList
 
 class ShowToastAction() : TemporalAction() {
-    private var contextt: Context? = null
     var scope: Scope? = null
     var toast: Formula? = null
 
@@ -46,10 +40,20 @@ class ShowToastAction() : TemporalAction() {
         val value = toast?.interpretObject(scope) ?: ""
         val gval = value.toString()
         Log.d("ShowToastAction", "Showing toast with value: $gval")
-        Log.d("ShowToastAction", "Update method called with percent: $percent")
 
-        val params = ArrayList<Any>(listOf(gval))
-        StageActivity.messageHandler.obtainMessage(StageActivity.SHOW_TOAST, params).sendToTarget()
-
+        val handler = StageActivity.messageHandler
+        if (handler != null) {
+            val params = ArrayList<Any>(listOf(gval))
+            handler.obtainMessage(StageActivity.SHOW_TOAST, params).sendToTarget()
+        } else {
+            Log.w("ShowToastAction", "messageHandler is null, falling back to application toast")
+            android.os.Handler(android.os.Looper.getMainLooper()).post {
+                try {
+                    Toast.makeText(CatroidApplication.getAppContext(), gval, Toast.LENGTH_SHORT).show()
+                } catch (e: Exception) {
+                    Log.e("ShowToastAction", "Failed to show toast", e)
+                }
+            }
+        }
     }
 }

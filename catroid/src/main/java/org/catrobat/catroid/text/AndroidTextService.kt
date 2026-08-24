@@ -5,8 +5,31 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Typeface
 import org.catrobat.catroid.utils.ShowTextUtils
+import java.io.File
 
 class AndroidTextService : TextService {
+
+    private val typefaceCache = object : LinkedHashMap<String, Typeface>(CACHE_SIZE, 0.75f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, Typeface>): Boolean =
+            size > CACHE_SIZE
+    }
+
+    private fun resolveTypeface(typefaceName: String): Typeface? {
+        val file = File(typefaceName)
+        if (!file.isFile) {
+            return null
+        }
+        val cacheKey = "${file.absolutePath}:${file.lastModified()}"
+        return synchronized(typefaceCache) {
+            try {
+                typefaceCache.getOrPut(cacheKey) {
+                    Typeface.createFromFile(typefaceName)
+                }
+            } catch (ignored: Exception) {
+                null
+            }
+        }
+    }
 
     override fun rasterizeText(
         text: String,
@@ -19,9 +42,7 @@ class AndroidTextService : TextService {
         val paint = Paint()
         paint.textSize = textSizePx
         if (typefaceName != null) {
-            try {
-                paint.typeface = Typeface.createFromFile(typefaceName)
-            } catch (ignored: Exception) { }
+            paint.typeface = resolveTypeface(typefaceName)
         }
         paint.isAntiAlias = true
 
@@ -79,3 +100,6 @@ class AndroidTextService : TextService {
         return RasterizedText(bitmapWidth, bitmapHeight, rgba)
     }
 }
+
+private const val CACHE_SIZE = 12
+

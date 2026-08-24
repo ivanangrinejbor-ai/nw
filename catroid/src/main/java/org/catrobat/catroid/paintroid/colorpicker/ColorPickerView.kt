@@ -189,6 +189,7 @@ class ColorPickerView : LinearLayoutCompat {
         preSelectorView.setOnColorChangedListener(null)
         hsvSelectorView.hsvColorPickerView.setOnColorChangedListener(null)
         rgbSelectorView.setOnColorChangedListener(null)
+        alphaSliderView.getAlphaSlider()?.setOnColorChangedListener(null)
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {

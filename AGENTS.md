@@ -1555,3 +1555,18 @@ ew Scope(project, sprite, null) РІР°Р»РёРґРµРЅ; РІ plain-JUnit РѕР±СЏР·Р°С‚РµР»Р
 - `Project.java` + `Sprite.java`: `hasUserDataChanged` — null-список = пустой список
   (size 0); `checkEquality`/`checkUserData` — guard на null oldUserData.
 - Тест: `test/formulaeditor/UserVariableNullSafetyTest.java` (6 тестов).
+
+## Fix: блок «Показать тост» не работал (2026-08)
+
+Причина: блок был переименован `ShowToastBlock` > `ShowToastBrick` (2026-07-08). Старые
+проекты содержат `<brick type="ShowToastBlock">` — при загрузке класс не находился и блок
+становился `UnknownBrick` (молча ничего не делал).
+
+- `XStreamBrickConverter`: добавлена карта `LEGACY_BRICK_ALIASES`
+  (`ShowToastBlock` > `ShowToastBrick`) + remap в `doUnmarshal`. Новые переименования
+  блоков добавлять сюда же.
+- `ShowToastAction.kt`: null-guard на `StageActivity.messageHandler` + fallback-тост через
+  `CatroidApplication.getAppContext()` на main-looper (раньше был NPE, если handler null),
+  убран неиспользуемый `contextt`.
+- Тест: `test/formulaeditor/ShowToastLegacyAliasTest.java` (2 теста: legacy remap при
+  десериализации + round-trip нового блока).

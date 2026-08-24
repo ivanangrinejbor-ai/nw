@@ -19,13 +19,17 @@
 
 package org.catrobat.catroid.paintroid.command.implementation
 
+import android.graphics.BlurMaskFilter
 import android.graphics.Canvas
+import android.graphics.LinearGradient
 import android.graphics.Paint
 import android.graphics.PointF
+import android.graphics.Shader
 import org.catrobat.catroid.paintroid.command.Command
 import org.catrobat.catroid.paintroid.command.serialization.SerializableTypeface
 import org.catrobat.catroid.paintroid.common.ITALIC_FONT_BOX_ADJUSTMENT
 import org.catrobat.catroid.paintroid.contract.LayerContracts
+import org.catrobat.catroid.paintroid.tools.TextToolEffects
 
 class TextToolCommand(
     multilineText: Array<String>,
@@ -35,7 +39,8 @@ class TextToolCommand(
     boxHeight: Float,
     toolPosition: PointF,
     rotationAngle: Float,
-    typeFaceInfo: SerializableTypeface
+    typeFaceInfo: SerializableTypeface,
+    var effects: TextToolEffects? = null
 ) : Command {
 
     var multilineText = multilineText.clone(); private set
@@ -48,6 +53,40 @@ class TextToolCommand(
     var typeFaceInfo = typeFaceInfo; private set
 
     override fun run(canvas: Canvas, layerModel: LayerContracts.Model) {
+        val fx = effects
+        if (fx != null && fx.autoDimBackground) {
+            val dimPaint = Paint().apply {
+                color = android.graphics.Color.argb(80, 0, 0, 0)
+                style = Paint.Style.FILL
+            }
+            val dimRect = android.graphics.RectF(
+                -boxWidth / 2f - 10f, -boxHeight / 2f - 10f, boxWidth / 2f + 10f, boxHeight / 2f + 10f
+            )
+            canvas.save()
+            canvas.translate(toolPosition.x, toolPosition.y)
+            canvas.rotate(rotationAngle)
+            canvas.drawRoundRect(dimRect, 16f, 16f, dimPaint)
+            canvas.restore()
+        }
+
+        textPaint.isAntiAlias = fx?.pixelCrisp != true
+
+        if (fx != null && fx.useGradient) {
+            textPaint.shader = LinearGradient(
+                0f, -boxHeight / 2f, 0f, boxHeight / 2f,
+                fx.gradientTopColor, fx.gradientBottomColor,
+                Shader.TileMode.CLAMP
+            )
+        } else {
+            textPaint.shader = null
+        }
+
+        if (fx != null && fx.shadowEnabled && fx.shadowRadius > 0f) {
+            textPaint.setShadowLayer(fx.shadowRadius, fx.shadowDx, fx.shadowDy, fx.shadowColor)
+        } else {
+            textPaint.clearShadowLayer()
+        }
+
         val textAscent = textPaint.ascent()
         val textDescent = textPaint.descent()
         val textHeight = (textDescent - textAscent) * multilineText.size
@@ -73,6 +112,41 @@ class TextToolCommand(
             val scaledWidthOffset = boxOffset / widthScaling
             val scaledBoxWidth = boxWidth / widthScaling
             val scaledBoxHeight = boxHeight / heightScaling
+
+            if (fx != null && fx.glowIntensity > 0) {
+                val glowPaint = Paint(textPaint).apply {
+                    style = Paint.Style.STROKE
+                    strokeWidth = fx.glowIntensity * 4f
+                    color = fx.glowColor
+                    shader = null
+                    maskFilter = BlurMaskFilter(fx.glowIntensity * 3f, BlurMaskFilter.Blur.NORMAL)
+                }
+                multilineText.forEachIndexed { index, textLine ->
+                    canvas.drawText(
+                        textLine,
+                        scaledWidthOffset - scaledBoxWidth / 2 / if (typeFaceInfo.italic) ITALIC_FONT_BOX_ADJUSTMENT else 1f,
+                        -(scaledBoxHeight / 2) + scaledHeightOffset - textAscent + lineHeight * index,
+                        glowPaint
+                    )
+                }
+            }
+
+            if (fx != null && fx.strokeWidth > 0f) {
+                val strokePaint = Paint(textPaint).apply {
+                    style = Paint.Style.STROKE
+                    strokeWidth = fx.strokeWidth
+                    color = fx.strokeColor
+                    shader = null
+                }
+                multilineText.forEachIndexed { index, textLine ->
+                    canvas.drawText(
+                        textLine,
+                        scaledWidthOffset - scaledBoxWidth / 2 / if (typeFaceInfo.italic) ITALIC_FONT_BOX_ADJUSTMENT else 1f,
+                        -(scaledBoxHeight / 2) + scaledHeightOffset - textAscent + lineHeight * index,
+                        strokePaint
+                    )
+                }
+            }
 
             multilineText.forEachIndexed { index, textLine ->
                 canvas.drawText(

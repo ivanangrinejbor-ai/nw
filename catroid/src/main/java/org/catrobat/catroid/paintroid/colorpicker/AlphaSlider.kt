@@ -75,7 +75,7 @@ class AlphaSlider(
 
     companion object {
         var alphaValue = MAX_ALPHA
-        private lateinit var onColorChangedListener: OnColorChangedListener
+        private var onColorChangedListener: OnColorChangedListener? = null
         private var selectedColor = 0
         private var currentColor = 0
     }
@@ -204,7 +204,7 @@ class AlphaSlider(
         return MAX_ALPHA - x * MAX_ALPHA / width
     }
 
-    fun setOnColorChangedListener(listener: OnColorChangedListener) {
+    fun setOnColorChangedListener(listener: OnColorChangedListener?) {
         onColorChangedListener = listener
     }
 
@@ -221,7 +221,7 @@ class AlphaSlider(
     }
 
     private fun onColorChanged() {
-        onColorChangedListener.colorChanged(getSelectedColor())
+        onColorChangedListener?.colorChanged(getSelectedColor())
     }
 
     fun setSelectedColor(color: Int) {

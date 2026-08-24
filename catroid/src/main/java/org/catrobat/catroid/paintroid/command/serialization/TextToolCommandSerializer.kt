@@ -32,6 +32,7 @@ import org.catrobat.catroid.R
 import org.catrobat.catroid.paintroid.command.implementation.TextToolCommand
 import org.catrobat.catroid.paintroid.tools.FontType
 import org.catrobat.catroid.paintroid.tools.ImportedFontRegistry
+import org.catrobat.catroid.paintroid.tools.TextToolEffects
 
 class TextToolCommandSerializer(version: Int, private val activityContext: Context) : VersionSerializer<TextToolCommand>(version) {
     override fun write(kryo: Kryo, output: Output, command: TextToolCommand) {
@@ -45,6 +46,7 @@ class TextToolCommandSerializer(version: Int, private val activityContext: Conte
                 writeObject(output, command.toolPosition)
                 writeFloat(command.rotationAngle)
                 writeObject(output, command.typeFaceInfo)
+                writeObject(output, command.effects ?: TextToolEffects())
             }
         }
     }
@@ -63,6 +65,16 @@ class TextToolCommandSerializer(version: Int, private val activityContext: Conte
             val position = kryo.readObject(input, PointF::class.java)
             val rotation = readFloat()
             val typeFaceInfo = kryo.readObject(input, SerializableTypeface::class.java)
+            val effects = if (input.canReadInt()) {
+                try {
+                    kryo.readObjectOrNull(input, TextToolEffects::class.java)
+                } catch (e: Exception) {
+                    Log.e("TextToolCommandSerializer", "Could not read text effects", e)
+                    null
+                }
+            } else {
+                null
+            }
 
             paint.apply {
                 isFakeBoldText = typeFaceInfo.bold
@@ -86,7 +98,7 @@ class TextToolCommandSerializer(version: Int, private val activityContext: Conte
                     Typeface.create(Typeface.SANS_SERIF, style)
                 }
             }
-            TextToolCommand(text, paint, offset, width, height, position, rotation, typeFaceInfo)
+            TextToolCommand(text, paint, offset, width, height, position, rotation, typeFaceInfo, effects)
         }
     }
 }

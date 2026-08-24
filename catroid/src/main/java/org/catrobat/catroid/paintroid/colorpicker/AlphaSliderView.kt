@@ -32,12 +32,10 @@ class AlphaSliderView : LinearLayout {
     constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) :
         super(context, attrs, defStyleAttr)
 
-    companion object {
-        private var alphaSlider: AlphaSlider? = null
-    }
-
     var isCatroid: Boolean = false
     var openedFromFormulaEditorInCatroidFlag: Boolean = false
+
+    private var alphaSlider: AlphaSlider? = null
 
     init {
         alphaSlider = AlphaSlider(context)

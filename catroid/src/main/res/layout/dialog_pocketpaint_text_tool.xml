@@ -108,6 +108,18 @@
                     android:textSize="20sp"
                     android:textStyle="bold" />
             </com.google.android.material.button.MaterialButtonToggleGroup>
+
+            <Space style="@style/PocketPaintToolHorizontalSpace" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/pocketpaint_text_fx_button"
+                style="@style/CircularToggleButtonStyle"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:contentDescription="@string/text_fx_title"
+                android:text="@string/text_fx_button_shortcut"
+                android:textSize="16sp"
+                android:textStyle="bold|italic" />
         </LinearLayout>
 
     </RelativeLayout>
@@ -158,6 +170,15 @@
                 android:text="+"
                 android:textSize="24sp"
                 android:contentDescription="@string/add_font" />
+
+            <Button
+                android:id="@+id/addFontDeviceButton"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="4dp"
+                android:text="@string/add_font_device_shortcut"
+                android:textSize="18sp"
+                android:contentDescription="@string/add_font_device" />
         </LinearLayout>
 
         <RelativeLayout

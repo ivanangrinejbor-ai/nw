@@ -42,7 +42,6 @@ import org.catrobat.catroid.paintroid.MainActivity
 import org.catrobat.catroid.R
 
 import org.catrobat.catroid.paintroid.contract.LayerContracts
-import org.catrobat.catroid.paintroid.iotasks.OpenRasterFileFormatConversion.Companion.mainActivity
 import org.catrobat.catroid.paintroid.model.MAX_LAYER_OPACITY_PERCENTAGE
 import org.catrobat.catroid.paintroid.tools.helper.DefaultNumberRangeFilter
 
@@ -88,6 +87,7 @@ class LayerAdapter(
         private var currentBitmap: Bitmap? = null
         private val layerVisibilityCheckbox: CheckBox = itemView.findViewById(R.id.pocketpaint_checkbox_layer)
         private var isSelected = false
+        private var opacityTextWatcher: TextWatcher? = null
 
         override val bitmap: Bitmap?
             get() = currentBitmap
@@ -122,8 +122,9 @@ class LayerAdapter(
 
             opacitySeekBar.progress = layer.opacityPercentage
             opacityEditText.filters = arrayOf<InputFilter>(DefaultNumberRangeFilter(MIN_VAL, MAX_VAL))
+            opacityTextWatcher?.let { opacityEditText.removeTextChangedListener(it) }
             opacityEditText.setText(layer.opacityPercentage.toString())
-            opacityEditText.addTextChangedListener(object : TextWatcher {
+            opacityTextWatcher = object : TextWatcher {
                 override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
                 override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) = Unit
 
@@ -144,7 +145,8 @@ class LayerAdapter(
                     }
                     layerPresenter.refreshDrawingSurface()
                 }
-            })
+            }
+            opacityEditText.addTextChangedListener(opacityTextWatcher)
 
             opacitySeekBar.setOnTouchListener { view, _ ->
                 view.parent.requestDisallowInterceptTouchEvent(true)
@@ -228,65 +230,65 @@ class LayerAdapter(
         }
     }
 
+    private fun getSingleBackground(): Drawable? {
+        val background = ContextCompat.getDrawable(mainActivity, R.drawable.layer_item_single_selected)
+        (background as? GradientDrawable)?.cornerRadii = getRadius(BackgroundType.SINGLE)
+        return background
+    }
+
+    private fun getTopBackground(isSelected: Boolean): Drawable? {
+        val background = if (isSelected) {
+            ContextCompat.getDrawable(mainActivity, R.drawable.layer_item_top_selected)
+        } else {
+            ContextCompat.getDrawable(mainActivity, R.drawable.layer_item_top_unselected)
+        }
+        (background as? GradientDrawable)?.cornerRadii = getRadius(BackgroundType.TOP)
+        return background
+    }
+
+    private fun getBottomBackground(isSelected: Boolean): Drawable? {
+        val background = if (isSelected) {
+            ContextCompat.getDrawable(mainActivity, R.drawable.layer_item_bottom_selected)
+        } else {
+            ContextCompat.getDrawable(mainActivity, R.drawable.layer_item_bottom_unselected)
+        }
+        (background as? GradientDrawable)?.cornerRadii = getRadius(BackgroundType.BOTTOM)
+        return background
+    }
+
+    private fun getCenterBackground(isSelected: Boolean): Drawable? {
+        return if (isSelected) {
+            ContextCompat.getDrawable(mainActivity, R.drawable.layer_item_center_selected)
+        } else {
+            ContextCompat.getDrawable(mainActivity, R.drawable.layer_item_center_unselected)
+        }
+    }
+
+    private fun getRadius(backgroundType: BackgroundType): FloatArray {
+        val cornerRadius = CORNER_RADIUS * mainActivity.resources.displayMetrics.density
+
+        return when (backgroundType) {
+            BackgroundType.TOP -> if (LanguageHelper.isCurrentLanguageRTL()) {
+                floatArrayOf(0f, 0f, cornerRadius, cornerRadius, 0f, 0f, 0f, 0f)
+            } else {
+                floatArrayOf(cornerRadius, cornerRadius, 0f, 0f, 0f, 0f, 0f, 0f)
+            }
+            BackgroundType.BOTTOM -> if (LanguageHelper.isCurrentLanguageRTL()) {
+                floatArrayOf(0f, 0f, 0f, 0f, cornerRadius, cornerRadius, 0f, 0f)
+            } else {
+                floatArrayOf(0f, 0f, 0f, 0f, 0f, 0f, cornerRadius, cornerRadius)
+            }
+            BackgroundType.SINGLE -> if (LanguageHelper.isCurrentLanguageRTL()) {
+                floatArrayOf(0f, 0f, cornerRadius, cornerRadius, cornerRadius, cornerRadius, 0f, 0f)
+            } else {
+                floatArrayOf(cornerRadius, cornerRadius, 0f, 0f, 0f, 0f, cornerRadius, cornerRadius)
+            }
+            else -> floatArrayOf(0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f)
+        }
+    }
+
     companion object {
         private val TAG = LayerAdapter::class.java.simpleName
-
-        fun getSingleBackground(): Drawable? {
-            val background = mainActivity?.let { ContextCompat.getDrawable(it, R.drawable.layer_item_single_selected) }
-            (background as? GradientDrawable)?.cornerRadii = getRadius(BackgroundType.SINGLE)
-            return background
-        }
-
-        fun getTopBackground(isSelected: Boolean): Drawable? {
-            val background = if (isSelected) {
-                mainActivity?.let { ContextCompat.getDrawable(it, R.drawable.layer_item_top_selected) }
-            } else {
-                mainActivity?.let { ContextCompat.getDrawable(it, R.drawable.layer_item_top_unselected) }
-            }
-            (background as? GradientDrawable)?.cornerRadii = getRadius(BackgroundType.TOP)
-            return background
-        }
-
-        fun getBottomBackground(isSelected: Boolean): Drawable? {
-            val background = if (isSelected) {
-                mainActivity?.let { ContextCompat.getDrawable(it, R.drawable.layer_item_bottom_selected) }
-            } else {
-                mainActivity?.let { ContextCompat.getDrawable(it, R.drawable.layer_item_bottom_unselected) }
-            }
-            (background as? GradientDrawable)?.cornerRadii = getRadius(BackgroundType.BOTTOM)
-            return background
-        }
-
-        fun getCenterBackground(isSelected: Boolean): Drawable? {
-            return if (isSelected) {
-                mainActivity?.let { ContextCompat.getDrawable(it, R.drawable.layer_item_center_selected) }
-            } else {
-                mainActivity?.let { ContextCompat.getDrawable(it, R.drawable.layer_item_center_unselected) }
-            }
-        }
-
-        private fun getRadius(backgroundType: BackgroundType): FloatArray {
-            val cornerRadius = mainActivity?.let { CORNER_RADIUS * it.resources.displayMetrics.density } ?: 0f
-
-            return when (backgroundType) {
-                BackgroundType.TOP -> if (LanguageHelper.isCurrentLanguageRTL()) {
-                    floatArrayOf(0f, 0f, cornerRadius, cornerRadius, 0f, 0f, 0f, 0f)
-                } else {
-                    floatArrayOf(cornerRadius, cornerRadius, 0f, 0f, 0f, 0f, 0f, 0f)
-                }
-                BackgroundType.BOTTOM -> if (LanguageHelper.isCurrentLanguageRTL()) {
-                    floatArrayOf(0f, 0f, 0f, 0f, cornerRadius, cornerRadius, 0f, 0f)
-                } else {
-                    floatArrayOf(0f, 0f, 0f, 0f, 0f, 0f, cornerRadius, cornerRadius)
-                }
-                BackgroundType.SINGLE -> if (LanguageHelper.isCurrentLanguageRTL()) {
-                    floatArrayOf(0f, 0f, cornerRadius, cornerRadius, cornerRadius, cornerRadius, 0f, 0f)
-                } else {
-                    floatArrayOf(cornerRadius, cornerRadius, 0f, 0f, 0f, 0f, cornerRadius, cornerRadius)
-                }
-                else -> floatArrayOf(0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f)
-            }
-        }
     }
 
     enum class BackgroundType {

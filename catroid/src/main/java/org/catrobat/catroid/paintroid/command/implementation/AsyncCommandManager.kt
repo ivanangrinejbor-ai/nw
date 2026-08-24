@@ -45,16 +45,16 @@ open class AsyncCommandManager(
         get() = mutex.isLocked
 
     override val lastExecutedCommand: Command?
-        get() = commandManager.lastExecutedCommand
+        get() = synchronized(layerModel) { commandManager.lastExecutedCommand }
 
     override val commandManagerModel
-        get() = commandManager.commandManagerModel
+        get() = synchronized(layerModel) { commandManager.commandManagerModel }
 
     override val isUndoAvailable: Boolean
-        get() = commandManager.isUndoAvailable
+        get() = synchronized(layerModel) { commandManager.isUndoAvailable }
 
     override val isRedoAvailable: Boolean
-        get() = commandManager.isRedoAvailable
+        get() = synchronized(layerModel) { commandManager.isRedoAvailable }
 
     override fun addCommandListener(commandListener: CommandListener) {
         commandListeners.add(commandListener)
@@ -128,6 +128,7 @@ open class AsyncCommandManager(
     override fun shutdown() {
         shuttingDown = true
         scope.cancel()
+        commandManager.shutdown()
     }
 
     override fun undoIgnoringColorChanges() {

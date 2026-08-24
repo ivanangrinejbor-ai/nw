@@ -41,6 +41,7 @@ import android.view.inputmethod.InputMethodManager
 import android.webkit.MimeTypeMap
 import android.widget.ImageButton
 import androidx.annotation.VisibleForTesting
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.widget.Toolbar
@@ -330,7 +331,13 @@ class MainActivity : AppCompatActivity(), MainView, CommandListener {
             }
             savedInstanceState == null -> {
                 val intent = intent
-                val picturePath = intent.getStringExtra(PAINTROID_PICTURE_PATH)
+                val isTrustedCaller = callingActivity?.packageName == BuildConfig.APPLICATION_ID ||
+                    callingPackage == BuildConfig.APPLICATION_ID
+                val picturePath = if (isTrustedCaller) {
+                    intent.getStringExtra(PAINTROID_PICTURE_PATH)
+                } else {
+                    null
+                }
                 val pictureName = intent.getStringExtra(PAINTROID_PICTURE_NAME)
                 presenterMain.initializeFromCleanState(picturePath, pictureName)
 
@@ -510,7 +517,6 @@ class MainActivity : AppCompatActivity(), MainView, CommandListener {
             DefaultContextCallback(context)
         )
         val preferences = UserPreferences(getPreferences(MODE_PRIVATE))
-        val navigator = MainActivityNavigator(this, toolReference)
         presenterMain = MainActivityPresenter(
             this,
             this,
@@ -531,7 +537,6 @@ class MainActivity : AppCompatActivity(), MainView, CommandListener {
             filesDir,
             commandSerializer
         )
-        FileIO.navigator = navigator
         defaultToolController.setOnColorPickedListener(PresenterColorPickedListener(presenterMain))
         keyboardListener = KeyboardListener(drawerLayout)
         setTopBarListeners(topBarViewHolder)
@@ -671,6 +676,45 @@ class MainActivity : AppCompatActivity(), MainView, CommandListener {
             val toolButton = viewHolder.layout.findViewById<View>(type.toolButtonID) ?: continue
             toolButton.setOnClickListener { presenterMain.toolClicked(type) }
         }
+        setupAlternateToolsMenu(viewHolder)
+    }
+
+    private fun setupAlternateToolsMenu(viewHolder: BottomBarViewHolder) {
+        val alternateTools = mapOf(
+            R.id.pocketpaint_tools_brush to listOf(
+                ToolType.BRUSH, ToolType.PIXELART, ToolType.SYMMETRY, ToolType.PATTERN
+            ),
+            R.id.pocketpaint_tools_fill to listOf(
+                ToolType.FILL, ToolType.MAGIC_WAND, ToolType.COLOR_REPLACE
+            ),
+            R.id.pocketpaint_tools_stamp to listOf(
+                ToolType.CLIPBOARD, ToolType.LASSO
+            ),
+            R.id.pocketpaint_tools_eraser to listOf(
+                ToolType.ERASER, ToolType.AUTO_REMOVE_BG
+            )
+        )
+        for ((buttonId, tools) in alternateTools) {
+            val button = viewHolder.layout.findViewById<View>(buttonId) ?: continue
+            TooltipCompat.setTooltipText(button, getString(R.string.pocketpaint_long_press_hint))
+            button.setOnLongClickListener { anchor ->
+                showAlternateToolPicker(anchor, tools)
+                true
+            }
+        }
+    }
+
+    private fun showAlternateToolPicker(anchor: View, tools: List<ToolType>) {
+        val currentToolType = toolReference.tool?.toolType
+        val labels = tools.map { type ->
+            val name = getString(type.nameResource)
+            if (type == currentToolType) "• $name" else name
+        }.toTypedArray()
+        AlertDialog.Builder(this)
+            .setTitle(getString(R.string.bottom_navigation_tools))
+            .setItems(labels) { _, which -> presenterMain.toolClicked(tools[which]) }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 
     private fun setBottomNavigationListeners(viewHolder: BottomNavigationViewHolder) {
@@ -711,6 +755,7 @@ class MainActivity : AppCompatActivity(), MainView, CommandListener {
     override fun onDestroy() {
         autoSaveScope.cancel()
         commandManager.removeCommandListener(this)
+        LineTool.topBarViewHolder = null
         if (!model.isOpenedFromCatroid) {
             presenterMain.saveNewTemporaryImage()
         }

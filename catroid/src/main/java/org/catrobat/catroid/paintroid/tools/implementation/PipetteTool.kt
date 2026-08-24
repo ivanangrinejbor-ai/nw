@@ -56,11 +56,22 @@ class PipetteTool(
 
     override fun draw(canvas: Canvas) = Unit
 
-    override fun handleDown(coordinate: PointF?): Boolean = setColor(coordinate)
+    private var cachedComposite: Bitmap? = null
+
+    override fun handleDown(coordinate: PointF?): Boolean {
+        cachedComposite?.recycle()
+        cachedComposite = workspace.bitmapOfAllLayers
+        return setColor(coordinate)
+    }
 
     override fun handleMove(coordinate: PointF?, shouldAnimate: Boolean): Boolean = setColor(coordinate)
 
-    override fun handleUp(coordinate: PointF?): Boolean = setColor(coordinate, true)
+    override fun handleUp(coordinate: PointF?): Boolean {
+        val result = setColor(coordinate, true)
+        cachedComposite?.recycle()
+        cachedComposite = null
+        return result
+    }
 
     override fun toolPositionCoordinates(coordinate: PointF): PointF = coordinate
 
@@ -70,7 +81,7 @@ class PipetteTool(
         if (coordinate == null || !workspace.contains(coordinate)) {
             return false
         }
-        val bitmap = workspace.bitmapOfAllLayers ?: return false
+        val bitmap = cachedComposite ?: workspace.bitmapOfAllLayers ?: return false
         if (bitmap.isRecycled) return false
         val x = coordinate.x.toInt().coerceIn(0, bitmap.width - 1)
         val y = coordinate.y.toInt().coerceIn(0, bitmap.height - 1)

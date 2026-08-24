@@ -70,6 +70,7 @@ import org.catrobat.catroid.paintroid.iotasks.OpenRasterFileFormatConversion
 import org.catrobat.catroid.paintroid.contract.MainActivityContracts
 import org.catrobat.catroid.paintroid.iotasks.WorkspaceReturnValue
 import org.catrobat.catroid.paintroid.model.CommandManagerModel
+import org.catrobat.catroid.paintroid.tools.TextToolEffects
 import org.catrobat.catroid.paintroid.tools.drawable.HeartDrawable
 import org.catrobat.catroid.paintroid.tools.drawable.OvalDrawable
 import org.catrobat.catroid.paintroid.tools.drawable.PixelDrawable
@@ -148,6 +149,7 @@ open class CommandSerializer(private val activityContext: Context, private val c
             put(ColorHistory::class.java, ColorHistorySerializer(version))
             put(ClippingCommand::class.java, ClippingCommandSerializer(version))
             put(LayerOpacityCommand::class.java, LayerOpacityCommandSerializer(version))
+            put(TextToolEffects::class.java, null)
         }
     }
 
@@ -216,23 +218,35 @@ open class CommandSerializer(private val activityContext: Context, private val c
         }
     }
 
+    private fun readCatrobatImage(input: Input): Pair<CommandManagerModel, ColorHistory?> {
+        if (!input.readString().equals(MAGIC_VALUE)) {
+            throw NotCatrobatImageException("Magic Value doesn't exist.")
+        }
+        val imageVersion = input.readInt()
+        if (CURRENT_IMAGE_VERSION != imageVersion) {
+            setRegisterMapVersion(imageVersion)
+            registerClasses()
+        }
+        val commandModel = kryo.readObject(input, CommandManagerModel::class.java)
+        var colorHistory: ColorHistory? = null
+        if (input.canReadInt()) {
+            colorHistory = kryo.readObject(input, ColorHistory::class.java)
+        }
+        if (CURRENT_IMAGE_VERSION != imageVersion) {
+            setRegisterMapVersion(CURRENT_IMAGE_VERSION)
+            registerClasses()
+        }
+        return Pair(commandModel, colorHistory)
+    }
+
     fun readFromInternalMemory(stream: FileInputStream): WorkspaceReturnValue {
         var commandModel: CommandManagerModel? = null
         var colorHistory: ColorHistory? = null
 
         Input(stream).use { input ->
-            if (!input.readString().equals(MAGIC_VALUE)) {
-                throw NotCatrobatImageException("Magic Value doesn't exist.")
-            }
-            val imageVersion = input.readInt()
-            if (CURRENT_IMAGE_VERSION != imageVersion) {
-                setRegisterMapVersion(imageVersion)
-                registerClasses()
-            }
-            commandModel = kryo.readObject(input, CommandManagerModel::class.java)
-            if (input.available() != 0) {
-                colorHistory = kryo.readObject(input, ColorHistory::class.java)
-            }
+            val result = readCatrobatImage(input)
+            commandModel = result.first
+            colorHistory = result.second
         }
 
         commandModel?.commands?.reverse()
@@ -257,18 +271,9 @@ open class CommandSerializer(private val activityContext: Context, private val c
 
         activityContext.contentResolver.openInputStream(uri).use { contentResolverStream ->
             Input(contentResolverStream).use { input ->
-                if (!input.readString().equals(MAGIC_VALUE)) {
-                    throw NotCatrobatImageException("Magic Value doesn't exist.")
-                }
-                val imageVersion = input.readInt()
-                if (CURRENT_IMAGE_VERSION != imageVersion) {
-                    setRegisterMapVersion(imageVersion)
-                    registerClasses()
-                }
-                commandModel = kryo.readObject(input, CommandManagerModel::class.java)
-                if (input.canReadInt()) {
-                    colorHistory = kryo.readObject(input, ColorHistory::class.java)
-                }
+                val result = readCatrobatImage(input)
+                commandModel = result.first
+                colorHistory = result.second
             }
         }
 

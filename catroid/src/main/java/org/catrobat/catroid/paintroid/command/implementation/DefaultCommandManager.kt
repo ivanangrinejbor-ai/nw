@@ -19,6 +19,7 @@
 package org.catrobat.catroid.paintroid.command.implementation
 
 import android.graphics.Color
+import android.util.Log
 import org.catrobat.catroid.paintroid.command.Command
 import org.catrobat.catroid.paintroid.command.CommandManager
 import org.catrobat.catroid.paintroid.command.CommandManager.CommandListener
@@ -29,8 +30,6 @@ import java.util.Deque
 import java.util.ArrayDeque
 import java.util.Collections
 
-const val FIVE = 5
-
 class DefaultCommandManager(
     private val commonFactory: CommonFactory,
     private val layerModel: LayerContracts.Model
@@ -39,6 +38,10 @@ class DefaultCommandManager(
     private val redoCommandList: Deque<Command> = ArrayDeque()
     private val undoCommandList: Deque<Command> = ArrayDeque()
     private var initialStateCommand: Command? = null
+
+    companion object {
+        private val TAG = DefaultCommandManager::class.java.simpleName
+    }
 
     override val isBusy: Boolean
         get() = false
@@ -247,6 +250,8 @@ class DefaultCommandManager(
     }
 
     override fun reset() {
+        freeCommands(undoCommandList)
+        freeCommands(redoCommandList)
         undoCommandList.clear()
         redoCommandList.clear()
         layerModel.reset()
@@ -258,7 +263,22 @@ class DefaultCommandManager(
         notifyCommandExecuted()
     }
 
-    override fun shutdown() = Unit
+    override fun shutdown() {
+        freeCommands(undoCommandList)
+        freeCommands(redoCommandList)
+        undoCommandList.clear()
+        redoCommandList.clear()
+    }
+
+    private fun freeCommands(commands: Deque<Command>) {
+        for (command in commands) {
+            try {
+                command.freeResources()
+            } catch (e: Exception) {
+                Log.e(TAG, "Error while freeing command resources", e)
+            }
+        }
+    }
 
     override fun undoIgnoringColorChanges() {
         addAndExecuteCommands(separateColorCommandsAndUndo())
@@ -381,16 +401,12 @@ class DefaultCommandManager(
     }
 
     override fun adjustUndoListForClippingTool() {
-        if (isUndoAvailable) {
-            if (undoCommandList.first.toString().split(".", "@").size < FIVE) {
-                return
-            }
-            val commandName = undoCommandList.first.toString().split(".", "@")[FIVE]
-            if (commandName == ClippingCommand::class.java.simpleName) {
-                val clippingCommand = undoCommandList.pop()
+        if (isUndoAvailable && undoCommandList.first is ClippingCommand) {
+            val clippingCommand = undoCommandList.pop()
+            if (isUndoAvailable) {
                 undoCommandList.pop()
-                undoCommandList.addFirst(clippingCommand)
             }
+            undoCommandList.addFirst(clippingCommand)
         }
     }
 

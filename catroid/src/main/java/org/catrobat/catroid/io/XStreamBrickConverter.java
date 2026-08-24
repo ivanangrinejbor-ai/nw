@@ -46,6 +46,12 @@ public class XStreamBrickConverter extends ReflectionConverter {
 			"org.catrobat.catroid.content.bricks",
 			"org.catrobat.catroid.physics.content.bricks"};
 
+	private static final Map<String, String> LEGACY_BRICK_ALIASES = new ConcurrentHashMap<>();
+
+	static {
+		LEGACY_BRICK_ALIASES.put("ShowToastBlock", "ShowToastBrick");
+	}
+
 	private static final String TYPE = "type";
 
 	private static final Map<String, Class<?>> BRICK_CLASS_CACHE = new ConcurrentHashMap<>();
@@ -72,6 +78,12 @@ public class XStreamBrickConverter extends ReflectionConverter {
 		if (type == null) {
 			result = new UnknownBrick("UnknownBrick");
 			return super.doUnmarshal(result, reader, context);
+		}
+
+		String legacyType = LEGACY_BRICK_ALIASES.get(type);
+		if (legacyType != null) {
+			Log.d(TAG, "Brick " + type + " remapped to " + legacyType);
+			type = legacyType;
 		}
 
 		Class<?> cls = BRICK_CLASS_CACHE.get(type);

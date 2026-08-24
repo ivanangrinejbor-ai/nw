@@ -37,6 +37,7 @@ import org.catrobat.catroid.paintroid.tools.FontEntry
 import org.catrobat.catroid.paintroid.tools.FontType
 import org.catrobat.catroid.paintroid.tools.ImportedFont
 import org.catrobat.catroid.paintroid.tools.ImportedFontRegistry
+import org.catrobat.catroid.paintroid.tools.TextToolEffects
 import org.catrobat.catroid.paintroid.tools.ToolPaint
 import org.catrobat.catroid.paintroid.tools.ToolType
 import org.catrobat.catroid.paintroid.tools.Workspace
@@ -66,6 +67,7 @@ private const val BUNDLE_TOOL_TEXT = "BUNDLE_TOOL_TEXT"
 private const val BUNDLE_TOOL_TEXT_SIZE = "BUNDLE_TOOL_TEXT_SIZE"
 private const val BUNDLE_TOOL_FONT = "BUNDLE_TOOL_FONT"
 private const val BUNDLE_TOOL_IMPORTED_FONT = "BUNDLE_TOOL_IMPORTED_FONT"
+private const val BUNDLE_TOOL_EFFECTS = "BUNDLE_TOOL_EFFECTS"
 private const val TAG = "Can't set custom font"
 
 class TextTool(
@@ -113,7 +115,8 @@ class TextTool(
 
     var strokeWidth = 0f
     var strokeColor = android.graphics.Color.BLACK
-    var shadowRadius = 0f
+    var shadowEnabled = false
+    var shadowRadius = 8f
     var shadowDx = 4f
     var shadowDy = 4f
     var shadowColor = android.graphics.Color.BLACK
@@ -235,6 +238,33 @@ class TextTool(
                 workspace.invalidate()
             }
 
+            override fun getToolEffects(): TextToolEffects {
+                val effects = TextToolEffects()
+                effects.copyFromEffects()
+                return effects
+            }
+
+            override fun setToolEffects(effects: TextToolEffects) {
+                this@TextTool.applyEffects(effects)
+            }
+
+            private fun TextToolEffects.copyFromEffects() {
+                strokeWidth = this@TextTool.strokeWidth
+                strokeColor = this@TextTool.strokeColor
+                shadowEnabled = this@TextTool.shadowEnabled
+                shadowRadius = this@TextTool.shadowRadius
+                shadowDx = this@TextTool.shadowDx
+                shadowDy = this@TextTool.shadowDy
+                shadowColor = this@TextTool.shadowColor
+                pixelCrisp = this@TextTool.isPixelCrisp
+                useGradient = this@TextTool.useGradient
+                gradientTopColor = this@TextTool.gradientTopColor
+                gradientBottomColor = this@TextTool.gradientBottomColor
+                glowIntensity = this@TextTool.glowIntensity
+                glowColor = this@TextTool.glowColor
+                autoDimBackground = this@TextTool.autoDimBackground
+            }
+
             override fun hideToolOptions() {
                 this@TextTool.toolOptionsViewController.hide()
             }
@@ -337,7 +367,7 @@ class TextTool(
             textPaint.shader = null
         }
 
-        if (shadowRadius > 0f) {
+        if (shadowEnabled && shadowRadius > 0f) {
             textPaint.setShadowLayer(shadowRadius, shadowDx, shadowDy, shadowColor)
         } else {
             textPaint.clearShadowLayer()
@@ -413,6 +443,27 @@ class TextTool(
         canvas.restore()
     }
 
+    private fun applyEffects(effects: TextToolEffects) {
+        strokeWidth = effects.strokeWidth
+        strokeColor = effects.strokeColor
+        shadowEnabled = effects.shadowEnabled
+        shadowRadius = effects.shadowRadius
+        shadowDx = effects.shadowDx
+        shadowDy = effects.shadowDy
+        shadowColor = effects.shadowColor
+        isPixelCrisp = effects.pixelCrisp
+        useGradient = effects.useGradient
+        gradientTopColor = effects.gradientTopColor
+        gradientBottomColor = effects.gradientBottomColor
+        glowIntensity = effects.glowIntensity
+        glowColor = effects.glowColor
+        autoDimBackground = effects.autoDimBackground
+        storeAttributes()
+        resetPreview()
+        workspace.invalidate()
+        applyAttributes()
+    }
+
     private fun resetPreview() {
         val textDescent = textPaint.descent()
         val textAscent = textPaint.ascent()
@@ -455,7 +506,27 @@ class TextTool(
             putInt(BUNDLE_TOOL_TEXT_SIZE, textSize)
             putString(BUNDLE_TOOL_FONT, font.name)
             putString(BUNDLE_TOOL_IMPORTED_FONT, importedFontName ?: "")
+            putSerializable(BUNDLE_TOOL_EFFECTS, snapshotEffects())
         }
+    }
+
+    private fun snapshotEffects(): TextToolEffects {
+        val effects = TextToolEffects()
+        effects.strokeWidth = strokeWidth
+        effects.strokeColor = strokeColor
+        effects.shadowEnabled = shadowEnabled
+        effects.shadowRadius = shadowRadius
+        effects.shadowDx = shadowDx
+        effects.shadowDy = shadowDy
+        effects.shadowColor = shadowColor
+        effects.pixelCrisp = isPixelCrisp
+        effects.useGradient = useGradient
+        effects.gradientTopColor = gradientTopColor
+        effects.gradientBottomColor = gradientBottomColor
+        effects.glowIntensity = glowIntensity
+        effects.glowColor = glowColor
+        effects.autoDimBackground = autoDimBackground
+        return effects
     }
 
     override fun onRestoreInstanceState(bundle: Bundle?) {
@@ -468,6 +539,8 @@ class TextTool(
             textSize = getInt(BUNDLE_TOOL_TEXT_SIZE, textSize)
             font = FontType.valueOf(getString(BUNDLE_TOOL_FONT, font.name))
             importedFontName = getString(BUNDLE_TOOL_IMPORTED_FONT, "")?.ifEmpty { null }
+            @Suppress("DEPRECATION")
+            (getSerializable(BUNDLE_TOOL_EFFECTS) as? TextToolEffects)?.let { applyEffects(it) }
         }
         textToolOptionsView.setState(bold, italic, underlined, text, textSize, currentFontEntry())
         textPaint.isUnderlineText = underlined
@@ -547,7 +620,8 @@ class TextTool(
             boxHeight,
             toolPosition,
             boxRotation,
-            typeFaceInfo
+            typeFaceInfo,
+            snapshotEffects()
         )
         commandManager.addCommand(command)
         projectFontTypeface = null

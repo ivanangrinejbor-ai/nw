@@ -29,6 +29,7 @@ import org.catrobat.catroid.paintroid.command.implementation.RotateCommand.Rotat
 import org.catrobat.catroid.paintroid.command.serialization.SerializablePath
 import org.catrobat.catroid.paintroid.command.serialization.SerializableTypeface
 import org.catrobat.catroid.paintroid.contract.LayerContracts
+import org.catrobat.catroid.paintroid.tools.TextToolEffects
 import org.catrobat.catroid.paintroid.tools.Tool
 import org.catrobat.catroid.paintroid.tools.drawable.ShapeDrawable
 
@@ -95,7 +96,8 @@ interface CommandFactory {
         boxHeight: Float,
         toolPosition: PointF,
         boxRotation: Float,
-        typefaceInfo: SerializableTypeface
+        typefaceInfo: SerializableTypeface,
+        effects: TextToolEffects? = null
     ): Command
 
     fun createResizeCommand(newWidth: Int, newHeight: Int): Command

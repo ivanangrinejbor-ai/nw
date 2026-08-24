@@ -62,15 +62,16 @@ public class ShowVarFontAction extends TemporalAction {
             int yPosition = this.yPosition.interpretInteger(scope);
             float relativeTextSize = this.relativeTextSize.interpretFloat(scope) / 100;
             String color = this.color.interpretString(scope);
-            String file_font = (file.interpretString(scope) != null) ? file.interpretString(scope) : "font.tff";
+            String file_font = (file.interpretString(scope) != null) ? file.interpretString(scope) : "font.ttf";
             File file = scope.getProject().getFile(file_font);
             if(file == null) {
                 Log.e("fontShow", "file " + file_font + " not exsists");
                 return;
             }
 
-            if (StageActivity.getActiveStageListener() != null) {
-                Array<Actor> stageActors = StageActivity.getActiveStageListener().getStage().getActors();
+            var stageListener = StageActivity.getActiveStageListener();
+            if (stageListener != null && stageListener.getStage() != null) {
+                Array<Actor> stageActors = stageListener.getStage().getActors();
                 ShowTextActor dummyActor = new ShowTextActor(false, new UserVariable("dummyActor"), 0,
                         0, relativeTextSize, color, scope.getSprite(), alignment, androidStringProvider);
                 dummyActor.setFont(file.getAbsolutePath());
@@ -86,8 +87,8 @@ public class ShowVarFontAction extends TemporalAction {
                 actor = new ShowTextActor(false, variableToShow, xPosition, yPosition, relativeTextSize,
                         color, scope.getSprite(), alignment, androidStringProvider);
                 actor.setFont(file.getAbsolutePath());
+                stageListener.addActor(actor);
             }
-            StageActivity.getActiveStageListener().addActor(actor);
             variableToShow.setVisible(true);
         } catch (InterpretationException e) {
             Log.d(TAG, "InterpretationException: " + e);

@@ -34,7 +34,8 @@ import org.catrobat.catroid.paintroid.tools.ImportedFontRegistry
 class FontListAdapter(
     private val context: Context,
     var fontEntries: List<FontEntry>,
-    private val onFontClicked: (FontEntry) -> Unit
+    private val onFontClicked: (FontEntry) -> Unit,
+    private val onFontLongClicked: ((FontEntry) -> Unit)? = null
 ) : RecyclerView.Adapter<FontListAdapter.ViewHolder>() {
 
     var selectedIndex = 0
@@ -72,6 +73,14 @@ class FontListAdapter(
             notifyItemChanged(previous)
             notifyItemChanged(selectedIndex)
             onFontClicked(entry)
+        }
+        if (entry is FontEntry.Imported && onFontLongClicked != null) {
+            holder.itemView.setOnLongClickListener {
+                onFontLongClicked.invoke(entry)
+                true
+            }
+        } else {
+            holder.itemView.isLongClickable = false
         }
     }
 
