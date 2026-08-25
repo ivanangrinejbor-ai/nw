@@ -400,7 +400,15 @@ public class SpriteActivity extends BaseActivity {
 		super.onBackPressed();
 	}
 
+	private long lastProjectSaveElapsedMs = 0L;
+	private static final long PROJECT_SAVE_DEBOUNCE_MS = 800L;
+
 	private void saveProject() {
+		long now = android.os.SystemClock.elapsedRealtime();
+		if (now - lastProjectSaveElapsedMs < PROJECT_SAVE_DEBOUNCE_MS) {
+			return;
+		}
+		lastProjectSaveElapsedMs = now;
 		currentProject = ProjectManager.getInstance().getCurrentProject();
 		new ProjectSaver(currentProject, getApplicationContext()).saveProjectAsync();
 	}

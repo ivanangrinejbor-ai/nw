@@ -51,12 +51,14 @@ public class Gizmo {
     private final Plane dragPlane = new Plane();
     private final Vector3 dragStartPoint = new Vector3();
     private final Vector3 dragCurrentPoint = new Vector3();
-    private final Quaternion lastObjectRotation = new Quaternion();
 
     private final Vector3 dragStartPos = new Vector3();
     private final Quaternion dragStartRot = new Quaternion();
     private final Vector3 dragStartScale = new Vector3();
     private boolean isTransforming = false;
+
+    private final Quaternion tmpParentRot = new Quaternion();
+    private final Quaternion tmpDelta = new Quaternion();
 
 
     public Gizmo(EditorActivity activity, SceneManager sceneManager, Camera camera) {
@@ -225,6 +227,11 @@ public class Gizmo {
 
     public void touchDragged(Ray pickRay) {
         if (selectedAxis == Axis.NONE || selectedObject == null) return;
+        if (sceneManager.findGameObject(selectedObject.id) != selectedObject) {
+            selectedAxis = Axis.NONE;
+            isTransforming = false;
+            return;
+        }
         if (!Intersector.intersectRayPlane(pickRay, dragPlane, dragCurrentPoint)) return;
 
         Vector3 dragVector = dragCurrentPoint.cpy().sub(dragStartPoint);
@@ -282,6 +289,9 @@ public class Gizmo {
                     float projection = dragVector.dot(axisVector);
                     float scaleAmount = projection * 0.1f;
                     selectedKeyframe.scale.add(axisVector.cpy().scl(scaleAmount));
+                    if (selectedKeyframe.scale.x < 0.01f) selectedKeyframe.scale.x = 0.01f;
+                    if (selectedKeyframe.scale.y < 0.01f) selectedKeyframe.scale.y = 0.01f;
+                    if (selectedKeyframe.scale.z < 0.01f) selectedKeyframe.scale.z = 0.01f;
                     break;
                 }
                 case ROTATE: {
@@ -360,6 +370,17 @@ public class Gizmo {
                     float sign = Math.signum(cross.dot(axisVector));
 
                     Quaternion deltaRotation = new Quaternion(axisVector, angle * sign);
+
+                    GameObject parent = selectedObject.parentId == null ? null
+                            : sceneManager.findGameObject(selectedObject.parentId);
+                    if (parent != null) {
+                        parent.transform.worldTransform.getRotation(tmpParentRot, true);
+                        tmpDelta.set(tmpParentRot).conjugate();
+                        tmpDelta.mul(deltaRotation);
+                        tmpDelta.mul(tmpParentRot);
+                        deltaRotation.set(tmpDelta);
+                    }
+
                     sceneManager.rotate(selectedObject, deltaRotation);
                     break;
                 }
@@ -384,14 +405,9 @@ public class Gizmo {
             default: return false;
         }
 
-        if (currentTool == EditorTool.ROTATE) {
-            lastObjectRotation.set(selectedObject.transform.rotation);
-        }
-
         dragStartPos.set(selectedObject.transform.position);
         dragStartRot.set(selectedObject.transform.rotation);
         dragStartScale.set(selectedObject.transform.scale);
-        isTransforming = true;
 
         handleX.calculateBoundingBox(boxX).mul(handleX.transform);
         handleY.calculateBoundingBox(boxY).mul(handleY.transform);
@@ -403,11 +419,9 @@ public class Gizmo {
         if ((dist = intersect(pickRay, boxZ)) < closestDist) { closestDist = dist; selectedAxis = Axis.Z; }
 
         if (selectedAxis != Axis.NONE) {
+            isTransforming = true;
             setupDragPlane(getGizmoPosition());
             Intersector.intersectRayPlane(pickRay, dragPlane, dragStartPoint);
-            if (currentTool == EditorTool.ROTATE) {
-                lastObjectRotation.set(selectedObject.transform.rotation);
-            }
             return true;
         }
         return false;
@@ -429,18 +443,17 @@ public class Gizmo {
         if (isTransforming && selectedObject != null) {
             isTransforming = false;
 
-            if (!dragStartPos.epsilonEquals(selectedObject.transform.position, 0.001f) ||
-                    !dragStartRot.equals(selectedObject.transform.rotation) ||
-                    !dragStartScale.epsilonEquals(selectedObject.transform.scale, 0.001f)) {
+                if (!dragStartPos.epsilonEquals(selectedObject.transform.position, 0.001f) ||
+                        !dragStartRot.equals(selectedObject.transform.rotation) ||
+                        !dragStartScale.epsilonEquals(selectedObject.transform.scale, 0.001f)) {
 
-                activity.getUndoManager().pushCommand(
-                        new Commands.TransformCommand(sceneManager, selectedObject, dragStartPos, dragStartRot, dragStartScale)
-                );
-            }
-        }
-
-        if (currentTool == EditorTool.ROTATE && selectedObject != null){
-            lastObjectRotation.set(selectedObject.transform.rotation);
+                    UndoManager undoManager = activity.getUndoManager();
+                    if (undoManager != null) {
+                        undoManager.pushCommand(
+                                new Commands.TransformCommand(sceneManager, selectedObject, dragStartPos, dragStartRot, dragStartScale)
+                        );
+                    }
+                }
         }
 
         if (selectedObject != null && selectedAxis != Axis.NONE) {

@@ -54,6 +54,7 @@ import org.catrobat.catroid.content.StartScript;
 import org.catrobat.catroid.content.UserDefinedScript;
 import org.catrobat.catroid.content.WhenBackgroundChangesScript;
 import org.catrobat.catroid.content.WhenBounceOffScript;
+import org.catrobat.catroid.content.WhenIntervalScript;
 import org.catrobat.catroid.content.WhenTouchingSpriteScript;
 import org.catrobat.catroid.content.WhenTouchingSpriteByNameScript;
 import org.catrobat.catroid.content.WhenAIResponseScript;
@@ -1044,6 +1045,17 @@ public final class XstreamSerializer {
         xstream.alias("brick", PtDropoutBrick.class);
         xstream.alias("brick", PtLstmCellBrick.class);
         xstream.alias("brick", PtGruCellBrick.class);
+        xstream.alias("brick", SetGameTimeScaleBrick.class);
+        xstream.alias("brick", SetSeedBrick.class);
+        xstream.alias("brick", JsonGetBrick.class);
+        xstream.alias("brick", JsonSetBrick.class);
+        xstream.alias("brick", WhenIntervalBrick.class);
+        xstream.alias("script", WhenIntervalScript.class);
+        xstream.alias("brick", CameraFollowBrick.class);
+        xstream.alias("brick", CameraBoundsBrick.class);
+        xstream.alias("brick", SaveGameBrick.class);
+        xstream.alias("brick", LoadGameBrick.class);
+        xstream.alias("brick", AskAIVisionBrick.class);
 
         for (XStreamSetupListener listener : pluginListeners) {
             listener.onSetup(xstream);

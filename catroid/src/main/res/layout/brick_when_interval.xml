@@ -1,0 +1,38 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal">
+
+    <CheckBox
+        android:id="@+id/brick_checkbox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:visibility="gone" />
+
+    <org.catrobat.catroid.ui.BrickLayout
+        android:id="@+id/brick_when_interval_layout"
+        style="@style/BrickContainer.Event.Small">
+
+        <include layout="@layout/icon_brick_category_event" />
+
+        <TextView
+            android:id="@+id/when_interval_label_first"
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_when_interval_every">
+        </TextView>
+
+        <TextView
+            android:id="@+id/brick_when_interval_edit_text"
+            style="@style/BrickEditText" />
+
+        <TextView
+            android:id="@+id/when_interval_label_second"
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_when_interval_seconds">
+        </TextView>
+    </org.catrobat.catroid.ui.BrickLayout>
+
+</LinearLayout>

@@ -67,6 +67,18 @@ object CloudModelRuntime {
         maxTokens: Int = 2048
     ): String = generateWithMeta(provider, model, systemPrompt, userContent, temperature, maxTokens).content
 
+    suspend fun generateVisionForProvider(
+        provider: AiProvider,
+        model: String,
+        systemPrompt: String,
+        userContent: String,
+        imageBase64Png: String,
+        temperature: Float = 0.7f,
+        maxTokens: Int = 2048
+    ): String = generateWithMeta(
+        provider, model, systemPrompt, userContent, temperature, maxTokens, imageBase64Png
+    ).content
+
     suspend fun generateWithMeta(
         systemPrompt: String,
         userContent: String,
@@ -80,7 +92,8 @@ object CloudModelRuntime {
         systemPrompt: String,
         userContent: String,
         temperature: Float = 0.7f,
-        maxTokens: Int = 2048
+        maxTokens: Int = 2048,
+        imageBase64Png: String? = null
     ): CloudGeneration = generateMutex.withLock {
         val apiKey = AiPreferences.getApiKeyForProvider(provider.id)
         if (apiKey.isNullOrBlank()) {
@@ -90,10 +103,10 @@ object CloudModelRuntime {
         try {
             withContext(Dispatchers.IO) {
                 when (provider) {
-                    AiProvider.GEMINI -> requestGemini(apiKey, resolvedModel, systemPrompt, userContent, temperature, maxTokens)
+                    AiProvider.GEMINI -> requestGemini(apiKey, resolvedModel, systemPrompt, userContent, temperature, maxTokens, imageBase64Png)
                     AiProvider.OPENAI, AiProvider.DEEPSEEK, AiProvider.OPENROUTER, AiProvider.OPENCODE ->
-                        requestOpenAiFormat(provider, apiKey, resolvedModel, systemPrompt, userContent, temperature, maxTokens)
-                    AiProvider.CLAUDE -> requestClaude(apiKey, resolvedModel, systemPrompt, userContent, temperature, maxTokens)
+                        requestOpenAiFormat(provider, apiKey, resolvedModel, systemPrompt, userContent, temperature, maxTokens, imageBase64Png)
+                    AiProvider.CLAUDE -> requestClaude(apiKey, resolvedModel, systemPrompt, userContent, temperature, maxTokens, imageBase64Png)
                 }
             }
         } catch (e: Exception) {
@@ -118,13 +131,20 @@ object CloudModelRuntime {
         systemPrompt: String,
         userContent: String,
         temperature: Float,
-        maxTokens: Int
+        maxTokens: Int,
+        imageBase64Png: String? = null
     ): CloudGeneration {
         val normalizedModel = if (model.startsWith("models/")) model else "models/$model"
         val url = "https://generativelanguage.googleapis.com/v1beta/$normalizedModel:generateContent"
 
         val partObj = JSONObject().put("text", userContent)
         val partsArray = JSONArray().put(partObj)
+        if (!imageBase64Png.isNullOrBlank()) {
+            val imageData = JSONObject()
+                .put("mime_type", "image/png")
+                .put("data", imageBase64Png)
+            partsArray.put(JSONObject().put("inline_data", imageData))
+        }
         val contentObj = JSONObject().put("parts", partsArray).put("role", "user")
         val generationConfig = JSONObject()
             .put("temperature", temperature.toDouble())
@@ -164,7 +184,8 @@ object CloudModelRuntime {
         systemPrompt: String,
         userContent: String,
         temperature: Float,
-        maxTokens: Int
+        maxTokens: Int,
+        imageBase64Png: String? = null
     ): CloudGeneration {
         val url = when (provider) {
             AiProvider.OPENAI -> "https://api.openai.com/v1/chat/completions"
@@ -174,9 +195,23 @@ object CloudModelRuntime {
             else -> provider.baseUrl + "chat/completions"
         }
 
+        val userMessage = JSONObject().put("role", "user")
+        if (imageBase64Png.isNullOrBlank()) {
+            userMessage.put("content", userContent)
+        } else {
+            val contentArray = JSONArray()
+                .put(JSONObject().put("type", "text").put("text", userContent))
+                .put(
+                    JSONObject().put("type", "image_url").put(
+                        "image_url",
+                        JSONObject().put("url", "data:image/png;base64,$imageBase64Png")
+                    )
+                )
+            userMessage.put("content", contentArray)
+        }
         val messages = JSONArray()
             .put(JSONObject().put("role", "system").put("content", systemPrompt))
-            .put(JSONObject().put("role", "user").put("content", userContent))
+            .put(userMessage)
         val jsonBody = JSONObject()
             .put("model", model)
             .put("messages", messages)
@@ -229,11 +264,28 @@ object CloudModelRuntime {
         systemPrompt: String,
         userContent: String,
         temperature: Float,
-        maxTokens: Int
+        maxTokens: Int,
+        imageBase64Png: String? = null
     ): CloudGeneration {
         val url = "https://api.anthropic.com/v1/messages"
 
-        val msgObj = JSONObject().put("role", "user").put("content", userContent)
+        val msgObj = JSONObject().put("role", "user")
+        if (imageBase64Png.isNullOrBlank()) {
+            msgObj.put("content", userContent)
+        } else {
+            val contentArray = JSONArray()
+                .put(
+                    JSONObject().put("type", "image").put(
+                        "source",
+                        JSONObject()
+                            .put("type", "base64")
+                            .put("media_type", "image/png")
+                            .put("data", imageBase64Png)
+                    )
+                )
+                .put(JSONObject().put("type", "text").put("text", userContent))
+            msgObj.put("content", contentArray)
+        }
         val jsonBody = JSONObject()
             .put("model", model)
             .put("messages", JSONArray().put(msgObj))

@@ -137,7 +137,9 @@ class SceneListFragment : RecyclerViewFragment<Scene?>(),
                 continue
             }
             try {
-                adapter.add(sceneController.copy(item, projectManager.currentProject))
+                val copy = sceneController.copy(item, projectManager.currentProject)
+                projectManager.currentProject.addScene(copy)
+                adapter.add(copy)
                 copiedItemCnt++
             } catch (e: IOException) {
                 Log.e(TAG, Log.getStackTraceString(e))

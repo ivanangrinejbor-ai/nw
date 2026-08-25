@@ -1737,26 +1737,40 @@ case R.string.brick_context_dialog_system_info:
 		undoBrickPosition = adapter.getPosition(brick);
 	}
 
+	private static final java.util.concurrent.ExecutorService UNDO_SNAPSHOT_EXECUTOR =
+			java.util.concurrent.Executors.newSingleThreadExecutor(
+					Runnable -> new Thread(Runnable, "UndoSnapshot"));
+	private final java.util.concurrent.atomic.AtomicBoolean undoSnapshotInFlight =
+			new java.util.concurrent.atomic.AtomicBoolean(false);
+
 	public boolean copyProjectForUndoOption() {
 		ProjectManager projectManager = ProjectManager.getInstance();
 		Sprite currentSprite = projectManager.getCurrentSprite();
 		currentSpriteName = currentSprite.getName();
 		currentSceneName = projectManager.getCurrentlyEditedScene().getName();
-		Project project = projectManager.getCurrentProject();
-		XstreamSerializer.getInstance().saveProject(project);
-		File currentCodeFile = new File(project.getDirectory(), CODE_XML_FILE_NAME);
-		File undoCodeFile = new File(project.getDirectory(), UNDO_CODE_XML_FILE_NAME);
 
-		if (currentCodeFile.exists()) {
-			try {
-				StorageOperations.transferData(currentCodeFile, undoCodeFile);
-				saveVariables();
-				return true;
-			} catch (IOException exception) {
-				Log.e(TAG, "Copying project " + project.getName() + " failed.", exception);
-			}
+		if (!undoSnapshotInFlight.compareAndSet(false, true)) {
+			return true;
 		}
-		return false;
+
+		UNDO_SNAPSHOT_EXECUTOR.execute(() -> {
+			try {
+				Project project = projectManager.getCurrentProject();
+				XstreamSerializer.getInstance().saveProject(project);
+				File currentCodeFile = new File(project.getDirectory(), CODE_XML_FILE_NAME);
+				File undoCodeFile = new File(project.getDirectory(), UNDO_CODE_XML_FILE_NAME);
+
+				if (currentCodeFile.exists()) {
+					StorageOperations.transferData(currentCodeFile, undoCodeFile);
+					saveVariables();
+				}
+			} catch (Exception exception) {
+				Log.e(TAG, "Undo snapshot failed.", exception);
+			} finally {
+				undoSnapshotInFlight.set(false);
+			}
+		});
+		return true;
 	}
 
 	public void loadProjectAfterUndoOption() {

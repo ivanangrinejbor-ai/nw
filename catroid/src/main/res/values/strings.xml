@@ -320,7 +320,11 @@
     <string name="editor_3d_save_scene_as">Save Scene As...</string>
     <string name="editor_3d_enter_file_name">Enter a file name (without extension):</string>
     <string name="editor_3d_file_name_empty">File name cannot be empty</string>
+    <string name="editor_3d_file_name_invalid">Invalid file name</string>
     <string name="editor_3d_scene_saved">Scene saved to %1$s</string>
+    <string name="editor_3d_scene_save_failed">Failed to save scene. Check free space.</string>
+    <string name="editor_3d_engine_not_ready">3D engine is starting, please wait…</string>
+    <string name="editor_3d_no_keyframes">Add at least one keyframe first</string>
     <string name="editor_3d_load_scene">Load Scene</string>
     <string name="editor_3d_no_scenes_found">No saved scenes (.rscene) found.</string>
     <string name="editor_3d_loading_scene">Loading scene: %1$s</string>
@@ -1422,7 +1426,10 @@
 <string name="category_dialogue">Dialogue</string>
 <string name="category_json">JSON</string>
 <string name="brick_json_parse">Parse JSON into</string>
-<string name="brick_json_value">JSON text</string>
+    <string name="brick_json_value">JSON text</string>
+    <string name="brick_json_get">Get from JSON</string>
+    <string name="brick_json_set">Set in JSON</string>
+    <string name="brick_json_key">key</string>
 <string name="category_favorites">Favorites</string>
 <string name="loading_fact_placeholder">Loading...</string>
 <string name="rebuild_cache_button">Update physics cache</string>
@@ -4609,6 +4616,8 @@ needs read and write access to it. You can always change permissions through you
     <string name="formula_md5_param" formatted="false">(\'text\')</string>
     <string name="formula_notification_reply" formatted="false">notification_reply</string>
     <string name="formula_notification_reply_param" formatted="false">(\'action_id\')</string>
+    <string name="formula_seed" formatted="false">seed</string>
+    <string name="formula_clipboard_paste" formatted="false">clipboard_paste</string>
 <string formatted="false" name="enter_url">Введите URL</string>
 <string formatted="false" name="drone_emergency_cutout">One or more motors were stopped by environment.</string>
 <string name="formula_crypto_hmac_sha_256_param" formatted="false">(текст, ключ)</string>
@@ -5062,6 +5071,19 @@ needs read and write access to it. You can always change permissions through you
     <string name="brick_shake_screen">Shake screen</string>
     <string name="brick_shake_screen_intensity">intensity</string>
     <string name="brick_shake_screen_duration">duration</string>
+    <string name="brick_set_game_time_scale">Set game speed %s</string>
+    <string name="brick_set_seed">Set random seed</string>
+    <string name="brick_when_interval_every">Every</string>
+    <string name="brick_when_interval_seconds">seconds</string>
+    <string name="brick_camera_follow">Camera follows actor</string>
+    <string name="brick_camera_follow_smooth">smoothness 0..100</string>
+    <string name="brick_camera_offset_x">offset X</string>
+    <string name="brick_camera_offset_y">offset Y</string>
+    <string name="brick_camera_bounds">Camera bounds</string>
+    <string name="brick_save_game">Save game, slot</string>
+    <string name="brick_load_game">Load game, slot</string>
+    <string name="brick_ask_ai_vision">Ask AI about look</string>
+    <string name="brick_ask_ai_vision_look">look</string>
     <string name="brick_set_corner_offsets_title">Set corner offsets</string>
     <string name="brick_set_corner_offsets_top_left">top-left</string>
     <string name="brick_set_corner_offsets_top_right">top-right</string>

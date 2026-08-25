@@ -11,6 +11,7 @@ import org.catrobat.catroid.common.TilemapLookData;
 import org.catrobat.catroid.common.LookData;
 import org.catrobat.catroid.content.Project;
 import org.catrobat.catroid.content.Scene;
+import org.catrobat.catroid.content.GlobalManager;
 import org.catrobat.catroid.content.Sprite;
 import org.catrobat.catroid.content.StateMachineManager;
 import org.catrobat.catroid.content.Scope;
@@ -967,6 +968,29 @@ public class FormulaElement implements Serializable {
                 return interpretFunctionJsonSet(arg0, arg1, arg2);
             case JSON_IS_VALID:
                 return interpretFunctionJsonIsValid(arg0);
+            case SEED:
+                Long seed = GlobalManager.Companion.getRandomSeed();
+                return seed != null ? seed.doubleValue() : 0.0;
+            case CLIPBOARD_PASTE: {
+                try {
+                    Object cmService = CatroidApplication.getAppContext()
+                            .getSystemService(android.content.Context.CLIPBOARD_SERVICE);
+                    if (cmService instanceof android.content.ClipboardManager) {
+                        android.content.ClipboardManager clipboard = (android.content.ClipboardManager) cmService;
+                        android.content.ClipData clip = clipboard.getPrimaryClip();
+                        if (clip != null && clip.getItemCount() > 0) {
+                            android.content.ClipData.Item item = clip.getItemAt(0);
+                            CharSequence text = item != null ? item.getText() : null;
+                            if (text != null) {
+                                return text.toString();
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    return "";
+                }
+                return "";
+            }
             case REPEAT: {
                 Integer timesOpt = tryParseIntFromObject(arg1);
                 String sourceStr = arg0 != null ? String.valueOf(arg0) : "";
@@ -2672,9 +2696,9 @@ public class FormulaElement implements Serializable {
 
         if (isInteger(low) && isInteger(high)
                 && !isNumberWithDecimalPoint(leftChild) && !isNumberWithDecimalPoint(rightChild)) {
-            return Math.floor(Math.random() * ((high + 1) - low)) + low;
+            return Math.floor(GlobalManager.Companion.nextRandom() * ((high + 1) - low)) + low;
         } else {
-            return (Math.random() * (high - low)) + low;
+            return (GlobalManager.Companion.nextRandom() * (high - low)) + low;
         }
     }
 

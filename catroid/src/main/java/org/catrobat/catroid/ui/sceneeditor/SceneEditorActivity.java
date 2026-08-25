@@ -247,6 +247,15 @@ private Sprite pendingLookSprite;
 					throw new IllegalStateException("Project save failed");
 				}
 				runOnUiThread(() -> {
+					org.catrobat.catroid.ProjectManager pm = org.catrobat.catroid.ProjectManager.getInstance();
+					Scene playing = pm.getCurrentlyPlayingScene();
+					if (playing == null || playing.isGlobalScene()) {
+						Scene fallback = project.getDefaultScene();
+						if (fallback != null) {
+							pm.setCurrentlyPlayingScene(fallback);
+							pm.setStartScene(fallback);
+						}
+					}
 					Intent intent = new Intent(this, StageActivity.class);
 					startActivityForResult(intent, StageActivity.REQUEST_START_STAGE);
 				});

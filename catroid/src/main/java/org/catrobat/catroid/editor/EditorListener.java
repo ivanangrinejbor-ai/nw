@@ -23,6 +23,7 @@ import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.input.GestureDetector;
 import com.badlogic.gdx.math.Matrix4;
+import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
@@ -56,6 +57,7 @@ public class EditorListener extends ApplicationAdapter {
     private ModelBatch debugBatch;
 
     private boolean isPcMode = false;
+    private boolean readyDispatched = false;
 
     public EditorListener(EditorActivity activity) {
         this.activity = activity;
@@ -71,7 +73,6 @@ public class EditorListener extends ApplicationAdapter {
     @Override
     public void create() {
         resetEngine();
-        activity.onEditorReady(sceneManager, threeDManager);
 
         debugBatch = new ModelBatch();
 
@@ -154,6 +155,11 @@ public class EditorListener extends ApplicationAdapter {
 
             setupInputProcessor();
 
+            if (!readyDispatched) {
+                readyDispatched = true;
+                activity.onEditorReady(sceneManager, threeDManager);
+            }
+
             activity.onEngineReset(sceneManager, threeDManager);
 
             if (sceneToLoad != null) {
@@ -180,6 +186,10 @@ public class EditorListener extends ApplicationAdapter {
                     return false;
                 }
 
+                if (gizmo.isDragging()) {
+                    return true;
+                }
+
                 if (gizmo.touchDown(threeDManager.getCamera().getPickRay(x, y))) {
                     cameraController.enabled = false;
                     return true;
@@ -200,6 +210,7 @@ public class EditorListener extends ApplicationAdapter {
             @Override
             public boolean tap(float x, float y, int count, int button) {
                 if (gizmo.isDragging()) {
+                    gizmo.touchUp();
                     return true;
                 }
 
@@ -295,19 +306,15 @@ public class EditorListener extends ApplicationAdapter {
     }
 
 
-    private void selectObjectAt(int screenX, int screenY) {
-        Ray pickRay = threeDManager.getCamera().getPickRay(screenX, screenY);
-        GameObject selectedObject = sceneManager.getObjectByRaycast(pickRay);
-        gizmo.setSelectedObject(selectedObject);
-        activity.onObjectSelected(selectedObject, false);
-    }
-
     public void setColliderVisibility(boolean visible) {
         this.showColliders = visible;
     }
 
     public void setCurrentTool(EditorTool tool) {
         if (gizmo != null) {
+            if (gizmo.isDragging()) {
+                gizmo.touchUp();
+            }
             gizmo.setCurrentTool(tool);
         }
     }
@@ -347,7 +354,8 @@ public class EditorListener extends ApplicationAdapter {
                 GameObject owner = sceneManager.findGameObject(entry.getKey());
                 if (owner != null) {
                     ModelInstance proxyInstance = entry.getValue();
-                    proxyInstance.transform.set(owner.transform.position, owner.transform.rotation);
+                    owner.transform.worldTransform.getTranslation(tempVec3);
+                    proxyInstance.transform.set(tempVec3, owner.transform.worldTransform.getRotation(tmpRotation, true));
                 }
             }
 
@@ -384,6 +392,13 @@ public class EditorListener extends ApplicationAdapter {
     }
 
     private Vector3 tempVec3 = new Vector3();
+    private final Quaternion tmpRotation = new Quaternion();
+
+    public void resetCameraMotion() {
+        if (cameraController != null) {
+            Gdx.app.postRunnable(cameraController::resetMotion);
+        }
+    }
 
     private void renderKeyframeVisuals() {
         GameObject selectedObject = gizmo.getSelectedObject();
@@ -408,23 +423,24 @@ public class EditorListener extends ApplicationAdapter {
 
 
             DebugDrawer debugDrawer = threeDManager.getDebugDrawer();
-            if (debugDrawer == null) return;
+            if (debugDrawer == null || anim.keyframes.size() < 2) {
+                return;
+            }
 
+            tempVec3.set(1f, 1f, 1f);
+            debugDrawer.begin(cameraController.camera);
             for (int i = 0; i < anim.keyframes.size() - 1; i++) {
                 Vector3 start = anim.keyframes.get(i).position;
                 Vector3 end = anim.keyframes.get(i + 1).position;
-
-
-                tempVec3.set(1f, 1f, 1f);
-                debugDrawer.begin(cameraController.camera);
                 debugDrawer.drawLine(start, end, tempVec3);
-                debugDrawer.end();
             }
+            debugDrawer.end();
         }
     }
 
     @Override
     public void dispose() {
+        Gdx.input.setInputProcessor(null);
         if (threeDManager != null) {
             threeDManager.dispose();
         }

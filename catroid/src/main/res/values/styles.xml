@@ -510,17 +510,17 @@
 
     <style name="BrickContainer.NeoScript.Small">
         <item name="android:minHeight">@dimen/brick_height_small</item>
-        <item name="android:background">@drawable/brick_1h_olive</item>
+        <item name="android:background">@drawable/brick_1h_slate</item>
     </style>
 
     <style name="BrickContainer.NeoScript.Medium">
         <item name="android:minHeight">@dimen/brick_height_medium</item>
-        <item name="android:background">@drawable/brick_2h_olive</item>
+        <item name="android:background">@drawable/brick_2h_slate</item>
     </style>
 
     <style name="BrickContainer.NeoScript.Big" tools:ignore="UnusedResources">
         <item name="android:minHeight">@dimen/brick_height_big</item>
-        <item name="android:background">@drawable/brick_3h_olive</item>
+        <item name="android:background">@drawable/brick_3h_slate</item>
     </style>
 
     <style name="BrickContainer.Dialogue" />
@@ -578,17 +578,17 @@
 
     <style name="BrickContainer.Libs.Small">
         <item name="android:minHeight">@dimen/brick_height_small</item>
-        <item name="android:background">@drawable/brick_1h_pink</item>
+        <item name="android:background">@drawable/brick_1h_magenta</item>
     </style>
 
     <style name="BrickContainer.Libs.Medium">
         <item name="android:minHeight">@dimen/brick_height_medium</item>
-        <item name="android:background">@drawable/brick_2h_pink</item>
+        <item name="android:background">@drawable/brick_2h_magenta</item>
     </style>
 
     <style name="BrickContainer.Libs.Big" tools:ignore="UnusedResources">
         <item name="android:minHeight">@dimen/brick_height_big</item>
-        <item name="android:background">@drawable/brick_3h_pink</item>
+        <item name="android:background">@drawable/brick_3h_magenta</item>
     </style>
 
     <style name="BrickContainer.Internet" />

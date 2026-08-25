@@ -2223,7 +2223,13 @@ public class StageActivity extends AndroidApplication implements ContextProvider
             return;
         }
 
-		if (currentScene.getName().equals(defaultScene.getName())) {
+		boolean isGlobalScene = currentScene.isGlobalScene();
+
+		if (!isGlobalScene && currentScene.getName().equals(defaultScene.getName())) {
+			projectManager.setCurrentlyPlayingScene(defaultScene);
+			projectManager.setStartScene(defaultScene);
+			startStageActivity(activity);
+		} else if (isGlobalScene) {
 			projectManager.setCurrentlyPlayingScene(defaultScene);
 			projectManager.setStartScene(defaultScene);
 			startStageActivity(activity);
@@ -2261,6 +2267,15 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 		new Handler(activity.getMainLooper()).post(() -> isLaunching = false);
 
         Project project = ProjectManager.getInstance().getCurrentProject();
+
+        Scene playingScene = ProjectManager.getInstance().getCurrentlyPlayingScene();
+        if (project != null && (playingScene == null || playingScene.isGlobalScene())) {
+            Scene fallbackScene = project.getDefaultScene();
+            if (fallbackScene != null) {
+                ProjectManager.getInstance().setCurrentlyPlayingScene(fallbackScene);
+                ProjectManager.getInstance().setStartScene(fallbackScene);
+            }
+        }
 
         if (project != null && project.getXmlHeader() != null && project.getXmlHeader().isPreloaderEnabled()) {
             Intent preloaderIntent = new Intent(activity, PreloaderActivity.class);

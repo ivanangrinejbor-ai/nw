@@ -25,7 +25,7 @@ object AiProjectAssistant {
     private var modelVersion: Int = 0
     private var loaded = false
 
-    val rejectedSuggestions = mutableSetOf<String>()
+    val rejectedSuggestions = java.util.Collections.synchronizedSet(mutableSetOf<String>())
 
     fun init(context: Context) {
         if (loaded) return
@@ -227,7 +227,7 @@ object AiProjectAssistant {
 
             if (predictions != null) {
                 val sorted = predictions.entries
-                    .filter { it.key !in existingTypes && it.key !in seen && it.key !in rejectedSuggestions }
+                    .filter { it.key !in existingTypes && it.key !in seen && !isRejected(script, it.key) }
                     .sortedByDescending { it.value }
                     .take(maxN)
 
@@ -247,7 +247,7 @@ object AiProjectAssistant {
             val fallbackPreds = ngrams[n]?.get(fbkKey)
             if (fallbackPreds != null) {
                 val sorted = fallbackPreds.entries
-                    .filter { it.key !in existingTypes && it.key !in seen && it.key !in rejectedSuggestions }
+                    .filter { it.key !in existingTypes && it.key !in seen && !isRejected(script, it.key) }
                     .sortedByDescending { it.value }
                     .take(maxN)
                 for ((btype, prob) in sorted) {
@@ -304,12 +304,21 @@ object AiProjectAssistant {
 
     fun isLoaded(): Boolean = loaded
 
-    fun rejectSuggestion(brickType: String) {
-        rejectedSuggestions.add(brickType)
+    fun rejectSuggestion(brickType: String, script: Script? = null) {
+        rejectedSuggestions.add(rejectionKey(script, brickType))
     }
 
     fun clearRejectedSuggestions() {
         rejectedSuggestions.clear()
+    }
+
+    private fun isRejected(script: Script, brickType: String): Boolean =
+        rejectionKey(script, brickType) in rejectedSuggestions
+
+    private fun rejectionKey(script: Script?, brickType: String): String {
+        val projectName = ProjectManager.getInstance().currentProject?.name.orEmpty()
+        val scriptId = script?.scriptId?.toString() ?: "global"
+        return "$projectName:$scriptId:$brickType"
     }
 
     fun addSuggestedBrick(brickType: String): Brick? {

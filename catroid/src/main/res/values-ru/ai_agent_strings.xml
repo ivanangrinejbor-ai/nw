@@ -101,8 +101,9 @@
     <string formatted="false" name="ai_agent_loading_models">Загрузка моделей…</string>
     <string formatted="false" name="ai_agent_model_selected">Выбрана модель: %s</string>
     <string formatted="false" name="ai_agent_no_api_key">Сначала укажите ключ Gemini API (меню → Указать ключ)</string>
-    <string formatted="false" name="ai_agent_api_key_title">Ключ Gemini API</string>
-    <string formatted="false" name="ai_agent_api_key_summary">Введите ключ Google AI Studio, чтобы включить облачного агента</string>
+    <string formatted="false" name="ai_agent_api_key_title">API-ключ облачного провайдера</string>
+    <string formatted="false" name="ai_agent_api_key_summary">Введите ключ для выбранного облачного провайдера</string>
+    <string name="ai_agent_local_model_picker_hint">Локальные модели управляются в настройках AI → Локальные модели</string>
     <string formatted="false" name="ai_agent_scope_all">Все проекты</string>
 
     <!-- Local models (llama.cpp) -->

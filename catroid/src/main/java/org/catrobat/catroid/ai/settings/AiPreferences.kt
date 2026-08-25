@@ -71,19 +71,24 @@ object AiPreferences {
         val secure = securePrefs()?.getString(KEY_PROVIDER_KEY_PREFIX + providerId, null)
         if (!secure.isNullOrBlank()) return secure
         val legacy = prefs?.getString(KEY_PROVIDER_KEY_PREFIX + providerId, null)
-        if (!legacy.isNullOrBlank()) return legacy
+        if (!legacy.isNullOrBlank()) {
+            securePrefs()?.let { encrypted ->
+                encrypted.edit().putString(KEY_PROVIDER_KEY_PREFIX + providerId, legacy).apply()
+                prefs?.edit()?.remove(KEY_PROVIDER_KEY_PREFIX + providerId)?.apply()
+            }
+            return legacy
+        }
         return null
     }
 
     fun setApiKeyForProvider(providerId: String, key: String) {
         val secure = securePrefs()
-        if (secure != null) {
-            try {
-                secure.edit().putString(KEY_PROVIDER_KEY_PREFIX + providerId, key).apply()
-                prefs?.edit()?.remove(KEY_PROVIDER_KEY_PREFIX + providerId)?.apply()
-            } catch (_: Exception) {}
-        } else {
-            prefs?.edit()?.putString(KEY_PROVIDER_KEY_PREFIX + providerId, key)?.apply()
+        if (secure == null) return
+        try {
+            secure.edit().putString(KEY_PROVIDER_KEY_PREFIX + providerId, key).apply()
+            prefs?.edit()?.remove(KEY_PROVIDER_KEY_PREFIX + providerId)?.apply()
+        } catch (_: Exception) {
+            return
         }
         if (providerId.equals("gemini", ignoreCase = true)) {
             @Suppress("DEPRECATION")

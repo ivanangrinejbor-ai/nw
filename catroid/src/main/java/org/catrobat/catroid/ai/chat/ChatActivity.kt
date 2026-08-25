@@ -53,7 +53,9 @@ class ChatActivity : AppCompatActivity() {
         modelButton = findViewById(R.id.btn_model)
 
         modelButton.setOnClickListener {
-            if (CloudModelRuntime.getApiKey().isNullOrBlank()) {
+            if (AiPreferences.isLocalBackend()) {
+                Toast.makeText(this, getString(R.string.ai_agent_local_model_picker_hint), Toast.LENGTH_SHORT).show()
+            } else if (CloudModelRuntime.getApiKey().isNullOrBlank()) {
                 showApiKeyDialog()
             } else {
                 showModelSelector()
@@ -62,9 +64,9 @@ class ChatActivity : AppCompatActivity() {
         updateModelButtonLabel()
 
         adapter = ChatAdapter(emptyList()) { position ->
-            agent.messages.value.getOrNull(position)?.let { msg ->
-                agent.sendMessage(msg.content)
-            }
+            val messages = agent.messages.value
+            val original = messages.take(position).lastOrNull { it.role == ChatMessage.Role.USER }
+            original?.content?.let(agent::sendMessage)
         }
 
         recyclerView.layoutManager = LinearLayoutManager(this)
@@ -220,7 +222,7 @@ class ChatActivity : AppCompatActivity() {
             displayList.add(0, optionCustom)
 
             val current = AiPreferences.getCloudModelId()
-            val checked = displayList.indexOf(current).let { if (it >= 0) it else 1 }
+            val checked = displayList.indexOf(current).let { if (it >= 0) it else 0 }
 
             AlertDialog.Builder(this@ChatActivity)
                 .setTitle(getString(R.string.ai_agent_models_title, provider.displayName))
@@ -291,8 +293,9 @@ class ChatActivity : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
+        AiAgentManager.instance.attachActivity(null)
         if (isFinishing) {
-            AiAgentManager.instance.attachActivity(null)
+            AiAgentManager.instance.cancelCurrentRequest()
             ModelManager.unloadModel()
         }
     }

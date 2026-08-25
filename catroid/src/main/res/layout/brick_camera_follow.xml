@@ -1,0 +1,65 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal">
+
+    <CheckBox
+        android:id="@+id/brick_checkbox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:visibility="gone" />
+
+    <org.catrobat.catroid.ui.BrickLayout
+        android:id="@+id/brick_camera_follow_layout"
+        style="@style/BrickContainer.Motion.Big">
+
+        <include layout="@layout/icon_brick_category_motion" />
+
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_camera_follow">
+        </TextView>
+
+        <TextView
+            android:id="@+id/brick_camera_follow_sprite_edit"
+            style="@style/BrickEditText">
+        </TextView>
+
+        <TextView
+            style="@style/BrickText.SingleLine"
+            app:layout_newLine="true"
+            android:text="@string/brick_camera_follow_smooth">
+        </TextView>
+
+        <TextView
+            android:id="@+id/brick_camera_follow_smooth_edit"
+            style="@style/BrickEditText">
+        </TextView>
+
+        <TextView
+            style="@style/BrickText.SingleLine"
+            app:layout_newLine="true"
+            android:text="@string/brick_camera_offset_x">
+        </TextView>
+
+        <TextView
+            android:id="@+id/brick_camera_follow_offset_x_edit"
+            style="@style/BrickEditText">
+        </TextView>
+
+        <TextView
+            style="@style/BrickText.SingleLine"
+            app:layout_newLine="true"
+            android:text="@string/brick_camera_offset_y">
+        </TextView>
+
+        <TextView
+            android:id="@+id/brick_camera_follow_offset_y_edit"
+            style="@style/BrickEditText">
+        </TextView>
+    </org.catrobat.catroid.ui.BrickLayout>
+
+</LinearLayout>

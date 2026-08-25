@@ -119,7 +119,7 @@ class GhostSuggestionBrick(
         if (isDismissed) return
         isDismissed = true
 
-        AiProjectAssistant.rejectSuggestion(suggestion.brickType)
+        AiProjectAssistant.rejectSuggestion(suggestion.brickType, targetScript)
 
         view.animate()
             .translationX(-view.width.toFloat())

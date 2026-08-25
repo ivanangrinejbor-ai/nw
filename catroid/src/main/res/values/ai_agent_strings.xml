@@ -119,8 +119,9 @@
     <string formatted="false" name="ai_agent_loading_models">Loading models…</string>
     <string formatted="false" name="ai_agent_model_selected">Model set: %s</string>
     <string formatted="false" name="ai_agent_no_api_key">Set your Gemini API key first (menu → Set API key)</string>
-    <string formatted="false" name="ai_agent_api_key_title">Gemini API key</string>
-    <string formatted="false" name="ai_agent_api_key_summary">Enter your Google AI Studio key to enable the cloud agent</string>
+    <string formatted="false" name="ai_agent_api_key_title">Cloud provider API key</string>
+    <string formatted="false" name="ai_agent_api_key_summary">Enter the API key for the selected cloud provider</string>
+    <string name="ai_agent_local_model_picker_hint">Local models are managed in AI Settings → Local models</string>
     <string formatted="false" name="ai_agent_scope_all">All projects</string>
 
     <!-- Local models (llama.cpp) -->

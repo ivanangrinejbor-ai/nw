@@ -5,7 +5,7 @@ import org.catrobat.catroid.content.Sprite;
 import org.catrobat.catroid.content.actions.ScriptSequenceAction;
 import org.catrobat.catroid.formulaeditor.Formula;
 
-public class Create2dJoystickBrick extends FormulaBrick {
+public class Create2dJoystickBrick extends VisualPlacementBrick {
 
 	private static final long serialVersionUID = 1L;
 
@@ -31,6 +31,11 @@ public class Create2dJoystickBrick extends FormulaBrick {
 	}
 
 	@Override
+	public BrickField getDefaultBrickField() {
+		return BrickField.X_POSITION;
+	}
+
+	@Override
 	public int getViewResource() {
 		return R.layout.brick_create_2d_joystick;
 	}
@@ -46,5 +51,25 @@ public class Create2dJoystickBrick extends FormulaBrick {
 				getFormulaWithBrickField(BrickField.STRING_2),
 				getFormulaWithBrickField(BrickField.SPEED)
 		));
+	}
+
+	@Override
+	public BrickField getXBrickField() {
+		return BrickField.X_POSITION;
+	}
+
+	@Override
+	public BrickField getYBrickField() {
+		return BrickField.Y_POSITION;
+	}
+
+	@Override
+	public int getXEditTextId() {
+		return R.id.brick_create_2d_joystick_x;
+	}
+
+	@Override
+	public int getYEditTextId() {
+		return R.id.brick_create_2d_joystick_y;
 	}
 }

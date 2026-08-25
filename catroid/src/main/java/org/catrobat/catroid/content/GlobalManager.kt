@@ -70,5 +70,36 @@ class GlobalManager {
         var preloadProject: Boolean
             get() = _preloadProject.get()
             set(value) = _preloadProject.set(value)
+
+        @Volatile
+        @JvmStatic
+        var gameTimeScale: Float = 1f
+            set(value) {
+                field = if (value < 0f) 0f else value
+            }
+
+        private val _seededRandom = java.util.Random()
+
+        @Volatile
+        @JvmStatic
+        var randomSeed: Long? = null
+            private set
+
+        @JvmStatic
+        fun setRandomSeed(seed: Long) {
+            randomSeed = seed
+            _seededRandom.setSeed(seed)
+        }
+
+        @JvmStatic
+        fun clearRandomSeed() {
+            randomSeed = null
+        }
+
+        @JvmStatic
+        fun nextRandom(): Double {
+            val seed = randomSeed ?: return Math.random()
+            return _seededRandom.nextDouble()
+        }
     }
 }

@@ -11,6 +11,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.catrobat.catroid.ProjectManager
 import org.catrobat.catroid.ai.analysis.ProjectAnalyzer
 import org.catrobat.catroid.ai.chat.ChatMessage
@@ -38,6 +41,9 @@ enum class AiAgentState {
 class AiAgentManager private constructor() {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private val requestMutex = Mutex()
+    @Volatile
+    private var activeJob: Job? = null
     @Volatile
     private var initialized = false
 
@@ -132,6 +138,15 @@ class AiAgentManager private constructor() {
         processMessage(text)
     }
 
+    fun cancelCurrentRequest() {
+        activeJob?.cancel()
+        activeJob = null
+        toolEngine.clearPendingChanges()
+        _activity.value = ""
+        _reasoning.value = ""
+        _state.value = AiAgentState.IDLE
+    }
+
     private fun isBackendReady(): Boolean =
         if (AiPreferences.isLocalBackend()) ModelRuntime.isModelLoaded() else cloudRuntime.isReady()
 
@@ -168,7 +183,9 @@ class AiAgentManager private constructor() {
     }
 
     private fun processMessage(userInput: String) {
-        scope.launch {
+        activeJob?.cancel()
+        activeJob = scope.launch {
+            requestMutex.withLock {
             try {
                 _state.value = AiAgentState.THINKING
                 _activity.value = "Reading your request…"
@@ -227,6 +244,11 @@ class AiAgentManager private constructor() {
                     _state.value = AiAgentState.USING_TOOLS
                     val executionResults = executeToolCallsWithRetry(toolCalls) { toolCall ->
                         _activity.value = describeToolActivity(toolCall)
+                        if (toolEngine.requiresConfirmation(toolCall.name) && AiPreferences.isConfirmEnabled()) {
+                            if (awaitUserConfirmationText(describeToolActivity(toolCall))) {
+                                toolEngine.approveToolCall(toolCall.id)
+                            }
+                        }
                     }
                     for ((toolCall, result) in executionResults) {
                         userContent += "\nTool result: $result\n"
@@ -295,6 +317,7 @@ class AiAgentManager private constructor() {
                 _activity.value = ""
                 _state.value = AiAgentState.IDLE
             } catch (e: Exception) {
+                if (e is kotlinx.coroutines.CancellationException) throw e
                 _activity.value = ""
                 _state.value = AiAgentState.ERROR
                 val errMsg = ChatMessage(
@@ -303,6 +326,7 @@ class AiAgentManager private constructor() {
                     timestamp = nextTimestamp()
                 )
                 _messages.update { it + errMsg }
+            }
             }
         }
     }
@@ -328,7 +352,17 @@ class AiAgentManager private constructor() {
             toolEngine.clearPendingChanges()
             return changes.map { ProjectModifier.ModificationResult.Failure("No project open") }
         }
-        val validation = validationEngine.validateChanges(project, changes)
+        if (!AiPreferences.isAutoModifyEnabled()) {
+            toolEngine.clearPendingChanges()
+            return changes.map {
+                ProjectModifier.ModificationResult.Failure(
+                    "Automatic project changes are disabled. Enable 'Auto-modify project' to apply this change."
+                )
+            }
+        }
+        val validation = withContext(Dispatchers.Main.immediate) {
+            validationEngine.validateChanges(project, changes)
+        }
         if (!validation.isValid) {
             toolEngine.clearPendingChanges()
             return validation.errors.map { ProjectModifier.ModificationResult.Failure(it) }
@@ -337,16 +371,28 @@ class AiAgentManager private constructor() {
             toolEngine.clearPendingChanges()
             return changes.map { ProjectModifier.ModificationResult.Failure("Declined by user") }
         }
-        val outcomes = projectModifier.applyChanges(changes)
+        val outcomes = withContext(Dispatchers.Main.immediate) {
+            projectModifier.applyChanges(changes)
+        }
         toolEngine.clearPendingChanges()
         return outcomes
     }
 
     private suspend fun awaitUserConfirmation(changes: List<org.catrobat.catroid.ai.tool.ProjectChange>): Boolean {
-        val activity = confirmActivity?.get() ?: return true
         val description = changes.joinToString("\n") { "• ${describeChange(it)}" }
+        return awaitUserConfirmationText(description)
+    }
+
+    private suspend fun awaitUserConfirmationText(description: String): Boolean {
+        val activity = confirmActivity?.get()
+            ?: return false
+        if (activity.isFinishing || activity.isDestroyed) return false
         return kotlinx.coroutines.suspendCancellableCoroutine { cont ->
             activity.runOnUiThread {
+                if (activity.isFinishing || activity.isDestroyed) {
+                    cont.resumeWith(Result.success(false))
+                    return@runOnUiThread
+                }
                 val dialog = android.app.AlertDialog.Builder(activity)
                     .setTitle(org.catrobat.catroid.R.string.ai_agent_confirm_changes_title)
                     .setMessage(

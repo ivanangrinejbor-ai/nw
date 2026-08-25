@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical">
@@ -27,6 +28,7 @@
 
         <TextView
             style="@style/BrickText.SingleLine"
+            app:layout_newLine="true"
             android:text="@string/brick_joystick_pos_y" />
 
         <TextView
@@ -35,6 +37,7 @@
 
         <TextView
             style="@style/BrickText.SingleLine"
+            app:layout_newLine="true"
             android:text="@string/brick_joystick_bg_file" />
 
         <TextView
@@ -43,6 +46,7 @@
 
         <TextView
             style="@style/BrickText.SingleLine"
+            app:layout_newLine="true"
             android:text="@string/brick_joystick_thumb_file" />
 
         <TextView
@@ -51,6 +55,7 @@
 
         <TextView
             style="@style/BrickText.SingleLine"
+            app:layout_newLine="true"
             android:text="@string/brick_joystick_speed" />
 
         <TextView

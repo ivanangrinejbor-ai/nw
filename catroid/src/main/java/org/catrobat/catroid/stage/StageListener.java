@@ -449,6 +449,7 @@ public class StageListener implements ApplicationListener {
 
 		for (Sprite sprite : sprites) {
 			sprite.initTouchingSpriteTriggers();
+			sprite.initIntervalScriptTriggers();
 		}
 
 		embroideryPatternManager = new DSTPatternManager();
@@ -608,6 +609,87 @@ public class StageListener implements ApplicationListener {
 
 	public void startScreenShake(float intensity, float duration) {
 		screenShake.start(intensity, duration);
+	}
+
+	private String cameraFollowSpriteName = null;
+	private float cameraFollowSmooth = 0f;
+	private float cameraFollowUserOffsetX = 0f;
+	private float cameraFollowUserOffsetY = 0f;
+	private float cameraFollowLockX = 0f;
+	private float cameraFollowLockY = 0f;
+
+	public void setCameraFollow(String spriteName, float smooth, float offsetX, float offsetY) {
+		this.cameraFollowSpriteName = spriteName;
+		this.cameraFollowSmooth = Math.max(0f, Math.min(100f, smooth));
+		this.cameraFollowUserOffsetX = offsetX;
+		this.cameraFollowUserOffsetY = offsetY;
+		if (camera != null && spriteName != null) {
+			Sprite target = findStageSpriteByName(spriteName);
+			if (target != null) {
+				cameraFollowLockX = camera.position.x - target.look.getX();
+				cameraFollowLockY = camera.position.y - target.look.getY();
+			}
+		}
+	}
+
+	public void clearCameraFollow() {
+		cameraFollowSpriteName = null;
+	}
+
+	private boolean cameraBoundsEnabled = false;
+	private float cameraBoundsMinX = 0f;
+	private float cameraBoundsMinY = 0f;
+	private float cameraBoundsMaxX = 0f;
+	private float cameraBoundsMaxY = 0f;
+
+	public void setCameraBounds(float minX, float minY, float maxX, float maxY) {
+		this.cameraBoundsEnabled = true;
+		this.cameraBoundsMinX = Math.min(minX, maxX);
+		this.cameraBoundsMaxX = Math.max(minX, maxX);
+		this.cameraBoundsMinY = Math.min(minY, maxY);
+		this.cameraBoundsMaxY = Math.max(minY, maxY);
+	}
+
+	public void clearCameraBounds() {
+		cameraBoundsEnabled = false;
+	}
+
+	private Sprite findStageSpriteByName(String name) {
+		if (name == null || sprites == null) {
+			return null;
+		}
+		for (Sprite candidate : sprites) {
+			if (name.equals(candidate.getName())) {
+				return candidate;
+			}
+		}
+		return null;
+	}
+
+	private float[] computeCameraFollowDelta(float deltaTime) {
+		if (camera == null || cameraFollowSpriteName == null) {
+			return null;
+		}
+		Sprite target = findStageSpriteByName(cameraFollowSpriteName);
+		if (target == null) {
+			return null;
+		}
+		float desiredX = target.look.getX() + cameraFollowLockX + cameraFollowUserOffsetX;
+		float desiredY = target.look.getY() + cameraFollowLockY + cameraFollowUserOffsetY;
+		float blend;
+		if (cameraFollowSmooth <= 0f) {
+			blend = 1f;
+		} else {
+			double smoothTime = Math.max(cameraFollowSmooth / 100.0, 0.0001);
+			blend = (float) (1.0 - Math.exp(-deltaTime / smoothTime));
+		}
+		float newX = camera.position.x + (desiredX - camera.position.x) * blend;
+		float newY = camera.position.y + (desiredY - camera.position.y) * blend;
+		if (cameraBoundsEnabled) {
+			newX = Math.max(cameraBoundsMinX, Math.min(cameraBoundsMaxX, newX));
+			newY = Math.max(cameraBoundsMinY, Math.min(cameraBoundsMaxY, newY));
+		}
+		return new float[] {newX - camera.position.x, newY - camera.position.y};
 	}
 
 	public void pinSpriteToCamera(Sprite sprite) {
@@ -1065,6 +1147,7 @@ public class StageListener implements ApplicationListener {
 		copy.initializeEventThreads(EventId.START_AS_CLONE);
 		copy.initConditionScriptTriggers();
 		copy.initTouchingSpriteTriggers();
+		copy.initIntervalScriptTriggers();
 		copy.initFirebaseChangedTriggers();
 		copy.initFirebaseChildChangedTriggers();
 		copy.initFirestoreChangedTriggers();
@@ -1098,6 +1181,7 @@ public class StageListener implements ApplicationListener {
 		copy.initializeEventThreads(EventId.START_AS_CLONE);
 		copy.initConditionScriptTriggers();
 		copy.initTouchingSpriteTriggers();
+		copy.initIntervalScriptTriggers();
 		copy.initFirebaseChangedTriggers();
 		copy.initFirebaseChildChangedTriggers();
 		copy.initFirestoreChangedTriggers();
@@ -1717,6 +1801,7 @@ public class StageListener implements ApplicationListener {
 							sprite.resetConditionScriptTriggers();
 						}
 						sprite.initTouchingSpriteTriggers();
+						sprite.initIntervalScriptTriggers();
 						sprite.initFirebaseChangedTriggers();
 						sprite.initFirebaseChildChangedTriggers();
 						sprite.initFirestoreChangedTriggers();
@@ -1739,6 +1824,10 @@ public class StageListener implements ApplicationListener {
 			}
 
             float deltaTime = Math.min(Gdx.graphics.getDeltaTime(), 0.05f);
+            float timeScale = GlobalManager.Companion.getGameTimeScale();
+            if (timeScale != 1f) {
+                deltaTime *= Math.max(timeScale, 0f);
+            }
 
             if (!paused) {
                 long logicStartTime = System.nanoTime();
@@ -1829,6 +1918,12 @@ public class StageListener implements ApplicationListener {
 
                     float shakeOffsetX = 0f;
                     float shakeOffsetY = 0f;
+                    float[] followDelta = computeCameraFollowDelta(deltaTime);
+                    if (followDelta != null && camera != null) {
+                        camera.position.x += followDelta[0];
+                        camera.position.y += followDelta[1];
+                        camera.update();
+                    }
                     boolean screenShaking = screenShake.update(deltaTime);
                     if (screenShaking && camera != null) {
                         shakeOffsetX = screenShake.getOffsetX();
@@ -1846,6 +1941,11 @@ public class StageListener implements ApplicationListener {
                     if (screenShaking && camera != null) {
                         camera.position.x -= shakeOffsetX;
                         camera.position.y -= shakeOffsetY;
+                        camera.update();
+                    }
+                    if (followDelta != null && camera != null) {
+                        camera.position.x -= followDelta[0];
+                        camera.position.y -= followDelta[1];
                         camera.update();
                     }
 

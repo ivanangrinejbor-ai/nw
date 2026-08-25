@@ -16,6 +16,7 @@ import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.GdxRuntimeException;
 import com.badlogic.gdx.utils.Json;
 import com.badlogic.gdx.utils.JsonWriter;
 
@@ -120,6 +121,7 @@ public class SceneManager {
 
 
     public SceneManager(ThreeDManager lowLevelEngine) {
+        instance = this;
         this.engine = lowLevelEngine;
         this.engine.setSceneManager(this);
 
@@ -470,11 +472,13 @@ public class SceneManager {
         return finalName + " (" + counter + ")";
     }
 
+    private final Quaternion tmpApplyRotation = new Quaternion();
+
     private void applyTransformToEngine(GameObject go) {
         if (go == null) return;
 
 
-        Quaternion tempRotation = new Quaternion();
+        Quaternion tempRotation = tmpApplyRotation;
         go.transform.worldTransform.getRotation(tempRotation, true);
 
 
@@ -578,7 +582,9 @@ public class SceneManager {
     private void rebuildComponentsForGameObject(GameObject go) {
         engine.setWorldTransform(go.id, go.transform.worldTransform);
 
-        Log.d("PhysicsDebug", "Rebuilding components for '" + go.name + "' with final World Transform:\n" + go.transform.worldTransform);
+        if (VERBOSE_REBUILD_LOGS) {
+            Log.d("PhysicsDebug", "Rebuilding components for '" + go.name + "' with final World Transform:\n" + go.transform.worldTransform);
+        }
 
         PhysicsComponent physics = go.getComponent(PhysicsComponent.class);
         if (physics != null) {
@@ -691,8 +697,13 @@ public class SceneManager {
 
         for (GameObject copy : newObjects) {
             gameObjects.put(copy.id, copy);
-            rebuildGameObject_internal(copy);
         }
+        final List<GameObject> copiesToRebuild = new ArrayList<>(newObjects);
+        Gdx.app.postRunnable(() -> {
+            for (GameObject copy : copiesToRebuild) {
+                rebuildGameObject_internal(copy);
+            }
+        });
 
         if (newRoot != null && newRoot.parentId != null) {
             GameObject parent = findGameObject(newRoot.parentId);
@@ -773,7 +784,8 @@ public class SceneManager {
 
             ModelInstance instance = engine.getModelInstance(go.id);
             if (instance == null) {
-                if (go.hasComponent(LightComponent.class) || go.hasComponent(CameraComponent.class) || go.hasComponent(ParticleComponent.class)) {
+                if (go.hasComponent(LightComponent.class) || go.hasComponent(CameraComponent.class)
+                        || go.hasComponent(ParticleComponent.class) || go.hasComponent(ParticleSystem3DComponent.class)) {
                     instance = engine.getEditorProxies().get(go.id);
                 }
             }
@@ -832,15 +844,21 @@ public class SceneManager {
         SceneData sceneData = new SceneData();
         for (GameObject go : gameObjects.values()) {
             if (go.isPrefabInstance) continue;
-            String jsonStr = json.toJson(go);
-            GameObject saveGo = json.fromJson(GameObject.class, jsonStr);
-
-            PrefabComponent p = saveGo.getComponent(PrefabComponent.class);
-            if (p != null && p.spawnedInstances != null) {
-                saveGo.childrenIds.removeAll(p.spawnedInstances);
+            PrefabComponent p = go.getComponent(PrefabComponent.class);
+            if (p != null && p.spawnedInstances != null && !p.spawnedInstances.isEmpty()) {
+                GameObject saveGo = json.fromJson(GameObject.class, json.toJson(go));
+                if (saveGo != null) {
+                    PrefabComponent saveP = saveGo.getComponent(PrefabComponent.class);
+                    if (saveP != null && saveP.spawnedInstances != null) {
+                        saveGo.childrenIds.removeAll(saveP.spawnedInstances);
+                    }
+                    sceneData.gameObjects.add(saveGo);
+                } else {
+                    sceneData.gameObjects.add(go);
+                }
+            } else {
+                sceneData.gameObjects.add(go);
             }
-
-            sceneData.gameObjects.add(go);
         }
         sceneData.skyR = skyR;
         sceneData.skyG = skyG;
@@ -1161,9 +1179,16 @@ public class SceneManager {
         json.setUsePrototypes(false);
         json.setIgnoreUnknownFields(true);
 
-        String sceneJson = json.prettyPrint(sceneData);
+        String sceneJson = json.toJson(sceneData);
 
-        fileHandle.writeString(sceneJson, false);
+        FileHandle tmpHandle = Gdx.files.absolute(fileHandle.path() + ".tmp");
+        tmpHandle.writeString(sceneJson, false);
+        if (fileHandle.exists()) {
+            fileHandle.delete();
+        }
+        if (!tmpHandle.file().renameTo(fileHandle.file())) {
+            throw new GdxRuntimeException("Could not move scene temp file to " + fileHandle.path());
+        }
         Gdx.app.log("SceneManager", "Scene saved to " + fileHandle.path());
     }
 
@@ -1174,11 +1199,19 @@ public class SceneManager {
             return;
         }
 
-        String sceneJson = fileHandle.readString();
-        json.setUsePrototypes(false);
-        json.setIgnoreUnknownFields(true);
-        SceneData sceneData = json.fromJson(SceneData.class, sceneJson);
+        String sceneJson;
+        SceneData sceneData;
+        try {
+            sceneJson = fileHandle.readString();
+            json.setUsePrototypes(false);
+            json.setIgnoreUnknownFields(true);
+            sceneData = json.fromJson(SceneData.class, sceneJson);
+        } catch (Exception e) {
+            Gdx.app.error("SceneManager", "Failed to parse scene file: " + fileHandle.path(), e);
+            return;
+        }
 
+        clearScene_internal();
 
         setBackgroundLightIntensity(sceneData.ambientIntensity);
         setSkyColor(sceneData.skyR, sceneData.skyG, sceneData.skyB);
@@ -1204,10 +1237,14 @@ public class SceneManager {
         setSkybox(this.skyboxPath);
     }
 
+    private static final boolean VERBOSE_REBUILD_LOGS = false;
+
     private void rebuildGameObject_internal(GameObject go) {
-        Log.d("PhysicsDebug", "============================================================");
-        Log.d("PhysicsDebug", "=== Rebuilding GameObject: '" + go.name + "' (ID: " + go.id + ")");
-        Log.d("PhysicsDebug", "============================================================");
+        if (VERBOSE_REBUILD_LOGS) {
+            Log.d("PhysicsDebug", "============================================================");
+            Log.d("PhysicsDebug", "=== Rebuilding GameObject: '" + go.name + "' (ID: " + go.id + ")");
+            Log.d("PhysicsDebug", "============================================================");
+        }
 
         RenderComponent render = go.getComponent(RenderComponent.class);
         if (render != null && render.modelFileName != null && !render.modelFileName.isEmpty()) {
@@ -1246,15 +1283,17 @@ public class SceneManager {
 
         engine.setWorldTransform(go.id, go.transform.worldTransform);
 
-        Log.d("PhysicsDebug", "Transform for '" + go.name + "':");
-        Log.d("PhysicsDebug", "  - Local Position: " + go.transform.position);
-        Log.d("PhysicsDebug", "  - Local Rotation: " + go.transform.rotation);
-        Log.d("PhysicsDebug", "  - Local Scale:    " + go.transform.scale);
-        Log.d("PhysicsDebug", "  - World Transform Matrix:\n" + go.transform.worldTransform);
-        if (go.parentId != null) {
-            GameObject parent = findGameObject(go.parentId);
-            if (parent != null) {
-                Log.d("PhysicsDebug", "  - Parent ('"+parent.name+"') World Transform:\n" + parent.transform.worldTransform);
+        if (VERBOSE_REBUILD_LOGS) {
+            Log.d("PhysicsDebug", "Transform for '" + go.name + "':");
+            Log.d("PhysicsDebug", "  - Local Position: " + go.transform.position);
+            Log.d("PhysicsDebug", "  - Local Rotation: " + go.transform.rotation);
+            Log.d("PhysicsDebug", "  - Local Scale:    " + go.transform.scale);
+            Log.d("PhysicsDebug", "  - World Transform Matrix:\n" + go.transform.worldTransform);
+            if (go.parentId != null) {
+                GameObject parent = findGameObject(go.parentId);
+                if (parent != null) {
+                    Log.d("PhysicsDebug", "  - Parent ('"+parent.name+"') World Transform:\n" + parent.transform.worldTransform);
+                }
             }
         }
 

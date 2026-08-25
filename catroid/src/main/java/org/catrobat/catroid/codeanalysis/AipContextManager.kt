@@ -33,7 +33,7 @@ object AipContextManager {
         val objectCount: Int
     )
 
-    suspend fun buildContext(targetScript: Script): AssembledContext = withContext(Dispatchers.Default) {
+    suspend fun buildContext(targetScript: Script): AssembledContext = withContext(Dispatchers.Main.immediate) {
         val project = ProjectManager.getInstance().currentProject ?: return@withContext AssembledContext(emptyList(), 0, 0)
         val maxTok = AiConfig.maxTokens
         val tokens = mutableListOf<String>()
@@ -101,7 +101,10 @@ object AipContextManager {
 
         tokens.add(T_PROJECT_END)
 
-        val truncated = if (tokens.size > maxTok) tokens.takeLast(maxTok) else tokens
+        val truncated = if (tokens.size > maxTok) {
+            val limit = maxTok.coerceAtLeast(2)
+            tokens.take(limit - 1) + "<context_truncated>"
+        } else tokens
         val objCount = truncated.count { it == T_OBJECT_START }
 
         AssembledContext(truncated, truncated.size, objCount)

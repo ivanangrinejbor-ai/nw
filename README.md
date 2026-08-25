@@ -10,7 +10,7 @@
 
 <p align="center">
   <a href="https://t.me/Neocatroid">Telegram</a> •
-  <a href="https://github.com/ivanangrinejbor-ai/nw/blob/main/LICENSE">License</a>
+  <a href="https://github.com/ivanangrinejbor-ai/Neocatroid/blob/main/LICENSE">License</a>
 </p>
 
 ---
@@ -48,7 +48,7 @@
 ### Быстрый старт
 
 ```bash
-git clone https://github.com/ivanangrinejbor-ai/nw.git
+git clone https://github.com/ivanangrinejbor-ai/Neocatroid.git
 cd NeoCatroid
 # Открыть в Android Studio, дождаться синхронизации Gradle
 ```
@@ -71,5 +71,5 @@ cd NeoCatroid
 
 <p align="center">
   <a href="https://t.me/Neocatroid">Telegram-канал</a> •
-  <a href="https://github.com/ivanangrinejbor-ai/nw/blob/main/LICENSE">AGPL v3 License</a>
+  <a href="https://github.com/ivanangrinejbor-ai/Neocatroid/blob/main/LICENSE">AGPL v3 License</a>
 </p>

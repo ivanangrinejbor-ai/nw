@@ -23,9 +23,17 @@ public class EditorCameraController implements GestureListener {
 
     public final Vector3 velocity = new Vector3();
     private final Vector3 tmp = new Vector3();
+    private final Vector3 tmp2 = new Vector3();
 
     public EditorCameraController(Camera camera) {
         this.camera = camera;
+    }
+
+    public void resetMotion() {
+        velocity.setZero();
+        isAccelerating = false;
+        currentMoveSpeed = baseMoveSpeed;
+        camera.update();
     }
 
     public void update(float delta) {
@@ -99,10 +107,37 @@ public class EditorCameraController implements GestureListener {
         if (isPcMode) return false;
 
         camera.rotate(Vector3.Y, -deltaX * rotateSpeed);
-        tmp.set(camera.direction).crs(camera.up).nor();
-        camera.rotate(tmp, -deltaY * rotateSpeed);
+
+        float pitchAngle = tmp.set(camera.direction).nor().angleDeg(Vector3.Y);
+        boolean verticalAllowed = (pitchAngle > 1f || deltaY < 0) && (pitchAngle < 179f || deltaY > 0);
+
+        if (deltaY != 0 && verticalAllowed) {
+            tmp2.set(camera.direction).crs(camera.up).nor();
+            camera.rotate(tmp2, -deltaY * rotateSpeed);
+        }
         camera.update();
         return true;
+    }
+
+    @Override
+    public boolean zoom(float initialDistance, float distance) {
+        if (!enabled || isPcMode || initialDistance <= 0f) return false;
+        if (Math.abs(distance - initialDistance) < 1f) return true;
+
+        float zoomFactor = initialDistance / distance;
+        float maxDistance = 5000f;
+        float minDistance = 0.5f;
+
+        tmp.set(camera.direction).nor().scl(finalDollyStep(zoomFactor, minDistance, maxDistance));
+        camera.position.add(tmp);
+        camera.update();
+        return true;
+    }
+
+    private float finalDollyStep(float zoomFactor, float minDistance, float maxDistance) {
+        float distToTarget = camera.position.len();
+        float newDist = Math.max(minDistance, Math.min(maxDistance, distToTarget * (zoomFactor - 1f)));
+        return newDist - distToTarget;
     }
 
     @Override
@@ -115,6 +150,5 @@ public class EditorCameraController implements GestureListener {
     @Override public void pinchStop() {}
     @Override public boolean longPress(float x, float y) { return false; }
     @Override public boolean fling(float vX, float vY, int b) { return false; }
-    @Override public boolean zoom(float initialDistance, float distance) { return false; }
     @Override public boolean tap(float x, float y, int count, int button) { return false; }
 }

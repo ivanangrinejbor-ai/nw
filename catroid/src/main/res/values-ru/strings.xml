@@ -344,7 +344,11 @@
     <string name="editor_3d_save_scene_as">Сохранить сцену как...</string>
     <string name="editor_3d_enter_file_name">Введите имя файла (без расширения):</string>
     <string name="editor_3d_file_name_empty">Имя файла не может быть пустым</string>
+    <string name="editor_3d_file_name_invalid">Некорректное имя файла</string>
     <string name="editor_3d_scene_saved">Сцена сохранена в %1$s</string>
+    <string name="editor_3d_scene_save_failed">Не удалось сохранить сцену. Проверьте свободное место.</string>
+    <string name="editor_3d_engine_not_ready">3D-движок запускается, подождите…</string>
+    <string name="editor_3d_no_keyframes">Сначала добавьте хотя бы один кейфрейм</string>
     <string name="editor_3d_load_scene">Загрузить сцену</string>
     <string name="editor_3d_no_scenes_found">Не найдено сохраненных сцен (.rscene).</string>
     <string name="editor_3d_loading_scene">Загрузка сцены: %1$s</string>
@@ -1472,6 +1476,9 @@
 <string name="category_dialogue">Диалоги</string>
 <string name="category_json">JSON</string>
 <string name="brick_json_parse">Разобрать JSON в</string>
+    <string name="brick_json_get">Получить из JSON</string>
+    <string name="brick_json_set">Задать в JSON</string>
+    <string name="brick_json_key">ключ</string>
 <string name="brick_json_value">Текст JSON</string>
 
     <string name="category_favorites">Избранные</string>
@@ -2496,6 +2503,8 @@
     <string name="formula_md5_param" formatted="false">(\'текст\')</string>
     <string name="formula_notification_reply" formatted="false">ввод_из_уведомления</string>
     <string name="formula_notification_reply_param" formatted="false">(\'action_id\')</string>
+    <string name="formula_seed" formatted="false">зерно</string>
+    <string name="formula_clipboard_paste" formatted="false">буфер_обмена</string>
     <string formatted="false" name="formula_file_read_string_param">(\'строка\', \'имяФайла\')</string>
     <string formatted="false" name="formula_editor_function_files_path">все_файлы_проекта</string>
     <string formatted="false" name="formula_editor_function_file_parameter">(\'variable.txt\')</string>
@@ -5710,6 +5719,19 @@
     <string name="brick_shake_screen">Тряска экрана</string>
     <string name="brick_shake_screen_intensity">интенсивность</string>
     <string name="brick_shake_screen_duration">длительность</string>
+    <string name="brick_set_game_time_scale">Скорость игры %s</string>
+    <string name="brick_set_seed">Задать зерно случайности</string>
+    <string name="brick_when_interval_every">Каждые</string>
+    <string name="brick_when_interval_seconds">сек.</string>
+    <string name="brick_camera_follow">Камера следует за актёром</string>
+    <string name="brick_camera_follow_smooth">плавность 0..100</string>
+    <string name="brick_camera_offset_x">сдвиг X</string>
+    <string name="brick_camera_offset_y">сдвиг Y</string>
+    <string name="brick_camera_bounds">Границы камеры</string>
+    <string name="brick_save_game">Сохранить игру, слот</string>
+    <string name="brick_load_game">Загрузить игру, слот</string>
+    <string name="brick_ask_ai_vision">Спросить ИИ об образе</string>
+    <string name="brick_ask_ai_vision_look">образ</string>
     <string name="brick_set_corner_offsets_title">Угловые смещения</string>
     <string name="brick_set_corner_offsets_top_left">верх-лево</string>
     <string name="brick_set_corner_offsets_top_right">верх-право</string>

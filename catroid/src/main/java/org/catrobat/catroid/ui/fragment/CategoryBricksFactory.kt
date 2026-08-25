@@ -36,6 +36,7 @@ import org.catrobat.catroid.content.WhenGamepadButtonScript
 import org.catrobat.catroid.content.WhenButtonPressedScript
 import org.catrobat.catroid.content.VolumeButtonHoldScript
 import org.catrobat.catroid.content.WhenTimeReachedScript
+import org.catrobat.catroid.content.WhenIntervalScript
 import org.catrobat.catroid.content.WhenClonedWithNameScript
 import org.catrobat.catroid.content.WhenMqttMessageScript
 import org.catrobat.catroid.content.WhenNotificationActionTriggeredScript
@@ -60,6 +61,8 @@ import org.catrobat.catroid.content.bricks.ApplyTorqueBrick
 import org.catrobat.catroid.content.bricks.ArduinoSendDigitalValueBrick
 import org.catrobat.catroid.content.bricks.ArduinoSendPWMValueBrick
 import org.catrobat.catroid.content.bricks.AskBrick
+import org.catrobat.catroid.content.bricks.AskAIBrick
+import org.catrobat.catroid.content.bricks.AskAIVisionBrick
 import org.catrobat.catroid.content.bricks.AskGPTBrick
 import org.catrobat.catroid.content.bricks.AskGemini2Brick
 import org.catrobat.catroid.content.bricks.AskGeminiBrick
@@ -741,6 +744,11 @@ import org.catrobat.catroid.content.bricks.WebRequestBrick
 import org.catrobat.catroid.content.bricks.WhenBackPressedBrick
 import org.catrobat.catroid.content.bricks.WhenBackgroundChangesBrick
 import org.catrobat.catroid.content.bricks.WhenBounceOffBrick
+import org.catrobat.catroid.content.bricks.WhenIntervalBrick
+import org.catrobat.catroid.content.bricks.CameraFollowBrick
+import org.catrobat.catroid.content.bricks.CameraBoundsBrick
+import org.catrobat.catroid.content.bricks.SaveGameBrick
+import org.catrobat.catroid.content.bricks.LoadGameBrick
 import org.catrobat.catroid.content.bricks.WhenTouchingSpriteBrick
 import org.catrobat.catroid.content.bricks.WhenTouchingSpriteByNameBrick
 import org.catrobat.catroid.content.bricks.WhenButtonPressedBrick
@@ -845,6 +853,8 @@ import org.catrobat.catroid.content.bricks.MapDeleteBrick
 import org.catrobat.catroid.content.bricks.MapGetBrick
 import org.catrobat.catroid.content.bricks.MapSetBrick
 import org.catrobat.catroid.content.bricks.JsonParseBrick
+import org.catrobat.catroid.content.bricks.JsonGetBrick
+import org.catrobat.catroid.content.bricks.JsonSetBrick
 import org.catrobat.catroid.content.bricks.FadeInBrick
 import org.catrobat.catroid.content.bricks.FadeOutBrick
 import org.catrobat.catroid.content.bricks.ZoomInBrick
@@ -875,6 +885,8 @@ import org.catrobat.catroid.content.bricks.SetPitchOnlyBrick
 import org.catrobat.catroid.content.bricks.SetRemoveBrick
 import org.catrobat.catroid.content.bricks.SetTileBrick
 import org.catrobat.catroid.content.bricks.SetTilemapSolidBrick
+import org.catrobat.catroid.content.bricks.SetGameTimeScaleBrick
+import org.catrobat.catroid.content.bricks.SetSeedBrick
 import org.catrobat.catroid.content.bricks.Sound_StopAllBrick
 import org.catrobat.catroid.content.bricks.StackPopBrick
 import org.catrobat.catroid.content.bricks.StackPushBrick
@@ -1045,6 +1057,7 @@ eventBrickList.add(WhenConditionBrick(WhenConditionScript(Formula(defaultIf))))
                     eventBrickList.add(WhenTouchingSpriteBrick())
                     eventBrickList.add(WhenTouchingSpriteByNameBrick())
                 }
+        eventBrickList.add(WhenIntervalBrick(WhenIntervalScript(Formula(1))))
         eventBrickList.add(WhenBackgroundChangesBrick())
         eventBrickList.add(WhenFirebaseChangedBrick())
                 eventBrickList.add(WhenFirebaseChildChangedBrick())
@@ -1133,6 +1146,7 @@ eventBrickList.add(WhenConditionBrick(WhenConditionScript(Formula(defaultIf))))
             eventBrickList.add(WhenTouchingSpriteBrick())
             eventBrickList.add(WhenTouchingSpriteByNameBrick())
         }
+        eventBrickList.add(WhenIntervalBrick(WhenIntervalScript(Formula(1))))
         eventBrickList.add(WhenBackgroundChangesBrick())
 
         eventBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_event_cloning), template))
@@ -1381,6 +1395,9 @@ eventBrickList.add(WhenConditionBrick(WhenConditionScript(Formula(defaultIf))))
         controlBrickList.add(WaitThreadBrick(Formula("thread1")))
         controlBrickList.add(InstantBrick())
         controlBrickList.add(WhenClonedWithNameBrick(WhenClonedWithNameScript(Formula("clone"))))
+        controlBrickList.add(SetGameTimeScaleBrick(100f))
+        controlBrickList.add(SaveGameBrick(1.0))
+        controlBrickList.add(LoadGameBrick(1.0))
 
         return controlBrickList
     }
@@ -1453,6 +1470,8 @@ eventBrickList.add(WhenConditionBrick(WhenConditionScript(Formula(defaultIf))))
                 motionBrickList.add(MoveTowardsPointBrick(0.0, 0.0, 10.0))
                 motionBrickList.add(RotateTowardsTargetBrick(0.0, 0.0, 10.0))
                 motionBrickList.add(ClampPositionBrick(-540.0, 540.0, -960.0, 960.0))
+                motionBrickList.add(CameraFollowBrick("sprite", 0f))
+                motionBrickList.add(CameraBoundsBrick(-540.0f, -960.0f, 540.0f, 960.0f))
                 if (!isBackgroundSprite) motionBrickList.add(IfOnEdgeBounceBrick())
                 motionBrickList.add(MoveNStepsBrick(BrickValues.MOVE_STEPS))
                 motionBrickList.add(TurnLeftBrick(BrickValues.TURN_DEGREES))
@@ -1537,6 +1556,8 @@ eventBrickList.add(WhenConditionBrick(WhenConditionScript(Formula(defaultIf))))
         motionBrickList.add(SetPhysicsObjectTypeBrick(BrickValues.PHYSIC_TYPE))
         motionBrickList.add(SetRagdollBrick(1))
         motionBrickList.add(SetHitboxBrick())
+        motionBrickList.add(CameraFollowBrick("sprite", 0f))
+        motionBrickList.add(CameraBoundsBrick(-540.0f, -960.0f, 540.0f, 960.0f))
         if (!isBackgroundSprite) {
             motionBrickList.add(IfOnEdgeBounceBrick())
             motionBrickList.add(WhenBounceOffBrick(WhenBounceOffScript(null)))
@@ -2268,6 +2289,7 @@ eventBrickList.add(WhenConditionBrick(WhenConditionScript(Formula(defaultIf))))
         dataBrickList.add(QueueDequeueBrick())
         dataBrickList.add(StackPushBrick())
         dataBrickList.add(StackPopBrick())
+        dataBrickList.add(SetSeedBrick(1.0))
 
         return dataBrickList
     }
@@ -2764,6 +2786,8 @@ void main() {
             if (!isGroupingEnabled) {
                 val neuralBrickList: MutableList<Brick> = ArrayList()
                 neuralBrickList.add(SetGeminiKeyBrick("api_key"))
+                neuralBrickList.add(AskAIBrick("Hello!"))
+                neuralBrickList.add(AskAIVisionBrick("What is on the picture?"))
                 neuralBrickList.add(AskGeminiBrick("Hello!"))
                 neuralBrickList.add(AskGemini2Brick("Hello! How are you?", "models/gemini-2.5-flash"))
                 neuralBrickList.add(AskGPTBrick("Привет!", "Отвечай на все словом \"апельсин\""))
@@ -3017,9 +3041,13 @@ void main() {
         return fileBrickList
     }
 
-    private fun setupJsonCategoryList(context: Context): List<Brick> {
-        return arrayListOf(JsonParseBrick("data", "{}"))
-    }
+private fun setupJsonCategoryList(context: Context): List<Brick> {
+    return arrayListOf(
+        JsonParseBrick("data", "{}"),
+        JsonGetBrick("data", "key"),
+        JsonSetBrick("data", "key", "value"),
+    )
+}
 
     private fun setupNeoScriptCategoryList(context: Context): List<Brick> {
         val neoBrickList: MutableList<Brick> = ArrayList()

@@ -4953,6 +4953,97 @@ public Action createVarAction(Sprite sprite, SequenceAction sequence,
         return action;
     }
 
+    public Action createSetGameTimeScaleAction(Sprite sprite, ScriptSequenceAction sequence,
+                                               Formula scale) {
+        SetGameTimeScaleAction action = action(SetGameTimeScaleAction.class);
+        action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        action.setScale(scale);
+        return action;
+    }
+
+    public Action createSetSeedAction(Sprite sprite, ScriptSequenceAction sequence,
+                                      Formula seed) {
+        SetSeedAction action = action(SetSeedAction.class);
+        action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        action.setSeed(seed);
+        return action;
+    }
+
+    public Action createJsonGetAction(Sprite sprite, ScriptSequenceAction sequence,
+                                      Formula name, Formula key, UserVariable userVariable) {
+        JsonGetAction action = action(JsonGetAction.class);
+        action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        action.setNameFormula(name);
+        action.setKeyFormula(key);
+        action.setUserVariable(userVariable);
+        return action;
+    }
+
+    public Action createJsonSetAction(Sprite sprite, ScriptSequenceAction sequence,
+                                      Formula name, Formula key, Formula value) {
+        JsonSetAction action = action(JsonSetAction.class);
+        action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        action.setNameFormula(name);
+        action.setKeyFormula(key);
+        action.setValueFormula(value);
+        return action;
+    }
+
+    public Action createCameraFollowAction(Sprite sprite, ScriptSequenceAction sequence,
+                                           Formula spriteName, Formula smooth,
+                                           Formula offsetX, Formula offsetY) {
+        CameraFollowAction action = action(CameraFollowAction.class);
+        action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        action.setSpriteName(spriteName);
+        action.setSmooth(smooth);
+        action.setOffsetX(offsetX);
+        action.setOffsetY(offsetY);
+        return action;
+    }
+
+    public Action createCameraBoundsAction(Sprite sprite, ScriptSequenceAction sequence,
+                                           Formula minX, Formula minY, Formula maxX, Formula maxY) {
+        CameraBoundsAction action = action(CameraBoundsAction.class);
+        action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        action.setMinX(minX);
+        action.setMinY(minY);
+        action.setMaxX(maxX);
+        action.setMaxY(maxY);
+        return action;
+    }
+
+    public Action createSaveGameAction(Sprite sprite, ScriptSequenceAction sequence,
+                                       Formula slot) {
+        SaveGameAction action = action(SaveGameAction.class);
+        action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        action.setSlot(slot);
+        return action;
+    }
+
+    public Action createLoadGameAction(Sprite sprite, ScriptSequenceAction sequence,
+                                       Formula slot) {
+        LoadGameAction action = action(LoadGameAction.class);
+        action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        action.setSlot(slot);
+        return action;
+    }
+
+    public Action createAskAIVisionAction(Sprite sprite, ScriptSequenceAction sequence,
+                                          Formula prompt, Formula systemPrompt, Formula model,
+                                          String provider,
+                                          org.catrobat.catroid.common.LookData lookData,
+                                          org.catrobat.catroid.formulaeditor.UserVariable userVariable) {
+        AskAIVisionAction action = action(AskAIVisionAction.class);
+        action.setScope(new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence));
+        action.setPrompt(prompt);
+        action.setSystemPrompt(systemPrompt);
+        action.setModel(model);
+        action.setProvider(provider);
+        action.setLookData(lookData);
+        action.setUserVariable(userVariable);
+        return action;
+    }
+
     public ThreedCreateFixedConstraintAction createThreedCreateFixedConstraintAction(
             Sprite sprite, ScriptSequenceAction sequence,
             Formula id, Formula a, Formula b) {

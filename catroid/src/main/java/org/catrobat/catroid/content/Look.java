@@ -659,6 +659,7 @@ public class Look extends Image {
 				sprite.runningStitch.update();
 				sprite.evaluateConditionScriptTriggers();
 				sprite.evaluateTouchingSpriteTriggers();
+				sprite.evaluateIntervalScriptTriggers();
 				sprite.evaluateFirebaseChangedTriggers();
 				sprite.evaluateFirebaseChildChangedTriggers();
 				sprite.evaluateFirestoreChangedTriggers();

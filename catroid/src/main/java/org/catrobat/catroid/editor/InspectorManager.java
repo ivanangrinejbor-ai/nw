@@ -179,6 +179,9 @@ public class InspectorManager {
         duplicateButton.setOnClickListener(v -> {
             GameObject newObject = sceneManager.duplicateGameObject(go);
             if (newObject != null) {
+                if (activity.getUndoManager() != null) {
+                    activity.getUndoManager().pushCommand(new Commands.AddCommand(sceneManager, newObject));
+                }
                 activity.onObjectSelected(newObject);
                 activity.updateHierarchy();
             }
@@ -200,7 +203,10 @@ public class InspectorManager {
                     .setTitle(R.string.editor_3d_delete_object)
                     .setMessage(activity.getString(R.string.editor_3d_delete_object_confirm, go.name))
                     .setPositiveButton(R.string.delete, (dialog, which) -> {
-                        sceneManager.removeGameObject(go);
+                        if (activity.getUndoManager() != null) {
+                            activity.getUndoManager().pushCommand(new Commands.DeleteCommand(sceneManager, go));
+                        }
+                        com.badlogic.gdx.Gdx.app.postRunnable(() -> sceneManager.removeGameObject(go));
                         activity.onObjectSelected(null);
                         activity.updateHierarchy();
                     })
@@ -214,10 +220,13 @@ public class InspectorManager {
         addComponentHeader(R.string.component_prefab, true, false, () -> {
             PrefabComponent p = go.getComponent(PrefabComponent.class);
             if (p != null && p.spawnedInstances != null) {
-                for(String id : p.spawnedInstances) {
-                    GameObject child = sceneManager.findGameObject(id);
-                    if (child != null) sceneManager.removeGameObject(child);
-                }
+                java.util.List<String> spawned = new java.util.ArrayList<>(p.spawnedInstances);
+                com.badlogic.gdx.Gdx.app.postRunnable(() -> {
+                    for (String id : spawned) {
+                        GameObject child = sceneManager.findGameObject(id);
+                        if (child != null) sceneManager.removeGameObject(child);
+                    }
+                });
                 go.childrenIds.removeAll(p.spawnedInstances);
             }
             go.components.removeIf(c -> c instanceof PrefabComponent);
@@ -304,8 +313,12 @@ public class InspectorManager {
 
         playBtn.setOnClickListener(v -> {
             if (!isPreviewingAnimation) {
+                if (anim.keyframes.isEmpty()) {
+                    android.widget.Toast.makeText(activity, R.string.editor_3d_no_keyframes, android.widget.Toast.LENGTH_SHORT).show();
+                    return;
+                }
 
-                KeyframeData kf = go.getComponent(KeyframeComponent.class).keyframes.get(0);
+                KeyframeData kf = anim.keyframes.get(0);
                 tempPosition.set(kf.position);
                 tempRotation.set(kf.rotation);
                 tempScale.set(kf.scale);
@@ -370,9 +383,12 @@ public class InspectorManager {
                 if (!hasFocus) {
                     try {
                         float newTime = Float.parseFloat(timeEdit.getText().toString());
+                        if (!Float.isFinite(newTime)) throw new NumberFormatException();
 
-                        frame.time = Math.max(0, newTime);
-                        anim.sortKeyframes();
+                        synchronized (anim.keyframes) {
+                            frame.time = Math.max(0, newTime);
+                            anim.sortKeyframes();
+                        }
 
                         activity.runOnUiThread(() -> populateInspector(go));
                     } catch (Exception e) {
@@ -403,7 +419,9 @@ public class InspectorManager {
             });
 
             deleteBtn.setOnClickListener(v -> {
-                anim.keyframes.remove(frame);
+                synchronized (anim.keyframes) {
+                    anim.keyframes.remove(frame);
+                }
                 populateInspector(go);
             });
 
@@ -434,8 +452,10 @@ public class InspectorManager {
 
             newFrame.time = anim.getDuration() + 1.0f;
 
-            anim.keyframes.add(newFrame);
-            anim.sortKeyframes();
+            synchronized (anim.keyframes) {
+                anim.keyframes.add(newFrame);
+                anim.sortKeyframes();
+            }
             populateInspector(go);
         });
 
@@ -587,14 +607,16 @@ public class InspectorManager {
         alignPosBtn.setOnClickListener(v -> {
             if (threeDManager != null && selectedObject != null) {
                 Vector3 cameraPos = threeDManager.getCameraPosition();
+                Vector3 oldPos = selectedObject.transform.position.cpy();
+                Quaternion oldRot = selectedObject.transform.rotation.cpy();
+                Vector3 oldScale = selectedObject.transform.scale.cpy();
+
+                selectedObject.transform.position.set(cameraPos);
+
                 if (activity.getUndoManager() != null) {
                     activity.getUndoManager().pushCommand(new Commands.TransformCommand(
-                            sceneManager, selectedObject,
-                            selectedObject.transform.position.cpy(),
-                            selectedObject.transform.rotation.cpy(),
-                            selectedObject.transform.scale.cpy()));
+                            sceneManager, selectedObject, oldPos, oldRot, oldScale));
                 }
-                selectedObject.transform.position.set(cameraPos);
                 populateInspector(selectedObject);
             }
         });
@@ -604,14 +626,16 @@ public class InspectorManager {
                 Quaternion cameraRot = new Quaternion();
                 threeDManager.getCamera().view.getRotation(cameraRot, true).conjugate();
 
+                Vector3 oldPos = selectedObject.transform.position.cpy();
+                Quaternion oldRot = selectedObject.transform.rotation.cpy();
+                Vector3 oldScale = selectedObject.transform.scale.cpy();
+
+                selectedObject.transform.rotation.set(cameraRot);
+
                 if (activity.getUndoManager() != null) {
                     activity.getUndoManager().pushCommand(new Commands.TransformCommand(
-                            sceneManager, selectedObject,
-                            selectedObject.transform.position.cpy(),
-                            selectedObject.transform.rotation.cpy(),
-                            selectedObject.transform.scale.cpy()));
+                            sceneManager, selectedObject, oldPos, oldRot, oldScale));
                 }
-                selectedObject.transform.rotation.set(cameraRot);
                 populateInspector(selectedObject);
             }
         });
@@ -3159,12 +3183,11 @@ public class InspectorManager {
         TextWatcher watcher = new DelayedTextWatcher(() -> {
             if (selectedObject == null || !x.hasFocus() && !y.hasFocus() && !z.hasFocus()) return;
             try {
-                Vector3 v = new Vector3(
-                        Float.parseFloat(x.getText().toString()),
-                        Float.parseFloat(y.getText().toString()),
-                        Float.parseFloat(z.getText().toString())
-                );
-                updater.update(go, v);
+                float vx = Float.parseFloat(x.getText().toString());
+                float vy = Float.parseFloat(y.getText().toString());
+                float vz = Float.parseFloat(z.getText().toString());
+                if (!Float.isFinite(vx) || !Float.isFinite(vy) || !Float.isFinite(vz)) return;
+                updater.update(go, new Vector3(vx, vy, vz));
             } catch (NumberFormatException e) {
             }
         });
@@ -3180,11 +3203,11 @@ public class InspectorManager {
         TextWatcher watcher = new DelayedTextWatcher(() -> {
             if (selectedObject == null || !p.hasFocus() && !y.hasFocus() && !r.hasFocus()) return;
             try {
-                Quaternion q = new Quaternion().setEulerAngles(
-                        Float.parseFloat(y.getText().toString()),
-                        Float.parseFloat(p.getText().toString()),
-                        Float.parseFloat(r.getText().toString())
-                );
+                float pitch = Float.parseFloat(p.getText().toString());
+                float yaw = Float.parseFloat(y.getText().toString());
+                float roll = Float.parseFloat(r.getText().toString());
+                if (!Float.isFinite(pitch) || !Float.isFinite(yaw) || !Float.isFinite(roll)) return;
+                Quaternion q = new Quaternion().setEulerAngles(yaw, pitch, roll);
                 updater.update(go, q);
             } catch (NumberFormatException e) {
             }

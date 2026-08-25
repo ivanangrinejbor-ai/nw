@@ -54,14 +54,23 @@ public class HierarchyDragCallback extends ItemTouchHelper.SimpleCallback {
 
         GameObject draggedObject = adapter.getItems().get(fromPosition).gameObject;
         GameObject targetObject = adapter.getItems().get(toPosition).gameObject;
+        String oldParentId = draggedObject.parentId;
+        String newParentId;
 
         if (draggedObject.parentId != null && draggedObject.parentId.equals(targetObject.id)) {
             sceneManager.setParent(draggedObject, null);
+            newParentId = null;
         } else {
             if (draggedObject == targetObject || isDescendant(targetObject, draggedObject)) {
                 return false;
             }
             sceneManager.setParent(draggedObject, targetObject);
+            newParentId = targetObject.id;
+        }
+
+        if (activity.getUndoManager() != null && !java.util.Objects.equals(oldParentId, newParentId)) {
+            activity.getUndoManager().pushCommand(
+                    new Commands.ReparentCommand(sceneManager, draggedObject, oldParentId, newParentId));
         }
 
 

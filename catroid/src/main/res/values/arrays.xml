@@ -252,28 +252,28 @@
         <item>@string/phiro_sensor_bottom_right</item>
     </string-array>
 
-    <!-- Paintroid preset colors -->
+    <!-- Paintroid preset colors (classic Pocket Paint arrangement) -->
     <integer-array name="pocketpaint_color_picker_preset_colors">
+        <item>0xFF0074CD</item>
+        <item>0xFF00B4F1</item>
+        <item>0xFF078707</item>
+        <item>0xFF8EC430</item>
+        <item>0xFF61290E</item>
+        <item>0xFFA84818</item>
+        <item>0xFFDEAE66</item>
+        <item>0xFFF0E4A8</item>
+        <item>0xFF7D1379</item>
+        <item>0xFFA743D1</item>
+        <item>0xFFCA0186</item>
+        <item>0xFFEB90D3</item>
+        <item>0xFFC5060E</item>
+        <item>0xFFEB4618</item>
+        <item>0xFFF9921C</item>
+        <item>0xFFF3D605</item>
         <item>0xFF000000</item>
+        <item>0xFFA3A3A3</item>
         <item>0xFFFFFFFF</item>
-        <item>0xFFD32F2F</item>
-        <item>0xFFF57C00</item>
-        <item>0xFFFFB74D</item>
-        <item>0xFF388E3C</item>
-        <item>0xFF81C784</item>
-        <item>0xFF1976D2</item>
-        <item>0xFF64B5F6</item>
-        <item>0xFF7B1FA2</item>
-        <item>0xFFFFC107</item>
-        <item>0xFF795548</item>
-        <item>0xFF9E9E9E</item>
-        <item>0xFF607D8B</item>
-        <item>0xFFFF5722</item>
-        <item>0xFFE91E63</item>
-        <item>0xFF4CAF50</item>
-        <item>0xFF03A9F4</item>
-        <item>0xFF009688</item>
-        <item>0xFFFF9800</item>
+        <item>0x00000000</item>
     </integer-array>
 
     <!-- Color picker selection -->

@@ -44,6 +44,7 @@ public final class PlaySceneDialog extends AlertDialog {
 		private int checkedIndex = 0;
 		private final Scene defaultScene;
 		private final Scene currentScene;
+		private final boolean currentIsGlobal;
 		private final ProjectManager projectManager;
 
 		public Builder(@NonNull Context context) {
@@ -52,6 +53,21 @@ public final class PlaySceneDialog extends AlertDialog {
 			projectManager = ProjectManager.getInstance();
 			currentScene = projectManager.getCurrentlyEditedScene();
 			defaultScene = projectManager.getCurrentProject().getDefaultScene();
+			currentIsGlobal = currentScene != null && currentScene.isGlobalScene();
+
+			if (currentIsGlobal) {
+				String[] dialogOptions = new String[] {
+						String.format(context.getString(R.string.play_scene_dialog_default), defaultScene.getName())
+				};
+				setTitle(R.string.play_scene_dialog_title);
+				setSingleChoiceItems(dialogOptions, 0, new OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						checkedIndex = 0;
+					}
+				});
+				return;
+			}
 
 			String[] dialogOptions = new String[] {
 					String.format(context.getString(R.string.play_scene_dialog_default), defaultScene.getName()),
@@ -69,11 +85,12 @@ public final class PlaySceneDialog extends AlertDialog {
 		}
 
 		public void applySceneSelection() {
+			if (currentIsGlobal || checkedIndex == 0) {
+				projectManager.setCurrentlyPlayingScene(defaultScene);
+				projectManager.setStartScene(defaultScene);
+				return;
+			}
 			switch (checkedIndex) {
-				case 0:
-					projectManager.setCurrentlyPlayingScene(defaultScene);
-					projectManager.setStartScene(defaultScene);
-					break;
 				case 1:
 					projectManager.setCurrentlyPlayingScene(currentScene);
 					projectManager.setStartScene(currentScene);

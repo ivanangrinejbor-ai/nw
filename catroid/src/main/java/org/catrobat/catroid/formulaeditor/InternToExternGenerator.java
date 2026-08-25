@@ -624,6 +624,8 @@ public class InternToExternGenerator {
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.FILE_TO_BASE64.name(), R.string.formula_file_to_base64);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.MD5.name(), R.string.formula_md5);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.NOTIFICATION_REPLY.name(), R.string.formula_notification_reply);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.SEED.name(), R.string.formula_seed);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.CLIPBOARD_PASTE.name(), R.string.formula_clipboard_paste);
 	}
 	public InternToExternGenerator(Context context) {
 		this.context = context;

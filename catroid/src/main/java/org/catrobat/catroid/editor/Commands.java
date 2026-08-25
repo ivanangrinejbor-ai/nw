@@ -5,7 +5,54 @@ import com.badlogic.gdx.math.Vector3;
 import org.catrobat.catroid.raptor.GameObject;
 import org.catrobat.catroid.raptor.SceneManager;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 public class Commands {
+
+    static List<String> serializeSubtree(SceneManager sm, GameObject root) {
+        List<String> out = new ArrayList<>();
+        collectSubtree(sm, root, out, new HashSet<>());
+        return out;
+    }
+
+    private static void collectSubtree(SceneManager sm, GameObject go, List<String> out, Set<String> visited) {
+        if (go == null || !visited.add(go.id)) {
+            return;
+        }
+        out.add(sm.getJson().toJson(go));
+        for (String childId : new ArrayList<>(go.childrenIds)) {
+            collectSubtree(sm, sm.findGameObject(childId), out, visited);
+        }
+    }
+
+    private static List<GameObject> restoreSubtreeJson(SceneManager sm, List<String> subtreeJson) {
+        List<GameObject> restored = new ArrayList<>();
+        for (String s : subtreeJson) {
+            restored.add(sm.getJson().fromJson(GameObject.class, s));
+        }
+        for (GameObject go : restored) {
+            sm.getAllGameObjects().put(go.id, go);
+        }
+        for (GameObject go : restored) {
+            if (go.parentId != null) {
+                GameObject parent = sm.findGameObject(go.parentId);
+                if (parent != null && !parent.childrenIds.contains(go.id)) {
+                    parent.childrenIds.add(go.id);
+                }
+            }
+        }
+        return restored;
+    }
+
+    private static void rebuildRestored(SceneManager sm, List<GameObject> restored) {
+        for (GameObject go : restored) {
+            sm.rebuildGameObject(go);
+        }
+        sm.updateWorldTransforms();
+    }
 
     public static class TransformCommand implements UndoManager.EditorCommand {
         private final SceneManager sceneManager;
@@ -46,34 +93,31 @@ public class Commands {
 
     public static class DeleteCommand implements UndoManager.EditorCommand {
         private final SceneManager sceneManager;
-        private final String objectJson;
-        private final String objectId;
+        private final String rootId;
+        private final List<String> subtreeJson;
 
         public DeleteCommand(SceneManager sm, GameObject go) {
             this.sceneManager = sm;
-            this.objectId = go.id;
-            this.objectJson = sm.getJson().toJson(go);
+            this.rootId = go.id;
+            this.subtreeJson = serializeSubtree(sm, go);
         }
 
         @Override
         public void undo() {
-            GameObject go = sceneManager.getJson().fromJson(GameObject.class, objectJson);
-            sceneManager.getAllGameObjects().put(go.id, go);
-
-            if (go.parentId != null) {
-                GameObject parent = sceneManager.findGameObject(go.parentId);
-                if (parent != null && !parent.childrenIds.contains(go.id)) {
-                    parent.childrenIds.add(go.id);
-                }
+            GameObject leftover = sceneManager.findGameObject(rootId);
+            if (leftover != null) {
+                sceneManager.removeGameObject(leftover);
             }
-            sceneManager.rebuildGameObject(go);
-            sceneManager.updateWorldTransforms();
+            List<GameObject> restored = restoreSubtreeJson(sceneManager, subtreeJson);
+            rebuildRestored(sceneManager, restored);
         }
 
         @Override
         public void redo() {
-            GameObject go = sceneManager.findGameObject(objectId);
-            if (go != null) sceneManager.removeGameObject(go);
+            GameObject go = sceneManager.findGameObject(rootId);
+            if (go != null) {
+                sceneManager.removeGameObject(go);
+            }
         }
     }
 
@@ -105,33 +149,59 @@ public class Commands {
 
     public static class AddCommand implements UndoManager.EditorCommand {
         private final SceneManager sceneManager;
-        private final String objectId;
-        private final String objectJson;
+        private final String rootId;
+        private final List<String> subtreeJson;
 
         public AddCommand(SceneManager sm, GameObject go) {
             this.sceneManager = sm;
-            this.objectId = go.id;
-            this.objectJson = sm.getJson().toJson(go);
+            this.rootId = go.id;
+            this.subtreeJson = serializeSubtree(sm, go);
         }
 
         @Override
         public void undo() {
-            GameObject go = sceneManager.findGameObject(objectId);
-            if (go != null) sceneManager.removeGameObject(go);
+            GameObject go = sceneManager.findGameObject(rootId);
+            if (go != null) {
+                sceneManager.removeGameObject(go);
+            }
         }
 
         @Override
         public void redo() {
-            GameObject go = sceneManager.getJson().fromJson(GameObject.class, objectJson);
-            sceneManager.getAllGameObjects().put(go.id, go);
-            if (go.parentId != null) {
-                GameObject parent = sceneManager.findGameObject(go.parentId);
-                if (parent != null && !parent.childrenIds.contains(go.id)) {
-                    parent.childrenIds.add(go.id);
-                }
+            List<GameObject> restored = restoreSubtreeJson(sceneManager, subtreeJson);
+            rebuildRestored(sceneManager, restored);
+        }
+    }
+
+    public static class ReparentCommand implements UndoManager.EditorCommand {
+        private final SceneManager sceneManager;
+        private final String childId;
+        private final String oldParentId;
+        private final String newParentId;
+
+        public ReparentCommand(SceneManager sm, GameObject child, String oldParentId, String newParentId) {
+            this.sceneManager = sm;
+            this.childId = child.id;
+            this.oldParentId = oldParentId;
+            this.newParentId = newParentId;
+        }
+
+        @Override
+        public void undo() {
+            apply(oldParentId);
+        }
+
+        @Override
+        public void redo() {
+            apply(newParentId);
+        }
+
+        private void apply(String parentId) {
+            GameObject child = sceneManager.findGameObject(childId);
+            GameObject parent = parentId == null ? null : sceneManager.findGameObject(parentId);
+            if (child != null && (parentId == null || parent != null)) {
+                sceneManager.setParent(child, parent);
             }
-            sceneManager.rebuildGameObject(go);
-            sceneManager.updateWorldTransforms();
         }
     }
 }

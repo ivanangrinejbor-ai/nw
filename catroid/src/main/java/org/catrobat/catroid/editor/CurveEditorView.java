@@ -55,7 +55,10 @@ public class CurveEditorView extends View {
 
     public void setData(List<ParticleCurvePoint<Float>> points, float min, float max, Runnable onUpdate) {
         this.points = points;
+        this.selectedIndex = -1;
 
+        if (!Float.isFinite(min)) min = 0f;
+        if (!Float.isFinite(max)) max = min + 1f;
         if (min >= max) max = min + 1f;
         this.minVal = min;
         this.maxVal = max;
@@ -65,6 +68,8 @@ public class CurveEditorView extends View {
 
 
     public void setRange(float min, float max) {
+        if (!Float.isFinite(min)) min = 0f;
+        if (!Float.isFinite(max)) max = min + 1f;
         if (min >= max) max = min + 1f;
         this.minVal = min;
         this.maxVal = max;
@@ -124,11 +129,14 @@ public class CurveEditorView extends View {
             case MotionEvent.ACTION_DOWN:
                 getParent().requestDisallowInterceptTouchEvent(true);
                 float minDist = 80f;
+                float bestDist = Float.MAX_VALUE;
                 selectedIndex = -1;
                 for (int i = 0; i < points.size(); i++) {
                     float px = mapX(points.get(i).time);
                     float py = mapY(points.get(i).value);
-                    if (Math.hypot(touchX - px, touchY - py) < minDist) {
+                    float d = (float) Math.hypot(touchX - px, touchY - py);
+                    if (d < minDist && d < bestDist) {
+                        bestDist = d;
                         selectedIndex = i;
                     }
                 }
@@ -137,11 +145,17 @@ public class CurveEditorView extends View {
 
             case MotionEvent.ACTION_MOVE:
                 if (selectedIndex != -1) {
+                    if (selectedIndex >= points.size()) {
+                        selectedIndex = -1;
+                        invalidate();
+                        return true;
+                    }
                     getParent().requestDisallowInterceptTouchEvent(true);
 
 
                     float newTime = touchX / getWidth();
 
+                    if (!Float.isFinite(newTime)) newTime = 0f;
                     newTime = Math.max(0f, Math.min(1f, newTime));
 
 
@@ -150,7 +164,7 @@ public class CurveEditorView extends View {
 
                     float newVal = minVal + (normalizedY * (maxVal - minVal));
 
-
+                    if (!Float.isFinite(newVal)) newVal = minVal;
                     newVal = Math.max(minVal, Math.min(maxVal, newVal));
 
                     points.get(selectedIndex).time = newTime;

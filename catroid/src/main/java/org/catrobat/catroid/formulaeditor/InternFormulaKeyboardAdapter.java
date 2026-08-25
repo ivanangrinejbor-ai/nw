@@ -445,6 +445,10 @@ case R.string.formula_editor_function_state_time:
                 return buildSingleParameterFunction(Functions.MD5, STRING, "text");
             case R.string.formula_notification_reply:
                 return buildSingleParameterFunction(Functions.NOTIFICATION_REPLY, STRING, "my_action_id");
+            case R.string.formula_seed:
+                return buildFunctionWithoutParametersAndBrackets(Functions.SEED);
+            case R.string.formula_clipboard_paste:
+                return buildFunctionWithoutParametersAndBrackets(Functions.CLIPBOARD_PASTE);
             case R.string.formula_device_name:
                 return buildFunctionWithoutParametersAndBrackets(Functions.DEVICE_NAME);
             case R.string.formula_device_manufacturer:

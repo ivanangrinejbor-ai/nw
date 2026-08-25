@@ -1,5 +1,7 @@
 package org.catrobat.catroid.editor;
 
+import com.badlogic.gdx.Gdx;
+
 import java.util.ArrayDeque;
 import java.util.Deque;
 
@@ -18,29 +20,46 @@ public class UndoManager {
         this.activity = activity;
     }
 
-    public void pushCommand(EditorCommand cmd) {
+    public synchronized void pushCommand(EditorCommand cmd) {
         undoStack.push(cmd);
-        if (undoStack.size() > MAX_HISTORY) {
+        while (undoStack.size() > MAX_HISTORY) {
             undoStack.removeLast();
         }
         redoStack.clear();
+        activity.scheduleSceneAutosave();
     }
 
-    public void undo() {
-        if (!undoStack.isEmpty()) {
-            EditorCommand cmd = undoStack.pop();
-            cmd.undo();
-            redoStack.push(cmd);
-            activity.updateHierarchy();
-        }
+    public synchronized void clear() {
+        undoStack.clear();
+        redoStack.clear();
     }
 
-    public void redo() {
-        if (!redoStack.isEmpty()) {
-            EditorCommand cmd = redoStack.pop();
-            cmd.redo();
-            undoStack.push(cmd);
-            activity.updateHierarchy();
+    public synchronized void undo() {
+        EditorCommand cmd = undoStack.poll();
+        if (cmd == null) {
+            return;
         }
+        redoStack.push(cmd);
+        executeOnGlThread(cmd, false);
+    }
+
+    public synchronized void redo() {
+        EditorCommand cmd = redoStack.poll();
+        if (cmd == null) {
+            return;
+        }
+        undoStack.push(cmd);
+        executeOnGlThread(cmd, true);
+    }
+
+    private void executeOnGlThread(EditorCommand cmd, boolean redo) {
+        Gdx.app.postRunnable(() -> {
+            if (redo) {
+                cmd.redo();
+            } else {
+                cmd.undo();
+            }
+            activity.runOnUiThread(activity::updateHierarchy);
+        });
     }
 }

@@ -137,6 +137,8 @@
     <color name="brick_color_black">#323331</color>
     <color name="brick_color_winered">#910D06</color>
     <color name="brick_color_neural">#5771f7</color>
+    <color name="brick_color_slate">#546e7a</color>
+    <color name="brick_color_magenta">#c2185b</color>
     <color name="brick_color_threed">#fccb41</color>
     <color name="brick_color_admob">#4285F4</color>
 

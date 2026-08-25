@@ -1,14 +1,19 @@
 package org.catrobat.catroid.ai.tool
 
 import android.content.Context
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.Dispatchers
 import org.catrobat.catroid.ProjectManager
 import org.catrobat.catroid.ai.context.MemoryManager
+import org.catrobat.catroid.ai.settings.AiPreferences
+import org.catrobat.catroid.apkbuildV3.ApkBuilderV3Config
+import org.catrobat.catroid.apkbuildV3.ApkBuilderV3Engine
+import org.catrobat.catroid.apkbuildV3.AssemblyResult
+import org.catrobat.catroid.apkbuildV3.BuildProgressListener
 import org.catrobat.catroid.common.Constants
 import org.catrobat.catroid.common.FlavoredConstants
 import org.catrobat.catroid.content.Project
@@ -17,6 +22,8 @@ import org.catrobat.catroid.content.Sprite
 import org.catrobat.catroid.content.Script
 import org.catrobat.catroid.content.BrickInfo
 import org.catrobat.catroid.content.bricks.Brick
+import org.catrobat.catroid.io.asynctask.ProjectSaver
+import org.catrobat.catroid.io.ZipArchiver
 import java.io.File
 import java.util.Collections
 import java.util.concurrent.atomic.AtomicInteger
@@ -34,6 +41,7 @@ object ToolCallingEngine {
     private val _toolHistory = MutableStateFlow<List<ToolCallHistory>>(emptyList())
     val toolHistory: StateFlow<List<ToolCallHistory>> = _toolHistory.asStateFlow()
     private val pendingChanges = Collections.synchronizedList(mutableListOf<ProjectChange>())
+    private val approvedToolCalls = Collections.synchronizedSet(mutableSetOf<String>())
     private val toolCallCounter = AtomicInteger(0)
 
     data class ToolCallHistory(
@@ -211,8 +219,15 @@ object ToolCallingEngine {
             _toolHistory.update { it + ToolCallHistory(toolCall, result, System.currentTimeMillis()) }
             return "ERROR: Tool '${toolCall.name}' not found. Available tools: ${registeredTools.keys.joinToString(", ")}"
         }
+        if (requiresConfirmation(toolCall.name) && !consumeToolApproval(toolCall.id)) {
+            val result = ToolResult(false, "Denied: this operation requires user confirmation", toolCall.id)
+            _toolHistory.update { it + ToolCallHistory(toolCall, result, System.currentTimeMillis()) }
+            return "DENIED: '${toolCall.name}' requires user confirmation."
+        }
         return try {
-            val result = tool.execute(toolCall.args)
+            val result = withContext(Dispatchers.Main.immediate) {
+                tool.execute(toolCall.args)
+            }
             _toolHistory.update { it + ToolCallHistory(toolCall, result, System.currentTimeMillis()) }
             result.data
         } catch (e: Exception) {
@@ -221,6 +236,15 @@ object ToolCallingEngine {
             "ERROR: ${e.message}"
         }
     }
+
+    fun requiresConfirmation(toolName: String): Boolean =
+        AiPreferences.isConfirmEnabled() && toolName in confirmationTools
+
+    fun approveToolCall(toolCallId: String) {
+        approvedToolCalls.add(toolCallId)
+    }
+
+    private fun consumeToolApproval(toolCallId: String): Boolean = approvedToolCalls.remove(toolCallId)
 
     suspend fun executeToolCalls(
         toolCalls: List<ToolCall>,
@@ -254,6 +278,12 @@ object ToolCallingEngine {
     fun clearPendingChanges() {
         synchronized(pendingChanges) { pendingChanges.clear() }
     }
+
+    private val confirmationTools = setOf(
+        "writeFile", "openProject", "remember", "forget", "localizeSprites",
+        "generateGameTemplate", "generateAiTexture", "createProject", "buildApk",
+        "exportProject", "export3dModel", "importNeoScriptModule"
+    )
 
     fun addChange(change: ProjectChange) {
         synchronized(pendingChanges) { pendingChanges.add(change) }
@@ -1159,7 +1189,7 @@ object ToolCallingEngine {
 
     class GenerateGameTemplateTool : Tool {
         override val name = "generateGameTemplate"
-        override val description = "Generates a full working game template (PLATFORMER, FLAPPY_BIRD, SPACE_SHOOTER, MAZE_RUNNER, TOWER_DEFENSE) with player physics, controls, score, and obstacles."
+        override val description = "Creates a starter scene and Player object for a requested game type. It does not generate gameplay logic automatically."
         override val parameters = listOf(
             ToolParameter("templateType", ParameterType.STRING, "Game template type: PLATFORMER, FLAPPY_BIRD, SPACE_SHOOTER, MAZE_RUNNER, TOWER_DEFENSE"),
             ToolParameter("sceneName", ParameterType.STRING, "Target scene name, defaults to current scene")
@@ -1174,13 +1204,13 @@ object ToolCallingEngine {
             val player = Sprite("Player")
             scene.addSprite(player)
 
-            return ToolResult(true, "Generated $templateType game template in scene '$sceneName' with Player sprite and controls.", "")
+            return ToolResult(true, "Created a $templateType starter scene '$sceneName' with a Player sprite. Gameplay logic and controls still need to be added.", "")
         }
     }
 
     class ScanAndFixProjectTool : Tool {
         override val name = "scanAndFixProject"
-        override val description = "Scans the project for logic bugs, un-paused Forever loops, missing variables/sounds, and applies structural fixes."
+        override val description = "Scans the project for logic bugs and reports findings. It does not modify the project."
         override val parameters = listOf<ToolParameter>()
 
         override suspend fun execute(args: Map<String, String>): ToolResult {
@@ -1189,8 +1219,8 @@ object ToolCallingEngine {
             if (bugs.isEmpty()) {
                 return ToolResult(true, "No critical bugs found in project '${project.name}'.", "")
             }
-            val summary = bugs.joinToString("\n") { "Fixed: ${it.description} at ${it.location}" }
-            return ToolResult(true, "Found and fixed ${bugs.size} issue(s):\n$summary", "")
+            val summary = bugs.joinToString("\n") { "- ${it.description} at ${it.location}" }
+            return ToolResult(true, "Found ${bugs.size} issue(s); no changes were applied:\n$summary", "")
         }
     }
 
@@ -1206,7 +1236,7 @@ object ToolCallingEngine {
         override suspend fun execute(args: Map<String, String>): ToolResult {
             val moduleName = args["moduleName"] ?: return ToolResult(false, "Missing moduleName", "")
             val targetSprite = args["targetSprite"] ?: return ToolResult(false, "Missing targetSprite", "")
-            return ToolResult(true, "Imported NeoScript module '$moduleName' into sprite '$targetSprite'.", "")
+            return ToolResult(false, "Built-in module '$moduleName' is not available as a .neoscript file. Import requires an explicit module file path.", "")
         }
     }
 
@@ -1281,7 +1311,7 @@ object ToolCallingEngine {
             val lookData = org.catrobat.catroid.common.LookData(lookName, imageFile)
             sprite.lookList.add(lookData)
 
-            return ToolResult(true, "Generated AI texture for '$prompt' and saved directly to sprite '$targetSpriteName' as look '$lookName' in background.", "")
+            return ToolResult(true, "Created a local placeholder texture for '$prompt' and saved it to sprite '$targetSpriteName' as look '$lookName'. No AI image generation was used.", "")
         }
     }
 
@@ -1309,8 +1339,9 @@ object ToolCallingEngine {
             ProjectManager.getInstance().currentProject = project
             project.getDefaultScene()?.let { ProjectManager.getInstance().setCurrentlyEditedScene(it) }
             org.catrobat.catroid.ai.context.ContextManager.invalidateProjectCache()
+            ProjectSaver(project, ctx).saveProjectAsync()
 
-            return ToolResult(true, "Created new project '$name' from scratch. It is now the current active project.", "")
+            return ToolResult(true, "Created and saved new project '$name' from scratch. It is now the current active project.", "")
         }
     }
 
@@ -1325,12 +1356,19 @@ object ToolCallingEngine {
             val project = ProjectManager.getInstance().currentProject ?: return ToolResult(false, "No active project", "")
             val appName = args["appName"]?.takeIf { it.isNotBlank() } ?: project.name
 
+            val projectDir = project.directory ?: return ToolResult(false, "Project has no directory", "")
             val detectedPerms = org.catrobat.catroid.apkbuildV3.ProjectScanner.detectPermissions(project)
             val outDir = File(android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DOWNLOADS), "NeoCatroidApks")
             outDir.mkdirs()
             val apkFile = File(outDir, "${appName}.apk")
-
-            return ToolResult(true, "Initiated APK build for '$appName'. Output path: ${apkFile.absolutePath}. Permissions detected: ${detectedPerms.joinToString()}", "")
+            val config = ApkBuilderV3Config(appName = appName, permissions = detectedPerms)
+            return when (val result = ApkBuilderV3Engine.build(context ?: return ToolResult(false, "No context available", ""), projectDir, config, BuildProgressListener { _, _, _ -> })) {
+                is AssemblyResult.Success -> {
+                    result.apkFile.copyTo(apkFile, overwrite = true)
+                    ToolResult(true, "Built APK for '$appName' at ${apkFile.absolutePath}. Permissions: ${detectedPerms.joinToString()}", "")
+                }
+                is AssemblyResult.Failure -> ToolResult(false, "APK build failed: ${result.message}", "")
+            }
         }
     }
 
@@ -1344,6 +1382,9 @@ object ToolCallingEngine {
         override suspend fun execute(args: Map<String, String>): ToolResult {
             val project = ProjectManager.getInstance().currentProject ?: return ToolResult(false, "No active project", "")
             val format = args["format"]?.uppercase() ?: "ZIP"
+            if (format !in setOf("ZIP", "CATROBAT")) {
+                return ToolResult(false, "Export format '$format' is not implemented by the agent. Supported formats: ZIP, CATROBAT.", "")
+            }
             val outDir = File(android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DOWNLOADS), "NeoCatroidExports")
             outDir.mkdirs()
 
@@ -1356,7 +1397,11 @@ object ToolCallingEngine {
                 else -> "zip"
             }
             val outFile = File(outDir, "${project.name}.$ext")
-
+            val projectDir = project.directory ?: return ToolResult(false, "Project has no directory", "")
+            withContext(Dispatchers.IO) {
+                if (outFile.exists()) outFile.delete()
+                ZipArchiver().zip(outFile, projectDir.listFiles() ?: emptyArray())
+            }
             return ToolResult(true, "Exported project '${project.name}' as $format bundle to ${outFile.absolutePath}.", "")
         }
     }
@@ -1374,9 +1419,7 @@ object ToolCallingEngine {
             val name = args["outputName"] ?: objectId
             val outDir = File(android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DOWNLOADS), "NeoCatroidExports")
             outDir.mkdirs()
-            val outFile = File(outDir, "${name}.glb")
-
-            return ToolResult(true, "Exported 3D object '$objectId' as GLB model to ${outFile.absolutePath}.", "")
+            return ToolResult(false, "3D object export is not implemented by the agent yet; no file was created for '$objectId'.", "")
         }
     }
 }

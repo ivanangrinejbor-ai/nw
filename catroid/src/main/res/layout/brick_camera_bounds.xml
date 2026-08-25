@@ -1,0 +1,47 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal">
+
+    <CheckBox
+        android:id="@+id/brick_checkbox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:visibility="gone" />
+
+    <org.catrobat.catroid.ui.BrickLayout
+        android:id="@+id/brick_camera_bounds_layout"
+        style="@style/BrickContainer.Motion.Big">
+
+        <include layout="@layout/icon_brick_category_motion" />
+
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_camera_bounds">
+        </TextView>
+
+        <TextView
+            android:id="@+id/brick_camera_bounds_min_x_edit"
+            style="@style/BrickEditText">
+        </TextView>
+
+        <TextView
+            android:id="@+id/brick_camera_bounds_min_y_edit"
+            style="@style/BrickEditText">
+        </TextView>
+
+        <TextView
+            android:id="@+id/brick_camera_bounds_max_x_edit"
+            style="@style/BrickEditText">
+        </TextView>
+
+        <TextView
+            android:id="@+id/brick_camera_bounds_max_y_edit"
+            style="@style/BrickEditText">
+        </TextView>
+    </org.catrobat.catroid.ui.BrickLayout>
+
+</LinearLayout>

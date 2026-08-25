@@ -42,6 +42,7 @@ import org.catrobat.catroid.common.NfcTagData;
 import org.catrobat.catroid.common.SoundInfo;
 import org.catrobat.catroid.content.actions.ScriptSequenceAction;
 import org.catrobat.catroid.content.bricks.Brick;
+import org.catrobat.catroid.content.bricks.WhenIntervalBrick;
 import org.catrobat.catroid.content.bricks.FormulaBrick;
 import org.catrobat.catroid.content.bricks.IfLogicBeginBrick;
 import org.catrobat.catroid.content.bricks.IfThenLogicBeginBrick;
@@ -114,6 +115,7 @@ public class Sprite implements Nameable, Serializable {
 	private transient Multimap<EventId, ScriptSequenceAction> idToEventThreadMap = LinkedHashMultimap.create();
 	private transient Set<ConditionScriptTrigger> conditionScriptTriggers = new HashSet<>();
 	private transient Set<TouchingSpriteTrigger> touchingSpriteTriggers = new HashSet<>();
+	private transient Set<IntervalScriptTrigger> intervalScriptTriggers = new HashSet<>();
 	private transient Set<FirebaseChangedTrigger> firebaseChangedTriggers = new HashSet<>();
 	private transient Set<FirebaseChildChangedTrigger> firebaseChildChangedTriggers = new HashSet<>();
 	private transient Set<FirestoreChangedTrigger> firestoreChangedTriggers = new HashSet<>();
@@ -498,6 +500,7 @@ public class Sprite implements Nameable, Serializable {
 		idToEventThreadMap = null;
 		conditionScriptTriggers = null;
 		touchingSpriteTriggers = null;
+		intervalScriptTriggers = null;
 		firebaseChangedTriggers = null;
 		penConfiguration = null;
 		plot = null;
@@ -555,6 +558,28 @@ public class Sprite implements Nameable, Serializable {
 		}
 		for (TouchingSpriteTrigger touchingSpriteTrigger : touchingSpriteTriggers) {
 			touchingSpriteTrigger.evaluateAndTriggerActions(this);
+		}
+	}
+
+	public void initIntervalScriptTriggers() {
+		if (intervalScriptTriggers == null) {
+			intervalScriptTriggers = new HashSet<>();
+		}
+		intervalScriptTriggers.clear();
+		for (Script script : scriptList) {
+			if (script instanceof WhenIntervalScript) {
+				WhenIntervalBrick intervalBrick = (WhenIntervalBrick) script.getScriptBrick();
+				intervalScriptTriggers.add(new IntervalScriptTrigger(intervalBrick.getSecondsFormula()));
+			}
+		}
+	}
+
+	void evaluateIntervalScriptTriggers() {
+		if (intervalScriptTriggers == null) {
+			return;
+		}
+		for (IntervalScriptTrigger intervalScriptTrigger : intervalScriptTriggers) {
+			intervalScriptTrigger.evaluateAndTriggerActions(this);
 		}
 	}
 
