@@ -66,6 +66,12 @@ object PromptBuilder {
             appendLine("After each tool call you will receive a 'Tool result:' block. Use it, then either call more tools or give your final answer.")
             appendLine("When you are done and need no more tools, reply with a normal message (no tool_call tags).")
             appendLine()
+            appendLine("## Tool Call Self-Check (MANDATORY before every call)")
+            appendLine("1. Verify every REQUIRED argument is present and non-empty. Missing required argument = guaranteed ERROR.")
+            appendLine("2. Verify argument VALUES exist: scene/object/variable names must come from listScenes/listObjects/projectInventory output, never invented.")
+            appendLine("3. NEVER repeat an identical failed call — it returns the same error. Change the arguments or finish.")
+            appendLine("4. Tool calls are INVISIBLE to the user. Everything the user must know goes into your final normal reply.")
+            appendLine()
 
             val toolsDesc = ToolCallingEngine.getToolsDescription()
             if (toolsDesc.isNotBlank()) {

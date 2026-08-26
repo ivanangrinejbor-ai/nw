@@ -293,7 +293,14 @@ object CloudModelRuntime {
             )
         }
         if (systemPrompt.isNotBlank()) {
-            jsonBody.put("system", systemPrompt)
+            jsonBody.put(
+                "system", JSONArray().put(
+                    JSONObject()
+                        .put("type", "text")
+                        .put("text", systemPrompt)
+                        .put("cache_control", JSONObject().put("type", "ephemeral"))
+                )
+            )
         }
 
         val mediaType = "application/json; charset=utf-8".toMediaType()
@@ -313,6 +320,232 @@ object CloudModelRuntime {
             }
             return parseClaudeResult(bodyStr)
         }
+    }
+
+    suspend fun generateStreaming(
+        systemPrompt: String,
+        userContent: String,
+        maxTokens: Int = 2048,
+        onDelta: suspend (String) -> Unit
+    ): CloudGeneration {
+        val provider = getActiveProvider()
+        val apiKey = AiPreferences.getApiKeyForProvider(provider.id)
+        if (apiKey.isNullOrBlank()) {
+            return CloudGeneration("Error: No API key configured for provider ${provider.displayName}.")
+        }
+        val model = AiPreferences.getCloudModelId()
+        val resolvedModel = model.ifBlank { provider.defaultModels.firstOrNull() ?: "" }
+        return try {
+            withContext(Dispatchers.IO) {
+                when (provider) {
+                    AiProvider.GEMINI -> streamGemini(apiKey, resolvedModel, systemPrompt, userContent, maxTokens, onDelta)
+                    AiProvider.OPENAI, AiProvider.DEEPSEEK, AiProvider.OPENROUTER, AiProvider.OPENCODE ->
+                        streamOpenAiFormat(provider, apiKey, resolvedModel, systemPrompt, userContent, maxTokens, onDelta)
+                    AiProvider.CLAUDE -> streamClaude(apiKey, resolvedModel, systemPrompt, userContent, maxTokens, onDelta)
+                }
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Streaming failed, falling back to blocking call", e)
+            generateWithMeta(provider, model, systemPrompt, userContent, maxTokens)
+        }
+    }
+
+    private fun sseLines(body: okhttp3.ResponseBody, onEvent: (String) -> Unit) {
+        val source = body.source()
+        while (true) {
+            val line = source.readUtf8Line() ?: break
+            if (line.startsWith("data:")) {
+                val payload = line.removePrefix("data:").trim()
+                if (payload.isNotEmpty() && payload != "[DONE]") onEvent(payload)
+            }
+        }
+    }
+
+    private fun streamOpenAiFormat(
+        provider: AiProvider,
+        apiKey: String,
+        model: String,
+        systemPrompt: String,
+        userContent: String,
+        maxTokens: Int,
+        onDelta: suspend (String) -> Unit
+    ): CloudGeneration {
+        val url = when (provider) {
+            AiProvider.OPENAI -> "https://api.openai.com/v1/chat/completions"
+            AiProvider.DEEPSEEK -> "https://api.deepseek.com/v1/chat/completions"
+            AiProvider.OPENROUTER -> "https://openrouter.ai/api/v1/chat/completions"
+            else -> provider.baseUrl + "chat/completions"
+        }
+        val jsonBody = JSONObject()
+            .put("model", model)
+            .put("stream", true)
+            .put(
+                "messages", JSONArray()
+                    .put(JSONObject().put("role", "system").put("content", systemPrompt))
+                    .put(JSONObject().put("role", "user").put("content", userContent))
+            )
+            .put("max_tokens", maxTokens)
+
+        val request = Request.Builder()
+            .url(url)
+            .post(jsonBody.toString().toRequestBody("application/json; charset=utf-8".toMediaType()))
+            .header("Authorization", "Bearer $apiKey")
+            .build()
+
+        val content = StringBuilder()
+        val reasoning = StringBuilder()
+        okHttpClient.newCall(request).execute().use { response ->
+            if (!response.isSuccessful) {
+                throw java.io.IOException("${provider.displayName} ${response.code}: ${response.body?.string()?.take(300)}")
+            }
+            val body = response.body ?: throw java.io.IOException("Empty body")
+            sseLines(body) { payload ->
+                val obj = JSONObject(payload)
+                val delta = obj.optJSONArray("choices")?.optJSONObject(0)?.optJSONObject("delta") ?: return@sseLines
+                delta.optString("reasoning_content", "").takeIf { it.isNotEmpty() }?.let { reasoning.append(it) }
+                delta.optString("reasoning", "").takeIf { it.isNotEmpty() }?.let { reasoning.append(it) }
+                val piece = delta.optString("content", "")
+                if (piece.isNotEmpty()) {
+                    content.append(piece)
+                    kotlinx.coroutines.runBlocking { onDelta(piece) }
+                }
+            }
+        }
+        return CloudGeneration(content.toString(), reasoning.toString().takeIf { it.isNotBlank() })
+    }
+
+    private fun streamGemini(
+        apiKey: String,
+        model: String,
+        systemPrompt: String,
+        userContent: String,
+        maxTokens: Int,
+        onDelta: suspend (String) -> Unit
+    ): CloudGeneration {
+        val normalizedModel = if (model.startsWith("models/")) model else "models/$model"
+        val url = "https://generativelanguage.googleapis.com/v1beta/$normalizedModel:streamGenerateContent?alt=sse"
+
+        val partObj = JSONObject().put("text", userContent)
+        val contentObj = JSONObject().put("parts", JSONArray().put(partObj)).put("role", "user")
+        val generationConfig = JSONObject().put("maxOutputTokens", maxTokens)
+        geminiThinkingBudget(reasoningLevel())?.let { budget ->
+            generationConfig.put("thinkingConfig", JSONObject().put("thinkingBudget", budget))
+        }
+        val jsonBody = JSONObject()
+            .put("contents", JSONArray().put(contentObj))
+            .put("generationConfig", generationConfig)
+        if (systemPrompt.isNotBlank()) {
+            jsonBody.put("systemInstruction", JSONObject().put("parts", JSONArray().put(JSONObject().put("text", systemPrompt))))
+        }
+
+        val request = Request.Builder()
+            .url(url)
+            .post(jsonBody.toString().toRequestBody("application/json; charset=utf-8".toMediaType()))
+            .header("x-goog-api-key", apiKey)
+            .build()
+
+        val content = StringBuilder()
+        val thoughts = StringBuilder()
+        okHttpClient.newCall(request).execute().use { response ->
+            if (!response.isSuccessful) {
+                throw java.io.IOException("Gemini ${response.code}: ${response.body?.string()?.take(300)}")
+            }
+            val body = response.body ?: throw java.io.IOException("Empty body")
+            sseLines(body) { payload ->
+                val candidates = JSONObject(payload).optJSONArray("candidates") ?: return@sseLines
+                val parts = candidates.optJSONObject(0)?.optJSONObject("content")?.optJSONArray("parts") ?: return@sseLines
+                for (i in 0 until parts.length()) {
+                    val part = parts.getJSONObject(i)
+                    val text = part.optString("text", "")
+                    if (text.isEmpty()) continue
+                    if (part.optBoolean("thought", false)) {
+                        thoughts.append(text)
+                    } else {
+                        content.append(text)
+                        kotlinx.coroutines.runBlocking { onDelta(text) }
+                    }
+                }
+            }
+        }
+        return CloudGeneration(content.toString(), thoughts.toString().takeIf { it.isNotBlank() })
+    }
+
+    private fun streamClaude(
+        apiKey: String,
+        model: String,
+        systemPrompt: String,
+        userContent: String,
+        maxTokens: Int,
+        onDelta: suspend (String) -> Unit
+    ): CloudGeneration {
+        val url = "https://api.anthropic.com/v1/messages"
+
+        val msgObj = JSONObject().put("role", "user").put("content", userContent)
+        val jsonBody = JSONObject()
+            .put("model", model)
+            .put("stream", true)
+            .put("messages", JSONArray().put(msgObj))
+            .put("max_tokens", maxTokens)
+
+        val level = reasoningLevel()
+        if (level == AiPreferences.REASONING_LOW || level == AiPreferences.REASONING_MEDIUM || level == AiPreferences.REASONING_HIGH) {
+            val budget = when (level) {
+                AiPreferences.REASONING_LOW -> 2048
+                AiPreferences.REASONING_MEDIUM -> 8192
+                else -> 16384
+            }
+            jsonBody.put("max_tokens", maxTokens + budget)
+            jsonBody.put("thinking", JSONObject().put("type", "enabled").put("budget_tokens", budget))
+        }
+        if (systemPrompt.isNotBlank()) {
+            jsonBody.put(
+                "system", JSONArray().put(
+                    JSONObject()
+                        .put("type", "text")
+                        .put("text", systemPrompt)
+                        .put("cache_control", JSONObject().put("type", "ephemeral"))
+                )
+            )
+        }
+
+        val request = Request.Builder()
+            .url(url)
+            .post(jsonBody.toString().toRequestBody("application/json; charset=utf-8".toMediaType()))
+            .header("x-api-key", apiKey)
+            .header("anthropic-version", "2023-06-01")
+            .build()
+
+        val content = StringBuilder()
+        val thinking = StringBuilder()
+        okHttpClient.newCall(request).execute().use { response ->
+            if (!response.isSuccessful) {
+                throw java.io.IOException("Claude ${response.code}: ${response.body?.string()?.take(300)}")
+            }
+            val body = response.body ?: throw java.io.IOException("Empty body")
+            var currentBlockType = "text"
+            sseLines(body) { payload ->
+                val obj = JSONObject(payload)
+                when (obj.optString("type")) {
+                    "content_block_start" -> {
+                        currentBlockType = obj.optJSONObject("content_block")?.optString("type", "text") ?: "text"
+                    }
+                    "content_block_delta" -> {
+                        val delta = obj.optJSONObject("delta") ?: return@sseLines
+                        when (delta.optString("type")) {
+                            "thinking_delta" -> thinking.append(delta.optString("thinking", ""))
+                            "text_delta" -> {
+                                val piece = delta.optString("text", "")
+                                if (piece.isNotEmpty() && currentBlockType == "text") {
+                                    content.append(piece)
+                                    kotlinx.coroutines.runBlocking { onDelta(piece) }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return CloudGeneration(content.toString(), thinking.toString().takeIf { it.isNotBlank() })
     }
 
     private fun parseGeminiResult(jsonStr: String): CloudGeneration {

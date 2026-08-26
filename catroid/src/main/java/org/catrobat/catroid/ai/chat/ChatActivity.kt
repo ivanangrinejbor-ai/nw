@@ -114,6 +114,16 @@ class ChatActivity : AppCompatActivity() {
                 if (isThinking) scrollToBottom()
             }
         }
+
+        lifecycleScope.launch {
+            agent.partialResponse.collectLatest { partial ->
+                val state = agent.state.value
+                if (state == AiAgentState.RESPONDING && partial.isNotBlank()) {
+                    adapter.setThinking(true, partial.takeLast(2000), agent.reasoning.value.takeLast(4000))
+                    scrollToBottom()
+                }
+            }
+        }
     }
 
     private fun scrollToBottom() {

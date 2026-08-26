@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal">
+
+    <CheckBox
+        android:id="@+id/brick_checkbox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:visibility="gone" />
+
+    <org.catrobat.catroid.ui.BrickLayout
+        android:id="@+id/brick_send_tcp_clients_layout"
+        style="@style/BrickContainer.Internet.Big">
+
+        <include layout="@layout/icon_brick_category_internet" />
+
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_send_to_tcp_clients" />
+
+        <TextView
+            android:id="@+id/brick_send_tcp_clients_edit"
+            style="@style/BrickEditText"
+            app:layout_newLine="true" />
+
+        <TextView
+            android:id="@+id/brick_send_tcp_clients_edit2"
+            style="@style/BrickEditText"
+            android:visibility="gone"
+            app:layout_newLine="true" />
+
+        <TextView
+            android:id="@+id/brick_send_tcp_clients_edit3"
+            style="@style/BrickEditText"
+            android:visibility="gone"
+            app:layout_newLine="true" />
+
+        <TextView
+            android:id="@+id/brick_send_tcp_clients_edit4"
+            style="@style/BrickEditText"
+            android:visibility="gone"
+            app:layout_newLine="true" />
+
+        <TextView
+            android:id="@+id/brick_send_tcp_clients_add"
+            style="@style/BrickText.SingleLine"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/bg_else_if_btn"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            android:paddingTop="3dp"
+            android:paddingBottom="3dp"
+            android:text="+"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:clickable="true"
+            android:focusable="true"
+            app:layout_newLine="true" />
+
+        <Spinner
+            android:id="@+id/brick_send_tcp_clients_echo_spinner"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:spinnerMode="dropdown" />
+
+    </org.catrobat.catroid.ui.BrickLayout>
+
+</LinearLayout>

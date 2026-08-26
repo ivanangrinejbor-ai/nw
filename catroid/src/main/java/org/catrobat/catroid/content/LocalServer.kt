@@ -28,27 +28,34 @@ class LocalServer private constructor() {
         private var sessionCounter = 0
 
         fun startOrJoin(ip: String?, port: String) {
-            stop()
-            synchronized(recentMessages) {
-                recentMessages.clear()
-            }
-            val session = ++sessionCounter
-            isRunning = true
-            serverJob = coroutineScope.launch {
-                try {
-                    if (ip.isNullOrEmpty()) {
+            if (ip.isNullOrEmpty()) {
+                stop()
+                synchronized(recentMessages) {
+                    recentMessages.clear()
+                }
+                val session = ++sessionCounter
+                isRunning = true
+                serverJob = coroutineScope.launch {
+                    try {
                         startServer(port, session)
-                    } else {
+                    } catch (e: Exception) {
+                        if (isRunning) {
+                            Log.e("LocalServer", "Ошибка: ${e.message}", e)
+                        }
+                    } finally {
+                        if (session == sessionCounter) {
+                            stop()
+                        }
+                    }
+                }
+            } else {
+                isRunning = true
+                val session = sessionCounter
+                coroutineScope.launch {
+                    try {
                         connectToServer(ip, port, session)
-                    }
-                } catch (e: Exception) {
-                    if (isRunning) {
-                        ErrorLog.log(e.message ?: "Unknown socket error")
-                        Log.e("LocalServer", "Ошибка: ${e.message}", e)
-                    }
-                } finally {
-                    if (session == sessionCounter) {
-                        stop()
+                    } catch (e: Exception) {
+                        Log.e("LocalServer", "Подключение не удалось: ${e.message}")
                     }
                 }
             }
@@ -158,13 +165,38 @@ class LocalServer private constructor() {
                             clearRecentMessages()
                             continue
                         }
+                        val isBroadcastEcho = message.startsWith("ALL_ECHO:")
+                        val isBroadcast = isBroadcastEcho || message.startsWith("ALL:")
+                        val cleanMessage = when {
+                            isBroadcastEcho -> message.removePrefix("ALL_ECHO:")
+                            isBroadcast -> message.removePrefix("ALL:")
+                            else -> message
+                        }
                         synchronized(recentMessages) {
-                            recentMessages.addLast(message)
+                            recentMessages.addLast(cleanMessage)
                             while (recentMessages.size > 50) {
                                 recentMessages.removeFirst()
                             }
                         }
-                        Log.d("LocalServer", "Получено: $message")
+                        Log.d("LocalServer", "Получено: $cleanMessage")
+                        if (isBroadcast && serverSocket != null) {
+                            val data = (cleanMessage + "\n").toByteArray(Charsets.UTF_8)
+                            val outs: List<OutputStream>
+                            val senderIndex: Int
+                            synchronized(clients) {
+                                outs = outputStreams.toList()
+                                senderIndex = clients.indexOf(socket)
+                            }
+                            for (i in outs.indices) {
+                                if (!isBroadcastEcho && i == senderIndex) continue
+                                try {
+                                    outs[i].write(data)
+                                    outs[i].flush()
+                                } catch (e: Exception) {
+                                    Log.e("LocalServer", "Ошибка ретрансляции: ${e.message}")
+                                }
+                            }
+                        }
                     }
                 }
             } catch (e: Exception) {
@@ -181,6 +213,17 @@ class LocalServer private constructor() {
         }
 
         fun sendAll(values: List<String>) {
+            if (values.any { it.startsWith("ALL_ECHO:") } && serverSocket != null) {
+                synchronized(recentMessages) {
+                    for (v in values) {
+                        if (v.startsWith("ALL_ECHO:")) {
+                            val clean = v.removePrefix("ALL_ECHO:")
+                            recentMessages.addLast(clean)
+                            while (recentMessages.size > 50) recentMessages.removeFirst()
+                        }
+                    }
+                }
+            }
             val job = coroutineScope.launch {
                 val deadline = System.currentTimeMillis() + 2000
                 val pending = values.toMutableList()

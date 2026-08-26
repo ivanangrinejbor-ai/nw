@@ -225,12 +225,30 @@ object ToolCallingEngine {
             _toolHistory.update { it + ToolCallHistory(toolCall, result, System.currentTimeMillis()) }
             return "DENIED: '${toolCall.name}' requires user confirmation."
         }
+        val missingRequired = tool.parameters.filter { it.required && toolCall.args[it.name].isNullOrBlank() }
+        if (missingRequired.isNotEmpty()) {
+            val signature = tool.parameters.joinToString(", ") { p ->
+                "<${p.name}>${if (p.required) "" else "?"}"
+            }
+            val missingNames = missingRequired.joinToString(", ") { "<${it.name}>" }
+            val message = "ERROR: '${toolCall.name}' failed — missing required argument(s): $missingNames. " +
+                "Full signature: ${toolCall.name}($signature). " +
+                "Get valid values first via listScenes / listObjects / projectInventory. " +
+                "Do NOT repeat this exact call with the same arguments."
+            val result = ToolResult(false, message, toolCall.id)
+            _toolHistory.update { it + ToolCallHistory(toolCall, result, System.currentTimeMillis()) }
+            return message
+        }
         return try {
             val result = withContext(Dispatchers.Main.immediate) {
                 tool.execute(toolCall.args)
             }
             _toolHistory.update { it + ToolCallHistory(toolCall, result, System.currentTimeMillis()) }
-            result.data
+            if (result.success) {
+                result.data
+            } else {
+                "ERROR: ${result.data}"
+            }
         } catch (e: Exception) {
             val result = ToolResult(false, "Error: ${e.message}", toolCall.id)
             _toolHistory.update { it + ToolCallHistory(toolCall, result, System.currentTimeMillis()) }

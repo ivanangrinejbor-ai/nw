@@ -355,6 +355,8 @@ public final class BrickInfo {
         add(ConnectServerBrick.class, "Подключается к локальному серверу (только в вашей Wi-Fi точке)");
         add(ListenServerBrick.class, "Постоянно слушает сообщения сервера и сохраняет значения в переменную");
         add(SendServerBrick.class, "Отправляет значение на локальный сервер ВАЖНО: оно так же придет и вам");
+        add(SendToTcpServerBrick.class, "Отправляет одно или несколько значений на TCP сервер");
+        add(SendToTcpClientsBrick.class, "Отправляет одно или несколько значений всем подключенным TCP клиентам (только для хоста)");
         add(StopServerBrick.class, "Останавливает локальный сервер ВАЖНО: только для хоста");
         add(WriteBaseBrick.class, "Записывает значение в FireBase ВАЖНО: если айди базы неправильный - может вызывать фатальную ошибку");
         add(ReadBaseBrick.class, "Читает значение из FireBase ВАЖНО: если айди базы неправильный - может вызывать фатальную ошибку");
@@ -1365,6 +1367,8 @@ public final class BrickInfo {
         addEn(ConnectServerBrick.class, "Connects to a local server (only within your Wi-Fi hotspot)");
         addEn(ListenServerBrick.class, "Constantly listens to server messages and saves values into a variable");
         addEn(SendServerBrick.class, "Sends a value to the local server IMPORTANT: it will also be sent to you");
+        addEn(SendToTcpServerBrick.class, "Sends one or several values to the TCP server");
+        addEn(SendToTcpClientsBrick.class, "Sends one or several values to all connected TCP clients (host only)");
         addEn(StopServerBrick.class, "Stops the local server IMPORTANT: host only");
         addEn(WriteBaseBrick.class, "Writes a value to Firebase IMPORTANT: if the database ID is incorrect, may cause a fatal error");
         addEn(ReadBaseBrick.class, "Reads a value from Firebase IMPORTANT: if the database ID is incorrect, may cause a fatal error");

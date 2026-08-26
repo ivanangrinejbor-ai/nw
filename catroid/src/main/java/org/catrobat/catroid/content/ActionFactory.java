@@ -3118,6 +3118,26 @@ public class ActionFactory extends Actions {
 		return action;
 	}
 
+	public Action createSendToTcpClientsAction(Sprite sprite, SequenceAction sequence,
+											  List<Formula> values) {
+		SendToTcpClientsAction action = action(SendToTcpClientsAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setValues(values);
+		action.setEchoMode(0);
+		return action;
+	}
+
+	public Action createSendToTcpClientsAction(Sprite sprite, SequenceAction sequence,
+											  List<Formula> values, int echoMode) {
+		SendToTcpClientsAction action = action(SendToTcpClientsAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setValues(values);
+		action.setEchoMode(echoMode);
+		return action;
+	}
+
 	public Action createListenTcpServerAction(Sprite sprite, SequenceAction sequence,
 											  List<UserVariable> variables) {
 		ListenTcpServerAction action = action(ListenTcpServerAction.class);

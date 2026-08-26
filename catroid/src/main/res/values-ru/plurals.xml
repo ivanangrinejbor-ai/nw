@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="second_plural">
+        <item quantity="one">секунда</item>
+        <item quantity="few">секунды</item>
+        <item quantity="many">секунд</item>
+        <item quantity="other">секунды</item>
+    </plurals>
+</resources>

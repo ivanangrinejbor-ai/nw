@@ -2327,6 +2327,9 @@
     <string formatted="false" name="brick_set_tcp_client_limit">Лимит клиентов на TCP сервере</string>
     <string formatted="false" name="brick_set_tcp_timeout">Таймаут TCP сервера (секунды)</string>
     <string formatted="false" name="brick_send_to_tcp_server">Отправить на TCP сервер</string>
+    <string formatted="false" name="brick_send_to_tcp_clients">Отправить TCP клиентам</string>
+    <string formatted="false" name="brick_send_to_tcp_clients_echo_no">без эха себе</string>
+    <string formatted="false" name="brick_send_to_tcp_clients_echo_yes">с эхом себе</string>
     <string formatted="false" name="brick_listen_tcp_server">Слушать TCP сервер и сохранить в</string>
     <string formatted="false" name="formula_external_ip">Внешний_IP</string>
     <string formatted="false" name="brick_screenshot">Сделать скриншот и использовать как образ</string>

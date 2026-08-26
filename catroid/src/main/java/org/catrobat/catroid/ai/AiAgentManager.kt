@@ -59,6 +59,9 @@ class AiAgentManager private constructor() {
     private val _reasoning = MutableStateFlow("")
     val reasoning: StateFlow<String> = _reasoning.asStateFlow()
 
+    private val _partialResponse = MutableStateFlow("")
+    val partialResponse: StateFlow<String> = _partialResponse.asStateFlow()
+
     private val messageTimestampSeq = java.util.concurrent.atomic.AtomicLong(0)
 
     private fun nextTimestamp(): Long =
@@ -188,6 +191,7 @@ class AiAgentManager private constructor() {
                 _state.value = AiAgentState.THINKING
                 _activity.value = "Reading your request…"
                 _reasoning.value = ""
+                _partialResponse.value = ""
 
                 val project = ProjectManager.getInstance().currentProject
                 val analysis = if (project != null && AiPreferences.isAutoReadEnabled()) {
@@ -207,6 +211,8 @@ class AiAgentManager private constructor() {
                 var toolResult: String? = null
                 var malformedStreak = 0
                 var iteration = 0
+                var lastCallSignature: String? = null
+                var identicalFailures = 0
 
                 val maxTokens = AiPreferences.getMaxContext()
 
@@ -251,6 +257,31 @@ class AiAgentManager private constructor() {
                         contextManager.addToolCall(toolCall.name, toolCall.args, result)
                         emitToolFeed(toolCall, result)
                     }
+
+                    val signature = toolCalls.joinToString("|") { call ->
+                        call.name + ":" + call.args.entries.sortedBy { it.key }.joinToString(",") { "${it.key}=${it.value}" }
+                    }
+                    val allFailed = executionResults.all { (_, result) ->
+                        result.startsWith("ERROR") || result.startsWith("DENIED")
+                    }
+                    if (signature == lastCallSignature && allFailed) {
+                        identicalFailures++
+                    } else {
+                        lastCallSignature = signature
+                        identicalFailures = 1
+                    }
+                    if (identicalFailures == 3) {
+                        userContent += "\n## Correction\n" +
+                            "You have repeated the same failing tool call $identicalFailures times. " +
+                            "It will keep returning the same error. Read the error carefully, fix the arguments " +
+                            "(or gather the required values with a different tool), or give your final answer."
+                    }
+                    if (identicalFailures >= 5) {
+                        userContent += "\n## System\nRepeated failing calls detected. Respond NOW with your best answer without any tool calls."
+                        _state.value = AiAgentState.RESPONDING
+                        break
+                    }
+
                     val pending = toolEngine.getPendingChanges()
                     if (pending.isNotEmpty()) {
                         _activity.value = "Editing: " + describePendingChanges(pending)
@@ -272,12 +303,38 @@ class AiAgentManager private constructor() {
                     toolResult to null
                 } else {
                     _activity.value = "Thinking…"
-                    generate(
-                        systemPrompt,
-                        userContent,
-                        maxTokens = maxTokens
-                    )
+                    _state.value = AiAgentState.RESPONDING
+                    if (iteration >= maxRounds) {
+                        userContent += "\n## System\nMaximum tool rounds reached. " +
+                            "Summarize everything you have learned and give your final answer NOW without any tool calls."
+                    }
+                    val isLocal = AiPreferences.isLocalBackend() && ModelRuntime.isModelLoaded()
+                    if (isLocal) {
+                        generate(
+                            systemPrompt,
+                            userContent,
+                            maxTokens = maxTokens
+                        )
+                    } else {
+                        var streamed = ""
+                        var streamedReasoning: String? = null
+                        val generation = cloudRuntime.generateStreaming(
+                            systemPrompt,
+                            userContent,
+                            maxTokens = maxTokens.coerceIn(256, 8192)
+                        ) { delta ->
+                            streamed += delta
+                            _partialResponse.value = streamed
+                        }
+                        if (streamed.isBlank() && generation.content.isNotBlank()) {
+                            streamed = generation.content
+                            _partialResponse.value = streamed
+                        }
+                        streamedReasoning = (generation.reasoning ?: "").takeIf { it.isNotBlank() }
+                        streamed to streamedReasoning
+                    }
                 }
+                _partialResponse.value = ""
                 if (!finalReasoning.isNullOrBlank()) {
                     _reasoning.value = (_reasoning.value + "\n" + finalReasoning).trim()
                 }
@@ -327,16 +384,12 @@ class AiAgentManager private constructor() {
     }
 
     private fun emitToolFeed(toolCall: org.catrobat.catroid.ai.tool.ToolCall, result: String) {
-        val argsPreview = toolCall.args.entries.joinToString(", ") { "${it.key}=${it.value.take(60)}" }
-        val ok = !(result.startsWith("ERROR") || result.startsWith("Error"))
-        val status = if (ok) "✅" else "⚠️"
-        val resultPreview = result.replace("\n", " ").take(200)
-        val feed = ChatMessage(
-            role = ChatMessage.Role.TOOL,
-            content = "$status ${toolCall.name}(${argsPreview.take(160)}) → $resultPreview",
-            timestamp = nextTimestamp()
-        )
-        _messages.update { it + feed }
+        val ok = !(result.startsWith("ERROR") || result.startsWith("Error") || result.startsWith("DENIED"))
+        if (ok) {
+            _activity.value = "🔧 ${toolCall.name} ✓"
+        } else {
+            _activity.value = "🔧 ${toolCall.name} — retrying"
+        }
     }
 
     private suspend fun applyPendingChangesSafely(

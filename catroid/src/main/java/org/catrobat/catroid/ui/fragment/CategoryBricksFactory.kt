@@ -679,6 +679,7 @@ import org.catrobat.catroid.content.bricks.GetFromPastebinBrick
 import org.catrobat.catroid.content.bricks.CheckPortBrick
 import org.catrobat.catroid.content.bricks.SetTcpServerClientLimitBrick
 import org.catrobat.catroid.content.bricks.SetTcpServerTimeoutBrick
+import org.catrobat.catroid.content.bricks.SendToTcpClientsBrick
 import org.catrobat.catroid.content.bricks.SendToTcpServerBrick
 import org.catrobat.catroid.content.bricks.ListenTcpServerBrick
 import org.catrobat.catroid.content.bricks.StopBufferRecordingBrick
@@ -3393,6 +3394,7 @@ void main() {
         internetBrickList.add(SetTcpServerClientLimitBrick(10))
         internetBrickList.add(SetTcpServerTimeoutBrick(30))
         internetBrickList.add(SendToTcpServerBrick("okay"))
+        internetBrickList.add(SendToTcpClientsBrick("hello"))
         internetBrickList.add(ListenTcpServerBrick())
         internetBrickList.add(WriteBaseBrick("firebase_id", "key", "hello"))
         internetBrickList.add(ReadBaseBrick("firebase_id", "key"))
