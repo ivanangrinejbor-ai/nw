@@ -11,6 +11,9 @@ import java.io.IOException
 object AssetConverter {
 
     private const val TAG = "AssetConverter"
+    private const val MAX_IMAGE_DIMENSION = 2048
+    private const val AUDIO_THREAD_COUNT = 2
+    private const val MAX_CONVERSION_HOURS = 6L
 
     enum class ImageFormat { KEEP, WEBP_LOSSY, WEBP_LOSSLESS }
     enum class AudioFormat { KEEP, M4A_96, M4A_128, M4A_192, M4A_256 }
@@ -112,111 +115,182 @@ object AssetConverter {
     }
 
     private fun convertImages(dir: File, format: ImageFormat): ConvertOutcome {
-        var count = 0
-        var saved = 0L
-        val renames = mutableMapOf<String, String>()
+        val files = mutableListOf<File>()
+        collectMatchingFiles(dir) { f ->
+            val lower = f.name.lowercase()
+            lower.endsWith(".png") || lower.endsWith(".jpg") || lower.endsWith(".jpeg")
+        }.let { files.addAll(it) }
 
-        for (file in dir.listFiles() ?: emptyArray()) {
-            if (file.isDirectory) {
-                val sub = convertImages(file, format)
-                count += sub.first
-                saved += sub.second
-                renames.putAll(sub.third)
-                continue
-            }
+        val renames = java.util.concurrent.ConcurrentHashMap<String, String>()
+        val saved = java.util.concurrent.atomic.AtomicLong(0L)
+        val count = java.util.concurrent.atomic.AtomicInteger(0)
 
-            val name = file.name
-            val lower = name.lowercase()
-            if (!lower.endsWith(".png") && !lower.endsWith(".jpg") && !lower.endsWith(".jpeg")) continue
-
-            try {
-                val originalSize = file.length()
-                val bitmap = BitmapFactory.decodeFile(file.absolutePath) ?: continue
-
-                val newFile = File(file.parentFile, file.nameWithoutExtension + ".webp")
-                val compressFormat = when (format) {
-                    ImageFormat.WEBP_LOSSY -> Bitmap.CompressFormat.WEBP_LOSSY
-                    ImageFormat.WEBP_LOSSLESS -> Bitmap.CompressFormat.WEBP_LOSSLESS
-                    else -> Bitmap.CompressFormat.WEBP_LOSSY
+        val pool = java.util.concurrent.Executors.newFixedThreadPool(imageThreadCount()) { r ->
+            Thread(r, "AssetConvert-img").apply { isDaemon = true }
+        }
+        val futures = files.map { file ->
+            pool.submit {
+                try {
+                    processImage(file, format)?.let { result ->
+                        renames[result.first] = result.second
+                        count.incrementAndGet()
+                        saved.addAndGet(result.third)
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Image conversion failed: ${file.name}", e)
                 }
-
-                val quality = if (format == ImageFormat.WEBP_LOSSY) 80 else 100
-
-                FileOutputStream(newFile).use { out ->
-                    bitmap.compress(compressFormat, quality, out)
-                }
-                bitmap.recycle()
-
-                val newSize = newFile.length()
-                if (newSize < originalSize) {
-                    file.delete()
-                    renames[name] = file.nameWithoutExtension + ".webp"
-                    count++
-                    saved += (originalSize - newSize)
-                } else {
-                    newFile.delete()
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "Failed to convert image: ${file.name}", e)
             }
         }
+        finishPool(pool, futures)
 
-        return ConvertOutcome(count, saved, renames)
+        return ConvertOutcome(count.get(), saved.get(), renames.toMap())
+    }
+
+    private fun processImage(file: File, format: ImageFormat): Triple<String, String, Long>? {
+        try {
+            val originalSize = file.length()
+            val bounds = android.graphics.BitmapFactory.Options().apply { inJustDecodeBounds = true }
+            android.graphics.BitmapFactory.decodeFile(file.absolutePath, bounds)
+            if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
+
+            var sample = 1
+            while (bounds.outWidth / (sample * 2) >= MAX_IMAGE_DIMENSION &&
+                bounds.outHeight / (sample * 2) >= MAX_IMAGE_DIMENSION) {
+                sample *= 2
+            }
+
+            val options = android.graphics.BitmapFactory.Options().apply {
+                inSampleSize = sample
+                inPreferredConfig = android.graphics.Bitmap.Config.ARGB_8888
+            }
+            val bitmap = android.graphics.BitmapFactory.decodeFile(file.absolutePath, options)
+                ?: return null
+
+            val newFile = File(file.parentFile, file.nameWithoutExtension + ".webp")
+            val compressFormat = when (format) {
+                ImageFormat.WEBP_LOSSY -> Bitmap.CompressFormat.WEBP_LOSSY
+                ImageFormat.WEBP_LOSSLESS -> Bitmap.CompressFormat.WEBP_LOSSLESS
+                else -> Bitmap.CompressFormat.WEBP_LOSSY
+            }
+            val quality = if (format == ImageFormat.WEBP_LOSSY) 80 else 100
+
+            FileOutputStream(newFile).use { out ->
+                bitmap.compress(compressFormat, quality, out)
+            }
+            bitmap.recycle()
+
+            val newSize = newFile.length()
+            if (newSize < originalSize) {
+                file.delete()
+                return Triple(file.name, file.nameWithoutExtension + ".webp", originalSize - newSize)
+            }
+            newFile.delete()
+            return null
+        } catch (e: OutOfMemoryError) {
+            Log.e(TAG, "OOM while converting image ${file.name}, keeping original", e)
+            System.gc()
+            return null
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to convert image: ${file.name}", e)
+            return null
+        }
     }
 
     private fun convertSounds(dir: File, format: AudioFormat): ConvertOutcome {
-        var count = 0
-        var saved = 0L
-        val renames = mutableMapOf<String, String>()
-
-        for (file in dir.listFiles() ?: emptyArray()) {
-            if (file.isDirectory) {
-                val sub = convertSounds(file, format)
-                count += sub.first
-                saved += sub.second
-                renames.putAll(sub.third)
-                continue
-            }
-
-            val name = file.name
-            val lower = name.lowercase()
-            if (!isAudioFile(lower) || lower.endsWith(".m4a")) continue
-
-            try {
-                val originalSize = file.length()
-                val bitrate = when (format) {
-                    AudioFormat.M4A_96 -> 96000
-                    AudioFormat.M4A_128 -> 128000
-                    AudioFormat.M4A_192 -> 192000
-                    AudioFormat.M4A_256 -> 256000
-                    else -> continue
-                }
-
-                val newFile = File(file.parentFile, file.nameWithoutExtension + ".m4a")
-
-                val success = if (lower.endsWith(".wav")) {
-                    convertWavToM4a(file, newFile, bitrate)
-                } else {
-                    convertAudioToM4a(file, newFile, bitrate)
-                }
-
-                if (success) {
-                    val newSize = newFile.length()
-                    if (newSize < originalSize) {
-                        file.delete()
-                        renames[name] = file.nameWithoutExtension + ".m4a"
-                        count++
-                        saved += (originalSize - newSize)
-                    } else {
-                        newFile.delete()
-                    }
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "Failed to convert sound: ${file.name}", e)
-            }
+        val bitrate = when (format) {
+            AudioFormat.M4A_96 -> 96000
+            AudioFormat.M4A_128 -> 128000
+            AudioFormat.M4A_192 -> 192000
+            AudioFormat.M4A_256 -> 256000
+            else -> return ConvertOutcome(0, 0L, emptyMap())
         }
 
-        return ConvertOutcome(count, saved, renames)
+        val files = mutableListOf<File>()
+        collectMatchingFiles(dir) { f ->
+            val lower = f.name.lowercase()
+            isAudioFile(lower) && !lower.endsWith(".m4a")
+        }.let { files.addAll(it) }
+
+        val renames = java.util.concurrent.ConcurrentHashMap<String, String>()
+        val saved = java.util.concurrent.atomic.AtomicLong(0L)
+        val count = java.util.concurrent.atomic.AtomicInteger(0)
+
+        val pool = java.util.concurrent.Executors.newFixedThreadPool(AUDIO_THREAD_COUNT) { r ->
+            Thread(r, "AssetConvert-audio").apply { isDaemon = true }
+        }
+        val futures = files.map { file ->
+            pool.submit {
+                try {
+                    processSound(file, bitrate)?.let { result ->
+                        renames[result.first] = result.second
+                        count.incrementAndGet()
+                        saved.addAndGet(result.third)
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Sound conversion failed: ${file.name}", e)
+                }
+            }
+        }
+        finishPool(pool, futures)
+
+        return ConvertOutcome(count.get(), saved.get(), renames.toMap())
+    }
+
+    private fun processSound(file: File, bitrate: Int): Triple<String, String, Long>? {
+        try {
+            val originalSize = file.length()
+            val lower = file.name.lowercase()
+            val newFile = File(file.parentFile, file.nameWithoutExtension + ".m4a")
+
+            val success = if (lower.endsWith(".wav")) {
+                convertWavToM4a(file, newFile, bitrate)
+            } else {
+                convertAudioToM4a(file, newFile, bitrate)
+            }
+            if (!success) return null
+
+            val newSize = newFile.length()
+            if (newSize < originalSize) {
+                file.delete()
+                return Triple(file.name, file.nameWithoutExtension + ".m4a", originalSize - newSize)
+            }
+            newFile.delete()
+            return null
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to convert sound: ${file.name}", e)
+            return null
+        }
+    }
+
+    private fun collectMatchingFiles(dir: File, predicate: (File) -> Boolean): List<File> {
+        val result = mutableListOf<File>()
+        for (file in dir.listFiles() ?: emptyArray()) {
+            if (file.isDirectory) {
+                result += collectMatchingFiles(file, predicate)
+            } else if (predicate(file)) {
+                result += file
+            }
+        }
+        return result
+    }
+
+    private fun imageThreadCount(): Int =
+        Math.max(2, Math.min(4, Runtime.getRuntime().availableProcessors() - 1))
+
+    private fun finishPool(pool: java.util.concurrent.ExecutorService, futures: List<java.util.concurrent.Future<*>>) {
+        pool.shutdown()
+        try {
+            pool.awaitTermination(MAX_CONVERSION_HOURS, java.util.concurrent.TimeUnit.HOURS)
+        } catch (e: InterruptedException) {
+            Thread.currentThread().interrupt()
+            pool.shutdownNow()
+        }
+        for (future in futures) {
+            try {
+                future.get()
+            } catch (_: Exception) {
+            }
+        }
     }
 
     private fun isAudioFile(name: String): Boolean {
