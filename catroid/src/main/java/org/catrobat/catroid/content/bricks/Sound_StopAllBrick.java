@@ -22,15 +22,50 @@
  */
 package org.catrobat.catroid.content.bricks;
 
+import android.content.Context;
+import android.view.View;
+
 import org.catrobat.catroid.R;
 import org.catrobat.catroid.content.Sprite;
 import org.catrobat.catroid.content.actions.ScriptSequenceAction;
+import org.catrobat.catroid.content.bricks.brickspinner.BrickSpinner;
+import org.catrobat.catroid.content.bricks.brickspinner.StringOption;
+import org.catrobat.catroid.ProjectManager;
 
-public class Sound_StopAllBrick extends BrickBaseType {
+import java.util.ArrayList;
+import java.util.List;
+
+public class Sound_StopAllBrick extends BrickBaseType implements BrickSpinner.OnItemSelectedListener<StringOption> {
 
 	private static final long serialVersionUID = 1L;
 
+	public static final int MODE_WAIT_3_SECONDS = 0;
+	public static final int MODE_NEVER_REPLAY = 1;
+
+	private int replayMode = MODE_WAIT_3_SECONDS;
+
+	private transient BrickSpinner<StringOption> modeSpinner;
+
 	public Sound_StopAllBrick() {
+	}
+
+	public Sound_StopAllBrick(int replayMode) {
+		this.replayMode = replayMode;
+	}
+
+	public int getReplayMode() {
+		return replayMode;
+	}
+
+	public void setReplayMode(int replayMode) {
+		this.replayMode = replayMode;
+	}
+
+	@Override
+	public Brick clone() throws CloneNotSupportedException {
+		Sound_StopAllBrick clone = (Sound_StopAllBrick) super.clone();
+		clone.modeSpinner = null;
+		return clone;
 	}
 
 	@Override
@@ -39,7 +74,48 @@ public class Sound_StopAllBrick extends BrickBaseType {
 	}
 
 	@Override
+	public View getView(Context context) {
+		super.getView(context);
+
+		List<org.catrobat.catroid.common.Nameable> items = new ArrayList<>();
+		items.add(new StringOption(context.getString(R.string.brick_stop_all_mode_replay_wait)));
+		items.add(new StringOption(context.getString(R.string.brick_stop_all_mode_never_replay)));
+		modeSpinner = new BrickSpinner<>(R.id.brick_sound_stop_all_mode_spinner, view, items);
+		modeSpinner.setOnItemSelectedListener(this);
+		int position = replayMode == MODE_NEVER_REPLAY ? 1 : 0;
+		modeSpinner.setSelection(position);
+		view.findViewById(R.id.brick_sound_stop_all_mode_spinner).setVisibility(View.VISIBLE);
+
+		return view;
+	}
+
+	@Override
+	public void onNewOptionSelected(Integer spinnerId) {
+	}
+
+	@Override
+	public void onEditOptionSelected(Integer spinnerId) {
+	}
+
+	@Override
+	public void onStringOptionSelected(Integer spinnerId, String string) {
+		if (string == null) {
+			return;
+		}
+		Context context = view != null ? view.getContext() : null;
+		if (context != null && context.getString(R.string.brick_stop_all_mode_never_replay).equals(string)) {
+			replayMode = MODE_NEVER_REPLAY;
+		} else if (context != null && context.getString(R.string.brick_stop_all_mode_replay_wait).equals(string)) {
+			replayMode = MODE_WAIT_3_SECONDS;
+		}
+	}
+
+	@Override
+	public void onItemSelected(Integer spinnerId, StringOption item) {
+	}
+
+	@Override
 	public void addActionToSequence(Sprite sprite, ScriptSequenceAction sequence) {
-		sequence.addAction(sprite.getActionFactory().createSoundStopAllAction());
+		sequence.addAction(sprite.getActionFactory().createSoundStopAllAction(replayMode));
 	}
 }

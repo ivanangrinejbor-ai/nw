@@ -843,6 +843,9 @@ open class MainActivityPresenter(
             override fun onFinish() {
                 downTimer?.cancel()
                 downTimer = null
+                if (isFinishing) {
+                    return
+                }
                 workspace.invalidate()
                 setTool(type)
                 toolController.switchTool(type)

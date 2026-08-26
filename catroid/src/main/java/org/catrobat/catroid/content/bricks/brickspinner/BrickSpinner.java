@@ -55,6 +55,7 @@ public class BrickSpinner<T extends Nameable> implements AdapterView.OnItemSelec
 	private BrickSpinnerAdapter adapter;
 	private Integer spinnerid;
 	private T previousItem;
+	private boolean userInteracted;
 
 	private OnItemSelectedListener<T> onItemSelectedListener;
 
@@ -64,6 +65,12 @@ public class BrickSpinner<T extends Nameable> implements AdapterView.OnItemSelec
 		spinner = parent.findViewById(spinnerId);
 		spinner.setAdapter(adapter);
 		spinner.setSelection(0);
+		spinner.setOnTouchListener((v, event) -> {
+			if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
+				userInteracted = true;
+			}
+			return false;
+		});
 		spinner.setOnItemSelectedListener(this);
 	}
 
@@ -80,6 +87,11 @@ public class BrickSpinner<T extends Nameable> implements AdapterView.OnItemSelec
 		Nameable item = adapter.getItem(position);
 
 		if (onItemSelectedListener == null || item == null) {
+			return;
+		}
+
+		if (!userInteracted) {
+			applySilently(view, item);
 			return;
 		}
 
@@ -106,6 +118,18 @@ public class BrickSpinner<T extends Nameable> implements AdapterView.OnItemSelec
 		onSelectionChanged(view, item);
 
 		if (item.getClass().equals(StringOption.class)) {
+			onItemSelectedListener.onStringOptionSelected(spinnerid, item.getName());
+			return;
+		}
+		onItemSelectedListener.onItemSelected(spinnerid, (T) item);
+	}
+
+	private void applySilently(View view, Nameable item) {
+		if (item.getClass().equals(NewOption.class) || item.getClass().equals(EditOption.class)) {
+			return;
+		}
+		previousItem = (T) item;
+		if (item instanceof StringOption) {
 			onItemSelectedListener.onStringOptionSelected(spinnerid, item.getName());
 			return;
 		}

@@ -347,8 +347,10 @@ class WorkspaceLayout @JvmOverloads constructor(
                 val fragment = activity?.supportFragmentManager?.findFragmentByTag(tag)
                         as? org.catrobat.catroid.ui.fragment.FormulaEditorFragment
 
-                fragment?.exitFormulaEditorFragment()
-                removeWindow(tag, force = true)
+                val saved = fragment?.saveFormulaIfPossible() ?: true
+                if (saved) {
+                    removeWindow(tag, force = true)
+                }
 
                 val scriptsFragment = activity?.supportFragmentManager
                     ?.findFragmentByTag(ScriptFragment.TAG)
@@ -825,8 +827,10 @@ class WorkspaceLayout @JvmOverloads constructor(
             val fragment = (context as? androidx.fragment.app.FragmentActivity)
                 ?.supportFragmentManager
                 ?.findFragmentByTag(formulaTag) as? org.catrobat.catroid.ui.fragment.FormulaEditorFragment
-            fragment?.saveFormulaIfPossible()
-            removeWindow(formulaTag, force = false)
+            val saved = fragment?.saveFormulaIfPossible() ?: true
+            if (saved) {
+                removeWindow(formulaTag, force = false)
+            }
             return true
         }
 

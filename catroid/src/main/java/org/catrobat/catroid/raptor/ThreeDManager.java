@@ -351,6 +351,34 @@ public class ThreeDManager implements Disposable {
     private IBLBuilderCompat iblBuilderCompat;
 
     private Map<String, ModelInstance> sceneObjects = new HashMap<>();
+    private final Map<String, com.badlogic.gdx.graphics.glutils.ShaderProgram> objectShaderPrograms = new HashMap<>();
+    private final Map<String, Map<String, Object>> objectShaderUniformValues = new HashMap<>();
+
+    private void reapplyObjectShaders() {
+        if (objectShaderPrograms.isEmpty()) return;
+        for (Map.Entry<String, com.badlogic.gdx.graphics.glutils.ShaderProgram> entry : objectShaderPrograms.entrySet()) {
+            String objectId = entry.getKey();
+            ModelInstance instance = sceneObjects.get(objectId);
+            if (instance == null) continue;
+            boolean present = false;
+            for (com.badlogic.gdx.graphics.g3d.Material mat : instance.materials) {
+                if (mat.has(CustomShaderAttribute.Type)) {
+                    present = true;
+                    break;
+                }
+            }
+            if (present) continue;
+
+            CustomShaderAttribute attr = new CustomShaderAttribute(entry.getValue());
+            Map<String, Object> storedUniforms = objectShaderUniformValues.get(objectId);
+            if (storedUniforms != null) {
+                attr.uniforms.putAll(storedUniforms);
+            }
+            for (com.badlogic.gdx.graphics.g3d.Material mat : instance.materials) {
+                mat.set(attr);
+            }
+        }
+    }
 
     private Map<String, DirectionalLight> directionalLights = new HashMap<>();
 
@@ -739,14 +767,21 @@ public class ThreeDManager implements Disposable {
     }
 
     public void setObjectCustomShader(String objectId, String vertexCode, String fragmentCode) {
-        ModelInstance instance = sceneObjects.get(objectId);
-        if (instance == null) return;
-
         Gdx.app.postRunnable(() -> {
             try {
                 ShaderProgram program = new ShaderProgram(vertexCode, fragmentCode);
                 if (!program.isCompiled()) {
                     throw new Exception("Shader compile error: " + program.getLog());
+                }
+
+                objectShaderPrograms.put(objectId, program);
+                objectShaderUniformValues.remove(objectId);
+
+                ModelInstance instance = sceneObjects.get(objectId);
+                if (instance == null) {
+                    Gdx.app.log("3DManager", "Shader stored for '" + objectId
+                            + "'; will be attached when the object appears");
+                    return;
                 }
 
                 CustomShaderAttribute shaderAttr = new CustomShaderAttribute(program);
@@ -760,6 +795,22 @@ public class ThreeDManager implements Disposable {
     }
 
     public void setObjectShaderUniform(String objectId, String name, float v1, float v2, float v3, int paramCount) {
+        Object value;
+        if (paramCount == 1) {
+            value = v1;
+        } else if (paramCount == 2) {
+            value = new com.badlogic.gdx.math.Vector2(v1, v2);
+        } else {
+            value = new com.badlogic.gdx.math.Vector3(v1, v2, v3);
+        }
+
+        Map<String, Object> uniforms = objectShaderUniformValues.get(objectId);
+        if (uniforms == null) {
+            uniforms = new HashMap<>();
+            objectShaderUniformValues.put(objectId, uniforms);
+        }
+        uniforms.put("u_" + name, value);
+
         ModelInstance instance = sceneObjects.get(objectId);
         if (instance == null) return;
 
@@ -774,15 +825,8 @@ public class ThreeDManager implements Disposable {
         if (attr == null) return;
 
         final CustomShaderAttribute finalAttr = attr;
-        Gdx.app.postRunnable(() -> {
-            if (paramCount == 1) {
-                finalAttr.uniforms.put("u_" + name, v1);
-            } else if (paramCount == 2) {
-                finalAttr.uniforms.put("u_" + name, new com.badlogic.gdx.math.Vector2(v1, v2));
-            } else if (paramCount == 3) {
-                finalAttr.uniforms.put("u_" + name, new com.badlogic.gdx.math.Vector3(v1, v2, v3));
-            }
-        });
+        final Object finalValue = value;
+        Gdx.app.postRunnable(() -> finalAttr.uniforms.put("u_" + name, finalValue));
     }
 
     public void setFreeCamera() {
@@ -875,6 +919,20 @@ public class ThreeDManager implements Disposable {
 
         Matrix4 camWorld = new Matrix4(camera.view).inv();
         Matrix4 offset = new Matrix4(camWorld).inv().mul(instance.transform);
+        cameraAttachments.add(new CameraAttachment(objectId, offset));
+    }
+
+    public void attachObjectToCamera(String objectId, float offsetX, float offsetY, float offsetZ) {
+        detachObjectFromCamera(objectId);
+
+        ModelInstance instance = sceneObjects.get(objectId);
+        if (instance == null) {
+            instance = editorProxies.get(objectId);
+        }
+        if (instance == null) return;
+
+        Matrix4 offset = new Matrix4();
+        offset.setTranslation(offsetX, offsetY, offsetZ);
         cameraAttachments.add(new CameraAttachment(objectId, offset));
     }
 
@@ -2757,6 +2815,9 @@ public class ThreeDManager implements Disposable {
             delta = Math.min(Math.max(delta, 0f), 0.1f);
         }
         if (LOG_THREED_MANAGER_DEBUG) Log.d("TDM_DEBUG", "--- ThreeDManager.update() START (Delta: " + delta + ") ---");
+
+        reapplyObjectShaders();
+
         if (cameraTargetId != null) {
             updateThirdPersonCamera();
         } else if (cameraTrackMode != 0 && cameraTrackTargetId != null) {
@@ -4839,6 +4900,8 @@ public class ThreeDManager implements Disposable {
         ModelInstance instance = sceneObjects.remove(objectId);
         objectLocalBounds.remove(objectId);
         objectWorldBounds.remove(objectId);
+        objectShaderPrograms.remove(objectId);
+        objectShaderUniformValues.remove(objectId);
         if (instance != null) {
             removePhysicsBody(objectId);
             animationControllers.remove(objectId);

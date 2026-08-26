@@ -9,6 +9,21 @@ object IntegrityValidator {
     private const val TAG = "IntegrityValidator"
     private const val SHA256 = "SHA-256"
 
+    fun validateAgainst(encryptedFile: File, plainFile: File): Boolean {
+        return try {
+            val storedHash = ProjectEncryptorV3.readIntegrityHash(encryptedFile)
+            val computedHash = computeSha256(plainFile)
+            val match = MessageDigest.isEqual(storedHash, computedHash)
+            if (!match) {
+                Log.e(TAG, "Integrity mismatch!")
+            }
+            match
+        } catch (e: Exception) {
+            Log.e(TAG, "Integrity validation failed", e)
+            false
+        }
+    }
+
     fun validate(encryptedFile: File, key: ByteArray): Boolean {
         return try {
             val storedHash = ProjectEncryptorV3.readIntegrityHash(encryptedFile)

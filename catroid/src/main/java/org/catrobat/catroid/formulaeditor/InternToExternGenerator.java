@@ -760,7 +760,12 @@ public class InternToExternGenerator {
 
 	private String getNumberExponentRepresentation(String number) {
 
-		Double value = Double.parseDouble(number);
+		Double value;
+		try {
+			value = Double.parseDouble(number);
+		} catch (NumberFormatException exception) {
+			return number;
+		}
 		String numberToCheck = String.valueOf(value);
 
 		if (value < 1 && numberToCheck.contains("E")) {
@@ -799,6 +804,9 @@ public class InternToExternGenerator {
 		Integer stringResourceID = INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.get(internTokenValue);
 		if (stringResourceID == null) {
 			return null;
+		}
+		if (context == null) {
+			return internTokenValue;
 		}
 		return context.getString(stringResourceID);
 	}

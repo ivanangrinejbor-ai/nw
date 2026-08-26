@@ -44,6 +44,7 @@ import org.catrobat.catroid.paintroid.dialog.ProjectPickerDialog
 import org.catrobat.catroid.paintroid.colorpicker.ColorPickerDialog
 import org.catrobat.catroid.paintroid.colorpicker.OnColorPickedListener
 import org.catrobat.catroid.paintroid.tools.FontEntry
+import org.catrobat.catroid.paintroid.tools.FontImportLauncherHolder
 import org.catrobat.catroid.paintroid.tools.FontType
 import org.catrobat.catroid.paintroid.tools.ImportedFontRegistry
 import org.catrobat.catroid.paintroid.tools.TextToolEffects
@@ -63,7 +64,6 @@ class DefaultTextToolOptionsView(rootView: ViewGroup) : TextToolOptionsView {
     private val addFontButton: View
     private val addFontDeviceButton: View
     private val fxButton: com.google.android.material.button.MaterialButton
-    private var fontDevicePicker: androidx.activity.result.ActivityResultLauncher<String>? = null
     private val underlinedToggleButton: MaterialButton
     private val italicToggleButton: MaterialButton
     private val boldToggleButton: MaterialButton
@@ -146,10 +146,11 @@ class DefaultTextToolOptionsView(rootView: ViewGroup) : TextToolOptionsView {
 
         fxButton.setOnClickListener { showEffectsDialog() }
 
-        fontDevicePicker = (context as? androidx.activity.ComponentActivity)
-            ?.registerForActivityResult(androidx.activity.result.contract.ActivityResultContracts.GetContent()) { uri ->
+        addFontDeviceButton.setOnClickListener {
+            hideKeyboard()
+            FontImportLauncherHolder.launchFontPicker("*/*") { uri ->
                 if (uri == null) {
-                    return@registerForActivityResult
+                    return@launchFontPicker
                 }
                 val imported = ImportedFontRegistry.importFromFile(context, uri)
                 if (imported == null) {
@@ -158,7 +159,7 @@ class DefaultTextToolOptionsView(rootView: ViewGroup) : TextToolOptionsView {
                         R.string.add_font_invalid,
                         android.widget.Toast.LENGTH_SHORT
                     ).show()
-                    return@registerForActivityResult
+                    return@launchFontPicker
                 }
                 try {
                     val project = ProjectManager.getInstance().getCurrentProject()
@@ -170,9 +171,6 @@ class DefaultTextToolOptionsView(rootView: ViewGroup) : TextToolOptionsView {
                 rebuildFontList()
                 selectFontEntry(FontEntry.Imported(imported))
             }
-        addFontDeviceButton.setOnClickListener {
-            hideKeyboard()
-            fontDevicePicker?.launch("*/*")
         }
 
         underlinedToggleButton.setOnClickListener { v ->

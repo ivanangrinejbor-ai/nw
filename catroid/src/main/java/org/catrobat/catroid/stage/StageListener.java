@@ -433,6 +433,7 @@ public class StageListener implements ApplicationListener {
 			stage.getRoot().clear();
 			uiStage.getRoot().clear();
 		}
+		pinnedSpriteWorldPositions.clear();
 		org.catrobat.catroid.content.UserVarsManager.INSTANCE.clearVars();
 		initScreenMode();
 		initStageInputListener();
@@ -623,6 +624,7 @@ public class StageListener implements ApplicationListener {
 		this.cameraFollowSmooth = Math.max(0f, Math.min(100f, smooth));
 		this.cameraFollowUserOffsetX = offsetX;
 		this.cameraFollowUserOffsetY = offsetY;
+		this.cameraFollowSkipped = false;
 		if (camera != null && spriteName != null) {
 			Sprite target = findStageSpriteByName(spriteName);
 			if (target != null) {
@@ -634,6 +636,7 @@ public class StageListener implements ApplicationListener {
 
 	public void clearCameraFollow() {
 		cameraFollowSpriteName = null;
+		cameraFollowSkipped = false;
 	}
 
 	private boolean cameraBoundsEnabled = false;
@@ -674,6 +677,19 @@ public class StageListener implements ApplicationListener {
 		if (target == null) {
 			return null;
 		}
+		if (target.look != null && target.look.getStage() == uiStage && uiStage != null) {
+			cameraFollowSkipped = true;
+			return null;
+		}
+		if (target.look == null || !target.look.isVisible() || !isTargetWithinCameraView(target)) {
+			cameraFollowSkipped = true;
+			return null;
+		}
+		if (cameraFollowSkipped) {
+			cameraFollowLockX = camera.position.x - target.look.getX();
+			cameraFollowLockY = camera.position.y - target.look.getY();
+			cameraFollowSkipped = false;
+		}
 		float desiredX = target.look.getX() + cameraFollowLockX + cameraFollowUserOffsetX;
 		float desiredY = target.look.getY() + cameraFollowLockY + cameraFollowUserOffsetY;
 		float blend;
@@ -692,18 +708,44 @@ public class StageListener implements ApplicationListener {
 		return new float[] {newX - camera.position.x, newY - camera.position.y};
 	}
 
+	private boolean cameraFollowSkipped = false;
+
+	private boolean isTargetWithinCameraView(Sprite target) {
+		float halfW = camera.viewportWidth * 0.5f;
+		float halfH = camera.viewportHeight * 0.5f;
+		float marginX = Math.max(100f, halfW * 0.25f);
+		float marginY = Math.max(100f, halfH * 0.25f);
+		float dx = target.look.getX() - camera.position.x;
+		float dy = target.look.getY() - camera.position.y;
+		return Math.abs(dx) <= halfW + marginX && Math.abs(dy) <= halfH + marginY;
+	}
+
+	private final Map<Sprite, float[]> pinnedSpriteWorldPositions = new HashMap<>();
+
 	public void pinSpriteToCamera(Sprite sprite) {
 		if (sprite == null || uiStage == null || stage == null) return;
 
 		Look look = sprite.look;
-		if (look == null || look.getParent() == uiStage.getRoot()) {
+		if (look == null) return;
+
+		if (look.getParent() == uiStage.getRoot()) {
+			float[] world = pinnedSpriteWorldPositions.get(sprite);
+			if (world == null || camera == null) {
+				return;
+			}
+			Vector3 reprojected = new Vector3(world[0], world[1], 0);
+			camera.project(reprojected);
+			look.setPosition(reprojected.x, reprojected.y);
 			return;
 		}
 
+		float[] worldPos = new float[] {look.getX(), look.getY()};
+		pinnedSpriteWorldPositions.put(sprite, worldPos);
 
 		Vector3 screenCoords = new Vector3(look.getX(), look.getY(), 0);
-		camera.project(screenCoords);
-
+		if (camera != null) {
+			camera.project(screenCoords);
+		}
 
 		look.remove();
 		uiStage.addActor(look);
@@ -713,6 +755,8 @@ public class StageListener implements ApplicationListener {
 	public void unpinSpriteFromCamera(Sprite sprite) {
 		if (sprite == null || uiStage == null || stage == null) return;
 
+		pinnedSpriteWorldPositions.remove(sprite);
+
 		Look look = sprite.look;
 		if (look == null || look.getParent() == stage.getRoot()) {
 			return;
@@ -720,7 +764,9 @@ public class StageListener implements ApplicationListener {
 
 
 		Vector3 worldCoords = new Vector3(look.getX(), look.getY(), 0);
-		camera.unproject(worldCoords);
+		if (camera != null) {
+			camera.unproject(worldCoords);
+		}
 
 
 		look.remove();
@@ -1214,6 +1260,7 @@ public class StageListener implements ApplicationListener {
 		boolean removedSprite = sprites.remove(sprite);
 		if (removedSprite) {
 			clonesByIndex.remove(sprite.cloneIndex);
+			pinnedSpriteWorldPositions.remove(sprite);
 			removeBubbleActorForSprite(sprite);
 			sprite.look.destroy();
 			sprite.invalidate();
@@ -1848,6 +1895,10 @@ public class StageListener implements ApplicationListener {
                 float optimizedDeltaTime = deltaTime / steps;
 
                 rebuildDirtyTilemapPhysics();
+
+                if (physicsWorld != null && camera != null) {
+                    physicsWorld.setActiveAreaCenter(camera.position.x, camera.position.y);
+                }
 
                 for (int i = 0; i < steps; i++) {
                     long pStart = System.nanoTime();

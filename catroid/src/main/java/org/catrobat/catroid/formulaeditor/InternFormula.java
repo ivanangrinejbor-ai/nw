@@ -451,6 +451,10 @@ public class InternFormula {
 
 				case RIGHT:
 					InternToken internToken = getFirstLeftInternToken(externCursorPosition);
+					if (internToken == null) {
+						cursorTokenPropertiesAfterModification = CursorTokenPropertiesAfterModification.DO_NOT_MODIFY;
+						break;
+					}
 					if (internToken.getInternTokenType() == InternTokenType.FUNCTION_PARAMETER_DELIMITER) {
 						setExternCursorPositionLeftTo(internTokenFormulaList.indexOf(internToken));
 						break;

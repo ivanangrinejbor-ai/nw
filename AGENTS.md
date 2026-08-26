@@ -809,3 +809,83 @@ ew Scope(project, sprite, null) РІР°Р»РёРґРµРЅ; РІ plain-JUnit РѕР±СЏР·Р°С‚РµР»Р
   пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ `contextt`.
 - пїЅпїЅпїЅпїЅ: `test/formulaeditor/ShowToastLegacyAliasTest.java` (2 пїЅпїЅпїЅпїЅпїЅ: legacy remap пїЅпїЅпїЅ
   пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ + round-trip пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ).
+
+# Фиксы редактора и скриптов (2026-08)
+
+## 3D-редактор (editor/)
+- UndoManager: synchronized + исполнение команд на GL-потоке; clear() в onEngineReset.
+- Commands: Delete/AddCommand сериализуют всё поддерево (undo/redo не теряет детей композитов).
+- Crash-handler: identity-check перед restore в onDestroy; catch Throwable; атомарная tmp+rename запись.
+- onCreate guard: savedInstanceState != null или нет проекта -> finish (process-death).
+- Все мутации сцены из UI (delete/duplicate/add/focus/particles) обёрнуты в Gdx.app.postRunnable;
+  то же для InspectorManager delete-object/prefab-remove и remove{Render,Physics,Light}Component,
+  renameGameObject(engine), setObjectActive, setFriction/setRestitution.
+- Autosave сцены на диск (tmp+rename) в onPause + дебаунс 3с от pushCommand; чистый выход/Clear Scene
+  инвалидирует _recovery_autosave.rscene; EditorStateManager удалён (write-only кэш).
+- Recovery: JSON-валидация до диалога, восстановление через resetEngine (GL-поток).
+- Save scene: санитизация имени, сериализация GL + запись в фоне, compact-json.
+- requireEngineReady() для save/load/clear/skybox; ACTION_CANCEL у камерных кнопок.
+- bulk-duplicate клонирует источник каждый раз (был O(2^n)); TransformCommand создаётся после мутации.
+- SpriteActivity.saveProject debounce 800мс; getCurrentSceneData deep-copy только при PrefabComponent.
+
+## Вьюпорт
+- Тап по хэндлу без движения вызывает gizmo.touchUp(); setCurrentTool завершает драг;
+  мультитач-guard в touchDown; rotate детей конвертируется в пространство родителя.
+- Камера: pitch-clamp ±89°, resetMotion() в onPause, pinch-dolly zoom, quick-focus через postRunnable.
+- PS3D-объекты выделяемы тапом; прокси из worldTransform; dispose снимает InputProcessor.
+- Кейфреймы: Play-guard пустого списка, scale clamp >=0.01, debugDrawer begin/end один на кадр,
+  драг удалённого объекта прерывается. applyTransformToEngine: tmpQuaternion вместо new на объект.
+- FALSE POSITIVE (не чинить): «двойной mul bbox гизмо» — calculateBoundingBox возвращает локальный bbox,
+  один .mul корректен (проверено исходниками libGDX).
+
+## Инспектор
+- editor_3d_physics_states = 5 значений в порядке PhysicsState (en+ru) + clamp — был IOOBE и запись NONE.
+- Новый editor_3d_easing_types (33 = enum EasingType) en+ru; brick_easing_types не тронут (для кирпичей).
+- Preview анимации: previewingOwner + cancelStalePreview (поза возвращается правильному объекту).
+- Rename guard selectedObject == go; DelayedTextWatcher = реальный debounce 300мс.
+- Спиннеры physics/light/animation/fog/shape: post{} attach + clamp (нет фантомного первого fire).
+- Collider/camera watcher'ы hasFocus-guard; EyeAdaptation updatePP; PS3D debounce проверяет живость GO.
+- Удаление CameraComponent -> findAndSetMainCamera; setMaterialComponent null-guard; keyframes под
+  synchronized(anim.keyframes); updateKeyframeAnimations итерирует снапшот; Play пустых keyframes -> тост.
+
+## Скрипты (legacy)
+- AI-таймер не дёргает updateItems во время drag/action mode; code analysis: снапшоты списков +
+  toList() в CodeAnalyzer + try/catch + generation-counter (GlobalScope CME).
+- Выделение: bounds-guard позиций (-1 свёрнутых детей) в setSelectionTo/selectedItems.
+- copyProjectForUndoOption(2000ms): await снапшота ДО мутации (delete/cut/paste).
+- handleContextualAction return после finish(); одиночный DELETE/COPY через полный путь guards.
+- pasteBricksBelow: resolveBrickReferences перелинковывает Look/Sound/UserVariable/UserList на целевой
+  спрайт (рекурсивно по композитам).
+- exportScripts клонирует скрипты на main до Thread; backpack.json атомарно; unpack по flat-list;
+  CSV-escape значений списков; повторный pack мержит звуки; пустой pack -> тост ошибки.
+- ACTION_CANCEL в BrickListView = отмена переноса; onBackPressed проверяет isCurrentlyMoving до workspace.
+- addItem -> Boolean (нет фантомного startMoving); showUndo(false) только в мутирующих ветках;
+  Log.d удалены из getView; O(n^2) indexOf -> indices loop.
+
+## Формульный редактор (+совместимость со старыми проектами)
+- InternToExternGenerator: context==null -> fallback intern-имя (NPE в EventId.hashCode на stage-потоке);
+  parseDouble в trim-пути -> try/catch.
+- InternFormulaParser: парс строго на копии токенов; bracket-correction пишется обратно только при успехе.
+- FormulaEditorFragment: null-guard полей в onCreateView (process-death); refreshFormulaPreviewString
+  реинфлейтит brick-view только при смене кирпича/поля; hasFileChanged потоково сравнивает файлы;
+  onActivityResult requestCode-guard; ACTION_CANCEL останавливает автоповтор Backspace.
+- Formula.java: ensureInternFormula() во всех update*-методах (rename спрайта/переменной после загрузки
+  старого проекта; миграции v<=0.993).
+- WorkspaceLayout: окно формулы закрывается только при успешном сохранении формулы.
+- ExternalIpFetcher: main-thread guard + негативный кэш 30с.
+- Ui2: saveProjectToDisk в фоновом потоке.
+- DEVICE_PARAMS генерируется размером DEVICE_FUNCTIONS (54<->54, хинты выровнены).
+- Guard'ы: handleDeletion(RIGHT) null-check; DISTANCE null->0; Operators.getOperatorByValue null-check.
+
+## Совместимость со старыми проектами
+Форматы не менялись: XStream-поля, порядок Functions/Sensors/Operators, INTERN_EXTERN_MAP, .rscene,
+backpack.json (CSV-escape обратно совместим). Автоскобки парсера попадают в кирпич при успешном OK.
+
+## Отложено (требует рефакторинга)
+RecyclerView-миграция BrickAdapter; объектное выделение кирпичей; command-дифы FormulaEditorHistory;
+явный Cancel в формулах; утечки SensorHandler/FormulaEditorClipboard/IntroDialog; project-undo формул;
+OBB/ray-triangle пикинг; dirty-flag трансформов; кэш bbox raycast; listFiles-кэш пикеров; Fog-ветка.
+
+## Сборка
+`./gradlew :catroid:compileCatroidDebugKotlin :catroid:compileCatroidDebugJavaWithJavac --offline` — OK.
+Формула-тесты formulaeditor.*: 72 фейла pre-existing (stash-бисекция InternFormulaParser: те же на HEAD).

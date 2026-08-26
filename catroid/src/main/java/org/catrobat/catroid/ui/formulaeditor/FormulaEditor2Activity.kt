@@ -1042,10 +1042,13 @@ class FormulaEditor2Activity : AppCompatActivity() {
     }
 
     private fun saveProjectToDisk() {
-        try {
-            val project = ProjectManager.getInstance().currentProject ?: return
-            org.catrobat.catroid.io.XstreamSerializer.getInstance().saveProject(project)
-        } catch (_: Exception) {}
+        val project = ProjectManager.getInstance().currentProject ?: return
+        Thread {
+            try {
+                org.catrobat.catroid.io.XstreamSerializer.getInstance().saveProject(project)
+            } catch (_: Exception) {
+            }
+        }.start()
     }
 
     private fun showComputeDialog() {

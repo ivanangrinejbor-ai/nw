@@ -54,18 +54,16 @@ object CloudModelRuntime {
     suspend fun generate(
         systemPrompt: String,
         userContent: String,
-        temperature: Float = 0.7f,
         maxTokens: Int = 2048
-    ): String = generateWithMeta(systemPrompt, userContent, temperature, maxTokens).content
+    ): String = generateWithMeta(systemPrompt, userContent, maxTokens).content
 
     suspend fun generateForProvider(
         provider: AiProvider,
         model: String,
         systemPrompt: String,
         userContent: String,
-        temperature: Float = 0.7f,
         maxTokens: Int = 2048
-    ): String = generateWithMeta(provider, model, systemPrompt, userContent, temperature, maxTokens).content
+    ): String = generateWithMeta(provider, model, systemPrompt, userContent, maxTokens).content
 
     suspend fun generateVisionForProvider(
         provider: AiProvider,
@@ -73,25 +71,22 @@ object CloudModelRuntime {
         systemPrompt: String,
         userContent: String,
         imageBase64Png: String,
-        temperature: Float = 0.7f,
         maxTokens: Int = 2048
     ): String = generateWithMeta(
-        provider, model, systemPrompt, userContent, temperature, maxTokens, imageBase64Png
+        provider, model, systemPrompt, userContent, maxTokens, imageBase64Png
     ).content
 
     suspend fun generateWithMeta(
         systemPrompt: String,
         userContent: String,
-        temperature: Float = 0.7f,
         maxTokens: Int = 2048
-    ): CloudGeneration = generateWithMeta(getActiveProvider(), AiPreferences.getCloudModelId(), systemPrompt, userContent, temperature, maxTokens)
+    ): CloudGeneration = generateWithMeta(getActiveProvider(), AiPreferences.getCloudModelId(), systemPrompt, userContent, maxTokens)
 
     suspend fun generateWithMeta(
         provider: AiProvider,
         model: String,
         systemPrompt: String,
         userContent: String,
-        temperature: Float = 0.7f,
         maxTokens: Int = 2048,
         imageBase64Png: String? = null
     ): CloudGeneration = generateMutex.withLock {
@@ -103,10 +98,10 @@ object CloudModelRuntime {
         try {
             withContext(Dispatchers.IO) {
                 when (provider) {
-                    AiProvider.GEMINI -> requestGemini(apiKey, resolvedModel, systemPrompt, userContent, temperature, maxTokens, imageBase64Png)
+                    AiProvider.GEMINI -> requestGemini(apiKey, resolvedModel, systemPrompt, userContent, maxTokens, imageBase64Png)
                     AiProvider.OPENAI, AiProvider.DEEPSEEK, AiProvider.OPENROUTER, AiProvider.OPENCODE ->
-                        requestOpenAiFormat(provider, apiKey, resolvedModel, systemPrompt, userContent, temperature, maxTokens, imageBase64Png)
-                    AiProvider.CLAUDE -> requestClaude(apiKey, resolvedModel, systemPrompt, userContent, temperature, maxTokens, imageBase64Png)
+                        requestOpenAiFormat(provider, apiKey, resolvedModel, systemPrompt, userContent, maxTokens, imageBase64Png)
+                    AiProvider.CLAUDE -> requestClaude(apiKey, resolvedModel, systemPrompt, userContent, maxTokens, imageBase64Png)
                 }
             }
         } catch (e: Exception) {
@@ -130,7 +125,6 @@ object CloudModelRuntime {
         model: String,
         systemPrompt: String,
         userContent: String,
-        temperature: Float,
         maxTokens: Int,
         imageBase64Png: String? = null
     ): CloudGeneration {
@@ -147,7 +141,6 @@ object CloudModelRuntime {
         }
         val contentObj = JSONObject().put("parts", partsArray).put("role", "user")
         val generationConfig = JSONObject()
-            .put("temperature", temperature.toDouble())
             .put("maxOutputTokens", maxTokens)
         geminiThinkingBudget(reasoningLevel())?.let { budget ->
             generationConfig.put("thinkingConfig", JSONObject().put("thinkingBudget", budget))
@@ -183,7 +176,6 @@ object CloudModelRuntime {
         model: String,
         systemPrompt: String,
         userContent: String,
-        temperature: Float,
         maxTokens: Int,
         imageBase64Png: String? = null
     ): CloudGeneration {
@@ -219,9 +211,6 @@ object CloudModelRuntime {
         val level = reasoningLevel()
         val isReasoning = model.contains("reasoner") || model.startsWith("o1") || model.startsWith("o3") ||
             model.startsWith("o4") || model.contains("gpt-5") || model.contains("r1")
-        if (!isReasoning && level != AiPreferences.REASONING_HIGH) {
-            jsonBody.put("temperature", temperature.toDouble())
-        }
         jsonBody.put(if (model.startsWith("o1") || model.startsWith("o3")) "max_completion_tokens" else "max_tokens", maxTokens)
 
         when (level) {
@@ -263,7 +252,6 @@ object CloudModelRuntime {
         model: String,
         systemPrompt: String,
         userContent: String,
-        temperature: Float,
         maxTokens: Int,
         imageBase64Png: String? = null
     ): CloudGeneration {
@@ -303,8 +291,6 @@ object CloudModelRuntime {
                 "thinking",
                 JSONObject().put("type", "enabled").put("budget_tokens", budget)
             )
-        } else {
-            jsonBody.put("temperature", temperature.toDouble())
         }
         if (systemPrompt.isNotBlank()) {
             jsonBody.put("system", systemPrompt)

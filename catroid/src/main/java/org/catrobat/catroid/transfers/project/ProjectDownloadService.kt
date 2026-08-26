@@ -140,6 +140,7 @@ class ProjectDownloadService : IntentService("ProjectDownloadService") {
             val projectNameForFileSystem = FileMetaDataExtractor.encodeSpecialCharsForFileSystem(projectName)
             val projectDir = File(FlavoredConstants.DEFAULT_ROOT_DIRECTORY, projectNameForFileSystem)
             ZipArchiver().unzip(destinationFile, projectDir)
+            org.catrobat.catroid.io.DedupManifestApplier.apply(projectDir)
 
             XstreamSerializer.renameProject(File(projectDir, Constants.CODE_XML_FILE_NAME), projectName)
             ProjectManager.getInstance().addNewDownloadedProject(projectName)

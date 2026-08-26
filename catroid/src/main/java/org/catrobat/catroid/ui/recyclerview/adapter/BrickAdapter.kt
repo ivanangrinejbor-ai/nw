@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Catroid: An on-device visual programming system for Android devices
  * Copyright (C) 2010-2022 The Catrobat Team
  * (<http://developer.catrobat.org/credits>)
@@ -224,7 +224,6 @@ class BrickAdapter(val sprite: Sprite) :
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
         val item = items[position]
-        Log.d("TestItem", item.javaClass.simpleName)
 
         if (item is SetParticleColorBrick) {
             val colorFormula = item.getFormulaWithBrickField(BrickField.COLOR, true)
@@ -364,7 +363,6 @@ class BrickAdapter(val sprite: Sprite) :
             val existingParent = itemView.parent
             if (existingParent is IndentedBrickLayout) {
                 existingParent.setDepth(depthForWrapper)
-                Log.d("BrickAdapter", "OUT wrapper-reuse item=${item.javaClass.simpleName} lp=${existingParent.layoutParams?.javaClass?.simpleName}")
                 return sanitizeListViewReturn(existingParent)
             } else {
                 (existingParent as? ViewGroup)?.removeView(itemView)
@@ -385,7 +383,6 @@ class BrickAdapter(val sprite: Sprite) :
                 indentedLayout.layout(0, 0, indentedLayout.measuredWidth, indentedLayout.measuredHeight)
 
                 indentedLayout.tag = item
-                Log.d("BrickAdapter", "OUT wrapper-new item=${item.javaClass.simpleName} lp=${indentedLayout.layoutParams?.javaClass?.simpleName} innerLp=${itemView.layoutParams?.javaClass?.simpleName}")
                 return sanitizeListViewReturn(indentedLayout)
             }
         }
@@ -397,7 +394,6 @@ class BrickAdapter(val sprite: Sprite) :
         }
 
         itemView.tag = item
-        Log.d("BrickAdapter", "OUT plain item=${item.javaClass.simpleName} lp=${itemView.layoutParams?.javaClass?.simpleName}")
         return sanitizeListViewReturn(itemView)
     }
 
@@ -563,6 +559,7 @@ class BrickAdapter(val sprite: Sprite) :
 
         for (i in flatItems.indices) {
             adapterPosition = items.indexOf(flatItems[i])
+            if (adapterPosition < 0) continue
             selectionManager.setSelectionTo(selected, adapterPosition)
             if (i > 0) {
                 viewStateManager.setEnabled(!selected, adapterPosition)
@@ -606,8 +603,7 @@ class BrickAdapter(val sprite: Sprite) :
                 clearConnectedItems()
             }
         }
-        for (item in items) {
-            val brickPosition = items.indexOf(item)
+        for (brickPosition in items.indices) {
             viewStateManager.setEnabled(
                 selectableForCopy(brickPosition, scriptSelected),
                 brickPosition
@@ -643,7 +639,9 @@ class BrickAdapter(val sprite: Sprite) :
         get() {
             val selectedItems: MutableList<Brick> = ArrayList()
             for (position in selectionManager.selectedPositions) {
-                selectedItems.add(items[position])
+                if (position in items.indices) {
+                    selectedItems.add(items[position])
+                }
             }
             return selectedItems
         }
@@ -670,14 +668,18 @@ class BrickAdapter(val sprite: Sprite) :
         notifyDataSetChanged()
     }
 
-    fun addItem(position: Int, item: Brick?) {
+    fun addItem(position: Int, item: Brick?): Boolean {
+        var added = false
         item?.let {
+            if (position < 0 || position > items.size) return false
             if (position > 0 && items.getOrNull(position - 1)?.isLocked == true) {
-                return
+                return false
             }
             items.add(position, it)
+            added = true
         }
         notifyDataSetChanged()
+        return added
     }
 
     override fun getItem(position: Int): Brick = items[position]

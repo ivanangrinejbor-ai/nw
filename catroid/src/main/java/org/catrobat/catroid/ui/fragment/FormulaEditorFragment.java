@@ -341,6 +341,10 @@ public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.
 		formulaEditorEditText = fragmentView.findViewById(R.id.formula_editor_edit_field);
 		formulaEditorKeyboard = fragmentView.findViewById(R.id.formula_editor_keyboardview);
 
+		if (formulaBrick == null || currentFormulaField == null || currentFormula == null) {
+			return fragmentView;
+		}
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             formulaEditorEditText.setShowSoftInputOnFocus(false);
         } else {
@@ -375,7 +379,8 @@ public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.
             private boolean isPasteLongClick = false;
 
 			private boolean handleLongClick(final View view, MotionEvent event) {
-				if (event.getAction() == MotionEvent.ACTION_UP) {
+				if (event.getAction() == MotionEvent.ACTION_UP
+						|| event.getAction() == MotionEvent.ACTION_CANCEL) {
 					if (handler == null) {
 						return true;
 					}
@@ -472,6 +477,9 @@ public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.
                             clipboardLongClickAction = new Runnable() {
                                 @Override
                                 public void run() {
+                                    if (!isAdded() || getContext() == null) {
+                                        return;
+                                    }
                                     isPasteLongClick = true;
                                     FormulaEditorClipboard.INSTANCE.showClipboardHistoryDialog(getContext(), formulaEditorEditText);
                                 }
@@ -916,7 +924,11 @@ public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.
 
 	@Override
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
-		if (requestCode == REQUEST_GPS && resultCode == AppCompatActivity.RESULT_CANCELED && SensorHandler.gpsAvailable()) {
+		if (requestCode != REQUEST_GPS) {
+			super.onActivityResult(requestCode, resultCode, data);
+			return;
+		}
+		if (resultCode == AppCompatActivity.RESULT_CANCELED && SensorHandler.gpsAvailable()) {
 			showComputeDialog();
 		} else {
 			ToastUtil.showError(getActivity(), R.string.error_gps_not_available);
@@ -1134,16 +1146,32 @@ public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.
 
 		if (currentCodeFile.exists() && undoCodeFile.exists()) {
 			try {
-				List<String> currentFile = Files.readLines(currentCodeFile, StandardCharsets.UTF_8);
-				List<String> undoFile = Files.readLines(undoCodeFile, StandardCharsets.UTF_8);
-
-				return !currentFile.equals(undoFile);
+				return !filesContentEquals(currentCodeFile, undoCodeFile);
 			} catch (IOException exception) {
 				Log.e(TAG, "Comparing project files failed.", exception);
 			}
 		}
 
 		return false;
+	}
+
+	private static boolean filesContentEquals(File first, File second) throws IOException {
+		if (first.length() != second.length()) {
+			return false;
+		}
+		try (java.io.InputStream in1 = new java.io.BufferedInputStream(new java.io.FileInputStream(first));
+				java.io.InputStream in2 = new java.io.BufferedInputStream(new java.io.FileInputStream(second))) {
+			byte[] buffer1 = new byte[8192];
+			byte[] buffer2 = new byte[8192];
+			int read1;
+			while ((read1 = in1.read(buffer1)) != -1) {
+				int read2 = in2.read(buffer2, 0, read1);
+				if (read2 != read1 || !java.util.Arrays.equals(buffer1, 0, read1, buffer2, 0, read2)) {
+					return false;
+				}
+			}
+			return in2.read() == -1;
+		}
 	}
 
     public void exitFormulaEditorFragment() {
@@ -1196,8 +1224,18 @@ public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.
 		}
 	}
 
+	private FormulaBrick displayedPreviewBrick = null;
+	private Brick.FormulaField displayedPreviewField = null;
+
 	public void refreshFormulaPreviewString(String newString) {
-		updateBrickView();
+		boolean needsRebuild = formulaEditorBrick.getChildCount() == 0
+				|| displayedPreviewBrick != formulaBrick
+				|| displayedPreviewField != currentFormulaField;
+		if (needsRebuild) {
+			updateBrickView();
+			displayedPreviewBrick = formulaBrick;
+			displayedPreviewField = currentFormulaField;
+		}
 		TextView formulaFieldView = formulaBrick.getTextView(currentFormulaField);
 		formulaFieldView.setText(
 				FormulaSpannableStringBuilder.buildSpannableFormulaString(this.getContext(),

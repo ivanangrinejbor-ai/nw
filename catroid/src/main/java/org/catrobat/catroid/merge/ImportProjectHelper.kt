@@ -162,6 +162,7 @@ class ImportProjectHelper(
                 File(Constants.MEDIA_LIBRARY_CACHE_DIRECTORY, lookFileName)
 
             ZipArchiver().unzip(cachedProject, cachedProjectDir)
+            org.catrobat.catroid.io.DedupManifestApplier.apply(cachedProjectDir)
             return XstreamSerializer.getInstance()
                 .loadProject(cachedProjectDir, context)
         } catch (e: IOException) {

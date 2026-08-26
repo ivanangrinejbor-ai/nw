@@ -153,6 +153,8 @@ class BrickListView : ListView {
         }
     }
 
+    var onCancelMoveListener: (() -> Unit)? = null
+
     fun stopMoving() {
         brickAdapterInterface?.moveItemTo(currentPositionOfHoveringBrick, brickToMove)
         cancelMove()
@@ -171,7 +173,11 @@ class BrickListView : ListView {
             return super.onTouchEvent(event)
         }
         when (event.action) {
-            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> stopMoving()
+            MotionEvent.ACTION_UP -> stopMoving()
+            MotionEvent.ACTION_CANCEL -> {
+                cancelMove()
+                onCancelMoveListener?.invoke()
+            }
             MotionEvent.ACTION_DOWN -> {
                 downY = event.y
                 motionEventId = event.getPointerId(0)

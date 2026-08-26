@@ -266,7 +266,11 @@ public class SceneManager {
 
             KeyframeData startFrame = null;
             KeyframeData endFrame = null;
-            for (KeyframeData frame : anim.keyframes) {
+            java.util.List<KeyframeData> keyframeSnapshot;
+            synchronized (anim.keyframes) {
+                keyframeSnapshot = new java.util.ArrayList<>(anim.keyframes);
+            }
+            for (KeyframeData frame : keyframeSnapshot) {
                 if (frame.time <= anim.currentTime) {
                     startFrame = frame;
                 } else {
@@ -668,7 +672,7 @@ public class SceneManager {
 
         gameObjects.put(go.id, go);
 
-        engine.renameObject(oldId, newName);
+        Gdx.app.postRunnable(() -> engine.renameObject(oldId, newName));
 
         return true;
     }
@@ -1541,7 +1545,7 @@ public class SceneManager {
         if (go == null || !go.hasComponent(RenderComponent.class)) return;
 
         go.components.removeIf(c -> c instanceof RenderComponent);
-        engine.removeObject(go.id);
+        Gdx.app.postRunnable(() -> engine.removeObject(go.id));
     }
 
 
@@ -1549,7 +1553,7 @@ public class SceneManager {
         if (go == null || !go.hasComponent(PhysicsComponent.class)) return;
 
         go.components.removeIf(c -> c instanceof PhysicsComponent);
-        engine.removePhysicsBody(go.id);
+        Gdx.app.postRunnable(() -> engine.removePhysicsBody(go.id));
     }
 
 
@@ -1557,8 +1561,10 @@ public class SceneManager {
         if (go == null) return;
 
         go.components.removeIf(c -> c instanceof LightComponent);
-        engine.removePBRLight(go.id);
-        engine.removeEditorProxy(go.id);
+        Gdx.app.postRunnable(() -> {
+            engine.removePBRLight(go.id);
+            engine.removeEditorProxy(go.id);
+        });
     }
 
 
@@ -1611,11 +1617,11 @@ public class SceneManager {
     }
 
     public void setRestitution(String id, float restitution) {
-        engine.setRestitution(id, restitution);
+        Gdx.app.postRunnable(() -> engine.setRestitution(id, restitution));
     }
 
     public void setFriction(String id, float friction) {
-        engine.setFriction(id, friction);
+        Gdx.app.postRunnable(() -> engine.setFriction(id, friction));
     }
 
     public Json getJson() {
@@ -1659,8 +1665,10 @@ public class SceneManager {
     public void setMaterialComponent(GameObject go, MaterialComponent component) {
         Gdx.app.postRunnable(() -> {
             go.components.removeIf(c -> c instanceof MaterialComponent);
-            go.addComponent(component);
-            engine.applyPBRMaterial(go.id, component);
+            if (component != null) {
+                go.addComponent(component);
+                engine.applyPBRMaterial(go.id, component);
+            }
         });
     }
 
@@ -1679,9 +1687,10 @@ public class SceneManager {
         if (go == null || go.isActive == active) return;
         go.isActive = active;
 
-        updateVisibilityRecursive(go);
-
-        updateLightStateRecursive(go);
+        Gdx.app.postRunnable(() -> {
+            updateVisibilityRecursive(go);
+            updateLightStateRecursive(go);
+        });
     }
 
     private void updateLightStateRecursive(GameObject go) {
@@ -2032,7 +2041,7 @@ public class SceneManager {
             offset.setTranslation(offsetX, offsetY, offsetZ);
             cameraAttachments.add(new CameraAttachment(objectId, offset));
         } else {
-            engine.attachObjectToCamera(objectId);
+            engine.attachObjectToCamera(objectId, offsetX, offsetY, offsetZ);
         }
     }
 

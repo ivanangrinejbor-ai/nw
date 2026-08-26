@@ -93,6 +93,9 @@ public class SoundManager {
 	public synchronized void playSoundFileWithStartTime(String soundFilePath,
 			Sprite sprite, int startTimeInMilSeconds) {
 		isValidAudioFormat(soundFilePath);
+		if (isSoundReplayBlocked(soundFilePath, sprite)) {
+			return;
+		}
 		stopSameSoundInSprite(soundFilePath, sprite);
 		MediaPlayerWithSoundDetails mediaPlayer = getAvailableMediaPlayer();
 		if (mediaPlayer != null) {
@@ -269,6 +272,7 @@ public class SoundManager {
 		preparedSounds.clear();
 
 		recentlyStoppedSoundfilePaths.clear();
+		mutedSoundsUntil.clear();
 	}
 
 	public synchronized void pause() {
@@ -294,11 +298,43 @@ public class SoundManager {
 	}
 
 	public synchronized void stopAllSounds() {
+		stopAllSounds(0L);
+	}
+
+	public synchronized void stopAllSounds(long replayBlockMillis) {
+		long blockedUntil = replayBlockMillis > 0
+				? System.currentTimeMillis() + replayBlockMillis : 0L;
 		for (MediaPlayer mediaPlayer : mediaPlayers) {
 			if (mediaPlayer.isPlaying()) {
 				mediaPlayer.stop();
+				if (blockedUntil > 0L && mediaPlayer instanceof MediaPlayerWithSoundDetails) {
+					MediaPlayerWithSoundDetails details = (MediaPlayerWithSoundDetails) mediaPlayer;
+					mutedSoundsUntil.put(new SoundFilePathWithSprite(
+							details.getPathToSoundFile(), details.getStartedBySprite()), blockedUntil);
+				}
 			}
 		}
+	}
+
+	private final java.util.Map<SoundFilePathWithSprite, Long> mutedSoundsUntil = new java.util.HashMap<>();
+
+	public synchronized boolean isSoundReplayBlocked(String soundFilePath, Sprite sprite) {
+		if (mutedSoundsUntil.isEmpty()) {
+			return false;
+		}
+		long now = System.currentTimeMillis();
+		java.util.Iterator<java.util.Map.Entry<SoundFilePathWithSprite, Long>> iterator =
+				mutedSoundsUntil.entrySet().iterator();
+		while (iterator.hasNext()) {
+			if (iterator.next().getValue() <= now) {
+				iterator.remove();
+			}
+		}
+		return mutedSoundsUntil.containsKey(new SoundFilePathWithSprite(soundFilePath, sprite));
+	}
+
+	public synchronized void clearMutedSounds() {
+		mutedSoundsUntil.clear();
 	}
 
 	public List<SoundBackup> getPlayingSoundBackups() {

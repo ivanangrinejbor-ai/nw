@@ -84,6 +84,7 @@ import org.catrobat.catroid.paintroid.model.LayerModel
 import org.catrobat.catroid.paintroid.model.MainActivityModel
 import org.catrobat.catroid.paintroid.presenter.LayerPresenter
 import org.catrobat.catroid.paintroid.presenter.MainActivityPresenter
+import org.catrobat.catroid.paintroid.tools.FontImportLauncherHolder
 import org.catrobat.catroid.paintroid.tools.ToolPaint
 import org.catrobat.catroid.paintroid.tools.ToolReference
 import org.catrobat.catroid.paintroid.tools.ToolType
@@ -307,6 +308,11 @@ class MainActivity : AppCompatActivity(), MainView, CommandListener {
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
         setTheme(R.style.PocketPaintTheme)
         super.onCreate(savedInstanceState)
+        FontImportLauncherHolder.register(
+            registerForActivityResult(
+                androidx.activity.result.contract.ActivityResultContracts.GetContent()
+            ) { uri -> FontImportLauncherHolder.deliver(uri) }
+        )
         getAppFragment()
         PaintroidApplication.cacheDir = cacheDir
         setContentView(R.layout.activity_pocketpaint_main)
@@ -753,6 +759,7 @@ class MainActivity : AppCompatActivity(), MainView, CommandListener {
     }
 
     override fun onDestroy() {
+        FontImportLauncherHolder.clear()
         autoSaveScope.cancel()
         commandManager.removeCommandListener(this)
         LineTool.topBarViewHolder = null

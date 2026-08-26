@@ -49,7 +49,7 @@ object PromptBuilder {
             appendLine("## Mandatory Workflow (follow in order)")
             appendLine("1. Call projectInventory to get the ENTIRE project at once: all scenes, objects, their looks, sounds, local variables/lists and scripts, plus global variables, lists and broadcasts. (Use projectInfo / listScenes for a lighter view.)")
             appendLine("2. Use listObjects, listLooks, listSounds, listVariables, listBroadcasts when you need a focused list of one kind of resource and its ownership.")
-            appendLine("3. Call readObject to open an object and see its looks, sounds, local data and scripts.")
+            appendLine("3. Call readObject to open an object and see its looks, sounds, local data and scripts. For the BACKGROUND (stage) object use readBackground — its name is localized ('Background'/'Фон') and readBackground resolves it automatically.")
             appendLine("4. Call readScript to open a specific script and see every brick with its field values.")
             appendLine("5. Only after you understand the current state, make changes (createObject, buildScript, etc.).")
             appendLine("NEVER invent scene, object, look, sound, variable or script contents — always read them first with a tool.")

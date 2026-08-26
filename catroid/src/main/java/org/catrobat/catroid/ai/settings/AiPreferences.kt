@@ -13,7 +13,6 @@ object AiPreferences {
     private const val KEY_AUTO_READ = "ai_agent_auto_read"
     private const val KEY_AUTO_MODIFY = "ai_agent_auto_modify"
     private const val KEY_CONFIRM_CHANGES = "ai_agent_confirm_changes"
-    private const val KEY_TEMPERATURE = "ai_agent_temperature"
     private const val KEY_MAX_CONTEXT = "ai_agent_max_context"
     private const val KEY_MAX_TOOL_CALLS = "ai_agent_max_tool_calls"
     private const val KEY_REASONING_LEVEL = "ai_agent_reasoning_level"
@@ -28,7 +27,6 @@ object AiPreferences {
     const val BACKEND_CLOUD = "cloud"
     const val BACKEND_LOCAL = "local"
 
-    private const val DEFAULT_TEMPERATURE = 0.7f
     private const val DEFAULT_MAX_CONTEXT = 4096
     private const val DEFAULT_MAX_TOOL_CALLS = 10
     private const val DEFAULT_CLOUD_MODEL = "gemini-2.5-flash"
@@ -134,15 +132,6 @@ object AiPreferences {
 
     fun setConfirmEnabled(enabled: Boolean) {
         prefs?.edit()?.putBoolean(KEY_CONFIRM_CHANGES, enabled)?.apply()
-    }
-
-    fun getTemperature(): Float {
-        val raw = prefs?.getString(KEY_TEMPERATURE, null) ?: return DEFAULT_TEMPERATURE
-        return raw.toFloatOrNull()?.coerceIn(0f, 2f) ?: DEFAULT_TEMPERATURE
-    }
-
-    fun setTemperature(temp: Float) {
-        prefs?.edit()?.putString(KEY_TEMPERATURE, temp.coerceIn(0f, 2f).toString())?.apply()
     }
 
     fun getMaxContext(): Int {

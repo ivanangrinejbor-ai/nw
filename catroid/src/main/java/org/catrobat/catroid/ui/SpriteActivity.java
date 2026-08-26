@@ -360,6 +360,15 @@ public class SpriteActivity extends BaseActivity {
 
 	@Override
 	public void onBackPressed() {
+		Fragment currentFragment = getCurrentFragment();
+
+		if (currentFragment instanceof ScriptFragment) {
+			if (((ScriptFragment) currentFragment).isCurrentlyMoving()) {
+				((ScriptFragment) currentFragment).cancelMove();
+				return;
+			}
+		}
+
         if (workspaceLayout != null && workspaceLayout.getVisibility() == View.VISIBLE) {
             if (workspaceLayout.handleBackPressed()) {
                 return;
@@ -368,13 +377,7 @@ public class SpriteActivity extends BaseActivity {
 
 		saveProject();
 
-		Fragment currentFragment = getCurrentFragment();
-
 		if (currentFragment instanceof ScriptFragment) {
-			if (((ScriptFragment) currentFragment).isCurrentlyMoving()) {
-				((ScriptFragment) currentFragment).cancelMove();
-				return;
-			}
 			if (((ScriptFragment) currentFragment).isFinderOpen()) {
 				((ScriptFragment) currentFragment).closeFinder();
 				return;

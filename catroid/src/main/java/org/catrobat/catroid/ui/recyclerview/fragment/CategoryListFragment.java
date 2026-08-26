@@ -438,42 +438,22 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
     );
 
 
-    private static final List<Integer> DEVICE_PARAMS = asList(
-            R.string.formula_editor_function_scene_launch_count_parameter,
-            R.string.formula_file_exists_param,
-            R.string.formula_file_project_exists_param,
-            R.string.formula_file_exists_in_dir_param,
-            R.string.formula_file_exists_at_path_param,
-            R.string.formula_no_param, R.string.formula_no_param,
-            R.string.formula_no_param, R.string.formula_no_param,
-            R.string.formula_no_param, R.string.formula_no_param,
-            R.string.formula_no_param, R.string.formula_no_param,
-            R.string.formula_no_param, R.string.formula_no_param,
-            R.string.formula_no_param, R.string.formula_no_param,
-            R.string.formula_no_param, R.string.formula_no_param,
-            R.string.formula_no_param, R.string.formula_no_param,
-            R.string.formula_no_param, R.string.formula_no_param,
-            R.string.formula_no_param,
-            R.string.formula_no_param, R.string.formula_no_param,
-            R.string.formula_no_param, R.string.formula_no_param,
-            R.string.formula_no_param, R.string.formula_no_param,
-            R.string.formula_no_param, R.string.formula_no_param,
-            R.string.formula_no_param,
-            R.string.formula_no_param,
-            R.string.formula_no_param,
-            R.string.formula_no_param,
-            R.string.formula_no_param,
-            R.string.formula_no_param,
-            R.string.formula_no_param,
-            R.string.formula_no_param,
-            R.string.formula_no_param,
-            R.string.formula_no_param,
-            R.string.formula_no_param,
-            R.string.formula_no_param, R.string.formula_no_param,
-            R.string.formula_no_param, R.string.formula_no_param,
-            R.string.formula_editor_function_current_state_parameter,
-            R.string.formula_editor_function_state_time_parameter
-    );
+    private static final List<Integer> DEVICE_PARAMS;
+
+    static {
+        List<Integer> deviceParams = new ArrayList<>(DEVICE_FUNCTIONS.size());
+        for (int i = 0; i < DEVICE_FUNCTIONS.size(); i++) {
+            deviceParams.add(R.string.formula_no_param);
+        }
+        deviceParams.set(0, R.string.formula_editor_function_scene_launch_count_parameter);
+        deviceParams.set(1, R.string.formula_file_exists_param);
+        deviceParams.set(2, R.string.formula_file_project_exists_param);
+        deviceParams.set(3, R.string.formula_file_exists_in_dir_param);
+        deviceParams.set(4, R.string.formula_file_exists_at_path_param);
+        deviceParams.set(DEVICE_FUNCTIONS.size() - 2, R.string.formula_editor_function_current_state_parameter);
+        deviceParams.set(DEVICE_FUNCTIONS.size() - 1, R.string.formula_editor_function_state_time_parameter);
+        DEVICE_PARAMS = java.util.Collections.unmodifiableList(deviceParams);
+    }
 
 	private static final List<Integer> THREED_FUNCTIONS = asList(
             R.string.formula_delta,

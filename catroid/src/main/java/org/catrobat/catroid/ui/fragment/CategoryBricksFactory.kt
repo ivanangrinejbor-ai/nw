@@ -350,10 +350,13 @@ import org.catrobat.catroid.content.bricks.MouseEventBrick
 import org.catrobat.catroid.content.bricks.MoveDownloadsBrick
 import org.catrobat.catroid.content.bricks.MoveFilesBrick
 import org.catrobat.catroid.content.bricks.MoveNStepsBrick
+import org.catrobat.catroid.content.bricks.CrtScreenShaderBrick
+import org.catrobat.catroid.content.bricks.DissolveShaderBrick
 import org.catrobat.catroid.content.bricks.DarkGrayscaleShaderBrick
 import org.catrobat.catroid.content.bricks.InvertColorsShaderBrick
 import org.catrobat.catroid.content.bricks.NormalizeSpriteShaderBrick
 import org.catrobat.catroid.content.bricks.TintShaderBrick
+import org.catrobat.catroid.content.bricks.WaveShaderBrick
 import org.catrobat.catroid.content.bricks.NativeLayerBrick
 import org.catrobat.catroid.content.bricks.NextLookBrick
 import org.catrobat.catroid.content.bricks.NormalizeImgBrick
@@ -544,6 +547,8 @@ import org.catrobat.catroid.content.bricks.SetNeutralBrick
 import org.catrobat.catroid.content.bricks.SetNfcTagBrick
 import org.catrobat.catroid.content.bricks.SetObjectColorBrick
 import org.catrobat.catroid.content.bricks.SetObjectShaderBrick
+import org.catrobat.catroid.content.bricks.SpriteDissolveShaderBrick
+import org.catrobat.catroid.content.bricks.SpriteWaveShaderBrick
 import org.catrobat.catroid.content.bricks.SetObjectShaderUniformBrick
 import org.catrobat.catroid.content.bricks.SetObjectTextureBrick
 import org.catrobat.catroid.content.bricks.SetParentBrick
@@ -1650,7 +1655,6 @@ eventBrickList.add(WhenConditionBrick(WhenConditionScript(Formula(defaultIf))))
                 soundBrickList.add(AudioFadeInBrick(Formula(1.0)))
                 soundBrickList.add(AudioFadeOutBrick(Formula(1.0)))
                 soundBrickList.add(EqualizerSetBandBrick(Formula(0), Formula(0)))
-                soundBrickList.add(Sound_StopAllBrick())
                 return soundBrickList
             }
         }
@@ -1707,7 +1711,6 @@ eventBrickList.add(WhenConditionBrick(WhenConditionScript(Formula(defaultIf))))
         soundBrickList.add(AudioFadeInBrick(Formula(1.0)))
         soundBrickList.add(AudioFadeOutBrick(Formula(1.0)))
         soundBrickList.add(EqualizerSetBandBrick(Formula(0), Formula(0)))
-        soundBrickList.add(Sound_StopAllBrick())
 
         return soundBrickList
     }
@@ -2030,6 +2033,11 @@ eventBrickList.add(WhenConditionBrick(WhenConditionScript(Formula(defaultIf))))
         isBackgroundSprite: Boolean
     ): List<Brick> {
         val shadersBrickList: MutableList<Brick> = ArrayList()
+        val presetTemplate = NormalizeSpriteShaderBrick()
+        shadersBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_shader_presets), presetTemplate))
+        shadersBrickList.add(CrtScreenShaderBrick(80.0))
+        shadersBrickList.add(SpriteDissolveShaderBrick(0.0))
+        shadersBrickList.add(SpriteWaveShaderBrick(30.0, 0.0))
         shadersBrickList.add(NormalizeSpriteShaderBrick())
         shadersBrickList.add(DarkGrayscaleShaderBrick())
         shadersBrickList.add(SetFilterPixelateBrick(Formula(8.0)))
@@ -3146,6 +3154,9 @@ private fun setupJsonCategoryList(context: Context): List<Brick> {
         threedBrickList.add(SetMaxPointLightsBrick(5))
         threedBrickList.add(SetShadowQualityBrick(Formula(100), Formula(2048)))
 
+        threedBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_shaders_3d), template))
+        threedBrickList.add(DissolveShaderBrick("myObject", 0.0))
+        threedBrickList.add(WaveShaderBrick("myObject", 30.0))
         threedBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_3d_shaders), template))
         threedBrickList.add(SetShaderCodeBrick("""attribute vec3 a_position;
 attribute vec3 a_normal;

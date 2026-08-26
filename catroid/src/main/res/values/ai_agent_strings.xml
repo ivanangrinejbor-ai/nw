@@ -57,8 +57,6 @@
 
     <!-- Parameters -->
     <string formatted="false" name="ai_agent_params_category">Parameters</string>
-    <string formatted="false" name="ai_agent_temperature_title">Temperature</string>
-    <string formatted="false" name="ai_agent_temperature_summary">Model creativity (0 = deterministic, 100 = creative)</string>
     <string formatted="false" name="ai_agent_max_context_title">Max Context</string>
     <string formatted="false" name="ai_agent_max_context_summary">Maximum tokens for context window</string>
     <string formatted="false" name="ai_agent_max_tool_calls_title">Max Tool Calls</string>

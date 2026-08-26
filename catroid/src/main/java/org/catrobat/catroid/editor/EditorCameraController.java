@@ -108,7 +108,9 @@ public class EditorCameraController implements GestureListener {
 
         camera.rotate(Vector3.Y, -deltaX * rotateSpeed);
 
-        float pitchAngle = tmp.set(camera.direction).nor().angleDeg(Vector3.Y);
+        tmp.set(camera.direction).nor();
+        float dirDotUp = tmp.dot(Vector3.Y);
+        float pitchAngle = (float) Math.toDegrees(Math.acos(Math.max(-1f, Math.min(1f, dirDotUp))));
         boolean verticalAllowed = (pitchAngle > 1f || deltaY < 0) && (pitchAngle < 179f || deltaY > 0);
 
         if (deltaY != 0 && verticalAllowed) {

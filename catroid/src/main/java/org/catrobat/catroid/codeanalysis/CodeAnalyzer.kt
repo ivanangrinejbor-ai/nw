@@ -41,8 +41,19 @@ class CodeAnalyzer(private val context: Context) {
         return results
     }
 
+    fun analyzeScriptWithAi(brickListSnapshot: List<Brick>, script: Script): Map<Brick, AnalysisResult> {
+        if (script.isCommentedOut) {
+            return emptyMap()
+        }
+        val results = mutableMapOf<Brick, AnalysisResult>()
+        analyzeBrickList(brickListSnapshot, results)
+        val aiResults = aiRule.getResults()
+        results.putAll(aiResults.filterKeys { key -> brickListSnapshot.any { it === key } })
+        return results
+    }
+
     private fun analyzeBrickList(brickList: List<Brick>, results: MutableMap<Brick, AnalysisResult>) {
-        for (brick in brickList) {
+        for (brick in brickList.toList()) {
             if (brick.isCommentedOut) {
                 continue
             }
@@ -55,14 +66,14 @@ class CodeAnalyzer(private val context: Context) {
             }
 
             if (brick is CompositeBrick) {
-                brick.nestedBricks?.let { analyzeBrickList(it, results) }
+                brick.nestedBricks?.let { analyzeBrickList(it.toList(), results) }
 
                 if (brick.hasSecondaryList()) {
-                    brick.secondaryNestedBricks?.let { analyzeBrickList(it, results) }
+                    brick.secondaryNestedBricks?.let { analyzeBrickList(it.toList(), results) }
                 }
 
                 if (brick is TryCatchFinallyBrick) {
-                    brick.thirdNestedBricks?.let { analyzeBrickList(it, results) }
+                    brick.thirdNestedBricks?.let { analyzeBrickList(it.toList(), results) }
                 }
             }
         }

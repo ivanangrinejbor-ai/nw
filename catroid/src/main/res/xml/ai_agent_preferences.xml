@@ -46,12 +46,6 @@
     <PreferenceCategory android:title="@string/ai_agent_params_category">
 
         <EditTextPreference
-            android:defaultValue="0.7"
-            android:key="ai_agent_temperature"
-            android:summary="@string/ai_agent_temperature_summary"
-            android:title="@string/ai_agent_temperature_title" />
-
-        <EditTextPreference
             android:defaultValue="4096"
             android:key="ai_agent_max_context"
             android:summary="@string/ai_agent_max_context_summary"

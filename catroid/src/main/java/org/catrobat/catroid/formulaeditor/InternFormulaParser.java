@@ -187,16 +187,17 @@ public class InternFormulaParser {
 			return null;
 		}
 
+		List<InternToken> originalTokens = internTokensToParse;
+		List<InternToken> workingCopy = new ArrayList<>(originalTokens);
+
+		boolean bracketCorrected = false;
 		try {
-			List<InternToken> copyIternTokensToParse = new ArrayList<>(internTokensToParse);
-			if (InternFormulaUtils.applyBracketCorrection(copyIternTokensToParse)) {
-				internTokensToParse.clear();
-				internTokensToParse.addAll(copyIternTokensToParse);
-			}
+			bracketCorrected = InternFormulaUtils.applyBracketCorrection(workingCopy);
 		} catch (EmptyStackException emptyStackException) {
 			Log.d(TAG, "Bracket correction failed.", emptyStackException);
 		}
 
+		internTokensToParse = workingCopy;
 		normalizeConcatOperatorTokens();
 
 		addEndOfFileToken();
@@ -209,6 +210,14 @@ public class InternFormulaParser {
 			errorTokenIndex = currentTokenParseIndex;
 		}
 		removeEndOfFileToken();
+
+		if (formulaParseTree == null) {
+			internTokensToParse = originalTokens;
+		} else if (bracketCorrected) {
+			originalTokens.clear();
+			originalTokens.addAll(internTokensToParse);
+			internTokensToParse = originalTokens;
+		}
 		return formulaParseTree;
 	}
 

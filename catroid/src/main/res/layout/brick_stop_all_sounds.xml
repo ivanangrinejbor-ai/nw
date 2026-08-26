@@ -23,6 +23,7 @@
   -->
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:gravity="center_vertical"
@@ -37,15 +38,22 @@
 
     <org.catrobat.catroid.ui.BrickLayout
         android:id="@+id/brick_stop_all_sounds_layout"
-        style="@style/BrickContainer.Sound.Small">
+        style="@style/BrickContainer.Sound.Medium">
 
         <include layout="@layout/icon_brick_category_sound" />
 
         <TextView
             android:id="@+id/brick_stop_all_sounds_label"
             style="@style/BrickText.SingleLine"
+            app:layout_newLine="true"
             android:text="@string/brick_stop_all_sounds">
         </TextView>
+
+        <Spinner
+            android:id="@+id/brick_stop_all_sounds_mode_spinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textDirection="locale" />
     </org.catrobat.catroid.ui.BrickLayout>
 
 </LinearLayout>

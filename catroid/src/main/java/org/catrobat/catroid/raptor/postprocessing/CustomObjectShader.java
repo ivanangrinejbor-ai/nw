@@ -18,6 +18,11 @@ public class CustomObjectShader extends DefaultShader {
 
     @Override
     public void render(Renderable renderable) {
+        CustomShaderAttribute current = attribute;
+        if (renderable.material.has(CustomShaderAttribute.Type)) {
+            current = (CustomShaderAttribute) renderable.material.get(CustomShaderAttribute.Type);
+        }
+
         int uTimeLoc = program.getUniformLocation("u_time");
         if (uTimeLoc != -1) {
             float time = (float) ((System.currentTimeMillis() % 100000) / 1000.0);
@@ -29,7 +34,7 @@ public class CustomObjectShader extends DefaultShader {
             program.setUniformf(uCamLoc, camera.position.x, camera.position.y, camera.position.z);
         }
 
-        for (Map.Entry<String, Object> entry : attribute.uniforms.entrySet()) {
+        for (Map.Entry<String, Object> entry : current.uniforms.entrySet()) {
             String name = entry.getKey();
             Object value = entry.getValue();
             int loc = program.getUniformLocation(name);

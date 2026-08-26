@@ -93,6 +93,7 @@ public class MatryoshkaManager {
                     StorageOperations.deleteDir(projectDir);
                     projectDir.mkdirs();
                     new ZipArchiver().unzip(extractedZip, projectDir);
+                    org.catrobat.catroid.io.DedupManifestApplier.INSTANCE.apply(projectDir);
 
                     extractedZip.delete();
                     return true;

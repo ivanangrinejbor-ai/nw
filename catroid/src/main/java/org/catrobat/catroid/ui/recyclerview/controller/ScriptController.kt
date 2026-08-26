@@ -164,11 +164,22 @@ class ScriptController {
             checkForUserData(projectManager.currentSprite, groupName, brick)
         }
 
+        if (scriptsToPack.isEmpty() && userDefinedBrickListToPack.isEmpty()) {
+            throw IllegalStateException("Nothing to pack: selection contains no scripts or user bricks")
+        }
+
         backpackListManager.addUserDefinedBrickToBackPack(groupName, userDefinedBrickListToPack)
         backpackListManager.addScriptToBackPack(groupName, scriptsToPack)
 
         if (soundsToPack.isNotEmpty()) {
-            backpackListManager.getBackpackedScriptSounds()[groupName] = soundsToPack
+            val existingSounds = backpackListManager.getBackpackedScriptSounds()
+            val merged = existingSounds[groupName] ?: ArrayList()
+            for (sound in soundsToPack) {
+                if (merged.none { it.name == sound.name }) {
+                    merged.add(sound)
+                }
+            }
+            existingSounds[groupName] = merged
         }
         if (variableValues.isNotEmpty()) {
             backpackListManager.getBackpackedVariableValues()[groupName] = HashMap(variableValues)
@@ -209,7 +220,7 @@ class ScriptController {
             }
             is UserListBrick -> brick.userList?.let { list ->
                 if (!listValues.containsKey(list.name)) {
-                    listValues[list.name] = list.getValue()?.joinToString(",") ?: ""
+                    listValues[list.name] = list.getValue()?.joinToString(",") { escapeCsvValue(it) } ?: ""
                 }
             }
         }
@@ -422,7 +433,13 @@ class ScriptController {
         val backpackedSounds = backpackListManager.getBackpackedScriptSounds()[scriptName] ?: emptyList()
         val soundMapping = HashMap<String, SoundInfo>()
 
-        for (brick in script.brickList) {
+        val flatBricks = ArrayList<Brick>()
+        script.scriptBrick.addToFlatList(flatBricks)
+        if (flatBricks.isNotEmpty()) {
+            flatBricks.removeAt(0)
+        }
+
+        for (brick in flatBricks) {
             if (projectManager.currentProject.isCastProject &&
                 CastManager.unsupportedBricks.contains(brick.javaClass)
             ) {
@@ -505,7 +522,7 @@ class ScriptController {
                 if (backpackedListValues.containsKey(originalName)) {
                     val savedValue = backpackedListValues[originalName]!!
                     if (savedValue.isNotEmpty()) {
-                        list.setValue(savedValue.split(","))
+                        list.setValue(parseCsvList(savedValue))
                     }
                 }
             }
@@ -514,6 +531,40 @@ class ScriptController {
 
     private fun parseValue(valueStr: String): Any {
         return valueStr.toDoubleOrNull() ?: valueStr
+    }
+
+    private fun escapeCsvValue(value: Any?): String {
+        val str = value?.toString() ?: ""
+        return if (str.contains(',') || str.contains('"') || str.contains('\n')) {
+            "\"" + str.replace("\"", "\"\"") + "\""
+        } else {
+            str
+        }
+    }
+
+    private fun parseCsvList(raw: String): List<String> {
+        val result = ArrayList<String>()
+        val current = StringBuilder()
+        var inQuotes = false
+        var i = 0
+        while (i < raw.length) {
+            val ch = raw[i]
+            when {
+                ch == '"' && inQuotes && i + 1 < raw.length && raw[i + 1] == '"' -> {
+                    current.append('"')
+                    i++
+                }
+                ch == '"' -> inQuotes = !inQuotes
+                ch == ',' && !inQuotes -> {
+                    result.add(current.toString())
+                    current.setLength(0)
+                }
+                else -> current.append(ch)
+            }
+            i++
+        }
+        result.add(current.toString())
+        return result
     }
 
     private fun unpackUserVariable(sprite: Sprite, scriptName: String, brick: Brick) {

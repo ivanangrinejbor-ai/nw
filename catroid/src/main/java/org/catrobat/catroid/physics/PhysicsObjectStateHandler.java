@@ -64,13 +64,17 @@ public class PhysicsObjectStateHandler {
 			}
 
 			private boolean isXOutsideActiveArea() {
-				return Math.abs(PhysicsWorldConverter.convertBox2dToNormalCoordinate(physicsObject.getMassCenter().x))
-						- physicsObject.getCircumference() > physicsWorld.getActiveArea().x / 2.0f;
+				float x = PhysicsWorldConverter.convertBox2dToNormalCoordinate(physicsObject.getMassCenter().x);
+				float half = physicsWorld.getActiveArea().x / 2.0f;
+				return Math.abs(x - physicsWorld.getActiveAreaCenterX())
+						- physicsObject.getCircumference() > half;
 			}
 
 			private boolean isYOutsideActiveArea() {
-				return Math.abs(PhysicsWorldConverter.convertBox2dToNormalCoordinate(physicsObject.getMassCenter().y))
-						- physicsObject.getCircumference() > physicsWorld.getActiveArea().y / 2.0f;
+				float y = PhysicsWorldConverter.convertBox2dToNormalCoordinate(physicsObject.getMassCenter().y);
+				float half = physicsWorld.getActiveArea().y / 2.0f;
+				return Math.abs(y - physicsWorld.getActiveAreaCenterY())
+						- physicsObject.getCircumference() > half;
 			}
 		};
 

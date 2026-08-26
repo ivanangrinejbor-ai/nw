@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Catroid: An on-device visual programming system for Android devices
  * Copyright (C) 2010-2022 The Catrobat Team
  * (<http://developer.catrobat.org/credits>)
@@ -1257,6 +1257,7 @@ class ProjectOptionsFragment : Fragment() {
 
     private fun exportProject() {
         saveProject()
+        project?.let { org.catrobat.catroid.io.LookFileGarbageCollector().cleanUpUnusedLookFiles(it) }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             exportUsingSystemFilePicker()
         } else {
@@ -1350,10 +1351,11 @@ class ProjectOptionsFragment : Fragment() {
                 tempDir.mkdirs()
 
                 val projectDir = proj.directory
+                org.catrobat.catroid.io.LookFileGarbageCollector().cleanUpUnusedLookFiles(proj)
                 org.catrobat.catroid.io.AssetConverter.cleanupProjectDir(projectDir)
 
                 val zipFile = File(requireContext().cacheDir, proj.name + Constants.CATROBAT_EXTENSION)
-                org.catrobat.catroid.io.ZipArchiver().zip(zipFile, projectDir.listFiles() ?: emptyArray())
+                org.catrobat.catroid.io.ZipArchiver().zipDedup(zipFile, projectDir.listFiles() ?: emptyArray())
 
                 val destFile = File(Constants.DOWNLOAD_DIRECTORY, proj.name + Constants.CATROBAT_EXTENSION)
                 Constants.DOWNLOAD_DIRECTORY.mkdirs()
@@ -1454,6 +1456,7 @@ class ProjectOptionsFragment : Fragment() {
                 tempDir.mkdirs()
 
                 val projectDir = proj.directory
+                org.catrobat.catroid.io.LookFileGarbageCollector().cleanUpUnusedLookFiles(proj)
                 org.catrobat.catroid.io.AssetConverter.cleanupProjectDir(projectDir)
 
                 val result = org.catrobat.catroid.io.AssetConverter.convertProjectAssets(
@@ -1465,7 +1468,7 @@ class ProjectOptionsFragment : Fragment() {
                 )
 
                 val zipFile = File(requireContext().cacheDir, proj.name + Constants.CATROBAT_EXTENSION)
-                org.catrobat.catroid.io.ZipArchiver().zip(zipFile, projectDir.listFiles() ?: emptyArray())
+                org.catrobat.catroid.io.ZipArchiver().zipDedup(zipFile, projectDir.listFiles() ?: emptyArray())
 
                 val destFile = File(Constants.DOWNLOAD_DIRECTORY, proj.name + Constants.CATROBAT_EXTENSION)
                 Constants.DOWNLOAD_DIRECTORY.mkdirs()
@@ -2053,29 +2056,7 @@ class ProjectOptionsFragment : Fragment() {
     }
 
     fun zipDirectory(sourceDir: File, zipFile: File): File {
-        ZipOutputStream(FileOutputStream(zipFile)).use { zipOut ->
-            zipOut.setLevel(1)
-            sourceDir.walk().filter { it != sourceDir }.forEach { file ->
-                if(file.name != "undo_code.xml") {
-                    val entryPath = file.relativeTo(sourceDir).path
-                    val zipEntry = if (file.isDirectory) {
-                        ZipEntry("$entryPath/")
-                    } else {
-                        ZipEntry(entryPath)
-                    }
-                    zipOut.putNextEntry(zipEntry)
-
-                    if (file.isFile) {
-                        FileInputStream(file).use { fis ->
-                            fis.copyTo(zipOut, 8192)
-                        }
-                    }
-
-                    zipOut.closeEntry()
-                }
-            }
-        }
-
+        org.catrobat.catroid.io.ZipArchiver().zipDedup(zipFile, sourceDir.listFiles() ?: emptyArray())
         return zipFile
     }
 

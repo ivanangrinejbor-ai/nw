@@ -31,7 +31,6 @@ class AiAgentSettingsFragment : PreferenceFragment() {
         setupClearHistory()
         setupClearMemory()
         setupToolHistory()
-        setupTemperature()
         setupReasoningLevel()
         setupMaxContext()
         setupMaxToolCalls()
@@ -137,20 +136,6 @@ class AiAgentSettingsFragment : PreferenceFragment() {
             val level = newValue as? String ?: return@setOnPreferenceChangeListener true
             AiPreferences.setReasoningLevel(level)
             pref.value = level
-            true
-        }
-    }
-
-    private fun setupTemperature() {
-        val pref = findPreference("ai_agent_temperature") as? EditTextPreference
-        pref?.onPreferenceChangeListener = Preference.OnPreferenceChangeListener { _, newValue ->
-            val v = (newValue as? String)?.toFloatOrNull() ?: return@OnPreferenceChangeListener true
-            val clamped = v.coerceIn(0.0f, 2.0f)
-            AiPreferences.setTemperature(clamped)
-            if (v != clamped) {
-                pref.text = "%.1f".format(clamped)
-                Toast.makeText(activity, "Temperature clamped to %.1f (0.0..2.0)".format(clamped), Toast.LENGTH_SHORT).show()
-            }
             true
         }
     }

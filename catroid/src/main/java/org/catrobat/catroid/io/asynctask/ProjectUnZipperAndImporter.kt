@@ -233,6 +233,7 @@ private fun ProjectUnZipperAndImporter.unzipAndImportProject(projectZipFile: Fil
             }
         })
         if (fileToUnzip != projectZipFile) { fileToUnzip.delete() }
+        org.catrobat.catroid.io.DedupManifestApplier.apply(cachedProjectDir)
 
         try {
             org.catrobat.catroid.utils.MatryoshkaManager.unpackIfMatryoshka(cachedProjectDir)

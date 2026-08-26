@@ -99,6 +99,7 @@ public class PhysicsWorld {
 	private final float activeAreaWidthFactor;
 	private final float activeAreaHeightFactor;
 	private final Vector2 activeArea;
+	private final Vector2 activeAreaCenter = new Vector2(0.0f, 0.0f);
 	private final Vector2 gravityTemp = new Vector2();
 
 	private Box2DDebugRenderer renderer;
@@ -147,6 +148,18 @@ public class PhysicsWorld {
 
 	public Vector2 getActiveArea() {
 		return activeArea;
+	}
+
+	public void setActiveAreaCenter(float x, float y) {
+		activeAreaCenter.set(x, y);
+	}
+
+	public float getActiveAreaCenterX() {
+		return activeAreaCenter.x;
+	}
+
+	public float getActiveAreaCenterY() {
+		return activeAreaCenter.y;
 	}
 
 	public void setBounceOnce(Sprite sprite, PhysicsBoundaryBox.BoundaryBoxIdentifier boundaryBoxIdentifier) {

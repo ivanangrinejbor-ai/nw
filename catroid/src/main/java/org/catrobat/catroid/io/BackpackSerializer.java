@@ -63,15 +63,25 @@ public final class BackpackSerializer {
 
 	public boolean saveBackpack(Backpack backpack) {
 		FileWriter writer = null;
+		File tmpFile = new File(backpackFile.getParentFile(), backpackFile.getName() + ".tmp");
 		String json = backpackGson.toJson(backpack);
 
 		try {
-			backpackFile.createNewFile();
-			writer = new FileWriter(backpackFile);
+			tmpFile.createNewFile();
+			writer = new FileWriter(tmpFile);
 			writer.write(json);
+			writer.close();
+			writer = null;
+			if (backpackFile.exists()) {
+				backpackFile.delete();
+			}
+			if (!tmpFile.renameTo(backpackFile)) {
+				throw new IOException("Could not move " + tmpFile.getName() + " to " + backpackFile.getName());
+			}
 			return true;
 		} catch (IOException e) {
 			Log.e(TAG, Log.getStackTraceString(e));
+			tmpFile.delete();
 			return false;
 		} finally {
 			if (writer != null) {

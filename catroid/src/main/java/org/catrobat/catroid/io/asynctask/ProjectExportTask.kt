@@ -35,7 +35,7 @@ class ProjectExportTask(
             cacheFile.delete()
         }
         try {
-            ZipArchiver().zip(cacheFile, projectDir.listFiles() ?: emptyArray())
+            ZipArchiver().zipDedup(cacheFile, projectDir.listFiles() ?: emptyArray())
 
             if (password != null && password.isNotEmpty()) {
                 val encryptedFile = File(Constants.CACHE_DIRECTORY, "$projectFileName.enc")

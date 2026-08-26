@@ -24,14 +24,27 @@ package org.catrobat.catroid.content.actions;
 
 import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction;
 
-import org.catrobat.catroid.audio.AudioServiceHolder;
 import org.catrobat.catroid.audio.MidiServiceHolder;
+import org.catrobat.catroid.io.SoundManager;
+import org.catrobat.catroid.content.bricks.Sound_StopAllBrick;
 
 public class Sound_StopAllAction extends TemporalAction {
 
+	private long replayBlockMillis = 3000L;
+
+	public void setReplayMode(int replayMode) {
+		if (replayMode == Sound_StopAllBrick.MODE_NEVER_REPLAY) {
+			replayBlockMillis = Long.MAX_VALUE;
+		} else if (replayMode == Sound_StopAllBrick.MODE_WAIT_3_SECONDS) {
+			replayBlockMillis = 3000L;
+		} else {
+			replayBlockMillis = 0L;
+		}
+	}
+
 	@Override
 	protected void update(float percent) {
-		AudioServiceHolder.audioService.stopAllSounds();
+		SoundManager.getInstance().stopAllSounds(replayBlockMillis);
 		MidiServiceHolder.midiService.stopAllSounds();
 	}
 }

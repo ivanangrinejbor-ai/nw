@@ -204,9 +204,47 @@
 
     <!-- Physics States & Colliders -->
     <string-array name="editor_3d_physics_states">
+        <item>Нет</item>
         <item>Статическое (Неподвижное)</item>
-        <item>Кинематическое</item>
         <item>Динамическое (Физическое)</item>
+        <item>Статическая сетка (Trimesh)</item>
+        <item>Кинематическое</item>
+    </string-array>
+
+    <string-array name="editor_3d_easing_types">
+        <item>Линейный</item>
+        <item>Квадр. вх.</item>
+        <item>Квадр. вых.</item>
+        <item>Квадр. вх/вых</item>
+        <item>Куб. вх.</item>
+        <item>Куб. вых.</item>
+        <item>Куб. вх/вых</item>
+        <item>Кварт. вх.</item>
+        <item>Кварт. вых.</item>
+        <item>Кварт. вх/вых</item>
+        <item>Квинт. вх.</item>
+        <item>Квинт. вых.</item>
+        <item>Квинт. вх/вых</item>
+        <item>Син. вх.</item>
+        <item>Син. вых.</item>
+        <item>Син. вх/вых</item>
+        <item>Эксп. вх.</item>
+        <item>Эксп. вых.</item>
+        <item>Эксп. вх/вых</item>
+        <item>Окр. вх.</item>
+        <item>Окр. вых.</item>
+        <item>Окр. вх/вых</item>
+        <item>Упруг. вх.</item>
+        <item>Упруг. вых.</item>
+        <item>Упруг. вх/вых</item>
+        <item>Откат вх.</item>
+        <item>Откат вых.</item>
+        <item>Откат вх/вых</item>
+        <item>Отскок вх.</item>
+        <item>Отскок вых.</item>
+        <item>Отскок вх/вых</item>
+        <item>Плавн. шаг</item>
+        <item>Плавнейший шаг</item>
     </string-array>
 
     <!-- Light Types -->
@@ -214,16 +252,7 @@
     <string name="light_type_point">Точечный (Лампа)</string>
     <string name="light_type_spot">Прожектор (Фонарь)</string>
 
-    <!-- Keyframe Easing Types -->
-    <string-array name="editor_3d_easing_types">
-        <item>Линейное</item>
-        <item>Ускорение (In)</item>
-        <item>Замедление (Out)</item>
-        <item>Ускорение-Замедление (In-Out)</item>
-        <item>Эластичное в начале</item>
-        <item>Эластичное в конце</item>
-        <item>Отскок в конце</item>
-    </string-array>
+
 
     <!-- Post Processing Effects -->
     <string name="pp_effect_bloom">Свечение (Bloom)</string>
@@ -5088,6 +5117,8 @@
     <string formatted="false" name="brick_equalizer_band">полоса</string>
     <string formatted="false" name="brick_equalizer_gain">усиление</string>
     <string formatted="false" name="brick_sound_stop_all">остановить все звуки</string>
+    <string formatted="false" name="brick_stop_all_mode_replay_wait">воспроизвести через 3 сек</string>
+    <string formatted="false" name="brick_stop_all_mode_never_replay">больше не воспроизводить</string>
     <string formatted="false" name="brick_set_border_color">цвет границы</string>
     <string formatted="false" name="brick_set_border_width">толщина границы</string>
     <string formatted="false" name="brick_set_corner_radius">радиус скругления</string>
@@ -6486,4 +6517,139 @@ Catrobat — это визуальный язык программировани
     <string name="brick_tint_shader_amount" formatted="false">Интенсивность %</string>
     <string name="brick_set_look_by_name" formatted="false">Задать образ по имени</string>
     <string name="brick_set_look_by_name_default" formatted="false">образ1</string>
+    <!-- RU translations added 2026-08 -->
+    <!-- RU translations added 2026-08 -->
+    <string name="formula_editor_2_color_black">Чёрный</string>
+    <string name="formula_editor_2_color_blue">Синий</string>
+    <string name="formula_editor_2_color_cyan">Голубой</string>
+    <string name="formula_editor_2_color_fuchsia">Фуксия</string>
+    <string name="formula_editor_2_color_green">Зелёный</string>
+    <string name="formula_editor_2_color_orange">Оранжевый</string>
+    <string name="formula_editor_2_color_purple">Фиолетовый</string>
+    <string name="formula_editor_2_color_red">Красный</string>
+    <string name="formula_editor_2_color_white">Белый</string>
+    <string name="formula_editor_2_color_yellow">Жёлтый</string>
+    <string name="formula_editor_file_picker">Выбрать файл</string>
+    <string name="formula_editor_file_picker_title">Файлы проекта</string>
+    <string name="formula_editor_operator_concat">..</string>
+    <string name="formula_editor_unsaved_message">Формула изменена. Сохранить изменения?</string>
+    <string name="formula_editor_unsaved_title">Несохранённые изменения</string>
+    <string name="project_options_2_apply_resolution">Применить разрешение</string>
+    <string name="project_options_2_build_apk">Собрать APK (APK Builder V3)</string>
+    <string name="project_options_2_description_hint">Добавьте описание вашей игры/приложения…</string>
+    <string name="project_options_2_export_backup">Экспорт и резервные копии</string>
+    <string name="project_options_2_export_baked">Запечённый проект (.enc)</string>
+    <string name="project_options_2_export_password">Экспорт с паролем (.npc)</string>
+    <string name="project_options_2_export_protected">Экспортировать защищённый проект</string>
+    <string name="project_options_2_export_zip">Экспорт проекта (.catrobat / .zip)</string>
+    <string name="project_options_2_files_description">Просмотр и редактирование файлов скриптов и исходников в интерфейсе 2.0</string>
+    <string name="project_options_2_files_title">Файлы проекта 2.0</string>
+    <string name="project_options_2_full_export">Открыть полный экспорт и настройки</string>
+    <string name="project_options_2_info_saved">Информация сохранена!</string>
+    <string name="project_options_2_name_description">Название и описание</string>
+    <string name="project_options_2_open_files">Открыть файлы проекта 2.0</string>
+    <string name="project_options_2_project_description">Описание проекта:</string>
+    <string name="project_options_2_project_name">Название проекта:</string>
+    <string name="project_options_2_resolution_invalid">Разрешение должно быть от 64 до 8192</string>
+    <string name="project_options_2_resolution_set">Установлено разрешение %1$d x %1$d!</string>
+    <string name="project_options_2_save_name">Сохранить название и описание</string>
+    <string name="project_options_2_screen_resolution">Экран и разрешение</string>
+    <string name="project_options_2_title">Опции проекта 2.0</string>
+    <string name="project_options_2_virtual_resolution">Виртуальное разрешение сцены (Ш x В):</string>
+    <string name="scene_editor_2_3d_editor">3D-редактор</string>
+    <string name="scene_editor_2_add_look">Добавить образ</string>
+    <string name="scene_editor_2_add_sound">Добавить звук</string>
+    <string name="scene_editor_2_add_to_backpack">Добавить в рюкзак</string>
+    <string name="scene_editor_2_added_to_backpack">Объект добавлен в рюкзак!</string>
+    <string name="scene_editor_2_ai_assistant">ИИ-ассистент (Gemini Chat)</string>
+    <string name="scene_editor_2_app_settings">Настройки приложения</string>
+    <string name="scene_editor_2_backpack">Рюкзак</string>
+    <string name="scene_editor_2_backpack_failed">Не удалось добавить объект в рюкзак</string>
+    <string name="scene_editor_2_camera">Камера</string>
+    <string name="scene_editor_2_create_scene">Создать новую сцену</string>
+    <string name="scene_editor_2_debug_closed">Отладчик закрыт</string>
+    <string name="scene_editor_2_debug_opened">Отладчик 2.0 открыт!</string>
+    <string name="scene_editor_2_delete_look">Удалить образ</string>
+    <string name="scene_editor_2_delete_sound">Удалить звук</string>
+    <string name="scene_editor_2_file">Файл</string>
+    <string name="scene_editor_2_gallery">Галерея</string>
+    <string name="scene_editor_2_image_source_unavailable">Источник изображений недоступен</string>
+    <string name="scene_editor_2_inspector_title">Инспектор свойств: %1$s</string>
+    <string name="scene_editor_2_invalid_numbers">Некорректный ввод числа</string>
+    <string name="scene_editor_2_layer_order">Порядок слоёв (Z-index)</string>
+    <string name="scene_editor_2_layers_updated">Порядок слоёв обновлён!</string>
+    <string name="scene_editor_2_looks_title">Образы: %1$s</string>
+    <string name="scene_editor_2_manage_looks">Управление образами</string>
+    <string name="scene_editor_2_manage_sounds">Управление звуками</string>
+    <string name="scene_editor_2_no_looks">У этого объекта пока нет образов</string>
+    <string name="scene_editor_2_no_sounds">У этого объекта пока нет звуков</string>
+    <string name="scene_editor_2_object_actions">Действия с объектом</string>
+    <string name="scene_editor_2_object_name_hint">Имя объекта</string>
+    <string name="scene_editor_2_objects_title">Объекты</string>
+    <string name="scene_editor_2_paused">Пауза. Выберите действие на панели управления.</string>
+    <string name="scene_editor_2_pocket_paint">Pocket Paint</string>
+    <string name="scene_editor_2_project_files">Файлы проекта 2.0</string>
+    <string name="scene_editor_2_project_options">Опции проекта 2.0</string>
+    <string name="scene_editor_2_properties_applied">Свойства применены!</string>
+    <string name="scene_editor_2_property_inspector">Инспектор свойств (X, Y)</string>
+    <string name="scene_editor_2_recorder">Диктофон</string>
+    <string name="scene_editor_2_resumed">Воспроизведение продолжено.</string>
+    <string name="scene_editor_2_save_failed">Не удалось сохранить проект перед запуском</string>
+    <string name="scene_editor_2_scene_delete_failed">Не удалось удалить сцену</string>
+    <string name="scene_editor_2_scene_exists">Сцена с таким именем уже существует</string>
+    <string name="scene_editor_2_scene_management">Управление сценами</string>
+    <string name="scene_editor_2_sound_source_unavailable">Источник звуков недоступен</string>
+    <string name="scene_editor_2_sounds_title">Звуки: %1$s</string>
+    <string name="scene_editor_2_source_look">Добавить образ</string>
+    <string name="scene_editor_2_source_sound">Добавить звук</string>
+    <string name="scene_editor_2_stopped">Воспроизведение остановлено. Редактор разблокирован.</string>
+    <string name="scene_editor_create_empty_sprite">Новый спрайт</string>
+    <string name="scene_editor_from_library">Из библиотеки</string>
+    <string name="scene_editor_import_failed">Не удалось импортировать объект</string>
+    <string name="scene_editor_object_imported">Объект импортирован</string>
+    <string name="script_canvas_analysis_complete">Анализ завершён: найдено проблем: %1$d</string>
+    <string name="script_canvas_analysis_disabled">Анализ кода отключён в настройках</string>
+    <string name="script_canvas_cancel">Отмена</string>
+    <string name="script_canvas_choose_neoscript">Выберите модуль .neoscript</string>
+    <string name="script_canvas_create">Создать</string>
+    <string name="script_canvas_data_manager">Менеджер данных 2.0</string>
+    <string name="script_canvas_delete_confirm">Удалить \"%1$s\"?</string>
+    <string name="script_canvas_formula_updated">Формула обновлена!</string>
+    <string name="script_canvas_invalid_formula">Некорректная формула</string>
+    <string name="script_canvas_list_created">Список %1$s создан!</string>
+    <string name="script_canvas_list_name_hint">Имя списка</string>
+    <string name="script_canvas_local_lists">Списки: %1$s</string>
+    <string name="script_canvas_local_variables">Переменные: %1$s</string>
+    <string name="script_canvas_neoscript_import_error">Ошибка импорта NeoScript: %1$s</string>
+    <string name="script_canvas_neoscript_imported">Модуль NeoScript успешно импортирован!</string>
+    <string name="script_canvas_new_list">Новый список</string>
+    <string name="script_canvas_new_variable">Новая переменная</string>
+    <string name="script_canvas_no_global_lists">Нет глобальных списков</string>
+    <string name="script_canvas_no_global_variables">Нет глобальных переменных</string>
+    <string name="script_canvas_no_local_lists">Нет локальных списков</string>
+    <string name="script_canvas_no_local_variables">Нет локальных переменных</string>
+    <string name="script_canvas_no_scripts_to_export">Нет скриптов для экспорта</string>
+    <string name="script_canvas_object_list">Список объекта: %1$s</string>
+    <string name="script_canvas_object_list_name_hint">Имя списка объекта</string>
+    <string name="script_canvas_object_list_title">Список объекта: %1$s</string>
+    <string name="script_canvas_object_variable">Переменная объекта: %1$s</string>
+    <string name="script_canvas_object_variable_name_hint">Имя переменной объекта</string>
+    <string name="script_canvas_object_variable_title">Переменная объекта: %1$s</string>
+    <string name="script_canvas_project_list">Список проекта (глобальный)</string>
+    <string name="script_canvas_project_lists">Списки проекта</string>
+    <string name="script_canvas_project_variable">Переменная проекта (глобальная)</string>
+    <string name="script_canvas_project_variables">Переменные проекта</string>
+    <string name="script_canvas_variable_created">Переменная %1$s создана!</string>
+    <string name="script_canvas_variable_name_hint">Имя переменной</string>
+    <string name="ui2_panel_project_files">Файлы проекта 2.0</string>
+    <string name="ui2_panel_project_options">Опции проекта 2.0</string>    <string name="subcategory_shader_presets">Готовые эффекты</string>
+    <string formatted="false" name="brick_dissolve_shader">Растворение (сгорание)</string>
+    <string name="dissolve_shader_progress">Прогресс %</string>
+    <string formatted="false" name="brick_wave_shader">Искажение волнами</string>
+    <string name="wave_shader_amplitude">Амплитуда %</string>
+    <string formatted="false" name="brick_crt_shader">Эффект ЭЛТ-экрана</string>
+    <string name="crt_shader_intensity">Интенсивность %</string>    <string name="subcategory_shaders_3d">Шейдеры</string>
+    <string formatted="false" name="brick_sprite_dissolve_shader">Растворение спрайта</string>
+    <string formatted="false" name="brick_sprite_wave_shader">Волны спрайта</string>
+    <string name="wave_phase_degrees">Фаза (град)</string>
 </resources>

@@ -40,20 +40,32 @@ class DarkGrayscaleShaderAction : TemporalAction() {
         val h = src.height
         if (w <= 0 || h <= 0) return
 
-        val dst = Pixmap(w, h, src.format)
+        var work = src
+        var converted = false
+        if (src.format != Pixmap.Format.RGBA8888) {
+            work = Pixmap(w, h, Pixmap.Format.RGBA8888)
+            work.drawPixmap(src, 0, 0)
+            converted = true
+        }
+
+        val dst = Pixmap(w, h, Pixmap.Format.RGBA8888)
         val temp = Color()
 
         for (y in 0 until h) {
             for (x in 0 until w) {
-                Color.argb8888ToColor(temp, src.getPixel(x, y))
+                val pixel = work.getPixel(x, y)
+                Color.rgba8888ToColor(temp, pixel)
                 val gray = (temp.r * 0.299f + temp.g * 0.587f + temp.b * 0.114f) * 0.45f
                 temp.r = gray
                 temp.g = gray
                 temp.b = gray
-                dst.drawPixel(x, y, Color.argb8888(temp))
+                var out = Color.rgba8888(temp)
+                out = (out and 0x00FFFFFF) or (pixel and 0xFF000000.toInt())
+                dst.drawPixel(x, y, out)
             }
         }
 
+        if (converted) work.dispose()
         val oldTex = lookData.textureRegion
         lookData.setPixmap(dst)
         lookData.setTextureRegion(TextureRegion(Texture(dst)))

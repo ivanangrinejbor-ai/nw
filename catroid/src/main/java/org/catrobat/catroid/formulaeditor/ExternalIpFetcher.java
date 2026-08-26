@@ -9,6 +9,7 @@ public final class ExternalIpFetcher {
 
 	private static final String TAG = ExternalIpFetcher.class.getSimpleName();
 	private static final long CACHE_TTL_MILLIS = 10 * 60 * 1000L;
+	private static final long FAILURE_TTL_MILLIS = 30 * 1000L;
 
 	private static String cachedIp = "Unknown";
 	private static long cachedAt = 0L;
@@ -19,6 +20,12 @@ public final class ExternalIpFetcher {
 	public static synchronized String getExternalIp() {
 		long now = System.currentTimeMillis();
 		if (!cachedIp.equals("Unknown") && now - cachedAt < CACHE_TTL_MILLIS) {
+			return cachedIp;
+		}
+		if (cachedIp.equals("Unknown") && now - cachedAt < FAILURE_TTL_MILLIS) {
+			return cachedIp;
+		}
+		if (android.os.Looper.myLooper() == android.os.Looper.getMainLooper()) {
 			return cachedIp;
 		}
 		String result = "Unknown";

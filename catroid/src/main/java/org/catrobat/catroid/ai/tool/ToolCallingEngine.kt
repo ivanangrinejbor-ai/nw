@@ -60,6 +60,7 @@ object ToolCallingEngine {
         registerTool(SceneObjectListTool())
         registerTool(ReadSceneTool())
         registerTool(ReadObjectTool())
+        registerTool(ReadBackgroundTool())
         registerTool(ReadScriptTool())
         registerTool(SearchVariableTool())
         registerTool(SearchBroadcastTool())
@@ -296,6 +297,62 @@ object ToolCallingEngine {
         } else null
     }
 
+    private val backgroundAliases = setOf("background", "bg", "stage", "фон", "задний фон", "задний_план")
+
+    fun resolveSprite(scene: Scene, name: String?): Sprite? {
+        if (name.isNullOrBlank()) return null
+        val trimmed = name.trim()
+        scene.spriteList.firstOrNull { it.name == trimmed }?.let { return it }
+        scene.spriteList.firstOrNull { it.name.equals(trimmed, ignoreCase = true) }?.let { return it }
+        val lower = trimmed.lowercase()
+        val localizedBackground = try {
+            context?.getString(org.catrobat.catroid.R.string.background)?.lowercase()
+        } catch (_: Exception) { null }
+        if (lower in backgroundAliases || lower == localizedBackground) {
+            return scene.backgroundSprite
+        }
+        if (lower.length >= 3) {
+            return scene.spriteList.firstOrNull { it.name?.lowercase()?.contains(lower) == true }
+        }
+        return null
+    }
+
+    private fun objectNotFoundError(scene: Scene, name: String): String =
+        "Object '$name' not found in scene '${scene.name}'. Available objects: " +
+            scene.spriteList.joinToString(", ") {
+                val marker = if (it === scene.backgroundSprite) " (background)" else ""
+                "'${it.name}'$marker"
+            }
+
+    private fun describeSprite(sprite: Sprite, sceneName: String): String = buildString {
+        appendLine("Object: ${sprite.name}  (scene '$sceneName')")
+        appendLine("Looks (${sprite.lookList.size}):")
+        if (sprite.lookList.isEmpty()) appendLine("  (none)")
+        for (look in sprite.lookList) {
+            appendLine("  - '${look.name}' [file: ${look.fileName ?: "?"}]")
+        }
+        appendLine("Sounds (${sprite.soundList.size}):")
+        if (sprite.soundList.isEmpty()) appendLine("  (none)")
+        for (sound in sprite.soundList) {
+            appendLine("  - '${sound.name}' [file: ${sound.fileName ?: "?"}]")
+        }
+        if (sprite.userVariables.isNotEmpty()) {
+            appendLine("Local variables (${sprite.userVariables.size}): " +
+                sprite.userVariables.joinToString(", ") { it.name ?: "?" })
+        }
+        if (sprite.userLists.isNotEmpty()) {
+            appendLine("Local lists (${sprite.userLists.size}): " +
+                sprite.userLists.joinToString(", ") { it.name ?: "?" })
+        }
+        appendLine("Scripts (${sprite.scriptList.size}):")
+        for ((i, script) in sprite.scriptList.withIndex()) {
+            appendLine("  Script $i: ${script::class.java.simpleName}")
+            for ((j, brick) in script.getBrickList().withIndex()) {
+                appendLine("    Brick $j: ${describeBrick(brick)}")
+            }
+        }
+    }
+
     fun describeBrick(brick: Brick): String {
         val type = brick::class.java.simpleName
         val fields = mutableListOf<String>()
@@ -382,37 +439,25 @@ object ToolCallingEngine {
             val objectName = args["object"] ?: return ToolResult(false, "Missing 'object' argument", "")
             val scene = project.sceneList.find { it.name == sceneName }
                 ?: return ToolResult(false, "Scene '$sceneName' not found", "")
-            val sprite = scene.spriteList.find { it.name == objectName }
-                ?: return ToolResult(false, "Object '$objectName' not found", "")
-            val info = buildString {
-                appendLine("Object: ${sprite.name}  (scene '$sceneName')")
-                appendLine("Looks (${sprite.lookList.size}):")
-                if (sprite.lookList.isEmpty()) appendLine("  (none)")
-                for (look in sprite.lookList) {
-                    appendLine("  - '${look.name}' [file: ${look.fileName ?: "?"}]")
-                }
-                appendLine("Sounds (${sprite.soundList.size}):")
-                if (sprite.soundList.isEmpty()) appendLine("  (none)")
-                for (sound in sprite.soundList) {
-                    appendLine("  - '${sound.name}' [file: ${sound.fileName ?: "?"}]")
-                }
-                if (sprite.userVariables.isNotEmpty()) {
-                    appendLine("Local variables (${sprite.userVariables.size}): " +
-                        sprite.userVariables.joinToString(", ") { it.name ?: "?" })
-                }
-                if (sprite.userLists.isNotEmpty()) {
-                    appendLine("Local lists (${sprite.userLists.size}): " +
-                        sprite.userLists.joinToString(", ") { it.name ?: "?" })
-                }
-                appendLine("Scripts (${sprite.scriptList.size}):")
-                for ((i, script) in sprite.scriptList.withIndex()) {
-                    appendLine("  Script $i: ${script::class.java.simpleName}")
-                    for ((j, brick) in script.getBrickList().withIndex()) {
-                        appendLine("    Brick $j: ${describeBrick(brick)}")
-                    }
-                }
-            }
-            return ToolResult(true, info, "")
+            val sprite = resolveSprite(scene, objectName)
+                ?: return ToolResult(false, objectNotFoundError(scene, objectName), "")
+            return ToolResult(true, describeSprite(sprite, sceneName), "")
+        }
+    }
+
+    class ReadBackgroundTool : Tool {
+        override val name = "readBackground"
+        override val description = "Read the BACKGROUND (stage) object of a scene: its looks, sounds and ALL its scripts with bricks. The background may have a localized name ('Background'/'Фон') — this tool resolves it automatically regardless of its name. Use it instead of guessing the background object's name."
+        override val parameters = listOf(ToolParameter("scene", ParameterType.STRING, "Scene name"))
+
+        override suspend fun execute(args: Map<String, String>): ToolResult {
+            val project = ProjectManager.getInstance().currentProject ?: return ToolResult(false, "No project open", "")
+            val sceneName = args["scene"] ?: return ToolResult(false, "Missing 'scene' argument", "")
+            val scene = project.sceneList.find { it.name == sceneName }
+                ?: return ToolResult(false, "Scene '$sceneName' not found", "")
+            val sprite = scene.backgroundSprite
+                ?: return ToolResult(false, "Scene '$sceneName' has no background object", "")
+            return ToolResult(true, describeSprite(sprite, sceneName), "")
         }
     }
 
@@ -432,10 +477,11 @@ object ToolCallingEngine {
             val index = args["index"]?.toIntOrNull() ?: return ToolResult(false, "Missing valid 'index' argument", "")
             val scene = project.sceneList.find { it.name == sceneName }
                 ?: return ToolResult(false, "Scene '$sceneName' not found", "")
-            val sprite = scene.spriteList.find { it.name == objectName }
-                ?: return ToolResult(false, "Object '$objectName' not found", "")
+            val sprite = resolveSprite(scene, objectName)
+                ?: return ToolResult(false, objectNotFoundError(scene, objectName), "")
             val script = sprite.scriptList.getOrNull(index)
-                ?: return ToolResult(false, "Script index $index not found", "")
+                ?: return ToolResult(false,
+                    "Script index $index not found (object has ${sprite.scriptList.size} scripts)", "")
             val info = buildString {
                 appendLine("Script $index: ${script::class.java.simpleName}")
                 for ((j, brick) in script.getBrickList().withIndex()) {
@@ -953,8 +999,8 @@ object ToolCallingEngine {
             val objectName = args["object"] ?: return ToolResult(false, "Missing 'object' argument", "")
             val scene = project.sceneList.find { it.name == sceneName }
                 ?: return ToolResult(false, "Scene '$sceneName' not found", "")
-            val sprite = scene.spriteList.find { it.name == objectName }
-                ?: return ToolResult(false, "Object '$objectName' not found", "")
+            val sprite = resolveSprite(scene, objectName)
+                ?: return ToolResult(false, objectNotFoundError(scene, objectName), "")
 
             val script = BrickFactory.createScript(args["scriptType"])
             val bricksText = args["bricks"].orEmpty()
@@ -1255,9 +1301,11 @@ object ToolCallingEngine {
             val lookName = args["lookName"] ?: "AiLook_${System.currentTimeMillis() % 1000}"
 
             val project = ProjectManager.getInstance().currentProject ?: return ToolResult(false, "No active project", "")
-            val scene = project.sceneList.firstOrNull { s -> s.spriteList.any { it.name == targetSpriteName } }
-                ?: return ToolResult(false, "Sprite '$targetSpriteName' not found", "")
-            val sprite = scene.spriteList.find { it.name == targetSpriteName }!!
+            val scene = project.sceneList.firstOrNull { s -> resolveSprite(s, targetSpriteName) != null }
+                ?: return ToolResult(false,
+                    "Sprite '$targetSpriteName' not found in any scene. " +
+                        "For the background use object name 'background' or call listObjects first.", "")
+            val sprite = resolveSprite(scene, targetSpriteName)!!
 
             val bitmap = android.graphics.Bitmap.createBitmap(256, 256, android.graphics.Bitmap.Config.ARGB_8888)
             val canvas = android.graphics.Canvas(bitmap)
@@ -1400,7 +1448,7 @@ object ToolCallingEngine {
             val projectDir = project.directory ?: return ToolResult(false, "Project has no directory", "")
             withContext(Dispatchers.IO) {
                 if (outFile.exists()) outFile.delete()
-                ZipArchiver().zip(outFile, projectDir.listFiles() ?: emptyArray())
+                ZipArchiver().zipDedup(outFile, projectDir.listFiles() ?: emptyArray())
             }
             return ToolResult(true, "Exported project '${project.name}' as $format bundle to ${outFile.absolutePath}.", "")
         }

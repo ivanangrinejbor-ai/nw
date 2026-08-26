@@ -153,19 +153,17 @@ class AiAgentManager private constructor() {
     private suspend fun generate(
         systemPrompt: String,
         userContent: String,
-        temperature: Float,
         maxTokens: Int
     ): Pair<String, String?> {
         if (AiPreferences.isLocalBackend() && ModelRuntime.isModelLoaded()) {
             val modelId = AiPreferences.getSelectedModelId()
             val raw = modelRuntime.generate(
                 applyLocalChatTemplate(systemPrompt, truncateForLocalBackend(userContent), modelId),
-                temperature,
                 maxTokens = LOCAL_MAX_GEN_TOKENS
             )
             return splitThinkBlock(raw)
         }
-        val result = cloudRuntime.generateWithMeta(systemPrompt, userContent, temperature, maxTokens = maxTokens.coerceIn(256, 8192))
+        val result = cloudRuntime.generateWithMeta(systemPrompt, userContent, maxTokens = maxTokens.coerceIn(256, 8192))
         return result.content to result.reasoning
     }
 
@@ -210,7 +208,6 @@ class AiAgentManager private constructor() {
                 var malformedStreak = 0
                 var iteration = 0
 
-                val temperature = AiPreferences.getTemperature()
                 val maxTokens = AiPreferences.getMaxContext()
 
                 while (iteration < maxRounds) {
@@ -218,7 +215,6 @@ class AiAgentManager private constructor() {
                     val (response, reasoning) = generate(
                         systemPrompt,
                         userContent,
-                        temperature = temperature,
                         maxTokens = maxTokens
                     )
                     if (!reasoning.isNullOrBlank()) {
@@ -279,7 +275,6 @@ class AiAgentManager private constructor() {
                     generate(
                         systemPrompt,
                         userContent,
-                        temperature = temperature,
                         maxTokens = maxTokens
                     )
                 }

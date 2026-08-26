@@ -188,24 +188,52 @@
     <string name="action_exit">Exit</string>
 
     <string-array name="editor_3d_physics_states">
+        <item>None</item>
         <item>Static</item>
-        <item>Kinematic</item>
         <item>Dynamic</item>
+        <item>Mesh Static (Trimesh)</item>
+        <item>Kinematic</item>
+    </string-array>
+
+    <string-array name="editor_3d_easing_types">
+        <item>Linear</item>
+        <item>Quad Ease In</item>
+        <item>Quad Ease Out</item>
+        <item>Quad Ease In Out</item>
+        <item>Cubic Ease In</item>
+        <item>Cubic Ease Out</item>
+        <item>Cubic Ease In Out</item>
+        <item>Quart Ease In</item>
+        <item>Quart Ease Out</item>
+        <item>Quart Ease In Out</item>
+        <item>Quint Ease In</item>
+        <item>Quint Ease Out</item>
+        <item>Quint Ease In Out</item>
+        <item>Sine Ease In</item>
+        <item>Sine Ease Out</item>
+        <item>Sine Ease In Out</item>
+        <item>Expo Ease In</item>
+        <item>Expo Ease Out</item>
+        <item>Expo Ease In Out</item>
+        <item>Circ Ease In</item>
+        <item>Circ Ease Out</item>
+        <item>Circ Ease In Out</item>
+        <item>Elastic Ease In</item>
+        <item>Elastic Ease Out</item>
+        <item>Elastic Ease In Out</item>
+        <item>Back Ease In</item>
+        <item>Back Ease Out</item>
+        <item>Back Ease In Out</item>
+        <item>Bounce Ease In</item>
+        <item>Bounce Ease Out</item>
+        <item>Bounce Ease In Out</item>
+        <item>Smooth Step</item>
+        <item>Smoother Step</item>
     </string-array>
 
     <string name="light_type_directional">Directional</string>
     <string name="light_type_point">Point</string>
     <string name="light_type_spot">Spot</string>
-
-    <string-array name="editor_3d_easing_types">
-        <item>Linear</item>
-        <item>Ease In</item>
-        <item>Ease Out</item>
-        <item>Ease In-Out</item>
-        <item>Elastic In</item>
-        <item>Elastic Out</item>
-        <item>Bounce Out</item>
-    </string-array>
 
     <string name="pp_effect_bloom">Bloom</string>
     <string name="pp_effect_vignette">Vignette</string>
@@ -3925,6 +3953,8 @@
 <string formatted="false" name="brick_equalizer_band">band</string>
 <string formatted="false" name="brick_equalizer_gain">gain</string>
 <string formatted="false" name="brick_sound_stop_all">stop all sounds</string>
+    <string formatted="false" name="brick_stop_all_mode_replay_wait">replay after 3 s</string>
+    <string formatted="false" name="brick_stop_all_mode_never_replay">never replay</string>
 <string formatted="false" name="brick_set_border_color">set border color</string>
 <string formatted="false" name="brick_set_border_width">set border width</string>
 <string formatted="false" name="brick_set_corner_radius">set corner radius</string>
@@ -5675,5 +5705,14 @@ needs read and write access to it. You can always change permissions through you
     <string name="brick_tint_shader_blue" formatted="false">Blue</string>
     <string name="brick_tint_shader_amount" formatted="false">Intensity %</string>
     <string name="brick_set_look_by_name" formatted="false">Switch to look by name</string>
-    <string name="brick_set_look_by_name_default" formatted="false">look1</string>
+    <string name="brick_set_look_by_name_default" formatted="false">look1</string>    <string name="subcategory_shader_presets">Presets</string>
+    <string formatted="false" name="brick_dissolve_shader">Dissolve effect (burn out)</string>
+    <string name="dissolve_shader_progress">Progress %</string>
+    <string formatted="false" name="brick_wave_shader">Wave distortion</string>
+    <string name="wave_shader_amplitude">Amplitude %</string>
+    <string formatted="false" name="brick_crt_shader">CRT screen effect</string>
+    <string name="crt_shader_intensity">Intensity %</string>    <string name="subcategory_shaders_3d">Shaders</string>
+    <string formatted="false" name="brick_sprite_dissolve_shader">Sprite dissolve (burn)</string>
+    <string formatted="false" name="brick_sprite_wave_shader">Sprite wave</string>
+    <string name="wave_phase_degrees">Phase (deg)</string>
 </resources>

@@ -57,6 +57,8 @@ import org.catrobat.catroid.codeanalysis.CodeAnalyzer;
 import org.catrobat.catroid.codeanalysis.Severity;
 import org.catrobat.catroid.common.ScreenValues;
 import org.catrobat.catroid.content.BrickInfo;
+import org.catrobat.catroid.common.LookData;
+import org.catrobat.catroid.common.SoundInfo;
 import org.catrobat.catroid.content.Project;
 import org.catrobat.catroid.content.Scene;
 import org.catrobat.catroid.content.Script;
@@ -67,6 +69,7 @@ import org.catrobat.catroid.content.bricks.EmptyEventBrick;
 import org.catrobat.catroid.content.bricks.FormulaBrick;
 import org.catrobat.catroid.content.bricks.PlaySoundAndWaitBrick;
 import org.catrobat.catroid.content.bricks.PlaySoundBrick;
+import org.catrobat.catroid.content.bricks.SetLookBrick;
 import org.catrobat.catroid.content.bricks.ScriptBrick;
 import org.catrobat.catroid.content.bricks.UserDefinedBrick;
 import org.catrobat.catroid.content.bricks.UserDefinedReceiverBrick;
@@ -314,6 +317,7 @@ public class ScriptFragment extends ListFragment implements
 	private void handleContextualAction() {
 		if (adapter.isEmpty()) {
 			actionMode.finish();
+			return;
 		}
 
 		switch (actionModeType) {
@@ -589,9 +593,13 @@ public class ScriptFragment extends ListFragment implements
 			public void run() {
 				if (!isAdded()) return;
 				if (adapter != null) {
-					Sprite sprite = ProjectManager.getInstance().getCurrentSprite();
-					if (sprite != null) {
-						adapter.updateItems(sprite);
+					boolean interactionInProgress = actionModeType != NONE
+							|| (listView != null && listView.isCurrentlyMoving());
+					if (!interactionInProgress) {
+						Sprite sprite = ProjectManager.getInstance().getCurrentSprite();
+						if (sprite != null) {
+							adapter.updateItems(sprite);
+						}
 					}
 				}
 				aiHandler.postDelayed(this, AI_INTERVAL_MS);
@@ -623,25 +631,38 @@ public class ScriptFragment extends ListFragment implements
         Sprite currentSprite = ProjectManager.getInstance().getCurrentSprite();
         if (currentSprite == null) return;
 
+        final List<Script> scriptSnapshot = new ArrayList<>(currentSprite.getScriptList());
+        final int analysisGeneration = ++codeAnalysisGeneration;
+
         BuildersKt.launch(GlobalScope.INSTANCE, Dispatchers.getIO(), CoroutineStart.DEFAULT, (scope, continuation) -> {
-            final Map<Brick, AnalysisResult> allResults = new HashMap<>();
+            try {
+                final Map<Brick, AnalysisResult> allResults = new HashMap<>();
 
-            codeAnalyzer.getAiRule().reanalyze();
-            for (Script script : currentSprite.getScriptList()) {
-                Map<Brick, AnalysisResult> scriptResults = codeAnalyzer.analyzeScriptWithAi(script);
-                allResults.putAll(scriptResults);
-            }
+                codeAnalyzer.getAiRule().reanalyze();
+                for (Script script : scriptSnapshot) {
+                    List<Brick> brickSnapshot = new ArrayList<>(script.getBrickList());
+                    Map<Brick, AnalysisResult> scriptResults =
+                            codeAnalyzer.analyzeScriptWithAi(brickSnapshot, script);
+                    allResults.putAll(scriptResults);
+                }
 
-            AnalysisManager.INSTANCE.updateResults(allResults);
+                if (analysisGeneration != codeAnalysisGeneration) {
+                    return kotlin.Unit.INSTANCE;
+                }
 
+                AnalysisManager.INSTANCE.updateResults(allResults);
 
-            if (getActivity() != null) {
-                getActivity().runOnUiThread(() -> {
-                    if (adapter != null) {
-                        adapter.notifyDataSetChanged();
-                    }
-                    updateAnalysisIndicator();
-                });
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        if (analysisGeneration != codeAnalysisGeneration) return;
+                        if (adapter != null) {
+                            adapter.notifyDataSetChanged();
+                        }
+                        updateAnalysisIndicator();
+                    });
+                }
+            } catch (Exception exception) {
+                Log.e(TAG, "Code analysis failed", exception);
             }
             return kotlin.Unit.INSTANCE;
         });
@@ -798,10 +819,25 @@ public class ScriptFragment extends ListFragment implements
 		if (adapter.getCount() == 1) {
 			switch (type) {
 				case COPY:
+					if (ProjectManager.getInstance().getCurrentProject().isProtectedProject()) {
+						ToastUtil.showError(getContext(), R.string.protected_project_cannot_edit);
+						break;
+					}
+					boolean hasLocked = false;
+					for (Brick brickItem : adapter.getItems()) {
+						if (brickItem.isLocked()) {
+							hasLocked = true;
+							break;
+						}
+					}
+					if (hasLocked) {
+						ToastUtil.showError(getContext(), R.string.brick_locked);
+						break;
+					}
 					copy(adapter.getItems());
 					break;
 				case DELETE:
-					delete(adapter.getItems());
+					showDeleteAlert(adapter.getItems());
 					break;
 				default:
 					startActionMode(type);
@@ -839,6 +875,9 @@ public class ScriptFragment extends ListFragment implements
 
 	@Override
 	public void onSelectionChanged(int selectedItemCnt) {
+		if (actionMode == null || actionModeType == NONE) {
+			return;
+		}
 		switch (actionModeType) {
 			case BACKPACK:
 				actionMode.setTitle(getString(R.string.am_backpack) + " " + selectedItemCnt);
@@ -1092,7 +1131,6 @@ public class ScriptFragment extends ListFragment implements
 			ToastUtil.showError(getContext(), R.string.brick_locked);
 			return;
 		}
-		showUndo(false);
 		switch (itemId) {
 			case R.string.backpack_add:
 				List<Brick> bricksToPack = new ArrayList<>();
@@ -1106,10 +1144,19 @@ public class ScriptFragment extends ListFragment implements
 				showLockDialog(brick, true);
 				break;
 			case R.string.brick_context_dialog_copy_brick:
-			case R.string.brick_context_dialog_copy_script:				try {
+			case R.string.brick_context_dialog_copy_script:
+				showUndo(false);
+				try {
 					Brick clonedBrick = brick.getAllParts().get(0).clone();
-					adapter.addItem(position, clonedBrick);
-					listView.startMoving(clonedBrick);
+					int currentPosition = adapter.getPosition(brick.getAllParts().get(0));
+					if (currentPosition < 0) {
+						currentPosition = position;
+					}
+					if (adapter.addItem(currentPosition, clonedBrick)) {
+						listView.startMoving(clonedBrick);
+					} else {
+						ToastUtil.showError(getContext(), R.string.brick_locked);
+					}
 				} catch (CloneNotSupportedException e) {
 					ToastUtil.showError(getContext(), R.string.error_copying_brick);
 					Log.e(TAG, Log.getStackTraceString(e));
@@ -1124,6 +1171,7 @@ public class ScriptFragment extends ListFragment implements
 				break;
 			case R.string.brick_context_dialog_comment_in:
 			case R.string.brick_context_dialog_comment_in_script:
+				showUndo(false);
 				for (Brick brickPart : brick.getAllParts()) {
 					brickPart.setCommentedOut(false);
 				}
@@ -1131,6 +1179,7 @@ public class ScriptFragment extends ListFragment implements
 				break;
 			case R.string.brick_context_dialog_comment_out:
 			case R.string.brick_context_dialog_comment_out_script:
+				showUndo(false);
 				for (Brick brickPart : brick.getAllParts()) {
 					brickPart.setCommentedOut(true);
 				}
@@ -1173,7 +1222,7 @@ case R.string.brick_context_dialog_system_info:
                 showDetailedSystemInfoDialog(brick);
                 break;
             case R.string.brick_context_dialog_cut:
-                if (copyProjectForUndoOption()) {
+                if (copyProjectForUndoOption(2000L)) {
                     showUndo(true);
                     setUndoBrickPosition(brick);
                 }
@@ -1212,7 +1261,9 @@ case R.string.brick_context_dialog_system_info:
 
         if (clonedBricks.isEmpty()) return;
 
-        if (copyProjectForUndoOption()) {
+        resolveBrickReferences(clonedBricks, sprite);
+
+        if (copyProjectForUndoOption(2000L)) {
             showUndo(true);
         }
 
@@ -1238,6 +1289,114 @@ case R.string.brick_context_dialog_system_info:
         }
 
         adapter.updateItems(sprite);
+    }
+
+    private void resolveBrickReferences(List<Brick> bricks, Sprite targetSprite) {
+        for (Brick brick : bricks) {
+            if (brick instanceof SetLookBrick) {
+                SetLookBrick setLookBrick = (SetLookBrick) brick;
+                LookData look = setLookBrick.getLook();
+                if (look != null) {
+                    for (LookData existing : targetSprite.getLookList()) {
+                        if (existing.getName() != null && existing.getName().equals(look.getName())) {
+                            setLookBrick.setLook(existing);
+                            break;
+                        }
+                    }
+                }
+            } else if (brick instanceof PlaySoundBrick) {
+                PlaySoundBrick soundBrick = (PlaySoundBrick) brick;
+                SoundInfo sound = soundBrick.getSound();
+                if (sound != null) {
+                    for (SoundInfo existing : targetSprite.getSoundList()) {
+                        if (existing.getName() != null && existing.getName().equals(sound.getName())) {
+                            soundBrick.setSound(existing);
+                            break;
+                        }
+                    }
+                }
+            } else if (brick instanceof PlaySoundAndWaitBrick) {
+                PlaySoundAndWaitBrick soundBrick = (PlaySoundAndWaitBrick) brick;
+                SoundInfo sound = soundBrick.getSound();
+                if (sound != null) {
+                    for (SoundInfo existing : targetSprite.getSoundList()) {
+                        if (existing.getName() != null && existing.getName().equals(sound.getName())) {
+                            soundBrick.setSound(existing);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (brick instanceof UserVariableBrickInterface) {
+                UserVariableBrickInterface varBrick = (UserVariableBrickInterface) brick;
+                UserVariable variable = varBrick.getUserVariable();
+                if (variable != null && variable.getName() != null) {
+                    UserVariable resolved = findUserVariableByName(targetSprite, variable.getName());
+                    if (resolved != null) {
+                        varBrick.setUserVariable(resolved);
+                    }
+                }
+            }
+
+            if (brick instanceof UserListBrick) {
+                UserListBrick listBrick = (UserListBrick) brick;
+                UserList userList = listBrick.getUserList();
+                if (userList != null && userList.getName() != null) {
+                    UserList resolved = findUserListByName(targetSprite, userList.getName());
+                    if (resolved != null) {
+                        listBrick.setUserList(resolved);
+                    }
+                }
+            }
+
+            if (brick instanceof CompositeBrick) {
+                CompositeBrick composite = (CompositeBrick) brick;
+                resolveBrickReferences(new ArrayList<>(composite.getNestedBricks()), targetSprite);
+                if (composite.hasSecondaryList()) {
+                    resolveBrickReferences(new ArrayList<>(composite.getSecondaryNestedBricks()), targetSprite);
+                }
+                if (brick instanceof org.catrobat.catroid.content.bricks.TryCatchFinallyBrick) {
+                    List<Brick> third = new ArrayList<>(
+                            ((org.catrobat.catroid.content.bricks.TryCatchFinallyBrick) brick).getThirdNestedBricks());
+                    resolveBrickReferences(third, targetSprite);
+                }
+            }
+        }
+    }
+
+    private UserVariable findUserVariableByName(Sprite sprite, String name) {
+        for (UserVariable variable : sprite.getUserVariables()) {
+            if (name.equals(variable.getName())) {
+                return variable;
+            }
+        }
+        Project project = ProjectManager.getInstance().getCurrentProject();
+        if (project != null) {
+            for (UserVariable variable : project.getUserVariables()) {
+                if (name.equals(variable.getName())) {
+                    return variable;
+                }
+            }
+        }
+        return null;
+    }
+
+    private UserList findUserListByName(Sprite sprite, String name) {
+        for (UserList list : sprite.getUserLists()) {
+            if (name.equals(list.getName())) {
+                return list;
+            }
+        }
+        Project project = ProjectManager.getInstance().getCurrentProject();
+        if (project != null) {
+            for (UserList list : project.getUserLists()) {
+                if (name.equals(list.getName())) {
+                    return list;
+                }
+            }
+        }
+        return null;
     }
 
     private void showClipboardHistoryDialog(Brick targetBrick) {
@@ -1396,6 +1555,8 @@ case R.string.brick_context_dialog_system_info:
 			switchToBackpack();
 		} catch (Exception e) {
 			Log.e(TAG, "Packing scripts failed", e);
+			ToastUtil.showError(getActivity(), e.getMessage() != null
+					? e.getMessage() : getString(R.string.error));
 		}
 
 		finishActionMode();
@@ -1454,12 +1615,24 @@ case R.string.brick_context_dialog_system_info:
 		Project project = ProjectManager.getInstance().getCurrentProject();
 		Sprite sprite = ProjectManager.getInstance().getCurrentSprite();
 
+		List<Script> scriptSnapshot = new ArrayList<>();
+		try {
+			for (Script script : scripts) {
+				scriptSnapshot.add(script.clone());
+			}
+		} catch (CloneNotSupportedException e) {
+			Log.e(TAG, "Failed to snapshot scripts for export", e);
+			showExportFailureDialog(e.getMessage());
+			return;
+		}
+		final List<Script> exportedScripts = scriptSnapshot;
+
 		ProgressDialog progress = ProgressDialog.show(getActivity(), null,
 				getString(R.string.please_wait), true, false);
 
 		new Thread(() -> {
 			try {
-				NeoScriptFile neoScriptFile = NeoScriptExporter.buildFromScripts(scripts, project, sprite);
+				NeoScriptFile neoScriptFile = NeoScriptExporter.buildFromScripts(exportedScripts, project, sprite);
 				File directory = new File(Constants.DOWNLOAD_DIRECTORY,
 						getString(R.string.save_script_folder));
 				if (!directory.exists() && !directory.mkdirs()) {
@@ -1588,7 +1761,7 @@ case R.string.brick_context_dialog_system_info:
 	}
 
 	private void proceedDelete(List<Brick> selectedBricks) {
-		if (selectedBricks.size() > 0 && copyProjectForUndoOption()) {
+		if (selectedBricks.size() > 0 && copyProjectForUndoOption(2000L)) {
 			showUndo(true);
 			undoBrickPosition = adapter.getPosition(selectedBricks.get(0));
 		}
@@ -1742,30 +1915,39 @@ case R.string.brick_context_dialog_system_info:
 					Runnable -> new Thread(Runnable, "UndoSnapshot"));
 	private final java.util.concurrent.atomic.AtomicBoolean undoSnapshotInFlight =
 			new java.util.concurrent.atomic.AtomicBoolean(false);
+	private int codeAnalysisGeneration = 0;
 
 	public boolean copyProjectForUndoOption() {
+		return copyProjectForUndoOption(0L);
+	}
+
+	public boolean copyProjectForUndoOption(long awaitMillis) {
 		ProjectManager projectManager = ProjectManager.getInstance();
 		Sprite currentSprite = projectManager.getCurrentSprite();
 		currentSpriteName = currentSprite.getName();
 		currentSceneName = projectManager.getCurrentlyEditedScene().getName();
 
+		Project project = projectManager.getCurrentProject();
+		File currentCodeFile = new File(project.getDirectory(), CODE_XML_FILE_NAME);
+		File undoCodeFile = new File(project.getDirectory(), UNDO_CODE_XML_FILE_NAME);
+
+		try {
+			if (currentCodeFile.exists()) {
+				StorageOperations.transferData(currentCodeFile, undoCodeFile);
+				saveVariables();
+			}
+		} catch (Exception exception) {
+			Log.e(TAG, "Undo snapshot failed.", exception);
+		}
+
 		if (!undoSnapshotInFlight.compareAndSet(false, true)) {
 			return true;
 		}
-
 		UNDO_SNAPSHOT_EXECUTOR.execute(() -> {
 			try {
-				Project project = projectManager.getCurrentProject();
 				XstreamSerializer.getInstance().saveProject(project);
-				File currentCodeFile = new File(project.getDirectory(), CODE_XML_FILE_NAME);
-				File undoCodeFile = new File(project.getDirectory(), UNDO_CODE_XML_FILE_NAME);
-
-				if (currentCodeFile.exists()) {
-					StorageOperations.transferData(currentCodeFile, undoCodeFile);
-					saveVariables();
-				}
 			} catch (Exception exception) {
-				Log.e(TAG, "Undo snapshot failed.", exception);
+				Log.e(TAG, "Undo snapshot save failed.", exception);
 			} finally {
 				undoSnapshotInFlight.set(false);
 			}
@@ -1872,7 +2054,13 @@ case R.string.brick_context_dialog_system_info:
 	}
 
 	private void refreshFragmentAfterUndo() {
+		if (!isAdded() || getActivity() == null) {
+			return;
+		}
 		Fragment scriptFragment = getActivity().getSupportFragmentManager().findFragmentByTag(TAG);
+		if (scriptFragment == null || scriptFragment != this) {
+			return;
+		}
 		final FragmentTransaction fragmentTransaction = getActivity().getSupportFragmentManager().beginTransaction();
 		fragmentTransaction.detach(scriptFragment);
 		fragmentTransaction.attach(scriptFragment);

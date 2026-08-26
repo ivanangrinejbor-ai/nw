@@ -32,8 +32,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -49,6 +51,16 @@ public class ZipArchiver {
 	private static final String DIRECTORY_LEVEL_UP = "../";
 	private static final int ZIP_SLIP_BUFFER = 8192;
 	private static final int COMPRESSION_LEVEL = 9;
+
+	private static final String[] ROOT_JUNK_FILES = {
+			"undo_code.xml", "code_undo.xml", "automatic_screenshot.png",
+			"devicevariables.json", "devicelists.json"
+	};
+	private static final String[] ANYWHERE_JUNK_SUFFIXES = {".tmp"};
+	private static final String[] ANYWHERE_JUNK_NAMES = {".ds_store", "thumbs.db", "desktop.ini"};
+	private static final String[] STORED_EXTENSIONS = {
+			"jpg", "jpeg", "png", "webp", "mp3", "m4a", "aac", "ogg", "oga", "glb"
+	};
 
 	private static final long MAX_UNCOMPRESSED_SIZE = 3072L * 1024 * 1024;
 	private static final long MAX_ENTRY_SIZE = 200L * 1024 * 1024;
@@ -71,10 +83,119 @@ public class ZipArchiver {
 		}
 	}
 
+	public void zipDedup(File archive, File[] files) throws IOException {
+		java.security.MessageDigest md5;
+		try {
+			md5 = java.security.MessageDigest.getInstance("MD5");
+		} catch (java.security.NoSuchAlgorithmException e) {
+			throw new IOException(e);
+		}
+		Map<String, String> seenHashes = new HashMap<>();
+		List<String[]> duplicates = new ArrayList<>();
+
+		archive.createNewFile();
+		FileOutputStream fileOutputStream = new FileOutputStream(archive);
+		ZipOutputStream zipOutputStream = new ZipOutputStream(fileOutputStream);
+		try {
+			zipOutputStream.setLevel(COMPRESSION_LEVEL);
+			writeDedupEntriesToStream(zipOutputStream, Arrays.asList(files), "", md5, seenHashes, duplicates);
+			if (!duplicates.isEmpty()) {
+				String manifest = buildDedupManifest(duplicates);
+				zipOutputStream.putNextEntry(new ZipEntry("dedup_manifest.json"));
+				zipOutputStream.write(manifest.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+				zipOutputStream.closeEntry();
+			}
+		} finally {
+			zipOutputStream.close();
+			fileOutputStream.close();
+		}
+	}
+
+	private String buildDedupManifest(List<String[]> duplicates) throws IOException {
+		try {
+			org.json.JSONArray pairs = new org.json.JSONArray();
+			for (String[] pair : duplicates) {
+				pairs.put(new org.json.JSONArray().put(pair[0]).put(pair[1]));
+			}
+			return new org.json.JSONObject().put("deduplicated", pairs).toString();
+		} catch (org.json.JSONException e) {
+			throw new IOException(e);
+		}
+	}
+
+	private void writeDedupEntriesToStream(ZipOutputStream zipOutputStream, List<File> files, String parentDir,
+			java.security.MessageDigest md5, Map<String, String> seenHashes, List<String[]> duplicates) throws IOException {
+		for (File file : files) {
+			if (!file.exists()) {
+				throw new FileNotFoundException("File: " + file.getAbsolutePath() + " does NOT exist.");
+			}
+			if (isJunkFile(file, parentDir)) {
+				continue;
+			}
+			if (file.isDirectory()) {
+				writeDedupEntriesToStream(zipOutputStream, Arrays.asList(file.listFiles()), parentDir
+						+ file.getName() + "/", md5, seenHashes, duplicates);
+				continue;
+			}
+
+			String relativePath = parentDir + file.getName();
+			String hash = computeMd5(file, md5);
+			String existingPath = seenHashes.get(hash);
+			if (existingPath != null) {
+				duplicates.add(new String[] {relativePath, existingPath});
+				continue;
+			}
+			seenHashes.put(hash, relativePath);
+
+			writeSingleEntry(zipOutputStream, file, relativePath);
+		}
+	}
+
+	private void writeSingleEntry(ZipOutputStream zipOutputStream, File file, String entryName) throws IOException {
+		ZipEntry zipEntry = new ZipEntry(entryName);
+		boolean stored = shouldStoreUncompressed(file);
+		if (stored) {
+			zipEntry.setMethod(ZipEntry.STORED);
+			zipEntry.setSize(file.length());
+			zipEntry.setCrc(computeCrc32(file));
+		}
+		zipOutputStream.putNextEntry(zipEntry);
+
+		try (FileInputStream fileInputStream = new FileInputStream(file)) {
+			byte[] b = new byte[Constants.BUFFER_8K];
+			int len;
+			while ((len = fileInputStream.read(b)) != -1) {
+				zipOutputStream.write(b, 0, len);
+			}
+		} finally {
+			zipOutputStream.closeEntry();
+		}
+	}
+
+	private String computeMd5(File file, java.security.MessageDigest md5) throws IOException {
+		md5.reset();
+		try (FileInputStream in = new FileInputStream(file)) {
+			byte[] b = new byte[Constants.BUFFER_8K];
+			int len;
+			while ((len = in.read(b)) != -1) {
+				md5.update(b, 0, len);
+			}
+		}
+		StringBuilder sb = new StringBuilder(32);
+		for (byte x : md5.digest()) {
+			sb.append(String.format("%02x", x));
+		}
+		return sb.toString();
+	}
+
 	private void writeZipEntriesToStream(ZipOutputStream zipOutputStream, List<File> files, String parentDir) throws IOException {
 		for (File file : files) {
 			if (!file.exists()) {
 				throw new FileNotFoundException("File: " + file.getAbsolutePath() + " does NOT exist.");
+			}
+
+			if (isJunkFile(file, parentDir)) {
+				continue;
 			}
 
 			if (file.isDirectory()) {
@@ -83,18 +204,60 @@ public class ZipArchiver {
 				continue;
 			}
 
-			zipOutputStream.putNextEntry(new ZipEntry(parentDir + file.getName()));
+			writeSingleEntry(zipOutputStream, file, parentDir + file.getName());
+		}
+	}
 
-			try (FileInputStream fileInputStream = new FileInputStream(file)) {
-				byte[] b = new byte[Constants.BUFFER_8K];
-				int len;
-				while ((len = fileInputStream.read(b)) != -1) {
-					zipOutputStream.write(b, 0, len);
-				}
-			} finally {
-				zipOutputStream.closeEntry();
+	private boolean isJunkFile(File file, String parentDir) {
+		String name = file.getName();
+		if (file.isDirectory()) {
+			return false;
+		}
+		String lower = name.toLowerCase(java.util.Locale.ROOT);
+		for (String suffix : ANYWHERE_JUNK_SUFFIXES) {
+			if (lower.endsWith(suffix)) {
+				return true;
 			}
 		}
+		if (Arrays.asList(ANYWHERE_JUNK_NAMES).contains(lower)) {
+			return true;
+		}
+		if (parentDir.isEmpty()) {
+			for (String junk : ROOT_JUNK_FILES) {
+				if (lower.equals(junk)) {
+					return true;
+				}
+			}
+			if (lower.equals("_recovery_autosave.rscene")) {
+				return true;
+			}
+			if (lower.contains("_autosave") && lower.endsWith(".rscene")) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private boolean shouldStoreUncompressed(File file) {
+		String name = file.getName();
+		int dot = name.lastIndexOf('.');
+		if (dot < 0 || dot == name.length() - 1) {
+			return false;
+		}
+		String ext = name.substring(dot + 1).toLowerCase(java.util.Locale.ROOT);
+		return Arrays.asList(STORED_EXTENSIONS).contains(ext);
+	}
+
+	private long computeCrc32(File file) throws IOException {
+		java.util.zip.CRC32 crc = new java.util.zip.CRC32();
+		try (FileInputStream in = new FileInputStream(file)) {
+			byte[] b = new byte[Constants.BUFFER_8K];
+			int len;
+			while ((len = in.read(b)) != -1) {
+				crc.update(b, 0, len);
+			}
+		}
+		return crc.getValue();
 	}
 
 	public void unzip(File archive, File dstDir) throws IOException {

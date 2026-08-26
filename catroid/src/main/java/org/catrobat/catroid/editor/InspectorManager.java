@@ -26,6 +26,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
+import org.catrobat.catroid.content.EasingFunctions;
 import com.flask.colorpicker.ColorPickerView;
 import com.flask.colorpicker.builder.ColorPickerDialogBuilder;
 import org.catrobat.catroid.editor.Commands;
@@ -102,6 +103,11 @@ public class InspectorManager {
     }
 
     public void populateInspector(GameObject go) {
+        cancelStalePreview(go);
+        if (selectedCollider != null && (go == null || colliderOwner != go)) {
+            selectedCollider = null;
+            colliderOwner = null;
+        }
         this.selectedObject = go;
         container.removeAllViews();
 
@@ -126,7 +132,7 @@ public class InspectorManager {
         EditText nameEditor = headerView.findViewById(R.id.edit_object_name);
         nameEditor.setText(go.name);
         nameEditor.setOnFocusChangeListener((v, hasFocus) -> {
-            if (!hasFocus && selectedObject != null) {
+            if (!hasFocus && selectedObject != null && selectedObject == go) {
                 String newName = nameEditor.getText().toString();
                 String oldName = selectedObject.name;
 
@@ -287,6 +293,34 @@ public class InspectorManager {
     private final Quaternion tempRotation = new Quaternion();
     private final Vector3 tempScale = new Vector3(1, 1, 1);
     private boolean isPreviewingAnimation = false;
+    private GameObject previewingOwner = null;
+    private GameObject colliderOwner = null;
+
+    private void cancelStalePreview(GameObject newGo) {
+        if (!isPreviewingAnimation) {
+            return;
+        }
+        boolean sameObject = newGo != null && newGo == previewingOwner
+                && newGo.getComponent(KeyframeComponent.class) != null;
+        if (sameObject) {
+            return;
+        }
+
+        GameObject owner = previewingOwner;
+        if (owner != null) {
+            KeyframeComponent anim = owner.getComponent(KeyframeComponent.class);
+            if (anim != null) {
+                anim.isPlaying = false;
+                anim.currentTime = 0;
+            }
+            owner.transform.position.set(tempPosition);
+            owner.transform.rotation.set(tempRotation);
+            owner.transform.scale.set(tempScale);
+        }
+        isPreviewingAnimation = false;
+        previewingOwner = null;
+        sceneManager.setEditorMode(true);
+    }
 
     private void createKeyframeView(GameObject go) {
         addComponentHeader(R.string.component_keyframe, true, false, () -> {
@@ -323,6 +357,7 @@ public class InspectorManager {
                 tempRotation.set(kf.rotation);
                 tempScale.set(kf.scale);
                 isPreviewingAnimation = true;
+                previewingOwner = go;
             }
             anim.isPlaying = true;
             anim.currentTime = 0;
@@ -339,6 +374,7 @@ public class InspectorManager {
                 go.transform.rotation.set(tempRotation);
                 go.transform.scale.set(tempScale);
                 isPreviewingAnimation = false;
+                previewingOwner = null;
                 populateInspector(go);
             }
         });
@@ -364,7 +400,7 @@ public class InspectorManager {
 
         ArrayAdapter<String> easingAdapter = new ArrayAdapter<>(activity,
                 R.layout.simple_spinner_item_white_text,
-                activity.getResources().getStringArray(R.array.brick_easing_types));
+                activity.getResources().getStringArray(R.array.editor_3d_easing_types));
 
         easingAdapter.setDropDownViewResource(R.layout.simple_spinner_dropdown_item_white_text);
 
@@ -405,18 +441,21 @@ public class InspectorManager {
                 return false;
             });
             easingSpinner.setAdapter(easingAdapter);
-            easingSpinner.setSelection(frame.easingToNext.ordinal());
+            EasingFunctions.EasingType[] easingValues = EasingFunctions.EasingType.values();
+            easingSpinner.setSelection(Math.min(frame.easingToNext.ordinal(), easingAdapter.getCount() - 1));
 
 
             if (i == 0) deleteBtn.setVisibility(View.GONE);
 
-            easingSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            easingSpinner.post(() -> easingSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
-                    frame.easingToNext = org.catrobat.catroid.content.EasingFunctions.EasingType.values()[pos];
+                    EasingFunctions.EasingType[] values = EasingFunctions.EasingType.values();
+                    if (pos < 0 || pos >= values.length) return;
+                    frame.easingToNext = values[pos];
                 }
                 @Override public void onNothingSelected(AdapterView<?> parent) {}
-            });
+            }));
 
             deleteBtn.setOnClickListener(v -> {
                 synchronized (anim.keyframes) {
@@ -512,7 +551,7 @@ public class InspectorManager {
 
         final AnimationComponent finalAnimComponent = animComponent;
 
-        animSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        animSpinner.post(() -> animSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 String selected = (String) parent.getItemAtPosition(position);
@@ -520,7 +559,7 @@ public class InspectorManager {
                 sceneManager.playAnimationFromComponent(go);
             }
             @Override public void onNothingSelected(AdapterView<?> parent) {}
-        });
+        }));
 
         addSimpleTextListener(speedEditor, s -> {
             try { finalAnimComponent.speed = Float.parseFloat(s); } catch (Exception e) { Log.e(TAG, "Error updating field", e); }
@@ -545,7 +584,12 @@ public class InspectorManager {
             @Override
             public void run() {
                 go.components.removeIf(c -> c instanceof CameraComponent);
-                sceneManager.engine.removeEditorProxy(go.id);
+                if (threeDManager != null) {
+                    com.badlogic.gdx.Gdx.app.postRunnable(() -> threeDManager.removeEditorProxy(go.id));
+                }
+                if (sceneManager != null) {
+                    com.badlogic.gdx.Gdx.app.postRunnable(sceneManager::findAndSetMainCamera);
+                }
                 populateInspector(go);
             }
         });
@@ -685,8 +729,9 @@ public class InspectorManager {
         addComponentHeader(R.string.component_material, true, false, () -> {
             go.components.removeIf(c -> c instanceof MaterialComponent);
 
-            if (go.hasComponent(RenderComponent.class)) {
-                threeDManager.applyPBRMaterial(go.id, new MaterialComponent());
+            if (go.hasComponent(RenderComponent.class) && threeDManager != null) {
+                com.badlogic.gdx.Gdx.app.postRunnable(() ->
+                        threeDManager.applyPBRMaterial(go.id, new MaterialComponent()));
             }
 
             populateInspector(go);
@@ -781,14 +826,16 @@ public class InspectorManager {
 
         enabledCheck.setOnCheckedChangeListener((v, isChecked) -> fog.isEnabled = isChecked);
 
-        typeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        typeSpinner.post(() -> typeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                fog.type = FogComponent.FogType.values()[position];
+                FogComponent.FogType[] values = FogComponent.FogType.values();
+                if (position < 0 || position >= values.length) return;
+                fog.type = values[position];
                 updateVisibility.run();
             }
             @Override public void onNothingSelected(AdapterView<?> parent) {}
-        });
+        }));
 
         final int initialAndroidColor = libGdxColorToAndroidColor(fog.color);
         colorButton.setBackgroundColor(initialAndroidColor);
@@ -1090,10 +1137,10 @@ public class InspectorManager {
         }
         else if (data instanceof PostProcessingData.EyeAdaptation) {
             PostProcessingData.EyeAdaptation ea = (PostProcessingData.EyeAdaptation) data;
-            addFloatParam(paramsContainer, "Target Luminance", ea.targetLuminance, v -> { ea.targetLuminance = v; });
-            addFloatParam(paramsContainer, "Speed", ea.speed, v -> { ea.speed = v; });
-            addFloatParam(paramsContainer, "Min Exposure", ea.minExposure, v -> { ea.minExposure = v; });
-            addFloatParam(paramsContainer, "Max Exposure", ea.maxExposure, v -> { ea.maxExposure = v; });
+            addFloatParam(paramsContainer, "Target Luminance", ea.targetLuminance, v -> { ea.targetLuminance = v; updatePP(pp); });
+            addFloatParam(paramsContainer, "Speed", ea.speed, v -> { ea.speed = v; updatePP(pp); });
+            addFloatParam(paramsContainer, "Min Exposure", ea.minExposure, v -> { ea.minExposure = v; updatePP(pp); });
+            addFloatParam(paramsContainer, "Max Exposure", ea.maxExposure, v -> { ea.maxExposure = v; updatePP(pp); });
         }
 
         container.addView(effectView);
@@ -1134,8 +1181,12 @@ public class InspectorManager {
 
         addComponentHeader(R.string.component_particle_3d, true, false, () -> {
             go.components.removeIf(c -> c instanceof ParticleSystem3DComponent);
-            if (threeDManager != null) threeDManager.removeParticleEffect3D(go.id);
-            if (threeDManager != null) threeDManager.removeEditorProxy(go.id);
+            if (threeDManager != null) {
+                com.badlogic.gdx.Gdx.app.postRunnable(() -> {
+                    threeDManager.removeParticleEffect3D(go.id);
+                    threeDManager.removeEditorProxy(go.id);
+                });
+            }
             populateInspector(go);
         });
 
@@ -1573,12 +1624,16 @@ public class InspectorManager {
         if (pendingPS3DUpdate != null) {
             ps3dUpdateHandler.removeCallbacks(pendingPS3DUpdate);
         }
+        final GameObject target = go;
         pendingPS3DUpdate = () -> {
-            if (threeDManager != null && go != null) {
-                ParticleSystem3DComponent ps = go.getComponent(ParticleSystem3DComponent.class);
+            if (threeDManager != null && target != null
+                    && sceneManager != null && sceneManager.findGameObject(target.id) == target) {
+                ParticleSystem3DComponent ps = target.getComponent(ParticleSystem3DComponent.class);
                 if (ps != null) {
                     Gdx.app.postRunnable(() -> {
-                        threeDManager.updateParticleEffect3D(go.id, ps, go.transform.worldTransform);
+                        if (sceneManager.findGameObject(target.id) == target) {
+                            threeDManager.updateParticleEffect3D(target.id, ps, target.transform.worldTransform);
+                        }
                     });
                 }
             }
@@ -2230,8 +2285,12 @@ public class InspectorManager {
     private void createParticleView(GameObject go) {
         addComponentHeader(R.string.component_particle_legacy, true, false, () -> {
             go.components.removeIf(c -> c instanceof ParticleComponent);
-            if (threeDManager != null) threeDManager.removeParticleEffect(go.id);
-            if (threeDManager != null) threeDManager.removeEditorProxy(go.id);
+            if (threeDManager != null) {
+                com.badlogic.gdx.Gdx.app.postRunnable(() -> {
+                    threeDManager.removeParticleEffect(go.id);
+                    threeDManager.removeEditorProxy(go.id);
+                });
+            }
             populateInspector(go);
         });
 
@@ -2328,16 +2387,18 @@ public class InspectorManager {
         ArrayAdapter<ParticleComponent.SpawnShape> adapter = new ArrayAdapter<>(activity, R.layout.simple_spinner_item_white_text, ParticleComponent.SpawnShape.values());
         adapter.setDropDownViewResource(R.layout.simple_spinner_dropdown_item_white_text);
         shapeSpinner.setAdapter(adapter);
-        shapeSpinner.setSelection(p.spawnShape.ordinal());
+        shapeSpinner.setSelection(Math.min(p.spawnShape.ordinal(), adapter.getCount() - 1));
 
-        shapeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        shapeSpinner.post(() -> shapeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                p.spawnShape = ParticleComponent.SpawnShape.values()[position];
+                ParticleComponent.SpawnShape[] values = ParticleComponent.SpawnShape.values();
+                if (position < 0 || position >= values.length) return;
+                p.spawnShape = values[position];
                 updateParticles(go);
             }
             @Override public void onNothingSelected(AdapterView<?> parent) {}
-        });
+        }));
         container.addView(shapeSpinner);
 
 
@@ -2723,17 +2784,20 @@ public class InspectorManager {
         ArrayAdapter<String> stateAdapter = new ArrayAdapter<>(activity, R.layout.simple_spinner_item_white_text, states);
         stateAdapter.setDropDownViewResource(R.layout.simple_spinner_dropdown_item_white_text);
         stateSpinner.setAdapter(stateAdapter);
-        stateSpinner.setSelection(physics.state.ordinal());
+        int stateOrdinal = physics.state.ordinal();
+        stateSpinner.setSelection(Math.min(stateOrdinal, states.length - 1));
 
-        stateSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        stateSpinner.post(() -> stateSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                physics.state = ThreeDManager.PhysicsState.values()[position];
+                ThreeDManager.PhysicsState[] values = ThreeDManager.PhysicsState.values();
+                if (position < 0 || position >= values.length) return;
+                physics.state = values[position];
                 massLayout.setVisibility(physics.state == ThreeDManager.PhysicsState.DYNAMIC ? View.VISIBLE : View.GONE);
                 sceneManager.setPhysicsComponent(go, physics);
             }
             @Override public void onNothingSelected(AdapterView<?> parent) {}
-        });
+        }));
 
         LinearLayout collidersContainer = view.findViewById(R.id.colliders_container);
         collidersContainer.removeAllViews();
@@ -2806,6 +2870,7 @@ public class InspectorManager {
 
         contentLayout.setOnClickListener(v -> {
             selectedCollider = collider;
+            colliderOwner = go;
             if (gizmo != null) {
                 gizmo.setSelected(go, collider);
             }
@@ -2833,7 +2898,8 @@ public class InspectorManager {
             physics.colliders.remove(collider);
             if (selectedCollider == collider) {
                 selectedCollider = null;
-                gizmo.setSelected(go, null);
+                colliderOwner = null;
+                if (gizmo != null) gizmo.setSelected(go, null);
             }
             sceneManager.setPhysicsComponent(go, physics);
             populateInspector(go);
@@ -2867,6 +2933,10 @@ public class InspectorManager {
         }
 
         Runnable updateAction = () -> {
+            if (selectedObject != go) return;
+            if (!cx.hasFocus() && !cy.hasFocus() && !cz.hasFocus()
+                    && !sx.hasFocus() && !sy.hasFocus() && !sz.hasFocus()
+                    && !radiusEditor.hasFocus()) return;
             try {
                 collider.centerOffset.set(
                         Float.parseFloat(cx.getText().toString()),
@@ -2927,7 +2997,7 @@ public class InspectorManager {
         ArrayAdapter<String> typeAdapter = new ArrayAdapter<>(activity, R.layout.simple_spinner_item_white_text, lightTypes);
         typeAdapter.setDropDownViewResource(R.layout.simple_spinner_dropdown_item_white_text);
         typeSpinner.setAdapter(typeAdapter);
-        typeSpinner.setSelection(light.type.ordinal());
+        typeSpinner.setSelection(Math.min(light.type.ordinal(), typeAdapter.getCount() - 1));
         EditText intensityEditor = view.findViewById(R.id.edit_light_intensity);
         EditText rangeEditor = view.findViewById(R.id.edit_light_range);
         EditText angleEditor = view.findViewById(R.id.edit_light_angle);
@@ -2937,29 +3007,30 @@ public class InspectorManager {
         Button colorButton = view.findViewById(R.id.btn_light_color);
 
         exponentEditor.setText(String.valueOf(light.exponent));
-
-        typeSpinner.setSelection(light.type.ordinal());
         intensityEditor.setText(String.valueOf(light.intensity));
         rangeEditor.setText(String.valueOf(light.range));
         angleEditor.setText(String.valueOf(light.cutoffAngle));
 
         Runnable updateVisibility = () -> {
             int position = typeSpinner.getSelectedItemPosition();
-            LightComponent.LightType type = LightComponent.LightType.values()[position];
+            if (position < 0) return;
+            LightComponent.LightType type = LightComponent.LightType.values()[Math.min(position, LightComponent.LightType.values().length - 1)];
             rangeLayout.setVisibility(type == LightComponent.LightType.POINT || type == LightComponent.LightType.SPOT ? View.VISIBLE : View.GONE);
             spotLayout.setVisibility(type == LightComponent.LightType.SPOT ? View.VISIBLE : View.GONE);
         };
         updateVisibility.run();
 
-        typeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        typeSpinner.post(() -> typeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                light.type = LightComponent.LightType.values()[position];
+                LightComponent.LightType[] values = LightComponent.LightType.values();
+                if (position < 0 || position >= values.length) return;
+                light.type = values[position];
                 sceneManager.setLightComponent(go, light);
                 updateVisibility.run();
             }
             @Override public void onNothingSelected(AdapterView<?> parent) {}
-        });
+        }));
 
         final int initialAndroidColor = libGdxColorToAndroidColor(light.color);
         colorButton.setBackgroundColor(initialAndroidColor);
@@ -3112,16 +3183,24 @@ public class InspectorManager {
                             if (!go.hasComponent(ParticleComponent.class)) {
                                 ParticleComponent p = new ParticleComponent();
                                 go.addComponent(p);
-                                sceneManager.engine.createParticleProxy(go.id);
-                                updateParticles(go);
+                                if (sceneManager != null && sceneManager.engine != null) {
+                                    com.badlogic.gdx.Gdx.app.postRunnable(() -> {
+                                        sceneManager.engine.createParticleProxy(go.id);
+                                        updateParticles(go);
+                                    });
+                                }
                             }
                             break;
                         case 8:
                             if (!go.hasComponent(ParticleSystem3DComponent.class)) {
                                 ParticleSystem3DComponent ps3d = new ParticleSystem3DComponent();
                                 go.addComponent(ps3d);
-                                sceneManager.engine.createParticleProxy(go.id);
-                                sceneManager.engine.updateParticleEffect3D(go.id, ps3d, go.transform.worldTransform);
+                                if (sceneManager != null && sceneManager.engine != null) {
+                                    com.badlogic.gdx.Gdx.app.postRunnable(() -> {
+                                        sceneManager.engine.createParticleProxy(go.id);
+                                        sceneManager.engine.updateParticleEffect3D(go.id, ps3d, go.transform.worldTransform);
+                                    });
+                                }
                             }
                             break;
                         case 9:
@@ -3241,10 +3320,18 @@ public class InspectorManager {
 
     private static class DelayedTextWatcher implements TextWatcher {
         private final Runnable action;
-        public DelayedTextWatcher(Runnable action) { this.action = action; }
+        private final android.os.Handler handler = new android.os.Handler(android.os.Looper.getMainLooper());
+        private final Runnable debounced;
+        public DelayedTextWatcher(Runnable action) {
+            this.action = action;
+            this.debounced = () -> this.action.run();
+        }
         @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
         @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
-        @Override public void afterTextChanged(Editable s) { action.run(); }
+        @Override public void afterTextChanged(Editable s) {
+            handler.removeCallbacks(debounced);
+            handler.postDelayed(debounced, 300);
+        }
     }
 
     private interface FloatConsumer { void accept(float value); }

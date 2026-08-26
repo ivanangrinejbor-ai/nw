@@ -1733,6 +1733,12 @@ public class ActionFactory extends Actions {
 		return Actions.action(StopAllSoundsAction.class);
 	}
 
+	public Action createStopAllSoundsAction(int replayMode) {
+		Sound_StopAllAction action = Actions.action(Sound_StopAllAction.class);
+		action.setReplayMode(replayMode);
+		return action;
+	}
+
 	public Action createPauseSoundAction(Sprite sprite, SoundInfo sound) {
 		PauseSoundAction action = Actions.action(PauseSoundAction.class);
 		action.setSprite(sprite);
@@ -5476,6 +5482,49 @@ public Action createVarAction(Sprite sprite, SequenceAction sequence,
         return action;
     }
 
+    public Action createDissolveShaderAction(Sprite sprite, SequenceAction sequence, Formula objectId, Formula progress) {
+        DissolveShaderAction action = action(DissolveShaderAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setObjectIdFormula(objectId);
+        action.setProgressFormula(progress);
+        return action;
+    }
+
+    public Action createWaveShaderAction(Sprite sprite, SequenceAction sequence, Formula objectId, Formula amplitude) {
+        WaveShaderAction action = action(WaveShaderAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setObjectIdFormula(objectId);
+        action.setAmplitudeFormula(amplitude);
+        return action;
+    }
+
+    public Action createCrtScreenShaderAction(Sprite sprite, SequenceAction sequence, Formula intensity) {
+        CrtScreenShaderAction action = action(CrtScreenShaderAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setIntensityFormula(intensity);
+        return action;
+    }
+
+    public Action createSpriteDissolveShaderAction(Sprite sprite, SequenceAction sequence, Formula progress) {
+        SpriteDissolveShaderAction action = action(SpriteDissolveShaderAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setProgressFormula(progress);
+        return action;
+    }
+
+    public Action createSpriteWaveShaderAction(Sprite sprite, SequenceAction sequence, Formula amplitude, Formula phase) {
+        SpriteWaveShaderAction action = action(SpriteWaveShaderAction.class);
+        Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+        action.setScope(scope);
+        action.setAmplitudeFormula(amplitude);
+        action.setPhaseFormula(phase);
+        return action;
+    }
+
     public Action createSet3DSoundMaxDistanceAction(Sprite sprite, SequenceAction sequence, Formula instanceName, Formula distance) {
         Set3DSoundMaxDistanceAction action = action(Set3DSoundMaxDistanceAction.class);
         Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
@@ -6636,6 +6685,12 @@ public Action createVarAction(Sprite sprite, SequenceAction sequence,
 
     public Action createSoundStopAllAction() {
         return Actions.action(Sound_StopAllAction.class);
+    }
+
+    public Action createSoundStopAllAction(int replayMode) {
+        Sound_StopAllAction action = Actions.action(Sound_StopAllAction.class);
+        action.setReplayMode(replayMode);
+        return action;
     }
 
     public Action createStackPopAction(Sprite sprite, ScriptSequenceAction sequence, UserVariable userVariable, UserVariable destVariable) {

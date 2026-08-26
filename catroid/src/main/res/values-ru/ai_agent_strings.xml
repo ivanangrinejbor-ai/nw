@@ -46,8 +46,6 @@
     <string formatted="false" name="ai_agent_apply">Применить</string>
     <string formatted="false" name="ai_agent_cancel">Отмена</string>
     <string formatted="false" name="ai_agent_params_category">Параметры</string>
-    <string formatted="false" name="ai_agent_temperature_title">Температура</string>
-    <string formatted="false" name="ai_agent_temperature_summary">Креативность модели (0 = детерминировано, 2 = креативно)</string>
     <string formatted="false" name="ai_agent_max_context_title">Макс. контекст</string>
     <string formatted="false" name="ai_agent_max_context_summary">Максимальное количество токенов контекста</string>
     <string formatted="false" name="ai_agent_max_tool_calls_title">Макс. вызовов инструментов</string>

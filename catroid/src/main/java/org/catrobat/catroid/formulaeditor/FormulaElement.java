@@ -2378,6 +2378,9 @@ public class FormulaElement implements Serializable {
     }
 
     private Object interpretFunctionDistance(Scope scope, Object val1, Object val2) {
+        if (val1 == null || val2 == null) {
+            return 0d;
+        }
         var value1 = val1.toString();
         var value2 = val2.toString();
 
@@ -2898,8 +2901,13 @@ public class FormulaElement implements Serializable {
                 || (type == ElementType.SENSOR
                 && Sensors.isBoolean(Sensors.getSensorByValue(value)))
                 || (type == ElementType.OPERATOR
-                && Operators.getOperatorByValue(value).isLogicalOperator)
+                && isLogicalOperatorOrNull(value))
                 || type == ElementType.COLLISION_FORMULA;
+    }
+
+    private boolean isLogicalOperatorOrNull(String operatorValue) {
+        Operators operator = Operators.getOperatorByValue(operatorValue);
+        return operator != null && operator.isLogicalOperator;
     }
 
     public boolean containsElement(ElementType elementType) {
