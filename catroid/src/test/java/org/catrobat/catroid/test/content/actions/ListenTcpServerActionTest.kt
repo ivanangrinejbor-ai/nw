@@ -5,7 +5,6 @@ import org.catrobat.catroid.content.actions.ListenTcpServerAction
 import org.catrobat.catroid.formulaeditor.UserVariable
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Before
@@ -164,7 +163,7 @@ class ListenTcpServerActionTest {
 	}
 
 	@Test
-	fun testSecondActionReplacesTaskForOtherVariables() {
+	fun testSecondActionDoesNotCancelFirst() {
 		startServerWithMessages("a", "b", "c")
 		await { LocalServer.getMessages().size == 3 }
 		val oldVar = UserVariable("old")
@@ -176,8 +175,64 @@ class ListenTcpServerActionTest {
 		val port = LocalServer.getPort().toInt()
 		sendLine(port, "d")
 		await { newVar.value == "d" }
+		await { oldVar.value == "d" }
+	}
+
+	@Test
+	fun testPackedMessageSplitsIntoVariablesInOrder() {
+		val sep = LocalServer.VALUE_SEPARATOR
+		startServerWithMessages("5$sep" + "4$sep" + "0$sep" + "5")
+		await { LocalServer.getMessages().isNotEmpty() }
+		val vars = (1..4).map { UserVariable("v$it") }.toMutableList()
+		runAction(vars)
+		await { vars[0].value == "5" }
+		await { vars[1].value == "4" }
+		await { vars[2].value == "0" }
+		await { vars[3].value == "5" }
+	}
+
+	@Test
+	fun testPackedMessageRepeatsDeliverSameValues() {
+		// эхо loopback доставляет копии пакета — переменные не должны «поехать»
+		val sep = LocalServer.VALUE_SEPARATOR
+		startServerWithMessages("5$sep" + "4$sep" + "0$sep" + "5")
+		await { LocalServer.getMessages().isNotEmpty() }
+		val vars = (1..4).map { UserVariable("v$it") }.toMutableList()
+		runAction(vars)
+		sendLine(LocalServer.getPort().toInt(), "5$sep" + "4$sep" + "0$sep" + "5")
+		sendLine(LocalServer.getPort().toInt(), "5$sep" + "4$sep" + "0$sep" + "5")
+		Thread.sleep(300)
+		assertEquals("5", vars[0].value)
+		assertEquals("4", vars[1].value)
+		assertEquals("0", vars[2].value)
+		assertEquals("5", vars[3].value)
+	}
+
+	@Test
+	fun testPackedMessageWithFewerPartsLeavesRestUntouched() {
+		val sep = LocalServer.VALUE_SEPARATOR
+		startServerWithMessages("a$sep" + "b")
+		await { LocalServer.getMessages().isNotEmpty() }
+		val first = UserVariable("v1")
+		val second = UserVariable("v2")
+		val third = UserVariable("v3").apply { value = "KEEP" }
+		runAction(listOf(first, second, third))
+		await { first.value == "a" }
+		await { second.value == "b" }
 		Thread.sleep(150)
-		assertNotEquals("старая переменная больше не обновляется", "d", oldVar.value)
+		assertEquals("третьей части нет — переменная не трогается", "KEEP", third.value)
+	}
+
+	@Test
+	fun testPackedMessageWithMorePartsIgnoresExtras() {
+		val sep = LocalServer.VALUE_SEPARATOR
+		startServerWithMessages("1$sep" + "2$sep" + "3$sep" + "4$sep" + "5")
+		await { LocalServer.getMessages().isNotEmpty() }
+		val first = UserVariable("v1")
+		val second = UserVariable("v2")
+		runAction(listOf(first, second))
+		await { first.value == "1" }
+		await { second.value == "2" }
 	}
 
 	@Test

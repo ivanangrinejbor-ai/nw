@@ -26,6 +26,7 @@ import android.content.Context
 import android.os.Build
 import android.preference.PreferenceManager
 import android.util.Log
+import com.google.android.gms.tasks.Tasks
 import org.catrobat.catroid.BuildConfig
 import org.catrobat.catroid.telemetry.TelemetryManager
 import java.io.File
@@ -35,6 +36,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.UUID
+import java.util.concurrent.TimeUnit
 
 object CrashReporter {
 
@@ -128,6 +130,50 @@ object CrashReporter {
                 }
         } catch (e: Exception) {
             Log.w(TAG, "crash report send failed", e)
+        }
+    }
+
+    fun sendToFirestoreSync(context: Context, file: File, timeoutMs: Long = 4000): Boolean {
+        try {
+            if (!isCrashReportingEnabled(context)) {
+                return false
+            }
+            if (!file.exists()) {
+                return false
+            }
+            val firestore = TelemetryManager.getTelemetryFirestore(context) ?: return false
+            val report = try {
+                file.readText()
+            } catch (e: Exception) {
+                Log.w(TAG, "sync: failed to read report", e)
+                return false
+            }
+            val data = linkedMapOf<String, Any>(
+                "crash" to report,
+                "timestamp" to System.currentTimeMillis(),
+                "app_version" to BuildConfig.VERSION_NAME,
+                "android_version" to Build.VERSION.RELEASE,
+                "device_model" to Build.MODEL,
+                "thread" to extractThreadName(report)
+            )
+            val task = firestore.collection(COLLECTION_NAME)
+                .document(UUID.randomUUID().toString())
+                .set(data)
+            Tasks.await(task, timeoutMs, TimeUnit.MILLISECONDS)
+            if (task.isSuccessful) {
+                file.delete()
+                Log.i(TAG, "sync crash report sent")
+                return true
+            } else {
+                Log.w(TAG, "sync crash report failed", task.exception)
+                return false
+            }
+        } catch (e: Exception) {
+            if (e is InterruptedException) {
+                Thread.currentThread().interrupt()
+            }
+            Log.w(TAG, "sync crash report failed: ${e.message}", e)
+            return false
         }
     }
 

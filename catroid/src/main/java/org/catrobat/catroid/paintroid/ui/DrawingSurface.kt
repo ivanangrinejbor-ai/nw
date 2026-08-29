@@ -208,17 +208,19 @@ open class DrawingSurface : SurfaceView, SurfaceHolder.Callback {
     }
 
     private fun getOrCreateDrawingBoardBitmap(): Bitmap? {
-        val w = layerModel.width
-        val h = layerModel.height
-        if (w <= 0 || h <= 0) return null
-        val cached = cachedDrawingBoardBitmap
-        if (cached == null || cached.width != w || cached.height != h) {
-            cached?.recycle()
-            cachedDrawingBoardBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
-        } else {
-            cached.eraseColor(Color.TRANSPARENT)
+        synchronized(layerModel) {
+            val w = layerModel.width
+            val h = layerModel.height
+            if (w <= 0 || h <= 0) return null
+            val cached = cachedDrawingBoardBitmap
+            if (cached == null || cached.width != w || cached.height != h) {
+                cached?.recycle()
+                cachedDrawingBoardBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+            } else {
+                cached.eraseColor(Color.TRANSPARENT)
+            }
+            return cachedDrawingBoardBitmap
         }
-        return cachedDrawingBoardBitmap
     }
 
     private fun handleZoomCompatibility(currentBitmap: Bitmap?) {

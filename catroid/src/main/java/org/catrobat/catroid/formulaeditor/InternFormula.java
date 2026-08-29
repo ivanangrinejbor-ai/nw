@@ -218,20 +218,30 @@ public class InternFormula {
 	}
 
 	public void setCursorAndSelection(int externCursorPosition, boolean isSelected) {
-		this.externCursorPosition = externCursorPosition;
+		try {
+			this.externCursorPosition = externCursorPosition;
 
-		updateInternCursorPosition();
-		internFormulaTokenSelection = null;
+			updateInternCursorPosition();
+			internFormulaTokenSelection = null;
 
-		if (isSelected
-				|| externInternRepresentationMapping.getInternTokenByExternIndex(externCursorPosition) != ExternInternRepresentationMapping.MAPPING_NOT_FOUND
-				&& (getFirstLeftInternToken(externCursorPosition - 1) == cursorPositionInternToken || cursorPositionInternToken
-				.isFunctionParameterBracketOpen())
-				&& ((cursorPositionInternToken.isFunctionName())
-				|| (cursorPositionInternToken.isFunctionParameterBracketOpen() && cursorTokenPosition == CursorTokenPosition.LEFT)
-				|| (cursorPositionInternToken.isSensor()) || (cursorPositionInternToken.isUserVariable())
-				|| (cursorPositionInternToken.isUserList()) || (cursorPositionInternToken.isString()))) {
-			selectCursorPositionInternToken(TokenSelectionType.USER_SELECTION);
+			if (cursorPositionInternToken == null) {
+				if (isSelected) {
+					selectCursorPositionInternToken(TokenSelectionType.USER_SELECTION);
+				}
+				return;
+			}
+			if (isSelected
+					|| externInternRepresentationMapping.getInternTokenByExternIndex(externCursorPosition) != ExternInternRepresentationMapping.MAPPING_NOT_FOUND
+					&& (getFirstLeftInternToken(externCursorPosition - 1) == cursorPositionInternToken || cursorPositionInternToken
+					.isFunctionParameterBracketOpen())
+					&& ((cursorPositionInternToken.isFunctionName())
+					|| (cursorPositionInternToken.isFunctionParameterBracketOpen() && cursorTokenPosition == CursorTokenPosition.LEFT)
+					|| (cursorPositionInternToken.isSensor()) || (cursorPositionInternToken.isUserVariable())
+					|| (cursorPositionInternToken.isUserList()) || (cursorPositionInternToken.isString()))) {
+				selectCursorPositionInternToken(TokenSelectionType.USER_SELECTION);
+			}
+		} catch (Throwable e) {
+			Log.e(TAG, "setCursorAndSelection failed", e);
 		}
 	}
 

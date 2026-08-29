@@ -66,10 +66,45 @@ public class ElseIfSeparatorBrick extends FormulaBrick {
                     ScriptFragment sf = (ScriptFragment) fragment;
                     if (sf.getAdapter() != null) {
                         sf.getAdapter().updateItems(currentSprite);
+                        sf.getAdapter().refreshBrickViews();
                         sf.notifyDataSetChanged();
                     }
                 }
             }
+            // Fallback: if fragment not found (e.g., nested child fragments), try to find via view hierarchy
+            if (activity instanceof androidx.fragment.app.FragmentActivity) {
+                var fm = ((androidx.fragment.app.FragmentActivity) activity).getSupportFragmentManager();
+                var scriptFragment = fm.findFragmentByTag(ScriptFragment.TAG);
+                if (scriptFragment instanceof ScriptFragment) {
+                    ScriptFragment sf = (ScriptFragment) scriptFragment;
+                    if (sf.getAdapter() != null) {
+                        sf.getAdapter().updateItems(currentSprite);
+                        sf.getAdapter().refreshBrickViews();
+                        sf.notifyDataSetChanged();
+                    }
+                }
+            }
+        } catch (Exception ignored) {}
+        try {
+            // Direct view refresh for bricks that only change visibility (SendToTcp etc.)
+            // Ensures immediate visibility without waiting for adapter recreation
+            view.post(() -> {
+                try {
+                    var activity = UiUtils.getActivityFromView(view);
+                    if (activity == null) return;
+                    Sprite currentSprite = ProjectManager.getInstance().getCurrentSprite();
+                    if (currentSprite == null) return;
+                    for (var fragment : activity.getSupportFragmentManager().getFragments()) {
+                        if (fragment instanceof ScriptFragment) {
+                            ScriptFragment sf = (ScriptFragment) fragment;
+                            if (sf.getAdapter() != null) {
+                                sf.getAdapter().updateItems(currentSprite);
+                                sf.getAdapter().refreshBrickViews();
+                            }
+                        }
+                    }
+                } catch (Exception ignored) {}
+            });
         } catch (Exception ignored) {}
     }
 

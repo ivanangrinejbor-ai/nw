@@ -87,6 +87,9 @@ class LookListFragment : RecyclerViewFragment<LookData?>() {
     override fun onResume() {
         super.onResume()
         SnackbarUtil.showHintSnackbar(requireActivity(), R.string.hint_looks)
+        org.catrobat.catroid.ui.BottomBar.showBottomBar(activity)
+        org.catrobat.catroid.ui.BottomBar.showAddButton(activity)
+        org.catrobat.catroid.ui.BottomBar.showPlayButton(activity)
     }
 
     override fun packItems(selectedItems: List<LookData?>) {

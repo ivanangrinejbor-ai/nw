@@ -54,6 +54,70 @@
             android:visibility="gone"
             app:layout_newLine="true" />
 
+        <Spinner
+            android:id="@+id/listen_tcp_spinner5"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textDirection="locale"
+            android:visibility="gone"
+            app:layout_newLine="true" />
+
+        <Spinner
+            android:id="@+id/listen_tcp_spinner6"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textDirection="locale"
+            android:visibility="gone"
+            app:layout_newLine="true" />
+
+        <Spinner
+            android:id="@+id/listen_tcp_spinner7"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textDirection="locale"
+            android:visibility="gone"
+            app:layout_newLine="true" />
+
+        <Spinner
+            android:id="@+id/listen_tcp_spinner8"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textDirection="locale"
+            android:visibility="gone"
+            app:layout_newLine="true" />
+
+        <Spinner
+            android:id="@+id/listen_tcp_spinner9"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textDirection="locale"
+            android:visibility="gone"
+            app:layout_newLine="true" />
+
+        <Spinner
+            android:id="@+id/listen_tcp_spinner10"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textDirection="locale"
+            android:visibility="gone"
+            app:layout_newLine="true" />
+
+        <Spinner
+            android:id="@+id/listen_tcp_spinner11"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textDirection="locale"
+            android:visibility="gone"
+            app:layout_newLine="true" />
+
+        <Spinner
+            android:id="@+id/listen_tcp_spinner12"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textDirection="locale"
+            android:visibility="gone"
+            app:layout_newLine="true" />
+
         <TextView
             android:id="@+id/brick_listen_tcp_add"
             style="@style/BrickText.SingleLine"

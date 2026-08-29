@@ -1883,7 +1883,7 @@ public class StageListener implements ApplicationListener {
                     executeBeforeUpdateScripts(deltaTime);
                 }
 
-                if (sceneManager != null) {
+                if (sceneManager != null && (threeDManager == null || !threeDManager.isRealisticMode())) {
                     sceneManager.update(deltaTime);
                 }
 

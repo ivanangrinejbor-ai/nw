@@ -22,64 +22,79 @@ object FormulaEditorClipboard {
     }
 
     fun checkIfSelectedAndCopy(editText: FormulaEditorEditText) {
-        val tokens = editText.selectedTokens ?: editText.internFormula?.internTokenFormulaList
+        try {
+            val tokens = editText.selectedTokens ?: editText.internFormula?.internTokenFormulaList
 
-        if (tokens != null && tokens.isNotEmpty()) {
-            val fullText = editText.stringFromInternFormula ?: ""
+            if (tokens != null && tokens.isNotEmpty()) {
+                val fullText = try { editText.stringFromInternFormula ?: "" } catch (_: Throwable) { "" }
 
-            val label = if (editText.selectedTokens != null) {
-                val start = editText.internFormula?.externSelectionStartIndex ?: -1
-                val end = editText.internFormula?.externSelectionEndIndex ?: -1
+                val label = if (editText.selectedTokens != null) {
+                    val start = editText.internFormula?.externSelectionStartIndex ?: -1
+                    val end = editText.internFormula?.externSelectionEndIndex ?: -1
 
-                if (start in 0..end && end <= fullText.length) {
-                    val substring = fullText.substring(start, end).trim()
-                    substring.ifEmpty { "Formula" }
+                    if (start in 0..end && end <= fullText.length) {
+                        try {
+                            val substring = fullText.substring(start, end).trim()
+                            substring.ifEmpty { "Formula" }
+                        } catch (_: Throwable) {
+                            try { editText.selectedTextFromInternFormula ?: "Formula" } catch (_: Throwable) { "Formula" }
+                        }
+                    } else {
+                        val singleTokenText = try { editText.selectedTextFromInternFormula } catch (_: Throwable) { null }
+                        if (!singleTokenText.isNullOrEmpty()) singleTokenText else "Formula"
+                    }
                 } else {
-                    val singleTokenText = editText.selectedTextFromInternFormula
-                    if (!singleTokenText.isNullOrEmpty()) singleTokenText else "Formula"
+                    fullText.trim().ifEmpty { "Formula" }
                 }
-            } else {
-                fullText.trim().ifEmpty { "Formula" }
+
+                val cloned = cloneTokens(tokens)
+                val item = ClipboardItem(cloned, label)
+
+                history.removeAll { it.label == label }
+                history.add(0, item)
+
+                if (history.size > MAX_HISTORY_SIZE) {
+                    history.removeAt(history.size - 1)
+                }
             }
-
-            val cloned = cloneTokens(tokens)
-            val item = ClipboardItem(cloned, label)
-
-            history.removeAll { it.label == label }
-            history.add(0, item)
-
-            if (history.size > MAX_HISTORY_SIZE) {
-                history.removeAt(history.size - 1)
-            }
+        } catch (_: Throwable) {
         }
     }
 
     fun paste(editText: FormulaEditorEditText) {
-        if (history.isNotEmpty()) {
-            editText.addTokens(cloneTokens(history[0].tokens))
+        try {
+            if (history.isNotEmpty()) {
+                editText.addTokens(cloneTokens(history[0].tokens))
+            }
+        } catch (_: Throwable) {
         }
     }
 
     fun showClipboardHistoryDialog(context: Context, editText: FormulaEditorEditText) {
-        if (history.isEmpty()) {
+        try {
+            if (history.isEmpty()) {
+                AlertDialog.Builder(context)
+                    .setTitle(R.string.paste)
+                    .setMessage(R.string.formula_nothing_selected)
+                    .setPositiveButton(R.string.ok, null)
+                    .show()
+                return
+            }
+
+            val items = history.map { it.label }.toTypedArray()
             AlertDialog.Builder(context)
                 .setTitle(R.string.paste)
-                .setMessage(R.string.formula_nothing_selected)
-                .setPositiveButton(R.string.ok, null)
+                .setItems(items) { _, which ->
+                    try {
+                        editText.addTokens(cloneTokens(history[which].tokens))
+                        val pastedItem = history.removeAt(which)
+                        history.add(0, pastedItem)
+                    } catch (_: Throwable) {}
+                }
+                .setNegativeButton(R.string.cancel, null)
                 .show()
-            return
+        } catch (_: Throwable) {
         }
-
-        val items = history.map { it.label }.toTypedArray()
-        AlertDialog.Builder(context)
-            .setTitle(R.string.paste)
-            .setItems(items) { _, which ->
-                editText.addTokens(cloneTokens(history[which].tokens))
-                val pastedItem = history.removeAt(which)
-                history.add(0, pastedItem)
-            }
-            .setNegativeButton(R.string.cancel, null)
-            .show()
     }
 
     @JvmStatic

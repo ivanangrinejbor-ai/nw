@@ -50,8 +50,6 @@ public class FloatingObjectWindow extends FrameLayout {
 
 		void onOpenInspector(Sprite sprite);
 
-		void onOpenSwipeEditor(Sprite sprite);
-
 		void onClosed(FloatingObjectWindow window);
 	}
 
@@ -85,7 +83,6 @@ public class FloatingObjectWindow extends FrameLayout {
 		Button btnSounds = findViewById(R.id.floating_window_sounds);
 		Button btnLayers = findViewById(R.id.floating_window_layers);
 		Button btnInspector = findViewById(R.id.floating_window_inspector);
-		Button swipe = findViewById(R.id.floating_window_swipe);
 
 		title.setText(sprite.getName());
 		info.setText(context.getString(R.string.scene_editor_window_info, sprite.getScriptList().size()));
@@ -134,11 +131,6 @@ public class FloatingObjectWindow extends FrameLayout {
 				}
 			});
 		}
-		swipe.setOnClickListener(v -> {
-			if (callback != null) {
-				callback.onOpenSwipeEditor(sprite);
-			}
-		});
 	}
 
 	public Sprite getSprite() {

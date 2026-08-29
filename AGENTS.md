@@ -782,110 +782,110 @@ ew Scope(project, sprite, null) РІР°Р»РёРґРµРЅ; РІ plain-JUnit РѕР±СЏР·Р°С‚РµР»Р
 
 ## РР·РІРµСЃС‚РЅР°СЏ С…СЂСѓРїРєРѕСЃС‚СЊ (РќР• РЅР°С€Р°)
 - SceneTransitionActionTest (2 С‚РµСЃС‚Р°) РїР°РґР°РµС‚ РІ РїР°С‡РєРµ (GlobalSceneTest/NeoScriptSceneTest + РґСЂ. РІ РѕРґРЅРѕРј РїСЂРѕС†РµСЃСЃРµ): NPE В«Scene.getName() is nullВ» РІ SceneTransitionAction.update (~:45) вЂ” РґСЂСѓРіРѕР№ С‚РµСЃС‚ СЃС‚Р°РІРёС‚ currentlyPlayingScene = defaultScene СЃ null-РёРјРµРЅРµРј (РјРѕРє getString(R.string.default_scene_name)). Р’ РёР·РѕР»СЏС†РёРё С‚РµСЃС‚ РїСЂРѕС…РѕРґРёС‚, РЅР° С‡РёСЃС‚РѕРј HEAD РІ РёР·РѕР»СЏС†РёРё С‚РѕР¶Рµ РїСЂРѕС…РѕРґРёС‚ вЂ” pre-existing, РЅРµ СЂРµРіСЂРµСЃСЃРёСЏ.
-## Crash fix: NPE пїЅ hasUserDataChanged / hasSameValue (2026-08)
+## Crash fix: NPE РІ hasUserDataChanged / hasSameValue (2026-08)
 
-пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ FormulaEditor (SpriteActivity.onBackPressed > ScriptFragment.checkVariables):
-`UserVariable.hasSameValue` пїЅпїЅпїЅпїЅпїЅ пїЅ NPE, пїЅ.пїЅ. `value`/`list` пїЅ UserVariable/UserList пїЅ **transient**
-(пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅ = null). пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ (List.size() on null) пїЅ пїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ,
-пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ null пїЅ `hasUserDataChanged`.
+РџСЂРёС‡РёРЅР°: РїСЂР°РІРєР° С„РѕСЂРјСѓР»С‹ РёР· FormulaEditor (SpriteActivity.onBackPressed > ScriptFragment.checkVariables):
+`UserVariable.hasSameValue` РїР°РґР°Р» СЃ NPE, С‚.Рє. `value`/`list` Сѓ UserVariable/UserList вЂ” **transient**
+(РЅРµ РІРѕСЃСЃС‚Р°РЅР°РІР»РёРІР°СЋС‚СЃСЏ РїСЂРё Р·Р°РіСЂСѓР·РєРµ РїСЂРѕРµРєС‚Р° = null). Р›СЋР±РѕР№ РІС‹Р·РѕРІ (List.size() on null) РІР°Р»РёР» СЃСЂР°РІРЅРµРЅРёРµ,
+С‡С‚Рѕ Р±Р»РѕРєРёСЂРѕРІР°Р»Рѕ РІС‹С…РѕРґ Рё РїРµСЂРµРґР°РІР°Р»Рѕ null РІ `hasUserDataChanged`.
 
-- `UserVariable.java`: `hasSameValue`/`equals`/`hashCode` пїЅ null-safe (value пїЅ name).
-- `UserList.java`: `hasSameListSize`/`equals`/`hashCode` пїЅ null-safe (list пїЅ name).
-- `Project.java` + `Sprite.java`: `hasUserDataChanged` пїЅ null-пїЅпїЅпїЅпїЅпїЅпїЅ = пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
-  (size 0); `checkEquality`/`checkUserData` пїЅ guard пїЅпїЅ null oldUserData.
-- пїЅпїЅпїЅпїЅ: `test/formulaeditor/UserVariableNullSafetyTest.java` (6 пїЅпїЅпїЅпїЅпїЅпїЅ).
+- `UserVariable.java`: `hasSameValue`/`equals`/`hashCode` вЂ” null-safe (value Рё name).
+- `UserList.java`: `hasSameListSize`/`equals`/`hashCode` вЂ” null-safe (list Рё name).
+- `Project.java` + `Sprite.java`: `hasUserDataChanged` вЂ” null-СЃРїРёСЃРѕРє = РїСѓСЃС‚РѕР№ СЃРїРёСЃРѕРє
+  (size 0); `checkEquality`/`checkUserData` вЂ” guard РЅР° null oldUserData.
+- РўРµСЃС‚: `test/formulaeditor/UserVariableNullSafetyTest.java` (6 С‚РµСЃС‚РѕРІ).
 
-## Fix: пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ (2026-08)
+# Fix: СЃС‚Р°СЂС‹Рµ Р±Р»РѕРєРё Рё alias ShowToastBlock (2026-08)
 
-пїЅпїЅпїЅпїЅпїЅпїЅпїЅ: пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ `ShowToastBlock` > `ShowToastBrick` (2026-07-08). пїЅпїЅпїЅпїЅпїЅпїЅ
-пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ `<brick type="ShowToastBlock">` пїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅ
-пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ `UnknownBrick` (пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ).
+РџСЂРѕР±Р»РµРјР°: РїСЂРѕРµРєС‚С‹, СЃРѕР·РґР°РЅРЅС‹Рµ РґРѕ РїРµСЂРµРёРјРµРЅРѕРІР°РЅРёСЏ `ShowToastBlock` > `ShowToastBrick` (2026-07-08),
+РїР°РґР°Р»Рё РїСЂРё Р·Р°РіСЂСѓР·РєРµ: `<brick type="ShowToastBlock">` РЅРµ РЅР°С…РѕРґРёР» РєР»Р°СЃСЃ Рё Р·Р°РјРµРЅСЏР»СЃСЏ РЅР° `UnknownBrick`
+(РґР°РЅРЅС‹Рµ Р±Р»РѕРєР° С‚РµСЂСЏР»РёСЃСЊ).
 
-- `XStreamBrickConverter`: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ `LEGACY_BRICK_ALIASES`
-  (`ShowToastBlock` > `ShowToastBrick`) + remap пїЅ `doUnmarshal`. пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
-  пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ.
-- `ShowToastAction.kt`: null-guard пїЅпїЅ `StageActivity.messageHandler` + fallback-пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
-  `CatroidApplication.getAppContext()` пїЅпїЅ main-looper (пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ NPE, пїЅпїЅпїЅпїЅ handler null),
-  пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ `contextt`.
-- пїЅпїЅпїЅпїЅ: `test/formulaeditor/ShowToastLegacyAliasTest.java` (2 пїЅпїЅпїЅпїЅпїЅ: legacy remap пїЅпїЅпїЅ
-  пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ + round-trip пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ).
+- `XStreamBrickConverter`: РґРѕР±Р°РІР»РµРЅР° РєР°СЂС‚Р° `LEGACY_BRICK_ALIASES`
+  (`ShowToastBlock` > `ShowToastBrick`) + remap РІ `doUnmarshal`. РЎС‚Р°СЂС‹Рµ РїСЂРѕРµРєС‚С‹ Р·Р°РіСЂСѓР¶Р°СЋС‚СЃСЏ РєРѕСЂСЂРµРєС‚РЅРѕ.
+- `ShowToastAction.kt`: null-guard РЅР° `StageActivity.messageHandler` + fallback-С‚РѕСЃС‚ С‡РµСЂРµР·
+  `CatroidApplication.getAppContext()` РЅР° main-looper (Р·Р°С‰РёС‚Р° РѕС‚ NPE, РµСЃР»Рё handler null),
+  СѓРґР°Р»С‘РЅ РЅРµРёСЃРїРѕР»СЊР·СѓРµРјС‹Р№ `contextt`.
+- РўРµСЃС‚: `test/formulaeditor/ShowToastLegacyAliasTest.java` (2 С‚РµСЃС‚Р°: legacy remap РїСЂРё
+  РґРµСЃРµСЂРёР°Р»РёР·Р°С†РёРё + round-trip СЃРѕС…СЂР°РЅРµРЅРёСЏ).
 
-# Фиксы редактора и скриптов (2026-08)
+# Р¤РёРєСЃС‹ СЂРµРґР°РєС‚РѕСЂР° Рё СЃРєСЂРёРїС‚РѕРІ (2026-08)
 
-## 3D-редактор (editor/)
-- UndoManager: synchronized + исполнение команд на GL-потоке; clear() в onEngineReset.
-- Commands: Delete/AddCommand сериализуют всё поддерево (undo/redo не теряет детей композитов).
-- Crash-handler: identity-check перед restore в onDestroy; catch Throwable; атомарная tmp+rename запись.
-- onCreate guard: savedInstanceState != null или нет проекта -> finish (process-death).
-- Все мутации сцены из UI (delete/duplicate/add/focus/particles) обёрнуты в Gdx.app.postRunnable;
-  то же для InspectorManager delete-object/prefab-remove и remove{Render,Physics,Light}Component,
+## 3D-СЂРµРґР°РєС‚РѕСЂ (editor/)
+- UndoManager: synchronized + РёСЃРїРѕР»РЅРµРЅРёРµ РєРѕРјР°РЅРґ РЅР° GL-РїРѕС‚РѕРєРµ; clear() РІ onEngineReset.
+- Commands: Delete/AddCommand СЃРµСЂРёР°Р»РёР·СѓСЋС‚ РІСЃС‘ РїРѕРґРґРµСЂРµРІРѕ (undo/redo РЅРµ С‚РµСЂСЏРµС‚ РґРµС‚РµР№ РєРѕРјРїРѕР·РёС‚РѕРІ).
+- Crash-handler: identity-check РїРµСЂРµРґ restore РІ onDestroy; catch Throwable; Р°С‚РѕРјР°СЂРЅР°СЏ tmp+rename Р·Р°РїРёСЃСЊ.
+- onCreate guard: savedInstanceState != null РёР»Рё РЅРµС‚ РїСЂРѕРµРєС‚Р° -> finish (process-death).
+- Р’СЃРµ РјСѓС‚Р°С†РёРё СЃС†РµРЅС‹ РёР· UI (delete/duplicate/add/focus/particles) РѕР±С‘СЂРЅСѓС‚С‹ РІ Gdx.app.postRunnable;
+  С‚Рѕ Р¶Рµ РґР»СЏ InspectorManager delete-object/prefab-remove Рё remove{Render,Physics,Light}Component,
   renameGameObject(engine), setObjectActive, setFriction/setRestitution.
-- Autosave сцены на диск (tmp+rename) в onPause + дебаунс 3с от pushCommand; чистый выход/Clear Scene
-  инвалидирует _recovery_autosave.rscene; EditorStateManager удалён (write-only кэш).
-- Recovery: JSON-валидация до диалога, восстановление через resetEngine (GL-поток).
-- Save scene: санитизация имени, сериализация GL + запись в фоне, compact-json.
-- requireEngineReady() для save/load/clear/skybox; ACTION_CANCEL у камерных кнопок.
-- bulk-duplicate клонирует источник каждый раз (был O(2^n)); TransformCommand создаётся после мутации.
-- SpriteActivity.saveProject debounce 800мс; getCurrentSceneData deep-copy только при PrefabComponent.
+- Autosave СЃС†РµРЅС‹ РЅР° РґРёСЃРє (tmp+rename) РІ onPause + РґРµР±Р°СѓРЅСЃ 3СЃ РѕС‚ pushCommand; С‡РёСЃС‚С‹Р№ РІС‹С…РѕРґ/Clear Scene
+  РёРЅРІР°Р»РёРґРёСЂСѓРµС‚ _recovery_autosave.rscene; EditorStateManager СѓРґР°Р»С‘РЅ (write-only РєСЌС€).
+- Recovery: JSON-РІР°Р»РёРґР°С†РёСЏ РґРѕ РґРёР°Р»РѕРіР°, РІРѕСЃСЃС‚Р°РЅРѕРІР»РµРЅРёРµ С‡РµСЂРµР· resetEngine (GL-РїРѕС‚РѕРє).
+- Save scene: СЃР°РЅРёС‚РёР·Р°С†РёСЏ РёРјРµРЅРё, СЃРµСЂРёР°Р»РёР·Р°С†РёСЏ GL + Р·Р°РїРёСЃСЊ РІ С„РѕРЅРµ, compact-json.
+- requireEngineReady() РґР»СЏ save/load/clear/skybox; ACTION_CANCEL Сѓ РєР°РјРµСЂРЅС‹С… РєРЅРѕРїРѕРє.
+- bulk-duplicate РєР»РѕРЅРёСЂСѓРµС‚ РёСЃС‚РѕС‡РЅРёРє РєР°Р¶РґС‹Р№ СЂР°Р· (Р±С‹Р» O(2^n)); TransformCommand СЃРѕР·РґР°С‘С‚СЃСЏ РїРѕСЃР»Рµ РјСѓС‚Р°С†РёРё.
+- SpriteActivity.saveProject debounce 800РјСЃ; getCurrentSceneData deep-copy С‚РѕР»СЊРєРѕ РїСЂРё PrefabComponent.
 
-## Вьюпорт
-- Тап по хэндлу без движения вызывает gizmo.touchUp(); setCurrentTool завершает драг;
-  мультитач-guard в touchDown; rotate детей конвертируется в пространство родителя.
-- Камера: pitch-clamp ±89°, resetMotion() в onPause, pinch-dolly zoom, quick-focus через postRunnable.
-- PS3D-объекты выделяемы тапом; прокси из worldTransform; dispose снимает InputProcessor.
-- Кейфреймы: Play-guard пустого списка, scale clamp >=0.01, debugDrawer begin/end один на кадр,
-  драг удалённого объекта прерывается. applyTransformToEngine: tmpQuaternion вместо new на объект.
-- FALSE POSITIVE (не чинить): «двойной mul bbox гизмо» — calculateBoundingBox возвращает локальный bbox,
-  один .mul корректен (проверено исходниками libGDX).
+## Р’СЊСЋРїРѕСЂС‚
+- РўР°Рї РїРѕ С…СЌРЅРґР»Сѓ Р±РµР· РґРІРёР¶РµРЅРёСЏ РІС‹Р·С‹РІР°РµС‚ gizmo.touchUp(); setCurrentTool Р·Р°РІРµСЂС€Р°РµС‚ РґСЂР°Рі;
+  РјСѓР»СЊС‚РёС‚Р°С‡-guard РІ touchDown; rotate РґРµС‚РµР№ РєРѕРЅРІРµСЂС‚РёСЂСѓРµС‚СЃСЏ РІ РїСЂРѕСЃС‚СЂР°РЅСЃС‚РІРѕ СЂРѕРґРёС‚РµР»СЏ.
+- РљР°РјРµСЂР°: pitch-clamp В±89В°, resetMotion() РІ onPause, pinch-dolly zoom, quick-focus С‡РµСЂРµР· postRunnable.
+- PS3D-РѕР±СЉРµРєС‚С‹ РІС‹РґРµР»СЏРµРјС‹ С‚Р°РїРѕРј; РїСЂРѕРєСЃРё РёР· worldTransform; dispose СЃРЅРёРјР°РµС‚ InputProcessor.
+- РљРµР№С„СЂРµР№РјС‹: Play-guard РїСѓСЃС‚РѕРіРѕ СЃРїРёСЃРєР°, scale clamp >=0.01, debugDrawer begin/end РѕРґРёРЅ РЅР° РєР°РґСЂ,
+  РґСЂР°Рі СѓРґР°Р»С‘РЅРЅРѕРіРѕ РѕР±СЉРµРєС‚Р° РїСЂРµСЂС‹РІР°РµС‚СЃСЏ. applyTransformToEngine: tmpQuaternion РІРјРµСЃС‚Рѕ new РЅР° РѕР±СЉРµРєС‚.
+- FALSE POSITIVE (РЅРµ С‡РёРЅРёС‚СЊ): В«РґРІРѕР№РЅРѕР№ mul bbox РіРёР·РјРѕВ» вЂ” calculateBoundingBox РІРѕР·РІСЂР°С‰Р°РµС‚ Р»РѕРєР°Р»СЊРЅС‹Р№ bbox,
+  РѕРґРёРЅ .mul РєРѕСЂСЂРµРєС‚РµРЅ (РїСЂРѕРІРµСЂРµРЅРѕ РёСЃС…РѕРґРЅРёРєР°РјРё libGDX).
 
-## Инспектор
-- editor_3d_physics_states = 5 значений в порядке PhysicsState (en+ru) + clamp — был IOOBE и запись NONE.
-- Новый editor_3d_easing_types (33 = enum EasingType) en+ru; brick_easing_types не тронут (для кирпичей).
-- Preview анимации: previewingOwner + cancelStalePreview (поза возвращается правильному объекту).
-- Rename guard selectedObject == go; DelayedTextWatcher = реальный debounce 300мс.
-- Спиннеры physics/light/animation/fog/shape: post{} attach + clamp (нет фантомного первого fire).
-- Collider/camera watcher'ы hasFocus-guard; EyeAdaptation updatePP; PS3D debounce проверяет живость GO.
-- Удаление CameraComponent -> findAndSetMainCamera; setMaterialComponent null-guard; keyframes под
-  synchronized(anim.keyframes); updateKeyframeAnimations итерирует снапшот; Play пустых keyframes -> тост.
+## РРЅСЃРїРµРєС‚РѕСЂ
+- editor_3d_physics_states = 5 Р·РЅР°С‡РµРЅРёР№ РІ РїРѕСЂСЏРґРєРµ PhysicsState (en+ru) + clamp вЂ” Р±С‹Р» IOOBE Рё Р·Р°РїРёСЃСЊ NONE.
+- РќРѕРІС‹Р№ editor_3d_easing_types (33 = enum EasingType) en+ru; brick_easing_types РЅРµ С‚СЂРѕРЅСѓС‚ (РґР»СЏ РєРёСЂРїРёС‡РµР№).
+- Preview Р°РЅРёРјР°С†РёРё: previewingOwner + cancelStalePreview (РїРѕР·Р° РІРѕР·РІСЂР°С‰Р°РµС‚СЃСЏ РїСЂР°РІРёР»СЊРЅРѕРјСѓ РѕР±СЉРµРєС‚Сѓ).
+- Rename guard selectedObject == go; DelayedTextWatcher = СЂРµР°Р»СЊРЅС‹Р№ debounce 300РјСЃ.
+- РЎРїРёРЅРЅРµСЂС‹ physics/light/animation/fog/shape: post{} attach + clamp (РЅРµС‚ С„Р°РЅС‚РѕРјРЅРѕРіРѕ РїРµСЂРІРѕРіРѕ fire).
+- Collider/camera watcher'С‹ hasFocus-guard; EyeAdaptation updatePP; PS3D debounce РїСЂРѕРІРµСЂСЏРµС‚ Р¶РёРІРѕСЃС‚СЊ GO.
+- РЈРґР°Р»РµРЅРёРµ CameraComponent -> findAndSetMainCamera; setMaterialComponent null-guard; keyframes РїРѕРґ
+  synchronized(anim.keyframes); updateKeyframeAnimations РёС‚РµСЂРёСЂСѓРµС‚ СЃРЅР°РїС€РѕС‚; Play РїСѓСЃС‚С‹С… keyframes -> С‚РѕСЃС‚.
 
-## Скрипты (legacy)
-- AI-таймер не дёргает updateItems во время drag/action mode; code analysis: снапшоты списков +
-  toList() в CodeAnalyzer + try/catch + generation-counter (GlobalScope CME).
-- Выделение: bounds-guard позиций (-1 свёрнутых детей) в setSelectionTo/selectedItems.
-- copyProjectForUndoOption(2000ms): await снапшота ДО мутации (delete/cut/paste).
-- handleContextualAction return после finish(); одиночный DELETE/COPY через полный путь guards.
-- pasteBricksBelow: resolveBrickReferences перелинковывает Look/Sound/UserVariable/UserList на целевой
-  спрайт (рекурсивно по композитам).
-- exportScripts клонирует скрипты на main до Thread; backpack.json атомарно; unpack по flat-list;
-  CSV-escape значений списков; повторный pack мержит звуки; пустой pack -> тост ошибки.
-- ACTION_CANCEL в BrickListView = отмена переноса; onBackPressed проверяет isCurrentlyMoving до workspace.
-- addItem -> Boolean (нет фантомного startMoving); showUndo(false) только в мутирующих ветках;
-  Log.d удалены из getView; O(n^2) indexOf -> indices loop.
+## РЎРєСЂРёРїС‚С‹ (legacy)
+- AI-С‚Р°Р№РјРµСЂ РЅРµ РґС‘СЂРіР°РµС‚ updateItems РІРѕ РІСЂРµРјСЏ drag/action mode; code analysis: СЃРЅР°РїС€РѕС‚С‹ СЃРїРёСЃРєРѕРІ +
+  toList() РІ CodeAnalyzer + try/catch + generation-counter (GlobalScope CME).
+- Р’С‹РґРµР»РµРЅРёРµ: bounds-guard РїРѕР·РёС†РёР№ (-1 СЃРІС‘СЂРЅСѓС‚С‹С… РґРµС‚РµР№) РІ setSelectionTo/selectedItems.
+- copyProjectForUndoOption(2000ms): await СЃРЅР°РїС€РѕС‚Р° Р”Рћ РјСѓС‚Р°С†РёРё (delete/cut/paste).
+- handleContextualAction return РїРѕСЃР»Рµ finish(); РѕРґРёРЅРѕС‡РЅС‹Р№ DELETE/COPY С‡РµСЂРµР· РїРѕР»РЅС‹Р№ РїСѓС‚СЊ guards.
+- pasteBricksBelow: resolveBrickReferences РїРµСЂРµР»РёРЅРєРѕРІС‹РІР°РµС‚ Look/Sound/UserVariable/UserList РЅР° С†РµР»РµРІРѕР№
+  СЃРїСЂР°Р№С‚ (СЂРµРєСѓСЂСЃРёРІРЅРѕ РїРѕ РєРѕРјРїРѕР·РёС‚Р°Рј).
+- exportScripts РєР»РѕРЅРёСЂСѓРµС‚ СЃРєСЂРёРїС‚С‹ РЅР° main РґРѕ Thread; backpack.json Р°С‚РѕРјР°СЂРЅРѕ; unpack РїРѕ flat-list;
+  CSV-escape Р·РЅР°С‡РµРЅРёР№ СЃРїРёСЃРєРѕРІ; РїРѕРІС‚РѕСЂРЅС‹Р№ pack РјРµСЂР¶РёС‚ Р·РІСѓРєРё; РїСѓСЃС‚РѕР№ pack -> С‚РѕСЃС‚ РѕС€РёР±РєРё.
+- ACTION_CANCEL РІ BrickListView = РѕС‚РјРµРЅР° РїРµСЂРµРЅРѕСЃР°; onBackPressed РїСЂРѕРІРµСЂСЏРµС‚ isCurrentlyMoving РґРѕ workspace.
+- addItem -> Boolean (РЅРµС‚ С„Р°РЅС‚РѕРјРЅРѕРіРѕ startMoving); showUndo(false) С‚РѕР»СЊРєРѕ РІ РјСѓС‚РёСЂСѓСЋС‰РёС… РІРµС‚РєР°С…;
+  Log.d СѓРґР°Р»РµРЅС‹ РёР· getView; O(n^2) indexOf -> indices loop.
 
-## Формульный редактор (+совместимость со старыми проектами)
-- InternToExternGenerator: context==null -> fallback intern-имя (NPE в EventId.hashCode на stage-потоке);
-  parseDouble в trim-пути -> try/catch.
-- InternFormulaParser: парс строго на копии токенов; bracket-correction пишется обратно только при успехе.
-- FormulaEditorFragment: null-guard полей в onCreateView (process-death); refreshFormulaPreviewString
-  реинфлейтит brick-view только при смене кирпича/поля; hasFileChanged потоково сравнивает файлы;
-  onActivityResult requestCode-guard; ACTION_CANCEL останавливает автоповтор Backspace.
-- Formula.java: ensureInternFormula() во всех update*-методах (rename спрайта/переменной после загрузки
-  старого проекта; миграции v<=0.993).
-- WorkspaceLayout: окно формулы закрывается только при успешном сохранении формулы.
-- ExternalIpFetcher: main-thread guard + негативный кэш 30с.
-- Ui2: saveProjectToDisk в фоновом потоке.
-- DEVICE_PARAMS генерируется размером DEVICE_FUNCTIONS (54<->54, хинты выровнены).
-- Guard'ы: handleDeletion(RIGHT) null-check; DISTANCE null->0; Operators.getOperatorByValue null-check.
+## Р¤РѕСЂРјСѓР»СЊРЅС‹Р№ СЂРµРґР°РєС‚РѕСЂ (+СЃРѕРІРјРµСЃС‚РёРјРѕСЃС‚СЊ СЃРѕ СЃС‚Р°СЂС‹РјРё РїСЂРѕРµРєС‚Р°РјРё)
+- InternToExternGenerator: context==null -> fallback intern-РёРјСЏ (NPE РІ EventId.hashCode РЅР° stage-РїРѕС‚РѕРєРµ);
+  parseDouble РІ trim-РїСѓС‚Рё -> try/catch.
+- InternFormulaParser: РїР°СЂСЃ СЃС‚СЂРѕРіРѕ РЅР° РєРѕРїРёРё С‚РѕРєРµРЅРѕРІ; bracket-correction РїРёС€РµС‚СЃСЏ РѕР±СЂР°С‚РЅРѕ С‚РѕР»СЊРєРѕ РїСЂРё СѓСЃРїРµС…Рµ.
+- FormulaEditorFragment: null-guard РїРѕР»РµР№ РІ onCreateView (process-death); refreshFormulaPreviewString
+  СЂРµРёРЅС„Р»РµР№С‚РёС‚ brick-view С‚РѕР»СЊРєРѕ РїСЂРё СЃРјРµРЅРµ РєРёСЂРїРёС‡Р°/РїРѕР»СЏ; hasFileChanged РїРѕС‚РѕРєРѕРІРѕ СЃСЂР°РІРЅРёРІР°РµС‚ С„Р°Р№Р»С‹;
+  onActivityResult requestCode-guard; ACTION_CANCEL РѕСЃС‚Р°РЅР°РІР»РёРІР°РµС‚ Р°РІС‚РѕРїРѕРІС‚РѕСЂ Backspace.
+- Formula.java: ensureInternFormula() РІРѕ РІСЃРµС… update*-РјРµС‚РѕРґР°С… (rename СЃРїСЂР°Р№С‚Р°/РїРµСЂРµРјРµРЅРЅРѕР№ РїРѕСЃР»Рµ Р·Р°РіСЂСѓР·РєРё
+  СЃС‚Р°СЂРѕРіРѕ РїСЂРѕРµРєС‚Р°; РјРёРіСЂР°С†РёРё v<=0.993).
+- WorkspaceLayout: РѕРєРЅРѕ С„РѕСЂРјСѓР»С‹ Р·Р°РєСЂС‹РІР°РµС‚СЃСЏ С‚РѕР»СЊРєРѕ РїСЂРё СѓСЃРїРµС€РЅРѕРј СЃРѕС…СЂР°РЅРµРЅРёРё С„РѕСЂРјСѓР»С‹.
+- ExternalIpFetcher: main-thread guard + РЅРµРіР°С‚РёРІРЅС‹Р№ РєСЌС€ 30СЃ.
+- Ui2: saveProjectToDisk РІ С„РѕРЅРѕРІРѕРј РїРѕС‚РѕРєРµ.
+- DEVICE_PARAMS РіРµРЅРµСЂРёСЂСѓРµС‚СЃСЏ СЂР°Р·РјРµСЂРѕРј DEVICE_FUNCTIONS (54<->54, С…РёРЅС‚С‹ РІС‹СЂРѕРІРЅРµРЅС‹).
+- Guard'С‹: handleDeletion(RIGHT) null-check; DISTANCE null->0; Operators.getOperatorByValue null-check.
 
-## Совместимость со старыми проектами
-Форматы не менялись: XStream-поля, порядок Functions/Sensors/Operators, INTERN_EXTERN_MAP, .rscene,
-backpack.json (CSV-escape обратно совместим). Автоскобки парсера попадают в кирпич при успешном OK.
+## РЎРѕРІРјРµСЃС‚РёРјРѕСЃС‚СЊ СЃРѕ СЃС‚Р°СЂС‹РјРё РїСЂРѕРµРєС‚Р°РјРё
+Р¤РѕСЂРјР°С‚С‹ РЅРµ РјРµРЅСЏР»РёСЃСЊ: XStream-РїРѕР»СЏ, РїРѕСЂСЏРґРѕРє Functions/Sensors/Operators, INTERN_EXTERN_MAP, .rscene,
+backpack.json (CSV-escape РѕР±СЂР°С‚РЅРѕ СЃРѕРІРјРµСЃС‚РёРј). РђРІС‚РѕСЃРєРѕР±РєРё РїР°СЂСЃРµСЂР° РїРѕРїР°РґР°СЋС‚ РІ РєРёСЂРїРёС‡ РїСЂРё СѓСЃРїРµС€РЅРѕРј OK.
 
-## Отложено (требует рефакторинга)
-RecyclerView-миграция BrickAdapter; объектное выделение кирпичей; command-дифы FormulaEditorHistory;
-явный Cancel в формулах; утечки SensorHandler/FormulaEditorClipboard/IntroDialog; project-undo формул;
-OBB/ray-triangle пикинг; dirty-flag трансформов; кэш bbox raycast; listFiles-кэш пикеров; Fog-ветка.
+## РћС‚Р»РѕР¶РµРЅРѕ (С‚СЂРµР±СѓРµС‚ СЂРµС„Р°РєС‚РѕСЂРёРЅРіР°)
+RecyclerView-РјРёРіСЂР°С†РёСЏ BrickAdapter; РѕР±СЉРµРєС‚РЅРѕРµ РІС‹РґРµР»РµРЅРёРµ РєРёСЂРїРёС‡РµР№; command-РґРёС„С‹ FormulaEditorHistory;
+СЏРІРЅС‹Р№ Cancel РІ С„РѕСЂРјСѓР»Р°С…; СѓС‚РµС‡РєРё SensorHandler/FormulaEditorClipboard/IntroDialog; project-undo С„РѕСЂРјСѓР»;
+OBB/ray-triangle РїРёРєРёРЅРі; dirty-flag С‚СЂР°РЅСЃС„РѕСЂРјРѕРІ; РєСЌС€ bbox raycast; listFiles-РєСЌС€ РїРёРєРµСЂРѕРІ; Fog-РІРµС‚РєР°.
 
-## Сборка
-`./gradlew :catroid:compileCatroidDebugKotlin :catroid:compileCatroidDebugJavaWithJavac --offline` — OK.
-Формула-тесты formulaeditor.*: 72 фейла pre-existing (stash-бисекция InternFormulaParser: те же на HEAD).
+## РЎР±РѕСЂРєР°
+`./gradlew :catroid:compileCatroidDebugKotlin :catroid:compileCatroidDebugJavaWithJavac --offline` вЂ” OK.
+Р¤РѕСЂРјСѓР»Р°-С‚РµСЃС‚С‹ formulaeditor.*: 72 С„РµР№Р»Р° pre-existing (stash-Р±РёСЃРµРєС†РёСЏ InternFormulaParser: С‚Рµ Р¶Рµ РЅР° HEAD).
+

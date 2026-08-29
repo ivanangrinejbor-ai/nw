@@ -224,8 +224,12 @@ abstract class BaseActivity : AppCompatActivity(), PermissionHandlingActivity {
         }
     }
 
-    private fun applyWindowInsets() {
+    protected open fun applyWindowInsets() {
         val rootView = findViewById<View>(android.R.id.content) ?: return
+        if (this is org.catrobat.catroid.stage.StageActivity || this is org.catrobat.catroid.editor.EditorActivity) {
+            ViewCompat.setOnApplyWindowInsetsListener(rootView) { _, windowInsets -> windowInsets }
+            return
+        }
         ViewCompat.setOnApplyWindowInsetsListener(rootView) { view, windowInsets ->
             val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
             view.setPadding(insets.left, insets.top, insets.right, insets.bottom)

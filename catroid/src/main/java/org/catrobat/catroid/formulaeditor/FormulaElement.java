@@ -1476,7 +1476,12 @@ public class FormulaElement implements Serializable {
                 return "Unknown";
             }
             case EXTERNAL_IP: {
-                return ExternalIpFetcher.getExternalIp();
+                try {
+                    return ExternalIpFetcher.getExternalIp();
+                } catch (Throwable e) {
+                    Log.e(TAG_FORMULA_ELEMENT, "Failed to get external IP", e);
+                    return "Unknown";
+                }
             }
             case SCREEN_WIDTH: {
                 try {

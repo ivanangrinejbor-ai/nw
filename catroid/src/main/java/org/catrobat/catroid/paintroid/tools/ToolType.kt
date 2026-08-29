@@ -52,7 +52,7 @@ enum class ToolType(
         EnumSet.of(StateChange.ALL),
         R.id.pocketpaint_tools_brush,
         INVALID_RESOURCE_ID,
-        false
+        true
     ),
     UNDO(
         R.string.button_undo,
@@ -219,7 +219,7 @@ enum class ToolType(
     PIXELART(
         R.string.button_pixelart,
         R.string.help_content_pixelart,
-        R.drawable.ic_pocketpaint_tool_brush,
+        R.drawable.ic_pocketpaint_tool_pixelart,
         EnumSet.of(StateChange.ALL),
         R.id.pocketpaint_tools_brush,
         INVALID_RESOURCE_ID,
@@ -228,7 +228,7 @@ enum class ToolType(
     MAGIC_WAND(
         R.string.button_magic_wand,
         R.string.help_content_magic_wand,
-        R.drawable.ic_pocketpaint_tool_fill,
+        R.drawable.ic_pocketpaint_tool_magic_wand,
         EnumSet.of(StateChange.ALL),
         R.id.pocketpaint_tools_fill,
         INVALID_RESOURCE_ID,
@@ -237,7 +237,7 @@ enum class ToolType(
     LASSO(
         R.string.button_lasso,
         R.string.help_content_lasso,
-        R.drawable.ic_pocketpaint_tool_clipboard,
+        R.drawable.ic_pocketpaint_tool_lasso,
         EnumSet.of(StateChange.ALL),
         R.id.pocketpaint_tools_stamp,
         INVALID_RESOURCE_ID,
@@ -246,7 +246,7 @@ enum class ToolType(
     AUTO_REMOVE_BG(
         R.string.button_auto_remove_bg,
         R.string.help_content_auto_remove_bg,
-        R.drawable.ic_pocketpaint_tool_eraser,
+        R.drawable.ic_pocketpaint_tool_auto_remove_bg,
         EnumSet.of(StateChange.ALL),
         R.id.pocketpaint_tools_eraser,
         INVALID_RESOURCE_ID,
@@ -255,7 +255,7 @@ enum class ToolType(
     SYMMETRY(
         R.string.button_symmetry,
         R.string.help_content_symmetry,
-        R.drawable.ic_pocketpaint_tool_brush,
+        R.drawable.ic_pocketpaint_tool_symmetry,
         EnumSet.of(StateChange.ALL),
         R.id.pocketpaint_tools_brush,
         INVALID_RESOURCE_ID,
@@ -264,7 +264,7 @@ enum class ToolType(
     COLOR_REPLACE(
         R.string.button_color_replace,
         R.string.help_content_color_replace,
-        R.drawable.ic_pocketpaint_tool_fill,
+        R.drawable.ic_pocketpaint_tool_color_replace,
         EnumSet.of(StateChange.ALL),
         R.id.pocketpaint_tools_fill,
         INVALID_RESOURCE_ID,
@@ -273,7 +273,7 @@ enum class ToolType(
     PATTERN(
         R.string.button_pattern,
         R.string.help_content_pattern,
-        R.drawable.ic_pocketpaint_tool_brush,
+        R.drawable.ic_pocketpaint_tool_pattern,
         EnumSet.of(StateChange.ALL),
         R.id.pocketpaint_tools_brush,
         INVALID_RESOURCE_ID,

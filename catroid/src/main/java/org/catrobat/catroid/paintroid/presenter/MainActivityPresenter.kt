@@ -100,6 +100,7 @@ import org.catrobat.catroid.paintroid.tools.implementation.ClippingTool
 import org.catrobat.catroid.paintroid.tools.implementation.LineTool
 import org.catrobat.catroid.paintroid.tools.implementation.DefaultToolPaint
 import org.catrobat.catroid.paintroid.tools.implementation.EraserTool
+import org.catrobat.catroid.paintroid.tools.implementation.PipetteTool
 import org.catrobat.catroid.paintroid.ui.LayerAdapter
 import java.io.File
 
@@ -592,7 +593,7 @@ open class MainActivityPresenter(
         if (view.isKeyboardShown) {
             view.hideKeyboard()
         } else {
-            if (toolController.currentTool !is EraserTool && (commandManager.isLastColorCommandOnTop() || commandManager.getColorCommandCount() == 0)) {
+            if (toolController.currentTool !is EraserTool && toolController.currentTool !is PipetteTool && (commandManager.isLastColorCommandOnTop() || commandManager.getColorCommandCount() == 0)) {
                 toolController.currentTool?.changePaintColor(Color.BLACK)
                 setBottomNavigationColor(Color.BLACK)
             }

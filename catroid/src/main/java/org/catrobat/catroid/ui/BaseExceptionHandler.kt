@@ -53,6 +53,13 @@ open class BaseExceptionHandler(context: Context) : Thread.UncaughtExceptionHand
             preferences.edit()
                 .putBoolean(RECOVERED_FROM_CRASH, true)
                 .apply()
+            if (reportFile != null) {
+                try {
+                    CrashReporter.sendToFirestoreSync(appContext, reportFile, 4000)
+                } catch (e: Exception) {
+                    Log.w(TAG, "sync send failed", e)
+                }
+            }
             launchCrashActivity(reportFile)
         } catch (e: Throwable) {
             Log.e(TAG, "Crash recovery failed, falling back to exit", e)

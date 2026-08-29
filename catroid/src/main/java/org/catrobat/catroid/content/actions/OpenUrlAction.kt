@@ -28,7 +28,7 @@ import android.net.Uri
 import android.util.Log
 import org.catrobat.catroid.stage.StageActivity
 
-private val ALLOWED_SCHEMES = setOf("http", "https")
+private val ALLOWED_SCHEMES = setOf("http", "https", "tg", "intent", "market", "mailto", "tel", "geo")
 
 class OpenUrlAction : WebAction() {
     var response: String? = null
@@ -40,8 +40,33 @@ class OpenUrlAction : WebAction() {
             Log.w(javaClass.simpleName, "Blocked URL with disallowed scheme: $scheme")
             return
         }
-        val browserIntent = Intent(Intent.ACTION_VIEW, uri)
-        StageActivity.activeStageActivity.get()?.startActivity(browserIntent)
+        val browserIntent = Intent(Intent.ACTION_VIEW, uri).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        try {
+            StageActivity.activeStageActivity.get()?.startActivity(browserIntent)
+        } catch (e: Exception) {
+            Log.w(javaClass.simpleName, "Failed to open URL: $url", e)
+            try {
+                val fallback = Intent(Intent.ACTION_VIEW, Uri.parse(url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                StageActivity.activeStageActivity.get()?.startActivity(fallback)
+            } catch (_: Exception) {
+            }
+        }
+    }
+
+    override fun act(delta: Float): Boolean {
+        if (url == null) {
+            try {
+                val raw = formula?.interpretString(scope) ?: return true
+                url = if (raw.contains("://")) raw else "https://$raw"
+                val nl = url!!.indexOf("\n")
+                if (nl != -1) url = url!!.substring(0, nl)
+            } catch (e: Exception) {
+                Log.w(javaClass.simpleName, "Failed to interpret url", e)
+                return true
+            }
+        }
+        openUrl()
+        return true
     }
 
     override fun handleResponse() {

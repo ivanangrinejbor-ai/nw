@@ -282,6 +282,7 @@ class DataListFragment : Fragment(),
         setShowEmptyView(shouldShowEmptyView())
 
         BottomBar.showBottomBar(activity)
+        BottomBar.showAddButton(activity)
         BottomBar.hidePlayButton(activity)
         BottomBar.hideAiAssistButton(activity)
     }

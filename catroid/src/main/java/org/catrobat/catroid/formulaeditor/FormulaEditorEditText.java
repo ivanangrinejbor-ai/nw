@@ -81,16 +81,22 @@ public class FormulaEditorEditText extends EditText implements OnTouchListener {
 		return new GestureDetector(context, new GestureDetector.SimpleOnGestureListener() {
 		@Override
 		public boolean onDoubleTap(MotionEvent event) {
-			internFormula.setCursorAndSelection(absoluteCursorPosition, true);
-			history.updateCurrentSelection(internFormula.getSelection());
-			highlightSelection();
+			try {
+				if (internFormula == null || history == null) return true;
+				internFormula.setCursorAndSelection(absoluteCursorPosition, true);
+				history.updateCurrentSelection(internFormula.getSelection());
+				highlightSelection();
+			} catch (Throwable e) {
+				Log.e(TAG, "onDoubleTap failed", e);
+			}
 			return true;
 		}
 
 		@Override
 		public boolean onSingleTapUp(MotionEvent motion) {
-			Layout layout = getLayout();
-			if (layout != null) {
+			try {
+				Layout layout = getLayout();
+				if (layout != null && internFormula != null && history != null && formulaEditorFragment != null) {
 
 				float lineHeight = getLineHeight();
 				int yCoordinate = (int) motion.getY();
@@ -148,6 +154,9 @@ public class FormulaEditorEditText extends EditText implements OnTouchListener {
 
 				formulaEditorFragment.refreshFormulaPreviewString(internFormula.getExternFormulaString());
 				formulaEditorFragment.updateButtonsOnKeyboardAndInvalidateOptionsMenu();
+			}
+			} catch (Throwable e) {
+				Log.e(TAG, "onSingleTapUp failed", e);
 			}
 			return true;
 		}
@@ -339,32 +348,44 @@ public class FormulaEditorEditText extends EditText implements OnTouchListener {
     }
 
 	public void highlightSelection() {
-		Spannable highlightSpan = this.getText();
-		highlightSpan.removeSpan(COLOR_HIGHLIGHT);
-		highlightSpan.removeSpan(COLOR_ERROR);
+		try {
+			if (internFormula == null) return;
+			Spannable highlightSpan = this.getText();
+			if (highlightSpan == null) return;
+			highlightSpan.removeSpan(COLOR_HIGHLIGHT);
+			highlightSpan.removeSpan(COLOR_ERROR);
 
-		int selectionStartIndex = internFormula.getExternSelectionStartIndex();
-		int selectionEndIndex = internFormula.getExternSelectionEndIndex();
-		TokenSelectionType selectionType = internFormula.getExternSelectionType();
+			int selectionStartIndex = internFormula.getExternSelectionStartIndex();
+			int selectionEndIndex = internFormula.getExternSelectionEndIndex();
+			TokenSelectionType selectionType = internFormula.getExternSelectionType();
 
-		if (selectionStartIndex == -1 || selectionEndIndex == -1 || selectionEndIndex == selectionStartIndex
-				|| selectionEndIndex > highlightSpan.length()) {
-			return;
-		}
+			if (selectionStartIndex == -1 || selectionEndIndex == -1 || selectionEndIndex == selectionStartIndex
+					|| selectionEndIndex > highlightSpan.length() || selectionStartIndex < 0
+					|| selectionStartIndex > highlightSpan.length()) {
+				return;
+			}
 
-		if (selectionType == TokenSelectionType.USER_SELECTION) {
-			highlightSpan.setSpan(COLOR_HIGHLIGHT, selectionStartIndex, selectionEndIndex,
-					Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+			if (selectionType == TokenSelectionType.USER_SELECTION) {
+				highlightSpan.setSpan(COLOR_HIGHLIGHT, selectionStartIndex, selectionEndIndex,
+						Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 		} else {
 			highlightSpan.setSpan(COLOR_ERROR, selectionStartIndex, selectionEndIndex,
 					Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+			}
+		} catch (Throwable e) {
+			Log.e(TAG, "highlightSelection failed", e);
 		}
 	}
 
 	public void setParseErrorCursorAndSelection() {
-		internFormula.selectParseErrorTokenAndSetCursor();
-		highlightSelection();
-		setSelection(absoluteCursorPosition);
+		try {
+			if (internFormula == null) return;
+			internFormula.selectParseErrorTokenAndSetCursor();
+			highlightSelection();
+			setSelection(absoluteCursorPosition);
+		} catch (Throwable e) {
+			Log.e(TAG, "setParseErrorCursorAndSelection failed", e);
+		}
 	}
 
 	public void handleKeyEvent(int resource, String name) {

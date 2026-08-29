@@ -65,6 +65,9 @@ class SoundListFragment : RecyclerViewFragment<SoundInfo?>() {
     override fun onResume() {
         super.onResume()
         SnackbarUtil.showHintSnackbar(requireActivity(), R.string.hint_sounds)
+        org.catrobat.catroid.ui.BottomBar.showBottomBar(activity)
+        org.catrobat.catroid.ui.BottomBar.showAddButton(activity)
+        org.catrobat.catroid.ui.BottomBar.showPlayButton(activity)
     }
 
     override fun onPause() {

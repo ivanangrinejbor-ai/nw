@@ -54,6 +54,7 @@ import android.widget.LinearLayout;
 
 import org.catrobat.catroid.ProjectManager;
 import org.catrobat.catroid.R;
+import org.catrobat.catroid.common.ScreenModes;
 import org.catrobat.catroid.common.ScreenValues;
 import org.catrobat.catroid.content.Project;
 import org.catrobat.catroid.content.Sprite;
@@ -67,6 +68,9 @@ import java.util.Locale;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 import static android.content.DialogInterface.BUTTON_NEGATIVE;
 import static android.content.DialogInterface.BUTTON_POSITIVE;
@@ -157,6 +161,46 @@ public class VisualPlacementActivity extends BaseCastActivity implements View.On
 	private float initialRotation = 0f;
 	private float initialScale = 1.0f;
 	private float initialX, initialY;
+
+	@Override
+	protected void applyWindowInsets() {
+		View rootView = findViewById(android.R.id.content);
+		if (rootView == null) return;
+		ViewCompat.setOnApplyWindowInsetsListener(rootView, (view, windowInsets) -> {
+			Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
+			view.setPadding(insets.left, insets.top, insets.right, insets.bottom);
+			if (frameLayout != null && projectResolution != null && layoutResolution != null) {
+				int availableWidth = ScreenValues.currentScreenResolution.getWidth() - insets.left - insets.right;
+				int availableHeight = ScreenValues.currentScreenResolution.getHeight() - insets.top - insets.bottom;
+				if (availableWidth <= 0 || availableHeight <= 0) {
+					return WindowInsetsCompat.CONSUMED;
+				}
+				Resolution available = new Resolution(availableWidth, availableHeight);
+				Resolution newLayoutRes;
+				Project currentProject = ProjectManager.getInstance().getCurrentProject();
+				if (currentProject != null && currentProject.getScreenMode() == ScreenModes.STRETCH) {
+					newLayoutRes = available;
+				} else {
+					newLayoutRes = projectResolution.resizeToFit(available);
+				}
+				if (newLayoutRes.getWidth() != layoutResolution.getWidth() || newLayoutRes.getHeight() != layoutResolution.getHeight()) {
+					layoutResolution = newLayoutRes;
+					layoutWidthRatio = (float) layoutResolution.getWidth() / (float) projectResolution.getWidth();
+					layoutHeightRatio = (float) layoutResolution.getHeight() / (float) projectResolution.getHeight();
+					ViewGroup.LayoutParams lp = frameLayout.getLayoutParams();
+					lp.width = layoutResolution.getWidth();
+					lp.height = layoutResolution.getHeight();
+					frameLayout.setLayoutParams(lp);
+					setBackground();
+					if (imageView != null) {
+						frameLayout.removeView(imageView);
+						showMovableImageView();
+					}
+				}
+			}
+			return WindowInsetsCompat.CONSUMED;
+		});
+	}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {

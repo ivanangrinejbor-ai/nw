@@ -113,10 +113,18 @@ public class ListenTcpServerBrick extends FormulaBrick implements UserVariableBr
 				R.id.listen_tcp_spinner1,
 				R.id.listen_tcp_spinner2,
 				R.id.listen_tcp_spinner3,
-				R.id.listen_tcp_spinner4
+				R.id.listen_tcp_spinner4,
+				R.id.listen_tcp_spinner5,
+				R.id.listen_tcp_spinner6,
+				R.id.listen_tcp_spinner7,
+				R.id.listen_tcp_spinner8,
+				R.id.listen_tcp_spinner9,
+				R.id.listen_tcp_spinner10,
+				R.id.listen_tcp_spinner11,
+				R.id.listen_tcp_spinner12
 		};
 
-		for (int i = 0; i < 4; i++) {
+		for (int i = 0; i < spinnerIds.length; i++) {
 			View spinnerView = view.findViewById(spinnerIds[i]);
 			if (i < visibleVariables) {
 				spinnerView.setVisibility(View.VISIBLE);
@@ -133,11 +141,26 @@ public class ListenTcpServerBrick extends FormulaBrick implements UserVariableBr
 		View addButton = view.findViewById(R.id.brick_listen_tcp_add);
 		if (addButton != null) {
 			addButton.setOnClickListener(click -> {
-				if (visibleVariables < 4) {
+				if (visibleVariables < spinnerIds.length) {
 					visibleVariables++;
+					int nextId = spinnerIds[visibleVariables - 1];
+					View nextView = view.findViewById(nextId);
+					if (nextView != null) {
+						nextView.setVisibility(View.VISIBLE);
+						// init spinner for newly visible slot
+						BrickSpinner<UserVariable> spinner = new BrickSpinner<>(nextId, view, items);
+						spinner.setOnItemSelectedListener(ListenTcpServerBrick.this);
+						spinner.setSelection(getVariable(visibleVariables - 1));
+						spinners.put(nextId, spinner);
+						spinnerSlots.put(nextId, visibleVariables - 1);
+					}
+					if (visibleVariables >= spinnerIds.length) {
+						click.setVisibility(View.GONE);
+					}
 					ElseIfSeparatorBrick.refreshScriptList(view);
 				}
 			});
+			addButton.setVisibility(visibleVariables >= spinnerIds.length ? View.GONE : View.VISIBLE);
 		}
 		return view;
 	}

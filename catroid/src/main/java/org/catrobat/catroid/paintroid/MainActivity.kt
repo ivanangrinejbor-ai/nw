@@ -711,14 +711,27 @@ class MainActivity : AppCompatActivity(), MainView, CommandListener {
     }
 
     private fun showAlternateToolPicker(anchor: View, tools: List<ToolType>) {
+        try {
+            val vibrator = getSystemService(android.content.Context.VIBRATOR_SERVICE) as? android.os.Vibrator
+            vibrator?.vibrate(30)
+        } catch (_: Throwable) {}
         val currentToolType = toolReference.tool?.toolType
-        val labels = tools.map { type ->
-            val name = getString(type.nameResource)
-            if (type == currentToolType) "• $name" else name
-        }.toTypedArray()
+        val adapter = object : android.widget.ArrayAdapter<ToolType>(this, android.R.layout.select_dialog_item, tools) {
+            override fun getView(position: Int, convertView: android.view.View?, parent: android.view.ViewGroup): android.view.View {
+                val view = convertView ?: layoutInflater.inflate(android.R.layout.select_dialog_item, parent, false)
+                val textView = view.findViewById<android.widget.TextView>(android.R.id.text1)
+                val type = getItem(position)!!
+                val name = getString(type.nameResource)
+                textView.text = if (type == currentToolType) "• $name" else name
+                val icon = androidx.core.content.ContextCompat.getDrawable(context, type.drawableResource)
+                textView.setCompoundDrawablesWithIntrinsicBounds(icon, null, null, null)
+                textView.compoundDrawablePadding = (12 * resources.displayMetrics.density).toInt()
+                return view
+            }
+        }
         AlertDialog.Builder(this)
             .setTitle(getString(R.string.bottom_navigation_tools))
-            .setItems(labels) { _, which -> presenterMain.toolClicked(tools[which]) }
+            .setAdapter(adapter) { _, which -> presenterMain.toolClicked(tools[which]) }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
     }

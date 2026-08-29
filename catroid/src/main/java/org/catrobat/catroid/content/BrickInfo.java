@@ -136,6 +136,8 @@ public final class BrickInfo {
         add(WhenTouchingSpriteBrick.class, "Вызывается, когда этот спрайт касается любого другого спрайта. Не требует физики.");
         add(WhenTouchingSpriteByNameBrick.class, "Вызывается, когда этот спрайт касается выбранного спрайта. Не требует физики.");
         add(WhenAIResponseBrick.class, "Вызывается, когда ИИ ответил на запрос блока «Спросить ИИ».");
+        add(WhenTcpMessageBrick.class, "Вызывается, когда получено сообщение по TCP серверу, и сохраняет его в переменную.");
+        add(WhenTcpDisconnectedBrick.class, "Вызывается, когда соединение было разорвано по таймауту TCP сервера.");
         add(AskAIBrick.class, "Задаёт вопрос ИИ (провайдер выбирается внизу блока) и сохраняет ответ в переменную.");
         add(PlaySoundBrick.class, "Играет звук");
         add(PlaySoundAndWaitBrick.class, "Играет звук и ждет окончания");
@@ -1169,6 +1171,8 @@ public final class BrickInfo {
         addEn(WhenTouchingSpriteBrick.class, "Triggers when this sprite touches any other sprite. No physics required.");
         addEn(WhenTouchingSpriteByNameBrick.class, "Triggers when this sprite touches the selected sprite. No physics required.");
         addEn(WhenAIResponseBrick.class, "Triggers when AI answered a request from the \"Ask AI\" brick.");
+        addEn(WhenTcpMessageBrick.class, "Triggered when a TCP message is received and stores it into a variable.");
+        addEn(WhenTcpDisconnectedBrick.class, "Triggered when disconnected by TCP server timeout.");
         addEn(AskAIBrick.class, "Asks AI a question (provider is selected at the bottom of the brick) and saves the answer to a variable.");
         addEn(PlaySoundBrick.class, "Plays a sound");
         addEn(PlaySoundAndWaitBrick.class, "Plays a sound and waits for it to finish");

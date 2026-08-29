@@ -2330,6 +2330,8 @@
     <string formatted="false" name="brick_send_to_tcp_clients">Отправить TCP клиентам</string>
     <string formatted="false" name="brick_send_to_tcp_clients_echo_no">без эха себе</string>
     <string formatted="false" name="brick_send_to_tcp_clients_echo_yes">с эхом себе</string>
+    <string formatted="false" name="brick_when_tcp_message">Когда получено сообщение TCP</string>
+    <string formatted="false" name="brick_when_tcp_disconnected">Когда отключен по таймауту TCP сервера</string>
     <string formatted="false" name="brick_listen_tcp_server">Слушать TCP сервер и сохранить в</string>
     <string formatted="false" name="formula_external_ip">Внешний_IP</string>
     <string formatted="false" name="brick_screenshot">Сделать скриншот и использовать как образ</string>
@@ -3880,10 +3882,10 @@
     <string formatted="false" name="brick_stop_all_scripts">все скрипты</string>
     <string formatted="false" name="brick_stop_other_scripts">другие скрипты этого актера или объекта</string>
     <plurals name="second_plural">
-        <item quantity="one">"секунду "</item>
-        <item quantity="few">"секунд"</item>
-        <item quantity="many">"секунд"</item>
-        <item quantity="other">"секунд "</item>
+        <item quantity="one">секунда</item>
+        <item quantity="few">секунды</item>
+        <item quantity="many">секунд</item>
+        <item quantity="other">секунды</item>
     </plurals>
     <string formatted="false" name="brick_collision_receive">При столкновении с</string>
     <string formatted="false" name="collision_with_anything">любым краем, актером, или объектом</string>

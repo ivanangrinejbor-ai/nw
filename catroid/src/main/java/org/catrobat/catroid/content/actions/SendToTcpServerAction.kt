@@ -12,7 +12,7 @@ class SendToTcpServerAction() : TemporalAction() {
     override fun update(percent: Float) {
         val values = values?.mapNotNull { value -> value?.interpretString(scope) }
         if (!values.isNullOrEmpty()) {
-            LocalServer.sendAll(values)
+            LocalServer.sendAll(listOf(values.joinToString(LocalServer.VALUE_SEPARATOR.toString())))
         }
     }
 }

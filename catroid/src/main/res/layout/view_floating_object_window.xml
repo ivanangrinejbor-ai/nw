@@ -184,7 +184,8 @@
                 android:stateListAnimator="@null"
                 android:text="@string/scene_editor_swipe"
                 android:textAllCaps="false"
-                android:textColor="#FFFFFFFF" />
+                android:textColor="#FFFFFFFF"
+                android:visibility="gone" />
         </LinearLayout>
     </LinearLayout>
 

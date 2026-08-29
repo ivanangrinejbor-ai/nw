@@ -109,7 +109,7 @@ private fun runAction(values: List<Formula?>?) {
 	}
 
 	@Test
-	fun testTwoValuesReachClientInOrder() {
+	fun testTwoValuesPackedIntoOneLine() {
 		val port = freePort()
 		LocalServer.startOrJoin(null, port.toString())
 		await { LocalServer.getPort() == port.toString() }
@@ -118,13 +118,13 @@ private fun runAction(values: List<Formula?>?) {
 		client.soTimeout = 8000
 		Thread.sleep(200)
 		runAction(listOf(Formula("first"), Formula("second")))
-		assertEquals("first", reader.readLine())
-		assertEquals("second", reader.readLine())
+		assertEquals("first" + LocalServer.VALUE_SEPARATOR + "second", reader.readLine())
+		expectNothingMore(client, reader)
 		client.close()
 	}
 
 	@Test
-	fun testFourValuesReachClientInOrder() {
+	fun testFourValuesPackedIntoOneLine() {
 		val port = freePort()
 		LocalServer.startOrJoin(null, port.toString())
 		await { LocalServer.getPort() == port.toString() }
@@ -133,10 +133,8 @@ private fun runAction(values: List<Formula?>?) {
 		client.soTimeout = 8000
 		Thread.sleep(200)
 		runAction(listOf(Formula("1"), Formula("2"), Formula("3"), Formula("4")))
-		assertEquals("1", reader.readLine())
-		assertEquals("2", reader.readLine())
-		assertEquals("3", reader.readLine())
-		assertEquals("4", reader.readLine())
+		val sep = LocalServer.VALUE_SEPARATOR
+		assertEquals("1${sep}2${sep}3${sep}4", reader.readLine())
 		client.close()
 	}
 
@@ -150,8 +148,7 @@ private fun runAction(values: List<Formula?>?) {
 		client.soTimeout = 8000
 		Thread.sleep(200)
 		runAction(listOf(Formula("a"), null, Formula("b")))
-		assertEquals("a", reader.readLine())
-		assertEquals("b", reader.readLine())
+		assertEquals("a" + LocalServer.VALUE_SEPARATOR + "b", reader.readLine())
 		expectNothingMore(client, reader)
 		client.close()
 	}

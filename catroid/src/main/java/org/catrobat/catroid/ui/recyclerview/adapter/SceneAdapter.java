@@ -75,7 +75,36 @@ public class SceneAdapter extends ExtendedRVAdapter<Scene> {
 	@Override
 	public boolean onItemMove(int sourcePosition, int targetPosition) {
 		boolean moved = super.onItemMove(sourcePosition, targetPosition);
-		ProjectManager.getInstance().setCurrentlyEditedScene(items.get(0));
+		try {
+			org.catrobat.catroid.content.Project project = org.catrobat.catroid.ProjectManager.getInstance().getCurrentProject();
+			if (project != null) {
+				java.util.List<org.catrobat.catroid.content.Scene> newOrder = new java.util.ArrayList<>();
+				for (org.catrobat.catroid.content.Scene s : items) {
+					if (s != null && !s.isGlobalScene()) {
+						newOrder.add(s);
+					}
+				}
+				java.util.List<org.catrobat.catroid.content.Scene> projectScenes = project.getSceneList();
+				projectScenes.clear();
+				projectScenes.addAll(newOrder);
+				try {
+					org.catrobat.catroid.io.XstreamSerializer.getInstance().saveProject(project);
+				} catch (Exception e) {
+					android.util.Log.e("SceneAdapter", "Failed to save scene order", e);
+				}
+			}
+		} catch (Exception e) {
+			android.util.Log.e("SceneAdapter", "onItemMove failed", e);
+		}
+		try {
+			if (!items.isEmpty()) {
+				org.catrobat.catroid.content.Scene first = items.get(0);
+				if (first != null && first.isGlobalScene() && items.size() > 1) {
+					first = items.get(1);
+				}
+				ProjectManager.getInstance().setCurrentlyEditedScene(first);
+			}
+		} catch (Exception ignored) {}
 		return moved;
 	}
 

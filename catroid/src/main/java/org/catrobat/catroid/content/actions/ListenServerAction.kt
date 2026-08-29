@@ -34,25 +34,33 @@ import java.util.concurrent.TimeUnit
 
 class ListenServerAction() : Action() {
     companion object {
-        @Volatile
+        private const val POLL_INTERVAL_MS = 30L
+        private const val MAX_TASKS = 32
+
         private var sharedScheduler: ScheduledExecutorService? = null
-        private var scheduledTask: ScheduledFuture<*>? = null
+        private val tasks = mutableListOf<ScheduledFuture<*>>()
 
         @Synchronized
-        private fun getScheduler(): ScheduledExecutorService {
-            val current = sharedScheduler
-            if (current == null || current.isShutdown) {
-                val newScheduler = Executors.newSingleThreadScheduledExecutor()
-                sharedScheduler = newScheduler
-                return newScheduler
+        private fun register(action: ListenServerAction) {
+            var scheduler = sharedScheduler
+            if (scheduler == null || scheduler.isShutdown) {
+                scheduler = Executors.newSingleThreadScheduledExecutor()
+                sharedScheduler = scheduler
             }
-            return current
+            while (tasks.size >= MAX_TASKS) {
+                tasks.removeAt(0).cancel(false)
+            }
+            tasks.add(scheduler.scheduleAtFixedRate({
+                action.variable?.let { variable -> variable.value = LocalServer.getValue() }
+            }, 0, POLL_INTERVAL_MS, TimeUnit.MILLISECONDS))
         }
 
         @Synchronized
         fun stopAll() {
-            scheduledTask?.cancel(false)
-            scheduledTask = null
+            for (task in tasks) {
+                task.cancel(false)
+            }
+            tasks.clear()
             sharedScheduler?.shutdownNow()
             sharedScheduler = null
         }
@@ -64,13 +72,7 @@ class ListenServerAction() : Action() {
     override fun act(delta: Float): Boolean {
         val v = variable ?: return true
 
-        val scheduler = getScheduler()
-        synchronized(ListenServerAction) {
-            scheduledTask?.cancel(false)
-            scheduledTask = scheduler.scheduleAtFixedRate({
-                v.value = LocalServer.getValue()
-            }, 0, 30, TimeUnit.MILLISECONDS)
-        }
+        register(this)
 
         return true
     }

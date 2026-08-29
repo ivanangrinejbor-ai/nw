@@ -50,7 +50,6 @@ import org.catrobat.catroid.merge.ImportProjectHelper
 import org.catrobat.catroid.ui.ProjectListActivity
 import org.catrobat.catroid.ui.ProjectListActivity.Companion.IMPORT_LOCAL_INTENT
 import org.catrobat.catroid.ui.SpriteActivity
-import org.catrobat.catroid.ui.swipe.SwipeEditorActivity
 import org.catrobat.catroid.ui.UiUtils
 import org.catrobat.catroid.ui.WebViewActivity
 import org.catrobat.catroid.ui.controller.BackpackListManager
@@ -445,24 +444,14 @@ class SpriteListFragment : RecyclerViewFragment<Sprite?>() {
                 R.id.rename -> showRenameDialog(item)
                 R.id.from_library -> addFromLibrary(item)
                 R.id.from_local -> addFromLocalProject(item)
-                SWIPE_EDITOR_MENU_ID -> launchSwipeEditor(item)
             }
             true
         }
         if (item !is GroupSprite) {
             popupMenu.menu.findItem(R.id.backpack).setTitle(R.string.pack)
             popupMenu.menu.removeItem(R.id.from_local)
-            popupMenu.menu.add(Menu.NONE, SWIPE_EDITOR_MENU_ID, Menu.NONE,
-                getString(R.string.swipe_editor_menu))
         }
         popupMenu.show()
-    }
-
-    private fun launchSwipeEditor(item: Sprite?) {
-        item ?: return
-        val intent = Intent(requireContext(), SwipeEditorActivity::class.java)
-        intent.putExtra(SwipeEditorActivity.EXTRA_SPRITE_NAME, item.name)
-        startActivity(intent)
     }
 
     val isSingleVisibleSprite: Boolean
@@ -471,6 +460,5 @@ class SpriteListFragment : RecyclerViewFragment<Sprite?>() {
     companion object {
         val TAG: String = SpriteListFragment::class.java.simpleName
         const val IMPORT_OBJECT_REQUEST_CODE = 0
-        private const val SWIPE_EDITOR_MENU_ID = 909042
     }
 }

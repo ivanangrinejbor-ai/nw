@@ -325,17 +325,16 @@ class TcpNetworkBricksDeepTest {
 	}
 
 	@Test
-	fun testSendViewAddButtonIncrementsToFour() {
+	fun testSendViewAddButtonIncrementsToTwelve() {
 		val brick = SendToTcpServerBrick("okay")
 		val view = brick.getView(RuntimeEnvironment.getApplication())
 		val addButton = view.findViewById<View>(R.id.brick_send_tcp_add)
-		for (expected in intArrayOf(2, 3, 4)) {
+		for (expected in 2..12) {
 			addButton.performClick()
 			assertEquals(expected, brick.getVisibleFields())
 		}
 		addButton.performClick()
-		addButton.performClick()
-		assertEquals("после лимита поля не добавляются", 4, brick.getVisibleFields())
+		assertEquals("после лимита поля не добавляются", 12, brick.getVisibleFields())
 	}
 
 	@Test
@@ -359,16 +358,16 @@ class TcpNetworkBricksDeepTest {
 	}
 
 	@Test
-	fun testListenViewAddButtonIncrementsToFour() {
+	fun testListenViewAddButtonIncrementsToTwelve() {
 		val brick = ListenTcpServerBrick()
 		val view = brick.getView(RuntimeEnvironment.getApplication())
 		val addButton = view.findViewById<View>(R.id.brick_listen_tcp_add)
-		for (expected in intArrayOf(2, 3, 4)) {
+		for (expected in 2..12) {
 			addButton.performClick()
 			assertEquals(expected, brick.getVisibleVariables())
 		}
 		addButton.performClick()
-		assertEquals(4, brick.getVisibleVariables())
+		assertEquals(12, brick.getVisibleVariables())
 	}
 
 	@Test

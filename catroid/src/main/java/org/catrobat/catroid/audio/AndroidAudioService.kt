@@ -104,8 +104,8 @@ class AndroidAudioService : AudioService {
         return mediaPlaying || midiPlaying
     }
 
-    private fun resolveSprite(name: String): Sprite? {
-        val scene = ProjectManager.getInstance().getCurrentlyPlayingScene() ?: return null
-        return scene.spriteList.firstOrNull { it.name == name }
+    internal fun resolveSprite(name: String): Sprite? {
+        val project = ProjectManager.getInstance().currentProject ?: return null
+        return project.getSpriteListWithClones().firstOrNull { it.name == name }
     }
 }

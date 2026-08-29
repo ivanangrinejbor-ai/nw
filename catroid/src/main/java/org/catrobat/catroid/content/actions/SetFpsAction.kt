@@ -12,5 +12,9 @@ class SetFpsAction : TemporalAction() {
     override fun update(percent: Float) {
         val fpsVal = fps?.interpretInteger(scope) ?: 0
         StageActivity.getActiveStageListener()?.threeDManager?.setTargetFps(fpsVal)
+        try {
+            com.badlogic.gdx.Gdx.graphics.javaClass.getMethod("setForegroundFPS", Int::class.javaPrimitiveType).invoke(com.badlogic.gdx.Gdx.graphics, fpsVal.coerceIn(0, 120))
+        } catch (_: Throwable) {
+        }
     }
 }

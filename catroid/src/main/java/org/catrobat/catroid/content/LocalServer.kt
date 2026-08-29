@@ -8,6 +8,12 @@ import java.net.*
 
 class LocalServer private constructor() {
     companion object {
+        // Разделитель упакованных в одно сообщение значений (невидимый, нельзя ввести с клавиатуры)
+        const val VALUE_SEPARATOR: Char = '\u0001'
+
+        // Окно подавления одинаковых подряд идущих сообщений (эхо loopback + ретрансляции дают копии)
+        private const val DUPLICATE_WINDOW_MS = 100L
+
         private var serverSocket: ServerSocket? = null
         private val clients = mutableListOf<Socket>()
         private val outputStreams = mutableListOf<OutputStream>()
@@ -21,6 +27,48 @@ class LocalServer private constructor() {
         @Volatile private var clientSocket: Socket? = null
 
         private val recentMessages = ArrayDeque<String>()
+        private var lastMessageAt = 0L
+
+        fun fireTcpMessageEvent(message: String) {
+            val listener = org.catrobat.catroid.stage.StageActivity.getActiveStageListener() ?: return
+            val activity = org.catrobat.catroid.stage.StageActivity.activeStageActivity.get() ?: return
+            val project = org.catrobat.catroid.ProjectManager.getInstance().currentProject ?: return
+            activity.runOnUiThread {
+                try {
+                    for (sprite in listener.spritesFromStage) {
+                        for (script in sprite.scriptList) {
+                            if (script is WhenTcpMessageScript) {
+                                val brick = script.scriptBrick as? org.catrobat.catroid.content.bricks.WhenTcpMessageBrick
+                                if (brick?.userVariable != null) {
+                                    brick.userVariable.value = message
+                                }
+                                sprite.look.addAction(sprite.createSequenceAction(script))
+                            }
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.e("LocalServer", "fireTcpMessageEvent failed: ${e.message}")
+                }
+            }
+        }
+
+        fun fireTcpDisconnectedEvent(reason: String) {
+            val listener = org.catrobat.catroid.stage.StageActivity.getActiveStageListener() ?: return
+            val activity = org.catrobat.catroid.stage.StageActivity.activeStageActivity.get() ?: return
+            activity.runOnUiThread {
+                try {
+                    for (sprite in listener.spritesFromStage) {
+                        for (script in sprite.scriptList) {
+                            if (script is WhenTcpDisconnectedScript) {
+                                sprite.look.addAction(sprite.createSequenceAction(script))
+                            }
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.e("LocalServer", "fireTcpDisconnectedEvent failed: ${e.message}")
+                }
+            }
+        }
 
         private var serverJob: Job? = null
         private val sendJobs = mutableListOf<Job>()
@@ -172,35 +220,47 @@ class LocalServer private constructor() {
                             isBroadcast -> message.removePrefix("ALL:")
                             else -> message
                         }
+                        val isDuplicate: Boolean
                         synchronized(recentMessages) {
-                            recentMessages.addLast(cleanMessage)
-                            while (recentMessages.size > 50) {
-                                recentMessages.removeFirst()
+                            val now = System.currentTimeMillis()
+                            isDuplicate = recentMessages.lastOrNull() == cleanMessage &&
+                                    now - lastMessageAt < DUPLICATE_WINDOW_MS
+                            if (!isDuplicate) {
+                                recentMessages.addLast(cleanMessage)
+                                while (recentMessages.size > 50) {
+                                    recentMessages.removeFirst()
+                                }
+                                lastMessageAt = now
                             }
                         }
-                        Log.d("LocalServer", "Получено: $cleanMessage")
-                        if (isBroadcast && serverSocket != null) {
-                            val data = (cleanMessage + "\n").toByteArray(Charsets.UTF_8)
-                            val outs: List<OutputStream>
-                            val senderIndex: Int
-                            synchronized(clients) {
-                                outs = outputStreams.toList()
-                                senderIndex = clients.indexOf(socket)
-                            }
-                            for (i in outs.indices) {
-                                if (!isBroadcastEcho && i == senderIndex) continue
-                                try {
-                                    outs[i].write(data)
-                                    outs[i].flush()
-                                } catch (e: Exception) {
-                                    Log.e("LocalServer", "Ошибка ретрансляции: ${e.message}")
+                        if (!isDuplicate) {
+                            Log.d("LocalServer", "Получено: $cleanMessage")
+                            fireTcpMessageEvent(cleanMessage)
+                            if (isBroadcast && serverSocket != null) {
+                                val data = (cleanMessage + "\n").toByteArray(Charsets.UTF_8)
+                                val outs: List<OutputStream>
+                                val senderIndex: Int
+                                synchronized(clients) {
+                                    outs = outputStreams.toList()
+                                    senderIndex = clients.indexOf(socket)
+                                }
+                                for (i in outs.indices) {
+                                    if (!isBroadcastEcho && i == senderIndex) continue
+                                    try {
+                                        outs[i].write(data)
+                                        outs[i].flush()
+                                    } catch (e: Exception) {
+                                        Log.e("LocalServer", "Ошибка ретрансляции: ${e.message}")
+                                    }
                                 }
                             }
                         }
                     }
                 }
             } catch (e: Exception) {
-                if (isRunning && e !is java.net.SocketTimeoutException) {
+                if (isRunning && e is java.net.SocketTimeoutException) {
+                    fireTcpDisconnectedEvent("timeout")
+                } else if (isRunning) {
                     Log.e("LocalServer", "Ошибка чтения: ${e.message}")
                 }
             } finally {
@@ -220,6 +280,7 @@ class LocalServer private constructor() {
                             val clean = v.removePrefix("ALL_ECHO:")
                             recentMessages.addLast(clean)
                             while (recentMessages.size > 50) recentMessages.removeFirst()
+                            lastMessageAt = System.currentTimeMillis()
                         }
                     }
                 }

@@ -337,6 +337,7 @@ public class Gizmo {
                         }
                     }
                     selectedObject.transform.position.add(worldTranslation);
+                    sceneManager.setPosition(selectedObject, selectedObject.transform.position);
                     break;
                 }
                 case SCALE: {
@@ -349,6 +350,7 @@ public class Gizmo {
                     if (newScale.y < 0.01f) newScale.y = 0.01f;
                     if (newScale.z < 0.01f) newScale.z = 0.01f;
                     selectedObject.transform.scale.set(newScale);
+                    sceneManager.setScale(selectedObject, newScale);
                     break;
                 }
                 case ROTATE: {

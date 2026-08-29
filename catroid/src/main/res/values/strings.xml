@@ -1975,6 +1975,8 @@
     <string formatted="false" name="brick_send_to_tcp_clients">Send TCP to clients</string>
     <string formatted="false" name="brick_send_to_tcp_clients_echo_no">without echo to self</string>
     <string formatted="false" name="brick_send_to_tcp_clients_echo_yes">with echo to self</string>
+    <string formatted="false" name="brick_when_tcp_message">When TCP message received</string>
+    <string formatted="false" name="brick_when_tcp_disconnected">When disconnected by TCP server timeout</string>
 <string formatted="false" name="brick_listen_tcp_server">Listen TCP server and store</string>
 <string formatted="false" name="formula_external_ip">External_ip</string>
 <string formatted="false" name="brick_screenshot">Take screenshot and store it as look</string>

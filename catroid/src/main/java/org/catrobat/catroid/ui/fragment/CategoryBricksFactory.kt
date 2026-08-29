@@ -751,6 +751,8 @@ import org.catrobat.catroid.content.bricks.WhenBackPressedBrick
 import org.catrobat.catroid.content.bricks.WhenBackgroundChangesBrick
 import org.catrobat.catroid.content.bricks.WhenBounceOffBrick
 import org.catrobat.catroid.content.bricks.WhenIntervalBrick
+import org.catrobat.catroid.content.bricks.WhenTcpMessageBrick
+import org.catrobat.catroid.content.bricks.WhenTcpDisconnectedBrick
 import org.catrobat.catroid.content.bricks.CameraFollowBrick
 import org.catrobat.catroid.content.bricks.CameraBoundsBrick
 import org.catrobat.catroid.content.bricks.SaveGameBrick
@@ -1064,6 +1066,8 @@ eventBrickList.add(WhenConditionBrick(WhenConditionScript(Formula(defaultIf))))
                     eventBrickList.add(WhenTouchingSpriteByNameBrick())
                 }
         eventBrickList.add(WhenIntervalBrick(WhenIntervalScript(Formula(1))))
+        eventBrickList.add(WhenTcpMessageBrick())
+        eventBrickList.add(WhenTcpDisconnectedBrick())
         eventBrickList.add(WhenBackgroundChangesBrick())
         eventBrickList.add(WhenFirebaseChangedBrick())
                 eventBrickList.add(WhenFirebaseChildChangedBrick())
@@ -1153,6 +1157,8 @@ eventBrickList.add(WhenConditionBrick(WhenConditionScript(Formula(defaultIf))))
             eventBrickList.add(WhenTouchingSpriteByNameBrick())
         }
         eventBrickList.add(WhenIntervalBrick(WhenIntervalScript(Formula(1))))
+        eventBrickList.add(WhenTcpMessageBrick())
+        eventBrickList.add(WhenTcpDisconnectedBrick())
         eventBrickList.add(WhenBackgroundChangesBrick())
 
         eventBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_event_cloning), template))

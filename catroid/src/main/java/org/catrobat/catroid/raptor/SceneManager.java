@@ -504,14 +504,28 @@ public class SceneManager {
 
     public void setPosition(GameObject go, Vector3 position) {
         go.transform.position.set(position);
+        syncTransform(go);
     }
 
     public void setRotation(GameObject go, Quaternion rotation) {
         go.transform.rotation.set(rotation);
+        syncTransform(go);
     }
 
     public void setScale(GameObject go, Vector3 scale) {
         go.transform.scale.set(scale);
+        syncTransform(go);
+    }
+
+    private void syncTransform(GameObject go) {
+        updateWorldTransforms();
+        applyTransformToEngine(go);
+        for (String childId : go.childrenIds) {
+            GameObject child = findGameObject(childId);
+            if (child != null) {
+                syncTransform(child);
+            }
+        }
     }
 
 

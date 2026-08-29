@@ -42,7 +42,7 @@ public class StageAudioFocus implements OnAudioFocusChangeListener {
 			return;
 		}
 
-		int result = audioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
+		int result = audioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK);
 
 		isAudioFocusGranted = result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED;
 	}

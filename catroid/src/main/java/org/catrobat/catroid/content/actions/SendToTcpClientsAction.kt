@@ -14,7 +14,7 @@ class SendToTcpClientsAction : TemporalAction() {
         val vals = values?.mapNotNull { it?.interpretString(scope) }
         if (!vals.isNullOrEmpty()) {
             val prefix = if (echoMode == 1) "ALL_ECHO:" else "ALL:"
-            LocalServer.sendAll(vals.map { "$prefix$it" })
+            LocalServer.sendAll(listOf("$prefix${vals.joinToString(LocalServer.VALUE_SEPARATOR.toString())}"))
         }
     }
 }

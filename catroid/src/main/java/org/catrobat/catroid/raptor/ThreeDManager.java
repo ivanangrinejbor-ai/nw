@@ -2833,7 +2833,7 @@ public class ThreeDManager implements Disposable {
             controller.update(delta);
         }
 
-        if (realisticMode) {
+        if (realisticMode || editorMode) {
             sceneManager.update(delta);
         }
 
@@ -3338,6 +3338,10 @@ public class ThreeDManager implements Disposable {
 
     public void enableRealisticRendering(boolean enabled) {
         this.realisticMode = enabled;
+    }
+
+    public boolean isRealisticMode() {
+        return realisticMode;
     }
 
 

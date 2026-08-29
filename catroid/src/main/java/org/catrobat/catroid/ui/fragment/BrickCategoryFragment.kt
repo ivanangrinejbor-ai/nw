@@ -124,6 +124,8 @@ class BrickCategoryFragment : ListFragment() {
         menu.findItem(R.id.comment_in_out)?.isVisible = false
         menu.findItem(R.id.catblocks_reorder_scripts)?.isVisible = false
         menu.findItem(R.id.find)?.isVisible = false
+        menu.findItem(R.id.new_group)?.isVisible = false
+        menu.findItem(R.id.new_scene)?.isVisible = false
         menu.findItem(R.id.search)?.isVisible = true
     }
 

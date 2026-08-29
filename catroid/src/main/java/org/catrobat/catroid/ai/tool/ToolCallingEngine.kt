@@ -96,6 +96,16 @@ object ToolCallingEngine {
         registerTool(ScanAndFixProjectTool())
         registerTool(ImportNeoScriptModuleTool())
         registerTool(GenerateAiTextureTool())
+        registerTool(CreateCanvasTool())
+        registerTool(CanvasFillTool())
+        registerTool(CanvasRectTool())
+        registerTool(CanvasCircleTool())
+        registerTool(CanvasLineTool())
+        registerTool(CanvasPixelTool())
+        registerTool(CanvasMirrorXTool())
+        registerTool(CanvasPaletteTool())
+        registerTool(CanvasGridTool())
+        registerTool(SaveCanvasAsLookTool())
         registerTool(CreateProjectTool())
         registerTool(BuildApkTool())
         registerTool(ExportProjectTool())
@@ -1486,6 +1496,285 @@ object ToolCallingEngine {
             val outDir = File(android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DOWNLOADS), "NeoCatroidExports")
             outDir.mkdirs()
             return ToolResult(false, "3D object export is not implemented by the agent yet; no file was created for '$objectId'.", "")
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Programmatic canvas drawing (offline pixel/vector art by the agent)
+    // ------------------------------------------------------------------
+
+    private val canvases = Collections.synchronizedMap(mutableMapOf<String, android.graphics.Bitmap>())
+    private val canvasPalettes = Collections.synchronizedMap(mutableMapOf<String, MutableList<Int>>())
+
+    private fun parseColor(raw: String?): Int {
+        val v = raw?.trim() ?: return ToolResultColorError("null")
+        if (v == "-1" || v.equals("transparent", ignoreCase = true)) return 0x00000000
+        val hex = if (v.startsWith("#")) v else "#$v"
+        return try {
+            android.graphics.Color.parseColor(hex)
+        } catch (_: Exception) {
+            throw IllegalArgumentException(
+                "Invalid color '$v'. Use -1 / transparent, '#RRGGBB' or '#AARRGGBB' (each channel 0-255).")
+        }
+    }
+
+    private fun ToolResultColorError(v: String): Int = 0
+
+    private fun getCanvas(name: String?): android.graphics.Bitmap {
+        val key = name?.trim() ?: ""
+        return canvases[key] ?: throw IllegalArgumentException(
+            "Canvas '$key' not found. Call createCanvas(name, width, height) first.")
+    }
+
+    private fun getPalette(name: String): List<Int> {
+        val p = canvasPalettes[name]
+            ?: throw IllegalArgumentException("No palette defined for canvas '$name'. Call canvasPalette first.")
+        if (p.isEmpty()) throw IllegalArgumentException("Palette for canvas '$name' is empty.")
+        return p
+    }
+
+    class CreateCanvasTool : Tool {
+        override val name = "createCanvas"
+        override val description = "Create a named pixel canvas for programmatic drawing. Transparent background. Size limits: min 32x32, max 512x512. Choose the smallest size that fits your art."
+        override val parameters = listOf(
+            ToolParameter("name", ParameterType.STRING, "Canvas name"),
+            ToolParameter("width", ParameterType.INTEGER, "Width in pixels (32-512)"),
+            ToolParameter("height", ParameterType.INTEGER, "Height in pixels (32-512)")
+        )
+
+        override suspend fun execute(args: Map<String, String>): ToolResult {
+            val key = args["name"]?.trim() ?: return ToolResult(false, "Missing canvas name", "")
+            val w = (args["width"]?.toIntOrNull() ?: 128).coerceIn(32, 512)
+            val h = (args["height"]?.toIntOrNull() ?: 128).coerceIn(32, 512)
+            canvases[key] = android.graphics.Bitmap.createBitmap(w, h, android.graphics.Bitmap.Config.ARGB_8888)
+            canvasPalettes.remove(key)
+            return ToolResult(true, "Canvas '$key' created: ${w}x$h, fully transparent.", "")
+        }
+    }
+
+    class CanvasFillTool : Tool {
+        override val name = "canvasFill"
+        override val description = "Fill the whole canvas with one color"
+        override val parameters = listOf(
+            ToolParameter("name", ParameterType.STRING, "Canvas name"),
+            ToolParameter("color", ParameterType.STRING, "Color: '#RRGGBB', '#AARRGGBB', -1 or 'transparent'")
+        )
+
+        override suspend fun execute(args: Map<String, String>): ToolResult {
+            val color = parseColor(args["color"])
+            val bmp = getCanvas(args["name"])
+            bmp.eraseColor(color)
+            return ToolResult(true, "Canvas '${args["name"]}' filled.", "")
+        }
+    }
+
+    class CanvasRectTool : Tool {
+        override val name = "canvasRect"
+        override val description = "Draw a rectangle"
+        override val parameters = listOf(
+            ToolParameter("name", ParameterType.STRING, "Canvas name"),
+            ToolParameter("x", ParameterType.INTEGER, "Left"),
+            ToolParameter("y", ParameterType.INTEGER, "Top"),
+            ToolParameter("w", ParameterType.INTEGER, "Width"),
+            ToolParameter("h", ParameterType.INTEGER, "Height"),
+            ToolParameter("color", ParameterType.STRING, "Color"),
+            ToolParameter("filled", ParameterType.STRING, "'true' (default) or 'false' for outline", required = false)
+        )
+
+        override suspend fun execute(args: Map<String, String>): ToolResult {
+            val color = parseColor(args["color"])
+            val filled = args["filled"]?.lowercase() != "false"
+            val bmp = getCanvas(args["name"])
+            val canvas = android.graphics.Canvas(bmp)
+            val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply { this.color = color }
+            if (!filled) paint.style = android.graphics.Paint.Style.STROKE
+            val rect = android.graphics.RectF(
+                (args["x"]?.toFloatOrNull() ?: 0f), (args["y"]?.toFloatOrNull() ?: 0f),
+                (args["x"]?.toFloatOrNull() ?: 0f) + (args["w"]?.toFloatOrNull() ?: 0f),
+                (args["y"]?.toFloatOrNull() ?: 0f) + (args["h"]?.toFloatOrNull() ?: 0f))
+            if (filled) canvas.drawRect(rect, paint) else canvas.drawRoundRect(rect, 4f, 4f, paint)
+            return ToolResult(true, "Rect drawn on '${args["name"]}'.", "")
+        }
+    }
+
+    class CanvasCircleTool : Tool {
+        override val name = "canvasCircle"
+        override val description = "Draw a circle"
+        override val parameters = listOf(
+            ToolParameter("name", ParameterType.STRING, "Canvas name"),
+            ToolParameter("cx", ParameterType.INTEGER, "Center X"),
+            ToolParameter("cy", ParameterType.INTEGER, "Center Y"),
+            ToolParameter("r", ParameterType.INTEGER, "Radius"),
+            ToolParameter("color", ParameterType.STRING, "Color"),
+            ToolParameter("filled", ParameterType.STRING, "'true' (default) or 'false' for outline", required = false)
+        )
+
+        override suspend fun execute(args: Map<String, String>): ToolResult {
+            val color = parseColor(args["color"])
+            val filled = args["filled"]?.lowercase() != "false"
+            val bmp = getCanvas(args["name"])
+            val canvas = android.graphics.Canvas(bmp)
+            val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply { this.color = color }
+            if (!filled) paint.style = android.graphics.Paint.Style.STROKE
+            canvas.drawCircle(args["cx"]?.toFloatOrNull() ?: 0f, args["cy"]?.toFloatOrNull() ?: 0f,
+                args["r"]?.toFloatOrNull() ?: 0f, paint)
+            return ToolResult(true, "Circle drawn on '${args["name"]}'.", "")
+        }
+    }
+
+    class CanvasLineTool : Tool {
+        override val name = "canvasLine"
+        override val description = "Draw a line"
+        override val parameters = listOf(
+            ToolParameter("name", ParameterType.STRING, "Canvas name"),
+            ToolParameter("x1", ParameterType.INTEGER, "Start X"),
+            ToolParameter("y1", ParameterType.INTEGER, "Start Y"),
+            ToolParameter("x2", ParameterType.INTEGER, "End X"),
+            ToolParameter("y2", ParameterType.INTEGER, "End Y"),
+            ToolParameter("color", ParameterType.STRING, "Color"),
+            ToolParameter("width", ParameterType.INTEGER, "Stroke width (default 2)", required = false)
+        )
+
+        override suspend fun execute(args: Map<String, String>): ToolResult {
+            val color = parseColor(args["color"])
+            val width = args["width"]?.toFloatOrNull() ?: 2f
+            val bmp = getCanvas(args["name"])
+            val canvas = android.graphics.Canvas(bmp)
+            val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+                this.color = color; strokeWidth = width
+            }
+            canvas.drawLine(args["x1"]?.toFloatOrNull() ?: 0f, args["y1"]?.toFloatOrNull() ?: 0f,
+                args["x2"]?.toFloatOrNull() ?: 0f, args["y2"]?.toFloatOrNull() ?: 0f, paint)
+            return ToolResult(true, "Line drawn on '${args["name"]}'.", "")
+        }
+    }
+
+    class CanvasPixelTool : Tool {
+        override val name = "canvasPixel"
+        override val description = "Set a single pixel"
+        override val parameters = listOf(
+            ToolParameter("name", ParameterType.STRING, "Canvas name"),
+            ToolParameter("x", ParameterType.INTEGER, "X"),
+            ToolParameter("y", ParameterType.INTEGER, "Y"),
+            ToolParameter("color", ParameterType.STRING, "Color (-1 = erase to transparent)")
+        )
+
+        override suspend fun execute(args: Map<String, String>): ToolResult {
+            val color = parseColor(args["color"])
+            val bmp = getCanvas(args["name"])
+            bmp.setPixel(args["x"]?.toIntOrNull() ?: 0, args["y"]?.toIntOrNull() ?: 0, color)
+            return ToolResult(true, "Pixel set.", "")
+        }
+    }
+
+    class CanvasMirrorXTool : Tool {
+        override val name = "canvasMirrorX"
+        override val description = "Mirror the LEFT half onto the RIGHT half (handy for symmetric sprites)"
+        override val parameters = listOf(ToolParameter("name", ParameterType.STRING, "Canvas name"))
+
+        override suspend fun execute(args: Map<String, String>): ToolResult {
+            val bmp = getCanvas(args["name"])
+            val w = bmp.width
+            val h = bmp.height
+            for (y in 0 until h) {
+                for (x in 0 until w / 2) {
+                    bmp.setPixel(w - 1 - x, y, bmp.getPixel(x, y))
+                }
+            }
+            return ToolResult(true, "Mirrored left->right half of '${args["name"]}'.", "")
+        }
+    }
+
+    class CanvasPaletteTool : Tool {
+        override val name = "canvasPalette"
+        override val description = "Define a color palette (up to 16 entries, indices 0-f) for canvasGrid. Example colors: '#000000,#ffffff,#ff0000,...'"
+        override val parameters = listOf(
+            ToolParameter("name", ParameterType.STRING, "Canvas name"),
+            ToolParameter("colors", ParameterType.STRING, "Comma-separated colors; index 0 = first entry")
+        )
+
+        override suspend fun execute(args: Map<String, String>): ToolResult {
+            val key = args["name"]?.trim() ?: return ToolResult(false, "Missing canvas name", "")
+            val raw = args["colors"] ?: return ToolResult(false, "Missing colors", "")
+            val list = raw.split(",").mapNotNull { it.trim().takeIf { s -> s.isNotEmpty() } }
+                .map { parseColor(it) }
+            if (list.isEmpty() || list.size > 16) {
+                return ToolResult(false, "Palette must contain 1..16 colors", "")
+            }
+            canvasPalettes[key] = list.toMutableList()
+            return ToolResult(true, "Palette (${list.size} colors) set for canvas '$key'. Indices: 0-${list.size - 1}" +
+                " ('.' in grid = transparent).", "")
+        }
+    }
+
+    class CanvasGridTool : Tool {
+        override val name = "canvasGrid"
+        override val description = "Bulk pixel-art mode. rows = one line per pixel row; each character is a palette index (0-9,a-f) or '.' for transparent. WARNING: every row costs tokens — grids larger than 64x64 consume large context quickly."
+        override val parameters = listOf(
+            ToolParameter("name", ParameterType.STRING, "Canvas name"),
+            ToolParameter("rows", ParameterType.STRING, "Pixel rows separated by newline characters")
+        )
+
+        override suspend fun execute(args: Map<String, String>): ToolResult {
+            val key = args["name"]?.trim() ?: return ToolResult(false, "Missing canvas name", "")
+            val rowsRaw = args["rows"] ?: return ToolResult(false, "Missing rows", "")
+            val palette = getPalette(key)
+            val bmp = getCanvas(key)
+
+            val rows = rowsRaw.replace("\r", "").split("\n").filter { it.isNotEmpty() }
+            val w = bmp.width
+            val h = bmp.height
+            var drawn = 0
+            for ((ry, row) in rows.withIndex()) {
+                if (ry >= h) break
+                for ((cx, ch) in row.withIndex()) {
+                    if (cx >= w) break
+                    if (ch == '.') continue
+                    val idx = Character.digit(ch, 16)
+                    if (idx < 0 || idx >= palette.size) {
+                        return ToolResult(false,
+                            "Bad char '$ch' at row $ry col $cx. Allowed: '.', 0-${palette.size - 1}", "")
+                    }
+                    bmp.setPixel(cx, ry, palette[idx])
+                    drawn++
+                }
+            }
+            return ToolResult(true, "Grid applied to '$key': $drawn pixels from ${rows.size} rows.", "")
+        }
+    }
+
+    class SaveCanvasAsLookTool : Tool {
+        override val name = "saveCanvasAsLook"
+        override val description = "Convert a canvas into a PNG and attach it as a Look (costume) to an object"
+        override val parameters = listOf(
+            ToolParameter("name", ParameterType.STRING, "Canvas name"),
+            ToolParameter("targetSprite", ParameterType.STRING, "Target sprite/object name"),
+            ToolParameter("lookName", ParameterType.STRING, "New look costume name")
+        )
+
+        override suspend fun execute(args: Map<String, String>): ToolResult {
+            val key = args["name"]?.trim() ?: return ToolResult(false, "Missing canvas name", "")
+            val bmp = canvases[key] ?: return ToolResult(false, "Canvas '$key' not found", "")
+            val targetSpriteName = args["targetSprite"] ?: return ToolResult(false, "Missing targetSprite", "")
+            val lookName = args["lookName"] ?: "CanvasLook_${System.currentTimeMillis() % 1000}"
+
+            val project = ProjectManager.getInstance().currentProject ?: return ToolResult(false, "No active project", "")
+            val scene = project.sceneList.firstOrNull { s -> resolveSprite(s, targetSpriteName) != null }
+                ?: return ToolResult(false,
+                    "Sprite '$targetSpriteName' not found in any scene. " +
+                        "For the background use object name 'background' or call listObjects first.", "")
+            val sprite = resolveSprite(scene, targetSpriteName)!!
+
+            val imageDir = File(scene.directory, Constants.IMAGE_DIRECTORY_NAME)
+            imageDir.mkdirs()
+            val imageFile = File(imageDir, "${System.currentTimeMillis()}_$lookName.png")
+            withContext(Dispatchers.IO) {
+                imageFile.outputStream().use { out -> bmp.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, out) }
+            }
+
+            sprite.lookList.add(org.catrobat.catroid.common.LookData(lookName, imageFile))
+            return ToolResult(true,
+                "Saved canvas '$key' (${bmp.width}x${bmp.height}) as look '$lookName' on sprite '$targetSpriteName'.", "")
         }
     }
 }

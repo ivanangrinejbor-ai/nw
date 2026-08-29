@@ -126,8 +126,39 @@ dependencies {
     pluginLibs "androidx.core:core:1.15.0"
 }
 
-def defaultVersionCode = 130
-def defaultVersionName = "2.2.0"
+def versionPropsFile = file('version.properties')
+def versionProps = new Properties()
+if (versionPropsFile.exists()) {
+    versionProps.load(versionPropsFile.newDataInputStream())
+}
+def defaultVersionCode = (versionProps['VERSION_CODE'] ?: "130").toInteger()
+def defaultVersionName = versionProps['VERSION_NAME'] ?: "2.2.0"
+def isAssemble = gradle.startParameter.taskNames.any { it.toLowerCase().contains("assemble") } && !gradle.startParameter.dryRun
+if (isAssemble) {
+    def newCode = defaultVersionCode + 1
+    def parts = defaultVersionName.tokenize('.')
+    def patch = parts[-1].toInteger() + 1
+    if (patch > 9) {
+        patch = 0
+        def minor = parts[-2].toInteger() + 1
+        if (minor > 9) {
+            minor = 0
+            def major = parts[0].toInteger() + 1
+            parts[0] = major.toString()
+            parts[1] = minor.toString()
+        } else {
+            parts[1] = minor.toString()
+        }
+    }
+    parts[-1] = patch.toString()
+    def newName = parts.join('.')
+    versionProps['VERSION_CODE'] = newCode.toString()
+    versionProps['VERSION_NAME'] = newName
+    versionProps.store(versionPropsFile.newWriter(), null)
+    defaultVersionCode = newCode
+    defaultVersionName = newName
+    println "Auto-incremented Version to $newName ($newCode)"
+}
 
 android {
     compileSdk 35

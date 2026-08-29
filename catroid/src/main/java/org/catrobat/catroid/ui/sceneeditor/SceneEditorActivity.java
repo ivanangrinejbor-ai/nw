@@ -1452,11 +1452,6 @@ private void showCreateObjectDialog() {
 	}
 
 	@Override
-	public void onOpenSwipeEditor(Sprite sprite) {
-		Toast.makeText(this, "Swipe-редактор: " + sprite.getName(), Toast.LENGTH_SHORT).show();
-	}
-
-	@Override
 	public void onClosed(FloatingObjectWindow window) {
 		windows.remove(window);
 	}

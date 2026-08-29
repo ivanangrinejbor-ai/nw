@@ -47,6 +47,54 @@
             app:layout_newLine="true" />
 
         <TextView
+            android:id="@+id/brick_send_tcp_edit5"
+            style="@style/BrickEditText"
+            android:visibility="gone"
+            app:layout_newLine="true" />
+
+        <TextView
+            android:id="@+id/brick_send_tcp_edit6"
+            style="@style/BrickEditText"
+            android:visibility="gone"
+            app:layout_newLine="true" />
+
+        <TextView
+            android:id="@+id/brick_send_tcp_edit7"
+            style="@style/BrickEditText"
+            android:visibility="gone"
+            app:layout_newLine="true" />
+
+        <TextView
+            android:id="@+id/brick_send_tcp_edit8"
+            style="@style/BrickEditText"
+            android:visibility="gone"
+            app:layout_newLine="true" />
+
+        <TextView
+            android:id="@+id/brick_send_tcp_edit9"
+            style="@style/BrickEditText"
+            android:visibility="gone"
+            app:layout_newLine="true" />
+
+        <TextView
+            android:id="@+id/brick_send_tcp_edit10"
+            style="@style/BrickEditText"
+            android:visibility="gone"
+            app:layout_newLine="true" />
+
+        <TextView
+            android:id="@+id/brick_send_tcp_edit11"
+            style="@style/BrickEditText"
+            android:visibility="gone"
+            app:layout_newLine="true" />
+
+        <TextView
+            android:id="@+id/brick_send_tcp_edit12"
+            style="@style/BrickEditText"
+            android:visibility="gone"
+            app:layout_newLine="true" />
+
+        <TextView
             android:id="@+id/brick_send_tcp_add"
             style="@style/BrickText.SingleLine"
             android:layout_marginStart="8dp"

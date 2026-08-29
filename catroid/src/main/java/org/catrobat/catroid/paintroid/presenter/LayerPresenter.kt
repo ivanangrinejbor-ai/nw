@@ -286,18 +286,12 @@ class LayerPresenter(
             Log.e(TAG, "onLongClickLayerAtPosition at invalid position")
             return
         }
-        var isAllowedToLongclick = true
-        for (i in layers.indices) {
-            if (!layers[i].isVisible) {
-                isAllowedToLongclick = false
-            }
-        }
-        if (isAllowedToLongclick) {
-            if (layerCount > 1) {
-                listItemDragHandler.startDragging(position, view)
-            }
-        } else {
+        if (!layers[position].isVisible) {
             navigator.showToast(R.string.no_longclick_on_hidden_layer, Toast.LENGTH_SHORT)
+            return
+        }
+        if (layerCount > 1) {
+            listItemDragHandler.startDragging(position, view)
         }
     }
 

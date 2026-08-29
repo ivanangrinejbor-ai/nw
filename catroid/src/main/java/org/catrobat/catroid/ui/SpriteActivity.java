@@ -226,7 +226,7 @@ public class SpriteActivity extends BaseActivity {
 
         if (isFreeWindowModeEnabled) {
             findViewById(R.id.fragment_container).setVisibility(View.GONE);
-            findViewById(R.id.bottom_bar).setVisibility(View.GONE);
+            findViewById(R.id.bottom_bar).setVisibility(View.VISIBLE);
             findViewById(R.id.fragment_container).setVisibility(View.GONE);
 
             View toolbar = findViewById(R.id.toolbar);
@@ -854,7 +854,17 @@ public class SpriteActivity extends BaseActivity {
 	public void handleAddButton(View view) {
         if (workspaceLayout != null && workspaceLayout.getVisibility() == View.VISIBLE) {
             String focusedTag = workspaceLayout.getFocusedWindowTag();
-
+            if (focusedTag == null) {
+                if (workspaceLayout.isWindowOpen(LookListFragment.TAG)) {
+                    focusedTag = LookListFragment.TAG;
+                } else if (workspaceLayout.isWindowOpen(SoundListFragment.TAG)) {
+                    focusedTag = SoundListFragment.TAG;
+                } else if (workspaceLayout.isWindowOpen(DataListFragment.TAG)) {
+                    focusedTag = DataListFragment.TAG;
+                } else if (workspaceLayout.isWindowOpen(ScriptFragment.TAG)) {
+                    focusedTag = ScriptFragment.TAG;
+                }
+            }
             if (focusedTag == null || focusedTag.equals(ScriptFragment.TAG)) {
                 workspaceLayout.openBrickCategoryWindow();
                 return;

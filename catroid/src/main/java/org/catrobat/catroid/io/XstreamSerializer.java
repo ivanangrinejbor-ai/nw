@@ -58,6 +58,8 @@ import org.catrobat.catroid.content.WhenIntervalScript;
 import org.catrobat.catroid.content.WhenTouchingSpriteScript;
 import org.catrobat.catroid.content.WhenTouchingSpriteByNameScript;
 import org.catrobat.catroid.content.WhenAIResponseScript;
+import org.catrobat.catroid.content.WhenTcpMessageScript;
+import org.catrobat.catroid.content.WhenTcpDisconnectedScript;
 import org.catrobat.catroid.content.WhenClonedScript;
 import org.catrobat.catroid.content.WhenConditionScript;
 import org.catrobat.catroid.content.WhenVariableChangedScript;
@@ -874,6 +876,11 @@ public final class XstreamSerializer {
 		xstream.alias("script", WhenAIResponseScript.class);
 		xstream.alias("brick", WhenAIResponseBrick.class);
 		xstream.alias("brick", AskAIBrick.class);
+
+		xstream.alias("script", WhenTcpMessageScript.class);
+		xstream.alias("brick", WhenTcpMessageBrick.class);
+		xstream.alias("script", WhenTcpDisconnectedScript.class);
+		xstream.alias("brick", WhenTcpDisconnectedBrick.class);
 
 		xstream.alias("brick", SetBounceBrick.class);
 		xstream.alias("brick", SetFrictionBrick.class);

@@ -842,12 +842,14 @@ class ProjectActivity : BaseCastActivity() {
 
     fun handleAddSceneButton() {
         val currentProject = projectManager.currentProject
-
-        val options = mutableListOf(getString(R.string.create_regular_scene))
-        if (!currentProject.hasGlobalScene()) {
-            options.add(getString(R.string.create_global_scene))
+        if (currentProject.hasGlobalScene()) {
+            showNewSceneNameDialog()
+            return
         }
-
+        val options = mutableListOf(
+            getString(R.string.create_regular_scene),
+            getString(R.string.create_global_scene)
+        )
         AlertDialog.Builder(this)
             .setTitle(R.string.new_scene_dialog)
             .setItems(options.toTypedArray()) { _, which ->

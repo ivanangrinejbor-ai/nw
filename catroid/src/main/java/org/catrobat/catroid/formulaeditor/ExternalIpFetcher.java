@@ -19,37 +19,50 @@ public final class ExternalIpFetcher {
 
 	public static synchronized String getExternalIp() {
 		long now = System.currentTimeMillis();
-		if (!cachedIp.equals("Unknown") && now - cachedAt < CACHE_TTL_MILLIS) {
-			return cachedIp;
-		}
-		if (cachedIp.equals("Unknown") && now - cachedAt < FAILURE_TTL_MILLIS) {
-			return cachedIp;
-		}
-		if (android.os.Looper.myLooper() == android.os.Looper.getMainLooper()) {
-			return cachedIp;
+		try {
+			if (!cachedIp.equals("Unknown") && now - cachedAt < CACHE_TTL_MILLIS) {
+				return cachedIp;
+			}
+			if (cachedIp.equals("Unknown") && now - cachedAt < FAILURE_TTL_MILLIS) {
+				return cachedIp;
+			}
+			if (android.os.Looper.myLooper() == android.os.Looper.getMainLooper()) {
+				return cachedIp;
+			}
+		} catch (Exception e) {
+			return "Unknown";
 		}
 		String result = "Unknown";
+		HttpURLConnection connection = null;
+		java.util.Scanner scanner = null;
 		try {
-			HttpURLConnection connection = (HttpURLConnection) new URL("https://api.ipify.org").openConnection();
+			connection = (HttpURLConnection) new URL("https://api.ipify.org").openConnection();
 			connection.setRequestMethod("GET");
 			connection.setConnectTimeout(10000);
 			connection.setReadTimeout(10000);
 			int code = connection.getResponseCode();
 			if (code == 200) {
 				java.io.InputStream input = connection.getInputStream();
-				java.util.Scanner scanner = new java.util.Scanner(input, "UTF-8").useDelimiter("\\A");
+				scanner = new java.util.Scanner(input, "UTF-8").useDelimiter("\\A");
 				String body = scanner.hasNext() ? scanner.next() : "";
-				scanner.close();
 				if (body != null && !body.trim().isEmpty()) {
 					result = body.trim();
 				}
 			}
-			connection.disconnect();
-		} catch (Exception e) {
+		} catch (Throwable e) {
 			Log.e(TAG, "Failed to fetch external IP", e);
+		} finally {
+			if (scanner != null) {
+				try { scanner.close(); } catch (Throwable ignored) {}
+			}
+			if (connection != null) {
+				try { connection.disconnect(); } catch (Throwable ignored) {}
+			}
 		}
-		cachedIp = result;
-		cachedAt = now;
+		try {
+			cachedIp = result;
+			cachedAt = now;
+		} catch (Throwable ignored) {}
 		return result;
 	}
 }
