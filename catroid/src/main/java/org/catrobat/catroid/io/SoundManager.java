@@ -105,7 +105,11 @@ public class SoundManager {
 				mediaPlayer.setDataSource(soundFilePath);
 				mediaPlayer.prepare();
 				mediaPlayer.seekTo(startTimeInMilSeconds);
-				mediaPlayer.start();
+				if (isPaused) {
+					pausedMediaPlayers.add(mediaPlayer);
+				} else {
+					mediaPlayer.start();
+				}
 				applyPitchTo(mediaPlayer);
 			} catch (Exception exception) {
 				Log.e(TAG, "Couldn't play sound file '" + soundFilePath + "'", exception);
@@ -260,7 +264,20 @@ public class SoundManager {
 		}
 	}
 
+	private boolean isPaused = false;
+	private final Set<MediaPlayerWithSoundDetails> pausedMediaPlayers = new HashSet<>();
+
+	public synchronized boolean isMediaPlayerPaused(MediaPlayerWithSoundDetails mediaPlayer) {
+		return isPaused && pausedMediaPlayers.contains(mediaPlayer);
+	}
+
+	public synchronized boolean isPaused() {
+		return isPaused;
+	}
+
 	public synchronized void clear() {
+		isPaused = false;
+		pausedMediaPlayers.clear();
 		for (MediaPlayerWithSoundDetails mediaPlayer : mediaPlayers) {
 			mediaPlayer.reset();
 			mediaPlayer.release();
@@ -276,9 +293,16 @@ public class SoundManager {
 	}
 
 	public synchronized void pause() {
-		for (MediaPlayer mediaPlayer : mediaPlayers) {
+		isPaused = true;
+		pausedMediaPlayers.clear();
+		for (MediaPlayerWithSoundDetails mediaPlayer : mediaPlayers) {
 			if (mediaPlayer.isPlaying()) {
-				mediaPlayer.pause();
+				try {
+					mediaPlayer.pause();
+					pausedMediaPlayers.add(mediaPlayer);
+				} catch (Exception e) {
+					Log.w(TAG, "Failed to pause mediaPlayer", e);
+				}
 			} else {
 				mediaPlayer.reset();
 			}
@@ -286,15 +310,15 @@ public class SoundManager {
 	}
 
 	public synchronized void resume() {
-		for (MediaPlayer mediaPlayer : mediaPlayers) {
-			if (!mediaPlayer.isPlaying()) {
-				try {
-					mediaPlayer.start();
-				} catch (Exception exception) {
-					Log.w(TAG, "Failed to resume mediaPlayer", exception);
-				}
+		isPaused = false;
+		for (MediaPlayerWithSoundDetails mediaPlayer : pausedMediaPlayers) {
+			try {
+				mediaPlayer.start();
+			} catch (Exception exception) {
+				Log.w(TAG, "Failed to resume mediaPlayer", exception);
 			}
 		}
+		pausedMediaPlayers.clear();
 	}
 
 	public synchronized void stopAllSounds() {
@@ -302,6 +326,7 @@ public class SoundManager {
 	}
 
 	public synchronized void stopAllSounds(long replayBlockMillis) {
+		pausedMediaPlayers.clear();
 		long blockedUntil = replayBlockMillis > 0
 				? System.currentTimeMillis() + replayBlockMillis : 0L;
 		for (MediaPlayer mediaPlayer : mediaPlayers) {

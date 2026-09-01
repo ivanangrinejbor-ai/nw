@@ -44,7 +44,12 @@ class FadeParticleEffectAction : TemporalAction() {
     }
 
     override fun update(percent: Float) {
-        sprite?.look?.hasParticleEffect = fadeIn
+        sprite?.look?.let { look ->
+            look.hasParticleEffect = fadeIn
+            if (fadeIn) {
+                look.getParticleEffect()
+            }
+        }
         if (backgroundSprite?.lookList?.size == 0) {
             sprite?.look?.isAdditive = false
         }

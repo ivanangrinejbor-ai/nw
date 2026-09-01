@@ -49,14 +49,10 @@ class SetFilterPixelateAction : TemporalAction() {
         for (y in 0 until h step blockSize) {
             for (x in 0 until w step blockSize) {
                 Color.argb8888ToColor(temp, src.getPixel(x, y))
-                val argb = Color.argb8888(temp)
                 val ex = (x + blockSize).coerceAtMost(w)
                 val ey = (y + blockSize).coerceAtMost(h)
-                for (dy in y until ey) {
-                    for (dx in x until ex) {
-                        dst.drawPixel(dx, dy, argb)
-                    }
-                }
+                dst.setColor(temp)
+                dst.fillRectangle(x, y, ex - x, ey - y)
             }
         }
 

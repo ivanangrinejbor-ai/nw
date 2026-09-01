@@ -885,6 +885,8 @@ import org.catrobat.catroid.content.bricks.SetCornerOffsetsBrick
 import org.catrobat.catroid.content.bricks.SetFilterBlurBrick
 import org.catrobat.catroid.content.bricks.SetFilterPixelateBrick
 import org.catrobat.catroid.content.bricks.SetFilterSepiaBrick
+import org.catrobat.catroid.content.bricks.CaptureLookColorProfileBrick
+import org.catrobat.catroid.content.bricks.ApplyLookColorProfileBrick
 import org.catrobat.catroid.content.bricks.SetFontBrick
 import org.catrobat.catroid.content.bricks.SetMainRenderLoopsBrick
 import org.catrobat.catroid.content.bricks.SetNativeParentBrick
@@ -1439,6 +1441,7 @@ eventBrickList.add(WhenConditionBrick(WhenConditionScript(Formula(defaultIf))))
                 as? org.catrobat.catroid.ui.recyclerview.fragment.ScriptFragment ?: return null
         val listView = scriptFragment.listView ?: return null
         val adapter = scriptFragment.adapter ?: return null
+        if (adapter.count == 0) return null
         val firstVisible = listView.firstVisiblePosition
         val lastVisible = listView.lastVisiblePosition
         var pos = firstVisible + (lastVisible - firstVisible) / 2
@@ -2052,6 +2055,8 @@ eventBrickList.add(WhenConditionBrick(WhenConditionScript(Formula(defaultIf))))
         shadersBrickList.add(TintShaderBrick(Formula(255.0), Formula(0.0), Formula(0.0), Formula(50.0)))
         shadersBrickList.add(SetFilterBlurBrick(Formula(3.0)))
         shadersBrickList.add(SetFilterSepiaBrick(Formula(0.8)))
+        shadersBrickList.add(CaptureLookColorProfileBrick())
+        shadersBrickList.add(ApplyLookColorProfileBrick())
         return shadersBrickList
     }
 

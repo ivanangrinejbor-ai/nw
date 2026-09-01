@@ -27,6 +27,7 @@ import com.badlogic.gdx.scenes.scene2d.EventListener
 import org.catrobat.catroid.content.actions.ScriptSequenceAction
 import org.catrobat.catroid.content.actions.ScriptSequenceActionWithWaiter
 import org.catrobat.catroid.content.eventids.UserDefinedBrickEventId
+import org.catrobat.catroid.content.eventids.UserDefinedBrickV2EventId
 
 class EventWrapperListener internal constructor(private val look: Look) : EventListener {
 
@@ -39,15 +40,23 @@ class EventWrapperListener internal constructor(private val look: Look) : EventL
     private fun handleEvent(event: EventWrapper) {
         with(look) {
             sprite.idToEventThreadMap[event.eventId]?.forEach { sequenceAction ->
-                if (event.eventId is UserDefinedBrickEventId) {
-                    handleUserBrickEvent(sequenceAction, event)
-                    return
-                }
-                stopThreadWithScript(sequenceAction.script)
-                if (event.addSpriteToWaitList(sprite)) {
-                    startThread(ScriptSequenceActionWithWaiter(sequenceAction, event, sprite))
-                } else {
-                    startThread(sequenceAction)
+                when (event.eventId) {
+                    is UserDefinedBrickEventId -> {
+                        handleUserBrickEvent(sequenceAction, event)
+                        return
+                    }
+                    is UserDefinedBrickV2EventId -> {
+                        handleUserBrickV2Event(sequenceAction, event)
+                        return
+                    }
+                    else -> {
+                        stopThreadWithScript(sequenceAction.script)
+                        if (event.addSpriteToWaitList(sprite)) {
+                            startThread(ScriptSequenceActionWithWaiter(sequenceAction, event, sprite))
+                        } else {
+                            startThread(sequenceAction)
+                        }
+                    }
                 }
             }
         }
@@ -59,6 +68,21 @@ class EventWrapperListener internal constructor(private val look: Look) : EventL
                 UserDefinedScript
             scriptClone.setUserDefinedBrickInputs((event.eventId as
                 UserDefinedBrickEventId).userBrickParameters)
+            val sequenceClone: ScriptSequenceAction = sequenceAction.cloneAndChangeScript(scriptClone)
+            sequenceClone.script.run(sprite, sequenceClone)
+            event.addSpriteToWaitList(sprite)
+            startThread(ScriptSequenceActionWithWaiter(sequenceClone, event, sprite))
+        }
+    }
+
+    private fun handleUserBrickV2Event(sequenceAction: ScriptSequenceAction, event: EventWrapper) {
+        with(look) {
+            val scriptClone = (sequenceAction.script as UserDefinedScriptV2).clone() as
+                UserDefinedScriptV2
+            val inputs = (event.eventId as UserDefinedBrickV2EventId).interpretedInputs
+            if (inputs != null) {
+                scriptClone.setParamValues(inputs)
+            }
             val sequenceClone: ScriptSequenceAction = sequenceAction.cloneAndChangeScript(scriptClone)
             sequenceClone.script.run(sprite, sequenceClone)
             event.addSpriteToWaitList(sprite)

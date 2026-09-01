@@ -25,15 +25,18 @@ package org.catrobat.catroid.content.actions
 import android.util.Log
 import androidx.annotation.VisibleForTesting
 import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction
+import org.catrobat.catroid.ProjectManager
+import org.catrobat.catroid.audio.AudioServiceHolder
+import org.catrobat.catroid.audio.MidiServiceHolder
+import org.catrobat.catroid.common.Constants
 import org.catrobat.catroid.common.SoundInfo
 import org.catrobat.catroid.content.Scope
 import org.catrobat.catroid.content.Sprite
 import org.catrobat.catroid.formulaeditor.Formula
 import org.catrobat.catroid.formulaeditor.InterpretationException
-import org.catrobat.catroid.audio.AudioServiceHolder
-import org.catrobat.catroid.audio.MidiServiceHolder
 import org.catrobat.catroid.io.SoundManager
 import org.catrobat.catroid.pocketmusic.mididriver.MidiSoundManager
+import java.io.File
 
 class PlaySoundAtAction : TemporalAction() {
     lateinit var sprite: Sprite
@@ -49,18 +52,36 @@ class PlaySoundAtAction : TemporalAction() {
             Log.d(TAG, "Failed to interpret Delay", exception)
             return
         }
-        if (sprite.soundList.contains(sound)) {
-
-            sound?.let {
-                if (it.isMidiFile) {
-                    MidiServiceHolder.midiService.playSoundFileWithStartTime(
-                        it.file.absolutePath, sprite.name, offsetMilliseconds
-                    )
-                } else {
-                    AudioServiceHolder.audioService.playSoundFileWithStartTime(
-                        it.file.absolutePath, sprite.name, offsetMilliseconds
-                    )
+        val currentSound = sound ?: return
+        var soundToPlay = if (sprite.soundList.contains(currentSound)) currentSound else {
+            sprite.soundList.firstOrNull {
+                it.name == currentSound.name || it.fileName == currentSound.fileName || (it.soundId != null && it.soundId == currentSound.soundId)
+            } ?: currentSound
+        }
+        var soundFile: File? = soundToPlay.file
+        if (soundFile == null || !soundFile.exists()) {
+            val scene = ProjectManager.getInstance().currentlyPlayingScene ?: ProjectManager.getInstance().currentlyEditedScene
+            if (scene != null) {
+                val soundDir = File(scene.directory, Constants.SOUND_DIRECTORY_NAME)
+                val name = soundToPlay.fileName ?: soundToPlay.name
+                if (name != null) {
+                    val candidate = File(soundDir, name)
+                    if (candidate.exists()) {
+                        soundFile = candidate
+                        soundToPlay.file = candidate
+                    }
                 }
+            }
+        }
+        if (soundFile != null && soundFile.exists()) {
+            if (soundToPlay.isMidiFile) {
+                MidiServiceHolder.midiService.playSoundFileWithStartTime(
+                    soundFile.absolutePath, sprite.name, offsetMilliseconds
+                )
+            } else {
+                AudioServiceHolder.audioService.playSoundFileWithStartTime(
+                    soundFile.absolutePath, sprite.name, offsetMilliseconds
+                )
             }
         }
     }

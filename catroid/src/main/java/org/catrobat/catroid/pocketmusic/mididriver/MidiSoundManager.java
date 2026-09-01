@@ -84,7 +84,11 @@ public class MidiSoundManager {
 				} else {
 					midiPlayer.seekTo(startTimeInMilSeconds);
 				}
-				midiPlayer.start();
+				if (isPaused) {
+					pausedMidiPlayers.add(midiPlayer);
+				} else {
+					midiPlayer.start();
+				}
 			} catch (Exception exception) {
 				Log.e(TAG, "Couldn't play sound file '" + soundFilePath + "'", exception);
 			}
@@ -99,7 +103,11 @@ public class MidiSoundManager {
 				midiPlayer.setStartedBySprite(sprite);
 				midiPlayer.setTempo(tempo);
 				midiPlayer.setVolume(this.volume * 127 / 100);
-				midiPlayer.playDrumForBeats(drum, beats);
+				if (isPaused) {
+					pausedMidiPlayers.add(midiPlayer);
+				} else {
+					midiPlayer.playDrumForBeats(drum, beats);
+				}
 			} catch (Exception exception) {
 				Log.e(TAG, "Couldn't play drums", exception);
 			}
@@ -139,7 +147,11 @@ public class MidiSoundManager {
 		}
 	}
 
+	private boolean isPaused = false;
+	private final Set<MidiPlayer> pausedMidiPlayers = new HashSet<>();
+
 	public void stopAllSounds() {
+		pausedMidiPlayers.clear();
 		for (MidiPlayer midiPlayer : midiPlayers) {
 			if (midiPlayer.isPlaying()) {
 				midiPlayer.stopPlaying();
@@ -148,9 +160,12 @@ public class MidiSoundManager {
 	}
 
 	public void pause() {
+		isPaused = true;
+		pausedMidiPlayers.clear();
 		for (MidiPlayer midiPlayer : midiPlayers) {
 			if (midiPlayer.isPlaying()) {
 				midiPlayer.pause();
+				pausedMidiPlayers.add(midiPlayer);
 			} else {
 				midiPlayer.reset();
 			}
@@ -163,7 +178,11 @@ public class MidiSoundManager {
 			midiPlayer.setInstrument(instrument);
 			midiPlayer.setTempo(tempo);
 			midiPlayer.setVolume(this.volume * 127 / 100);
-			midiPlayer.playNoteForBeats(midiValue, beats);
+			if (isPaused) {
+				pausedMidiPlayers.add(midiPlayer);
+			} else {
+				midiPlayer.playNoteForBeats(midiValue, beats);
+			}
 		}
 	}
 
@@ -172,16 +191,17 @@ public class MidiSoundManager {
 	}
 
 	public void resume() {
-		for (MidiPlayer midiPlayer : midiPlayers) {
-			if (!midiPlayer.isPlaying()) {
-				midiPlayer.resume();
-			}
+		isPaused = false;
+		for (MidiPlayer midiPlayer : pausedMidiPlayers) {
+			midiPlayer.resume();
 		}
+		pausedMidiPlayers.clear();
 	}
 
 	public boolean isSoundInSpritePlaying(Sprite sprite, String soundFilePath) {
 		for (MidiPlayer midiPlayer : midiPlayers) {
-			if (midiPlayer.isPlaying() && midiPlayer.getStartedBySprite() == sprite
+			if ((midiPlayer.isPlaying() || (isPaused && pausedMidiPlayers.contains(midiPlayer)))
+					&& midiPlayer.getStartedBySprite() == sprite
 					&& midiPlayer.getPathToSoundFile().equals(soundFilePath)) {
 				return true;
 			}

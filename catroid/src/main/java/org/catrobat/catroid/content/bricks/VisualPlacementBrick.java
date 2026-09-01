@@ -149,6 +149,10 @@ public abstract class VisualPlacementBrick extends FormulaBrick {
 				&& isBrickFieldANumber(getYBrickField());
 	}
 
+	public boolean shouldInsertHelperBricks() {
+		return true;
+	}
+
 	private boolean isCorrectTextField(View view) {
 		return (view.getId() == getXEditTextId() || view.getId() == getYEditTextId());
 	}

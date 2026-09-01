@@ -49,7 +49,7 @@ class EndBrick @JvmOverloads constructor(
     override fun getAllParts(): List<Brick?>? = parent.allParts
 
     override fun addToFlatList(bricks: List<Brick?>?) {
-        parent.addToFlatList(bricks)
+        super.addToFlatList(bricks)
     }
 
     override fun getDragAndDropTargetList(): List<Brick?>? =

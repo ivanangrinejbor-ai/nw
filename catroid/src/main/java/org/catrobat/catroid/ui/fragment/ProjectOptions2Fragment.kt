@@ -23,6 +23,7 @@ import org.catrobat.catroid.common.Constants
 import org.catrobat.catroid.content.Project
 import org.catrobat.catroid.io.AssetConverter
 import org.catrobat.catroid.io.ProjectCrypto
+import org.catrobat.catroid.io.SafeProjectExporter
 import org.catrobat.catroid.io.XstreamSerializer
 import org.catrobat.catroid.io.asynctask.loadProject
 import org.catrobat.catroid.io.asynctask.renameProject
@@ -611,28 +612,19 @@ class ProjectOptions2Fragment : Fragment() {
 
     private fun doProtectedExport() {
         val proj = project ?: return
-        proj.xmlHeader?.setProtectedProject(true)
-        saveProjectAsync()
         Toast.makeText(requireContext(), "Экспорт защищённого проекта...", Toast.LENGTH_SHORT).show()
         val appContext = requireContext().applicationContext
         val progress = FileProgressDialog("Экспорт защищённого проекта")
         activity?.runOnUiThread { progress.show() }
         Thread {
+            val safeFile = File(appContext.cacheDir, "${proj.name}_safe${Constants.CATROBAT_EXTENSION}")
             try {
                 if (!ProjectSaveCoordinator.saveBlocking(proj)) {
                     error("Не удалось сохранить проект перед экспортом")
                 }
+                SafeProjectExporter.export(appContext, proj, safeFile)
                 val safeName = proj.name.replace(Regex("[\\\\/:*?\"<>|]"), "_")
-                val fileName = "${safeName}_export.catrobat"
-                val zipFile = File(appContext.cacheDir, "${proj.name}_protected_export.zip")
-                zipDirectoryTo(proj.directory, zipFile) { progress.updateFile(it) }
-                val password = ProjectCrypto.generateRandomPassword()
-                val ncppFile = File(appContext.cacheDir, "${proj.name}_protected_export.ncpp")
-                ProjectCrypto.encrypt(zipFile, ncppFile, password)
-                val containerFile = File(appContext.cacheDir, "${proj.name}_protected_export.catrobat")
-                ProjectCrypto.wrapPasswordContainerFile(ncppFile, containerFile, password)
-                zipFile.delete()
-                ncppFile.delete()
+                val fileName = "${safeName}_safe.catrobat"
                 val output: OutputStream
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     val values = ContentValues().apply {
@@ -646,7 +638,7 @@ class ProjectOptions2Fragment : Fragment() {
                     try {
                         output = appContext.contentResolver.openOutputStream(uri)
                             ?: error("Не удалось открыть файл экспорта")
-                        FileInputStream(containerFile).use { fis -> fis.copyTo(output, 8192) }
+                        FileInputStream(safeFile).use { fis -> fis.copyTo(output, 8192) }
                         appContext.contentResolver.update(
                             uri,
                             ContentValues().apply { put(MediaStore.Downloads.IS_PENDING, 0) },
@@ -662,10 +654,10 @@ class ProjectOptions2Fragment : Fragment() {
                     if (!exportDir.exists() && !exportDir.mkdirs()) error("Не удалось создать папку экспорта")
                     val outputFile = File(exportDir, fileName)
                     FileOutputStream(outputFile).use { out ->
-                        FileInputStream(containerFile).use { fis -> fis.copyTo(out, 8192) }
+                        FileInputStream(safeFile).use { fis -> fis.copyTo(out, 8192) }
                     }
                 }
-                containerFile.delete()
+                safeFile.delete()
                 activity?.runOnUiThread {
                     progress.dismiss()
                     if (isAdded && context != null) {
@@ -673,6 +665,7 @@ class ProjectOptions2Fragment : Fragment() {
                     }
                 }
             } catch (e: Exception) {
+                safeFile.delete()
                 activity?.runOnUiThread {
                     progress.dismiss()
                     if (isAdded && context != null) {

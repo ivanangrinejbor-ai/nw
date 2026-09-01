@@ -1388,6 +1388,19 @@ public class ActionFactory extends Actions {
 		return action;
 	}
 
+	public Action createCaptureLookColorProfileAction(Sprite sprite) {
+		CaptureLookColorProfileAction action = Actions.action(CaptureLookColorProfileAction.class);
+		action.setSprite(sprite);
+		return action;
+	}
+
+	public Action createApplyLookColorProfileAction(Sprite sprite, LookData targetLook) {
+		ApplyLookColorProfileAction action = Actions.action(ApplyLookColorProfileAction.class);
+		action.setSprite(sprite);
+		action.setTargetLook(targetLook);
+		return action;
+	}
+
 	public Action createSetLookByIndexAction(Sprite sprite, SequenceAction sequence, Formula formula) {
 		SetLookByIndexAction action = Actions.action(SetLookByIndexAction.class);
 		action.setSprite(sprite);

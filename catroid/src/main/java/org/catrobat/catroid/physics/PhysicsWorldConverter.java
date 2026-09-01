@@ -71,6 +71,8 @@ public final class PhysicsWorldConverter {
 				convertNormalToBox2dCoordinate(catroidVector.y));
 	}
 
+	private static final ThreadLocal<Vector2> tmpVecLocal = ThreadLocal.withInitial(Vector2::new);
+
 	public static float computeShapeArea(Shape shape) {
 		switch (shape.getType()) {
 			case Circle: {
@@ -82,21 +84,31 @@ public final class PhysicsWorldConverter {
 				PolygonShape poly = (PolygonShape) shape;
 				int count = poly.getVertexCount();
 				if (count < 3) return 0f;
-				Vector2[] verts = new Vector2[count];
-				for (int i = 0; i < count; i++) {
-					verts[i] = new Vector2();
-					poly.getVertex(i, verts[i]);
-				}
+				Vector2 tmp = tmpVecLocal.get();
+				Vector2 first = new Vector2();
+				Vector2 prev = new Vector2();
 				float area = 0f;
-				for (int i = 0; i < count; i++) {
-					int next = (i + 1) % count;
-					area += verts[i].x * verts[next].y;
-					area -= verts[next].x * verts[i].y;
+				poly.getVertex(0, first);
+				prev.set(first);
+				for (int i = 1; i < count; i++) {
+					Vector2 curr = tmp;
+					poly.getVertex(i, curr);
+					area += prev.x * curr.y - curr.x * prev.y;
+					prev.set(curr);
 				}
+				area += prev.x * first.y - first.x * prev.y;
 				return Math.abs(area) / 2f;
 			}
 			default:
 				return 0f;
 		}
+	}
+
+	public static void convertBox2dToNormalVector(Vector2 box2DVector, Vector2 out) {
+		out.set(convertBox2dToNormalCoordinate(box2DVector.x), convertBox2dToNormalCoordinate(box2DVector.y));
+	}
+
+	public static void convertCatroidToBox2dVector(Vector2 catroidVector, Vector2 out) {
+		out.set(convertNormalToBox2dCoordinate(catroidVector.x), convertNormalToBox2dCoordinate(catroidVector.y));
 	}
 }

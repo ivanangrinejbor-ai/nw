@@ -92,6 +92,7 @@ import org.catrobat.catroid.content.bricks.ImportScriptBrick;
 import org.catrobat.catroid.neoscript.NeoScriptFile;
 import org.catrobat.catroid.neoscript.NeoScriptImporter;
 import org.catrobat.catroid.neoscript.NeoScriptSerializer;
+import org.catrobat.catroid.visualplacement.VisualPlacementActivity;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -569,6 +570,7 @@ public class SpriteActivity extends BaseActivity {
 			Sprite currentSprite = ProjectManager.getInstance().getCurrentSprite();
 			boolean isNotBackground = !currentSprite.equals(currentScene.getBackgroundSprite());
 			boolean insertHelperBricks = isNotBackground
+					&& visualBrick.shouldInsertHelperBricks()
 					&& !(visualBrick instanceof org.catrobat.catroid.content.bricks.GridBrick);
 
 			if (insertHelperBricks) {
@@ -587,7 +589,8 @@ public class SpriteActivity extends BaseActivity {
 				int insertionPoint = parentScript.getBrickList().indexOf(visualBrick) + 1;
 
 				if (!hasDirectionBrick) {
-					parentScript.addBrick(insertionPoint++, new PointInDirectionBrick(rotation + 90));
+					parentScript.addBrick(insertionPoint++, new PointInDirectionBrick(
+							VisualPlacementActivity.getSpriteDirectionFromVisualPlacement(rotation)));
 				}
 
 				if (!hasSizeBrick) {
@@ -698,7 +701,8 @@ public class SpriteActivity extends BaseActivity {
 						float rotation = placementData.getFloat(ROTATION_ANGLE_BUNDLE_ARGUMENT);
 						float size = placementData.getFloat(SIZE_PERCENT_BUNDLE_ARGUMENT);
 
-						startScript.addBrick(new PointInDirectionBrick(rotation + 90));
+						startScript.addBrick(new PointInDirectionBrick(
+								VisualPlacementActivity.getSpriteDirectionFromVisualPlacement(rotation)));
 						startScript.addBrick(new SetSizeToBrick(size));
 						startScript.addBrick(new PlaceAtBrick(x, y));
 					} else {

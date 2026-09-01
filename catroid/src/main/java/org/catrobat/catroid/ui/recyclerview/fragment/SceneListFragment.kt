@@ -56,7 +56,7 @@ class SceneListFragment : RecyclerViewFragment<Scene?>(),
 
     override fun onResume() {
         super.onResume()
-        val currentProject = projectManager.currentProject
+        val currentProject = projectManager.currentProject ?: return
         val hasMultipleScenes = currentProject.sceneList.size > 1 || currentProject.hasGlobalScene()
         if (!hasMultipleScenes) {
             projectManager.currentlyEditedScene = currentProject.defaultScene

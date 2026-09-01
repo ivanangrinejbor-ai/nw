@@ -303,16 +303,17 @@ public class VisualPlacementActivity extends BaseCastActivity implements View.On
 		bitmapOptions = new BitmapFactory.Options();
 		bitmapOptions.inPreferredConfig = Bitmap.Config.ARGB_8888;
 
+		scaleGestureDetector = new ScaleGestureDetector(this, new MyScaleGestureListener());
+		float spriteDirection = extras.getFloat(EXTRA_ROTATION, 90f);
+		initialRotation = (spriteDirection - DEGREE_UI_OFFSET);
+		initialX = translateX;
+		initialY = translateY;
+
 		setBackground();
 		showMovableImageView();
 
 		toolbar.bringToFront();
 		frameLayout.setOnTouchListener(this);
-
-		scaleGestureDetector = new ScaleGestureDetector(this, new MyScaleGestureListener());
-		initialRotation = extras.getFloat(EXTRA_ROTATION, 0f);
-		initialX = translateX;
-		initialY = translateY;
 	}
 
 	private void setBackground() {
@@ -335,45 +336,44 @@ public class VisualPlacementActivity extends BaseCastActivity implements View.On
 			showGridPreviewImageView();
 			return;
 		}
-		Bitmap visualPlacementBitmap;
-		String objectLookPath;
-		Sprite currentSprite = projectManager.getCurrentSprite();
-		Log.d("VisualPlacement", "Started...");
-		if(currentSprite == null) {
-			Log.e("VisualPlacement", "sprite is null");
-		}
-
-		if(projectManager == null) {
-			Log.e("VisualPlacement", "projectManager is null");
-		}
 
 		imageView = new ImageView(this);
 
+		Sprite currentSprite = projectManager.getCurrentSprite();
+		rotationMode = currentSprite.look.getRotationMode();
+		rotation = currentSprite.look.getMotionDirectionInUserInterfaceDimensionUnit();
+		scaleX = (currentSprite.look != null) ? currentSprite.look.getScaleX() : 1f;
+		scaleY = (currentSprite.look != null) ? currentSprite.look.getScaleY() : 1f;
+		if (scaleX <= 0f) scaleX = 1f;
+		if (scaleY <= 0f) scaleY = 1f;
+
+		Bitmap visualPlacementBitmap;
+		Log.d("VisualPlacement", "Started...");
+		if (currentSprite == null) {
+			Log.e("VisualPlacement", "sprite is null");
+			return;
+		}
+		if (projectManager == null) {
+			Log.e("VisualPlacement", "projectManager is null");
+			return;
+		}
+
 		if (isText) {
 			Log.d("VisualPlacement", "isText");
-			scaleX = 1;
-			scaleY = 1;
 			visualPlacementBitmap = convertTextToBitmap();
 		} else {
 			if (!currentSprite.look.getImagePath().isEmpty()) {
 				Log.d("VisualPlacement", "!currentSprite.look.getImagePath().isEmpty()");
-				objectLookPath = currentSprite.look.getImagePath();
-				scaleX = currentSprite.look.getScaleX();
-				scaleY = currentSprite.look.getScaleY();
-				rotationMode = currentSprite.look.getRotationMode();
-				rotation = currentSprite.look.getMotionDirectionInUserInterfaceDimensionUnit();
+				String objectLookPath = currentSprite.look.getImagePath();
 				visualPlacementBitmap = BitmapFactory.decodeFile(objectLookPath, bitmapOptions);
 			} else if (currentSprite.getLookList().size() != 0) {
 				Log.d("VisualPlacement", "currentSprite.getLookList().size() != 0");
-				objectLookPath = currentSprite.getLookList().get(0).getFile().getAbsolutePath();
+				String objectLookPath = currentSprite.getLookList().get(0).getFile().getAbsolutePath();
 				Log.d("VisualPlacement", "objectLookPath: " + objectLookPath);
 				visualPlacementBitmap = BitmapFactory.decodeFile(objectLookPath, bitmapOptions);
-				scaleX = 1;
-				scaleY = 1;
 			} else {
 				Log.d("VisualPlacement", "else");
 				Drawable drawable = ContextCompat.getDrawable(getApplicationContext(), R.drawable.pc_toolbar_icon);
-
 				visualPlacementBitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
 				Canvas canvas = new Canvas(visualPlacementBitmap);
 				drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
@@ -390,20 +390,8 @@ public class VisualPlacementActivity extends BaseCastActivity implements View.On
 		}
 
 		Matrix matrix = new Matrix();
-		switch (rotationMode) {
-			case ROTATION_STYLE_NONE:
-				matrix.postRotate(0);
-				break;
-			case ROTATION_STYLE_ALL_AROUND:
-				if (rotation != 90) {
-					matrix.postRotate(rotation - DEGREE_UI_OFFSET);
-				}
-				break;
-			case ROTATION_STYLE_LEFT_RIGHT_ONLY:
-				if (rotation < 0) {
-					matrix.postScale(-1, 1, (float) visualPlacementBitmap.getWidth() / 2, (float) visualPlacementBitmap.getHeight() / 2);
-				}
-				break;
+		if (rotationMode == ROTATION_STYLE_LEFT_RIGHT_ONLY && rotation < 0) {
+			matrix.postScale(-1, 1, (float) visualPlacementBitmap.getWidth() / 2, (float) visualPlacementBitmap.getHeight() / 2);
 		}
 
 		visualPlacementBitmap = Bitmap.createBitmap(visualPlacementBitmap, 0, 0,
@@ -681,6 +669,16 @@ public class VisualPlacementActivity extends BaseCastActivity implements View.On
 		returnIntent.putExtras(extras);
 		setResult(Activity.RESULT_OK, returnIntent);
 		finish();
+	}
+
+	public static float getSpriteDirectionFromVisualPlacement(float rotation) {
+		float direction = (rotation + DEGREE_UI_OFFSET) % 360f;
+		if (direction > 180f) {
+			direction -= 360f;
+		} else if (direction <= -180f) {
+			direction += 360f;
+		}
+		return direction;
 	}
 
 	private void showSaveChangesDialog(Context context) {

@@ -33,9 +33,20 @@ class StopSoundAction : TemporalAction() {
     var sound: SoundInfo? = null
 
     override fun update(percent: Float) {
-        sound?.file?.let { file ->
-            AudioServiceHolder.audioService.stopSoundInSprite(file.absolutePath, sprite?.name ?: "")
-            MidiServiceHolder.midiService.stopSoundInSprite(file.absolutePath, sprite?.name ?: "")
+        val sp = sprite ?: return
+        val currentSound = sound ?: return
+        var soundFile = currentSound.file
+        if (soundFile == null || !soundFile.exists()) {
+            val matching = sp.soundList.firstOrNull {
+                it.name == currentSound.name || it.fileName == currentSound.fileName || (it.soundId != null && it.soundId == currentSound.soundId)
+            }
+            if (matching?.file != null && matching.file.exists()) {
+                soundFile = matching.file
+            }
+        }
+        if (soundFile != null) {
+            AudioServiceHolder.audioService.stopSoundInSprite(soundFile.absolutePath, sp.name)
+            MidiServiceHolder.midiService.stopSoundInSprite(soundFile.absolutePath, sp.name)
         }
     }
 }

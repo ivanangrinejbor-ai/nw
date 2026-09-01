@@ -43,7 +43,26 @@ class AndroidMidiService : MidiService {
     override fun reset() = midiSoundManager.reset()
 
     private fun resolveSprite(name: String): Sprite? {
-        val scene = ProjectManager.getInstance().getCurrentlyPlayingScene() ?: return null
-        return scene.spriteList.firstOrNull { it.name == name }
+        val pm = ProjectManager.getInstance()
+        val playingScene = pm.currentlyPlayingScene
+        if (playingScene != null) {
+            val sprite = playingScene.spriteList?.firstOrNull { it.name == name }
+            if (sprite != null) return sprite
+        }
+        val editedScene = pm.currentlyEditedScene
+        if (editedScene != null) {
+            val sprite = editedScene.spriteList?.firstOrNull { it.name == name }
+            if (sprite != null) return sprite
+        }
+        val currentStage = org.catrobat.catroid.stage.StageActivity.activeStageActivity?.get()
+        if (currentStage != null && currentStage.stageListener != null) {
+            val stageSprites = currentStage.stageListener.spritesFromStage
+            if (stageSprites != null) {
+                val sprite = stageSprites.firstOrNull { it.name == name }
+                if (sprite != null) return sprite
+            }
+        }
+        val project = pm.currentProject ?: return null
+        return project.getSpriteListWithClones().firstOrNull { it.name == name }
     }
 }

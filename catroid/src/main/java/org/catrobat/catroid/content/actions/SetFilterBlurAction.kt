@@ -43,36 +43,70 @@ class SetFilterBlurAction : TemporalAction() {
         val h = src.height
         if (w <= 0 || h <= 0) return
 
-        val srcCopy = Pixmap(w, h, src.format)
-        srcCopy.drawPixmap(src, 0, 0, 0, 0, w, h)
         val dst = Pixmap(w, h, src.format)
         val temp = Color()
+        val horizontal = FloatArray(w * h * 3)
+        val windowSize = kernel * 2 + 1
 
         for (y in 0 until h) {
+            var sumR = 0f
+            var sumG = 0f
+            var sumB = 0f
+            for (dx in -kernel..kernel) {
+                Color.argb8888ToColor(temp, src.getPixel(dx.coerceIn(0, w - 1), y))
+                sumR += temp.r
+                sumG += temp.g
+                sumB += temp.b
+            }
             for (x in 0 until w) {
-                var sumR = 0f; var sumG = 0f; var sumB = 0f
-                var count = 0
-                for (dy in -kernel..kernel) {
-                    for (dx in -kernel..kernel) {
-                        val px = (x + dx).coerceIn(0, w - 1)
-                        val py = (y + dy).coerceIn(0, h - 1)
-                        Color.argb8888ToColor(temp, srcCopy.getPixel(px, py))
-                        sumR += temp.r
-                        sumG += temp.g
-                        sumB += temp.b
-                        count++
-                    }
-                }
-                Color.argb8888ToColor(temp, srcCopy.getPixel(x, y))
-                temp.r = (sumR / count).coerceIn(0f, 1f)
-                temp.g = (sumG / count).coerceIn(0f, 1f)
-                temp.b = (sumB / count).coerceIn(0f, 1f)
-                dst.drawPixel(x, y, Color.argb8888(temp))
+                val index = (y * w + x) * 3
+                horizontal[index] = sumR / windowSize
+                horizontal[index + 1] = sumG / windowSize
+                horizontal[index + 2] = sumB / windowSize
+
+                val removeX = (x - kernel).coerceIn(0, w - 1)
+                val addX = (x + kernel + 1).coerceIn(0, w - 1)
+                Color.argb8888ToColor(temp, src.getPixel(removeX, y))
+                sumR -= temp.r
+                sumG -= temp.g
+                sumB -= temp.b
+                Color.argb8888ToColor(temp, src.getPixel(addX, y))
+                sumR += temp.r
+                sumG += temp.g
+                sumB += temp.b
             }
         }
-        srcCopy.dispose()
 
         val oldTex = lookData.textureRegion
+        for (x in 0 until w) {
+            var sumR = 0f
+            var sumG = 0f
+            var sumB = 0f
+            for (dy in -kernel..kernel) {
+                val index = (dy.coerceIn(0, h - 1) * w + x) * 3
+                sumR += horizontal[index]
+                sumG += horizontal[index + 1]
+                sumB += horizontal[index + 2]
+            }
+            for (y in 0 until h) {
+                val index = (y * w + x) * 3
+                Color.argb8888ToColor(temp, src.getPixel(x, y))
+                temp.r = (sumR / windowSize).coerceIn(0f, 1f)
+                temp.g = (sumG / windowSize).coerceIn(0f, 1f)
+                temp.b = (sumB / windowSize).coerceIn(0f, 1f)
+                dst.drawPixel(x, y, Color.argb8888(temp))
+
+                val removeY = (y - kernel).coerceIn(0, h - 1) * w * 3 + x * 3
+                val addY = (y + kernel + 1).coerceIn(0, h - 1) * w * 3 + x * 3
+                sumR -= horizontal[removeY]
+                sumG -= horizontal[removeY + 1]
+                sumB -= horizontal[removeY + 2]
+                sumR += horizontal[addY]
+                sumG += horizontal[addY + 1]
+                sumB += horizontal[addY + 2]
+            }
+        }
+
         lookData.setPixmap(dst)
         lookData.setTextureRegion(TextureRegion(Texture(dst)))
         s.sprite.look.refreshTextures(true)

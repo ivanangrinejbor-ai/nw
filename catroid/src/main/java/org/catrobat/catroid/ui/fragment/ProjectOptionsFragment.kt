@@ -84,6 +84,7 @@ import org.catrobat.catroid.content.Project
 import org.catrobat.catroid.content.XmlHeader
 import org.catrobat.catroid.databinding.FragmentProjectOptionsBinding
 import org.catrobat.catroid.io.StorageOperations
+import org.catrobat.catroid.io.SafeProjectExporter
 import org.catrobat.catroid.io.XstreamSerializer
 import org.catrobat.catroid.io.asynctask.ProjectExportTask
 import org.catrobat.catroid.io.asynctask.ProjectSaver
@@ -1253,8 +1254,6 @@ class ProjectOptionsFragment : Fragment() {
         }
     }
 
-    private var isProtectedExport = false
-
     private fun exportProject() {
         saveProject()
         project?.let { org.catrobat.catroid.io.LookFileGarbageCollector().cleanUpUnusedLookFiles(it) }
@@ -1275,47 +1274,36 @@ class ProjectOptionsFragment : Fragment() {
     }
 
     private fun startProtectedExport() {
-        isProtectedExport = true
         saveProject()
-        project?.xmlHeader?.setProtectedProject(true)
-        saveProjectSerial(project, requireContext())
-        val proj = project ?: run { resetProtectedFlag(); return }
+        val proj = project ?: return
         val progressDialog = androidx.appcompat.app.AlertDialog.Builder(requireContext())
             .setTitle(R.string.exporting_project)
-            .setMessage(R.string.encrypting_project)
+            .setMessage(R.string.export_exporting)
             .setCancelable(false)
             .create()
         progressDialog.show()
         kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+            val safeFile = java.io.File(requireContext().cacheDir, "${proj.name}_safe${Constants.CATROBAT_EXTENSION}")
             try {
-                val zipFile = java.io.File(requireContext().cacheDir, "${proj.name}_protected_export.zip")
-                zipDirectory(proj.directory, zipFile)
-                val password = org.catrobat.catroid.io.ProjectCrypto.generateRandomPassword()
-                val ncppFile = java.io.File(requireContext().cacheDir, "${proj.name}_protected_export.ncpp")
-                org.catrobat.catroid.io.ProjectCrypto.encrypt(zipFile, ncppFile, password)
-                val containerFile = java.io.File(requireContext().cacheDir, "${proj.name}_protected${Constants.CATROBAT_EXTENSION}")
-                org.catrobat.catroid.io.ProjectCrypto.wrapPasswordContainerFile(ncppFile, containerFile, password)
-                zipFile.delete()
-                ncppFile.delete()
+                SafeProjectExporter.export(requireContext().applicationContext, proj, safeFile)
                 kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
                     progressDialog.dismiss()
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                        encFileToSave = containerFile
-                        startProtectedFilePicker(containerFile, proj.name)
+                        encFileToSave = safeFile
+                        startProtectedFilePicker(safeFile, proj.name)
                     } else {
                         Constants.DOWNLOAD_DIRECTORY.mkdirs()
-                        val dest = java.io.File(Constants.DOWNLOAD_DIRECTORY, "${proj.name}_protected${Constants.CATROBAT_EXTENSION}")
-                        containerFile.copyTo(dest, overwrite = true)
-                        containerFile.delete()
-                        resetProtectedFlag()
+                        val dest = java.io.File(Constants.DOWNLOAD_DIRECTORY, "${proj.name}_safe${Constants.CATROBAT_EXTENSION}")
+                        safeFile.copyTo(dest, overwrite = true)
+                        safeFile.delete()
                         showToast(getString(R.string.export_project) + " ✓")
                     }
                 }
             } catch (e: Exception) {
+                safeFile.delete()
                 Log.e(TAG, "Protected export failed", e)
                 kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
                     progressDialog.dismiss()
-                    resetProtectedFlag()
                     ToastUtil.showError(activity, "Export failed: ${e.message}")
                 }
             }
@@ -1329,14 +1317,6 @@ class ProjectOptionsFragment : Fragment() {
         intent.type = "*/*"
         intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, Environment.DIRECTORY_DOWNLOADS)
         startActivityForResult(Intent.createChooser(intent, getString(R.string.export_protected_project)), REQUEST_EXPORT_PROTECTED)
-    }
-
-    private fun resetProtectedFlag() {
-        if (isProtectedExport) {
-            project?.xmlHeader?.setProtectedProject(false)
-            project?.let { ProjectSaver(it, requireContext()).saveProjectAsync({}) }
-            isProtectedExport = false
-        }
     }
 
     private fun exportCompressedLight() {
@@ -2086,10 +2066,8 @@ class ProjectOptionsFragment : Fragment() {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == REQUEST_EXPORT_PROJECT) {
             if (resultCode == Activity.RESULT_OK) {
-                val projectDestination = data?.data ?: run { resetProtectedFlag(); return }
+                val projectDestination = data?.data ?: return
                 startAsyncProjectExport(projectDestination)
-            } else {
-                resetProtectedFlag()
             }
             return
         }
@@ -2103,7 +2081,6 @@ class ProjectOptionsFragment : Fragment() {
                 encFileToSave?.delete()
             }
             encFileToSave = null
-            resetProtectedFlag()
             return
         }
         data ?: return

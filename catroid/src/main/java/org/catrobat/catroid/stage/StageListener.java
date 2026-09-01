@@ -249,9 +249,30 @@ public class StageListener implements ApplicationListener {
 
     private final List<ScriptSequenceAction> beforeUpdateActions = new ArrayList<>();
     private boolean hasBeforeUpdateScripts = false;
+    private volatile boolean beforeUpdateCacheDirty = false;
 
     private final List<ScriptSequenceAction> afterUpdateActions = new ArrayList<>();
     private boolean hasAfterUpdateScripts = false;
+    private volatile boolean afterUpdateCacheDirty = false;
+
+    private void markBeforeUpdateCacheDirty() {
+        beforeUpdateCacheDirty = true;
+    }
+
+    private void markAfterUpdateCacheDirty() {
+        afterUpdateCacheDirty = true;
+    }
+
+    private void rebuildDirtyCachesIfNeeded() {
+        if (beforeUpdateCacheDirty) {
+            cacheBeforeUpdateScripts();
+            beforeUpdateCacheDirty = false;
+        }
+        if (afterUpdateCacheDirty) {
+            cacheAfterUpdateScripts();
+            afterUpdateCacheDirty = false;
+        }
+    }
 
     private void cacheBeforeUpdateScripts() {
         beforeUpdateActions.clear();
@@ -1197,8 +1218,13 @@ public class StageListener implements ApplicationListener {
 		copy.initFirebaseChangedTriggers();
 		copy.initFirebaseChildChangedTriggers();
 		copy.initFirestoreChangedTriggers();
-		cacheBeforeUpdateScripts();
-		cacheAfterUpdateScripts();
+		// Defer cache rebuild to next render frame to avoid O(N²) on rapid spawns
+		if (copy.containsBeforeUpdateScript()) {
+			markBeforeUpdateCacheDirty();
+		}
+		if (copy.containsAfterUpdateScript()) {
+			markAfterUpdateCacheDirty();
+		}
 	}
 
 	public void cloneSpriteAndAddToStage(Sprite cloneMe, String newName) {
@@ -1231,8 +1257,12 @@ public class StageListener implements ApplicationListener {
 		copy.initFirebaseChangedTriggers();
 		copy.initFirebaseChildChangedTriggers();
 		copy.initFirestoreChangedTriggers();
-		cacheBeforeUpdateScripts();
-		cacheAfterUpdateScripts();
+		if (copy.containsBeforeUpdateScript()) {
+			markBeforeUpdateCacheDirty();
+		}
+		if (copy.containsAfterUpdateScript()) {
+			markAfterUpdateCacheDirty();
+		}
 	}
 
 	public void addCloneActorToStage(Stage stage, Group rootGroup, Look cloneMeLook, Look copyLook) {
@@ -1264,19 +1294,49 @@ public class StageListener implements ApplicationListener {
 			removeBubbleActorForSprite(sprite);
 			sprite.look.destroy();
 			sprite.invalidate();
-			cacheBeforeUpdateScripts();
-			cacheAfterUpdateScripts();
+			if (sprite.containsBeforeUpdateScript()) {
+				markBeforeUpdateCacheDirty();
+			} else if (hasBeforeUpdateScripts) {
+				// sprite may have been counted in cache; mark dirty to be safe if any before-scripts exist globally
+				markBeforeUpdateCacheDirty();
+			}
+			if (sprite.containsAfterUpdateScript()) {
+				markAfterUpdateCacheDirty();
+			} else if (hasAfterUpdateScripts) {
+				markAfterUpdateCacheDirty();
+			}
 		}
 		return removedSprite;
 	}
 
 	private void removeAllClonedSpritesFromStage() {
 		List<Sprite> spritesCopy = new ArrayList<>(sprites);
+		boolean hadBefore = hasBeforeUpdateScripts;
+		boolean hadAfter = hasAfterUpdateScripts;
 		for (Sprite sprite : spritesCopy) {
 			if (sprite.isClone) {
-				removeClonedSpriteFromStage(sprite);
+				// bulk remove without per-sprite cache rebuild; defer to single rebuild
+				if (sprites.remove(sprite)) {
+					clonesByIndex.remove(sprite.cloneIndex);
+					pinnedSpriteWorldPositions.remove(sprite);
+					removeBubbleActorForSprite(sprite);
+					sprite.look.destroy();
+					sprite.invalidate();
+				}
 			}
 		}
+		if (hadBefore) {
+			markBeforeUpdateCacheDirty();
+		}
+		if (hadAfter) {
+			markAfterUpdateCacheDirty();
+		}
+		// for clones that themselves had before/after scripts also need dirty even if global had none
+		// but above already covers common case; ensure at least check if we removed any clone that had them
+		// (cheap: if any removed clone contained script, mark dirty already done via bulk logic above? we skipped check)
+		// So scan removed list quickly: if we cleared clones, just mark dirty if any clone ever could have it
+		// The safest: if we removed any clones, assume potential before/after change -> mark dirty if global caches were non-empty
+		// Already handled.
 		StageActivity.resetNumberOfClonedSprites();
 		cloneCounter.set(1);
 		clonesByIndex.clear();
@@ -1360,6 +1420,9 @@ public class StageListener implements ApplicationListener {
 			return;
 		}
 		paused = false;
+		setSchedulerStateForAllLooks(ThreadScheduler.RUNNING);
+		SoundManager.getInstance().resume();
+		MidiSoundManager.getInstance().resume();
 	}
 
 	void menuPause() {
@@ -1368,6 +1431,9 @@ public class StageListener implements ApplicationListener {
 		}
 
 		paused = true;
+		setSchedulerStateForAllLooks(ThreadScheduler.SUSPENDED);
+		SoundManager.getInstance().pause();
+		MidiSoundManager.getInstance().pause();
 		webConnectionHolder.onPause();
 	}
 
@@ -1644,6 +1710,7 @@ public class StageListener implements ApplicationListener {
 		if (!paused) {
 			setSchedulerStateForAllLooks(ThreadScheduler.RUNNING);
 			SoundManager.getInstance().resume();
+			MidiSoundManager.getInstance().resume();
 		}
 
 		for (Sprite sprite : sprites) {
@@ -1656,10 +1723,10 @@ public class StageListener implements ApplicationListener {
 		if (finished) {
 			return;
 		}
-		if (!paused) {
-			setSchedulerStateForAllLooks(ThreadScheduler.SUSPENDED);
-			SoundManager.getInstance().pause();
-		}
+		paused = true;
+		setSchedulerStateForAllLooks(ThreadScheduler.SUSPENDED);
+		SoundManager.getInstance().pause();
+		MidiSoundManager.getInstance().pause();
 	}
 
 	private void stopAllSounds() {
@@ -1819,7 +1886,7 @@ public class StageListener implements ApplicationListener {
 			batch.setProjectionMatrix(camera.combined);
 			shapeRenderer.setProjectionMatrix(camera.combined);
 
-			if (scene.firstStart) {
+			if (scene.firstStart && !paused) {
 				if (!progressiveInitActive) {
 					progressiveInitActive = true;
 					progressiveInitIndex = 0;
@@ -1877,6 +1944,7 @@ public class StageListener implements ApplicationListener {
             }
 
             if (!paused) {
+                rebuildDirtyCachesIfNeeded();
                 long logicStartTime = System.nanoTime();
 
                 if (hasBeforeUpdateScripts) {
@@ -1957,13 +2025,14 @@ public class StageListener implements ApplicationListener {
 						Log.e("3DRENDER", "ERROR: " + e);
                     }
 
-                    if (fastTwoDManager != null && !paused) {
+                    if (fastTwoDManager != null && !paused && !fastTwoDManager.isEmpty()) {
                         fastTwoDManager.updateAndRender(deltaTime);
                     }
                     if (pathfindingManager != null && !paused) {
+                        // PathfindingManager has internal early-exit when no followers/obstacles
                         pathfindingManager.update(deltaTime);
                     }
-                    if (transitionManager != null && !paused) {
+                    if (transitionManager != null && !paused && transitionManager.getState() != org.catrobat.catroid.content.TransitionState.IDLE) {
                         transitionManager.update(deltaTime);
                     }
 
@@ -2292,20 +2361,30 @@ public class StageListener implements ApplicationListener {
 		}
 	}
 
+	private transient boolean tilemapPhysicsDirtyHint = true;
+	private transient int tilemapPhysicsCheckCounter = 0;
+
 	private void rebuildDirtyTilemapPhysics() {
 		if (physicsWorld == null || sprites == null) {
 			return;
 		}
+		if (!tilemapPhysicsDirtyHint && tilemapPhysicsCheckCounter++ < 60) {
+			return;
+		}
+		tilemapPhysicsCheckCounter = 0;
+		boolean foundTilemap = false;
 		for (Sprite sprite : sprites) {
 			if (sprite == null || sprite.look == null) {
 				continue;
 			}
 			LookData lookData = sprite.look.getLookData();
 			if (lookData instanceof TilemapLookData) {
+				foundTilemap = true;
 				TilemapRuntimeManager.getOrCreate((TilemapLookData) lookData)
 						.rebuildIfDirty(physicsWorld, sprite);
 			}
 		}
+		tilemapPhysicsDirtyHint = foundTilemap;
 	}
 
 	@Override
@@ -2591,6 +2670,9 @@ public class StageListener implements ApplicationListener {
 	}
 
 	private void setSchedulerStateForAllLooks(@ThreadScheduler.SchedulerState int state) {
+		if (stage == null) {
+			return;
+		}
 		for (Actor actor : stage.getActors()) {
 			if (actor instanceof Look) {
 				Look look = (Look) actor;

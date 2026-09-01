@@ -215,7 +215,8 @@ class NewSpriteDialogFragment(
         val intent = Intent(requireContext(), VisualPlacementActivity()::class.java)
         intent.putExtra(EXTRA_X_TRANSFORM, BrickValues.X_POSITION)
         intent.putExtra(EXTRA_Y_TRANSFORM, BrickValues.Y_POSITION)
-        intent.putExtra(EXTRA_ROTATION, BrickValues.ROTATION)
+        val initialDir = sprite?.look?.motionDirectionInUserInterfaceDimensionUnit ?: 90f
+        intent.putExtra(EXTRA_ROTATION, initialDir)
         activity?.startActivityForResult(intent, REQUEST_CODE_VISUAL_PLACEMENT)
     }
 

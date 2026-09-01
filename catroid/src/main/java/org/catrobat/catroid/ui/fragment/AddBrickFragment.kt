@@ -118,6 +118,7 @@ class AddBrickFragment : ListFragment() {
 
     override fun onStart() {
         super.onStart()
+        listView.itemsCanFocus = false
         if (listIndexToFocus != -1) {
             listView.setSelection(listIndexToFocus)
             listIndexToFocus = -1

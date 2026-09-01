@@ -23,10 +23,13 @@
 package org.catrobat.catroid.content.actions
 
 import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction
-import org.catrobat.catroid.common.SoundInfo
-import org.catrobat.catroid.content.Sprite
+import org.catrobat.catroid.ProjectManager
 import org.catrobat.catroid.audio.AudioServiceHolder
 import org.catrobat.catroid.audio.MidiServiceHolder
+import org.catrobat.catroid.common.Constants
+import org.catrobat.catroid.common.SoundInfo
+import org.catrobat.catroid.content.Sprite
+import java.io.File
 
 class PlaySoundAction : TemporalAction() {
     lateinit var sprite: Sprite
@@ -34,14 +37,32 @@ class PlaySoundAction : TemporalAction() {
 
     override fun update(percent: Float) {
         if (!::sprite.isInitialized) return
-        if (sprite.soundList.contains(sound)) {
-            sound?.let {
-                val soundFile = it.file ?: return
-                if (it.isMidiFile) {
-                    MidiServiceHolder.midiService.playSoundFile(soundFile.absolutePath, sprite.name)
-                } else {
-                    AudioServiceHolder.audioService.playSoundFile(soundFile.absolutePath, sprite.name)
+        val currentSound = sound ?: return
+        var soundToPlay = if (sprite.soundList.contains(currentSound)) currentSound else {
+            sprite.soundList.firstOrNull {
+                it.name == currentSound.name || it.fileName == currentSound.fileName || (it.soundId != null && it.soundId == currentSound.soundId)
+            } ?: currentSound
+        }
+        var soundFile: File? = soundToPlay.file
+        if (soundFile == null || !soundFile.exists()) {
+            val scene = ProjectManager.getInstance().currentlyPlayingScene ?: ProjectManager.getInstance().currentlyEditedScene
+            if (scene != null) {
+                val soundDir = File(scene.directory, Constants.SOUND_DIRECTORY_NAME)
+                val name = soundToPlay.fileName ?: soundToPlay.name
+                if (name != null) {
+                    val candidate = File(soundDir, name)
+                    if (candidate.exists()) {
+                        soundFile = candidate
+                        soundToPlay.file = candidate
+                    }
                 }
+            }
+        }
+        if (soundFile != null && soundFile.exists()) {
+            if (soundToPlay.isMidiFile) {
+                MidiServiceHolder.midiService.playSoundFile(soundFile.absolutePath, sprite.name)
+            } else {
+                AudioServiceHolder.audioService.playSoundFile(soundFile.absolutePath, sprite.name)
             }
         }
     }

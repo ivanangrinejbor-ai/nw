@@ -158,6 +158,11 @@ public abstract class UserVariableBrickWithVisualPlacement extends VisualPlaceme
 	}
 
 	@Override
+	public boolean shouldInsertHelperBricks() {
+		return false;
+	}
+
+	@Override
 	public BrickField getYBrickField() {
 		return BrickField.Y_POSITION;
 	}

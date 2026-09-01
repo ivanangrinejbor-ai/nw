@@ -30,8 +30,8 @@ class CloneAction : TemporalAction() {
     private var sprite: Sprite? = null
     override fun update(percent: Float) {
         sprite ?: return
-        val activity = StageActivity.activeStageActivity.get()
-        if (activity == null) return
+        val ref = StageActivity.activeStageActivity ?: return
+        val activity = ref.get() ?: return
         activity.stageListener?.cloneSpriteAndAddToStage(sprite)
     }
 

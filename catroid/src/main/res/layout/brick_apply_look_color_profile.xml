@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal">
+    <org.catrobat.catroid.ui.BrickLayout
+        style="@style/BrickContainer.Look.Medium">
+        <include layout="@layout/icon_brick_category_look" />
+        <TextView
+            style="@style/BrickText.SingleLine"
+            android:text="@string/brick_apply_look_color_profile" />
+        <Spinner
+            android:id="@+id/brick_apply_look_color_profile_spinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+    </org.catrobat.catroid.ui.BrickLayout>
+</LinearLayout>

@@ -276,6 +276,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 	@Override
  	public void onCreate(Bundle savedInstanceState) {
  		super.onCreate(savedInstanceState);
+		injectSafeKeyboardProvider();
 
 		org.catrobat.catroid.content.GlobalManager.resetSceneTracking();
 		org.catrobat.catroid.content.actions.PreloadSceneAction.Companion.getPreloadedScenes().clear();
@@ -1616,7 +1617,12 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 			Log.e(TAG, "Error during StageActivity destroy; ignored to prevent app crash on exit", t);
 		}
 
-		super.onDestroy();
+		try {
+			injectSafeKeyboardProvider();
+			super.onDestroy();
+		} catch (Throwable t) {
+			Log.e(TAG, "Error during super.onDestroy in StageActivity; ignored to prevent app crash on exit", t);
+		}
 	}
 
 	AndroidGraphics getGdxGraphics() {

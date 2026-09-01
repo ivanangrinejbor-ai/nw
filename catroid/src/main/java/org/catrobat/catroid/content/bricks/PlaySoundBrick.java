@@ -124,6 +124,16 @@ public class PlaySoundBrick extends BrickBaseType implements BrickSpinner.OnItem
 
 	@Override
 	public void addActionToSequence(Sprite sprite, ScriptSequenceAction sequence) {
-		sequence.addAction(sprite.getActionFactory().createPlaySoundAction(sprite, sound));
+		SoundInfo resolvedSound = sound;
+		if (resolvedSound != null && (resolvedSound.getFile() == null || !sprite.getSoundList().contains(resolvedSound))) {
+			for (SoundInfo s : sprite.getSoundList()) {
+				if (s.equals(resolvedSound) || (s.getName() != null && s.getName().equals(resolvedSound.getName()))
+						|| (s.fileName != null && s.fileName.equals(resolvedSound.fileName))) {
+					resolvedSound = s;
+					break;
+				}
+			}
+		}
+		sequence.addAction(sprite.getActionFactory().createPlaySoundAction(sprite, resolvedSound != null ? resolvedSound : sound));
 	}
 }

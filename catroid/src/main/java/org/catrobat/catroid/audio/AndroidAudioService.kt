@@ -98,14 +98,33 @@ class AndroidAudioService : AudioService {
     override fun isSoundPlaying(soundFilePath: String, spriteName: String): Boolean {
         val sprite = resolveSprite(spriteName) ?: return false
         val mediaPlaying = soundManager.getMediaPlayers().any {
-            it.isPlaying() && it.getStartedBySprite() == sprite && it.getPathToSoundFile() == soundFilePath
+            (it.isPlaying() || soundManager.isMediaPlayerPaused(it)) && it.getStartedBySprite() == sprite && it.getPathToSoundFile() == soundFilePath
         }
         val midiPlaying = midiSoundManager.isSoundInSpritePlaying(sprite, soundFilePath)
         return mediaPlaying || midiPlaying
     }
 
     internal fun resolveSprite(name: String): Sprite? {
-        val project = ProjectManager.getInstance().currentProject ?: return null
+        val pm = ProjectManager.getInstance()
+        val playingScene = pm.currentlyPlayingScene
+        if (playingScene != null) {
+            val sprite = playingScene.spriteList?.firstOrNull { it.name == name }
+            if (sprite != null) return sprite
+        }
+        val editedScene = pm.currentlyEditedScene
+        if (editedScene != null) {
+            val sprite = editedScene.spriteList?.firstOrNull { it.name == name }
+            if (sprite != null) return sprite
+        }
+        val currentStage = org.catrobat.catroid.stage.StageActivity.activeStageActivity?.get()
+        if (currentStage != null && currentStage.stageListener != null) {
+            val stageSprites = currentStage.stageListener.spritesFromStage
+            if (stageSprites != null) {
+                val sprite = stageSprites.firstOrNull { it.name == name }
+                if (sprite != null) return sprite
+            }
+        }
+        val project = pm.currentProject ?: return null
         return project.getSpriteListWithClones().firstOrNull { it.name == name }
     }
 }

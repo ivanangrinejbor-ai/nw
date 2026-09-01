@@ -77,6 +77,9 @@ public class FastTwoDManager implements Disposable {
     }
 
     public void updateAndRender(float delta) {
+        if (entities.isEmpty()) {
+            return;
+        }
         renderSystem.setCamera(camera);
         world.setDelta(delta);
         world.process();
@@ -394,6 +397,10 @@ public class FastTwoDManager implements Disposable {
     public float getCamX() { return camera.position.x; }
     public float getCamY() { return camera.position.y; }
     public float getCamZoom() { return camera.zoom; }
+
+    public boolean isEmpty() {
+        return entities.isEmpty();
+    }
 
     public void clearScene() {
         for (int entityId : entities.values()) {

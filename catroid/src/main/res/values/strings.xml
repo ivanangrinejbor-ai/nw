@@ -795,7 +795,7 @@
     <string name="export_bake">Bake project</string>
     <string name="protected_project_imported">This project is protected. Editing is disabled.</string>
     <string name="protected_project_cannot_edit">Cannot edit protected project</string>
-    <string name="export_protected_warning">The project will become protected from changes forever. Removing the protection will be impossible. Continue export?</string>
+    <string name="export_protected_warning">The project will be exported as a runtime package without editable blocks and editor data. This file is intended for running, not editing. Continue?</string>
     <string name="export_as_apk">Export as APK</string>
     <string name="export_as_apk_v2">Export as APK v2</string>
     <string name="enter_export_password">Enter export password</string>
@@ -2839,6 +2839,8 @@
 <string formatted="false" name="brick_rotate_left">"Spin left"</string>
 <string formatted="false" name="brick_rotate_right">"Spin right"</string>
 <string formatted="false" name="brick_set_look">Switch to look</string>
+<string formatted="false" name="brick_capture_look_color_profile">Save look color</string>
+<string formatted="false" name="brick_apply_look_color_profile">Colorize look from saved color</string>
 <string formatted="false" name="brick_set_look_by_index">Switch to look with number</string>
 <string formatted="false" name="brick_and_wait">and wait</string>
 <string formatted="false" name="brick_set_background">Set background</string>

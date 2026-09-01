@@ -24,47 +24,66 @@
 package org.catrobat.catroid.common;
 
 import org.catrobat.catroid.ProjectManager;
+import org.catrobat.catroid.content.Project;
+import org.catrobat.catroid.content.Scene;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class BroadcastMessageContainer {
 
 	private final List<String> broadcastMessages;
-	private final java.util.Set<String> customCreatedMessages = new java.util.LinkedHashSet<>();
-	private final java.util.Map<String, BroadcastMessageScope> messageScopes = new java.util.HashMap<>();
+	private final Map<String, Set<String>> customCreatedMessagesByScene = new HashMap<>();
+	private final Map<String, BroadcastMessageScope> messageScopes = new HashMap<>();
+	private transient Scene lastUpdatedScene;
 
 	public BroadcastMessageContainer() {
 		this.broadcastMessages = new ArrayList<>();
 	}
 
 	public void update() {
-		org.catrobat.catroid.content.Scene editedScene =
-				ProjectManager.getInstance().getCurrentlyEditedScene();
+		Scene editedScene = ProjectManager.getInstance().getCurrentlyEditedScene();
 		broadcastMessages.clear();
+		lastUpdatedScene = editedScene;
 		if (editedScene == null) {
 			return;
 		}
-		java.util.Set<String> all = new java.util.LinkedHashSet<>();
+		Set<String> all = new LinkedHashSet<>();
 		if (editedScene.isGlobalScene()) {
 			all.addAll(editedScene.getBroadcastMessagesInUse());
-			org.catrobat.catroid.content.Project project = ProjectManager.getInstance().getCurrentProject();
+			Project project = ProjectManager.getInstance().getCurrentProject();
 			if (project != null) {
-				for (org.catrobat.catroid.content.Scene scene : project.getSceneList()) {
+				for (Scene scene : project.getSceneList()) {
 					all.addAll(scene.getBroadcastMessagesInUse());
+				}
+				if (project.getGlobalScene() != null && project.getGlobalScene() != editedScene) {
+					all.addAll(project.getGlobalScene().getBroadcastMessagesInUse());
 				}
 			}
 		} else {
 			all.addAll(editedScene.getBroadcastMessagesInUse());
 		}
-		all.addAll(customCreatedMessages);
+		if (editedScene.isGlobalScene()) {
+			for (Set<String> messages : customCreatedMessagesByScene.values()) {
+				all.addAll(messages);
+			}
+		} else {
+			all.addAll(customCreatedMessagesByScene.getOrDefault(editedScene.getName(), new LinkedHashSet<>()));
+		}
 		broadcastMessages.addAll(all);
 	}
 
 	public boolean addBroadcastMessage(String messageToAdd) {
 		if (messageToAdd != null && !messageToAdd.isEmpty()) {
-			customCreatedMessages.add(messageToAdd);
+			Scene editedScene = ProjectManager.getInstance().getCurrentlyEditedScene();
+			String sceneName = editedScene == null ? "" : editedScene.getName();
+			customCreatedMessagesByScene
+					.computeIfAbsent(sceneName, ignored -> new LinkedHashSet<>())
+					.add(messageToAdd);
 			if (!broadcastMessages.contains(messageToAdd)) {
 				broadcastMessages.add(messageToAdd);
 			}
@@ -75,14 +94,17 @@ public class BroadcastMessageContainer {
 
 	public boolean removeBroadcastMessage(String messageToRemove) {
 		if (messageToRemove != null && !messageToRemove.isEmpty()) {
-			customCreatedMessages.remove(messageToRemove);
+			for (Set<String> messages : customCreatedMessagesByScene.values()) {
+				messages.remove(messageToRemove);
+			}
 			return broadcastMessages.remove(messageToRemove);
 		}
 		return false;
 	}
 
 	public List<String> getBroadcastMessages() {
-		if (broadcastMessages.size() == 0) {
+		Scene editedScene = ProjectManager.getInstance().getCurrentlyEditedScene();
+		if (broadcastMessages.size() == 0 || lastUpdatedScene != editedScene) {
 			update();
 		}
 		return broadcastMessages;

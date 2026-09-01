@@ -819,7 +819,7 @@
     <string name="export_bake">Запечь проект</string>
     <string name="protected_project_imported">Этот проект защищён. Редактирование отключено.</string>
     <string name="protected_project_cannot_edit">Нельзя редактировать защищённый проект</string>
-    <string name="export_protected_warning">Проект станет защищённым от изменений навсегда. Снять защиту будет невозможно. Продолжить экспорт?</string>
+    <string name="export_protected_warning">Проект будет экспортирован в runtime-формате без исходных блоков и редакторских данных. Такой файл предназначен для запуска, а не для редактирования. Продолжить?</string>
     <string name="export_as_apk">Экспортировать как APK</string>
     <string name="export_as_apk_v2">Экспортировать как APK v2</string>
     <string name="enter_export_password">Введите пароль для экспорта</string>
@@ -3724,7 +3724,9 @@
     <string formatted="false" name="brick_rotate_left">"Вращать влево "</string>
     <string formatted="false" name="brick_rotate_right">"Вращать вправо "</string>
     <!-- Look bricks -->
-    <string formatted="false" name="brick_set_look">Задать образ</string>
+<string formatted="false" name="brick_set_look">Задать образ</string>
+<string formatted="false" name="brick_capture_look_color_profile">Запомнить цвет образа</string>
+<string formatted="false" name="brick_apply_look_color_profile">Окрасить образ сохранённым цветом</string>
     <string formatted="false" name="brick_set_look_by_index">Задать образ под номером</string>
     <string formatted="false" name="brick_and_wait">и ждать</string>
     <string formatted="false" name="brick_set_background">Задать фон</string>

@@ -194,7 +194,8 @@ public class Look extends Image {
         }
     }
 
-    private final transient Polygon hitboxPolygon = new Polygon(new float[8]);
+    private final transient float[] hitboxVertices = new float[8];
+    private final transient Polygon hitboxPolygon = new Polygon(hitboxVertices);
 
 	public Look(final Sprite sprite) {
 		this.sprite = sprite;
@@ -302,6 +303,7 @@ public class Look extends Image {
 
 	public synchronized void setLookVisible(boolean lookVisible) {
 		this.lookVisible = lookVisible;
+		super.setVisible(lookVisible);
 		if (lookVisible) {
 			setTouchable(Touchable.enabled);
 		} else {
@@ -537,14 +539,20 @@ public class Look extends Image {
 			Log.d("ShaderDebug", "    [Draw] Position (X,Y): " + getX() + "," + getY() + " | Size (W,H): " + getWidth() + "," + getHeight());
 		}
 
-		super.setVisible(alpha != 0.0f);
-		batch.setShader(shader);
-		super.setVisible(alpha != 0.0f);
+		if (this.alpha <= 0.0f) {
+			return;
+		}
 
+		boolean useShader = useCustomShader && shader != null && shader.isCompiled();
+		if (useShader) {
+			batch.setShader(shader);
+		}
 		if (isLookVisible() && this.getDrawable() != null) {
 			super.draw(batch, this.alpha);
 		}
-		batch.setShader(null);
+		if (useShader) {
+			batch.setShader(null);
+		}
 
 
 		if (shouldLog) {
@@ -568,13 +576,21 @@ public class Look extends Image {
 	}
 
 	private boolean isOutsideGameCamera() {
-		if (sprite == null || !sprite.isClone || gameCamera == null || !isVisible() || !isLookVisible()) {
+		if (sprite == null || gameCamera == null || !isVisible() || !isLookVisible()) {
 			return false;
 		}
-
-		float centerX = getX() + getWidth() * 0.5f;
-		float centerY = getY() + getHeight() * 0.5f;
-		float radius = (float) Math.sqrt(getWidth() * getWidth() + getHeight() * getHeight()) * 0.5f;
+		if (isPinnedToCamera()) {
+			return false;
+		}
+		float w = getWidth() * Math.abs(getScaleX());
+		float h = getHeight() * Math.abs(getScaleY());
+		if (w <= 0.5f && h <= 0.5f) {
+			return false;
+		}
+		float left = getX() + (getWidth() - w) * 0.5f;
+		float right = left + w;
+		float bottom = getY() + (getHeight() - h) * 0.5f;
+		float top = bottom + h;
 		float halfWidth = gameCamera.viewportWidth * gameCamera.zoom * 0.5f;
 		float halfHeight = gameCamera.viewportHeight * gameCamera.zoom * 0.5f;
 		float cameraLeft = gameCamera.position.x - halfWidth;
@@ -582,8 +598,8 @@ public class Look extends Image {
 		float cameraBottom = gameCamera.position.y - halfHeight;
 		float cameraTop = gameCamera.position.y + halfHeight;
 
-		return centerX + radius < cameraLeft || centerX - radius > cameraRight
-				|| centerY + radius < cameraBottom || centerY - radius > cameraTop;
+		return right < cameraLeft || left > cameraRight
+				|| top < cameraBottom || bottom > cameraTop;
 	}
 
 	private void drawTilemap(Batch batch, TilemapLookData tilemap) {
@@ -611,7 +627,29 @@ public class Look extends Image {
 		float oldG = batch.getColor().g;
 		float oldB = batch.getColor().b;
 		float oldA = batch.getColor().a;
-		batch.setShader(shader);
+		boolean tileUseShader = useCustomShader && shader != null && shader.isCompiled();
+		if (tileUseShader) {
+			batch.setShader(shader);
+		}
+		if (isOutsideGameCamera()) {
+			float mapW = tilemap.getMapPixelWidth() * Math.abs(scaleX);
+			float mapH = tilemap.getMapPixelHeight() * Math.abs(scaleY);
+			float centerX = pivotX;
+			float centerY = pivotY;
+			float halfW = mapW * 0.5f;
+			float halfH = mapH * 0.5f;
+			if (gameCamera != null && !isPinnedToCamera()) {
+				float camHalfW = gameCamera.viewportWidth * gameCamera.zoom * 0.5f;
+				float camHalfH = gameCamera.viewportHeight * gameCamera.zoom * 0.5f;
+				float diag = (float) Math.hypot(halfW, halfH);
+				if (centerX + diag < gameCamera.position.x - camHalfW || centerX - diag > gameCamera.position.x + camHalfW
+						|| centerY + diag < gameCamera.position.y - camHalfH || centerY - diag > gameCamera.position.y + camHalfH) {
+					if (tileUseShader) batch.setShader(null);
+					batch.setColor(oldR, oldG, oldB, oldA);
+					return;
+				}
+			}
+		}
 		batch.setColor(oldR, oldG, oldB, alpha);
 
 		for (short[] layer : tilemap.getLayers()) {
@@ -641,7 +679,9 @@ public class Look extends Image {
 		}
 
 		batch.setColor(oldR, oldG, oldB, oldA);
-		batch.setShader(null);
+		if (tileUseShader) {
+			batch.setShader(null);
+		}
 	}
 
 	public static void tickGlobalFrame() {
@@ -657,16 +697,32 @@ public class Look extends Image {
 		if (sprite != null) {
 			if (myUpdateBucket == globalFrameTicker % UPDATE_BUCKETS) {
 				sprite.runningStitch.update();
-				sprite.evaluateConditionScriptTriggers();
-				sprite.evaluateTouchingSpriteTriggers();
-				sprite.evaluateIntervalScriptTriggers();
-				sprite.evaluateFirebaseChangedTriggers();
-				sprite.evaluateFirebaseChildChangedTriggers();
-				sprite.evaluateFirestoreChangedTriggers();
+				if (sprite.hasConditionScriptTriggers()) {
+					sprite.evaluateConditionScriptTriggers();
+				}
+				if (sprite.hasTouchingSpriteTriggers()) {
+					sprite.evaluateTouchingSpriteTriggers();
+				}
+				if (sprite.hasIntervalScriptTriggers()) {
+					sprite.evaluateIntervalScriptTriggers();
+				}
+				if (sprite.hasFirebaseChangedTriggers()) {
+					sprite.evaluateFirebaseChangedTriggers();
+				}
+				if (sprite.hasFirebaseChildChangedTriggers()) {
+					sprite.evaluateFirebaseChildChangedTriggers();
+				}
+				if (sprite.hasFirestoreChangedTriggers()) {
+					sprite.evaluateFirestoreChangedTriggers();
+				}
 			}
 		}
-		updateGifAnimation(delta);
-		updateSpritesheetAnimation(delta);
+		if (gifPlaying) {
+			updateGifAnimation(delta);
+		}
+		if (spritesheetPlaying) {
+			updateSpritesheetAnimation(delta);
+		}
 	}
 
 	@Override
@@ -1026,7 +1082,11 @@ public class Look extends Image {
         float w = getWidthInUserInterfaceDimensionUnit();
         float h = getHeightInUserInterfaceDimensionUnit();
 
-        hitboxPolygon.setVertices(new float[]{x, y, x, y + h, x + w, y + h, x + w, y});
+        hitboxVertices[0] = x; hitboxVertices[1] = y;
+        hitboxVertices[2] = x; hitboxVertices[3] = y + h;
+        hitboxVertices[4] = x + w; hitboxVertices[5] = y + h;
+        hitboxVertices[6] = x + w; hitboxVertices[7] = y;
+        hitboxPolygon.setVertices(hitboxVertices);
         hitboxPolygon.setPosition(0, 0);
         hitboxPolygon.setOrigin(x + w / 2f, y + h / 2f);
         hitboxPolygon.setRotation(getRotation());
@@ -1074,6 +1134,9 @@ public class Look extends Image {
 	}
 
 	public void setSizeInUserInterfaceDimensionUnit(float percent) {
+		if (percent < 0f) {
+			percent = 0f;
+		}
 		height = percent / 100f;
 		width = percent / 100f;
 		setScale(percent / 100f, percent / 100f);
@@ -1535,6 +1598,11 @@ public class Look extends Image {
 		return cachedCornerMesh;
 	}
 
+	private final transient Vector2 cornerTmp1 = new Vector2();
+	private final transient Vector2 cornerTmp2 = new Vector2();
+	private final transient Vector2 cornerTmp3 = new Vector2();
+	private final transient Vector2 cornerTmp4 = new Vector2();
+
 	private void drawCornerMesh(Batch batch) {
 		Drawable drawable = getDrawable();
 		if (drawable == null || !(drawable instanceof TextureRegionDrawable)) return;
@@ -1544,10 +1612,14 @@ public class Look extends Image {
 		float w = getWidth();
 		float h = getHeight();
 
-		Vector2 tl = localToStageCoordinates(new Vector2(cornerTLX, cornerTLY));
-		Vector2 tr = localToStageCoordinates(new Vector2(w + cornerTRX, cornerTRY));
-		Vector2 br = localToStageCoordinates(new Vector2(w + cornerBRX, cornerBRY));
-		Vector2 bl = localToStageCoordinates(new Vector2(cornerBLX, cornerBLY));
+		cornerTmp1.set(cornerTLX, cornerTLY);
+		Vector2 tl = localToStageCoordinates(cornerTmp1);
+		cornerTmp2.set(w + cornerTRX, cornerTRY);
+		Vector2 tr = localToStageCoordinates(cornerTmp2);
+		cornerTmp3.set(w + cornerBRX, cornerBRY);
+		Vector2 br = localToStageCoordinates(cornerTmp3);
+		cornerTmp4.set(cornerBLX, cornerBLY);
+		Vector2 bl = localToStageCoordinates(cornerTmp4);
 
 		float u = region.getU();
 		float v = region.getV();

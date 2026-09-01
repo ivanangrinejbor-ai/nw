@@ -240,7 +240,7 @@ public class BrickLayout extends ViewGroup {
 			for (ElementData elementData : lineData.elements) {
 				if (elementData.view != null) {
 					LayoutParams layoutParams = (LayoutParams) elementData.view.getLayoutParams();
-					if (layoutParams.editText && lineData.allowableTextFieldWidth > 0) {
+					if (layoutParams.editText && lineData.allowableTextFieldWidth > 0 && elementData.view instanceof TextView) {
 						((TextView) elementData.view).setMaxWidth(lineData.allowableTextFieldWidth);
 					}
 				}

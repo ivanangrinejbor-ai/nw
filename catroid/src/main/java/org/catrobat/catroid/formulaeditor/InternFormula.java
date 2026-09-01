@@ -949,6 +949,10 @@ public class InternFormula {
 
 		Log.i(TAG, "replaceCursorPositionInternTokenByTokenList:enter");
 
+		if (internTokensToReplaceWith == null || internTokensToReplaceWith.isEmpty() || cursorPositionInternToken == null) {
+			return CursorTokenPropertiesAfterModification.DO_NOT_MODIFY;
+		}
+
 		if (cursorPositionInternToken.isNumber() && internTokensToReplaceWith.size() == 1
 				&& internTokensToReplaceWith.get(0).isOperator()) {
 

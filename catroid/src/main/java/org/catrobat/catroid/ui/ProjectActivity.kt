@@ -1015,7 +1015,7 @@ class ProjectActivity : BaseCastActivity() {
             SettingsFragment.SETTINGS_MINDSTORMS_EV3_SHOW_SENSOR_INFO_BOX_DISABLED,
             false
         )
-        val resourcesSet = projectManager.currentProject.requiredResources
+        val resourcesSet = projectManager.currentProject?.requiredResources ?: return
         if (!nxtDialogDisabled && resourcesSet.contains(Brick.BLUETOOTH_LEGO_NXT)) {
             val dialog: DialogFragment = LegoSensorConfigInfoDialog.newInstance(Constants.NXT)
             dialog.show(supportFragmentManager, LegoSensorConfigInfoDialog.DIALOG_FRAGMENT_TAG)

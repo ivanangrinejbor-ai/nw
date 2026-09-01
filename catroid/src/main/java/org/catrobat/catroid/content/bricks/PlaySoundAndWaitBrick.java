@@ -27,6 +27,7 @@ import android.view.View;
 import android.widget.TextView;
 
 import org.catrobat.catroid.R;
+import org.catrobat.catroid.common.SoundInfo;
 import org.catrobat.catroid.content.Sprite;
 import org.catrobat.catroid.content.actions.ScriptSequenceAction;
 import org.catrobat.catroid.formulaeditor.Formula;
@@ -46,18 +47,31 @@ public class PlaySoundAndWaitBrick extends PlaySoundBrick {
 
 	@Override
 	public void addActionToSequence(Sprite sprite, ScriptSequenceAction sequence) {
-		if (sound == null || sound.getFile() == null || !sprite.getSoundList().contains(sound)) {
+		SoundInfo resolvedSound = sound;
+		if (resolvedSound != null && (resolvedSound.getFile() == null || !sprite.getSoundList().contains(resolvedSound))) {
+			for (SoundInfo s : sprite.getSoundList()) {
+				if (s.equals(resolvedSound) || (s.getName() != null && s.getName().equals(resolvedSound.getName()))
+						|| (s.fileName != null && s.fileName.equals(resolvedSound.fileName))) {
+					resolvedSound = s;
+					break;
+				}
+			}
+		}
+		if (resolvedSound == null || resolvedSound.getFile() == null) {
 			return;
 		}
-		sequence.addAction(sprite.getActionFactory().createPlaySoundAction(sprite, sound));
+		sequence.addAction(sprite.getActionFactory().createPlaySoundAction(sprite, resolvedSound));
 		sequence.addAction(sprite.getActionFactory().createWaitForSoundAction(sprite, sequence,
-				new Formula(getDurationOfSound()), sound.getFile().getAbsolutePath()));
+				new Formula(getDurationOfSound(resolvedSound)), resolvedSound.getFile().getAbsolutePath()));
 	}
 
-	private float getDurationOfSound() {
+	private float getDurationOfSound(SoundInfo soundInfo) {
+		if (soundInfo == null || soundInfo.getFile() == null) {
+			return 0f;
+		}
 		MediaMetadataRetriever metadataRetriever = new MediaMetadataRetriever();
 		try {
-			metadataRetriever.setDataSource(sound.getFile().getAbsolutePath());
+			metadataRetriever.setDataSource(soundInfo.getFile().getAbsolutePath());
 			String durationStr = metadataRetriever
 					.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
 			if (durationStr != null) {

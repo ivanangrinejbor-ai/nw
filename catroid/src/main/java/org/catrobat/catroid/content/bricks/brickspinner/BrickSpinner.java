@@ -68,6 +68,11 @@ public class BrickSpinner<T extends Nameable> implements AdapterView.OnItemSelec
 		spinner.setOnTouchListener((v, event) -> {
 			if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
 				userInteracted = true;
+				if (adapter.getCount() == 1 && adapter.getItem(0) instanceof NewOption
+						&& onItemSelectedListener != null) {
+					onItemSelectedListener.onNewOptionSelected(spinnerid);
+					return true;
+				}
 			}
 			return false;
 		});

@@ -254,6 +254,9 @@ public class Project implements Serializable {
 			return false;
 		}
 		for (T userData : oldUserData) {
+			if (userData == null) {
+				continue;
+			}
 			if (userData.equals(newUserData)) {
 				if (userData.getClass() == UserVariable.class) {
 					UserVariable userVariable = (UserVariable) userData;

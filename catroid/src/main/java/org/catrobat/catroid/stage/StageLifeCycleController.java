@@ -115,7 +115,7 @@ public final class StageLifeCycleController {
 		stageActivity.calculateScreenSizes();
 
 		stageActivity.configuration = new AndroidApplicationConfiguration();
-        stageActivity.configuration.r = stageActivity.configuration.g = stageActivity.configuration.b = stageActivity.configuration.a = 8;
+		stageActivity.configuration.r = stageActivity.configuration.g = stageActivity.configuration.b = stageActivity.configuration.a = 8;
 		if (ProjectManager.getInstance().getCurrentProject().isCastProject()) {
 			stageActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 			stageActivity.setContentView(R.layout.activity_stage_gamepad);
@@ -132,6 +132,8 @@ public final class StageLifeCycleController {
 		}
 		stageActivity.stageAudioFocus = new StageAudioFocus(stageActivity);
 		stageActivity.stageResourceHolder = new StageResourceHolder(stageActivity);
+		SoundManager.getInstance().clear();
+		SoundManager.getInstance().resume();
 		MidiSoundManager.getInstance().reset();
 
 		List<String> requiredPermissions = getProjectsRuntimePermissionList();
@@ -154,8 +156,8 @@ public final class StageLifeCycleController {
 				} catch (IllegalStateException illegalStateException) {
 					Log.e(TAG, "Disabling NFC foreground dispatching went wrong!", illegalStateException);
 				} catch (Exception e) {
-                    Log.e(TAG, "Error in stagePause", e);
-                }
+					Log.e(TAG, "Error in stagePause", e);
+				}
 			}
 
 			List<Sprite> sprites = ((StageListener) stageActivity.getApplicationListener()).getSpritesFromStage();

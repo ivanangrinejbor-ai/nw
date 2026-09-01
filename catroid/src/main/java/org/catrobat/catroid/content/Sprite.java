@@ -37,6 +37,7 @@ import org.catrobat.catroid.ProjectManager;
 import org.catrobat.catroid.R;
 import org.catrobat.catroid.common.Constants;
 import org.catrobat.catroid.common.LookData;
+import org.catrobat.catroid.common.LookColorProfile;
 import org.catrobat.catroid.common.Nameable;
 import org.catrobat.catroid.common.NfcTagData;
 import org.catrobat.catroid.common.SoundInfo;
@@ -123,6 +124,7 @@ public class Sprite implements Nameable, Serializable {
 	private transient Color embroideryThreadColor = Color.BLACK;
 
 	private transient java.util.HashMap<String, UserVariable> variableCache = new java.util.HashMap<>();
+	private transient LookColorProfile lookColorProfile;
 
 	@XStreamAsAttribute
 	private String spriteId;
@@ -387,6 +389,14 @@ public class Sprite implements Nameable, Serializable {
 		return userVariables;
 	}
 
+	public LookColorProfile getLookColorProfile() {
+		return lookColorProfile;
+	}
+
+	public void setLookColorProfile(LookColorProfile lookColorProfile) {
+		this.lookColorProfile = lookColorProfile;
+	}
+
 	private Object readResolve() {
 		if (variableCache == null) {
 			variableCache = new java.util.HashMap<>();
@@ -553,7 +563,7 @@ public class Sprite implements Nameable, Serializable {
 	}
 
 	void evaluateTouchingSpriteTriggers() {
-		if (touchingSpriteTriggers == null) {
+		if (touchingSpriteTriggers == null || touchingSpriteTriggers.isEmpty()) {
 			return;
 		}
 		for (TouchingSpriteTrigger touchingSpriteTrigger : touchingSpriteTriggers) {
@@ -575,7 +585,7 @@ public class Sprite implements Nameable, Serializable {
 	}
 
 	void evaluateIntervalScriptTriggers() {
-		if (intervalScriptTriggers == null) {
+		if (intervalScriptTriggers == null || intervalScriptTriggers.isEmpty()) {
 			return;
 		}
 		for (IntervalScriptTrigger intervalScriptTrigger : intervalScriptTriggers) {
@@ -614,6 +624,9 @@ public class Sprite implements Nameable, Serializable {
 	}
 
 	void evaluateConditionScriptTriggers() {
+		if (conditionScriptTriggers == null || conditionScriptTriggers.isEmpty()) {
+			return;
+		}
 		for (ConditionScriptTrigger conditionScriptTrigger : conditionScriptTriggers) {
 			conditionScriptTrigger.evaluateAndTriggerActions(this);
 		}
@@ -644,6 +657,9 @@ public class Sprite implements Nameable, Serializable {
 	}
 
 	void evaluateFirebaseChangedTriggers() {
+		if (firebaseChangedTriggers == null || firebaseChangedTriggers.isEmpty()) {
+			return;
+		}
 		for (FirebaseChangedTrigger trigger : firebaseChangedTriggers) {
 			trigger.evaluateAndTriggerActions();
 		}
@@ -675,6 +691,9 @@ public class Sprite implements Nameable, Serializable {
 	}
 
 	void evaluateFirebaseChildChangedTriggers() {
+		if (firebaseChildChangedTriggers == null || firebaseChildChangedTriggers.isEmpty()) {
+			return;
+		}
 		for (FirebaseChildChangedTrigger trigger : firebaseChildChangedTriggers) {
 			trigger.evaluateAndTriggerActions();
 		}
@@ -705,6 +724,9 @@ public class Sprite implements Nameable, Serializable {
 	}
 
 	void evaluateFirestoreChangedTriggers() {
+		if (firestoreChangedTriggers == null || firestoreChangedTriggers.isEmpty()) {
+			return;
+		}
 		for (FirestoreChangedTrigger trigger : firestoreChangedTriggers) {
 			trigger.evaluateAndTriggerActions();
 		}
@@ -861,6 +883,48 @@ public class Sprite implements Nameable, Serializable {
 
 	public List<NfcTagData> getNfcTagList() {
 		return nfcTagList;
+	}
+
+	public boolean containsBeforeUpdateScript() {
+		for (Script script : scriptList) {
+			if (script instanceof BeforeUpdateScript && !script.isCommentedOut()) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public boolean containsAfterUpdateScript() {
+		for (Script script : scriptList) {
+			if (script instanceof AfterUpdateScript && !script.isCommentedOut()) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public boolean hasTouchingSpriteTriggers() {
+		return touchingSpriteTriggers != null && !touchingSpriteTriggers.isEmpty();
+	}
+
+	public boolean hasIntervalScriptTriggers() {
+		return intervalScriptTriggers != null && !intervalScriptTriggers.isEmpty();
+	}
+
+	public boolean hasConditionScriptTriggers() {
+		return conditionScriptTriggers != null && !conditionScriptTriggers.isEmpty();
+	}
+
+	public boolean hasFirebaseChangedTriggers() {
+		return firebaseChangedTriggers != null && !firebaseChangedTriggers.isEmpty();
+	}
+
+	public boolean hasFirebaseChildChangedTriggers() {
+		return firebaseChildChangedTriggers != null && !firebaseChildChangedTriggers.isEmpty();
+	}
+
+	public boolean hasFirestoreChangedTriggers() {
+		return firestoreChangedTriggers != null && !firestoreChangedTriggers.isEmpty();
 	}
 
 	@NonNull
