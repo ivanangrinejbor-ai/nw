@@ -22,87 +22,97 @@
  */
 package org.catrobat.catroid.content.actions
 
+import com.badlogic.gdx.graphics.Color
+import com.badlogic.gdx.graphics.Pixmap
+import com.badlogic.gdx.graphics.Texture
+import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction
 import org.catrobat.catroid.content.Scope
 import org.catrobat.catroid.formulaeditor.Formula
-import org.catrobat.catroid.stage.StageActivity
-import java.util.Locale
+import kotlin.math.floor
+import kotlin.math.sin
 
 class CrtScreenShaderAction : TemporalAction() {
     var scope: Scope? = null
     var intensityFormula: Formula? = null
 
+    private var originalRef: Pixmap? = null
+    private var originalCopy: Pixmap? = null
+    private var lastDst: Pixmap? = null
+
     override fun update(percent: Float) {
-        val stageListener = StageActivity.getActiveStageListener() ?: return
-        val threeDManager = stageListener.threeDManager ?: return
+        val s = scope ?: return
+        val lookData = s.sprite.look.lookData ?: return
+        val src = lookData.pixmap ?: return
+        val w = src.width
+        val h = src.height
+        if (w <= 0 || h <= 0) return
 
-        val intensity = ((intensityFormula?.interpretFloat(scope) ?: 80f) / 100f).coerceIn(0f, 1f)
+        if (originalRef !== src || originalCopy == null) {
+            originalRef = src
+            originalCopy?.dispose()
+            originalCopy = Pixmap(w, h, Pixmap.Format.RGBA8888).also { it.drawPixmap(src, 0, 0) }
+            lastDst?.dispose()
+            lastDst = null
+        }
 
-        val fragment = CRT_FRAGMENT.replace("__INTENSITY__", String.format(Locale.US, "%.4f", intensity))
-        threeDManager.setCustomScreenShader(SCREEN_VERTEX, fragment)
+        val f = ((intensityFormula?.interpretFloat(s) ?: 80f) / 100f).coerceIn(0f, 1f)
+        val original = originalCopy ?: return
+        val dst = Pixmap(w, h, Pixmap.Format.RGBA8888)
+        val temp = Color()
+
+        val dw = (w - 1).coerceAtLeast(1).toFloat()
+        val dh = (h - 1).coerceAtLeast(1).toFloat()
+
+        for (y in 0 until h) {
+            val ny = (y / dh - 0.5f) * 2f
+            val scan = if (y % 3 == 2) 0.72f else 1f
+            for (x in 0 until w) {
+                val nx = (x / dw - 0.5f) * 2f
+                Color.rgba8888ToColor(temp, original.getPixel(x, y))
+                val r = temp.r
+                val g = temp.g
+                val b = temp.b
+
+                var mr = 0.95f
+                var mg = 0.95f
+                var mb = 0.95f
+                when (x % 3) {
+                    0 -> mr = 1.06f
+                    1 -> mg = 1.06f
+                    2 -> mb = 1.06f
+                }
+
+                val d2 = (nx * nx + ny * ny) * 0.5f
+                val vig = 1f - 0.45f * d2
+
+                val grain = (hash(x, y) - 0.5f) * 0.08f
+
+                val cr = ((r * scan * mr * vig + grain) * f + r * (1f - f)).coerceIn(0f, 1f)
+                val cg = ((g * scan * mg * vig + grain) * f + g * (1f - f)).coerceIn(0f, 1f)
+                val cb = ((b * scan * mb * vig + grain) * f + b * (1f - f)).coerceIn(0f, 1f)
+
+                temp.r = cr
+                temp.g = cg
+                temp.b = cb
+                dst.drawPixel(x, y, Color.rgba8888(temp))
+            }
+        }
+
+        lastDst?.dispose()
+        lastDst = dst
+
+        val oldTex = lookData.textureRegion
+        lookData.setPixmap(dst)
+        lookData.setTextureRegion(TextureRegion(Texture(dst)))
+        s.sprite.look.refreshTextures(true)
+        if (oldTex != null) oldTex.texture.dispose()
     }
 
     companion object {
-        const val SCREEN_VERTEX = """attribute vec4 a_position;
-attribute vec2 a_texCoord0;
-varying vec2 v_texCoords;
-
-void main() {
-    v_texCoords = a_texCoord0;
-    gl_Position = a_position;
-}"""
-
-        const val CRT_FRAGMENT = """#ifdef GL_ES
-precision highp float;
-#endif
-
-varying vec2 v_texCoords;
-uniform sampler2D u_texture0;
-uniform float u_time;
-
-const float DISTORTION = 0.22;
-const float ZOOM = 1.12;
-const float CHROMATIC = 0.007;
-const float INTENSITY = __INTENSITY__;
-
-float hash(vec2 p) {
-    return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
-}
-
-void main() {
-    vec2 raw = texture2D(u_texture0, v_texCoords).rgb;
-
-    vec2 uv = v_texCoords;
-    vec2 cc = uv - vec2(0.5);
-    float dist = dot(cc, cc);
-
-    vec2 distortedUV = vec2(0.5) + cc * (1.0 + DISTORTION * dist) / ZOOM;
-
-    vec3 crt;
-    if (distortedUV.x < 0.0 || distortedUV.x > 1.0 || distortedUV.y < 0.0 || distortedUV.y > 1.0) {
-        crt = vec3(0.0);
-    } else {
-        vec2 splitOffset = cc * CHROMATIC * dist * 3.0;
-        float r = texture2D(u_texture0, distortedUV - splitOffset).r;
-        float g = texture2D(u_texture0, distortedUV).g;
-        float b = texture2D(u_texture0, distortedUV + splitOffset).b;
-        crt = vec3(r, g, b);
-
-        crt.r *= 1.02;
-        crt.g *= 1.04;
-        crt.b *= 0.93;
-
-        float scanline = sin(distortedUV.y * 650.0 + u_time * 2.5) * 0.05;
-        crt -= vec3(scanline);
-
-        float grain = (hash(v_texCoords * vec2(u_time, u_time * 1.7)) - 0.5) * 0.08;
-        crt += vec3(grain);
-
-        float vignette = smoothstep(0.35, 0.75, dist);
-        crt *= (1.0 - vignette * 0.55);
-    }
-
-    gl_FragColor = vec4(mix(raw, crt, INTENSITY), 1.0);
-}"""
+        private fun hash(x: Int, y: Int): Float {
+            val h = sin((x * 12.9898 + y * 78.233).toDouble()) * 43758.5453
+            return (h - floor(h)).toFloat()
+        }
     }
 }

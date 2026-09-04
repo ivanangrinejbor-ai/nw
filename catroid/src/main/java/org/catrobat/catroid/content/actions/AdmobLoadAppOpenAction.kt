@@ -10,7 +10,7 @@ class AdmobLoadAppOpenAction : TemporalAction() {
 
     override fun update(percent: Float) {
         if (scope == null) return
-        val activity = StageActivity.activeStageActivity.get() ?: return
+        val activity = StageActivity.activeStageActivity?.get() ?: return
         AdMobManager.loadAppOpen(activity)
     }
 }

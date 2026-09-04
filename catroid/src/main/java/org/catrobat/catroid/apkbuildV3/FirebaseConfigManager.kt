@@ -27,6 +27,25 @@ object FirebaseConfigManager {
 
     data class FirebaseError(val message: String)
     data class FirebaseResult(val config: FirebaseConfig?, val error: FirebaseError?)
+    data class ClientMatch(val client: JSONObject?, val foundPackages: List<String>)
+
+    fun matchClient(clients: JSONArray, targetPackageName: String): ClientMatch {
+        var matchedClient: JSONObject? = null
+        val foundPackages = mutableListOf<String>()
+        for (i in 0 until clients.length()) {
+            val client = clients.optJSONObject(i) ?: continue
+            val clientInfo = client.optJSONObject("client_info") ?: continue
+            val androidInfo = clientInfo.optJSONObject("android_client_info") ?: continue
+            val pkg = androidInfo.optString("package_name", "")
+            if (pkg.isNotBlank() && pkg !in foundPackages) {
+                foundPackages.add(pkg)
+            }
+            if (matchedClient == null && pkg == targetPackageName) {
+                matchedClient = client
+            }
+        }
+        return ClientMatch(matchedClient, foundPackages)
+    }
 
     fun processGoogleServicesJson(
         context: Context,
@@ -65,34 +84,19 @@ object FirebaseConfigManager {
                 return FirebaseResult(null, FirebaseError(getErrorMessage(context, "v3_firebase_error_no_client")))
             }
 
-            var matchedClient: JSONObject? = null
-            for (i in 0 until clients.length()) {
-                val client = clients.getJSONObject(i)
-                val clientInfo = client.optJSONObject("client_info") ?: continue
-                val androidInfo = clientInfo.optJSONObject("android_client_info") ?: continue
-                val pkg = androidInfo.optString("package_name", "")
-                if (pkg == targetPackageName) {
-                    matchedClient = client
-                    break
-                }
-            }
+            val match = matchClient(clients, targetPackageName)
+            val matchedClient = match.client
 
             if (matchedClient == null) {
-                var foundPackage = ""
-                for (i in 0 until clients.length()) {
-                    val client = clients.getJSONObject(i)
-                    val clientInfo = client.optJSONObject("client_info")
-                    val androidInfo = clientInfo?.optJSONObject("android_client_info")
-                    if (androidInfo != null) {
-                        foundPackage = androidInfo.optString("package_name", "")
-                        if (foundPackage.isNotBlank()) break
+                val msg = if (match.foundPackages.isNotEmpty()) {
+                    val foundText = match.foundPackages.joinToString(", ")
+                    val resId = context.resources.getIdentifier(
+                        "v3_firebase_error_package_mismatch", "string", context.packageName)
+                    if (resId != 0) {
+                        context.getString(resId, targetPackageName, foundText)
+                    } else {
+                        "v3_firebase_error_package_mismatch"
                     }
-                }
-                val msg = if (foundPackage.isNotBlank()) {
-                    context.getString(
-                        context.resources.getIdentifier("v3_firebase_error_package_mismatch", "string", context.packageName),
-                        targetPackageName
-                    )
                 } else {
                     getErrorMessage(context, "v3_firebase_error_no_package_name")
                 }

@@ -1,0 +1,61 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    function isMember(sid) {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/collabSessions/$(sid)/members/$(request.auth.uid));
+    }
+    function isOwner(sid) {
+      return isSignedIn()
+        && get(/databases/$(database)/documents/collabSessions/$(sid)/meta/meta).data.ownerUid == request.auth.uid;
+    }
+    function memberRole(sid, uid) {
+      return get(/databases/$(database)/documents/collabSessions/$(sid)/members/$(uid)).data.role;
+    }
+
+    match /collabSessions/{sid}/meta/meta {
+      allow read: if isMember(sid);
+      allow create: if isSignedIn()
+        && request.resource.data.ownerUid == request.auth.uid;
+      allow update: if isOwner(sid);
+      allow delete: if false;
+    }
+
+    match /collabSessions/{sid}/members/{uid} {
+      allow get: if isSignedIn() && uid == request.auth.uid;
+      allow list: if isMember(sid);
+      allow create, update: if isOwner(sid)
+        && request.resource.data.role in ['host', 'editor', 'viewer'];
+      allow delete: if isOwner(sid) && uid != request.auth.uid;
+    }
+
+    match /collabSessions/{sid}/invites/{code} {
+      allow get: if isSignedIn();
+      allow list: if isMember(sid);
+      allow create: if isOwner(sid);
+      allow update: if isSignedIn()
+        && resource.data.usedBy == ''
+        && request.resource.data.usedBy == request.auth.uid
+        && request.resource.data.expiresAt == resource.data.expiresAt
+        && request.resource.data.role == resource.data.role
+        && resource.data.expiresAt > request.time.toMillis();
+      allow delete: if isOwner(sid);
+    }
+
+    match /collabSessions/{sid}/requests/{uid} {
+      allow read: if isOwner(sid);
+      allow create: if isSignedIn() && uid == request.auth.uid;
+      allow update: if false;
+      allow delete: if isOwner(sid);
+    }
+
+    match /collabSessions/{sid}/presence/{uid} {
+      allow read: if isMember(sid);
+      allow write: if isMember(sid) && uid == request.auth.uid;
+      allow delete: if (isMember(sid) && uid == request.auth.uid) || isOwner(sid);
+    }
+  }
+}

@@ -7,6 +7,7 @@ import org.catrobat.catroid.ProjectManager
 import org.catrobat.catroid.common.Constants
 import org.catrobat.catroid.content.Project
 import org.catrobat.catroid.io.XstreamSerializer
+import org.catrobat.catroid.io.ZipArchiver
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -168,7 +169,8 @@ object ApkBuilderV3Engine {
         }
         Log.d(TAG, "stageProjectPayload: staged ${project.sceneList.size} scenes")
 
-        MemoryAwarePipeline.zipDirectoryStreaming(stagingDir, payloadZip, onFile = onFile)
+        ZipArchiver().zipDedup(payloadZip, stagingDir.listFiles() ?: emptyArray())
+        onFile(payloadZip.name)
 
         Log.d(TAG, "Project staged: ${payloadZip.length() / (1024 * 1024)} MB")
     }

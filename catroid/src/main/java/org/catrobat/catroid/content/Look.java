@@ -504,6 +504,14 @@ public class Look extends Image {
             return;
         }
 
+		if (!isParticleEffectPaused) {
+			if (hasParticleEffect) {
+				fadeInParticles();
+			} else if (particleEffect != null) {
+				fadeOutParticles();
+			}
+		}
+
 		if (isOutsideGameCamera()) {
 			return;
 		}

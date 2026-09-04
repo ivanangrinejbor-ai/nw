@@ -211,6 +211,7 @@ object FormulaElementOperations {
             Sensors.OBJECT_NUMBER_OF_LOOKS -> getNumberOfLooks(lookData, lookDataList).toDouble()
             Sensors.OBJECT_LOOK_NAME,
             Sensors.OBJECT_BACKGROUND_NAME -> getLookName(lookData)
+            Sensors.OBJECT_NAME -> sprite.name
             Sensors.OBJECT_LOOK_WIDTH -> getLookWidth(lookData)
             Sensors.OBJECT_LOOK_HEIGHT -> getLookHeight(lookData)
             Sensors.WIDTH -> ScreenValues.currentScreenResolution?.width?.toDouble() ?: 0.0

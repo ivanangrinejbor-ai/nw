@@ -120,6 +120,17 @@ class SpriteListFragment : RecyclerViewFragment<Sprite?>() {
         PreferenceManager.getDefaultSharedPreferences(requireContext()).edit()
             .putBoolean(SharedPreferenceKeys.INDEXING_VARIABLE_PREFERENCE_KEY, false).apply()
         (requireActivity() as AppCompatActivity).supportActionBar?.title = title
+        org.catrobat.catroid.collab.PresenceRenderer.addObserver(OBSERVER_KEY) {
+            recyclerView?.post {
+                if (isAdded) adapter.notifyDataSetChanged()
+            }
+        }
+        org.catrobat.catroid.collab.PresenceReporter.reportList()
+    }
+
+    override fun onPause() {
+        org.catrobat.catroid.collab.PresenceRenderer.removeObserver(OBSERVER_KEY)
+        super.onPause()
     }
 
     override fun onAdapterReady() {
@@ -376,6 +387,7 @@ class SpriteListFragment : RecyclerViewFragment<Sprite?>() {
                     return
                 }
                 NONE -> {
+                    org.catrobat.catroid.collab.PresenceReporter.reportSprite(item?.spriteId.orEmpty())
                     projectManager.currentSprite = item
 
                     val workspace = activity?.findViewById<View>(R.id.workspace_layout) as? org.catrobat.catroid.ui.workspace.WorkspaceLayout
@@ -460,5 +472,6 @@ class SpriteListFragment : RecyclerViewFragment<Sprite?>() {
     companion object {
         val TAG: String = SpriteListFragment::class.java.simpleName
         const val IMPORT_OBJECT_REQUEST_CODE = 0
+        private const val OBSERVER_KEY = "sprite_list"
     }
 }

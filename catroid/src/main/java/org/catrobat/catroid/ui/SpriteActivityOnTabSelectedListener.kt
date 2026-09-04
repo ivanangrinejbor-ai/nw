@@ -93,6 +93,8 @@ fun SpriteActivity.loadFragment(fragmentPosition: Int) {
         setTabSelection(currentFragment)
         return
     }
+    org.catrobat.catroid.collab.PresenceReporter.reportTab(
+        fragmentPosition, FRAGMENT_SCRIPTS, FRAGMENT_LOOKS, FRAGMENT_SOUNDS)
 
     when (fragmentPosition) {
         FRAGMENT_SCRIPTS -> showScripts(fragmentTransaction)

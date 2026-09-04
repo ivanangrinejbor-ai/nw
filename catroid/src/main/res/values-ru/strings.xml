@@ -829,6 +829,10 @@
     <string name="encrypted_file_detected">Обнаружен зашифрованный проект. Введите пароль:</string>
     <string name="exporting_project">Экспорт проекта…</string>
     <string name="encrypting_project">Шифрование…</string>
+    <string name="export_progress_zipping">Архивация проекта…</string>
+    <string name="export_progress_copying">Запись файла… %1$d%%</string>
+    <string name="export_progress_verifying">Проверка целостности (SHA-256)…</string>
+    <string name="export_verify_failed">Экспорт не прошёл проверку целостности, битый файл удалён: %1$s</string>
     <string formatted="false" name="transition">Переходы</string>
     <string name="preference_title_pcmode" formatted="false">Включить интерфейс для больших экранов (так же для планшетов)</string>
     <string name="fast2d_set_collision_filter" formatted="false">Фильтр коллизий</string>
@@ -2537,6 +2541,43 @@
     <string name="formula_md5_param" formatted="false">(\'текст\')</string>
     <string name="formula_notification_reply" formatted="false">ввод_из_уведомления</string>
     <string name="formula_notification_reply_param" formatted="false">(\'action_id\')</string>
+    <string name="formula_sha256" formatted="false">sha256</string>
+    <string name="formula_sha256_param" formatted="false">(\'текст\')</string>
+    <string name="formula_char_to_unicode" formatted="false">символ_в_юникод</string>
+    <string name="formula_char_to_unicode_param" formatted="false">(\'A\')</string>
+    <string name="formula_unicode_to_char" formatted="false">юникод_в_символ</string>
+    <string name="formula_unicode_to_char_param" formatted="false">(65)</string>
+    <string name="formula_unescape_utf" formatted="false">разэкранировать_utf</string>
+    <string name="formula_unescape_utf_param" formatted="false">(\'\\u0430\')</string>
+    <string name="formula_file_last_modified" formatted="false">файл_изменён</string>
+    <string name="formula_file_last_modified_param" formatted="false">(\'file.txt\')</string>
+    <string name="formula_file_md5" formatted="false">файл_md5</string>
+    <string name="formula_file_md5_param" formatted="false">(\'имя_файла\')</string>
+    <string name="formula_file_sha256" formatted="false">файл_sha256</string>
+    <string name="formula_file_sha256_param" formatted="false">(\'имя_файла\')</string>
+    <string name="formula_media_duration" formatted="false">длительность_медиа</string>
+    <string name="formula_media_duration_param" formatted="false">(\'audio.mp3\')</string>
+    <string name="formula_image_width" formatted="false">ширина_картинки</string>
+    <string name="formula_image_width_param" formatted="false">(\'image.png\')</string>
+    <string name="formula_image_height" formatted="false">высота_картинки</string>
+    <string name="formula_image_height_param" formatted="false">(\'image.png\')</string>
+    <string name="formula_http_response_text" formatted="false">http_ответ_текст</string>
+    <string name="formula_http_response_text_param" formatted="false">(\'id\')</string>
+    <string name="formula_http_response_code" formatted="false">http_ответ_код</string>
+    <string name="formula_http_response_code_param" formatted="false">(\'id\')</string>
+    <string name="formula_http_response_header" formatted="false">http_ответ_заголовок</string>
+    <string name="formula_http_response_header_param" formatted="false">(\'id\', \'header_name\')</string>
+    <string name="formula_mqtt_message" formatted="false">mqtt_сообщение</string>
+    <string name="formula_mqtt_message_param" formatted="false">(\'room_name\')</string>
+    <string name="formula_camera_x" formatted="false">камера_x</string>
+    <string name="formula_camera_y" formatted="false">камера_y</string>
+    <string name="formula_camera_rotation" formatted="false">поворот_камеры</string>
+    <string name="formula_camera_zoom" formatted="false">зум_камеры</string>
+    <string name="formula_clipboard_text" formatted="false">текст_буфера</string>
+    <string name="formula_pt_sample" formatted="false">pt_сэмпл</string>
+    <string name="formula_pt_sample_param" formatted="false">(\'тензор\')</string>
+    <string name="formula_keyboard_height" formatted="false">высота_клавиатуры</string>
+    <string name="formula_get_object_name" formatted="false">имя_объекта</string>
     <string name="formula_seed" formatted="false">зерно</string>
     <string name="formula_clipboard_paste" formatted="false">буфер_обмена</string>
     <string formatted="false" name="formula_file_read_string_param">(\'строка\', \'имяФайла\')</string>
@@ -5226,6 +5267,7 @@
     <string name="brick_event_admob_rewarded_reward">Когда награда получена</string>
     <string name="brick_event_admob_rewarded_closed">Когда награда закрыта</string>
     <string name="brick_event_admob_app_open_loaded">Когда App Open загружен</string>
+    <string name="brick_event_admob_app_open_failed">Когда App Open не загружен</string>
     <string name="brick_event_admob_app_open_shown">Когда App Open показан</string>
     <string name="brick_event_admob_app_open_closed">Когда App Open закрыт</string>
     <string name="formula_admob_is_initialized">AdMob инициализирован</string>
@@ -5458,6 +5500,14 @@
     <string name="v3_icon">Иконка приложения</string>
     <string name="v3_icon_project">Иконка проекта</string>
     <string name="v3_icon_default">Иконка по умолчанию</string>
+    <string name="v3_step_format">Шаг %1$d из %2$d: %3$s</string>
+    <string name="v3_step_template">Шаблон</string>
+    <string name="v3_step_app">Приложение</string>
+    <string name="v3_step_permissions">Разрешения</string>
+    <string name="v3_step_firebase">Firebase</string>
+    <string name="v3_next">Далее</string>
+    <string name="v3_back">Назад</string>
+    <string name="v3_build">Собрать</string>
 
     <!-- Firebase конфигурация для APK Builder V3 -->
     <string name="v3_firebase_section">Firebase</string>
@@ -5470,10 +5520,22 @@
     <string name="v3_firebase_error_no_client">В google-services.json нет раздела client</string>
     <string name="v3_firebase_error_no_android_client">В google-services.json нет Android-клиента</string>
     <string name="v3_firebase_error_no_package_name">Не удалось определить package name из google-services.json</string>
-    <string name="v3_firebase_error_package_mismatch">В google-services.json не найдено приложение с пакетом: %s. Добавьте этот пакет как Android-приложение в проект Firebase и скачайте новый google-services.json.</string>
+    <string name="v3_firebase_error_package_mismatch">В google-services.json не найдено приложение с пакетом: %1$s (найдено: %2$s). Впишите найденный пакет в поле пакета или добавьте свой пакет как Android-приложение в проект Firebase и скачайте новый google-services.json.</string>
     <string name="v3_firebase_error_read_failed">Не удалось прочитать google-services.json</string>
     <string name="v3_firebase_error_copy_failed">Не удалось скопировать google-services.json</string>
     <string name="v3_firebase_error_processing">Ошибка обработки конфигурации Firebase</string>
+    <string name="v3_template_status_cached">Шаблон в кэше (%1$s)</string>
+    <string name="v3_template_status_none">Шаблон ещё не скачан</string>
+    <string name="v3_template_download">Скачать шаблон</string>
+    <string name="v3_template_refresh">Проверить обновления</string>
+    <string name="v3_template_downloading">Скачивание шаблона… %1$d%%</string>
+    <string name="v3_template_ready">Шаблон готов (%1$s)</string>
+    <string name="v3_template_uptodate">Шаблон уже актуален (%1$s)</string>
+    <string name="v3_template_failed">Не удалось скачать шаблон</string>
+    <string name="v3_template_error_space">Недостаточно свободного места для скачивания шаблона</string>
+    <string name="v3_template_error_network">Ошибка сети при скачивании шаблона: %1$s</string>
+    <string name="v3_template_error_file">Скачанный файл шаблона повреждён</string>
+    <string name="v3_template_required">Сначала скачайте runtime-шаблон</string>
 
     <string formatted="false" name="brick_import_script">Импортировать скрипты</string>
     <string formatted="false" name="brick_import_script_object">в объект</string>
@@ -6670,4 +6732,31 @@ Catrobat — это визуальный язык программировани
     <string formatted="false" name="brick_sprite_dissolve_shader">Растворение спрайта</string>
     <string formatted="false" name="brick_sprite_wave_shader">Волны спрайта</string>
     <string name="wave_phase_degrees">Фаза (град)</string>
+    <string name="collab_title">Совместное редактирование</string>
+    <string name="collab_create">Создать комнату</string>
+    <string name="collab_join">Войти</string>
+    <string name="collab_leave">Выйти</string>
+    <string name="collab_close">Закрыть</string>
+    <string name="collab_close_room">Закрыть вход</string>
+    <string name="collab_open_room">Открыть вход</string>
+    <string name="collab_new_code">Новый код</string>
+    <string name="collab_name_hint">Ваше имя</string>
+    <string name="collab_session_hint">КОД, например ABC123-456789</string>
+    <string name="collab_offline">Вне комнаты</string>
+    <string name="collab_connecting">Подключение…</string>
+    <string name="collab_joined">Вы в комнате</string>
+    <string name="collab_no_connection">Нет связи</string>
+    <string name="collab_bad_code">Неверный код</string>
+    <string name="collab_session">Комната</string>
+    <string name="collab_code">Код</string>
+    <string name="collab_role">Роль</string>
+    <string name="collab_role_host">Ведущий</string>
+    <string name="collab_role_editor">Редактор</string>
+    <string name="collab_role_viewer">Наблюдатель</string>
+    <string name="collab_members">Участники</string>
+    <string name="collab_requests">Заявки на вход</string>
+    <string name="collab_approve_editor">Редактор</string>
+    <string name="collab_approve_viewer">Наблюдатель</string>
+    <string name="collab_you">вы</string>
+    <string name="collab_project_mismatch">Внимание: проект комнаты отличается от открытого</string>
 </resources>

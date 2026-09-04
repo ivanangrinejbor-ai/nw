@@ -805,6 +805,10 @@
     <string name="encrypted_file_detected">Encrypted project detected. Enter password to open:</string>
     <string name="exporting_project">Exporting project…</string>
     <string name="encrypting_project">Encrypting…</string>
+    <string name="export_progress_zipping">Archiving project…</string>
+    <string name="export_progress_copying">Writing file… %1$d%%</string>
+    <string name="export_progress_verifying">Verifying integrity (SHA-256)…</string>
+    <string name="export_verify_failed">Export failed integrity check, partial file deleted: %1$s</string>
     <string formatted="false" name="transition">Transitions</string>
     <string name="preference_title_pcmode" formatted="false">Enable big-screen interface</string>
     <string name="fast2d_set_collision_filter" formatted="false">Collision filter</string>
@@ -4058,7 +4062,8 @@
 <string name="brick_event_admob_rewarded_shown">When rewarded shown</string>
 <string name="brick_event_admob_rewarded_reward">When reward earned</string>
 <string name="brick_event_admob_rewarded_closed">When rewarded closed</string>
-<string name="brick_event_admob_app_open_loaded">When App Open loaded</string>
+    <string name="brick_event_admob_app_open_loaded">When App Open loaded</string>
+    <string name="brick_event_admob_app_open_failed">When App Open failed</string>
 <string name="brick_event_admob_app_open_shown">When App Open shown</string>
 <string name="brick_event_admob_app_open_closed">When App Open closed</string>
 <string name="formula_admob_is_initialized">AdMob initialized</string>
@@ -4663,6 +4668,43 @@ needs read and write access to it. You can always change permissions through you
     <string name="formula_md5_param" formatted="false">(\'text\')</string>
     <string name="formula_notification_reply" formatted="false">notification_reply</string>
     <string name="formula_notification_reply_param" formatted="false">(\'action_id\')</string>
+    <string name="formula_sha256" formatted="false">sha256</string>
+    <string name="formula_sha256_param" formatted="false">(\'text\')</string>
+    <string name="formula_char_to_unicode" formatted="false">char_to_unicode</string>
+    <string name="formula_char_to_unicode_param" formatted="false">(\'A\')</string>
+    <string name="formula_unicode_to_char" formatted="false">unicode_to_char</string>
+    <string name="formula_unicode_to_char_param" formatted="false">(65)</string>
+    <string name="formula_unescape_utf" formatted="false">unescape_utf</string>
+    <string name="formula_unescape_utf_param" formatted="false">(\'\\u0430\')</string>
+    <string name="formula_file_last_modified" formatted="false">file_last_modified</string>
+    <string name="formula_file_last_modified_param" formatted="false">(\'file.txt\')</string>
+    <string name="formula_file_md5" formatted="false">file_md5</string>
+    <string name="formula_file_md5_param" formatted="false">(\'filename\')</string>
+    <string name="formula_file_sha256" formatted="false">file_sha256</string>
+    <string name="formula_file_sha256_param" formatted="false">(\'filename\')</string>
+    <string name="formula_media_duration" formatted="false">media_duration</string>
+    <string name="formula_media_duration_param" formatted="false">(\'audio.mp3\')</string>
+    <string name="formula_image_width" formatted="false">image_width</string>
+    <string name="formula_image_width_param" formatted="false">(\'image.png\')</string>
+    <string name="formula_image_height" formatted="false">image_height</string>
+    <string name="formula_image_height_param" formatted="false">(\'image.png\')</string>
+    <string name="formula_http_response_text" formatted="false">http_response_text</string>
+    <string name="formula_http_response_text_param" formatted="false">(\'id\')</string>
+    <string name="formula_http_response_code" formatted="false">http_response_code</string>
+    <string name="formula_http_response_code_param" formatted="false">(\'id\')</string>
+    <string name="formula_http_response_header" formatted="false">http_response_header</string>
+    <string name="formula_http_response_header_param" formatted="false">(\'id\', \'header_name\')</string>
+    <string name="formula_mqtt_message" formatted="false">mqtt_message</string>
+    <string name="formula_mqtt_message_param" formatted="false">(\'room_name\')</string>
+    <string name="formula_camera_x" formatted="false">camera_x</string>
+    <string name="formula_camera_y" formatted="false">camera_y</string>
+    <string name="formula_camera_rotation" formatted="false">camera_rotation</string>
+    <string name="formula_camera_zoom" formatted="false">camera_zoom</string>
+    <string name="formula_clipboard_text" formatted="false">clipboard_text</string>
+    <string name="formula_pt_sample" formatted="false">pt_sample</string>
+    <string name="formula_pt_sample_param" formatted="false">(\'tensor\')</string>
+    <string name="formula_keyboard_height" formatted="false">keyboard_height</string>
+    <string name="formula_get_object_name" formatted="false">get_object_name</string>
     <string name="formula_seed" formatted="false">seed</string>
     <string name="formula_clipboard_paste" formatted="false">clipboard_paste</string>
 <string formatted="false" name="enter_url">Введите URL</string>
@@ -4869,6 +4911,14 @@ needs read and write access to it. You can always change permissions through you
     <string name="v3_icon">App icon</string>
     <string name="v3_icon_project">Use project icon</string>
     <string name="v3_icon_default">Default icon</string>
+    <string name="v3_step_format">Step %1$d of %2$d: %3$s</string>
+    <string name="v3_step_template">Template</string>
+    <string name="v3_step_app">Application</string>
+    <string name="v3_step_permissions">Permissions</string>
+    <string name="v3_step_firebase">Firebase</string>
+    <string name="v3_next">Next</string>
+    <string name="v3_back">Back</string>
+    <string name="v3_build">Build</string>
 
     <!-- Firebase config for APK Builder V3 -->
     <string name="v3_firebase_section">Firebase</string>
@@ -4881,10 +4931,22 @@ needs read and write access to it. You can always change permissions through you
     <string name="v3_firebase_error_no_client">google-services.json has no client section</string>
     <string name="v3_firebase_error_no_android_client">google-services.json has no Android client</string>
     <string name="v3_firebase_error_no_package_name">Could not determine package name from google-services.json</string>
-    <string name="v3_firebase_error_package_mismatch">In google-services.json no app found with package: %s. Add this package as an Android app in your Firebase project and download a new google-services.json.</string>
+    <string name="v3_firebase_error_package_mismatch">In google-services.json no app found with package: %1$s (found: %2$s). Type the found package into the package field, or add your package as an Android app in your Firebase project and download a new google-services.json.</string>
     <string name="v3_firebase_error_read_failed">Failed to read google-services.json</string>
     <string name="v3_firebase_error_copy_failed">Failed to copy google-services.json</string>
     <string name="v3_firebase_error_processing">Error processing Firebase configuration</string>
+    <string name="v3_template_status_cached">Template cached (%1$s)</string>
+    <string name="v3_template_status_none">Template not downloaded yet</string>
+    <string name="v3_template_download">Download template</string>
+    <string name="v3_template_refresh">Check for updates</string>
+    <string name="v3_template_downloading">Downloading template… %1$d%%</string>
+    <string name="v3_template_ready">Template ready (%1$s)</string>
+    <string name="v3_template_uptodate">Template is up to date (%1$s)</string>
+    <string name="v3_template_failed">Template download failed</string>
+    <string name="v3_template_error_space">Not enough free space to download the template</string>
+    <string name="v3_template_error_network">Template download network error: %1$s</string>
+    <string name="v3_template_error_file">Downloaded template file is corrupted</string>
+    <string name="v3_template_required">Download the runtime template first</string>
 
 
     <!-- Text Buffer -->
@@ -5732,4 +5794,31 @@ needs read and write access to it. You can always change permissions through you
     <string formatted="false" name="brick_sprite_dissolve_shader">Sprite dissolve (burn)</string>
     <string formatted="false" name="brick_sprite_wave_shader">Sprite wave</string>
     <string name="wave_phase_degrees">Phase (deg)</string>
+    <string name="collab_title">Co-editing</string>
+    <string name="collab_create">Create room</string>
+    <string name="collab_join">Join</string>
+    <string name="collab_leave">Leave</string>
+    <string name="collab_close">Close</string>
+    <string name="collab_close_room">Close join</string>
+    <string name="collab_open_room">Open join</string>
+    <string name="collab_new_code">New code</string>
+    <string name="collab_name_hint">Your name</string>
+    <string name="collab_session_hint">CODE, e.g. ABC123-456789</string>
+    <string name="collab_offline">Not in a room</string>
+    <string name="collab_connecting">Connecting…</string>
+    <string name="collab_joined">Joined the room</string>
+    <string name="collab_no_connection">No connection</string>
+    <string name="collab_bad_code">Bad code</string>
+    <string name="collab_session">Room</string>
+    <string name="collab_code">Code</string>
+    <string name="collab_role">Role</string>
+    <string name="collab_role_host">Host</string>
+    <string name="collab_role_editor">Editor</string>
+    <string name="collab_role_viewer">Viewer</string>
+    <string name="collab_members">Members</string>
+    <string name="collab_requests">Join requests</string>
+    <string name="collab_approve_editor">Editor</string>
+    <string name="collab_approve_viewer">Viewer</string>
+    <string name="collab_you">you</string>
+    <string name="collab_project_mismatch">Warning: room project differs from open project</string>
 </resources>

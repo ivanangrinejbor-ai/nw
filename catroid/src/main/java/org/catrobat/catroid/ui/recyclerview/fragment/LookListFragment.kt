@@ -90,6 +90,7 @@ class LookListFragment : RecyclerViewFragment<LookData?>() {
         org.catrobat.catroid.ui.BottomBar.showBottomBar(activity)
         org.catrobat.catroid.ui.BottomBar.showAddButton(activity)
         org.catrobat.catroid.ui.BottomBar.showPlayButton(activity)
+        org.catrobat.catroid.collab.PresenceReporter.reportTabFresh(org.catrobat.catroid.collab.CollabTabs.LOOKS)
     }
 
     override fun packItems(selectedItems: List<LookData?>) {
@@ -285,6 +286,7 @@ class LookListFragment : RecyclerViewFragment<LookData?>() {
         currentItem = item
         item?.invalidateThumbnailBitmap()
         item?.clearCollisionInformation()
+        org.catrobat.catroid.collab.PresenceReporter.reportDetail("paint:" + item?.name.orEmpty())
         try {
             StorageOperations.copyFile(currentItem?.file, Constants.TMP_LOOK_FILE)
         } catch (e: IOException) {
@@ -346,6 +348,7 @@ class LookListFragment : RecyclerViewFragment<LookData?>() {
         hitboxUndoLook = item
         hitboxUndoSnapshot = item.hitboxes.map { it.copy() }
         hitboxUndoMode = item.hitboxMode
+        org.catrobat.catroid.collab.PresenceReporter.reportDetail("hitbox:" + item.name)
         val intent = Intent(requireContext(), HitboxEditorActivity::class.java)
         intent.putExtra(HitboxEditorActivity.EXTRA_LOOK_INDEX, lookIndex)
         startActivityForResult(intent, REQUEST_HITBOX_EDITOR)

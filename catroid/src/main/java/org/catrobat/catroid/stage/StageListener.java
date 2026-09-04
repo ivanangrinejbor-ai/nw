@@ -629,6 +629,22 @@ public class StageListener implements ApplicationListener {
 		}
 	}
 
+	public float getCameraPositionX() {
+		return camera != null ? camera.position.x : 0f;
+	}
+
+	public float getCameraPositionY() {
+		return camera != null ? camera.position.y : 0f;
+	}
+
+	public float getCameraZoom() {
+		return camera != null ? camera.zoom : 1.0f;
+	}
+
+	public float getCameraRotation() {
+		return cameraRotation;
+	}
+
 	public void startScreenShake(float intensity, float duration) {
 		screenShake.start(intensity, duration);
 	}

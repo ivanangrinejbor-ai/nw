@@ -53,7 +53,7 @@ class SetFilterBlurAction : TemporalAction() {
             var sumG = 0f
             var sumB = 0f
             for (dx in -kernel..kernel) {
-                Color.argb8888ToColor(temp, src.getPixel(dx.coerceIn(0, w - 1), y))
+                Color.rgba8888ToColor(temp, src.getPixel(dx.coerceIn(0, w - 1), y))
                 sumR += temp.r
                 sumG += temp.g
                 sumB += temp.b
@@ -66,11 +66,11 @@ class SetFilterBlurAction : TemporalAction() {
 
                 val removeX = (x - kernel).coerceIn(0, w - 1)
                 val addX = (x + kernel + 1).coerceIn(0, w - 1)
-                Color.argb8888ToColor(temp, src.getPixel(removeX, y))
+                Color.rgba8888ToColor(temp, src.getPixel(removeX, y))
                 sumR -= temp.r
                 sumG -= temp.g
                 sumB -= temp.b
-                Color.argb8888ToColor(temp, src.getPixel(addX, y))
+                Color.rgba8888ToColor(temp, src.getPixel(addX, y))
                 sumR += temp.r
                 sumG += temp.g
                 sumB += temp.b
@@ -90,11 +90,11 @@ class SetFilterBlurAction : TemporalAction() {
             }
             for (y in 0 until h) {
                 val index = (y * w + x) * 3
-                Color.argb8888ToColor(temp, src.getPixel(x, y))
+                Color.rgba8888ToColor(temp, src.getPixel(x, y))
                 temp.r = (sumR / windowSize).coerceIn(0f, 1f)
                 temp.g = (sumG / windowSize).coerceIn(0f, 1f)
                 temp.b = (sumB / windowSize).coerceIn(0f, 1f)
-                dst.drawPixel(x, y, Color.argb8888(temp))
+                dst.drawPixel(x, y, Color.rgba8888(temp))
 
                 val removeY = (y - kernel).coerceIn(0, h - 1) * w * 3 + x * 3
                 val addY = (y + kernel + 1).coerceIn(0, h - 1) * w * 3 + x * 3

@@ -347,6 +347,11 @@ public class InternToExternGenerator {
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.TEXT_BLOCK_LANGUAGE_FROM_CAMERA.name(),
 				R.string.formula_editor_function_text_block_language_from_camera);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.FPS.name(), R.string.formula_editor_sensor_fps);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.ARCH.name(), R.string.formula_editor_sensor_architecture);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.BATTARY.name(), R.string.formula_editor_sensor_battary);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.CLIPBOARD_TEXT.name(), R.string.formula_clipboard_text);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.KEYBOARD_HEIGHT.name(), R.string.formula_keyboard_height);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.OBJECT_NAME.name(), R.string.formula_get_object_name);
 
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.GAMEPAD_A_PRESSED.name(),
 				R.string.formula_editor_sensor_gamepad_a_pressed);
@@ -627,6 +632,27 @@ public class InternToExternGenerator {
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.NOTIFICATION_REPLY.name(), R.string.formula_notification_reply);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.SEED.name(), R.string.formula_seed);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.CLIPBOARD_PASTE.name(), R.string.formula_clipboard_paste);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.JOINNUMBER.name(), R.string.formula_editor_function_joinnumber);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.SHA256.name(), R.string.formula_sha256);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.CHAR_TO_UNICODE.name(), R.string.formula_char_to_unicode);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.UNICODE_TO_CHAR.name(), R.string.formula_unicode_to_char);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.UNESCAPE_UTF.name(), R.string.formula_unescape_utf);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.FILE_LAST_MODIFIED.name(), R.string.formula_file_last_modified);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.FILE_MD5.name(), R.string.formula_file_md5);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.FILE_SHA256.name(), R.string.formula_file_sha256);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.MEDIA_DURATION.name(), R.string.formula_media_duration);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.IMAGE_WIDTH.name(), R.string.formula_image_width);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.IMAGE_HEIGHT.name(), R.string.formula_image_height);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.HTTP_RESPONSE_TEXT.name(), R.string.formula_http_response_text);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.HTTP_RESPONSE_CODE.name(), R.string.formula_http_response_code);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.HTTP_RESPONSE_HEADER.name(), R.string.formula_http_response_header);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.MQTT_MESSAGE.name(), R.string.formula_mqtt_message);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.CAMERA_X.name(), R.string.formula_camera_x);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.CAMERA_Y.name(), R.string.formula_camera_y);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.CAMERA_ROTATION.name(), R.string.formula_camera_rotation);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.CAMERA_ZOOM.name(), R.string.formula_camera_zoom);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.CLIPBOARD_TEXT.name(), R.string.formula_clipboard_text);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.PT_SAMPLE.name(), R.string.formula_pt_sample);
 	}
 	public InternToExternGenerator(Context context) {
 		this.context = context;

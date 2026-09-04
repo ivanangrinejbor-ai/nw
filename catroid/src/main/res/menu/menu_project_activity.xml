@@ -110,6 +110,12 @@
         android:icon="@drawable/ic_edit"
         app:showAsAction="never" />
     <item
+        android:id="@+id/collab"
+        android:title="@string/collab_title"
+        android:visible="false"
+        app:showAsAction="never"
+        android:icon="@drawable/ic_login"/>
+    <item
       android:id="@+id/from_local"
       android:title="@string/from_local"
       app:showAsAction="never"

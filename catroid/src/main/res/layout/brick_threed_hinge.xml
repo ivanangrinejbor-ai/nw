@@ -8,14 +8,9 @@
 
     <CheckBox android:id="@+id/brick_checkbox" android:layout_width="wrap_content" android:layout_height="wrap_content" android:visibility="gone" />
 
-    <HorizontalScrollView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:scrollbars="none">
-
-        <org.catrobat.catroid.ui.BrickLayout
-            android:id="@+id/brick_threed_hinge_layout"
-            style="@style/BrickContainer.Threed.Big">
+    <org.catrobat.catroid.ui.BrickLayout
+        android:id="@+id/brick_threed_hinge_layout"
+        style="@style/BrickContainer.Threed.Big">
 
             <include layout="@layout/icon_brick_category_threed" />
 
@@ -50,6 +45,5 @@
             <TextView android:id="@+id/brick_hinge_aby" style="@style/BrickEditText" />
             <TextView android:id="@+id/brick_hinge_abz" style="@style/BrickEditText" />
 
-        </org.catrobat.catroid.ui.BrickLayout>
-    </HorizontalScrollView>
+    </org.catrobat.catroid.ui.BrickLayout>
 </LinearLayout>

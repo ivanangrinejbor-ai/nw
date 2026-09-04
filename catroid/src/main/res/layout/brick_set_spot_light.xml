@@ -12,14 +12,9 @@
         android:layout_height="wrap_content"
         android:visibility="gone" />
 
-    <HorizontalScrollView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:scrollbars="none">
-
-        <org.catrobat.catroid.ui.BrickLayout
-            android:id="@+id/brick_set_spot_light_layout"
-            style="@style/BrickContainer.Threed.Big">
+    <org.catrobat.catroid.ui.BrickLayout
+        android:id="@+id/brick_set_spot_light_layout"
+        style="@style/BrickContainer.Threed.Big">
 
             <include layout="@layout/icon_brick_category_threed" />
 
@@ -67,6 +62,5 @@
             <TextView style="@style/BrickText.SingleLine" android:text="@string/brick_set_point_light_range" app:layout_newLine="true" />
             <TextView android:id="@+id/brick_set_spot_light_range_value" style="@style/BrickEditText" />
 
-        </org.catrobat.catroid.ui.BrickLayout>
-    </HorizontalScrollView>
+    </org.catrobat.catroid.ui.BrickLayout>
 </LinearLayout>

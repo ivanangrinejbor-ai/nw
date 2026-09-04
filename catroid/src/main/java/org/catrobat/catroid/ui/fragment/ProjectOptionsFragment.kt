@@ -2147,14 +2147,84 @@ class ProjectOptionsFragment : Fragment() {
 
 
     private fun startAsyncProjectExport(projectDestination: Uri) {
-        project?.let {
+        project?.let { proj ->
             val notificationData = StatusBarNotificationManager(requireContext())
                 .createSaveProjectToExternalMemoryNotification(
                     requireContext(),
                     projectDestination,
-                    it.name
+                    proj.name
                 )
-            val task = ProjectExportTask(it.directory, projectDestination, notificationData, requireContext())
+            val context = requireContext()
+            val progressBar = android.widget.ProgressBar(context, null, android.R.attr.progressBarStyleHorizontal).apply {
+                isIndeterminate = true
+                max = 100
+            }
+            val statusView = android.widget.TextView(context).apply {
+                text = getString(R.string.export_progress_zipping)
+                setPadding(0, 20, 0, 0)
+            }
+            val layout = android.widget.LinearLayout(context).apply {
+                orientation = android.widget.LinearLayout.VERTICAL
+                setPadding(80, 40, 80, 0)
+                addView(statusView)
+                addView(progressBar)
+            }
+            val progressDialog = androidx.appcompat.app.AlertDialog.Builder(context)
+                .setTitle(R.string.exporting_project)
+                .setView(layout)
+                .setCancelable(false)
+                .create()
+            progressDialog.show()
+            val task = ProjectExportTask(proj.directory, projectDestination, notificationData, context)
+            task.setProgressListener(object : ProjectExportTask.ProjectExportProgressListener {
+                override fun onPhaseChanged(phase: ProjectExportTask.ExportPhase) {
+                    activity?.runOnUiThread {
+                        if (!progressDialog.isShowing) return@runOnUiThread
+                        when (phase) {
+                            ProjectExportTask.ExportPhase.ZIPPING -> {
+                                progressBar.isIndeterminate = true
+                                statusView.text = getString(R.string.export_progress_zipping)
+                            }
+                            ProjectExportTask.ExportPhase.COPYING -> {
+                                progressBar.isIndeterminate = false
+                                progressBar.progress = 0
+                                statusView.text = getString(R.string.export_progress_copying, 0)
+                            }
+                            ProjectExportTask.ExportPhase.VERIFYING -> {
+                                progressBar.isIndeterminate = true
+                                statusView.text = getString(R.string.export_progress_verifying)
+                            }
+                        }
+                    }
+                }
+
+                override fun onProgress(bytesDone: Long, bytesTotal: Long) {
+                    if (bytesTotal <= 0) return
+                    val percent = ((bytesDone * 100) / bytesTotal).toInt().coerceIn(0, 100)
+                    activity?.runOnUiThread {
+                        if (!progressDialog.isShowing) return@runOnUiThread
+                        progressBar.isIndeterminate = false
+                        progressBar.progress = percent
+                        statusView.text = getString(R.string.export_progress_copying, percent)
+                    }
+                }
+            })
+            task.registerCallback(object : ProjectExportTask.ProjectExportCallback {
+                override fun onProjectExportFinished() {
+                    activity?.runOnUiThread {
+                        if (progressDialog.isShowing) progressDialog.dismiss()
+                        showToast(getString(R.string.export_project) + " ✓")
+                    }
+                }
+
+                override fun onProjectExportFailed(errorMessage: String?) {
+                    activity?.runOnUiThread {
+                        if (progressDialog.isShowing) progressDialog.dismiss()
+                        ToastUtil.showError(activity,
+                            getString(R.string.export_verify_failed, errorMessage ?: ""))
+                    }
+                }
+            })
             task.execute()
         }
     }

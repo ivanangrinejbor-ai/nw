@@ -146,8 +146,12 @@ class NewSpriteDialogFragment(
         }
     }
 
-    private fun handleNegativeButton() {
-        try {
+    override fun onDismiss(dialog: DialogInterface) {
+        super.onDismiss(dialog)
+        org.catrobat.catroid.collab.PresenceReporter.reportList()
+    }
+
+    private fun handleNegativeButton() {        try {
             if (Constants.MEDIA_LIBRARY_CACHE_DIRECTORY.exists()) {
                 StorageOperations.deleteDir(Constants.MEDIA_LIBRARY_CACHE_DIRECTORY)
             }

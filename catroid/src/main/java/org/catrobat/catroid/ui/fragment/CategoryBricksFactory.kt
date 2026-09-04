@@ -883,6 +883,7 @@ import org.catrobat.catroid.content.bricks.AdmobRewardedShownEventBrick
 import org.catrobat.catroid.content.bricks.AdmobRewardedRewardEventBrick
 import org.catrobat.catroid.content.bricks.AdmobRewardedClosedEventBrick
 import org.catrobat.catroid.content.bricks.AdmobAppOpenLoadedEventBrick
+import org.catrobat.catroid.content.bricks.AdmobAppOpenFailedEventBrick
 import org.catrobat.catroid.content.bricks.AdmobAppOpenShownEventBrick
 import org.catrobat.catroid.content.bricks.AdmobAppOpenClosedEventBrick
 import org.catrobat.catroid.content.bricks.AudioFadeInBrick
@@ -1146,6 +1147,7 @@ eventBrickList.add(WhenConditionBrick(WhenConditionScript(Formula(defaultIf))))
                 eventBrickList.add(AdmobRewardedRewardEventBrick())
                 eventBrickList.add(AdmobRewardedClosedEventBrick())
                 eventBrickList.add(AdmobAppOpenLoadedEventBrick())
+                eventBrickList.add(AdmobAppOpenFailedEventBrick())
                 eventBrickList.add(AdmobAppOpenShownEventBrick())
                 eventBrickList.add(AdmobAppOpenClosedEventBrick())
                 eventBrickList.add(WhenBeforeUpdateBrick())
@@ -1215,6 +1217,8 @@ eventBrickList.add(WhenConditionBrick(WhenConditionScript(Formula(defaultIf))))
         eventBrickList.add(WhenHttpResponseReceivedBrick())
         eventBrickList.add(WhenHttpRequestFailedBrick())
         eventBrickList.add(WhenFirestoreChangedBrick())
+        eventBrickList.add(WhenFirebaseChangedBrick())
+        eventBrickList.add(WhenFirebaseChildChangedBrick())
         eventBrickList.add(WhenMouseButtonClickedBrick())
         eventBrickList.add(WhenMouseWheelScrolledBrick())
         eventBrickList.add(WhenAIResponseBrick())
@@ -1256,6 +1260,7 @@ eventBrickList.add(WhenConditionBrick(WhenConditionScript(Formula(defaultIf))))
         eventBrickList.add(AdmobRewardedRewardEventBrick())
         eventBrickList.add(AdmobRewardedClosedEventBrick())
         eventBrickList.add(AdmobAppOpenLoadedEventBrick())
+        eventBrickList.add(AdmobAppOpenFailedEventBrick())
         eventBrickList.add(AdmobAppOpenShownEventBrick())
         eventBrickList.add(AdmobAppOpenClosedEventBrick())
 
@@ -3553,6 +3558,12 @@ void main() {
         internetBrickList.add(PushBaseBrick("firebase_id", "messages", "hello"))
         internetBrickList.add(UpdateBaseBrick("firebase_id", "user/name", "{\"nick\":\"Tom\"}"))
         internetBrickList.add(QueryBaseBrick("firebase_id", "messages", "score", "10", ""))
+        internetBrickList.add(WriteFirestoreBrick("firebase_id", "users/user1", "{\"nick\":\"Tom\"}"))
+        internetBrickList.add(ReadFirestoreBrick("firebase_id", "users/user1"))
+        internetBrickList.add(UpdateFirestoreBrick("firebase_id", "users/user1", "{\"nick\":\"Tom\"}"))
+        internetBrickList.add(DeleteFirestoreBrick("firebase_id", "users/user1"))
+        internetBrickList.add(QueryFirestoreBrick("firebase_id", "users", "score", "==", "10", "10"))
+        internetBrickList.add(AddFirestoreDocumentBrick("firebase_id", "messages", "{\"text\":\"hello\"}"))
         internetBrickList.add(UploadFileBrick(Formula("https://"), Formula("file.txt"), 0, Formula("application/"), 0))
         internetBrickList.add(WebRequestBrick(context.getString(R.string.brick_web_request_default_value)))
         internetBrickList.add(PostWebRequestBrick("https://api.calfire.com/v2/texts?limit=50&offset=200",

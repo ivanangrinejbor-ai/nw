@@ -12,7 +12,7 @@ class AdmobShowBannerAction : TemporalAction() {
 
     override fun update(percent: Float) {
         if (scope == null) return
-        val activity = StageActivity.activeStageActivity.get() ?: return
+        val activity = StageActivity.activeStageActivity?.get() ?: return
         val pos = position?.interpretInteger(scope) ?: return
         AdMobManager.bannerPosition = if (pos == 0) AdMobManager.BannerPosition.TOP else AdMobManager.BannerPosition.BOTTOM
         AdMobManager.showBanner(activity)

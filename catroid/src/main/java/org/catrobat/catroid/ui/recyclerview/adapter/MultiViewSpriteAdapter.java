@@ -136,6 +136,8 @@ public class MultiViewSpriteAdapter extends SpriteAdapter {
 		} else {
 			holder.details.setVisibility(GONE);
 		}
+
+		org.catrobat.catroid.collab.PresenceRenderer.INSTANCE.borderFor(holder.itemView, item.getSpriteId());
 	}
 
 	@Override

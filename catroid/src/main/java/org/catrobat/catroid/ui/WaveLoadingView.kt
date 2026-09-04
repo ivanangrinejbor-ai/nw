@@ -40,7 +40,7 @@ class WaveLoadingView @JvmOverloads constructor(
     }
 
     private val density = resources.displayMetrics.density
-    private val accentColor = ContextCompat.getColor(context, R.color.accent)
+    private val accentColor = ContextCompat.getColor(context, R.color.loading_wave)
     private val random = Random()
 
     private val paintMain = Paint(Paint.ANTI_ALIAS_FLAG).apply {

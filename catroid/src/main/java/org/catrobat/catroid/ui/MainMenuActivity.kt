@@ -141,7 +141,13 @@ class MainMenuActivity : BaseCastActivity(), ProjectLoadListener {
             setContentView(rootContent)
 
             loadingBinding = ActivityLoadingBinding.inflate(layoutInflater)
-            rootContent.addView(loadingBinding.root)
+            rootContent.addView(
+                loadingBinding.root,
+                FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.MATCH_PARENT,
+                    FrameLayout.LayoutParams.MATCH_PARENT
+                )
+            )
 
             val density = resources.displayMetrics.density
             loadingBinding.loadingLogo.alpha = 0f

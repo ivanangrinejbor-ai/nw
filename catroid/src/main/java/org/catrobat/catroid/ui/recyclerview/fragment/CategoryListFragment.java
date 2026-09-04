@@ -105,7 +105,8 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 			R.string.formula_editor_object_rotation_look,
 			R.string.formula_editor_object_transparency,
 			R.string.formula_editor_object_brightness,
-			R.string.formula_editor_object_color);
+			R.string.formula_editor_object_color,
+			R.string.formula_get_object_name);
 	private static final List<Integer> OBJECT_LOOK = asList(R.string.formula_editor_object_look_number,
 			R.string.formula_editor_object_look_name, R.string.formula_editor_object_look_width, R.string.formula_editor_object_look_height,
 			R.string.formula_editor_object_number_of_looks);
@@ -177,7 +178,15 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 			R.string.formula_ray_hit_sprite_name,
 			R.string.formula_ray_hit_x2,
 			R.string.formula_ray_hit_y2,
-			R.string.formula_ray_hit_distance);
+			R.string.formula_ray_hit_distance,
+			R.string.formula_editor_function_joinnumber, R.string.formula_sha256,
+			R.string.formula_char_to_unicode, R.string.formula_unicode_to_char, R.string.formula_unescape_utf,
+			R.string.formula_file_last_modified, R.string.formula_file_md5, R.string.formula_file_sha256,
+			R.string.formula_media_duration, R.string.formula_image_width, R.string.formula_image_height,
+			R.string.formula_http_response_text, R.string.formula_http_response_code, R.string.formula_http_response_header,
+			R.string.formula_mqtt_message,
+			R.string.formula_camera_x, R.string.formula_camera_y, R.string.formula_camera_rotation, R.string.formula_camera_zoom,
+			R.string.formula_clipboard_text);
 	private static final List<Integer> STRING_PARAMS = asList(R.string.formula_editor_function_length_parameter,
 			R.string.formula_editor_function_letter_parameter,
 			R.string.formula_editor_function_subtext_parameter,
@@ -215,7 +224,15 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 			R.string.formula_ray_hit_sprite_name_parameter,
 			R.string.formula_ray_hit_x_parameter,
 			R.string.formula_ray_hit_y_parameter,
-			R.string.formula_ray_hit_distance_parameter);
+			R.string.formula_ray_hit_distance_parameter,
+			R.string.formula_editor_function_joinnumber_parameter, R.string.formula_sha256_param,
+			R.string.formula_char_to_unicode_param, R.string.formula_unicode_to_char_param, R.string.formula_unescape_utf_param,
+			R.string.formula_file_last_modified_param, R.string.formula_file_md5_param, R.string.formula_file_sha256_param,
+			R.string.formula_media_duration_param, R.string.formula_image_width_param, R.string.formula_image_height_param,
+			R.string.formula_http_response_text_param, R.string.formula_http_response_code_param, R.string.formula_http_response_header_param,
+			R.string.formula_mqtt_message_param,
+			R.string.formula_no_param, R.string.formula_no_param, R.string.formula_no_param, R.string.formula_no_param,
+			R.string.formula_no_param);
 	private static final List<Integer> LIST_FUNCTIONS = asList(R.string.formula_editor_function_number_of_items,
 			R.string.formula_editor_function_list_item, R.string.formula_editor_function_get_item, R.string.formula_editor_function_contains,
 			R.string.formula_editor_function_index_of_item, R.string.formula_editor_function_flatten, R.string.formula_editor_function_connect, R.string.formula_editor_function_find,
@@ -239,11 +256,13 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 
     private static final List<Integer> PT_FUNCTIONS = asList(
             R.string.formula_pt_argmax, R.string.formula_pt_value, R.string.formula_pt_valuend,
-            R.string.formula_pt_shape, R.string.formula_pt_dump, R.string.formula_pt_totalsize
+            R.string.formula_pt_shape, R.string.formula_pt_dump, R.string.formula_pt_totalsize,
+            R.string.formula_pt_sample
     );
     private static final List<Integer> PT_PARAMS = asList(
             R.string.formula_pt_argmax_param, R.string.formula_pt_value_param, R.string.formula_pt_valuend_param,
-            R.string.formula_pt_shape_param, R.string.formula_pt_dump_param, R.string.formula_pt_totalsize_param
+            R.string.formula_pt_shape_param, R.string.formula_pt_dump_param, R.string.formula_pt_totalsize_param,
+            R.string.formula_pt_sample_param
     );
 
     private static final List<Integer> F2D_FUNCTIONS = asList(
@@ -497,7 +516,9 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 			R.string.formula_editor_sensor_stage_height, R.string.formula_editor_sensor_micro, R.string.formula_editor_sensor_micro_freq,
             R.string.formula_editor_sensor_ip, R.string.formula_editor_sensor_port,
 			R.string.formula_editor_sensor_internet, R.string.formula_editor_sensor_fps,
-			R.string.formula_editor_sensor_touching_sprite, R.string.formula_editor_sensor_shake_intensity);
+			R.string.formula_editor_sensor_touching_sprite, R.string.formula_editor_sensor_shake_intensity,
+			R.string.formula_editor_sensor_architecture, R.string.formula_editor_sensor_battary,
+			R.string.formula_clipboard_text, R.string.formula_keyboard_height);
 	private static final List<Integer> OBJECT_COLOR_COLLISION =
 			asList(R.string.formula_editor_function_collides_with_color, R.string.formula_editor_function_color_touches_color);
 	private static final List<Integer> OBJECT_COLOR_PARAMS =

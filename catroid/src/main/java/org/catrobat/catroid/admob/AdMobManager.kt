@@ -27,29 +27,29 @@ import org.catrobat.catroid.stage.StageActivity
 object AdMobManager {
     private const val TAG = "AdMobManager"
 
-    var isTestMode = false
-    var appId: String? = null
-    var bannerUnitId: String? = null
-    var interstitialUnitId: String? = null
-    var rewardedUnitId: String? = null
-    var appOpenUnitId: String? = null
+    @Volatile var isTestMode = false
+    @Volatile var appId: String? = null
+    @Volatile var bannerUnitId: String? = null
+    @Volatile var interstitialUnitId: String? = null
+    @Volatile var rewardedUnitId: String? = null
+    @Volatile var appOpenUnitId: String? = null
 
-    var isInitialized = false
-    var isBannerLoaded = false
-    var isInterstitialLoaded = false
-    var isRewardedLoaded = false
-    var isAppOpenLoaded = false
+    @Volatile var isInitialized = false
+    @Volatile var isBannerLoaded = false
+    @Volatile var isInterstitialLoaded = false
+    @Volatile var isRewardedLoaded = false
+    @Volatile var isAppOpenLoaded = false
 
-    var lastErrorCode: Int = 0
-    var lastErrorMessage: String = ""
+    @Volatile var lastErrorCode: Int = 0
+    @Volatile var lastErrorMessage: String = ""
 
-    var bannerPosition: BannerPosition = BannerPosition.TOP
+    @Volatile var bannerPosition: BannerPosition = BannerPosition.TOP
 
     private var adView: AdView? = null
     private var interstitialAd: InterstitialAd? = null
     private var rewardedAd: RewardedAd? = null
     private var appOpenAd: AppOpenAd? = null
-    private var isSdkInitializing = false
+    @Volatile private var isSdkInitializing = false
     private val mainHandler = Handler(Looper.getMainLooper())
 
     private val eventCallbacks = mutableListOf<(EventId) -> Unit>()
@@ -59,16 +59,17 @@ object AdMobManager {
     }
 
     fun addEventCallback(callback: (EventId) -> Unit) {
-        eventCallbacks.add(callback)
+        synchronized(eventCallbacks) { eventCallbacks.add(callback) }
     }
 
     fun removeEventCallback(callback: (EventId) -> Unit) {
-        eventCallbacks.remove(callback)
+        synchronized(eventCallbacks) { eventCallbacks.remove(callback) }
     }
 
     private fun fireEvent(eventType: Int) {
         val eventId = EventId(eventType)
-        for (callback in eventCallbacks) {
+        val callbacks: List<(EventId) -> Unit> = synchronized(eventCallbacks) { eventCallbacks.toList() }
+        for (callback in callbacks) {
             try {
                 callback(eventId)
             } catch (e: Exception) {
@@ -82,6 +83,11 @@ object AdMobManager {
     }
 
     fun enableTestMode() {
+        if (isInitialized) {
+            Log.w(TAG, "enableTestMode() after initialize() has no effect: " +
+                "test device configuration must be set before MobileAds.initialize(). " +
+                "Put the Enable test mode brick before the Init AdMob brick.")
+        }
         isTestMode = true
         val testDeviceIds = listOf(AdRequest.DEVICE_ID_EMULATOR)
         MobileAds.setRequestConfiguration(
@@ -120,8 +126,15 @@ object AdMobManager {
 
     fun loadBanner(activity: Activity) {
         mainHandler.post {
-            val unitId = bannerUnitId ?: return@post
-            destroyBanner()
+            val unitId = bannerUnitId
+            if (unitId.isNullOrEmpty()) {
+                lastErrorCode = -20
+                lastErrorMessage = "Banner Unit ID is not set"
+                Log.e(TAG, "Banner load skipped: $lastErrorMessage")
+                fireEvent(EventId.ADMOB_BANNER_FAILED)
+                return@post
+            }
+            destroyBannerSync()
             try {
                 val request = AdRequest.Builder().build()
                 adView = AdView(activity).apply {
@@ -161,7 +174,13 @@ object AdMobManager {
 
     fun showBanner(activity: Activity) {
         mainHandler.post {
-            val view = adView ?: return@post
+            val view = adView
+            if (view == null) {
+                lastErrorCode = -30
+                lastErrorMessage = "Banner is not loaded"
+                Log.e(TAG, "Show banner skipped: $lastErrorMessage")
+                return@post
+            }
             try {
                 val rootView = activity.window.decorView.findViewById<android.view.ViewGroup>(android.R.id.content)
                 if (view.parent == null) {
@@ -176,6 +195,7 @@ object AdMobManager {
                     rootView.addView(view, params)
                 }
                 view.visibility = android.view.View.VISIBLE
+                fireEvent(EventId.ADMOB_BANNER_SHOWN)
             } catch (e: Exception) {
                 Log.e(TAG, "Show banner error", e)
             }
@@ -184,22 +204,35 @@ object AdMobManager {
 
     fun hideBanner() {
         mainHandler.post {
-            adView?.visibility = android.view.View.GONE
+            val view = adView ?: return@post
+            view.visibility = android.view.View.GONE
+            fireEvent(EventId.ADMOB_BANNER_HIDDEN)
         }
     }
 
     fun destroyBanner() {
         mainHandler.post {
-            adView?.destroy()
-            adView = null
-            isBannerLoaded = false
+            destroyBannerSync()
         }
+    }
+
+    private fun destroyBannerSync() {
+        adView?.destroy()
+        adView = null
+        isBannerLoaded = false
     }
 
 
     fun loadInterstitial(activity: Activity) {
         mainHandler.post {
-            val unitId = interstitialUnitId ?: return@post
+            val unitId = interstitialUnitId
+            if (unitId.isNullOrEmpty()) {
+                lastErrorCode = -21
+                lastErrorMessage = "Interstitial Unit ID is not set"
+                Log.e(TAG, "Interstitial load skipped: $lastErrorMessage")
+                fireEvent(EventId.ADMOB_INTERSTITIAL_FAILED)
+                return@post
+            }
             try {
                 val request = AdRequest.Builder().build()
                 InterstitialAd.load(activity, unitId, request, object : InterstitialAdLoadCallback() {
@@ -244,7 +277,13 @@ object AdMobManager {
 
     fun showInterstitial(activity: Activity) {
         mainHandler.post {
-            val ad = interstitialAd ?: return@post
+            val ad = interstitialAd
+            if (ad == null) {
+                lastErrorCode = -31
+                lastErrorMessage = "Interstitial is not loaded"
+                Log.e(TAG, "Show interstitial skipped: $lastErrorMessage")
+                return@post
+            }
             try {
                 ad.show(activity)
             } catch (e: Exception) {
@@ -256,7 +295,14 @@ object AdMobManager {
 
     fun loadRewarded(activity: Activity) {
         mainHandler.post {
-            val unitId = rewardedUnitId ?: return@post
+            val unitId = rewardedUnitId
+            if (unitId.isNullOrEmpty()) {
+                lastErrorCode = -22
+                lastErrorMessage = "Rewarded Unit ID is not set"
+                Log.e(TAG, "Rewarded load skipped: $lastErrorMessage")
+                fireEvent(EventId.ADMOB_REWARDED_FAILED)
+                return@post
+            }
             try {
                 val request = AdRequest.Builder().build()
                 RewardedAd.load(activity, unitId, request, object : RewardedAdLoadCallback() {
@@ -301,7 +347,13 @@ object AdMobManager {
 
     fun showRewarded(activity: Activity) {
         mainHandler.post {
-            val ad = rewardedAd ?: return@post
+            val ad = rewardedAd
+            if (ad == null) {
+                lastErrorCode = -32
+                lastErrorMessage = "Rewarded ad is not loaded"
+                Log.e(TAG, "Show rewarded skipped: $lastErrorMessage")
+                return@post
+            }
             try {
                 ad.show(activity) { rewardItem ->
                     Log.d(TAG, "Reward earned: ${rewardItem.amount} ${rewardItem.type}")
@@ -316,7 +368,14 @@ object AdMobManager {
 
     fun loadAppOpen(activity: Activity) {
         mainHandler.post {
-            val unitId = appOpenUnitId ?: return@post
+            val unitId = appOpenUnitId
+            if (unitId.isNullOrEmpty()) {
+                lastErrorCode = -23
+                lastErrorMessage = "App Open Unit ID is not set"
+                Log.e(TAG, "App Open load skipped: $lastErrorMessage")
+                fireEvent(EventId.ADMOB_APP_OPEN_FAILED)
+                return@post
+            }
             try {
                 val request = AdRequest.Builder().build()
                 AppOpenAd.load(activity, unitId, request, AppOpenAd.APP_OPEN_AD_ORIENTATION_PORTRAIT,
@@ -349,6 +408,7 @@ object AdMobManager {
                             lastErrorCode = loadAdError.code
                             lastErrorMessage = loadAdError.message ?: ""
                             Log.e(TAG, "App Open load failed: $lastErrorMessage")
+                            fireEvent(EventId.ADMOB_APP_OPEN_FAILED)
                         }
                     })
             } catch (e: Exception) {
@@ -361,7 +421,13 @@ object AdMobManager {
 
     fun showAppOpen(activity: Activity) {
         mainHandler.post {
-            val ad = appOpenAd ?: return@post
+            val ad = appOpenAd
+            if (ad == null) {
+                lastErrorCode = -33
+                lastErrorMessage = "App Open ad is not loaded"
+                Log.e(TAG, "Show App Open skipped: $lastErrorMessage")
+                return@post
+            }
             try {
                 ad.show(activity)
             } catch (e: Exception) {
@@ -382,11 +448,17 @@ object AdMobManager {
 
     fun reset() {
         mainHandler.post {
-            adView?.destroy()
-            adView = null
+            destroyBannerSync()
             interstitialAd = null
             rewardedAd = null
             appOpenAd = null
+            isTestMode = false
+            appId = null
+            bannerUnitId = null
+            interstitialUnitId = null
+            rewardedUnitId = null
+            appOpenUnitId = null
+            bannerPosition = BannerPosition.TOP
             isInitialized = false
             isBannerLoaded = false
             isInterstitialLoaded = false

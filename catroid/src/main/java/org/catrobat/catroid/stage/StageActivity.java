@@ -93,6 +93,7 @@ import org.catrobat.catroid.BuildConfig;
 import org.catrobat.catroid.CatroidApplication;
 import org.catrobat.catroid.ProjectManager;
 import org.catrobat.catroid.R;
+import org.catrobat.catroid.admob.AdMobManager;
 import org.catrobat.catroid.bluetooth.base.BluetoothDeviceService;
 import org.catrobat.catroid.camera.CameraManager;
 import org.catrobat.catroid.common.CatroidService;
@@ -215,6 +216,9 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 	public CountingIdlingResource idlingResource = new CountingIdlingResource("StageActivity");
 	private PermissionRequestActivityExtension permissionRequestActivityExtension = new PermissionRequestActivityExtension();
 	public static WeakReference<StageActivity> activeStageActivity;
+
+	public static volatile boolean isKeyboardVisible = false;
+	public static volatile int realKeyboardHeight = 0;
 
 	private FrameLayout rootLayout;
 	private View precompileOverlay;
@@ -454,6 +458,28 @@ public class StageActivity extends AndroidApplication implements ContextProvider
             updateStageSize(width, height);
         } else {
             setContentView(rootLayout);
+        }
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT_WATCH) {
+            rootLayout.setOnApplyWindowInsetsListener((v, insets) -> {
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+                    boolean visible = insets.isVisible(android.view.WindowInsets.Type.ime());
+                    isKeyboardVisible = visible;
+                    if (visible) {
+                        int h = insets.getInsets(android.view.WindowInsets.Type.ime()).bottom;
+                        if (h > 200) realKeyboardHeight = h;
+                    }
+                } else {
+                    int h = insets.getSystemWindowInsetBottom();
+                    if (h > 200) {
+                        isKeyboardVisible = true;
+                        realKeyboardHeight = h;
+                    } else if (h < 150) {
+                        isKeyboardVisible = false;
+                    }
+                }
+                return v.onApplyWindowInsets(insets);
+            });
         }
 
 		GlobalManager.Companion.setSaveScenes(true);
@@ -1611,6 +1637,7 @@ public class StageActivity extends AndroidApplication implements ContextProvider
 			stopVolumeHoldChecker();
 			VolumeButtonState.reset();
 			RunJSAction.Companion.destroyWebView();
+			AdMobManager.INSTANCE.reset();
 			messageHandler = null;
 			MyActivityManager.Companion.clearActivity(this);
 		} catch (Throwable t) {

@@ -399,6 +399,14 @@ case R.string.formula_editor_function_state_time:
 						STRING, "lavanda");
 			case R.string.formula_editor_sensor_fps:
 				return buildSensor(Sensors.FPS);
+			case R.string.formula_editor_sensor_architecture:
+				return buildSensor(Sensors.ARCH);
+			case R.string.formula_editor_sensor_battary:
+				return buildSensor(Sensors.BATTARY);
+			case R.string.formula_clipboard_text:
+				return buildSensor(Sensors.CLIPBOARD_TEXT);
+			case R.string.formula_keyboard_height:
+				return buildSensor(Sensors.KEYBOARD_HEIGHT);
 			case R.string.formula_editor_function_regex:
 				return buildDoubleParameterFunction(Functions.REGEX, STRING, " an? ([^ .]+)",
 						STRING, "I am a panda.");
@@ -442,6 +450,48 @@ case R.string.formula_editor_function_state_time:
                 return buildSingleParameterFunction(Functions.MD5, STRING, "text");
             case R.string.formula_notification_reply:
                 return buildSingleParameterFunction(Functions.NOTIFICATION_REPLY, STRING, "my_action_id");
+            case R.string.formula_editor_function_joinnumber:
+                return buildDoubleParameterFunction(Functions.JOINNUMBER, NUMBER, "1",
+                        NUMBER, "1");
+            case R.string.formula_sha256:
+                return buildSingleParameterFunction(Functions.SHA256, STRING, "text");
+            case R.string.formula_char_to_unicode:
+                return buildSingleParameterFunction(Functions.CHAR_TO_UNICODE, STRING, "A");
+            case R.string.formula_unicode_to_char:
+                return buildSingleParameterFunction(Functions.UNICODE_TO_CHAR, STRING, "65");
+            case R.string.formula_unescape_utf:
+                return buildSingleParameterFunction(Functions.UNESCAPE_UTF, STRING, "\\u0430");
+            case R.string.formula_file_last_modified:
+                return buildSingleParameterFunction(Functions.FILE_LAST_MODIFIED, STRING, "file.txt");
+            case R.string.formula_file_md5:
+                return buildSingleParameterFunction(Functions.FILE_MD5, STRING, "filename");
+            case R.string.formula_file_sha256:
+                return buildSingleParameterFunction(Functions.FILE_SHA256, STRING, "filename");
+            case R.string.formula_media_duration:
+                return buildSingleParameterFunction(Functions.MEDIA_DURATION, STRING, "audio.mp3");
+            case R.string.formula_image_width:
+                return buildSingleParameterFunction(Functions.IMAGE_WIDTH, STRING, "image.png");
+            case R.string.formula_image_height:
+                return buildSingleParameterFunction(Functions.IMAGE_HEIGHT, STRING, "image.png");
+            case R.string.formula_http_response_text:
+                return buildSingleParameterFunction(Functions.HTTP_RESPONSE_TEXT, STRING, "id");
+            case R.string.formula_http_response_code:
+                return buildSingleParameterFunction(Functions.HTTP_RESPONSE_CODE, STRING, "id");
+            case R.string.formula_http_response_header:
+                return buildDoubleParameterFunction(Functions.HTTP_RESPONSE_HEADER, STRING, "id",
+                        STRING, "header_name");
+            case R.string.formula_mqtt_message:
+                return buildSingleParameterFunction(Functions.MQTT_MESSAGE, STRING, "room_name");
+            case R.string.formula_camera_x:
+                return buildFunctionWithoutParametersAndBrackets(Functions.CAMERA_X);
+            case R.string.formula_camera_y:
+                return buildFunctionWithoutParametersAndBrackets(Functions.CAMERA_Y);
+            case R.string.formula_camera_rotation:
+                return buildFunctionWithoutParametersAndBrackets(Functions.CAMERA_ROTATION);
+            case R.string.formula_camera_zoom:
+                return buildFunctionWithoutParametersAndBrackets(Functions.CAMERA_ZOOM);
+            case R.string.formula_pt_sample:
+                return buildSingleParameterFunction(Functions.PT_SAMPLE, STRING, "tensor");
             case R.string.formula_seed:
                 return buildFunctionWithoutParametersAndBrackets(Functions.SEED);
             case R.string.formula_clipboard_paste:
@@ -1032,6 +1082,8 @@ case R.string.formula_editor_function_state_time:
 				return buildObject(Sensors.OBJECT_BACKGROUND_NUMBER);
 			case R.string.formula_editor_object_background_name:
 				return buildObject(Sensors.OBJECT_BACKGROUND_NAME);
+			case R.string.formula_get_object_name:
+				return buildObject(Sensors.OBJECT_NAME);
 			case R.string.formula_editor_object_distance_to:
 				return buildObject(Sensors.OBJECT_DISTANCE_TO);
 			case R.string.formula_editor_function_collides_with_edge:

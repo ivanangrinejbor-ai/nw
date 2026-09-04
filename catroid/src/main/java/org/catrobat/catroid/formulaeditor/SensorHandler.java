@@ -359,6 +359,53 @@ public final class SensorHandler implements SensorEventListener, SensorCustomEve
 				return (double) (SystemClock.uptimeMillis() - timerReferenceValue);
 			case SHAKE_INTENSITY:
 				return instance.shakeIntensity;
+			case ARCH:
+				return android.os.Build.SUPPORTED_ABIS != null && android.os.Build.SUPPORTED_ABIS.length > 0
+						? android.os.Build.SUPPORTED_ABIS[0] : "Unknown";
+			case BATTARY: {
+				android.content.IntentFilter intentFilter =
+						new android.content.IntentFilter(android.content.Intent.ACTION_BATTERY_CHANGED);
+				android.content.Intent batteryStatus =
+						CatroidApplication.getAppContext().registerReceiver(null, intentFilter);
+				if (batteryStatus == null) return 0.0;
+				int level = batteryStatus.getIntExtra(android.os.BatteryManager.EXTRA_LEVEL, -1);
+				int scale = batteryStatus.getIntExtra(android.os.BatteryManager.EXTRA_SCALE, -1);
+				return (level > 0 && scale > 0) ? (double) (level * 100 / scale) : 0.0;
+			}
+			case CLIPBOARD_TEXT: {
+				android.content.ClipboardManager clipboard = (android.content.ClipboardManager)
+						CatroidApplication.getAppContext()
+								.getSystemService(android.content.Context.CLIPBOARD_SERVICE);
+				if (clipboard != null && clipboard.hasPrimaryClip()) {
+					android.content.ClipDescription desc = clipboard.getPrimaryClipDescription();
+					if (desc != null && (desc.hasMimeType(android.content.ClipDescription.MIMETYPE_TEXT_PLAIN)
+							|| desc.hasMimeType(android.content.ClipDescription.MIMETYPE_TEXT_HTML))) {
+						android.content.ClipData clip = clipboard.getPrimaryClip();
+						if (clip != null && clip.getItemCount() > 0
+								&& clip.getItemAt(0).getText() != null) {
+							return clip.getItemAt(0).getText().toString();
+						}
+					}
+				}
+				return "";
+			}
+			case KEYBOARD_HEIGHT: {
+				if (StageActivity.isKeyboardVisible) {
+					int kb = StageActivity.realKeyboardHeight;
+					if (kb > 0) return (double) kb;
+					StageActivity stage =
+							StageActivity.activeStageActivity != null
+									? StageActivity.activeStageActivity.get() : null;
+					if (stage != null) {
+						android.graphics.Rect rect = new android.graphics.Rect();
+						stage.getWindow().getDecorView().getWindowVisibleDisplayFrame(rect);
+						int screenHeight = stage.getResources().getDisplayMetrics().heightPixels;
+						int height = screenHeight - rect.bottom;
+						if (height > 0) return (double) height;
+					}
+				}
+				return 0.0;
+			}
 			case DATE_YEAR:
 				return (double) Calendar.getInstance().get(Calendar.YEAR);
 			case DATE_MONTH:

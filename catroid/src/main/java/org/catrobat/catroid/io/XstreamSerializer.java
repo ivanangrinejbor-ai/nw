@@ -81,6 +81,7 @@ import org.catrobat.catroid.content.WhenNotificationReplyScript;
 import org.catrobat.catroid.content.WhenNotificationShownScript;
 import org.catrobat.catroid.content.XmlHeader;
 import org.catrobat.catroid.content.scripts.AdmobAppOpenClosedScript;
+import org.catrobat.catroid.content.scripts.AdmobAppOpenFailedScript;
 import org.catrobat.catroid.content.scripts.AdmobAppOpenLoadedScript;
 import org.catrobat.catroid.content.scripts.AdmobAppOpenShownScript;
 import org.catrobat.catroid.content.scripts.AdmobBannerFailedScript;
@@ -978,6 +979,7 @@ public final class XstreamSerializer {
         xstream.alias("brick", AdmobRewardedRewardEventBrick.class);
         xstream.alias("brick", AdmobRewardedClosedEventBrick.class);
         xstream.alias("brick", AdmobAppOpenLoadedEventBrick.class);
+        xstream.alias("brick", AdmobAppOpenFailedEventBrick.class);
         xstream.alias("brick", AdmobAppOpenShownEventBrick.class);
         xstream.alias("brick", AdmobAppOpenClosedEventBrick.class);
 
@@ -997,6 +999,7 @@ public final class XstreamSerializer {
         xstream.alias("script", AdmobRewardedRewardScript.class);
         xstream.alias("script", AdmobRewardedClosedScript.class);
         xstream.alias("script", AdmobAppOpenLoadedScript.class);
+        xstream.alias("script", AdmobAppOpenFailedScript.class);
         xstream.alias("script", AdmobAppOpenShownScript.class);
         xstream.alias("script", AdmobAppOpenClosedScript.class);
 

@@ -41,6 +41,7 @@ import org.catrobat.catroid.sensing.ColorAtXYDetection;
 import org.catrobat.catroid.sensing.ColorCollisionDetection;
 import org.catrobat.catroid.sensing.ColorEqualsColor;
 import org.catrobat.catroid.admob.AdMobManager;
+import org.catrobat.catroid.common.NewCatroidHttpManager;
 import org.catrobat.catroid.stage.StageActivity;
 import org.catrobat.catroid.stage.StageListener;
 import org.catrobat.catroid.utils.lunoscript.Interpreter;
@@ -57,6 +58,7 @@ import org.luaj.vm2.lib.jse.JsePlatform;
 
 import java.io.File;
 import org.catrobat.catroid.utils.NewCatroidNotificationManager;
+import org.catrobat.catroid.utils.NewCatroidMqttManager;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.io.Serializable;
@@ -1738,6 +1740,186 @@ public class FormulaElement implements Serializable {
                 }
                 return false;
             }
+            case CAMERA_X: {
+                StageListener listener = StageActivity.getActiveStageListener();
+                return listener != null ? (double) listener.getCameraPositionX() : 0.0;
+            }
+            case CAMERA_Y: {
+                StageListener listener = StageActivity.getActiveStageListener();
+                return listener != null ? (double) listener.getCameraPositionY() : 0.0;
+            }
+            case CAMERA_ROTATION: {
+                StageListener listener = StageActivity.getActiveStageListener();
+                return listener != null ? (double) listener.getCameraRotation() : 0.0;
+            }
+            case CAMERA_ZOOM: {
+                StageListener listener = StageActivity.getActiveStageListener();
+                return listener != null ? (double) listener.getCameraZoom() : 1.0;
+            }
+            case CHAR_TO_UNICODE: {
+                try {
+                    if (arg0 == null) return 0.0;
+                    String str = String.valueOf(arg0);
+                    if (str.isEmpty()) return 0.0;
+                    return (double) str.codePointAt(0);
+                } catch (Exception e) {
+                    return 0.0;
+                }
+            }
+            case UNICODE_TO_CHAR: {
+                try {
+                    if (arg0 == null) return "";
+                    String valStr = String.valueOf(arg0).trim();
+                    if (valStr.isEmpty()) return "";
+                    int codePoint;
+                    String lowerStr = valStr.toLowerCase();
+                    if (lowerStr.startsWith("u+") || lowerStr.startsWith("\\u")) {
+                        codePoint = Integer.parseInt(valStr.substring(2), 16);
+                    } else if (lowerStr.startsWith("u")) {
+                        codePoint = Integer.parseInt(valStr.substring(1), 16);
+                    } else if (lowerStr.startsWith("0x")) {
+                        codePoint = Integer.parseInt(valStr.substring(2), 16);
+                    } else {
+                        try {
+                            codePoint = (int) Double.parseDouble(valStr);
+                        } catch (NumberFormatException nfe) {
+                            codePoint = Integer.parseInt(valStr, 16);
+                        }
+                    }
+                    if (Character.isValidCodePoint(codePoint)) {
+                        return new String(Character.toChars(codePoint));
+                    }
+                    return "";
+                } catch (Exception e) {
+                    return "";
+                }
+            }
+            case UNESCAPE_UTF: {
+                try {
+                    if (arg0 == null) return "";
+                    String str = String.valueOf(arg0);
+                    if (str.isEmpty()) return "";
+                    StringBuilder sb = new StringBuilder();
+                    int i = 0;
+                    int len = str.length();
+                    while (i < len) {
+                        char c = str.charAt(i);
+                        if (c == '\\' && i + 5 < len && (str.charAt(i + 1) == 'u' || str.charAt(i + 1) == 'U')) {
+                            String hex = str.substring(i + 2, i + 6);
+                            try {
+                                sb.append((char) Integer.parseInt(hex, 16));
+                                i += 6;
+                                continue;
+                            } catch (NumberFormatException ignored) { }
+                        } else if ((c == 'u' || c == 'U') && i + 4 < len) {
+                            boolean prevIsLetterOrDigit = (i > 0) && Character.isLetterOrDigit(str.charAt(i - 1));
+                            if (!prevIsLetterOrDigit) {
+                                String hex = str.substring(i + 1, i + 5);
+                                try {
+                                    sb.append((char) Integer.parseInt(hex, 16));
+                                    i += 5;
+                                    continue;
+                                } catch (NumberFormatException ignored) { }
+                            }
+                        }
+                        sb.append(c);
+                        i++;
+                    }
+                    return sb.toString();
+                } catch (Exception e) {
+                    return String.valueOf(arg0);
+                }
+            }
+            case FILE_LAST_MODIFIED: {
+                java.io.File file = scope.getProject() != null
+                        ? scope.getProject().getFile(String.valueOf(arg0)) : null;
+                if (file == null || !file.exists()) return 0.0;
+                return (double) file.lastModified();
+            }
+            case FILE_MD5: {
+                java.io.File file = scope.getProject() != null
+                        ? scope.getProject().getFile(String.valueOf(arg0)) : null;
+                if (file != null && file.exists()) {
+                    return org.catrobat.catroid.utils.HashUtils.hashFile(file, "MD5");
+                }
+                return "";
+            }
+            case FILE_SHA256: {
+                java.io.File file = scope.getProject() != null
+                        ? scope.getProject().getFile(String.valueOf(arg0)) : null;
+                if (file != null && file.exists()) {
+                    return org.catrobat.catroid.utils.HashUtils.hashFile(file, "SHA-256");
+                }
+                return "";
+            }
+            case SHA256:
+                return org.catrobat.catroid.utils.HashUtils.hashString(String.valueOf(arg0), "SHA-256");
+            case CLIPBOARD_TEXT: {
+                try {
+                    Object cmService = CatroidApplication.getAppContext()
+                            .getSystemService(android.content.Context.CLIPBOARD_SERVICE);
+                    if (cmService instanceof android.content.ClipboardManager) {
+                        android.content.ClipboardManager clipboard = (android.content.ClipboardManager) cmService;
+                        android.content.ClipData clip = clipboard.getPrimaryClip();
+                        if (clip != null && clip.getItemCount() > 0) {
+                            android.content.ClipData.Item item = clip.getItemAt(0);
+                            CharSequence text = item != null ? item.getText() : null;
+                            if (text != null) return text.toString();
+                        }
+                    }
+                } catch (Exception e) {
+                    return "";
+                }
+                return "";
+            }
+            case HTTP_RESPONSE_TEXT:
+                return NewCatroidHttpManager.INSTANCE.getResponseText(String.valueOf(arg0));
+            case HTTP_RESPONSE_CODE:
+                return (double) NewCatroidHttpManager.INSTANCE.getResponseCode(String.valueOf(arg0));
+            case HTTP_RESPONSE_HEADER:
+                return NewCatroidHttpManager.INSTANCE.getResponseHeader(String.valueOf(arg0), String.valueOf(arg1));
+            case MQTT_MESSAGE:
+                return NewCatroidMqttManager.INSTANCE.getLatestMessage(String.valueOf(arg0));
+            case PT_SAMPLE:
+                return (double) MLBridge.nativeSampleCategorical(String.valueOf(arg0));
+            case MEDIA_DURATION: {
+                java.io.File file = scope.getProject() != null
+                        ? scope.getProject().getFile(String.valueOf(arg0)) : null;
+                if (file == null || !file.exists()) return 0.0;
+                android.media.MediaMetadataRetriever retriever = new android.media.MediaMetadataRetriever();
+                try {
+                    retriever.setDataSource(file.getAbsolutePath());
+                    String timeStr = retriever.extractMetadata(
+                            android.media.MediaMetadataRetriever.METADATA_KEY_DURATION);
+                    return Double.parseDouble(timeStr) / 1000.0;
+                } catch (Exception e) {
+                    return 0.0;
+                } finally {
+                    try {
+                        retriever.release();
+                    } catch (Exception ignore) { }
+                }
+            }
+            case IMAGE_WIDTH: {
+                java.io.File file = scope.getProject() != null
+                        ? scope.getProject().getFile(String.valueOf(arg0)) : null;
+                if (file == null || !file.exists()) return 0.0;
+                android.graphics.BitmapFactory.Options options = new android.graphics.BitmapFactory.Options();
+                options.inJustDecodeBounds = true;
+                android.graphics.BitmapFactory.decodeFile(file.getAbsolutePath(), options);
+                return (double) options.outWidth;
+            }
+            case IMAGE_HEIGHT: {
+                java.io.File file = scope.getProject() != null
+                        ? scope.getProject().getFile(String.valueOf(arg0)) : null;
+                if (file == null || !file.exists()) return 0.0;
+                android.graphics.BitmapFactory.Options options = new android.graphics.BitmapFactory.Options();
+                options.inJustDecodeBounds = true;
+                android.graphics.BitmapFactory.decodeFile(file.getAbsolutePath(), options);
+                return (double) options.outHeight;
+            }
+            case JOINNUMBER:
+                return interpretFunctionJoinNumber(scope, leftChild, rightChild);
 
             case SHA_224:
                 return CryptoFormulaHelper.sha("SHA-224", String.valueOf(arg0));
@@ -2202,6 +2384,12 @@ public class FormulaElement implements Serializable {
 
     private static String interpretFunctionJoin(Scope scope, FormulaElement leftChild, FormulaElement rightChild) {
         return interpretFunctionString(leftChild, scope).concat(interpretFunctionString(rightChild, scope));
+    }
+
+    private static String interpretFunctionJoinNumber(Scope scope, FormulaElement leftChild, FormulaElement rightChild) {
+        String numb1 = interpretFunctionString(leftChild, scope);
+        String numb2 = interpretFunctionString(rightChild, scope);
+        return numb1 + numb2;
     }
 
     private static String interpretFunctionJoin3(Scope scope, FormulaElement leftChild, FormulaElement rightChild, List<FormulaElement> additionalChildren) {

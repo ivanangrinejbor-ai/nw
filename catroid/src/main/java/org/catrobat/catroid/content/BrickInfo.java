@@ -423,6 +423,8 @@ public final class BrickInfo {
         addEn(AdmobAppOpenClosedEventBrick.class, "Event: runs when an App Open ad is closed.");
         add(AdmobAppOpenLoadedEventBrick.class, "Событие: выполняется, когда реклама App Open загружена.");
         addEn(AdmobAppOpenLoadedEventBrick.class, "Event: runs when an App Open ad is loaded.");
+        add(AdmobAppOpenFailedEventBrick.class, "Событие: выполняется, когда рекламу App Open не удалось загрузить.");
+        addEn(AdmobAppOpenFailedEventBrick.class, "Event: runs when an App Open ad fails to load.");
         add(AdmobAppOpenShownEventBrick.class, "Событие: выполняется, когда реклама App Open показана.");
         addEn(AdmobAppOpenShownEventBrick.class, "Event: runs when an App Open ad is shown.");
         add(AdmobBannerFailedEventBrick.class, "Событие: выполняется, когда баннер не удалось загрузить.");

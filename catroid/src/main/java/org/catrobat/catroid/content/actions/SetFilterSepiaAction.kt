@@ -48,7 +48,7 @@ class SetFilterSepiaAction : TemporalAction() {
 
         for (y in 0 until h) {
             for (x in 0 until w) {
-                Color.argb8888ToColor(temp, src.getPixel(x, y))
+                Color.rgba8888ToColor(temp, src.getPixel(x, y))
                 val r = temp.r
                 val g = temp.g
                 val b = temp.b
@@ -58,7 +58,7 @@ class SetFilterSepiaAction : TemporalAction() {
                 temp.r = r + (sr - r) * intensityVal
                 temp.g = g + (sg - g) * intensityVal
                 temp.b = b + (sb - b) * intensityVal
-                dst.drawPixel(x, y, Color.argb8888(temp))
+                dst.drawPixel(x, y, Color.rgba8888(temp))
             }
         }
 

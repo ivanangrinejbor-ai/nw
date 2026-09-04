@@ -8,6 +8,7 @@ import org.catrobat.catroid.apkbuildV3.ProjectEncryptorV3
 import org.catrobat.catroid.common.Constants
 import org.catrobat.catroid.io.XstreamSerializer
 import org.catrobat.catroid.content.Project
+import org.catrobat.catroid.io.DedupManifestApplier
 import org.catrobat.catroid.io.ZipArchiver
 import java.io.File
 
@@ -58,6 +59,11 @@ class ProjectLoaderV3(private val context: Context) {
             decryptedZip.delete()
             onProgress?.invoke(0.8f)
 
+            val restored = DedupManifestApplier.apply(extractDir)
+            if (restored > 0) {
+                Log.i(tag, "Restored $restored deduplicated file(s)")
+            }
+
             val project = XstreamSerializer.getInstance().loadProject(extractDir, context)
                 ?: return null
             onProgress?.invoke(1f)
@@ -99,6 +105,11 @@ class ProjectLoaderV3(private val context: Context) {
             }
 
             ZipArchiver().unzip(decryptedZip, extractDir)
+
+            val restored = DedupManifestApplier.apply(extractDir)
+            if (restored > 0) {
+                Log.i(tag, "Restored $restored deduplicated file(s) (light load)")
+            }
 
             val project = XstreamSerializer.getInstance().loadProject(extractDir, context)
                 ?: return null

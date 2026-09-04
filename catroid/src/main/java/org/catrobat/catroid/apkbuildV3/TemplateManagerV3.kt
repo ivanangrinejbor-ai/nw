@@ -11,15 +11,46 @@ object TemplateManagerV3 {
     private const val TAG = "TemplateManagerV3"
     private const val TEMPLATE_RUNTIME_ASSET = "template_runtime.apk"
     private const val TEMPLATE_RUNTIME_URL =
-        "https://raw.githubusercontent.com/ivanangrinejbor-ai/Neocatroid-Template/main/template_runtime.apk"
+        "https://raw.githubusercontent.com/Ivproduction-dev/Neocatroid-Template/main/template_runtime.apk"
     private const val TEMPLATE_RUNTIME_MEDIA_URL =
-        "https://media.githubusercontent.com/media/ivanangrinejbor-ai/Neocatroid-Template/main/template_runtime.apk"
+        "https://media.githubusercontent.com/media/Ivproduction-dev/Neocatroid-Template/main/template_runtime.apk"
     private const val LFS_POINTER_PREFIX = "version https://git-lfs.github.com/spec/v1"
     private const val CACHE_DIR_NAME = "v3_template"
     private const val CACHE_FILE_NAME = "template_runtime_v3.apk"
     private const val ETAG_FILE_NAME = "template_runtime_v3.apk.etag"
     private const val DOWNLOAD_BUFFER_SIZE = 64 * 1024
     private const val FALLBACK_TEMPLATE_SIZE = 200L * 1024 * 1024
+
+    data class TemplateCacheStatus(val cached: Boolean, val sizeBytes: Long)
+
+    enum class TemplateFailure { NO_SPACE, NETWORK, BAD_FILE }
+
+    sealed interface TemplateOutcome {
+        data class Ready(val file: File, val updated: Boolean) : TemplateOutcome
+        data class Failed(val failure: TemplateFailure, val detail: String, val cachedFile: File?) : TemplateOutcome
+    }
+
+    private data class FetchResult(val success: Boolean, val etag: String, val detail: String)
+
+    fun getCacheStatus(context: Context): TemplateCacheStatus {
+        val cached = getCachedTemplate(context)
+        return if (cached != null && isZip(cached)) {
+            TemplateCacheStatus(true, cached.length())
+        } else {
+            TemplateCacheStatus(false, 0L)
+        }
+    }
+
+    fun ensureCachedTemplate(
+        context: Context,
+        force: Boolean = false,
+        onProgress: ((Float, String) -> Unit)? = null
+    ): TemplateOutcome {
+        val cached = getCachedTemplate(context)
+        val validCache = if (cached != null && isZip(cached)) cached else null
+        if (!force && validCache != null) return TemplateOutcome.Ready(validCache, false)
+        return downloadTemplate(context, validCache, onProgress)
+    }
 
     fun prepareBaseApk(
         context: Context,
@@ -32,19 +63,17 @@ object TemplateManagerV3 {
 
         val cached = getCachedTemplate(context)
         if (cached != null && isZip(cached)) {
-            if (isTemplateFresh(cached)) {
+            if (copyValidTemplate(cached, target)) {
                 Log.d(TAG, "Использую кэшированный шаблон (${cached.length() / (1024 * 1024)} MB)")
-                if (copyValidTemplate(cached, target)) {
-                    return target
-                }
-                reasons += "кэшированный шаблон не является корректным APK"
-            } else {
-                Log.d(TAG, "Шаблон устарел, скачиваю новую версию")
+                return target
             }
+            reasons += "кэшированный шаблон не является корректным APK"
         }
 
-        onProgress?.invoke(0f, "Скачивание runtime-шаблона...")
-        val downloaded = downloadTemplate(context, onProgress)
+        val outcome = downloadTemplate(context, null) { p, msg ->
+            onProgress?.invoke(p, msg)
+        }
+        val downloaded = (outcome as? TemplateOutcome.Ready)?.file
         if (downloaded != null) {
             if (!hasEnoughSpace(workDir, downloaded.length() + 64L * 1024 * 1024)) {
                 reasons += "недостаточно места в ${workDir.absolutePath} для копирования шаблона"
@@ -55,14 +84,8 @@ object TemplateManagerV3 {
                 reasons += "скачанный шаблон не является корректным APK"
             }
         } else {
-            reasons += "не удалось скачать шаблон с GitHub"
-            if (cached != null && isZip(cached) &&
-                hasEnoughSpace(workDir, cached.length() + 64L * 1024 * 1024) &&
-                copyValidTemplate(cached, target)
-            ) {
-                Log.w(TAG, "Офлайн: использую устаревший кэш шаблона")
-                return target
-            }
+            val failure = outcome as TemplateOutcome.Failed
+            reasons += "не удалось скачать шаблон с GitHub (${failure.failure}: ${failure.detail})"
         }
 
         val templateSize = runCatching {
@@ -118,23 +141,11 @@ object TemplateManagerV3 {
         return if (file.exists() && file.length() > 0) file else null
     }
 
-    private fun isTemplateFresh(cached: File): Boolean {
-        val etagFile = File(cached.parentFile, ETAG_FILE_NAME)
-        val stored = runCatching { etagFile.readText().trim() }.getOrNull()
-        if (stored.isNullOrEmpty()) return false
-        return try {
-            val client = client(10, 10)
-            val resp = client.newCall(Request.Builder().url(TEMPLATE_RUNTIME_MEDIA_URL).head().build()).execute()
-            resp.use {
-                it.isSuccessful && it.header("ETag") == stored
-            }
-        } catch (e: Exception) {
-            Log.d(TAG, "HEAD-проверка шаблона недоступна, использую кэш: ${e.message}")
-            true
-        }
-    }
-
-    private fun downloadTemplate(context: Context, onProgress: ((Float, String) -> Unit)?): File? {
+    private fun downloadTemplate(
+        context: Context,
+        previousCache: File?,
+        onProgress: ((Float, String) -> Unit)?
+    ): TemplateOutcome {
         val cacheDir = File(context.filesDir, CACHE_DIR_NAME)
         cacheDir.mkdirs()
         val tmp = File(cacheDir, "$CACHE_FILE_NAME.download")
@@ -143,54 +154,65 @@ object TemplateManagerV3 {
 
         if (!hasEnoughSpace(cacheDir, FALLBACK_TEMPLATE_SIZE + 64L * 1024 * 1024)) {
             Log.e(TAG, "Недостаточно места для скачивания шаблона в ${cacheDir.absolutePath}")
-            return null
+            return TemplateOutcome.Failed(TemplateFailure.NO_SPACE, "", previousCache)
         }
 
         return try {
-            var etag = downloadToFile(client(15, 300), TEMPLATE_RUNTIME_URL, tmp, onProgress)
-            if (etag == null) {
+            var fetch = fetchToFile(client(15, 300), TEMPLATE_RUNTIME_URL, tmp, onProgress)
+            if (!fetch.success) {
                 tmp.delete()
-                return null
+                return TemplateOutcome.Failed(TemplateFailure.NETWORK, fetch.detail, previousCache)
             }
             if (isLfsPointer(tmp)) {
                 Log.d(TAG, "raw URL вернул LFS-указатель, скачиваю с media.githubusercontent.com")
                 tmp.delete()
-                etag = downloadToFile(client(15, 300), TEMPLATE_RUNTIME_MEDIA_URL, tmp, onProgress)
-                if (etag == null) {
+                fetch = fetchToFile(client(15, 300), TEMPLATE_RUNTIME_MEDIA_URL, tmp, onProgress)
+                if (!fetch.success) {
                     tmp.delete()
-                    return null
+                    return TemplateOutcome.Failed(TemplateFailure.NETWORK, fetch.detail, previousCache)
                 }
             }
             if (!isZip(tmp)) {
                 Log.e(TAG, "Скачанный файл не является ZIP/APK")
                 tmp.delete()
-                return null
+                return TemplateOutcome.Failed(TemplateFailure.BAD_FILE, "", previousCache)
+            }
+            val storedEtag = runCatching { etagFile.readText().trim() }.getOrNull().orEmpty()
+            if (previousCache != null && previousCache.exists() &&
+                fetch.etag.isNotEmpty() && fetch.etag == storedEtag &&
+                tmp.length() == previousCache.length()
+            ) {
+                tmp.delete()
+                return TemplateOutcome.Ready(previousCache, false)
             }
             if (finalFile.exists()) finalFile.delete()
-            tmp.renameTo(finalFile)
-            runCatching { etagFile.writeText(etag.orEmpty()) }
-            finalFile
+            if (!tmp.renameTo(finalFile)) {
+                tmp.copyTo(finalFile, overwrite = true)
+                tmp.delete()
+            }
+            runCatching { etagFile.writeText(fetch.etag) }
+            TemplateOutcome.Ready(finalFile, true)
         } catch (e: Exception) {
             Log.e(TAG, "Ошибка скачивания шаблона", e)
             tmp.delete()
-            null
+            TemplateOutcome.Failed(TemplateFailure.NETWORK, e.message.orEmpty(), previousCache)
         }
     }
 
-    private fun downloadToFile(
+    private fun fetchToFile(
         client: OkHttpClient,
         url: String,
         target: File,
         onProgress: ((Float, String) -> Unit)?
-    ): String? {
+    ): FetchResult {
         val request = Request.Builder().url(url).build()
         return try {
             client.newCall(request).execute().use { resp ->
                 if (!resp.isSuccessful) {
                     Log.e(TAG, "Скачивание $url: HTTP ${resp.code}")
-                    return null
+                    return FetchResult(false, "", "HTTP ${resp.code}")
                 }
-                val body = resp.body ?: return null
+                val body = resp.body ?: return FetchResult(false, "", "HTTP ${resp.code}")
                 val total = body.contentLength()
                 target.outputStream().use { out ->
                     body.byteStream().use { input ->
@@ -210,11 +232,11 @@ object TemplateManagerV3 {
                         }
                     }
                 }
-                resp.header("ETag")
+                FetchResult(true, resp.header("ETag").orEmpty(), "")
             }
         } catch (e: Exception) {
             Log.e(TAG, "Ошибка скачивания $url", e)
-            null
+            FetchResult(false, "", e.message.orEmpty())
         }
     }
 
