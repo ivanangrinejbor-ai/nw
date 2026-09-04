@@ -123,7 +123,7 @@ public class InternToExternGenerator {
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.JOIN.name(), R.string.formula_editor_function_join);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.JOIN3.name(), R.string.formula_editor_function_join3);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.DISTANCE.name(), R.string.formula_editor_function_distance);
-		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.JOINNUMBER.name(), R.string.formula_editor_function_joinnumber);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put("JOINNUMBER", R.string.formula_editor_function_joinnumber);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.REGEX.name(), R.string.formula_editor_function_regex);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.FLATTEN.name(), R.string.formula_editor_function_flatten);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.CONNECT.name(), R.string.formula_editor_function_connect);
@@ -383,7 +383,7 @@ public class InternToExternGenerator {
 				R.string.formula_editor_sensor_stage_width);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.STAGE_HEIGHT.name(),
 				R.string.formula_editor_sensor_stage_height);
-		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.BATTARY.name(),
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put("BATTARY",
 				R.string.formula_editor_sensor_battary);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.MICRO.name(),
 				R.string.formula_editor_sensor_micro);
@@ -395,7 +395,7 @@ public class InternToExternGenerator {
 				R.string.formula_editor_sensor_port);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.INTERNET.name(),
 				R.string.formula_editor_sensor_internet);
-		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.ARCH.name(),
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put("ARCH",
 				R.string.formula_editor_sensor_architecture);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.JSON_GET.name(), R.string.formula_editor_function_json_get);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.JSON_SET.name(), R.string.formula_editor_function_json_set);
@@ -409,6 +409,7 @@ public class InternToExternGenerator {
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.LIST_AVERAGE.name(), R.string.formula_editor_function_list_average);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.LIST_MIN.name(), R.string.formula_editor_function_list_min);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.LIST_MAX.name(), R.string.formula_editor_function_list_max);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.LIST_RANDOM_ITEM.name(), R.string.formula_editor_function_list_random);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.RGB_TO_HEX.name(), R.string.formula_editor_function_rgb_to_hex);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.HEX_TO_RGB.name(), R.string.formula_editor_function_hex_to_rgb);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.TOUCHING_SPRITE.name(), R.string.formula_editor_sensor_touching_sprite);

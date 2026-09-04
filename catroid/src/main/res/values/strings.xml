@@ -2719,6 +2719,8 @@
 <string formatted="false" name="formula_editor_function_list_min_parameter">(list)</string>
 <string formatted="false" name="formula_editor_function_list_max">maximum of list</string>
 <string formatted="false" name="formula_editor_function_list_max_parameter">(list)</string>
+<string formatted="false" name="formula_editor_function_list_random">random item of list</string>
+<string formatted="false" name="formula_editor_function_list_random_parameter">(list)</string>
 <string formatted="false" name="formula_editor_function_rgb_to_hex">RGB to hex</string>
 <string formatted="false" name="formula_editor_function_rgb_to_hex_parameter">(red, green, blue)</string>
 <string formatted="false" name="formula_editor_function_hex_to_rgb">hex to RGB</string>
@@ -3065,6 +3067,13 @@
 <string formatted="false" name="brick_write_variable_to_file_bottom">to file</string>
 <string formatted="false" name="brick_write_variable_to_file_default_value">variable.txt</string>
 <string formatted="false" name="brick_write_variable_to_file_success">"Data successfully written to %1$s"</string>
+<string formatted="false" name="brick_append_to_file">Append text to file</string>
+<string formatted="false" name="brick_append_to_file_name">File name</string>
+<string formatted="false" name="brick_append_to_file_text">Text</string>
+<string formatted="false" name="brick_append_to_file_success">"Data successfully appended to %1$s"</string>
+<string formatted="false" name="brick_list_files_in_folder">List files in folder</string>
+<string formatted="false" name="brick_list_files_in_folder_folder">Folder in Downloads</string>
+<string formatted="false" name="brick_list_files_in_folder_into">into list</string>
 <string formatted="false" name="brick_read_variable_from_file_top">Read variable</string>
 <string formatted="false" name="brick_read_variable_from_file_center">from file</string>
 <string formatted="false" name="brick_read_variable_from_file_bottom">and</string>
@@ -3087,6 +3096,7 @@
 <string formatted="false" name="brick_store_in">and store result in variable</string>
 <string formatted="false" name="brick_sort_list">Sort list</string>
 <string formatted="false" name="brick_reverse_list">Reverse list</string>
+<string formatted="false" name="brick_shuffle_list">Shuffle list</string>
 <string formatted="false" name="brick_break">Break loop</string>
 <string formatted="false" name="brick_continue">Continue with next iteration</string>
 <string formatted="false" name="brick_when_variable_changed">When variable changes</string>

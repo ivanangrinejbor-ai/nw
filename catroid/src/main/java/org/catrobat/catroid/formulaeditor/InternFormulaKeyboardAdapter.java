@@ -399,9 +399,6 @@ case R.string.formula_editor_function_state_time:
 						STRING, "lavanda");
 			case R.string.formula_editor_sensor_fps:
 				return buildSensor(Sensors.FPS);
-			case R.string.formula_editor_function_joinnumber:
-				return buildDoubleParameterFunction(Functions.JOINNUMBER, NUMBER, "1",
-						NUMBER, "1");
 			case R.string.formula_editor_function_regex:
 				return buildDoubleParameterFunction(Functions.REGEX, STRING, " an? ([^ .]+)",
 						STRING, "I am a panda.");
@@ -865,6 +862,8 @@ case R.string.formula_editor_function_state_time:
 				return buildSingleParameterFunction(Functions.LIST_MIN, USER_LIST, "list");
 			case R.string.formula_editor_function_list_max:
 				return buildSingleParameterFunction(Functions.LIST_MAX, USER_LIST, "list");
+			case R.string.formula_editor_function_list_random:
+				return buildSingleParameterFunction(Functions.LIST_RANDOM_ITEM, USER_LIST, "list");
 			case R.string.formula_editor_function_rgb_to_hex:
 				return buildTripleParameterFunction(Functions.RGB_TO_HEX, NUMBER, "255", NUMBER, "128", NUMBER, "0");
 			case R.string.formula_editor_function_hex_to_rgb:
@@ -1069,8 +1068,6 @@ case R.string.formula_editor_function_state_time:
 				return buildSensor(Sensors.STAGE_WIDTH);
 			case R.string.formula_editor_sensor_stage_height:
 				return buildSensor(Sensors.STAGE_HEIGHT);
-			case R.string.formula_editor_sensor_battary:
-				return buildSensor(Sensors.BATTARY);
 			case R.string.formula_editor_sensor_micro:
 				return buildSensor(Sensors.MICRO);
             case R.string.formula_editor_sensor_micro_freq:
@@ -1081,8 +1078,6 @@ case R.string.formula_editor_function_state_time:
 				return buildSensor(Sensors.PORT);
 			case R.string.formula_editor_sensor_internet:
 				return buildSensor(Sensors.INTERNET);
-			case R.string.formula_editor_sensor_architecture:
-				return buildSensor(Sensors.ARCH);
 
 			case R.string.formula_editor_function_get_id_of_detected_object:
 				return buildSingleParameterFunction(Functions.ID_OF_DETECTED_OBJECT, NUMBER, "1");

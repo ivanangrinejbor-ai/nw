@@ -23,8 +23,6 @@
 package org.catrobat.catroid.formulaeditor;
 
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.res.Configuration;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -32,7 +30,6 @@ import android.hardware.SensorEventListener;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.os.BatteryManager;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.util.Log;
@@ -61,7 +58,6 @@ import org.catrobat.catroid.devices.mindstorms.ev3.LegoEV3;
 import org.catrobat.catroid.devices.mindstorms.nxt.LegoNXT;
 import org.catrobat.catroid.nfc.NfcHandler;
 import org.catrobat.catroid.stage.StageActivity;
-import org.catrobat.catroid.ui.MainMenuActivity;
 import org.catrobat.catroid.utils.TouchUtil;
 import org.catrobat.catroid.content.VolumeManager;
 
@@ -464,14 +460,7 @@ public final class SensorHandler implements SensorEventListener, SensorCustomEve
 				return (double) ScreenValues.currentScreenResolution.getWidth();
 			case STAGE_HEIGHT:
 				return (double) ScreenValues.currentScreenResolution.getHeight();
-			case BATTARY:
-				IntentFilter intentFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
-				Intent batteryStatus = CatroidApplication.getAppContext().registerReceiver(null, intentFilter);
-				if (batteryStatus == null) return 0;
-				int level = batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
-				int scale = batteryStatus.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
-				if (level < 0 || scale <= 0) return 0;
-				return (int) ((level * 100) / (float) scale);
+
 		case MICRO:
 			Integer volume = VolumeManager.Companion.getVolume();
 			return (double) (volume != null ? volume : 0);
@@ -484,8 +473,6 @@ public final class SensorHandler implements SensorEventListener, SensorCustomEve
 			return (double) (frequency != null ? frequency : 0f);
 			case INTERNET:
 				return NetworkUtils.isInternetAvailable();
-			case ARCH:
-				return MainMenuActivity.Companion.getCpuArchitecture();
 		default:
 			return Objects.requireNonNull(instance.sensorValueMap.getOrDefault(sensor, 0.0d));
 		}

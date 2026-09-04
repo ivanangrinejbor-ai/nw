@@ -164,7 +164,7 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 	private static final List<Integer> STRING_FUNCTIONS = asList(R.string.formula_editor_function_length,
 			R.string.formula_editor_function_letter,
 			R.string.formula_editor_function_subtext, R.string.formula_editor_function_upper, R.string.formula_editor_function_lower, R.string.formula_editor_function_reverse, R.string.formula_editor_function_var, R.string.formula_editor_function_var_name, R.string.formula_editor_function_var_value, R.string.formula_editor_function_join,
-			R.string.formula_editor_function_join3, R.string.formula_editor_function_replace, R.string.formula_editor_function_contains_str, R.string.formula_editor_function_repeat, R.string.formula_editor_function_random_str, R.string.formula_editor_function_distance, R.string.formula_editor_function_joinnumber, R.string.formula_editor_function_regex,
+			R.string.formula_editor_function_join3, R.string.formula_editor_function_replace, R.string.formula_editor_function_contains_str, R.string.formula_editor_function_repeat, 			R.string.formula_editor_function_random_str, R.string.formula_editor_function_distance, R.string.formula_editor_function_regex,
 			R.string.formula_editor_function_regex_assistant,
 			R.string.formula_editor_function_flatten, R.string.formula_editor_function_connect,
 			R.string.formula_editor_function_table_x, R.string.formula_editor_function_table_y, R.string.formula_editor_function_table_element,
@@ -194,7 +194,6 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 			R.string.formula_editor_function_repeat_parameter,
 			R.string.formula_editor_function_random_str_parameter,
 			R.string.formula_editor_function_distance_parameter,
-			R.string.formula_editor_function_joinnumber_parameter,
 			R.string.formula_editor_function_regex_parameter,
 			R.string.formula_editor_function_no_parameter,
 			R.string.formula_editor_function_flatten_parameter,
@@ -221,7 +220,8 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 			R.string.formula_editor_function_list_item, R.string.formula_editor_function_get_item, R.string.formula_editor_function_contains,
 			R.string.formula_editor_function_index_of_item, R.string.formula_editor_function_flatten, R.string.formula_editor_function_connect, R.string.formula_editor_function_find,
 			R.string.formula_editor_function_list_slice, R.string.formula_editor_function_list_sum, R.string.formula_editor_function_list_average,
-			R.string.formula_editor_function_list_min, R.string.formula_editor_function_list_max);
+			R.string.formula_editor_function_list_min, R.string.formula_editor_function_list_max,
+			R.string.formula_editor_function_list_random);
 	private static final List<Integer> LIST_PARAMS = asList(R.string.formula_editor_function_number_of_items_parameter,
 			R.string.formula_editor_function_list_item_parameter,
 			R.string.formula_editor_function_get_item_parameter,
@@ -234,7 +234,8 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 			R.string.formula_editor_function_list_sum_parameter,
 			R.string.formula_editor_function_list_average_parameter,
 			R.string.formula_editor_function_list_min_parameter,
-			R.string.formula_editor_function_list_max_parameter);
+			R.string.formula_editor_function_list_max_parameter,
+			R.string.formula_editor_function_list_random_parameter);
 
     private static final List<Integer> PT_FUNCTIONS = asList(
             R.string.formula_pt_argmax, R.string.formula_pt_value, R.string.formula_pt_valuend,
@@ -494,8 +495,8 @@ public class CategoryListFragment extends Fragment implements CategoryListRVAdap
 	private static final List<Integer> SENSORS_DEFAULT = asList(R.string.formula_editor_sensor_loudness,
 			R.string.formula_editor_function_touched, R.string.formula_editor_sensor_stage_width,
 			R.string.formula_editor_sensor_stage_height, R.string.formula_editor_sensor_micro, R.string.formula_editor_sensor_micro_freq,
-            R.string.formula_editor_sensor_ip, R.string.formula_editor_sensor_port, R.string.formula_editor_sensor_battary,
-			R.string.formula_editor_sensor_internet, R.string.formula_editor_sensor_architecture, R.string.formula_editor_sensor_fps,
+            R.string.formula_editor_sensor_ip, R.string.formula_editor_sensor_port,
+			R.string.formula_editor_sensor_internet, R.string.formula_editor_sensor_fps,
 			R.string.formula_editor_sensor_touching_sprite, R.string.formula_editor_sensor_shake_intensity);
 	private static final List<Integer> OBJECT_COLOR_COLLISION =
 			asList(R.string.formula_editor_function_collides_with_color, R.string.formula_editor_function_color_touches_color);

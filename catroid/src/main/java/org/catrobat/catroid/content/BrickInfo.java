@@ -224,6 +224,8 @@ public final class BrickInfo {
         add(ReadVariableFromFileBrick.class, "Читает переменную из файла в \"Загрузках\" пользователя");
         add(WriteToFilesBrick.class, "Сохраняет переменную в файлы проекта");
         add(ReadFromFilesBrick.class, "Читает переменную из файлов проекта");
+        add(AppendToFileBrick.class, "Дописывает текст в конец файла в \"Загрузках\" пользователя. Если файла нет, он будет создан");
+        add(ListFilesInFolderBrick.class, "Записывает имена файлов из папки в \"Загрузках\" пользователя в список");
         add(DeleteFilesBrick.class, "Удаляет файл проекта ВАЖНО: может вызвать фатальную ошибку, если файла нет.");
         add(FileUrlBrick.class, "Сохраняет файл по ссылке в \"Загрузки\" пользователя");
         add(FilesUrlBrick.class, "Сохраняет файл по ссылке в файлы проекта");
@@ -553,6 +555,8 @@ public final class BrickInfo {
         addEn(SortListBrick.class, "Sorts a list in ascending or descending order.");
         add(ReverseListBrick.class, "Разворачивает список в обратном порядке.");
         addEn(ReverseListBrick.class, "Reverses the order of a list.");
+        add(ListShuffleBrick.class, "Перемешивает элементы списка в случайном порядке.");
+        addEn(ListShuffleBrick.class, "Shuffles list items in random order.");
         add(WhenVariableChangedBrick.class, "Срабатывает при изменении значения выбранной переменной.");
         addEn(WhenVariableChangedBrick.class, "Triggers when the selected variable changes value.");
         add(DeleteTableBrick.class, "Удаляет таблицу с указанным именем.");
@@ -1259,6 +1263,8 @@ public final class BrickInfo {
         addEn(ReadVariableFromFileBrick.class, "Reads a variable from a file in the user's Downloads");
         addEn(WriteToFilesBrick.class, "Saves a variable to project files");
         addEn(ReadFromFilesBrick.class, "Reads a variable from project files");
+        addEn(AppendToFileBrick.class, "Appends text to the end of a file in the user's Downloads. Creates the file if it does not exist");
+        addEn(ListFilesInFolderBrick.class, "Writes file names from a folder in the user's Downloads into a list");
         addEn(DeleteFilesBrick.class, "Deletes a project file IMPORTANT: may cause a fatal error if the file does not exist.");
         addEn(FileUrlBrick.class, "Saves a file from a URL to the user's Downloads");
         addEn(FilesUrlBrick.class, "Saves a file from a URL to project files");

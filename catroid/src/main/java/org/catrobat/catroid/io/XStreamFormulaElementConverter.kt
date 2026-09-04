@@ -44,6 +44,24 @@ import org.catrobat.catroid.formulaeditor.function.TouchFunctionProvider
 import java.util.EnumMap
 import java.util.List
 
+internal data class LegacyFormulaAlias(
+    val elementType: FormulaElement.ElementType,
+    val value: String
+)
+
+internal val LEGACY_FORMULA_ALIASES: Map<String, LegacyFormulaAlias> = mapOf(
+    "BATTARY" to LegacyFormulaAlias(FormulaElement.ElementType.FUNCTION, Functions.BATTERY_PERCENT.name),
+    "ARCH" to LegacyFormulaAlias(FormulaElement.ElementType.FUNCTION, Functions.CPU_ARCHITECTURE.name),
+    "JOINNUMBER" to LegacyFormulaAlias(FormulaElement.ElementType.FUNCTION, Functions.JOIN.name)
+)
+
+internal fun migrateLegacyFormulaElement(formulaElement: FormulaElement) {
+    LEGACY_FORMULA_ALIASES[formulaElement.value]?.let { alias ->
+        formulaElement.value = alias.value
+        formulaElement.type = alias.elementType
+    }
+}
+
 internal class XStreamFormulaElementConverter(
     mapper: Mapper?,
     reflectionProvider: ReflectionProvider?
@@ -75,6 +93,7 @@ internal class XStreamFormulaElementConverter(
         if (formulaElement.elementType == FormulaElement.ElementType.SENSOR) {
             formulaElement.value = replaceOldSensorNames(formulaElement)
         }
+        migrateLegacyFormulaElement(formulaElement)
         return formulaElement
     }
 

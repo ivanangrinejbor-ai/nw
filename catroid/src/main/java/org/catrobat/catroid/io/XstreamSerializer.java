@@ -438,6 +438,9 @@ public final class XstreamSerializer {
         xstream.alias("brick", Fast2DSetPositionBrick.class);
         xstream.alias("brick", Fast2DSetColorBrick.class);
         xstream.alias("brick", Fast2DSetCameraBrick.class);
+        xstream.alias("brick", AppendToFileBrick.class);
+        xstream.alias("brick", ListFilesInFolderBrick.class);
+        xstream.alias("brick", ListShuffleBrick.class);
         xstream.alias("brick", CreateBufferBrick.class);
         xstream.alias("brick", SetBufferModeBrick.class);
         xstream.alias("brick", SetBufferCamera3DBrick.class);

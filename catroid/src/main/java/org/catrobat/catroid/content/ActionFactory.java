@@ -1953,6 +1953,26 @@ public class ActionFactory extends Actions {
 		return action;
 	}
 
+	public Action createAppendToFileAction(Sprite sprite, SequenceAction sequence, Formula fileName,
+										  Formula text) {
+		AppendToFileAction action = Actions.action(AppendToFileAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setFileName(fileName);
+		action.setText(text);
+		return action;
+	}
+
+	public Action createListFilesInFolderAction(Sprite sprite, SequenceAction sequence, Formula folder,
+										  UserList userList) {
+		ListFilesInFolderAction action = Actions.action(ListFilesInFolderAction.class);
+		Scope scope = new Scope(ProjectManager.getInstance().getCurrentProject(), sprite, sequence);
+		action.setScope(scope);
+		action.setFolder(folder);
+		action.setUserList(userList);
+		return action;
+	}
+
 	public Action createPostWebRequestAction(Sprite sprite, SequenceAction sequence,
 			Formula url, Formula header, Formula body, UserVariable userVariable) {
 		PostWebRequestAction action = Actions.action(PostWebRequestAction.class);
@@ -2169,6 +2189,12 @@ public class ActionFactory extends Actions {
 
 	public Action createReverseListAction(UserList userList) {
 		ReverseListAction action = action(ReverseListAction.class);
+		action.setUserList(userList);
+		return action;
+	}
+
+	public Action createShuffleListAction(UserList userList) {
+		ShuffleListAction action = action(ShuffleListAction.class);
 		action.setUserList(userList);
 		return action;
 	}

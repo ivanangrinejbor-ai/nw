@@ -3585,6 +3585,8 @@
     <string formatted="false" name="formula_editor_function_list_min_parameter">(список)</string>
     <string formatted="false" name="formula_editor_function_list_max">максимум списка</string>
     <string formatted="false" name="formula_editor_function_list_max_parameter">(список)</string>
+    <string formatted="false" name="formula_editor_function_list_random">случайный элемент списка</string>
+    <string formatted="false" name="formula_editor_function_list_random_parameter">(список)</string>
     <string formatted="false" name="formula_editor_function_rgb_to_hex">RGB в HEX</string>
     <string formatted="false" name="formula_editor_function_rgb_to_hex_parameter">(красный, зелёный, синий)</string>
     <string formatted="false" name="formula_editor_function_hex_to_rgb">HEX в RGB</string>
@@ -3991,6 +3993,14 @@
     <string formatted="false" name="brick_write_variable_to_file_default_value">переменная.txt</string>
     <string formatted="false" name="brick_write_variable_to_file_success">"Данные сохранены в
         %1$s"</string>
+    <string formatted="false" name="brick_append_to_file">Дописать текст в файл</string>
+    <string formatted="false" name="brick_append_to_file_name">Имя файла</string>
+    <string formatted="false" name="brick_append_to_file_text">Текст</string>
+    <string formatted="false" name="brick_append_to_file_success">"Данные дописаны в
+        %1$s"</string>
+    <string formatted="false" name="brick_list_files_in_folder">Список файлов в папке</string>
+    <string formatted="false" name="brick_list_files_in_folder_folder">Папка в Загрузках</string>
+    <string formatted="false" name="brick_list_files_in_folder_into">в список</string>
     <string formatted="false" name="brick_read_variable_from_file_top">Прочитать переменную</string>
     <string formatted="false" name="brick_read_variable_from_file_center">с файла</string>
     <string formatted="false" name="brick_read_variable_from_file_bottom">и</string>
@@ -4014,6 +4024,7 @@
     <string formatted="false" name="brick_store_in">и сохранить результат в переменную</string>
     <string formatted="false" name="brick_sort_list">Сортировать список</string>
     <string formatted="false" name="brick_reverse_list">Развернуть список</string>
+    <string formatted="false" name="brick_shuffle_list">Перемешать список</string>
     <string formatted="false" name="brick_break">Прервать цикл</string>
     <string formatted="false" name="brick_continue">Перейти к следующей итерации</string>
     <string formatted="false" name="brick_when_variable_changed">Когда переменная изменится</string>

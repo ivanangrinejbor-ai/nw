@@ -451,6 +451,50 @@ import org.catrobat.catroid.content.bricks.ReplaceItemInUserListBrick
 import org.catrobat.catroid.content.bricks.ReverseListBrick
 import org.catrobat.catroid.content.bricks.ReportBrick
 import org.catrobat.catroid.content.bricks.Replace3DModelBrick
+import org.catrobat.catroid.content.bricks.AppendToFileBrick
+import org.catrobat.catroid.content.bricks.ListFilesInFolderBrick
+import org.catrobat.catroid.content.bricks.ListShuffleBrick
+import org.catrobat.catroid.content.bricks.ApplyForceAtPointBrick
+import org.catrobat.catroid.content.bricks.CloseDialogueBrick
+import org.catrobat.catroid.content.bricks.CreateTextLabelBrick
+import org.catrobat.catroid.content.bricks.CrossFadeSoundBrick
+import org.catrobat.catroid.content.bricks.CrossfadeBrick
+import org.catrobat.catroid.content.bricks.CurrentDialogueTextBrick
+import org.catrobat.catroid.content.bricks.CurrentNodeIDBrick
+import org.catrobat.catroid.content.bricks.CurrentSpeakerBrick
+import org.catrobat.catroid.content.bricks.DialogueRunningBrick
+import org.catrobat.catroid.content.bricks.Export3dObjectToGlbBrick
+import org.catrobat.catroid.content.bricks.FadeFromBlackBrick
+import org.catrobat.catroid.content.bricks.FadeToBlackBrick
+import org.catrobat.catroid.content.bricks.Fast2DSetZIndexBrick
+import org.catrobat.catroid.content.bricks.HttpCancelBrick
+import org.catrobat.catroid.content.bricks.HttpClearBrick
+import org.catrobat.catroid.content.bricks.InstantTransitionBrick
+import org.catrobat.catroid.content.bricks.JumpToNodeBrick
+import org.catrobat.catroid.content.bricks.LocalizeSpritesBrick
+import org.catrobat.catroid.content.bricks.MqttPublishBrick
+import org.catrobat.catroid.content.bricks.PauseSoundBrick
+import org.catrobat.catroid.content.bricks.PlaySoundWithSpeedBrick
+import org.catrobat.catroid.content.bricks.ResumeSoundBrick
+import org.catrobat.catroid.content.bricks.SelectedChoiceBrick
+import org.catrobat.catroid.content.bricks.SetAngularDampingBrick
+import org.catrobat.catroid.content.bricks.SetGameVolumeBrick
+import org.catrobat.catroid.content.bricks.SetGravityScaleBrick
+import org.catrobat.catroid.content.bricks.SetLinearDampingBrick
+import org.catrobat.catroid.content.bricks.SetPhysicsBulletBrick
+import org.catrobat.catroid.content.bricks.SetPhysicsFixedRotationBrick
+import org.catrobat.catroid.content.bricks.SetPhysicsSensorBrick
+import org.catrobat.catroid.content.bricks.SetSoundLoopBrick
+import org.catrobat.catroid.content.bricks.SetTextBrick
+import org.catrobat.catroid.content.bricks.SlideDownBrick
+import org.catrobat.catroid.content.bricks.SlideLeftBrick
+import org.catrobat.catroid.content.bricks.SlideRightBrick
+import org.catrobat.catroid.content.bricks.SlideUpBrick
+import org.catrobat.catroid.content.bricks.StartDialogueBrick
+import org.catrobat.catroid.content.bricks.TweenPositionBrick
+import org.catrobat.catroid.content.bricks.WhenAIResponseBrick
+import org.catrobat.catroid.content.bricks.WhenHttpRequestFailedBrick
+import org.catrobat.catroid.content.bricks.WhenHttpResponseReceivedBrick
 import org.catrobat.catroid.content.bricks.ResetTimerBrick
 import org.catrobat.catroid.content.bricks.ResizeImgBrick
 import org.catrobat.catroid.content.bricks.ReturnToPreviousProjectBrick
@@ -1071,6 +1115,12 @@ eventBrickList.add(WhenConditionBrick(WhenConditionScript(Formula(defaultIf))))
         eventBrickList.add(WhenTcpMessageBrick())
         eventBrickList.add(WhenTcpDisconnectedBrick())
         eventBrickList.add(WhenBackgroundChangesBrick())
+        eventBrickList.add(WhenHttpResponseReceivedBrick())
+        eventBrickList.add(WhenHttpRequestFailedBrick())
+        eventBrickList.add(WhenFirestoreChangedBrick())
+        eventBrickList.add(WhenMouseButtonClickedBrick())
+        eventBrickList.add(WhenMouseWheelScrolledBrick())
+        eventBrickList.add(WhenAIResponseBrick())
         eventBrickList.add(WhenFirebaseChangedBrick())
                 eventBrickList.add(WhenFirebaseChildChangedBrick())
                 eventBrickList.add(WhenClonedBrick())
@@ -1162,6 +1212,12 @@ eventBrickList.add(WhenConditionBrick(WhenConditionScript(Formula(defaultIf))))
         eventBrickList.add(WhenTcpMessageBrick())
         eventBrickList.add(WhenTcpDisconnectedBrick())
         eventBrickList.add(WhenBackgroundChangesBrick())
+        eventBrickList.add(WhenHttpResponseReceivedBrick())
+        eventBrickList.add(WhenHttpRequestFailedBrick())
+        eventBrickList.add(WhenFirestoreChangedBrick())
+        eventBrickList.add(WhenMouseButtonClickedBrick())
+        eventBrickList.add(WhenMouseWheelScrolledBrick())
+        eventBrickList.add(WhenAIResponseBrick())
 
         eventBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_event_cloning), template))
         eventBrickList.add(WhenClonedBrick())
@@ -1496,6 +1552,7 @@ eventBrickList.add(WhenConditionBrick(WhenConditionScript(Formula(defaultIf))))
                 motionBrickList.add(TouchDirectionBrick())
                 motionBrickList.add(SetRotationStyleBrick())
                 motionBrickList.add(GlideToBrick(BrickValues.X_POSITION, BrickValues.Y_POSITION, BrickValues.GLIDE_SECONDS))
+                motionBrickList.add(TweenPositionBrick(100.0, 100.0, 1.0, 0.0))
                 if (!isBackgroundSprite) {
                     motionBrickList.add(GoNStepsBackBrick(BrickValues.GO_BACK))
                     motionBrickList.add(ComeToFrontBrick())
@@ -1526,6 +1583,13 @@ eventBrickList.add(WhenConditionBrick(WhenConditionScript(Formula(defaultIf))))
                 motionBrickList.add(PerformRayCastBrick("ray", 0, 0, 300, 500))
                 motionBrickList.add(SetBounceBrick(BrickValues.PHYSIC_BOUNCE_FACTOR * BrickValues.PHYSIC_MULTIPLIER))
                 motionBrickList.add(SetFrictionBrick(BrickValues.PHYSIC_FRICTION * BrickValues.PHYSIC_MULTIPLIER))
+                motionBrickList.add(SetLinearDampingBrick(0.0))
+                motionBrickList.add(SetAngularDampingBrick(0.0))
+                motionBrickList.add(SetGravityScaleBrick(1.0))
+                motionBrickList.add(SetPhysicsBulletBrick(1.0))
+                motionBrickList.add(SetPhysicsFixedRotationBrick(1.0))
+                motionBrickList.add(SetPhysicsSensorBrick(1.0))
+                motionBrickList.add(ApplyForceAtPointBrick(100.0, 0.0, 0.0, 0.0))
                 if (SettingsFragment.isPhiroSharedPreferenceEnabled(context)) {
                     motionBrickList.add(PhiroMotorMoveForwardBrick(PhiroMotorMoveForwardBrick.Motor.MOTOR_LEFT, BrickValues.PHIRO_SPEED))
                     motionBrickList.add(PhiroMotorMoveBackwardBrick(PhiroMotorMoveBackwardBrick.Motor.MOTOR_LEFT, BrickValues.PHIRO_SPEED))
@@ -1547,6 +1611,7 @@ eventBrickList.add(WhenConditionBrick(WhenConditionScript(Formula(defaultIf))))
         motionBrickList.add(ChangeYByNBrick(BrickValues.CHANGE_Y_BY))
         motionBrickList.add(GoToBrick(null))
         motionBrickList.add(GlideToBrick(BrickValues.X_POSITION, BrickValues.Y_POSITION, BrickValues.GLIDE_SECONDS))
+        motionBrickList.add(TweenPositionBrick(100.0, 100.0, 1.0, 0.0))
         motionBrickList.add(MoveTowardsPointBrick(0.0, 0.0, 10.0))
         motionBrickList.add(ClampPositionBrick(-540.0, 540.0, -960.0, 960.0))
 
@@ -1592,6 +1657,13 @@ eventBrickList.add(WhenConditionBrick(WhenConditionScript(Formula(defaultIf))))
         motionBrickList.add(SetDampingBrick(10f, 10f))
         motionBrickList.add(SetBounceBrick(BrickValues.PHYSIC_BOUNCE_FACTOR * BrickValues.PHYSIC_MULTIPLIER))
         motionBrickList.add(SetFrictionBrick(BrickValues.PHYSIC_FRICTION * BrickValues.PHYSIC_MULTIPLIER))
+        motionBrickList.add(SetLinearDampingBrick(0.0))
+        motionBrickList.add(SetAngularDampingBrick(0.0))
+        motionBrickList.add(SetGravityScaleBrick(1.0))
+        motionBrickList.add(SetPhysicsBulletBrick(1.0))
+        motionBrickList.add(SetPhysicsFixedRotationBrick(1.0))
+        motionBrickList.add(SetPhysicsSensorBrick(1.0))
+        motionBrickList.add(ApplyForceAtPointBrick(100.0, 0.0, 0.0, 0.0))
         motionBrickList.add(PerformRayCastBrick("ray", 0, 0, 300, 500))
 
         motionBrickList.add(SubCategoryHeaderBrick(context?.getString(R.string.subcategory_motion_physics_joints) ?: "", template))
@@ -1633,9 +1705,15 @@ eventBrickList.add(WhenConditionBrick(WhenConditionScript(Formula(defaultIf))))
                 soundBrickList.add(PlayPreparedSoundBrick("sound"))
                 soundBrickList.add(StopSoundBrick())
                 soundBrickList.add(StopAllSoundsBrick())
+                soundBrickList.add(PauseSoundBrick())
+                soundBrickList.add(ResumeSoundBrick())
+                soundBrickList.add(SetSoundLoopBrick())
+                soundBrickList.add(PlaySoundWithSpeedBrick(1.0))
+                soundBrickList.add(CrossFadeSoundBrick(2.0))
                 soundBrickList.add(SetVolumeToBrick(BrickValues.SET_VOLUME_TO))
                 soundBrickList.add(SetSoundVolumeBrick(50.0))
                 soundBrickList.add(ChangeVolumeByNBrick(Formula(BrickValues.CHANGE_VOLUME_BY)))
+                soundBrickList.add(SetGameVolumeBrick(BrickValues.SET_VOLUME_TO))
                 soundBrickList.add(ListenMicroBrick("100"))
                 soundBrickList.add(StartRecordingBrick())
                 soundBrickList.add(StopRecordingBrick("audio.mp3"))
@@ -1679,11 +1757,17 @@ eventBrickList.add(WhenConditionBrick(WhenConditionScript(Formula(defaultIf))))
         soundBrickList.add(PlayPreparedSoundBrick("sound"))
         soundBrickList.add(StopSoundBrick())
         soundBrickList.add(StopAllSoundsBrick())
+        soundBrickList.add(PauseSoundBrick())
+        soundBrickList.add(ResumeSoundBrick())
+        soundBrickList.add(SetSoundLoopBrick())
+        soundBrickList.add(PlaySoundWithSpeedBrick(1.0))
+        soundBrickList.add(CrossFadeSoundBrick(2.0))
 
         soundBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_sound_volume), template))
         soundBrickList.add(SetVolumeToBrick(BrickValues.SET_VOLUME_TO))
         soundBrickList.add(SetSoundVolumeBrick(50.0))
         soundBrickList.add(ChangeVolumeByNBrick(Formula(BrickValues.CHANGE_VOLUME_BY)))
+        soundBrickList.add(SetGameVolumeBrick(BrickValues.SET_VOLUME_TO))
         soundBrickList.add(SetStopSoundsBrick(1))
 
         soundBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_sound_files), template))
@@ -1775,6 +1859,17 @@ eventBrickList.add(WhenConditionBrick(WhenConditionScript(Formula(defaultIf))))
                 }
                 looksBrickList.add(ShowTextBrick(BrickValues.X_POSITION, BrickValues.Y_POSITION))
                 looksBrickList.add(ShowTextColorSizeAlignmentBrick(BrickValues.X_POSITION, BrickValues.Y_POSITION, BrickValues.RELATIVE_SIZE_IN_PERCENT, BrickValues.SHOW_VARIABLE_COLOR))
+                looksBrickList.add(ShowTextRotationBrick())
+                looksBrickList.add(SetTextBrick(0, 0, "Hello!"))
+                looksBrickList.add(StartDialogueBrick("dialogue.json"))
+                looksBrickList.add(JumpToNodeBrick("node_1"))
+                looksBrickList.add(SelectedChoiceBrick())
+                looksBrickList.add(CurrentDialogueTextBrick())
+                looksBrickList.add(CurrentNodeIDBrick())
+                looksBrickList.add(CurrentSpeakerBrick())
+                looksBrickList.add(DialogueRunningBrick())
+                looksBrickList.add(CloseDialogueBrick())
+                looksBrickList.add(LocalizeSpritesBrick())
                 looksBrickList.add(SetTransparencyBrick(BrickValues.SET_TRANSPARENCY))
                 looksBrickList.add(ChangeTransparencyByNBrick(BrickValues.CHANGE_TRANSPARENCY_EFFECT))
                 looksBrickList.add(SetBrightnessBrick(BrickValues.SET_BRIGHTNESS_TO))
@@ -1955,6 +2050,17 @@ eventBrickList.add(WhenConditionBrick(WhenConditionScript(Formula(defaultIf))))
         looksBrickList.add(AddRadioBrick("myDialog", "это выбор"))
         looksBrickList.add(SetCallbackBrick("myDialog"))
         looksBrickList.add(ShowDialogBrick("myDialog"))
+        looksBrickList.add(ShowTextRotationBrick())
+        looksBrickList.add(SetTextBrick(0, 0, "Hello!"))
+        looksBrickList.add(StartDialogueBrick("dialogue.json"))
+        looksBrickList.add(JumpToNodeBrick("node_1"))
+        looksBrickList.add(SelectedChoiceBrick())
+        looksBrickList.add(CurrentDialogueTextBrick())
+        looksBrickList.add(CurrentNodeIDBrick())
+        looksBrickList.add(CurrentSpeakerBrick())
+        looksBrickList.add(DialogueRunningBrick())
+        looksBrickList.add(CloseDialogueBrick())
+        looksBrickList.add(LocalizeSpritesBrick())
 
         looksBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_looks_camera2d), template))
         looksBrickList.add(SetCameraFocusPointBrick())
@@ -2122,6 +2228,8 @@ eventBrickList.add(WhenConditionBrick(WhenConditionScript(Formula(defaultIf))))
                 dataBrickList.add(ReadVariableFromFileBrick(context.getString(R.string.brick_write_variable_to_file_default_value)))
                 dataBrickList.add(WriteToFilesBrick("variable.txt"))
                 dataBrickList.add(ReadFromFilesBrick("variable.txt"))
+                dataBrickList.add(AppendToFileBrick("log.txt", "Hello!"))
+                dataBrickList.add(ListFilesInFolderBrick("MyFolder"))
                 dataBrickList.add(DeleteFilesBrick("variable.txt"))
                 dataBrickList.add(FileUrlBrick("https://example.com/file.jpg", "fileFromUrl.jpg"))
                 dataBrickList.add(FilesUrlBrick("https://example.com/file.jpg", "fileFromUrl.jpg"))
@@ -2137,6 +2245,7 @@ eventBrickList.add(WhenConditionBrick(WhenConditionScript(Formula(defaultIf))))
                 dataBrickList.add(MaxOfListBrick())
                 dataBrickList.add(SortListBrick())
                 dataBrickList.add(ReverseListBrick())
+                dataBrickList.add(ListShuffleBrick())
                 dataBrickList.add(InsertItemIntoUserListBrick(BrickValues.INSERT_ITEM_INTO_USERLIST_VALUE, BrickValues.INSERT_ITEM_INTO_USERLIST_INDEX))
                 dataBrickList.add(ReplaceItemInUserListBrick(BrickValues.REPLACE_ITEM_IN_USERLIST_VALUE, BrickValues.REPLACE_ITEM_IN_USERLIST_INDEX))
                 dataBrickList.add(WriteListOnDeviceBrick())
@@ -2231,6 +2340,7 @@ eventBrickList.add(WhenConditionBrick(WhenConditionScript(Formula(defaultIf))))
         dataBrickList.add(MaxOfListBrick())
         dataBrickList.add(SortListBrick())
         dataBrickList.add(ReverseListBrick())
+        dataBrickList.add(ListShuffleBrick())
         dataBrickList.add(CreateTableBrick("myTable", 5, 5))
         dataBrickList.add(InsertTableBrick("myTable", "1", 3, 2))
         dataBrickList.add(DeleteTableBrick("myTable"))
@@ -2267,6 +2377,8 @@ eventBrickList.add(WhenConditionBrick(WhenConditionScript(Formula(defaultIf))))
         dataBrickList.add(ReadVariableFromFileBrick(context.getString(R.string.brick_write_variable_to_file_default_value)))
         dataBrickList.add(WriteToFilesBrick("variable.txt"))
         dataBrickList.add(ReadFromFilesBrick("variable.txt"))
+        dataBrickList.add(AppendToFileBrick("log.txt", "Hello!"))
+        dataBrickList.add(ListFilesInFolderBrick("MyFolder"))
         dataBrickList.add(DeleteFilesBrick("variable.txt"))
         dataBrickList.add(WriteListOnDeviceBrick())
         dataBrickList.add(ReadListFromDeviceBrick())
@@ -2955,6 +3067,7 @@ void main() {
         fast2dBrickList.add(Fast2DApplyImpulseBrick("object", 10.0, 5.0))
         fast2dBrickList.add(Fast2DSetPhysicsVelocityBrick("object", 10.0, 2.0))
         fast2dBrickList.add(Fast2DSetGravityBrick(0f, -9.8f))
+        fast2dBrickList.add(Fast2DSetZIndexBrick("object", 0.0))
 
         return fast2dBrickList
     }
@@ -2968,6 +3081,7 @@ void main() {
         pathfinderBrickList.add(ContinueMovementBrick())
         pathfinderBrickList.add(HasPathBrick())
         pathfinderBrickList.add(SmoothPathBrick())
+        pathfinderBrickList.add(EnableDynamicReplanningBrick("sprite", "1"))
 
         return pathfinderBrickList
     }
@@ -2979,6 +3093,8 @@ void main() {
         fileBrickList.add(ReadVariableFromFileBrick(context.getString(R.string.brick_write_variable_to_file_default_value)))
         fileBrickList.add(WriteToFilesBrick("variable.txt"))
         fileBrickList.add(ReadFromFilesBrick("variable.txt"))
+        fileBrickList.add(AppendToFileBrick("log.txt", "Hello!"))
+        fileBrickList.add(ListFilesInFolderBrick("MyFolder"))
         fileBrickList.add(DeleteFilesBrick("variable.txt"))
         fileBrickList.add(FileUrlBrick("https://example.com/file.jpg", "fileFromUrl.jpg"))
         fileBrickList.add(FilesUrlBrick("https://example.com/file.jpg", "fileFromUrl.jpg"))
@@ -3085,6 +3201,15 @@ private fun setupJsonCategoryList(context: Context): List<Brick> {
         transitionsBrickList.add(ZoomOutBrick(1.0))
         transitionsBrickList.add(SlideInBrick(1.0))
         transitionsBrickList.add(SlideOutBrick(1.0))
+        transitionsBrickList.add(SlideUpBrick(""))
+        transitionsBrickList.add(SlideDownBrick(""))
+        transitionsBrickList.add(SlideLeftBrick(""))
+        transitionsBrickList.add(SlideRightBrick(""))
+        transitionsBrickList.add(CrossfadeBrick(""))
+        transitionsBrickList.add(FadeFromBlackBrick(""))
+        transitionsBrickList.add(FadeToBlackBrick(""))
+        transitionsBrickList.add(InstantTransitionBrick(""))
+        transitionsBrickList.add(CrossFadeSoundBrick(2.0))
         return transitionsBrickList
     }
 
@@ -3106,6 +3231,8 @@ private fun setupJsonCategoryList(context: Context): List<Brick> {
         threedBrickList.add(SetActiveBrick("myObject", true))
         threedBrickList.add(SetObjectColorBrick("myObject", 1.0, 0.0, 0.0))
         threedBrickList.add(SetObjectTextureBrick("myObject", "texture.png"))
+        threedBrickList.add(Replace3DModelBrick("myObject", "model.glb"))
+        threedBrickList.add(Export3dObjectToGlbBrick("myObject", "export.glb"))
         threedBrickList.add(BakeByPrefixBrick("wall_", "bakedObject"))
 
         threedBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_3d_transform), template))
@@ -3114,6 +3241,7 @@ private fun setupJsonCategoryList(context: Context): List<Brick> {
         threedBrickList.add(Set3dRotationBrick("myObject", 1.0, 0.0, 0.0))
         threedBrickList.add(Set3dScaleBrick("myObject", 2.0, 1.0, 1.5))
         threedBrickList.add(ObjectLookAtBrick("myObject", 0.0, 0.0, 0.0))
+        threedBrickList.add(ObjectLookAtCorrectBrick("myObject", 0.0, 0.0, 0.0))
         threedBrickList.add(ThreedAlignNormalBrick("myObject", -1.0, 0.0, 0.0))
         threedBrickList.add(SetParentBrick("child", "parent"))
         threedBrickList.add(RemoveParentBrick("child"))
@@ -3163,6 +3291,8 @@ private fun setupJsonCategoryList(context: Context): List<Brick> {
         threedBrickList.add(SetDirectionalLight2Brick(0.3, -0.2, -0.3, 5.0))
         threedBrickList.add(RemovePbrLightBrick("sun"))
         threedBrickList.add(PromoteLightBrick("sun"))
+        threedBrickList.add(ConfigureLightBrick("sun", 0, "1.0"))
+        threedBrickList.add(ConfigureMaterialBrick("myObject", 0, "1.0"))
         threedBrickList.add(SetMaxPointLightsBrick(5))
         threedBrickList.add(SetShadowQualityBrick(Formula(100), Formula(2048)))
 
@@ -3338,6 +3468,7 @@ void main() {
 
         threedBrickList.add(SubCategoryHeaderBrick(context.getString(R.string.subcategory_3d_animation), template))
         threedBrickList.add(PlayAnimationBrick("myObject", "idle", -1, 1.0, 0.2))
+        threedBrickList.add(Ease3DPropertyBrick(Formula("myObject"), 0, 0, Formula(0.0), Formula(1.0), Formula(1.0)))
         threedBrickList.add(SetAnimationSpeedBrick("myObject", 10f))
         threedBrickList.add(StopAnimationBrick("myObject"))
         threedBrickList.add(KeyframeAnimationBrick())
@@ -3441,8 +3572,11 @@ void main() {
         internetBrickList.add(HttpAttachFileBrick("my_request", "image.png", "file", "image/png"))
         internetBrickList.add(HttpSendBrick("my_request"))
         internetBrickList.add(HttpSaveFileBrick("my_request", "downloaded_image.png"))
+        internetBrickList.add(HttpCancelBrick("my_request"))
+        internetBrickList.add(HttpClearBrick("my_request"))
         internetBrickList.add(MqttConnectBrick("my_lobby", "broker.emqx.io", 1883))
         internetBrickList.add(MqttJoinRoomBrick("my_lobby", "room_1", "my_secret_game_salt"))
+        internetBrickList.add(MqttPublishBrick("my_lobby", "room_1", "my_secret_game_salt", "Hello!"))
         internetBrickList.add(MqttDisconnectBrick("my_lobby"))
         return internetBrickList
     }

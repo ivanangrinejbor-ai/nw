@@ -382,7 +382,8 @@ public class FormulaElement implements Serializable {
                 && !element.value.equals(Functions.INDEX_OF_ITEM.name())
                 && !element.value.equals(Functions.FLATTEN.name())
                 && !element.value.equals(Functions.CONNECT.name())
-                && !element.value.equals(Functions.FIND.name()));
+                && !element.value.equals(Functions.FIND.name())
+                && !element.value.equals(Functions.LIST_RANDOM_ITEM.name()));
     }
 
     public void insertFlattenBetweenParentAndElement(FormulaElement parent,
@@ -1115,8 +1116,6 @@ public class FormulaElement implements Serializable {
                 return interpretFunctionJoin3(scope, leftChild, rightChild, additionalChildren);
             case DISTANCE:
                 return interpretFunctionDistance(scope, arg0, arg1);
-            case JOINNUMBER:
-                return interpretFunctionJoinNumber(scope, leftChild, rightChild);
             case REGEX:
                 return tryInterpretFunctionRegex(scope, leftChild, rightChild);
             case LIST_ITEM:
@@ -1151,6 +1150,8 @@ public class FormulaElement implements Serializable {
                 return interpretFunctionListMin(arg0, scope);
             case LIST_MAX:
                 return interpretFunctionListMax(arg0, scope);
+            case LIST_RANDOM_ITEM:
+                return interpretFunctionListRandomItem(arg0, scope);
             case RGB_TO_HEX:
                 return interpretFunctionRgbToHex(arg0, arg1, arg2);
             case HEX_TO_RGB:
@@ -2159,6 +2160,13 @@ public class FormulaElement implements Serializable {
         return found ? max : 0.0;
     }
 
+    private Object interpretFunctionListRandomItem(Object listArg, Scope scope) {
+        UserList userList = listArg instanceof UserList ? (UserList) listArg : getUserListOfChild(leftChild, scope);
+        if (userList == null || userList.getValue().isEmpty()) return "";
+        List<Object> items = userList.getValue();
+        return items.get((int) (Math.random() * items.size()));
+    }
+
     private String interpretFunctionRgbToHex(Object rArg, Object gArg, Object bArg) {
         int r = (rArg instanceof Number) ? ((Number) rArg).intValue() : 0;
         int g = (gArg instanceof Number) ? ((Number) gArg).intValue() : 0;
@@ -2194,12 +2202,6 @@ public class FormulaElement implements Serializable {
 
     private static String interpretFunctionJoin(Scope scope, FormulaElement leftChild, FormulaElement rightChild) {
         return interpretFunctionString(leftChild, scope).concat(interpretFunctionString(rightChild, scope));
-    }
-
-    private static String interpretFunctionJoinNumber(Scope scope, FormulaElement leftChild, FormulaElement rightChild) {
-        String numb1 = interpretFunctionString(leftChild, scope);
-        String numb2 = interpretFunctionString(rightChild, scope);
-        return numb1 + numb2;
     }
 
     private static String interpretFunctionJoin3(Scope scope, FormulaElement leftChild, FormulaElement rightChild, List<FormulaElement> additionalChildren) {
