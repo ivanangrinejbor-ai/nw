@@ -109,7 +109,13 @@ class FirestoreScriptLockBackend : ScriptLockBackend {
     override fun listen(sessionId: String, callback: (Map<String, ScriptLock>) -> Unit): Any? {
         return try {
             locks(sessionId).addSnapshotListener { snap, error ->
-                if (error != null || snap == null) return@addSnapshotListener
+                if (error != null) {
+                    if (CollabAccess.isRevoked((error as? FirebaseFirestoreException)?.code)) {
+                        callback(emptyMap())
+                    }
+                    return@addSnapshotListener
+                }
+                if (snap == null) return@addSnapshotListener
                 val map = LinkedHashMap<String, ScriptLock>()
                 for (doc in snap.documents) {
                     ScriptLock.fromMap(doc.data)?.let { map[doc.id] = it }
@@ -174,49 +180,87 @@ class FakeScriptLockBackend(var now: Long = 0L) : ScriptLockBackend {
     }
 }
 
+data class LockIdentity(val uid: String, val name: String, val hue: Float)
+
+interface LockHeartbeat {
+    fun start(intervalMs: Long, tick: () -> Unit)
+    fun stop()
+}
+
+class AndroidLockHeartbeat : LockHeartbeat {
+    private val handler by lazy { Handler(Looper.getMainLooper()) }
+    private var runnable: Runnable? = null
+
+    override fun start(intervalMs: Long, tick: () -> Unit) {
+        if (runnable != null) return
+        val scheduled = object : Runnable {
+            override fun run() {
+                try {
+                    tick()
+                } catch (e: Exception) {
+                    Log.w("ScriptLockManager", "heartbeat failed", e)
+                }
+                try {
+                    handler.postDelayed(this, intervalMs)
+                } catch (e: Exception) {
+                    Log.w("ScriptLockManager", "reschedule failed", e)
+                }
+            }
+        }
+        runnable = scheduled
+        try {
+            handler.postDelayed(scheduled, intervalMs)
+        } catch (e: Exception) {
+            Log.w("ScriptLockManager", "schedule failed", e)
+        }
+    }
+
+    override fun stop() {
+        val current = runnable
+        runnable = null
+        if (current == null) return
+        try {
+            handler.removeCallbacks(current)
+        } catch (e: Exception) {
+            Log.w("ScriptLockManager", "unschedule failed", e)
+        }
+    }
+}
+
+class ManualLockHeartbeat : LockHeartbeat {
+    private var tick: (() -> Unit)? = null
+
+    override fun start(intervalMs: Long, tick: () -> Unit) {
+        this.tick = tick
+    }
+
+    override fun stop() {
+        tick = null
+    }
+
+    fun fire() {
+        tick?.invoke()
+    }
+}
+
 object ScriptLockManager {
     private const val TAG = "ScriptLockManager"
     const val HEARTBEAT_MS = 10000L
 
     var backend: ScriptLockBackend = FirestoreScriptLockBackend()
     var nowProvider: () -> Long = { System.currentTimeMillis() }
+    var sessionProvider: () -> LockIdentity? = {
+        if (!CollabSession.isActive || CollabSession.myUid == null) null
+        else LockIdentity(CollabSession.myUid!!, PresenceRenderer.myName, PresenceRenderer.myHue)
+    }
+    var heartbeatDriver: LockHeartbeat = AndroidLockHeartbeat()
 
-    private val handler = Handler(Looper.getMainLooper())
     private val lock = Any()
     private var sessionId: String? = null
     private var listenHandle: Any? = null
     private val held = LinkedHashSet<String>()
     private var known: Map<String, ScriptLock> = emptyMap()
     private val observers = LinkedHashMap<String, () -> Unit>()
-    private var beating = false
-
-    private val heartbeat = object : Runnable {
-        override fun run() {
-            try {
-                val sid = sessionId
-                val uid = CollabSession.myUid
-                if (sid != null && uid != null) {
-                    val mine: List<String>
-                    synchronized(lock) { mine = held.toList() }
-                    for (scriptId in mine) {
-                        backend.claim(sid, scriptId, ownLock(uid, scriptId), nowProvider(), {})
-                    }
-                }
-            } catch (e: Exception) {
-                Log.w(TAG, "heartbeat failed", e)
-            }
-            handler.postDelayed(this, HEARTBEAT_MS)
-        }
-    }
-
-    private fun ownLock(uid: String, scriptId: String): ScriptLock {
-        return ScriptLock(
-            uid = uid,
-            name = PresenceRenderer.myName,
-            colorHue = PresenceRenderer.myHue,
-            at = nowProvider()
-        )
-    }
 
     fun addObserver(key: String, callback: () -> Unit) {
         synchronized(lock) { observers[key] = callback }
@@ -237,6 +281,15 @@ object ScriptLockManager {
         }
     }
 
+    private fun ownLock(identity: LockIdentity): ScriptLock {
+        return ScriptLock(
+            uid = identity.uid,
+            name = identity.name,
+            colorHue = identity.hue,
+            at = nowProvider()
+        )
+    }
+
     fun start(sid: String) {
         stop()
         sessionId = sid
@@ -248,13 +301,21 @@ object ScriptLockManager {
         } catch (e: Exception) {
             Log.w(TAG, "start failed", e)
         }
-        if (!beating) {
-            beating = true
-            handler.postDelayed(heartbeat, HEARTBEAT_MS)
+        heartbeatDriver.start(HEARTBEAT_MS) {
+            val currentSid = sessionId
+            val identity = sessionProvider()
+            if (currentSid != null && identity != null) {
+                val mine: List<String>
+                synchronized(lock) { mine = held.toList() }
+                for (scriptId in mine) {
+                    backend.claim(currentSid, scriptId, ownLock(identity), nowProvider(), {})
+                }
+            }
         }
     }
 
     fun stop() {
+        releaseAllMine()
         try {
             listenHandle?.let { backend.unlisten(it) }
         } catch (e: Exception) {
@@ -262,22 +323,18 @@ object ScriptLockManager {
         }
         listenHandle = null
         sessionId = null
-        releaseAllMine()
-        if (beating) {
-            beating = false
-            handler.removeCallbacks(heartbeat)
-        }
+        heartbeatDriver.stop()
     }
 
     fun claimMine(scriptId: String): Boolean {
         val sid = sessionId
-        val uid = CollabSession.myUid
-        if (sid == null || uid == null || !CollabSession.isActive) return true
+        val identity = sessionProvider()
+        if (sid == null || identity == null) return true
         if (scriptId.isEmpty()) return true
         val existing = synchronized(lock) { known[scriptId] }
-        if (!ScriptLockPolicy.canClaim(existing, uid, nowProvider())) return false
+        if (!ScriptLockPolicy.canClaim(existing, identity.uid, nowProvider())) return false
         synchronized(lock) { held.add(scriptId) }
-        backend.claim(sid, scriptId, ownLock(uid, scriptId), nowProvider()) { ok ->
+        backend.claim(sid, scriptId, ownLock(identity), nowProvider()) { ok ->
             if (!ok) {
                 synchronized(lock) { held.remove(scriptId) }
                 notifyLocked()
@@ -288,10 +345,10 @@ object ScriptLockManager {
 
     fun releaseMine(scriptId: String) {
         val sid = sessionId
-        val uid = CollabSession.myUid
+        val identity = sessionProvider()
         synchronized(lock) { held.remove(scriptId) }
-        if (sid == null || uid == null) return
-        backend.release(sid, scriptId, uid)
+        if (sid == null || identity == null) return
+        backend.release(sid, scriptId, identity.uid)
     }
 
     fun releaseAllMine() {
@@ -301,22 +358,22 @@ object ScriptLockManager {
             held.clear()
         }
         val sid = sessionId
-        val uid = CollabSession.myUid
-        if (sid == null || uid == null) return
+        val identity = sessionProvider()
+        if (sid == null || identity == null) return
         for (scriptId in mine) {
-            backend.release(sid, scriptId, uid)
+            backend.release(sid, scriptId, identity.uid)
         }
     }
 
     fun lockerOf(scriptId: String?): ScriptLock? {
         if (scriptId.isNullOrEmpty()) return null
-        val uid = CollabSession.myUid ?: return null
+        val identity = sessionProvider() ?: return null
         val existing = synchronized(lock) { known[scriptId] }
-        return ScriptLockPolicy.lockedByOther(existing, uid, nowProvider())
+        return ScriptLockPolicy.lockedByOther(existing, identity.uid, nowProvider())
     }
 
     fun canEdit(scriptId: String?): Boolean {
-        if (!CollabSession.isActive) return true
+        if (sessionProvider() == null) return true
         return lockerOf(scriptId) == null
     }
 

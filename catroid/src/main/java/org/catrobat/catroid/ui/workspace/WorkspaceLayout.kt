@@ -741,6 +741,9 @@ class WorkspaceLayout @JvmOverloads constructor(
                 android.widget.Toast.LENGTH_SHORT).show()
             return
         }
+        if (!org.catrobat.catroid.collab.CollabGuards.claimForEdit(context, formulaBrick)) {
+            return
+        }
         val tag = org.catrobat.catroid.ui.fragment.FormulaEditorFragment.FORMULA_EDITOR_FRAGMENT_TAG
         val title = getLocalizedString("formula_editor")
 

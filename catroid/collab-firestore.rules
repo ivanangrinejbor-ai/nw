@@ -12,10 +12,6 @@ service cloud.firestore {
       return isSignedIn()
         && get(/databases/$(database)/documents/collabSessions/$(sid)/meta/meta).data.ownerUid == request.auth.uid;
     }
-    function memberRole(sid, uid) {
-      return get(/databases/$(database)/documents/collabSessions/$(sid)/members/$(uid)).data.role;
-    }
-
     match /collabSessions/{sid}/meta/meta {
       allow read: if isMember(sid);
       allow create: if isSignedIn()
@@ -56,6 +52,16 @@ service cloud.firestore {
       allow read: if isMember(sid);
       allow write: if isMember(sid) && uid == request.auth.uid;
       allow delete: if (isMember(sid) && uid == request.auth.uid) || isOwner(sid);
+    }
+
+    // Advisory per-event edit locks. TTL is enforced by clients on claim;
+    // rules only bind rows to their owners. Git history stays the real arbiter.
+    match /collabSessions/{sid}/locks/{scriptId} {
+      allow read: if isMember(sid);
+      allow create, update: if isMember(sid)
+        && request.resource.data.uid == request.auth.uid;
+      allow delete: if isMember(sid)
+        && (resource.data.uid == request.auth.uid || isOwner(sid));
     }
   }
 }

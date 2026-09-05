@@ -221,6 +221,9 @@ public class FormulaEditorFragment extends Fragment implements ViewTreeObserver.
 		if (activity == null) {
 			return;
 		}
+		if (!org.catrobat.catroid.collab.CollabGuards.claimForEdit(context, formulaBrick)) {
+			return;
+		}
 
         WorkspaceLayout workspaceLayout = activity.findViewById(R.id.workspace_layout);
         if (workspaceLayout != null && workspaceLayout.getVisibility() == View.VISIBLE) {

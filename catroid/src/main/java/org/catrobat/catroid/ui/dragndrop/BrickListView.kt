@@ -114,7 +114,11 @@ class BrickListView : ListView {
     }
 
     fun startMoving(brickToMove: Brick?) {
-        dragMode = if(SettingsFragment.isOldDragEnabled(CatroidApplication.getAppContext())) {
+        if (brickToMove != null
+            && !org.catrobat.catroid.collab.CollabGuards.claimForEdit(context, brickToMove)) {
+            return
+        }
+        dragMode = if (SettingsFragment.isOldDragEnabled(CatroidApplication.getAppContext())) {
             DragMode.NEW
         } else {
             DragMode.LEGACY

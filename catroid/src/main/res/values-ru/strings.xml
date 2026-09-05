@@ -6741,7 +6741,7 @@ Catrobat — это визуальный язык программировани
     <string name="collab_open_room">Открыть вход</string>
     <string name="collab_new_code">Новый код</string>
     <string name="collab_name_hint">Ваше имя</string>
-    <string name="collab_session_hint">КОД, например ABC123-456789</string>
+    <string name="collab_session_hint">КОД, например ABC234-456789</string>
     <string name="collab_offline">Вне комнаты</string>
     <string name="collab_connecting">Подключение…</string>
     <string name="collab_joined">Вы в комнате</string>
@@ -6759,4 +6759,5 @@ Catrobat — это визуальный язык программировани
     <string name="collab_approve_viewer">Наблюдатель</string>
     <string name="collab_you">вы</string>
     <string name="collab_project_mismatch">Внимание: проект комнаты отличается от открытого</string>
+    <string name="collab_locked_by">Редактирует %1$s</string>
 </resources>

@@ -19,7 +19,6 @@ object CollabSession {
     const val PRESENCE_TTL_MS = 20000L
     const val INVITE_TTL_MS = 24L * 60L * 60L * 1000L
     private const val TAG = "CollabSession"
-    private const val SID_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"
 
     @Volatile var sessionId: String? = null
         private set
@@ -34,6 +33,15 @@ object CollabSession {
     var onPresenceChanged: ((List<MemberPresence>) -> Unit)? = null
     var onRequestsChanged: ((Map<String, CollabRequest>) -> Unit)? = null
     var onMetaChanged: ((CollabMeta) -> Unit)? = null
+    var onAccessRevoked: (() -> Unit)? = null
+
+    private const val PREFS = "collab_prefs"
+    private const val KEY_SID = "session_id"
+    private const val KEY_UID = "session_uid"
+    private const val KEY_NAME = "session_name"
+    private const val KEY_HUE = "session_hue"
+
+    private data class StoredSession(val sid: String, val uid: String, val name: String, val hue: Float)
 
     val isActive: Boolean get() = sessionId != null && myUid != null
 
@@ -106,13 +114,9 @@ object CollabSession {
     private fun invitesRef(sid: String) = metaRef(sid)?.collection("invites")
     private fun requestsRef(sid: String) = metaRef(sid)?.collection("requests")
 
-    fun randomSessionId(): String {
-        return (1..6).map { SID_ALPHABET.random() }.joinToString("")
-    }
+    fun randomSessionId(): String = CollabCodes.randomSessionId()
 
-    fun randomInviteCode(): String {
-        return (1..6).map { ('0'..'9').random() }.joinToString("")
-    }
+    fun randomInviteCode(): String = CollabCodes.randomInviteCode()
 
     fun createSession(projectName: String, displayName: String, hue: Float, callback: (String?, String?) -> Unit) {
         CollabAuth.ensureSignedIn { uid ->
@@ -124,7 +128,12 @@ object CollabSession {
             val sid = randomSessionId()
             val code = randomInviteCode()
             val now = System.currentTimeMillis()
-            metaRef(sid)!!.document("meta").set(CollabMeta(
+            val metaDoc = metaRef(sid)?.collection("meta")?.document("meta")
+            if (metaDoc == null) {
+                callback(null, null)
+                return@ensureSignedIn
+            }
+            metaDoc.set(CollabMeta(
                 ownerUid = uid, ownerName = displayName, projectName = projectName,
                 createdAt = now
             ).toMap()).addOnSuccessListener {
@@ -287,7 +296,7 @@ object CollabSession {
         val sid = sessionId
         if (sid == null || !isHost) return
         try {
-            metaRef(sid)?.document("meta")?.update("closed", closed)
+            metaRef(sid)?.collection("meta")?.document("meta")?.update("closed", closed)
         } catch (e: Exception) {
             Log.w(TAG, "close failed", e)
         }
@@ -317,21 +326,33 @@ object CollabSession {
         val database = db()
         if (sid == null || database == null) return
         stopListeners()
-        metaReg = metaRef(sid)?.document("meta")?.addSnapshotListener { snap, error ->
-            if (error != null || snap == null || !snap.exists()) return@addSnapshotListener
+        metaReg = metaRef(sid)?.collection("meta")?.document("meta")?.addSnapshotListener { snap, error ->
+            if (error != null) {
+                handleListenerError(error)
+                return@addSnapshotListener
+            }
+            if (snap == null || !snap.exists()) return@addSnapshotListener
             val meta = CollabMeta.fromMap(snap.data)
             if (projectName.isEmpty()) projectName = meta.projectName
             onMetaChanged?.invoke(meta)
         }
         membersReg = membersRef(sid)?.addSnapshotListener { snap, error ->
-            if (error != null || snap == null) return@addSnapshotListener
+            if (error != null) {
+                handleListenerError(error)
+                return@addSnapshotListener
+            }
+            if (snap == null) return@addSnapshotListener
             val map = LinkedHashMap<String, CollabMember>()
             for (doc in snap.documents) map[doc.id] = CollabMember.fromMap(doc.data)
             if (myUid != null && map.containsKey(myUid)) myRole = map[myUid]?.role ?: myRole
             onMembersChanged?.invoke(map)
         }
         presenceReg = presenceRef(sid)?.addSnapshotListener { snap, error ->
-            if (error != null || snap == null) return@addSnapshotListener
+            if (error != null) {
+                handleListenerError(error)
+                return@addSnapshotListener
+            }
+            if (snap == null) return@addSnapshotListener
             val now = System.currentTimeMillis()
             val list = ArrayList<MemberPresence>()
             for (doc in snap.documents) {
@@ -358,6 +379,18 @@ object CollabSession {
         }
     }
 
+    private fun handleListenerError(error: Exception) {
+        if (!CollabAccess.isRevoked((error as? FirebaseFirestoreException)?.code)) return
+        Log.w(TAG, "access revoked, leaving session")
+        val callback = onAccessRevoked
+        leave()
+        try {
+            callback?.invoke()
+        } catch (e: Exception) {
+            Log.w(TAG, "revoke callback failed", e)
+        }
+    }
+
     fun leave() {
         try {
             val sid = sessionId
@@ -380,13 +413,95 @@ object CollabSession {
         isHost = false
         projectName = ""
         lastPresence = null
+        clearStored()
         PresenceRenderer.clear()
+    }
+
+    fun restoreSession(callback: (Boolean) -> Unit) {
+        if (isActive) {
+            callback(true)
+            return
+        }
+        val stored = readStored()
+        if (stored == null) {
+            callback(false)
+            return
+        }
+        CollabAuth.ensureSignedIn { uid ->
+            val database = db()
+            if (uid == null || database == null || uid != stored.uid) {
+                clearStored()
+                callback(false)
+                return@ensureSignedIn
+            }
+            database.collection(ROOT).document(stored.sid)
+                .collection("members").document(uid).get()
+                .addOnSuccessListener { snap ->
+                    if (snap != null && snap.exists()) {
+                        val member = CollabMember.fromMap(snap.data)
+                        PresenceRenderer.myName = stored.name
+                        PresenceRenderer.myHue = stored.hue
+                        enterLocalState(stored.sid, uid, "")
+                        isHost = member.role == CollabRoles.HOST
+                        myRole = member.role
+                        startListeners()
+                        callback(true)
+                    } else {
+                        clearStored()
+                        callback(false)
+                    }
+                }
+                .addOnFailureListener {
+                    callback(false)
+                }
+        }
+    }
+
+    private fun prefs() = try {
+        org.catrobat.catroid.CatroidApplication.getAppContext()
+            .getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+    } catch (e: Exception) {
+        null
+    }
+
+    private fun persistStored() {
+        try {
+            prefs()?.edit()
+                ?.putString(KEY_SID, sessionId)
+                ?.putString(KEY_UID, myUid)
+                ?.putString(KEY_NAME, PresenceRenderer.myName)
+                ?.putFloat(KEY_HUE, PresenceRenderer.myHue)
+                ?.apply()
+        } catch (e: Exception) {
+            Log.w(TAG, "persist failed", e)
+        }
+    }
+
+    private fun readStored(): StoredSession? {
+        return try {
+            val prefs = prefs() ?: return null
+            val sid = prefs.getString(KEY_SID, "").orEmpty()
+            val uid = prefs.getString(KEY_UID, "").orEmpty()
+            if (sid.isEmpty() || uid.isEmpty()) return null
+            StoredSession(sid, uid, prefs.getString(KEY_NAME, "").orEmpty(), prefs.getFloat(KEY_HUE, 0f))
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    private fun clearStored() {
+        try {
+            prefs()?.edit()?.remove(KEY_SID)?.remove(KEY_UID)?.remove(KEY_NAME)?.remove(KEY_HUE)?.apply()
+        } catch (e: Exception) {
+            Log.w(TAG, "clear stored failed", e)
+        }
     }
 
     private fun enterLocalState(sid: String, uid: String, project: String) {
         sessionId = sid
         myUid = uid
         projectName = project
+        persistStored()
     }
 
     private fun stopListeners() {

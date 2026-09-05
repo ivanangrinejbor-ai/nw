@@ -5803,7 +5803,7 @@ needs read and write access to it. You can always change permissions through you
     <string name="collab_open_room">Open join</string>
     <string name="collab_new_code">New code</string>
     <string name="collab_name_hint">Your name</string>
-    <string name="collab_session_hint">CODE, e.g. ABC123-456789</string>
+    <string name="collab_session_hint">CODE, e.g. ABC234-456789</string>
     <string name="collab_offline">Not in a room</string>
     <string name="collab_connecting">Connecting…</string>
     <string name="collab_joined">Joined the room</string>
@@ -5821,4 +5821,5 @@ needs read and write access to it. You can always change permissions through you
     <string name="collab_approve_viewer">Viewer</string>
     <string name="collab_you">you</string>
     <string name="collab_project_mismatch">Warning: room project differs from open project</string>
+    <string name="collab_locked_by">Edited by %1$s</string>
 </resources>

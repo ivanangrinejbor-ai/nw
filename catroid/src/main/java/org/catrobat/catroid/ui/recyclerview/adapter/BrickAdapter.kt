@@ -273,6 +273,10 @@ class BrickAdapter(val sprite: Sprite) :
             itemView.alpha = baseAlpha
         }
 
+        if (org.catrobat.catroid.collab.CollabGuards.isLockedByOther(item)) {
+            itemView.alpha = baseAlpha * 0.72f
+        }
+
         var brickViewContainer = itemView.getChildAt(1)
         if (item is UserDefinedReceiverBrick) {
             brickViewContainer = (itemView.getChildAt(1) as ViewGroup).getChildAt(0)

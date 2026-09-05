@@ -164,6 +164,7 @@ public class ScriptFragment extends ListFragment implements
 		BrickAdapter.OnScriptChangedListener {
 
 	public static final String TAG = ScriptFragment.class.getSimpleName();
+	private static final String LOCK_OBSERVER_KEY = "script_locks";
 	private static final String BRICK_TAG = "brickToFocus";
 	private static final String SCRIPT_TAG = "scriptToFocus";
 
@@ -561,6 +562,18 @@ public class ScriptFragment extends ListFragment implements
 		startAiAnalysisTimer();
 
 		refreshFastScroll();
+
+		if (org.catrobat.catroid.collab.CollabSession.INSTANCE.isActive()
+				&& org.catrobat.catroid.collab.CollabSession.INSTANCE.getSessionId() != null) {
+			org.catrobat.catroid.collab.ScriptLockManager.INSTANCE.start(
+					org.catrobat.catroid.collab.CollabSession.INSTANCE.getSessionId());
+			org.catrobat.catroid.collab.ScriptLockManager.INSTANCE.addObserver(LOCK_OBSERVER_KEY, () -> {
+				if (isAdded() && adapter != null) {
+					requireActivity().runOnUiThread(() -> adapter.refreshBrickViews());
+				}
+				return null;
+			});
+		}
     }
 
     @Override
@@ -580,6 +593,8 @@ public class ScriptFragment extends ListFragment implements
 
 		AnalysisManager.INSTANCE.clearResults();
 		stopAiAnalysisTimer();
+		org.catrobat.catroid.collab.ScriptLockManager.INSTANCE.removeObserver(LOCK_OBSERVER_KEY);
+		org.catrobat.catroid.collab.ScriptLockManager.INSTANCE.stop();
 	}
 
 	private void startAiAnalysisTimer() {
@@ -976,6 +991,10 @@ public class ScriptFragment extends ListFragment implements
             return;
         }
 
+        if (!org.catrobat.catroid.collab.CollabGuards.claimForEdit(getContext(), brick)) {
+            return;
+        }
+
         List<Integer> options = getContextMenuItems(brick);
         List<String> names = new ArrayList<>();
         for (Integer option : options) {
@@ -1247,6 +1266,20 @@ case R.string.brick_context_dialog_system_info:
 
     private void pasteBricksBelow(List<Brick> originalBricks, Brick targetBrick) {
         if (originalBricks == null || originalBricks.isEmpty()) return;
+
+        if (org.catrobat.catroid.collab.CollabGuards.isLockedByOther(targetBrick)) {
+            boolean joinsTargetScript = false;
+            for (Brick pasted : originalBricks) {
+                if (!(pasted instanceof org.catrobat.catroid.content.bricks.ScriptBrick)) {
+                    joinsTargetScript = true;
+                    break;
+                }
+            }
+            if (joinsTargetScript) {
+                org.catrobat.catroid.collab.CollabGuards.refuseToast(getContext(), targetBrick);
+                return;
+            }
+        }
 
         Sprite sprite = ProjectManager.getInstance().getCurrentSprite();
         List<Brick> clonedBricks = new ArrayList<>();
@@ -1732,6 +1765,11 @@ case R.string.brick_context_dialog_system_info:
 			ToastUtil.showError(getContext(), R.string.protected_project_cannot_edit);
 			return;
 		}
+		Brick collabLocked = org.catrobat.catroid.collab.CollabGuards.firstLockedByOther(selectedBricks);
+		if (collabLocked != null) {
+			org.catrobat.catroid.collab.CollabGuards.refuseToast(getContext(), collabLocked);
+			return;
+		}
 		List<Brick> group = collectLockGroups(selectedBricks);
 		List<UserVariable> lockedVars = collectLockedVariables(selectedBricks);
 		if (isGroupLocked(group) || !lockedVars.isEmpty()) {
@@ -1890,6 +1928,11 @@ case R.string.brick_context_dialog_system_info:
 
 	private void toggleComments(List<Brick> selectedBricks) {
 		if (selectedBricks.isEmpty()) {
+			return;
+		}
+		Brick collabLocked = org.catrobat.catroid.collab.CollabGuards.firstLockedByOther(selectedBricks);
+		if (collabLocked != null) {
+			org.catrobat.catroid.collab.CollabGuards.refuseToast(getContext(), collabLocked);
 			return;
 		}
 		boolean allCommentedOut = true;

@@ -35,6 +35,11 @@ class CollabDialog(
         build()
         dialog?.show()
         attachCallbacks()
+        if (!CollabSession.isActive) {
+            CollabSession.restoreSession {
+                activity.runOnUiThread { refresh() }
+            }
+        }
         refresh()
     }
 
@@ -73,6 +78,7 @@ class CollabDialog(
             CollabSession.onMembersChanged = null
             CollabSession.onRequestsChanged = null
             CollabSession.onMetaChanged = null
+            CollabSession.onAccessRevoked = null
             PresenceRenderer.removeObserver(OBSERVER_KEY)
         }
     }
@@ -95,6 +101,9 @@ class CollabDialog(
                 this.meta = meta
                 refreshLists()
             }
+        }
+        CollabSession.onAccessRevoked = {
+            activity.runOnUiThread { refresh() }
         }
         PresenceRenderer.addObserver(OBSERVER_KEY) {
             activity.runOnUiThread { refreshLists() }
@@ -241,7 +250,7 @@ class CollabDialog(
 
     private fun startJoin(name: String, raw: String) {
         val parts = raw.trim().uppercase().split("-")
-        if (parts.size != 2 || parts[0].length != 6 || parts[1].length != 6) {
+        if (parts.size != 2 || !CollabCodes.isValidSessionId(parts[0]) || !CollabCodes.isValidInviteCode(parts[1])) {
             ToastUtil.showError(activity, R.string.collab_bad_code)
             return
         }

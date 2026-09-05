@@ -22,3 +22,29 @@ object PresenceFreshness {
         return age in 0..ttlMs
     }
 }
+
+object CollabAccess {
+    fun isRevoked(errorCode: Any?): Boolean {
+        return errorCode?.toString() == "PERMISSION_DENIED"
+    }
+}
+
+object CollabCodes {
+    const val SID_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"
+
+    fun randomSessionId(): String {
+        return (1..6).map { SID_ALPHABET.random() }.joinToString("")
+    }
+
+    fun randomInviteCode(): String {
+        return (1..6).map { ('0'..'9').random() }.joinToString("")
+    }
+
+    fun isValidSessionId(value: String): Boolean {
+        return value.length == 6 && value.all { SID_ALPHABET.contains(it) }
+    }
+
+    fun isValidInviteCode(value: String): Boolean {
+        return value.length == 6 && value.all { it in '0'..'9' }
+    }
+}

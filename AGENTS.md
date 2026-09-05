@@ -899,3 +899,49 @@ OBB/ray-triangle пикинг; dirty-flag трансформов; кэш bbox ra
 `./gradlew :catroid:compileCatroidDebugKotlin :catroid:compileCatroidDebugJavaWithJavac --offline` — OK.
 Формула-тесты formulaeditor.*: 72 фейла pre-existing (stash-бисекция InternFormulaParser: те же на HEAD).
 
+---
+
+# Совместное редактирование P0 (presence + scriptId-локи, 2026-09)
+
+## Архитектура (зафиксировано; своего сервера нет)
+- **RTDB — НЕ используется** (не provisioned: в google-services.json нет firebase_url).
+  Presence/heartbeat идут через Firestore (heartbeat 5с, TTL-фильтр 20с на клиенте).
+- **Firestore (default app, catroid-b0d71)** — `collabSessions/{sid}/`:
+  `meta/meta`, `members/{uid}`, `invites/{code}`, `requests/{uid}`,
+  `presence/{uid}`, `locks/{scriptId}`. Compound-индексов не нужно
+  (только get/doc-слушатели коллекций без where/orderBy).
+- **Telemetry-Firestore (privacy-neocatroid, отдельный FirebaseApp) — не трогать**,
+  коллаб туда ничего не пишет. Настройки Firestore default-инстанса не меняем
+  (иначе заденем Firestore-брики).
+- **GitHub/JGit — только P1+** (синк проекта). В P0 git-кода для коллаба нет.
+
+## Файлы
+```
+collab/
+  CollabModels.kt / CollabPure.kt (BorderSegments, PresenceFreshness, CollabAccess, CollabCodes, HsvColor)
+  CollabSession.kt (сессии, heartbeat, PERMISSION_DENIED -> локальный leave, persist sid для reconnect)
+  PresenceReporter.kt / PresenceRenderer.kt / PresenceBorderDrawable.kt / PresenceColors.kt
+  ScriptLocks.kt (policy + менеджер + Firestore/Fake бэкенды, heartbeat 10с, TTL 30с)
+  CollabGuards.kt (@JvmStatic гарды для Java-соседей) / CollabAuth.kt / CollabDialog.kt
+test/collab/ — 47 JVM-тестов (models, policy, manager+fake, pure, access)
+collab-firestore.rules — правила для консоли; collab-rules.test.js — emulator-suite
+```
+
+## Швы enforcement (view-only чужого события)
+- drag: `BrickListView.startMoving`; формулы: `FormulaEditorFragment.showFragment` +
+  `WorkspaceLayout.openFormulaEditorWindow`; меню брика: `ScriptFragment.onBrickClick`;
+  action-mode: `showDeleteAlert`, `toggleComments`, `pasteBricksBelow` (ScriptBrick-вставки
+  в новый скрипт разрешены); дим чужих строк в `BrickAdapter.getView`.
+- Claim своего: те же точки входа; release в `ScriptFragment.onPause`
+  (`stop()` сначала релизит, потом null'ит sessionId — порядок важен, покрыто тестом).
+- Offline = fail-open локально (координировать не с кем); арбитр — git-merge в P2.
+- Известные обходы P0 (не чинить здесь): CatBlocks (`useCatBlocks`, default off),
+  SceneEditor (`isSceneEditorModeEnabled`, default off), project-undo (модельный снапшот),
+  модифицированный клиент (угроза вне модели: серверный enforcement только GitHub из P1).
+
+## Правила безопасности (идея)
+- members пишут только owner (`meta.ownerUid`); presence — только свой doc;
+  invite claim — одноразовый через транзакцию (`usedBy==''`, часы сервера);
+  локи привязаны к uid (TTL advisory, проверяется клиентом).
+- Никогда: общий PAT, PAT в QR (там только `SID-CODE`), удаление репо при закрытии.
+

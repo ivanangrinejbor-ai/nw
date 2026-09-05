@@ -339,7 +339,6 @@ class ProjectActivity : BaseCastActivity() {
         menu.findItem(R.id.from_library).isVisible = false
         menu.findItem(R.id.from_local).isVisible = false
         menu.findItem(R.id.edit).isVisible = false
-        menu.findItem(R.id.collab).isVisible = true
         menu.findItem(R.id.menu_ai_chat).isVisible =
             org.catrobat.catroid.ai.AiAgentManager.instance.isEnabled()
         if (SettingsFragment.isSceneEditorModeEnabled(this)) {
@@ -400,10 +399,6 @@ class ProjectActivity : BaseCastActivity() {
             R.id.editor3d -> {
                 val intent = Intent(this, EditorActivity::class.java)
                 startActivity(intent)
-            }
-            R.id.collab -> {
-                val name = ProjectManager.getInstance().currentProject?.name.orEmpty()
-                org.catrobat.catroid.collab.CollabDialog(this, name).show()
             }
             else -> return super.onOptionsItemSelected(item)
         }
